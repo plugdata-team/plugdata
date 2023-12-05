@@ -47,11 +47,10 @@ static void *minimum_new(t_floatarg f)
     return (x);
 }
 
-CYCLONE_OBJ_API void minimum_tilde_setup(void)
-{
+CYCLONE_OBJ_API void minimum_tilde_setup(void){
     minimum_class = class_new(gensym("minimum~"),
-			      (t_newmethod)minimum_new, 0,
-			      sizeof(t_minimum), 0, A_DEFFLOAT, 0);
+        (t_newmethod)minimum_new, 0, sizeof(t_minimum), 0, A_DEFFLOAT, 0);
     class_addmethod(minimum_class, (t_method)minimum_dsp, gensym("dsp"), A_CANT, 0);
     CLASS_MAINSIGNALIN(minimum_class, t_minimum, x_input);
+    pd_error(minimum_class, "[cyclone/minimum~] is deprecated, consider using vanilla's [min~] instead");
 }

@@ -8,32 +8,30 @@
 
 #include "Constants.h"
 #include "Utility/SettingsFile.h"
+#include "Utility/WindowDragger.h"
+#include "PluginEditor.h"
 
-class PluginEditor;
 class Canvas;
-
-using ArrayDialogCallback = std::function<void(int, String, int, int, bool, std::pair<float, float>)>;
 
 class Dialog : public Component {
 
 public:
     Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWidth, int childHeight, bool showCloseButton, int margin = 0)
-        : parentComponent(editor)
-        , height(childHeight)
+        : height(childHeight)
         , width(childWidth)
+        , parentComponent(editor)
         , owner(ownerPtr)
         , backgroundMargin(margin)
     {
         parentComponent->addAndMakeVisible(this);
+
         setBounds(0, 0, parentComponent->getWidth(), parentComponent->getHeight());
 
         setAlwaysOnTop(true);
         setWantsKeyboardFocus(true);
 
-        grabKeyboardFocus();
-
         if (showCloseButton) {
-            closeButton.reset(getLookAndFeel().createDocumentWindowButton(DocumentWindow::closeButton));
+            closeButton.reset(getLookAndFeel().createDocumentWindowButton(-1));
             addAndMakeVisible(closeButton.get());
             closeButton->onClick = [this]() {
                 closeDialog();
@@ -41,13 +39,38 @@ public:
             closeButton->setAlwaysOnTop(true);
         }
 
-        // Some parts of the code check for an active dialog to decide if it needs to paint an outline
-        getTopLevelComponent()->repaint();
+        // Make sure titlebar buttons are greyed out when a dialog is showing
+        if (auto* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent())) {
+            if (ProjectInfo::isStandalone) {
+                if (auto* closeButton = window->getCloseButton())
+                    closeButton->setEnabled(false);
+                if (auto* minimiseButton = window->getMinimiseButton())
+                    minimiseButton->setEnabled(false);
+                if (auto* maximiseButton = window->getMaximiseButton())
+                    maximiseButton->setEnabled(false);
+            }
+            window->repaint();
+        }
+    }
+
+    ~Dialog()
+    {
+        if (auto* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent())) {
+            if (ProjectInfo::isStandalone) {
+                if (auto* closeButton = window->getCloseButton())
+                    closeButton->setEnabled(true);
+                if (auto* minimiseButton = window->getMinimiseButton())
+                    minimiseButton->setEnabled(true);
+                if (auto* maximiseButton = window->getMaximiseButton())
+                    maximiseButton->setEnabled(true);
+            }
+        }
     }
 
     void setViewedComponent(Component* child)
     {
         viewedComponent.reset(child);
+        viewedComponent->addMouseListener(this, false);
         addAndMakeVisible(child);
         resized();
     }
@@ -93,12 +116,35 @@ public:
         }
 
         if (closeButton) {
-            auto macOSStyle = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");
             auto closeButtonBounds = Rectangle<int>(viewedComponent->getRight() - 35, viewedComponent->getY() + 8, 28, 28);
-            closeButton->setBounds(closeButtonBounds.reduced(macOSStyle ? 5 : 0));
+            closeButton->setBounds(closeButtonBounds);
         }
     }
 
+    void mouseDown(MouseEvent const& e) override
+    {
+        if (isPositiveAndBelow(e.getEventRelativeTo(viewedComponent.get()).getMouseDownY(), 40) && ProjectInfo::isStandalone) {
+            dragger.startDraggingWindow(parentComponent->getTopLevelComponent(), e);
+            dragging = true;
+        } else if (!viewedComponent->getBounds().contains(e.getPosition())) {
+            closeDialog();
+        }
+    }
+
+    void mouseDrag(MouseEvent const& e) override
+    {
+        if (dragging) {
+            dragger.dragWindow(parentComponent->getTopLevelComponent(), e, nullptr);
+        }
+    }
+    
+    void mouseUp(MouseEvent const& e) override
+    {
+        dragging = false;
+    }
+
+    
+    
     bool keyPressed(KeyPress const& key) override
     {
         if (key == KeyPress::escapeKey) {
@@ -109,11 +155,6 @@ public:
         return false;
     }
 
-    void mouseDown(MouseEvent const& e) override
-    {
-        closeDialog();
-    }
-
     void closeDialog()
     {
         owner->reset(nullptr);
@@ -122,11 +163,13 @@ public:
     int height, width;
 
     Component* parentComponent;
+    WindowDragger dragger;
 
     std::unique_ptr<Component> viewedComponent = nullptr;
     std::unique_ptr<Button> closeButton = nullptr;
     std::unique_ptr<Dialog>* owner;
 
+    bool dragging = false;
     int backgroundMargin = 0;
 };
 
@@ -134,14 +177,11 @@ struct Dialogs {
     static Component* showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> callback);
     static void appendTextToTextEditorDialog(Component* dialog, String const& text);
 
-    static void showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String const& filename, std::function<void(int)> callback, int margin = 0, bool withLogo = true);
-    static void showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre, ArrayDialogCallback callback);
+    static void showAskToSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String const& filename, std::function<void(int)> callback, int margin = 0, bool withLogo = true);
 
     static void showSettingsDialog(PluginEditor* editor);
 
     static void showMainMenu(PluginEditor* editor, Component* centre);
-
-    static void askToLocatePatch(PluginEditor* editor, String const& backupState, std::function<void(File)> callback);
 
     static void showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> const& callback);
 
@@ -158,6 +198,12 @@ struct Dialogs {
     static void showPatchStorage(PluginEditor* editor);
 
     static PopupMenu createObjectMenu(PluginEditor* parent);
+    
+    static void showOpenDialog(std::function<void(File&)> callback, bool canSelectFiles, bool canSelectDirectories, const String& lastFileId, const String& extension);
+
+    static void showSaveDialog(std::function<void(File&)> callback, const String& extension, const String& lastFileId, bool directoryMode = false);
+    
+    static inline std::unique_ptr<FileChooser> fileChooser = nullptr;
 };
 
 struct DekenInterface {

@@ -27,11 +27,6 @@ struct ExporterBase : public Component
 
     bool validPatchSelected = false;
 
-    std::unique_ptr<FileChooser> saveChooser;
-    std::unique_ptr<FileChooser> openChooser;
-
-    // OwnedArray<PropertiesPanel::Property> properties;
-
     File patchFile;
     File openedPatchFile;
     File realPatchFile;
@@ -51,18 +46,23 @@ struct ExporterBase : public Component
         , editor(pluginEditor)
     {
         addAndMakeVisible(exportButton);
-        
-        exportButton.setColour(TextButton::buttonColourId, findColour(PlugDataColour::panelBackgroundColourId));
-        exportButton.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
-        
-        Array<PropertiesPanel::Property*> properties;
+
+        auto backgroundColour = findColour(PlugDataColour::panelBackgroundColourId);
+        exportButton.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+        exportButton.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
+        exportButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+
+        Array<PropertiesPanelProperty*> properties;
 
         auto* patchChooser = new PropertiesPanel::ComboComponent("Patch to export", inputPatchValue, { "Currently opened patch", "Other patch (browse)" });
         patchChooser->comboBox.setTextWhenNothingSelected("Choose a patch to export...");
         patchChooser->comboBox.setSelectedId(-1);
         properties.add(patchChooser);
 
-        properties.add(new PropertiesPanel::EditableComponent<String>("Project Name (optional)", projectNameValue));
+        auto* nameProperty = new PropertiesPanel::EditableComponent<String>("Project Name (optional)", projectNameValue);
+        nameProperty->setInputRestrictions("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_");
+        properties.add(nameProperty);
+        
         properties.add(new PropertiesPanel::EditableComponent<String>("Project Copyright (optional)", projectCopyrightValue));
 
         for (auto* property : properties) {
@@ -96,16 +96,12 @@ struct ExporterBase : public Component
             validPatchSelected = false;
         }
 
-        exportButton.onClick = [this]() {
-            saveChooser = std::make_unique<FileChooser>("Choose a location...", File::getSpecialLocation(File::userHomeDirectory), "", true);
-
-            saveChooser->launchAsync(FileBrowserComponent::canSelectDirectories,
-                [this](const FileChooser& fileChooser) {
-                    const auto folder = fileChooser.getResult();
-                    if(folder.exists()) {
-                        startExport(folder);
-                    }
-                });
+        exportButton.onClick = [this](){
+            Dialogs::showSaveDialog([this](File& result){
+                if (result.getParentDirectory().exists()) {
+                    startExport(result);
+                }
+            }, "", "HeavyExport", true);
         };
     }
 
@@ -120,6 +116,10 @@ struct ExporterBase : public Component
             kill();
         removeAllJobs(true, -1);
     }
+
+        
+    virtual ValueTree getState() = 0;
+    virtual void setState(ValueTree& state) = 0;
 
     void startExport(File const& outDir)
     {
@@ -138,7 +138,7 @@ struct ExporterBase : public Component
         // Get pd's search paths
         char* paths[1024];
         int numItems;
-        libpd_get_search_paths(paths, &numItems);
+        pd::Interface::getSearchPaths(paths, &numItems);
 
         if (realPatchFile.existsAsFile()) {
             searchPaths.add(realPatchFile.getParentDirectory().getFullPathName());
@@ -180,11 +180,7 @@ struct ExporterBase : public Component
                 patchFile = openedPatchFile;
                 validPatchSelected = true;
             } else if (idx == 2) {
-                // Open file browser
-                openChooser = std::make_unique<FileChooser>("Choose file to open", File::getSpecialLocation(File::userHomeDirectory), "*.pd", true);
-
-                openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [this](FileChooser const& fileChooser) {
-                    auto result = fileChooser.getResult();
+                Dialogs::showOpenDialog([this](File& result){
                     if (result.existsAsFile()) {
                         patchFile = result;
                         validPatchSelected = true;
@@ -193,7 +189,7 @@ struct ExporterBase : public Component
                         patchFile = "";
                         validPatchSelected = false;
                     }
-                });
+                }, true, false, "*.pd", "HeavyPatchLocation");
             }
         }
 

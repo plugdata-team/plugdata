@@ -26,8 +26,8 @@ flags:
   - name: -size <float>
     description: font size (minimum 8)
     default: patch's
-  - name: -init <float>
-    description: sets initial generating value
+  - name: -load <float>
+    description: sets initialization and generating value with given float or sets current value if no float is given.
   - name: -width <float>
     description: sets digit width (minimum 1)
     default: 6
@@ -64,7 +64,9 @@ methods:
     description: sets ramp time in ms
   - type: rate <float>
     description: sets refresh rate in ms
-
+  - type: load <float>
+    description: sets initial generating value (default 0)
+    
 draft: false
 ---
 

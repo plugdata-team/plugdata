@@ -187,7 +187,6 @@ void Iolet::mouseUp(MouseEvent const& e)
             createConnection();
 
         } else if (!cnv->connectionsBeingCreated.isEmpty()) {
-            bool createdConnection = false;
             if (!wasDragged && !shiftIsDown) {
                 createConnection();
                 cnv->cancelConnectionCreation();
@@ -197,7 +196,6 @@ void Iolet::mouseUp(MouseEvent const& e)
 
                 cnv->nearestIolet->isTargeted = false;
                 cnv->nearestIolet->repaint();
-                createdConnection = true;
 
                 // CreateConnection will automatically create connections for all connections that are being created!
                 cnv->nearestIolet->createConnection();
@@ -357,10 +355,13 @@ void Iolet::createConnection()
                 auto outIdx = outlet->ioletIdx;
                 auto inIdx = inlet->ioletIdx;
 
-                if (!outobj->getPointer() || !inobj->getPointer())
+                auto* outptr = pd::Interface::checkObject(outobj->getPointer());
+                auto* inptr = pd::Interface::checkObject(inobj->getPointer());
+
+                if (!outptr || !inptr)
                     return;
 
-                cnv->patch.createConnection(outobj->getPointer(), outIdx, inobj->getPointer(), inIdx);
+                cnv->patch.createConnection(outptr, outIdx, inptr, inIdx);
             }
         }
 
@@ -395,10 +396,11 @@ void Iolet::clearConnections()
 {
     auto* cnv = object->cnv;
     for (auto* c : getConnections()) {
-
-        if (cnv->patch.hasConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx)) {
+        auto* checkedOutObj = pd::Interface::checkObject(c->outobj->getPointer());
+        auto* checkedInObj = pd::Interface::checkObject(c->inobj->getPointer());
+        if (checkedInObj && checkedOutObj && cnv->patch.hasConnection(checkedOutObj, c->outIdx, checkedInObj, c->inIdx)) {
             // Delete connection from pd if we haven't done that yet
-            cnv->patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getPathState());
+            cnv->patch.removeConnection(checkedOutObj, c->outIdx, checkedInObj, c->inIdx, c->getPathState());
         }
 
         cnv->connections.removeObject(c);

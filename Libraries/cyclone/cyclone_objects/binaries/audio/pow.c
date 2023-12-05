@@ -53,14 +53,15 @@ CYCLONE_OBJ_API void pow_tilde_setup(void)
     class_addmethod(pow_class, nullfn, gensym("signal"), 0);
     class_addmethod(pow_class, (t_method) pow_dsp, gensym("dsp"), A_CANT, 0);
     class_sethelpsymbol(pow_class, gensym("pow~"));
+    pd_error(pow_class, "[cyclone/pow~] is deprecated, consider adapting and using vanilla's [pow~] instead");
 }
 
-CYCLONE_OBJ_API void Pow_tilde_setup(void)
-{
+CYCLONE_OBJ_API void Pow_tilde_setup(void){
     pow_class = class_new(gensym("Pow~"),
         (t_newmethod)pow_new, 0, sizeof(t_pow), CLASS_DEFAULT, A_DEFFLOAT, 0);
     class_addmethod(pow_class, nullfn, gensym("signal"), 0);
     class_addmethod(pow_class, (t_method) pow_dsp, gensym("dsp"), A_CANT, 0);
-    class_sethelpsymbol(pow_class, gensym("Pow~"));
+    class_sethelpsymbol(pow_class, gensym("pow~"));
     pd_error(pow_class, "Cyclone: please use [cyclone/pow~] instead of [Pow~] to suppress this error");
+    pd_error(pow_class, "[cyclone/pow~] is deprecated, consider adapting and using vanilla's [pow~] instead");
 }

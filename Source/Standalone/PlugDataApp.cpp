@@ -22,6 +22,7 @@
 
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
+#include "Pd/Setup.h"
 
 #include "PlugDataWindow.h"
 #include "Canvas.h"
@@ -29,10 +30,6 @@
 #include "PluginEditor.h"
 
 #include "Dialogs/Dialogs.h"
-
-extern "C" {
-#include <x_libpd_multi.h>
-}
 
 #if JUCE_WINDOWS
 #    include <filesystem>
@@ -47,36 +44,9 @@ extern "C" {
 #    define snprintf _snprintf
 #endif
 
-struct t_namelist /* element in a linked list of stored strings */
-{
-    struct t_namelist* nl_next; /* next in list */
-    char* nl_string;            /* the string */
-};
-
-static void namelist_free(t_namelist* listwas)
-{
-    t_namelist *nl, *nl2;
-    for (nl = listwas; nl; nl = nl2) {
-        nl2 = nl->nl_next;
-        t_freebytes(nl->nl_string, strlen(nl->nl_string) + 1);
-        t_freebytes(nl, sizeof(*nl));
-    }
-}
-static char const* strtokcpy(char* to, size_t to_len, char const* from, char delim)
-{
-    unsigned int i = 0;
-
-    for (; i < (to_len - 1) && from[i] && from[i] != delim; i++)
-        to[i] = from[i];
-    to[i] = '\0';
-
-    if (i && from[i] != '\0')
-        return from + i + 1;
-
-    return nullptr;
-}
-
 class PlugDataApp : public JUCEApplication {
+
+    Image logo = ImageFileFormat::loadFrom(BinaryData::plugdata_logo_png, BinaryData::plugdata_logo_pngSize);
 
 public:
     PlugDataApp()
@@ -116,33 +86,137 @@ public:
         auto tokens = StringArray::fromTokens(commandLine, " ", "\"");
         auto file = File(tokens[0].unquoted());
         if (file.existsAsFile()) {
-            auto* pd = dynamic_cast<PluginProcessor*>(mainWindow->getAudioProcessor());
-
-            if (pd && file.existsAsFile()) {
-                pd->loadPatch(file);
+            auto* pd = dynamic_cast<PluginProcessor*>(pluginHolder->processor.get());
+            auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
+            if (pd && editor && file.existsAsFile()) {
+                auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
+                pd->loadPatch(file, editor);
                 SettingsFile::getInstance()->addToRecentlyOpened(file);
             }
         }
-    }
-
-    PlugDataWindow* createWindow(String const& systemArgs)
-    {
-        return new PlugDataWindow(systemArgs, getApplicationName(), LookAndFeel::getDefaultLookAndFeel().findColour(ResizableWindow::backgroundColourId), appProperties.getUserSettings(), false, {}, nullptr, {});
     }
 
     void initialise(String const& arguments) override
     {
         LookAndFeel::getDefaultLookAndFeel().setColour(ResizableWindow::backgroundColourId, Colours::transparentBlack);
 
-        mainWindow.reset(createWindow(arguments));
+        pluginHolder = std::make_unique<StandalonePluginHolder>(appProperties.getUserSettings(), false, "");
+
+        mainWindow = new PlugDataWindow(pluginHolder->processor->createEditorIfNeeded());
 
         mainWindow->setVisible(true);
+        parseSystemArguments(arguments);
+
+#if JUCE_LINUX || JUCE_BSD
+        mainWindow->getPeer()->setIcon(logo);
+#endif
+
+        auto getWindowScreenBounds = [this]() -> juce::Rectangle<int> {
+            const auto width = mainWindow->getWidth();
+            const auto height = mainWindow->getHeight();
+
+            const auto& displays = Desktop::getInstance().getDisplays();
+
+            if (auto* props = pluginHolder->settings.get()) {
+                constexpr int defaultValue = -100;
+
+                const auto x = props->getIntValue("windowX", defaultValue);
+                const auto y = props->getIntValue("windowY", defaultValue);
+
+                if (x != defaultValue && y != defaultValue) {
+                    const auto screenLimits = displays.getDisplayForRect({ x, y, width, height })->userArea;
+
+                    return { jlimit(screenLimits.getX(), jmax(screenLimits.getX(), screenLimits.getRight() - width), x), jlimit(screenLimits.getY(), jmax(screenLimits.getY(), screenLimits.getBottom() - height), y), width, height };
+                }
+            }
+
+            const auto displayArea = displays.getPrimaryDisplay()->userArea;
+
+            return { displayArea.getCentreX() - width / 2, displayArea.getCentreY() - height / 2, width, height };
+        };
+        mainWindow->setBoundsConstrained(getWindowScreenBounds());
     }
 
     void shutdown() override
     {
         mainWindow = nullptr;
+        pluginHolder->stopPlaying();
+        pluginHolder = nullptr;
         appProperties.saveIfNeeded();
+    }
+
+    int parseSystemArguments(String const& arguments)
+    {
+        auto settingsTree = SettingsFile::getInstance()->getValueTree();
+        bool hasReloadStateProperty = settingsTree.hasProperty("reload_last_state");
+
+        // When starting with any sysargs, assume we don't want the last patch to open
+        // Prevents a possible crash and generally kinda makes sense
+        if (arguments.isEmpty() && hasReloadStateProperty && static_cast<bool>(settingsTree.getProperty("reload_last_state"))) {
+            pluginHolder->reloadPluginState();
+        }
+
+        auto args = StringArray::fromTokens(arguments, true);
+        size_t argc = args.size();
+
+        auto argv = std::vector<char const*>(argc);
+
+        for (int i = 0; i < args.size(); i++) {
+            argv[i] = args.getReference(i).toRawUTF8();
+        }
+
+        t_namelist* openlist = nullptr;
+        t_namelist* messagelist = nullptr;
+
+        int retval = 0; // parse_startup_arguments(argv.data(), argc, &openlist, &messagelist);
+
+        StringArray openedPatches;
+        // open patches specifies with "-open" args
+        for (auto* nl = openlist; nl; nl = nl->nl_next) {
+            auto toOpen = File(String(nl->nl_string).unquoted());
+            if (toOpen.existsAsFile() && toOpen.hasFileExtension("pd")) {
+
+                auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
+                if (auto* pd = dynamic_cast<PluginProcessor*>(pluginHolder->processor.get())) {
+                    pd->loadPatch(toOpen, editor);
+                    SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
+                    openedPatches.add(toOpen.getFullPathName());
+                }
+            }
+        }
+
+#if JUCE_LINUX || JUCE_WINDOWS
+        for (auto arg : args) {
+            arg = arg.trim().unquoted().trim();
+
+            // Would be best to enable this on Linux, but some distros use ancient gcc which doesn't have std::filesystem
+#    if JUCE_WINDOWS
+            if (!std::filesystem::exists(arg.toStdString()))
+                continue;
+#    endif
+            auto toOpen = File(arg);
+            if (toOpen.existsAsFile() && toOpen.hasFileExtension("pd") && !openedPatches.contains(toOpen.getFullPathName())) {
+                auto* pd = dynamic_cast<PluginProcessor*>(pluginHolder->processor.get());
+                auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
+                pd->loadPatch(toOpen, editor);
+                SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
+            }
+        }
+#endif
+
+        /* send messages specified with "-send" args */
+        for (auto* nl = messagelist; nl; nl = nl->nl_next) {
+            t_binbuf* b = binbuf_new();
+            binbuf_text(b, nl->nl_string, strlen(nl->nl_string));
+            binbuf_eval(b, nullptr, 0, nullptr);
+            binbuf_free(b);
+        }
+
+        namelist_free(openlist);
+        namelist_free(messagelist);
+        messagelist = nullptr;
+
+        return retval;
     }
 
     void systemRequestedQuit() override
@@ -160,87 +234,48 @@ public:
         }
     }
 
+    std::unique_ptr<StandalonePluginHolder> pluginHolder;
+
 protected:
     ApplicationProperties appProperties;
-    std::unique_ptr<PlugDataWindow> mainWindow;
+    PlugDataWindow* mainWindow;
 };
-
-bool PlugDataWindow::hasOpenedDialog()
-{
-    auto* editor = dynamic_cast<PluginEditor*>(mainComponent->getEditor());
-    return editor->openedDialog != nullptr;
-}
 
 void PlugDataWindow::closeAllPatches()
 {
     // Show an ask to save dialog for each patch that is dirty
     // Because save dialog uses an asynchronous callback, we can't loop over them (so have to chain them)
-    auto* editor = dynamic_cast<PluginEditor*>(pluginHolder->processor->getActiveEditor());
-
-    editor->closeAllTabs(true);
+    if(auto* editor = dynamic_cast<PluginEditor*>(mainComponent->getEditor()))
+    {
+        auto* processor = ProjectInfo::getStandalonePluginHolder()->processor.get();
+        auto* mainEditor = dynamic_cast<PluginEditor*>(processor->getActiveEditor());
+        auto& openedEditors = editor->pd->openedEditors;
+        
+        if (editor == mainEditor) {
+            processor->editorBeingDeleted(editor);
+        }
+        
+        if (openedEditors.size() == 1) {
+            editor->closeAllTabs(true, nullptr, [this, editor, &openedEditors]() {
+                removeFromDesktop();
+                openedEditors.removeObject(editor);
+            });
+        } else {
+            editor->closeAllTabs(false, nullptr, [this, editor, &openedEditors]() {
+                removeFromDesktop();
+                openedEditors.removeObject(editor);
+            });
+        }
+    }
 }
 
-int PlugDataWindow::parseSystemArguments(String const& arguments)
+StandalonePluginHolder* StandalonePluginHolder::getInstance()
 {
-    auto args = StringArray::fromTokens(arguments, true);
-    size_t argc = args.size();
-
-    auto argv = std::vector<char const*>(argc);
-
-    for (int i = 0; i < args.size(); i++) {
-        argv[i] = args.getReference(i).toRawUTF8();
+    if (PluginHostType::getPluginLoadedAs() == AudioProcessor::wrapperType_Standalone) {
+        return dynamic_cast<PlugDataApp*>(JUCEApplicationBase::getInstance())->pluginHolder.get();
     }
 
-    t_namelist* openlist = nullptr;
-    t_namelist* messagelist = nullptr;
-
-    int retval = parse_startup_arguments(argv.data(), argc, &openlist, &messagelist);
-
-    StringArray openedPatches;
-    /* open patches specifies with "-open" args */
-    for (auto* nl = openlist; nl; nl = nl->nl_next) {
-        auto toOpen = File(String(nl->nl_string).unquoted());
-        if (toOpen.existsAsFile() && toOpen.hasFileExtension("pd")) {
-            if (auto* pd = dynamic_cast<PluginProcessor*>(getAudioProcessor())) {
-                pd->loadPatch(toOpen);
-                SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
-                openedPatches.add(toOpen.getFullPathName());
-            }
-        }
-    }
-
-#if JUCE_LINUX || JUCE_WINDOWS
-    for (auto arg : args) {
-        arg = arg.trim().unquoted().trim();
-
-        // Would be best to enable this on Linux, but some distros use ancient gcc which doesn't have std::filesystem
-#    if JUCE_WINDOWS
-        if (!std::filesystem::exists(arg.toStdString()))
-            continue;
-#    endif
-        auto toOpen = File(arg);
-        if (toOpen.existsAsFile() && toOpen.hasFileExtension("pd") && !openedPatches.contains(toOpen.getFullPathName())) {
-            if (auto* pd = dynamic_cast<PluginProcessor*>(getAudioProcessor())) {
-                pd->loadPatch(toOpen);
-                SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
-            }
-        }
-    }
-#endif
-
-    /* send messages specified with "-send" args */
-    for (auto* nl = messagelist; nl; nl = nl->nl_next) {
-        t_binbuf* b = binbuf_new();
-        binbuf_text(b, nl->nl_string, strlen(nl->nl_string));
-        binbuf_eval(b, nullptr, 0, nullptr);
-        binbuf_free(b);
-    }
-
-    namelist_free(openlist);
-    namelist_free(messagelist);
-    messagelist = nullptr;
-
-    return retval;
+    return nullptr;
 }
 
 START_JUCE_APPLICATION(PlugDataApp)

@@ -5,11 +5,10 @@
  */
 
 #include "Object.h"
-#include "../Objects/ObjectBase.h"
+#include "Objects/ObjectBase.h"
 
 #include <m_pd.h>
 #include <m_imp.h>
-#include <x_libpd_extra_utils.h>
 
 class SearchPanel : public Component
     , public ListBoxModel
@@ -17,8 +16,8 @@ class SearchPanel : public Component
     , public KeyListener {
 public:
     explicit SearchPanel(PluginEditor* pluginEditor)
-        : editor(pluginEditor)
-        , bouncer(listBox.getViewport())
+        : bouncer(listBox.getViewport())
+        , editor(pluginEditor)
     {
         listBox.setModel(this);
         listBox.setRowHeight(26);
@@ -27,7 +26,8 @@ public:
 
         listBox.getViewport()->setScrollBarsShown(true, false, false, false);
 
-        input.getProperties().set("NoOutline", true);
+        input.setBackgroundColour(PlugDataColour::sidebarActiveBackgroundColourId);
+        input.setTextToShowWhenEmpty("Type to search in patch", findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f));
 
         input.onTextChange = [this]() {
             updateResults();
@@ -36,30 +36,20 @@ public:
         input.addKeyListener(this);
         listBox.addKeyListener(this);
 
-        clearButton.getProperties().set("Style", "SmallIcon");
-        clearButton.onClick = [this]() {
-            clearSearchTargets();
-            input.clear();
-            grabKeyboardFocus(); // steal focus from text editor
-            input.repaint();
-        };
-
-        clearButton.setAlwaysOnTop(true);
-
-        addAndMakeVisible(clearButton);
         addAndMakeVisible(listBox);
         addAndMakeVisible(input);
 
         listBox.addMouseListener(this, true);
 
         input.setJustification(Justification::centredLeft);
-        input.setBorder({ 1, 23, 3, 1 });
+        input.setBorder({ 1, 23, 5, 1 });
 
         listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
 
         listBox.getViewport()->getVerticalScrollBar().addListener(this);
 
         setWantsKeyboardFocus(false);
+        lookAndFeelChanged();
         repaint();
     }
 
@@ -185,30 +175,33 @@ public:
         repaint();
     }
 
+    void lookAndFeelChanged() override
+    {
+        input.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
+        input.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
+        input.setColour(TextEditor::textColourId, findColour(PlugDataColour::sidebarTextColourId));
+    }
+
     void paint(Graphics& g) override
     {
-        auto searchBarColour = findColour(PlugDataColour::searchBarColourId);
-        auto textColour = findColour(PlugDataColour::sidebarTextColourId);
-
-        input.setColour(TextEditor::backgroundColourId, searchBarColour);
-        input.setColour(TextEditor::textColourId, textColour);
-
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
         g.fillRect(getLocalBounds());
+
+        g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
+        g.fillRoundedRectangle(input.getBounds().reduced(6, 4).toFloat(), Corners::defaultCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override
     {
+        auto backgroundColour =  findColour(PlugDataColour::sidebarBackgroundColourId);
+        auto transparentColour = backgroundColour.withAlpha(0.0f);
 
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawLine(0, 29, getWidth(), 29);
-
+        // Draw a gradient to fade the content out underneath the search input
+        g.setGradientFill(ColourGradient(backgroundColour, 0.0f, 30.0f, transparentColour, 0.0f, 42.0f, false));
+        g.fillRect(Rectangle<int>(0, input.getBottom(), getWidth(), 12));
+        
         auto colour = findColour(PlugDataColour::sidebarTextColourId);
-        Fonts::drawIcon(g, Icons::Search, 0, 0, 30, colour, 12);
-
-        if (input.getText().isEmpty()) {
-            Fonts::drawFittedText(g, "Type to search in patch", 30, 0, getWidth() - 60, 30, colour.withAlpha(0.5f), 1, 0.9f, 14);
-        }
+        Fonts::drawIcon(g, Icons::Search, 2, 1, 32, colour, 12);
     }
 
     std::pair<String, String> formatSearchResultString(String const& name, String prefix, Rectangle<int> bounds)
@@ -300,16 +293,16 @@ public:
         input.grabKeyboardFocus();
     }
 
-    static Array<std::tuple<String, String, SafePointer<Object>, void*>> searchRecursively(Canvas* topLevelCanvas, pd::Patch& patch, String const& query, Object* topLevelObject = nullptr, String prefix = "")
+    static Array<std::tuple<String, String, SafePointer<Object>, t_gobj*>> searchRecursively(Canvas* topLevelCanvas, pd::Patch& patch, String const& query, Object* topLevelObject = nullptr, String prefix = "")
     {
 
         auto* instance = patch.instance;
 
-        Array<std::tuple<String, String, SafePointer<Object>, void*>> result;
+        Array<std::tuple<String, String, SafePointer<Object>, t_gobj*>> result;
 
-        Array<std::pair<void*, Object*>> subpatches;
+        Array<std::pair<t_canvas*, Object*>> subpatches;
 
-        auto addObject = [&query, &result, &prefix](String const& text, Object* object, void* ptr) {
+        auto addObject = [&query, &result, &prefix](String const& text, Object* object, t_gobj* ptr) {
             // Insert in front if the query matches a whole word
             if (text.containsWholeWordIgnoreCase(query)) {
                 result.insert(0, { text, prefix, object, ptr });
@@ -335,14 +328,14 @@ public:
                 }
             }
 
-            auto className = String::fromUTF8(libpd_get_object_class_name(object));
+            auto className = String::fromUTF8(pd::Interface::getObjectClassName(&object->g_pd));
 
             if (className == "canvas" || className == "graph") {
                 // Save them for later, so we can put them at the end of the result
-                subpatches.add({ object, topLevel });
+                subpatches.add({ reinterpret_cast<t_canvas*>(object), topLevel });
             } else {
 
-                bool isGui = !libpd_is_text_object(object);
+                bool isGui = !pd::Interface::isTextObject(object);
 
                 // If it's a gui add the class name
                 if (isGui) {
@@ -350,10 +343,10 @@ public:
 
                 }
                 // If it's a text object, message or comment, add the text
-                else {
+                else if (auto* checkedObject = pd::Interface::checkObject(&object->g_pd)) {
                     char* objectText;
                     int len;
-                    libpd_get_object_text(object, &objectText, &len);
+                    pd::Interface::getObjectText(checkedObject, &objectText, &len);
                     addObject(String::fromUTF8(objectText, len), topLevel, object);
                     freebytes(static_cast<void*>(objectText), static_cast<size_t>(len) * sizeof(char));
                 }
@@ -366,11 +359,11 @@ public:
 
             char* objectText;
             int len;
-            libpd_get_object_text(object, &objectText, &len);
+            pd::Interface::getObjectText(&object->gl_obj, &objectText, &len);
 
             auto objTextStr = String::fromUTF8(objectText, len);
 
-            addObject(objTextStr, topLevel, object);
+            addObject(objTextStr, topLevel, &object->gl_obj.te_g);
 
             freebytes(static_cast<void*>(objectText), static_cast<size_t>(len) * sizeof(char));
 
@@ -391,21 +384,19 @@ public:
     void resized() override
     {
         auto tableBounds = getLocalBounds();
-        auto inputBounds = tableBounds.removeFromTop(28);
+        auto inputBounds = tableBounds.removeFromTop(34);
 
-        tableBounds.removeFromTop(4);
+        tableBounds.removeFromTop(2);
 
-        input.setBounds(inputBounds);
-        clearButton.setBounds(inputBounds.removeFromRight(32));
+        input.setBounds(inputBounds.reduced(5, 4));
         listBox.setBounds(tableBounds);
     }
 
 private:
     ListBox listBox;
 
-    Array<std::tuple<String, String, SafePointer<Object>, void*>> searchResult;
-    TextEditor input;
-    TextButton clearButton = TextButton(Icons::ClearText);
+    Array<std::tuple<String, String, SafePointer<Object>, t_gobj*>> searchResult;
+    SearchEditor input;
 
     BouncingViewportAttachment bouncer;
     PluginEditor* editor;

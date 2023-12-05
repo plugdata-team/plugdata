@@ -7,14 +7,13 @@
 #include <ctype.h>
 #include <stdlib.h>
 
+#if defined _WIN32
+#    include <malloc.h> /* MSVC or mingw on windows */
+#endif
+
 #ifndef HAVE_ALLOCA     /* can work without alloca() but we never need it */
 #define HAVE_ALLOCA 1
 #endif
-
-#if _MSC_VER && HAVE_ALLOCA
-#include <malloc.h>
-#endif
-
 #define TEXT_NGETBYTE 100 /* bigger that this we use alloc, not alloca */
 #if HAVE_ALLOCA
 #define ATOMS_ALLOCA(x, n) ((x) = (t_atom *)((n) < TEXT_NGETBYTE ?  \

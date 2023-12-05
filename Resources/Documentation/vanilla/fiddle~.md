@@ -1,5 +1,5 @@
 ---
-title: fiddle~
+title: fiddle~, fiddle
 description: pitch estimator and sinusoidal peak finder
 pdcategory: vanilla, Analysis
 inlets:

@@ -7,14 +7,15 @@
 #pragma once
 #include "Pd/Library.h"
 
-struct SettingsFileListener {
+class SettingsFileListener {
+public:
     SettingsFileListener();
 
     ~SettingsFileListener();
 
-    virtual void propertyChanged(String const& name, var const& value) {};
+    virtual void propertyChanged(String const& name, var const& value) { }
 
-    virtual void settingsFileReloaded() {};
+    virtual void settingsFileReloaded() { }
 };
 
 // Class that manages the settings file
@@ -36,6 +37,9 @@ public:
     ValueTree getTheme(String const& name);
     ValueTree getCurrentTheme();
 
+    void setLastBrowserPathForId(String const& identifier, File& path);
+    File getLastBrowserPathForId(String const& identifier);
+    
     void addToRecentlyOpened(File const& path);
 
     void initialisePathsTree();
@@ -111,7 +115,9 @@ private:
         { "global_scale", var(1.0f) },
         { "default_zoom", var(100.0f) },
         { "show_palettes", var(true) },
-        { "center_resized_canvas", var(true) },
+        { "cpu_meter_mapping_mode", var(0) },
+        { "centre_resized_canvas", var(true) },
+        { "centre_sidepanel_buttons", var(true) },
         { "show_all_audio_device_rates", var(false) },
         { "add_object_menu_pinned", var(false) },
         { "macos_buttons",
@@ -131,6 +137,7 @@ private:
         "RecentlyOpened",
         "Libraries",
         "EnabledMidiOutputPorts",
+        "LastBrowserPaths",
     };
 
 public:

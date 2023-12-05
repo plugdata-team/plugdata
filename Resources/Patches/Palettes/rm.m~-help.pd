@@ -1,0 +1,11 @@
+#N canvas 484 25 517 509 12;
+#X obj 93 338 out~;
+#X obj 93 78 bl.saw~ 110;
+#X text 259 194 This is just a wrapper around [rm~] from ELSE \, check it out., f 22;
+#X obj 315 253 rm~;
+#X obj 93 117 rm.m~;
+#A saved 0;
+#X obj 345 338 about;
+#X text 285 338 see -->;
+#X connect 1 0 4 0;
+#X connect 4 0 0 0;

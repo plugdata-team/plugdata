@@ -21,13 +21,13 @@ InternalSynth::InternalSynth()
 #ifdef PLUGDATA_STANDALONE
     // Unpack soundfont
     if (!soundFont.existsAsFile()) {
+        soundFont.getParentDirectory().createDirectory();
         FileOutputStream ostream(soundFont);
         ostream.write(StandaloneBinaryData::GeneralUser_GS_sf3, StandaloneBinaryData::GeneralUser_GS_sf3Size);
         ostream.flush();
     }
 #endif
 }
-
 
 InternalSynth::~InternalSynth()
 {

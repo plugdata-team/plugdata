@@ -95,6 +95,8 @@ CYCLONE_OBJ_API void clip_tilde_setup(void)
     class_addmethod(clip_class, nullfn, gensym("signal"), 0);
     class_addmethod(clip_class, (t_method) clip_dsp, gensym("dsp"), A_CANT, 0);
     class_sethelpsymbol(clip_class, gensym("clip~"));
+    pd_error(clip_class, "[cyclone/clip~] is deprecated, consider using vanilla's [clip~] instead");
+
 }
 
 CYCLONE_OBJ_API void Clip_tilde_setup(void)
@@ -105,4 +107,5 @@ CYCLONE_OBJ_API void Clip_tilde_setup(void)
     class_addmethod(clip_class, (t_method) clip_dsp, gensym("dsp"), A_CANT, 0);
     class_sethelpsymbol(clip_class, gensym("clip~"));
     pd_error(clip_class, "Cyclone: please use [cyclone/clip~] instead of [Clip~] to suppress this error");
+    pd_error(clip_class, "[cyclone/clip~] is deprecated, consider using vanilla's [clip~] instead");
 }

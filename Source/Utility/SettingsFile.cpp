@@ -5,6 +5,7 @@
  */
 
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_gui_extra/juce_gui_extra.h>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
 
@@ -103,6 +104,20 @@ ValueTree SettingsFile::getLibrariesTree()
 ValueTree SettingsFile::getTheme(String const& name)
 {
     return getColourThemesTree().getChildWithProperty("theme", name);
+}
+
+void SettingsFile::setLastBrowserPathForId(String const& identifier, File& path)
+{
+    if(identifier.isEmpty()) return;
+    
+    settingsTree.getChildWithName("LastBrowserPaths").setProperty(identifier, path.getFullPathName(), nullptr);
+}
+
+File SettingsFile::getLastBrowserPathForId(String const& identifier)
+{
+    if(identifier.isEmpty()) return {};
+    
+    return File(settingsTree.getChildWithName("LastBrowserPaths").getProperty(identifier).toString());
 }
 
 ValueTree SettingsFile::getCurrentTheme()

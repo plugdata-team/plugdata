@@ -34,7 +34,7 @@ public:
             if (!patch)
                 return;
 
-            libpd_moveobj(patch, gobj.get(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, gobj.get(), b.getX(), b.getY());
         }
     }
 
@@ -139,7 +139,7 @@ class CycloneCommentObject final : public ObjectBase {
     bool wasSelectedOnMouseDown = false;
 
 public:
-    CycloneCommentObject(void* obj, Object* object)
+    CycloneCommentObject(t_gobj* obj, Object* object)
         : ObjectBase(obj, object)
     {
         locked = getValue<bool>(object->locked);
@@ -325,8 +325,8 @@ public:
             Object* object;
 
             CycloneCommentObjectBoundsConstrainer(Object* obj, CycloneCommentObject* parent)
-                : object(obj)
-                , commentObject(parent)
+                : commentObject(parent)
+                , object(obj)
             {
             }
             /*
@@ -345,7 +345,7 @@ public:
                 bool isStretchingBottom,
                 bool isStretchingRight) override
             {
-                auto* comment = static_cast<t_fake_comment*>(object->getPointer());
+                auto* comment = reinterpret_cast<t_fake_comment*>(object->getPointer());
                 comment->x_max_pixwidth = bounds.getWidth() - Object::doubleMargin;
 
                 // Set editor size first, so getTextHeight will return a correct result
@@ -365,7 +365,7 @@ public:
                 return;
 
             comment->x_max_pixwidth = b.getWidth();
-            libpd_moveobj(patch, comment.cast<t_gobj>(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, comment.cast<t_gobj>(), b.getX(), b.getY());
         }
     }
 

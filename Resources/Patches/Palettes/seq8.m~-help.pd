@@ -1,0 +1,9 @@
+#N canvas 515 111 455 355 12;
+#X obj 33 236 out~;
+#X obj 33 200 sine~ -midi;
+#X obj 33 20 seq8.m~;
+#A saved 60 4 1 -0.2 0.0999999 0 -0.2 0 -0.2 -0.25 0.2;
+#X obj 294 250 about;
+#X text 234 250 see -->;
+#X connect 1 0 0 0;
+#X connect 2 0 1 0;

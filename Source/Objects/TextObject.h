@@ -8,10 +8,10 @@ struct TextObjectHelper {
 
     inline static int minWidth = 3;
 
-    static Rectangle<int> recalculateTextObjectBounds(void* patch, void* obj, String const& currentText, int fontHeight, int& numLines, bool applyOffset = false, int maxIolets = 0)
+    static Rectangle<int> recalculateTextObjectBounds(t_canvas* patch, t_gobj* obj, String const& currentText, int fontHeight, int& numLines, bool applyOffset = false, int maxIolets = 0)
     {
         int x, y, w, h;
-        libpd_get_object_bounds(patch, obj, &x, &y, &w, &h);
+        pd::Interface::getObjectBounds(patch, obj, &x, &y, &w, &h);
 
         auto fontWidth = glist_fontwidth(static_cast<t_glist*>(patch));
         int idealTextWidth = getIdealWidthForText(currentText, fontHeight);
@@ -29,9 +29,9 @@ struct TextObjectHelper {
         }
 
         w = std::max(w, maxIolets * 18);
-        
+
         numLines = getNumLines(currentText, w, fontHeight);
-        
+
         // Calculate height so that height with 1 line is 21px, after that scale along with fontheight
         h = numLines * fontHeight + (21.f - fontHeight);
 
@@ -97,7 +97,7 @@ struct TextObjectHelper {
                     auto x = oldBounds.getX() - widthDiff;
                     auto y = oldBounds.getY(); // don't allow y resize
 
-                    libpd_moveobj(static_cast<t_glist*>(patch), static_cast<t_gobj*>(object->getPointer()), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
+                    pd::Interface::moveObject(static_cast<t_glist*>(patch), static_cast<t_gobj*>(object->getPointer()), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
                 }
 
                 // Set new width
@@ -195,7 +195,7 @@ class TextBase : public ObjectBase
 
 protected:
     std::unique_ptr<TextEditor> editor;
-    BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
+    BorderSize<int> border = BorderSize<int>(1, 7, 2, 2);
 
     Value sizeProperty = SynchronousValue();
     String objectText;
@@ -204,7 +204,7 @@ protected:
     bool isLocked;
 
 public:
-    TextBase(void* obj, Object* parent, bool valid = true)
+    TextBase(t_gobj* obj, Object* parent, bool valid = true)
         : ObjectBase(obj, parent)
         , isValid(valid)
     {
@@ -233,8 +233,8 @@ public:
 
         if (ioletAreaColour != backgroundColour) {
             g.setColour(ioletAreaColour);
-            g.fillRect(getLocalBounds().removeFromTop(3));
-            g.fillRect(getLocalBounds().removeFromBottom(3));
+            g.fillRect(getLocalBounds().toFloat().removeFromTop(3.5f));
+            g.fillRect(getLocalBounds().toFloat().removeFromBottom(3.5f));
         }
 
         if (!editor) {
@@ -295,7 +295,7 @@ public:
                 return {};
 
             auto newNumLines = 0;
-            auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, obj.get(), objText, 15, newNumLines, true, std::max({ 1, object->numInputs, object->numOutputs }));
+            auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, obj.cast<t_gobj>(), objText, 15, newNumLines, true, std::max({ 1, object->numInputs, object->numOutputs }));
 
             numLines = newNumLines;
             return newBounds;
@@ -311,7 +311,7 @@ public:
             if (!patch)
                 return;
 
-            libpd_moveobj(patch, gobj.get(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, gobj.get(), b.getX(), b.getY());
 
             if (TextObjectHelper::getWidthInChars(gobj.get())) {
                 TextObjectHelper::setWidthInChars(gobj.get(), b.getWidth() / glist_fontwidth(patch));
@@ -352,7 +352,7 @@ public:
 
             auto newText = outgoingEditor->getText();
 
-            outgoingEditor->removeListener(cnv->suggestor);
+            outgoingEditor->removeListener(cnv->suggestor.get());
 
             newText = TextObjectHelper::fixNewlines(newText);
 
@@ -396,7 +396,7 @@ public:
             editor->grabKeyboardFocus();
 
             editor->onFocusLost = [this]() {
-                if (reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true) || Component::getCurrentlyFocusedComponent() == editor.get()) {
+                if (reinterpret_cast<Component*>(cnv->suggestor.get())->hasKeyboardFocus(true) || Component::getCurrentlyFocusedComponent() == editor.get()) {
                     editor->grabKeyboardFocus();
                     return;
                 }
@@ -466,7 +466,7 @@ public:
 class TextObject final : public TextBase {
 
 public:
-    TextObject(void* obj, Object* parent, bool isValid = true)
+    TextObject(t_gobj* obj, Object* parent, bool isValid = true)
         : TextBase(obj, parent, isValid)
     {
     }

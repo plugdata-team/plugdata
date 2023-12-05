@@ -12,8 +12,8 @@ class TextFileObject final : public TextBase {
     std::unique_ptr<Dialog> saveDialog;
 
 public:
-    TextFileObject(void* obj, Object* parent, bool isValid = true)
-        : TextBase(obj, parent, isValid)
+    TextFileObject(t_gobj* obj, Object* parent)
+        : TextBase(obj, parent, true)
         , textEditor(nullptr)
     {
     }
@@ -45,7 +45,7 @@ public:
                     return;
                 }
 
-                Dialogs::showSaveDialog(
+                Dialogs::showAskToSaveDialog(
                     &saveDialog, textEditor.get(), "", [this, lastText](int result) mutable {
                         if (result == 2) {
                             setText(lastText);
@@ -85,7 +85,7 @@ public:
                 // check if string is a valid number
                 auto charptr = word.getCharPointer();
                 auto ptr = charptr;
-                auto value = CharacterFunctions::readDoubleValue(ptr);
+                CharacterFunctions::readDoubleValue(ptr); // Remove double value from string
                 if (ptr - charptr == word.getNumBytesAsUTF8() && ptr - charptr != 0) {
                     SETFLOAT(&atoms.back(), word.getFloatValue());
                 } else {
@@ -160,15 +160,14 @@ public:
     }
 };
 
-// Actual text object, marked final for optimisation
 class TextDefineObject final : public TextBase {
 
     std::unique_ptr<Component> textEditor;
     std::unique_ptr<Dialog> saveDialog;
 
 public:
-    TextDefineObject(void* obj, Object* parent, bool isValid = true)
-        : TextBase(obj, parent, isValid)
+    TextDefineObject(t_gobj* obj, Object* parent)
+        : TextBase(obj, parent, true)
         , textEditor(nullptr)
     {
     }
@@ -207,7 +206,7 @@ public:
                     return;
                 }
 
-                Dialogs::showSaveDialog(
+                Dialogs::showAskToSaveDialog(
                     &saveDialog, textEditor.get(), "", [this, lastText](int result) mutable {
                         if (result == 2) {
                             setText(lastText);
@@ -254,7 +253,7 @@ public:
                 // check if string is a valid number
                 auto charptr = word.getCharPointer();
                 auto ptr = charptr;
-                auto value = CharacterFunctions::readDoubleValue(ptr);
+                CharacterFunctions::readDoubleValue(ptr);
                 if (ptr - charptr == word.getNumBytesAsUTF8() && ptr - charptr != 0) {
                     SETFLOAT(&atoms.back(), word.getFloatValue());
                 } else {
@@ -278,6 +277,14 @@ public:
             binbuf_add(textbuf.b_binbuf, binbuf_getnatom(z), binbuf_getvec(z));
             binbuf_free(z);
         }
+    }
+    
+    std::vector<hash32> getAllMessages() override
+    {
+        return {
+            hash("click"),
+            hash("close")
+        };
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override

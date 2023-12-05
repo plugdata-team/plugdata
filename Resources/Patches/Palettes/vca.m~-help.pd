@@ -1,0 +1,13 @@
+#N canvas 484 25 428 639 12;
+#X obj 81 506 out~;
+#X obj 81 86 bl.saw~ 110;
+#X obj 190 99 glide~ 50;
+#X obj 190 75 pulse~ 1;
+#X obj 81 141 vca.m~;
+#A saved 1;
+#X obj 318 417 about;
+#X text 258 417 see -->;
+#X connect 1 0 4 0;
+#X connect 2 0 4 1;
+#X connect 3 0 2 0;
+#X connect 4 0 0 0;

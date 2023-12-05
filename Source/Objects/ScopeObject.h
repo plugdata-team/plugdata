@@ -24,7 +24,7 @@ class ScopeBase : public ObjectBase
     Value sizeProperty = SynchronousValue();
 
 public:
-    ScopeBase(void* ptr, Object* object)
+    ScopeBase(t_gobj* ptr, Object* object)
         : ObjectBase(ptr, object)
     {
 
@@ -37,6 +37,8 @@ public:
         objectParameters.addParamInt("Samples per point", cGeneral, &samplesPerPoint, 256);
         objectParameters.addParamInt("Buffer size", cGeneral, &bufferSize, 128);
         objectParameters.addParamInt("Delay", cGeneral, &delay, 0);
+        objectParameters.addParamRange("Signal Range", cGeneral, &signalRange, Array<var>{var(-1.0f), var(1.0f)});
+
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
 
         startTimerHz(25);
@@ -85,7 +87,7 @@ public:
                 return {};
 
             int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(patch, scope.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, scope.template cast<t_gobj>(), &x, &y, &w, &h);
 
             return { x, y, w + 1, h + 1 };
         }
@@ -100,7 +102,7 @@ public:
             if (!patch)
                 return;
 
-            libpd_moveobj(patch, scope.template cast<t_gobj>(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, scope.template cast<t_gobj>(), b.getX(), b.getY());
 
             scope->x_width = getWidth() - 1;
             scope->x_height = getHeight() - 1;
@@ -159,8 +161,8 @@ public:
 
     void timerCallback() override
     {
-        int bufsize, mode;
-        float min, max;
+        int bufsize = 0, mode = 0;
+        float min = 0.0f, max = 1.0f;
 
         if (object->iolets.size() == 3)
             object->iolets[2]->setVisible(false);
@@ -213,6 +215,7 @@ public:
                 break;
             }
         }
+
         repaint();
     }
 
@@ -271,7 +274,6 @@ public:
             if (auto scope = ptr.get<S>())
                 scope->x_triglevel = getValue<int>(triggerValue);
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
-            auto* rcv = pd->generateSymbol(receiveSymbol.toString());
             auto symbol = receiveSymbol.toString();
             if (auto scope = ptr.get<void>())
                 pd->sendDirectMessage(scope.get(), "receive", { symbol });
@@ -320,7 +322,7 @@ public:
 // Hilarious use of templates to support both cyclone/scope and else/oscope in the same code
 class ScopeObject final : public ScopeBase<t_fake_scope> {
 public:
-    ScopeObject(void* ptr, Object* object)
+    ScopeObject(t_gobj* ptr, Object* object)
         : ScopeBase<t_fake_scope>(ptr, object)
     {
     }
@@ -328,7 +330,7 @@ public:
 
 class OscopeObject final : public ScopeBase<t_fake_oscope> {
 public:
-    OscopeObject(void* ptr, Object* object)
+    OscopeObject(t_gobj* ptr, Object* object)
         : ScopeBase<t_fake_oscope>(ptr, object)
     {
     }

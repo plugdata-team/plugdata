@@ -13,10 +13,6 @@ arguments:
   description: sets channel number
   default: 1
 
-flags:
-- name: -poly
-  description: sets the object to output polyphonic aftertouch
-
 inlets:
   1st:
   - type: float

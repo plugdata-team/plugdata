@@ -26,6 +26,8 @@ outlets:
 flags:
   - name: -init
     description: sets loadbang to "init mode"
+  - name: -fin
+    description: sets loadbang to "finalize mode"
 
 draft: false
 ---

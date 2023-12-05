@@ -17,7 +17,7 @@ class BangObject final : public ObjectBase {
     IEMHelper iemHelper;
 
 public:
-    BangObject(void* obj, Object* parent)
+    BangObject(t_gobj* obj, Object* parent)
         : ObjectBase(obj, parent)
         , iemHelper(obj, parent, this)
     {
@@ -26,8 +26,8 @@ public:
         };
 
         objectParameters.addParamSize(&sizeProperty, true);
-        objectParameters.addParamInt("Minimum flash time", cGeneral, &bangInterrupt, 50);
-        objectParameters.addParamInt("Maximum flash time", cGeneral, &bangHold, 250);
+        objectParameters.addParamInt("Min. flash time", cGeneral, &bangInterrupt, 50);
+        objectParameters.addParamInt("Max. flash time", cGeneral, &bangHold, 250);
 
         iemHelper.addIemParameters(objectParameters, true, true, 17, 7);
     }
@@ -217,6 +217,9 @@ public:
                 setParameterExcludingListener(bangHold, atoms[1].getFloat());
             break;
         }
+        case hash("pos"):
+        case hash("size"):
+                break;
         default: {
             bool wasIemMessage = iemHelper.receiveObjectMessage(symbol, atoms);
             if (!wasIemMessage) {

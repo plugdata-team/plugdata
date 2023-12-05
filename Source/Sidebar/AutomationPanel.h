@@ -7,18 +7,17 @@
 #include "Canvas.h"
 #include "Object.h"
 #include "Utility/PluginParameter.h"
-#include "Utility/DraggableNumber.h"
-#include "Utility/ReorderButton.h"
-#include "Utility/PropertiesPanel.h"
-#include "Utility/ObjectDragAndDrop.h"
+#include "Components/DraggableNumber.h"
+#include "Components/Buttons.h"
+#include "Components/PropertiesPanel.h"
+#include "Components/ObjectDragAndDrop.h"
 
-class AutomationSlider : public ObjectDragAndDrop
+class AutomationItem : public ObjectDragAndDrop
     , public Value::Listener {
 
     class ExpandButton : public TextButton {
         void paint(Graphics& g) override
         {
-
             auto isOpen = getToggleState();
             auto mouseOver = isMouseOver();
             auto area = getLocalBounds().reduced(5).toFloat();
@@ -36,24 +35,31 @@ class AutomationSlider : public ObjectDragAndDrop
     PluginProcessor* pd;
 
 public:
-    AutomationSlider(PlugDataParameter* parameter, Component* parentComponent, PluginProcessor* processor)
+    AutomationItem(PlugDataParameter* parameter, Component* parentComponent, PluginProcessor* processor)
         : pd(processor)
         , rangeProperty("Range", range, false)
         , modeProperty("Mode", mode, { "Float", "Integer", "Logarithmic", "Exponential" })
         , param(parameter)
     {
+        addMouseListener(parentComponent, true);
+
         addChildComponent(rangeProperty);
         addChildComponent(modeProperty);
 
         range.addListener(this);
         mode.addListener(this);
 
+        deleteButton.setButtonText(Icons::Clear);
         deleteButton.onClick = [this]() mutable {
             onDelete(this);
         };
 
         nameLabel.setFont(Font(14));
-        nameLabel.addMouseListener(this, false);
+        nameLabel.setInterceptsMouseClicks(false, false);
+
+        deleteButton.setSize(25, 25);
+        reorderButton.setSize(25, 25);
+
         deleteButton.addMouseListener(this, false);
         reorderButton.addMouseListener(this, false);
 
@@ -61,7 +67,7 @@ public:
         deleteButton.setTooltip("Remove parameter");
         settingsButton.setTooltip("Expand settings");
 
-        settingsButton.onClick = [this, parentComponent]() mutable {
+        settingsButton.onClick = [this]() mutable {
             bool toggleState = settingsButton.getToggleState();
 
             rangeProperty.setVisible(toggleState);
@@ -145,16 +151,17 @@ public:
         valueLabel.setJustificationType(Justification::centred);
 
         nameLabel.setMinimumHorizontalScale(1.0f);
-        nameLabel.setJustificationType(Justification::centredLeft);
+        nameLabel.setJustificationType(Justification::centred);
 
         valueLabel.setEditable(true);
 
         settingsButton.setClickingTogglesState(true);
 
-        bool editable = PlugDataParameter::canDynamicallyAdjustParameters();
-        nameLabel.setEditable(editable, editable);
         nameLabel.onEditorShow = [this]() {
             if (auto* editor = nameLabel.getCurrentTextEditor()) {
+                editor->setColour(TextEditor::outlineColourId, Colours::transparentBlack);
+                editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
+                editor->setJustification(Justification::centred);
                 editor->setInputRestrictions(32, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_-");
             }
             lastName = nameLabel.getText(false);
@@ -184,9 +191,6 @@ public:
                 nameLabel.setText(lastName, dontSendNotification);
             }
         };
-
-        settingsButton.getProperties().set("Style", "SmallIcon");
-        deleteButton.getProperties().set("Style", "SmallIcon");
 
         addAndMakeVisible(nameLabel);
         addAndMakeVisible(slider);
@@ -262,6 +266,16 @@ public:
             setIsReordering(false);
     }
 
+    void mouseUp(MouseEvent const& e) override
+    {
+       bool isEditable = PlugDataParameter::canDynamicallyAdjustParameters();
+       bool isOverNameLable = nameLabel.getBounds().contains(e.getEventRelativeTo(&nameLabel).getPosition());
+
+       if (isEditable && isOverNameLable && !e.mouseWasDraggedSinceMouseDown() && e.getNumberOfClicks() >= 2) {
+            nameLabel.showEditor();
+       }
+    }
+
     void mouseEnter(MouseEvent const& e) override
     {
         // Make sure this isn't coming from the listened object
@@ -324,9 +338,10 @@ public:
             modeProperty.setBounds(bounds.removeFromTop(rowHeight));
         }
 
-        auto buttonsBounds = firstRow.removeFromRight(50).withHeight(25);
-
-        nameLabel.setBounds(firstRow.withTrimmedLeft(4));
+        nameLabel.setBounds(firstRow.reduced(25, 0));
+        auto componentCentre = firstRow.getCentre().getY();
+        reorderButton.setCentrePosition(firstRow.getTopLeft().getX() + 12, componentCentre);
+        deleteButton.setCentrePosition(firstRow.getRight() - 12, componentCentre);
 
         if (settingsButton.isVisible()) {
             settingsButton.setBounds(secondRow.removeFromLeft(25));
@@ -334,9 +349,6 @@ public:
 
         slider.setBounds(secondRow.withTrimmedRight(55));
         valueLabel.setBounds(secondRow.removeFromRight(55));
-
-        reorderButton.setBounds(buttonsBounds.removeFromLeft(25));
-        deleteButton.setBounds(buttonsBounds.removeFromLeft(25));
     }
 
     void paint(Graphics& g) override
@@ -351,9 +363,9 @@ public:
         PlugDataLook::fillSmoothedRectangle(g, getLocalBounds().toFloat().reduced(6.0f, 3.0f), Corners::defaultCornerRadius);
     }
 
-    std::function<void(AutomationSlider*)> onDelete = [](AutomationSlider*) {};
+    std::function<void(AutomationItem*)> onDelete = [](AutomationItem*) {};
 
-    TextButton deleteButton = TextButton(Icons::Clear);
+    SmallIconButton deleteButton;
     ExpandButton settingsButton;
 
     Value range = Value(var(Array<var> { var(0.0f), var(127.0f) }));
@@ -376,7 +388,7 @@ public:
 
     std::unique_ptr<SliderParameterAttachment> attachment;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AutomationSlider)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AutomationItem)
 };
 
 class AlphaAnimator : public Timer {
@@ -439,7 +451,7 @@ public:
         setAlpha(0.0f);
     }
 
-    void activate(AutomationSlider* item)
+    void activate(AutomationItem* item)
     {
         if (automationItem != item) {
             if (automationItem)
@@ -474,7 +486,7 @@ public:
     }
 
 private:
-    SafePointer<AutomationSlider> automationItem = nullptr;
+    SafePointer<AutomationItem> automationItem = nullptr;
     AlphaAnimator animator;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DraggedItemDropShadow)
@@ -565,7 +577,7 @@ public:
         accumulatedOffsetY = { 0, 0 };
 
         if (auto* reorderButton = dynamic_cast<ReorderButton*>(e.originalComponent)) {
-            draggedItem = static_cast<AutomationSlider*>(reorderButton->getParentComponent());
+            draggedItem = static_cast<AutomationItem*>(reorderButton->getParentComponent());
             draggedItemDropShadow.activate(draggedItem);
             draggedItem->toFront(false);
             mouseDownPos = draggedItem->getPosition();
@@ -616,7 +628,6 @@ public:
         }
     }
 
-
     String getNewParameterName()
     {
         StringArray takenNames;
@@ -652,12 +663,12 @@ public:
 
         for (auto* param : getParameters()) {
             if (param->isEnabled()) {
-                auto* slider = rows.add(new AutomationSlider(param, parentComponent, pd));
+                auto* slider = rows.add(new AutomationItem(param, parentComponent, pd));
                 addAndMakeVisible(slider);
 
                 slider->reorderButton.addMouseListener(this, false);
 
-                slider->onDelete = [this](AutomationSlider* toDelete) {
+                slider->onDelete = [this](AutomationItem* toDelete) {
                     StringArray paramNames;
 
                     for (auto* param : getParameters()) {
@@ -740,7 +751,7 @@ public:
         return y;
     }
 
-    SafePointer<AutomationSlider> draggedItem;
+    SafePointer<AutomationItem> draggedItem;
     DraggedItemDropShadow draggedItemDropShadow;
     Point<int> mouseDownPos;
     Point<int> accumulatedOffsetY = { 0, 0 };
@@ -750,7 +761,7 @@ public:
 
     PluginProcessor* pd;
     Component* parentComponent;
-    OwnedArray<AutomationSlider> rows;
+    OwnedArray<AutomationItem> rows;
     AddParameterButton addParameterButton;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AutomationComponent)

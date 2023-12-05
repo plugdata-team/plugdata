@@ -28,7 +28,7 @@ class Caret;                 // draws the caret symbol(s)
 class GutterComponent;       // draws the gutter
 class GlyphArrangementArray; // like StringArray but caches glyph positions
 class HighlightComponent;    // draws the highlight region(s)
-class Selection;             // stores leading and trailing edges of an editing region
+struct Selection;            // stores leading and trailing edges of an editing region
 class TextDocument;          // stores text data and caret ranges, supplies metrics, accepts actions
 class PlugDataTextEditor;    // is a component, issues actions, computes view transform
 class Transaction;           // a text replacement, the document computes the inverse on fulfilling it
@@ -201,7 +201,8 @@ struct Selection {
     int token = 0;
 };
 
-struct Transaction {
+class Transaction {
+public:
     using Callback = std::function<void(Transaction const&)>;
     enum class Direction { forward,
         reverse };
@@ -564,7 +565,6 @@ public:
 private:
     static Path getOutlinePath(Array<Rectangle<float>> const& rectangles);
 
-    bool useRoundedHighlight = true;
     TextDocument const& document;
     AffineTransform transform;
     Path outlinePath;
@@ -2073,7 +2073,7 @@ struct TextEditorDialog : public Component {
         : resizer(this, &constrainer)
         , title(std::move(name))
     {
-        closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(DocumentWindow::closeButton));
+        closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(-1));
         addAndMakeVisible(closeButton.get());
 
         constrainer.setMinimumSize(500, 200);
@@ -2103,9 +2103,8 @@ struct TextEditorDialog : public Component {
 
         resizer.setBounds(b);
 
-        auto macOSStyle = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");
         auto closeButtonBounds = b.removeFromTop(30).removeFromRight(30).translated(-5, 5);
-        closeButton->setBounds(closeButtonBounds.reduced(macOSStyle ? 5 : 0));
+        closeButton->setBounds(closeButtonBounds);
         editor.setBounds(b.withTrimmedTop(10).withTrimmedBottom(20));
     }
 
@@ -2121,7 +2120,7 @@ struct TextEditorDialog : public Component {
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawRoundedRectangle(getLocalBounds().reduced(15).toFloat(), Corners::windowCornerRadius, 1.0f);
     }
 
@@ -2137,8 +2136,8 @@ struct TextEditorDialog : public Component {
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.fillRoundedRectangle(b.toFloat(), Corners::windowCornerRadius);
 
-        g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawHorizontalLine(b.getX() + 39, b.getY() + 48, b.getWidth());
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        // g.drawHorizontalLine(b.getX() + 39, b.getY() + 48, b.getWidth());
         g.drawHorizontalLine(b.getHeight() - 20, b.getY() + 48, b.getWidth());
 
         if (!title.isEmpty()) {

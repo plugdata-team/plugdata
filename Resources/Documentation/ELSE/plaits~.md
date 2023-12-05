@@ -29,8 +29,8 @@ arguments:
     default: 0.5
 
 flags:
-  - name: -cv/-midi/-voct
-    description: set to pitch input in CV, MIDI, or v/oct
+  - name: -cv/-midi
+    description: set to pitch input in CV, MIDI
     default: Hz
   - name: -model <float>
     description: set model number
@@ -38,13 +38,14 @@ flags:
   - name: -trigger
     description: set to trigger mode
     default: regular
+  - name: -level
+    description: enables level input
+    default: disabled
 
 inlets:
   1st:
   - type: float/signal
     description: pitch input
-  - type: bang
-    description: control trigger (when in trigger mode)
   2nd:
   - type: signal
     description: signal trigger input
@@ -70,8 +71,6 @@ methods:
     description: set frequency mode to MIDI
   - type: cv
     description: set frequency mode to CV
-  - type: voct
-    description: set frequency mode to v/oct
   - type: trigger <float>
     description:  non-0 sets to trigger mode
   - type: model <float>

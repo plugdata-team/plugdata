@@ -7,8 +7,7 @@
 #include <JuceHeader.h>
 #include "TclColours.h"
 
-extern "C"
-{
+extern "C" {
 void knob_get_snd(void* x);
 void knob_get_rcv(void* x);
 }
@@ -21,6 +20,7 @@ class Knob : public Slider {
     bool drawArc = true;
 
     int numberOfTicks = 0;
+    float arcStart = 63.5f;
 
 public:
     Knob()
@@ -58,6 +58,11 @@ public:
         drawArc = show;
         repaint();
     }
+    
+    void setArcStart(float newArcStart)
+    {
+        arcStart = newArcStart;
+    }
 
     void paint(Graphics& g) override
     {
@@ -85,7 +90,7 @@ public:
             g.fillPath(rangeArc);
 
             // draw arc
-            auto centre = jmap<double>(getDoubleClickReturnValue(), startAngle, endAngle);
+            auto centre = jmap<double>(arcStart, startAngle, endAngle);
 
             Path arc;
             arc.addPieSegment(arcBounds, centre, angle, arcWidth);
@@ -145,13 +150,14 @@ class KnobObject : public ObjectBase {
     Value arcColour = SynchronousValue();
     Value sendSymbol = SynchronousValue();
     Value receiveSymbol = SynchronousValue();
+    Value arcStart = SynchronousValue();
 
     Value sizeProperty = SynchronousValue();
 
     float value = 0.0f;
 
 public:
-    KnobObject(void* obj, Object* object)
+    KnobObject(t_gobj* obj, Object* object)
         : ObjectBase(obj, object)
     {
         addAndMakeVisible(knob);
@@ -187,6 +193,7 @@ public:
         objectParameters.addParamBool("Discrete", cGeneral, &discrete, { "No", "Yes" }, 0);
         objectParameters.addParamInt("Angular range", cGeneral, &angularRange, 270);
         objectParameters.addParamInt("Angular offset", cGeneral, &angularOffset, 0);
+        objectParameters.addParamFloat("Arc start", cGeneral, &arcStart, 0.0f);
         objectParameters.addParamFloat("Exp", cGeneral, &exponential, 0.0f);
 
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
@@ -198,12 +205,14 @@ public:
         objectParameters.addParamColour("Arc color", cAppearance, &arcColour, PlugDataColour::guiObjectInternalOutlineColour);
         objectParameters.addParamBool("Fill background", cAppearance, &outline, { "No", "Yes" }, 1);
         objectParameters.addParamBool("Show arc", cAppearance, &showArc, { "No", "Yes" }, 1);
+
     }
 
     void updateDoubleClickValue()
     {
         auto val = jmap<float>(::getValue<float>(initialValue), getMinimum(), getMaximum(), 0.0f, 1.0f);
         knob.setDoubleClickReturnValue(true, std::clamp(val, 0.0f, 1.0f));
+        knob.setArcStart(jmap<float>(::getValue<float>(arcStart), getMinimum(), getMaximum(), 0.0f, 1.0f));
         knob.repaint();
     }
 
@@ -289,7 +298,7 @@ public:
                 return {};
 
             int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
 
             return { x, y, w + 1, h + 1 };
         }
@@ -323,6 +332,7 @@ public:
             hash("circular"),
             hash("discrete"),
             hash("arc"),
+            hash("start"),
             hash("angle"),
             hash("offset"),
             hash("ticks"),
@@ -382,6 +392,11 @@ public:
         case hash("arc"): {
             setParameterExcludingListener(showArc, atoms[0].getFloat());
             knob.showArc(atoms[0].getFloat());
+            break;
+        }
+        case hash("start"): {
+            setParameterExcludingListener(arcStart, atoms[0].getFloat());
+            updateDoubleClickValue();
             break;
         }
         case hash("discrete"): {
@@ -481,7 +496,7 @@ public:
     {
         if (auto knb = ptr.get<t_fake_knob>()) {
             knob_get_snd(knb.get()); // get unexpanded send symbol from binbuf
-            
+
             if (!knb->x_snd_raw || !knb->x_snd_raw->s_name)
                 return "";
 
@@ -498,7 +513,7 @@ public:
     {
         if (auto knb = ptr.get<t_fake_knob>()) {
             knob_get_rcv(knb.get()); // get unexpanded receive symbol from binbuf
-            
+
             if (!knb->x_rcv_raw || !knb->x_rcv_raw->s_name)
                 return "";
 
@@ -693,6 +708,8 @@ public:
             updateRange();
             updateDoubleClickValue();
             updateKnobPosFromMin(oldMinVal, oldMaxVal, newMinVal);
+            if (::getValue<float>(arcStart) < newMinVal)
+                arcStart = newMinVal;
         } else if (value.refersToSameSourceAs(max)) {
             float oldMinVal, oldMaxVal, newMaxVal;
             if (auto knb = ptr.get<t_fake_knob>()) {
@@ -709,6 +726,8 @@ public:
             updateDoubleClickValue();
 
             updateKnobPosFromMax(oldMinVal, oldMaxVal, newMaxVal);
+            if (::getValue<float>(arcStart) > newMaxVal)
+                arcStart = newMaxVal;
         } else if (value.refersToSameSourceAs(initialValue)) {
             updateDoubleClickValue();
             if (auto knb = ptr.get<t_fake_knob>())
@@ -769,7 +788,14 @@ public:
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_bg = pd->generateSymbol(colour);
             repaint();
-        } else if (value.refersToSameSourceAs(arcColour)) {
+        }  else if (value.refersToSameSourceAs(arcStart)) {
+            auto arcStartLimited = limitValueRange(arcStart, ::getValue<float>(min), ::getValue<float>(max));
+            if (auto knb = ptr.get<t_fake_knob>())
+                knb->x_start = arcStartLimited;
+            updateDoubleClickValue();
+            repaint();
+        }
+        else if (value.refersToSameSourceAs(arcColour)) {
             auto colour = "#" + arcColour.toString().substring(2);
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_mg = pd->generateSymbol(colour);

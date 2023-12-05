@@ -150,21 +150,6 @@ class Instance {
         std::vector<pd::Atom> list;
     };
 
-    typedef struct midievent {
-        enum {
-            NOTEON,
-            CONTROLCHANGE,
-            PROGRAMCHANGE,
-            PITCHBEND,
-            AFTERTOUCH,
-            POLYAFTERTOUCH,
-            MIDIBYTE
-        } type;
-        int midi1;
-        int midi2;
-        int midi3;
-    } midievent;
-
 public:
     Instance(String const& symbol);
     Instance(Instance const& other) = delete;
@@ -187,27 +172,13 @@ public:
     void sendSysRealTime(int port, int byte) const;
     void sendMidiByte(int port, int byte) const;
 
-    virtual void receiveNoteOn(int channel, int pitch, int velocity)
-    {
-    }
-    virtual void receiveControlChange(int channel, int controller, int value)
-    {
-    }
-    virtual void receiveProgramChange(int channel, int value)
-    {
-    }
-    virtual void receivePitchBend(int channel, int value)
-    {
-    }
-    virtual void receiveAftertouch(int channel, int value)
-    {
-    }
-    virtual void receivePolyAftertouch(int channel, int pitch, int value)
-    {
-    }
-    virtual void receiveMidiByte(int port, int byte)
-    {
-    }
+    virtual void receiveNoteOn(int channel, int pitch, int velocity) = 0;
+    virtual void receiveControlChange(int channel, int controller, int value) = 0;
+    virtual void receiveProgramChange(int channel, int value) = 0;
+    virtual void receivePitchBend(int channel, int value) = 0;
+    virtual void receiveAftertouch(int channel, int value) = 0;
+    virtual void receivePolyAftertouch(int channel, int pitch, int value) = 0;
+    virtual void receiveMidiByte(int port, int byte) = 0;
 
     virtual void createPanel(int type, char const* snd, char const* location, char const* callbackName, int openMode = -1);
 
@@ -218,28 +189,10 @@ public:
     void sendMessage(char const* receiver, char const* msg, std::vector<pd::Atom> const& list) const;
     void sendTypedMessage(void* object, char const* msg, std::vector<Atom> const& list) const;
 
-    virtual void addTextToTextEditor(unsigned long ptr, String text) {};
-    virtual void showTextEditor(unsigned long ptr, Rectangle<int> bounds, String title) {};
+    virtual void addTextToTextEditor(unsigned long ptr, String text) { }
+    virtual void showTextEditor(unsigned long ptr, Rectangle<int> bounds, String title) { }
 
-    virtual void receivePrint(String const& message) {};
-
-    virtual void receiveBang(String const& dest)
-    {
-    }
-    virtual void receiveFloat(String const& dest, float num)
-    {
-    }
-    virtual void receiveSymbol(String const& dest, String const& symbol)
-    {
-    }
-    virtual void receiveList(String const& dest, std::vector<pd::Atom> const& list)
-    {
-    }
-    virtual void receiveMessage(String const& dest, String const& msg, std::vector<pd::Atom> const& list)
-    {
-    }
-
-    virtual void receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list) {};
+    virtual void receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list) { }
 
     void registerMessageListener(void* object, MessageListener* messageListener);
     void unregisterMessageListener(void* object, MessageListener* messageListener);
@@ -248,11 +201,11 @@ public:
     void unregisterWeakReference(void* ptr, pd_weak_reference const* ref);
     void clearWeakReferences(void* ptr);
 
-    virtual void receiveDSPState(bool dsp) {};
+    virtual void receiveDSPState(bool dsp) { }
 
-    virtual void updateConsole() {};
+    virtual void updateConsole(int numMessages, bool newWarning) { }
 
-    virtual void titleChanged() {};
+    virtual void titleChanged() { }
 
     void enqueueFunctionAsync(std::function<void(void)> const& fn);
 
@@ -264,25 +217,24 @@ public:
     void updateObjectImplementations();
     void clearObjectImplementationsForPatch(pd::Patch* p);
 
-    virtual void performParameterChange(int type, String const& name, float value) {};
+    virtual void performParameterChange(int type, String const& name, float value) { }
 
     // JYG added this
-    virtual void fillDataBuffer(std::vector<pd::Atom> const& list) {};
-    virtual void parseDataBuffer(XmlElement const& xml) {};
+    virtual void fillDataBuffer(std::vector<pd::Atom> const& list) { }
+    virtual void parseDataBuffer(XmlElement const& xml) { }
 
     void logMessage(String const& message);
     void logError(String const& message);
     void logWarning(String const& message);
     void muteConsole(bool shouldMute);
 
-    std::deque<std::tuple<void*, String, int, int>>& getConsoleMessages();
-    std::deque<std::tuple<void*, String, int, int>>& getConsoleHistory();
+    std::deque<std::tuple<void*, String, int, int, int>>& getConsoleMessages();
+    std::deque<std::tuple<void*, String, int, int, int>>& getConsoleHistory();
 
-    virtual void messageEnqueued() {};
+    virtual void messageEnqueued() { }
 
     void sendMessagesFromQueue();
     void processMessage(Message mess);
-    void processMidiEvent(midievent event);
     void processSend(dmessage mess);
 
     String getExtraInfo(File const& toOpen);
@@ -305,17 +257,17 @@ public:
 
     bool loadLibrary(String const& library);
 
-    void* m_instance = nullptr;
-    void* m_patch = nullptr;
-    void* m_atoms = nullptr;
-    void* m_message_receiver = nullptr;
-    void* m_parameter_receiver = nullptr;
-    void* m_parameter_change_receiver = nullptr;
-    void* m_midi_receiver = nullptr;
-    void* m_print_receiver = nullptr;
+    void* instance = nullptr;
+    void* patch = nullptr;
+    void* atoms = nullptr;
+    void* messageReceiver = nullptr;
+    void* parameterReceiver = nullptr;
+    void* parameterChangeReceiver = nullptr;
+    void* midiReceiver = nullptr;
+    void* printReceiver = nullptr;
 
     // JYG added this
-    void* m_databuffer_receiver = nullptr;
+    void* dataBufferReceiver = nullptr;
 
     std::atomic<bool> canUndo = false;
     std::atomic<bool> canRedo = false;
@@ -334,9 +286,8 @@ private:
 
     CriticalSection messageListenerLock;
 
-    moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
+    moodycamel::ConcurrentQueue<std::function<void(void)>> functionQueue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
 
-    std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
     std::atomic<bool> consoleMute;
 
@@ -355,21 +306,35 @@ protected:
         void timerCallback() override
         {
             auto item = std::tuple<void*, String, bool>();
-            bool receivedMessage = false;
+            int numReceived = 0;
+            bool newWarning = false;
 
             while (pendingMessages.try_dequeue(item)) {
                 auto& [object, message, type] = item;
-                consoleMessages.emplace_back(object, message, type, fastStringWidth.getStringWidth(message) + 8);
-
+                
+                if(consoleMessages.size()) {
+                    auto& [lastObject, lastMessage, lastType, lastLength, numMessages] = consoleMessages.back();
+                    if(object == lastObject && message == lastMessage && type == lastType) {
+                        numMessages++;
+                    }
+                    else {
+                        consoleMessages.emplace_back(object, message, type, fastStringWidth.getStringWidth(message) + 8, 1);
+                    }
+                }
+                else {
+                    consoleMessages.emplace_back(object, message, type, fastStringWidth.getStringWidth(message) + 8, 1);
+                }
+                
                 if (consoleMessages.size() > 800)
                     consoleMessages.pop_front();
 
-                receivedMessage = true;
+                numReceived++;
+                newWarning = newWarning || type;
             }
 
             // Check if any item got assigned
-            if (receivedMessage) {
-                instance->updateConsole();
+            if (numReceived) {
+                instance->updateConsole(numReceived, newWarning);
             }
 
             stopTimer();
@@ -440,8 +405,8 @@ protected:
             }
         }
 
-        std::deque<std::tuple<void*, String, int, int>> consoleMessages;
-        std::deque<std::tuple<void*, String, int, int>> consoleHistory;
+        std::deque<std::tuple<void*, String, int, int, int>> consoleMessages;
+        std::deque<std::tuple<void*, String, int, int, int>> consoleHistory;
 
         char printConcatBuffer[2048];
 
@@ -453,5 +418,7 @@ protected:
     std::unique_ptr<Ofelia> ofelia;
 
     ConsoleHandler consoleHandler;
+    
+    JUCE_DECLARE_WEAK_REFERENCEABLE (Instance)
 };
 } // namespace pd

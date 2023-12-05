@@ -18,7 +18,7 @@ class SymbolAtomObject final : public ObjectBase
     Label input;
 
 public:
-    SymbolAtomObject(void* obj, Object* parent)
+    SymbolAtomObject(t_gobj* obj, Object* parent)
         : ObjectBase(obj, parent)
         , atomHelper(obj, parent, this)
     {
@@ -40,12 +40,19 @@ public:
 
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
             editor->addKeyListener(this);
+            editor->onTextChange = [this]() {
+                // To resize while typing
+                if (atomHelper.getWidthInChars() == 0) {
+                    object->updateBounds();
+                }
+            };
         };
 
         input.setMinimumHorizontalScale(0.9f);
 
         objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
         atomHelper.addAtomParameters(objectParameters);
+        lookAndFeelChanged();
     }
 
     void update() override
@@ -74,7 +81,7 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        return atomHelper.getPdBounds();
+        return atomHelper.getPdBounds(input.getFont().getStringWidth(input.getText(true)));
     }
 
     void setPdBounds(Rectangle<int> b) override

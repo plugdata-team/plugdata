@@ -24,8 +24,7 @@ class Object;
 class ObjectLabel : public Label {
 
 public:
-    explicit ObjectLabel(Component* parent)
-        : object(parent)
+    explicit ObjectLabel()
     {
         setJustificationType(Justification::centredLeft);
         setBorderSize(BorderSize<int>(0, 0, 0, 0));
@@ -35,7 +34,6 @@ public:
     }
 
 private:
-    Component* object;
 };
 
 class ObjectBase : public Component
@@ -65,7 +63,7 @@ class ObjectBase : public Component
     };
 
 public:
-    ObjectBase(void* obj, Object* parent);
+    ObjectBase(t_gobj* obj, Object* parent);
 
     ~ObjectBase() override;
 
@@ -75,9 +73,9 @@ public:
 
     // Functions to show and hide a text editor
     // Used internally, or to trigger a text editor when creating a new object (comment, message, new text object etc.)
-    virtual bool isEditorShown() { return false; };
-    virtual void showEditor() {};
-    virtual void hideEditor() {};
+    virtual bool isEditorShown() { return false; }
+    virtual void showEditor() { }
+    virtual void hideEditor() { }
 
     bool hitTest(int x, int y) override;
 
@@ -100,12 +98,12 @@ public:
     virtual void setPdBounds(Rectangle<int> newBounds) = 0;
 
     // Called whenever a drawable changes
-    virtual void updateDrawables() {};
+    virtual void updateDrawables() { }
 
     // Called after creation, to initialise parameter listeners
-    virtual void update() {};
+    virtual void update() { }
 
-    virtual void tabChanged() {};
+    virtual void tabChanged() { }
 
     virtual bool canOpenFromMenu();
     virtual void openFromMenu();
@@ -132,7 +130,7 @@ public:
     virtual bool canReceiveMouseEvent(int x, int y);
 
     // Called whenever the object receives a pd message
-    virtual void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) {};
+    virtual void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) { }
 
     // Close any tabs with opened subpatchers
     void closeOpenedSubpatchers();
@@ -143,20 +141,20 @@ public:
 
     void receiveMessage(String const& symbol, int argc, t_atom* argv) override;
 
-    static ObjectBase* createGui(void* ptr, Object* parent);
+    static ObjectBase* createGui(t_gobj* ptr, Object* parent);
 
     // Override this to return parameters that will be shown in the inspector
     virtual ObjectParameters getParameters();
     virtual bool showParametersWhenSelected();
 
     void objectMovedOrResized(bool resized);
-    virtual void updateSizeProperty() {};
+    virtual void updateSizeProperty() { }
 
-    virtual void updateLabel() {};
+    virtual void updateLabel() { }
 
     // Implement this if you want to allow toggling an object by dragging over it in run mode
-    virtual void toggleObject(Point<int> position) {};
-    virtual void untoggleObject() {};
+    virtual void toggleObject(Point<int> position) { }
+    virtual void untoggleObject() { }
 
     virtual ObjectLabel* getLabel();
 
@@ -175,16 +173,15 @@ public:
 protected:
     // Set parameter without triggering valueChanged
     void setParameterExcludingListener(Value& parameter, var const& value);
-    void setParameterExcludingListener(Value& parameter, var const& value, Value::Listener* listener);
 
     // Call when you start/stop editing a gui object
     void startEdition();
     void stopEdition();
-        
+
     String getBinbufSymbol(int argIndex);
 
     // Called whenever one of the inspector parameters changes
-    void valueChanged(Value& value) override {};
+    void valueChanged(Value& value) override { }
 
     // Send a float value to Pd
     void sendFloatValue(float value);

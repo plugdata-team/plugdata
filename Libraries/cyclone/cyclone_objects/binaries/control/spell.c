@@ -20,7 +20,7 @@ static void spell_fill(t_spell *x, int cnt){
 }
 
 /* CHECKED: chars are spelled as signed */
-static int spell_out(t_spell *x, const char *ptr, int flush)
+static int spell_out(t_spell *x, char *ptr, int flush)
 {
     int cnt = 0;
     while (*ptr)

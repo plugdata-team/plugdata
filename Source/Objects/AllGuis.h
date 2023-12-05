@@ -423,15 +423,6 @@ struct t_fake_numbox {
     char x_buf[MAX_NUMBOX_LEN]; // number buffer
 };
 
-// [else/canvas.active]
-struct t_fake_active {
-    t_object x_obj;
-    void* x_proxy;
-    t_symbol* x_cname;
-    int x_right_click;
-    int x_on;
-    int x_name;
-};
 
 // [else/canvas.mouse]
 struct t_fake_canvas_mouse {
@@ -449,13 +440,6 @@ struct t_fake_canvas_mouse {
     int x_enable_edit_mode;
 };
 
-// [else/canvas.vis]
-struct t_fake_canvas_vis {
-    t_object x_obj;
-    void* x_proxy;
-    t_canvas* x_canvas;
-};
-
 // [else/canvas.zoom]
 struct t_fake_zoom {
     t_object x_obj;
@@ -464,12 +448,11 @@ struct t_fake_zoom {
     int x_zoom;
 };
 
-// [else/canvas.edit]
-struct t_fake_edit {
+// [else/canvas.vis]
+struct t_fake_canvas_vis {
     t_object x_obj;
     void* x_proxy;
     t_canvas* x_canvas;
-    int x_edit;
 };
 
 // [else/canvas.mouse]
@@ -544,7 +527,6 @@ struct t_fake_curve {
     t_canvas* x_canvas;
 };
 
-// for template drawing
 struct t_fake_drawnumber {
     t_object x_obj;
     t_symbol* x_fieldname;
@@ -554,6 +536,24 @@ struct t_fake_drawnumber {
     t_fake_fielddesc x_vis;
     t_symbol* x_label;
     t_canvas* x_canvas;
+};
+
+struct t_fake_plot {
+    t_object x_obj;
+    t_canvas* x_canvas;
+    t_fake_fielddesc x_outlinecolor;
+    t_fake_fielddesc x_width;
+    t_fake_fielddesc x_xloc;
+    t_fake_fielddesc x_yloc;
+    t_fake_fielddesc x_xinc;
+    t_fake_fielddesc x_style;
+    t_fake_fielddesc x_data;
+    t_fake_fielddesc x_xpoints;
+    t_fake_fielddesc x_ypoints;
+    t_fake_fielddesc x_wpoints;
+    t_fake_fielddesc x_vis;       /* visible */
+    t_fake_fielddesc x_scalarvis; /* true if drawing the scalar at each point */
+    t_fake_fielddesc x_edit;      /* enable/disable mouse editing */
 };
 
 #define SCOPE_MAXBUFSIZE 256
@@ -686,4 +686,30 @@ struct t_fake_pd_tilde {
     float** x_insig;
     float** x_outsig;
     int x_blksize;
+};
+
+struct t_fake_mousestate {
+    t_object x_ob;
+    int x_ispolling;
+    int x_bang;
+    int x_hlast;
+    int x_vlast;
+    int x_hzero;
+    int x_vzero;
+    int x_mode; // 0-screen, 1-object window, 2-active window
+    int x_zero; // if we are requesting to zero
+    int x_wx;
+    int x_wy;
+    t_glist* x_glist;
+    t_outlet* x_hposout;
+    t_outlet* x_vposout;
+    t_outlet* x_hdiffout;
+    t_outlet* x_vdiffout;
+};
+
+// else/keycode
+struct t_fake_keycode {
+    t_object x_obj;
+    t_outlet* x_outlet1;
+    t_outlet* x_outlet2;
 };

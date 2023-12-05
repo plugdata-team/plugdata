@@ -13,10 +13,10 @@ arguments:
   description: sets channel number
   default: 0 - OMNI
 
-flags:
-- name: -poly
-  description: sets the object to output polyphonic aftertouch
-
+methods:
+- type: -ext <float>
+  description: non zero sets to listen only to external input source
+  
 inlets:
   1st:
   - type: float
@@ -32,6 +32,11 @@ outlets:
   2nd:
   - type: float
     description: MIDI channel
+
+flags:
+- name: -ext
+  description: only listen to external input source
+  default: no
 
 draft: false
 ---

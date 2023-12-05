@@ -28,7 +28,7 @@ class NoteObject final : public ObjectBase {
     bool wasSelectedOnMouseDown = false;
 
 public:
-    NoteObject(void* obj, Object* object)
+    NoteObject(t_gobj* obj, Object* object)
         : ObjectBase(obj, object)
     {
         locked = getValue<bool>(object->locked);
@@ -254,8 +254,8 @@ public:
             Object* object;
 
             NoteObjectBoundsConstrainer(Object* obj, NoteObject* parent)
-                : object(obj)
-                , noteObject(parent)
+                : noteObject(parent)
+                , object(obj)
             {
             }
             /*
@@ -274,7 +274,7 @@ public:
                 bool isStretchingBottom,
                 bool isStretchingRight) override
             {
-                auto* note = static_cast<t_fake_note*>(object->getPointer());
+                auto* note = reinterpret_cast<t_fake_note*>(object->getPointer());
                 note->x_resized = 1;
                 note->x_max_pixwidth = bounds.getWidth() - Object::doubleMargin;
 
@@ -296,14 +296,15 @@ public:
 
             note->x_max_pixwidth = b.getWidth();
             note->x_height = b.getHeight();
-            libpd_moveobj(patch, note.cast<t_gobj>(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, note.cast<t_gobj>(), b.getX(), b.getY());
         }
     }
 
     String getNote()
     {
         if (auto note = ptr.get<t_fake_note>()) {
-            return String::fromUTF8(note->x_buf, note->x_bufsize).trim();
+            // Get string and unescape characters
+            return String::fromUTF8(note->x_buf, note->x_bufsize).trim().replace("\\,", ",").replace("\\;", ";");
         }
 
         return {};
@@ -362,11 +363,8 @@ public:
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
             auto receive = receiveSymbol.toString();
             if (auto note = ptr.get<t_fake_note>()) {
-                note->x_rcv_raw = pd->generateSymbol(receive);
-                note->x_rcv_set = receive.isNotEmpty();
+                pd->sendDirectMessage(note.get(), "receive", {receive});
             }
-
-            repaint();
         } else if (v.refersToSameSourceAs(justification)) {
             auto justificationType = getValue<int>(justification);
             if (auto note = ptr.get<t_fake_note>())

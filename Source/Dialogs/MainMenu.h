@@ -6,7 +6,7 @@
 
 #include <utility>
 
-#include "../PluginEditor.h"
+#include "PluginEditor.h"
 
 class MainMenu : public PopupMenu {
 
@@ -33,7 +33,7 @@ public:
             for (int i = 0; i < recentlyOpenedTree.getNumChildren(); i++) {
                 auto path = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
                 recentlyOpened->addItem(path.getFileName(), [path, editor]() mutable {
-                    editor->pd->loadPatch(path);
+                    editor->pd->loadPatch(path, editor, -1);
                     SettingsFile::getInstance()->addToRecentlyOpened(path);
                 });
             }
@@ -122,9 +122,15 @@ public:
             zoomReset.setButtonText(buttonText);
             zoomOut.setButtonText("-");
 
-            addAndMakeVisible(zoomIn);
-            addAndMakeVisible(zoomReset);
-            addAndMakeVisible(zoomOut);
+            for(auto* button : Array<TextButton*>{&zoomIn, &zoomReset, &zoomOut})
+            {
+                button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
+                button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuActiveTextColourId));
+                button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.035f));
+                button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.075f));
+                button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+                addAndMakeVisible(button);
+            }
 
             zoomIn.setConnectedEdges(Button::ConnectedOnLeft);
             zoomOut.setConnectedEdges(Button::ConnectedOnRight);
@@ -144,6 +150,18 @@ public:
         enum ZoomType { ZoomIn,
             ZoomOut,
             Reset };
+        
+        void lookAndFeelChanged() override
+        {
+            for(auto* button : Array<TextButton*>{&zoomIn, &zoomReset, &zoomOut})
+            {
+                button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
+                button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuActiveTextColourId));
+                button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.035f));
+                button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.075f));
+                button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+            }
+        }
 
         void applyZoom(ZoomType zoomEventType)
         {
@@ -186,14 +204,13 @@ public:
             // Set the new canvas position
             // Alex: there is an accumulated error when zooming in/out
             //       possibly we should save the canvas position as an additional Point<float> ?
-            // Tim: pretty sure there isn't? You can tell more clearly by using a macbook trackpad, zooming appears to be accurate
             cnv->setTopLeftPosition((cnv->getPosition().toFloat() + offset).roundToInt());
 
             cnv->zoomScale = scale;
 
             zoomReset.setButtonText(String(scale * 100.0f, 1) + "%");
         }
-
+        
         void resized() override
         {
             auto bounds = getLocalBounds().reduced(8, 4);
@@ -212,7 +229,6 @@ public:
 
         bool hasSubMenu;
         bool hasTickBox;
-        bool isMouseOver = false;
 
     public:
         bool isTicked = false;
@@ -323,20 +339,22 @@ public:
             g.setColour(PlugDataLook::getThemeColour(secondThemeTree, PlugDataColour::canvasBackgroundColourId));
             g.fillEllipse(secondBounds.toFloat());
 
-            g.setColour(PlugDataLook::getThemeColour(firstThemeTree, PlugDataColour::objectOutlineColourId));
+            g.setColour(PlugDataLook::getThemeColour(firstThemeTree, PlugDataColour::outlineColourId));
             g.drawEllipse(firstBounds.toFloat(), 1.0f);
 
-            g.setColour(PlugDataLook::getThemeColour(secondThemeTree, PlugDataColour::objectOutlineColourId));
+            g.setColour(PlugDataLook::getThemeColour(secondThemeTree, PlugDataColour::outlineColourId));
             g.drawEllipse(secondBounds.toFloat(), 1.0f);
 
             auto tick = getLookAndFeel().getTickShape(0.6f);
             auto tickBounds = Rectangle<int>();
 
             if (theme.toString() == firstThemeTree.getProperty("theme").toString()) {
-                g.setColour(PlugDataLook::getThemeColour(firstThemeTree, PlugDataColour::canvasTextColourId));
+                auto textColour = PlugDataLook::getThemeColour(firstThemeTree, PlugDataColour::canvasBackgroundColourId).contrasting(0.8f);
+                g.setColour(textColour);
                 tickBounds = firstBounds;
             } else {
-                g.setColour(PlugDataLook::getThemeColour(secondThemeTree, PlugDataColour::canvasTextColourId));
+                auto textColour = PlugDataLook::getThemeColour(secondThemeTree, PlugDataColour::canvasBackgroundColourId).contrasting(0.8f);
+                g.setColour(textColour);
                 tickBounds = secondBounds;
             }
 
@@ -382,7 +400,7 @@ public:
             return 100;
 
         return item;
-    };
+    }
 
     static int getMenuItemIndex(MenuItem item)
     {

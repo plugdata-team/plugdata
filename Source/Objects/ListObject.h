@@ -14,7 +14,7 @@ class ListObject final : public ObjectBase {
     Value sizeProperty = SynchronousValue();
 
 public:
-    ListObject(void* obj, Object* parent)
+    ListObject(t_gobj* obj, Object* parent)
         : ObjectBase(obj, parent)
         , atomHelper(obj, parent, this)
     {
@@ -27,6 +27,13 @@ public:
 
         listLabel.onEditorHide = [this]() {
             stopEdition();
+        };
+
+        listLabel.onTextChange = [this]() {
+            // To resize while typing
+            if (atomHelper.getWidthInChars() == 0) {
+                object->updateBounds();
+            }
         };
 
         listLabel.onEditorShow = [this]() {
@@ -54,6 +61,7 @@ public:
         objectParameters.addParamFloat("Minimum", cGeneral, &min);
         objectParameters.addParamFloat("Maximum", cGeneral, &max);
         atomHelper.addAtomParameters(objectParameters);
+        lookAndFeelChanged();
     }
 
     void update() override
@@ -130,7 +138,7 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        return atomHelper.getPdBounds();
+        return atomHelper.getPdBounds(listLabel.getFont().getStringWidth(listLabel.getText(true)));
     }
 
     void setPdBounds(Rectangle<int> b) override

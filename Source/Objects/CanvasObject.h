@@ -12,7 +12,7 @@ class CanvasObject final : public ObjectBase {
     IEMHelper iemHelper;
 
 public:
-    CanvasObject(void* ptr, Object* object)
+    CanvasObject(t_gobj* ptr, Object* object)
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {
@@ -110,7 +110,7 @@ public:
                 return {};
 
             int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(patch, canvas.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, canvas.cast<t_gobj>(), &x, &y, &w, &h);
 
             return Rectangle<int>(x, y, ptr.get<t_my_canvas>()->x_vis_w + 1, ptr.get<t_my_canvas>()->x_vis_h + 1);
         }

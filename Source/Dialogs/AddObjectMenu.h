@@ -6,7 +6,7 @@
 
 #pragma once
 #include "Dialogs.h"
-#include "../Utility/ObjectDragAndDrop.h"
+#include "Components/ObjectDragAndDrop.h"
 
 #define DEBUG_PRINT_OBJECT_LIST 0
 
@@ -14,8 +14,8 @@ class ObjectItem : public ObjectDragAndDrop
     , public SettableTooltipClient {
 public:
     ObjectItem(PluginEditor* e, String const& text, String const& icon, String const& tooltip, String const& patch, ObjectIDs objectID, std::function<void(bool)> dismissCalloutBox)
-        : iconText(icon)
-        , titleText(text)
+        : titleText(text)
+        , iconText(icon)
         , objectPatch(patch)
         , dismissMenu(dismissCalloutBox)
         , editor(e)
@@ -71,45 +71,25 @@ public:
         repaint();
     }
 
-    String getObjectString()
+    String getObjectString() override
     {
-        return substituteThemeColours(objectPatch);
+        // If this is an array, replace @arrName with unused name
+        auto patchString = objectPatch;
+        if(patchString.contains("@arrName")) {
+            editor->pd->setThis();
+            patchString = patchString.replace("@arrName", String::fromUTF8(pd::Interface::getUnusedArrayName()->s_name));
+        }
+        return patchString;
     }
 
     void mouseUp(MouseEvent const& e) override
     {
-        if (e.mouseWasDraggedSinceMouseDown())
+        if (e.mouseWasDraggedSinceMouseDown()) {
             dismissMenu(false);
-    }
-
-    String substituteThemeColours(String patch)
-    {
-        auto colourToHex = [this](PlugDataColour colourEnum) {
-            auto colour = findColour(colourEnum);
-            return String("#" + colour.toDisplayString(false));
-        };
-
-        auto colourToIEM = [this](PlugDataColour colourEnum) {
-            auto colour = findColour(colourEnum);
-            return String(String(colour.getRed()) + " " + String(colour.getGreen()) + " " + String(colour.getBlue()));
-        };
-
-        String colouredObjects = patch;
-
-        colouredObjects = colouredObjects.replace("@bgColour", colourToHex(PlugDataColour::guiObjectBackgroundColourId));
-        colouredObjects = colouredObjects.replace("@fgColour", colourToHex(PlugDataColour::canvasTextColourId));
-        // TODO: these both are the same, but should be different?
-        colouredObjects = colouredObjects.replace("@arcColour", colourToHex(PlugDataColour::guiObjectInternalOutlineColour));
-        colouredObjects = colouredObjects.replace("@canvasColour", colourToHex(PlugDataColour::guiObjectInternalOutlineColour));
-        // TODO: these both are the same, but should be different?
-        colouredObjects = colouredObjects.replace("@textColour", colourToHex(PlugDataColour::toolbarTextColourId));
-        colouredObjects = colouredObjects.replace("@labelColour", colourToHex(PlugDataColour::toolbarTextColourId));
-
-        colouredObjects = colouredObjects.replace("@iemBgColour", colourToIEM(PlugDataColour::guiObjectBackgroundColourId));
-        colouredObjects = colouredObjects.replace("@iemFgColour", colourToIEM(PlugDataColour::canvasTextColourId));
-        colouredObjects = colouredObjects.replace("@iemGridColour", colourToIEM(PlugDataColour::guiObjectInternalOutlineColour));
-
-        return colouredObjects;
+        } else {
+            ObjectClickAndDrop::attachToMouse(this);
+            dismissMenu(false);
+        }
     }
 
     String getTitleText()
@@ -142,7 +122,6 @@ public:
         auto width = getWidth();
 
         int column = 0;
-        int row = 0;
         int maxColumns = width / itemSize;
         int offset = 0;
 
@@ -170,6 +149,9 @@ public:
                 auto objectPatch = patch;
                 if (objectPatch.isEmpty())
                     objectPatch = "#X obj 0 0 " + name;
+                else if (!objectPatch.startsWith("#")) {
+                    objectPatch = editor->getObjectManager()->getCompleteFormat(objectPatch);
+                }
                 auto* button = objectButtons.add(new ObjectItem(editor, name, icon, tooltip, objectPatch, objectID, dismissMenu));
                 addAndMakeVisible(button);
             }
@@ -210,27 +192,28 @@ public:
                 { Icons::GlyphSymbolBox, "#X symbolatom 0 0 10 0 0 0 - - - 0", "Symbol box", "Symbol", NewSymbolAtom },
                 { Icons::GlyphListBox, "#X listbox 0 0 20 0 0 0 - - - 0", "(@keypress) List box", "List", NewListAtom },
                 { Icons::GlyphComment, "#X text 0 0 comment", "(@keypress) Comment", "Comment", NewComment },
-                { Icons::GlyphArray, "#N canvas 0 0 450 250 (subpatch) 0;\n#X array array1 100 float 2;\n#X coords 0 1 100 -1 200 140 1;\n#X restore 0 0 graph;", "(@keypress) Array", "Array", NewArray },
-                { Icons::GlyphGOP, "#N canvas 0 0 450 250 (subpatch) 1;\n#X coords 0 1 100 -1 200 140 1 0 0;\n#X restore 226 1 graph;", "(@keypress) Graph on parent", "Graph", NewGraphOnParent },
+                { Icons::GlyphArray, "#N canvas 0 0 450 250 (subpatch) 0;\n#X array @arrName 100 float 2;\n#X coords 0 1 100 -1 200 140 1;\n#X restore 0 0 graph;", "(@keypress) Array", "Array", NewArray },
+                { Icons::GlyphGOP, "#N canvas 0 0 450 250 (subpatch) 1;\n#X coords 0 1 100 -1 200 140 1 0 0;\n#X restore 0 0 graph;", "(@keypress) Graph on parent", "Graph", NewGraphOnParent },
             } },
         { "UI",
             {
-                { Icons::GlyphBang, "#X obj 0 0 bng 25 250 50 0 empty empty empty 17 7 0 10 @bgColour @fgColour @labelColour", "(@keypress) Bang", "Bang", NewBang },
-                { Icons::GlyphToggle, "#X obj 0 0 tgl 25 0 empty empty empty 17 7 0 10 @bgColour @fgColour @labelColour 0 1", "(@keypress) Toggle", "Toggle", NewToggle },
-                { Icons::GlyphButton, "#X obj 0 0 button 25 25 @iemBgColour @iemFgColour 0", "Button", "Button", OtherObject },
-                { Icons::GlyphKnob, "#X obj 0 0 knob 50 0 127 0 0 empty empty @bgColour @arcColour @fgColour 1 0 0 0 1 270 0 0;", "Knob", "Knob", OtherObject },
-                { Icons::GlyphVSlider, "#X obj 0 0 vsl 17 128 0 127 0 0 empty empty empty 0 -9 0 10 @bgColour @fgColour @labelColour 0 1", "(@keypress) Vertical slider", "V. Slider", NewVerticalSlider },
-                { Icons::GlyphHSlider, "#X obj 0 0 hsl 128 17 0 127 0 0 empty empty empty -2 -8 0 10 @bgColour @fgColour @labelColour 0 1", "(@keypress) Horizontal slider", "H. Slider", NewHorizontalSlider },
-                { Icons::GlyphVRadio, "#X obj 0 0 vradio 20 1 0 8 empty empty empty 0 -8 0 10 @bgColour @fgColour @labelColour 0", "(@keypress) Vertical radio box", "V. Radio", NewVerticalRadio },
-                { Icons::GlyphHRadio, "#X obj 0 0 hradio 20 1 0 8 empty empty empty 0 -8 0 10 @bgColour @fgColour @labelColour 0", "(@keypress) Horizontal radio box", "H. Radio", NewHorizontalRadio },
-                { Icons::GlyphNumber, "#X obj 0 0 nbx 4 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 @bgColour @fgColour @textColour 0 256", "(@keypress) Number box", "Number", NewNumbox },
-                { Icons::GlyphCanvas, "#X obj 0 0 cnv 15 100 60 empty empty empty 20 12 0 14 @canvasColour @labelColour 0", "(@keypress) Canvas", "Canvas", NewCanvas },
-                { Icons::GlyphFunction, "#X obj 0 0 function 200 100 empty empty 0 1 @iemBgColour @iemFgColour 0 0 0 0 0 1000 0", "Function", "Function", OtherObject },
-                { Icons::GlyphOscilloscope, "#X obj 0 0 oscope~ 130 130 256 3 128 -1 1 0 0 0 0 @iemFgColour @iemBgColour @iemGridColour 0 empty", "Oscilloscope", "Scope", OtherObject },
+                // GUI object default settings are in OjbectManager.h
+                { Icons::GlyphBang, "bng", "(@keypress) Bang", "Bang", NewBang },
+                { Icons::GlyphToggle, "tgl", "(@keypress) Toggle", "Toggle", NewToggle },
+                { Icons::GlyphButton, "button", "Button", "Button", OtherObject },
+                { Icons::GlyphKnob, "knob", "Knob", "Knob", OtherObject },
+                { Icons::GlyphVSlider, "vsl", "(@keypress) Vertical slider", "V. Slider", NewVerticalSlider },
+                { Icons::GlyphHSlider, "hsl", "(@keypress) Horizontal slider", "H. Slider", NewHorizontalSlider },
+                { Icons::GlyphVRadio, "vradio", "(@keypress) Vertical radio box", "V. Radio", NewVerticalRadio },
+                { Icons::GlyphHRadio, "hradio", "(@keypress) Horizontal radio box", "H. Radio", NewHorizontalRadio },
+                { Icons::GlyphNumber, "nbx", "(@keypress) Number box", "Number", NewNumbox },
+                { Icons::GlyphCanvas, "cnv", "(@keypress) Canvas", "Canvas", NewCanvas },
+                { Icons::GlyphFunction, "function", "Function", "Function", OtherObject },
+                { Icons::GlyphOscilloscope, "oscope~", "Oscilloscope", "Scope", OtherObject },
                 { Icons::GlyphKeyboard, "#X obj 0 0 keyboard 16 80 4 2 0 0 empty empty", "Piano keyboard", "Keyboard", OtherObject },
-                { Icons::GlyphMessbox, "#X obj -0 0 messbox 180 60 @iemBgColour @iemFgColour 0 12", "ELSE Message box", "Messbox", OtherObject },
+                { Icons::GlyphMessbox, "messbox", "ELSE Message box", "Messbox", OtherObject },
                 { Icons::GlyphBicoeff, "#X obj 0 0 bicoeff 450 150 peaking", "Bicoeff generator", "Bicoeff", OtherObject },
-                { Icons::GlyphVUMeter, "#X obj 0 0 vu 20 120 empty empty -1 -8 0 10 #191919 @labelColour 1 0", "(@keypress) VU meter", "VU Meter", NewVUMeterObject },
+                { Icons::GlyphVUMeter, "vu", "(@keypress) VU meter", "VU Meter", NewVUMeter },
             } },
         { "General",
             {
@@ -392,9 +375,9 @@ public:
             button->setRadioGroupId(hash("add_menu_category"));
             button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
             button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuActiveTextColourId));
-
-            button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
-            button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId));
+            button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.035f));
+            button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.075f));
+            button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
             addAndMakeVisible(button);
         }
 
@@ -493,11 +476,11 @@ class AddObjectMenu : public Component {
 
 public:
     AddObjectMenu(PluginEditor* e)
-        : editor(e)
+        : objectBrowserButton(Icons::Object, "Show Object Browser")
+        , pinButton(Icons::Pin)
+        , editor(e)
         , objectList(e, [this](bool shouldFade) { dismiss(shouldFade); })
         , categoriesList(e, [this](bool shouldFade) { dismiss(shouldFade); })
-        , objectBrowserButton(Icons::Object, "Show Object Browser")
-        , pinButton(Icons::Pin)
     {
         categoriesList.setVisible(true);
 

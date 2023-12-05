@@ -1,0 +1,12 @@
+#N canvas 484 25 396 525 12;
+#X obj 105 405 out~;
+#X obj 66 57 player~ bubul.wav 1 1;
+#X obj 66 93 plate.rev.m~;
+#A saved 50 0.5 0.25 0.75 0.5;
+#X text 284 222 based on;
+#X obj 277 250 plate.rev~;
+#X obj 331 429 about;
+#X text 271 429 see -->;
+#X connect 1 0 2 0;
+#X connect 2 0 0 0;
+#X connect 2 1 0 1;

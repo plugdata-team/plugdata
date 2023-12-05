@@ -9,7 +9,7 @@
 #include "ObjectGrid.h"          // move to impl
 #include "Utility/RateReducer.h" // move to impl
 #include "Utility/ModifierKeyListener.h"
-#include "Utility/CheckedTooltip.h"
+#include "Components/CheckedTooltip.h"
 #include "Pd/MessageListener.h"
 #include "Pd/Patch.h"
 #include "Constants.h"
@@ -20,7 +20,7 @@ class Patch;
 }
 
 class SuggestionComponent;
-struct GraphArea;
+class GraphArea;
 class Iolet;
 class Object;
 class Connection;
@@ -46,7 +46,6 @@ class Canvas : public Component
     , public SettingsFileListener
     , public LassoSource<WeakReference<Component>>
     , public ModifierKeyListener
-    , public FocusChangeListener
     , public pd::MessageListener
     , public AsyncUpdater {
 public:
@@ -63,10 +62,6 @@ public:
     void mouseDown(MouseEvent const& e) override;
     void mouseDrag(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
-    void mouseMove(MouseEvent const& e) override;
-
-    void focusGained(FocusChangeType type) override;
-    void focusLost(FocusChangeType type) override;
 
     void commandKeyChanged(bool isHeld) override;
     void spaceKeyChanged(bool isHeld) override;
@@ -74,9 +69,9 @@ public:
     void altKeyChanged(bool isHeld) override;
 
     void propertyChanged(String const& name, var const& value) override;
-
-    void moved() override;
-    void resized() override;
+                
+    void focusGained(FocusChangeType cause) override;
+    void focusLost(FocusChangeType cause) override;
 
     int getOverlays() const;
     void updateOverlays();
@@ -86,6 +81,8 @@ public:
     void performSynchronise();
     void handleAsyncUpdate() override;
 
+    void moveToWindow(PluginEditor* newWindow);
+
     void updateDrawables();
 
     bool keyPressed(KeyPress const& key) override;
@@ -94,8 +91,6 @@ public:
     TabComponent* getTabbar();
     int getTabIndex();
     void tabChanged();
-
-    void globalFocusChanged(Component* focusedComponent) override;
 
     void hideAllActiveEditors();
 
@@ -164,13 +159,14 @@ public:
     bool connectingWithDrag = false;
     bool connectionCancelled = false;
     SafePointer<Iolet> nearestIolet;
+        
+    std::unique_ptr<SuggestionComponent> suggestor;
 
     pd::Patch::Ptr refCountedPatch;
     pd::Patch& patch;
 
     // Needs to be allocated before object and connection so they can deselect themselves in the destructor
     SelectedItemSet<WeakReference<Component>> selectedComponents;
-
     OwnedArray<Object> objects;
     OwnedArray<Connection> connections;
     OwnedArray<ConnectionBeingCreated> connectionsBeingCreated;
@@ -188,10 +184,12 @@ public:
     bool hasParentCanvas = false;
     bool isDraggingLasso = false;
 
-    Value isGraphChild = Value(var(false));
-    Value hideNameAndArgs = Value(var(false));
-    Value xRange, yRange;
-    Value patchWidth, patchHeight;
+    Value isGraphChild = SynchronousValue(var(false));
+    Value hideNameAndArgs = SynchronousValue(var(false));
+    Value xRange = SynchronousValue();
+    Value yRange = SynchronousValue();
+    Value patchWidth = SynchronousValue();
+    Value patchHeight = SynchronousValue();
 
     Value zoomScale;
 
@@ -201,16 +199,10 @@ public:
     Point<int> viewportPositionBeforeMiddleDrag = { 0, 0 };
 
     std::unique_ptr<GraphArea> graphArea;
-    SuggestionComponent* suggestor = nullptr;
 
-    bool attachNextObjectToMouse = false;
-    // TODO: Move to drag state!
     SafePointer<Object> lastSelectedObject;         // For auto patching
     SafePointer<Connection> lastSelectedConnection; // For auto patching
 
-    int const minimumMovementToStartDrag = 5;
-
-    Point<int> lastMousePosition;
     Point<int> pastedPosition;
     Point<int> pastedPadding;
 

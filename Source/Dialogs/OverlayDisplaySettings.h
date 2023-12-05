@@ -19,7 +19,7 @@ public:
             Run,
             Alt
         };
-        OwnedArray<TextButton> buttons { new TextButton("edit"), new TextButton("lock"), new TextButton("run"), new TextButton("alt") };
+        OwnedArray<SmallIconButton> buttons { new SmallIconButton("edit"), new SmallIconButton("lock"), new SmallIconButton("run"), new SmallIconButton("alt") };
 
         Label textLabel;
         String groupName;
@@ -45,7 +45,6 @@ public:
             };
 
             for (auto* button : buttons) {
-                button->getProperties().set("Style", "SmallIcon");
                 addAndMakeVisible(button);
                 button->setVisible(controlVisibility(button->getName()));
                 button->addListener(this);
@@ -76,7 +75,7 @@ public:
             buttons[Run]->setToggleState(static_cast<bool>(runState & group), dontSendNotification);
             buttons[Alt]->setToggleState(static_cast<bool>(altState & group), dontSendNotification);
 
-            setSize(230, 30);
+            setSize(200, 30);
         }
 
         void buttonClicked(Button* button) override
@@ -98,7 +97,11 @@ public:
 
         void resized() override
         {
-            auto bounds = Rectangle<int>(0, 0, 30, 30);
+            auto bounds = Rectangle<int>(4, 0, 30, 30);
+            
+            textLabel.setBounds(bounds.withWidth(getWidth() / 2.0));
+            bounds.translate((getWidth() / 2.0) - 12, 0);
+            
             buttons[Edit]->setBounds(bounds);
             bounds.translate(25, 0);
             buttons[Lock]->setBounds(bounds);
@@ -108,7 +111,6 @@ public:
             buttons[Alt]->setBounds(bounds);
             bounds.translate(25, 0);
 
-            textLabel.setBounds(bounds.withWidth(150));
         }
     };
 
@@ -119,15 +121,15 @@ public:
         auto overlayTree = settingsTree.getChildWithName("Overlays");
 
         canvasLabel.setText("Canvas", dontSendNotification);
-        canvasLabel.setFont(Font(14));
+        canvasLabel.setFont(Fonts::getSemiBoldFont().withHeight(14));
         addAndMakeVisible(canvasLabel);
 
         objectLabel.setText("Object", dontSendNotification);
-        objectLabel.setFont(Font(14));
+        objectLabel.setFont(Fonts::getSemiBoldFont().withHeight(14));
         addAndMakeVisible(objectLabel);
 
         connectionLabel.setText("Connection", dontSendNotification);
-        connectionLabel.setFont(Font(14));
+        connectionLabel.setFont(Fonts::getSemiBoldFont().withHeight(14));
         addAndMakeVisible(connectionLabel);
 
         buttonGroups.add(new OverlaySelector(overlayTree, Origin, "origin", "Origin", "0,0 point of canvas"));
@@ -141,12 +143,12 @@ public:
         for (auto* buttonGroup : buttonGroups) {
             addAndMakeVisible(buttonGroup);
         }
-        setSize(170, 500);
+        setSize(200, 505);
     }
 
     void resized() override
     {
-        auto bounds = getLocalBounds();
+        auto bounds = getLocalBounds().reduced(4, 0);
 
         auto const labelHeight = 26;
         auto const itemHeight = 28;
@@ -168,7 +170,24 @@ public:
         connectionLabel.setBounds(bounds.removeFromTop(labelHeight));
         buttonGroups[OverlayDirection]->setBounds(bounds.removeFromTop(itemHeight));
         buttonGroups[OverlayOrder]->setBounds(bounds.removeFromTop(itemHeight));
-        setSize(170, bounds.getY());
+        setSize(200, bounds.getY() + 5);
+    }
+    
+    void paint(Graphics& g) override
+    {
+        auto firstPanelBounds = buttonGroups[OverlayOrigin]->getBounds().getUnion(buttonGroups[OverlayBorder]->getBounds());
+        auto secondPanelBounds = buttonGroups[OverlayIndex]->getBounds().getUnion(buttonGroups[OverlayActivationState]->getBounds());
+        auto thirdPanelBounds = buttonGroups[OverlayDirection]->getBounds().getUnion(buttonGroups[OverlayOrder]->getBounds());
+        
+        for(auto& bounds : std::vector<Rectangle<int>>{firstPanelBounds, secondPanelBounds, thirdPanelBounds})
+        {
+            g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.035f));
+            g.fillRoundedRectangle(bounds.toFloat(), Corners::largeCornerRadius);
+
+            g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+            g.drawRoundedRectangle(bounds.toFloat(), Corners::largeCornerRadius, 1.0f);
+            g.drawHorizontalLine(bounds.getCentreY(), bounds.getX(), bounds.getRight());
+        }
     }
 
     static void show(Component* parent, Rectangle<int> bounds)

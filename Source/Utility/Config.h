@@ -1,14 +1,19 @@
 #pragma once
 
 #include <juce_data_structures/juce_data_structures.h>
+
+using namespace juce;
+
 #include "Utility/HashUtils.h"
+#include "Utility/SynchronousValue.h"
 
 namespace juce {
 class AudioDeviceManager;
 }
 class MidiDeviceManager;
-
-using namespace juce;
+class PlugDataWindow;
+class PluginEditor;
+class StandalonePluginHolder;
 
 struct ProjectInfo {
 
@@ -22,6 +27,12 @@ struct ProjectInfo {
     static MidiDeviceManager* getMidiDeviceManager();
     static AudioDeviceManager* getDeviceManager();
 
+    static PlugDataWindow* createNewWindow(PluginEditor* editor);
+    static void closeWindow(PlugDataWindow* window);
+
+    static StandalonePluginHolder* getStandalonePluginHolder();
+    
+    static bool isMidiEffect() noexcept;
     static bool canUseSemiTransparentWindows();
 
     static inline const File appDataDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata");
@@ -33,10 +44,57 @@ struct ProjectInfo {
 template<typename T>
 inline T getValue(Value const& v)
 {
-    return static_cast<T>(v.getValue());
+    if constexpr(std::is_same_v<T, String>)
+    {
+        return v.toString();
+    }
+    else {
+        return static_cast<T>(v.getValue());
+    }
 }
 
-static String getRelativeTimeDescription(String const& timestampString)
+inline void setValueExcludingListener(Value& parameter, var const& value, Value::Listener* listener)
+{
+    // This is only gonna work well on synchronous values!
+    jassert(dynamic_cast<SynchronousValueSource*>(&parameter.getValueSource()) != nullptr);
+
+    parameter.removeListener(listener);
+
+    auto oldValue = parameter.getValue();
+    parameter.setValue(value);
+
+    parameter.addListener(listener);
+}
+
+
+static inline String convertURLtoUTF8(const String& input) {
+    StringArray tokens;
+    tokens.addTokens(input, " ", "");
+    String output;
+
+    for (int i = 0; i < tokens.size(); ++i) {
+        String token = tokens[i];
+
+        if (token.startsWithChar('#')) {
+            // Extract the hex value and convert it to a character
+            auto hexString = token.substring(1);
+            int hexValue;
+            sscanf(hexString.toRawUTF8(), "%x", &hexValue);
+            output += String::charToString(static_cast<wchar_t>(hexValue));
+            output += token.substring(3);
+        } else {
+            output += token;
+        }
+
+        if (i < tokens.size() - 1) {
+            output += " ";
+        }
+    }
+
+    return output.trimEnd();
+}
+
+static inline String getRelativeTimeDescription(String const& timestampString)
 {
     StringArray dateAndTime = StringArray::fromTokens(timestampString, true);
     StringArray dateComponents = StringArray::fromTokens(dateAndTime[0], "-", "");
@@ -54,10 +112,10 @@ static String getRelativeTimeDescription(String const& timestampString)
     Time currentTime = Time::getCurrentTime();
     RelativeTime relativeTime = currentTime - timestamp;
 
-    int years = relativeTime.inDays() / 365;
-    int months = relativeTime.inDays() / 30;
-    int weeks = relativeTime.inWeeks();
-    int days = relativeTime.inDays();
+    int years = static_cast<int>(relativeTime.inDays() / 365);
+    int months = static_cast<int>(relativeTime.inDays() / 30);
+    int weeks = static_cast<int>(relativeTime.inWeeks());
+    int days = static_cast<int>(relativeTime.inDays());
 
     if (years == 1)
         return String(years) + " year ago";

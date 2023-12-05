@@ -11,8 +11,6 @@ class MessboxObject final : public ObjectBase
     TextEditor editor;
     BorderSize<int> border = BorderSize<int>(5, 7, 1, 2);
 
-    int numLines = 1;
-
     Value primaryColour = SynchronousValue();
     Value secondaryColour = SynchronousValue();
     Value fontSize = SynchronousValue();
@@ -20,7 +18,7 @@ class MessboxObject final : public ObjectBase
     Value sizeProperty = SynchronousValue();
 
 public:
-    MessboxObject(void* obj, Object* parent)
+    MessboxObject(t_gobj* obj, Object* parent)
         : ObjectBase(obj, parent)
     {
         editor.setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
@@ -80,7 +78,7 @@ public:
                 return {};
 
             int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(patch, messbox.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, messbox.cast<t_gobj>(), &x, &y, &w, &h);
             return { x, y, w, h };
         }
 
@@ -94,7 +92,7 @@ public:
             if (!patch)
                 return;
 
-            libpd_moveobj(patch, messbox.cast<t_gobj>(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, messbox.cast<t_gobj>(), b.getX(), b.getY());
 
             messbox->x_width = b.getWidth();
             messbox->x_height = b.getHeight();

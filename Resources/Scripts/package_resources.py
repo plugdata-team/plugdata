@@ -77,6 +77,7 @@ globCopy("../../Libraries/pd-else/Code_source/Abstractions/audio/*.pd", "./Abstr
 globCopy("../../Libraries/pd-else/Code_source/Abstractions/extra_abs/*.pd", "./Abstractions/else")
 copyFile("../Patches/playhead.pd", "./Abstractions")
 copyFile("../Patches/param.pd", "./Abstractions")
+copyFile("../Patches/daw_storage.pd", "./Abstractions")
 #copyFile("../Patches/beat.pd", "./Abstractions")
 
 globMove("./Abstractions/*-help.pd", "./Documentation/5.reference")
@@ -86,6 +87,7 @@ copyFile("../../Libraries/pd-else/Documentation/extra_files/f2s~-help.pd", "./Do
 #copyFile("../Patches/beat-help.pd", "./Documentation/5.reference")
 copyFile("../Patches/param-help.pd", "./Documentation/5.reference")
 copyFile("../Patches/playhead-help.pd", "./Documentation/5.reference")
+copyFile("../Patches/daw_storage-help.pd", "./Documentation/5.reference")
 
 globCopy("../../Libraries/cyclone/cyclone_objects/abstractions/*.pd", "./Abstractions/cyclone")
 copyDir("../../Libraries/cyclone/documentation/help_files", "./Documentation/10.cyclone")

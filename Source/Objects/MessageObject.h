@@ -4,6 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+
 class MessageObject final : public ObjectBase
     , public KeyListener
     , public TextEditor::Listener {
@@ -11,7 +12,7 @@ class MessageObject final : public ObjectBase
     Value sizeProperty = SynchronousValue();
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
-
+        
     String objectText;
 
     int numLines = 1;
@@ -19,7 +20,7 @@ class MessageObject final : public ObjectBase
     bool isLocked = false;
 
 public:
-    MessageObject(void* obj, Object* parent)
+    MessageObject(t_gobj* obj, Object* parent)
         : ObjectBase(obj, parent)
     {
         objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
@@ -37,6 +38,10 @@ public:
     Rectangle<int> getPdBounds() override
     {
         auto objText = editor ? editor->getText() : objectText;
+        if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
+            objText = cnv->suggestor->getText();
+        }
+        
         auto newNumLines = 0;
 
         if (auto message = ptr.get<t_text>()) {
@@ -44,7 +49,7 @@ public:
             if (!cnvPtr)
                 return {};
 
-            auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, message.get(), objText, 15, newNumLines);
+            auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, message.cast<t_gobj>(), objText, 15, newNumLines);
 
             numLines = newNumLines;
 
@@ -63,7 +68,7 @@ public:
             if (!patch)
                 return;
 
-            libpd_moveobj(patch, gobj.get(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, gobj.get(), b.getX(), b.getY());
 
             if (TextObjectHelper::getWidthInChars(gobj.get())) {
                 TextObjectHelper::setWidthInChars(gobj.get(), b.getWidth() / glist_fontwidth(patch));
@@ -198,7 +203,14 @@ public:
             addAndMakeVisible(editor.get());
             editor->grabKeyboardFocus();
 
+            cnv->showSuggestions(object, editor.get());
+
             editor->onFocusLost = [this]() {
+                if (reinterpret_cast<Component*>(cnv->suggestor.get())->hasKeyboardFocus(true) || Component::getCurrentlyFocusedComponent() == editor.get()) {
+                    editor->grabKeyboardFocus();
+                    return;
+                }
+
                 hideEditor();
             };
 
@@ -313,7 +325,7 @@ public:
             if (!canvas)
                 return;
 
-            libpd_renameobj(canvas, messobj.cast<t_gobj>(), cstr, value.getNumBytesAsUTF8());
+            pd::Interface::renameObject(canvas, messobj.cast<t_gobj>(), cstr, value.getNumBytesAsUTF8());
         }
     }
 

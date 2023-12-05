@@ -28,13 +28,10 @@ flags:
 inlets:
   1st:
   - type: list
-    description: MIDI note messages (note and velocity pair)
-  - type: float
-    description: note pitch values
+    description: MIDI note and velocity pair
+  - type: anything
+    description: other cutom messages to route to active voices
   2nd:
-  - type: float
-    description: note velocity values
-  3rd:
   - type: float
     description: release time in ms
     
