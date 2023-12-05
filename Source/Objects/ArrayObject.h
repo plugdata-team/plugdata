@@ -962,6 +962,8 @@ public:
     {
         g.setColour(findColour(PlugDataColour::guiObjectBackgroundColourId));
         g.drawRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
+        
+        
     }
 
     void paint(Graphics& g) override
@@ -1199,6 +1201,11 @@ public:
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        
+        if(auto graph = ptr.get<t_glist>())
+        {
+            GraphOnParent::drawTicksForGraph(g, graph.get(), this);
+        }
     }
 
     std::vector<void*> getArrays() const
@@ -1241,11 +1248,19 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
-        if(symbol == "redraw")
+        switch(hash(symbol))
         {
-            updateGraphs();
-            if (dialog) {
-                dialog->updateGraphs();
+            case hash("redraw"): {
+                updateGraphs();
+                if (dialog) {
+                    dialog->updateGraphs();
+                }
+                break;
+            }
+            case hash("yticks"):
+            case hash("xticks"): {
+                repaint();
+                break;
             }
         }
     }

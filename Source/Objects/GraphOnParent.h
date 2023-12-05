@@ -58,6 +58,11 @@ public:
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
         switch (hash(symbol)) {
+        case hash("yticks"):
+        case hash("xticks"): {
+            repaint();
+            break;
+        }
         case hash("coords"): {
             Rectangle<int> bounds;
             if (auto gobj = ptr.get<t_gobj>()) {
@@ -216,6 +221,48 @@ public:
             Fonts::drawFittedText(g, text, textArea, object->findColour(PlugDataColour::canvasTextColourId));
         }
     }
+    
+    
+    static void drawTicksForGraph(Graphics& g, t_glist* x, ObjectBase* parent)
+    {
+        auto b = parent->getLocalBounds();
+        t_float y1 = b.getY(), y2 = b.getBottom(), x1 = b.getX(), x2 = b.getRight();
+
+        g.setColour(parent->cnv->findColour(PlugDataColour::guiObjectInternalOutlineColour));
+        if (x->gl_xtick.k_lperb)
+        {
+            t_float f;
+            for (int i = 0, f = x->gl_xtick.k_point; f < 0.99 * x2 + 0.01*x1; i++, f += x->gl_xtick.k_inc*2)
+            {
+                int tickpix = (i % x->gl_xtick.k_lperb ? 2 : 4);
+                g.drawLine((int)f, (int)y2, (int)f, (int)y2 - tickpix);
+                g.drawLine((int)f, (int)y1, (int)f, (int)y1 + tickpix);
+            }
+            for (int i = 1, f = x->gl_xtick.k_point - x->gl_xtick.k_inc; f > 0.99*x1 + 0.01*x2; i++, f -= x->gl_xtick.k_inc*2)
+            {
+                int tickpix = (i % x->gl_xtick.k_lperb ? 2 : 4);
+                g.drawLine((int)f, (int)y2, (int)f, (int)y2 - tickpix);
+                g.drawLine((int)f, (int)y1, (int)f, (int)y1 + tickpix);
+            }
+        }
+
+        if (x->gl_ytick.k_lperb)
+        {
+            t_float f;
+            for (int i = 0, f = x->gl_ytick.k_point; f < 0.99 * y2 + 0.01 * y1; i++, f += (x->gl_ytick.k_inc * (y2 - y1) * 0.5f))
+            {
+                int tickpix = (i % x->gl_ytick.k_lperb ? 2 : 4);
+                g.drawLine(x1, (int)f, x1 + tickpix, (int)f);
+                g.drawLine(x2, (int)f, x2 - tickpix, (int)f);
+            }
+            for (int i = 1, f = x->gl_ytick.k_point - x->gl_ytick.k_inc; f > 0.99 * y2 + 0.01 * y1; i++, f -= (x->gl_ytick.k_inc * (y2 - y1) * 0.5f))
+            {
+                int tickpix = (i % x->gl_ytick.k_lperb ? 2 : 4);
+                g.drawLine(x1, (int)f, x1 + tickpix, (int)f);
+                g.drawLine(x2, (int)f, x2 - tickpix, (int)f);
+            }
+        }
+    }
 
     void paintOverChildren(Graphics& g) override
     {
@@ -233,6 +280,11 @@ public:
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        
+        if(auto graph = ptr.get<t_glist>())
+        {
+            drawTicksForGraph(g, graph.get(), this);
+        }
     }
 
     pd::Patch::Ptr getPatch() override
