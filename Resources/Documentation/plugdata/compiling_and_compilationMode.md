@@ -23,25 +23,41 @@ Checking this box may (or may not) produce a good number of error messages in th
 
 ## Compiling in plugdata
 When you select "Compile..." a window with different compilation options along the left, the primary window displaying the common options for all compilation modes and then specific qualities for the compilation mode you currently have selected.
-All compilation modes feature the following common attributes:
+
+### General<br>
+![Plugdata Compilation Mode - General](https://github.com/thouldcroft/plugdata/assets/1238556/2a2c126f-aeff-4d90-a19f-118cafc46db1)
+
+This section is found in every compilation mode, with the following fields:
 - Patch to export
 	- If a patch is currently open, it will read "Currently opened patch" otherwise it will read "Choose a patch to export...". Select the patch you wish to export here.
  - Project Name (Optional)
- 	- The name of the project (potentially different than the patch name) that is used in some compilation scenarios in their information registry.
+ 	- The name of the project (potentially different than the patch name) that is used in some compilation scenarios in their information registry. This will autofill to your patch's name, or the last name you typed in this field.
   - Project Copyright (optional)
   	- Similar to the Project Name, the Project Copyright is placed in the information registry for the compilation mode 	
 
-### C++ Code<br>
-<img width="634" alt="Plugdata Compiler C++ Code" src="https://github.com/thouldcroft/plugdata/assets/1238556/25182673-eef3-40fb-913e-cecdb8311625">
+## C++ Code<br>
+<img width="634" alt="Plugdata Compiler C++ Code" src="https://github.com/thouldcroft/plugdata/assets/1238556/25182673-eef3-40fb-913e-cecdb8311625"><br>
 In the C++ Code mode, your plugdata patch isn't actually compiled, instead it is [transpiled/transcompiled](https://en.wikipedia.org/wiki/Source-to-source_compiler) from one coding language (Pd) to another (C++). The plugdata patch is transpiled for no specific platform, and the raw code can then be used for any project that accepts C++ code.
 
-### Electro-Smith Daisy<br>
-<img width="635" alt="Plugdata Compiler Daisy Export" src="https://github.com/thouldcroft/plugdata/assets/1238556/d206902c-2115-4727-be2a-27b23b2ab821">
-**_Daisy_**
+## Electro-Smith Daisy<br>
+<img width="635" alt="Plugdata Compiler Daisy Export" src="https://github.com/thouldcroft/plugdata/assets/1238556/d206902c-2115-4727-be2a-27b23b2ab821"><br>
+ ***TBD***
 
-### DPF Audio Plugin<br>
-<img width="636" alt="Plugdata Compiler Plugin Export" src="https://github.com/thouldcroft/plugdata/assets/1238556/63e21b8c-8ed0-4131-8206-7a7be361b58f">
-<img width="425" alt="Plugdata Compiler Plugin Formats" src="https://github.com/thouldcroft/plugdata/assets/1238556/b3643f41-81e0-431e-a814-14970ee9fb86">
+## DPF Audio Plugin<br>
+<img width="636" alt="Plugdata Compiler Plugin Export" src="https://github.com/thouldcroft/plugdata/assets/1238556/63e21b8c-8ed0-4131-8206-7a7be361b58f"><br>While plugdata itself can run as a VST3, LV2, CLAP or AU plugin, you can also use the plugdata standalone app to produce standalone plugins in the VST2&3, LV2, CLAP, and JACK formats. HVCC uses the DISTRHO Plugin Framework to generate these plugins.<br>
+### DPF<br>
+This section defines specifics for the compiled plugin.
+- Export type
+	- **Source code** compiles the plugdata patch into C++ source code that can be externally compiled into an audio plugin 	
+	- **Binary** produces an executable plugin that can be loaded into any plugin host.
+ - Plugin type
+ 	- The plugin type is used by some hosts to categorize plugins, the type also automatically defines the MIDI input/output parameters based on the type	 
+ 	- **Effect** is a plug in that accepts input audio, processes the audio, and outputs audio. It doesn't accept MIDI nor does it output MIDI.
+	- **Instrument** is a plugin that accepts MIDI input to control the software instrument contained in the plugin, and outputs audio. Will not accept audio nor output MIDI.
+	- **Custom** allows you to break with the effect or instrument conventions. This would be the type to choose if you wanted to create a plugin that modifies MIDI, for instance, as you can set the plugin to accept MIDI input but set it to also output MIDI data (also known as a MIDI effect).
+### Plugin formats  
+<img width="425" alt="Plugdata Compiler Plugin Formats" src="https://github.com/thouldcroft/plugdata/assets/1238556/b3643f41-81e0-431e-a814-14970ee9fb86"><br>
+Here you define the formats you wish to output your binary as, or the formats the source code will accomodate. You can select as many or as few of formats as you like. JACK format is deselected by default.
 
 
 >[!WARNING]
@@ -49,9 +65,11 @@ In the C++ Code mode, your plugdata patch isn't actually compiled, instead it is
 >		` ~ @ ! $ # ^ * % & ( ) [ ] { } < > + = _ – | / \ ; : ' “ , . ?
 
 >[!WARNING]
->When compiling *DPF Audio Plug-ins* and exporting *plug-in binaries*, as of the current version (0.8.0), the destination path for the binaries cannot contain *any* spaces.
+>When compiling *DPF Audio Plug-ins* and exporting *plug-in binaries*, as of writing, the destination path for the binaries cannot contain *any* spaces.
 
 ### Pd External<br>
-<img width="638" alt="Plugdata Compiler External" src="https://github.com/thouldcroft/plugdata/assets/1238556/47cb9cbd-4963-43e6-b1c8-7311baad9095">
+<img width="638" alt="Plugdata Compiler External" src="https://github.com/thouldcroft/plugdata/assets/1238556/47cb9cbd-4963-43e6-b1c8-7311baad9095"><br>
+One of the few detractions from a visual programming language like plugdata is that for every object in your code, C code is working behind the scenes, with a snippet of C code for every object. plugdata allows you to write abstractions and subpatches that look and operate like built in objects, but abstractions and subpatches can't run as efficiently as an object that is composed of C code. plugdata helps you bridge this gap by providing the functionality to compile your plugdata abstraction into a Pd external, which can be used in plugdata or Pd. 
+
 
 
