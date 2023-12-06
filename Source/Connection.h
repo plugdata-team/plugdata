@@ -114,7 +114,7 @@ public:
     bool isSelected() const;
 
     StringArray getMessageFormated();
-    bool getSignalData(t_float* output);
+    int getSignalData(t_float* output, int maxChannels);
         
 private:
     void resizeToFit();

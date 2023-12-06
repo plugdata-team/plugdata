@@ -42,9 +42,11 @@ public:
             return;
         
         // Clear out the buffer from the previous connection
-        float sample;
-        while(sampleQueue.try_dequeue(sample))
-        std::fill(lastSamples, lastSamples + 512, 0.0f);
+        for(int ch = 0; ch < 8; ch++) {
+            float sample;
+            while(sampleQueue[ch].try_dequeue(sample));
+            std::fill(lastSamples[ch], lastSamples[ch] + 512, 0.0f);
+        }
         
         activeConnection = SafePointer<Connection>(connection);
         if (activeConnection.getComponent()) {
@@ -77,12 +79,15 @@ public:
     {
         if(!activeConnection) return;
         
-        t_float output[DEFDACBLKSIZE];
-        if(!activeConnection->getSignalData(output)) return;
-        
-        for(auto& sample : output)
+        t_float output[DEFDACBLKSIZE * 8];
+        if(auto numChannels = activeConnection->getSignalData(output, 8))
         {
-            sampleQueue.try_enqueue(sample);
+            lastNumChannels = numChannels;
+            for(int n = 0; n < DEFDACBLKSIZE * numChannels; n++)
+            {
+                auto ch = n / DEFDACBLKSIZE;
+                sampleQueue[ch].try_enqueue(output[n]);
+            }
         }
     }
 
@@ -154,19 +159,21 @@ private:
     {
         if(activeConnection)
         {
-            for(int i = 0; i < 512; i++)
-            {
-                float sample;
-                if(sampleQueue.try_dequeue(sample))
+            for(int ch = 0; ch < lastNumChannels.load(); ch++) {
+                for(int i = 0; i < 512; i++)
                 {
-                    lastSamples[i] = sample;
-                }
-                else {
-                    break;
+                    float sample;
+                    if(sampleQueue[ch].try_dequeue(sample))
+                    {
+                        lastSamples[ch][i] = sample;
+                    }
+                    else {
+                        break;
+                    }
                 }
             }
             
-            Rectangle<int> proposedPosition(130, 65);
+            Rectangle<int> proposedPosition(130, 20 + lastNumChannels * 30);
             // make sure the proposed position is inside the editor area
             proposedPosition.setCentre(getParentComponent()->getLocalPoint(nullptr, mousePosition).translated(0, -(getHeight() * 0.5)));
             constrainedBounds = proposedPosition.constrainedWithin(getParentComponent()->getLocalBounds());
@@ -261,29 +268,36 @@ private:
 
         if(isSignalDisplay)
         {
-            Point<float> lastPoint = {10.0f, jmap<float>(lastSamples[0], -1.0f, 1.0f, internalBounds.getY(), internalBounds.getBottom())};
+            auto totalHeight = internalBounds.getHeight();
             
-            Path oscopePath;
-            for (int x = internalBounds.getX(); x < internalBounds.getRight(); x++) {
-                auto index = jmap<int>(x, internalBounds.getX(), internalBounds.getRight(), 0, 512);
-                auto y = jmap<float>(lastSamples[index], -1.0f, 1.0f, internalBounds.getY(), internalBounds.getBottom());
-                auto newPoint = Point<float>(x, y);
-                auto segment = Line(lastPoint, newPoint);
-                oscopePath.addLineSegment(segment, 0.5f);
-                lastPoint = newPoint;
+            for(int ch = 0; ch < lastNumChannels; ch++)
+            {
+                auto channelBounds = internalBounds.removeFromTop(totalHeight / std::max(lastNumChannels.load(), 1)).reduced(5);
+                Point<float> lastPoint = {channelBounds.getX(), jmap<float>(lastSamples[ch][0], -1.0f, 1.0f, channelBounds.getY(), channelBounds.getBottom())};
+                
+                Path oscopePath;
+                for (int x = channelBounds.getX() + 1; x < channelBounds.getRight(); x++) {
+                    auto index = jmap<int>(x, channelBounds.getX(), channelBounds.getRight(), 0, 512);
+                    auto y = jmap<float>(lastSamples[ch][index], -1.0f, 1.0f, channelBounds.getY(), channelBounds.getBottom());
+                    auto newPoint = Point<float>(x, y);
+                    auto segment = Line(lastPoint, newPoint);
+                    oscopePath.addLineSegment(segment, 0.5f);
+                    lastPoint = newPoint;
+                }
+                
+                g.setColour(findColour(PlugDataColour::canvasTextColourId));
+                g.fillPath(oscopePath);
+                
+                auto textBounds = channelBounds.expanded(5).removeFromBottom(16).removeFromRight(32);
+                
+                g.setColour(findColour(PlugDataColour::dialogBackgroundColourId).withAlpha(0.5f));
+                g.fillRoundedRectangle(textBounds, Corners::defaultCornerRadius);
+                
+                g.setColour(findColour(PlugDataColour::canvasTextColourId));
+                g.setFont(Fonts::getTabularNumbersFont().withHeight(11.5f));
+                g.drawText(String(lastSamples[ch][rand() % 512], 3), textBounds.toNearestInt(), Justification::centred);
             }
             
-            g.setColour(findColour(PlugDataColour::canvasTextColourId));
-            g.fillPath(oscopePath);
-            
-            auto textBounds = internalBounds.reduced(4).removeFromBottom(16).removeFromRight(32);
-            
-            g.setColour(findColour(PlugDataColour::dialogBackgroundColourId).withAlpha(0.5f));
-            g.fillRoundedRectangle(textBounds, Corners::defaultCornerRadius);
-            
-            g.setColour(findColour(PlugDataColour::canvasTextColourId));
-            g.setFont(Fonts::getTabularNumbersFont().withHeight(11.5f));
-            g.drawText(String(lastSamples[rand() % 512], 3), textBounds.toNearestInt(), Justification::centred);
         }
         else {
             int startPostionX = 8 + 4;
@@ -323,8 +337,18 @@ private:
 
     Point<float> circlePosition = { 8.0f + 4.0f, 36.0f / 2.0f };
 
-    float lastSamples[512];
-    moodycamel::ReaderWriterQueue<float> sampleQueue = moodycamel::ReaderWriterQueue<float>(512);
+    float lastSamples[8][512];
+    std::atomic<int> lastNumChannels = 1;
+    moodycamel::ReaderWriterQueue<float> sampleQueue[8] = {
+        moodycamel::ReaderWriterQueue<float>(512),
+        moodycamel::ReaderWriterQueue<float>(512),
+        moodycamel::ReaderWriterQueue<float>(512),
+        moodycamel::ReaderWriterQueue<float>(512),
+        moodycamel::ReaderWriterQueue<float>(512),
+        moodycamel::ReaderWriterQueue<float>(512),
+        moodycamel::ReaderWriterQueue<float>(512),
+        moodycamel::ReaderWriterQueue<float>(512)
+    };
     
     bool isSignalDisplay;
     Image cachedImage;

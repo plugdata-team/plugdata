@@ -867,19 +867,20 @@ int Connection::getMultiConnectNumber()
     return -1;
 }
 
-bool Connection::getSignalData(t_float* output)
+int Connection::getSignalData(t_float* output, int maxChannels)
 {
     if (auto oc = ptr.get<t_outconnect>()) {
         if(auto* signal = outconnect_get_signal(oc.get()))
         {
+            auto numChannels = std::min(signal->s_nchans, maxChannels);
             auto* samples = signal->s_vec;
-            if(!samples) return false;
-            std::copy(samples, samples + DEFDACBLKSIZE, output);
-            return true;
+            if(!samples) return 0;
+            std::copy(samples, samples + (DEFDACBLKSIZE * numChannels), output);
+            return numChannels;
         }
     }
     
-    return false;
+    return 0;
 }
 
 int Connection::getNumSignalChannels()
