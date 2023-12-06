@@ -109,7 +109,7 @@ public:
     bool intersectsObject(Object* object) const;
     bool straightLineIntersectsObject(Line<float> toCheck, Array<Object*>& objects);
 
-    void receiveMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override;
+    void receiveMessage(t_symbol* symbol, const pd::Atom atoms[8], int numAtoms) override;
 
     bool isSelected() const;
 
@@ -153,8 +153,9 @@ private:
 
     pd::WeakReference ptr;
 
-    std::vector<pd::Atom> lastValue;
-    String lastSelector;
+    pd::Atom lastValue[8];
+    int lastNumArgs = 0;
+    t_symbol* lastSelector;
 
     friend class ConnectionPathUpdater;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)

@@ -138,7 +138,7 @@ public:
 
     ObjectParameters& getInspectorParameters();
 
-    void receiveMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override;
+    void receiveMessage(t_symbol* symbol, const pd::Atom atoms[8], int numAtoms) override;
 
     template<typename T>
     Array<T*> getSelectionOfType()

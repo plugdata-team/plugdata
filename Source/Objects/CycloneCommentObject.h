@@ -460,9 +460,9 @@ public:
         object->updateBounds();
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
+    void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
     {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("italic"): {
             if (auto comment = ptr.get<t_fake_comment>()) {
                 italic = comment->x_italic;
@@ -514,12 +514,12 @@ public:
             break;
         }
         case hash("receive"): {
-            if (atoms.size() >= 1)
+            if (numAtoms >= 1)
                 setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             break;
         }
         case hash("bg"): {
-            if (atoms.size() > 0 && atoms[0].isFloat())
+            if (numAtoms > 0 && atoms[0].isFloat())
                 fillBackground = atoms[0].getFloat();
             break;
         }

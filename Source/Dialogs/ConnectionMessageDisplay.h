@@ -56,11 +56,6 @@ public:
         }
     }
 
-    CriticalSection& getLock()
-    {
-        return connectionMessageLock;
-    }
-
 private:
     void updateTextString(bool isHoverEntered = false)
     {
@@ -230,6 +225,4 @@ private:
 
     Image cachedImage;
     Rectangle<int> previousBounds;
-
-    CriticalSection connectionMessageLock;
 };

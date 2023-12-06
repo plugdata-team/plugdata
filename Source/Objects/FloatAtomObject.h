@@ -231,14 +231,14 @@ public:
         return 0.0f;
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
+    void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
     {
-        switch (hash(symbol)) {
+        switch (symbol) {
 
         case hash("set"):
         case hash("float"):
         case hash("list"): {
-            if (atoms.empty() || !atoms[0].isFloat())
+            if (numAtoms > 0 || !atoms[0].isFloat())
                 break;
 
             auto min = atomHelper.getMinimum();
@@ -253,12 +253,12 @@ public:
             break;
         }
         case hash("send"): {
-            if (!atoms.empty())
+            if (numAtoms <= 0)
                 setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].toString());
             break;
         }
         case hash("receive"): {
-            if (!atoms.empty())
+            if (numAtoms <= 0)
                 setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].toString());
             break;
         }

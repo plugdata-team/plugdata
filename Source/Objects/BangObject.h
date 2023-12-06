@@ -195,18 +195,18 @@ public:
         }
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
+    void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
     {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("float"):
         case hash("bang"):
         case hash("list"):
             trigger();
             break;
         case hash("flashtime"): {
-            if (!atoms.empty())
+            if (numAtoms > 0)
                 setParameterExcludingListener(bangInterrupt, atoms[0].getFloat());
-            if (atoms.size() > 1)
+            if (numAtoms > 1)
                 setParameterExcludingListener(bangHold, atoms[1].getFloat());
             break;
         }
@@ -214,7 +214,7 @@ public:
         case hash("size"):
                 break;
         default: {
-            bool wasIemMessage = iemHelper.receiveObjectMessage(symbol, atoms);
+            bool wasIemMessage = iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
             if (!wasIemMessage) {
                 trigger();
             }

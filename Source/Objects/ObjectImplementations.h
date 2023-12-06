@@ -22,12 +22,12 @@ public:
         closeOpenedSubpatchers();
     }
 
-    void receiveMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
+    void receiveMessage(t_symbol* symbol, const pd::Atom atoms[8], int numAtoms) override
     {
         if (pd->isPerformingGlobalSync)
             return;
 
-        bool isVisMessage = symbol == "vis";
+        bool isVisMessage = hash(symbol->s_name) == hash("vis");
         if (isVisMessage && atoms[0].getFloat()) {
             openSubpatch(subpatch);
         }
@@ -461,12 +461,12 @@ public:
         mouseMove(e);
     }
 
-    void receiveMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
+    void receiveMessage(t_symbol* symbol, const pd::Atom atoms[8], int numAtoms) override
     {
         if (!cnv || pd->isPerformingGlobalSync)
             return;
 
-        if (symbol == "zero") {
+        if (hash(symbol->s_name) == hash("zero")) {
             zero = true;
         }
     }
@@ -680,12 +680,12 @@ public:
         pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
     }
 
-    void receiveMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
+    void receiveMessage(t_symbol* symbol, const pd::Atom atoms[8], int numAtoms) override
     {
         if (pd->isPerformingGlobalSync)
             return;
         
-        if (symbol == "bang") {
+        if (hash(symbol->s_name) == hash("bang")) {
             auto currentPosition = Desktop::getMousePosition();
 
             if (auto obj = ptr.get<t_fake_mousestate>()) {

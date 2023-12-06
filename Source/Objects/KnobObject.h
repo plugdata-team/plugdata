@@ -322,9 +322,9 @@ public:
         knob.setRange(0.0, 1.0, increment);
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
+    void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
     {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("float"):
         case hash("list"):
         case hash("set"): {
@@ -332,7 +332,7 @@ public:
             break;
         }
         case hash("range"): {
-            if (atoms.size() >= 2) {
+            if (numAtoms >= 2) {
                 auto newMin = atoms[0].getFloat();
                 auto newMax = atoms[1].getFloat();
                 // we have to use our min/max as by the time we get the "range" message, it has already changed knb->x_min & knb->x_max!
@@ -350,7 +350,7 @@ public:
             break;
         }
         case hash("angle"): {
-            if (atoms.size()) {
+            if (numAtoms) {
                 auto range = std::clamp<int>(atoms[0].getFloat(), 0, 360);
                 setParameterExcludingListener(angularRange, range);
                 updateRotaryParameters();
@@ -358,7 +358,7 @@ public:
             break;
         }
         case hash("offset"): {
-            if (atoms.size()) {
+            if (numAtoms) {
                 auto offset = std::clamp<int>(atoms[0].getFloat(), -180, 180);
                 setParameterExcludingListener(angularOffset, offset);
                 updateRotaryParameters();
@@ -392,12 +392,12 @@ public:
             break;
         }
         case hash("send"): {
-            if (atoms.size() >= 1)
+            if (numAtoms >= 1)
                 setParameterExcludingListener(sendSymbol, atoms[0].toString());
             break;
         }
         case hash("receive"): {
-            if (atoms.size() >= 1)
+            if (numAtoms >= 1)
                 setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             break;
         }
@@ -421,7 +421,7 @@ public:
             break;
         }
         case hash("outline"): {
-            if (atoms.size() > 0 && atoms[0].isFloat())
+            if (numAtoms > 0 && atoms[0].isFloat())
                 outline = atoms[0].getFloat();
             break;
         }

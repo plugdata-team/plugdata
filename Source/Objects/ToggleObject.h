@@ -150,9 +150,9 @@ public:
         repaint();
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
+    void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
     {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("bang"): {
             value = !value;
             setToggleStateFromFloat(value);
@@ -166,12 +166,12 @@ public:
             break;
         }
         case hash("nonzero"): {
-            if (atoms.size() >= 1)
+            if (numAtoms >= 1)
                 setParameterExcludingListener(nonZero, atoms[0].getFloat());
             break;
         }
         default: {
-            iemHelper.receiveObjectMessage(symbol, atoms);
+            iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
             break;
         }
         }

@@ -131,27 +131,27 @@ public:
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
+    void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
     {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("set"): {
             editor.setText("");
-            getSymbols(atoms);
+            getSymbols(atoms, numAtoms);
             break;
         }
         case hash("append"): {
-            getSymbols(atoms);
+            getSymbols(atoms, numAtoms);
             break;
         }
         case hash("list"):
         case hash("float"):
         case hash("symbol"):
         case hash("bang"): {
-            setSymbols(editor.getText(), atoms);
+            setSymbols(editor.getText(), atoms, numAtoms);
             break;
         }
         case hash("bold"): {
-            if (atoms.size() >= 1 && atoms[0].isFloat())
+            if (numAtoms >= 1 && atoms[0].isFloat())
                 bold = atoms[0].getFloat();
             break;
         }
@@ -192,7 +192,7 @@ public:
 
     void textEditorReturnKeyPressed(TextEditor& ed) override
     {
-        setSymbols(ed.getText(), std::vector<pd::Atom> {});
+        setSymbols(ed.getText(), {}, 0);
     }
 
     // For resize-while-typing behaviour
@@ -201,7 +201,7 @@ public:
         object->updateBounds();
     }
 
-    void setSymbols(String const& symbols, std::vector<pd::Atom> const& atoms)
+    void setSymbols(String const& symbols, const pd::Atom atoms[8], int numAtoms)
     {
         String text;
         if (auto messObj = ptr.get<t_fake_messbox>()) {
@@ -213,8 +213,8 @@ public:
         t_binbuf* buf = binbuf_new();
         binbuf_text(buf, text.toRawUTF8(), text.getNumBytesAsUTF8());
 
-        std::vector<t_atom> pd_atoms(atoms.size());
-        for (int i = 0; i < atoms.size(); i++) {
+        std::vector<t_atom> pd_atoms(numAtoms);
+        for (int i = 0; i < numAtoms; i++) {
             if (atoms[i].isFloat()) {
                 SETFLOAT(pd_atoms.data() + i, atoms[i].getFloat());
             } else {
@@ -228,14 +228,16 @@ public:
         }
     }
 
-    void getSymbols(std::vector<pd::Atom> const& atoms)
+    void getSymbols(const pd::Atom atoms[8], int numAtoms)
     {
+        // TODO: the 8 atom limit is really bad here!
+        
         char buf[40];
         size_t length;
 
         auto newText = String();
-        for (auto& atom : atoms) {
-
+        for(int at = 0; at < numAtoms; at++) {
+            auto& atom = atoms[at];
             if (atom.isFloat())
                 newText += String(atom.getFloat()) + " ";
             else {

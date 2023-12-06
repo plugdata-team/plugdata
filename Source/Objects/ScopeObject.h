@@ -280,26 +280,26 @@ public:
         }
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
+    void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
     {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("receive"): {
-            if (atoms.size() >= 1)
+            if (numAtoms >= 1)
                 setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             break;
         }
         case hash("fgcolor"): {
-            if (atoms.size() == 3)
+            if (numAtoms == 3)
                 setParameterExcludingListener(primaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
             break;
         }
         case hash("bgcolor"): {
-            if (atoms.size() == 3)
+            if (numAtoms == 3)
                 setParameterExcludingListener(secondaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
             break;
         }
         case hash("gridcolor"): {
-            if (atoms.size() == 3)
+            if (numAtoms == 3)
                 setParameterExcludingListener(gridColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
             break;
         }

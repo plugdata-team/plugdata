@@ -93,10 +93,10 @@ public:
         repaint();
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
+    void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
     {
 
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("latch"): {
             if (auto pic = ptr.get<t_fake_pic>())
                 latch = pic->x_latch;
@@ -108,7 +108,7 @@ public:
             break;
         }
         case hash("open"): {
-            if (atoms.size() >= 1)
+            if (numAtoms >= 1)
                 openFile(atoms[0].toString());
             break;
         }

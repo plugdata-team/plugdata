@@ -499,46 +499,42 @@ void Connection::mouseMove(MouseEvent const& e)
 
 StringArray Connection::getMessageFormated()
 {
-    auto& connectionMessageLock = cnv->editor->connectionMessageDisplay->getLock();
-
-    connectionMessageLock.enter();
     auto args = lastValue;
-    auto name = lastSelector;
-    connectionMessageLock.exit();
+    auto name = lastSelector ? String::fromUTF8(lastSelector->s_name) : "";
 
     StringArray formatedMessage;
 
-    if (name == "float" && !args.empty()) {
+    if (name == "float" && lastNumArgs > 0) {
         formatedMessage.add("float:");
-        formatedMessage.add(String(args[0].getFloat()));
-    } else if (name == "symbol" && !args.empty()) {
+        formatedMessage.add(args[0].toString());
+    } else if (name == "symbol" && lastNumArgs > 0) {
         formatedMessage.add("symbol:");
-        formatedMessage.add(String(args[0].toString()));
+        formatedMessage.add(args[0].toString());
     } else if (name == "list") {
-        if(args.size() >= 8)
+        if(lastNumArgs >= 8)
         {
             formatedMessage.add("list (7+):");
         }
         else {
-            formatedMessage.add("list (" + String(args.size()) + "):");
+            formatedMessage.add("list (" + String(lastNumArgs) + "):");
         }
-        for (auto& arg : args) {
-            if (arg.isFloat()) {
-                formatedMessage.add(String(arg.getFloat()));
-            } else if (arg.isSymbol()) {
-                formatedMessage.add(arg.toString());
+        for (int arg = 0; arg < lastNumArgs; arg++) {
+            if (args[arg].isFloat()) {
+                formatedMessage.add(String(args[arg].getFloat()));
+            } else if (args[arg].isSymbol()) {
+                formatedMessage.add(args[arg].toString());
             }
         }
-        if(args.size() >= 8) {
+        if(lastNumArgs >= 8) {
             formatedMessage.add("...");
         }
     } else {
         formatedMessage.add(name);
-        for (auto& arg : args) {
-            if (arg.isFloat()) {
-                formatedMessage.add(String(arg.getFloat()));
-            } else if (arg.isSymbol()) {
-                formatedMessage.add(arg.toString());
+        for (int arg = 0; arg < lastNumArgs; arg++) {
+            if (args[arg].isFloat()) {
+                formatedMessage.add(String(args[arg].getFloat()));
+            } else if (args[arg].isSymbol()) {
+                formatedMessage.add(args[arg].toString());
             }
         }
     }
@@ -1221,21 +1217,13 @@ void ConnectionPathUpdater::timerCallback()
     canvas->patch.endUndoSequence("SetConnectionPaths");
 }
 
-void Connection::receiveMessage(String const& symbol, std::vector<pd::Atom> const& atoms)
+void Connection::receiveMessage(t_symbol* symbol, const pd::Atom atoms[8], int numAtoms)
 {
     // TODO: indicator
     // messageActivity = messageActivity >= 12 ? 0 : messageActivity + 1;
 
     outobj->triggerOverlayActiveState();
-
-    auto& connectionMessageLock = cnv->editor->connectionMessageDisplay->getLock();
-
-    // We can either lock or tryLock over here:
-    // The advantage of try-locking is that the audio thread will never have to wait for the message thread
-    // The advantage of regular locking is that we ensure every single message arrives, even if we need to wait for it
-    if (connectionMessageLock.tryEnter()) {
-        lastValue = atoms;
-        lastSelector = symbol;
-        connectionMessageLock.exit();
-    }
+    std::copy(atoms, atoms + numAtoms, lastValue);
+    lastNumArgs = numAtoms;
+    lastSelector = symbol;
 }

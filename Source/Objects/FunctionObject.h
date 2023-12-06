@@ -406,16 +406,16 @@ public:
         return { hex[0], hex[1], hex[2] };
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
+    void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
     {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("send"): {
-            if (!atoms.empty())
+            if (numAtoms > 0)
                 setParameterExcludingListener(sendSymbol, atoms[0].toString());
             break;
         }
         case hash("receive"): {
-            if (!atoms.empty())
+            if (numAtoms > 0)
                 setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             break;
         }

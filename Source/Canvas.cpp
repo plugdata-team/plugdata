@@ -1880,9 +1880,9 @@ bool Canvas::panningModifierDown()
     return KeyPress::isKeyCurrentlyDown(KeyPress::spaceKey) || ModifierKeys::getCurrentModifiersRealtime().isMiddleButtonDown();
 }
 
-void Canvas::receiveMessage(String const& symbol, std::vector<pd::Atom> const& atoms)
+void Canvas::receiveMessage(t_symbol* symbol, const pd::Atom atoms[8], int numAtoms)
 {
-    switch (hash(symbol)) {
+    switch (hash(symbol->s_name)) {
     case hash("obj"):
     case hash("msg"):
     case hash("floatatom"):
@@ -1911,7 +1911,7 @@ void Canvas::receiveMessage(String const& symbol, std::vector<pd::Atom> const& a
         break;
     }
     case hash("editmode"): {
-        if (atoms.size() >= 1) {
+        if (numAtoms >= 1) {
             int flag = atoms[0].getFloat();
             if (flag % 2 == 0) {
                 locked = true;
@@ -1923,7 +1923,7 @@ void Canvas::receiveMessage(String const& symbol, std::vector<pd::Atom> const& a
         break;
     }
     case hash("setbounds"): {
-        if (atoms.size() >= 4) {
+        if (numAtoms >= 4) {
             auto width = atoms[2].getFloat() - atoms[0].getFloat();
             auto height = atoms[3].getFloat() - atoms[1].getFloat();
             setValueExcludingListener(patchWidth, width, this);

@@ -59,9 +59,9 @@ public:
         pd->unregisterMessageListener(scalar.getRawUnchecked<void>(), this);
     }
 
-    void receiveMessage(String const& symbol, std::vector<pd::Atom> const& atoms)
+    void receiveMessage(t_symbol* symbol, const pd::Atom atoms[8], int numAtoms)
     {
-        if (symbol == "redraw") {
+        if (hash(symbol->s_name) == hash("redraw")) {
             triggerAsyncUpdate();
         }
     }

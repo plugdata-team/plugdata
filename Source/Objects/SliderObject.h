@@ -214,9 +214,9 @@ public:
         }
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
+    void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
     {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("float"):
         case hash("list"):
         case hash("set"): {
@@ -235,7 +235,7 @@ public:
             break;
         }
         case hash("range"): {
-            if (atoms.size() >= 2) {
+            if (numAtoms >= 2) {
                 slider.setRangeFlipped(atoms[0].getFloat() > atoms[1].getFloat());
                 setParameterExcludingListener(min, atoms[0].getFloat());
                 setParameterExcludingListener(max, atoms[1].getFloat());
@@ -244,7 +244,7 @@ public:
             break;
         }
         case hash("steady"): {
-            if (atoms.size() >= 1) {
+            if (numAtoms >= 1) {
                 bool steady = atoms[0].getFloat();
                 setParameterExcludingListener(steadyOnClick, steady);
                 slider.setSliderSnapsToMousePosition(!steady);
@@ -252,7 +252,7 @@ public:
             break;
         }
         case hash("orientation"): {
-            if (atoms.size() >= 1) {
+            if (numAtoms >= 1) {
                 isVertical = static_cast<bool>(atoms[0].getFloat());
                 slider.setOrientation(isVertical);
                 updateAspectRatio();
@@ -261,13 +261,13 @@ public:
             break;
         }
         default: {
-            iemHelper.receiveObjectMessage(symbol, atoms);
+            iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
             break;
         }
         }
 
         // Update the colours of the actual slider
-        if (hash(symbol) == hash("color")) {
+        if (symbol == hash("color")) {
             getLookAndFeel().setColour(Slider::backgroundColourId, Colour::fromString(iemHelper.secondaryColour.toString()));
             getLookAndFeel().setColour(Slider::trackColourId, Colour::fromString(iemHelper.primaryColour.toString()));
         }

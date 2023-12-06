@@ -676,13 +676,13 @@ bool ObjectBase::canReceiveMouseEvent(int x, int y)
     return true;
 }
 
-void ObjectBase::receiveMessage(String const& symbol, std::vector<pd::Atom> const& atoms)
+void ObjectBase::receiveMessage(t_symbol* symbol, const pd::Atom atoms[8], int numAtoms)
 {
     object->triggerOverlayActiveState();
 
-    auto sym = hash(symbol);
-
-    switch (sym) {
+    auto symHash = hash(symbol->s_name);
+    
+    switch (symHash) {
     case hash("size"):
     case hash("delta"):
     case hash("pos"):
@@ -699,7 +699,7 @@ void ObjectBase::receiveMessage(String const& symbol, std::vector<pd::Atom> cons
         break;
     }
 
-    receiveObjectMessage(symbol, atoms);
+    receiveObjectMessage(symHash, atoms, numAtoms);
 }
 
 void ObjectBase::setParameterExcludingListener(Value& parameter, var const& value)

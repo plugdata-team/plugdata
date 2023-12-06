@@ -415,28 +415,28 @@ public:
         keyboard.repaint();
     }
 
-    void notesOn(std::vector<pd::Atom> const& noteList, bool isOn)
+    void notesOn(const pd::Atom atoms[8], int numAtoms, bool isOn)
     {
-        for (auto note : noteList) {
+        for (int at = 0; at < numAtoms; at++) {
             if (isOn)
-                keyboard.heldKeys.insert(note.getFloat());
+                keyboard.heldKeys.insert(atoms[at].getFloat());
             else
-                keyboard.heldKeys.erase(note.getFloat());
+                keyboard.heldKeys.erase(atoms[at].getFloat());
         }
         keyboard.repaint();
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
+    void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
     {
         auto elseKeyboard = ptr.get<t_fake_keyboard>();
 
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("float"): {
             noteOn(atoms[0].getFloat(), elseKeyboard->x_vel_in > 0);
             break;
         }
         case hash("list"): {
-            if (atoms.size() == 2) {
+            if (numAtoms == 2) {
                 noteOn(atoms[0].getFloat(), atoms[1].getFloat() > 0);
             }
             break;
@@ -446,11 +446,11 @@ public:
             break;
         }
         case hash("on"): {
-            notesOn(atoms, true);
+            notesOn(atoms, numAtoms, true);
             break;
         }
         case hash("off"): {
-            notesOn(atoms, false);
+            notesOn(atoms, numAtoms, false);
             break;
         }
         case hash("lowc"): {
@@ -469,12 +469,12 @@ public:
             break;
         }
         case hash("send"): {
-            if (atoms.size() >= 1)
+            if (numAtoms >= 1)
                 setParameterExcludingListener(sendSymbol, atoms[0].toString());
             break;
         }
         case hash("receive"): {
-            if (atoms.size() >= 1)
+            if (numAtoms >= 1)
                 setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             break;
         }

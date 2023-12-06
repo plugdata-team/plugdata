@@ -62,6 +62,20 @@ public:
         , symbol(sym)
     {
     }
+    
+    inline Atom(t_atom* atom)
+    {
+        if(atom->a_type == A_FLOAT)
+        {
+            type = FLOAT;
+            value = atom->a_w.w_float;
+        }
+        else if(atom->a_type == A_SYMBOL)
+        {
+            type = SYMBOL;
+            symbol = atom->a_w.w_symbol;
+        }
+    }
 
     // Check if the atom is a float.
     inline bool isFloat() const

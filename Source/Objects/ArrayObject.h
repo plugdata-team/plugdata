@@ -182,11 +182,11 @@ public:
         }
     }
     
-    void receiveMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
+    void receiveMessage(t_symbol* symbol, const pd::Atom atoms[8], int numAtoms) override
     {
-        switch(hash(symbol)) {
+        switch(hash(symbol->s_name)) {
             case hash("edit"): {
-                if (atoms.empty()) break;
+                if (numAtoms <= 0) break;
                 MessageManager::callAsync([_this = SafePointer(this), shouldBeEditable = static_cast<bool>(atoms[0].getFloat())]() {
                         _this->editable = shouldBeEditable;
                         _this->setInterceptsMouseClicks(shouldBeEditable, false);
@@ -194,7 +194,7 @@ public:
                 break;
             }
             case hash("rename"): {
-                if (atoms.empty()) break;
+                if (numAtoms <= 0) break;
                 MessageManager::callAsync([_this = SafePointer(this), newName = atoms[0].toString()]() {
                     if (!_this)
                         return;
@@ -1246,9 +1246,9 @@ public:
         };
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
+    void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
     {
-        switch(hash(symbol))
+        switch(symbol)
         {
             case hash("redraw"): {
                 updateGraphs();
@@ -1333,7 +1333,7 @@ public:
         }
     }
     
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
+    void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
     {
     }
     

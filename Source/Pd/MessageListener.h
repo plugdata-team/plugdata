@@ -6,14 +6,14 @@
 #pragma once
 
 #include "Instance.h"
-#include <readerwriterqueue.h>
+#include <Utility/ConcurrentStack.h>
 
 namespace pd {
 
 
 class MessageListener {
 public:
-    virtual void receiveMessage(String const& symbol, std::vector<pd::Atom> const& atoms) = 0;
+    virtual void receiveMessage(t_symbol* symbol, const pd::Atom atoms[8], int numAtoms) = 0;
 
     JUCE_DECLARE_WEAK_REFERENCEABLE(MessageListener)
 };
@@ -41,32 +41,22 @@ class MessageDispatcher : private AsyncUpdater
             std::copy(argv, argv + size, data);
         }
         
-        Message(Message&& other) noexcept {
-            target = std::move(other.target);
-            symbol = std::move(other.symbol);
+        Message(const Message& other) noexcept {
+            target = other.target;
+            symbol = other.symbol;
             size = other.size;
-            // Move the data
-            for (int i = 0; i < size; ++i) {
-                data[i] = std::move(other.data[i]);
-            }
-            // Reset the other object
-            other.size = 0;
+            std::copy(other.data, other.data + other.size, data);
         }
     
-        // Move assignment operator
-        Message& operator=(Message&& other) noexcept {
+        Message& operator=(const Message& other) noexcept {
             // Check for self-assignment
             if (this != &other) {
-                target = std::move(other.target);
-                symbol = std::move(other.symbol);
+                target = other.target;
+                symbol = other.symbol;
                 size = other.size;
-                // Move the data
-                for (int i = 0; i < size; ++i) {
-                    data[i] = std::move(other.data[i]);
-                }
-                // Reset the other object
-                other.size = 0;
+                std::copy(other.data, other.data + other.size, data);
             }
+            
             return *this;
         }
     };
@@ -74,10 +64,7 @@ class MessageDispatcher : private AsyncUpdater
 public:
     void enqueueMessage(void* target, t_symbol* symbol, int argc, t_atom* argv)
     {
-        if (messageListeners.find(target) == messageListeners.end())
-            return;
-    
-        messageQueue.try_enqueue({target, symbol, argc, argv});
+        messageQueue.enqueue({target, symbol, argc, argv});
     }
     
     void addMessageListener(void* object, pd::MessageListener* messageListener)
@@ -114,20 +101,17 @@ private:
     
     void handleAsyncUpdate() override
     {
-        ScopedLock lock(messageListenerLock);
-
-        // Collect MessageListeners that have been deallocated for later removal
-        std::vector<std::pair<void*, std::set<juce::WeakReference<pd::MessageListener>>::iterator>> nullListeners;
-        
         Message incomingMessage;
         std::map<size_t, Message> uniqueMessages;
 
         while(messageQueue.try_dequeue(incomingMessage))
         {
-            auto hash = reinterpret_cast<size_t>(incomingMessage.target) + reinterpret_cast<size_t>(incomingMessage.symbol);
-            //TODO: make a simple hash from symbol and target!
+            auto hash = reinterpret_cast<size_t>(incomingMessage.target) ^ reinterpret_cast<size_t>(incomingMessage.symbol);
             uniqueMessages[hash] = std::move(incomingMessage);
         }
+        
+        // Collect MessageListeners that have been deallocated for later removal
+        std::vector<std::pair<void*, std::set<juce::WeakReference<pd::MessageListener>>::iterator>> nullListeners;
         
         for (auto& [hash, message] : uniqueMessages) {
             
@@ -138,25 +122,29 @@ private:
                 
                 auto listener = it->get();
                 
-                auto heapAtoms = pd::Atom::fromAtoms(message.size, message.data);
-                auto symbol = message.symbol ? String::fromUTF8(message.symbol->s_name) : String();
+                pd::Atom atoms[8];
+                for(int at = 0; at < message.size; at++)
+                {
+                    atoms[at] = pd::Atom(message.data + at);
+                }
+                auto symbol = message.symbol ? message.symbol : gensym(""); // TODO: fix instance issues!
                 
                 if (listener)
-                    listener->receiveMessage(symbol, heapAtoms);
+                    listener->receiveMessage(symbol, atoms, message.size);
                 else
                     nullListeners.push_back({message.target, it});
             }
         }
-        
+                
         for (int i = nullListeners.size() - 1; i >= 0; i--) {
             auto& [target, iterator] = nullListeners[i];
             messageListeners[target].erase(iterator);
         }
     }
     
-    CriticalSection messageListenerLock;
-    std::map<void*, std::set<juce::WeakReference<MessageListener>>> messageListeners;
     moodycamel::ReaderWriterQueue<Message> messageQueue = moodycamel::ReaderWriterQueue<Message>(32768);
+    std::map<void*, std::set<juce::WeakReference<MessageListener>>> messageListeners;
+    CriticalSection messageListenerLock;
 };
         
 

@@ -116,11 +116,11 @@ public:
         cnv->editor->addTab(newCanvas);
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
+    void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
     {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("vis"): {
-            if (atoms.size() >= 2) {
+            if (numAtoms >= 2) {
                 openClonePatch(atoms[0].getFloat(), atoms[1].getFloat());
             }
             break;
