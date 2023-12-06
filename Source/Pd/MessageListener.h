@@ -6,7 +6,6 @@
 #pragma once
 
 #include "Instance.h"
-#include <Utility/ConcurrentStack.h>
 
 namespace pd {
 
