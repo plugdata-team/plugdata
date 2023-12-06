@@ -94,6 +94,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     else {
 #if JUCE_IOS
         constrainer.setMinimumSize(250, 250);
+#else
+        constrainer.setMinimumSize(850, 650);
 #endif
     }
 
