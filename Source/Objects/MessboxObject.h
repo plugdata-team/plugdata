@@ -135,19 +135,11 @@ public:
     {
         switch (symbol) {
         case hash("set"): {
-            editor.setText("");
-            getSymbols(atoms, numAtoms);
+            updateText();
             break;
         }
         case hash("append"): {
-            getSymbols(atoms, numAtoms);
-            break;
-        }
-        case hash("list"):
-        case hash("float"):
-        case hash("symbol"):
-        case hash("bang"): {
-            setSymbols(editor.getText(), atoms, numAtoms);
+            updateText();
             break;
         }
         case hash("bold"): {
@@ -192,52 +184,36 @@ public:
 
     void textEditorReturnKeyPressed(TextEditor& ed) override
     {
-        setSymbols(ed.getText(), {}, 0);
+        if (auto messObj = ptr.get<t_fake_messbox>()) {
+            pd_list(messObj.cast<t_pd>(), pd->generateSymbol(""), 0, nullptr);
+        }
     }
 
     // For resize-while-typing behaviour
     void textEditorTextChanged(TextEditor& ed) override
     {
+        auto text = ed.getText();
+        if (auto messObj = ptr.get<t_fake_messbox>()) {
+            binbuf_text(messObj->x_state, text.toRawUTF8(), text.getNumBytesAsUTF8());
+        }
+        
         object->updateBounds();
     }
 
-    void setSymbols(String const& symbols, const pd::Atom atoms[8], int numAtoms)
+    void updateText()
     {
-        String text;
+        std::vector<pd::Atom> atoms;
         if (auto messObj = ptr.get<t_fake_messbox>()) {
-            text = symbols.replace("$0", String::fromUTF8(messObj->x_dollzero->s_name));
-        } else {
-            return;
+            auto* av = binbuf_getvec(messObj->x_state);
+            auto ac = binbuf_getnatom(messObj->x_state);
+            atoms = pd::Atom::fromAtoms(ac, av); // TODO: malloc inside lock, not good!
         }
 
-        t_binbuf* buf = binbuf_new();
-        binbuf_text(buf, text.toRawUTF8(), text.getNumBytesAsUTF8());
-
-        std::vector<t_atom> pd_atoms(numAtoms);
-        for (int i = 0; i < numAtoms; i++) {
-            if (atoms[i].isFloat()) {
-                SETFLOAT(pd_atoms.data() + i, atoms[i].getFloat());
-            } else {
-                auto sym = atoms[i].getSymbol();
-                SETSYMBOL(pd_atoms.data() + i, sym);
-            }
-        }
-
-        if (auto messObj = ptr.get<t_fake_messbox>()) {
-            binbuf_eval(buf, static_cast<t_pd*>(messObj->x_proxy), pd_atoms.size(), pd_atoms.data());
-        }
-    }
-
-    void getSymbols(const pd::Atom atoms[8], int numAtoms)
-    {
-        // TODO: the 8 atom limit is really bad here!
-        
         char buf[40];
         size_t length;
 
         auto newText = String();
-        for(int at = 0; at < numAtoms; at++) {
-            auto& atom = atoms[at];
+        for(auto& atom : atoms) {
             if (atom.isFloat())
                 newText += String(atom.getFloat()) + " ";
             else {

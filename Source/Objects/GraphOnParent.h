@@ -231,35 +231,43 @@ public:
         g.setColour(parent->cnv->findColour(PlugDataColour::guiObjectInternalOutlineColour));
         if (x->gl_xtick.k_lperb)
         {
-            t_float f;
-            for (int i = 0, f = x->gl_xtick.k_point; f < 0.99 * x2 + 0.01*x1; i++, f += x->gl_xtick.k_inc*2)
+            t_float f = x->gl_xtick.k_point;
+            for (int i = 0; f < 0.99f * x->gl_x2 + 0.01f * x->gl_x1; i++, f += x->gl_xtick.k_inc)
             {
+                auto xpos = jmap<float>(f, x->gl_x2, x->gl_x1, x1, x2);
                 int tickpix = (i % x->gl_xtick.k_lperb ? 2 : 4);
-                g.drawLine((int)f, (int)y2, (int)f, (int)y2 - tickpix);
-                g.drawLine((int)f, (int)y1, (int)f, (int)y1 + tickpix);
+                g.drawLine((int)xpos, (int)y2, (int)xpos, (int)y2 - tickpix);
+                g.drawLine((int)xpos, (int)y1, (int)xpos, (int)y1 + tickpix);
             }
-            for (int i = 1, f = x->gl_xtick.k_point - x->gl_xtick.k_inc; f > 0.99*x1 + 0.01*x2; i++, f -= x->gl_xtick.k_inc*2)
+            
+            f = x->gl_xtick.k_point - x->gl_xtick.k_inc;
+            for (int i = 1; f > 0.99f * x->gl_x2 + 0.01f * x->gl_x1; i++, f -= x->gl_xtick.k_inc)
             {
+                auto xpos = jmap<float>(f, x->gl_x2, x->gl_x1, x1, x2);
                 int tickpix = (i % x->gl_xtick.k_lperb ? 2 : 4);
-                g.drawLine((int)f, (int)y2, (int)f, (int)y2 - tickpix);
-                g.drawLine((int)f, (int)y1, (int)f, (int)y1 + tickpix);
+                g.drawLine(xpos, y2, xpos, y2 - tickpix);
+                g.drawLine(xpos, y1, xpos, y1 + tickpix);
             }
         }
 
         if (x->gl_ytick.k_lperb)
         {
-            t_float f;
-            for (int i = 0, f = x->gl_ytick.k_point; f < 0.99 * y2 + 0.01 * y1; i++, f += (x->gl_ytick.k_inc * (y2 - y1) * 0.5f))
+            t_float f = x->gl_ytick.k_point;
+            for (int i = 0; f < 0.99f * x->gl_y2 + 0.01f * x->gl_y1; i++, f += x->gl_ytick.k_inc)
             {
+                auto ypos = jmap<float>(f, x->gl_y2, x->gl_y1, y1, y2);
                 int tickpix = (i % x->gl_ytick.k_lperb ? 2 : 4);
-                g.drawLine(x1, (int)f, x1 + tickpix, (int)f);
-                g.drawLine(x2, (int)f, x2 - tickpix, (int)f);
+                g.drawLine(x1, ypos, x1 + tickpix, ypos);
+                g.drawLine(x2, ypos, x2 - tickpix, ypos);
             }
-            for (int i = 1, f = x->gl_ytick.k_point - x->gl_ytick.k_inc; f > 0.99 * y2 + 0.01 * y1; i++, f -= (x->gl_ytick.k_inc * (y2 - y1) * 0.5f))
+            
+            f = x->gl_ytick.k_point - x->gl_ytick.k_inc;
+            for (int i = 1; f > 0.99f * x->gl_y2 + 0.01f * x->gl_y1; i++, f -= x->gl_ytick.k_inc)
             {
+                auto ypos = jmap<float>(f, x->gl_y2, x->gl_y1, y1, y2);
                 int tickpix = (i % x->gl_ytick.k_lperb ? 2 : 4);
-                g.drawLine(x1, (int)f, x1 + tickpix, (int)f);
-                g.drawLine(x2, (int)f, x2 - tickpix, (int)f);
+                g.drawLine(x1, ypos, x1 + tickpix, ypos);
+                g.drawLine(x2, ypos, x2 - tickpix, ypos);
             }
         }
     }

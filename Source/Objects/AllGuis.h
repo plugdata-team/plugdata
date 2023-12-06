@@ -312,6 +312,7 @@ struct t_fake_messbox {
     //    char            *handle_id;
     char* window_tag;
     char* all_tag;
+    t_binbuf* x_state;
 };
 
 // [else/pad]
