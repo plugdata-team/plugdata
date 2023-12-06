@@ -15,6 +15,7 @@
 #include "PluginEditor.h"
 #include "CanvasViewport.h"
 
+
 class ConnectionMessageDisplay
     : public Component
     , public MultiTimer {
@@ -39,20 +40,49 @@ public:
         // if this object has already been set to null
         if (activeConnection == nullptr && connection == nullptr)
             return;
-
+        
+        // Clear out the buffer from the previous connection
+        float sample;
+        while(sampleQueue.try_dequeue(sample))
+        std::fill(lastSamples, lastSamples + 512, 0.0f);
+        
         activeConnection = SafePointer<Connection>(connection);
         if (activeConnection.getComponent()) {
             mousePosition = screenPosition;
+            isSignalDisplay = activeConnection->outlet->isSignal;
             startTimer(MouseHoverDelay, mouseDelay);
             stopTimer(MouseHoverExitDelay);
-            startTimer(RepaintTimer, 1000 / 60);
-            updateTextString(true);
+            if(isSignalDisplay)
+            {
+                auto* pd = activeConnection->outobj->cnv->pd;
+                pd->connectionListener = this;
+                
+                startTimer(RepaintTimer, 1000 / 10);
+            }
+            else
+            {
+                startTimer(RepaintTimer, 1000 / 60);
+                updateTextString(true);
+            }
         } else {
             hideDisplay();
             // to copy tooltip behaviour, any successful interaction will cause the next interaction to have no delay
             mouseDelay = 0;
             stopTimer(MouseHoverDelay);
             startTimer(MouseHoverExitDelay, 500);
+        }
+    }
+        
+    void updateSignalData()
+    {
+        if(!activeConnection) return;
+        
+        t_float output[DEFDACBLKSIZE];
+        if(!activeConnection->getSignalData(output)) return;
+        
+        for(auto& sample : output)
+        {
+            sampleQueue.try_enqueue(sample);
         }
     }
 
@@ -119,11 +149,44 @@ private:
 
         repaint();
     }
+        
+    void updateSignalGraph()
+    {
+        if(activeConnection)
+        {
+            for(int i = 0; i < 512; i++)
+            {
+                float sample;
+                if(sampleQueue.try_dequeue(sample))
+                {
+                    lastSamples[i] = sample;
+                }
+                else {
+                    break;
+                }
+            }
+            
+            Rectangle<int> proposedPosition(130, 65);
+            // make sure the proposed position is inside the editor area
+            proposedPosition.setCentre(getParentComponent()->getLocalPoint(nullptr, mousePosition).translated(0, -(getHeight() * 0.5)));
+            constrainedBounds = proposedPosition.constrainedWithin(getParentComponent()->getLocalBounds());
+            
+            if (getBounds() != constrainedBounds)
+                setBounds(constrainedBounds);
+            
+            repaint();
+        }
+    }
 
     void hideDisplay()
     {
+        if(activeConnection)  {
+            auto* pd = activeConnection->outobj->cnv->pd;
+            pd->connectionListener = nullptr;
+        }
         stopTimer(RepaintTimer);
         setVisible(false);
+        activeConnection = nullptr;
     }
 
     void timerCallback(int timerID) override
@@ -131,7 +194,12 @@ private:
         switch (timerID) {
         case RepaintTimer: {
             if (activeConnection.getComponent()) {
-                updateTextString();
+                if(isSignalDisplay) {
+                    updateSignalGraph();
+                }
+                else {
+                    updateTextString();
+                }
             } else {
                 hideDisplay();
             }
@@ -139,7 +207,9 @@ private:
         }
         case MouseHoverDelay: {
             if (activeConnection.getComponent()) {
-                updateTextString();
+                if(!isSignalDisplay) {
+                    updateTextString();
+                }
                 setVisible(true);
             } else {
                 hideDisplay();
@@ -158,6 +228,7 @@ private:
 
     void paint(Graphics& g) override
     {
+        
         Path messageDisplay;
         auto internalBounds = getLocalBounds().reduced(8).toFloat();
         messageDisplay.addRoundedRectangle(internalBounds, Corners::defaultCornerRadius);
@@ -188,12 +259,40 @@ private:
         //    g.fillPath(indicatorPath);
         //}
 
-        int startPostionX = 8 + 4;
-        for (auto const& item : messageItemsWithFormat) {
-            Fonts::drawStyledText(g, item.text, startPostionX, 0, item.width, getHeight(), findColour(PlugDataColour::panelTextColourId), item.fontStyle, 14, Justification::centredLeft);
-            startPostionX += item.width + 4;
+        if(isSignalDisplay)
+        {
+            Point<float> lastPoint = {10.0f, jmap<float>(lastSamples[0], -1.0f, 1.0f, internalBounds.getY(), internalBounds.getBottom())};
+            
+            Path oscopePath;
+            for (int x = internalBounds.getX(); x < internalBounds.getRight(); x++) {
+                auto index = jmap<int>(x, internalBounds.getX(), internalBounds.getRight(), 0, 512);
+                auto y = jmap<float>(lastSamples[index], -1.0f, 1.0f, internalBounds.getY(), internalBounds.getBottom());
+                auto newPoint = Point<float>(x, y);
+                auto segment = Line(lastPoint, newPoint);
+                oscopePath.addLineSegment(segment, 0.5f);
+                lastPoint = newPoint;
+            }
+            
+            g.setColour(findColour(PlugDataColour::canvasTextColourId));
+            g.fillPath(oscopePath);
+            
+            auto textBounds = internalBounds.reduced(4).removeFromBottom(16).removeFromRight(32);
+            
+            g.setColour(findColour(PlugDataColour::dialogBackgroundColourId).withAlpha(0.5f));
+            g.fillRoundedRectangle(textBounds, Corners::defaultCornerRadius);
+            
+            g.setColour(findColour(PlugDataColour::canvasTextColourId));
+            g.setFont(Fonts::getTabularNumbersFont().withHeight(11.5f));
+            g.drawText(String(lastSamples[rand() % 512], 3), textBounds.toNearestInt(), Justification::centred);
         }
-
+        else {
+            int startPostionX = 8 + 4;
+            for (auto const& item : messageItemsWithFormat) {
+                Fonts::drawStyledText(g, item.text, startPostionX, 0, item.width, getHeight(), findColour(PlugDataColour::panelTextColourId), item.fontStyle, 14, Justification::centredLeft);
+                startPostionX += item.width + 4;
+            }
+        }
+        
         // used for cached background shadow
         previousBounds = getBounds();
     }
@@ -211,6 +310,7 @@ private:
         FontStyle fontStyle;
         int width;
     };
+    
     Array<TextStringWithMetrics> messageItemsWithFormat;
 
     Component::SafePointer<Connection> activeConnection;
@@ -223,6 +323,10 @@ private:
 
     Point<float> circlePosition = { 8.0f + 4.0f, 36.0f / 2.0f };
 
+    float lastSamples[512];
+    moodycamel::ReaderWriterQueue<float> sampleQueue = moodycamel::ReaderWriterQueue<float>(512);
+    
+    bool isSignalDisplay;
     Image cachedImage;
     Rectangle<int> previousBounds;
 };

@@ -306,7 +306,6 @@ public:
 private:
     std::unordered_map<void*, std::vector<pd_weak_reference*>> pdWeakReferences;
 
-
     std::unique_ptr<ObjectImplementationManager> objectImplementations;
 
     moodycamel::ReaderWriterQueue<std::function<void(void)>> functionQueue = moodycamel::ReaderWriterQueue<std::function<void(void)>>(4096);

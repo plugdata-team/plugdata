@@ -157,17 +157,33 @@ void Instance::initialisePd(String& pdlua_version)
 
     libpd_set_instance(static_cast<t_pdinstance*>(instance));
 
-    set_instance_lock(
+    setup_lock(
         static_cast<void const*>(&audioLock),
         [](void* lock) {
             static_cast<CriticalSection*>(lock)->enter();
         },
         [](void* lock) {
             static_cast<CriticalSection*>(lock)->exit();
-        },
+        });
+    
+    setup_weakreferences(
         [](void* instance, void* ref) {
             static_cast<pd::Instance*>(instance)->clearWeakReferences(ref);
-        });
+        },
+        [](void* instance, void* ref, void* weakref) {
+            auto** reference_state = reinterpret_cast<pd_weak_reference**>(weakref);
+            *reference_state = new pd_weak_reference(true);
+            static_cast<pd::Instance*>(instance)->registerWeakReference(ref, *reference_state);
+        },
+        [](void* instance, void* ref, void* weakref) {
+            auto** reference_state = reinterpret_cast<pd_weak_reference**>(weakref);
+            static_cast<pd::Instance*>(instance)->unregisterWeakReference(ref, *reference_state);
+            delete *reference_state;
+        },
+        [](void* ref) -> int {
+            return ((pd_weak_reference*)ref)->load();
+        }
+    );
 
     midiReceiver = pd::Setup::createMIDIHook(this, reinterpret_cast<t_plugdata_noteonhook>(internal::instance_multi_noteon), reinterpret_cast<t_plugdata_controlchangehook>(internal::instance_multi_controlchange), reinterpret_cast<t_plugdata_programchangehook>(internal::instance_multi_programchange),
         reinterpret_cast<t_plugdata_pitchbendhook>(internal::instance_multi_pitchbend), reinterpret_cast<t_plugdata_aftertouchhook>(internal::instance_multi_aftertouch), reinterpret_cast<t_plugdata_polyaftertouchhook>(internal::instance_multi_polyaftertouch),

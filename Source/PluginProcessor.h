@@ -25,6 +25,7 @@ class SettingsFile;
 class StatusbarSource;
 struct PlugDataLook;
 class PluginEditor;
+class ConnectionMessageDisplay;
 class PluginProcessor : public AudioProcessor
     , public pd::Instance {
 public:
@@ -164,7 +165,8 @@ public:
     std::atomic<bool> enableInternalSynth = false;
 
     OwnedArray<PluginEditor> openedEditors;
-
+    Component::SafePointer<ConnectionMessageDisplay> connectionListener;
+        
 private:
 
     SmoothedValue<float, ValueSmoothingTypes::Linear> smoothedGain;

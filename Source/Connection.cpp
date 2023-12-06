@@ -18,6 +18,7 @@
 #include "Pd/Patch.h"
 #include "Dialogs/ConnectionMessageDisplay.h"
 
+
 Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     : inlet(s->isInlet ? s : e)
     , outlet(s->isInlet ? e : s)
@@ -503,7 +504,7 @@ StringArray Connection::getMessageFormated()
     auto name = lastSelector ? String::fromUTF8(lastSelector->s_name) : "";
 
     StringArray formatedMessage;
-
+    
     if (name == "float" && lastNumArgs > 0) {
         formatedMessage.add("float:");
         formatedMessage.add(args[0].toString());
@@ -544,8 +545,7 @@ StringArray Connection::getMessageFormated()
 void Connection::mouseEnter(MouseEvent const& e)
 {
     isHovering = true;
-    if (!outlet->isSignal)
-        cnv->editor->connectionMessageDisplay->setConnection(this, e.getScreenPosition());
+    cnv->editor->connectionMessageDisplay->setConnection(this, e.getScreenPosition());
     repaint();
 }
 
@@ -867,10 +867,28 @@ int Connection::getMultiConnectNumber()
     return -1;
 }
 
+bool Connection::getSignalData(t_float* output)
+{
+    if (auto oc = ptr.get<t_outconnect>()) {
+        if(auto* signal = outconnect_get_signal(oc.get()))
+        {
+            auto* samples = signal->s_vec;
+            if(!samples) return false;
+            std::copy(samples, samples + DEFDACBLKSIZE, output);
+            return true;
+        }
+    }
+    
+    return false;
+}
+
 int Connection::getNumSignalChannels()
 {
     if (auto oc = ptr.get<t_outconnect>()) {
-        return outconnect_get_num_channels(oc.get());
+        if(auto* signal = outconnect_get_signal(oc.get()))
+        {
+            return signal->s_nchans;
+        }
     }
 
     if (outlet) {

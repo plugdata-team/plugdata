@@ -20,6 +20,7 @@
 #include "Utility/OSUtils.h"
 #include "Utility/AudioSampleRingBuffer.h"
 #include "Utility/MidiDeviceManager.h"
+#include "Dialogs/ConnectionMessageDisplay.h"
 
 #include "Utility/Presets.h"
 #include "Canvas.h"
@@ -660,6 +661,8 @@ void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer, MidiBuffer&
         performDSP(audioVectorIn.data(), audioVectorOut.data());
         
         sendMessagesFromQueue();
+        
+        if(connectionListener) connectionListener->updateSignalData();
         
         messageDispatcher->dispatch();
         
