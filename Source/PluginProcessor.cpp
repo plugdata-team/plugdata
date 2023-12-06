@@ -662,7 +662,7 @@ void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer, MidiBuffer&
         
         sendMessagesFromQueue();
         
-        if(connectionListener) connectionListener->updateSignalData();
+        if(connectionListener && plugdata_debugging_enabled()) connectionListener->updateSignalData();
         
         messageDispatcher->dispatch();
         

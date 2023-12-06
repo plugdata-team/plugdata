@@ -80,7 +80,8 @@ struct Icons {
     inline static const String Trash = "~";
     inline static const String Fullscreen = "&";
     inline static const String Eyedropper = "@";
-
+    inline static const String Debug = "?";
+    
     inline static const String Reset = "'";
     inline static const String More = ".";
     inline static const String MIDI = "`";

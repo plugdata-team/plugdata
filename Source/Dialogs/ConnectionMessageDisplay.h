@@ -173,7 +173,7 @@ private:
                 }
             }
             
-            Rectangle<int> proposedPosition(130, 20 + lastNumChannels * 30);
+            Rectangle<int> proposedPosition(130, jmap<int>(lastNumChannels, 1, 8, 50, 150));
             // make sure the proposed position is inside the editor area
             proposedPosition.setCentre(getParentComponent()->getLocalPoint(nullptr, mousePosition).translated(0, -(getHeight() * 0.5)));
             constrainedBounds = proposedPosition.constrainedWithin(getParentComponent()->getLocalBounds());

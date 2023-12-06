@@ -545,7 +545,9 @@ StringArray Connection::getMessageFormated()
 void Connection::mouseEnter(MouseEvent const& e)
 {
     isHovering = true;
-    cnv->editor->connectionMessageDisplay->setConnection(this, e.getScreenPosition());
+    if(plugdata_debugging_enabled()) {
+        cnv->editor->connectionMessageDisplay->setConnection(this, e.getScreenPosition());
+    }
     repaint();
 }
 

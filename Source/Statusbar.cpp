@@ -641,7 +641,21 @@ Statusbar::Statusbar(PluginProcessor* processor)
     protectButton.setButtonText(Icons::Protection);
     centreButton.setButtonText(Icons::Centre);
     fitAllButton.setButtonText(Icons::FitAll);
+    debugButton.setButtonText(Icons::Debug);
 
+    debugButton.setTooltip("Enable/disable debugging tooltips");
+    debugButton.setClickingTogglesState(true);
+    debugButton.getToggleStateValue().referTo(SettingsFile::getInstance()->getPropertyAsValue("debug_connections"));
+    debugButton.onClick = [this]() { 
+        set_plugdata_debugging_enabled(debugButton.getToggleState());
+        // Recreate the DSP graph with the new optimisations
+        pd->lockAudioThread();
+        canvas_update_dsp();
+        pd->unlockAudioThread();
+    };
+    set_plugdata_debugging_enabled(debugButton.getToggleState());
+    addAndMakeVisible(debugButton);
+    
     powerButton.setTooltip("Enable/disable DSP");
     powerButton.setClickingTogglesState(true);
     addAndMakeVisible(powerButton);
@@ -806,7 +820,8 @@ void Statusbar::resized()
     position(10);
 
     alignmentButton.setBounds(position(spacing), 0, getHeight(), getHeight());
-
+    debugButton.setBounds(position(spacing), 0, getHeight(), getHeight());
+    
     pos = 4; // reset position for elements on the right
 
 #if JUCE_IOS

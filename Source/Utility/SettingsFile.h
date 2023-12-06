@@ -97,6 +97,7 @@ private:
         { "theme", var("light") },
         { "oversampling", var(0) },
         { "protected", var(1) },
+        { "debug_connections", var(1) },
         { "internal_synth", var(0) },
         { "grid_enabled", var(1) },
         { "grid_type", var(6) },
