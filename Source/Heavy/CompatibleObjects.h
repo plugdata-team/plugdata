@@ -124,6 +124,7 @@ struct HeavyCompatibleObjects {
         "adc~",
         "biquad~",
         "bp~",
+        "block~",
         "catch~",
         "clip~",
         "cos~",

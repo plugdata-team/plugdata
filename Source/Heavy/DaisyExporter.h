@@ -10,6 +10,8 @@ public:
     Value exportTypeValue = SynchronousValue(var(3));
     Value usbMidiValue = SynchronousValue(var(0));
     Value debugPrintValue = SynchronousValue(var(0));
+    Value blocksizeValue = SynchronousValue(48);
+    Value samplerateValue = SynchronousValue(var(4));
     Value patchSizeValue = SynchronousValue(var(1));
     Value appTypeValue = SynchronousValue(var(0));
 
@@ -31,6 +33,11 @@ public:
         usbMidiProperty = new PropertiesPanel::BoolComponent("USB MIDI", usbMidiValue, { "No", "Yes" });
         properties.add(usbMidiProperty);
         properties.add(new PropertiesPanel::BoolComponent("Debug printing", debugPrintValue, { "No", "Yes" }));
+        auto blocksizeProperty = new PropertiesPanel::EditableComponent<int>("Blocksize", blocksizeValue);
+        blocksizeProperty->setRangeMin(1);
+        blocksizeProperty->setRangeMax(256);
+        properties.add(blocksizeProperty);
+        properties.add(new PropertiesPanel::ComboComponent("Samplerate", samplerateValue, { "8000", "16000", "32000", "48000", "96000" }));
         properties.add(new PropertiesPanel::ComboComponent("Patch size", patchSizeValue, { "Small", "Big", "Huge", "Custom Linker..." }));
         appTypeProperty = new PropertiesPanel::ComboComponent("App type", appTypeValue, { "SRAM", "QSPI" });
         properties.add(appTypeProperty);
@@ -53,6 +60,8 @@ public:
         targetBoardValue.addListener(this);
         usbMidiValue.addListener(this);
         debugPrintValue.addListener(this);
+        blocksizeValue.addListener(this);
+        samplerateValue.addListener(this);
         patchSizeValue.addListener(this);
         appTypeValue.addListener(this);
 
@@ -74,6 +83,8 @@ public:
         stateTree.setProperty("exportTypeValue", getValue<int>(exportTypeValue), nullptr);
         stateTree.setProperty("usbMidiValue", getValue<int>(usbMidiValue), nullptr);
         stateTree.setProperty("debugPrintValue", getValue<int>(debugPrintValue), nullptr);
+        stateTree.setProperty("blocksizeValue", getValue<int>(blocksizeValue), nullptr);
+        stateTree.setProperty("samplerateValue", getValue<int>(samplerateValue), nullptr);
         stateTree.setProperty("patchSizeValue", getValue<int>(patchSizeValue), nullptr);
         stateTree.setProperty("appTypeValue", getValue<int>(appTypeValue), nullptr);
         stateTree.setProperty("customLinkerValue", customLinker.getFullPathName(), nullptr);
@@ -93,6 +104,8 @@ public:
         exportTypeValue = tree.getProperty("exportTypeValue");
         usbMidiValue = tree.getProperty("usbMidiValue");
         debugPrintValue = tree.getProperty("debugPrintValue");
+        blocksizeValue = tree.getProperty("blocksizeValue");
+        samplerateValue = tree.getProperty("samplerateValue");
         patchSizeValue = tree.getProperty("patchSizeValue");
         appTypeValue = tree.getProperty("appTypeValue");
         customLinker = File(tree.getProperty("customLinkerValue").toString());
@@ -167,6 +180,8 @@ public:
         bool flash = getValue<int>(exportTypeValue) == 3;
         bool usbMidi = getValue<int>(usbMidiValue);
         bool print = getValue<int>(debugPrintValue);
+        auto blocksize = getValue<int>(blocksizeValue);
+        auto rate = getValue<int>(samplerateValue) - 1;
         auto size = getValue<int>(patchSizeValue);
         auto appType = getValue<int>(appTypeValue);
 
@@ -204,6 +219,13 @@ public:
         if (print) {
             metaDaisy.getDynamicObject()->setProperty("debug_printing", "True");
         }
+
+        // blocksize and samplerate
+        auto sampleRates = StringArray { "8000", "16000", "32000", "48000", "96000" };
+        auto const& samplerate = sampleRates[rate];
+
+        metaDaisy.getDynamicObject()->setProperty("blocksize", blocksize);
+        metaDaisy.getDynamicObject()->setProperty("samplerate", samplerate);
 
         // set linker script and if we want bootloader
         bool bootloader = false;
