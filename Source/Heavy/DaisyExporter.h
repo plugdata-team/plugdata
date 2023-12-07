@@ -223,11 +223,15 @@ public:
         }
 
         // blocksize and samplerate
-        auto sampleRates = StringArray { "8000", "16000", "32000", "48000", "96000" };
-        auto const& samplerate = sampleRates[rate];
+        if (rate != 3) {
+            auto sampleRates = StringArray { "8000", "16000", "32000", "48000", "96000" };
+            auto const& samplerate = sampleRates[rate];
+            metaDaisy.getDynamicObject()->setProperty("samplerate", samplerate);
+        }
 
-        metaDaisy.getDynamicObject()->setProperty("blocksize", blocksize);
-        metaDaisy.getDynamicObject()->setProperty("samplerate", samplerate);
+        if (blocksize != 48) {
+            metaDaisy.getDynamicObject()->setProperty("blocksize", blocksize);
+        }
 
         // set linker script and if we want bootloader
         bool bootloader = false;
