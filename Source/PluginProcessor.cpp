@@ -631,6 +631,14 @@ void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer, MidiBuffer&
     int numBlocks = buffer.getNumSamples() / blockSize;
     audioAdvancement = 0;
     
+    if (producesMidi()) {
+        midiByteIndex = 0;
+        midiByteBuffer[0] = 0;
+        midiByteBuffer[1] = 0;
+        midiByteBuffer[2] = 0;
+        midiBufferOut.clear();
+    }
+    
     for(int block = 0; block < numBlocks; block++)
     {
         for (int ch = 0; ch < buffer.getNumChannels(); ch++)
@@ -642,15 +650,7 @@ void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer, MidiBuffer&
                                               blockSize
                                               );
         }
-        
-        if (producesMidi()) {
-            midiByteIndex = 0;
-            midiByteBuffer[0] = 0;
-            midiByteBuffer[1] = 0;
-            midiByteBuffer[2] = 0;
-            midiBufferOut.clear();
-        }
-        
+ 
         setThis();
         
         midiBufferIn.clear();

@@ -36,3 +36,6 @@
 [submodule "Libraries/readerwriterqueue"]
 	path = Libraries/readerwriterqueue
 	url = https://github.com/cameron314/readerwriterqueue.git
+[submodule "Libraries/concurrentqueue"]
+	path = Libraries/concurrentqueue
+	url = https://github.com/cameron314/concurrentqueue.git
