@@ -61,9 +61,9 @@ public:
         fifo.prepareToWrite(audioSrc.getNumSamples(), start1, size1, start2, size2);
 
         if (size1 > 0)
-            audioSrc.copyTo(audioBuffer, start1, start1, size1);
+            audioSrc.copyTo(audioBuffer, 0, start1, size1);
         if (size2 > 0)
-            audioSrc.copyTo(audioBuffer, start1, size1, size2);
+            audioSrc.copyTo(audioBuffer, start2, size1, size2);
 
         fifo.finishedWrite(size1 + size2);
     }
