@@ -104,11 +104,11 @@ private:
 
             auto title = getName();
             auto titleHeight = title.isEmpty() ? 0 : parent.titleHeight;
-            
+
             if(titleHeight != 0) {
                 Fonts::drawStyledText(g, title, titleX, 0, width - 4, titleHeight, findColour(PlugDataColour::panelTextColourId), Semibold, 14.5f);
             }
-            
+
             auto propertyBounds = Rectangle<float>(x, titleHeight + 8.0f, width, getHeight() - (titleHeight + 16.0f));
 
             // Don't draw the shadow if the background colour has opacity
@@ -763,12 +763,12 @@ public:
                 label->setEditable(true, false);
                 label->getTextValue().referTo(property);
                 label->setFont(Font(14));
-                
+
                 label->onEditorShow = [this]() {
                     auto* editor = label->getCurrentTextEditor();
                     editor->setBorder(BorderSize<int>(2, 1, 4, 1));
                     editor->setJustification(Justification::centredLeft);
-                    
+
                     if(allowedCharacters.isNotEmpty())
                     {
                         editor->setInputRestrictions(0, allowedCharacters);
@@ -785,7 +785,7 @@ public:
         {
             return new EditableComponent<T>(getName(), property);
         }
-        
+
         void setInputRestrictions(const String& newAllowedCharacters)
         {
             allowedCharacters = newAllowedCharacters;
@@ -809,13 +809,18 @@ public:
         {
             label->setBounds(getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)));
         }
+
+        void editableOnClick(bool editable)
+        {
+            dynamic_cast<DraggableNumber*>(label.get())->setEditableOnClick(editable);
+        }
     };
 
     struct FilePathComponent : public PropertiesPanelProperty {
         Label label;
         SmallIconButton browseButton = SmallIconButton(Icons::File);
         Value property;
-        
+
         FilePathComponent(String const& propertyName, Value& value)
             : PropertiesPanelProperty(propertyName)
             , property(value)

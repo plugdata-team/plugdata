@@ -38,6 +38,7 @@ public:
         auto blocksizeProperty = new PropertiesPanel::EditableComponent<int>("Blocksize", blocksizeValue);
         blocksizeProperty->setRangeMin(1);
         blocksizeProperty->setRangeMax(256);
+        blocksizeProperty->editableOnClick(false);
         properties.add(blocksizeProperty);
         properties.add(new PropertiesPanel::ComboComponent("Samplerate", samplerateValue, { "8000", "16000", "32000", "48000", "96000" }));
         properties.add(new PropertiesPanel::ComboComponent("Patch size", patchSizeValue, { "Small", "Big", "Huge", "Custom Linker..." }));
