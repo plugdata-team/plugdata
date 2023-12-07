@@ -724,6 +724,8 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
         
         sendMessagesFromQueue();
         
+        if(connectionListener && plugdata_debugging_enabled()) connectionListener->updateSignalData();
+        
         messageDispatcher->dispatch();
         
         for (int channel = 0; channel < numChannels; ++channel)
