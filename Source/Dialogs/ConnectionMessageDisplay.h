@@ -42,11 +42,9 @@ public:
 
         auto clearSignalDisplayBuffer = [this](){
             SignalBlock sample;
-            while (sampleQueue.try_dequeue(sample));
+            while (sampleQueue.try_dequeue(sample)) {};
             for(int ch = 0; ch < 8; ch++) {
                 std::fill(lastSamples[ch], lastSamples[ch] + signalBlockSize, 0.0f);
-                maxAmplitude[ch]  = 1.0f;
-                minAmplitude[ch] = -1.0f;
                 cycleLength[ch] = 0.0f;
             }
         };
@@ -228,9 +226,31 @@ private:
         g.addTransform(AffineTransform::scale(2.0f)); // So it will also look sharp on hi-dpi screens
         
         auto totalHeight = bounds.getHeight();
-
+        auto textColour = findColour(PlugDataColour::canvasTextColourId);
+        
         int complexFFTSize = signalBlockSize * 2;
         for (int ch = 0; ch < lastNumChannels; ch++) {
+            
+            auto channelBounds = bounds.toFloat().removeFromTop(totalHeight / std::max(lastNumChannels, 1)).reduced(5);
+            
+            auto peakAmplitude = *std::max_element(lastSamples[ch], lastSamples[ch] + signalBlockSize);
+            auto valleyAmplitude = *std::min_element(lastSamples[ch], lastSamples[ch] + signalBlockSize);
+            
+            // Audio was empty, draw a line and continue
+            if(approximatelyEqual(peakAmplitude, 0.0f) && approximatelyEqual(valleyAmplitude, 0.0f))
+            {
+                g.setColour(textColour);
+                g.drawHorizontalLine(channelBounds.getCentreY(), channelBounds.getX(), channelBounds.getRight());
+                continue;
+            }
+                        
+            if(peakAmplitude == valleyAmplitude)
+            {
+                peakAmplitude += 0.01f;
+                valleyAmplitude -= 0.01f;
+            }
+            
+            // Apply FFT to get the peak frequency, we use this to decide the amount of samples we display
             float fftBlock[complexFFTSize];
             std::copy(lastSamples[ch], lastSamples[ch] + signalBlockSize, fftBlock);
             signalDisplayFFT.performRealOnlyForwardTransform(fftBlock);
@@ -247,39 +267,16 @@ private:
             }
             
             auto samplesPerCycle = std::clamp<int>(round(static_cast<float>(signalBlockSize * 2) / peakFreqIndex), 8, signalBlockSize);
+            // Keep a short average of cycle length over time to prevent sudden changes
+            cycleLength[ch] = jmap<float>(0.5f, cycleLength[ch], samplesPerCycle);
             
             auto phase = atan2(fftBlock[peakFreqIndex * 2 + 1], fftBlock[peakFreqIndex * 2]) + M_PI;
             auto phaseShiftSamples = static_cast<int>(phase / (2.0 * M_PI) * samplesPerCycle);
-
-            auto peakAmplitude = *std::max_element(lastSamples[ch], lastSamples[ch] + signalBlockSize);
-            auto valleyAmplitude = *std::min_element(lastSamples[ch], lastSamples[ch] + signalBlockSize);
-            
-            if(approximatelyEqual(maxAmplitude[ch], 0.0f) && approximatelyEqual(minAmplitude[ch], 0.0f))
-            {
-                cycleLength[ch] = samplesPerCycle;
-                maxAmplitude[ch] = peakAmplitude;
-                minAmplitude[ch] = valleyAmplitude;
-            }
-            
-            cycleLength[ch] = jmap<float>(0.25f, cycleLength[ch], samplesPerCycle);
-            
-            auto frequencyScalar = std::clamp<float>(1.0f - (cycleLength[ch] / static_cast<float>(signalBlockSize)), 0.65f, 1.0f);
-            maxAmplitude[ch] = jmap<float>(frequencyScalar, maxAmplitude[ch], peakAmplitude);
-            minAmplitude[ch] = jmap<float>(frequencyScalar, minAmplitude[ch], valleyAmplitude);
-            
-            if(maxAmplitude[ch] == minAmplitude[ch])
-            {
-                maxAmplitude[ch] += 0.01f;
-                minAmplitude[ch] -= 0.01f;
-            }
-            
-            // Ensure that the indices are within the valid range
             if (phaseShiftSamples > 0 && phaseShiftSamples < signalBlockSize) {
                 //std::rotate(lastSamples[ch], lastSamples[ch] + phaseShiftSamples, lastSamples[ch] + signalBlockSize);
             }
             
-            auto channelBounds = bounds.toFloat().removeFromTop(totalHeight / std::max(lastNumChannels, 1)).reduced(5);
-            Point<float> lastPoint = { channelBounds.getX(), jmap<float>(lastSamples[ch][0], minAmplitude[ch], maxAmplitude[ch], channelBounds.getY(), channelBounds.getBottom()) };
+            Point<float> lastPoint = { channelBounds.getX(), jmap<float>(lastSamples[ch][0], valleyAmplitude, peakAmplitude, channelBounds.getY(), channelBounds.getBottom()) };
             
             Path oscopePath;
             for (int x = channelBounds.getX() + 1; x < channelBounds.getRight(); x++) {
@@ -290,22 +287,22 @@ private:
                 auto nextSample = roundedIndex == 1023 ? lastSamples[ch][roundedIndex] : lastSamples[ch][roundedIndex + 1];
                 auto interpolatedSample = jmap<float>(index - roundedIndex, currentSample, nextSample);
                 
-                auto y = jmap<float>(interpolatedSample, minAmplitude[ch], maxAmplitude[ch], channelBounds.getY(), channelBounds.getBottom());
+                auto y = jmap<float>(interpolatedSample, valleyAmplitude, peakAmplitude, channelBounds.getY(), channelBounds.getBottom());
                 auto newPoint = Point<float>(x, y);
                 auto segment = Line(lastPoint, newPoint);
-                oscopePath.addLineSegment(segment, 0.5f);
+                oscopePath.addLineSegment(segment, 0.75f);
                 lastPoint = newPoint;
             }
 
-            g.setColour(findColour(PlugDataColour::canvasTextColourId));
+            g.setColour(textColour);
             g.fillPath(oscopePath);
 
-            auto textBounds = channelBounds.expanded(5).removeFromBottom(24).removeFromRight(32);
+            auto textBounds = channelBounds.expanded(5).removeFromBottom(32).removeFromRight(32);
 
             g.setColour(findColour(PlugDataColour::dialogBackgroundColourId).withAlpha(0.5f));
             g.fillRoundedRectangle(textBounds, Corners::defaultCornerRadius);
 
-            g.setColour(findColour(PlugDataColour::canvasTextColourId));
+            g.setColour(textColour);
             g.setFont(Fonts::getTabularNumbersFont().withHeight(12.f));
             g.drawText(String(lastSamples[ch][rand() % 512], 3), textBounds.toNearestInt(), Justification::centred);
         }
@@ -425,8 +422,6 @@ private:
     // 32*64 samples gives us space for 1024 samples across 8 channels
     moodycamel::ReaderWriterQueue<SignalBlock> sampleQueue = moodycamel::ReaderWriterQueue<SignalBlock>(numBlocks);
 
-    float maxAmplitude[8]  = { 1.0f };
-    float minAmplitude[8] = { -1.0f };
     float cycleLength[8] = { 0.0f };
     float lastSamples[8][1024] = { { 0.0f } };
     int lastNumChannels = 1;
