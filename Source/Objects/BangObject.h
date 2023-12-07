@@ -212,6 +212,7 @@ public:
         }
         case hash("pos"):
         case hash("size"):
+        case hash("loadbang"):
                 break;
         default: {
             bool wasIemMessage = iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
