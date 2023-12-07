@@ -236,11 +236,21 @@ private:
             auto peakAmplitude = *std::max_element(lastSamples[ch], lastSamples[ch] + signalBlockSize);
             auto valleyAmplitude = *std::min_element(lastSamples[ch], lastSamples[ch] + signalBlockSize);
             
-            // Audio was empty, draw a line and continue
+            // Audio was empty, draw a line and continue, no need to perform an fft
             if(approximatelyEqual(peakAmplitude, 0.0f) && approximatelyEqual(valleyAmplitude, 0.0f))
             {
+                auto textBounds = channelBounds.expanded(5).removeFromBottom(24).removeFromRight(34);
                 g.setColour(textColour);
                 g.drawHorizontalLine(channelBounds.getCentreY(), channelBounds.getX(), channelBounds.getRight());
+                                
+                // Draw text background
+                g.setColour(findColour(PlugDataColour::dialogBackgroundColourId));
+                g.fillRoundedRectangle(textBounds, Corners::defaultCornerRadius);
+                
+                // Draw text
+                g.setColour(textColour);
+                g.setFont(Fonts::getTabularNumbersFont().withHeight(12.f));
+                g.drawText("0.000", textBounds.toNearestInt(), Justification::centred);
                 continue;
             }
                         
