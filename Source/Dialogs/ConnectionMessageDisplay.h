@@ -231,7 +231,7 @@ private:
         int complexFFTSize = signalBlockSize * 2;
         for (int ch = 0; ch < lastNumChannels; ch++) {
             
-            auto channelBounds = bounds.toFloat().removeFromTop(totalHeight / std::max(lastNumChannels, 1)).reduced(5);
+            auto channelBounds = bounds.removeFromTop(totalHeight / std::max(lastNumChannels, 1)).reduced(5).toFloat();
             
             auto peakAmplitude = *std::max_element(lastSamples[ch], lastSamples[ch] + signalBlockSize);
             auto valleyAmplitude = *std::min_element(lastSamples[ch], lastSamples[ch] + signalBlockSize);
@@ -282,6 +282,7 @@ private:
             for (int x = channelBounds.getX() + 1; x < channelBounds.getRight(); x++) {
                 auto index = jmap<float>(x, channelBounds.getX(), channelBounds.getRight(), 0, samplesPerCycle);
                 
+                // linearl interpolation, especially needed for high-frequency signals
                 auto roundedIndex = static_cast<int>(index);
                 auto currentSample = lastSamples[ch][roundedIndex];
                 auto nextSample = roundedIndex == 1023 ? lastSamples[ch][roundedIndex] : lastSamples[ch][roundedIndex + 1];
@@ -293,18 +294,25 @@ private:
                 oscopePath.addLineSegment(segment, 0.75f);
                 lastPoint = newPoint;
             }
-
+            
+            // Draw oscope path
             g.setColour(textColour);
             g.fillPath(oscopePath);
 
-            auto textBounds = channelBounds.expanded(5).removeFromBottom(32).removeFromRight(32);
-
-            g.setColour(findColour(PlugDataColour::dialogBackgroundColourId).withAlpha(0.5f));
+            // Calculate text length
+            auto numbersFont = Fonts::getTabularNumbersFont().withHeight(12.f);
+            auto text = String(lastSamples[ch][rand() % 512], 3);
+            auto textWidth = numbersFont.getStringWidth(text);
+            auto textBounds = channelBounds.expanded(5).removeFromBottom(24).removeFromRight(textWidth + 8);
+            
+            // Draw text background
+            g.setColour(findColour(PlugDataColour::dialogBackgroundColourId));
             g.fillRoundedRectangle(textBounds, Corners::defaultCornerRadius);
-
+            
+            // Draw text
             g.setColour(textColour);
-            g.setFont(Fonts::getTabularNumbersFont().withHeight(12.f));
-            g.drawText(String(lastSamples[ch][rand() % 512], 3), textBounds.toNearestInt(), Justification::centred);
+            g.setFont(numbersFont);
+            g.drawText(text, textBounds.toNearestInt(), Justification::centred);
         }
         
         return oscopeImage;
