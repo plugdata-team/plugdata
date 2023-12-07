@@ -498,9 +498,11 @@ bool PluginProcessor::isBusesLayoutSupported(BusesLayout const& layouts) const
 
 static bool hasRealEvents(MidiBuffer& buffer)
 {
+    
     return std::any_of(buffer.begin(), buffer.end(),
         [](auto const& event) {
-            return !event.getMessage().isSysEx();
+            int dummy;
+            return !MidiDeviceManager::convertFromSysExFormat(event.getMessage(), dummy).isSysEx();
         });
 }
 
