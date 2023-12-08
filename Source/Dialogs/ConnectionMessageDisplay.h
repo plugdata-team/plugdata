@@ -51,7 +51,6 @@ public:
         };
 
         activeConnection = SafePointer<Connection>(connection);
-        lastNumChannels = activeConnection->numSignalChannels;
         
         if (activeConnection.getComponent()) {
             mousePosition = screenPosition;
@@ -59,6 +58,7 @@ public:
             startTimer(MouseHoverDelay, mouseDelay);
             stopTimer(MouseHoverExitDelay);
             if (isSignalDisplay) {
+                lastNumChannels = activeConnection->numSignalChannels;
                 clearSignalDisplayBuffer();
                 auto* pd = activeConnection->outobj->cnv->pd;
                 pd->connectionListener = this;
