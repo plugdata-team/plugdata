@@ -38,7 +38,14 @@ public:
                 });
             }
 
-            menuItems[2]->isActive = recentlyOpenedTree.getNumChildren() > 0;
+            auto isActive = menuItems[2]->isActive = recentlyOpenedTree.getNumChildren() > 0;
+            if (isActive) {
+                recentlyOpened->addSeparator();
+                recentlyOpened->addItem("Clear recently opened", [recentlyOpenedTree, this]() mutable {
+                    recentlyOpenedTree.removeAllChildren(nullptr);
+                    SettingsFile::getInstance()->reloadSettings();
+                });
+            }
         }
 
         addCustomItem(getMenuItemID(MenuItem::History), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::History)]), std::unique_ptr<PopupMenu const>(recentlyOpened), "Recently opened");

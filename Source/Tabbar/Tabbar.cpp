@@ -18,7 +18,7 @@
 
 class WelcomePanel : public Component {
 
-    class RecentlyOpenedListBox : public Component
+    class RecentlyOpenedListBox : public Component, public SettingsFileListener
         , public ListBoxModel {
     public:
         RecentlyOpenedListBox()
@@ -35,6 +35,11 @@ class WelcomePanel : public Component {
             listBox.setMouseMoveSelectsRows(true);
             
             bouncer = std::make_unique<BouncingViewportAttachment>(listBox.getViewport());
+        }
+
+        void settingsFileReloaded() override
+        {
+            update();
         }
 
         void update()
