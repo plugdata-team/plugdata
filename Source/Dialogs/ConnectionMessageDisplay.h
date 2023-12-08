@@ -25,6 +25,7 @@ public:
         setVisible(false);
         // needed to stop the component from gaining mouse focus
         setInterceptsMouseClicks(false, false);
+        setBufferedToImage(true);
     }
 
     ~ConnectionMessageDisplay()
@@ -166,7 +167,6 @@ private:
             }
             
             auto newBounds = Rectangle<int>(130, jmap<int>(lastNumChannels, 1, 8, 50, 150));
-            oscilloscopeImage = renderOscilloscope(newBounds);
             updateBoundsFromProposed(newBounds);
             repaint();
         }
@@ -218,115 +218,7 @@ private:
             break;
         }
     }
-        
-    Image renderOscilloscope(Rectangle<int> bounds)
-    {
-        Image oscopeImage(Image::ARGB, bounds.getRight() * 2.0f, bounds.getBottom() * 2.0f, true);
-        Graphics g(oscopeImage);
-        g.addTransform(AffineTransform::scale(2.0f)); // So it will also look sharp on hi-dpi screens
-        
-        auto totalHeight = bounds.getHeight();
-        auto textColour = findColour(PlugDataColour::canvasTextColourId);
-        
-        int complexFFTSize = signalBlockSize * 2;
-        for (int ch = 0; ch < lastNumChannels; ch++) {
-            
-            auto channelBounds = bounds.removeFromTop(totalHeight / std::max(lastNumChannels, 1)).reduced(5).toFloat();
-            
-            auto peakAmplitude = *std::max_element(lastSamples[ch], lastSamples[ch] + signalBlockSize);
-            auto valleyAmplitude = *std::min_element(lastSamples[ch], lastSamples[ch] + signalBlockSize);
-            
-            // Audio was empty, draw a line and continue, no need to perform an fft
-            if(approximatelyEqual(peakAmplitude, 0.0f) && approximatelyEqual(valleyAmplitude, 0.0f))
-            {
-                auto textBounds = channelBounds.expanded(5).removeFromBottom(24).removeFromRight(34);
-                g.setColour(textColour);
-                g.drawHorizontalLine(channelBounds.getCentreY(), channelBounds.getX(), channelBounds.getRight());
-                                
-                // Draw text background
-                g.setColour(findColour(PlugDataColour::dialogBackgroundColourId));
-                g.fillRoundedRectangle(textBounds, Corners::defaultCornerRadius);
-                
-                // Draw text
-                g.setColour(textColour);
-                g.setFont(Fonts::getTabularNumbersFont().withHeight(12.f));
-                g.drawText("0.000", textBounds.toNearestInt(), Justification::centred);
-                continue;
-            }
-                        
-            if(peakAmplitude == valleyAmplitude)
-            {
-                peakAmplitude += 0.01f;
-                valleyAmplitude -= 0.01f;
-            }
-            
-            // Apply FFT to get the peak frequency, we use this to decide the amount of samples we display
-            float fftBlock[complexFFTSize];
-            std::copy(lastSamples[ch], lastSamples[ch] + signalBlockSize, fftBlock);
-            signalDisplayFFT.performRealOnlyForwardTransform(fftBlock);
-            
-            float maxMagnitude = 0.0f;
-            int peakFreqIndex = 0;
-            for (int i = 0; i < signalBlockSize; i++) {
-                auto binMagnitude = std::hypot(fftBlock[i*2], fftBlock[i*2+1]);
-                if(binMagnitude > maxMagnitude)
-                {
-                    maxMagnitude = binMagnitude;
-                    peakFreqIndex = i;
-                }
-            }
-            
-            auto samplesPerCycle = std::clamp<int>(round(static_cast<float>(signalBlockSize * 2) / peakFreqIndex), 8, signalBlockSize);
-            // Keep a short average of cycle length over time to prevent sudden changes
-            cycleLength[ch] = jmap<float>(0.5f, cycleLength[ch], samplesPerCycle);
-            
-            auto phase = atan2(fftBlock[peakFreqIndex * 2 + 1], fftBlock[peakFreqIndex * 2]) + M_PI;
-            auto phaseShiftSamples = static_cast<int>(phase / (2.0 * M_PI) * samplesPerCycle);
-            if (phaseShiftSamples > 0 && phaseShiftSamples < signalBlockSize) {
-                //std::rotate(lastSamples[ch], lastSamples[ch] + phaseShiftSamples, lastSamples[ch] + signalBlockSize);
-            }
-            
-            Point<float> lastPoint = { channelBounds.getX(), jmap<float>(lastSamples[ch][0], valleyAmplitude, peakAmplitude, channelBounds.getY(), channelBounds.getBottom()) };
-            
-            Path oscopePath;
-            for (int x = channelBounds.getX() + 1; x < channelBounds.getRight(); x++) {
-                auto index = jmap<float>(x, channelBounds.getX(), channelBounds.getRight(), 0, samplesPerCycle);
-                
-                // linearl interpolation, especially needed for high-frequency signals
-                auto roundedIndex = static_cast<int>(index);
-                auto currentSample = lastSamples[ch][roundedIndex];
-                auto nextSample = roundedIndex == 1023 ? lastSamples[ch][roundedIndex] : lastSamples[ch][roundedIndex + 1];
-                auto interpolatedSample = jmap<float>(index - roundedIndex, currentSample, nextSample);
-                
-                auto y = jmap<float>(interpolatedSample, valleyAmplitude, peakAmplitude, channelBounds.getY(), channelBounds.getBottom());
-                auto newPoint = Point<float>(x, y);
-                auto segment = Line(lastPoint, newPoint);
-                oscopePath.addLineSegment(segment, 0.75f);
-                lastPoint = newPoint;
-            }
-            
-            // Draw oscope path
-            g.setColour(textColour);
-            g.fillPath(oscopePath);
 
-            // Calculate text length
-            auto numbersFont = Fonts::getTabularNumbersFont().withHeight(12.f);
-            auto text = String(lastSamples[ch][rand() % 512], 3);
-            auto textWidth = numbersFont.getStringWidth(text);
-            auto textBounds = channelBounds.expanded(5).removeFromBottom(24).removeFromRight(textWidth + 8);
-            
-            // Draw text background
-            g.setColour(findColour(PlugDataColour::dialogBackgroundColourId));
-            g.fillRoundedRectangle(textBounds, Corners::defaultCornerRadius);
-            
-            // Draw text
-            g.setColour(textColour);
-            g.setFont(numbersFont);
-            g.drawText(text, textBounds.toNearestInt(), Justification::centred);
-        }
-        
-        return oscopeImage;
-    }
 
     void paint(Graphics& g) override
     {
@@ -335,16 +227,8 @@ private:
         auto internalBounds = getLocalBounds().reduced(8).toFloat();
         messageDisplay.addRoundedRectangle(internalBounds, Corners::defaultCornerRadius);
 
-        if (cachedImage.isNull() || previousBounds != getBounds()) {
-            cachedImage = { Image::ARGB, getWidth(), getHeight(), true };
-            Graphics g2(cachedImage);
-
-            StackShadow::renderDropShadow(g2, messageDisplay, Colour(0, 0, 0).withAlpha(0.3f), 6);
-        }
-
-        g.setColour(Colours::black);
-        g.drawImageAt(cachedImage, 0, 0);
-
+        StackShadow::renderDropShadow(g, messageDisplay, Colour(0, 0, 0).withAlpha(0.3f), 6);
+        
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.fillRoundedRectangle(internalBounds.expanded(1), Corners::defaultCornerRadius);
         g.setColour(findColour(PlugDataColour::dialogBackgroundColourId));
@@ -362,7 +246,105 @@ private:
         //}
 
         if (isSignalDisplay) {
-            g.drawImage(oscilloscopeImage, internalBounds);
+            auto totalHeight = internalBounds.getHeight();
+            auto textColour = findColour(PlugDataColour::canvasTextColourId);
+            
+            int complexFFTSize = signalBlockSize * 2;
+            for (int ch = 0; ch < lastNumChannels; ch++) {
+                
+                auto channelBounds = internalBounds.removeFromTop(totalHeight / std::max(lastNumChannels, 1)).reduced(5).toFloat();
+                
+                auto peakAmplitude = *std::max_element(lastSamples[ch], lastSamples[ch] + signalBlockSize);
+                auto valleyAmplitude = *std::min_element(lastSamples[ch], lastSamples[ch] + signalBlockSize);
+                
+                // Audio was empty, draw a line and continue, no need to perform an fft
+                if(approximatelyEqual(peakAmplitude, 0.0f) && approximatelyEqual(valleyAmplitude, 0.0f))
+                {
+                    auto textBounds = channelBounds.expanded(5).removeFromBottom(18).removeFromRight(34);
+                    g.setColour(textColour);
+                    g.drawHorizontalLine(channelBounds.getCentreY(), channelBounds.getX(), channelBounds.getRight());
+                                    
+                    // Draw text background
+                    g.setColour(findColour(PlugDataColour::dialogBackgroundColourId));
+                    g.fillRoundedRectangle(textBounds, Corners::defaultCornerRadius);
+                    
+                    // Draw text
+                    g.setColour(textColour);
+                    g.setFont(Fonts::getTabularNumbersFont().withHeight(11.f));
+                    g.drawText("0.000", textBounds.toNearestInt(), Justification::centred);
+                    continue;
+                }
+                            
+                if(peakAmplitude == valleyAmplitude)
+                {
+                    peakAmplitude += 0.01f;
+                    valleyAmplitude -= 0.01f;
+                }
+                
+                // Apply FFT to get the peak frequency, we use this to decide the amount of samples we display
+                float fftBlock[complexFFTSize];
+                std::copy(lastSamples[ch], lastSamples[ch] + signalBlockSize, fftBlock);
+                signalDisplayFFT.performRealOnlyForwardTransform(fftBlock);
+                
+                float maxMagnitude = 0.0f;
+                int peakFreqIndex = 0;
+                for (int i = 0; i < signalBlockSize; i++) {
+                    auto binMagnitude = std::hypot(fftBlock[i*2], fftBlock[i*2+1]);
+                    if(binMagnitude > maxMagnitude)
+                    {
+                        maxMagnitude = binMagnitude;
+                        peakFreqIndex = i;
+                    }
+                }
+                
+                auto samplesPerCycle = std::clamp<int>(round(static_cast<float>(signalBlockSize * 2) / peakFreqIndex), 8, signalBlockSize);
+                // Keep a short average of cycle length over time to prevent sudden changes
+                cycleLength[ch] = jmap<float>(0.5f, cycleLength[ch], samplesPerCycle);
+                
+                auto phase = atan2(fftBlock[peakFreqIndex * 2 + 1], fftBlock[peakFreqIndex * 2]) + M_PI;
+                auto phaseShiftSamples = static_cast<int>(phase / (2.0 * M_PI) * samplesPerCycle);
+                if (phaseShiftSamples > 0 && phaseShiftSamples < signalBlockSize) {
+                    //std::rotate(lastSamples[ch], lastSamples[ch] + phaseShiftSamples, lastSamples[ch] + signalBlockSize);
+                }
+                
+                Point<float> lastPoint = { channelBounds.getX(), jmap<float>(lastSamples[ch][0], valleyAmplitude, peakAmplitude, channelBounds.getY(), channelBounds.getBottom()) };
+                
+                Path oscopePath;
+                for (int x = channelBounds.getX() + 1; x < channelBounds.getRight(); x++) {
+                    auto index = jmap<float>(x, channelBounds.getX(), channelBounds.getRight(), 0, samplesPerCycle);
+                    
+                    // linearl interpolation, especially needed for high-frequency signals
+                    auto roundedIndex = static_cast<int>(index);
+                    auto currentSample = lastSamples[ch][roundedIndex];
+                    auto nextSample = roundedIndex == 1023 ? lastSamples[ch][roundedIndex] : lastSamples[ch][roundedIndex + 1];
+                    auto interpolatedSample = jmap<float>(index - roundedIndex, currentSample, nextSample);
+                    
+                    auto y = jmap<float>(interpolatedSample, valleyAmplitude, peakAmplitude, channelBounds.getY(), channelBounds.getBottom());
+                    auto newPoint = Point<float>(x, y);
+                    auto segment = Line(lastPoint, newPoint);
+                    oscopePath.addLineSegment(segment, 0.75f);
+                    lastPoint = newPoint;
+                }
+                
+                // Draw oscope path
+                g.setColour(textColour);
+                g.fillPath(oscopePath);
+
+                // Calculate text length
+                auto numbersFont = Fonts::getTabularNumbersFont().withHeight(11.f);
+                auto text = String(lastSamples[ch][rand() % 512], 3);
+                auto textWidth = numbersFont.getStringWidth(text);
+                auto textBounds = channelBounds.expanded(5).removeFromBottom(18).removeFromRight(textWidth + 8);
+                
+                // Draw text background
+                g.setColour(findColour(PlugDataColour::dialogBackgroundColourId));
+                g.fillRoundedRectangle(textBounds, Corners::defaultCornerRadius);
+                
+                // Draw text
+                g.setColour(textColour);
+                g.setFont(numbersFont);
+                g.drawText(text, textBounds.toNearestInt(), Justification::centred);
+            }
         } else {
             int startPostionX = 8 + 4;
             for (auto const& item : messageItemsWithFormat) {
@@ -401,7 +383,6 @@ private:
 
     Point<float> circlePosition = { 8.0f + 4.0f, 36.0f / 2.0f };
     
-    Image cachedImage;
     Rectangle<int> previousBounds;
     
     struct SignalBlock
