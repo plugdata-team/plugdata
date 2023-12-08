@@ -51,6 +51,8 @@ public:
         };
 
         activeConnection = SafePointer<Connection>(connection);
+        lastNumChannels = activeConnection->numSignalChannels;
+        
         if (activeConnection.getComponent()) {
             mousePosition = screenPosition;
             isSignalDisplay = activeConnection->outlet->isSignal;
