@@ -143,7 +143,7 @@ public:
         auto offset = getHeight() > 400 ? 0 : 50;
         g.fillAll(findColour(PlugDataColour::panelBackgroundColourId));
 
-        Fonts::drawStyledText(g, "No Patch Open", 0, getHeight() / 2 - 195 + offset, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
+        Fonts::drawStyledText(g, "Welcome to plugdata", 0, getHeight() / 2 - 195 + offset, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
 
         Fonts::drawStyledText(g, "Open a file to begin patching", 0, getHeight() / 2 - 160 + offset, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Thin, 23, Justification::centred);
     }
