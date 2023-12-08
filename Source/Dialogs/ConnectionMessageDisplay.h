@@ -251,7 +251,7 @@ private:
             auto totalHeight = internalBounds.getHeight();
             auto textColour = findColour(PlugDataColour::canvasTextColourId);
             
-            int complexFFTSize = signalBlockSize * 2;
+            constexpr int complexFFTSize = signalBlockSize * 2;
             for (int ch = 0; ch < lastNumChannels; ch++) {
                 
                 auto channelBounds = internalBounds.removeFromTop(totalHeight / std::max(lastNumChannels, 1)).reduced(5).toFloat();
