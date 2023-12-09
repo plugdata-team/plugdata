@@ -57,6 +57,9 @@ public:
         autoPatchingValue.referTo(settingsFile->getPropertyAsValue("autoconnect"));
         otherProperties.add(new PropertiesPanel::BoolComponent("Enable auto patching", autoPatchingValue, { "No", "Yes" }));
 
+        autosaveInterval.referTo(settingsFile->getPropertyAsValue("autosave_interval"));
+        otherProperties.add(new PropertiesPanel::EditableComponent<int>("Autosave interval (seconds)", autosaveInterval, 15, 900));
+
         struct ScaleComponent : public PropertiesPanelProperty {
             ScaleComponent(String const& propertyName, Value& value)
                 : PropertiesPanelProperty(propertyName), scaleValue(value)
@@ -169,6 +172,7 @@ public:
     Value autoPatchingValue;
     Value showAllAudioDeviceValues;
     Value nativeDialogValue;
+    Value autosaveInterval;
 
     PropertiesPanel propertiesPanel;
 };
