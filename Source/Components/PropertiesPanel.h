@@ -734,7 +734,7 @@ public:
         Value property;
         String allowedCharacters = "";
 
-        EditableComponent(String propertyName, Value& value)
+        EditableComponent(String propertyName, Value& value, double minimum = 0.0, double maximum = 0.0)
             : PropertiesPanelProperty(propertyName)
             , property(value)
         {
@@ -747,6 +747,7 @@ public:
                 draggableNumber->getTextValue().referTo(property);
                 draggableNumber->setFont(draggableNumber->getFont().withHeight(14));
                 draggableNumber->setEditableOnClick(true);
+                draggableNumber->setMinMax(minimum, maximum);
 
                 draggableNumber->onEditorShow = [draggableNumber]() {
                     auto* editor = draggableNumber->getCurrentTextEditor();
