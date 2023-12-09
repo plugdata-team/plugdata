@@ -59,6 +59,9 @@ public:
 
         autosaveInterval.referTo(settingsFile->getPropertyAsValue("autosave_interval"));
         otherProperties.add(new PropertiesPanel::EditableComponent<int>("Autosave interval (seconds)", autosaveInterval, 15, 900));
+        
+        autosaveEnabled.referTo(settingsFile->getPropertyAsValue("autosave_enabled"));
+        otherProperties.add(new PropertiesPanel::BoolComponent("Enable autosave", autosaveEnabled, { "No", "Yes" }));
 
         struct ScaleComponent : public PropertiesPanelProperty {
             ScaleComponent(String const& propertyName, Value& value)
@@ -173,6 +176,7 @@ public:
     Value showAllAudioDeviceValues;
     Value nativeDialogValue;
     Value autosaveInterval;
+    Value autosaveEnabled;
 
     PropertiesPanel propertiesPanel;
 };
