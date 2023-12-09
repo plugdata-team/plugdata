@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 #include "LookAndFeel.h"
-
+#include "Utility/Autosave.h"
 #pragma once
 
 class AdvancedSettingsPanel : public SettingsDialogPanel
@@ -17,8 +17,11 @@ public:
         auto* settingsFile = SettingsFile::getInstance();
         auto settingsTree = settingsFile->getValueTree();
         
+        Array<PropertiesPanelProperty*> interfaceProperties;
         Array<PropertiesPanelProperty*> otherProperties;
-
+        Array<PropertiesPanelProperty*> autosaveProperties;
+        
+        
         if (ProjectInfo::isStandalone) {
             nativeTitlebar.referTo(settingsFile->getPropertyAsValue("native_window"));
             macTitlebarButtons.referTo(settingsFile->getPropertyAsValue("macos_buttons"));
@@ -48,7 +51,7 @@ public:
 
         showPalettesValue.referTo(settingsFile->getPropertyAsValue("show_palettes"));
         showPalettesValue.addListener(this);
-        otherProperties.add(new PropertiesPanel::BoolComponent("Show palette bar", showPalettesValue, { "No", "Yes" }));
+        interfaceProperties.add(new PropertiesPanel::BoolComponent("Show palette bar", showPalettesValue, { "No", "Yes" }));
 
         showAllAudioDeviceValues.referTo(settingsFile->getPropertyAsValue("show_all_audio_device_rates"));
         showAllAudioDeviceValues.addListener(this);
@@ -58,11 +61,19 @@ public:
         otherProperties.add(new PropertiesPanel::BoolComponent("Enable auto patching", autoPatchingValue, { "No", "Yes" }));
 
         autosaveInterval.referTo(settingsFile->getPropertyAsValue("autosave_interval"));
-        otherProperties.add(new PropertiesPanel::EditableComponent<int>("Autosave interval (seconds)", autosaveInterval, 15, 900));
+        autosaveProperties.add(new PropertiesPanel::EditableComponent<int>("Autosave interval (seconds)", autosaveInterval, 15, 900));
         
         autosaveEnabled.referTo(settingsFile->getPropertyAsValue("autosave_enabled"));
-        otherProperties.add(new PropertiesPanel::BoolComponent("Enable autosave", autosaveEnabled, { "No", "Yes" }));
+        autosaveProperties.add(new PropertiesPanel::BoolComponent("Enable autosave", autosaveEnabled, { "No", "Yes" }));
 
+        autosaveProperties.add(new PropertiesPanel::ActionComponent([this, editor](){
+            autosaveHistoryDialog = std::make_unique<AutosaveHistoryComponent>(dynamic_cast<PluginEditor*>(editor));
+            auto* parent = getParentComponent();
+            parent->addAndMakeVisible(autosaveHistoryDialog.get());
+            autosaveHistoryDialog->setBounds(parent->getLocalBounds());
+        }, Icons::Save, "Show autosave history"));
+
+        
         struct ScaleComponent : public PropertiesPanelProperty {
             ScaleComponent(String const& propertyName, Value& value)
                 : PropertiesPanelProperty(propertyName), scaleValue(value)
@@ -105,21 +116,25 @@ public:
         
         scaleValue = settingsFile->getProperty<float>("global_scale");
         scaleValue.addListener(this);
-        otherProperties.add(new ScaleComponent("Global scale factor", scaleValue));
+        interfaceProperties.add(new ScaleComponent("Global scale factor", scaleValue));
 
         defaultZoom = settingsFile->getProperty<float>("default_zoom");
         defaultZoom.addListener(this);
-        otherProperties.add(new PropertiesPanel::EditableComponent<float>("Default zoom %", defaultZoom));
+        interfaceProperties.add(new PropertiesPanel::EditableComponent<float>("Default zoom %", defaultZoom));
 
         centreResized = settingsFile->getPropertyAsValue("centre_resized_canvas");
         centreResized.addListener(this);
-        otherProperties.add(new PropertiesPanel::BoolComponent("Centre canvas when resized", centreResized, { "No", "Yes" }));
+        interfaceProperties.add(new PropertiesPanel::BoolComponent("Centre canvas when resized", centreResized, { "No", "Yes" }));
         
         centreSidepanelButtons = settingsFile->getPropertyAsValue("centre_sidepanel_buttons");
-        otherProperties.add(new PropertiesPanel::BoolComponent("Centre canvas sidepanel selectors", centreSidepanelButtons, { "No", "Yes" }));
+        interfaceProperties.add(new PropertiesPanel::BoolComponent("Centre canvas sidepanel selectors", centreSidepanelButtons, { "No", "Yes" }));
 
+        propertiesPanel.addSection("Interface", interfaceProperties);
+        propertiesPanel.addSection("Autosave", autosaveProperties);
         propertiesPanel.addSection("Other", otherProperties);
 
+
+        
         addAndMakeVisible(propertiesPanel);
     }
 
@@ -179,4 +194,6 @@ public:
     Value autosaveEnabled;
 
     PropertiesPanel propertiesPanel;
+        
+    std::unique_ptr<AutosaveHistoryComponent> autosaveHistoryDialog;
 };

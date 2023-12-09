@@ -895,6 +895,20 @@ void PluginEditor::modifierKeysChanged(ModifierKeys const& modifiers)
 
 void PluginEditor::updateCommandStatus()
 {
+    // Reflect patch dirty state in tab title
+    for (auto split : splitView.splits) {
+        auto tabbar = split->getTabComponent();
+        for (int n = 0; n < tabbar->getNumTabs(); n++) {
+            auto* cnv = tabbar->getCanvas(n);
+            if (!cnv)
+                return;
+            
+            auto isDirty = cnv->patch.isDirty();
+            auto tabText = tabbar->getTabText(n);
+            tabbar->setTabText(n, tabText.trimCharactersAtEnd("*") + (isDirty ? "*" : ""));
+        }
+    }
+    
     if (auto* cnv = getCurrentCanvas()) {
         bool locked = getValue<bool>(cnv->locked);
         bool isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && cnv->locked == var(false);

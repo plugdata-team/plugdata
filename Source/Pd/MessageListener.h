@@ -6,7 +6,13 @@
 #pragma once
 
 #include "Instance.h"
-#include <concurrentqueue.h>
+
+// These is an assertion inside readerwriterqueue that doesn't apply to us
+// (it doesn't like it when we enqueue from two differen threads, but there is always only 1 thread that has exclusive action to enqueue, so it should be fine
+// we set the NDEBUG flag to silence it
+#define NDEBUG
+#include <readerwriterqueue.h>
+#undef NDEBUG
 
 namespace pd {
 
@@ -142,7 +148,7 @@ private:
         }
     }
     
-    moodycamel::ConcurrentQueue<Message> messageQueue = moodycamel::ConcurrentQueue<Message>(32768);
+    moodycamel::ReaderWriterQueue<Message> messageQueue = moodycamel::ReaderWriterQueue<Message>(32768);
     std::map<void*, std::set<juce::WeakReference<MessageListener>>> messageListeners;
     CriticalSection messageListenerLock;
 };

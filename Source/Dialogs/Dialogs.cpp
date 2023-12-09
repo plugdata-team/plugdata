@@ -190,14 +190,14 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
         });
 }
 
-void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> const& callback)
+void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> const& callback, StringArray options, bool swapButtons)
 {
 
     class OkayCancelDialog : public Component {
 
     public:
-        OkayCancelDialog(Dialog* dialog, String const& title, std::function<void(bool)> const& callback)
-            : label("", title)
+        OkayCancelDialog(Dialog* dialog, String const& title, std::function<void(bool)> const& callback, StringArray& options, bool swap)
+            : label("", title),  swapButtons(swap)
         {
             setSize(375, 200);
             
@@ -207,6 +207,9 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
             addAndMakeVisible(label);
             addAndMakeVisible(cancel);
             addAndMakeVisible(okay);
+            
+            okay.setButtonText(options[0]);
+            cancel.setButtonText(options[1]);
             
             auto backgroundColour = findColour(PlugDataColour::dialogBackgroundColourId);
             cancel.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
@@ -235,19 +238,27 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
         void resized() override
         {
             label.setBounds(20, 25, 360, 30);
-            cancel.setBounds(20, 80, 80, 25);
-            okay.setBounds(300, 80, 80, 25);
+            if(swapButtons)
+            {
+                okay.setBounds(20, 80, 80, 25);
+                cancel.setBounds(300, 80, 80, 25);
+            }
+            else {
+                cancel.setBounds(20, 80, 80, 25);
+                okay.setBounds(300, 80, 80, 25);
+            }
+
         }
 
     private:
         Label label;
-
+        bool swapButtons;
         TextButton cancel = TextButton("Cancel");
         TextButton okay = TextButton("OK");
     };
 
     auto* dialog = new Dialog(target, parent, 400, 130, false);
-    auto* dialogContent = new OkayCancelDialog(dialog, title, callback);
+    auto* dialogContent = new OkayCancelDialog(dialog, title, callback, options, swapButtons);
 
     dialog->setViewedComponent(dialogContent);
     target->reset(dialog);

@@ -11,6 +11,7 @@ extern "C" {
 #include <s_inter.h>
 }
 
+#include <concurrentqueue.h>
 #include <readerwriterqueue.h>
 #include "Utility/StringUtils.h"
 #include "Patch.h"
@@ -308,7 +309,7 @@ private:
 
     std::unique_ptr<ObjectImplementationManager> objectImplementations;
 
-    moodycamel::ReaderWriterQueue<std::function<void(void)>> functionQueue = moodycamel::ReaderWriterQueue<std::function<void(void)>>(4096);
+    moodycamel::ConcurrentQueue<std::function<void(void)>> functionQueue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
     
 
     std::unique_ptr<FileChooser> openChooser;

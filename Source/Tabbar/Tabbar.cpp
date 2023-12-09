@@ -701,3 +701,9 @@ void TabComponent::setTabText(int tabIndex, String const& newName)
 {
     dynamic_cast<TabBarButtonComponent*>(tabs->getTabButton(tabIndex))->setTabText(newName);
 }
+
+String TabComponent::getTabText(int tabIndex)
+{
+    return dynamic_cast<TabBarButtonComponent*>(tabs->getTabButton(tabIndex))->getButtonText();
+}
+

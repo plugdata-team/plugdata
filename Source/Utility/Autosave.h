@@ -4,8 +4,8 @@
 
 class Autosave : public Timer, public AsyncUpdater, public Value::Listener {
     
-    File autoSaveFile = ProjectInfo::appDataDir.getChildFile(".autosave");
-    ValueTree autoSaveTree;
+    static inline const File autoSaveFile = ProjectInfo::appDataDir.getChildFile(".autosave");
+    static inline ValueTree autoSaveTree = ValueTree("Autosave");
     Value autosaveInterval;
     Value autosaveEnabled;
     
@@ -17,8 +17,8 @@ public:
     {
         if(!autoSaveFile.existsAsFile())  {
             autoSaveFile.create();
-            autoSaveTree = ValueTree("Autosave");
         }
+        else
         {
             FileInputStream istream(autoSaveFile);
             autoSaveTree = ValueTree::readFromStream(istream);
@@ -45,7 +45,9 @@ public:
         auto fileChangedTime = patchPath.getLastModificationTime().toMilliseconds();
         if(lastAutoSavedPatch.isValid() && autoSavedTime > fileChangedTime)
         {
-            Dialogs::showOkayCancelDialog(&editor->openedDialog, editor, "Restore autosave?", [lastAutoSavedPatch, patchPath, callback](bool useAutosaved){
+            int minutesDifference = (autoSavedTime - fileChangedTime) / 60000.0;
+            
+            Dialogs::showOkayCancelDialog(&editor->openedDialog, editor, "Restore autosave? (last autosave is " + String(minutesDifference) + " minutes newer)", [lastAutoSavedPatch, patchPath, callback](bool useAutosaved){
                 if(useAutosaved) {
                     MemoryOutputStream ostream;
                     Base64::convertFromBase64(ostream, lastAutoSavedPatch.getProperty("Patch").toString());
@@ -55,7 +57,7 @@ public:
                 }
                 
                 callback();
-            });
+            }, {"Yes", "No"}, true);
         }
         else {
             callback();
@@ -84,6 +86,8 @@ private:
     {
         for(auto& patch : pd->patches)
         {
+            if(!patch->isDirty()) continue;
+            
             // Check if patch is a root canvas
             bool isRootCanvas = false;
             for (auto* x = pd_getcanvaslist(); x; x = x->gl_next)
@@ -97,15 +101,27 @@ private:
             if(!isRootCanvas) continue;
             
             auto patchFile = patch->getPatchFile();
-            auto fullPath = patchFile.getFullPathName();
             
             // Simple way to filter out plugdata default patches which we don't want to save.
-            if (!fullPath.contains("Documents/plugdata/") && !fullPath.contains("Documents\\plugdata\\") && patchFile.getParentDirectory() != File::getSpecialLocation(File::tempDirectory)) {
-                autoSaveQueue.enqueue({ fullPath, patch->getCanvasContent() });
+            if (!isInternalPatch(patchFile)) {
+                autoSaveQueue.enqueue({ patchFile.getFullPathName(), patch->getCanvasContent() });
             }
         }
         
         triggerAsyncUpdate();
+    }
+    
+    bool isInternalPatch(const File& patch)
+    {
+        auto const pathName = patch.getFullPathName();
+        return
+        pathName.contains("Documents/plugdata/Abstractions") ||
+        pathName.contains("Documents\\plugdata\\Abstractions") ||
+        pathName.contains("Documents/plugdata/Documentation") ||
+        pathName.contains("Documents\\plugdata\\Documentation") ||
+        pathName.contains("Documents/plugdata/Extra") ||
+        pathName.contains("Documents\\plugdata\\Extra") ||
+        patch.getParentDirectory() == File::getSpecialLocation(File::tempDirectory);
     }
     
     void handleAsyncUpdate() override
@@ -141,4 +157,152 @@ private:
         FileOutputStream ostream(autoSaveFile);
         autoSaveTree.writeToStream(ostream);
     }
+    
+    friend class AutosaveHistoryComponent;
+};
+
+ 
+class AutosaveHistoryComponent : public Component
+{
+    struct AutoSaveHistory : public Component
+    {
+        AutoSaveHistory(PluginEditor* editor, ValueTree autoSaveTree)
+        {
+            patchPath = autoSaveTree.getProperty("Path").toString();
+            patch = autoSaveTree.getProperty("Patch").toString();
+
+            addAndMakeVisible(openPatch);
+            
+            auto backgroundColour = findColour(PlugDataColour::panelForegroundColourId);
+            openPatch.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+            openPatch.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
+            openPatch.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+            openPatch.onClick = [this, editor](){
+                MemoryOutputStream ostream;
+                Base64::convertFromBase64(ostream, patch);
+                auto patch = editor->pd->loadPatch(String::fromUTF8(static_cast<const char*>(ostream.getData()), ostream.getDataSize()), editor);
+                patch->setTitle(patchPath.fromLastOccurrenceOf("/", false, false));
+                patch->setCurrentFile(File(patchPath));
+                
+                MessageManager::callAsync([editor](){
+                    // Close the whole chain of dialogs
+                    // do it async so the stack can unwind normally
+                    editor->openedDialog.reset(nullptr);
+                });
+                
+            };
+        }
+        
+        void resized() override
+        {
+            openPatch.setBounds(getLocalBounds().removeFromRight(140).reduced(24, 20).translated(0, 4));
+        }
+        
+        void paint(Graphics& g) override
+        {
+            auto bounds = getLocalBounds().reduced(16, 3).withTrimmedTop(8);
+            
+            Path shadowPath;
+            shadowPath.addRoundedRectangle(bounds.reduced(3).toFloat(), Corners::largeCornerRadius);
+            StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
+
+            g.setColour(findColour(PlugDataColour::panelForegroundColourId));
+            g.fillRoundedRectangle(bounds.toFloat(), Corners::defaultCornerRadius);
+            
+            g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+            g.drawRoundedRectangle(bounds.toFloat(), Corners::defaultCornerRadius, 1.0f);
+            
+            Fonts::drawIcon(g, Icons::File, bounds.removeFromLeft(32).withTrimmedLeft(8), findColour(PlugDataColour::panelTextColourId), 20);
+        
+            auto patchName = patchPath.fromLastOccurrenceOf("/", false, false);
+            Fonts::drawStyledText(g, patchName, bounds.removeFromTop(24).withTrimmedLeft(14), findColour(PlugDataColour::panelTextColourId), Semibold, 15);
+            
+            g.setFont(Fonts::getDefaultFont().withHeight(14.0f));
+            g.setColour(findColour(PlugDataColour::panelTextColourId));
+            g.drawText(patchPath, bounds.removeFromTop(24).withTrimmedLeft(14), Justification::centredLeft);
+        }
+        
+        String patchPath;
+        String patch;
+        TextButton openPatch = TextButton("Open");
+    };
+    
+    struct ContentComponent : public Component
+    {
+        ContentComponent(PluginEditor* editor)
+        {
+            for(auto child : Autosave::autoSaveTree)
+            {
+                addAndMakeVisible(histories.add(new AutoSaveHistory(editor, child)));
+            }
+            
+            setSize(getWidth(), Autosave::autoSaveTree.getNumChildren() * 64 + 24);
+        }
+        
+        void resized() override
+        {
+            auto bounds = getLocalBounds();
+            
+            for(auto* history : histories)
+            {
+                history->setBounds(bounds.removeFromTop(64));
+            }
+        }
+        
+        OwnedArray<AutoSaveHistory> histories;
+    };
+    
+public:
+    AutosaveHistoryComponent(PluginEditor* editor) : contentComponent(editor)
+    {
+        backButton.onClick = [this](){
+            setVisible(false);
+        };
+        addAndMakeVisible(backButton);
+        
+        contentComponent.setVisible(true);
+        viewport.setViewedComponent(&contentComponent, false);
+        addAndMakeVisible(viewport);
+        
+    }
+    
+private:
+    void paint(Graphics& g) override
+    {
+        auto bounds = getLocalBounds();
+        auto titlebarBounds = bounds.removeFromTop(40).toFloat();
+        
+        Path toolbarPath;
+        toolbarPath.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);
+
+        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+        g.fillPath(toolbarPath);
+        
+        Path backgroundPath;
+        backgroundPath.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, false, false, true, true);
+        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+        g.fillPath(backgroundPath);
+        
+        Fonts::drawStyledText(g, "Autosave History", titlebarBounds, findColour(PlugDataColour::panelTextColourId), Semibold, 15, Justification::centred);
+    }
+    
+    void paintOverChildren(Graphics& g) override
+    {
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.drawLine(0, 40, getWidth(), 40);
+    }
+    
+    void resized() override
+    {
+        auto bounds = getLocalBounds();
+        auto toolbarBounds = bounds.removeFromTop(40);
+        
+        backButton.setBounds(toolbarBounds.removeFromLeft(40).translated(2, 0));
+        contentComponent.setSize(bounds.getWidth(), std::max(contentComponent.getHeight(), bounds.getHeight()));
+        viewport.setBounds(bounds);
+    }
+    
+    BouncingViewport viewport;
+    ContentComponent contentComponent;
+    MainToolbarButton backButton = MainToolbarButton(Icons::Back);
 };
