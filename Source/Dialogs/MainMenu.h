@@ -7,6 +7,7 @@
 #include <utility>
 
 #include "PluginEditor.h"
+#include "Utility/Autosave.h"
 
 class MainMenu : public PopupMenu {
 
@@ -33,8 +34,10 @@ public:
             for (int i = 0; i < recentlyOpenedTree.getNumChildren(); i++) {
                 auto path = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
                 recentlyOpened->addItem(path.getFileName(), [path, editor]() mutable {
-                    editor->pd->loadPatch(path, editor, -1);
-                    SettingsFile::getInstance()->addToRecentlyOpened(path);
+                    editor->autosave->checkForMoreRecentAutosave(path, [editor, path](){
+                        editor->pd->loadPatch(path, editor, -1);
+                        SettingsFile::getInstance()->addToRecentlyOpened(path);
+                    });
                 });
             }
 

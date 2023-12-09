@@ -26,8 +26,7 @@ class StatusbarSource;
 struct PlugDataLook;
 class PluginEditor;
 class ConnectionMessageDisplay;
-class PluginProcessor : public AudioProcessor, public Timer, public Value::Listener
-    , public pd::Instance {
+class PluginProcessor : public AudioProcessor, public pd::Instance {
 public:
     PluginProcessor();
 
@@ -168,11 +167,6 @@ public:
     Component::SafePointer<ConnectionMessageDisplay> connectionListener;
         
 private:
-    void timerCallback() override;
-    void autosave();
-    bool autosaveTrigger = false;
-    Value autosaveInterval;
-    void valueChanged(Value& v) override;
 
     SmoothedValue<float, ValueSmoothingTypes::Linear> smoothedGain;
 

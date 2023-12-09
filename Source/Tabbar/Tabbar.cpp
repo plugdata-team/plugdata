@@ -14,7 +14,7 @@
 #include "Sidebar/Sidebar.h"
 #include "TabBarButtonComponent.h"
 #include "Utility/StackShadow.h"
-
+#include "Utility/Autosave.h"
 
 class WelcomePanel : public Component {
 
@@ -595,7 +595,11 @@ void TabComponent::changeCallback(int newCurrentTabIndex, String const& newTabNa
 
 void TabComponent::openProjectFile(File& patchFile)
 {
-    editor->pd->loadPatch(patchFile, editor);
+    editor->autosave->checkForMoreRecentAutosave(patchFile, [this, patchFile](){
+        editor->pd->loadPatch(patchFile, editor);
+        SettingsFile::getInstance()->addToRecentlyOpened(patchFile);
+        editor->pd->titleChanged();
+    });
 }
 
 void TabComponent::setTabBarDepth(int newDepth)

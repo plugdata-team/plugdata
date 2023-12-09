@@ -646,8 +646,6 @@ String Patch::getCanvasContent()
 
     freebytes(static_cast<void*>(buf), static_cast<size_t>(bufsize) * sizeof(char));
 
-    instance->unlockAudioThread();
-
     return content;
 }
 

@@ -32,6 +32,7 @@ class Canvas;
 class TabComponent;
 class PluginProcessor;
 class Palettes;
+class Autosave;
 class PluginMode;
 class TouchSelectionHelper;
 class PluginEditor : public AudioProcessorEditor
@@ -149,9 +150,11 @@ public:
     ComponentBoundsConstrainer constrainer;
     ComponentBoundsConstrainer& pluginConstrainer;
 
+    std::unique_ptr<Autosave> autosave;
+        
     inline static ObjectThemeManager objectManager;
     static ObjectThemeManager* getObjectManager() { return &objectManager; };
-        
+
 private:
         
     std::unique_ptr<TouchSelectionHelper> touchSelectionHelper;

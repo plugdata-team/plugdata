@@ -165,25 +165,12 @@ PluginProcessor::PluginProcessor()
     };
 
     setLatencySamples(pd::Instance::getBlockSize());
-
-    // autosave timer trigger
-    autosaveInterval.referTo(SettingsFile::getInstance()->getPropertyAsValue("autosave_interval"));
-    autosaveInterval.addListener(this);
-    startTimer(1000 * getValue<int>(autosaveInterval));
 }
 
 PluginProcessor::~PluginProcessor()
 {
     // Deleting the pd instance in ~PdInstance() will also free all the Pd patches
     patches.clear();
-}
-
-void PluginProcessor::valueChanged(Value& v)
-{
-    if (v.refersToSameSourceAs(autosaveInterval)) {
-        auto interval = getValue<int>(autosaveInterval);
-        startTimer(1000 * interval);
-    }
 }
 
 void PluginProcessor::initialiseFilesystem()
@@ -640,87 +627,6 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     }
 }
 
-void PluginProcessor::timerCallback()
-{
-    if (!autosaveTrigger)
-        autosaveTrigger = true;
-}
-
-void PluginProcessor::autosave()
-{
-    if (!autosaveTrigger)
-        return;
-
-    autosaveTrigger = false;
-
-    Array<std::tuple<String, String, String>> loadedPatches;
-
-    ScopedLock lock(patches.getLock());
-
-    for (auto& patch : patches) {
-        auto fullPath = patch->getPatchFile().getFullPathName();
-        // FIXME: simple way to filter out plugdata default patches which we don't want to save.
-        // May not be platform compatible
-        if (!fullPath.contains("Documents/plugdata/"))
-            loadedPatches.add({ fullPath, patch->getTitle(), patch->getCanvasContent() });
-    }
-
-    MessageManager::callAsync([loadedPatches](){
-        if (loadedPatches.size() == 0)
-            return;
-
-        // FIXME: we could keep an array of real patches, not including subpatches - instead of filtering them out?
-        // build a list of all subpatches in the loaded patches
-        Array<String> subPatches;
-        for (auto& patch : loadedPatches) {
-            StringArray tokens;
-            tokens.addTokens(get<2>(patch), ";", "");
-            if (tokens.size() > 0) {
-                for (auto& line : tokens) {
-                    if (line.contains("#X restore")) {
-                        subPatches.add(line.fromFirstOccurrenceOf("pd", false, false).trimStart());
-                    }
-                }
-            }
-        }
-
-//#define DEBUG_LIST_SUBPATCHES
-#ifdef DEBUG_LIST_SUBPATCHES
-        std::cout << "subpatches are: ";
-        for (auto& subPatch : subPatches) {
-            std::cout << subPatch << ",";
-        }
-        std::cout << std::endl;
-#endif
-
-        for (auto& patch : loadedPatches) {
-            // filter out subpatches
-            String patchTitle = get<1>(patch);
-            if (subPatches.contains(patchTitle)) {
-                continue;
-            }
-
-            auto patchDir = get<0>(patch).upToLastOccurrenceOf("/", true, false);
-            auto patchFileDir = File(patchDir);
-            auto autosaveFile = patchFileDir.getChildFile(patchTitle + "-autosave");
-            auto patchStringData = get<2>(patch);
-            if (autosaveFile.existsAsFile()) {
-                FileInputStream previousAutosaveFile(autosaveFile);
-                auto previousPatch = previousAutosaveFile.readEntireStreamAsString();
-                if (previousPatch == patchStringData) {
-                    continue;
-                }
-            }
-            std::unique_ptr<FileOutputStream> outputStream(autosaveFile.createOutputStream());
-            if (outputStream) {
-                outputStream->setPosition(0);
-                outputStream->truncate();
-                outputStream->writeText(patchStringData, false, false, "\n");
-            }
-        }
-    });
-}
-
 void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer, MidiBuffer& midiMessages)
 {
     int blockSize = Instance::getBlockSize();
@@ -755,8 +661,6 @@ void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer, MidiBuffer&
         
         // Process audio
         performDSP(audioVectorIn.data(), audioVectorOut.data());
-
-        autosave();
         
         sendMessagesFromQueue();
         
@@ -819,8 +723,6 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
         
         // Process audio
         performDSP(audioVectorIn.data(), audioVectorOut.data());
-
-        autosave();
 
         sendMessagesFromQueue();
         

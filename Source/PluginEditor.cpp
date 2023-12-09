@@ -17,6 +17,7 @@
 
 #include "LookAndFeel.h"
 #include "Sidebar/Palettes.h"
+#include "Utility/Autosave.h"
 
 #include "Canvas.h"
 #include "Connection.h"
@@ -75,6 +76,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , splitView(this)
     , zoomLabel(std::make_unique<ZoomLabel>())
     , offlineRenderer(&p)
+    , autosave(std::make_unique<Autosave>(pd))
     , pluginConstrainer(*getConstrainer())
     , touchSelectionHelper(std::make_unique<TouchSelectionHelper>(this))
     , tooltipWindow(this, [](Component* c) {
@@ -594,8 +596,11 @@ void PluginEditor::filesDropped(StringArray const& files, int x, int y)
     for (auto& path : files) {
         auto file = File(path);
         if (file.exists() && file.hasFileExtension("pd")) {
-            pd->loadPatch(file, this, -1);
-            SettingsFile::getInstance()->addToRecentlyOpened(file);
+            autosave->checkForMoreRecentAutosave(file, [this, file](){
+                pd->loadPatch(file, this, -1);
+                SettingsFile::getInstance()->addToRecentlyOpened(file);
+                pd->titleChanged();
+            });
         }
     }
     
@@ -674,9 +679,12 @@ void PluginEditor::openProject()
 {
     Dialogs::showOpenDialog([this](File& result){
         if (result.exists() && result.getFileExtension().equalsIgnoreCase(".pd")) {
-            pd->loadPatch(result, this, -1);
-            SettingsFile::getInstance()->addToRecentlyOpened(result);
-            pd->titleChanged();
+            
+            autosave->checkForMoreRecentAutosave(result, [this, result](){
+                pd->loadPatch(result, this, -1);
+                SettingsFile::getInstance()->addToRecentlyOpened(result);
+                pd->titleChanged();
+            });
         }
     }, true, false, "*.pd", "Patch");
 }

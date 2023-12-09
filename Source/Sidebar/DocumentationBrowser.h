@@ -11,6 +11,7 @@
 #include <utility>
 
 #include "Utility/OSUtils.h"
+#include "Utility/Autosave.h"
 #include "Object.h"
 
 class DocumentBrowserSettings : public Component {
@@ -473,7 +474,6 @@ public:
         DragAndDropContainer::performExternalDragDropOfFiles ({getSelectedFile().getFullPathName()}, false, this, nullptr);
         setCurrentDragImage(ScaledImage());
     }
-        
 
     /** Callback when the user double-clicks on a file in the browser. */
     void fileDoubleClicked(File const& file) override
@@ -481,9 +481,13 @@ public:
         if (file.isDirectory()) {
             file.revealToUser();
         } else if (file.existsAsFile() && file.hasFileExtension("pd")) {
-            browser->pd->loadPatch(file, findParentComponentOfClass<PluginEditor>());
-            SettingsFile::getInstance()->addToRecentlyOpened(file);
-            lastUpdateTime = Time::getCurrentTime() + RelativeTime(2.0f);
+            auto* editor = findParentComponentOfClass<PluginEditor>();
+            File nonConstFile = file;
+            editor->autosave->checkForMoreRecentAutosave(nonConstFile, [this, editor, file = nonConstFile](){
+                browser->pd->loadPatch(file, editor);
+                SettingsFile::getInstance()->addToRecentlyOpened(file);
+                lastUpdateTime = Time::getCurrentTime() + RelativeTime(2.0f);
+            });
         } else if (file.existsAsFile()) {
             auto* editor = findParentComponentOfClass<PluginEditor>();
             if (auto* cnv = editor->getCurrentCanvas()) {
