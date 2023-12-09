@@ -9,6 +9,7 @@
 
 #include "Dialogs/Dialogs.h"
 #include "HeavyExportDialog.h"
+#include "Dialogs/HelpDialog.h"
 
 #include "PluginEditor.h"
 #include "Components/PropertiesPanel.h"
@@ -201,7 +202,7 @@ HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
     , infoButton(new MainToolbarButton(Icons::Help))
 {
     hasToolchain = Toolchain::dir.exists();
-
+    
     // Don't do this relative to toolchain variable, that won't work on Windows
     auto const versionFile = ProjectInfo::appDataDir.getChildFile("Toolchain").getChildFile("VERSION");
     auto const installedVersion = versionFile.loadFileAsString().trim().removeCharacters(".").getIntValue();
@@ -235,8 +236,11 @@ HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
 
     exportingView->setAlwaysOnTop(true);
 
-    infoButton->onClick = []() {
-        URL("https://wasted-audio.github.io/hvcc/docs/01.introduction.html#what-is-heavy").launchInDefaultBrowser();
+    infoButton->onClick = [this]() {
+        helpDialog = std::make_unique<HelpDialog>(nullptr);
+        helpDialog->onClose = [this](){
+            helpDialog.reset(nullptr);
+        };
     };
     addAndMakeVisible(*infoButton);
 
