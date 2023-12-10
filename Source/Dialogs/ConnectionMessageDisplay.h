@@ -303,12 +303,6 @@ private:
                 // Keep a short average of cycle length over time to prevent sudden changes
                 cycleLength[ch] = jmap<float>(0.5f, cycleLength[ch], samplesPerCycle);
                 
-                auto phase = atan2(fftBlock[peakFreqIndex * 2 + 1], fftBlock[peakFreqIndex * 2]) + M_PI;
-                auto phaseShiftSamples = static_cast<int>(phase / (2.0 * M_PI) * samplesPerCycle);
-                if (phaseShiftSamples > 0 && phaseShiftSamples < signalBlockSize) {
-                    //std::rotate(lastSamples[ch], lastSamples[ch] + phaseShiftSamples, lastSamples[ch] + signalBlockSize);
-                }
-                
                 Point<float> lastPoint = { channelBounds.getX(), jmap<float>(lastSamples[ch][0], valleyAmplitude, peakAmplitude, channelBounds.getY(), channelBounds.getBottom()) };
                 
                 Path oscopePath;
