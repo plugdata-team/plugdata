@@ -237,12 +237,12 @@ HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
     exportingView->setAlwaysOnTop(true);
 
     infoButton->onClick = [this]() {
-        URL("https://wasted-audio.github.io/hvcc/docs/01.introduction.html#what-is-heavy").launchInDefaultBrowser();
-        /*
+       // URL("https://wasted-audio.github.io/hvcc/docs/01.introduction.html#what-is-heavy").launchInDefaultBrowser();
+        
         helpDialog = std::make_unique<HelpDialog>(nullptr);
         helpDialog->onClose = [this](){
             helpDialog.reset(nullptr);
-        }; */
+        };
     };
     addAndMakeVisible(*infoButton);
 

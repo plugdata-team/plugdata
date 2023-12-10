@@ -307,7 +307,11 @@ private:
   {
   public:
     static bool isImageLine(const juce::String& line);
+    static bool isHTMLImageLine(const juce::String& line);
+      
     void parseImageMarkup(const juce::String& line, FileSource* fileSource);
+    void parseHTMLImageMarkup(const juce::String& line, FileSource* fileSource);
+      
     float getHeightRequired(float width) override;
     void paint(juce::Graphics&) override;
     void resized() override;
@@ -483,7 +487,18 @@ void BarelyMLDisplay::setMarkupString(String s) {
       content.addAndMakeVisible(b);                 // ...add the object to content component...
       blocks.add(b);                                // ...and the block list...
       li++;                                         // ...and go to next line.
-    } else if (TableBlock::isTableLine(line)) {     // if we find a table...
+    } 
+    else if (ImageBlock::isHTMLImageLine(line)) {     // if we find an image...
+      ImageBlock* b = new ImageBlock;               // ...create a new object...
+      if (Block::containsLink(line)) {              // ...and, if there's a link...
+        line = b->consumeLink(line);                // ...preprocess line...
+      }
+      b->parseHTMLImageMarkup(line, fileSource);        // ...parse it...
+      content.addAndMakeVisible(b);                 // ...add the object to content component...
+      blocks.add(b);                                // ...and the block list...
+      li++;                                         // ...and go to next line.
+    }
+    else if (TableBlock::isTableLine(line)) {     // if we find a table...
       TableBlock* b = new TableBlock;               // ...create a new object...
       b->setColours(&colours);                      // ...set its colour palette...
       b->setBGColours(tableBG, tableBGHeader);      // ...its background colours...
@@ -638,7 +653,7 @@ String BarelyMLDisplay::convertToMarkdown(String bml) {
         }
       }
     }
-    if (line.startsWith("^") | line.startsWith("|")) {
+    if (line.startsWith("^") || line.startsWith("|")) {
       isTable = true;
     } else {
       isTable = false;
@@ -1352,6 +1367,14 @@ bool BarelyMLDisplay::ImageBlock::isImageLine(const String& line) {
           line.contains("{{") && line.contains("}}"));            // ...an image.
 }
 
+bool BarelyMLDisplay::ImageBlock::isHTMLImageLine(const String& line) {
+    // Check if the line contains an <img> tag
+    return line.contains("<img") &&
+           line.contains("src=") &&
+           line.contains(">");
+}
+
+
 void BarelyMLDisplay::ImageBlock::parseImageMarkup(const String& line, FileSource* fileSource) {
   String filename = line.fromFirstOccurrenceOf("{{", false, false).upToFirstOccurrenceOf("}}", false, false);
   if (filename.contains("?")) {
@@ -1369,6 +1392,29 @@ void BarelyMLDisplay::ImageBlock::parseImageMarkup(const String& line, FileSourc
   if (!image.isValid()) {
     imageMissingMessage.append(filename + " not found.", Font(14), defaultColour);
   }
+}
+
+void BarelyMLDisplay::ImageBlock::parseHTMLImageMarkup(const String& html, FileSource* fileSource) {
+    // Assuming the HTML-like format has an <img> tag with a 'src' attribute
+    String imgTag = html.fromFirstOccurrenceOf("<img", false, false).upToFirstOccurrenceOf(">", false, false);
+    String srcAttribute = imgTag.fromFirstOccurrenceOf("src=\"", false, false).upToFirstOccurrenceOf("\"", false, false);
+
+    if (imgTag.contains("width=\"")) {
+            maxWidth = imgTag.fromFirstOccurrenceOf("width=\"", false, false).upToFirstOccurrenceOf("\"", false, false).getIntValue();
+    } else {
+        maxWidth = -1;
+    }
+
+    if (fileSource) {
+        image = fileSource->getImageForFilename(srcAttribute);
+    } else {
+        imageMissingMessage.append("no file source. ", Font(14), defaultColour);
+        image = Image();
+    }
+
+    if (!image.isValid()) {
+        imageMissingMessage.append(srcAttribute + " not found.", Font(14), defaultColour);
+    }
 }
 
 float BarelyMLDisplay::ImageBlock::getHeightRequired(float width) {

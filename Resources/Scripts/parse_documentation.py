@@ -183,8 +183,6 @@ def prepareDocsForWebpage(xml):
   with open("../Website/" + xml.get("name") + ".md", "w", encoding='utf-8') as markdown:
     # Write bytes to file
     markdown.write(md)
-
-
   return
 
 # Converts our markdown docs format to xml
