@@ -13,7 +13,6 @@
 #include "Utility/Fonts.h"
 #include "Tabbar/TabBarButtonComponent.h"
 
-
 class PlugData_DocumentWindowButton_macOS : public Button
     , public FocusChangeListener {
 public:
@@ -196,33 +195,33 @@ public:
         String name;
 
         switch (buttonType) {
-            case DocumentWindow::closeButton: {
-                name = "close";
-                shape.addLineSegment({ 0.0f, 0.0f, 1.0f, 1.0f }, crossThickness);
-                shape.addLineSegment({ 1.0f, 0.0f, 0.0f, 1.0f }, crossThickness);
-                toggledShape = shape;
-                break;
-            }
-            case DocumentWindow::minimiseButton: {
-                name = "minimise";
-                shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
-                toggledShape = shape;
-                break;
-            }
-            case DocumentWindow::maximiseButton: {
-                name = "maximise";
-                shape.addLineSegment({ 0.5f, 0.0f, 0.5f, 1.0f }, crossThickness);
-                shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
+        case DocumentWindow::closeButton: {
+            name = "close";
+            shape.addLineSegment({ 0.0f, 0.0f, 1.0f, 1.0f }, crossThickness);
+            shape.addLineSegment({ 1.0f, 0.0f, 0.0f, 1.0f }, crossThickness);
+            toggledShape = shape;
+            break;
+        }
+        case DocumentWindow::minimiseButton: {
+            name = "minimise";
+            shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
+            toggledShape = shape;
+            break;
+        }
+        case DocumentWindow::maximiseButton: {
+            name = "maximise";
+            shape.addLineSegment({ 0.5f, 0.0f, 0.5f, 1.0f }, crossThickness);
+            shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
 
-                toggledShape.startNewSubPath(45.0f, 100.0f);
-                toggledShape.lineTo(0.0f, 100.0f);
-                toggledShape.lineTo(0.0f, 0.0f);
-                toggledShape.lineTo(100.0f, 0.0f);
-                toggledShape.lineTo(100.0f, 45.0f);
-                toggledShape.addRectangle(45.0f, 45.0f, 100.0f, 100.0f);
-                PathStrokeType(30.0f).createStrokedPath(toggledShape, toggledShape);
-                break;
-            }
+            toggledShape.startNewSubPath(45.0f, 100.0f);
+            toggledShape.lineTo(0.0f, 100.0f);
+            toggledShape.lineTo(0.0f, 0.0f);
+            toggledShape.lineTo(100.0f, 0.0f);
+            toggledShape.lineTo(100.0f, 45.0f);
+            toggledShape.addRectangle(45.0f, 45.0f, 100.0f, 100.0f);
+            PathStrokeType(30.0f).createStrokedPath(toggledShape, toggledShape);
+            break;
+        }
         }
         setName(name);
         setButtonText(name);
@@ -263,15 +262,12 @@ PlugDataLook::PlugDataLook()
     setDefaultSansSerifTypeface(Fonts::getCurrentFont().getTypefacePtr());
 }
 
-    
-
 void PlugDataLook::fillResizableWindowBackground(Graphics& g, int w, int h, BorderSize<int> const& border, ResizableWindow& window)
 {
     if (dynamic_cast<FileChooserDialogBox*>(&window)) {
         g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
     }
 }
-
 
 void PlugDataLook::drawTextButtonBackground(Graphics& g, Button& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
 {
@@ -372,7 +368,7 @@ Font PlugDataLook::getTextButtonFont(TextButton& but, int buttonHeight)
     return { buttonHeight / 1.7f };
 }
 
-void PlugDataLook::drawLinearSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider)
+void PlugDataLook::drawLinearSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, Slider::SliderStyle const style, Slider& slider)
 {
     if (slider.getProperties()["Style"] == "SliderObject") {
         drawGUIObjectSlider(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, slider);
@@ -383,7 +379,7 @@ void PlugDataLook::drawLinearSlider(Graphics& g, int x, int y, int width, int he
 
 Button* PlugDataLook::createDocumentWindowButton(int buttonType)
 {
-    if(buttonType == -1)
+    if (buttonType == -1)
         return new PlugData_DocumentWindowButton(DocumentWindow::closeButton);
     else if (SettingsFile::getInstance()->getProperty<bool>("macos_buttons"))
         return new PlugData_DocumentWindowButton_macOS(buttonType);
@@ -1059,33 +1055,31 @@ void PlugDataLook::drawTooltip(Graphics& g, String const& text, int width, int h
     tl.draw(g, bounds.withSizeKeepingCentre(width - 20, height - 2));
 }
 
-Font PlugDataLook::getComboBoxFont (ComboBox& box)
+Font PlugDataLook::getComboBoxFont(ComboBox& box)
 {
     return Fonts::getDefaultFont().withHeight(std::clamp(box.getHeight() * 0.85f, 13.5f, 15.0f));
 }
 
-void PlugDataLook::drawLasso (Graphics& g, Component& lassoComp)
+void PlugDataLook::drawLasso(Graphics& g, Component& lassoComp)
 {
     float outlineThickness = 0.75f;
-    
+
     // Apply inverted scaling of the canvas to the outline of the lasso, so the lasso outline doesn't grow larger as you zoom in
-    if(auto* parent = lassoComp.getParentComponent())
-    {
+    if (auto* parent = lassoComp.getParentComponent()) {
         auto transform = parent->getTransform();
         auto transformScale = std::sqrt(std::abs(transform.getDeterminant()));
         outlineThickness = 0.75f / std::max(transformScale, std::numeric_limits<float>::epsilon());
     }
-    
+
     Path p;
     p.addRectangle(lassoComp.getLocalBounds().reduced(1));
-    
-    g.setColour (lassoComp.findColour (0x1000440 /*lassoFillColourId*/));
+
+    g.setColour(lassoComp.findColour(0x1000440 /*lassoFillColourId*/));
     g.fillPath(p);
-    
-    g.setColour (lassoComp.findColour (0x1000441 /*lassoOutlineColourId*/));
+
+    g.setColour(lassoComp.findColour(0x1000441 /*lassoOutlineColourId*/));
     g.strokePath(p, PathStrokeType(outlineThickness));
 }
-
 
 void PlugDataLook::drawLabel(Graphics& g, Label& label)
 {
@@ -1093,7 +1087,7 @@ void PlugDataLook::drawLabel(Graphics& g, Label& label)
 
     if (!label.isBeingEdited()) {
         auto alpha = label.isEnabled() ? 1.0f : 0.5f;
-        const Font font = label.getFont();
+        Font const font = label.getFont();
 
         auto textArea = getLabelBorderSize(label).subtractedFrom(label.getLocalBounds());
 
@@ -1583,4 +1577,3 @@ bool PlugDataLook::getUseSquareIolets()
 {
     return useSquareIolets;
 }
-

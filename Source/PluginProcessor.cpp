@@ -77,7 +77,7 @@ PluginProcessor::PluginProcessor()
     std::setlocale(LC_ALL, "C");
 
     {
-        const MessageManagerLock mmLock; // Do we need this? Isn't this already on the messageManager?
+        MessageManagerLock const mmLock; // Do we need this? Isn't this already on the messageManager?
 
         LookAndFeel::setDefaultLookAndFeel(&lnf.get());
 
@@ -258,7 +258,7 @@ void PluginProcessor::initialiseFilesystem()
     versionDataDir.getChildFile("Documentation").createSymbolicLink(homeDir.getChildFile("Documentation"), true);
     versionDataDir.getChildFile("Extra").createSymbolicLink(homeDir.getChildFile("Extra"), true);
 #endif
-    
+
     internalSynth->extractSoundfont();
 }
 
@@ -320,7 +320,7 @@ void PluginProcessor::updateSearchPaths()
     unlockAudioThread();
 }
 
-const String PluginProcessor::getName() const
+String const PluginProcessor::getName() const
 {
     return ProjectInfo::projectName;
 }
@@ -367,7 +367,7 @@ void PluginProcessor::setCurrentProgram(int index)
     }
 }
 
-const String PluginProcessor::getProgramName(int index)
+String const PluginProcessor::getProgramName(int index)
 {
     if (isPositiveAndBelow(index, Presets::presets.size())) {
         return Presets::presets[index].first;
@@ -421,18 +421,18 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     auto const pdBlockSize = static_cast<size_t>(Instance::getBlockSize());
     audioBufferIn.setSize(maxChannels, pdBlockSize);
     audioBufferOut.setSize(maxChannels, pdBlockSize);
-    
+
     audioVectorIn.resize(maxChannels * pdBlockSize, 0.0f);
     audioVectorOut.resize(maxChannels * pdBlockSize, 0.0f);
 
     midiBufferIn.clear();
     midiBufferOut.clear();
-    
+
     // If the block size is a multiple of 64 and we are not a plugin, we can optimise the process loop
     // Audio plugins can choose to send in a smaller block size when automation is happening
     variableBlockSize = !ProjectInfo::isStandalone || samplesPerBlock < pdBlockSize || samplesPerBlock % pdBlockSize != 0;
-    
-    if(variableBlockSize) {
+
+    if (variableBlockSize) {
         inputFifo = std::make_unique<AudioMidiFifo>(maxChannels, std::max<int>(samplesPerBlock, pdBlockSize));
         outputFifo = std::make_unique<AudioMidiFifo>(maxChannels, std::max<int>(samplesPerBlock, pdBlockSize));
     }
@@ -498,7 +498,7 @@ bool PluginProcessor::isBusesLayoutSupported(BusesLayout const& layouts) const
 
 static bool hasRealEvents(MidiBuffer& buffer)
 {
-    
+
     return std::any_of(buffer.begin(), buffer.end(),
         [](auto const& event) {
             int dummy;
@@ -521,31 +521,28 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {
         buffer.clear(i, 0, buffer.getNumSamples());
     }
-    
+
     auto targetBlock = dsp::AudioBlock<float>(buffer);
     auto blockOut = oversampling > 0 ? oversampler->processSamplesUp(targetBlock) : targetBlock;
 
     auto hasMidiInEvents = hasRealEvents(midiMessages);
-    
+
     midiBufferIn.clear();
     midiBufferOut.clear();
-    
-    if(variableBlockSize)
-    {
+
+    if (variableBlockSize) {
         processVariable(blockOut, midiMessages);
-    }
-    else {
+    } else {
         processConstant(blockOut, midiMessages);
     }
-    
+
     auto hasMidiOutEvents = hasRealEvents(midiMessages);
 
     if (oversampling > 0) {
         oversampler->processSamplesDown(targetBlock);
     }
-    
-    for(auto& patch : patches)
-    {
+
+    for (auto& patch : patches) {
         patch->updateUndoRedoState();
     }
 
@@ -612,7 +609,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
 
     if (protectedMode && buffer.getNumChannels() > 0) {
 
-        //Take out inf and NaN values
+        // Take out inf and NaN values
         auto* const* writePtr = buffer.getArrayOfWritePointers();
         for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
             for (int n = 0; n < buffer.getNumSamples(); n++) {
@@ -632,7 +629,7 @@ void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer, MidiBuffer&
     int blockSize = Instance::getBlockSize();
     int numBlocks = buffer.getNumSamples() / blockSize;
     audioAdvancement = 0;
-    
+
     if (producesMidi()) {
         midiByteIndex = 0;
         midiByteBuffer[0] = 0;
@@ -640,47 +637,43 @@ void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer, MidiBuffer&
         midiByteBuffer[2] = 0;
         midiBufferOut.clear();
     }
-    
-    for(int block = 0; block < numBlocks; block++)
-    {
-        for (int ch = 0; ch < buffer.getNumChannels(); ch++)
-        {
+
+    for (int block = 0; block < numBlocks; block++) {
+        for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
             // Copy the channel data into the vector
             juce::FloatVectorOperations::copy(
-                                              audioVectorIn.data() + (ch * blockSize),
-                                              buffer.getChannelPointer(ch) + audioAdvancement,
-                                              blockSize
-                                              );
+                audioVectorIn.data() + (ch * blockSize),
+                buffer.getChannelPointer(ch) + audioAdvancement,
+                blockSize);
         }
- 
+
         setThis();
-        
+
         midiBufferIn.clear();
         midiBufferIn.addEvents(midiMessages, audioAdvancement, blockSize, 0);
         sendMidiBuffer();
-        
+
         // Process audio
         performDSP(audioVectorIn.data(), audioVectorOut.data());
-        
+
         sendMessagesFromQueue();
-        
-        if(connectionListener && plugdata_debugging_enabled()) connectionListener->updateSignalData();
-        
+
+        if (connectionListener && plugdata_debugging_enabled())
+            connectionListener->updateSignalData();
+
         messageDispatcher->dispatch();
-        
-        for (int ch = 0; ch < buffer.getNumChannels(); ch++)
-        {
+
+        for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
             // Use FloatVectorOperations to copy the vector data into the audioBuffer
             juce::FloatVectorOperations::copy(
                 buffer.getChannelPointer(ch) + audioAdvancement,
                 audioVectorOut.data() + (ch * blockSize),
-                blockSize
-            );
+                blockSize);
         }
-        
+
         audioAdvancement += blockSize;
     }
-    
+
     midiMessages.clear();
     midiMessages.addEvents(midiBufferOut, 0, buffer.getNumSamples(), 0);
 }
@@ -689,26 +682,23 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
 {
     auto const blockSize = Instance::getBlockSize();
     auto const numChannels = buffer.getNumChannels();
-    
+
     inputFifo->writeAudioAndMidi(buffer, midiMessages);
-    
+
     audioAdvancement = 0;
-    
-    while(inputFifo->getNumSamplesAvailable() >= blockSize)
-    {
+
+    while (inputFifo->getNumSamplesAvailable() >= blockSize) {
         midiBufferIn.clear();
         inputFifo->readAudioAndMidi(audioBufferIn, midiBufferIn);
 
-        for (int channel = 0; channel < audioBufferIn.getNumChannels(); ++channel)
-        {
+        for (int channel = 0; channel < audioBufferIn.getNumChannels(); ++channel) {
             // Copy the channel data into the vector
             juce::FloatVectorOperations::copy(
                 audioVectorIn.data() + (channel * blockSize),
                 audioBufferIn.getReadPointer(channel),
-                blockSize
-            );
+                blockSize);
         }
-        
+
         if (producesMidi()) {
             midiByteIndex = 0;
             midiByteBuffer[0] = 0;
@@ -716,37 +706,35 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
             midiByteBuffer[2] = 0;
             midiBufferOut.clear();
         }
-        
+
         setThis();
 
         sendMidiBuffer();
-        
+
         // Process audio
         performDSP(audioVectorIn.data(), audioVectorOut.data());
 
         sendMessagesFromQueue();
-        
-        if(connectionListener && plugdata_debugging_enabled()) connectionListener->updateSignalData();
-        
+
+        if (connectionListener && plugdata_debugging_enabled())
+            connectionListener->updateSignalData();
+
         messageDispatcher->dispatch();
-        
-        for (int channel = 0; channel < numChannels; ++channel)
-        {
+
+        for (int channel = 0; channel < numChannels; ++channel) {
             // Use FloatVectorOperations to copy the vector data into the audioBuffer
             juce::FloatVectorOperations::copy(
                 audioBufferOut.getWritePointer(channel),
                 audioVectorOut.data() + (channel * blockSize),
-                blockSize
-            );
+                blockSize);
         }
-    
+
         outputFifo->writeAudioAndMidi(audioBufferOut, midiBufferOut);
         audioAdvancement += blockSize;
     }
-    
+
     auto totalDelay = std::max(buffer.getNumSamples() / blockSize, buffer.getNumSamples());
-    if(outputFifo->getNumSamplesAvailable() >= totalDelay)
-    {
+    if (outputFifo->getNumSamplesAvailable() >= totalDelay) {
         outputFifo->readAudioAndMidi(buffer, midiMessages);
     }
 }
@@ -997,7 +985,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 
     // store additional extra-data in DAW session if they exist.
     bool extraDataStored = false;
-    if (extraData)  {
+    if (extraData) {
         if (extraData->getNumChildElements() > 0) {
             xml.addChildElement(extraData.get());
             extraDataStored = true;
@@ -1011,10 +999,9 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     ostream.write(xmlBlock.getData(), xmlBlock.getSize());
 
     // then detach extraData XmlElement from temporary tree xml for later re-use
-    if (extraDataStored)  {
+    if (extraDataStored) {
         xml.removeChildElement(extraData.get(), false);
     }
-
 }
 
 void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
@@ -1214,9 +1201,10 @@ pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile, PluginEditor* e
     patches.add(newPatch);
     auto* patch = patches.getLast().get();
 
-    if(editor) {
+    if (editor) {
         MessageManager::callAsync([this, patch, splitIndex, _editor = Component::SafePointer<PluginEditor>(editor)]() mutable {
-            if(!_editor) return;
+            if (!_editor)
+                return;
             // There are some subroutines that get called when we create a canvas, that will lock the audio thread
             // By locking it around this whole function, we can prevent slowdowns from constantly locking/unlocking the audio thread
             lockAudioThread();
@@ -1572,11 +1560,11 @@ void PluginProcessor::fillDataBuffer(std::vector<pd::Atom> const& vec)
     if (extraData) {
 
         int const numChildren = extraData->getNumChildElements();
-        if (numChildren > 0)    {
+        if (numChildren > 0) {
             // Searching if a previously created child element exists, with same name as vec[0]. If true, delete it.
-                XmlElement* list = extraData->getChildByName(child_name);
-                if (list)
-                    extraData->removeChildElement (list, true) ;
+            XmlElement* list = extraData->getChildByName(child_name);
+            if (list)
+                extraData->removeChildElement(list, true);
         }
         XmlElement* list = extraData->createNewChildElement(child_name);
         if (list) {
@@ -1644,15 +1632,12 @@ void PluginProcessor::updateConsole(int numMessages, bool newWarning)
 Array<PluginEditor*> PluginProcessor::getEditors() const
 {
     Array<PluginEditor*> editors;
-    if(ProjectInfo::isStandalone)
-    {
+    if (ProjectInfo::isStandalone) {
         for (auto* editor : openedEditors) {
             editors.add(editor);
         }
-    }
-    else {
-        if(auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor()))
-        {
+    } else {
+        if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
             editors.add(editor);
         }
     }

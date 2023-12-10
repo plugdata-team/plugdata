@@ -63,16 +63,13 @@ public:
         , symbol(sym)
     {
     }
-    
+
     inline Atom(t_atom* atom)
     {
-        if(atom->a_type == A_FLOAT)
-        {
+        if (atom->a_type == A_FLOAT) {
             type = FLOAT;
             value = atom->a_w.w_float;
-        }
-        else if(atom->a_type == A_SYMBOL)
-        {
+        } else if (atom->a_type == A_SYMBOL) {
             type = SYMBOL;
             symbol = atom->a_w.w_symbol;
         }
@@ -101,18 +98,16 @@ public:
     inline t_symbol* getSymbol() const
     {
         jassert(isSymbol());
-        
+
         return symbol;
     }
-    
+
     // Get the string.
     inline String toString() const
     {
-        if(type == FLOAT)
-        {
+        if (type == FLOAT) {
             return String(value);
-        }
-        else {
+        } else {
             return String::fromUTF8(symbol->s_name);
         }
     }
@@ -136,7 +131,6 @@ private:
     float value = 0;
     t_symbol* symbol;
 };
-
 
 class MessageListener;
 class MessageDispatcher;
@@ -297,27 +291,26 @@ public:
 
     // JYG added this
     void* dataBufferReceiver = nullptr;
-    
-    inline static const String defaultPatch = "#N canvas 827 239 527 327 12;";
+
+    inline static String const defaultPatch = "#N canvas 827 239 527 327 12;";
 
     bool isPerformingGlobalSync = false;
     CriticalSection const audioLock;
     std::recursive_mutex weakReferenceMutex;
-    
+
 private:
     std::unordered_map<void*, std::vector<pd_weak_reference*>> pdWeakReferences;
 
     std::unique_ptr<ObjectImplementationManager> objectImplementations;
 
     moodycamel::ConcurrentQueue<std::function<void(void)>> functionQueue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
-    
 
     std::unique_ptr<FileChooser> openChooser;
     std::atomic<bool> consoleMute;
 
 protected:
     struct internal;
-            
+
     std::unique_ptr<pd::MessageDispatcher> messageDispatcher;
 
     struct ConsoleHandler : public Timer {
@@ -338,7 +331,7 @@ protected:
             while (pendingMessages.try_dequeue(item)) {
                 auto& [object, message, type] = item;
                 addMessage(object, message, type);
-                
+
                 numReceived++;
                 newWarning = newWarning || type;
             }
@@ -350,34 +343,30 @@ protected:
 
             stopTimer();
         }
-        
-        void addMessage(void* object, const String& message, bool type)
+
+        void addMessage(void* object, String const& message, bool type)
         {
-            if(consoleMessages.size()) {
+            if (consoleMessages.size()) {
                 auto& [lastObject, lastMessage, lastType, lastLength, numMessages] = consoleMessages.back();
-                if(object == lastObject && message == lastMessage && type == lastType) {
+                if (object == lastObject && message == lastMessage && type == lastType) {
                     numMessages++;
-                }
-                else {
+                } else {
                     consoleMessages.emplace_back(object, message, type, fastStringWidth.getStringWidth(message) + 8, 1);
                 }
-            }
-            else {
+            } else {
                 consoleMessages.emplace_back(object, message, type, fastStringWidth.getStringWidth(message) + 8, 1);
             }
-            
+
             if (consoleMessages.size() > 800)
                 consoleMessages.pop_front();
         }
 
         void logMessage(void* object, String const& message)
         {
-            if(MessageManager::getInstance()->isThisTheMessageThread())
-            {
+            if (MessageManager::getInstance()->isThisTheMessageThread()) {
                 addMessage(object, message, false);
                 instance->updateConsole(1, false);
-            }
-            else {
+            } else {
                 pendingMessages.enqueue({ object, message, false });
                 startTimer(10);
             }
@@ -385,12 +374,10 @@ protected:
 
         void logWarning(void* object, String const& warning)
         {
-            if(MessageManager::getInstance()->isThisTheMessageThread())
-            {
+            if (MessageManager::getInstance()->isThisTheMessageThread()) {
                 addMessage(object, warning, true);
                 instance->updateConsole(1, true);
-            }
-            else {
+            } else {
                 pendingMessages.enqueue({ object, warning, true });
                 startTimer(10);
             }
@@ -398,12 +385,10 @@ protected:
 
         void logError(void* object, String const& error)
         {
-            if(MessageManager::getInstance()->isThisTheMessageThread())
-            {
+            if (MessageManager::getInstance()->isThisTheMessageThread()) {
                 addMessage(object, error, true);
                 instance->updateConsole(1, true);
-            }
-            else {
+            } else {
                 pendingMessages.enqueue({ object, error, true });
                 startTimer(10);
             }
@@ -411,7 +396,7 @@ protected:
 
         void processPrint(void* object, char const* message)
         {
-            std::function<void(const String)> forwardMessage =
+            std::function<void(String const)> forwardMessage =
                 [this, object](String const& message) {
                     if (message.startsWith("error")) {
                         logError(object, message.substring(7));
@@ -469,7 +454,7 @@ protected:
     std::unique_ptr<Ofelia> ofelia;
 
     ConsoleHandler consoleHandler;
-    
-    JUCE_DECLARE_WEAK_REFERENCEABLE (Instance)
+
+    JUCE_DECLARE_WEAK_REFERENCEABLE(Instance)
 };
 } // namespace pd

@@ -18,7 +18,8 @@
 
 class WelcomePanel : public Component {
 
-    class RecentlyOpenedListBox : public Component, public SettingsFileListener
+    class RecentlyOpenedListBox : public Component
+        , public SettingsFileListener
         , public ListBoxModel {
     public:
         RecentlyOpenedListBox()
@@ -30,10 +31,10 @@ class WelcomePanel : public Component {
             listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
 
             addAndMakeVisible(listBox);
-            
+
             // To get a hover effect on viewport items
             listBox.setMouseMoveSelectsRows(true);
-            
+
             bouncer = std::make_unique<BouncingViewportAttachment>(listBox.getViewport());
         }
 
@@ -78,8 +79,8 @@ class WelcomePanel : public Component {
 
             Fonts::drawStyledText(g, "Recently Opened", 0, 0, getWidth(), 30, findColour(PlugDataColour::panelTextColourId), Semibold, 15, Justification::centred);
         }
-            
-        void mouseExit(const MouseEvent& e) override
+
+        void mouseExit(MouseEvent const& e) override
         {
             repaint();
         }
@@ -91,7 +92,7 @@ class WelcomePanel : public Component {
 
         void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
         {
-            if(rowIsSelected && isMouseOver(true)) {
+            if (rowIsSelected && isMouseOver(true)) {
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
                 PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(5.5, 1.5, width - 9, height - 4), Corners::defaultCornerRadius);
             }
@@ -158,7 +159,6 @@ public:
 
     RecentlyOpenedListBox recentlyOpened;
 };
-
 
 class ButtonBar::GhostTab : public Component {
 public:
@@ -558,7 +558,7 @@ void TabComponent::onTabChange(int tabIndex)
     auto* cnv = getCurrentCanvas();
     if (!cnv || tabIndex == -1 || editor->pd->isPerformingGlobalSync)
         return;
-    
+
     editor->sidebar->tabChanged();
     cnv->grabKeyboardFocus();
 
@@ -595,7 +595,7 @@ void TabComponent::changeCallback(int newCurrentTabIndex, String const& newTabNa
 
 void TabComponent::openProjectFile(File& patchFile)
 {
-    editor->autosave->checkForMoreRecentAutosave(patchFile, [this, patchFile](){
+    editor->autosave->checkForMoreRecentAutosave(patchFile, [this, patchFile]() {
         editor->pd->loadPatch(patchFile, editor);
         SettingsFile::getInstance()->addToRecentlyOpened(patchFile);
         editor->pd->titleChanged();
@@ -706,4 +706,3 @@ String TabComponent::getTabText(int tabIndex)
 {
     return dynamic_cast<TabBarButtonComponent*>(tabs->getTabButton(tabIndex))->getButtonText();
 }
-

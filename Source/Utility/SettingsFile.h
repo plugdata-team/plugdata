@@ -39,7 +39,7 @@ public:
 
     void setLastBrowserPathForId(String const& identifier, File& path);
     File getLastBrowserPathForId(String const& identifier);
-    
+
     void addToRecentlyOpened(File const& path);
 
     void initialisePathsTree();
@@ -121,8 +121,8 @@ private:
         { "centre_sidepanel_buttons", var(true) },
         { "show_all_audio_device_rates", var(false) },
         { "add_object_menu_pinned", var(false) },
-        { "autosave_interval", var(120)},
-        { "autosave_enabled", var(1)},
+        { "autosave_interval", var(120) },
+        { "autosave_enabled", var(1) },
         { "macos_buttons",
 #if JUCE_MAC
             var(true)

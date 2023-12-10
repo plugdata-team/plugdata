@@ -38,7 +38,6 @@ ImplementationBase::ImplementationBase(t_gobj* obj, t_canvas* parent, PluginProc
 
 ImplementationBase::~ImplementationBase() = default;
 
-
 Canvas* ImplementationBase::getMainCanvas(t_canvas* patchPtr, bool alsoSearchRoot) const
 {
     auto editors = pd->getEditors();
@@ -114,8 +113,6 @@ ImplementationBase* ImplementationBase::createImplementation(String const& type,
         return new MouseStateObject(ptr, cnv, pd);
     case hash("mousefilter"):
         return new MouseFilterObject(ptr, cnv, pd);
-                
-            
 
     default:
         break;
@@ -130,21 +127,19 @@ void ImplementationBase::openSubpatch(pd::Patch* subpatch)
         if (!subpatch) {
             subpatch = new pd::Patch(ptr, pd, false);
         }
-        
+
         if (canvas_isabstraction(glist.get())) {
             auto path = File(String::fromUTF8(canvas_getdir(glist.get())->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
             subpatch->setCurrentFile(path);
         }
         pd->patches.add(subpatch);
-    }
-    else {
+    } else {
         return;
     }
 
     for (auto* editor : pd->getEditors()) {
         if (!editor->isActiveWindow())
             continue;
-        
 
         // Check if subpatch is already opened
         for (auto* cnv : editor->canvases) {

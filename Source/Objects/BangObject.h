@@ -195,7 +195,7 @@ public:
         }
     }
 
-    void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
         switch (symbol) {
         case hash("float"):
@@ -213,7 +213,7 @@ public:
         case hash("pos"):
         case hash("size"):
         case hash("loadbang"):
-                break;
+            break;
         default: {
             bool wasIemMessage = iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
             if (!wasIemMessage) {

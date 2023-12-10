@@ -61,7 +61,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     patchHeight.addListener(this);
 
     suggestor = std::make_unique<SuggestionComponent>();
-    
+
     // Check if canvas belongs to a graph
     if (parentGraph) {
         setLookAndFeel(&editor->getLookAndFeel());
@@ -71,7 +71,6 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     } else {
         isGraph = false;
     }
-    
 
     if (!isGraph) {
         auto* canvasViewport = new CanvasViewport(editor, this);
@@ -307,8 +306,8 @@ void Canvas::paint(Graphics& g)
 
         for (int x = startX; x < clipBounds.getRight(); x += objectGrid.gridSize) {
             // calculate the x here, once per iteration, as it won't change for y
-            const auto gridSpacing = objectGrid.gridSize * 4;
-            const auto xGridSpacing = (x - canvasOrigin.x) % gridSpacing == 0;
+            auto const gridSpacing = objectGrid.gridSize * 4;
+            auto const xGridSpacing = (x - canvasOrigin.x) % gridSpacing == 0;
 
             for (int y = startY; y < clipBounds.getBottom(); y += objectGrid.gridSize) {
 
@@ -365,12 +364,12 @@ void Canvas::paint(Graphics& g)
         extentLeft = Line<float>(pointA, pointOriginD);
     }
 
-    const auto scaleLimited = scale < 1.0f ? scale : 1.0f;
-    const auto scaleNormalised = 1.0f / scaleLimited;
-    const auto scaleMapped = jmap(scaleLimited, 0.3f, 1.0f, 0.4f, 1.0f);
-    const auto lineWidthMappedScale = 1.0f / scaleMapped;
+    auto const scaleLimited = scale < 1.0f ? scale : 1.0f;
+    auto const scaleNormalised = 1.0f / scaleLimited;
+    auto const scaleMapped = jmap(scaleLimited, 0.3f, 1.0f, 0.4f, 1.0f);
+    auto const lineWidthMappedScale = 1.0f / scaleMapped;
 
-    float dash[2] = { 5.0f * scaleNormalised, 5.0f * scaleNormalised};
+    float dash[2] = { 5.0f * scaleNormalised, 5.0f * scaleNormalised };
 
     g.setColour(findColour(PlugDataColour::canvasDotsColourId));
 
@@ -481,8 +480,9 @@ void Canvas::performSynchronise()
 
     for (auto object : pdObjects) {
         auto* it = std::find_if(objects.begin(), objects.end(), [&object](Object* b) { return b->getPointer() && b->getPointer() == object.getRawUnchecked<void>(); });
-        if(!object.isValid()) continue;
-        
+        if (!object.isValid())
+            continue;
+
         if (it == objects.end()) {
             auto* newBox = objects.add(new Object(object, this));
             newBox->toFront(false);
@@ -625,13 +625,12 @@ void Canvas::moveToWindow(PluginEditor* newEditor)
 void Canvas::mouseDown(MouseEvent const& e)
 {
     PopupMenu::dismissAllActiveMenus();
-    
-    
+
     if (checkPanDragMode())
         return;
 
     auto* source = e.originalComponent;
-    
+
     // Left-click
     if (!e.mods.isRightButtonDown()) {
 
@@ -653,8 +652,8 @@ void Canvas::mouseDown(MouseEvent const& e)
             if (!e.mods.isShiftDown()) {
                 deselectAll();
             }
-                        
-            if(!(e.source.isTouch() && e.source.getIndex() != 0)) {
+
+            if (!(e.source.isTouch() && e.source.getIndex() != 0)) {
                 lasso.beginLasso(e.getEventRelativeTo(this), this);
                 isDraggingLasso = true;
             }
@@ -671,9 +670,8 @@ void Canvas::mouseDown(MouseEvent const& e)
     else if (!editor->pluginMode) {
         Dialogs::showCanvasRightClickMenu(this, source, e.getScreenPosition());
     }
-    
-    if(auto* target = Object::consoleTarget)
-    {
+
+    if (auto* target = Object::consoleTarget) {
         Object::consoleTarget = nullptr;
         target->repaint();
     }
@@ -727,7 +725,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
     }
 
     // Drag lasso
-    if(!(e.source.isTouch() && e.source.getIndex() != 0)) {
+    if (!(e.source.isTouch() && e.source.getIndex() != 0)) {
         lasso.dragLasso(e);
     }
 }
@@ -802,7 +800,7 @@ void Canvas::mouseUp(MouseEvent const& e)
 void Canvas::updateSidebarSelection()
 {
     auto lassoSelection = getSelectionOfType<Object>();
-    
+
 #if JUCE_IOS
     editor->showTouchSelectionHelper(lassoSelection.size() >= 1);
 #endif
@@ -950,35 +948,39 @@ void Canvas::copySelection()
 
 void Canvas::focusGained(FocusChangeType cause)
 {
-    pd->enqueueFunctionAsync([_this = SafePointer(this), this](){
-        if(!_this) return;
+    pd->enqueueFunctionAsync([_this = SafePointer(this), this]() {
+        if (!_this)
+            return;
         auto* glist = patch.getPointer().get();
-        if(!glist) return;
-        
+        if (!glist)
+            return;
+
         // canvas.active listener
         char buf[MAXPDSTRING];
-        snprintf(buf, MAXPDSTRING-1, ".x%lx.c", (unsigned long)glist);
-        pd->sendMessage("#active_gui", "_focus", {pd::Atom(pd->generateSymbol(buf)), static_cast<float>(hasKeyboardFocus(true))});
-        
+        snprintf(buf, MAXPDSTRING - 1, ".x%lx.c", (unsigned long)glist);
+        pd->sendMessage("#active_gui", "_focus", { pd::Atom(pd->generateSymbol(buf)), static_cast<float>(hasKeyboardFocus(true)) });
+
         // cyclone focus listeners
-        pd->sendMessage("#hammergui", "_focus", {pd::Atom(pd->generateSymbol(buf)), static_cast<float>(hasKeyboardFocus(true))});
+        pd->sendMessage("#hammergui", "_focus", { pd::Atom(pd->generateSymbol(buf)), static_cast<float>(hasKeyboardFocus(true)) });
     });
 }
 
 void Canvas::focusLost(FocusChangeType cause)
 {
-    pd->enqueueFunctionAsync([_this = SafePointer(this), this](){
-        if(!_this) return;
+    pd->enqueueFunctionAsync([_this = SafePointer(this), this]() {
+        if (!_this)
+            return;
         auto* glist = patch.getPointer().get();
-        if(!glist) return;
-        
+        if (!glist)
+            return;
+
         // canvas.active listener
         char buf[MAXPDSTRING];
-        snprintf(buf, MAXPDSTRING-1, ".x%lx.c", (unsigned long)glist);
-        pd->sendMessage("#active_gui", "_focus", {pd->generateSymbol(buf), static_cast<float>(hasKeyboardFocus(true))});
-        
+        snprintf(buf, MAXPDSTRING - 1, ".x%lx.c", (unsigned long)glist);
+        pd->sendMessage("#active_gui", "_focus", { pd->generateSymbol(buf), static_cast<float>(hasKeyboardFocus(true)) });
+
         // cyclone focus listeners
-        pd->sendMessage("#hammergui", "_focus", {pd->generateSymbol(buf), static_cast<float>(hasKeyboardFocus(true))});
+        pd->sendMessage("#hammergui", "_focus", { pd->generateSymbol(buf), static_cast<float>(hasKeyboardFocus(true)) });
     });
 }
 
@@ -1364,8 +1366,9 @@ void Canvas::encapsulateSelection()
 
     pd::Interface::paste(patchPtr, replacement.toRawUTF8());
     auto lastObject = patch.getObjects().back();
-    if(!lastObject.isValid()) return;
-    
+    if (!lastObject.isValid())
+        return;
+
     auto* newObject = pd::Interface::checkObject(lastObject.getRaw<t_pd>());
     if (!newObject) {
         patch.endUndoSequence("encapsulate");
@@ -1676,9 +1679,9 @@ void Canvas::valueChanged(Value& v)
             auto y1 = static_cast<float>(cnv->gl_screeny1);
             auto x2 = static_cast<float>(getValue<int>(patchWidth) + x1);
             auto y2 = static_cast<float>(cnv->gl_screeny2);
-            
+
             char buf[MAXPDSTRING];
-            snprintf(buf, MAXPDSTRING-1, ".x%lx", (unsigned long)cnv.get());
+            snprintf(buf, MAXPDSTRING - 1, ".x%lx", (unsigned long)cnv.get());
             pd->sendMessage(buf, "setbounds", { x1, y1, x2, y2 });
         }
 
@@ -1691,9 +1694,9 @@ void Canvas::valueChanged(Value& v)
             auto y1 = static_cast<float>(cnv->gl_screeny1);
             auto x2 = static_cast<float>(cnv->gl_screenx2);
             auto y2 = static_cast<float>(getValue<int>(patchHeight) + y1);
-            
+
             char buf[MAXPDSTRING];
-            snprintf(buf, MAXPDSTRING-1, ".x%lx", (unsigned long)cnv.get());
+            snprintf(buf, MAXPDSTRING - 1, ".x%lx", (unsigned long)cnv.get());
             pd->sendMessage(buf, "setbounds", { x1, y1, x2, y2 });
         }
         repaint();
@@ -1702,13 +1705,12 @@ void Canvas::valueChanged(Value& v)
     else if (v.refersToSameSourceAs(locked)) {
         bool editMode = !getValue<bool>(v);
 
-        if(auto ptr = patch.getPointer())
-        {
+        if (auto ptr = patch.getPointer()) {
             char buf[MAXPDSTRING];
-            snprintf(buf, MAXPDSTRING-1, ".x%lx", (unsigned long)ptr.get());
-            pd->sendMessage(buf, "editmode", {static_cast<float>(editMode)});
+            snprintf(buf, MAXPDSTRING - 1, ".x%lx", (unsigned long)ptr.get());
+            pd->sendMessage(buf, "editmode", { static_cast<float>(editMode) });
         }
-        
+
         cancelConnectionCreation();
         deselectAll();
 
@@ -1876,11 +1878,11 @@ bool Canvas::panningModifierDown()
 #if JUCE_IOS
     return OSUtils::ScrollTracker::isScrolling();
 #endif
-    
+
     return KeyPress::isKeyCurrentlyDown(KeyPress::spaceKey) || ModifierKeys::getCurrentModifiersRealtime().isMiddleButtonDown();
 }
 
-void Canvas::receiveMessage(t_symbol* symbol, const pd::Atom atoms[8], int numAtoms)
+void Canvas::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms)
 {
     switch (hash(symbol->s_name)) {
     case hash("obj"):

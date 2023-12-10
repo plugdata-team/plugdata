@@ -220,11 +220,11 @@ t_gobj* Patch::createObject(int x, int y, String const& name)
     if (tokens[0] == "garray") {
         if (auto patch = ptr.get<t_glist>()) {
             auto arrayPasta = "#N canvas 0 0 450 250 (subpatch) 0;\n#X array @arrName 100 float 2;\n#X coords 0 1 100 -1 200 140 1;\n#X restore " + String(x) + " " + String(y) + " graph;";
-            
+
             instance->setThis();
             auto* newArraySymbol = pd::Interface::getUnusedArrayName();
             arrayPasta = arrayPasta.replace("@arrName", String::fromUTF8(newArraySymbol->s_name));
-            
+
             pd::Interface::paste(patch.get(), arrayPasta.toRawUTF8());
             return pd::Interface::getNewest(patch.get());
         }
@@ -579,7 +579,8 @@ String Patch::getTitle() const
             for (int i = 0; i < argc; i++) {
                 atom_string(&argv[i], namebuf, MAXPDSTRING);
                 name += String::fromUTF8(namebuf);
-                if(i != argc - 1) name += " ";
+                if (i != argc - 1)
+                    name += " ";
             }
             name += ")";
         }

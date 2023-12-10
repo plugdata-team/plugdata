@@ -281,7 +281,8 @@ public:
 class PaletteComponent : public Component {
 public:
     PaletteComponent(PluginEditor* e, ValueTree tree)
-    : paletteTree(tree), editor(e)
+        : paletteTree(tree)
+        , editor(e)
     {
         paletteDraggableList = new PaletteDraggableList(e, tree);
 
@@ -572,13 +573,11 @@ private:
         }
 
         totalHeight += 46;
-        
+
         Rectangle<int> selectorBounds;
-        if(totalHeight > getHeight() || !SettingsFile::getInstance()->getProperty<bool>("centre_sidepanel_buttons"))
-        {
+        if (totalHeight > getHeight() || !SettingsFile::getInstance()->getProperty<bool>("centre_sidepanel_buttons")) {
             selectorBounds = getLocalBounds().removeFromLeft(30);
-        }
-        else {
+        } else {
             selectorBounds = getLocalBounds().removeFromLeft(30).withSizeKeepingCentre(30, totalHeight);
         }
 
@@ -840,7 +839,8 @@ private:
                 { "noise osc", "#X obj 0 0 palette/noiseosc.m~" },
             } },
         { "Filters",
-            {   { "vcf", "#X obj 0 0 palette/vcf.m~" },
+            {
+                { "vcf", "#X obj 0 0 palette/vcf.m~" },
                 { "svf", "#X obj 0 0 palette/svf.m~" },
                 { "EQ", "#X obj 0 0 palette/eq.m~" },
             } },

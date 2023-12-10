@@ -268,12 +268,12 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-       bool isEditable = PlugDataParameter::canDynamicallyAdjustParameters();
-       bool isOverNameLable = nameLabel.getBounds().contains(e.getEventRelativeTo(&nameLabel).getPosition());
+        bool isEditable = PlugDataParameter::canDynamicallyAdjustParameters();
+        bool isOverNameLable = nameLabel.getBounds().contains(e.getEventRelativeTo(&nameLabel).getPosition());
 
-       if (isEditable && isOverNameLable && !e.mouseWasDraggedSinceMouseDown() && e.getNumberOfClicks() >= 2) {
+        if (isEditable && isOverNameLable && !e.mouseWasDraggedSinceMouseDown() && e.getNumberOfClicks() >= 2) {
             nameLabel.showEditor();
-       }
+        }
     }
 
     void mouseEnter(MouseEvent const& e) override

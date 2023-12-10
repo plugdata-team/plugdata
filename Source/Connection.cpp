@@ -18,7 +18,6 @@
 #include "Pd/Patch.h"
 #include "Dialogs/ConnectionMessageDisplay.h"
 
-
 Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     : inlet(s->isInlet ? s : e)
     , outlet(s->isInlet ? e : s)
@@ -504,7 +503,7 @@ StringArray Connection::getMessageFormated()
     auto name = lastSelector ? String::fromUTF8(lastSelector->s_name) : "";
 
     StringArray formatedMessage;
-    
+
     if (name == "float" && lastNumArgs > 0) {
         formatedMessage.add("float:");
         formatedMessage.add(args[0].toString());
@@ -512,11 +511,9 @@ StringArray Connection::getMessageFormated()
         formatedMessage.add("symbol:");
         formatedMessage.add(args[0].toString());
     } else if (name == "list") {
-        if(lastNumArgs >= 8)
-        {
+        if (lastNumArgs >= 8) {
             formatedMessage.add("list (7+):");
-        }
-        else {
+        } else {
             formatedMessage.add("list (" + String(lastNumArgs) + "):");
         }
         for (int arg = 0; arg < lastNumArgs; arg++) {
@@ -526,7 +523,7 @@ StringArray Connection::getMessageFormated()
                 formatedMessage.add(args[arg].toString());
             }
         }
-        if(lastNumArgs >= 8) {
+        if (lastNumArgs >= 8) {
             formatedMessage.add("...");
         }
     } else {
@@ -545,7 +542,7 @@ StringArray Connection::getMessageFormated()
 void Connection::mouseEnter(MouseEvent const& e)
 {
     isHovering = true;
-    if(plugdata_debugging_enabled()) {
+    if (plugdata_debugging_enabled()) {
         cnv->editor->connectionMessageDisplay->setConnection(this, e.getScreenPosition());
     }
     repaint();
@@ -615,7 +612,7 @@ void Connection::mouseDrag(MouseEvent const& e)
             currentPlan[n].y = mouseDownPosition + delta.y;
         }
 
-        //setBufferedToImage(false);
+        // setBufferedToImage(false);
         updatePath();
         resizeToFit();
         repaint();
@@ -771,7 +768,7 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     //
     // we may need to turn it off in other parts of this class,
     // if getCachedComponentImage() returns true setBufferedToImage is on
-    //setBufferedToImage(false);
+    // setBufferedToImage(false);
 
     if (currentPlan.size() <= 2) {
         updatePath();
@@ -872,24 +869,23 @@ int Connection::getMultiConnectNumber()
 int Connection::getSignalData(t_float* output, int maxChannels)
 {
     if (auto oc = ptr.get<t_outconnect>()) {
-        if(auto* signal = outconnect_get_signal(oc.get()))
-        {
+        if (auto* signal = outconnect_get_signal(oc.get())) {
             auto numChannels = std::min(signal->s_nchans, maxChannels);
             auto* samples = signal->s_vec;
-            if(!samples) return 0;
+            if (!samples)
+                return 0;
             std::copy(samples, samples + (DEFDACBLKSIZE * numChannels), output);
             return numChannels;
         }
     }
-    
+
     return 0;
 }
 
 int Connection::getNumSignalChannels()
 {
     if (auto oc = ptr.get<t_outconnect>()) {
-        if(auto* signal = outconnect_get_signal(oc.get()))
-        {
+        if (auto* signal = outconnect_get_signal(oc.get())) {
             return signal->s_nchans;
         }
     }
@@ -1184,7 +1180,7 @@ bool Connection::straightLineIntersectsObject(Line<float> toCheck, Array<Object*
 void ConnectionPathUpdater::timerCallback()
 {
     stopTimer();
-    
+
     std::pair<Component::SafePointer<Connection>, t_symbol*> currentConnection;
 
     canvas->patch.startUndoSequence("SetConnectionPaths");
@@ -1238,7 +1234,7 @@ void ConnectionPathUpdater::timerCallback()
     canvas->patch.endUndoSequence("SetConnectionPaths");
 }
 
-void Connection::receiveMessage(t_symbol* symbol, const pd::Atom atoms[8], int numAtoms)
+void Connection::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms)
 {
     // TODO: indicator
     // messageActivity = messageActivity >= 12 ? 0 : messageActivity + 1;

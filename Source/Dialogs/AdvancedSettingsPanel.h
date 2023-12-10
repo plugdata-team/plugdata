@@ -16,12 +16,11 @@ public:
     {
         auto* settingsFile = SettingsFile::getInstance();
         auto settingsTree = settingsFile->getValueTree();
-        
+
         Array<PropertiesPanelProperty*> interfaceProperties;
         Array<PropertiesPanelProperty*> otherProperties;
         Array<PropertiesPanelProperty*> autosaveProperties;
-        
-        
+
         if (ProjectInfo::isStandalone) {
             nativeTitlebar.referTo(settingsFile->getPropertyAsValue("native_window"));
             macTitlebarButtons.referTo(settingsFile->getPropertyAsValue("macos_buttons"));
@@ -62,49 +61,50 @@ public:
 
         autosaveInterval.referTo(settingsFile->getPropertyAsValue("autosave_interval"));
         autosaveProperties.add(new PropertiesPanel::EditableComponent<int>("Autosave interval (seconds)", autosaveInterval, 15, 900));
-        
+
         autosaveEnabled.referTo(settingsFile->getPropertyAsValue("autosave_enabled"));
         autosaveProperties.add(new PropertiesPanel::BoolComponent("Enable autosave", autosaveEnabled, { "No", "Yes" }));
 
-        autosaveProperties.add(new PropertiesPanel::ActionComponent([this, editor](){
+        autosaveProperties.add(new PropertiesPanel::ActionComponent([this, editor]() {
             autosaveHistoryDialog = std::make_unique<AutosaveHistoryComponent>(dynamic_cast<PluginEditor*>(editor));
             auto* parent = getParentComponent();
             parent->addAndMakeVisible(autosaveHistoryDialog.get());
             autosaveHistoryDialog->setBounds(parent->getLocalBounds());
-        }, Icons::Save, "Show autosave history"));
+        },
+            Icons::Save, "Show autosave history"));
 
-        
         struct ScaleComponent : public PropertiesPanelProperty {
             ScaleComponent(String const& propertyName, Value& value)
-                : PropertiesPanelProperty(propertyName), scaleValue(value)
+                : PropertiesPanelProperty(propertyName)
+                , scaleValue(value)
             {
-                StringArray comboItems = {"50%", "62.5%", "75%", "87.5%", "100%", "112.5%", "125%", "137.5%", "150%", "162.5%", "175%", "187.5%", "200%" };
-                Array<float> scaleValues = {0.5f, 0.625f, 0.75f, 0.875f, 1.0f, 1.125f, 1.25f, 1.375f, 1.5f, 1.625f, 1.75f, 1.875f, 2.0f};
-                
+                StringArray comboItems = { "50%", "62.5%", "75%", "87.5%", "100%", "112.5%", "125%", "137.5%", "150%", "162.5%", "175%", "187.5%", "200%" };
+                Array<float> scaleValues = { 0.5f, 0.625f, 0.75f, 0.875f, 1.0f, 1.125f, 1.25f, 1.375f, 1.5f, 1.625f, 1.75f, 1.875f, 2.0f };
+
                 comboBox.addItemList(comboItems, 1);
-                
+
                 // Find number closest to current scale factor
                 auto closest = std::min_element(scaleValues.begin(), scaleValues.end(),
-                        [target = getValue<float>(value)](float a, float b) {
-                            return std::abs(a - target) < std::abs(b - target);
-                        });
+                    [target = getValue<float>(value)](float a, float b) {
+                        return std::abs(a - target) < std::abs(b - target);
+                    });
                 auto currentIndex = std::distance(scaleValues.begin(), closest);
-                
+
                 comboBox.setSelectedItemIndex(currentIndex);
-                comboBox.onChange = [this, scaleValues](){
+                comboBox.onChange = [this, scaleValues]() {
                     scaleValue = scaleValues[comboBox.getSelectedItemIndex()];
                 };
-                
+
                 comboBox.getProperties().set("Style", "Inspector");
 
                 addAndMakeVisible(comboBox);
             }
-            
+
             void resized() override
             {
                 comboBox.setBounds(getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)));
             }
-            
+
             PropertiesPanelProperty* createCopy() override
             {
                 return new ScaleComponent(getName(), scaleValue);
@@ -113,7 +113,7 @@ public:
             Value& scaleValue;
             ComboBox comboBox;
         };
-        
+
         scaleValue = settingsFile->getProperty<float>("global_scale");
         scaleValue.addListener(this);
         interfaceProperties.add(new ScaleComponent("Global scale factor", scaleValue));
@@ -125,7 +125,7 @@ public:
         centreResized = settingsFile->getPropertyAsValue("centre_resized_canvas");
         centreResized.addListener(this);
         interfaceProperties.add(new PropertiesPanel::BoolComponent("Centre canvas when resized", centreResized, { "No", "Yes" }));
-        
+
         centreSidepanelButtons = settingsFile->getPropertyAsValue("centre_sidepanel_buttons");
         interfaceProperties.add(new PropertiesPanel::BoolComponent("Centre canvas sidepanel selectors", centreSidepanelButtons, { "No", "Yes" }));
 
@@ -133,8 +133,6 @@ public:
         propertiesPanel.addSection("Autosave", autosaveProperties);
         propertiesPanel.addSection("Other", otherProperties);
 
-
-        
         addAndMakeVisible(propertiesPanel);
     }
 
@@ -185,7 +183,7 @@ public:
     Value defaultZoom;
     Value centreResized;
     Value centreSidepanelButtons;
-        
+
     Value showPalettesValue;
     Value autoPatchingValue;
     Value showAllAudioDeviceValues;
@@ -194,6 +192,6 @@ public:
     Value autosaveEnabled;
 
     PropertiesPanel propertiesPanel;
-        
+
     std::unique_ptr<AutosaveHistoryComponent> autosaveHistoryDialog;
 };

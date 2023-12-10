@@ -237,27 +237,26 @@ struct Interface {
 
         return text;
     }
-    
+
     static t_symbol* getUnusedArrayName()
     {
         sys_lock();
         int gcount;
-        char arraybuf[80] = {'\0'};
-        for (gcount = 1; gcount < 1000; gcount++)
-        {
+        char arraybuf[80] = { '\0' };
+        for (gcount = 1; gcount < 1000; gcount++) {
             snprintf(arraybuf, 80, "array%d", gcount);
             if (!pd_findbyclass(gensym(arraybuf), garray_class))
                 break;
         }
         sys_unlock();
-        
+
         return gensym(arraybuf);
     }
 
     static void paste(t_canvas* cnv, char const* buf)
     {
         size_t len = strlen(buf);
-        
+
         binbuf_text(libpd_this_instance()->pd_gui->i_editor->copy_binbuf, buf, len);
 
         canvas_setcurrent(cnv);

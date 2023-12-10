@@ -34,7 +34,7 @@ public:
             for (int i = 0; i < recentlyOpenedTree.getNumChildren(); i++) {
                 auto path = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
                 recentlyOpened->addItem(path.getFileName(), [path, editor]() mutable {
-                    editor->autosave->checkForMoreRecentAutosave(path, [editor, path](){
+                    editor->autosave->checkForMoreRecentAutosave(path, [editor, path]() {
                         editor->pd->loadPatch(path, editor, -1);
                         SettingsFile::getInstance()->addToRecentlyOpened(path);
                     });
@@ -88,7 +88,7 @@ public:
         addCustomItem(getMenuItemID(MenuItem::CompiledMode), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::CompiledMode)]), nullptr, "Compiled mode");
         addCustomItem(getMenuItemID(MenuItem::Compile), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::Compile)]), nullptr, "Compile...");
 #endif
-        
+
         addSeparator();
 
         addCustomItem(getMenuItemID(MenuItem::FindExternals), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::FindExternals)]), nullptr, "Find externals...");
@@ -134,8 +134,7 @@ public:
             zoomReset.setButtonText(buttonText);
             zoomOut.setButtonText("-");
 
-            for(auto* button : Array<TextButton*>{&zoomIn, &zoomReset, &zoomOut})
-            {
+            for (auto* button : Array<TextButton*> { &zoomIn, &zoomReset, &zoomOut }) {
                 button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
                 button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuActiveTextColourId));
                 button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.035f));
@@ -162,11 +161,10 @@ public:
         enum ZoomType { ZoomIn,
             ZoomOut,
             Reset };
-        
+
         void lookAndFeelChanged() override
         {
-            for(auto* button : Array<TextButton*>{&zoomIn, &zoomReset, &zoomOut})
-            {
+            for (auto* button : Array<TextButton*> { &zoomIn, &zoomReset, &zoomOut }) {
                 button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
                 button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuActiveTextColourId));
                 button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.035f));
@@ -222,7 +220,7 @@ public:
 
             zoomReset.setButtonText(String(scale * 100.0f, 1) + "%");
         }
-        
+
         void resized() override
         {
             auto bounds = getLocalBounds().reduced(8, 4);
@@ -259,9 +257,9 @@ public:
             idealWidth = 70;
             idealHeight = 24;
         }
-        
+
 #if JUCE_IOS // On iOS, the mouseUp event arrives after the menu has already been dismissed...
-        void mouseDown(const MouseEvent& e) override
+        void mouseDown(MouseEvent const& e) override
         {
             triggerMenuItem();
         }

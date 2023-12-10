@@ -36,7 +36,7 @@
 #include "Canvas.h"
 #include "Connection.h"
 #include "Deken.h"
-//#include "PatchStorage.h"
+// #include "PatchStorage.h"
 
 Component* Dialogs::showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> callback)
 {
@@ -80,53 +80,53 @@ void Dialogs::showSettingsDialog(PluginEditor* editor)
 void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
 {
 #if JUCE_IOS
-    OSUtils::showMobileMainMenu(editor->getPeer(), [editor](int result)
-    {
-        if(result < 0) return;
-        
+    OSUtils::showMobileMainMenu(editor->getPeer(), [editor](int result) {
+        if (result < 0)
+            return;
+
         switch (result) {
-            case 1: {
-                editor->newProject();
-                break;
-            }
-            case 2: {
-                editor->openProject();
-                break;
-            }
-            case 3: {
-                if (editor->getCurrentCanvas())
-                    editor->saveProject();
-                break;
-            }
-            case 4: {
-                if (editor->getCurrentCanvas())
-                    editor->saveProjectAs();
-                break;
-            }
-            case 5: {
-                Dialogs::showSettingsDialog(editor);
-                break;
-            }
-            case 6: {
-                auto* dialog = new Dialog(&editor->openedDialog, editor, 675, 500, true);
-                auto* aboutPanel = new AboutPanel();
-                dialog->setViewedComponent(aboutPanel);
-                editor->openedDialog.reset(dialog);
-                break;
-            }
-            case 7: {
-                SettingsFile::getInstance()->setProperty("theme", PlugDataLook::selectedThemes[0]);
-                break;
-            }
-            case 8: {
-                SettingsFile::getInstance()->setProperty("theme", PlugDataLook::selectedThemes[1]);
-                break;
-            }
+        case 1: {
+            editor->newProject();
+            break;
+        }
+        case 2: {
+            editor->openProject();
+            break;
+        }
+        case 3: {
+            if (editor->getCurrentCanvas())
+                editor->saveProject();
+            break;
+        }
+        case 4: {
+            if (editor->getCurrentCanvas())
+                editor->saveProjectAs();
+            break;
+        }
+        case 5: {
+            Dialogs::showSettingsDialog(editor);
+            break;
+        }
+        case 6: {
+            auto* dialog = new Dialog(&editor->openedDialog, editor, 675, 500, true);
+            auto* aboutPanel = new AboutPanel();
+            dialog->setViewedComponent(aboutPanel);
+            editor->openedDialog.reset(dialog);
+            break;
+        }
+        case 7: {
+            SettingsFile::getInstance()->setProperty("theme", PlugDataLook::selectedThemes[0]);
+            break;
+        }
+        case 8: {
+            SettingsFile::getInstance()->setProperty("theme", PlugDataLook::selectedThemes[1]);
+            break;
+        }
         }
     });
     return;
 #endif
-    
+
     auto* popup = new MainMenu(editor);
 
     ArrowPopupMenu::showMenuAsync(popup, PopupMenu::Options().withMinimumWidth(210).withMaximumNumColumns(1).withTargetComponent(centre).withParentComponent(editor),
@@ -197,29 +197,30 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
 
     public:
         OkayCancelDialog(Dialog* dialog, String const& title, std::function<void(bool)> const& callback, StringArray& options, bool swap)
-            : label("", title),  swapButtons(swap)
+            : label("", title)
+            , swapButtons(swap)
         {
             setSize(375, 200);
-            
+
             label.setJustificationType(Justification::centred);
             label.setFont(Fonts::getBoldFont().withHeight(14.0f));
-            
+
             addAndMakeVisible(label);
             addAndMakeVisible(cancel);
             addAndMakeVisible(okay);
-            
+
             okay.setButtonText(options[0]);
             cancel.setButtonText(options[1]);
-            
+
             auto backgroundColour = findColour(PlugDataColour::dialogBackgroundColourId);
             cancel.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
             cancel.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
             cancel.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-            
+
             okay.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
             okay.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
             okay.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-            
+
             cancel.onClick = [dialog, callback] {
                 callback(false);
                 dialog->closeDialog();
@@ -238,16 +239,13 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
         void resized() override
         {
             label.setBounds(20, 25, 360, 30);
-            if(swapButtons)
-            {
+            if (swapButtons) {
                 okay.setBounds(20, 80, 80, 25);
                 cancel.setBounds(300, 80, 80, 25);
-            }
-            else {
+            } else {
                 cancel.setBounds(20, 80, 80, 25);
                 okay.setBounds(300, 80, 80, 25);
             }
-
         }
 
     private:
@@ -338,14 +336,13 @@ bool Dialog::wantsRoundedCorners() const
     }
 }
 
-
 void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent, Point<int> position)
 {
 #if JUCE_IOS
-    //OSUtils::showMobileCanvasMenu(cnv->getPeer());
+    // OSUtils::showMobileCanvasMenu(cnv->getPeer());
     return;
 #endif
-    
+
     struct QuickActionsBar : public PopupMenu::CustomComponent {
         struct QuickActionButton : public TextButton {
             QuickActionButton(String buttonText)
@@ -393,7 +390,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
                         ApplicationCommandTarget::InvocationInfo info(id);
                         info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
                         commandManager->invoke(info, true);
-                    }                    
+                    }
                 };
 
                 if (auto* registeredInfo = commandManager->getCommandForID(id)) {
@@ -439,7 +436,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
     // We have a custom function for this, instead of the default JUCE way, because the default JUCE way is broken on Linux
     // It will not find a target to apply the command to once the popupmenu grabs focus...
-    auto addCommandItem = [commandManager = cnv->editor](PopupMenu& menu, const CommandID commandID, String displayName = "") {
+    auto addCommandItem = [commandManager = cnv->editor](PopupMenu& menu, CommandID const commandID, String displayName = "") {
         if (auto* registeredInfo = commandManager->getCommandForID(commandID)) {
             ApplicationCommandInfo info(*registeredInfo);
             commandManager->getCommandInfo(commandID, info);
@@ -462,8 +459,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     // If we directly right-clicked on an object, make sure it has been added to selection
     if (auto* obj = dynamic_cast<Object*>(originalComponent)) {
         selectedBoxes.addIfNotAlreadyThere(obj);
-    } 
-    else if (auto* parentOfTypeObject = originalComponent->findParentComponentOfClass<Object>()) {
+    } else if (auto* parentOfTypeObject = originalComponent->findParentComponentOfClass<Object>()) {
         selectedBoxes.addIfNotAlreadyThere(parentOfTypeObject);
     }
 
@@ -677,55 +673,56 @@ void Dialogs::showObjectMenu(PluginEditor* editor, Component* target)
     AddObjectMenu::show(editor, editor->getLocalArea(target, target->getLocalBounds()));
 }
 
-void Dialogs::showOpenDialog(std::function<void(File&)> callback, bool canSelectFiles, bool canSelectDirectories, const String& extension, const String& lastFileId)
+void Dialogs::showOpenDialog(std::function<void(File&)> callback, bool canSelectFiles, bool canSelectDirectories, String const& extension, String const& lastFileId)
 {
     bool nativeDialog = SettingsFile::getInstance()->wantsNativeDialog();
     auto initialFile = lastFileId.isNotEmpty() ? SettingsFile::getInstance()->getLastBrowserPathForId(lastFileId) : ProjectInfo::appDataDir;
-    if(!initialFile.exists()) initialFile = ProjectInfo::appDataDir;
-    
+    if (!initialFile.exists())
+        initialFile = ProjectInfo::appDataDir;
+
     fileChooser = std::make_unique<FileChooser>("Choose file to open...", initialFile, extension, nativeDialog);
 
     auto openChooserFlags = FileBrowserComponent::openMode;
-    
-    if(canSelectFiles) 
+
+    if (canSelectFiles)
         openChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(openChooserFlags | FileBrowserComponent::canSelectFiles);
-    if(canSelectDirectories)
+    if (canSelectDirectories)
         openChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(openChooserFlags | FileBrowserComponent::canSelectDirectories);
 
     fileChooser->launchAsync(openChooserFlags,
-                             [callback, lastFileId](FileChooser const& fileChooser) {
-        auto result = fileChooser.getResult();
-        auto lastDir = result.isDirectory() ? result : result.getParentDirectory();
-        SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, lastDir);
-        callback(result);
-    });
+        [callback, lastFileId](FileChooser const& fileChooser) {
+            auto result = fileChooser.getResult();
+            auto lastDir = result.isDirectory() ? result : result.getParentDirectory();
+            SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, lastDir);
+            callback(result);
+        });
 }
 
-void Dialogs::showSaveDialog(std::function<void(File&)> callback, const String& extension, const String& lastFileId, bool directoryMode)
+void Dialogs::showSaveDialog(std::function<void(File&)> callback, String const& extension, String const& lastFileId, bool directoryMode)
 {
     bool nativeDialog = SettingsFile::getInstance()->wantsNativeDialog();
     auto initialFile = lastFileId.isNotEmpty() ? SettingsFile::getInstance()->getLastBrowserPathForId(lastFileId) : ProjectInfo::appDataDir;
-    if(!initialFile.exists()) initialFile = ProjectInfo::appDataDir;
-    
+    if (!initialFile.exists())
+        initialFile = ProjectInfo::appDataDir;
+
     fileChooser = std::make_unique<FileChooser>("Choose save location...", initialFile, extension, nativeDialog);
-    
+
     auto saveChooserFlags = FileBrowserComponent::saveMode;
-    
-    if(directoryMode)
-    {
+
+    if (directoryMode) {
         saveChooserFlags = FileBrowserComponent::canSelectDirectories;
     }
-    
+
     // TODO: checks if this still causes issues
 #if !JUCE_LINUX && !JUCE_BSD
-        saveChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(saveChooserFlags | FileBrowserComponent::warnAboutOverwriting);
+    saveChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(saveChooserFlags | FileBrowserComponent::warnAboutOverwriting);
 #endif
-    
+
     fileChooser->launchAsync(saveChooserFlags,
         [callback, lastFileId](FileChooser const& fileChooser) {
             auto result = fileChooser.getResult();
             auto parentDirectory = result.getParentDirectory();
-            if(parentDirectory.exists()) {
+            if (parentDirectory.exists()) {
                 SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, parentDirectory);
                 callback(result);
             }

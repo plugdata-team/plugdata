@@ -79,7 +79,7 @@ struct pd::Instance::internal {
 
     static void instance_multi_controlchange(pd::Instance* ptr, int channel, int controller, int value)
     {
-        ptr->enqueueFunctionAsync([ptr, channel, controller, value]() mutable { 
+        ptr->enqueueFunctionAsync([ptr, channel, controller, value]() mutable {
             ptr->receiveControlChange(channel + 1, controller, value);
         });
     }
@@ -100,21 +100,21 @@ struct pd::Instance::internal {
 
     static void instance_multi_aftertouch(pd::Instance* ptr, int channel, int value)
     {
-        ptr->enqueueFunctionAsync([ptr, channel, value]() mutable { 
+        ptr->enqueueFunctionAsync([ptr, channel, value]() mutable {
             ptr->receiveAftertouch(channel + 1, value);
         });
     }
 
     static void instance_multi_polyaftertouch(pd::Instance* ptr, int channel, int pitch, int value)
     {
-        ptr->enqueueFunctionAsync([ptr, channel, pitch, value]() mutable { 
+        ptr->enqueueFunctionAsync([ptr, channel, pitch, value]() mutable {
             ptr->receivePolyAftertouch(channel + 1, pitch, value);
         });
     }
 
     static void instance_multi_midibyte(pd::Instance* ptr, int port, int byte)
     {
-        ptr->enqueueFunctionAsync([ptr, port, byte]() mutable { 
+        ptr->enqueueFunctionAsync([ptr, port, byte]() mutable {
             ptr->receiveMidiByte(port + 1, byte);
         });
     }
@@ -129,7 +129,8 @@ struct pd::Instance::internal {
 namespace pd {
 
 Instance::Instance(String const& symbol)
-: messageDispatcher(std::make_unique<MessageDispatcher>()), consoleHandler(this)
+    : messageDispatcher(std::make_unique<MessageDispatcher>())
+    , consoleHandler(this)
 {
     pd::Setup::initialisePd();
     objectImplementations = std::make_unique<::ObjectImplementationManager>(this);
@@ -165,7 +166,7 @@ void Instance::initialisePd(String& pdlua_version)
         [](void* lock) {
             static_cast<CriticalSection*>(lock)->exit();
         });
-    
+
     setup_weakreferences(
         [](void* instance, void* ref) {
             static_cast<pd::Instance*>(instance)->clearWeakReferences(ref);
@@ -182,8 +183,7 @@ void Instance::initialisePd(String& pdlua_version)
         },
         [](void* ref) -> int {
             return ((pd_weak_reference*)ref)->load();
-        }
-    );
+        });
 
     midiReceiver = pd::Setup::createMIDIHook(this, reinterpret_cast<t_plugdata_noteonhook>(internal::instance_multi_noteon), reinterpret_cast<t_plugdata_controlchangehook>(internal::instance_multi_controlchange), reinterpret_cast<t_plugdata_programchangehook>(internal::instance_multi_programchange),
         reinterpret_cast<t_plugdata_pitchbendhook>(internal::instance_multi_pitchbend), reinterpret_cast<t_plugdata_aftertouchhook>(internal::instance_multi_aftertouch), reinterpret_cast<t_plugdata_polyaftertouchhook>(internal::instance_multi_polyaftertouch),
@@ -299,7 +299,8 @@ void Instance::initialisePd(String& pdlua_version)
 
     // Hack to make sure ofelia doesn't get initialised during plugin validation, as this can cause problems
     MessageManager::callAsync([_this = juce::WeakReference(this)]() {
-        if(!_this.get()) return;
+        if (!_this.get())
+            return;
         _this->ofelia = std::make_unique<Ofelia>(static_cast<t_pdinstance*>(_this->instance));
     });
 
@@ -680,12 +681,12 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
     auto* obj = generateSymbol(snd)->s_thing;
 
     auto defaultFile = File(location);
-    if(!defaultFile.exists())
-    {
+    if (!defaultFile.exists()) {
         defaultFile = SettingsFile::getInstance()->getLastBrowserPathForId("openpanel");
-        if(!defaultFile.exists()) defaultFile = ProjectInfo::appDataDir;
+        if (!defaultFile.exists())
+            defaultFile = ProjectInfo::appDataDir;
     }
-    
+
     if (type) {
         MessageManager::callAsync(
             [this, obj, defaultFile, openMode, callback = String(callbackName)]() mutable {
@@ -698,14 +699,14 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
                 } else {
                     folderChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories | FileBrowserComponent::canSelectFiles | FileBrowserComponent::canSelectMultipleItems);
                 }
-                
+
                 static std::unique_ptr<FileChooser> openChooser;
                 openChooser = std::make_unique<FileChooser>("Open...", defaultFile, "", SettingsFile::getInstance()->wantsNativeDialog());
                 openChooser->launchAsync(folderChooserFlags, [this, obj, callback](FileChooser const& fileChooser) {
                     auto const files = fileChooser.getResults();
                     if (files.isEmpty())
                         return;
-                    
+
                     auto parentDirectory = files.getFirst().getParentDirectory();
                     SettingsFile::getInstance()->setLastBrowserPathForId("openpanel", parentDirectory);
 
@@ -732,8 +733,7 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
     } else {
         MessageManager::callAsync(
             [this, obj, defaultFile, callback = String(callbackName)]() mutable {
-                
-                Dialogs::showSaveDialog([this, obj, callback](File& result){
+                Dialogs::showSaveDialog([this, obj, callback](File& result) {
                     auto pathName = result.getFullPathName();
                     const auto* path = pathName.toRawUTF8();
 
@@ -743,7 +743,8 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
                     lockAudioThread();
                     pd_typedmess(obj, generateSymbol(callback), 1, argv);
                     unlockAudioThread();
-                }, "", "openpanel");
+                },
+                    "", "openpanel");
             });
     }
 }

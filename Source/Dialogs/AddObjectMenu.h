@@ -75,7 +75,7 @@ public:
     {
         // If this is an array, replace @arrName with unused name
         auto patchString = objectPatch;
-        if(patchString.contains("@arrName")) {
+        if (patchString.contains("@arrName")) {
             editor->pd->setThis();
             patchString = patchString.replace("@arrName", String::fromUTF8(pd::Interface::getUnusedArrayName()->s_name));
         }
@@ -187,7 +187,7 @@ public:
 
     OwnedArray<ObjectItem> objectButtons;
 
-    static inline const std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> heavyObjectList = {
+    static inline std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> const heavyObjectList = {
         { "Default",
             {
                 { Icons::GlyphEmptyObject, "#X obj 0 0", "(@keypress) Empty object", "Object", NewObject },
@@ -200,7 +200,7 @@ public:
             } },
     };
 
-    static inline const std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> defaultObjectList = {
+    static inline std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> const defaultObjectList = {
         { "Default",
             {
                 { Icons::GlyphEmptyObject, "#X obj 0 0", "(@keypress) Empty object", "Object", NewObject },
@@ -431,8 +431,8 @@ private:
 };
 
 class AddObjectMenuButton : public Component {
-    const String icon;
-    const String text;
+    String const icon;
+    String const text;
 
 public:
     bool toggleState = false;

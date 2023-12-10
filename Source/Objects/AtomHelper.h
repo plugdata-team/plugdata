@@ -274,7 +274,7 @@ public:
         setFontHeight(atomSizes[idx - 1]);
 
         int fontHeight = getAtomHeight() - 6;
-        const String text = getExpandedLabelText();
+        String const text = getExpandedLabelText();
 
         if (text.isNotEmpty()) {
             if (!label) {
@@ -426,7 +426,7 @@ public:
     void setSendSymbol(String const& symbol) const
     {
         if (auto atom = ptr.get<t_fake_gatom>()) {
-            
+
             atom->a_symto = pd->generateSymbol(symbol);
             atom->a_expanded_to = canvas_realizedollar(atom->a_glist, atom->a_symto);
         }

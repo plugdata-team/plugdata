@@ -43,7 +43,6 @@ public:
     void resized() override;
 
 private:
-
     Rectangle<int> selectedSplit;
     SafePointer<ResizableTabbedComponent> activeTabComponent = nullptr;
     ResizableTabbedComponent* rootComponent;

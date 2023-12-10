@@ -26,7 +26,7 @@ public:
         downloadedImage = Image();
 
         // Lock the thread to safely update the image URL
-        const ScopedLock sl(lock);
+        ScopedLock const sl(lock);
         imageURL = url;
         imageDownloadPool.addJob(this, false);
         spinner.startSpinning();
@@ -171,7 +171,7 @@ class PatchFullDisplay : public Component {
     int views, likes, downloads;
     String description, fileURL, fileName, onlineURL, updatedAt;
 
-    const File patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
+    File const patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
 
 public:
     PatchFullDisplay()

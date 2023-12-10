@@ -112,7 +112,6 @@ public:
     Rectangle<int> currentTabBounds;
 
 private:
-
     Point<int> scalePos;
 
     int tabDepth = 30;

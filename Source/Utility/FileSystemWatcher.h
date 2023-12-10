@@ -67,14 +67,14 @@ public:
         /* Called when any file in the listened to folder changes with the name of
            the folder that has changed. For example, use this for a file browser that
            needs to refresh any time a file changes */
-        void folderChanged(const File)
+        void folderChanged(File const)
         {
             startTimer(80);
         }
 
         /* Called for each file that has changed and how it has changed. Use this callback
            if you need to reload a file when it's contents change */
-        void fileChanged(const File, FileSystemEvent)
+        void fileChanged(File const, FileSystemEvent)
         {
             startTimer(80);
         }

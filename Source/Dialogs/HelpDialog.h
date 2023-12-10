@@ -6,63 +6,57 @@
 
 #include <Utility/MarkupDisplay.h>
 
-
-class HelpDialog : public Component, public MarkupDisplay::FileSource {
+class HelpDialog : public Component
+    , public MarkupDisplay::FileSource {
     ResizableBorderComponent resizer;
     std::unique_ptr<Button> closeButton;
     ComponentDragger windowDragger;
     ComponentBoundsConstrainer constrainer;
-    
-    static inline const File manualPath = ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Manual");
-    
-    class IndexComponent : public Component
-    {
+
+    static inline File const manualPath = ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Manual");
+
+    class IndexComponent : public Component {
     public:
-        IndexComponent(std::function<void(const File&)> loadFile)
+        IndexComponent(std::function<void(File const&)> loadFile)
         {
-            for(const auto& file : OSUtils::iterateDirectory(manualPath, false, true))
-            {
-                if(file.hasFileExtension(".md"))
-                {
+            for (auto const& file : OSUtils::iterateDirectory(manualPath, false, true)) {
+                if (file.hasFileExtension(".md")) {
                     auto* button = buttons.add(new TextButton(file.getFileNameWithoutExtension()));
-                    button->onClick = [loadFile, file](){
+                    button->onClick = [loadFile, file]() {
                         loadFile(file);
                     };
-                    
+
                     button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::sidebarActiveBackgroundColourId));
                     button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::sidebarBackgroundColourId));
                     button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
                     contentComponent.addAndMakeVisible(button);
                 }
             }
-            
+
             viewport.setViewedComponent(&contentComponent, false);
             addAndMakeVisible(viewport);
         }
-        
+
         void resized() override
         {
             contentComponent.setBounds(getLocalBounds().withHeight(std::max(getHeight(), buttons.size() * 28)));
             viewport.setBounds(getLocalBounds());
-            
+
             auto b = contentComponent.getBounds().withTrimmedTop(8);
-            for(auto* button : buttons)
-            {
+            for (auto* button : buttons) {
                 button->setBounds(b.removeFromTop(28).reduced(6, 2));
             }
         }
-        
-        String pascalCaseToSpaced(const String& pascalCase)
+
+        String pascalCaseToSpaced(String const& pascalCase)
         {
             String spacedString;
 
             // Iterate through each character in the input string
-            for (int i = 0; i < pascalCase.length(); ++i)
-            {
+            for (int i = 0; i < pascalCase.length(); ++i) {
                 // If the current character is uppercase and not the first character,
                 // add a space before appending the character to the result string
-                if (CharacterFunctions::isUpperCase(pascalCase[i]) && i > 0 && (i == pascalCase.length() - 1 || !CharacterFunctions::isUpperCase(pascalCase[i + 1])))
-                {
+                if (CharacterFunctions::isUpperCase(pascalCase[i]) && i > 0 && (i == pascalCase.length() - 1 || !CharacterFunctions::isUpperCase(pascalCase[i + 1]))) {
                     spacedString += ' ';
                 }
 
@@ -72,12 +66,12 @@ class HelpDialog : public Component, public MarkupDisplay::FileSource {
 
             return spacedString;
         }
-        
+
         BouncingViewport viewport;
         Component contentComponent;
         OwnedArray<TextButton> buttons;
     };
-    
+
     IndexComponent index;
 
 public:
@@ -87,14 +81,14 @@ public:
 
     HelpDialog(PluginProcessor* instance)
         : resizer(this, &constrainer)
-        , index([this](const File& file){ markupDisplay.setMarkdownString(file.loadFileAsString()); })
+        , index([this](File const& file) { markupDisplay.setMarkdownString(file.loadFileAsString()); })
         , pd(instance)
     {
         markupDisplay.setFileSource(this);
         markupDisplay.setFont(Fonts::getVariableFont());
         markupDisplay.setMarkdownString(manualPath.getChildFile("CompilingPatches.md").loadFileAsString());
         addAndMakeVisible(markupDisplay);
-        
+
         closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(-1));
         addAndMakeVisible(closeButton.get());
 
@@ -115,7 +109,7 @@ public:
         addAndMakeVisible(resizer);
         addAndMakeVisible(index);
     }
-    
+
     Image getImageForFilename(String filename) override
     {
         return ImageFileFormat::loadFrom(manualPath.getChildFile(filename));
@@ -126,14 +120,14 @@ public:
         auto bounds = getLocalBounds();
         resizer.setBounds(bounds);
         bounds.removeFromTop(40);
-        
+
         auto closeButtonBounds = getLocalBounds().removeFromTop(30).removeFromRight(30).translated(-5, 5);
         closeButton->setBounds(closeButtonBounds);
-        
+
         index.setBounds(bounds.removeFromLeft(200));
         markupDisplay.setBounds(bounds);
     }
-    
+
     void mouseDown(MouseEvent const& e) override
     {
         windowDragger.startDraggingComponent(this, e);
@@ -160,11 +154,11 @@ public:
         backgroundPath.addRoundedRectangle(arrayBounds.getX(), arrayBounds.getY(), arrayBounds.getWidth(), arrayBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, false, false, true, true);
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
         g.fillPath(backgroundPath);
-        
+
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawHorizontalLine(toolbarHeight, 0, getWidth());
         g.drawVerticalLine(200, 40, getHeight());
-        
+
         Fonts::drawStyledText(g, "Help", Rectangle<float>(0.0f, 4.0f, getWidth(), 32.0f), findColour(PlugDataColour::panelTextColourId), Semibold, 15, Justification::centred);
     }
 };

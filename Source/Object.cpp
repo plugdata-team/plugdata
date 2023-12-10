@@ -349,7 +349,7 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
     } else {
         objectPtr = existingObject;
     }
-    if(!objectPtr.getRaw<t_gobj>())  {
+    if (!objectPtr.getRaw<t_gobj>()) {
         jassertfalse;
         return;
     }
@@ -553,13 +553,13 @@ void Object::resized()
     if (newObjectEditor) {
         newObjectEditor->setBounds(getLocalBounds().reduced(margin));
     }
-    
+
 #if JUCE_IOS
     int ioletSize = 15;
 #else
     int ioletSize = 13;
 #endif
-    
+
     int ioletHitBox = 6;
 
     int maxIoletWidth = std::min(((getWidth() - doubleMargin) / std::max(numInputs, 1)) - 4, ((getWidth() - doubleMargin) / std::max(numOutputs, 1)) - 4);
@@ -654,10 +654,11 @@ void Object::updateTooltips()
 
         // Check child objects of subpatch for inlet/outlet messages
         for (auto obj : subpatch->getObjects()) {
-            
-            if(!obj.isValid()) continue;
-            
-            const String name = pd::Interface::getObjectClassName(obj.getRaw<t_pd>());
+
+            if (!obj.isValid())
+                continue;
+
+            String const name = pd::Interface::getObjectClassName(obj.getRaw<t_pd>());
             auto* checkedObject = pd::Interface::checkObject(obj.getRaw<t_pd>());
             if (name == "inlet" || name == "inlet~") {
                 int size;
@@ -811,7 +812,7 @@ void Object::mouseDown(MouseEvent const& e)
     }
 
     cnv->setSelected(this, true);
-    
+
     ds.componentBeingDragged = this;
 
     for (auto* object : cnv->getSelectionOfType<Object>()) {
@@ -855,7 +856,7 @@ void Object::mouseUp(MouseEvent const& e)
         originalBounds.setBounds(0, 0, 0, 0);
     } else {
         if (cnv->isGraph) {
-            if(isInsideUndoSequence)  {
+            if (isInsideUndoSequence) {
                 isInsideUndoSequence = false;
                 cnv->patch.endUndoSequence("Drag");
             }
@@ -933,7 +934,7 @@ void Object::mouseUp(MouseEvent const& e)
     }
 
     selectionStateChanged = false;
-    if(isInsideUndoSequence) {
+    if (isInsideUndoSequence) {
         isInsideUndoSequence = false;
         cnv->patch.endUndoSequence("Drag");
     }
@@ -1035,7 +1036,7 @@ void Object::mouseDrag(MouseEvent const& e)
                 auto gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
                 auto gridType = SettingsFile::getInstance()->getProperty<int>("grid_type");
                 auto gridSize = gridEnabled && (gridType & 1) ? cnv->objectGrid.gridSize : 10;
-                
+
                 mouseDownObjectPositions.add(object->getPosition().translated(gridSize, gridSize));
             }
 
@@ -1154,7 +1155,7 @@ void Object::mouseDrag(MouseEvent const& e)
 
                 ds.objectSnappingInbetween = nullptr;
             }
-            
+
             cnv->patch.endUndoSequence("Snap");
         }
 

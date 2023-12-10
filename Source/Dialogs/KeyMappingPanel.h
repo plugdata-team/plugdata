@@ -302,7 +302,7 @@ private:
 
     private:
         KeyMappingComponent& owner;
-        const CommandID commandID;
+        CommandID const commandID;
         int const keyNum;
         std::unique_ptr<KeyEntryWindow> currentKeyEntryWindow;
 
@@ -356,7 +356,7 @@ private:
 
         KeyMappingComponent& owner;
         OwnedArray<ChangeKeyButton> keyChangeButtons;
-        const CommandID commandID;
+        CommandID const commandID;
 
         enum { maxNumAssignments = 3 };
 

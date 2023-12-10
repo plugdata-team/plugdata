@@ -37,7 +37,7 @@ public:
         objectParameters.addParamInt("Samples per point", cGeneral, &samplesPerPoint, 256);
         objectParameters.addParamInt("Buffer size", cGeneral, &bufferSize, 128);
         objectParameters.addParamInt("Delay", cGeneral, &delay, 0);
-        objectParameters.addParamRange("Signal Range", cGeneral, &signalRange, Array<var>{var(-1.0f), var(1.0f)});
+        objectParameters.addParamRange("Signal Range", cGeneral, &signalRange, Array<var> { var(-1.0f), var(1.0f) });
 
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
 
@@ -280,7 +280,7 @@ public:
         }
     }
 
-    void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
         switch (symbol) {
         case hash("receive"): {

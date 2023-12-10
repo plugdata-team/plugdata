@@ -8,9 +8,7 @@
     Tracktion Engine uses a GPL/commercial licence - see LICENCE.md for details.
 */
 
-
-class AudioMidiFifo
-{
+class AudioMidiFifo {
 public:
     AudioMidiFifo(int channels, int maxSize)
     {
@@ -50,7 +48,7 @@ public:
         fifo.finishedWrite(size1 + size2);
     }
 
-    void writeAudioAndMidi(const dsp::AudioBlock<float>& audioSrc, const MidiBuffer& midiSrc)
+    void writeAudioAndMidi(dsp::AudioBlock<float> const& audioSrc, MidiBuffer const& midiSrc)
     {
         jassert(getNumSamplesFree() >= audioSrc.getNumSamples());
         jassert(audioSrc.getNumChannels() == audioBuffer.getNumChannels());
@@ -90,58 +88,56 @@ public:
 
         fifo.finishedRead(size1 + size2);
     }
-    
-    void writeAudioAndMidi (const juce::AudioBuffer<float>& audioSrc, const juce::MidiBuffer& midiSrc)
-        {
-            jassert (getNumSamplesFree() >= audioSrc.getNumSamples());
-            jassert (audioSrc.getNumChannels() == audioBuffer.getNumChannels());
 
-            midiBuffer.addEvents (midiSrc, 0, audioSrc.getNumSamples(), fifo.getNumReady());
+    void writeAudioAndMidi(juce::AudioBuffer<float> const& audioSrc, juce::MidiBuffer const& midiSrc)
+    {
+        jassert(getNumSamplesFree() >= audioSrc.getNumSamples());
+        jassert(audioSrc.getNumChannels() == audioBuffer.getNumChannels());
 
-            int start1, size1, start2, size2;
-            fifo.prepareToWrite (audioSrc.getNumSamples(), start1, size1, start2, size2);
+        midiBuffer.addEvents(midiSrc, 0, audioSrc.getNumSamples(), fifo.getNumReady());
 
-            int channels = juce::jmin (audioBuffer.getNumChannels(), audioSrc.getNumChannels());
-            for (int ch = 0; ch < channels; ch++)
-            {
-                if (size1 > 0)
-                    audioBuffer.copyFrom (ch, start1, audioSrc, ch, 0, size1);
-                if (size2 > 0)
-                    audioBuffer.copyFrom (ch, start2, audioSrc, ch, size1, size2);
-            }
+        int start1, size1, start2, size2;
+        fifo.prepareToWrite(audioSrc.getNumSamples(), start1, size1, start2, size2);
 
-            fifo.finishedWrite (size1 + size2);
+        int channels = juce::jmin(audioBuffer.getNumChannels(), audioSrc.getNumChannels());
+        for (int ch = 0; ch < channels; ch++) {
+            if (size1 > 0)
+                audioBuffer.copyFrom(ch, start1, audioSrc, ch, 0, size1);
+            if (size2 > 0)
+                audioBuffer.copyFrom(ch, start2, audioSrc, ch, size1, size2);
         }
 
-        void readAudioAndMidi (juce::AudioBuffer<float>& audioDst, juce::MidiBuffer& midiDst)
-        {
-            jassert (getNumSamplesAvailable() >= audioDst.getNumSamples());
-            jassert (audioDst.getNumChannels() == audioBuffer.getNumChannels());
+        fifo.finishedWrite(size1 + size2);
+    }
 
-            midiDst.addEvents (midiBuffer, 0, audioDst.getNumSamples(), 0);
+    void readAudioAndMidi(juce::AudioBuffer<float>& audioDst, juce::MidiBuffer& midiDst)
+    {
+        jassert(getNumSamplesAvailable() >= audioDst.getNumSamples());
+        jassert(audioDst.getNumChannels() == audioBuffer.getNumChannels());
 
-            // Move all the remaining midi events forward by the number of samples removed
-            juce::MidiBuffer temp;
-            temp.addEvents (midiBuffer, audioDst.getNumSamples(), fifo.getNumReady(), -audioDst.getNumSamples());
-            midiBuffer = temp;
+        midiDst.addEvents(midiBuffer, 0, audioDst.getNumSamples(), 0);
 
-            int start1, size1, start2, size2;
-            fifo.prepareToRead (audioDst.getNumSamples(), start1, size1, start2, size2);
+        // Move all the remaining midi events forward by the number of samples removed
+        juce::MidiBuffer temp;
+        temp.addEvents(midiBuffer, audioDst.getNumSamples(), fifo.getNumReady(), -audioDst.getNumSamples());
+        midiBuffer = temp;
 
-            int numCh = juce::jmin (audioBuffer.getNumChannels(), audioDst.getNumChannels());
-            for (int ch = 0; ch < numCh; ch++)
-            {
-                if (size1 > 0)
-                    audioDst.copyFrom (ch, 0, audioBuffer, ch, start1, size1);
-                if (size2 > 0)
-                    audioDst.copyFrom (ch, size1, audioBuffer, ch, start2, size2);
-            }
+        int start1, size1, start2, size2;
+        fifo.prepareToRead(audioDst.getNumSamples(), start1, size1, start2, size2);
 
-            fifo.finishedRead (size1 + size2);
+        int numCh = juce::jmin(audioBuffer.getNumChannels(), audioDst.getNumChannels());
+        for (int ch = 0; ch < numCh; ch++) {
+            if (size1 > 0)
+                audioDst.copyFrom(ch, 0, audioBuffer, ch, start1, size1);
+            if (size2 > 0)
+                audioDst.copyFrom(ch, size1, audioBuffer, ch, start2, size2);
         }
+
+        fifo.finishedRead(size1 + size2);
+    }
 
 private:
-    AbstractFifo fifo{1};
+    AbstractFifo fifo { 1 };
     AudioBuffer<float> audioBuffer;
     MidiBuffer midiBuffer;
 

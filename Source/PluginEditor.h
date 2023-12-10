@@ -88,7 +88,7 @@ public:
     bool isInterestedInFileDrag(StringArray const& files) override;
     void filesDropped(StringArray const& files, int x, int y) override;
     void fileDragEnter(StringArray const&, int, int) override;
-    void fileDragMove (const StringArray &files, int x, int y) override;
+    void fileDragMove(StringArray const& files, int x, int y) override;
     void fileDragExit(StringArray const&) override;
 
     void createNewWindow(TabBarButtonComponent* tabButton) override;
@@ -111,7 +111,7 @@ public:
     void setZoomLabelLevel(float value);
 
     void setUseBorderResizer(bool shouldUse);
-        
+
     void showTouchSelectionHelper(bool shouldBeShown);
 
     TabComponent* getActiveTabbar();
@@ -151,14 +151,13 @@ public:
     ComponentBoundsConstrainer& pluginConstrainer;
 
     std::unique_ptr<Autosave> autosave;
-        
+
     inline static ObjectThemeManager objectManager;
     static ObjectThemeManager* getObjectManager() { return &objectManager; };
 
 private:
-        
     std::unique_ptr<TouchSelectionHelper> touchSelectionHelper;
-        
+
     // Used by standalone to handle dragging the window
     WindowDragger windowDragger;
 

@@ -434,7 +434,7 @@ public:
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
 
         setContentOwned(mainComponent, true);
-        
+
         // Make sure it gets updated on init
         propertyChanged("native_window", settingsTree.getProperty("native_window"));
     }
@@ -540,14 +540,13 @@ public:
 
     // implemented in PlugDataApp.cpp
     void closeAllPatches();
-        
+
     bool isMaximised() const
     {
 #if JUCE_LINUX
         if (auto* b = getMaximiseButton()) {
             return b->getToggleState();
-        }
-        else {
+        } else {
             return isFullScreen();
         }
 #else
@@ -594,11 +593,9 @@ public:
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::outlineColourId));
-        if (isUsingNativeTitleBar() || isMaximised())
-        {
+        if (isUsingNativeTitleBar() || isMaximised()) {
             g.drawRect(getLocalBounds().toFloat(), 1.0f);
-        }
-        else {
+        } else {
             g.drawRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
         }
     }
@@ -771,6 +768,7 @@ private:
                 setSize(rect.getWidth(), rect.getHeight());
             }
         }
+
     private:
         Rectangle<int> getSizeToContainEditor() const
         {
@@ -787,7 +785,7 @@ private:
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainContentComponent)
     };
 
-    public:
+public:
     MainContentComponent* mainComponent = nullptr;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataWindow)

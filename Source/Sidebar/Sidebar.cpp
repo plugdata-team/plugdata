@@ -150,7 +150,7 @@ void Sidebar::resized()
     auto bounds = getLocalBounds();
     auto buttonBarBounds = bounds.removeFromRight(30).reduced(0, 1);
 
-    if(SettingsFile::getInstance()->getProperty<bool>("centre_sidepanel_buttons")) {
+    if (SettingsFile::getInstance()->getProperty<bool>("centre_sidepanel_buttons")) {
         buttonBarBounds = buttonBarBounds.withSizeKeepingCentre(30, 144);
     }
 

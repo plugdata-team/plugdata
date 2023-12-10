@@ -85,7 +85,7 @@ public:
     File getPatchFile() const;
 
     void setCurrentFile(File newFile);
-    
+
     void updateUndoRedoState();
 
     bool objectWasDeleted(t_gobj* ptr) const;

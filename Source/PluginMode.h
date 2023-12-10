@@ -34,8 +34,7 @@ public:
             nativeTitleBarHeight = frameSize ? frameSize->getTop() : 0;
         }
 
-        if(auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent()))
-        {
+        if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
             mainWindow->setUsingNativeTitleBar(false);
             mainWindow->setOpaque(false);
         }
@@ -64,7 +63,7 @@ public:
         };
 
         titleBar.addAndMakeVisible(*editorButton);
-        
+
         setAlwaysOnTop(true);
         setWantsKeyboardFocus(true);
         setInterceptsMouseClicks(false, false);
@@ -72,7 +71,7 @@ public:
         // Add this view to the editor
         editor->addAndMakeVisible(this);
 
-        scaleComboBox.addItemList({"50%", "75%", "100%", "125%", "150%", "175%", "200%"}, 1);
+        scaleComboBox.addItemList({ "50%", "75%", "100%", "125%", "150%", "175%", "200%" }, 1);
         if (ProjectInfo::isStandalone) {
             scaleComboBox.addSeparator();
             scaleComboBox.addItem("Fullscreen", 8);
@@ -82,13 +81,13 @@ public:
         scaleComboBox.setBounds(8, 8, 70, titlebarHeight - 16);
         scaleComboBox.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
         scaleComboBox.setColour(ComboBox::backgroundColourId, findColour(PlugDataColour::toolbarHoverColourId).withAlpha(0.8f));
-        scaleComboBox.onChange = [this](){
+        scaleComboBox.onChange = [this]() {
             auto itemId = scaleComboBox.getSelectedId();
             if (itemId == 8) {
                 setKioskMode(true);
                 return;
             }
-            auto scale = std::vector<float>{0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f}[itemId - 1];
+            auto scale = std::vector<float> { 0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f }[itemId - 1];
             if (selectedItemId != itemId) {
                 selectedItemId = itemId;
                 setWidthAndHeight(scale);
@@ -96,7 +95,7 @@ public:
         };
 
         titleBar.addAndMakeVisible(scaleComboBox);
-        
+
         addAndMakeVisible(titleBar);
 
         // Viewed Content (canvas)
@@ -125,7 +124,7 @@ public:
     {
         auto newWidth = static_cast<int>(width * scale);
         auto newHeight = static_cast<int>(height * scale) + titlebarHeight;
-        
+
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
 #if JUCE_LINUX || JUCE_BSD
             // We need to add the window margin for the shadow on Linux, or else X11 will try to make the window smaller than it should be when the window moves
@@ -136,13 +135,12 @@ public:
             // Setting the min=max will disable resizing
             editor->constrainer.setSizeLimits(newWidth + margin, newHeight + margin, newWidth + margin, newHeight + margin);
             mainWindow->getConstrainer()->setSizeLimits(newWidth + margin, newHeight + margin, newWidth + margin, newHeight + margin);
-        }
-        else {
+        } else {
             editor->pluginConstrainer.setSizeLimits(newWidth, newHeight, newWidth, newHeight);
         }
-        
+
 #if JUCE_LINUX
-        if(ProjectInfo::isStandalone) {
+        if (ProjectInfo::isStandalone) {
             OSUtils::updateX11Constraints(getPeer()->getNativeHandle());
         }
 #endif
@@ -154,7 +152,7 @@ public:
     {
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
             bool isUsingNativeTitlebar = SettingsFile::getInstance()->getProperty<bool>("native_window");
-            if(isUsingNativeTitlebar) {
+            if (isUsingNativeTitlebar) {
                 mainWindow->setResizeLimits(850, 650, 99000, 99000);
                 mainWindow->setOpaque(true);
                 mainWindow->setUsingNativeTitleBar(true);
@@ -243,7 +241,7 @@ public:
             setKioskMode(false);
         }
 #endif
-        
+
         float const scale = getWidth() / width;
         if (ProjectInfo::isStandalone && isWindowFullscreen()) {
 
@@ -283,13 +281,12 @@ public:
     {
         // Fullscreen / Kiosk Mode
         if (ProjectInfo::isStandalone && isWindowFullscreen()) {
-               // Determine the screen size
-                auto const screenBounds = desktopWindow->getBounds();
-                
-                // Fill the screen
-                setBounds(0, 0, screenBounds.getWidth(), screenBounds.getHeight());
-        }
-        else {
+            // Determine the screen size
+            auto const screenBounds = desktopWindow->getBounds();
+
+            // Fill the screen
+            setBounds(0, 0, screenBounds.getWidth(), screenBounds.getHeight());
+        } else {
             setBounds(editor->getLocalBounds());
         }
     }
@@ -310,8 +307,7 @@ public:
             return;
 
         // Offset the start of the drag when dragging the window by Titlebar
-        if(auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent()))
-        {
+        if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
             if (e.getPosition().getY() < titlebarHeight) {
                 isDraggingWindow = true;
                 windowDragger.startDraggingWindow(mainWindow, e.getEventRelativeTo(mainWindow));
@@ -324,8 +320,7 @@ public:
         if (!isDraggingWindow)
             return;
 
-        if(auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent()))
-        {
+        if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
             windowDragger.dragWindow(mainWindow, e.getEventRelativeTo(mainWindow), nullptr);
         }
     }

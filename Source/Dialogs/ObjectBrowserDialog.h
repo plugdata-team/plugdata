@@ -133,11 +133,12 @@ class ObjectsListBox : public ListBox
             if (e.mouseWasDraggedSinceMouseDown() && !e.source.isTouch())
                 dismissMenu(false);
         }
-        
+
         void mouseDrag(MouseEvent const& e) override
         {
-            if(e.source.isTouch()) return;
-            
+            if (e.source.isTouch())
+                return;
+
             ObjectDragAndDrop::mouseDrag(e);
         }
 
@@ -661,7 +662,7 @@ public:
         }
 
         g.setColour(rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(ComboBox::textColourId));
-        const String item = searchResult[rowNumber];
+        String const item = searchResult[rowNumber];
 
         auto colour = rowIsSelected ? findColour(PlugDataColour::popupMenuActiveTextColourId) : findColour(PlugDataColour::popupMenuTextColourId);
 
@@ -888,7 +889,7 @@ public:
             animator.animateComponent(getParentComponent(), getParentComponent()->getBounds(), 0.0f, 300, false, 0.0f, 0.0f);
         else {
             MessageManager::callAsync([_this = SafePointer(this)]() {
-                if(_this) {
+                if (_this) {
                     _this->editor->openedDialog.reset(nullptr);
                 }
             });

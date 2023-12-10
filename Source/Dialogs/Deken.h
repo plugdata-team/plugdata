@@ -353,7 +353,7 @@ public:
 
     PackageList allPackages;
 
-    static inline const File filesystem = ProjectInfo::appDataDir.getChildFile("Externals");
+    static inline File const filesystem = ProjectInfo::appDataDir.getChildFile("Externals");
 
     // Package info file
     File pkgInfo = filesystem.getChildFile(".pkg_info");
@@ -366,8 +366,8 @@ public:
 
     std::unique_ptr<WebInputStream> webstream;
 
-    static inline const String floatsize = String(PD_FLOATSIZE);
-    static inline const String os =
+    static inline String const floatsize = String(PD_FLOATSIZE);
+    static inline String const os =
 #if JUCE_LINUX
         "Linux"
 #elif JUCE_MAC || JUCE_IOS
@@ -389,7 +389,7 @@ public:
 #endif
         ;
 
-    static inline const String machine =
+    static inline String const machine =
 #if defined(__x86_64__) || defined(__amd64__) || defined(_M_X64) || defined(_M_AMD64)
         "amd64"
 #elif defined(__i386__) || defined(__i486__) || defined(__i586__) || defined(__i686__) || defined(_M_IX86)
@@ -819,11 +819,11 @@ private:
             installButton.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
             installButton.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
             installButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-            
+
             uninstallButton.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
             uninstallButton.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
             uninstallButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-            
+
             addToPathButton.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
             addToPathButton.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
             addToPathButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);

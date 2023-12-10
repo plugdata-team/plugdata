@@ -110,13 +110,13 @@ public:
     bool intersectsObject(Object* object) const;
     bool straightLineIntersectsObject(Line<float> toCheck, Array<Object*>& objects);
 
-    void receiveMessage(t_symbol* symbol, const pd::Atom atoms[8], int numAtoms) override;
+    void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms) override;
 
     bool isSelected() const;
 
     StringArray getMessageFormated();
     int getSignalData(t_float* output, int maxChannels);
-        
+
 private:
     void resizeToFit();
 

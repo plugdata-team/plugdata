@@ -58,7 +58,7 @@ public:
         drawArc = show;
         repaint();
     }
-    
+
     void setArcStart(float newArcStart)
     {
         arcStart = newArcStart;
@@ -205,7 +205,6 @@ public:
         objectParameters.addParamColour("Arc color", cAppearance, &arcColour, PlugDataColour::guiObjectInternalOutlineColour);
         objectParameters.addParamBool("Fill background", cAppearance, &outline, { "No", "Yes" }, 1);
         objectParameters.addParamBool("Show arc", cAppearance, &showArc, { "No", "Yes" }, 1);
-
     }
 
     void updateDoubleClickValue()
@@ -322,7 +321,7 @@ public:
         knob.setRange(0.0, 1.0, increment);
     }
 
-    void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
         switch (symbol) {
         case hash("float"):
@@ -764,14 +763,13 @@ public:
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_bg = pd->generateSymbol(colour);
             repaint();
-        }  else if (value.refersToSameSourceAs(arcStart)) {
+        } else if (value.refersToSameSourceAs(arcStart)) {
             auto arcStartLimited = limitValueRange(arcStart, ::getValue<float>(min), ::getValue<float>(max));
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_start = arcStartLimited;
             updateDoubleClickValue();
             repaint();
-        }
-        else if (value.refersToSameSourceAs(arcColour)) {
+        } else if (value.refersToSameSourceAs(arcColour)) {
             auto colour = "#" + arcColour.toString().substring(2);
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_mg = pd->generateSymbol(colour);

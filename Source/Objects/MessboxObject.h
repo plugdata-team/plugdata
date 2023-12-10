@@ -131,7 +131,7 @@ public:
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
-    void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
         switch (symbol) {
         case hash("set"): {
@@ -196,7 +196,7 @@ public:
         if (auto messObj = ptr.get<t_fake_messbox>()) {
             binbuf_text(messObj->x_state, text.toRawUTF8(), text.getNumBytesAsUTF8());
         }
-        
+
         object->updateBounds();
     }
 
@@ -213,7 +213,7 @@ public:
         size_t length;
 
         auto newText = String();
-        for(auto& atom : atoms) {
+        for (auto& atom : atoms) {
             if (atom.isFloat())
                 newText += String(atom.getFloat()) + " ";
             else {

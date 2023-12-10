@@ -63,12 +63,11 @@ ImageWithOffset OfflineObjectRenderer::patchToMaskedImage(String const& patch, f
     return ImageWithOffset(output, image.offset);
 }
 
-
 ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, float scale)
 {
     static std::unordered_map<String, ImageWithOffset> patchImageCache;
 
-    const auto patchSHA256 = SHA256(patch.getCharPointer()).toHexString();
+    auto const patchSHA256 = SHA256(patch.getCharPointer()).toHexString();
     if (patchImageCache.contains(patchSHA256)) {
         return patchImageCache[patchSHA256];
     }
@@ -77,7 +76,7 @@ ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, flo
 
     sys_lock();
     pd->muteConsole(true);
-    
+
     canvas_create_editor(offlineCnv);
 
     objectRects.clear();
@@ -133,7 +132,7 @@ bool OfflineObjectRenderer::checkIfPatchIsValid(String const& patch)
 {
     static std::unordered_map<String, bool> patchValidCache;
 
-    const auto patchSHA256 = SHA256(patch.getCharPointer()).toHexString();
+    auto const patchSHA256 = SHA256(patch.getCharPointer()).toHexString();
     if (patchValidCache.contains(patchSHA256)) {
         return patchValidCache[patchSHA256];
     }
@@ -186,7 +185,7 @@ std::pair<std::vector<bool>, std::vector<bool>> OfflineObjectRenderer::countIole
 {
     static std::unordered_map<String, std::pair<std::vector<bool>, std::vector<bool>>> patchIoletCache;
 
-    const auto patchSHA256 = SHA256(patch.getCharPointer()).toHexString();
+    auto const patchSHA256 = SHA256(patch.getCharPointer()).toHexString();
     if (patchIoletCache.contains(patchSHA256)) {
         return patchIoletCache[patchSHA256];
     }

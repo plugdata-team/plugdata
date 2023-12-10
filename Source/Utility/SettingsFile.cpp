@@ -68,13 +68,12 @@ SettingsFile* SettingsFile::initialise()
     initialiseOverlayTree();
 
 #if JUCE_IOS
-    if(OSUtils::isIPad()) {
+    if (OSUtils::isIPad()) {
         Desktop::getInstance().setGlobalScaleFactor(1.125f);
-    }
-    else {
+    } else {
         Desktop::getInstance().setGlobalScaleFactor(0.825f);
     }
-    
+
 #else
     Desktop::getInstance().setGlobalScaleFactor(getProperty<float>("global_scale"));
 #endif
@@ -117,15 +116,17 @@ ValueTree SettingsFile::getTheme(String const& name)
 
 void SettingsFile::setLastBrowserPathForId(String const& identifier, File& path)
 {
-    if(identifier.isEmpty()) return;
-    
+    if (identifier.isEmpty())
+        return;
+
     settingsTree.getChildWithName("LastBrowserPaths").setProperty(identifier, path.getFullPathName(), nullptr);
 }
 
 File SettingsFile::getLastBrowserPathForId(String const& identifier)
 {
-    if(identifier.isEmpty()) return {};
-    
+    if (identifier.isEmpty())
+        return {};
+
     return File(settingsTree.getChildWithName("LastBrowserPaths").getProperty(identifier).toString());
 }
 
@@ -141,7 +142,7 @@ void SettingsFile::initialisePathsTree()
     Array<File> currentPaths;
 
     auto pathTree = getPathsTree();
-    
+
     // on iOS, the containerisation of apps leads to problems with custom search paths
     // So we completely reset them every time
 #if JUCE_IOS

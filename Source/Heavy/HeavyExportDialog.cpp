@@ -88,8 +88,7 @@ public:
     {
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
         auto heavyState = settingsTree.getChildWithName("HeavyState");
-        if(heavyState.isValid())
-        {
+        if (heavyState.isValid()) {
             this->setState(heavyState);
             views[0]->setState(heavyState);
             views[1]->setState(heavyState);
@@ -110,7 +109,7 @@ public:
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
 
         auto oldState = settingsTree.getChildWithName("HeavyState");
-        if(oldState.isValid()) {
+        if (oldState.isValid()) {
             settingsTree.removeChild(oldState, nullptr);
         }
         settingsTree.appendChild(state, nullptr);
@@ -121,7 +120,7 @@ public:
     void paint(Graphics& g) override
     {
         auto listboxBounds = getLocalBounds().removeFromLeft(listBoxWidth);
-        
+
         Path p;
         p.addRoundedRectangle(listboxBounds.getX(), listboxBounds.getY(), listboxBounds.getWidth(), listboxBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, false, false, true, false);
 
@@ -205,7 +204,7 @@ HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
     , infoButton(new MainToolbarButton(Icons::Help))
 {
     hasToolchain = Toolchain::dir.exists();
-    
+
     // Don't do this relative to toolchain variable, that won't work on Windows
     auto const versionFile = ProjectInfo::appDataDir.getChildFile("Toolchain").getChildFile("VERSION");
     auto const installedVersion = versionFile.loadFileAsString().trim().removeCharacters(".").getIntValue();
@@ -240,10 +239,10 @@ HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
     exportingView->setAlwaysOnTop(true);
 
     infoButton->onClick = [this]() {
-       // URL("https://wasted-audio.github.io/hvcc/docs/01.introduction.html#what-is-heavy").launchInDefaultBrowser();
-        
+        // URL("https://wasted-audio.github.io/hvcc/docs/01.introduction.html#what-is-heavy").launchInDefaultBrowser();
+
         helpDialog = std::make_unique<HelpDialog>(nullptr);
-        helpDialog->onClose = [this](){
+        helpDialog->onClose = [this]() {
             helpDialog.reset(nullptr);
         };
     };

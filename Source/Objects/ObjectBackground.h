@@ -7,60 +7,63 @@
 #pragma once
 
 // for objects that have a transparent background but shouldn't show the edit mode dots through the transparent areas
-class ObjectBackground : private ComponentListener
-{
-    struct BackgroundComponent : public Component
-    {
-        BackgroundComponent(PlugDataColour backgroundColour) : colour(backgroundColour) {};
-        
+class ObjectBackground : private ComponentListener {
+    struct BackgroundComponent : public Component {
+        BackgroundComponent(PlugDataColour backgroundColour)
+            : colour(backgroundColour) {};
+
         void paint(Graphics& g) override
         {
             g.setColour(findColour(colour));
             g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
         }
-        
+
         PlugDataColour colour;
     };
-    
+
 public:
-    ObjectBackground(Object* parent, PlugDataColour colour) : object(parent), backgroundComponent(colour)
+    ObjectBackground(Object* parent, PlugDataColour colour)
+        : object(parent)
+        , backgroundComponent(colour)
     {
         object->addComponentListener(this);
         object->cnv->addAndMakeVisible(backgroundComponent);
         backgroundComponent.setBounds(object->getBounds().reduced(Object::margin));
         backgroundComponent.toBack();
     }
-    
+
     ~ObjectBackground() override
     {
-        if(object) object->removeComponentListener(this);
+        if (object)
+            object->removeComponentListener(this);
     }
+
 private:
     void componentMovedOrResized(Component& c, bool wasMoved, bool wasResized) override
     {
         backgroundComponent.setBounds(object->getBounds().reduced(Object::margin));
         backgroundComponent.toBack();
     }
-    
-    void componentBroughtToFront (Component& component) override
+
+    void componentBroughtToFront(Component& component) override
     {
         backgroundComponent.toBack();
     }
-    void componentVisibilityChanged (Component& component) override
+    void componentVisibilityChanged(Component& component) override
     {
         backgroundComponent.toBack();
     }
 
-    void componentChildrenChanged (Component& component) override
+    void componentChildrenChanged(Component& component) override
     {
         backgroundComponent.toBack();
     }
-    
-    void componentParentHierarchyChanged (Component& component) override
+
+    void componentParentHierarchyChanged(Component& component) override
     {
         backgroundComponent.toBack();
     }
-    
+
     Component::SafePointer<Object> object;
     BackgroundComponent backgroundComponent;
 };

@@ -18,9 +18,9 @@ struct ExporterBase : public Component
     Value projectCopyrightValue;
 
 #if JUCE_WINDOWS
-    const inline static String exeSuffix = ".exe";
+    inline static String const exeSuffix = ".exe";
 #else
-    const inline static String exeSuffix = "";
+    inline static String const exeSuffix = "";
 #endif
 
     inline static File heavyExecutable = Toolchain::dir.getChildFile("bin").getChildFile("Heavy").getChildFile("Heavy" + exeSuffix);
@@ -62,7 +62,7 @@ struct ExporterBase : public Component
         auto* nameProperty = new PropertiesPanel::EditableComponent<String>("Project Name (optional)", projectNameValue);
         nameProperty->setInputRestrictions("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_");
         properties.add(nameProperty);
-        
+
         properties.add(new PropertiesPanel::EditableComponent<String>("Project Copyright (optional)", projectCopyrightValue));
 
         for (auto* property : properties) {
@@ -96,12 +96,13 @@ struct ExporterBase : public Component
             validPatchSelected = false;
         }
 
-        exportButton.onClick = [this](){
-            Dialogs::showSaveDialog([this](File& result){
+        exportButton.onClick = [this]() {
+            Dialogs::showSaveDialog([this](File& result) {
                 if (result.getParentDirectory().exists()) {
                     startExport(result);
                 }
-            }, "", "HeavyExport", true);
+            },
+                "", "HeavyExport", true);
         };
     }
 
@@ -117,7 +118,6 @@ struct ExporterBase : public Component
         removeAllJobs(true, -1);
     }
 
-        
     virtual ValueTree getState() = 0;
     virtual void setState(ValueTree& state) = 0;
 
@@ -180,7 +180,7 @@ struct ExporterBase : public Component
                 patchFile = openedPatchFile;
                 validPatchSelected = true;
             } else if (idx == 2) {
-                Dialogs::showOpenDialog([this](File& result){
+                Dialogs::showOpenDialog([this](File& result) {
                     if (result.existsAsFile()) {
                         patchFile = result;
                         validPatchSelected = true;
@@ -189,7 +189,8 @@ struct ExporterBase : public Component
                         patchFile = "";
                         validPatchSelected = false;
                     }
-                }, true, false, "*.pd", "HeavyPatchLocation");
+                },
+                    true, false, "*.pd", "HeavyPatchLocation");
             }
         }
 
