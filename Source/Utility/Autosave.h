@@ -282,6 +282,7 @@ public:
         
         contentComponent.setVisible(true);
         viewport.setViewedComponent(&contentComponent, false);
+        viewport.setScrollBarsShown(true, false, false, false);
         addAndMakeVisible(viewport);
         
     }
