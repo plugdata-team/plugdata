@@ -142,7 +142,9 @@ public:
     {
         objectButtons.clear();
 
-        for (auto& [categoryName, objectCategory] : objectList) {
+        auto objectsToShow = getValue<bool>(SettingsFile::getInstance()->getPropertyAsValue("hvcc_mode")) ? heavyObjectList : defaultObjectList;
+
+        for (auto& [categoryName, objectCategory] : objectsToShow) {
 
             if (categoryName != categoryToView)
                 continue;
@@ -173,7 +175,7 @@ public:
         std::cout << "==== object icon list in CSV format ====" << std::endl;
 
         String cat;
-        for (auto& [categoryName, objectCategory] : objectList) {
+        for (auto& [categoryName, objectCategory] : defaultObjectList) {
             cat = categoryName;
             for (auto& [icon, patch, tooltip, name, objectID] : objectCategory) {
                 std::cout << cat << ", " << name << ", " << icon << std::endl;
@@ -185,7 +187,20 @@ public:
 
     OwnedArray<ObjectItem> objectButtons;
 
-    static inline const std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> objectList = {
+    static inline const std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> heavyObjectList = {
+        { "Default",
+            {
+                { Icons::GlyphEmptyObject, "#X obj 0 0", "(@keypress) Empty object", "Object", NewObject },
+                { Icons::GlyphMessage, "#X msg 0 0", "(@keypress) Message", "Message", NewMessage },
+                { Icons::GlyphFloatBox, "#X floatatom 0 0 5 0 0 0 - - - 0", "(@keypress) Float box", "Float", NewFloatAtom },
+                { Icons::GlyphSymbolBox, "#X symbolatom 0 0 10 0 0 0 - - - 0", "Symbol box", "Symbol", NewSymbolAtom },
+                { Icons::GlyphComment, "#X text 0 0 comment", "(@keypress) Comment", "Comment", NewComment },
+                { Icons::GlyphArray, "#N canvas 0 0 450 250 (subpatch) 0;\n#X array @arrName 100 float 2;\n#X coords 0 1 100 -1 200 140 1;\n#X restore 0 0 graph;", "(@keypress) Array", "Array", NewArray },
+                { Icons::GlyphGOP, "#N canvas 0 0 450 250 (subpatch) 1;\n#X coords 0 1 100 -1 200 140 1 0 0;\n#X restore 0 0 graph;", "(@keypress) Graph on parent", "Graph", NewGraphOnParent },
+            } },
+    };
+
+    static inline const std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> defaultObjectList = {
         { "Default",
             {
                 { Icons::GlyphEmptyObject, "#X obj 0 0", "(@keypress) Empty object", "Object", NewObject },
@@ -361,9 +376,15 @@ public:
         : list(e, dismissCalloutBox)
     {
         addAndMakeVisible(list);
-        list.showCategory("UI");
 
-        for (auto const& [categoryName, category] : ObjectList::objectList) {
+        auto objectsToShow = getValue<bool>(SettingsFile::getInstance()->getPropertyAsValue("hvcc_mode")) ? ObjectList::heavyObjectList : ObjectList::defaultObjectList;
+
+        // make the 2nd category active (which will be after the default category if it exists)
+        if (objectsToShow.size() > 1) {
+            // this should always be populated, but just incase we are testing a new blank object list etc
+            list.showCategory(objectsToShow[1].first);
+        }
+        for (auto const& [categoryName, category] : objectsToShow) {
             if (categoryName == "Default")
                 continue;
 
@@ -383,9 +404,11 @@ public:
             addAndMakeVisible(button);
         }
 
-        categories.getFirst()->setConnectedEdges(Button::ConnectedOnRight);
-        categories.getFirst()->setToggleState(true, dontSendNotification);
-        categories.getLast()->setConnectedEdges(Button::ConnectedOnLeft);
+        if (categories.size() > 0) {
+            categories.getFirst()->setConnectedEdges(Button::ConnectedOnRight);
+            categories.getFirst()->setToggleState(true, dontSendNotification);
+            categories.getLast()->setConnectedEdges(Button::ConnectedOnLeft);
+        }
         resized();
     }
 
