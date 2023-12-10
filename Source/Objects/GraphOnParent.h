@@ -17,14 +17,20 @@ class GraphOnParent final : public ObjectBase {
 
     pd::Patch::Ptr subpatch;
     std::unique_ptr<Canvas> canvas;
+    ObjectBackground background;
 
 public:
     // Graph On Parent
     GraphOnParent(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
         , subpatch(new pd::Patch(obj, cnv->pd, false))
+        , background(object, PlugDataColour::canvasBackgroundColourId)
     {
         resized();
+        
+        // We want graph to draw on top of all objects
+        // The graph background is managed by ObjectBackground which should always be at the bottom
+        setAlwaysOnTop(true);
 
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamBool("Is graph", cGeneral, &isGraphChild, { "No", "Yes" });

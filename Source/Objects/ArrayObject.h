@@ -993,13 +993,17 @@ public:
     
     SafePointer<ArrayPropertiesPanel> propertiesPanel = nullptr;
     Value sizeProperty = SynchronousValue();
+    ObjectBackground background;
     
     // Array component
     ArrayObject(pd::WeakReference obj, Object* object)
-        : ObjectBase(obj, object)
+        : ObjectBase(obj, object), background(object, PlugDataColour::guiObjectBackgroundColourId)
     {
         reinitialiseGraphs();
         
+        // We want array to draw on top of all objects
+        // The array background is managed by ObjectBackground which should always be at the bottom
+        object->setAlwaysOnTop(true);
         setInterceptsMouseClicks(false, true);
 
         objectParameters.addParamSize(&sizeProperty);
@@ -1188,10 +1192,8 @@ public:
         }
     }
 
-    void paint(Graphics& g) override
+    void paint(Graphics& g) override // override default paint implementation
     {
-        g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override

@@ -30,6 +30,7 @@ void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg ypos, t_floatarg shif
 
 }
 
+
 #include "AllGuis.h"
 #include "Object.h"
 #include "Iolet.h"
@@ -41,6 +42,7 @@ void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg ypos, t_floatarg shif
 #include "Pd/Patch.h"
 #include "Sidebar/Sidebar.h"
 
+#include "ObjectBackground.h"
 #include "IEMHelper.h"
 #include "AtomHelper.h"
 
