@@ -149,7 +149,27 @@ private:
                 newAutoSave.setProperty("Path", path, nullptr);
                 newAutoSave.setProperty("Patch", Base64::toBase64(content), nullptr);
                 newAutoSave.setProperty("LastModified", (int64)time, nullptr);
-                autoSaveTree.appendChild(newAutoSave, nullptr);
+                autoSaveTree.addChild(newAutoSave, 0, nullptr);
+                
+                if(autoSaveTree.getNumChildren() > 15)
+                {
+                    int64 oldestTime = std::numeric_limits<int64>::max();
+                    int oldestIdx = -1;
+                    int currentIdx = 0;
+                    for(auto autoSave : autoSaveTree)
+                    {
+                        auto modifiedTime = static_cast<int64>(autoSave.getProperty("LastModified"));
+                        if(modifiedTime < oldestTime)
+                        {
+                            oldestTime = modifiedTime;
+                            oldestIdx = currentIdx;
+                        }
+                        currentIdx++;
+                    }
+                    if(oldestIdx >= 0) {
+                        autoSaveTree.removeChild(oldestIdx, nullptr);
+                    }
+                }
             }
         }
         
@@ -212,7 +232,7 @@ class AutosaveHistoryComponent : public Component
             g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
             g.drawRoundedRectangle(bounds.toFloat(), Corners::defaultCornerRadius, 1.0f);
             
-            Fonts::drawIcon(g, Icons::File, bounds.removeFromLeft(32).withTrimmedLeft(8), findColour(PlugDataColour::panelTextColourId), 20);
+            Fonts::drawIcon(g, Icons::File, bounds.removeFromLeft(32).withTrimmedLeft(10), findColour(PlugDataColour::panelTextColourId), 20);
         
             auto patchName = patchPath.fromLastOccurrenceOf("/", false, false);
             Fonts::drawStyledText(g, patchName, bounds.removeFromTop(24).withTrimmedLeft(14), findColour(PlugDataColour::panelTextColourId), Semibold, 15);
