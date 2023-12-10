@@ -21,6 +21,7 @@ class ObjectBackground : private ComponentListener
         
         PlugDataColour colour;
     };
+    
 public:
     ObjectBackground(Object* parent, PlugDataColour colour) : object(parent), backgroundComponent(colour)
     {

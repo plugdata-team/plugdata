@@ -121,9 +121,12 @@ public:
     void paint(Graphics& g) override
     {
         auto listboxBounds = getLocalBounds().removeFromLeft(listBoxWidth);
+        
+        Path p;
+        p.addRoundedRectangle(listboxBounds.getX(), listboxBounds.getY(), listboxBounds.getWidth(), listboxBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, false, false, true, false);
 
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
-        g.fillRoundedRectangle(listboxBounds.toFloat(), Corners::windowCornerRadius);
+        g.fillPath(p);
     }
 
     void paintOverChildren(Graphics& g) override

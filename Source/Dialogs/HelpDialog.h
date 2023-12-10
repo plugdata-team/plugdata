@@ -4,10 +4,10 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include <Utility/BarelyML.h>
+#include <Utility/MarkupDisplay.h>
 
 
-class HelpDialog : public Component, public BarelyMLDisplay::FileSource {
+class HelpDialog : public Component, public MarkupDisplay::FileSource {
     ResizableBorderComponent resizer;
     std::unique_ptr<Button> closeButton;
     ComponentDragger windowDragger;
@@ -83,7 +83,7 @@ class HelpDialog : public Component, public BarelyMLDisplay::FileSource {
 public:
     std::function<void()> onClose;
     PluginProcessor* pd;
-    BarelyMLDisplay markupDisplay;
+    MarkupDisplay::MarkupDisplayComponent markupDisplay;
 
     HelpDialog(PluginProcessor* instance)
         : resizer(this, &constrainer)
@@ -91,6 +91,7 @@ public:
         , pd(instance)
     {
         markupDisplay.setFileSource(this);
+        markupDisplay.setFont(Fonts::getVariableFont());
         markupDisplay.setMarkdownString(manualPath.getChildFile("CompilingPatches.md").loadFileAsString());
         addAndMakeVisible(markupDisplay);
         
