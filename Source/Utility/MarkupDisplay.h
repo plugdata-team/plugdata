@@ -839,7 +839,7 @@ public:
 
         
         auto linkColour = findColour(PlugDataColour::dataColourId);
-        auto linkHex = "#" + String::toHexString(linkColour.getRed()) + String::toHexString(linkColour.getGreen()) + String::toHexString(linkColour.getBlue());
+        auto linkHex = "#" + String::toHexString(linkColour.getRed()).paddedLeft('0', 2).substring(0, 2) + String::toHexString(linkColour.getGreen()).paddedLeft('0', 2).substring(0, 2) + String::toHexString(linkColour.getBlue()).paddedLeft('0', 2).substring(0, 2);
         colours.set("linkcolour", linkHex);
         
         
