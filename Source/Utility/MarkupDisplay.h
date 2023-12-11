@@ -73,7 +73,7 @@
  Colour names supported by default (CGA 16-colour palette with some extensions):
  black,blue,green,cyan,red,magenta,brown,lightgray,
  darkgray,lightblue,lightgreen,lightcyan,lightred,lightmagenta,yellow,white,
- orange, pink, darkyellow, purple, gray, linkcolour (by default set to blue)
+ orange, pink, darkyellow, purple, gray
  (the idea is that there will be the option to provide a custom colour definition object)
 
 
@@ -312,7 +312,7 @@ protected:
                             tagRecognized = true;
                         } else if (tag.startsWith("l:")) {
                             currentLink = tag.substring(2);
-                            nextColour = parseHexColour((*colours)["linkcolour"]);
+                            nextColour = findColour(PlugDataColour::dataColourId); // link colour is just data colour for now
                             tagRecognized = true;
                         } else if (tag.startsWith("/l")) {
                             currentLink = "";
@@ -836,13 +836,6 @@ public:
         colours.set("darkyellow", "#AA0");
         colours.set("purple", "#A0F");
         colours.set("gray", "#777");
-
-        
-        auto linkColour = findColour(PlugDataColour::dataColourId);
-        auto linkHex = "#" + String::toHexString(linkColour.getRed()).paddedLeft('0', 2).substring(0, 2) + String::toHexString(linkColour.getGreen()).paddedLeft('0', 2).substring(0, 2) + String::toHexString(linkColour.getBlue()).paddedLeft('0', 2).substring(0, 2);
-        colours.set("linkcolour", linkHex);
-        
-        
         
         // default font
         font = Font(15);
