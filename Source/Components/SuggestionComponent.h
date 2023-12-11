@@ -443,7 +443,7 @@ private:
         } else {
             Path localPath;
             localPath.addRoundedRectangle(b.toFloat().reduced(6.0f), Corners::defaultCornerRadius);
-            StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), 12, { 0, 2 });
+            StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), 13, { 0, 1 });
         }
 
         g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));

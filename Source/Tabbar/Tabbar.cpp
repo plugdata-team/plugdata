@@ -195,7 +195,7 @@ public:
     void paint(Graphics& g) override
     {
         if (tab) {
-            StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.3f), 4);
+            StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.3f), 5);
             lnf.drawTabButton(*tab, g, true, true, true);
         }
     }

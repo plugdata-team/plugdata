@@ -482,7 +482,7 @@ public:
         auto rect = getLocalBounds().reduced(14, 7);
         Path shadowPath;
         shadowPath.addRoundedRectangle(rect, Corners::defaultCornerRadius);
-        StackShadow::renderDropShadow(g, shadowPath, Colours::black.withAlpha(0.3f), 6);
+        StackShadow::renderDropShadow(g, shadowPath, Colours::black.withAlpha(0.3f), 7);
     }
 
 private:

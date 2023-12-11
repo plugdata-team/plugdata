@@ -233,7 +233,7 @@ public:
     {
         Path p;
         p.addRoundedRectangle(b.reduced(3.0f), Corners::largeCornerRadius);
-        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
+        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 7, { 0, 1 });
 
         g.setColour(findColour(PlugDataColour::panelForegroundColourId));
         g.fillRoundedRectangle(b.toFloat(), Corners::largeCornerRadius);
@@ -259,7 +259,7 @@ public:
         // Drag image shadow
         Path p;
         p.addRoundedRectangle(image.getBounds().reduced(1.0f), Corners::largeCornerRadius);
-        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
+        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 7, { 0, 1 });
 
         topArea.removeFromBottom(90); // space for download button
         topArea = topArea.reduced(16);
@@ -379,7 +379,7 @@ private:
 
         Path p;
         p.addRoundedRectangle(b.reduced(3.0f), Corners::largeCornerRadius);
-        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
+        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 7, { 0, 1 });
 
         if (isMouseOver()) {
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));

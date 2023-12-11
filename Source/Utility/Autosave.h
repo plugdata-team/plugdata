@@ -210,7 +210,7 @@ class AutosaveHistoryComponent : public Component {
 
             Path shadowPath;
             shadowPath.addRoundedRectangle(bounds.reduced(3).toFloat(), Corners::largeCornerRadius);
-            StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
+            StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.4f), 7, { 0, 1 });
 
             g.setColour(findColour(PlugDataColour::panelForegroundColourId));
             g.fillRoundedRectangle(bounds.toFloat(), Corners::defaultCornerRadius);

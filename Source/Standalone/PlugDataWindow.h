@@ -463,7 +463,7 @@ public:
                     setDropShadowEnabled(true);
 #elif JUCE_WINDOWS
                     setDropShadowEnabled(false);
-                    dropShadower = std::make_unique<StackDropShadower>(DropShadow(Colour(0, 0, 0).withAlpha(0.8f), 22, { 0, 3 }));
+                    dropShadower = std::make_unique<StackDropShadower>(DropShadow(Colour(0, 0, 0).withAlpha(0.8f), 23, { 0, 2 }));
                     dropShadower->setOwner(this);
 #endif
                 } else {
@@ -583,8 +583,8 @@ public:
             Path localPath;
             localPath.addRoundedRectangle(b.toFloat().reduced(22.0f), Corners::windowCornerRadius);
 
-            int radius = isActiveWindow() ? 21 : 16;
-            StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), radius, { 0, 3 });
+            int radius = isActiveWindow() ? 22 : 17;
+            StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), radius, { 0, 2 });
         }
     }
 #endif

@@ -163,7 +163,7 @@ public:
 
         Path p;
         p.addRoundedRectangle(resetButtonBounds.reduced(3.0f), Corners::largeCornerRadius);
-        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
+        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 7, { 0, 1 });
 
         g.setColour(findColour(PlugDataColour::panelForegroundColourId));
         g.fillRoundedRectangle(resetButtonBounds, Corners::largeCornerRadius);
@@ -176,7 +176,7 @@ public:
 
         p = Path();
         p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
-        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
+        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 7, { 0, 1 });
 
         g.setColour(findColour(PlugDataColour::panelForegroundColourId));
         g.fillRoundedRectangle(propertyBounds, Corners::largeCornerRadius);
@@ -514,7 +514,7 @@ public:
 
         Path p;
         p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
-        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
+        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 7, { 0, 1 });
 
         g.setColour(findColour(PlugDataColour::panelForegroundColourId));
         g.fillRoundedRectangle(propertyBounds, Corners::largeCornerRadius);

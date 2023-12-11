@@ -39,3 +39,6 @@
 [submodule "Libraries/concurrentqueue"]
 	path = Libraries/concurrentqueue
 	url = https://github.com/cameron314/concurrentqueue.git
+[submodule "Libraries/melatonin_blur"]
+	path = Libraries/melatonin_blur
+	url = https://github.com/sudara/melatonin_blur.git

@@ -115,7 +115,7 @@ private:
             if (parent.drawShadowAndOutline) {
                 Path p;
                 p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
-                StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
+                StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 7, { 0, 1 });
             }
 
             g.setColour(findColour(parent.panelColour));

@@ -114,7 +114,7 @@ private:
 
         Path p;
         p.addRoundedRectangle(b.reduced(3.0f), Corners::largeCornerRadius);
-        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 8, { 0, 1 });
+        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 9, { 0, 1 });
 
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.fillRoundedRectangle(b.toFloat(), Corners::largeCornerRadius);

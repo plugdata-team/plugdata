@@ -319,7 +319,7 @@ void PlugDataLook::drawCallOutBoxBackground(CallOutBox& box, Graphics& g, Path c
         cachedImage = { Image::ARGB, box.getWidth(), box.getHeight(), true };
         Graphics g2(cachedImage);
 
-        StackShadow::renderDropShadow(g2, path, Colour(0, 0, 0).withAlpha(0.3f), 7, { 0, 2 });
+        StackShadow::renderDropShadow(g2, path, Colour(0, 0, 0).withAlpha(0.3f), 8, { 0, 1 });
     }
 
     g.setColour(Colours::black);
@@ -793,7 +793,7 @@ void PlugDataLook::drawPopupMenuBackgroundWithOptions(Graphics& g, int width, in
     if (Desktop::canUseSemiTransparentWindows()) {
         Path shadowPath;
         shadowPath.addRoundedRectangle(Rectangle<float>(0.0f, 0.0f, width, height).reduced(10.0f), Corners::defaultCornerRadius);
-        StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 10, { 0, 1 });
+        StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 11, { 0, 1 });
 
         g.setColour(background);
 

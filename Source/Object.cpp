@@ -610,7 +610,7 @@ void Object::resized()
 
         Path objectShadow;
         objectShadow.addRoundedRectangle(getLocalBounds().reduced(Object::margin - 2), Corners::objectCornerRadius);
-        StackShadow::renderDropShadow(g, objectShadow, findColour(PlugDataColour::dataColourId), 5, { 0, 0 }, 0);
+        StackShadow::renderDropShadow(g, objectShadow, findColour(PlugDataColour::dataColourId), 6, { 0, 0 }, 0);
         g.restoreState();
     }
 }
