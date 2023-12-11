@@ -131,7 +131,7 @@ public:
     Block()
     {
         colours = nullptr;
-        defaultColour = Colours::black;
+        defaultColour = findColour(PlugDataColour::canvasTextColourId);
     }
     // static utility methods
     static Colour parseHexColourStatic(String s, Colour defaultColour)
@@ -367,6 +367,7 @@ protected:
         return parseHexColourStatic(s, defaultColour);
     }
 
+
     AttributedString attributedString;
 
 private:
@@ -546,7 +547,7 @@ public:
         return width - table.cellgap;
     }
 
-    float getHeightRequired(float width)
+    float getHeightRequired(float width) override
     {
         // NOTE: We're ignoring width - the idea is that tables can be scrolled horizontally if necessary
         float height = 0;
@@ -556,7 +557,7 @@ public:
         return height - table.cellgap;
     }
 
-    void resized()
+    void resized() override
     {
         viewport.setBounds(getLocalBounds());
     }
@@ -580,7 +581,7 @@ private:
         float width;
         float height;
     } Cell;
-    class InnerViewport : public BouncingViewport {
+    class InnerViewport : public Viewport {
     public:
         // Override the mouse event methods to forward them to the parent Viewport
         void mouseDown(MouseEvent const& e) override
@@ -589,7 +590,7 @@ private:
                 MouseEvent ep = MouseEvent(e.source, e.position, e.mods, e.pressure, e.orientation, e.rotation, e.tiltX, e.tiltY, parent, e.originalComponent, e.eventTime, e.mouseDownPosition, e.mouseDownTime, e.getNumberOfClicks(), e.mouseWasDraggedSinceMouseDown());
                 parent->mouseDown(ep);
             }
-            BouncingViewport::mouseDown(e);
+            Viewport::mouseDown(e);
         }
         void mouseUp(MouseEvent const& e) override
         {
@@ -597,7 +598,7 @@ private:
                 MouseEvent ep = MouseEvent(e.source, e.position, e.mods, e.pressure, e.orientation, e.rotation, e.tiltX, e.tiltY, parent, e.originalComponent, e.eventTime, e.mouseDownPosition, e.mouseDownTime, e.getNumberOfClicks(), e.mouseWasDraggedSinceMouseDown());
                 parent->mouseUp(ep);
             }
-            BouncingViewport::mouseUp(e);
+            Viewport::mouseUp(e);
         }
         void mouseDrag(MouseEvent const& e) override
         {
@@ -605,7 +606,7 @@ private:
                 MouseEvent ep = MouseEvent(e.source, e.position, e.mods, e.pressure, e.orientation, e.rotation, e.tiltX, e.tiltY, parent, e.originalComponent, e.eventTime, e.mouseDownPosition, e.mouseDownTime, e.getNumberOfClicks(), e.mouseWasDraggedSinceMouseDown());
                 parent->mouseDrag(ep);
             }
-            BouncingViewport::mouseDrag(e);
+            Viewport::mouseDrag(e);
         }
         // Override mouseWheelMove to forward events to the parent Viewport
         void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel) override
@@ -615,7 +616,7 @@ private:
                 MouseEvent ep = MouseEvent(e.source, e.position, e.mods, e.pressure, e.orientation, e.rotation, e.tiltX, e.tiltY, parent, e.originalComponent, e.eventTime, e.mouseDownPosition, e.mouseDownTime, e.getNumberOfClicks(), e.mouseWasDraggedSinceMouseDown());
                 parent->mouseWheelMove(ep, wheel);
             }
-            BouncingViewport::mouseWheelMove(e, wheel);
+            Viewport::mouseWheelMove(e, wheel);
         }
     };
     class Table : public Component {
@@ -835,13 +836,16 @@ public:
         colours.set("darkyellow", "#AA0");
         colours.set("purple", "#A0F");
         colours.set("gray", "#777");
-        colours.set("linkcolour", "#00A");
 
+        
+        auto linkColour = findColour(PlugDataColour::dataColourId);
+        auto linkHex = "#" + String::toHexString(linkColour.getRed()) + String::toHexString(linkColour.getGreen()) + String::toHexString(linkColour.getBlue());
+        colours.set("linkcolour", linkHex);
+        
+        
+        
         // default font
         font = Font(15);
-
-        // default background
-        bg = Colours::white;
 
         // default table backgrounds
         tableBGHeader = Block::parseHexColourStatic(colours["lightcyan"], Colours::black);
@@ -868,11 +872,16 @@ public:
 
         addAndMakeVisible(viewport);
         viewport.setViewedComponent(&content, false); // we manage the content component
-        viewport.setScrollBarsShown(false, false, true, false);
+        viewport.setScrollBarsShown(true, false, true, false);
         viewport.setScrollOnDragMode(Viewport::ScrollOnDragMode::nonHover);
     }
 
-    void paint(Graphics& g) override { g.fillAll(bg); } // clear the background
+    void paint(Graphics& g) override {
+        g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
+    }
+    
+    // clear the background
     void resized() override
     {
         // let's keep the relative vertical position
@@ -900,7 +909,6 @@ public:
     void setFont(Font font) { this->font = font; };
     void setMargin(int m) { margin = m; };
     void setColours(StringPairArray c) { colours = c; };
-    void setBGColour(Colour bg) { this->bg = bg; };
     void setTableColours(Colour bg, Colour bgHeader)
     {
         tableBG = bg;
@@ -1096,7 +1104,7 @@ private:
     Colour tableBG, tableBGHeader; // table background colours
     int tableMargin, tableGap;     // table margins
     int indentPerSpace, labelGap;  // list item indents
-    Viewport viewport;             // a viewport to scroll the content
+    BouncingViewport viewport;     // a viewport to scroll the content
     Component content;             // a component with the content
     OwnedArray<Block> blocks;      // representation of the document as blocks
     int margin;                    // content margin in pixels

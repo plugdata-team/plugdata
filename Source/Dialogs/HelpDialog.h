@@ -72,7 +72,7 @@ class HelpDialog : public Component
         OwnedArray<TextButton> buttons;
     };
 
-    IndexComponent index;
+    //IndexComponent index;
 
 public:
     std::function<void()> onClose;
@@ -81,7 +81,7 @@ public:
 
     HelpDialog(PluginProcessor* instance)
         : resizer(this, &constrainer)
-        , index([this](File const& file) { markupDisplay.setMarkdownString(file.loadFileAsString()); })
+        //, index([this](File const& file) { markupDisplay.setMarkdownString(file.loadFileAsString()); })
         , pd(instance)
     {
         markupDisplay.setFileSource(this);
@@ -107,7 +107,7 @@ public:
         setBounds(Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea.withSizeKeepingCentre(700, 500));
 
         addAndMakeVisible(resizer);
-        addAndMakeVisible(index);
+        //addAndMakeVisible(index);
     }
 
     Image getImageForFilename(String filename) override
@@ -124,7 +124,7 @@ public:
         auto closeButtonBounds = getLocalBounds().removeFromTop(30).removeFromRight(30).translated(-5, 5);
         closeButton->setBounds(closeButtonBounds);
 
-        index.setBounds(bounds.removeFromLeft(200));
+        //index.setBounds(bounds.removeFromLeft(200));
         markupDisplay.setBounds(bounds);
     }
 
@@ -143,7 +143,8 @@ public:
         auto toolbarHeight = 38;
         auto b = getLocalBounds();
         auto titlebarBounds = b.removeFromTop(toolbarHeight).toFloat();
-        auto arrayBounds = b.toFloat();
+        auto bgBounds = b.toFloat();
+        //auto sidebarBounds = b.removeFromLeft(200);
 
         Path toolbarPath;
         toolbarPath.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);
@@ -151,8 +152,14 @@ public:
         g.fillPath(toolbarPath);
 
         Path backgroundPath;
-        backgroundPath.addRoundedRectangle(arrayBounds.getX(), arrayBounds.getY(), arrayBounds.getWidth(), arrayBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, false, false, true, true);
-        g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
+        backgroundPath.addRoundedRectangle(bgBounds.getX(), bgBounds.getY(), bgBounds.getWidth(), bgBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, false, false, true, true);
+        g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
+        g.fillPath(backgroundPath);
+        
+        /*
+        Path sidebarPath;
+        backgroundPath.addRoundedRectangle(sidebarBounds.getX(), sidebarBounds.getY(), sidebarBounds.getWidth(), sidebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, false, false, true, false);
+        g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId)); */
         g.fillPath(backgroundPath);
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
