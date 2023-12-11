@@ -281,7 +281,7 @@ void Object::applyBounds()
         return;
 
     cnv->pd->lockAudioThread();
-    patch->startUndoSequence("resize");
+    patch->startUndoSequence("Resize");
 
     for (auto& [object, bounds] : newObjectSizes) {
         if (object->gui)
@@ -290,7 +290,7 @@ void Object::applyBounds()
 
     canvas_dirty(patchPtr, 1);
 
-    patch->endUndoSequence("resize");
+    patch->endUndoSequence("Resize");
 
     MessageManager::callAsync([cnv = SafePointer(this->cnv)] {
         if (cnv)
@@ -886,7 +886,7 @@ void Object::mouseUp(MouseEvent const& e)
         if (ds.objectSnappingInbetween) {
             auto* c = ds.connectionToSnapInbetween.getComponent();
 
-            cnv->patch.startUndoSequence("SnapInbetween");
+            cnv->patch.startUndoSequence("Snap inbetween");
 
             auto* checkedOut = pd::Interface::checkObject(c->outobj->getPointer());
             auto* checkedIn = pd::Interface::checkObject(c->inobj->getPointer());
@@ -899,7 +899,7 @@ void Object::mouseUp(MouseEvent const& e)
                 cnv->patch.createConnection(checkedSnapped, 0, checkedIn, c->inIdx);
             }
 
-            cnv->patch.endUndoSequence("SnapInbetween");
+            cnv->patch.endUndoSequence("Snap inbetween");
 
             ds.objectSnappingInbetween->iolets[0]->isTargeted = false;
             ds.objectSnappingInbetween->iolets[ds.objectSnappingInbetween->numInputs]->isTargeted = false;

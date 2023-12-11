@@ -174,14 +174,18 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(mainMenuButton);
 
     //  Undo button
-    undoButton.setTooltip("Undo");
+    undoButton.isUndo = true;
     undoButton.onClick = [this]() { getCurrentCanvas()->undo(); };
     addAndMakeVisible(undoButton);
 
+    canUndo.addListener(this);
+
     // Redo button
-    redoButton.setTooltip("Redo");
+    redoButton.isRedo = true;
     redoButton.onClick = [this]() { getCurrentCanvas()->redo(); };
     addAndMakeVisible(redoButton);
+
+    canRedo.addListener(this);
 
     // New object button
     addObjectMenuButton.setButtonText(Icons::AddObject);
@@ -886,6 +890,9 @@ void PluginEditor::valueChanged(Value& v)
         pd->setTheme(theme.toString());
         getTopLevelComponent()->repaint();
     }
+    if (v.refersToSameSourceAs(canUndo) || v.refersToSameSourceAs(canRedo)) {
+        updateUndoRedoButtonState();
+    }
 }
 
 void PluginEditor::modifierKeysChanged(ModifierKeys const& modifiers)
@@ -911,7 +918,6 @@ void PluginEditor::updateCommandStatus()
     
     if (auto* cnv = getCurrentCanvas()) {
         bool locked = getValue<bool>(cnv->locked);
-        bool isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && cnv->locked == var(false);
 
         if (getValue<bool>(cnv->presentationMode)) {
             presentButton.setToggleState(true, dontSendNotification);
@@ -920,12 +926,8 @@ void PluginEditor::updateCommandStatus()
         } else {
             editButton.setToggleState(true, dontSendNotification);
         }
-        
-        canUndo = cnv->patch.canUndo && !isDragging && !locked;
-        canRedo = cnv->patch.canRedo && !isDragging && !locked;
-
-        undoButton.setEnabled(canUndo);
-        redoButton.setEnabled(canRedo);
+        // FIXME: even though we use a value listener for the patch undo state, we don't for isDragging & isLocked (consider fixing this)
+        updateUndoRedoButtonState();
 
         // Application commands need to be updated when undo state changes
         commandStatusChanged();
@@ -954,6 +956,29 @@ void PluginEditor::updateCommandStatus()
         undoButton.setEnabled(false);
         redoButton.setEnabled(false);
         addObjectMenuButton.setEnabled(false);
+    }
+}
+
+void PluginEditor::updateUndoRedoButtonState()
+{
+    if (auto* cnv = getCurrentCanvas()) {
+        bool locked = getValue<bool>(cnv->locked);
+        bool isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && cnv->locked == var(false);
+
+        auto currentUndoState = getValue<bool>(canUndo) && !isDragging && !locked;
+        auto currentRedoState = getValue<bool>(canRedo) && !isDragging && !locked;
+
+        undoButton.setEnabled(currentUndoState);
+        redoButton.setEnabled(currentRedoState);
+    }
+}
+
+void PluginEditor::updateUndoRedoValueSource()
+{
+    if (auto* cnv = getCurrentCanvas()) {
+        auto& patch = cnv->patch;
+        canUndo.referTo(patch.canUndo);
+        canRedo.referTo(patch.canRedo);
     }
 }
 
@@ -1044,7 +1069,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     case CommandIDs::Undo: {
         result.setInfo("Undo", "Undo action", "General", 0);
         result.addDefaultKeypress(90, ModifierKeys::commandModifier);
-        result.setActive(hasCanvas && !isDragging && canUndo);
+        result.setActive(hasCanvas && !isDragging && getValue<bool>(canUndo));
 
         break;
     }
@@ -1052,7 +1077,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     case CommandIDs::Redo: {
         result.setInfo("Redo", "Redo action", "General", 0);
         result.addDefaultKeypress(90, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-        result.setActive(hasCanvas && !isDragging && canRedo);
+        result.setActive(hasCanvas && !isDragging && getValue<bool>(canRedo));
         break;
     }
     case CommandIDs::Lock: {

@@ -1,9 +1,16 @@
 #pragma once
 
+#include "Constants.h"
+
 class MainToolbarButton : public TextButton {
 
 public:
     using TextButton::TextButton;
+
+    bool isUndo = false;
+    bool isRedo = false;
+
+    String getTooltip() override;
 
     void paint(Graphics& g) override
     {

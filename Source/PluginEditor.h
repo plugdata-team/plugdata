@@ -85,6 +85,9 @@ public:
 
     void updateCommandStatus();
 
+    void updateUndoRedoButtonState();
+    void updateUndoRedoValueSource();
+
     bool isInterestedInFileDrag(StringArray const& files) override;
     void filesDropped(StringArray const& files, int x, int y) override;
     void fileDragEnter(StringArray const&, int, int) override;
@@ -124,8 +127,6 @@ public:
     std::unique_ptr<Sidebar> sidebar;
     std::unique_ptr<Statusbar> statusbar;
 
-    bool canUndo = false, canRedo = false;
-
     std::unique_ptr<Dialog> openedDialog;
 
     std::unique_ptr<PluginMode> pluginMode;
@@ -134,6 +135,9 @@ public:
 
     Value hvccMode;
     Value autoconnect;
+
+    Value canUndo;
+    Value canRedo;
 
     SplitView splitView;
     DrawableRectangle selectedSplitRect;
