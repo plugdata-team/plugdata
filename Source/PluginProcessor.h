@@ -96,6 +96,7 @@ public:
     }
 
     void savePatchTabPositions();
+    void updatePatchUndoRedoState();
 
     void initialiseFilesystem();
     void updateSearchPaths();

@@ -543,13 +543,12 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     }
 
     // limit the update frequency of the undo state, about 10x a second at 44.1khz feels like enough?
+    /*
     if (processBlockCount > 4096) {
         processBlockCount -= 4096;
-        for (auto& patch : patches) {
-            patch->updateUndoRedoState();
-        }
+
     }
-    processBlockCount += buffer.getNumSamples();
+    processBlockCount += buffer.getNumSamples(); */
 
     auto targetGain = volume->load();
     float mappedTargetGain = 0.0f;
@@ -629,6 +628,15 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     }
 }
 
+
+void PluginProcessor::updatePatchUndoRedoState()
+{
+    enqueueFunctionAsync([this](){
+        for (auto& patch : patches) {
+            patch->updateUndoRedoState();
+        }
+    });
+}
 void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer, MidiBuffer& midiMessages)
 {
     int blockSize = Instance::getBlockSize();

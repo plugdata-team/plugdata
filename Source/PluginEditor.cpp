@@ -889,8 +889,6 @@ void PluginEditor::modifierKeysChanged(ModifierKeys const& modifiers)
 
 void PluginEditor::handleAsyncUpdate()
 {
-    std::cout << "Status update!" << std::endl;
-    
     // Reflect patch dirty state in tab title
     for (auto split : splitView.splits) {
         auto tabbar = split->getTabComponent();
@@ -907,7 +905,8 @@ void PluginEditor::handleAsyncUpdate()
 
     if (auto* cnv = getCurrentCanvas()) {
         bool locked = getValue<bool>(cnv->locked);
-
+        bool isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && cnv->locked == var(false);
+        
         if (getValue<bool>(cnv->presentationMode)) {
             presentButton.setToggleState(true, dontSendNotification);
         } else if (locked) {
@@ -916,8 +915,11 @@ void PluginEditor::handleAsyncUpdate()
             editButton.setToggleState(true, dontSendNotification);
         }
 
-        // FIXME: even though we use a value listener for the patch undo state, we don't for isDragging & isLocked (consider fixing this)
-        updateUndoRedoButtonState();
+        auto currentUndoState = cnv->patch.canUndo() && !isDragging && !locked;
+        auto currentRedoState = cnv->patch.canRedo() && !isDragging && !locked;
+
+        undoButton.setEnabled(currentUndoState);
+        redoButton.setEnabled(currentRedoState);
 
         // Application commands need to be updated when undo state changes
         commandManager.commandStatusChanged();
@@ -952,28 +954,8 @@ void PluginEditor::handleAsyncUpdate()
 void PluginEditor::updateCommandStatus()
 {
     // Make sure patches update their undo/redo state information soon
-    pd->enqueueFunctionAsync([_this = SafePointer(this)](){
-        if(!_this) return;
-        for (auto& patch : _this->pd->patches) {
-            patch->updateUndoRedoState();
-        }
-    });
-    
+    pd->updatePatchUndoRedoState();
     AsyncUpdater::triggerAsyncUpdate();
-}
-
-void PluginEditor::updateUndoRedoButtonState()
-{
-    if (auto* cnv = getCurrentCanvas()) {
-        bool locked = getValue<bool>(cnv->locked);
-        bool isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && cnv->locked == var(false);
-        
-        auto currentUndoState = cnv->patch.canUndo() && !isDragging && !locked;
-        auto currentRedoState = cnv->patch.canRedo() && !isDragging && !locked;
-
-        undoButton.setEnabled(currentUndoState);
-        redoButton.setEnabled(currentRedoState);
-    }
 }
 
 ApplicationCommandTarget* PluginEditor::getNextCommandTarget()
