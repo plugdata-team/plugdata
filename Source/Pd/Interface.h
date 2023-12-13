@@ -411,12 +411,24 @@ struct Interface {
         canvas_dirty(cnv, 1);
     }
 
+    static int getUndoSize(t_canvas* cnv)
+    {
+        auto* undo = canvas_undo_get(cnv)->u_queue;
+
+        int count = 0;
+        while(undo) {
+            count++;
+            undo = undo->next;
+        }
+        return count;
+    }
+
     static int canUndo(t_canvas* cnv)
     {
         t_undo* udo = canvas_undo_get(cnv);
 
         if (udo && udo->u_last) {
-            return strcmp(udo->u_last->name, "no");
+            return strcmp(udo->u_last->name, "no") != 0;
         }
 
         return 0;
@@ -427,7 +439,7 @@ struct Interface {
         t_undo* udo = canvas_undo_get(cnv);
 
         if (udo && udo->u_last && udo->u_last->next) {
-            return strcmp(udo->u_last->next->name, "no");
+            return strcmp(udo->u_last->next->name, "no") != 0;
         }
 
         return 0;

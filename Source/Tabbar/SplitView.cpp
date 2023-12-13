@@ -163,6 +163,7 @@ void SplitView::setFocus(ResizableTabbedComponent* selectedTabComponent)
     if (activeTabComponent != selectedTabComponent) {
         activeTabComponent = selectedTabComponent;
         focusOutline->setActive(activeTabComponent);
+        editor->updateUndoRedoValueSource();
     }
 }
 
