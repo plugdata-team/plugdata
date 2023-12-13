@@ -587,22 +587,22 @@ void Patch::updateUndoRedoString()
         auto undo = currentUndo;
         auto redo = currentUndo->next;
 
+#ifdef DEBUG_UNDO_QUEUE
         auto undoDbg = undo;
         auto redoDbg = redo;
-
+#endif
+        
         lastUndoSequence = "";
         lastRedoSequence = "";
 
-        // undo / redo list will contain libpd undo events
-        // take the first event that we have put there from plugdata
-        // which will start with a capital letter
+        // undo / redo list will contain pd undo events
         while (undo) {
             String undoName = undo->name;
             if (undoName == "props") {
                 lastUndoSequence = "Change property";
                 break;
-            } else if (CharacterFunctions::isUpperCase(undoName[0])) {
-                lastUndoSequence = undoName;
+            } else if (undoName != "no") {
+                lastUndoSequence = undoName.substring(0, 1).toUpperCase() + undoName.substring(1);
                 break;
             }
             undo = undo->prev;
@@ -613,8 +613,8 @@ void Patch::updateUndoRedoString()
             if (redoName == "props") {
                 lastRedoSequence = "Change property";
                 break;
-            } else if (CharacterFunctions::isUpperCase(redoName[0])) {
-                lastRedoSequence = redoName;
+            } else if (redoName != "no") {
+                lastRedoSequence = redoName.substring(0, 1).toUpperCase() + redoName.substring(1);
                 break;
             }
             redo = redo->next;

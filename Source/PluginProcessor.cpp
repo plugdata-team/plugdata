@@ -542,14 +542,14 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
         oversampler->processSamplesDown(targetBlock);
     }
 
-    // limit the update frequency of the undo state, about 6x a second at 44100hz feels like enough?
-    if (processBlockCount > 100) {
-        processBlockCount = 0;
+    // limit the update frequency of the undo state, about 10x a second at 44.1khz feels like enough?
+    if (processBlockCount > 4096) {
+        processBlockCount -= 4096;
         for (auto& patch : patches) {
             patch->updateUndoRedoState();
         }
     }
-    processBlockCount++;
+    processBlockCount += buffer.getNumSamples();
 
     auto targetGain = volume->load();
     float mappedTargetGain = 0.0f;
