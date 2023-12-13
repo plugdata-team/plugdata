@@ -38,11 +38,12 @@ class TouchSelectionHelper;
 class PluginEditor : public AudioProcessorEditor
     , public Value::Listener
     , public ApplicationCommandTarget
-    , public ApplicationCommandManager
     , public FileDragAndDropTarget
     , public ModifierKeyBroadcaster
     , public ModifierKeyListener
-    , public ZoomableDragAndDropContainer {
+    , public ZoomableDragAndDropContainer
+    , public AsyncUpdater
+{
 public:
     explicit PluginEditor(PluginProcessor&);
 
@@ -84,10 +85,10 @@ public:
     void valueChanged(Value& v) override;
 
     void updateCommandStatus();
+    void handleAsyncUpdate() override;
 
     void updateUndoRedoButtonState();
-    void updateUndoRedoValueSource();
-
+        
     bool isInterestedInFileDrag(StringArray const& files) override;
     void filesDropped(StringArray const& files, int x, int y) override;
     void fileDragEnter(StringArray const&, int, int) override;
@@ -116,6 +117,8 @@ public:
     void setUseBorderResizer(bool shouldUse);
 
     void showTouchSelectionHelper(bool shouldBeShown);
+    
+
 
     TabComponent* getActiveTabbar();
 
@@ -136,9 +139,6 @@ public:
     Value hvccMode;
     Value autoconnect;
 
-    Value canUndo;
-    Value canRedo;
-
     SplitView splitView;
     DrawableRectangle selectedSplitRect;
 
@@ -155,11 +155,13 @@ public:
     ComponentBoundsConstrainer& pluginConstrainer;
 
     std::unique_ptr<Autosave> autosave;
-
+    ApplicationCommandManager commandManager;
+    
     inline static ObjectThemeManager objectManager;
     static ObjectThemeManager* getObjectManager() { return &objectManager; };
 
 private:
+    
     std::unique_ptr<TouchSelectionHelper> touchSelectionHelper;
 
     // Used by standalone to handle dragging the window

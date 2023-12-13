@@ -109,10 +109,10 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     runButton.setButtonText(Icons::Lock);
     presentButton.setButtonText(Icons::Presentation);
 
-    addKeyListener(getKeyMappings());
+    addKeyListener(commandManager.getKeyMappings());
 
     setWantsKeyboardFocus(true);
-    registerAllCommandsForTarget(this);
+    commandManager.registerAllCommandsForTarget(this);
 
     for (auto& seperator : seperators) {
         addChildComponent(&seperator);
@@ -127,7 +127,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         auto elt = XmlDocument(xmlStr).getDocumentElement();
 
         if (elt) {
-            getKeyMappings()->restoreFromXml(*elt);
+            commandManager.getKeyMappings()->restoreFromXml(*elt);
         }
     } else {
         settingsFile->getValueTree().appendChild(ValueTree("KeyMap"), nullptr);
@@ -175,16 +175,12 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     undoButton.isUndo = true;
     undoButton.onClick = [this]() { getCurrentCanvas()->undo(); };
     addAndMakeVisible(undoButton);
-
-    canUndo.addListener(this);
-
+    
     // Redo button
     redoButton.isRedo = true;
     redoButton.onClick = [this]() { getCurrentCanvas()->redo(); };
     addAndMakeVisible(redoButton);
-
-    canRedo.addListener(this);
-
+    
     // New object button
     addObjectMenuButton.setButtonText(Icons::AddObject);
     addObjectMenuButton.setTooltip("Add object");
@@ -884,9 +880,6 @@ void PluginEditor::valueChanged(Value& v)
         pd->setTheme(theme.toString());
         getTopLevelComponent()->repaint();
     }
-    if (v.refersToSameSourceAs(canUndo) || v.refersToSameSourceAs(canRedo)) {
-        updateUndoRedoButtonState();
-    }
 }
 
 void PluginEditor::modifierKeysChanged(ModifierKeys const& modifiers)
@@ -894,8 +887,10 @@ void PluginEditor::modifierKeysChanged(ModifierKeys const& modifiers)
     setModifierKeys(modifiers);
 }
 
-void PluginEditor::updateCommandStatus()
+void PluginEditor::handleAsyncUpdate()
 {
+    std::cout << "Status update!" << std::endl;
+    
     // Reflect patch dirty state in tab title
     for (auto split : splitView.splits) {
         auto tabbar = split->getTabComponent();
@@ -925,7 +920,7 @@ void PluginEditor::updateCommandStatus()
         updateUndoRedoButtonState();
 
         // Application commands need to be updated when undo state changes
-        commandStatusChanged();
+        commandManager.commandStatusChanged();
 
         pluginModeButton.setEnabled(true);
 
@@ -954,26 +949,30 @@ void PluginEditor::updateCommandStatus()
     }
 }
 
+void PluginEditor::updateCommandStatus()
+{
+    // Make sure patches update their undo/redo state information soon
+    pd->enqueueFunctionAsync([_this = SafePointer(this)](){
+        if(!_this) return;
+        for (auto& patch : _this->pd->patches) {
+            patch->updateUndoRedoState();
+        }
+    });
+    
+    AsyncUpdater::triggerAsyncUpdate();
+}
+
 void PluginEditor::updateUndoRedoButtonState()
 {
     if (auto* cnv = getCurrentCanvas()) {
         bool locked = getValue<bool>(cnv->locked);
         bool isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && cnv->locked == var(false);
-
-        auto currentUndoState = getValue<bool>(canUndo) && !isDragging && !locked;
-        auto currentRedoState = getValue<bool>(canRedo) && !isDragging && !locked;
+        
+        auto currentUndoState = cnv->patch.canUndo() && !isDragging && !locked;
+        auto currentRedoState = cnv->patch.canRedo() && !isDragging && !locked;
 
         undoButton.setEnabled(currentUndoState);
         redoButton.setEnabled(currentRedoState);
-    }
-}
-
-void PluginEditor::updateUndoRedoValueSource()
-{
-    if (auto* cnv = getCurrentCanvas()) {
-        auto& patch = cnv->patch;
-        canUndo.referTo(patch.canUndo);
-        canRedo.referTo(patch.canRedo);
     }
 }
 
@@ -1016,6 +1015,8 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
     bool hasCanvas = false;
     bool locked = true;
     bool canConnect = false;
+    bool canUndo = false;
+    bool canRedo = false;
 
     if (auto* cnv = getCurrentCanvas()) {
         auto selectedObjects = cnv->getSelectionOfType<Object>();
@@ -1027,6 +1028,9 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         hasSelection = hasObjectSelection || hasConnectionSelection;
         isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && cnv->locked == var(false);
         hasCanvas = true;
+        
+        canUndo = cnv->patch.canUndo() && !isDragging;
+        canRedo = cnv->patch.canRedo() && !isDragging;
 
         locked = getValue<bool>(cnv->locked);
         canConnect = cnv->canConnectSelectedObjects();
@@ -1064,7 +1068,7 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
     case CommandIDs::Undo: {
         result.setInfo("Undo", "Undo action", "General", 0);
         result.addDefaultKeypress(90, ModifierKeys::commandModifier);
-        result.setActive(hasCanvas && !isDragging && getValue<bool>(canUndo));
+        result.setActive(canUndo);
 
         break;
     }
@@ -1072,7 +1076,7 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
     case CommandIDs::Redo: {
         result.setInfo("Redo", "Redo action", "General", 0);
         result.addDefaultKeypress(90, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-        result.setActive(hasCanvas && !isDragging && getValue<bool>(canRedo));
+        result.setActive(canRedo);
         break;
     }
     case CommandIDs::Lock: {

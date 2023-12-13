@@ -73,11 +73,17 @@ Rectangle<int> Patch::getBounds() const
 
 bool Patch::isDirty() const
 {
-    if (auto patch = ptr.get<t_glist>()) {
-        return patch->gl_dirty;
-    }
+    return isPatchDirty.load();
+}
 
-    return false;
+bool Patch::canUndo() const
+{
+    return canPatchUndo.load();
+}
+
+bool Patch::canRedo() const
+{
+    return canPatchRedo.load();
 }
 
 void Patch::savePatch(File const& location)
@@ -132,8 +138,9 @@ bool Patch::isAbstraction()
 void Patch::updateUndoRedoState()
 {
     if (auto patch = ptr.get<t_glist>()) {
-        canUndo = pd::Interface::canUndo(patch.get());
-        canRedo = pd::Interface::canRedo(patch.get());
+        canPatchUndo = pd::Interface::canUndo(patch.get());
+        canPatchRedo = pd::Interface::canRedo(patch.get());
+        isPatchDirty = patch->gl_dirty;
 
         auto undoSize = pd::Interface::getUndoSize(patch.get());
         if (undoQueueSize != undoSize) {
@@ -552,13 +559,12 @@ void Patch::endUndoSequence(String const& name)
 void Patch::undo()
 {
     if (auto patch = ptr.get<t_glist>()) {
-        //setCurrent();
-        //auto x = patch.get();
-        //glist_noselect(x);
-        //libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
+        setCurrent();
+        auto x = patch.get();
+        glist_noselect(x);
+        libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
 
-        //pd::Interface::undo(patch.get());
-        canvas_undo_undo(patch.get());
+        pd::Interface::undo(patch.get());
 
         updateUndoRedoString();
     }
@@ -567,13 +573,12 @@ void Patch::undo()
 void Patch::redo()
 {
     if (auto patch = ptr.get<t_glist>()) {
-        //setCurrent();
-        //auto x = patch.get();
-        //glist_noselect(x);
-        //libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
+        setCurrent();
+        auto x = patch.get();
+        glist_noselect(x);
+        libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
 
-        //pd::Interface::redo(patch.get());
-        canvas_undo_redo(patch.get());
+        pd::Interface::redo(patch.get());
 
         updateUndoRedoString();
     }
@@ -597,7 +602,7 @@ void Patch::updateUndoRedoString()
 
         // undo / redo list will contain pd undo events
         while (undo) {
-            String undoName = undo->name;
+            String undoName = String::fromUTF8(undo->name);
             if (undoName == "props") {
                 lastUndoSequence = "Change property";
                 break;
@@ -609,7 +614,7 @@ void Patch::updateUndoRedoString()
         }
 
         while (redo) {
-            String redoName = redo->name;
+            String redoName = String::fromUTF8(redo->name);
             if (redoName == "props") {
                 lastRedoSequence = "Change property";
                 break;

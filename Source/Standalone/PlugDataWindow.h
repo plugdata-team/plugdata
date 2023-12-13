@@ -648,7 +648,7 @@ private:
         {
             if (editor != nullptr) {
 
-                auto* commandManager = dynamic_cast<ApplicationCommandManager*>(editor.getComponent());
+                auto* commandManager = &dynamic_cast<PluginEditor*>(editor.getComponent())->commandManager;
 
                 // Menubar, only for standalone on mac
                 // Doesn't add any new features, but was easy to implement because we already have a command manager
@@ -701,7 +701,7 @@ private:
         {
             PopupMenu menu;
 
-            auto* commandManager = dynamic_cast<ApplicationCommandManager*>(editor.getComponent());
+            auto* commandManager = &dynamic_cast<PluginEditor*>(editor.getComponent())->commandManager;
 
             if (topLevelMenuIndex == 0) {
                 menu.addCommandItem(commandManager, CommandIDs::NewProject);

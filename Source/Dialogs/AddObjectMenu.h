@@ -30,7 +30,7 @@ public:
 
     String getKeyboardShortcutDescription(ObjectIDs objectID)
     {
-        auto keyPresses = editor->getKeyMappings()->getKeyPressesAssignedToCommand(objectID);
+        auto keyPresses = editor->commandManager.getKeyMappings()->getKeyPressesAssignedToCommand(objectID);
         if (keyPresses.size()) {
             return "(" + keyPresses.getReference(0).getTextDescription() + ") ";
         }

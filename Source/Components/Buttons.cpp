@@ -14,11 +14,11 @@ String MainToolbarButton::getTooltip()
         auto cnv = editor->getCurrentCanvas();
         if (isUndo) {
             setTooltip = "Undo";
-            if (getValue<bool>(editor->canUndo) && cnv->patch.lastUndoSequence != "")
+            if (cnv->patch.canUndo() && cnv->patch.lastUndoSequence != "")
                 setTooltip += ": " /* + cnv->patch.getTitle() + ": " */ + cnv->patch.lastUndoSequence;
         } else if (isRedo) {
             setTooltip = "Redo";
-            if (getValue<bool>(editor->canRedo) && cnv->patch.lastRedoSequence != "")
+            if (cnv->patch.canRedo() && cnv->patch.lastRedoSequence != "")
                 setTooltip += ": "  /* + cnv->patch.getTitle() + ": " */ + cnv->patch.lastRedoSequence;
         }
     }

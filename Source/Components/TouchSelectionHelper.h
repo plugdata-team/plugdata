@@ -34,12 +34,12 @@ public:
         actionButtons[1]->onClick = [this]() {
             ApplicationCommandTarget::InvocationInfo info(CommandIDs::ShowHelp);
             info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
-            editor->ApplicationCommandManager::invoke(info, true);
+            editor->invoke(info, true);
         };
         actionButtons[2]->onClick = [this]() {
             ApplicationCommandTarget::InvocationInfo info(CommandIDs::Delete);
             info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
-            editor->ApplicationCommandManager::invoke(info, true);
+            editor->invoke(info, true);
         };
 
 #if JUCE_IOS

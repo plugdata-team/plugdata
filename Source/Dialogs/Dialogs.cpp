@@ -436,15 +436,15 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
     // We have a custom function for this, instead of the default JUCE way, because the default JUCE way is broken on Linux
     // It will not find a target to apply the command to once the popupmenu grabs focus...
-    auto addCommandItem = [commandManager = cnv->editor](PopupMenu& menu, CommandID const commandID, String displayName = "") {
-        if (auto* registeredInfo = commandManager->getCommandForID(commandID)) {
+    auto addCommandItem = [editor = cnv->editor](PopupMenu& menu, CommandID const commandID, String displayName = "") {
+        if (auto* registeredInfo = editor->commandManager.getCommandForID(commandID)) {
             ApplicationCommandInfo info(*registeredInfo);
-            commandManager->getCommandInfo(commandID, info);
+            editor->getCommandInfo(commandID, info);
 
             PopupMenu::Item i;
             i.text = displayName.isNotEmpty() ? std::move(displayName) : info.shortName;
             i.itemID = (int)commandID;
-            i.commandManager = commandManager;
+            i.commandManager = &editor->commandManager;
             i.isEnabled = (info.flags & ApplicationCommandInfo::isDisabled) == 0;
             i.isTicked = (info.flags & ApplicationCommandInfo::isTicked) != 0;
             menu.addItem(std::move(i));
@@ -494,7 +494,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     // Create popup menu
     PopupMenu popupMenu;
 
-    popupMenu.addCustomItem(Extra, std::make_unique<QuickActionsBar>(editor), nullptr, "Quick Actions");
+    popupMenu.addCustomItem(Extra, std::make_unique<QuickActionsBar>(&editor->commandManager), nullptr, "Quick Actions");
     popupMenu.addSeparator();
 
     popupMenu.addItem(Open, "Open", object && !multiple && canBeOpened); // for opening subpatches
