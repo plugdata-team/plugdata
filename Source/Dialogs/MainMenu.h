@@ -44,7 +44,7 @@ public:
             auto isActive = menuItems[2]->isActive = recentlyOpenedTree.getNumChildren() > 0;
             if (isActive) {
                 recentlyOpened->addSeparator();
-                recentlyOpened->addItem("Clear recently opened", [recentlyOpenedTree, this]() mutable {
+                recentlyOpened->addItem("Clear recently opened", [recentlyOpenedTree]() mutable {
                     recentlyOpenedTree.removeAllChildren(nullptr);
                     SettingsFile::getInstance()->reloadSettings();
                 });

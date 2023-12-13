@@ -1,5 +1,6 @@
 #pragma once
 #include <BinaryData.h>
+#include <JuceHeader.h>
 
 enum FontStyle {
     Regular,

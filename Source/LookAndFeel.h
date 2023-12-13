@@ -163,6 +163,9 @@ struct PlugDataLook : public LookAndFeel_V4 {
     void drawCornerResizer(Graphics& g, int w, int h, bool isMouseOver, bool isMouseDragging) override;
 
     void drawLasso(Graphics& g, Component& lassoComp) override;
+    
+    void drawAlertBox (Graphics& g, AlertWindow& alert,
+                       const Rectangle<int>& textArea, TextLayout& textLayout) override;
 
     void drawTooltip(Graphics& g, String const& text, int width, int height) override;
 

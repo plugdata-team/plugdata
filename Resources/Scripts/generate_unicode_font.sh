@@ -42,7 +42,8 @@ cat <<EOT > ./mergefont.ff
 # Scale GoNotoCurrent, because it's default em-size is 1000
 Open("GoNotoCurrent-Regular.ttf")
 SelectAll()
-ScaleToEm(2048)
+
+ScaleToEm(1638, 410)
 Generate("GoNotoCurrent-Regular-Scaled.ttf")
 Close()
 

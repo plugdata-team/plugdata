@@ -588,6 +588,7 @@ void TabComponent::changeCallback(int newCurrentTabIndex, String const& newTabNa
             panelComponent->sendLookAndFeelChange();
             panelComponent->setVisible(true);
             panelComponent->toFront(true);
+            editor->updateUndoRedoValueSource();
         }
     }
     currentTabChanged(newCurrentTabIndex, newTabName);

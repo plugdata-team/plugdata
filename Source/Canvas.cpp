@@ -998,7 +998,7 @@ void Canvas::dragAndDropPaste(String const& patchString, Point<int> mousePos, in
             _this->grabKeyboardFocus();
     });
 
-    patch.startUndoSequence("DragAndDropPaste"); // TODO: we can add the name of the event that it's dragging from?
+    patch.startUndoSequence("Add object"); // TODO: we can add the name of the event that it's dragging from?
 
     auto patchSize = Point<int>(patchWidth, patchHeight);
     String translatedObjects = pd::Patch::translatePatchAsString(patchString, mousePos - (patchSize / 2.0f));
@@ -1032,14 +1032,14 @@ void Canvas::dragAndDropPaste(String const& patchString, Point<int> mousePos, in
 
     patch.deselectAll();
     pastedObjects.clear();
-    patch.endUndoSequence("DragAndDropPaste");
+    patch.endUndoSequence("Add object");
 
     updateSidebarSelection();
 }
 
 void Canvas::pasteSelection()
 {
-    patch.startUndoSequence("Paste");
+    patch.startUndoSequence("Paste object/s");
 
     // Paste at mousePos, adds padding if pasted the same place
     auto mousePosition = getMouseXYRelative();
@@ -1078,7 +1078,7 @@ void Canvas::pasteSelection()
 
     patch.deselectAll();
     pastedObjects.clear();
-    patch.endUndoSequence("Paste");
+    patch.endUndoSequence("Paste object/s");
 
     updateSidebarSelection();
 }
@@ -1088,7 +1088,7 @@ void Canvas::duplicateSelection()
     Array<Connection*> conInlets, conOutlets;
     auto selection = getSelectionOfType<Object>();
 
-    patch.startUndoSequence("Duplicate");
+    patch.startUndoSequence("Duplicate object/s");
 
     std::vector<t_gobj*> objectsToDuplicate;
     for (auto* object : selection) {
@@ -1180,12 +1180,13 @@ void Canvas::duplicateSelection()
         setSelected(obj, true);
     }
 
-    patch.endUndoSequence("Duplicate");
+    patch.endUndoSequence("Duplicate object/s");
     patch.deselectAll();
 }
 
 void Canvas::removeSelection()
 {
+    patch.startUndoSequence("Remove object/s");
     // Make sure object isn't selected and stop updating gui
     editor->sidebar->hideParameters();
     editor->showTouchSelectionHelper(false);
@@ -1226,6 +1227,8 @@ void Canvas::removeSelection()
     synchronise();
     handleUpdateNowIfNeeded();
 
+    patch.endUndoSequence("Remove object/s");
+
     patch.deselectAll();
 
     synchroniseSplitCanvas();
@@ -1233,7 +1236,7 @@ void Canvas::removeSelection()
 
 void Canvas::removeSelectedConnections()
 {
-    patch.startUndoSequence("Remove Connections");
+    patch.startUndoSequence("Remove connection/s");
 
     for (auto* con : connections) {
         if (con->isSelected()) {
@@ -1246,7 +1249,7 @@ void Canvas::removeSelectedConnections()
         }
     }
 
-    patch.endUndoSequence("Remove Connections");
+    patch.endUndoSequence("Remove connection/s");
 
     // Load state from pd
     synchronise();
@@ -1358,7 +1361,7 @@ void Canvas::encapsulateSelection()
     auto copied = String::fromUTF8(text, size);
 
     // Wrap it in an undo sequence, to allow undoing everything in 1 step
-    patch.startUndoSequence("encapsulate");
+    patch.startUndoSequence("Encapsulate");
 
     pd::Interface::removeObjects(patchPtr, objects);
 
@@ -1371,7 +1374,7 @@ void Canvas::encapsulateSelection()
 
     auto* newObject = pd::Interface::checkObject(lastObject.getRaw<t_pd>());
     if (!newObject) {
-        patch.endUndoSequence("encapsulate");
+        patch.endUndoSequence("Encapsulate");
         pd->unlockAudioThread();
         return;
     }
@@ -1388,7 +1391,7 @@ void Canvas::encapsulateSelection()
         }
     }
 
-    patch.endUndoSequence("encapsulate");
+    patch.endUndoSequence("Encapsulate");
 
     pd->unlockAudioThread();
 
@@ -1491,7 +1494,7 @@ void Canvas::alignObjects(Align alignment)
         return totalBounds;
     };
 
-    patch.startUndoSequence("align objects");
+    patch.startUndoSequence("Align objects");
 
     // mark canvas as dirty, and set undo for all positions
     auto patchPtr = patch.getPointer().get();
@@ -1603,7 +1606,7 @@ void Canvas::alignObjects(Align alignment)
         connection->forceUpdate();
     }
 
-    patch.endUndoSequence("align objects");
+    patch.endUndoSequence("Align objects");
 }
 
 void Canvas::undo()

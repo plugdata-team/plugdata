@@ -211,10 +211,20 @@ private:
             {
                 addButton("OK", 1);
                 addButton("Cancel", 0);
+                
 
                 // (avoid return + escape keys getting processed by the buttons..)
                 for (auto* child : getChildren())
                     child->setWantsKeyboardFocus(false);
+                
+                for (int i = 0; i < getNumButtons(); i++)
+                {
+                    auto& button = *getButton(i);
+                    auto backgroundColour = findColour(PlugDataColour::dialogBackgroundColourId);
+                    button.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+                    button.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
+                    button.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+                }
 
                 setWantsKeyboardFocus(true);
                 grabKeyboardFocus();
