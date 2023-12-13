@@ -393,7 +393,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
                 if (auto* registeredInfo = editor->commandManager.getCommandForID(id)) {
                     ApplicationCommandInfo info(*registeredInfo);
-                    commandManager->getTargetForCommand(id, info);
+                    editor->commandManager.getTargetForCommand(id, info);
                     bool canPerformCommand = (info.flags & ApplicationCommandInfo::isDisabled) == 0;
                     button->setEnabled(canPerformCommand);
                 } else {

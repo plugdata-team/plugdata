@@ -631,6 +631,14 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
 
 void PluginProcessor::updatePatchUndoRedoState()
 {
+    if(isSuspended())
+    {
+        for (auto& patch : patches) {
+            patch->updateUndoRedoState();
+        }
+        return;
+    }
+        
     enqueueFunctionAsync([this](){
         for (auto& patch : patches) {
             patch->updateUndoRedoState();
