@@ -372,7 +372,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
         std::unique_ptr<CheckedTooltip> tooltipWindow;
 
-        QuickActionsBar(ApplicationCommandManager* commandManager)
+        QuickActionsBar(PluginEditor* editor)
         {
             // If the tooltip has it's own window, it should also have its own TooltipWindow!
             if (ProjectInfo::canUseSemiTransparentWindows()) {
@@ -384,16 +384,14 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
                 addAndMakeVisible(button);
                 auto id = commandIds.removeAndReturn(0);
 
-                button->onClick = [commandManager, id]() {
-                    if (auto* editor = dynamic_cast<PluginEditor*>(commandManager)) {
-                        editor->grabKeyboardFocus();
-                        ApplicationCommandTarget::InvocationInfo info(id);
-                        info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
-                        commandManager->invoke(info, true);
-                    }
+                button->onClick = [editor, id]() {
+                    editor->grabKeyboardFocus();
+                    ApplicationCommandTarget::InvocationInfo info(id);
+                    info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
+                    editor->commandManager.invoke(info, true);
                 };
 
-                if (auto* registeredInfo = commandManager->getCommandForID(id)) {
+                if (auto* registeredInfo = editor->commandManager.getCommandForID(id)) {
                     ApplicationCommandInfo info(*registeredInfo);
                     commandManager->getTargetForCommand(id, info);
                     bool canPerformCommand = (info.flags & ApplicationCommandInfo::isDisabled) == 0;
@@ -494,7 +492,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     // Create popup menu
     PopupMenu popupMenu;
 
-    popupMenu.addCustomItem(Extra, std::make_unique<QuickActionsBar>(&editor->commandManager), nullptr, "Quick Actions");
+    popupMenu.addCustomItem(Extra, std::make_unique<QuickActionsBar>(editor), nullptr, "Quick Actions");
     popupMenu.addSeparator();
 
     popupMenu.addItem(Open, "Open", object && !multiple && canBeOpened); // for opening subpatches
