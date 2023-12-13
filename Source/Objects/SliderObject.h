@@ -214,7 +214,7 @@ public:
         }
     }
 
-    void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
         switch (symbol) {
         case hash("float"):
@@ -319,9 +319,9 @@ public:
                 rounded_val = slider->x_val;
 
             if (slider->x_lin0_log1)
-                fval = slider->x_min * exp(slider->x_k * (double)(rounded_val)*0.01);
+                fval = slider->x_min * exp(slider->x_k * (double)(rounded_val) * 0.01);
             else
-                fval = (double)(rounded_val)*0.01 * slider->x_k + slider->x_min;
+                fval = (double)(rounded_val) * 0.01 * slider->x_k + slider->x_min;
             if ((fval < 1.0e-10) && (fval > -1.0e-10))
                 fval = 0.0;
 

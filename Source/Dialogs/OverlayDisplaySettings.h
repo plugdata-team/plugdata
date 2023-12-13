@@ -98,10 +98,10 @@ public:
         void resized() override
         {
             auto bounds = Rectangle<int>(4, 0, 30, 30);
-            
+
             textLabel.setBounds(bounds.withWidth(getWidth() / 2.0));
             bounds.translate((getWidth() / 2.0) - 12, 0);
-            
+
             buttons[Edit]->setBounds(bounds);
             bounds.translate(25, 0);
             buttons[Lock]->setBounds(bounds);
@@ -110,7 +110,6 @@ public:
             bounds.translate(25, 0);
             buttons[Alt]->setBounds(bounds);
             bounds.translate(25, 0);
-
         }
     };
 
@@ -172,15 +171,14 @@ public:
         buttonGroups[OverlayOrder]->setBounds(bounds.removeFromTop(itemHeight));
         setSize(200, bounds.getY() + 5);
     }
-    
+
     void paint(Graphics& g) override
     {
         auto firstPanelBounds = buttonGroups[OverlayOrigin]->getBounds().getUnion(buttonGroups[OverlayBorder]->getBounds());
         auto secondPanelBounds = buttonGroups[OverlayIndex]->getBounds().getUnion(buttonGroups[OverlayActivationState]->getBounds());
         auto thirdPanelBounds = buttonGroups[OverlayDirection]->getBounds().getUnion(buttonGroups[OverlayOrder]->getBounds());
-        
-        for(auto& bounds : std::vector<Rectangle<int>>{firstPanelBounds, secondPanelBounds, thirdPanelBounds})
-        {
+
+        for (auto& bounds : std::vector<Rectangle<int>> { firstPanelBounds, secondPanelBounds, thirdPanelBounds }) {
             g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.035f));
             g.fillRoundedRectangle(bounds.toFloat(), Corners::largeCornerRadius);
 

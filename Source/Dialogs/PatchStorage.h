@@ -26,7 +26,7 @@ public:
         downloadedImage = Image();
 
         // Lock the thread to safely update the image URL
-        const ScopedLock sl(lock);
+        ScopedLock const sl(lock);
         imageURL = url;
         imageDownloadPool.addJob(this, false);
         spinner.startSpinning();
@@ -171,7 +171,7 @@ class PatchFullDisplay : public Component {
     int views, likes, downloads;
     String description, fileURL, fileName, onlineURL, updatedAt;
 
-    const File patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
+    File const patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
 
 public:
     PatchFullDisplay()
@@ -233,7 +233,7 @@ public:
     {
         Path p;
         p.addRoundedRectangle(b.reduced(3.0f), Corners::largeCornerRadius);
-        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
+        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 7, { 0, 1 });
 
         g.setColour(findColour(PlugDataColour::panelForegroundColourId));
         g.fillRoundedRectangle(b.toFloat(), Corners::largeCornerRadius);
@@ -259,7 +259,7 @@ public:
         // Drag image shadow
         Path p;
         p.addRoundedRectangle(image.getBounds().reduced(1.0f), Corners::largeCornerRadius);
-        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
+        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 7, { 0, 1 });
 
         topArea.removeFromBottom(90); // space for download button
         topArea = topArea.reduced(16);
@@ -379,7 +379,7 @@ private:
 
         Path p;
         p.addRoundedRectangle(b.reduced(3.0f), Corners::largeCornerRadius);
-        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
+        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 7, { 0, 1 });
 
         if (isMouseOver()) {
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));

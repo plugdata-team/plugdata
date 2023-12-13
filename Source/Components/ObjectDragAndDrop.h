@@ -154,17 +154,12 @@ public:
 
         Canvas* foundCanvas = nullptr;
 
-        if(!underMouse)
-        {
+        if (!underMouse) {
             scale = 1.0f;
-        }
-        else if(auto* cnv = dynamic_cast<Canvas*>(underMouse))
-        {
+        } else if (auto* cnv = dynamic_cast<Canvas*>(underMouse)) {
             foundCanvas = cnv;
             scale = getValue<float>(cnv->zoomScale);
-        }
-        else if(auto* cnv = underMouse->findParentComponentOfClass<Canvas>())
-        {
+        } else if (auto* cnv = underMouse->findParentComponentOfClass<Canvas>()) {
             foundCanvas = cnv;
             scale = getValue<float>(cnv->zoomScale);
         } else if (auto* split = editor->splitView.getSplitAtScreenPosition(screenPos)) {
@@ -175,8 +170,7 @@ public:
             } else {
                 scale = 1.0f;
             }
-        }
-        else {
+        } else {
             scale = 1.0f;
         }
 
@@ -197,8 +191,7 @@ public:
             imageComponent.setImage(dropState ? dragImage : dragInvalidImage);
         }
 
-        if(!approximatelyEqual<float>(animatedScale, scale))
-        {
+        if (!approximatelyEqual<float>(animatedScale, scale)) {
             animatedScale = scale;
             auto newWidth = dragImage.getWidth() / 3.0f * animatedScale;
             auto newHeight = dragImage.getHeight() / 3.0f * animatedScale;

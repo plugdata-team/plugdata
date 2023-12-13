@@ -93,7 +93,7 @@ public:
             editor->setText("", dontSendNotification);
             suggestion = suggestionText;
         }
-        
+
         suggestion = suggestion.upToFirstOccurrenceOf(" ", false, false);
         repaint();
     }
@@ -443,7 +443,7 @@ private:
         } else {
             Path localPath;
             localPath.addRoundedRectangle(b.toFloat().reduced(6.0f), Corners::defaultCornerRadius);
-            StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), 12, { 0, 2 });
+            StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), 13, { 0, 1 });
         }
 
         g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
@@ -530,7 +530,7 @@ private:
                 if (a == query) {
                     return -1;
                 }
-                
+
                 if (b == query) {
                     return 1;
                 }
@@ -563,7 +563,7 @@ private:
 
                 return a.compareNatural(b);
             }
-            const String query;
+            String const query;
         };
 
         auto sortSuggestions = [](String query, StringArray suggestions) -> StringArray {
@@ -574,14 +574,14 @@ private:
             suggestions.strings.sort(sorter);
             return suggestions;
         };
-        
+
         if (currentObject->gui && currentObject->gui->getType() == "message") {
             auto nearbyMethods = findNearbyMethods(currentText);
-            
+
             numOptions = std::min<int>(buttons.size(), nearbyMethods.size());
             for (int i = 0; i < numOptions; i++) {
                 auto [objectName, methodName, description] = nearbyMethods[i];
-               
+
                 buttons[i]->setText(methodName, "(" + objectName + ") " + description, false);
                 buttons[i]->setInterceptsMouseClicks(false, false);
                 buttons[i]->setToggleState(false, dontSendNotification);
@@ -594,8 +594,6 @@ private:
 
             setVisible(numOptions);
 
-            
-            
             // Get length of user-typed text
             int textlen = openedEditor->getText().length();
 
@@ -607,15 +605,15 @@ private:
                 setVisible(false);
                 return;
             }
-            
+
             state = ShowingObjects;
             currentidx = -1;
-            
+
             if (autoCompleteComponent) {
                 autoCompleteComponent->setSuggestion("");
                 currentObject->updateBounds();
             }
-            
+
             resized();
             return;
         }
@@ -788,83 +786,75 @@ private:
             applySuggestionsToButtons(found, currentText);
         });
     }
-        
-    Array<std::tuple<String, String, String>> findNearbyMethods(const String& toSearch)
+
+    Array<std::tuple<String, String, String>> findNearbyMethods(String const& toSearch)
     {
         Array<std::tuple<String, ValueTree, int>> objects;
         auto* cnv = currentObject->cnv;
-        for(auto* obj : cnv->objects) {
+        for (auto* obj : cnv->objects) {
             int distance = currentObject->getPosition().getDistanceFrom(obj->getPosition());
-            if(!obj->getPointer() || obj == currentObject || distance > 300) continue;
-            
+            if (!obj->getPointer() || obj == currentObject || distance > 300)
+                continue;
+
             auto objectName = obj->gui->getType();
-            auto alreadyExists = std::find_if(objects.begin(), objects.end(), [objectName](const auto& toCompare){
+            auto alreadyExists = std::find_if(objects.begin(), objects.end(), [objectName](auto const& toCompare) {
                 return std::get<0>(toCompare) == objectName;
             }) != objects.end();
-            
-            if(alreadyExists) 
+
+            if (alreadyExists)
                 continue;
-            
+
             auto info = cnv->pd->objectLibrary->getObjectInfo(objectName);
             auto methods = info.getChildWithName("methods");
-            objects.add({objectName, methods, distance});
+            objects.add({ objectName, methods, distance });
         }
-        
+
         // Sort by distance
-        std::sort(objects.begin(), objects.end(), [](const auto& a, const auto& b){
+        std::sort(objects.begin(), objects.end(), [](auto const& a, auto const& b) {
             return std::get<2>(a) > std::get<2>(b);
         });
-                  
+
         // Look for object name matches
         Array<std::tuple<String, String, String>> nearbyMethods;
-        for(auto& [objectName, methods, distance] : objects)
-        {
-            for(auto method : methods)
-            {
-                if(objectName.contains(toSearch)) {
+        for (auto& [objectName, methods, distance] : objects) {
+            for (auto method : methods) {
+                if (objectName.contains(toSearch)) {
                     auto methodName = method.getProperty("type").toString();
                     auto description = method.getProperty("description").toString();
-                    nearbyMethods.add({objectName, methodName, description});
+                    nearbyMethods.add({ objectName, methodName, description });
                 }
             }
         }
-        
+
         // Look for method name matches
-        for(auto& [objectName, methods, distance] : objects)
-        {
-            for(auto method : methods)
-            {
+        for (auto& [objectName, methods, distance] : objects) {
+            for (auto method : methods) {
                 auto methodName = method.getProperty("type").toString();
-                if(methodName.contains(toSearch)) {
+                if (methodName.contains(toSearch)) {
                     auto description = method.getProperty("description").toString();
-                    nearbyMethods.add({objectName, methodName, description});
+                    nearbyMethods.add({ objectName, methodName, description });
                 }
             }
         }
-        
+
         // Look for description matches
-        for(auto& [objectName, methods, distance] : objects)
-        {
-            for(auto method : methods)
-            {
+        for (auto& [objectName, methods, distance] : objects) {
+            for (auto method : methods) {
                 auto description = method.getProperty("description").toString();
-                if(description.contains(toSearch)) {
+                if (description.contains(toSearch)) {
                     auto methodName = method.getProperty("type").toString();
-                    nearbyMethods.add({objectName, methodName, description});
+                    nearbyMethods.add({ objectName, methodName, description });
                 }
             }
         }
-        
+
         // Remove duplicates
-        for (int i = nearbyMethods.size() - 1; i >= 0; i--)
-        {
+        for (int i = nearbyMethods.size() - 1; i >= 0; i--) {
             auto& [objectName1, method1, distance1] = nearbyMethods.getReference(i);
-            
-            for (int j = nearbyMethods.size() - 1; j >= 0; j--)
-            {
+
+            for (int j = nearbyMethods.size() - 1; j >= 0; j--) {
                 auto& [objectName2, method2, distance2] = nearbyMethods.getReference(j);
-                if(objectName1 == objectName2 && method1 == method2 && i != j)
-                {
+                if (objectName1 == objectName2 && method1 == method2 && i != j) {
                     nearbyMethods.remove(i);
                     break;
                 }

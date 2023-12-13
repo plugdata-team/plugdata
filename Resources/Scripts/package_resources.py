@@ -106,6 +106,7 @@ copyFile("../../Libraries/pd-else/Documentation/README.pdf", "Extra/else");
 copyDir("../../Libraries/pd-else/Code_source/Compiled/audio/sfont~/sf", "Extra/else/sf");
 copyDir("../Patches/Presets", "./Extra/Presets")
 copyDir("../Patches/Palettes", "./Extra/palette")
+copyDir("../Documentation/Manual", "./Extra/Manual")
 globCopy("../../Libraries/pure-data/doc/sound/*", "Extra/else");
 
 # pd-lua

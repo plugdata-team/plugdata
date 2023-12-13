@@ -22,7 +22,7 @@ public:
         closeOpenedSubpatchers();
     }
 
-    void receiveMessage(t_symbol* symbol, const pd::Atom atoms[8], int numAtoms) override
+    void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms) override
     {
         if (pd->isPerformingGlobalSync)
             return;
@@ -30,8 +30,7 @@ public:
         bool isVisMessage = hash(symbol->s_name) == hash("vis");
         if (isVisMessage && atoms[0].getFloat()) {
             openSubpatch(subpatch);
-        }
-        else if (isVisMessage) {
+        } else if (isVisMessage) {
             closeOpenedSubpatchers();
         }
     }
@@ -315,7 +314,6 @@ public:
     }
 };
 
-
 class CanvasMouseObject final : public ImplementationBase
     , public MouseListener
     , public pd::MessageListener {
@@ -359,10 +357,9 @@ public:
             binbuf_gettext(mouse->x_obj.te_binbuf, &text, &size);
 
             int depth = 0;
-            
+
             auto tokens = StringArray::fromTokens(String::fromUTF8(text, size), false);
-            if(tokens.size() > 1 && tokens[1].containsOnly("0123456789"))
-            {
+            if (tokens.size() > 1 && tokens[1].containsOnly("0123456789")) {
                 depth = tokens[1].getIntValue();
             }
 
@@ -461,7 +458,7 @@ public:
         mouseMove(e);
     }
 
-    void receiveMessage(t_symbol* symbol, const pd::Atom atoms[8], int numAtoms) override
+    void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms) override
     {
         if (!cnv || pd->isPerformingGlobalSync)
             return;
@@ -505,18 +502,16 @@ public:
     {
         if (pd->isPerformingGlobalSync)
             return;
-        
+
         // We use a safepointer to the canvas to determine if it's still open
         bool showing = cnv != nullptr;
-        
-        if(showing && !lastFocus)
-        {
+
+        if (showing && !lastFocus) {
             lastFocus = true;
             if (auto vis = ptr.get<t_fake_canvas_vis>()) {
                 outlet_float(vis->x_obj.ob_outlet, 1.0f);
             }
-        }
-        else if(lastFocus && !showing) {
+        } else if (lastFocus && !showing) {
             lastFocus = false;
             if (auto vis = ptr.get<t_fake_canvas_vis>()) {
                 outlet_float(vis->x_obj.ob_outlet, 0.0f);
@@ -647,7 +642,6 @@ public:
     t_glist* canvas;
 };
 
-
 class MouseStateObject final : public ImplementationBase
     , public MouseListener
     , public pd::MessageListener {
@@ -680,11 +674,11 @@ public:
         pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
     }
 
-    void receiveMessage(t_symbol* symbol, const pd::Atom atoms[8], int numAtoms) override
+    void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms) override
     {
         if (pd->isPerformingGlobalSync)
             return;
-        
+
         if (hash(symbol->s_name) == hash("bang")) {
             auto currentPosition = Desktop::getMousePosition();
 
@@ -752,54 +746,51 @@ public:
 #endif
 };
 
-
 class MouseFilterObject final : public ImplementationBase
-, public GlobalMouseListener {
-    
-    class MouseFilterProxy
-    {
+    , public GlobalMouseListener {
+
+    class MouseFilterProxy {
     public:
-        
-        MouseFilterProxy() : pd(nullptr) {}
-        
-        MouseFilterProxy(pd::Instance* instance) : pd(instance)
+        MouseFilterProxy()
+            : pd(nullptr)
+        {
+        }
+
+        MouseFilterProxy(pd::Instance* instance)
+            : pd(instance)
         {
         }
 
         void setState(bool newState)
         {
-            if(newState != state) {
+            if (newState != state) {
                 state = newState;
                 pd->setThis();
-                pd->sendMessage("#hammergui", "_up", {pd::Atom(!state)});
+                pd->sendMessage("#hammergui", "_up", { pd::Atom(!state) });
             }
         }
-        
+
     private:
-        
         pd::Instance* pd;
         bool state = false;
     };
-    
-    
+
     static inline std::map<pd::Instance*, MouseFilterProxy> proxy;
-    
+
 public:
-    MouseFilterObject(t_gobj* object, t_canvas* parent, PluginProcessor* pd) : ImplementationBase(object, parent, pd)
+    MouseFilterObject(t_gobj* object, t_canvas* parent, PluginProcessor* pd)
+        : ImplementationBase(object, parent, pd)
     {
-        if(!proxy.count(pd)) {
+        if (!proxy.count(pd)) {
             proxy[pd] = MouseFilterProxy(pd);
-            
-            globalMouseDown = [pd](const MouseEvent& e){
+
+            globalMouseDown = [pd](MouseEvent const& e) {
                 proxy[pd].setState(true);
             };
-            
-            globalMouseUp = [pd](const MouseEvent& e){
+
+            globalMouseUp = [pd](MouseEvent const& e) {
                 proxy[pd].setState(false);
             };
         }
     }
-
 };
-
-

@@ -35,16 +35,15 @@ public:
         viewOnGithub.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
         viewOnGithub.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
         viewOnGithub.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-        
+
         reportIssue.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
         reportIssue.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
         reportIssue.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-        
+
         sponsor.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
         sponsor.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
         sponsor.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
 
-        
         viewOnGithub.setButtonText("View on Github");
         reportIssue.setButtonText("Report issue");
         sponsor.setButtonText("Become a sponsor");

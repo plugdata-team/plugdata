@@ -85,7 +85,7 @@ public:
     File getPatchFile() const;
 
     void setCurrentFile(File newFile);
-    
+
     void updateUndoRedoState();
 
     bool objectWasDeleted(t_gobj* ptr) const;
@@ -119,10 +119,15 @@ public:
     bool closePatchOnDelete;
     bool openInPluginMode = false;
     int splitViewIndex = 0;
-    std::atomic<bool> canUndo = false;
-    std::atomic<bool> canRedo = false;
+    Value canUndo;
+    Value canRedo;
+
+    String lastUndoSequence;
+    String lastRedoSequence;
 
     int untitledPatchNum = 0;
+
+    void updateUndoRedoString();
 
 private:
     File currentFile;
@@ -132,6 +137,8 @@ private:
     friend class Instance;
     friend class Gui;
     friend class Object;
+
+    int undoQueueSize = 0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Patch)
 };

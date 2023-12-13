@@ -255,7 +255,7 @@ public:
 
     std::pair<float, float> calcCoefficients()
     {
-        float nn = (filterCentre)*120.0f + 16.766f;
+        float nn = (filterCentre) * 120.0f + 16.766f;
         float nn2 = (filterWidth + filterCentre) * 120.0f + 16.766f;
         float f = mtof(nn);
         float bwf = mtof(nn2);
@@ -610,7 +610,7 @@ public:
         graph.saveProperties();
     }
 
-    void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
         switch (symbol) {
         case hash("allpass"): {

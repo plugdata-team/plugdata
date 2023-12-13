@@ -268,12 +268,12 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-       bool isEditable = PlugDataParameter::canDynamicallyAdjustParameters();
-       bool isOverNameLable = nameLabel.getBounds().contains(e.getEventRelativeTo(&nameLabel).getPosition());
+        bool isEditable = PlugDataParameter::canDynamicallyAdjustParameters();
+        bool isOverNameLable = nameLabel.getBounds().contains(e.getEventRelativeTo(&nameLabel).getPosition());
 
-       if (isEditable && isOverNameLable && !e.mouseWasDraggedSinceMouseDown() && e.getNumberOfClicks() >= 2) {
+        if (isEditable && isOverNameLable && !e.mouseWasDraggedSinceMouseDown() && e.getNumberOfClicks() >= 2) {
             nameLabel.showEditor();
-       }
+        }
     }
 
     void mouseEnter(MouseEvent const& e) override
@@ -482,7 +482,7 @@ public:
         auto rect = getLocalBounds().reduced(14, 7);
         Path shadowPath;
         shadowPath.addRoundedRectangle(rect, Corners::defaultCornerRadius);
-        StackShadow::renderDropShadow(g, shadowPath, Colours::black.withAlpha(0.3f), 6);
+        StackShadow::renderDropShadow(g, shadowPath, Colours::black.withAlpha(0.3f), 7);
     }
 
 private:

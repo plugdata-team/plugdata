@@ -13,21 +13,21 @@ public:
         : cb(std::move(callback))
     {
         setSize(400, 170);
-        
+
         label.setFont(Fonts::getBoldFont().withHeight(14.0f));
         label.setJustificationType(Justification::centred);
-        
+
         nameEditor.setJustification(Justification::centredLeft);
-        
+
         auto backgroundColour = findColour(PlugDataColour::dialogBackgroundColourId);
         ok.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
         ok.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
         ok.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-        
+
         cancel.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
         cancel.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
         cancel.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-        
+
         addAndMakeVisible(label);
         addAndMakeVisible(cancel);
         addAndMakeVisible(ok);
@@ -321,9 +321,10 @@ public:
             Icons::New, "New theme...");
 
         loadButton = new PropertiesPanel::ActionComponent([this]() {
-            Dialogs::showOpenDialog([this](File& result){
-                if(!result.exists()) return;
-                
+            Dialogs::showOpenDialog([this](File& result) {
+                if (!result.exists())
+                    return;
+
                 auto themeXml = result.loadFileAsString();
                 auto themeTree = ValueTree::fromXml(themeXml);
                 auto themeName = themeTree.getProperty("theme").toString();
@@ -344,7 +345,8 @@ public:
                 themeTree.setProperty("theme", themeName, nullptr);
                 SettingsFile::getInstance()->getColourThemesTree().appendChild(themeTree, nullptr);
                 updateSwatches();
-            }, true, false, "*.plugdatatheme", "ThemeLocation");
+            },
+                true, false, "*.plugdatatheme", "ThemeLocation");
         },
             Icons::Open, "Import theme...");
 
@@ -366,13 +368,13 @@ public:
                 auto themeTree = SettingsFile::getInstance()->getColourThemesTree().getChildWithProperty("theme", themeName);
 
                 auto themeXml = themeTree.toXmlString();
-                
-                Dialogs::showSaveDialog([themeXml](File& result){
-                    if(result.getParentDirectory().exists()) {
+
+                Dialogs::showSaveDialog([themeXml](File& result) {
+                    if (result.getParentDirectory().exists()) {
                         result.replaceWithText(themeXml);
                     }
-                }, "*.plugdatatheme", "ThemeLocation");
-
+                },
+                    "*.plugdatatheme", "ThemeLocation");
             });
         },
             Icons::Save, "Export theme...");

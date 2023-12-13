@@ -57,7 +57,7 @@ class OversampleSelector : public TextButton {
                 button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.04f));
                 button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.075f));
                 button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-                
+
                 addAndMakeVisible(button);
                 i++;
             }
@@ -317,11 +317,11 @@ public:
     bool blinkMidiOut = false;
 };
 
-class CPUHistoryGraph : public Component
-{
+class CPUHistoryGraph : public Component {
 public:
     CPUHistoryGraph(CircularBuffer<float>& history, int length)
-    : historyLength(length), historyGraph(history)
+        : historyLength(length)
+        , historyGraph(history)
     {
         mappingMode = SettingsFile::getInstance()->getPropertyAsValue("cpu_meter_mapping_mode").getValue();
     }
@@ -346,10 +346,10 @@ public:
         auto points = historyLength;
         auto distribute = static_cast<float>(bounds.getWidth()) / points;
         Path graphTopLine;
-        
+
         auto getCPUScaledY = [this, bottom, height](float value) -> float {
             float graphValue;
-            switch(mappingMode) {
+            switch (mappingMode) {
             case 1:
                 graphValue = pow(value, 1.0f / 1.5f);
                 break;
@@ -367,7 +367,7 @@ public:
         graphTopLine.startNewSubPath(startPoint);
 
         auto lastValues = historyGraph.last(points);
-        
+
         for (int i = 0; i < points; i++) {
             auto xPos = (i * distribute) + bounds.getTopLeft().getX() + distribute;
             auto newPoint = Point<float>(xPos, getCPUScaledY(lastValues[i] * 0.01f));
@@ -405,8 +405,7 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CPUHistoryGraph);
 };
 
-class CPUMeterPopup : public Component
-{
+class CPUMeterPopup : public Component {
 public:
     CPUMeterPopup(CircularBuffer<float>& history, CircularBuffer<float>& longHistory)
     {
@@ -471,8 +470,8 @@ public:
         auto b = getLocalBounds().withTop(cpuGraphLongHistory->getBottom() + 5).reduced(6, 0).withHeight(20);
         auto buttonWidth = getWidth() / 3;
         linear.setBounds(b.removeFromLeft(buttonWidth));
-        logA.setBounds(b.removeFromLeft(buttonWidth).expanded(1,0));
-        logB.setBounds(b.removeFromLeft(buttonWidth).expanded(1,0));
+        logA.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
+        logB.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
     }
 
     std::function<void()> getUpdateFunc()
@@ -570,28 +569,27 @@ public:
             auto editor = findParentComponentOfClass<PluginEditor>();
             auto bounds = editor->getLocalArea(this, getLocalBounds());
 
-            cpuHistory->onClose = [this](){
-                updateCPUGraph = [](){ return; };
-                updateCPUGraphLong = [](){ return; };
+            cpuHistory->onClose = [this]() {
+                updateCPUGraph = []() { return; };
+                updateCPUGraphLong = []() { return; };
                 repaint();
             };
 
             currentCalloutBox = &CallOutBox::launchAsynchronously(std::move(cpuHistory), bounds, editor);
             isCallOutBoxActive = true;
-        }
-        else {
+        } else {
             isCallOutBoxActive = false;
         }
     }
 
     void mouseEnter(MouseEvent const& e) override
     {
-         repaint();
+        repaint();
     }
 
     void mouseExit(MouseEvent const& e) override
     {
-         repaint();
+        repaint();
     }
 
     void cpuUsageChanged(float newCpuUsage) override
@@ -601,8 +599,8 @@ public:
         updateCPUGraph();
     }
 
-    std::function<void()> updateCPUGraph = [](){ return; };
-    std::function<void()> updateCPUGraphLong = [](){ return; };
+    std::function<void()> updateCPUGraph = []() { return; };
+    std::function<void()> updateCPUGraphLong = []() { return; };
 
     static inline SafePointer<CallOutBox> currentCalloutBox = nullptr;
     bool isCallOutBoxActive = false;
@@ -641,6 +639,20 @@ Statusbar::Statusbar(PluginProcessor* processor)
     protectButton.setButtonText(Icons::Protection);
     centreButton.setButtonText(Icons::Centre);
     fitAllButton.setButtonText(Icons::FitAll);
+    debugButton.setButtonText(Icons::Debug);
+
+    debugButton.setTooltip("Enable/disable debugging tooltips");
+    debugButton.setClickingTogglesState(true);
+    debugButton.getToggleStateValue().referTo(SettingsFile::getInstance()->getPropertyAsValue("debug_connections"));
+    debugButton.onClick = [this]() {
+        set_plugdata_debugging_enabled(debugButton.getToggleState());
+        // Recreate the DSP graph with the new optimisations
+        pd->lockAudioThread();
+        canvas_update_dsp();
+        pd->unlockAudioThread();
+    };
+    set_plugdata_debugging_enabled(debugButton.getToggleState());
+    addAndMakeVisible(debugButton);
 
     powerButton.setTooltip("Enable/disable DSP");
     powerButton.setClickingTogglesState(true);
@@ -771,7 +783,7 @@ void Statusbar::paint(Graphics& g)
     g.drawLine(firstSeparatorPosition, 6.0f, firstSeparatorPosition, getHeight() - 6.0f);
     g.drawLine(secondSeparatorPosition, 6.0f, secondSeparatorPosition, getHeight() - 6.0f);
     g.drawLine(thirdSeparatorPosition, 6.0f, thirdSeparatorPosition, getHeight() - 6.0f);
-    if(getWidth() > 500) {
+    if (getWidth() > 500) {
         g.drawLine(fourthSeparatorPosition, 6.0f, fourthSeparatorPosition, getHeight() - 6.0f);
     }
 }
@@ -786,7 +798,7 @@ void Statusbar::resized()
     };
 
     auto spacing = getHeight() + 4;
-    
+
     // Some newer iPhone models have a very large corner radius
 #if JUCE_IOS
     position(22);
@@ -806,13 +818,14 @@ void Statusbar::resized()
     position(10);
 
     alignmentButton.setBounds(position(spacing), 0, getHeight(), getHeight());
+    debugButton.setBounds(position(spacing), 0, getHeight(), getHeight());
 
     pos = 4; // reset position for elements on the right
 
 #if JUCE_IOS
     position(22, true);
 #endif
-    
+
     protectButton.setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
 
     powerButton.setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
@@ -832,7 +845,7 @@ void Statusbar::resized()
     // Hide these if there isn't enough space
     midiBlinker->setVisible(getWidth() > 500);
     cpuMeter->setVisible(getWidth() > 500);
-        
+
     midiBlinker->setBounds(position(40, true) - 8, 0, 55, getHeight());
     fourthSeparatorPosition = position(10, true);
     cpuMeter->setBounds(position(48, true), 0, 50, getHeight());
@@ -869,7 +882,7 @@ void StatusbarSource::process(bool hasMidiInput, bool hasMidiOutput, int channel
         level[0] = 0;
         level[1] = 0;
     }
-    
+
     auto nowInMs = Time::getCurrentTime().getMillisecondCounter();
 
     lastAudioProcessedTime = nowInMs;

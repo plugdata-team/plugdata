@@ -2130,7 +2130,7 @@ struct TextEditorDialog : public Component {
         auto shadowPath = Path();
         shadowPath.addRoundedRectangle(getLocalBounds().reduced(20), Corners::windowCornerRadius);
 
-        StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 12.0f);
+        StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 13.0f);
 
         auto b = getLocalBounds().reduced(15);
 

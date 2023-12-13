@@ -17,6 +17,7 @@ cmake_policy(SET CMP0091 NEW)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 add_subdirectory(JUCE)
+juce_add_module(melatonin_blur)
 
 if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.21")
   set(MESSAGE_QUIET ON)

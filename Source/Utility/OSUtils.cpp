@@ -4,13 +4,13 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+
 #if !defined(__APPLE__)
 #    include <raw_keyboard_input/raw_keyboard_input.cpp>
 #endif
 
 #define JUCE_GUI_BASICS_INCLUDE_XHEADERS 1
 #include <juce_gui_basics/juce_gui_basics.h>
-
 
 #include "OSUtils.h"
 
@@ -174,10 +174,9 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 // Selects Linux and BSD
 #if defined(__unix__) && !defined(__APPLE__)
 
-
 void OSUtils::updateX11Constraints(void* handle)
 {
-    if(handle) {
+    if (handle) {
         juce::XWindowSystem::getInstance()->updateConstraints(reinterpret_cast<::Window>(handle));
     }
 }

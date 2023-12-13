@@ -424,7 +424,6 @@ struct t_fake_numbox {
     char x_buf[MAX_NUMBOX_LEN]; // number buffer
 };
 
-
 // [else/canvas.mouse]
 struct t_fake_canvas_mouse {
     t_object x_obj;

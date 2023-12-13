@@ -104,7 +104,7 @@ public:
 
     void parentSizeChanged() override
     {
-        if(auto* parent = getParentComponent()) {
+        if (auto* parent = getParentComponent()) {
             setBounds(parent->getLocalBounds());
         }
     }
@@ -125,7 +125,7 @@ public:
             closeButton->setBounds(closeButtonBounds);
         }
     }
-    
+
 #if !JUCE_IOS
     void mouseDown(MouseEvent const& e) override
     {
@@ -143,14 +143,13 @@ public:
             dragger.dragWindow(parentComponent->getTopLevelComponent(), e, nullptr);
         }
     }
-    
+
     void mouseUp(MouseEvent const& e) override
     {
         dragging = false;
     }
 #endif
-    
-    
+
     bool keyPressed(KeyPress const& key) override
     {
         if (key == KeyPress::escapeKey) {
@@ -189,7 +188,7 @@ struct Dialogs {
 
     static void showMainMenu(PluginEditor* editor, Component* centre);
 
-    static void showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> const& callback);
+    static void showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> const& callback, StringArray options = { "Okay", "Cancel " }, bool swapButtons = false);
 
     static void showHeavyExportDialog(std::unique_ptr<Dialog>* target, Component* parent);
 
@@ -204,11 +203,11 @@ struct Dialogs {
     static void showPatchStorage(PluginEditor* editor);
 
     static PopupMenu createObjectMenu(PluginEditor* parent);
-    
-    static void showOpenDialog(std::function<void(File&)> callback, bool canSelectFiles, bool canSelectDirectories, const String& lastFileId, const String& extension);
 
-    static void showSaveDialog(std::function<void(File&)> callback, const String& extension, const String& lastFileId, bool directoryMode = false);
-    
+    static void showOpenDialog(std::function<void(File&)> callback, bool canSelectFiles, bool canSelectDirectories, String const& lastFileId, String const& extension);
+
+    static void showSaveDialog(std::function<void(File&)> callback, String const& extension, String const& lastFileId, bool directoryMode = false);
+
     static inline std::unique_ptr<FileChooser> fileChooser = nullptr;
 };
 

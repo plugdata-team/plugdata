@@ -32,6 +32,7 @@ class Canvas;
 class TabComponent;
 class PluginProcessor;
 class Palettes;
+class Autosave;
 class PluginMode;
 class TouchSelectionHelper;
 class PluginEditor : public AudioProcessorEditor
@@ -84,10 +85,13 @@ public:
 
     void updateCommandStatus();
 
+    void updateUndoRedoButtonState();
+    void updateUndoRedoValueSource();
+
     bool isInterestedInFileDrag(StringArray const& files) override;
     void filesDropped(StringArray const& files, int x, int y) override;
     void fileDragEnter(StringArray const&, int, int) override;
-    void fileDragMove (const StringArray &files, int x, int y) override;
+    void fileDragMove(StringArray const& files, int x, int y) override;
     void fileDragExit(StringArray const&) override;
 
     void createNewWindow(TabBarButtonComponent* tabButton) override;
@@ -110,7 +114,7 @@ public:
     void setZoomLabelLevel(float value);
 
     void setUseBorderResizer(bool shouldUse);
-        
+
     void showTouchSelectionHelper(bool shouldBeShown);
 
     TabComponent* getActiveTabbar();
@@ -123,8 +127,6 @@ public:
     std::unique_ptr<Sidebar> sidebar;
     std::unique_ptr<Statusbar> statusbar;
 
-    bool canUndo = false, canRedo = false;
-
     std::unique_ptr<Dialog> openedDialog;
 
     std::unique_ptr<PluginMode> pluginMode;
@@ -133,6 +135,9 @@ public:
 
     Value hvccMode;
     Value autoconnect;
+
+    Value canUndo;
+    Value canRedo;
 
     SplitView splitView;
     DrawableRectangle selectedSplitRect;
@@ -149,13 +154,14 @@ public:
     ComponentBoundsConstrainer constrainer;
     ComponentBoundsConstrainer& pluginConstrainer;
 
+    std::unique_ptr<Autosave> autosave;
+
     inline static ObjectThemeManager objectManager;
     static ObjectThemeManager* getObjectManager() { return &objectManager; };
-        
+
 private:
-        
     std::unique_ptr<TouchSelectionHelper> touchSelectionHelper;
-        
+
     // Used by standalone to handle dragging the window
     WindowDragger windowDragger;
 

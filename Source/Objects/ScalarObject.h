@@ -59,7 +59,7 @@ public:
         pd->unregisterMessageListener(scalar.getRawUnchecked<void>(), this);
     }
 
-    void receiveMessage(t_symbol* symbol, const pd::Atom atoms[8], int numAtoms)
+    void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms)
     {
         if (hash(symbol->s_name) == hash("redraw")) {
             triggerAsyncUpdate();
@@ -153,7 +153,7 @@ class DrawableCurve final : public DrawableTemplate
 
     t_fake_curve* object;
     GlobalMouseListener globalMouseListener;
-    Point<int> lastMouseDragPosition = {0, 0};
+    Point<int> lastMouseDragPosition = { 0, 0 };
 
 public:
     DrawableCurve(t_scalar* s, t_gobj* obj, t_word* data, t_template* templ, Canvas* cnv, int x, int y, t_template* parent = nullptr)
@@ -162,12 +162,12 @@ public:
         , globalMouseListener(cnv)
     {
 
-        globalMouseListener.globalMouseDown = [this, cnv](const MouseEvent& e){
+        globalMouseListener.globalMouseDown = [this, cnv](MouseEvent const& e) {
             auto localPos = e.getEventRelativeTo(this).getMouseDownPosition();
             if (!getLocalBounds().contains(localPos) || !getValue<bool>(canvas->locked) || !canvas->isShowing())
                 return;
-            
-            if(auto gobj = scalar.get<t_gobj>()) {
+
+            if (auto gobj = scalar.get<t_gobj>()) {
                 auto glist = cnv->patch.getPointer();
                 auto pos = e.getPosition() - cnv->canvasOrigin;
                 gobj_click(gobj.get(), glist.get(), pos.x, pos.y, e.mods.isShiftDown(), e.mods.isAltDown(), e.getNumberOfClicks() > 1, 1);
@@ -176,12 +176,12 @@ public:
                 glist->gl_editor->e_ywas = pos.y;
             }
         };
-        globalMouseListener.globalMouseUp = [this, cnv](const MouseEvent& e){
+        globalMouseListener.globalMouseUp = [this, cnv](MouseEvent const& e) {
             auto localPos = e.getEventRelativeTo(this).getMouseDownPosition();
             if (!getLocalBounds().contains(localPos) || !getValue<bool>(canvas->locked) || !canvas->isShowing())
                 return;
-            
-            if(auto gobj = scalar.get<t_gobj>()) {
+
+            if (auto gobj = scalar.get<t_gobj>()) {
                 auto glist = cnv->patch.getPointer();
                 auto pos = e.getPosition() - cnv->canvasOrigin;
                 gobj_click(gobj.get(), glist.get(), pos.x, pos.y, e.mods.isShiftDown(), e.mods.isAltDown(), 0, 0);
@@ -190,32 +190,32 @@ public:
                 glist->gl_editor->e_ywas = pos.y;
             }
         };
-        globalMouseListener.globalMouseDrag = [this, cnv](const MouseEvent& e){
+        globalMouseListener.globalMouseDrag = [this, cnv](MouseEvent const& e) {
             auto localPos = e.getEventRelativeTo(this).getMouseDownPosition();
             if (!getLocalBounds().contains(localPos) || !getValue<bool>(canvas->locked) || !canvas->isShowing())
                 return;
-            
-            if(auto gobj = scalar.get<t_gobj>()) {
+
+            if (auto gobj = scalar.get<t_gobj>()) {
                 auto glist = cnv->patch.getPointer();
                 auto pos = e.getPosition() - cnv->canvasOrigin;
                 gobj_click(gobj.get(), glist.get(), pos.x, pos.y, e.mods.isShiftDown(), e.mods.isAltDown(), e.getNumberOfClicks() > 1, 1);
-                
+
                 auto* canvas = glist_getcanvas(glist.get());
-                if(canvas->gl_editor->e_motionfn) {
+                if (canvas->gl_editor->e_motionfn) {
                     canvas->gl_editor->e_motionfn(&canvas->gl_editor->e_grab->g_pd, pos.x - glist->gl_editor->e_xwas, pos.y - glist->gl_editor->e_ywas, 0);
                 }
-                
+
                 cnv->updateDrawables();
                 glist->gl_editor->e_xwas = pos.x;
                 glist->gl_editor->e_ywas = pos.y;
             }
         };
-        globalMouseListener.globalMouseMove = [this, cnv](const MouseEvent& e){
+        globalMouseListener.globalMouseMove = [this, cnv](MouseEvent const& e) {
             auto localPos = e.getEventRelativeTo(this).getMouseDownPosition();
             if (!getLocalBounds().contains(localPos) || !getValue<bool>(canvas->locked) || !canvas->isShowing())
                 return;
-            
-            if(auto gobj = scalar.get<t_gobj>()) {
+
+            if (auto gobj = scalar.get<t_gobj>()) {
                 auto glist = cnv->patch.getPointer();
                 auto pos = e.getPosition() - cnv->canvasOrigin;
                 gobj_click(gobj.get(), glist.get(), pos.x, pos.y, e.mods.isShiftDown(), e.mods.isAltDown(), 0, 0);
@@ -239,7 +239,7 @@ public:
         auto* x = reinterpret_cast<t_fake_curve*>(object);
         int n = x->x_npoints;
 
-        if(parentTempl == templ) {
+        if (parentTempl == templ) {
             scalar_getbasexy(s, &baseX, &baseY);
         }
 
@@ -291,20 +291,18 @@ public:
             Path toDraw;
 
             toDraw.startNewSubPath(pix[0], pix[1]);
-            
-            if(flags & BEZ)
-            {
+
+            if (flags & BEZ) {
                 for (int i = 0; i < n; i++) {
                     float x0 = pix[2 * i];
                     float y0 = pix[2 * i + 1];
-                    
+
                     float x1, y1;
                     if (i == n - 1) {
-                        if(closed) {
+                        if (closed) {
                             x1 = pix[0];
                             y1 = pix[1];
-                        }
-                        else {
+                        } else {
                             x1 = x0;
                             y1 = y0;
                         }
@@ -313,13 +311,12 @@ public:
                         y1 = pix[2 * (i + 1) + 1];
                     }
                     toDraw.quadraticTo(x0, y0, (x0 + x1) / 2, (y0 + y1) / 2);
-                    
+
                     if (i == n - 1) {
                         toDraw.quadraticTo((x0 + x1) / 2, (y0 + y1) / 2, x1, y1);
                     }
                 }
-            }
-            else {
+            } else {
                 for (int i = 1; i < n; i++) {
                     toDraw.lineTo(pix[2 * i], pix[2 * i + 1]);
                 }
@@ -416,13 +413,13 @@ public:
             setText("");
             return;
         }
-        
+
         int xloc = 0, yloc = 0;
         if (auto glist = canvas->patch.getPointer()) {
             xloc = xToPixels(baseX + fielddesc_getcoord((t_fielddesc*)&x->x_xloc, templ, data, 0)) + canvas->canvasOrigin.x;
             yloc = yToPixels(baseY + fielddesc_getcoord((t_fielddesc*)&x->x_yloc, templ, data, 0)) + canvas->canvasOrigin.y;
         }
-        
+
         char buf[DRAWNUMBER_BUFSIZE];
         int type, onset;
         t_symbol* arraytype;
@@ -476,11 +473,10 @@ public:
 class DrawablePlot final : public DrawableTemplate
     , public DrawablePath {
 
-
-    Point<int> lastMouseDragPosition = {0, 0};
+    Point<int> lastMouseDragPosition = { 0, 0 };
     t_fake_curve* object;
     GlobalMouseListener globalMouseListener;
-        
+
 public:
     DrawablePlot(t_scalar* s, t_gobj* obj, t_word* data, t_template* templ, Canvas* cnv, int x, int y, t_template* parent = nullptr)
         : DrawableTemplate(s, data, templ, parent, cnv, x, y)
@@ -492,7 +488,7 @@ public:
             auto localPos = e.getEventRelativeTo(this).getMouseDownPosition();
             if (!getLocalBounds().contains(localPos) || !getValue<bool>(canvas->locked) || !canvas->isShowing())
                 return;
-            
+
             if(auto gobj = scalar.get<t_gobj>()) {
                 auto glist = cnv->patch.getPointer();
                 auto pos = e.getPosition() - cnv->canvasOrigin;
@@ -506,7 +502,7 @@ public:
             auto localPos = e.getEventRelativeTo(this).getMouseDownPosition();
             if (!getLocalBounds().contains(localPos) || !getValue<bool>(canvas->locked) || !canvas->isShowing())
                 return;
-            
+
             if(auto gobj = scalar.get<t_gobj>()) {
                 auto glist = cnv->patch.getPointer();
                 auto pos = e.getPosition() - cnv->canvasOrigin;
@@ -520,17 +516,17 @@ public:
             auto localPos = e.getEventRelativeTo(this).getMouseDownPosition();
             if (!getLocalBounds().contains(localPos) || !getValue<bool>(canvas->locked) || !canvas->isShowing())
                 return;
-            
+
             if(auto gobj = scalar.get<t_gobj>()) {
                 auto glist = cnv->patch.getPointer();
                 auto pos = e.getPosition() - cnv->canvasOrigin;
                 gobj_click(gobj.get(), glist.get(), pos.x, pos.y, e.mods.isShiftDown(), e.mods.isAltDown(), e.getNumberOfClicks() > 1, 1);
-                
+
                 auto* canvas = glist_getcanvas(glist.get());
                 if(canvas->gl_editor->e_motionfn) {
                     canvas->gl_editor->e_motionfn(&canvas->gl_editor->e_grab->g_pd, pos.x - glist->gl_editor->e_xwas, pos.y - glist->gl_editor->e_ywas, 0);
                 }
-                
+
                 cnv->updateDrawables();
                 glist->gl_editor->e_xwas = pos.x;
                 glist->gl_editor->e_ywas = pos.y;
@@ -540,7 +536,7 @@ public:
             auto localPos = e.getEventRelativeTo(this).getMouseDownPosition();
             if (!getLocalBounds().contains(localPos) || !getValue<bool>(canvas->locked) || !canvas->isShowing())
                 return;
-            
+
             if(auto gobj = scalar.get<t_gobj>()) {
                 auto glist = cnv->patch.getPointer();
                 auto pos = e.getPosition() - cnv->canvasOrigin;
@@ -924,7 +920,7 @@ public:
 
 struct ScalarObject final : public ObjectBase {
     OwnedArray<Component> templates;
-    
+
     ScalarObject(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
     {
@@ -932,7 +928,7 @@ struct ScalarObject final : public ObjectBase {
         // Make object invisible
         object->setVisible(false);
 
-        if(auto scalar = obj.get<t_scalar>()) {
+        if (auto scalar = obj.get<t_scalar>()) {
             auto* templ = template_findbyname(scalar->sc_template);
             auto* templatecanvas = template_findcanvas(templ);
             t_float baseX, baseY;
@@ -942,9 +938,9 @@ struct ScalarObject final : public ObjectBase {
                 t_parentwidgetbehavior const* wb = pd_getparentwidget(&y->g_pd);
                 if (!wb)
                     continue;
-                
+
                 auto name = String::fromUTF8(y->g_pd->c_name->s_name);
-                
+
                 if (name == "drawtext" || name == "drawnumber" || name == "drawsymbol") {
                     cnv->addAndMakeVisible(templates.add(new DrawableSymbol(scalar.get(), y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY))));
                 } else if (name == "drawpolygon" || name == "drawcurve" || name == "filledpolygon" || name == "filledcurve") {
@@ -952,19 +948,17 @@ struct ScalarObject final : public ObjectBase {
                 } else if (name == "plot") {
                     auto* plot = new DrawablePlot(scalar.get(), y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY));
                     cnv->addAndMakeVisible(templates.add(plot));
-                    
+
                     for (auto* subplot : plot->getSubPlots()) {
                         cnv->addAndMakeVisible(templates.add(subplot));
                     }
                 }
             }
-            
-            for(int i = templates.size() - 1; i >= 0; i--)
-            {
+
+            for (int i = templates.size() - 1; i >= 0; i--) {
                 templates[i]->toBack();
             }
         }
-        
 
         updateDrawables();
     }

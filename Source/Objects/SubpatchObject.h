@@ -115,7 +115,7 @@ public:
         }
     }
 
-    void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
         switch (symbol) {
         case hash("coords"): {
@@ -155,20 +155,20 @@ public:
         }
 
         for (auto object : patch->getObjects()) {
-            if(auto ptr = object.get<t_pd>()) {
-                const String type = pd::Interface::getObjectClassName(ptr.get());
-                
+            if (auto ptr = object.get<t_pd>()) {
+                String const type = pd::Interface::getObjectClassName(ptr.get());
+
                 if (type == "canvas" || type == "graph") {
                     pd::Patch::Ptr subpatch = new pd::Patch(object, instance, false);
-                    
+
                     char* text = nullptr;
                     int size = 0;
                     pd::Interface::getObjectText(&ptr.cast<t_canvas>()->gl_obj, &text, &size);
                     auto objName = String::fromUTF8(text, size);
-                    
+
                     checkHvccCompatibility(objName, subpatch, prefix + objName + " -> ");
                     freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
-                    
+
                 } else if (!HeavyCompatibleObjects::getAllCompatibleObjects().contains(type)) {
                     instance->logWarning(String("Warning: object \"" + prefix + type + "\" is not supported in Compiled Mode"));
                 }

@@ -100,7 +100,7 @@ public:
 
     SmallIconButton snapEnableButton, snapSettingsButton;
 
-    SmallIconButton alignmentButton;
+    SmallIconButton alignmentButton, debugButton;
 
     std::unique_ptr<OversampleSelector> oversampleSelector;
 

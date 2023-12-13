@@ -101,7 +101,7 @@ public:
             objectParams.addParam(param);
     }
 
-    bool receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms)
+    bool receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms)
     {
         auto setColour = [this](Value& targetValue, pd::Atom const& atom) {
             if (atom.isSymbol()) {
@@ -274,7 +274,7 @@ public:
 
     void updateLabel(std::unique_ptr<ObjectLabel>& label)
     {
-        const String text = labelText.toString();
+        String const text = labelText.toString();
 
         if (text.isNotEmpty()) {
             if (!label) {
@@ -475,7 +475,7 @@ public:
 
     static Colour convertFromIEMColour(int const color)
     {
-        const uint32 c = (uint32)(color << 8 | 0xFF);
+        uint32 const c = (uint32)(color << 8 | 0xFF);
         return Colour(static_cast<uint32>((0xFF << 24) | ((c >> 24) << 16) | ((c >> 16) << 8) | (c >> 8)));
     }
 
@@ -489,7 +489,7 @@ public:
 
     void setLabelText(String newText)
     {
-        
+
         if (newText.isEmpty())
             newText = String("empty");
 

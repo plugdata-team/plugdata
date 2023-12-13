@@ -80,11 +80,11 @@ void Library::updateLibrary()
             }
         }
     }
-    
+
     // These can't be created by name in Pd, but plugdata allows it
     allObjects.add("graph");
     allObjects.add("garray");
-    
+
     // This one isn't in there but should be
     allObjects.add("list");
 
@@ -112,7 +112,7 @@ Library::Library(pd::Instance* instance)
     // Paths to search
     // First, only search vanilla, then search all documentation
     // Lastly, check the deken folder
-    helpPaths = { 
+    helpPaths = {
         ProjectInfo::appDataDir.getChildFile("Documentation"),
         ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("5.reference"),
         ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("9.else"),
@@ -120,12 +120,13 @@ Library::Library(pd::Instance* instance)
         ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("11.heavylib"),
         ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("13.pdlua"),
         ProjectInfo::appDataDir.getChildFile("Extra"),
-        ProjectInfo::appDataDir.getChildFile("Externals") };
+        ProjectInfo::appDataDir.getChildFile("Externals")
+    };
 
     // This is unfortunately necessary to make Windows LV2 turtle dump work
     // Let's hope its not harmful
     MessageManager::callAsync([this, instance = juce::WeakReference(instance)]() {
-        if(instance.get()) {
+        if (instance.get()) {
             instance->setThis();
             updateLibrary();
         }

@@ -21,8 +21,7 @@ private:
 
         if (isMouseOver() || isMouseButtonDown()) {
             backgroundColour = backgroundColour.contrasting(0.1f);
-        }
-        else {
+        } else {
             backgroundColour = backgroundColour.contrasting(0.06f);
         }
 
@@ -34,8 +33,7 @@ private:
 
         g.drawText(getButtonText(), getLocalBounds().reduced(3), Justification::centred);
 
-        if(hasKeyboardFocus(false))
-        {
+        if (hasKeyboardFocus(false)) {
             g.setColour(activeColour);
             PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), bounds, Corners::defaultCornerRadius);
         }

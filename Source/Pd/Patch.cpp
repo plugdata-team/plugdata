@@ -134,6 +134,13 @@ void Patch::updateUndoRedoState()
     if (auto patch = ptr.get<t_glist>()) {
         canUndo = pd::Interface::canUndo(patch.get());
         canRedo = pd::Interface::canRedo(patch.get());
+
+        auto undoSize = pd::Interface::getUndoSize(patch.get());
+        if (undoQueueSize != undoSize) {
+            undoQueueSize = undoSize;
+            updateUndoRedoString();
+        }
+
     }
 }
 
@@ -220,11 +227,11 @@ t_gobj* Patch::createObject(int x, int y, String const& name)
     if (tokens[0] == "garray") {
         if (auto patch = ptr.get<t_glist>()) {
             auto arrayPasta = "#N canvas 0 0 450 250 (subpatch) 0;\n#X array @arrName 100 float 2;\n#X coords 0 1 100 -1 200 140 1;\n#X restore " + String(x) + " " + String(y) + " graph;";
-            
+
             instance->setThis();
             auto* newArraySymbol = pd::Interface::getUnusedArrayName();
             arrayPasta = arrayPasta.replace("@arrName", String::fromUTF8(newArraySymbol->s_name));
-            
+
             pd::Interface::paste(patch.get(), arrayPasta.toRawUTF8());
             return pd::Interface::getNewest(patch.get());
         }
@@ -537,27 +544,95 @@ void Patch::endUndoSequence(String const& name)
 {
     if (auto patch = ptr.get<t_glist>()) {
         canvas_undo_add(patch.get(), UNDO_SEQUENCE_END, instance->generateSymbol(name)->s_name, nullptr);
+
+        updateUndoRedoString();
     }
 }
 
 void Patch::undo()
 {
     if (auto patch = ptr.get<t_glist>()) {
-        setCurrent();
-        glist_noselect(patch.get());
-        libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
+        //setCurrent();
+        //auto x = patch.get();
+        //glist_noselect(x);
+        //libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
 
-        pd::Interface::undo(patch.get());
+        //pd::Interface::undo(patch.get());
+        canvas_undo_undo(patch.get());
+
+        updateUndoRedoString();
     }
 }
 
 void Patch::redo()
 {
     if (auto patch = ptr.get<t_glist>()) {
-        setCurrent();
-        glist_noselect(patch.get());
-        libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
-        pd::Interface::redo(patch.get());
+        //setCurrent();
+        //auto x = patch.get();
+        //glist_noselect(x);
+        //libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
+
+        //pd::Interface::redo(patch.get());
+        canvas_undo_redo(patch.get());
+
+        updateUndoRedoString();
+    }
+}
+
+void Patch::updateUndoRedoString()
+{
+    if (auto patch = ptr.get<t_glist>()) {
+        auto cnv = patch.get();
+        auto currentUndo = canvas_undo_get(cnv)->u_last;
+        auto undo = currentUndo;
+        auto redo = currentUndo->next;
+
+        auto undoDbg = undo;
+        auto redoDbg = redo;
+
+        lastUndoSequence = "";
+        lastRedoSequence = "";
+
+        // undo / redo list will contain libpd undo events
+        // take the first event that we have put there from plugdata
+        // which will start with a capital letter
+        while (undo) {
+            String undoName = undo->name;
+            if (undoName == "props") {
+                lastUndoSequence = "Change property";
+                break;
+            } else if (CharacterFunctions::isUpperCase(undoName[0])) {
+                lastUndoSequence = undoName;
+                break;
+            }
+            undo = undo->prev;
+        }
+
+        while (redo) {
+            String redoName = redo->name;
+            if (redoName == "props") {
+                lastRedoSequence = "Change property";
+                break;
+            } else if (CharacterFunctions::isUpperCase(redoName[0])) {
+                lastRedoSequence = redoName;
+                break;
+            }
+            redo = redo->next;
+        }
+//#define DEBUG_UNDO_QUEUE
+#ifdef DEBUG_UNDO_QUEUE
+        std::cout << "<<<<<< undo list:" << std::endl;
+        while (undoDbg) {
+            std::cout << undoDbg->name << std::endl;
+            undoDbg = undoDbg->prev;
+        }
+        std::cout << ">>>>>> redo list:" << std::endl;
+        while (redoDbg) {
+            std::cout << redoDbg->name << std::endl;
+            redoDbg = redoDbg->next;
+        }
+        std::cout << "-------------------" << std::endl;
+#endif
     }
 }
 
@@ -579,7 +654,8 @@ String Patch::getTitle() const
             for (int i = 0; i < argc; i++) {
                 atom_string(&argv[i], namebuf, MAXPDSTRING);
                 name += String::fromUTF8(namebuf);
-                if(i != argc - 1) name += " ";
+                if (i != argc - 1)
+                    name += " ";
             }
             name += ")";
         }
@@ -645,8 +721,6 @@ String Patch::getCanvasContent()
     auto content = String::fromUTF8(buf, static_cast<size_t>(bufsize));
 
     freebytes(static_cast<void*>(buf), static_cast<size_t>(bufsize) * sizeof(char));
-
-    instance->unlockAudioThread();
 
     return content;
 }

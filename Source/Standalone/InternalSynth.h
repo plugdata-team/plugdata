@@ -21,7 +21,7 @@ public:
     InternalSynth();
 
     ~InternalSynth() override;
-    
+
     void extractSoundfont();
 
     // Initialise fluidsynth on another thread, because it takes a while

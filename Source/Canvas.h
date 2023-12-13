@@ -69,7 +69,7 @@ public:
     void altKeyChanged(bool isHeld) override;
 
     void propertyChanged(String const& name, var const& value) override;
-                
+
     void focusGained(FocusChangeType cause) override;
     void focusLost(FocusChangeType cause) override;
 
@@ -138,7 +138,7 @@ public:
 
     ObjectParameters& getInspectorParameters();
 
-    void receiveMessage(t_symbol* symbol, const pd::Atom atoms[8], int numAtoms) override;
+    void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms) override;
 
     template<typename T>
     Array<T*> getSelectionOfType()
@@ -159,7 +159,7 @@ public:
     bool connectingWithDrag = false;
     bool connectionCancelled = false;
     SafePointer<Iolet> nearestIolet;
-        
+
     std::unique_ptr<SuggestionComponent> suggestor;
 
     pd::Patch::Ptr refCountedPatch;

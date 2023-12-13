@@ -30,6 +30,7 @@ class Connection : public Component
 public:
     int inIdx;
     int outIdx;
+    int numSignalChannels = 1;
 
     WeakReference<Iolet> inlet, outlet;
     WeakReference<Object> inobj, outobj;
@@ -109,11 +110,12 @@ public:
     bool intersectsObject(Object* object) const;
     bool straightLineIntersectsObject(Line<float> toCheck, Array<Object*>& objects);
 
-    void receiveMessage(t_symbol* symbol, const pd::Atom atoms[8], int numAtoms) override;
+    void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms) override;
 
     bool isSelected() const;
 
     StringArray getMessageFormated();
+    int getSignalData(t_float* output, int maxChannels);
 
 private:
     void resizeToFit();
@@ -146,7 +148,6 @@ private:
     Point<float> previousPStart = Point<float>();
 
     int dragIdx = -1;
-    int numSignalChannels = 1;
 
     float mouseDownPosition = 0;
     bool isHovering = false;

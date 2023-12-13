@@ -298,7 +298,7 @@ private:
 
         // Add output device selector
         Array<PropertiesPanelProperty*> outputProperties;
-        const StringArray outputDevices(currentType->getDeviceNames(false));
+        StringArray const outputDevices(currentType->getDeviceNames(false));
         outputSelectorProperty = new CallbackComboPropertyWithTestButton(
             "Output Device", outputDevices, setup.outputDeviceName, [this](String selectedDevice) {
                 setup.outputDeviceName = std::move(selectedDevice);
@@ -309,7 +309,7 @@ private:
 
         // Add input device selector
         Array<PropertiesPanelProperty*> inputProperties;
-        const StringArray inputDevices(currentType->getDeviceNames(true));
+        StringArray const inputDevices(currentType->getDeviceNames(true));
         inputSelectorProperty = new CallbackComboProperty("Input Device", inputDevices, setup.inputDeviceName, [this](String selectedDevice) {
             setup.inputDeviceName = std::move(selectedDevice);
             updateConfig();

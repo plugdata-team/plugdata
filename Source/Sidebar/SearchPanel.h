@@ -110,7 +110,7 @@ public:
     {
         int row = listBox.getSelectedRow();
         if (isPositiveAndBelow(row, searchResult.size())) {
-            const auto& [name, prefix, object, ptr] = searchResult.getReference(row);
+            auto const& [name, prefix, object, ptr] = searchResult.getReference(row);
 
             if (object) {
                 highlightSearchTarget(object.getComponent());
@@ -193,13 +193,13 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        auto backgroundColour =  findColour(PlugDataColour::sidebarBackgroundColourId);
+        auto backgroundColour = findColour(PlugDataColour::sidebarBackgroundColourId);
         auto transparentColour = backgroundColour.withAlpha(0.0f);
 
         // Draw a gradient to fade the content out underneath the search input
         g.setGradientFill(ColourGradient(backgroundColour, 0.0f, 30.0f, transparentColour, 0.0f, 42.0f, false));
         g.fillRect(Rectangle<int>(0, input.getBottom(), getWidth(), 12));
-        
+
         auto colour = findColour(PlugDataColour::sidebarTextColourId);
         Fonts::drawIcon(g, Icons::Search, 2, 1, 32, colour, 12);
     }
@@ -356,18 +356,18 @@ public:
         // Search through subpatches
         for (auto& [object, topLevel] : subpatches) {
             auto patch = pd::Patch(object, instance, false);
-            
-            if(auto ptr = object.get<t_canvas>()) {
+
+            if (auto ptr = object.get<t_canvas>()) {
                 char* objectText;
                 int len;
                 pd::Interface::getObjectText(ptr.cast<t_text>(), &objectText, &len);
-                
+
                 auto objTextStr = String::fromUTF8(objectText, len);
-                
+
                 addObject(objTextStr, topLevel, object);
-                
+
                 freebytes(static_cast<void*>(objectText), static_cast<size_t>(len) * sizeof(char));
-                
+
                 auto tokens = StringArray::fromTokens(objTextStr, false);
                 String newPrefix;
                 if (tokens[0] == "pd") {
@@ -375,7 +375,7 @@ public:
                 } else {
                     newPrefix = tokens[0];
                 }
-                
+
                 result.addArray(searchRecursively(nullptr, patch, query, topLevel, prefix + newPrefix + " -> "));
             }
         }

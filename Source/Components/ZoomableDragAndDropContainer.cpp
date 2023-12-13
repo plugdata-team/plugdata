@@ -468,22 +468,22 @@ private:
                     auto canMoveFiles = false;
 
                     if (owner.shouldDropFilesWhenDraggedExternally(details, files, canMoveFiles) && !files.isEmpty()) {
-                        MessageManager::callAsync([this, files, canMoveFiles] { 
+                        MessageManager::callAsync([this, files, canMoveFiles] {
                             DragAndDropContainer::performExternalDragDropOfFiles(files, canMoveFiles);
                             deleteSelf();
                         });
-                        
+
                         return;
                     }
 
                     String text;
 
                     if (owner.shouldDropTextWhenDraggedExternally(details, text) && text.isNotEmpty()) {
-                        MessageManager::callAsync([this, text] { 
+                        MessageManager::callAsync([this, text] {
                             DragAndDropContainer::performExternalDragDropOfText(text);
                             deleteSelf(); // Delete asynchronously so the stack can unwind
                         });
-                        
+
                         return;
                     }
                 }
@@ -625,11 +625,9 @@ void ZoomableDragAndDropContainer::startDragging(var const& sourceDescription,
 #endif
 
     dragOperationStarted(dragImageComponent->sourceDetails);
-    if(auto* topLevel = TopLevelWindow::getActiveTopLevelWindow())
-    {
+    if (auto* topLevel = TopLevelWindow::getActiveTopLevelWindow()) {
         topLevel->repaint();
     }
-    
 }
 
 bool ZoomableDragAndDropContainer::isDragAndDropActive() const

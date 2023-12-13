@@ -6,7 +6,6 @@
 
 #include "Components/PropertiesPanel.h"
 
-
 class PropertyRedirector : public Value::Listener {
 public:
     PropertyRedirector(Value* controllerValue, Array<Value*> attachedValues)
@@ -149,42 +148,31 @@ public:
             Array<PropertiesPanelProperty*> panels;
             for (auto& parameter : objectParameters[0].getParameters()) {
                 auto& [name, type, category, value, options, defaultVal, customComponentFn] = parameter;
-                
-                if(customComponentFn && objectParameters.size() == 1 && static_cast<int>(category) == i)
-                {
-                    if(auto* customComponent = customComponentFn()) {
-                        panel.addSection("", {customComponent});
-                    }
-                    else {
+
+                if (customComponentFn && objectParameters.size() == 1 && static_cast<int>(category) == i) {
+                    if (auto* customComponent = customComponentFn()) {
+                        panel.addSection("", { customComponent });
+                    } else {
                         continue;
                     }
-                }
-                else if(customComponentFn)
-                {
+                } else if (customComponentFn) {
                     continue;
-                }
-                else if (static_cast<int>(category) == i) {
+                } else if (static_cast<int>(category) == i) {
 
                     Array<Value*> otherValues;
                     if (!parameterIsInAllObjects(parameter, otherValues))
                         continue;
-                
 
-                    else if(objectParameters.size() == 1)
-                    {
+                    else if (objectParameters.size() == 1) {
                         auto newPanel = createPanel(type, name, value, options);
                         newPanel->setPreferredHeight(26);
                         panels.add(newPanel);
-                    }
-                    else {
+                    } else {
                         auto* redirector = redirectors.add(new PropertyRedirector(value, otherValues));
                         auto newPanel = createPanel(type, name, &redirector->baseValue, options);
                         newPanel->setPreferredHeight(26);
                         panels.add(newPanel);
                     }
-                    
-
-
                 }
             }
             if (!panels.isEmpty()) {

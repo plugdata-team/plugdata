@@ -95,6 +95,7 @@ public:
     int getIndexOfCanvas(Canvas* cnv);
 
     void setTabText(int tabIndex, String const& newName);
+    String getTabText(int tabIndex);
 
     Canvas* getCanvas(int idx);
 
@@ -111,7 +112,6 @@ public:
     Rectangle<int> currentTabBounds;
 
 private:
-
     Point<int> scalePos;
 
     int tabDepth = 30;

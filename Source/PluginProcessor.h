@@ -25,6 +25,7 @@ class SettingsFile;
 class StatusbarSource;
 struct PlugDataLook;
 class PluginEditor;
+class ConnectionMessageDisplay;
 class PluginProcessor : public AudioProcessor
     , public pd::Instance {
 public:
@@ -48,7 +49,7 @@ public:
     AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
 
-    const String getName() const override;
+    String const getName() const override;
 
     bool acceptsMidi() const override;
     bool producesMidi() const override;
@@ -58,7 +59,7 @@ public:
     int getNumPrograms() override;
     int getCurrentProgram() override;
     void setCurrentProgram(int index) override;
-    const String getProgramName(int index) override;
+    String const getProgramName(int index) override;
     void changeProgramName(int index, String const& newName) override;
 
     void getStateInformation(MemoryBlock& destData) override;
@@ -82,7 +83,7 @@ public:
 
     void processConstant(dsp::AudioBlock<float>, MidiBuffer&);
     void processVariable(dsp::AudioBlock<float>, MidiBuffer&);
-        
+
     bool canAddBus(bool isInput) const override
     {
         return true;
@@ -164,20 +165,21 @@ public:
     std::atomic<bool> enableInternalSynth = false;
 
     OwnedArray<PluginEditor> openedEditors;
+    Component::SafePointer<ConnectionMessageDisplay> connectionListener;
 
 private:
-
     SmoothedValue<float, ValueSmoothingTypes::Linear> smoothedGain;
 
     int audioAdvancement = 0;
-    
+    int processBlockCount = 0;
+
     bool variableBlockSize = false;
     AudioBuffer<float> audioBufferIn;
     AudioBuffer<float> audioBufferOut;
-        
+
     std::vector<float> audioVectorIn;
     std::vector<float> audioVectorOut;
-        
+
     std::unique_ptr<AudioMidiFifo> inputFifo;
     std::unique_ptr<AudioMidiFifo> outputFifo;
 
@@ -200,16 +202,11 @@ private:
 
     std::map<unsigned long, std::unique_ptr<Component>> textEditorDialogs;
 
-    static inline const String else_version = "ELSE v1.0-rc10";
-    static inline const String cyclone_version = "cyclone v0.8-0";
-    static inline const String heavylib_version = "heavylib v0.3.1";
+    static inline String const else_version = "ELSE v1.0-rc10";
+    static inline String const cyclone_version = "cyclone v0.8-0";
+    static inline String const heavylib_version = "heavylib v0.3.1";
     // this gets updated with live version data later
     static String pdlua_version;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)
 };
-
-
-
-
-

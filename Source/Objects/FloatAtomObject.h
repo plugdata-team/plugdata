@@ -231,14 +231,14 @@ public:
         return 0.0f;
     }
 
-    void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
         switch (symbol) {
 
         case hash("set"):
         case hash("float"):
         case hash("list"): {
-            if (numAtoms > 0 || !atoms[0].isFloat())
+            if (numAtoms < 1 || !atoms[0].isFloat())
                 break;
 
             auto min = atomHelper.getMinimum();

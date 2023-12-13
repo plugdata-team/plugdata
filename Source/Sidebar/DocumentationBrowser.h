@@ -11,13 +11,14 @@
 #include <utility>
 
 #include "Utility/OSUtils.h"
+#include "Utility/Autosave.h"
 #include "Object.h"
 
 class DocumentBrowserSettings : public Component {
 public:
     struct DocumentBrowserSettingsButton : public TextButton {
-        const String icon;
-        const String description;
+        String const icon;
+        String const description;
 
         DocumentBrowserSettingsButton(String iconString, String descriptionString)
             : icon(std::move(iconString))
@@ -77,7 +78,8 @@ private:
 
 // Base classes for communication between parent and child classes
 class DocumentBrowserViewBase : public TreeView
-    , public DirectoryContentsDisplayComponent, public DragAndDropContainer {
+    , public DirectoryContentsDisplayComponent
+    , public DragAndDropContainer {
 
 public:
     explicit DocumentBrowserViewBase(DirectoryContentsList& listToShow)
@@ -86,7 +88,7 @@ public:
     {
     }
 
-    bool shouldDropTextWhenDraggedExternally (const DragAndDropTarget::SourceDetails &sourceDetails, String &text) override
+    bool shouldDropTextWhenDraggedExternally(DragAndDropTarget::SourceDetails const& sourceDetails, String& text) override
     {
         return false;
     }
@@ -173,7 +175,7 @@ public:
         if (file.existsAsFile()) {
             return var(String(file.getFileName()));
         }
-        
+
         return var(String());
     }
 
@@ -315,7 +317,7 @@ public:
         owner.repaint();
     }
 
-    const File file;
+    File const file;
 
 private:
     DocumentBrowserViewBase& owner;
@@ -467,13 +469,12 @@ public:
         bouncer.mouseWheelMove(e, d);
         repaint();
     }
-        
-    void dragOperationStarted (const DragAndDropTarget::SourceDetails &) override
+
+    void dragOperationStarted(DragAndDropTarget::SourceDetails const&) override
     {
-        DragAndDropContainer::performExternalDragDropOfFiles ({getSelectedFile().getFullPathName()}, false, this, nullptr);
+        DragAndDropContainer::performExternalDragDropOfFiles({ getSelectedFile().getFullPathName() }, false, this, nullptr);
         setCurrentDragImage(ScaledImage());
     }
-        
 
     /** Callback when the user double-clicks on a file in the browser. */
     void fileDoubleClicked(File const& file) override
@@ -481,9 +482,13 @@ public:
         if (file.isDirectory()) {
             file.revealToUser();
         } else if (file.existsAsFile() && file.hasFileExtension("pd")) {
-            browser->pd->loadPatch(file, findParentComponentOfClass<PluginEditor>());
-            SettingsFile::getInstance()->addToRecentlyOpened(file);
-            lastUpdateTime = Time::getCurrentTime() + RelativeTime(2.0f);
+            auto* editor = findParentComponentOfClass<PluginEditor>();
+            File nonConstFile = file;
+            editor->autosave->checkForMoreRecentAutosave(nonConstFile, [this, editor, file = nonConstFile]() {
+                browser->pd->loadPatch(file, editor);
+                SettingsFile::getInstance()->addToRecentlyOpened(file);
+                lastUpdateTime = Time::getCurrentTime() + RelativeTime(2.0f);
+            });
         } else if (file.existsAsFile()) {
             auto* editor = findParentComponentOfClass<PluginEditor>();
             if (auto* cnv = editor->getCurrentCanvas()) {
@@ -529,8 +534,9 @@ public:
             if (file.exists() && (file.isDirectory() || file.hasFileExtension("pd"))) {
                 auto alias = browser->directory.getDirectory().getChildFile(file.getFileName());
 
-                if (alias.exists()) continue;
-                
+                if (alias.exists())
+                    continue;
+
 #if JUCE_WINDOWS
                 // Symlinks on Windows are weird!
                 if (file.isDirectory()) {
@@ -662,18 +668,17 @@ public:
 
         g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
         g.fillRoundedRectangle(input.getBounds().reduced(6, 4).toFloat(), Corners::defaultCornerRadius);
-
     }
-        
+
     void paintOverChildren(Graphics& g) override
     {
-        auto backgroundColour =  findColour(PlugDataColour::sidebarBackgroundColourId);
+        auto backgroundColour = findColour(PlugDataColour::sidebarBackgroundColourId);
         auto transparentColour = backgroundColour.withAlpha(0.0f);
 
         // Draw a gradient to fade the content out underneath the search input
         g.setGradientFill(ColourGradient(backgroundColour, 0.0f, 30.0f, transparentColour, 0.0f, 42.0f, false));
         g.fillRect(Rectangle<int>(0, input.getBottom(), getWidth(), 12));
-        
+
         Fonts::drawIcon(g, Icons::Search, 2, 1, 32, findColour(PlugDataColour::sidebarTextColourId), 12);
     }
 
@@ -692,7 +697,7 @@ public:
         }
 
         auto colour = rowIsSelected ? findColour(PlugDataColour::sidebarActiveTextColourId) : findColour(ComboBox::textColourId);
-        const String item = searchResult[rowNumber].getFileName();
+        String const item = searchResult[rowNumber].getFileName();
 
         Fonts::drawText(g, item, h + 4, 0, w - 4, h, colour, 14);
         Fonts::drawIcon(g, Icons::File, 12, 0, h, colour, 12, false);
@@ -868,13 +873,14 @@ public:
             auto* sidebar = getParentComponent();
             auto bounds = editor->getLocalArea(sidebar, settingsCalloutButton->getBounds());
             auto openFolderCallback = [this]() {
-                Dialogs::showOpenDialog([this](File& result){
+                Dialogs::showOpenDialog([this](File& result) {
                     if (result.exists()) {
                         const auto& path = result.getFullPathName();
                         pd->settingsFile->setProperty("browser_path", path);
                         directory.setDirectory(path, true, true);
                     }
-                }, false, true, "", "DocumentationFileChooser");
+                },
+                    false, true, "", "DocumentationFileChooser");
             };
 
             auto resetFolderCallback = [this]() {

@@ -77,7 +77,7 @@ class ObjectInfoPanel : public Component {
             setSize(width, totalHeight);
         }
 
-        const String categoryName;
+        String const categoryName;
         Array<std::pair<String, String>> const panelContent;
         Array<TextLayout> layouts;
     };

@@ -163,7 +163,7 @@ public:
 
         Path p;
         p.addRoundedRectangle(resetButtonBounds.reduced(3.0f), Corners::largeCornerRadius);
-        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
+        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 7);
 
         g.setColour(findColour(PlugDataColour::panelForegroundColourId));
         g.fillRoundedRectangle(resetButtonBounds, Corners::largeCornerRadius);
@@ -176,7 +176,7 @@ public:
 
         p = Path();
         p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
-        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
+        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 7);
 
         g.setColour(findColour(PlugDataColour::panelForegroundColourId));
         g.fillRoundedRectangle(propertyBounds, Corners::largeCornerRadius);
@@ -266,7 +266,7 @@ public:
     void filesDropped(StringArray const& filenames, int x, int y) override
     {
         for (int i = filenames.size(); --i >= 0;) {
-            const File f(filenames[i]);
+            File const f(filenames[i]);
             if (f.isDirectory()) {
                 paths.add(f.getFullPathName());
                 internalChange();
@@ -352,14 +352,14 @@ private:
 
         if (start == File())
             start = File::getCurrentWorkingDirectory();
-        
-        Dialogs::showOpenDialog([this](File& result){
-            if(result.exists())
-            {
+
+        Dialogs::showOpenDialog([this](File& result) {
+            if (result.exists()) {
                 paths.addIfNotAlreadyThere(result.getFullPathName(), listBox.getSelectedRow());
                 internalChange();
             }
-        }, false, true, "", "PathBrowser");
+        },
+            false, true, "", "PathBrowser");
     }
 
     void deleteSelected()
@@ -374,16 +374,16 @@ private:
             return;
 
         auto row = listBox.getSelectedRow();
-        
-        Dialogs::showOpenDialog([this, row](File& result){
-            if(result.exists())
-            {
+
+        Dialogs::showOpenDialog([this, row](File& result) {
+            if (result.exists()) {
                 paths.remove(row);
                 paths.addIfNotAlreadyThere(result.getFullPathName(), row);
                 internalChange();
             }
-        }, false, true, "", "PathBrowser");
-        
+        },
+            false, true, "", "PathBrowser");
+
         internalChange();
     }
 
@@ -514,7 +514,7 @@ public:
 
         Path p;
         p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
-        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
+        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 7);
 
         g.setColour(findColour(PlugDataColour::panelForegroundColourId));
         g.fillRoundedRectangle(propertyBounds, Corners::largeCornerRadius);

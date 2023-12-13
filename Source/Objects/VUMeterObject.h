@@ -157,7 +157,7 @@ public:
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
-    void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
         switch (symbol) {
         case hash("float"): {

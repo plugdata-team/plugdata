@@ -415,7 +415,7 @@ public:
         keyboard.repaint();
     }
 
-    void notesOn(const pd::Atom atoms[8], int numAtoms, bool isOn)
+    void notesOn(pd::Atom const atoms[8], int numAtoms, bool isOn)
     {
         for (int at = 0; at < numAtoms; at++) {
             if (isOn)
@@ -426,7 +426,7 @@ public:
         keyboard.repaint();
     }
 
-    void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
         auto elseKeyboard = ptr.get<t_fake_keyboard>();
 

@@ -10,9 +10,9 @@
 
 struct Toolchain {
 #if JUCE_WINDOWS
-    static inline const File dir = ProjectInfo::appDataDir.getChildFile("Toolchain").getChildFile("usr");
+    static inline File const dir = ProjectInfo::appDataDir.getChildFile("Toolchain").getChildFile("usr");
 #else
-    static inline const File dir = ProjectInfo::appDataDir.getChildFile("Toolchain");
+    static inline File const dir = ProjectInfo::appDataDir.getChildFile("Toolchain");
 #endif
 
     static void deleteTempFileLater(File script)
@@ -61,7 +61,7 @@ struct Toolchain {
 #endif
     }
 
-    const String startShellScriptWithOutput(String scriptText)
+    String const startShellScriptWithOutput(String scriptText)
     {
         File scriptFile = File::createTempFile(".sh");
         Toolchain::deleteTempFileLater(scriptFile);

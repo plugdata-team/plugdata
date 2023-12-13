@@ -4,7 +4,6 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-
 class MessageObject final : public ObjectBase
     , public KeyListener
     , public TextEditor::Listener {
@@ -12,7 +11,7 @@ class MessageObject final : public ObjectBase
     Value sizeProperty = SynchronousValue();
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
-        
+
     String objectText;
 
     int numLines = 1;
@@ -41,7 +40,7 @@ public:
         if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
             objText = cnv->suggestor->getText();
         }
-        
+
         auto newNumLines = 0;
 
         if (auto message = ptr.get<t_text>()) {
@@ -149,7 +148,7 @@ public:
         g.drawRoundedRectangle(reducedBounds, Corners::objectCornerRadius, 1.0f);
     }
 
-    void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
         String v = getSymbol();
 
