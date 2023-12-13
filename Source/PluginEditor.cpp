@@ -76,8 +76,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , splitView(this)
     , zoomLabel(std::make_unique<ZoomLabel>())
     , offlineRenderer(&p)
-    , autosave(std::make_unique<Autosave>(pd))
-    , pluginConstrainer(*getConstrainer())
+, pluginConstrainer(*getConstrainer())
+, autosave(std::make_unique<Autosave>(pd))
     , touchSelectionHelper(std::make_unique<TouchSelectionHelper>(this))
     , tooltipWindow(this, [](Component* c) {
         if (auto* cnv = c->findParentComponentOfClass<Canvas>()) {

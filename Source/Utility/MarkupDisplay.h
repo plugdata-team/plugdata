@@ -489,7 +489,7 @@ public:
         return line.startsWith("^") || line.startsWith("|");
     }
 
-    void parseMarkup(StringArray const& lines, Font font)
+    void parseMarkup(StringArray const& lines, Font font) override
     {
         // read cells
         table.cells.clear();
