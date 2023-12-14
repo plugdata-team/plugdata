@@ -233,6 +233,19 @@ public:
     virtual void titleChanged() { }
 
     void enqueueFunctionAsync(std::function<void(void)> const& fn);
+    
+    // Enqueue a message to an pd::WeakReference
+    // This will first check if the weakreference is valid before triggering the callback
+    template<typename T>
+    void enqueueFunctionAsync(WeakReference& ref, std::function<void(T*)> const& fn)
+    {
+        functionQueue.enqueue([ref, fn](){
+            if(auto obj = ref.get<T>())
+            {
+                fn(obj.get());
+            }
+        });
+    }
 
     void sendDirectMessage(void* object, String const& msg, std::vector<Atom>&& list);
     void sendDirectMessage(void* object, std::vector<pd::Atom>&& list);

@@ -92,10 +92,11 @@ public:
         if (!e.mods.isLeftButtonDown())
             return;
 
-        startEdition();
-        if (auto bng = ptr.get<t_pd>())
-            pd_bang(bng.get());
-        stopEdition();
+        //startEdition();
+        pd->enqueueFunctionAsync<t_pd>(ptr, [](t_pd* bng){
+            pd_bang(bng);
+        });
+        //stopEdition();
 
         // Make sure we don't re-click with an accidental drag
         alreadyBanged = true;

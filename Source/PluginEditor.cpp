@@ -905,7 +905,7 @@ void PluginEditor::handleAsyncUpdate()
 
     if (auto* cnv = getCurrentCanvas()) {
         bool locked = getValue<bool>(cnv->locked);
-        bool isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && cnv->locked == var(false);
+        bool isDragging = cnv->dragState.didStartDragging && !getValue<bool>(cnv->isDraggingLasso) && cnv->locked == var(false);
         
         if (getValue<bool>(cnv->presentationMode)) {
             presentButton.setToggleState(true, dontSendNotification);
@@ -1008,7 +1008,7 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         hasConnectionSelection = !selectedConnections.isEmpty();
 
         hasSelection = hasObjectSelection || hasConnectionSelection;
-        isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && cnv->locked == var(false);
+        isDragging = cnv->dragState.didStartDragging && !getValue<bool>(cnv->isDraggingLasso) && cnv->locked == var(false);
         hasCanvas = true;
         
         canUndo = cnv->patch.canUndo() && !isDragging;

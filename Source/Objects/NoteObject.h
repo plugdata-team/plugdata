@@ -23,7 +23,9 @@ class NoteObject final : public ObjectBase {
     Value outline = SynchronousValue();
     Value receiveSymbol = SynchronousValue();
     Value width = SynchronousValue();
-
+    
+    Value isDraggingLasso;
+    
     bool locked;
     bool wasSelectedOnMouseDown = false;
 
@@ -82,6 +84,9 @@ public:
 
             object->updateBounds();
         };
+        
+        isDraggingLasso.referTo(cnv->isDraggingLasso);
+        isDraggingLasso.addListener(this);
 
         objectParameters.addParamInt("Width", cDimensions, &width);
         objectParameters.addParamColour("Text color", cAppearance, &primaryColour, PlugDataColour::canvasTextColourId);
@@ -199,7 +204,7 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        if (getValue<bool>(outline)) {
+        if (getValue<bool>(outline) || object->isMouseOverOrDragging(true) || getValue<bool>(isDraggingLasso)) {
             bool selected = object->isSelected() && !cnv->isGraph;
             auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
 
@@ -385,6 +390,8 @@ public:
             if (auto note = ptr.get<t_fake_note>())
                 note->x_fontname = gensym(fontName.toRawUTF8());
             updateFont();
+        } else if(v.refersToSameSourceAs(isDraggingLasso)) {
+            repaint();
         }
     }
 

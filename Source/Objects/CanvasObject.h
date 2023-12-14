@@ -8,7 +8,8 @@ class CanvasObject final : public ObjectBase {
 
     bool locked;
     Value sizeProperty = SynchronousValue();
-
+    Value isDraggingLasso;
+        
     IEMHelper iemHelper;
 
 public:
@@ -18,6 +19,9 @@ public:
     {
         object->setColour(PlugDataColour::outlineColourId, Colours::transparentBlack);
         locked = getValue<bool>(object->locked);
+        
+        isDraggingLasso.referTo(cnv->isDraggingLasso);
+        isDraggingLasso.addListener(this);
 
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamColour("Canvas color", cGeneral, &iemHelper.secondaryColour, PlugDataColour::guiObjectInternalOutlineColour);
@@ -127,7 +131,7 @@ public:
                 return;
             }
 
-            g.setColour(object->isSelected() ? object->findColour(PlugDataColour::objectSelectedOutlineColourId) : object->findColour(PlugDataColour::objectOutlineColourId));
+            g.setColour((object->isSelected() || getValue<bool>(isDraggingLasso)) ? object->findColour(PlugDataColour::objectSelectedOutlineColourId) : object->findColour(PlugDataColour::objectOutlineColourId));
             g.drawRoundedRectangle(draggableRect.reduced(1.0f), Corners::objectCornerRadius, 1.0f);
         }
     }
@@ -148,7 +152,10 @@ public:
             }
 
             object->updateBounds();
-        } else {
+        } else if(v.refersToSameSourceAs(isDraggingLasso)) {
+            repaint();
+        }
+        else {
             iemHelper.valueChanged(v);
         }
     }
