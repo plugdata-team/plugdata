@@ -109,7 +109,7 @@ public:
             try {
                 auto compatTable = JSON::parse(URL("https://raw.githubusercontent.com/plugdata-team/plugdata-heavy-toolchain/main/COMPATIBILITY").readEntireTextStream());
                 // Get latest version
-
+                
                 latestVersion = compatTable.getDynamicObject()->getProperty(String(ProjectInfo::versionString).upToFirstOccurrenceOf("-", false, false)).toString();
                 if (latestVersion.isEmpty())
                     throw;
