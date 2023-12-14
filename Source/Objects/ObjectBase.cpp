@@ -286,7 +286,7 @@ bool ObjectBase::hitTest(int x, int y)
 // Gets position from pd and applies it to Object
 Rectangle<int> ObjectBase::getSelectableBounds()
 {
-    return object->getBounds() - cnv->canvasOrigin;
+    return object->getBounds().reduced(Object::margin) - cnv->canvasOrigin;
 }
 
 // Called in destructor of subpatch and graph class
