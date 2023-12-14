@@ -653,7 +653,7 @@ void Canvas::mouseDown(MouseEvent const& e)
                 deselectAll();
             }
 
-            if (!(e.source.isTouch() && e.source.getIndex() != 0)) {
+            if (!(e.source.isTouch() && e.source.getIndex() != 0) && !getValue<bool>(locked)) {
                 lasso.beginLasso(e.getEventRelativeTo(this), this);
                 isDraggingLasso = true;
             }
