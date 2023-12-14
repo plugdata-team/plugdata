@@ -15,6 +15,8 @@ class PictureObject final : public ObjectBase {
     Value receiveSymbol = SynchronousValue();
     Value sizeProperty = SynchronousValue();
 
+    Value isDraggingLasso;
+    
     File imageFile;
     Image img;
 
@@ -34,6 +36,9 @@ public:
                 });
             }
         }
+        
+        isDraggingLasso.referTo(cnv->isDraggingLasso);
+        isDraggingLasso.addListener(this);
 
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamString("File", cGeneral, &path, "");
@@ -126,7 +131,7 @@ public:
         bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
-        if (getValue<bool>(outline)) {
+        if (getValue<bool>(outline) || getValue<bool>(isDraggingLasso)) {
             g.setColour(outlineColour);
             g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
         }
@@ -167,7 +172,11 @@ public:
             auto symbol = receiveSymbol.toString();
             if (auto pic = ptr.get<t_pd>())
                 pd->sendDirectMessage(pic.get(), "receive", { pd->generateSymbol(symbol) });
+        } else if (value.refersToSameSourceAs(isDraggingLasso)) {
+            repaint();
         }
+        
+        
     }
 
     void setPdBounds(Rectangle<int> b) override
