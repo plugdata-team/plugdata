@@ -727,6 +727,17 @@ void Canvas::mouseDrag(MouseEvent const& e)
     // Drag lasso
     if (!(e.source.isTouch() && e.source.getIndex() != 0)) {
         lasso.dragLasso(e);
+        if (showObjectFullBounds)
+            return;
+
+        // check for minimum size lasso so not to trigger object silhouette with erroneous mouse movement
+        const auto smallRectangle = Rectangle<int>(0,0,5,5);
+        if (lasso.getLocalBounds().contains(smallRectangle)) {
+            showObjectFullBounds = true;
+            for (auto* object : objects) {
+                object->showFullBounds(true);
+            }
+        }
     }
 }
 
@@ -781,9 +792,11 @@ void Canvas::mouseUp(MouseEvent const& e)
 
     lasso.endLasso();
     isDraggingLasso = false;
-    for (auto* object : objects)
+    showObjectFullBounds = false;
+    for (auto* object : objects) {
         object->originalBounds = Rectangle<int>(0, 0, 0, 0);
-
+        object->showFullBounds(false);
+    }
     // TODO: this is a hack, find a better solution
     if (connectingWithDrag) {
         for (auto* obj : objects) {

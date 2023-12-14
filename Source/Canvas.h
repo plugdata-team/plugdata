@@ -218,6 +218,8 @@ private:
 
     RateReducer canvasRateReducer = RateReducer(90);
 
+    bool showObjectFullBounds = false;
+
     // Properties that can be shown in the inspector by right-clicking on canvas
     ObjectParameters parameters;
 

@@ -73,6 +73,9 @@ public:
 
     void updateOverlays(int overlay);
 
+    // display the object bounds as a silhouette behind the object to aid in selection
+    void showFullBounds(bool isShown);
+
     void textEditorReturnKeyPressed(TextEditor& ed) override;
     void textEditorTextChanged(TextEditor& ed) override;
 
@@ -139,6 +142,8 @@ private:
     Image activityOverlayImage;
 
     ObjectDragState& ds;
+
+    bool showBoundsSilhouette = false;
 
     RateReducer rateReducer = RateReducer(ACTIVITY_UPDATE_RATE);
 

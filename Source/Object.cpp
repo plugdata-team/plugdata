@@ -501,6 +501,11 @@ void Object::triggerOverlayActiveState()
 
 void Object::paint(Graphics& g)
 {
+    if (showBoundsSilhouette) {
+        g.setColour(findColour(PlugDataColour::objectOutlineColourId).withAlpha(0.3f));
+        g.fillRoundedRectangle(getLocalBounds().reduced(Object::margin).toFloat(), Corners::objectCornerRadius);
+    }
+
     if ((showActiveState || isTimerRunning())) {
         g.setOpacity(activeStateAlpha);
         // show activation state glow
@@ -1324,6 +1329,14 @@ void Object::updateOverlays(int overlay)
     showActiveState = overlay & Overlay::ActivationState;
 
     if (indexWasShown != indexShown) {
+        repaint();
+    }
+}
+
+void Object::showFullBounds(bool isShown)
+{
+    if (showBoundsSilhouette != isShown) {
+        showBoundsSilhouette = isShown;
         repaint();
     }
 }
