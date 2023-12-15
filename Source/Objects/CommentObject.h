@@ -25,6 +25,11 @@ public:
         locked = getValue<bool>(object->locked);
     }
 
+    bool isTransparent() override
+    {
+        return true;
+    }
+
     void update() override
     {
         objectText = getText().trimEnd();
@@ -48,8 +53,7 @@ public:
     void paintOverChildren(Graphics& g) override
     {
         auto selected = object->isSelected();
-        
-        if (!locked && !cnv->isGraph) {
+        if (!locked && (object->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
             g.setColour(object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId));
 
             g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);

@@ -15,11 +15,8 @@ class PictureObject final : public ObjectBase {
     Value receiveSymbol = SynchronousValue();
     Value sizeProperty = SynchronousValue();
 
-    
     File imageFile;
     Image img;
-    
-    bool locked;
 
 public:
     PictureObject(pd::WeakReference ptr, Object* object)
@@ -37,8 +34,6 @@ public:
                 });
             }
         }
-        
-        locked = getValue<bool>(object->locked);
 
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamString("File", cGeneral, &path, "");
@@ -49,11 +44,9 @@ public:
         objectParameters.addParamSendSymbol(&sendSymbol);
     }
     
-    void lock(bool isLocked) override
+    bool isTransparent() override
     {
-        ObjectBase::lock(isLocked);
-        locked = isLocked;
-        repaint();
+        return true;
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -138,7 +131,7 @@ public:
         bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
-        if (getValue<bool>(outline) || !locked) {
+        if (getValue<bool>(outline)) {
             g.setColour(outlineColour);
             g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
         }
