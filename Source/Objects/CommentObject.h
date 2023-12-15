@@ -11,7 +11,7 @@ class CommentObject final : public ObjectBase
     bool locked;
 
     Value sizeProperty = SynchronousValue();
-    Value isDraggingLasso;
+        
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
     String objectText;
@@ -23,8 +23,6 @@ public:
     {
         objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
         locked = getValue<bool>(object->locked);
-        isDraggingLasso.referTo(cnv->isDraggingLasso);
-        isDraggingLasso.addListener(this);
     }
 
     void update() override
@@ -50,7 +48,8 @@ public:
     void paintOverChildren(Graphics& g) override
     {
         auto selected = object->isSelected();
-        if (object->locked == var(false) && (object->isMouseOverOrDragging(true) || getValue<bool>(isDraggingLasso) || selected) && !cnv->isGraph) {
+        
+        if (!locked && !cnv->isGraph) {
             g.setColour(object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId));
 
             g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
@@ -185,10 +184,6 @@ public:
 
             object->updateBounds();
         }
-        else if(v.refersToSameSourceAs(isDraggingLasso))
-        {
-            repaint();
-        }
     }
 
     void setSymbol(String const& value)
@@ -208,10 +203,10 @@ public:
         return false;
     }
 
-    // Override to cancel default behaviour
     void lock(bool isLocked) override
     {
         locked = isLocked;
+        repaint();
     }
 
     bool canReceiveMouseEvent(int, int) override

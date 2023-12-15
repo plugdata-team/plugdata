@@ -197,7 +197,7 @@ void ObjectBase::objectMovedOrResized(bool resized)
 {
     auto objectBounds = object->getObjectBounds();
 
-    setValueExcludingListener(positionParameter, Array<var> { var(objectBounds.getX()), var(objectBounds.getY()) }, &objectSizeListener);
+    setParameterExcludingListener(positionParameter, Array<var> { var(objectBounds.getX()), var(objectBounds.getY()) }, &objectSizeListener);
 
     if (resized)
         updateSizeProperty();
@@ -705,6 +705,17 @@ void ObjectBase::setParameterExcludingListener(Value& parameter, var const& valu
 
     setValueExcludingListener(parameter, value, this);
 
+    parameter.addListener(&propertyUndoListener);
+}
+
+void ObjectBase::setParameterExcludingListener(Value& parameter, var const& value, Value::Listener* otherListener)
+{
+    parameter.removeListener(&propertyUndoListener);
+    parameter.removeListener(otherListener);
+    
+    setValueExcludingListener(parameter, value, this);
+
+    parameter.addListener(otherListener);
     parameter.addListener(&propertyUndoListener);
 }
 

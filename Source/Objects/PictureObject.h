@@ -15,10 +15,11 @@ class PictureObject final : public ObjectBase {
     Value receiveSymbol = SynchronousValue();
     Value sizeProperty = SynchronousValue();
 
-    Value isDraggingLasso;
     
     File imageFile;
     Image img;
+    
+    bool locked;
 
 public:
     PictureObject(pd::WeakReference ptr, Object* object)
@@ -37,8 +38,7 @@ public:
             }
         }
         
-        isDraggingLasso.referTo(cnv->isDraggingLasso);
-        isDraggingLasso.addListener(this);
+        locked = getValue<bool>(object->locked);
 
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamString("File", cGeneral, &path, "");
@@ -47,6 +47,13 @@ public:
         objectParameters.addParamBool("Report Size", cAppearance, &reportSize, { "No", "Yes" }, 0);
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
         objectParameters.addParamSendSymbol(&sendSymbol);
+    }
+    
+    void lock(bool isLocked) override
+    {
+        ObjectBase::lock(isLocked);
+        locked = isLocked;
+        repaint();
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -131,7 +138,7 @@ public:
         bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
-        if (getValue<bool>(outline) || getValue<bool>(isDraggingLasso)) {
+        if (getValue<bool>(outline) || !locked) {
             g.setColour(outlineColour);
             g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
         }
@@ -172,11 +179,7 @@ public:
             auto symbol = receiveSymbol.toString();
             if (auto pic = ptr.get<t_pd>())
                 pd->sendDirectMessage(pic.get(), "receive", { pd->generateSymbol(symbol) });
-        } else if (value.refersToSameSourceAs(isDraggingLasso)) {
-            repaint();
         }
-        
-        
     }
 
     void setPdBounds(Rectangle<int> b) override

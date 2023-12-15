@@ -168,6 +168,7 @@ public:
 protected:
     // Set parameter without triggering valueChanged
     void setParameterExcludingListener(Value& parameter, var const& value);
+    void setParameterExcludingListener(Value& parameter, var const& value, Value::Listener* otherListener);
 
     // Call when you start/stop editing a gui object
     void startEdition();

@@ -23,9 +23,7 @@ class NoteObject final : public ObjectBase {
     Value outline = SynchronousValue();
     Value receiveSymbol = SynchronousValue();
     Value width = SynchronousValue();
-    
-    Value isDraggingLasso;
-    
+        
     bool locked;
     bool wasSelectedOnMouseDown = false;
 
@@ -84,16 +82,13 @@ public:
 
             object->updateBounds();
         };
-        
-        isDraggingLasso.referTo(cnv->isDraggingLasso);
-        isDraggingLasso.addListener(this);
 
         objectParameters.addParamInt("Width", cDimensions, &width);
         objectParameters.addParamColour("Text color", cAppearance, &primaryColour, PlugDataColour::canvasTextColourId);
         objectParameters.addParamColourBG(&secondaryColour);
         objectParameters.addParamFont("Font", cAppearance, &font, "Inter");
         objectParameters.addParamInt("Font size", cAppearance, &fontSize, 14);
-        objectParameters.addParamBool("Outline", cAppearance, &outline, { "No", "Yes" }, 0);
+        objectParameters.addParamBool("Show lock mode outline", cAppearance, &outline, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Bold", cAppearance, &bold, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Italic", cAppearance, &italic, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Underline", cAppearance, &underline, { "No", "Yes" }, 0);
@@ -204,7 +199,7 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        if (getValue<bool>(outline) || object->isMouseOverOrDragging(true) || getValue<bool>(isDraggingLasso)) {
+        if (getValue<bool>(outline) || object->isMouseOverOrDragging(true) || !locked) {
             bool selected = object->isSelected() && !cnv->isGraph;
             auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
 
@@ -390,8 +385,6 @@ public:
             if (auto note = ptr.get<t_fake_note>())
                 note->x_fontname = gensym(fontName.toRawUTF8());
             updateFont();
-        } else if(v.refersToSameSourceAs(isDraggingLasso)) {
-            repaint();
         }
     }
 

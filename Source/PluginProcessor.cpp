@@ -433,8 +433,8 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     variableBlockSize = !ProjectInfo::isStandalone || samplesPerBlock < pdBlockSize || samplesPerBlock % pdBlockSize != 0;
 
     if (variableBlockSize) {
-        inputFifo = std::make_unique<AudioMidiFifo>(maxChannels, std::max<int>(samplesPerBlock, pdBlockSize));
-        outputFifo = std::make_unique<AudioMidiFifo>(maxChannels, std::max<int>(samplesPerBlock, pdBlockSize));
+        inputFifo = std::make_unique<AudioMidiFifo>(maxChannels, std::max<int>(pdBlockSize * 3 - samplesPerBlock, samplesPerBlock));
+        outputFifo = std::make_unique<AudioMidiFifo>(maxChannels, std::max<int>(pdBlockSize * 3 - samplesPerBlock, samplesPerBlock));
     }
 
     midiByteIndex = 0;
@@ -701,23 +701,23 @@ void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer, MidiBuffer&
 
 void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer& midiMessages)
 {
-    auto const blockSize = Instance::getBlockSize();
+    auto const pdBlockSize = Instance::getBlockSize();
     auto const numChannels = buffer.getNumChannels();
 
     inputFifo->writeAudioAndMidi(buffer, midiMessages);
 
     audioAdvancement = 0;
 
-    while (inputFifo->getNumSamplesAvailable() >= blockSize) {
+    while (inputFifo->getNumSamplesAvailable() >= pdBlockSize) {
         midiBufferIn.clear();
         inputFifo->readAudioAndMidi(audioBufferIn, midiBufferIn);
 
         for (int channel = 0; channel < audioBufferIn.getNumChannels(); ++channel) {
             // Copy the channel data into the vector
             juce::FloatVectorOperations::copy(
-                audioVectorIn.data() + (channel * blockSize),
+                audioVectorIn.data() + (channel * pdBlockSize),
                 audioBufferIn.getReadPointer(channel),
-                blockSize);
+                pdBlockSize);
         }
 
         if (producesMidi()) {
@@ -746,16 +746,16 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
             // Use FloatVectorOperations to copy the vector data into the audioBuffer
             juce::FloatVectorOperations::copy(
                 audioBufferOut.getWritePointer(channel),
-                audioVectorOut.data() + (channel * blockSize),
-                blockSize);
+                audioVectorOut.data() + (channel * pdBlockSize),
+                pdBlockSize);
         }
 
         outputFifo->writeAudioAndMidi(audioBufferOut, midiBufferOut);
-        audioAdvancement += blockSize;
+        audioAdvancement += pdBlockSize;
     }
-
-    auto totalDelay = std::max(buffer.getNumSamples() / blockSize, buffer.getNumSamples());
-    if (outputFifo->getNumSamplesAvailable() >= totalDelay) {
+    
+    // When the amount of samples availabble is larger than (2 * pdBlockSize) - buffer.getNumSamples(), we know for sure that we'll have enough samples to process the next block as well
+    if (outputFifo->getNumSamplesAvailable() >= std::max((2 * pdBlockSize) - buffer.getNumSamples(), buffer.getNumSamples())) {
         outputFifo->readAudioAndMidi(buffer, midiMessages);
     }
 }

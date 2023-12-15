@@ -171,7 +171,7 @@ public:
     OwnedArray<Connection> connections;
     OwnedArray<ConnectionBeingCreated> connectionsBeingCreated;
 
-    Value locked;
+    Value locked = SynchronousValue();
     Value commandLocked;
     Value presentationMode;
     Value showDirection;
@@ -182,7 +182,7 @@ public:
 
     bool isGraph = false;
     bool hasParentCanvas = false;
-    Value isDraggingLasso = Value(false);
+    bool isDraggingLasso = false;
 
     Value isGraphChild = SynchronousValue(var(false));
     Value hideNameAndArgs = SynchronousValue(var(false));

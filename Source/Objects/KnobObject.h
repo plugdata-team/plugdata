@@ -154,8 +154,7 @@ class KnobObject : public ObjectBase {
 
     Value sizeProperty = SynchronousValue();
     
-    Value isDraggingLasso;
-
+    bool locked;
     float value = 0.0f;
 
 public:
@@ -186,8 +185,7 @@ public:
             constrainer->setMinimumSize(this->object->minimumSize, this->object->minimumSize);
         };
         
-        isDraggingLasso.referTo(cnv->isDraggingLasso);
-        isDraggingLasso.addListener(this);
+        locked = ::getValue<bool>(object->locked);
         
         objectParameters.addParamSize(&sizeProperty, true);
         objectParameters.addParamFloat("Minimum", cGeneral, &min, 0.0f);
@@ -459,7 +457,7 @@ public:
     
     void paintOverChildren(Graphics& g) override
     {
-        if(::getValue<bool>(isDraggingLasso))
+        if(!locked)
         {
             g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
             g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
@@ -789,9 +787,14 @@ public:
                 knb->x_mg = pd->generateSymbol(colour);
             knob.setArcColour(Colour::fromString(arcColour.toString()));
             repaint();
-        } else if(value.refersToSameSourceAs(isDraggingLasso)) {
-            repaint();
         }
+    }
+    
+    void lock(bool isLocked) override
+    {
+        ObjectBase::lock(isLocked);
+        locked = isLocked;
+        repaint();
     }
 
     void setValue(float pos)
