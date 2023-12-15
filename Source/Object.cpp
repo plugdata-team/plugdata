@@ -166,7 +166,7 @@ void Object::valueChanged(Value& v)
             gui->lock(cnv->isGraph || locked == var(true) || commandLocked == var(true));
         }
     }
-
+    // FIXME: any value change triggers a repaint!
     repaint();
 }
 
@@ -501,6 +501,11 @@ void Object::triggerOverlayActiveState()
 
 void Object::paint(Graphics& g)
 {
+    if (gui && gui->isTransparent() && !getValue<bool>(locked)) {
+        g.setColour(findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.35f).withAlpha(0.1f));
+        
+        g.fillRoundedRectangle(getLocalBounds().reduced(Object::margin).toFloat(), Corners::objectCornerRadius);
+    }
     if ((showActiveState || isTimerRunning())) {
         g.setOpacity(activeStateAlpha);
         // show activation state glow

@@ -23,7 +23,7 @@ class NoteObject final : public ObjectBase {
     Value outline = SynchronousValue();
     Value receiveSymbol = SynchronousValue();
     Value width = SynchronousValue();
-        
+
     bool locked;
     bool wasSelectedOnMouseDown = false;
 
@@ -88,13 +88,18 @@ public:
         objectParameters.addParamColourBG(&secondaryColour);
         objectParameters.addParamFont("Font", cAppearance, &font, "Inter");
         objectParameters.addParamInt("Font size", cAppearance, &fontSize, 14);
-        objectParameters.addParamBool("Show lock mode outline", cAppearance, &outline, { "No", "Yes" }, 0);
+        objectParameters.addParamBool("Outline", cAppearance, &outline, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Bold", cAppearance, &bold, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Italic", cAppearance, &italic, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Underline", cAppearance, &underline, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Fill background", cAppearance, &fillBackground, { "No", "Yes" }, 0);
         objectParameters.addParamCombo("Justification", cAppearance, &justification, { "Left", "Centered", "Right" }, 1);
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
+    }
+    
+    bool isTransparent() override
+    {
+        return true;
     }
 
     void update() override
@@ -199,7 +204,7 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        if (getValue<bool>(outline) || object->isMouseOverOrDragging(true) || !locked) {
+        if (getValue<bool>(outline)) {
             bool selected = object->isSelected() && !cnv->isGraph;
             auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
 

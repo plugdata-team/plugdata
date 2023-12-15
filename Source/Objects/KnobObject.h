@@ -210,6 +210,11 @@ public:
         objectParameters.addParamBool("Show arc", cAppearance, &showArc, { "No", "Yes" }, 1);
     }
 
+    bool isTransparent() override
+    {
+        return !::getValue<bool>(outline);
+    }
+
     void updateDoubleClickValue()
     {
         auto val = jmap<float>(::getValue<float>(initialValue), getMinimum(), getMaximum(), 0.0f, 1.0f);
@@ -432,10 +437,10 @@ public:
 
     void paint(Graphics& g) override
     {
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
         if (::getValue<bool>(outline)) {
+            bool selected = object->isSelected() && !cnv->isGraph;
+            auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+
             g.setColour(Colour::fromString(secondaryColour.toString()));
             g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
@@ -450,17 +455,8 @@ public:
             g.setColour(Colour::fromString(secondaryColour.toString()));
             g.fillEllipse(bounds);
 
-            g.setColour(outlineColour);
+            g.setColour(object->findColour(objectOutlineColourId));
             g.drawEllipse(bounds, 1.0f);
-        }
-    }
-    
-    void paintOverChildren(Graphics& g) override
-    {
-        if(!locked)
-        {
-            g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
-            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
         }
     }
 

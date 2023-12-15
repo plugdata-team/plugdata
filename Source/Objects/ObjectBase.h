@@ -77,6 +77,8 @@ public:
     virtual void showEditor() { }
     virtual void hideEditor() { }
 
+    virtual bool isTransparent() { return false; };
+
     bool hitTest(int x, int y) override;
 
     // Some objects need to show/hide iolets when send/receive symbols are set
