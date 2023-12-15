@@ -136,6 +136,8 @@ private:
     bool isObjectMouseActive = false;
     bool isInsideUndoSequence = false;
 
+    Value isDraggingLasso;
+
     Image activityOverlayImage;
 
     ObjectDragState& ds;

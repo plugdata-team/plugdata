@@ -49,6 +49,11 @@ public:
         objectParameters.addParamSendSymbol(&sendSymbol);
     }
 
+    bool isTransparent() override
+    {
+        return true;
+    }
+
     void mouseDown(MouseEvent const& e) override
     {
         if (!e.mods.isLeftButtonDown())

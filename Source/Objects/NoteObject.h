@@ -102,6 +102,11 @@ public:
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
     }
 
+    bool isTransparent() override
+    {
+        return true;
+    }
+
     void update() override
     {
         if (auto note = ptr.get<t_fake_note>()) {

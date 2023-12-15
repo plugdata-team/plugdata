@@ -27,6 +27,11 @@ public:
         isDraggingLasso.addListener(this);
     }
 
+    bool isTransparent() override
+    {
+        return true;
+    }
+
     void update() override
     {
         objectText = getText().trimEnd();

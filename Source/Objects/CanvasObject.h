@@ -28,6 +28,11 @@ public:
         iemHelper.addIemParameters(objectParameters, false, true, 20, 12, 14);
     }
 
+    bool isTransparent() override
+    {
+        return true;
+    }
+
     void updateSizeProperty() override
     {
         setPdBounds(object->getObjectBounds());

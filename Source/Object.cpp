@@ -110,6 +110,10 @@ void Object::initialise()
     originalBounds.setBounds(0, 0, 0, 0);
 
     updateOverlays(cnv->getOverlays());
+
+    // FIXME: in valueChanged, any value change triggers a repaint
+    isDraggingLasso.referTo(cnv->isDraggingLasso);
+    isDraggingLasso.addListener(this);
 }
 
 void Object::timerCallback()
@@ -166,7 +170,7 @@ void Object::valueChanged(Value& v)
             gui->lock(cnv->isGraph || locked == var(true) || commandLocked == var(true));
         }
     }
-
+    // FIXME: any value change triggers a repaint!
     repaint();
 }
 
@@ -501,6 +505,10 @@ void Object::triggerOverlayActiveState()
 
 void Object::paint(Graphics& g)
 {
+    if (gui && gui->isTransparent() && getValue<bool>(isDraggingLasso)) {
+        g.setColour(findColour(PlugDataColour::objectOutlineColourId).withAlpha(0.1f));
+        g.fillRoundedRectangle(getLocalBounds().reduced(Object::margin).toFloat(), Corners::objectCornerRadius);
+    }
     if ((showActiveState || isTimerRunning())) {
         g.setOpacity(activeStateAlpha);
         // show activation state glow
