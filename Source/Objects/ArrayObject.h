@@ -10,9 +10,8 @@ extern "C" {
 void garray_arraydialog(t_fake_garray* x, t_symbol* name, t_floatarg fsize, t_floatarg fflags, t_floatarg deleteit);
 }
 
-class GraphicalArray : public Component
-    , public Value::Listener
-    , public pd::MessageListener {
+
+class GraphicalArray : public Component, public Value::Listener, public pd::MessageListener {
 public:
     Object* object;
 
@@ -21,14 +20,14 @@ public:
         Polygon,
         Curve
     };
-
+        
     Value name = SynchronousValue();
     Value size = SynchronousValue();
     Value drawMode = SynchronousValue();
     Value saveContents = SynchronousValue();
     Value range = SynchronousValue();
-
-    std::function<void()> reloadGraphs = []() {};
+    
+    std::function<void()> reloadGraphs = [](){};
 
     GraphicalArray(PluginProcessor* instance, void* ptr, Object* parent)
         : object(parent)
@@ -43,20 +42,21 @@ public:
         } catch (...) {
             error = true;
         }
-
+        
         updateParameters();
-
-        for (auto* value : std::vector<Value*> { &name, &size, &drawMode, &saveContents, &range }) {
+        
+        for(auto* value : std::vector<Value*>{&name, &size, &drawMode, &saveContents, &range})
+        {
             // TODO: implement undo/redo for these values!
             value->addListener(this);
         }
-
+        
         pd->registerMessageListener(arr.getRawUnchecked<void>(), this);
 
         setInterceptsMouseClicks(true, false);
         setOpaque(false);
     }
-
+    
     ~GraphicalArray()
     {
         pd->unregisterMessageListener(arr.getRawUnchecked<void>(), this);
@@ -83,7 +83,7 @@ public:
         }
 
         std::vector<float> result(newSize);
-        std::size_t const oldSize = v.size();
+        const std::size_t oldSize = v.size();
         for (unsigned i = 0; i < newSize; i++) {
             auto const idx = i * (oldSize - 1) / newSize;
             auto const mod = i * (oldSize - 1) % newSize;
@@ -181,62 +181,59 @@ public:
             }
         }
     }
-
-    void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms) override
+    
+    void receiveMessage(t_symbol* symbol, const pd::Atom atoms[8], int numAtoms) override
     {
-        switch (hash(symbol->s_name)) {
-        case hash("edit"): {
-            if (numAtoms <= 0)
+        switch(hash(symbol->s_name)) {
+            case hash("edit"): {
+                if (numAtoms <= 0) break;
+                MessageManager::callAsync([_this = SafePointer(this), shouldBeEditable = static_cast<bool>(atoms[0].getFloat())]() {
+                        _this->editable = shouldBeEditable;
+                        _this->setInterceptsMouseClicks(shouldBeEditable, false);
+                });
                 break;
-            MessageManager::callAsync([_this = SafePointer(this), shouldBeEditable = static_cast<bool>(atoms[0].getFloat())]() {
-                _this->editable = shouldBeEditable;
-                _this->setInterceptsMouseClicks(shouldBeEditable, false);
-            });
-            break;
-        }
-        case hash("rename"): {
-            if (numAtoms <= 0)
+            }
+            case hash("rename"): {
+                if (numAtoms <= 0) break;
+                MessageManager::callAsync([_this = SafePointer(this), newName = atoms[0].toString()]() {
+                    if (!_this)
+                        return;
+                    
+                    _this->object->cnv->setSelected(_this->object, false);
+                    _this->object->cnv->editor->sidebar->hideParameters();
+                    _this->name = newName;
+                });
+                
                 break;
-            MessageManager::callAsync([_this = SafePointer(this), newName = atoms[0].toString()]() {
-                if (!_this)
-                    return;
-
-                _this->object->cnv->setSelected(_this->object, false);
-                _this->object->cnv->editor->sidebar->hideParameters();
-                _this->name = newName;
-            });
-
-            break;
-        }
-        case hash("color"): {
-            MessageManager::callAsync([_this = SafePointer(this)] {
-                if (_this)
-                    _this->repaint();
-            });
-            break;
-        }
-        case hash("width"): {
-            MessageManager::callAsync([_this = SafePointer(this)] {
-                if (_this)
-                    _this->repaint();
-            });
-            break;
-        }
-        case hash("style"): {
-            MessageManager::callAsync([_this = SafePointer(this), newDrawMode = static_cast<int>(atoms[0].getFloat())] {
-                if (_this) {
-                    _this->drawMode = newDrawMode + 1;
-                    _this->updateSettings();
-                }
-            });
-            break;
-        }
-        case hash("xpix"): {
-            // TODO: implement ticks
-        }
-        case hash("ypix"): {
-            // TODO: implement ticks
-        }
+            }
+            case hash("color"): {
+                MessageManager::callAsync([_this = SafePointer(this)] {
+                    if(_this) _this->repaint();
+                });
+                break;
+            }
+            case hash("width"): {
+                MessageManager::callAsync([_this = SafePointer(this)] {
+                    if(_this) _this->repaint();
+                });
+                break;
+            }
+            case hash("style"): {
+                MessageManager::callAsync([_this = SafePointer(this), newDrawMode = static_cast<int>(atoms[0].getFloat())] {
+                    if(_this)
+                    {
+                        _this->drawMode = newDrawMode + 1;
+                        _this->updateSettings();
+                    }
+                });
+                break;
+            }
+            case hash("xpix"): {
+                // TODO: implement ticks
+            }
+            case hash("ypix"): {
+                // TODO: implement ticks
+            }
         }
     }
 
@@ -317,11 +314,11 @@ public:
     {
         if (error || !getEditMode())
             return;
-
+        
         if (auto ptr = arr.get<t_fake_garray>()) {
             plugdata_forward_message(ptr->x_glist, gensym("redraw"), 0, NULL);
         }
-
+        
         edited = false;
     }
 
@@ -332,7 +329,7 @@ public:
         if (vec.size() != currentSize) {
             vec.resize(currentSize);
         }
-
+        
         size = currentSize;
 
         if (!edited) {
@@ -484,7 +481,7 @@ public:
 
         return object->findColour(PlugDataColour::guiObjectInternalOutlineColour);
     }
-
+        
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(name) || value.refersToSameSourceAs(size) || value.refersToSameSourceAs(drawMode) || value.refersToSameSourceAs(saveContents)) {
@@ -496,7 +493,7 @@ public:
             repaint();
         }
     }
-
+        
     void updateSettings()
     {
         auto arrName = name.getValue().toString();
@@ -525,16 +522,16 @@ public:
 
         object->gui->updateLabel();
     }
-
+    
     void deleteArray()
     {
         if (auto garray = arr.get<t_fake_garray>()) {
             glist_delete(garray->x_glist, &garray->x_gobj);
         }
-
+        
         reloadGraphs();
     }
-
+        
     void updateParameters()
     {
         auto scale = getScale();
@@ -573,7 +570,7 @@ public:
     }
 
     // Writes a value to the array.
-    void write(size_t const pos, float const input)
+    void write(const size_t pos, float const input)
     {
         if (auto ptr = arr.get<t_garray>()) {
             t_word* vec = ((t_word*)garray_vec(ptr.get()));
@@ -587,7 +584,7 @@ public:
     std::vector<float> temp;
     std::atomic<bool> edited;
     bool error = false;
-    String const stringArray = "array";
+    const String stringArray = "array";
 
     int lastIndex = 0;
 
@@ -595,8 +592,8 @@ public:
     bool editable = true;
 };
 
-struct ArrayPropertiesPanel : public PropertiesPanelProperty
-    , public Value::Listener {
+struct ArrayPropertiesPanel : public PropertiesPanelProperty, public Value::Listener
+{
     class AddArrayButton : public Component {
 
         bool mouseIsOver = false;
@@ -647,84 +644,85 @@ struct ArrayPropertiesPanel : public PropertiesPanelProperty
             onClick();
         }
     };
-
+    
     OwnedArray<PropertiesPanelProperty> properties;
     Array<SafePointer<GraphicalArray>> graphs;
-
+    
     AddArrayButton addButton;
     OwnedArray<SmallIconButton> deleteButtons;
     Array<Value> nameValues;
-
+        
     ArrayPropertiesPanel(std::function<void()> addArrayCallback)
-        : PropertiesPanelProperty("array")
+    : PropertiesPanelProperty("array")
     {
         setHideLabel(true);
-
+        
         addAndMakeVisible(addButton);
         addButton.onClick = addArrayCallback;
     }
-
-    void reloadGraphs(Array<SafePointer<GraphicalArray>> const& safeGraphs)
+    
+    void reloadGraphs(const Array<SafePointer<GraphicalArray>>& safeGraphs)
     {
         properties.clear();
         nameValues.clear();
         deleteButtons.clear();
-
+        
         graphs = safeGraphs;
-
-        for (auto graph : graphs) {
+        
+        for(auto graph : graphs)
+        {
             addAndMakeVisible(properties.add(new PropertiesPanel::EditableComponent<String>("Name", graph->name)));
             addAndMakeVisible(properties.add(new PropertiesPanel::EditableComponent<int>("Size", graph->size)));
             addAndMakeVisible(properties.add(new PropertiesPanel::RangeComponent("Range", graph->range, false)));
-            addAndMakeVisible(properties.add(new PropertiesPanel::BoolComponent("Save contents", graph->saveContents, { "No", "Yes" })));
-            addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("Draw Style", graph->drawMode, { "Points", "Polygon", "Bezier curve" })));
-
+            addAndMakeVisible(properties.add(new PropertiesPanel::BoolComponent("Save contents", graph->saveContents, {"No", "Yes"})));
+            addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("Draw Style", graph->drawMode, {"Points", "Polygon", "Bezier curve"})));
+            
             // To detect name changes, so we can redraw the array title
             nameValues.add(Value());
             auto& nameValue = nameValues.getReference(nameValues.size() - 1);
             nameValue.referTo(graph->name);
             nameValue.addListener(this);
             auto* deleteButton = deleteButtons.add(new SmallIconButton(Icons::Clear));
-            deleteButton->onClick = [graph]() {
+            deleteButton->onClick = [graph](){
                 graph->deleteArray();
             };
             addAndMakeVisible(deleteButton);
         }
-
+        
         auto newHeight = (156 * graphs.size()) + 34;
         setPreferredHeight(newHeight);
-        if (auto* propertiesPanel = findParentComponentOfClass<PropertiesPanel>()) {
+        if(auto* propertiesPanel = findParentComponentOfClass<PropertiesPanel>())
+        {
             propertiesPanel->updatePropHolderLayout();
         }
-
+        
         repaint();
     }
-
+    
     void valueChanged(Value& v) override
     {
         repaint();
     }
-
+    
     void paint(Graphics& g) override
     {
         g.fillAll(findColour(PlugDataColour::sidebarBackgroundColourId));
-
+        
         auto numGraphs = properties.size() / 5;
-        for (int i = 0; i < numGraphs; i++) {
-            if (!graphs[i])
-                continue;
-
+        for(int i = 0; i < numGraphs; i++)
+        {
+            if(!graphs[i]) continue;
+            
             auto start = (i * 156) - 6;
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
             g.fillRoundedRectangle(0.0f, start + 25, getWidth(), 130, Corners::largeCornerRadius);
-
-            Fonts::drawStyledText(g, graphs[i]->name.toString(), 8, start - 2, getWidth() - 16, 25, findColour(PlugDataColour::sidebarTextColourId), Semibold, 14.5f);
+           
+            Fonts::drawStyledText(g,  graphs[i]->name.toString(), 8, start - 2, getWidth() - 16, 25, findColour(PlugDataColour::sidebarTextColourId), Semibold, 14.5f);
         }
-
+        
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
         for (int i = 0; i < properties.size(); i++) {
-            if ((i % 5) == 4)
-                continue;
+            if((i % 5) == 4) continue;
             auto y = properties[i]->getBottom();
             g.drawHorizontalLine(y, 0, getWidth());
         }
@@ -733,47 +731,48 @@ struct ArrayPropertiesPanel : public PropertiesPanelProperty
     void resized() override
     {
         auto b = getLocalBounds().translated(0, -6);
-        for (int i = 0; i < properties.size(); i++) {
-            if ((i % 5) == 0) {
+        for(int i = 0; i < properties.size(); i++)
+        {
+            if((i % 5) == 0)  {
                 auto deleteButtonBounds = b.removeFromTop(26).removeFromRight(28);
                 deleteButtons[i / 5]->setBounds(deleteButtonBounds);
             }
             properties[i]->setBounds(b.removeFromTop(26));
         }
-
+        
         addButton.setBounds(getLocalBounds().removeFromBottom(36).reduced(0, 8));
     }
 };
 
-class ArrayListView : public PropertiesPanel
-    , public Value::Listener {
+class ArrayListView : public PropertiesPanel, public Value::Listener
+{
 public:
-    ArrayListView(pd::Instance* instance, void* arr)
-        : array(arr, instance)
+    ArrayListView(pd::Instance* instance, void* arr) : array(arr, instance)
     {
         update();
     }
-
+    
     void parentSizeChanged() override
     {
         setContentWidth(getWidth() - 100);
     }
-
+    
     void update()
     {
         clear();
         arrayValues.clear();
-
+        
         Array<PropertiesPanelProperty*> properties;
-
+        
         if (auto ptr = array.get<t_fake_garray>()) {
             auto* arr = garray_getarray(ptr.cast<t_garray>());
             auto* vec = ((t_word*)garray_vec(ptr.cast<t_garray>()));
-
+            
             auto numProperties = arr->a_n;
             properties.resize(numProperties);
-
-            for (int i = 0; i < numProperties; i++) {
+            
+            for(int i = 0; i < numProperties; i++)
+            {
                 auto& value = *arrayValues.add(new Value(vec[i].w_float));
                 value.addListener(this);
                 auto* property = new EditableComponent<float>(String(i), value);
@@ -781,9 +780,9 @@ public:
 
                 property->setRangeMin(ptr->x_glist->gl_y2);
                 property->setRangeMax(ptr->x_glist->gl_y1);
-
+                
                 // Only send this after drag end so it doesn't interrupt the drag action
-                label->dragEnd = [this]() {
+                label->dragEnd = [this](){
                     if (auto ptr = array.get<t_fake_garray>()) {
                         plugdata_forward_message(ptr->x_glist, gensym("redraw"), 0, NULL);
                     };
@@ -791,26 +790,28 @@ public:
                 properties.set(i, property);
             }
         }
-
+        
         addSection("", properties);
     }
-
+    
 private:
     void valueChanged(Value& v) override
     {
         if (auto ptr = array.get<t_fake_garray>()) {
             auto* vec = ((t_word*)garray_vec(ptr.cast<t_garray>()));
-
-            for (int i = 0; i < arrayValues.size(); i++) {
+            
+            for(int i = 0; i < arrayValues.size(); i++)
+            {
                 auto& value = *arrayValues[i];
-                if (v.refersToSameSourceAs(value)) {
+                if(v.refersToSameSourceAs(value))
+                {
                     vec[i].w_float = getValue<float>(value);
                     break;
                 }
             }
         }
     }
-
+    
     OwnedArray<Value> arrayValues;
     pd::WeakReference array;
 };
@@ -820,7 +821,7 @@ class ArrayEditorDialog : public Component {
     std::unique_ptr<Button> closeButton;
     ComponentDragger windowDragger;
     ComponentBoundsConstrainer constrainer;
-
+    
     ComboBox selectedArrayCombo;
     SettingsToolbarButton listViewButton = SettingsToolbarButton(Icons::List, "List");
     SettingsToolbarButton graphViewButton = SettingsToolbarButton(Icons::Graph, "Graph");
@@ -838,40 +839,42 @@ public:
         for (auto* arr : arrays) {
             auto* graph = graphs.add(new GraphicalArray(pd, arr, parent));
             addChildComponent(graph);
-
+            
             auto* list = lists.add(new ArrayListView(pd, arr));
             addChildComponent(list);
         }
         graphs[0]->setVisible(true);
 
-        for (int i = 0; i < graphs.size(); i++) {
+        for(int i = 0; i < graphs.size(); i++)
+        {
             selectedArrayCombo.addItem(graphs[i]->getUnexpandedName(), i + 1);
         }
         selectedArrayCombo.setSelectedItemIndex(0);
         selectedArrayCombo.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
         selectedArrayCombo.setColour(ComboBox::backgroundColourId, findColour(PlugDataColour::toolbarHoverColourId).withAlpha(0.8f));
-
+        
         addAndMakeVisible(selectedArrayCombo);
-
+        
         graphViewButton.setRadioGroupId(hash("array_radio_button"));
         listViewButton.setRadioGroupId(hash("array_radio_button"));
         graphViewButton.setClickingTogglesState(true);
         listViewButton.setClickingTogglesState(true);
         graphViewButton.setToggleState(true, dontSendNotification);
-
+        
         addAndMakeVisible(listViewButton);
         addAndMakeVisible(graphViewButton);
-
-        listViewButton.onClick = [this]() {
+        
+        listViewButton.onClick = [this](){
             updateVisibleGraph();
         };
-        graphViewButton.onClick = [this]() {
+        graphViewButton.onClick = [this](){
             updateVisibleGraph();
         };
-        selectedArrayCombo.onChange = [this]() {
+        selectedArrayCombo.onChange = [this](){
             updateVisibleGraph();
         };
-
+        
+        
         closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(-1));
         addAndMakeVisible(closeButton.get());
 
@@ -893,13 +896,15 @@ public:
         updateGraphs();
         updateVisibleGraph();
     }
-
+    
     void updateVisibleGraph()
     {
-        for (int i = 0; i < graphs.size(); i++) {
+        for(int i = 0; i < graphs.size(); i++)
+        {
             graphs[i]->setVisible(i == selectedArrayCombo.getSelectedItemIndex() && graphViewButton.getToggleState());
         }
-        for (int i = 0; i < graphs.size(); i++) {
+        for(int i = 0; i < graphs.size(); i++)
+        {
             lists[i]->setVisible(i == selectedArrayCombo.getSelectedItemIndex() && listViewButton.getToggleState());
         }
     }
@@ -909,12 +914,12 @@ public:
         auto toolbarHeight = 38;
         auto buttonWidth = 120;
         auto centre = getWidth() / 2;
-
+        
         graphViewButton.setBounds(centre - buttonWidth, 1, buttonWidth, toolbarHeight - 2);
         listViewButton.setBounds(centre, 1, buttonWidth, toolbarHeight - 2);
 
         selectedArrayCombo.setBounds(8, 8, toolbarHeight * 2.5f, toolbarHeight - 16);
-
+        
         resizer.setBounds(getLocalBounds());
 
         auto closeButtonBounds = getLocalBounds().removeFromTop(30).removeFromRight(30).translated(-5, 5);
@@ -957,6 +962,8 @@ public:
     {
         g.setColour(findColour(PlugDataColour::guiObjectBackgroundColourId));
         g.drawRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
+        
+        
     }
 
     void paint(Graphics& g) override
@@ -975,7 +982,7 @@ public:
         arrayPath.addRoundedRectangle(arrayBounds.getX(), arrayBounds.getY(), arrayBounds.getWidth(), arrayBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, false, false, true, true);
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillPath(arrayPath);
-
+        
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawHorizontalLine(toolbarHeight, 0, getWidth());
     }
@@ -983,83 +990,75 @@ public:
 
 class ArrayObject final : public ObjectBase {
 public:
+    
     SafePointer<ArrayPropertiesPanel> propertiesPanel = nullptr;
     Value sizeProperty = SynchronousValue();
-    ObjectBackground background;
-
+    
     // Array component
     ArrayObject(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
-        , background(object, PlugDataColour::guiObjectBackgroundColourId)
     {
         reinitialiseGraphs();
-
-        // We want array to draw on top of all objects
-        // The array background is managed by ObjectBackground which should always be at the bottom
-        object->setAlwaysOnTop(true);
+        
         setInterceptsMouseClicks(false, true);
 
         objectParameters.addParamSize(&sizeProperty);
-        objectParameters.addParamCustom([_this = SafePointer(this)]() {
-            if (!_this)
-                return static_cast<ArrayPropertiesPanel*>(nullptr);
-
+        objectParameters.addParamCustom([_this = SafePointer(this)](){
+            
+            if(!_this) return static_cast<ArrayPropertiesPanel*>(nullptr);
+            
             Array<SafePointer<GraphicalArray>> safeGraphs;
-            for (auto* graph : _this->graphs) {
+            for(auto* graph : _this->graphs)
+            {
                 safeGraphs.add(graph);
             }
-
-            auto* panel = new ArrayPropertiesPanel([_this]() {
-                if (_this)
-                    _this->addArray();
+            
+            auto* panel = new ArrayPropertiesPanel([_this](){
+                if(_this) _this->addArray();
             });
-
+            
             panel->reloadGraphs(safeGraphs);
             _this->propertiesPanel = panel;
-
+                        
             return panel;
         });
-
+        
         updateLabel();
-
+        
         onConstrainerCreate = [this]() {
             constrainer->setSizeLimits(50 - Object::doubleMargin, 40 - Object::doubleMargin, 99999, 99999);
         };
     }
-
+    
     void reinitialiseGraphs()
     {
         // Close the dialog they could be holding a pointer to an old graph object
-        if (dialog != nullptr)
-            dialog.reset(nullptr);
-
+        if(dialog != nullptr) dialog.reset(nullptr);
+        
         auto arrays = getArrays();
         graphs.clear();
-
+        
         for (int i = 0; i < arrays.size(); i++) {
             auto* graph = graphs.add(new GraphicalArray(cnv->pd, arrays[i], object));
             graph->setBounds(getLocalBounds());
             graph->reloadGraphs = [this]() {
                 MessageManager::callAsync([_this = SafePointer(this)]() {
-                    if (_this)
-                        _this->reinitialiseGraphs();
+                    if(_this) _this->reinitialiseGraphs();
                 });
             };
             addAndMakeVisible(graph);
         }
-
+        
         updateGraphs();
-
+        
         Array<SafePointer<GraphicalArray>> safeGraphs;
-        for (auto* graph : graphs)
-            safeGraphs.add(graph);
-
-        if (propertiesPanel)
-            propertiesPanel->reloadGraphs(safeGraphs);
-
+        for(auto* graph : graphs) safeGraphs.add(graph);
+        
+        if(propertiesPanel) propertiesPanel->reloadGraphs(safeGraphs);
+        
         updateLabel();
     }
-
+    
     void addArray()
     {
         if (auto glist = ptr.get<_glist>()) {
@@ -1067,7 +1066,7 @@ public:
         }
         reinitialiseGraphs();
     }
-
+    
     void updateGraphs()
     {
         pd->lockAudioThread();
@@ -1085,10 +1084,11 @@ public:
         int fontHeight = 14.0f;
 
         auto title = String();
-        for (auto* graph : graphs) {
+        for(auto* graph : graphs)
+        {
             title += graph->getUnexpandedName() + (graph != graphs.getLast() ? "," : "");
         }
-
+  
         if (title.isNotEmpty()) {
             if (!label) {
                 label = std::make_unique<ObjectLabel>();
@@ -1148,7 +1148,8 @@ public:
 
     void update() override
     {
-        for (auto* graph : graphs) {
+        for(auto* graph : graphs)
+        {
             graph->updateParameters();
         }
         if (auto glist = ptr.get<t_glist>()) {
@@ -1181,13 +1182,16 @@ public:
             }
 
             object->updateBounds();
-        } else {
+        } 
+        else {
             ObjectBase::valueChanged(value);
         }
     }
 
-    void paint(Graphics& g) override // override default paint implementation
+    void paint(Graphics& g) override
     {
+        g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override
@@ -1197,8 +1201,9 @@ public:
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-
-        if (auto graph = ptr.get<t_glist>()) {
+        
+        if(auto graph = ptr.get<t_glist>())
+        {
             GraphOnParent::drawTicksForGraph(g, graph.get(), this);
         }
     }
@@ -1209,9 +1214,9 @@ public:
             std::vector<void*> arrays;
 
             t_gobj* x = reinterpret_cast<t_gobj*>(c->gl_list);
-            if (x) {
+            if(x) {
                 arrays.push_back(x);
-
+                
                 while ((x = x->g_next)) {
                     arrays.push_back(x);
                 }
@@ -1241,25 +1246,27 @@ public:
         };
     }
 
-    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
     {
-        switch (symbol) {
-        case hash("redraw"): {
-            updateGraphs();
-            if (dialog) {
-                dialog->updateGraphs();
+        switch(symbol)
+        {
+            case hash("redraw"): {
+                updateGraphs();
+                if (dialog) {
+                    dialog->updateGraphs();
+                }
+                break;
             }
-            break;
-        }
-        case hash("yticks"):
-        case hash("xticks"): {
-            repaint();
-            break;
-        }
+            case hash("yticks"):
+            case hash("xticks"): {
+                repaint();
+                break;
+            }
         }
     }
 
 private:
+    
     OwnedArray<GraphicalArray> graphs;
     std::unique_ptr<ArrayEditorDialog> dialog = nullptr;
 };
@@ -1325,11 +1332,11 @@ public:
             }
         }
     }
-
-    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
+    
+    void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
     {
     }
-
+    
     void openFromMenu() override
     {
         openArrayEditor();
