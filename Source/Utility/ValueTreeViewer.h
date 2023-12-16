@@ -14,12 +14,12 @@ struct ValueTreeOwnerView : public Component
 class ValueTreeNodeComponent : public Component
 {
 public:
-    ValueTreeNodeComponent(const ValueTree& node) : valueTreeNode(node)
+    ValueTreeNodeComponent(const ValueTree& node, ValueTreeNodeComponent* parentNode) : valueTreeNode(node), parent(parentNode)
     {
         // Create subcomponents for each child node
         for (int i = 0; i < valueTreeNode.getNumChildren(); ++i)
         {
-            auto* childComponent = nodes.add(new ValueTreeNodeComponent(valueTreeNode.getChild(i)));
+            auto* childComponent = nodes.add(new ValueTreeNodeComponent(valueTreeNode.getChild(i), this));
             addAndMakeVisible(childComponent);
         }
     }
@@ -50,7 +50,7 @@ public:
             }
             else
             {
-                auto* childComponent = new ValueTreeNodeComponent(childNode);
+                auto* childComponent = new ValueTreeNodeComponent(childNode, this);
                 nodes.add(childComponent);
                 addAndMakeVisible(childComponent);
             }
@@ -200,6 +200,8 @@ public:
     }
     
 private:
+    ValueTreeNodeComponent* parent;
+    SafePointer<ValueTreeNodeComponent> previous, next;
     OwnedArray<ValueTreeNodeComponent> nodes;
     ValueTree valueTreeNode;
     bool isOpened = false;
@@ -208,7 +210,7 @@ private:
     friend class ValueTreeViewerComponent;
 };
 
-class ValueTreeViewerComponent : public Component
+class ValueTreeViewerComponent : public Component, public KeyListener
 {
 public:
     ValueTreeViewerComponent()
@@ -216,6 +218,7 @@ public:
         // Add a Viewport to handle scrolling
         viewport.setViewedComponent(&contentComponent, false);
         viewport.setScrollBarsShown(true, false, false, false);
+        viewport.addKeyListener(this);
         
         contentComponent.setVisible(true);
         contentComponent.updateView = [this](){
@@ -257,7 +260,7 @@ public:
             }
             else if(childNode.isValid())
             {
-                auto* childComponent = new ValueTreeNodeComponent(childNode);
+                auto* childComponent = new ValueTreeNodeComponent(childNode, nullptr);
                 nodes.add(childComponent);
                 contentComponent.addAndMakeVisible(childComponent);
             }
@@ -273,6 +276,9 @@ public:
         }
 
         sortNodes(nodes);
+        
+        ValueTreeNodeComponent* previous = nullptr;
+        linkNodes(nodes, previous);
         
         contentComponent.resized();
         resized();
@@ -304,7 +310,7 @@ public:
         contentComponent.setBounds(0, 0, bounds.getWidth(), std::max(getTotalContentHeight(), bounds.getHeight()));
         
         auto scrollbarIndent = viewport.canScrollVertically() ? 8 : 0;
-        bounds = bounds.reduced(2, 2).withTrimmedRight(scrollbarIndent).withHeight(getTotalContentHeight());
+        bounds = bounds.reduced(2, 0).withTrimmedRight(scrollbarIndent).withHeight(getTotalContentHeight() + 4).withTrimmedTop(4);
 
         for (auto* node : nodes)
         {
@@ -313,6 +319,51 @@ public:
                 node->setBounds(childBounds);
             }
         }
+    }
+    
+    bool keyPressed(KeyPress const& key, Component* component) override
+    {
+        if(key.getKeyCode() == KeyPress::upKey)
+        {
+            if(contentComponent.selectedNode && contentComponent.selectedNode->previous) {
+                
+                contentComponent.selectedNode = contentComponent.selectedNode->previous;
+                
+                // Skip over items inside closed subtrees
+                while(contentComponent.selectedNode && contentComponent.selectedNode->parent && !contentComponent.selectedNode->parent->isOpened)
+                {
+                    contentComponent.selectedNode = contentComponent.selectedNode->previous;
+                }
+                
+                contentComponent.repaint();
+                resized();
+            }
+            
+            return true;
+        }
+        if(key.getKeyCode() == KeyPress::downKey)
+        {
+            if(contentComponent.selectedNode && contentComponent.selectedNode->next) {
+                contentComponent.selectedNode = contentComponent.selectedNode->next;
+                
+                // Skip over items inside closed subtrees
+                while(contentComponent.selectedNode && contentComponent.selectedNode->parent && !contentComponent.selectedNode->parent->isOpened)
+                {
+                    contentComponent.selectedNode = contentComponent.selectedNode->next;
+                }
+                
+                contentComponent.repaint();
+                resized();
+            }
+            return true;
+        }
+        
+        return false;
+    }
+    
+    Viewport& getViewport()
+    {
+        return viewport;
     }
     
     void setFilterString(const String& toFilter)
@@ -344,6 +395,27 @@ public:
     
 private:
     
+
+
+    static void linkNodes(OwnedArray<ValueTreeNodeComponent>& nodes, ValueTreeNodeComponent*& previous)
+    {
+        // Iterate over direct children
+        for(auto* node : nodes)
+        {
+            if(previous)
+            {
+                node->previous = previous;
+                previous->next = node;
+            }
+
+            // Recursively iterate over grandchildren
+            linkNodes(node->nodes, node);
+
+            // Set previous to the last child processed
+            previous = node;
+        }
+    }
+    
     bool searchInNode(ValueTreeNodeComponent* node)
     {
         // Check if the current node matches the filterString
@@ -351,6 +423,7 @@ private:
         
         for (auto* child : node->nodes)
         {
+            // We can't return early because searchInNode has side effects
             found = searchInNode(child) || found;
         }
         

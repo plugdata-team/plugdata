@@ -77,7 +77,7 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DocumentBrowserSettings)
 };
 
-class DocumentationBrowser : public Component, public FileDragAndDropTarget, private FileSystemWatcher::Listener,  private Thread {
+class DocumentationBrowser : public Component, public FileDragAndDropTarget, private FileSystemWatcher::Listener,  private Thread, public KeyListener {
 
 public:
     explicit DocumentationBrowser(PluginProcessor* processor)
@@ -92,7 +92,7 @@ public:
             }
         }
         searchInput.setBackgroundColour(PlugDataColour::sidebarActiveBackgroundColourId);
-        //searchInput.addKeyListener(this);
+        searchInput.addKeyListener(this);
         searchInput.onTextChange = [this]() {
             fileList.setFilterString(searchInput.getText());
         };
@@ -146,6 +146,17 @@ public:
        fsWatcher.addFolder(File(pd->settingsFile->getProperty<String>("browser_path")));
        startThread(Thread::Priority::background);
    }
+    
+   bool keyPressed(KeyPress const& key, Component* originatingComponent) override
+   {
+       if (key.isKeyCode(KeyPress::upKey) || key.isKeyCode(KeyPress::downKey)) {
+           fileList.keyPressed(key, originatingComponent);
+           return true;
+       }
+
+       return false;
+   }
+
     
     void filesystemChanged() override
     {
@@ -222,25 +233,21 @@ public:
     }
     
     ValueTree generateDirectoryValueTree(const File& directory) {
-        ValueTree rootNode("Folder");
         
-        if (!directory.exists() || !directory.isDirectory()) {
-                jassertfalse;
-                rootNode.setProperty("Name", "", nullptr); // (set mandatory properties to prevent crash
-                rootNode.setProperty("Path", "", nullptr);
-                return rootNode;
-        }
-        
-        rootNode.setProperty("Name", directory.getFileName(), nullptr);
-        rootNode.setProperty("Path", directory.getFullPathName(), nullptr);
-        rootNode.setProperty("Icon", Icons::Folder, nullptr);
-
         static File versionDataDir = ProjectInfo::appDataDir.getChildFile("Versions");
         static File toolchainDir = ProjectInfo::appDataDir.getChildFile("Toolchain");
         
+        if (!directory.exists() || !directory.isDirectory() || directory == versionDataDir || directory == toolchainDir) {
+                return ValueTree();
+        }
+        
+        ValueTree rootNode("Folder");
+        rootNode.setProperty("Name", directory.getFileName(), nullptr);
+        rootNode.setProperty("Path", directory.getFullPathName(), nullptr);
+        rootNode.setProperty("Icon", Icons::Folder, nullptr);
+        
         // visitedDirectories keeps track of dirs we've already processed to prevent infinite loops
-        // We also use it to ignore the version data and toolchain directory in the sidebar
-        static Array<File> visitedDirectories = { versionDataDir, toolchainDir};
+        static Array<File> visitedDirectories = {};
     
         // Protect against symlink loops!
         if (!visitedDirectories.contains(directory)) {
@@ -249,7 +256,7 @@ public:
                 
                 if(subDirectory.isDirectory() && subDirectory != directory) {
                     ValueTree childNode = generateDirectoryValueTree(subDirectory);
-                    rootNode.appendChild(childNode, nullptr);
+                    if(childNode.isValid()) rootNode.appendChild(childNode, nullptr);
                 }
                 
                 visitedDirectories.removeLast();
@@ -328,6 +335,7 @@ public:
         auto transparentColour = backgroundColour.withAlpha(0.0f);
 
         // Draw a gradient to fade the content out underneath the search input
+        auto scrollOffset = fileList.getViewport().canScrollVertically();
         g.setGradientFill(ColourGradient(backgroundColour, 0.0f, 26.0f, transparentColour, 0.0f, 42.0f, false));
         g.fillRect(Rectangle<int>(0, searchInput.getBottom(), getWidth(), 12));
 
