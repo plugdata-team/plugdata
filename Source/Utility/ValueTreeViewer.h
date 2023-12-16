@@ -330,7 +330,10 @@ public:
                 contentComponent.selectedNode = contentComponent.selectedNode->previous;
                 
                 // Skip over items inside closed subtrees
-                while(contentComponent.selectedNode && contentComponent.selectedNode->parent && ((!contentComponent.selectedNode->parent->isOpen()) || !contentComponent.selectedNode->isShowing()))
+                auto isValid = contentComponent.selectedNode != nullptr;
+                auto hasParent = contentComponent.selectedNode->parent != nullptr;
+                auto isVisible = contentComponent.selectedNode->parent->isOpen() && contentComponent.selectedNode->isShowing();
+                while(isValid && hasParent && !isVisible)
                 {
                     contentComponent.selectedNode = contentComponent.selectedNode->previous;
                 }
@@ -347,7 +350,10 @@ public:
                 contentComponent.selectedNode = contentComponent.selectedNode->next;
                 
                 // Skip over items inside closed subtrees
-                while(contentComponent.selectedNode && contentComponent.selectedNode->parent && ((!contentComponent.selectedNode->parent->isOpen()) || !contentComponent.selectedNode->isShowing()))
+                auto isValid = contentComponent.selectedNode != nullptr;
+                auto hasParent = contentComponent.selectedNode->parent != nullptr;
+                auto isVisible = contentComponent.selectedNode->parent->isOpen() && contentComponent.selectedNode->isShowing();
+                while(isValid && hasParent && !isVisible)
                 {
                     contentComponent.selectedNode = contentComponent.selectedNode->next;
                 }
