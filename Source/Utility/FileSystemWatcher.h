@@ -52,30 +52,28 @@ public:
     };
 
     /** Receives callbacks from the FileSystemWatcher when a file changes */
-    class Listener : public Timer {
+    class Listener : public AsyncUpdater {
     public:
         virtual ~Listener() = default;
-
-        virtual void fsChangeCallback() = 0;
-
+        
         // group changes together
-        void timerCallback()
+        void handleAsyncUpdate() override
         {
-            fsChangeCallback();
-            stopTimer();
+            filesystemChanged();
         }
         
-        // We don't need to listen for folder changes
-        void folderChanged(File const)
-        {
-        }
-
         /* Called for each file that has changed and how it has changed. Use this callback
            if you need to reload a file when it's contents change */
-        void fileChanged(File const, FileSystemEvent)
+        virtual void fileChanged(File const f, FileSystemEvent)
         {
-            startTimer(80);
+            // By default, don't respond to hidden files (which would be .settings and .autosave)
+            // If you want that to respond to hidden file changes, override this
+            if(f.isHidden() || f.getFileName().startsWith(".")) return;
+            
+            triggerAsyncUpdate();
         }
+        
+        virtual void filesystemChanged() {};
     };
 
     /** Registers a listener to be told when things happen to the text.
@@ -91,7 +89,6 @@ public:
 private:
     class Impl;
 
-    void folderChanged(File const& folder);
     void fileChanged(File const& file, FileSystemEvent fsEvent);
 
     ListenerList<Listener> listeners;

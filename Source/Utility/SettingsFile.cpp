@@ -25,6 +25,7 @@ SettingsFileListener::~SettingsFileListener()
 
 JUCE_IMPLEMENT_SINGLETON(SettingsFile)
 
+
 SettingsFile::~SettingsFile()
 {
     // Save current settings before quitting
@@ -80,6 +81,8 @@ SettingsFile* SettingsFile::initialise()
     saveSettings();
 
     settingsTree.addListener(this);
+    settingsFileWatcher.addFolder(settingsFile.getParentDirectory());
+    settingsFileWatcher.addListener(this);
 
     return this;
 }
@@ -338,6 +341,13 @@ void SettingsFile::reloadSettings()
 
     for (auto* listener : listeners) {
         listener->settingsFileReloaded();
+    }
+}
+
+void SettingsFile::fileChanged(File const file, FileSystemWatcher::FileSystemEvent fileEvent)
+{
+    if(file == settingsFile) {
+        reloadSettings();
     }
 }
 
