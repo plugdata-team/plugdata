@@ -984,7 +984,7 @@ void Canvas::focusLost(FocusChangeType cause)
     });
 }
 
-void Canvas::dragAndDropPaste(String const& patchString, Point<int> mousePos, int patchWidth, int patchHeight)
+void Canvas::dragAndDropPaste(String const& patchString, Point<int> mousePos, int patchWidth, int patchHeight, String name)
 {
     locked = false;
     presentationMode = false;
@@ -998,7 +998,11 @@ void Canvas::dragAndDropPaste(String const& patchString, Point<int> mousePos, in
             _this->grabKeyboardFocus();
     });
 
-    patch.startUndoSequence("Add object"); // TODO: we can add the name of the event that it's dragging from?
+    auto undoText = String("Add object");
+    if (name.isNotEmpty())
+        undoText = String("Add " + name.toLowerCase());
+
+    patch.startUndoSequence(undoText);
 
     auto patchSize = Point<int>(patchWidth, patchHeight);
     String translatedObjects = pd::Patch::translatePatchAsString(patchString, mousePos - (patchSize / 2.0f));
@@ -1032,7 +1036,7 @@ void Canvas::dragAndDropPaste(String const& patchString, Point<int> mousePos, in
 
     patch.deselectAll();
     pastedObjects.clear();
-    patch.endUndoSequence("Add object");
+    patch.endUndoSequence(undoText);
 
     updateSidebarSelection();
 }

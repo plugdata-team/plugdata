@@ -12,6 +12,8 @@ public:
 
     virtual String getObjectString() = 0;
 
+    virtual String getPatchStringName() { return String(); };
+
     virtual void dismiss(bool withAnimation) { }
 
     void lookAndFeelChanged() override
@@ -61,6 +63,7 @@ public:
         palettePatchWithOffset.add(var(dragImage.offset.getX()));
         palettePatchWithOffset.add(var(dragImage.offset.getY()));
         palettePatchWithOffset.add(var(getObjectString()));
+        palettePatchWithOffset.add(var(getPatchStringName()));
         dragContainer->startDragging(palettePatchWithOffset, this, ScaledImage(dragImage.image, scale), ScaledImage(errorImage.image, scale), true, nullptr, nullptr, true);
     }
 
@@ -74,6 +77,7 @@ private:
 class ObjectClickAndDrop : public Component
     , public Timer {
     String objectString;
+    String objectName;
     PluginEditor* editor;
     Image dragImage;
     Image dragInvalidImage;
@@ -93,6 +97,7 @@ public:
     ObjectClickAndDrop(ObjectDragAndDrop* target)
     {
         objectString = target->getObjectString();
+        objectName = target->getPatchStringName();
         editor = target->findParentComponentOfClass<PluginEditor>();
 
         if (ProjectInfo::canUseSemiTransparentWindows()) {
@@ -214,9 +219,9 @@ public:
             auto height = dragImage.getHeight() / 3.0f;
 
             if (auto* cnv = dynamic_cast<Canvas*>(underMouse)) {
-                cnv->dragAndDropPaste(objectString, e.getEventRelativeTo(cnv).getPosition() - cnv->canvasOrigin, width, height);
+                cnv->dragAndDropPaste(objectString, e.getEventRelativeTo(cnv).getPosition() - cnv->canvasOrigin, width, height, objectName);
             } else if (auto* cnv = underMouse->findParentComponentOfClass<Canvas>()) {
-                cnv->dragAndDropPaste(objectString, e.getEventRelativeTo(cnv).getPosition() - cnv->canvasOrigin, width, height);
+                cnv->dragAndDropPaste(objectString, e.getEventRelativeTo(cnv).getPosition() - cnv->canvasOrigin, width, height, objectName);
             }
         }
 

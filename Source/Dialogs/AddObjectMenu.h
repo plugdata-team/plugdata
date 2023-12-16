@@ -82,6 +82,11 @@ public:
         return patchString;
     }
 
+    String getPatchStringName() override
+    {
+        return titleText + String(" object");
+    }
+
     void mouseUp(MouseEvent const& e) override
     {
         if (e.mouseWasDraggedSinceMouseDown()) {
