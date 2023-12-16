@@ -433,8 +433,8 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     variableBlockSize = !ProjectInfo::isStandalone || samplesPerBlock < pdBlockSize || samplesPerBlock % pdBlockSize != 0;
 
     if (variableBlockSize) {
-        inputFifo = std::make_unique<AudioMidiFifo>(maxChannels, std::max<int>(pdBlockSize * 3 - samplesPerBlock, samplesPerBlock));
-        outputFifo = std::make_unique<AudioMidiFifo>(maxChannels, std::max<int>(pdBlockSize * 3 - samplesPerBlock, samplesPerBlock));
+        inputFifo = std::make_unique<AudioMidiFifo>(maxChannels, std::max<int>(pdBlockSize, samplesPerBlock) * 8);
+        outputFifo = std::make_unique<AudioMidiFifo>(maxChannels, std::max<int>(pdBlockSize, samplesPerBlock) * 8);
     }
 
     midiByteIndex = 0;
@@ -541,14 +541,6 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     if (oversampling > 0) {
         oversampler->processSamplesDown(targetBlock);
     }
-
-    // limit the update frequency of the undo state, about 10x a second at 44.1khz feels like enough?
-    /*
-    if (processBlockCount > 4096) {
-        processBlockCount -= 4096;
-
-    }
-    processBlockCount += buffer.getNumSamples(); */
 
     auto targetGain = volume->load();
     float mappedTargetGain = 0.0f;
@@ -755,7 +747,9 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
     }
     
     // When the amount of samples availabble is larger than (2 * pdBlockSize) - buffer.getNumSamples(), we know for sure that we'll have enough samples to process the next block as well
-    if (outputFifo->getNumSamplesAvailable() >= std::max((2 * pdBlockSize) - buffer.getNumSamples(), buffer.getNumSamples())) {
+    auto numAvailable = outputFifo->getNumSamplesAvailable();
+    auto enough = std::max<int>((2 * pdBlockSize) - static_cast<int>(buffer.getNumSamples()), static_cast<int>(buffer.getNumSamples()));
+    if (numAvailable >= enough) {
         outputFifo->readAudioAndMidi(buffer, midiMessages);
     }
 }

@@ -172,7 +172,6 @@ private:
     SmoothedValue<float, ValueSmoothingTypes::Linear> smoothedGain;
 
     int audioAdvancement = 0;
-    int processBlockCount = 0;
 
     bool variableBlockSize = false;
     AudioBuffer<float> audioBufferIn;
