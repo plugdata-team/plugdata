@@ -73,16 +73,6 @@ public:
             triggerAsyncUpdate();
         }
         
-        /* Called when any file in the listened to folder changes with the name of
-           the folder that has changed. For example, use this for a file browser that
-           needs to refresh any time a file changes */
-        virtual void folderChanged(File const f)
-        {
-            //if(f.isHidden() || f.getFileName().startsWith(".")) return;
-            
-            //triggerAsyncUpdate();
-        }
-        
         virtual void filesystemChanged() {};
     };
 
@@ -99,7 +89,6 @@ public:
 private:
     class Impl;
 
-    void folderChanged(File const& folder);
     void fileChanged(File const& file, FileSystemEvent fsEvent);
 
     ListenerList<Listener> listeners;

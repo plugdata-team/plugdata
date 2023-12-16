@@ -149,7 +149,22 @@ public:
     
     void filesystemChanged() override
     {
-        startThread(Thread::Priority::low);
+        if(isVisible())
+        {
+            startThread(Thread::Priority::background);
+        }
+        else {
+            needsUpdate = true;
+        }
+    }
+    
+    void visibilityChanged() override
+    {
+        if(needsUpdate && isVisible())
+        {
+            startThread(Thread::Priority::low);
+            needsUpdate = false;
+        }
     }
 
    void filesDropped(StringArray const& files, int x, int y) override
@@ -210,8 +225,9 @@ public:
         ValueTree rootNode("Folder");
         
         if (!directory.exists() || !directory.isDirectory()) {
-                // Handle the case where the directory doesn't exist or is not a directory
-                // You may want to log an error or throw an exception here
+                jassertfalse;
+                rootNode.setProperty("Name", "", nullptr); // (set mandatory properties to prevent crash
+                rootNode.setProperty("Path", "", nullptr);
                 return rootNode;
         }
         
@@ -219,8 +235,13 @@ public:
         rootNode.setProperty("Path", directory.getFullPathName(), nullptr);
         rootNode.setProperty("Icon", Icons::Folder, nullptr);
 
-        static Array<File> visitedDirectories;
+        static File versionDataDir = ProjectInfo::appDataDir.getChildFile("Versions");
+        static File toolchainDir = ProjectInfo::appDataDir.getChildFile("Toolchain");
         
+        // visitedDirectories keeps track of dirs we've already processed to prevent infinite loops
+        // We also use it to ignore the version data and toolchain directory in the sidebar
+        static Array<File> visitedDirectories = { versionDataDir, toolchainDir};
+    
         // Protect against symlink loops!
         if (!visitedDirectories.contains(directory)) {
             for (const auto& subDirectory : OSUtils::iterateDirectory(directory, false, false)) {
@@ -353,6 +374,7 @@ public:
 private:
     PluginProcessor* pd;
     
+    bool needsUpdate = false;
     
     FileSystemWatcher fsWatcher;
     
