@@ -84,6 +84,7 @@ void Library::updateLibrary()
     // These can't be created by name in Pd, but plugdata allows it
     allObjects.add("graph");
     allObjects.add("garray");
+    allObjects.add("float");
 
     // This one isn't in there but should be
     allObjects.add("list");
