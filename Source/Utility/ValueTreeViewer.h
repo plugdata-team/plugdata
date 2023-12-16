@@ -330,7 +330,7 @@ public:
                 contentComponent.selectedNode = contentComponent.selectedNode->previous;
                 
                 // Skip over items inside closed subtrees
-                while(contentComponent.selectedNode && contentComponent.selectedNode->parent && !contentComponent.selectedNode->parent->isOpened)
+                while(contentComponent.selectedNode && contentComponent.selectedNode->parent && ((!contentComponent.selectedNode->parent->isOpen()) || !contentComponent.selectedNode->isShowing()))
                 {
                     contentComponent.selectedNode = contentComponent.selectedNode->previous;
                 }
@@ -347,11 +347,11 @@ public:
                 contentComponent.selectedNode = contentComponent.selectedNode->next;
                 
                 // Skip over items inside closed subtrees
-                while(contentComponent.selectedNode && contentComponent.selectedNode->parent && !contentComponent.selectedNode->parent->isOpened)
+                while(contentComponent.selectedNode && contentComponent.selectedNode->parent && ((!contentComponent.selectedNode->parent->isOpen()) || !contentComponent.selectedNode->isShowing()))
                 {
                     contentComponent.selectedNode = contentComponent.selectedNode->next;
                 }
-                
+
                 contentComponent.repaint();
                 resized();
             }
@@ -395,8 +395,6 @@ public:
     
 private:
     
-
-
     static void linkNodes(OwnedArray<ValueTreeNodeComponent>& nodes, ValueTreeNodeComponent*& previous)
     {
         // Iterate over direct children
