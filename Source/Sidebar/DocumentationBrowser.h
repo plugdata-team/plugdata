@@ -144,10 +144,10 @@ public:
    {
        fsWatcher.removeAllFolders();
        fsWatcher.addFolder(File(pd->settingsFile->getProperty<String>("browser_path")));
-       startThread(Thread::Priority::low);
+       startThread(Thread::Priority::background);
    }
     
-    void fsChangeCallback() override
+    void filesystemChanged() override
     {
         startThread(Thread::Priority::low);
     }

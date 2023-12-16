@@ -152,17 +152,6 @@ PluginProcessor::PluginProcessor()
     updateSearchPaths();
 
     objectLibrary = std::make_unique<pd::Library>(this);
-    objectLibrary->appDirChanged = [this]() {
-        // If we changed the settings from within the app, don't reload
-        settingsFile->reloadSettings();
-        auto newTheme = settingsFile->getProperty<String>("theme");
-        if (PlugDataLook::currentTheme != newTheme) {
-            setTheme(newTheme);
-        }
-
-        updateSearchPaths();
-        objectLibrary->updateLibrary();
-    };
 
     setLatencySamples(pd::Instance::getBlockSize());
 }
@@ -505,6 +494,18 @@ static bool hasRealEvents(MidiBuffer& buffer)
             return !MidiDeviceManager::convertFromSysExFormat(event.getMessage(), dummy).isSysEx();
         });
 }
+
+void PluginProcessor::settingsFileReloaded()
+{
+    auto newTheme = settingsFile->getProperty<String>("theme");
+    if (PlugDataLook::currentTheme != newTheme) {
+        setTheme(newTheme);
+    }
+
+    updateSearchPaths();
+    objectLibrary->updateLibrary();
+}
+
 
 void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {

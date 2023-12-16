@@ -275,9 +275,9 @@ StringArray Library::getAllCategories()
     return allCategories;
 }
 
-void Library::fsChangeCallback()
+void Library::filesystemChanged()
 {
-    appDirChanged();
+    updateLibrary();
 }
 
 File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile) const

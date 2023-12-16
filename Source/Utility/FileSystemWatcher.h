@@ -52,32 +52,38 @@ public:
     };
 
     /** Receives callbacks from the FileSystemWatcher when a file changes */
-    class Listener : public Timer {
+    class Listener : public AsyncUpdater {
     public:
         virtual ~Listener() = default;
-
-        virtual void fsChangeCallback() = 0;
-
+        
         // group changes together
-        void timerCallback()
+        void handleAsyncUpdate() override
         {
-            fsChangeCallback();
-            stopTimer();
+            filesystemChanged();
         }
+        
+        /* Called for each file that has changed and how it has changed. Use this callback
+           if you need to reload a file when it's contents change */
+        virtual void fileChanged(File const f, FileSystemEvent)
+        {
+            // By default, don't respond to hidden files (which would be .settings and .autosave)
+            // If you want that to respond to hidden file changes, override this
+            if(f.isHidden() || f.getFileName().startsWith(".")) return;
+            
+            triggerAsyncUpdate();
+        }
+        
         /* Called when any file in the listened to folder changes with the name of
            the folder that has changed. For example, use this for a file browser that
            needs to refresh any time a file changes */
-        void folderChanged(File const)
+        virtual void folderChanged(File const f)
         {
-            startTimer(80);
+            //if(f.isHidden() || f.getFileName().startsWith(".")) return;
+            
+            //triggerAsyncUpdate();
         }
-
-        /* Called for each file that has changed and how it has changed. Use this callback
-           if you need to reload a file when it's contents change */
-        void fileChanged(File const, FileSystemEvent)
-        {
-            startTimer(80);
-        }
+        
+        virtual void filesystemChanged() {};
     };
 
     /** Registers a listener to be told when things happen to the text.

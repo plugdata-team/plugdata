@@ -11,6 +11,7 @@
 
 #include "Utility/Config.h"
 #include "Utility/Limiter.h"
+#include "Utility/SettingsFile.h"
 #include <Utility/AudioMidiFifo.h>
 
 #include "Pd/Instance.h"
@@ -27,7 +28,7 @@ struct PlugDataLook;
 class PluginEditor;
 class ConnectionMessageDisplay;
 class PluginProcessor : public AudioProcessor
-    , public pd::Instance {
+    , public pd::Instance, public SettingsFileListener {
 public:
     PluginProcessor();
 
@@ -97,6 +98,8 @@ public:
 
     void savePatchTabPositions();
     void updatePatchUndoRedoState();
+        
+    void settingsFileReloaded() override;
 
     void initialiseFilesystem();
     void updateSearchPaths();
