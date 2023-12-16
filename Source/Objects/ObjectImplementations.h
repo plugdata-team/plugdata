@@ -46,7 +46,7 @@ class KeyObject final : public ImplementationBase
     , public ModifierKeyListener {
 
     Array<KeyPress> heldKeys;
-    Array<uint32> keyPressTimes;
+    Array<double> keyPressTimes;
 
     int const shiftKey = -1;
     int const commandKey = -2;
@@ -93,12 +93,12 @@ public:
 
         auto const keyIdx = heldKeys.indexOf(key);
         auto const alreadyDown = keyIdx >= 0;
-        auto const currentTime = Time::getMillisecondCounter();
-        if (alreadyDown && currentTime - keyPressTimes[keyIdx] > 15) {
+        auto const currentTime = Time::getMillisecondCounterHiRes();
+        if (alreadyDown && currentTime - keyPressTimes[keyIdx] > 80) {
             keyPressTimes.set(keyIdx, currentTime);
         } else if (!alreadyDown) {
             heldKeys.add(key);
-            keyPressTimes.add(Time::getMillisecondCounter());
+            keyPressTimes.add(currentTime);
         } else {
             return false;
         }

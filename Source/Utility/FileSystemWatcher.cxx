@@ -415,6 +415,8 @@ void FileSystemWatcher::removeListener (Listener* listener)
 
 void FileSystemWatcher::fileChanged (const File& file, FileSystemEvent fsEvent)
 {
+    if(file.getFileName().endsWith(".autosave")) return;
+    
     listeners.call (&FileSystemWatcher::Listener::fileChanged, file, fsEvent);
 }
 

@@ -250,6 +250,11 @@ String PaletteItem::getObjectString()
     return palettePatch;
 }
 
+String PaletteItem::getPatchStringName()
+{
+    return paletteName + String(" palette");
+}
+
 void PaletteItem::deleteItem()
 {
     auto parentTree = itemTree.getParent();

@@ -92,8 +92,9 @@ void ResizableTabbedComponent::itemDropped(SourceDetails const& dragSourceDetail
         auto patchWithSize = *dragSourceDetails.description.getArray();
         auto patchSize = Point<int>(patchWithSize[0], patchWithSize[1]);
         auto patchData = patchWithSize[2].toString();
+        auto patchName = patchWithSize[3].toString();
 
-        cnv->dragAndDropPaste(patchData, mousePos, patchSize.x, patchSize.y);
+        cnv->dragAndDropPaste(patchData, mousePos, patchSize.x, patchSize.y, patchName);
     }
 }
 
