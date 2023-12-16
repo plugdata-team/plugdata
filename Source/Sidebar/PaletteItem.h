@@ -24,6 +24,8 @@ public:
 
     String getObjectString() override;
 
+    String getPatchStringName() override;
+
     bool hitTest(int x, int y) override;
 
     void deleteItem();

@@ -294,6 +294,11 @@ public:
         return "#X obj 0 0 param " + param->getTitle() + ";";
     }
 
+    String getPatchStringName() override
+    {
+        return String("param object");
+    }
+
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(range)) {

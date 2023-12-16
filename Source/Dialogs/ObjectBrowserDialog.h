@@ -152,6 +152,11 @@ class ObjectsListBox : public ListBox
             return PluginEditor::getObjectManager()->getCompleteFormat(objectName);
         }
 
+        String getPatchStringName() override
+        {
+            return objectName + String(" object");
+        }
+
         String getItemName() const
         {
             return objectName;
@@ -265,6 +270,11 @@ public:
     String getObjectString() override
     {
         return PluginEditor::getObjectManager()->getCompleteFormat(objectName);
+    }
+
+    String getPatchStringName() override
+    {
+        return objectName + String(" object");
     }
 
     void dismiss(bool shouldFade) override
