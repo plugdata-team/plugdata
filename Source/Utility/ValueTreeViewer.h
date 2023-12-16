@@ -132,14 +132,14 @@ public:
     {
         if(getOwnerView()->selectedNode.getComponent() == this) {
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-            g.fillRoundedRectangle(getLocalBounds().reduced(1).withHeight(24).toFloat(), Corners::defaultCornerRadius);
+            g.fillRoundedRectangle(getLocalBounds().withHeight(25).reduced(2).toFloat(), Corners::defaultCornerRadius);
         }
         
         auto hasChildren = !nodes.isEmpty();
-        auto itemBounds = getLocalBounds().removeFromTop(26);
-        auto arrowBounds = itemBounds.removeFromLeft(26).toFloat().reduced(1.0f);
+        auto itemBounds = getLocalBounds().removeFromTop(25);
+        auto arrowBounds = itemBounds.removeFromLeft(20).toFloat().reduced(1.0f);
         if (isOpen()) {
-            arrowBounds = arrowBounds.reduced(1.5f);
+            arrowBounds = arrowBounds.reduced(1.0f);
         }
         
         if(hasChildren)
@@ -152,7 +152,7 @@ public:
         auto hasIcon = valueTreeNode.hasProperty("Icon");
         if(hasIcon)
         {
-            Fonts::drawIcon(g, valueTreeNode.getProperty("Icon"), itemBounds.removeFromLeft(24).reduced(2), colour, 12, false);
+            Fonts::drawIcon(g, valueTreeNode.getProperty("Icon"), itemBounds.removeFromLeft(22).reduced(2), colour, 12, false);
         }
         
         Fonts::drawFittedText(g, valueTreeNode.getProperty("Name"), itemBounds, colour);
@@ -162,7 +162,7 @@ public:
     {
         // Set the bounds of the subcomponents within the current component
         if(isOpen()) {
-            auto bounds = getLocalBounds().reduced(8, 1).withTrimmedTop(26);
+            auto bounds = getLocalBounds().reduced(8, 1).withTrimmedTop(25);
             
             for (auto* node : nodes)
             {
@@ -176,7 +176,7 @@ public:
     
     int getTotalContentHeight() const
     {
-        int totalHeight = isVisible() ? 26 : 0;
+        int totalHeight = isVisible() ? 25 : 0;
         
         if(isOpen()) {
             for (auto* node : nodes)
@@ -231,6 +231,7 @@ public:
     void setValueTree(const ValueTree& tree)
     {
         valueTree = tree;
+        auto originalViewPos = viewport.getViewPosition();
         
         // Compare existing child nodes with current children
         for (int i = 0; i < valueTree.getNumChildren(); ++i)
@@ -275,6 +276,8 @@ public:
         
         contentComponent.resized();
         resized();
+        
+        viewport.setViewPosition(originalViewPos);
     }
     
     void paint(Graphics& g) override
@@ -297,9 +300,11 @@ public:
         // Set the bounds of the Viewport within the main component
         auto bounds = getLocalBounds();
         viewport.setBounds(bounds);
+        
         contentComponent.setBounds(0, 0, bounds.getWidth(), std::max(getTotalContentHeight(), bounds.getHeight()));
         
-        bounds = bounds.reduced(2, 2).withTrimmedRight(4).withHeight(getTotalContentHeight());
+        auto scrollbarIndent = viewport.canScrollVertically() ? 8 : 0;
+        bounds = bounds.reduced(2, 2).withTrimmedRight(scrollbarIndent).withHeight(getTotalContentHeight());
 
         for (auto* node : nodes)
         {
