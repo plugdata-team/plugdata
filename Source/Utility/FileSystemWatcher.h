@@ -64,12 +64,10 @@ public:
             fsChangeCallback();
             stopTimer();
         }
-        /* Called when any file in the listened to folder changes with the name of
-           the folder that has changed. For example, use this for a file browser that
-           needs to refresh any time a file changes */
+        
+        // We don't need to listen for folder changes
         void folderChanged(File const)
         {
-            startTimer(80);
         }
 
         /* Called for each file that has changed and how it has changed. Use this callback
