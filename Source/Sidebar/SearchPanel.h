@@ -65,7 +65,6 @@ public:
             startTimer(100);
         }
         else {
-            Object::searchTarget = nullptr;
             stopTimer();
         }
     }
@@ -168,15 +167,6 @@ public:
 
         return patchTree;
     }
-
-     void clearSearchTargets()
-     {
-         if(auto* obj = Object::searchTarget.getComponent())
-         {
-             Object::searchTarget = nullptr;
-             obj->repaint();
-         }
-     }
      
     SafePointer<Canvas> currentCanvas;
     PluginEditor* editor;

@@ -1734,7 +1734,7 @@ void PluginEditor::showTouchSelectionHelper(bool shouldBeShown)
     }
 };
 
-// Finds an object and sets it as a search target, meaning it will have an outline and be centred in the viewport
+// Finds an object, then centres and selects it, to indicate it's the target of a search action
 // If you set "openNewTabIfNeeded" to true, it will open a new tab if the object you're trying to highlight is not currently visible
 // Returns true if successful. If "openNewTabIfNeeded" it should always return true as long as target is valid
 bool PluginEditor::highlightSearchTarget(void* target, bool openNewTabIfNeeded)
@@ -1769,20 +1769,25 @@ bool PluginEditor::highlightSearchTarget(void* target, bool openNewTabIfNeeded)
     if (!targetCanvas)
         return false;
 
+
     for (auto* cnv : canvases) {
         if (cnv->patch.getPointer().get() == targetCanvas) {
+            Object* found = nullptr;
             for (auto* object : cnv->objects) {
                 if (object->getPointer() == target) {
-                    cnv->deselectAll();
-                    Object::searchTarget = object;
-                    object->repaint();
+                    found = object;
                     break;
                 }
             }
-            if (Object::searchTarget) {
+            
+            if (found) {
+                
+                cnv->deselectAll();
+                cnv->setSelected(found, true);
+                
                 auto* viewport = cnv->viewport.get();
                 auto scale = getValue<float>(cnv->zoomScale);
-                auto pos = Object::searchTarget->getBounds().getCentre() * scale;
+                auto pos = found->getBounds().getCentre() * scale;
 
                 pos.x -= viewport->getViewWidth() * 0.5f;
                 pos.y -= viewport->getViewHeight() * 0.5f;
@@ -1801,18 +1806,22 @@ bool PluginEditor::highlightSearchTarget(void* target, bool openNewTabIfNeeded)
         auto* cnv = canvases.add(new Canvas(this, patch));
         addTab(cnv);
         
+        Object* found = nullptr;
         for (auto* object : cnv->objects) {
             if (object->getPointer() == target) {
-                Object::searchTarget = object;
-                object->repaint();
+                found = object;
                 break;
             }
         }
         
-        if (Object::searchTarget) {
+        if (found) {
+            
+            cnv->deselectAll();
+            cnv->setSelected(found, true);
+            
             auto* viewport = cnv->viewport.get();
             auto scale = getValue<float>(cnv->zoomScale);
-            auto pos = Object::searchTarget->getBounds().getCentre() * scale;
+            auto pos = found->getBounds().getCentre() * scale;
             
             pos.x -= viewport->getViewWidth() * 0.5f;
             pos.y -= viewport->getViewHeight() * 0.5f;

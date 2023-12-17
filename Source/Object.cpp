@@ -134,11 +134,6 @@ void Object::setSelected(bool shouldBeSelected)
         selectedFlag = shouldBeSelected;
         repaint();
     }
-
-    if (!shouldBeSelected && Object::searchTarget == this) {
-        Object::searchTarget = nullptr;
-        repaint();
-    }
 }
 
 bool Object::isSelected() const
@@ -442,19 +437,7 @@ void Object::paintOverChildren(Graphics& g)
         g.drawEllipse(fakeInletBounds, 1.0f);
     }
 
-    if (searchTarget == this) {
-        g.saveState();
-
-        // Don't draw line over iolets!
-        for (auto& iolet : iolets) {
-            g.excludeClipRegion(iolet->getBounds().reduced(2));
-        }
-
-        g.setColour(findColour(PlugDataColour::signalColourId));
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), Corners::objectCornerRadius, 1.5f);
-
-        g.restoreState();
-    } else if (!isHvccCompatible) {
+    if (!isHvccCompatible) {
         g.saveState();
 
         // Don't draw line over iolets!

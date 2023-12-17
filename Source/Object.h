@@ -103,8 +103,6 @@ public:
     static inline constexpr int doubleMargin = margin * 2;
     static inline constexpr int height = 37;
 
-    static inline SafePointer<Object> searchTarget = nullptr;
-
     Rectangle<int> originalBounds;
 
     static inline int const minimumSize = 12;
