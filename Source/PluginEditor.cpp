@@ -1795,7 +1795,7 @@ bool PluginEditor::highlightSearchTarget(void* target, bool openNewTabIfNeeded)
     
     if(openNewTabIfNeeded) {
         auto* patch = new pd::Patch(pd::WeakReference(targetCanvas, pd), pd, false);
-        auto* cnv = new Canvas(this, patch);
+        auto* cnv = canvases.add(new Canvas(this, patch));
         addTab(cnv);
         
         for (auto* object : cnv->objects) {

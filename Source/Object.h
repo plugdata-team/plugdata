@@ -103,7 +103,7 @@ public:
     static inline constexpr int doubleMargin = margin * 2;
     static inline constexpr int height = 37;
 
-    static inline Object* searchTarget = nullptr;
+    static inline SafePointer<Object> searchTarget = nullptr;
 
     Rectangle<int> originalBounds;
 

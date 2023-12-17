@@ -673,7 +673,7 @@ void Canvas::mouseDown(MouseEvent const& e)
         Dialogs::showCanvasRightClickMenu(this, source, e.getScreenPosition());
     }
 
-    if (auto* target = Object::searchTarget) {
+    if (auto* target = Object::searchTarget.getComponent()) {
         Object::searchTarget = nullptr;
         target->repaint();
     }
