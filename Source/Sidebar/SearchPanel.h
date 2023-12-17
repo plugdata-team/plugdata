@@ -65,6 +65,7 @@ public:
             startTimer(100);
         }
         else {
+            Object::searchTarget = nullptr;
             stopTimer();
         }
     }

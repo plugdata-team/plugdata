@@ -409,6 +409,5 @@ void Sidebar::updateConsole(int numMessages, bool newWarning)
 
 void Sidebar::tabChanged()
 {
-    searchPanel->clearSearchTargets();
     searchPanel->updateResults();
 }
