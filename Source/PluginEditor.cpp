@@ -1773,6 +1773,7 @@ bool PluginEditor::highlightSearchTarget(void* target, bool openNewTabIfNeeded)
         if (cnv->patch.getPointer().get() == targetCanvas) {
             for (auto* object : cnv->objects) {
                 if (object->getPointer() == target) {
+                    cnv->deselectAll();
                     Object::searchTarget = object;
                     object->repaint();
                     break;
@@ -1788,7 +1789,7 @@ bool PluginEditor::highlightSearchTarget(void* target, bool openNewTabIfNeeded)
 
                 viewport->setViewPosition(pos);
                 cnv->getTabbar()->setCurrentTabIndex(cnv->getTabIndex());
-                cnv->deselectAll();
+
                 
                 return true;
             }
