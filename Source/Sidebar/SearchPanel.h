@@ -170,7 +170,7 @@ public:
 
      void clearSearchTargets()
      {
-         if(auto* obj = Object::searchTarget)
+         if(auto* obj = Object::searchTarget.getComponent())
          {
              Object::searchTarget = nullptr;
              obj->repaint();

@@ -383,7 +383,7 @@ public:
 
         void mouseDown(MouseEvent const& e) override
         {
-            if (auto* target = Object::searchTarget) {
+            if (auto target = Object::searchTarget.getComponent()) {
                 Object::searchTarget = nullptr;
                 target->repaint();
             }
