@@ -348,20 +348,16 @@ public:
                 
                 contentComponent.selectedNode = contentComponent.selectedNode->previous;
                 
-                // Skip over items inside closed subtrees
-                auto isValid = contentComponent.selectedNode != nullptr;
-                auto hasParent = contentComponent.selectedNode->parent != nullptr;
-                auto isVisible = hasParent && contentComponent.selectedNode->parent->isOpen() && contentComponent.selectedNode->isShowing();
-                
                 // Keep iterating until we find a node that is visible
-                while(isValid && hasParent && !isVisible)
+                while(contentComponent.selectedNode != nullptr && contentComponent.selectedNode->parent != nullptr && !contentComponent.selectedNode->parent->isOpen() && contentComponent.selectedNode->isShowing())
                 {
                     contentComponent.selectedNode = contentComponent.selectedNode->previous;
                 }
-                if(isValid) onSelect(contentComponent.selectedNode->valueTreeNode);
+                if(contentComponent.selectedNode) onSelect(contentComponent.selectedNode->valueTreeNode);
                 
                 contentComponent.repaint();
                 resized();
+                scrollToShowSelection();
             }
             
             return true;
@@ -371,23 +367,38 @@ public:
             if(contentComponent.selectedNode && contentComponent.selectedNode->next) {
                 contentComponent.selectedNode = contentComponent.selectedNode->next;
                 
-                // Skip over items inside closed subtrees
-                auto isValid = contentComponent.selectedNode != nullptr;
-                auto hasParent = contentComponent.selectedNode->parent != nullptr;
-                auto isVisible = hasParent && contentComponent.selectedNode->parent->isOpen() && contentComponent.selectedNode->isShowing();
-                while(isValid && hasParent && !isVisible)
+                while(contentComponent.selectedNode != nullptr && contentComponent.selectedNode->parent != nullptr && !(contentComponent.selectedNode->parent->isOpen() && contentComponent.selectedNode->isShowing()))
                 {
                     contentComponent.selectedNode = contentComponent.selectedNode->next;
                 }
-                if(isValid) onSelect(contentComponent.selectedNode->valueTreeNode);
+                if(contentComponent.selectedNode) onSelect(contentComponent.selectedNode->valueTreeNode);
 
                 contentComponent.repaint();
                 resized();
+                scrollToShowSelection();
             }
             return true;
         }
         
         return false;
+    }
+    
+    void scrollToShowSelection()
+    {
+        if(auto* selection = contentComponent.selectedNode.getComponent())
+        {
+            auto viewBounds = viewport.getViewArea();
+            auto selectionBounds = contentComponent.getLocalArea(selection, selection->getLocalBounds());
+                                                                 
+            if (selectionBounds.getY() < viewBounds.getY())
+            {
+                viewport.setViewPosition(0, selectionBounds.getY());
+            }
+            else if (selectionBounds.getBottom() > viewBounds.getBottom())
+            {
+                viewport.setViewPosition(0, selectionBounds.getY() - (viewBounds.getHeight() - 25));
+            }
+        }
     }
     
     Viewport& getViewport()
