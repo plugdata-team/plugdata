@@ -135,8 +135,8 @@ void Object::setSelected(bool shouldBeSelected)
         repaint();
     }
 
-    if (!shouldBeSelected && Object::consoleTarget == this) {
-        Object::consoleTarget = nullptr;
+    if (!shouldBeSelected && Object::searchTarget == this) {
+        Object::searchTarget = nullptr;
         repaint();
     }
 }
@@ -442,7 +442,7 @@ void Object::paintOverChildren(Graphics& g)
         g.drawEllipse(fakeInletBounds, 1.0f);
     }
 
-    if (isSearchTarget || consoleTarget == this) {
+    if (searchTarget == this) {
         g.saveState();
 
         // Don't draw line over iolets!
@@ -451,7 +451,7 @@ void Object::paintOverChildren(Graphics& g)
         }
 
         g.setColour(findColour(PlugDataColour::signalColourId));
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), Corners::objectCornerRadius, 2.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), Corners::objectCornerRadius, 1.5f);
 
         g.restoreState();
     } else if (!isHvccCompatible) {

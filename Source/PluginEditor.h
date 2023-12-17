@@ -109,13 +109,11 @@ public:
     void enablePluginMode(Canvas* cnv);
 
     void commandKeyChanged(bool isHeld) override;
-
     void setZoomLabelLevel(float value);
-
     void setUseBorderResizer(bool shouldUse);
-
     void showTouchSelectionHelper(bool shouldBeShown);
     
+    bool highlightSearchTarget(void* target, bool openNewTabIfNeeded);
 
 
     TabComponent* getActiveTabbar();

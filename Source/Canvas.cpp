@@ -580,6 +580,8 @@ void Canvas::performSynchronise()
 
     editor->updateCommandStatus();
     repaint();
+    
+    needsSearchUpdate = true;
 
     pd->updateObjectImplementations();
 }
@@ -671,8 +673,8 @@ void Canvas::mouseDown(MouseEvent const& e)
         Dialogs::showCanvasRightClickMenu(this, source, e.getScreenPosition());
     }
 
-    if (auto* target = Object::consoleTarget) {
-        Object::consoleTarget = nullptr;
+    if (auto* target = Object::searchTarget) {
+        Object::searchTarget = nullptr;
         target->repaint();
     }
 }

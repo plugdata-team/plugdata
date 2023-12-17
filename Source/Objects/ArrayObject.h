@@ -874,7 +874,6 @@ public:
             updateVisibleGraph();
         };
         
-        
         closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(-1));
         addAndMakeVisible(closeButton.get());
 
