@@ -887,6 +887,7 @@ void PluginEditor::modifierKeysChanged(ModifierKeys const& modifiers)
     setModifierKeys(modifiers);
 }
 
+// Updates command status asynchronously
 void PluginEditor::handleAsyncUpdate()
 {
     // Reflect patch dirty state in tab title
@@ -934,6 +935,7 @@ void PluginEditor::handleAsyncUpdate()
         statusbar->fitAllButton.setEnabled(true);
 
         addObjectMenuButton.setEnabled(true);
+        cnv->needsSearchUpdate = true;
     } else {
 
         pluginModeButton.setEnabled(false);
@@ -1731,3 +1733,93 @@ void PluginEditor::showTouchSelectionHelper(bool shouldBeShown)
         touchSelectionHelper->setBounds(touchHelperBounds);
     }
 };
+
+// Finds an object and sets it as a search target, meaning it will have an outline and be centred in the viewport
+// If you set "openNewTabIfNeeded" to true, it will open a new tab if the object you're trying to highlight is not currently visible
+// Returns true if successful. If "openNewTabIfNeeded" it should always return true as long as target is valid
+bool PluginEditor::highlightSearchTarget(void* target, bool openNewTabIfNeeded)
+{
+    std::function<t_glist*(t_glist*, void*)> findSearchTargetRecursively;
+    findSearchTargetRecursively = [&findSearchTargetRecursively](t_glist* glist, void* target) -> t_glist* {
+        for (auto* y = glist->gl_list; y; y = y->g_next) {
+            if (pd_class(&y->g_pd) == canvas_class) {
+                if (auto* subpatch = findSearchTargetRecursively(reinterpret_cast<t_glist*>(y), target)) {
+                    return subpatch;
+                }
+            }
+            if (y == target) {
+                return glist;
+            }
+        }
+
+        return nullptr;
+    };
+    
+    ScopedLock audioLock(pd->audioLock);
+
+    t_glist* targetCanvas = nullptr;
+    for (auto* glist = pd_getcanvaslist(); glist; glist = glist->gl_next) {
+        auto* found = findSearchTargetRecursively(glist, target);
+        if (found) {
+            targetCanvas = found;
+            break;
+        }
+    }
+
+    if (!targetCanvas)
+        return false;
+
+    for (auto* cnv : canvases) {
+        if (cnv->patch.getPointer().get() == targetCanvas) {
+            for (auto* object : cnv->objects) {
+                if (object->getPointer() == target) {
+                    Object::searchTarget = object;
+                    object->repaint();
+                    break;
+                }
+            }
+            if (Object::searchTarget) {
+                auto* viewport = cnv->viewport.get();
+                auto scale = getValue<float>(cnv->zoomScale);
+                auto pos = Object::searchTarget->getBounds().getCentre() * scale;
+
+                pos.x -= viewport->getViewWidth() * 0.5f;
+                pos.y -= viewport->getViewHeight() * 0.5f;
+
+                viewport->setViewPosition(pos);
+                cnv->getTabbar()->setCurrentTabIndex(cnv->getTabIndex());
+                return true;
+            }
+        }
+    }
+    
+    if(openNewTabIfNeeded) {
+        auto* patch = new pd::Patch(pd::WeakReference(targetCanvas, pd), pd, false);
+        auto* cnv = canvases.add(new Canvas(this, patch));
+        addTab(cnv);
+        
+        for (auto* object : cnv->objects) {
+            if (object->getPointer() == target) {
+                Object::searchTarget = object;
+                object->repaint();
+                break;
+            }
+        }
+        
+        if (Object::searchTarget) {
+            auto* viewport = cnv->viewport.get();
+            auto scale = getValue<float>(cnv->zoomScale);
+            auto pos = Object::searchTarget->getBounds().getCentre() * scale;
+            
+            pos.x -= viewport->getViewWidth() * 0.5f;
+            pos.y -= viewport->getViewHeight() * 0.5f;
+            
+            viewport->setViewPosition(pos);
+            cnv->getTabbar()->setCurrentTabIndex(cnv->getTabIndex());
+        }
+        
+        return true;
+    }
+    
+    return false;
+}

@@ -337,7 +337,7 @@ public:
         // Draw a gradient to fade the content out underneath the search input
         auto scrollOffset = fileList.getViewport().canScrollVertically();
         g.setGradientFill(ColourGradient(backgroundColour, 0.0f, 26.0f, transparentColour, 0.0f, 42.0f, false));
-        g.fillRect(Rectangle<int>(0, searchInput.getBottom(), getWidth(), 12));
+        g.fillRect(Rectangle<int>(0, searchInput.getBottom(), getWidth() - scrollOffset, 12));
 
         Fonts::drawIcon(g, Icons::Search, 2, 1, 32, findColour(PlugDataColour::sidebarTextColourId), 12);
         

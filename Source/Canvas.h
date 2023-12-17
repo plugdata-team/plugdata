@@ -183,6 +183,8 @@ public:
     bool isGraph = false;
     bool hasParentCanvas = false;
     bool isDraggingLasso = false;
+    
+    bool needsSearchUpdate = false;
 
     Value isGraphChild = SynchronousValue(var(false));
     Value hideNameAndArgs = SynchronousValue(var(false));

@@ -176,111 +176,21 @@ public:
 
                 auto& [object, message, type, length, repeats] = console.pd->getConsoleMessages()[idx];
                 if (e.mods.isPopupMenu()) {
+                    
+                    
                     PopupMenu menu;
                     menu.addItem("Copy", [this]() { console.copySelectionToClipboard(); });
-                    menu.addItem("Show origin", object != nullptr, false, [this, target = object]() { highlightSearchTarget(target); });
+                    menu.addItem("Show origin", object != nullptr, false, [this, target = object]() {
+                        auto* editor = findParentComponentOfClass<PluginEditor>();
+                        editor->highlightSearchTarget(target, true);
+                    });
                     menu.showMenuAsync(PopupMenu::Options());
                 }
 
                 console.selectedItems.addIfNotAlreadyThere(SafePointer(this));
                 console.repaint();
             }
-
-            Array<Canvas*> getAllCanvases(PluginEditor* editor)
-            {
-                Array<Canvas*> allCanvases;
-                for (auto* split : editor->splitView.splits) {
-                    auto* tabComponent = split->getTabComponent();
-                    for (int i = 0; i < tabComponent->getNumTabs(); i++) {
-                        allCanvases.add(tabComponent->getCanvas(i));
-                    }
-                }
-
-                return allCanvases;
-            }
-
-            t_glist* findSearchTargetRecursively(t_glist* glist, void* target)
-            {
-                for (auto* y = glist->gl_list; y; y = y->g_next) {
-                    if (pd_class(&y->g_pd) == canvas_class) {
-                        if (auto* subpatch = findSearchTargetRecursively(reinterpret_cast<t_glist*>(y), target)) {
-                            return subpatch;
-                        }
-                    }
-                    if (y == target) {
-                        return glist;
-                    }
-                }
-
-                return nullptr;
-            }
-
-            void highlightSearchTarget(void* target)
-            {
-                auto* editor = findParentComponentOfClass<PluginEditor>();
-                ScopedLock audioLock(editor->pd->audioLock);
-
-                t_glist* targetCanvas = nullptr;
-                for (auto* glist = pd_getcanvaslist(); glist; glist = glist->gl_next) {
-                    auto* found = findSearchTargetRecursively(glist, target);
-                    if (found) {
-                        targetCanvas = found;
-                        break;
-                    }
-                }
-
-                if (!targetCanvas)
-                    return;
-
-                for (auto* cnv : getAllCanvases(editor)) {
-                    if (cnv->patch.getPointer().get() == targetCanvas) {
-                        for (auto* object : cnv->objects) {
-                            if (object->getPointer() == target) {
-                                Object::consoleTarget = object;
-                                object->repaint();
-                                break;
-                            }
-                        }
-                        if (Object::consoleTarget) {
-                            auto* viewport = cnv->viewport.get();
-                            auto scale = getValue<float>(cnv->zoomScale);
-                            auto pos = Object::consoleTarget->getBounds().getCentre() * scale;
-
-                            pos.x -= viewport->getViewWidth() * 0.5f;
-                            pos.y -= viewport->getViewHeight() * 0.5f;
-
-                            viewport->setViewPosition(pos);
-                            cnv->getTabbar()->setCurrentTabIndex(cnv->getTabIndex());
-                            return;
-                        }
-                    }
-                }
-
-                auto* patch = new pd::Patch(pd::WeakReference(targetCanvas, editor->pd), editor->pd, false);
-                auto* cnv = new Canvas(editor, patch);
-                editor->addTab(cnv);
-
-                for (auto* object : cnv->objects) {
-                    if (object->getPointer() == target) {
-                        Object::consoleTarget = object;
-                        object->repaint();
-                        break;
-                    }
-                }
-
-                if (Object::consoleTarget) {
-                    auto* viewport = cnv->viewport.get();
-                    auto scale = getValue<float>(cnv->zoomScale);
-                    auto pos = Object::consoleTarget->getBounds().getCentre() * scale;
-
-                    pos.x -= viewport->getViewWidth() * 0.5f;
-                    pos.y -= viewport->getViewHeight() * 0.5f;
-
-                    viewport->setViewPosition(pos);
-                    cnv->getTabbar()->setCurrentTabIndex(cnv->getTabIndex());
-                }
-            }
-
+            
             void paint(Graphics& g)
             {
                 auto isSelected = console.selectedItems.contains(this);
@@ -473,8 +383,8 @@ public:
 
         void mouseDown(MouseEvent const& e) override
         {
-            if (auto* target = Object::consoleTarget) {
-                Object::consoleTarget = nullptr;
+            if (auto* target = Object::searchTarget) {
+                Object::searchTarget = nullptr;
                 target->repaint();
             }
             selectedItems.clear();

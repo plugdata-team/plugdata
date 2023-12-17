@@ -7,14 +7,15 @@ struct ValueTreeOwnerView : public Component
     SafePointer<ValueTreeNodeComponent> selectedNode;
     
     std::function<void()> updateView = [](){};
-    std::function<void(ValueTree&)> onClick =   [](ValueTree& tree){};
-    std::function<void(ValueTree&)> onDragStart = [](ValueTree& tree){};
+    std::function<void(ValueTree&)> onClick = [](ValueTree&){};
+    std::function<void(ValueTree&)> onSelect = [](ValueTree&){};
+    std::function<void(ValueTree&)> onDragStart = [](ValueTree&){};
 };
 
 class ValueTreeNodeComponent : public Component
 {
 public:
-    ValueTreeNodeComponent(const ValueTree& node, ValueTreeNodeComponent* parentNode) : valueTreeNode(node), parent(parentNode)
+    ValueTreeNodeComponent(const ValueTree& node, ValueTreeNodeComponent* parentNode) : parent(parentNode), valueTreeNode(node)
     {
         // Create subcomponents for each child node
         for (int i = 0; i < valueTreeNode.getNumChildren(); ++i)
@@ -120,10 +121,15 @@ public:
             else {
                 getOwnerView()->selectedNode = this;
                 getOwnerView()->repaint();
-                if(e.getNumberOfClicks() == 2)
+                
+                if(e.getNumberOfClicks() == 1)
                 {
+                    getOwnerView()->onSelect(valueTreeNode);
+                }
+                else {
                     getOwnerView()->onClick(valueTreeNode);
                 }
+                
             }
         }
     }
@@ -149,10 +155,18 @@ public:
         
         auto& owner = *getOwnerView();
         auto colour = isSelected() ? owner.findColour(PlugDataColour::sidebarActiveTextColourId) : owner.findColour(PlugDataColour::sidebarTextColourId);
-        auto hasIcon = valueTreeNode.hasProperty("Icon");
-        if(hasIcon)
+        
+        if(valueTreeNode.hasProperty("Icon"))
         {
             Fonts::drawIcon(g, valueTreeNode.getProperty("Icon"), itemBounds.removeFromLeft(22).reduced(2), colour, 12, false);
+        }
+        if(valueTreeNode.hasProperty("RightText"))
+        {
+            auto text = valueTreeNode.getProperty("Name").toString();
+            auto rightText = valueTreeNode.getProperty("RightText").toString();
+            if(Font(15).getStringWidth(text + rightText) < itemBounds.getWidth() - 16) {
+                Fonts::drawFittedText(g, valueTreeNode.getProperty("RightText"), itemBounds.removeFromRight(Font(15).getStringWidth(rightText) + 4), colour);
+            }
         }
         
         Fonts::drawFittedText(g, valueTreeNode.getProperty("Name"), itemBounds, colour);
@@ -162,7 +176,7 @@ public:
     {
         // Set the bounds of the subcomponents within the current component
         if(isOpen()) {
-            auto bounds = getLocalBounds().reduced(8, 1).withTrimmedTop(25);
+            auto bounds = getLocalBounds().withTrimmedLeft(8).withTrimmedTop(25);
             
             for (auto* node : nodes)
             {
@@ -226,6 +240,7 @@ public:
         };
         
         contentComponent.onClick =   [this](ValueTree& tree){ onClick(tree); };
+        contentComponent.onSelect =   [this](ValueTree& tree){ onSelect(tree); };
         contentComponent.onDragStart = [this](ValueTree& tree){ onDragStart(tree); };
         
         addAndMakeVisible(viewport);
@@ -303,6 +318,8 @@ public:
     
     void resized() override
     {
+        auto originalViewPos = viewport.getViewPosition();
+        
         // Set the bounds of the Viewport within the main component
         auto bounds = getLocalBounds();
         viewport.setBounds(bounds);
@@ -319,6 +336,8 @@ public:
                 node->setBounds(childBounds);
             }
         }
+        
+        viewport.setViewPosition(originalViewPos);
     }
     
     bool keyPressed(KeyPress const& key, Component* component) override
@@ -329,14 +348,16 @@ public:
                 
                 contentComponent.selectedNode = contentComponent.selectedNode->previous;
                 
-                // Skip over items inside closed subtrees
-                while(contentComponent.selectedNode && contentComponent.selectedNode->parent && !contentComponent.selectedNode->parent->isOpened)
+                // Keep iterating until we find a node that is visible
+                while(contentComponent.selectedNode != nullptr && contentComponent.selectedNode->parent != nullptr && !contentComponent.selectedNode->parent->isOpen() && contentComponent.selectedNode->isShowing())
                 {
                     contentComponent.selectedNode = contentComponent.selectedNode->previous;
                 }
+                if(contentComponent.selectedNode) onSelect(contentComponent.selectedNode->valueTreeNode);
                 
                 contentComponent.repaint();
                 resized();
+                scrollToShowSelection();
             }
             
             return true;
@@ -346,19 +367,38 @@ public:
             if(contentComponent.selectedNode && contentComponent.selectedNode->next) {
                 contentComponent.selectedNode = contentComponent.selectedNode->next;
                 
-                // Skip over items inside closed subtrees
-                while(contentComponent.selectedNode && contentComponent.selectedNode->parent && !contentComponent.selectedNode->parent->isOpened)
+                while(contentComponent.selectedNode != nullptr && contentComponent.selectedNode->parent != nullptr && !(contentComponent.selectedNode->parent->isOpen() && contentComponent.selectedNode->isShowing()))
                 {
                     contentComponent.selectedNode = contentComponent.selectedNode->next;
                 }
-                
+                if(contentComponent.selectedNode) onSelect(contentComponent.selectedNode->valueTreeNode);
+
                 contentComponent.repaint();
                 resized();
+                scrollToShowSelection();
             }
             return true;
         }
         
         return false;
+    }
+    
+    void scrollToShowSelection()
+    {
+        if(auto* selection = contentComponent.selectedNode.getComponent())
+        {
+            auto viewBounds = viewport.getViewArea();
+            auto selectionBounds = contentComponent.getLocalArea(selection, selection->getLocalBounds());
+                                                                 
+            if (selectionBounds.getY() < viewBounds.getY())
+            {
+                viewport.setViewPosition(0, selectionBounds.getY());
+            }
+            else if (selectionBounds.getBottom() > viewBounds.getBottom())
+            {
+                viewport.setViewPosition(0, selectionBounds.getY() - (viewBounds.getHeight() - 25));
+            }
+        }
     }
     
     Viewport& getViewport()
@@ -390,13 +430,12 @@ public:
         resized();
     }
     
-    std::function<void(ValueTree&)> onClick =   [](ValueTree& tree){};
-    std::function<void(ValueTree&)> onDragStart = [](ValueTree& tree){};
+    std::function<void(ValueTree&)> onClick =   [](ValueTree&){};
+    std::function<void(ValueTree&)> onSelect =   [](ValueTree&){};
+    std::function<void(ValueTree&)> onDragStart = [](ValueTree&){};
     
 private:
     
-
-
     static void linkNodes(OwnedArray<ValueTreeNodeComponent>& nodes, ValueTreeNodeComponent*& previous)
     {
         // Iterate over direct children
