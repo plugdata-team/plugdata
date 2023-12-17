@@ -1788,6 +1788,8 @@ bool PluginEditor::highlightSearchTarget(void* target, bool openNewTabIfNeeded)
 
                 viewport->setViewPosition(pos);
                 cnv->getTabbar()->setCurrentTabIndex(cnv->getTabIndex());
+                cnv->deselectAll();
+                
                 return true;
             }
         }
