@@ -176,7 +176,7 @@ public:
     {
         // Set the bounds of the subcomponents within the current component
         if(isOpen()) {
-            auto bounds = getLocalBounds().reduced(8, 1).withTrimmedTop(25);
+            auto bounds = getLocalBounds().withTrimmedLeft(8).withTrimmedTop(25);
             
             for (auto* node : nodes)
             {
@@ -318,6 +318,8 @@ public:
     
     void resized() override
     {
+        auto originalViewPos = viewport.getViewPosition();
+        
         // Set the bounds of the Viewport within the main component
         auto bounds = getLocalBounds();
         viewport.setBounds(bounds);
@@ -334,6 +336,8 @@ public:
                 node->setBounds(childBounds);
             }
         }
+        
+        viewport.setViewPosition(originalViewPos);
     }
     
     bool keyPressed(KeyPress const& key, Component* component) override
