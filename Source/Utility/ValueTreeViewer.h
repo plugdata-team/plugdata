@@ -502,10 +502,10 @@ private:
             int compareElements (const ValueTreeNodeComponent* a, const ValueTreeNodeComponent* b)
             {
                 auto firstIdx = a->valueTreeNode. getParent().indexOf(a->valueTreeNode);
-                auto secondId = b->valueTreeNode.getParent().indexOf (b->valueTreeNode);
-                if(firstIdx == secondIdx) return 0;
+                auto secondIdx = b->valueTreeNode.getParent().indexOf (b->valueTreeNode);
                 if(firstIdx > secondIdx)  return 1;
                 if(firstIdx < secondIdx)  return -1;
+                return 0;
             }
         } elementSorter;
         
