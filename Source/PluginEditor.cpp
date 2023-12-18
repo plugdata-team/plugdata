@@ -935,7 +935,6 @@ void PluginEditor::handleAsyncUpdate()
         statusbar->fitAllButton.setEnabled(true);
 
         addObjectMenuButton.setEnabled(true);
-        cnv->needsSearchUpdate = true;
     } else {
 
         pluginModeButton.setEnabled(false);

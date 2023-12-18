@@ -246,7 +246,7 @@ public:
         {
             return ValueTree();
         }
-                
+        
         ValueTree rootNode("Folder");
         rootNode.setProperty("Name", directory.getFileName(), nullptr);
         rootNode.setProperty("Path", directory.getFullPathName(), nullptr);

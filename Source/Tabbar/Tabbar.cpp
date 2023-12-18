@@ -559,7 +559,7 @@ void TabComponent::onTabChange(int tabIndex)
     if (!cnv || tabIndex == -1 || editor->pd->isPerformingGlobalSync)
         return;
 
-    editor->sidebar->tabChanged();
+    cnv->needsSearchUpdate = true;
     cnv->grabKeyboardFocus();
 
     for (auto* split : editor->splitView.splits) {
