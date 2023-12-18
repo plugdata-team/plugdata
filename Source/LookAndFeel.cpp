@@ -777,7 +777,7 @@ void PlugDataLook::getIdealPopupMenuItemSize(String const& text, bool const isSe
         // Dumb check to see if there is a keyboard shortcut after the text.
         // On Linux and Windows, it seems to reserve way to much space for those.
         if (text.contains("  ")) {
-            idealWidth -= 25;
+            idealWidth -= 36;
         }
 #endif
     }
@@ -894,11 +894,42 @@ void PlugDataLook::drawPopupMenuItem(Graphics& g, Rectangle<int> const& area,
 
         r.removeFromRight(3);
         Fonts::drawFittedText(g, text, r, colour);
-
-        if (shortcutKeyText.isNotEmpty()) {
-            auto shortcutColour = findColour(PopupMenu::textColourId).withMultipliedAlpha(0.5f);
-            Fonts::drawFittedText(g, shortcutKeyText, r.translated(-4, 0), shortcutColour, 1, 1.0f, 14.0f, Justification::centredRight);
+        
+        auto shortcutBounds = r.translated(-4, 0);
+        
+#if JUCE_MAC
+        for(int i = shortcutKeyText.length() - 1; i >= 0; i--)
+        {
+            auto font = Fonts::getSemiBoldFont().withHeight(10.5f);
+            auto text = shortcutKeyText.substring(i, i+1);
+            auto width = std::max(font.getStringWidth(text), 15);
+            auto b = shortcutBounds.removeFromRight(width).reduced(1, 5);
+            
+            g.setColour(findColour(PlugDataColour::popupMenuTextColourId).withAlpha(isActive ? 0.8f : 0.5f));
+            g.fillRoundedRectangle(b.toFloat(), 3.0f);
+            
+            g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
+            
+            g.setFont(Fonts::getSemiBoldFont().withHeight(11));
+            g.drawText(text, b, Justification::centred);
         }
+#else
+        auto keys = StringArray::fromTokens(shortcutKeyText, "+", "");
+        for(int i = keys.size() - 1; i >= 0; i--)
+        {
+            auto font = Fonts::getSemiBoldFont().withHeight(10.5f);
+            auto width = std::max(font.getStringWidth(keys[i].trim()) + 8, 15);
+            auto b = shortcutBounds.removeFromRight(width).reduced(1, 5);
+            
+            g.setColour(findColour(PlugDataColour::popupMenuTextColourId).withAlpha(isActive ? 0.8f : 0.5f));
+            g.fillRoundedRectangle(b.toFloat(), 3.0f);
+            
+            g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
+            
+            g.setFont(font);
+            g.drawText(keys[i], b, Justification::centred);
+        }
+#endif
     }
 }
 
