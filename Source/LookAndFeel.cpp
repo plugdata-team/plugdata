@@ -905,7 +905,7 @@ void PlugDataLook::drawPopupMenuItem(Graphics& g, Rectangle<int> const& area,
             auto width = std::max(font.getStringWidth(text), 15);
             auto b = shortcutBounds.removeFromRight(width).reduced(1, 5);
             
-            g.setColour(findColour(PlugDataColour::popupMenuTextColourId).withAlpha(isActive ? 0.8f : 0.5f));
+            g.setColour(findColour(PlugDataColour::popupMenuTextColourId).withAlpha(isActive ? 0.9f : 0.5f));
             g.fillRoundedRectangle(b.toFloat(), 3.0f);
             
             g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
@@ -921,7 +921,7 @@ void PlugDataLook::drawPopupMenuItem(Graphics& g, Rectangle<int> const& area,
             auto width = std::max(font.getStringWidth(keys[i].trim()) + 8, 15);
             auto b = shortcutBounds.removeFromRight(width).reduced(1, 5);
             
-            g.setColour(findColour(PlugDataColour::popupMenuTextColourId).withAlpha(isActive ? 0.8f : 0.5f));
+            g.setColour(findColour(PlugDataColour::popupMenuTextColourId).withAlpha(isActive ? 0.9f : 0.5f));
             g.fillRoundedRectangle(b.toFloat(), 3.0f);
             
             g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
