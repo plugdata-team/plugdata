@@ -777,7 +777,7 @@ void PlugDataLook::getIdealPopupMenuItemSize(String const& text, bool const isSe
         // Dumb check to see if there is a keyboard shortcut after the text.
         // On Linux and Windows, it seems to reserve way to much space for those.
         if (text.contains("  ")) {
-            idealWidth -= 36;
+            idealWidth -= 46;
         }
 #endif
     }
@@ -905,7 +905,7 @@ void PlugDataLook::drawPopupMenuItem(Graphics& g, Rectangle<int> const& area,
             auto width = std::max(font.getStringWidth(text) + 4, 16);
             auto b = shortcutBounds.removeFromRight(width).reduced(1, 5);
             
-            g.setColour(findColour(PlugDataColour::popupMenuTextColourId).withAlpha(isActive ? 0.9f : 0.5f));
+            g.setColour(findColour(PlugDataColour::popupMenuTextColourId).withAlpha(isActive ? 0.9f : 0.35f));
             g.fillRoundedRectangle(b.toFloat(), 3.0f);
             
             g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
@@ -921,7 +921,7 @@ void PlugDataLook::drawPopupMenuItem(Graphics& g, Rectangle<int> const& area,
             auto width = std::max(font.getStringWidth(keys[i].trim()) + 8, 15);
             auto b = shortcutBounds.removeFromRight(width).reduced(1, 5);
             
-            g.setColour(findColour(PlugDataColour::popupMenuTextColourId).withAlpha(isActive ? 0.9f : 0.5f));
+            g.setColour(findColour(PlugDataColour::popupMenuTextColourId).withAlpha(isActive ? 0.9f : 0.35f));
             g.fillRoundedRectangle(b.toFloat(), 3.0f);
             
             g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));

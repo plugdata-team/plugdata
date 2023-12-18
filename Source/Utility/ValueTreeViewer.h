@@ -165,7 +165,7 @@ public:
             auto text = valueTreeNode.getProperty("Name").toString();
             auto rightText = valueTreeNode.getProperty("RightText").toString();
             if(Font(15).getStringWidth(text + rightText) < itemBounds.getWidth() - 16) {
-                Fonts::drawFittedText(g, valueTreeNode.getProperty("RightText"), itemBounds.removeFromRight(Font(15).getStringWidth(rightText) + 4), colour);
+                Fonts::drawFittedText(g, valueTreeNode.getProperty("RightText"), itemBounds.removeFromRight(Font(15).getStringWidth(rightText) + 4), colour.withAlpha(0.75f));
             }
         }
         
@@ -192,7 +192,7 @@ public:
                 }
             }
             // create a line to show the current branch
-            treeBranchLine.startNewSubPath(14, 14);
+            treeBranchLine.startNewSubPath(14, 30);
             treeBranchLine.lineTo(14, getHeight() - 14);
             treeBranchLine.lineTo(18, getHeight() - 14);
         }
