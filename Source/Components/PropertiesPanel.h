@@ -104,18 +104,18 @@ private:
 
             auto title = getName();
             auto titleHeight = title.isEmpty() ? 0 : parent.titleHeight;
-            
-            if(titleHeight != 0) {
+
+            if (titleHeight != 0) {
                 Fonts::drawStyledText(g, title, titleX, 0, width - 4, titleHeight, findColour(PlugDataColour::panelTextColourId), Semibold, 14.5f);
             }
-            
+
             auto propertyBounds = Rectangle<float>(x, titleHeight + 8.0f, width, getHeight() - (titleHeight + 16.0f));
 
             // Don't draw the shadow if the background colour has opacity
             if (parent.drawShadowAndOutline) {
                 Path p;
                 p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
-                StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
+                StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 7);
             }
 
             g.setColour(findColour(parent.panelColour));
@@ -734,7 +734,7 @@ public:
         Value property;
         String allowedCharacters = "";
 
-        EditableComponent(String propertyName, Value& value)
+        EditableComponent(String propertyName, Value& value, double minimum = 0.0, double maximum = 0.0)
             : PropertiesPanelProperty(propertyName)
             , property(value)
         {
@@ -747,6 +747,7 @@ public:
                 draggableNumber->getTextValue().referTo(property);
                 draggableNumber->setFont(draggableNumber->getFont().withHeight(14));
                 draggableNumber->setEditableOnClick(true);
+                draggableNumber->setMinMax(minimum, maximum);
 
                 draggableNumber->onEditorShow = [draggableNumber]() {
                     auto* editor = draggableNumber->getCurrentTextEditor();
@@ -763,14 +764,13 @@ public:
                 label->setEditable(true, false);
                 label->getTextValue().referTo(property);
                 label->setFont(Font(14));
-                
+
                 label->onEditorShow = [this]() {
                     auto* editor = label->getCurrentTextEditor();
                     editor->setBorder(BorderSize<int>(2, 1, 4, 1));
                     editor->setJustification(Justification::centredLeft);
-                    
-                    if(allowedCharacters.isNotEmpty())
-                    {
+
+                    if (allowedCharacters.isNotEmpty()) {
                         editor->setInputRestrictions(0, allowedCharacters);
                     }
                 };
@@ -785,8 +785,8 @@ public:
         {
             return new EditableComponent<T>(getName(), property);
         }
-        
-        void setInputRestrictions(const String& newAllowedCharacters)
+
+        void setInputRestrictions(String const& newAllowedCharacters)
         {
             allowedCharacters = newAllowedCharacters;
         }
@@ -815,7 +815,7 @@ public:
         Label label;
         SmallIconButton browseButton = SmallIconButton(Icons::File);
         Value property;
-        
+
         FilePathComponent(String const& propertyName, Value& value)
             : PropertiesPanelProperty(propertyName)
             , property(value)
@@ -829,11 +829,12 @@ public:
             addAndMakeVisible(browseButton);
 
             browseButton.onClick = [this]() {
-                Dialogs::showSaveDialog([this](File& result){
+                Dialogs::showSaveDialog([this](File& result) {
                     if (result.getParentDirectory().exists()) {
                         label.setText(result.getFullPathName(), sendNotification);
                     }
-                }, "", "");
+                },
+                    "", "");
             };
         }
 

@@ -30,7 +30,7 @@ public:
 
     String getKeyboardShortcutDescription(ObjectIDs objectID)
     {
-        auto keyPresses = editor->getKeyMappings()->getKeyPressesAssignedToCommand(objectID);
+        auto keyPresses = editor->commandManager.getKeyMappings()->getKeyPressesAssignedToCommand(objectID);
         if (keyPresses.size()) {
             return "(" + keyPresses.getReference(0).getTextDescription() + ") ";
         }
@@ -75,11 +75,16 @@ public:
     {
         // If this is an array, replace @arrName with unused name
         auto patchString = objectPatch;
-        if(patchString.contains("@arrName")) {
+        if (patchString.contains("@arrName")) {
             editor->pd->setThis();
             patchString = patchString.replace("@arrName", String::fromUTF8(pd::Interface::getUnusedArrayName()->s_name));
         }
         return patchString;
+    }
+
+    String getPatchStringName() override
+    {
+        return titleText + String(" object");
     }
 
     void mouseUp(MouseEvent const& e) override
@@ -87,8 +92,10 @@ public:
         if (e.mouseWasDraggedSinceMouseDown()) {
             dismissMenu(false);
         } else {
+#if !JUCE_IOS
             ObjectClickAndDrop::attachToMouse(this);
             dismissMenu(false);
+#endif
         }
     }
 
@@ -140,7 +147,9 @@ public:
     {
         objectButtons.clear();
 
-        for (auto& [categoryName, objectCategory] : objectList) {
+        auto objectsToShow = getValue<bool>(SettingsFile::getInstance()->getPropertyAsValue("hvcc_mode")) ? heavyObjectList : defaultObjectList;
+
+        for (auto& [categoryName, objectCategory] : objectsToShow) {
 
             if (categoryName != categoryToView)
                 continue;
@@ -171,7 +180,7 @@ public:
         std::cout << "==== object icon list in CSV format ====" << std::endl;
 
         String cat;
-        for (auto& [categoryName, objectCategory] : objectList) {
+        for (auto& [categoryName, objectCategory] : defaultObjectList) {
             cat = categoryName;
             for (auto& [icon, patch, tooltip, name, objectID] : objectCategory) {
                 std::cout << cat << ", " << name << ", " << icon << std::endl;
@@ -183,7 +192,8 @@ public:
 
     OwnedArray<ObjectItem> objectButtons;
 
-    static inline const std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> objectList = {
+
+    static inline const std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> defaultObjectList = {
         { "Default",
             {
                 { Icons::GlyphEmptyObject, "#X obj 0 0", "(@keypress) Empty object", "Object", NewObject },
@@ -346,6 +356,130 @@ public:
             } },
     };
 
+    static inline const std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> heavyObjectList = {
+        { "Default",
+            {
+                { Icons::GlyphEmptyObject, "#X obj 0 0", "(@keypress) Empty object", "Object", NewObject },
+                { Icons::GlyphMessage, "#X msg 0 0", "(@keypress) Message", "Message", NewMessage },
+                { Icons::GlyphFloatBox, "#X floatatom 0 0 5 0 0 0 - - - 0", "(@keypress) Float box", "Float", NewFloatAtom },
+                { Icons::GlyphSymbolBox, "#X symbolatom 0 0 10 0 0 0 - - - 0", "Symbol box", "Symbol", NewSymbolAtom },
+                { Icons::GlyphComment, "#X text 0 0 comment", "(@keypress) Comment", "Comment", NewComment },
+                { Icons::GlyphArray, "#N canvas 0 0 450 250 (subpatch) 0;\n#X array @arrName 100 float 2;\n#X coords 0 1 100 -1 200 140 1;\n#X restore 0 0 graph;", "(@keypress) Array", "Array", NewArray },
+                { Icons::GlyphGOP, "#N canvas 0 0 450 250 (subpatch) 1;\n#X coords 0 1 100 -1 200 140 1 0 0;\n#X restore 0 0 graph;", "(@keypress) Graph on parent", "Graph", NewGraphOnParent },
+            } },
+        { "UI",
+            {
+                // GUI object default settings are in OjbectManager.h
+                { Icons::GlyphBang, "bng", "(@keypress) Bang", "Bang", NewBang },
+                { Icons::GlyphToggle, "tgl", "(@keypress) Toggle", "Toggle", NewToggle },
+                { Icons::GlyphVSlider, "vsl", "(@keypress) Vertical slider", "V. Slider", NewVerticalSlider },
+                { Icons::GlyphHSlider, "hsl", "(@keypress) Horizontal slider", "H. Slider", NewHorizontalSlider },
+                { Icons::GlyphVRadio, "vradio", "(@keypress) Vertical radio box", "V. Radio", NewVerticalRadio },
+                { Icons::GlyphHRadio, "hradio", "(@keypress) Horizontal radio box", "H. Radio", NewHorizontalRadio },
+                { Icons::GlyphNumber, "nbx", "(@keypress) Number box", "Number", NewNumbox },
+                { Icons::GlyphCanvas, "cnv", "(@keypress) Canvas", "Canvas", NewCanvas },
+            } },
+        { "General",
+            {
+                { Icons::GlyphMetro, "#X obj 0 0 metro 1 120 permin", "Metro", "Metro", OtherObject },
+                { Icons::GlyphTrigger, "#X obj 0 0 trigger", "Trigger", "Trigger", OtherObject },
+                { Icons::GlyphMoses, "#X obj 0 0 moses", "Moses", "Moses", OtherObject },
+                { Icons::GlyphSpigot, "#X obj 0 0 spigot", "Spigot", "Spigot", OtherObject },
+                { Icons::GlyphSelect, "#X obj 0 0 select", "Select", "Select", OtherObject },
+                { Icons::GlyphRoute, "#X obj 0 0 route", "Route", "Route", OtherObject },
+                { Icons::GlyphLoadbang, "#X obj 0 0 loadbang", "Loadbang", "Loadbang", OtherObject },
+                { Icons::GlyphPack, "#X obj 0 0 pack", "Pack", "Pack", OtherObject },
+                { Icons::GlyphUnpack, "#X obj 0 0 unpack", "Unpack", "Unpack", OtherObject },
+                { Icons::GlyphPrint, "#X obj 0 0 print", "Print", "Print", OtherObject },
+                { Icons::GlyphTimer, "#X obj 0 0 timer", "Timer", "Timer", OtherObject },
+                { Icons::GlyphDelay, "#X obj 0 0 delay 1 60 permin", "Delay", "Delay", OtherObject },
+            } },
+        { "MIDI",
+            {
+                { Icons::GlyphMidiIn, "#X obj 0 0 midiin", "MIDI in", "MIDI in", OtherObject },
+                { Icons::GlyphMidiOut, "#X obj 0 0 midiout", "MIDI out", "MIDI out", OtherObject },
+                { Icons::GlyphNoteIn, "#X obj 0 0 notein", "Note in", "Note in", OtherObject },
+                { Icons::GlyphNoteOut, "#X obj 0 0 noteout", "Note out", "Note out", OtherObject },
+                { Icons::GlyphCtlIn, "#X obj 0 0 ctlin", "Control in", "Ctl in", OtherObject },
+                { Icons::GlyphCtlOut, "#X obj 0 0 ctlout", "Control out", "Ctl out", OtherObject },
+                { Icons::GlyphPgmIn, "#X obj 0 0 pgmin", "Program in", "Pgm in", OtherObject },
+                { Icons::GlyphPgmOut, "#X obj 0 0 pgmout", "Program out", "Pgm out", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 touchin", "Touch in", "Tch in", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 touchout", "Touch out", "Tch in", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 polytouchin", "Poly Touch in", "Ptch in", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 polytouchout", "Poly Touch in", "Ptch out", OtherObject },
+                { Icons::GlyphMtof, "#X obj 0 0 mtof", "MIDI to frequency", "mtof", OtherObject },
+                { Icons::GlyphFtom, "#X obj 0 0 ftom", "Frequency to MIDI", "ftom", OtherObject },
+            } },
+        { "IO",
+            {
+                { Icons::GlyphAdc, "#X obj 0 0 adc~", "Adc", "Adc", OtherObject },
+                { Icons::GlyphDac, "#X obj 0 0 dac~", "Dac", "Dac", OtherObject },
+                { Icons::GlyphSend, "#X obj 0 0 s", "Send", "Send", OtherObject },
+                { Icons::GlyphReceive, "#X obj 0 0 r", "Receive", "Receive", OtherObject },
+                { Icons::GlyphSignalSend, "#X obj 0 0 s~", "Send~", "Send~", OtherObject },
+                { Icons::GlyphSignalReceive, "#X obj 0 0 r~", "Receive~", "Receive~", OtherObject },
+            } },
+        { "Osc~",
+            {
+                { Icons::GlyphPhasor, "#X obj 0 0 phasor~", "Phasor", "Phasor", OtherObject },
+                { Icons::GlyphOsc, "#X obj 0 0 osc~ 440", "Osc", "Osc", OtherObject },
+                { Icons::GlyphOscBL, "#X obj 0 0 hv.osc~ sine", "Sine band limited", "Hv Sine", OtherObject },
+                { Icons::GlyphSquareBL, "#X obj 0 0 hv.osc~ square", "Square band limited", "Hv Square", OtherObject },
+                { Icons::GlyphSawBL, "#X obj 0 0 hv.osc~ saw", "Saw band limited", "Hv Saw", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 hv.pinknoise~", "Pink Noise", "Pink Noise", OtherObject },
+                { Icons::GlyphOsc, "#X obj 0 0 hv.lfo sine", "Sine LFO", "Sine LFO", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 hv.lfo ramp", "Ramp LFO", "Ramp LFO", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 hv.lfo saw", "Saw LFO", "Saw LFO", OtherObject },
+                { Icons::GlyphTriangle, "#X obj 0 0 hv.lfo triangle", "Triangle LFO", "Tri LFO", OtherObject },
+                { Icons::GlyphSquare, "#X obj 0 0 hv.lfo square", "Square LFO", "Sq LFO", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 hv.lfo pulse", "Pulse LFO", "Pulse LFO", OtherObject },
+            } },
+        { "FX~",
+            {
+                { Icons::GlyphGeneric, "#X obj 0 0 hv.compressor~", "Compressor", "Compress", OtherObject },
+                { Icons::GlyphFlanger, "#X obj 0 0 hv.flanger~", "Flanger", "Flanger", OtherObject },
+                { Icons::GlyphCombRev, "#X obj 0 0 hv.comb~", "Comb filter", "Comb. Filt", OtherObject },
+                { Icons::GlyphReverb, "#X obj 0 0 hv.reverb~", "Reverb", "Reverb", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 hv.filter~ lowpass", "Lowpass Filter", "Lp Filter", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 hv.filter~ bandpass1", "Bandpass Filter", "Bp Filter", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 hv.filter~ highpass", "Highpass Filter", "Hp Filter", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 hv.filter~ allpass", "Allpass Filter", "Ap Filter", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 hv.freqshift~", "Frequency Shifter", "Freq Shift", OtherObject },
+            } },
+        { "Math",
+            {
+                { Icons::GlyphGeneric, "", "Add", "+", OtherObject },
+                { Icons::GlyphGeneric, "", "Subtract", "-", OtherObject },
+                { Icons::GlyphGeneric, "", "Multiply", "*", OtherObject },
+                { Icons::GlyphGeneric, "", "Divide", "/", OtherObject },
+                { Icons::GlyphGeneric, "", "Remainder", "%", OtherObject },
+                { Icons::GlyphGeneric, "", "Greater than", ">", OtherObject },
+                { Icons::GlyphGeneric, "", "Less than", "<", OtherObject },
+                { Icons::GlyphGeneric, "", "Greater or equal", ">=", OtherObject },
+                { Icons::GlyphGeneric, "", "Less or equal", "<=", OtherObject },
+                { Icons::GlyphGeneric, "", "Equality", "==", OtherObject },
+                { Icons::GlyphGeneric, "", "Not equal", "!=", OtherObject },
+                { Icons::GlyphGeneric, "", "Minimum", "min", OtherObject },
+                { Icons::GlyphGeneric, "", "Maximum", "max", OtherObject },
+            } },
+        { "Math~",
+            {
+                { Icons::GlyphGenericSignal, "", "(signal) Add", "+~", OtherObject },
+                { Icons::GlyphGenericSignal, "", "(signal) Subtract", "-~", OtherObject },
+                { Icons::GlyphGenericSignal, "", "(signal) Multiply", "*~", OtherObject },
+                { Icons::GlyphGenericSignal, "", "(signal) Divide", "/~", OtherObject },
+                { Icons::GlyphGenericSignal, "#X obj 0 0 hv.gt~", "(signal) Greater than", ">~", OtherObject },
+                { Icons::GlyphGenericSignal, "#X obj 0 0 hv.lt~", "(signal) Less than", "<~", OtherObject },
+                { Icons::GlyphGenericSignal, "#X obj 0 0 hv.gte~", "(signal) Greater or equal", ">=~", OtherObject },
+                { Icons::GlyphGenericSignal, "#X obj 0 0 hv.lte~", "(signal) Less or equal", "<=~", OtherObject },
+                { Icons::GlyphGenericSignal, "#X obj 0 0 hv.eq~", "(signal) Equality", "==~", OtherObject },
+                { Icons::GlyphGenericSignal, "#X obj 0 0 hv.neq~", "(signal) Not equal", "!=~", OtherObject },
+                { Icons::GlyphGenericSignal, "", "(signal) Minimum", "min~", OtherObject },
+                { Icons::GlyphGenericSignal, "", "(signal) Maximum", "max~", OtherObject },
+            } },
+    };
+
 private:
     PluginEditor* editor;
     std::function<void(bool)> dismissMenu;
@@ -359,9 +493,15 @@ public:
         : list(e, dismissCalloutBox)
     {
         addAndMakeVisible(list);
-        list.showCategory("UI");
 
-        for (auto const& [categoryName, category] : ObjectList::objectList) {
+        auto objectsToShow = getValue<bool>(SettingsFile::getInstance()->getPropertyAsValue("hvcc_mode")) ? ObjectList::heavyObjectList : ObjectList::defaultObjectList;
+
+        // make the 2nd category active (which will be after the default category if it exists)
+        if (objectsToShow.size() > 1) {
+            // this should always be populated, but just incase we are testing a new blank object list etc
+            list.showCategory(objectsToShow[1].first);
+        }
+        for (auto const& [categoryName, category] : objectsToShow) {
             if (categoryName == "Default")
                 continue;
 
@@ -381,9 +521,11 @@ public:
             addAndMakeVisible(button);
         }
 
-        categories.getFirst()->setConnectedEdges(Button::ConnectedOnRight);
-        categories.getFirst()->setToggleState(true, dontSendNotification);
-        categories.getLast()->setConnectedEdges(Button::ConnectedOnLeft);
+        if (categories.size() > 0) {
+            categories.getFirst()->setConnectedEdges(Button::ConnectedOnRight);
+            categories.getFirst()->setToggleState(true, dontSendNotification);
+            categories.getLast()->setConnectedEdges(Button::ConnectedOnLeft);
+        }
         resized();
     }
 
@@ -406,8 +548,8 @@ private:
 };
 
 class AddObjectMenuButton : public Component {
-    const String icon;
-    const String text;
+    String const icon;
+    String const text;
 
 public:
     bool toggleState = false;

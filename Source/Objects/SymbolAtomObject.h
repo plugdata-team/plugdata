@@ -18,7 +18,7 @@ class SymbolAtomObject final : public ObjectBase
     Label input;
 
 public:
-    SymbolAtomObject(t_gobj* obj, Object* parent)
+    SymbolAtomObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
         , atomHelper(obj, parent, this)
     {
@@ -207,25 +207,14 @@ public:
         return false;
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("set"),
-            hash("symbol"),
-            hash("list"),
-            hash("send"),
-            hash("receive")
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
 
         case hash("set"):
         case hash("list"):
         case hash("symbol"): {
-            input.setText(atoms[0].getSymbol(), dontSendNotification);
+            input.setText(atoms[0].toString(), dontSendNotification);
             break;
         }
         case hash("float"): {
@@ -233,13 +222,13 @@ public:
             break;
         }
         case hash("send"): {
-            if (atoms.size() >= 1)
-                setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].getSymbol());
+            if (numAtoms >= 1)
+                setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].toString());
             break;
         }
         case hash("receive"): {
-            if (atoms.size() >= 1) {
-                setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].getSymbol());
+            if (numAtoms >= 1) {
+                setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].toString());
             }
             break;
         }

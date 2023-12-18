@@ -6,7 +6,8 @@
 
 #pragma once
 
-#include <JuceHeader.h>
+#include <juce_gui_basics/juce_gui_basics.h>
+#include "Utility/Config.h"
 #include "Pd/Instance.h"
 
 class ImageWithOffset {
@@ -27,7 +28,7 @@ public:
 
     static OfflineObjectRenderer* findParentOfflineObjectRendererFor(Component* childComponent);
 
-    ImageWithOffset patchToMaskedImage(String const& patch, float scale);
+    ImageWithOffset patchToMaskedImage(String const& patch, float scale, bool makeInvalidImage = false);
 
     bool checkIfPatchIsValid(String const& patch);
 

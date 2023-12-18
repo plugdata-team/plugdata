@@ -10,7 +10,7 @@
 #include "Utility/Fonts.h"
 #include "Constants.h"
 
-inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDataColourNames = {
+inline std::map<PlugDataColour, std::tuple<String, String, String>> const PlugDataColourNames = {
 
     { toolbarBackgroundColourId, { "Toolbar background", "toolbar_background", "Toolbar" } },
     { toolbarTextColourId, { "Toolbar text", "toolbar_text", "Toolbar" } },
@@ -81,7 +81,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     void fillResizableWindowBackground(Graphics& g, int w, int h, BorderSize<int> const& border, ResizableWindow& window) override;
 
-    void drawResizableWindowBorder(Graphics&, int w, int h, BorderSize<int> const& border, ResizableWindow&) override {}
+    void drawResizableWindowBorder(Graphics&, int w, int h, BorderSize<int> const& border, ResizableWindow&) override { }
 
     void drawTextButtonBackground(Graphics& g, Button& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown);
 
@@ -95,7 +95,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     Font getTextButtonFont(TextButton& but, int buttonHeight) override;
 
-    void drawLinearSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider) override;
+    void drawLinearSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, Slider::SliderStyle const style, Slider& slider) override;
 
     Button* createDocumentWindowButton(int buttonType) override;
 
@@ -118,14 +118,14 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     void drawTabButtonText(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override;
 
-    void drawTabAreaBehindFrontButton(TabbedButtonBar& bar, Graphics& g, int const w, int const h) override {}
+    void drawTabAreaBehindFrontButton(TabbedButtonBar& bar, Graphics& g, int const w, int const h) override { }
 
     Button* createTabBarExtrasButton() override;
 
     Font getTabButtonFont(TabBarButton&, float height) override;
 
     void drawScrollbar(Graphics& g, ScrollBar& scrollbar, int x, int y, int width, int height,
-                       bool isScrollbarVertical, int thumbStartPosition, int thumbSize, bool isMouseOver, [[maybe_unused]] bool isMouseDown) override;
+        bool isScrollbarVertical, int thumbStartPosition, int thumbSize, bool isMouseOver, [[maybe_unused]] bool isMouseDown) override;
 
     void getIdealPopupMenuItemSize(String const& text, bool const isSeparator, int standardMenuItemHeight, int& idealWidth, int& idealHeight) override;
 
@@ -147,12 +147,12 @@ struct PlugDataLook : public LookAndFeel_V4 {
     void drawTreeviewPlusMinusBox(Graphics& g, Rectangle<float> const& area, Colour, bool isOpen, bool isMouseOver) override;
 
     void drawComboBox(Graphics& g, int width, int height, bool, int, int, int, int, ComboBox& object) override;
-    
-    Font getComboBoxFont (ComboBox&) override;
-    
+
+    Font getComboBoxFont(ComboBox&) override;
+
     PopupMenu::Options getOptionsForComboBoxPopupMenu(ComboBox& box, Label& label) override;
-    
-    void drawResizableFrame(Graphics& g, int w, int h, BorderSize<int> const& border) override {}
+
+    void drawResizableFrame(Graphics& g, int w, int h, BorderSize<int> const& border) override { }
 
     void drawGUIObjectSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, Slider& slider);
 
@@ -161,8 +161,11 @@ struct PlugDataLook : public LookAndFeel_V4 {
     void drawTextEditorOutline(Graphics& g, int width, int height, TextEditor& textEditor) override;
 
     void drawCornerResizer(Graphics& g, int w, int h, bool isMouseOver, bool isMouseDragging) override;
+
+    void drawLasso(Graphics& g, Component& lassoComp) override;
     
-    void drawLasso (Graphics& g, Component& lassoComp) override;
+    void drawAlertBox (Graphics& g, AlertWindow& alert,
+                       const Rectangle<int>& textArea, TextLayout& textLayout) override;
 
     void drawTooltip(Graphics& g, String const& text, int width, int height) override;
 
@@ -186,12 +189,12 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     static void setDefaultFont(String fontName);
 
-    static const String defaultThemesXml;
+    static String const defaultThemesXml;
 
     static void resetColours(ValueTree themesTree);
 
     static Colour getThemeColour(ValueTree themeTree, PlugDataColour colourId);
-    
+
     void setTheme(ValueTree themeTree);
 
     static StringArray getAllThemes();

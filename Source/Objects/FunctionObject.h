@@ -20,7 +20,7 @@ class FunctionObject final : public ObjectBase {
     Array<Point<float>> points;
 
 public:
-    FunctionObject(t_gobj* ptr, Object* object)
+    FunctionObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
     {
         objectParameters.addParamSize(&sizeProperty);
@@ -386,11 +386,11 @@ public:
             } else if (v.refersToSameSourceAs(sendSymbol)) {
                 auto symbol = sendSymbol.toString();
                 if (auto obj = ptr.get<void>())
-                    pd->sendDirectMessage(obj.get(), "send", { symbol });
+                    pd->sendDirectMessage(obj.get(), "send", { pd->generateSymbol(symbol) });
             } else if (v.refersToSameSourceAs(receiveSymbol)) {
                 auto symbol = receiveSymbol.toString();
                 if (auto obj = ptr.get<void>())
-                    pd->sendDirectMessage(obj.get(), "receive", { symbol });
+                    pd->sendDirectMessage(obj.get(), "receive", { pd->generateSymbol(symbol) });
 
             } else if (v.refersToSameSourceAs(range)) {
                 setRange(getRange());
@@ -406,32 +406,17 @@ public:
         return { hex[0], hex[1], hex[2] };
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("send"),
-            hash("receive"),
-            hash("list"),
-            hash("min"),
-            hash("max"),
-            hash("fgcolor"),
-            hash("bgcolor"),
-            hash("init"),
-            hash("set"),
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("send"): {
-            if (!atoms.empty())
-                setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
+            if (numAtoms > 0)
+                setParameterExcludingListener(sendSymbol, atoms[0].toString());
             break;
         }
         case hash("receive"): {
-            if (!atoms.empty())
-                setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+            if (numAtoms > 0)
+                setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             break;
         }
         case hash("list"): {

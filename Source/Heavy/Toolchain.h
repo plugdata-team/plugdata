@@ -10,9 +10,9 @@
 
 struct Toolchain {
 #if JUCE_WINDOWS
-    static inline const File dir = ProjectInfo::appDataDir.getChildFile("Toolchain").getChildFile("usr");
+    static inline File const dir = ProjectInfo::appDataDir.getChildFile("Toolchain").getChildFile("usr");
 #else
-    static inline const File dir = ProjectInfo::appDataDir.getChildFile("Toolchain");
+    static inline File const dir = ProjectInfo::appDataDir.getChildFile("Toolchain");
 #endif
 
     static void deleteTempFileLater(File script)
@@ -61,7 +61,7 @@ struct Toolchain {
 #endif
     }
 
-    const String startShellScriptWithOutput(String scriptText)
+    String const startShellScriptWithOutput(String scriptText)
     {
         File scriptFile = File::createTempFile(".sh");
         Toolchain::deleteTempFileLater(scriptFile);
@@ -109,7 +109,6 @@ public:
             try {
                 auto compatTable = JSON::parse(URL("https://raw.githubusercontent.com/plugdata-team/plugdata-heavy-toolchain/main/COMPATIBILITY").readEntireTextStream());
                 // Get latest version
-
                 latestVersion = compatTable.getDynamicObject()->getProperty(String(ProjectInfo::versionString).upToFirstOccurrenceOf("-", false, false)).toString();
                 if (latestVersion.isEmpty())
                     throw;

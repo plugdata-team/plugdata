@@ -1,7 +1,6 @@
 #pragma once
 
-#include <JuceHeader.h>
-
+#include <juce_gui_basics/juce_gui_basics.h>
 #include "LookAndFeel.h"
 #include "Pd/Instance.h"
 #include "Components/ObjectDragAndDrop.h"
@@ -24,6 +23,8 @@ public:
     void mouseExit(MouseEvent const& e) override;
 
     String getObjectString() override;
+
+    String getPatchStringName() override;
 
     bool hitTest(int x, int y) override;
 

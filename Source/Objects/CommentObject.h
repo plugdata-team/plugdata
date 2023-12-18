@@ -11,17 +11,23 @@ class CommentObject final : public ObjectBase
     bool locked;
 
     Value sizeProperty = SynchronousValue();
+        
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
     String objectText;
     int numLines = 1;
 
 public:
-    CommentObject(t_gobj* obj, Object* object)
+    CommentObject(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
     {
         objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
         locked = getValue<bool>(object->locked);
+    }
+
+    bool isTransparent() override
+    {
+        return true;
     }
 
     void update() override
@@ -47,7 +53,7 @@ public:
     void paintOverChildren(Graphics& g) override
     {
         auto selected = object->isSelected();
-        if (object->locked == var(false) && (object->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
+        if (!locked && (object->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
             g.setColour(object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId));
 
             g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
@@ -201,10 +207,10 @@ public:
         return false;
     }
 
-    // Override to cancel default behaviour
     void lock(bool isLocked) override
     {
         locked = isLocked;
+        repaint();
     }
 
     bool canReceiveMouseEvent(int, int) override

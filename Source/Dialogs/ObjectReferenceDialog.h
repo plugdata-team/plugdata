@@ -5,7 +5,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include <JuceHeader.h>
+#include <juce_gui_basics/juce_gui_basics.h>
 #include "LookAndFeel.h"
 #include "PluginEditor.h"
 #include "PluginProcessor.h"
@@ -77,7 +77,7 @@ class ObjectInfoPanel : public Component {
             setSize(width, totalHeight);
         }
 
-        const String categoryName;
+        String const categoryName;
         Array<std::pair<String, String>> const panelContent;
         Array<TextLayout> layouts;
     };

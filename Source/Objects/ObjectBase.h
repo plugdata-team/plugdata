@@ -63,7 +63,7 @@ class ObjectBase : public Component
     };
 
 public:
-    ObjectBase(t_gobj* obj, Object* parent);
+    ObjectBase(pd::WeakReference obj, Object* parent);
 
     ~ObjectBase() override;
 
@@ -77,22 +77,19 @@ public:
     virtual void showEditor() { }
     virtual void hideEditor() { }
 
+    virtual bool isTransparent() { return false; };
+
     bool hitTest(int x, int y) override;
 
     // Some objects need to show/hide iolets when send/receive symbols are set
     virtual bool hideInlets() { return false; }
     virtual bool hideOutlets() { return false; }
 
-    virtual std::vector<hash32> getAllMessages() { return {}; }
-
     // Gets position from pd and applies it to Object
     virtual Rectangle<int> getPdBounds() = 0;
 
     // Gets position from pd and applies it to Object
-    virtual Rectangle<int> getSelectableBounds()
-    {
-        return getPdBounds();
-    }
+    virtual Rectangle<int> getSelectableBounds();
 
     // Push current object bounds into pd
     virtual void setPdBounds(Rectangle<int> newBounds) = 0;
@@ -130,7 +127,7 @@ public:
     virtual bool canReceiveMouseEvent(int x, int y);
 
     // Called whenever the object receives a pd message
-    virtual void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) { }
+    virtual void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) {};
 
     // Close any tabs with opened subpatchers
     void closeOpenedSubpatchers();
@@ -139,9 +136,9 @@ public:
     // Attempt to send "click" message to object. Returns false if the object has no such method
     bool click(Point<int> position, bool shift, bool alt);
 
-    void receiveMessage(String const& symbol, int argc, t_atom* argv) override;
+    void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms) override;
 
-    static ObjectBase* createGui(t_gobj* ptr, Object* parent);
+    static ObjectBase* createGui(pd::WeakReference ptr, Object* parent);
 
     // Override this to return parameters that will be shown in the inspector
     virtual ObjectParameters getParameters();
@@ -173,6 +170,7 @@ public:
 protected:
     // Set parameter without triggering valueChanged
     void setParameterExcludingListener(Value& parameter, var const& value);
+    void setParameterExcludingListener(Value& parameter, var const& value, Value::Listener* otherListener);
 
     // Call when you start/stop editing a gui object
     void startEdition();

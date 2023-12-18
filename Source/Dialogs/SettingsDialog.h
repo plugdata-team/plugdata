@@ -92,7 +92,7 @@ public:
 
         panels.add(new ThemePanel(processor));
         panels.add(new PathsAndLibrariesPanel());
-        panels.add(new KeyMappingComponent(*editor->getKeyMappings()));
+        panels.add(new KeyMappingComponent(*editor->commandManager.getKeyMappings()));
         panels.add(new AdvancedSettingsPanel(editor));
 
         Array<PropertiesPanel*> propertiesPanels;

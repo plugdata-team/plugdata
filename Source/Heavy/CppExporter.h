@@ -10,7 +10,7 @@ public:
         : ExporterBase(editor, exportingView)
     {
     }
-    
+
     ValueTree getState() override
     {
         ValueTree stateTree("CPP");
@@ -19,7 +19,7 @@ public:
         stateTree.setProperty("projectCopyrightValue", getValue<String>(projectCopyrightValue), nullptr);
         return stateTree;
     }
-    
+
     void setState(ValueTree& stateTree) override
     {
         auto tree = stateTree.getChildWithName("CPP");

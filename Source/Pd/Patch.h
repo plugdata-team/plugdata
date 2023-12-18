@@ -25,7 +25,7 @@ class Patch : public ReferenceCountedObject {
 public:
     using Ptr = ReferenceCountedObjectPtr<Patch>;
 
-    Patch(t_canvas* ptr, Instance* instance, bool ownsPatch, File currentFile = File());
+    Patch(pd::WeakReference ptr, Instance* instance, bool ownsPatch, File currentFile = File());
 
     ~Patch();
 
@@ -77,6 +77,8 @@ public:
     void setCurrent();
 
     bool isDirty() const;
+    bool canUndo() const;
+    bool canRedo() const;
 
     void savePatch(File const& location);
     void savePatch();
@@ -85,6 +87,8 @@ public:
     File getPatchFile() const;
 
     void setCurrentFile(File newFile);
+
+    void updateUndoRedoState();
 
     bool objectWasDeleted(t_gobj* ptr) const;
     bool connectionWasDeleted(t_outconnect* ptr) const;
@@ -104,7 +108,7 @@ public:
     }
 
     // Gets the objects of the patch.
-    std::vector<t_gobj*> getObjects();
+    std::vector<pd::WeakReference> getObjects();
 
     String getCanvasContent();
 
@@ -118,9 +122,18 @@ public:
     bool openInPluginMode = false;
     int splitViewIndex = 0;
 
+    String lastUndoSequence;
+    String lastRedoSequence;
+
     int untitledPatchNum = 0;
 
+    void updateUndoRedoString();
+
 private:
+    std::atomic<bool> canPatchUndo;
+    std::atomic<bool> canPatchRedo;
+    std::atomic<bool> isPatchDirty;
+    
     File currentFile;
 
     WeakReference ptr;
@@ -128,6 +141,8 @@ private:
     friend class Instance;
     friend class Gui;
     friend class Object;
+
+    int undoQueueSize = 0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Patch)
 };

@@ -45,7 +45,7 @@ public:
         }
         audioBufferMutex.unlock();
 
-        writeTime.store(Time::getMillisecondCounterHiRes());
+        writeTime.store(Time::getMillisecondCounter());
         oldWritePosition.store(writePosition);
         writePosition = (writePosition + samples.getNumSamples()) % buffer.getNumSamples();
         useNewPosition = true;
@@ -55,7 +55,7 @@ public:
     {
         if (sampleRate == 0)
             return { 0.0f, 0.0f };
-        auto currentTime = Time::getMillisecondCounterHiRes();
+        auto currentTime = Time::getMillisecondCounter();
 
         if (useNewPosition) {
             readTime = writeTime.load();

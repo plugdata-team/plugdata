@@ -25,7 +25,8 @@
 
 #pragma once
 
-#include <JuceHeader.h>
+#include <juce_gui_basics/juce_gui_basics.h>
+#include "Utility/Config.h"
 
 //==============================================================================
 /**
@@ -94,6 +95,7 @@ public:
     void startDragging(var const& sourceDescription,
         Component* sourceComponent,
         ScaledImage const& dragImage = ScaledImage(),
+        ScaledImage const& dragInvalidImage = ScaledImage(),
         bool allowDraggingToOtherJuceWindows = false,
         Point<int> const* imageOffsetFromMouse = nullptr,
         MouseInputSource const* inputSourceCausingDrag = nullptr,
@@ -102,6 +104,7 @@ public:
     [[deprecated("This overload does not allow the image's scale to be specified. Use the other overload of startDragging instead.")]] void startDragging(var const& sourceDescription,
         Component* sourceComponent,
         Image dragImage,
+        Image dragInvalidImage,
         bool allowDraggingToOtherJuceWindows = false,
         Point<int> const* imageOffsetFromMouse = nullptr,
         MouseInputSource const* inputSourceCausingDrag = nullptr,
@@ -110,6 +113,7 @@ public:
         startDragging(sourceDescription,
             sourceComponent,
             ScaledImage(dragImage),
+            ScaledImage(dragInvalidImage),
             allowDraggingToOtherJuceWindows,
             imageOffsetFromMouse,
             inputSourceCausingDrag,

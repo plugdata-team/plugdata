@@ -19,7 +19,7 @@ class PictureObject final : public ObjectBase {
     Image img;
 
 public:
-    PictureObject(t_gobj* ptr, Object* object)
+    PictureObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
     {
         if (auto pic = this->ptr.get<t_fake_pic>()) {
@@ -42,6 +42,11 @@ public:
         objectParameters.addParamBool("Report Size", cAppearance, &reportSize, { "No", "Yes" }, 0);
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
         objectParameters.addParamSendSymbol(&sendSymbol);
+    }
+    
+    bool isTransparent() override
+    {
+        return true;
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -93,19 +98,10 @@ public:
         repaint();
     }
 
-    std::vector<hash32> getAllMessages() override
-    {
-        return {
-            hash("latch"),
-            hash("outline"),
-            hash("open"),
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
 
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("latch"): {
             if (auto pic = ptr.get<t_fake_pic>())
                 latch = pic->x_latch;
@@ -117,8 +113,8 @@ public:
             break;
         }
         case hash("open"): {
-            if (atoms.size() >= 1)
-                openFile(atoms[0].getSymbol());
+            if (numAtoms >= 1)
+                openFile(atoms[0].toString());
             break;
         }
         }
@@ -171,11 +167,11 @@ public:
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             auto symbol = sendSymbol.toString();
             if (auto pic = ptr.get<t_pd>())
-                pd->sendDirectMessage(pic.get(), "send", { symbol });
+                pd->sendDirectMessage(pic.get(), "send", { pd->generateSymbol(symbol) });
         } else if (value.refersToSameSourceAs(receiveSymbol)) {
             auto symbol = receiveSymbol.toString();
             if (auto pic = ptr.get<t_pd>())
-                pd->sendDirectMessage(pic.get(), "receive", { symbol });
+                pd->sendDirectMessage(pic.get(), "receive", { pd->generateSymbol(symbol) });
         }
     }
 

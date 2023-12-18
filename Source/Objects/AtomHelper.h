@@ -39,12 +39,12 @@ public:
 
     ObjectParameters objectParameters;
 
-    AtomHelper(t_gobj* pointer, Object* parent, ObjectBase* base)
+    AtomHelper(pd::WeakReference pointer, Object* parent, ObjectBase* base)
         : object(parent)
         , gui(base)
         , cnv(parent->cnv)
         , pd(parent->cnv->pd)
-        , ptr(pointer, parent->cnv->pd)
+        , ptr(pointer)
     {
         objectParameters.addParamCombo("Font height", cDimensions, &fontSize, { "auto", "8", "10", "12", "16", "24", "36" });
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
@@ -274,7 +274,7 @@ public:
         setFontHeight(atomSizes[idx - 1]);
 
         int fontHeight = getAtomHeight() - 6;
-        const String text = getExpandedLabelText();
+        String const text = getExpandedLabelText();
 
         if (text.isNotEmpty()) {
             if (!label) {
@@ -426,7 +426,7 @@ public:
     void setSendSymbol(String const& symbol) const
     {
         if (auto atom = ptr.get<t_fake_gatom>()) {
-            
+
             atom->a_symto = pd->generateSymbol(symbol);
             atom->a_expanded_to = canvas_realizedollar(atom->a_glist, atom->a_symto);
         }

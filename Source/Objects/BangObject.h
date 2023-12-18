@@ -17,7 +17,7 @@ class BangObject final : public ObjectBase {
     IEMHelper iemHelper;
 
 public:
-    BangObject(t_gobj* obj, Object* parent)
+    BangObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
         , iemHelper(obj, parent, this)
     {
@@ -92,10 +92,11 @@ public:
         if (!e.mods.isLeftButtonDown())
             return;
 
-        startEdition();
-        if (auto bng = ptr.get<t_pd>())
-            pd_bang(bng.get());
-        stopEdition();
+        //startEdition();
+        pd->enqueueFunctionAsync<t_pd>(ptr, [](t_pd* bng){
+            pd_bang(bng);
+        });
+        //stopEdition();
 
         // Make sure we don't re-click with an accidental drag
         alreadyBanged = true;
@@ -195,33 +196,27 @@ public:
         }
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("anything")
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("float"):
         case hash("bang"):
         case hash("list"):
             trigger();
             break;
         case hash("flashtime"): {
-            if (!atoms.empty())
+            if (numAtoms > 0)
                 setParameterExcludingListener(bangInterrupt, atoms[0].getFloat());
-            if (atoms.size() > 1)
+            if (numAtoms > 1)
                 setParameterExcludingListener(bangHold, atoms[1].getFloat());
             break;
         }
         case hash("pos"):
         case hash("size"):
-                break;
+        case hash("loadbang"):
+            break;
         default: {
-            bool wasIemMessage = iemHelper.receiveObjectMessage(symbol, atoms);
+            bool wasIemMessage = iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
             if (!wasIemMessage) {
                 trigger();
             }

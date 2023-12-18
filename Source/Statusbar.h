@@ -35,7 +35,7 @@ public:
 
     StatusbarSource();
 
-    void processBlock(MidiBuffer& midiIn, MidiBuffer& midiOut, int outChannels);
+    void process(bool hasMidiInput, bool hasMidiOutput, int outChannels);
 
     void setSampleRate(double sampleRate);
 
@@ -100,7 +100,7 @@ public:
 
     SmallIconButton snapEnableButton, snapSettingsButton;
 
-    SmallIconButton alignmentButton;
+    SmallIconButton alignmentButton, debugButton;
 
     std::unique_ptr<OversampleSelector> oversampleSelector;
 

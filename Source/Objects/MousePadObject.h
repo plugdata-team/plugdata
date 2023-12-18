@@ -12,7 +12,7 @@ class MousePadObject final : public ObjectBase {
     Value sizeProperty = SynchronousValue();
 
 public:
-    MousePadObject(t_gobj* ptr, Object* object)
+    MousePadObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
         , mouseListener(this)
     {
@@ -174,16 +174,9 @@ public:
         return static_cast<bool>(topLevel->locked.getValue() || topLevel->commandLocked.getValue());
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("color"),
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("color"): {
             repaint();
             break;

@@ -47,9 +47,10 @@ set(HARDENED_RUNTIME_OPTIONS "com.apple.security.device.audio-input")
 set(JUCE_ENABLE_MODULE_SOURCE_GROUPS ON CACHE BOOL "" FORCE)
 set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
-project(plugdata VERSION 0.8.2 LANGUAGES C CXX)
+project(plugdata VERSION 0.8.3 LANGUAGES C CXX)
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
+if(("${CMAKE_SYSTEM_NAME}" MATCHES "Linux" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
+  OR ("${CMAKE_SYSTEM_NAME}" MATCHES "iOS"))
   message(STATUS "Disabled sfizz")
   set(ENABLE_SFIZZ OFF)
 endif()
@@ -84,12 +85,14 @@ message(STATUS "Packaging resources")
 execute_process(COMMAND python3 package_resources.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts)
 
 
-set(PLUGDATA_VERSION                    "0.8.2")
+set(PLUGDATA_VERSION                    "0.8.3")
 set(PLUGDATA_COMPANY_NAME               "plugdata")
 set(PLUGDATA_COMPANY_COPYRIGHT          "plugdata by Timothy Schoen")
 set(PLUGDATA_COMPANY_WEBSITE            "github.com/plugdata-team/plugdata")
 
-if(APPLE)
+if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
+set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo_ios.png")
+elseif(APPLE)
 set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo_mac.png")
 else()
 set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo.png")
@@ -189,6 +192,7 @@ set(JUCE_COMPILE_DEFINITIONS
     JUCE_SILENCE_XCODE_15_LINKER_WARNING=1
     JUCE_USE_XRENDER=1
     JUCE_ALSA=1
+    JUCE_COREGRAPHICS_RENDER_WITH_MULTIPLE_PAINT_CALLS=1
     #JUCE_JACK=1
     #JUCE_JACK_CLIENT_NAME="plugdata"
 )
@@ -235,7 +239,9 @@ list(APPEND PLUGDATA_COMPILE_DEFINITIONS JUCE_MODAL_LOOPS_PERMITTED=1)
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/ELSE/sfont~/")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/JUCE/modules")
+list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/readerwriterqueue/")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/concurrentqueue/")
+list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/BarelyML/")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Source/")
 
 add_library(plugdata_core STATIC ${plugdata_sources} ${plugdata_global_sources})
@@ -265,6 +271,7 @@ file(GLOB plugdata_standalone_sources
     ${SOURCES_DIRECTORY}/Standalone/InternalSynth.h)
 source_group("Source\\Standalone" FILES ${plugdata_standalone_sources})
 
+if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
 juce_add_gui_app(plugdata_standalone
     PRODUCT_NAME                "plugdata"
     VERSION                     ${PLUGDATA_VERSION}
@@ -277,6 +284,37 @@ juce_add_gui_app(plugdata_standalone
     DOCUMENT_EXTENSIONS          .pd
     BUNDLE_ID                    com.plugdata.plugdata
     )
+else()
+set(IOS_SCREEN_ORIENTATIONS UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight)
+juce_add_plugin(plugdata_standalone
+    VERSION                     ${PLUGDATA_VERSION}
+    COMPANY_NAME                ${PLUGDATA_COMPANY_NAME}
+    COMPANY_COPYRIGHT           ${PLUGDATA_COMPANY_COPYRIGHT}
+    COMPANY_WEBSITE             ${PLUGDATA_COMPANY_WEBSITE}
+    PLUGIN_DESCRIPTION          "A plugin that loads Pure Data patches"
+    ICON_BIG                    ${PLUGDATA_ICON_BIG}
+    LAUNCH_STORYBOARD_FILE      ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/LaunchScreen.storyboard
+    IPHONE_SCREEN_ORIENTATIONS  ${IOS_SCREEN_ORIENTATIONS}
+    STATUS_BAR_HIDDEN           TRUE
+    MICROPHONE_PERMISSION_ENABLED TRUE
+    HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
+    HARDENED_RUNTIME_OPTIONS    ${HARDENED_RUNTIME_OPTIONS}
+    IS_SYNTH                    TRUE
+    NEEDS_MIDI_INPUT            TRUE
+    NEEDS_MIDI_OUTPUT           TRUE
+    IS_MIDI_EFFECT              FALSE
+    EDITOR_WANTS_KEYBOARD_FOCUS TRUE
+    COPY_PLUGIN_AFTER_BUILD     FALSE
+    PLUGIN_MANUFACTURER_CODE    PlDt
+    PLUGIN_CODE                 PdIn
+    FORMATS                     Standalone
+    LV2URI                      https://github.com/timothyschoen/plugdata
+    PRODUCT_NAME                "plugdata"
+    BUNDLE_ID                   com.plugdata.plugdata
+    AU_MAIN_TYPE                kAudioUnitType_MusicDevice
+    VST3_CATEGORIES             Instrument
+    VST2_CATEGORY               kPlugCategSynth)
+endif()
 
 juce_add_plugin(plugdata
     VERSION                     ${PLUGDATA_VERSION}
@@ -296,9 +334,10 @@ juce_add_plugin(plugdata
     COPY_PLUGIN_AFTER_BUILD     FALSE
     PLUGIN_MANUFACTURER_CODE    PlDt
     PLUGIN_CODE                 PdIn
-    FORMATS                     AU VST3 LV2 CLAP
+    FORMATS                     AU AUv3 VST3 LV2 CLAP
     LV2URI                      https://github.com/timothyschoen/plugdata
     PRODUCT_NAME                "plugdata"
+    BUNDLE_ID                   com.plugdata.plugdata.instrument
     AU_MAIN_TYPE                kAudioUnitType_MusicDevice
     VST3_CATEGORIES             Instrument
     VST2_CATEGORY               kPlugCategSynth)
@@ -320,9 +359,10 @@ juce_add_plugin(plugdata_fx
     COPY_PLUGIN_AFTER_BUILD     FALSE
     PLUGIN_MANUFACTURER_CODE    PlDt
     PLUGIN_CODE                 PdFx
-    FORMATS                     AU VST3 LV2 CLAP
+    FORMATS                     AU AUv3 VST3 LV2 CLAP
     LV2URI                      https://github.com/timothyschoen/plugdata-fx
     PRODUCT_NAME                "plugdata-fx"
+    BUNDLE_ID                   com.plugdata.plugdata.fx
     AU_MAIN_TYPE                kAudioUnitType_MusicEffect
     VST3_CATEGORIES             Fx
     VST2_CATEGORY               kPlugCategEffect)
@@ -405,23 +445,27 @@ set_target_properties(plugdata_standalone PROPERTIES
   RESOURCE "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/pd-file.icns")
 endif()
 
-
 if(UNIX AND NOT APPLE)
-    target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd StandaloneBinaryData "-Wl,-export-dynamic")
+    target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd-src externals StandaloneBinaryData "-Wl,-export-dynamic")
+    target_link_libraries(plugdata PRIVATE plugdata_core pd-src-multi externals-multi)
+    target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-src-multi externals-multi)
 elseif(APPLE)
   if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 15.0)
     set(MACOS_COMPAT_LINKER_FLAGS "-Wl,-ld_classic")
   endif()
-  target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd StandaloneBinaryData "-framework Carbon" ${MACOS_COMPAT_LINKER_FLAGS})
-  target_link_libraries(plugdata_midi PRIVATE plugdata_core pd-multi  "-framework Carbon" ${MACOS_COMPAT_LINKER_FLAGS})
-  target_link_libraries(plugdata PRIVATE "-framework Carbon" ${MACOS_COMPAT_LINKER_FLAGS})
-  target_link_libraries(plugdata_fx PRIVATE "-framework Carbon" ${MACOS_COMPAT_LINKER_FLAGS})
-else()
- target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd StandaloneBinaryData)
-endif()
 
-target_link_libraries(plugdata PRIVATE plugdata_core pd-multi)
-target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-multi)
+  if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
+    set(LINK_CARBON "-framework Carbon")
+  endif()
+  target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd-src externals StandaloneBinaryData ${LINK_CARBON} ${MACOS_COMPAT_LINKER_FLAGS})
+  target_link_libraries(plugdata_midi PRIVATE plugdata_core pd-src-multi externals-multi ${LINK_CARBON} ${MACOS_COMPAT_LINKER_FLAGS})
+  target_link_libraries(plugdata PRIVATE plugdata_core pd-src-multi externals-multi ${LINK_CARBON} ${MACOS_COMPAT_LINKER_FLAGS})
+  target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-src-multi externals-multi ${LINK_CARBON} ${MACOS_COMPAT_LINKER_FLAGS})
+else()
+  target_link_libraries(plugdata PRIVATE plugdata_core pd-multi)
+  target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-multi)
+  target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd StandaloneBinaryData)
+endif()
 
 set_target_properties(plugdata_standalone PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
 set_target_properties(plugdata_standalone PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/Standalone)

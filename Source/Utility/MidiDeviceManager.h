@@ -80,7 +80,7 @@ public:
 
     MidiDeviceManager(MidiInputCallback* inputCallback)
     {
-#if !JUCE_WINDOWS
+#if !JUCE_WINDOWS && !JUCE_IOS
         if (auto* newOut = MidiOutput::createNewDevice("from plugdata").release()) {
             fromPlugdata.reset(newOut);
         }
@@ -351,7 +351,7 @@ public:
             for (auto* midiOutput : midiOutputs) {
                 midiOutput->sendMessageNow(message);
             }
-            if (fromPlugdata)
+            if (fromPlugdata && internalOutputEnabled)
                 fromPlugdata->sendMessageNow(message);
             return;
         }

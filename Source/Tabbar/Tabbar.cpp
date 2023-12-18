@@ -14,11 +14,12 @@
 #include "Sidebar/Sidebar.h"
 #include "TabBarButtonComponent.h"
 #include "Utility/StackShadow.h"
-
+#include "Utility/Autosave.h"
 
 class WelcomePanel : public Component {
 
     class RecentlyOpenedListBox : public Component
+        , public SettingsFileListener
         , public ListBoxModel {
     public:
         RecentlyOpenedListBox()
@@ -30,11 +31,16 @@ class WelcomePanel : public Component {
             listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
 
             addAndMakeVisible(listBox);
-            
+
             // To get a hover effect on viewport items
             listBox.setMouseMoveSelectsRows(true);
-            
+
             bouncer = std::make_unique<BouncingViewportAttachment>(listBox.getViewport());
+        }
+
+        void settingsFileReloaded() override
+        {
+            update();
         }
 
         void update()
@@ -73,8 +79,8 @@ class WelcomePanel : public Component {
 
             Fonts::drawStyledText(g, "Recently Opened", 0, 0, getWidth(), 30, findColour(PlugDataColour::panelTextColourId), Semibold, 15, Justification::centred);
         }
-            
-        void mouseExit(const MouseEvent& e) override
+
+        void mouseExit(MouseEvent const& e) override
         {
             repaint();
         }
@@ -86,7 +92,7 @@ class WelcomePanel : public Component {
 
         void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
         {
-            if(rowIsSelected && isMouseOver(true)) {
+            if (rowIsSelected && isMouseOver(true)) {
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
                 PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(5.5, 1.5, width - 9, height - 4), Corners::defaultCornerRadius);
             }
@@ -115,13 +121,14 @@ public:
 
     void resized() override
     {
-        newButton.setBounds(getLocalBounds().withSizeKeepingCentre(275, 50).translated(0, -70));
-        openButton.setBounds(getLocalBounds().withSizeKeepingCentre(275, 50).translated(0, -10));
-
         if (getHeight() > 400) {
+            newButton.setBounds(getLocalBounds().withSizeKeepingCentre(275, 50).translated(0, -70));
+            openButton.setBounds(getLocalBounds().withSizeKeepingCentre(275, 50).translated(0, -10));
             recentlyOpened.setBounds(getLocalBounds().withSizeKeepingCentre(275, 170).translated(0, 110));
             recentlyOpened.setVisible(true);
         } else {
+            newButton.setBounds(getLocalBounds().withSizeKeepingCentre(275, 50).translated(0, -20));
+            openButton.setBounds(getLocalBounds().withSizeKeepingCentre(275, 50).translated(0, 50));
             recentlyOpened.setVisible(false);
         }
     }
@@ -139,11 +146,12 @@ public:
 
     void paint(Graphics& g) override
     {
+        auto offset = getHeight() > 400 ? 0 : 50;
         g.fillAll(findColour(PlugDataColour::panelBackgroundColourId));
 
-        Fonts::drawStyledText(g, "No Patch Open", 0, getHeight() / 2 - 195, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
+        Fonts::drawStyledText(g, "Welcome to plugdata", 0, getHeight() / 2 - 195 + offset, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
 
-        Fonts::drawStyledText(g, "Open a file to begin patching", 0, getHeight() / 2 - 160, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Thin, 23, Justification::centred);
+        Fonts::drawStyledText(g, "Open a file to begin patching", 0, getHeight() / 2 - 160 + offset, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Thin, 23, Justification::centred);
     }
 
     WelcomePanelButton newButton;
@@ -151,7 +159,6 @@ public:
 
     RecentlyOpenedListBox recentlyOpened;
 };
-
 
 class ButtonBar::GhostTab : public Component {
 public:
@@ -188,7 +195,7 @@ public:
     void paint(Graphics& g) override
     {
         if (tab) {
-            StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.3f), 4);
+            StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.3f), 5);
             lnf.drawTabButton(*tab, g, true, true, true);
         }
     }
@@ -551,7 +558,7 @@ void TabComponent::onTabChange(int tabIndex)
     auto* cnv = getCurrentCanvas();
     if (!cnv || tabIndex == -1 || editor->pd->isPerformingGlobalSync)
         return;
-    
+
     editor->sidebar->tabChanged();
     cnv->grabKeyboardFocus();
 
@@ -581,6 +588,7 @@ void TabComponent::changeCallback(int newCurrentTabIndex, String const& newTabNa
             panelComponent->sendLookAndFeelChange();
             panelComponent->setVisible(true);
             panelComponent->toFront(true);
+            editor->updateCommandStatus();
         }
     }
     currentTabChanged(newCurrentTabIndex, newTabName);
@@ -588,7 +596,11 @@ void TabComponent::changeCallback(int newCurrentTabIndex, String const& newTabNa
 
 void TabComponent::openProjectFile(File& patchFile)
 {
-    editor->pd->loadPatch(patchFile, editor);
+    editor->autosave->checkForMoreRecentAutosave(patchFile, [this, patchFile]() {
+        editor->pd->loadPatch(patchFile, editor);
+        SettingsFile::getInstance()->addToRecentlyOpened(patchFile);
+        editor->pd->titleChanged();
+    });
 }
 
 void TabComponent::setTabBarDepth(int newDepth)
@@ -689,4 +701,9 @@ Canvas* TabComponent::getCurrentCanvas()
 void TabComponent::setTabText(int tabIndex, String const& newName)
 {
     dynamic_cast<TabBarButtonComponent*>(tabs->getTabButton(tabIndex))->setTabText(newName);
+}
+
+String TabComponent::getTabText(int tabIndex)
+{
+    return dynamic_cast<TabBarButtonComponent*>(tabs->getTabButton(tabIndex))->getButtonText();
 }

@@ -218,7 +218,7 @@ class KeyboardObject final : public ObjectBase
     int keyRatio = 5;
 
 public:
-    KeyboardObject(t_gobj* ptr, Object* object)
+    KeyboardObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
         , keyboard(object, state, MidiKeyboardComponent::horizontalKeyboard)
     {
@@ -377,11 +377,11 @@ public:
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             auto symbol = sendSymbol.toString();
             if (auto obj = ptr.get<void>())
-                pd->sendDirectMessage(obj.get(), "send", { symbol });
+                pd->sendDirectMessage(obj.get(), "send", { pd->generateSymbol(symbol) });
         } else if (value.refersToSameSourceAs(receiveSymbol)) {
             auto symbol = receiveSymbol.toString();
             if (auto obj = ptr.get<void>())
-                pd->sendDirectMessage(obj.get(), "receive", { symbol });
+                pd->sendDirectMessage(obj.get(), "receive", { pd->generateSymbol(symbol) });
         } else if (value.refersToSameSourceAs(toggleMode)) {
             auto toggle = getValue<int>(toggleMode);
             if (auto obj = ptr.get<void>())
@@ -405,23 +405,6 @@ public:
         }
     }
 
-    std::vector<hash32> getAllMessages() override
-    {
-        return {
-            hash("float"),
-            hash("list"),
-            hash("set"),
-            hash("on"),
-            hash("off"),
-            hash("lowc"),
-            hash("oct"),
-            hash("8ves"),
-            hash("send"),
-            hash("receive"),
-            hash("toggle")
-        };
-    }
-
     void noteOn(int midiNoteNumber, bool isOn)
     {
         if (isOn)
@@ -432,28 +415,28 @@ public:
         keyboard.repaint();
     }
 
-    void notesOn(std::vector<pd::Atom>& noteList, bool isOn)
+    void notesOn(pd::Atom const atoms[8], int numAtoms, bool isOn)
     {
-        for (auto note : noteList) {
+        for (int at = 0; at < numAtoms; at++) {
             if (isOn)
-                keyboard.heldKeys.insert(note.getFloat());
+                keyboard.heldKeys.insert(atoms[at].getFloat());
             else
-                keyboard.heldKeys.erase(note.getFloat());
+                keyboard.heldKeys.erase(atoms[at].getFloat());
         }
         keyboard.repaint();
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
         auto elseKeyboard = ptr.get<t_fake_keyboard>();
 
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("float"): {
             noteOn(atoms[0].getFloat(), elseKeyboard->x_vel_in > 0);
             break;
         }
         case hash("list"): {
-            if (atoms.size() == 2) {
+            if (numAtoms == 2) {
                 noteOn(atoms[0].getFloat(), atoms[1].getFloat() > 0);
             }
             break;
@@ -463,11 +446,11 @@ public:
             break;
         }
         case hash("on"): {
-            notesOn(atoms, true);
+            notesOn(atoms, numAtoms, true);
             break;
         }
         case hash("off"): {
-            notesOn(atoms, false);
+            notesOn(atoms, numAtoms, false);
             break;
         }
         case hash("lowc"): {
@@ -486,13 +469,13 @@ public:
             break;
         }
         case hash("send"): {
-            if (atoms.size() >= 1)
-                setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
+            if (numAtoms >= 1)
+                setParameterExcludingListener(sendSymbol, atoms[0].toString());
             break;
         }
         case hash("receive"): {
-            if (atoms.size() >= 1)
-                setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+            if (numAtoms >= 1)
+                setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             break;
         }
         case hash("toggle"): {

@@ -61,7 +61,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     patchHeight.addListener(this);
 
     suggestor = std::make_unique<SuggestionComponent>();
-    
+
     // Check if canvas belongs to a graph
     if (parentGraph) {
         setLookAndFeel(&editor->getLookAndFeel());
@@ -306,8 +306,8 @@ void Canvas::paint(Graphics& g)
 
         for (int x = startX; x < clipBounds.getRight(); x += objectGrid.gridSize) {
             // calculate the x here, once per iteration, as it won't change for y
-            const auto gridSpacing = objectGrid.gridSize * 4;
-            const auto xGridSpacing = (x - canvasOrigin.x) % gridSpacing == 0;
+            auto const gridSpacing = objectGrid.gridSize * 4;
+            auto const xGridSpacing = (x - canvasOrigin.x) % gridSpacing == 0;
 
             for (int y = startY; y < clipBounds.getBottom(); y += objectGrid.gridSize) {
 
@@ -364,12 +364,12 @@ void Canvas::paint(Graphics& g)
         extentLeft = Line<float>(pointA, pointOriginD);
     }
 
-    const auto scaleLimited = scale < 1.0f ? scale : 1.0f;
-    const auto scaleNormalised = 1.0f / scaleLimited;
-    const auto scaleMapped = jmap(scaleLimited, 0.3f, 1.0f, 0.4f, 1.0f);
-    const auto lineWidthMappedScale = 1.0f / scaleMapped;
+    auto const scaleLimited = scale < 1.0f ? scale : 1.0f;
+    auto const scaleNormalised = 1.0f / scaleLimited;
+    auto const scaleMapped = jmap(scaleLimited, 0.3f, 1.0f, 0.4f, 1.0f);
+    auto const lineWidthMappedScale = 1.0f / scaleMapped;
 
-    float dash[2] = { 5.0f * scaleNormalised, 5.0f * scaleNormalised};
+    float dash[2] = { 5.0f * scaleNormalised, 5.0f * scaleNormalised };
 
     g.setColour(findColour(PlugDataColour::canvasDotsColourId));
 
@@ -478,10 +478,9 @@ void Canvas::performSynchronise()
 
     auto pdObjects = patch.getObjects();
 
-    for (auto* object : pdObjects) {
-        auto* it = std::find_if(objects.begin(), objects.end(), [&object](Object* b) { return b->getPointer() && b->getPointer() == object; });
-
-        if (patch.objectWasDeleted(object))
+    for (auto object : pdObjects) {
+        auto* it = std::find_if(objects.begin(), objects.end(), [&object](Object* b) { return b->getPointer() && b->getPointer() == object.getRawUnchecked<void>(); });
+        if (!object.isValid())
             continue;
 
         if (it == objects.end()) {
@@ -581,6 +580,8 @@ void Canvas::performSynchronise()
 
     editor->updateCommandStatus();
     repaint();
+    
+    needsSearchUpdate = true;
 
     pd->updateObjectImplementations();
 }
@@ -654,8 +655,10 @@ void Canvas::mouseDown(MouseEvent const& e)
                 deselectAll();
             }
 
-            lasso.beginLasso(e.getEventRelativeTo(this), this);
-            isDraggingLasso = true;
+            if (!(e.source.isTouch() && e.source.getIndex() != 0) && !getValue<bool>(locked)) {
+                lasso.beginLasso(e.getEventRelativeTo(this), this);
+                isDraggingLasso = true;
+            }
         }
 
         // Update selected object in sidebar when we click a object
@@ -668,12 +671,6 @@ void Canvas::mouseDown(MouseEvent const& e)
     // Right click
     else if (!editor->pluginMode) {
         Dialogs::showCanvasRightClickMenu(this, source, e.getScreenPosition());
-    }
-    
-    if(auto* target = Object::consoleTarget)
-    {
-        Object::consoleTarget = nullptr;
-        target->repaint();
     }
 }
 
@@ -725,7 +722,9 @@ void Canvas::mouseDrag(MouseEvent const& e)
     }
 
     // Drag lasso
-    lasso.dragLasso(e);
+    if (!(e.source.isTouch() && e.source.getIndex() != 0)) {
+        lasso.dragLasso(e);
+    }
 }
 
 bool Canvas::autoscroll(MouseEvent const& e)
@@ -798,6 +797,10 @@ void Canvas::mouseUp(MouseEvent const& e)
 void Canvas::updateSidebarSelection()
 {
     auto lassoSelection = getSelectionOfType<Object>();
+
+#if JUCE_IOS
+    editor->showTouchSelectionHelper(lassoSelection.size() >= 1);
+#endif
 
     if (lassoSelection.size() >= 1) {
         Array<ObjectParameters> allParameters;
@@ -942,33 +945,43 @@ void Canvas::copySelection()
 
 void Canvas::focusGained(FocusChangeType cause)
 {
-    if(auto ptr = patch.getPointer())
-    {
+    pd->enqueueFunctionAsync([_this = SafePointer(this), this]() {
+        if (!_this)
+            return;
+        auto* glist = patch.getPointer().get();
+        if (!glist)
+            return;
+
         // canvas.active listener
         char buf[MAXPDSTRING];
-        snprintf(buf, MAXPDSTRING-1, ".x%lx.c", (unsigned long)ptr.get());
-        pd->sendMessage("#active_gui", "_focus", {pd::Atom(buf), static_cast<float>(hasKeyboardFocus(true))});
-        
+        snprintf(buf, MAXPDSTRING - 1, ".x%lx.c", (unsigned long)glist);
+        pd->sendMessage("#active_gui", "_focus", { pd::Atom(pd->generateSymbol(buf)), static_cast<float>(hasKeyboardFocus(true)) });
+
         // cyclone focus listeners
-        pd->sendMessage("#hammergui", "_focus", {pd::Atom(buf), static_cast<float>(hasKeyboardFocus(true))});
-    }
+        pd->sendMessage("#hammergui", "_focus", { pd::Atom(pd->generateSymbol(buf)), static_cast<float>(hasKeyboardFocus(true)) });
+    });
 }
 
 void Canvas::focusLost(FocusChangeType cause)
 {
-    if(auto ptr = patch.getPointer())
-    {
+    pd->enqueueFunctionAsync([_this = SafePointer(this), this]() {
+        if (!_this)
+            return;
+        auto* glist = patch.getPointer().get();
+        if (!glist)
+            return;
+
         // canvas.active listener
         char buf[MAXPDSTRING];
-        snprintf(buf, MAXPDSTRING-1, ".x%lx.c", (unsigned long)ptr.get());
-        pd->sendMessage("#active_gui", "_focus", {pd::Atom(buf), static_cast<float>(hasKeyboardFocus(true))});
-        
+        snprintf(buf, MAXPDSTRING - 1, ".x%lx.c", (unsigned long)glist);
+        pd->sendMessage("#active_gui", "_focus", { pd->generateSymbol(buf), static_cast<float>(hasKeyboardFocus(true)) });
+
         // cyclone focus listeners
-        pd->sendMessage("#hammergui", "_focus", {pd::Atom(buf), static_cast<float>(hasKeyboardFocus(true))});
-    }
+        pd->sendMessage("#hammergui", "_focus", { pd->generateSymbol(buf), static_cast<float>(hasKeyboardFocus(true)) });
+    });
 }
 
-void Canvas::dragAndDropPaste(String const& patchString, Point<int> mousePos, int patchWidth, int patchHeight)
+void Canvas::dragAndDropPaste(String const& patchString, Point<int> mousePos, int patchWidth, int patchHeight, String name)
 {
     locked = false;
     presentationMode = false;
@@ -982,7 +995,11 @@ void Canvas::dragAndDropPaste(String const& patchString, Point<int> mousePos, in
             _this->grabKeyboardFocus();
     });
 
-    patch.startUndoSequence("DragAndDropPaste"); // TODO: we can add the name of the event that it's dragging from?
+    auto undoText = String("Add object");
+    if (name.isNotEmpty())
+        undoText = String("Add " + name.toLowerCase());
+
+    patch.startUndoSequence(undoText);
 
     auto patchSize = Point<int>(patchWidth, patchHeight);
     String translatedObjects = pd::Patch::translatePatchAsString(patchString, mousePos - (patchSize / 2.0f));
@@ -1016,14 +1033,14 @@ void Canvas::dragAndDropPaste(String const& patchString, Point<int> mousePos, in
 
     patch.deselectAll();
     pastedObjects.clear();
-    patch.endUndoSequence("DragAndDropPaste");
+    patch.endUndoSequence(undoText);
 
     updateSidebarSelection();
 }
 
 void Canvas::pasteSelection()
 {
-    patch.startUndoSequence("Paste");
+    patch.startUndoSequence("Paste object/s");
 
     // Paste at mousePos, adds padding if pasted the same place
     auto mousePosition = getMouseXYRelative();
@@ -1062,7 +1079,7 @@ void Canvas::pasteSelection()
 
     patch.deselectAll();
     pastedObjects.clear();
-    patch.endUndoSequence("Paste");
+    patch.endUndoSequence("Paste object/s");
 
     updateSidebarSelection();
 }
@@ -1072,7 +1089,7 @@ void Canvas::duplicateSelection()
     Array<Connection*> conInlets, conOutlets;
     auto selection = getSelectionOfType<Object>();
 
-    patch.startUndoSequence("Duplicate");
+    patch.startUndoSequence("Duplicate object/s");
 
     std::vector<t_gobj*> objectsToDuplicate;
     for (auto* object : selection) {
@@ -1164,14 +1181,16 @@ void Canvas::duplicateSelection()
         setSelected(obj, true);
     }
 
-    patch.endUndoSequence("Duplicate");
+    patch.endUndoSequence("Duplicate object/s");
     patch.deselectAll();
 }
 
 void Canvas::removeSelection()
 {
+    patch.startUndoSequence("Remove object/s");
     // Make sure object isn't selected and stop updating gui
     editor->sidebar->hideParameters();
+    editor->showTouchSelectionHelper(false);
 
     // Find selected objects and make them selected in pd
     std::vector<t_gobj*> objects;
@@ -1209,6 +1228,8 @@ void Canvas::removeSelection()
     synchronise();
     handleUpdateNowIfNeeded();
 
+    patch.endUndoSequence("Remove object/s");
+
     patch.deselectAll();
 
     synchroniseSplitCanvas();
@@ -1216,7 +1237,7 @@ void Canvas::removeSelection()
 
 void Canvas::removeSelectedConnections()
 {
-    patch.startUndoSequence("Remove Connections");
+    patch.startUndoSequence("Remove connection/s");
 
     for (auto* con : connections) {
         if (con->isSelected()) {
@@ -1229,7 +1250,7 @@ void Canvas::removeSelectedConnections()
         }
     }
 
-    patch.endUndoSequence("Remove Connections");
+    patch.endUndoSequence("Remove connection/s");
 
     // Load state from pd
     synchronise();
@@ -1341,16 +1362,20 @@ void Canvas::encapsulateSelection()
     auto copied = String::fromUTF8(text, size);
 
     // Wrap it in an undo sequence, to allow undoing everything in 1 step
-    patch.startUndoSequence("encapsulate");
+    patch.startUndoSequence("Encapsulate");
 
     pd::Interface::removeObjects(patchPtr, objects);
 
     auto replacement = copypasta.replace("$$_COPY_HERE_$$", copied);
 
     pd::Interface::paste(patchPtr, replacement.toRawUTF8());
-    auto* newObject = pd::Interface::checkObject(patch.getObjects().back());
+    auto lastObject = patch.getObjects().back();
+    if (!lastObject.isValid())
+        return;
+
+    auto* newObject = pd::Interface::checkObject(lastObject.getRaw<t_pd>());
     if (!newObject) {
-        patch.endUndoSequence("encapsulate");
+        patch.endUndoSequence("Encapsulate");
         pd->unlockAudioThread();
         return;
     }
@@ -1367,7 +1392,7 @@ void Canvas::encapsulateSelection()
         }
     }
 
-    patch.endUndoSequence("encapsulate");
+    patch.endUndoSequence("Encapsulate");
 
     pd->unlockAudioThread();
 
@@ -1470,7 +1495,7 @@ void Canvas::alignObjects(Align alignment)
         return totalBounds;
     };
 
-    patch.startUndoSequence("align objects");
+    patch.startUndoSequence("Align objects");
 
     // mark canvas as dirty, and set undo for all positions
     auto patchPtr = patch.getPointer().get();
@@ -1582,7 +1607,7 @@ void Canvas::alignObjects(Align alignment)
         connection->forceUpdate();
     }
 
-    patch.endUndoSequence("align objects");
+    patch.endUndoSequence("Align objects");
 }
 
 void Canvas::undo()
@@ -1658,9 +1683,9 @@ void Canvas::valueChanged(Value& v)
             auto y1 = static_cast<float>(cnv->gl_screeny1);
             auto x2 = static_cast<float>(getValue<int>(patchWidth) + x1);
             auto y2 = static_cast<float>(cnv->gl_screeny2);
-            
+
             char buf[MAXPDSTRING];
-            snprintf(buf, MAXPDSTRING-1, ".x%lx", (unsigned long)cnv.get());
+            snprintf(buf, MAXPDSTRING - 1, ".x%lx", (unsigned long)cnv.get());
             pd->sendMessage(buf, "setbounds", { x1, y1, x2, y2 });
         }
 
@@ -1673,9 +1698,9 @@ void Canvas::valueChanged(Value& v)
             auto y1 = static_cast<float>(cnv->gl_screeny1);
             auto x2 = static_cast<float>(cnv->gl_screenx2);
             auto y2 = static_cast<float>(getValue<int>(patchHeight) + y1);
-            
+
             char buf[MAXPDSTRING];
-            snprintf(buf, MAXPDSTRING-1, ".x%lx", (unsigned long)cnv.get());
+            snprintf(buf, MAXPDSTRING - 1, ".x%lx", (unsigned long)cnv.get());
             pd->sendMessage(buf, "setbounds", { x1, y1, x2, y2 });
         }
         repaint();
@@ -1684,13 +1709,12 @@ void Canvas::valueChanged(Value& v)
     else if (v.refersToSameSourceAs(locked)) {
         bool editMode = !getValue<bool>(v);
 
-        if(auto ptr = patch.getPointer())
-        {
+        if (auto ptr = patch.getPointer()) {
             char buf[MAXPDSTRING];
-            snprintf(buf, MAXPDSTRING-1, ".x%lx", (unsigned long)ptr.get());
-            pd->sendMessage(buf, "editmode", {static_cast<float>(editMode)});
+            snprintf(buf, MAXPDSTRING - 1, ".x%lx", (unsigned long)ptr.get());
+            pd->sendMessage(buf, "editmode", { static_cast<float>(editMode) });
         }
-        
+
         cancelConnectionCreation();
         deselectAll();
 
@@ -1855,13 +1879,16 @@ ObjectParameters& Canvas::getInspectorParameters()
 
 bool Canvas::panningModifierDown()
 {
+#if JUCE_IOS
+    return OSUtils::ScrollTracker::isScrolling();
+#endif
+
     return KeyPress::isKeyCurrentlyDown(KeyPress::spaceKey) || ModifierKeys::getCurrentModifiersRealtime().isMiddleButtonDown();
 }
 
-void Canvas::receiveMessage(String const& symbol, int argc, t_atom* argv)
+void Canvas::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms)
 {
-    auto atoms = pd::Atom::fromAtoms(argc, argv);
-    switch (hash(symbol)) {
+    switch (hash(symbol->s_name)) {
     case hash("obj"):
     case hash("msg"):
     case hash("floatatom"):
@@ -1890,7 +1917,7 @@ void Canvas::receiveMessage(String const& symbol, int argc, t_atom* argv)
         break;
     }
     case hash("editmode"): {
-        if (atoms.size() >= 1) {
+        if (numAtoms >= 1) {
             int flag = atoms[0].getFloat();
             if (flag % 2 == 0) {
                 locked = true;
@@ -1902,16 +1929,12 @@ void Canvas::receiveMessage(String const& symbol, int argc, t_atom* argv)
         break;
     }
     case hash("setbounds"): {
-        if (argc >= 4) {
-            auto width = argv[2].a_w.w_float - argv[0].a_w.w_float;
-            auto height = argv[3].a_w.w_float - argv[1].a_w.w_float;
-            MessageManager::callAsync([_this = SafePointer(this), width, height]() {
-                if (!_this)
-                    return;
-                setValueExcludingListener(_this->patchWidth, width, _this.getComponent());
-                setValueExcludingListener(_this->patchHeight, height, _this.getComponent());
-                _this->repaint();
-            });
+        if (numAtoms >= 4) {
+            auto width = atoms[2].getFloat() - atoms[0].getFloat();
+            auto height = atoms[3].getFloat() - atoms[1].getFloat();
+            setValueExcludingListener(patchWidth, width, this);
+            setValueExcludingListener(patchHeight, height, this);
+            repaint();
         }
 
         break;

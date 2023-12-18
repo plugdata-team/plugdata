@@ -90,7 +90,7 @@ void PaletteItem::paint(Graphics& g)
         Path dropShadowPath;
         dropShadowPath.addRoundedRectangle(bounds.reduced(4.0f), 5.0f);
         auto dropShadowColour = findColour(PlugDataColour::objectSelectedOutlineColourId);
-        StackShadow::renderDropShadow(g, dropShadowPath, dropShadowColour.withAlpha(0.5f), 6);
+        StackShadow::renderDropShadow(g, dropShadowPath, dropShadowColour.withAlpha(0.5f), 7);
     }
     auto outlineColour = isItemDragged ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId;
 
@@ -248,6 +248,11 @@ void PaletteItem::resized()
 String PaletteItem::getObjectString()
 {
     return palettePatch;
+}
+
+String PaletteItem::getPatchStringName()
+{
+    return paletteName + String(" palette");
 }
 
 void PaletteItem::deleteItem()

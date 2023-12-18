@@ -35,26 +35,39 @@ OfflineObjectRenderer* OfflineObjectRenderer::findParentOfflineObjectRendererFor
     return childComponent != nullptr ? &childComponent->findParentComponentOfClass<PluginEditor>()->offlineRenderer : nullptr;
 }
 
-ImageWithOffset OfflineObjectRenderer::patchToMaskedImage(String const& patch, float scale)
+ImageWithOffset OfflineObjectRenderer::patchToMaskedImage(String const& patch, float scale, bool makeInvalidImage)
 {
     auto image = patchToTempImage(patch, scale);
     auto width = image.image.getWidth();
     auto height = image.image.getHeight();
     auto output = Image(Image::ARGB, width, height, true);
 
-    Graphics gOutput(output);
-    gOutput.reduceClipRegion(image.image, AffineTransform());
-    gOutput.fillAll(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f));
+    Graphics g(output);
+    g.reduceClipRegion(image.image, AffineTransform());
+    auto backgroundColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f);
+    g.fillAll(backgroundColour);
+
+    if (makeInvalidImage) {
+        AffineTransform rotate;
+        rotate = rotate.rotated(MathConstants<float>::pi / 4.0f);
+        g.addTransform(rotate);
+        float diagonalLength = std::sqrt(width * width + height * height);
+        g.setColour(backgroundColour.darker(3.0f));
+        auto stripeWidth = 20.0f;
+        for (float x = -diagonalLength; x < diagonalLength; x += (stripeWidth * 2)) {
+            g.fillRect(x, -diagonalLength, stripeWidth, diagonalLength * 2);
+        }
+        g.addTransform(rotate.inverted());
+    }
 
     return ImageWithOffset(output, image.offset);
 }
-
 
 ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, float scale)
 {
     static std::unordered_map<String, ImageWithOffset> patchImageCache;
 
-    const auto patchSHA256 = SHA256(patch.getCharPointer()).toHexString();
+    auto const patchSHA256 = SHA256(patch.getCharPointer()).toHexString();
     if (patchImageCache.contains(patchSHA256)) {
         return patchImageCache[patchSHA256];
     }
@@ -63,7 +76,7 @@ ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, flo
 
     sys_lock();
     pd->muteConsole(true);
-    
+
     canvas_create_editor(offlineCnv);
 
     objectRects.clear();
@@ -119,7 +132,7 @@ bool OfflineObjectRenderer::checkIfPatchIsValid(String const& patch)
 {
     static std::unordered_map<String, bool> patchValidCache;
 
-    const auto patchSHA256 = SHA256(patch.getCharPointer()).toHexString();
+    auto const patchSHA256 = SHA256(patch.getCharPointer()).toHexString();
     if (patchValidCache.contains(patchSHA256)) {
         return patchValidCache[patchSHA256];
     }
@@ -172,7 +185,7 @@ std::pair<std::vector<bool>, std::vector<bool>> OfflineObjectRenderer::countIole
 {
     static std::unordered_map<String, std::pair<std::vector<bool>, std::vector<bool>>> patchIoletCache;
 
-    const auto patchSHA256 = SHA256(patch.getCharPointer()).toHexString();
+    auto const patchSHA256 = SHA256(patch.getCharPointer()).toHexString();
     if (patchIoletCache.contains(patchSHA256)) {
         return patchIoletCache[patchSHA256];
     }

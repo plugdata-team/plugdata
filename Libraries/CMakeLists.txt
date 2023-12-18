@@ -17,6 +17,7 @@ cmake_policy(SET CMP0091 NEW)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 add_subdirectory(JUCE)
+juce_add_module(melatonin_blur)
 
 if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.21")
   set(MESSAGE_QUIET ON)
@@ -303,8 +304,8 @@ if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
     endif()
  
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-int-conversion -Wno-pointer-sign -Wno-pointer-to-int-cast -Wno-incompatible-pointer-types")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -ffast-math -funroll-loops -fomit-frame-pointer -O3")
-
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -fno-finite-math-only -ffast-math -funroll-loops -fomit-frame-pointer -O3")
+    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -g -O0")
  endif()
 
 # ------------------------------------------------------------------------------#
@@ -414,21 +415,6 @@ set_target_properties(externals-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_include_directories(externals PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
 target_include_directories(externals-multi PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
 
-# ------------------------------------------------------------------------------#
-# GENERATOR OPTIONS
-# ------------------------------------------------------------------------------#
-if(CMAKE_GENERATOR STREQUAL Xcode)
-    set_target_properties(pd-src PROPERTIES GCC_WARN_UNUSED_VARIABLE False)
-    set_target_properties(pd-src PROPERTIES XCODE_ATTRIBUTE_LLVM_LTO[variant=Release] True)
-    set_target_properties(pd-src PROPERTIES GCC_OPTIMIZATION_LEVEL[variant=Release] 3)
-    set_target_properties(pd-src PROPERTIES GCC_UNROLL_LOOPS[variant=Release] True)
-    set_target_properties(pd-src PROPERTIES GCC_FAST_MATH[variant=Release] True)
-    set_target_properties(pd-src-multi PROPERTIES GCC_WARN_UNUSED_VARIABLE False)
-    set_target_properties(pd-src-multi PROPERTIES XCODE_ATTRIBUTE_LLVM_LTO[variant=Release] True)
-    set_target_properties(pd-src-multi PROPERTIES GCC_OPTIMIZATION_LEVEL[variant=Release] 3)
-    set_target_properties(pd-src-multi PROPERTIES GCC_UNROLL_LOOPS[variant=Release] True)
-    set_target_properties(pd-src-multi PROPERTIES GCC_FAST_MATH[variant=Release] True)
-endif()
 
 # ------------------------------------------------------------------------------#
 # LINK
@@ -443,9 +429,8 @@ if("${CMAKE_SYSTEM}" MATCHES "Linux")
     add_library(pd INTERFACE)
     add_library(pd-multi INTERFACE)
     find_library(MATH_LIB m)
-    target_link_libraries(pd INTERFACE ${MATH_LIB} ${CMAKE_DL_LIBS} externals pd-src ${externals_libs})
-    target_link_libraries(pd-multi INTERFACE ${MATH_LIB} ${CMAKE_DL_LIBS} externals-multi pd-src-multi ${externals_libs})
-
+    target_link_libraries(externals ${externals_libs})
+    target_link_libraries(externals-multi ${externals_libs})
 elseif(MSVC)
     add_library(pd SHARED $<TARGET_OBJECTS:externals> $<TARGET_OBJECTS:pd-src>)
     add_library(pd-multi STATIC $<TARGET_OBJECTS:externals-multi> $<TARGET_OBJECTS:pd-src-multi>)
@@ -458,10 +443,8 @@ elseif(MSVC)
         "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/pd.dll"
         ${CMAKE_SOURCE_DIR}/Plugins/Standalone/pd.dll)
 elseif(APPLE)
-    add_library(pd INTERFACE)
-    add_library(pd-multi INTERFACE)
-    target_link_libraries(pd INTERFACE externals pd-src ${externals_libs})
-    target_link_libraries(pd-multi INTERFACE externals-multi pd-src-multi ${externals_libs})
+    target_link_libraries(externals ${externals_libs})
+    target_link_libraries(externals-multi ${externals_libs})
 endif()
 
 # PTHREAD

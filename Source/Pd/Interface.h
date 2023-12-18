@@ -237,27 +237,26 @@ struct Interface {
 
         return text;
     }
-    
+
     static t_symbol* getUnusedArrayName()
     {
         sys_lock();
         int gcount;
-        char arraybuf[80] = {'\0'};
-        for (gcount = 1; gcount < 1000; gcount++)
-        {
+        char arraybuf[80] = { '\0' };
+        for (gcount = 1; gcount < 1000; gcount++) {
             snprintf(arraybuf, 80, "array%d", gcount);
             if (!pd_findbyclass(gensym(arraybuf), garray_class))
                 break;
         }
         sys_unlock();
-        
+
         return gensym(arraybuf);
     }
 
     static void paste(t_canvas* cnv, char const* buf)
     {
         size_t len = strlen(buf);
-        
+
         binbuf_text(libpd_this_instance()->pd_gui->i_editor->copy_binbuf, buf, len);
 
         canvas_setcurrent(cnv);
@@ -412,12 +411,24 @@ struct Interface {
         canvas_dirty(cnv, 1);
     }
 
+    static int getUndoSize(t_canvas* cnv)
+    {
+        auto* undo = canvas_undo_get(cnv)->u_queue;
+
+        int count = 0;
+        while(undo) {
+            count++;
+            undo = undo->next;
+        }
+        return count;
+    }
+
     static int canUndo(t_canvas* cnv)
     {
         t_undo* udo = canvas_undo_get(cnv);
 
         if (udo && udo->u_last) {
-            return strcmp(udo->u_last->name, "no");
+            return strcmp(udo->u_last->name, "no") != 0;
         }
 
         return 0;
@@ -428,7 +439,7 @@ struct Interface {
         t_undo* udo = canvas_undo_get(cnv);
 
         if (udo && udo->u_last && udo->u_last->next) {
-            return strcmp(udo->u_last->next->name, "no");
+            return strcmp(udo->u_last->next->name, "no") != 0;
         }
 
         return 0;

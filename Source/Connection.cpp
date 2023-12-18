@@ -82,6 +82,9 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     valueChanged(presentationMode);
 
     updateOverlays(cnv->getOverlays());
+
+    // Prevents the connection from constantly being redrawn when scrolling or moving many objects
+    setBufferedToImage(true);
 }
 
 Connection::~Connection()
@@ -181,6 +184,7 @@ void Connection::popPathState()
     }
 
     currentPlan = plan;
+    numSignalChannels = getNumSignalChannels();
     updatePath();
 }
 
@@ -420,7 +424,7 @@ void Connection::paint(Graphics& g)
         isHovering,
         getNumberOfConnections(),
         getMultiConnectNumber(),
-        getNumSignalChannels());
+        numSignalChannels);
 
     /* ENABLE_CONNECTION_GRAPHICS_DEBUGGING_REPAINT
         static Random rng;
@@ -495,37 +499,40 @@ void Connection::mouseMove(MouseEvent const& e)
 
 StringArray Connection::getMessageFormated()
 {
-    auto& connectionMessageLock = cnv->editor->connectionMessageDisplay->getLock();
-
-    connectionMessageLock.enter();
     auto args = lastValue;
-    auto name = lastSelector;
-    connectionMessageLock.exit();
+    auto name = lastSelector ? String::fromUTF8(lastSelector->s_name) : "";
 
     StringArray formatedMessage;
 
-    if (name == "float" && !args.empty()) {
+    if (name == "float" && lastNumArgs > 0) {
         formatedMessage.add("float:");
-        formatedMessage.add(String(args[0].getFloat()));
-    } else if (name == "symbol" && !args.empty()) {
+        formatedMessage.add(args[0].toString());
+    } else if (name == "symbol" && lastNumArgs > 0) {
         formatedMessage.add("symbol:");
-        formatedMessage.add(String(args[0].getSymbol()));
+        formatedMessage.add(args[0].toString());
     } else if (name == "list") {
-        formatedMessage.add("list (" + String(args.size()) + "):");
-        for (auto& arg : args) {
-            if (arg.isFloat()) {
-                formatedMessage.add(String(arg.getFloat()));
-            } else if (arg.isSymbol()) {
-                formatedMessage.add(arg.getSymbol());
+        if (lastNumArgs >= 8) {
+            formatedMessage.add("list (7+):");
+        } else {
+            formatedMessage.add("list (" + String(lastNumArgs) + "):");
+        }
+        for (int arg = 0; arg < lastNumArgs; arg++) {
+            if (args[arg].isFloat()) {
+                formatedMessage.add(String(args[arg].getFloat()));
+            } else if (args[arg].isSymbol()) {
+                formatedMessage.add(args[arg].toString());
             }
+        }
+        if (lastNumArgs >= 8) {
+            formatedMessage.add("...");
         }
     } else {
         formatedMessage.add(name);
-        for (auto& arg : args) {
-            if (arg.isFloat()) {
-                formatedMessage.add(String(arg.getFloat()));
-            } else if (arg.isSymbol()) {
-                formatedMessage.add(arg.getSymbol());
+        for (int arg = 0; arg < lastNumArgs; arg++) {
+            if (args[arg].isFloat()) {
+                formatedMessage.add(String(args[arg].getFloat()));
+            } else if (args[arg].isSymbol()) {
+                formatedMessage.add(args[arg].toString());
             }
         }
     }
@@ -535,8 +542,9 @@ StringArray Connection::getMessageFormated()
 void Connection::mouseEnter(MouseEvent const& e)
 {
     isHovering = true;
-    if (!outlet->isSignal)
+    if (plugdata_debugging_enabled()) {
         cnv->editor->connectionMessageDisplay->setConnection(this, e.getScreenPosition());
+    }
     repaint();
 }
 
@@ -604,7 +612,7 @@ void Connection::mouseDrag(MouseEvent const& e)
             currentPlan[n].y = mouseDownPosition + delta.y;
         }
 
-        setBufferedToImage(false);
+        // setBufferedToImage(false);
         updatePath();
         resizeToFit();
         repaint();
@@ -744,9 +752,6 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
         if (pointOffset.isOrigin())
             return;
 
-        // as we are moving the whole component, no need to redraw
-        setBufferedToImage(true);
-
         previousPStart = pstart;
         setTopLeftPosition(getPosition() + pointOffset.toInt());
 
@@ -763,7 +768,7 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     //
     // we may need to turn it off in other parts of this class,
     // if getCachedComponentImage() returns true setBufferedToImage is on
-    setBufferedToImage(false);
+    // setBufferedToImage(false);
 
     if (currentPlan.size() <= 2) {
         updatePath();
@@ -861,10 +866,28 @@ int Connection::getMultiConnectNumber()
     return -1;
 }
 
+int Connection::getSignalData(t_float* output, int maxChannels)
+{
+    if (auto oc = ptr.get<t_outconnect>()) {
+        if (auto* signal = outconnect_get_signal(oc.get())) {
+            auto numChannels = std::min(signal->s_nchans, maxChannels);
+            auto* samples = signal->s_vec;
+            if (!samples)
+                return 0;
+            std::copy(samples, samples + (DEFDACBLKSIZE * numChannels), output);
+            return numChannels;
+        }
+    }
+
+    return 0;
+}
+
 int Connection::getNumSignalChannels()
 {
     if (auto oc = ptr.get<t_outconnect>()) {
-        return outconnect_get_num_channels(oc.get());
+        if (auto* signal = outconnect_get_signal(oc.get())) {
+            return signal->s_nchans;
+        }
     }
 
     if (outlet) {
@@ -1156,6 +1179,8 @@ bool Connection::straightLineIntersectsObject(Line<float> toCheck, Array<Object*
 
 void ConnectionPathUpdater::timerCallback()
 {
+    stopTimer();
+
     std::pair<Component::SafePointer<Connection>, t_symbol*> currentConnection;
 
     canvas->patch.startUndoSequence("SetConnectionPaths");
@@ -1177,7 +1202,7 @@ void ConnectionPathUpdater::timerCallback()
 
         auto* patch = connection->cnv->patch.getPointer().get();
         if (!patch)
-            return;
+            continue;
 
         // Get connections from pd
         linetraverser_start(&t, patch);
@@ -1207,25 +1232,15 @@ void ConnectionPathUpdater::timerCallback()
     }
 
     canvas->patch.endUndoSequence("SetConnectionPaths");
-
-    stopTimer();
 }
 
-void Connection::receiveMessage(String const& name, int argc, t_atom* argv)
+void Connection::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms)
 {
     // TODO: indicator
     // messageActivity = messageActivity >= 12 ? 0 : messageActivity + 1;
 
     outobj->triggerOverlayActiveState();
-
-    auto& connectionMessageLock = cnv->editor->connectionMessageDisplay->getLock();
-
-    // We can either lock or tryLock over here:
-    // The advantage of try-locking is that the audio thread will never have to wait for the message thread
-    // The advantage of regular locking is that we ensure every single message arrives, even if we need to wait for it
-    if (connectionMessageLock.tryEnter()) {
-        lastValue = pd::Atom::fromAtoms(argc, argv);
-        lastSelector = name;
-        connectionMessageLock.exit();
-    }
+    std::copy(atoms, atoms + numAtoms, lastValue);
+    lastNumArgs = numAtoms;
+    lastSelector = symbol;
 }

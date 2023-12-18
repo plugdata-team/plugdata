@@ -8,7 +8,7 @@
 
 class ColourPickerObject final : public TextBase {
 public:
-    ColourPickerObject(t_gobj* ptr, Object* object)
+    ColourPickerObject(pd::WeakReference ptr, Object* object)
         : TextBase(ptr, object)
     {
     }
@@ -41,16 +41,9 @@ public:
         });
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("pick")
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
 
         case hash("pick"): {
             showColourPicker();

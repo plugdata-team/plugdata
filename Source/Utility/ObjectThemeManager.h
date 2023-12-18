@@ -1,6 +1,6 @@
 #pragma once
 
-#include <JuceHeader.h>
+#include <juce_gui_basics/juce_gui_basics.h>
 
 /*
  * This is a static class that handles all theming & formatting for UI objects placed onto the canvas
@@ -8,7 +8,7 @@
 
 class ObjectThemeManager : public Component {
 public:
-    ObjectThemeManager(){}
+    ObjectThemeManager() { }
 
     void lookAndFeelChanged() override
     {

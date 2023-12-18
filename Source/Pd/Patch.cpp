@@ -28,11 +28,11 @@ extern void canvas_reload(t_symbol* name, t_symbol* dir, t_glist* except);
 
 namespace pd {
 
-Patch::Patch(t_canvas* patchPtr, Instance* parentInstance, bool ownsPatch, File patchFile)
+Patch::Patch(pd::WeakReference patchPtr, Instance* parentInstance, bool ownsPatch, File patchFile)
     : instance(parentInstance)
     , closePatchOnDelete(ownsPatch)
     , currentFile(std::move(patchFile))
-    , ptr(patchPtr, parentInstance)
+    , ptr(patchPtr)
 {
     jassert(parentInstance);
 }
@@ -73,11 +73,17 @@ Rectangle<int> Patch::getBounds() const
 
 bool Patch::isDirty() const
 {
-    if (auto patch = ptr.get<t_glist>()) {
-        return patch->gl_dirty;
-    }
+    return isPatchDirty.load();
+}
 
-    return false;
+bool Patch::canUndo() const
+{
+    return canPatchUndo.load();
+}
+
+bool Patch::canRedo() const
+{
+    return canPatchRedo.load();
 }
 
 void Patch::savePatch(File const& location)
@@ -127,6 +133,22 @@ bool Patch::isAbstraction()
     }
 
     return false;
+}
+
+void Patch::updateUndoRedoState()
+{
+    if (auto patch = ptr.get<t_glist>()) {
+        canPatchUndo = pd::Interface::canUndo(patch.get());
+        canPatchRedo = pd::Interface::canRedo(patch.get());
+        isPatchDirty = patch->gl_dirty;
+
+        auto undoSize = pd::Interface::getUndoSize(patch.get());
+        if (undoQueueSize != undoSize) {
+            undoQueueSize = undoSize;
+            updateUndoRedoString();
+        }
+
+    }
 }
 
 void Patch::savePatch()
@@ -187,14 +209,14 @@ Connections Patch::getConnections() const
     return connections;
 }
 
-std::vector<t_gobj*> Patch::getObjects()
+std::vector<pd::WeakReference> Patch::getObjects()
 {
     setCurrent();
 
-    std::vector<t_gobj*> objects;
+    std::vector<pd::WeakReference> objects;
     if (auto patch = ptr.get<t_glist>()) {
         for (t_gobj* y = patch->gl_list; y; y = y->g_next) {
-            objects.push_back(y);
+            objects.push_back(pd::WeakReference(y, instance));
         }
     }
 
@@ -212,11 +234,11 @@ t_gobj* Patch::createObject(int x, int y, String const& name)
     if (tokens[0] == "garray") {
         if (auto patch = ptr.get<t_glist>()) {
             auto arrayPasta = "#N canvas 0 0 450 250 (subpatch) 0;\n#X array @arrName 100 float 2;\n#X coords 0 1 100 -1 200 140 1;\n#X restore " + String(x) + " " + String(y) + " graph;";
-            
+
             instance->setThis();
             auto* newArraySymbol = pd::Interface::getUnusedArrayName();
             arrayPasta = arrayPasta.replace("@arrName", String::fromUTF8(newArraySymbol->s_name));
-            
+
             pd::Interface::paste(patch.get(), arrayPasta.toRawUTF8());
             return pd::Interface::getNewest(patch.get());
         }
@@ -529,6 +551,8 @@ void Patch::endUndoSequence(String const& name)
 {
     if (auto patch = ptr.get<t_glist>()) {
         canvas_undo_add(patch.get(), UNDO_SEQUENCE_END, instance->generateSymbol(name)->s_name, nullptr);
+
+        updateUndoRedoString();
     }
 }
 
@@ -536,10 +560,13 @@ void Patch::undo()
 {
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        glist_noselect(patch.get());
+        auto x = patch.get();
+        glist_noselect(x);
         libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
 
         pd::Interface::undo(patch.get());
+
+        updateUndoRedoString();
     }
 }
 
@@ -547,9 +574,70 @@ void Patch::redo()
 {
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        glist_noselect(patch.get());
+        auto x = patch.get();
+        glist_noselect(x);
         libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
+
         pd::Interface::redo(patch.get());
+
+        updateUndoRedoString();
+    }
+}
+
+void Patch::updateUndoRedoString()
+{
+    if (auto patch = ptr.get<t_glist>()) {
+        auto cnv = patch.get();
+        auto currentUndo = canvas_undo_get(cnv)->u_last;
+        auto undo = currentUndo;
+        auto redo = currentUndo->next;
+
+#ifdef DEBUG_UNDO_QUEUE
+        auto undoDbg = undo;
+        auto redoDbg = redo;
+#endif
+        
+        lastUndoSequence = "";
+        lastRedoSequence = "";
+
+        // undo / redo list will contain pd undo events
+        while (undo) {
+            String undoName = String::fromUTF8(undo->name);
+            if (undoName == "props") {
+                lastUndoSequence = "Change property";
+                break;
+            } else if (undoName != "no") {
+                lastUndoSequence = undoName.substring(0, 1).toUpperCase() + undoName.substring(1);
+                break;
+            }
+            undo = undo->prev;
+        }
+
+        while (redo) {
+            String redoName = String::fromUTF8(redo->name);
+            if (redoName == "props") {
+                lastRedoSequence = "Change property";
+                break;
+            } else if (redoName != "no") {
+                lastRedoSequence = redoName.substring(0, 1).toUpperCase() + redoName.substring(1);
+                break;
+            }
+            redo = redo->next;
+        }
+//#define DEBUG_UNDO_QUEUE
+#ifdef DEBUG_UNDO_QUEUE
+        std::cout << "<<<<<< undo list:" << std::endl;
+        while (undoDbg) {
+            std::cout << undoDbg->name << std::endl;
+            undoDbg = undoDbg->prev;
+        }
+        std::cout << ">>>>>> redo list:" << std::endl;
+        while (redoDbg) {
+            std::cout << redoDbg->name << std::endl;
+            redoDbg = redoDbg->next;
+        }
+        std::cout << "-------------------" << std::endl;
+#endif
     }
 }
 
@@ -571,7 +659,8 @@ String Patch::getTitle() const
             for (int i = 0; i < argc; i++) {
                 atom_string(&argv[i], namebuf, MAXPDSTRING);
                 name += String::fromUTF8(namebuf);
-                if(i != argc - 1) name += " ";
+                if (i != argc - 1)
+                    name += " ";
             }
             name += ")";
         }
@@ -637,8 +726,6 @@ String Patch::getCanvasContent()
     auto content = String::fromUTF8(buf, static_cast<size_t>(bufsize));
 
     freebytes(static_cast<void*>(buf), static_cast<size_t>(bufsize) * sizeof(char));
-
-    instance->unlockAudioThread();
 
     return content;
 }

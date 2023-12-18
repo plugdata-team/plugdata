@@ -9,6 +9,7 @@
 
 #include "Dialogs/Dialogs.h"
 #include "HeavyExportDialog.h"
+#include "Dialogs/HelpDialog.h"
 
 #include "PluginEditor.h"
 #include "Components/PropertiesPanel.h"
@@ -87,8 +88,7 @@ public:
     {
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
         auto heavyState = settingsTree.getChildWithName("HeavyState");
-        if(heavyState.isValid())
-        {
+        if (heavyState.isValid()) {
             this->setState(heavyState);
             views[0]->setState(heavyState);
             views[1]->setState(heavyState);
@@ -109,7 +109,7 @@ public:
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
 
         auto oldState = settingsTree.getChildWithName("HeavyState");
-        if(oldState.isValid()) {
+        if (oldState.isValid()) {
             settingsTree.removeChild(oldState, nullptr);
         }
         settingsTree.appendChild(state, nullptr);
@@ -121,8 +121,11 @@ public:
     {
         auto listboxBounds = getLocalBounds().removeFromLeft(listBoxWidth);
 
+        Path p;
+        p.addRoundedRectangle(listboxBounds.getX(), listboxBounds.getY(), listboxBounds.getWidth(), listboxBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, false, false, true, false);
+
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
-        g.fillRoundedRectangle(listboxBounds.toFloat(), Corners::windowCornerRadius);
+        g.fillPath(p);
     }
 
     void paintOverChildren(Graphics& g) override
@@ -235,8 +238,11 @@ HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
 
     exportingView->setAlwaysOnTop(true);
 
-    infoButton->onClick = []() {
-        URL("https://wasted-audio.github.io/hvcc/docs/01.introduction.html#what-is-heavy").launchInDefaultBrowser();
+    infoButton->onClick = [this]() {
+        helpDialog = std::make_unique<HelpDialog>(nullptr);
+        helpDialog->onClose = [this]() {
+            helpDialog.reset(nullptr);
+        };
     };
     addAndMakeVisible(*infoButton);
 

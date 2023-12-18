@@ -193,7 +193,7 @@ ScaledImage TabBarButtonComponent::generateTabBarButtonImage()
     g.addTransform(AffineTransform::scale(scale));
     Path path;
     path.addRoundedRectangle(bounds.reduced(14), 5.0f);
-    StackShadow::renderDropShadow(g, path, Colour(0, 0, 0).withAlpha(0.3f), 6, { 0, 2 }, scale);
+    StackShadow::renderDropShadow(g, path, Colour(0, 0, 0).withAlpha(0.3f), 7, { 0, 1 }, scale);
     g.setOpacity(1.0f);
     drawTabButton(g, textBounds.withPosition(10, 10));
 
@@ -212,7 +212,7 @@ void TabBarButtonComponent::mouseDown(MouseEvent const& e)
 {
     if (e.originalComponent != this)
         return;
-    
+
     if (e.mods.isMiddleButtonDown()) {
         closeTab();
     }
@@ -284,7 +284,7 @@ void TabBarButtonComponent::mouseDrag(MouseEvent const& e)
         auto dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
 
         tabImage = generateTabBarButtonImage();
-        dragContainer->startDragging(tabIndex, this, tabImage, true, nullptr);
+        dragContainer->startDragging(tabIndex, this, tabImage, tabImage, true, nullptr);
     }
 }
 

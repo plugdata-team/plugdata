@@ -24,7 +24,6 @@ public:
         , backgroundMargin(margin)
     {
         parentComponent->addAndMakeVisible(this);
-
         setBounds(0, 0, parentComponent->getWidth(), parentComponent->getHeight());
 
         setAlwaysOnTop(true);
@@ -105,14 +104,20 @@ public:
 
     void parentSizeChanged() override
     {
-        setBounds(getParentComponent()->getLocalBounds());
+        if (auto* parent = getParentComponent()) {
+            setBounds(parent->getLocalBounds());
+        }
     }
 
     void resized() override
     {
         if (viewedComponent) {
+#if JUCE_IOS
+            viewedComponent->setBounds(0, 0, getWidth(), getHeight());
+#else
             viewedComponent->setSize(width, height);
             viewedComponent->setCentrePosition({ getBounds().getCentreX(), getBounds().getCentreY() });
+#endif
         }
 
         if (closeButton) {
@@ -121,6 +126,7 @@ public:
         }
     }
 
+#if !JUCE_IOS
     void mouseDown(MouseEvent const& e) override
     {
         if (isPositiveAndBelow(e.getEventRelativeTo(viewedComponent.get()).getMouseDownY(), 40) && ProjectInfo::isStandalone) {
@@ -137,14 +143,13 @@ public:
             dragger.dragWindow(parentComponent->getTopLevelComponent(), e, nullptr);
         }
     }
-    
+
     void mouseUp(MouseEvent const& e) override
     {
         dragging = false;
     }
+#endif
 
-    
-    
     bool keyPressed(KeyPress const& key) override
     {
         if (key == KeyPress::escapeKey) {
@@ -183,7 +188,7 @@ struct Dialogs {
 
     static void showMainMenu(PluginEditor* editor, Component* centre);
 
-    static void showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> const& callback);
+    static void showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> const& callback, StringArray options = { "Okay", "Cancel " }, bool swapButtons = false);
 
     static void showHeavyExportDialog(std::unique_ptr<Dialog>* target, Component* parent);
 
@@ -198,11 +203,11 @@ struct Dialogs {
     static void showPatchStorage(PluginEditor* editor);
 
     static PopupMenu createObjectMenu(PluginEditor* parent);
-    
-    static void showOpenDialog(std::function<void(File&)> callback, bool canSelectFiles, bool canSelectDirectories, const String& lastFileId, const String& extension);
 
-    static void showSaveDialog(std::function<void(File&)> callback, const String& extension, const String& lastFileId, bool directoryMode = false);
-    
+    static void showOpenDialog(std::function<void(File&)> callback, bool canSelectFiles, bool canSelectDirectories, String const& lastFileId, String const& extension);
+
+    static void showSaveDialog(std::function<void(File&)> callback, String const& extension, String const& lastFileId, bool directoryMode = false);
+
     static inline std::unique_ptr<FileChooser> fileChooser = nullptr;
 };
 

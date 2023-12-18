@@ -18,21 +18,15 @@
 InternalSynth::InternalSynth()
     : Thread("InternalSynthInit")
 {
-#ifdef PLUGDATA_STANDALONE
-    // Unpack soundfont
-    if (!soundFont.existsAsFile()) {
-        soundFont.getParentDirectory().createDirectory();
-        FileOutputStream ostream(soundFont);
-        ostream.write(StandaloneBinaryData::GeneralUser_GS_sf3, StandaloneBinaryData::GeneralUser_GS_sf3Size);
-        ostream.flush();
-    }
+#ifndef PLUGDATA_STANDALONE
+    ignoreUnused(synth);
+    ignoreUnused(settings);
 #endif
 }
 
 InternalSynth::~InternalSynth()
 {
 #ifdef PLUGDATA_STANDALONE
-
     stopThread(6000);
 
     if (ready) {
@@ -40,6 +34,19 @@ InternalSynth::~InternalSynth()
             delete_fluid_synth(synth);
         if (settings)
             delete_fluid_settings(settings);
+    }
+#endif
+}
+
+void InternalSynth::extractSoundfont()
+{
+#ifdef PLUGDATA_STANDALONE
+    // Unpack soundfont
+    if (!soundFont.existsAsFile()) {
+        soundFont.getParentDirectory().createDirectory();
+        FileOutputStream ostream(soundFont);
+        ostream.write(StandaloneBinaryData::GeneralUser_GS_sf3, StandaloneBinaryData::GeneralUser_GS_sf3Size);
+        ostream.flush();
     }
 #endif
 }

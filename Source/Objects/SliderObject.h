@@ -105,7 +105,7 @@ class SliderObject : public ObjectBase {
     float value = 0.0f;
 
 public:
-    SliderObject(t_gobj* obj, Object* object)
+    SliderObject(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
         , iemHelper(obj, object, this)
     {
@@ -214,24 +214,9 @@ public:
         }
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("float"),
-            hash("list"),
-            hash("set"),
-            hash("lin"),
-            hash("log"),
-            hash("range"),
-            hash("steady"),
-            hash("orientation"),
-            IEMGUI_MESSAGES
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("float"):
         case hash("list"):
         case hash("set"): {
@@ -250,7 +235,7 @@ public:
             break;
         }
         case hash("range"): {
-            if (atoms.size() >= 2) {
+            if (numAtoms >= 2) {
                 slider.setRangeFlipped(atoms[0].getFloat() > atoms[1].getFloat());
                 setParameterExcludingListener(min, atoms[0].getFloat());
                 setParameterExcludingListener(max, atoms[1].getFloat());
@@ -259,7 +244,7 @@ public:
             break;
         }
         case hash("steady"): {
-            if (atoms.size() >= 1) {
+            if (numAtoms >= 1) {
                 bool steady = atoms[0].getFloat();
                 setParameterExcludingListener(steadyOnClick, steady);
                 slider.setSliderSnapsToMousePosition(!steady);
@@ -267,7 +252,7 @@ public:
             break;
         }
         case hash("orientation"): {
-            if (atoms.size() >= 1) {
+            if (numAtoms >= 1) {
                 isVertical = static_cast<bool>(atoms[0].getFloat());
                 slider.setOrientation(isVertical);
                 updateAspectRatio();
@@ -276,13 +261,13 @@ public:
             break;
         }
         default: {
-            iemHelper.receiveObjectMessage(symbol, atoms);
+            iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
             break;
         }
         }
 
         // Update the colours of the actual slider
-        if (hash(symbol) == hash("color")) {
+        if (symbol == hash("color")) {
             getLookAndFeel().setColour(Slider::backgroundColourId, Colour::fromString(iemHelper.secondaryColour.toString()));
             getLookAndFeel().setColour(Slider::trackColourId, Colour::fromString(iemHelper.primaryColour.toString()));
         }
@@ -334,9 +319,9 @@ public:
                 rounded_val = slider->x_val;
 
             if (slider->x_lin0_log1)
-                fval = slider->x_min * exp(slider->x_k * (double)(rounded_val)*0.01);
+                fval = slider->x_min * exp(slider->x_k * (double)(rounded_val) * 0.01);
             else
-                fval = (double)(rounded_val)*0.01 * slider->x_k + slider->x_min;
+                fval = (double)(rounded_val) * 0.01 * slider->x_k + slider->x_min;
             if ((fval < 1.0e-10) && (fval > -1.0e-10))
                 fval = 0.0;
 

@@ -6,8 +6,7 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-
+#include <juce_gui_basics/juce_gui_basics.h>
 #include "SplitViewResizer.h"
 #include "ResizableTabbedComponent.h"
 
@@ -44,7 +43,6 @@ public:
     void resized() override;
 
 private:
-
     Rectangle<int> selectedSplit;
     SafePointer<ResizableTabbedComponent> activeTabComponent = nullptr;
     ResizableTabbedComponent* rootComponent;

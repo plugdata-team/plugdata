@@ -9,17 +9,15 @@ class GraphArea : public Component
     , public ComponentDragger
     , public Value::Listener {
 
-    class GraphAreaResizer : public ResizableCornerComponent
-    {
-        public:
-        
+    class GraphAreaResizer : public ResizableCornerComponent {
+    public:
         using ResizableCornerComponent::ResizableCornerComponent;
-        
+
         void paint(Graphics& g) override
         {
             auto w = getWidth();
             auto h = getHeight();
-            
+
             Path triangle;
             triangle.addTriangle(Point<float>(0, h), Point<float>(w, h), Point<float>(w, 0));
 
@@ -36,8 +34,7 @@ class GraphArea : public Component
 
     GraphAreaResizer resizer;
     Canvas* canvas;
-        
-        
+
 public:
     explicit GraphArea(Canvas* parent)
         : resizer(this, nullptr)

@@ -22,24 +22,16 @@ public:
         closeOpenedSubpatchers();
     }
 
-    void receiveMessage(String const& symbol, int argc, t_atom* argv) override
+    void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms) override
     {
         if (pd->isPerformingGlobalSync)
             return;
 
-        auto atoms = pd::Atom::fromAtoms(argc, argv);
-
-        bool isVisMessage = symbol == "vis";
+        bool isVisMessage = hash(symbol->s_name) == hash("vis");
         if (isVisMessage && atoms[0].getFloat()) {
-            MessageManager::callAsync([_this = WeakReference(this)] {
-                if (_this)
-                    _this->openSubpatch(_this->subpatch);
-            });
+            openSubpatch(subpatch);
         } else if (isVisMessage) {
-            MessageManager::callAsync([_this = WeakReference(this)] {
-                if (_this)
-                    _this->closeOpenedSubpatchers();
-            });
+            closeOpenedSubpatchers();
         }
     }
 
@@ -54,7 +46,7 @@ class KeyObject final : public ImplementationBase
     , public ModifierKeyListener {
 
     Array<KeyPress> heldKeys;
-    Array<uint32> keyPressTimes;
+    Array<double> keyPressTimes;
 
     int const shiftKey = -1;
     int const commandKey = -2;
@@ -101,12 +93,12 @@ public:
 
         auto const keyIdx = heldKeys.indexOf(key);
         auto const alreadyDown = keyIdx >= 0;
-        auto const currentTime = Time::getMillisecondCounter();
-        if (alreadyDown && currentTime - keyPressTimes[keyIdx] > 15) {
+        auto const currentTime = Time::getMillisecondCounterHiRes();
+        if (alreadyDown && currentTime - keyPressTimes[keyIdx] > 80) {
             keyPressTimes.set(keyIdx, currentTime);
         } else if (!alreadyDown) {
             heldKeys.add(key);
-            keyPressTimes.add(Time::getMillisecondCounter());
+            keyPressTimes.add(currentTime);
         } else {
             return false;
         }
@@ -322,7 +314,6 @@ public:
     }
 };
 
-
 class CanvasMouseObject final : public ImplementationBase
     , public MouseListener
     , public pd::MessageListener {
@@ -366,10 +357,9 @@ public:
             binbuf_gettext(mouse->x_obj.te_binbuf, &text, &size);
 
             int depth = 0;
-            
+
             auto tokens = StringArray::fromTokens(String::fromUTF8(text, size), false);
-            if(tokens.size() > 1 && tokens[1].containsOnly("0123456789"))
-            {
+            if (tokens.size() > 1 && tokens[1].containsOnly("0123456789")) {
                 depth = tokens[1].getIntValue();
             }
 
@@ -468,12 +458,12 @@ public:
         mouseMove(e);
     }
 
-    void receiveMessage(String const& symbol, int argc, t_atom* argv) override
+    void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms) override
     {
         if (!cnv || pd->isPerformingGlobalSync)
             return;
 
-        if (symbol == "zero") {
+        if (hash(symbol->s_name) == hash("zero")) {
             zero = true;
         }
     }
@@ -512,18 +502,16 @@ public:
     {
         if (pd->isPerformingGlobalSync)
             return;
-        
+
         // We use a safepointer to the canvas to determine if it's still open
         bool showing = cnv != nullptr;
-        
-        if(showing && !lastFocus)
-        {
+
+        if (showing && !lastFocus) {
             lastFocus = true;
             if (auto vis = ptr.get<t_fake_canvas_vis>()) {
                 outlet_float(vis->x_obj.ob_outlet, 1.0f);
             }
-        }
-        else if(lastFocus && !showing) {
+        } else if (lastFocus && !showing) {
             lastFocus = false;
             if (auto vis = ptr.get<t_fake_canvas_vis>()) {
                 outlet_float(vis->x_obj.ob_outlet, 0.0f);
@@ -654,7 +642,6 @@ public:
     t_glist* canvas;
 };
 
-
 class MouseStateObject final : public ImplementationBase
     , public MouseListener
     , public pd::MessageListener {
@@ -687,29 +674,22 @@ public:
         pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
     }
 
-    void receiveMessage(String const& symbol, int argc, t_atom* argv) override
+    void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms) override
     {
         if (pd->isPerformingGlobalSync)
             return;
 
-        bool isBang = symbol == "bang";
-        if (isBang) {
-            MessageManager::callAsync([_base = WeakReference<ImplementationBase>(this)]() {
-                if (!_base)
-                    return;
-                auto* _this = dynamic_cast<MouseStateObject*>(_base.get());
+        if (hash(symbol->s_name) == hash("bang")) {
+            auto currentPosition = Desktop::getMousePosition();
 
-                auto currentPosition = Desktop::getMousePosition();
+            if (auto obj = ptr.get<t_fake_mousestate>()) {
+                outlet_float(obj->x_hposout, currentPosition.x);
+                outlet_float(obj->x_vposout, currentPosition.y);
+                outlet_float(obj->x_hdiffout, currentPosition.x - lastPosition.x);
+                outlet_float(obj->x_vdiffout, currentPosition.y - lastPosition.y);
 
-                if (auto obj = _this->ptr.get<t_fake_mousestate>()) {
-                    outlet_float(obj->x_hposout, currentPosition.x);
-                    outlet_float(obj->x_vposout, currentPosition.y);
-                    outlet_float(obj->x_hdiffout, currentPosition.x - _this->lastPosition.x);
-                    outlet_float(obj->x_vdiffout, currentPosition.y - _this->lastPosition.y);
-
-                    _this->lastPosition = currentPosition;
-                }
-            });
+                lastPosition = currentPosition;
+            }
         }
     }
 };
@@ -733,7 +713,7 @@ public:
             // attachedEditor->removeKeyListener(this);
         }
     }
-
+#if !JUCE_IOS
     void update() override
     {
         auto* canvas = getMainCanvas(cnv, true);
@@ -763,56 +743,54 @@ public:
             };
         }
     }
+#endif
 };
 
-
 class MouseFilterObject final : public ImplementationBase
-, public GlobalMouseListener {
-    
-    class MouseFilterProxy
-    {
+    , public GlobalMouseListener {
+
+    class MouseFilterProxy {
     public:
-        
-        MouseFilterProxy() : pd(nullptr) {}
-        
-        MouseFilterProxy(pd::Instance* instance) : pd(instance)
+        MouseFilterProxy()
+            : pd(nullptr)
+        {
+        }
+
+        MouseFilterProxy(pd::Instance* instance)
+            : pd(instance)
         {
         }
 
         void setState(bool newState)
         {
-            if(newState != state) {
+            if (newState != state) {
                 state = newState;
                 pd->setThis();
-                pd->sendMessage("#hammergui", "_up", {pd::Atom(!state)});
+                pd->sendMessage("#hammergui", "_up", { pd::Atom(!state) });
             }
         }
-        
+
     private:
-        
         pd::Instance* pd;
         bool state = false;
     };
-    
-    
+
     static inline std::map<pd::Instance*, MouseFilterProxy> proxy;
-    
+
 public:
-    MouseFilterObject(t_gobj* object, t_canvas* parent, PluginProcessor* pd) : ImplementationBase(object, parent, pd)
+    MouseFilterObject(t_gobj* object, t_canvas* parent, PluginProcessor* pd)
+        : ImplementationBase(object, parent, pd)
     {
-        if(!proxy.count(pd)) {
+        if (!proxy.count(pd)) {
             proxy[pd] = MouseFilterProxy(pd);
-            
-            globalMouseDown = [pd](const MouseEvent& e){
+
+            globalMouseDown = [pd](MouseEvent const& e) {
                 proxy[pd].setState(true);
             };
-            
-            globalMouseUp = [pd](const MouseEvent& e){
+
+            globalMouseUp = [pd](MouseEvent const& e) {
                 proxy[pd].setState(false);
             };
         }
     }
-
 };
-
-

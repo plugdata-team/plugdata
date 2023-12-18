@@ -13,7 +13,6 @@
 #include "Utility/Fonts.h"
 #include "Tabbar/TabBarButtonComponent.h"
 
-
 class PlugData_DocumentWindowButton_macOS : public Button
     , public FocusChangeListener {
 public:
@@ -196,33 +195,33 @@ public:
         String name;
 
         switch (buttonType) {
-            case DocumentWindow::closeButton: {
-                name = "close";
-                shape.addLineSegment({ 0.0f, 0.0f, 1.0f, 1.0f }, crossThickness);
-                shape.addLineSegment({ 1.0f, 0.0f, 0.0f, 1.0f }, crossThickness);
-                toggledShape = shape;
-                break;
-            }
-            case DocumentWindow::minimiseButton: {
-                name = "minimise";
-                shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
-                toggledShape = shape;
-                break;
-            }
-            case DocumentWindow::maximiseButton: {
-                name = "maximise";
-                shape.addLineSegment({ 0.5f, 0.0f, 0.5f, 1.0f }, crossThickness);
-                shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
+        case DocumentWindow::closeButton: {
+            name = "close";
+            shape.addLineSegment({ 0.0f, 0.0f, 1.0f, 1.0f }, crossThickness);
+            shape.addLineSegment({ 1.0f, 0.0f, 0.0f, 1.0f }, crossThickness);
+            toggledShape = shape;
+            break;
+        }
+        case DocumentWindow::minimiseButton: {
+            name = "minimise";
+            shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
+            toggledShape = shape;
+            break;
+        }
+        case DocumentWindow::maximiseButton: {
+            name = "maximise";
+            shape.addLineSegment({ 0.5f, 0.0f, 0.5f, 1.0f }, crossThickness);
+            shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
 
-                toggledShape.startNewSubPath(45.0f, 100.0f);
-                toggledShape.lineTo(0.0f, 100.0f);
-                toggledShape.lineTo(0.0f, 0.0f);
-                toggledShape.lineTo(100.0f, 0.0f);
-                toggledShape.lineTo(100.0f, 45.0f);
-                toggledShape.addRectangle(45.0f, 45.0f, 100.0f, 100.0f);
-                PathStrokeType(30.0f).createStrokedPath(toggledShape, toggledShape);
-                break;
-            }
+            toggledShape.startNewSubPath(45.0f, 100.0f);
+            toggledShape.lineTo(0.0f, 100.0f);
+            toggledShape.lineTo(0.0f, 0.0f);
+            toggledShape.lineTo(100.0f, 0.0f);
+            toggledShape.lineTo(100.0f, 45.0f);
+            toggledShape.addRectangle(45.0f, 45.0f, 100.0f, 100.0f);
+            PathStrokeType(30.0f).createStrokedPath(toggledShape, toggledShape);
+            break;
+        }
         }
         setName(name);
         setButtonText(name);
@@ -263,15 +262,12 @@ PlugDataLook::PlugDataLook()
     setDefaultSansSerifTypeface(Fonts::getCurrentFont().getTypefacePtr());
 }
 
-    
-
 void PlugDataLook::fillResizableWindowBackground(Graphics& g, int w, int h, BorderSize<int> const& border, ResizableWindow& window)
 {
     if (dynamic_cast<FileChooserDialogBox*>(&window)) {
         g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
     }
 }
-
 
 void PlugDataLook::drawTextButtonBackground(Graphics& g, Button& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
 {
@@ -323,7 +319,7 @@ void PlugDataLook::drawCallOutBoxBackground(CallOutBox& box, Graphics& g, Path c
         cachedImage = { Image::ARGB, box.getWidth(), box.getHeight(), true };
         Graphics g2(cachedImage);
 
-        StackShadow::renderDropShadow(g2, path, Colour(0, 0, 0).withAlpha(0.3f), 7, { 0, 2 });
+        StackShadow::renderDropShadow(g2, path, Colour(0, 0, 0).withAlpha(0.3f), 8, { 0, 1 });
     }
 
     g.setColour(Colours::black);
@@ -372,7 +368,7 @@ Font PlugDataLook::getTextButtonFont(TextButton& but, int buttonHeight)
     return { buttonHeight / 1.7f };
 }
 
-void PlugDataLook::drawLinearSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider)
+void PlugDataLook::drawLinearSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, Slider::SliderStyle const style, Slider& slider)
 {
     if (slider.getProperties()["Style"] == "SliderObject") {
         drawGUIObjectSlider(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, slider);
@@ -383,7 +379,7 @@ void PlugDataLook::drawLinearSlider(Graphics& g, int x, int y, int width, int he
 
 Button* PlugDataLook::createDocumentWindowButton(int buttonType)
 {
-    if(buttonType == -1)
+    if (buttonType == -1)
         return new PlugData_DocumentWindowButton(DocumentWindow::closeButton);
     else if (SettingsFile::getInstance()->getProperty<bool>("macos_buttons"))
         return new PlugData_DocumentWindowButton_macOS(buttonType);
@@ -781,7 +777,7 @@ void PlugDataLook::getIdealPopupMenuItemSize(String const& text, bool const isSe
         // Dumb check to see if there is a keyboard shortcut after the text.
         // On Linux and Windows, it seems to reserve way to much space for those.
         if (text.contains("  ")) {
-            idealWidth -= 25;
+            idealWidth -= 46;
         }
 #endif
     }
@@ -797,7 +793,7 @@ void PlugDataLook::drawPopupMenuBackgroundWithOptions(Graphics& g, int width, in
     if (Desktop::canUseSemiTransparentWindows()) {
         Path shadowPath;
         shadowPath.addRoundedRectangle(Rectangle<float>(0.0f, 0.0f, width, height).reduced(10.0f), Corners::defaultCornerRadius);
-        StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 10, { 0, 1 });
+        StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 11, { 0, 1 });
 
         g.setColour(background);
 
@@ -898,11 +894,42 @@ void PlugDataLook::drawPopupMenuItem(Graphics& g, Rectangle<int> const& area,
 
         r.removeFromRight(3);
         Fonts::drawFittedText(g, text, r, colour);
-
-        if (shortcutKeyText.isNotEmpty()) {
-            auto shortcutColour = findColour(PopupMenu::textColourId).withMultipliedAlpha(0.5f);
-            Fonts::drawFittedText(g, shortcutKeyText, r.translated(-4, 0), shortcutColour, 1, 1.0f, 14.0f, Justification::centredRight);
+        
+        auto shortcutBounds = r.translated(-4, 0);
+        
+#if JUCE_MAC
+        for(int i = shortcutKeyText.length() - 1; i >= 0; i--)
+        {
+            auto font = Fonts::getSemiBoldFont().withHeight(10.5f);
+            auto text = shortcutKeyText.substring(i, i+1);
+            auto width = std::max(font.getStringWidth(text) + 4, 16);
+            auto b = shortcutBounds.removeFromRight(width).reduced(1, 5);
+            
+            g.setColour(findColour(PlugDataColour::popupMenuTextColourId).withAlpha(isActive ? 0.9f : 0.35f));
+            g.fillRoundedRectangle(b.toFloat(), 3.0f);
+            
+            g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
+            
+            g.setFont(Fonts::getSemiBoldFont().withHeight(11));
+            g.drawText(text, b, Justification::centred);
         }
+#else
+        auto keys = StringArray::fromTokens(shortcutKeyText, "+", "");
+        for(int i = keys.size() - 1; i >= 0; i--)
+        {
+            auto font = Fonts::getSemiBoldFont().withHeight(10.5f);
+            auto width = std::max(font.getStringWidth(keys[i].trim()) + 8, 15);
+            auto b = shortcutBounds.removeFromRight(width).reduced(1, 5);
+            
+            g.setColour(findColour(PlugDataColour::popupMenuTextColourId).withAlpha(isActive ? 0.9f : 0.35f));
+            g.fillRoundedRectangle(b.toFloat(), 3.0f);
+            
+            g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
+            
+            g.setFont(font);
+            g.drawText(keys[i], b, Justification::centred);
+        }
+#endif
     }
 }
 
@@ -1059,33 +1086,31 @@ void PlugDataLook::drawTooltip(Graphics& g, String const& text, int width, int h
     tl.draw(g, bounds.withSizeKeepingCentre(width - 20, height - 2));
 }
 
-Font PlugDataLook::getComboBoxFont (ComboBox& box)
+Font PlugDataLook::getComboBoxFont(ComboBox& box)
 {
     return Fonts::getDefaultFont().withHeight(std::clamp(box.getHeight() * 0.85f, 13.5f, 15.0f));
 }
 
-void PlugDataLook::drawLasso (Graphics& g, Component& lassoComp)
+void PlugDataLook::drawLasso(Graphics& g, Component& lassoComp)
 {
     float outlineThickness = 0.75f;
-    
+
     // Apply inverted scaling of the canvas to the outline of the lasso, so the lasso outline doesn't grow larger as you zoom in
-    if(auto* parent = lassoComp.getParentComponent())
-    {
+    if (auto* parent = lassoComp.getParentComponent()) {
         auto transform = parent->getTransform();
         auto transformScale = std::sqrt(std::abs(transform.getDeterminant()));
         outlineThickness = 0.75f / std::max(transformScale, std::numeric_limits<float>::epsilon());
     }
-    
+
     Path p;
     p.addRectangle(lassoComp.getLocalBounds().reduced(1));
-    
-    g.setColour (lassoComp.findColour (0x1000440 /*lassoFillColourId*/));
+
+    g.setColour(lassoComp.findColour(0x1000440 /*lassoFillColourId*/));
     g.fillPath(p);
-    
-    g.setColour (lassoComp.findColour (0x1000441 /*lassoOutlineColourId*/));
+
+    g.setColour(lassoComp.findColour(0x1000441 /*lassoOutlineColourId*/));
     g.strokePath(p, PathStrokeType(outlineThickness));
 }
-
 
 void PlugDataLook::drawLabel(Graphics& g, Label& label)
 {
@@ -1093,7 +1118,7 @@ void PlugDataLook::drawLabel(Graphics& g, Label& label)
 
     if (!label.isBeingEdited()) {
         auto alpha = label.isEnabled() ? 1.0f : 0.5f;
-        const Font font = label.getFont();
+        Font const font = label.getFont();
 
         auto textArea = getLabelBorderSize(label).subtractedFrom(label.getLocalBounds());
 
@@ -1352,10 +1377,85 @@ void PlugDataLook::setColours(std::map<PlugDataColour, Colour> colours)
     setColour(ListBox::outlineColourId,
         colours.at(PlugDataColour::outlineColourId));
 
+    setColour(AlertWindow::textColourId, colours.at(PlugDataColour::panelTextColourId));
+    
     setColour(Slider::textBoxOutlineColourId,
         Colours::transparentBlack);
     setColour(TreeView::backgroundColourId,
         Colours::transparentBlack);
+}
+
+void PlugDataLook::drawAlertBox (Graphics& g, AlertWindow& alert,
+                   const Rectangle<int>& textArea, TextLayout& textLayout)
+{
+    auto cornerSize = Corners::largeCornerRadius;
+    
+    g.setColour (alert.findColour (PlugDataColour::outlineColourId));
+    g.drawRoundedRectangle (alert.getLocalBounds().toFloat(), cornerSize, 1.0f);
+    
+    auto bounds = alert.getLocalBounds().reduced (1);
+    g.reduceClipRegion (bounds);
+    
+    g.setColour (alert.findColour (PlugDataColour::dialogBackgroundColourId));
+    g.fillRoundedRectangle (bounds.toFloat(), cornerSize);
+    
+    auto iconSpaceUsed = 0;
+    
+    auto iconWidth = 80;
+    auto iconSize = jmin (iconWidth + 50, bounds.getHeight() + 20);
+    
+    if (alert.containsAnyExtraComponents() || alert.getNumButtons() > 2)
+        iconSize = jmin (iconSize, textArea.getHeight() + 50);
+    
+    Rectangle<int> iconRect (iconSize / -10, iconSize / -10,
+                             iconSize, iconSize);
+    
+    if (alert.getAlertType() != MessageBoxIconType::NoIcon)
+    {
+        Path icon;
+        char character;
+        uint32 colour;
+        
+        if (alert.getAlertType() == MessageBoxIconType::WarningIcon)
+        {
+            character = '!';
+            
+            icon.addTriangle ((float) iconRect.getX() + (float) iconRect.getWidth() * 0.5f, (float) iconRect.getY(),
+                              static_cast<float> (iconRect.getRight()), static_cast<float> (iconRect.getBottom()),
+                              static_cast<float> (iconRect.getX()), static_cast<float> (iconRect.getBottom()));
+            
+            icon = icon.createPathWithRoundedCorners (5.0f);
+            colour = 0x66ff2a00;
+        }
+        else
+        {
+            colour = Colour (0xff00b0b9).withAlpha (0.4f).getARGB();
+            character = alert.getAlertType() == MessageBoxIconType::InfoIcon ? 'i' : '?';
+            
+            icon.addEllipse (iconRect.toFloat());
+        }
+        
+        GlyphArrangement ga;
+        ga.addFittedText ({ (float) iconRect.getHeight() * 0.9f, Font::bold },
+                          String::charToString ((juce_wchar) (uint8) character),
+                          static_cast<float> (iconRect.getX()), static_cast<float> (iconRect.getY()),
+                          static_cast<float> (iconRect.getWidth()), static_cast<float> (iconRect.getHeight()),
+                          Justification::centred, false);
+        ga.createPath (icon);
+        
+        icon.setUsingNonZeroWinding (false);
+        g.setColour (Colour (colour));
+        g.fillPath (icon);
+        
+        iconSpaceUsed = iconWidth;
+    }
+    
+    g.setColour (alert.findColour (AlertWindow::textColourId));
+    
+    Rectangle<int> alertBounds (bounds.getX() + iconSpaceUsed, 30,
+                                bounds.getWidth(), bounds.getHeight() - getAlertWindowButtonHeight() - 20);
+    
+    textLayout.draw (g, alertBounds.toFloat());
 }
 
 void PlugDataLook::setDefaultFont(String fontName)
@@ -1583,4 +1683,3 @@ bool PlugDataLook::getUseSquareIolets()
 {
     return useSquareIolets;
 }
-

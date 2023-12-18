@@ -4,13 +4,13 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+
 #if !defined(__APPLE__)
 #    include <raw_keyboard_input/raw_keyboard_input.cpp>
 #endif
 
 #define JUCE_GUI_BASICS_INCLUDE_XHEADERS 1
 #include <juce_gui_basics/juce_gui_basics.h>
-
 
 #include "OSUtils.h"
 
@@ -79,7 +79,7 @@ void OSUtils::createJunction(std::string from, std::string to)
     strcat(szTarget, "\\");
 
     if (!::CreateDirectory(szJunction, nullptr))
-        throw ::GetLastError();
+        return;
 
     // Obtain SE_RESTORE_NAME privilege (required for opening a directory)
     HANDLE hToken = nullptr;
@@ -92,7 +92,7 @@ void OSUtils::createJunction(std::string from, std::string to)
         tp.PrivilegeCount = 1;
         tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
         if (!::AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(TOKEN_PRIVILEGES), nullptr, nullptr))
-            throw ::GetLastError();
+            return;
     } catch (DWORD) {
     } // Ignore errors
     if (hToken)
@@ -100,7 +100,7 @@ void OSUtils::createJunction(std::string from, std::string to)
 
     HANDLE hDir = ::CreateFile(szJunction, GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS, nullptr);
     if (hDir == INVALID_HANDLE_VALUE)
-        throw ::GetLastError();
+        return;
 
     memset(buf, 0, sizeof(buf));
     ReparseBuffer.ReparseTag = IO_REPARSE_TAG_MOUNT_POINT;
@@ -114,7 +114,7 @@ void OSUtils::createJunction(std::string from, std::string to)
         DWORD dr = ::GetLastError();
         ::CloseHandle(hDir);
         ::RemoveDirectory(szJunction);
-        throw dr;
+        return;
     }
 
     ::CloseHandle(hDir);
@@ -174,10 +174,9 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 // Selects Linux and BSD
 #if defined(__unix__) && !defined(__APPLE__)
 
-
 void OSUtils::updateX11Constraints(void* handle)
 {
-    if(handle) {
+    if (handle) {
         juce::XWindowSystem::getInstance()->updateConstraints(reinterpret_cast<::Window>(handle));
     }
 }
@@ -352,7 +351,8 @@ static juce::Array<juce::File> iterateDirectoryRecurse(cpath::Dir&& dir, bool re
             result.addArray(iterateDirectoryRecurse(file->ToDir().GetRaw(), recursive, onlyFiles, maximum));
         }
         if ((isDir && !onlyFiles) || !isDir) {
-            result.add(juce::File(juce::String::fromUTF8(file->GetPath().GetRawPath()->buf)));
+            auto path = juce::String::fromUTF8(file->GetPath().GetRawPath()->buf);
+            if(!path.isEmpty() && !path.endsWith("/.") && !path.endsWith("/..")) result.add(juce::File(path));
         }
 
         if (maximum > 0 && result.size() >= maximum)

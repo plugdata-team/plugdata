@@ -204,7 +204,7 @@ protected:
     bool isLocked;
 
 public:
-    TextBase(t_gobj* obj, Object* parent, bool valid = true)
+    TextBase(pd::WeakReference obj, Object* parent, bool valid = true)
         : ObjectBase(obj, parent)
         , isValid(valid)
     {
@@ -466,7 +466,7 @@ public:
 class TextObject final : public TextBase {
 
 public:
-    TextObject(t_gobj* obj, Object* parent, bool isValid = true)
+    TextObject(pd::WeakReference obj, Object* parent, bool isValid = true)
         : TextBase(obj, parent, isValid)
     {
     }

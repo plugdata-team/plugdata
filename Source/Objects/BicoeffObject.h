@@ -255,7 +255,7 @@ public:
 
     std::pair<float, float> calcCoefficients()
     {
-        float nn = (filterCentre)*120.0f + 16.766f;
+        float nn = (filterCentre) * 120.0f + 16.766f;
         float nn2 = (filterWidth + filterCentre) * 120.0f + 16.766f;
         float f = mtof(nn);
         float bwf = mtof(nn2);
@@ -509,7 +509,7 @@ class BicoeffObject : public ObjectBase {
     Value sizeProperty = SynchronousValue();
 
 public:
-    BicoeffObject(t_gobj* obj, Object* parent)
+    BicoeffObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
         , graph(parent)
     {
@@ -610,24 +610,9 @@ public:
         graph.saveProperties();
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("allpass"),
-            hash("lowpass"),
-            hash("highpass"),
-            hash("bandpass"),
-            hash("bandstop"),
-            hash("resonant"),
-            hash("eq"),
-            hash("lowshelf"),
-            hash("highshelf")
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("allpass"): {
             graph.setFilterType(BicoeffGraph::Allpass);
             break;

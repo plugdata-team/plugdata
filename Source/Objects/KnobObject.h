@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include <JuceHeader.h>
+#include <juce_gui_basics/juce_gui_basics.h>
 #include "TclColours.h"
 
 extern "C" {
@@ -58,7 +58,7 @@ public:
         drawArc = show;
         repaint();
     }
-    
+
     void setArcStart(float newArcStart)
     {
         arcStart = newArcStart;
@@ -153,11 +153,12 @@ class KnobObject : public ObjectBase {
     Value arcStart = SynchronousValue();
 
     Value sizeProperty = SynchronousValue();
-
+    
+    bool locked;
     float value = 0.0f;
 
 public:
-    KnobObject(t_gobj* obj, Object* object)
+    KnobObject(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
     {
         addAndMakeVisible(knob);
@@ -183,7 +184,9 @@ public:
             constrainer->setFixedAspectRatio(1.0f);
             constrainer->setMinimumSize(this->object->minimumSize, this->object->minimumSize);
         };
-
+        
+        locked = ::getValue<bool>(object->locked);
+        
         objectParameters.addParamSize(&sizeProperty, true);
         objectParameters.addParamFloat("Minimum", cGeneral, &min, 0.0f);
         objectParameters.addParamFloat("Maximum", cGeneral, &max, 127.0f);
@@ -205,7 +208,11 @@ public:
         objectParameters.addParamColour("Arc color", cAppearance, &arcColour, PlugDataColour::guiObjectInternalOutlineColour);
         objectParameters.addParamBool("Fill background", cAppearance, &outline, { "No", "Yes" }, 1);
         objectParameters.addParamBool("Show arc", cAppearance, &showArc, { "No", "Yes" }, 1);
+    }
 
+    bool isTransparent() override
+    {
+        return !::getValue<bool>(outline);
     }
 
     void updateDoubleClickValue()
@@ -322,33 +329,9 @@ public:
         knob.setRange(0.0, 1.0, increment);
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("float"),
-            hash("list"),
-            hash("set"),
-            hash("range"),
-            hash("circular"),
-            hash("discrete"),
-            hash("arc"),
-            hash("start"),
-            hash("angle"),
-            hash("offset"),
-            hash("ticks"),
-            hash("send"),
-            hash("receive"),
-            hash("fgcolor"),
-            hash("bgcolor"),
-            hash("arccolor"),
-            hash("init"),
-            hash("outline"),
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("float"):
         case hash("list"):
         case hash("set"): {
@@ -356,7 +339,7 @@ public:
             break;
         }
         case hash("range"): {
-            if (atoms.size() >= 2) {
+            if (numAtoms >= 2) {
                 auto newMin = atoms[0].getFloat();
                 auto newMax = atoms[1].getFloat();
                 // we have to use our min/max as by the time we get the "range" message, it has already changed knb->x_min & knb->x_max!
@@ -374,7 +357,7 @@ public:
             break;
         }
         case hash("angle"): {
-            if (atoms.size()) {
+            if (numAtoms) {
                 auto range = std::clamp<int>(atoms[0].getFloat(), 0, 360);
                 setParameterExcludingListener(angularRange, range);
                 updateRotaryParameters();
@@ -382,7 +365,7 @@ public:
             break;
         }
         case hash("offset"): {
-            if (atoms.size()) {
+            if (numAtoms) {
                 auto offset = std::clamp<int>(atoms[0].getFloat(), -180, 180);
                 setParameterExcludingListener(angularOffset, offset);
                 updateRotaryParameters();
@@ -416,13 +399,13 @@ public:
             break;
         }
         case hash("send"): {
-            if (atoms.size() >= 1)
-                setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
+            if (numAtoms >= 1)
+                setParameterExcludingListener(sendSymbol, atoms[0].toString());
             break;
         }
         case hash("receive"): {
-            if (atoms.size() >= 1)
-                setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+            if (numAtoms >= 1)
+                setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             break;
         }
         case hash("fgcolor"): {
@@ -445,7 +428,7 @@ public:
             break;
         }
         case hash("outline"): {
-            if (atoms.size() > 0 && atoms[0].isFloat())
+            if (numAtoms > 0 && atoms[0].isFloat())
                 outline = atoms[0].getFloat();
             break;
         }
@@ -454,10 +437,10 @@ public:
 
     void paint(Graphics& g) override
     {
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
         if (::getValue<bool>(outline)) {
+            bool selected = object->isSelected() && !cnv->isGraph;
+            auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+
             g.setColour(Colour::fromString(secondaryColour.toString()));
             g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
@@ -472,7 +455,7 @@ public:
             g.setColour(Colour::fromString(secondaryColour.toString()));
             g.fillEllipse(bounds);
 
-            g.setColour(outlineColour);
+            g.setColour(object->findColour(objectOutlineColourId));
             g.drawEllipse(bounds, 1.0f);
         }
     }
@@ -529,14 +512,14 @@ public:
     void setSendSymbol(String const& symbol) const
     {
         if (auto knob = ptr.get<void>()) {
-            pd->sendDirectMessage(knob.get(), "send", { pd::Atom(symbol) });
+            pd->sendDirectMessage(knob.get(), "send", { pd::Atom(pd->generateSymbol(symbol)) });
         }
     }
 
     void setReceiveSymbol(String const& symbol) const
     {
         if (auto knob = ptr.get<void>()) {
-            pd->sendDirectMessage(knob.get(), "receive", { pd::Atom(symbol) });
+            pd->sendDirectMessage(knob.get(), "receive", { pd::Atom(pd->generateSymbol(symbol)) });
         }
     }
 
@@ -788,20 +771,26 @@ public:
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_bg = pd->generateSymbol(colour);
             repaint();
-        }  else if (value.refersToSameSourceAs(arcStart)) {
+        } else if (value.refersToSameSourceAs(arcStart)) {
             auto arcStartLimited = limitValueRange(arcStart, ::getValue<float>(min), ::getValue<float>(max));
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_start = arcStartLimited;
             updateDoubleClickValue();
             repaint();
-        }
-        else if (value.refersToSameSourceAs(arcColour)) {
+        } else if (value.refersToSameSourceAs(arcColour)) {
             auto colour = "#" + arcColour.toString().substring(2);
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_mg = pd->generateSymbol(colour);
             knob.setArcColour(Colour::fromString(arcColour.toString()));
             repaint();
         }
+    }
+    
+    void lock(bool isLocked) override
+    {
+        ObjectBase::lock(isLocked);
+        locked = isLocked;
+        repaint();
     }
 
     void setValue(float pos)

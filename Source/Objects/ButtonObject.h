@@ -14,7 +14,7 @@ class ButtonObject : public ObjectBase {
     Value sizeProperty = SynchronousValue();
 
 public:
-    ButtonObject(t_gobj* obj, Object* parent)
+    ButtonObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
     {
         onConstrainerCreate = [this]() {
@@ -178,17 +178,9 @@ public:
         }
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("bgcolor"),
-            hash("fgcolor")
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("bgcolor"): {
             setParameterExcludingListener(secondaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
             repaint();

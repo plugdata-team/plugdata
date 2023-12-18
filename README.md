@@ -74,7 +74,7 @@ cmake --build .
 You can use externals inside plugdata's plugin version by recompiling the externals along with plugdata. This can be achieved by making the following modification to plugdata:
 
 -  Add your sources to the "externals" target inside Libraries/CMakeLists.txt. Alternatively the source files can be placed inside the Libraries/ELSE/Source folder, as all .c files in that folder will be compiled automatically.
--  In Libraries/libpd/x_libpd_multi.c, add the setup function for your external. The best place to call your setup function is inside libpd_init_pdlua. libpd_init_else and libpd_init_cyclone will also work, but it has the side-effect that the externals will also be available under the else/* and cyclone/* prefix.
+-  In Source/Pd/Setup.cpp, add the setup function for your external. The best place to call your setup function is inside libpd_init_pdlua. initialiseELSE and initialiseCyclone will also work, but it has the side-effect that the externals will also be available under the else/* and cyclone/* prefix.
 
 ## Corporate sponsors
 <p align="center" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">

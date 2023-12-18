@@ -1,6 +1,6 @@
 #pragma once
 
-#include <JuceHeader.h>
+#include <juce_gui_basics/juce_gui_basics.h>
 #include "ZoomableDragAndDropContainer.h"
 #include "Utility/OfflineObjectRenderer.h"
 #include "../PluginEditor.h"
@@ -11,6 +11,8 @@ public:
     ObjectDragAndDrop() { }
 
     virtual String getObjectString() = 0;
+
+    virtual String getPatchStringName() { return String(); };
 
     virtual void dismiss(bool withAnimation) { }
 
@@ -30,6 +32,7 @@ public:
     void resetDragAndDropImage()
     {
         dragImage.image = Image();
+        errorImage.image = Image();
     }
 
     void setIsReordering(bool isReordering)
@@ -37,7 +40,7 @@ public:
         reordering = isReordering;
     }
 
-    void mouseDrag(MouseEvent const& e) override final
+    void mouseDrag(MouseEvent const& e) override
     {
         if (reordering || e.getDistanceFromDragStart() < 5)
             return;
@@ -48,9 +51,10 @@ public:
             return;
 
         auto scale = 3.0f;
-        if (dragImage.image.isNull()) {
+        if (dragImage.image.isNull() || errorImage.image.isNull()) {
             auto offlineObjectRenderer = OfflineObjectRenderer::findParentOfflineObjectRendererFor(this);
             dragImage = offlineObjectRenderer->patchToMaskedImage(getObjectString(), scale);
+            errorImage = offlineObjectRenderer->patchToMaskedImage(getObjectString(), scale, true);
         }
 
         dismiss(true);
@@ -59,26 +63,32 @@ public:
         palettePatchWithOffset.add(var(dragImage.offset.getX()));
         palettePatchWithOffset.add(var(dragImage.offset.getY()));
         palettePatchWithOffset.add(var(getObjectString()));
-        dragContainer->startDragging(palettePatchWithOffset, this, ScaledImage(dragImage.image, scale), true, nullptr, nullptr, true);
+        palettePatchWithOffset.add(var(getPatchStringName()));
+        dragContainer->startDragging(palettePatchWithOffset, this, ScaledImage(dragImage.image, scale), ScaledImage(errorImage.image, scale), true, nullptr, nullptr, true);
     }
 
 private:
     bool reordering = false;
     ZoomableDragAndDropContainer* dragContainer = nullptr;
     ImageWithOffset dragImage;
+    ImageWithOffset errorImage;
 };
 
 class ObjectClickAndDrop : public Component
     , public Timer {
     String objectString;
+    String objectName;
     PluginEditor* editor;
     Image dragImage;
+    Image dragInvalidImage;
     float scale = 0.5f;
     float animatedScale = 0.0f;
     ImageComponent imageComponent;
 
     static inline std::unique_ptr<ObjectClickAndDrop> instance = nullptr;
     bool isOnEditor = false;
+
+    bool dropState = false;
 
     ComponentAnimator animator;
     Canvas* canvas = nullptr;
@@ -87,6 +97,7 @@ public:
     ObjectClickAndDrop(ObjectDragAndDrop* target)
     {
         objectString = target->getObjectString();
+        objectName = target->getPatchStringName();
         editor = target->findParentComponentOfClass<PluginEditor>();
 
         if (ProjectInfo::canUseSemiTransparentWindows()) {
@@ -101,6 +112,7 @@ public:
         auto offlineObjectRenderer = OfflineObjectRenderer::findParentOfflineObjectRendererFor(target);
         // FIXME: we should only ask a new mask image when the theme has changed so it's the correct colour
         dragImage = offlineObjectRenderer->patchToMaskedImage(target->getObjectString(), 3.0f).image;
+        dragInvalidImage = offlineObjectRenderer->patchToMaskedImage(target->getObjectString(), 3.0f, true).image;
 
         // we set the size of this component / window 3x larger to match the max zoom of canavs (300%)
         setSize(dragImage.getWidth(), dragImage.getHeight());
@@ -119,6 +131,11 @@ public:
         setVisible(true);
 
         setOpaque(false);
+    }
+
+    MouseCursor getMouseCursor() override
+    {
+        return MouseCursor::StandardCursorType::DraggingHandCursor;
     }
 
     static void attachToMouse(ObjectDragAndDrop* parent)
@@ -142,17 +159,12 @@ public:
 
         Canvas* foundCanvas = nullptr;
 
-        if(!underMouse)
-        {
+        if (!underMouse) {
             scale = 1.0f;
-        }
-        else if(auto* cnv = dynamic_cast<Canvas*>(underMouse))
-        {
+        } else if (auto* cnv = dynamic_cast<Canvas*>(underMouse)) {
             foundCanvas = cnv;
             scale = getValue<float>(cnv->zoomScale);
-        }
-        else if(auto* cnv = underMouse->findParentComponentOfClass<Canvas>())
-        {
+        } else if (auto* cnv = underMouse->findParentComponentOfClass<Canvas>()) {
             foundCanvas = cnv;
             scale = getValue<float>(cnv->zoomScale);
         } else if (auto* split = editor->splitView.getSplitAtScreenPosition(screenPos)) {
@@ -163,8 +175,7 @@ public:
             } else {
                 scale = 1.0f;
             }
-        }
-        else {
+        } else {
             scale = 1.0f;
         }
 
@@ -178,8 +189,14 @@ public:
             }
         }
 
-        if(!approximatelyEqual<float>(animatedScale, scale))
-        {
+        // swap the image to show if the current drop position will result in adding a new object
+        auto newDropState = foundCanvas != nullptr;
+        if (dropState != newDropState) {
+            dropState = newDropState;
+            imageComponent.setImage(dropState ? dragImage : dragInvalidImage);
+        }
+
+        if (!approximatelyEqual<float>(animatedScale, scale)) {
             animatedScale = scale;
             auto newWidth = dragImage.getWidth() / 3.0f * animatedScale;
             auto newHeight = dragImage.getHeight() / 3.0f * animatedScale;
@@ -202,9 +219,9 @@ public:
             auto height = dragImage.getHeight() / 3.0f;
 
             if (auto* cnv = dynamic_cast<Canvas*>(underMouse)) {
-                cnv->dragAndDropPaste(objectString, e.getEventRelativeTo(cnv).getPosition() - cnv->canvasOrigin, width, height);
+                cnv->dragAndDropPaste(objectString, e.getEventRelativeTo(cnv).getPosition() - cnv->canvasOrigin, width, height, objectName);
             } else if (auto* cnv = underMouse->findParentComponentOfClass<Canvas>()) {
-                cnv->dragAndDropPaste(objectString, e.getEventRelativeTo(cnv).getPosition() - cnv->canvasOrigin, width, height);
+                cnv->dragAndDropPaste(objectString, e.getEventRelativeTo(cnv).getPosition() - cnv->canvasOrigin, width, height, objectName);
             }
         }
 

@@ -9,8 +9,6 @@ static int srl_is_valid(t_symbol const* s)
     return (s != nullptr && s != gensym(""));
 }
 
-#define IEMGUI_MESSAGES hash("send"), hash("receive"), hash("color"), hash("label"), hash("label_pos"), hash("label_font"), hash("vis_size"), hash("init")
-
 extern "C" {
 char* pdgui_strnescape(char* dst, size_t dstlen, char const* src, size_t srclen);
 }
@@ -18,12 +16,12 @@ char* pdgui_strnescape(char* dst, size_t dstlen, char const* src, size_t srclen)
 class IEMHelper {
 
 public:
-    IEMHelper(t_gobj* iemgui, Object* parent, ObjectBase* base)
+    IEMHelper(pd::WeakReference iemgui, Object* parent, ObjectBase* base)
         : object(parent)
         , gui(base)
         , cnv(parent->cnv)
         , pd(parent->cnv->pd)
-        , ptr(iemgui, parent->cnv->pd)
+        , ptr(iemgui)
     {
     }
 
@@ -103,11 +101,11 @@ public:
             objectParams.addParam(param);
     }
 
-    bool receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms)
+    bool receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms)
     {
-        auto setColour = [this](Value& targetValue, pd::Atom& atom) {
+        auto setColour = [this](Value& targetValue, pd::Atom const& atom) {
             if (atom.isSymbol()) {
-                auto colour = "#FF" + atom.getSymbol().fromFirstOccurrenceOf("#", false, false);
+                auto colour = "#FF" + atom.toString().fromFirstOccurrenceOf("#", false, false);
                 gui->setParameterExcludingListener(targetValue, colour);
             } else {
 
@@ -127,37 +125,37 @@ public:
                 gui->setParameterExcludingListener(targetValue, colour.toString());
             }
         };
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("send"): {
-            if (atoms.size() >= 1)
-                gui->setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
+            if (numAtoms >= 1)
+                gui->setParameterExcludingListener(sendSymbol, atoms[0].toString());
             return true;
         }
         case hash("receive"): {
-            if (atoms.size() >= 1)
-                gui->setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+            if (numAtoms >= 1)
+                gui->setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             return true;
         }
         case hash("color"): {
-            if (atoms.size() > 0)
+            if (numAtoms > 0)
                 setColour(secondaryColour, atoms[0]);
-            if (atoms.size() > 1)
+            if (numAtoms > 1)
                 setColour(primaryColour, atoms[1]);
-            if (atoms.size() > 2)
+            if (numAtoms > 2)
                 setColour(labelColour, atoms[2]);
             gui->repaint();
             gui->updateLabel();
             return true;
         }
         case hash("label"): {
-            if (atoms.size() >= 1) {
-                gui->setParameterExcludingListener(labelText, atoms[0].getSymbol());
+            if (numAtoms >= 1) {
+                gui->setParameterExcludingListener(labelText, atoms[0].toString());
                 gui->updateLabel();
             }
             return true;
         }
         case hash("label_pos"): {
-            if (atoms.size() >= 2) {
+            if (numAtoms >= 2) {
                 gui->setParameterExcludingListener(labelX, static_cast<int>(atoms[0].getFloat()));
                 gui->setParameterExcludingListener(labelY, static_cast<int>(atoms[1].getFloat()));
                 gui->updateLabel();
@@ -165,20 +163,20 @@ public:
             return true;
         }
         case hash("label_font"): {
-            if (atoms.size() >= 2) {
+            if (numAtoms >= 2) {
                 gui->setParameterExcludingListener(labelHeight, static_cast<int>(atoms[1].getFloat()));
                 gui->updateLabel();
             }
             return true;
         }
         case hash("vis_size"): {
-            if (atoms.size() >= 2) {
+            if (numAtoms >= 2) {
                 object->updateBounds();
             }
             return true;
         }
         case hash("init"): {
-            if (atoms.size() >= 1)
+            if (numAtoms >= 1)
                 gui->setParameterExcludingListener(initialise, static_cast<bool>(atoms[0].getFloat()));
             return true;
         }
@@ -276,7 +274,7 @@ public:
 
     void updateLabel(std::unique_ptr<ObjectLabel>& label)
     {
-        const String text = labelText.toString();
+        String const text = labelText.toString();
 
         if (text.isNotEmpty()) {
             if (!label) {
@@ -477,7 +475,7 @@ public:
 
     static Colour convertFromIEMColour(int const color)
     {
-        const uint32 c = (uint32)(color << 8 | 0xFF);
+        uint32 const c = (uint32)(color << 8 | 0xFF);
         return Colour(static_cast<uint32>((0xFF << 24) | ((c >> 24) << 16) | ((c >> 16) << 8) | (c >> 8)));
     }
 
@@ -491,7 +489,7 @@ public:
 
     void setLabelText(String newText)
     {
-        
+
         if (newText.isEmpty())
             newText = String("empty");
 

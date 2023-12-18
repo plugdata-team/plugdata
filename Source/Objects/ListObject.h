@@ -14,7 +14,7 @@ class ListObject final : public ObjectBase {
     Value sizeProperty = SynchronousValue();
 
 public:
-    ListObject(t_gobj* obj, Object* parent)
+    ListObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
         , atomHelper(obj, parent, this)
     {
@@ -118,7 +118,7 @@ public:
             if (numptr - charptr == elem.getNumBytesAsUTF8()) {
                 list.emplace_back(value);
             } else {
-                list.emplace_back(elem);
+                list.emplace_back(pd->generateSymbol(elem));
             }
         }
         if (list != getList()) {
@@ -211,25 +211,6 @@ public:
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
     }
 
-    // If we already know the atoms, this will allow a lock-free update
-    void updateValue(std::vector<pd::Atom> array)
-    {
-        if (!listLabel.isBeingEdited()) {
-            String message;
-            for (auto const& atom : array) {
-                if (message.isNotEmpty()) {
-                    message += " ";
-                }
-                if (atom.isFloat()) {
-                    message += String(atom.getFloat());
-                } else if (atom.isSymbol()) {
-                    message += String(atom.getSymbol());
-                }
-            }
-            listLabel.setText(message, NotificationType::dontSendNotification);
-        }
-    }
-
     void updateValue()
     {
         if (!listLabel.isBeingEdited()) {
@@ -239,11 +220,8 @@ public:
                 if (message.isNotEmpty()) {
                     message += " ";
                 }
-                if (atom.isFloat()) {
-                    message += String(atom.getFloat());
-                } else if (atom.isSymbol()) {
-                    message += String(atom.getSymbol());
-                }
+
+                message += atom.toString();
             }
             listLabel.setText(message, NotificationType::dontSendNotification);
         }
@@ -274,36 +252,24 @@ public:
         }
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("float"),
-            hash("symbol"),
-            hash("list"),
-            hash("set"),
-            hash("send"),
-            hash("receive")
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("float"):
         case hash("symbol"):
         case hash("list"):
         case hash("set"): {
-            updateValue(atoms);
+            updateValue();
             break;
         }
         case hash("send"): {
-            if (atoms.size() >= 1)
-                setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].getSymbol());
+            if (numAtoms >= 1)
+                setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].toString());
             break;
         }
         case hash("receive"): {
-            if (atoms.size() >= 1)
-                setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].getSymbol());
+            if (numAtoms >= 1)
+                setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].toString());
             break;
         }
         default:

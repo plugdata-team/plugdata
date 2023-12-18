@@ -20,9 +20,9 @@ class GraphOnParent final : public ObjectBase {
 
 public:
     // Graph On Parent
-    GraphOnParent(t_gobj* obj, Object* object)
+    GraphOnParent(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
-        , subpatch(new pd::Patch(reinterpret_cast<t_canvas*>(obj), cnv->pd, false))
+        , subpatch(new pd::Patch(obj, cnv->pd, false))
     {
         resized();
 
@@ -55,17 +55,14 @@ public:
         updateCanvas();
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
     {
-        return {
-            hash("coords"),
-            hash("donecanvasdialog")
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
+        case hash("yticks"):
+        case hash("xticks"): {
+            repaint();
+            break;
+        }
         case hash("coords"): {
             Rectangle<int> bounds;
             if (auto gobj = ptr.get<t_gobj>()) {
@@ -224,6 +221,56 @@ public:
             Fonts::drawFittedText(g, text, textArea, object->findColour(PlugDataColour::canvasTextColourId));
         }
     }
+    
+    
+    static void drawTicksForGraph(Graphics& g, t_glist* x, ObjectBase* parent)
+    {
+        auto b = parent->getLocalBounds();
+        t_float y1 = b.getY(), y2 = b.getBottom(), x1 = b.getX(), x2 = b.getRight();
+
+        g.setColour(parent->cnv->findColour(PlugDataColour::guiObjectInternalOutlineColour));
+        if (x->gl_xtick.k_lperb)
+        {
+            t_float f = x->gl_xtick.k_point;
+            for (int i = 0; f < 0.99f * x->gl_x2 + 0.01f * x->gl_x1; i++, f += x->gl_xtick.k_inc)
+            {
+                auto xpos = jmap<float>(f, x->gl_x2, x->gl_x1, x1, x2);
+                int tickpix = (i % x->gl_xtick.k_lperb ? 2 : 4);
+                g.drawLine((int)xpos, (int)y2, (int)xpos, (int)y2 - tickpix);
+                g.drawLine((int)xpos, (int)y1, (int)xpos, (int)y1 + tickpix);
+            }
+            
+            f = x->gl_xtick.k_point - x->gl_xtick.k_inc;
+            for (int i = 1; f > 0.99f * x->gl_x2 + 0.01f * x->gl_x1; i++, f -= x->gl_xtick.k_inc)
+            {
+                auto xpos = jmap<float>(f, x->gl_x2, x->gl_x1, x1, x2);
+                int tickpix = (i % x->gl_xtick.k_lperb ? 2 : 4);
+                g.drawLine(xpos, y2, xpos, y2 - tickpix);
+                g.drawLine(xpos, y1, xpos, y1 + tickpix);
+            }
+        }
+
+        if (x->gl_ytick.k_lperb)
+        {
+            t_float f = x->gl_ytick.k_point;
+            for (int i = 0; f < 0.99f * x->gl_y2 + 0.01f * x->gl_y1; i++, f += x->gl_ytick.k_inc)
+            {
+                auto ypos = jmap<float>(f, x->gl_y2, x->gl_y1, y1, y2);
+                int tickpix = (i % x->gl_ytick.k_lperb ? 2 : 4);
+                g.drawLine(x1, ypos, x1 + tickpix, ypos);
+                g.drawLine(x2, ypos, x2 - tickpix, ypos);
+            }
+            
+            f = x->gl_ytick.k_point - x->gl_ytick.k_inc;
+            for (int i = 1; f > 0.99f * x->gl_y2 + 0.01f * x->gl_y1; i++, f -= x->gl_ytick.k_inc)
+            {
+                auto ypos = jmap<float>(f, x->gl_y2, x->gl_y1, y1, y2);
+                int tickpix = (i % x->gl_ytick.k_lperb ? 2 : 4);
+                g.drawLine(x1, ypos, x1 + tickpix, ypos);
+                g.drawLine(x2, ypos, x2 - tickpix, ypos);
+            }
+        }
+    }
 
     void paintOverChildren(Graphics& g) override
     {
@@ -241,6 +288,11 @@ public:
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        
+        if(auto graph = ptr.get<t_glist>())
+        {
+            drawTicksForGraph(g, graph.get(), this);
+        }
     }
 
     pd::Patch::Ptr getPatch() override
@@ -291,7 +343,7 @@ public:
                     _this->cnv->setSelected(_this->object, false);
                     _this->object->cnv->editor->sidebar->hideParameters();
 
-                    _this->object->setType(_this->getText(), _this->ptr.getRaw<t_gobj>());
+                    _this->object->setType(_this->getText(), _this->ptr);
                 });
             } else {
                 updateCanvas();

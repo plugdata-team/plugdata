@@ -24,7 +24,7 @@ class ScopeBase : public ObjectBase
     Value sizeProperty = SynchronousValue();
 
 public:
-    ScopeBase(t_gobj* ptr, Object* object)
+    ScopeBase(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
     {
 
@@ -37,7 +37,7 @@ public:
         objectParameters.addParamInt("Samples per point", cGeneral, &samplesPerPoint, 256);
         objectParameters.addParamInt("Buffer size", cGeneral, &bufferSize, 128);
         objectParameters.addParamInt("Delay", cGeneral, &delay, 0);
-        objectParameters.addParamRange("Signal Range", cGeneral, &signalRange, Array<var>{var(-1.0f), var(1.0f)});
+        objectParameters.addParamRange("Signal Range", cGeneral, &signalRange, Array<var> { var(-1.0f), var(1.0f) });
 
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
 
@@ -276,40 +276,30 @@ public:
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
             auto symbol = receiveSymbol.toString();
             if (auto scope = ptr.get<void>())
-                pd->sendDirectMessage(scope.get(), "receive", { symbol });
+                pd->sendDirectMessage(scope.get(), "receive", { pd->generateSymbol(symbol) });
         }
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("receive"),
-            hash("fgcolor"),
-            hash("bgcolor"),
-            hash("gridcolor")
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("receive"): {
-            if (atoms.size() >= 1)
-                setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+            if (numAtoms >= 1)
+                setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             break;
         }
         case hash("fgcolor"): {
-            if (atoms.size() == 3)
+            if (numAtoms == 3)
                 setParameterExcludingListener(primaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
             break;
         }
         case hash("bgcolor"): {
-            if (atoms.size() == 3)
+            if (numAtoms == 3)
                 setParameterExcludingListener(secondaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
             break;
         }
         case hash("gridcolor"): {
-            if (atoms.size() == 3)
+            if (numAtoms == 3)
                 setParameterExcludingListener(gridColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
             break;
         }
@@ -322,7 +312,7 @@ public:
 // Hilarious use of templates to support both cyclone/scope and else/oscope in the same code
 class ScopeObject final : public ScopeBase<t_fake_scope> {
 public:
-    ScopeObject(t_gobj* ptr, Object* object)
+    ScopeObject(pd::WeakReference ptr, Object* object)
         : ScopeBase<t_fake_scope>(ptr, object)
     {
     }
@@ -330,7 +320,7 @@ public:
 
 class OscopeObject final : public ScopeBase<t_fake_oscope> {
 public:
-    OscopeObject(t_gobj* ptr, Object* object)
+    OscopeObject(pd::WeakReference ptr, Object* object)
         : ScopeBase<t_fake_oscope>(ptr, object)
     {
     }

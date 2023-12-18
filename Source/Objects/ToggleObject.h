@@ -15,7 +15,7 @@ class ToggleObject final : public ObjectBase {
     IEMHelper iemHelper;
 
 public:
-    ToggleObject(t_gobj* ptr, Object* object)
+    ToggleObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {
@@ -150,20 +150,9 @@ public:
         repaint();
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("bang"),
-            hash("float"),
-            hash("list"),
-            hash("nonzero"),
-            IEMGUI_MESSAGES
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("bang"): {
             value = !value;
             setToggleStateFromFloat(value);
@@ -177,12 +166,12 @@ public:
             break;
         }
         case hash("nonzero"): {
-            if (atoms.size() >= 1)
+            if (numAtoms >= 1)
                 setParameterExcludingListener(nonZero, atoms[0].getFloat());
             break;
         }
         default: {
-            iemHelper.receiveObjectMessage(symbol, atoms);
+            iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
             break;
         }
         }

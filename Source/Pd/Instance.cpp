@@ -42,7 +42,7 @@ struct pd::Instance::internal {
 
     static void instance_multi_symbol(pd::Instance* ptr, char const* recv, char const* sym)
     {
-        ptr->enqueueFunctionAsync([ptr, recv, sym]() mutable { ptr->processMessage({ String("symbol"), String::fromUTF8(recv), std::vector<Atom>(1, String::fromUTF8(sym)) }); });
+        ptr->enqueueFunctionAsync([ptr, recv, sym]() mutable { ptr->processMessage({ String("symbol"), String::fromUTF8(recv), std::vector<Atom>(1, ptr->generateSymbol(sym)) }); });
     }
 
     static void instance_multi_list(pd::Instance* ptr, char const* recv, int argc, t_atom* argv)
@@ -52,7 +52,7 @@ struct pd::Instance::internal {
             if (argv[i].a_type == A_FLOAT)
                 mess.list[i] = Atom(atom_getfloat(argv + i));
             else if (argv[i].a_type == A_SYMBOL)
-                mess.list[i] = Atom(String::fromUTF8(atom_getsymbol(argv + i)->s_name));
+                mess.list[i] = Atom(atom_getsymbol(argv + i));
         }
 
         ptr->enqueueFunctionAsync([ptr, mess]() mutable { ptr->processMessage(mess); });
@@ -65,7 +65,7 @@ struct pd::Instance::internal {
             if (argv[i].a_type == A_FLOAT)
                 mess.list[i] = Atom(atom_getfloat(argv + i));
             else if (argv[i].a_type == A_SYMBOL)
-                mess.list[i] = Atom(String::fromUTF8(atom_getsymbol(argv + i)->s_name));
+                mess.list[i] = Atom(atom_getsymbol(argv + i));
         }
         ptr->enqueueFunctionAsync([ptr, mess]() mutable { ptr->processMessage(std::move(mess)); });
     }
@@ -79,7 +79,7 @@ struct pd::Instance::internal {
 
     static void instance_multi_controlchange(pd::Instance* ptr, int channel, int controller, int value)
     {
-        ptr->enqueueFunctionAsync([ptr, channel, controller, value]() mutable { 
+        ptr->enqueueFunctionAsync([ptr, channel, controller, value]() mutable {
             ptr->receiveControlChange(channel + 1, controller, value);
         });
     }
@@ -100,21 +100,21 @@ struct pd::Instance::internal {
 
     static void instance_multi_aftertouch(pd::Instance* ptr, int channel, int value)
     {
-        ptr->enqueueFunctionAsync([ptr, channel, value]() mutable { 
+        ptr->enqueueFunctionAsync([ptr, channel, value]() mutable {
             ptr->receiveAftertouch(channel + 1, value);
         });
     }
 
     static void instance_multi_polyaftertouch(pd::Instance* ptr, int channel, int pitch, int value)
     {
-        ptr->enqueueFunctionAsync([ptr, channel, pitch, value]() mutable { 
+        ptr->enqueueFunctionAsync([ptr, channel, pitch, value]() mutable {
             ptr->receivePolyAftertouch(channel + 1, pitch, value);
         });
     }
 
     static void instance_multi_midibyte(pd::Instance* ptr, int port, int byte)
     {
-        ptr->enqueueFunctionAsync([ptr, port, byte]() mutable { 
+        ptr->enqueueFunctionAsync([ptr, port, byte]() mutable {
             ptr->receiveMidiByte(port + 1, byte);
         });
     }
@@ -129,7 +129,8 @@ struct pd::Instance::internal {
 namespace pd {
 
 Instance::Instance(String const& symbol)
-    : consoleHandler(this)
+    : messageDispatcher(std::make_unique<MessageDispatcher>())
+    , consoleHandler(this)
 {
     pd::Setup::initialisePd();
     objectImplementations = std::make_unique<::ObjectImplementationManager>(this);
@@ -157,16 +158,31 @@ void Instance::initialisePd(String& pdlua_version)
 
     libpd_set_instance(static_cast<t_pdinstance*>(instance));
 
-    set_instance_lock(
+    setup_lock(
         static_cast<void const*>(&audioLock),
         [](void* lock) {
             static_cast<CriticalSection*>(lock)->enter();
         },
         [](void* lock) {
             static_cast<CriticalSection*>(lock)->exit();
-        },
+        });
+
+    setup_weakreferences(
         [](void* instance, void* ref) {
             static_cast<pd::Instance*>(instance)->clearWeakReferences(ref);
+        },
+        [](void* instance, void* ref, void* weakref) {
+            auto** reference_state = reinterpret_cast<pd_weak_reference**>(weakref);
+            *reference_state = new pd_weak_reference(true);
+            static_cast<pd::Instance*>(instance)->registerWeakReference(ref, *reference_state);
+        },
+        [](void* instance, void* ref, void* weakref) {
+            auto** reference_state = reinterpret_cast<pd_weak_reference**>(weakref);
+            static_cast<pd::Instance*>(instance)->unregisterWeakReference(ref, *reference_state);
+            delete *reference_state;
+        },
+        [](void* ref) -> int {
+            return ((pd_weak_reference*)ref)->load();
         });
 
     midiReceiver = pd::Setup::createMIDIHook(this, reinterpret_cast<t_plugdata_noteonhook>(internal::instance_multi_noteon), reinterpret_cast<t_plugdata_controlchangehook>(internal::instance_multi_controlchange), reinterpret_cast<t_plugdata_programchangehook>(internal::instance_multi_programchange),
@@ -248,29 +264,8 @@ void Instance::initialisePd(String& pdlua_version)
     };
 
     auto message_trigger = [](void* instance, void* target, t_symbol* symbol, int argc, t_atom* argv) {
-        ScopedLock lock(static_cast<Instance*>(instance)->messageListenerLock);
-
-        auto& listeners = static_cast<Instance*>(instance)->messageListeners;
-        if (!symbol || !listeners.count(target))
-            return;
-
-        auto sym = String::fromUTF8(symbol->s_name);
-
-        // Create a new vector to hold the null listeners
-        std::vector<std::vector<juce::WeakReference<pd::MessageListener>>::iterator> nullListeners;
-
-        for (auto it = listeners[target].begin(); it != listeners[target].end(); ++it) {
-            auto listener = it->get();
-            if (listener) {
-                listener->receiveMessage(sym, argc, argv);
-            } else
-                nullListeners.push_back(it);
-        }
-
-        // Remove all the null listeners from the original vector using the iterators in the nullListeners vector
-        for (int i = nullListeners.size() - 1; i >= 0; i--) {
-            listeners[target].erase(nullListeners[i]);
-        }
+        auto* pd = reinterpret_cast<pd::Instance*>(instance);
+        pd->messageDispatcher->enqueueMessage(target, symbol, argc, argv);
     };
 
     register_gui_triggers(static_cast<t_pdinstance*>(instance), this, gui_trigger, message_trigger);
@@ -304,7 +299,8 @@ void Instance::initialisePd(String& pdlua_version)
 
     // Hack to make sure ofelia doesn't get initialised during plugin validation, as this can cause problems
     MessageManager::callAsync([_this = juce::WeakReference(this)]() {
-        if(!_this.get()) return;
+        if (!_this.get())
+            return;
         _this->ofelia = std::make_unique<Ofelia>(static_cast<t_pdinstance*>(_this->instance));
     });
 
@@ -437,7 +433,7 @@ void Instance::sendList(char const* receiver, std::vector<Atom> const& list) con
         if (list[i].isFloat())
             libpd_set_float(argv + i, list[i].getFloat());
         else
-            libpd_set_symbol(argv + i, list[i].getSymbol().toRawUTF8());
+            libpd_set_symbol(argv + i, list[i].getSymbol()->s_name);
     }
     libpd_list(receiver, static_cast<int>(list.size()), argv);
 }
@@ -455,7 +451,7 @@ void Instance::sendTypedMessage(void* object, char const* msg, std::vector<Atom>
         if (list[i].isFloat())
             libpd_set_float(argv + i, list[i].getFloat());
         else
-            libpd_set_symbol(argv + i, list[i].getSymbol().toRawUTF8());
+            libpd_set_symbol(argv + i, list[i].getSymbol()->s_name);
     }
 
     pd_typedmess(static_cast<t_pd*>(object), generateSymbol(msg), static_cast<int>(list.size()), argv);
@@ -474,13 +470,13 @@ void Instance::processMessage(Message mess)
     if (mess.destination == "param" && mess.list.size() >= 2) {
         if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
             return;
-        auto name = mess.list[0].getSymbol();
+        auto name = mess.list[0].toString();
         float value = mess.list[1].getFloat();
         performParameterChange(0, name, value);
     } else if (mess.destination == "param_change" && mess.list.size() >= 2) {
         if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
             return;
-        auto name = mess.list[0].getSymbol();
+        auto name = mess.list[0].toString();
         int state = mess.list[1].getFloat() != 0;
         performParameterChange(1, name, state);
         // JYG added This
@@ -498,7 +494,7 @@ void Instance::processSend(dmessage mess)
                 if (mess.list[i].isFloat())
                     SETFLOAT(argv + i, mess.list[i].getFloat());
                 else if (mess.list[i].isSymbol()) {
-                    SETSYMBOL(argv + i, generateSymbol(mess.list[i].getSymbol()));
+                    SETSYMBOL(argv + i, mess.list[i].getSymbol());
                 } else
                     SETFLOAT(argv + i, 0.0);
             }
@@ -506,7 +502,7 @@ void Instance::processSend(dmessage mess)
         } else if (mess.selector == "float" && !mess.list.empty() && mess.list[0].isFloat()) {
             pd_float(obj.get(), mess.list[0].getFloat());
         } else if (mess.selector == "symbol" && !mess.list.empty() && mess.list[0].isSymbol()) {
-            pd_symbol(obj.get(), generateSymbol(mess.list[0].getSymbol()));
+            pd_symbol(obj.get(), mess.list[0].getSymbol());
         } else {
             sendTypedMessage(obj.get(), mess.selector.toRawUTF8(), mess.list);
         }
@@ -517,25 +513,12 @@ void Instance::processSend(dmessage mess)
 
 void Instance::registerMessageListener(void* object, MessageListener* messageListener)
 {
-    ScopedLock lock(messageListenerLock);
-    messageListeners[object].emplace_back(messageListener);
+    messageDispatcher->addMessageListener(object, messageListener);
 }
 
 void Instance::unregisterMessageListener(void* object, MessageListener* messageListener)
 {
-    ScopedLock lock(messageListenerLock);
-
-    if (!messageListeners.count(object))
-        return;
-
-    auto& listeners = messageListeners[object];
-    auto it = std::find(listeners.begin(), listeners.end(), messageListener);
-
-    if (it != listeners.end())
-        listeners.erase(it);
-
-    if (listeners.empty())
-        messageListeners.erase(object);
+    messageDispatcher->removeMessageListener(object, messageListener);
 }
 
 void Instance::registerWeakReference(void* ptr, pd_weak_reference* ref)
@@ -593,7 +576,7 @@ void Instance::sendDirectMessage(void* object, String const& msg)
 {
 
     lockAudioThread();
-    processSend(dmessage(this, object, String(), "symbol", std::vector<Atom>(1, msg)));
+    processSend(dmessage(this, object, String(), "symbol", std::vector<Atom>(1, generateSymbol(msg))));
     unlockAudioThread();
 }
 
@@ -638,7 +621,7 @@ Patch::Ptr Instance::openPatch(File const& toOpen)
 
     cnv = static_cast<t_canvas*>(pd::Interface::createCanvas(file, dir));
 
-    return new Patch(cnv, this, true, toOpen);
+    return new Patch(pd::WeakReference(cnv, this), this, true, toOpen);
 }
 
 void Instance::setThis() const
@@ -698,12 +681,12 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
     auto* obj = generateSymbol(snd)->s_thing;
 
     auto defaultFile = File(location);
-    if(!defaultFile.exists())
-    {
+    if (!defaultFile.exists()) {
         defaultFile = SettingsFile::getInstance()->getLastBrowserPathForId("openpanel");
-        if(!defaultFile.exists()) defaultFile = ProjectInfo::appDataDir;
+        if (!defaultFile.exists())
+            defaultFile = ProjectInfo::appDataDir;
     }
-    
+
     if (type) {
         MessageManager::callAsync(
             [this, obj, defaultFile, openMode, callback = String(callbackName)]() mutable {
@@ -716,14 +699,14 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
                 } else {
                     folderChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories | FileBrowserComponent::canSelectFiles | FileBrowserComponent::canSelectMultipleItems);
                 }
-                
+
                 static std::unique_ptr<FileChooser> openChooser;
                 openChooser = std::make_unique<FileChooser>("Open...", defaultFile, "", SettingsFile::getInstance()->wantsNativeDialog());
                 openChooser->launchAsync(folderChooserFlags, [this, obj, callback](FileChooser const& fileChooser) {
                     auto const files = fileChooser.getResults();
                     if (files.isEmpty())
                         return;
-                    
+
                     auto parentDirectory = files.getFirst().getParentDirectory();
                     SettingsFile::getInstance()->setLastBrowserPathForId("openpanel", parentDirectory);
 
@@ -750,8 +733,7 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
     } else {
         MessageManager::callAsync(
             [this, obj, defaultFile, callback = String(callbackName)]() mutable {
-                
-                Dialogs::showSaveDialog([this, obj, callback](File& result){
+                Dialogs::showSaveDialog([this, obj, callback](File& result) {
                     auto pathName = result.getFullPathName();
                     const auto* path = pathName.toRawUTF8();
 
@@ -761,7 +743,8 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
                     lockAudioThread();
                     pd_typedmess(obj, generateSymbol(callback), 1, argv);
                     unlockAudioThread();
-                }, "", "openpanel");
+                },
+                    "", "openpanel");
             });
     }
 }

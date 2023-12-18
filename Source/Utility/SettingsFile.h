@@ -20,6 +20,7 @@ public:
 
 // Class that manages the settings file
 class SettingsFile : public ValueTree::Listener
+    , public FileSystemWatcher::Listener
     , public Timer
     , public DeletedAtShutdown {
 public:
@@ -39,7 +40,7 @@ public:
 
     void setLastBrowserPathForId(String const& identifier, File& path);
     File getLastBrowserPathForId(String const& identifier);
-    
+
     void addToRecentlyOpened(File const& path);
 
     void initialisePathsTree();
@@ -47,6 +48,8 @@ public:
     void initialiseOverlayTree();
 
     void reloadSettings();
+        
+    void fileChanged(File const file, FileSystemWatcher::FileSystemEvent fileEvent) override;
 
     void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, Identifier const& property) override;
     void valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded) override;
@@ -84,6 +87,8 @@ public:
 
 private:
     bool isInitialised = false;
+        
+    FileSystemWatcher settingsFileWatcher;
 
     Array<SettingsFileListener*> listeners;
 
@@ -97,6 +102,7 @@ private:
         { "theme", var("light") },
         { "oversampling", var(0) },
         { "protected", var(1) },
+        { "debug_connections", var(1) },
         { "internal_synth", var(0) },
         { "grid_enabled", var(1) },
         { "grid_type", var(6) },
@@ -120,6 +126,8 @@ private:
         { "centre_sidepanel_buttons", var(true) },
         { "show_all_audio_device_rates", var(false) },
         { "add_object_menu_pinned", var(false) },
+        { "autosave_interval", var(120) },
+        { "autosave_enabled", var(1) },
         { "macos_buttons",
 #if JUCE_MAC
             var(true)

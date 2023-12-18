@@ -14,12 +14,13 @@ class CloneObject final : public TextBase {
     pd::Patch::Ptr subpatch;
 
 public:
-    CloneObject(t_gobj* obj, Object* object)
+    CloneObject(pd::WeakReference obj, Object* object)
         : TextBase(obj, object)
     {
         if (auto gobj = ptr.get<t_gobj>()) {
             if (clone_get_n(gobj.get()) > 0) {
-                subpatch = new pd::Patch(clone_get_instance(gobj.get(), 0), cnv->pd, false);
+                auto* patch = clone_get_instance(gobj.get(), 0);
+                subpatch = new pd::Patch(pd::WeakReference(patch, cnv->pd), cnv->pd, false);
             } else {
                 subpatch = nullptr;
             }
@@ -67,7 +68,8 @@ public:
         pd::Patch::Ptr patch;
         if (auto gobj = ptr.get<t_gobj>()) {
             if (isPositiveAndBelow(idx, clone_get_n(gobj.get()))) {
-                patch = new pd::Patch(clone_get_instance(gobj.get(), idx), cnv->pd, false);
+                auto* patchPtr = clone_get_instance(gobj.get(), idx);
+                patch = new pd::Patch(pd::WeakReference(patchPtr, cnv->pd), cnv->pd, false);
             }
         }
 
@@ -114,18 +116,11 @@ public:
         cnv->editor->addTab(newCanvas);
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("vis")
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("vis"): {
-            if (atoms.size() >= 2) {
+            if (numAtoms >= 2) {
                 openClonePatch(atoms[0].getFloat(), atoms[1].getFloat());
             }
             break;

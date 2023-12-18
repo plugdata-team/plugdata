@@ -8,8 +8,11 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_dsp/juce_dsp.h>
+
 #include "Utility/Config.h"
 #include "Utility/Limiter.h"
+#include "Utility/SettingsFile.h"
+#include <Utility/AudioMidiFifo.h>
 
 #include "Pd/Instance.h"
 #include "Pd/Patch.h"
@@ -23,8 +26,9 @@ class SettingsFile;
 class StatusbarSource;
 struct PlugDataLook;
 class PluginEditor;
+class ConnectionMessageDisplay;
 class PluginProcessor : public AudioProcessor
-    , public pd::Instance {
+    , public pd::Instance, public SettingsFileListener {
 public:
     PluginProcessor();
 
@@ -46,7 +50,7 @@ public:
     AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
 
-    const String getName() const override;
+    String const getName() const override;
 
     bool acceptsMidi() const override;
     bool producesMidi() const override;
@@ -56,7 +60,7 @@ public:
     int getNumPrograms() override;
     int getCurrentProgram() override;
     void setCurrentProgram(int index) override;
-    const String getProgramName(int index) override;
+    String const getProgramName(int index) override;
     void changeProgramName(int index, String const& newName) override;
 
     void getStateInformation(MemoryBlock& destData) override;
@@ -78,7 +82,8 @@ public:
 
     void reloadAbstractions(File changedPatch, t_glist* except) override;
 
-    void process(dsp::AudioBlock<float>, MidiBuffer&);
+    void processConstant(dsp::AudioBlock<float>, MidiBuffer&);
+    void processVariable(dsp::AudioBlock<float>, MidiBuffer&);
 
     bool canAddBus(bool isInput) const override
     {
@@ -92,6 +97,9 @@ public:
     }
 
     void savePatchTabPositions();
+    void updatePatchUndoRedoState();
+        
+    void settingsFileReloaded() override;
 
     void initialiseFilesystem();
     void updateSearchPaths();
@@ -101,10 +109,9 @@ public:
     void sendParameters();
 
     bool isInPluginMode();
-        
+
     Array<PluginEditor*> getEditors() const;
 
-    void messageEnqueued() override;
     void performParameterChange(int type, String const& name, float value) override;
 
     // Jyg added this
@@ -129,7 +136,6 @@ public:
 
     int lastUIWidth = 1000, lastUIHeight = 650;
 
-    std::vector<float*> channelPointers;
     std::atomic<float>* volume;
 
     SettingsFile* settingsFile;
@@ -163,21 +169,25 @@ public:
     std::atomic<bool> enableInternalSynth = false;
 
     OwnedArray<PluginEditor> openedEditors;
-        
+    Component::SafePointer<ConnectionMessageDisplay> connectionListener;
+
 private:
-    void processInternal();
-
-
     SmoothedValue<float, ValueSmoothingTypes::Linear> smoothedGain;
 
     int audioAdvancement = 0;
-    std::vector<float> audioBufferIn;
-    std::vector<float> audioBufferOut;
+
+    bool variableBlockSize = false;
+    AudioBuffer<float> audioBufferIn;
+    AudioBuffer<float> audioBufferOut;
+
+    std::vector<float> audioVectorIn;
+    std::vector<float> audioVectorOut;
+
+    std::unique_ptr<AudioMidiFifo> inputFifo;
+    std::unique_ptr<AudioMidiFifo> outputFifo;
 
     MidiBuffer midiBufferIn;
     MidiBuffer midiBufferOut;
-    MidiBuffer midiBufferTemp;
-    MidiBuffer midiBufferCopy;
     MidiBuffer midiBufferInternalSynth;
 
     AudioProcessLoadMeasurer cpuLoadMeasurer;
@@ -195,8 +205,9 @@ private:
 
     std::map<unsigned long, std::unique_ptr<Component>> textEditorDialogs;
 
-    static inline const String else_version = "ELSE v1.0-rc10";
-    static inline const String cyclone_version = "cyclone v0.8-0";
+    static inline String const else_version = "ELSE v1.0-rc10";
+    static inline String const cyclone_version = "cyclone v0.8-0";
+    static inline String const heavylib_version = "heavylib v0.3.1";
     // this gets updated with live version data later
     static String pdlua_version;
 

@@ -86,6 +86,12 @@ public:
         min = minimum;
     }
 
+    void setMinMax(double minimum, double maximum)
+    {
+        setMinimum(minimum);
+        setMaximum(maximum);
+    }
+
     void setLogarithmicHeight(double logHeight)
     {
         logarithmicHeight = logHeight;

@@ -28,7 +28,7 @@ class NoteObject final : public ObjectBase {
     bool wasSelectedOnMouseDown = false;
 
 public:
-    NoteObject(t_gobj* obj, Object* object)
+    NoteObject(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
     {
         locked = getValue<bool>(object->locked);
@@ -95,6 +95,11 @@ public:
         objectParameters.addParamBool("Fill background", cAppearance, &fillBackground, { "No", "Yes" }, 0);
         objectParameters.addParamCombo("Justification", cAppearance, &justification, { "Left", "Centered", "Right" }, 1);
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
+    }
+    
+    bool isTransparent() override
+    {
+        return true;
     }
 
     void update() override
@@ -363,7 +368,7 @@ public:
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
             auto receive = receiveSymbol.toString();
             if (auto note = ptr.get<t_fake_note>()) {
-                pd->sendDirectMessage(note.get(), "receive", {receive});
+                pd->sendDirectMessage(note.get(), "receive", { pd->generateSymbol(receive) });
             }
         } else if (v.refersToSameSourceAs(justification)) {
             auto justificationType = getValue<int>(justification);
@@ -411,30 +416,9 @@ public:
         object->updateBounds();
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("font"),
-            hash("italic"),
-            hash("size"),
-            hash("underline"),
-            hash("bold"),
-            hash("prepend"),
-            hash("append"),
-            hash("set"),
-            hash("color"),
-            hash("bgcolor"),
-            hash("width"),
-            hash("outline"),
-            hash("receive"),
-            hash("bg"),
-            hash("just")
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("font"): {
             if (auto note = ptr.get<t_fake_note>()) {
                 font = String::fromUTF8(note->x_fontname->s_name);
@@ -506,12 +490,12 @@ public:
             }
         }
         case hash("receive"): {
-            if (atoms.size() >= 1)
-                setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+            if (numAtoms >= 1)
+                setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             break;
         }
         case hash("bg"): {
-            if (atoms.size() > 0 && atoms[0].isFloat())
+            if (numAtoms > 0 && atoms[0].isFloat())
                 fillBackground = atoms[0].getFloat();
             break;
         }

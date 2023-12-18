@@ -134,15 +134,14 @@ public:
 
             // Custom board option
             if (idx == 8 && !dontOpenFileChooser) {
-                Dialogs::showOpenDialog([this](File& result){
+                Dialogs::showOpenDialog([this](File& result) {
                     if (result.existsAsFile()) {
                         customBoardDefinition = result;
                     } else {
                         customBoardDefinition = File();
                     }
-                }, true, false, "*.json", "DaisyCustomBoard");
-            } else {
-                customBoardDefinition = File();
+                },
+                    true, false, "*.json", "DaisyCustomBoard");
             }
         }
 
@@ -151,15 +150,14 @@ public:
 
             // Custom linker option
             if (idx == 4 && !dontOpenFileChooser) {
-                Dialogs::showOpenDialog([this](File& result){
+                Dialogs::showOpenDialog([this](File& result) {
                     if (result.existsAsFile()) {
                         customLinker = result;
                     } else {
                         customLinker = File();
                     }
-                }, true, false, "*.lds", "DaisyCustomLinker");
-            } else {
-                customLinker = File();
+                },
+                    true, false, "*.lds", "DaisyCustomLinker");
             }
         }
     }

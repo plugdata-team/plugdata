@@ -31,8 +31,6 @@ using CustomPanelCreateFn = std::function<PropertiesPanelProperty*(void)>;
 
 using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Value*, StringArray, var, CustomPanelCreateFn>;
 
-
-
 class ObjectParameters {
 public:
     ObjectParameters() = default;
@@ -139,7 +137,7 @@ public:
     {
         objectParameters.add(makeParam("Size", singleDimension ? tInt : tRangeInt, cDimensions, sizeValue, StringArray(), var()));
     }
-    
+
     void addParamCustom(CustomPanelCreateFn customComponentFn)
     {
         objectParameters.add(makeParam("", tCustom, cGeneral, nullptr, StringArray(), var(), customComponentFn));

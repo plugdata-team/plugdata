@@ -50,7 +50,7 @@ bool juce_performDragDropText(String const&, bool& shouldStop);
 class ZoomableDragAndDropContainer::DragImageComponent : public Component
     , public Timer {
 public:
-    DragImageComponent(ScaledImage const& im,
+    DragImageComponent(ScaledImage const& im, ScaledImage const& invalidIm,
         var const& desc,
         Component* const sourceComponent,
         MouseInputSource const* draggingSource,
@@ -59,6 +59,7 @@ public:
         bool canZoom)
         : sourceDetails(desc, sourceComponent, Point<int>())
         , image(im)
+        , invalidImage(invalidIm)
         , isZoomable(canZoom)
         , owner(ddc)
         , mouseDragSource(draggingSource->getComponentUnderMouse())
@@ -149,6 +150,9 @@ public:
             updateLocation(true, currentScreenPos);
             Component* target = nullptr;
             auto* newTarget = findTarget(currentScreenPos, sourceDetails.localPosition, target);
+
+            if (target != previousTarget)
+                zoomImageComponent.setImage(target ? image.getImage() : invalidImage.getImage());
 
             if (isZoomable) {
                 if (target == nullptr) {
@@ -310,6 +314,7 @@ public:
 
 private:
     ScaledImage image;
+    ScaledImage invalidImage;
 
     bool isZoomable = false;
 
@@ -463,22 +468,22 @@ private:
                     auto canMoveFiles = false;
 
                     if (owner.shouldDropFilesWhenDraggedExternally(details, files, canMoveFiles) && !files.isEmpty()) {
-                        MessageManager::callAsync([this, files, canMoveFiles] { 
+                        MessageManager::callAsync([this, files, canMoveFiles] {
                             DragAndDropContainer::performExternalDragDropOfFiles(files, canMoveFiles);
                             deleteSelf();
                         });
-                        
+
                         return;
                     }
 
                     String text;
 
                     if (owner.shouldDropTextWhenDraggedExternally(details, text) && text.isNotEmpty()) {
-                        MessageManager::callAsync([this, text] { 
+                        MessageManager::callAsync([this, text] {
                             DragAndDropContainer::performExternalDragDropOfText(text);
                             deleteSelf(); // Delete asynchronously so the stack can unwind
                         });
-                        
+
                         return;
                     }
                 }
@@ -526,6 +531,7 @@ ZoomableDragAndDropContainer::~ZoomableDragAndDropContainer() = default;
 void ZoomableDragAndDropContainer::startDragging(var const& sourceDescription,
     Component* sourceComponent,
     ScaledImage const& dragImage,
+    ScaledImage const& invalidImage,
     bool allowDraggingToExternalWindows,
     Point<int> const* imageOffsetFromMouse,
     MouseInputSource const* inputSourceCausingDrag,
@@ -554,9 +560,9 @@ void ZoomableDragAndDropContainer::startDragging(var const& sourceDescription,
         Point<double> offset;
     };
 
-    auto const imageToUse = [&]() -> ImageAndOffset {
-        if (dragImage.getImage().isValid())
-            return { dragImage, imageOffsetFromMouse != nullptr ? dragImage.getScaledBounds().getConstrainedPoint(-imageOffsetFromMouse->toDouble()) : dragImage.getScaledBounds().getCentre() };
+    auto const imageToUse = [&](ScaledImage inputImage) -> ImageAndOffset {
+        if (inputImage.getImage().isValid())
+            return { inputImage, imageOffsetFromMouse != nullptr ? dragImage.getScaledBounds().getConstrainedPoint(-imageOffsetFromMouse->toDouble()) : dragImage.getScaledBounds().getCentre() };
 
         const auto scaleFactor = 2.0;
         auto image = sourceComponent->createComponentSnapshot(sourceComponent->getLocalBounds(), true, (float)scaleFactor)
@@ -587,10 +593,10 @@ void ZoomableDragAndDropContainer::startDragging(var const& sourceDescription,
         compositeContext.drawImageAt(image, 0, 0);
 
         return { ScaledImage(composite, scaleFactor), clipped };
-    }();
+    };
 
-    auto* dragImageComponent = dragImageComponents.add(new DragImageComponent(imageToUse.image, sourceDescription, sourceComponent,
-        draggingSource, *this, imageToUse.offset.roundToInt(), canZoom));
+    auto* dragImageComponent = dragImageComponents.add(new DragImageComponent(imageToUse(dragImage).image, imageToUse(invalidImage).image, sourceDescription, sourceComponent,
+        draggingSource, *this, imageToUse(dragImage).offset.roundToInt(), canZoom));
 
     if (allowDraggingToExternalWindows) {
         if (!Desktop::canUseSemiTransparentWindows())
@@ -619,7 +625,9 @@ void ZoomableDragAndDropContainer::startDragging(var const& sourceDescription,
 #endif
 
     dragOperationStarted(dragImageComponent->sourceDetails);
-    TopLevelWindow::getActiveTopLevelWindow()->repaint();
+    if (auto* topLevel = TopLevelWindow::getActiveTopLevelWindow()) {
+        topLevel->repaint();
+    }
 }
 
 bool ZoomableDragAndDropContainer::isDragAndDropActive() const

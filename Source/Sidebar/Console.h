@@ -12,8 +12,8 @@
 class ConsoleSettings : public Component {
 public:
     struct ConsoleSettingsButton : public TextButton {
-        const String icon;
-        const String description;
+        String const icon;
+        String const description;
 
         ConsoleSettingsButton(String iconString, String descriptionString, bool toggleButton)
             : icon(std::move(iconString))
@@ -173,13 +173,17 @@ public:
                 if (!e.mods.isShiftDown() && !e.mods.isCommandDown()) {
                     console.selectedItems.clear();
                 }
-                
+
                 auto& [object, message, type, length, repeats] = console.pd->getConsoleMessages()[idx];
-                if(e.mods.isPopupMenu())
-                {
+                if (e.mods.isPopupMenu()) {
+                    
+                    
                     PopupMenu menu;
-                    menu.addItem("Copy", [this](){ console.copySelectionToClipboard(); });
-                    menu.addItem("Show origin", object != nullptr, false, [this, target = object](){ highlightSearchTarget(target); });
+                    menu.addItem("Copy", [this]() { console.copySelectionToClipboard(); });
+                    menu.addItem("Show origin", object != nullptr, false, [this, target = object]() {
+                        auto* editor = findParentComponentOfClass<PluginEditor>();
+                        editor->highlightSearchTarget(target, true);
+                    });
                     menu.showMenuAsync(PopupMenu::Options());
                 }
 
@@ -187,111 +191,6 @@ public:
                 console.repaint();
             }
             
-            
-            Array<Canvas*> getAllCanvases(PluginEditor* editor)
-            {
-                Array<Canvas*> allCanvases;
-                for(auto* split : editor->splitView.splits)
-                {
-                    auto* tabComponent = split->getTabComponent();
-                    for(int i = 0; i < tabComponent->getNumTabs(); i++)
-                    {
-                        allCanvases.add(tabComponent->getCanvas(i));
-                    }
-                    
-                }
-                
-                return allCanvases;
-            }
-            
-            t_glist* findSearchTargetRecursively(t_glist* glist, void* target)
-            {
-                for (auto* y = glist->gl_list; y; y = y->g_next) {
-                    if (pd_class(&y->g_pd) == canvas_class) {
-                        if(auto* subpatch = findSearchTargetRecursively(reinterpret_cast<t_glist*>(y), target))
-                        {
-                            return subpatch;
-                        }
-                    }
-                    if(y == target)
-                    {
-                        return glist;
-                    }
-                }
-                
-                return nullptr;
-            }
-
-            void highlightSearchTarget(void* target)
-            {
-                t_glist* targetCanvas = nullptr;
-                for (auto* glist = pd_getcanvaslist(); glist; glist = glist->gl_next) {
-                    auto* found = findSearchTargetRecursively(glist, target);
-                    if(found)
-                    {
-                        targetCanvas = found;
-                        break;
-                    }
-                }
-                
-                if(!targetCanvas) return;
-
-                auto* editor = findParentComponentOfClass<PluginEditor>();
-                for(auto* cnv : getAllCanvases(editor))
-                {
-                    if(cnv->patch.getPointer().get() == targetCanvas)
-                    {
-                        for(auto* object : cnv->objects)
-                        {
-                            if(object->getPointer() == target)
-                            {
-                                Object::consoleTarget = object;
-                                object->repaint();
-                                break;
-                            }
-                        }
-                        if(Object::consoleTarget) {
-                            auto* viewport = cnv->viewport.get();
-                            auto scale = getValue<float>(cnv->zoomScale);
-                            auto pos = Object::consoleTarget->getBounds().getCentre() * scale;
-                            
-                            pos.x -= viewport->getViewWidth() * 0.5f;
-                            pos.y -= viewport->getViewHeight() * 0.5f;
-                            
-                            viewport->setViewPosition(pos);
-                            cnv->getTabbar()->setCurrentTabIndex(cnv->getTabIndex());
-                            return;
-                        }
-                    }
-                }
-                
-                auto* patch = new pd::Patch(targetCanvas, editor->pd, false);
-                auto* cnv = new Canvas(editor, patch);
-                editor->addTab(cnv);
-                
-                for(auto* object : cnv->objects)
-                {
-                    if(object->getPointer() == target)
-                    {
-                        Object::consoleTarget = object;
-                        object->repaint();
-                        break;
-                    }
-                }
-                
-                if(Object::consoleTarget) {
-                    auto* viewport = cnv->viewport.get();
-                    auto scale = getValue<float>(cnv->zoomScale);
-                    auto pos = Object::consoleTarget->getBounds().getCentre() * scale;
-                    
-                    pos.x -= viewport->getViewWidth() * 0.5f;
-                    pos.y -= viewport->getViewHeight() * 0.5f;
-                    
-                    viewport->setViewPosition(pos);
-                    cnv->getTabbar()->setCurrentTabIndex(cnv->getTabIndex());
-                }
-            }
-
             void paint(Graphics& g)
             {
                 auto isSelected = console.selectedItems.contains(this);
@@ -335,33 +234,32 @@ public:
                 // Approximate number of lines from string length and current width
                 auto totalLength = length + calculateRepeatOffset(repeats);
                 auto numLines = StringUtils::getNumLines(console.getWidth(), totalLength);
-                
+
                 auto textColour = findColour(isSelected ? PlugDataColour::sidebarActiveTextColourId : PlugDataColour::sidebarTextColourId);
 
                 if (type == 1)
                     textColour = Colours::orange;
                 else if (type == 2)
                     textColour = Colours::red;
-                
+
                 auto bounds = getLocalBounds().reduced(8, 2);
-                if(repeats > 1)
-                {
-                    
+                if (repeats > 1) {
+
                     auto repeatIndicatorBounds = bounds.removeFromLeft(calculateRepeatOffset(repeats)).toFloat().translated(-4, 0.25);
                     repeatIndicatorBounds = repeatIndicatorBounds.withSizeKeepingCentre(repeatIndicatorBounds.getWidth(), 21);
-                    
+
                     auto circleColour = findColour(PlugDataColour::sidebarActiveBackgroundColourId);
                     auto backgroundColour = findColour(PlugDataColour::sidebarBackgroundColourId);
                     auto contrast = isSelected ? 1.5f : 0.5f;
-                    
-                    circleColour = Colour(circleColour.getRed()   + (circleColour.getRed()   - backgroundColour.getRed())   * contrast,
-                                          circleColour.getGreen() + (circleColour.getGreen() - backgroundColour.getGreen()) * contrast,
-                                          circleColour.getBlue()  + (circleColour.getBlue()  - backgroundColour.getBlue())  * contrast);
-                        
+
+                    circleColour = Colour(circleColour.getRed() + (circleColour.getRed() - backgroundColour.getRed()) * contrast,
+                        circleColour.getGreen() + (circleColour.getGreen() - backgroundColour.getGreen()) * contrast,
+                        circleColour.getBlue() + (circleColour.getBlue() - backgroundColour.getBlue()) * contrast);
+
                     g.setColour(circleColour);
                     auto circleBounds = repeatIndicatorBounds.reduced(2);
                     g.fillRoundedRectangle(circleBounds, circleBounds.getHeight() / 2.0f);
-                    
+
                     Fonts::drawText(g, String(repeats), repeatIndicatorBounds, findColour(PlugDataColour::sidebarTextColourId), 12, Justification::centred);
                 }
 
@@ -392,7 +290,7 @@ public:
             selectedItems.clear();
             repaint();
         }
-        
+
         void copySelectionToClipboard()
         {
             String textToCopy;
@@ -473,21 +371,18 @@ public:
 
             return totalHeight + 8;
         }
-        
+
         static int calculateRepeatOffset(int numRepeats)
         {
-            if(numRepeats == 0) return 0;
-            
+            if (numRepeats == 0)
+                return 0;
+
             int digitCount = static_cast<int>(std::log10(numRepeats)) + 1;
             return digitCount <= 2 ? 21 : 21 + ((digitCount - 2) * 10);
         }
 
         void mouseDown(MouseEvent const& e) override
         {
-            if (auto* target = Object::consoleTarget) {
-                Object::consoleTarget = nullptr;
-                target->repaint();
-            }
             selectedItems.clear();
             repaint();
         }

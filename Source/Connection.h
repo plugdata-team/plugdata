@@ -8,7 +8,7 @@
 
 #include <m_pd.h>
 
-#include <concurrentqueue.h> // Move to impl
+#include <readerwriterqueue.h>
 #include "Constants.h"
 #include "Objects/AllGuis.h"
 #include "Iolet.h"       // Move to impl
@@ -30,6 +30,7 @@ class Connection : public Component
 public:
     int inIdx;
     int outIdx;
+    int numSignalChannels = 1;
 
     WeakReference<Iolet> inlet, outlet;
     WeakReference<Object> inobj, outobj;
@@ -109,11 +110,12 @@ public:
     bool intersectsObject(Object* object) const;
     bool straightLineIntersectsObject(Line<float> toCheck, Array<Object*>& objects);
 
-    void receiveMessage(String const& name, int argc, t_atom* argv) override;
+    void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms) override;
 
     bool isSelected() const;
 
     StringArray getMessageFormated();
+    int getSignalData(t_float* output, int maxChannels);
 
 private:
     void resizeToFit();
@@ -152,8 +154,9 @@ private:
 
     pd::WeakReference ptr;
 
-    std::vector<pd::Atom> lastValue;
-    String lastSelector;
+    pd::Atom lastValue[8];
+    int lastNumArgs = 0;
+    t_symbol* lastSelector = nullptr;
 
     friend class ConnectionPathUpdater;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
@@ -238,7 +241,7 @@ public:
 class ConnectionPathUpdater : public Timer {
     Canvas* canvas;
 
-    moodycamel::ConcurrentQueue<std::pair<Component::SafePointer<Connection>, t_symbol*>> connectionUpdateQueue = moodycamel::ConcurrentQueue<std::pair<Component::SafePointer<Connection>, t_symbol*>>(4096);
+    moodycamel::ReaderWriterQueue<std::pair<Component::SafePointer<Connection>, t_symbol*>> connectionUpdateQueue = moodycamel::ReaderWriterQueue<std::pair<Component::SafePointer<Connection>, t_symbol*>>(4096);
 
     void timerCallback() override;
 

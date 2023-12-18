@@ -18,7 +18,7 @@ class RadioObject final : public ObjectBase {
     Value sizeProperty = SynchronousValue();
 
 public:
-    RadioObject(t_gobj* ptr, Object* object)
+    RadioObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {
@@ -109,21 +109,9 @@ public:
         }
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("float"),
-            hash("list"),
-            hash("set"),
-            hash("orientation"),
-            hash("number"),
-            IEMGUI_MESSAGES
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("float"):
         case hash("list"):
         case hash("set"): {
@@ -132,7 +120,7 @@ public:
             break;
         }
         case hash("orientation"): {
-            if (atoms.size() >= 1) {
+            if (numAtoms >= 1) {
                 isVertical = static_cast<bool>(atoms[0].getFloat());
                 object->updateBounds();
                 updateAspectRatio();
@@ -140,12 +128,12 @@ public:
             break;
         }
         case hash("number"): {
-            if (atoms.size() >= 1)
+            if (numAtoms >= 1)
                 max = getMaximum();
             break;
         }
         default: {
-            iemHelper.receiveObjectMessage(symbol, atoms);
+            iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
             break;
         }
         }

@@ -63,7 +63,7 @@ public:
         , public Value::Listener
         , public SettableTooltipClient {
     private:
-        const String property = "grid_type";
+        String const property = "grid_type";
 
         SnapBitMask snapBit;
 

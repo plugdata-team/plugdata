@@ -31,24 +31,22 @@ struct ProjectInfo {
     static void closeWindow(PlugDataWindow* window);
 
     static StandalonePluginHolder* getStandalonePluginHolder();
-    
+
     static bool isMidiEffect() noexcept;
     static bool canUseSemiTransparentWindows();
 
-    static inline const File appDataDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata");
+    static inline File const appDataDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata");
 
-    static inline const String versionSuffix = "";
-    static inline const File versionDataDir = appDataDir.getChildFile("Versions").getChildFile(ProjectInfo::versionString + versionSuffix);
+    static inline String const versionSuffix = "-1";
+    static inline File const versionDataDir = appDataDir.getChildFile("Versions").getChildFile(ProjectInfo::versionString + versionSuffix);
 };
 
 template<typename T>
 inline T getValue(Value const& v)
 {
-    if constexpr(std::is_same_v<T, String>)
-    {
+    if constexpr (std::is_same_v<T, String>) {
         return v.toString();
-    }
-    else {
+    } else {
         return static_cast<T>(v.getValue());
     }
 }
@@ -66,8 +64,8 @@ inline void setValueExcludingListener(Value& parameter, var const& value, Value:
     parameter.addListener(listener);
 }
 
-
-static inline String convertURLtoUTF8(const String& input) {
+static inline String convertURLtoUTF8(String const& input)
+{
     StringArray tokens;
     tokens.addTokens(input, " ", "");
     String output;

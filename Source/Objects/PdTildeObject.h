@@ -10,7 +10,7 @@ class PdTildeObject final : public TextBase {
 public:
     static inline File pdLocation = File();
 
-    PdTildeObject(t_gobj* ptr, Object* object)
+    PdTildeObject(pd::WeakReference ptr, Object* object)
         : TextBase(ptr, object)
     {
     }
@@ -28,34 +28,36 @@ public:
     void openPd()
     {
         if (!pdLocation.exists()) {
-            
-            Dialogs::showOpenDialog([this](File& result){
-                    if(!result.exists()) return;
-                
-        #if JUCE_MAC
-                    if (result.hasFileExtension("app")) {
-                        pdLocation = result.getChildFile("Contents").getChildFile("Resources");
-                    } else if (result.isDirectory()) {
-                        pdLocation = result;
-                    } else {
-                        return;
-                    }
-        #else
+
+            Dialogs::showOpenDialog([this](File& result) {
+                if (!result.exists())
+                    return;
+
+#if JUCE_MAC
+                if (result.hasFileExtension("app")) {
+                    pdLocation = result.getChildFile("Contents").getChildFile("Resources");
+                } else if (result.isDirectory()) {
+                    pdLocation = result;
+                } else {
+                    return;
+                }
+#else
                     if (result.isDirectory()) {
                         pdLocation = result;
                     } else {
                         return;
                     }
-        #endif
-                    if (auto pdTilde = ptr.get<t_fake_pd_tilde>()) {
-                        auto pdPath = pdLocation.getFullPathName();
-                        auto schedPath = pdLocation.getChildFile("extra").getChildFile("pd~").getFullPathName();
+#endif
+                if (auto pdTilde = ptr.get<t_fake_pd_tilde>()) {
+                    auto pdPath = pdLocation.getFullPathName();
+                    auto schedPath = pdLocation.getChildFile("extra").getChildFile("pd~").getFullPathName();
 
-                        pdTilde->x_pddir = gensym(pdPath.toRawUTF8());
-                        pdTilde->x_schedlibdir = gensym(schedPath.toRawUTF8());
-                        pd->sendDirectMessage(pdTilde.get(), "pd~", { "start" });
-                    }
-                }, true, true, "", "LastPdLocation");
+                    pdTilde->x_pddir = gensym(pdPath.toRawUTF8());
+                    pdTilde->x_schedlibdir = gensym(schedPath.toRawUTF8());
+                    pd->sendDirectMessage(pdTilde.get(), "pd~", { pd->generateSymbol("start") });
+                }
+            },
+                true, true, "", "LastPdLocation");
         } else {
             if (auto pdTilde = ptr.get<t_fake_pd_tilde>()) {
                 auto pdPath = pdLocation.getFullPathName();
@@ -63,7 +65,7 @@ public:
 
                 pdTilde->x_pddir = gensym(pdPath.toRawUTF8());
                 pdTilde->x_schedlibdir = gensym(schedPath.toRawUTF8());
-                pd->sendDirectMessage(pdTilde.get(), "pd~", { "start" });
+                pd->sendDirectMessage(pdTilde.get(), "pd~", { pd->generateSymbol("start") });
             }
         }
     }

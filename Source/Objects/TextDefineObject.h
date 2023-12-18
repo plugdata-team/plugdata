@@ -12,7 +12,7 @@ class TextFileObject final : public TextBase {
     std::unique_ptr<Dialog> saveDialog;
 
 public:
-    TextFileObject(t_gobj* obj, Object* parent)
+    TextFileObject(pd::WeakReference obj, Object* parent)
         : TextBase(obj, parent, true)
         , textEditor(nullptr)
     {
@@ -112,17 +112,9 @@ public:
         }
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("click"),
-            hash("close")
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("click"): {
             MessageManager::callAsync([this]() { openTextEditor(); });
         }
@@ -166,7 +158,7 @@ class TextDefineObject final : public TextBase {
     std::unique_ptr<Dialog> saveDialog;
 
 public:
-    TextDefineObject(t_gobj* obj, Object* parent)
+    TextDefineObject(pd::WeakReference obj, Object* parent)
         : TextBase(obj, parent, true)
         , textEditor(nullptr)
     {
@@ -278,18 +270,10 @@ public:
             binbuf_free(z);
         }
     }
-    
-    std::vector<hash32> getAllMessages() override
-    {
-        return {
-            hash("click"),
-            hash("close")
-        };
-    }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("click"): {
             MessageManager::callAsync([this]() { openTextEditor(); });
         }

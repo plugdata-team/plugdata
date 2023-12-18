@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include <JuceHeader.h>
+#include <juce_gui_basics/juce_gui_basics.h>
 #include <utility>
 
 #include "Components/BouncingViewport.h"
@@ -130,8 +130,16 @@ class ObjectsListBox : public ListBox
 
         void mouseUp(MouseEvent const& e) override
         {
-            if (e.mouseWasDraggedSinceMouseDown())
+            if (e.mouseWasDraggedSinceMouseDown() && !e.source.isTouch())
                 dismissMenu(false);
+        }
+
+        void mouseDrag(MouseEvent const& e) override
+        {
+            if (e.source.isTouch())
+                return;
+
+            ObjectDragAndDrop::mouseDrag(e);
         }
 
         void dismiss(bool withAnimation) override
@@ -142,6 +150,11 @@ class ObjectsListBox : public ListBox
         String getObjectString() override
         {
             return PluginEditor::getObjectManager()->getCompleteFormat(objectName);
+        }
+
+        String getPatchStringName() override
+        {
+            return objectName + String(" object");
         }
 
         String getItemName() const
@@ -257,6 +270,11 @@ public:
     String getObjectString() override
     {
         return PluginEditor::getObjectManager()->getCompleteFormat(objectName);
+    }
+
+    String getPatchStringName() override
+    {
+        return objectName + String(" object");
     }
 
     void dismiss(bool shouldFade) override
@@ -654,7 +672,7 @@ public:
         }
 
         g.setColour(rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(ComboBox::textColourId));
-        const String item = searchResult[rowNumber];
+        String const item = searchResult[rowNumber];
 
         auto colour = rowIsSelected ? findColour(PlugDataColour::popupMenuActiveTextColourId) : findColour(PlugDataColour::popupMenuTextColourId);
 
@@ -881,7 +899,9 @@ public:
             animator.animateComponent(getParentComponent(), getParentComponent()->getBounds(), 0.0f, 300, false, 0.0f, 0.0f);
         else {
             MessageManager::callAsync([_this = SafePointer(this)]() {
-                _this->editor->openedDialog.reset(nullptr);
+                if (_this) {
+                    _this->editor->openedDialog.reset(nullptr);
+                }
             });
         }
     }

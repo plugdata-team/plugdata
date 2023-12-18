@@ -312,6 +312,7 @@ struct t_fake_messbox {
     //    char            *handle_id;
     char* window_tag;
     char* all_tag;
+    t_binbuf* x_state;
 };
 
 // [else/pad]
@@ -422,7 +423,6 @@ struct t_fake_numbox {
     int x_outmode;
     char x_buf[MAX_NUMBOX_LEN]; // number buffer
 };
-
 
 // [else/canvas.mouse]
 struct t_fake_canvas_mouse {

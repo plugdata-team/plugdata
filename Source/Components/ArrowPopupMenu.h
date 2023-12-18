@@ -82,7 +82,7 @@ public:
             g.saveState();
             g.reduceClipRegion(arrowBounds.toNearestInt());
 
-            StackShadow::renderDropShadow(g, arrowOutline, Colour(0, 0, 0).withAlpha(0.3f), 7, { 0, targetArea.getY() <= menuBounds.getY() ? 2 : -2 });
+            StackShadow::renderDropShadow(g, arrowOutline, Colour(0, 0, 0).withAlpha(0.3f), 8, { 0, targetArea.getY() <= menuBounds.getY() ? 1 : -1 });
 
             g.restoreState();
         }

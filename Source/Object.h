@@ -7,9 +7,10 @@
 #pragma once
 
 #include "Utility/ModifierKeyListener.h"
-#include <JuceHeader.h>
+#include <juce_gui_basics/juce_gui_basics.h>
 #include "Utility/SettingsFile.h"
 #include "Utility/RateReducer.h"
+#include "Pd/WeakReference.h"
 
 #define ACTIVITY_UPDATE_RATE 15
 
@@ -28,7 +29,7 @@ class Object : public Component
 public:
     Object(Canvas* parent, String const& name = "", Point<int> position = { 100, 100 });
 
-    Object(t_gobj* object, Canvas* parent);
+    Object(pd::WeakReference object, Canvas* parent);
 
     ~Object() override;
 
@@ -43,7 +44,7 @@ public:
 
     void updateIolets();
 
-    void setType(String const& newType, t_gobj* existingObject = nullptr);
+    void setType(String const& newType, pd::WeakReference existingObject = nullptr);
     void updateBounds();
     void applyBounds();
 
@@ -101,9 +102,6 @@ public:
     static inline constexpr int margin = 8;
     static inline constexpr int doubleMargin = margin * 2;
     static inline constexpr int height = 37;
-
-    bool isSearchTarget = false;
-    static inline Object* consoleTarget = nullptr;
 
     Rectangle<int> originalBounds;
 
