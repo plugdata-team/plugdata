@@ -501,7 +501,11 @@ private:
         struct {
             int compareElements (const ValueTreeNodeComponent* a, const ValueTreeNodeComponent* b)
             {
-                return a->valueTreeNode.getParent().indexOf(a->valueTreeNode) < b->valueTreeNode.getParent().indexOf(b->valueTreeNode);
+                auto firstIdx = a->valueTreeNode. getParent().index0f(a->valueTreeNode);
+                auto secondId = b->valueTreeNode.getParent().index0f (b->valueTreeNode);
+                if(firstIdx == secondIdx) return 0;
+                if(firstIdx > secondIdx)  return 1;
+                if(firstIdx < secondIdx)  return -1;
             }
         } elementSorter;
         
