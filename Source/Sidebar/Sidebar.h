@@ -116,8 +116,6 @@ public:
     void clearConsole();
     void updateConsole(int numMessages, bool newWarning);
 
-    void tabChanged();
-
     void updateAutomationParameters();
 
     static constexpr int dragbarWidth = 6;

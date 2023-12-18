@@ -130,7 +130,9 @@ public:
             if (auto object = objectPtr.get<t_pd>()) {
                 auto* top = topLevel ? topLevel : object.get();
                 String type = pd::Interface::getObjectClassName(object.get());
-
+                
+                if(!pd::Interface::checkObject(object.get())) continue;
+                
                 char* objectText;
                 int len;
                 pd::Interface::getObjectText(object.cast<t_text>(), &objectText, &len);

@@ -926,6 +926,8 @@ void Object::mouseUp(MouseEvent const& e)
         isInsideUndoSequence = false;
         cnv->patch.endUndoSequence("Drag");
     }
+    
+    cnv->needsSearchUpdate = true;
 }
 
 void Object::mouseDrag(MouseEvent const& e)

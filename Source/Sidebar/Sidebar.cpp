@@ -406,8 +406,3 @@ void Sidebar::updateConsole(int numMessages, bool newWarning)
 
     console->update();
 }
-
-void Sidebar::tabChanged()
-{
-    searchPanel->updateResults();
-}
