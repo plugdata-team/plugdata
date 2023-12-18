@@ -154,7 +154,7 @@ public:
         }
         
         auto& owner = *getOwnerView();
-        auto colour = isSelected() ? owner.findColour(PlugDataColour::sidebarActiveTextColourId) : owner.findColour(PlugDataColour::sidebarTextColourId);
+        auto colour = isSelected() ? owner.findColour(PlugDataColour::sidebarActiveTextColourId) : getOwnerView()->findColour(PlugDataColour::sidebarTextColourId);
         
         if(valueTreeNode.hasProperty("Icon"))
         {
@@ -170,11 +170,17 @@ public:
         }
         
         Fonts::drawFittedText(g, valueTreeNode.getProperty("Name"), itemBounds, colour);
+
+        if (!treeBranchLine.isEmpty()) {
+            g.setColour(colour.withAlpha(0.3f));
+            g.strokePath(treeBranchLine, PathStrokeType(1.5f));
+        }
     }
     
     void resized() override
     {
         // Set the bounds of the subcomponents within the current component
+        treeBranchLine = Path();
         if(isOpen()) {
             auto bounds = getLocalBounds().withTrimmedLeft(8).withTrimmedTop(25);
             
@@ -185,6 +191,10 @@ public:
                     node->setBounds(childBounds);
                 }
             }
+            // create a line to show the current branch
+            treeBranchLine.startNewSubPath(14, 14);
+            treeBranchLine.lineTo(14, getHeight() - 14);
+            treeBranchLine.lineTo(18, getHeight() - 14);
         }
     }
     
@@ -222,6 +232,8 @@ private:
     bool isOpenedBySearch = false;
     bool isDragging = false;
     friend class ValueTreeViewerComponent;
+
+    Path treeBranchLine;
 };
 
 class ValueTreeViewerComponent : public Component, public KeyListener
