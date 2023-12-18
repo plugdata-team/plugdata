@@ -125,6 +125,11 @@ public:
         addAndMakeVisible(fileList);
     }
     
+    ~DocumentationBrowser()
+    {
+        stopThread(-1);
+    }
+    
     bool isInterestedInFileDrag(StringArray const& files) override
    {
        if (!isVisible())
@@ -237,10 +242,11 @@ public:
         static File versionDataDir = ProjectInfo::appDataDir.getChildFile("Versions");
         static File toolchainDir = ProjectInfo::appDataDir.getChildFile("Toolchain");
         
-        if (!directory.exists() || !directory.isDirectory() || directory == versionDataDir || directory == toolchainDir) {
-                return ValueTree();
+        if (threadShouldExit() || !directory.exists() || !directory.isDirectory() || directory == versionDataDir || directory == toolchainDir)
+        {
+            return ValueTree();
         }
-        
+                
         ValueTree rootNode("Folder");
         rootNode.setProperty("Name", directory.getFileName(), nullptr);
         rootNode.setProperty("Path", directory.getFullPathName(), nullptr);
