@@ -384,13 +384,8 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
                 addAndMakeVisible(button);
                 auto id = commandIds.removeAndReturn(0);
 
-                button->onClick = [editor, id]() {
-                    editor->grabKeyboardFocus();
-                    ApplicationCommandTarget::InvocationInfo info(id);
-                    info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
-                    editor->commandManager.invoke(info, true);
-                };
-
+                button->setCommandToTrigger(&editor->commandManager, id, false);
+                
                 if (auto* registeredInfo = editor->commandManager.getCommandForID(id)) {
                     ApplicationCommandInfo info(*registeredInfo);
                     editor->commandManager.getTargetForCommand(id, info);
