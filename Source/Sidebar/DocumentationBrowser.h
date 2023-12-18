@@ -125,6 +125,11 @@ public:
         addAndMakeVisible(fileList);
     }
     
+    ~DocumentationBrowser()
+    {
+        stopThread(-1);
+    }
+    
     bool isInterestedInFileDrag(StringArray const& files) override
    {
        if (!isVisible())
