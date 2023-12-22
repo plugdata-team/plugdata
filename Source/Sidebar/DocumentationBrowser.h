@@ -398,7 +398,7 @@ private:
     TextButton settingsCalloutButton = TextButton();
     
     ValueTree fileTree;
-    ValueTreeViewerComponent fileList;
+    ValueTreeViewerComponent fileList = ValueTreeViewerComponent("(Folder)");
     SearchEditor searchInput;
     
     bool isDraggingFile = false;

@@ -172,6 +172,6 @@ public:
      
     SafePointer<Canvas> currentCanvas;
     PluginEditor* editor;
-    ValueTreeViewerComponent patchTree;
+    ValueTreeViewerComponent patchTree = ValueTreeViewerComponent("(Subpatch)");
     SearchEditor input;
 };

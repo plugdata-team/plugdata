@@ -1,5 +1,3 @@
-
-
 class ValueTreeViewerComponent;
 class ValueTreeNodeComponent;
 struct ValueTreeOwnerView : public Component
@@ -12,19 +10,77 @@ struct ValueTreeOwnerView : public Component
     std::function<void(ValueTree&)> onDragStart = [](ValueTree&){};
 };
 
+class NodeBranchLine : public Component, public SettableTooltipClient
+{
+public:
+    NodeBranchLine(){}
+
+    void paint(Graphics& g) override
+    {
+        if (!treeBranchLine.isEmpty()) {
+            //g.setColour(Colours::red);
+            //g.drawRect(getLocalBounds());
+            auto colour = isHover ? findColour(PlugDataColour::objectSelectedOutlineColourId) : findColour(PlugDataColour::panelTextColourId).withAlpha(0.3f);
+            g.setColour(colour.withAlpha(0.3f));
+            g.strokePath(treeBranchLine, PathStrokeType(2.0f));
+        }
+    }
+
+    void mouseEnter(const MouseEvent& e) override
+    {
+        isHover = true;
+        repaint();
+    }
+
+    void mouseExit(const MouseEvent& e) override
+    {
+        isHover = false;
+        repaint();
+    }
+
+    void mouseMove(const MouseEvent& e) override
+    {
+        if (isHover != true) {
+            isHover = true;
+            repaint();
+        }
+    }
+
+    void resized() override
+    {
+        treeBranchLine.clear();
+        if (getParentComponent()->isVisible()) {
+            // create a line to show the current branch
+            treeBranchLine.startNewSubPath(4.0f, 0.0f);
+            treeBranchLine.lineTo(4.0f, getHeight() - 3.0f);
+            treeBranchLine.lineTo(7.0f, getHeight() - 3.0f);
+        }
+    }
+private:
+    Path treeBranchLine;
+    bool isHover = false;
+};
+
 class ValueTreeNodeComponent : public Component
 {
 public:
-    ValueTreeNodeComponent(const ValueTree& node, ValueTreeNodeComponent* parentNode) : parent(parentNode), valueTreeNode(node)
+    ValueTreeNodeComponent(const ValueTree& node, ValueTreeNodeComponent* parentNode, String prepend = String()) : parent(parentNode), valueTreeNode(node)
     {
+        addAndMakeVisible(nodeBranchLine);
+        nodeBranchLine.setAlwaysOnTop(true);
+        auto tooltipPrepend = prepend;
+        if (tooltipPrepend.isEmpty())
+            tooltipPrepend = "(Parent)";
+        nodeBranchLine.setTooltip(tooltipPrepend + " " + valueTreeNode.getProperty("Name").toString());
+
         // Create subcomponents for each child node
         for (int i = 0; i < valueTreeNode.getNumChildren(); ++i)
         {
-            auto* childComponent = nodes.add(new ValueTreeNodeComponent(valueTreeNode.getChild(i), this));
+            auto* childComponent = nodes.add(new ValueTreeNodeComponent(valueTreeNode.getChild(i), this, prepend));
             addAndMakeVisible(childComponent);
         }
     }
-    
+
     void update()
     {
         // Compare existing child nodes with current children
@@ -56,7 +112,7 @@ public:
                 addAndMakeVisible(childComponent);
             }
         }
-        
+
         // Remove any existing nodes that no longer exist in the current children
         for (int i = nodes.size(); --i >= 0;)
         {
@@ -66,7 +122,7 @@ public:
             }
         }
     }
-    
+
     void paintOpenCloseButton(Graphics& g, Rectangle<float> const& area)
     {
         auto arrowArea = area.reduced(5, 9).translated(4, 0).toFloat();
@@ -170,20 +226,17 @@ public:
         }
         
         Fonts::drawFittedText(g, valueTreeNode.getProperty("Name"), itemBounds, colour);
-
-        if (!treeBranchLine.isEmpty()) {
-            g.setColour(colour.withAlpha(0.3f));
-            g.strokePath(treeBranchLine, PathStrokeType(1.5f));
-        }
     }
-    
+
     void resized() override
     {
         // Set the bounds of the subcomponents within the current component
-        treeBranchLine = Path();
         if(isOpen()) {
+            nodeBranchLine.setVisible(true);
+            nodeBranchLine.setBounds(getLocalBounds().withLeft(10).withRight(18).withTrimmedBottom(10).withTop(20));
+
             auto bounds = getLocalBounds().withTrimmedLeft(8).withTrimmedTop(25);
-            
+
             for (auto* node : nodes)
             {
                 if(node->isVisible()) {
@@ -191,13 +244,12 @@ public:
                     node->setBounds(childBounds);
                 }
             }
-            // create a line to show the current branch
-            treeBranchLine.startNewSubPath(14, 30);
-            treeBranchLine.lineTo(14, getHeight() - 14);
-            treeBranchLine.lineTo(18, getHeight() - 14);
+        }
+        else {
+            nodeBranchLine.setVisible(false);
         }
     }
-    
+
     int getTotalContentHeight() const
     {
         int totalHeight = isVisible() ? 25 : 0;
@@ -231,15 +283,16 @@ private:
     bool isOpened = false;
     bool isOpenedBySearch = false;
     bool isDragging = false;
-    friend class ValueTreeViewerComponent;
 
-    Path treeBranchLine;
+    NodeBranchLine nodeBranchLine;
+
+    friend class ValueTreeViewerComponent;
 };
 
 class ValueTreeViewerComponent : public Component, public KeyListener
 {
 public:
-    ValueTreeViewerComponent()
+    explicit ValueTreeViewerComponent(String prepend = String()) : tooltipPrepend(std::move(prepend))
     {
         // Add a Viewport to handle scrolling
         viewport.setViewedComponent(&contentComponent, false);
@@ -257,7 +310,7 @@ public:
         
         addAndMakeVisible(viewport);
     }
-    
+
     void setValueTree(const ValueTree& tree)
     {
         valueTree = tree;
@@ -287,7 +340,7 @@ public:
             }
             else if(childNode.isValid())
             {
-                auto* childComponent = new ValueTreeNodeComponent(childNode, nullptr);
+                auto* childComponent = new ValueTreeNodeComponent(childNode, nullptr, tooltipPrepend);
                 nodes.add(childComponent);
                 contentComponent.addAndMakeVisible(childComponent);
             }
@@ -518,6 +571,7 @@ private:
     }
     
     String filterString;
+    String tooltipPrepend;
     ValueTreeOwnerView contentComponent;
     OwnedArray<ValueTreeNodeComponent> nodes;
     ValueTree valueTree = ValueTree("Folder");
