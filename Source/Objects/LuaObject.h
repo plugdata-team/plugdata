@@ -81,8 +81,6 @@ public:
         
         cnv->zoomScale.addListener(this);
         startTimerHz(60); // Check for paint messages at 60hz (but we only really repaint when needed)
-        
-        
     }
     
     ~LuaObject()
@@ -348,7 +346,7 @@ public:
                     text.setJustification(Justification::topLeft);
                     
                     TextLayout layout;
-                    layout.createLayout(text, getWidth());
+                    layout.createLayout(text, w);
                     layout.draw(*graphics, {x, y, w, layout.getHeight()});
                 }
                 break;
@@ -481,20 +479,14 @@ public:
                     &saveDialog, textEditor.get(), "", [this, newText, fileToOpen](int result) mutable {
                         if (result == 2) {
                             fileToOpen.replaceWithText(newText);
-                            if(auto pdlua = ptr.get<t_pdlua>())
+                            if(auto pdlua = ptr.get<t_pd>())
                             {
-                                // TODO: what if there's no inlet?
-                                if(pdlua->in) {
-                                    // Reload the lua script
-                                    pd_typedmess((t_pd*)pdlua->in, pd->generateSymbol("_reload"), 0, nullptr);
-                                    
-                                    // Recreate this object
-                                    auto patch = cnv->patch.getPointer().get();
-                                    int size;
-                                    char const* text = pd::Interface::copy(patch, &size, { pdlua.cast<t_gobj>() });
-                                    pd::Interface::removeObjects(patch, { pdlua.cast<t_gobj>() });
-                                    pd::Interface::paste(patch, text);
-                                }
+                                // Reload the lua script
+                                pd_typedmess(pdlua.get(), pd->generateSymbol("_reload"), 0, nullptr);
+                                
+                                // Recreate this object
+                                auto* patch = cnv->patch.getPointer().get();
+                                pd::Interface::recreateTextObject(patch, pdlua.cast<t_gobj>());
                             }
                             textEditor.reset(nullptr);
                             cnv->performSynchronise();

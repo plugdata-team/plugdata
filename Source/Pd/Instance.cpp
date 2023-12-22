@@ -291,7 +291,7 @@ void Instance::initialisePd(String& pdlua_version)
         // Class prefix doesn't seem to work for pdlua
         char vers[1000];
         *vers = 0;
-        pd::Setup::initialisePdLua(extra.getFullPathName().getCharPointer(), vers, 1000, &registerLuaGui);
+        pd::Setup::initialisePdLua(extra.getFullPathName().getCharPointer(), vers, 1000, &registerLuaClass);
         if (*vers)
             pdlua_version = vers;
 
@@ -786,14 +786,14 @@ void Instance::clearObjectImplementationsForPatch(pd::Patch* p)
     }
 }
 
-void Instance::registerLuaGui(t_object* object)
+void Instance::registerLuaClass(const char* className)
 {
-    luaGuis.insert(hash(object->te_g.g_pd->c_name->s_name));
+    luaClasses.insert(hash(className));
 }
 
-bool Instance::isLuaGui(hash32 objectNameHash)
+bool Instance::isLuaClass(hash32 objectNameHash)
 {
-    return luaGuis.contains(objectNameHash);
+    return luaClasses.contains(objectNameHash);
 }
 
 } // namespace pd

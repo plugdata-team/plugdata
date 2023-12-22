@@ -674,7 +674,7 @@ void fm_tilde_setup();
 #endif
 void knob_setup();
 
-void pdlua_setup(char const* datadir, char* vers, int vers_len, void(*register_gui_callback)(t_object*));
+void pdlua_setup(char const* datadir, char* vers, int vers_len, void(*register_class_callback)(const char*));
 }
 
 namespace pd {
@@ -757,9 +757,9 @@ void* Setup::createReceiver(void* ptr, char const* s,
     return x;
 }
 
-void Setup::initialisePdLua(char const* datadir, char* vers, int vers_len, void(*register_gui_callback)(t_object*))
+void Setup::initialisePdLua(char const* datadir, char* vers, int vers_len, void(*register_class_callback)(const char*))
 {
-    pdlua_setup(datadir, vers, vers_len, register_gui_callback);
+    pdlua_setup(datadir, vers, vers_len, register_class_callback);
 }
 
 void* Setup::createPrintHook(void* ptr, t_plugdata_printhook hook_print)

@@ -469,9 +469,14 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
     if (auto checked = ptr.get<t_gobj>()) {        
         auto const name = hash(pd::Interface::getObjectClassName(checked.cast<t_pd>()));
 
-        if(parent->cnv->pd->isLuaGui(name))
+        if(parent->cnv->pd->isLuaClass(name))
         {
-            return new LuaObject(ptr, parent);
+            if (checked.cast<t_pdlua>()->has_gui) {
+                return new LuaObject(ptr, parent);
+            }
+            else {
+                return new LuaTextObject(ptr, parent);
+            }
         }
         // check if object is a patcher object, or something else
         if (!pd::Interface::checkObject(checked.get()) && name != hash("scalar")) {
