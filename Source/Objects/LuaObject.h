@@ -85,6 +85,10 @@ public:
     
     ~LuaObject()
     {
+        if(auto pdlua = ptr.get<t_pdlua>())
+        {
+            pdlua->gfx.plugdata_callback_target = NULL;
+        }
         cnv->zoomScale.removeListener(this);
     }
     
@@ -501,6 +505,7 @@ public:
 
 };
 
+// A non-GUI Lua object, that we would still like to have clickable for opening the editor
 class LuaTextObject final : public TextBase {
 public:
     std::unique_ptr<Component> textEditor;
@@ -523,9 +528,46 @@ public:
     
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        if(symbol == hash("open_textfile"))
+        if(symbol == hash("open_textfile") && numAtoms >= 1)
         {
-            //openTextEditor();
+            openTextEditor(File(atoms[0].toString()));
         }
+    }
+    
+    void openTextEditor(File fileToOpen)
+    {
+        if (textEditor) {
+            textEditor->toFront(true);
+            return;
+        }
+        textEditor.reset(
+            Dialogs::showTextEditorDialog(fileToOpen.loadFileAsString(), "lua: " + getText(), [this, fileToOpen](String const& newText, bool hasChanged) {
+                if (!hasChanged) {
+                    textEditor.reset(nullptr);
+                    return;
+                }
+
+                Dialogs::showAskToSaveDialog(
+                    &saveDialog, textEditor.get(), "", [this, newText, fileToOpen](int result) mutable {
+                        if (result == 2) {
+                            fileToOpen.replaceWithText(newText);
+                            if(auto pdlua = ptr.get<t_pd>())
+                            {
+                                // Reload the lua script
+                                pd_typedmess(pdlua.get(), pd->generateSymbol("_reload"), 0, nullptr);
+                                
+                                // Recreate this object
+                                auto* patch = cnv->patch.getPointer().get();
+                                pd::Interface::recreateTextObject(patch, pdlua.cast<t_gobj>());
+                            }
+                            textEditor.reset(nullptr);
+                            cnv->performSynchronise();
+                        }
+                        if (result == 1) {
+                            textEditor.reset(nullptr);
+                        }
+                    },
+                    15, false);
+            }));
     }
 };
