@@ -674,7 +674,7 @@ void fm_tilde_setup();
 #endif
 void knob_setup();
 
-void pdlua_setup(char const* datadir, char* vers, int vers_len);
+void pdlua_setup(char const* datadir, char* vers, int vers_len, void(*register_gui_callback)(t_object*));
 }
 
 namespace pd {
@@ -757,6 +757,11 @@ void* Setup::createReceiver(void* ptr, char const* s,
     return x;
 }
 
+void Setup::initialisePdLua(char const* datadir, char* vers, int vers_len, void(*register_gui_callback)(t_object*))
+{
+    pdlua_setup(datadir, vers, vers_len, register_gui_callback);
+}
+
 void* Setup::createPrintHook(void* ptr, t_plugdata_printhook hook_print)
 {
     t_plugdata_print* x = (t_plugdata_print*)pd_new(plugdata_print_class);
@@ -810,11 +815,6 @@ void Setup::parseArguments(char const** argv, size_t argc, t_namelist** sys_open
     // TODO: some args need to be parsed manually still!
     sys_unlock();
     return;
-}
-
-void Setup::initialisePdLua(char const* datadir, char* vers, int vers_len)
-{
-    pdlua_setup(datadir, vers, vers_len);
 }
 
 void Setup::initialiseELSE()

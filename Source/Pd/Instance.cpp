@@ -285,12 +285,13 @@ void Instance::initialisePd(String& pdlua_version)
         class_set_extern_dir(gensym("10.cyclone"));
         pd::Setup::initialiseCyclone();
 
+        class_set_extern_dir(gensym(""));
         set_class_prefix(nullptr);
 
         // Class prefix doesn't seem to work for pdlua
         char vers[1000];
         *vers = 0;
-        pd::Setup::initialisePdLua(extra.getFullPathName().getCharPointer(), vers, 1000);
+        pd::Setup::initialisePdLua(extra.getFullPathName().getCharPointer(), vers, 1000, &registerLuaGui);
         if (*vers)
             pdlua_version = vers;
 
@@ -783,6 +784,16 @@ void Instance::clearObjectImplementationsForPatch(pd::Patch* p)
     if (auto patch = p->getPointer()) {
         objectImplementations->clearObjectImplementationsForPatch(patch.get());
     }
+}
+
+void Instance::registerLuaGui(t_object* object)
+{
+    luaGuis.insert(hash(object->te_g.g_pd->c_name->s_name));
+}
+
+bool Instance::isLuaGui(hash32 objectNameHash)
+{
+    return luaGuis.contains(objectNameHash);
 }
 
 } // namespace pd
