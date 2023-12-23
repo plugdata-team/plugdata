@@ -547,6 +547,15 @@ bool PluginEditor::isInterestedInFileDrag(StringArray const& files)
 
 void PluginEditor::fileDragMove(StringArray const& files, int x, int y)
 {
+    for (auto& path : files) {
+        auto file = File(path);
+        if (file.exists() && file.hasFileExtension("pd") && !isDraggingFile) {
+            isDraggingFile = true;
+            repaint();
+            return;
+        }
+    }
+    
     auto* splitUnderMouse = splitView.getSplitAtScreenPosition(localPointToGlobal(Point<int>(x, y)));
     bool wasDraggingFile = isDraggingFile;
     if (splitUnderMouse) {
@@ -568,8 +577,22 @@ void PluginEditor::fileDragMove(StringArray const& files, int x, int y)
 
 void PluginEditor::filesDropped(StringArray const& files, int x, int y)
 {
+    // First check for .pd files
+    bool openedPdFiles = false;
+    for (auto& path : files) {
+        auto file = File(path);
+        if (file.exists() && file.hasFileExtension("pd")) {
+            openedPdFiles = true;
+            autosave->checkForMoreRecentAutosave(file, [this, file]() {
+                pd->loadPatch(file, this, -1);
+                SettingsFile::getInstance()->addToRecentlyOpened(file);
+                pd->titleChanged();
+            });
+        }
+    }
+    
     auto* splitUnderMouse = splitView.getSplitAtScreenPosition(localPointToGlobal(Point<int>(x, y)));
-    if (splitUnderMouse) {
+    if (splitUnderMouse && !openedPdFiles) {
         if (auto* cnv = splitUnderMouse->getTabComponent()->getCurrentCanvas()) {
             for (auto& path : files) {
                 auto file = File(path);
@@ -584,17 +607,6 @@ void PluginEditor::filesDropped(StringArray const& files, int x, int y)
         }
     }
 
-    // then check for pd files
-    for (auto& path : files) {
-        auto file = File(path);
-        if (file.exists() && file.hasFileExtension("pd")) {
-            autosave->checkForMoreRecentAutosave(file, [this, file]() {
-                pd->loadPatch(file, this, -1);
-                SettingsFile::getInstance()->addToRecentlyOpened(file);
-                pd->titleChanged();
-            });
-        }
-    }
 
     isDraggingFile = false;
     repaint();
