@@ -699,7 +699,7 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
 
     inputFifo->writeAudioAndMidi(buffer, midiMessages);
 
-    audioAdvancement = 0;
+    audioAdvancement = 0; // Always has to be 0 if we use the AudioMidiFifo!
 
     while (inputFifo->getNumSamplesAvailable() >= pdBlockSize) {
         midiBufferIn.clear();
@@ -744,7 +744,6 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
         }
 
         outputFifo->writeAudioAndMidi(audioBufferOut, midiBufferOut);
-        audioAdvancement += pdBlockSize;
     }
     
     // When the amount of samples availabble is larger than (2 * pdBlockSize) - buffer.getNumSamples(), we know for sure that we'll have enough samples to process the next block as well
