@@ -796,13 +796,13 @@ void Canvas::mouseUp(MouseEvent const& e)
 
 void Canvas::updateSidebarSelection()
 {
-    auto lassoSelection = getSelectionOfType<Object>();
-
 #if JUCE_IOS
-    editor->showTouchSelectionHelper(lassoSelection.size() >= 1);
+    editor->showTouchSelectionHelper(lassoSelection.size() > 0);
 #endif
-
-    if (lassoSelection.size() >= 1) {
+    
+    auto lassoSelection = selectedComponents.getNumSelected();
+    
+    if (lassoSelection.size() > 0) {
         Array<ObjectParameters> allParameters;
         for (auto* object : lassoSelection) {
             if (!object->gui)
