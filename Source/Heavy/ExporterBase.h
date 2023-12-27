@@ -123,14 +123,13 @@ struct ExporterBase : public Component
 
     void startExport(File const& outDir)
     {
-
         auto patchPath = patchFile.getFullPathName();
         auto const& outPath = outDir.getFullPathName();
         auto projectTitle = projectNameValue.toString();
         auto projectCopyright = projectCopyrightValue.toString();
 
-        if (projectTitle.isEmpty())
-            projectTitle = "Untitled";
+        if (!projectTitle.unquoted().containsNonWhitespaceChars())
+            projectTitle = patchFile.getFileNameWithoutExtension();
 
         // Add file location to search paths
         auto searchPaths = StringArray { patchFile.getParentDirectory().getFullPathName() };
