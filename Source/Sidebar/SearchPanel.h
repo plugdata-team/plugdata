@@ -102,8 +102,10 @@ public:
     {
         auto* cnv = editor->getCurrentCanvas();
         if(cnv) {
+            cnv->pd->lockAudioThread(); // It locks inside of this anyway, so we might as well lock around it to prevent constantly locking/unlocking
             auto tree = generatePatchTree(cnv->refCountedPatch);
             patchTree.setValueTree(tree);
+            cnv->pd->unlockAudioThread();
         }
     }
     

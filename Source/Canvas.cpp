@@ -453,7 +453,7 @@ void Canvas::performSynchronise()
 
     // Remove deleted connections
     for (int n = connections.size() - 1; n >= 0; n--) {
-        if (patch.connectionWasDeleted(connections[n]->getPointer())) {
+        if (!connections[n]->getPointer()) {
             connections.remove(n);
         }
     }

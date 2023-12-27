@@ -635,9 +635,9 @@ void Object::updateTooltips()
 
     std::vector<std::pair<int, String>> inletMessages;
     std::vector<std::pair<int, String>> outletMessages;
-
-    cnv->pd->lockAudioThread();
+    
     if (auto subpatch = gui->getPatch()) {
+        cnv->pd->lockAudioThread();
         auto* subpatchPtr = subpatch->getPointer().get();
 
         // Check child objects of subpatch for inlet/outlet messages
@@ -646,9 +646,9 @@ void Object::updateTooltips()
             if (!obj.isValid())
                 continue;
 
-            String const name = pd::Interface::getObjectClassName(obj.getRaw<t_pd>());
+            auto const name = hash(pd::Interface::getObjectClassName(obj.getRaw<t_pd>()));
             auto* checkedObject = pd::Interface::checkObject(obj.getRaw<t_pd>());
-            if (name == "inlet" || name == "inlet~") {
+            if (name == hash("inlet") || name == hash("inlet~")) {
                 int size;
                 char* str_ptr;
                 pd::Interface::getObjectText(checkedObject, &str_ptr, &size);
@@ -661,7 +661,7 @@ void Object::updateTooltips()
                 inletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
                 freebytes(static_cast<void*>(str_ptr), static_cast<size_t>(size) * sizeof(char));
             }
-            if (name == "outlet" || name == "outlet~") {
+            if (name == hash("outlet") || name == hash("outlet~")) {
                 int size;
                 char* str_ptr;
                 pd::Interface::getObjectText(checkedObject, &str_ptr, &size);
@@ -675,8 +675,8 @@ void Object::updateTooltips()
                 freebytes(static_cast<void*>(str_ptr), static_cast<size_t>(size) * sizeof(char));
             }
         }
+        cnv->pd->unlockAudioThread();
     }
-    cnv->pd->unlockAudioThread();
 
     if (inletMessages.empty() && outletMessages.empty())
         return;
@@ -719,15 +719,13 @@ void Object::updateIolets()
     numInputs = 0;
     numOutputs = 0;
 
-    if (cnv->patch.objectWasDeleted(getPointer())) {
-        iolets.clear();
-        return;
-    }
-
     if (auto* ptr = pd::Interface::checkObject(getPointer())) {
         numInputs = pd::Interface::numInlets(ptr);
         numOutputs = pd::Interface::numOutlets(ptr);
     }
+    
+    // Looking up tooltips takes a bit of time, so we make sure we're not constantly updating them for no reason
+    bool tooltipsNeedUpdate = gui->getPatch() != nullptr || numInputs != oldNumInputs || numOutputs != oldNumOutputs;
 
     for (auto* iolet : iolets) {
         if (gui && !iolet->isInlet) {
@@ -769,7 +767,7 @@ void Object::updateIolets()
         numOut += !input;
     }
 
-    updateTooltips();
+    if(tooltipsNeedUpdate) updateTooltips();
     resized();
 }
 
