@@ -54,7 +54,7 @@ public:
                 return {};
 
             auto newNumLines = 0;
-            auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, obj.cast<t_gobj>(), linkText, 15, newNumLines);
+            auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, obj.cast<t_gobj>(), linkText, newNumLines);
 
             return newBounds;
         }
@@ -113,12 +113,11 @@ public:
 
         if (!editor) {
             auto textArea = border.subtractedFrom(getLocalBounds());
-            auto scale = getWidth() < 40 ? 0.9f : 1.0f;
             bool locked = getValue<bool>(object->locked) || getValue<bool>(object->commandLocked);
 
             auto colour = object->findColour((locked && isMouseOver()) ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::canvasTextColourId);
 
-            Fonts::drawFittedText(g, linkText, textArea, colour, numLines, scale);
+            Fonts::drawFittedText(g, linkText, textArea, colour, 1, 1.0f);
         }
     }
 

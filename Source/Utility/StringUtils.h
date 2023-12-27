@@ -54,3 +54,33 @@ struct StringUtils {
         return std::max<int>(round(static_cast<float>(stringWidth) / (width - 38.0f)), 1);
     }
 };
+
+template<int FontSize>
+struct CachedStringWidth {
+    
+    static int calculateSingleLineWidth(const String& singleLine)
+    {
+        auto stringHash = hash(singleLine);
+        
+        auto cacheHit = stringWidthCache.find(stringHash);
+        if(cacheHit != stringWidthCache.end()) return cacheHit->second;
+        
+        auto stringWidth = Font(FontSize).getStringWidth(singleLine);
+        stringWidthCache[stringHash] = stringWidth;
+        
+        return stringWidth;
+    }
+    
+    static int calculateStringWidth(const String& string)
+    {
+        int maximumLineWidth = 21;
+        for(auto line : StringArray::fromLines(string))
+        {
+            maximumLineWidth = std::max(calculateSingleLineWidth(line), maximumLineWidth);
+        }
+        
+        return maximumLineWidth;
+    }
+    
+    static inline std::unordered_map<hash32, int> stringWidthCache = std::unordered_map<hash32, int>();
+};

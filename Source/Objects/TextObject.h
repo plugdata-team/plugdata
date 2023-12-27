@@ -8,13 +8,16 @@ struct TextObjectHelper {
 
     inline static int minWidth = 3;
 
-    static Rectangle<int> recalculateTextObjectBounds(t_canvas* patch, t_gobj* obj, String const& currentText, int fontHeight, int& numLines, bool applyOffset = false, int maxIolets = 0)
+    
+    static Rectangle<int> recalculateTextObjectBounds(t_canvas* patch, t_gobj* obj, String const& currentText, int& numLines, bool applyOffset = false, int maxIolets = 0)
     {
+        int const fontHeight = 15;
+        
         int x, y, w, h;
         pd::Interface::getObjectBounds(patch, obj, &x, &y, &w, &h);
 
         auto fontWidth = glist_fontwidth(static_cast<t_glist*>(patch));
-        int idealTextWidth = getIdealWidthForText(currentText, fontHeight);
+        int idealTextWidth = getIdealWidthForText(currentText);
 
         // For regular text object, we want to adjust the width so ideal text with aligns with fontWidth
         int offset = applyOffset ? idealTextWidth % fontWidth : 0;
@@ -102,7 +105,7 @@ struct TextObjectHelper {
 
                 // Set new width
                 TextObjectHelper::setWidthInChars(object->getPointer(), newCharWidth);
-
+                
                 bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
             }
         };
@@ -130,13 +133,14 @@ struct TextObjectHelper {
         return text;
     }
 
-    static int getIdealWidthForText(String const& text, int fontHeight)
+    static int getIdealWidthForText(String const& text)
     {
+        
         auto lines = StringArray::fromLines(text);
         int w = minWidth;
 
         for (auto& line : lines) {
-            w = std::max<int>(Font(fontHeight).getStringWidthFloat(line) + 14.0f, w);
+            w = std::max<int>(CachedStringWidth<15>::calculateStringWidth(line) + 14, w);
         }
 
         return w;
@@ -196,10 +200,12 @@ class TextBase : public ObjectBase
 protected:
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 7, 2, 2);
-
+    
+    TextLayout textLayout;
+    hash32 layoutTextHash;
+    
     Value sizeProperty = SynchronousValue();
     String objectText;
-    int numLines = 1;
     bool isValid = true;
     bool isLocked;
 
@@ -209,9 +215,11 @@ public:
         , isValid(valid)
     {
         objectText = getText();
+        
         isLocked = getValue<bool>(cnv->locked);
 
         objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
+        updateTextLayout();
     }
 
     ~TextBase() override = default;
@@ -239,9 +247,7 @@ public:
 
         if (!editor) {
             auto textArea = border.subtractedFrom(getLocalBounds());
-
-            auto scale = getWidth() < 40 ? 0.9f : 1.0f;
-            Fonts::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, scale);
+            textLayout.draw(g, textArea.toFloat());
         }
     }
 
@@ -279,29 +285,71 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
+        updateTextLayout(); // make sure layout height is updated
 
-        String objText;
+        int x = 0, y = 0, w, h;
+        if (auto obj = ptr.get<t_gobj>()) {
+            auto* cnvPtr = cnv->patch.getPointer().get();
+            if (!cnvPtr) return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 7, 21)};
+    
+            pd::Interface::getObjectBounds(cnvPtr, obj.get(), &x, &y, &w, &h);
+        }
+
+        return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 7, 21)};
+    }
+        
+    int getTextObjectWidth()
+    {
+        auto objText = editor ? editor->getText() : objectText;
         if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
             objText = cnv->suggestor->getText();
-        } else if (editor) {
-            objText = editor->getText();
-        } else {
-            objText = objectText;
         }
-
+                
+        int fontWidth = 7;
+        int charWidth = 0;
         if (auto obj = ptr.get<void>()) {
-            auto* cnvPtr = cnv->patch.getPointer().get();
-            if (!cnvPtr)
-                return {};
-
-            auto newNumLines = 0;
-            auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, obj.cast<t_gobj>(), objText, 15, newNumLines, true, std::max({ 1, object->numInputs, object->numOutputs }));
-
-            numLines = newNumLines;
-            return newBounds;
+            charWidth = TextObjectHelper::getWidthInChars(obj.get());
+            fontWidth = glist_fontwidth(cnv->patch.getPointer().get());
         }
-
-        return {};
+        
+        // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
+        int idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 12;
+        
+        // We want to adjust the width so ideal text with aligns with fontWidth
+        int offset = idealWidth % fontWidth;
+        
+        int textWidth;
+        if (objText.isEmpty()) { // If text is empty, set to minimum width
+            textWidth = std::max(charWidth, TextObjectHelper::minWidth) * fontWidth;
+        } else if (charWidth == 0) { // If width is set to automatic, calculate based on text width
+            textWidth = std::clamp(idealWidth, TextObjectHelper::minWidth * fontWidth, fontWidth * 60);
+        } else { // If width was set manually, calculate what the width is
+            textWidth = std::max(charWidth, TextObjectHelper::minWidth) * fontWidth + offset;
+        }
+        
+        return textWidth;
+    }
+        
+    void updateTextLayout()
+    {
+        auto objText = editor ? editor->getText() : objectText;
+        if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
+            objText = cnv->suggestor->getText();
+        }
+        
+        int textWidth = getTextObjectWidth() - 10; // Reserve a bit of extra space for the text margin
+        auto currentLayoutHash = hash(objText) ^ textWidth;
+        if(layoutTextHash != currentLayoutHash)
+        {
+            auto attributedText = AttributedString(objectText);
+            attributedText.setColour(object->findColour(PlugDataColour::canvasTextColourId));
+            attributedText.setJustification(Justification::centredLeft);
+            attributedText.setFont(Font(15));
+            
+            textLayout = TextLayout();
+            textLayout.createLayout(attributedText, textWidth);
+            layoutTextHash = currentLayoutHash;
+        }
     }
 
     void setPdBounds(Rectangle<int> b) override
@@ -325,6 +373,8 @@ public:
                 canvas_resortoutlets(patch);
             }
         }
+        
+        updateTextLayout();
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -359,6 +409,7 @@ public:
             bool changed;
             if (objectText != newText) {
                 objectText = newText;
+                updateTextLayout();
                 repaint();
                 changed = true;
             } else {
@@ -443,6 +494,8 @@ public:
         if (editor) {
             editor->setBounds(getLocalBounds());
         }
+        
+        updateTextLayout();
     }
 
     /** Returns the currently-visible text editor, or nullptr if none is open. */
