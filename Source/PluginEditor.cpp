@@ -1206,13 +1206,22 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
     case CommandIDs::NextTab: {
         result.setInfo("Next Tab", "Show the next tab", "View", 0);
         result.setActive(true);
+#if JUCE_MAC
         result.addDefaultKeypress(125, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+#else
+        result.addDefaultKeypress(KeyPress::pageDownKey, ModifierKeys::commandModifier);
+#endif
+        
         break;
     }
     case CommandIDs::PreviousTab: {
         result.setInfo("Previous Tab", "Show the previous tab", "View", 0);
         result.setActive(true);
+#if JUCE_MAC
         result.addDefaultKeypress(123, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+#else
+        result.addDefaultKeypress(KeyPress::pageUpKey, ModifierKeys::commandModifier);
+#endif
         break;
     }
     case CommandIDs::ToggleSnapping: {
