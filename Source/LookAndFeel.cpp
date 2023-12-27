@@ -903,7 +903,7 @@ void PlugDataLook::drawPopupMenuItem(Graphics& g, Rectangle<int> const& area,
             auto font = Fonts::getSemiBoldFont().withHeight(10.5f);
             auto text = shortcutKeyText.substring(i, i+1);
             auto width = std::max(font.getStringWidth(text) + 4, 16);
-            auto b = shortcutBounds.removeFromRight(width).reduced(1, 5);
+            auto b = shortcutBounds.removeFromRight(width).toFloat().reduced(1.0f, 5.0f).translated(1.5f, 0.5f);
             
             g.setColour(findColour(PlugDataColour::popupMenuTextColourId).withAlpha(isActive ? 0.9f : 0.35f));
             g.fillRoundedRectangle(b.toFloat(), 3.0f);
