@@ -16,7 +16,7 @@ class CommentObject final : public ObjectBase
     hash32 layoutTextHash;
         
     std::unique_ptr<TextEditor> editor;
-    BorderSize<int> border = BorderSize<int>(1, 7, 2, 2);
+    BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
     String objectText;
 
 public:
@@ -135,12 +135,12 @@ public:
             int x = 0, y = 0, w, h;
             if (auto obj = ptr.get<t_gobj>()) {
                 auto* cnvPtr = cnv->patch.getPointer().get();
-                if (!cnvPtr) return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 7, 21)};
+                if (!cnvPtr) return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 6, 21)};
         
                 pd::Interface::getObjectBounds(cnvPtr, obj.get(), &x, &y, &w, &h);
             }
 
-            return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 7, 21)};
+            return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 6, 21)};
         }
             
         int getTextObjectWidth()
@@ -155,7 +155,7 @@ public:
             }
             
             // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
-            int idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 13;
+            int idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 12;
             
             // We want to adjust the width so ideal text with aligns with fontWidth
             int offset = idealWidth % fontWidth;
@@ -176,7 +176,7 @@ public:
         {
             auto objText = editor ? editor->getText() : objectText;
             
-            int textWidth = getTextObjectWidth() - 13; // Reserve a bit of extra space for the text margin
+            int textWidth = getTextObjectWidth() - 12; // Reserve a bit of extra space for the text margin
             auto currentLayoutHash = hash(objText) ^ textWidth;
             if(layoutTextHash != currentLayoutHash)
             {

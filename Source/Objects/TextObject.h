@@ -199,7 +199,7 @@ class TextBase : public ObjectBase
 
 protected:
     std::unique_ptr<TextEditor> editor;
-    BorderSize<int> border = BorderSize<int>(1, 7, 2, 2);
+    BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
     
     TextLayout textLayout;
     hash32 layoutTextHash;
@@ -290,15 +290,15 @@ public:
         int x = 0, y = 0, w, h;
         if (auto obj = ptr.get<t_gobj>()) {
             auto* cnvPtr = cnv->patch.getPointer().get();
-            if (!cnvPtr) return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 7, 21)};
+            if (!cnvPtr) return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 6, 21)};
     
             pd::Interface::getObjectBounds(cnvPtr, obj.get(), &x, &y, &w, &h);
         }
 
-        return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 7, 21)};
+        return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 6, 21)};
     }
         
-    int getTextObjectWidth()
+    virtual int getTextObjectWidth()
     {
         auto objText = editor ? editor->getText() : objectText;
         if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
@@ -313,7 +313,7 @@ public:
         }
         
         // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
-        int idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 12;
+        int idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 14;
         
         // We want to adjust the width so ideal text with aligns with fontWidth
         int offset = idealWidth % fontWidth;
@@ -327,21 +327,24 @@ public:
             textWidth = std::max(charWidth, TextObjectHelper::minWidth) * fontWidth + offset;
         }
         
+        auto maxIolets = std::max(object->numInputs, object->numOutputs);
+        textWidth = std::max(textWidth, maxIolets * 18);
+        
         return textWidth;
     }
         
-    void updateTextLayout()
+    virtual void updateTextLayout()
     {
         auto objText = editor ? editor->getText() : objectText;
         if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
             objText = cnv->suggestor->getText();
         }
         
-        int textWidth = getTextObjectWidth() - 10; // Reserve a bit of extra space for the text margin
+        int textWidth = getTextObjectWidth() - 14; // Reserve a bit of extra space for the text margin
         auto currentLayoutHash = hash(objText) ^ textWidth;
         if(layoutTextHash != currentLayoutHash)
         {
-            auto attributedText = AttributedString(objectText);
+            auto attributedText = AttributedString(objText);
             attributedText.setColour(object->findColour(PlugDataColour::canvasTextColourId));
             attributedText.setJustification(Justification::centredLeft);
             attributedText.setFont(Font(15));

@@ -41,25 +41,90 @@ public:
             repaint();
         }
     }
+    
+    int getTextObjectWidth() override
+    {
+        auto objText = getLinkText();
+        if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
+            objText = cnv->suggestor->getText();
+        }
+                
+        int fontWidth = 7;
+        int charWidth = 0;
+        if (auto obj = ptr.get<void>()) {
+            charWidth = TextObjectHelper::getWidthInChars(obj.get());
+            fontWidth = glist_fontwidth(cnv->patch.getPointer().get());
+        }
+        
+        // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
+        int idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 14;
+        
+        // We want to adjust the width so ideal text with aligns with fontWidth
+        int offset = idealWidth % fontWidth;
+        
+        int textWidth;
+        if (objText.isEmpty()) { // If text is empty, set to minimum width
+            textWidth = std::max(charWidth, TextObjectHelper::minWidth) * fontWidth;
+        } else if (charWidth == 0) { // If width is set to automatic, calculate based on text width
+            textWidth = std::clamp(idealWidth, TextObjectHelper::minWidth * fontWidth, fontWidth * 60);
+        } else { // If width was set manually, calculate what the width is
+            textWidth = std::max(charWidth, TextObjectHelper::minWidth) * fontWidth + offset;
+        }
+        
+        auto maxIolets = std::max(object->numInputs, object->numOutputs);
+        textWidth = std::max(textWidth, maxIolets * 18);
+        
+        return textWidth;
+    }
+        
+    void updateTextLayout() override
+    {
+        auto objText = getLinkText();
+        if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
+            objText = cnv->suggestor->getText();
+        }
+        
+        auto mouseIsOver = isMouseOver();
+        
+        int textWidth = getTextObjectWidth() - 14; // Reserve a bit of extra space for the text margin
+        auto currentLayoutHash = (hash(objText) ^ textWidth) * !mouseIsOver;
+        if(layoutTextHash != currentLayoutHash)
+        {
+            bool locked = getValue<bool>(object->locked) || getValue<bool>(object->commandLocked);
+            auto colour = object->findColour((locked && mouseIsOver) ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::canvasTextColourId);
+            
+            auto attributedText = AttributedString(objText);
+            attributedText.setColour(object->findColour(PlugDataColour::canvasTextColourId));
+            attributedText.setJustification(Justification::centredLeft);
+            attributedText.setFont(Font(15));
+            attributedText.setColour(colour);
+            
+            textLayout = TextLayout();
+            textLayout.createLayout(attributedText, textWidth);
+            layoutTextHash = currentLayoutHash;
+        }
+    }
+    
+    String getLinkText()
+    {
+        auto tokens = StringArray::fromTokens(editor ? editor->getText() : objectText, true);
+        tokens.removeRange(0, tokens.indexOf("-h") + 2);
+        return tokens.joinIntoString(" ");
+    }
 
     Rectangle<int> getPdBounds() override
     {
-        auto tokens = StringArray::fromTokens(objectText, true);
-        tokens.removeRange(0, tokens.indexOf("-h") + 2);
-        auto linkText = tokens.joinIntoString(" ");
+        updateTextLayout(); // make sure layout height is updated
 
-        if (auto obj = ptr.get<void>()) {
+        int x = 0, y = 0, w, h;
+        if (auto obj = ptr.get<t_gobj>()) {
             auto* cnvPtr = cnv->patch.getPointer().get();
-            if (!cnvPtr)
-                return {};
-
-            auto newNumLines = 0;
-            auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, obj.cast<t_gobj>(), linkText, newNumLines);
-
-            return newBounds;
+            if (!cnvPtr) return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 6, 21)};
+    
+            pd::Interface::getObjectBounds(cnvPtr, obj.get(), &x, &y, &w, &h);
         }
 
-        return {};
+        return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 6, 21)};
     }
 
     void setPdBounds(Rectangle<int> b) override
@@ -96,10 +161,6 @@ public:
     {
         auto backgroundColour = object->findColour(PlugDataColour::textObjectBackgroundColourId);
 
-        auto tokens = StringArray::fromTokens(objectText, true);
-        tokens.removeRange(0, tokens.indexOf("-h") + 2);
-        auto linkText = tokens.joinIntoString(" ");
-
         g.setColour(backgroundColour);
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
@@ -113,21 +174,19 @@ public:
 
         if (!editor) {
             auto textArea = border.subtractedFrom(getLocalBounds());
-            bool locked = getValue<bool>(object->locked) || getValue<bool>(object->commandLocked);
-
-            auto colour = object->findColour((locked && isMouseOver()) ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::canvasTextColourId);
-
-            Fonts::drawFittedText(g, linkText, textArea, colour, 1, 1.0f);
+            textLayout.draw(g, textArea.toFloat());
         }
     }
 
     void mouseEnter(MouseEvent const& e) override
     {
+        updateTextLayout();
         repaint();
     }
 
     void mouseExit(MouseEvent const& e) override
     {
+        updateTextLayout();
         repaint();
     }
 

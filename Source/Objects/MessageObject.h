@@ -10,7 +10,7 @@ class MessageObject final : public ObjectBase
 
     Value sizeProperty = SynchronousValue();
     std::unique_ptr<TextEditor> editor;
-    BorderSize<int> border = BorderSize<int>(1, 7, 2, 2);
+    BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
 
     String objectText;
     
@@ -45,12 +45,12 @@ public:
          int x = 0, y = 0, w, h;
          if (auto obj = ptr.get<t_gobj>()) {
              auto* cnvPtr = cnv->patch.getPointer().get();
-             if (!cnvPtr) return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 7, 21)};
+             if (!cnvPtr) return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 6, 21)};
      
              pd::Interface::getObjectBounds(cnvPtr, obj.get(), &x, &y, &w, &h);
          }
 
-         return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 7, 21)};
+         return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 6, 21)};
      }
          
      int getTextObjectWidth()
@@ -106,33 +106,6 @@ public:
              layoutTextHash = currentLayoutHash;
          }
      }
-
-        /*
-    Rectangle<int> getPdBounds() override
-    {
-        auto objText = editor ? editor->getText() : objectText;
-        if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
-            objText = cnv->suggestor->getText();
-        }
-
-        auto newNumLines = 0;
-
-        if (auto message = ptr.get<t_text>()) {
-            auto* cnvPtr = cnv->patch.getPointer().get();
-            if (!cnvPtr)
-                return {};
-
-            auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, message.cast<t_gobj>(), objText, newNumLines);
-
-            numLines = newNumLines;
-
-            // Create extra space for drawing the message box flag
-            newBounds.setWidth(newBounds.getWidth() + 5);
-            return newBounds;
-        }
-
-        return {};
-    } */
 
     void setPdBounds(Rectangle<int> b) override
     {

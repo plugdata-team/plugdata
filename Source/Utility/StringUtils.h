@@ -73,7 +73,7 @@ struct CachedStringWidth {
     
     static int calculateStringWidth(const String& string)
     {
-        int maximumLineWidth = 21;
+        int maximumLineWidth = 7;
         for(auto line : StringArray::fromLines(string))
         {
             maximumLineWidth = std::max(calculateSingleLineWidth(line), maximumLineWidth);
