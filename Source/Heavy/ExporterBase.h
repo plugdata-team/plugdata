@@ -129,7 +129,12 @@ struct ExporterBase : public Component
         auto projectCopyright = projectCopyrightValue.toString();
 
         if (!projectTitle.unquoted().containsNonWhitespaceChars())
-            projectTitle = patchFile.getFileNameWithoutExtension();
+        {
+            if (!realPatchFile.getFileNameWithoutExtension().isEmpty())
+                projectTitle = realPatchFile.getFileNameWithoutExtension();
+            else
+                projectTitle = "Untitled";
+        }
 
         // Add file location to search paths
         auto searchPaths = StringArray { patchFile.getParentDirectory().getFullPathName() };
