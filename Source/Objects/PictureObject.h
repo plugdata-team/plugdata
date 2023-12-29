@@ -43,6 +43,11 @@ public:
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
         objectParameters.addParamSendSymbol(&sendSymbol);
     }
+    
+    bool isTransparent() override
+    {
+        return true;
+    }
 
     void mouseDown(MouseEvent const& e) override
     {

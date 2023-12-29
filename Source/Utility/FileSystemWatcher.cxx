@@ -69,7 +69,6 @@ public:
         ignoreUnused (streamRef, numEvents, eventIds, eventPaths, eventFlags);
 
         Impl* impl = (Impl*)clientCallBackInfo;
-        impl->owner.folderChanged (impl->folder);
 
         char** files = (char**)eventPaths;
 
@@ -198,8 +197,6 @@ public:
         if(shouldQuit) return;
 
         ScopedLock sl (lock);
-
-        owner.folderChanged (folder);
 
         for (auto& e : events)
             owner.fileChanged (e.file, e.fsEvent);
@@ -337,8 +334,6 @@ public:
     {
         ScopedLock sl (lock);
 
-        owner.folderChanged (folder);
-
         for (auto e : events)
             owner.fileChanged (e.file, e.fsEvent);
 
@@ -418,13 +413,10 @@ void FileSystemWatcher::removeListener (Listener* listener)
     listeners.remove (listener);
 }
 
-void FileSystemWatcher::folderChanged (const File& folder)
-{
-    listeners.call (&FileSystemWatcher::Listener::folderChanged, folder);
-}
-
 void FileSystemWatcher::fileChanged (const File& file, FileSystemEvent fsEvent)
 {
+    if(file.getFileName().endsWith(".autosave")) return;
+    
     listeners.call (&FileSystemWatcher::Listener::fileChanged, file, fsEvent);
 }
 

@@ -648,7 +648,7 @@ private:
         {
             if (editor != nullptr) {
 
-                auto* commandManager = dynamic_cast<ApplicationCommandManager*>(editor.getComponent());
+                auto* commandManager = &dynamic_cast<PluginEditor*>(editor.getComponent())->commandManager;
 
                 // Menubar, only for standalone on mac
                 // Doesn't add any new features, but was easy to implement because we already have a command manager
@@ -701,7 +701,7 @@ private:
         {
             PopupMenu menu;
 
-            auto* commandManager = dynamic_cast<ApplicationCommandManager*>(editor.getComponent());
+            auto* commandManager = &dynamic_cast<PluginEditor*>(editor.getComponent())->commandManager;
 
             if (topLevelMenuIndex == 0) {
                 menu.addCommandItem(commandManager, CommandIDs::NewProject);
@@ -736,11 +736,24 @@ private:
                 editor->removeComponentListener(this);
             }
         }
+            
+#if JUCE_IOS
+            void paint(Graphics& g) override
+            {
+                g.fillAll(findColour(PlugDataColour::toolbarBackgroundColourId));
+            }
+#endif
 
         void resized() override
         {
             auto r = getLocalBounds().reduced(getMargin());
-
+            
+#if JUCE_IOS
+            if(auto* peer = getPeer()) {
+                r = OSUtils::getSafeAreaInsets().subtractedFrom(r);
+            }
+#endif
+            
             if (editor != nullptr) {
                 auto const newPos = r.getTopLeft().toFloat().transformedBy(editor->getTransform().inverted());
 

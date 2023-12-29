@@ -366,6 +366,19 @@ struct Interface {
 
         return new_object;
     }
+    
+    // Can recreate any object of type t_text
+    static void recreateTextObject(t_canvas* cnv, t_gobj* obj)
+    {
+        if(auto* textObject = checkObject(obj))
+        {
+            char* text = nullptr;
+            int len = 0;
+            
+            getObjectText(textObject, &text, &len);
+            renameObject(cnv, obj, text, len);
+        }
+    }
 
     static void renameObject(t_canvas* cnv, t_gobj* obj, char const* buf, size_t bufsize)
     {

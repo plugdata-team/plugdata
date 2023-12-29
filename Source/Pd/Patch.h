@@ -77,6 +77,8 @@ public:
     void setCurrent();
 
     bool isDirty() const;
+    bool canUndo() const;
+    bool canRedo() const;
 
     void savePatch(File const& location);
     void savePatch();
@@ -119,8 +121,6 @@ public:
     bool closePatchOnDelete;
     bool openInPluginMode = false;
     int splitViewIndex = 0;
-    Value canUndo;
-    Value canRedo;
 
     String lastUndoSequence;
     String lastRedoSequence;
@@ -130,6 +130,10 @@ public:
     void updateUndoRedoString();
 
 private:
+    std::atomic<bool> canPatchUndo;
+    std::atomic<bool> canPatchRedo;
+    std::atomic<bool> isPatchDirty;
+    
     File currentFile;
 
     WeakReference ptr;

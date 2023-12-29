@@ -40,7 +40,6 @@ void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg ypos, t_floatarg shif
 #include "Pd/Patch.h"
 #include "Sidebar/Sidebar.h"
 
-#include "ObjectBackground.h"
 #include "IEMHelper.h"
 #include "AtomHelper.h"
 
@@ -79,6 +78,7 @@ void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg ypos, t_floatarg shif
 #include "MidiObjects.h"
 #include "OpenFileObject.h"
 #include "PdTildeObject.h"
+#include "LuaObject.h"
 
 // Class for non-patchable objects
 class NonPatchable : public ObjectBase {
@@ -197,7 +197,7 @@ void ObjectBase::objectMovedOrResized(bool resized)
 {
     auto objectBounds = object->getObjectBounds();
 
-    setValueExcludingListener(positionParameter, Array<var> { var(objectBounds.getX()), var(objectBounds.getY()) }, &objectSizeListener);
+    setParameterExcludingListener(positionParameter, Array<var> { var(objectBounds.getX()), var(objectBounds.getY()) }, &objectSizeListener);
 
     if (resized)
         updateSizeProperty();
@@ -286,7 +286,7 @@ bool ObjectBase::hitTest(int x, int y)
 // Gets position from pd and applies it to Object
 Rectangle<int> ObjectBase::getSelectableBounds()
 {
-    return object->getBounds() - cnv->canvasOrigin;
+    return object->getBounds().reduced(Object::margin) - cnv->canvasOrigin;
 }
 
 // Called in destructor of subpatch and graph class
@@ -464,11 +464,20 @@ void ObjectBase::sendFloatValue(float newValue)
 ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
 {
     parent->cnv->pd->setThis();
-
+    
     // This will ensure the object is still valid at this point, and also locks the audio thread to make sure it will remain valid
-    if (auto checked = ptr.get<t_gobj>()) {
+    if (auto checked = ptr.get<t_gobj>()) {        
         auto const name = hash(pd::Interface::getObjectClassName(checked.cast<t_pd>()));
 
+        if(parent->cnv->pd->isLuaClass(name))
+        {
+            if (checked.cast<t_pdlua>()->has_gui) {
+                return new LuaObject(ptr, parent);
+            }
+            else {
+                return new LuaTextObject(ptr, parent);
+            }
+        }
         // check if object is a patcher object, or something else
         if (!pd::Interface::checkObject(checked.get()) && name != hash("scalar")) {
             return new NonPatchable(ptr, parent);
@@ -608,6 +617,9 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
             case hash("ctlin"): {
                 return new MidiObject(ptr, parent, true, true);
             }
+            case hash("pdlua"): {
+                return new LuaTextObject(ptr, parent);
+            }
             default:
                 break;
             }
@@ -705,6 +717,17 @@ void ObjectBase::setParameterExcludingListener(Value& parameter, var const& valu
 
     setValueExcludingListener(parameter, value, this);
 
+    parameter.addListener(&propertyUndoListener);
+}
+
+void ObjectBase::setParameterExcludingListener(Value& parameter, var const& value, Value::Listener* otherListener)
+{
+    parameter.removeListener(&propertyUndoListener);
+    parameter.removeListener(otherListener);
+    
+    setValueExcludingListener(parameter, value, this);
+
+    parameter.addListener(otherListener);
     parameter.addListener(&propertyUndoListener);
 }
 

@@ -31,7 +31,7 @@ public:
 
     static std::array<StringArray, 2> parseIoletTooltips(ValueTree const& iolets, String const& name, int numIn, int numOut);
 
-    void fsChangeCallback() override;
+    void filesystemChanged() override;
 
     File findHelpfile(t_gobj* obj, File const& parentPatchFile) const;
 

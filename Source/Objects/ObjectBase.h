@@ -77,6 +77,8 @@ public:
     virtual void showEditor() { }
     virtual void hideEditor() { }
 
+    virtual bool isTransparent() { return false; };
+
     bool hitTest(int x, int y) override;
 
     // Some objects need to show/hide iolets when send/receive symbols are set
@@ -168,6 +170,7 @@ public:
 protected:
     // Set parameter without triggering valueChanged
     void setParameterExcludingListener(Value& parameter, var const& value);
+    void setParameterExcludingListener(Value& parameter, var const& value, Value::Listener* otherListener);
 
     // Call when you start/stop editing a gui object
     void startEdition();

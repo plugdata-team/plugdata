@@ -226,6 +226,9 @@ public:
     void unregisterWeakReference(void* ptr, pd_weak_reference const* ref);
     void clearWeakReferences(void* ptr);
 
+    static void registerLuaClass(const char* object);
+    bool isLuaClass(hash32 objectNameHash);
+
     virtual void receiveDSPState(bool dsp) { }
 
     virtual void updateConsole(int numMessages, bool newWarning) { }
@@ -233,6 +236,19 @@ public:
     virtual void titleChanged() { }
 
     void enqueueFunctionAsync(std::function<void(void)> const& fn);
+    
+    // Enqueue a message to an pd::WeakReference
+    // This will first check if the weakreference is valid before triggering the callback
+    template<typename T>
+    void enqueueFunctionAsync(WeakReference& ref, std::function<void(T*)> const& fn)
+    {
+        functionQueue.enqueue([ref, fn](){
+            if(auto obj = ref.get<T>())
+            {
+                fn(obj.get());
+            }
+        });
+    }
 
     void sendDirectMessage(void* object, String const& msg, std::vector<Atom>&& list);
     void sendDirectMessage(void* object, std::vector<pd::Atom>&& list);
@@ -307,7 +323,8 @@ private:
 
     std::unique_ptr<FileChooser> openChooser;
     std::atomic<bool> consoleMute;
-
+    static inline std::set<hash32> luaClasses = std::set<hash32>(); // Keep track of class names that correspond to pdlua objects
+    
 protected:
     struct internal;
 

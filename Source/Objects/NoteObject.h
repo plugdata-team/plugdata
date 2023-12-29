@@ -96,6 +96,11 @@ public:
         objectParameters.addParamCombo("Justification", cAppearance, &justification, { "Left", "Centered", "Right" }, 1);
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
     }
+    
+    bool isTransparent() override
+    {
+        return true;
+    }
 
     void update() override
     {

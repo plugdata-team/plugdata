@@ -559,7 +559,7 @@ void TabComponent::onTabChange(int tabIndex)
     if (!cnv || tabIndex == -1 || editor->pd->isPerformingGlobalSync)
         return;
 
-    editor->sidebar->tabChanged();
+    cnv->needsSearchUpdate = true;
     cnv->grabKeyboardFocus();
 
     for (auto* split : editor->splitView.splits) {
@@ -588,7 +588,7 @@ void TabComponent::changeCallback(int newCurrentTabIndex, String const& newTabNa
             panelComponent->sendLookAndFeelChange();
             panelComponent->setVisible(true);
             panelComponent->toFront(true);
-            editor->updateUndoRedoValueSource();
+            editor->updateCommandStatus();
         }
     }
     currentTabChanged(newCurrentTabIndex, newTabName);

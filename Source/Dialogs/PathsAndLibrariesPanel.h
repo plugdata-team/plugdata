@@ -104,7 +104,7 @@ public:
         upButton.setConnectedEdges(12);
         upButton.onClick = [this] { moveSelection(-1); };
 
-        upButton.setTooltip("Move selection down");
+        downButton.setTooltip("Move selection down");
         addAndMakeVisible(downButton);
         downButton.setConnectedEdges(12);
         downButton.onClick = [this] { moveSelection(1); };

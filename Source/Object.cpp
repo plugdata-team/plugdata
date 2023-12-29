@@ -134,11 +134,6 @@ void Object::setSelected(bool shouldBeSelected)
         selectedFlag = shouldBeSelected;
         repaint();
     }
-
-    if (!shouldBeSelected && Object::consoleTarget == this) {
-        Object::consoleTarget = nullptr;
-        repaint();
-    }
 }
 
 bool Object::isSelected() const
@@ -166,7 +161,7 @@ void Object::valueChanged(Value& v)
             gui->lock(cnv->isGraph || locked == var(true) || commandLocked == var(true));
         }
     }
-
+    // FIXME: any value change triggers a repaint!
     repaint();
 }
 
@@ -442,19 +437,7 @@ void Object::paintOverChildren(Graphics& g)
         g.drawEllipse(fakeInletBounds, 1.0f);
     }
 
-    if (isSearchTarget || consoleTarget == this) {
-        g.saveState();
-
-        // Don't draw line over iolets!
-        for (auto& iolet : iolets) {
-            g.excludeClipRegion(iolet->getBounds().reduced(2));
-        }
-
-        g.setColour(findColour(PlugDataColour::signalColourId));
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), Corners::objectCornerRadius, 2.0f);
-
-        g.restoreState();
-    } else if (!isHvccCompatible) {
+    if (!isHvccCompatible) {
         g.saveState();
 
         // Don't draw line over iolets!
@@ -501,6 +484,11 @@ void Object::triggerOverlayActiveState()
 
 void Object::paint(Graphics& g)
 {
+    if (gui && gui->isTransparent() && !getValue<bool>(locked)) {
+        g.setColour(findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.35f).withAlpha(0.1f));
+        
+        g.fillRoundedRectangle(getLocalBounds().reduced(Object::margin).toFloat(), Corners::objectCornerRadius);
+    }
     if ((showActiveState || isTimerRunning())) {
         g.setOpacity(activeStateAlpha);
         // show activation state glow
@@ -647,9 +635,9 @@ void Object::updateTooltips()
 
     std::vector<std::pair<int, String>> inletMessages;
     std::vector<std::pair<int, String>> outletMessages;
-
-    cnv->pd->lockAudioThread();
+    
     if (auto subpatch = gui->getPatch()) {
+        cnv->pd->lockAudioThread();
         auto* subpatchPtr = subpatch->getPointer().get();
 
         // Check child objects of subpatch for inlet/outlet messages
@@ -658,9 +646,9 @@ void Object::updateTooltips()
             if (!obj.isValid())
                 continue;
 
-            String const name = pd::Interface::getObjectClassName(obj.getRaw<t_pd>());
+            auto const name = hash(pd::Interface::getObjectClassName(obj.getRaw<t_pd>()));
             auto* checkedObject = pd::Interface::checkObject(obj.getRaw<t_pd>());
-            if (name == "inlet" || name == "inlet~") {
+            if (name == hash("inlet") || name == hash("inlet~")) {
                 int size;
                 char* str_ptr;
                 pd::Interface::getObjectText(checkedObject, &str_ptr, &size);
@@ -673,7 +661,7 @@ void Object::updateTooltips()
                 inletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
                 freebytes(static_cast<void*>(str_ptr), static_cast<size_t>(size) * sizeof(char));
             }
-            if (name == "outlet" || name == "outlet~") {
+            if (name == hash("outlet") || name == hash("outlet~")) {
                 int size;
                 char* str_ptr;
                 pd::Interface::getObjectText(checkedObject, &str_ptr, &size);
@@ -687,8 +675,8 @@ void Object::updateTooltips()
                 freebytes(static_cast<void*>(str_ptr), static_cast<size_t>(size) * sizeof(char));
             }
         }
+        cnv->pd->unlockAudioThread();
     }
-    cnv->pd->unlockAudioThread();
 
     if (inletMessages.empty() && outletMessages.empty())
         return;
@@ -731,15 +719,13 @@ void Object::updateIolets()
     numInputs = 0;
     numOutputs = 0;
 
-    if (cnv->patch.objectWasDeleted(getPointer())) {
-        iolets.clear();
-        return;
-    }
-
     if (auto* ptr = pd::Interface::checkObject(getPointer())) {
         numInputs = pd::Interface::numInlets(ptr);
         numOutputs = pd::Interface::numOutlets(ptr);
     }
+    
+    // Looking up tooltips takes a bit of time, so we make sure we're not constantly updating them for no reason
+    bool tooltipsNeedUpdate = gui->getPatch() != nullptr || numInputs != oldNumInputs || numOutputs != oldNumOutputs;
 
     for (auto* iolet : iolets) {
         if (gui && !iolet->isInlet) {
@@ -781,7 +767,7 @@ void Object::updateIolets()
         numOut += !input;
     }
 
-    updateTooltips();
+    if(tooltipsNeedUpdate) updateTooltips();
     resized();
 }
 
@@ -938,6 +924,8 @@ void Object::mouseUp(MouseEvent const& e)
         isInsideUndoSequence = false;
         cnv->patch.endUndoSequence("Drag");
     }
+    
+    cnv->needsSearchUpdate = true;
 }
 
 void Object::mouseDrag(MouseEvent const& e)
@@ -1369,9 +1357,11 @@ void Object::openHelpPatch() const
         }
 
         cnv->pd->lockAudioThread();
-        cnv->pd->loadPatch(file, cnv->editor, -1);
+        auto patchPtr = cnv->pd->loadPatch(file, cnv->editor, -1);
+        if(auto patch = patchPtr->getPointer()) patch->gl_edit = 0;
+        
         cnv->pd->unlockAudioThread();
-
+        
         return;
     }
 

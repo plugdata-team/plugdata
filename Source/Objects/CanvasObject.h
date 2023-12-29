@@ -8,7 +8,7 @@ class CanvasObject final : public ObjectBase {
 
     bool locked;
     Value sizeProperty = SynchronousValue();
-
+        
     IEMHelper iemHelper;
 
 public:
@@ -18,7 +18,7 @@ public:
     {
         object->setColour(PlugDataColour::outlineColourId, Colours::transparentBlack);
         locked = getValue<bool>(object->locked);
-
+        
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamColour("Canvas color", cGeneral, &iemHelper.secondaryColour, PlugDataColour::guiObjectInternalOutlineColour);
         iemHelper.addIemParameters(objectParameters, false, true, 20, 12, 14);
@@ -126,8 +126,8 @@ public:
             } else {
                 return;
             }
-
-            g.setColour(object->isSelected() ? object->findColour(PlugDataColour::objectSelectedOutlineColourId) : object->findColour(PlugDataColour::objectOutlineColourId));
+            
+            g.setColour(object->isSelected() ? object->findColour(PlugDataColour::objectSelectedOutlineColourId) : bgcolour.contrasting(0.75f));
             g.drawRoundedRectangle(draggableRect.reduced(1.0f), Corners::objectCornerRadius, 1.0f);
         }
     }
@@ -148,7 +148,8 @@ public:
             }
 
             object->updateBounds();
-        } else {
+        }
+        else {
             iemHelper.valueChanged(v);
         }
     }

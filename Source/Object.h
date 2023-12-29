@@ -103,9 +103,6 @@ public:
     static inline constexpr int doubleMargin = margin * 2;
     static inline constexpr int height = 37;
 
-    bool isSearchTarget = false;
-    static inline Object* consoleTarget = nullptr;
-
     Rectangle<int> originalBounds;
 
     static inline int const minimumSize = 12;

@@ -109,10 +109,10 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     runButton.setButtonText(Icons::Lock);
     presentButton.setButtonText(Icons::Presentation);
 
-    addKeyListener(getKeyMappings());
+    addKeyListener(commandManager.getKeyMappings());
 
     setWantsKeyboardFocus(true);
-    registerAllCommandsForTarget(this);
+    commandManager.registerAllCommandsForTarget(this);
 
     for (auto& seperator : seperators) {
         addChildComponent(&seperator);
@@ -127,7 +127,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         auto elt = XmlDocument(xmlStr).getDocumentElement();
 
         if (elt) {
-            getKeyMappings()->restoreFromXml(*elt);
+            commandManager.getKeyMappings()->restoreFromXml(*elt);
         }
     } else {
         settingsFile->getValueTree().appendChild(ValueTree("KeyMap"), nullptr);
@@ -175,16 +175,12 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     undoButton.isUndo = true;
     undoButton.onClick = [this]() { getCurrentCanvas()->undo(); };
     addAndMakeVisible(undoButton);
-
-    canUndo.addListener(this);
-
+    
     // Redo button
     redoButton.isRedo = true;
     redoButton.onClick = [this]() { getCurrentCanvas()->redo(); };
     addAndMakeVisible(redoButton);
-
-    canRedo.addListener(this);
-
+    
     // New object button
     addObjectMenuButton.setButtonText(Icons::AddObject);
     addObjectMenuButton.setTooltip("Add object");
@@ -551,6 +547,15 @@ bool PluginEditor::isInterestedInFileDrag(StringArray const& files)
 
 void PluginEditor::fileDragMove(StringArray const& files, int x, int y)
 {
+    for (auto& path : files) {
+        auto file = File(path);
+        if (file.exists() && file.hasFileExtension("pd") && !isDraggingFile) {
+            isDraggingFile = true;
+            repaint();
+            return;
+        }
+    }
+    
     auto* splitUnderMouse = splitView.getSplitAtScreenPosition(localPointToGlobal(Point<int>(x, y)));
     bool wasDraggingFile = isDraggingFile;
     if (splitUnderMouse) {
@@ -572,8 +577,22 @@ void PluginEditor::fileDragMove(StringArray const& files, int x, int y)
 
 void PluginEditor::filesDropped(StringArray const& files, int x, int y)
 {
+    // First check for .pd files
+    bool openedPdFiles = false;
+    for (auto& path : files) {
+        auto file = File(path);
+        if (file.exists() && file.hasFileExtension("pd")) {
+            openedPdFiles = true;
+            autosave->checkForMoreRecentAutosave(file, [this, file]() {
+                pd->loadPatch(file, this, -1);
+                SettingsFile::getInstance()->addToRecentlyOpened(file);
+                pd->titleChanged();
+            });
+        }
+    }
+    
     auto* splitUnderMouse = splitView.getSplitAtScreenPosition(localPointToGlobal(Point<int>(x, y)));
-    if (splitUnderMouse) {
+    if (splitUnderMouse && !openedPdFiles) {
         if (auto* cnv = splitUnderMouse->getTabComponent()->getCurrentCanvas()) {
             for (auto& path : files) {
                 auto file = File(path);
@@ -588,17 +607,6 @@ void PluginEditor::filesDropped(StringArray const& files, int x, int y)
         }
     }
 
-    // then check for pd files
-    for (auto& path : files) {
-        auto file = File(path);
-        if (file.exists() && file.hasFileExtension("pd")) {
-            autosave->checkForMoreRecentAutosave(file, [this, file]() {
-                pd->loadPatch(file, this, -1);
-                SettingsFile::getInstance()->addToRecentlyOpened(file);
-                pd->titleChanged();
-            });
-        }
-    }
 
     isDraggingFile = false;
     repaint();
@@ -884,9 +892,6 @@ void PluginEditor::valueChanged(Value& v)
         pd->setTheme(theme.toString());
         getTopLevelComponent()->repaint();
     }
-    if (v.refersToSameSourceAs(canUndo) || v.refersToSameSourceAs(canRedo)) {
-        updateUndoRedoButtonState();
-    }
 }
 
 void PluginEditor::modifierKeysChanged(ModifierKeys const& modifiers)
@@ -894,7 +899,8 @@ void PluginEditor::modifierKeysChanged(ModifierKeys const& modifiers)
     setModifierKeys(modifiers);
 }
 
-void PluginEditor::updateCommandStatus()
+// Updates command status asynchronously
+void PluginEditor::handleAsyncUpdate()
 {
     // Reflect patch dirty state in tab title
     for (auto split : splitView.splits) {
@@ -912,7 +918,8 @@ void PluginEditor::updateCommandStatus()
 
     if (auto* cnv = getCurrentCanvas()) {
         bool locked = getValue<bool>(cnv->locked);
-
+        bool isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && cnv->locked == var(false);
+        
         if (getValue<bool>(cnv->presentationMode)) {
             presentButton.setToggleState(true, dontSendNotification);
         } else if (locked) {
@@ -921,11 +928,14 @@ void PluginEditor::updateCommandStatus()
             editButton.setToggleState(true, dontSendNotification);
         }
 
-        // FIXME: even though we use a value listener for the patch undo state, we don't for isDragging & isLocked (consider fixing this)
-        updateUndoRedoButtonState();
+        auto currentUndoState = cnv->patch.canUndo() && !isDragging && !locked;
+        auto currentRedoState = cnv->patch.canRedo() && !isDragging && !locked;
+
+        undoButton.setEnabled(currentUndoState);
+        redoButton.setEnabled(currentRedoState);
 
         // Application commands need to be updated when undo state changes
-        commandStatusChanged();
+        commandManager.commandStatusChanged();
 
         pluginModeButton.setEnabled(true);
 
@@ -954,27 +964,11 @@ void PluginEditor::updateCommandStatus()
     }
 }
 
-void PluginEditor::updateUndoRedoButtonState()
+void PluginEditor::updateCommandStatus()
 {
-    if (auto* cnv = getCurrentCanvas()) {
-        bool locked = getValue<bool>(cnv->locked);
-        bool isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && cnv->locked == var(false);
-
-        auto currentUndoState = getValue<bool>(canUndo) && !isDragging && !locked;
-        auto currentRedoState = getValue<bool>(canRedo) && !isDragging && !locked;
-
-        undoButton.setEnabled(currentUndoState);
-        redoButton.setEnabled(currentRedoState);
-    }
-}
-
-void PluginEditor::updateUndoRedoValueSource()
-{
-    if (auto* cnv = getCurrentCanvas()) {
-        auto& patch = cnv->patch;
-        canUndo.referTo(patch.canUndo);
-        canRedo.referTo(patch.canRedo);
-    }
+    // Make sure patches update their undo/redo state information soon
+    pd->updatePatchUndoRedoState();
+    AsyncUpdater::triggerAsyncUpdate();
 }
 
 ApplicationCommandTarget* PluginEditor::getNextCommandTarget()
@@ -1016,6 +1010,8 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
     bool hasCanvas = false;
     bool locked = true;
     bool canConnect = false;
+    bool canUndo = false;
+    bool canRedo = false;
 
     if (auto* cnv = getCurrentCanvas()) {
         auto selectedObjects = cnv->getSelectionOfType<Object>();
@@ -1027,6 +1023,9 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         hasSelection = hasObjectSelection || hasConnectionSelection;
         isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && cnv->locked == var(false);
         hasCanvas = true;
+        
+        canUndo = cnv->patch.canUndo() && !isDragging;
+        canRedo = cnv->patch.canRedo() && !isDragging;
 
         locked = getValue<bool>(cnv->locked);
         canConnect = cnv->canConnectSelectedObjects();
@@ -1064,7 +1063,7 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
     case CommandIDs::Undo: {
         result.setInfo("Undo", "Undo action", "General", 0);
         result.addDefaultKeypress(90, ModifierKeys::commandModifier);
-        result.setActive(hasCanvas && !isDragging && getValue<bool>(canUndo));
+        result.setActive(canUndo);
 
         break;
     }
@@ -1072,7 +1071,7 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
     case CommandIDs::Redo: {
         result.setInfo("Redo", "Redo action", "General", 0);
         result.addDefaultKeypress(90, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-        result.setActive(hasCanvas && !isDragging && getValue<bool>(canRedo));
+        result.setActive(canRedo);
         break;
     }
     case CommandIDs::Lock: {
@@ -1207,13 +1206,22 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
     case CommandIDs::NextTab: {
         result.setInfo("Next Tab", "Show the next tab", "View", 0);
         result.setActive(true);
+#if JUCE_MAC
         result.addDefaultKeypress(125, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+#else
+        result.addDefaultKeypress(KeyPress::pageDownKey, ModifierKeys::commandModifier);
+#endif
+        
         break;
     }
     case CommandIDs::PreviousTab: {
         result.setInfo("Previous Tab", "Show the previous tab", "View", 0);
         result.setActive(true);
+#if JUCE_MAC
         result.addDefaultKeypress(123, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+#else
+        result.addDefaultKeypress(KeyPress::pageUpKey, ModifierKeys::commandModifier);
+#endif
         break;
     }
     case CommandIDs::ToggleSnapping: {
@@ -1745,3 +1753,105 @@ void PluginEditor::showTouchSelectionHelper(bool shouldBeShown)
         touchSelectionHelper->setBounds(touchHelperBounds);
     }
 };
+
+// Finds an object, then centres and selects it, to indicate it's the target of a search action
+// If you set "openNewTabIfNeeded" to true, it will open a new tab if the object you're trying to highlight is not currently visible
+// Returns true if successful. If "openNewTabIfNeeded" it should always return true as long as target is valid
+bool PluginEditor::highlightSearchTarget(void* target, bool openNewTabIfNeeded)
+{
+    std::function<t_glist*(t_glist*, void*)> findSearchTargetRecursively;
+    findSearchTargetRecursively = [&findSearchTargetRecursively](t_glist* glist, void* target) -> t_glist* {
+        for (auto* y = glist->gl_list; y; y = y->g_next) {
+            if (pd_class(&y->g_pd) == canvas_class) {
+                if (auto* subpatch = findSearchTargetRecursively(reinterpret_cast<t_glist*>(y), target)) {
+                    return subpatch;
+                }
+            }
+            if (y == target) {
+                return glist;
+            }
+        }
+
+        return nullptr;
+    };
+    
+    ScopedLock audioLock(pd->audioLock);
+
+    t_glist* targetCanvas = nullptr;
+    for (auto* glist = pd_getcanvaslist(); glist; glist = glist->gl_next) {
+        auto* found = findSearchTargetRecursively(glist, target);
+        if (found) {
+            targetCanvas = found;
+            break;
+        }
+    }
+
+    if (!targetCanvas)
+        return false;
+
+
+    for (auto* cnv : canvases) {
+        if (cnv->patch.getPointer().get() == targetCanvas) {
+            Object* found = nullptr;
+            for (auto* object : cnv->objects) {
+                if (object->getPointer() == target) {
+                    found = object;
+                    break;
+                }
+            }
+            
+            if (found) {
+                
+                cnv->deselectAll();
+                cnv->setSelected(found, true);
+                
+                auto* viewport = cnv->viewport.get();
+                auto scale = getValue<float>(cnv->zoomScale);
+                auto pos = found->getBounds().getCentre() * scale;
+
+                pos.x -= viewport->getViewWidth() * 0.5f;
+                pos.y -= viewport->getViewHeight() * 0.5f;
+
+                viewport->setViewPosition(pos);
+                cnv->getTabbar()->setCurrentTabIndex(cnv->getTabIndex());
+
+                
+                return true;
+            }
+        }
+    }
+    
+    if(openNewTabIfNeeded) {
+        auto* patch = new pd::Patch(pd::WeakReference(targetCanvas, pd), pd, false);
+        auto* cnv = canvases.add(new Canvas(this, patch));
+        addTab(cnv);
+        
+        Object* found = nullptr;
+        for (auto* object : cnv->objects) {
+            if (object->getPointer() == target) {
+                found = object;
+                break;
+            }
+        }
+        
+        if (found) {
+            
+            cnv->deselectAll();
+            cnv->setSelected(found, true);
+            
+            auto* viewport = cnv->viewport.get();
+            auto scale = getValue<float>(cnv->zoomScale);
+            auto pos = found->getBounds().getCentre() * scale;
+            
+            pos.x -= viewport->getViewWidth() * 0.5f;
+            pos.y -= viewport->getViewHeight() * 0.5f;
+            
+            viewport->setViewPosition(pos);
+            cnv->getTabbar()->setCurrentTabIndex(cnv->getTabIndex());
+        }
+        
+        return true;
+    }
+    
+    return false;
+}

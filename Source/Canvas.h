@@ -97,7 +97,7 @@ public:
     void copySelection();
     void removeSelection();
     void removeSelectedConnections();
-    void dragAndDropPaste(String const& patchString, Point<int> mousePos, int patchWidth, int patchHeight);
+    void dragAndDropPaste(String const& patchString, Point<int> mousePos, int patchWidth, int patchHeight, String name = String());
     void pasteSelection();
     void duplicateSelection();
 
@@ -171,7 +171,7 @@ public:
     OwnedArray<Connection> connections;
     OwnedArray<ConnectionBeingCreated> connectionsBeingCreated;
 
-    Value locked;
+    Value locked = SynchronousValue();
     Value commandLocked;
     Value presentationMode;
     Value showDirection;
@@ -183,6 +183,8 @@ public:
     bool isGraph = false;
     bool hasParentCanvas = false;
     bool isDraggingLasso = false;
+    
+    bool needsSearchUpdate = false;
 
     Value isGraphChild = SynchronousValue(var(false));
     Value hideNameAndArgs = SynchronousValue(var(false));

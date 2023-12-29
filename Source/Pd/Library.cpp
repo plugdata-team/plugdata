@@ -84,8 +84,11 @@ void Library::updateLibrary()
     // These can't be created by name in Pd, but plugdata allows it
     allObjects.add("graph");
     allObjects.add("garray");
+    
 
-    // This one isn't in there but should be
+    // These aren't in there but should be
+    allObjects.add("float");
+    allObjects.add("symbol");
     allObjects.add("list");
 
     sys_unlock();
@@ -275,9 +278,9 @@ StringArray Library::getAllCategories()
     return allCategories;
 }
 
-void Library::fsChangeCallback()
+void Library::filesystemChanged()
 {
-    appDirChanged();
+    updateLibrary();
 }
 
 File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile) const

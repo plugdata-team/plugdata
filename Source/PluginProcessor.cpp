@@ -152,17 +152,6 @@ PluginProcessor::PluginProcessor()
     updateSearchPaths();
 
     objectLibrary = std::make_unique<pd::Library>(this);
-    objectLibrary->appDirChanged = [this]() {
-        // If we changed the settings from within the app, don't reload
-        settingsFile->reloadSettings();
-        auto newTheme = settingsFile->getProperty<String>("theme");
-        if (PlugDataLook::currentTheme != newTheme) {
-            setTheme(newTheme);
-        }
-
-        updateSearchPaths();
-        objectLibrary->updateLibrary();
-    };
 
     setLatencySamples(pd::Instance::getBlockSize());
 }
@@ -433,8 +422,8 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     variableBlockSize = !ProjectInfo::isStandalone || samplesPerBlock < pdBlockSize || samplesPerBlock % pdBlockSize != 0;
 
     if (variableBlockSize) {
-        inputFifo = std::make_unique<AudioMidiFifo>(maxChannels, std::max<int>(samplesPerBlock, pdBlockSize));
-        outputFifo = std::make_unique<AudioMidiFifo>(maxChannels, std::max<int>(samplesPerBlock, pdBlockSize));
+        inputFifo = std::make_unique<AudioMidiFifo>(maxChannels, std::max<int>(pdBlockSize, samplesPerBlock) * 3);
+        outputFifo = std::make_unique<AudioMidiFifo>(maxChannels, std::max<int>(pdBlockSize, samplesPerBlock) * 3);
     }
 
     midiByteIndex = 0;
@@ -506,6 +495,18 @@ static bool hasRealEvents(MidiBuffer& buffer)
         });
 }
 
+void PluginProcessor::settingsFileReloaded()
+{
+    auto newTheme = settingsFile->getProperty<String>("theme");
+    if (PlugDataLook::currentTheme != newTheme) {
+        setTheme(newTheme);
+    }
+
+    updateSearchPaths();
+    objectLibrary->updateLibrary();
+}
+
+
 void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {
     ScopedNoDenormals noDenormals;
@@ -541,15 +542,6 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     if (oversampling > 0) {
         oversampler->processSamplesDown(targetBlock);
     }
-
-    // limit the update frequency of the undo state, about 6x a second at 44100hz feels like enough?
-    if (processBlockCount > 100) {
-        processBlockCount = 0;
-        for (auto& patch : patches) {
-            patch->updateUndoRedoState();
-        }
-    }
-    processBlockCount++;
 
     auto targetGain = volume->load();
     float mappedTargetGain = 0.0f;
@@ -629,6 +621,23 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     }
 }
 
+
+void PluginProcessor::updatePatchUndoRedoState()
+{
+    if(isSuspended())
+    {
+        for (auto& patch : patches) {
+            patch->updateUndoRedoState();
+        }
+        return;
+    }
+        
+    enqueueFunctionAsync([this](){
+        for (auto& patch : patches) {
+            patch->updateUndoRedoState();
+        }
+    });
+}
 void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer, MidiBuffer& midiMessages)
 {
     int blockSize = Instance::getBlockSize();
@@ -685,23 +694,23 @@ void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer, MidiBuffer&
 
 void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer& midiMessages)
 {
-    auto const blockSize = Instance::getBlockSize();
+    auto const pdBlockSize = Instance::getBlockSize();
     auto const numChannels = buffer.getNumChannels();
 
     inputFifo->writeAudioAndMidi(buffer, midiMessages);
 
-    audioAdvancement = 0;
+    audioAdvancement = 0; // Always has to be 0 if we use the AudioMidiFifo!
 
-    while (inputFifo->getNumSamplesAvailable() >= blockSize) {
+    while (inputFifo->getNumSamplesAvailable() >= pdBlockSize) {
         midiBufferIn.clear();
         inputFifo->readAudioAndMidi(audioBufferIn, midiBufferIn);
 
         for (int channel = 0; channel < audioBufferIn.getNumChannels(); ++channel) {
             // Copy the channel data into the vector
             juce::FloatVectorOperations::copy(
-                audioVectorIn.data() + (channel * blockSize),
+                audioVectorIn.data() + (channel * pdBlockSize),
                 audioBufferIn.getReadPointer(channel),
-                blockSize);
+                pdBlockSize);
         }
 
         if (producesMidi()) {
@@ -730,16 +739,17 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
             // Use FloatVectorOperations to copy the vector data into the audioBuffer
             juce::FloatVectorOperations::copy(
                 audioBufferOut.getWritePointer(channel),
-                audioVectorOut.data() + (channel * blockSize),
-                blockSize);
+                audioVectorOut.data() + (channel * pdBlockSize),
+                pdBlockSize);
         }
 
         outputFifo->writeAudioAndMidi(audioBufferOut, midiBufferOut);
-        audioAdvancement += blockSize;
     }
-
-    auto totalDelay = std::max(buffer.getNumSamples() / blockSize, buffer.getNumSamples());
-    if (outputFifo->getNumSamplesAvailable() >= totalDelay) {
+    
+    // When the amount of samples availabble is larger than (2 * pdBlockSize) - buffer.getNumSamples(), we know for sure that we'll have enough samples to process the next block as well
+    auto numAvailable = outputFifo->getNumSamplesAvailable();
+    auto enough = std::max<int>((2 * pdBlockSize) - static_cast<int>(buffer.getNumSamples()), static_cast<int>(buffer.getNumSamples()));
+    if (numAvailable >= enough) {
         outputFifo->readAudioAndMidi(buffer, midiMessages);
     }
 }
@@ -756,10 +766,10 @@ void PluginProcessor::sendPlayhead()
     setThis();
     if (infos.hasValue()) {
         atoms_playhead[0] = static_cast<float>(infos->getIsPlaying());
-        sendMessage("playhead", "playing", atoms_playhead);
+        sendMessage("_playhead", "playing", atoms_playhead);
 
         atoms_playhead[0] = static_cast<float>(infos->getIsRecording());
-        sendMessage("playhead", "recording", atoms_playhead);
+        sendMessage("_playhead", "recording", atoms_playhead);
 
         atoms_playhead[0] = static_cast<float>(infos->getIsLooping());
 
@@ -771,37 +781,37 @@ void PluginProcessor::sendPlayhead()
             atoms_playhead.emplace_back(0.0f);
             atoms_playhead.emplace_back(0.0f);
         }
-        sendMessage("playhead", "looping", atoms_playhead);
+        sendMessage("_playhead", "looping", atoms_playhead);
 
         if (infos->getEditOriginTime().hasValue()) {
             atoms_playhead.resize(1);
             atoms_playhead[0] = static_cast<float>(*infos->getEditOriginTime());
-            sendMessage("playhead", "edittime", atoms_playhead);
+            sendMessage("_playhead", "edittime", atoms_playhead);
         }
 
         if (infos->getFrameRate().hasValue()) {
             atoms_playhead.resize(1);
             atoms_playhead[0] = static_cast<float>(infos->getFrameRate()->getEffectiveRate());
-            sendMessage("playhead", "framerate", atoms_playhead);
+            sendMessage("_playhead", "framerate", atoms_playhead);
         }
 
         if (infos->getBpm().hasValue()) {
             atoms_playhead.resize(1);
             atoms_playhead[0] = static_cast<float>(*infos->getBpm());
-            sendMessage("playhead", "bpm", atoms_playhead);
+            sendMessage("_playhead", "bpm", atoms_playhead);
         }
 
         if (infos->getPpqPositionOfLastBarStart().hasValue()) {
             atoms_playhead.resize(1);
             atoms_playhead[0] = static_cast<float>(*infos->getPpqPositionOfLastBarStart());
-            sendMessage("playhead", "lastbar", atoms_playhead);
+            sendMessage("_playhead", "lastbar", atoms_playhead);
         }
 
         if (infos->getTimeSignature().hasValue()) {
             atoms_playhead.resize(1);
             atoms_playhead[0] = static_cast<float>(infos->getTimeSignature()->numerator);
             atoms_playhead.emplace_back(static_cast<float>(infos->getTimeSignature()->denominator));
-            sendMessage("playhead", "timesig", atoms_playhead);
+            sendMessage("_playhead", "timesig", atoms_playhead);
         }
 
         if (infos->getPpqPosition().hasValue()) {

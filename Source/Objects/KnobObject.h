@@ -153,7 +153,8 @@ class KnobObject : public ObjectBase {
     Value arcStart = SynchronousValue();
 
     Value sizeProperty = SynchronousValue();
-
+    
+    bool locked;
     float value = 0.0f;
 
 public:
@@ -183,7 +184,9 @@ public:
             constrainer->setFixedAspectRatio(1.0f);
             constrainer->setMinimumSize(this->object->minimumSize, this->object->minimumSize);
         };
-
+        
+        locked = ::getValue<bool>(object->locked);
+        
         objectParameters.addParamSize(&sizeProperty, true);
         objectParameters.addParamFloat("Minimum", cGeneral, &min, 0.0f);
         objectParameters.addParamFloat("Maximum", cGeneral, &max, 127.0f);
@@ -205,6 +208,11 @@ public:
         objectParameters.addParamColour("Arc color", cAppearance, &arcColour, PlugDataColour::guiObjectInternalOutlineColour);
         objectParameters.addParamBool("Fill background", cAppearance, &outline, { "No", "Yes" }, 1);
         objectParameters.addParamBool("Show arc", cAppearance, &showArc, { "No", "Yes" }, 1);
+    }
+
+    bool isTransparent() override
+    {
+        return !::getValue<bool>(outline);
     }
 
     void updateDoubleClickValue()
@@ -429,10 +437,10 @@ public:
 
     void paint(Graphics& g) override
     {
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
         if (::getValue<bool>(outline)) {
+            bool selected = object->isSelected() && !cnv->isGraph;
+            auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+
             g.setColour(Colour::fromString(secondaryColour.toString()));
             g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
@@ -447,7 +455,7 @@ public:
             g.setColour(Colour::fromString(secondaryColour.toString()));
             g.fillEllipse(bounds);
 
-            g.setColour(outlineColour);
+            g.setColour(object->findColour(objectOutlineColourId));
             g.drawEllipse(bounds, 1.0f);
         }
     }
@@ -776,6 +784,13 @@ public:
             knob.setArcColour(Colour::fromString(arcColour.toString()));
             repaint();
         }
+    }
+    
+    void lock(bool isLocked) override
+    {
+        ObjectBase::lock(isLocked);
+        locked = isLocked;
+        repaint();
     }
 
     void setValue(float pos)

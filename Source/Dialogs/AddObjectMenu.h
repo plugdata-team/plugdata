@@ -30,7 +30,7 @@ public:
 
     String getKeyboardShortcutDescription(ObjectIDs objectID)
     {
-        auto keyPresses = editor->getKeyMappings()->getKeyPressesAssignedToCommand(objectID);
+        auto keyPresses = editor->commandManager.getKeyMappings()->getKeyPressesAssignedToCommand(objectID);
         if (keyPresses.size()) {
             return "(" + keyPresses.getReference(0).getTextDescription() + ") ";
         }
@@ -80,6 +80,11 @@ public:
             patchString = patchString.replace("@arrName", String::fromUTF8(pd::Interface::getUnusedArrayName()->s_name));
         }
         return patchString;
+    }
+
+    String getPatchStringName() override
+    {
+        return titleText + String(" object");
     }
 
     void mouseUp(MouseEvent const& e) override

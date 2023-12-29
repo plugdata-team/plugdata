@@ -73,18 +73,24 @@ Rectangle<int> Patch::getBounds() const
 
 bool Patch::isDirty() const
 {
-    if (auto patch = ptr.get<t_glist>()) {
-        return patch->gl_dirty;
-    }
+    return isPatchDirty.load();
+}
 
-    return false;
+bool Patch::canUndo() const
+{
+    return canPatchUndo.load();
+}
+
+bool Patch::canRedo() const
+{
+    return canPatchRedo.load();
 }
 
 void Patch::savePatch(File const& location)
 {
 
     String fullPathname = location.getParentDirectory().getFullPathName();
-    String filename = location.getFileName();
+    String filename = location.withFileExtension(".pd").getFileName();
 
     auto* dir = instance->generateSymbol(fullPathname.replace("\\", "/"));
     auto* file = instance->generateSymbol(filename);
@@ -132,8 +138,9 @@ bool Patch::isAbstraction()
 void Patch::updateUndoRedoState()
 {
     if (auto patch = ptr.get<t_glist>()) {
-        canUndo = pd::Interface::canUndo(patch.get());
-        canRedo = pd::Interface::canRedo(patch.get());
+        canPatchUndo = pd::Interface::canUndo(patch.get());
+        canPatchRedo = pd::Interface::canRedo(patch.get());
+        isPatchDirty = patch->gl_dirty;
 
         auto undoSize = pd::Interface::getUndoSize(patch.get());
         if (undoQueueSize != undoSize) {
@@ -147,7 +154,7 @@ void Patch::updateUndoRedoState()
 void Patch::savePatch()
 {
     String fullPathname = currentFile.getParentDirectory().getFullPathName();
-    String filename = currentFile.getFileName();
+    String filename = currentFile.withFileExtension(".pd").getFileName();
 
     auto* dir = instance->generateSymbol(fullPathname.replace("\\", "/"));
     auto* file = instance->generateSymbol(filename);
@@ -552,13 +559,12 @@ void Patch::endUndoSequence(String const& name)
 void Patch::undo()
 {
     if (auto patch = ptr.get<t_glist>()) {
-        //setCurrent();
-        //auto x = patch.get();
-        //glist_noselect(x);
-        //libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
+        setCurrent();
+        auto x = patch.get();
+        glist_noselect(x);
+        libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
 
-        //pd::Interface::undo(patch.get());
-        canvas_undo_undo(patch.get());
+        pd::Interface::undo(patch.get());
 
         updateUndoRedoString();
     }
@@ -567,13 +573,12 @@ void Patch::undo()
 void Patch::redo()
 {
     if (auto patch = ptr.get<t_glist>()) {
-        //setCurrent();
-        //auto x = patch.get();
-        //glist_noselect(x);
-        //libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
+        setCurrent();
+        auto x = patch.get();
+        glist_noselect(x);
+        libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
 
-        //pd::Interface::redo(patch.get());
-        canvas_undo_redo(patch.get());
+        pd::Interface::redo(patch.get());
 
         updateUndoRedoString();
     }
@@ -587,34 +592,34 @@ void Patch::updateUndoRedoString()
         auto undo = currentUndo;
         auto redo = currentUndo->next;
 
+#ifdef DEBUG_UNDO_QUEUE
         auto undoDbg = undo;
         auto redoDbg = redo;
-
+#endif
+        
         lastUndoSequence = "";
         lastRedoSequence = "";
 
-        // undo / redo list will contain libpd undo events
-        // take the first event that we have put there from plugdata
-        // which will start with a capital letter
+        // undo / redo list will contain pd undo events
         while (undo) {
-            String undoName = undo->name;
+            String undoName = String::fromUTF8(undo->name);
             if (undoName == "props") {
                 lastUndoSequence = "Change property";
                 break;
-            } else if (CharacterFunctions::isUpperCase(undoName[0])) {
-                lastUndoSequence = undoName;
+            } else if (undoName != "no") {
+                lastUndoSequence = undoName.substring(0, 1).toUpperCase() + undoName.substring(1);
                 break;
             }
             undo = undo->prev;
         }
 
         while (redo) {
-            String redoName = redo->name;
+            String redoName = String::fromUTF8(redo->name);
             if (redoName == "props") {
                 lastRedoSequence = "Change property";
                 break;
-            } else if (CharacterFunctions::isUpperCase(redoName[0])) {
-                lastRedoSequence = redoName;
+            } else if (redoName != "no") {
+                lastRedoSequence = redoName.substring(0, 1).toUpperCase() + redoName.substring(1);
                 break;
             }
             redo = redo->next;

@@ -453,7 +453,7 @@ void Canvas::performSynchronise()
 
     // Remove deleted connections
     for (int n = connections.size() - 1; n >= 0; n--) {
-        if (patch.connectionWasDeleted(connections[n]->getPointer())) {
+        if (!connections[n]->getPointer()) {
             connections.remove(n);
         }
     }
@@ -580,6 +580,8 @@ void Canvas::performSynchronise()
 
     editor->updateCommandStatus();
     repaint();
+    
+    needsSearchUpdate = true;
 
     pd->updateObjectImplementations();
 }
@@ -653,7 +655,7 @@ void Canvas::mouseDown(MouseEvent const& e)
                 deselectAll();
             }
 
-            if (!(e.source.isTouch() && e.source.getIndex() != 0)) {
+            if (!(e.source.isTouch() && e.source.getIndex() != 0) && !getValue<bool>(locked)) {
                 lasso.beginLasso(e.getEventRelativeTo(this), this);
                 isDraggingLasso = true;
             }
@@ -669,11 +671,6 @@ void Canvas::mouseDown(MouseEvent const& e)
     // Right click
     else if (!editor->pluginMode) {
         Dialogs::showCanvasRightClickMenu(this, source, e.getScreenPosition());
-    }
-
-    if (auto* target = Object::consoleTarget) {
-        Object::consoleTarget = nullptr;
-        target->repaint();
     }
 }
 
@@ -799,13 +796,13 @@ void Canvas::mouseUp(MouseEvent const& e)
 
 void Canvas::updateSidebarSelection()
 {
-    auto lassoSelection = getSelectionOfType<Object>();
-
 #if JUCE_IOS
-    editor->showTouchSelectionHelper(lassoSelection.size() >= 1);
+    editor->showTouchSelectionHelper(selectedComponents.getNumSelected());
 #endif
-
-    if (lassoSelection.size() >= 1) {
+    
+    auto lassoSelection = getSelectionOfType<Object>();
+    
+    if (lassoSelection.size() > 0) {
         Array<ObjectParameters> allParameters;
         for (auto* object : lassoSelection) {
             if (!object->gui)
@@ -984,7 +981,7 @@ void Canvas::focusLost(FocusChangeType cause)
     });
 }
 
-void Canvas::dragAndDropPaste(String const& patchString, Point<int> mousePos, int patchWidth, int patchHeight)
+void Canvas::dragAndDropPaste(String const& patchString, Point<int> mousePos, int patchWidth, int patchHeight, String name)
 {
     locked = false;
     presentationMode = false;
@@ -998,7 +995,11 @@ void Canvas::dragAndDropPaste(String const& patchString, Point<int> mousePos, in
             _this->grabKeyboardFocus();
     });
 
-    patch.startUndoSequence("Add object"); // TODO: we can add the name of the event that it's dragging from?
+    auto undoText = String("Add object");
+    if (name.isNotEmpty())
+        undoText = String("Add " + name.toLowerCase());
+
+    patch.startUndoSequence(undoText);
 
     auto patchSize = Point<int>(patchWidth, patchHeight);
     String translatedObjects = pd::Patch::translatePatchAsString(patchString, mousePos - (patchSize / 2.0f));
@@ -1032,7 +1033,7 @@ void Canvas::dragAndDropPaste(String const& patchString, Point<int> mousePos, in
 
     patch.deselectAll();
     pastedObjects.clear();
-    patch.endUndoSequence("Add object");
+    patch.endUndoSequence(undoText);
 
     updateSidebarSelection();
 }
