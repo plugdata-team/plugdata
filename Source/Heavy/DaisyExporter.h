@@ -227,7 +227,7 @@ public:
 
         // blocksize and samplerate
         if (rate != 3) {
-            auto sampleRates = StringArray { "8000", "16000", "32000", "48000", "96000" };
+            auto sampleRates = Array { 8000, 16000, 32000, 48000, 96000 };
             auto const& samplerate = sampleRates[rate];
             metaDaisy.getDynamicObject()->setProperty("samplerate", samplerate);
         }
