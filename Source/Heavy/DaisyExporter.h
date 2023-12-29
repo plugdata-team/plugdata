@@ -29,7 +29,7 @@ public:
     {
         Array<PropertiesPanelProperty*> properties;
         properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, {
-            "Seed", "Pod", "Petal", "Patch", "Patch.Init()", "Field", "Versio", "Terrarium", "Simple", "Custom JSON..."
+            "Pod", "Petal", "Patch", "Patch.Init()", "Field", "Versio", "Terrarium", "Simple", "Custom JSON..."
             }));
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary", "Flash" }));
         usbMidiProperty = new PropertiesPanel::BoolComponent("USB MIDI", usbMidiValue, { "No", "Yes" });
@@ -149,7 +149,7 @@ public:
             int idx = getValue<int>(targetBoardValue);
 
             // Custom board option
-            if (idx == 8 && !dontOpenFileChooser) {
+            if (idx == 9 && !dontOpenFileChooser) {
                 Dialogs::showOpenDialog([this](File& result) {
                     if (result.existsAsFile()) {
                         customBoardDefinition = result;
@@ -201,7 +201,7 @@ public:
         }
 
         // set board definition
-        auto boards = StringArray { "seed", "pod", "petal", "patch", "patch_init", "field", "versio", "terrarium", "simple", "custom" };
+        auto boards = StringArray { "pod", "petal", "patch", "patch_init", "field", "versio", "terrarium", "simple", "custom" };
         auto const& board = boards[target];
 
         DynamicObject::Ptr metaJson(new DynamicObject());
