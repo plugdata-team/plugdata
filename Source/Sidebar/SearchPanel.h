@@ -128,29 +128,36 @@ public:
     ValueTree generatePatchTree(pd::Patch::Ptr patch, void* topLevel = nullptr)
     {
         ValueTree patchTree("Patch");
+
+        int objectID = 0;
         for (auto objectPtr : patch->getObjects()) {
             if (auto object = objectPtr.get<t_pd>()) {
+
                 auto* top = topLevel ? topLevel : object.get();
                 String type = pd::Interface::getObjectClassName(object.get());
-                
-                if(!pd::Interface::checkObject(object.get())) continue;
+
+                if(!pd::Interface::checkObject(object.get())) {
+                    objectID++;
+                    continue;
+                }
                 
                 char* objectText;
                 int len;
                 pd::Interface::getObjectText(object.cast<t_text>(), &objectText, &len);
-                
+
                 int x, y, w, h;
                 pd::Interface::getObjectBounds(patch->getPointer().get(), object.cast<t_gobj>(), &x, &y, &w, &h);
-                
+
                 auto name = String::fromUTF8(objectText, len);
                 auto positionText = " (" + String(x) + ":" + String(y) + ")";
-                
+
                 ValueTree element("Object");
                 if (type == "canvas" || type == "graph") {
                     pd::Patch::Ptr subpatch = new pd::Patch(objectPtr, editor->pd, false);
                     ValueTree subpatchTree = generatePatchTree(subpatch, top);
                     element.copyPropertiesAndChildrenFrom(subpatchTree, nullptr);
-                    
+
+                    element.setProperty("ID", String(objectID), nullptr);
                     element.setProperty("Name", name, nullptr);
                     element.setProperty("RightText", positionText, nullptr);
                     element.setProperty("Icon", canvas_isabstraction(subpatch->getPointer().get()) ? Icons::File : Icons::Object, nullptr);
@@ -158,20 +165,22 @@ public:
                     element.setProperty("TopLevel", reinterpret_cast<int64>(top), nullptr);
                 }
                 else {
+                    element.setProperty("ID", String(objectID), nullptr);
                     element.setProperty("Name", name.upToFirstOccurrenceOf(" ", false, false), nullptr);
                     element.setProperty("RightText", positionText, nullptr);
                     element.setProperty("Icon", Icons::Object, nullptr);
                     element.setProperty("Object", reinterpret_cast<int64>(object.cast<void>()), nullptr);
                     element.setProperty("TopLevel", reinterpret_cast<int64>(top), nullptr);
                 }
-                
+
                 patchTree.appendChild(element, nullptr);
+
+                objectID++;
             }
         }
-
         return patchTree;
     }
-     
+
     SafePointer<Canvas> currentCanvas;
     PluginEditor* editor;
     ValueTreeViewerComponent patchTree = ValueTreeViewerComponent("(Subpatch)");

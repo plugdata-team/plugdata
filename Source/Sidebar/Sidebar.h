@@ -9,6 +9,7 @@
 #include "Components/Buttons.h"
 #include "Objects/ObjectParameters.h"
 #include "Utility/SettingsFile.h"
+#include "../Canvas.h"
 
 class Console;
 class Inspector;
@@ -100,6 +101,8 @@ public:
     void hideParameters();
 
     bool isShowingBrowser();
+    bool isShowingSearch();
+    void showInSearch(Object* object);
 
     void propertyChanged(String const& name, var const& value) override;
 

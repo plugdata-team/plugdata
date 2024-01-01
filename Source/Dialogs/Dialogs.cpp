@@ -478,6 +478,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
         Open,
         Help,
         Reference,
+        ShowInSearch,
         ToFront,
         Forward,
         Backward,
@@ -495,6 +496,8 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     popupMenu.addSeparator();
     popupMenu.addItem(Help, "Help", object != nullptr);
     popupMenu.addItem(Reference, "Reference", object != nullptr);
+    popupMenu.addItem(ShowInSearch, "Show in search", object != nullptr && selectedBoxes.size() == 1);
+
     popupMenu.addSeparator();
 
     bool selectedConnection = false, noneSegmented = true;
@@ -651,6 +654,10 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
         case Reference:
             Dialogs::showObjectReferenceDialog(&editor->openedDialog, editor, object->gui->getType());
             break;
+        case ShowInSearch: {
+            editor->sidebar->showInSearch(object);
+            break;
+        }
         default:
             break;
         }
