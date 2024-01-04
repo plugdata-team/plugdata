@@ -281,12 +281,11 @@ juce_add_gui_app(plugdata_standalone
     CAMERA_PERMISSION_ENABLED   TRUE
     HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
     HARDENED_RUNTIME_OPTIONS    ${HARDENED_RUNTIME_OPTIONS}
-    DOCUMENT_BROWSER_ENABLED     TRUE
-    DOCUMENT_EXTENSIONS          .pd
+    DOCUMENT_EXTENSIONS          pd
     BUNDLE_ID                    com.plugdata.plugdata
     )
 else()
-set(IOS_SCREEN_ORIENTATIONS UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight)
+
 juce_add_plugin(plugdata_standalone
     VERSION                     ${PLUGDATA_VERSION}
     COMPANY_NAME                ${PLUGDATA_COMPANY_NAME}
@@ -295,7 +294,7 @@ juce_add_plugin(plugdata_standalone
     PLUGIN_DESCRIPTION          "A plugin that loads Pure Data patches"
     ICON_BIG                    ${PLUGDATA_ICON_BIG}
     LAUNCH_STORYBOARD_FILE      ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/LaunchScreen.storyboard
-    IPHONE_SCREEN_ORIENTATIONS  ${IOS_SCREEN_ORIENTATIONS}
+    IPHONE_SCREEN_ORIENTATIONS  UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
     STATUS_BAR_HIDDEN           TRUE
     MICROPHONE_PERMISSION_ENABLED TRUE
     HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
@@ -313,8 +312,9 @@ juce_add_plugin(plugdata_standalone
     PRODUCT_NAME                "plugdata"
     BUNDLE_ID                   com.plugdata.plugdata
     AU_MAIN_TYPE                kAudioUnitType_MusicDevice
-    VST3_CATEGORIES             Instrument
-    VST2_CATEGORY               kPlugCategSynth)
+    DOCUMENT_EXTENSIONS         pd
+    DOCUMENT_BROWSER_ENABLED    TRUE
+    )
 endif()
 
 juce_add_plugin(plugdata
