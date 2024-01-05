@@ -503,7 +503,7 @@ void PluginProcessor::settingsFileReloaded()
     }
 
     updateSearchPaths();
-    objectLibrary->updateLibrary();
+    if(objectLibrary) objectLibrary->updateLibrary();
 }
 
 
