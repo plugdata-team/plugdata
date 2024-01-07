@@ -116,7 +116,8 @@
 
 #pragma once
 
-#include <JuceHeader.h>
+#include <juce_gui_basics/juce_gui_basics.h>
+#include "Fonts.h"
 
 namespace MarkupDisplay {
 
@@ -268,7 +269,7 @@ protected:
                     int tidx = line.indexOf("<");
                     Colour nextColour = currentColour;
                     String nextLink;
-                    if (bidx > -1 && (bidx < iidx | iidx == -1) && (bidx < tidx | tidx == -1)) {
+                    if (bidx > -1 && ((bidx < iidx) | (iidx == -1)) && ((bidx < tidx) | (tidx == -1))) {
                         // if the next token is toggling the bold state...
                         // ...first add everything up to the token...
                         if (bold)
@@ -277,7 +278,7 @@ protected:
                         line = line.substring(bidx + 1); // ...then drop up to and including the token...
                         bold = !bold;                    // ...toggle the bold status...
                         needsNewFont = true;             // ...and request new font.
-                    } else if (iidx > -1 && (iidx < tidx | tidx == -1)) {
+                    } else if (iidx > -1 && ((iidx < tidx) | (tidx == -1))) {
                         // if the next token is toggling the italic state...
                         // ...first add everything up to the token...
                         if (italic)
@@ -838,7 +839,7 @@ public:
         colours.set("gray", "#777");
         
         // default font
-        font = Font(15);
+        font = Fonts::getVariableFont().withHeight(15);
 
         // default table backgrounds
         tableBGHeader = Block::parseHexColourStatic(colours["lightcyan"], Colours::black);
