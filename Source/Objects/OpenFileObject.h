@@ -87,7 +87,7 @@ public:
         auto mouseIsOver = isMouseOver();
         
         int textWidth = getTextObjectWidth() - 14; // Reserve a bit of extra space for the text margin
-        auto currentLayoutHash = (hash(objText) ^ textWidth) * !mouseIsOver;
+        auto currentLayoutHash = (hash(objText) ^ textWidth ^ object->findColour(PlugDataColour::canvasTextColourId).getARGB()) * !mouseIsOver;
         if(layoutTextHash != currentLayoutHash)
         {
             bool locked = getValue<bool>(object->locked) || getValue<bool>(object->commandLocked);
@@ -159,6 +159,8 @@ public:
 
     void paint(Graphics& g) override
     {
+        updateTextLayout();
+        
         auto backgroundColour = object->findColour(PlugDataColour::textObjectBackgroundColourId);
 
         g.setColour(backgroundColour);

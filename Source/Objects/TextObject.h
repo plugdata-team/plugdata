@@ -233,6 +233,8 @@ public:
 
     void paint(Graphics& g) override
     {
+        updateTextLayout();
+        
         auto backgroundColour = object->findColour(PlugDataColour::textObjectBackgroundColourId);
         g.setColour(backgroundColour);
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
@@ -341,7 +343,7 @@ public:
         }
         
         int textWidth = getTextObjectWidth() - 14; // Reserve a bit of extra space for the text margin
-        auto currentLayoutHash = hash(objText) ^ textWidth;
+        auto currentLayoutHash = hash(objText) ^ textWidth ^ textWidth ^ object->findColour(PlugDataColour::canvasTextColourId).getARGB();
         if(layoutTextHash != currentLayoutHash)
         {
             auto attributedText = AttributedString(objText);

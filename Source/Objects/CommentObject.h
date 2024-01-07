@@ -47,6 +47,8 @@ public:
 
     void paint(Graphics& g) override
     {
+        updateTextLayout();
+        
         if (!editor) {
             auto textArea = border.subtractedFrom(getLocalBounds());
             textLayout.draw(g, textArea.toFloat());
@@ -177,7 +179,7 @@ public:
             auto objText = editor ? editor->getText() : objectText;
             
             int textWidth = getTextObjectWidth() - 12; // Reserve a bit of extra space for the text margin
-            auto currentLayoutHash = hash(objText) ^ textWidth;
+            auto currentLayoutHash = hash(objText) ^ textWidth ^ object->findColour(PlugDataColour::canvasTextColourId).getARGB();
             if(layoutTextHash != currentLayoutHash)
             {
                 auto attributedText = AttributedString(objText);

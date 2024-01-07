@@ -93,7 +93,7 @@ public:
          }
          
          int textWidth = getTextObjectWidth() - 16; // Remove some width for the message flag and text margin
-         auto currentLayoutHash = hash(objText) ^ textWidth;
+         auto currentLayoutHash = hash(objText) ^ textWidth ^ object->findColour(PlugDataColour::canvasTextColourId).getARGB();
          if(layoutTextHash != currentLayoutHash)
          {
              auto attributedText = AttributedString(objText);
@@ -138,6 +138,8 @@ public:
 
     void paint(Graphics& g) override
     {
+        updateTextLayout();
+        
         int const d = 6;
         auto reducedBounds = getLocalBounds().toFloat().reduced(0.5f);
 
