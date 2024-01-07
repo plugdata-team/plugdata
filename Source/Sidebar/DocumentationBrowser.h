@@ -231,10 +231,12 @@ public:
     void run() override
     {
         auto tree = generateDirectoryValueTree(File(pd->settingsFile->getProperty<String>("browser_path")));
-        MessageManager::callAsync([this, tree](){
-            fileTree = tree;
-            fileList.setValueTree(tree);
-        });
+        if(tree.isValid()) {
+            MessageManager::callAsync([this, tree](){
+                fileTree = tree;
+                fileList.setValueTree(tree);
+            });
+        }
     }
     
     ValueTree generateDirectoryValueTree(const File& directory) {
