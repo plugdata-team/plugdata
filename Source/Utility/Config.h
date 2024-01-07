@@ -19,6 +19,7 @@ struct ProjectInfo {
 
     static char const* projectName;
     static bool isStandalone;
+    static bool isFx;
 
     static inline char const* companyName = "plugdata";
     static inline char const* versionString = PLUGDATA_VERSION;

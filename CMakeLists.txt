@@ -314,6 +314,8 @@ juce_add_plugin(plugdata_standalone
     AU_MAIN_TYPE                kAudioUnitType_MusicDevice
     DOCUMENT_EXTENSIONS         pd
     DOCUMENT_BROWSER_ENABLED    TRUE
+    APP_SANDBOX_ENABLED         TRUE
+    APP_SANDBOX_OPTIONS         "com.apple.security.files.user-selected.read-write"
     )
 endif()
 
@@ -322,7 +324,7 @@ juce_add_plugin(plugdata
     COMPANY_NAME                ${PLUGDATA_COMPANY_NAME}
     COMPANY_COPYRIGHT           ${PLUGDATA_COMPANY_COPYRIGHT}
     COMPANY_WEBSITE             ${PLUGDATA_COMPANY_WEBSITE}
-    PLUGIN_DESCRIPTION          "A plugin that loads Pure Data patches"
+    PLUGIN_DESCRIPTION          "Visual audio programming environment"
     ICON_BIG                    ${PLUGDATA_ICON_BIG}
     MICROPHONE_PERMISSION_ENABLED TRUE
     HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
@@ -348,10 +350,10 @@ juce_add_plugin(plugdata_fx
     COMPANY_NAME                ${PLUGDATA_COMPANY_NAME}
     COMPANY_COPYRIGHT           ${PLUGDATA_COMPANY_COPYRIGHT}
     COMPANY_WEBSITE             ${PLUGDATA_COMPANY_WEBSITE}
+    PLUGIN_DESCRIPTION          "Visual audio programming environment"
     ICON_BIG                    ${PLUGDATA_ICON_BIG}
     HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
     HARDENED_RUNTIME_OPTIONS    ${HARDENED_RUNTIME_OPTIONS}
-    PLUGIN_DESCRIPTION          "A plugin that loads Pure Data patches"
     IS_SYNTH                    FALSE
     NEEDS_MIDI_INPUT            TRUE
     NEEDS_MIDI_OUTPUT           TRUE
@@ -364,7 +366,7 @@ juce_add_plugin(plugdata_fx
     LV2URI                      https://github.com/timothyschoen/plugdata-fx
     PRODUCT_NAME                "plugdata-fx"
     BUNDLE_ID                   com.plugdata.plugdata.fx
-    AU_MAIN_TYPE                kAudioUnitType_MusicEffect
+    AU_MAIN_TYPE                kAudioUnitType_Effect
     VST3_CATEGORIES             Fx
     VST2_CATEGORY               kPlugCategEffect)
 
@@ -379,7 +381,7 @@ juce_add_plugin(plugdata_midi
     ICON_BIG                    ${PLUGDATA_ICON_BIG}
     HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
     HARDENED_RUNTIME_OPTIONS    ${HARDENED_RUNTIME_OPTIONS}
-    PLUGIN_DESCRIPTION          "A plugin that loads Pure Data patches"
+    PLUGIN_DESCRIPTION          "Visual audio programming environment"
     IS_SYNTH                    FALSE
     NEEDS_MIDI_INPUT            TRUE
     NEEDS_MIDI_OUTPUT           TRUE

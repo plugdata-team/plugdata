@@ -18,6 +18,14 @@ bool ProjectInfo::isStandalone = true;
 bool ProjectInfo::isStandalone = false;
 #endif
 
+
+#if PLUGDATA_FX
+bool ProjectInfo::isFx = true;
+#else
+bool ProjectInfo::isFx = false;
+#endif
+
+
 MidiDeviceManager* ProjectInfo::getMidiDeviceManager()
 {
 #if PLUGDATA_STANDALONE

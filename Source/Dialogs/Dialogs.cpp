@@ -673,8 +673,11 @@ void Dialogs::showOpenDialog(std::function<void(File&)> callback, bool canSelect
     if (!initialFile.exists())
         initialFile = ProjectInfo::appDataDir;
 
+#if JUCE_IOS
+    fileChooser = std::make_unique<FileChooser>("Choose file to open...", initialFile, "*", nativeDialog);
+#else
     fileChooser = std::make_unique<FileChooser>("Choose file to open...", initialFile, extension, nativeDialog);
-
+#endif
     auto openChooserFlags = FileBrowserComponent::openMode;
 
     if (canSelectFiles)

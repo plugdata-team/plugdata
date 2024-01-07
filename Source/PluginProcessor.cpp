@@ -41,6 +41,15 @@ EXTERN char* pd_version;
 
 AudioProcessor::BusesProperties PluginProcessor::buildBusesProperties()
 {
+#if JUCE_IOS
+    // If you intend to build AUv3 on macOS, you'll also need these
+    if(ProjectInfo::isFx) {
+        return BusesProperties().withOutput ("Output", AudioChannelSet::stereo(), true).withInput ("Input", AudioChannelSet::stereo(), true);
+    }
+    else {
+        return BusesProperties().withOutput ("Output", AudioChannelSet::stereo(), true);
+    }
+#else
     AudioProcessor::BusesProperties busesProperties;
 
     if (ProjectInfo::isStandalone) {
@@ -59,6 +68,7 @@ AudioProcessor::BusesProperties PluginProcessor::buildBusesProperties()
     }
 
     return busesProperties;
+#endif
 }
 
 // ag: Note that this is just a fallback, we update this with live version
@@ -66,11 +76,8 @@ AudioProcessor::BusesProperties PluginProcessor::buildBusesProperties()
 String PluginProcessor::pdlua_version = "pdlua 0.11.0 (lua 5.4)";
 
 PluginProcessor::PluginProcessor()
-#ifndef JucePlugin_PreferredChannelConfigurations
     : AudioProcessor(buildBusesProperties())
-    ,
-#endif
-    pd::Instance("plugdata")
+    , pd::Instance("plugdata")
     , internalSynth(std::make_unique<InternalSynth>())
 {
     // Make sure to use dots for decimal numbers, pd requires that
@@ -316,11 +323,19 @@ String const PluginProcessor::getName() const
 
 bool PluginProcessor::acceptsMidi() const
 {
+#if JUCE_IOS
+    return !ProjectInfo::isFx;
+#endif
+    
     return true;
 }
 
 bool PluginProcessor::producesMidi() const
 {
+#if JUCE_IOS
+    return ProjectInfo::isStandalone;
+#endif
+    
     return true;
 }
 
@@ -451,6 +466,10 @@ void PluginProcessor::releaseResources()
 
 bool PluginProcessor::isBusesLayoutSupported(BusesLayout const& layouts) const
 {
+#if JUCE_IOS
+    return (layouts.getMainOutputChannels() <= 2) && (layouts.getMainInputChannels() <= 2);
+#endif
+    
 #if JucePlugin_IsMidiEffect
     ignoreUnused(layouts);
     return true;
