@@ -717,6 +717,7 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
     auto const numChannels = buffer.getNumChannels();
 
     inputFifo->writeAudioAndMidi(buffer, midiMessages);
+    midiMessages.clear();
 
     audioAdvancement = 0; // Always has to be 0 if we use the AudioMidiFifo!
 
