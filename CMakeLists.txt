@@ -314,8 +314,6 @@ juce_add_plugin(plugdata_standalone
     AU_MAIN_TYPE                kAudioUnitType_MusicDevice
     DOCUMENT_EXTENSIONS         pd
     DOCUMENT_BROWSER_ENABLED    TRUE
-    APP_SANDBOX_ENABLED         TRUE
-    APP_SANDBOX_OPTIONS         "com.apple.security.files.user-selected.read-write"
     )
 endif()
 
