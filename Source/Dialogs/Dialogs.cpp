@@ -494,9 +494,12 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     popupMenu.addItem(Open, "Open", object && !multiple && canBeOpened); // for opening subpatches
 
     popupMenu.addSeparator();
-    popupMenu.addItem(Help, "Help", object != nullptr);
-    popupMenu.addItem(Reference, "Reference", object != nullptr);
-    popupMenu.addItem(ShowInSearch, "Show in search", object != nullptr && selectedBoxes.size() == 1);
+
+    //FIXME: this stops a user from accessing these function when more than 1 object is selected, possibly we only call them on the object under the mouse?
+    auto isActive = object != nullptr && selectedBoxes.size() == 1;
+    popupMenu.addItem(Help, "Help", isActive);
+    popupMenu.addItem(Reference, "Reference", isActive);
+    popupMenu.addItem(ShowInSearch, "Show in search", isActive);
 
     popupMenu.addSeparator();
 

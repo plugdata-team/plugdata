@@ -1,3 +1,5 @@
+#include "../Object.h"
+
 class ValueTreeViewerComponent;
 class ValueTreeNodeComponent;
 struct ValueTreeOwnerView : public Component
@@ -448,17 +450,15 @@ public:
         return false;
     }
 
-    void scrollToShowObject(int64 objectPtr)
+    void scrollToShowObject(Object* object)
     {
-        auto treeObject = valueTree.getChildWithProperty("Object", var(objectPtr));
+        auto treeObject = valueTree.getChildWithProperty("Object", var(reinterpret_cast<int64>(object->getPointer())));
 
         if (treeObject.isValid()) {
             for(auto& node : nodes) {
                 if (node->valueTreeNode == treeObject) {
-                    std::cout << node->getPosition().getY() << std::endl;
                     contentComponent.selectedNode = node;
                     viewport.setViewPosition(0, node->getPosition().getY());
-                    repaint();
                 }
             }
         }

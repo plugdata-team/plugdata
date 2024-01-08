@@ -9,7 +9,6 @@
 #include "Components/Buttons.h"
 #include "Objects/ObjectParameters.h"
 #include "Utility/SettingsFile.h"
-#include "../Canvas.h"
 
 class Console;
 class Inspector;
@@ -17,6 +16,7 @@ class DocumentationBrowser;
 class AutomationPanel;
 class SearchPanel;
 class PluginProcessor;
+class Object;
 
 namespace pd {
 class Instance;

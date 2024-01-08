@@ -276,17 +276,18 @@ void Sidebar::showInSearch(Object* object)
     browser->setVisible(false);
     console->setVisible(false);
 
+    if (!searchPanel->isVisible()) {
+        searchPanel->updateResults();
+        //resized();
+    }
+
     searchPanel->setVisible(true);
     searchPanel->setInterceptsMouseClicks(true, true);
-
-    const auto objectPtr = reinterpret_cast<int64>(object->getPointer());
-    searchPanel->patchTree.scrollToShowObject(objectPtr);
+    searchPanel->patchTree.scrollToShowObject(object);
 
     currentPanel = 3;
 
     updateExtraSettingsButton();
-
-    repaint();
 }
 
 bool Sidebar::isShowingBrowser()
@@ -296,9 +297,7 @@ bool Sidebar::isShowingBrowser()
 
 bool Sidebar::isShowingSearch()
 {
-    auto searchVisible = searchPanel->isVisible();
-    std::cout << "search panel is " << (searchVisible ? "visible" : "hidden") << std::endl;
-    return searchVisible;
+    return searchPanel->isVisible();
 }
 
 void Sidebar::updateAutomationParameters()
