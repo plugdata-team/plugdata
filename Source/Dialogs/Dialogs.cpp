@@ -493,8 +493,8 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     popupMenu.addItem(Open, "Open", object && !multiple && canBeOpened); // for opening subpatches
 
     popupMenu.addSeparator();
-    popupMenu.addItem(Help, "Help", object != nullptr);
-    popupMenu.addItem(Reference, "Reference", object != nullptr);
+    popupMenu.addItem(Help, "Help", hasSelection && !multiple);
+    popupMenu.addItem(Reference, "Reference", hasSelection && !multiple);
     popupMenu.addSeparator();
 
     bool selectedConnection = false, noneSegmented = true;
