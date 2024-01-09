@@ -289,11 +289,16 @@ private:
     friend class ValueTreeViewerComponent;
 };
 
-class ValueTreeViewerComponent : public Component, public KeyListener
+#include "SettingsFile.h"
+
+class ValueTreeViewerComponent : public Component, public KeyListener, public SettingsFileListener
 {
 public:
     explicit ValueTreeViewerComponent(String prepend = String()) : tooltipPrepend(std::move(prepend))
     {
+        if (tooltipPrepend == "(Subpatch)") // FIXME: this is horrible
+            sortLayerOrder = SettingsFile::getInstance()->getProperty<bool>("search_order");
+
         // Add a Viewport to handle scrolling
         viewport.setViewedComponent(&contentComponent, false);
         viewport.setScrollBarsShown(true, false, false, false);
@@ -309,6 +314,16 @@ public:
         contentComponent.onDragStart = [this](ValueTree& tree){ onDragStart(tree); };
         
         addAndMakeVisible(viewport);
+    }
+
+    void propertyChanged(String const& name, var const& value) override
+    {
+        if (tooltipPrepend != "(Subpatch)") // FIXME: again this is a horrible way to find out what we are!
+            return;
+
+        if (name == "search_order") {
+            setSortDir(static_cast<bool>(value));
+        }
     }
 
     void setValueTree(const ValueTree& tree)
@@ -355,7 +370,7 @@ public:
             }
         }
 
-        sortNodes(nodes);
+        sortNodes(nodes, sortLayerOrder);
         
         ValueTreeNodeComponent* previous = nullptr;
         linkNodes(nodes, previous);
@@ -365,7 +380,29 @@ public:
         
         viewport.setViewPosition(originalViewPos);
     }
-    
+
+    ValueTree& getValueTree()
+    {
+        return valueTree;
+    }
+
+    void setSortDir(bool sortDir)
+    {
+        sortLayerOrder = sortDir;
+        sortNodes(nodes, sortLayerOrder);
+        resizeAllNodes(nodes);
+    }
+
+    void resizeAllNodes(OwnedArray<ValueTreeNodeComponent>& nodes)
+    {
+        resized();
+
+        for (auto* node : nodes) {
+            node->resized();
+            resizeAllNodes(node->nodes);
+        }
+    }
+
     void paint(Graphics& g) override
     {
         g.fillAll(getLookAndFeel().findColour(PlugDataColour::sidebarBackgroundColourId));
@@ -394,14 +431,18 @@ public:
         auto scrollbarIndent = viewport.canScrollVertically() ? 8 : 0;
         bounds = bounds.reduced(2, 0).withTrimmedRight(scrollbarIndent).withHeight(getTotalContentHeight() + 4).withTrimmedTop(4);
 
-        for (auto* node : nodes)
-        {
+
+        auto resizeNodes = [bounds]( ValueTreeNodeComponent* node) mutable {
             if(node->isVisible()) {
                 auto childBounds = bounds.removeFromTop(node->getTotalContentHeight());
                 node->setBounds(childBounds);
             }
+        };
+
+        for (auto* node : nodes) {
+            resizeNodes(node);
         }
-        
+
         viewport.setViewPosition(originalViewPos);
     }
     
@@ -549,24 +590,27 @@ private:
         }
     }
     
-    static void sortNodes(OwnedArray<ValueTreeNodeComponent>& nodes)
+    static void sortNodes(OwnedArray<ValueTreeNodeComponent>& nodes, bool sortDown)
     {
         struct {
+            bool sortDirection = false;
+
             int compareElements (const ValueTreeNodeComponent* a, const ValueTreeNodeComponent* b)
             {
                 auto firstIdx = a->valueTreeNode. getParent().indexOf(a->valueTreeNode);
                 auto secondIdx = b->valueTreeNode.getParent().indexOf (b->valueTreeNode);
-                if(firstIdx > secondIdx)  return 1;
-                if(firstIdx < secondIdx)  return -1;
+                if(firstIdx > secondIdx)  return sortDirection ? -1 : 1;
+                if(firstIdx < secondIdx)  return sortDirection ? 1 : -1;
                 return 0;
             }
-        } elementSorter;
-        
-        nodes.sort(elementSorter, false);
-        
-        for(auto* childNode : nodes)
-        {
-            sortNodes(childNode->nodes);
+        } elementComparator;
+
+        elementComparator.sortDirection = sortDown;
+
+        nodes.sort(elementComparator, false);
+
+        for (auto* childNode : nodes) {
+            sortNodes(childNode->nodes, sortDown);
         }
     }
     
@@ -576,4 +620,5 @@ private:
     OwnedArray<ValueTreeNodeComponent> nodes;
     ValueTree valueTree = ValueTree("Folder");
     BouncingViewport viewport;
+    bool sortLayerOrder = false;
 };
