@@ -135,6 +135,8 @@ private:
             var(false)
 #endif
         },
+        // DEFAULT SETTINGS FOR TOGGLES
+        { "search_order", var(true) },
     };
 
     StringArray childTrees {
