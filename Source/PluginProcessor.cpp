@@ -1049,17 +1049,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     // Audio will only be reactivated once this action is completed
 
     MemoryInputStream istream(data, sizeInBytes, false);
-
-    // Close any opened patches
-    MessageManager::callAsync([this]() {
-        for (auto* editor : getEditors()) {
-            for (auto split : editor->splitView.splits) {
-                split->getTabComponent()->clearTabs();
-            }
-            editor->canvases.clear();
-        }
-    });
-
+    
     lockAudioThread();
 
     setThis();
@@ -1075,10 +1065,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 
         auto presetDir = ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Presets");
         path = path.replace("${PRESET_DIR}", presetDir.getFullPathName());
-
-        auto location = File(path);
-
-        patches.add({ state, location });
+        patches.add({ state, File(path) });
     }
 
     auto legacyLatency = istream.readInt();
