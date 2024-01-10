@@ -343,6 +343,8 @@ void Sidebar::updateExtraSettingsButton()
         extraSettingsButton = console->getExtraSettingsComponent();
     } else if (browser->isVisible()) {
         extraSettingsButton = browser->getExtraSettingsComponent();
+    } else if (searchPanel->isVisible()) {
+        extraSettingsButton = searchPanel->getExtraSettingsComponent();
     } else {
         extraSettingsButton.reset(nullptr);
         return;
