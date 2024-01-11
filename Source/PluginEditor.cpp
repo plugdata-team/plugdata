@@ -164,7 +164,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     }
 
     // Show settings
-    mainMenuButton.setTooltip("Settings");
+    mainMenuButton.setTooltip("Main menu");
     mainMenuButton.onClick = [this]() {
         Dialogs::showMainMenu(this, &mainMenuButton);
     };
