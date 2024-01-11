@@ -68,10 +68,13 @@ public:
     {
         addAndMakeVisible(nodeBranchLine);
         nodeBranchLine.setAlwaysOnTop(true);
-        auto tooltipPrepend = prepend;
-        if (tooltipPrepend.isEmpty())
-            tooltipPrepend = "(Parent)";
-        nodeBranchLine.setTooltip(tooltipPrepend + " " + valueTreeNode.getProperty("Name").toString());
+        
+        if(valueTreeNode.hasProperty("Name")) {
+            auto tooltipPrepend = prepend;
+            if (tooltipPrepend.isEmpty())
+                tooltipPrepend = "(Parent)";
+            nodeBranchLine.setTooltip(tooltipPrepend + " " + valueTreeNode.getProperty("Name").toString());
+        }
 
         // Create subcomponents for each child node
         for (int i = 0; i < valueTreeNode.getNumChildren(); ++i)

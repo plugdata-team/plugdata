@@ -1043,10 +1043,19 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 {
     if (sizeInBytes == 0)
         return;
-
-    // By calling this asynchronously on the message thread and also suspending processing on the audio thread, we can make sure this is safe
-    // The DAW can call this function from basically any thread, hence the need for this
-    // Audio will only be reactivated once this action is completed
+    
+    // Don't clear tabs if there is no editor open before loading state, if we don't check this it will not load properly in some DAWs
+    if(getEditors().size()) {
+        // Close any opened patches
+        MessageManager::callAsync([this]() {
+            for (auto* editor : getEditors()) {
+                for (auto split : editor->splitView.splits) {
+                    split->getTabComponent()->clearTabs();
+                }
+                editor->canvases.clear();
+            }
+        });
+    }
 
     MemoryInputStream istream(data, sizeInBytes, false);
     
@@ -1081,7 +1090,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 
     auto openPatch = [this](String const& content, File const& location, bool pluginMode = false, int splitIndex = 0) {
         if (location.getFullPathName().isNotEmpty() && location.existsAsFile()) {
-            auto patch = loadPatch(location, openedEditors[0], splitIndex);
+            auto patch = loadPatch(location, getEditors()[0], splitIndex);
             if (patch) {
                 patch->setTitle(location.getFileName());
                 patch->openInPluginMode = pluginMode;
@@ -1091,7 +1100,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
                 auto parentPath = location.getParentDirectory().getFullPathName();
                 libpd_add_to_search_path(parentPath.toRawUTF8());
             }
-            auto patch = loadPatch(content, openedEditors[0], splitIndex);
+            auto patch = loadPatch(content, getEditors()[0], splitIndex);
             if (patch && ((location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) || !location.exists())) {
                 patch->setTitle("Untitled Patcher");
                 patch->openInPluginMode = pluginMode;
@@ -1395,7 +1404,7 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
             auto directory = list[1].toString();
 
             auto patch = File(directory).getChildFile(filename);
-            loadPatch(patch, openedEditors[0]);
+            loadPatch(patch, getEditors()[0]);
         }
         break;
     }
@@ -1404,7 +1413,7 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
             auto filename = list[0].toString();
             auto directory = list[1].toString();
 
-            auto patchPtr = loadPatch(defaultPatch, openedEditors[0]);
+            auto patchPtr = loadPatch(defaultPatch, getEditors()[0]);
             patchPtr->setCurrentFile(File(directory).getChildFile(filename).getFullPathName());
             patchPtr->setTitle(filename);
         }
