@@ -232,9 +232,11 @@ public:
     {
         auto tree = generateDirectoryValueTree(File(pd->settingsFile->getProperty<String>("browser_path")));
         if(tree.isValid()) {
-            MessageManager::callAsync([this, tree](){
-                fileTree = tree;
-                fileList.setValueTree(tree);
+            MessageManager::callAsync([_this = SafePointer(this), tree](){
+                if(_this) {
+                    _this->fileTree = tree;
+                    _this->fileList.setValueTree(tree);
+                }
             });
         }
     }
