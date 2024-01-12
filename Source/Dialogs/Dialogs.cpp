@@ -691,6 +691,7 @@ void Dialogs::showOpenDialog(std::function<void(File&)> callback, bool canSelect
             auto lastDir = result.isDirectory() ? result : result.getParentDirectory();
             SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, lastDir);
             callback(result);
+            Dialogs::fileChooser = nullptr;
         });
 }
 
@@ -721,6 +722,7 @@ void Dialogs::showSaveDialog(std::function<void(File&)> callback, String const& 
             if (parentDirectory.exists()) {
                 SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, parentDirectory);
                 callback(result);
+                Dialogs::fileChooser = nullptr;
             }
         });
 }
