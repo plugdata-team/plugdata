@@ -7,11 +7,6 @@
 #include <juce_opengl/juce_opengl.h>
 #include <Gem/src/Base/GemJUCEContext.h>
 
-extern void performGemRender();
-extern void initGemWindow();
-
-void dequeueEvents(void);
-
 void triggerMotionEvent(int x, int y);
 void triggerButtonEvent(int which, int state, int x, int y);
 void triggerWheelEvent(int axis, int value);
@@ -157,6 +152,17 @@ void gemWinMakeCurrent(WindowInfo& info) {
     }
 }
 
+bool gemWinMakeCurrent() {
+    if(!gemJUCEWindow.contains(libpd_this_instance())) return false;
+        
+    if(auto& window = gemJUCEWindow.at(libpd_this_instance())) {
+        window->openGLContext.makeActive();
+        return true;
+    }
+    
+    return false;
+}
+
 // We handle this manually with JUCE
 void dispatchGemWindowMessages(WindowInfo& info) {
 }
@@ -175,4 +181,15 @@ int topmostGemWindow(WindowInfo& info, int state)
 {
   if(info.getWindow() && state) info.getWindow()->toFront(true);
   return state;
+}
+
+void GemCallOnMessageThread(std::function<void()> callback)
+{
+    //MessageManager::callAsync(callback);
+    MessageManager::getInstance()->callFunctionOnMessageThread([](void* callback) -> void* {
+        auto& fn = *reinterpret_cast<std::function<void()>*>(callback);
+        fn();
+        
+        return nullptr;
+    }, (void*)&callback);
 }
