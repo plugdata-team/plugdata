@@ -28,7 +28,7 @@ public:
         
         setOpaque (true);
         //openGLContext.setRenderer (this);
-        openGLContext.setSwapInterval(0);
+        openGLContext.setSwapInterval(1);
         openGLContext.setMultisamplingEnabled(true);
         
         auto pixelFormat = OpenGLPixelFormat(8, 8, 16, 8);
@@ -37,6 +37,8 @@ public:
         
         openGLContext.attachTo (*this);
         //openGLContext.setContinuousRepainting (true);
+        
+
     
         instance = libpd_this_instance();
     }
@@ -44,8 +46,6 @@ public:
     ~GemJUCEWindow() override
     {
     }
-
-    //dequeueEvents(); -> restore changes
 
     void resized() override
     {
