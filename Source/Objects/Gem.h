@@ -126,11 +126,17 @@ int createGemWindow(WindowInfo& info, WindowHints& hints)
     
     window->addToDesktop(ComponentPeer::windowHasTitleBar | ComponentPeer::windowIsResizable | ComponentPeer::windowHasDropShadow);
     window->setVisible(true);
+    
+    window->openGLContext.executeOnGLThread([](OpenGLContext& context){
+        context.makeActive();
+    }, true);
+    
     window->openGLContext.makeActive();
     info.context[window->instance] = &window->openGLContext;
       
     hints.real_w = window->getWidth();
     hints.real_h = window->getHeight();
+
     
     return 1;
 }
