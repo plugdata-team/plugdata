@@ -18,49 +18,35 @@ void triggerWheelEvent(int axis, int value);
 void triggerKeyboardEvent(const char *string, int value, int state);
 void triggerResizeEvent(int xSize, int ySize);
 
-class GemJUCEWindow final : public OpenGLAppComponent
+class GemJUCEWindow final : public Component
 {
 public:
     //==============================================================================
     GemJUCEWindow()
     {
         setSize (800, 600);
-        openGLContext.setSwapInterval(1);
+        
+        setOpaque (true);
+        //openGLContext.setRenderer (this);
+        openGLContext.setSwapInterval(0);
         openGLContext.setMultisamplingEnabled(true);
         
         auto pixelFormat = OpenGLPixelFormat(8, 8, 16, 8);
         pixelFormat.multisamplingLevel = 2;
         openGLContext.setPixelFormat(pixelFormat);
         
+        openGLContext.attachTo (*this);
+        //openGLContext.setContinuousRepainting (true);
+    
         instance = libpd_this_instance();
     }
 
     ~GemJUCEWindow() override
     {
-        shutdownOpenGL();
     }
 
-    void initialise() override
-    {
-        openGLContext.makeActive();
-        initGemWindow();
-    }
+    //dequeueEvents(); -> restore changes
 
-    void shutdown() override
-    {
-    }
-
-    void render() override
-    {
-        libpd_set_instance(instance);
-        OpenGLHelpers::clear(Colours::black);
-        
-        sys_lock();
-        dequeueEvents();
-        performGemRender();
-        sys_unlock();
-    }
-    
     void resized() override
     {
         triggerResizeEvent(getWidth(), getHeight());
@@ -100,6 +86,7 @@ public:
         return false;
     }
     
+    OpenGLContext openGLContext;
     t_pdinstance* instance;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GemJUCEWindow)
 };
@@ -126,10 +113,6 @@ int createGemWindow(WindowInfo& info, WindowHints& hints)
     
     window->addToDesktop(ComponentPeer::windowHasTitleBar | ComponentPeer::windowIsResizable | ComponentPeer::windowHasDropShadow);
     window->setVisible(true);
-    
-    window->openGLContext.executeOnGLThread([](OpenGLContext& context){
-        context.makeActive();
-    }, true);
     
     window->openGLContext.makeActive();
     info.context[window->instance] = &window->openGLContext;
