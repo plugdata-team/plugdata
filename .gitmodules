@@ -45,3 +45,6 @@
 [submodule "Gem"]
 	path = Gem
 	url = https://github.com/plugdata-team/plugdata-gem.git
+[submodule "Libraries/Gem"]
+	path = Libraries/Gem
+	url = https://github.com/plugdata-team/plugdata-gem.git
