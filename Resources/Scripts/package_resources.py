@@ -46,10 +46,10 @@ def split(a, n):
 def splitFile(file, num_files):
   with open(file, 'rb') as fd:
     data_in = split(fd.read(), num_files)
-    count = 0;
+    count = 0
     for entry in data_in:
-      name = os.path.splitext(file)[0];
-      extension = os.path.splitext(file)[1];
+      name = os.path.splitext(file)[0]
+      extension = os.path.splitext(file)[1]
       filename = name + "_" + str(count) + extension
       with open(filename, "wb") as fd:
         fd.write(entry)
@@ -67,6 +67,7 @@ changeWorkingDir("../plugdata_version")
 makeDir("Abstractions")
 makeDir("Abstractions/else")
 makeDir("Abstractions/cyclone")
+makeDir("Abstractions/Gem")
 
 copyDir("../../Libraries/pure-data/doc", "./Documentation")
 globCopy("../../Libraries/pure-data/extra/*.pd", "./Abstractions")
@@ -101,13 +102,13 @@ removeFile("./Documentation/Makefile.am")
 
 makeDir("Extra")
 makeDir("Extra/GS")
-copyDir("../../Libraries/pd-else/Documentation/extra_files", "Extra/else");
-copyFile("../../Libraries/pd-else/Documentation/README.pdf", "Extra/else");
-copyDir("../../Libraries/pd-else/Code_source/Compiled/audio/sfont~/sf", "Extra/else/sf");
+copyDir("../../Libraries/pd-else/Documentation/extra_files", "Extra/else")
+copyFile("../../Libraries/pd-else/Documentation/README.pdf", "Extra/else")
+copyDir("../../Libraries/pd-else/Code_source/Compiled/audio/sfont~/sf", "Extra/else/sf")
 copyDir("../Patches/Presets", "./Extra/Presets")
 copyDir("../Patches/Palettes", "./Extra/palette")
 copyDir("../Documentation/Manual", "./Extra/Manual")
-globCopy("../../Libraries/pure-data/doc/sound/*", "Extra/else");
+globCopy("../../Libraries/pure-data/doc/sound/*", "Extra/else")
 
 # pd-lua
 makeDir("Extra/pdlua")
@@ -122,6 +123,13 @@ for src in ["pdlua*-help.pd"]:
     globCopy(pdlua_srcdir+src, "./Documentation/13.pdlua")
 for src in ["pdlua"]:
     copyDir(pdlua_srcdir+src, "./Documentation/13.pdlua/"+src)
+
+copyDir("../../Libraries/Gem/help", "Documentation/14.gem")
+copyDir("../../Libraries/Gem/examples", "Documentation/14.gem/examples")
+copyDir("../../Libraries/Gem/doc", "Documentation/14.gem/examples/Documentation")
+globCopy("../../Libraries/Gem/abstractions/*.pd", "Abstractions/Gem/")
+globMove("Abstractions/Gem/*-help.pd", "Documentation/14.gem/")
+
 
 changeWorkingDir("./..")
 
