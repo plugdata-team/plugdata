@@ -31,6 +31,8 @@ public:
         auto pixelFormat = OpenGLPixelFormat(8, 8, 16, 8);
         pixelFormat.multisamplingLevel = 2;
         openGLContext.setPixelFormat(pixelFormat);
+        
+        instance = libpd_this_instance();
     }
 
     ~GemJUCEWindow() override
@@ -50,6 +52,7 @@ public:
 
     void render() override
     {
+        libpd_set_instance(instance);
         OpenGLHelpers::clear(Colours::black);
         
         sys_lock();
@@ -60,10 +63,7 @@ public:
     
     void resized() override
     {
-        const ScopedLock lock (mutex);
-        bounds = getLocalBounds();
-        
-        triggerResizeEvent(bounds.getWidth(), bounds.getHeight());
+        triggerResizeEvent(getWidth(), getHeight());
     }
     
     void paint (Graphics&) override
@@ -97,13 +97,10 @@ public:
     bool keyPressed(KeyPress const& key) override
     {
         //triggerKeyboardEvent(key.getTextDescription().toRawUTF8(), key.getKeyCode(), 1);
+        return false;
     }
     
-private:
-   
-    Rectangle<int> bounds;
-    CriticalSection mutex;
-
+    t_pdinstance* instance;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GemJUCEWindow)
 };
 
@@ -113,25 +110,24 @@ bool initGemWin(void)
   return true;
 }
 
-std::unique_ptr<GemJUCEWindow> gemJUCEWindow;
+std::map<t_pdinstance*, std::unique_ptr<GemJUCEWindow>> gemJUCEWindow;
 
 int createGemWindow(WindowInfo& info, WindowHints& hints)
 {
-    if(info.window)
+    if(auto* window = info.getWindow())
     {
-        info.window->removeFromDesktop();
-        delete info.window;
+        window->removeFromDesktop();
+        gemJUCEWindow[window->instance].reset(nullptr);
     }
     
     auto* window = new GemJUCEWindow();
-    gemJUCEWindow.reset(window);
-    info.window = window;
+    gemJUCEWindow[window->instance].reset(window);
+    info.window[window->instance] = window;
     
-    info.window->addToDesktop(ComponentPeer::windowHasTitleBar | ComponentPeer::windowIsResizable | ComponentPeer::windowHasDropShadow);
+    window->addToDesktop(ComponentPeer::windowHasTitleBar | ComponentPeer::windowIsResizable | ComponentPeer::windowHasDropShadow);
     window->setVisible(true);
     window->openGLContext.makeActive();
-    info.context = &window->openGLContext;
-    //info.have_constContext = 1;
+    info.context[window->instance] = &window->openGLContext;
       
     hints.real_w = window->getWidth();
     hints.real_h = window->getHeight();
@@ -139,27 +135,28 @@ int createGemWindow(WindowInfo& info, WindowHints& hints)
     return 1;
 }
 void destroyGemWindow(WindowInfo& info) {
-    if(info.window)  {
-        info.window->removeFromDesktop();
-        delete info.window;
+    if(auto* window = info.getWindow()) {
+        window->removeFromDesktop();
+        gemJUCEWindow[window->instance].reset(nullptr);
     }
 }
 
 void initWin_sharedContext(WindowInfo& info, WindowHints& hints) {
-    //info.have_constContext = 1;
-    if(info.window) info.window->openGLContext.makeActive();
+    if(auto* window = info.getWindow())  {
+        window->openGLContext.makeActive();
+    }
 }
 
 // Rendering
 void gemWinSwapBuffers(WindowInfo& info) {
-    if (info.context) {
-        info.context->makeActive();
-        info.context->swapBuffers();
+    if (auto* context = info.getContext()) {
+        context->makeActive();
+        context->swapBuffers();
     }
 }
 void gemWinMakeCurrent(WindowInfo& info) {
-    if (info.context) {
-        info.context->makeActive();
+    if (auto* context = info.getContext()) {
+        context->makeActive();
     }
 }
 
@@ -170,12 +167,15 @@ void dispatchGemWindowMessages(WindowInfo& info) {
 // Window behaviour
 int cursorGemWindow(WindowInfo& info, int state)
 {
-    if(info.window) info.window->setMouseCursor(state ? MouseCursor::NormalCursor : MouseCursor::NoCursor);
+    if(auto* window = info.getWindow()) {
+        window->setMouseCursor(state ? MouseCursor::NormalCursor : MouseCursor::NoCursor);
+    }
+    
   return state;
 }
 
 int topmostGemWindow(WindowInfo& info, int state)
 {
-  if(info.window && state) info.window->toFront(true);
+  if(info.getWindow() && state) info.getWindow()->toFront(true);
   return state;
 }
