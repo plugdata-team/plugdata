@@ -380,13 +380,11 @@ list(APPEND ELSE_SOURCES
     ${SFONT_DIR}/sfont~.c
 )
 
-file(GLOB OFELIA_SOURCES ./plugdata-ofelia/Source/Objects/*.cpp ./plugdata-ofelia/Source/Objects/*.h ./plugdata-ofelia/Source/Shared/*.cpp ./plugdata-ofelia/Source/Shared/*.h)
-source_group(ofelia FILES ${OFELIA_SOURCES})
 # ------------------------------------------------------------------------------#
 # TARGETS
 # ------------------------------------------------------------------------------#
-add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES} ${OFELIA_SOURCES})
-add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES} ${OFELIA_SOURCES})
+add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES})
+add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES})
 
 # ag: pdlua needs PLUGDATA symbol at compile time for PlugData integration.
 target_compile_definitions(externals PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PLUGDATA=1)

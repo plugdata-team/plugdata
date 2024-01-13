@@ -225,9 +225,10 @@ target_link_libraries(juce
         juce::juce_dsp
         juce::juce_cryptography
         juce::juce_opengl
-    PUBLIC
-        $<CONFIG:Debug>:juce::juce_recommended_lto_flags
         )
+
+target_compile_options(juce PUBLIC $<$<CONFIG:Debug>:${JUCE_LTO_FLAGS}>)
+
 
 set(libs
   juce

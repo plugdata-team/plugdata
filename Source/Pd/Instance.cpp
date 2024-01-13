@@ -303,13 +303,6 @@ void Instance::initialisePd(String& pdlua_version)
         initialised = true;
     }
 
-    // Hack to make sure ofelia doesn't get initialised during plugin validation, as this can cause problems
-    MessageManager::callAsync([_this = juce::WeakReference(this)]() {
-        if (!_this.get())
-            return;
-        _this->ofelia = std::make_unique<Ofelia>(static_cast<t_pdinstance*>(_this->instance));
-    });
-
     setThis();
 
     // ag: need to do this here to suppress noise from chatty externals

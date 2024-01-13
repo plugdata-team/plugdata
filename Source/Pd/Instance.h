@@ -15,7 +15,6 @@ extern "C" {
 #include <readerwriterqueue.h>
 #include "Utility/StringUtils.h"
 #include "Patch.h"
-#include "Ofelia.h"
 
 class ObjectImplementationManager;
 
@@ -467,8 +466,6 @@ protected:
 
         StringUtils fastStringWidth; // For formatting console messages more quickly
     };
-
-    std::unique_ptr<Ofelia> ofelia;
 
     ConsoleHandler consoleHandler;
 
