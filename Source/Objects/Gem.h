@@ -13,6 +13,8 @@ void triggerWheelEvent(int axis, int value);
 void triggerKeyboardEvent(const char *string, int value, int state);
 void triggerResizeEvent(int xSize, int ySize);
 
+void initGemWindow();
+
 class GemJUCEWindow final : public Component
 {
 public:
@@ -153,6 +155,8 @@ void initWin_sharedContext(WindowInfo& info, WindowHints& hints) {
 // Rendering
 void gemWinSwapBuffers(WindowInfo& info) {
     if (auto* context = info.getContext()) {
+        initGemWindow();
+        
         context->makeActive();
         context->swapBuffers();
     }

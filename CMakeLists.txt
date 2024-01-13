@@ -227,7 +227,7 @@ target_link_libraries(juce
         juce::juce_opengl
         )
 
-target_compile_options(juce PUBLIC $<$<CONFIG:Debug>:${JUCE_LTO_FLAGS}>)
+target_compile_options(juce PUBLIC $<$<CONFIG:Release>:${JUCE_LTO_FLAGS}>)
 
 
 set(libs
