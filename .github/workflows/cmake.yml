@@ -86,6 +86,11 @@ jobs:
         submodules: recursive
         fetch-depth: 0
 
+    - name: Install FreeType
+      run: |
+        choco install freetype
+        refreshenv  # Refresh the environment variables to include the newly installed package
+
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/build 
 
@@ -135,6 +140,11 @@ jobs:
       with:
         submodules: recursive
         fetch-depth: 0
+
+    - name: Install FreeType
+      run: |
+        choco install freetype
+        refreshenv  # Refresh the environment variables to include the newly installed package
 
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/build
