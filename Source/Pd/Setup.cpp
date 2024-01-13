@@ -1715,11 +1715,10 @@ void Setup::initialiseGem()
     square_setup();
     surface3d_setup();
     teapot_setup();
-    /*
     text2d_setup();
     text3d_setup();
     textextruded_setup();
-    textoutline_setup(); */
+    textoutline_setup();
     torus_setup();
     trapezoid_setup();
     triangle_setup();
