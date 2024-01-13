@@ -25,7 +25,7 @@ public:
     GemJUCEWindow()
     {
         setSize (800, 600);
-        //openGLContext.setSwapInterval(0);
+        openGLContext.setSwapInterval(1);
         openGLContext.setMultisamplingEnabled(true);
         
         auto pixelFormat = OpenGLPixelFormat(8, 8, 16, 8);
