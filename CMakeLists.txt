@@ -226,8 +226,7 @@ target_link_libraries(juce
         juce::juce_cryptography
         juce::juce_opengl
     PUBLIC
-        juce::juce_recommended_lto_flags
-        #juce::juce_recommended_warning_flags
+        $<CONFIG:Debug>:juce::juce_recommended_lto_flags
         )
 
 set(libs

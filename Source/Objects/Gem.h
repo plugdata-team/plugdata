@@ -27,8 +27,7 @@ public:
         setSize (800, 600);
         
         setOpaque (true);
-        //openGLContext.setRenderer (this);
-        openGLContext.setSwapInterval(1);
+        openGLContext.setSwapInterval(0);
         openGLContext.setMultisamplingEnabled(true);
         
         auto pixelFormat = OpenGLPixelFormat(8, 8, 16, 8);
@@ -36,10 +35,7 @@ public:
         openGLContext.setPixelFormat(pixelFormat);
         
         openGLContext.attachTo (*this);
-        //openGLContext.setContinuousRepainting (true);
         
-
-    
         instance = libpd_this_instance();
     }
 
@@ -101,25 +97,37 @@ std::map<t_pdinstance*, std::unique_ptr<GemJUCEWindow>> gemJUCEWindow;
 
 int createGemWindow(WindowInfo& info, WindowHints& hints)
 {
-    if(auto* window = info.getWindow())
-    {
-        window->removeFromDesktop();
-        gemJUCEWindow[window->instance].reset(nullptr);
-    }
+    // Problem: this call can either come from the message thread, or the pd/audio thread
+    // As a result, on Linux, we need to make sure that only one thread has the GL context set as active, otherwise things go very wrong
     
     auto* window = new GemJUCEWindow();
+    window->addToDesktop(ComponentPeer::windowHasTitleBar | ComponentPeer::windowIsResizable |      ComponentPeer::windowHasDropShadow);
+    window->setVisible(true);
+      
     gemJUCEWindow[window->instance].reset(window);
     info.window[window->instance] = window;
     
-    window->addToDesktop(ComponentPeer::windowHasTitleBar | ComponentPeer::windowIsResizable | ComponentPeer::windowHasDropShadow);
-    window->setVisible(true);
-    
+    #if JUCE_LINUX
+    // Make sure only audio thread has the context set as active
+    window->openGLContext.executeOnGLThread([](OpenGLContext& context){
+        // We get unpredictable behaviour if the context is active on multiple threads
+        OpenGLContext::deactivateCurrentContext();
+        }, true);
+    #endif
+
     window->openGLContext.makeActive();
+    
     info.context[window->instance] = &window->openGLContext;
       
     hints.real_w = window->getWidth();
     hints.real_h = window->getHeight();
-
+    
+    // Make sure only audio thread has the context set as active
+    // We call async here, because if this call comes from the message thread already,
+    // we need to keep the context active until GLEW is initialised. Bit of a hack though
+    MessageManager::callAsync([window](){
+      OpenGLContext::deactivateCurrentContext();
+    });
     
     return 1;
 }
