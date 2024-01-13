@@ -385,8 +385,8 @@ source_group(ofelia FILES ${OFELIA_SOURCES})
 # ------------------------------------------------------------------------------#
 # TARGETS
 # ------------------------------------------------------------------------------#
-add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${GEM_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES} ${OFELIA_SOURCES})
-add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${GEM_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES} ${OFELIA_SOURCES})
+add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES} ${OFELIA_SOURCES})
+add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES} ${OFELIA_SOURCES})
 
 # ag: pdlua needs PLUGDATA symbol at compile time for PlugData integration.
 target_compile_definitions(externals PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PLUGDATA=1)
