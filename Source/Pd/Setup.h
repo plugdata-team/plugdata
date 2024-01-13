@@ -35,6 +35,7 @@ struct Setup {
     static void initialisePdLua(char const* datadir, char* vers, int vers_len, void(*register_class_callback)(const char*));
     static void initialiseELSE();
     static void initialiseCyclone();
+    static void initialiseGem();
 
     static void* createMIDIHook(void* ptr,
         t_plugdata_noteonhook hook_noteon,

@@ -284,6 +284,11 @@ void Instance::initialisePd(String& pdlua_version)
         set_class_prefix(gensym("cyclone"));
         class_set_extern_dir(gensym("10.cyclone"));
         pd::Setup::initialiseCyclone();
+        
+        set_class_prefix(gensym("gem"));
+        
+        class_set_extern_dir(gensym(ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("14.gem").getFullPathName().toRawUTF8()));
+        pd::Setup::initialiseGem();
 
         class_set_extern_dir(gensym(""));
         set_class_prefix(nullptr);

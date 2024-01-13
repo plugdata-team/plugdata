@@ -42,3 +42,6 @@
 [submodule "Libraries/melatonin_blur"]
 	path = Libraries/melatonin_blur
 	url = https://github.com/sudara/melatonin_blur.git
+[submodule "Gem"]
+	path = Gem
+	url = https://github.com/plugdata-team/plugdata-gem.git

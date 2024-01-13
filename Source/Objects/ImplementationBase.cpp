@@ -27,6 +27,7 @@ int clone_get_n(t_gobj*);
 
 #include "ImplementationBase.h"
 #include "ObjectImplementations.h"
+#include "Gem.h"
 
 ImplementationBase::ImplementationBase(t_gobj* obj, t_canvas* parent, PluginProcessor* processor)
     : pd(processor)

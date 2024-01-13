@@ -92,6 +92,9 @@ set(PLUGDATA_COMPANY_WEBSITE            "github.com/plugdata-team/plugdata")
 
 if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
 set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo_ios.png")
+file(GLOB IOS_LAUNCHSCREEN "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_launchscreen_ios.png")
+set_source_files_properties(${IOS_LAUNCHSCREEN} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+
 elseif(APPLE)
 set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo_mac.png")
 else()
@@ -221,6 +224,7 @@ target_link_libraries(juce
         juce::juce_audio_plugin_client
         juce::juce_dsp
         juce::juce_cryptography
+        juce::juce_opengl
     PUBLIC
         juce::juce_recommended_lto_flags
         #juce::juce_recommended_warning_flags
@@ -537,6 +541,11 @@ set_target_properties(Tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGI
 set_property(TARGET Tests PROPERTY CXX_VISIBILITY_PRESET hidden)
 set_property(TARGET Tests PROPERTY VISIBILITY_INLINES_HIDDEN ON)
 
+endif()
+
+if(APPLE)
+# 2x speedup for debug builds in xcode
+SET_TARGET_PROPERTIES(myTarget PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH[variant=Debug] "YES")
 endif()
 
 if(MSVC)
