@@ -544,8 +544,8 @@ set_property(TARGET Tests PROPERTY VISIBILITY_INLINES_HIDDEN ON)
 endif()
 
 if(APPLE)
-# 2x speedup for debug builds in xcode
-SET_TARGET_PROPERTIES(myTarget PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH[variant=Debug] "YES")
+# 2x speedup for standalone debug builds in xcode
+SET_TARGET_PROPERTIES(plugdata_standalone PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH[variant=Debug] "YES")
 endif()
 
 if(MSVC)
