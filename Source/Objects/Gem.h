@@ -82,6 +82,17 @@ public:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GemJUCEWindow)
 };
 
+void GemCallOnMessageThread(std::function<void()> callback)
+{
+    //MessageManager::callAsync(callback);
+    MessageManager::getInstance()->callFunctionOnMessageThread([](void* callback) -> void* {
+        auto& fn = *reinterpret_cast<std::function<void()>*>(callback);
+        fn();
+        
+        return nullptr;
+    }, (void*)&callback);
+}
+
 // window/context creation&destruction
 bool initGemWin(void)
 {
@@ -120,7 +131,7 @@ int createGemWindow(WindowInfo& info, WindowHints& hints)
     // Make sure only audio thread has the context set as active
     // We call async here, because if this call comes from the message thread already,
     // we need to keep the context active until GLEW is initialised. Bit of a hack though
-    MessageManager::callAsync([window](){
+    MessageManager::callAsync([](){
       OpenGLContext::deactivateCurrentContext();
     });
     
@@ -152,6 +163,12 @@ void gemWinMakeCurrent(WindowInfo& info) {
     }
 }
 
+void gemWinResize(WindowInfo& info, int width, int height) {
+    MessageManager::callAsync([window = info.getWindow(), width, height](){
+        if(window) window->setSize(width, height);
+    });
+}
+
 bool gemWinMakeCurrent() {
     if(!gemJUCEWindow.contains(libpd_this_instance())) return false;
         
@@ -181,15 +198,4 @@ int topmostGemWindow(WindowInfo& info, int state)
 {
   if(info.getWindow() && state) info.getWindow()->toFront(true);
   return state;
-}
-
-void GemCallOnMessageThread(std::function<void()> callback)
-{
-    //MessageManager::callAsync(callback);
-    MessageManager::getInstance()->callFunctionOnMessageThread([](void* callback) -> void* {
-        auto& fn = *reinterpret_cast<std::function<void()>*>(callback);
-        fn();
-        
-        return nullptr;
-    }, (void*)&callback);
 }
