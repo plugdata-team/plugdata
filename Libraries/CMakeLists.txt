@@ -431,14 +431,14 @@ if("${CMAKE_SYSTEM}" MATCHES "Linux")
     add_library(pd INTERFACE)
     add_library(pd-multi INTERFACE)
     find_library(MATH_LIB m)
-    target_link_libraries(externals ${externals_libs})
-    target_link_libraries(externals-multi ${externals_libs})
+    target_link_libraries(externals ${externals_libs} Gem)
+    target_link_libraries(externals-multi ${externals_libs} Gem)
 elseif(MSVC)
     add_library(pd SHARED $<TARGET_OBJECTS:externals> $<TARGET_OBJECTS:pd-src>)
     add_library(pd-multi STATIC $<TARGET_OBJECTS:externals-multi> $<TARGET_OBJECTS:pd-src-multi>)
 
-    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 ${externals_libs})
-    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 ${externals_libs})
+    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 ${externals_libs} Gem)
+    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 ${externals_libs} Gem)
 
     add_custom_command(TARGET pd POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
