@@ -129,8 +129,10 @@ copyDir("../../Libraries/Gem/examples", "Documentation/14.gem/examples")
 copyDir("../../Libraries/Gem/doc", "Documentation/14.gem/examples/Documentation")
 globCopy("../../Libraries/Gem/abstractions/*.pd", "Abstractions/Gem/")
 globMove("Abstractions/Gem/*-help.pd", "Documentation/14.gem/")
+
+makeDir("Extra/Gem") # user can put plugins and resources in here
 globCopy("../../Libraries/Gem/examples/data/*", "Extra/Gem/") # if we don't do this, helpfiles can't find resources for some reason
-makeDir("Extra/Gem") # user can put plugins in here
+
 
 changeWorkingDir("./..")
 
