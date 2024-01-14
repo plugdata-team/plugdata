@@ -7,7 +7,7 @@
 #include <juce_opengl/juce_opengl.h>
 #include <Gem/src/Base/GemJUCEContext.h>
 
-
+#if ENABLE_GEM
 void triggerMotionEvent(int x, int y);
 void triggerButtonEvent(int which, int state, int x, int y);
 void triggerWheelEvent(int axis, int value);
@@ -272,3 +272,4 @@ int topmostGemWindow(WindowInfo& info, int state)
   if(info.getWindow() && state) info.getWindow()->toFront(true);
   return state;
 }
+#endif
