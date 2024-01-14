@@ -15,9 +15,30 @@ void triggerKeyboardEvent(const char *string, int value, int state);
 void triggerResizeEvent(int xSize, int ySize);
 
 void initGemWindow();
+void gemBeginExternalResize();
+void gemEndExternalResize();
 
 class GemJUCEWindow final : public Component, public Timer
 {
+    // Use a constrainer as a resize listener!
+    struct GemWindowResizeListener : public ComponentBoundsConstrainer
+    {
+        std::function<void()> beginResize, endResize;
+
+        void resizeStart()
+        {
+            beginResize();
+        }
+
+        void resizeEnd()
+        {
+            endResize();
+        }
+    };
+
+    //ResizableCornerComponent resizer;
+    //GemWindowResizeListener resizeListener;
+    
 public:
     //==============================================================================
     GemJUCEWindow()
