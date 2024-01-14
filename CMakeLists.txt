@@ -7,6 +7,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 option(RUN_CLANG_TIDY "" OFF)
 option(ENABLE_TESTING "" OFF)
 option(ENABLE_SFIZZ "" ON)
+option(ENABLE_GEM "" ON)
 option(ENABLE_ASAN "" OFF)
 option(VERBOSE "" OFF)
 
@@ -53,6 +54,10 @@ if(("${CMAKE_SYSTEM_NAME}" MATCHES "Linux" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES
   OR ("${CMAKE_SYSTEM_NAME}" MATCHES "iOS"))
   message(STATUS "Disabled sfizz")
   set(ENABLE_SFIZZ OFF)
+endif()
+
+if(MSVC) # Gem is not supported on Windows yet
+set(ENABLE_GEM OFF)
 endif()
 
 add_subdirectory(Libraries/ EXCLUDE_FROM_ALL)
@@ -208,6 +213,10 @@ set(PLUGDATA_COMPILE_DEFINITIONS
 )
 if(ENABLE_SFIZZ)
   list(APPEND PLUGDATA_COMPILE_DEFINITIONS ENABLE_SFIZZ=1)
+endif()
+
+if(ENABLE_GEM)
+  list(APPEND PLUGDATA_COMPILE_DEFINITIONS ENABLE_GEM=1)
 endif()
 
 add_library(juce STATIC)

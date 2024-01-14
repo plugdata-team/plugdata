@@ -159,6 +159,7 @@ extern "C" {
 
 void pd_init();
 
+#if ENABLE_GEM
 void Gem_setup();
 void gemcubeframebuffer_setup();
 void gemframebuffer_setup();
@@ -697,6 +698,7 @@ void GEMglViewport_setup();
 void GEMgluLookAt_setup();
 void GEMgluPerspective_setup();
 void GLdefine_setup();
+#endif
 
 // pd-extra objects functions declaration
 void bob_tilde_setup();
@@ -1670,6 +1672,7 @@ void Setup::initialiseELSE()
 
 void Setup::initialiseGem()
 {
+#if ENABLE_GEM
     Gem_setup();
     gemcubeframebuffer_setup();
     gemframebuffer_setup();
@@ -2221,6 +2224,7 @@ void Setup::initialiseGem()
     GEMgluLookAt_setup();
     GEMgluPerspective_setup();
     GLdefine_setup();
+#endif
 }
 
 void Setup::initialiseCyclone()

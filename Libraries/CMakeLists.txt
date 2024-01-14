@@ -253,7 +253,11 @@ source_group(pdlua FILES ${PDLUA_SOURCES})
 # ------------------------------------------------------------------------------#
 set(LIBPD_COMPILE_DEFINITIONS PD=1 USEAPI_DUMMY=1 PD_INTERNAL=1)
 
+if(ENABLE_GEM)
 add_subdirectory(Gem)
+set(GEM_LIBS Gem ftgl glew_s freetype)
+set(GEM_LIBS_MULTI Gem-multi ftgl glew_s freetype)
+endif()
 
 if(ENABLE_SFIZZ)
 list(APPEND LIBPD_COMPILE_DEFINITIONS ENABLE_SFIZZ=1)
@@ -429,22 +433,22 @@ if("${CMAKE_SYSTEM}" MATCHES "Linux")
     add_library(pd INTERFACE)
     add_library(pd-multi INTERFACE)
     find_library(MATH_LIB m)
-    target_link_libraries(externals ${externals_libs} Gem ftgl glew_s freetype)
-    target_link_libraries(externals-multi ${externals_libs} Gem-multi ftgl glew_s freetype)
+    target_link_libraries(externals ${externals_libs} ${GEM_LIBS})
+    target_link_libraries(externals-multi ${externals_libs} ${GEM_LIBS_MULTI})
 elseif(MSVC)
     add_library(pd SHARED $<TARGET_OBJECTS:externals> $<TARGET_OBJECTS:pd-src>)
     add_library(pd-multi STATIC $<TARGET_OBJECTS:externals-multi> $<TARGET_OBJECTS:pd-src-multi>)
 
-    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 ${externals_libs} Gem ftgl glew_s freetype)
-    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 ${externals_libs} Gem-multi ftgl glew_s freetype)
+    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 ${externals_libs})
+    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 ${externals_libs})
 
     add_custom_command(TARGET pd POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
         "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/pd.dll"
         ${CMAKE_SOURCE_DIR}/Plugins/Standalone/pd.dll)
 elseif(APPLE)
-    target_link_libraries(externals ${externals_libs} Gem ftgl glew_s freetype)
-    target_link_libraries(externals-multi ${externals_libs} Gem-multi ftgl glew_s freetype)
+    target_link_libraries(externals ${externals_libs} ${GEM_LIBS})
+    target_link_libraries(externals-multi ${externals_libs} ${GEM_LIBS_MULTI})
 endif()
 
 # PTHREAD

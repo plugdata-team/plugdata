@@ -285,12 +285,11 @@ void Instance::initialisePd(String& pdlua_version)
         class_set_extern_dir(gensym("10.cyclone"));
         pd::Setup::initialiseCyclone();
         
-#if !JUCE_WINDOWS //  Windows support will hopefully be added soon!
         set_class_prefix(gensym("Gem"));
         
         class_set_extern_dir(gensym(ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Gem").getFullPathName().toRawUTF8()));
         pd::Setup::initialiseGem();
-#endif
+
         class_set_extern_dir(gensym(""));
         set_class_prefix(nullptr);
 
