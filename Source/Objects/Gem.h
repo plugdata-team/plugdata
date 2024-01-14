@@ -184,10 +184,6 @@ bool gemWinMakeCurrent() {
     return false;
 }
 
-// We handle this manually with JUCE
-void dispatchGemWindowMessages(WindowInfo& info) {
-}
-
 // Window behaviour
 int cursorGemWindow(WindowInfo& info, int state)
 {
