@@ -79,7 +79,9 @@ public:
         auto scale = Desktop::getInstance().getDisplays().getPrimaryDisplay()->scale;
         
         setThis();
+        sys_lock();
         triggerResizeEvent(getWidth() * scale, getHeight() * scale);
+        sys_unlock();
         resizer.setBounds(getLocalBounds());
     }
     
@@ -90,30 +92,40 @@ public:
     void mouseDown(const MouseEvent& e) override
     {
         setThis();
+        sys_lock();
         triggerButtonEvent(e.mods.isRightButtonDown(), 1, e.x, e.y);
+        sys_unlock();
     }
     
     void mouseUp(const MouseEvent& e) override
     {
         setThis();
+        sys_lock();
         triggerButtonEvent(e.mods.isRightButtonDown(), 0, e.x, e.y);
+        sys_unlock();
     }
     
     void mouseMove(const MouseEvent& e) override
     {
         setThis();
+        sys_lock();
         triggerMotionEvent(e.x, e.y);
+        sys_unlock();
     }
     void mouseDrag(const MouseEvent& e) override
     {
         setThis();
+        sys_lock();
         triggerMotionEvent(e.x, e.y);
+        sys_unlock();
     }
     
     void mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel) override
     {
         setThis();
+        sys_lock();
         triggerWheelEvent(wheel.deltaX, wheel.deltaY);
+        sys_unlock();
     }
     
     bool keyPressed(KeyPress const& key) override
