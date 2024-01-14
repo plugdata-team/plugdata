@@ -18,8 +18,9 @@ void gemEndExternalResize();
 
 void initGemWindow();
 
-class GemJUCEWindow final : public DocumentWindow
+class GemJUCEWindow final : public Component
 {
+
     // Use a constrainer as a resize listener!
     struct GemWindowResizeListener : public ComponentBoundsConstrainer
     {
@@ -35,9 +36,13 @@ class GemJUCEWindow final : public DocumentWindow
             endResize();
         }
     };
+
+    ResizableCornerComponent resizer;
+    GemWindowResizeListener resizeListener;
+    
 public:
     //==============================================================================
-    GemJUCEWindow() : DocumentWindow("Gem", Colours::black, DocumentWindow::minimiseButton | DocumentWindow::maximiseButton, false)
+    GemJUCEWindow() : resizer(this, &resizeListener)//DocumentWindow("Gem", Colours::black, DocumentWindow::minimiseButton | DocumentWindow::maximiseButton, false)
     {
         instance = libpd_this_instance();
         
@@ -51,12 +56,9 @@ public:
             setThis();
             gemEndExternalResize();
         };
-        
-        setConstrainer(&resizeListener);
 
         setOpaque (true);
         openGLContext.setSwapInterval(0);
-        setResizable(true, false);
         openGLContext.setMultisamplingEnabled(true);
         
         auto pixelFormat = OpenGLPixelFormat(8, 8, 16, 8);
@@ -64,6 +66,8 @@ public:
         openGLContext.setPixelFormat(pixelFormat);
         
         openGLContext.attachTo (*this);
+
+        addAndMakeVisible(resizer);
     }
 
     ~GemJUCEWindow() override
@@ -72,8 +76,11 @@ public:
 
     void resized() override
     {
+        auto scale = Desktop::getInstance().getDisplays().getPrimaryDisplay()->scale;
+        
         setThis();
-        triggerResizeEvent(getWidth(), getHeight());
+        triggerResizeEvent(getWidth() * scale, getHeight() * scale);
+        resizer.setBounds(getLocalBounds());
     }
     
     void paint (Graphics&) override
@@ -120,8 +127,6 @@ public:
         libpd_set_instance(instance);
     }
     
-    
-    GemWindowResizeListener resizeListener;
     OpenGLContext openGLContext;
     t_pdinstance* instance;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GemJUCEWindow)
@@ -152,8 +157,7 @@ int createGemWindow(WindowInfo& info, WindowHints& hints)
     // As a result, on Linux, we need to make sure that only one thread has the GL context set as active, otherwise things go very wrong
     
     auto* window = new GemJUCEWindow();
-    window->setUsingNativeTitleBar(true);
-    window->addToDesktop();
+    window->addToDesktop(ComponentPeer::windowHasTitleBar | ComponentPeer::windowHasDropShadow | ComponentPeer::windowIsResizable);
     window->setVisible(true);
       
     gemJUCEWindow[window->instance].reset(window);
@@ -199,8 +203,6 @@ void initWin_sharedContext(WindowInfo& info, WindowHints& hints) {
 // Rendering
 void gemWinSwapBuffers(WindowInfo& info) {
     if (auto* context = info.getContext()) {
-        initGemWindow();
-        
         context->makeActive();
         context->swapBuffers();
     }
