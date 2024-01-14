@@ -13,49 +13,17 @@ void triggerWheelEvent(int axis, int value);
 void triggerKeyboardEvent(const char *string, int value, int state);
 void triggerResizeEvent(int xSize, int ySize);
 
-void gemBeginExternalResize();
-void gemEndExternalResize();
-
 void initGemWindow();
 
 class GemJUCEWindow final : public Component
 {
-
-    // Use a constrainer as a resize listener!
-    struct GemWindowResizeListener : public ComponentBoundsConstrainer
-    {
-        std::function<void()> beginResize, endResize;
-        
-        void resizeStart()
-        {
-            beginResize();
-        }
-
-        void resizeEnd()
-        {
-            endResize();
-        }
-    };
-
-    ResizableCornerComponent resizer;
-    GemWindowResizeListener resizeListener;
-    
 public:
     //==============================================================================
-    GemJUCEWindow() : resizer(this, &resizeListener)//DocumentWindow("Gem", Colours::black, DocumentWindow::minimiseButton | DocumentWindow::maximiseButton, false)
+    GemJUCEWindow()
     {
         instance = libpd_this_instance();
         
         setSize (800, 600);
-        
-        resizeListener.beginResize = [this](){
-            setThis();
-            gemBeginExternalResize();
-        };
-        resizeListener.endResize = [this](){
-            setThis();
-            gemEndExternalResize();
-        };
 
         setOpaque (true);
         openGLContext.setSwapInterval(0);
@@ -66,8 +34,6 @@ public:
         openGLContext.setPixelFormat(pixelFormat);
         
         openGLContext.attachTo (*this);
-
-        addAndMakeVisible(resizer);
     }
 
     ~GemJUCEWindow() override
@@ -82,7 +48,6 @@ public:
         sys_lock();
         triggerResizeEvent(getWidth() * scale, getHeight() * scale);
         sys_unlock();
-        resizer.setBounds(getLocalBounds());
     }
     
     void paint (Graphics&) override
