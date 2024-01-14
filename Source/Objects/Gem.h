@@ -7,6 +7,7 @@
 #include <juce_opengl/juce_opengl.h>
 #include <Gem/src/Base/GemJUCEContext.h>
 
+
 void triggerMotionEvent(int x, int y);
 void triggerButtonEvent(int which, int state, int x, int y);
 void triggerWheelEvent(int axis, int value);
@@ -15,7 +16,7 @@ void triggerResizeEvent(int xSize, int ySize);
 
 void initGemWindow();
 
-class GemJUCEWindow final : public Component
+class GemJUCEWindow final : public Component, public Timer
 {
 public:
     //==============================================================================
@@ -34,6 +35,8 @@ public:
         openGLContext.setPixelFormat(pixelFormat);
         
         openGLContext.attachTo (*this);
+        
+        startTimerHz(30);
     }
 
     ~GemJUCEWindow() override
@@ -95,8 +98,30 @@ public:
     
     bool keyPressed(KeyPress const& key) override
     {
-        //triggerKeyboardEvent(key.getTextDescription().toRawUTF8(), key.getKeyCode(), 1);
+        sys_lock();
+        triggerKeyboardEvent(key.getTextDescription().toRawUTF8(), key.getKeyCode(), 1);
+        sys_unlock();
+        
+        heldKeys.add(key);
+        
         return false;
+    }
+    
+    void timerCallback() override
+    {
+        for(int i = heldKeys.size() - 1; i >= 0; i--)
+        {
+            auto key = heldKeys[i];
+            if(!KeyPress::isKeyCurrentlyDown(key.getKeyCode()))
+            {
+                sys_lock();
+                triggerKeyboardEvent(key.getTextDescription().toRawUTF8(), key.getKeyCode(), 0);
+                sys_unlock();
+                
+                heldKeys.remove(i);
+            }
+        }
+       
     }
     
     void setThis()
@@ -106,6 +131,8 @@ public:
     
     OpenGLContext openGLContext;
     t_pdinstance* instance;
+    Array<KeyPress> heldKeys;
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GemJUCEWindow)
 };
 
