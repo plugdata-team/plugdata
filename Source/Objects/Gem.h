@@ -13,18 +13,50 @@ void triggerWheelEvent(int axis, int value);
 void triggerKeyboardEvent(const char *string, int value, int state);
 void triggerResizeEvent(int xSize, int ySize);
 
+void gemBeginExternalResize();
+void gemEndExternalResize();
+
 void initGemWindow();
 
-class GemJUCEWindow final : public Component
+class GemJUCEWindow final : public DocumentWindow
 {
+    // Use a constrainer as a resize listener!
+    struct GemWindowResizeListener : public ComponentBoundsConstrainer
+    {
+        std::function<void()> beginResize, endResize;
+        
+        void resizeStart()
+        {
+            beginResize();
+        }
+
+        void resizeEnd()
+        {
+            endResize();
+        }
+    };
 public:
     //==============================================================================
-    GemJUCEWindow()
+    GemJUCEWindow() : DocumentWindow("Gem", Colours::black, DocumentWindow::minimiseButton | DocumentWindow::maximiseButton, false)
     {
+        instance = libpd_this_instance();
+        
         setSize (800, 600);
         
+        resizeListener.beginResize = [this](){
+            setThis();
+            gemBeginExternalResize();
+        };
+        resizeListener.endResize = [this](){
+            setThis();
+            gemEndExternalResize();
+        };
+        
+        setConstrainer(&resizeListener);
+
         setOpaque (true);
         openGLContext.setSwapInterval(0);
+        setResizable(true, false);
         openGLContext.setMultisamplingEnabled(true);
         
         auto pixelFormat = OpenGLPixelFormat(8, 8, 16, 8);
@@ -32,8 +64,6 @@ public:
         openGLContext.setPixelFormat(pixelFormat);
         
         openGLContext.attachTo (*this);
-        
-        instance = libpd_this_instance();
     }
 
     ~GemJUCEWindow() override
@@ -42,6 +72,7 @@ public:
 
     void resized() override
     {
+        setThis();
         triggerResizeEvent(getWidth(), getHeight());
     }
     
@@ -51,25 +82,30 @@ public:
     
     void mouseDown(const MouseEvent& e) override
     {
+        setThis();
         triggerButtonEvent(e.mods.isRightButtonDown(), 1, e.x, e.y);
     }
     
     void mouseUp(const MouseEvent& e) override
     {
+        setThis();
         triggerButtonEvent(e.mods.isRightButtonDown(), 0, e.x, e.y);
     }
     
     void mouseMove(const MouseEvent& e) override
     {
+        setThis();
         triggerMotionEvent(e.x, e.y);
     }
     void mouseDrag(const MouseEvent& e) override
     {
+        setThis();
         triggerMotionEvent(e.x, e.y);
     }
     
     void mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel) override
     {
+        setThis();
         triggerWheelEvent(wheel.deltaX, wheel.deltaY);
     }
     
@@ -79,6 +115,13 @@ public:
         return false;
     }
     
+    void setThis()
+    {
+        libpd_set_instance(instance);
+    }
+    
+    
+    GemWindowResizeListener resizeListener;
     OpenGLContext openGLContext;
     t_pdinstance* instance;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GemJUCEWindow)
@@ -109,7 +152,8 @@ int createGemWindow(WindowInfo& info, WindowHints& hints)
     // As a result, on Linux, we need to make sure that only one thread has the GL context set as active, otherwise things go very wrong
     
     auto* window = new GemJUCEWindow();
-    window->addToDesktop(ComponentPeer::windowHasTitleBar | ComponentPeer::windowIsResizable |      ComponentPeer::windowHasDropShadow);
+    window->setUsingNativeTitleBar(true);
+    window->addToDesktop();
     window->setVisible(true);
       
     gemJUCEWindow[window->instance].reset(window);
@@ -180,7 +224,7 @@ bool gemWinMakeCurrent() {
         window->openGLContext.makeActive();
         return true;
     }
-    
+        
     return false;
 }
 
