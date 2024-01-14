@@ -180,6 +180,8 @@ void initWin_sharedContext(WindowInfo& info, WindowHints& hints) {
 // Rendering
 void gemWinSwapBuffers(WindowInfo& info) {
     if (auto* context = info.getContext()) {
+        initGemWindow(); // If we don't put this here, the background doens't get filled, but there must be a better way?
+        
         context->makeActive();
         context->swapBuffers();
     }
