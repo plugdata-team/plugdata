@@ -81,6 +81,7 @@ public:
                      );
         
         setVisible(true);
+        setTopLeftPosition(100, 100);
         
         if(auto* peer = getPeer())
         {
@@ -108,32 +109,40 @@ public:
     
     void mouseDown(const MouseEvent& e) override
     {
+        auto pos = getGemMousePosition(e);
+        
         setThis();
         sys_lock();
-        triggerButtonEvent(e.mods.isRightButtonDown(), 1, e.x, e.y);
+        triggerButtonEvent(e.mods.isRightButtonDown(), 1, pos.x, pos.y);
         sys_unlock();
     }
     
     void mouseUp(const MouseEvent& e) override
     {
+        auto pos = getGemMousePosition(e);
+        
         setThis();
         sys_lock();
-        triggerButtonEvent(e.mods.isRightButtonDown(), 0, e.x, e.y);
+        triggerButtonEvent(e.mods.isRightButtonDown(), 0, pos.x, pos.y);
         sys_unlock();
     }
     
     void mouseMove(const MouseEvent& e) override
     {
+        auto pos = getGemMousePosition(e);
+        
         setThis();
         sys_lock();
-        triggerMotionEvent(e.x, e.y);
+        triggerMotionEvent(pos.x, pos.y);
         sys_unlock();
     }
     void mouseDrag(const MouseEvent& e) override
     {
+        auto pos = getGemMousePosition(e);
+        
         setThis();
         sys_lock();
-        triggerMotionEvent(e.x, e.y);
+        triggerMotionEvent(pos.x, pos.y);
         sys_unlock();
     }
     
@@ -178,6 +187,14 @@ public:
         libpd_set_instance(instance);
     }
     
+    Point<int> getGemMousePosition(const MouseEvent& e)
+    {
+        auto w = static_cast<float>(e.x) / getWidth();
+        auto h = static_cast<float>(e.y) / getHeight();
+        return Point<int>(w * gemWidth, h * gemHeight);
+    }
+    
+    int gemHeight, gemWidth;
     OpenGLContext openGLContext;
     t_pdinstance* instance;
     Array<KeyPress> heldKeys;
@@ -228,6 +245,15 @@ int createGemWindow(WindowInfo& info, WindowHints& hints)
     hints.real_w = window->getWidth();
     hints.real_h = window->getHeight();
     
+    window->gemWidth = hints.width;
+    window->gemHeight = hints.height;
+    
+    auto* peer = window->getPeer();
+    if(peer && hints.title)
+    {
+        window->setTitle(String::fromUTF8(hints.title));
+    }
+    
     // Make sure only audio thread has the context set as active
     // We call async here, because if this call comes from the message thread already,
     // we need to keep the context active until GLEW is initialised. Bit of a hack though
@@ -267,7 +293,11 @@ void gemWinMakeCurrent(WindowInfo& info) {
 
 void gemWinResize(WindowInfo& info, int width, int height) {
     MessageManager::callAsync([window = info.getWindow(), width, height](){
-        if(window) window->setSize(width, height);
+        if(window)  {
+            window->setSize(width, height);
+            window->gemHeight = height;
+            window->gemWidth = width;
+        }
     });
 }
 
