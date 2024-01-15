@@ -57,7 +57,7 @@ if(("${CMAKE_SYSTEM_NAME}" MATCHES "Linux" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES
 endif()
 
 if(MSVC) # Gem is not supported on Windows yet
-set(ENABLE_GEM OFF)
+#set(ENABLE_GEM OFF)
 endif()
 
 add_subdirectory(Libraries/ EXCLUDE_FROM_ALL)

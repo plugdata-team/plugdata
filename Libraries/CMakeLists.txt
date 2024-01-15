@@ -439,8 +439,8 @@ elseif(MSVC)
     add_library(pd SHARED $<TARGET_OBJECTS:externals> $<TARGET_OBJECTS:pd-src>)
     add_library(pd-multi STATIC $<TARGET_OBJECTS:externals-multi> $<TARGET_OBJECTS:pd-src-multi>)
 
-    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 ${externals_libs})
-    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 ${externals_libs})
+    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS})
+    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS_MULTI})
 
     add_custom_command(TARGET pd POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
