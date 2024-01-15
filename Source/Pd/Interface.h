@@ -41,6 +41,7 @@ extern void canvas_savedeclarationsto(t_canvas* x, t_binbuf* b);
 extern void canvas_savetemplatesto(t_canvas* x, t_binbuf* b, int wholething);
 extern void canvas_saveto(t_canvas* x, t_binbuf* b);
 extern void set_class_prefix(t_symbol*);
+extern void clear_class_loadsym();
 }
 
 namespace pd {

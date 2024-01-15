@@ -18,5 +18,5 @@ struct StackShadow : public juce::DeletedAtShutdown
     
     melatonin::DropShadow* dropShadow;
     
-    JUCE_DECLARE_SINGLETON(StackShadow, true)
+    JUCE_DECLARE_SINGLETON(StackShadow, false)
 };

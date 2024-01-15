@@ -225,7 +225,7 @@ source_group(cyclone FILES ${CYCLONE_SOURCES})
 
 # pdlua sources
 set(PDLUA_PATH "${CMAKE_CURRENT_SOURCE_DIR}/pd-lua")
-set(PDLUA_SOURCES ${PDLUA_PATH}/pdlua.c)
+set(PDLUA_SOURCES ${PDLUA_PATH}/pdlua.c ${PDLUA_PATH}/pdlua_multi_instance.cpp)
 
 set(LUA_PATH "${PDLUA_PATH}/lua")
 set(LUA_INCLUDE_DIR ${LUA_PATH})

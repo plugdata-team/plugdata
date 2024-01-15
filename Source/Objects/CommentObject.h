@@ -175,7 +175,7 @@ public:
             
             return textWidth;
         }
-            
+        
         void updateTextLayout()
         {
             auto objText = editor ? editor->getText() : objectText;
