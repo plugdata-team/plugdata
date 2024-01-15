@@ -4,10 +4,11 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#if ENABLE_GEM
+
 #include <juce_opengl/juce_opengl.h>
 #include <Gem/src/Base/GemJUCEContext.h>
 
-#if ENABLE_GEM
 void triggerMotionEvent(int x, int y);
 void triggerButtonEvent(int which, int state, int x, int y);
 void triggerWheelEvent(int axis, int value);
@@ -44,7 +45,7 @@ class GemJUCEWindow final : public Component, public Timer
     
 public:
     //==============================================================================
-    GemJUCEWindow()
+    GemJUCEWindow(int width, int height) : gemWidth(width), gemHeight(height)
     {
         instance = libpd_this_instance();
         
@@ -63,8 +64,8 @@ public:
             sys_unlock();
         };
         
-        setSize (800, 600);
-
+        setSize(width, height);
+        
         setOpaque (true);
         openGLContext.setSwapInterval(0);
         openGLContext.setMultisamplingEnabled(true);
@@ -89,6 +90,9 @@ public:
         
         if(auto* peer = getPeer())
         {
+            // Attach the constrainer to the peer
+            // Constrainer doesn't actually contrain, it's just the simplest way to get a callback if the native window is being resized
+            // The reason for this is that rendering while resizing causes issues, especially on macOS
             peer->setConstrainer(&resizeListener);
         }
     }
@@ -99,11 +103,9 @@ public:
 
     void resized() override
     {
-        auto scale = Desktop::getInstance().getDisplays().getPrimaryDisplay()->scale;
-        
         setThis();
         sys_lock();
-        triggerResizeEvent(getWidth() * scale, getHeight() * scale);
+        triggerResizeEvent(getWidth(), getHeight());
         sys_unlock();
     }
     
@@ -113,40 +115,32 @@ public:
     
     void mouseDown(const MouseEvent& e) override
     {
-        auto pos = getGemMousePosition(e);
-        
         setThis();
         sys_lock();
-        triggerButtonEvent(e.mods.isRightButtonDown(), 1, pos.x, pos.y);
+        triggerButtonEvent(e.mods.isRightButtonDown(), 1, e.x, e.y);
         sys_unlock();
     }
     
     void mouseUp(const MouseEvent& e) override
     {
-        auto pos = getGemMousePosition(e);
-        
         setThis();
         sys_lock();
-        triggerButtonEvent(e.mods.isRightButtonDown(), 0, pos.x, pos.y);
+        triggerButtonEvent(e.mods.isRightButtonDown(), 0, e.x, e.y);
         sys_unlock();
     }
     
     void mouseMove(const MouseEvent& e) override
     {
-        auto pos = getGemMousePosition(e);
-        
         setThis();
         sys_lock();
-        triggerMotionEvent(pos.x, pos.y);
+        triggerMotionEvent(e.x, e.y);
         sys_unlock();
     }
     void mouseDrag(const MouseEvent& e) override
     {
-        auto pos = getGemMousePosition(e);
-        
         setThis();
         sys_lock();
-        triggerMotionEvent(pos.x, pos.y);
+        triggerMotionEvent(e.x, e.y);
         sys_unlock();
     }
     
@@ -191,14 +185,8 @@ public:
         libpd_set_instance(instance);
     }
     
-    Point<int> getGemMousePosition(const MouseEvent& e)
-    {
-        auto w = static_cast<float>(e.x) / getWidth();
-        auto h = static_cast<float>(e.y) / getHeight();
-        return Point<int>(w * gemWidth, h * gemHeight);
-    }
     
-    int gemHeight, gemWidth;
+    int gemWidth, gemHeight;
     OpenGLContext openGLContext;
     t_pdinstance* instance;
     Array<KeyPress> heldKeys;
@@ -230,7 +218,7 @@ int createGemWindow(WindowInfo& info, WindowHints& hints)
     // Problem: this call can either come from the message thread, or the pd/audio thread
     // As a result, on Linux, we need to make sure that only one thread has the GL context set as active, otherwise things go very wrong
     
-    auto* window = new GemJUCEWindow();
+    auto* window = new GemJUCEWindow(hints.width, hints.height);
     gemJUCEWindow[window->instance].reset(window);
     info.window[window->instance] = window;
     
@@ -245,13 +233,10 @@ int createGemWindow(WindowInfo& info, WindowHints& hints)
     window->openGLContext.makeActive();
     
     info.context[window->instance] = &window->openGLContext;
-      
+    
     hints.real_w = window->getWidth();
     hints.real_h = window->getHeight();
-    
-    window->gemWidth = hints.width;
-    window->gemHeight = hints.height;
-    
+        
     auto* peer = window->getPeer();
     if(peer && hints.title)
     {
