@@ -385,7 +385,7 @@ void vertex_combine_setup();
 void vertex_draw_setup();
 void vertex_grid_setup();
 void vertex_info_setup();
-void vertex_model_setup();
+//void vertex_model_setup();
 void vertex_mul_setup();
 void vertex_offset_setup();
 void vertex_quad_setup();
@@ -1909,7 +1909,7 @@ void Setup::initialiseGem()
     vertex_draw_setup();
     vertex_grid_setup();
     vertex_info_setup();
-    vertex_model_setup();
+    //vertex_model_setup();
     vertex_mul_setup();
     vertex_offset_setup();
     vertex_quad_setup();
