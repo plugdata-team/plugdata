@@ -1909,7 +1909,7 @@ void Setup::initialiseGem()
     vertex_draw_setup();
     vertex_grid_setup();
     vertex_info_setup();
-    //vertex_model_setup();
+    vertex_model_setup();
     vertex_mul_setup();
     vertex_offset_setup();
     vertex_quad_setup();
