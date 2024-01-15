@@ -36,14 +36,28 @@ class GemJUCEWindow final : public Component, public Timer
         }
     };
 
-    //ResizableCornerComponent resizer;
-    //GemWindowResizeListener resizeListener;
+    GemWindowResizeListener resizeListener;
     
 public:
     //==============================================================================
     GemJUCEWindow()
     {
         instance = libpd_this_instance();
+        
+        resizeListener.beginResize = [this](){
+            setThis();
+            sys_lock();
+            gemBeginExternalResize();
+            sys_unlock();
+        };
+        
+        resizeListener.endResize = [this](){
+            setThis();
+            sys_lock();
+            gemEndExternalResize();
+            initGemWindow();
+            sys_unlock();
+        };
         
         setSize (800, 600);
 
@@ -58,6 +72,20 @@ public:
         openGLContext.attachTo (*this);
         
         startTimerHz(30);
+        
+        addToDesktop(ComponentPeer::windowHasTitleBar |
+                     ComponentPeer::windowHasDropShadow |
+                     ComponentPeer::windowIsResizable |
+                     ComponentPeer::windowHasMinimiseButton |
+                     ComponentPeer::windowHasMaximiseButton
+                     );
+        
+        setVisible(true);
+        
+        if(auto* peer = getPeer())
+        {
+            peer->setConstrainer(&resizeListener);
+        }
     }
 
     ~GemJUCEWindow() override
@@ -182,9 +210,6 @@ int createGemWindow(WindowInfo& info, WindowHints& hints)
     // As a result, on Linux, we need to make sure that only one thread has the GL context set as active, otherwise things go very wrong
     
     auto* window = new GemJUCEWindow();
-    window->addToDesktop(ComponentPeer::windowHasTitleBar | ComponentPeer::windowHasDropShadow | ComponentPeer::windowIsResizable);
-    window->setVisible(true);
-      
     gemJUCEWindow[window->instance].reset(window);
     info.window[window->instance] = window;
     
