@@ -7,6 +7,7 @@
 extern "C" {
 #include <m_pd.h>
 #include <z_hooks.h>
+#include <s_net.h>
 }
 
 #include <clocale>
@@ -726,6 +727,9 @@ int Setup::initialisePd()
             SETFLOAT(zz + i + 2, defaultfontshit[i]);
         }
         pd_typedmess(gensym("pd")->s_thing, gensym("init"), 2 + ndefaultfont, zz);
+        
+        socket_init();
+        
         sys_unlock();
 
         initialized = 1;
