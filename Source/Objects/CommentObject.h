@@ -13,7 +13,9 @@ class CommentObject final : public ObjectBase
     Value sizeProperty = SynchronousValue();
         
     TextLayout textLayout;
-    hash32 layoutTextHash;
+    hash32 layoutTextHash = 0;
+    int lastTextWidth = 0;
+    int32 lastColourARGB = 0;
         
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
@@ -179,17 +181,20 @@ public:
             auto objText = editor ? editor->getText() : objectText;
             
             int textWidth = getTextObjectWidth() - 12; // Reserve a bit of extra space for the text margin
-            auto currentLayoutHash = hash(objText) ^ textWidth ^ object->findColour(PlugDataColour::canvasTextColourId).getARGB();
-            if(layoutTextHash != currentLayoutHash)
+            auto currentLayoutHash = hash(objText);
+            auto colour = object->findColour(PlugDataColour::canvasTextColourId);
+            if(layoutTextHash != currentLayoutHash || colour.getARGB() != lastColourARGB || textWidth != lastTextWidth)
             {
                 auto attributedText = AttributedString(objText);
-                attributedText.setColour(object->findColour(PlugDataColour::canvasTextColourId));
+                attributedText.setColour(colour);
                 attributedText.setJustification(Justification::centredLeft);
                 attributedText.setFont(Font(15));
                 
                 textLayout = TextLayout();
                 textLayout.createLayout(attributedText, textWidth);
                 layoutTextHash = currentLayoutHash;
+                lastColourARGB = colour.getARGB();
+                lastTextWidth = textWidth;
             }
         }
 

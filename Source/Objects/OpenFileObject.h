@@ -8,6 +8,9 @@
 
 class OpenFileObject final : public TextBase {
 public:
+    
+    bool mouseWasOver = false;
+    
     OpenFileObject(pd::WeakReference ptr, Object* object)
         : TextBase(ptr, object)
     {
@@ -87,14 +90,16 @@ public:
         auto mouseIsOver = isMouseOver();
         
         int textWidth = getTextObjectWidth() - 14; // Reserve a bit of extra space for the text margin
-        auto currentLayoutHash = (hash(objText) ^ textWidth ^ object->findColour(PlugDataColour::canvasTextColourId).getARGB()) * !mouseIsOver;
-        if(layoutTextHash != currentLayoutHash)
+        auto currentLayoutHash = hash(objText);
+        auto colour = object->findColour(PlugDataColour::canvasTextColourId);
+        
+        if(layoutTextHash != currentLayoutHash || colour.getARGB() != lastColourARGB || textWidth != lastTextWidth || mouseIsOver != mouseWasOver)
         {
             bool locked = getValue<bool>(object->locked) || getValue<bool>(object->commandLocked);
             auto colour = object->findColour((locked && mouseIsOver) ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::canvasTextColourId);
             
             auto attributedText = AttributedString(objText);
-            attributedText.setColour(object->findColour(PlugDataColour::canvasTextColourId));
+            attributedText.setColour(colour);
             attributedText.setJustification(Justification::centredLeft);
             attributedText.setFont(Font(15));
             attributedText.setColour(colour);
@@ -102,6 +107,8 @@ public:
             textLayout = TextLayout();
             textLayout.createLayout(attributedText, textWidth);
             layoutTextHash = currentLayoutHash;
+            lastColourARGB = colour.getARGB();
+            lastTextWidth = textWidth;
         }
     }
     
