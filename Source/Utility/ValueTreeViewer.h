@@ -17,12 +17,11 @@ public:
 
     void paint(Graphics& g) override
     {
-        if (!treeBranchLine.isEmpty()) {
-            //g.setColour(Colours::red);
-            //g.drawRect(getLocalBounds());
-            auto colour = isHover ? findColour(PlugDataColour::objectSelectedOutlineColourId) : findColour(PlugDataColour::panelTextColourId).withAlpha(0.3f);
-            g.setColour(colour.withAlpha(0.3f));
-            g.strokePath(treeBranchLine, PathStrokeType(2.0f));
+        if (getParentComponent()->isVisible()) {
+            auto colour = isHover ? findColour(PlugDataColour::objectSelectedOutlineColourId) : findColour(PlugDataColour::panelTextColourId).withAlpha(0.25f);
+
+            g.reduceClipRegion(treeLineImage, AffineTransform());
+            g.fillAll(colour);
         }
     }
 
@@ -48,16 +47,26 @@ public:
 
     void resized() override
     {
-        treeBranchLine.clear();
+        treeLine.clear();
+
         if (getParentComponent()->isVisible()) {
             // create a line to show the current branch
-            treeBranchLine.startNewSubPath(4.0f, 0.0f);
-            treeBranchLine.lineTo(4.0f, getHeight() - 3.0f);
-            treeBranchLine.lineTo(7.0f, getHeight() - 3.0f);
+            auto b = getLocalBounds();
+            auto lineEnd = Point<float>(4.0f, b.getHeight() - 3.0f);
+            treeLine.startNewSubPath(4.0f, 0.0f);
+            treeLine.lineTo(lineEnd);
+
+            treeLineImage = Image(Image::PixelFormat::ARGB, b.getWidth(), b.getHeight(), true);
+            Graphics treeLineG(treeLineImage);
+            treeLineG.setColour(Colours::white);
+            treeLineG.strokePath(treeLine, PathStrokeType(1.0f));
+            auto ballEnd = Rectangle<float>(0, 0, 5, 5).withCentre(lineEnd);
+            treeLineG.fillEllipse(ballEnd);
         }
     }
 private:
-    Path treeBranchLine;
+    Path treeLine;
+    Image treeLineImage;
     bool isHover = false;
 };
 
