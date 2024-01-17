@@ -99,6 +99,10 @@ void Patch::savePatch(File const& location)
         setTitle(filename);
         untitledPatchNum = 0;
         canvas_dirty(patch.get(), 0);
+        
+#if JUCE_IOS
+        OSUtils::iOSScopedResourceAccess scopedSecurityResource(location);
+#endif
 
         pd::Interface::saveToFile(patch.get(), file, dir);
 
@@ -164,6 +168,10 @@ void Patch::savePatch()
         untitledPatchNum = 0;
         canvas_dirty(patch.get(), 0);
 
+#if JUCE_IOS
+        OSUtils::iOSScopedResourceAccess scopedSecurityResource(currentFile);
+#endif
+        
         pd::Interface::saveToFile(patch.get(), file, dir);
     }
 

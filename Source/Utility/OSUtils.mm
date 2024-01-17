@@ -279,6 +279,36 @@ bool OSUtils::isIPad()
     return [UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad;
 }
 
+void OSUtils::startAccessingSecurityScopedResource(juce::File file)
+{
+    // Convert JUCE File to NSString
+    NSString* filePath = [NSString stringWithUTF8String:file.getFullPathName().toRawUTF8()];
+
+    // Create NSURL from file path
+    NSURL* fileURL = [NSURL fileURLWithPath:filePath];
+
+    // Start accessing security-scoped resource
+    NSError* error = nil;
+    BOOL success = [fileURL startAccessingSecurityScopedResource];
+    
+    if (!success) {
+        // Handle error if needed
+        NSLog(@"Error starting access to security-scoped resource: %@", error);
+    }
+}
+
+void OSUtils::stopAccessingSecurityScopedResource(juce::File file)
+{
+    // Convert JUCE File to NSString
+    NSString* filePath = [NSString stringWithUTF8String:file.getFullPathName().toRawUTF8()];
+
+    // Create NSURL from file path
+    NSURL* fileURL = [NSURL fileURLWithPath:filePath];
+
+    // Stop accessing security-scoped resource
+    [fileURL stopAccessingSecurityScopedResource];
+}
+
 void OSUtils::showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(int)> callback)
 {
     auto* view = (UIView<CALayerDelegate>*)peer->getNativeHandle();

@@ -87,5 +87,23 @@ struct OSUtils {
     static void showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(int)> callback);
     static void showMobileCanvasMenu(juce::ComponentPeer* peer, std::function<void(int)> callback);
 
+    static void startAccessingSecurityScopedResource(juce::File file);
+    static void stopAccessingSecurityScopedResource(juce::File file);
+
+    struct iOSScopedResourceAccess
+    {
+        iOSScopedResourceAccess(const juce::File& file) : scopedAccessFile(file)
+        {
+            startAccessingSecurityScopedResource(scopedAccessFile);
+        }
+        
+        ~iOSScopedResourceAccess()
+        {
+            stopAccessingSecurityScopedResource(scopedAccessFile);
+        }
+        
+        juce::File scopedAccessFile;
+    };
+    
 #endif
 };

@@ -688,6 +688,10 @@ void Dialogs::showOpenDialog(std::function<void(File&)> callback, bool canSelect
     fileChooser->launchAsync(openChooserFlags,
         [callback, lastFileId](FileChooser const& fileChooser) {
             auto result = fileChooser.getResult();
+        
+#if JUCE_IOS
+            OSUtils::iOSScopedResourceAccess scopedSecurityResource(result);
+#endif
             auto lastDir = result.isDirectory() ? result : result.getParentDirectory();
             SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, lastDir);
             callback(result);
@@ -718,11 +722,15 @@ void Dialogs::showSaveDialog(std::function<void(File&)> callback, String const& 
     fileChooser->launchAsync(saveChooserFlags,
         [callback, lastFileId](FileChooser const& fileChooser) {
             auto result = fileChooser.getResult();
+#if JUCE_IOS
+            OSUtils::iOSScopedResourceAccess scopedSecurityResource(result);
+#endif
             auto parentDirectory = result.getParentDirectory();
             if (parentDirectory.exists()) {
                 SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, parentDirectory);
                 callback(result);
                 Dialogs::fileChooser = nullptr;
             }
+        
         });
 }

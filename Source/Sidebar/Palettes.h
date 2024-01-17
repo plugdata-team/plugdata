@@ -719,7 +719,7 @@ private:
     }
 
     void savePalettes()
-    {
+    {        
         palettesFile.replaceWithText(palettesTree.toXmlString());
     }
 
