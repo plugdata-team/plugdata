@@ -105,19 +105,20 @@ public:
     {
         return false;
     }
+
+    void clear()
+    {
+        patchTree.clearValueTree();
+    }
     
     void timerCallback() override
     {
         auto* cnv = editor->getCurrentCanvas();
-        if(currentCanvas.getComponent() != cnv || (cnv && cnv->needsSearchUpdate))
+        if(cnv && (currentCanvas.getComponent() != cnv || cnv->needsSearchUpdate))
         {
             currentCanvas = cnv;
             currentCanvas->needsSearchUpdate = false;
             updateResults();
-        }
-        if (!cnv) {
-            patchTree.clearValueTree();
-            stopTimer();
         }
     }
     
