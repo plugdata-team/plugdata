@@ -10,79 +10,24 @@ struct ValueTreeOwnerView : public Component
     std::function<void(ValueTree&)> onDragStart = [](ValueTree&){};
 };
 
-class NodeBranchLine : public Component, public SettableTooltipClient
-{
-public:
-    NodeBranchLine(){}
-
-    void paint(Graphics& g) override
-    {
-        if (getParentComponent()->isVisible()) {
-            auto colour = isHover ? findColour(PlugDataColour::objectSelectedOutlineColourId) : findColour(PlugDataColour::panelTextColourId).withAlpha(0.25f);
-
-            g.reduceClipRegion(treeLineImage, AffineTransform());
-            g.fillAll(colour);
-        }
-    }
-
-    void mouseEnter(const MouseEvent& e) override
-    {
-        isHover = true;
-        repaint();
-    }
-
-    void mouseExit(const MouseEvent& e) override
-    {
-        isHover = false;
-        repaint();
-    }
-
-    void mouseMove(const MouseEvent& e) override
-    {
-        if (isHover != true) {
-            isHover = true;
-            repaint();
-        }
-    }
-
-    void resized() override
-    {
-        treeLine.clear();
-
-        if (getParentComponent()->isVisible()) {
-            // create a line to show the current branch
-            auto b = getLocalBounds();
-            auto lineEnd = Point<float>(4.0f, b.getHeight() - 3.0f);
-            treeLine.startNewSubPath(4.0f, 0.0f);
-            treeLine.lineTo(lineEnd);
-
-            treeLineImage = Image(Image::PixelFormat::ARGB, b.getWidth(), b.getHeight(), true);
-            Graphics treeLineG(treeLineImage);
-            treeLineG.setColour(Colours::white);
-            treeLineG.strokePath(treeLine, PathStrokeType(1.0f));
-            auto ballEnd = Rectangle<float>(0, 0, 5, 5).withCentre(lineEnd);
-            treeLineG.fillEllipse(ballEnd);
-        }
-    }
-private:
-    Path treeLine;
-    Image treeLineImage;
-    bool isHover = false;
-};
+#include "ValueTreeNodeBranchLine.h"
+#include "Fonts.h"
+#include "../Components/BouncingViewport.h"
 
 class ValueTreeNodeComponent : public Component
 {
 public:
     ValueTreeNodeComponent(const ValueTree& node, ValueTreeNodeComponent* parentNode, String prepend = String()) : parent(parentNode), valueTreeNode(node)
     {
-        addAndMakeVisible(nodeBranchLine);
-        nodeBranchLine.setAlwaysOnTop(true);
+        nodeBranchLine = std::make_unique<ValueTreeNodeBranchLine>(this);
+        addAndMakeVisible(nodeBranchLine.get());
+        nodeBranchLine->setAlwaysOnTop(true);
         
         if(valueTreeNode.hasProperty("Name")) {
             auto tooltipPrepend = prepend;
             if (tooltipPrepend.isEmpty())
                 tooltipPrepend = "(Parent)";
-            nodeBranchLine.setTooltip(tooltipPrepend + " " + valueTreeNode.getProperty("Name").toString());
+            nodeBranchLine->setTooltip(tooltipPrepend + " " + valueTreeNode.getProperty("Name").toString());
         }
 
         // Create subcomponents for each child node
@@ -179,12 +124,7 @@ public:
         if (e.eventComponent == this && e.mods.isLeftButtonDown())
         {
             if(nodes.size() && e.x < 22) {
-                isOpened = !isOpened;
-                for (auto* child : nodes)
-                    child->setVisible(isOpen());
-                
-                getOwnerView()->updateView();
-                resized();
+                closeNode();
             }
             else {
                 getOwnerView()->selectedNode = this;
@@ -200,6 +140,16 @@ public:
                 
             }
         }
+    }
+
+    void closeNode()
+    {
+        isOpened = !isOpened;
+        for (auto* child : nodes)
+            child->setVisible(isOpen());
+
+        getOwnerView()->updateView();
+        resized();
     }
     
     void paint(Graphics& g) override
@@ -244,8 +194,8 @@ public:
     {
         // Set the bounds of the subcomponents within the current component
         if(isOpen()) {
-            nodeBranchLine.setVisible(true);
-            nodeBranchLine.setBounds(getLocalBounds().withLeft(10).withRight(18).withTrimmedBottom(10).withTop(20));
+            nodeBranchLine->setVisible(true);
+            nodeBranchLine->setBounds(getLocalBounds().withLeft(10).withRight(18).withTrimmedBottom(10).withTop(20));
 
             auto bounds = getLocalBounds().withTrimmedLeft(8).withTrimmedTop(25);
 
@@ -258,7 +208,7 @@ public:
             }
         }
         else {
-            nodeBranchLine.setVisible(false);
+            nodeBranchLine->setVisible(false);
         }
     }
 
@@ -286,17 +236,29 @@ public:
         
         return true;
     }
-    
+
+    int getPositionInViewport()
+    {
+        auto* node = this;
+        int posInParent = 0;
+        while (node) {
+            posInParent += node->getPosition().getY();
+            node = node->parent;
+        }
+        return posInParent;
+    }
+
+    ValueTree valueTreeNode;
+
 private:
     ValueTreeNodeComponent* parent;
     SafePointer<ValueTreeNodeComponent> previous, next;
     OwnedArray<ValueTreeNodeComponent> nodes;
-    ValueTree valueTreeNode;
     bool isOpened = false;
     bool isOpenedBySearch = false;
     bool isDragging = false;
 
-    NodeBranchLine nodeBranchLine;
+    std::unique_ptr<ValueTreeNodeBranchLine> nodeBranchLine;
 
     friend class ValueTreeViewerComponent;
 };
@@ -391,6 +353,12 @@ public:
         resized();
         
         viewport.setViewPosition(originalViewPos);
+    }
+
+    void clearValueTree()
+    {
+        ValueTree emptyTree;
+        setValueTree(emptyTree);
     }
 
     ValueTree& getValueTree()
