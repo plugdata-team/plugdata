@@ -1358,8 +1358,10 @@ void Object::openHelpPatch() const
 
         cnv->pd->lockAudioThread();
         auto patchPtr = cnv->pd->loadPatch(file, cnv->editor, -1);
-        if(auto patch = patchPtr->getPointer()) patch->gl_edit = 0;
-        
+        if(patchPtr) {
+            patchPtr->getPointer()->gl_edit = 0;
+        }
+
         cnv->pd->unlockAudioThread();
         
         return;
