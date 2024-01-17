@@ -105,6 +105,11 @@ public:
     {
         return false;
     }
+
+    void clear()
+    {
+        patchTree.clearValueTree();
+    }
     
     void timerCallback() override
     {
@@ -114,10 +119,6 @@ public:
             currentCanvas = cnv;
             currentCanvas->needsSearchUpdate = false;
             updateResults();
-        }
-        if (!cnv) {
-            patchTree.clearValueTree();
-            stopTimer();
         }
     }
     

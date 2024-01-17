@@ -808,6 +808,7 @@ void PluginEditor::closeTab(Canvas* cnv)
     auto patch = cnv->refCountedPatch;
 
     sidebar->hideParameters();
+    sidebar->clearSearchOutliner();
 
     patch->setVisible(false);
 
