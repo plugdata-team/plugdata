@@ -115,6 +115,10 @@ public:
             currentCanvas->needsSearchUpdate = false;
             updateResults();
         }
+        if (!cnv) {
+            patchTree.clearValueTree();
+            stopTimer();
+        }
     }
     
     void visibilityChanged() override

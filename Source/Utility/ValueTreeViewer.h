@@ -355,6 +355,12 @@ public:
         viewport.setViewPosition(originalViewPos);
     }
 
+    void clearValueTree()
+    {
+        ValueTree emptyTree;
+        setValueTree(emptyTree);
+    }
+
     ValueTree& getValueTree()
     {
         return valueTree;
