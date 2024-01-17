@@ -1,5 +1,3 @@
-
-
 class ValueTreeViewerComponent;
 class ValueTreeNodeComponent;
 struct ValueTreeOwnerView : public Component
@@ -12,19 +10,34 @@ struct ValueTreeOwnerView : public Component
     std::function<void(ValueTree&)> onDragStart = [](ValueTree&){};
 };
 
+#include "ValueTreeNodeBranchLine.h"
+#include "Fonts.h"
+#include "../Components/BouncingViewport.h"
+
 class ValueTreeNodeComponent : public Component
 {
 public:
-    ValueTreeNodeComponent(const ValueTree& node, ValueTreeNodeComponent* parentNode) : parent(parentNode), valueTreeNode(node)
+    ValueTreeNodeComponent(const ValueTree& node, ValueTreeNodeComponent* parentNode, String prepend = String()) : parent(parentNode), valueTreeNode(node)
     {
+        nodeBranchLine = std::make_unique<ValueTreeNodeBranchLine>(this);
+        addAndMakeVisible(nodeBranchLine.get());
+        nodeBranchLine->setAlwaysOnTop(true);
+        
+        if(valueTreeNode.hasProperty("Name")) {
+            auto tooltipPrepend = prepend;
+            if (tooltipPrepend.isEmpty())
+                tooltipPrepend = "(Parent)";
+            nodeBranchLine->setTooltip(tooltipPrepend + " " + valueTreeNode.getProperty("Name").toString());
+        }
+
         // Create subcomponents for each child node
         for (int i = 0; i < valueTreeNode.getNumChildren(); ++i)
         {
-            auto* childComponent = nodes.add(new ValueTreeNodeComponent(valueTreeNode.getChild(i), this));
+            auto* childComponent = nodes.add(new ValueTreeNodeComponent(valueTreeNode.getChild(i), this, prepend));
             addAndMakeVisible(childComponent);
         }
     }
-    
+
     void update()
     {
         // Compare existing child nodes with current children
@@ -56,7 +69,7 @@ public:
                 addAndMakeVisible(childComponent);
             }
         }
-        
+
         // Remove any existing nodes that no longer exist in the current children
         for (int i = nodes.size(); --i >= 0;)
         {
@@ -66,7 +79,7 @@ public:
             }
         }
     }
-    
+
     void paintOpenCloseButton(Graphics& g, Rectangle<float> const& area)
     {
         auto arrowArea = area.reduced(5, 9).translated(4, 0).toFloat();
@@ -111,12 +124,7 @@ public:
         if (e.eventComponent == this && e.mods.isLeftButtonDown())
         {
             if(nodes.size() && e.x < 22) {
-                isOpened = !isOpened;
-                for (auto* child : nodes)
-                    child->setVisible(isOpen());
-                
-                getOwnerView()->updateView();
-                resized();
+                closeNode();
             }
             else {
                 getOwnerView()->selectedNode = this;
@@ -132,6 +140,16 @@ public:
                 
             }
         }
+    }
+
+    void closeNode()
+    {
+        isOpened = !isOpened;
+        for (auto* child : nodes)
+            child->setVisible(isOpen());
+
+        getOwnerView()->updateView();
+        resized();
     }
     
     void paint(Graphics& g) override
@@ -170,20 +188,17 @@ public:
         }
         
         Fonts::drawFittedText(g, valueTreeNode.getProperty("Name"), itemBounds, colour);
-
-        if (!treeBranchLine.isEmpty()) {
-            g.setColour(colour.withAlpha(0.3f));
-            g.strokePath(treeBranchLine, PathStrokeType(1.5f));
-        }
     }
-    
+
     void resized() override
     {
         // Set the bounds of the subcomponents within the current component
-        treeBranchLine = Path();
         if(isOpen()) {
+            nodeBranchLine->setVisible(true);
+            nodeBranchLine->setBounds(getLocalBounds().withLeft(10).withRight(18).withTrimmedBottom(10).withTop(20));
+
             auto bounds = getLocalBounds().withTrimmedLeft(8).withTrimmedTop(25);
-            
+
             for (auto* node : nodes)
             {
                 if(node->isVisible()) {
@@ -191,13 +206,12 @@ public:
                     node->setBounds(childBounds);
                 }
             }
-            // create a line to show the current branch
-            treeBranchLine.startNewSubPath(14, 30);
-            treeBranchLine.lineTo(14, getHeight() - 14);
-            treeBranchLine.lineTo(18, getHeight() - 14);
+        }
+        else {
+            nodeBranchLine->setVisible(false);
         }
     }
-    
+
     int getTotalContentHeight() const
     {
         int totalHeight = isVisible() ? 25 : 0;
@@ -222,25 +236,43 @@ public:
         
         return true;
     }
-    
+
+    int getPositionInViewport()
+    {
+        auto* node = this;
+        int posInParent = 0;
+        while (node) {
+            posInParent += node->getPosition().getY();
+            node = node->parent;
+        }
+        return posInParent;
+    }
+
+    ValueTree valueTreeNode;
+
 private:
     ValueTreeNodeComponent* parent;
     SafePointer<ValueTreeNodeComponent> previous, next;
     OwnedArray<ValueTreeNodeComponent> nodes;
-    ValueTree valueTreeNode;
     bool isOpened = false;
     bool isOpenedBySearch = false;
     bool isDragging = false;
-    friend class ValueTreeViewerComponent;
 
-    Path treeBranchLine;
+    std::unique_ptr<ValueTreeNodeBranchLine> nodeBranchLine;
+
+    friend class ValueTreeViewerComponent;
 };
 
-class ValueTreeViewerComponent : public Component, public KeyListener
+#include "SettingsFile.h"
+
+class ValueTreeViewerComponent : public Component, public KeyListener, public SettingsFileListener
 {
 public:
-    ValueTreeViewerComponent()
+    explicit ValueTreeViewerComponent(String prepend = String()) : tooltipPrepend(std::move(prepend))
     {
+        if (tooltipPrepend == "(Subpatch)") // FIXME: this is horrible
+            sortLayerOrder = SettingsFile::getInstance()->getProperty<bool>("search_order");
+
         // Add a Viewport to handle scrolling
         viewport.setViewedComponent(&contentComponent, false);
         viewport.setScrollBarsShown(true, false, false, false);
@@ -257,7 +289,17 @@ public:
         
         addAndMakeVisible(viewport);
     }
-    
+
+    void propertyChanged(String const& name, var const& value) override
+    {
+        if (tooltipPrepend != "(Subpatch)") // FIXME: again this is a horrible way to find out what we are!
+            return;
+
+        if (name == "search_order") {
+            setSortDir(static_cast<bool>(value));
+        }
+    }
+
     void setValueTree(const ValueTree& tree)
     {
         valueTree = tree;
@@ -287,7 +329,7 @@ public:
             }
             else if(childNode.isValid())
             {
-                auto* childComponent = new ValueTreeNodeComponent(childNode, nullptr);
+                auto* childComponent = new ValueTreeNodeComponent(childNode, nullptr, tooltipPrepend);
                 nodes.add(childComponent);
                 contentComponent.addAndMakeVisible(childComponent);
             }
@@ -302,7 +344,7 @@ public:
             }
         }
 
-        sortNodes(nodes);
+        sortNodes(nodes, sortLayerOrder);
         
         ValueTreeNodeComponent* previous = nullptr;
         linkNodes(nodes, previous);
@@ -312,7 +354,35 @@ public:
         
         viewport.setViewPosition(originalViewPos);
     }
-    
+
+    void clearValueTree()
+    {
+        ValueTree emptyTree;
+        setValueTree(emptyTree);
+    }
+
+    ValueTree& getValueTree()
+    {
+        return valueTree;
+    }
+
+    void setSortDir(bool sortDir)
+    {
+        sortLayerOrder = sortDir;
+        sortNodes(nodes, sortLayerOrder);
+        resizeAllNodes(nodes);
+    }
+
+    void resizeAllNodes(OwnedArray<ValueTreeNodeComponent>& nodes)
+    {
+        resized();
+
+        for (auto* node : nodes) {
+            node->resized();
+            resizeAllNodes(node->nodes);
+        }
+    }
+
     void paint(Graphics& g) override
     {
         g.fillAll(getLookAndFeel().findColour(PlugDataColour::sidebarBackgroundColourId));
@@ -341,14 +411,18 @@ public:
         auto scrollbarIndent = viewport.canScrollVertically() ? 8 : 0;
         bounds = bounds.reduced(2, 0).withTrimmedRight(scrollbarIndent).withHeight(getTotalContentHeight() + 4).withTrimmedTop(4);
 
-        for (auto* node : nodes)
-        {
+
+        auto resizeNodes = [bounds]( ValueTreeNodeComponent* node) mutable {
             if(node->isVisible()) {
                 auto childBounds = bounds.removeFromTop(node->getTotalContentHeight());
                 node->setBounds(childBounds);
             }
+        };
+
+        for (auto* node : nodes) {
+            resizeNodes(node);
         }
-        
+
         viewport.setViewPosition(originalViewPos);
     }
     
@@ -496,30 +570,35 @@ private:
         }
     }
     
-    static void sortNodes(OwnedArray<ValueTreeNodeComponent>& nodes)
+    static void sortNodes(OwnedArray<ValueTreeNodeComponent>& nodes, bool sortDown)
     {
         struct {
+            bool sortDirection = false;
+
             int compareElements (const ValueTreeNodeComponent* a, const ValueTreeNodeComponent* b)
             {
                 auto firstIdx = a->valueTreeNode. getParent().indexOf(a->valueTreeNode);
                 auto secondIdx = b->valueTreeNode.getParent().indexOf (b->valueTreeNode);
-                if(firstIdx > secondIdx)  return 1;
-                if(firstIdx < secondIdx)  return -1;
+                if(firstIdx > secondIdx)  return sortDirection ? -1 : 1;
+                if(firstIdx < secondIdx)  return sortDirection ? 1 : -1;
                 return 0;
             }
-        } elementSorter;
-        
-        nodes.sort(elementSorter, false);
-        
-        for(auto* childNode : nodes)
-        {
-            sortNodes(childNode->nodes);
+        } elementComparator;
+
+        elementComparator.sortDirection = sortDown;
+
+        nodes.sort(elementComparator, false);
+
+        for (auto* childNode : nodes) {
+            sortNodes(childNode->nodes, sortDown);
         }
     }
     
     String filterString;
+    String tooltipPrepend;
     ValueTreeOwnerView contentComponent;
     OwnedArray<ValueTreeNodeComponent> nodes;
     ValueTree valueTree = ValueTree("Folder");
     BouncingViewport viewport;
+    bool sortLayerOrder = false;
 };

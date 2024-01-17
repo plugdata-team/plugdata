@@ -239,7 +239,37 @@ void TabBarButtonComponent::mouseDown(MouseEvent const& e)
         });
 
         tabMenu.addSeparator();
+        
+        PopupMenu parentPatchMenu;
+        
+        if(auto patch = cnv->patch.getPointer())
+        {
+            auto* parent = patch.get();
+            while((parent = parent->gl_owner))
+            {
+                parentPatchMenu.addItem(String::fromUTF8(parent->gl_name->s_name), [parent, cnv](){
+                    auto* editor = cnv->editor;
+                    auto* pd = reinterpret_cast<pd::Instance*>(editor->pd);
+                    
+                    for (auto* searchedCanvas : editor->canvases) {
+                        if (searchedCanvas->patch.getPointer().get() == parent) {
+                            searchedCanvas->getTabbar()->setCurrentTabIndex(searchedCanvas->getTabIndex());
+                            return;
+                        }
+                    }
+                
+                    auto* patch = new pd::Patch(pd::WeakReference(parent, pd), pd, false);
+                    auto* newCanvas = editor->canvases.add(new Canvas(editor, patch));
+                    editor->addTab(newCanvas);
+                    newCanvas->getTabbar()->setCurrentTabIndex(newCanvas->getTabIndex());
+                });
+            }
+        };
 
+        tabMenu.addSubMenu("Parent patches", parentPatchMenu, parentPatchMenu.getNumItems());
+        
+        tabMenu.addSeparator();
+        
         auto canSplitTab = cnv->editor->getSplitView()->splits.size() > 1 || getTabComponent()->getNumTabs() > 1;
         tabMenu.addItem("Split left", canSplitTab, false, [cnv]() {
             auto splitIdx = cnv->editor->splitView.getTabComponentSplitIndex(cnv->getTabbar());
@@ -255,6 +285,7 @@ void TabBarButtonComponent::mouseDown(MouseEvent const& e)
         });
 
         tabMenu.addSeparator();
+        
 
         tabMenu.addItem("Close patch", true, false, [cnv]() {
             cnv->editor->closeTab(cnv);
@@ -267,7 +298,7 @@ void TabBarButtonComponent::mouseDown(MouseEvent const& e)
         tabMenu.addItem("Close all patches", true, false, [cnv]() {
             cnv->editor->closeAllTabs(false);
         });
-
+                
         // Show the popup menu at the mouse position
         tabMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withParentComponent(getTabComponent()->getEditor()));
     } else if (e.mods.isLeftButtonDown()) {

@@ -8,13 +8,13 @@
 #X listbox 399 234 23 0 0 0 my_list my_list-r my_list-s 12;
 #X obj 305 6 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
 #N canvas 382 141 749 319 (subpatch) 0;
-#X coords 0 -1 1 1 252 42 2 0 0;
+#X coords 0 -1 1 1 251 41 2 0 0;
 #X restore 304 5 pd;
-#X obj 368 11 cnv 10 10 10 empty empty PlugData 0 15 2 30 #7c7c7c #e0e4dc 0;
+#X obj 368 11 cnv 10 10 10 empty empty plugdata 0 15 2 30 #7c7c7c #e0e4dc 0;
 #X obj 24 42 cnv 4 4 4 empty empty Storing\ extra\ data\ in\ DAW\ session 0 28 2 18 #e0e0e0 #000000 0;
 #X obj 3 4 cnv 15 301 42 empty empty daw_storage 20 20 2 37 #e0e0e0 #000000 0;
 #N canvas 0 22 450 278 (subpatch) 0;
-#X coords 0 1 100 -1 302 42 1 0 0;
+#X coords 0 1 100 -1 301 41 1 0 0;
 #X restore 4 5 graph;
 #X obj 21 424 daw_storage array1;
 #X obj 21 449 array set array1;

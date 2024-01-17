@@ -231,10 +231,14 @@ public:
     void run() override
     {
         auto tree = generateDirectoryValueTree(File(pd->settingsFile->getProperty<String>("browser_path")));
-        MessageManager::callAsync([this, tree](){
-            fileTree = tree;
-            fileList.setValueTree(tree);
-        });
+        if(tree.isValid()) {
+            MessageManager::callAsync([_this = SafePointer(this), tree](){
+                if(_this) {
+                    _this->fileTree = tree;
+                    _this->fileList.setValueTree(tree);
+                }
+            });
+        }
     }
     
     ValueTree generateDirectoryValueTree(const File& directory) {
@@ -398,7 +402,7 @@ private:
     TextButton settingsCalloutButton = TextButton();
     
     ValueTree fileTree;
-    ValueTreeViewerComponent fileList;
+    ValueTreeViewerComponent fileList = ValueTreeViewerComponent("(Folder)");
     SearchEditor searchInput;
     
     bool isDraggingFile = false;

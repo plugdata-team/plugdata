@@ -122,6 +122,7 @@ struct HeavyCompatibleObjects {
         "/~",
         "abs~",
         "adc~",
+        "bang~",
         "biquad~",
         "bp~",
         "catch~",

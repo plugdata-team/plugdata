@@ -809,6 +809,11 @@ public:
         {
             label->setBounds(getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)));
         }
+
+        void editableOnClick(bool editable)
+        {
+            dynamic_cast<DraggableNumber*>(label.get())->setEditableOnClick(editable);
+        }
     };
 
     struct FilePathComponent : public PropertiesPanelProperty {

@@ -7,6 +7,7 @@
 extern "C" {
 #include <m_pd.h>
 #include <z_hooks.h>
+#include <s_net.h>
 }
 
 #include <clocale>
@@ -674,7 +675,7 @@ void fm_tilde_setup();
 #endif
 void knob_setup();
 
-void pdlua_setup(char const* datadir, char* vers, int vers_len);
+void pdlua_setup(char const* datadir, char* vers, int vers_len, void(*register_class_callback)(const char*));
 }
 
 namespace pd {
@@ -726,6 +727,9 @@ int Setup::initialisePd()
             SETFLOAT(zz + i + 2, defaultfontshit[i]);
         }
         pd_typedmess(gensym("pd")->s_thing, gensym("init"), 2 + ndefaultfont, zz);
+        
+        socket_init();
+        
         sys_unlock();
 
         initialized = 1;
@@ -755,6 +759,11 @@ void* Setup::createReceiver(void* ptr, char const* s,
         x->x_hook_message = hook_message;
     }
     return x;
+}
+
+void Setup::initialisePdLua(char const* datadir, char* vers, int vers_len, void(*register_class_callback)(const char*))
+{
+    pdlua_setup(datadir, vers, vers_len, register_class_callback);
 }
 
 void* Setup::createPrintHook(void* ptr, t_plugdata_printhook hook_print)
@@ -810,11 +819,6 @@ void Setup::parseArguments(char const** argv, size_t argc, t_namelist** sys_open
     // TODO: some args need to be parsed manually still!
     sys_unlock();
     return;
-}
-
-void Setup::initialisePdLua(char const* datadir, char* vers, int vers_len)
-{
-    pdlua_setup(datadir, vers, vers_len);
 }
 
 void Setup::initialiseELSE()

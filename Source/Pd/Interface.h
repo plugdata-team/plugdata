@@ -41,6 +41,7 @@ extern void canvas_savedeclarationsto(t_canvas* x, t_binbuf* b);
 extern void canvas_savetemplatesto(t_canvas* x, t_binbuf* b, int wholething);
 extern void canvas_saveto(t_canvas* x, t_binbuf* b);
 extern void set_class_prefix(t_symbol*);
+extern void clear_class_loadsym();
 }
 
 namespace pd {
@@ -365,6 +366,19 @@ struct Interface {
         canvas_dirty(cnv, 1);
 
         return new_object;
+    }
+    
+    // Can recreate any object of type t_text
+    static void recreateTextObject(t_canvas* cnv, t_gobj* obj)
+    {
+        if(auto* textObject = checkObject(obj))
+        {
+            char* text = nullptr;
+            int len = 0;
+            
+            getObjectText(textObject, &text, &len);
+            renameObject(cnv, obj, text, len);
+        }
     }
 
     static void renameObject(t_canvas* cnv, t_gobj* obj, char const* buf, size_t bufsize)

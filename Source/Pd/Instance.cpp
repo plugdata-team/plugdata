@@ -276,8 +276,6 @@ void Instance::initialisePd(String& pdlua_version)
 
     static bool initialised = false;
     if (!initialised) {
-        auto extra = ProjectInfo::appDataDir.getChildFile("Extra");
-
         set_class_prefix(gensym("else"));
         class_set_extern_dir(gensym("9.else"));
         pd::Setup::initialiseELSE();
@@ -285,17 +283,21 @@ void Instance::initialisePd(String& pdlua_version)
         class_set_extern_dir(gensym("10.cyclone"));
         pd::Setup::initialiseCyclone();
 
+        class_set_extern_dir(gensym(""));
         set_class_prefix(nullptr);
-
-        // Class prefix doesn't seem to work for pdlua
-        char vers[1000];
-        *vers = 0;
-        pd::Setup::initialisePdLua(extra.getFullPathName().getCharPointer(), vers, 1000);
-        if (*vers)
-            pdlua_version = vers;
-
         initialised = true;
     }
+    
+    setThis();
+    
+    clear_class_loadsym();
+    // We want to initialise pdlua separately for each instance
+    auto extra = ProjectInfo::appDataDir.getChildFile("Extra");
+    char vers[1000];
+    *vers = 0;
+    pd::Setup::initialisePdLua(extra.getFullPathName().getCharPointer(), vers, 1000, &registerLuaClass);
+    if (*vers)
+        pdlua_version = vers;
 
     // Hack to make sure ofelia doesn't get initialised during plugin validation, as this can cause problems
     MessageManager::callAsync([_this = juce::WeakReference(this)]() {
@@ -304,7 +306,7 @@ void Instance::initialisePd(String& pdlua_version)
         _this->ofelia = std::make_unique<Ofelia>(static_cast<t_pdinstance*>(_this->instance));
     });
 
-    setThis();
+
 
     // ag: need to do this here to suppress noise from chatty externals
     printReceiver = pd::Setup::createPrintHook(this, reinterpret_cast<t_plugdata_printhook>(internal::instance_multi_print));
@@ -783,6 +785,16 @@ void Instance::clearObjectImplementationsForPatch(pd::Patch* p)
     if (auto patch = p->getPointer()) {
         objectImplementations->clearObjectImplementationsForPatch(patch.get());
     }
+}
+
+void Instance::registerLuaClass(const char* className)
+{
+    luaClasses.insert(hash(className));
+}
+
+bool Instance::isLuaClass(hash32 objectNameHash)
+{
+    return luaClasses.contains(objectNameHash);
 }
 
 } // namespace pd

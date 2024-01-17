@@ -51,37 +51,37 @@ public:
                 case 1: {
                     ApplicationCommandTarget::InvocationInfo info(CommandIDs::Cut);
                     info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
-                    editor->ApplicationCommandManager::invoke(info, true);
+                    editor->commandManager.invoke(info, true);
                     break;
                 }
                 case 2: {
                     ApplicationCommandTarget::InvocationInfo info(CommandIDs::Copy);
                     info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
-                    editor->ApplicationCommandManager::invoke(info, true);
+                    editor->commandManager.invoke(info, true);
                     break;
                 }
                 case 3: {
                     ApplicationCommandTarget::InvocationInfo info(CommandIDs::Paste);
                     info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
-                    editor->ApplicationCommandManager::invoke(info, true);
+                    editor->commandManager.invoke(info, true);
                     break;
                 }
                 case 4: {
                     ApplicationCommandTarget::InvocationInfo info(CommandIDs::Duplicate);
                     info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
-                    editor->ApplicationCommandManager::invoke(info, true);
+                    editor->commandManager.invoke(info, true);
                     break;
                 }
                 case 5: {
                     ApplicationCommandTarget::InvocationInfo info(CommandIDs::Encapsulate);
                     info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
-                    editor->ApplicationCommandManager::invoke(info, true);
+                    editor->commandManager.invoke(info, true);
                     break;
                 }
                 case 6: {
                     ApplicationCommandTarget::InvocationInfo info(CommandIDs::ConnectionPathfind);
                     info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
-                    editor->ApplicationCommandManager::invoke(info, true);
+                    editor->commandManager.invoke(info, true);
                     break;
                 }
                 }

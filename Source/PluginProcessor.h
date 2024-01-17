@@ -130,7 +130,7 @@ public:
     Colour getBackgroundColour() override;
     Colour getTextColour() override;
     Colour getOutlineColour() override;
-
+        
     // All opened patches
     Array<pd::Patch::Ptr, CriticalSection> patches;
 

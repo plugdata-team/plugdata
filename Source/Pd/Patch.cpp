@@ -90,7 +90,7 @@ void Patch::savePatch(File const& location)
 {
 
     String fullPathname = location.getParentDirectory().getFullPathName();
-    String filename = location.getFileName();
+    String filename = location.withFileExtension(".pd").getFileName();
 
     auto* dir = instance->generateSymbol(fullPathname.replace("\\", "/"));
     auto* file = instance->generateSymbol(filename);
@@ -154,7 +154,7 @@ void Patch::updateUndoRedoState()
 void Patch::savePatch()
 {
     String fullPathname = currentFile.getParentDirectory().getFullPathName();
-    String filename = currentFile.getFileName();
+    String filename = currentFile.withFileExtension(".pd").getFileName();
 
     auto* dir = instance->generateSymbol(fullPathname.replace("\\", "/"));
     auto* file = instance->generateSymbol(filename);

@@ -198,6 +198,7 @@ set(JUCE_COMPILE_DEFINITIONS
 )
 
 set(PLUGDATA_COMPILE_DEFINITIONS
+    PLUGDATA=1
     PLUGDATA_VERSION="${PLUGDATA_VERSION}"
     PLUGDATA_GIT_HASH="${GIT_HASH}"
     PD=1
@@ -280,12 +281,11 @@ juce_add_gui_app(plugdata_standalone
     CAMERA_PERMISSION_ENABLED   TRUE
     HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
     HARDENED_RUNTIME_OPTIONS    ${HARDENED_RUNTIME_OPTIONS}
-    DOCUMENT_BROWSER_ENABLED     TRUE
-    DOCUMENT_EXTENSIONS          .pd
+    DOCUMENT_EXTENSIONS          pd
     BUNDLE_ID                    com.plugdata.plugdata
     )
 else()
-set(IOS_SCREEN_ORIENTATIONS UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight)
+
 juce_add_plugin(plugdata_standalone
     VERSION                     ${PLUGDATA_VERSION}
     COMPANY_NAME                ${PLUGDATA_COMPANY_NAME}
@@ -294,7 +294,7 @@ juce_add_plugin(plugdata_standalone
     PLUGIN_DESCRIPTION          "A plugin that loads Pure Data patches"
     ICON_BIG                    ${PLUGDATA_ICON_BIG}
     LAUNCH_STORYBOARD_FILE      ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/LaunchScreen.storyboard
-    IPHONE_SCREEN_ORIENTATIONS  ${IOS_SCREEN_ORIENTATIONS}
+    IPHONE_SCREEN_ORIENTATIONS  UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
     STATUS_BAR_HIDDEN           TRUE
     MICROPHONE_PERMISSION_ENABLED TRUE
     HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
@@ -312,8 +312,9 @@ juce_add_plugin(plugdata_standalone
     PRODUCT_NAME                "plugdata"
     BUNDLE_ID                   com.plugdata.plugdata
     AU_MAIN_TYPE                kAudioUnitType_MusicDevice
-    VST3_CATEGORIES             Instrument
-    VST2_CATEGORY               kPlugCategSynth)
+    DOCUMENT_EXTENSIONS         pd
+    DOCUMENT_BROWSER_ENABLED    TRUE
+    )
 endif()
 
 juce_add_plugin(plugdata
@@ -321,7 +322,7 @@ juce_add_plugin(plugdata
     COMPANY_NAME                ${PLUGDATA_COMPANY_NAME}
     COMPANY_COPYRIGHT           ${PLUGDATA_COMPANY_COPYRIGHT}
     COMPANY_WEBSITE             ${PLUGDATA_COMPANY_WEBSITE}
-    PLUGIN_DESCRIPTION          "A plugin that loads Pure Data patches"
+    PLUGIN_DESCRIPTION          "Visual audio programming environment"
     ICON_BIG                    ${PLUGDATA_ICON_BIG}
     MICROPHONE_PERMISSION_ENABLED TRUE
     HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
@@ -347,10 +348,10 @@ juce_add_plugin(plugdata_fx
     COMPANY_NAME                ${PLUGDATA_COMPANY_NAME}
     COMPANY_COPYRIGHT           ${PLUGDATA_COMPANY_COPYRIGHT}
     COMPANY_WEBSITE             ${PLUGDATA_COMPANY_WEBSITE}
+    PLUGIN_DESCRIPTION          "Visual audio programming environment"
     ICON_BIG                    ${PLUGDATA_ICON_BIG}
     HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
     HARDENED_RUNTIME_OPTIONS    ${HARDENED_RUNTIME_OPTIONS}
-    PLUGIN_DESCRIPTION          "A plugin that loads Pure Data patches"
     IS_SYNTH                    FALSE
     NEEDS_MIDI_INPUT            TRUE
     NEEDS_MIDI_OUTPUT           TRUE
@@ -363,7 +364,7 @@ juce_add_plugin(plugdata_fx
     LV2URI                      https://github.com/timothyschoen/plugdata-fx
     PRODUCT_NAME                "plugdata-fx"
     BUNDLE_ID                   com.plugdata.plugdata.fx
-    AU_MAIN_TYPE                kAudioUnitType_MusicEffect
+    AU_MAIN_TYPE                kAudioUnitType_Effect
     VST3_CATEGORIES             Fx
     VST2_CATEGORY               kPlugCategEffect)
 
@@ -378,7 +379,7 @@ juce_add_plugin(plugdata_midi
     ICON_BIG                    ${PLUGDATA_ICON_BIG}
     HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
     HARDENED_RUNTIME_OPTIONS    ${HARDENED_RUNTIME_OPTIONS}
-    PLUGIN_DESCRIPTION          "A plugin that loads Pure Data patches"
+    PLUGIN_DESCRIPTION          "Visual audio programming environment"
     IS_SYNTH                    FALSE
     NEEDS_MIDI_INPUT            TRUE
     NEEDS_MIDI_OUTPUT           TRUE

@@ -736,11 +736,24 @@ private:
                 editor->removeComponentListener(this);
             }
         }
+            
+#if JUCE_IOS
+            void paint(Graphics& g) override
+            {
+                g.fillAll(findColour(PlugDataColour::toolbarBackgroundColourId));
+            }
+#endif
 
         void resized() override
         {
             auto r = getLocalBounds().reduced(getMargin());
-
+            
+#if JUCE_IOS
+            if(auto* peer = getPeer()) {
+                r = OSUtils::getSafeAreaInsets().subtractedFrom(r);
+            }
+#endif
+            
             if (editor != nullptr) {
                 auto const newPos = r.getTopLeft().toFloat().transformedBy(editor->getTransform().inverted());
 

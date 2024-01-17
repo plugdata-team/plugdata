@@ -1,5 +1,5 @@
 #N canvas 536 141 700 308 12;
-#X obj 27 38 r playhead;
+#X obj 27 38 r _playhead;
 #X obj 23 72 route playing recording looping edittime framerate bpm
 lastbar timesig position, f 81;
 #X obj 20 136 outlet;

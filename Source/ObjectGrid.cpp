@@ -215,9 +215,13 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
     auto isDraggingLeft = resizeZone.isDraggingLeftEdge();
     auto isDraggingRight = resizeZone.isDraggingRightEdge();
 
-    // Not great that we need to do this, but otherwise we don't really know the object bounds for sure
-    toDrag->getConstrainer()->checkBounds(newResizeBounds, toDrag->originalBounds, limits,
-        isDraggingTop, isDraggingLeft, isDraggingBottom, isDraggingRight);
+    if(auto* constrainer = toDrag->getConstrainer())
+    {
+        // Not great that we need to do this, but otherwise we don't really know the object bounds for sure
+        constrainer->checkBounds(newResizeBounds, toDrag->originalBounds, limits,
+            isDraggingTop, isDraggingLeft, isDraggingBottom, isDraggingRight);
+    }
+
 
     // Returns non-zero if the object has a fixed ratio
     auto ratio = toDrag->getConstrainer()->getFixedAspectRatio();

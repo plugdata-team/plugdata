@@ -9,6 +9,65 @@
 #include <m_pd.h>
 #include <m_imp.h>
 
+class SearchPanelSettings : public Component
+{
+public:
+    struct SearchPanelSettingsButton : public TextButton {
+        String const icon;
+        String const description;
+
+        SearchPanelSettingsButton(String iconString, String descriptionString)
+            : icon(std::move(iconString))
+            , description(std::move(descriptionString))
+        {
+            setClickingTogglesState(true);
+
+            auto sortLayerOrder = SettingsFile::getInstance()->getProperty<bool>("search_order");
+            setToggleState(sortLayerOrder, dontSendNotification);
+
+            onClick = [this](){
+                SettingsFile::getInstance()->setProperty("search_order", var(getToggleState()));
+            };
+        }
+
+        void paint(Graphics& g) override
+        {
+            auto colour = findColour(PlugDataColour::toolbarTextColourId);
+            if (isMouseOver()) {
+                colour = colour.contrasting(0.3f);
+            }
+
+            Fonts::drawText(g, description, getLocalBounds().withTrimmedLeft(32), colour, 14);
+
+            if (getToggleState()) {
+                colour = findColour(PlugDataColour::toolbarActiveColourId);
+            }
+
+            Fonts::drawIcon(g, icon, getLocalBounds().withTrimmedLeft(8), colour, 14, false);
+        }
+    };
+
+    SearchPanelSettings()
+    {
+        addAndMakeVisible(sortLayerOrder);
+
+        setSize(150, 28);
+    };
+
+    void resized() override
+    {
+        auto buttonBounds = getLocalBounds();
+
+        int buttonHeight = buttonBounds.getHeight();
+
+        sortLayerOrder.setBounds(buttonBounds.removeFromTop(buttonHeight));
+    }
+private:
+    SearchPanelSettingsButton sortLayerOrder = SearchPanelSettingsButton(Icons::AutoScroll, "Display layer order");
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SearchPanelSettings);
+};
+
 class SearchPanel : public Component, public KeyListener, public Timer
 {
 public:
@@ -56,6 +115,10 @@ public:
             currentCanvas->needsSearchUpdate = false;
             updateResults();
         }
+        if (!cnv) {
+            patchTree.clearValueTree();
+            stopTimer();
+        }
     }
     
     void visibilityChanged() override
@@ -97,13 +160,32 @@ public:
         auto colour = findColour(PlugDataColour::sidebarTextColourId);
         Fonts::drawIcon(g, Icons::Search, 2, 1, 32, colour, 12);
     }
+
+    std::unique_ptr<Component> getExtraSettingsComponent()
+    {
+        auto* settingsCalloutButton = new SmallIconButton(Icons::More);
+        settingsCalloutButton->setTooltip("Show search settings");
+        settingsCalloutButton->setConnectedEdges(12);
+        settingsCalloutButton->onClick = [this, settingsCalloutButton]() {
+            auto* editor = findParentComponentOfClass<PluginEditor>();
+            auto* sidebar = getParentComponent();
+            auto bounds = editor->getLocalArea(sidebar, settingsCalloutButton->getBounds());
+
+            auto docsSettings = std::make_unique<SearchPanelSettings>();
+            CallOutBox::launchAsynchronously(std::move(docsSettings), bounds, editor);
+        };
+
+        return std::unique_ptr<TextButton>(settingsCalloutButton);
+    }
     
     void updateResults()
     {
         auto* cnv = editor->getCurrentCanvas();
         if(cnv) {
+            cnv->pd->lockAudioThread(); // It locks inside of this anyway, so we might as well lock around it to prevent constantly locking/unlocking
             auto tree = generatePatchTree(cnv->refCountedPatch);
             patchTree.setValueTree(tree);
+            cnv->pd->unlockAudioThread();
         }
     }
     
@@ -122,7 +204,7 @@ public:
         input.setBounds(inputBounds.reduced(5, 4));
         patchTree.setBounds(tableBounds);
     }
-    
+
     ValueTree generatePatchTree(pd::Patch::Ptr patch, void* topLevel = nullptr)
     {
         ValueTree patchTree("Patch");
@@ -130,48 +212,48 @@ public:
             if (auto object = objectPtr.get<t_pd>()) {
                 auto* top = topLevel ? topLevel : object.get();
                 String type = pd::Interface::getObjectClassName(object.get());
-                
-                if(!pd::Interface::checkObject(object.get())) continue;
-                
+
+                if (!pd::Interface::checkObject(object.get()))
+                    continue;
+
                 char* objectText;
                 int len;
                 pd::Interface::getObjectText(object.cast<t_text>(), &objectText, &len);
-                
+
                 int x, y, w, h;
                 pd::Interface::getObjectBounds(patch->getPointer().get(), object.cast<t_gobj>(), &x, &y, &w, &h);
-                
+
                 auto name = String::fromUTF8(objectText, len);
                 auto positionText = " (" + String(x) + ":" + String(y) + ")";
-                
+
                 ValueTree element("Object");
                 if (type == "canvas" || type == "graph") {
                     pd::Patch::Ptr subpatch = new pd::Patch(objectPtr, editor->pd, false);
                     ValueTree subpatchTree = generatePatchTree(subpatch, top);
                     element.copyPropertiesAndChildrenFrom(subpatchTree, nullptr);
-                    
+
                     element.setProperty("Name", name, nullptr);
                     element.setProperty("RightText", positionText, nullptr);
                     element.setProperty("Icon", canvas_isabstraction(subpatch->getPointer().get()) ? Icons::File : Icons::Object, nullptr);
                     element.setProperty("Object", reinterpret_cast<int64>(object.cast<void>()), nullptr);
                     element.setProperty("TopLevel", reinterpret_cast<int64>(top), nullptr);
-                }
-                else {
+                } else {
                     element.setProperty("Name", name.upToFirstOccurrenceOf(" ", false, false), nullptr);
                     element.setProperty("RightText", positionText, nullptr);
                     element.setProperty("Icon", Icons::Object, nullptr);
                     element.setProperty("Object", reinterpret_cast<int64>(object.cast<void>()), nullptr);
                     element.setProperty("TopLevel", reinterpret_cast<int64>(top), nullptr);
                 }
-                
+
                 patchTree.appendChild(element, nullptr);
             }
         }
 
         return patchTree;
     }
-     
+
     SafePointer<Canvas> currentCanvas;
     PluginEditor* editor;
-    ValueTreeViewerComponent patchTree;
+    ValueTreeViewerComponent patchTree = ValueTreeViewerComponent("(Subpatch)");
     SearchEditor input;
 };

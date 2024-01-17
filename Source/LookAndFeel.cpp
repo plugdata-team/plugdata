@@ -903,7 +903,7 @@ void PlugDataLook::drawPopupMenuItem(Graphics& g, Rectangle<int> const& area,
             auto font = Fonts::getSemiBoldFont().withHeight(10.5f);
             auto text = shortcutKeyText.substring(i, i+1);
             auto width = std::max(font.getStringWidth(text) + 4, 16);
-            auto b = shortcutBounds.removeFromRight(width).reduced(1, 5);
+            auto b = shortcutBounds.removeFromRight(width).toFloat().reduced(1.0f, 5.0f).translated(1.5f, 0.5f);
             
             g.setColour(findColour(PlugDataColour::popupMenuTextColourId).withAlpha(isActive ? 0.9f : 0.35f));
             g.fillRoundedRectangle(b.toFloat(), 3.0f);
@@ -1494,8 +1494,8 @@ const String PlugDataLook::defaultThemesXml = "<ColourThemes> "
 "           dashed_signal_connections=\"1\" straight_connections=\"0\"\n"
 "           thin_connections=\"0\" square_iolets=\"0\" square_object_corners=\"1\"/>\n"
 "    <Theme theme=\"classic\" toolbar_background=\"ffffffff\" toolbar_text=\"ff000000\"\n"
-"           toolbar_active=\"ff787878\" toolbar_hover=\"ffaaaaaa\" tabbar_background=\"ffffffff\"\n"
-"           tab_text=\"ff000000\" selected_tab_background=\"ffa0a0a0\" selected_tab_text=\"ff000000\"\n"
+"           toolbar_active=\"ff787878\" toolbar_hover=\"ffededed\" tabbar_background=\"ffffffff\"\n"
+"           tab_text=\"ff000000\" selected_tab_background=\"ffededed\" selected_tab_text=\"ff000000\"\n"
 "           canvas_background=\"ffffffff\" canvas_text=\"ff000000\" canvas_dots=\"ffffffff\"\n"
 "           default_object_background=\"ffffffff\" text_object_background=\"ffffffff\"\n"
 "           object_outline_colour=\"ff000000\" selected_object_outline_colour=\"ff000000\"\n"
@@ -1503,8 +1503,8 @@ const String PlugDataLook::defaultThemesXml = "<ColourThemes> "
 "           outline_colour=\"ff000000\" iolet_area_colour=\"ffffffff\" iolet_outline_colour=\"ff000000\"\n"
 "           data_colour=\"ff000000\" connection_colour=\"ff000000\" signal_colour=\"ff000000\"\n"
 "           dialog_background=\"ffffffff\" sidebar_colour=\"ffefefef\" sidebar_text=\"ff000000\"\n"
-"           sidebar_background_active=\"ff000000\" sidebar_active_text=\"ffffffff\"\n"
-"           levelmeter_active=\"ff000000\" levelmeter_background=\"ffa0a0a0\"\n"
+"           sidebar_background_active=\"ffa0a0a0\" sidebar_active_text=\"ff000000\"\n"
+"           levelmeter_active=\"ff000000\" levelmeter_background=\"ffededed\"\n"
 "           levelmeter_thumb=\"ff000000\" panel_background=\"ffffffff\" panel_foreground=\"ffffffff\"\n"
 "           panel_text=\"ff000000\" panel_background_active=\"ff000000\" panel_active_text=\"ffffffff\"\n"
 "           popup_background=\"ffffffff\" popup_background_active=\"ff000000\"\n"
@@ -1521,8 +1521,8 @@ const String PlugDataLook::defaultThemesXml = "<ColourThemes> "
 "           selected_object_outline_colour=\"ffffffff\" gui_internal_outline_colour=\"ffffffff\"\n"
 "           toolbar_outline_colour=\"ffffffff\" outline_colour=\"ffffffff\" data_colour=\"ffffffff\"\n"
 "           connection_colour=\"ffffffff\" signal_colour=\"ffffffff\" dialog_background=\"ff000000\"\n"
-"           sidebar_colour=\"ff000000\" sidebar_text=\"ffffffff\" sidebar_background_active=\"ffffffff\"\n"
-"           sidebar_active_text=\"ff000000\" levelmeter_active=\"ffffffff\" levelmeter_background=\"ff808080\"\n"
+"           sidebar_colour=\"ff000000\" sidebar_text=\"ffffffff\" sidebar_background_active=\"ffa0a0a0\"\n"
+"           sidebar_active_text=\"ffffffff\" levelmeter_active=\"ffffffff\" levelmeter_background=\"ff808080\"\n"
 "           levelmeter_thumb=\"ffffffff\" panel_background=\"ff0e0e0e\" panel_foreground=\"ff000000\"\n"
 "           panel_text=\"ffffffff\" panel_background_active=\"ffffffff\" panel_active_text=\"ff000000\"\n"
 "           popup_background=\"ff000000\" popup_background_active=\"ffffffff\"\n"

@@ -226,6 +226,9 @@ public:
     void unregisterWeakReference(void* ptr, pd_weak_reference const* ref);
     void clearWeakReferences(void* ptr);
 
+    static void registerLuaClass(const char* object);
+    bool isLuaClass(hash32 objectNameHash);
+
     virtual void receiveDSPState(bool dsp) { }
 
     virtual void updateConsole(int numMessages, bool newWarning) { }
@@ -320,7 +323,8 @@ private:
 
     std::unique_ptr<FileChooser> openChooser;
     std::atomic<bool> consoleMute;
-
+    static inline std::set<hash32> luaClasses = std::set<hash32>(); // Keep track of class names that correspond to pdlua objects
+    
 protected:
     struct internal;
 

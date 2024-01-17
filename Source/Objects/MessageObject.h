@@ -13,8 +13,12 @@ class MessageObject final : public ObjectBase
     BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
 
     String objectText;
+    
+    TextLayout textLayout;
+    hash32 layoutTextHash = 0;
+    int lastTextWidth = 0;
+    int32 lastColourARGB = 0;
 
-    int numLines = 1;
     bool isDown = false;
     bool isLocked = false;
 
@@ -32,33 +36,81 @@ public:
         if (auto obj = ptr.get<t_text>()) {
             sizeProperty = TextObjectHelper::getWidthInChars(obj.get());
         }
+        
+        updateTextLayout();
     }
 
-    Rectangle<int> getPdBounds() override
-    {
-        auto objText = editor ? editor->getText() : objectText;
-        if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
-            objText = cnv->suggestor->getText();
-        }
+     Rectangle<int> getPdBounds() override
+     {
+         updateTextLayout(); // make sure layout height is updated
+         
+         int x = 0, y = 0, w, h;
+         if (auto obj = ptr.get<t_gobj>()) {
+             auto* cnvPtr = cnv->patch.getPointer().get();
+             if (!cnvPtr) return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 6, 21)};
+     
+             pd::Interface::getObjectBounds(cnvPtr, obj.get(), &x, &y, &w, &h);
+         }
 
-        auto newNumLines = 0;
-
-        if (auto message = ptr.get<t_text>()) {
-            auto* cnvPtr = cnv->patch.getPointer().get();
-            if (!cnvPtr)
-                return {};
-
-            auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, message.cast<t_gobj>(), objText, 15, newNumLines);
-
-            numLines = newNumLines;
-
-            // Create extra space for drawing the message box flag
-            newBounds.setWidth(newBounds.getWidth() + 5);
-            return newBounds;
-        }
-
-        return {};
-    }
+         return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 6, 21)};
+     }
+         
+     int getTextObjectWidth()
+     {
+         auto objText = editor ? editor->getText() : objectText;
+         if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
+             objText = cnv->suggestor->getText();
+         }
+         
+         int fontWidth = 7;
+         int charWidth = 0;
+         if (auto obj = ptr.get<void>()) {
+             charWidth = TextObjectHelper::getWidthInChars(obj.get());
+             fontWidth = glist_fontwidth(cnv->patch.getPointer().get());
+         }
+         
+         // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
+         int idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 16;
+         
+         // We want to adjust the width so ideal text with aligns with fontWidth
+         int offset = idealWidth % fontWidth;
+         
+         int textWidth;
+         if (objText.isEmpty()) { // If text is empty, set to minimum width
+             textWidth = std::max(charWidth, TextObjectHelper::minWidth) * fontWidth;
+         } else if (charWidth == 0) { // If width is set to automatic, calculate based on text width
+             textWidth = std::clamp(idealWidth, TextObjectHelper::minWidth * fontWidth, fontWidth * 60);
+         } else { // If width was set manually, calculate what the width is
+             textWidth = std::max(charWidth, TextObjectHelper::minWidth) * fontWidth + offset;
+         }
+         
+         return textWidth;
+     }
+         
+     void updateTextLayout()
+     {
+         auto objText = editor ? editor->getText() : objectText;
+         if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
+             objText = cnv->suggestor->getText();
+         }
+         
+         int textWidth = getTextObjectWidth() - 16; // Remove some width for the message flag and text margin
+         auto currentLayoutHash = hash(objText);
+         auto colour = object->findColour(PlugDataColour::canvasTextColourId);
+         if(layoutTextHash != currentLayoutHash || colour.getARGB() != lastColourARGB || textWidth != lastTextWidth)
+         {
+             auto attributedText = AttributedString(objText);
+             attributedText.setColour(colour);
+             attributedText.setJustification(Justification::centredLeft);
+             attributedText.setFont(Font(15));
+             
+             textLayout = TextLayout();
+             textLayout.createLayout(attributedText, textWidth);
+             layoutTextHash = currentLayoutHash;
+             lastColourARGB = colour.getARGB();
+             lastTextWidth = textWidth;
+         }
+     }
 
     void setPdBounds(Rectangle<int> b) override
     {
@@ -91,6 +143,8 @@ public:
 
     void paint(Graphics& g) override
     {
+        updateTextLayout();
+        
         int const d = 6;
         auto reducedBounds = getLocalBounds().toFloat().reduced(0.5f);
 
@@ -114,9 +168,7 @@ public:
         // Draw text
         if (!editor) {
             auto textArea = border.subtractedFrom(getLocalBounds().withTrimmedRight(5));
-            auto scale = getWidth() < 50 ? 0.5f : 1.0f;
-
-            Fonts::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, scale);
+            textLayout.draw(g, textArea.toFloat());
         }
     }
 
@@ -166,6 +218,8 @@ public:
         if (editor) {
             editor->setBounds(getLocalBounds().withTrimmedRight(5));
         }
+        
+        updateTextLayout();
     }
 
     bool isEditorShown() override

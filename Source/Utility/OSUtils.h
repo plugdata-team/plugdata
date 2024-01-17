@@ -82,9 +82,10 @@ struct OSUtils {
         static inline ScrollTracker* instance = nullptr;
     };
 
+    static juce::BorderSize<int> getSafeAreaInsets();
     static bool isIPad();
-    static void showMobileMainMenu(juce::ComponentPeer* parent, std::function<void(int)> callback);
-    static void showMobileCanvasMenu(juce::ComponentPeer* parent, std::function<void(int)> callback);
+    static void showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(int)> callback);
+    static void showMobileCanvasMenu(juce::ComponentPeer* peer, std::function<void(int)> callback);
 
 #endif
 };

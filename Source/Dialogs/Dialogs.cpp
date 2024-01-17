@@ -493,8 +493,8 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     popupMenu.addItem(Open, "Open", object && !multiple && canBeOpened); // for opening subpatches
 
     popupMenu.addSeparator();
-    popupMenu.addItem(Help, "Help", object != nullptr);
-    popupMenu.addItem(Reference, "Reference", object != nullptr);
+    popupMenu.addItem(Help, "Help", hasSelection && !multiple);
+    popupMenu.addItem(Reference, "Reference", hasSelection && !multiple);
     popupMenu.addSeparator();
 
     bool selectedConnection = false, noneSegmented = true;
@@ -673,8 +673,11 @@ void Dialogs::showOpenDialog(std::function<void(File&)> callback, bool canSelect
     if (!initialFile.exists())
         initialFile = ProjectInfo::appDataDir;
 
+#if JUCE_IOS
+    fileChooser = std::make_unique<FileChooser>("Choose file to open...", initialFile, "*", nativeDialog);
+#else
     fileChooser = std::make_unique<FileChooser>("Choose file to open...", initialFile, extension, nativeDialog);
-
+#endif
     auto openChooserFlags = FileBrowserComponent::openMode;
 
     if (canSelectFiles)
@@ -688,6 +691,7 @@ void Dialogs::showOpenDialog(std::function<void(File&)> callback, bool canSelect
             auto lastDir = result.isDirectory() ? result : result.getParentDirectory();
             SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, lastDir);
             callback(result);
+            Dialogs::fileChooser = nullptr;
         });
 }
 
@@ -718,6 +722,7 @@ void Dialogs::showSaveDialog(std::function<void(File&)> callback, String const& 
             if (parentDirectory.exists()) {
                 SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, parentDirectory);
                 callback(result);
+                Dialogs::fileChooser = nullptr;
             }
         });
 }

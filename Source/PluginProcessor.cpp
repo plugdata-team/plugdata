@@ -41,6 +41,15 @@ EXTERN char* pd_version;
 
 AudioProcessor::BusesProperties PluginProcessor::buildBusesProperties()
 {
+#if JUCE_IOS
+    // If you intend to build AUv3 on macOS, you'll also need these
+    if(ProjectInfo::isFx) {
+        return BusesProperties().withOutput ("Output", AudioChannelSet::stereo(), true).withInput ("Input", AudioChannelSet::stereo(), true);
+    }
+    else {
+        return BusesProperties().withOutput ("Output", AudioChannelSet::stereo(), true);
+    }
+#else
     AudioProcessor::BusesProperties busesProperties;
 
     if (ProjectInfo::isStandalone) {
@@ -59,6 +68,7 @@ AudioProcessor::BusesProperties PluginProcessor::buildBusesProperties()
     }
 
     return busesProperties;
+#endif
 }
 
 // ag: Note that this is just a fallback, we update this with live version
@@ -66,11 +76,8 @@ AudioProcessor::BusesProperties PluginProcessor::buildBusesProperties()
 String PluginProcessor::pdlua_version = "pdlua 0.11.0 (lua 5.4)";
 
 PluginProcessor::PluginProcessor()
-#ifndef JucePlugin_PreferredChannelConfigurations
     : AudioProcessor(buildBusesProperties())
-    ,
-#endif
-    pd::Instance("plugdata")
+    , pd::Instance("plugdata")
     , internalSynth(std::make_unique<InternalSynth>())
 {
     // Make sure to use dots for decimal numbers, pd requires that
@@ -316,11 +323,19 @@ String const PluginProcessor::getName() const
 
 bool PluginProcessor::acceptsMidi() const
 {
+#if JUCE_IOS
+    return !ProjectInfo::isFx;
+#endif
+    
     return true;
 }
 
 bool PluginProcessor::producesMidi() const
 {
+#if JUCE_IOS
+    return ProjectInfo::isStandalone;
+#endif
+    
     return true;
 }
 
@@ -451,6 +466,10 @@ void PluginProcessor::releaseResources()
 
 bool PluginProcessor::isBusesLayoutSupported(BusesLayout const& layouts) const
 {
+#if JUCE_IOS
+    return (layouts.getMainOutputChannels() <= 2) && (layouts.getMainInputChannels() <= 2);
+#endif
+    
 #if JucePlugin_IsMidiEffect
     ignoreUnused(layouts);
     return true;
@@ -503,7 +522,7 @@ void PluginProcessor::settingsFileReloaded()
     }
 
     updateSearchPaths();
-    objectLibrary->updateLibrary();
+    if(objectLibrary) objectLibrary->updateLibrary();
 }
 
 
@@ -698,8 +717,9 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
     auto const numChannels = buffer.getNumChannels();
 
     inputFifo->writeAudioAndMidi(buffer, midiMessages);
+    midiMessages.clear();
 
-    audioAdvancement = 0;
+    audioAdvancement = 0; // Always has to be 0 if we use the AudioMidiFifo!
 
     while (inputFifo->getNumSamplesAvailable() >= pdBlockSize) {
         midiBufferIn.clear();
@@ -744,7 +764,6 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
         }
 
         outputFifo->writeAudioAndMidi(audioBufferOut, midiBufferOut);
-        audioAdvancement += pdBlockSize;
     }
     
     // When the amount of samples availabble is larger than (2 * pdBlockSize) - buffer.getNumSamples(), we know for sure that we'll have enough samples to process the next block as well
@@ -767,10 +786,10 @@ void PluginProcessor::sendPlayhead()
     setThis();
     if (infos.hasValue()) {
         atoms_playhead[0] = static_cast<float>(infos->getIsPlaying());
-        sendMessage("playhead", "playing", atoms_playhead);
+        sendMessage("_playhead", "playing", atoms_playhead);
 
         atoms_playhead[0] = static_cast<float>(infos->getIsRecording());
-        sendMessage("playhead", "recording", atoms_playhead);
+        sendMessage("_playhead", "recording", atoms_playhead);
 
         atoms_playhead[0] = static_cast<float>(infos->getIsLooping());
 
@@ -782,37 +801,37 @@ void PluginProcessor::sendPlayhead()
             atoms_playhead.emplace_back(0.0f);
             atoms_playhead.emplace_back(0.0f);
         }
-        sendMessage("playhead", "looping", atoms_playhead);
+        sendMessage("_playhead", "looping", atoms_playhead);
 
         if (infos->getEditOriginTime().hasValue()) {
             atoms_playhead.resize(1);
             atoms_playhead[0] = static_cast<float>(*infos->getEditOriginTime());
-            sendMessage("playhead", "edittime", atoms_playhead);
+            sendMessage("_playhead", "edittime", atoms_playhead);
         }
 
         if (infos->getFrameRate().hasValue()) {
             atoms_playhead.resize(1);
             atoms_playhead[0] = static_cast<float>(infos->getFrameRate()->getEffectiveRate());
-            sendMessage("playhead", "framerate", atoms_playhead);
+            sendMessage("_playhead", "framerate", atoms_playhead);
         }
 
         if (infos->getBpm().hasValue()) {
             atoms_playhead.resize(1);
             atoms_playhead[0] = static_cast<float>(*infos->getBpm());
-            sendMessage("playhead", "bpm", atoms_playhead);
+            sendMessage("_playhead", "bpm", atoms_playhead);
         }
 
         if (infos->getPpqPositionOfLastBarStart().hasValue()) {
             atoms_playhead.resize(1);
             atoms_playhead[0] = static_cast<float>(*infos->getPpqPositionOfLastBarStart());
-            sendMessage("playhead", "lastbar", atoms_playhead);
+            sendMessage("_playhead", "lastbar", atoms_playhead);
         }
 
         if (infos->getTimeSignature().hasValue()) {
             atoms_playhead.resize(1);
             atoms_playhead[0] = static_cast<float>(infos->getTimeSignature()->numerator);
             atoms_playhead.emplace_back(static_cast<float>(infos->getTimeSignature()->denominator));
-            sendMessage("playhead", "timesig", atoms_playhead);
+            sendMessage("_playhead", "timesig", atoms_playhead);
         }
 
         if (infos->getPpqPosition().hasValue()) {
@@ -1024,23 +1043,22 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 {
     if (sizeInBytes == 0)
         return;
-
-    // By calling this asynchronously on the message thread and also suspending processing on the audio thread, we can make sure this is safe
-    // The DAW can call this function from basically any thread, hence the need for this
-    // Audio will only be reactivated once this action is completed
+    
+    // Don't clear tabs if there is no editor open before loading state, if we don't check this it will not load properly in some DAWs
+    if(getEditors().size()) {
+        // Close any opened patches
+        MessageManager::callAsync([this]() {
+            for (auto* editor : getEditors()) {
+                for (auto split : editor->splitView.splits) {
+                    split->getTabComponent()->clearTabs();
+                }
+                editor->canvases.clear();
+            }
+        });
+    }
 
     MemoryInputStream istream(data, sizeInBytes, false);
-
-    // Close any opened patches
-    MessageManager::callAsync([this]() {
-        for (auto* editor : getEditors()) {
-            for (auto split : editor->splitView.splits) {
-                split->getTabComponent()->clearTabs();
-            }
-            editor->canvases.clear();
-        }
-    });
-
+    
     lockAudioThread();
 
     setThis();
@@ -1056,10 +1074,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 
         auto presetDir = ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Presets");
         path = path.replace("${PRESET_DIR}", presetDir.getFullPathName());
-
-        auto location = File(path);
-
-        patches.add({ state, location });
+        patches.add({ state, File(path) });
     }
 
     auto legacyLatency = istream.readInt();
@@ -1075,7 +1090,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 
     auto openPatch = [this](String const& content, File const& location, bool pluginMode = false, int splitIndex = 0) {
         if (location.getFullPathName().isNotEmpty() && location.existsAsFile()) {
-            auto patch = loadPatch(location, openedEditors[0], splitIndex);
+            auto patch = loadPatch(location, getEditors()[0], splitIndex);
             if (patch) {
                 patch->setTitle(location.getFileName());
                 patch->openInPluginMode = pluginMode;
@@ -1085,7 +1100,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
                 auto parentPath = location.getParentDirectory().getFullPathName();
                 libpd_add_to_search_path(parentPath.toRawUTF8());
             }
-            auto patch = loadPatch(content, openedEditors[0], splitIndex);
+            auto patch = loadPatch(content, getEditors()[0], splitIndex);
             if (patch && ((location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) || !location.exists())) {
                 patch->setTitle("Untitled Patcher");
                 patch->openInPluginMode = pluginMode;
@@ -1389,7 +1404,7 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
             auto directory = list[1].toString();
 
             auto patch = File(directory).getChildFile(filename);
-            loadPatch(patch, openedEditors[0]);
+            loadPatch(patch, getEditors()[0]);
         }
         break;
     }
@@ -1398,7 +1413,7 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
             auto filename = list[0].toString();
             auto directory = list[1].toString();
 
-            auto patchPtr = loadPatch(defaultPatch, openedEditors[0]);
+            auto patchPtr = loadPatch(defaultPatch, getEditors()[0]);
             patchPtr->setCurrentFile(File(directory).getChildFile(filename).getFullPathName());
             patchPtr->setTitle(filename);
         }
