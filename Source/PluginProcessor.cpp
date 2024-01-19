@@ -255,7 +255,6 @@ void PluginProcessor::initialiseFilesystem()
     versionDataDir.getChildFile("Extra").createSymbolicLink(homeDir.getChildFile("Extra"), true);
 #endif
     
-    extractGemPlugins(versionDataDir.getChildFile("Extra").getChildFile("Gem"));
     internalSynth->extractSoundfont();
 }
 

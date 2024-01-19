@@ -9,10 +9,6 @@
 #include <juce_opengl/juce_opengl.h>
 #include <Gem/src/Base/GemJUCEContext.h>
 
-#if EXTRACT_GEM_PLUGINS
-#include <Gem/gem_plugins.h>
-#endif
-
 void triggerMotionEvent(int x, int y);
 void triggerButtonEvent(int which, int state, int x, int y);
 void triggerWheelEvent(int axis, int value);
@@ -209,13 +205,6 @@ void GemCallOnMessageThread(std::function<void()> callback)
     }, (void*)&callback);
 }
 
-
-void extractGemPlugins(File path)
-{
-#if EXTRACT_GEM_PLUGINS
-    GemPlugins::extractZipFile(path.getFullPathName().toStdString());
-#endif
-}
 
 // window/context creation&destruction
 bool initGemWin(void)
