@@ -11,8 +11,6 @@ option(ENABLE_GEM "" ON)
 option(ENABLE_ASAN "" OFF)
 option(VERBOSE "" OFF)
 
-option(BUILD_GEM_PLUGINS "" OFF)
-
 set (CMAKE_CXX_STANDARD 20)
 
 # Visiblity needs to be hidden for all plugin targets, otherwise loading both plugdata and plugdata-fx will cause problems. We later undo this for the standalone build, so that externals can load
@@ -220,10 +218,6 @@ endif()
 
 if(ENABLE_GEM)
   list(APPEND PLUGDATA_COMPILE_DEFINITIONS ENABLE_GEM=1)
-endif()
-
-if(BUILD_GEM_PLUGINS)
-  list(APPEND PLUGDATA_COMPILE_DEFINITIONS EXTRACT_GEM_PLUGINS=1)
 endif()
 
 add_library(juce STATIC)

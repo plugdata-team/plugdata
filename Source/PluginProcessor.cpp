@@ -22,8 +22,6 @@
 #include "Utility/MidiDeviceManager.h"
 #include "Dialogs/ConnectionMessageDisplay.h"
 
-#include "Objects/Gem.h"
-
 #include "Utility/Presets.h"
 #include "Canvas.h"
 #include "PluginMode.h"
