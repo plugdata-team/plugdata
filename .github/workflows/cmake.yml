@@ -9,7 +9,7 @@ env:
 
 jobs:
   macos-universal-build:
-    runs-on: macos-latest-xlarge
+    runs-on: macos-latest-large
 
     steps:
     - uses: actions/checkout@v3
