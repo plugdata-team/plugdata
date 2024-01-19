@@ -282,6 +282,11 @@ void Instance::initialisePd(String& pdlua_version)
         set_class_prefix(gensym("cyclone"));
         class_set_extern_dir(gensym("10.cyclone"));
         pd::Setup::initialiseCyclone();
+        
+        set_class_prefix(gensym("Gem"));
+        
+        class_set_extern_dir(gensym(ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Gem").getFullPathName().toRawUTF8()));
+        pd::Setup::initialiseGem();
 
         class_set_extern_dir(gensym(""));
         set_class_prefix(nullptr);
@@ -298,15 +303,6 @@ void Instance::initialisePd(String& pdlua_version)
     pd::Setup::initialisePdLua(extra.getFullPathName().getCharPointer(), vers, 1000, &registerLuaClass);
     if (*vers)
         pdlua_version = vers;
-
-    // Hack to make sure ofelia doesn't get initialised during plugin validation, as this can cause problems
-    MessageManager::callAsync([_this = juce::WeakReference(this)]() {
-        if (!_this.get())
-            return;
-        _this->ofelia = std::make_unique<Ofelia>(static_cast<t_pdinstance*>(_this->instance));
-    });
-
-
 
     // ag: need to do this here to suppress noise from chatty externals
     printReceiver = pd::Setup::createPrintHook(this, reinterpret_cast<t_plugdata_printhook>(internal::instance_multi_print));

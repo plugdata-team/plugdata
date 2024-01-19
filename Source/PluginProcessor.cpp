@@ -22,6 +22,8 @@
 #include "Utility/MidiDeviceManager.h"
 #include "Dialogs/ConnectionMessageDisplay.h"
 
+#include "Objects/Gem.h"
+
 #include "Utility/Presets.h"
 #include "Canvas.h"
 #include "PluginMode.h"
@@ -254,7 +256,8 @@ void PluginProcessor::initialiseFilesystem()
     versionDataDir.getChildFile("Documentation").createSymbolicLink(homeDir.getChildFile("Documentation"), true);
     versionDataDir.getChildFile("Extra").createSymbolicLink(homeDir.getChildFile("Extra"), true);
 #endif
-
+    
+    extractGemPlugins(versionDataDir.getChildFile("Extra").getChildFile("Gem"));
     internalSynth->extractSoundfont();
 }
 
@@ -1219,9 +1222,29 @@ pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile, PluginEditor* e
     // Stop the audio callback when loading a new patch
     // TODO: why though?
     lockAudioThread();
-
+    
+    
+#if JUCE_IOS
+    auto tempFile = File::createTempFile(".pd");
+    tempFile.replaceWithText(patchFile.loadFileAsString());
+    
+    auto newPatch = openPatch(tempFile);
+    if(newPatch)
+    {
+        if(auto patch = newPatch->getPointer())
+        {
+            String dirname = patchFile.getParentDirectory().getFullPathName().replace("\\", "/");
+            auto const* dir = dirname.toRawUTF8();
+            String filename = patchFile.getFileName();
+            auto const* file = filename.toRawUTF8();
+            canvas_rename(patch.get(), gensym(file), gensym(dir));
+            newPatch->setTitle(filename);
+        }
+    }
+#else
     auto newPatch = openPatch(patchFile);
-
+#endif
+    
     unlockAudioThread();
 
     if (!newPatch->getPointer()) {

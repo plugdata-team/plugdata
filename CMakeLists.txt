@@ -7,8 +7,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 option(RUN_CLANG_TIDY "" OFF)
 option(ENABLE_TESTING "" OFF)
 option(ENABLE_SFIZZ "" ON)
+option(ENABLE_GEM "" ON)
 option(ENABLE_ASAN "" OFF)
 option(VERBOSE "" OFF)
+
+option(BUILD_GEM_PLUGINS "" OFF)
 
 set (CMAKE_CXX_STANDARD 20)
 
@@ -55,6 +58,10 @@ if(("${CMAKE_SYSTEM_NAME}" MATCHES "Linux" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES
   set(ENABLE_SFIZZ OFF)
 endif()
 
+if(MSVC) # Gem is not supported on Windows yet
+#set(ENABLE_GEM OFF)
+endif()
+
 add_subdirectory(Libraries/ EXCLUDE_FROM_ALL)
 
 cmake_policy(SET CMP0091 NEW)
@@ -92,6 +99,9 @@ set(PLUGDATA_COMPANY_WEBSITE            "github.com/plugdata-team/plugdata")
 
 if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
 set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo_ios.png")
+file(GLOB IOS_LAUNCHSCREEN "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_launchscreen_ios.png")
+set_source_files_properties(${IOS_LAUNCHSCREEN} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+
 elseif(APPLE)
 set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo_mac.png")
 else()
@@ -118,6 +128,7 @@ file(GLOB plugdata_resources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Documentation.bin
     )
 
+
 file(GLOB StandaloneBinarySources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Extra/GeneralUser_GS.sf3
     )
@@ -125,9 +136,9 @@ file(GLOB StandaloneBinarySources
 juce_add_binary_data(PlugDataBinaryData SOURCES ${plugdata_resources})
 set_target_properties(PlugDataBinaryData PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+
 juce_add_binary_data(StandaloneBinaryData HEADER_NAME "StandaloneBinaryData.h" NAMESPACE StandaloneBinaryData SOURCES ${StandaloneBinarySources} )
 set_target_properties(StandaloneBinaryData PROPERTIES POSITION_INDEPENDENT_CODE ON)
-
 
 file(GLOB plugdata_global_sources
     ${CMAKE_CACHEFILE_DIR}/plugdata_artefacts/JuceLibraryCode/JuceHeader.h)
@@ -207,6 +218,14 @@ if(ENABLE_SFIZZ)
   list(APPEND PLUGDATA_COMPILE_DEFINITIONS ENABLE_SFIZZ=1)
 endif()
 
+if(ENABLE_GEM)
+  list(APPEND PLUGDATA_COMPILE_DEFINITIONS ENABLE_GEM=1)
+endif()
+
+if(BUILD_GEM_PLUGINS)
+  list(APPEND PLUGDATA_COMPILE_DEFINITIONS EXTRACT_GEM_PLUGINS=1)
+endif()
+
 add_library(juce STATIC)
 target_compile_definitions(juce 
     PUBLIC 
@@ -221,10 +240,11 @@ target_link_libraries(juce
         juce::juce_audio_plugin_client
         juce::juce_dsp
         juce::juce_cryptography
-    PUBLIC
-        juce::juce_recommended_lto_flags
-        #juce::juce_recommended_warning_flags
+        juce::juce_opengl
         )
+
+target_compile_options(juce PUBLIC $<$<CONFIG:Release>:${JUCE_LTO_FLAGS}>)
+
 
 set(libs
   juce
@@ -537,6 +557,11 @@ set_target_properties(Tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGI
 set_property(TARGET Tests PROPERTY CXX_VISIBILITY_PRESET hidden)
 set_property(TARGET Tests PROPERTY VISIBILITY_INLINES_HIDDEN ON)
 
+endif()
+
+if(APPLE)
+# 2x speedup for standalone debug builds in xcode
+SET_TARGET_PROPERTIES(plugdata_standalone PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH[variant=Debug] "YES")
 endif()
 
 if(MSVC)

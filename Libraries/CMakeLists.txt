@@ -39,6 +39,7 @@ set(LIBPD_OUTPUT_DIRECTORY "./..")
 option(PD_UTILS "Compile libpd utilities" OFF)
 option(PD_EXTRA "Compile extras" ON)
 option(PD_LOCALE "Set the LC_NUMERIC number format to the default C locale" ON)
+
         
 # ------------------------------------------------------------------------------#
 # SOURCES
@@ -253,11 +254,17 @@ source_group(pdlua FILES ${PDLUA_SOURCES})
 # ------------------------------------------------------------------------------#
 set(LIBPD_COMPILE_DEFINITIONS PD=1 USEAPI_DUMMY=1 PD_INTERNAL=1)
 
+if(ENABLE_GEM)
+add_subdirectory(Gem)
+set(GEM_LIBS Gem ftgl glew_s freetype)
+set(GEM_LIBS_MULTI Gem-multi ftgl glew_s freetype)
+endif()
 
 if(ENABLE_SFIZZ)
 list(APPEND LIBPD_COMPILE_DEFINITIONS ENABLE_SFIZZ=1)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/sfz~)
 endif()
+
 
 # COMPILE DEFINITIONS OPTIONS
 # ------------------------------------------------------------------------------#
@@ -378,13 +385,11 @@ list(APPEND ELSE_SOURCES
     ${SFONT_DIR}/sfont~.c
 )
 
-file(GLOB OFELIA_SOURCES ./plugdata-ofelia/Source/Objects/*.cpp ./plugdata-ofelia/Source/Objects/*.h ./plugdata-ofelia/Source/Shared/*.cpp ./plugdata-ofelia/Source/Shared/*.h)
-source_group(ofelia FILES ${OFELIA_SOURCES})
 # ------------------------------------------------------------------------------#
 # TARGETS
 # ------------------------------------------------------------------------------#
-add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES} ${OFELIA_SOURCES})
-add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES} ${OFELIA_SOURCES})
+add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES})
+add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES})
 
 # ag: pdlua needs PLUGDATA symbol at compile time for PlugData integration.
 target_compile_definitions(externals PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PLUGDATA=1)
@@ -429,22 +434,22 @@ if("${CMAKE_SYSTEM}" MATCHES "Linux")
     add_library(pd INTERFACE)
     add_library(pd-multi INTERFACE)
     find_library(MATH_LIB m)
-    target_link_libraries(externals ${externals_libs})
-    target_link_libraries(externals-multi ${externals_libs})
+    target_link_libraries(externals ${externals_libs} ${GEM_LIBS})
+    target_link_libraries(externals-multi ${externals_libs} ${GEM_LIBS_MULTI})
 elseif(MSVC)
     add_library(pd SHARED $<TARGET_OBJECTS:externals> $<TARGET_OBJECTS:pd-src>)
     add_library(pd-multi STATIC $<TARGET_OBJECTS:externals-multi> $<TARGET_OBJECTS:pd-src-multi>)
 
-    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 ${externals_libs})
-    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 ${externals_libs})
+    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS})
+    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS_MULTI})
 
     add_custom_command(TARGET pd POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
         "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/pd.dll"
         ${CMAKE_SOURCE_DIR}/Plugins/Standalone/pd.dll)
 elseif(APPLE)
-    target_link_libraries(externals ${externals_libs})
-    target_link_libraries(externals-multi ${externals_libs})
+    target_link_libraries(externals ${externals_libs} ${GEM_LIBS})
+    target_link_libraries(externals-multi ${externals_libs} ${GEM_LIBS_MULTI})
 endif()
 
 # PTHREAD

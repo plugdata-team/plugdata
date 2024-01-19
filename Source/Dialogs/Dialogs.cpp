@@ -722,9 +722,11 @@ void Dialogs::showSaveDialog(std::function<void(File&)> callback, String const& 
     fileChooser->launchAsync(saveChooserFlags,
         [callback, lastFileId](FileChooser const& fileChooser) {
             auto result = fileChooser.getResult();
+            auto urlResult = fileChooser.getURLResults();
 #if JUCE_IOS
             OSUtils::iOSScopedResourceAccess scopedSecurityResource(result);
 #endif
+            
             auto parentDirectory = result.getParentDirectory();
             if (parentDirectory.exists()) {
                 SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, parentDirectory);

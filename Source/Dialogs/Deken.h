@@ -264,22 +264,6 @@ public:
             }
         }
 
-#if JUCE_MAC
-        packages.add(PackageInfo("plugdata-ofelia",
-            "cuinjune and timothyschoen",
-            "0",
-            "https://github.com/plugdata-team/plugdata-ofelia/releases/download/v0.4.0-test4/plugdata-ofelia-macos.zip",
-            "Ofelia graphics environment for plugdata",
-            "v4.0.0-test4", { "ofelia" }));
-#elif JUCE_WINDOWS
-        packages.add(PackageInfo("plugdata-ofelia",
-            "cuinjune and timothyschoen",
-            "0",
-            "https://github.com/plugdata-team/plugdata-ofelia/releases/download/v0.4.0-test4/plugdata-ofelia-windows.zip",
-            "Ofelia graphics environment for plugdata",
-            "v4.0.0-test4", { "ofelia" }));
-#endif
-
         return packages;
     }
 

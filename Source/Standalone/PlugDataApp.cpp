@@ -96,6 +96,12 @@ public:
         }
     }
 
+    // Open file callback on iOS
+    bool urlOpened(URL& url) override {
+        anotherInstanceStarted(url.toString(false));
+        return true;
+    }
+
     void initialise(String const& arguments) override
     {
         LookAndFeel::getDefaultLookAndFeel().setColour(ResizableWindow::backgroundColourId, Colours::transparentBlack);

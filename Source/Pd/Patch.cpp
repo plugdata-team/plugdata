@@ -101,10 +101,13 @@ void Patch::savePatch(File const& location)
         canvas_dirty(patch.get(), 0);
         
 #if JUCE_IOS
-        OSUtils::iOSScopedResourceAccess scopedSecurityResource(location);
-#endif
-
+        // on iOS, saving with pd's normal method doesn't work
+        // However, there are also rare cases where writing files like this doens't work as well
+        location.replaceWithText(getCanvasContent());
+        instance->logMessage("saved to: " + location.getFullPathName());
+#else
         pd::Interface::saveToFile(patch.get(), file, dir);
+#endif
 
         instance->reloadAbstractions(location, patch.get());
     }
