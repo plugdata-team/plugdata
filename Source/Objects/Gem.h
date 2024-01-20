@@ -269,7 +269,6 @@ void gemWinSwapBuffers(WindowInfo& info) {
         context->makeActive();
         context->swapBuffers();
         initGemWindow(); // If we don't put this here, the background doens't get filled, but there must be a better way?
-        
     }
 }
 void gemWinMakeCurrent(WindowInfo& info) {
@@ -279,11 +278,11 @@ void gemWinMakeCurrent(WindowInfo& info) {
 }
 
 void gemWinResize(WindowInfo& info, int width, int height) {
-    MessageManager::callAsync([window = info.getWindow(), width, height](){
-        if(window)  {
-            window->setSize(width, height);
-            window->gemHeight = height;
-            window->gemWidth = width;
+    MessageManager::callAsync([window = Component::SafePointer(info.getWindow()), width, height](){
+        if(auto* w = window.getComponent())  {
+            w->setSize(width, height);
+            w->gemHeight = height;
+            w->gemWidth = width;
         }
     });
 }
