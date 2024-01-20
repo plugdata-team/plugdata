@@ -137,12 +137,14 @@ globCopy("../../Libraries/Gem/examples/data/*", "Extra/Gem/") # if we don't do t
 
 # extract precompiled Gem plugins for our architecture
 system = platform.system().lower()
-architecture = platform.architecture()[0]
+architecture = platform.architecture()
+machine = platform.machine()
+
 gem_plugin_path = "../../Libraries/Gem/"
 gem_plugins_file = ""
 
 if system == 'linux':
-    if 'arm' in architecture:
+    if 'arm' in machine:
         gem_plugins_file = 'plugins_linux_arm64'
     elif '64' in architecture:
         gem_plugins_file = 'plugins_linux_x64'
@@ -166,4 +168,4 @@ removeDir("./plugdata_version")
 splitFile("./Fonts/InterUnicode.ttf", 12)
 
 splitFile("./Filesystem.zip", 12)
-#removeFile("./Filesystem.zip")
+removeFile("./Filesystem.zip")
