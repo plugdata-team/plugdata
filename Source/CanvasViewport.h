@@ -395,7 +395,7 @@ public:
 
         adjustScrollbarBounds();
 
-        if (!SettingsFile::getInstance()->getProperty<bool>("center_resized_canvas")) {
+        if (!SettingsFile::getInstance()->getProperty<bool>("centre_resized_canvas")) {
             Viewport::resized();
             return;
         }
