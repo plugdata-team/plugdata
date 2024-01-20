@@ -150,7 +150,7 @@ if system == 'linux':
         gem_plugins_file = 'plugins_linux_x64'
 elif system == 'darwin':
     gem_plugins_file = 'plugins_macos'
-elif system == 'windows' and '64' in architecture:
+elif system == 'windows' and '64' in architecture[0]:
     gem_plugins_file = 'plugins_win64'
 
 # unpack if architecture is supported
