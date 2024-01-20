@@ -104,9 +104,9 @@ public:
     void resized() override
     {
         setThis();
-        sys_lock();
-        triggerResizeEvent(getWidth(), getHeight());
-        sys_unlock();
+        //sys_lock();
+        //triggerResizeEvent(getWidth(), getHeight());
+        //sys_unlock();
     }
     
     void paint (Graphics&) override
@@ -196,7 +196,6 @@ public:
 
 void GemCallOnMessageThread(std::function<void()> callback)
 {
-    //MessageManager::callAsync(callback);
     MessageManager::getInstance()->callFunctionOnMessageThread([](void* callback) -> void* {
         auto& fn = *reinterpret_cast<std::function<void()>*>(callback);
         fn();
