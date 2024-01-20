@@ -144,7 +144,7 @@ gem_plugin_path = "../../Libraries/Gem/"
 gem_plugins_file = ""
 
 if system == 'linux':
-    if 'arm' in machine:
+    if 'aarch64' in machine or 'arm' in machine:
         gem_plugins_file = 'plugins_linux_arm64'
     elif '64' in architecture:
         gem_plugins_file = 'plugins_linux_x64'
