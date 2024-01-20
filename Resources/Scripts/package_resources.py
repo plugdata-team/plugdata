@@ -2,6 +2,8 @@ import shutil
 import os
 import glob
 import sys
+import platform
+import zipfile
 
 # Utility filesystem functions
 def removeFile(path):
@@ -133,6 +135,28 @@ globMove("Abstractions/Gem/*-help.pd", "Documentation/14.gem/")
 makeDir("Extra/Gem") # user can put plugins and resources in here
 globCopy("../../Libraries/Gem/examples/data/*", "Extra/Gem/") # if we don't do this, helpfiles can't find resources for some reason
 
+# extract precompiled Gem plugins for our architecture
+system = platform.system().lower()
+architecture = platform.architecture()[0]
+gem_plugin_path = "../../Libraries/Gem/"
+gem_plugins_file = ""
+
+if system == 'linux':
+    if 'arm' in architecture:
+        gem_plugins_file = 'plugins_linux_arm64'
+    elif '64' in architecture:
+        gem_plugins_file = 'plugins_linux_x64'
+elif system == 'darwin':
+    gem_plugins_file = 'plugins_macos'
+elif system == 'windows' and '64' in architecture:
+    gem_plugins_file = 'plugins_win64'
+
+# unpack if architecture is supported
+if len(gem_plugins_file) != 0:
+    with zipfile.ZipFile(gem_plugin_path + gem_plugins_file + ".zip", 'r') as zip_ref:
+            zip_ref.extractall("Extra/Gem/")
+            globCopy("Extra/Gem/" + gem_plugins_file + "/*", "Extra/Gem/")
+            removeDir("Extra/Gem/" + gem_plugins_file)
 
 changeWorkingDir("./..")
 
@@ -142,4 +166,4 @@ removeDir("./plugdata_version")
 splitFile("./Fonts/InterUnicode.ttf", 12)
 
 splitFile("./Filesystem.zip", 12)
-removeFile("./Filesystem.zip")
+#removeFile("./Filesystem.zip")
