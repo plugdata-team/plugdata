@@ -104,10 +104,11 @@ public:
     void resized() override
     {
         setThis();
-        // This does nothing at the moment, but does cause issues
-        //sys_lock();
-        //triggerResizeEvent(getWidth(), getHeight());
-        //sys_unlock();
+
+        // TODO: this sometimes causes a deadlock
+        sys_lock();
+        triggerResizeEvent(getWidth(), getHeight());
+        sys_unlock();
     }
     
     void paint (Graphics&) override
