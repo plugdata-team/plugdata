@@ -296,7 +296,7 @@ void gemWinMakeCurrent(WindowInfo& info) {
 
 void gemWinResize(WindowInfo& info, int width, int height) {
     if(auto* windowPtr = info.getWindow()) {
-        MessageManager::callAsync([window = Component::SafePointer(info.getWindow()), width, height](){
+        MessageManager::callAsync([window = Component::SafePointer(windowPtr), width, height](){
             if(auto* w = window.getComponent())  {
                 w->setSize(width, height);
                 w->gemHeight = height;
