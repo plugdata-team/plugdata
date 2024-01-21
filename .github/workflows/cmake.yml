@@ -22,10 +22,6 @@ jobs:
       with:
         key: macos
 
-    - name: Install Gem plugin dependencies
-      run: ./depinstall-osx.sh
-      working-directory: ${{github.workspace}}/Libraries/Gem/.git-ci/travis-ci
-
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/build        
 
