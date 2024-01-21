@@ -39,6 +39,9 @@ extern "C" {
 EXTERN char* pd_version;
 }
 
+bool gemWinSetCurrent();
+bool gemWinUnsetCurrent();
+
 AudioProcessor::BusesProperties PluginProcessor::buildBusesProperties()
 {
 #if JUCE_IOS
@@ -1220,7 +1223,6 @@ pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile, PluginEditor* e
     // TODO: why though?
     lockAudioThread();
     
-    
 #if JUCE_IOS
     auto tempFile = File::createTempFile(".pd");
     tempFile.replaceWithText(patchFile.loadFileAsString());
@@ -1241,7 +1243,6 @@ pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile, PluginEditor* e
 #else
     auto newPatch = openPatch(patchFile);
 #endif
-    
     unlockAudioThread();
 
     if (!newPatch->getPointer()) {

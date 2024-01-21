@@ -104,6 +104,7 @@ public:
     void resized() override
     {
         setThis();
+        // This does nothing at the moment, but does cause issues
         //sys_lock();
         //triggerResizeEvent(getWidth(), getHeight());
         //sys_unlock();
@@ -204,14 +205,28 @@ void GemCallOnMessageThread(std::function<void()> callback)
     }, (void*)&callback);
 }
 
+std::map<t_pdinstance*, std::unique_ptr<GemJUCEWindow>> gemJUCEWindow;
+
+bool gemWinSetCurrent() {
+    if(!gemJUCEWindow.contains(libpd_this_instance())) return false;
+        
+    if(auto& window = gemJUCEWindow.at(libpd_this_instance())) {
+        window->openGLContext.makeActive();
+        return true;
+    }
+        
+    return false;
+}
+
+void gemWinUnsetCurrent() {
+    OpenGLContext::deactivateCurrentContext();
+}
 
 // window/context creation&destruction
 bool initGemWin(void)
 {
-  return true;
+    return true;
 }
-
-std::map<t_pdinstance*, std::unique_ptr<GemJUCEWindow>> gemJUCEWindow;
 
 int createGemWindow(WindowInfo& info, WindowHints& hints)
 {
@@ -286,16 +301,6 @@ void gemWinResize(WindowInfo& info, int width, int height) {
     });
 }
 
-bool gemWinMakeCurrent() {
-    if(!gemJUCEWindow.contains(libpd_this_instance())) return false;
-        
-    if(auto& window = gemJUCEWindow.at(libpd_this_instance())) {
-        window->openGLContext.makeActive();
-        return true;
-    }
-        
-    return false;
-}
 
 // Window behaviour
 int cursorGemWindow(WindowInfo& info, int state)
