@@ -103,8 +103,17 @@ public:
 
     void resized() override
     {
+        auto w = getWidth();
+        auto h = getHeight();
+        
+        if(auto* peer = getPeer())
+        {
+            w *= peer->getPlatformScaleFactor();
+            h *= peer->getPlatformScaleFactor();
+        }
+        
         setThis();
-        triggerResizeEvent(getWidth(), getHeight());
+        triggerResizeEvent(w, h);
     }
     
     void paint (Graphics&) override
