@@ -108,8 +108,9 @@ public:
         
         if(auto* peer = getPeer())
         {
-            w *= peer->getPlatformScaleFactor();
-            h *= peer->getPlatformScaleFactor();
+            auto scale = peer->getPlatformScaleFactor();
+            w *= scale;
+            h *= scale;
         }
         
         setThis();
