@@ -45,7 +45,7 @@ class GemJUCEWindow final : public Component, public Timer
     
 public:
     //==============================================================================
-    GemJUCEWindow(int width, int height) : gemWidth(width), gemHeight(height)
+    GemJUCEWindow(Rectangle<int> bounds, bool border)
     {
         instance = libpd_this_instance();
         
@@ -64,7 +64,7 @@ public:
             sys_unlock();
         };
         
-        setSize(width, height);
+        setBounds(bounds);
         
         setOpaque (true);
         openGLContext.setSwapInterval(0);
@@ -78,15 +78,19 @@ public:
         
         startTimerHz(30);
         
-        addToDesktop(ComponentPeer::windowHasTitleBar |
-                     ComponentPeer::windowHasDropShadow |
-                     ComponentPeer::windowIsResizable |
-                     ComponentPeer::windowHasMinimiseButton |
-                     ComponentPeer::windowHasMaximiseButton
-                     );
+        if(border)
+        {
+            addToDesktop(ComponentPeer::windowHasTitleBar |
+                         ComponentPeer::windowHasDropShadow |
+                         ComponentPeer::windowIsResizable |
+                         ComponentPeer::windowHasMinimiseButton |
+                         ComponentPeer::windowHasMaximiseButton);
+        }
+        else {
+            addToDesktop(0);
+        }
         
         setVisible(true);
-        setTopLeftPosition(100, 100);
         
         if(auto* peer = getPeer())
         {
@@ -182,7 +186,6 @@ public:
     }
     
     
-    int gemWidth, gemHeight;
     OpenGLContext openGLContext;
     t_pdinstance* instance;
     Array<KeyPress> heldKeys;
@@ -225,7 +228,7 @@ bool initGemWin(void)
 
 int createGemWindow(WindowInfo& info, WindowHints& hints)
 {
-    auto* window = new GemJUCEWindow(hints.width, hints.height);
+    auto* window = new GemJUCEWindow({hints.x_offset, hints.y_offset, hints.width, hints.height}, hints.border);
     gemJUCEWindow[window->instance].reset(window);
     info.window[window->instance] = window;
     
@@ -243,12 +246,27 @@ int createGemWindow(WindowInfo& info, WindowHints& hints)
     
     hints.real_w = window->getWidth();
     hints.real_h = window->getHeight();
-        
-    auto* peer = window->getPeer();
-    if(peer && hints.title)
+    
+    if(auto* peer = window->getPeer())
     {
-        window->setTitle(String::fromUTF8(hints.title));
+        if(hints.title)
+        {
+            peer->setTitle(String::fromUTF8(hints.title));
+        }
+        if(hints.fullscreen)
+        {
+            peer->setFullScreen(hints.fullscreen);
+        }
+        
+        auto const& displays = Desktop::getInstance().getDisplays().displays;
+        if(hints.secondscreen && displays.size() >= 2)
+        {
+            // Move window to second screen
+            window->setTopLeftPosition(displays[1].userArea.getPosition() + window->getPosition());
+        }
     }
+    
+    // TODO: hints.secondscreen
     
     // Make sure only audio thread has the context set as active
     // We call async here, because if this call comes from the message thread already,
@@ -295,8 +313,6 @@ void gemWinResize(WindowInfo& info, int width, int height) {
         MessageManager::callAsync([window = Component::SafePointer(windowPtr), width, height](){
             if(auto* w = window.getComponent())  {
                 w->setSize(width, height);
-                w->gemHeight = height;
-                w->gemWidth = width;
             }
         });
     }
