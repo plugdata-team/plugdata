@@ -267,6 +267,8 @@ int createGemWindow(WindowInfo& info, WindowHints& hints)
 void destroyGemWindow(WindowInfo& info) {
     if(auto* window = info.getWindow()) {
         window->removeFromDesktop();
+        info.window.erase(window->instance);
+        info.context.erase(window->instance);
         gemJUCEWindow[window->instance].reset(nullptr);
     }
 }
@@ -292,13 +294,15 @@ void gemWinMakeCurrent(WindowInfo& info) {
 }
 
 void gemWinResize(WindowInfo& info, int width, int height) {
-    MessageManager::callAsync([window = Component::SafePointer(info.getWindow()), width, height](){
-        if(auto* w = window.getComponent())  {
-            w->setSize(width, height);
-            w->gemHeight = height;
-            w->gemWidth = width;
-        }
-    });
+    if(auto* windowPtr = info.getWindow()) {
+        MessageManager::callAsync([window = Component::SafePointer(info.getWindow()), width, height](){
+            if(auto* w = window.getComponent())  {
+                w->setSize(width, height);
+                w->gemHeight = height;
+                w->gemWidth = width;
+            }
+        });
+    }
 }
 
 
