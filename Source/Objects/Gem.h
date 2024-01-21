@@ -104,11 +104,7 @@ public:
     void resized() override
     {
         setThis();
-
-        // TODO: this sometimes causes a deadlock
-        sys_lock();
         triggerResizeEvent(getWidth(), getHeight());
-        sys_unlock();
     }
     
     void paint (Graphics&) override
@@ -118,47 +114,35 @@ public:
     void mouseDown(const MouseEvent& e) override
     {
         setThis();
-        sys_lock();
         triggerButtonEvent(e.mods.isRightButtonDown(), 1, e.x, e.y);
-        sys_unlock();
     }
     
     void mouseUp(const MouseEvent& e) override
     {
         setThis();
-        sys_lock();
         triggerButtonEvent(e.mods.isRightButtonDown(), 0, e.x, e.y);
-        sys_unlock();
     }
     
     void mouseMove(const MouseEvent& e) override
     {
         setThis();
-        sys_lock();
         triggerMotionEvent(e.x, e.y);
-        sys_unlock();
     }
     void mouseDrag(const MouseEvent& e) override
     {
         setThis();
-        sys_lock();
         triggerMotionEvent(e.x, e.y);
-        sys_unlock();
     }
     
     void mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel) override
     {
         setThis();
-        sys_lock();
         triggerWheelEvent(wheel.deltaX, wheel.deltaY);
-        sys_unlock();
     }
     
     bool keyPressed(KeyPress const& key) override
     {
-        sys_lock();
         triggerKeyboardEvent(key.getTextDescription().toRawUTF8(), key.getKeyCode(), 1);
-        sys_unlock();
         
         heldKeys.add(key);
         
@@ -267,10 +251,12 @@ int createGemWindow(WindowInfo& info, WindowHints& hints)
 }
 void destroyGemWindow(WindowInfo& info) {
     if(auto* window = info.getWindow()) {
-        window->removeFromDesktop();
-        info.window.erase(window->instance);
-        info.context.erase(window->instance);
-        gemJUCEWindow[window->instance].reset(nullptr);
+        GemCallOnMessageThread([window, &info](){
+            window->removeFromDesktop();
+            info.window.erase(window->instance);
+            info.context.erase(window->instance);
+            gemJUCEWindow[window->instance].reset(nullptr);
+        });
     }
 }
 
