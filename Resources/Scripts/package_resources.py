@@ -157,7 +157,7 @@ elif system == 'windows' and '64' in architecture[0]:
 if len(gem_plugins_file) != 0:
     with zipfile.ZipFile(gem_plugin_path + gem_plugins_file + ".zip", 'r') as zip_ref:
             zip_ref.extractall("Extra/Gem/")
-            globCopy("Extra/Gem/" + gem_plugins_file + "/*", "Extra/Gem/")
+            globMove("Extra/Gem/" + gem_plugins_file + "/*", "Extra/Gem/")
             removeDir("Extra/Gem/" + gem_plugins_file)
 
 changeWorkingDir("./..")

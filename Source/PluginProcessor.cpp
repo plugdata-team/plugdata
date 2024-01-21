@@ -123,7 +123,9 @@ PluginProcessor::PluginProcessor()
     logMessage("Libraries:");
     logMessage(else_version);
     logMessage(cyclone_version);
+    logMessage(gem_version);
     logMessage(heavylib_version);
+    
 
     // Set up midi buffers
     midiBufferIn.ensureSize(2048);
