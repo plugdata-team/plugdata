@@ -409,7 +409,7 @@ if(MSVC)
     target_compile_definitions(pd-src-multi PRIVATE PTW32_STATIC_LIB=1 "EXTERN= ")
 endif()
 
-#set_target_properties(pd-src-multi PROPERTIES CXX_VISIBILITY_PRESET hidden)
+set_target_properties(pd-src-multi PROPERTIES CXX_VISIBILITY_PRESET hidden)
 
 set_target_properties(pd-src PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(pd-src-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
