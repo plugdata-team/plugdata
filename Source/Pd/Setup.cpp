@@ -161,7 +161,7 @@ extern "C" {
 void pd_init();
 
 #if ENABLE_GEM
-void Gem_setup();
+void Gem_setup(t_symbol* plugin_path);
 void gemcubeframebuffer_setup();
 void gemframebuffer_setup();
 void gemhead_setup();
@@ -1672,10 +1672,10 @@ void Setup::initialiseELSE()
     fm_tilde_setup();
 }
 
-void Setup::initialiseGem()
+void Setup::initialiseGem(std::string gemPluginPath)
 {
 #if ENABLE_GEM
-    Gem_setup();
+    Gem_setup(gensym(gemPluginPath.c_str()));
     gemcubeframebuffer_setup();
     gemframebuffer_setup();
     gemhead_setup();
