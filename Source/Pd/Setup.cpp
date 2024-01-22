@@ -239,6 +239,7 @@ void polygon_smooth_setup();
 void rotate_setup();
 void rotateXYZ_setup();
 void scale_setup();
+void gemrepeat_setup();
 void scaleXYZ_setup();
 void separator_setup();
 void shearXY_setup();
@@ -1753,6 +1754,7 @@ void Setup::initialiseGem(std::string gemPluginPath)
     rotate_setup();
     rotateXYZ_setup();
     scale_setup();
+    gemrepeat_setup();
     scaleXYZ_setup();
     separator_setup();
     shearXY_setup();

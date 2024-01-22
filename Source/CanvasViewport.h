@@ -372,7 +372,7 @@ public:
 
     void componentMovedOrResized(Component& c, bool moved, bool resized) override
     {
-        if (editor->pd->isInPluginMode())
+        if (cnv->pd->isInPluginMode())
             return;
 
         Viewport::componentMovedOrResized(c, moved, resized);
