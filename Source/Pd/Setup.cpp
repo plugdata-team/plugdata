@@ -776,7 +776,7 @@ void pv_setup();
 void rdiv_setup();
 void rminus_setup();
 void round_setup();
-void scale_setup();
+void cyclone_scale_setup();
 void seq_setup();
 void sinh_setup();
 void speedlim_setup();
@@ -2293,7 +2293,7 @@ void Setup::initialiseCyclone()
     rdiv_setup();
     rminus_setup();
     round_setup();
-    scale_setup();
+    cyclone_scale_setup();
     seq_setup();
     sinh_setup();
     speedlim_setup();

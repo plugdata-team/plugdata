@@ -146,7 +146,7 @@ static void *scale_new(t_symbol *s, int argc, t_atom *argv)
   return (x);
 }
 
-CYCLONE_OBJ_API void scale_setup(void)
+CYCLONE_OBJ_API void cyclone_scale_setup(void)
 {
   t_class *c;
   
