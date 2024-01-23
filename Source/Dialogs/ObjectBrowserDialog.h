@@ -225,13 +225,13 @@ public:
     {
         if (existingComponentToUpdate == nullptr) {
             auto name = objects[rowNumber];
-            auto description = descriptions[name];
+            auto description = descriptions[name.fromLastOccurrenceOf("/", false, false)];
             return new ObjectListBoxItem(this, name, description, isRowSelected, dismiss);
         } else {
             auto* itemComponent = dynamic_cast<ObjectListBoxItem*>(existingComponentToUpdate);
             if (itemComponent != nullptr) {
                 auto name = objects[rowNumber];
-                auto description = descriptions[name];
+                auto description = descriptions[name.fromLastOccurrenceOf("/", false, false)];
                 itemComponent->refresh(name, description, rowNumber, isRowSelected);
             }
             return itemComponent;

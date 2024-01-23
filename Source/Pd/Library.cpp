@@ -212,7 +212,7 @@ void Library::getExtraSuggestions(int currentNumSuggestions, String const& query
 
 ValueTree Library::getObjectInfo(String const& name)
 {
-    return documentationTree.getChildWithProperty("name", name);
+    return documentationTree.getChildWithProperty("name", name.fromLastOccurrenceOf("/", false, false));
 }
 
 std::array<StringArray, 2> Library::parseIoletTooltips(ValueTree const& iolets, String const& name, int numIn, int numOut)
