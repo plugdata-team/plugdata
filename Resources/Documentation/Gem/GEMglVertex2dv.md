@@ -4,7 +4,7 @@ title: GEMglVertex2dv
 description: specify a two-dimensional vertex with double-precision coordinates using an array
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: double
       description: Specifies an array containing the x and y coordinates of the vertex.

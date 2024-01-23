@@ -3,7 +3,7 @@ title: gemkeyboard
 description: output keyboard events in the GEM window
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 inlets:
   1st:
     - type: non-used

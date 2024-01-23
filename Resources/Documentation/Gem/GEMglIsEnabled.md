@@ -4,7 +4,7 @@ title: GEMglIsEnabled
 description: test whether a specific GL capability is enabled
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the capability to test.

@@ -3,7 +3,7 @@ title: pix_rgb2hsv
 description: convert RGB into HSV
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 inlets:
   1st:
     - type: gemlist

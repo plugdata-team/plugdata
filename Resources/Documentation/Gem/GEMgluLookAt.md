@@ -4,7 +4,7 @@ title: GEMgluLookAt
 description: define a viewing transformation
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the position of the eye point.

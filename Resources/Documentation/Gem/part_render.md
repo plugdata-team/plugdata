@@ -3,7 +3,7 @@ title: part_render
 description: draws a particle system that was set up with [part_head] and other
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 inlets:
   1st:
     - type: gemlist

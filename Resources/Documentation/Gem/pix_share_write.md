@@ -3,7 +3,7 @@ title: pix_share_write
 description: write pixels to a shared memory region
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: ID

@@ -4,7 +4,7 @@ title: GEMglTranslatef
 description: multiply the current matrix by a translation matrix
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the x, y, and z offsets for the translation.

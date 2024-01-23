@@ -4,7 +4,7 @@ title: GEMglClearDepth
 description: specify the clear value for the depth buffer
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the depth value used when the depth buffer is cleared.

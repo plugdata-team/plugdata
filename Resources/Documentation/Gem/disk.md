@@ -3,7 +3,7 @@ title: disk
 description: renders a disk
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: size (= outer radius)

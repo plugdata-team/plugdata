@@ -3,7 +3,7 @@ title: part_killslow
 description: kill all particles which are slower than the kill speed
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: kill speed

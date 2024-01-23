@@ -3,7 +3,7 @@ title: part_velsphere
 description: sets a sphere with a specified radius and centre to be the velocity-domain of emitted particles
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: list
     description: default dimensions (x y z radius)

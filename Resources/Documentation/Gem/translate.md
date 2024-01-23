@@ -3,7 +3,7 @@ title: translate
 description: graphics translation
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: 1st argument: translation scale

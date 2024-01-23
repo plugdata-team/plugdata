@@ -3,7 +3,7 @@ title: pix_rgba
 description: convert the colorspace of an image to RGBA
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 inlets:
   1st:
     - type: gemlist

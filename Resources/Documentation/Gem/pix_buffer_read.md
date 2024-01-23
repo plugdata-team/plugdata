@@ -3,7 +3,7 @@ title: pix_buffer_read
 description: reads an image from the named buffer provided by [pix_buffer]
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: symbol
     description: <buffer_name>

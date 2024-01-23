@@ -4,7 +4,7 @@ title: GEMglAccum
 description: perform pixel arithmetic on the accumulation buffer
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the operation to be performed.

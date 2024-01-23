@@ -4,7 +4,7 @@ title: GEMglLineStipple
 description: specify the line stipple pattern
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the number of bits in the stipple pattern.

@@ -3,7 +3,7 @@ title: cuboid
 description: renders a cuboid box
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: length (dimX)

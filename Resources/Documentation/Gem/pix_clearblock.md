@@ -3,7 +3,7 @@ title: pix_clearblock
 description: clear a block in an image
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 
 
 inlets:

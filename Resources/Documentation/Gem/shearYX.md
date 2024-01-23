@@ -3,7 +3,7 @@ title: shearYX
 description: shear.
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: shear factor (YX)

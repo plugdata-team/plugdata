@@ -3,7 +3,7 @@ title: pix_movie
 description: loads in a preproduced digital video to be used as a texture, bitblit, or something else
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: symbol
     description: file to load initially

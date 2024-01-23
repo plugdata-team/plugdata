@@ -4,7 +4,7 @@ title: GEMglEvalCoord2fv
 description: evaluate enabled two-dimensional maps at the specified parametric coordinates
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the parametric coordinates at which to evaluate the maps.

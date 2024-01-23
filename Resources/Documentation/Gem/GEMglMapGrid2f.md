@@ -4,7 +4,7 @@ title: GEMglMapGrid2f
 description: define a two-dimensional grid for evaluators
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the number of partitions in the u direction of the grid.

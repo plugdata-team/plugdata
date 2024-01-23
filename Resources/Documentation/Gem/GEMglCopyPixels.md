@@ -4,7 +4,7 @@ title: GEMglCopyPixels
 description: copy pixels into a 1D or 2D texture image
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the left x-coordinate, in pixels, of the source rectangle.

@@ -4,7 +4,7 @@ title: GEMglPolygonOffset
 description: set the scale and units used to calculate depth values
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies a scale factor that is used to create a variable depth offset for each polygon.

@@ -4,7 +4,7 @@ title: GEMglUniform1fARB
 description: load a floating-point uniform variable to a program object (ARB version)
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the location of the uniform variable.

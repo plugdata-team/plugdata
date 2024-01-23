@@ -4,7 +4,7 @@ title: GEMglPushClientAttrib
 description: push and save client attribute state
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies which groups of client attributes to save.

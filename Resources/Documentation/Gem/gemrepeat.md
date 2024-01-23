@@ -3,7 +3,7 @@ title: gemrepeat
 description: repeat a gemlist several times
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: number of repeats

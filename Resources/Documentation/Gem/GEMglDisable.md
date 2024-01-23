@@ -4,7 +4,7 @@ title: GEMglDisable
 description: disable server-side GL capabilities
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the GL capability to disable.

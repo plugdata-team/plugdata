@@ -3,7 +3,7 @@ title: pix_colorclassify, pix_colourclassify
 description: detects color classes in an image.
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 inlets:
   1st:
     - type: gemlist

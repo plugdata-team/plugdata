@@ -3,7 +3,7 @@ title: gemvertexbuffer
 description: renders a vertex buffer
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments: null
 inlets:
   1st:

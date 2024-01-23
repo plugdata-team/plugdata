@@ -3,7 +3,7 @@ title: pix_takealpha
 description: transfer the alpha-channel
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments: null
 methods: null
 inlets:

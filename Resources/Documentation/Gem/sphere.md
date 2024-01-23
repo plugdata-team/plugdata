@@ -3,7 +3,7 @@ title: sphere
 description: renders a segmented sphere.
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: symbol
     description: draw [line|fill|point]

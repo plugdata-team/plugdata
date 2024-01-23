@@ -4,7 +4,7 @@ title: GEMglGenProgramsARB
 description: generate program object names
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the number of program object names to generate.

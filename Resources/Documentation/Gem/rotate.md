@@ -3,7 +3,7 @@ title: rotate
 description: rotation
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: rotation amount around axis (in deg)

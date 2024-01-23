@@ -4,7 +4,7 @@ title: GEMglPointSize
 description: specify the rasterized point size
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the size of rasterized points.

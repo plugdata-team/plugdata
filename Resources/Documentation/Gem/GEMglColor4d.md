@@ -4,7 +4,7 @@ title: GEMglColor4d
 description: set the current RGBA color using double-precision floating-point values
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the red component of the current color.

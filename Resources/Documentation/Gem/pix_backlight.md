@@ -3,7 +3,7 @@ title: pix_backlight
 description: radially displace pixels depending on their luminance value, producing a backlighting effect
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: scale-factor

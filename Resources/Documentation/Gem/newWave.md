@@ -3,7 +3,7 @@ title: newWaves
 description: renders a waving square (mass-spring-system)
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: X grid resolution

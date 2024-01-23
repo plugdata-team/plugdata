@@ -3,7 +3,7 @@ title: pix_biquad
 description: time-based IIR filter
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 methods:
   - type: set
     description: overwrites the filter-buffers with the next incoming image

@@ -3,7 +3,7 @@ title: pix_multitexture
 description: apply multiple texture mappings to the current network
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: number of texture to use

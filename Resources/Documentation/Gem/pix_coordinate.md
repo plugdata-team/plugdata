@@ -3,7 +3,7 @@ title: pix_coordinate
 description: set the texture-coordinates for an image
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments: null
 inlets:
   1st:

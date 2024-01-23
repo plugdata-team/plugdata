@@ -3,7 +3,7 @@ title: scopeXYZ~
 description: 3D oscilloscope
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: number of signal points to be stored

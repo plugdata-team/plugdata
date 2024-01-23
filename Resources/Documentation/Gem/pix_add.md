@@ -3,7 +3,7 @@ title: pix_add
 description: add 2 images
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 inlets:
   1st:
     - type: gemlist

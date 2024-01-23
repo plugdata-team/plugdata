@@ -4,7 +4,7 @@ title: vertex_combine
 description: combine two matrices
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
 inlets:
   1st:

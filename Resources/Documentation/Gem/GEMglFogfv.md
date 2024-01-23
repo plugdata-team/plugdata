@@ -4,7 +4,7 @@ title: GEMglFogfv
 description: specify fog parameters
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the fog parameter to be set.

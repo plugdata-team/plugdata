@@ -4,7 +4,7 @@ title: GEMglLineWidth
 description: specify the width of rasterized lines
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the width of rasterized lines.

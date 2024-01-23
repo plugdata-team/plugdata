@@ -3,7 +3,7 @@ title: pix_colorreduce, pix_colourreduce
 description: reduce the number of colours in the image.
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: number of colours

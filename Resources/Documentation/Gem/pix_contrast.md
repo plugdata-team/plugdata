@@ -3,7 +3,7 @@ title: pix_contrast
 description: change contrast and saturation of an image
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: contrast (>=0, default: 1)

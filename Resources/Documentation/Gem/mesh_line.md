@@ -3,7 +3,7 @@ title: mesh_line
 description: renders a mesh in a line
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 methods:
   - type: draw <symbol>
     description: line, default or point

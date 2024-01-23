@@ -3,7 +3,7 @@ title: pix_curve
 description: applies color-curves stored in arrays to an image
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: list
     description: table name per channel

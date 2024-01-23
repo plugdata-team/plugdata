@@ -4,7 +4,7 @@ title: GEMglPopMatrix
 description: pop the current matrix stack
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments: null
 inlets:
   1st:

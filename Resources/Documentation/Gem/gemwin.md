@@ -6,7 +6,7 @@ description: interact with Gem window
 categories:
  - graphics
 
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 
 arguments:
 - type: float

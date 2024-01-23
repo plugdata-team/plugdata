@@ -3,7 +3,7 @@ title: pix_convolve
 description: apply a convolution kernel to an image
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: list
     description: matrix dimensions

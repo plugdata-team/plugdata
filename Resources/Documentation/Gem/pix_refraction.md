@@ -3,7 +3,7 @@ title: pix_refraction
 description: display a pix through glass bricks
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 methods:
   - type: width <float>
     description: width of each cell

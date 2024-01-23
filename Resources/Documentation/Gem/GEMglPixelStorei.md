@@ -4,7 +4,7 @@ title: GEMglPixelStorei
 description: set pixel storage modes for read pixels (integer version)
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the symbolic name of the parameter to be set.

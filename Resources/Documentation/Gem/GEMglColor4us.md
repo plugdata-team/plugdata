@@ -4,7 +4,7 @@ title: GEMglColor4us
 description: set the current RGBA color using 16-bit unsigned integers
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the red component of the current color.

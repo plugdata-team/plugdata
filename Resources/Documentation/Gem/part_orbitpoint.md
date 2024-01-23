@@ -3,7 +3,7 @@ title: part_orbitpoint
 description: will make the particles orbit about a specified 3d coordinate
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: orbipoint x

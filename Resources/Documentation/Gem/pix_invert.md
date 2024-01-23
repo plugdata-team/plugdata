@@ -3,7 +3,7 @@ title: pix_invert
 description: invert an image
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 inlets:
   1st:
     - type: gemlist

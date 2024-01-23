@@ -3,7 +3,7 @@ title: pix_roll
 description: (sc)roll through an image
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 methods:
   - type: axis <float>
     description: scroll(0=default) or roll(1)

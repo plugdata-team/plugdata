@@ -3,7 +3,7 @@ title: pix_posterize
 description: posterization effect
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: factor

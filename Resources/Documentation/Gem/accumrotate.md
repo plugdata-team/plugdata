@@ -3,7 +3,7 @@ title: accumrotate
 description: Accumulated rotation.
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: initial rotations around X, Y, Z-axes

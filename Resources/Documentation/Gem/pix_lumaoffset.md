@@ -3,7 +3,7 @@ title: pix_lumaoffset
 description: offset pixels depending on the luminance
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 methods:
     - type: fill <float>
       description: draw filled lines

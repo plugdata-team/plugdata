@@ -3,7 +3,7 @@ title: rotateXYZ
 description: rotates a gemList by the specified rotation around the X-, Y-, and Z-axes
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: rotation amount around X-axis (in deg)

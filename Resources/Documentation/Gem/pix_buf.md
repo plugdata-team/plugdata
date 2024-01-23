@@ -3,7 +3,7 @@ title: pix_buf
 description: buffer a pix
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: the default value to force processing

@@ -4,7 +4,7 @@ title: GEMglTexEnvi
 description: set texture environment parameters (integer version)
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the texture environment target.

@@ -4,7 +4,7 @@ title: GEMglActiveTextureARB
 description: select active texture unit (ARB extension)
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies which texture unit to make active.

@@ -4,7 +4,7 @@ title: GEMglProgramLocalParameter4fvARB
 description: specify a float-precision local parameter for a program object
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the target program object.

@@ -3,7 +3,7 @@ title: pix_imageInPlace
 description: loads in multiple image files
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: symbol
     description: filename (with wildcard *) for images to load

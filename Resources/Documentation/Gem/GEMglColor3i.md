@@ -4,7 +4,7 @@ title: GEMglColor3i
 description: set the current RGB color using 32-bit integers
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the red component of the current color.

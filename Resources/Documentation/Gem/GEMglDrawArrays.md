@@ -4,7 +4,7 @@ title: GEMglDrawArrays
 description: render primitives from array data
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies what kind of primitives to render.

@@ -4,7 +4,7 @@ title: GEMglMultiTexCoord2fARB
 description: set the texture coordinates for a specified texture unit with two float values (ARB extension)
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the texture unit.

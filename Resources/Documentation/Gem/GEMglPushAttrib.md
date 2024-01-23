@@ -4,7 +4,7 @@ title: GEMglPushAttrib
 description: push and save attribute state
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies which groups of attributes to save in the display list.

@@ -4,7 +4,7 @@ title: GEMglDepthMask
 description: enable or disable writing into the depth buffer
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies whether the depth buffer is enabled for writing.

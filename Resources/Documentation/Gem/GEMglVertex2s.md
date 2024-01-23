@@ -4,7 +4,7 @@ title: GEMglVertex2s
 description: specify a two-dimensional vertex (short version)
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the x and y coordinates of the vertex.

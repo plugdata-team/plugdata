@@ -4,7 +4,7 @@ title: GEMglBlendEquation
 description: specify the equation used for both the RGB and alpha blending
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the blending equation.

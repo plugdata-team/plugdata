@@ -4,7 +4,7 @@ title: GEMglRenderMode
 description: set OpenGL rendering mode
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: GLenum
       description: Specifies the rendering mode. 

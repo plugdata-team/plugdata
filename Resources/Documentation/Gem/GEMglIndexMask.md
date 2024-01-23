@@ -4,7 +4,7 @@ title: GEMglIndexMask
 description: set the write enable mask for the color index buffers
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies a bit mask to enable and disable writing of individual bits in the color index buffers.

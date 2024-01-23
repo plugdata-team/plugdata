@@ -4,7 +4,7 @@ title: GEMglLightModelf
 description: set the value of a light model parameter
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the light model parameter.

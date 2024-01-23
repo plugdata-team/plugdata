@@ -4,7 +4,7 @@ title: GEMglPopName
 description: pop the top name from the name stack
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments: null
 inlets:
   1st:

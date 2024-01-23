@@ -4,7 +4,7 @@ title: GEMglEdgeFlag
 description: set the current edge flag
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the current edge flag.

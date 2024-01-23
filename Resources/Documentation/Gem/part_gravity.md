@@ -3,7 +3,7 @@ title: part_gravity
 description: sets the gravity-vector of the particle-system
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: gravitation vector x

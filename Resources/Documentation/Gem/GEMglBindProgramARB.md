@@ -4,7 +4,7 @@ title: GEMglBindProgramARB
 description: bind a program object (ARB extension)
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the program target (e.g., GL_VERTEX_PROGRAM_ARB).

@@ -3,7 +3,7 @@ title: pix_snap
 description: take a screenshot and convert it to a pix
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: list
     description: x offset, y offset, width, height

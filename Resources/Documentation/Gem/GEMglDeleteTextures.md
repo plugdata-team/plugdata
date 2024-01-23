@@ -4,7 +4,7 @@ title: GEMglDeleteTextures
 description: delete named textures
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the number of textures to be deleted.

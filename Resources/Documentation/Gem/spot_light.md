@@ -3,7 +3,7 @@ title: spot_light
 description: Adds a spot-light to the scene
 categories:
 - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
 - type: float
   description: Turn light on/off

@@ -3,7 +3,7 @@ title: part_size
 description: changes the size of the particles of a particle-system
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: particle size

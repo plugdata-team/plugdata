@@ -3,7 +3,7 @@ title: pix_roi
 description: set the region-of-interest of an image
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: x1

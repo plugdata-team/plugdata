@@ -3,7 +3,7 @@ title: mesh_square
 description: renders a mesh in a square
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: resolution of the mesh

@@ -4,7 +4,7 @@ title: GEMglEvalMesh2
 description: compute a two-dimensional mesh
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the mesh type.

@@ -4,7 +4,7 @@ title: GEMglClearAccum
 description: clear the accumulation buffer
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the red value used to clear the accumulation buffer.

@@ -4,7 +4,7 @@ title: GEMglShadeModel
 description: select flat or smooth shading
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the shading model.

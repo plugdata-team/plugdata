@@ -3,7 +3,7 @@ title: emissionRGB
 description: emission coloring with individual RGB values.
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: list <float> <float> <float> <float>
     description: a list of 3 (RGB) or 4 (RGBA) float-values.

@@ -3,7 +3,7 @@ title: polygon
 description: Renders a polygon.
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 inlets:
   1st:
     - type: gemlist

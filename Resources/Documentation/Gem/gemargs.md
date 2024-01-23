@@ -3,7 +3,7 @@ title: gemargs
 description: pass the initial message and arguments for the Gem subsystem
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 inlets:
   1st:
     - type: bang

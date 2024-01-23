@@ -3,7 +3,7 @@ title: trapezoid
 description: renders a trapezoid box
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: dimensions of the trapezoid (size topline)

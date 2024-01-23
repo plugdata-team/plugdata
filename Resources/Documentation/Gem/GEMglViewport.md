@@ -4,7 +4,7 @@ title: GEMglViewport
 description: set the viewport
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the lower left corner of the viewport rectangle, in pixels. The initial value is (0,0).

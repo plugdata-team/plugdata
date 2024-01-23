@@ -3,7 +3,7 @@ title: pix_background
 description: separate an object from the background
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 methods:
   - type: reset
     description: reset the background and capture a new image

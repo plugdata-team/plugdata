@@ -3,7 +3,7 @@ title: pix_duotone
 description: reduce the number of colours by thresholding
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 inlets:
   1st:
     - type: gemlist

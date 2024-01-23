@@ -4,7 +4,7 @@ title: GEMglActiveTexture
 description: select active texture unit
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies which texture unit to make active.

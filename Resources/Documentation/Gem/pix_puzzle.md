@@ -3,7 +3,7 @@ title: pix_puzzle
 description: shuffle an image
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 methods:
   - type: size <float> <float>
     description: number of elements in x/y

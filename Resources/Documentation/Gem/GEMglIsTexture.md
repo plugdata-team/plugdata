@@ -4,7 +4,7 @@ title: GEMglIsTexture
 description: determine if a name corresponds to a texture
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the name of a texture.

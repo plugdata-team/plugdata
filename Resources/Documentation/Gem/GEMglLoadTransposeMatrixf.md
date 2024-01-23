@@ -4,7 +4,7 @@ title: GEMglLoadTransposeMatrixf
 description: replace the current matrix with the transpose of a single-precision matrix
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies a pointer to sixteen consecutive values, which are used as the elements of a 4x4 row-major matrix.

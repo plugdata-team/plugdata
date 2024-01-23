@@ -3,7 +3,7 @@ title: part_killold
 description: kill all particles which are older than the kill time
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: kill time

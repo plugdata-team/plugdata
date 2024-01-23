@@ -4,7 +4,7 @@ title: GEMglBegin
 description: delimit the vertices of a primitive or a group of like primitives
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the primitive or group of primitives.

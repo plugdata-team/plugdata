@@ -3,7 +3,7 @@ title: GLdefine
 description: Gets the value of an OpenGL constant.
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 inlets:
   1st:
     - type: bang

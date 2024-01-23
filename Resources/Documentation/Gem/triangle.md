@@ -3,7 +3,7 @@ title: triangle
 description: renders an isosceles triangle.
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: size of the triangle

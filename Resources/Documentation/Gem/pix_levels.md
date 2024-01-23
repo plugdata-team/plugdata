@@ -3,7 +3,7 @@ title: pix_levels
 description: level adjustment
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 methods:
     - type: uni <float>
       description: choose between uniform adjustment(1) or per-channel-adjustment (0)

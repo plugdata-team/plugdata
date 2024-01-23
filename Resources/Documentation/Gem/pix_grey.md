@@ -3,7 +3,7 @@ title: pix_grey, pix_gray
 description: convert the colorspace of an image to grey
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: turn conversion on/off

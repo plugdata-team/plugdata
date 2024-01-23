@@ -3,7 +3,7 @@ title: primTri
 description: renders a triangle with gradient colors
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 methods:
   - type: symbol
     description: draw [line|fill|point]

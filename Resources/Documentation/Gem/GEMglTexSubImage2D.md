@@ -4,7 +4,7 @@ title: GEMglTexSubImage2D
 description: define a subregion of a two-dimensional texture image
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the target texture.

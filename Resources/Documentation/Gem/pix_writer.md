@@ -3,7 +3,7 @@ title: pix_writer
 description: write the current texture to a file
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 
 methods:
   - name: file <float>

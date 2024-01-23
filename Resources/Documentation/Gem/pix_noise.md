@@ -3,7 +3,7 @@ title: pix_noise
 description: generate a noise image
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: width

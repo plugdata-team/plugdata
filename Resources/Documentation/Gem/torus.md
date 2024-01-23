@@ -6,7 +6,7 @@ description: renders a torus
 categories:
  - graphics
 
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 
 arguments:
 - type: float

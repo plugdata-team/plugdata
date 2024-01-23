@@ -3,7 +3,7 @@ title: pix_tIIR
 description: timebased IIR-filter
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: list
     description: IIR coefficients

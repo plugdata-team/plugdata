@@ -4,7 +4,7 @@ title: GEMglColorMaterial
 description: specify the material parameters for the lighting model
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies which material face or faces are being updated.

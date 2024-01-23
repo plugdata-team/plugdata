@@ -4,7 +4,7 @@ title: GEMglAlphaFunc
 description: set the alpha test function
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the alpha comparison function.

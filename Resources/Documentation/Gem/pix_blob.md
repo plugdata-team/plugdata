@@ -3,7 +3,7 @@ title: pix_blob
 description: calculate the "center-of-gravity" of a certain (combination of) channel(s)
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 inlets:
   1st:
     - type: gemlist

@@ -4,7 +4,7 @@ title: GEMglPixelZoom
 description: set pixel zoom factors for read pixels
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the x and y zoom factors.

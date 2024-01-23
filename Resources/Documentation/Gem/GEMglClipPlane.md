@@ -4,7 +4,7 @@ title: GEMglClipPlane
 description: specify a plane against which all geometry is clipped
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies which clipping plane is being specified.

@@ -3,7 +3,7 @@ title: pix_colormatrix, pix_colourmatrix
 description: transform the pixel values by a matrix.
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 inlets:
   1st:
     - type: gemlist

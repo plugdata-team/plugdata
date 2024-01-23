@@ -3,7 +3,7 @@ title: pix_deinterlace
 description: deinterlaces an image
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 methods:
     - type: mode <float>
       description: enforce (1) or not (0)

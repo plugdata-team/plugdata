@@ -3,7 +3,7 @@ title: gemlist
 description: Store a gemlist.
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 
 inlets:
   1st:

@@ -3,7 +3,7 @@ title: glsl_geometry
 description: loads and compiles a GLSL geometry shader into a module
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 methods:
   - type: open <symbol>
     description: filename to load as GLSL geometry shader module

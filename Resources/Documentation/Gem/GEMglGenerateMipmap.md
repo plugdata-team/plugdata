@@ -4,7 +4,7 @@ title: GEMglGenerateMipmap
 description: generate mipmaps for a specified texture target
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the target texture.

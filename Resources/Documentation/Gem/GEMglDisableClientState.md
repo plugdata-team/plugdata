@@ -4,7 +4,7 @@ title: GEMglDisableClientState
 description: disable client-side capability
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the array to disable.

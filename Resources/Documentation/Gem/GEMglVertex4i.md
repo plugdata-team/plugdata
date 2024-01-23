@@ -4,7 +4,7 @@ title: GEMglVertex4i
 description: specify a four-dimensional vertex (integer version)
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the x, y, z, and w coordinates of the vertex.

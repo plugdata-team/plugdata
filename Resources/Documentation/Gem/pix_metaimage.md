@@ -3,7 +3,7 @@ title: pix_metaimage
 description: display a pix by itself
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: size

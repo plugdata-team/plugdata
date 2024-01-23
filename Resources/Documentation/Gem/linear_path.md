@@ -3,7 +3,7 @@ title: linear_path
 description: reads out a table
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: dimension of the table

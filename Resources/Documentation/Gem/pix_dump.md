@@ -3,7 +3,7 @@ title: pix_dump
 description: dump all the pixel-data of an image
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 methods:
 - type: bytemode <float>
     description: set normalization on or off

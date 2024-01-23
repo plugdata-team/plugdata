@@ -3,7 +3,7 @@ title: pix_info
 description: get information about the current image
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 flags:
   - name: -m
     description: message mode

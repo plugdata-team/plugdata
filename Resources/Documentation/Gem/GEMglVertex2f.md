@@ -4,7 +4,7 @@ title: GEMglVertex2f
 description: specify a two-dimensional vertex with single-precision coordinates
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the x-coordinate of the vertex.

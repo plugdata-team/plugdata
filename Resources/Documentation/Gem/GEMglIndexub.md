@@ -4,7 +4,7 @@ title: GEMglIndexub
 description: set the current color index
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the color index.

@@ -4,7 +4,7 @@ title: GEMglStencilFunc
 description: set front and back function and reference value for stencil testing
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the stencil test function.

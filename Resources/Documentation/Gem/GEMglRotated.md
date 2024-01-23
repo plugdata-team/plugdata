@@ -4,7 +4,7 @@ title: GEMglRotated
 description: multiply the current matrix by a rotation matrix (double-precision version)
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: GLdouble
       description: Specifies the angle of rotation, in degrees.

@@ -4,7 +4,7 @@ title: GEMglVertex2fv
 description: specify a two-dimensional vertex with single-precision coordinates using an array
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies an array containing the x and y coordinates of the vertex.

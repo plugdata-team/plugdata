@@ -4,7 +4,7 @@ title: GEMglSelectBuffer
 description: establish a buffer for selection mode
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the size of the selection buffer.

@@ -3,7 +3,7 @@ title: pix_movement
 description: time-based IIR filter for images
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: change threshold (0-1)

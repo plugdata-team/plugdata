@@ -4,7 +4,7 @@ title: GEMglPrioritizeTextures
 description: set texture object priorities
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the number of texture names in textures.

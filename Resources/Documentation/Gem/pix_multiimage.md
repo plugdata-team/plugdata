@@ -3,7 +3,7 @@ title: pix_multiimage
 description: loads in an image to be used as a texture, bitblit, or something else.
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: symbol
     description: filename (with wildcard *) for images to load

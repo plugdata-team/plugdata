@@ -3,7 +3,7 @@ title: cone
 description: renders a cone
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: size of the cone

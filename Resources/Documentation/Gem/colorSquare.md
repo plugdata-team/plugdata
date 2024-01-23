@@ -3,7 +3,7 @@ title: colorSquare
 description: renders a square with several colors
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: size of the square

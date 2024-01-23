@@ -4,7 +4,7 @@ title: GEMglColorMask
 description: enable and disable writing of frame buffer color components
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies whether red, green, blue, and alpha can be written into the frame buffer.

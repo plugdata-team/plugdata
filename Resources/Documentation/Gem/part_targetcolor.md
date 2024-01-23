@@ -3,7 +3,7 @@ title: part_targetcolor
 description: changes the color of particles by a scale factor every frame
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: symbol
     description: RGB or RGBA vector representing the target color

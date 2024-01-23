@@ -3,7 +3,7 @@ title: pix_blobtracker
 description: blob detector and tracker
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: max number of blobs to detect

@@ -3,7 +3,7 @@ title: textoutline
 description: renders a line of outlined text with 3D transformations
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: <symbol>
     description: initial text

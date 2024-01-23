@@ -3,7 +3,7 @@ title: ortho
 description: orthographic rendering
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 methods:
   - type: float
     description: turn orthographic rendering ON (default) or OFF

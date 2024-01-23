@@ -3,7 +3,7 @@ title: part_damp
 description: change velocity of particles
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: V1

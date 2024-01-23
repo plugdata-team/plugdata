@@ -4,7 +4,7 @@ title: GEMglFrustum
 description: define a perspective matrix
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the coordinates for the left and right vertical clipping planes.

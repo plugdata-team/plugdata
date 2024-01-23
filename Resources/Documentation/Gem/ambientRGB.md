@@ -3,7 +3,7 @@ title: ambientRGB
 description: ambient coloring with RGB values
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: red value

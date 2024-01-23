@@ -4,7 +4,7 @@ title: GEMglClear
 description: clear buffers to preset values
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies which buffers are to be cleared.

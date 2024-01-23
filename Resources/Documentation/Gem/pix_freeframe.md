@@ -3,7 +3,7 @@ title: pix_freeframe
 description: run a FreeFrame effect
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: symbol
     description: the plugin to load

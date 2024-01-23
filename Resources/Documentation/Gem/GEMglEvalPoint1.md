@@ -4,7 +4,7 @@ title: GEMglEvalPoint1
 description: compute a one-dimensional grid of points
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the starting grid coordinate.

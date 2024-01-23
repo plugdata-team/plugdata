@@ -4,7 +4,7 @@ title: GEMglFeedbackBuffer
 description: returns information about primitive groups in the feedback buffer
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the size of the buffer.

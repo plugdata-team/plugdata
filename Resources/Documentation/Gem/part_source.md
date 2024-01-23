@@ -3,7 +3,7 @@ title: part_source
 description: adds a particle-source to a particle system
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: number of particles emitted at each rendering frame

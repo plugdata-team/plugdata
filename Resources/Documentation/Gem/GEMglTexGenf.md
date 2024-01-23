@@ -4,7 +4,7 @@ title: GEMglTexGenf
 description: set texture coordinate generation parameters (floating-point version)
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the texture coordinate function.

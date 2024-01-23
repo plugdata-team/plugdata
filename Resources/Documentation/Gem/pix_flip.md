@@ -3,7 +3,7 @@ title: pix_flip
 description: flips the image along an axis
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 methods:
     - type: none
       description: set flip mode to none

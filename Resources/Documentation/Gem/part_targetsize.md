@@ -3,7 +3,7 @@ title: part_targetsize
 description: changes the size of particles by a scale factor every frame
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: size of particles

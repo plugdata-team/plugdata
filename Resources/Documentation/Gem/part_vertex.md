@@ -3,7 +3,7 @@ title: part_vertex
 description: adds a particle at the specified offset
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: list
     description: default position (x y z)

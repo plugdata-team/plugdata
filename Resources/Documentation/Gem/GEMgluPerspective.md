@@ -4,7 +4,7 @@ title: GEMgluPerspective
 description: set up a perspective projection matrix
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the field of view angle, in degrees, in the y direction. 

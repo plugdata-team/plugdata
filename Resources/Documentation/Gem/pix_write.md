@@ -3,7 +3,7 @@ title: pix_write
 description: Make a snapshot of the frame-buffer and write it to a file
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 
 methods:
   - name: file <float>

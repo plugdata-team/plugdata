@@ -4,7 +4,7 @@ title: GEMglCullFace
 description: specify whether front- or back-facing facets can be culled
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the culling mode.

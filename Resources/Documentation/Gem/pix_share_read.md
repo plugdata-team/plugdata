@@ -3,7 +3,7 @@ title: pix_share_read
 description: read pixels from a shared memory region
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: ID

@@ -4,7 +4,7 @@ title: GEMglGetIntegerv
 description: return the value or values of a selected parameter
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the parameter value to retrieve.

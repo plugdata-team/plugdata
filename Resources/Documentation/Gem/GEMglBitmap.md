@@ -4,7 +4,7 @@ title: GEMglBitmap
 description: draw a bitmap
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the width of the bitmap image.

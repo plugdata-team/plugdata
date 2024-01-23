@@ -4,7 +4,7 @@ title: GEMglRects
 description: draw a rectangle
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: GLshort
       description: Specifies the x, y, and z window coordinates of the first corner of the rectangle.

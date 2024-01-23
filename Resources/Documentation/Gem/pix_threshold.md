@@ -3,7 +3,7 @@ title: pix_threshold
 description: apply a threshold to pixels
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: threshold (scalar/vector)

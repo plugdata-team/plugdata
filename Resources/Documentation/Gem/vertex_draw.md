@@ -4,7 +4,7 @@ title: vertex_draw
 description: draw a vertex array
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
 inlets:
   1st:

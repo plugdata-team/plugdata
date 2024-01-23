@@ -3,7 +3,7 @@ title: pix_convert
 description: convert the colorspace of an image
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: symbol
     description: colorspace to convert to

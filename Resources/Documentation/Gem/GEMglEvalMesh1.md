@@ -4,7 +4,7 @@ title: GEMglEvalMesh1
 description: compute a one-dimensional mesh
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the mesh type.

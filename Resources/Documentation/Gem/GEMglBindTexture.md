@@ -4,7 +4,7 @@ title: GEMglBindTexture
 description: bind a named texture to a texturing target
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the target to which the texture is bound.

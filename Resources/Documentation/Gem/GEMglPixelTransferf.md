@@ -4,7 +4,7 @@ title: GEMglPixelTransferf
 description: set pixel transfer modes for read pixels
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the symbolic name of the parameter to be set.

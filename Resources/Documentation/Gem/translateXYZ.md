@@ -3,7 +3,7 @@ title: translateXYZ
 description: graphics translation
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: translation along X-axis

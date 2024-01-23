@@ -3,7 +3,7 @@ title: pix_halftone
 description: draws the input using halftone patterns
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 methods:
     - type: style <float>
       description: selects a style

@@ -3,7 +3,7 @@ title: pix_yuv
 description: convert the colorspace of an image to YUV
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 inlets:
   1st:
     - type: gemlist

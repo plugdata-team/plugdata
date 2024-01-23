@@ -4,7 +4,7 @@ title: GEMglProgramEnvParameter4dARB
 description: specify a double-precision environment parameter for a program object
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the target program object.

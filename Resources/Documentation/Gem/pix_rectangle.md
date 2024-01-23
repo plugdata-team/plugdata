@@ -3,7 +3,7 @@ title: pix_rectangle
 description: draw a rectangle into a pix
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 inlets:
   1st:
     - type: gemlist

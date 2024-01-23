@@ -4,7 +4,7 @@ title: GEMglMapGrid1d
 description: define a one-dimensional grid for evaluators
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the number of partitions in the grid.

@@ -3,7 +3,7 @@ title: pix_resize
 description: resize an image
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: xsize

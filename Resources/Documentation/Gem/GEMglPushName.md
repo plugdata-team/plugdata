@@ -4,7 +4,7 @@ title: GEMglPushName
 description: push a name onto the name stack
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies a name to be pushed onto the name stack.

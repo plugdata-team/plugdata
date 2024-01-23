@@ -3,7 +3,7 @@ title: pix_texture
 description: apply texture mapping
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 methods:
   - type: env <float>
     description: texture environment mode (0=GL_REPLACE, 1=GL_DECAL, 2=GL_BLEND, 3=GL_ADD, 4=GL_COMBINE, >4=GL_MODULATE)

@@ -3,7 +3,7 @@ title: pix_rds
 description: random dot stereogram for luminance
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: stride distance

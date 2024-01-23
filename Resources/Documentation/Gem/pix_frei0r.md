@@ -3,7 +3,7 @@ title: pix_frei0r
 description: run a Frei0r effect
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: symbol
     description: the plugin to load

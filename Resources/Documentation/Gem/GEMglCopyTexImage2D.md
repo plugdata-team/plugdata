@@ -4,7 +4,7 @@ title: GEMglCopyTexImage2D
 description: copy pixels into a 2D texture image
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the target texture.

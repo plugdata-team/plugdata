@@ -4,7 +4,7 @@ title: GEMglNewList
 description: create or replace a display list
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies a unique integer that represents the display list.

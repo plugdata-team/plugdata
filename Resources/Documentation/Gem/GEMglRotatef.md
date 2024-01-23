@@ -4,7 +4,7 @@ title: GEMglRotatef
 description: multiply the current matrix by a rotation matrix
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: GLfloat
       description: Specifies the angle of rotation, in degrees.

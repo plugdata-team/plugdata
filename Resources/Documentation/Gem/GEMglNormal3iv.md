@@ -4,7 +4,7 @@ title: GEMglNormal3iv
 description: set the current normal vector with a pointer to three integer values
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: pointer
       description: Specifies a pointer to an array of three integers.

@@ -4,7 +4,7 @@ title: GEMglNormal3i
 description: set the current normal vector with three integer values
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the x, y, and z components of the current normal vector.

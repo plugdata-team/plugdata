@@ -4,7 +4,7 @@ title: GEMglLogicOp
 description: set the pixel transfer operation for rendering
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies a symbolic constant that selects a logical operation.

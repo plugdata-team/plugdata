@@ -3,7 +3,7 @@ title: vertex_tabread
 description: read from tables to set vertices
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: table
     description: table V

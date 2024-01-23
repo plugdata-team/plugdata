@@ -4,7 +4,7 @@ title: GEMglMap2f
 description: define a two-dimensional evaluator
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the kind of values being mapped.

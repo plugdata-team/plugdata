@@ -3,7 +3,7 @@ title: pix_motionblur
 description: apply motion blurring on a series of images
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: blur-factor (0=no blurring, 1=only blurring)

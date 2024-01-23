@@ -3,7 +3,7 @@ title: cylinder
 description: renders a cylinder
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: size

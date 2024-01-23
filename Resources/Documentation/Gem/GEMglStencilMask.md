@@ -4,7 +4,7 @@ title: GEMglStencilMask
 description: control the writing of individual bits in the stencil planes
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the mask that is ANDed with the stencil value when it is written.

@@ -3,7 +3,7 @@ title: circle
 description: renders a circle
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: size of the circle

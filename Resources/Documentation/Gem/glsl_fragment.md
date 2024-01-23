@@ -3,7 +3,7 @@ title: glsl_fragment
 description: loads and compiles a GLSL fragment shader into a module
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 methods:
   - type: open <symbol>
     description: filename to load as GLSL fragment shader module

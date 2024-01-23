@@ -3,7 +3,7 @@ title: vertex_scale
 description: scale vertices
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: symbol
     description: v, c, t, or n

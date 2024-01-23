@@ -4,7 +4,7 @@ title: GEMglDrawBuffer
 description: specify color buffers to draw into
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the color buffer.

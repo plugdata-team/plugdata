@@ -4,7 +4,7 @@ title: GEMglTexParameterf
 description: set texture parameters (floating-point version)
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the target texture.

@@ -3,7 +3,7 @@ title: pix_dot
 description: simplify an image by representing each segment with a white dot whose size is relative to the luminance of the original segment
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: size of the dots

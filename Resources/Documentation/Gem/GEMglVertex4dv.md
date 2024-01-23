@@ -4,7 +4,7 @@ title: GEMglVertex4dv
 description: specify a four-dimensional vertex (double version)
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: const float*
       description: Specifies a pointer to an array of four elements, which are the x, y, z, and w coordinates of the vertex.

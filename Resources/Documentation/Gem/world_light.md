@@ -3,7 +3,7 @@ title: world_light
 description: adds a point-light to the scene.
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: turn light on/off (default: 1)

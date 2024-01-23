@@ -4,7 +4,7 @@ title: GEMglDepthRange
 description: specify mapping of depth values from normalized device coordinates to window coordinates
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the mapping of the near clipping plane to window coordinates.

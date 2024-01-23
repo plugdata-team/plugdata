@@ -4,7 +4,7 @@ title: GEMglBlendFunc
 description: specify pixel arithmetic for RGB and alpha components
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies how the source blending factor is computed.

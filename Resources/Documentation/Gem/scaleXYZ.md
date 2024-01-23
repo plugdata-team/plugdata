@@ -3,7 +3,7 @@ title: scaleXYZ
 description: scales a gemList along the X-, Y-, and Z-axes
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: scaling amount along the X-axis

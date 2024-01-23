@@ -4,7 +4,7 @@ title: GEMglRasterPos4d
 description: set the current raster position
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the x, y, and z window coordinates.

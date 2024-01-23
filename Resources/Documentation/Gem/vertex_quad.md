@@ -4,7 +4,7 @@ title: vertex_quad
 description: draw a quad with texture coordinates
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
 inlets:
   1st:

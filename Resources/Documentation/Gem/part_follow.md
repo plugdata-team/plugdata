@@ -3,7 +3,7 @@ title: part_follow
 description: make particles follow each other.
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: symbol
     description: particle follow

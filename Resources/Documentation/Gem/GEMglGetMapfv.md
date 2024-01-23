@@ -4,7 +4,7 @@ title: GEMglGetMapfv
 description: return the coefficients of the specified map
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the map to query.

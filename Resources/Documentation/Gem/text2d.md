@@ -3,7 +3,7 @@ title: text2d
 description: renders a line of text without 3D transformations.
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: <symbol>
     description: initial text (defaults to "gem")

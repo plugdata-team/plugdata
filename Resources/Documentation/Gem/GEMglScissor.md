@@ -4,7 +4,7 @@ title: GEMglScissor
 description: define the scissor box
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the lower left corner of the scissor box.

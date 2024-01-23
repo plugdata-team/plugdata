@@ -3,7 +3,7 @@ title: pix_equal
 description: marks the pixels nearly equal to a given color
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 inlets:
   1st:
     - type: gemlist

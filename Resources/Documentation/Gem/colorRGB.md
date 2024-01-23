@@ -3,7 +3,7 @@ title: colorRGB
 description: sets the color for subsequent shape and vertex operations using RGB values
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: red value

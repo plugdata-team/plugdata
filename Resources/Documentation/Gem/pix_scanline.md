@@ -3,7 +3,7 @@ title: pix_scanline
 description: scan lines of an image
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments: null
 methods:
     - type: mode <float>

@@ -4,7 +4,7 @@ title: GEMglHint
 description: specify implementation-specific hints
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the target.

@@ -4,7 +4,7 @@ title: GEMglEvalCoord1fv
 description: evaluate enabled one-dimensional maps at the specified parametric coordinate
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the parametric coordinate at which to evaluate the maps.

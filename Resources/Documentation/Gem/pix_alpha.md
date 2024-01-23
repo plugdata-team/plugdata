@@ -3,7 +3,7 @@ title: pix_alpha
 description: set the alpha values of an RGBA-pix
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 inlets:
   1st:
     - type: gemlist

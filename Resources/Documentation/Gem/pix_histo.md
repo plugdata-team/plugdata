@@ -3,7 +3,7 @@ title: pix_histo
 description: gets the histogram (density function) of an image.
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: <list>
     description: tables to store histogram

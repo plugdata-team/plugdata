@@ -3,7 +3,7 @@ title: pix_mix
 description: mix 2 images based on mixing factors
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: left gain

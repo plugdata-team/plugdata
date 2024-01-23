@@ -3,7 +3,7 @@ title: pix_video
 description: open a camera and get input
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 
 methods:
     - name: colorspace <symbol>

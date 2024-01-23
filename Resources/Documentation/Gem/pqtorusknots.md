@@ -3,7 +3,7 @@ title: pqtorusknot
 description: renders a 3D knot
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: gemlist
     description:

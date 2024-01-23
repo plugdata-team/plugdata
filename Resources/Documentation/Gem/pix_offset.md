@@ -3,7 +3,7 @@ title: pix_offset
 description: add an offset to the color
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 inlets:
   1st:
     - type: gemlist

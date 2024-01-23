@@ -4,7 +4,7 @@ title: GEMglClearIndex
 description: specify the clear value for the color index buffers
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the index used when the color index buffers are cleared.

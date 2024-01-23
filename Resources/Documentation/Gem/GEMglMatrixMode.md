@@ -4,7 +4,7 @@ title: GEMglMatrixMode
 description: set the current matrix mode
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the matrix mode.

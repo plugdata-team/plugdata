@@ -4,7 +4,7 @@ title: GEMglGenLists
 description: generate a contiguous set of empty display lists
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the number of contiguous empty display lists to be generated.

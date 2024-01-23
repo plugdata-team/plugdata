@@ -4,7 +4,7 @@ title: GEMglProgramEnvParameter4fvARB
 description: specify a float-precision environment parameter for a program object
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the target program object.

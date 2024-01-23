@@ -3,7 +3,7 @@ title: pix_set
 description: set the pixel-data of an image
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: width

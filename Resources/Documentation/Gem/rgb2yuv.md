@@ -3,7 +3,7 @@ title: rgb2yuv
 description: convert RGB color values to YUV
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 inlets:
   1st:
     - type: list

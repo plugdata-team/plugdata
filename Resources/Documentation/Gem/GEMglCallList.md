@@ -4,7 +4,7 @@ title: GEMglCallList
 description: execute a display list
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the name of the display list to be executed.

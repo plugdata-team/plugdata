@@ -2,7 +2,7 @@
 title: pix_mask
 description: mask out a pix
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 inlets:
   1st:
     - type: gemlist

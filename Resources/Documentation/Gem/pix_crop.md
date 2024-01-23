@@ -3,7 +3,7 @@ title: pix_crop
 description: get a subimage of an image
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - name: offsetX
     type: float

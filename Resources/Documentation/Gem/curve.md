@@ -3,7 +3,7 @@ title: curve
 description: renders a bezier-curve
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: <float>
     description: number of control-points of the curve (mandatory)

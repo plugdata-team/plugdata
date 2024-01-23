@@ -3,7 +3,7 @@ title: pix_film
 description: load in a movie-file
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: symbol
     description: file to load initially

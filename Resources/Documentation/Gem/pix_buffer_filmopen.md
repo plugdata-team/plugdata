@@ -3,7 +3,7 @@ title: pix_buffer_filmopen
 description: reads a movie into a named buffer in the pix_buffer object
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: list
     description: buffer name

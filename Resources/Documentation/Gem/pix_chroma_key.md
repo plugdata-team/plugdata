@@ -3,7 +3,7 @@ title: pix_chroma_key
 description: mix 2 images based on their color
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 methods:
   - type: float
     description: which stream is the key-source (0=left stream, 1=right stream)

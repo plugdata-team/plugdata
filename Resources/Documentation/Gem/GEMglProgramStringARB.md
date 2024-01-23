@@ -4,7 +4,7 @@ title: GEMglProgramStringARB
 description: load a program object with a string
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the target program object.

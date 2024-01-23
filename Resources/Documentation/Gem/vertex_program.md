@@ -3,7 +3,7 @@ title: vertex_program
 description: loads and applies an ARB (or NV) vertex shader
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 inlets:
   1st:
     - type: gemlist

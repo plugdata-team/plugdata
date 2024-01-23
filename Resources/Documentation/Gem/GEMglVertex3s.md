@@ -4,7 +4,7 @@ title: GEMglVertex3s
 description: specify a three-dimensional vertex (short version)
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the x, y, and z coordinates of the vertex.

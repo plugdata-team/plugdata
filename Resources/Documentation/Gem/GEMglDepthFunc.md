@@ -4,7 +4,7 @@ title: GEMglDepthFunc
 description: set the function used for depth buffer comparisons
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the depth comparison function.

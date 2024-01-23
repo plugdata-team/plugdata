@@ -3,7 +3,7 @@ title: model
 description: renders an Alias/Wavefront model
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: <symbol>
     description: name of an OBJ-file to be loaded

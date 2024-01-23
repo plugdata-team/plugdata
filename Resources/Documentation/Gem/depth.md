@@ -3,7 +3,7 @@ title: depth
 description: Activate / Deactivate depth test.
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments: null
 inlets:
   1st:

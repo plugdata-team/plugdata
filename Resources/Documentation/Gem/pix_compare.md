@@ -3,7 +3,7 @@ title: pix_compare
 description: mix 2 images based on their luminance.
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: take lower or higher valued pixel

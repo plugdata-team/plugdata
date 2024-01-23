@@ -4,7 +4,7 @@ title: GEMglIsList
 description: test if a name corresponds to a display list
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the name of a display list.

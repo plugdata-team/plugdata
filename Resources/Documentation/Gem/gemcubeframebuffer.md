@@ -3,7 +3,7 @@ title: gemcubeframebuffer
 description: renders a scene to faces of a GL cubemap texture
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 methods:
   - type: dimen <float> <float>
     description: set the dimensions of the framebuffer

@@ -3,7 +3,7 @@ title: part_velocity
 description: sets velocity of newly emitted particles within the system
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: symbol
     description: domain, one of "point", "line", "triangle", "plane", "box", "sphere", "cylinder", "cone", "blob", "disc", "rectangle"

@@ -3,7 +3,7 @@ title: pix_rtx
 description: RealTime vs. X transformation
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments: null
 methods:
     - type: set

@@ -3,7 +3,7 @@ title: pix_threshold_bernsen
 description: apply dynamic thresholds to pixels for binarization
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: number of tiles in x-direction

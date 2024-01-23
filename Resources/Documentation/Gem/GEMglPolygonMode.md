@@ -4,7 +4,7 @@ title: GEMglPolygonMode
 description: set the front and back polygon fill mode
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the face for which the polygon mode is set.

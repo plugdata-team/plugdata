@@ -4,7 +4,7 @@ title: GEMglFrontFace
 description: define front- and back-facing polygons
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the orientation of front-facing polygons.

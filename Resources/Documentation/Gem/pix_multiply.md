@@ -3,7 +3,7 @@ title: pix_multiply
 description: multiply 2 images
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 inlets:
   1st:
     - type: gemlist

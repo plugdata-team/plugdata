@@ -4,7 +4,7 @@ title: GEMglGetString
 description: return a string describing the current GL connection
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the information to return.

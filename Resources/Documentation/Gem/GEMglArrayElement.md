@@ -4,7 +4,7 @@ title: GEMglArrayElement
 description: render a vertex using vertex arrays
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the index of the vertex in the enabled arrays.

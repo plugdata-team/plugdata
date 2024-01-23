@@ -3,7 +3,7 @@ title: pix_record
 description: write a sequence of pixes to a movie file
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 methods:
     - type: file <symbol>
       description: specify the file for writing

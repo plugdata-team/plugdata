@@ -4,7 +4,7 @@ title: GEMglPopAttrib
 description: restore the state of the attribute stack
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments: null
 inlets:
   1st:

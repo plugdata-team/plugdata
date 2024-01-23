@@ -3,7 +3,7 @@ title: gemframebuffer
 description: renders a scene in a texture for later use
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 methods:
   - type: type <symbol>
     description: type of the framebuffer data (BYTE, INT or FLOAT])

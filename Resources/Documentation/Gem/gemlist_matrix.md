@@ -3,7 +3,7 @@ title: gemlist_matrix
 description: get the current transformation matrix of a gemlist
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 
 inlets:
   1st:

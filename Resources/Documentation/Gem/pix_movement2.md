@@ -3,7 +3,7 @@ title: pix_movement2
 description: time-based IIR-filter for motion detection
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: low threshold (0-1)

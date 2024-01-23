@@ -3,7 +3,7 @@ title: pix_color, pix_colour
 description: set the colour-channels of an image
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 inlets:
   1st:
     - type: gemlist

@@ -3,7 +3,7 @@ title: pix_buffer
 description: a storage place for a number of images
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 methods:
   - type: allocate <float> <float>
     description: preallocate memory for images

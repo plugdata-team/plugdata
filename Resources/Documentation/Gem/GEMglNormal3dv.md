@@ -4,7 +4,7 @@ title: GEMglNormal3dv
 description: set the current normal vector with a pointer to three double-precision values
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: pointer
       description: Specifies a pointer to an array of three double-precision values.

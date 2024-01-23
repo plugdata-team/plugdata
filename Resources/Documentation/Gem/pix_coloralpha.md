@@ -3,7 +3,7 @@ title: pix_coloralpha, pix_colouralpha
 description: calculate the Alpha-channel from the RGB-data.
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: turn on/off

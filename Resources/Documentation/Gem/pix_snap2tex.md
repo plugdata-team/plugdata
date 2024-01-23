@@ -3,7 +3,7 @@ title: pix_snap2tex
 description: take a screenshot and texture it
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: X offset

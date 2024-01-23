@@ -3,7 +3,7 @@ title: part_velcone
 description: sets a cone with a specified height and center to be the velocity-domain of emitted particles
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: list
     description: default dimensions (x y z height)

@@ -3,7 +3,7 @@ title: ripple
 description: renders and distorts a square
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: message
     description: draw [line|fill|point]

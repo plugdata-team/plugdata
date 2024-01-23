@@ -4,7 +4,7 @@ title: GEMglTexCoord2i
 description: set the current texture coordinates
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the s, t, and r texture coordinates.

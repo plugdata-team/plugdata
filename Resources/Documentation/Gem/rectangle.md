@@ -3,7 +3,7 @@ title: rectangle
 description: renders a rectangle
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: symbol
     description: draw [line|fill|point]

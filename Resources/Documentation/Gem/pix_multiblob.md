@@ -3,7 +3,7 @@ title: pix_multiblob
 description: blob detector (for multiple blobs)
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: max number N of blobs to detect

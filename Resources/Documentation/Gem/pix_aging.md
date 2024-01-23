@@ -3,7 +3,7 @@ title: pix_aging
 description: apply a super8-like aging effect
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 methods:
   - type: scratch <float>
     description: add a maximum of scratches

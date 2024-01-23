@@ -3,7 +3,7 @@ title: pix_a_2grey, pix_a_2gray
 description: convert a pixel to greyscale based on alpha
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 inlets:
   1st:
     - type: gemlist

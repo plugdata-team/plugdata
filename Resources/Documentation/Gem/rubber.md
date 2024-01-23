@@ -3,7 +3,7 @@ title: rubber
 description: renders and distorts a square
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: bang
     description: grab/release

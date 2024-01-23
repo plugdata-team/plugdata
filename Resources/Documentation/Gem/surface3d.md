@@ -3,7 +3,7 @@ title: surface3d
 description: Renders a 3d bicubic curve.
 categories:
 - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
 - type: list
   description: size of the control matrix

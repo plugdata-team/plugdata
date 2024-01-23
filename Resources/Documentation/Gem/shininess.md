@@ -3,7 +3,7 @@ title: shininess
 description: aets the shininess of the material
 categories:
 - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
 - type: float
   description: Shininess value (0 - 128)

@@ -3,7 +3,7 @@ title: pix_gain
 description: multiply pixel-values
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: <list>
     description: gain vector

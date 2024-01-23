@@ -4,7 +4,7 @@ title: GEMglNormal3bv
 description: set the current normal vector with a pointer to three signed byte values
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: pointer
       description: Specifies a pointer to an array of three signed bytes.

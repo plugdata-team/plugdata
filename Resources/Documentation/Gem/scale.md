@@ -3,7 +3,7 @@ title: scale
 description: scales a gemList with specified scaling factors
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: initial scale amount

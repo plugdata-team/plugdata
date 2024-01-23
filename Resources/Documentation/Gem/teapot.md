@@ -6,7 +6,7 @@ description: renders a teapot
 categories:
  - graphics
 
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 
 arguments:
 - type: float

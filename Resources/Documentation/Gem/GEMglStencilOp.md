@@ -4,7 +4,7 @@ title: GEMglStencilOp
 description: set front and back stencil test actions
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the action to take when the stencil test fails.

@@ -4,7 +4,7 @@ title: GEMglColor4usv
 description: set the current RGBA color using 16-bit unsigned integers from an array
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies an array containing the red, green, blue, and alpha components of the current color.

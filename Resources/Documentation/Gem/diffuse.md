@@ -3,7 +3,7 @@ title: diffuse
 description: diffuse coloring
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: list
     description: a list of 3 (RGB) or 4 (RGBA) float-values

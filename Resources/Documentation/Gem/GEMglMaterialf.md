@@ -4,7 +4,7 @@ title: GEMglMaterialf
 description: specify material parameters for lighting
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the face and the material parameter.

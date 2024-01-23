@@ -3,7 +3,7 @@ title: pix_image
 description: loads in an image to be used as texture, bitblit, or something else
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: symbol
     description: filename

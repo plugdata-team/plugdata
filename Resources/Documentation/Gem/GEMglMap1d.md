@@ -4,7 +4,7 @@ title: GEMglMap1d
 description: define a one-dimensional evaluator
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the kind of values being mapped.

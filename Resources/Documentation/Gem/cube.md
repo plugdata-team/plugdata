@@ -3,7 +3,7 @@ title: cube
 description: renders a cube
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: size of the cube

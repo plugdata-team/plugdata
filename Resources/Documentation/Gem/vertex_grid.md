@@ -3,7 +3,7 @@ title: vertex_grid
 description: create a grid of vertices
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: x

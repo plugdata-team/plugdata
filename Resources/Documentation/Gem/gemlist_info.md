@@ -3,7 +3,7 @@ title: gemlist_info
 description: get current transformation of a gemlist
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 inlets:
   1st:
     - type: gemlist

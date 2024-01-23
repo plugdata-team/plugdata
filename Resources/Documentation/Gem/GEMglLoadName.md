@@ -4,7 +4,7 @@ title: GEMglLoadName
 description: load a single unsigned integer value into the name stack
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the name to be loaded into the name stack.

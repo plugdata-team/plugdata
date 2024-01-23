@@ -3,7 +3,7 @@ title: pix_data
 description: gets the color of a specified pixel within an image when triggered
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: xpos

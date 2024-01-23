@@ -237,9 +237,27 @@ public:
             return itemComponent;
         }
     }
+        
+    void removeAliasedDuplicates(StringArray& objectsToShow)
+    {
+        // TODO: this is inefficient!
+        StringArray gemObjects;
+        for(auto& object : objectsToShow)
+        {
+            if(object.startsWith("Gem"))
+            {
+                gemObjects.add(object.fromLastOccurrenceOf("/", false, false));
+            }
+        }
+        for(auto& gemObject : gemObjects)
+        {
+            objectsToShow.removeString(gemObject);
+        }
+    }
 
     void showObjects(StringArray objectsToShow)
     {
+        removeAliasedDuplicates(objectsToShow);
         objects = std::move(objectsToShow);
         updateContent();
         repaint();

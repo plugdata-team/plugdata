@@ -4,7 +4,7 @@ title: GEMglPassThrough
 description: pass a token through the feedback pipeline
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies a token value to be passed through the feedback pipeline.

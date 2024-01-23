@@ -4,7 +4,7 @@ title: GEMglGetPointerv
 description: return the address of the specified pointer
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the pointer to be returned.

@@ -3,7 +3,7 @@ title: gemhead
 description: start a rendering chain
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: priority

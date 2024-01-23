@@ -4,7 +4,7 @@ title: GEMglColor3fv
 description: set the current RGB color using single-precision floating-point values from an array
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies an array containing the red, green, and blue components of the current color.

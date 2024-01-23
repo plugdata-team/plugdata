@@ -3,7 +3,7 @@ title: alpha
 description: enable alpha blending
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: turn alpha blending on/off

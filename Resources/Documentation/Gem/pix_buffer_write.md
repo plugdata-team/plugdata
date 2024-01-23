@@ -3,7 +3,7 @@ title: pix_buffer_write
 description: writes an image into a named buffer created by the [pix_buffer] object
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
   - type: symbol
     description: <buffer_name>

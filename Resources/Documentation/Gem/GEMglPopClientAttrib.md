@@ -4,7 +4,7 @@ title: GEMglPopClientAttrib
 description: restore the state of the client attribute stack
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments: null
 inlets:
   1st:

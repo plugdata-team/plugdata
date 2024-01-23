@@ -4,7 +4,7 @@ title: GEMglUseProgramObjectARB
 description: install a program object as part of current rendering state (ARB version)
 categories:
   - object
-pdcategory: Graphics
+pdcategory: Gem, Graphics
 arguments:
     - type: float
       description: Specifies the handle of the program object whose executables are to be used as part of rendering state.
