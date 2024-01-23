@@ -232,7 +232,7 @@ int createGemWindow(WindowInfo& info, WindowHints& hints)
     gemJUCEWindow[window->instance].reset(window);
     info.window[window->instance] = window;
     
-    #if JUCE_LINUX || JUCE_WINDOWS
+    #if JUCE_LINUX
     // Make sure only audio thread has the context set as active
     window->openGLContext.executeOnGLThread([](OpenGLContext& context){
         // We get unpredictable behaviour if the context is active on multiple threads
