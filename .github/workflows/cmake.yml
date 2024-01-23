@@ -46,10 +46,6 @@ jobs:
         p12-file-base64: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12_BASE64 }}
         p12-password: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
 
-    - name: Install Gem plugin dependencies
-      working-directory: ${{github.workspace}}/build
-      run: cmake --build . --config $BUILD_TYPE
-
     - name: Build
       working-directory: ${{github.workspace}}/build
       run: cmake --build . --config $BUILD_TYPE
