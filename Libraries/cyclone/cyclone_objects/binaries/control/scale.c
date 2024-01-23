@@ -150,8 +150,7 @@ CYCLONE_OBJ_API void cyclone_scale_setup(void)
 {
   t_class *c;
   
-  // Gem also has a [scale] object, and it needs to be in global namespace
-  scale_class = class_new(gensym("cyclone/scale"), (t_newmethod)scale_new,
+  scale_class = class_new(gensym("scale"), (t_newmethod)scale_new,
 			  (t_method)scale_free,sizeof(t_scale),0,A_GIMME,0);
   c = scale_class;
   class_addfloat(c,(t_method)scale_ft);
