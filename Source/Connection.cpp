@@ -274,6 +274,7 @@ void Connection::renderConnectionPath(Graphics& g,
     Canvas* cnv,
     Path const& connectionPath,
     bool isSignal,
+    bool isGemState,
     bool isMouseOver,
     bool showDirection,
     bool showConnectionOrder,
@@ -287,12 +288,24 @@ void Connection::renderConnectionPath(Graphics& g,
     auto baseColour = cnv->findColour(PlugDataColour::connectionColourId);
     auto dataColour = cnv->findColour(PlugDataColour::dataColourId);
     auto signalColour = cnv->findColour(PlugDataColour::signalColourId);
+    auto gemColour = cnv->findColour(PlugDataColour::gemColourId);
     auto handleColour = isSignal ? dataColour : signalColour;
 
     auto connectionLength = connectionPath.getLength();
 
     if (isSelected) {
-        baseColour = isSignal ? signalColour : dataColour;
+        if(isSignal)
+        {
+            baseColour = signalColour;
+        }
+        else if(isGemState)
+        {
+            baseColour = gemColour;
+        }
+        else {
+            baseColour = dataColour;
+        }
+        
     } else if (isMouseOver) {
         baseColour = isSignal ? signalColour : dataColour;
         baseColour = baseColour.brighter(0.6f);
@@ -416,6 +429,7 @@ void Connection::paint(Graphics& g)
         cnv,
         toDrawLocalSpace,
         outlet != nullptr && outlet->isSignal,
+        outlet != nullptr && outlet->isGemState,
         isMouseOver(),
         showDirection,
         showConnectionOrder,

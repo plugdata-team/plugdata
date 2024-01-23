@@ -44,6 +44,7 @@ public:
     int ioletIdx;
     bool isInlet;
     bool isSignal;
+    bool isGemState;
 
     bool isTargeted = false;
 

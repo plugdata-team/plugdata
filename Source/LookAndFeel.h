@@ -40,6 +40,7 @@ inline std::map<PlugDataColour, std::tuple<String, String, String>> const PlugDa
     { dataColourId, { "Data colour", "data_colour", "Canvas" } },
     { connectionColourId, { "Connection", "connection_colour", "Canvas" } },
     { signalColourId, { "Signal", "signal_colour", "Canvas" } },
+    { gemColourId, { "Gem", "gem_colour", "Canvas" } },
     { resizeableCornerColourId, { "Graph resizer", "graph_resizer", "Canvas" } },
     { gridLineColourId, { "Grid line", "grid_colour", "Canvas" } },
 

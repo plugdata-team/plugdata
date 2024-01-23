@@ -48,7 +48,6 @@ public:
         ProjectInfo::appDataDir.getChildFile("Abstractions").getChildFile("else"),
         ProjectInfo::appDataDir.getChildFile("Abstractions").getChildFile("cyclone"),
         ProjectInfo::appDataDir.getChildFile("Abstractions").getChildFile("heavylib"),
-        ProjectInfo::appDataDir.getChildFile("Abstractions").getChildFile("Gem"),
         ProjectInfo::appDataDir.getChildFile("Abstractions"),
         ProjectInfo::appDataDir.getChildFile("Externals"),
         ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("else"),

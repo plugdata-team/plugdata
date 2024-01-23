@@ -270,6 +270,7 @@ enum PlugDataColour {
     dataColourId,
     connectionColourId,
     signalColourId,
+    gemColourId,
 
     dialogBackgroundColourId,
 

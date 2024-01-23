@@ -626,10 +626,16 @@ void Object::updateTooltips()
         auto* iolet = iolets[i];
 
         auto& tooltip = ioletTooltips[!iolet->isInlet][iolet->isInlet ? i : i - numInputs];
-
-        // Don't overwrite custom documentation
-        if (tooltip.isNotEmpty()) {
-            iolet->setTooltip(tooltip);
+        if(tooltip.startsWith("(gemlist)"))
+        {
+            iolet->isGemState = true;
+            iolet->setTooltip("(gemlist)");
+        }
+        else {
+            if (tooltip.isNotEmpty()) { // Don't overwrite custom documentation if there is no md documentation
+                iolet->setTooltip(tooltip);
+            }
+            iolet->isGemState = false;
         }
     }
 
@@ -700,6 +706,7 @@ void Object::updateTooltips()
 
         auto& [x, message] = iolet->isInlet ? inletMessages[numIn++] : outletMessages[numOut++];
         iolet->setTooltip(message);
+        iolet->isGemState = message.startsWith("(gemlist)");
     }
 }
 

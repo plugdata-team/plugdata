@@ -49,6 +49,7 @@ public:
         Canvas* cnv,
         Path const& connectionPath,
         bool isSignal,
+        bool isGemState,
         bool isMouseOver = false,
         bool showDirection = false,
         bool showConnectionOrder = false,
@@ -226,7 +227,7 @@ public:
             jassertfalse; // shouldn't happen
             return;
         }
-        Connection::renderConnectionPath(g, (Canvas*)cnv, connectionPath, iolet->isSignal, true);
+        Connection::renderConnectionPath(g, (Canvas*)cnv, connectionPath, iolet->isSignal, iolet->isGemState, true);
     }
 
     Iolet* getIolet()
