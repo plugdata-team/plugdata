@@ -57,13 +57,15 @@ public:
             auto lineEnd = Point<float>(4.0f, b.getHeight() - 3.0f);
             treeLine.startNewSubPath(4.0f, 0.0f);
             treeLine.lineTo(lineEnd);
-
-            treeLineImage = Image(Image::PixelFormat::ARGB, b.getWidth(), b.getHeight(), true);
-            Graphics treeLineG(treeLineImage);
-            treeLineG.setColour(Colours::white);
-            treeLineG.strokePath(treeLine, PathStrokeType(1.0f));
-            auto ballEnd = Rectangle<float>(0, 0, 5, 5).withCentre(lineEnd);
-            treeLineG.fillEllipse(ballEnd);
+            
+            if(!b.isEmpty()) {
+                treeLineImage = Image(Image::PixelFormat::ARGB, b.getWidth(), b.getHeight(), true);
+                Graphics treeLineG(treeLineImage);
+                treeLineG.setColour(Colours::white);
+                treeLineG.strokePath(treeLine, PathStrokeType(1.0f));
+                auto ballEnd = Rectangle<float>(0, 0, 5, 5).withCentre(lineEnd);
+                treeLineG.fillEllipse(ballEnd);
+            }
         }
     }
 

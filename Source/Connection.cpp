@@ -293,7 +293,7 @@ void Connection::renderConnectionPath(Graphics& g,
 
     auto connectionLength = connectionPath.getLength();
 
-    if (isSelected) {
+    if (isSelected || isMouseOver) {
         if(isSignal)
         {
             baseColour = signalColour;
@@ -306,8 +306,8 @@ void Connection::renderConnectionPath(Graphics& g,
             baseColour = dataColour;
         }
         
-    } else if (isMouseOver) {
-        baseColour = isSignal ? signalColour : dataColour;
+    }
+    if (isMouseOver) {
         baseColour = baseColour.brighter(0.6f);
     }
 
