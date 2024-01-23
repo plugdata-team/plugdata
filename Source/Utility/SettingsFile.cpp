@@ -163,6 +163,19 @@ void SettingsFile::initialisePathsTree()
             pathTree.appendChild(pathSubTree, nullptr);
         }
     }
+    
+    // TODO: remove this later. this is to fix a mistake during v0.8.4 development
+    for (auto child : pathTree) {
+        if(child.getProperty("Path").toString().contains("Abstractions/Gem"))
+        {
+            pathTree.removeChild(child, nullptr);
+            break;
+        }
+    }
+    
+    
+   
+    
 }
 
 void SettingsFile::addToRecentlyOpened(File const& path)
