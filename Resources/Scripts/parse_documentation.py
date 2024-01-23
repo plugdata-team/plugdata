@@ -201,6 +201,7 @@ def markdownToXml(root, md):
     arguments = ET.SubElement(object, "arguments")
     methods = ET.SubElement(object, "methods")
     flags = ET.SubElement(object, "flags")
+    #print(title)
 
     if "methods" in sections:
       for section in sectionsFromHyphens(sections["methods"]):
@@ -232,7 +233,6 @@ def markdownToXml(root, md):
         ET.SubElement(flags, "flag", name=sectionMap["name"], description=desc)
 
     numbers = { "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th", "nth" };
-    #print(description)
 
     if "inlets" in sections:
       inletSections = getSections(sections["inlets"], numbers)
@@ -244,9 +244,11 @@ def markdownToXml(root, md):
         for argument in sectionsFromHyphens(inletSections[section]):
           typeAndDescription = getSections(argument, { "type", "description" })
           tip += "(" + typeAndDescription["type"] + ") "
+          description = ""
           if "description" in typeAndDescription:
            tip += typeAndDescription["description"] + "\n"
-          ET.SubElement(inlet, "message", type=typeAndDescription["type"], description=typeAndDescription["description"])
+           description = typeAndDescription["description"]
+          ET.SubElement(inlet, "message", type=typeAndDescription["type"], description=description)
         inlet.set("tooltip", tip.strip())
         iolets.append(inlet)
 
