@@ -9,6 +9,11 @@
 #include "Objects/ObjectBase.h"
 #include "Heavy/CompatibleObjects.h"
 
+extern "C"
+{
+int is_gem_object(const char* sym);
+}
+
 // Component that sits on top of a TextEditor and will draw auto-complete suggestions over it
 class AutoCompleteComponent
     : public Component
@@ -136,7 +141,15 @@ class SuggestionComponent : public Component
     , public ComponentListener {
 
     class Suggestion : public TextButton {
-        int type = -1;
+        
+        enum ObjectType
+        {
+            Data = 0,
+            Signal = 1,
+            Gem = 2
+        };
+        
+        ObjectType type;
 
         String objectDescription;
 
@@ -156,7 +169,12 @@ class SuggestionComponent : public Component
         {
             objectDescription = description;
             setButtonText(name);
-            type = name.contains("~") ? 1 : 0;
+            type = name.contains("~") ? Signal : Data;
+            
+            if(!type && is_gem_object(name.toRawUTF8()))
+            {
+                type = Gem;
+            }
 
             // Argument suggestions don't have icons!
             drawIcon = icon;
@@ -201,19 +219,30 @@ class SuggestionComponent : public Component
                 Fonts::drawText(g, String::fromUTF8("  \xe2\x80\x93  ") + objectDescription, Rectangle<int>(leftIndent, yIndent, textWidth, getHeight() - yIndent * 2), colour, 13);
             }
 
-            if (type == -1)
-                return;
-
             if (drawIcon) {
-                auto dataColour = findColour(PlugDataColour::dataColourId);
-                auto signalColour = findColour(PlugDataColour::signalColourId);
-                g.setColour(type ? signalColour : dataColour);
+                Colour iconColour;
+                String iconText;
+                if(type == Data) {
+                    iconColour = findColour(PlugDataColour::dataColourId);
+                    iconText = "pd";
+                }
+                else if(type == Signal) {
+                    iconColour = findColour(PlugDataColour::signalColourId);
+                    iconText = "~";
+                }
+                else if (type == Gem) {
+                    iconColour = findColour(PlugDataColour::gemColourId);
+                    iconText = "g";
+                }
+                g.setColour(iconColour);
+                
                 auto iconbound = getLocalBounds().reduced(4);
                 iconbound.setWidth(getHeight() - 8);
                 iconbound.translate(4, 0);
                 PlugDataLook::fillSmoothedRectangle(g, iconbound.toFloat(), Corners::defaultCornerRadius);
 
-                Fonts::drawFittedText(g, type ? "~" : "pd", iconbound.reduced(1), Colours::white, 1, 1.0f, type ? 12 : 10, Justification::centred);
+                
+                Fonts::drawFittedText(g, iconText, iconbound.reduced(1), Colours::white, 1, 1.0f, type ? 12 : 10, Justification::centred);
             }
         }
 
