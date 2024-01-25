@@ -369,6 +369,8 @@ void pix_share_write_setup();
 void pix_snap_setup();
 void pix_snap2tex_setup();
 void pix_subtract_setup();
+void pix_sig2pix_tilde_setup();
+void pix_pix2sig_tilde_setup();
 void pix_tIIR_setup();
 void pix_tIIRf_setup();
 void pix_takealpha_setup();
@@ -1897,6 +1899,8 @@ void Setup::initialiseGem(std::string gemPluginPath)
     pix_snap_setup();
     pix_snap2tex_setup();
     pix_subtract_setup();
+    pix_sig2pix_tilde_setup();
+    pix_pix2sig_tilde_setup();
     pix_tIIR_setup();
     pix_tIIRf_setup();
     pix_takealpha_setup();
