@@ -320,7 +320,7 @@ public:
         }
     }
 
-    Rectangle<int> getLabelBounds() const
+    Rectangle<int> getLabelBounds()
     {
         auto objectBounds = object->getBounds().reduced(Object::margin);
         int fontHeight = getAtomHeight() - 6;
