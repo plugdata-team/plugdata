@@ -191,7 +191,7 @@ class SuggestionComponent : public Component
         void paint(Graphics& g) override
         {
             auto scrollbarIndent = parent->port->canScrollVertically() ? 6 : 0;
-
+            
             auto backgroundColour = findColour(getToggleState() ? PlugDataColour::popupMenuActiveBackgroundColourId : PlugDataColour::popupMenuBackgroundColourId);
 
             auto buttonArea = getLocalBounds().withTrimmedRight((parent->canBeTransparent() ? 42 : 2) + scrollbarIndent).toFloat().reduced(4, 1);

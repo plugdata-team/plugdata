@@ -56,7 +56,7 @@ if(("${CMAKE_SYSTEM_NAME}" MATCHES "Linux" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES
   set(ENABLE_SFIZZ OFF)
 endif()
 
-if(UNIX AND NOT LINUX) # on BSD
+if(UNIX AND NOT LINUX AND NOT APPLE) # on BSD
 message(STATUS "Disabled sfizz")
 message(STATUS "Disabled Gem")
 set(ENABLE_GEM OFF)
