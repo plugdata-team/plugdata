@@ -50,7 +50,7 @@ public:
             int minutesDifference = (autoSavedTime - fileChangedTime) / 60000.0;
 
             Dialogs::showOkayCancelDialog(
-                &editor->openedDialog, editor, "Restore autosave? (last autosave is " + String(minutesDifference) + " minutes newer)", [lastAutoSavedPatch, patchPath, callback](bool useAutosaved) {
+                &editor->openedDialog, editor, "Restore autosave?\n (last autosave is " + String(minutesDifference) + " minutes newer)", [lastAutoSavedPatch, patchPath, callback](bool useAutosaved) {
                     if (useAutosaved) {
                         MemoryOutputStream ostream;
                         Base64::convertFromBase64(ostream, lastAutoSavedPatch.getProperty("Patch").toString());
@@ -61,7 +61,7 @@ public:
 
                     callback();
                 },
-                { "Yes", "No" }, true);
+                { "Yes", "No" });
         } else {
             callback();
         }

@@ -190,22 +190,24 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
         });
 }
 
-void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> const& callback, StringArray options, bool swapButtons)
+void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> const& callback, StringArray options)
 {
 
     class OkayCancelDialog : public Component {
-
+        
+        TextLayout layout;
+        
     public:
         OkayCancelDialog(Dialog* dialog, String const& title, std::function<void(bool)> const& callback, StringArray& options, bool swap)
             : label("", title)
-            , swapButtons(swap)
         {
-            setSize(375, 200);
+            auto attributedTitle = AttributedString(title);
+            attributedTitle.setJustification(Justification::centred);
+            attributedTitle.setFont(Fonts::getBoldFont().withHeight(14));
+            
+            setSize(265, 150);
+            layout.createLayout(attributedTitle, getWidth());
 
-            label.setJustificationType(Justification::centred);
-            label.setFont(Fonts::getBoldFont().withHeight(14.0f));
-
-            addAndMakeVisible(label);
             addAndMakeVisible(cancel);
             addAndMakeVisible(okay);
 
@@ -231,32 +233,33 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
                 dialog->closeDialog();
             };
 
-            cancel.changeWidthToFitText();
-            okay.changeWidthToFitText();
             setOpaque(false);
+        }
+        
+        void paint(Graphics& g) override
+        {
+            auto contentBounds = getLocalBounds().reduced(16);
+            layout.draw(g, contentBounds.removeFromTop(48).toFloat());
         }
 
         void resized() override
         {
-            label.setBounds(20, 25, 360, 30);
-            if (swapButtons) {
-                okay.setBounds(20, 80, 80, 25);
-                cancel.setBounds(300, 80, 80, 25);
-            } else {
-                cancel.setBounds(20, 80, 80, 25);
-                okay.setBounds(300, 80, 80, 25);
-            }
+            auto contentBounds = getLocalBounds().reduced(16);
+            contentBounds.removeFromTop(54);
+            
+            okay.setBounds(contentBounds.removeFromTop(28));
+            contentBounds.removeFromTop(6);
+            cancel.setBounds(contentBounds.removeFromTop(28));
         }
 
     private:
         Label label;
-        bool swapButtons;
         TextButton cancel = TextButton("Cancel");
         TextButton okay = TextButton("OK");
     };
 
-    auto* dialog = new Dialog(target, parent, 400, 130, false);
-    auto* dialogContent = new OkayCancelDialog(dialog, title, callback, options, swapButtons);
+    auto* dialog = new Dialog(target, parent, 265, 150, false);
+    auto* dialogContent = new OkayCancelDialog(dialog, title, callback, options);
 
     dialog->setViewedComponent(dialogContent);
     target->reset(dialog);
