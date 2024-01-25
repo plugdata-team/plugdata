@@ -241,6 +241,7 @@ target_link_libraries(juce
         juce::juce_dsp
         juce::juce_cryptography
         juce::juce_opengl
+        melatonin_blur
         )
 
 target_compile_options(juce PUBLIC $<$<CONFIG:Release>:${JUCE_LTO_FLAGS}>)
