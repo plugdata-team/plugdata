@@ -198,7 +198,7 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
         TextLayout layout;
         
     public:
-        OkayCancelDialog(Dialog* dialog, String const& title, std::function<void(bool)> const& callback, StringArray& options, bool swap)
+        OkayCancelDialog(Dialog* dialog, String const& title, std::function<void(bool)> const& callback, StringArray& options)
             : label("", title)
         {
             auto attributedTitle = AttributedString(title);
