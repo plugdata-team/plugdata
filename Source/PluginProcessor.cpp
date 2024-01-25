@@ -123,7 +123,9 @@ PluginProcessor::PluginProcessor()
     logMessage("Libraries:");
     logMessage(else_version);
     logMessage(cyclone_version);
+#if ENABLE_GEM
     logMessage(gem_version);
+#endif
     logMessage(heavylib_version);
     
 
