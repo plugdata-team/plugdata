@@ -82,5 +82,20 @@ struct CachedStringWidth {
         return maximumLineWidth;
     }
     
+    // Hack so you can use variables instead of only constants
+    template <int I=0>
+    static int variableCachedStringWidth(int size, const String& string) {
+        
+        
+        if constexpr(I > 64) return 0;
+        
+        if(size == I) {
+            return CachedStringWidth<I>::calculateStringWidth(string);
+        }
+        else {
+            return variableCachedStringWidth<I + 1>(size, string); // Recursive call
+        }
+    }
+    
     static inline std::unordered_map<hash32, int> stringWidthCache = std::unordered_map<hash32, int>();
 };

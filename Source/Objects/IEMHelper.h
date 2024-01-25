@@ -143,8 +143,14 @@ public:
                 setColour(primaryColour, atoms[1]);
             if (numAtoms > 2)
                 setColour(labelColour, atoms[2]);
+            
+            if(auto* label = gui->getLabel())
+            {
+                label->setColour(Label::textColourId, getLabelColour());
+            }
+            
             gui->repaint();
-            gui->updateLabel();
+            
             return true;
         }
         case hash("label"): {
@@ -299,8 +305,8 @@ public:
             label.reset(nullptr);
         }
     }
-
-    Rectangle<int> getLabelBounds() const
+        
+    Rectangle<int> getLabelBounds()
     {
         auto objectBounds = object->getBounds().reduced(Object::margin);
 
@@ -308,8 +314,16 @@ public:
             t_symbol const* sym = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab);
             if (sym) {
                 int fontHeight = getFontHeight();
-                int labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());
-
+                auto currentHash = hash(getExpandedLabelText());
+                int labelLength = lastLabelLength;
+                if(lastFontHeight != fontHeight || lastLabelTextHash != currentHash)
+                {
+                    labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());
+                    lastFontHeight = fontHeight;
+                    lastLabelTextHash = currentHash;
+                    lastLabelLength = labelLength;
+                }
+                
                 int const posx = objectBounds.getX() + iemgui->x_ldx + 4;
                 int const posy = objectBounds.getY() + iemgui->x_ldy;
 
@@ -521,6 +535,10 @@ public:
     PluginProcessor* pd;
 
     pd::WeakReference ptr;
+    
+    int lastFontHeight = 10;
+    hash32 lastLabelTextHash = 0;
+    int lastLabelLength = 0;
 
     Value primaryColour = SynchronousValue();
     Value secondaryColour = SynchronousValue();

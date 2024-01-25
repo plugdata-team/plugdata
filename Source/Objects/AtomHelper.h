@@ -28,6 +28,10 @@ class AtomHelper {
     PluginProcessor* pd;
 
     pd::WeakReference ptr;
+    
+    int lastFontHeight = 10;
+    hash32 lastLabelTextHash = 0;
+    int lastLabelLength = 0;
 
 public:
     Value labelColour = SynchronousValue();
@@ -321,8 +325,16 @@ public:
         auto objectBounds = object->getBounds().reduced(Object::margin);
         int fontHeight = getAtomHeight() - 6;
 
-        int labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());
-
+        auto currentHash = hash(getExpandedLabelText());
+        int labelLength = lastLabelLength;
+        if(lastFontHeight != fontHeight || lastLabelTextHash != currentHash)
+        {
+            labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());
+            lastFontHeight = fontHeight;
+            lastLabelTextHash = currentHash;
+            lastLabelLength = labelLength;
+        }
+        
         int labelPosition = 0;
         if (auto atom = ptr.get<t_fake_gatom>()) {
             labelPosition = atom->a_wherelabel;
