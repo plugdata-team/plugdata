@@ -56,8 +56,11 @@ if(("${CMAKE_SYSTEM_NAME}" MATCHES "Linux" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES
   set(ENABLE_SFIZZ OFF)
 endif()
 
-if(MSVC) # Gem is not supported on Windows yet
-#set(ENABLE_GEM OFF)
+if(UNIX AND NOT LINUX) # on BSD
+message(STATUS "Disabled sfizz")
+message(STATUS "Disabled Gem")
+set(ENABLE_GEM OFF)
+set(ENABLE_SFIZZ OFF)
 endif()
 
 add_subdirectory(Libraries/ EXCLUDE_FROM_ALL)
@@ -200,11 +203,14 @@ set(JUCE_COMPILE_DEFINITIONS
     JUCE_USE_COREIMAGE_LOADER=0
     JUCE_SILENCE_XCODE_15_LINKER_WARNING=1
     JUCE_USE_XRENDER=1
-    JUCE_ALSA=1
     JUCE_COREGRAPHICS_RENDER_WITH_MULTIPLE_PAINT_CALLS=1
-    #JUCE_JACK=1
-    #JUCE_JACK_CLIENT_NAME="plugdata"
 )
+
+if(LINUX)
+ list(APPEND JUCE_COMPILE_DEFINITIONS JUCE_ALSA=1)
+elseif(UNIX AND NOT APPLE) # BSD
+  list(APPEND JUCE_COMPILE_DEFINITIONS JUCE_JACK=1 JUCE_JACK_CLIENT_NAME="plugdata")
+endif()
 
 set(PLUGDATA_COMPILE_DEFINITIONS
     PLUGDATA=1
@@ -247,6 +253,12 @@ set(libs
 
 if(UNIX AND NOT APPLE)
     list(APPEND libs curl X11)
+endif()
+
+# Fixes BSD compilation
+if(UNIX AND NOT LINUX)
+include_directories(/usr/local/include)
+link_directories(/usr/local/lib)
 endif()
 
 list(APPEND PLUGDATA_COMPILE_DEFINITIONS JUCE_MODAL_LOOPS_PERMITTED=1)
@@ -460,10 +472,14 @@ set_target_properties(plugdata_standalone PROPERTIES
   RESOURCE "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/pd-file.icns")
 endif()
 
-if(UNIX AND NOT APPLE)
+if(LINUX)
     target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd-src externals StandaloneBinaryData "-Wl,-export-dynamic")
     target_link_libraries(plugdata PRIVATE plugdata_core pd-src-multi externals-multi)
     target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-src-multi externals-multi)
+elseif(UNIX AND NOT APPLE) # BSD
+    target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd-src externals lua fluidlite StandaloneBinaryData "-Wl,-export-dynamic")
+    target_link_libraries(plugdata PRIVATE plugdata_core pd-src-multi externals-multi lua fluidlite)
+    target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-src-multi externals-mult lua fluidlite)
 elseif(APPLE)
   if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 15.0)
     set(MACOS_COMPAT_LINKER_FLAGS "-Wl,-ld_classic")
