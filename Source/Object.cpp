@@ -43,7 +43,7 @@ Object::Object(Canvas* parent, String const& name, Point<int> position)
     // Open editor for undefined objects
     // Delay the setting of the type to prevent creating an invalid object first
     if (name.isEmpty()) {
-        setSize(100, height);
+        setSize(58, height);
     } else {
         setType(name);
     }

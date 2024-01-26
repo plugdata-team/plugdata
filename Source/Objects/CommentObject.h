@@ -166,7 +166,7 @@ public:
             
             int textWidth;
             if (objText.isEmpty()) { // If text is empty, set to minimum width
-                textWidth = std::max(charWidth, TextObjectHelper::minWidth) * fontWidth;
+                textWidth = std::max(charWidth, 6) * fontWidth;
             } else if (charWidth == 0) { // If width is set to automatic, calculate based on text width
                 textWidth = std::clamp(idealWidth, TextObjectHelper::minWidth * fontWidth, fontWidth * 60);
             } else { // If width was set manually, calculate what the width is
