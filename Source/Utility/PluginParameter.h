@@ -29,7 +29,6 @@ public:
         , enabled(enabled)
         , mode(Float)
     {
-
         value = range.convertFrom0to1(getDefaultValue());
     }
 

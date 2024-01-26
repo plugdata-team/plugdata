@@ -176,6 +176,7 @@ PluginProcessor::~PluginProcessor()
     patches.clear();
 }
 
+
 void PluginProcessor::initialiseFilesystem()
 {
     auto const& homeDir = ProjectInfo::appDataDir;
@@ -1150,7 +1151,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
         jassert(xmlState);
 
         PlugDataParameter::loadStateInformation(*xmlState, getParameters());
-
+        
         auto versionString = String("0.6.1"); // latest version that didn't have version inside the daw state
 
         if (!xmlState->hasAttribute("Legacy") || xmlState->getBoolAttribute("Legacy")) {
@@ -1199,6 +1200,20 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             }
         }
     });
+    
+    // After loading a state, we need to update all the parameters
+    if(PluginHostType::getPluginLoadedAs() == AudioProcessor::wrapperType_AudioUnit || PluginHostType::getPluginLoadedAs() == AudioProcessor::wrapperType_AudioUnitv3)
+    {
+        // In Logic, loading them instantly causes a crash :(
+        Timer::callAfterDelay(800, [this, _this = WeakReference<pd::Instance>(this)](){
+            if(_this) {
+                updateHostDisplay(AudioProcessorListener::ChangeDetails {}.withParameterInfoChanged(true));
+            }
+        });
+    }
+    else {
+        updateHostDisplay(AudioProcessorListener::ChangeDetails {}.withParameterInfoChanged(true));
+    }
 }
 
 pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile, PluginEditor* editor, int splitIndex)

@@ -113,7 +113,7 @@ public:
     Array<PluginEditor*> getEditors() const;
 
     void performParameterChange(int type, String const& name, float value) override;
-
+        
     // Jyg added this
     void fillDataBuffer(std::vector<pd::Atom> const& list) override;
     void parseDataBuffer(XmlElement const& xml) override;
