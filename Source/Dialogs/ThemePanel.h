@@ -224,11 +224,15 @@ public:
 
     void settingsFileReloaded() override
     {
-        updateSwatches();
+        // TODO: find out if we need to do this?
+        // it seems to only really cause problems
+        //updateSwatches();
     }
 
     void updateSwatches(bool forceUpdate = false)
     {
+        auto scrollPosition = panel.getViewport().getViewPositionY();
+        
         panel.clear();
         allPanels.clear();
 
@@ -426,10 +430,18 @@ public:
         });
 
         auto allThemes = PlugDataLook::getAllThemes();
-        primaryThemeSelector->setOptions(allThemes);
-        secondaryThemeSelector->setOptions(allThemes);
-        primaryThemeSelector->setSelectedItem(allThemes.indexOf(PlugDataLook::selectedThemes[0]));
-        secondaryThemeSelector->setSelectedItem(allThemes.indexOf(PlugDataLook::selectedThemes[1]));
+        auto firstThemes = allThemes;
+        auto secondThemes = allThemes;
+        
+        // Remove theme selected in other combobox (so you can't pick the same theme twice)
+        firstThemes.removeString(PlugDataLook::selectedThemes[1]);
+        secondThemes.removeString(PlugDataLook::selectedThemes[0]);
+        
+        primaryThemeSelector->setOptions(firstThemes);
+        secondaryThemeSelector->setOptions(secondThemes);
+        
+        primaryThemeSelector->setSelectedItem(firstThemes.indexOf(PlugDataLook::selectedThemes[0]));
+        secondaryThemeSelector->setSelectedItem(secondThemes.indexOf(PlugDataLook::selectedThemes[1]));
 
         allPanels.add(fontPanel);
         allPanels.add(primaryThemeSelector);
@@ -509,6 +521,7 @@ public:
             updatingTheme = false;
 
         panel.repaint();
+        panel.getViewport().setViewPosition(0, scrollPosition);
     }
 
     void valueChanged(Value& v) override
@@ -559,19 +572,6 @@ public:
             themeSelectors[i].setColour(ComboBox::outlineColourId, Colours::transparentBlack);
             themeSelectors[i].setColour(ComboBox::textColourId, findColour(PlugDataColour::panelTextColourId));
         }*/
-    }
-
-    void paint(Graphics& g) override
-    {
-        /*
-        auto bounds = getLocalBounds().removeFromLeft(getWidth() / 2).withTrimmedLeft(6);
-
-        auto themeRow = bounds.removeFromTop(23);
-        Fonts::drawText(g, "theme", themeRow, findColour(PlugDataColour::panelTextColourId));
-
-        auto fullThemeRow = getLocalBounds().removeFromTop(23);
-        g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawLine(Line<int>(fullThemeRow.getBottomLeft(), fullThemeRow.getBottomRight()).toFloat(), -1.0f); */
     }
 
     void resized() override
