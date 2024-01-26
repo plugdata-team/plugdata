@@ -136,10 +136,8 @@ struct Interface {
         EDITOR->canvas_undo_already_set_move = 0;
 
         int resortin = 0, resortout = 0;
-        if (!EDITOR->canvas_undo_already_set_move) {
-            canvas_undo_add(cnv, UNDO_MOTION, "motion", canvas_undo_set_move(cnv, 1));
-            // EDITOR->canvas_undo_already_set_move = 1;
-        }
+        canvas_undo_add(cnv, UNDO_MOTION, "motion", canvas_undo_set_move(cnv, 1));
+        
         for (auto* obj : objects) {
             gobj_displace(obj, cnv, dx, dy);
 
@@ -468,12 +466,16 @@ struct Interface {
 
     static void moveObject(t_canvas* cnv, t_gobj* obj, int x, int y)
     {
+        EDITOR->canvas_undo_already_set_move = 0;
+        glist_noselect(cnv);
+        glist_select(cnv, obj);
+        canvas_undo_add(cnv, UNDO_MOTION, "motion", canvas_undo_set_move(cnv, 1));
+        glist_noselect(cnv);
+        
         if (obj->g_pd->c_wb && obj->g_pd->c_wb->w_getrectfn && obj->g_pd->c_wb && obj->g_pd->c_wb->w_displacefn) {
-
             int x1, y1, x2, y2;
-
+            
             (*obj->g_pd->c_wb->w_getrectfn)(obj, cnv, &x1, &y1, &x2, &y2);
-
             (*obj->g_pd->c_wb->w_displacefn)(obj, cnv, x - x1, y - y1);
         }
     }

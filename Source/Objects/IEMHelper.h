@@ -270,9 +270,9 @@ public:
     void setPdBounds(Rectangle<int> const b)
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
-            iemgui->x_obj.te_xpix = b.getX();
-            iemgui->x_obj.te_ypix = b.getY();
-
+            
+            pd::Interface::moveObject(iemgui->x_glist, &iemgui->x_obj.te_g, b.getX(), b.getY());
+            
             iemgui->x_w = b.getWidth() - 1;
             iemgui->x_h = b.getHeight() - 1;
         }
