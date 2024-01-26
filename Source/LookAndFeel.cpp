@@ -773,7 +773,7 @@ void PlugDataLook::getIdealPopupMenuItemSize(String const& text, bool const isSe
         idealHeight = standardMenuItemHeight > 0 ? standardMenuItemHeight : roundToInt(font.getHeight() * 1.3f);
         idealWidth = font.getStringWidth(text) + idealHeight;
 
-#if JUCE_LINUX || JUCE_WINDOWS
+#if !JUCE_MAC
         // Dumb check to see if there is a keyboard shortcut after the text.
         // On Linux and Windows, it seems to reserve way to much space for those.
         if (text.contains("  ")) {
