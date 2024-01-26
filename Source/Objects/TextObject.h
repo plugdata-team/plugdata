@@ -355,7 +355,7 @@ public:
             attributedText.setFont(Font(15));
             
             textLayout = TextLayout();
-            textLayout.createLayout(attributedText, textWidth);
+            textLayout.createLayout(attributedText, textWidth + 0.5f);
             layoutTextHash = currentLayoutHash;
             lastColourARGB = colour.getARGB();
             lastTextWidth = textWidth;
