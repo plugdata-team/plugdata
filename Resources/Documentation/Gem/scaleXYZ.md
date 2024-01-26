@@ -1,6 +1,6 @@
 ---
 title: scaleXYZ
-description: scales a gemList along the X-, Y-, and Z-axes
+description: scales a gemlist along the X-, Y-, and Z-axes
 categories:
   - object
 pdcategory: Gem, Graphics

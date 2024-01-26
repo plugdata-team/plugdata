@@ -1,6 +1,6 @@
 ---
 title: scale
-description: scales a gemList with specified scaling factors
+description: scales a gemlist with specified scaling factors
 categories:
   - object
 pdcategory: Gem, Graphics

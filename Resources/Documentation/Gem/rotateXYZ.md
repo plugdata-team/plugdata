@@ -1,6 +1,6 @@
 ---
 title: rotateXYZ
-description: rotates a gemList by the specified rotation around the X-, Y-, and Z-axes
+description: rotates a gemlist by the specified rotation around the X-, Y-, and Z-axes
 categories:
   - object
 pdcategory: Gem, Graphics

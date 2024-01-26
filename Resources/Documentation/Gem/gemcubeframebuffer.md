@@ -13,14 +13,14 @@ methods:
     description: set the background color of the framebuffer
 inlets:
   1st:
-    - type: gemstate
+    - type: gemlist
       description:
 outlets:
   1st:
-    - type: gemstate
+    - type: gemlist
       description:
   2nd:
-    - type: gemstate
+    - type: gemlist
       description:
 draft: false
 ---
