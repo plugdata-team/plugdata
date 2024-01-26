@@ -158,7 +158,7 @@ struct Interface {
 
         glist_noselect(cnv);
 
-        libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
+        EDITOR->canvas_undo_already_set_move = 0;
     }
 
     static t_gobj* getNewest(t_canvas* cnv)
@@ -356,6 +356,12 @@ struct Interface {
                 canvas_loadbang(reinterpret_cast<t_canvas*>(new_object));
             else if (zgetfn(&new_object->g_pd, gensym("loadbang")))
                 vmess(&new_object->g_pd, gensym("loadbang"), "f", LB_LOAD);
+            
+            // This is needed since object creation happens in 2 undo steps in pd-vanilla, but is only 1 undo step in plugdata
+            int pos = glist_getindex(cnv, new_object);
+            canvas_undo_add(glist_getcanvas(cnv), UNDO_RECREATE, "recreate",
+                (void *)canvas_undo_set_recreate(cnv,
+                                                 new_object, pos));
         }
 
         canvas_unsetcurrent(cnv);

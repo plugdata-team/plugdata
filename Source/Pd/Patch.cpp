@@ -309,10 +309,9 @@ t_gobj* Patch::createObject(int x, int y, String const& name)
         }
     }
     
-    EDITOR->canvas_undo_already_set_move = 1;
-
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
+        EDITOR->canvas_undo_already_set_move = 1;
         return pd::Interface::createObject(patch.get(), typesymbol, argc, argv.data());
     }
 
