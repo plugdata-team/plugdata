@@ -128,16 +128,17 @@ struct Interface {
     static void moveObjects(t_canvas* cnv, int dx, int dy, std::vector<t_gobj*> const& objects)
     {
         glist_noselect(cnv);
-
+        
         for (auto* obj : objects) {
             glist_select(cnv, obj);
         }
-
-        EDITOR->canvas_undo_already_set_move = 0;
-
-        int resortin = 0, resortout = 0;
-        canvas_undo_add(cnv, UNDO_MOTION, "motion", canvas_undo_set_move(cnv, 1));
         
+        if(!EDITOR->canvas_undo_already_set_move) {
+            canvas_undo_add(cnv, UNDO_MOTION, "motion", canvas_undo_set_move(cnv, 1));
+            EDITOR->canvas_undo_already_set_move = 1;
+        }
+        
+        int resortin = 0, resortout = 0;
         for (auto* obj : objects) {
             gobj_displace(obj, cnv, dx, dy);
 
@@ -151,7 +152,6 @@ struct Interface {
             canvas_resortinlets(cnv);
         if (resortout)
             canvas_resortoutlets(cnv);
-        sys_vgui("pdtk_canvas_getscroll .x%lx.c\n", cnv);
 
         if (cnv->gl_editor->e_selection)
             canvas_dirty(cnv, 1);
@@ -466,11 +466,14 @@ struct Interface {
 
     static void moveObject(t_canvas* cnv, t_gobj* obj, int x, int y)
     {
-        EDITOR->canvas_undo_already_set_move = 0;
-        glist_noselect(cnv);
-        glist_select(cnv, obj);
-        canvas_undo_add(cnv, UNDO_MOTION, "motion", canvas_undo_set_move(cnv, 1));
-        glist_noselect(cnv);
+        if(!EDITOR->canvas_undo_already_set_move) {
+            glist_noselect(cnv);
+            glist_select(cnv, obj);
+            canvas_undo_add(cnv, UNDO_MOTION, "motion", canvas_undo_set_move(cnv, 1));
+            glist_noselect(cnv);
+            
+            EDITOR->canvas_undo_already_set_move = 1;
+        }
         
         if (obj->g_pd->c_wb && obj->g_pd->c_wb->w_getrectfn && obj->g_pd->c_wb && obj->g_pd->c_wb->w_displacefn) {
             int x1, y1, x2, y2;
@@ -478,6 +481,8 @@ struct Interface {
             (*obj->g_pd->c_wb->w_getrectfn)(obj, cnv, &x1, &y1, &x2, &y2);
             (*obj->g_pd->c_wb->w_displacefn)(obj, cnv, x - x1, y - y1);
         }
+        
+        EDITOR->canvas_undo_already_set_move = 0;
     }
 
     static bool canConnect(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin)

@@ -308,6 +308,8 @@ t_gobj* Patch::createObject(int x, int y, String const& name)
             SETSYMBOL(argv.data() + i + 2, instance->generateSymbol(tokens[i]));
         }
     }
+    
+    EDITOR->canvas_undo_already_set_move = 1;
 
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
@@ -461,7 +463,6 @@ void Patch::deselectAll()
 {
     if (auto patch = ptr.get<t_glist>()) {
         glist_noselect(patch.get());
-        libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
     }
 }
 
@@ -573,10 +574,10 @@ void Patch::undo()
         setCurrent();
         auto x = patch.get();
         glist_noselect(x);
-        libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
-
+        
         pd::Interface::undo(patch.get());
-
+        EDITOR->canvas_undo_already_set_move = 1;
+        
         updateUndoRedoString();
     }
 }
@@ -587,9 +588,9 @@ void Patch::redo()
         setCurrent();
         auto x = patch.get();
         glist_noselect(x);
-        libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
-
+        
         pd::Interface::redo(patch.get());
+        EDITOR->canvas_undo_already_set_move = 1;
 
         updateUndoRedoString();
     }
