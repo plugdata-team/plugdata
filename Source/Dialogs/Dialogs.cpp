@@ -204,6 +204,7 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
             auto attributedTitle = AttributedString(title);
             attributedTitle.setJustification(Justification::centred);
             attributedTitle.setFont(Fonts::getBoldFont().withHeight(14));
+            attributedTitle.setColour(findColour(PlugDataColour::panelTextColourId));
             
             setSize(265, 150);
             layout.createLayout(attributedTitle, getWidth());
