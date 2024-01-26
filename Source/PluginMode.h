@@ -139,7 +139,7 @@ public:
             editor->pluginConstrainer.setSizeLimits(newWidth, newHeight, newWidth, newHeight);
         }
 
-#if JUCE_LINUX
+#if JUCE_LINUX || JUCE_BSD
         if (ProjectInfo::isStandalone) {
             OSUtils::updateX11Constraints(getPeer()->getNativeHandle());
         }
@@ -158,7 +158,7 @@ public:
                 mainWindow->setUsingNativeTitleBar(true);
             }
             editor->constrainer.setSizeLimits(850, 650, 99000, 99000);
-#if JUCE_LINUX
+#if JUCE_LINUX || JUCE_BSD
             OSUtils::updateX11Constraints(getPeer()->getNativeHandle());
 #endif
 

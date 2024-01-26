@@ -7,12 +7,6 @@
 #include "Canvas.h"
 #include "Utility/OSUtils.h"
 
-#if JUCE_LINUX
-#    include <unistd.h>
-#    include <sys/types.h>
-#    include <sys/wait.h>
-#endif
-
 #include <z_libpd.h>
 
 class ExportingProgressView : public Component

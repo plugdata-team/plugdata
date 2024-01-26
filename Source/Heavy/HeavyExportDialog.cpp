@@ -15,12 +15,6 @@
 #include "Components/PropertiesPanel.h"
 #include "Utility/OSUtils.h"
 
-#if JUCE_LINUX
-#    include <unistd.h>
-#    include <sys/types.h>
-#    include <sys/wait.h>
-#endif
-
 #include "Toolchain.h"
 #include "ExportingProgressView.h"
 #include "ExporterBase.h"

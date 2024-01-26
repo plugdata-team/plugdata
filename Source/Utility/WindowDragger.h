@@ -21,7 +21,7 @@ public:
         if (componentToDrag != nullptr)
             mouseDownWithinTarget = e.getEventRelativeTo(componentToDrag).getMouseDownPosition();
 
-#if JUCE_LINUX
+#if JUCE_LINUX || JUCE_BSD
         auto* peer = componentToDrag->getPeer();
         peer->startHostManagedResize(e.getPosition(), ResizableBorderComponent::Zone(0));
 #endif
