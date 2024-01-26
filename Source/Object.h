@@ -126,6 +126,7 @@ private:
     bool wasLockedOnMouseDown = false;
     bool indexShown = false;
     bool isHvccCompatible = true;
+    bool isGemObject = false;
 
     bool showActiveState = false;
     float activeStateAlpha = 0.0f;

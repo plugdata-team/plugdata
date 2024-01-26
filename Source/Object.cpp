@@ -29,6 +29,8 @@
 extern "C" {
 #include <m_pd.h>
 #include <m_imp.h>
+
+int is_gem_object(const char* sym);
 }
 
 Object::Object(Canvas* parent, String const& name, Point<int> position)
@@ -348,9 +350,11 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
         jassertfalse;
         return;
     }
-
+    
     // Create gui for the object
     gui.reset(ObjectBase::createGui(objectPtr, this));
+    
+    isGemObject = is_gem_object(gui->getText().toRawUTF8());
 
     if (gui) {
         gui->initialise();
@@ -732,7 +736,7 @@ void Object::updateIolets()
     }
     
     // Looking up tooltips takes a bit of time, so we make sure we're not constantly updating them for no reason
-    bool tooltipsNeedUpdate = gui->getPatch() != nullptr || numInputs != oldNumInputs || numOutputs != oldNumOutputs;
+    bool tooltipsNeedUpdate = gui->getPatch() != nullptr || numInputs != oldNumInputs || numOutputs != oldNumOutputs || isGemObject;
 
     for (auto* iolet : iolets) {
         if (gui && !iolet->isInlet) {
