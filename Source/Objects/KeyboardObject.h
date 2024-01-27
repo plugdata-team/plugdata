@@ -5,7 +5,7 @@
  */
 
 // Inherit to customise drawing
-class MIDIKeyboard : public MidiKeyboardComponent {
+class MIDIKeyboard : public MidiKeyboardState, public MidiKeyboardComponent {
 
     Object* object;
 
@@ -17,9 +17,9 @@ public:
     std::set<int> toggledKeys;
     std::function<void(int, int)> noteOn;
     std::function<void(int)> noteOff;
-
-    MIDIKeyboard(Object* parent, MidiKeyboardState& stateToUse, Orientation orientationToUse)
-        : MidiKeyboardComponent(stateToUse, orientationToUse)
+    
+    MIDIKeyboard(Object* parent)
+        : MidiKeyboardComponent(*this, MidiKeyboardComponent::horizontalKeyboard)
         , object(parent)
     {
         // Make sure nothing is drawn outside of our custom draw functions
@@ -213,14 +213,13 @@ class KeyboardObject final : public ObjectBase
     Value toggleMode = SynchronousValue();
     Value sizeProperty = SynchronousValue();
 
-    MidiKeyboardState state;
     MIDIKeyboard keyboard;
     int keyRatio = 5;
 
 public:
     KeyboardObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
-        , keyboard(object, state, MidiKeyboardComponent::horizontalKeyboard)
+        , keyboard(object)
     {
         keyboard.setMidiChannel(1);
         keyboard.setScrollButtonsVisible(false);
@@ -395,11 +394,11 @@ public:
         if (auto obj = ptr.get<t_fake_keyboard>()) {
 
             for (int i = keyboard.getRangeStart(); i < keyboard.getRangeEnd(); i++) {
-                if (obj->x_tgl_notes[i] && !(state.isNoteOn(2, i) && state.isNoteOn(1, i))) {
-                    state.noteOn(2, i, 1.0f);
+                if (obj->x_tgl_notes[i] && !keyboard.heldKeys.contains(i)) {
+                    keyboard.heldKeys.insert(i);
                 }
-                if (!obj->x_tgl_notes[i] && !(state.isNoteOn(2, i) && state.isNoteOn(1, i))) {
-                    state.noteOff(2, i, 1.0f);
+                if (!obj->x_tgl_notes[i] && keyboard.heldKeys.contains(i)) {
+                    keyboard.heldKeys.erase(i);
                 }
             }
         }
@@ -431,8 +430,9 @@ public:
         auto elseKeyboard = ptr.get<t_fake_keyboard>();
 
         switch (symbol) {
-        case hash("float"): {
-            noteOn(atoms[0].getFloat(), elseKeyboard->x_vel_in > 0);
+            case hash("float"): {
+            auto note = std::clamp<int>(atoms[0].getFloat(), 0, 128);
+            noteOn(atoms[0].getFloat(), elseKeyboard->x_tgl_notes[note]);
             break;
         }
         case hash("list"): {
