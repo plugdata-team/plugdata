@@ -154,20 +154,14 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
     lastScale = 1.0;
 
     UIPinchGestureRecognizer* pinchGesture = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinchEventOccurred:)];
-    //[pinchGesture setCancelsTouchesInView: true];
-    //[pinchGesture setDelaysTouchesBegan: true];
     [view addGestureRecognizer:pinchGesture];
     
     UILongPressGestureRecognizer* longPressGesture = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(longPressEventOccurred:)];
-    //[longPressGesture setCancelsTouchesInView: true];
-    //[longPressGesture setDelaysTouchesBegan: true];
     [view addGestureRecognizer:longPressGesture];
     
     UIPanGestureRecognizer* panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(scrollEventOccurred:)];
     [panGesture setMaximumNumberOfTouches: 2];
     [panGesture setMinimumNumberOfTouches: 2];
-    //[panGesture setCancelsTouchesInView: true];
-    //[panGesture setDelaysTouchesBegan: true];
     [view addGestureRecognizer:panGesture];
     
     return self;

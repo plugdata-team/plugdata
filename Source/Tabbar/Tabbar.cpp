@@ -116,7 +116,12 @@ public:
     {
         addAndMakeVisible(newButton);
         addAndMakeVisible(openButton);
+    
+        // Opening files from recently opened list will likely fail,
+        // since the file browser is what grants us the permission to read/write files
+#if !JUCE_IOS
         addAndMakeVisible(recentlyOpened);
+#endif
     }
 
     void resized() override
