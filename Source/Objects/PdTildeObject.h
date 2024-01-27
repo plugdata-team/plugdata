@@ -29,7 +29,8 @@ public:
     {
         if (!pdLocation.exists()) {
 
-            Dialogs::showOpenDialog([this](File& result) {
+            Dialogs::showOpenDialog([this](URL url) {
+                auto result = url.getLocalFile();
                 if (!result.exists())
                     return;
 

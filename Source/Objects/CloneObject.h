@@ -111,7 +111,7 @@ public:
         auto newPatch = cnv->editor->pd->patches.getLast();
         auto* newCanvas = cnv->editor->canvases.add(new Canvas(cnv->editor, *newPatch, nullptr));
 
-        newPatch->setCurrentFile(path);
+        newPatch->setCurrentFile(URL(path));
 
         cnv->editor->addTab(newCanvas);
     }

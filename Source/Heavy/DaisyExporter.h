@@ -150,7 +150,8 @@ public:
 
             // Custom board option
             if (idx == 9 && !dontOpenFileChooser) {
-                Dialogs::showOpenDialog([this](File& result) {
+                Dialogs::showOpenDialog([this](URL url) {
+                    auto result = url.getLocalFile();
                     if (result.existsAsFile()) {
                         customBoardDefinition = result;
                     } else {
@@ -166,7 +167,8 @@ public:
 
             // Custom linker option
             if (idx == 4 && !dontOpenFileChooser) {
-                Dialogs::showOpenDialog([this](File& result) {
+                Dialogs::showOpenDialog([this](URL url) {
+                    auto result = url.getLocalFile();
                     if (result.existsAsFile()) {
                         customLinker = result;
                     } else {

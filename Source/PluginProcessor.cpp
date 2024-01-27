@@ -45,6 +45,10 @@ bool gemWinUnsetCurrent();
 AudioProcessor::BusesProperties PluginProcessor::buildBusesProperties()
 {
 #if JUCE_IOS
+    
+    if(ProjectInfo::isStandalone) {
+        return BusesProperties().withOutput ("Output", AudioChannelSet::stereo(), true).withInput ("Input", AudioChannelSet::mono(), true);
+    }
     // If you intend to build AUv3 on macOS, you'll also need these
     if(ProjectInfo::isFx) {
         return BusesProperties().withOutput ("Output", AudioChannelSet::stereo(), true).withInput ("Input", AudioChannelSet::stereo(), true);
@@ -1098,7 +1102,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 
     auto openPatch = [this](String const& content, File const& location, bool pluginMode = false, int splitIndex = 0) {
         if (location.getFullPathName().isNotEmpty() && location.existsAsFile()) {
-            auto patch = loadPatch(location, getEditors()[0], splitIndex);
+            auto patch = loadPatch(URL(location), getEditors()[0], splitIndex);
             if (patch) {
                 patch->setTitle(location.getFileName());
                 patch->openInPluginMode = pluginMode;
@@ -1114,7 +1118,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
                 patch->openInPluginMode = pluginMode;
                 patch->splitViewIndex = splitIndex;
             } else if (patch && location.existsAsFile()) {
-                patch->setCurrentFile(location);
+                patch->setCurrentFile(URL(location));
                 patch->setTitle(location.getFileName());
                 patch->openInPluginMode = pluginMode;
                 patch->splitViewIndex = splitIndex;
@@ -1216,8 +1220,9 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     }
 }
 
-pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile, PluginEditor* editor, int splitIndex)
+pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL, PluginEditor* editor, int splitIndex)
 {
+    auto patchFile = patchURL.getLocalFile();
     // First, check if patch is already opened
     for (auto const& patch : patches) {
         if (patch->getCurrentFile() == patchFile) {
@@ -1244,7 +1249,10 @@ pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile, PluginEditor* e
     
 #if JUCE_IOS
     auto tempFile = File::createTempFile(".pd");
-    tempFile.replaceWithText(patchFile.loadFileAsString());
+    auto patchContent = patchFile.loadFileAsString();
+    
+    auto inputStream = patchURL.createInputStream (URL::InputStreamOptions (URL::ParameterHandling::inAddress));
+    tempFile.appendText(inputStream->readEntireStreamAsString());
     
     auto newPatch = openPatch(tempFile);
     if(newPatch)
@@ -1257,6 +1265,7 @@ pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile, PluginEditor* e
             auto const* file = filename.toRawUTF8();
             canvas_rename(patch.get(), gensym(file), gensym(dir));
             newPatch->setTitle(filename);
+            newPatch->setCurrentFile(patchURL);
         }
     }
 #else
@@ -1287,7 +1296,7 @@ pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile, PluginEditor* e
             _editor->addTab(cnv, splitIndex);
         });
     }
-    patch->setCurrentFile(patchFile);
+    patch->setCurrentFile(URL(patchFile));
 
     return patch;
 }
@@ -1300,10 +1309,10 @@ pd::Patch::Ptr PluginProcessor::loadPatch(String patchText, PluginEditor* editor
     auto patchFile = File::createTempFile(".pd");
     patchFile.replaceWithText(patchText);
 
-    auto patch = loadPatch(patchFile, editor, splitIndex);
+    auto patch = loadPatch(URL(patchFile), editor, splitIndex);
 
     // Set to unknown file when loading temp patch
-    patch->setCurrentFile(File());
+    patch->setCurrentFile(URL("file://"));
 
     return patch;
 }
@@ -1444,7 +1453,7 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
             auto directory = list[1].toString();
 
             auto patch = File(directory).getChildFile(filename);
-            loadPatch(patch, getEditors()[0]);
+            loadPatch(URL(patch), getEditors()[0]);
         }
         break;
     }

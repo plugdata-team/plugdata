@@ -120,7 +120,7 @@ public:
     std::unique_ptr<XmlElement> extraData;
 
     pd::Patch::Ptr loadPatch(String patch, PluginEditor* editor, int splitIndex = 0);
-    pd::Patch::Ptr loadPatch(File const& patch, PluginEditor* editor, int splitIndex = 0);
+    pd::Patch::Ptr loadPatch(URL const& patchURL, PluginEditor* editor, int splitIndex = 0);
 
     void titleChanged() override;
 

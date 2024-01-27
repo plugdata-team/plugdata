@@ -353,7 +353,8 @@ private:
         if (start == File())
             start = File::getCurrentWorkingDirectory();
 
-        Dialogs::showOpenDialog([this](File& result) {
+        Dialogs::showOpenDialog([this](URL url) {
+            auto result = url.getLocalFile();
             if (result.exists()) {
                 paths.addIfNotAlreadyThere(result.getFullPathName(), listBox.getSelectedRow());
                 internalChange();
@@ -375,7 +376,8 @@ private:
 
         auto row = listBox.getSelectedRow();
 
-        Dialogs::showOpenDialog([this, row](File& result) {
+        Dialogs::showOpenDialog([this, row](URL url) {
+            auto result = url.getLocalFile();
             if (result.exists()) {
                 paths.remove(row);
                 paths.addIfNotAlreadyThere(result.getFullPathName(), row);

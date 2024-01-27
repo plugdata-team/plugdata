@@ -108,7 +108,7 @@ public:
         fileList.onClick = [this](ValueTree& tree){
             auto file = File(tree.getProperty("Path").toString());
             if (file.existsAsFile() && file.hasFileExtension("pd")) {
-                pd->loadPatch(file, findParentComponentOfClass<PluginEditor>());
+                pd->loadPatch(URL(file), findParentComponentOfClass<PluginEditor>());
                 SettingsFile::getInstance()->addToRecentlyOpened(file);
             }
             else if(file.isDirectory())
@@ -367,9 +367,9 @@ public:
             auto* sidebar = getParentComponent();
             auto bounds = editor->getLocalArea(sidebar, settingsCalloutButton->getBounds());
             auto openFolderCallback = [this]() {
-                Dialogs::showOpenDialog([this](File& result) {
-                    if (result.isDirectory()) {
-                        pd->settingsFile->setProperty("browser_path", result.getFullPathName());
+                Dialogs::showOpenDialog([this](URL result) {
+                    if (result.getLocalFile().isDirectory()) {
+                        pd->settingsFile->setProperty("browser_path", result.toString(false));
                         updateContent();
                     }
                 },

@@ -360,8 +360,10 @@ void ObjectBase::openSubpatch()
     cnv->editor->pd->patches.add(subpatch);
     auto newPatch = cnv->editor->pd->patches.getLast();
     auto* newCanvas = cnv->editor->canvases.add(new Canvas(cnv->editor, *newPatch, nullptr));
-
-    newPatch->setCurrentFile(path);
+    
+    if(path.getFullPathName().isNotEmpty()) {
+        newPatch->setCurrentFile(URL(path));
+    }
 
     cnv->editor->addTab(newCanvas);
 }

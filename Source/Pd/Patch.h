@@ -80,13 +80,13 @@ public:
     bool canUndo() const;
     bool canRedo() const;
 
-    void savePatch(File const& location);
+    void savePatch(URL const& location);
     void savePatch();
 
     File getCurrentFile() const;
     File getPatchFile() const;
 
-    void setCurrentFile(File newFile);
+    void setCurrentFile(URL const& newFile);
 
     void updateUndoRedoState();
 
@@ -135,6 +135,7 @@ private:
     std::atomic<bool> isPatchDirty;
     
     File currentFile;
+    URL currentURL; // We hold a URL to the patch as well, which is needed for file IO on iOS
 
     WeakReference ptr;
 

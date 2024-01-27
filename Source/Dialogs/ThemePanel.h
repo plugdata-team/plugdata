@@ -325,7 +325,8 @@ public:
             Icons::New, "New theme...");
 
         loadButton = new PropertiesPanel::ActionComponent([this]() {
-            Dialogs::showOpenDialog([this](File& result) {
+            Dialogs::showOpenDialog([this](URL url) {
+                auto result = url.getLocalFile();
                 if (!result.exists())
                     return;
 
@@ -373,7 +374,8 @@ public:
 
                 auto themeXml = themeTree.toXmlString();
 
-                Dialogs::showSaveDialog([themeXml](File& result) {
+                Dialogs::showSaveDialog([themeXml](URL url) {
+                    auto result = url.getLocalFile();
                     if (result.getParentDirectory().exists()) {
                         result.replaceWithText(themeXml);
                     }

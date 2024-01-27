@@ -86,9 +86,9 @@ bool Patch::canRedo() const
     return canPatchRedo.load();
 }
 
-void Patch::savePatch(File const& location)
+void Patch::savePatch(URL const& locationURL)
 {
-
+    auto location = locationURL.getLocalFile();
     String fullPathname = location.getParentDirectory().getFullPathName();
     String filename = location.withFileExtension(".pd").getFileName();
 
@@ -101,9 +101,14 @@ void Patch::savePatch(File const& location)
         canvas_dirty(patch.get(), 0);
         
 #if JUCE_IOS
+        auto patchText = getCanvasContent();
+        auto outputStream = locationURL.createOutputStream();
+        
         // on iOS, saving with pd's normal method doesn't work
-        // However, there are also rare cases where writing files like this doens't work as well
-        location.replaceWithText(getCanvasContent());
+        // we need to use an outputstream on a URL
+        outputStream->write(patchText.toRawUTF8(), patchText.getNumBytesAsUTF8());
+        outputStream->flush();
+        
         instance->logMessage("saved to: " + location.getFullPathName());
 #else
         pd::Interface::saveToFile(patch.get(), file, dir);
@@ -113,6 +118,7 @@ void Patch::savePatch(File const& location)
     }
 
     currentFile = location;
+    currentURL = locationURL;
 }
 
 t_glist* Patch::getRoot()
@@ -170,10 +176,6 @@ void Patch::savePatch()
         setTitle(filename);
         untitledPatchNum = 0;
         canvas_dirty(patch.get(), 0);
-
-#if JUCE_IOS
-        OSUtils::iOSScopedResourceAccess scopedSecurityResource(currentFile);
-#endif
         
         pd::Interface::saveToFile(patch.get(), file, dir);
     }
@@ -718,9 +720,10 @@ File Patch::getPatchFile() const
     return File();
 }
 
-void Patch::setCurrentFile(File newFile)
+void Patch::setCurrentFile(URL const& newURL)
 {
-    currentFile = std::move(newFile);
+    currentFile = newURL.getLocalFile();
+    currentURL = newURL;
 }
 
 String Patch::getCanvasContent()

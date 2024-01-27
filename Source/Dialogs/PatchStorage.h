@@ -21,7 +21,7 @@ public:
         imageDownloadPool.removeJob(this, true, -1);
     }
 
-    void setImageURL(const URL& url)
+    void setImageURL(const URL url)
     {
         downloadedImage = Image();
 

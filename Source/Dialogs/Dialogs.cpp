@@ -670,7 +670,7 @@ void Dialogs::showObjectMenu(PluginEditor* editor, Component* target)
     AddObjectMenu::show(editor, editor->getLocalArea(target, target->getLocalBounds()));
 }
 
-void Dialogs::showOpenDialog(std::function<void(File&)> callback, bool canSelectFiles, bool canSelectDirectories, String const& extension, String const& lastFileId)
+void Dialogs::showOpenDialog(std::function<void(URL)> callback, bool canSelectFiles, bool canSelectDirectories, String const& extension, String const& lastFileId)
 {
     bool nativeDialog = SettingsFile::getInstance()->wantsNativeDialog();
     auto initialFile = lastFileId.isNotEmpty() ? SettingsFile::getInstance()->getLastBrowserPathForId(lastFileId) : ProjectInfo::appDataDir;
@@ -692,18 +692,15 @@ void Dialogs::showOpenDialog(std::function<void(File&)> callback, bool canSelect
     fileChooser->launchAsync(openChooserFlags,
         [callback, lastFileId](FileChooser const& fileChooser) {
             auto result = fileChooser.getResult();
-        
-#if JUCE_IOS
-            OSUtils::iOSScopedResourceAccess scopedSecurityResource(result);
-#endif
+
             auto lastDir = result.isDirectory() ? result : result.getParentDirectory();
             SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, lastDir);
-            callback(result);
+            callback(fileChooser.getURLResult());
             Dialogs::fileChooser = nullptr;
         });
 }
 
-void Dialogs::showSaveDialog(std::function<void(File&)> callback, String const& extension, String const& lastFileId, bool directoryMode)
+void Dialogs::showSaveDialog(std::function<void(URL)> callback, String const& extension, String const& lastFileId, bool directoryMode)
 {
     bool nativeDialog = SettingsFile::getInstance()->wantsNativeDialog();
     auto initialFile = lastFileId.isNotEmpty() ? SettingsFile::getInstance()->getLastBrowserPathForId(lastFileId) : ProjectInfo::appDataDir;
@@ -726,15 +723,10 @@ void Dialogs::showSaveDialog(std::function<void(File&)> callback, String const& 
     fileChooser->launchAsync(saveChooserFlags,
         [callback, lastFileId](FileChooser const& fileChooser) {
             auto result = fileChooser.getResult();
-            auto urlResult = fileChooser.getURLResults();
-#if JUCE_IOS
-            OSUtils::iOSScopedResourceAccess scopedSecurityResource(result);
-#endif
-            
             auto parentDirectory = result.getParentDirectory();
             if (parentDirectory.exists()) {
                 SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, parentDirectory);
-                callback(result);
+                callback(fileChooser.getURLResult());
                 Dialogs::fileChooser = nullptr;
             }
         

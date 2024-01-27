@@ -584,7 +584,7 @@ void PluginEditor::filesDropped(StringArray const& files, int x, int y)
         if (file.exists() && file.hasFileExtension("pd")) {
             openedPdFiles = true;
             autosave->checkForMoreRecentAutosave(file, [this, file]() {
-                pd->loadPatch(file, this, -1);
+                pd->loadPatch(URL(file), this, -1);
                 SettingsFile::getInstance()->addToRecentlyOpened(file);
                 pd->titleChanged();
             });
@@ -680,11 +680,12 @@ void PluginEditor::newProject()
 
 void PluginEditor::openProject()
 {
-    Dialogs::showOpenDialog([this](File& result) {
+    Dialogs::showOpenDialog([this](URL resultURL) {
+        auto result = resultURL.getLocalFile();
         if (result.exists() && result.getFileExtension().equalsIgnoreCase(".pd")) {
 
-            autosave->checkForMoreRecentAutosave(result, [this, result]() {
-                pd->loadPatch(result, this, -1);
+            autosave->checkForMoreRecentAutosave(result, [this, result, resultURL]() {
+                pd->loadPatch(resultURL, this, -1);
                 SettingsFile::getInstance()->addToRecentlyOpened(result);
                 pd->titleChanged();
             });
@@ -695,13 +696,14 @@ void PluginEditor::openProject()
 
 void PluginEditor::saveProjectAs(std::function<void()> const& nestedCallback)
 {
-    Dialogs::showSaveDialog([this, nestedCallback](File& result) mutable {
+    Dialogs::showSaveDialog([this, nestedCallback](URL resultURL) mutable {
+        auto result = resultURL.getLocalFile();
         if (result.getFullPathName().isNotEmpty()) {
             if (result.exists())
                 result.deleteFile();
             result = result.withFileExtension(".pd");
 
-            getCurrentCanvas()->patch.savePatch(result);
+            getCurrentCanvas()->patch.savePatch(resultURL);
             SettingsFile::getInstance()->addToRecentlyOpened(result);
             pd->titleChanged();
         }

@@ -131,7 +131,7 @@ void ImplementationBase::openSubpatch(pd::Patch* subpatch)
 
         if (canvas_isabstraction(glist.get())) {
             auto path = File(String::fromUTF8(canvas_getdir(glist.get())->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
-            subpatch->setCurrentFile(path);
+            subpatch->setCurrentFile(URL(path));
         }
         pd->patches.add(subpatch);
     } else {

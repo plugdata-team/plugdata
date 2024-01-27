@@ -97,7 +97,8 @@ struct ExporterBase : public Component
         }
 
         exportButton.onClick = [this]() {
-            Dialogs::showSaveDialog([this](File& result) {
+            Dialogs::showSaveDialog([this](URL url) {
+                auto result = url.getLocalFile();
                 if (result.getParentDirectory().exists()) {
                     startExport(result);
                 }
@@ -184,7 +185,8 @@ struct ExporterBase : public Component
                 patchFile = openedPatchFile;
                 validPatchSelected = true;
             } else if (idx == 2) {
-                Dialogs::showOpenDialog([this](File& result) {
+                Dialogs::showOpenDialog([this](URL url) {
+                    auto result = url.getLocalFile();
                     if (result.existsAsFile()) {
                         patchFile = result;
                         validPatchSelected = true;

@@ -834,7 +834,8 @@ public:
             addAndMakeVisible(browseButton);
 
             browseButton.onClick = [this]() {
-                Dialogs::showSaveDialog([this](File& result) {
+                Dialogs::showSaveDialog([this](URL url) {
+                    auto result = url.getLocalFile();
                     if (result.getParentDirectory().exists()) {
                         label.setText(result.getFullPathName(), sendNotification);
                     }

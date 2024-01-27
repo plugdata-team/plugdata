@@ -731,8 +731,8 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
     } else {
         MessageManager::callAsync(
             [this, obj, defaultFile, callback = String(callbackName)]() mutable {
-                Dialogs::showSaveDialog([this, obj, callback](File& result) {
-                    auto pathName = result.getFullPathName();
+                Dialogs::showSaveDialog([this, obj, callback](URL result) {
+                    auto pathName = result.toString(false);
                     const auto* path = pathName.toRawUTF8();
 
                     t_atom argv[1];

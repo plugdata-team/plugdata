@@ -90,7 +90,7 @@ public:
             auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
             if (pd && editor && file.existsAsFile()) {
                 auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
-                pd->loadPatch(file, editor);
+                pd->loadPatch(URL(file), editor);
                 SettingsFile::getInstance()->addToRecentlyOpened(file);
             }
         }
@@ -185,7 +185,7 @@ public:
 
                 auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
                 if (auto* pd = dynamic_cast<PluginProcessor*>(pluginHolder->processor.get())) {
-                    pd->loadPatch(toOpen, editor);
+                    pd->loadPatch(URL(toOpen), editor);
                     SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
                     openedPatches.add(toOpen.getFullPathName());
                 }
@@ -205,7 +205,7 @@ public:
             if (toOpen.existsAsFile() && toOpen.hasFileExtension("pd") && !openedPatches.contains(toOpen.getFullPathName())) {
                 auto* pd = dynamic_cast<PluginProcessor*>(pluginHolder->processor.get());
                 auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
-                pd->loadPatch(toOpen, editor);
+                pd->loadPatch(URL(toOpen), editor);
                 SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
             }
         }
