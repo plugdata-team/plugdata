@@ -195,7 +195,8 @@ public:
         float selectionY = isVertical ? selected * size : 0;
 
         auto selectionBounds = Rectangle<float>(selectionX, selectionY, size, size);
-        g.fillRoundedRectangle(selectionBounds.reduced(5), Corners::objectCornerRadius / 2.0f);
+        
+        g.fillRoundedRectangle(selectionBounds.reduced(jmin<int>(size * 0.25f, 5)), Corners::objectCornerRadius / 2.0f);
     }
 
     void paintOverChildren(Graphics& g) override
@@ -235,10 +236,10 @@ public:
             if (auto radio = ptr.get<t_radio>()) {
                 if (isVertical) {
                     radio->x_gui.x_w = size;
-                    radio->x_gui.x_h = size * numItems;
+                    radio->x_gui.x_h = size;
                 } else {
                     radio->x_gui.x_h = size;
-                    radio->x_gui.x_w = size * numItems;
+                    radio->x_gui.x_w = size;
                 }
             }
 
@@ -274,8 +275,12 @@ public:
     void updateSizeProperty() override
     {
         if (auto radio = ptr.get<t_radio>()) {
-            radio->x_gui.x_w = object->getWidth() - Object::doubleMargin - 1;
-            radio->x_gui.x_h = object->getHeight() - Object::doubleMargin - 1;
+            auto size = isVertical ? object->getWidth() : object->getHeight();
+            size -= (Object::doubleMargin + 1);
+            
+            radio->x_gui.x_w = size;
+            radio->x_gui.x_h = size;
+            
             setParameterExcludingListener(sizeProperty, isVertical ? var(radio->x_gui.x_w) : var(radio->x_gui.x_h));
         }
     }
