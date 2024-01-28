@@ -140,6 +140,8 @@ struct ExporterBase : public Component
         // Add file location to search paths
         auto searchPaths = StringArray { patchFile.getParentDirectory().getFullPathName() };
 
+        editor->pd->setThis();
+        
         // Get pd's search paths
         char* paths[1024];
         int numItems;
