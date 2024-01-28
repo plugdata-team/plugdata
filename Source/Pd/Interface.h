@@ -345,6 +345,8 @@ struct Interface {
     {
         canvas_setcurrent(cnv);
         pd_typedmess((t_pd*)cnv, s, argc, argv);
+        
+        canvas_undo_add(cnv, UNDO_SEQUENCE_START, "create", nullptr);
 
         canvas_undo_add(cnv, UNDO_CREATE, "create",
             (void*)canvas_undo_set_create(cnv));
@@ -364,6 +366,8 @@ struct Interface {
                                                  new_object, pos));
         }
 
+        canvas_undo_add(cnv, UNDO_SEQUENCE_END, "create", nullptr);
+        
         canvas_unsetcurrent(cnv);
 
         glist_noselect(cnv);
@@ -473,11 +477,7 @@ struct Interface {
     static void moveObject(t_canvas* cnv, t_gobj* obj, int x, int y)
     {
         if(!EDITOR->canvas_undo_already_set_move) {
-            glist_noselect(cnv);
-            glist_select(cnv, obj);
-            canvas_undo_add(cnv, UNDO_MOTION, "motion", canvas_undo_set_move(cnv, 1));
-            glist_noselect(cnv);
-            
+            canvas_undo_add(cnv, UNDO_MOTION, "motion", canvas_undo_set_move(cnv, 0));
             EDITOR->canvas_undo_already_set_move = 1;
         }
         
