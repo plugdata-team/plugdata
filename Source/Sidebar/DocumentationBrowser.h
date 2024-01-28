@@ -366,14 +366,14 @@ public:
             auto* editor = findParentComponentOfClass<PluginEditor>();
             auto* sidebar = getParentComponent();
             auto bounds = editor->getLocalArea(sidebar, settingsCalloutButton->getBounds());
-            auto openFolderCallback = [this]() {
+            auto openFolderCallback = [this, editor]() {
                 Dialogs::showOpenDialog([this](URL result) {
                     if (result.getLocalFile().isDirectory()) {
                         pd->settingsFile->setProperty("browser_path", result.toString(false));
                         updateContent();
                     }
                 },
-                    false, true, "", "DocumentationFileChooser");
+                    false, true, "", "DocumentationFileChooser", editor);
             };
 
             auto resetFolderCallback = [this]() {

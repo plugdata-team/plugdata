@@ -103,7 +103,7 @@ struct ExporterBase : public Component
                     startExport(result);
                 }
             },
-                "", "HeavyExport", true);
+                "", "HeavyExport", nullptr, true);
         };
     }
 
@@ -196,7 +196,7 @@ struct ExporterBase : public Component
                         validPatchSelected = false;
                     }
                 },
-                    true, false, "*.pd", "HeavyPatchLocation");
+                    true, false, "*.pd", "HeavyPatchLocation", nullptr);
             }
         }
 

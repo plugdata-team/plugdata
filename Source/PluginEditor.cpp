@@ -87,18 +87,20 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         return true;
     })
 {
+#if JUCE_IOS
+        //constrainer.setMinimumSize(100, 100);
+        //pluginConstrainer.setMinimumSize(100, 100);
+        //setResizable(true, false);
+#else
     // if we are inside a DAW / host set up the border resizer now
     if (!ProjectInfo::isStandalone) {
         // NEVER touch pluginConstrainer outside of plugin mode!
         pluginConstrainer.setMinimumSize(850, 650);
         setUseBorderResizer(true);
     } else {
-#if JUCE_IOS
-        constrainer.setMinimumSize(250, 250);
-#else
         constrainer.setMinimumSize(850, 650);
-#endif
     }
+#endif
 
     mainMenuButton.setButtonText(Icons::Menu);
     undoButton.setButtonText(Icons::Undo);
@@ -230,7 +232,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     sidebar->setSize(250, pd->lastUIHeight - statusbar->getHeight());
 
     setSize(pd->lastUIWidth, pd->lastUIHeight);
-
+    
     sidebar->toFront(false);
 
     // Make sure existing console messages are processed
@@ -691,7 +693,7 @@ void PluginEditor::openProject()
             });
         }
     },
-        true, false, "*.pd", "Patch");
+        true, false, "*.pd", "Patch", this);
 }
 
 void PluginEditor::saveProjectAs(std::function<void()> const& nestedCallback)
@@ -710,7 +712,7 @@ void PluginEditor::saveProjectAs(std::function<void()> const& nestedCallback)
 
         nestedCallback();
     },
-        "*.pd", "Patch");
+        "*.pd", "Patch", this);
 }
 
 void PluginEditor::saveProject(std::function<void()> const& nestedCallback)

@@ -1182,7 +1182,9 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
                 MessageManager::callAsync([editor = Component::SafePointer(editor), windowWidth, windowHeight]() {
                     if (!editor)
                         return;
+#if !JUCE_IOS
                     editor->setSize(windowWidth, windowHeight);
+#endif
                 });
             }
         }

@@ -351,7 +351,7 @@ public:
                 SettingsFile::getInstance()->getColourThemesTree().appendChild(themeTree, nullptr);
                 updateSwatches();
             },
-                true, false, "*.plugdatatheme", "ThemeLocation");
+                true, false, "*.plugdatatheme", "ThemeLocation", getTopLevelComponent());
         },
             Icons::Open, "Import theme...");
 
@@ -364,7 +364,7 @@ public:
                 menu.addItem(i + 1, allThemes[i]);
             }
 
-            menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(saveButton).withParentComponent(this), [allThemes](int result) {
+            menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(saveButton).withParentComponent(this), [this, allThemes](int result) {
                 if (result < 1)
                     return;
 
@@ -380,7 +380,7 @@ public:
                         result.replaceWithText(themeXml);
                     }
                 },
-                    "*.plugdatatheme", "ThemeLocation");
+                    "*.plugdatatheme", "ThemeLocation", getTopLevelComponent());
             });
         },
             Icons::Save, "Export theme...");

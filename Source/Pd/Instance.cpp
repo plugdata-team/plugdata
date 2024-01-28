@@ -731,6 +731,13 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
     } else {
         MessageManager::callAsync(
             [this, obj, defaultFile, callback = String(callbackName)]() mutable {
+                
+#if JUCE_IOS
+          Component* dialogParent = dynamic_cast<AudioProcessor*>(this)->getActiveEditor();
+#else
+          Component* dialogParent = nullptr;
+#endif
+                
                 Dialogs::showSaveDialog([this, obj, callback](URL result) {
                     auto pathName = result.toString(false);
                     const auto* path = pathName.toRawUTF8();
@@ -742,7 +749,8 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
                     pd_typedmess(obj, generateSymbol(callback), 1, argv);
                     unlockAudioThread();
                 },
-                    "", "openpanel");
+                    "", "openpanel", dialogParent);
+                
             });
     }
 }

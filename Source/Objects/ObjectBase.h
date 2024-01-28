@@ -144,7 +144,7 @@ public:
     virtual ObjectParameters getParameters();
     virtual bool showParametersWhenSelected();
 
-    void objectMovedOrResized(bool resized);
+    virtual void objectMovedOrResized(bool resized);
     virtual void updateSizeProperty() { }
 
     virtual void updateLabel() { }

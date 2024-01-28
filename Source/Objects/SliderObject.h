@@ -198,6 +198,18 @@ public:
     {
         iemHelper.setPdBounds(b.reduced(2, 0).withTrimmedLeft(1));
     }
+    
+    void objectMovedOrResized(bool resized) override
+    {
+        auto objectBounds = object->getObjectBounds().reduced(2, 0).withTrimmedLeft(1);
+        
+        setParameterExcludingListener(positionParameter, Array<var> { var(objectBounds.getX()), var(objectBounds.getY()) }, &objectSizeListener);
+
+        if (resized)
+            updateSizeProperty();
+
+        updateLabel();
+    }
 
     void updateRange()
     {
@@ -301,7 +313,7 @@ public:
 
     void updateSizeProperty() override
     {
-        setPdBounds(object->getObjectBounds());
+        //setPdBounds(object->getObjectBounds());
 
         if (auto iem = ptr.get<t_iemgui>()) {
             setParameterExcludingListener(sizeProperty, Array<var> { var(iem->x_w), var(iem->x_h) });

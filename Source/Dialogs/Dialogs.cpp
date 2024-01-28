@@ -670,7 +670,7 @@ void Dialogs::showObjectMenu(PluginEditor* editor, Component* target)
     AddObjectMenu::show(editor, editor->getLocalArea(target, target->getLocalBounds()));
 }
 
-void Dialogs::showOpenDialog(std::function<void(URL)> callback, bool canSelectFiles, bool canSelectDirectories, String const& extension, String const& lastFileId)
+void Dialogs::showOpenDialog(std::function<void(URL)> callback, bool canSelectFiles, bool canSelectDirectories, String const& extension, String const& lastFileId, Component* parentComponent)
 {
     bool nativeDialog = SettingsFile::getInstance()->wantsNativeDialog();
     auto initialFile = lastFileId.isNotEmpty() ? SettingsFile::getInstance()->getLastBrowserPathForId(lastFileId) : ProjectInfo::appDataDir;
@@ -678,9 +678,9 @@ void Dialogs::showOpenDialog(std::function<void(URL)> callback, bool canSelectFi
         initialFile = ProjectInfo::appDataDir;
 
 #if JUCE_IOS
-    fileChooser = std::make_unique<FileChooser>("Choose file to open...", initialFile, "*", nativeDialog);
+    fileChooser = std::make_unique<FileChooser>("Choose file to open...", initialFile, "*", nativeDialog, false, parentComponent);
 #else
-    fileChooser = std::make_unique<FileChooser>("Choose file to open...", initialFile, extension, nativeDialog);
+    fileChooser = std::make_unique<FileChooser>("Choose file to open...", initialFile, extension, nativeDialog, false, parentComponent);
 #endif
     auto openChooserFlags = FileBrowserComponent::openMode;
 
@@ -688,6 +688,7 @@ void Dialogs::showOpenDialog(std::function<void(URL)> callback, bool canSelectFi
         openChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(openChooserFlags | FileBrowserComponent::canSelectFiles);
     if (canSelectDirectories)
         openChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(openChooserFlags | FileBrowserComponent::canSelectDirectories);
+
 
     fileChooser->launchAsync(openChooserFlags,
         [callback, lastFileId](FileChooser const& fileChooser) {
@@ -700,14 +701,14 @@ void Dialogs::showOpenDialog(std::function<void(URL)> callback, bool canSelectFi
         });
 }
 
-void Dialogs::showSaveDialog(std::function<void(URL)> callback, String const& extension, String const& lastFileId, bool directoryMode)
+void Dialogs::showSaveDialog(std::function<void(URL)> callback, String const& extension, String const& lastFileId, Component* parentComponent, bool directoryMode)
 {
     bool nativeDialog = SettingsFile::getInstance()->wantsNativeDialog();
     auto initialFile = lastFileId.isNotEmpty() ? SettingsFile::getInstance()->getLastBrowserPathForId(lastFileId) : ProjectInfo::appDataDir;
     if (!initialFile.exists())
         initialFile = ProjectInfo::appDataDir;
 
-    fileChooser = std::make_unique<FileChooser>("Choose save location...", initialFile, extension, nativeDialog);
+    fileChooser = std::make_unique<FileChooser>("Choose save location...", initialFile, extension, nativeDialog, false, parentComponent);
 
     auto saveChooserFlags = FileBrowserComponent::saveMode;
 

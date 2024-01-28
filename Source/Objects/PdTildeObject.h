@@ -58,7 +58,7 @@ public:
                     pd->sendDirectMessage(pdTilde.get(), "pd~", { pd->generateSymbol("start") });
                 }
             },
-                true, true, "", "LastPdLocation");
+                true, true, "", "LastPdLocation", cnv->editor);
         } else {
             if (auto pdTilde = ptr.get<t_fake_pd_tilde>()) {
                 auto pdPath = pdLocation.getFullPathName();

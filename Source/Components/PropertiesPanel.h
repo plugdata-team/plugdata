@@ -840,7 +840,7 @@ public:
                         label.setText(result.getFullPathName(), sendNotification);
                     }
                 },
-                    "", "");
+                    "", "", getTopLevelComponent());
             };
         }
 

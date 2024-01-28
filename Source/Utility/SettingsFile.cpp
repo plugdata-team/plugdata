@@ -69,7 +69,10 @@ SettingsFile* SettingsFile::initialise()
     initialiseOverlayTree();
 
 #if JUCE_IOS
-    if (OSUtils::isIPad()) {
+    if(!ProjectInfo::isStandalone) {
+        Desktop::getInstance().setGlobalScaleFactor(1.0f); // scaling inside AUv3 is a bad idea
+    }
+    else if (OSUtils::isIPad()) {
         Desktop::getInstance().setGlobalScaleFactor(1.125f);
     } else {
         Desktop::getInstance().setGlobalScaleFactor(0.825f);

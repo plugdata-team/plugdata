@@ -360,7 +360,7 @@ private:
                 internalChange();
             }
         },
-            false, true, "", "PathBrowser");
+            false, true, "", "PathBrowser", getTopLevelComponent());
     }
 
     void deleteSelected()
@@ -384,7 +384,7 @@ private:
                 internalChange();
             }
         },
-            false, true, "", "PathBrowser");
+            false, true, "", "PathBrowser", getTopLevelComponent());
 
         internalChange();
     }

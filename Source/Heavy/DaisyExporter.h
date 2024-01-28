@@ -158,7 +158,7 @@ public:
                         customBoardDefinition = File();
                     }
                 },
-                    true, false, "*.json", "DaisyCustomBoard");
+                    true, false, "*.json", "DaisyCustomBoard", nullptr);
             }
         }
 
@@ -175,7 +175,7 @@ public:
                         customLinker = File();
                     }
                 },
-                    true, false, "*.lds", "DaisyCustomLinker");
+                    true, false, "*.lds", "DaisyCustomLinker", nullptr);
             }
         }
     }
