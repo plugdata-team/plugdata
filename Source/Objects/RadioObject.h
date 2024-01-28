@@ -25,6 +25,11 @@ public:
         objectParameters.addParamSize(&sizeProperty, true);
         objectParameters.addParamInt("Options", cGeneral, &max, 8);
         iemHelper.addIemParameters(objectParameters);
+        
+        if (auto radio = ptr.get<t_radio>()) {
+            isVertical = radio->x_orientation;
+            sizeProperty = isVertical ? radio->x_gui.x_w : radio->x_gui.x_h;
+        }
     }
 
     void update() override
