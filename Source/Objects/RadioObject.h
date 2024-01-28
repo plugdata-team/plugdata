@@ -81,8 +81,8 @@ public:
 
             int x = 0, y = 0, w = 0, h = 0;
             pd::Interface::getObjectBounds(patch, radio.cast<t_gobj>(), &x, &y, &w, &h);
-            auto width = !isVertical ? (radio->x_gui.x_h + 1) * numItems : (radio->x_gui.x_w + 1);
-            auto height = isVertical ? (radio->x_gui.x_w + 1) * numItems : (radio->x_gui.x_h + 1);
+            auto width = !isVertical ? (radio->x_gui.x_h * numItems) + 1 : (radio->x_gui.x_w + 1);
+            auto height = isVertical ? (radio->x_gui.x_w * numItems) + 1 : (radio->x_gui.x_h + 1);
 
             return { x, y, width, height };
         }
@@ -204,16 +204,17 @@ public:
 
     void updateAspectRatio()
     {
-        float verticalLength = ((object->getWidth() - Object::doubleMargin) * numItems) + Object::doubleMargin;
-        float horizontalLength = ((object->getHeight() - Object::doubleMargin) * numItems) + Object::doubleMargin;
+        auto b = getPdBounds();
+        float verticalLength = (b.getWidth() * numItems) + Object::doubleMargin;
+        float horizontalLength = (b.getHeight() * numItems) + Object::doubleMargin;
 
         auto minLongSide = object->minimumSize * numItems;
         auto minShortSide = object->minimumSize;
         if (isVertical) {
-            object->setSize(object->getWidth(), verticalLength);
+            object->setSize(b.getWidth() + Object::doubleMargin, verticalLength);
             constrainer->setMinimumSize(minShortSide, minLongSide);
         } else {
-            object->setSize(horizontalLength, object->getHeight());
+            object->setSize(horizontalLength, b.getHeight() + Object::doubleMargin);
             constrainer->setMinimumSize(minLongSide, minShortSide);
         }
         constrainer->setFixedAspectRatio(isVertical ? 1.0f / numItems : static_cast<float>(numItems) / 1.0f);
