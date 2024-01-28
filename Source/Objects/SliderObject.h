@@ -210,23 +210,14 @@ public:
         else {
             iemHelper.setPdBounds(b.reduced(2, 0).withTrimmedLeft(1));
         }
-        
     }
     
     void objectMovedOrResized(bool resized) override
     {
         auto objectBounds = object->getObjectBounds();
-            
-        if(isVertical)
-        {
-            objectBounds = objectBounds.reduced(0, 2).withTrimmedBottom(1);
-        }
-        else {
-            objectBounds = objectBounds.reduced(2, 0).withTrimmedLeft(1);
-        }
-        
-        setParameterExcludingListener(positionParameter, Array<var> { var(objectBounds.getX()), var(objectBounds.getY()) }, &objectSizeListener);
 
+        setParameterExcludingListener(positionParameter, Array<var>{ var(objectBounds.getX()), var(objectBounds.getY()) }, &objectSizeListener);
+        
         if (resized)
             updateSizeProperty();
 
@@ -335,9 +326,16 @@ public:
 
     void updateSizeProperty() override
     {
-        //setPdBounds(object->getObjectBounds());
-
         if (auto iem = ptr.get<t_iemgui>()) {
+            if(isVertical) {
+                iem->x_w = object->getObjectBounds().getWidth() - 1;
+                iem->x_h = object->getObjectBounds().getHeight() - 6;
+            }
+            else {
+                iem->x_w = object->getObjectBounds().getWidth() - 6;
+                iem->x_h = object->getObjectBounds().getHeight() - 1;
+            }
+            
             setParameterExcludingListener(sizeProperty, Array<var> { var(iem->x_w), var(iem->x_h) });
         }
     }
