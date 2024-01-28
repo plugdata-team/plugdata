@@ -224,7 +224,6 @@ public:
         else {
             objectBounds = objectBounds.reduced(2, 0).withTrimmedLeft(1);
         }
-       
         
         setParameterExcludingListener(positionParameter, Array<var> { var(objectBounds.getX()), var(objectBounds.getY()) }, &objectSizeListener);
 

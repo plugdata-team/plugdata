@@ -273,9 +273,9 @@ public:
 
     void updateSizeProperty() override
     {
-        setPdBounds(object->getObjectBounds());
-
         if (auto radio = ptr.get<t_radio>()) {
+            radio->x_gui.x_w = object->getWidth() - Object::doubleMargin - 1;
+            radio->x_gui.x_h = object->getHeight() - Object::doubleMargin - 1;
             setParameterExcludingListener(sizeProperty, isVertical ? var(radio->x_gui.x_w) : var(radio->x_gui.x_h));
         }
     }

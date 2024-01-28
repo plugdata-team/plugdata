@@ -444,11 +444,8 @@ void Patch::paste(Point<int> position)
 {
     auto text = SystemClipboard::getTextFromClipboard();
 
-    // for some reason when we paste into PD, we need to apply a translation?
-    auto translatedObjects = translatePatchAsString(text, position.translated(1540, 1540));
-
     if (auto patch = ptr.get<t_glist>()) {
-        pd::Interface::paste(patch.get(), translatedObjects.toRawUTF8());
+        pd::Interface::paste(patch.get(), text.toRawUTF8());
     }
 }
 
