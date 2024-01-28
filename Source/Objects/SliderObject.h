@@ -191,17 +191,40 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        return iemHelper.getPdBounds().expanded(2, 0).withTrimmedLeft(-1);
+        if(isVertical)
+        {
+            return iemHelper.getPdBounds().expanded(0, 2).withTrimmedBottom(-1);
+        }
+        else {
+            return iemHelper.getPdBounds().expanded(2, 0).withTrimmedLeft(-1);
+        }
+       
     }
 
     void setPdBounds(Rectangle<int> b) override
     {
-        iemHelper.setPdBounds(b.reduced(2, 0).withTrimmedLeft(1));
+        if(isVertical)
+        {
+            iemHelper.setPdBounds(b.reduced(0, 2).withTrimmedBottom(1));
+        }
+        else {
+            iemHelper.setPdBounds(b.reduced(2, 0).withTrimmedLeft(1));
+        }
+        
     }
     
     void objectMovedOrResized(bool resized) override
     {
-        auto objectBounds = object->getObjectBounds().reduced(2, 0).withTrimmedLeft(1);
+        auto objectBounds = object->getObjectBounds();
+            
+        if(isVertical)
+        {
+            objectBounds = objectBounds.reduced(0, 2).withTrimmedBottom(1);
+        }
+        else {
+            objectBounds = objectBounds.reduced(2, 0).withTrimmedLeft(1);
+        }
+       
         
         setParameterExcludingListener(positionParameter, Array<var> { var(objectBounds.getX()), var(objectBounds.getY()) }, &objectSizeListener);
 

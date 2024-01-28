@@ -72,7 +72,7 @@ public:
 
                 int x = 0, y = 0, w = 0, h = 0;
                 pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
-                bounds = Rectangle<int>(x, y, atoms[4].getFloat(), atoms[5].getFloat());
+                bounds = Rectangle<int>(x, y, atoms[4].getFloat() + 1, atoms[5].getFloat() + 1);
             }
             update();
             object->setObjectBounds(bounds);
@@ -122,7 +122,6 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-
         if (auto glist = ptr.get<_glist>()) {
             auto* patch = cnv->patch.getPointer().get();
             if (!patch)
