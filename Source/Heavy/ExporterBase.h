@@ -5,6 +5,7 @@
  */
 
 #include "PluginEditor.h"
+#include "PluginProcessor.h"
 #include "Pd/Patch.h"
 
 struct ExporterBase : public Component
