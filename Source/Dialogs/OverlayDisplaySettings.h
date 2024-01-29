@@ -37,11 +37,14 @@ public:
             , group(groupType)
         {
             auto controlVisibility = [this](String const& mode) {
-                if (settingName == "origin" || settingName == "border" || mode == "edit" || mode == "lock" || mode == "alt") {
-                    return true;
-                } else {
+                if (settingName == "behind" && (mode == "edit" || mode == "alt")) {
                     return false;
                 }
+                else if (settingName == "origin" || settingName == "border" || mode == "edit" || mode == "lock" || mode == "alt") {
+                    return true;
+                }
+
+                return false;
             };
 
             for (auto* button : buttons) {
@@ -55,10 +58,12 @@ public:
             buttons[Run]->setButtonText(Icons::Presentation);
             buttons[Alt]->setButtonText(Icons::Eye);
 
-            buttons[Edit]->setTooltip("Show " + groupName.toLowerCase() + " in edit mode");
-            buttons[Lock]->setTooltip("Show " + groupName.toLowerCase() + " in run mode");
-            buttons[Run]->setTooltip("Show " + groupName.toLowerCase() + " in presentation mode");
-            buttons[Alt]->setTooltip("Show " + groupName.toLowerCase() + " when overlay button is active");
+            auto lowerCaseToolTip = toolTip.toLowerCase();
+
+            buttons[Edit]->setTooltip("Show " + lowerCaseToolTip + " in edit mode");
+            buttons[Lock]->setTooltip("Show " + lowerCaseToolTip + " in run mode");
+            buttons[Run]->setTooltip("Show " + lowerCaseToolTip + " in presentation mode");
+            buttons[Alt]->setTooltip("Show " + lowerCaseToolTip + " when overlay button is active");
 
             textLabel.setText(groupName, dontSendNotification);
             textLabel.setTooltip(toolTip);
@@ -131,13 +136,14 @@ public:
         connectionLabel.setFont(Fonts::getSemiBoldFont().withHeight(14));
         addAndMakeVisible(connectionLabel);
 
-        buttonGroups.add(new OverlaySelector(overlayTree, Origin, "origin", "Origin", "0,0 point of canvas"));
+        buttonGroups.add(new OverlaySelector(overlayTree, Origin, "origin", "Origin", "Origin point of canvas"));
         buttonGroups.add(new OverlaySelector(overlayTree, Border, "border", "Border", "Plugin / window workspace size"));
         buttonGroups.add(new OverlaySelector(overlayTree, Index, "index", "Index", "Object index in patch"));
         // buttonGroups.add(new OverlaySelector(overlayTree, Coordinate, "coordinate", "Coordinate", "Object coordinate in patch"));
-        buttonGroups.add(new OverlaySelector(overlayTree, ActivationState, "activation_state", "Activity", "Show object activity"));
-        buttonGroups.add(new OverlaySelector(overlayTree, Direction, "direction", "Direction", "Direction of connection"));
+        buttonGroups.add(new OverlaySelector(overlayTree, ActivationState, "activation_state", "Activity", "Object activity"));
+        buttonGroups.add(new OverlaySelector(overlayTree, Direction, "direction", "Direction", "Direction of connections"));
         buttonGroups.add(new OverlaySelector(overlayTree, Order, "order", "Order", "Trigger order of multiple outlets"));
+        buttonGroups.add(new OverlaySelector(overlayTree, Behind, "behind", "Behind", "Connection cables behind objects"));
 
         for (auto* buttonGroup : buttonGroups) {
             addAndMakeVisible(buttonGroup);
@@ -169,6 +175,7 @@ public:
         connectionLabel.setBounds(bounds.removeFromTop(labelHeight));
         buttonGroups[OverlayDirection]->setBounds(bounds.removeFromTop(itemHeight));
         buttonGroups[OverlayOrder]->setBounds(bounds.removeFromTop(itemHeight));
+        buttonGroups[OverlayConnectionsBehind]->setBounds(bounds.removeFromTop(itemHeight));
         setSize(200, bounds.getY() + 5);
     }
 
@@ -176,7 +183,7 @@ public:
     {
         auto firstPanelBounds = buttonGroups[OverlayOrigin]->getBounds().getUnion(buttonGroups[OverlayBorder]->getBounds());
         auto secondPanelBounds = buttonGroups[OverlayIndex]->getBounds().getUnion(buttonGroups[OverlayActivationState]->getBounds());
-        auto thirdPanelBounds = buttonGroups[OverlayDirection]->getBounds().getUnion(buttonGroups[OverlayOrder]->getBounds());
+        auto thirdPanelBounds = buttonGroups[OverlayDirection]->getBounds().getUnion(buttonGroups[OverlayConnectionsBehind]->getBounds());
 
         for (auto& bounds : std::vector<Rectangle<int>> { firstPanelBounds, secondPanelBounds, thirdPanelBounds }) {
             g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.035f));

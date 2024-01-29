@@ -105,8 +105,6 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
         graphArea->setAlwaysOnTop(true);
     }
 
-    updateOverlays();
-
     setSize(infiniteCanvasSize, infiniteCanvasSize);
 
     // initialize to default zoom
@@ -138,6 +136,10 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     locked.addListener(this);
 
     editor->addModifierKeyListener(this);
+
+    updateOverlays();
+    orderConnections();
+
     parameters.addParamBool("Is graph", cGeneral, &isGraphChild, { "No", "Yes" }, 0);
     parameters.addParamBool("Hide name and arguments", cGeneral, &hideNameAndArgs, { "No", "Yes" }, 0);
     parameters.addParamRange("X range", cGeneral, &xRange, { 0.0f, 1.0f });
@@ -204,6 +206,9 @@ void Canvas::updateOverlays()
 
     showBorder = overlayState & Border;
     showOrigin = overlayState & Origin;
+    connectionsBehind = overlayState & Behind;
+
+    orderConnections();
 
     for (auto* object : objects) {
         object->updateOverlays(overlayState);
@@ -645,11 +650,12 @@ void Canvas::mouseDown(MouseEvent const& e)
                 deselectAll();
 
                 presentationMode.setValue(false);
-                if (locked.getValue()) {
-                    locked.setValue(false);
-                } else {
-                    locked.setValue(true);
-                }
+
+                // when command + click on canvas, swap between locked / edit mode
+                locked.setValue(!locked.getValue());
+                locked.getValueSource().sendChangeMessage(true);
+
+                updateOverlays();
             }
             if (!e.mods.isShiftDown()) {
                 deselectAll();
@@ -1718,29 +1724,13 @@ void Canvas::valueChanged(Value& v)
         cancelConnectionCreation();
         deselectAll();
 
-        // move all connections to back when canvas is locked
-        if (locked == var(true)) {
-            // use reverse order to preserve correct connection layering
-            for (int i = connections.size() - 1; i >= 0; i--) {
-                connections[i]->setAlwaysOnTop(false);
-                connections[i]->toBack();
-            }
-        } else {
-            // otherwise move all connections to front
-            for (auto connection : connections) {
-                connection->setAlwaysOnTop(true);
-                connection->toFront(false);
-            }
-        }
-
-        repaint();
-
         // Makes sure no objects keep keyboard focus after locking/unlocking
         if (isShowing() && isVisible())
             grabKeyboardFocus();
 
         editor->updateCommandStatus();
         updateOverlays();
+        orderConnections();
     } else if (v.refersToSameSourceAs(commandLocked)) {
         updateOverlays();
         repaint();
@@ -1798,6 +1788,26 @@ void Canvas::valueChanged(Value& v)
         }
         updateDrawables();
     }
+}
+
+void Canvas::orderConnections()
+{
+    // move all connections to back when canvas is locked & connections behind is active
+    if (locked == var(true) && connectionsBehind) {
+        // use reverse order to preserve correct connection layering
+        for (int i = connections.size() - 1; i >= 0; i--) {
+            connections[i]->setAlwaysOnTop(false);
+            connections[i]->toBack();
+        }
+    } else {
+        // otherwise move all connections to front
+        for (auto connection : connections) {
+            connection->setAlwaysOnTop(true);
+            connection->toFront(false);
+        }
+    }
+
+    repaint();
 }
 
 void Canvas::showSuggestions(Object* object, TextEditor* textEditor)
