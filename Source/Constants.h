@@ -402,7 +402,8 @@ enum Overlay {
     Coordinate = 8,
     ActivationState = 16,
     Order = 32,
-    Direction = 64
+    Direction = 64,
+    Behind = 128
 };
 
 enum OverlayItem {
@@ -411,7 +412,8 @@ enum OverlayItem {
     OverlayIndex,
     OverlayActivationState,
     OverlayDirection,
-    OverlayOrder
+    OverlayOrder,
+    OverlayConnectionsBehind
 };
 
 enum Align {

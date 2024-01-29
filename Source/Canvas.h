@@ -131,6 +131,8 @@ public:
 
     void updateSidebarSelection();
 
+    void orderConnections();
+
     void showSuggestions(Object* object, TextEditor* textEditor);
     void hideSuggestions();
 
@@ -179,6 +181,7 @@ public:
 
     bool showOrigin = false;
     bool showBorder = false;
+    bool connectionsBehind = true;
 
     bool isGraph = false;
     bool hasParentCanvas = false;
