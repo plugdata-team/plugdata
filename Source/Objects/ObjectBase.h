@@ -28,7 +28,7 @@ public:
     {
         setJustificationType(Justification::centredLeft);
         setBorderSize(BorderSize<int>(0, 0, 0, 0));
-        setMinimumHorizontalScale(1.f);
+        setMinimumHorizontalScale(0.2f);
         setEditable(false, false);
         setInterceptsMouseClicks(false, false);
     }

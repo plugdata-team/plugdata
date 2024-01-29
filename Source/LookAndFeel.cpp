@@ -1125,7 +1125,7 @@ void PlugDataLook::drawLabel(Graphics& g, Label& label)
         g.setFont(font);
         g.setColour(label.findColour(Label::textColourId));
 
-        g.drawFittedText(label.getText(), textArea, label.getJustificationType(), 1, 1.0f);
+        g.drawFittedText(label.getText(), textArea, label.getJustificationType(), 1, label.getMinimumHorizontalScale());
 
         g.setColour(label.findColour(Label::outlineColourId).withMultipliedAlpha(alpha));
     } else if (label.isEnabled()) {

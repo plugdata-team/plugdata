@@ -313,21 +313,12 @@ public:
         if (auto iemgui = ptr.get<t_iemgui>()) {
             t_symbol const* sym = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab);
             if (sym) {
-                int fontHeight = getFontHeight() + 2;
-                auto currentHash = hash(getExpandedLabelText());
-                int labelLength = lastLabelLength;
-                if(lastFontHeight != fontHeight || lastLabelTextHash != currentHash)
-                {
-                    labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());
-                    lastFontHeight = fontHeight;
-                    lastLabelTextHash = currentHash;
-                    lastLabelLength = labelLength;
-                }
-                
+                int fontHeight = getFontHeight();
+                int fontWidth = sys_fontwidth(fontHeight);
                 int const posx = objectBounds.getX() + iemgui->x_ldx;
                 int const posy = objectBounds.getY() + iemgui->x_ldy;
-
-                return { posx, posy, labelLength, fontHeight };
+                
+                return { posx, posy, fontWidth * (getExpandedLabelText().length() + 1), fontHeight + 2 };
             }
         }
 
@@ -535,10 +526,6 @@ public:
     PluginProcessor* pd;
 
     pd::WeakReference ptr;
-    
-    int lastFontHeight = 10;
-    hash32 lastLabelTextHash = 0;
-    int lastLabelLength = 0;
 
     Value primaryColour = SynchronousValue();
     Value secondaryColour = SynchronousValue();
