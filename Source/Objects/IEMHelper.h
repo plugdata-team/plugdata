@@ -278,7 +278,7 @@ public:
         }
     }
 
-    void updateLabel(std::unique_ptr<ObjectLabel>& label)
+    void updateLabel(std::unique_ptr<ObjectLabel>& label, Point<int> offset = {0, 0})
     {
         String const text = labelText.toString();
 
@@ -293,7 +293,7 @@ public:
             bounds.translate(0, bounds.getHeight() / -2.0f);
 
             label->setFont(Font(bounds.getHeight()));
-            label->setBounds(bounds);
+            label->setBounds(bounds + offset);
             label->setText(text, dontSendNotification);
 
             label->setColour(Label::textColourId, getLabelColour());
@@ -313,7 +313,7 @@ public:
         if (auto iemgui = ptr.get<t_iemgui>()) {
             t_symbol const* sym = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab);
             if (sym) {
-                int fontHeight = getFontHeight();
+                int fontHeight = getFontHeight() + 2;
                 auto currentHash = hash(getExpandedLabelText());
                 int labelLength = lastLabelLength;
                 if(lastFontHeight != fontHeight || lastLabelTextHash != currentHash)
@@ -324,7 +324,7 @@ public:
                     lastLabelLength = labelLength;
                 }
                 
-                int const posx = objectBounds.getX() + iemgui->x_ldx + 4;
+                int const posx = objectBounds.getX() + iemgui->x_ldx;
                 int const posy = objectBounds.getY() + iemgui->x_ldy;
 
                 return { posx, posy, labelLength, fontHeight };

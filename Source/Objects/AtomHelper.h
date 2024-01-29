@@ -277,7 +277,7 @@ public:
 
         setFontHeight(atomSizes[idx - 1]);
 
-        int fontHeight = getAtomHeight() - 6;
+        int fontHeight = getAtomHeight() - 5;
         String const text = getExpandedLabelText();
 
         if (text.isNotEmpty()) {
@@ -323,7 +323,7 @@ public:
     Rectangle<int> getLabelBounds()
     {
         auto objectBounds = object->getBounds().reduced(Object::margin);
-        int fontHeight = getAtomHeight() - 6;
+        int fontHeight = getAtomHeight() - 5;
 
         auto currentHash = hash(getExpandedLabelText());
         int labelLength = lastLabelLength;
@@ -342,16 +342,16 @@ public:
         auto labelBounds = objectBounds.withSizeKeepingCentre(labelLength, fontHeight);
 
         if (labelPosition == 0) { // left
-            return labelBounds.withRightX(objectBounds.getX() - 4);
+            return labelBounds.withRightX(objectBounds.getX() - 2);
         }
         if (labelPosition == 1) { // right
-            return labelBounds.withX(objectBounds.getRight() + 4);
+            return labelBounds.withX(objectBounds.getRight() + 2);
         }
         if (labelPosition == 2) { // top
-            return labelBounds.withX(objectBounds.getX()).withBottomY(objectBounds.getY());
+            return labelBounds.withX(objectBounds.getX()).withBottomY(objectBounds.getY() - 2);
         }
 
-        return labelBounds.withX(objectBounds.getX()).withY(objectBounds.getBottom());
+        return labelBounds.withX(objectBounds.getX()).withY(objectBounds.getBottom() + 2);
     }
 
     String getExpandedLabelText() const
