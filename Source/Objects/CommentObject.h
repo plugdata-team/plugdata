@@ -182,7 +182,7 @@ public:
             
             int textWidth = getTextObjectWidth() - 12; // Reserve a bit of extra space for the text margin
             auto currentLayoutHash = hash(objText);
-            auto colour = object->findColour(PlugDataColour::canvasTextColourId);
+            auto colour = object->findColour(PlugDataColour::commentTextColourId);
             if(layoutTextHash != currentLayoutHash || colour.getARGB() != lastColourARGB || textWidth != lastTextWidth)
             {
                 auto attributedText = AttributedString(objText);
