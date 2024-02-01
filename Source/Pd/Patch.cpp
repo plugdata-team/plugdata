@@ -444,8 +444,10 @@ void Patch::paste(Point<int> position)
 {
     auto text = SystemClipboard::getTextFromClipboard();
 
+    auto translatedObjects = translatePatchAsString(text, position);
+    
     if (auto patch = ptr.get<t_glist>()) {
-        pd::Interface::paste(patch.get(), text.toRawUTF8());
+        pd::Interface::paste(patch.get(), translatedObjects.toRawUTF8());
     }
 }
 

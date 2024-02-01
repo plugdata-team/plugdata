@@ -1049,7 +1049,7 @@ void Canvas::pasteSelection()
     patch.startUndoSequence("Paste object/s");
 
     // Paste at mousePos, adds padding if pasted the same place
-    auto mousePosition = getMouseXYRelative();
+    auto mousePosition = getMouseXYRelative() - canvasOrigin;
     if (mousePosition == pastedPosition) {
         pastedPadding.addXY(10, 10);
     } else {
