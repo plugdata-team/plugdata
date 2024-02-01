@@ -316,8 +316,6 @@ public:
 private:
     std::unordered_map<void*, std::vector<pd_weak_reference*>> pdWeakReferences;
 
-    std::unique_ptr<ObjectImplementationManager> objectImplementations;
-
     moodycamel::ConcurrentQueue<std::function<void(void)>> functionQueue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
 
     std::unique_ptr<FileChooser> openChooser;
@@ -328,7 +326,8 @@ protected:
     struct internal;
 
     std::unique_ptr<pd::MessageDispatcher> messageDispatcher;
-
+    std::unique_ptr<ObjectImplementationManager> objectImplementations; // must be after messageDispatcher (!)
+    
     struct ConsoleHandler : public Timer {
         Instance* instance;
 
