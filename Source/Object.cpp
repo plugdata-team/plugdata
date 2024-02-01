@@ -476,7 +476,21 @@ void Object::triggerOverlayActiveState()
 
     if (rateReducer.tooFast())
         return;
+    
+    if (!getLocalBounds().isEmpty() && activityOverlayImage.getBounds() != getLocalBounds()) {
+        // render activity state overlay once for this object size since it'll always look the same for the same object size anyway
+        activityOverlayImage = Image(Image::ARGB, getWidth(), getHeight(), true);
+        Graphics g(activityOverlayImage);
+        g.saveState();
 
+        g.excludeClipRegion(getLocalBounds().reduced(Object::margin + 1));
+
+        Path objectShadow;
+        objectShadow.addRoundedRectangle(getLocalBounds().reduced(Object::margin - 2), Corners::objectCornerRadius);
+        StackShadow::renderDropShadow(g, objectShadow, findColour(PlugDataColour::dataColourId), 6, { 0, 0 }, 0);
+        g.restoreState();
+    }
+    
     activeStateAlpha = 1.0f;
     startTimer(1000 / ACTIVITY_UPDATE_RATE);
 
@@ -590,20 +604,6 @@ void Object::resized()
         }
 
         index++;
-    }
-
-    if (!getLocalBounds().isEmpty() && activityOverlayImage.getBounds() != getLocalBounds()) {
-        // Pre-render activity state overlay here since it'll always look the same for the same object size
-        activityOverlayImage = Image(Image::ARGB, getWidth(), getHeight(), true);
-        Graphics g(activityOverlayImage);
-        g.saveState();
-
-        g.excludeClipRegion(getLocalBounds().reduced(Object::margin + 1));
-
-        Path objectShadow;
-        objectShadow.addRoundedRectangle(getLocalBounds().reduced(Object::margin - 2), Corners::objectCornerRadius);
-        StackShadow::renderDropShadow(g, objectShadow, findColour(PlugDataColour::dataColourId), 6, { 0, 0 }, 0);
-        g.restoreState();
     }
 }
 
