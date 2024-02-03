@@ -1235,13 +1235,12 @@ void setup_rotate0x2emc_tilde();
 void pipe2_setup();
 void circuit_tilde_setup();
 
-void autofade20x2emc_tilde();
-void autofade2_tilde();
-void mtx0x2emc_tilde();
-void pan_tilde();
-void pan0x2emc_tilde();
-void xgate20x2emc_tilde();
-void xselect20x2emc_tilde();
+void setup_autofade20x2emc_tilde();
+void setup_mtx0x2emc_tilde();
+void pan_tilde_setup();
+void setup_pan0x2emc_tilde();
+void setup_xgate20x2emc_tilde();
+void setup_xselect20x2emc_tilde();
 
 void pm_tilde_setup();
 void pm2_tilde_setup();
@@ -1703,13 +1702,12 @@ void Setup::initialiseELSE()
     pipe2_setup();
     circuit_tilde_setup();
     
-    autofade20x2emc_tilde();
-    autofade2_tilde();
-    mtx0x2emc_tilde();
-    pan_tilde();
-    pan0x2emc_tilde();
-    xgate20x2emc_tilde();
-    xselect20x2emc_tilde();
+    setup_autofade20x2emc_tilde();
+    setup_mtx0x2emc_tilde();
+    pan_tilde_setup();
+    setup_pan0x2emc_tilde();
+    setup_xgate20x2emc_tilde();
+    setup_xselect20x2emc_tilde();
 
     pm_tilde_setup();
     pm2_tilde_setup();
