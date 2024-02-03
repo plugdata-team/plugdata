@@ -102,7 +102,8 @@ static void zldata_realloc(t_zldata *d, int reqsz){
     }
 	else if(reqsz > ZL_DEF_SIZE && !heaped){
 	    d->d_buf = getbytes(reqsz * sizeof(t_atom));
-	    memcpy(d->d_buf, d->d_bufini, curmax * sizeof(t_atom));
+        int maxsize = curmax > ZL_DEF_SIZE ? ZL_DEF_SIZE : curmax;
+	    memcpy(d->d_buf, d->d_bufini, maxsize * sizeof(t_atom));
     }
 	else if(reqsz > ZL_DEF_SIZE && heaped)
 	    d->d_buf = (t_atom *)resizebytes(d->d_buf, cursz*sizeof(t_atom), reqsz*sizeof(t_atom));
@@ -1592,8 +1593,8 @@ static void *zl_new(t_symbol *s, int argc, t_atom *argv){
             }
             i--; // iterate
             a++;
-        };
-        if(a->a_type == A_SYMBOL){ // is symbol
+        }
+        else if(a->a_type == A_SYMBOL){ // is symbol
             if(!first_arg) // is first arg, so mark it
                 first_arg = 1;
             t_symbol * cursym = atom_getsymbolarg(0, i, a);
@@ -1705,3 +1706,99 @@ CYCLONE_OBJ_API void zl_setup(void){
     zl_setupmode("indexmap", 0, 0, zl_indexmap_anyarg, zl_indexmap_count, zl_indexmap, 30);
     zl_setupmode("swap", 0, 0, zl_swapmode_anyarg, zl_swapmode_count, zl_swapmode, 31);    
 }
+
+
+#define ZL_ALIAS_SETUP(MODE) \
+    static void* zl_##MODE##_new(t_symbol *s, int argc, t_atom *argv) \
+    { \
+        int ac = argc + 1; \
+        t_atom* av = malloc(ac * sizeof(t_atom)); \
+        memcpy(av + sizeof(t_atom), argv, argc * sizeof(t_atom)); \
+        SETSYMBOL(av, gensym(#MODE)); \
+        return zl_new(s, ac, av); \
+    } \
+    \
+    CYCLONE_OBJ_API void setup_zl0x2e##MODE(void) { \
+        zl_class = class_new(gensym("zl." #MODE), (t_newmethod)zl_##MODE##_new, \
+                (t_method)zl_free, sizeof(t_zl), 0, A_GIMME, 0); \
+        class_addbang(zl_class, zl_bang); \
+        class_addfloat(zl_class, zl_float); \
+        class_addsymbol(zl_class, zl_symbol); \
+        class_addlist(zl_class, zl_list); \
+        class_addanything(zl_class, zl_anything); \
+        class_addmethod(zl_class, (t_method)zl_mode, gensym("mode"), A_GIMME, 0); \
+        class_addmethod(zl_class, (t_method)zl_zlmaxsize, gensym("zlmaxsize"), A_FLOAT, 0); \
+        class_addmethod(zl_class, (t_method)zl_zlclear, gensym("zlclear"), 0); \
+        class_sethelpsymbol(zl_class, gensym("zl")); \
+        zlproxy_class = class_new(gensym("_zlproxy"), 0, 0, \
+        sizeof(t_zlproxy), CLASS_PD | CLASS_NOINLET, 0); \
+        class_addbang(zlproxy_class, zlproxy_bang); \
+        class_addfloat(zlproxy_class, zlproxy_float); \
+        class_addsymbol(zlproxy_class, zlproxy_symbol); \
+        class_addlist(zlproxy_class, zlproxy_list); \
+        class_addanything(zlproxy_class, zlproxy_anything); \
+        zl_setupmode("unknown", 0, 0, 0, zl_nop_count, zl_nop, 0); \
+        zl_setupmode("ecils", 0, zl_ecils_intarg, 0, zl_ecils_count, zl_ecils, 1); \
+        zl_setupmode("group", 1, zl_group_intarg, 0, zl_group_count, zl_group, 2); \
+        zl_setupmode("iter", 0, zl_iter_intarg, 0, zl_iter_count, zl_iter, 3); \
+        zl_setupmode("join", 0, 0, zl_join_anyarg, zl_join_count, zl_join, 4); \
+        zl_setupmode("len", 0, 0, 0, zl_len_count, zl_len, 5); \
+        zl_setupmode("mth", 0, zl_mth_intarg, zl_mth_anyarg, zl_mth_count, zl_mth, 6); \
+        zl_setupmode("nth", 0, zl_nth_intarg, zl_nth_anyarg, zl_nth_count, zl_nth, 7); \
+        zl_setupmode("reg", 0, 0, zl_reg_anyarg, zl_reg_count, zl_reg, 8); \
+        zl_setupmode("rev", 0, 0, 0, zl_rev_count, zl_rev, 9); \
+        zl_setupmode("rot",	0, zl_rot_intarg, 0, zl_rot_count, zl_rot, 10); \
+        zl_setupmode("sect", 0, 0, zl_sect_anyarg, zl_sect_count, zl_sect, 11); \
+        zl_setupmode("slice", 0, zl_slice_intarg, 0, zl_slice_count, zl_slice, 12); \
+        zl_setupmode("sort", 0, zl_sort_intarg, 0, zl_sort_count, zl_sort, 13); \
+        zl_setupmode("sub", 0, 0, zl_sub_anyarg, zl_sub_count, zl_sub, 14); \
+        zl_setupmode("union", 0, 0, zl_union_anyarg, zl_union_count, zl_union, 15); \
+        zl_setupmode("change", 0, 0, zl_change_anyarg, zl_change_count, zl_change, 16); \
+        zl_setupmode("compare", 0, 0, zl_compare_anyarg, zl_compare_count, zl_compare, 17); \
+        zl_setupmode("delace", 0, 0, 0, zl_delace_count, zl_delace, 18); \
+        zl_setupmode("filter", 0, 0, zl_filter_anyarg, zl_filter_count, zl_filter, 19); \
+        zl_setupmode("lace", 0, 0, zl_lace_anyarg, zl_lace_count, zl_lace, 20); \
+        zl_setupmode("lookup", 0, 0, zl_lookup_anyarg, zl_lookup_count, zl_lookup, 21); \
+        zl_setupmode("median", 0, 0, 0, zl_median_count, zl_median, 22); \
+        zl_setupmode("queue", 0, 0, 0, zl_queue_count, zl_queue, 23); \
+        zl_setupmode("scramble", 0, 0, zl_scramble_anyarg, zl_scramble_count, zl_scramble, 24); \
+        zl_setupmode("stack", 1, 0, 0, zl_stack_count, zl_stack, 25); \
+        zl_setupmode("stream", 0, zl_stream_intarg, 0, zl_stream_count, zl_stream, 26); \
+        zl_setupmode("sum", 0, 0, 0, zl_sum_count, zl_sum, 27); \
+        zl_setupmode("thin", 0, 0, 0, zl_thin_count, zl_thin, 28); \
+        zl_setupmode("unique", 0, 0, zl_unique_anyarg, zl_unique_count, zl_unique, 29); \
+        zl_setupmode("indexmap", 0, 0, zl_indexmap_anyarg, zl_indexmap_count, zl_indexmap, 30); \
+        zl_setupmode("swap", 0, 0, zl_swapmode_anyarg, zl_swapmode_count, zl_swapmode, 31);     \
+    }
+
+ZL_ALIAS_SETUP(ecils)
+ZL_ALIAS_SETUP(group)
+ZL_ALIAS_SETUP(iter)
+ZL_ALIAS_SETUP(join)
+ZL_ALIAS_SETUP(len)
+ZL_ALIAS_SETUP(mth)
+ZL_ALIAS_SETUP(nth)
+ZL_ALIAS_SETUP(reg)
+ZL_ALIAS_SETUP(rev)
+ZL_ALIAS_SETUP(rot)
+ZL_ALIAS_SETUP(sect)
+ZL_ALIAS_SETUP(slice)
+ZL_ALIAS_SETUP(sort)
+ZL_ALIAS_SETUP(sub)
+ZL_ALIAS_SETUP(union)
+ZL_ALIAS_SETUP(change)
+ZL_ALIAS_SETUP(compare)
+ZL_ALIAS_SETUP(delace)
+ZL_ALIAS_SETUP(filter)
+ZL_ALIAS_SETUP(lace)
+ZL_ALIAS_SETUP(lookup)
+ZL_ALIAS_SETUP(median)
+ZL_ALIAS_SETUP(queue)
+ZL_ALIAS_SETUP(scramble)
+ZL_ALIAS_SETUP(stack)
+ZL_ALIAS_SETUP(stream)
+ZL_ALIAS_SETUP(sum)
+ZL_ALIAS_SETUP(thin)
+ZL_ALIAS_SETUP(unique)
+ZL_ALIAS_SETUP(indexmap)
+ZL_ALIAS_SETUP(swap)

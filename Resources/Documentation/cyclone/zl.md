@@ -1,5 +1,5 @@
 ---
-title: zl
+title: zl zl.ecils zl.group zl.iter zl.join zl.len zl.mth zl.nth zl.reg zl.rev zl.rot zl.sect zl.slice zl.sort zl.sub zl.union zl.change zl.compare zl.delace zl.filter zl.lace zl.lookup zl.median zl.queue zl.scramble zl.stack zl.stream zl.sum zl.thin zl.unique zl.indexmap zl.swap
 
 description: list processor
 
