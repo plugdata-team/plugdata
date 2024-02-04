@@ -65,7 +65,7 @@ class LuaObject : public ObjectBase, public Timer {
     Image image;
     bool isSelected = false;
     moodycamel::ReaderWriterQueue<LuaGuiMessage> guiQueue = moodycamel::ReaderWriterQueue<LuaGuiMessage>(40);
-    
+    Value zoomScale;
     std::unique_ptr<Component> textEditor;
     std::unique_ptr<Dialog> saveDialog;
     
@@ -79,7 +79,8 @@ public:
             pdlua->gfx.plugdata_callback_target = this;
         }
         
-        cnv->zoomScale.addListener(this);
+        zoomScale.referTo(cnv->zoomScale);
+        zoomScale.addListener(this);
         startTimerHz(60); // Check for paint messages at 60hz (but we only really repaint when needed)
     }
     
@@ -89,7 +90,7 @@ public:
         {
             pdlua->gfx.plugdata_callback_target = NULL;
         }
-        cnv->zoomScale.removeListener(this);
+        zoomScale.removeListener(this);
     }
     
     Rectangle<int> getPdBounds() override
