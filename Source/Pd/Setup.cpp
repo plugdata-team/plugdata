@@ -1241,6 +1241,9 @@ void pan_tilde_setup();
 void setup_pan0x2emc_tilde();
 void setup_xgate20x2emc_tilde();
 void setup_xselect20x2emc_tilde();
+void findfile_setup();
+void setup_autofade0x2emc_tilde();
+void wt2d_tilde_setup();
 
 void pm_tilde_setup();
 void pm2_tilde_setup();
@@ -1708,6 +1711,9 @@ void Setup::initialiseELSE()
     setup_pan0x2emc_tilde();
     setup_xgate20x2emc_tilde();
     setup_xselect20x2emc_tilde();
+    findfile_setup();
+    setup_autofade0x2emc_tilde();
+    wt2d_tilde_setup();
 
     pm_tilde_setup();
     pm2_tilde_setup();

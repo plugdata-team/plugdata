@@ -1713,7 +1713,7 @@ CYCLONE_OBJ_API void zl_setup(void){
     { \
         int ac = argc + 1; \
         t_atom* av = malloc(ac * sizeof(t_atom)); \
-        memcpy(av + sizeof(t_atom), argv, argc * sizeof(t_atom)); \
+        memcpy(av + 1, argv, argc * sizeof(t_atom)); \
         SETSYMBOL(av, gensym(#MODE)); \
         return zl_new(s, ac, av); \
     } \
