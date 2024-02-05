@@ -1,5 +1,5 @@
 ---
-title: zl
+title: zl.thin
 
 description: list processor
 

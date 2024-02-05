@@ -1,5 +1,5 @@
 ---
-title: zl
+title: zl.lookup
 
 description: list processor
 

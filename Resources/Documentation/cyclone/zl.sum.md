@@ -1,5 +1,5 @@
 ---
-title: zl
+title: zl.sum
 
 description: list processor
 

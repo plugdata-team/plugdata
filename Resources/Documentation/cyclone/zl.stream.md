@@ -1,5 +1,5 @@
 ---
-title: zl
+title: zl.stream
 
 description: list processor
 

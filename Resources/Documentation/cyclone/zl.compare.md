@@ -1,5 +1,5 @@
 ---
-title: zl
+title: zl.compare
 
 description: list processor
 

@@ -1,5 +1,5 @@
 ---
-title: zl
+title: zl.stack
 
 description: list processor
 

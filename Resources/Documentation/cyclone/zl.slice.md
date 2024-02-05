@@ -1,5 +1,5 @@
 ---
-title: zl
+title: zl.slice
 
 description: list processor
 
