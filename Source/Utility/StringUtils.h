@@ -82,20 +82,52 @@ struct CachedStringWidth {
         return maximumLineWidth;
     }
     
-    // Hack so you can use variables instead of only constants
-    template <int I=0>
-    static int variableCachedStringWidth(int size, const String& string) {
+    static inline std::unordered_map<hash32, int> stringWidthCache = std::unordered_map<hash32, int>();
+};
+
+struct CachedFontStringWidth {
+    
+    static float calculateSingleLineWidth(Font& font, const String& singleLine)
+    {
+        auto stringHash = hash(singleLine);
         
-        
-        if constexpr(I > 64) return 0;
-        
-        if(size == I) {
-            return CachedStringWidth<I>::calculateStringWidth(string);
+        bool fontFound = false;
+        for(auto [cachedFont, cache] : stringWidthCache)
+        {
+            if(cachedFont == font)
+            {
+                fontFound = true;
+                
+                auto cacheHit = cache.find(stringHash);
+                if(cacheHit != cache.end()) return cacheHit->second;
+                
+                auto stringWidth = font.getStringWidthFloat(singleLine);
+                cache[stringHash] = stringWidth;
+                
+                return stringWidth;
+            }
         }
-        else {
-            return variableCachedStringWidth<I + 1>(size, string); // Recursive call
+        
+        if(!fontFound)
+        {
+            auto stringWidth = font.getStringWidth(singleLine);
+            stringWidthCache.push_back({font, {{stringHash, stringWidth}}});
+            return stringWidth;
         }
+        
+        return font.getStringWidthFloat(singleLine);
     }
     
-    static inline std::unordered_map<hash32, int> stringWidthCache = std::unordered_map<hash32, int>();
+    static int calculateStringWidth(Font& font, const String& string)
+    {
+        float maximumLineWidth = 7;
+        for(auto line : StringArray::fromLines(string))
+        {
+            maximumLineWidth = std::max(calculateSingleLineWidth(font, line), maximumLineWidth);
+        }
+        
+        return maximumLineWidth;
+    }
+    
+    static inline std::vector<std::pair<Font, std::unordered_map<hash32, float>>> stringWidthCache = std::vector<std::pair<Font, std::unordered_map<hash32, float>>>();
 };

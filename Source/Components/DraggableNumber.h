@@ -33,8 +33,7 @@ protected:
     bool wasReset = false;
     double valueToResetTo = 0.0;
     double valueToRevertTo = 0.0;
-
-    GlyphArrangement currentGlyphs;
+    bool showEllipses = true;
 
 public:
     std::function<void(double)> onValueChange = [](double) {};
@@ -65,6 +64,7 @@ public:
     {
         auto newValue = editor.getText().getDoubleValue();
         setValue(newValue, dontSendNotification);
+        decimalDrag = 0;
         dragEnd();
     }
 
@@ -95,6 +95,12 @@ public:
     void setLogarithmicHeight(double logHeight)
     {
         logarithmicHeight = logHeight;
+    }
+        
+    // Toggle between showing ellipses or ">" if number is too large to fit
+    void setShowEllipsesIfTooLong(bool shouldShowEllipses)
+    {
+        showEllipses = shouldShowEllipses;
     }
 
     bool keyPressed(KeyPress const& key) override
@@ -232,7 +238,7 @@ public:
             GlyphArrangement glyphs;
             glyphs.addFittedText(getFont(), text, textArea.getX(), 0., 99999, getHeight(), 1, 1.0f);
             auto glyphsBounds = glyphs.getBoundingBox(0, glyphs.getNumGlyphs(), false);
-            if (x < glyphsBounds.getRight()) {
+            if (x < glyphsBounds.getRight() && x < getLocalBounds().getRight()) {
                 if (position)
                     *position = glyphsBounds;
                 return 0;
@@ -260,7 +266,7 @@ public:
                 afterDecimalPoint = true;
             }
 
-            if (x <= glyph.getRight()) {
+            if (x <= glyph.getRight() && glyph.getRight() < getLocalBounds().getRight()) {
                 draggedDecimal = isDecimalPoint ? 0 : i - decimalPointPosition;
 
                 auto glyphBounds = glyph.getBounds();
@@ -291,23 +297,37 @@ public:
             PlugDataLook::fillSmoothedRectangle(g, hoveredDecimalPosition, 2.5f);
         }
 
+        auto font = getFont();
+        
         if (!isBeingEdited()) {
             auto textArea = getBorderSize().subtractedFrom(getLocalBounds()).toFloat();
             auto numberText = formatNumber(getText().getDoubleValue(), decimalDrag);
             auto extraNumberText = String();
             auto numDecimals = numberText.fromFirstOccurrenceOf(".", false, false).length();
+            auto numberTextLength = CachedFontStringWidth::calculateSingleLineWidth(font, numberText);
+            
             for (int i = 0; i < std::min(hoveredDecimal - decimalDrag, 7 - numDecimals); ++i)
                 extraNumberText += "0";
-
-            auto numberTextLength = getFont().getStringWidthFloat(numberText);
-
-            g.setFont(getFont());
+            
+            // If show ellipses is false, only show ">" when integers are too large to fit
+            if(!showEllipses && numDecimals == 0)
+            {
+                while(numberTextLength > textArea.getWidth() + 3)
+                {
+                    numberText = numberText.trimCharactersAtEnd(".>");
+                    numberText = numberText.dropLastCharacters(1);
+                    numberText += ">";
+                    numberTextLength = CachedFontStringWidth::calculateSingleLineWidth(font, numberText);
+                }
+            }
+            
+            g.setFont(font);
             g.setColour(findColour(Label::textColourId));
-            g.drawText(numberText, textArea, Justification::centredLeft);
-
+            g.drawText(numberText, textArea, Justification::centredLeft, showEllipses);
+           
             if (dragMode == Regular) {
                 g.setColour(findColour(Label::textColourId).withAlpha(0.4f));
-                g.drawText(extraNumberText, textArea.withTrimmedLeft(numberTextLength), Justification::centredLeft);
+                g.drawText(extraNumberText, textArea.withTrimmedLeft(numberTextLength), Justification::centredLeft, false);
             }
         }
     }
@@ -416,11 +436,11 @@ public:
         }
     }
 
-    static String formatNumber(double value, int precision = -1)
+    String formatNumber(double value, int precision = -1)
     {
         auto text = String(value, precision == -1 ? 8 : precision);
 
-        if (!text.containsChar('.'))
+        if (dragMode != Integer && !text.containsChar('.'))
             text << '.';
 
         text = text.trimCharactersAtEnd("0");

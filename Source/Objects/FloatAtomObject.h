@@ -28,7 +28,7 @@ public:
 
             startEdition();
 
-            editor->setBorder({ 0, 1, 3, 0 });
+            editor->setBorder({ 0, -2, 3, 0 });
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
 
             if (editor != nullptr) {
@@ -71,8 +71,12 @@ public:
         objectParameters.addParamFloat("Minimum", cGeneral, &min);
         objectParameters.addParamFloat("Maximum", cGeneral, &max);
         atomHelper.addAtomParameters(objectParameters);
+        
+        input.setBorderSize(BorderSize<int>(1, 2, 1, 0));
 
         input.setResetValue(0.0f);
+        input.setShowEllipsesIfTooLong(false);
+        
         lookAndFeelChanged();
     }
 
@@ -175,7 +179,7 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        return atomHelper.getPdBounds(input.getFont().getStringWidth(DraggableNumber::formatNumber(input.getText(true).getDoubleValue())));
+        return atomHelper.getPdBounds(input.getFont().getStringWidth(input.formatNumber(input.getText(true).getDoubleValue())));
     }
 
     void setPdBounds(Rectangle<int> b) override

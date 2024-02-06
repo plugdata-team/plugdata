@@ -34,7 +34,7 @@ public:
             startEdition();
 
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
-            editor->setBorder({ 0, 11, 3, 0 });
+            editor->setBorder({ 0, 8, 4, 1 });
 
             if (editor != nullptr) {
                 editor->setInputRestrictions(0, "e.-0123456789");
@@ -45,7 +45,7 @@ public:
             stopEdition();
         };
 
-        input.setBorderSize({ 1, 15, 1, 1 });
+        input.setBorderSize({ 1, 12, 2, 2 });
 
         addAndMakeVisible(input);
 
