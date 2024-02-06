@@ -85,9 +85,9 @@ struct CachedStringWidth {
     static inline std::unordered_map<hash32, int> stringWidthCache = std::unordered_map<hash32, int>();
 };
 
-struct CachedFontStringWidth {
-    
-    static float calculateSingleLineWidth(Font& font, const String& singleLine)
+struct CachedFontStringWidth : public DeletedAtShutdown
+{
+    float calculateSingleLineWidth(Font& font, const String& singleLine)
     {
         auto stringHash = hash(singleLine);
         
@@ -118,7 +118,7 @@ struct CachedFontStringWidth {
         return font.getStringWidthFloat(singleLine);
     }
     
-    static int calculateStringWidth(Font& font, const String& string)
+    int calculateStringWidth(Font& font, const String& string)
     {
         float maximumLineWidth = 7;
         for(auto line : StringArray::fromLines(string))
@@ -129,5 +129,14 @@ struct CachedFontStringWidth {
         return maximumLineWidth;
     }
     
-    static inline std::vector<std::pair<Font, std::unordered_map<hash32, float>>> stringWidthCache = std::vector<std::pair<Font, std::unordered_map<hash32, float>>>();
+    std::vector<std::pair<Font, std::unordered_map<hash32, float>>> stringWidthCache = std::vector<std::pair<Font, std::unordered_map<hash32, float>>>();
+    
+    static CachedFontStringWidth* get()
+    {
+        if(!instance) instance = new CachedFontStringWidth();
+        
+        return instance;
+    }
+    
+    static inline CachedFontStringWidth* instance;
 };

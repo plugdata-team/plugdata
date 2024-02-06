@@ -304,7 +304,7 @@ public:
             auto numberText = formatNumber(getText().getDoubleValue(), decimalDrag);
             auto extraNumberText = String();
             auto numDecimals = numberText.fromFirstOccurrenceOf(".", false, false).length();
-            auto numberTextLength = CachedFontStringWidth::calculateSingleLineWidth(font, numberText);
+            auto numberTextLength = CachedFontStringWidth::get()->calculateSingleLineWidth(font, numberText);
             
             for (int i = 0; i < std::min(hoveredDecimal - decimalDrag, 7 - numDecimals); ++i)
                 extraNumberText += "0";
@@ -317,7 +317,7 @@ public:
                     numberText = numberText.trimCharactersAtEnd(".>");
                     numberText = numberText.dropLastCharacters(1);
                     numberText += ">";
-                    numberTextLength = CachedFontStringWidth::calculateSingleLineWidth(font, numberText);
+                    numberTextLength = CachedFontStringWidth::get()->calculateSingleLineWidth(font, numberText);
                 }
             }
             
