@@ -47,10 +47,10 @@ public:
         auto autoSavedTime = static_cast<int64>(lastAutoSavedPatch.getProperty("LastModified"));
         auto fileChangedTime = patchPath.getLastModificationTime().toMilliseconds();
         if (lastAutoSavedPatch.isValid() && autoSavedTime > fileChangedTime) {
-            int minutesDifference = (autoSavedTime - fileChangedTime) / 60000.0;
-
+            auto timeDescription = RelativeTime((autoSavedTime - fileChangedTime) / 1000.0f).getApproximateDescription();
+            
             Dialogs::showOkayCancelDialog(
-                &editor->openedDialog, editor, "Restore autosave?\n (last autosave is " + String(minutesDifference) + " minutes newer)", [lastAutoSavedPatch, patchPath, callback](bool useAutosaved) {
+                &editor->openedDialog, editor, "Restore autosave?\n (last autosave is " + timeDescription + " newer)", [lastAutoSavedPatch, patchPath, callback](bool useAutosaved) {
                     if (useAutosaved) {
                         MemoryOutputStream ostream;
                         Base64::convertFromBase64(ostream, lastAutoSavedPatch.getProperty("Patch").toString());
