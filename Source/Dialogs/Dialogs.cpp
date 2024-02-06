@@ -696,7 +696,9 @@ void Dialogs::showOpenDialog(std::function<void(URL)> callback, bool canSelectFi
 
             auto lastDir = result.isDirectory() ? result : result.getParentDirectory();
             SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, lastDir);
-            callback(fileChooser.getURLResult());
+            if(result.exists()) {
+                callback(fileChooser.getURLResult());
+            }
             Dialogs::fileChooser = nullptr;
         });
 }
