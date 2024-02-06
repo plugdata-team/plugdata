@@ -29,6 +29,7 @@ public:
         Overlay group;
 
     public:
+
         OverlaySelector(ValueTree const& settings, Overlay groupType, String nameOfSetting, String nameOfGroup, String toolTipString)
             : groupName(std::move(nameOfGroup))
             , settingName(std::move(nameOfSetting))
@@ -136,17 +137,24 @@ public:
         connectionLabel.setFont(Fonts::getSemiBoldFont().withHeight(14));
         addAndMakeVisible(connectionLabel);
 
-        buttonGroups.add(new OverlaySelector(overlayTree, Origin, "origin", "Origin", "Origin point of canvas"));
-        buttonGroups.add(new OverlaySelector(overlayTree, Border, "border", "Border", "Plugin / window workspace size"));
-        buttonGroups.add(new OverlaySelector(overlayTree, Index, "index", "Index", "Object index in patch"));
-        // buttonGroups.add(new OverlaySelector(overlayTree, Coordinate, "coordinate", "Coordinate", "Object coordinate in patch"));
-        buttonGroups.add(new OverlaySelector(overlayTree, ActivationState, "activation_state", "Activity", "Object activity"));
-        buttonGroups.add(new OverlaySelector(overlayTree, Direction, "direction", "Direction", "Direction of connections"));
-        buttonGroups.add(new OverlaySelector(overlayTree, Order, "order", "Order", "Trigger order of multiple outlets"));
-        buttonGroups.add(new OverlaySelector(overlayTree, Behind, "behind", "Behind", "Connection cables behind objects"));
+        canvas.add(new OverlaySelector(overlayTree, Origin, "origin", "Origin", "Origin point of canvas"));
+        canvas.add(new OverlaySelector(overlayTree, Border, "border", "Border", "Plugin / window workspace size"));
 
-        for (auto* buttonGroup : buttonGroups) {
-            addAndMakeVisible(buttonGroup);
+        object.add(new OverlaySelector(overlayTree, Index, "index", "Index", "Object index in patch"));
+        object.add(new OverlaySelector(overlayTree, ActivationState, "activation_state", "Activity", "Object activity"));
+
+        connection.add(new OverlaySelector(overlayTree, Direction, "direction", "Direction", "Direction of connections"));
+        connection.add(new OverlaySelector(overlayTree, Order, "order", "Order", "Trigger order of multiple outlets"));
+        connection.add(new OverlaySelector(overlayTree, Behind, "behind", "Behind", "Connection cables behind objects"));
+
+        groups.add(&canvas);
+        groups.add(&object);
+        groups.add(&connection);
+
+        for (auto& group : groups) {
+            for (auto& item : *group) {
+                addAndMakeVisible(item);
+            }
         }
         setSize(200, 505);
     }
@@ -160,38 +168,42 @@ public:
         auto const spacing = 2;
 
         canvasLabel.setBounds(bounds.removeFromTop(labelHeight));
-        buttonGroups[OverlayOrigin]->setBounds(bounds.removeFromTop(itemHeight));
-        buttonGroups[OverlayBorder]->setBounds(bounds.removeFromTop(itemHeight));
+        for (auto& item : canvas) {
+            item->setBounds(bounds.removeFromTop(itemHeight));
+        }
 
         bounds.removeFromTop(spacing);
         objectLabel.setBounds(bounds.removeFromTop(labelHeight));
-        buttonGroups[OverlayIndex]->setBounds(bounds.removeFromTop(itemHeight));
-
-        // doesn't exist yet
-        // buttonGroups[OverlayCoordinate].setBounds(bounds.removeFromTop(28));
-        buttonGroups[OverlayActivationState]->setBounds(bounds.removeFromTop(itemHeight));
+        for (auto& item : object) {
+            item->setBounds(bounds.removeFromTop(itemHeight));
+        }
 
         bounds.removeFromTop(spacing);
         connectionLabel.setBounds(bounds.removeFromTop(labelHeight));
-        buttonGroups[OverlayDirection]->setBounds(bounds.removeFromTop(itemHeight));
-        buttonGroups[OverlayOrder]->setBounds(bounds.removeFromTop(itemHeight));
-        buttonGroups[OverlayConnectionsBehind]->setBounds(bounds.removeFromTop(itemHeight));
+        for (auto& item : connection) {
+            item->setBounds(bounds.removeFromTop(itemHeight));
+        }
         setSize(200, bounds.getY() + 5);
     }
 
     void paint(Graphics& g) override
     {
-        auto firstPanelBounds = buttonGroups[OverlayOrigin]->getBounds().getUnion(buttonGroups[OverlayBorder]->getBounds());
-        auto secondPanelBounds = buttonGroups[OverlayIndex]->getBounds().getUnion(buttonGroups[OverlayActivationState]->getBounds());
-        auto thirdPanelBounds = buttonGroups[OverlayDirection]->getBounds().getUnion(buttonGroups[OverlayConnectionsBehind]->getBounds());
+        for (auto& group : groups) {
+            auto groupBounds = group->getFirst()->getBounds().getUnion(group->getLast()->getBounds());
 
-        for (auto& bounds : std::vector<Rectangle<int>> { firstPanelBounds, secondPanelBounds, thirdPanelBounds }) {
+            // draw background rectangle
             g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.035f));
-            g.fillRoundedRectangle(bounds.toFloat(), Corners::largeCornerRadius);
+            g.fillRoundedRectangle(groupBounds.toFloat(), Corners::largeCornerRadius);
 
+            // draw outline rectangle
             g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-            g.drawRoundedRectangle(bounds.toFloat(), Corners::largeCornerRadius, 1.0f);
-            g.drawHorizontalLine(bounds.getCentreY(), bounds.getX(), bounds.getRight());
+            g.drawRoundedRectangle(groupBounds.toFloat(), Corners::largeCornerRadius, 1.0f);
+
+            // draw lines between items
+            for (auto& item : *group){
+                if ((group->size() >= 2) && (item != group->getLast()))
+                    g.drawHorizontalLine(item->getBottom(), groupBounds.getX(), groupBounds.getRight());
+            }
         }
     }
 
@@ -224,7 +236,11 @@ private:
         AltDisplay
     };
 
-    OwnedArray<OverlayDisplaySettings::OverlaySelector> buttonGroups;
+    Array<OwnedArray<OverlayDisplaySettings::OverlaySelector>*> groups;
+
+    OwnedArray<OverlayDisplaySettings::OverlaySelector> canvas;
+    OwnedArray<OverlayDisplaySettings::OverlaySelector> object;
+    OwnedArray<OverlayDisplaySettings::OverlaySelector> connection;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OverlayDisplaySettings)
 };
