@@ -16,12 +16,6 @@
 [submodule "Libraries/clap-juce-extensions"]
 	path = Libraries/clap-juce-extensions
 	url = https://github.com/free-audio/clap-juce-extensions.git
-[submodule "Libraries/filesystem"]
-	path = Libraries/filesystem
-	url = https://github.com/boostorg/filesystem.git
-[submodule "Libraries/cpath"]
-	path = Libraries/cpath
-	url = https://github.com/BraedonWooding/cpath
 [submodule "Libraries/pd-else"]
 	path = Libraries/pd-else
 	url = https://github.com/timothyschoen/pd-else.git
@@ -42,3 +36,6 @@
 [submodule "Libraries/Gem"]
 	path = Libraries/Gem
 	url = https://github.com/plugdata-team/plugdata-gem.git
+[submodule "Libraries/ghc_filesystem"]
+	path = Libraries/ghc_filesystem
+	url = https://github.com/gulrak/filesystem.git

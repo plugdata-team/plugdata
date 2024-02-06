@@ -30,16 +30,15 @@
 #if HAS_STD_FILESYSTEM
 #    if defined(__cpp_lib_filesystem)
 #        include <filesystem>
+namespace fs = std::filesystem;
 #    elif defined(__cpp_lib_experimental_filesystem)
 #        include <experimental/filesystem>
-namespace std {
-namespace filesystem = experimental::filesystem;
-}
+namespace fs = std::experimental::filesystem;
 #    endif
 #else
 
-#    include "../Libraries/cpath/cpath.h"
-
+#    include <ghc_filesystem/include/ghc/filesystem.hpp>
+namespace fs = ghc::filesystem;
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -123,7 +122,7 @@ void OSUtils::createJunction(std::string from, std::string to)
 
 void OSUtils::createHardLink(std::string from, std::string to)
 {
-    std::filesystem::create_hard_link(from, to);
+    fs::create_hard_link(from, to);
 }
 
 // Function to run a command as admin on Windows
@@ -297,9 +296,6 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 }
 #endif // Linux/BSD
 
-// Use std::filesystem directory iterator if available
-// On old versions of GCC and macos <10.15, std::filesystem is not available
-#if HAS_STD_FILESYSTEM
 
 juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles, int maximum)
 {
@@ -307,7 +303,7 @@ juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, b
 
     if (recursive) {
         try {
-            for (auto const& dirEntry : std::filesystem::recursive_directory_iterator(directory.getFullPathName().toStdString())) {
+            for (auto const& dirEntry : fs::recursive_directory_iterator(directory.getFullPathName().toStdString())) {
                 auto isDir = dirEntry.is_directory();
                 if ((isDir && !onlyFiles) || !isDir) {
                     result.add(juce::File(dirEntry.path().string()));
@@ -316,12 +312,12 @@ juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, b
                 if (maximum > 0 && result.size() >= maximum)
                     break;
             }
-        } catch (std::filesystem::filesystem_error e) {
+        } catch (fs::filesystem_error e) {
             std::cerr << "Error while iterating over directory: " << e.path1() << std::endl;
         }
     } else {
         try {
-            for (auto const& dirEntry : std::filesystem::directory_iterator(directory.getFullPathName().toStdString())) {
+            for (auto const& dirEntry : fs::directory_iterator(directory.getFullPathName().toStdString())) {
                 auto isDir = dirEntry.is_directory();
                 if ((isDir && !onlyFiles) || !isDir) {
                     result.add(juce::File(dirEntry.path().string()));
@@ -330,49 +326,13 @@ juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, b
                 if (maximum > 0 && result.size() >= maximum)
                     break;
             }
-        } catch (std::filesystem::filesystem_error e) {
+        } catch (fs::filesystem_error e) {
             std::cerr << "Error while iterating over directory: " << e.path1() << std::endl;
         }
     }
 
     return result;
 }
-
-// Otherwise use cpath
-#else
-
-static juce::Array<juce::File> iterateDirectoryRecurse(cpath::Dir&& dir, bool recursive, bool onlyFiles, int maximum)
-{
-    juce::Array<juce::File> result;
-
-    while (cpath::Opt<cpath::File, cpath::Error::Type> file = dir.GetNextFile()) {
-        auto isDir = file->IsDir();
-
-        if (isDir && recursive && !file->IsSpecialHardLink()) {
-            result.addArray(iterateDirectoryRecurse(file->ToDir().GetRaw(), recursive, onlyFiles, maximum));
-        }
-        if ((isDir && !onlyFiles) || !isDir) {
-            auto path = juce::String::fromUTF8(file->GetPath().GetRawPath()->buf);
-            if(!path.isEmpty() && !path.endsWith("/.") && !path.endsWith("/..")) result.add(juce::File(path));
-        }
-
-        if (maximum > 0 && result.size() >= maximum)
-            break;
-    }
-
-    dir.Close();
-
-    return result;
-}
-
-juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles, int maximum)
-{
-    auto pathName = directory.getFullPathName();
-    auto dir = cpath::Dir(pathName.toRawUTF8());
-    return iterateDirectoryRecurse(std::move(dir), recursive, onlyFiles, maximum);
-}
-
-#endif
 
 // needs to be in OSutils because it needs <windows.h>
 unsigned int OSUtils::keycodeToHID(unsigned int scancode)
