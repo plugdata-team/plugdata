@@ -69,7 +69,6 @@ changeWorkingDir("../plugdata_version")
 makeDir("Abstractions")
 makeDir("Abstractions/else")
 makeDir("Abstractions/cyclone")
-makeDir("Abstractions/Gem")
 
 copyDir("../../Libraries/pure-data/doc", "./Documentation")
 globCopy("../../Libraries/pure-data/extra/*.pd", "./Abstractions")
@@ -126,38 +125,52 @@ for src in ["pdlua*-help.pd"]:
 for src in ["pdlua"]:
     copyDir(pdlua_srcdir+src, "./Documentation/13.pdlua/"+src)
 
-copyDir("../../Libraries/Gem/help", "Documentation/14.gem")
-copyDir("../../Libraries/Gem/examples", "Documentation/14.gem/examples")
-copyDir("../../Libraries/Gem/doc", "Documentation/14.gem/examples/Documentation")
-globCopy("../../Libraries/Gem/abstractions/*.pd", "Abstractions/Gem/")
-globMove("Abstractions/Gem/*-help.pd", "Documentation/14.gem/")
+value_mappings = {
+    "0": False,
+    "1": True,
+    "ON": True,
+    "OFF": False,
+    "TRUE": True,
+    "FALSE": False
+}
 
-makeDir("Extra/Gem") # user can put plugins and resources in here
+package_gem = value_mappings[sys.argv[1].upper()]
 
-# extract precompiled Gem plugins for our architecture
-system = platform.system().lower()
-architecture = platform.architecture()
-machine = platform.machine()
+if package_gem:
+    makeDir("Abstractions/Gem")
+    
+    copyDir("../../Libraries/Gem/help", "Documentation/14.gem")
+    copyDir("../../Libraries/Gem/examples", "Documentation/14.gem/examples")
+    copyDir("../../Libraries/Gem/doc", "Documentation/14.gem/examples/Documentation")
+    globCopy("../../Libraries/Gem/abstractions/*.pd", "Abstractions/Gem/")
+    globMove("Abstractions/Gem/*-help.pd", "Documentation/14.gem/")
 
-gem_plugin_path = "../../Libraries/Gem/"
-gem_plugins_file = ""
+    makeDir("Extra/Gem") # user can put plugins and resources in here
 
-if system == 'linux':
-    if 'aarch64' in machine or 'arm' in machine:
-        gem_plugins_file = 'plugins_linux_arm64'
-    elif '64' in architecture:
-        gem_plugins_file = 'plugins_linux_x64'
-elif system == 'darwin':
-    gem_plugins_file = 'plugins_macos'
-elif system == 'windows' and '64' in architecture[0]:
-    gem_plugins_file = 'plugins_win64'
+    # extract precompiled Gem plugins for our architecture
+    system = platform.system().lower()
+    architecture = platform.architecture()
+    machine = platform.machine()
 
-# unpack if architecture is supported
-if len(gem_plugins_file) != 0:
-    with zipfile.ZipFile(gem_plugin_path + gem_plugins_file + ".zip", 'r') as zip_ref:
-            zip_ref.extractall("Extra/Gem/")
-            globMove("Extra/Gem/" + gem_plugins_file + "/*", "Extra/Gem/")
-            removeDir("Extra/Gem/" + gem_plugins_file)
+    gem_plugin_path = "../../Libraries/Gem/"
+    gem_plugins_file = ""
+
+    if system == 'linux':
+        if 'aarch64' in machine or 'arm' in machine:
+            gem_plugins_file = 'plugins_linux_arm64'
+        elif '64' in architecture:
+            gem_plugins_file = 'plugins_linux_x64'
+    elif system == 'darwin':
+        gem_plugins_file = 'plugins_macos'
+    elif system == 'windows' and '64' in architecture[0]:
+        gem_plugins_file = 'plugins_win64'
+
+    # unpack if architecture is supported
+    if len(gem_plugins_file) != 0:
+        with zipfile.ZipFile(gem_plugin_path + gem_plugins_file + ".zip", 'r') as zip_ref:
+                zip_ref.extractall("Extra/Gem/")
+                globMove("Extra/Gem/" + gem_plugins_file + "/*", "Extra/Gem/")
+                removeDir("Extra/Gem/" + gem_plugins_file)
 
 changeWorkingDir("./..")
 
