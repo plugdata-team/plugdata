@@ -206,7 +206,7 @@ class KeyboardObject final : public ObjectBase
 
     Value lowC = SynchronousValue();
     Value octaves = SynchronousValue();
-    int numWhiteKeys = 0;
+    int numWhiteKeys = 8;
 
     Value sendSymbol = SynchronousValue();
     Value receiveSymbol = SynchronousValue();

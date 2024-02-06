@@ -308,6 +308,8 @@ void Object::updateBounds()
         // Objects may return empty bounds if they are not a real object (like scalars)
         if (!newBounds.isEmpty())
             setObjectBounds(newBounds);
+        else
+            setTopLeftPosition(newBounds.getX() + margin + cnv->canvasOrigin.x, newBounds.getY() + margin + + cnv->canvasOrigin.y);
     }
 
     if (newObjectEditor) {
