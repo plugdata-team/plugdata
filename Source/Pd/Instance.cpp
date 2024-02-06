@@ -291,18 +291,21 @@ void Instance::initialisePd(String& pdlua_version)
         class_set_extern_dir(gensym(""));
         set_class_prefix(nullptr);
         initialised = true;
+        
+        clear_class_loadsym();
+        
+        // We want to initialise pdlua separately for each instance
+        auto extra = ProjectInfo::appDataDir.getChildFile("Extra");
+        char vers[1000];
+        *vers = 0;
+        pd::Setup::initialisePdLua(extra.getFullPathName().getCharPointer(), vers, 1000, &registerLuaClass);
+        if (*vers)
+            pdlua_version = vers;
     }
     
     setThis();
+    pd::Setup::initialisePdLuaInstance();
     
-    clear_class_loadsym();
-    // We want to initialise pdlua separately for each instance
-    auto extra = ProjectInfo::appDataDir.getChildFile("Extra");
-    char vers[1000];
-    *vers = 0;
-    pd::Setup::initialisePdLua(extra.getFullPathName().getCharPointer(), vers, 1000, &registerLuaClass);
-    if (*vers)
-        pdlua_version = vers;
 
     // ag: need to do this here to suppress noise from chatty externals
     printReceiver = pd::Setup::createPrintHook(this, reinterpret_cast<t_plugdata_printhook>(internal::instance_multi_print));
