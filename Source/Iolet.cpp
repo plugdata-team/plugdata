@@ -438,7 +438,7 @@ Iolet* Iolet::findNearestIolet(Canvas* cnv, Point<int> position, bool inlet, Obj
     Iolet* nearestIolet = nullptr;
 
     for (auto& iolet : allEdges) {
-        auto bounds = iolet->getCanvasBounds().expanded(50);
+        auto bounds = iolet->getCanvasBounds().expanded(30);
         if (bounds.contains(position)) {
             if (!nearestIolet)
                 nearestIolet = iolet;

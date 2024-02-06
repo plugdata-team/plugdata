@@ -10,7 +10,7 @@ class MessageObject final : public ObjectBase
 
     Value sizeProperty = SynchronousValue();
     std::unique_ptr<TextEditor> editor;
-    BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
+    BorderSize<int> border = BorderSize<int>(1, 6, 1, 2);
 
     String objectText;
     
@@ -59,7 +59,7 @@ public:
      {
          auto objText = editor ? editor->getText() : objectText;
          if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
-             objText = cnv->suggestor->getText();
+             objText = cnv->suggestor->getText() + " ";
          }
          
          int fontWidth = 7;
@@ -70,7 +70,7 @@ public:
          }
          
          // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
-         int idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 16;
+         int idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 14;
          
          // We want to adjust the width so ideal text with aligns with fontWidth
          int offset = idealWidth % fontWidth;
@@ -94,7 +94,7 @@ public:
              objText = cnv->suggestor->getText();
          }
          
-         int textWidth = getTextObjectWidth() - 16; // Remove some width for the message flag and text margin
+         int textWidth = getTextObjectWidth() - 14; // Remove some width for the message flag and text margin
          auto currentLayoutHash = hash(objText);
          auto colour = object->findColour(PlugDataColour::canvasTextColourId);
          if(layoutTextHash != currentLayoutHash || colour.getARGB() != lastColourARGB || textWidth != lastTextWidth)

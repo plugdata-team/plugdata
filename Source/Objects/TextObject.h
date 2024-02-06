@@ -140,7 +140,7 @@ struct TextObjectHelper {
         int w = minWidth;
 
         for (auto& line : lines) {
-            w = std::max<int>(CachedStringWidth<15>::calculateStringWidth(line) + 14, w);
+            w = std::max<int>(CachedStringWidth<15>::calculateStringWidth(line) + 11, w);
         }
 
         return w;
@@ -159,7 +159,7 @@ struct TextObjectHelper {
 
         wchar_t lastChar;
         for (int i = 0; i < xOffsets.size(); i++) {
-            if ((xOffsets[i] + 12) >= static_cast<float>(width) || (text.getCharPointer()[i] == '\n' && lastChar == ';')) {
+            if ((xOffsets[i] + 11) >= static_cast<float>(width) || (text.getCharPointer()[i] == '\n' && lastChar == ';')) {
                 for (int j = i + 1; j < xOffsets.size(); j++) {
                     xOffsets.getReference(j) -= xOffsets[i];
                 }
@@ -199,7 +199,7 @@ class TextBase : public ObjectBase
 
 protected:
     std::unique_ptr<TextEditor> editor;
-    BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
+    BorderSize<int> border = BorderSize<int>(1, 6, 1, 1);
     
     TextLayout textLayout;
     hash32 layoutTextHash = 0;
@@ -294,12 +294,12 @@ public:
         int x = 0, y = 0, w, h;
         if (auto obj = ptr.get<t_gobj>()) {
             auto* cnvPtr = cnv->patch.getPointer().get();
-            if (!cnvPtr) return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 6, 21)};
+            if (!cnvPtr) return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 5, 20)};
     
             pd::Interface::getObjectBounds(cnvPtr, obj.get(), &x, &y, &w, &h);
         }
 
-        return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 6, 21)};
+        return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 5, 20)};
     }
         
     virtual int getTextObjectWidth()
@@ -317,7 +317,7 @@ public:
         }
         
         // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
-        int idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 14;
+        int idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 12;
         
         // We want to adjust the width so ideal text with aligns with fontWidth
         int offset = idealWidth % fontWidth;
@@ -344,7 +344,7 @@ public:
             objText = cnv->suggestor->getText();
         }
         
-        int textWidth = getTextObjectWidth() - 14; // Reserve a bit of extra space for the text margin
+        int textWidth = getTextObjectWidth() - 11; // Reserve a bit of extra space for the text margin
         auto currentLayoutHash = hash(objText);
         auto colour = object->findColour(PlugDataColour::canvasTextColourId);
         if(layoutTextHash != currentLayoutHash || colour.getARGB() != lastColourARGB || textWidth != lastTextWidth)
