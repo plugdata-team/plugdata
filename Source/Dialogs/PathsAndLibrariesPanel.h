@@ -622,10 +622,12 @@ public:
         auto librariesTree = SettingsFile::getInstance()->getLibrariesTree();
         librariesTree.removeAllChildren(nullptr);
 
-        for (auto const& i : librariesToLoad) {
-            auto newLibrary = ValueTree("Library");
-            newLibrary.setProperty("Name", i, nullptr);
-            librariesTree.appendChild(newLibrary, nullptr);
+        for (auto const& name : librariesToLoad) {
+            if(name.isNotEmpty()) {
+                auto newLibrary = ValueTree("Library");
+                newLibrary.setProperty("Name", name, nullptr);
+                librariesTree.appendChild(newLibrary, nullptr);
+            }
         }
 
         listBox.updateContent();
