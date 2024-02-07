@@ -105,7 +105,7 @@ public:
     static inline constexpr int margin = 6;
 #endif
     static inline constexpr int doubleMargin = margin * 2;
-    static inline constexpr int height = 37;
+    static inline constexpr int height = 32;
 
     Rectangle<int> originalBounds;
 

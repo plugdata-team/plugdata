@@ -18,7 +18,7 @@ class CommentObject final : public ObjectBase
     int32 lastColourARGB = 0;
     
     std::unique_ptr<TextEditor> editor;
-    BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
+    BorderSize<int> border = BorderSize<int>(1, 5, 1, 2);
     String objectText;
     
 public:

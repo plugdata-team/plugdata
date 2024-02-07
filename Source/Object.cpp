@@ -519,10 +519,10 @@ void Object::paint(Graphics& g)
         if (newObjectEditor) {
 
             g.setColour(findColour(PlugDataColour::textObjectBackgroundColourId));
-            g.fillRoundedRectangle(getLocalBounds().reduced(Object::margin + 1).toFloat(), Corners::objectCornerRadius);
+            g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 0.5f), Corners::objectCornerRadius);
 
             g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
-            g.drawRoundedRectangle(getLocalBounds().reduced(Object::margin + 1).toFloat(), Corners::objectCornerRadius, 1.0f);
+            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 0.5f), Corners::objectCornerRadius, 1.0f);
         }
 
         g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
@@ -1268,7 +1268,7 @@ void Object::openNewObjectEditor()
         editor->setAlwaysOnTop(true);
         editor->setMultiLine(false);
         editor->setReturnKeyStartsNewLine(false);
-        editor->setBorder(BorderSize<int>(1, 7, 1, 2));
+        editor->setBorder(BorderSize<int>(1, 6, 2, 2));
         editor->setIndents(0, 0);
         editor->setJustification(Justification::centredLeft);
 

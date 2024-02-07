@@ -10,7 +10,7 @@ class MessageObject final : public ObjectBase
 
     Value sizeProperty = SynchronousValue();
     std::unique_ptr<TextEditor> editor;
-    BorderSize<int> border = BorderSize<int>(1, 6, 1, 2);
+    BorderSize<int> border = BorderSize<int>(1, 5, 1, 2);
 
     String objectText;
     

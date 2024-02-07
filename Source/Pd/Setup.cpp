@@ -1711,6 +1711,7 @@ void Setup::initialiseELSE()
     pipe2_setup();
     circuit_tilde_setup();
     
+    setup_autofade0x2emc_tilde();
     setup_autofade20x2emc_tilde();
     setup_mtx0x2emc_tilde();
     pan_tilde_setup();
@@ -1718,7 +1719,6 @@ void Setup::initialiseELSE()
     setup_xgate20x2emc_tilde();
     setup_xselect20x2emc_tilde();
     findfile_setup();
-    setup_autofade0x2emc_tilde();
     wt2d_tilde_setup();
 
     pm_tilde_setup();
