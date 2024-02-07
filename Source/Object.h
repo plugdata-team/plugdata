@@ -99,7 +99,11 @@ public:
     OwnedArray<Iolet> iolets;
     ResizableBorderComponent::Zone resizeZone;
 
+#if JUCE_IOS
     static inline constexpr int margin = 8;
+#else
+    static inline constexpr int margin = 6;
+#endif
     static inline constexpr int doubleMargin = margin * 2;
     static inline constexpr int height = 37;
 

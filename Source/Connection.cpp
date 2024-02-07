@@ -422,7 +422,7 @@ void Connection::forceUpdate()
 
 void Connection::paint(Graphics& g)
 {
-    g.reduceClipRegion(clipRegion);
+    g.getInternalContext().clipToRectangleList(clipRegion);
     if(g.isClipEmpty()) return;
 
     renderConnectionPath(g,
