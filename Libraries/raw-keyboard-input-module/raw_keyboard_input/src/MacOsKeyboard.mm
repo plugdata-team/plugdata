@@ -13,10 +13,7 @@ MacOsKeyboard::~MacOsKeyboard()
 }
 
 void MacOsKeyboard::installMonitor()
-{
-  if (thisses.size() > 1)
-    return;
-  
+{  
   keyDownMonitor = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskKeyDown
                                                          handler:^NSEvent*(NSEvent* event) {
     Keyboard::processKeyEvent([event keyCode], true);
