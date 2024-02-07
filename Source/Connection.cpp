@@ -82,9 +82,6 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     valueChanged(presentationMode);
 
     updateOverlays(cnv->getOverlays());
-
-    // Prevents the connection from constantly being redrawn when scrolling or moving many objects
-    setBufferedToImage(true);
 }
 
 Connection::~Connection()
@@ -425,6 +422,9 @@ void Connection::forceUpdate()
 
 void Connection::paint(Graphics& g)
 {
+    g.reduceClipRegion(clipRegion);
+    if(g.isClipEmpty()) return;
+
     renderConnectionPath(g,
         cnv,
         toDrawLocalSpace,
@@ -508,7 +508,7 @@ void Connection::mouseMove(MouseEvent const& e)
         setMouseCursor(MouseCursor::NormalCursor);
     }
 
-    repaint();
+    //repaint();
 }
 
 StringArray Connection::getMessageFormated()
@@ -626,7 +626,6 @@ void Connection::mouseDrag(MouseEvent const& e)
             currentPlan[n].y = mouseDownPosition + delta.y;
         }
 
-        // setBufferedToImage(false);
         updatePath();
         resizeToFit();
         repaint();
@@ -743,9 +742,21 @@ void Connection::resizeToFit()
     toDrawLocalSpace = toDraw;
     auto offset = getLocalPoint(cnv, Point<int>());
     toDrawLocalSpace.applyTransform(AffineTransform::translation(offset));
+    
+    // Calculate clip bounds for this connection as a list of rectangles
+    clipRegion = RectangleList<int>();
+    auto pathIter = PathFlatteningIterator(toDrawLocalSpace);
+    while(pathIter.next()) // skip first item, since only the x2/y2 coords of that one are valdid (and they will be the x1/y1 of the next item)
+    {
+        auto bounds = Rectangle<int>(Point<int>(pathIter.x1, pathIter.y1), Point<int>(pathIter.x2, pathIter.y2));
+        clipRegion.add(bounds.expanded(2));
+    }
 
     startReconnectHandle = Rectangle<float>(5, 5).withCentre(toDrawLocalSpace.getPointAlongPath(8.5f));
     endReconnectHandle = Rectangle<float>(5, 5).withCentre(toDrawLocalSpace.getPointAlongPath(std::max(toDrawLocalSpace.getLength() - 8.5f, 9.5f)));
+    
+    clipRegion.add(startReconnectHandle.toNearestIntEdges().expanded(4));
+    clipRegion.add(endReconnectHandle.toNearestIntEdges().expanded(4));
 }
 
 void Connection::componentMovedOrResized(Component& component, bool wasMoved, bool wasResized)
@@ -776,13 +787,6 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
         return;
     }
     previousPStart = pstart;
-
-    // if buffered to image is true here it will take longer to redraw & buffer,
-    // and cause wiggling of cables, also greatly improves performance
-    //
-    // we may need to turn it off in other parts of this class,
-    // if getCachedComponentImage() returns true setBufferedToImage is on
-    // setBufferedToImage(false);
 
     if (currentPlan.size() <= 2) {
         updatePath();

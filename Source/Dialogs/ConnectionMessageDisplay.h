@@ -113,13 +113,16 @@ private:
             auto firstOrLast = (i == 0 || i == textString.size() - 1);
             stringItem = textString[i];
             stringItem += firstOrLast ? "" : ",";
+            
             // first item uses system font
-            stringWidth = textFont.getStringWidth(stringItem);
+            // use cached width calculation for performance
+            stringWidth = CachedFontStringWidth::get()->calculateSingleLineWidth(textFont, stringItem);
 
             if ((totalStringWidth + stringWidth) > halfEditorWidth) {
                 auto elideText = String("(" + String(textString.size() - i) + String(")..."));
                 auto elideFont = Font(Fonts::getSemiBoldFont());
-                auto elideWidth = elideFont.getStringWidth(elideText);
+                
+                auto elideWidth = CachedFontStringWidth::get()->calculateSingleLineWidth(elideFont, elideText);
                 messageItemsWithFormat.add(TextStringWithMetrics(elideText, FontStyle::Semibold, elideWidth));
                 totalStringWidth += elideWidth + 4;
                 break;
@@ -141,7 +144,13 @@ private:
         if (totalStringWidth > getWidth() || isHoverEntered) {
             updateBoundsFromProposed(Rectangle<int>().withSize(totalStringWidth, 36));
         }
-        repaint();
+        
+        // Check if changed
+        if(lastTextString != textString)
+        {
+            lastTextString = textString;
+            repaint();
+        }
     }
 
     void updateBoundsFromProposed(Rectangle<int> proposedPosition)
@@ -325,7 +334,7 @@ private:
                 // Calculate text length
                 auto numbersFont = Fonts::getTabularNumbersFont().withHeight(11.f);
                 auto text = String(lastSamples[ch][rand() % 512], 3);
-                auto textWidth = numbersFont.getStringWidth(text);
+                auto textWidth = CachedFontStringWidth::get()->calculateSingleLineWidth(numbersFont, text);
                 auto textBounds = channelBounds.expanded(5).removeFromBottom(18).removeFromRight(textWidth + 8);
 
                 // Draw text background
@@ -368,6 +377,7 @@ private:
     Component::SafePointer<Connection> activeConnection;
     int mouseDelay = 500;
     Point<int> mousePosition;
+    StringArray lastTextString;
     enum TimerID { RepaintTimer,
         MouseHoverDelay,
         MouseHoverExitDelay };
