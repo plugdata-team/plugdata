@@ -1101,17 +1101,16 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     std::unique_ptr<XmlElement> xmlState(getXmlFromBinary(xmlData, xmlSize));
 
     auto openPatch = [this](String const& content, File const& location, bool pluginMode = false, int splitIndex = 0) {
-        if (location.getFullPathName().isNotEmpty() && location.existsAsFile()) {
-            auto patch = loadPatch(URL(location), getEditors()[0], splitIndex);
-            if (patch) {
-                patch->setTitle(location.getFileName());
-                patch->openInPluginMode = pluginMode;
-            }
-        } else {
-            if (location.getParentDirectory().exists()) {
-                auto parentPath = location.getParentDirectory().getFullPathName();
-                libpd_add_to_search_path(parentPath.toRawUTF8());
-            }
+        
+        // CHANGED IN v0.8.4:
+        // We now prefer loading the patch content over the patch file, if possible
+        // This generally makes it work more like the users expects, but before we couldn't get it to load abstractions (this is now fixed)
+        if(content.isNotEmpty())
+        {
+            // Force pd to use this path for the next opened patch
+            // This makes sure the patch can find abstractions/resources, even though it's loading patch from state
+            glob_forcefilename(generateSymbol(location.getFileName().toRawUTF8()), generateSymbol(location.getParentDirectory().getFullPathName().toRawUTF8()));
+            
             auto patch = loadPatch(content, getEditors()[0], splitIndex);
             if (patch && ((location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) || !location.exists())) {
                 patch->setTitle("Untitled Patcher");
@@ -1122,6 +1121,13 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
                 patch->setTitle(location.getFileName());
                 patch->openInPluginMode = pluginMode;
                 patch->splitViewIndex = splitIndex;
+            }
+        }
+        else if (location.getFullPathName().isNotEmpty() && location.existsAsFile()) {
+            auto patch = loadPatch(URL(location), getEditors()[0], splitIndex);
+            if (patch) {
+                patch->setTitle(location.getFileName());
+                patch->openInPluginMode = pluginMode;
             }
         }
     };
