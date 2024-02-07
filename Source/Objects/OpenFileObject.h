@@ -15,6 +15,8 @@ public:
         : TextBase(ptr, object)
     {
     }
+    
+    bool hideInlets() override { return true; }
 
     void showEditor() override
     {
