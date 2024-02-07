@@ -299,7 +299,7 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile) const
             return {};
 
         atom_string(av, namebuf, MAXPDSTRING);
-        helpName = String::fromUTF8(namebuf); //.fromLastOccurrenceOf("/", false, false);
+        helpName = String::fromUTF8(namebuf);
     } else {
         helpDir = class_gethelpdir(pdclass);
         helpName = class_gethelpname(pdclass);
@@ -335,7 +335,7 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile) const
     auto findHelpPatch = [&firstName, &secondName](File const& searchDir) -> File {
         for (const auto& file : OSUtils::iterateDirectory(searchDir, false, true)) {
             auto pathName = file.getFullPathName().replace("\\", "/").trimCharactersAtEnd("/");
-            if (pathName.endsWith("/" + firstName) || pathName.endsWith("/" + secondName)) {
+            if (pathName.endsWith("/" + firstName) || pathName.endsWith("/" + secondName) || pathName.endsWith("." + firstName) || pathName.endsWith("." + secondName)) {
                 return file;
             }
         }
