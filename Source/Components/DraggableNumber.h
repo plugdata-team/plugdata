@@ -440,10 +440,10 @@ public:
     {
         auto text = String(value, precision == -1 ? 8 : precision);
 
-        if (dragMode != Integer && !text.containsChar('.'))
-            text << '.';
-
-        text = text.trimCharactersAtEnd("0");
+        if (dragMode != Integer) {
+            if(!text.containsChar('.'))  text << '.';
+            text = text.trimCharactersAtEnd("0");
+        }
 
         return text;
     }
