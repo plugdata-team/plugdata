@@ -574,7 +574,7 @@ void Object::resized()
     int maxIoletHeight = (getHeight() / 2.0f) - 3;
 
     ioletSize = std::max(std::min({ ioletSize, maxIoletWidth, maxIoletHeight }), 10);
-    int borderWidth = jmap<float>(ioletSize, 10, 13, 9, 14);
+    int borderWidth = jmap<float>(ioletSize, 10, 13, 7, 12);
 
     auto inletBounds = getLocalBounds();
     if (auto spaceToRemove = jlimit<int>(0, borderWidth, inletBounds.getWidth() - (ioletHitBox * numInputs) - borderWidth)) {
