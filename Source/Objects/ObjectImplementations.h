@@ -10,15 +10,17 @@
 class SubpatchImpl : public ImplementationBase
     , public pd::MessageListener {
 public:
+    WeakReference<pd::Instance> pdWeakRef;
+        
     SubpatchImpl(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd)
-        : ImplementationBase(ptr, parent, pd)
+        : ImplementationBase(ptr, parent, pd), pdWeakRef(pd)
     {
         pd->registerMessageListener(this->ptr.getRawUnchecked<void>(), this);
     }
 
     ~SubpatchImpl() override
     {
-        pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
+        if(pdWeakRef) pdWeakRef->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
         closeOpenedSubpatchers();
     }
 
