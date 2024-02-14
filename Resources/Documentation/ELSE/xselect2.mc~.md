@@ -1,5 +1,5 @@
 ---
-title: xselect2~
+title: xselect2.mc~
 
 description: select channel with crossfade
 
@@ -24,12 +24,15 @@ flags:
 
 inlets:
   1st:
-  - type: signal
+  - type: signals
     description: selected channel with crossfade
-  nth:
+  2nd:
   - type: signal
-    description: inlets alternate between input position and spread parameter for each channel
-    
+    description: input position
+  3rd:
+  - type: signal
+    description: spread parameter
+
 outlets:
   1st:
   - type: signal
@@ -44,4 +47,4 @@ methods:
 draft: false
 ---
 
-[xselect2~] selects between multiple inputs with equal power crossfade between two adjacent channels.
+[xselect2.mc~] selects between multiple inputs with equal power crossfade between two adjacent channels.

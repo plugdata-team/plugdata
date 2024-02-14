@@ -3,7 +3,7 @@ title: spline_path
 description: reads out a table
 categories:
   - object
-pdcategory: Gem, Graphics, Data Structures
+pdcategory: Gem, Graphics
 arguments:
   - type: float
     description: reading point (0.0 to 1.0)

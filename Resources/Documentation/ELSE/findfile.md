@@ -1,5 +1,5 @@
 ---
-title: canvas.file
+title: findfile
 
 description: search for file
 
@@ -29,4 +29,4 @@ outlets:
 draft: false
 ---
 
-[canvas.file] tries to locate the file in using the patch's directory or Pd's search-paths. If it finds it, it returns the absolute path in the left outlet. If it fails, the input name is output via the right outlet. The depth level sets the directory according to the parent patch and so on.
+[findfile] tries to locate the file in using the patch's directory or Pd's search-paths. If it finds it, it returns the absolute path in the left outlet. If it fails, the input name is output via the right outlet. The depth level sets the directory according to the parent patch and so on.

@@ -12,7 +12,10 @@ arguments:
   - description: threshold in dBFS
     type: float
     default: -100
-  - description: attack/release time in ms
+  - description: attack time in ms
+    type: float
+    default: 10
+  - description: release time in ms
     type: float
     default: 10
 

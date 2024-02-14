@@ -9,12 +9,12 @@ categories:
 pdcategory: ELSE, Effects
 
 arguments:
-- description: optional - partition size
-  type: float
-  default: 1024, minimum 64
 - description: impulse response table name 
   type: symbol
   default: none
+- description: optional - partition size
+  type: float
+  default: 1024, minimum 64
 
 inlets:
   1st:

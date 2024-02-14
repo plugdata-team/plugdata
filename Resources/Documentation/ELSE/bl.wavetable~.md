@@ -23,12 +23,6 @@ flags:
   - name: -none/-lin/-cos/-lagrange
     description: set interpolation mode
     default: spline
-  - name: -size <float>
-    description: sets table size in points
-    default: whole table
-  - name: -offset <float>
-    description: sets table offset
-    default: 0
   - name: -midi
     description: sets frequency input in MIDI pitch
     default: Hz

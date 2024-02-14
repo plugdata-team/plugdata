@@ -21,16 +21,16 @@ arguments:
 
 inlets:
   1st:
-  - type: float/signal
-    description: gate; "fade in" if != 0, "fade out" otherwise
-  - type: anything
-    description: fade types <quartic, sin, sqrt, hann, lin, hannsin, linsin>
   - type: signal
     description: input signal to be faded in/out
+  - type: anything
+    description: fade types <quartic, sin, sqrt, hann, lin, hannsin, linsin>
   nth:
   - type: signal
     description: input signal to be faded in/out
-
+  2nd:
+  - type: float/signal
+    description: gate; "fade in" if != 0, "fade out" otherwise
 outlets:
   nth:
   - type: signal

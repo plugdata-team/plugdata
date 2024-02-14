@@ -22,7 +22,7 @@ arguments:
 inlets:
  1st:
   - type: list
-    description: inlet, outlet, non-0 - on, 0 - off
+    description: inlet, outlet, gain
   nth: 
   - type: signal
     description: signals to route/mix
@@ -31,13 +31,10 @@ outlets:
   nth:
   - type: signal
     description: routed signals
-  2nd:
-  - type: list
-    description: all connections list dump message
 
 methods:
-  - type: fade <float>
-    description: sets fade time in ms
+  - type: ramp <float>
+    description: sets ramp time in ms
   - type: dump
     description: outputs state of all cells
   - type: clear

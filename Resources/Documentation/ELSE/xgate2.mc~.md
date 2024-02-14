@@ -1,7 +1,7 @@
 ---
-title: xgate2~
+title: xgate2.mc~
 
-description: route an input with crossfade
+description: route a multichannel signal with crossfade
 
 categories:
  - object
@@ -33,7 +33,7 @@ inlets:
 
 outlets:
   1st:
-  - type: signal
+  - type: signals
     description: routed outputs with crossfade
 
 methods:
@@ -43,4 +43,4 @@ methods:
 draft: false
 ---
 
-[xgate2~] routes an input signal to 'n' specified outlets with equal power crossfade between two adjacent channels.
+[xgate2.mc~] routes an input signal to 'n' multichannel outlet with equal power crossfade between two adjacent channels.
