@@ -91,13 +91,10 @@ struct CachedFontStringWidth : public DeletedAtShutdown
     {
         auto stringHash = hash(singleLine);
         
-        bool fontFound = false;
         for(auto [cachedFont, cache] : stringWidthCache)
         {
             if(cachedFont == font)
             {
-                fontFound = true;
-                
                 auto cacheHit = cache.find(stringHash);
                 if(cacheHit != cache.end()) return cacheHit->second;
                 
@@ -108,14 +105,9 @@ struct CachedFontStringWidth : public DeletedAtShutdown
             }
         }
         
-        if(!fontFound)
-        {
-            auto stringWidth = font.getStringWidth(singleLine);
-            stringWidthCache.push_back({font, {{stringHash, stringWidth}}});
-            return stringWidth;
-        }
-        
-        return font.getStringWidthFloat(singleLine);
+        auto stringWidth = font.getStringWidth(singleLine);
+        stringWidthCache.push_back({font, {{stringHash, stringWidth}}});
+        return stringWidth;
     }
     
     int calculateStringWidth(Font& font, const String& string)
