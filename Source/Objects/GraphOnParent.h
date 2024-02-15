@@ -240,7 +240,7 @@ public:
             }
             
             f = x->gl_xtick.k_point - x->gl_xtick.k_inc;
-            for (int i = 1; f > 0.99f * x->gl_x2 + 0.01f * x->gl_x1; i++, f -= x->gl_xtick.k_inc)
+            for (int i = 1; f > 0.99f * x->gl_x1 + 0.01f * x->gl_x2; i++, f -= x->gl_xtick.k_inc)
             {
                 auto xpos = jmap<float>(f, x->gl_x2, x->gl_x1, x1, x2);
                 int tickpix = (i % x->gl_xtick.k_lperb ? 2 : 4);
@@ -252,7 +252,7 @@ public:
         if (x->gl_ytick.k_lperb)
         {
             t_float f = x->gl_ytick.k_point;
-            for (int i = 0; f < 0.99f * x->gl_y2 + 0.01f * x->gl_y1; i++, f += x->gl_ytick.k_inc)
+            for (int i = 0; f < 0.99f * x->gl_y1 + 0.01f * x->gl_y2; i++, f += x->gl_ytick.k_inc)
             {
                 auto ypos = jmap<float>(f, x->gl_y2, x->gl_y1, y1, y2);
                 int tickpix = (i % x->gl_ytick.k_lperb ? 2 : 4);
