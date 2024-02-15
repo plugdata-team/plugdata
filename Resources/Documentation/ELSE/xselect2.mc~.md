@@ -5,7 +5,7 @@ description: select channel with crossfade
 
 categories:
  - object
- 
+
 pdcategory: ELSE, Mixing and Routing
 
 arguments:
@@ -17,9 +17,9 @@ arguments:
   default: 1
 
 flags:
-- type: index
+- name: index
   description: sets to indexed mode
-- type: circular
+- name: circular
   description: sets to circular mode
 
 inlets:

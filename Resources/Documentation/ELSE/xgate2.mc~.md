@@ -5,7 +5,7 @@ description: route a multichannel signal with crossfade
 
 categories:
  - object
- 
+
 pdcategory: ELSE, Mixing and Routing
 
 arguments:
@@ -15,9 +15,9 @@ arguments:
 - type: float
   description: spread
   default: 1
-  
+
 flags:
-- type: index
+- name: index
   description: sets to indexed mode
 
 inlets:
