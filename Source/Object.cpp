@@ -598,8 +598,7 @@ void Object::resized()
         auto const bounds = isInlet ? inletBounds : outletBounds;
 
         if (total == 1 && position == 0) {
-            int xPosition = getWidth() < 50 ? getLocalBounds().getCentreX() - ioletSize / 2.0f : bounds.getX();
-            iolet->setBounds(xPosition, yPosition, ioletSize, ioletSize);
+            iolet->setBounds(bounds.getX(), yPosition, ioletSize, ioletSize);
         } else if (total > 1) {
             float const ratio = (bounds.getWidth() - ioletSize) / static_cast<float>(total - 1);
             iolet->setBounds(bounds.getX() + ratio * position, yPosition, ioletSize, ioletSize);
