@@ -110,6 +110,7 @@ void Patch::savePatch(URL const& locationURL)
         outputStream->flush();
         
         instance->logMessage("saved to: " + location.getFullPathName());
+        canvas_rename(patch.get(), file, dir);
 #else
         pd::Interface::saveToFile(patch.get(), file, dir);
 #endif
@@ -180,10 +181,12 @@ void Patch::savePatch()
         pd::Interface::saveToFile(patch.get(), file, dir);
     }
 
-    MessageManager::callAsync([instance = this->instance, file = this->currentFile, patch = ptr.getRaw<t_glist>()]() {
-        sys_lock();
-        instance->reloadAbstractions(file, patch);
-        sys_unlock();
+    MessageManager::callAsync([instance = juce::WeakReference(this->instance), file = this->currentFile, patch = ptr.getRaw<t_glist>()]() {
+        if(instance) {
+            sys_lock();
+            instance->reloadAbstractions(file, patch);
+            sys_unlock();
+        }
     });
 }
 

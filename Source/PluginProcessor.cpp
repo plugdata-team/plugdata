@@ -1262,16 +1262,15 @@ pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL, PluginEditor* edi
     auto inputStream = patchURL.createInputStream (URL::InputStreamOptions (URL::ParameterHandling::inAddress));
     tempFile.appendText(inputStream->readEntireStreamAsString());
     
+    auto dirname = patchFile.getParentDirectory().getFullPathName().replace("\\", "/");
+    auto filename = patchFile.getFileName();
+
+    glob_forcefilename(generateSymbol(filename), generateSymbol(dirname));
     auto newPatch = openPatch(tempFile);
     if(newPatch)
     {
         if(auto patch = newPatch->getPointer())
         {
-            String dirname = patchFile.getParentDirectory().getFullPathName().replace("\\", "/");
-            auto const* dir = dirname.toRawUTF8();
-            String filename = patchFile.getFileName();
-            auto const* file = filename.toRawUTF8();
-            canvas_rename(patch.get(), gensym(file), gensym(dir));
             newPatch->setTitle(filename);
             newPatch->setCurrentFile(patchURL);
         }
