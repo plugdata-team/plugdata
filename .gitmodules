@@ -1,6 +1,6 @@
 [submodule "JUCE"]
 	path = Libraries/JUCE
-	url = https://github.com/juce-framework/JUCE.git
+	url = https://github.com/plugdata-team/JUCE.git
 [submodule "Libraries/pure-data"]
 	path = Libraries/pure-data
 	url = https://github.com/plugdata-team/plugdata-pd
@@ -22,8 +22,6 @@
 [submodule "Libraries/juce-raw-keyboard-input-module"]
 	path = Libraries/juce-raw-keyboard-input-module
 	url = https://github.com/izzyreal/juce-raw-keyboard-input-module.git
-[submodule "./JUCE"]
-	url = https://github.com/plugdata-team/JUCE.git
 [submodule "Libraries/readerwriterqueue"]
 	path = Libraries/readerwriterqueue
 	url = https://github.com/cameron314/readerwriterqueue.git
