@@ -342,6 +342,7 @@ enum CommandIDs {
     ShowReference,
     ShowHelp,
     OpenObjectBrowser,
+    ToggleDSP,
     NumItems
 };
 

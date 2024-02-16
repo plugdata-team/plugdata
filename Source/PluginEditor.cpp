@@ -1279,6 +1279,11 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         result.setActive(true);
         break;
     }
+    case CommandIDs::ToggleDSP: {
+        result.setInfo("Toggle DSP", "Enables or disables audio DSP", "Edit", 0);
+        result.setActive(true);
+        break;
+    }
     default:
         break;
     }
@@ -1623,6 +1628,18 @@ bool PluginEditor::perform(InvocationInfo const& info)
     }
     case CommandIDs::OpenObjectBrowser: {
         Dialogs::showObjectBrowserDialog(&openedDialog, this);
+        return true;
+    }
+    case CommandIDs::ToggleDSP: {
+        
+        if(pd_getdspstate())
+        {
+            pd->releaseDSP();
+        }
+        else {
+            pd->startDSP();
+        };
+        
         return true;
     }
     default: {
