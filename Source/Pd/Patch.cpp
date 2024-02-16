@@ -180,9 +180,9 @@ void Patch::savePatch()
         pd::Interface::saveToFile(patch.get(), file, dir);
     }
 
-    MessageManager::callAsync([this, patch = ptr.getRaw<t_glist>()]() {
+    MessageManager::callAsync([instance = this->instance, file = this->currentFile, patch = ptr.getRaw<t_glist>()]() {
         sys_lock();
-        instance->reloadAbstractions(currentFile, patch);
+        instance->reloadAbstractions(file, patch);
         sys_unlock();
     });
 }
