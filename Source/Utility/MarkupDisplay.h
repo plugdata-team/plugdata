@@ -845,6 +845,13 @@ public:
         label.draw(g, getLocalBounds().withTrimmedLeft(indent).toFloat());
         attributedString.draw(g, getLocalBounds().withTrimmedLeft(indent + gap).toFloat());
     }
+    
+    void resized() override
+    {
+        TextLayout layout;
+        layout.createLayout(attributedString, getWidth() - indent - gap);
+        updateLinkBounds(layout);
+    }
 
 private:
     AttributedString label;
