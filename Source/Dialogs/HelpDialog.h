@@ -100,7 +100,8 @@ public:
             });
         };
 
-        addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowHasDropShadow);
+        
+        addToDesktop(ComponentPeer::windowIsResizable | ComponentPeer::windowIsSemiTransparent | ComponentPeer::windowHasDropShadow);
         setVisible(true);
 
         // Position in centre of screen
