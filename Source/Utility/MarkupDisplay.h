@@ -195,35 +195,30 @@ public:
     {
         mouseDownPosition = event.position; // keep track of position
     }
+    
+    void mouseMove(MouseEvent const& event) override
+    {
+        bool isHoveringLink = false;
+        
+        for(auto& [link, bounds] : linkBounds)
+        {
+            if(bounds.contains(event.x, event.y))
+            {
+                isHoveringLink = true;
+                break;
+            }
+        }
+        
+        setMouseCursor(isHoveringLink ? MouseCursor::PointingHandCursor : MouseCursor::NormalCursor);
+    }
 
     void mouseUp(MouseEvent const& event) override
     {
-        if (links.size() && !attributedString.getText().isEmpty()) { // if we have a link, and the block contains text
-            if (event.position.getDistanceFrom(mouseDownPosition) > 20)
-                return;
-            TextLayout layout;
-            layout.createLayout(attributedString, getWidth());
-            // Look for clickable links
-            for (auto& [link, start, end] : links) {
-                int offset = 0;
-                for (auto& line : layout) {
-                    for (auto* run : line.runs) {
-                        auto linkBounds = Rectangle<float>();
-                        for (int i = start - offset; i < end - offset; i++) {
-                            if (i < 0 || i >= run->glyphs.size())
-                                continue;
-                            auto& glyph = run->glyphs.getReference(i);
-                            auto lineBounds = Rectangle<float>(glyph.width, 14).withPosition((glyph.anchor + line.lineOrigin));
-                            linkBounds = linkBounds.isEmpty() ? lineBounds : linkBounds.getUnion(lineBounds);
-                        }
-
-                        if (linkBounds.translated(0, -8).contains(mouseDownPosition)) {
-                            URL(link).launchInDefaultBrowser(); // ...open link.
-                        }
-
-                        offset += run->glyphs.size();
-                    }
-                }
+        for(auto& [link, bounds] : linkBounds)
+        {
+            if(bounds.contains(event.x, event.y))
+            {
+                URL(link).launchInDefaultBrowser();
             }
         }
     }
@@ -241,20 +236,26 @@ protected:
 
         for (auto line : lines) {
             if (line.startsWith("##### ")) {
-                attributedString.append(parsePureText(line.substring(6), font.boldened().withHeight(font.getHeight() * 1.1f), false));
+                attributedString.append(parsePureText(line.substring(6), Fonts::getBoldFont().withHeight(font.getHeight() * 1.1f), false));
             } else if (line.startsWith("#### ")) {
-                attributedString.append(parsePureText(line.substring(5), font.boldened().withHeight(font.getHeight() * 1.25f), false));
+                attributedString.append(parsePureText(line.substring(5), Fonts::getBoldFont().withHeight(font.getHeight() * 1.25f), false));
             } else if (line.startsWith("### ")) {
-                attributedString.append(parsePureText(line.substring(4), font.boldened().withHeight(font.getHeight() * 1.42f), false));
+                attributedString.append(parsePureText(line.substring(4), Fonts::getBoldFont().withHeight(font.getHeight() * 1.42f), false));
             } else if (line.startsWith("## ")) {
-                attributedString.append(parsePureText(line.substring(3), font.boldened().withHeight(font.getHeight() * 1.7f), false));
+                attributedString.append(parsePureText(line.substring(3), Fonts::getBoldFont().withHeight(font.getHeight() * 1.7f), false));
             } else if (line.startsWith("# ")) {
-                attributedString.append(parsePureText(line.substring(2), font.boldened().withHeight(font.getHeight() * 2.1f), false));
+                attributedString.append(parsePureText(line.substring(2), Fonts::getBoldFont().withHeight(font.getHeight() * 2.1f), false));
             } else {
-                auto parseLink = [this, &attributedString](String& link, int length) {
+                auto parseLink = [this, &attributedString](String& link, String& linkText) {
                     if (link.isNotEmpty()) {
+#if JUCE_MAC
                         auto start = attributedString.getText().length();
-                        auto end = start + length;
+                        auto end = start + linkText.length();
+#else
+                        // macOS version of TextLayout considers whitespace as a character, but the Windows/Linux versions don't!
+                        auto start = attributedString.getText().replace(" ", "").replace("\n", "").replace("\r", "").replace("\t", "").length();
+                        auto end = start + linkText.replace(" ", "").replace("\n", "").replace("\r", "").replace("\t", "").length();
+#endif
                         links.add({ link, start, end });
                         link = "";
                     }
@@ -272,18 +273,20 @@ protected:
                     if (bidx > -1 && ((bidx < iidx) | (iidx == -1)) && ((bidx < tidx) | (tidx == -1))) {
                         // if the next token is toggling the bold state...
                         // ...first add everything up to the token...
+                        auto linkText = line.substring(0, bidx);
                         if (bold)
-                            parseLink(currentLink, bidx);
-                        attributedString.append(line.substring(0, bidx), font, currentColour);
+                            parseLink(currentLink, linkText);
+                        attributedString.append(linkText, font, currentColour);
                         line = line.substring(bidx + 1); // ...then drop up to and including the token...
                         bold = !bold;                    // ...toggle the bold status...
                         needsNewFont = true;             // ...and request new font.
                     } else if (iidx > -1 && ((iidx < tidx) | (tidx == -1))) {
                         // if the next token is toggling the italic state...
                         // ...first add everything up to the token...
+                        auto linkText = line.substring(0, iidx);
                         if (italic)
-                            parseLink(currentLink, iidx);
-                        attributedString.append(line.substring(0, iidx), font, currentColour);
+                            parseLink(currentLink, linkText);
+                        attributedString.append(linkText, font, currentColour);
                         line = line.substring(iidx + 1); // ...then drop up to and including the token...
                         italic = !italic;                // ...toggle the italic status...
                         needsNewFont = true;             // ...and request new font.
@@ -332,7 +335,7 @@ protected:
                             line = line.substring(tidx + 1);
                         }
                     } else {
-                        parseLink(currentLink, line.length());
+                        parseLink(currentLink, line);
                         // if no token was found -> add the remaining text...
                         attributedString.append(line, font, currentColour);
                         // ...and clear the line.
@@ -341,12 +344,17 @@ protected:
 
                     currentColour = nextColour;
                     if (needsNewFont) {
-                        font = font.withStyle(Font::plain);
+                        font = Fonts::getDefaultFont().withHeight(15);
                         if (bold) {
-                            font = font.boldened();
+                            font = Fonts::getBoldFont().withHeight(15);
                         }
                         if (italic) {
-                            font = font.italicised();
+                            // italic only seems to work on macOS...
+#if JUCE_MAC
+                            font = Fonts::getVariableFont().italicised().withHeight(15);
+#else
+                            font = Fonts::getDefaultFont().withHeight(15);
+#endif
                         }
                     }
                 }
@@ -357,6 +365,30 @@ protected:
             }
         }
         return attributedString;
+    }
+    
+    void updateLinkBounds(TextLayout& layout)
+    {
+        // Look for clickable links
+        for (auto& [link, start, end] : links) {
+            int offset = 0;
+            auto currentLinkBounds = Rectangle<float>();
+            for (auto& line : layout) {
+                for (auto* run : line.runs) {
+                    for (int i = start - offset; i < end - offset; i++) {
+                        if (i < 0 || i >= run->glyphs.size())
+                            continue;
+                        
+                        auto& glyph = run->glyphs.getReference(i);
+                        auto lineBounds = Rectangle<float>(glyph.width, 14).withPosition((glyph.anchor + line.lineOrigin));
+                        currentLinkBounds = linkBounds.isEmpty() ? lineBounds : currentLinkBounds.getUnion(lineBounds);
+                    }
+                    
+                    linkBounds.add({link, currentLinkBounds.translated(0, -11)});
+                    offset += run->glyphs.size();
+                }
+            }
+        }
     }
 
     Colour defaultColour;
@@ -370,8 +402,9 @@ protected:
 
 
     AttributedString attributedString;
-
+    
 private:
+    Array<std::pair<String, Rectangle<float>>> linkBounds;
     Array<std::tuple<String, int, int>> links;
     Point<float> mouseDownPosition;
 };
@@ -395,6 +428,13 @@ public:
         TextLayout layout;
         layout.createLayout(attributedString, getWidth());
         layout.draw(g, getLocalBounds().toFloat());
+    }
+    
+    void resized() override
+    {
+        TextLayout layout;
+        layout.createLayout(attributedString, getWidth());
+        updateLinkBounds(layout);
     }
 
 private:
@@ -509,6 +549,7 @@ public:
                     AttributedString attributedString = parsePureText(rawString.trim(), isHeader ? font.boldened() : font);
                     TextLayout layout;
                     layout.createLayout(attributedString, 1.0e7f);
+                    updateLinkBounds(layout);
                     row->add(new Cell { attributedString, isHeader, layout.getWidth(), layout.getHeight() });
                 }
             }
@@ -839,7 +880,7 @@ public:
         colours.set("gray", "#777");
         
         // default font
-        font = Fonts::getVariableFont().withHeight(15);
+        font = Fonts::getDefaultFont().withHeight(15);
 
         // default table backgrounds
         tableBGHeader = Block::parseHexColourStatic(colours["lightcyan"], Colours::black);
