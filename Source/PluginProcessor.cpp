@@ -187,9 +187,24 @@ void PluginProcessor::initialiseFilesystem()
     auto const& versionDataDir = ProjectInfo::versionDataDir;
     auto deken = homeDir.getChildFile("Externals");
     auto patches = homeDir.getChildFile("Patches");
+    
+    if(!homeDir.exists()) homeDir.createDirectory();
 
+    auto initMutex = homeDir.getChildFile(".initialising");
+    
+    // If this is true, another instance of plugdata is already initialising
+    // We wait a maximum of 5 seconds before we continue initialising, to prevent problems
+    int wait = 0;
+    while(initMutex.exists() && wait < 10)
+    {
+        Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 500);
+        wait++;
+    }
+    
+    initMutex.create();
+    
     // Check if the abstractions directory exists, if not, unzip it from binaryData
-    if (!homeDir.exists() || !versionDataDir.exists()) {
+    if (!versionDataDir.exists()) {
 
         // Binary data shouldn't be too big, then the compiler will run out of memory
         // To prevent this, we split the binarydata into multiple files, and add them back together here
@@ -208,8 +223,7 @@ void PluginProcessor::initialiseFilesystem()
         }
 
         MemoryInputStream memstream(allData.data(), allData.size(), false);
-
-        homeDir.createDirectory();
+        
         versionDataDir.getParentDirectory().createDirectory();
         auto tempVersionDataDir = versionDataDir.getParentDirectory().getChildFile("plugdata_version");
         
@@ -268,6 +282,8 @@ void PluginProcessor::initialiseFilesystem()
     versionDataDir.getChildFile("Documentation").createSymbolicLink(homeDir.getChildFile("Documentation"), true);
     versionDataDir.getChildFile("Extra").createSymbolicLink(homeDir.getChildFile("Extra"), true);
 #endif
+    
+    initMutex.deleteFile();
 }
 
 void PluginProcessor::updateSearchPaths()
