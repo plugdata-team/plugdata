@@ -210,14 +210,16 @@ void PluginProcessor::initialiseFilesystem()
         MemoryInputStream memstream(allData.data(), allData.size(), false);
 
         homeDir.createDirectory();
-
-        auto file = ZipFile(memstream);
-        file.uncompressTo(homeDir);
-
-        // Create filesystem for this specific version
         versionDataDir.getParentDirectory().createDirectory();
-        versionDataDir.createDirectory();
-        homeDir.getChildFile("plugdata_version").moveFileTo(versionDataDir);
+        auto tempVersionDataDir = versionDataDir.getParentDirectory().getChildFile("plugdata_version");
+        
+        auto file = ZipFile(memstream);
+        file.uncompressTo(tempVersionDataDir.getParentDirectory());
+        
+        // Create filesystem for this specific version
+        tempVersionDataDir.moveFileTo(versionDataDir);
+
+        if(versionDataDir.isDirectory()) internalSynth->extractSoundfont();
     }
     if (!deken.exists()) {
         deken.createDirectory();
@@ -266,8 +268,6 @@ void PluginProcessor::initialiseFilesystem()
     versionDataDir.getChildFile("Documentation").createSymbolicLink(homeDir.getChildFile("Documentation"), true);
     versionDataDir.getChildFile("Extra").createSymbolicLink(homeDir.getChildFile("Extra"), true);
 #endif
-    
-    internalSynth->extractSoundfont();
 }
 
 void PluginProcessor::updateSearchPaths()
