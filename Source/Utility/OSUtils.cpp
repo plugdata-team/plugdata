@@ -312,7 +312,7 @@ juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, b
                 if (maximum > 0 && result.size() >= maximum)
                     break;
             }
-        } catch (fs::filesystem_error e) {
+        } catch (fs::filesystem_error& e) {
             std::cerr << "Error while iterating over directory: " << e.path1() << std::endl;
         }
     } else {
@@ -326,7 +326,7 @@ juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, b
                 if (maximum > 0 && result.size() >= maximum)
                     break;
             }
-        } catch (fs::filesystem_error e) {
+        } catch (fs::filesystem_error& e) {
             std::cerr << "Error while iterating over directory: " << e.path1() << std::endl;
         }
     }
