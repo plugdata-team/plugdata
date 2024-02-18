@@ -40,7 +40,7 @@ option(PD_UTILS "Compile libpd utilities" OFF)
 option(PD_EXTRA "Compile extras" ON)
 option(PD_LOCALE "Set the LC_NUMERIC number format to the default C locale" ON)
 
-        
+
 # ------------------------------------------------------------------------------#
 # SOURCES
 # ------------------------------------------------------------------------------#
@@ -306,11 +306,11 @@ if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
     # These are the warning flags I need to get pd to compile withoout warnings
     # Would be nice if these warnings were solved instead
     add_compile_options(-Wno-format -Wno-format-security -Wno-conversion -Wno-unused-variable -Wno-int-to-pointer-cast -Wno-parentheses -Wno-unused-value -Wno-unknown-pragmas)
-    
+
     if(CMAKE_C_COMPILER_ID MATCHES "Clang")
         add_compile_options(-Wno-compare-distinct-pointer-types -Wno-implicit-int-conversion)
     endif()
- 
+
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-int-conversion -Wno-pointer-sign -Wno-pointer-to-int-cast -Wno-incompatible-pointer-types")
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -fno-finite-math-only -ffast-math -funroll-loops -fomit-frame-pointer -O3")
     set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -g -O0")
@@ -345,7 +345,7 @@ list(APPEND SFONT_SOURCES
 
 if(MSVC)
 
-list(APPEND SFONT_SOURCES 
+list(APPEND SFONT_SOURCES
     ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/vorbisenc.c
     ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/info.c
     ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/analysis.c
@@ -406,6 +406,7 @@ target_compile_definitions(pd-src PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
 
 if(UNIX)
     target_compile_options(pd-src PRIVATE -fvisibility=default)
+    target_compile_options(externals PRIVATE -fvisibility=default)
 endif()
 
 add_library(pd-src-multi STATIC ${SOURCE_FILES})
@@ -415,6 +416,7 @@ if(MSVC)
     target_compile_definitions(pd-src-multi PRIVATE PTW32_STATIC_LIB=1 "EXTERN= ")
 endif()
 
+set_target_properties(externals-multi PROPERTIES CXX_VISIBILITY_PRESET hidden)
 set_target_properties(pd-src-multi PROPERTIES CXX_VISIBILITY_PRESET hidden)
 
 set_target_properties(pd-src PROPERTIES POSITION_INDEPENDENT_CODE ON)
