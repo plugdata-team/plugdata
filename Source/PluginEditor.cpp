@@ -600,7 +600,7 @@ void PluginEditor::filesDropped(StringArray const& files, int x, int y)
                 auto file = File(path);
                 if (file.exists()) {
                     auto position = cnv->getLocalPoint(this, Point<int>(x, y));
-                    auto filePath = file.getFullPathName().replaceCharacter('\\', '/');
+                    auto filePath = file.getFullPathName().replaceCharacter('\\', '/').replace(" ", "\ ");
                     auto* object = cnv->objects.add(new Object(cnv, "msg " + filePath, position));
                     object->hideEditor();
                 }
