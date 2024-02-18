@@ -26,6 +26,7 @@ public:
     Value drawMode = SynchronousValue();
     Value saveContents = SynchronousValue();
     Value range = SynchronousValue();
+    bool visible = true;
     
     std::function<void()> reloadGraphs = [](){};
 
@@ -228,11 +229,39 @@ public:
                 });
                 break;
             }
-            case hash("xpix"): {
-                // TODO: implement ticks
+            case hash("xticks"): {
+                MessageManager::callAsync([_this = SafePointer(this)] {
+                    if(_this) _this->repaint();
+                });
+                break;
             }
-            case hash("ypix"): {
-                // TODO: implement ticks
+            case hash("yticks"): {
+                MessageManager::callAsync([_this = SafePointer(this)] {
+                    if(_this) _this->repaint();
+                });
+                break;
+            }
+            case hash("vis"): {
+                MessageManager::callAsync([_this = SafePointer(this), visible = atoms[0].getFloat()] {
+                    if(_this)
+                    {
+                        _this->visible = static_cast<bool>(visible);
+                        _this->repaint();
+                    }
+                });
+                
+                break;
+            }
+            case hash("resize"): {
+                MessageManager::callAsync([_this = SafePointer(this), newSize = atoms[0].getFloat()] {
+                    if(_this)
+                    {
+                        _this->size = static_cast<int>(newSize);
+                        _this->updateSettings();
+                        _this->repaint();
+                    }
+                });
+                break;
             }
         }
     }
@@ -243,7 +272,7 @@ public:
             // TODO: error colour
             Fonts::drawText(g, "array " + getUnexpandedName() + " is invalid", 0, 0, getWidth(), getHeight(), object->findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred);
             error = false;
-        } else {
+        } else if(visible) {
             paintGraph(g);
         }
     }
@@ -450,6 +479,7 @@ public:
 
         return 0;
     }
+
 
     Colour getContentColour()
     {
