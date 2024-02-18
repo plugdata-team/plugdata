@@ -38,7 +38,7 @@ if(RUN_CLANG_TIDY)
 endif()
 
 if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Release" CACHE STRING 
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING
     "Default build type: Release" FORCE)
 endif()
 
@@ -56,7 +56,7 @@ if(("${CMAKE_SYSTEM_NAME}" MATCHES "Linux" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES
   set(ENABLE_SFIZZ OFF)
 endif()
 
-if(UNIX AND NOT LINUX AND NOT APPLE) # on BSD
+if(BSD)
 message(STATUS "Disabled sfizz")
 message(STATUS "Disabled Gem")
 set(ENABLE_GEM OFF)
@@ -197,7 +197,7 @@ set(JUCE_COMPILE_DEFINITIONS
     JUCE_REPORT_APP_USAGE=0
     JUCE_LOG_ASSERTIONS=1
     JUCE_STRICT_REFCOUNTEDPOINTER=1
-    JUCE_WEB_BROWSER=0 
+    JUCE_WEB_BROWSER=0
     JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1
     JUCE_USE_COREIMAGE_LOADER=0
     JUCE_SILENCE_XCODE_15_LINKER_WARNING=1
@@ -226,9 +226,9 @@ if(ENABLE_GEM)
 endif()
 
 add_library(juce STATIC)
-target_compile_definitions(juce 
-    PUBLIC 
-        ${JUCE_COMPILE_DEFINITIONS} 
+target_compile_definitions(juce
+    PUBLIC
+        ${JUCE_COMPILE_DEFINITIONS}
     INTERFACE
         $<TARGET_PROPERTY:juce,COMPILE_DEFINITIONS>
     )
@@ -256,7 +256,7 @@ if(UNIX AND NOT APPLE)
 endif()
 
 # Fixes BSD compilation
-if(UNIX AND NOT LINUX)
+if(BSD)
 include_directories(/usr/local/include)
 link_directories(/usr/local/lib)
 endif()
