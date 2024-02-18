@@ -791,6 +791,13 @@ void Canvas::mouseUp(MouseEvent const& e)
             }
         }
     }
+    
+    // Make sure the drag-over toggle action is ended
+    for (auto* object : objects) {
+        if (auto* obj = object->gui.get()) {
+            obj->untoggleObject();
+        }
+    }
 }
 
 void Canvas::updateSidebarSelection()

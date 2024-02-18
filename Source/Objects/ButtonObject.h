@@ -37,29 +37,30 @@ public:
         repaint();
     }
 
-    /* TODO: finish this!
     void toggleObject(Point<int> position) override
     {
+        if (!alreadyTriggered) {
 
-        if (!alreadyBanged) {
-
-            auto* button = ptr.get<t_fake_button>();
-            outlet_float(button->x_obj.ob_outlet, 1);
-            update();
-            alreadyBanged = true;
+            if(auto button = ptr.get<t_fake_button>()) {
+                outlet_float(button->x_obj.ob_outlet, 1);
+            }
+            state = true;
+            repaint();
+            alreadyTriggered = true;
         }
     }
     void untoggleObject() override
     {
-
-        if(alreadyBanged)
+        if(alreadyTriggered)
         {
-            auto* button = ptr.get<t_fake_button>();
-            outlet_float(button->x_obj.ob_outlet, 0);
-            update();
+            if(auto button = ptr.get<t_fake_button>()) {
+                outlet_float(button->x_obj.ob_outlet, 0);
+            }
+            state = false;
+            repaint();
+            alreadyTriggered = false;
         }
-        alreadyBanged = false;
-    }*/
+    }
 
     Rectangle<int> getPdBounds() override
     {
