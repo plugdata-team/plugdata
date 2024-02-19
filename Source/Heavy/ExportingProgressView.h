@@ -166,7 +166,6 @@ public:
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
         g.fillRoundedRectangle(console.getBounds().expanded(2).toFloat(), Corners::defaultCornerRadius);
 
-        // TODO: use panel colour IDs?
         if (state == Busy) {
             Fonts::drawStyledText(g, "Exporting...", 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
 

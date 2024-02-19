@@ -471,6 +471,11 @@ void Object::paintOverChildren(Graphics& g)
     }
 }
 
+String Object::getType() const
+{
+    return gui ? gui->getType() : String();
+}
+
 void Object::triggerOverlayActiveState()
 {
     if (!showActiveState)

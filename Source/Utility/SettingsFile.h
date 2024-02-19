@@ -28,7 +28,6 @@ public:
 
     SettingsFile* initialise();
 
-    // TODO: instead of exposing these trees, try to encapsulate most of the interaction with those trees in functions
     ValueTree getKeyMapTree();
     ValueTree getColourThemesTree();
     ValueTree getPathsTree();

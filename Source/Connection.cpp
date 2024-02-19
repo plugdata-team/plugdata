@@ -75,7 +75,6 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     cnv->addAndMakeVisible(this);
     setAlwaysOnTop(true);
 
-    // Update position (TODO: don't invoke virtual functions from constructor!)
     componentMovedOrResized(*outlet, true, true);
     componentMovedOrResized(*inlet, true, true);
 

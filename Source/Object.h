@@ -54,6 +54,8 @@ public:
     void showEditor();
     void hideEditor();
     bool isInitialEditorShown();
+        
+    String getType() const;
 
     Rectangle<int> getSelectableBounds();
     Rectangle<int> getObjectBounds();

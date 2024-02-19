@@ -235,7 +235,6 @@ public:
         
     void removeAliasedDuplicates(StringArray& objectsToShow)
     {
-        // TODO: this is inefficient!
         StringArray gemObjects;
         for(auto& object : objectsToShow)
         {

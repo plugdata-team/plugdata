@@ -164,7 +164,6 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
 };
 
-// TODO: hide behind Connection interface to reduce includes!
 class ConnectionBeingCreated : public Component {
     SafePointer<Iolet> iolet;
     Component* cnv;

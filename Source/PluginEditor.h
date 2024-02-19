@@ -9,15 +9,13 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 
 #include "Utility/Fonts.h"
-#include "Utility/RateReducer.h" // TODO: move to impl
 #include "Utility/ModifierKeyListener.h"
 #include "Components/CheckedTooltip.h"
-#include "Utility/StackShadow.h" // TODO: move to impl
 #include "Components/ZoomableDragAndDropContainer.h"
 #include "Utility/OfflineObjectRenderer.h"
 #include "Utility/WindowDragger.h"
 
-#include "Tabbar/SplitView.h" // TODO: move to impl
+#include "Tabbar/SplitView.h"
 #include "Dialogs/OverlayDisplaySettings.h"
 #include "Dialogs/SnapSettings.h"
 

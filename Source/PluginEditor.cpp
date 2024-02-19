@@ -19,9 +19,11 @@
 #include "Sidebar/Palettes.h"
 #include "Utility/Autosave.h"
 
+#include "Utility/RateReducer.h"
+#include "Utility/StackShadow.h"
+
 #include "Canvas.h"
 #include "Connection.h"
-#include "Objects/ObjectBase.h" // TODO: We shouldn't need this!
 #include "Dialogs/ConnectionMessageDisplay.h"
 #include "Dialogs/Dialogs.h"
 #include "Statusbar.h"
@@ -1254,7 +1256,7 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
 
         if (auto* cnv = getCurrentCanvas()) {
             auto selection = cnv->getSelectionOfType<Object>();
-            bool enabled = selection.size() == 1 && selection[0]->gui && selection[0]->gui->getType().isNotEmpty();
+            bool enabled = selection.size() == 1 && selection[0]->getType().isNotEmpty();
             result.setActive(enabled);
         } else {
             result.setActive(false);
@@ -1267,7 +1269,7 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
 
         if (auto* cnv = getCurrentCanvas()) {
             auto selection = cnv->getSelectionOfType<Object>();
-            bool enabled = selection.size() == 1 && selection[0]->gui && selection[0]->gui->getType().isNotEmpty();
+            bool enabled = selection.size() == 1 && selection[0]->getType().isNotEmpty();
             result.setActive(enabled);
         } else {
             result.setActive(false);
@@ -1604,11 +1606,11 @@ bool PluginEditor::perform(InvocationInfo const& info)
     case CommandIDs::ShowReference: {
         if (auto* cnv = getCurrentCanvas()) {
             auto selection = cnv->getSelectionOfType<Object>();
-            if (selection.size() != 1 || !selection[0]->gui || selection[0]->gui->getType().isEmpty()) {
+            if (selection.size() != 1 || selection[0]->getType().isEmpty()) {
                 return false;
             }
 
-            Dialogs::showObjectReferenceDialog(&openedDialog, this, selection[0]->gui->getType());
+            Dialogs::showObjectReferenceDialog(&openedDialog, this, selection[0]->getType());
 
             return true;
         }
@@ -1618,7 +1620,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
     case CommandIDs::ShowHelp: {
         if (auto* cnv = getCurrentCanvas()) {
             auto selection = cnv->getSelectionOfType<Object>();
-            if (selection.size() != 1 || !selection[0]->gui || selection[0]->gui->getType().isEmpty()) {
+            if (selection.size() != 1 || selection[0]->getType().isEmpty()) {
                 return false;
             }
             selection[0]->openHelpPatch();

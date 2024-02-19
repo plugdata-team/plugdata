@@ -10,6 +10,7 @@
 
 #include "Buttons.h"
 #include "PluginEditor.h"
+#include "Objects/ObjectBase.h"
 
 class TouchSelectionHelper : public Component {
 
