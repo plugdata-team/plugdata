@@ -110,6 +110,7 @@ public:
         constrainer.setFixedAspectRatio(0.0f);
         
         resizer = std::make_unique<MouseRateReducedComponent<ResizableBorderComponent>>(this, &constrainer);
+        resizer->setAllowHostManagedResize(false);
         resizer->setAlwaysOnTop(true);
         addAndMakeVisible(resizer.get());
 
@@ -134,15 +135,28 @@ public:
         //index.setBounds(bounds.removeFromLeft(200));
         markupDisplay.setBounds(bounds.reduced(2, 0));
     }
+        
+    int getDesktopWindowStyleFlags() const override
+    {
+        int styleFlags = TopLevelWindow::getDesktopWindowStyleFlags();
+        styleFlags |= ComponentPeer::windowIsResizable;
+        return styleFlags;
+    }
 
     void mouseDown(MouseEvent const& e) override
     {
-        windowDragger.startDraggingComponent(this, e);
+        auto dragHitBox = getLocalBounds().reduced(margin).removeFromTop(38).reduced(4);
+        if(dragHitBox.contains(e.x, e.y)) {
+            windowDragger.startDraggingComponent(this, e);
+        }
     }
 
     void mouseDrag(MouseEvent const& e) override
     {
-        windowDragger.dragComponent(this, e, nullptr);
+        auto dragHitBox = getLocalBounds().reduced(margin).removeFromTop(38).reduced(4);
+        if(dragHitBox.contains(e.getMouseDownX(), e.getMouseDownY())) {
+            windowDragger.dragComponent(this, e, nullptr);
+        }
     }
 
     void paint(Graphics& g) override
