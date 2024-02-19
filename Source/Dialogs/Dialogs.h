@@ -127,7 +127,7 @@ public:
         if (isPositiveAndBelow(e.getEventRelativeTo(viewedComponent.get()).getMouseDownY(), 40) && ProjectInfo::isStandalone) {
             dragger.startDraggingWindow(parentComponent->getTopLevelComponent(), e);
             dragging = true;
-        } else if (!viewedComponent->getBounds().contains(e.getPosition())) {
+        } else if (!viewedComponent->getBounds().contains(e.getPosition()) && !blockCloseAction) {
             closeDialog();
         }
     }
@@ -143,6 +143,12 @@ public:
     {
         dragging = false;
     }
+    
+    void setBlockFromClosing(bool block)
+    {
+        blockCloseAction = block;
+    }
+    
 #endif
 
     bool keyPressed(KeyPress const& key) override
@@ -169,6 +175,7 @@ public:
     std::unique_ptr<Button> closeButton = nullptr;
     std::unique_ptr<Dialog>* owner;
 
+    bool blockCloseAction = false;
     bool dragging = false;
     int backgroundMargin = 0;
 };

@@ -95,15 +95,17 @@ class ToolchainInstaller : public Component
     }
 
 public:
-    explicit ToolchainInstaller(PluginEditor* pluginEditor)
+    explicit ToolchainInstaller(PluginEditor* pluginEditor, Dialog* parentDialog)
         : Thread("Toolchain Install Thread")
-        , editor(pluginEditor)
+        , editor(pluginEditor), dialog(parentDialog)
     {
         addAndMakeVisible(&installButton);
 
         installButton.onClick = [this]() {
             errorMessage = "";
             repaint();
+            
+            dialog->setBlockFromClosing(true);
 
             String latestVersion;
             try {
@@ -299,6 +301,7 @@ public:
         stopTimer();
 
         MessageManager::callAsync([this]() {
+            dialog->setBlockFromClosing(false);
             toolchainInstalledCallback();
         });
     }
@@ -325,6 +328,7 @@ public:
     std::unique_ptr<InputStream> instream;
 
     PluginEditor* editor;
+    Dialog* dialog;
 };
 
 #pragma clang diagnostic pop

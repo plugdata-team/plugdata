@@ -180,7 +180,7 @@ public:
 
 HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
     : exportingView(new ExportingProgressView())
-    , installer(new ToolchainInstaller(dynamic_cast<PluginEditor*>(dialog->parentComponent)))
+    , installer(new ToolchainInstaller(dynamic_cast<PluginEditor*>(dialog->parentComponent), dialog))
     , exporterPanel(new ExporterSettingsPanel(dynamic_cast<PluginEditor*>(dialog->parentComponent), exportingView.get()))
     , infoButton(new MainToolbarButton(Icons::Help))
 {
