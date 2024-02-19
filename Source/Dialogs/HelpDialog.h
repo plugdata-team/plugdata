@@ -108,10 +108,9 @@ public:
 
         setVisible(true);
 
-        // Position in centre of screen
-        setBounds(Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea.withSizeKeepingCentre(700, 500));
-        
-        constrainer.setMinimumSize(500, 300);
+        setTopLeftPosition(Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea.getCentre() - Point<int>(350, 250));
+        setSize(700, 500);
+        constrainer.setSizeLimits(500, 300, 1400, 1000);
         
         //addAndMakeVisible(index);
     }
