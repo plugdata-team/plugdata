@@ -2127,7 +2127,7 @@ struct TextEditorDialog : public Component {
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawRoundedRectangle(getLocalBounds().reduced(margin).toFloat(), Corners::windowCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().reduced(margin).toFloat(), ProjectInfo::canUseSemiTransparentWindows() ? Corners::windowCornerRadius : 0.0f, 1.0f);
     }
 
     void paint(Graphics& g) override
