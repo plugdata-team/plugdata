@@ -111,7 +111,7 @@ public:
         setTopLeftPosition(Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea.getCentre() - Point<int>(350, 250));
         setSize(700, 500);
         constrainer.setSizeLimits(500, 300, 1400, 1000);
-        
+        constrainer.setFixedAspectRatio(0.0f);
         //addAndMakeVisible(index);
     }
 

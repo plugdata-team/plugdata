@@ -2080,6 +2080,7 @@ struct TextEditorDialog : public Component {
         addAndMakeVisible(closeButton.get());
 
         constrainer.setMinimumSize(500, 200);
+        constrainer.setFixedAspectRatio(0.0f);
 
         closeButton->onClick = [this]() {
             // Call asynchronously because this function may distroy the dialog
@@ -2096,6 +2097,7 @@ struct TextEditorDialog : public Component {
 
         addAndMakeVisible(editor);
         addAndMakeVisible(resizer);
+        resizer.setAlwaysOnTop(true);
 
         editor.grabKeyboardFocus();
     }
@@ -2134,12 +2136,17 @@ struct TextEditorDialog : public Component {
             shadowPath.addRoundedRectangle(getLocalBounds().reduced(20), Corners::windowCornerRadius);
             StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 13.0f);
         }
+        
+        auto radius = ProjectInfo::canUseSemiTransparentWindows() ? Corners::windowCornerRadius : 0.0f;
 
         auto b = getLocalBounds().reduced(margin);
 
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRoundedRectangle(b.toFloat(), Corners::windowCornerRadius);
-
+        g.fillRoundedRectangle(b.toFloat(), radius);
+        
+        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.drawRoundedRectangle(b.toFloat(), radius);
+        
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         // g.drawHorizontalLine(b.getX() + 39, b.getY() + 48, b.getWidth());
         g.drawHorizontalLine(b.getHeight() - 20, b.getY() + 48, b.getWidth());
