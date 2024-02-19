@@ -369,6 +369,8 @@ protected:
     
     void updateLinkBounds(TextLayout& layout)
     {
+        linkBounds.clear();
+        
         // Look for clickable links
         for (auto& [link, start, end] : links) {
             int offset = 0;
@@ -383,11 +385,11 @@ protected:
                         auto lineBounds = Rectangle<float>(glyph.width, 14).withPosition((glyph.anchor + line.lineOrigin));
                         currentLinkBounds = linkBounds.isEmpty() ? lineBounds : currentLinkBounds.getUnion(lineBounds);
                     }
-                    
-                    linkBounds.add({link, currentLinkBounds.translated(0, -11)});
                     offset += run->glyphs.size();
                 }
             }
+            
+            linkBounds.add({link, currentLinkBounds.translated(0, -11)});
         }
     }
 
