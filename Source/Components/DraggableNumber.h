@@ -452,7 +452,6 @@ public:
 struct DraggableListNumber : public DraggableNumber {
     int numberStartIdx = 0;
     int numberEndIdx = 0;
-    int mouseDownX;
 
     bool targetFound = false;
 
@@ -474,7 +473,6 @@ struct DraggableListNumber : public DraggableNumber {
         numberStartIdx = numberStart;
         numberEndIdx = numberEnd;
         dragValue = numberValue;
-        mouseDownX = e.x;
 
         targetFound = numberStart != -1;
         if (targetFound) {
@@ -491,7 +489,7 @@ struct DraggableListNumber : public DraggableNumber {
     {
         if (isBeingEdited() || !targetFound)
             return;
-
+        
         // Hide cursor and set unbounded mouse movement
         setMouseCursor(MouseCursor::NoCursor);
         updateMouseCursor();
@@ -516,11 +514,12 @@ struct DraggableListNumber : public DraggableNumber {
         // In case the length of the number changes
         if (length != replacement.length()) {
             numberEndIdx = replacement.length() + numberStartIdx;
-            updateListHoverPosition(mouseDownX);
         }
 
         setText(newText, dontSendNotification);
         onValueChange(0);
+        
+        updateListHoverPosition(e.getMouseDownX());
     }
 
     void mouseUp(MouseEvent const& e) override
