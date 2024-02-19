@@ -41,7 +41,7 @@ inline std::map<PlugDataColour, std::tuple<String, String, String>> const PlugDa
     { connectionColourId, { "Connection", "connection_colour", "Canvas" } },
     { signalColourId, { "Signal", "signal_colour", "Canvas" } },
     { gemColourId, { "Gem", "gem_colour", "Canvas" } },
-    { resizeableCornerColourId, { "Graph resizer", "graph_resizer", "Canvas" } },
+    { graphAreaColourId, { "Graph resizer", "graph_area", "Canvas" } },
     { gridLineColourId, { "Grid line", "grid_colour", "Canvas" } },
 
     { popupMenuBackgroundColourId, { "Popup menu background", "popup_background", "Popup Menu" } },

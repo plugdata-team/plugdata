@@ -298,7 +298,7 @@ enum PlugDataColour {
 
     sliderThumbColourId,
     scrollbarThumbColourId,
-    resizeableCornerColourId,
+    graphAreaColourId,
     gridLineColourId,
     caretColourId,
 
