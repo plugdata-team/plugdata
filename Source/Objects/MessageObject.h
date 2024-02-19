@@ -265,6 +265,8 @@ public:
             std::unique_ptr<TextEditor> outgoingEditor;
             std::swap(outgoingEditor, editor);
 
+            cnv->hideSuggestions();
+            
             auto newText = outgoingEditor->getText();
 
             newText = TextObjectHelper::fixNewlines(newText);
@@ -272,7 +274,7 @@ public:
             if (objectText != newText) {
                 objectText = newText;
             }
-
+            
             outgoingEditor.reset();
 
             object->updateBounds(); // Recalculate bounds
