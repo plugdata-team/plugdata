@@ -281,6 +281,7 @@ public:
         constrainer.setSizeLimits(150, 120, 500, 400);
         setSize(310 + (2 * windowMargin), 140 + (2 * windowMargin));
 
+        resizer.setAllowHostManagedResize(false);
         addAndMakeVisible(resizer);
 
         setInterceptsMouseClicks(true, true);
