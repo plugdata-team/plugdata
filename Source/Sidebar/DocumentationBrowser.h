@@ -83,14 +83,6 @@ public:
     explicit DocumentationBrowser(PluginProcessor* processor)
         : Thread("Documentation Browser Thread"), pd(processor)
     {
-        auto location = ProjectInfo::appDataDir;
-
-        if (SettingsFile::getInstance()->hasProperty("browser_path")) {
-            auto customLocation = File(pd->settingsFile->getProperty<String>("browser_path"));
-            if (customLocation.exists()) {
-                location = customLocation;
-            }
-        }
         searchInput.setBackgroundColour(PlugDataColour::sidebarActiveBackgroundColourId);
         searchInput.addKeyListener(this);
         searchInput.onTextChange = [this]() {
