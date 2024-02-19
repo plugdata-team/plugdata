@@ -452,6 +452,7 @@ public:
 struct DraggableListNumber : public DraggableNumber {
     int numberStartIdx = 0;
     int numberEndIdx = 0;
+    int mouseDownX;
 
     bool targetFound = false;
 
@@ -473,6 +474,7 @@ struct DraggableListNumber : public DraggableNumber {
         numberStartIdx = numberStart;
         numberEndIdx = numberEnd;
         dragValue = numberValue;
+        mouseDownX = e.x;
 
         targetFound = numberStart != -1;
         if (targetFound) {
@@ -490,8 +492,6 @@ struct DraggableListNumber : public DraggableNumber {
         if (isBeingEdited() || !targetFound)
             return;
 
-        updateListHoverPosition(e.x);
-
         // Hide cursor and set unbounded mouse movement
         setMouseCursor(MouseCursor::NoCursor);
         updateMouseCursor();
@@ -499,10 +499,10 @@ struct DraggableListNumber : public DraggableNumber {
         auto mouseSource = Desktop::getInstance().getMainMouseSource();
         mouseSource.enableUnboundedMouseMovement(true, true);
 
-        double const increment = 1.;
         double const deltaY = (e.y - e.mouseDownPosition.y) * 0.7;
-
-        double newValue = dragValue + std::floor(increment * -deltaY);
+        double const increment = e.mods.isShiftDown() ? (0.01 * std::floor(-deltaY)) : std::floor(-deltaY);
+        
+        double newValue = dragValue + increment;
 
         newValue = limitValue(newValue);
 
@@ -516,6 +516,7 @@ struct DraggableListNumber : public DraggableNumber {
         // In case the length of the number changes
         if (length != replacement.length()) {
             numberEndIdx = replacement.length() + numberStartIdx;
+            updateListHoverPosition(mouseDownX);
         }
 
         setText(newText, dontSendNotification);
