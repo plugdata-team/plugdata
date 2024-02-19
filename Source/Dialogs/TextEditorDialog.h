@@ -2145,7 +2145,7 @@ struct TextEditorDialog : public Component {
         g.fillRoundedRectangle(b.toFloat(), radius);
         
         g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawRoundedRectangle(b.toFloat(), radius);
+        g.drawRoundedRectangle(b.toFloat().reduced(0.5f), radius, 1.0f);
         
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         // g.drawHorizontalLine(b.getX() + 39, b.getY() + 48, b.getWidth());
