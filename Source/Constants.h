@@ -60,6 +60,7 @@ struct Icons {
     inline static String const Library = "U";
     inline static String const Menu = "V";
     inline static String const Info = "W";
+    inline static String const Warning = "\"";
     inline static String const History = "X";
     inline static String const Protection = "Y";
     inline static String const DevTools = "{";
@@ -74,7 +75,6 @@ struct Icons {
     inline static String const Eye = "|";
     inline static String const Magnet = "%";
     inline static String const SnapEdges = "#";
-    inline static String const SnapCorners = "\"";
     inline static String const SnapCenters = "$";
     inline static String const ExportState = "^";
     inline static String const Trash = "~";
@@ -110,6 +110,8 @@ struct Icons {
     inline static String const AlignBottom = "8";
     inline static String const AlignHCentre = "9";
     inline static String const AlignVDistribute = "*";
+    
+    
 
     // ================== OBJECT ICONS ==================
 

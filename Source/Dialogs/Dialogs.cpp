@@ -206,7 +206,7 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
             attributedTitle.setFont(Fonts::getBoldFont().withHeight(14));
             attributedTitle.setColour(findColour(PlugDataColour::panelTextColourId));
             
-            setSize(265, 150);
+            setSize(265, 200);
             layout.createLayout(attributedTitle, getWidth());
 
             addAndMakeVisible(cancel);
@@ -239,14 +239,17 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
         
         void paint(Graphics& g) override
         {
-            auto contentBounds = getLocalBounds().reduced(16);
+            g.setFont(Fonts::getIconFont().withHeight(48));
+            g.drawFittedText(Icons::Warning, getLocalBounds().removeFromTop(80), Justification::centred, 1);
+            
+            auto contentBounds = getLocalBounds().withTrimmedTop(55).reduced(16);
             layout.draw(g, contentBounds.removeFromTop(48).toFloat());
         }
 
         void resized() override
         {
             auto contentBounds = getLocalBounds().reduced(16);
-            contentBounds.removeFromTop(54);
+            contentBounds.removeFromTop(106);
             
             okay.setBounds(contentBounds.removeFromTop(28));
             contentBounds.removeFromTop(6);
@@ -259,7 +262,7 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
         TextButton okay = TextButton("OK");
     };
 
-    auto* dialog = new Dialog(target, parent, 265, 150, false);
+    auto* dialog = new Dialog(target, parent, 265, 200, false);
     auto* dialogContent = new OkayCancelDialog(dialog, title, callback, options);
 
     dialog->setViewedComponent(dialogContent);
