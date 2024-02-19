@@ -224,7 +224,11 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
 
 
     // Returns non-zero if the object has a fixed ratio
-    auto ratio = toDrag->getConstrainer()->getFixedAspectRatio();
+    auto ratio = 0.0;
+    if(auto* constrainer = toDrag->getConstrainer())
+    {
+        ratio = constrainer->getFixedAspectRatio();
+    }
 
     auto desiredBounds = newResizeBounds.reduced(Object::margin);
     auto actualBounds = toDrag->getBounds().reduced(Object::margin);
