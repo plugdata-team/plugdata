@@ -36,8 +36,12 @@ struct ProjectInfo {
     static bool isMidiEffect() noexcept;
     static bool canUseSemiTransparentWindows();
 
+#if JUCE_WINDOWS
+    // Regular documents directory might be synced to OneDrive
+    static inline File const appDataDir = File::getSpecialLocation(File::SpecialLocationType::commonDocumentsDirectory).getChildFile("plugdata");
+#else
     static inline File const appDataDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata");
-
+#endif
     static inline String const versionSuffix = "-6";
     static inline File const versionDataDir = appDataDir.getChildFile("Versions").getChildFile(ProjectInfo::versionString + versionSuffix);
 };

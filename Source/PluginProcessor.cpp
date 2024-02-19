@@ -271,6 +271,12 @@ void PluginProcessor::initialiseFilesystem()
     OSUtils::createJunction(homeDir.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\").toStdString(), abstractionsPath.toStdString());
     OSUtils::createJunction(homeDir.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\").toStdString(), documentationPath.toStdString());
     OSUtils::createJunction(homeDir.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\").toStdString(), extraPath.toStdString());
+    
+    auto shortcut = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata.LNK");
+    if(!shortcut.isShortcut())
+    {
+        appDataDir.createShortcut("plugdata", shortcut);
+    }
 
 #elif JUCE_IOS
     // This is not ideal but on iOS, it seems to be the only way to make it work...
