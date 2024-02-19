@@ -28,9 +28,9 @@
 
 extern "C" {
 #include <m_pd.h>
-#include <m_imp.h>
+//#include <m_imp.h>
 
-int is_gem_object(const char* sym);
+//int is_gem_object(const char* sym);
 }
 
 Object::Object(Canvas* parent, String const& name, Point<int> position)
@@ -63,7 +63,7 @@ Object::Object(pd::WeakReference object, Canvas* parent)
 
     initialise();
 
-    setType("", std::move(object));
+    setType("", object);
 }
 
 Object::~Object()
@@ -167,7 +167,7 @@ void Object::valueChanged(Value& v)
     repaint();
 }
 
-bool Object::checkIfHvccCompatible()
+bool Object::checkIfHvccCompatible() const
 {
     if (gui) {
         auto typeName = gui->getType();
@@ -1226,8 +1226,13 @@ void Object::hideEditor()
 
         outgoingEditor->removeListener(cnv->suggestor.get());
 
+        
         // Get entered text, remove extra spaces at the end
         auto newText = outgoingEditor->getText().trimEnd();
+        
+        newText = newText.replace("\n", " ");
+        newText = newText.replace(";", " ;");
+        
         outgoingEditor.reset();
 
         repaint();
@@ -1264,15 +1269,18 @@ void Object::openNewObjectEditor()
         editor->setColour(TextEditor::outlineColourId, Colours::transparentBlack);
         editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
 
+        editor->setScrollToShowCursor(false);
         editor->setAlwaysOnTop(true);
-        editor->setMultiLine(false);
+        editor->setMultiLine(true);
         editor->setReturnKeyStartsNewLine(false);
+        editor->setScrollbarsShown(false);
         editor->setBorder(BorderSize<int>(1, 6, 2, 2));
         editor->setIndents(0, 0);
         editor->setJustification(Justification::centredLeft);
 
         editor->setBounds(getLocalBounds().reduced(Object::margin));
         editor->addListener(this);
+        editor->addKeyListener(this);
 
         // Allow cancelling object creation with escape
         editor->onEscapeKey = [this]() {
@@ -1314,6 +1322,34 @@ void Object::textEditorReturnKeyPressed(TextEditor& ed)
     }
 }
 
+bool Object::keyPressed(KeyPress const& key, Component* component)
+{
+    if(auto* editor = newObjectEditor.get()) {
+        if (key.getKeyCode() == KeyPress::returnKey && editor && key.getModifiers().isShiftDown()) {
+            int caretPosition = editor->getCaretPosition();
+            auto text = editor->getText();
+            
+            if (!editor->getHighlightedRegion().isEmpty())
+                return false;
+            if (text[caretPosition - 1] == ';') {
+                text = text.substring(0, caretPosition) + "\n" + text.substring(caretPosition);
+                caretPosition += 1;
+            } else {
+                text = text.substring(0, caretPosition) + ";\n" + text.substring(caretPosition);
+                caretPosition += 2;
+            }
+            
+            editor->setText(text);
+            editor->setCaretPosition(caretPosition);
+            cnv->hideSuggestions();
+            
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void Object::updateOverlays(int overlay)
 {
     if (cnv->isGraph)
@@ -1332,18 +1368,19 @@ void Object::updateOverlays(int overlay)
 void Object::textEditorTextChanged(TextEditor& ed)
 {
     String currentText;
-    if (cnv->suggestor && !cnv->suggestor->getText().isEmpty()) {
+    if (cnv->suggestor && !cnv->suggestor->getText().isEmpty() && !ed.getText().containsChar('\n')) {
         currentText = cnv->suggestor->getText();
     } else {
         currentText = ed.getText();
     }
-
+   
     // For resize-while-typing behaviour
-    auto width = Font(15).getStringWidth(currentText) + 14.0f;
-
-    width += Object::doubleMargin;
-
-    setSize(width, getHeight());
+    auto newWidth = CachedStringWidth<15>::calculateStringWidth(currentText) + 14.0f;
+    newWidth += Object::doubleMargin;
+    
+    auto numLines = StringArray::fromLines(currentText.trimEnd()).size();
+    auto newHeight = std::max((numLines * 15) + 5 + Object::doubleMargin, height);
+    setSize(newWidth, newHeight);
 }
 
 ComponentBoundsConstrainer* Object::getConstrainer() const

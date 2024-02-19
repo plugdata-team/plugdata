@@ -195,7 +195,7 @@ struct TextObjectHelper {
 
 // Text base class that text objects with special implementation details can derive from
 class TextBase : public ObjectBase
-    , public TextEditor::Listener {
+    , public TextEditor::Listener, public KeyListener {
 
 protected:
     std::unique_ptr<TextEditor> editor;
@@ -451,6 +451,7 @@ public:
             editor->setBounds(getLocalBounds());
             editor->setText(objectText, false);
             editor->addListener(this);
+            editor->addKeyListener(this);
             editor->selectAll();
 
             addAndMakeVisible(editor.get());
@@ -498,7 +499,41 @@ public:
             object->updateBounds();
         }
     }
+        
+    bool keyPressed(KeyPress const& key, Component* component) override
+    {
+        /*
+        if (key == KeyPress::rightKey && editor && !editor->getHighlightedRegion().isEmpty()) {
+            editor->setCaretPosition(editor->getHighlightedRegion().getEnd());
+            return true;
+        }
+        if (key == KeyPress::leftKey && editor && !editor->getHighlightedRegion().isEmpty()) {
+            editor->setCaretPosition(editor->getHighlightedRegion().getStart());
+            return true;
+        } */
+        if (key.getKeyCode() == KeyPress::returnKey && editor && key.getModifiers().isShiftDown()) {
+            int caretPosition = editor->getCaretPosition();
+            auto text = editor->getText();
 
+            if (!editor->getHighlightedRegion().isEmpty())
+                return false;
+            if (text[caretPosition - 1] == ';') {
+                text = text.substring(0, caretPosition) + "\n" + text.substring(caretPosition);
+                caretPosition += 1;
+            } else {
+                text = text.substring(0, caretPosition) + ";\n" + text.substring(caretPosition);
+                caretPosition += 2;
+            }
+
+            editor->setText(text);
+            editor->setCaretPosition(caretPosition);
+
+            return true;
+        }
+
+        return false;
+    }
+        
     void resized() override
     {
         if (editor) {
