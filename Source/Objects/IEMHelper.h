@@ -463,21 +463,6 @@ public:
         return "";
     }
 
-    String getLabelText() const
-    {
-        if (auto iemgui = ptr.get<t_iemgui>()) {
-            t_symbol const* sym = iemgui->x_lab_unexpanded;
-            if (sym) {
-                auto text = String::fromUTF8(sym->s_name);
-                if (text.isNotEmpty() && text != "empty") {
-                    return text;
-                }
-            }
-        }
-
-        return "";
-    }
-
     static Colour convertFromIEMColour(int const color)
     {
         uint32 const c = (uint32)(color << 8 | 0xFF);

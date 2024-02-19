@@ -8,7 +8,7 @@
 
 #pragma once
 
-// Draws a trigger button in the style of the PropertiesPanel, though it's meant to be used outside of the PropertiesPanel itself
+// Draws a trigger button in the style of the PropertiesPanel, though it's meant to be used outside PropertiesPanel itself
 class ActionButton : public Component {
 
     bool mouseIsOver = false;

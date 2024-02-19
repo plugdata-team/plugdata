@@ -82,14 +82,6 @@ void SplitViewResizer::paint(Graphics& g)
 #endif
 }
 
-void SplitViewResizer::mouseDown(MouseEvent const& e)
-{
-    dragPositionX = e.position.x;
-    dragPositionY = e.getPosition().getY();
-
-    leftBounds = getParentComponent()->getBounds().getX();
-}
-
 bool SplitViewResizer::setResizerPosition(float newPosition, bool checkLeft)
 {
     auto left = splits[0]->resizerLeft;
@@ -107,7 +99,7 @@ bool SplitViewResizer::setResizerPosition(float newPosition, bool checkLeft)
     // if we hit a resizer that is null, this means we are at an edge
 
     // check all to left
-    if ((newPosition / getWidth()) - leftPos < (minimumWidth / getWidth()) && checkLeft == true) {
+    if ((newPosition / getWidth()) - leftPos < (minimumWidth / getWidth()) && checkLeft) {
 
         if (splits[0]->resizerLeft) {
             hitEdge = splits[0]->resizerLeft->setResizerPosition(newPosition - minimumWidth);

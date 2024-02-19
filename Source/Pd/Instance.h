@@ -147,7 +147,7 @@ class Instance {
             : object(ref, instance)
             , destination(dest)
             , selector(sel)
-            , list(atoms)
+            , list(std::move(atoms))
         {
         }
 
@@ -158,7 +158,7 @@ class Instance {
     };
 
 public:
-    Instance(String const& symbol);
+    explicit Instance(String const& symbol);
     Instance(Instance const& other) = delete;
     virtual ~Instance();
 
@@ -169,12 +169,12 @@ public:
     void performDSP(float const* inputs, float* outputs);
     int getBlockSize() const;
 
-    void sendNoteOn(int channel, int const pitch, int velocity) const;
-    void sendControlChange(int channel, int const controller, int value) const;
+    void sendNoteOn(int channel, int pitch, int velocity) const;
+    void sendControlChange(int channel, int controller, int value) const;
     void sendProgramChange(int channel, int value) const;
     void sendPitchBend(int channel, int value) const;
     void sendAfterTouch(int channel, int value) const;
-    void sendPolyAfterTouch(int channel, int const pitch, int value) const;
+    void sendPolyAfterTouch(int channel, int pitch, int value) const;
     void sendSysEx(int port, int byte) const;
     void sendSysRealTime(int port, int byte) const;
     void sendMidiByte(int port, int byte) const;
@@ -331,7 +331,7 @@ protected:
     struct ConsoleHandler : public Timer {
         Instance* instance;
 
-        ConsoleHandler(Instance* parent)
+        explicit ConsoleHandler(Instance* parent)
             : instance(parent)
             , fastStringWidth(Font(14))
         {

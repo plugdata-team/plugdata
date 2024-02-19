@@ -64,7 +64,7 @@ private:
 
     void moveTabToNewSplit(SourceDetails const& source);
 
-    String getZoneName(int zone);
+    static String getZoneName(int zone);
 
     int splitWidth = 0;
 

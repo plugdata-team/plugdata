@@ -36,7 +36,6 @@ public:
 
     void setHidden(bool hidden);
 
-    void clearConnections();
     Array<Connection*> getConnections();
 
     Rectangle<int> getCanvasBounds();

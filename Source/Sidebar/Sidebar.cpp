@@ -354,21 +354,6 @@ void Sidebar::updateExtraSettingsButton()
     resized();
 }
 
-void Sidebar::showParameters()
-{
-    inspector->loadParameters(lastParameters);
-
-    if (!pinned) {
-        inspector->setVisible(true);
-        console->setVisible(false);
-        browser->setVisible(false);
-        searchPanel->setVisible(false);
-        automationPanel->setVisible(false);
-    }
-
-    updateExtraSettingsButton();
-    repaint();
-}
 void Sidebar::hideParameters()
 {
     if (!pinned) {
@@ -384,11 +369,6 @@ void Sidebar::hideParameters()
     updateExtraSettingsButton();
 
     repaint();
-}
-
-bool Sidebar::isShowingConsole() const
-{
-    return console->isVisible();
 }
 
 void Sidebar::clearConsole()

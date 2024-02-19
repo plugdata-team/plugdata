@@ -137,12 +137,9 @@ public:
         int patchSize = getValue<int>(patchSizeValue);
         appTypeProperty->setEnabled(patchSize == 4);
 
-        if (patchSize == 1) {
-            appTypeValue.setValue(0);
-        } else if (patchSize == 2) {
-            appTypeValue.setValue(1);
-        } else if (patchSize == 3) {
-            appTypeValue.setValue(2);
+        if(patchSize <= 3)
+        {
+            appTypeValue.setValue(patchSize - 1);
         }
 
         if (v.refersToSameSourceAs(targetBoardValue)) {

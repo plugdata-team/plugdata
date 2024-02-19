@@ -30,12 +30,12 @@ class GemJUCEWindow final : public Component, public Timer
           setSizeLimits (50, 50, 30000, 30000);
         }
         
-        void resizeStart()
+        void resizeStart() override
         {
             beginResize();
         }
 
-        void resizeEnd()
+        void resizeEnd() override
         {
             endResize();
         }
@@ -221,7 +221,7 @@ void gemWinUnsetCurrent() {
 }
 
 // window/context creation&destruction
-bool initGemWin(void)
+bool initGemWin()
 {
     return true;
 }

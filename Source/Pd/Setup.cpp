@@ -81,7 +81,7 @@ typedef struct _plugdata_midi {
 
 static void plugdata_noteon(int channel, int pitch, int velocity)
 {
-    t_plugdata_midi* x = (t_plugdata_midi*)gensym("#plugdata_midi")->s_thing;
+    auto* x = (t_plugdata_midi*)gensym("#plugdata_midi")->s_thing;
     if (x && x->x_hook_noteon) {
         x->x_hook_noteon(x->x_ptr, channel, pitch, velocity);
     }
@@ -89,7 +89,7 @@ static void plugdata_noteon(int channel, int pitch, int velocity)
 
 static void plugdata_controlchange(int channel, int controller, int value)
 {
-    t_plugdata_midi* x = (t_plugdata_midi*)gensym("#plugdata_midi")->s_thing;
+    auto* x = (t_plugdata_midi*)gensym("#plugdata_midi")->s_thing;
     if (x && x->x_hook_controlchange) {
         x->x_hook_controlchange(x->x_ptr, channel, controller, value);
     }
@@ -97,7 +97,7 @@ static void plugdata_controlchange(int channel, int controller, int value)
 
 static void plugdata_programchange(int channel, int value)
 {
-    t_plugdata_midi* x = (t_plugdata_midi*)gensym("#plugdata_midi")->s_thing;
+    auto* x = (t_plugdata_midi*)gensym("#plugdata_midi")->s_thing;
     if (x && x->x_hook_programchange) {
         x->x_hook_programchange(x->x_ptr, channel, value);
     }
@@ -105,7 +105,7 @@ static void plugdata_programchange(int channel, int value)
 
 static void plugdata_pitchbend(int channel, int value)
 {
-    t_plugdata_midi* x = (t_plugdata_midi*)gensym("#plugdata_midi")->s_thing;
+    auto* x = (t_plugdata_midi*)gensym("#plugdata_midi")->s_thing;
     if (x && x->x_hook_pitchbend) {
         x->x_hook_pitchbend(x->x_ptr, channel, value);
     }
@@ -113,7 +113,7 @@ static void plugdata_pitchbend(int channel, int value)
 
 static void plugdata_aftertouch(int channel, int value)
 {
-    t_plugdata_midi* x = (t_plugdata_midi*)gensym("#plugdata_midi")->s_thing;
+    auto* x = (t_plugdata_midi*)gensym("#plugdata_midi")->s_thing;
     if (x && x->x_hook_aftertouch) {
         x->x_hook_aftertouch(x->x_ptr, channel, value);
     }
@@ -121,7 +121,7 @@ static void plugdata_aftertouch(int channel, int value)
 
 static void plugdata_polyaftertouch(int channel, int pitch, int value)
 {
-    t_plugdata_midi* x = (t_plugdata_midi*)gensym("#plugdata_midi")->s_thing;
+    auto* x = (t_plugdata_midi*)gensym("#plugdata_midi")->s_thing;
     if (x && x->x_hook_polyaftertouch) {
         x->x_hook_polyaftertouch(x->x_ptr, channel, pitch, value);
     }
@@ -129,7 +129,7 @@ static void plugdata_polyaftertouch(int channel, int pitch, int value)
 
 static void plugdata_midibyte(int port, int byte)
 {
-    t_plugdata_midi* x = (t_plugdata_midi*)gensym("#plugdata_midi")->s_thing;
+    auto* x = (t_plugdata_midi*)gensym("#plugdata_midi")->s_thing;
     if (x && x->x_hook_midibyte) {
         x->x_hook_midibyte(x->x_ptr, port, byte);
     }
@@ -1329,7 +1329,7 @@ void* Setup::createReceiver(void* ptr, char const* s,
     t_plugdata_listhook hook_list,
     t_plugdata_messagehook hook_message)
 {
-    t_plugdata_receiver* x = (t_plugdata_receiver*)pd_new(plugdata_receiver_class);
+    auto* x = (t_plugdata_receiver*)pd_new(plugdata_receiver_class);
     if (x) {
         sys_lock();
         x->x_sym = gensym(s);
@@ -1357,7 +1357,7 @@ void Setup::initialisePdLuaInstance()
 
 void* Setup::createPrintHook(void* ptr, t_plugdata_printhook hook_print)
 {
-    t_plugdata_print* x = (t_plugdata_print*)pd_new(plugdata_print_class);
+    auto* x = (t_plugdata_print*)pd_new(plugdata_print_class);
     if (x) {
         sys_lock();
         t_symbol* s = gensym("#plugdata_print");
@@ -1379,7 +1379,7 @@ void* Setup::createMIDIHook(void* ptr,
     t_plugdata_midibytehook hook_midibyte)
 {
 
-    t_plugdata_midi* x = (t_plugdata_midi*)pd_new(plugdata_midi_class);
+    auto* x = (t_plugdata_midi*)pd_new(plugdata_midi_class);
     if (x) {
         sys_lock();
         t_symbol* s = gensym("#plugdata_midi");
@@ -1407,7 +1407,6 @@ void Setup::parseArguments(char const** argv, size_t argc, t_namelist** sys_open
     sys_argparse(argc, argv);
     // TODO: some args need to be parsed manually still!
     sys_unlock();
-    return;
 }
 
 void Setup::initialiseELSE()
@@ -1731,7 +1730,7 @@ void Setup::initialiseELSE()
     fm_tilde_setup();
 }
 
-void Setup::initialiseGem(std::string gemPluginPath)
+void Setup::initialiseGem(std::string const& gemPluginPath)
 {
 #if ENABLE_GEM
     Gem_setup(gensym(gemPluginPath.c_str()));

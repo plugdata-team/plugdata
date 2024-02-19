@@ -16,7 +16,7 @@ public:
         baseValue.addListener(this);
     }
 
-    ~PropertyRedirector()
+    ~PropertyRedirector() override
     {
         baseValue.removeListener(this);
     }
@@ -35,7 +35,6 @@ public:
 class Inspector : public Component {
 
     PropertiesPanel panel;
-    String title;
     TextButton resetButton;
     Array<ObjectParameters> properties;
     OwnedArray<PropertyRedirector> redirectors;
@@ -67,16 +66,6 @@ public:
         resetButton.setTopLeftPosition(getLocalBounds().withTrimmedRight(23).getRight(), 0);
 
         panel.setContentWidth(getWidth() - 16);
-    }
-
-    void setTitle(String const& name)
-    {
-        title = name;
-    }
-
-    String getTitle()
-    {
-        return title;
     }
 
     static PropertiesPanelProperty* createPanel(int type, String const& name, Value* value, StringArray& options)

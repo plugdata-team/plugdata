@@ -36,7 +36,6 @@ struct ExporterBase : public Component
 
     ExportingProgressView* exportingView;
 
-    int labelWidth = 180;
     bool shouldQuit = false;
 
     PluginEditor* editor;

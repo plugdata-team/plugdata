@@ -814,7 +814,7 @@ void Canvas::updateSidebarSelection()
             if (!object->gui)
                 continue;
             auto parameters = object->gui ? object->gui->getParameters() : ObjectParameters();
-            auto showOnSelect = object->gui ? object->gui->showParametersWhenSelected() : false;
+            auto showOnSelect = object->gui && object->gui->showParametersWhenSelected();
             if (showOnSelect) {
                 allParameters.add(parameters);
             }
@@ -1516,8 +1516,8 @@ void Canvas::alignObjects(Align alignment)
 
     auto getSpacerX = [selectedBounds](Array<Object*>& objects) -> float {
         auto totalWidths = 0;
-        for (int i = 0; i < objects.size(); i++) {
-            totalWidths += objects[i]->getWidth() - (Object::margin * 2);
+        for (auto* object : objects) {
+            totalWidths += object->getWidth() - (Object::margin * 2);
         }
         auto selectedBoundsNoMargin = selectedBounds.getWidth() - (Object::margin * 2);
         auto spacer = (selectedBoundsNoMargin - totalWidths) / static_cast<float>(objects.size() - 1);

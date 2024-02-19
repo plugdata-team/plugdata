@@ -31,7 +31,7 @@ class MessageDispatcher : private AsyncUpdater {
         t_atom data[8];
         int size;
 
-        Message() {};
+        Message() = default;
 
         Message(void* ptr, t_symbol* sym, int argc, t_atom* argv)
             : target(ptr)

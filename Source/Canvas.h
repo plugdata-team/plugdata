@@ -184,7 +184,6 @@ public:
     bool connectionsBehind = true;
 
     bool isGraph = false;
-    bool hasParentCanvas = false;
     bool isDraggingLasso = false;
     
     bool needsSearchUpdate = false;
@@ -201,7 +200,6 @@ public:
     ObjectGrid objectGrid = ObjectGrid(this);
 
     Point<int> const canvasOrigin;
-    Point<int> viewportPositionBeforeMiddleDrag = { 0, 0 };
 
     std::unique_ptr<GraphArea> graphArea;
 

@@ -64,7 +64,6 @@ public:
     TabComponent(PluginEditor* editor);
     ~TabComponent() override;
 
-    void onTabMoved();
     void onTabChange(int tabIndex);
     void newTab();
     void addTab(String const& tabName, Component* contentComponent, int insertIndex);
@@ -108,11 +107,7 @@ public:
     Image tabSnapshot;
     ScaledImage tabSnapshotScaled;
 
-    Rectangle<int> tabSnapshotBounds;
-    Rectangle<int> currentTabBounds;
-
 private:
-    Point<int> scalePos;
 
     int tabDepth = 30;
 

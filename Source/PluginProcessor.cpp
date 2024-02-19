@@ -1539,7 +1539,7 @@ void PluginProcessor::showTextEditor(unsigned long ptr, Rectangle<int> bounds, S
                 if (result == 2) {
 
                     lockAudioThread();
-                    pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("clear"), 0, NULL);
+                    pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("clear"), 0, nullptr);
                     unlockAudioThread();
 
                     // remove repeating spaces
@@ -1598,7 +1598,7 @@ void PluginProcessor::showTextEditor(unsigned long ptr, Rectangle<int> bounds, S
                     lockAudioThread();
 
                     // pd_typedmess(reinterpret_cast<t_pd*>(ptr), generateSymbol("path"), 1, &fake_path);
-                    pd_typedmess(reinterpret_cast<t_pd*>(ptr), generateSymbol("end"), 0, NULL);
+                    pd_typedmess(reinterpret_cast<t_pd*>(ptr), generateSymbol("end"), 0, nullptr);
                     unlockAudioThread();
 
                     textEditorDialogs[ptr].reset(nullptr);

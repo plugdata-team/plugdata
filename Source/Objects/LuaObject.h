@@ -27,7 +27,7 @@ struct LuaGuiMessage {
     t_atom data[8];
     int size;
     
-    LuaGuiMessage() {};
+    LuaGuiMessage() = default;
     
     LuaGuiMessage(t_symbol* sym, int argc, t_atom* argv)
     : symbol(sym)

@@ -72,15 +72,21 @@ static inline String convertURLtoUTF8(String const& input)
     String output;
 
     for (int i = 0; i < tokens.size(); ++i) {
-        String token = tokens[i];
+        String const& token = tokens[i];
 
         if (token.startsWithChar('#')) {
             // Extract the hex value and convert it to a character
-            auto hexString = token.substring(1);
-            int hexValue;
-            sscanf(hexString.toRawUTF8(), "%x", &hexValue);
-            output += String::charToString(static_cast<wchar_t>(hexValue));
-            output += token.substring(3);
+            auto hexString = token.substring(1) + "\0";
+            char *endptr;
+            int hexValue = strtoul(hexString.toRawUTF8(), &endptr, 16);
+            if(*endptr == '\0') {
+                output += String::charToString(static_cast<wchar_t>(hexValue));
+                output += token.substring(3);
+            }
+            else {
+                jassertfalse;
+                output += token;
+            }
         } else {
             output += token;
         }

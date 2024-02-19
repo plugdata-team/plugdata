@@ -226,7 +226,7 @@ public:
         ToggledButtonOn = 1
     };
 
-    MouseInteraction mouseInteraction;
+    MouseInteraction mouseInteraction = ToggledButtonOff;
 
 private:
     static inline bool isShowing = false;

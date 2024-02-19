@@ -96,10 +96,10 @@ public:
         panels.add(new AdvancedSettingsPanel(editor));
 
         Array<PropertiesPanel*> propertiesPanels;
-        for (int i = 0; i < panels.size(); i++) {
-            addChildComponent(panels[i]);
+        for (auto* i : panels) {
+            addChildComponent(i);
 
-            if (auto* panel = panels[i]->getPropertiesPanel()) {
+            if (auto* panel = i->getPropertiesPanel()) {
                 propertiesPanels.add(panel);
             }
         }

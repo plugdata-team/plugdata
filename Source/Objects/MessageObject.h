@@ -371,14 +371,6 @@ public:
 
     bool keyPressed(KeyPress const& key, Component* component) override
     {
-        if (key == KeyPress::rightKey && editor && !editor->getHighlightedRegion().isEmpty()) {
-            editor->setCaretPosition(editor->getHighlightedRegion().getEnd());
-            return true;
-        }
-        if (key == KeyPress::leftKey && editor && !editor->getHighlightedRegion().isEmpty()) {
-            editor->setCaretPosition(editor->getHighlightedRegion().getStart());
-            return true;
-        }
         if (key.getKeyCode() == KeyPress::returnKey && editor && key.getModifiers().isShiftDown()) {
             int caretPosition = editor->getCaretPosition();
             auto text = editor->getText();

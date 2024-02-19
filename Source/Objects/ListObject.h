@@ -126,10 +126,6 @@ public:
         }
     }
 
-    ~ListObject() override
-    {
-    }
-
     void resized() override
     {
         listLabel.setFont(listLabel.getFont().withHeight(getHeight() - 6));

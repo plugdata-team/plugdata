@@ -14,7 +14,7 @@
 class CheckedTooltip : public TooltipWindow {
 
 public:
-    CheckedTooltip(
+    explicit CheckedTooltip(
         Component* target, std::function<bool(Component*)> checkTooltip = [](Component*) { return true; }, int timeout = 500)
         : TooltipWindow(target, timeout)
         , checker(std::move(checkTooltip))

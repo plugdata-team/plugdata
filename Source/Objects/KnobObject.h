@@ -223,22 +223,6 @@ public:
         knob.repaint();
     }
 
-    void setCircular(Slider::SliderStyle style)
-    {
-        if (auto knob = ptr.get<t_fake_knob>()) {
-            knob->x_circular = style == Slider::SliderStyle::RotaryHorizontalVerticalDrag;
-        }
-    }
-
-    bool isCircular()
-    {
-        if (auto knob = ptr.get<t_fake_knob>()) {
-            return knob->x_circular;
-        }
-
-        return false;
-    }
-
     void update() override
     {
         auto currentValue = getValue();

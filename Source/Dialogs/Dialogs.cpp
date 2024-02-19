@@ -190,7 +190,7 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
         });
 }
 
-void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> const& callback, StringArray options)
+void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> const& callback, StringArray const& options)
 {
 
     class OkayCancelDialog : public Component {
@@ -198,7 +198,7 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
         TextLayout layout;
         
     public:
-        OkayCancelDialog(Dialog* dialog, String const& title, std::function<void(bool)> const& callback, StringArray& options)
+        OkayCancelDialog(Dialog* dialog, String const& title, std::function<void(bool)> const& callback, StringArray const& options)
             : label("", title)
         {
             auto attributedTitle = AttributedString(title);
@@ -349,7 +349,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
     struct QuickActionsBar : public PopupMenu::CustomComponent {
         struct QuickActionButton : public TextButton {
-            QuickActionButton(String buttonText)
+            explicit QuickActionButton(const String& buttonText)
                 : TextButton(buttonText)
             {
             }
@@ -376,7 +376,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
         std::unique_ptr<CheckedTooltip> tooltipWindow;
 
-        QuickActionsBar(PluginEditor* editor)
+        explicit QuickActionsBar(PluginEditor* editor)
         {
             // If the tooltip has it's own window, it should also have its own TooltipWindow!
             if (ProjectInfo::canUseSemiTransparentWindows()) {
@@ -433,7 +433,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
     // We have a custom function for this, instead of the default JUCE way, because the default JUCE way is broken on Linux
     // It will not find a target to apply the command to once the popupmenu grabs focus...
-    auto addCommandItem = [editor = cnv->editor](PopupMenu& menu, CommandID const commandID, String displayName = "") {
+    auto addCommandItem = [editor = cnv->editor](PopupMenu& menu, CommandID const commandID, String const& displayName = "") {
         if (auto* registeredInfo = editor->commandManager.getCommandForID(commandID)) {
             ApplicationCommandInfo info(*registeredInfo);
             editor->getCommandInfo(commandID, info);
@@ -539,8 +539,8 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
         cnv->grabKeyboardFocus();
 
         // Make sure that iolets don't hang in hovered state
-        for (auto* object : cnv->objects) {
-            for (auto* iolet : object->iolets)
+        for (auto* o : cnv->objects) {
+            for (auto* iolet : o->iolets)
                 reinterpret_cast<Component*>(iolet)->repaint();
         }
 
@@ -582,9 +582,9 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
             // The FORWARD double for loop makes sure that they keep their original order
             cnv->patch.startUndoSequence("ToFront");
-            for (auto& object : objects) {
+            for (auto& o : objects) {
                 for (auto* selectedBox : selectedBoxes) {
-                    if (object == selectedBox->getPointer()) {
+                    if (o == selectedBox->getPointer()) {
                         selectedBox->toFront(false);
                         if (selectedBox->gui)
                             selectedBox->gui->moveToFront();
@@ -600,9 +600,9 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
             // The FORWARD double for loop makes sure that they keep their original order
             cnv->patch.startUndoSequence("MoveForward");
-            for (auto& object : objects) {
+            for (auto& o : objects) {
                 for (auto* selectedBox : selectedBoxes) {
-                    if (object == selectedBox->getPointer()) {
+                    if (o == selectedBox->getPointer()) {
                         selectedBox->toFront(false);
                         if (selectedBox->gui)
                             selectedBox->gui->moveForward();
@@ -670,7 +670,7 @@ void Dialogs::showObjectMenu(PluginEditor* editor, Component* target)
     AddObjectMenu::show(editor, editor->getLocalArea(target, target->getLocalBounds()));
 }
 
-void Dialogs::showOpenDialog(std::function<void(URL)> callback, bool canSelectFiles, bool canSelectDirectories, String const& extension, String const& lastFileId, Component* parentComponent)
+void Dialogs::showOpenDialog(std::function<void(URL)> const& callback, bool canSelectFiles, bool canSelectDirectories, String const& extension, String const& lastFileId, Component* parentComponent)
 {
     bool nativeDialog = SettingsFile::getInstance()->wantsNativeDialog();
     auto initialFile = lastFileId.isNotEmpty() ? SettingsFile::getInstance()->getLastBrowserPathForId(lastFileId) : ProjectInfo::appDataDir;
@@ -703,7 +703,7 @@ void Dialogs::showOpenDialog(std::function<void(URL)> callback, bool canSelectFi
         });
 }
 
-void Dialogs::showSaveDialog(std::function<void(URL)> callback, String const& extension, String const& lastFileId, Component* parentComponent, bool directoryMode)
+void Dialogs::showSaveDialog(std::function<void(URL)> const& callback, String const& extension, String const& lastFileId, Component* parentComponent, bool directoryMode)
 {
     bool nativeDialog = SettingsFile::getInstance()->wantsNativeDialog();
     auto initialFile = lastFileId.isNotEmpty() ? SettingsFile::getInstance()->getLastBrowserPathForId(lastFileId) : ProjectInfo::appDataDir;

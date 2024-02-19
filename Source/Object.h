@@ -25,9 +25,10 @@ class Object : public Component
     , public Value::Listener
     , public ChangeListener
     , public Timer
+    , public KeyListener
     , private TextEditor::Listener {
 public:
-    Object(Canvas* parent, String const& name = "", Point<int> position = { 100, 100 });
+    explicit Object(Canvas* parent, String const& name = "", Point<int> position = { 100, 100 });
 
     Object(pd::WeakReference object, Canvas* parent);
 
@@ -41,6 +42,8 @@ public:
     void paint(Graphics&) override;
     void paintOverChildren(Graphics&) override;
     void resized() override;
+        
+    bool keyPressed(KeyPress const& key, Component* component) override;
 
     void updateIolets();
 
@@ -117,13 +120,12 @@ private:
 
     void openNewObjectEditor();
 
-    bool checkIfHvccCompatible();
+    bool checkIfHvccCompatible() const;
 
     void setSelected(bool shouldBeSelected);
     bool selectedFlag = false;
     bool selectionStateChanged = false;
 
-    bool createEditorOnMouseDown = false;
     bool wasLockedOnMouseDown = false;
     bool indexShown = false;
     bool isHvccCompatible = true;

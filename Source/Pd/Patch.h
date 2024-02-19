@@ -51,7 +51,6 @@ public:
     void deselectAll();
 
     bool isSubpatch();
-    bool isAbstraction();
 
     void setVisible(bool shouldVis);
 
@@ -91,7 +90,6 @@ public:
     void updateUndoRedoState();
 
     bool objectWasDeleted(t_gobj* ptr) const;
-    bool connectionWasDeleted(t_outconnect* ptr) const;
 
     bool hasConnection(t_object* src, int nout, t_object* sink, int nin);
     bool canConnect(t_object* src, int nout, t_object* sink, int nin);
@@ -140,7 +138,6 @@ private:
     WeakReference ptr;
 
     friend class Instance;
-    friend class Gui;
     friend class Object;
 
     int undoQueueSize = 0;

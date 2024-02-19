@@ -17,7 +17,7 @@ struct ValueTreeOwnerView : public Component
 class ValueTreeNodeComponent : public Component
 {
 public:
-    ValueTreeNodeComponent(const ValueTree& node, ValueTreeNodeComponent* parentNode, String prepend = String()) : valueTreeNode(node), parent(parentNode)
+    ValueTreeNodeComponent(const ValueTree& node, ValueTreeNodeComponent* parentNode, String const& prepend = String()) : valueTreeNode(node), parent(parentNode)
     {
         nodeBranchLine = std::make_unique<ValueTreeNodeBranchLine>(this);
         addAndMakeVisible(nodeBranchLine.get());

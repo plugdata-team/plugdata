@@ -85,10 +85,6 @@ public:
         return subpatch;
     }
 
-    void checkGraphState()
-    {
-    }
-
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(isGraphChild)) {

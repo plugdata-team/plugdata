@@ -175,7 +175,7 @@ public:
         isShowing = true;
 
         auto alignmentTools = std::make_unique<AlignmentTools>();
-        alignmentTools->pluginEditor = static_cast<PluginEditor*>(editor);
+        alignmentTools->pluginEditor = dynamic_cast<PluginEditor*>(editor);
         CallOutBox::launchAsynchronously(std::move(alignmentTools), bounds, editor);
     }
 
@@ -185,7 +185,7 @@ public:
     }
 
 private:
-    PluginEditor* pluginEditor;
+    PluginEditor* pluginEditor = nullptr;
 
     static inline bool isShowing = false;
 

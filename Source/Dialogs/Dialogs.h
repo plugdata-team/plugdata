@@ -52,7 +52,7 @@ public:
         }
     }
 
-    ~Dialog()
+    ~Dialog() override
     {
         if (auto* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent())) {
             if (ProjectInfo::isStandalone) {
@@ -72,11 +72,6 @@ public:
         viewedComponent->addMouseListener(this, false);
         addAndMakeVisible(child);
         resized();
-    }
-
-    Component* getViewedComponent() const
-    {
-        return viewedComponent.get();
     }
 
     bool wantsRoundedCorners() const;
@@ -188,7 +183,7 @@ struct Dialogs {
 
     static void showMainMenu(PluginEditor* editor, Component* centre);
 
-    static void showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> const& callback, StringArray options = { "Okay", "Cancel " });
+    static void showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> const& callback, StringArray const& options = { "Okay", "Cancel " });
 
     static void showHeavyExportDialog(std::unique_ptr<Dialog>* target, Component* parent);
 
@@ -202,11 +197,9 @@ struct Dialogs {
     static void showDeken(PluginEditor* editor);
     static void showPatchStorage(PluginEditor* editor);
 
-    static PopupMenu createObjectMenu(PluginEditor* parent);
+    static void showOpenDialog(std::function<void(URL)> const& callback, bool canSelectFiles, bool canSelectDirectories, String const& lastFileId, String const& extension, Component* parentComponent);
 
-    static void showOpenDialog(std::function<void(URL)> callback, bool canSelectFiles, bool canSelectDirectories, String const& lastFileId, String const& extension, Component* parentComponent);
-
-    static void showSaveDialog(std::function<void(URL)> callback, String const& extension, String const& lastFileId, Component* parentComponent = nullptr, bool directoryMode = false);
+    static void showSaveDialog(std::function<void(URL)> const& callback, String const& extension, String const& lastFileId, Component* parentComponent = nullptr, bool directoryMode = false);
 
     static inline std::unique_ptr<FileChooser> fileChooser = nullptr;
 };

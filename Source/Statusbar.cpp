@@ -30,7 +30,7 @@ class OversampleSelector : public TextButton {
         std::function<void(int)> onChange = [](int) {};
         std::function<void()> onClose = []() {};
 
-        OversampleSettingsPopup(int currentSelection)
+        explicit OversampleSettingsPopup(int currentSelection)
         {
             title.setText("Oversampling factor", dontSendNotification);
             title.setFont(Fonts::getBoldFont().withHeight(14.0f));
@@ -67,7 +67,7 @@ class OversampleSelector : public TextButton {
             setSize(180, 50);
         }
 
-        ~OversampleSettingsPopup()
+        ~OversampleSettingsPopup() override
         {
             onClose();
         }
@@ -96,7 +96,7 @@ class OversampleSelector : public TextButton {
     };
 
 public:
-    OversampleSelector(PluginProcessor* pd)
+    explicit OversampleSelector(PluginProcessor* pd)
     {
         onClick = [this, pd]() {
             auto selection = log2(getButtonText().upToLastOccurrenceOf("x", false, false).getIntValue());
@@ -455,7 +455,7 @@ public:
         setSize(212, 177);
     }
 
-    ~CPUMeterPopup()
+    ~CPUMeterPopup() override
     {
         onClose();
     }

@@ -17,7 +17,7 @@ class HelpDialog : public Component
 
     class IndexComponent : public Component {
     public:
-        IndexComponent(std::function<void(File const&)> loadFile)
+        explicit IndexComponent(std::function<void(File const&)> loadFile)
         {
             for (auto const& file : OSUtils::iterateDirectory(manualPath, false, true)) {
                 if (file.hasFileExtension(".md")) {
@@ -79,7 +79,7 @@ public:
     PluginProcessor* pd;
     MarkupDisplay::MarkupDisplayComponent markupDisplay;
 
-    HelpDialog(PluginProcessor* instance)
+    explicit HelpDialog(PluginProcessor* instance)
         : resizer(this, &constrainer)
         //, index([this](File const& file) { markupDisplay.setMarkdownString(file.loadFileAsString()); })
         , pd(instance)

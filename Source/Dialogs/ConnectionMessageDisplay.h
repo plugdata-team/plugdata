@@ -314,7 +314,7 @@ private:
                 for (int x = channelBounds.getX() + 1; x < channelBounds.getRight(); x++) {
                     auto index = jmap<float>(x, channelBounds.getX(), channelBounds.getRight(), 0, samplesPerCycle);
 
-                    // linearl interpolation, especially needed for high-frequency signals
+                    // linear interpolation, especially needed for high-frequency signals
                     auto roundedIndex = static_cast<int>(index);
                     auto currentSample = lastSamples[ch][roundedIndex];
                     auto nextSample = roundedIndex == 1023 ? lastSamples[ch][roundedIndex] : lastSamples[ch][roundedIndex + 1];
@@ -347,15 +347,12 @@ private:
                 g.drawText(text, textBounds.toNearestInt(), Justification::centred);
             }
         } else {
-            int startPostionX = 8 + 4;
+            int startPositionX = 8 + 4;
             for (auto const& item : messageItemsWithFormat) {
-                Fonts::drawStyledText(g, item.text, startPostionX, 0, item.width, getHeight(), findColour(PlugDataColour::panelTextColourId), item.fontStyle, 14, Justification::centredLeft);
-                startPostionX += item.width + 4;
+                Fonts::drawStyledText(g, item.text, startPositionX, 0, item.width, getHeight(), findColour(PlugDataColour::panelTextColourId), item.fontStyle, 14, Justification::centredLeft);
+                startPositionX += item.width + 4;
             }
         }
-
-        // used for cached background shadow
-        previousBounds = getBounds();
     }
 
     static inline bool isShowing = false;
@@ -385,27 +382,25 @@ private:
 
     Point<float> circlePosition = { 8.0f + 4.0f, 36.0f / 2.0f };
 
-    Rectangle<int> previousBounds;
-
     struct SignalBlock {
         SignalBlock()
             : numChannels(0)
         {
         }
 
-        SignalBlock(float* input, int channels)
+        SignalBlock(float const* input, int channels)
             : numChannels(channels)
         {
             std::copy(input, input + (numChannels * DEFDACBLKSIZE), samples);
         }
 
-        SignalBlock(SignalBlock&& toMove)
+        SignalBlock(SignalBlock&& toMove) noexcept
         {
             numChannels = toMove.numChannels;
             std::copy(toMove.samples, toMove.samples + (numChannels * DEFDACBLKSIZE), samples);
         }
 
-        SignalBlock& operator=(SignalBlock&& toMove)
+        SignalBlock& operator=(SignalBlock&& toMove) noexcept
         {
             if (&toMove != this) {
                 numChannels = toMove.numChannels;

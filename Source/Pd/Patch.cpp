@@ -140,15 +140,6 @@ bool Patch::isSubpatch()
     return false;
 }
 
-bool Patch::isAbstraction()
-{
-    if (auto patch = ptr.get<t_canvas>()) {
-        return canvas_isabstraction(patch.get());
-    }
-
-    return false;
-}
-
 void Patch::updateUndoRedoState()
 {
     if (auto patch = ptr.get<t_glist>()) {
@@ -243,7 +234,7 @@ t_gobj* Patch::createObject(int x, int y, String const& name)
 {
 
     StringArray tokens;
-    tokens.addTokens(name, false);
+    tokens.addTokens(name.replace("\\ ", "__%SPACE%__"), true); // Prevent "/ " from being tokenised
 
     PluginEditor::getObjectManager()->formatObject(tokens);
 
@@ -304,13 +295,14 @@ t_gobj* Patch::createObject(int x, int y, String const& name)
 
     for (int i = 0; i < tokens.size(); i++) {
         // check if string is a valid number
-        auto charptr = tokens[i].getCharPointer();
+        auto token = tokens[i].replace("__%SPACE%__", "\\ ");
+        auto charptr = token.getCharPointer();
         auto ptr = charptr;
         CharacterFunctions::readDoubleValue(ptr); // This will read the number and increment the pointer to be past the number
-        if (ptr - charptr == tokens[i].getNumBytesAsUTF8()) {
-            SETFLOAT(argv.data() + i + 2, tokens[i].getFloatValue());
+        if (ptr - charptr == token.getNumBytesAsUTF8()) {
+            SETFLOAT(argv.data() + i + 2, token.getFloatValue());
         } else {
-            SETSYMBOL(argv.data() + i + 2, instance->generateSymbol(tokens[i]));
+            SETSYMBOL(argv.data() + i + 2, instance->generateSymbol(token));
         }
     }
     
@@ -760,26 +752,6 @@ bool Patch::objectWasDeleted(t_gobj* objectPtr) const
             if (y == objectPtr)
                 return false;
         }
-    }
-
-    return true;
-}
-bool Patch::connectionWasDeleted(t_outconnect* connectionPtr) const
-{
-    t_outconnect* oc;
-    t_linetraverser t;
-
-    if (auto patch = ptr.get<t_glist>()) {
-        // Get connections from pd
-        linetraverser_start(&t, patch.get());
-
-        while ((oc = linetraverser_next(&t))) {
-            if (oc == connectionPtr) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     return true;

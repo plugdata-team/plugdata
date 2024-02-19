@@ -18,8 +18,6 @@ public:
 
     SplitViewResizer(ResizableTabbedComponent* left, ResizableTabbedComponent* right, Split::SplitMode mode = Split::SplitMode::None, int flipped = -1);
 
-    void setSplitMode(Split::SplitMode mode);
-
     bool setResizerPosition(float newPosition, bool checkLeft = true);
 
     MouseCursor getMouseCursor() override;
@@ -35,19 +33,12 @@ public:
     ResizableTabbedComponent* splits[2] = { nullptr };
 
 private:
-    void mouseDown(MouseEvent const& e) override;
 
     void mouseDrag(MouseEvent const& e) override;
 
     float minimumWidth = 100.0f;
-    float minimumHeight = 100.0f;
 
     bool hitEdge = false;
-
-    int leftBounds = 0;
-    float dragPositionX = 0;
-    int dragPositionY = 0;
-    bool draggingSplitview = false;
 
     RateReducer rateReducer = RateReducer(60);
 

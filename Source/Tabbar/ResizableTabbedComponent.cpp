@@ -174,11 +174,11 @@ void ResizableTabbedComponent::createNewSplit(DropZones activeZone, Canvas* canv
 void ResizableTabbedComponent::moveTabToNewSplit(SourceDetails const& dragSourceDetails)
 {
     // get the dragging tab
-    auto* sourceTabButton = static_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get());
+    auto* sourceTabButton = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get());
     int sourceTabIndex = sourceTabButton->getIndex();
     auto sourceTabContent = sourceTabButton->getTabComponent();
     int sourceNumTabs = sourceTabContent->getNumTabs();
-    bool shouldDelete = (sourceNumTabs - 1) == 0 ? true : false;
+    bool shouldDelete = (sourceNumTabs - 1) == 0;
     bool dropZoneCentre = (activeZone == DropZones::Centre) ? true : false;
 
     if (dropZoneCentre) {
@@ -353,10 +353,10 @@ void ResizableTabbedComponent::paintOverChildren(Graphics& g)
                 highlight = getLocalBounds();
             }
             break;
-        };
+        }
 
         g.fillRect(highlight);
-    };
+    }
 }
 
 void ResizableTabbedComponent::itemDragEnter(SourceDetails const& dragSourceDetails)

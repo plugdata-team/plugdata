@@ -159,10 +159,6 @@ void TabBarButtonComponent::mouseExit(MouseEvent const& e)
     repaint();
 }
 
-void TabBarButtonComponent::tabTextChanged(String const& newCurrentTabName)
-{
-}
-
 void TabBarButtonComponent::lookAndFeelChanged()
 {
     closeTabButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
@@ -205,7 +201,7 @@ ScaledImage TabBarButtonComponent::generateTabBarButtonImage()
     g.drawRect(bounds.toFloat(), 1.0f);
 #endif
 
-    return ScaledImage(image, scale);
+    return {image, scale};
 }
 
 void TabBarButtonComponent::mouseDown(MouseEvent const& e)
@@ -264,7 +260,7 @@ void TabBarButtonComponent::mouseDown(MouseEvent const& e)
                     newCanvas->getTabbar()->setCurrentTabIndex(newCanvas->getTabIndex());
                 });
             }
-        };
+        }
 
         tabMenu.addSubMenu("Parent patches", parentPatchMenu, parentPatchMenu.getNumItems());
         

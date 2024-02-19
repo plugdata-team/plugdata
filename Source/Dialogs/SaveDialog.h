@@ -6,7 +6,7 @@
 
 class SaveDialogButton : public TextButton {
 public:
-    SaveDialogButton(String buttonText)
+    explicit SaveDialogButton(String const& buttonText)
         : TextButton(buttonText)
     {
     }

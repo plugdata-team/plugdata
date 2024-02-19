@@ -91,7 +91,7 @@ public:
         categoriesHolder.setVisible(true);
     }
 
-    void showObject(ValueTree objectInfo)
+    void showObject(ValueTree const& objectInfo)
     {
         categories.clear();
 

@@ -463,35 +463,4 @@ public:
                 pd_bind(&atom->a_text.te_pd, canvas_realizedollar(atom->a_glist, atom->a_symfrom));
         }
     }
-
-    /* prepend "-" as necessary to avoid empty strings, so we can
-     use them in Pd messages. */
-    t_symbol* gatom_escapit(t_symbol* s)
-    {
-        if (!*s->s_name)
-            return (pd->generateSymbol("-"));
-        else if (*s->s_name == '-') {
-            char shmo[100];
-            shmo[0] = '-';
-            strncpy(shmo + 1, s->s_name, 99);
-            shmo[99] = 0;
-            return (pd->generateSymbol(shmo));
-        } else
-            return (s);
-    }
-
-    /* undo previous operation: strip leading "-" if found.  This is used
-     both to restore send, etc., names when loading from a file, and to
-     set them from the properties dialog.  In the former case, since before
-     version 0.52 '$" was aliases to "#", we also bash any "#" characters
-     to "$".  This is unnecessary when reading files saved from 0.52 or later,
-     and really we should test for that and only bash when necessary, just
-     in case someone wants to have a "#" in a name. */
-    t_symbol* gatom_unescapit(t_symbol* s)
-    {
-        if (*s->s_name == '-')
-            return (pd->generateSymbol(String::fromUTF8(s->s_name + 1)));
-        else
-            return (iemgui_raute2dollar(s));
-    }
 };

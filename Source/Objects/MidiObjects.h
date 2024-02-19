@@ -57,7 +57,7 @@ public:
 
                 if (midiInput) {
                     int port = 1;
-                    for (auto input : midiDeviceManager->getInputDevices()) {
+                    for (auto const& input : midiDeviceManager->getInputDevices()) {
                         PopupMenu subMenu;
                         for (int ch = 1; ch < 17; ch++) {
                             int portNumber = ch + (port << 4);
@@ -75,7 +75,7 @@ public:
                     }
                 } else {
                     int port = 1;
-                    for (auto output : midiDeviceManager->getOutputDevices()) {
+                    for (auto const& output : midiDeviceManager->getOutputDevices()) {
                         PopupMenu subMenu;
                         for (int ch = 1; ch < 17; ch++) {
                             int portNumber = ch + (port << 4);

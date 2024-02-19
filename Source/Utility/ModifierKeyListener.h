@@ -107,7 +107,7 @@ private:
 
     void callListeners(Modifier mod, bool down)
     {
-        for (auto listener : listeners) {
+        for (auto const& listener : listeners) {
             if (!listener)
                 continue;
             switch (mod) {

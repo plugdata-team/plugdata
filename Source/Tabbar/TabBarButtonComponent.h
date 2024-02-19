@@ -16,7 +16,7 @@ class TabBarButtonComponent : public TabBarButton
 public:
     TabBarButtonComponent(TabComponent* tabComponent, String const& name, TabbedButtonBar& bar);
 
-    ~TabBarButtonComponent();
+    ~TabBarButtonComponent() override;
 
     TabComponent* getTabComponent();
 
@@ -35,8 +35,6 @@ public:
     void lookAndFeelChanged() override;
 
     void setTabText(String const& text);
-
-    void tabTextChanged(String const& newCurrentTabName);
 
     void setFocusForTabSplit();
 

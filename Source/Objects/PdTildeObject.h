@@ -43,11 +43,11 @@ public:
                     return;
                 }
 #else
-                    if (result.isDirectory()) {
-                        pdLocation = result;
-                    } else {
-                        return;
-                    }
+                if (result.isDirectory()) {
+                    pdLocation = result;
+                } else {
+                    return;
+                }
 #endif
                 if (auto pdTilde = ptr.get<t_fake_pd_tilde>()) {
                     auto pdPath = pdLocation.getFullPathName();

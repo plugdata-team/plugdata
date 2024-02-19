@@ -837,6 +837,7 @@ private:
                 { "6 operator FM", "#X obj 0 0 palette/pm6.m~" },
                 { "signal generator", "#X obj 0 0 palette/sig.m~" },
                 { "noise osc", "#X obj 0 0 palette/noiseosc.m~" },
+                { "gendyn osc", "#X obj 0 0 palette/gendyn.m~" },
             } },
         { "Filters",
             {
@@ -878,6 +879,7 @@ private:
                 { "organ", "#X obj 0 0 palette/organ.m~" },
                 { "vca", "#X obj 0 0 palette/vca.m~" },
                 { "pluck", "#X obj 0 0 palette/pluck.m~" },
+                { "brane", "#X obj 0 0 palette/brane.m~" },
             } },
     };
 

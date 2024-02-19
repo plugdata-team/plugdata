@@ -14,7 +14,7 @@ struct ObjectGrid : public SettingsFileListener {
 
     int gridSize = 20;
 
-    ObjectGrid(Canvas* cnv);
+    explicit ObjectGrid(Canvas* cnv);
 
     Point<int> performResize(Object* toDrag, Point<int> dragOffset, Rectangle<int> newResizeBounds);
     Point<int> performMove(Object* toDrag, Point<int> dragOffset);
@@ -33,11 +33,11 @@ private:
 
     void propertyChanged(String const& name, var const& value) override;
 
-    Array<Object*> getSnappableObjects(Object* draggedObject);
+    static Array<Object*> getSnappableObjects(Object* draggedObject);
 
     void setIndicator(int idx, Line<int> line, float lineScale);
 
-    Line<int> getObjectIndicatorLine(Side side, Rectangle<int> b1, Rectangle<int> b2);
+    static Line<int> getObjectIndicatorLine(Side side, Rectangle<int> b1, Rectangle<int> b2);
 
     static constexpr int objectTolerance = 6;
     static constexpr int connectionTolerance = 9;

@@ -23,19 +23,19 @@ class Instance;
 
 class SidebarSelectorButton : public TextButton {
 public:
-    SidebarSelectorButton(String const& icon)
+    explicit SidebarSelectorButton(String const& icon)
         : TextButton(icon)
     {
     }
 
-    void mouseDown(MouseEvent const& e)
+    void mouseDown(MouseEvent const& e) override
     {
         numNotifications = 0;
         hasWarning = false;
         TextButton::mouseDown(e);
     }
 
-    void paint(Graphics& g)
+    void paint(Graphics& g) override
     {
         bool active = isMouseOver() || isMouseButtonDown() || getToggleState();
 
@@ -96,7 +96,6 @@ public:
     void mouseExit(MouseEvent const& e) override;
 
     void showParameters(String const& name, Array<ObjectParameters>& params);
-    void showParameters();
     void hideParameters();
 
     bool isShowingBrowser();
@@ -105,7 +104,6 @@ public:
 
     void showPanel(int panelToShow);
 
-    bool isShowingConsole() const;
     void showSidebar(bool show);
 
     void pinSidebar(bool pin);

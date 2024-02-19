@@ -33,21 +33,6 @@ public:
     int getNumSamplesAvailable() { return fifo.getNumReady(); }
     int getNumSamplesFree() { return fifo.getFreeSpace(); }
 
-    void writeSilence(int numSamples)
-    {
-        jassert(getNumSamplesFree() >= numSamples);
-
-        int start1, size1, start2, size2;
-        fifo.prepareToWrite(numSamples, start1, size1, start2, size2);
-
-        if (size1 > 0)
-            audioBuffer.clear(start1, size1);
-        if (size2 > 0)
-            audioBuffer.clear(start2, size2);
-
-        fifo.finishedWrite(size1 + size2);
-    }
-
     void writeAudioAndMidi(dsp::AudioBlock<float> const& audioSrc, MidiBuffer const& midiSrc)
     {
         jassert(getNumSamplesFree() >= audioSrc.getNumSamples());

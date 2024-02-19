@@ -118,7 +118,7 @@ public:
         setWidthAndHeight(1.0f);
     }
 
-    ~PluginMode() = default;
+    ~PluginMode() override = default;
 
     void setWidthAndHeight(float scale)
     {

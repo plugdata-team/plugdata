@@ -50,7 +50,7 @@ struct Interface {
 
     static t_canvas* createCanvas(char const* name, char const* path)
     {
-        t_canvas* cnv = (t_canvas*)libpd_openfile(name, path);
+        auto* cnv = static_cast<t_canvas*>(libpd_openfile(name, path));
         if (cnv) {
             canvas_vis(cnv, 1.f);
             canvas_rename(cnv, gensym(name), gensym(path));
@@ -274,7 +274,7 @@ struct Interface {
     static void redo(t_canvas* cnv)
     {
         // Temporary fix... might cause us to miss a loadbang when recreating a canvas
-        libpd_this_instance()->pd_newest = 0;
+        libpd_this_instance()->pd_newest = nullptr;
         if (!cnv->gl_editor)
             return;
 
@@ -313,7 +313,7 @@ struct Interface {
         }
 
         canvas_setcurrent(cnv);
-        pd_typedmess((t_pd*)cnv, gensym("duplicate"), 0, NULL);
+        pd_typedmess((t_pd*)cnv, gensym("duplicate"), 0, nullptr);
         canvas_unsetcurrent(cnv);
     }
 
@@ -425,7 +425,7 @@ struct Interface {
 
         glist_deselect(cnv, obj);
 
-        cnv->gl_editor->e_textedfor = 0;
+        cnv->gl_editor->e_textedfor = nullptr;
         cnv->gl_editor->e_textdirty = 0;
 
         canvas_editmode(cnv, wasEditMode);
@@ -655,7 +655,7 @@ private:
         }
 
         // If there is an object after ours
-        t_gobj* oldy_next = obj->g_next ? obj->g_next : NULL;
+        t_gobj* oldy_next = obj->g_next ? obj->g_next : nullptr;
 
         if (to_front) {
 
@@ -802,7 +802,7 @@ private:
          the glist to reselect. */
         if (cnv->gl_editor->e_textedfor) {
             // t_gobj *selwas = x->gl_editor->e_selection->sel_what;
-            libpd_this_instance()->pd_newest = 0;
+            libpd_this_instance()->pd_newest = nullptr;
             glist_noselect(cnv);
             if (libpd_this_instance()->pd_newest) {
                 for (y = cnv->gl_list; y; y = y->g_next)

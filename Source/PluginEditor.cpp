@@ -601,6 +601,7 @@ void PluginEditor::filesDropped(StringArray const& files, int x, int y)
                 if (file.exists()) {
                     auto position = cnv->getLocalPoint(this, Point<int>(x, y));
                     auto filePath = file.getFullPathName().replaceCharacter('\\', '/').replace(" ", "\\ ");
+                    
                     auto* object = cnv->objects.add(new Object(cnv, "msg " + filePath, position));
                     object->hideEditor();
                 }
@@ -1638,7 +1639,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
         }
         else {
             pd->startDSP();
-        };
+        }
         
         return true;
     }
@@ -1774,7 +1775,7 @@ void PluginEditor::showTouchSelectionHelper(bool shouldBeShown)
         auto touchHelperBounds = getLocalBounds().removeFromBottom(48).withSizeKeepingCentre(192, 48).translated(0, -54);
         touchSelectionHelper->setBounds(touchHelperBounds);
     }
-};
+}
 
 // Finds an object, then centres and selects it, to indicate it's the target of a search action
 // If you set "openNewTabIfNeeded" to true, it will open a new tab if the object you're trying to highlight is not currently visible

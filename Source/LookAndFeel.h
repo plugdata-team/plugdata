@@ -188,7 +188,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     void setColours(std::map<PlugDataColour, Colour> colours);
 
-    static void setDefaultFont(String fontName);
+    static void setDefaultFont(String const& fontName);
 
     static String const defaultThemesXml;
 

@@ -121,6 +121,8 @@ public:
         case hash("close"): {
             textEditor.reset(nullptr);
         }
+        default:
+            break;
         }
     }
 

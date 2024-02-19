@@ -27,7 +27,7 @@ int getStyleMask(bool nativeTitlebar) {
 
 void OSUtils::enableInsetTitlebarButtons(void* nativeHandle, bool enable) {
     
-    NSView* view = static_cast<NSView*>(nativeHandle);
+    auto* view = static_cast<NSView*>(nativeHandle);
     
     if(!view) return;
     
@@ -49,7 +49,7 @@ void OSUtils::enableInsetTitlebarButtons(void* nativeHandle, bool enable) {
 
 void OSUtils::HideTitlebarButtons(void* view, bool hideMinimiseButton, bool hideMaximiseButton, bool hideCloseButton)
 {
-    NSView* nsView = (NSView*)view;
+    auto* nsView = (NSView*)view;
     NSWindow* nsWindow = [nsView window];
     NSButton *minimizeButton = [nsWindow standardWindowButton:NSWindowMiniaturizeButton];
     NSButton *maximizeButton = [nsWindow standardWindowButton:NSWindowZoomButton];
@@ -66,7 +66,7 @@ void OSUtils::HideTitlebarButtons(void* view, bool hideMinimiseButton, bool hide
 OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 {
     TISInputSourceRef source = TISCopyCurrentKeyboardInputSource();
-    NSString *s = (__bridge NSString *)(TISGetInputSourceProperty(source, kTISPropertyInputSourceID));
+    auto *s = (__bridge NSString *)(TISGetInputSourceProperty(source, kTISPropertyInputSourceID));
     auto const* locale = [[s substringWithRange:NSMakeRange(20, [s length]-20)] UTF8String];
     
     if(!strcmp(locale, "Belgian") || !strcmp(locale, "French") || !strcmp(locale, "ABC-AZERTY")) {

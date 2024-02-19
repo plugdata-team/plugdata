@@ -39,7 +39,7 @@ public:
 
     void mouseMove(const MouseEvent& e) override
     {
-        if (isHover != true) {
+        if (!isHover) {
             isHover = true;
             repaint();
         }

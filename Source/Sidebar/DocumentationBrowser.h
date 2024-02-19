@@ -125,7 +125,7 @@ public:
         addAndMakeVisible(fileList);
     }
     
-    ~DocumentationBrowser()
+    ~DocumentationBrowser() override
     {
         stopThread(-1);
     }
@@ -248,7 +248,7 @@ public:
         
         if (threadShouldExit() || !directory.exists() || !directory.isDirectory() || directory == versionDataDir || directory == toolchainDir)
         {
-            return ValueTree();
+            return {};
         }
         
         ValueTree rootNode("Folder");
@@ -285,7 +285,7 @@ public:
         }
         
         struct {
-            int compareElements (const ValueTree& first, const ValueTree& second)
+            static int compareElements (const ValueTree& first, const ValueTree& second)
             {
                 if(first.getProperty("Icon") == Icons::File && second.getProperty("Icon") == Icons::Folder)
                 {
@@ -302,11 +302,6 @@ public:
         
         rootNode.sort(valueTreeSorter, nullptr, false);
         return rootNode;
-    }
-
-    bool isSearching()
-    {
-        return searchInput.hasKeyboardFocus(false);
     }
 
     bool hitTest(int x, int y) override

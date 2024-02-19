@@ -12,9 +12,9 @@ struct StackShadow : public juce::DeletedAtShutdown
 {
     StackShadow();
     
-    ~StackShadow();
+    ~StackShadow() override;
     
-    static void renderDropShadow(juce::Graphics& g, juce::Path const& path, juce::Colour color, int const radius = 1, juce::Point<int> const offset = { 0, 0 }, int spread = 0);
+    static void renderDropShadow(juce::Graphics& g, juce::Path const& path, juce::Colour color, int radius = 1, juce::Point<int> offset = { 0, 0 }, int spread = 0);
     
     melatonin::DropShadow* dropShadow;
     

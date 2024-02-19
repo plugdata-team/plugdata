@@ -81,7 +81,7 @@ class ObjectsListBox : public ListBox
             , objectDescription(description)
             , rowIsSelected(isSelected)
             , objectsListBox(parent)
-            , dismissMenu(dismissDialog)
+            , dismissMenu(std::move(dismissDialog))
         {
         }
 
@@ -157,11 +157,6 @@ class ObjectsListBox : public ListBox
             return objectName + String(" object");
         }
 
-        String getItemName() const
-        {
-            return objectName;
-        }
-
         void refresh(String name, String description, int rowNumber, bool isSelected)
         {
             objectName = name;
@@ -172,7 +167,7 @@ class ObjectsListBox : public ListBox
         }
 
     private:
-        int row;
+        int row = 0;
         String objectName;
         String objectDescription;
         bool rowIsSelected = false;
@@ -217,7 +212,7 @@ public:
         changeCallback(objects[row]);
     }
 
-    virtual void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
+    void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
     {
     }
 
@@ -278,7 +273,7 @@ public:
         setBufferedToImage(true);
     }
 
-    ~ObjectViewerDragArea() { }
+    ~ObjectViewerDragArea() override { }
 
     void setObjectName(String name)
     {
@@ -341,7 +336,7 @@ class ObjectViewer : public Component {
 
 public:
     ObjectViewer(PluginEditor* editor, ObjectReferenceDialog& objectReference, std::function<void(bool shouldFade)> dismissMenu)
-        : objectDragArea(dismissMenu)
+        : objectDragArea(std::move(dismissMenu))
         , library(*editor->pd->objectLibrary)
         , reference(objectReference)
     {

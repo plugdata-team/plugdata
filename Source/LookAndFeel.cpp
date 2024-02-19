@@ -72,7 +72,7 @@ public:
         buttonColour = bgColour;
     }
 
-    ~PlugData_DocumentWindowButton_macOS()
+    ~PlugData_DocumentWindowButton_macOS() override
     {
         Desktop::getInstance().removeFocusChangeListener(this);
     }
@@ -82,13 +82,13 @@ public:
         owner = window;
     }
 
-    void globalFocusChanged(Component* focusedComponent)
+    void globalFocusChanged(Component* focusedComponent) override
     {
         buttonColour = getParentComponent()->hasKeyboardFocus(true) ? bgColour : Colours::lightgrey;
         repaint();
     }
 
-    void paintButton(Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
+    void paintButton(Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
     {
         auto rect = Justification(Justification::centred).appliedToRectangle(Rectangle<int>(getHeight(), getHeight()), getLocalBounds()).toFloat();
         auto reducedRect = rect.reduced(getHeight() * 0.22f);
@@ -135,21 +135,21 @@ public:
         }
     }
 
-    void mouseEnter(MouseEvent const& e)
+    void mouseEnter(MouseEvent const& e) override
     {
         for (auto* button : getAllButtons())
             button->repaint();
         Button::mouseEnter(e);
     }
 
-    void mouseExit(MouseEvent const& e)
+    void mouseExit(MouseEvent const& e) override
     {
         for (auto* button : getAllButtons())
             button->repaint();
         Button::mouseExit(e);
     }
 
-    void mouseDrag(MouseEvent const& e)
+    void mouseDrag(MouseEvent const& e) override
     {
         for (auto* button : getAllButtons())
             button->repaint();
@@ -188,7 +188,7 @@ private:
 
 class PlugData_DocumentWindowButton : public Button {
 public:
-    PlugData_DocumentWindowButton(int buttonType)
+    explicit PlugData_DocumentWindowButton(int buttonType)
         : Button("")
     {
         auto crossThickness = 0.2f;
@@ -222,12 +222,14 @@ public:
             PathStrokeType(30.0f).createStrokedPath(toggledShape, toggledShape);
             break;
         }
+        default:
+            break;
         }
         setName(name);
         setButtonText(name);
     }
 
-    void paintButton(Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
+    void paintButton(Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
     {
         auto circleColour = findColour(PlugDataColour::toolbarHoverColourId);
         if (shouldDrawButtonAsHighlighted)
@@ -571,7 +573,7 @@ Button* PlugDataLook::createTabBarExtrasButton()
             setTriggeredOnMouseDown(true);
         }
 
-        void moved()
+        void moved() override
         {
             static bool insideMove = false;
             if (insideMove)
@@ -585,7 +587,7 @@ Button* PlugDataLook::createTabBarExtrasButton()
             }
         }
 
-        void resized()
+        void resized() override
         {
             // Try to force the size to 28x28, while also not allowing any recursion
             // JUCE gives us very little control over the position/size otherwise...
@@ -597,7 +599,7 @@ Button* PlugDataLook::createTabBarExtrasButton()
             insideResize = false;
         }
 
-        void paint(Graphics& g)
+        void paint(Graphics& g) override
         {
             bool hiddenTabSelected = false;
             if (auto* tabbar = findParentComponentOfClass<TabbedButtonBar>()) {
@@ -620,11 +622,9 @@ Button* PlugDataLook::createTabBarExtrasButton()
             g.setColour(findColour(PlugDataColour::tabTextColourId));
 
             g.drawText(getButtonText(), getLocalBounds().reduced(3), Justification::centred);
-
-            return;
         }
 
-        void mouseDown(MouseEvent const& e)
+        void mouseDown(MouseEvent const& e) override
         {
             class HiddenTabMenuItem : public PopupMenu::CustomComponent {
 
@@ -634,7 +634,7 @@ Button* PlugDataLook::createTabBarExtrasButton()
                 int index;
                 TabbedButtonBar& tabbar;
 
-                HiddenTabMenuItem(String text, int idx, TabbedButtonBar& buttonBar)
+                HiddenTabMenuItem(String const& text, int idx, TabbedButtonBar& buttonBar)
                     : tabTitle(text)
                     , index(idx)
                     , tabbar(buttonBar)
@@ -655,18 +655,18 @@ Button* PlugDataLook::createTabBarExtrasButton()
                     addChildComponent(closeTabButton);
                 }
 
-                void resized()
+                void resized() override
                 {
                     closeTabButton.setTopLeftPosition(getWidth() - 26, -2);
                 }
 
-                void getIdealSize(int& idealWidth, int& idealHeight)
+                void getIdealSize(int& idealWidth, int& idealHeight) override
                 {
                     idealWidth = 150;
                     idealHeight = 24;
                 }
 
-                void mouseDown(MouseEvent const& e)
+                void mouseDown(MouseEvent const& e) override
                 {
                     if (e.originalComponent == &closeTabButton)
                         return;
@@ -675,17 +675,17 @@ Button* PlugDataLook::createTabBarExtrasButton()
                     triggerMenuItem();
                 }
 
-                void mouseEnter(MouseEvent const& e)
+                void mouseEnter(MouseEvent const& e) override
                 {
                     closeTabButton.setVisible(true);
                 }
 
-                void mouseExit(MouseEvent const& e)
+                void mouseExit(MouseEvent const& e) override
                 {
                     closeTabButton.setVisible(false);
                 }
 
-                void paint(Graphics& g)
+                void paint(Graphics& g) override
                 {
                     bool isActive = tabbar.getCurrentTabIndex() == index;
 
@@ -1458,7 +1458,7 @@ void PlugDataLook::drawAlertBox (Graphics& g, AlertWindow& alert,
     textLayout.draw (g, alertBounds.toFloat());
 }
 
-void PlugDataLook::setDefaultFont(String fontName)
+void PlugDataLook::setDefaultFont(String const& fontName)
 {
     auto& lnf = dynamic_cast<PlugDataLook&>(getDefaultLookAndFeel());
     if (fontName.isEmpty() || fontName == "Inter") {

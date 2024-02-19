@@ -296,7 +296,7 @@ public:
 
     String getPatchStringName() override
     {
-        return String("param object");
+        return "param object";
     }
 
     void valueChanged(Value& v) override
@@ -321,7 +321,7 @@ public:
         }
     }
 
-    bool isEnabled()
+    bool isEnabled() const
     {
         return param->isEnabled();
     }
@@ -398,7 +398,7 @@ public:
 
 class AlphaAnimator : public Timer {
 public:
-    AlphaAnimator() { }
+    AlphaAnimator() = default;
 
     void fadeIn(Component* component, double duration)
     {
@@ -414,7 +414,6 @@ private:
     void animate(Component* component, double duration, float startAlpha, float endAlpha)
     {
         componentToAnimate = component;
-        animationDuration = duration;
         animationSteps = static_cast<int>(duration / timerInterval);
         currentStep = 0;
         startAlphaValue = startAlpha;
@@ -437,7 +436,6 @@ private:
     }
 
     Component* componentToAnimate = nullptr;
-    double animationDuration = 0.0;
     int animationSteps = 0;
     int currentStep = 0;
     float startAlphaValue = 0.0f;

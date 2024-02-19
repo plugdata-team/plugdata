@@ -8,7 +8,7 @@
 
 class ObjectThemeManager : public Component {
 public:
-    ObjectThemeManager() { }
+    ObjectThemeManager() = default;
 
     void lookAndFeelChanged() override
     {

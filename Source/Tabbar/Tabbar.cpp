@@ -167,7 +167,7 @@ public:
 
 class ButtonBar::GhostTab : public Component {
 public:
-    GhostTab(PlugDataLook& lnfRef)
+    explicit GhostTab(PlugDataLook& lnfRef)
         : lnf(lnfRef)
     {
     }
@@ -536,11 +536,6 @@ void TabComponent::openProject()
     editor->openProject();
 }
 
-void TabComponent::onTabMoved()
-{
-    editor->pd->savePatchTabPositions();
-}
-
 void TabComponent::onTabChange(int tabIndex)
 {
     editor->updateCommandStatus();
@@ -552,7 +547,6 @@ void TabComponent::onTabChange(int tabIndex)
         welcomePanel->show();
     } else {
         tabs->setVisible(true);
-        // static_cast<TabBarButtonComponent*>(getTabbedButtonBar().getTabButton(newCurrentTabIndex))->tabTextChanged(newCurrentTabName);
         welcomePanel->hide();
         setTabBarDepth(30);
         // we need to update the dropzones, because no resize will be automatically triggered when there is a tab added from welcome screen

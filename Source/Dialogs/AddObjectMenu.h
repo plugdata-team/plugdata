@@ -207,7 +207,7 @@ public:
             } },
         { "UI",
             {
-                // GUI object default settings are in OjbectManager.h
+                // GUI object default settings are in ObjectManager.h
                 { Icons::GlyphBang, "bng", "(@keypress) Bang", "Bang", NewBang },
                 { Icons::GlyphToggle, "tgl", "(@keypress) Toggle", "Toggle", NewToggle },
                 { Icons::GlyphButton, "button", "Button", "Button", OtherObject },
@@ -668,7 +668,7 @@ public:
             if (pinButton.toggleState) {
                 animator.animateComponent(currentCalloutBox, currentCalloutBox->getBounds(), shouldHide ? 0.1f : 1.0f, 300, false, 0.0f, 0.0f);
             }
-            // Otherwise, fade the panel on drag start: calling dismiss or setVisible will lead the the drag event getting lost, so we just set alpha instead
+            // Otherwise, fade the panel on drag start: calling dismiss or setVisible will lead to the drag event getting lost, so we just set alpha instead
             // Ditto for calling animator.fadeOut because that will also call setVisible(false)
             else if (shouldHide) {
                 animator.animateComponent(currentCalloutBox, currentCalloutBox->getBounds(), 0.0f, 300, false, 0.0f, 0.0f);

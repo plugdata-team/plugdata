@@ -32,7 +32,7 @@ class PluginProcessor : public AudioProcessor
 public:
     PluginProcessor();
 
-    ~PluginProcessor();
+    ~PluginProcessor() override;
 
     static AudioProcessor::BusesProperties buildBusesProperties();
 
@@ -66,7 +66,7 @@ public:
     void getStateInformation(MemoryBlock& destData) override;
     void setStateInformation(void const* data, int sizeInBytes) override;
 
-    void receiveNoteOn(int channel, int pitch, int const velocity) override;
+    void receiveNoteOn(int channel, int pitch, int velocity) override;
     void receiveControlChange(int channel, int controller, int value) override;
     void receiveProgramChange(int channel, int value) override;
     void receivePitchBend(int channel, int value) override;
@@ -162,8 +162,6 @@ public:
 
     // Zero means no oversampling
     std::atomic<int> oversampling = 0;
-    int lastLeftTab = -1;
-    int lastRightTab = -1;
 
     std::unique_ptr<InternalSynth> internalSynth;
     std::atomic<bool> enableInternalSynth = false;

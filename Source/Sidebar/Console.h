@@ -168,7 +168,7 @@ public:
                 parent.addAndMakeVisible(this);
             }
 
-            void mouseDown(MouseEvent const& e)
+            void mouseDown(MouseEvent const& e) override
             {
                 if (!e.mods.isShiftDown() && !e.mods.isCommandDown()) {
                     console.selectedItems.clear();
@@ -191,7 +191,7 @@ public:
                 console.repaint();
             }
             
-            void paint(Graphics& g)
+            void paint(Graphics& g) override
             {
                 auto isSelected = console.selectedItems.contains(this);
                 auto showMessages = getValue<bool>(console.settingsValues[2]);

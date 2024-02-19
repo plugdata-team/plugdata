@@ -240,9 +240,7 @@ private:
             StringArray sampleRateStrings;
             for (auto& rate : sampleRates) {
                 auto rateAsString = String(rate);
-                if (::getValue<bool>(showAllAudioDeviceValues)) {
-                    sampleRateStrings.add(rateAsString);
-                } else if (standardSampleRates.contains(rateAsString)) {
+                if (::getValue<bool>(showAllAudioDeviceValues) || standardSampleRates.contains(rateAsString)) {
                     sampleRateStrings.add(rateAsString);
                 }
             }
@@ -265,9 +263,7 @@ private:
             StringArray bufferSizeStrings;
             for (auto& size : bufferSizes) {
                 auto sizeAsString = String(size);
-                if (::getValue<bool>(showAllAudioDeviceValues)) {
-                    bufferSizeStrings.add(sizeAsString);
-                } else if (standardBufferSizes.contains(sizeAsString)) {
+                if (::getValue<bool>(showAllAudioDeviceValues) || standardBufferSizes.contains(sizeAsString)) {
                     bufferSizeStrings.add(sizeAsString);
                 }
             }

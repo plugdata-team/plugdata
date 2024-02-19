@@ -60,12 +60,12 @@ public:
         restoreState();
     }
 
-    ~ExporterSettingsPanel()
+    ~ExporterSettingsPanel() override
     {
         saveState();
     }
 
-    ValueTree getState()
+    ValueTree getState() const
     {
         ValueTree stateTree("HeavySelect");
         stateTree.setProperty("listBox", listBox.getSelectedRow(), nullptr);
@@ -161,11 +161,6 @@ public:
         return items.size();
     }
 
-    StringArray getExports() const
-    {
-        return items;
-    }
-
     void paintListBoxItem(int row, Graphics& g, int width, int height, bool rowIsSelected) override
     {
         if (isPositiveAndBelow(row, items.size())) {
@@ -178,14 +173,6 @@ public:
 
             Fonts::drawText(g, items[row], Rectangle<int>(15, 0, width - 30, height), textColour, 15);
         }
-    }
-
-    int getBestHeight(int preferredHeight)
-    {
-        auto extra = listBox.getOutlineThickness() * 2;
-        return jmax(listBox.getRowHeight() * 2 + extra,
-            jmin(listBox.getRowHeight() * getNumRows() + extra,
-                preferredHeight));
     }
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ExporterSettingsPanel)

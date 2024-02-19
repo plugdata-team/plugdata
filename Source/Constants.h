@@ -407,16 +407,6 @@ enum Overlay {
     Behind = 128
 };
 
-enum OverlayItem {
-    OverlayOrigin = 0,
-    OverlayBorder,
-    OverlayIndex,
-    OverlayActivationState,
-    OverlayDirection,
-    OverlayOrder,
-    OverlayConnectionsBehind
-};
-
 enum Align {
     Left = 0,
     Right,

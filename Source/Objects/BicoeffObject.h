@@ -12,7 +12,7 @@ class BicoeffGraph : public Component {
 
     float filterWidth, filterCentre;
     float filterX1, filterX2;
-    float lastCentre, lastX1, lastX2, lastGain;
+    float lastX1, lastX2, lastGain;
 
     Object* object;
 
@@ -149,7 +149,6 @@ public:
         if (!e.mods.isLeftButtonDown())
             return;
 
-        lastCentre = filterCentre;
         lastX1 = filterX1;
         lastX2 = filterX2;
         lastGain = filterGain;
