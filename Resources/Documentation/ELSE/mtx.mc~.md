@@ -6,7 +6,7 @@ description: Multuchannel signal routing matrix
 categories:
  - object
 
-pdcategory: ELSE, Mixing And Routing
+pdcategory: ELSE, Mixing and Routing
 
 methods:
   - type: ramp <float>

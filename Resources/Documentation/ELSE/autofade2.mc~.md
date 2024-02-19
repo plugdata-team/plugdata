@@ -6,7 +6,7 @@ description: automatic fade with indepent in/out times
 categories:
  - object
 
-pdcategory: ELSE, Mixing And Routing
+pdcategory: ELSE, Mixing and Routing
 
 arguments:
   - type: symbol
