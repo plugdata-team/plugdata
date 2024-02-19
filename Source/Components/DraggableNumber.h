@@ -579,7 +579,7 @@ struct DraggableListNumber : public DraggableNumber {
         auto const textArea = getBorderSize().subtractedFrom(getBounds());
 
         GlyphArrangement glyphs;
-        glyphs.addFittedText(getFont(), getText(), textArea.getX(), 0., textArea.getWidth(), textArea.getHeight(), Justification::centredLeft, 1, getMinimumHorizontalScale());
+        glyphs.addFittedText(getFont(), getText(), textArea.getX(), 0., 99999, textArea.getHeight(), Justification::centredLeft, 1, getMinimumHorizontalScale());
 
         auto text = getText();
         // Loop to find start of item
