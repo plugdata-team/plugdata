@@ -6,12 +6,11 @@
 
 #include <Utility/MarkupDisplay.h>
 
-class HelpDialog : public Component
+class HelpDialog : public TopLevelWindow
     , public MarkupDisplay::FileSource {
-    ResizableBorderComponent resizer;
     std::unique_ptr<Button> closeButton;
     ComponentDragger windowDragger;
-    ComponentBoundsConstrainer constrainer;
+    ResizableBorderComponent resizer;
 
     static inline File const manualPath = ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Manual");
 
@@ -78,21 +77,26 @@ public:
     std::function<void()> onClose;
     PluginProcessor* pd;
     MarkupDisplay::MarkupDisplayComponent markupDisplay;
+    ComponentBoundsConstrainer constrainer;
 
     explicit HelpDialog(PluginProcessor* instance)
-        : resizer(this, &constrainer)
+        : TopLevelWindow("Help", true), resizer(this, &constrainer), pd(instance)
         //, index([this](File const& file) { markupDisplay.setMarkdownString(file.loadFileAsString()); })
-        , pd(instance)
     {
         markupDisplay.setFileSource(this);
         markupDisplay.setFont(Fonts::getVariableFont());
         markupDisplay.setMarkdownString(manualPath.getChildFile("CompilingPatches.md").loadFileAsString());
-        addAndMakeVisible(markupDisplay);
+        addAndMakeVisible(&markupDisplay);
 
         closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(-1));
         addAndMakeVisible(closeButton.get());
-
-        constrainer.setMinimumSize(500, 300);
+        
+        setVisible(true);
+        setOpaque(false);
+        setUsingNativeTitleBar(false);
+        
+        resizer.setAlwaysOnTop(true);
+        addAndMakeVisible(&resizer);
 
         closeButton->onClick = [this]() {
             MessageManager::callAsync([this]() {
@@ -100,14 +104,13 @@ public:
             });
         };
 
-        
-        addToDesktop(ComponentPeer::windowIsResizable | ComponentPeer::windowIsSemiTransparent | ComponentPeer::windowHasDropShadow);
         setVisible(true);
 
         // Position in centre of screen
         setBounds(Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea.withSizeKeepingCentre(700, 500));
-
-        addAndMakeVisible(resizer);
+        
+        constrainer.setMinimumSize(500, 300);
+        
         //addAndMakeVisible(index);
     }
 
@@ -165,7 +168,7 @@ public:
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawHorizontalLine(toolbarHeight, 0, getWidth());
-        g.drawVerticalLine(200, 40, getHeight());
+        //g.drawVerticalLine(200, 40, getHeight());
 
         Fonts::drawStyledText(g, "Help", Rectangle<float>(0.0f, 4.0f, getWidth(), 32.0f), findColour(PlugDataColour::panelTextColourId), Semibold, 15, Justification::centred);
     }

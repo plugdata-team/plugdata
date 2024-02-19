@@ -219,6 +219,7 @@ public:
             if(bounds.contains(event.x, event.y))
             {
                 URL(link).launchInDefaultBrowser();
+                break;
             }
         }
     }
@@ -385,11 +386,11 @@ protected:
                         auto lineBounds = Rectangle<float>(glyph.width, 14).withPosition((glyph.anchor + line.lineOrigin));
                         currentLinkBounds = linkBounds.isEmpty() ? lineBounds : currentLinkBounds.getUnion(lineBounds);
                     }
+                    
+                    linkBounds.add({link, currentLinkBounds.translated(0, -11)});
                     offset += run->glyphs.size();
                 }
             }
-            
-            linkBounds.add({link, currentLinkBounds.translated(0, -11)});
         }
     }
 
