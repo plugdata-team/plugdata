@@ -10,7 +10,7 @@ class HelpDialog : public TopLevelWindow
     , public MarkupDisplay::FileSource {
     std::unique_ptr<Button> closeButton;
     ComponentDragger windowDragger;
-    ResizableBorderComponent resizer;
+    std::unique_ptr<MouseRateReducedComponent<ResizableBorderComponent>> resizer;
 
     static inline File const manualPath = ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Manual");
 
@@ -81,7 +81,7 @@ public:
     int margin;
 
     explicit HelpDialog(PluginProcessor* instance)
-        : TopLevelWindow("Help", true), resizer(this, &constrainer), pd(instance), margin(ProjectInfo::canUseSemiTransparentWindows() ? 15 : 0)
+        : TopLevelWindow("Help", true), pd(instance), margin(ProjectInfo::canUseSemiTransparentWindows() ? 15 : 0)
         //, index([this](File const& file) { markupDisplay.setMarkdownString(file.loadFileAsString()); })
     {
         markupDisplay.setFileSource(this);
@@ -97,9 +97,6 @@ public:
         setUsingNativeTitleBar(false);
         setDropShadowEnabled(false);
         
-        resizer.setAlwaysOnTop(true);
-        addAndMakeVisible(&resizer);
-
         closeButton->onClick = [this]() {
             MessageManager::callAsync([this]() {
                 onClose();
@@ -112,6 +109,12 @@ public:
         setSize(700, 500);
         constrainer.setSizeLimits(500, 300, 1400, 1000);
         constrainer.setFixedAspectRatio(0.0f);
+        
+        resizer = std::make_unique<MouseRateReducedComponent<ResizableBorderComponent>>(this, &constrainer);
+        resizer->setAlwaysOnTop(true);
+        addAndMakeVisible(resizer.get());
+
+        
         //addAndMakeVisible(index);
     }
 
@@ -123,7 +126,7 @@ public:
     void resized() override
     {
         auto bounds = getLocalBounds().reduced(margin);
-        resizer.setBounds(bounds);
+        resizer->setBounds(bounds);
         bounds.removeFromTop(40);
 
         auto closeButtonBounds = getLocalBounds().reduced(margin).removeFromTop(30).removeFromRight(30).translated(-5, 5);
