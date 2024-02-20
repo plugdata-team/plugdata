@@ -18,7 +18,7 @@ class CommentObject final : public ObjectBase
     int32 lastColourARGB = 0;
     
     std::unique_ptr<TextEditor> editor;
-    BorderSize<int> border = BorderSize<int>(1, 2, 0, 0);
+    BorderSize<int> border = BorderSize<int>(2, 3, 0, 0);
     String objectText;
     
 public:
@@ -140,12 +140,12 @@ public:
         int x = 0, y = 0, w, h;
         if (auto obj = ptr.get<t_gobj>()) {
             auto* cnvPtr = cnv->patch.getPointer().get();
-            if (!cnvPtr) return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 2, 17)};
+            if (!cnvPtr) return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 4, 19)};
             
             pd::Interface::getObjectBounds(cnvPtr, obj.get(), &x, &y, &w, &h);
         }
         
-        return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 2, 17)};
+        return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 4, 19)};
     }
     
     int getTextObjectWidth()
@@ -160,7 +160,7 @@ public:
         }
         
         // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
-        int idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 4;
+        int idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 6;
         
         // We want to adjust the width so ideal text with aligns with fontWidth
         int offset = idealWidth % fontWidth;
@@ -181,7 +181,7 @@ public:
     {
         auto objText = editor ? editor->getText() : objectText;
         
-        int textWidth = getTextObjectWidth() - 4; // Reserve a bit of extra space for the text margin
+        int textWidth = getTextObjectWidth() - 6; // Reserve a bit of extra space for the text margin
         auto currentLayoutHash = hash(objText);
         auto colour = object->findColour(PlugDataColour::commentTextColourId);
         if(layoutTextHash != currentLayoutHash || colour.getARGB() != lastColourARGB || textWidth != lastTextWidth)
