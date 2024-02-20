@@ -42,7 +42,7 @@ struct ProjectInfo {
 #else
     static inline File const appDataDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata");
 #endif
-    static inline String const versionSuffix = "-6";
+    static inline String const versionSuffix = "-7";
     static inline File const versionDataDir = appDataDir.getChildFile("Versions").getChildFile(ProjectInfo::versionString + versionSuffix);
 };
 
