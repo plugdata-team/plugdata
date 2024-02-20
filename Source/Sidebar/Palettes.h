@@ -449,25 +449,17 @@ public:
     {
         if (!palettesFile.exists()) {
             palettesFile.create();
-
-            palettesTree = ValueTree("Palettes");
-
-            for (auto [name, palette] : defaultPalettes) {
-
-                ValueTree categoryTree = ValueTree("Category");
-                categoryTree.setProperty("Name", name, nullptr);
-
-                for (auto& [paletteName, patch] : palette) {
-                    ValueTree paletteTree("Item");
-                    paletteTree.setProperty("Name", paletteName, nullptr);
-                    paletteTree.setProperty("Patch", patch, nullptr);
-                    categoryTree.appendChild(paletteTree, nullptr);
-                }
-
-                palettesTree.appendChild(categoryTree, nullptr);
-            }
+            initialisePalettesFile();
         } else {
-            palettesTree = ValueTree::fromXml(palettesFile.loadFileAsString());
+            auto paletteFileContent = palettesFile.loadFileAsString();
+            if(paletteFileContent.isEmpty())
+            {
+                initialisePalettesFile();
+            }
+            else 
+            {
+                palettesTree = ValueTree::fromXml(paletteFileContent);
+            }
         }
 
         palettesTree.addListener(this);
@@ -543,6 +535,28 @@ public:
     bool isExpanded()
     {
         return (view.get() && view->isVisible());
+    }
+        
+    void initialisePalettesFile()
+    {
+        palettesTree = ValueTree("Palettes");
+
+        for (auto [name, palette] : defaultPalettes) {
+
+            ValueTree categoryTree = ValueTree("Category");
+            categoryTree.setProperty("Name", name, nullptr);
+
+            for (auto& [paletteName, patch] : palette) {
+                ValueTree paletteTree("Item");
+                paletteTree.setProperty("Name", paletteName, nullptr);
+                paletteTree.setProperty("Patch", patch, nullptr);
+                categoryTree.appendChild(paletteTree, nullptr);
+            }
+
+            palettesTree.appendChild(categoryTree, nullptr);
+        }
+        
+        savePalettes();
     }
 
 private:
@@ -719,8 +733,11 @@ private:
     }
 
     void savePalettes()
-    {        
-        palettesFile.replaceWithText(palettesTree.toXmlString());
+    {
+        auto paletteContent = palettesTree.toXmlString();
+        if(paletteContent.isNotEmpty()) {
+            palettesFile.replaceWithText(paletteContent);
+        }
     }
 
     void generatePalettes()
