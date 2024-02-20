@@ -143,13 +143,13 @@ public:
     {
         dragging = false;
     }
+#endif
     
     void setBlockFromClosing(bool block)
     {
         blockCloseAction = block;
     }
     
-#endif
 
     bool keyPressed(KeyPress const& key) override
     {
