@@ -271,12 +271,19 @@ void PluginProcessor::initialiseFilesystem()
     OSUtils::createJunction(homeDir.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\").toStdString(), abstractionsPath.toStdString());
     OSUtils::createJunction(homeDir.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\").toStdString(), documentationPath.toStdString());
     OSUtils::createJunction(homeDir.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\").toStdString(), extraPath.toStdString());
-    
-    auto shortcut = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata.LNK");
-    if(!shortcut.isShortcut())
+ 
+    auto oldlocation = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata");
+    if (oldlocation.isDirectory()) 
     {
-        appDataDir.createShortcut("plugdata", shortcut);
+        // don't bother copying this, it's huge!
+        if (oldlocation.getChildFile("Toolchain").isDirectory()) oldlocation.getChildFile("Toolchain").deleteRecursively();
+
+        oldlocation.copyDirectoryTo(File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata.old"));
+        oldlocation.deleteRecursively();
     }
+
+    auto shortcut = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata.LNK");
+    ProjectInfo::appDataDir.createShortcut("plugdata", shortcut);
 
 #elif JUCE_IOS
     // This is not ideal but on iOS, it seems to be the only way to make it work...
