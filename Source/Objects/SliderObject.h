@@ -212,18 +212,6 @@ public:
             iemHelper.setPdBounds(b.reduced(2, 0).withTrimmedLeft(1).translated(-3, 0));
         }
     }
-    
-    void objectMovedOrResized(bool resized) override
-    {
-        auto objectBounds = object->getObjectBounds();
-
-        setParameterExcludingListener(positionParameter, Array<var>{ var(objectBounds.getX()), var(objectBounds.getY()) }, &objectSizeListener);
-        
-        if (resized)
-            updateSizeProperty();
-
-        updateLabel();
-    }
 
     void updateRange()
     {
