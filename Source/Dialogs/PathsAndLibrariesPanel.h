@@ -329,7 +329,7 @@ private:
             selectionBounds = selectionBounds.reduced(0, 2);
             auto buttonHeight = selectionBounds.getHeight();
 
-            selectionBounds.removeFromRight(38);
+            selectionBounds.removeFromRight(50);
 
             removeButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
             changeButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
@@ -649,7 +649,7 @@ public:
             selectionBounds = selectionBounds.reduced(0, 2);
             auto buttonHeight = selectionBounds.getHeight();
 
-            selectionBounds.removeFromRight(38);
+            selectionBounds.removeFromRight(50);
 
             removeButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
             changeButton.setBounds(selectionBounds.removeFromRight(buttonHeight));

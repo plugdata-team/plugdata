@@ -240,9 +240,9 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
         void paint(Graphics& g) override
         {
             g.setFont(Fonts::getIconFont().withHeight(48));
-            g.drawFittedText(Icons::Warning, getLocalBounds().removeFromTop(80), Justification::centred, 1);
+            g.drawFittedText(Icons::Warning, getLocalBounds().removeFromTop(90), Justification::centred, 1);
             
-            auto contentBounds = getLocalBounds().withTrimmedTop(55).reduced(16);
+            auto contentBounds = getLocalBounds().withTrimmedTop(63).reduced(16);
             layout.draw(g, contentBounds.removeFromTop(48).toFloat());
         }
 
