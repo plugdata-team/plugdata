@@ -82,15 +82,17 @@ public:
         auto untoggledColour = toggledColour.interpolatedWith(iemHelper.getBackgroundColour(), 0.8f);
         g.setColour(toggleState ? toggledColour : untoggledColour);
 
-        auto crossBounds = getLocalBounds().toFloat().reduced((getWidth() * 0.08f) + 4.5f);
-
-        if (getWidth() < 18) {
-            crossBounds = getLocalBounds().toFloat().reduced(3.5f);
-        }
-
+        auto const sizeReduction = std::min(1.0f, getWidth() / 20.0f);
+        float margin = (getWidth() * 0.08f + 4.5f) * sizeReduction;
+        auto crossBounds = getLocalBounds().toFloat().reduced(margin);
+        
         auto const max = std::max(crossBounds.getWidth(), crossBounds.getHeight());
-        auto const strokeWidth = std::max(max * 0.15f, 2.0f);
-
+        auto strokeWidth = std::max(max * 0.15f, 2.0f) * sizeReduction;
+        
+        if (getWidth() < 18) {
+            //crossBounds = getLocalBounds().toFloat().reduced(1.5f);
+        }
+        
         g.drawLine({ crossBounds.getTopLeft(), crossBounds.getBottomRight() }, strokeWidth);
         g.drawLine({ crossBounds.getBottomLeft(), crossBounds.getTopRight() }, strokeWidth);
     }

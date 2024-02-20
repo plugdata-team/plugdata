@@ -111,7 +111,7 @@ public:
 
     Rectangle<int> originalBounds;
 
-    static inline int const minimumSize = 12;
+    static inline int const minimumSize = 9;
 
     bool isSelected() const;
 

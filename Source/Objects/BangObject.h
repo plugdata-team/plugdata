@@ -117,15 +117,17 @@ public:
         auto const bounds = getLocalBounds().reduced(1).toFloat();
         auto const width = std::max(bounds.getWidth(), bounds.getHeight());
 
+        auto const sizeReduction = std::min(1.0f, getWidth() / 20.0f);
+        
         float const circleOuter = 80.f * (width * 0.01f);
-        float const circleThickness = std::max(width * 0.06f, 1.5f);
+        float const circleThickness = std::max(width * 0.06f, 1.5f) * sizeReduction;
 
         g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
-        g.drawEllipse(bounds.reduced(width - circleOuter), circleThickness);
+        g.drawEllipse(bounds.reduced((width - circleOuter) * sizeReduction), circleThickness);
 
         if (bangState) {
             g.setColour(iemHelper.getForegroundColour());
-            g.fillEllipse(bounds.reduced(width - circleOuter + circleThickness));
+            g.fillEllipse(bounds.reduced((width - circleOuter + circleThickness) * sizeReduction));
         }
     }
 

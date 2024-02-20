@@ -130,7 +130,8 @@ public:
     void paint(Graphics& g) override
     {
         auto const bounds = getLocalBounds().toFloat();
-
+        auto const sizeReduction = std::min(1.0f, getWidth() / 20.0f);
+        
         g.setColour(Colour::fromString(secondaryColour.toString()));
         g.fillRoundedRectangle(bounds.reduced(0.5f), Corners::objectCornerRadius);
 
@@ -140,11 +141,11 @@ public:
         g.drawRoundedRectangle(bounds.reduced(0.5f), Corners::objectCornerRadius, 1.0f);
 
         g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
-        g.drawRoundedRectangle(bounds.reduced(6), Corners::objectCornerRadius, 1.5f);
+        g.drawRoundedRectangle(bounds.reduced(6 * sizeReduction), Corners::objectCornerRadius * sizeReduction, 1.5f);
 
         if (state) {
             g.setColour(Colour::fromString(primaryColour.toString()));
-            g.fillRoundedRectangle(bounds.reduced(6), Corners::objectCornerRadius);
+            g.fillRoundedRectangle(bounds.reduced(6 * sizeReduction), Corners::objectCornerRadius * sizeReduction);
         }
     }
 

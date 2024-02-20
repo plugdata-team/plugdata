@@ -40,6 +40,8 @@ public:
                 editor->setInputRestrictions(0, "e.-0123456789");
             }
         };
+        
+        input.setFont(Fonts::getTabularNumbersFont().withHeight(15.5f));
 
         input.onEditorHide = [this]() {
             stopEdition();

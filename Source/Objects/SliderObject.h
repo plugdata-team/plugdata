@@ -127,8 +127,8 @@ public:
         };
 
         onConstrainerCreate = [this]() {
-            auto minLongSide = this->object->minimumSize * 2;
-            auto minShortSide = this->object->minimumSize;
+            auto minLongSide = 8;
+            auto minShortSide = 8;
             if (isVertical) {
                 constrainer->setMinimumSize(minShortSide, minLongSide);
             } else {
