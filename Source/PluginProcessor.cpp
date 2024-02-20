@@ -188,8 +188,10 @@ void PluginProcessor::initialiseFilesystem()
     auto deken = homeDir.getChildFile("Externals");
     auto patches = homeDir.getChildFile("Patches");
     
+#if !JUCE_WINDOWS
     if(!homeDir.exists()) homeDir.createDirectory();
-
+#endif
+    
     auto initMutex = homeDir.getChildFile(".initialising");
     
     // If this is true, another instance of plugdata is already initialising
@@ -273,12 +275,13 @@ void PluginProcessor::initialiseFilesystem()
     OSUtils::createJunction(homeDir.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\").toStdString(), extraPath.toStdString());
  
     auto oldlocation = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata");
-    if (oldlocation.isDirectory()) 
+    auto backupLocation = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata.old");
+    if (oldlocation.isDirectory() && !backupLocation.isDirectory())
     {
         // don't bother copying this, it's huge!
         if (oldlocation.getChildFile("Toolchain").isDirectory()) oldlocation.getChildFile("Toolchain").deleteRecursively();
 
-        oldlocation.copyDirectoryTo(File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata.old"));
+        oldlocation.copyDirectoryTo(backupLocation);
         oldlocation.deleteRecursively();
     }
 
