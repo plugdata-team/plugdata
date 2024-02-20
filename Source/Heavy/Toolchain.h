@@ -207,7 +207,8 @@ public:
             if (threadShouldExit())
                 return;
 
-            auto written = mo.writeFromInputStream(*instream, 8192);
+            // Download blocks of 1mb at a time
+            auto written = mo.writeFromInputStream(*instream, 1024 * 1024);
 
             if (written == 0)
                 break;
