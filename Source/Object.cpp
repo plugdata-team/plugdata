@@ -309,7 +309,7 @@ void Object::updateBounds()
         if (!newBounds.isEmpty())
             setObjectBounds(newBounds);
         else
-            setTopLeftPosition(newBounds.getX() + margin + cnv->canvasOrigin.x, newBounds.getY() + margin + + cnv->canvasOrigin.y);
+            setTopLeftPosition(newBounds.getX() + margin + cnv->canvasOrigin.x, newBounds.getY() + margin + cnv->canvasOrigin.y);
     }
 
     if (newObjectEditor) {

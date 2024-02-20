@@ -203,12 +203,13 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
+        // Hsl/vsl lies to us in slider_getrect: the x/y coordintates it returns are 2 or 3 px offset from what text_xpix/text_ypix reports
         if(isVertical)
         {
-            iemHelper.setPdBounds(b.reduced(0, 2).withTrimmedBottom(1));
+            iemHelper.setPdBounds(b.reduced(0, 2).withTrimmedBottom(1).translated(0, -2));
         }
         else {
-            iemHelper.setPdBounds(b.reduced(2, 0).withTrimmedLeft(1));
+            iemHelper.setPdBounds(b.reduced(2, 0).withTrimmedLeft(1).translated(-3, 0));
         }
     }
     
