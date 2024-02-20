@@ -239,6 +239,7 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
         
         void paint(Graphics& g) override
         {
+            g.setColour(findColour(PlugDataColour::panelTextColourId));
             g.setFont(Fonts::getIconFont().withHeight(48));
             g.drawFittedText(Icons::Warning, getLocalBounds().removeFromTop(90), Justification::centred, 1);
             
