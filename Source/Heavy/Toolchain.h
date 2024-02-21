@@ -199,7 +199,14 @@ public:
         int64 totalBytes = instream->getTotalLength();
         int64 bytesDownloaded = 0;
 
-        MemoryOutputStream mo(toolchainData, true);
+        MemoryOutputStream mo(toolchainData, false);
+        
+        // pre-allocate memory to improve download speed
+#if JUCE_MAC
+        mo.preallocate(1024 * 1024 * 128);
+#else
+        mo.preallocate(1024 * 1024 * 256);
+#endif
 
         while (true) {
 
