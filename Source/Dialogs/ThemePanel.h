@@ -176,8 +176,6 @@ class ThemePanel : public SettingsDialogPanel
 
     std::map<String, std::map<String, Value>> swatches;
 
-    bool updatingTheme = false;
-
     PropertiesPanel::ActionComponent* newButton = nullptr;
     PropertiesPanel::ActionComponent* loadButton = nullptr;
     PropertiesPanel::ActionComponent* saveButton = nullptr;
@@ -222,14 +220,7 @@ public:
         }
     }
 
-    void settingsFileReloaded() override
-    {
-        // TODO: find out if we need to do this?
-        // it seems to only really cause problems
-        //updateSwatches();
-    }
-
-    void updateSwatches(bool forceUpdate = false)
+    void updateSwatches()
     {
         auto scrollPosition = panel.getViewport().getViewPositionY();
         
@@ -237,9 +228,6 @@ public:
         allPanels.clear();
 
         std::map<String, Array<PropertiesPanelProperty*>> panels;
-
-        if (!forceUpdate)
-            updatingTheme = true;
 
         // Loop over colours
         for (auto const& [colour, colourNames] : PlugDataColourNames) {
@@ -519,20 +507,12 @@ public:
 
         updateThemeNames(primaryThemeSelector->getText(), secondaryThemeSelector->getText());
 
-        if (!forceUpdate)
-            updatingTheme = false;
-
         panel.repaint();
         panel.getViewport().setViewPosition(0, scrollPosition);
     }
 
     void valueChanged(Value& v) override
     {
-        // when the theme is updated from theme pannel, each swatch update also triggers a value changed
-        // bypass so as not to spam theme changes
-        if (updatingTheme)
-            return;
-
         if (v.refersToSameSourceAs(fontValue)) {
             PlugDataLook::setDefaultFont(fontValue.toString());
             SettingsFile::getInstance()->setProperty("default_font", fontValue.getValue());
@@ -593,8 +573,22 @@ public:
 
         PlugDataLook::setDefaultFont(fontValue.toString());
         SettingsFile::getInstance()->setProperty("default_font", fontValue.getValue());
-
-        pd->setTheme(PlugDataLook::currentTheme);
-        updateSwatches(true);
+        
+        auto allThemes = PlugDataLook::getAllThemes();
+        auto firstThemes = allThemes;
+        auto secondThemes = allThemes;
+        
+        firstThemes.removeString(PlugDataLook::selectedThemes[1]);
+        secondThemes.removeString(PlugDataLook::selectedThemes[0]);
+        
+        primaryThemeSelector->setSelectedItem(firstThemes.indexOf(PlugDataLook::selectedThemes[0]));
+        secondaryThemeSelector->setSelectedItem(secondThemes.indexOf(PlugDataLook::selectedThemes[1]));
+        
+        SettingsFile::getInstance()->getSelectedThemesTree().setProperty("first", "light", nullptr);
+        SettingsFile::getInstance()->getSelectedThemesTree().setProperty("second", "dark", nullptr);
+        SettingsFile::getInstance()->setProperty("theme", "light");
+        
+        updateSwatches();
+        pd->setTheme(PlugDataLook::selectedThemes[0], true);
     }
 };
