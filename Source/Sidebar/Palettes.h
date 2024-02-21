@@ -459,6 +459,23 @@ public:
             else 
             {
                 palettesTree = ValueTree::fromXml(paletteFileContent);
+                
+                for(auto paletteCategory : palettesTree)
+                {
+                    for (auto [name, palette] : defaultPalettes) {
+                        if(name != paletteCategory.getProperty("Name")) continue;
+       
+                        for (auto& [paletteName, patch] : palette) {
+                            if(!paletteCategory.getChildWithProperty("Name", paletteName).isValid())
+                            {
+                                ValueTree paletteTree("Item");
+                                paletteTree.setProperty("Name", paletteName, nullptr);
+                                paletteTree.setProperty("Patch", patch, nullptr);
+                                paletteCategory.appendChild(paletteTree, nullptr);
+                            }
+                        }
+                    }
+                }
             }
         }
 
