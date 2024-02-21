@@ -349,7 +349,7 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
-        if (isBeingEdited())
+        if (isBeingEdited() || decimalDrag < 0)
             return;
 
         updateHoverPosition(e.getMouseDownX());
