@@ -491,20 +491,11 @@ private:
         if (!currentObject) {
             return false;
         }
-
-        if (key == KeyPress::rightKey && !openedEditor->getHighlightedRegion().isEmpty()) {
-            openedEditor->setCaretPosition(openedEditor->getHighlightedRegion().getEnd());
-            return true;
-        }
-        if (key == KeyPress::rightKey && autoCompleteComponent && openedEditor->getCaretPosition() == openedEditor->getText().length()) {
+        if (openedEditor->getHighlightedRegion().isEmpty() && key == KeyPress::rightKey && autoCompleteComponent && openedEditor->getCaretPosition() == openedEditor->getText().length()) {
             autoCompleteComponent->autocomplete();
             currentidx = 0;
             if (buttons.size())
                 buttons[0]->setToggleState(true, dontSendNotification);
-            return true;
-        }
-        if (key == KeyPress::leftKey && !openedEditor->getHighlightedRegion().isEmpty()) {
-            openedEditor->setCaretPosition(openedEditor->getHighlightedRegion().getStart());
             return true;
         }
         if (key == KeyPress::tabKey && autoCompleteComponent->isAutocompleting() && openedEditor->getText() != autoCompleteComponent->getSuggestion() && numOptions != 0) {

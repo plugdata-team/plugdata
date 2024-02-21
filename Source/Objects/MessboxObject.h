@@ -270,15 +270,6 @@ public:
 
             return true;
         }
-
-        if (editing && key == KeyPress::rightKey && !editor.getHighlightedRegion().isEmpty()) {
-            editor.setCaretPosition(editor.getHighlightedRegion().getEnd());
-            return true;
-        }
-        if (editing && key == KeyPress::leftKey && !editor.getHighlightedRegion().isEmpty()) {
-            editor.setCaretPosition(editor.getHighlightedRegion().getStart());
-            return true;
-        }
         return false;
     }
 
