@@ -480,7 +480,7 @@ public:
     template<typename FloatType>
     static inline NormalisableRange<FloatType> makeLogarithmicRange(FloatType min, FloatType max)
     {
-        min = std::max<float>(min, max / 100.0f);
+        min = std::max<FloatType>(min, max / 100000.0f);
 
         return NormalisableRange<FloatType>(
             min, max,
