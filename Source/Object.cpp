@@ -259,7 +259,7 @@ void Object::mouseMove(MouseEvent const& e)
     }
 
     resizeZone = static_cast<ResizableBorderComponent::Zone>(zone);
-    validResizeZone = resizeZone.getZoneFlags() != ResizableBorderComponent::Zone::centre && e.originalComponent == this;
+    validResizeZone = resizeZone.getZoneFlags() != ResizableBorderComponent::Zone::centre && e.originalComponent == this && !(gui && gui->isEditorShown()) && !newObjectEditor;
 
     setMouseCursor(validResizeZone ? resizeZone.getMouseCursor() : MouseCursor::NormalCursor);
     updateMouseCursor();

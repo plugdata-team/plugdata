@@ -463,7 +463,7 @@ public:
                 for(auto paletteCategory : palettesTree)
                 {
                     for (auto [name, palette] : defaultPalettes) {
-                        if(name != paletteCategory.getProperty("Name")) continue;
+                        if(name != static_cast<String>(paletteCategory.getProperty("Name").toString())) continue;
        
                         for (auto& [paletteName, patch] : palette) {
                             if(!paletteCategory.getChildWithProperty("Name", paletteName).isValid())
