@@ -60,7 +60,7 @@ class LuaObject : public ObjectBase, public Timer {
     
     std::unique_ptr<Graphics> graphics;
     Colour currentColour;
-    Path currentPath;
+    std::map<t_symbol*, Path> currentPaths;
     Image drawBuffer;
     Image image;
     bool isSelected = false;
@@ -232,6 +232,61 @@ public:
                 }
                 return;
             }
+            case hash("lua_start_path"): {
+                if (numAtoms >= 3) {
+                    auto& currentPath = currentPaths[atoms[0].getSymbol()];
+                    float x = atoms[1].getFloat();
+                    float y = atoms[2].getFloat();
+                    currentPath.startNewSubPath(x, y);
+                }
+                break;
+            }
+            case hash("lua_line_to"): {
+                if (numAtoms >= 3) {
+                    auto& currentPath = currentPaths[atoms[0].getSymbol()];
+                    float x = atoms[1].getFloat();
+                    float y = atoms[2].getFloat();
+                    currentPath.lineTo(x, y);
+                }
+                break;
+            }
+            case hash("lua_quad_to"): {
+                if (numAtoms >= 5) { // Assuming quad_to takes 3 arguments
+                    auto& currentPath = currentPaths[atoms[0].getSymbol()];
+                    float x1 = atoms[1].getFloat();
+                    float y1 = atoms[2].getFloat();
+                    float x2 = atoms[3].getFloat();
+                    float y2 = atoms[4].getFloat();
+                    currentPath.quadraticTo(x1, y1, x2, y2);
+                }
+                break;
+            }
+            case hash("lua_cubic_to"): {
+                if (numAtoms >= 6) { // Assuming cubic_to takes 4 arguments
+                    auto& currentPath = currentPaths[atoms[0].getSymbol()];
+                    float x1 = atoms[1].getFloat();
+                    float y1 = atoms[2].getFloat();
+                    float x2 = atoms[3].getFloat();
+                    float y2 = atoms[4].getFloat();
+                    float x3 = atoms[5].getFloat();
+                    float y3 = atoms[6].getFloat();
+                    currentPath.cubicTo(x1, y1, x2, y2, x3, y3);
+                }
+                break;
+            }
+            case hash("lua_close_path"): {
+                if (numAtoms >= 1) {
+                    auto& currentPath = currentPaths[atoms[0].getSymbol()];
+                    currentPath.closeSubPath();
+                }
+                break;
+            }
+            case hash("lua_free_path"): {
+                if (numAtoms >= 1) {
+                    currentPaths.erase(atoms[0].getSymbol());
+                }
+                break;
+            }
         }
         
         if(!graphics) return;
@@ -356,56 +411,17 @@ public:
                 }
                 break;
             }
-            case hash("lua_start_path"): {
-                if (numAtoms >= 2) {
-                    currentPath = Path();
-                    float x = atoms[0].getFloat();
-                    float y = atoms[1].getFloat();
-                    currentPath.startNewSubPath(x, y);
-                }
-                break;
-            }
-            case hash("lua_line_to"): {
-                if (numAtoms >= 2) {
-                    float x = atoms[0].getFloat();
-                    float y = atoms[1].getFloat();
-                    currentPath.lineTo(x, y);
-                }
-                break;
-            }
-            case hash("lua_quad_to"): {
-                if (numAtoms >= 4) { // Assuming quad_to takes 3 arguments
-                    float x1 = atoms[0].getFloat();
-                    float y1 = atoms[1].getFloat();
-                    float x2 = atoms[2].getFloat();
-                    float y2 = atoms[3].getFloat();
-                    currentPath.quadraticTo(x1, y1, x2, y2);
-                }
-                break;
-            }
-            case hash("lua_cubic_to"): {
-                if (numAtoms >= 6) { // Assuming cubic_to takes 4 arguments
-                    float x1 = atoms[0].getFloat();
-                    float y1 = atoms[1].getFloat();
-                    float x2 = atoms[2].getFloat();
-                    float y2 = atoms[3].getFloat();
-                    float x3 = atoms[4].getFloat();
-                    float y3 = atoms[5].getFloat();
-                    currentPath.cubicTo(x1, y1, x2, y2, x3, y3);
-                }
-                break;
-            }
-            case hash("lua_close_path"): {
-                currentPath.closeSubPath();
-                break;
-            }
             case hash("lua_fill_path"): {
-                graphics->fillPath(currentPath);
+                if (numAtoms >= 1) {
+                    auto& currentPath = currentPaths[atoms[0].getSymbol()];
+                    graphics->fillPath(currentPath);
+                }
                 break;
             }
             case hash("lua_stroke_path"): {
-                if (numAtoms >= 1) {
-                    graphics->strokePath(currentPath, PathStrokeType(atoms[0].getFloat()));
+                if (numAtoms >= 2) {
+                    auto& currentPath = currentPaths[atoms[0].getSymbol()];
+                    graphics->strokePath(currentPath, PathStrokeType(atoms[1].getFloat()));
                 }
                 break;
             }
