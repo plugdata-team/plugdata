@@ -18,7 +18,7 @@ void pdlua_gfx_mouse_down(t_pdlua* o, int x, int y);
 void pdlua_gfx_mouse_up(t_pdlua* o, int x, int y);
 void pdlua_gfx_mouse_move(t_pdlua* o, int x, int y);
 void pdlua_gfx_mouse_drag(t_pdlua* o, int x, int y);
-void pdlua_gfx_repaint(t_pdlua* o);
+void pdlua_gfx_repaint(t_pdlua* o, int firsttime);
 }
 
 struct LuaGuiMessage {
@@ -159,11 +159,16 @@ public:
     void sendRepaintMessage()
     {
         pd->enqueueFunctionAsync<t_pdlua>(ptr, [](t_pdlua* pdlua){
-            pdlua_gfx_repaint(pdlua);
+            pdlua_gfx_repaint(pdlua, 0);
         });
     }
     
     void resized() override
+    {
+        sendRepaintMessage();
+    }
+    
+    void lookAndFeelChanged() override
     {
         sendRepaintMessage();
     }
@@ -294,6 +299,11 @@ public:
         // Functions that do need an active graphics context
         switch (hashsym) {
             case hash("lua_set_color"): {
+                if (numAtoms == 1) {
+                    int colourID = atoms[0].getFloat();
+                    currentColour = Array<Colour>{object->findColour(PlugDataColour::guiObjectBackgroundColourId), object->findColour(PlugDataColour::canvasTextColourId), object->findColour(PlugDataColour::guiObjectInternalOutlineColour)}[colourID];
+                    graphics->setColour(currentColour);
+                }
                 if (numAtoms >= 3) {
                     Colour color(static_cast<uint8>(atoms[0].getFloat()),
                                  static_cast<uint8>(atoms[1].getFloat()),
