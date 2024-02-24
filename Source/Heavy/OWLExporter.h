@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2022 Timothy Schoen and Wasted Audio
+ // Copyright (c) 2024 Timothy Schoen and Wasted Audio
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -7,18 +7,15 @@
 class OWLExporter : public ExporterBase {
 public:
     // Value targetBoardValue = Value(var(1));
-    Value exportTypeValue = Value(var(3));
-
-    File customBoardDefinition;
+    Value exportTypeValue = SynchronousValue(var(3));
 
     TextButton flashButton = TextButton("Flash");
-    PropertiesPanel::Property* usbMidiProperty;
 
     OWLExporter(PluginEditor* editor, ExportingProgressView* exportingView)
         : ExporterBase(editor, exportingView)
     {
-        Array<PropertiesPanel::Property*> properties;
-        // properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "OWL1", "OWL2", "OWL3" }));
+        Array<PropertiesPanelProperty*> properties;
+        // properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "OWL2", "OWL3" }));
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary", "Flash" }));
 
 
@@ -41,6 +38,19 @@ public:
             Toolchain::deleteTempFileLater(tempFolder);
             startExport(tempFolder);
         };
+    }
+
+    ValueTree getState() override
+    {
+        ValueTree stateTree("OWL");
+        stateTree.setProperty("exportTypeValue", getValue<int>(exportTypeValue), nullptr);
+        return stateTree;
+    }
+
+    void setState(ValueTree& stateTree) override
+    {
+        auto tree = stateTree.getChildWithName("OWL");
+        exportTypeValue = tree.getProperty("exportTypeValue");
     }
 
     void resized() override
