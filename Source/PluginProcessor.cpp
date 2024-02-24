@@ -20,13 +20,14 @@
 #include "Utility/OSUtils.h"
 #include "Utility/AudioSampleRingBuffer.h"
 #include "Utility/MidiDeviceManager.h"
+#include "Dialogs/ConnectionMessageDisplay.h"
 
-#include "Presets.h"
+#include "Utility/Presets.h"
 #include "Canvas.h"
 #include "PluginMode.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
-#include "Tabbar.h"
+#include "Tabbar/Tabbar.h"
 #include "Object.h"
 #include "Statusbar.h"
 
@@ -35,12 +36,27 @@
 
 extern "C" {
 #include "../Libraries/cyclone/shared/common/file.h"
-#include "x_libpd_extra_utils.h"
 EXTERN char* pd_version;
 }
 
+bool gemWinSetCurrent();
+bool gemWinUnsetCurrent();
+
 AudioProcessor::BusesProperties PluginProcessor::buildBusesProperties()
 {
+#if JUCE_IOS
+    
+    if(ProjectInfo::isStandalone) {
+        return BusesProperties().withOutput ("Output", AudioChannelSet::stereo(), true).withInput ("Input", AudioChannelSet::mono(), true);
+    }
+    // If you intend to build AUv3 on macOS, you'll also need these
+    if(ProjectInfo::isFx) {
+        return BusesProperties().withOutput ("Output", AudioChannelSet::stereo(), true).withInput ("Input", AudioChannelSet::stereo(), true);
+    }
+    else {
+        return BusesProperties().withOutput ("Output", AudioChannelSet::stereo(), true);
+    }
+#else
     AudioProcessor::BusesProperties busesProperties;
 
     if (ProjectInfo::isStandalone) {
@@ -59,6 +75,7 @@ AudioProcessor::BusesProperties PluginProcessor::buildBusesProperties()
     }
 
     return busesProperties;
+#endif
 }
 
 // ag: Note that this is just a fallback, we update this with live version
@@ -66,18 +83,15 @@ AudioProcessor::BusesProperties PluginProcessor::buildBusesProperties()
 String PluginProcessor::pdlua_version = "pdlua 0.11.0 (lua 5.4)";
 
 PluginProcessor::PluginProcessor()
-#ifndef JucePlugin_PreferredChannelConfigurations
     : AudioProcessor(buildBusesProperties())
-    ,
-#endif
-    pd::Instance("plugdata")
+    , pd::Instance("plugdata")
     , internalSynth(std::make_unique<InternalSynth>())
 {
     // Make sure to use dots for decimal numbers, pd requires that
     std::setlocale(LC_ALL, "C");
 
     {
-        const MessageManagerLock mmLock; // Do we need this? Isn't this already on the messageManager?
+        MessageManagerLock const mmLock; // Do we need this? Isn't this already on the messageManager?
 
         LookAndFeel::setDefaultLookAndFeel(&lnf.get());
 
@@ -88,12 +102,12 @@ PluginProcessor::PluginProcessor()
 
     statusbarSource = std::make_unique<StatusbarSource>();
 
-    auto* volumeParameter = new PlugDataParameter(this, "volume", 1.0f, true, 0, 0.0f, 1.0f);
+    auto* volumeParameter = new PlugDataParameter(this, "volume", 0.8f, true, 0, 0.0f, 1.0f);
     addParameter(volumeParameter);
     volume = volumeParameter->getValuePointer();
 
-    // JYG added this
-    m_temp_xml = nullptr;
+    // XML tree for storing additional data in DAW session
+    extraData = std::make_unique<XmlElement>("ExtraData");
 
     // General purpose automation parameters you can get by using "receive param1" etc.
     for (int n = 0; n < numParameters; n++) {
@@ -113,14 +127,15 @@ PluginProcessor::PluginProcessor()
     logMessage("Libraries:");
     logMessage(else_version);
     logMessage(cyclone_version);
-
-    channelPointers.reserve(32);
+#if ENABLE_GEM
+    logMessage(gem_version);
+#endif
+    logMessage(heavylib_version);
+    
 
     // Set up midi buffers
     midiBufferIn.ensureSize(2048);
     midiBufferOut.ensureSize(2048);
-    midiBufferTemp.ensureSize(2048);
-    midiBufferCopy.ensureSize(2048);
     midiBufferInternalSynth.ensureSize(2048);
 
     atoms_playhead.reserve(3);
@@ -155,17 +170,6 @@ PluginProcessor::PluginProcessor()
     updateSearchPaths();
 
     objectLibrary = std::make_unique<pd::Library>(this);
-    objectLibrary->appDirChanged = [this]() {
-        // If we changed the settings from within the app, don't reload
-        settingsFile->reloadSettings();
-        auto newTheme = settingsFile->getProperty<String>("theme");
-        if (PlugDataLook::currentTheme != newTheme) {
-            setTheme(newTheme);
-        }
-
-        updateSearchPaths();
-        objectLibrary->updateLibrary();
-    };
 
     setLatencySamples(pd::Instance::getBlockSize());
 }
@@ -176,15 +180,33 @@ PluginProcessor::~PluginProcessor()
     patches.clear();
 }
 
+
 void PluginProcessor::initialiseFilesystem()
 {
     auto const& homeDir = ProjectInfo::appDataDir;
     auto const& versionDataDir = ProjectInfo::versionDataDir;
     auto deken = homeDir.getChildFile("Externals");
     auto patches = homeDir.getChildFile("Patches");
-
+    
+#if !JUCE_WINDOWS
+    if(!homeDir.exists()) homeDir.createDirectory();
+#endif
+    
+    auto initMutex = homeDir.getChildFile(".initialising");
+    
+    // If this is true, another instance of plugdata is already initialising
+    // We wait a maximum of 5 seconds before we continue initialising, to prevent problems
+    int wait = 0;
+    while(initMutex.exists() && wait < 20)
+    {
+        Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 500);
+        wait++;
+    }
+    
+    initMutex.create();
+    
     // Check if the abstractions directory exists, if not, unzip it from binaryData
-    if (!homeDir.exists() || !versionDataDir.exists()) {
+    if (!versionDataDir.exists()) {
 
         // Binary data shouldn't be too big, then the compiler will run out of memory
         // To prevent this, we split the binarydata into multiple files, and add them back together here
@@ -203,16 +225,17 @@ void PluginProcessor::initialiseFilesystem()
         }
 
         MemoryInputStream memstream(allData.data(), allData.size(), false);
-
-        homeDir.createDirectory();
-
-        auto file = ZipFile(memstream);
-        file.uncompressTo(homeDir);
-
-        // Create filesystem for this specific version
+        
         versionDataDir.getParentDirectory().createDirectory();
-        versionDataDir.createDirectory();
-        homeDir.getChildFile("plugdata_version").moveFileTo(versionDataDir);
+        auto tempVersionDataDir = versionDataDir.getParentDirectory().getChildFile("plugdata_version");
+        
+        auto file = ZipFile(memstream);
+        file.uncompressTo(tempVersionDataDir.getParentDirectory());
+        
+        // Create filesystem for this specific version
+        tempVersionDataDir.moveFileTo(versionDataDir);
+
+        if(versionDataDir.isDirectory()) internalSynth->extractSoundfont();
     }
     if (!deken.exists()) {
         deken.createDirectory();
@@ -220,6 +243,17 @@ void PluginProcessor::initialiseFilesystem()
     if (!patches.exists()) {
         patches.createDirectory();
     }
+
+    auto testTonePatch = homeDir.getChildFile("testtone.pd");
+    auto cpuTestPatch = homeDir.getChildFile("load-meter.pd");
+
+    if (testTonePatch.exists())
+        testTonePatch.deleteFile();
+    if (cpuTestPatch.exists())
+        cpuTestPatch.deleteFile();
+
+    File(versionDataDir.getChildFile("./Documentation/7.stuff/tools/testtone.pd")).copyFileTo(testTonePatch);
+    File(versionDataDir.getChildFile("./Documentation/7.stuff/tools/load-meter.pd")).copyFileTo(cpuTestPatch);
 
     // We want to recreate these symlinks so that they link to the abstractions/docs for the current plugdata version
     homeDir.getChildFile("Abstractions").deleteFile();
@@ -239,12 +273,33 @@ void PluginProcessor::initialiseFilesystem()
     OSUtils::createJunction(homeDir.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\").toStdString(), abstractionsPath.toStdString());
     OSUtils::createJunction(homeDir.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\").toStdString(), documentationPath.toStdString());
     OSUtils::createJunction(homeDir.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\").toStdString(), extraPath.toStdString());
+ 
+    auto oldlocation = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata");
+    auto backupLocation = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata.old");
+    if (oldlocation.isDirectory() && !backupLocation.isDirectory())
+    {
+        // don't bother copying this, it's huge!
+        if (oldlocation.getChildFile("Toolchain").isDirectory()) oldlocation.getChildFile("Toolchain").deleteRecursively();
 
+        oldlocation.copyDirectoryTo(backupLocation);
+        oldlocation.deleteRecursively();
+    }
+
+    auto shortcut = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata.LNK");
+    ProjectInfo::appDataDir.createShortcut("plugdata", shortcut);
+
+#elif JUCE_IOS
+    // This is not ideal but on iOS, it seems to be the only way to make it work...
+    versionDataDir.getChildFile("Abstractions").copyDirectoryTo(homeDir.getChildFile("Abstractions"));
+    versionDataDir.getChildFile("Documentation").copyDirectoryTo(homeDir.getChildFile("Documentation"));
+    versionDataDir.getChildFile("Extra").copyDirectoryTo(homeDir.getChildFile("Extra"));
 #else
     versionDataDir.getChildFile("Abstractions").createSymbolicLink(homeDir.getChildFile("Abstractions"), true);
     versionDataDir.getChildFile("Documentation").createSymbolicLink(homeDir.getChildFile("Documentation"), true);
     versionDataDir.getChildFile("Extra").createSymbolicLink(homeDir.getChildFile("Extra"), true);
 #endif
+    
+    initMutex.deleteFile();
 }
 
 void PluginProcessor::updateSearchPaths()
@@ -259,7 +314,7 @@ void PluginProcessor::updateSearchPaths()
     // Get pd's search paths
     char* p[1024];
     int numItems;
-    libpd_get_search_paths(p, &numItems);
+    pd::Interface::getSearchPaths(p, &numItems);
     auto currentPaths = StringArray(p, numItems);
 
     auto paths = pd::Library::defaultPaths;
@@ -305,28 +360,32 @@ void PluginProcessor::updateSearchPaths()
     unlockAudioThread();
 }
 
-const String PluginProcessor::getName() const
+String const PluginProcessor::getName() const
 {
     return ProjectInfo::projectName;
 }
 
 bool PluginProcessor::acceptsMidi() const
 {
+#if JUCE_IOS
+    return !ProjectInfo::isFx;
+#endif
+    
     return true;
 }
 
 bool PluginProcessor::producesMidi() const
 {
+#if JUCE_IOS
+    return ProjectInfo::isStandalone;
+#endif
+    
     return true;
 }
 
 bool PluginProcessor::isMidiEffect() const
 {
-#if JucePlugin_IsMidiEffect
-    return true;
-#else
-    return false;
-#endif
+    return ProjectInfo::isMidiEffect();
 }
 
 double PluginProcessor::getTailLengthSeconds() const
@@ -356,7 +415,7 @@ void PluginProcessor::setCurrentProgram(int index)
     }
 }
 
-const String PluginProcessor::getProgramName(int index)
+String const PluginProcessor::getProgramName(int index)
 {
     if (isPositiveAndBelow(index, Presets::presets.size())) {
         return Presets::presets[index].first;
@@ -371,8 +430,9 @@ void PluginProcessor::changeProgramName(int index, String const& newName)
 
 void PluginProcessor::setOversampling(int amount)
 {
-    if(oversampling == amount) return;
-    
+    if (oversampling == amount)
+        return;
+
     settingsFile->setProperty("Oversampling", var(amount));
     settingsFile->saveSettings(); // TODO: i think this is unnecessary?
 
@@ -397,7 +457,7 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 
     prepareDSP(getTotalNumInputChannels(), getTotalNumOutputChannels(), sampleRate * oversampleFactor, samplesPerBlock * oversampleFactor);
 
-    oversampler = std::make_unique<dsp::Oversampling<float>>(maxChannels, oversampling, dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, false);
+    oversampler = std::make_unique<dsp::Oversampling<float>>(std::max(1, maxChannels), oversampling, dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, false);
 
     oversampler->initProcessing(samplesPerBlock);
 
@@ -406,21 +466,31 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     }
 
     audioAdvancement = 0;
-    auto const blksize = static_cast<size_t>(Instance::getBlockSize());
-    auto const numIn = static_cast<size_t>(getTotalNumInputChannels());
-    auto const nouts = static_cast<size_t>(getTotalNumOutputChannels());
-    audioBufferIn.resize(numIn * blksize);
-    audioBufferOut.resize(nouts * blksize);
-    std::fill(audioBufferOut.begin(), audioBufferOut.end(), 0.f);
-    std::fill(audioBufferIn.begin(), audioBufferIn.end(), 0.f);
+    auto const pdBlockSize = static_cast<size_t>(Instance::getBlockSize());
+    audioBufferIn.setSize(maxChannels, pdBlockSize);
+    audioBufferOut.setSize(maxChannels, pdBlockSize);
+
+    audioVectorIn.resize(maxChannels * pdBlockSize, 0.0f);
+    audioVectorOut.resize(maxChannels * pdBlockSize, 0.0f);
+
     midiBufferIn.clear();
     midiBufferOut.clear();
-    midiBufferTemp.clear();
+
+    // If the block size is a multiple of 64 and we are not a plugin, we can optimise the process loop
+    // Audio plugins can choose to send in a smaller block size when automation is happening
+    variableBlockSize = !ProjectInfo::isStandalone || samplesPerBlock < pdBlockSize || samplesPerBlock % pdBlockSize != 0;
+
+    if (variableBlockSize) {
+        inputFifo = std::make_unique<AudioMidiFifo>(maxChannels, std::max<int>(pdBlockSize, samplesPerBlock) * 3);
+        outputFifo = std::make_unique<AudioMidiFifo>(maxChannels, std::max<int>(pdBlockSize, samplesPerBlock) * 3);
+    }
 
     midiByteIndex = 0;
     midiByteBuffer[0] = 0;
     midiByteBuffer[1] = 0;
     midiByteBuffer[2] = 0;
+
+    cpuLoadMeasurer.reset(sampleRate, samplesPerBlock);
 
     startDSP();
 
@@ -428,7 +498,7 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     statusbarSource->setBufferSize(samplesPerBlock);
     statusbarSource->prepareToPlay(getTotalNumOutputChannels());
 
-    limiter.prepare({ sampleRate, static_cast<uint32>(samplesPerBlock), static_cast<uint32>(maxChannels) });
+    limiter.prepare({ sampleRate, static_cast<uint32>(samplesPerBlock), std::max(1u, static_cast<uint32>(maxChannels)) });
 
     smoothedGain.reset(AudioProcessor::getSampleRate(), 0.02);
 }
@@ -440,6 +510,10 @@ void PluginProcessor::releaseResources()
 
 bool PluginProcessor::isBusesLayoutSupported(BusesLayout const& layouts) const
 {
+#if JUCE_IOS
+    return (layouts.getMainOutputChannels() <= 2) && (layouts.getMainInputChannels() <= 2);
+#endif
+    
 #if JucePlugin_IsMidiEffect
     ignoreUnused(layouts);
     return true;
@@ -474,9 +548,33 @@ bool PluginProcessor::isBusesLayoutSupported(BusesLayout const& layouts) const
     return ninch <= 32 && noutch <= 32;
 }
 
+static bool hasRealEvents(MidiBuffer& buffer)
+{
+
+    return std::any_of(buffer.begin(), buffer.end(),
+        [](auto const& event) {
+            int dummy;
+            return !MidiDeviceManager::convertFromSysExFormat(event.getMessage(), dummy).isSysEx();
+        });
+}
+
+void PluginProcessor::settingsFileReloaded()
+{
+    auto newTheme = settingsFile->getProperty<String>("theme");
+    if (PlugDataLook::currentTheme != newTheme) {
+        setTheme(newTheme);
+    }
+
+    updateSearchPaths();
+    if(objectLibrary) objectLibrary->updateLibrary();
+}
+
+
 void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
-{    
+{
     ScopedNoDenormals noDenormals;
+    AudioProcessLoadMeasurer::ScopedTimer cpuTimer(cpuLoadMeasurer, buffer.getNumSamples());
+
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
@@ -484,23 +582,25 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     sendPlayhead();
     sendParameters();
 
-    // Don't process if there are no samples, channels or we are suspended
-    if(isSuspended() || buffer.getNumSamples() == 0 || buffer.getNumChannels() == 0) {
-        buffer.clear();
-        return;
-    }
-
     for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {
         buffer.clear(i, 0, buffer.getNumSamples());
     }
 
-    midiBufferCopy.clear();
-    midiBufferCopy.addEvents(midiMessages, 0, buffer.getNumSamples(), audioAdvancement);
-
     auto targetBlock = dsp::AudioBlock<float>(buffer);
     auto blockOut = oversampling > 0 ? oversampler->processSamplesUp(targetBlock) : targetBlock;
 
-    process(blockOut, midiMessages);
+    auto hasMidiInEvents = hasRealEvents(midiMessages);
+
+    midiBufferIn.clear();
+    midiBufferOut.clear();
+
+    if (variableBlockSize) {
+        processVariable(blockOut, midiMessages);
+    } else {
+        processConstant(blockOut, midiMessages);
+    }
+
+    auto hasMidiOutEvents = hasRealEvents(midiMessages);
 
     if (oversampling > 0) {
         oversampler->processSamplesDown(targetBlock);
@@ -537,7 +637,8 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     smoothedGain.setTargetValue(mappedTargetGain);
     smoothedGain.applyGain(buffer, buffer.getNumSamples());
 
-    statusbarSource->processBlock(midiBufferCopy, midiMessages, totalNumOutputChannels);
+    statusbarSource->process(hasMidiInEvents, hasMidiOutEvents, totalNumOutputChannels);
+    statusbarSource->setCPUUsage(cpuLoadMeasurer.getLoadAsPercentage());
     statusbarSource->peakBuffer.write(buffer);
 
     if (ProjectInfo::isStandalone) {
@@ -547,9 +648,10 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
             int device;
             auto message = MidiDeviceManager::convertFromSysExFormat(bufferIterator.getMessage(), device);
 
-            if (device > midiDeviceManager->getOutputDevices().size()) {
+            if (enableInternalSynth && (device > midiDeviceManager->getOutputDevices().size() || device == 0)) {
                 midiBufferInternalSynth.addEvent(message, 0);
-            } else {
+            }
+            if (isPositiveAndBelow(device, midiDeviceManager->getOutputDevices().size() + 1)) {
                 midiDeviceManager->sendMidiOutputMessage(device, message);
             }
         }
@@ -578,126 +680,141 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
         }
 
         auto block = dsp::AudioBlock<float>(buffer);
-        limiter.process(dsp::ProcessContextReplacing<float>(block));
+        limiter.process(block);
     }
 }
 
-void PluginProcessor::process(dsp::AudioBlock<float> buffer, MidiBuffer& midiMessages)
+
+void PluginProcessor::updatePatchUndoRedoState()
 {
-    int const blockSize = Instance::getBlockSize();
-    int const numSamples = static_cast<int>(buffer.getNumSamples());
-    int const adv = audioAdvancement >= 64 ? 0 : audioAdvancement;
-    int const numLeft = blockSize - adv;
-    int const numIn = getTotalNumInputChannels();
-    int const numOut = getTotalNumOutputChannels();
+    if(isSuspended())
+    {
+        for (auto& patch : patches) {
+            patch->updateUndoRedoState();
+        }
+        return;
+    }
+        
+    enqueueFunctionAsync([this](){
+        for (auto& patch : patches) {
+            patch->updateUndoRedoState();
+        }
+    });
+}
+void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer, MidiBuffer& midiMessages)
+{
+    int blockSize = Instance::getBlockSize();
+    int numBlocks = buffer.getNumSamples() / blockSize;
+    audioAdvancement = 0;
 
-    channelPointers.clear();
-    for (int ch = 0; ch < std::min<int>(std::max(numIn, numOut), buffer.getNumChannels()); ch++) {
-        channelPointers.push_back(buffer.getChannelPointer(ch));
+    if (producesMidi()) {
+        midiByteIndex = 0;
+        midiByteBuffer[0] = 0;
+        midiByteBuffer[1] = 0;
+        midiByteBuffer[2] = 0;
+        midiBufferOut.clear();
     }
 
-    bool const midiConsume = acceptsMidi();
-    bool const midiProduce = producesMidi();
+    for (int block = 0; block < numBlocks; block++) {
+        for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
+            // Copy the channel data into the vector
+            juce::FloatVectorOperations::copy(
+                audioVectorIn.data() + (ch * blockSize),
+                buffer.getChannelPointer(ch) + audioAdvancement,
+                blockSize);
+        }
 
-    auto const maxOuts = std::max(numOut, std::max(numIn, numOut));
-    for (int ch = numIn; ch < maxOuts; ch++) {
-        buffer.getSingleChannelBlock(ch).clear();
+        setThis();
+
+        midiBufferIn.clear();
+        midiBufferIn.addEvents(midiMessages, audioAdvancement, blockSize, 0);
+        sendMidiBuffer();
+
+        // Process audio
+        performDSP(audioVectorIn.data(), audioVectorOut.data());
+
+        sendMessagesFromQueue();
+
+        if (connectionListener && plugdata_debugging_enabled())
+            connectionListener->updateSignalData();
+
+        messageDispatcher->dispatch();
+
+        for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
+            // Use FloatVectorOperations to copy the vector data into the audioBuffer
+            juce::FloatVectorOperations::copy(
+                buffer.getChannelPointer(ch) + audioAdvancement,
+                audioVectorOut.data() + (ch * blockSize),
+                blockSize);
+        }
+
+        audioAdvancement += blockSize;
     }
 
-    // If the current number of samples in this block
-    // is inferior to the number of samples required
-    if (numSamples < numLeft) {
-        // we save the input samples and we output
-        // the missing samples of the previous tick.
-        for (int j = 0; j < numIn; ++j) {
-            int const index = j * blockSize + adv;
-            FloatVectorOperations::copy(audioBufferIn.data() + index, channelPointers[j], numSamples);
+    midiMessages.clear();
+    midiMessages.addEvents(midiBufferOut, 0, buffer.getNumSamples(), 0);
+}
+
+void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer& midiMessages)
+{
+    auto const pdBlockSize = Instance::getBlockSize();
+    auto const numChannels = buffer.getNumChannels();
+
+    inputFifo->writeAudioAndMidi(buffer, midiMessages);
+    midiMessages.clear();
+
+    audioAdvancement = 0; // Always has to be 0 if we use the AudioMidiFifo!
+
+    while (inputFifo->getNumSamplesAvailable() >= pdBlockSize) {
+        midiBufferIn.clear();
+        inputFifo->readAudioAndMidi(audioBufferIn, midiBufferIn);
+
+        for (int channel = 0; channel < audioBufferIn.getNumChannels(); ++channel) {
+            // Copy the channel data into the vector
+            juce::FloatVectorOperations::copy(
+                audioVectorIn.data() + (channel * pdBlockSize),
+                audioBufferIn.getReadPointer(channel),
+                pdBlockSize);
         }
-        for (int j = 0; j < numOut; ++j) {
-            int const index = j * blockSize + adv;
-            FloatVectorOperations::copy(channelPointers[j], audioBufferOut.data() + index, numSamples);
+
+        if (producesMidi()) {
+            midiByteIndex = 0;
+            midiByteBuffer[0] = 0;
+            midiByteBuffer[1] = 0;
+            midiByteBuffer[2] = 0;
+            midiBufferOut.clear();
         }
-        if (midiConsume) {
-            midiBufferIn.addEvents(midiMessages, 0, numSamples, adv);
+
+        setThis();
+
+        sendMidiBuffer();
+
+        // Process audio
+        performDSP(audioVectorIn.data(), audioVectorOut.data());
+
+        sendMessagesFromQueue();
+
+        if (connectionListener && plugdata_debugging_enabled())
+            connectionListener->updateSignalData();
+
+        messageDispatcher->dispatch();
+
+        for (int channel = 0; channel < numChannels; ++channel) {
+            // Use FloatVectorOperations to copy the vector data into the audioBuffer
+            juce::FloatVectorOperations::copy(
+                audioBufferOut.getWritePointer(channel),
+                audioVectorOut.data() + (channel * pdBlockSize),
+                pdBlockSize);
         }
-        if (midiProduce) {
-            midiMessages.clear();
-            midiMessages.addEvents(midiBufferOut, adv, numSamples, -adv);
-        }
-        audioAdvancement += numSamples;
+
+        outputFifo->writeAudioAndMidi(audioBufferOut, midiBufferOut);
     }
-    // If the current number of samples in this block
-    // is superior to the number of samples required
-    else {
-        // we save the missing input samples, we output
-        // the missing samples of the previous tick and
-        // we call DSP perform method.
-        MidiBuffer const& midiin = midiProduce ? midiBufferTemp : midiMessages;
-        if (midiProduce) {
-            midiBufferTemp.swapWith(midiMessages);
-            midiMessages.clear();
-        }
-
-        for (int j = 0; j < numIn; ++j) {
-            int const index = j * blockSize + adv;
-            FloatVectorOperations::copy(audioBufferIn.data() + index, channelPointers[j], numLeft);
-        }
-        for (int j = 0; j < numOut; ++j) {
-            int const index = j * blockSize + adv;
-            FloatVectorOperations::copy(channelPointers[j], audioBufferOut.data() + index, numLeft);
-        }
-        if (midiConsume) {
-            midiBufferIn.addEvents(midiin, 0, numLeft, adv);
-        }
-        if (midiProduce) {
-            midiMessages.addEvents(midiBufferOut, adv, numLeft, -adv);
-        }
-        audioAdvancement = 0;
-        processInternal();
-
-        // If there are other DSP ticks that can be
-        // performed, then we do it now.
-        int pos = numLeft;
-        while ((pos + blockSize) <= numSamples) {
-            for (int j = 0; j < numIn; ++j) {
-                int const index = j * blockSize;
-                FloatVectorOperations::copy(audioBufferIn.data() + index, channelPointers[j] + pos, blockSize);
-            }
-            for (int j = 0; j < numOut; ++j) {
-                int const index = j * blockSize;
-                FloatVectorOperations::copy(channelPointers[j] + pos, audioBufferOut.data() + index, blockSize);
-            }
-            if (midiConsume) {
-                midiBufferIn.addEvents(midiin, pos, blockSize, 0);
-            }
-            if (midiProduce) {
-                midiMessages.addEvents(midiBufferOut, 0, blockSize, pos);
-            }
-            processInternal();
-            pos += blockSize;
-        }
-
-        // If there are samples that can't be
-        // processed, then save them for later
-        // and outputs the remaining samples
-        int const remaining = numSamples - pos;
-        if (remaining > 0) {
-            for (int j = 0; j < numIn; ++j) {
-                int const index = j * blockSize;
-                FloatVectorOperations::copy(audioBufferIn.data() + index, channelPointers[j] + pos, remaining);
-            }
-            for (int j = 0; j < numOut; ++j) {
-                int const index = j * blockSize;
-                FloatVectorOperations::copy(channelPointers[j] + pos, audioBufferOut.data() + index, remaining);
-            }
-            if (midiConsume) {
-                midiBufferIn.addEvents(midiin, pos, remaining, 0);
-            }
-            if (midiProduce) {
-                midiMessages.addEvents(midiBufferOut, 0, remaining, pos);
-            }
-            audioAdvancement = remaining;
-        }
+    
+    // When the amount of samples availabble is larger than (2 * pdBlockSize) - buffer.getNumSamples(), we know for sure that we'll have enough samples to process the next block as well
+    auto numAvailable = outputFifo->getNumSamplesAvailable();
+    auto enough = std::max<int>((2 * pdBlockSize) - static_cast<int>(buffer.getNumSamples()), static_cast<int>(buffer.getNumSamples()));
+    if (numAvailable >= enough) {
+        outputFifo->readAudioAndMidi(buffer, midiMessages);
     }
 }
 
@@ -713,10 +830,10 @@ void PluginProcessor::sendPlayhead()
     setThis();
     if (infos.hasValue()) {
         atoms_playhead[0] = static_cast<float>(infos->getIsPlaying());
-        sendMessage("playhead", "playing", atoms_playhead);
+        sendMessage("_playhead", "playing", atoms_playhead);
 
         atoms_playhead[0] = static_cast<float>(infos->getIsRecording());
-        sendMessage("playhead", "recording", atoms_playhead);
+        sendMessage("_playhead", "recording", atoms_playhead);
 
         atoms_playhead[0] = static_cast<float>(infos->getIsLooping());
 
@@ -728,37 +845,37 @@ void PluginProcessor::sendPlayhead()
             atoms_playhead.emplace_back(0.0f);
             atoms_playhead.emplace_back(0.0f);
         }
-        sendMessage("playhead", "looping", atoms_playhead);
+        sendMessage("_playhead", "looping", atoms_playhead);
 
         if (infos->getEditOriginTime().hasValue()) {
             atoms_playhead.resize(1);
             atoms_playhead[0] = static_cast<float>(*infos->getEditOriginTime());
-            sendMessage("playhead", "edittime", atoms_playhead);
+            sendMessage("_playhead", "edittime", atoms_playhead);
         }
 
         if (infos->getFrameRate().hasValue()) {
             atoms_playhead.resize(1);
             atoms_playhead[0] = static_cast<float>(infos->getFrameRate()->getEffectiveRate());
-            sendMessage("playhead", "framerate", atoms_playhead);
+            sendMessage("_playhead", "framerate", atoms_playhead);
         }
 
         if (infos->getBpm().hasValue()) {
             atoms_playhead.resize(1);
             atoms_playhead[0] = static_cast<float>(*infos->getBpm());
-            sendMessage("playhead", "bpm", atoms_playhead);
+            sendMessage("_playhead", "bpm", atoms_playhead);
         }
 
         if (infos->getPpqPositionOfLastBarStart().hasValue()) {
             atoms_playhead.resize(1);
             atoms_playhead[0] = static_cast<float>(*infos->getPpqPositionOfLastBarStart());
-            sendMessage("playhead", "lastbar", atoms_playhead);
+            sendMessage("_playhead", "lastbar", atoms_playhead);
         }
 
         if (infos->getTimeSignature().hasValue()) {
             atoms_playhead.resize(1);
             atoms_playhead[0] = static_cast<float>(infos->getTimeSignature()->numerator);
             atoms_playhead.emplace_back(static_cast<float>(infos->getTimeSignature()->denominator));
-            sendMessage("playhead", "timesig", atoms_playhead);
+            sendMessage("_playhead", "timesig", atoms_playhead);
         }
 
         if (infos->getPpqPosition().hasValue()) {
@@ -788,29 +905,16 @@ void PluginProcessor::sendPlayhead()
 void PluginProcessor::sendParameters()
 {
     for (auto* param : getParameters()) {
-        // Used to do dynamic_cast here, but since it gets called very often and param is always PlugDataParameter
-        // we use reinterpret_cast now.
+        // We used to do dynamic_cast here, but since it gets called very often and param is always PlugDataParameter, we use reinterpret_cast now
         auto* pldParam = reinterpret_cast<PlugDataParameter*>(param);
         if (!pldParam->isEnabled())
             continue;
 
         auto newvalue = pldParam->getUnscaledValue();
-        if (pldParam->getLastValue() != newvalue) {
+        if (!approximatelyEqual(pldParam->getLastValue(), newvalue)) {
             auto title = pldParam->getTitle();
             sendFloat(title.toRawUTF8(), pldParam->getUnscaledValue());
             pldParam->setLastValue(newvalue);
-        }
-    }
-}
-
-void PluginProcessor::messageEnqueued()
-{
-    if (isNonRealtime() || isSuspended()) {
-        sendMessagesFromQueue();
-    } else {
-        if (tryLockAudioThread()) {
-            sendMessagesFromQueue();
-            unlockAudioThread();
         }
     }
 }
@@ -857,28 +961,6 @@ void PluginProcessor::sendMidiBuffer()
     }
 }
 
-void PluginProcessor::processInternal()
-{
-    setThis();
-
-    // clear midi out
-    if (producesMidi()) {
-        midiByteIndex = 0;
-        midiByteBuffer[0] = 0;
-        midiByteBuffer[1] = 0;
-        midiByteBuffer[2] = 0;
-        midiBufferOut.clear();
-    }
-
-    // Dequeue messages
-    sendMessagesFromQueue();
-    sendMidiBuffer();
-
-    // Process audio
-    FloatVectorOperations::copy(audioBufferIn.data() + (2 * 64), audioBufferOut.data() + (2 * 64), (minOut - 2) * 64);
-    performDSP(audioBufferIn.data(), audioBufferOut.data());
-}
-
 bool PluginProcessor::hasEditor() const
 {
     return true; // (change this to false if you choose to not supply an editor)
@@ -889,13 +971,18 @@ AudioProcessorEditor* PluginProcessor::createEditor()
     auto* editor = new PluginEditor(*this);
     setThis();
 
+    // If standalone, add to ownedArray of opened editor
+    // In plugin, the deletion of PluginEditor is handled automatically
+    if (ProjectInfo::isStandalone) {
+        openedEditors.add(editor);
+    }
+
     for (auto const& patch : patches) {
         auto* cnv = editor->canvases.add(new Canvas(editor, *patch, nullptr));
         editor->addTab(cnv, patch->splitViewIndex);
     }
 
     editor->resized();
-
     return editor;
 }
 
@@ -926,7 +1013,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 
     auto presetDir = ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Presets");
 
-    auto* patchesTree = new XmlElement("Patches");
+    auto patchesTree = new XmlElement("Patches");
 
     for (auto const& patch : patches) {
 
@@ -962,6 +1049,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     xml.setAttribute("TailLength", getValue<float>(tailLength));
     xml.setAttribute("Legacy", false);
 
+    // TODO: make multi-window friendly
     if (auto* editor = getActiveEditor()) {
         xml.setAttribute("Width", editor->getWidth());
         xml.setAttribute("Height", editor->getHeight());
@@ -972,49 +1060,51 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 
     xml.addChildElement(patchesTree);
 
-    // JYG added This
-    m_temp_xml = &xml;
-    // signal to patches that we need to collect extra data to save into the host session
-    sendMessage("from_plugdata", "save", {});
-
     PlugDataParameter::saveStateInformation(xml, getParameters());
+
+    // store additional extra-data in DAW session if they exist.
+    bool extraDataStored = false;
+    if (extraData) {
+        if (extraData->getNumChildElements() > 0) {
+            xml.addChildElement(extraData.get());
+            extraDataStored = true;
+        }
+    }
 
     MemoryBlock xmlBlock;
     copyXmlToBinary(xml, xmlBlock);
 
-    // JYG added this
-    m_temp_xml = nullptr;
-
     ostream.writeInt(static_cast<int>(xmlBlock.getSize()));
     ostream.write(xmlBlock.getData(), xmlBlock.getSize());
+
+    // then detach extraData XmlElement from temporary tree xml for later re-use
+    if (extraDataStored) {
+        xml.removeChildElement(extraData.get(), false);
+    }
 }
 
 void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 {
     if (sizeInBytes == 0)
         return;
-
-    // By calling this asynchronously on the message thread and also suspending processing on the audio thread, we can make sure this is safe
-    // The DAW can call this function from basically any thread, hence the need for this
-    // Audio will only be reactivated once this action is completed
-
-    MemoryInputStream istream(data, sizeInBytes, false);
-
-    // Close any opened patches
-    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        MessageManager::callAsync([editor = Component::SafePointer(editor)]() {
-            if (!editor)
-                return;
-
-            for (auto split : editor->splitView.splits) {
-                split->getTabComponent()->clearTabs();
+    
+    // Don't clear tabs if there is no editor open before loading state, if we don't check this it will not load properly in some DAWs
+    if(getEditors().size()) {
+        // Close any opened patches
+        MessageManager::callAsync([this]() {
+            for (auto* editor : getEditors()) {
+                for (auto split : editor->splitView.splits) {
+                    split->getTabComponent()->clearTabs();
+                }
+                editor->canvases.clear();
             }
-            editor->canvases.clear();
         });
     }
 
-    lockAudioThread();
+    MemoryInputStream istream(data, sizeInBytes, false);
     
+    lockAudioThread();
+
     setThis();
     patches.clear();
 
@@ -1028,10 +1118,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 
         auto presetDir = ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Presets");
         path = path.replace("${PRESET_DIR}", presetDir.getFullPathName());
-
-        auto location = File(path);
-
-        patches.add({ state, location });
+        patches.add({ state, File(path) });
     }
 
     auto legacyLatency = istream.readInt();
@@ -1046,27 +1133,33 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     std::unique_ptr<XmlElement> xmlState(getXmlFromBinary(xmlData, xmlSize));
 
     auto openPatch = [this](String const& content, File const& location, bool pluginMode = false, int splitIndex = 0) {
-        if (location.getFullPathName().isNotEmpty() && location.existsAsFile()) {
-            auto patch = loadPatch(location, splitIndex);
-            if (patch) {
-                patch->setTitle(location.getFileName());
-                patch->openInPluginMode = pluginMode;
-            }
-        } else {
-            if (location.getParentDirectory().exists()) {
-                auto parentPath = location.getParentDirectory().getFullPathName();
-                libpd_add_to_search_path(parentPath.toRawUTF8());
-            }
-            auto patch = loadPatch(content, splitIndex);
+        
+        // CHANGED IN v0.8.4:
+        // We now prefer loading the patch content over the patch file, if possible
+        // This generally makes it work more like the users expects, but before we couldn't get it to load abstractions (this is now fixed)
+        if(content.isNotEmpty())
+        {
+            // Force pd to use this path for the next opened patch
+            // This makes sure the patch can find abstractions/resources, even though it's loading patch from state
+            glob_forcefilename(generateSymbol(location.getFileName().toRawUTF8()), generateSymbol(location.getParentDirectory().getFullPathName().toRawUTF8()));
+            
+            auto patch = loadPatch(content, getEditors()[0], splitIndex);
             if (patch && ((location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) || !location.exists())) {
                 patch->setTitle("Untitled Patcher");
                 patch->openInPluginMode = pluginMode;
                 patch->splitViewIndex = splitIndex;
             } else if (patch && location.existsAsFile()) {
-                patch->setCurrentFile(location);
+                patch->setCurrentFile(URL(location));
                 patch->setTitle(location.getFileName());
                 patch->openInPluginMode = pluginMode;
                 patch->splitViewIndex = splitIndex;
+            }
+        }
+        else if (location.getFullPathName().isNotEmpty() && location.existsAsFile()) {
+            auto patch = loadPatch(URL(location), getEditors()[0], splitIndex);
+            if (patch) {
+                patch->setTitle(location.getFileName());
+                patch->openInPluginMode = pluginMode;
             }
         }
     };
@@ -1074,8 +1167,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     if (xmlState) {
         // If xmltree contains new patch format, use that
         if (auto* patchTree = xmlState->getChildByName("Patches")) {
-            forEachXmlChildElementWithTagName(*patchTree, p, "Patch")
-            {
+            for (auto p : patchTree->getChildWithTagNameIterator("Patch")) {
                 auto content = p->getStringAttribute("Content");
                 auto location = p->getStringAttribute("Location");
                 auto pluginMode = p->getBoolAttribute("PluginMode");
@@ -1101,7 +1193,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
         jassert(xmlState);
 
         PlugDataParameter::loadStateInformation(*xmlState, getParameters());
-
+        
         auto versionString = String("0.6.1"); // latest version that didn't have version inside the daw state
 
         if (!xmlState->hasAttribute("Legacy") || xmlState->getBoolAttribute("Legacy")) {
@@ -1123,55 +1215,68 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             int windowHeight = xmlState->getIntAttribute("Height", 650);
             lastUIWidth = windowWidth;
             lastUIHeight = windowHeight;
+            // TODO: make multi-window friendly
             if (auto* editor = getActiveEditor()) {
                 MessageManager::callAsync([editor = Component::SafePointer(editor), windowWidth, windowHeight]() {
                     if (!editor)
                         return;
+#if !JUCE_IOS
                     editor->setSize(windowWidth, windowHeight);
+#endif
                 });
             }
         }
 
-        // JYG added this
+        // Retrieve additional extra-data from DAW
         parseDataBuffer(*xmlState);
     }
-    
+
     unlockAudioThread();
 
     delete[] xmlData;
 
-    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        MessageManager::callAsync([editor = Component::SafePointer(editor)]() {
-            if (!editor)
-                return;
+    MessageManager::callAsync([this]() {
+        for (auto* editor : getEditors()) {
             editor->sidebar->updateAutomationParameters();
 
             if (editor->pluginMode && !editor->pd->isInPluginMode()) {
                 editor->pluginMode->closePluginMode();
             }
+        }
+    });
+    
+    // After loading a state, we need to update all the parameters
+    if(PluginHostType::getPluginLoadedAs() == AudioProcessor::wrapperType_AudioUnit || PluginHostType::getPluginLoadedAs() == AudioProcessor::wrapperType_AudioUnitv3)
+    {
+        // In Logic, loading them instantly causes a crash :(
+        Timer::callAfterDelay(800, [this, _this = WeakReference<pd::Instance>(this)](){
+            if(_this) {
+                updateHostDisplay(AudioProcessorListener::ChangeDetails {}.withParameterInfoChanged(true));
+            }
         });
+    }
+    else {
+        updateHostDisplay(AudioProcessorListener::ChangeDetails {}.withParameterInfoChanged(true));
     }
 }
 
-pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile, int splitIdx)
+pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL, PluginEditor* editor, int splitIndex)
 {
+    auto patchFile = patchURL.getLocalFile();
     // First, check if patch is already opened
     for (auto const& patch : patches) {
         if (patch->getCurrentFile() == patchFile) {
-            if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-                MessageManager::callAsync([patch, _editor = Component::SafePointer(editor)]() mutable {
-                    if (!_editor)
-                        return;
 
-                    for (auto* cnv : _editor->canvases) {
+            MessageManager::callAsync([this, patch]() mutable {
+                for (auto* editor : getEditors()) {
+                    for (auto* cnv : editor->canvases) {
                         if (cnv->patch == *patch) {
                             cnv->getTabbar()->setCurrentTabIndex(cnv->getTabIndex());
                         }
                     }
-
-                    _editor->pd->logError("Patch is already open");
-                });
-            }
+                    editor->pd->logError("Patch is already open");
+                }
+            });
 
             // Patch is already opened
             return nullptr;
@@ -1181,9 +1286,30 @@ pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile, int splitIdx)
     // Stop the audio callback when loading a new patch
     // TODO: why though?
     lockAudioThread();
+    
+#if JUCE_IOS
+    auto tempFile = File::createTempFile(".pd");
+    auto patchContent = patchFile.loadFileAsString();
+    
+    auto inputStream = patchURL.createInputStream (URL::InputStreamOptions (URL::ParameterHandling::inAddress));
+    tempFile.appendText(inputStream->readEntireStreamAsString());
+    
+    auto dirname = patchFile.getParentDirectory().getFullPathName().replace("\\", "/");
+    auto filename = patchFile.getFileName();
 
+    glob_forcefilename(generateSymbol(filename), generateSymbol(dirname));
+    auto newPatch = openPatch(tempFile);
+    if(newPatch)
+    {
+        if(auto patch = newPatch->getPointer())
+        {
+            newPatch->setTitle(filename);
+            newPatch->setCurrentFile(patchURL);
+        }
+    }
+#else
     auto newPatch = openPatch(patchFile);
-
+#endif
     unlockAudioThread();
 
     if (!newPatch->getPointer()) {
@@ -1194,29 +1320,27 @@ pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile, int splitIdx)
     patches.add(newPatch);
     auto* patch = patches.getLast().get();
 
-    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        MessageManager::callAsync([this, patch, splitIdx, _editor = Component::SafePointer(editor)]() mutable {
+    if (editor) {
+        MessageManager::callAsync([this, patch, splitIndex, _editor = Component::SafePointer<PluginEditor>(editor)]() mutable {
             if (!_editor)
                 return;
-
             // There are some subroutines that get called when we create a canvas, that will lock the audio thread
             // By locking it around this whole function, we can prevent slowdowns from constantly locking/unlocking the audio thread
             lockAudioThread();
 
-            auto* cnv = _editor->canvases.add(new Canvas(_editor, *patch, nullptr));
+            auto* cnv = _editor->canvases.add(new Canvas(_editor.getComponent(), *patch, nullptr));
 
             unlockAudioThread();
 
-            _editor->addTab(cnv, splitIdx);
+            _editor->addTab(cnv, splitIndex);
         });
     }
-
-    patch->setCurrentFile(patchFile);
+    patch->setCurrentFile(URL(patchFile));
 
     return patch;
 }
 
-pd::Patch::Ptr PluginProcessor::loadPatch(String patchText, int splitIdx)
+pd::Patch::Ptr PluginProcessor::loadPatch(String patchText, PluginEditor* editor, int splitIndex)
 {
     if (patchText.isEmpty())
         patchText = pd::Instance::defaultPatch;
@@ -1224,10 +1348,10 @@ pd::Patch::Ptr PluginProcessor::loadPatch(String patchText, int splitIdx)
     auto patchFile = File::createTempFile(".pd");
     patchFile.replaceWithText(patchText);
 
-    auto patch = loadPatch(patchFile, splitIdx);
+    auto patch = loadPatch(URL(patchFile), editor, splitIndex);
 
     // Set to unknown file when loading temp patch
-    patch->setCurrentFile(File());
+    patch->setCurrentFile(URL("file://"));
 
     return patch;
 }
@@ -1247,7 +1371,7 @@ void PluginProcessor::setTheme(String themeToUse, bool force)
 
     lnf->setTheme(themeTree);
 
-    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+    for (auto* editor : getEditors()) {
         editor->sendLookAndFeelChange();
         editor->getTopLevelComponent()->repaint();
         editor->repaint();
@@ -1276,7 +1400,7 @@ Colour PluginProcessor::getTextColour()
 
 void PluginProcessor::receiveNoteOn(int const channel, int const pitch, int const velocity)
 {
-    auto device = channel >> 4;
+    auto device = (channel - 1) >> 4;
     auto deviceChannel = channel - (device * 16);
 
     if (velocity == 0) {
@@ -1328,9 +1452,11 @@ void PluginProcessor::receivePolyAftertouch(int const channel, int const pitch, 
 
 void PluginProcessor::receiveMidiByte(int const port, int const byte)
 {
+    auto device = port >> 4;
+
     if (midiByteIsSysex) {
         if (byte == 0xf7) {
-            midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage::createSysExMessage(midiByteBuffer, static_cast<int>(midiByteIndex)), port), audioAdvancement);
+            midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage::createSysExMessage(midiByteBuffer, static_cast<int>(midiByteIndex)), device), audioAdvancement);
             midiByteIndex = 0;
             midiByteIsSysex = false;
         } else {
@@ -1342,10 +1468,17 @@ void PluginProcessor::receiveMidiByte(int const port, int const byte)
     } else if (midiByteIndex == 0 && byte == 0xf0) {
         midiByteIsSysex = true;
     } else {
-        midiByteBuffer[midiByteIndex++] = static_cast<uint8>(byte);
-        if (midiByteIndex >= 3) {
-            midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage(midiByteBuffer, 3), port), audioAdvancement);
-            midiByteIndex = 0;
+        // Handle single-byte messages
+        if (midiByteIndex == 0 && byte >= 0xf8 && byte <= 0xff) {
+            midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage(static_cast<uint8>(byte)), device), audioAdvancement);
+        }
+        // Handle 3-byte messages
+        else {
+            midiByteBuffer[midiByteIndex++] = static_cast<uint8>(byte);
+            if (midiByteIndex >= 3) {
+                midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage(midiByteBuffer, 3), device), audioAdvancement);
+                midiByteIndex = 0;
+            }
         }
     }
 }
@@ -1355,20 +1488,20 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
     switch (hash(selector)) {
     case hash("open"): {
         if (list.size() >= 2) {
-            auto filename = list[0].getSymbol();
-            auto directory = list[1].getSymbol();
+            auto filename = list[0].toString();
+            auto directory = list[1].toString();
 
             auto patch = File(directory).getChildFile(filename);
-            loadPatch(patch);
+            loadPatch(URL(patch), getEditors()[0]);
         }
         break;
     }
     case hash("menunew"): {
         if (list.size() >= 2) {
-            auto filename = list[0].getSymbol();
-            auto directory = list[1].getSymbol();
+            auto filename = list[0].toString();
+            auto directory = list[1].toString();
 
-            auto patchPtr = loadPatch(defaultPatch);
+            auto patchPtr = loadPatch(defaultPatch, getEditors()[0]);
             patchPtr->setCurrentFile(File(directory).getChildFile(filename).getFullPathName());
             patchPtr->setTitle(filename);
         }
@@ -1378,7 +1511,7 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
         bool dsp = list[0].getFloat();
         MessageManager::callAsync(
             [this, dsp]() mutable {
-                if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+                for (auto* editor : getEditors()) {
                     editor->statusbar->powerButton.setToggleState(dsp, dontSendNotification);
                 }
             });
@@ -1390,6 +1523,7 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
             bool askToSave = hash(selector) == hash("verifyquit");
             MessageManager::callAsync(
                 [this, askToSave]() mutable {
+                    // TODO: make multi-window friendly
                     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
                         editor->quit(askToSave);
                     }
@@ -1416,40 +1550,46 @@ void PluginProcessor::showTextEditor(unsigned long ptr, Rectangle<int> bounds, S
             return;
         }
 
-        Dialogs::showSaveDialog(
+        Dialogs::showAskToSaveDialog(
             &saveDialog, textEditorDialogs[ptr].get(), "", [this, ptr, title, text = lastText](int result) mutable {
                 if (result == 2) {
 
                     lockAudioThread();
-                    pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("clear"), 0, NULL);
+                    pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("clear"), 0, nullptr);
                     unlockAudioThread();
 
                     // remove repeating spaces
-                    while (text.contains("  ")) {
-                        text = text.replace("  ", " ");
-                    }
                     text = text.replace("\r ", "\r");
                     text = text.replace(";\r", ";");
                     text = text.replace("\r;", ";");
                     text = text.replace(" ;", ";");
                     text = text.replace("; ", ";");
+                    text = text.replace(",", " , ");
                     text = text.replaceCharacters("\r", " ");
+
+                    while (text.contains("  ")) {
+                        text = text.replace("  ", " ");
+                    }
                     text = text.trimStart();
                     auto lines = StringArray::fromTokens(text, ";", "\"");
-                    auto atoms = std::vector<t_atom>();
-                    atoms.reserve(lines.size());
 
                     int count = 0;
                     for (auto const& line : lines) {
                         count++;
                         auto words = StringArray::fromTokens(line, " ", "\"");
+
+                        auto atoms = std::vector<t_atom>();
+                        atoms.reserve(words.size() + 1);
+
                         for (auto const& word : words) {
                             atoms.emplace_back();
                             // check if string is a valid number
                             auto charptr = word.getCharPointer();
                             auto ptr = charptr;
-                            auto value = CharacterFunctions::readDoubleValue(ptr);
-                            if (ptr - charptr == word.getNumBytesAsUTF8() && ptr - charptr != 0) {
+                            CharacterFunctions::readDoubleValue(ptr); // Removes double value from char*
+                            if (*charptr == ',') {
+                                SETCOMMA(&atoms.back());
+                            } else if (ptr - charptr == word.getNumBytesAsUTF8() && ptr - charptr != 0) {
                                 SETFLOAT(&atoms.back(), word.getFloatValue());
                             } else {
                                 SETSYMBOL(&atoms.back(), generateSymbol(word));
@@ -1458,11 +1598,13 @@ void PluginProcessor::showTextEditor(unsigned long ptr, Rectangle<int> bounds, S
 
                         if (count != lines.size()) {
                             atoms.emplace_back();
-                            SETSYMBOL(&atoms.back(), generateSymbol(";"));
+                            SETSEMI(&atoms.back());
                         }
 
                         lockAudioThread();
+
                         pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("addline"), atoms.size(), atoms.data());
+
                         unlockAudioThread();
                     }
 
@@ -1470,8 +1612,9 @@ void PluginProcessor::showTextEditor(unsigned long ptr, Rectangle<int> bounds, S
                     SETSYMBOL(&fake_path, generateSymbol(title.toRawUTF8()));
 
                     lockAudioThread();
-                    pd_typedmess(reinterpret_cast<t_pd*>(ptr), generateSymbol("path"), 1, &fake_path);
-                    pd_typedmess(reinterpret_cast<t_pd*>(ptr), generateSymbol("end"), 0, NULL);
+
+                    // pd_typedmess(reinterpret_cast<t_pd*>(ptr), generateSymbol("path"), 1, &fake_path);
+                    pd_typedmess(reinterpret_cast<t_pd*>(ptr), generateSymbol("end"), 0, nullptr);
                     unlockAudioThread();
 
                     textEditorDialogs[ptr].reset(nullptr);
@@ -1516,7 +1659,7 @@ void PluginProcessor::performParameterChange(int type, String const& name, float
             pldParam->setUnscaledValueNotifyingHost(value);
 
             if (ProjectInfo::isStandalone) {
-                if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+                for (auto* editor : getEditors()) {
                     editor->sidebar->updateAutomationParameters();
                 }
             }
@@ -1525,48 +1668,53 @@ void PluginProcessor::performParameterChange(int type, String const& name, float
 }
 
 // JYG added this
-void PluginProcessor::fillDataBuffer(std::vector<pd::Atom> const& list)
+void PluginProcessor::fillDataBuffer(std::vector<pd::Atom> const& vec)
 {
-    if (m_temp_xml) {
-        XmlElement* patch = m_temp_xml->getChildByName("patch");
-        if (!patch) {
-            patch = m_temp_xml->createNewChildElement("patch");
-            if (!patch) {
-                logMessage("Error:can't allocate memory for saving plugin state.");
-                return;
-            }
+    if (!vec[0].isSymbol()) {
+        logMessage("databuffer accepts only lists beginning with a Symbol atom");
+        return;
+    }
+    String child_name = String(vec[0].toString());
+
+    if (extraData) {
+
+        int const numChildren = extraData->getNumChildElements();
+        if (numChildren > 0) {
+            // Searching if a previously created child element exists, with same name as vec[0]. If true, delete it.
+            XmlElement* list = extraData->getChildByName(child_name);
+            if (list)
+                extraData->removeChildElement(list, true);
         }
-        int const nchilds = patch->getNumChildElements();
-        XmlElement* preset = patch->createNewChildElement(String("list") + String(nchilds + 1));
-        if (preset) {
-            for (size_t i = 0; i < list.size(); ++i) {
-                if (list[i].isFloat()) {
-                    preset->setAttribute(String("float") + String(i + 1), list[i].getFloat());
-                } else if (list[i].isSymbol()) {
-                    preset->setAttribute(String("string") + String(i + 1), String(list[i].getSymbol()));
+        XmlElement* list = extraData->createNewChildElement(child_name);
+        if (list) {
+            for (size_t i = 0; i < vec.size(); ++i) {
+                if (vec[i].isFloat()) {
+                    list->setAttribute(String("float") + String(i + 1), vec[i].getFloat());
+                } else if (vec[i].isSymbol()) {
+                    list->setAttribute(String("string") + String(i + 1), String(vec[i].toString()));
                 } else {
-                    preset->setAttribute(String("atom") + String(i + 1), String("unknown"));
+                    list->setAttribute(String("atom") + String(i + 1), String("unknown"));
                 }
             }
         } else {
             logMessage("Error: can't allocate memory for saving plugin databuffer.");
         }
     } else {
-        logMessage("Error, databuffer method should be called after databuffer save notification.");
+        logMessage("Error, databuffer extraData has not been allocated.");
     }
 }
 
 void PluginProcessor::parseDataBuffer(XmlElement const& xml)
 {
-    // was : void CamomileAudioProcessor::loadInformation(XmlElement const& xml)
+    // source : void CamomileAudioProcessor::loadInformation(XmlElement const& xml)
 
     bool loaded = false;
-    XmlElement const* patch = xml.getChildByName(juce::StringRef("patch"));
-    if (patch) {
-        int const nlists = patch->getNumChildElements();
+    XmlElement const* extra_data = xml.getChildByName(juce::StringRef("ExtraData"));
+    if (extra_data) {
+        int const nlists = extra_data->getNumChildElements();
         std::vector<pd::Atom> vec;
         for (int i = 0; i < nlists; ++i) {
-            XmlElement const* list = patch->getChildElement(i);
+            XmlElement const* list = extra_data->getChildElement(i);
             if (list) {
                 int const natoms = list->getNumAttributes();
                 vec.resize(natoms);
@@ -1576,34 +1724,48 @@ void PluginProcessor::parseDataBuffer(XmlElement const& xml)
                     if (name.startsWith("float")) {
                         vec[j] = static_cast<float>(list->getDoubleAttribute(name));
                     } else if (name.startsWith("string")) {
-                        vec[j] = list->getStringAttribute(name);
+                        vec[j] = generateSymbol(list->getStringAttribute(name));
                     } else {
-                        vec[j] = String("unknown");
+                        vec[j] = generateSymbol(String("unknown"));
                     }
                 }
 
-                sendList("load", vec);
+                sendList("from_daw_databuffer", vec);
                 loaded = true;
             }
         }
     }
 
     if (!loaded) {
-        sendBang("load");
+        sendBang("from_daw_databuffer");
     }
 }
 
-void PluginProcessor::updateConsole()
+void PluginProcessor::updateConsole(int numMessages, bool newWarning)
 {
-    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        editor->sidebar->updateConsole();
+    for (auto* editor : getEditors()) {
+        editor->sidebar->updateConsole(numMessages, newWarning);
     }
+}
+
+Array<PluginEditor*> PluginProcessor::getEditors() const
+{
+    Array<PluginEditor*> editors;
+    if (ProjectInfo::isStandalone) {
+        for (auto* editor : openedEditors) {
+            editors.add(editor);
+        }
+    } else {
+        if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+            editors.add(editor);
+        }
+    }
+
+    return editors;
 }
 
 void PluginProcessor::reloadAbstractions(File changedPatch, t_glist* except)
 {
-    auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor());
-
     setThis();
 
     // Ensure that all messages are dequeued before we start deleting objects
@@ -1613,32 +1775,31 @@ void PluginProcessor::reloadAbstractions(File changedPatch, t_glist* except)
 
     pd::Patch::reloadPatch(changedPatch, except);
 
-    // Synchronising can potentially delete some other canvases, so make sure we use a safepointer
-    Array<Component::SafePointer<Canvas>> canvases;
+    for (auto* editor : getEditors()) {
 
-    if (editor) {
+        // Synchronising can potentially delete some other canvases, so make sure we use a safepointer
+        Array<Component::SafePointer<Canvas>> canvases;
+
         for (auto* canvas : editor->canvases) {
             canvases.add(canvas);
         }
-    }
 
-    for (auto& cnv : canvases) {
-        if (cnv.getComponent()) {
-            cnv->synchronise();
-            cnv->handleUpdateNowIfNeeded();
+        for (auto& cnv : canvases) {
+            if (cnv.getComponent()) {
+                cnv->synchronise();
+                cnv->handleUpdateNowIfNeeded();
+            }
         }
+
+        editor->updateCommandStatus();
     }
 
     isPerformingGlobalSync = false;
-
-    if (editor) {
-        editor->updateCommandStatus();
-    }
 }
 
 void PluginProcessor::titleChanged()
 {
-    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+    for (auto* editor : getEditors()) {
         for (auto split : editor->splitView.splits) {
             auto tabbar = split->getTabComponent();
             for (int n = 0; n < tabbar->getNumTabs(); n++) {
@@ -1655,6 +1816,7 @@ void PluginProcessor::titleChanged()
 void PluginProcessor::savePatchTabPositions()
 {
     Array<std::tuple<pd::Patch*, int>> sortedPatches;
+    // TODO: make multi-window friendly
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         for (auto* cnv : editor->canvases) {
             cnv->patch.splitViewIndex = editor->splitView.getTabComponentSplitIndex(cnv->getTabbar());

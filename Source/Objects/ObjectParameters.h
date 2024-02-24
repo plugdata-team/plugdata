@@ -3,7 +3,7 @@
 #include <juce_data_structures/juce_data_structures.h>
 
 #include <utility>
-#include "../LookAndFeel.h"
+#include "LookAndFeel.h"
 
 enum ParameterType {
     tString,
@@ -14,7 +14,8 @@ enum ParameterType {
     tCombo,
     tRangeFloat,
     tRangeInt,
-    tFont
+    tFont,
+    tCustom
 };
 
 enum ParameterCategory {
@@ -25,7 +26,10 @@ enum ParameterCategory {
     cExtra,
 };
 
-using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Value*, StringArray, var>;
+class PropertiesPanelProperty;
+using CustomPanelCreateFn = std::function<PropertiesPanelProperty*(void)>;
+
+using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Value*, StringArray, var, CustomPanelCreateFn>;
 
 class ObjectParameters {
 public:
@@ -44,7 +48,7 @@ public:
     void resetAll()
     {
         auto& lnf = LookAndFeel::getDefaultLookAndFeel();
-        for (auto [name, type, category, value, options, defaultVal] : objectParameters) {
+        for (auto [name, type, category, value, options, defaultVal, customComponent] : objectParameters) {
             if (!defaultVal.isVoid()) {
                 if (type == tColour) {
                     value->setValue(lnf.findColour(defaultVal).toString());
@@ -134,11 +138,16 @@ public:
         objectParameters.add(makeParam("Size", singleDimension ? tInt : tRangeInt, cDimensions, sizeValue, StringArray(), var()));
     }
 
+    void addParamCustom(CustomPanelCreateFn customComponentFn)
+    {
+        objectParameters.add(makeParam("", tCustom, cGeneral, nullptr, StringArray(), var(), customComponentFn));
+    }
+
 private:
     Array<ObjectParameter> objectParameters;
 
-    static ObjectParameter makeParam(String const& pString, ParameterType pType, ParameterCategory pCat, Value* pVal, StringArray const& pStringList, var const& pDefault)
+    static ObjectParameter makeParam(String const& pString, ParameterType pType, ParameterCategory pCat, Value* pVal, StringArray const& pStringList, var const& pDefault, CustomPanelCreateFn customComponentFn = nullptr)
     {
-        return std::make_tuple(pString, pType, pCat, pVal, pStringList, pDefault);
+        return std::make_tuple(pString, pType, pCat, pVal, pStringList, pDefault, customComponentFn);
     }
 };

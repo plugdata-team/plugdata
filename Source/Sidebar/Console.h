@@ -6,14 +6,14 @@
 
 #pragma once
 #include <utility>
-#include "Utility/BouncingViewport.h"
+#include "Components/BouncingViewport.h"
 #include "Object.h"
 
 class ConsoleSettings : public Component {
 public:
     struct ConsoleSettingsButton : public TextButton {
-        const String icon;
-        const String description;
+        String const icon;
+        String const description;
 
         ConsoleSettingsButton(String iconString, String descriptionString, bool toggleButton)
             : icon(std::move(iconString))
@@ -41,10 +41,8 @@ public:
 
     explicit ConsoleSettings(std::array<Value, 5>& settingsValues)
     {
-        auto i = 0;
         for (auto* button : buttons) {
             addAndMakeVisible(*button);
-            i++;
         }
 
         for (int i = 0; i < buttons.size(); i++) {
@@ -151,10 +149,6 @@ public:
 
     void deselect()
     {
-        if (auto* target = Object::consoleTarget) {
-            Object::consoleTarget = nullptr;
-            target->repaint();
-        }
         console->selectedItems.clear();
         repaint();
     }
@@ -168,60 +162,36 @@ public:
             int idx;
 
             ConsoleMessage(int index, ConsoleComponent& parent)
-                : idx(index)
-                , console(parent)
+                : console(parent)
+                , idx(index)
             {
-
                 parent.addAndMakeVisible(this);
             }
 
-            void mouseDown(MouseEvent const& e)
+            void mouseDown(MouseEvent const& e) override
             {
                 if (!e.mods.isShiftDown() && !e.mods.isCommandDown()) {
                     console.selectedItems.clear();
                 }
 
+                auto& [object, message, type, length, repeats] = console.pd->getConsoleMessages()[idx];
+                if (e.mods.isPopupMenu()) {
+                    
+                    
+                    PopupMenu menu;
+                    menu.addItem("Copy", [this]() { console.copySelectionToClipboard(); });
+                    menu.addItem("Show origin", object != nullptr, false, [this, target = object]() {
+                        auto* editor = findParentComponentOfClass<PluginEditor>();
+                        editor->highlightSearchTarget(target, true);
+                    });
+                    menu.showMenuAsync(PopupMenu::Options());
+                }
+
                 console.selectedItems.addIfNotAlreadyThere(SafePointer(this));
                 console.repaint();
-
-                auto& [object, message, type, length] = console.pd->getConsoleMessages()[idx];
-                if (object) {
-                    highlightSearchTarget(object);
-                }
             }
-
-            void highlightSearchTarget(void* target)
-            {
-                auto* editor = findParentComponentOfClass<PluginEditor>();
-                auto* cnv = editor->getCurrentCanvas();
-                if (!cnv)
-                    return;
-
-                for (auto* object : cnv->objects) {
-
-                    if (object->getPointer() == target) {
-                        Object::consoleTarget = object;
-                        object->repaint();
-                    } else if (Object::consoleTarget == object) {
-                        Object::consoleTarget = nullptr;
-                        object->repaint();
-                    }
-                }
-
-                if (Object::consoleTarget) {
-                    if (auto* viewport = cnv->viewport.get()) {
-                        auto scale = getValue<float>(cnv->zoomScale);
-                        auto pos = Object::consoleTarget->getBounds().getCentre() * scale;
-
-                        pos.x -= viewport->getViewWidth() * 0.5f;
-                        pos.y -= viewport->getViewHeight() * 0.5f;
-
-                        viewport->setViewPosition(pos);
-                    }
-                }
-            }
-
-            void paint(Graphics& g)
+            
+            void paint(Graphics& g) override
             {
                 auto isSelected = console.selectedItems.contains(this);
                 auto showMessages = getValue<bool>(console.settingsValues[2]);
@@ -254,7 +224,7 @@ public:
                 }
 
                 // Get console message
-                auto& [object, message, type, length] = console.pd->getConsoleMessages()[idx];
+                auto& [object, message, type, length, repeats] = console.pd->getConsoleMessages()[idx];
 
                 // Check if message type should be visible
                 if ((type == 0 && !showMessages) || (type == 1 && !showErrors)) {
@@ -262,7 +232,8 @@ public:
                 }
 
                 // Approximate number of lines from string length and current width
-                auto numLines = StringUtils::getNumLines(console.getWidth(), length);
+                auto totalLength = length + calculateRepeatOffset(repeats);
+                auto numLines = StringUtils::getNumLines(console.getWidth(), totalLength);
 
                 auto textColour = findColour(isSelected ? PlugDataColour::sidebarActiveTextColourId : PlugDataColour::sidebarTextColourId);
 
@@ -271,8 +242,29 @@ public:
                 else if (type == 2)
                     textColour = Colours::red;
 
+                auto bounds = getLocalBounds().reduced(8, 2);
+                if (repeats > 1) {
+
+                    auto repeatIndicatorBounds = bounds.removeFromLeft(calculateRepeatOffset(repeats)).toFloat().translated(-4, 0.25);
+                    repeatIndicatorBounds = repeatIndicatorBounds.withSizeKeepingCentre(repeatIndicatorBounds.getWidth(), 21);
+
+                    auto circleColour = findColour(PlugDataColour::sidebarActiveBackgroundColourId);
+                    auto backgroundColour = findColour(PlugDataColour::sidebarBackgroundColourId);
+                    auto contrast = isSelected ? 1.5f : 0.5f;
+
+                    circleColour = Colour(circleColour.getRed() + (circleColour.getRed() - backgroundColour.getRed()) * contrast,
+                        circleColour.getGreen() + (circleColour.getGreen() - backgroundColour.getGreen()) * contrast,
+                        circleColour.getBlue() + (circleColour.getBlue() - backgroundColour.getBlue()) * contrast);
+
+                    g.setColour(circleColour);
+                    auto circleBounds = repeatIndicatorBounds.reduced(2);
+                    g.fillRoundedRectangle(circleBounds, circleBounds.getHeight() / 2.0f);
+
+                    Fonts::drawText(g, String(repeats), repeatIndicatorBounds, findColour(PlugDataColour::sidebarTextColourId), 12, Justification::centred);
+                }
+
                 // Draw text
-                Fonts::drawFittedText(g, message, getLocalBounds().reduced(8, 2), textColour, numLines, 0.9f, 14);
+                Fonts::drawFittedText(g, message, bounds.translated(0, -1), textColour, numLines, 0.9f, 14);
             }
         };
 
@@ -299,19 +291,23 @@ public:
             repaint();
         }
 
+        void copySelectionToClipboard()
+        {
+            String textToCopy;
+            for (auto& item : selectedItems) {
+                if (!item.getComponent())
+                    continue;
+                textToCopy += std::get<1>(pd->getConsoleMessages()[item->idx]) + "\n";
+            }
+
+            SystemClipboard::copyTextToClipboard(textToCopy.trimEnd());
+        }
+
         bool keyPressed(KeyPress const& key) override
         {
             // Copy from console
             if (key == KeyPress('c', ModifierKeys::commandModifier, 0)) {
-                String textToCopy;
-                for (auto& item : selectedItems) {
-                    if (!item.getComponent())
-                        continue;
-                    textToCopy += std::get<1>(pd->getConsoleMessages()[item->idx]) + "\n";
-                }
-
-                textToCopy.trimEnd();
-                SystemClipboard::copyTextToClipboard(textToCopy);
+                copySelectionToClipboard();
                 return true;
             }
 
@@ -332,9 +328,6 @@ public:
             while (messages.size() < pd->getConsoleMessages().size()) {
                 messages.push_back(std::make_unique<ConsoleMessage>(messages.size(), *this));
             }
-
-            auto showMessages = getValue<bool>(settingsValues[2]);
-            auto showErrors = getValue<bool>(settingsValues[3]);
 
             setSize(getWidth(), std::max<int>(getTotalHeight(), viewport.getHeight()));
             resized();
@@ -365,8 +358,9 @@ public:
             auto showErrors = getValue<bool>(settingsValues[3]);
             auto totalHeight = 0;
 
-            for (auto& [object, message, type, length] : pd->getConsoleMessages()) {
-                auto numLines = StringUtils::getNumLines(getWidth(), length);
+            for (auto& [object, message, type, length, repeats] : pd->getConsoleMessages()) {
+                auto totalLength = length + calculateRepeatOffset(repeats);
+                auto numLines = StringUtils::getNumLines(getWidth(), totalLength);
                 auto height = numLines * 13 + 12;
 
                 if ((type == 0 && !showMessages) || (type == 1 && !showErrors))
@@ -378,12 +372,17 @@ public:
             return totalHeight + 8;
         }
 
+        static int calculateRepeatOffset(int numRepeats)
+        {
+            if (numRepeats == 0)
+                return 0;
+
+            int digitCount = static_cast<int>(std::log10(numRepeats)) + 1;
+            return digitCount <= 2 ? 21 : 21 + ((digitCount - 2) * 10);
+        }
+
         void mouseDown(MouseEvent const& e) override
         {
-            if (auto* target = Object::consoleTarget) {
-                Object::consoleTarget = nullptr;
-                target->repaint();
-            }
             selectedItems.clear();
             repaint();
         }
@@ -398,9 +397,10 @@ public:
                 if (row >= messages.size())
                     break;
 
-                auto& [object, message, type, length] = pd->getConsoleMessages()[row];
+                auto& [object, message, type, length, repeats] = pd->getConsoleMessages()[row];
 
-                auto numLines = StringUtils::getNumLines(getWidth(), length);
+                auto totalLength = length + calculateRepeatOffset(repeats);
+                auto numLines = StringUtils::getNumLines(getWidth(), totalLength);
                 auto height = numLines * 13 + 12;
 
                 if ((type == 0 && !showMessages) || (type == 1 && !showErrors))
@@ -418,16 +418,14 @@ public:
 
     std::unique_ptr<Component> getExtraSettingsComponent()
     {
-        auto* settingsCalloutButton = new TextButton(Icons::More);
+        auto* settingsCalloutButton = new SmallIconButton(Icons::More);
         settingsCalloutButton->setTooltip("Show console settings");
         settingsCalloutButton->setConnectedEdges(12);
-        settingsCalloutButton->getProperties().set("Style", "SmallIcon");
         settingsCalloutButton->onClick = [this, settingsCalloutButton]() {
             auto* editor = findParentComponentOfClass<PluginEditor>();
-            auto* sidebar = findParentComponentOfClass<Sidebar>();
             auto consoleSettings = std::make_unique<ConsoleSettings>(settingsValues);
-            auto bounds = editor->getLocalArea(sidebar, settingsCalloutButton->getBounds());
-            CallOutBox::launchAsynchronously(std::move(consoleSettings), bounds, editor);
+            auto bounds = editor->callOutSafeArea.getLocalArea(nullptr, settingsCalloutButton->getScreenBounds());
+            CallOutBox::launchAsynchronously(std::move(consoleSettings), bounds, &editor->callOutSafeArea);
         };
 
         return std::unique_ptr<TextButton>(settingsCalloutButton);
@@ -437,6 +435,4 @@ private:
     std::array<Value, 5> settingsValues;
     ConsoleComponent* console;
     BouncingViewport viewport;
-
-    int pendingUpdates = 0;
 };

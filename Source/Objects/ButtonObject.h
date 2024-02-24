@@ -14,7 +14,7 @@ class ButtonObject : public ObjectBase {
     Value sizeProperty = SynchronousValue();
 
 public:
-    ButtonObject(void* obj, Object* parent)
+    ButtonObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
     {
         onConstrainerCreate = [this]() {
@@ -37,29 +37,30 @@ public:
         repaint();
     }
 
-    /* TODO: finish this!
     void toggleObject(Point<int> position) override
     {
+        if (!alreadyTriggered) {
 
-        if (!alreadyBanged) {
-
-            auto* button = ptr.get<t_fake_button>();
-            outlet_float(button->x_obj.ob_outlet, 1);
-            update();
-            alreadyBanged = true;
+            if(auto button = ptr.get<t_fake_button>()) {
+                outlet_float(button->x_obj.ob_outlet, 1);
+            }
+            state = true;
+            repaint();
+            alreadyTriggered = true;
         }
     }
     void untoggleObject() override
     {
-
-        if(alreadyBanged)
+        if(alreadyTriggered)
         {
-            auto* button = ptr.get<t_fake_button>();
-            outlet_float(button->x_obj.ob_outlet, 0);
-            update();
+            if(auto button = ptr.get<t_fake_button>()) {
+                outlet_float(button->x_obj.ob_outlet, 0);
+            }
+            state = false;
+            repaint();
+            alreadyTriggered = false;
         }
-        alreadyBanged = false;
-    }*/
+    }
 
     Rectangle<int> getPdBounds() override
     {
@@ -69,7 +70,7 @@ public:
                 return {};
 
             int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
 
             return Rectangle<int>(x, y, w + 1, h + 1);
         }
@@ -84,7 +85,7 @@ public:
             if (!patch)
                 return;
 
-            libpd_moveobj(patch, button.cast<t_gobj>(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, button.cast<t_gobj>(), b.getX(), b.getY());
             button->x_w = b.getWidth() - 1;
             button->x_h = b.getHeight() - 1;
         }
@@ -129,7 +130,8 @@ public:
     void paint(Graphics& g) override
     {
         auto const bounds = getLocalBounds().toFloat();
-
+        auto const sizeReduction = std::min(1.0f, getWidth() / 20.0f);
+        
         g.setColour(Colour::fromString(secondaryColour.toString()));
         g.fillRoundedRectangle(bounds.reduced(0.5f), Corners::objectCornerRadius);
 
@@ -139,11 +141,11 @@ public:
         g.drawRoundedRectangle(bounds.reduced(0.5f), Corners::objectCornerRadius, 1.0f);
 
         g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
-        g.drawRoundedRectangle(bounds.reduced(6), Corners::objectCornerRadius, 1.5f);
+        g.drawRoundedRectangle(bounds.reduced(6 * sizeReduction), Corners::objectCornerRadius * sizeReduction, 1.5f);
 
         if (state) {
             g.setColour(Colour::fromString(primaryColour.toString()));
-            g.fillRoundedRectangle(bounds.reduced(6), Corners::objectCornerRadius);
+            g.fillRoundedRectangle(bounds.reduced(6 * sizeReduction), Corners::objectCornerRadius * sizeReduction);
         }
     }
 
@@ -178,17 +180,9 @@ public:
         }
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("bgcolor"),
-            hash("fgcolor")
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("bgcolor"): {
             setParameterExcludingListener(secondaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
             repaint();

@@ -5,7 +5,7 @@ description: route an input with crossfade
 
 categories:
  - object
- 
+
 pdcategory: ELSE, Mixing and Routing
 
 arguments:
@@ -13,17 +13,24 @@ arguments:
   description: number of output channels (min 2, max 500)
   default: 2
 - type: float
-  description: <1> sets to indexed mode <0> sets to non-indexed
+  description: spread
   default: 1
-  
+
+flags:
+- name: index
+  description: sets to indexed mode
+
 inlets:
   1st:
   - type: signal
     description: channel selection
   2nd:
   - type: signal
-    description: input channel to be routed
-    
+    description: output position
+  3rd:
+  - type: signal
+    description: spread parameter
+
 outlets:
   1st:
   - type: signal

@@ -86,7 +86,11 @@ void Iolet::paint(Graphics& g)
     }
 
     auto backgroundColour = isSignal ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId);
-
+    if(isGemState)
+    {
+        backgroundColour = findColour(PlugDataColour::gemColourId);
+    }
+    
     if ((down || over) && !isLocked)
         backgroundColour = backgroundColour.contrasting(down ? 0.2f : 0.05f);
 
@@ -187,7 +191,6 @@ void Iolet::mouseUp(MouseEvent const& e)
             createConnection();
 
         } else if (!cnv->connectionsBeingCreated.isEmpty()) {
-            bool createdConnection = false;
             if (!wasDragged && !shiftIsDown) {
                 createConnection();
                 cnv->cancelConnectionCreation();
@@ -197,7 +200,6 @@ void Iolet::mouseUp(MouseEvent const& e)
 
                 cnv->nearestIolet->isTargeted = false;
                 cnv->nearestIolet->repaint();
-                createdConnection = true;
 
                 // CreateConnection will automatically create connections for all connections that are being created!
                 cnv->nearestIolet->createConnection();
@@ -343,14 +345,10 @@ void Iolet::createConnection()
             // Check type for input and output
             bool sameDirection = isInlet == c->getIolet()->isInlet;
 
-            bool connectionAllowed = c->getIolet()->object != object && !sameDirection;
+            bool connectionAllowed = c->getIolet() != this && c->getIolet()->object != object && !sameDirection;
 
-            // Don't create if this is the same iolet
-            if (c->getIolet() == this) {
-                object->cnv->connectionsBeingCreated.removeObject(c);
-            }
             // Create new connection if allowed
-            else if (connectionAllowed) {
+            if (connectionAllowed) {
 
                 auto outlet = isInlet ? c->getIolet() : this;
                 auto inlet = isInlet ? this : c->getIolet();
@@ -361,10 +359,13 @@ void Iolet::createConnection()
                 auto outIdx = outlet->ioletIdx;
                 auto inIdx = inlet->ioletIdx;
 
-                if (!outobj->getPointer() || !inobj->getPointer())
+                auto* outptr = pd::Interface::checkObject(outobj->getPointer());
+                auto* inptr = pd::Interface::checkObject(inobj->getPointer());
+
+                if (!outptr || !inptr)
                     return;
 
-                cnv->patch.createConnection(outobj->getPointer(), outIdx, inobj->getPointer(), inIdx);
+                cnv->patch.createConnection(outptr, outIdx, inptr, inIdx);
             }
         }
 
@@ -395,20 +396,6 @@ void Iolet::createConnection()
     }
 }
 
-void Iolet::clearConnections()
-{
-    auto* cnv = object->cnv;
-    for (auto* c : getConnections()) {
-
-        if (cnv->patch.hasConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx)) {
-            // Delete connection from pd if we haven't done that yet
-            cnv->patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getPathState());
-        }
-
-        cnv->connections.removeObject(c);
-    }
-}
-
 Array<Connection*> Iolet::getConnections()
 {
     Array<Connection*> result;
@@ -436,7 +423,7 @@ Iolet* Iolet::findNearestIolet(Canvas* cnv, Point<int> position, bool inlet, Obj
     Iolet* nearestIolet = nullptr;
 
     for (auto& iolet : allEdges) {
-        auto bounds = iolet->getCanvasBounds().expanded(50);
+        auto bounds = iolet->getCanvasBounds().expanded(30);
         if (bounds.contains(position)) {
             if (!nearestIolet)
                 nearestIolet = iolet;

@@ -1,0 +1,18 @@
+#N canvas 576 42 590 651 12;
+#X obj 31 43 keyboard 17 80 3 3 0 127 empty empty;
+#X obj 327 564 out~;
+#X obj 31 178 voices~ 4;
+#X obj 345 163 adsr~ 250 50 0.85 1000;
+#X obj 327 514 *~;
+#X obj 31 233 vco.m~;
+#A saved 0 0 0 0 1 0 0 0;
+#X obj 32 16 keymap;
+#X obj 160 571 about;
+#X text 100 571 see -->;
+#X connect 0 0 2 0;
+#X connect 2 0 5 0;
+#X connect 2 1 3 0;
+#X connect 3 0 4 1;
+#X connect 4 0 1 0;
+#X connect 5 0 4 0;
+#X connect 6 0 0 0;

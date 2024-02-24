@@ -15,7 +15,7 @@ typedef int (*t_mifireadhook)(t_mifiread *mf, void *hookdata, int evtype);
 #define MIFI_MAXTRACKS     0x7fff
 #define MIFI_MAXBEATTICKS  0x7fff
 
-/* event types, as returned by mifiread_nextevent(), ... */
+/* event types, as returned by cyclone_mifiread_nextevent(), ... */
 
 #define MIFIREAD_FATAL  -3  /* unexpected eof, last track's or file error */
 #define MIFIREAD_EOF    -2  /* regular eof */
@@ -63,48 +63,48 @@ typedef int (*t_mifireadhook)(t_mifiread *mf, void *hookdata, int evtype);
 /* true if one of the two shorter channel messages */
 #define MIFI_ONEDATABYTE(status)  (((status) & 0xe0) == 0xc0)
 
-int mifiread_getnevents(t_mifiread *mr);
-int mifiread_getntempi(t_mifiread *mr);
-int mifiread_gethdtracks(t_mifiread *mr);
-int mifiread_getformat(t_mifiread *mr);
-int mifiread_getnframes(t_mifiread *mr);
-int mifiread_getbeatticks(t_mifiread *mr);
-double mifiread_getdeftempo(t_mifiread *mr);
+int cyclone_mifiread_getnevents(t_mifiread *mr);
+int cyclone_mifiread_getntempi(t_mifiread *mr);
+int cyclone_mifiread_gethdtracks(t_mifiread *mr);
+int cyclone_mifiread_getformat(t_mifiread *mr);
+int cyclone_mifiread_getnframes(t_mifiread *mr);
+int cyclone_mifiread_getbeatticks(t_mifiread *mr);
+double cyclone_mifiread_getdeftempo(t_mifiread *mr);
 
-int mifiread_getbarindex(t_mifiread *mr);
-double mifiread_getbarspan(t_mifiread *mr);
-double mifiread_gettick(t_mifiread *mr);
-double mifiread_getscoretime(t_mifiread *mr);
-double mifiread_gettempo(t_mifiread *mr);
-double mifiread_getmscoef(t_mifiread *mr);
-t_symbol *mifiread_gettrackname(t_mifiread *mr);
-unsigned mifiread_getstatus(t_mifiread *mr);
-unsigned mifiread_getdata1(t_mifiread *mr);
-unsigned mifiread_getdata2(t_mifiread *mr);
-unsigned mifiread_getchannel(t_mifiread *mr);
-t_pd *mifiread_getowner(t_mifiread *mr);
+int cyclone_mifiread_getbarindex(t_mifiread *mr);
+double cyclone_mifiread_getbarspan(t_mifiread *mr);
+double cyclone_mifiread_gettick(t_mifiread *mr);
+double cyclone_mifiread_getscoretime(t_mifiread *mr);
+double cyclone_mifiread_gettempo(t_mifiread *mr);
+double cyclone_mifiread_getmscoef(t_mifiread *mr);
+t_symbol *cyclone_mifiread_gettrackname(t_mifiread *mr);
+unsigned cyclone_mifiread_getstatus(t_mifiread *mr);
+unsigned cyclone_mifiread_getdata1(t_mifiread *mr);
+unsigned cyclone_mifiread_getdata2(t_mifiread *mr);
+unsigned cyclone_mifiread_getchannel(t_mifiread *mr);
+t_pd *cyclone_mifiread_getowner(t_mifiread *mr);
 
-t_mifiread *mifiread_new(t_pd *owner);
-void mifiread_setuserticks(t_mifiread *mr, double wholeticks);
-int mifiread_open(t_mifiread *mr, const char *filename,
+t_mifiread *cyclone_mifiread_new(t_pd *owner);
+void cyclone_mifiread_setuserticks(t_mifiread *mr, double wholeticks);
+int cyclone_mifiread_open(t_mifiread *mr, const char *filename,
 		  const char *dirname, int complain);
-int mifiread_doit(t_mifiread *mr, t_mifireadhook hook, void *hookdata);
-void mifiread_close(t_mifiread *mr);
-void mifiread_free(t_mifiread *mr);
+int cyclone_mifiread_doit(t_mifiread *mr, t_mifireadhook hook, void *hookdata);
+void cyclone_mifiread_close(t_mifiread *mr);
+void cyclone_mifiread_free(t_mifiread *mr);
 
-t_mifiwrite *mifiwrite_new(t_pd *owner);
-void mifiwrite_sethardticks(t_mifiwrite *mw, int beatticks);
-void mifiwrite_setuserticks(t_mifiwrite *mw, double wholeticks);
-void mifiwrite_setusertempo(t_mifiwrite *mw, double tickspersec);
-int mifiwrite_open(t_mifiwrite *mw, const char *filename,
+t_mifiwrite *cyclone_mifiwrite_new(t_pd *owner);
+void cyclone_mifiwrite_sethardticks(t_mifiwrite *mw, int beatticks);
+void cyclone_mifiwrite_setuserticks(t_mifiwrite *mw, double wholeticks);
+void cyclone_mifiwrite_setusertempo(t_mifiwrite *mw, double tickspersec);
+int cyclone_mifiwrite_open(t_mifiwrite *mw, const char *filename,
 		   const char *dirname, int ntracks, int complain);
-int mifiwrite_opentrack(t_mifiwrite *mw, char *trackname, int complain);
-int mifiwrite_textevent(t_mifiwrite *mw, double delay,
+int cyclone_mifiwrite_opentrack(t_mifiwrite *mw, char *trackname, int complain);
+int cyclone_mifiwrite_textevent(t_mifiwrite *mw, double delay,
 			unsigned type, char *text);
-int mifiwrite_channelevent(t_mifiwrite *mw, double delay, unsigned status,
+int cyclone_mifiwrite_channelevent(t_mifiwrite *mw, double delay, unsigned status,
 			   unsigned channel, unsigned data1, unsigned data2);
-int mifiwrite_closetrack(t_mifiwrite *mw, double enddelay, int complain);
-void mifiwrite_close(t_mifiwrite *mw);
-void mifiwrite_free(t_mifiwrite *mw);
+int cyclone_mifiwrite_closetrack(t_mifiwrite *mw, double enddelay, int complain);
+void cyclone_mifiwrite_close(t_mifiwrite *mw);
+void cyclone_mifiwrite_free(t_mifiwrite *mw);
 
 #endif

@@ -8,7 +8,7 @@
 
 #pragma once
 
-// Draws a trigger button in the style of the PropertiesPanel, though it's meant to be used outside of the PropertiesPanel itself
+// Draws a trigger button in the style of the PropertiesPanel, though it's meant to be used outside PropertiesPanel itself
 class ActionButton : public Component {
 
     bool mouseIsOver = false;
@@ -16,9 +16,9 @@ class ActionButton : public Component {
 
 public:
     ActionButton(String iconToShow, String textToShow, bool roundOnTop = false)
-        : icon(std::move(iconToShow))
+        : roundTop(roundOnTop)
+        , icon(std::move(iconToShow))
         , text(std::move(textToShow))
-        , roundTop(roundOnTop)
     {
     }
 
@@ -93,22 +93,18 @@ public:
         addAndMakeVisible(removeButton);
         removeButton.onClick = [this] { deleteSelected(); };
         removeButton.setConnectedEdges(12);
-        removeButton.getProperties().set("Style", "SmallIcon");
 
         changeButton.setTooltip("Edit search path");
-        changeButton.getProperties().set("Style", "SmallIcon");
         addAndMakeVisible(changeButton);
         changeButton.setConnectedEdges(12);
         changeButton.onClick = [this] { editSelected(); };
 
         upButton.setTooltip("Move selection up");
-        upButton.getProperties().set("Style", "SmallIcon");
         addAndMakeVisible(upButton);
         upButton.setConnectedEdges(12);
         upButton.onClick = [this] { moveSelection(-1); };
 
-        upButton.setTooltip("Move selection down");
-        downButton.getProperties().set("Style", "SmallIcon");
+        downButton.setTooltip("Move selection down");
         addAndMakeVisible(downButton);
         downButton.setConnectedEdges(12);
         downButton.onClick = [this] { moveSelection(1); };
@@ -124,7 +120,8 @@ public:
 
         addAndMakeVisible(resetButton);
         resetButton.onClick = [this]() {
-            Dialogs::showOkayCancelDialog(&confirmationDialog, getParentComponent(), "Are you sure you want to reset all the search paths?",
+            
+            Dialogs::showOkayCancelDialog(&confirmationDialog, findParentComponentOfClass<Dialog>(), "Are you sure you want to reset all the search paths?",
                 [this](int result) {
                     if (result == 0)
                         return;
@@ -148,7 +145,7 @@ public:
     int getNumRows() override
     {
         return paths.size();
-    };
+    }
 
     std::pair<int, int> getContentXAndWidth()
     {
@@ -167,7 +164,7 @@ public:
 
         Path p;
         p.addRoundedRectangle(resetButtonBounds.reduced(3.0f), Corners::largeCornerRadius);
-        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
+        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 7);
 
         g.setColour(findColour(PlugDataColour::panelForegroundColourId));
         g.fillRoundedRectangle(resetButtonBounds, Corners::largeCornerRadius);
@@ -180,7 +177,7 @@ public:
 
         p = Path();
         p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
-        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
+        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 7);
 
         g.setColour(findColour(PlugDataColour::panelForegroundColourId));
         g.fillRoundedRectangle(propertyBounds, Corners::largeCornerRadius);
@@ -270,7 +267,7 @@ public:
     void filesDropped(StringArray const& filenames, int x, int y) override
     {
         for (int i = filenames.size(); --i >= 0;) {
-            const File f(filenames[i]);
+            File const f(filenames[i]);
             if (f.isDirectory()) {
                 paths.add(f.getFullPathName());
                 internalChange();
@@ -332,7 +329,7 @@ private:
             selectionBounds = selectionBounds.reduced(0, 2);
             auto buttonHeight = selectionBounds.getHeight();
 
-            selectionBounds.removeFromRight(38);
+            selectionBounds.removeFromRight(50);
 
             removeButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
             changeButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
@@ -357,17 +354,14 @@ private:
         if (start == File())
             start = File::getCurrentWorkingDirectory();
 
-        chooser = std::make_unique<FileChooser>("Add a folder...", start, "*");
-        auto chooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories;
-
-        chooser->launchAsync(chooserFlags,
-            [this](FileChooser const& fc) {
-                if (fc.getResult() == File {})
-                    return;
-
-                paths.addIfNotAlreadyThere(fc.getResult().getFullPathName(), listBox.getSelectedRow());
+        Dialogs::showOpenDialog([this](URL url) {
+            auto result = url.getLocalFile();
+            if (result.exists()) {
+                paths.addIfNotAlreadyThere(result.getFullPathName(), listBox.getSelectedRow());
                 internalChange();
-            });
+            }
+        },
+            false, true, "", "PathBrowser", getTopLevelComponent());
     }
 
     void deleteSelected()
@@ -382,18 +376,16 @@ private:
             return;
 
         auto row = listBox.getSelectedRow();
-        chooser = std::make_unique<FileChooser>("Change folder...", paths[row], "*", SettingsFile::getInstance()->wantsNativeDialog());
-        auto chooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories;
 
-        chooser->launchAsync(chooserFlags,
-            [this, row](FileChooser const& fc) {
-                if (fc.getResult() == File {})
-                    return;
-
+        Dialogs::showOpenDialog([this, row](URL url) {
+            auto result = url.getLocalFile();
+            if (result.exists()) {
                 paths.remove(row);
-                paths.addIfNotAlreadyThere(fc.getResult().getFullPathName(), row);
+                paths.addIfNotAlreadyThere(result.getFullPathName(), row);
                 internalChange();
-            });
+            }
+        },
+            false, true, "", "PathBrowser", getTopLevelComponent());
 
         internalChange();
     }
@@ -438,17 +430,16 @@ private:
 
     StringArray paths;
     File defaultBrowseTarget;
-    std::unique_ptr<FileChooser> chooser;
 
     ListBox listBox;
 
-    TextButton upButton = TextButton(Icons::Up);
-    TextButton downButton = TextButton(Icons::Down);
+    SmallIconButton upButton = SmallIconButton(Icons::Up);
+    SmallIconButton downButton = SmallIconButton(Icons::Down);
 
     ActionButton addButton = ActionButton(Icons::Add, "Add search path");
     ActionButton resetButton = ActionButton(Icons::Reset, "Reset to default search paths", true);
-    TextButton removeButton = TextButton(Icons::Clear);
-    TextButton changeButton = TextButton(Icons::Edit);
+    SmallIconButton removeButton = SmallIconButton(Icons::Clear);
+    SmallIconButton changeButton = SmallIconButton(Icons::Edit);
 
     ValueTree tree;
 
@@ -480,10 +471,8 @@ public:
         addAndMakeVisible(removeButton);
         removeButton.onClick = [this] { deleteSelected(); };
         removeButton.setConnectedEdges(12);
-        removeButton.getProperties().set("Style", "SmallIcon");
 
         changeButton.setTooltip("Edit library");
-        changeButton.getProperties().set("Style", "SmallIcon");
         addAndMakeVisible(changeButton);
         changeButton.setConnectedEdges(12);
         changeButton.onClick = [this] { editSelected(); };
@@ -528,7 +517,7 @@ public:
 
         Path p;
         p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
-        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
+        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 7);
 
         g.setColour(findColour(PlugDataColour::panelForegroundColourId));
         g.fillRoundedRectangle(propertyBounds, Corners::largeCornerRadius);
@@ -634,10 +623,12 @@ public:
         auto librariesTree = SettingsFile::getInstance()->getLibrariesTree();
         librariesTree.removeAllChildren(nullptr);
 
-        for (auto const& i : librariesToLoad) {
-            auto newLibrary = ValueTree("Library");
-            newLibrary.setProperty("Name", i, nullptr);
-            librariesTree.appendChild(newLibrary, nullptr);
+        for (auto const& name : librariesToLoad) {
+            if(name.isNotEmpty()) {
+                auto newLibrary = ValueTree("Library");
+                newLibrary.setProperty("Name", name, nullptr);
+                librariesTree.appendChild(newLibrary, nullptr);
+            }
         }
 
         listBox.updateContent();
@@ -658,7 +649,7 @@ public:
             selectionBounds = selectionBounds.reduced(0, 2);
             auto buttonHeight = selectionBounds.getHeight();
 
-            selectionBounds.removeFromRight(38);
+            selectionBounds.removeFromRight(50);
 
             removeButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
             changeButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
@@ -717,8 +708,8 @@ private:
     ListBox listBox;
 
     ActionButton addButton = ActionButton(Icons::Add, "Add library to load on startup");
-    TextButton removeButton = TextButton(Icons::Clear);
-    TextButton changeButton = TextButton(Icons::Edit);
+    SmallIconButton removeButton = SmallIconButton(Icons::Clear);
+    SmallIconButton changeButton = SmallIconButton(Icons::Edit);
 
     ValueTree tree;
 
@@ -728,7 +719,7 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LibraryLoadPanel)
 };
 
-class PathsAndLibrariesPanel : public Component
+class PathsAndLibrariesPanel : public SettingsDialogPanel
     , public ComponentListener {
 public:
     PathsAndLibrariesPanel()

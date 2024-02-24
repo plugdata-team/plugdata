@@ -18,13 +18,18 @@ class RadioObject final : public ObjectBase {
     Value sizeProperty = SynchronousValue();
 
 public:
-    RadioObject(void* ptr, Object* object)
+    RadioObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {
         objectParameters.addParamSize(&sizeProperty, true);
         objectParameters.addParamInt("Options", cGeneral, &max, 8);
         iemHelper.addIemParameters(objectParameters);
+        
+        if (auto radio = ptr.get<t_radio>()) {
+            isVertical = radio->x_orientation;
+            sizeProperty = isVertical ? radio->x_gui.x_w : radio->x_gui.x_h;
+        }
     }
 
     void update() override
@@ -80,9 +85,9 @@ public:
                 return {};
 
             int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(patch, radio.get(), &x, &y, &w, &h);
-            auto width = !isVertical ? (radio->x_gui.x_h + 1) * numItems : (radio->x_gui.x_w + 1);
-            auto height = isVertical ? (radio->x_gui.x_w + 1) * numItems : (radio->x_gui.x_h + 1);
+            pd::Interface::getObjectBounds(patch, radio.cast<t_gobj>(), &x, &y, &w, &h);
+            auto width = !isVertical ? (radio->x_gui.x_h * numItems) + 1 : (radio->x_gui.x_w + 1);
+            auto height = isVertical ? (radio->x_gui.x_w * numItems) + 1 : (radio->x_gui.x_h + 1);
 
             return { x, y, width, height };
         }
@@ -109,21 +114,9 @@ public:
         }
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("float"),
-            hash("list"),
-            hash("set"),
-            hash("orientation"),
-            hash("number"),
-            IEMGUI_MESSAGES
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("float"):
         case hash("list"):
         case hash("set"): {
@@ -132,7 +125,7 @@ public:
             break;
         }
         case hash("orientation"): {
-            if (atoms.size() >= 1) {
+            if (numAtoms >= 1) {
                 isVertical = static_cast<bool>(atoms[0].getFloat());
                 object->updateBounds();
                 updateAspectRatio();
@@ -140,12 +133,12 @@ public:
             break;
         }
         case hash("number"): {
-            if (atoms.size() >= 1)
+            if (numAtoms >= 1)
                 max = getMaximum();
             break;
         }
         default: {
-            iemHelper.receiveObjectMessage(symbol, atoms);
+            iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
             break;
         }
         }
@@ -202,7 +195,8 @@ public:
         float selectionY = isVertical ? selected * size : 0;
 
         auto selectionBounds = Rectangle<float>(selectionX, selectionY, size, size);
-        g.fillRoundedRectangle(selectionBounds.reduced(5), Corners::objectCornerRadius / 2.0f);
+        
+        g.fillRoundedRectangle(selectionBounds.reduced(jmin<int>(size * 0.25f, 5)), Corners::objectCornerRadius / 2.0f);
     }
 
     void paintOverChildren(Graphics& g) override
@@ -216,16 +210,17 @@ public:
 
     void updateAspectRatio()
     {
-        float verticalLength = ((object->getWidth() - Object::doubleMargin) * numItems) + Object::doubleMargin;
-        float horizontalLength = ((object->getHeight() - Object::doubleMargin) * numItems) + Object::doubleMargin;
+        auto b = getPdBounds();
+        float verticalLength = (b.getWidth() * numItems) + Object::doubleMargin;
+        float horizontalLength = (b.getHeight() * numItems) + Object::doubleMargin;
 
         auto minLongSide = object->minimumSize * numItems;
         auto minShortSide = object->minimumSize;
         if (isVertical) {
-            object->setSize(object->getWidth(), verticalLength);
+            object->setSize(b.getWidth() + Object::doubleMargin, verticalLength);
             constrainer->setMinimumSize(minShortSide, minLongSide);
         } else {
-            object->setSize(horizontalLength, object->getHeight());
+            object->setSize(horizontalLength, b.getHeight() + Object::doubleMargin);
             constrainer->setMinimumSize(minLongSide, minShortSide);
         }
         constrainer->setFixedAspectRatio(isVertical ? 1.0f / numItems : static_cast<float>(numItems) / 1.0f);
@@ -241,10 +236,10 @@ public:
             if (auto radio = ptr.get<t_radio>()) {
                 if (isVertical) {
                     radio->x_gui.x_w = size;
-                    radio->x_gui.x_h = size * numItems;
+                    radio->x_gui.x_h = size;
                 } else {
                     radio->x_gui.x_h = size;
-                    radio->x_gui.x_w = size * numItems;
+                    radio->x_gui.x_w = size;
                 }
             }
 
@@ -279,9 +274,13 @@ public:
 
     void updateSizeProperty() override
     {
-        setPdBounds(object->getObjectBounds());
-
         if (auto radio = ptr.get<t_radio>()) {
+            auto size = isVertical ? object->getWidth() : object->getHeight();
+            size -= (Object::doubleMargin + 1);
+            
+            radio->x_gui.x_w = size;
+            radio->x_gui.x_h = size;
+            
             setParameterExcludingListener(sizeProperty, isVertical ? var(radio->x_gui.x_w) : var(radio->x_gui.x_h));
         }
     }

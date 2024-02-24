@@ -34,6 +34,7 @@
 #include "Utility/SettingsFile.h"
 #include "Utility/RateReducer.h"
 #include "Utility/MidiDeviceManager.h"
+#include "../PluginEditor.h"
 
 // For each OS, we have a different approach to rendering the window shadow
 // macOS:
@@ -51,7 +52,7 @@ static bool drawWindowShadow = true;
 
 namespace pd {
 class Patch;
-};
+}
 
 class PlugDataProcessorPlayer : public AudioProcessorPlayer {
 public:
@@ -71,8 +72,7 @@ public:
     MidiDeviceManager midiDeviceManager;
 };
 
-class StandalonePluginHolder : private AudioIODeviceCallback
-    , private Value::Listener {
+class StandalonePluginHolder : private AudioIODeviceCallback {
 public:
     /** Structure used for the number of inputs and outputs. */
     struct PluginInOuts {
@@ -98,8 +98,6 @@ public:
         : settings(settingsToUse, takeOwnershipOfSettings)
         , channelConfiguration(channels)
     {
-        shouldMuteInput.addListener(this);
-        shouldMuteInput = !isInterAppAudioConnected();
 
         createPlugin();
 
@@ -123,31 +121,23 @@ public:
     void init(bool enableAudioInput, String const& preferredDefaultDeviceName)
     {
         setupAudioDevices(enableAudioInput, preferredDefaultDeviceName, options.get());
-
         startPlaying();
     }
 
     ~StandalonePluginHolder() override
     {
-
-        deletePlugin();
+        savePluginState();
+        processor->suspendProcessing(true);
+        stopPlaying();
+        processor = nullptr;
         shutDownAudioDevices();
     }
 
     virtual void createPlugin()
     {
         processor = createPluginFilterOfType(AudioProcessor::wrapperType_Standalone);
-
         processor->disableNonMainBuses();
         processor->setRateAndBufferSizeDetails(44100, 512);
-
-        processorHasPotentialFeedbackLoop = (getNumInputChannels() > 0 && getNumOutputChannels() > 0);
-    }
-
-    virtual void deletePlugin()
-    {
-        stopPlaying();
-        processor = nullptr;
     }
 
     int getNumInputChannels() const
@@ -174,19 +164,6 @@ public:
         return (fileSuffix.startsWithChar('.') ? "*" : "*.") + fileSuffix;
     }
 
-    Value& getMuteInputValue()
-    {
-        return shouldMuteInput;
-    }
-    bool getProcessorHasPotentialFeedbackLoop() const
-    {
-        return processorHasPotentialFeedbackLoop;
-    }
-    void valueChanged(Value& value) override
-    {
-        muteInput = getValue<bool>(value);
-    }
-
     void startPlaying()
     {
         player.setProcessor(processor.get());
@@ -203,10 +180,6 @@ public:
             auto xml = deviceManager.createStateXml();
 
             settings->setValue("audioSetup", xml.get());
-
-#if !(JUCE_IOS || JUCE_ANDROID)
-            settings->setValue("shouldMuteInput", getValue<bool>(shouldMuteInput));
-#endif
         }
     }
 
@@ -216,10 +189,6 @@ public:
 
         if (settings != nullptr) {
             savedState = settings->getXmlValue("audioSetup");
-
-#if !(JUCE_IOS || JUCE_ANDROID)
-            shouldMuteInput.setValue(false);
-#endif
         }
 
         auto inputChannels = getNumInputChannels();
@@ -275,12 +244,6 @@ public:
     AudioDeviceManager deviceManager;
     PlugDataProcessorPlayer player;
     Array<PluginInOuts> channelConfiguration;
-
-    // avoid feedback loop by default
-    bool processorHasPotentialFeedbackLoop = true;
-    std::atomic<bool> muteInput { true };
-    Value shouldMuteInput;
-    AudioBuffer<float> emptyBuffer;
 
     std::unique_ptr<AudioDeviceManager::AudioDeviceSetup> options;
     Array<MidiDeviceInfo> lastMidiDevices;
@@ -380,11 +343,6 @@ private:
         int numSamples,
         AudioIODeviceCallbackContext const& context) override
     {
-        if (muteInput) {
-            emptyBuffer.clear();
-            inputChannelData = emptyBuffer.getArrayOfReadPointers();
-        }
-
         player.audioDeviceIOCallbackWithContext(inputChannelData,
             numInputChannels,
             outputChannelData,
@@ -395,21 +353,21 @@ private:
 
     void audioDeviceAboutToStart(AudioIODevice* device) override
     {
-        emptyBuffer.setSize(device->getActiveInputChannels().countNumberOfSetBits(), device->getCurrentBufferSizeSamples());
-        emptyBuffer.clear();
-
         player.audioDeviceAboutToStart(device);
     }
 
     void audioDeviceStopped() override
     {
         player.audioDeviceStopped();
-        emptyBuffer.setSize(0, 0);
     }
 
     void setupAudioDevices(bool enableAudioInput, String const& preferredDefaultDeviceName, AudioDeviceManager::AudioDeviceSetup const* preferredSetupOptions)
     {
+#if JUCE_IOS
         deviceManager.addAudioCallback(&maxSizeEnforcer);
+#else
+        deviceManager.addAudioCallback(this);
+#endif
         deviceManager.addMidiInputDeviceCallback({}, &player);
 
         reloadAudioDeviceState(enableAudioInput, preferredDefaultDeviceName, preferredSetupOptions);
@@ -420,7 +378,12 @@ private:
         saveAudioDeviceState();
 
         deviceManager.removeMidiInputDeviceCallback({}, &player);
+
+#if JUCE_IOS
         deviceManager.removeAudioCallback(&maxSizeEnforcer);
+#else
+        deviceManager.removeAudioCallback(this);
+#endif
     }
 
     OwnedArray<MidiInput> customMidiInputs;
@@ -437,11 +400,14 @@ private:
 
  @tags{Audio}
  */
+
 class PlugDataWindow : public DocumentWindow
     , public SettingsFileListener {
 
     Image shadowImage;
     std::unique_ptr<StackDropShadower> dropShadower;
+    AudioProcessorEditor* editor;
+    StandalonePluginHolder* pluginHolder;
 
 public:
     typedef StandalonePluginHolder::PluginInOuts PluginInOuts;
@@ -451,90 +417,53 @@ public:
      store its settings (it can also be null). If takeOwnershipOfSettings is
      true, then the settings object will be owned and deleted by this object.
      */
-    PlugDataWindow(String const& systemArguments, String const& title, Colour backgroundColour, PropertySet* settingsToUse, bool takeOwnershipOfSettings, String const& preferredDefaultDeviceName = String(), AudioDeviceManager::AudioDeviceSetup const* preferredSetupOptions = nullptr,
-        Array<PluginInOuts> const& constrainToConfiguration = {})
-        : DocumentWindow(title, backgroundColour, DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton)
+    PlugDataWindow(AudioProcessorEditor* pluginEditor)
+        : DocumentWindow("plugdata", LookAndFeel::getDefaultLookAndFeel().findColour(ResizableWindow::backgroundColourId), DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton)
+        , editor(pluginEditor)
     {
-
         setTitleBarHeight(0);
+        pluginHolder = ProjectInfo::getStandalonePluginHolder();
 
         drawWindowShadow = Desktop::canUseSemiTransparentWindows();
 
         setTitleBarButtonsRequired(DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton, false);
+        setOpaque(false);
 
-        pluginHolder = std::make_unique<StandalonePluginHolder>(settingsToUse, takeOwnershipOfSettings, preferredDefaultDeviceName, preferredSetupOptions, constrainToConfiguration);
-
-        parseSystemArguments(systemArguments);
-
-        mainComponent = new MainContentComponent(*this);
+        mainComponent = new MainContentComponent(*this, editor);
 
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
-        bool hasReloadStateProperty = settingsTree.hasProperty("reload_last_state");
-
-        // When starting with any sysargs, assume we don't want the last patch to open
-        // Prevents a possible crash and generally kinda makes sense
-        if (systemArguments.isEmpty() && hasReloadStateProperty && static_cast<bool>(settingsTree.getProperty("reload_last_state"))) {
-            pluginHolder->reloadPluginState();
-        }
 
         setContentOwned(mainComponent, true);
 
         // Make sure it gets updated on init
         propertyChanged("native_window", settingsTree.getProperty("native_window"));
-
-        auto const getWindowScreenBounds = [this]() -> Rectangle<int> {
-            const auto width = getWidth();
-            const auto height = getHeight();
-
-            const auto& displays = Desktop::getInstance().getDisplays();
-
-            if (auto* props = pluginHolder->settings.get()) {
-                constexpr int defaultValue = -100;
-
-                const auto x = props->getIntValue("windowX", defaultValue);
-                const auto y = props->getIntValue("windowY", defaultValue);
-
-                if (x != defaultValue && y != defaultValue) {
-                    const auto screenLimits = displays.getDisplayForRect({ x, y, width, height })->userArea;
-
-                    return { jlimit(screenLimits.getX(), jmax(screenLimits.getX(), screenLimits.getRight() - width), x), jlimit(screenLimits.getY(), jmax(screenLimits.getY(), screenLimits.getBottom() - height), y), width, height };
-                }
-            }
-
-            const auto displayArea = displays.getPrimaryDisplay()->userArea;
-
-            return { displayArea.getCentreX() - width / 2, displayArea.getCentreY() - height / 2, width, height };
-        };
-
-        setBoundsConstrained(getWindowScreenBounds());
     }
 
     void propertyChanged(String const& name, var const& value) override
     {
         if (name == "native_window") {
+            auto nativeWindow = static_cast<bool>(value);
+#if JUCE_IOS
+            nativeWindow = true;
+#endif
 
-            bool nativeWindow = static_cast<bool>(value);
-
-            auto* editor = getAudioProcessor()->getActiveEditor();
+            auto* editor = mainComponent->getEditor();
+            auto* pdEditor = dynamic_cast<PluginEditor*>(editor);
 
             setUsingNativeTitleBar(nativeWindow);
 
             if (!nativeWindow) {
-
                 setOpaque(false);
-
                 setResizable(false, false);
-
+                // we also need to set the constrainer of THIS window so it's set for the peer
+                setConstrainer(&pdEditor->constrainer);
+                pdEditor->setUseBorderResizer(true);
                 if (drawWindowShadow) {
-
 #if JUCE_MAC
                     setDropShadowEnabled(true);
-#else
+#elif JUCE_WINDOWS
                     setDropShadowEnabled(false);
-#endif
-
-#if JUCE_WINDOWS
-                    dropShadower = std::make_unique<StackDropShadower>(DropShadow(Colour(0, 0, 0).withAlpha(0.8f), 22, { 0, 3 }));
+                    dropShadower = std::make_unique<StackDropShadower>(DropShadow(Colour(0, 0, 0).withAlpha(0.8f), 23, { 0, 2 }));
                     dropShadower->setOwner(this);
 #endif
                 } else {
@@ -544,12 +473,27 @@ public:
                 setOpaque(true);
                 dropShadower.reset(nullptr);
                 setDropShadowEnabled(true);
+                setConstrainer(nullptr);
                 setResizable(true, false);
+                setResizeLimits(850, 650, 99000, 99000);
+                pdEditor->setUseBorderResizer(false);
             }
 
             editor->resized();
             resized();
             repaint();
+        }
+        if (name == "macos_buttons") {
+            bool isEnabled = true;
+            if (auto* closeButton = getCloseButton())
+                isEnabled = closeButton->isEnabled();
+            lookAndFeelChanged();
+            if (auto* closeButton = getCloseButton())
+                closeButton->setEnabled(isEnabled);
+            if (auto* minimiseButton = getMinimiseButton())
+                minimiseButton->setEnabled(isEnabled);
+            if (auto* maximiseButton = getMaximiseButton())
+                maximiseButton->setEnabled(isEnabled);
         }
     }
 
@@ -557,9 +501,7 @@ public:
 
     ~PlugDataWindow() override
     {
-        pluginHolder->stopPlaying();
         clearContentComponent();
-        pluginHolder = nullptr;
     }
 
     BorderSize<int> getBorderThickness() override
@@ -567,29 +509,17 @@ public:
         return BorderSize<int>(0);
     }
 
-    AudioProcessor* getAudioProcessor() const noexcept
-    {
-        return pluginHolder->processor.get();
-    }
-
-    /*
-    AudioDeviceManager& getDeviceManager() const noexcept
-    {
-        return pluginHolder->deviceManager;
-    } */
-
     /** Deletes and re-creates the plugin, resetting it to its default state. */
     void resetToDefaultState()
     {
         pluginHolder->stopPlaying();
         clearContentComponent();
-        pluginHolder->deletePlugin();
 
         if (auto* props = pluginHolder->settings.get())
             props->removeValue("filterState");
 
         pluginHolder->createPlugin();
-        setContentOwned(new MainContentComponent(*this), true);
+        setContentOwned(new MainContentComponent(*this, pluginHolder->processor->createEditorIfNeeded()), true);
         pluginHolder->startPlaying();
     }
 
@@ -604,29 +534,37 @@ public:
 
     void closeButtonPressed() override
     {
-        // Save plugin state to allow reloading
-        pluginHolder->savePluginState();
-
-        pluginHolder->processor->suspendProcessing(true);
-
         // Close all patches, allowing them to save first
         closeAllPatches();
     }
 
-    void closeAllPatches(); // implemented in PlugDataApp.cpp
+    // implemented in PlugDataApp.cpp
+    void closeAllPatches();
+
+    bool isMaximised() const
+    {
+#if JUCE_LINUX
+        if (auto* b = getMaximiseButton()) {
+            return b->getToggleState();
+        } else {
+            return isFullScreen();
+        }
+#else
+        return isFullScreen();
+#endif
+    }
 
     void maximiseButtonPressed() override
     {
 #if JUCE_LINUX || JUCE_BSD
         if (auto* b = getMaximiseButton()) {
             if (auto* peer = getPeer()) {
-                bool shouldBeMaximised = isFullScreen();
+                bool shouldBeMaximised = OSUtils::isX11WindowMaximised(peer->getNativeHandle());
                 b->setToggleState(!shouldBeMaximised, dontSendNotification);
 
                 if (!isUsingNativeTitleBar()) {
-                    OSUtils::maximiseX11Window(getPeer()->getNativeHandle(), !shouldBeMaximised);
+                    OSUtils::maximiseX11Window(peer->getNativeHandle(), !shouldBeMaximised);
                 }
-                setFullScreen(!isFullScreen());
             } else {
                 b->setToggleState(false, dontSendNotification);
             }
@@ -645,21 +583,33 @@ public:
             Path localPath;
             localPath.addRoundedRectangle(b.toFloat().reduced(22.0f), Corners::windowCornerRadius);
 
-            int radius = isActiveWindow() ? 21 : 16;
-            StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), radius, { 0, 3 });
+            int radius = isActiveWindow() ? 22 : 17;
+            StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), radius, { 0, 2 });
         }
     }
+#endif
+
+#if JUCE_WINDOWS
+    void paintOverChildren(Graphics& g) override
+    {
+        g.setColour(findColour(PlugDataColour::outlineColourId));
+        if (isUsingNativeTitleBar() || isMaximised()) {
+            g.drawRect(getLocalBounds().toFloat(), 1.0f);
+        } else {
+            g.drawRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
+        }
+    }
+#endif
+
     void activeWindowStatusChanged() override
     {
         repaint();
-    }
-#elif JUCE_WINDOWS
-    void activeWindowStatusChanged() override
-    {
+
+#if JUCE_WINDOWS
         if (drawWindowShadow && !isUsingNativeTitleBar() && dropShadower)
             dropShadower->repaint();
-    }
 #endif
+    }
 
     void resized() override
     {
@@ -686,30 +636,19 @@ public:
         }
     }
 
-    virtual StandalonePluginHolder* getPluginHolder()
-    {
-        return pluginHolder.get();
-    }
-
-    bool hasOpenedDialog();
-
-    std::unique_ptr<StandalonePluginHolder> pluginHolder;
-
 private:
     class MainContentComponent : public Component
         , private ComponentListener
         , public MenuBarModel {
 
     public:
-        MainContentComponent(PlugDataWindow& filterWindow)
+        MainContentComponent(PlugDataWindow& filterWindow, AudioProcessorEditor* pluginEditor)
             : owner(filterWindow)
-            , editor(owner.getAudioProcessor()->hasEditor() ? owner.getAudioProcessor()->createEditorIfNeeded() : new GenericAudioProcessorEditor(*owner.getAudioProcessor()))
+            , editor(pluginEditor)
         {
-            inputMutedValue.referTo(owner.pluginHolder->getMuteInputValue());
-
             if (editor != nullptr) {
 
-                auto* commandManager = dynamic_cast<ApplicationCommandManager*>(editor.get());
+                auto* commandManager = &dynamic_cast<PluginEditor*>(editor.getComponent())->commandManager;
 
                 // Menubar, only for standalone on mac
                 // Doesn't add any new features, but was easy to implement because we already have a command manager
@@ -721,38 +660,14 @@ private:
                 editor->addComponentListener(this);
                 componentMovedOrResized(*editor, false, true);
 
-                addAndMakeVisible(editor.get());
+                addAndMakeVisible(editor.getComponent());
                 editor->setAlwaysOnTop(true);
             }
         }
 
-        void paintOverChildren(Graphics& g) override
-        {
-#if JUCE_LINUX || JUCE_BSD
-            if (!owner.isUsingNativeTitleBar() && !owner.hasOpenedDialog()) {
-                g.setColour(findColour(PlugDataColour::outlineColourId));
-
-                if (!Desktop::canUseSemiTransparentWindows()) {
-                    g.drawRect(getLocalBounds().toFloat().reduced(getMargin()), 1.0f);
-                } else {
-                    g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(getMargin()), Corners::windowCornerRadius, 1.0f);
-                }
-            }
-#elif JUCE_WINDOWS
-
-            g.setColour(findColour(PlugDataColour::outlineColourId));
-            if (owner.isUsingNativeTitleBar()) {
-                g.drawRect(getLocalBounds(), 1.0f);
-            } else {
-                g.drawRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
-            }
-
-#endif
-        }
-
         AudioProcessorEditor* getEditor()
         {
-            return editor.get();
+            return editor;
         }
 
         StringArray getMenuBarNames() override
@@ -786,7 +701,7 @@ private:
         {
             PopupMenu menu;
 
-            auto* commandManager = dynamic_cast<ApplicationCommandManager*>(editor.get());
+            auto* commandManager = &dynamic_cast<PluginEditor*>(editor.getComponent())->commandManager;
 
             if (topLevelMenuIndex == 0) {
                 menu.addCommandItem(commandManager, CommandIDs::NewProject);
@@ -819,15 +734,26 @@ private:
 #endif
             if (editor != nullptr) {
                 editor->removeComponentListener(this);
-                owner.pluginHolder->processor->editorBeingDeleted(editor.get());
-                editor = nullptr;
             }
         }
+            
+#if JUCE_IOS
+            void paint(Graphics& g) override
+            {
+                g.fillAll(findColour(PlugDataColour::toolbarBackgroundColourId));
+            }
+#endif
 
         void resized() override
         {
             auto r = getLocalBounds().reduced(getMargin());
-
+            
+#if JUCE_IOS
+            if(auto* peer = getPeer()) {
+                r = OSUtils::getSafeAreaInsets().subtractedFrom(r);
+            }
+#endif
+            
             if (editor != nullptr) {
                 auto const newPos = r.getTopLeft().toFloat().transformedBy(editor->getTransform().inverted());
 
@@ -845,7 +771,6 @@ private:
     public:
         Rectangle<int> oldBounds;
 
-    private:
         void componentMovedOrResized(Component&, bool, bool) override
         {
             ScopedValueSetter<bool> const scope(preventResizingEditor, true);
@@ -857,37 +782,24 @@ private:
             }
         }
 
+    private:
         Rectangle<int> getSizeToContainEditor() const
         {
             if (editor != nullptr)
-                return getLocalArea(editor.get(), editor->getLocalBounds()).expanded(getMargin());
+                return getLocalArea(editor.getComponent(), editor->getLocalBounds()).expanded(getMargin());
 
             return {};
         }
 
-        PlugDataWindow& owner;
-        std::unique_ptr<AudioProcessorEditor> editor;
-        Value inputMutedValue;
         bool preventResizingEditor = false;
+        PlugDataWindow& owner;
+        SafePointer<AudioProcessorEditor> editor;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainContentComponent)
     };
 
+public:
     MainContentComponent* mainComponent = nullptr;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataWindow)
 };
-
-inline StandalonePluginHolder* StandalonePluginHolder::getInstance()
-{
-    if (PluginHostType::getPluginLoadedAs() == AudioProcessor::wrapperType_Standalone) {
-        auto& desktop = Desktop::getInstance();
-        int const numTopLevelWindows = desktop.getNumComponents();
-
-        for (int i = 0; i < numTopLevelWindows; ++i)
-            if (auto window = dynamic_cast<PlugDataWindow*>(desktop.getComponent(i)))
-                return window->getPluginHolder();
-    }
-
-    return nullptr;
-}

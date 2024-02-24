@@ -12,7 +12,7 @@ class SubpatchObject final : public TextBase {
     bool locked = false;
 
 public:
-    SubpatchObject(void* obj, Object* object)
+    SubpatchObject(pd::WeakReference obj, Object* object)
         : TextBase(obj, object)
         , subpatch(new pd::Patch(obj, cnv->pd, false))
     {
@@ -53,7 +53,7 @@ public:
         }
 
         isGraphChild = graph;
-    };
+    }
 
     void mouseDown(MouseEvent const& e) override
     {
@@ -65,9 +65,8 @@ public:
         }
 
         //  If locked and it's a left click
-        if (locked && !e.mods.isRightButtonDown() && !object->attachedToMouse) {
+        if (locked && !e.mods.isRightButtonDown()) {
             openSubpatch();
-
             return;
         } else {
             TextBase::mouseDown(e);
@@ -86,10 +85,6 @@ public:
         return subpatch;
     }
 
-    void checkGraphState()
-    {
-    }
-
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(isGraphChild)) {
@@ -105,7 +100,7 @@ public:
 
                     _this->cnv->setSelected(object, false);
                     _this->object->cnv->editor->sidebar->hideParameters();
-                    _this->object->setType(_this->getText(), ptr.getRaw<void>());
+                    _this->object->setType(_this->getText(), ptr);
                 });
             }
 
@@ -116,17 +111,9 @@ public:
         }
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("coords"),
-            hash("donecanvasdialog")
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("coords"): {
             update();
             break;
@@ -163,22 +150,24 @@ public:
             return;
         }
 
-        for (auto* object : patch->getObjects()) {
-            const String type = libpd_get_object_class_name(object);
+        for (auto object : patch->getObjects()) {
+            if (auto ptr = object.get<t_pd>()) {
+                String const type = pd::Interface::getObjectClassName(ptr.get());
 
-            if (type == "canvas" || type == "graph") {
-                pd::Patch::Ptr subpatch = new pd::Patch(object, instance, false);
+                if (type == "canvas" || type == "graph") {
+                    pd::Patch::Ptr subpatch = new pd::Patch(object, instance, false);
 
-                char* text = nullptr;
-                int size = 0;
-                libpd_get_object_text(object, &text, &size);
-                auto objName = String::fromUTF8(text, size);
+                    char* text = nullptr;
+                    int size = 0;
+                    pd::Interface::getObjectText(&ptr.cast<t_canvas>()->gl_obj, &text, &size);
+                    auto objName = String::fromUTF8(text, size);
 
-                checkHvccCompatibility(objName, subpatch, prefix + objName + " -> ");
-                freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
-                
-            } else if (!HeavyCompatibleObjects::getAllCompatibleObjects().contains(type)) {
-                instance->logWarning(String("Warning: object \"" + prefix + type + "\" is not supported in Compiled Mode"));
+                    checkHvccCompatibility(objName, subpatch, prefix + objName + " -> ");
+                    freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
+
+                } else if (!HeavyCompatibleObjects::getAllCompatibleObjects().contains(type)) {
+                    instance->logWarning(String("Warning: object \"" + prefix + type + "\" is not supported in Compiled Mode"));
+                }
             }
         }
     }

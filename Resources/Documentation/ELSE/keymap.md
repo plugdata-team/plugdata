@@ -8,6 +8,12 @@ categories:
 pdcategory: ELSE, UI, MIDI
 
 arguments:
+- description: number of octaves up or down
+  type: float
+  default: 0
+- description: non zero sets to toggle mode
+  type: float
+  default: 0
 
 inlets:
   1st:
@@ -21,6 +27,8 @@ outlets:
   2nd:
   - type: float
     description: transposition value
+
+
 
 draft: false
 ---

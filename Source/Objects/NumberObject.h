@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "Utility/DraggableNumber.h"
+#include "Components/DraggableNumber.h"
 
 class NumberObject final : public ObjectBase {
 
@@ -23,10 +23,10 @@ class NumberObject final : public ObjectBase {
     float value = 0.0f;
 
 public:
-    NumberObject(void* ptr, Object* object)
+    NumberObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
-        , iemHelper(ptr, object, this)
         , input(false)
+        , iemHelper(ptr, object, this)
 
     {
         input.onEditorShow = [this]() {
@@ -34,18 +34,20 @@ public:
             startEdition();
 
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
-            editor->setBorder({ 0, 11, 3, 0 });
+            editor->setBorder({ 0, 8, 4, 1 });
 
             if (editor != nullptr) {
                 editor->setInputRestrictions(0, "e.-0123456789");
             }
         };
+        
+        input.setFont(Fonts::getTabularNumbersFont().withHeight(15.5f));
 
         input.onEditorHide = [this]() {
             stopEdition();
         };
 
-        input.setBorderSize({ 1, 15, 1, 1 });
+        input.setBorderSize({ 1, 12, 2, 2 });
 
         addAndMakeVisible(input);
 
@@ -119,7 +121,7 @@ public:
                 return {};
 
             int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
             return { x, y, w + 1, h + 1 };
         }
 
@@ -139,7 +141,7 @@ public:
             auto fontsize = nbx->x_gui.x_fontsize * 31;
             nbx->x_numwidth = (((nbx->x_gui.x_w - 4.0 - (nbx->x_gui.x_h / 2.0)) * 36.0) / fontsize) + 0.5;
 
-            libpd_moveobj(patch, nbx.cast<t_gobj>(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, nbx.cast<t_gobj>(), b.getX(), b.getY());
         }
     }
 
@@ -167,7 +169,7 @@ public:
     void focusLost(FocusChangeType cause) override
     {
         auto inputValue = input.getText().getFloatValue();
-        if (inputValue != preFocusValue) {
+        if (!approximatelyEqual(inputValue, preFocusValue)) {
             sendFloatValue(inputValue);
         }
         repaint();
@@ -185,34 +187,20 @@ public:
         repaint();
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("float"),
-            hash("set"),
-            hash("list"),
-            hash("range"),
-            hash("log"),
-            hash("lin"),
-            hash("log_height"),
-            IEMGUI_MESSAGES
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("float"):
         case hash("list"):
         case hash("set"): {
-            if (!atoms.empty() && atoms[0].isFloat()) {
+            if (numAtoms > 0 && atoms[0].isFloat()) {
                 value = std::clamp(atoms[0].getFloat(), ::getValue<float>(min), ::getValue<float>(max));
                 input.setText(input.formatNumber(value), dontSendNotification);
             }
             break;
         }
         case hash("range"): {
-            if (atoms.size() >= 2 && atoms[0].isFloat() && atoms[1].isFloat()) {
+            if (numAtoms >= 2 && atoms[0].isFloat() && atoms[1].isFloat()) {
                 min = getMinimum();
                 max = getMaximum();
             }
@@ -234,7 +222,7 @@ public:
             input.setLogarithmicHeight(height);
         }
         default: {
-            iemHelper.receiveObjectMessage(symbol, atoms);
+            iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
             break;
         }
         }

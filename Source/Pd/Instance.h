@@ -12,10 +12,9 @@ extern "C" {
 }
 
 #include <concurrentqueue.h>
-
+#include <readerwriterqueue.h>
 #include "Utility/StringUtils.h"
 #include "Patch.h"
-#include "Ofelia.h"
 
 class ObjectImplementationManager;
 
@@ -40,7 +39,7 @@ public:
             if (av[i].a_type == A_FLOAT) {
                 array.emplace_back(atom_getfloat(av + i));
             } else if (av[i].a_type == A_SYMBOL) {
-                array.emplace_back(atom_getsymbol(av + i)->s_name);
+                array.emplace_back(atom_getsymbol(av + i));
             } else {
                 array.emplace_back();
             }
@@ -49,7 +48,7 @@ public:
         return array;
     }
 
-    // The const floatructor.
+    // The float constructor.
     inline Atom(float val)
         : type(FLOAT)
         , value(val)
@@ -57,28 +56,22 @@ public:
     {
     }
 
-    // The string constructor.
-    inline Atom(String sym)
-        : type(SYMBOL)
-        , value(0)
-        , symbol(std::move(sym))
-    {
-    }
-
-    // The pd hash constructor.
     inline Atom(t_symbol* sym)
         : type(SYMBOL)
         , value(0)
-        , symbol(String::fromUTF8(sym->s_name))
+        , symbol(sym)
     {
     }
 
-    // The c-string constructor.
-    inline Atom(char const* sym)
-        : type(SYMBOL)
-        , value(0)
-        , symbol(String::fromUTF8(sym))
+    inline Atom(t_atom* atom)
     {
+        if (atom->a_type == A_FLOAT) {
+            type = FLOAT;
+            value = atom->a_w.w_float;
+        } else if (atom->a_type == A_SYMBOL) {
+            type = SYMBOL;
+            symbol = atom->a_w.w_symbol;
+        }
     }
 
     // Check if the atom is a float.
@@ -96,13 +89,26 @@ public:
     // Get the float value.
     inline float getFloat() const
     {
+        jassert(isFloat());
         return value;
     }
 
     // Get the string.
-    inline String const& getSymbol() const
+    inline t_symbol* getSymbol() const
     {
+        jassert(isSymbol());
+
         return symbol;
+    }
+
+    // Get the string.
+    inline String toString() const
+    {
+        if (type == FLOAT) {
+            return String(value);
+        } else {
+            return String::fromUTF8(symbol->s_name);
+        }
     }
 
     // Compare two atoms.
@@ -122,10 +128,11 @@ private:
     };
     Type type = FLOAT;
     float value = 0;
-    String symbol;
+    t_symbol* symbol;
 };
 
 class MessageListener;
+class MessageDispatcher;
 class Patch;
 class Instance {
     struct Message {
@@ -140,7 +147,7 @@ class Instance {
             : object(ref, instance)
             , destination(dest)
             , selector(sel)
-            , list(atoms)
+            , list(std::move(atoms))
         {
         }
 
@@ -150,23 +157,8 @@ class Instance {
         std::vector<pd::Atom> list;
     };
 
-    typedef struct midievent {
-        enum {
-            NOTEON,
-            CONTROLCHANGE,
-            PROGRAMCHANGE,
-            PITCHBEND,
-            AFTERTOUCH,
-            POLYAFTERTOUCH,
-            MIDIBYTE
-        } type;
-        int midi1;
-        int midi2;
-        int midi3;
-    } midievent;
-
 public:
-    Instance(String const& symbol);
+    explicit Instance(String const& symbol);
     Instance(Instance const& other) = delete;
     virtual ~Instance();
 
@@ -177,37 +169,23 @@ public:
     void performDSP(float const* inputs, float* outputs);
     int getBlockSize() const;
 
-    void sendNoteOn(int channel, int const pitch, int velocity) const;
-    void sendControlChange(int channel, int const controller, int value) const;
+    void sendNoteOn(int channel, int pitch, int velocity) const;
+    void sendControlChange(int channel, int controller, int value) const;
     void sendProgramChange(int channel, int value) const;
     void sendPitchBend(int channel, int value) const;
     void sendAfterTouch(int channel, int value) const;
-    void sendPolyAfterTouch(int channel, int const pitch, int value) const;
+    void sendPolyAfterTouch(int channel, int pitch, int value) const;
     void sendSysEx(int port, int byte) const;
     void sendSysRealTime(int port, int byte) const;
     void sendMidiByte(int port, int byte) const;
 
-    virtual void receiveNoteOn(int channel, int pitch, int velocity)
-    {
-    }
-    virtual void receiveControlChange(int channel, int controller, int value)
-    {
-    }
-    virtual void receiveProgramChange(int channel, int value)
-    {
-    }
-    virtual void receivePitchBend(int channel, int value)
-    {
-    }
-    virtual void receiveAftertouch(int channel, int value)
-    {
-    }
-    virtual void receivePolyAftertouch(int channel, int pitch, int value)
-    {
-    }
-    virtual void receiveMidiByte(int port, int byte)
-    {
-    }
+    virtual void receiveNoteOn(int channel, int pitch, int velocity) = 0;
+    virtual void receiveControlChange(int channel, int controller, int value) = 0;
+    virtual void receiveProgramChange(int channel, int value) = 0;
+    virtual void receivePitchBend(int channel, int value) = 0;
+    virtual void receiveAftertouch(int channel, int value) = 0;
+    virtual void receivePolyAftertouch(int channel, int pitch, int value) = 0;
+    virtual void receiveMidiByte(int port, int byte) = 0;
 
     virtual void createPanel(int type, char const* snd, char const* location, char const* callbackName, int openMode = -1);
 
@@ -218,8 +196,8 @@ public:
     void sendMessage(char const* receiver, char const* msg, std::vector<pd::Atom> const& list) const;
     void sendTypedMessage(void* object, char const* msg, std::vector<Atom> const& list) const;
 
-    virtual void addTextToTextEditor(unsigned long ptr, String text) {};
-    virtual void showTextEditor(unsigned long ptr, Rectangle<int> bounds, String title) {};
+    virtual void addTextToTextEditor(unsigned long ptr, String text) { }
+    virtual void showTextEditor(unsigned long ptr, Rectangle<int> bounds, String title) { }
 
     virtual void receivePrint(String const& message) {};
 
@@ -238,7 +216,6 @@ public:
     virtual void receiveMessage(String const& dest, String const& msg, std::vector<pd::Atom> const& list)
     {
     }
-
     virtual void receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list) {};
 
     void registerMessageListener(void* object, MessageListener* messageListener);
@@ -248,13 +225,29 @@ public:
     void unregisterWeakReference(void* ptr, pd_weak_reference const* ref);
     void clearWeakReferences(void* ptr);
 
-    virtual void receiveDSPState(bool dsp) {};
+    static void registerLuaClass(const char* object);
+    bool isLuaClass(hash32 objectNameHash);
 
-    virtual void updateConsole() {};
+    virtual void receiveDSPState(bool dsp) { }
 
-    virtual void titleChanged() {};
+    virtual void updateConsole(int numMessages, bool newWarning) { }
+
+    virtual void titleChanged() { }
 
     void enqueueFunctionAsync(std::function<void(void)> const& fn);
+    
+    // Enqueue a message to an pd::WeakReference
+    // This will first check if the weakreference is valid before triggering the callback
+    template<typename T>
+    void enqueueFunctionAsync(WeakReference& ref, std::function<void(T*)> const& fn)
+    {
+        functionQueue.enqueue([ref, fn](){
+            if(auto obj = ref.get<T>())
+            {
+                fn(obj.get());
+            }
+        });
+    }
 
     void sendDirectMessage(void* object, String const& msg, std::vector<Atom>&& list);
     void sendDirectMessage(void* object, std::vector<pd::Atom>&& list);
@@ -264,25 +257,22 @@ public:
     void updateObjectImplementations();
     void clearObjectImplementationsForPatch(pd::Patch* p);
 
-    virtual void performParameterChange(int type, String const& name, float value) {};
+    virtual void performParameterChange(int type, String const& name, float value) { }
 
     // JYG added this
-    virtual void fillDataBuffer(std::vector<pd::Atom> const& list) {};
-    virtual void parseDataBuffer(XmlElement const& xml) {};
+    virtual void fillDataBuffer(std::vector<pd::Atom> const& list) { }
+    virtual void parseDataBuffer(XmlElement const& xml) { }
 
     void logMessage(String const& message);
     void logError(String const& message);
     void logWarning(String const& message);
     void muteConsole(bool shouldMute);
 
-    std::deque<std::tuple<void*, String, int, int>>& getConsoleMessages();
-    std::deque<std::tuple<void*, String, int, int>>& getConsoleHistory();
-
-    virtual void messageEnqueued() {};
+    std::deque<std::tuple<void*, String, int, int, int>>& getConsoleMessages();
+    std::deque<std::tuple<void*, String, int, int, int>>& getConsoleHistory();
 
     void sendMessagesFromQueue();
     void processMessage(Message mess);
-    void processMidiEvent(midievent event);
     void processSend(dmessage mess);
 
     String getExtraInfo(File const& toOpen);
@@ -305,48 +295,43 @@ public:
 
     bool loadLibrary(String const& library);
 
-    void* m_instance = nullptr;
-    void* m_patch = nullptr;
-    void* m_atoms = nullptr;
-    void* m_message_receiver = nullptr;
-    void* m_parameter_receiver = nullptr;
-    void* m_parameter_change_receiver = nullptr;
-    void* m_midi_receiver = nullptr;
-    void* m_print_receiver = nullptr;
+    void* instance = nullptr;
+    void* patch = nullptr;
+    void* atoms = nullptr;
+    void* messageReceiver = nullptr;
+    void* parameterReceiver = nullptr;
+    void* parameterChangeReceiver = nullptr;
+    void* midiReceiver = nullptr;
+    void* printReceiver = nullptr;
 
     // JYG added this
-    void* m_databuffer_receiver = nullptr;
+    void* dataBufferReceiver = nullptr;
 
-    std::atomic<bool> canUndo = false;
-    std::atomic<bool> canRedo = false;
-
-    inline static const String defaultPatch = "#N canvas 827 239 527 327 12;";
+    inline static String const defaultPatch = "#N canvas 827 239 527 327 12;";
 
     bool isPerformingGlobalSync = false;
     CriticalSection const audioLock;
+    std::recursive_mutex weakReferenceMutex;
 
 private:
-    std::mutex weakReferenceMutex;
     std::unordered_map<void*, std::vector<pd_weak_reference*>> pdWeakReferences;
-    std::unordered_map<void*, std::vector<juce::WeakReference<MessageListener>>> messageListeners;
 
-    std::unique_ptr<ObjectImplementationManager> objectImplementations;
+    moodycamel::ConcurrentQueue<std::function<void(void)>> functionQueue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
 
-    CriticalSection messageListenerLock;
-
-    moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
-
-    std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
     std::atomic<bool> consoleMute;
-
+    static inline std::set<hash32> luaClasses = std::set<hash32>(); // Keep track of class names that correspond to pdlua objects
+    
 protected:
     struct internal;
 
+    std::unique_ptr<pd::MessageDispatcher> messageDispatcher;
+    std::unique_ptr<ObjectImplementationManager> objectImplementations; // must be after messageDispatcher (!)
+    
     struct ConsoleHandler : public Timer {
         Instance* instance;
 
-        ConsoleHandler(Instance* parent)
+        explicit ConsoleHandler(Instance* parent)
             : instance(parent)
             , fastStringWidth(Font(14))
         {
@@ -355,47 +340,78 @@ protected:
         void timerCallback() override
         {
             auto item = std::tuple<void*, String, bool>();
-            bool receivedMessage = false;
+            int numReceived = 0;
+            bool newWarning = false;
 
             while (pendingMessages.try_dequeue(item)) {
                 auto& [object, message, type] = item;
-                consoleMessages.emplace_back(object, message, type, fastStringWidth.getStringWidth(message) + 8);
+                addMessage(object, message, type);
 
-                if (consoleMessages.size() > 800)
-                    consoleMessages.pop_front();
-
-                receivedMessage = true;
+                numReceived++;
+                newWarning = newWarning || type;
             }
 
             // Check if any item got assigned
-            if (receivedMessage) {
-                instance->updateConsole();
+            if (numReceived) {
+                instance->updateConsole(numReceived, newWarning);
             }
 
             stopTimer();
         }
 
+        void addMessage(void* object, String const& message, bool type)
+        {
+            if (consoleMessages.size()) {
+                auto& [lastObject, lastMessage, lastType, lastLength, numMessages] = consoleMessages.back();
+                if (object == lastObject && message == lastMessage && type == lastType) {
+                    numMessages++;
+                } else {
+                    consoleMessages.emplace_back(object, message, type, fastStringWidth.getStringWidth(message) + 8, 1);
+                }
+            } else {
+                consoleMessages.emplace_back(object, message, type, fastStringWidth.getStringWidth(message) + 8, 1);
+            }
+
+            if (consoleMessages.size() > 800)
+                consoleMessages.pop_front();
+        }
+
         void logMessage(void* object, String const& message)
         {
-            pendingMessages.enqueue({ object, message, false });
-            startTimer(10);
+            if (MessageManager::getInstance()->isThisTheMessageThread()) {
+                addMessage(object, message, false);
+                instance->updateConsole(1, false);
+            } else {
+                pendingMessages.enqueue({ object, message, false });
+                startTimer(10);
+            }
         }
 
         void logWarning(void* object, String const& warning)
         {
-            pendingMessages.enqueue({ object, warning, 1 });
-            startTimer(10);
+            if (MessageManager::getInstance()->isThisTheMessageThread()) {
+                addMessage(object, warning, true);
+                instance->updateConsole(1, true);
+            } else {
+                pendingMessages.enqueue({ object, warning, true });
+                startTimer(10);
+            }
         }
 
         void logError(void* object, String const& error)
         {
-            pendingMessages.enqueue({ object, error, 2 });
-            startTimer(10);
+            if (MessageManager::getInstance()->isThisTheMessageThread()) {
+                addMessage(object, error, true);
+                instance->updateConsole(1, true);
+            } else {
+                pendingMessages.enqueue({ object, error, true });
+                startTimer(10);
+            }
         }
 
         void processPrint(void* object, char const* message)
         {
-            std::function<void(const String)> forwardMessage =
+            std::function<void(String const)> forwardMessage =
                 [this, object](String const& message) {
                     if (message.startsWith("error")) {
                         logError(object, message.substring(7));
@@ -440,18 +456,18 @@ protected:
             }
         }
 
-        std::deque<std::tuple<void*, String, int, int>> consoleMessages;
-        std::deque<std::tuple<void*, String, int, int>> consoleHistory;
+        std::deque<std::tuple<void*, String, int, int, int>> consoleMessages;
+        std::deque<std::tuple<void*, String, int, int, int>> consoleHistory;
 
         char printConcatBuffer[2048];
 
-        moodycamel::ConcurrentQueue<std::tuple<void*, String, bool>> pendingMessages;
+        moodycamel::ReaderWriterQueue<std::tuple<void*, String, bool>> pendingMessages;
 
         StringUtils fastStringWidth; // For formatting console messages more quickly
     };
 
-    std::unique_ptr<Ofelia> ofelia;
-
     ConsoleHandler consoleHandler;
+
+    JUCE_DECLARE_WEAK_REFERENCEABLE(Instance)
 };
 } // namespace pd

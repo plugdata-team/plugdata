@@ -24,18 +24,16 @@ class Object;
 class ObjectLabel : public Label {
 
 public:
-    explicit ObjectLabel(Component* parent)
-        : object(parent)
+    explicit ObjectLabel()
     {
         setJustificationType(Justification::centredLeft);
         setBorderSize(BorderSize<int>(0, 0, 0, 0));
-        setMinimumHorizontalScale(1.f);
+        setMinimumHorizontalScale(0.2f);
         setEditable(false, false);
         setInterceptsMouseClicks(false, false);
     }
 
 private:
-    Component* object;
 };
 
 class ObjectBase : public Component
@@ -65,7 +63,7 @@ class ObjectBase : public Component
     };
 
 public:
-    ObjectBase(void* obj, Object* parent);
+    ObjectBase(pd::WeakReference obj, Object* parent);
 
     ~ObjectBase() override;
 
@@ -75,9 +73,11 @@ public:
 
     // Functions to show and hide a text editor
     // Used internally, or to trigger a text editor when creating a new object (comment, message, new text object etc.)
-    virtual bool isEditorShown() { return false; };
-    virtual void showEditor() {};
-    virtual void hideEditor() {};
+    virtual bool isEditorShown() { return false; }
+    virtual void showEditor() { }
+    virtual void hideEditor() { }
+
+    virtual bool isTransparent() { return false; };
 
     bool hitTest(int x, int y) override;
 
@@ -85,27 +85,22 @@ public:
     virtual bool hideInlets() { return false; }
     virtual bool hideOutlets() { return false; }
 
-    virtual std::vector<hash32> getAllMessages() { return {}; }
-
     // Gets position from pd and applies it to Object
     virtual Rectangle<int> getPdBounds() = 0;
 
     // Gets position from pd and applies it to Object
-    virtual Rectangle<int> getSelectableBounds()
-    {
-        return getPdBounds();
-    }
+    virtual Rectangle<int> getSelectableBounds();
 
     // Push current object bounds into pd
     virtual void setPdBounds(Rectangle<int> newBounds) = 0;
 
     // Called whenever a drawable changes
-    virtual void updateDrawables() {};
+    virtual void updateDrawables() { }
 
     // Called after creation, to initialise parameter listeners
-    virtual void update() {};
+    virtual void update() { }
 
-    virtual void tabChanged() {};
+    virtual void tabChanged() { }
 
     virtual bool canOpenFromMenu();
     virtual void openFromMenu();
@@ -132,7 +127,7 @@ public:
     virtual bool canReceiveMouseEvent(int x, int y);
 
     // Called whenever the object receives a pd message
-    virtual void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) {};
+    virtual void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) {};
 
     // Close any tabs with opened subpatchers
     void closeOpenedSubpatchers();
@@ -141,22 +136,22 @@ public:
     // Attempt to send "click" message to object. Returns false if the object has no such method
     bool click(Point<int> position, bool shift, bool alt);
 
-    void receiveMessage(String const& symbol, int argc, t_atom* argv) override;
+    void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms) override;
 
-    static ObjectBase* createGui(void* ptr, Object* parent);
+    static ObjectBase* createGui(pd::WeakReference ptr, Object* parent);
 
     // Override this to return parameters that will be shown in the inspector
     virtual ObjectParameters getParameters();
     virtual bool showParametersWhenSelected();
 
-    void objectMovedOrResized(bool resized);
-    virtual void updateSizeProperty() {};
+    virtual void objectMovedOrResized(bool resized);
+    virtual void updateSizeProperty() { }
 
-    virtual void updateLabel() {};
+    virtual void updateLabel() { }
 
     // Implement this if you want to allow toggling an object by dragging over it in run mode
-    virtual void toggleObject(Point<int> position) {};
-    virtual void untoggleObject() {};
+    virtual void toggleObject(Point<int> position) { }
+    virtual void untoggleObject() { }
 
     virtual ObjectLabel* getLabel();
 
@@ -175,14 +170,16 @@ public:
 protected:
     // Set parameter without triggering valueChanged
     void setParameterExcludingListener(Value& parameter, var const& value);
-    void setParameterExcludingListener(Value& parameter, var const& value, Value::Listener* listener);
+    void setParameterExcludingListener(Value& parameter, var const& value, Value::Listener* otherListener);
 
     // Call when you start/stop editing a gui object
     void startEdition();
     void stopEdition();
 
+    String getBinbufSymbol(int argIndex);
+
     // Called whenever one of the inspector parameters changes
-    void valueChanged(Value& value) override {};
+    void valueChanged(Value& value) override { }
 
     // Send a float value to Pd
     void sendFloatValue(float value);

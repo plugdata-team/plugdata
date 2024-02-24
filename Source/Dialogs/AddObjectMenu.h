@@ -6,7 +6,7 @@
 
 #pragma once
 #include "Dialogs.h"
-#include "../Utility/ObjectDragAndDrop.h"
+#include "Components/ObjectDragAndDrop.h"
 
 #define DEBUG_PRINT_OBJECT_LIST 0
 
@@ -14,8 +14,8 @@ class ObjectItem : public ObjectDragAndDrop
     , public SettableTooltipClient {
 public:
     ObjectItem(PluginEditor* e, String const& text, String const& icon, String const& tooltip, String const& patch, ObjectIDs objectID, std::function<void(bool)> dismissCalloutBox)
-        : iconText(icon)
-        , titleText(text)
+        : titleText(text)
+        , iconText(icon)
         , objectPatch(patch)
         , dismissMenu(dismissCalloutBox)
         , editor(e)
@@ -30,7 +30,7 @@ public:
 
     String getKeyboardShortcutDescription(ObjectIDs objectID)
     {
-        auto keyPresses = editor->getKeyMappings()->getKeyPressesAssignedToCommand(objectID);
+        auto keyPresses = editor->commandManager.getKeyMappings()->getKeyPressesAssignedToCommand(objectID);
         if (keyPresses.size()) {
             return "(" + keyPresses.getReference(0).getTextDescription() + ") ";
         }
@@ -71,45 +71,32 @@ public:
         repaint();
     }
 
-    String getObjectString()
+    String getObjectString() override
     {
-        return substituteThemeColours(objectPatch);
+        // If this is an array, replace @arrName with unused name
+        auto patchString = objectPatch;
+        if (patchString.contains("@arrName")) {
+            editor->pd->setThis();
+            patchString = patchString.replace("@arrName", String::fromUTF8(pd::Interface::getUnusedArrayName()->s_name));
+        }
+        return patchString;
+    }
+
+    String getPatchStringName() override
+    {
+        return titleText + String(" object");
     }
 
     void mouseUp(MouseEvent const& e) override
     {
-        if (e.mouseWasDraggedSinceMouseDown())
+        if (e.mouseWasDraggedSinceMouseDown()) {
             dismissMenu(false);
-    }
-
-    String substituteThemeColours(String patch)
-    {
-        auto colourToHex = [this](PlugDataColour colourEnum) {
-            auto colour = findColour(colourEnum);
-            return String("#" + colour.toDisplayString(false));
-        };
-
-        auto colourToIEM = [this](PlugDataColour colourEnum) {
-            auto colour = findColour(colourEnum);
-            return String(String(colour.getRed()) + " " + String(colour.getGreen()) + " " + String(colour.getBlue()));
-        };
-
-        String colouredObjects = patch;
-
-        colouredObjects = colouredObjects.replace("@bgColour", colourToHex(PlugDataColour::guiObjectBackgroundColourId));
-        colouredObjects = colouredObjects.replace("@fgColour", colourToHex(PlugDataColour::canvasTextColourId));
-        // TODO: these both are the same, but should be different?
-        colouredObjects = colouredObjects.replace("@arcColour", colourToHex(PlugDataColour::guiObjectInternalOutlineColour));
-        colouredObjects = colouredObjects.replace("@canvasColour", colourToHex(PlugDataColour::guiObjectInternalOutlineColour));
-        // TODO: these both are the same, but should be different?
-        colouredObjects = colouredObjects.replace("@textColour", colourToHex(PlugDataColour::toolbarTextColourId));
-        colouredObjects = colouredObjects.replace("@labelColour", colourToHex(PlugDataColour::toolbarTextColourId));
-
-        colouredObjects = colouredObjects.replace("@iemBgColour", colourToIEM(PlugDataColour::guiObjectBackgroundColourId));
-        colouredObjects = colouredObjects.replace("@iemFgColour", colourToIEM(PlugDataColour::canvasTextColourId));
-        colouredObjects = colouredObjects.replace("@iemGridColour", colourToIEM(PlugDataColour::guiObjectInternalOutlineColour));
-
-        return colouredObjects;
+        } else {
+#if !JUCE_IOS
+            ObjectClickAndDrop::attachToMouse(this);
+            dismissMenu(false);
+#endif
+        }
     }
 
     String getTitleText()
@@ -142,7 +129,6 @@ public:
         auto width = getWidth();
 
         int column = 0;
-        int row = 0;
         int maxColumns = width / itemSize;
         int offset = 0;
 
@@ -161,7 +147,9 @@ public:
     {
         objectButtons.clear();
 
-        for (auto& [categoryName, objectCategory] : objectList) {
+        auto objectsToShow = getValue<bool>(SettingsFile::getInstance()->getPropertyAsValue("hvcc_mode")) ? heavyObjectList : defaultObjectList;
+
+        for (auto& [categoryName, objectCategory] : objectsToShow) {
 
             if (categoryName != categoryToView)
                 continue;
@@ -170,6 +158,9 @@ public:
                 auto objectPatch = patch;
                 if (objectPatch.isEmpty())
                     objectPatch = "#X obj 0 0 " + name;
+                else if (!objectPatch.startsWith("#")) {
+                    objectPatch = editor->getObjectManager()->getCompleteFormat(objectPatch);
+                }
                 auto* button = objectButtons.add(new ObjectItem(editor, name, icon, tooltip, objectPatch, objectID, dismissMenu));
                 addAndMakeVisible(button);
             }
@@ -189,7 +180,7 @@ public:
         std::cout << "==== object icon list in CSV format ====" << std::endl;
 
         String cat;
-        for (auto& [categoryName, objectCategory] : objectList) {
+        for (auto& [categoryName, objectCategory] : defaultObjectList) {
             cat = categoryName;
             for (auto& [icon, patch, tooltip, name, objectID] : objectCategory) {
                 std::cout << cat << ", " << name << ", " << icon << std::endl;
@@ -201,7 +192,8 @@ public:
 
     OwnedArray<ObjectItem> objectButtons;
 
-    static inline const std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> objectList = {
+
+    static inline const std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> defaultObjectList = {
         { "Default",
             {
                 { Icons::GlyphEmptyObject, "#X obj 0 0", "(@keypress) Empty object", "Object", NewObject },
@@ -210,27 +202,28 @@ public:
                 { Icons::GlyphSymbolBox, "#X symbolatom 0 0 10 0 0 0 - - - 0", "Symbol box", "Symbol", NewSymbolAtom },
                 { Icons::GlyphListBox, "#X listbox 0 0 20 0 0 0 - - - 0", "(@keypress) List box", "List", NewListAtom },
                 { Icons::GlyphComment, "#X text 0 0 comment", "(@keypress) Comment", "Comment", NewComment },
-                { Icons::GlyphArray, "#N canvas 0 0 450 250 (subpatch) 0;\n#X array array1 100 float 2;\n#X coords 0 1 100 -1 200 140 1;\n#X restore 0 0 graph;", "(@keypress) Array", "Array", NewArray },
-                { Icons::GlyphGOP, "#N canvas 0 0 450 250 (subpatch) 1;\n#X coords 0 1 100 -1 200 140 1 0 0;\n#X restore 226 1 graph;", "(@keypress) Graph on parent", "Graph", NewGraphOnParent },
+                { Icons::GlyphArray, "#N canvas 0 0 450 250 (subpatch) 0;\n#X array @arrName 100 float 2;\n#X coords 0 1 100 -1 200 140 1;\n#X restore 0 0 graph;", "(@keypress) Array", "Array", NewArray },
+                { Icons::GlyphGOP, "#N canvas 0 0 450 250 (subpatch) 1;\n#X coords 0 1 100 -1 200 140 1 0 0;\n#X restore 0 0 graph;", "(@keypress) Graph on parent", "Graph", NewGraphOnParent },
             } },
         { "UI",
             {
-                { Icons::GlyphBang, "#X obj 0 0 bng 25 250 50 0 empty empty empty 17 7 0 10 @bgColour @fgColour @labelColour", "(@keypress) Bang", "Bang", NewBang },
-                { Icons::GlyphToggle, "#X obj 0 0 tgl 25 0 empty empty empty 17 7 0 10 @bgColour @fgColour @labelColour 0 1", "(@keypress) Toggle", "Toggle", NewToggle },
-                { Icons::GlyphButton, "#X obj 0 0 button 25 25 @iemBgColour @iemFgColour 0", "Button", "Button", OtherObject },
-                { Icons::GlyphKnob, "#X obj 0 0 knob 50 0 127 0 0 empty empty @bgColour @arcColour @fgColour 1 0 0 0 1 270 0 0;", "Knob", "Knob", OtherObject },
-                { Icons::GlyphVSlider, "#X obj 0 0 vsl 17 128 0 127 0 0 empty empty empty 0 -9 0 10 @bgColour @fgColour @labelColour 0 1", "(@keypress) Vertical slider", "V. Slider", NewVerticalSlider },
-                { Icons::GlyphHSlider, "#X obj 0 0 hsl 128 17 0 127 0 0 empty empty empty -2 -8 0 10 @bgColour @fgColour @labelColour 0 1", "(@keypress) Horizontal slider", "H. Slider", NewHorizontalSlider },
-                { Icons::GlyphVRadio, "#X obj 0 0 vradio 20 1 0 8 empty empty empty 0 -8 0 10 @bgColour @fgColour @labelColour 0", "(@keypress) Vertical radio box", "V. Radio", NewVerticalRadio },
-                { Icons::GlyphHRadio, "#X obj 0 0 hradio 20 1 0 8 empty empty empty 0 -8 0 10 @bgColour @fgColour @labelColour 0", "(@keypress) Horizontal radio box", "H. Radio", NewHorizontalRadio },
-                { Icons::GlyphNumber, "#X obj 0 0 nbx 4 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 @bgColour @fgColour @textColour 0 256", "(@keypress) Number box", "Number", NewNumbox },
-                { Icons::GlyphCanvas, "#X obj 0 0 cnv 15 100 60 empty empty empty 20 12 0 14 @canvasColour @labelColour 0", "(@keypress) Canvas", "Canvas", NewCanvas },
-                { Icons::GlyphFunction, "#X obj 0 0 function 200 100 empty empty 0 1 @iemBgColour @iemFgColour 0 0 0 0 0 1000 0", "Function", "Function", OtherObject },
-                { Icons::GlyphOscilloscope, "#X obj 0 0 oscope~ 130 130 256 3 128 -1 1 0 0 0 0 @iemFgColour @iemBgColour @iemGridColour 0 empty", "Oscilloscope", "Scope", OtherObject },
+                // GUI object default settings are in ObjectManager.h
+                { Icons::GlyphBang, "bng", "(@keypress) Bang", "Bang", NewBang },
+                { Icons::GlyphToggle, "tgl", "(@keypress) Toggle", "Toggle", NewToggle },
+                { Icons::GlyphButton, "button", "Button", "Button", OtherObject },
+                { Icons::GlyphKnob, "knob", "Knob", "Knob", OtherObject },
+                { Icons::GlyphVSlider, "vsl", "(@keypress) Vertical slider", "V. Slider", NewVerticalSlider },
+                { Icons::GlyphHSlider, "hsl", "(@keypress) Horizontal slider", "H. Slider", NewHorizontalSlider },
+                { Icons::GlyphVRadio, "vradio", "(@keypress) Vertical radio box", "V. Radio", NewVerticalRadio },
+                { Icons::GlyphHRadio, "hradio", "(@keypress) Horizontal radio box", "H. Radio", NewHorizontalRadio },
+                { Icons::GlyphNumber, "nbx", "(@keypress) Number box", "Number", NewNumbox },
+                { Icons::GlyphCanvas, "cnv", "(@keypress) Canvas", "Canvas", NewCanvas },
+                { Icons::GlyphFunction, "function", "Function", "Function", OtherObject },
+                { Icons::GlyphOscilloscope, "oscope~", "Oscilloscope", "Scope", OtherObject },
                 { Icons::GlyphKeyboard, "#X obj 0 0 keyboard 16 80 4 2 0 0 empty empty", "Piano keyboard", "Keyboard", OtherObject },
-                { Icons::GlyphMessbox, "#X obj -0 0 messbox 180 60 @iemBgColour @iemFgColour 0 12", "ELSE Message box", "Messbox", OtherObject },
+                { Icons::GlyphMessbox, "messbox", "ELSE Message box", "Messbox", OtherObject },
                 { Icons::GlyphBicoeff, "#X obj 0 0 bicoeff 450 150 peaking", "Bicoeff generator", "Bicoeff", OtherObject },
-                { Icons::GlyphVUMeter, "#X obj 0 0 vu 20 120 empty empty -1 -8 0 10 #191919 @labelColour 1 0", "(@keypress) VU meter", "VU Meter", NewVUMeterObject },
+                { Icons::GlyphVUMeter, "vu", "(@keypress) VU meter", "VU Meter", NewVUMeter },
             } },
         { "General",
             {
@@ -363,6 +356,130 @@ public:
             } },
     };
 
+    static inline const std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> heavyObjectList = {
+        { "Default",
+            {
+                { Icons::GlyphEmptyObject, "#X obj 0 0", "(@keypress) Empty object", "Object", NewObject },
+                { Icons::GlyphMessage, "#X msg 0 0", "(@keypress) Message", "Message", NewMessage },
+                { Icons::GlyphFloatBox, "#X floatatom 0 0 5 0 0 0 - - - 0", "(@keypress) Float box", "Float", NewFloatAtom },
+                { Icons::GlyphSymbolBox, "#X symbolatom 0 0 10 0 0 0 - - - 0", "Symbol box", "Symbol", NewSymbolAtom },
+                { Icons::GlyphComment, "#X text 0 0 comment", "(@keypress) Comment", "Comment", NewComment },
+                { Icons::GlyphArray, "#N canvas 0 0 450 250 (subpatch) 0;\n#X array @arrName 100 float 2;\n#X coords 0 1 100 -1 200 140 1;\n#X restore 0 0 graph;", "(@keypress) Array", "Array", NewArray },
+                { Icons::GlyphGOP, "#N canvas 0 0 450 250 (subpatch) 1;\n#X coords 0 1 100 -1 200 140 1 0 0;\n#X restore 0 0 graph;", "(@keypress) Graph on parent", "Graph", NewGraphOnParent },
+            } },
+        { "UI",
+            {
+                // GUI object default settings are in OjbectManager.h
+                { Icons::GlyphBang, "bng", "(@keypress) Bang", "Bang", NewBang },
+                { Icons::GlyphToggle, "tgl", "(@keypress) Toggle", "Toggle", NewToggle },
+                { Icons::GlyphVSlider, "vsl", "(@keypress) Vertical slider", "V. Slider", NewVerticalSlider },
+                { Icons::GlyphHSlider, "hsl", "(@keypress) Horizontal slider", "H. Slider", NewHorizontalSlider },
+                { Icons::GlyphVRadio, "vradio", "(@keypress) Vertical radio box", "V. Radio", NewVerticalRadio },
+                { Icons::GlyphHRadio, "hradio", "(@keypress) Horizontal radio box", "H. Radio", NewHorizontalRadio },
+                { Icons::GlyphNumber, "nbx", "(@keypress) Number box", "Number", NewNumbox },
+                { Icons::GlyphCanvas, "cnv", "(@keypress) Canvas", "Canvas", NewCanvas },
+            } },
+        { "General",
+            {
+                { Icons::GlyphMetro, "#X obj 0 0 metro 1 120 permin", "Metro", "Metro", OtherObject },
+                { Icons::GlyphTrigger, "#X obj 0 0 trigger", "Trigger", "Trigger", OtherObject },
+                { Icons::GlyphMoses, "#X obj 0 0 moses", "Moses", "Moses", OtherObject },
+                { Icons::GlyphSpigot, "#X obj 0 0 spigot", "Spigot", "Spigot", OtherObject },
+                { Icons::GlyphSelect, "#X obj 0 0 select", "Select", "Select", OtherObject },
+                { Icons::GlyphRoute, "#X obj 0 0 route", "Route", "Route", OtherObject },
+                { Icons::GlyphLoadbang, "#X obj 0 0 loadbang", "Loadbang", "Loadbang", OtherObject },
+                { Icons::GlyphPack, "#X obj 0 0 pack", "Pack", "Pack", OtherObject },
+                { Icons::GlyphUnpack, "#X obj 0 0 unpack", "Unpack", "Unpack", OtherObject },
+                { Icons::GlyphPrint, "#X obj 0 0 print", "Print", "Print", OtherObject },
+                { Icons::GlyphTimer, "#X obj 0 0 timer", "Timer", "Timer", OtherObject },
+                { Icons::GlyphDelay, "#X obj 0 0 delay 1 60 permin", "Delay", "Delay", OtherObject },
+            } },
+        { "MIDI",
+            {
+                { Icons::GlyphMidiIn, "#X obj 0 0 midiin", "MIDI in", "MIDI in", OtherObject },
+                { Icons::GlyphMidiOut, "#X obj 0 0 midiout", "MIDI out", "MIDI out", OtherObject },
+                { Icons::GlyphNoteIn, "#X obj 0 0 notein", "Note in", "Note in", OtherObject },
+                { Icons::GlyphNoteOut, "#X obj 0 0 noteout", "Note out", "Note out", OtherObject },
+                { Icons::GlyphCtlIn, "#X obj 0 0 ctlin", "Control in", "Ctl in", OtherObject },
+                { Icons::GlyphCtlOut, "#X obj 0 0 ctlout", "Control out", "Ctl out", OtherObject },
+                { Icons::GlyphPgmIn, "#X obj 0 0 pgmin", "Program in", "Pgm in", OtherObject },
+                { Icons::GlyphPgmOut, "#X obj 0 0 pgmout", "Program out", "Pgm out", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 touchin", "Touch in", "Tch in", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 touchout", "Touch out", "Tch in", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 polytouchin", "Poly Touch in", "Ptch in", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 polytouchout", "Poly Touch in", "Ptch out", OtherObject },
+                { Icons::GlyphMtof, "#X obj 0 0 mtof", "MIDI to frequency", "mtof", OtherObject },
+                { Icons::GlyphFtom, "#X obj 0 0 ftom", "Frequency to MIDI", "ftom", OtherObject },
+            } },
+        { "IO",
+            {
+                { Icons::GlyphAdc, "#X obj 0 0 adc~", "Adc", "Adc", OtherObject },
+                { Icons::GlyphDac, "#X obj 0 0 dac~", "Dac", "Dac", OtherObject },
+                { Icons::GlyphSend, "#X obj 0 0 s", "Send", "Send", OtherObject },
+                { Icons::GlyphReceive, "#X obj 0 0 r", "Receive", "Receive", OtherObject },
+                { Icons::GlyphSignalSend, "#X obj 0 0 s~", "Send~", "Send~", OtherObject },
+                { Icons::GlyphSignalReceive, "#X obj 0 0 r~", "Receive~", "Receive~", OtherObject },
+            } },
+        { "Osc~",
+            {
+                { Icons::GlyphPhasor, "#X obj 0 0 phasor~", "Phasor", "Phasor", OtherObject },
+                { Icons::GlyphOsc, "#X obj 0 0 osc~ 440", "Osc", "Osc", OtherObject },
+                { Icons::GlyphOscBL, "#X obj 0 0 hv.osc~ sine", "Sine band limited", "Hv Sine", OtherObject },
+                { Icons::GlyphSquareBL, "#X obj 0 0 hv.osc~ square", "Square band limited", "Hv Square", OtherObject },
+                { Icons::GlyphSawBL, "#X obj 0 0 hv.osc~ saw", "Saw band limited", "Hv Saw", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 hv.pinknoise~", "Pink Noise", "Pink Noise", OtherObject },
+                { Icons::GlyphOsc, "#X obj 0 0 hv.lfo sine", "Sine LFO", "Sine LFO", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 hv.lfo ramp", "Ramp LFO", "Ramp LFO", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 hv.lfo saw", "Saw LFO", "Saw LFO", OtherObject },
+                { Icons::GlyphTriangle, "#X obj 0 0 hv.lfo triangle", "Triangle LFO", "Tri LFO", OtherObject },
+                { Icons::GlyphSquare, "#X obj 0 0 hv.lfo square", "Square LFO", "Sq LFO", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 hv.lfo pulse", "Pulse LFO", "Pulse LFO", OtherObject },
+            } },
+        { "FX~",
+            {
+                { Icons::GlyphGeneric, "#X obj 0 0 hv.compressor~", "Compressor", "Compress", OtherObject },
+                { Icons::GlyphFlanger, "#X obj 0 0 hv.flanger~", "Flanger", "Flanger", OtherObject },
+                { Icons::GlyphCombRev, "#X obj 0 0 hv.comb~", "Comb filter", "Comb. Filt", OtherObject },
+                { Icons::GlyphReverb, "#X obj 0 0 hv.reverb~", "Reverb", "Reverb", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 hv.filter~ lowpass", "Lowpass Filter", "Lp Filter", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 hv.filter~ bandpass1", "Bandpass Filter", "Bp Filter", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 hv.filter~ highpass", "Highpass Filter", "Hp Filter", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 hv.filter~ allpass", "Allpass Filter", "Ap Filter", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 hv.freqshift~", "Frequency Shifter", "Freq Shift", OtherObject },
+            } },
+        { "Math",
+            {
+                { Icons::GlyphGeneric, "", "Add", "+", OtherObject },
+                { Icons::GlyphGeneric, "", "Subtract", "-", OtherObject },
+                { Icons::GlyphGeneric, "", "Multiply", "*", OtherObject },
+                { Icons::GlyphGeneric, "", "Divide", "/", OtherObject },
+                { Icons::GlyphGeneric, "", "Remainder", "%", OtherObject },
+                { Icons::GlyphGeneric, "", "Greater than", ">", OtherObject },
+                { Icons::GlyphGeneric, "", "Less than", "<", OtherObject },
+                { Icons::GlyphGeneric, "", "Greater or equal", ">=", OtherObject },
+                { Icons::GlyphGeneric, "", "Less or equal", "<=", OtherObject },
+                { Icons::GlyphGeneric, "", "Equality", "==", OtherObject },
+                { Icons::GlyphGeneric, "", "Not equal", "!=", OtherObject },
+                { Icons::GlyphGeneric, "", "Minimum", "min", OtherObject },
+                { Icons::GlyphGeneric, "", "Maximum", "max", OtherObject },
+            } },
+        { "Math~",
+            {
+                { Icons::GlyphGenericSignal, "", "(signal) Add", "+~", OtherObject },
+                { Icons::GlyphGenericSignal, "", "(signal) Subtract", "-~", OtherObject },
+                { Icons::GlyphGenericSignal, "", "(signal) Multiply", "*~", OtherObject },
+                { Icons::GlyphGenericSignal, "", "(signal) Divide", "/~", OtherObject },
+                { Icons::GlyphGenericSignal, "#X obj 0 0 hv.gt~", "(signal) Greater than", ">~", OtherObject },
+                { Icons::GlyphGenericSignal, "#X obj 0 0 hv.lt~", "(signal) Less than", "<~", OtherObject },
+                { Icons::GlyphGenericSignal, "#X obj 0 0 hv.gte~", "(signal) Greater or equal", ">=~", OtherObject },
+                { Icons::GlyphGenericSignal, "#X obj 0 0 hv.lte~", "(signal) Less or equal", "<=~", OtherObject },
+                { Icons::GlyphGenericSignal, "#X obj 0 0 hv.eq~", "(signal) Equality", "==~", OtherObject },
+                { Icons::GlyphGenericSignal, "#X obj 0 0 hv.neq~", "(signal) Not equal", "!=~", OtherObject },
+                { Icons::GlyphGenericSignal, "", "(signal) Minimum", "min~", OtherObject },
+                { Icons::GlyphGenericSignal, "", "(signal) Maximum", "max~", OtherObject },
+            } },
+    };
+
 private:
     PluginEditor* editor;
     std::function<void(bool)> dismissMenu;
@@ -376,9 +493,15 @@ public:
         : list(e, dismissCalloutBox)
     {
         addAndMakeVisible(list);
-        list.showCategory("UI");
 
-        for (auto const& [categoryName, category] : ObjectList::objectList) {
+        auto objectsToShow = getValue<bool>(SettingsFile::getInstance()->getPropertyAsValue("hvcc_mode")) ? ObjectList::heavyObjectList : ObjectList::defaultObjectList;
+
+        // make the 2nd category active (which will be after the default category if it exists)
+        if (objectsToShow.size() > 1) {
+            // this should always be populated, but just incase we are testing a new blank object list etc
+            list.showCategory(objectsToShow[1].first);
+        }
+        for (auto const& [categoryName, category] : objectsToShow) {
             if (categoryName == "Default")
                 continue;
 
@@ -392,15 +515,17 @@ public:
             button->setRadioGroupId(hash("add_menu_category"));
             button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
             button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuActiveTextColourId));
-
-            button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
-            button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId));
+            button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.035f));
+            button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.075f));
+            button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
             addAndMakeVisible(button);
         }
 
-        categories.getFirst()->setConnectedEdges(Button::ConnectedOnRight);
-        categories.getFirst()->setToggleState(true, dontSendNotification);
-        categories.getLast()->setConnectedEdges(Button::ConnectedOnLeft);
+        if (categories.size() > 0) {
+            categories.getFirst()->setConnectedEdges(Button::ConnectedOnRight);
+            categories.getFirst()->setToggleState(true, dontSendNotification);
+            categories.getLast()->setConnectedEdges(Button::ConnectedOnLeft);
+        }
         resized();
     }
 
@@ -423,8 +548,8 @@ private:
 };
 
 class AddObjectMenuButton : public Component {
-    const String icon;
-    const String text;
+    String const icon;
+    String const text;
 
 public:
     bool toggleState = false;
@@ -493,11 +618,11 @@ class AddObjectMenu : public Component {
 
 public:
     AddObjectMenu(PluginEditor* e)
-        : editor(e)
+        : objectBrowserButton(Icons::Object, "Show Object Browser")
+        , pinButton(Icons::Pin)
+        , editor(e)
         , objectList(e, [this](bool shouldFade) { dismiss(shouldFade); })
         , categoriesList(e, [this](bool shouldFade) { dismiss(shouldFade); })
-        , objectBrowserButton(Icons::Object, "Show Object Browser")
-        , pinButton(Icons::Pin)
     {
         categoriesList.setVisible(true);
 
@@ -543,7 +668,7 @@ public:
             if (pinButton.toggleState) {
                 animator.animateComponent(currentCalloutBox, currentCalloutBox->getBounds(), shouldHide ? 0.1f : 1.0f, 300, false, 0.0f, 0.0f);
             }
-            // Otherwise, fade the panel on drag start: calling dismiss or setVisible will lead the the drag event getting lost, so we just set alpha instead
+            // Otherwise, fade the panel on drag start: calling dismiss or setVisible will lead to the drag event getting lost, so we just set alpha instead
             // Ditto for calling animator.fadeOut because that will also call setVisible(false)
             else if (shouldHide) {
                 animator.animateComponent(currentCalloutBox, currentCalloutBox->getBounds(), 0.0f, 300, false, 0.0f, 0.0f);

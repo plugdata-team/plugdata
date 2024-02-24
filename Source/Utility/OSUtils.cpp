@@ -4,10 +4,15 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+
 #define JUCE_GUI_BASICS_INCLUDE_XHEADERS 1
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include <juce_core/juce_core.h>
+#if !defined(__APPLE__)
+#undef JUCE_GUI_BASICS_INCLUDE_XHEADERS
+#    include <raw_keyboard_input/raw_keyboard_input.cpp>
+#endif
+
 #include "OSUtils.h"
 
 #if defined(__APPLE__)
@@ -25,21 +30,20 @@
 #if HAS_STD_FILESYSTEM
 #    if defined(__cpp_lib_filesystem)
 #        include <filesystem>
+namespace fs = std::filesystem;
 #    elif defined(__cpp_lib_experimental_filesystem)
 #        include <experimental/filesystem>
-namespace std {
-namespace filesystem = experimental::filesystem;
-}
+namespace fs = std::experimental::filesystem;
 #    endif
 #else
-#    include "../Libraries/cpath/cpath.h"
+
+#    include <ghc_filesystem/include/ghc/filesystem.hpp>
+namespace fs = ghc::filesystem;
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
 
 #    define REPARSE_MOUNTPOINT_HEADER_SIZE 8
-
-#    define _WIN32_WINNT 0x0500 // Windows 2000 or later
 #    define WIN32_LEAN_AND_MEAN
 #    define WIN32_NO_STATUS
 
@@ -75,7 +79,7 @@ void OSUtils::createJunction(std::string from, std::string to)
     strcat(szTarget, "\\");
 
     if (!::CreateDirectory(szJunction, nullptr))
-        throw ::GetLastError();
+        return;
 
     // Obtain SE_RESTORE_NAME privilege (required for opening a directory)
     HANDLE hToken = nullptr;
@@ -88,7 +92,7 @@ void OSUtils::createJunction(std::string from, std::string to)
         tp.PrivilegeCount = 1;
         tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
         if (!::AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(TOKEN_PRIVILEGES), nullptr, nullptr))
-            throw ::GetLastError();
+            return;
     } catch (DWORD) {
     } // Ignore errors
     if (hToken)
@@ -96,7 +100,7 @@ void OSUtils::createJunction(std::string from, std::string to)
 
     HANDLE hDir = ::CreateFile(szJunction, GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS, nullptr);
     if (hDir == INVALID_HANDLE_VALUE)
-        throw ::GetLastError();
+        return;
 
     memset(buf, 0, sizeof(buf));
     ReparseBuffer.ReparseTag = IO_REPARSE_TAG_MOUNT_POINT;
@@ -110,7 +114,7 @@ void OSUtils::createJunction(std::string from, std::string to)
         DWORD dr = ::GetLastError();
         ::CloseHandle(hDir);
         ::RemoveDirectory(szJunction);
-        throw dr;
+        return;
     }
 
     ::CloseHandle(hDir);
@@ -118,7 +122,7 @@ void OSUtils::createJunction(std::string from, std::string to)
 
 void OSUtils::createHardLink(std::string from, std::string to)
 {
-    std::filesystem::create_hard_link(from, to);
+    fs::create_hard_link(from, to);
 }
 
 // Function to run a command as admin on Windows
@@ -148,20 +152,35 @@ bool OSUtils::runAsAdmin(std::string command, std::string parameters, void* hWnd
 
 OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 {
-    TCHAR buff[KL_NAMELENGTH];
-    bool result = GetKeyboardLayoutNameA(buff);
+    CHAR layoutName[KL_NAMELENGTH];
 
-    if (buff == "French" || buff == "Belgian French" || buff == "Belgian (Comma)" || buff == "Belgian (Period)") {
-        return AZERTY;
+    if (GetKeyboardLayoutNameA(layoutName)) {
+        // Check for specific layout names to differentiate between French and Belgian layouts.
+        if (strcmp(layoutName, "0000040C") == 0 || strcmp(layoutName, "0000080C") == 0) // French or Belgian French
+        {
+            return OSUtils::AZERTY;
+        } else if (strcmp(layoutName, "00000813") == 0) // Belgian Dutch
+        {
+            return OSUtils::AZERTY;
+        }
     }
 
-    return QWERTY;
+    // Default to QWERTY if it's not AZERTY
+    return OSUtils::QWERTY;
 }
 
 #endif // Windows
 
 // Selects Linux and BSD
 #if defined(__unix__) && !defined(__APPLE__)
+
+void OSUtils::updateX11Constraints(void* handle)
+{
+    if (handle) {
+        juce::XWindowSystem::getInstance()->updateConstraints(reinterpret_cast<::Window>(handle));
+    }
+}
+
 bool OSUtils::isX11WindowMaximised(void* handle)
 {
     enum window_state_t {
@@ -225,7 +244,7 @@ bool OSUtils::isX11WindowMaximised(void* handle)
     Atom* states = nullptr;
     window_state_t state = WINDOW_STATE_NONE;
 
-    if (XGetWindowProperty(display, window, net_wm_state, 0l, max_length, False, XA_ATOM,
+    if (XGetWindowProperty(display, window, net_wm_state, 0l, max_length, False, 4,
             &actual_type, &actual_format, &num_states, &bytes_after, (unsigned char**)&states)
         == Success) {
 
@@ -255,7 +274,6 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 {
     char* line = NULL;
     size_t size = 0;
-    ssize_t len;
     KeyboardLayout result = QWERTY;
     FILE* in;
 
@@ -264,7 +282,7 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
         return QWERTY;
 
     while (1) {
-        len = getline(&line, &size, in);
+        getline(&line, &size, in);
         if (strstr(line, "aliases(qwerty)"))
             result = QWERTY;
         if (strstr(line, "aliases(azerty)"))
@@ -278,9 +296,6 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 }
 #endif // Linux/BSD
 
-// Use std::filesystem directory iterator if available
-// On old versions of GCC and macos <10.15, std::filesystem is not available
-#if HAS_STD_FILESYSTEM
 
 juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles, int maximum)
 {
@@ -288,7 +303,7 @@ juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, b
 
     if (recursive) {
         try {
-            for (auto const& dirEntry : std::filesystem::recursive_directory_iterator(directory.getFullPathName().toStdString())) {
+            for (auto const& dirEntry : fs::recursive_directory_iterator(directory.getFullPathName().toStdString())) {
                 auto isDir = dirEntry.is_directory();
                 if ((isDir && !onlyFiles) || !isDir) {
                     result.add(juce::File(dirEntry.path().string()));
@@ -297,12 +312,12 @@ juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, b
                 if (maximum > 0 && result.size() >= maximum)
                     break;
             }
-        } catch (std::filesystem::filesystem_error e) {
+        } catch (fs::filesystem_error& e) {
             std::cerr << "Error while iterating over directory: " << e.path1() << std::endl;
         }
     } else {
         try {
-            for (auto const& dirEntry : std::filesystem::directory_iterator(directory.getFullPathName().toStdString())) {
+            for (auto const& dirEntry : fs::directory_iterator(directory.getFullPathName().toStdString())) {
                 auto isDir = dirEntry.is_directory();
                 if ((isDir && !onlyFiles) || !isDir) {
                     result.add(juce::File(dirEntry.path().string()));
@@ -311,7 +326,7 @@ juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, b
                 if (maximum > 0 && result.size() >= maximum)
                     break;
             }
-        } catch (std::filesystem::filesystem_error e) {
+        } catch (fs::filesystem_error& e) {
             std::cerr << "Error while iterating over directory: " << e.path1() << std::endl;
         }
     }
@@ -319,37 +334,60 @@ juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, b
     return result;
 }
 
-// Otherwise use cpath
+// needs to be in OSutils because it needs <windows.h>
+unsigned int OSUtils::keycodeToHID(unsigned int scancode)
+{
+
+#if defined(_WIN32)
+    static unsigned char const KEYCODE_TO_HID[256] = {
+        0, 41, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 45, 46, 42, 43, 20, 26, 8, 21, 23, 28, 24, 12, 18, 19,
+        47, 48, 158, 224, 4, 22, 7, 9, 10, 11, 13, 14, 15, 51, 52, 53, 225, 49, 29, 27, 6, 25, 5, 17, 16, 54,
+        55, 56, 229, 0, 226, 0, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 72, 71, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 68, 69, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 228, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 70, 230, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 74, 82, 75, 0, 80, 0, 79, 0, 77, 81, 78, 73, 76, 0, 0, 0, 0, 0, 0, 0, 227, 231,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    };
+
+    static HKL layout;
+
+    scancode = MapVirtualKeyEx(scancode, MAPVK_VK_TO_VSC, layout);
+    if (scancode >= 256)
+        return (0);
+    return (KEYCODE_TO_HID[scancode]);
+
+#elif defined(__APPLE__)
+    static unsigned char const KEYCODE_TO_HID[128] = {
+        4, 22, 7, 9, 11, 10, 29, 27, 6, 25, 0, 5, 20, 26, 8, 21, 28, 23, 30, 31, 32, 33, 35, 34, 46, 38, 36,
+        45, 37, 39, 48, 18, 24, 47, 12, 19, 158, 15, 13, 52, 14, 51, 49, 54, 56, 17, 16, 55, 43, 44, 53, 42,
+        0, 41, 231, 227, 225, 57, 226, 224, 229, 230, 228, 0, 108, 220, 0, 85, 0, 87, 0, 216, 0, 0, 127,
+        84, 88, 0, 86, 109, 110, 103, 98, 89, 90, 91, 92, 93, 94, 95, 111, 96, 97, 0, 0, 0, 62, 63, 64, 60,
+        65, 66, 0, 68, 0, 104, 107, 105, 0, 67, 0, 69, 0, 106, 117, 74, 75, 76, 61, 77, 59, 78, 58, 80, 79,
+        81, 82, 0
+    };
+
+    if (scancode >= 128)
+        return 0;
+    return KEYCODE_TO_HID[scancode];
 #else
 
-static juce::Array<juce::File> iterateDirectoryRecurse(cpath::Dir&& dir, bool recursive, bool onlyFiles, int maximum)
-{
-    juce::Array<juce::File> result;
+    static unsigned char const KEYCODE_TO_HID[256] = {
+        0, 41, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 45, 46, 42, 43, 20, 26, 8, 21, 23, 28, 24, 12, 18, 19,
+        47, 48, 158, 224, 4, 22, 7, 9, 10, 11, 13, 14, 15, 51, 52, 53, 225, 49, 29, 27, 6, 25, 5, 17, 16, 54,
+        55, 56, 229, 85, 226, 44, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 83, 71, 95, 96, 97, 86, 92,
+        93, 94, 87, 89, 90, 91, 98, 99, 0, 0, 100, 68, 69, 0, 0, 0, 0, 0, 0, 0, 88, 228, 84, 154, 230, 0, 74,
+        82, 75, 80, 79, 77, 81, 78, 73, 76, 0, 0, 0, 0, 0, 103, 0, 72, 0, 0, 0, 0, 0, 227, 231, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 118, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    };
 
-    while (cpath::Opt<cpath::File, cpath::Error::Type> file = dir.GetNextFile()) {
-        auto isDir = file->IsDir();
-
-        if (isDir && recursive && !file->IsSpecialHardLink()) {
-            result.addArray(iterateDirectoryRecurse(std::move(file->ToDir().GetRaw()), recursive, onlyFiles, maximum));
-        }
-        if ((isDir && !onlyFiles) || !isDir) {
-            result.add(juce::File(juce::String(file->GetPath().GetRawPath()->buf)));
-        }
-
-        if (maximum > 0 && result.size() >= maximum)
-            break;
-    }
-
-    dir.Close();
-
-    return result;
-}
-
-juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles, int maximum)
-{
-    auto pathName = directory.getFullPathName();
-    auto dir = cpath::Dir(pathName.toRawUTF8());
-    return iterateDirectoryRecurse(std::move(dir), recursive, onlyFiles, maximum);
-}
-
+    // xorg differs from kernel values
+    scancode -= 8;
+    if (scancode >= 256)
+        return 0;
+    return KEYCODE_TO_HID[scancode];
 #endif
+}

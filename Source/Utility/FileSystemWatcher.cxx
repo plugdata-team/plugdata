@@ -69,7 +69,6 @@ public:
         ignoreUnused (streamRef, numEvents, eventIds, eventPaths, eventFlags);
 
         Impl* impl = (Impl*)clientCallBackInfo;
-        impl->owner.folderChanged (impl->folder);
 
         char** files = (char**)eventPaths;
 
@@ -136,6 +135,7 @@ public:
 
     ~Impl()
     {
+        shouldQuit = true;
         signalThreadShouldExit();
         inotify_rm_watch (fd, wd);
         close (fd);
@@ -146,12 +146,11 @@ public:
     void run() override
     {
         char buf[BUF_LEN];
-        ssize_t numRead;
 
         const struct inotify_event* iNotifyEvent;
         char* ptr;
 
-        while (true)
+        while (!shouldQuit)
         {
             int numRead = read (fd, buf, BUF_LEN);
 
@@ -171,7 +170,8 @@ public:
                 else if (iNotifyEvent->mask & IN_MOVED_TO)    e.fsEvent = FileSystemEvent::fileRenamedNewName;
                 else if (iNotifyEvent->mask & IN_DELETE)      e.fsEvent = FileSystemEvent::fileDeleted;
 
-
+                ScopedLock sl(lock);
+                
                 bool duplicateEvent = false;
                 for (auto existing : events)
                 {
@@ -186,6 +186,7 @@ public:
                     events.add (std::move (e));
             }
 
+            ScopedLock sl (lock);
             if (events.size() > 0)
                 triggerAsyncUpdate();
         }
@@ -193,9 +194,9 @@ public:
 
     void handleAsyncUpdate() override
     {
-        ScopedLock sl (lock);
+        if(shouldQuit) return;
 
-        owner.folderChanged (folder);
+        ScopedLock sl (lock);
 
         for (auto& e : events)
             owner.fileChanged (e.file, e.fsEvent);
@@ -203,6 +204,7 @@ public:
         events.clear();
     }
 
+    std::atomic<bool> shouldQuit = false;
     FileSystemWatcher& owner;
     File folder;
 
@@ -234,7 +236,7 @@ public:
       : Thread ("FileSystemWatcher::Impl"), owner (o), folder (f)
     {
         WCHAR path[_MAX_PATH] = {0};
-        wcsncpy (path, folder.getFullPathName().toWideCharPointer(), _MAX_PATH - 1);
+        wcsncpy_s (path, folder.getFullPathName().toWideCharPointer(), _MAX_PATH - 1);
 
         folderHandle = CreateFileW (path, FILE_LIST_DIRECTORY, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
                                     NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
@@ -332,8 +334,6 @@ public:
     {
         ScopedLock sl (lock);
 
-        owner.folderChanged (folder);
-
         for (auto e : events)
             owner.fileChanged (e.file, e.fsEvent);
 
@@ -350,7 +350,8 @@ public:
 };
 #endif
 
-#if JUCE_BSD
+// Dummy implementation for OS where we don't support this yet
+#if JUCE_BSD || JUCE_IOS
 class FileSystemWatcher::Impl
 {
 public:
@@ -367,7 +368,7 @@ public:
 };
 #endif
 
-#if defined JUCE_MAC || defined JUCE_WINDOWS || defined JUCE_LINUX || defined JUCE_BSD
+#if defined JUCE_MAC || defined JUCE_WINDOWS || defined JUCE_LINUX || defined JUCE_BSD || defined JUCE_IOS
 FileSystemWatcher::FileSystemWatcher()
 {
 }
@@ -379,7 +380,7 @@ FileSystemWatcher::~FileSystemWatcher()
 void FileSystemWatcher::addFolder (const File& folder)
 {
     // You can only listen to folders that exist
-    jassert (folder.isDirectory());
+    //jassert (folder.isDirectory());
 
     if ( ! getWatchedFolders().contains (folder))
         watched.add (new Impl (*this, folder));
@@ -412,13 +413,10 @@ void FileSystemWatcher::removeListener (Listener* listener)
     listeners.remove (listener);
 }
 
-void FileSystemWatcher::folderChanged (const File& folder)
-{
-    listeners.call (&FileSystemWatcher::Listener::folderChanged, folder);
-}
-
 void FileSystemWatcher::fileChanged (const File& file, FileSystemEvent fsEvent)
 {
+    if(file.getFileName().endsWith(".autosave")) return;
+    
     listeners.call (&FileSystemWatcher::Listener::fileChanged, file, fsEvent);
 }
 

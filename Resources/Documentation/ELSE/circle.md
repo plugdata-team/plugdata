@@ -45,8 +45,8 @@ methods:
     description: sets both background colors in RGB
   - type: fgcolor <f, f, f>
     description: sets foreground color in RGB
-  - type: init <float>
-    description: non-0 sets to init mode
+  - type: savestate <float>
+    description: non-0 will save object state
   - type: clip <float>
     description: non-0 clips inside the circle
     
@@ -63,8 +63,8 @@ flags:
   - name: -grid <float>
     description: non-0 sets grid visibility
     default: 0
-  - name: -init <float>
-    description: non-0 sets to init mode
+  - name: -savestate <float>
+    description: non-0 sets will save object state
     default: 0
   - name: -range <f, f>
     description: sets range (minimum and maximum values of x and y)

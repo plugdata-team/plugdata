@@ -44,8 +44,9 @@ static t_int *phaseshift_perform(t_int *w){
         float omega, alphaQ, b0, a0, a1, yn, xn = *in1++, f = *in2++, q = *in3++;
         if (q < 0) q = lastq;
         lastq = q;
-        if (f < 0) f = 0;
+        if (f < 10) f = 10;
         if (f > nyq) f = nyq;
+        q = fmax(q, 0.1f);
         omega = f * PI/nyq;
         alphaQ = sinf(omega) / (2*q);
         b0 = alphaQ + 1;

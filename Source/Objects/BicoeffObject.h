@@ -12,7 +12,7 @@ class BicoeffGraph : public Component {
 
     float filterWidth, filterCentre;
     float filterX1, filterX2;
-    float lastCentre, lastX1, lastX2, lastGain;
+    float lastX1, lastX2, lastGain;
 
     Object* object;
 
@@ -63,7 +63,7 @@ public:
         auto dim = String(" -dim ") + String(b.getWidth()) + " " + String(b.getHeight());
         auto type = String(" -type ") + String(filterTypeNames[static_cast<int>(filterType)]);
         auto buftext = String("bicoeff") + dim + type;
-        auto* ptr = static_cast<t_object*>(object->getPointer());
+        auto* ptr = pd::Interface::checkObject(object->getPointer());
         binbuf_text(ptr->te_binbuf, buftext.toRawUTF8(), buftext.getNumBytesAsUTF8());
     }
 
@@ -149,7 +149,6 @@ public:
         if (!e.mods.isLeftButtonDown())
             return;
 
-        lastCentre = filterCentre;
         lastX1 = filterX1;
         lastX2 = filterX2;
         lastGain = filterGain;
@@ -255,7 +254,7 @@ public:
 
     std::pair<float, float> calcCoefficients()
     {
-        float nn = (filterCentre)*120.0f + 16.766f;
+        float nn = (filterCentre) * 120.0f + 16.766f;
         float nn2 = (filterWidth + filterCentre) * 120.0f + 16.766f;
         float f = mtof(nn);
         float bwf = mtof(nn2);
@@ -509,7 +508,7 @@ class BicoeffObject : public ObjectBase {
     Value sizeProperty = SynchronousValue();
 
 public:
-    BicoeffObject(void* obj, Object* parent)
+    BicoeffObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
         , graph(parent)
     {
@@ -537,7 +536,7 @@ public:
                 return;
 
             int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
 
             sizeProperty = Array<var> { var(w), var(h) };
         }
@@ -553,7 +552,7 @@ public:
                 return;
 
             int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
 
             setParameterExcludingListener(sizeProperty, Array<var> { var(w), var(h) });
         }
@@ -589,7 +588,7 @@ public:
                 return {};
 
             int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
             return { x, y, w + 1, h + 1 };
         }
 
@@ -603,31 +602,16 @@ public:
             if (!patch)
                 return;
 
-            libpd_moveobj(patch, gobj.get(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, gobj.get(), b.getX(), b.getY());
             pd->sendDirectMessage(gobj.get(), "dim", { (float)b.getWidth() - 1, (float)b.getHeight() - 1 });
         }
 
         graph.saveProperties();
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("allpass"),
-            hash("lowpass"),
-            hash("highpass"),
-            hash("bandpass"),
-            hash("bandstop"),
-            hash("resonant"),
-            hash("eq"),
-            hash("lowshelf"),
-            hash("highshelf")
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("allpass"): {
             graph.setFilterType(BicoeffGraph::Allpass);
             break;

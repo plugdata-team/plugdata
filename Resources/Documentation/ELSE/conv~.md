@@ -9,12 +9,12 @@ categories:
 pdcategory: ELSE, Effects
 
 arguments:
+- description: impulse response table name 
+  type: symbol
+  default: none
 - description: optional - partition size
   type: float
   default: 1024, minimum 64
-- description: file name to open as impulse response
-  type: symbol
-  default: none
 
 inlets:
   1st:
@@ -29,8 +29,10 @@ outlets:
 methods:
   - type: size <float>
     description: sets partition size
-  - type: load <symbol>
-    description: loads IR sound file
+  - type: set <symbol>
+    description: load IR table
+  - type: print
+    description: print convolution info to console
 
 draft: false
 ---

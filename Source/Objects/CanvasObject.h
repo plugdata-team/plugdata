@@ -8,17 +8,17 @@ class CanvasObject final : public ObjectBase {
 
     bool locked;
     Value sizeProperty = SynchronousValue();
-
+        
     IEMHelper iemHelper;
 
 public:
-    CanvasObject(void* ptr, Object* object)
+    CanvasObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {
         object->setColour(PlugDataColour::outlineColourId, Colours::transparentBlack);
         locked = getValue<bool>(object->locked);
-
+        
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamColour("Canvas color", cGeneral, &iemHelper.secondaryColour, PlugDataColour::guiObjectInternalOutlineColour);
         iemHelper.addIemParameters(objectParameters, false, true, 20, 12, 14);
@@ -48,16 +48,9 @@ public:
         iemHelper.updateLabel(label);
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            IEMGUI_MESSAGES
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        iemHelper.receiveObjectMessage(symbol, atoms);
+        iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
     }
 
     void update() override
@@ -110,7 +103,7 @@ public:
                 return {};
 
             int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(patch, canvas.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, canvas.cast<t_gobj>(), &x, &y, &w, &h);
 
             return Rectangle<int>(x, y, ptr.get<t_my_canvas>()->x_vis_w + 1, ptr.get<t_my_canvas>()->x_vis_h + 1);
         }
@@ -133,8 +126,8 @@ public:
             } else {
                 return;
             }
-
-            g.setColour(object->isSelected() ? object->findColour(PlugDataColour::objectSelectedOutlineColourId) : object->findColour(PlugDataColour::objectOutlineColourId));
+            
+            g.setColour(object->isSelected() ? object->findColour(PlugDataColour::objectSelectedOutlineColourId) : bgcolour.contrasting(0.75f));
             g.drawRoundedRectangle(draggableRect.reduced(1.0f), Corners::objectCornerRadius, 1.0f);
         }
     }
@@ -155,7 +148,8 @@ public:
             }
 
             object->updateBounds();
-        } else {
+        }
+        else {
             iemHelper.valueChanged(v);
         }
     }

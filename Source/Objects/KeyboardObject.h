@@ -5,7 +5,7 @@
  */
 
 // Inherit to customise drawing
-class MIDIKeyboard : public MidiKeyboardComponent {
+class MIDIKeyboard : public MidiKeyboardState, public MidiKeyboardComponent {
 
     Object* object;
 
@@ -14,11 +14,12 @@ class MIDIKeyboard : public MidiKeyboardComponent {
 
 public:
     std::set<int> heldKeys;
+    std::set<int> toggledKeys;
     std::function<void(int, int)> noteOn;
     std::function<void(int)> noteOff;
-
-    MIDIKeyboard(Object* parent, MidiKeyboardState& stateToUse, Orientation orientationToUse)
-        : MidiKeyboardComponent(stateToUse, orientationToUse)
+    
+    MIDIKeyboard(Object* parent)
+        : MidiKeyboardComponent(*this, MidiKeyboardComponent::horizontalKeyboard)
         , object(parent)
     {
         // Make sure nothing is drawn outside of our custom draw functions
@@ -54,7 +55,15 @@ public:
 
     bool mouseDownOnKey(int midiNoteNumber, MouseEvent const& e) override
     {
-        if (toggleMode) {
+        if (e.mods.isShiftDown()) {
+            if (toggledKeys.count(midiNoteNumber)) {
+                toggledKeys.erase(midiNoteNumber);
+                noteOff(midiNoteNumber);
+            } else {
+                toggledKeys.insert(midiNoteNumber);
+                noteOn(midiNoteNumber, getNoteAndVelocityAtPosition(e.position).velocity * 127);
+            }
+        } else if (toggleMode) {
             if (heldKeys.count(midiNoteNumber)) {
                 heldKeys.erase(midiNoteNumber);
                 noteOff(midiNoteNumber);
@@ -75,7 +84,7 @@ public:
 
     bool mouseDraggedToKey(int midiNoteNumber, MouseEvent const& e) override
     {
-        if (!toggleMode && !heldKeys.count(midiNoteNumber)) {
+        if (!toggleMode && !e.mods.isShiftDown() && !heldKeys.count(midiNoteNumber)) {
             for (auto& note : heldKeys) {
                 noteOff(note);
             }
@@ -101,7 +110,7 @@ public:
     // So we completely replace mouseUpOnKey functionality here, mouseUp() will stop mouseUpOnKey() being called.
     void mouseUp(MouseEvent const& e) override
     {
-        if (!toggleMode) {
+        if (!toggleMode && !e.mods.isShiftDown()) {
             heldKeys.erase(lastKey);
             noteOff(lastKey);
         }
@@ -115,7 +124,7 @@ public:
 
     void drawWhiteNote(int midiNoteNumber, Graphics& g, Rectangle<float> area, bool isDown, bool isOver, Colour lineColour, Colour textColour) override
     {
-        isDown = heldKeys.count(midiNoteNumber);
+        isDown = heldKeys.count(midiNoteNumber) || toggledKeys.count(midiNoteNumber);
 
         auto c = Colour(225, 225, 225);
         if (isOver)
@@ -180,7 +189,7 @@ public:
     {
         auto c = Colour(90, 90, 90);
 
-        isDown = heldKeys.count(midiNoteNumber);
+        isDown = heldKeys.count(midiNoteNumber) || toggledKeys.count(midiNoteNumber);
 
         if (isOver)
             c = Colour(101, 101, 101);
@@ -197,21 +206,20 @@ class KeyboardObject final : public ObjectBase
 
     Value lowC = SynchronousValue();
     Value octaves = SynchronousValue();
-    int numWhiteKeys = 0;
+    int numWhiteKeys = 8;
 
     Value sendSymbol = SynchronousValue();
     Value receiveSymbol = SynchronousValue();
     Value toggleMode = SynchronousValue();
     Value sizeProperty = SynchronousValue();
 
-    MidiKeyboardState state;
     MIDIKeyboard keyboard;
     int keyRatio = 5;
 
 public:
-    KeyboardObject(void* ptr, Object* object)
+    KeyboardObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
-        , keyboard(object, state, MidiKeyboardComponent::horizontalKeyboard)
+        , keyboard(object)
     {
         keyboard.setMidiChannel(1);
         keyboard.setScrollButtonsVisible(false);
@@ -262,8 +270,8 @@ public:
             toggleMode.setValue(obj->x_toggle_mode);
             sizeProperty.setValue(obj->x_height);
 
-            auto sndSym = String::fromUTF8(obj->x_send->s_name);
-            auto rcvSym = String::fromUTF8(obj->x_receive->s_name);
+            auto sndSym = obj->x_snd_set ? String::fromUTF8(obj->x_snd_raw->s_name) : getBinbufSymbol(7);
+            auto rcvSym = obj->x_rcv_set ? String::fromUTF8(obj->x_rcv_raw->s_name) : getBinbufSymbol(8);
 
             sendSymbol = sndSym != "empty" ? sndSym : "";
             receiveSymbol = rcvSym != "empty" ? rcvSym : "";
@@ -292,7 +300,7 @@ public:
                 return {};
 
             int x, y, w, h;
-            libpd_get_object_bounds(patch, obj.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, obj.cast<t_gobj>(), &x, &y, &w, &h);
 
             return Rectangle<int>(x, y, obj->x_space * numWhiteKeys, obj->x_height);
         }
@@ -307,7 +315,7 @@ public:
             if (!patch)
                 return;
 
-            libpd_moveobj(patch, gobj.cast<t_gobj>(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, gobj.cast<t_gobj>(), b.getX(), b.getY());
             gobj->x_height = b.getHeight();
         }
     }
@@ -368,11 +376,11 @@ public:
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             auto symbol = sendSymbol.toString();
             if (auto obj = ptr.get<void>())
-                pd->sendDirectMessage(obj.get(), "send", { symbol });
+                pd->sendDirectMessage(obj.get(), "send", { pd->generateSymbol(symbol) });
         } else if (value.refersToSameSourceAs(receiveSymbol)) {
             auto symbol = receiveSymbol.toString();
             if (auto obj = ptr.get<void>())
-                pd->sendDirectMessage(obj.get(), "receive", { symbol });
+                pd->sendDirectMessage(obj.get(), "receive", { pd->generateSymbol(symbol) });
         } else if (value.refersToSameSourceAs(toggleMode)) {
             auto toggle = getValue<int>(toggleMode);
             if (auto obj = ptr.get<void>())
@@ -386,31 +394,14 @@ public:
         if (auto obj = ptr.get<t_fake_keyboard>()) {
 
             for (int i = keyboard.getRangeStart(); i < keyboard.getRangeEnd(); i++) {
-                if (obj->x_tgl_notes[i] && !(state.isNoteOn(2, i) && state.isNoteOn(1, i))) {
-                    state.noteOn(2, i, 1.0f);
+                if (obj->x_tgl_notes[i] && !keyboard.heldKeys.contains(i)) {
+                    keyboard.heldKeys.insert(i);
                 }
-                if (!obj->x_tgl_notes[i] && !(state.isNoteOn(2, i) && state.isNoteOn(1, i))) {
-                    state.noteOff(2, i, 1.0f);
+                if (!obj->x_tgl_notes[i] && keyboard.heldKeys.contains(i)) {
+                    keyboard.heldKeys.erase(i);
                 }
             }
         }
-    }
-
-    std::vector<hash32> getAllMessages() override
-    {
-        return {
-            hash("float"),
-            hash("list"),
-            hash("set"),
-            hash("on"),
-            hash("off"),
-            hash("lowc"),
-            hash("oct"),
-            hash("8ves"),
-            hash("send"),
-            hash("receive"),
-            hash("toggle")
-        };
     }
 
     void noteOn(int midiNoteNumber, bool isOn)
@@ -423,28 +414,29 @@ public:
         keyboard.repaint();
     }
 
-    void notesOn(std::vector<pd::Atom>& noteList, bool isOn)
+    void notesOn(pd::Atom const atoms[8], int numAtoms, bool isOn)
     {
-        for (auto note : noteList) {
+        for (int at = 0; at < numAtoms; at++) {
             if (isOn)
-                keyboard.heldKeys.insert(note.getFloat());
+                keyboard.heldKeys.insert(atoms[at].getFloat());
             else
-                keyboard.heldKeys.erase(note.getFloat());
+                keyboard.heldKeys.erase(atoms[at].getFloat());
         }
         keyboard.repaint();
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
         auto elseKeyboard = ptr.get<t_fake_keyboard>();
 
-        switch (hash(symbol)) {
-        case hash("float"): {
-            noteOn(atoms[0].getFloat(), elseKeyboard->x_vel_in > 0);
+        switch (symbol) {
+            case hash("float"): {
+            auto note = std::clamp<int>(atoms[0].getFloat(), 0, 128);
+            noteOn(atoms[0].getFloat(), elseKeyboard->x_tgl_notes[note]);
             break;
         }
         case hash("list"): {
-            if (atoms.size() == 2) {
+            if (numAtoms == 2) {
                 noteOn(atoms[0].getFloat(), atoms[1].getFloat() > 0);
             }
             break;
@@ -454,11 +446,11 @@ public:
             break;
         }
         case hash("on"): {
-            notesOn(atoms, true);
+            notesOn(atoms, numAtoms, true);
             break;
         }
         case hash("off"): {
-            notesOn(atoms, false);
+            notesOn(atoms, numAtoms, false);
             break;
         }
         case hash("lowc"): {
@@ -477,13 +469,13 @@ public:
             break;
         }
         case hash("send"): {
-            if (atoms.size() >= 1)
-                setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
+            if (numAtoms >= 1)
+                setParameterExcludingListener(sendSymbol, atoms[0].toString());
             break;
         }
         case hash("receive"): {
-            if (atoms.size() >= 1)
-                setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+            if (numAtoms >= 1)
+                setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             break;
         }
         case hash("toggle"): {

@@ -9,16 +9,11 @@
 
 #include "Dialogs/Dialogs.h"
 #include "HeavyExportDialog.h"
+#include "Dialogs/HelpDialog.h"
 
 #include "PluginEditor.h"
-#include "Utility/PropertiesPanel.h"
+#include "Components/PropertiesPanel.h"
 #include "Utility/OSUtils.h"
-
-#if JUCE_LINUX
-#    include <unistd.h>
-#    include <sys/types.h>
-#    include <sys/wait.h>
-#endif
 
 #include "Toolchain.h"
 #include "ExportingProgressView.h"
@@ -64,22 +59,77 @@ public:
         listBox.selectRow(0);
         listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
         listBox.setRowHeight(28);
+
+        restoreState();
+    }
+
+    ~ExporterSettingsPanel() override
+    {
+        saveState();
+    }
+
+    ValueTree getState() const
+    {
+        ValueTree stateTree("HeavySelect");
+        stateTree.setProperty("listBox", listBox.getSelectedRow(), nullptr);
+        return stateTree;
+    }
+
+    void setState(ValueTree& stateTree)
+    {
+        auto tree = stateTree.getChildWithName("HeavySelect");
+        listBox.selectRow(tree.getProperty("listBox"));
+    }
+
+    void restoreState()
+    {
+        auto settingsTree = SettingsFile::getInstance()->getValueTree();
+        auto heavyState = settingsTree.getChildWithName("HeavyState");
+        if (heavyState.isValid()) {
+            this->setState(heavyState);
+            views[0]->setState(heavyState);
+            views[1]->setState(heavyState);
+            views[2]->setState(heavyState);
+            views[3]->setState(heavyState);
+        }
+    }
+
+    ValueTree saveState()
+    {
+        ValueTree state("HeavyState");
+        state.appendChild(this->getState(), nullptr);
+        state.appendChild(views[0]->getState(), nullptr);
+        state.appendChild(views[1]->getState(), nullptr);
+        state.appendChild(views[2]->getState(), nullptr);
+        state.appendChild(views[3]->getState(), nullptr);
+
+        auto settingsTree = SettingsFile::getInstance()->getValueTree();
+
+        auto oldState = settingsTree.getChildWithName("HeavyState");
+        if (oldState.isValid()) {
+            settingsTree.removeChild(oldState, nullptr);
+        }
+        settingsTree.appendChild(state, nullptr);
+
+        return state;
     }
 
     void paint(Graphics& g) override
     {
         auto listboxBounds = getLocalBounds().removeFromLeft(listBoxWidth);
 
+        Path p;
+        p.addRoundedRectangle(listboxBounds.getX(), listboxBounds.getY(), listboxBounds.getWidth(), listboxBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, false, false, true, false);
+
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
-        g.fillRoundedRectangle(listboxBounds.toFloat(), Corners::windowCornerRadius);
-        g.fillRect(listboxBounds.removeFromRight(10));
+        g.fillPath(p);
     }
 
     void paintOverChildren(Graphics& g) override
     {
         auto listboxBounds = getLocalBounds().removeFromLeft(listBoxWidth);
 
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(Line<float>(listboxBounds.getTopRight().toFloat(), listboxBounds.getBottomRight().toFloat()));
     }
 
@@ -114,11 +164,6 @@ public:
         return items.size();
     }
 
-    StringArray getExports() const
-    {
-        return items;
-    }
-
     void paintListBoxItem(int row, Graphics& g, int width, int height, bool rowIsSelected) override
     {
         if (isPositiveAndBelow(row, items.size())) {
@@ -133,32 +178,38 @@ public:
         }
     }
 
-    int getBestHeight(int preferredHeight)
-    {
-        auto extra = listBox.getOutlineThickness() * 2;
-        return jmax(listBox.getRowHeight() * 2 + extra,
-            jmin(listBox.getRowHeight() * getNumRows() + extra,
-                preferredHeight));
-    }
-
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ExporterSettingsPanel)
 };
 
 HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
     : exportingView(new ExportingProgressView())
+    , installer(new ToolchainInstaller(dynamic_cast<PluginEditor*>(dialog->parentComponent), dialog))
     , exporterPanel(new ExporterSettingsPanel(dynamic_cast<PluginEditor*>(dialog->parentComponent), exportingView.get()))
-    , installer(new ToolchainInstaller(dynamic_cast<PluginEditor*>(dialog->parentComponent)))
+    , infoButton(new MainToolbarButton(Icons::Help))
 {
-
     hasToolchain = Toolchain::dir.exists();
-
-    // Create integer versions by removing the dots
-    // Compare latest version on github to the currently installed version
-    auto const latestVersion = URL("https://raw.githubusercontent.com/plugdata-team/plugdata-heavy-toolchain/main/VERSION").readEntireTextStream().trim().removeCharacters(".").getIntValue();
 
     // Don't do this relative to toolchain variable, that won't work on Windows
     auto const versionFile = ProjectInfo::appDataDir.getChildFile("Toolchain").getChildFile("VERSION");
     auto const installedVersion = versionFile.loadFileAsString().trim().removeCharacters(".").getIntValue();
+
+    // Create integer versions by removing the dots
+    // Compare latest version on github to the currently installed version
+    int latestVersion;
+    try {
+        auto compatTable = JSON::parse(URL("https://raw.githubusercontent.com/plugdata-team/plugdata-heavy-toolchain/main/COMPATIBILITY").readEntireTextStream());
+        // Get latest version
+        if (compatTable.isObject()) {
+            latestVersion = compatTable.getDynamicObject()->getProperty(String(ProjectInfo::versionString).upToFirstOccurrenceOf("-", false, false)).toString().removeCharacters(".").getIntValue();
+        } else {
+            latestVersion = installedVersion;
+        }
+    }
+    // Network error, JSON error or empty version string somehow
+    catch (...) {
+        latestVersion = installedVersion;
+        return;
+    }
 
     if (hasToolchain && latestVersion > installedVersion) {
         installer->needsUpdate = true;
@@ -170,6 +221,14 @@ HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
     addChildComponent(*exportingView);
 
     exportingView->setAlwaysOnTop(true);
+
+    infoButton->onClick = [this]() {
+        helpDialog = std::make_unique<HelpDialog>(nullptr);
+        helpDialog->onClose = [this]() {
+            helpDialog.reset(nullptr);
+        };
+    };
+    addAndMakeVisible(*infoButton);
 
     installer->toolchainInstalledCallback = [this]() {
         hasToolchain = true;
@@ -194,12 +253,29 @@ void HeavyExportDialog::paint(Graphics& g)
 {
     g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
     g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
+
+    auto titlebarBounds = getLocalBounds().removeFromTop(40);
+
+    Path p;
+    p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);
+
+    g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+    g.fillPath(p);
+
+    Fonts::drawStyledText(g, "Compiler", Rectangle<float>(0.0f, 4.0f, getWidth(), 32.0f), findColour(PlugDataColour::panelTextColourId), Semibold, 15, Justification::centred);
+}
+
+void HeavyExportDialog::paintOverChildren(Graphics& g)
+{
+    g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+    g.drawHorizontalLine(40, 0.0f, getWidth());
 }
 
 void HeavyExportDialog::resized()
 {
-    auto b = getLocalBounds();
+    auto b = getLocalBounds().withTrimmedTop(40);
     exporterPanel->setBounds(b);
     installer->setBounds(b);
     exportingView->setBounds(b);
+    infoButton->setBounds(Rectangle<int>(40, 40));
 }

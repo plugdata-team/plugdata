@@ -8,7 +8,7 @@
 
 #include <m_pd.h>
 
-#include <concurrentqueue.h> // Move to impl
+#include <readerwriterqueue.h>
 #include "Constants.h"
 #include "Objects/AllGuis.h"
 #include "Iolet.h"       // Move to impl
@@ -30,16 +30,18 @@ class Connection : public Component
 public:
     int inIdx;
     int outIdx;
+    int numSignalChannels = 1;
 
     WeakReference<Iolet> inlet, outlet;
     WeakReference<Object> inobj, outobj;
 
     Path toDraw, toDrawLocalSpace;
+    RectangleList<int> clipRegion;
     String lastId;
 
     std::atomic<int> messageActivity;
 
-    Connection(Canvas* parent, Iolet* start, Iolet* end, void* oc);
+    Connection(Canvas* parent, Iolet* start, Iolet* end, t_outconnect* oc);
     ~Connection() override;
 
     void updateOverlays(int overlay);
@@ -48,6 +50,7 @@ public:
         Canvas* cnv,
         Path const& connectionPath,
         bool isSignal,
+        bool isGemState,
         bool isMouseOver = false,
         bool showDirection = false,
         bool showConnectionOrder = false,
@@ -90,8 +93,8 @@ public:
     bool intersects(Rectangle<float> toCheck, int accuracy = 4) const;
     int getClosestLineIdx(Point<float> const& position, PathPlan const& plan);
 
-    void setPointer(void* ptr);
-    void* getPointer();
+    void setPointer(t_outconnect* ptr);
+    t_outconnect* getPointer();
 
     t_symbol* getPathState();
     void pushPathState();
@@ -109,11 +112,12 @@ public:
     bool intersectsObject(Object* object) const;
     bool straightLineIntersectsObject(Line<float> toCheck, Array<Object*>& objects);
 
-    void receiveMessage(String const& name, int argc, t_atom* argv) override;
+    void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms) override;
 
     bool isSelected() const;
 
     StringArray getMessageFormated();
+    int getSignalData(t_float* output, int maxChannels);
 
 private:
     void resizeToFit();
@@ -152,14 +156,14 @@ private:
 
     pd::WeakReference ptr;
 
-    std::vector<pd::Atom> lastValue;
-    String lastSelector;
+    pd::Atom lastValue[8];
+    int lastNumArgs = 0;
+    t_symbol* lastSelector = nullptr;
 
     friend class ConnectionPathUpdater;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
 };
 
-// TODO: hide behind Connection interface to reduce includes!
 class ConnectionBeingCreated : public Component {
     SafePointer<Iolet> iolet;
     Component* cnv;
@@ -223,7 +227,7 @@ public:
             jassertfalse; // shouldn't happen
             return;
         }
-        Connection::renderConnectionPath(g, (Canvas*)cnv, connectionPath, iolet->isSignal, true);
+        Connection::renderConnectionPath(g, (Canvas*)cnv, connectionPath, iolet->isSignal, iolet->isGemState, true);
     }
 
     Iolet* getIolet()
@@ -238,13 +242,15 @@ public:
 class ConnectionPathUpdater : public Timer {
     Canvas* canvas;
 
-    moodycamel::ConcurrentQueue<std::pair<Component::SafePointer<Connection>, t_symbol*>> connectionUpdateQueue = moodycamel::ConcurrentQueue<std::pair<Component::SafePointer<Connection>, t_symbol*>>(4096);
+    moodycamel::ReaderWriterQueue<std::pair<Component::SafePointer<Connection>, t_symbol*>> connectionUpdateQueue = moodycamel::ReaderWriterQueue<std::pair<Component::SafePointer<Connection>, t_symbol*>>(4096);
 
     void timerCallback() override;
 
 public:
     explicit ConnectionPathUpdater(Canvas* cnv)
-        : canvas(cnv) {};
+        : canvas(cnv)
+    {
+    }
 
     void pushPathState(Connection* connection, t_symbol* newPathState)
     {

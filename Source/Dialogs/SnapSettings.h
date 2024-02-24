@@ -63,7 +63,7 @@ public:
         , public Value::Listener
         , public SettableTooltipClient {
     private:
-        const String property = "grid_type";
+        String const property = "grid_type";
 
         SnapBitMask snapBit;
 
@@ -80,10 +80,10 @@ public:
 
     public:
         SnapSelector(SnapSettings* parent, String const& iconText, String nameOfGroup, SnapBitMask snapBitValue)
-            : groupName(std::move(nameOfGroup))
-            , snapBit(snapBitValue)
+            : snapBit(snapBitValue)
             , parent(parent)
             , icon(iconText)
+            , groupName(std::move(nameOfGroup))
         {
             snapValue.referTo(SettingsFile::getInstance()->getPropertyAsValue(property));
             snapValue.addListener(this);
@@ -226,7 +226,7 @@ public:
         ToggledButtonOn = 1
     };
 
-    MouseInteraction mouseInteraction;
+    MouseInteraction mouseInteraction = ToggledButtonOff;
 
 private:
     static inline bool isShowing = false;

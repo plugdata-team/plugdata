@@ -15,6 +15,8 @@ struct OSUtils {
         /* QWERTZ */
     };
 
+    static unsigned int keycodeToHID(unsigned int scancode);
+
 #if defined(_WIN32) || defined(_WIN64)
     static void createJunction(std::string from, std::string to);
     static void createHardLink(std::string from, std::string to);
@@ -22,6 +24,7 @@ struct OSUtils {
 #elif defined(__unix__) && !defined(__APPLE__)
     static void maximiseX11Window(void* handle, bool shouldBeMaximised);
     static bool isX11WindowMaximised(void* handle);
+    static void updateX11Constraints(void* handle);
 #elif JUCE_MAC
     static void enableInsetTitlebarButtons(void* nativeHandle, bool enabled);
     static void HideTitlebarButtons(void* view, bool hideMinimiseButton, bool hideMaximiseButton, bool hideCloseButton);
@@ -40,7 +43,7 @@ struct OSUtils {
 
         static ScrollTracker* create()
         {
-            return new ScrollTracker;
+            return new ScrollTracker();
         }
 
         static bool isScrolling()
@@ -53,5 +56,36 @@ struct OSUtils {
         void* observer;
         static inline ScrollTracker* instance = create();
     };
+#elif JUCE_IOS
+    class ScrollTracker {
+    public:
+        ScrollTracker(juce::ComponentPeer* peer);
+
+        ~ScrollTracker();
+
+        static ScrollTracker* create(juce::ComponentPeer* peer)
+        {
+            if (instance)
+                return instance;
+
+            return instance = new ScrollTracker(peer);
+        }
+
+        static bool isScrolling()
+        {
+            return instance->scrolling;
+        }
+
+    private:
+        bool scrolling = false;
+        void* observer;
+        static inline ScrollTracker* instance = nullptr;
+    };
+
+    static juce::BorderSize<int> getSafeAreaInsets();
+    static bool isIPad();
+    static void showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(int)> callback);
+    static void showMobileCanvasMenu(juce::ComponentPeer* peer, std::function<void(int)> callback);
+
 #endif
 };

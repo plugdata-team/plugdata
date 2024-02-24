@@ -4,11 +4,11 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "../Utility/ColourPicker.h"
+#include "Components/ColourPicker.h"
 
 class ColourPickerObject final : public TextBase {
 public:
-    ColourPickerObject(void* ptr, Object* object)
+    ColourPickerObject(pd::WeakReference ptr, Object* object)
         : TextBase(ptr, object)
     {
     }
@@ -25,7 +25,7 @@ public:
 
     void showColourPicker()
     {
-        unsigned int red, green, blue;
+        unsigned int red = 0, green = 0, blue = 0;
         if (auto colors = ptr.get<t_fake_colors>()) {
             sscanf(colors->x_color, "#%02x%02x%02x", &red, &green, &blue);
         }
@@ -41,16 +41,9 @@ public:
         });
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("pick")
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
 
         case hash("pick"): {
             showColourPicker();

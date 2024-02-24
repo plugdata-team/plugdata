@@ -6,14 +6,17 @@
 
 #pragma once
 
-#include <JuceHeader.h>
+#include <juce_gui_basics/juce_gui_basics.h>
+#include "Utility/Config.h"
 #include "Pd/Instance.h"
 
 class ImageWithOffset {
 public:
     ImageWithOffset(Image const& withImage = Image(), Point<int> withOffset = Point<int>())
         : image(withImage)
-        , offset(withOffset) {};
+        , offset(withOffset)
+    {
+    }
     Image image;
     Point<int> offset;
 };
@@ -25,7 +28,7 @@ public:
 
     static OfflineObjectRenderer* findParentOfflineObjectRendererFor(Component* childComponent);
 
-    ImageWithOffset patchToTempImage(String const& patch, float scale);
+    ImageWithOffset patchToMaskedImage(String const& patch, float scale, bool makeInvalidImage = false);
 
     bool checkIfPatchIsValid(String const& patch);
 
@@ -33,6 +36,8 @@ public:
 
 private:
     String stripConnections(String const& patch);
+
+    ImageWithOffset patchToTempImage(String const& patch, float scale);
 
     Array<Rectangle<int>> objectRects;
     Rectangle<int> totalSize;

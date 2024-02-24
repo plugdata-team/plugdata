@@ -21,9 +21,21 @@ struct WeakReference {
 
     WeakReference(Instance* instance);
 
+    WeakReference(WeakReference const& toCopy);
+
     ~WeakReference();
 
     WeakReference& operator=(WeakReference const& other);
+
+    bool operator==(WeakReference const& other) const
+    {
+        return ptr == other.ptr;
+    }
+
+    bool operator==(void const* other) const
+    {
+        return ptr == other;
+    }
 
     void setThis() const;
 
@@ -66,7 +78,7 @@ struct WeakReference {
         pd_weak_reference const& weakRef;
         T* ptr;
 
-        JUCE_DECLARE_NON_COPYABLE(Ptr);
+        JUCE_DECLARE_NON_COPYABLE(Ptr)
     };
 
     template<typename T>
@@ -87,6 +99,11 @@ struct WeakReference {
     T* getRawUnchecked() const
     {
         return reinterpret_cast<T*>(ptr);
+    }
+
+    bool isValid()
+    {
+        return weakRef && ptr != nullptr;
     }
 
 private:

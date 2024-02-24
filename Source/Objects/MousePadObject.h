@@ -12,7 +12,7 @@ class MousePadObject final : public ObjectBase {
     Value sizeProperty = SynchronousValue();
 
 public:
-    MousePadObject(void* ptr, Object* object)
+    MousePadObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
         , mouseListener(this)
     {
@@ -83,7 +83,7 @@ public:
         objectParameters.addParamSize(&sizeProperty);
     }
 
-    ~MousePadObject() = default;
+    ~MousePadObject() override = default;
 
     void paint(Graphics& g) override
     {
@@ -96,7 +96,7 @@ public:
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-    };
+    }
 
     void setPdBounds(Rectangle<int> b) override
     {
@@ -105,7 +105,7 @@ public:
             if (!patch)
                 return;
 
-            libpd_moveobj(patch, pad.cast<t_gobj>(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, pad.cast<t_gobj>(), b.getX(), b.getY());
             pad->x_w = b.getWidth() - 1;
             pad->x_h = b.getHeight() - 1;
         }
@@ -119,7 +119,7 @@ public:
                 return {};
 
             int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
 
             return { x, y, w + 1, h + 1 };
         }
@@ -174,16 +174,9 @@ public:
         return static_cast<bool>(topLevel->locked.getValue() || topLevel->commandLocked.getValue());
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("color"),
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("color"): {
             repaint();
             break;

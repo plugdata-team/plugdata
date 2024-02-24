@@ -17,7 +17,7 @@ class BangObject final : public ObjectBase {
     IEMHelper iemHelper;
 
 public:
-    BangObject(void* obj, Object* parent)
+    BangObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
         , iemHelper(obj, parent, this)
     {
@@ -26,8 +26,8 @@ public:
         };
 
         objectParameters.addParamSize(&sizeProperty, true);
-        objectParameters.addParamInt("Minimum flash time", cGeneral, &bangInterrupt, 50);
-        objectParameters.addParamInt("Maximum flash time", cGeneral, &bangHold, 250);
+        objectParameters.addParamInt("Min. flash time", cGeneral, &bangInterrupt, 50);
+        objectParameters.addParamInt("Max. flash time", cGeneral, &bangHold, 250);
 
         iemHelper.addIemParameters(objectParameters, true, true, 17, 7);
     }
@@ -92,10 +92,11 @@ public:
         if (!e.mods.isLeftButtonDown())
             return;
 
-        startEdition();
-        if (auto bng = ptr.get<t_pd>())
-            pd_bang(bng.get());
-        stopEdition();
+        //startEdition();
+        pd->enqueueFunctionAsync<t_pd>(ptr, [](t_pd* bng){
+            pd_bang(bng);
+        });
+        //stopEdition();
 
         // Make sure we don't re-click with an accidental drag
         alreadyBanged = true;
@@ -116,15 +117,17 @@ public:
         auto const bounds = getLocalBounds().reduced(1).toFloat();
         auto const width = std::max(bounds.getWidth(), bounds.getHeight());
 
+        auto const sizeReduction = std::min(1.0f, getWidth() / 20.0f);
+        
         float const circleOuter = 80.f * (width * 0.01f);
-        float const circleThickness = std::max(width * 0.06f, 1.5f);
+        float const circleThickness = std::max(width * 0.06f, 1.5f) * sizeReduction;
 
         g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
-        g.drawEllipse(bounds.reduced(width - circleOuter), circleThickness);
+        g.drawEllipse(bounds.reduced((width - circleOuter) * sizeReduction), circleThickness);
 
         if (bangState) {
             g.setColour(iemHelper.getForegroundColour());
-            g.fillEllipse(bounds.reduced(width - circleOuter + circleThickness));
+            g.fillEllipse(bounds.reduced((width - circleOuter + circleThickness) * sizeReduction));
         }
     }
 
@@ -195,30 +198,27 @@ public:
         }
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("anything")
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("float"):
         case hash("bang"):
         case hash("list"):
             trigger();
             break;
         case hash("flashtime"): {
-            if (!atoms.empty())
+            if (numAtoms > 0)
                 setParameterExcludingListener(bangInterrupt, atoms[0].getFloat());
-            if (atoms.size() > 1)
+            if (numAtoms > 1)
                 setParameterExcludingListener(bangHold, atoms[1].getFloat());
             break;
         }
+        case hash("pos"):
+        case hash("size"):
+        case hash("loadbang"):
+            break;
         default: {
-            bool wasIemMessage = iemHelper.receiveObjectMessage(symbol, atoms);
+            bool wasIemMessage = iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
             if (!wasIemMessage) {
                 trigger();
             }

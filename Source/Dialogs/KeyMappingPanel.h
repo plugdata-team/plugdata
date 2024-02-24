@@ -4,7 +4,7 @@
 
 // Keymapping object based on JUCE's KeyMappingEditorComponent
 
-class KeyMappingComponent : public Component
+class KeyMappingComponent : public SettingsDialogPanel
     , public ChangeListener {
 public:
     explicit KeyMappingComponent(KeyPressMappingSet& mappingSet)
@@ -17,6 +17,11 @@ public:
         propertiesPanel.setColour(TreeView::backgroundColourId, findColour(PlugDataColour::panelBackgroundColourId));
 
         updateMappings();
+    }
+
+    PropertiesPanel* getPropertiesPanel() override
+    {
+        return &propertiesPanel;
     }
 
     /** Destructor. */
@@ -32,13 +37,13 @@ public:
         propertiesPanel.clear();
 
         auto resetMaxDefaults = [this] {
-            Dialogs::showOkayCancelDialog(&confirmationDialog, getParentComponent(), "Are you sure you want to reset all the key-mappings?",
+            Dialogs::showOkayCancelDialog(&confirmationDialog, findParentComponentOfClass<Dialog>(), "Are you sure you want to reset all the key-mappings?",
                 [this](int result) {
                     resetKeyMappingsToMaxCallback(result, this);
                 });
         };
         auto resetPdDefaults = [this]() {
-            Dialogs::showOkayCancelDialog(&confirmationDialog, getParentComponent(), "Are you sure you want to reset all the key-mappings?",
+            Dialogs::showOkayCancelDialog(&confirmationDialog, findParentComponentOfClass<Dialog>(), "Are you sure you want to reset all the key-mappings?",
                 [this](int result) {
                     resetKeyMappingsToPdCallback(result, this);
                 });
@@ -47,10 +52,10 @@ public:
         auto* resetMaxButton = new PropertiesPanel::ActionComponent(resetPdDefaults, Icons::Reset, "Reset to Pd defaults", true, false);
         auto* resetPdButton = new PropertiesPanel::ActionComponent(resetMaxDefaults, Icons::Reset, "Reset to Max defaults", false, true);
 
-        propertiesPanel.addSection("Reset", { resetMaxButton, resetPdButton });
+        propertiesPanel.addSection("Reset shortcuts", { resetMaxButton, resetPdButton });
 
         for (auto const& category : mappings.getCommandManager().getCommandCategories()) {
-            Array<PropertiesPanel::Property*> properties;
+            Array<PropertiesPanelProperty*> properties;
             for (auto command : mappings.getCommandManager().getCommandsInCategory(category)) {
                 properties.add(new KeyMappingProperty(*this, mappings.getCommandManager().getNameOfCommand(command), command));
             }
@@ -156,7 +161,7 @@ private:
         void paintButton(Graphics& g, bool /*isOver*/, bool /*isDown*/) override
         {
             getLookAndFeel().drawKeymapChangeButton(g, getWidth(), getHeight(), *this,
-                keyNum >= 0 ? getName() : String());
+                keyNum >= 0 ? convertURLtoUTF8(getName()) : String());
         }
 
         void clicked() override
@@ -206,10 +211,20 @@ private:
             {
                 addButton("OK", 1);
                 addButton("Cancel", 0);
+                
 
                 // (avoid return + escape keys getting processed by the buttons..)
                 for (auto* child : getChildren())
                     child->setWantsKeyboardFocus(false);
+                
+                for (int i = 0; i < getNumButtons(); i++)
+                {
+                    auto& button = *getButton(i);
+                    auto backgroundColour = findColour(PlugDataColour::dialogBackgroundColourId);
+                    button.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+                    button.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
+                    button.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+                }
 
                 setWantsKeyboardFocus(true);
                 grabKeyboardFocus();
@@ -297,17 +312,17 @@ private:
 
     private:
         KeyMappingComponent& owner;
-        const CommandID commandID;
+        CommandID const commandID;
         int const keyNum;
         std::unique_ptr<KeyEntryWindow> currentKeyEntryWindow;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ChangeKeyButton)
     };
 
-    class KeyMappingProperty : public PropertiesPanel::Property {
+    class KeyMappingProperty : public PropertiesPanelProperty {
     public:
         KeyMappingProperty(KeyMappingComponent& kec, String const& name, CommandID command)
-            : PropertiesPanel::Property(name)
+            : PropertiesPanelProperty(name)
             , owner(kec)
             , commandID(command)
         {
@@ -351,7 +366,7 @@ private:
 
         KeyMappingComponent& owner;
         OwnedArray<ChangeKeyButton> keyChangeButtons;
-        const CommandID commandID;
+        CommandID const commandID;
 
         enum { maxNumAssignments = 3 };
 

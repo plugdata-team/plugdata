@@ -20,9 +20,8 @@
 </p>
 
 <p align="middle">
-  <img width="1082" alt="cipher" src="https://github.com/plugdata-team/plugdata/assets/44585538/0eb0c97e-bf68-4252-a297-0f7c7a7ff747">
-
-  <img width="1115" alt="amaranth" src="https://github.com/plugdata-team/plugdata/assets/44585538/33beb62b-1e84-4f0d-81b8-4c130c6c5cf1">
+<img width="1093" alt="app" src="https://github.com/plugdata-team/plugdata/assets/44585538/78c1018d-9949-4f95-9041-f912597c921d">
+<img width="1093" alt="darkmode" src="https://github.com/plugdata-team/plugdata/assets/44585538/8411f664-563f-449d-91a6-ca0221439307">
 </p>
 
 plugdata is a plugin wrapper for Pure Data, featuring a new GUI made with JUCE. This is still a WIP, and there are probably still some bugs. By default, it ships with the ELSE collection of externals and abstractions. The aim is to provide a more comfortable patching experience for a large selection of DAWs. It can also be used as a standalone replacement for pure-data.
@@ -75,11 +74,19 @@ cmake --build .
 You can use externals inside plugdata's plugin version by recompiling the externals along with plugdata. This can be achieved by making the following modification to plugdata:
 
 -  Add your sources to the "externals" target inside Libraries/CMakeLists.txt. Alternatively the source files can be placed inside the Libraries/ELSE/Source folder, as all .c files in that folder will be compiled automatically.
--  In Libraries/libpd/x_libpd_multi.c, add the setup function for your external. The best place to call your setup function is inside libpd_init_pdlua. libpd_init_else and libpd_init_cyclone will also work, but it has the side-effect that the externals will also be available under the else/* and cyclone/* prefix.
+-  In Source/Pd/Setup.cpp, add the setup function for your external. The best place to call your setup function is inside libpd_init_pdlua. initialiseELSE and initialiseCyclone will also work, but it has the side-effect that the externals will also be available under the else/* and cyclone/* prefix.
 
+## Corporate sponsors
+<p align="center" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+  <a href="https://gigperformer.com/">
+    <img src="https://github.com/plugdata-team/plugdata/assets/44585538/e0c37c87-05cc-4766-9dc4-a42ddbb8784f">
+  </a>
+  <a href="https://jb.gg/OpenSourceSupport">
+    <img src="https://github.com/plugdata-team/plugdata/assets/44585538/fd9ae433-4913-411f-8ae0-c1a7c5f28c72">
+  </a>
+</p>
 
 ## Credits
-Supported by [Deskew Technologies](https://gigperformer.com)
 - Logo by [Bas de Bruin](https://www.bdebruin.nl/), based on concept by [Joshua A.C. Newman](https://glyphpress.com/talk/) 
 - [Camomile](https://github.com/pierreguillot/Camomile) by Pierre Guillot
 - [ELSE](https://github.com/porres/pd-else) by Alexandre Torres Porres

@@ -11,8 +11,6 @@ class MessboxObject final : public ObjectBase
     TextEditor editor;
     BorderSize<int> border = BorderSize<int>(5, 7, 1, 2);
 
-    int numLines = 1;
-
     Value primaryColour = SynchronousValue();
     Value secondaryColour = SynchronousValue();
     Value fontSize = SynchronousValue();
@@ -20,7 +18,7 @@ class MessboxObject final : public ObjectBase
     Value sizeProperty = SynchronousValue();
 
 public:
-    MessboxObject(void* obj, Object* parent)
+    MessboxObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
     {
         editor.setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
@@ -80,7 +78,7 @@ public:
                 return {};
 
             int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(patch, messbox.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, messbox.cast<t_gobj>(), &x, &y, &w, &h);
             return { x, y, w, h };
         }
 
@@ -94,7 +92,7 @@ public:
             if (!patch)
                 return;
 
-            libpd_moveobj(patch, messbox.cast<t_gobj>(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, messbox.cast<t_gobj>(), b.getX(), b.getY());
 
             messbox->x_width = b.getWidth();
             messbox->x_height = b.getHeight();
@@ -133,44 +131,19 @@ public:
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("list"),
-            hash("float"),
-            hash("symbol"),
-            hash("bang"),
-            hash("set"),
-            hash("append"),
-            hash("fgcolor"),
-            hash("bgcolor"),
-            hash("bang"),
-            hash("fontsize"),
-            hash("bold")
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("set"): {
-            editor.setText("");
-            getSymbols(atoms);
+            updateText();
             break;
         }
         case hash("append"): {
-            getSymbols(atoms);
-            break;
-        }
-        case hash("list"):
-        case hash("float"):
-        case hash("symbol"):
-        case hash("bang"): {
-            setSymbols(editor.getText(), atoms);
+            updateText();
             break;
         }
         case hash("bold"): {
-            if (atoms.size() >= 1 && atoms[0].isFloat())
+            if (numAtoms >= 1 && atoms[0].isFloat())
                 bold = atoms[0].getFloat();
             break;
         }
@@ -211,54 +184,40 @@ public:
 
     void textEditorReturnKeyPressed(TextEditor& ed) override
     {
-        setSymbols(ed.getText(), std::vector<pd::Atom> {});
+        if (auto messObj = ptr.get<t_fake_messbox>()) {
+            pd_list(messObj.cast<t_pd>(), pd->generateSymbol(""), 0, nullptr);
+        }
     }
 
     // For resize-while-typing behaviour
     void textEditorTextChanged(TextEditor& ed) override
     {
+        auto text = ed.getText();
+        if (auto messObj = ptr.get<t_fake_messbox>()) {
+            binbuf_text(messObj->x_state, text.toRawUTF8(), text.getNumBytesAsUTF8());
+        }
+
         object->updateBounds();
     }
 
-    void setSymbols(String const& symbols, std::vector<pd::Atom> const& atoms)
+    void updateText()
     {
-        String text;
+        std::vector<pd::Atom> atoms;
         if (auto messObj = ptr.get<t_fake_messbox>()) {
-            text = symbols.replace("$0", String::fromUTF8(messObj->x_dollzero->s_name));
-        } else {
-            return;
+            auto* av = binbuf_getvec(messObj->x_state);
+            auto ac = binbuf_getnatom(messObj->x_state);
+            atoms = pd::Atom::fromAtoms(ac, av); // TODO: malloc inside lock, not good!
         }
 
-        t_binbuf* buf = binbuf_new();
-        binbuf_text(buf, text.toRawUTF8(), text.getNumBytesAsUTF8());
-
-        std::vector<t_atom> pd_atoms(atoms.size());
-        for (int i = 0; i < atoms.size(); i++) {
-            if (atoms[i].isFloat()) {
-                SETFLOAT(pd_atoms.data() + i, atoms[i].getFloat());
-            } else {
-                auto sym = atoms[i].getSymbol();
-                SETSYMBOL(pd_atoms.data() + i, gensym(sym.toRawUTF8()));
-            }
-        }
-
-        if (auto messObj = ptr.get<t_fake_messbox>()) {
-            binbuf_eval(buf, static_cast<t_pd*>(messObj->x_proxy), pd_atoms.size(), pd_atoms.data());
-        }
-    }
-
-    void getSymbols(std::vector<pd::Atom> const& atoms)
-    {
         char buf[40];
         size_t length;
 
         auto newText = String();
         for (auto& atom : atoms) {
-
             if (atom.isFloat())
                 newText += String(atom.getFloat()) + " ";
             else {
-                auto symbol = atom.getSymbol();
+                auto symbol = atom.toString();
                 auto const* sym = symbol.toRawUTF8();
                 int pos;
                 int j = 0;
@@ -309,15 +268,6 @@ public:
 
             editor.setCaretPosition(caretPosition + 1);
 
-            return true;
-        }
-
-        if (editing && key == KeyPress::rightKey && !editor.getHighlightedRegion().isEmpty()) {
-            editor.setCaretPosition(editor.getHighlightedRegion().getEnd());
-            return true;
-        }
-        if (editing && key == KeyPress::leftKey && !editor.getHighlightedRegion().isEmpty()) {
-            editor.setCaretPosition(editor.getHighlightedRegion().getStart());
             return true;
         }
         return false;

@@ -4,14 +4,10 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "x_libpd_extra_utils.h"
-
 static int srl_is_valid(t_symbol const* s)
 {
     return (s != nullptr && s != gensym(""));
 }
-
-#define IEMGUI_MESSAGES hash("send"), hash("receive"), hash("color"), hash("label"), hash("label_pos"), hash("label_font"), hash("vis_size"), hash("init")
 
 extern "C" {
 char* pdgui_strnescape(char* dst, size_t dstlen, char const* src, size_t srclen);
@@ -20,12 +16,12 @@ char* pdgui_strnescape(char* dst, size_t dstlen, char const* src, size_t srclen)
 class IEMHelper {
 
 public:
-    IEMHelper(void* iemgui, Object* parent, ObjectBase* base)
+    IEMHelper(pd::WeakReference iemgui, Object* parent, ObjectBase* base)
         : object(parent)
         , gui(base)
         , cnv(parent->cnv)
         , pd(parent->cnv->pd)
-        , ptr(iemgui, parent->cnv->pd)
+        , ptr(iemgui)
     {
     }
 
@@ -105,11 +101,11 @@ public:
             objectParams.addParam(param);
     }
 
-    bool receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms)
+    bool receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms)
     {
-        auto setColour = [this](Value& targetValue, pd::Atom& atom) {
+        auto setColour = [this](Value& targetValue, pd::Atom const& atom) {
             if (atom.isSymbol()) {
-                auto colour = "#FF" + atom.getSymbol().fromFirstOccurrenceOf("#", false, false);
+                auto colour = "#FF" + atom.toString().fromFirstOccurrenceOf("#", false, false);
                 gui->setParameterExcludingListener(targetValue, colour);
             } else {
 
@@ -125,42 +121,47 @@ public:
                 } else
                     iemcolor = ((-1 - iemcolor) & 0xffffff);
 
-                auto colour = Colour(static_cast<uint32>(convert_from_iem_color(iemcolor)));
-
+                auto colour = convertFromIEMColour(iemcolor);
                 gui->setParameterExcludingListener(targetValue, colour.toString());
             }
         };
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("send"): {
-            if (atoms.size() >= 1)
-                gui->setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
+            if (numAtoms >= 1)
+                gui->setParameterExcludingListener(sendSymbol, atoms[0].toString());
             return true;
         }
         case hash("receive"): {
-            if (atoms.size() >= 1)
-                gui->setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+            if (numAtoms >= 1)
+                gui->setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             return true;
         }
         case hash("color"): {
-            if (atoms.size() > 0)
+            if (numAtoms > 0)
                 setColour(secondaryColour, atoms[0]);
-            if (atoms.size() > 1)
+            if (numAtoms > 1)
                 setColour(primaryColour, atoms[1]);
-            if (atoms.size() > 2)
+            if (numAtoms > 2)
                 setColour(labelColour, atoms[2]);
+            
+            if(auto* label = gui->getLabel())
+            {
+                label->setColour(Label::textColourId, getLabelColour());
+            }
+            
             gui->repaint();
-            gui->updateLabel();
+            
             return true;
         }
         case hash("label"): {
-            if (atoms.size() >= 1) {
-                gui->setParameterExcludingListener(labelText, atoms[0].getSymbol());
+            if (numAtoms >= 1) {
+                gui->setParameterExcludingListener(labelText, atoms[0].toString());
                 gui->updateLabel();
             }
             return true;
         }
         case hash("label_pos"): {
-            if (atoms.size() >= 2) {
+            if (numAtoms >= 2) {
                 gui->setParameterExcludingListener(labelX, static_cast<int>(atoms[0].getFloat()));
                 gui->setParameterExcludingListener(labelY, static_cast<int>(atoms[1].getFloat()));
                 gui->updateLabel();
@@ -168,20 +169,20 @@ public:
             return true;
         }
         case hash("label_font"): {
-            if (atoms.size() >= 2) {
+            if (numAtoms >= 2) {
                 gui->setParameterExcludingListener(labelHeight, static_cast<int>(atoms[1].getFloat()));
                 gui->updateLabel();
             }
             return true;
         }
         case hash("vis_size"): {
-            if (atoms.size() >= 2) {
+            if (numAtoms >= 2) {
                 object->updateBounds();
             }
             return true;
         }
         case hash("init"): {
-            if (atoms.size() >= 1)
+            if (numAtoms >= 1)
                 gui->setParameterExcludingListener(initialise, static_cast<bool>(atoms[0].getFloat()));
             return true;
         }
@@ -269,42 +270,42 @@ public:
     void setPdBounds(Rectangle<int> const b)
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
-            iemgui->x_obj.te_xpix = b.getX();
-            iemgui->x_obj.te_ypix = b.getY();
-
+            pd::Interface::moveObject(iemgui->x_glist, &iemgui->x_obj.te_g, b.getX(), b.getY());
+            
             iemgui->x_w = b.getWidth() - 1;
             iemgui->x_h = b.getHeight() - 1;
         }
     }
 
-    void updateLabel(std::unique_ptr<ObjectLabel>& label)
+    void updateLabel(std::unique_ptr<ObjectLabel>& label, Point<int> offset = {0, 0})
     {
-        int fontHeight = getFontHeight();
-
-        const String text = getExpandedLabelText();
+        String const text = labelText.toString();
 
         if (text.isNotEmpty()) {
             if (!label) {
-                label = std::make_unique<ObjectLabel>(object);
+                label = std::make_unique<ObjectLabel>();
+                object->cnv->addChildComponent(label.get());
             }
 
             auto bounds = getLabelBounds();
 
-            bounds.translate(0, fontHeight / -2.0f);
+            bounds.translate(0, bounds.getHeight() / -2.0f);
 
-            label->setFont(Font(fontHeight));
-            label->setBounds(bounds);
+            label->setFont(Font(bounds.getHeight()));
+            label->setBounds(bounds + offset);
             label->setText(text, dontSendNotification);
 
             label->setColour(Label::textColourId, getLabelColour());
 
-            object->cnv->addAndMakeVisible(label.get());
+            label->setVisible(true);
         } else {
+            if (label)
+                label->setVisible(false);
             label.reset(nullptr);
         }
     }
-
-    Rectangle<int> getLabelBounds() const
+        
+    Rectangle<int> getLabelBounds()
     {
         auto objectBounds = object->getBounds().reduced(Object::margin);
 
@@ -312,12 +313,11 @@ public:
             t_symbol const* sym = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab);
             if (sym) {
                 int fontHeight = getFontHeight();
-                int labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());
-
-                int const posx = objectBounds.getX() + iemgui->x_ldx + 4;
+                int fontWidth = sys_fontwidth(fontHeight);
+                int const posx = objectBounds.getX() + iemgui->x_ldx;
                 int const posy = objectBounds.getY() + iemgui->x_ldy;
-
-                return { posx, posy, labelLength, fontHeight };
+                
+                return { posx, posy, fontWidth * (getExpandedLabelText().length() + 1), fontHeight + 2 };
             }
         }
 
@@ -389,51 +389,45 @@ public:
     Colour getBackgroundColour() const
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
-            return Colour(static_cast<uint32>(libpd_iemgui_get_background_color(iemgui.get())));
+            return convertFromIEMColour(iemgui->x_bcol);
         }
-
         return Colour();
     }
 
     Colour getForegroundColour() const
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
-            return Colour(static_cast<uint32>(libpd_iemgui_get_foreground_color(iemgui.get())));
+            return convertFromIEMColour(iemgui->x_fcol);
         }
-
         return Colour();
     }
 
     Colour getLabelColour() const
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
-            return Colour(static_cast<uint32>(libpd_iemgui_get_label_color(iemgui.get())));
+            return convertFromIEMColour(iemgui->x_lcol);
         }
-
         return Colour();
     }
 
     void setBackgroundColour(Colour colour) const
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
-            String colourStr = colour.toString();
-            libpd_iemgui_set_background_color(iemgui.get(), colourStr.toRawUTF8());
+            iemgui->x_bcol = convertToIEMColour(colour);
         }
     }
 
     void setForegroundColour(Colour colour) const
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
-            String colourStr = colour.toString();
-            libpd_iemgui_set_foreground_color(iemgui.get(), colourStr.toRawUTF8());
+            iemgui->x_fcol = convertToIEMColour(colour);
         }
     }
 
     void setLabelColour(Colour colour) const
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
-            String colourStr = colour.toString();
-            libpd_iemgui_set_label_color(iemgui.get(), colourStr.toRawUTF8());
+            iemgui->x_lcol = convertToIEMColour(colour);
         }
     }
 
@@ -468,29 +462,28 @@ public:
         return "";
     }
 
-    String getLabelText() const
+    static Colour convertFromIEMColour(int const color)
     {
-        if (auto iemgui = ptr.get<t_iemgui>()) {
-            t_symbol const* sym = iemgui->x_lab_unexpanded;
-            if (sym) {
-                auto text = String::fromUTF8(sym->s_name);
-                if (text.isNotEmpty() && text != "empty") {
-                    return text;
-                }
-            }
-        }
+        uint32 const c = (uint32)(color << 8 | 0xFF);
+        return Colour(static_cast<uint32>((0xFF << 24) | ((c >> 24) << 16) | ((c >> 16) << 8) | (c >> 8)));
+    }
 
-        return "";
+    static uint32 convertToIEMColour(Colour colour)
+    {
+        auto colourString = colour.toString();
+        char const* hex = colourString.toRawUTF8() + 2; // Remove alpha channel
+        uint32 col = static_cast<uint32>(strtol(hex, 0, 16));
+        return col & 0xFFFFFF;
     }
 
     void setLabelText(String newText)
     {
+
         if (newText.isEmpty())
-            newText = "empty";
+            newText = String("empty");
 
         if (auto iemgui = ptr.get<t_iemgui>()) {
-            iemgui->x_lab_unexpanded = pd->generateSymbol(newText);
-            iemgui->x_lab = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab_unexpanded);
+            iemgui_label(static_cast<void*>(iemgui->x_glist), iemgui.get(), pd->generateSymbol(newText));
         }
     }
 

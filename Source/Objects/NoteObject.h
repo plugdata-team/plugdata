@@ -28,7 +28,7 @@ class NoteObject final : public ObjectBase {
     bool wasSelectedOnMouseDown = false;
 
 public:
-    NoteObject(void* obj, Object* object)
+    NoteObject(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
     {
         locked = getValue<bool>(object->locked);
@@ -95,6 +95,11 @@ public:
         objectParameters.addParamBool("Fill background", cAppearance, &fillBackground, { "No", "Yes" }, 0);
         objectParameters.addParamCombo("Justification", cAppearance, &justification, { "Left", "Centered", "Right" }, 1);
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
+    }
+    
+    bool isTransparent() override
+    {
+        return true;
     }
 
     void update() override
@@ -254,8 +259,8 @@ public:
             Object* object;
 
             NoteObjectBoundsConstrainer(Object* obj, NoteObject* parent)
-                : object(obj)
-                , noteObject(parent)
+                : noteObject(parent)
+                , object(obj)
             {
             }
             /*
@@ -274,7 +279,7 @@ public:
                 bool isStretchingBottom,
                 bool isStretchingRight) override
             {
-                auto* note = static_cast<t_fake_note*>(object->getPointer());
+                auto* note = reinterpret_cast<t_fake_note*>(object->getPointer());
                 note->x_resized = 1;
                 note->x_max_pixwidth = bounds.getWidth() - Object::doubleMargin;
 
@@ -296,14 +301,15 @@ public:
 
             note->x_max_pixwidth = b.getWidth();
             note->x_height = b.getHeight();
-            libpd_moveobj(patch, note.cast<t_gobj>(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, note.cast<t_gobj>(), b.getX(), b.getY());
         }
     }
 
     String getNote()
     {
         if (auto note = ptr.get<t_fake_note>()) {
-            return String::fromUTF8(note->x_buf, note->x_bufsize).trim();
+            // Get string and unescape characters
+            return String::fromUTF8(note->x_buf, note->x_bufsize).trim().replace("\\,", ",").replace("\\;", ";");
         }
 
         return {};
@@ -362,11 +368,8 @@ public:
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
             auto receive = receiveSymbol.toString();
             if (auto note = ptr.get<t_fake_note>()) {
-                note->x_rcv_raw = pd->generateSymbol(receive);
-                note->x_rcv_set = receive.isNotEmpty();
+                pd->sendDirectMessage(note.get(), "receive", { pd->generateSymbol(receive) });
             }
-
-            repaint();
         } else if (v.refersToSameSourceAs(justification)) {
             auto justificationType = getValue<int>(justification);
             if (auto note = ptr.get<t_fake_note>())
@@ -413,30 +416,9 @@ public:
         object->updateBounds();
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("font"),
-            hash("italic"),
-            hash("size"),
-            hash("underline"),
-            hash("bold"),
-            hash("prepend"),
-            hash("append"),
-            hash("set"),
-            hash("color"),
-            hash("bgcolor"),
-            hash("width"),
-            hash("outline"),
-            hash("receive"),
-            hash("bg"),
-            hash("just")
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("font"): {
             if (auto note = ptr.get<t_fake_note>()) {
                 font = String::fromUTF8(note->x_fontname->s_name);
@@ -508,12 +490,12 @@ public:
             }
         }
         case hash("receive"): {
-            if (atoms.size() >= 1)
-                setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+            if (numAtoms >= 1)
+                setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             break;
         }
         case hash("bg"): {
-            if (atoms.size() > 0 && atoms[0].isFloat())
+            if (numAtoms > 0 && atoms[0].isFloat())
                 fillBackground = atoms[0].getFloat();
             break;
         }

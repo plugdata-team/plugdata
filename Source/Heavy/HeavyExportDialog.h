@@ -8,6 +8,7 @@ class ExportingProgressView;
 class ToolchainInstaller;
 class ExporterSettingsPanel;
 class Dialog;
+class HelpDialog;
 
 class HeavyExportDialog : public Component {
     bool hasToolchain = false;
@@ -15,6 +16,9 @@ class HeavyExportDialog : public Component {
     std::unique_ptr<ExportingProgressView> exportingView;
     std::unique_ptr<ToolchainInstaller> installer;
     std::unique_ptr<ExporterSettingsPanel> exporterPanel;
+    std::unique_ptr<MainToolbarButton> infoButton;
+
+    std::unique_ptr<HelpDialog> helpDialog;
 
 public:
     explicit HeavyExportDialog(Dialog* dialog);
@@ -22,6 +26,7 @@ public:
     ~HeavyExportDialog() override;
 
     void paint(Graphics& g) override;
+    void paintOverChildren(Graphics& g) override;
 
     void resized() override;
 };

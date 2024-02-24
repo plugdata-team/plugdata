@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "Utility/DraggableNumber.h"
+#include "Components/DraggableNumber.h"
 
 class FloatAtomObject final : public ObjectBase {
 
@@ -18,7 +18,7 @@ class FloatAtomObject final : public ObjectBase {
     float value = 0.0f;
 
 public:
-    FloatAtomObject(void* obj, Object* parent)
+    FloatAtomObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
         , atomHelper(obj, parent, this)
         , input(false)
@@ -28,7 +28,7 @@ public:
 
             startEdition();
 
-            editor->setBorder({ 0, 1, 3, 0 });
+            editor->setBorder({ 0, -2, 3, 0 });
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
 
             if (editor != nullptr) {
@@ -48,8 +48,19 @@ public:
             startEdition();
         };
 
+        input.onTextChange = [this]() {
+            // To resize while typing
+            if (atomHelper.getWidthInChars() == 0) {
+                object->updateBounds();
+            }
+        };
+
         input.onValueChange = [this](float newValue) {
             sendFloatValue(newValue);
+
+            if (atomHelper.getWidthInChars() == 0) {
+                object->updateBounds();
+            }
         };
 
         input.dragEnd = [this]() {
@@ -60,8 +71,13 @@ public:
         objectParameters.addParamFloat("Minimum", cGeneral, &min);
         objectParameters.addParamFloat("Maximum", cGeneral, &max);
         atomHelper.addAtomParameters(objectParameters);
+        
+        input.setBorderSize(BorderSize<int>(1, 2, 1, 0));
 
         input.setResetValue(0.0f);
+        input.setShowEllipsesIfTooLong(false);
+        
+        lookAndFeelChanged();
     }
 
     void update() override
@@ -163,7 +179,7 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        return atomHelper.getPdBounds();
+        return atomHelper.getPdBounds(input.getFont().getStringWidth(input.formatNumber(input.getText(true).getDoubleValue())));
     }
 
     void setPdBounds(Rectangle<int> b) override
@@ -191,8 +207,7 @@ public:
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
-            auto* constrainer = getConstrainer();
-            auto width = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+            auto width = ::getValue<int>(sizeProperty);
 
             setParameterExcludingListener(sizeProperty, width);
 
@@ -220,31 +235,20 @@ public:
         return 0.0f;
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("set"),
-            hash("float"),
-            hash("send"),
-            hash("receive"),
-            hash("list"),
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
 
         case hash("set"):
         case hash("float"):
         case hash("list"): {
-            if (!atoms[0].isFloat())
+            if (numAtoms < 1 || !atoms[0].isFloat())
                 break;
 
             auto min = atomHelper.getMinimum();
             auto max = atomHelper.getMaximum();
 
-            if (min != 0 || max != 0) {
+            if (!approximatelyEqual(min, 0.0f) || !approximatelyEqual(max, 0.0f)) {
                 value = std::clamp(atoms[0].getFloat(), min, max);
             } else {
                 value = atoms[0].getFloat();
@@ -253,13 +257,13 @@ public:
             break;
         }
         case hash("send"): {
-            if (!atoms.empty())
-                setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].getSymbol());
+            if (numAtoms <= 0)
+                setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].toString());
             break;
         }
         case hash("receive"): {
-            if (!atoms.empty())
-                setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].getSymbol());
+            if (numAtoms <= 0)
+                setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].toString());
             break;
         }
         default:

@@ -7,18 +7,20 @@
 #pragma once
 #include "Pd/Library.h"
 
-struct SettingsFileListener {
+class SettingsFileListener {
+public:
     SettingsFileListener();
 
     ~SettingsFileListener();
 
-    virtual void propertyChanged(String const& name, var const& value) {};
+    virtual void propertyChanged(String const& name, var const& value) { }
 
-    virtual void settingsFileReloaded() {};
+    virtual void settingsFileReloaded() { }
 };
 
 // Class that manages the settings file
 class SettingsFile : public ValueTree::Listener
+    , public FileSystemWatcher::Listener
     , public Timer
     , public DeletedAtShutdown {
 public:
@@ -26,7 +28,6 @@ public:
 
     SettingsFile* initialise();
 
-    // TODO: instead of exposing these trees, try to encapsulate most of the interaction with those trees in functions
     ValueTree getKeyMapTree();
     ValueTree getColourThemesTree();
     ValueTree getPathsTree();
@@ -36,6 +37,9 @@ public:
     ValueTree getTheme(String const& name);
     ValueTree getCurrentTheme();
 
+    void setLastBrowserPathForId(String const& identifier, File& path);
+    File getLastBrowserPathForId(String const& identifier);
+
     void addToRecentlyOpened(File const& path);
 
     void initialisePathsTree();
@@ -43,6 +47,8 @@ public:
     void initialiseOverlayTree();
 
     void reloadSettings();
+        
+    void fileChanged(File const file, FileSystemWatcher::FileSystemEvent fileEvent) override;
 
     void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, Identifier const& property) override;
     void valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded) override;
@@ -80,6 +86,8 @@ public:
 
 private:
     bool isInitialised = false;
+        
+    FileSystemWatcher settingsFileWatcher;
 
     Array<SettingsFileListener*> listeners;
 
@@ -93,6 +101,7 @@ private:
         { "theme", var("light") },
         { "oversampling", var(0) },
         { "protected", var(1) },
+        { "debug_connections", var(1) },
         { "internal_synth", var(0) },
         { "grid_enabled", var(1) },
         { "grid_type", var(6) },
@@ -109,9 +118,15 @@ private:
         { "order", var(0) },
         { "direction", var(0) },
         { "global_scale", var(1.0f) },
+        { "default_zoom", var(100.0f) },
         { "show_palettes", var(true) },
+        { "cpu_meter_mapping_mode", var(0) },
+        { "centre_resized_canvas", var(true) },
+        { "centre_sidepanel_buttons", var(true) },
         { "show_all_audio_device_rates", var(false) },
         { "add_object_menu_pinned", var(false) },
+        { "autosave_interval", var(120) },
+        { "autosave_enabled", var(1) },
         { "macos_buttons",
 #if JUCE_MAC
             var(true)
@@ -119,6 +134,8 @@ private:
             var(false)
 #endif
         },
+        // DEFAULT SETTINGS FOR TOGGLES
+        { "search_order", var(true) },
     };
 
     StringArray childTrees {
@@ -129,6 +146,7 @@ private:
         "RecentlyOpened",
         "Libraries",
         "EnabledMidiOutputPorts",
+        "LastBrowserPaths",
     };
 
 public:

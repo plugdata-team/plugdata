@@ -7,6 +7,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
+#include "Utility/CircularBuffer.h"
 
 #include "Statusbar.h"
 #include "LookAndFeel.h"
@@ -20,7 +21,7 @@
 #include "Dialogs/SnapSettings.h"
 #include "Dialogs/AlignmentTools.h"
 
-#include "Utility/ArrowPopupMenu.h"
+#include "Components/ArrowPopupMenu.h"
 
 class OversampleSelector : public TextButton {
 
@@ -29,7 +30,7 @@ class OversampleSelector : public TextButton {
         std::function<void(int)> onChange = [](int) {};
         std::function<void()> onClose = []() {};
 
-        OversampleSettingsPopup(int currentSelection)
+        explicit OversampleSettingsPopup(int currentSelection)
         {
             title.setText("Oversampling factor", dontSendNotification);
             title.setFont(Fonts::getBoldFont().withHeight(14.0f));
@@ -53,8 +54,9 @@ class OversampleSelector : public TextButton {
 
                 button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
                 button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuActiveTextColourId));
-                button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId));
-                button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
+                button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.04f));
+                button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.075f));
+                button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
 
                 addAndMakeVisible(button);
                 i++;
@@ -65,7 +67,7 @@ class OversampleSelector : public TextButton {
             setSize(180, 50);
         }
 
-        ~OversampleSettingsPopup()
+        ~OversampleSettingsPopup() override
         {
             onClose();
         }
@@ -94,11 +96,12 @@ class OversampleSelector : public TextButton {
     };
 
 public:
-    OversampleSelector(PluginProcessor* pd)
+    explicit OversampleSelector(PluginProcessor* pd)
     {
         onClick = [this, pd]() {
             auto selection = log2(getButtonText().upToLastOccurrenceOf("x", false, false).getIntValue());
-            auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+            auto* editor = findParentComponentOfClass<PluginEditor>();
+
             auto oversampleSettings = std::make_unique<OversampleSettingsPopup>(selection);
             auto bounds = editor->getLocalArea(this, getLocalBounds());
 
@@ -248,7 +251,6 @@ public:
         auto x = 6.0f;
 
         auto outerBorderWidth = 2.0f;
-        auto spacingFraction = 0.08f;
         auto doubleOuterBorderWidth = 2.0f * outerBorderWidth;
         auto bgHeight = getHeight() - doubleOuterBorderWidth;
         auto bgWidth = width - doubleOuterBorderWidth;
@@ -275,16 +277,22 @@ public:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LevelMeter)
 };
 
-class MidiBlinker : public Component
-    , public StatusbarSource::Listener {
+class MIDIBlinker : public Component
+    , public StatusbarSource::Listener
+    , public SettableTooltipClient {
 
 public:
+    MIDIBlinker()
+    {
+        setTooltip("MIDI activity");
+    }
+
     void paint(Graphics& g) override
     {
-        Fonts::drawText(g, "MIDI", getLocalBounds().removeFromLeft(28).withTrimmedTop(1), findColour(ComboBox::textColourId), 11, Justification::centredRight);
+        Fonts::drawIcon(g, Icons::MIDI, getLocalBounds().removeFromLeft(20).withTrimmedTop(1), findColour(ComboBox::textColourId), 13);
 
-        auto midiInRect = Rectangle<float>(38.0f, 9.5f, 15.0f, 3.0f);
-        auto midiOutRect = Rectangle<float>(38.0f, 18.5f, 15.0f, 3.0f);
+        auto midiInRect = Rectangle<float>(27.5f, 9.5f, 15.0f, 3.0f);
+        auto midiOutRect = Rectangle<float>(27.5f, 18.5f, 15.0f, 3.0f);
 
         g.setColour(blinkMidiIn ? findColour(PlugDataColour::levelMeterActiveColourId) : findColour(PlugDataColour::levelMeterBackgroundColourId));
         g.fillRoundedRectangle(midiInRect, 1.0f);
@@ -297,34 +305,331 @@ public:
     {
         blinkMidiIn = midiReceived;
         repaint();
-    };
+    }
 
     void midiSentChanged(bool midiSent) override
     {
         blinkMidiOut = midiSent;
         repaint();
-    };
+    }
 
     bool blinkMidiIn = false;
     bool blinkMidiOut = false;
+};
+
+class CPUHistoryGraph : public Component {
+public:
+    CPUHistoryGraph(CircularBuffer<float>& history, int length)
+        : historyLength(length)
+        , historyGraph(history)
+    {
+        mappingMode = SettingsFile::getInstance()->getPropertyAsValue("cpu_meter_mapping_mode").getValue();
+    }
+
+    void resized() override
+    {
+        bounds = getLocalBounds().reduced(6);
+        roundedClip.addRoundedRectangle(bounds, Corners::defaultCornerRadius * 0.75f);
+    }
+
+    void paint(Graphics& g) override
+    {
+        // clip the rectangle to rounded corners
+        g.saveState();
+        g.reduceClipRegion(roundedClip);
+
+        g.setColour(findColour(PlugDataColour::levelMeterBackgroundColourId));
+        g.fillRect(bounds);
+
+        auto bottom = bounds.getBottom();
+        auto height = bounds.getHeight();
+        auto points = historyLength;
+        auto distribute = static_cast<float>(bounds.getWidth()) / points;
+        Path graphTopLine;
+
+        auto getCPUScaledY = [this, bottom, height](float value) -> float {
+            float graphValue;
+            switch (mappingMode) {
+            case 1:
+                graphValue = pow(value, 1.0f / 1.5f);
+                break;
+            case 2:
+                graphValue = pow(value, 1.0f / 3.5f);
+                break;
+            default:
+                graphValue = value;
+                break;
+            }
+            return bottom - height * graphValue;
+        };
+
+        auto startPoint = Point<float>(bounds.getTopLeft().getX(), getCPUScaledY(0));
+        graphTopLine.startNewSubPath(startPoint);
+
+        auto lastValues = historyGraph.last(points);
+
+        for (int i = 0; i < points; i++) {
+            auto xPos = (i * distribute) + bounds.getTopLeft().getX() + distribute;
+            auto newPoint = Point<float>(xPos, getCPUScaledY(lastValues[i] * 0.01f));
+            graphTopLine.lineTo(newPoint);
+        }
+        Path graphFilled = graphTopLine;
+
+        graphFilled.lineTo(bounds.getBottomRight().toFloat());
+        graphFilled.lineTo(bounds.getBottomLeft().toFloat());
+        graphFilled.closeSubPath();
+        g.setColour(findColour(PlugDataColour::levelMeterActiveColourId).withAlpha(0.3f));
+        g.fillPath(graphFilled);
+
+        g.setColour(findColour(PlugDataColour::levelMeterActiveColourId));
+        g.strokePath(graphTopLine, PathStrokeType(1.0f));
+
+        g.restoreState();
+    }
+
+    void updateMapping(int mapping)
+    {
+        if (mappingMode != mapping) {
+            mappingMode = mapping;
+            repaint();
+        }
+    }
+
+private:
+    int historyLength;
+    CircularBuffer<float>& historyGraph;
+    Rectangle<int> bounds;
+    Path roundedClip;
+    int mappingMode;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CPUHistoryGraph);
+};
+
+class CPUMeterPopup : public Component {
+public:
+    CPUMeterPopup(CircularBuffer<float>& history, CircularBuffer<float>& longHistory)
+    {
+        cpuGraph = std::make_unique<CPUHistoryGraph>(history, 200);
+        cpuGraphLongHistory = std::make_unique<CPUHistoryGraph>(longHistory, 300);
+        addAndMakeVisible(cpuGraph.get());
+        addAndMakeVisible(cpuGraphLongHistory.get());
+
+        fastGraphTitle.setText("CPU usage recent", dontSendNotification);
+        fastGraphTitle.setFont(Fonts::getBoldFont().withHeight(14.0f));
+        fastGraphTitle.setJustificationType(Justification::centred);
+        addAndMakeVisible(fastGraphTitle);
+
+        slowGraphTitle.setText("CPU usage last 5 minutes", dontSendNotification);
+        slowGraphTitle.setFont(Fonts::getBoldFont().withHeight(14.0f));
+        slowGraphTitle.setJustificationType(Justification::centred);
+        addAndMakeVisible(slowGraphTitle);
+
+        linear.setConnectedEdges(TextButton::ConnectedEdgeFlags::ConnectedOnRight);
+        logA.setConnectedEdges(TextButton::ConnectedEdgeFlags::ConnectedOnLeft | TextButton::ConnectedEdgeFlags::ConnectedOnRight);
+        logB.setConnectedEdges(TextButton::ConnectedEdgeFlags::ConnectedOnLeft);
+
+        auto buttons = Array<TextButton*> { &linear, &logA, &logB };
+
+        int i = 0;
+        for (auto* button : buttons) {
+            button->setRadioGroupId(hash("cpu_meter_mapping_mode"));
+            button->setClickingTogglesState(true);
+            button->onClick = [this, i]() {
+                SettingsFile::getInstance()->setProperty("cpu_meter_mapping_mode", i);
+                cpuGraph->updateMapping(i);
+                cpuGraphLongHistory->updateMapping(i);
+            };
+            button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
+            button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuActiveTextColourId));
+            button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.04f));
+            button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.075f));
+            button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+
+            addAndMakeVisible(button);
+            i++;
+        }
+
+        auto currentMappingMode = SettingsFile::getInstance()->getPropertyAsValue("cpu_meter_mapping_mode").getValue();
+        buttons[currentMappingMode]->setToggleState(true, dontSendNotification);
+
+        setSize(212, 177);
+    }
+
+    ~CPUMeterPopup() override
+    {
+        onClose();
+    }
+
+    void resized() override
+    {
+        fastGraphTitle.setBounds(0, 6, getWidth(), 20);
+        cpuGraph->setBounds(0, fastGraphTitle.getBottom(), getWidth(), 50);
+        slowGraphTitle.setBounds(0, cpuGraph->getBottom(), getWidth(), 20);
+        cpuGraphLongHistory->setBounds(0, slowGraphTitle.getBottom(), getWidth(), 50);
+
+        auto b = getLocalBounds().withTop(cpuGraphLongHistory->getBottom() + 5).reduced(6, 0).withHeight(20);
+        auto buttonWidth = getWidth() / 3;
+        linear.setBounds(b.removeFromLeft(buttonWidth));
+        logA.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
+        logB.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
+    }
+
+    std::function<void()> getUpdateFunc()
+    {
+        return [this]() {
+            this->update();
+        };
+    }
+
+    std::function<void()> getUpdateFuncLongHistory()
+    {
+        return [this]() {
+            this->updateLong();
+        };
+    }
+
+    std::function<void()> onClose = []() {};
+
+private:
+    void update()
+    {
+        cpuGraph->repaint();
+    }
+
+    void updateLong()
+    {
+        cpuGraphLongHistory->repaint();
+    }
+
+    Label fastGraphTitle;
+    Label slowGraphTitle;
+    std::unique_ptr<CPUHistoryGraph> cpuGraph;
+    std::unique_ptr<CPUHistoryGraph> cpuGraphLongHistory;
+
+    TextButton linear = TextButton("Linear");
+    TextButton logA = TextButton("Log A");
+    TextButton logB = TextButton("Log B");
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CPUMeterPopup);
+};
+
+class CPUMeter : public Component
+    , public StatusbarSource::Listener
+    , public Timer
+    , public SettableTooltipClient {
+
+public:
+    CPUMeter()
+    {
+        startTimer(1000);
+        setTooltip("CPU usage");
+    }
+
+    void paint(Graphics& g) override
+    {
+        Colour textColour;
+        if (isMouseOver() || currentCalloutBox)
+            textColour = findColour(PlugDataColour::toolbarTextColourId).brighter(0.8f);
+        else
+            textColour = findColour(PlugDataColour::toolbarTextColourId);
+
+        Fonts::drawIcon(g, Icons::CPU, getLocalBounds().removeFromLeft(20), textColour, 14);
+        Fonts::drawText(g, String(cpuUsageToDraw) + "%", getLocalBounds().withTrimmedLeft(26).withTrimmedTop(1), textColour, 13.5, Justification::centredLeft);
+    }
+
+    void timerCallback() override
+    {
+        CriticalSection::ScopedLockType lock(cpuMeterMutex);
+        auto lastCpuUsage = cpuUsage.last();
+        cpuUsageToDraw = round(lastCpuUsage);
+        cpuUsageLongHistory.push(lastCpuUsage);
+        updateCPUGraphLong();
+        repaint();
+    }
+
+    bool hitTest(int x, int y) override
+    {
+        return getLocalBounds().contains(x, y);
+    }
+
+    void mouseDown(MouseEvent const& e) override
+    {
+        // check if the callout is active, otherwise mouse down / up will trigger callout box again
+        if (isCallOutBoxActive) {
+            isCallOutBoxActive = false;
+        }
+    }
+
+    void mouseUp(MouseEvent const& e) override
+    {
+        if (!isCallOutBoxActive) {
+            auto cpuHistory = std::make_unique<CPUMeterPopup>(cpuUsage, cpuUsageLongHistory);
+            updateCPUGraph = cpuHistory->getUpdateFunc();
+            updateCPUGraphLong = cpuHistory->getUpdateFuncLongHistory();
+            auto editor = findParentComponentOfClass<PluginEditor>();
+            auto bounds = editor->getLocalArea(this, getLocalBounds());
+
+            cpuHistory->onClose = [this]() {
+                updateCPUGraph = []() { return; };
+                updateCPUGraphLong = []() { return; };
+                repaint();
+            };
+
+            currentCalloutBox = &CallOutBox::launchAsynchronously(std::move(cpuHistory), bounds, editor);
+            isCallOutBoxActive = true;
+        } else {
+            isCallOutBoxActive = false;
+        }
+    }
+
+    void mouseEnter(MouseEvent const& e) override
+    {
+        repaint();
+    }
+
+    void mouseExit(MouseEvent const& e) override
+    {
+        repaint();
+    }
+
+    void cpuUsageChanged(float newCpuUsage) override
+    {
+        ScopedLock lock(cpuMeterMutex);
+        cpuUsage.push(newCpuUsage); // FIXME: we should use a circular buffer instead
+        updateCPUGraph();
+    }
+
+    std::function<void()> updateCPUGraph = []() { return; };
+    std::function<void()> updateCPUGraphLong = []() { return; };
+
+    static inline SafePointer<CallOutBox> currentCalloutBox = nullptr;
+    bool isCallOutBoxActive = false;
+    CriticalSection cpuMeterMutex;
+
+    CircularBuffer<float> cpuUsage = CircularBuffer<float>(256);
+    CircularBuffer<float> cpuUsageLongHistory = CircularBuffer<float>(512);
+    int cpuUsageToDraw = 0;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CPUMeter);
 };
 
 Statusbar::Statusbar(PluginProcessor* processor)
     : pd(processor)
 {
     levelMeter = std::make_unique<LevelMeter>();
-    midiBlinker = std::make_unique<MidiBlinker>();
+    cpuMeter = std::make_unique<CPUMeter>();
+    midiBlinker = std::make_unique<MIDIBlinker>();
     volumeSlider = std::make_unique<VolumeSlider>();
     oversampleSelector = std::make_unique<OversampleSelector>(processor);
 
     pd->statusbarSource->addListener(levelMeter.get());
     pd->statusbarSource->addListener(midiBlinker.get());
+    pd->statusbarSource->addListener(cpuMeter.get());
     pd->statusbarSource->addListener(this);
 
     setWantsKeyboardFocus(true);
 
     oversampleSelector->setTooltip("Set oversampling");
-    oversampleSelector->getProperties().set("FontScale", 0.5f);
     oversampleSelector->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
 
     oversampleSelector->setButtonText(String(1 << pd->oversampling) + "x");
@@ -334,10 +639,23 @@ Statusbar::Statusbar(PluginProcessor* processor)
     protectButton.setButtonText(Icons::Protection);
     centreButton.setButtonText(Icons::Centre);
     fitAllButton.setButtonText(Icons::FitAll);
+    debugButton.setButtonText(Icons::Debug);
+
+    debugButton.setTooltip("Enable/disable debugging tooltips");
+    debugButton.setClickingTogglesState(true);
+    debugButton.getToggleStateValue().referTo(SettingsFile::getInstance()->getPropertyAsValue("debug_connections"));
+    debugButton.onClick = [this]() {
+        set_plugdata_debugging_enabled(debugButton.getToggleState());
+        // Recreate the DSP graph with the new optimisations
+        pd->lockAudioThread();
+        canvas_update_dsp();
+        pd->unlockAudioThread();
+    };
+    set_plugdata_debugging_enabled(debugButton.getToggleState());
+    addAndMakeVisible(debugButton);
 
     powerButton.setTooltip("Enable/disable DSP");
     powerButton.setClickingTogglesState(true);
-    powerButton.getProperties().set("Style", "SmallIcon");
     addAndMakeVisible(powerButton);
 
     powerButton.onClick = [this]() { powerButton.getToggleState() ? pd->startDSP() : pd->releaseDSP(); };
@@ -345,9 +663,8 @@ Statusbar::Statusbar(PluginProcessor* processor)
     powerButton.setToggleState(pd_getdspstate(), dontSendNotification);
 
     centreButton.setTooltip("Move view to origin");
-    centreButton.getProperties().set("Style", "SmallIcon");
     centreButton.onClick = [this]() {
-        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+        auto* editor = findParentComponentOfClass<PluginEditor>();
         if (auto* cnv = editor->getCurrentCanvas()) {
             cnv->jumpToOrigin();
         }
@@ -356,9 +673,8 @@ Statusbar::Statusbar(PluginProcessor* processor)
     addAndMakeVisible(centreButton);
 
     fitAllButton.setTooltip("Zoom to fit all");
-    fitAllButton.getProperties().set("Style", "SmallIcon");
     fitAllButton.onClick = [this]() {
-        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+        auto* editor = findParentComponentOfClass<PluginEditor>();
         if (auto* cnv = editor->getCurrentCanvas()) {
             cnv->zoomToFitAll();
         }
@@ -367,7 +683,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
     addAndMakeVisible(fitAllButton);
 
     protectButton.setTooltip("Clip output signal and filter non-finite values");
-    protectButton.getProperties().set("Style", "SmallIcon");
     protectButton.setClickingTogglesState(true);
     protectButton.setToggleState(SettingsFile::getInstance()->getProperty<int>("protected"), dontSendNotification);
     protectButton.onClick = [this]() {
@@ -392,6 +707,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     addAndMakeVisible(*levelMeter);
     addAndMakeVisible(*midiBlinker);
+    addAndMakeVisible(*cpuMeter);
 
     levelMeter->toBehind(volumeSlider.get());
 
@@ -399,7 +715,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
     overlaySettingsButton.setButtonText(Icons::ThinDown);
 
     overlaySettingsButton.onClick = [this]() {
-        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+        auto* editor = findParentComponentOfClass<PluginEditor>();
         OverlayDisplaySettings::show(editor, editor->getLocalArea(this, overlaySettingsButton.getBounds()));
     };
 
@@ -409,19 +725,15 @@ Statusbar::Statusbar(PluginProcessor* processor)
     snapEnableButton.getToggleStateValue().referTo(SettingsFile::getInstance()->getPropertyAsValue("grid_enabled"));
 
     snapSettingsButton.onClick = [this]() {
-        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+        auto* editor = findParentComponentOfClass<PluginEditor>();
         SnapSettings::show(editor, editor->getLocalArea(this, snapSettingsButton.getBounds()));
     };
 
     alignmentButton.setButtonText(Icons::AlignLeft);
     alignmentButton.onClick = [this]() {
-        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+        auto* editor = findParentComponentOfClass<PluginEditor>();
         AlignmentTools::show(editor, editor->getLocalArea(this, alignmentButton.getBounds()));
     };
-
-    // overlay button
-    overlayButton.getProperties().set("Style", "SmallIcon");
-    overlaySettingsButton.getProperties().set("Style", "SmallIcon");
 
     overlayButton.setClickingTogglesState(true);
     overlaySettingsButton.setClickingTogglesState(false);
@@ -436,10 +748,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
     overlayButton.setTooltip(String("Show overlays"));
     overlaySettingsButton.setTooltip(String("Overlay settings"));
 
-    // snapping button
-    snapEnableButton.getProperties().set("Style", "SmallIcon");
-    snapSettingsButton.getProperties().set("Style", "SmallIcon");
-
     snapEnableButton.setClickingTogglesState(true);
     snapSettingsButton.setClickingTogglesState(false);
 
@@ -452,9 +760,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
     snapEnableButton.setTooltip(String("Enable snapping"));
     snapSettingsButton.setTooltip(String("Snap settings"));
 
-    // alignment button
-    alignmentButton.getProperties().set("Style", "SmallIcon");
-
     addAndMakeVisible(alignmentButton);
 
     alignmentButton.setTooltip(String("Alignment tools"));
@@ -466,21 +771,21 @@ Statusbar::~Statusbar()
 {
     pd->statusbarSource->removeListener(levelMeter.get());
     pd->statusbarSource->removeListener(midiBlinker.get());
+    pd->statusbarSource->removeListener(cpuMeter.get());
     pd->statusbarSource->removeListener(this);
-}
-
-void Statusbar::propertyChanged(String const& name, var const& value)
-{
 }
 
 void Statusbar::paint(Graphics& g)
 {
-    g.setColour(findColour(PlugDataColour::outlineColourId));
-    g.drawLine(0.0f, 0.5f, static_cast<float>(getWidth()), 0.5f);
+    g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+    g.drawLine(29.f, 0.5f, static_cast<float>(getWidth() - 29.5f), 0.5f);
 
     g.drawLine(firstSeparatorPosition, 6.0f, firstSeparatorPosition, getHeight() - 6.0f);
     g.drawLine(secondSeparatorPosition, 6.0f, secondSeparatorPosition, getHeight() - 6.0f);
     g.drawLine(thirdSeparatorPosition, 6.0f, thirdSeparatorPosition, getHeight() - 6.0f);
+    if (getWidth() > 500) {
+        g.drawLine(fourthSeparatorPosition, 6.0f, fourthSeparatorPosition, getHeight() - 6.0f);
+    }
 }
 
 void Statusbar::resized()
@@ -493,6 +798,11 @@ void Statusbar::resized()
     };
 
     auto spacing = getHeight() + 4;
+
+    // Some newer iPhone models have a very large corner radius
+#if JUCE_IOS
+    position(22);
+#endif
 
     centreButton.setBounds(position(spacing), 0, getHeight(), getHeight());
     fitAllButton.setBounds(position(spacing), 0, getHeight(), getHeight());
@@ -508,8 +818,13 @@ void Statusbar::resized()
     position(10);
 
     alignmentButton.setBounds(position(spacing), 0, getHeight(), getHeight());
+    debugButton.setBounds(position(spacing), 0, getHeight(), getHeight());
 
     pos = 4; // reset position for elements on the right
+
+#if JUCE_IOS
+    position(22, true);
+#endif
 
     protectButton.setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
 
@@ -527,7 +842,13 @@ void Statusbar::resized()
 
     thirdSeparatorPosition = position(5, true) + 2.5f; // Fourth seperator
 
-    midiBlinker->setBounds(position(55, true) - 8, 0, 55, getHeight());
+    // Hide these if there isn't enough space
+    midiBlinker->setVisible(getWidth() > 500);
+    cpuMeter->setVisible(getWidth() > 500);
+
+    midiBlinker->setBounds(position(40, true) - 8, 0, 55, getHeight());
+    fourthSeparatorPosition = position(10, true);
+    cpuMeter->setBounds(position(48, true), 0, 50, getHeight());
 }
 
 void Statusbar::audioProcessedChanged(bool audioProcessed)
@@ -543,14 +864,6 @@ StatusbarSource::StatusbarSource()
     startTimerHz(30);
 }
 
-static bool hasRealEvents(MidiBuffer& buffer)
-{
-    return std::any_of(buffer.begin(), buffer.end(),
-        [](auto const& event) {
-            return !event.getMessage().isSysEx();
-        });
-}
-
 void StatusbarSource::setSampleRate(double const newSampleRate)
 {
     sampleRate = static_cast<int>(newSampleRate);
@@ -561,7 +874,7 @@ void StatusbarSource::setBufferSize(int bufferSize)
     this->bufferSize = bufferSize;
 }
 
-void StatusbarSource::processBlock(MidiBuffer& midiIn, MidiBuffer& midiOut, int channels)
+void StatusbarSource::process(bool hasMidiInput, bool hasMidiOutput, int channels)
 {
     if (channels == 1) {
         level[1] = 0;
@@ -571,14 +884,12 @@ void StatusbarSource::processBlock(MidiBuffer& midiIn, MidiBuffer& midiOut, int 
     }
 
     auto nowInMs = Time::getCurrentTime().getMillisecondCounter();
-    auto hasInEvents = hasRealEvents(midiIn);
-    auto hasOutEvents = hasRealEvents(midiOut);
 
     lastAudioProcessedTime = nowInMs;
 
-    if (hasOutEvents)
+    if (hasMidiOutput)
         lastMidiSentTime = nowInMs;
-    if (hasInEvents)
+    if (hasMidiInput)
         lastMidiReceivedTime = nowInMs;
 }
 
@@ -616,6 +927,7 @@ void StatusbarSource::timerCallback()
 
     for (auto* listener : listeners) {
         listener->audioLevelChanged(peak);
+        listener->cpuUsageChanged(cpuUsage);
     }
 }
 
@@ -627,4 +939,9 @@ void StatusbarSource::addListener(Listener* l)
 void StatusbarSource::removeListener(Listener* l)
 {
     listeners.erase(std::remove(listeners.begin(), listeners.end(), l), listeners.end());
+}
+
+void StatusbarSource::setCPUUsage(float cpu)
+{
+    cpuUsage = cpu;
 }

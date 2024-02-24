@@ -29,27 +29,30 @@ flags:
   - name: -max <float>
     description: sets max gain (needs to be > 0, default 1)
   - name: -mode <float>
-    description: sets scaling mode: 0 (quartic), 1 (dB) or 2 (linear)
+    description: sets scaling mode; 0 (quartic), 1 (dB) or 2 (linear)
     default: quartic
   - name: -ramp <float>
     description: sets ramp time (minimum 5)
     default: 20
-  - name: -init
-    description: sets to init mode
-    default: no init
+  - name: -savestate
+    description: save object state
+    default: 0
 
 methods:
   - type: set <float>
     description: sets slider (range is clipped to 0-1)
   - type: mode <float>
-    description: scaling mode: 0 (quartic, default), 1 (dB) or 2 (linear)
+    description: scaling mode; 0 (quartic, default), 1 (dB) or 2 (linear)
   - type: gain <float>
     description: sets max gain (values <= 0 are ignored)
   - type: ramp <float>
     description: sets ramp time in ms for slider values (default 20)
-  - type: init <float>
-    description: non-0 sets to init mode
-
+  - type: savestate <float>
+    description: non-0 will save object state
+  - type: learn
+    description: learns a MIDI controller
+  - type: forget
+    description: forgets a MIDI controller
 draft: false
 ---
 

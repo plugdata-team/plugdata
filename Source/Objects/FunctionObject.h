@@ -8,7 +8,6 @@ class FunctionObject final : public ObjectBase {
 
     int hoverIdx = -1;
     int dragIdx = -1;
-    bool newPointAdded = false;
 
     Value initialise = SynchronousValue();
     Value range = SynchronousValue();
@@ -21,7 +20,7 @@ class FunctionObject final : public ObjectBase {
     Array<Point<float>> points;
 
 public:
-    FunctionObject(void* ptr, Object* object)
+    FunctionObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
     {
         objectParameters.addParamSize(&sizeProperty);
@@ -44,8 +43,8 @@ public:
             Array<var> arr = { function->x_min, function->x_max };
             range = var(arr);
 
-            auto sndSym = String::fromUTF8(function->x_send->s_name);
-            auto rcvSym = String::fromUTF8(function->x_receive->s_name);
+            auto sndSym = function->x_snd_set ? String::fromUTF8(function->x_snd_raw->s_name) : getBinbufSymbol(3);
+            auto rcvSym = function->x_rcv_set ? String::fromUTF8(function->x_rcv_raw->s_name) : getBinbufSymbol(4);
 
             sendSymbol = sndSym != "empty" ? sndSym : "";
             receiveSymbol = rcvSym != "empty" ? rcvSym : "";
@@ -61,7 +60,7 @@ public:
             if (!patch)
                 return;
 
-            libpd_moveobj(patch, function.cast<t_gobj>(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, function.cast<t_gobj>(), b.getX(), b.getY());
             function->x_width = b.getWidth() - 1;
             function->x_height = b.getHeight() - 1;
         }
@@ -75,7 +74,7 @@ public:
                 return {};
 
             int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
             return { x, y, w + 1, h + 1 };
         }
 
@@ -153,7 +152,7 @@ public:
         }
 
         repaint();
-    };
+    }
 
     static int compareElements(Point<float> a, Point<float> b)
     {
@@ -236,7 +235,7 @@ public:
         auto start = static_cast<float>(arr[0]);
         auto end = static_cast<float>(arr[1]);
 
-        if (start == end) {
+        if (approximatelyEqual(start, end)) {
             return { start, end + 0.01f };
         }
         if (start < end) {
@@ -255,8 +254,10 @@ public:
         arr[1] = newRange.second;
 
         if (auto function = ptr.get<t_fake_function>()) {
-            function->x_min = newRange.first;
-            function->x_max = newRange.second;
+            if (newRange.first <= function->x_min_point)
+                function->x_min = newRange.first;
+            if (newRange.second >= function->x_max_point)
+                function->x_max = newRange.second;
         }
     }
 
@@ -385,11 +386,11 @@ public:
             } else if (v.refersToSameSourceAs(sendSymbol)) {
                 auto symbol = sendSymbol.toString();
                 if (auto obj = ptr.get<void>())
-                    pd->sendDirectMessage(obj.get(), "send", { symbol });
+                    pd->sendDirectMessage(obj.get(), "send", { pd->generateSymbol(symbol) });
             } else if (v.refersToSameSourceAs(receiveSymbol)) {
                 auto symbol = receiveSymbol.toString();
                 if (auto obj = ptr.get<void>())
-                    pd->sendDirectMessage(obj.get(), "receive", { symbol });
+                    pd->sendDirectMessage(obj.get(), "receive", { pd->generateSymbol(symbol) });
 
             } else if (v.refersToSameSourceAs(range)) {
                 setRange(getRange());
@@ -405,31 +406,17 @@ public:
         return { hex[0], hex[1], hex[2] };
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("send"),
-            hash("receive"),
-            hash("list"),
-            hash("min"),
-            hash("max"),
-            hash("fgcolor"),
-            hash("bgcolor"),
-            hash("init"),
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("send"): {
-            if (!atoms.empty())
-                setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
+            if (numAtoms > 0)
+                setParameterExcludingListener(sendSymbol, atoms[0].toString());
             break;
         }
         case hash("receive"): {
-            if (!atoms.empty())
-                setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+            if (numAtoms > 0)
+                setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             break;
         }
         case hash("list"): {
@@ -449,7 +436,8 @@ public:
         }
         case hash("init"):
         case hash("fgcolor"):
-        case hash("bgcolor"): {
+        case hash("bgcolor"):
+        case hash("set"): {
             update();
             break;
         }

@@ -78,14 +78,15 @@ public:
             return Slider::proportionOfLengthToValue(1.0f - proportion);
         else
             return Slider::proportionOfLengthToValue(proportion);
-    };
+    }
+
     double valueToProportionOfLength(double value) override
     {
         if (isInverted)
             return 1.0f - (Slider::valueToProportionOfLength(value));
         else
             return Slider::valueToProportionOfLength(value);
-    };
+    }
 };
 
 class SliderObject : public ObjectBase {
@@ -104,7 +105,7 @@ class SliderObject : public ObjectBase {
     float value = 0.0f;
 
 public:
-    SliderObject(void* obj, Object* object)
+    SliderObject(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
         , iemHelper(obj, object, this)
     {
@@ -126,8 +127,8 @@ public:
         };
 
         onConstrainerCreate = [this]() {
-            auto minLongSide = this->object->minimumSize * 2;
-            auto minShortSide = this->object->minimumSize;
+            auto minLongSide = 8;
+            auto minShortSide = 8;
             if (isVertical) {
                 constrainer->setMinimumSize(minShortSide, minLongSide);
             } else {
@@ -185,17 +186,31 @@ public:
 
     void updateLabel() override
     {
-        iemHelper.updateLabel(label);
+        iemHelper.updateLabel(label, isVertical ? Point<int>(0, 2) : Point<int>(2, 0));
     }
 
     Rectangle<int> getPdBounds() override
     {
-        return iemHelper.getPdBounds().expanded(2, 0).withTrimmedLeft(-1);
+        if(isVertical)
+        {
+            return iemHelper.getPdBounds().expanded(0, 2).withTrimmedBottom(-1);
+        }
+        else {
+            return iemHelper.getPdBounds().expanded(2, 0).withTrimmedLeft(-1);
+        }
+       
     }
 
     void setPdBounds(Rectangle<int> b) override
     {
-        iemHelper.setPdBounds(b.reduced(2, 0).withTrimmedLeft(1));
+        // Hsl/vsl lies to us in slider_getrect: the x/y coordintates it returns are 2 or 3 px offset from what text_xpix/text_ypix reports
+        if(isVertical)
+        {
+            iemHelper.setPdBounds(b.reduced(0, 2).withTrimmedBottom(1).translated(0, -2));
+        }
+        else {
+            iemHelper.setPdBounds(b.reduced(2, 0).withTrimmedLeft(1).translated(-3, 0));
+        }
     }
 
     void updateRange()
@@ -213,24 +228,9 @@ public:
         }
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("float"),
-            hash("list"),
-            hash("set"),
-            hash("lin"),
-            hash("log"),
-            hash("range"),
-            hash("steady"),
-            hash("orientation"),
-            IEMGUI_MESSAGES
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("float"):
         case hash("list"):
         case hash("set"): {
@@ -249,7 +249,7 @@ public:
             break;
         }
         case hash("range"): {
-            if (atoms.size() >= 2) {
+            if (numAtoms >= 2) {
                 slider.setRangeFlipped(atoms[0].getFloat() > atoms[1].getFloat());
                 setParameterExcludingListener(min, atoms[0].getFloat());
                 setParameterExcludingListener(max, atoms[1].getFloat());
@@ -258,7 +258,7 @@ public:
             break;
         }
         case hash("steady"): {
-            if (atoms.size() >= 1) {
+            if (numAtoms >= 1) {
                 bool steady = atoms[0].getFloat();
                 setParameterExcludingListener(steadyOnClick, steady);
                 slider.setSliderSnapsToMousePosition(!steady);
@@ -266,7 +266,7 @@ public:
             break;
         }
         case hash("orientation"): {
-            if (atoms.size() >= 1) {
+            if (numAtoms >= 1) {
                 isVertical = static_cast<bool>(atoms[0].getFloat());
                 slider.setOrientation(isVertical);
                 updateAspectRatio();
@@ -275,13 +275,13 @@ public:
             break;
         }
         default: {
-            iemHelper.receiveObjectMessage(symbol, atoms);
+            iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
             break;
         }
         }
 
         // Update the colours of the actual slider
-        if (hash(symbol) == hash("color")) {
+        if (symbol == hash("color")) {
             getLookAndFeel().setColour(Slider::backgroundColourId, Colour::fromString(iemHelper.secondaryColour.toString()));
             getLookAndFeel().setColour(Slider::trackColourId, Colour::fromString(iemHelper.primaryColour.toString()));
         }
@@ -315,9 +315,16 @@ public:
 
     void updateSizeProperty() override
     {
-        setPdBounds(object->getObjectBounds());
-
         if (auto iem = ptr.get<t_iemgui>()) {
+            if(isVertical) {
+                iem->x_w = object->getObjectBounds().getWidth() - 1;
+                iem->x_h = object->getObjectBounds().getHeight() - 6;
+            }
+            else {
+                iem->x_w = object->getObjectBounds().getWidth() - 6;
+                iem->x_h = object->getObjectBounds().getHeight() - 1;
+            }
+            
             setParameterExcludingListener(sizeProperty, Array<var> { var(iem->x_w), var(iem->x_h) });
         }
     }
@@ -333,9 +340,9 @@ public:
                 rounded_val = slider->x_val;
 
             if (slider->x_lin0_log1)
-                fval = slider->x_min * exp(slider->x_k * (double)(rounded_val)*0.01);
+                fval = slider->x_min * exp(slider->x_k * (double)(rounded_val) * 0.01);
             else
-                fval = (double)(rounded_val)*0.01 * slider->x_k + slider->x_min;
+                fval = (double)(rounded_val) * 0.01 * slider->x_k + slider->x_min;
             if ((fval < 1.0e-10) && (fval > -1.0e-10))
                 fval = 0.0;
 
@@ -365,7 +372,7 @@ public:
 
     void setMinimum(float value)
     {
-        float min, max;
+        float min = 0.0f, max = 127.0f;
         if (auto slider = ptr.get<t_slider>()) {
             ptr.get<t_slider>()->x_min = value;
             min = slider->x_min;
@@ -377,7 +384,7 @@ public:
 
     void setMaximum(float value)
     {
-        float min, max;
+        float min = 0.0f, max = 127.0f;
         if (auto slider = ptr.get<t_slider>()) {
             ptr.get<t_slider>()->x_max = value;
             min = slider->x_min;
@@ -473,7 +480,7 @@ public:
     template<typename FloatType>
     static inline NormalisableRange<FloatType> makeLogarithmicRange(FloatType min, FloatType max)
     {
-        min = std::max<float>(min, max / 100.0f);
+        min = std::max<FloatType>(min, max / 100000.0f);
 
         return NormalisableRange<FloatType>(
             min, max,

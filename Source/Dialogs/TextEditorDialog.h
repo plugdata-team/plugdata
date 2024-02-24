@@ -13,6 +13,7 @@
 
 #include <utility>
 
+#include "Utility/Config.h"
 #include "Constants.h"
 
 #define GUTTER_WIDTH 48.f
@@ -28,7 +29,7 @@ class Caret;                 // draws the caret symbol(s)
 class GutterComponent;       // draws the gutter
 class GlyphArrangementArray; // like StringArray but caches glyph positions
 class HighlightComponent;    // draws the highlight region(s)
-class Selection;             // stores leading and trailing edges of an editing region
+struct Selection;            // stores leading and trailing edges of an editing region
 class TextDocument;          // stores text data and caret ranges, supplies metrics, accepts actions
 class PlugDataTextEditor;    // is a component, issues actions, computes view transform
 class Transaction;           // a text replacement, the document computes the inverse on fulfilling it
@@ -201,7 +202,8 @@ struct Selection {
     int token = 0;
 };
 
-struct Transaction {
+class Transaction {
+public:
     using Callback = std::function<void(Transaction const&)>;
     enum class Direction { forward,
         reverse };
@@ -564,7 +566,6 @@ public:
 private:
     static Path getOutlinePath(Array<Rectangle<float>> const& rectangles);
 
-    bool useRoundedHighlight = true;
     TextDocument const& document;
     AffineTransform transform;
     Path outlinePath;
@@ -2068,15 +2069,18 @@ struct TextEditorDialog : public Component {
     std::function<void(String, bool)> onClose;
 
     String title;
+    int margin;
 
     explicit TextEditorDialog(String name)
         : resizer(this, &constrainer)
         , title(std::move(name))
+        , margin(ProjectInfo::canUseSemiTransparentWindows() ? 15 : 0)
     {
-        closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(DocumentWindow::closeButton));
+        closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(-1));
         addAndMakeVisible(closeButton.get());
 
         constrainer.setMinimumSize(500, 200);
+        constrainer.setFixedAspectRatio(0.0f);
 
         closeButton->onClick = [this]() {
             // Call asynchronously because this function may distroy the dialog
@@ -2093,19 +2097,20 @@ struct TextEditorDialog : public Component {
 
         addAndMakeVisible(editor);
         addAndMakeVisible(resizer);
+        resizer.setAlwaysOnTop(true);
+        resizer.setAllowHostManagedResize(false);
 
         editor.grabKeyboardFocus();
     }
 
     void resized() override
     {
-        auto b = getLocalBounds().reduced(15);
+        auto b = getLocalBounds().reduced(margin);
 
         resizer.setBounds(b);
 
-        auto macOSStyle = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");
         auto closeButtonBounds = b.removeFromTop(30).removeFromRight(30).translated(-5, 5);
-        closeButton->setBounds(closeButtonBounds.reduced(macOSStyle ? 5 : 0));
+        closeButton->setBounds(closeButtonBounds);
         editor.setBounds(b.withTrimmedTop(10).withTrimmedBottom(20));
     }
 
@@ -2121,24 +2126,30 @@ struct TextEditorDialog : public Component {
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawRoundedRectangle(getLocalBounds().reduced(15).toFloat(), Corners::windowCornerRadius, 1.0f);
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.drawRoundedRectangle(getLocalBounds().reduced(margin).toFloat(), ProjectInfo::canUseSemiTransparentWindows() ? Corners::windowCornerRadius : 0.0f, 1.0f);
     }
 
     void paint(Graphics& g) override
     {
-        auto shadowPath = Path();
-        shadowPath.addRoundedRectangle(getLocalBounds().reduced(20), Corners::windowCornerRadius);
+        if(ProjectInfo::canUseSemiTransparentWindows()) {
+            auto shadowPath = Path();
+            shadowPath.addRoundedRectangle(getLocalBounds().reduced(20), Corners::windowCornerRadius);
+            StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 13.0f);
+        }
+        
+        auto radius = ProjectInfo::canUseSemiTransparentWindows() ? Corners::windowCornerRadius : 0.0f;
 
-        StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 12.0f);
-
-        auto b = getLocalBounds().reduced(15);
+        auto b = getLocalBounds().reduced(margin);
 
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRoundedRectangle(b.toFloat(), Corners::windowCornerRadius);
-
+        g.fillRoundedRectangle(b.toFloat(), radius);
+        
         g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawHorizontalLine(b.getX() + 39, b.getY() + 48, b.getWidth());
+        g.drawRoundedRectangle(b.toFloat().reduced(0.5f), radius, 1.0f);
+        
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        // g.drawHorizontalLine(b.getX() + 39, b.getY() + 48, b.getWidth());
         g.drawHorizontalLine(b.getHeight() - 20, b.getY() + 48, b.getWidth());
 
         if (!title.isEmpty()) {

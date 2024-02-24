@@ -8,14 +8,6 @@ categories:
 
 pdcategory: ELSE, Filters, Effects
 
-arguments:
-- type: float
-  description: number of filters
-  default: 1
-- type: float
-  description: ramp time in ms
-  default: 10
-
 inlets:
   1st:
   - type: signal
@@ -39,7 +31,9 @@ flags:
     description: list of ramp times for all filters
   - name: -rampall <float>
     description: sets ramp time for all filters
-
+  - name: -mc <float>
+    description: sets to multichannel output
+    default: 0
 
 methods: 
   - type: freq <list>
@@ -54,6 +48,8 @@ methods:
     description: list of ramp times for all filters
   - type: rampall <float>
     description: sets ramp time for all filters
+  - type: mc <float>
+    description: sets to multichannel output
 
 draft: false
 ---

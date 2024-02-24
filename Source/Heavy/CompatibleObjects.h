@@ -6,9 +6,8 @@
 
 #pragma once
 
-struct HeavyCompatibleObjects
-{
-    static inline const StringArray heavyObjects = {
+struct HeavyCompatibleObjects {
+    static inline StringArray const heavyObjects = {
         "!=",
         "%",
         "&",
@@ -123,6 +122,7 @@ struct HeavyCompatibleObjects
         "/~",
         "abs~",
         "adc~",
+        "bang~",
         "biquad~",
         "bp~",
         "catch~",
@@ -183,7 +183,7 @@ struct HeavyCompatibleObjects
     // Heavylib abstractions:
     // These won't be used for the compatibility testing (it will recognise any abstractions as a canvas)
     // These are only for the suggestions
-    static inline const StringArray heavyAbstractions = {
+    static inline StringArray const heavyAbstractions = {
         "hv.comb~",
         "hv.compressor~",
         "hv.compressor2~",
@@ -213,7 +213,7 @@ struct HeavyCompatibleObjects
         "hv.vline~"
     };
 
-    static inline const StringArray extra = {
+    static inline StringArray const extra = {
         "comment",
         "floatbox",
         "symbolbox",
@@ -230,5 +230,4 @@ struct HeavyCompatibleObjects
 
         return allObjects;
     }
-
 };

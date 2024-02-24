@@ -11,6 +11,23 @@ public:
     {
     }
 
+    ValueTree getState() override
+    {
+        ValueTree stateTree("CPP");
+        stateTree.setProperty("inputPatchValue", getValue<String>(inputPatchValue), nullptr);
+        stateTree.setProperty("projectNameValue", getValue<String>(projectNameValue), nullptr);
+        stateTree.setProperty("projectCopyrightValue", getValue<String>(projectCopyrightValue), nullptr);
+        return stateTree;
+    }
+
+    void setState(ValueTree& stateTree) override
+    {
+        auto tree = stateTree.getChildWithName("CPP");
+        inputPatchValue = tree.getProperty("inputPatchValue");
+        projectNameValue = tree.getProperty("projectNameValue");
+        projectCopyrightValue = tree.getProperty("projectCopyrightValue");
+    }
+
     bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
     {
         exportingView->showState(ExportingProgressView::Busy);

@@ -1,5 +1,4 @@
 #pragma clang diagnostic push
-#pragma ide diagnostic ignored "cppcoreguidelines-narrowing-conversions"
 /*
  // Copyright (c) 2022 Timothy Schoen and Wasted Audio
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
@@ -7,13 +6,13 @@
  */
 
 #include <juce_gui_basics/juce_gui_basics.h>
-#include "../Constants.h"
+#include "Constants.h"
 
 struct Toolchain {
 #if JUCE_WINDOWS
-    static inline const File dir = ProjectInfo::appDataDir.getChildFile("Toolchain").getChildFile("usr");
+    static inline File const dir = ProjectInfo::appDataDir.getChildFile("Toolchain").getChildFile("usr");
 #else
-    static inline const File dir = ProjectInfo::appDataDir.getChildFile("Toolchain");
+    static inline File const dir = ProjectInfo::appDataDir.getChildFile("Toolchain");
 #endif
 
     static void deleteTempFileLater(File script)
@@ -62,7 +61,7 @@ struct Toolchain {
 #endif
     }
 
-    const String startShellScriptWithOutput(String scriptText)
+    String const startShellScriptWithOutput(String scriptText)
     {
         File scriptFile = File::createTempFile(".sh");
         Toolchain::deleteTempFileLater(scriptFile);
@@ -86,84 +85,35 @@ private:
     inline static Array<File> tempFilesToDelete;
 };
 
-struct ToolchainInstaller : public Component
+class ToolchainInstaller : public Component
     , public Thread
     , public Timer {
-    struct InstallButton : public Component {
-
-#if JUCE_WINDOWS
-        String downloadSize = "720 MB";
-#elif JUCE_MAC
-        String downloadSize = "650 MB";
-#else
-        String downloadSize = "1.45 GB";
-#endif
-        String iconText = Icons::SaveAs;
-        String topText = "Download Toolchain";
-        String bottomText = "Download compilation utilities (" + downloadSize + ")";
-
-        std::function<void(void)> onClick = []() {};
-
-        InstallButton()
-        {
-            setInterceptsMouseClicks(true, false);
-        }
-
-        void paint(Graphics& g) override
-        {
-            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-
-            if (isMouseOver()) {
-                PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(1, 1, getWidth() - 2, getHeight() - 2), Corners::defaultCornerRadius);
-            }
-
-            auto colour = findColour(PlugDataColour::panelTextColourId);
-
-            Fonts::drawIcon(g, iconText, 20, 5, 40, colour, 24);
-
-            Fonts::drawText(g, topText, 60, 7, getWidth() - 60, 20, colour, 16);
-
-            Fonts::drawStyledText(g, bottomText, 60, 25, getWidth() - 60, 16, colour, Thin, 14);
-        }
-
-        void mouseUp(MouseEvent const& e) override
-        {
-            onClick();
-        }
-
-        void mouseEnter(MouseEvent const& e) override
-        {
-            repaint();
-        }
-
-        void mouseExit(MouseEvent const& e) override
-        {
-            repaint();
-        }
-    };
 
     void timerCallback() override
     {
         repaint();
     }
 
-    explicit ToolchainInstaller(PluginEditor* pluginEditor)
+public:
+    explicit ToolchainInstaller(PluginEditor* pluginEditor, Dialog* parentDialog)
         : Thread("Toolchain Install Thread")
-        , editor(pluginEditor)
+        , editor(pluginEditor), dialog(parentDialog)
     {
         addAndMakeVisible(&installButton);
 
         installButton.onClick = [this]() {
             errorMessage = "";
             repaint();
+            
+            dialog->setBlockFromClosing(true);
 
             String latestVersion;
             try {
                 auto compatTable = JSON::parse(URL("https://raw.githubusercontent.com/plugdata-team/plugdata-heavy-toolchain/main/COMPATIBILITY").readEntireTextStream());
                 // Get latest version
-                
                 latestVersion = compatTable.getDynamicObject()->getProperty(String(ProjectInfo::versionString).upToFirstOccurrenceOf("-", false, false)).toString();
-                if(latestVersion.isEmpty()) throw;
+                if (latestVersion.isEmpty())
+                    throw;
             }
             // Network error, JSON error or empty version string somehow
             catch (...) {
@@ -172,7 +122,7 @@ struct ToolchainInstaller : public Component
                 repaint();
                 return;
             }
-            
+
             String downloadLocation = "https://github.com/plugdata-team/plugdata-heavy-toolchain/releases/download/v" + latestVersion + "/";
 
 #if JUCE_MAC
@@ -215,8 +165,8 @@ struct ToolchainInstaller : public Component
             float downloadBarBgHeight = 11.0f;
             float downloadBarHeight = downloadBarBgHeight - 3.0f;
 
-            auto downloadBarBg = Rectangle<float>(90.0f, 300.0f - (downloadBarBgHeight * 0.5), width, downloadBarBgHeight);
-            auto downloadBar = Rectangle<float>(91.5f, 300.0f - (downloadBarHeight * 0.5), progress, downloadBarHeight);
+            auto downloadBarBg = Rectangle<float>(90.0f, 250.0f - (downloadBarBgHeight * 0.5), width, downloadBarBgHeight);
+            auto downloadBar = Rectangle<float>(91.5f, 250.0f - (downloadBarHeight * 0.5), progress, downloadBarHeight);
 
             g.setColour(findColour(PlugDataColour::panelTextColourId));
             PlugDataLook::fillSmoothedRectangle(g, downloadBarBg, Corners::defaultCornerRadius);
@@ -249,7 +199,14 @@ struct ToolchainInstaller : public Component
         int64 totalBytes = instream->getTotalLength();
         int64 bytesDownloaded = 0;
 
-        MemoryOutputStream mo(toolchainData, true);
+        MemoryOutputStream mo(toolchainData, false);
+        
+        // pre-allocate memory to improve download speed
+#if JUCE_MAC
+        mo.preallocate(1024 * 1024 * 128);
+#else
+        mo.preallocate(1024 * 1024 * 256);
+#endif
 
         while (true) {
 
@@ -257,7 +214,8 @@ struct ToolchainInstaller : public Component
             if (threadShouldExit())
                 return;
 
-            auto written = mo.writeFromInputStream(*instream, 8192);
+            // Download blocks of 1mb at a time
+            auto written = mo.writeFromInputStream(*instream, 1024 * 1024);
 
             if (written == 0)
                 break;
@@ -308,7 +266,7 @@ struct ToolchainInstaller : public Component
             + "\nchmod +x " + tcPath + "/bin/*"
             + "\nchmod +x " + tcPath + "/lib/dpf/utils/generate-ttl.sh"
             + "\nchmod +x " + tcPath + "/arm-none-eabi/bin/*"
-            + "\nchmod +x " + tcPath + "/libexec/gcc/arm-none-eabi/*/*"
+            + "\nchmod +x " + tcPath + "/lib/gcc/arm-none-eabi/*/*"
 #    if JUCE_LINUX
             + "\nchmod +x " + tcPath + "/x86_64-anywhere-linux-gnu/bin/*"
             + "\nchmod +x " + tcPath + "/x86_64-anywhere-linux-gnu/sysroot/sbin/*"
@@ -351,6 +309,7 @@ struct ToolchainInstaller : public Component
         stopTimer();
 
         MessageManager::callAsync([this]() {
+            dialog->setBlockFromClosing(false);
             toolchainInstalledCallback();
         });
     }
@@ -360,7 +319,16 @@ struct ToolchainInstaller : public Component
     bool needsUpdate = false;
     int statusCode;
 
-    InstallButton installButton;
+#if JUCE_WINDOWS
+    String downloadSize = "720 MB";
+#elif JUCE_MAC
+    String downloadSize = "650 MB";
+#else
+    String downloadSize = "1.45 GB";
+#endif
+
+    WelcomePanelButton installButton = WelcomePanelButton(Icons::SaveAs, "Download Toolchain", "Download compilation utilities (" + downloadSize + ")");
+
     std::function<void()> toolchainInstalledCallback;
 
     String errorMessage;
@@ -368,6 +336,7 @@ struct ToolchainInstaller : public Component
     std::unique_ptr<InputStream> instream;
 
     PluginEditor* editor;
+    Dialog* dialog;
 };
 
 #pragma clang diagnostic pop

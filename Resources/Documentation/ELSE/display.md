@@ -26,6 +26,10 @@ outlets:
   - type: anything
     description: any input is passed through
 
+flags:
+  - name: -noflash
+    description: prevents flashing when getting data.
+
 draft: false
 ---
 

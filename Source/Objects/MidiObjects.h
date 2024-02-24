@@ -11,7 +11,7 @@ public:
     bool midiInput;
     bool isCtl;
 
-    MidiObject(void* ptr, Object* object, bool isInput, bool isCC)
+    MidiObject(pd::WeakReference ptr, Object* object, bool isInput, bool isCC)
         : TextBase(ptr, object)
         , midiInput(isInput)
         , isCtl(isCC)
@@ -57,9 +57,9 @@ public:
 
                 if (midiInput) {
                     int port = 1;
-                    for (auto input : midiDeviceManager->getInputDevices()) {
+                    for (auto const& input : midiDeviceManager->getInputDevices()) {
                         PopupMenu subMenu;
-                        for (int ch = 1; ch < 16; ch++) {
+                        for (int ch = 1; ch < 17; ch++) {
                             int portNumber = ch + (port << 4);
 
                             if (isCtl) {
@@ -75,9 +75,9 @@ public:
                     }
                 } else {
                     int port = 1;
-                    for (auto output : midiDeviceManager->getOutputDevices()) {
+                    for (auto const& output : midiDeviceManager->getOutputDevices()) {
                         PopupMenu subMenu;
-                        for (int ch = 1; ch < 16; ch++) {
+                        for (int ch = 1; ch < 17; ch++) {
                             int portNumber = ch + (port << 4);
                             if (isCtl) {
                                 subMenu.addSubMenu("Channel " + String(ch), getCCSubmenu(portNumber, portNumber == currentPort, currentCC), true);
@@ -93,7 +93,7 @@ public:
                     // Add MIDI output option for internal synth
                     // This will automatically get chosen if the midi output port number is out of range
                     PopupMenu subMenu;
-                    for (int ch = 1; ch < 16; ch++) {
+                    for (int ch = 1; ch < 17; ch++) {
                         int portNumber = ch + (port << 4);
                         if (isCtl) {
                             subMenu.addSubMenu("Channel " + String(ch), getCCSubmenu(portNumber, portNumber == currentPort, currentCC), true);
@@ -107,7 +107,7 @@ public:
                     popupMenu.addSubMenu("Internal GM Synth", subMenu, internalSynthEnabled);
                 }
             } else {
-                for (int ch = 1; ch < 16; ch++) {
+                for (int ch = 1; ch < 17; ch++) {
                     if (isCtl) {
                         popupMenu.addSubMenu("Channel " + String(ch), getCCSubmenu(ch, currentPort == ch, currentCC), true);
                         // Call function to append CC submenu!

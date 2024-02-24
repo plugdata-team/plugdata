@@ -4,14 +4,13 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "../Utility/ColourPicker.h"
+#include "Components/ColourPicker.h"
 
 class PdTildeObject final : public TextBase {
 public:
     static inline File pdLocation = File();
-    std::unique_ptr<FileChooser> openChooser;
 
-    PdTildeObject(void* ptr, Object* object)
+    PdTildeObject(pd::WeakReference ptr, Object* object)
         : TextBase(ptr, object)
     {
     }
@@ -28,46 +27,38 @@ public:
 
     void openPd()
     {
-
-        auto openFunc = [this](FileChooser const& f) {
-            auto pdDir = f.getResult();
-
-#if JUCE_MAC
-            if (pdDir.hasFileExtension("app")) {
-                pdLocation = pdDir.getChildFile("Contents").getChildFile("Resources");
-            } else if (pdDir.isDirectory()) {
-                pdLocation = pdDir;
-            } else {
-                return;
-            }
-#else
-            if (pdDir.isDirectory()) {
-                pdLocation = pdDir;
-            } else {
-                return;
-            }
-#endif
-
-            if (auto pdTilde = ptr.get<t_fake_pd_tilde>()) {
-                auto pdPath = pdLocation.getFullPathName();
-                auto schedPath = pdLocation.getChildFile("extra").getChildFile("pd~").getFullPathName();
-
-                pdTilde->x_pddir = gensym(pdPath.toRawUTF8());
-                pdTilde->x_schedlibdir = gensym(schedPath.toRawUTF8());
-                pd->sendDirectMessage(pdTilde.get(), "pd~", { "start" });
-            }
-        };
-
         if (!pdLocation.exists()) {
 
-            openChooser = std::make_unique<FileChooser>("Locate pd folder", File::getSpecialLocation(File::SpecialLocationType::globalApplicationsDirectory), "", SettingsFile::getInstance()->wantsNativeDialog());
+            Dialogs::showOpenDialog([this](URL url) {
+                auto result = url.getLocalFile();
+                if (!result.exists())
+                    return;
 
 #if JUCE_MAC
-    auto openFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles | FileBrowserComponent::canSelectDirectories;
+                if (result.hasFileExtension("app")) {
+                    pdLocation = result.getChildFile("Contents").getChildFile("Resources");
+                } else if (result.isDirectory()) {
+                    pdLocation = result;
+                } else {
+                    return;
+                }
 #else
-    auto openFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories;
+                if (result.isDirectory()) {
+                    pdLocation = result;
+                } else {
+                    return;
+                }
 #endif
-            openChooser->launchAsync(openFlags, openFunc);
+                if (auto pdTilde = ptr.get<t_fake_pd_tilde>()) {
+                    auto pdPath = pdLocation.getFullPathName();
+                    auto schedPath = pdLocation.getChildFile("extra").getChildFile("pd~").getFullPathName();
+
+                    pdTilde->x_pddir = gensym(pdPath.toRawUTF8());
+                    pdTilde->x_schedlibdir = gensym(schedPath.toRawUTF8());
+                    pd->sendDirectMessage(pdTilde.get(), "pd~", { pd->generateSymbol("start") });
+                }
+            },
+                true, true, "", "LastPdLocation", cnv->editor);
         } else {
             if (auto pdTilde = ptr.get<t_fake_pd_tilde>()) {
                 auto pdPath = pdLocation.getFullPathName();
@@ -75,7 +66,7 @@ public:
 
                 pdTilde->x_pddir = gensym(pdPath.toRawUTF8());
                 pdTilde->x_schedlibdir = gensym(schedPath.toRawUTF8());
-                pd->sendDirectMessage(pdTilde.get(), "pd~", { "start" });
+                pd->sendDirectMessage(pdTilde.get(), "pd~", { pd->generateSymbol("start") });
             }
         }
     }

@@ -15,7 +15,7 @@ class ToggleObject final : public ObjectBase {
     IEMHelper iemHelper;
 
 public:
-    ToggleObject(void* ptr, Object* object)
+    ToggleObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {
@@ -82,21 +82,25 @@ public:
         auto untoggledColour = toggledColour.interpolatedWith(iemHelper.getBackgroundColour(), 0.8f);
         g.setColour(toggleState ? toggledColour : untoggledColour);
 
-        auto crossBounds = getLocalBounds().toFloat().reduced((getWidth() * 0.08f) + 4.5f);
-
-        if (getWidth() < 18) {
-            crossBounds = getLocalBounds().toFloat().reduced(3.5f);
-        }
-
+        auto const sizeReduction = std::min(1.0f, getWidth() / 20.0f);
+        float margin = (getWidth() * 0.08f + 4.5f) * sizeReduction;
+        auto crossBounds = getLocalBounds().toFloat().reduced(margin);
+        
         auto const max = std::max(crossBounds.getWidth(), crossBounds.getHeight());
-        auto const strokeWidth = std::max(max * 0.15f, 2.0f);
-
+        auto strokeWidth = std::max(max * 0.15f, 2.0f) * sizeReduction;
+        
+        if (getWidth() < 18) {
+            //crossBounds = getLocalBounds().toFloat().reduced(1.5f);
+        }
+        
         g.drawLine({ crossBounds.getTopLeft(), crossBounds.getBottomRight() }, strokeWidth);
         g.drawLine({ crossBounds.getBottomLeft(), crossBounds.getTopRight() }, strokeWidth);
     }
 
     void toggleObject(Point<int> position) override
     {
+        ignoreUnused(position);
+
         if (!alreadyToggled) {
             startEdition();
             auto newValue = value != 0 ? 0 : ::getValue<float>(nonZero);
@@ -148,20 +152,9 @@ public:
         repaint();
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("bang"),
-            hash("float"),
-            hash("list"),
-            hash("nonzero"),
-            IEMGUI_MESSAGES
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("bang"): {
             value = !value;
             setToggleStateFromFloat(value);
@@ -175,12 +168,12 @@ public:
             break;
         }
         case hash("nonzero"): {
-            if (atoms.size() >= 1)
+            if (numAtoms >= 1)
                 setParameterExcludingListener(nonZero, atoms[0].getFloat());
             break;
         }
         default: {
-            iemHelper.receiveObjectMessage(symbol, atoms);
+            iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
             break;
         }
         }

@@ -34,7 +34,7 @@ public:
             if (!patch)
                 return;
 
-            libpd_moveobj(patch, gobj.get(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, gobj.get(), b.getX(), b.getY());
         }
     }
 
@@ -139,7 +139,7 @@ class CycloneCommentObject final : public ObjectBase {
     bool wasSelectedOnMouseDown = false;
 
 public:
-    CycloneCommentObject(void* obj, Object* object)
+    CycloneCommentObject(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
     {
         locked = getValue<bool>(object->locked);
@@ -325,8 +325,8 @@ public:
             Object* object;
 
             CycloneCommentObjectBoundsConstrainer(Object* obj, CycloneCommentObject* parent)
-                : object(obj)
-                , commentObject(parent)
+                : commentObject(parent)
+                , object(obj)
             {
             }
             /*
@@ -345,7 +345,7 @@ public:
                 bool isStretchingBottom,
                 bool isStretchingRight) override
             {
-                auto* comment = static_cast<t_fake_comment*>(object->getPointer());
+                auto* comment = reinterpret_cast<t_fake_comment*>(object->getPointer());
                 comment->x_max_pixwidth = bounds.getWidth() - Object::doubleMargin;
 
                 // Set editor size first, so getTextHeight will return a correct result
@@ -365,7 +365,7 @@ public:
                 return;
 
             comment->x_max_pixwidth = b.getWidth();
-            libpd_moveobj(patch, comment.cast<t_gobj>(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, comment.cast<t_gobj>(), b.getX(), b.getY());
         }
     }
 
@@ -460,28 +460,9 @@ public:
         object->updateBounds();
     }
 
-    std::vector<hash32> getAllMessages() override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        return {
-            hash("italic"),
-            hash("size"),
-            hash("underline"),
-            hash("bold"),
-            hash("prepend"),
-            hash("append"),
-            hash("set"),
-            hash("color"),
-            hash("bgcolor"),
-            hash("justification"),
-            hash("width"),
-            hash("receive"),
-            hash("bg")
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("italic"): {
             if (auto comment = ptr.get<t_fake_comment>()) {
                 italic = comment->x_italic;
@@ -533,12 +514,12 @@ public:
             break;
         }
         case hash("receive"): {
-            if (atoms.size() >= 1)
-                setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+            if (numAtoms >= 1)
+                setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             break;
         }
         case hash("bg"): {
-            if (atoms.size() > 0 && atoms[0].isFloat())
+            if (numAtoms > 0 && atoms[0].isFloat())
                 fillBackground = atoms[0].getFloat();
             break;
         }

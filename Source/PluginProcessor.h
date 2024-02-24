@@ -8,7 +8,11 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_dsp/juce_dsp.h>
+
 #include "Utility/Config.h"
+#include "Utility/Limiter.h"
+#include "Utility/SettingsFile.h"
+#include <Utility/AudioMidiFifo.h>
 
 #include "Pd/Instance.h"
 #include "Pd/Patch.h"
@@ -20,14 +24,15 @@ class Library;
 class InternalSynth;
 class SettingsFile;
 class StatusbarSource;
-class PlugDataLook;
+struct PlugDataLook;
 class PluginEditor;
+class ConnectionMessageDisplay;
 class PluginProcessor : public AudioProcessor
-    , public pd::Instance {
+    , public pd::Instance, public SettingsFileListener {
 public:
     PluginProcessor();
 
-    ~PluginProcessor();
+    ~PluginProcessor() override;
 
     static AudioProcessor::BusesProperties buildBusesProperties();
 
@@ -45,7 +50,7 @@ public:
     AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
 
-    const String getName() const override;
+    String const getName() const override;
 
     bool acceptsMidi() const override;
     bool producesMidi() const override;
@@ -55,13 +60,13 @@ public:
     int getNumPrograms() override;
     int getCurrentProgram() override;
     void setCurrentProgram(int index) override;
-    const String getProgramName(int index) override;
+    String const getProgramName(int index) override;
     void changeProgramName(int index, String const& newName) override;
 
     void getStateInformation(MemoryBlock& destData) override;
     void setStateInformation(void const* data, int sizeInBytes) override;
 
-    void receiveNoteOn(int channel, int pitch, int const velocity) override;
+    void receiveNoteOn(int channel, int pitch, int velocity) override;
     void receiveControlChange(int channel, int controller, int value) override;
     void receiveProgramChange(int channel, int value) override;
     void receivePitchBend(int channel, int value) override;
@@ -73,11 +78,12 @@ public:
     void addTextToTextEditor(unsigned long ptr, String text) override;
     void showTextEditor(unsigned long ptr, Rectangle<int> bounds, String title) override;
 
-    void updateConsole() override;
+    void updateConsole(int numMessages, bool newWarning) override;
 
     void reloadAbstractions(File changedPatch, t_glist* except) override;
 
-    void process(dsp::AudioBlock<float>, MidiBuffer&);
+    void processConstant(dsp::AudioBlock<float>, MidiBuffer&);
+    void processVariable(dsp::AudioBlock<float>, MidiBuffer&);
 
     bool canAddBus(bool isInput) const override
     {
@@ -91,6 +97,9 @@ public:
     }
 
     void savePatchTabPositions();
+    void updatePatchUndoRedoState();
+        
+    void settingsFileReloaded() override;
 
     void initialiseFilesystem();
     void updateSearchPaths();
@@ -101,16 +110,17 @@ public:
 
     bool isInPluginMode();
 
-    void messageEnqueued() override;
-    void performParameterChange(int type, String const& name, float value) override;
+    Array<PluginEditor*> getEditors() const;
 
+    void performParameterChange(int type, String const& name, float value) override;
+        
     // Jyg added this
     void fillDataBuffer(std::vector<pd::Atom> const& list) override;
     void parseDataBuffer(XmlElement const& xml) override;
-    XmlElement* m_temp_xml;
+    std::unique_ptr<XmlElement> extraData;
 
-    pd::Patch::Ptr loadPatch(String patch, int splitIdx = -1);
-    pd::Patch::Ptr loadPatch(File const& patch, int splitIdx = -1);
+    pd::Patch::Ptr loadPatch(String patch, PluginEditor* editor, int splitIndex = 0);
+    pd::Patch::Ptr loadPatch(URL const& patchURL, PluginEditor* editor, int splitIndex = 0);
 
     void titleChanged() override;
 
@@ -120,13 +130,12 @@ public:
     Colour getBackgroundColour() override;
     Colour getTextColour() override;
     Colour getOutlineColour() override;
-
+        
     // All opened patches
     Array<pd::Patch::Ptr, CriticalSection> patches;
 
     int lastUIWidth = 1000, lastUIHeight = 650;
 
-    std::vector<float*> channelPointers;
     std::atomic<float>* volume;
 
     SettingsFile* settingsFile;
@@ -153,26 +162,33 @@ public:
 
     // Zero means no oversampling
     std::atomic<int> oversampling = 0;
-    int lastLeftTab = -1;
-    int lastRightTab = -1;
 
     std::unique_ptr<InternalSynth> internalSynth;
     std::atomic<bool> enableInternalSynth = false;
 
-private:
-    void processInternal();
+    OwnedArray<PluginEditor> openedEditors;
+    Component::SafePointer<ConnectionMessageDisplay> connectionListener;
 
+private:
     SmoothedValue<float, ValueSmoothingTypes::Linear> smoothedGain;
 
     int audioAdvancement = 0;
-    std::vector<float> audioBufferIn;
-    std::vector<float> audioBufferOut;
+
+    bool variableBlockSize = false;
+    AudioBuffer<float> audioBufferIn;
+    AudioBuffer<float> audioBufferOut;
+
+    std::vector<float> audioVectorIn;
+    std::vector<float> audioVectorOut;
+
+    std::unique_ptr<AudioMidiFifo> inputFifo;
+    std::unique_ptr<AudioMidiFifo> outputFifo;
 
     MidiBuffer midiBufferIn;
     MidiBuffer midiBufferOut;
-    MidiBuffer midiBufferTemp;
-    MidiBuffer midiBufferCopy;
     MidiBuffer midiBufferInternalSynth;
+
+    AudioProcessLoadMeasurer cpuLoadMeasurer;
 
     bool midiByteIsSysex = false;
     uint8 midiByteBuffer[512] = { 0 };
@@ -180,19 +196,17 @@ private:
 
     std::vector<pd::Atom> atoms_playhead;
 
-    int minIn = 2;
-    int minOut = 2;
-
-    int lastSplitIndex = -1;
     int lastSetProgram = 0;
 
-    dsp::Limiter<float> limiter;
+    Limiter limiter;
     std::unique_ptr<dsp::Oversampling<float>> oversampler;
 
     std::map<unsigned long, std::unique_ptr<Component>> textEditorDialogs;
 
-    static inline const String else_version = "ELSE v1.0-rc9";
-    static inline const String cyclone_version = "cyclone v0.7-0";
+    static inline String const else_version = "ELSE v1.0-rc11";
+    static inline String const cyclone_version = "cyclone v0.8-1";
+    static inline String const heavylib_version = "heavylib v0.3.1";
+    static inline String const gem_version = "Gem v0.94";
     // this gets updated with live version data later
     static String pdlua_version;
 

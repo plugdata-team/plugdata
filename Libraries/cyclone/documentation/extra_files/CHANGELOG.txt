@@ -2,6 +2,26 @@
 | Under the maintenance of Porres, Kwan and Barber: 
 ---------------------------------------------------
 
+--------------------------------------------------
+cyclone 0.8-0 (needs at least Pd Vanilla 0.54-0):
+--------------------------------------------------
+
+- Opening "all_objects" doesn't crash Pd anymore and we don't know why it did.
+- Fixed [play~] bang output to just bang once when stopping.
+- Fixed loading help file of [cyclone/snapshot~].
+- [cyclone]: added 2nd and 3rd outlet for pd version and flavour
+- [comment]: fix setting receive name from properties, fixed 'set' message at lodbang, improved loading internal symbols and made it deprecated and removed from the other help files* 
+
+* this clears the room for forks of Pd to not need to port [comment] to some other front gui, an example is PlugData, which does not support [comment] and does not have plans to. The [comment] object will stick around but will receive no further real attention other than a real crucial or minor bugs and will be kept for backwards compatibility, but it is not encouraged to use this object which will never be a proper clone of MAX's [comment] anyway - just consider using [note] from ELSE instead, because it's the actual original object now and the one that'll keep being worked on.
+
+- [number~]: made it deprecated and removed from the other help files
+
+- Revised the help files also to include the [output~] abstraction available in Pd Vanilla 0.54-0, which can take a mono input and send it to a stereo output (solely for this reason, it's best you have Pd Vanilla 0.54-0 installed for this release). For this reason the [out~] abstraction from ELSE is not being borrowed anymore.
+
+- made [minimum~] and [maximum~] deprecated, as they're basically the same as Vanilla's [min~] and [max~], with the advantage that vanilla's [min~]/[max~] can take multichannel signals as of Pd 0.54-0.
+
+- also made [pow~] and [clip~] deprecated, as they're quite similar to Vanilla's [pow~] and [clip~], also there's the advantage that vanilla's [pow~]/[clip~] can take multichannel signals.
+
 
 --------------------------------------------------
 cyclone 0.7-0 (needs at least Pd Vanilla 0.53-1):

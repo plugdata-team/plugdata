@@ -19,10 +19,10 @@ inlets:
   - type: signal
     description: signal to be crushed (resampled and quantized)
   2nd: 
-  - type: float/signal
+  - type: float
     description: bit reduction from 0-1
   3rd:
-  - type: float/signal
+  - type: float
     description: decimation (sample rate reduction) from 0-1
 
 outlets:

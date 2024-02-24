@@ -19,7 +19,7 @@ class PictureObject final : public ObjectBase {
     Image img;
 
 public:
-    PictureObject(void* ptr, Object* object)
+    PictureObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
     {
         if (auto pic = this->ptr.get<t_fake_pic>()) {
@@ -42,6 +42,11 @@ public:
         objectParameters.addParamBool("Report Size", cAppearance, &reportSize, { "No", "Yes" }, 0);
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
         objectParameters.addParamSendSymbol(&sendSymbol);
+    }
+    
+    bool isTransparent() override
+    {
+        return true;
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -80,8 +85,12 @@ public:
             latch = pic->x_latch;
             outline = pic->x_outline;
             reportSize = pic->x_size;
-            sendSymbol = pic->x_snd_raw == pd->generateSymbol("empty") ? "" : String::fromUTF8(pic->x_snd_raw->s_name);
-            receiveSymbol = pic->x_rcv_raw == pd->generateSymbol("empty") ? "" : String::fromUTF8(pic->x_rcv_raw->s_name);
+
+            auto sndSym = pic->x_snd_set ? String::fromUTF8(pic->x_snd_raw->s_name) : getBinbufSymbol(3);
+            auto rcvSym = pic->x_rcv_set ? String::fromUTF8(pic->x_rcv_raw->s_name) : getBinbufSymbol(4);
+
+            sendSymbol = sndSym != "empty" ? sndSym : "";
+            receiveSymbol = rcvSym != "empty" ? rcvSym : "";
 
             sizeProperty = Array<var> { var(pic->x_width), var(pic->x_height) };
         }
@@ -89,19 +98,10 @@ public:
         repaint();
     }
 
-    std::vector<hash32> getAllMessages() override
-    {
-        return {
-            hash("latch"),
-            hash("outline"),
-            hash("open"),
-        };
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
 
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("latch"): {
             if (auto pic = ptr.get<t_fake_pic>())
                 latch = pic->x_latch;
@@ -113,8 +113,8 @@ public:
             break;
         }
         case hash("open"): {
-            if (atoms.size() >= 1)
-                openFile(atoms[0].getSymbol());
+            if (numAtoms >= 1)
+                openFile(atoms[0].toString());
             break;
         }
         }
@@ -167,11 +167,11 @@ public:
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             auto symbol = sendSymbol.toString();
             if (auto pic = ptr.get<t_pd>())
-                pd->sendDirectMessage(pic.get(), "send", { symbol });
+                pd->sendDirectMessage(pic.get(), "send", { pd->generateSymbol(symbol) });
         } else if (value.refersToSameSourceAs(receiveSymbol)) {
             auto symbol = receiveSymbol.toString();
             if (auto pic = ptr.get<t_pd>())
-                pd->sendDirectMessage(pic.get(), "receive", { symbol });
+                pd->sendDirectMessage(pic.get(), "receive", { pd->generateSymbol(symbol) });
         }
     }
 
@@ -182,7 +182,7 @@ public:
             if (!patch)
                 return;
 
-            libpd_moveobj(patch, pic.cast<t_gobj>(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, pic.cast<t_gobj>(), b.getX(), b.getY());
 
             pic->x_width = b.getWidth();
             pic->x_height = b.getHeight();
@@ -197,7 +197,7 @@ public:
                 return {};
 
             int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(patch, pic.cast<t_gobj>(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, pic.cast<t_gobj>(), &x, &y, &w, &h);
             return { x, y, w, h };
         }
 
@@ -234,7 +234,7 @@ public:
             // Get pd's search paths
             char* paths[1024];
             int numItems;
-            libpd_get_search_paths(paths, &numItems);
+            pd::Interface::getSearchPaths(paths, &numItems);
 
             for (int i = 0; i < numItems; i++) {
                 auto file = File(String::fromUTF8(paths[i])).getChildFile(name);

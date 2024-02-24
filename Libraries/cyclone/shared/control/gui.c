@@ -98,7 +98,7 @@ static void hammergui__focus(t_hammergui *snk, t_symbol *s, t_floatarg f)
     fprintf(stderr, "_focus %s %g (sink %x)\n", (s ? s->s_name : "???"), f, (int)snk);
 #endif
     if (!snk->g_psfocus){
-        bug("hammergui__focus");
+        //bug("hammergui__focus");
         return;
     }
     if (snk->g_psfocus->s_thing){
@@ -249,7 +249,7 @@ static int hammergui_setup(void)
     ps__vised = gensym("_vised");
     if (ps_hashhammergui->s_thing)
     {
-	const char *cname = class_getname(*ps_hashhammergui->s_thing);
+	char *cname = class_getname(*ps_hashhammergui->s_thing);
 #ifdef HAMMERGUI_DEBUG
 	fprintf(stderr,
 		"'%s' already registered as the global hammergui sink \n",

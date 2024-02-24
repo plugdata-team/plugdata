@@ -20,13 +20,13 @@ public:
     PluginProcessor& processor;
 
     PlugDataParameter(PluginProcessor* p, String const& defaultName, float const def, bool enabled, int idx, float minimum, float maximum)
-        : RangedAudioParameter(ParameterID(defaultName, 1), defaultName, defaultName)
-        , range(minimum, maximum, 0.000001f)
-        , defaultValue(def)
+        : RangedAudioParameter(ParameterID(defaultName, 1), defaultName, AudioProcessorParameterWithIDAttributes())
         , processor(*p)
-        , enabled(enabled)
-        , name(defaultName)
+        , defaultValue(def)
         , index(idx)
+        , range(minimum, maximum, 0.000001f)
+        , name(defaultName)
+        , enabled(enabled)
         , mode(Float)
     {
         value = range.convertFrom0to1(getDefaultValue());
@@ -50,7 +50,7 @@ public:
         range.end = max;
     }
 
-    void setMode(Mode newMode)
+    void setMode(Mode newMode, bool notify = true)
     {
         mode = newMode;
         if (newMode == Logarithmic) {
@@ -69,7 +69,8 @@ public:
             setValue(std::floor(getValue()));
         }
 
-        notifyDAW();
+        if (notify)
+            notifyDAW();
     }
 
     // Reports whether the current DAW/format can deal with dynamic
@@ -100,11 +101,6 @@ public:
 
     void setEnabled(bool shouldBeEnabled)
     {
-        if (!enabled && shouldBeEnabled) {
-            range = NormalisableRange<float>(0.0f, 1.0f, 0.000001f);
-            mode = Float;
-        }
-
         enabled = shouldBeEnabled;
     }
 
@@ -161,7 +157,7 @@ public:
 
     bool isDiscrete() const override
     {
-        return mode.load() == Integer;
+        return mode == Integer;
     }
 
     bool isOrientationInverted() const override
@@ -242,7 +238,7 @@ public:
             float min = 0.0f, max = 1.0f;
             bool enabled = true;
             int index = i;
-            Mode mode;
+            Mode mode = Float;
 
             // Check for these values, they may not be there in legacy versions
             if (xmlParam->hasAttribute("name")) {
@@ -264,13 +260,12 @@ public:
                 mode = static_cast<Mode>(xmlParam->getIntAttribute("mode"));
             }
 
-            param->setEnabled(enabled);
             param->setRange(min, max);
             param->setName(name);
-            param->setValueNotifyingHost(navalue);
             param->setIndex(index);
-            param->setMode(mode);
-            param->notifyDAW();
+            param->setMode(mode, false);
+            param->setValue(navalue);
+            param->setEnabled(enabled);
         }
     }
 
@@ -321,7 +316,7 @@ private:
     String name;
     std::atomic<bool> enabled = false;
 
-    std::atomic<Mode> mode;
+    Mode mode;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataParameter)
 };

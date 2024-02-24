@@ -9,15 +9,17 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 
 #include "Utility/Fonts.h"
-#include "Utility/RateReducer.h" // TODO: move to impl
 #include "Utility/ModifierKeyListener.h"
-#include "Utility/CheckedTooltip.h"
-#include "Utility/StackShadow.h" // TODO: move to impl
-#include "Utility/ZoomableDragAndDropContainer.h"
+#include "Components/CheckedTooltip.h"
+#include "Components/ZoomableDragAndDropContainer.h"
 #include "Utility/OfflineObjectRenderer.h"
-#include "SplitView.h" // TODO: move to impl
+#include "Utility/WindowDragger.h"
+
+#include "Tabbar/SplitView.h"
 #include "Dialogs/OverlayDisplaySettings.h"
 #include "Dialogs/SnapSettings.h"
+
+#include "Utility/ObjectThemeManager.h"
 
 class ConnectionMessageDisplay;
 class Sidebar;
@@ -28,31 +30,27 @@ class Canvas;
 class TabComponent;
 class PluginProcessor;
 class Palettes;
+class Autosave;
 class PluginMode;
+class TouchSelectionHelper;
 class PluginEditor : public AudioProcessorEditor
     , public Value::Listener
     , public ApplicationCommandTarget
-    , public ApplicationCommandManager
     , public FileDragAndDropTarget
     , public ModifierKeyBroadcaster
     , public ModifierKeyListener
-    , public ZoomableDragAndDropContainer {
+    , public ZoomableDragAndDropContainer
+    , public AsyncUpdater
+{
 public:
-    enum ToolbarButtonType {
-        Settings = 0,
-        Undo,
-        Redo,
-        Add,
-        Hide,
-        Pin
-    };
-
     explicit PluginEditor(PluginProcessor&);
 
     ~PluginEditor() override;
 
     void paint(Graphics& g) override;
     void paintOverChildren(Graphics& g) override;
+
+    bool isActiveWindow() override;
 
     void resized() override;
     void parentSizeChanged() override;
@@ -68,7 +66,8 @@ public:
 
     void addTab(Canvas* cnv, int splitIdx = -1);
     void closeTab(Canvas* cnv);
-    void closeAllTabs(bool quitAfterComplete = false, Canvas* patchToExclude = nullptr);
+    void closeAllTabs(
+        bool quitAfterComplete = false, Canvas* patchToExclude = nullptr, std::function<void()> afterComplete = []() {});
 
     void quit(bool askToSave);
 
@@ -84,11 +83,15 @@ public:
     void valueChanged(Value& v) override;
 
     void updateCommandStatus();
+    void handleAsyncUpdate() override;
 
     bool isInterestedInFileDrag(StringArray const& files) override;
     void filesDropped(StringArray const& files, int x, int y) override;
     void fileDragEnter(StringArray const&, int, int) override;
+    void fileDragMove(StringArray const& files, int x, int y) override;
     void fileDragExit(StringArray const&) override;
+
+    void createNewWindow(TabBarButtonComponent* tabButton) override;
 
     DragAndDropTarget* findNextDragAndDropTarget(Point<int> screenPos) override;
 
@@ -104,8 +107,12 @@ public:
     void enablePluginMode(Canvas* cnv);
 
     void commandKeyChanged(bool isHeld) override;
-
     void setZoomLabelLevel(float value);
+    void setUseBorderResizer(bool shouldUse);
+    void showTouchSelectionHelper(bool shouldBeShown);
+    
+    bool highlightSearchTarget(void* target, bool openNewTabIfNeeded);
+
 
     TabComponent* getActiveTabbar();
 
@@ -116,8 +123,6 @@ public:
     OwnedArray<Canvas, CriticalSection> canvases;
     std::unique_ptr<Sidebar> sidebar;
     std::unique_ptr<Statusbar> statusbar;
-
-    bool canUndo = false, canRedo = false;
 
     std::unique_ptr<Dialog> openedDialog;
 
@@ -135,20 +140,31 @@ public:
 
     std::unique_ptr<ZoomLabel> zoomLabel;
 
-    ComponentBoundsConstrainer* defaultConstrainer;
     OfflineObjectRenderer offlineRenderer;
 
-private:
-    // Used by standalone to handle dragging the window
-    ComponentDragger windowDragger;
+    // used to display callOutBoxes only in a safe area between top & bottom toolbars
+    Component callOutSafeArea;
 
-    std::unique_ptr<FileChooser> saveChooser;
-    std::unique_ptr<FileChooser> openChooser;
+    ComponentBoundsConstrainer constrainer;
+    ComponentBoundsConstrainer& pluginConstrainer;
+
+    std::unique_ptr<Autosave> autosave;
+    ApplicationCommandManager commandManager;
+    
+    inline static ObjectThemeManager objectManager;
+    static ObjectThemeManager* getObjectManager() { return &objectManager; };
+
+private:
+    
+    std::unique_ptr<TouchSelectionHelper> touchSelectionHelper;
+
+    // Used by standalone to handle dragging the window
+    WindowDragger windowDragger;
 
     int const toolbarHeight = ProjectInfo::isStandalone ? 40 : 35;
 
-    TextButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, hideSidebarButton, pluginModeButton;
-    TextButton editButton, runButton, presentButton;
+    MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pluginModeButton;
+    ToolbarRadioButton editButton, runButton, presentButton;
 
     CheckedTooltip tooltipWindow;
 

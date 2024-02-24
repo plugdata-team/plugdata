@@ -17,6 +17,7 @@ cmake_policy(SET CMP0091 NEW)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 add_subdirectory(JUCE)
+juce_add_module(melatonin_blur)
 
 if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.21")
   set(MESSAGE_QUIET ON)
@@ -38,7 +39,8 @@ set(LIBPD_OUTPUT_DIRECTORY "./..")
 option(PD_UTILS "Compile libpd utilities" OFF)
 option(PD_EXTRA "Compile extras" ON)
 option(PD_LOCALE "Set the LC_NUMERIC number format to the default C locale" ON)
-        
+
+
 # ------------------------------------------------------------------------------#
 # SOURCES
 # ------------------------------------------------------------------------------#
@@ -137,6 +139,7 @@ file(GLOB PD_SOURCES
     ${PD_PATH}/src/x_vexp_if.c
     ${PD_PATH}/src/z_hooks.c
     ${PD_PATH}/src/z_libpd.c
+    ${PD_PATH}/src/x_libpdreceive.c
     ${PD_PATH}/src/z_print_util.c
 )
 include_directories(${PD_PATH}/src)
@@ -163,24 +166,6 @@ if(PD_EXTRA)
     source_group(pd\\extra FILES ${PD_EXTRA_SOURCES})
     list(APPEND SOURCE_FILES ${PD_EXTRA_SOURCES})
 endif()
-
-# LIBPD SOURCES
-# ------------------------------------------------------------------------------#
-set(LIBPD_SOURCES
-    ${LIBPD_PATH}/s_libpd_midi.c
-    ${LIBPD_PATH}/x_libpd_receive.c
-    ${LIBPD_PATH}/x_libpd_receive.h
-    ${LIBPD_PATH}/x_libpd_extra_utils.c
-    ${LIBPD_PATH}/x_libpd_extra_utils.h
-    ${LIBPD_PATH}/x_libpd_mod_utils.c
-    ${LIBPD_PATH}/x_libpd_mod_utils.h
-    ${LIBPD_PATH}/x_libpd_multi.c
-    ${LIBPD_PATH}/x_libpd_multi.h
-)
-
-include_directories(${LIBPD_PATH})
-source_group(libpd FILES ${LIBPD_SOURCES})
-list(APPEND SOURCE_FILES ${LIBPD_SOURCES})
 
 # ELSE SOURCES
 # ------------------------------------------------------------------------------#
@@ -222,6 +207,7 @@ include_directories(pd-else/Code_source/Compiled/audio/)
 include_directories(pd-else/Code_source/shared/)
 include_directories(pd-else/Code_source/shared/aubio/src)
 include_directories(pd-else/Code_source/Compiled/audio/plaits~)
+include_directories(pd-else/Code_source/Compiled/audio/sfz~/sfizz/library/src)
 
 source_group(ELSE FILES ${ELSE_SOURCES})
 
@@ -240,7 +226,7 @@ source_group(cyclone FILES ${CYCLONE_SOURCES})
 
 # pdlua sources
 set(PDLUA_PATH "${CMAKE_CURRENT_SOURCE_DIR}/pd-lua")
-set(PDLUA_SOURCES ${PDLUA_PATH}/pdlua.c)
+set(PDLUA_SOURCES ${PDLUA_PATH}/pdlua.c ${PDLUA_PATH}/pdlua_multi_instance.cpp)
 
 set(LUA_PATH "${PDLUA_PATH}/lua")
 set(LUA_INCLUDE_DIR ${LUA_PATH})
@@ -268,10 +254,17 @@ source_group(pdlua FILES ${PDLUA_SOURCES})
 # ------------------------------------------------------------------------------#
 set(LIBPD_COMPILE_DEFINITIONS PD=1 USEAPI_DUMMY=1 PD_INTERNAL=1)
 
+if(ENABLE_GEM)
+add_subdirectory(Gem)
+set(GEM_LIBS Gem ftgl glew_s freetype)
+set(GEM_LIBS_MULTI Gem-multi ftgl glew_s freetype)
+endif()
 
 if(ENABLE_SFIZZ)
 list(APPEND LIBPD_COMPILE_DEFINITIONS ENABLE_SFIZZ=1)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/sfz~)
 endif()
+
 
 # COMPILE DEFINITIONS OPTIONS
 # ------------------------------------------------------------------------------#
@@ -296,80 +289,11 @@ if(WIN32)
         list(APPEND LIBPD_COMPILE_DEFINITIONS HAVE_STRUCT_TIMESPEC=1 _CRT_SECURE_NO_WARNINGS=1 HAVE_ALLOCA=1 DONT_USE_ALLOCA=0)
     endif()
 elseif(UNIX)
-    list(APPEND LIBPD_COMPILE_DEFINITIONS HAVE_LIBDL=1 HAVE_UNISTD_H=1 HAVE_ALLOCA_H=1 HAVE_ALLOCA=1 DONT_USE_ALLOCA=0)
-endif()
-
-# ------------------------------------------------------------------------------#
-# SFONT~
-# ------------------------------------------------------------------------------#
-
-if(ENABLE_SFONT)
-
-    list(APPEND LIBPD_COMPILE_DEFINITIONS ENABLE_SFONT=1)
-
-    set(SFONT_DIR pd-else/Code_source/Compiled/audio/sfont~)
-    set(FLUIDLITE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/FluidLite)
-
-    list(APPEND SFONT_SOURCES
-        ${FLUIDLITE_DIR}/src/fluid_init.c
-        ${FLUIDLITE_DIR}/src/fluid_chan.c
-        ${FLUIDLITE_DIR}/src/fluid_chorus.c
-        ${FLUIDLITE_DIR}/src/fluid_conv.c
-        ${FLUIDLITE_DIR}/src/fluid_defsfont.c
-        ${FLUIDLITE_DIR}/src/fluid_dsp_float.c
-        ${FLUIDLITE_DIR}/src/fluid_gen.c
-        ${FLUIDLITE_DIR}/src/fluid_hash.c
-        ${FLUIDLITE_DIR}/src/fluid_list.c
-        ${FLUIDLITE_DIR}/src/fluid_mod.c
-        ${FLUIDLITE_DIR}/src/fluid_ramsfont.c
-        ${FLUIDLITE_DIR}/src/fluid_rev.c
-        ${FLUIDLITE_DIR}/src/fluid_settings.c
-        ${FLUIDLITE_DIR}/src/fluid_synth.c
-        ${FLUIDLITE_DIR}/src/fluid_sys.c
-        ${FLUIDLITE_DIR}/src/fluid_tuning.c
-        ${FLUIDLITE_DIR}/src/fluid_voice.c
-
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/vorbisenc.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/info.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/analysis.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/bitrate.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/block.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/codebook.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/envelope.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/floor0.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/floor1.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/lookup.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/lpc.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/lsp.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/mapping0.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/mdct.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/psy.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/registry.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/res0.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/sharedbook.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/smallft.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/vorbisfile.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/window.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/synthesis.c
-
-        ${FLUIDLITE_DIR}/libogg-1.3.2/src/bitwise.c
-        ${FLUIDLITE_DIR}/libogg-1.3.2/src/framing.c
-    )
-
-    list(APPEND SFONT_INCLUDES
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/include
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib
-        ${FLUIDLITE_DIR}/libogg-1.3.2/include
-        ${FLUIDLITE_DIR}/include
-    )
-
-    add_library(fluidlite STATIC ${SFONT_SOURCES})
-    target_include_directories(fluidlite PRIVATE ${SFONT_INCLUDES})
-
-    list(APPEND ELSE_SOURCES
-        ${SFONT_DIR}/sfont~.c
-    )
-
+    if(LINUX OR APPLE)
+        list(APPEND LIBPD_COMPILE_DEFINITIONS HAVE_LIBDL=1 HAVE_UNISTD_H=1 HAVE_ALLOCA_H=1 HAVE_ALLOCA=1 DONT_USE_ALLOCA=0)
+    else() # BSD
+        list(APPEND LIBPD_COMPILE_DEFINITIONS HAVE_LIBDL=1 HAVE_UNISTD_H=1 HAVE_ALLOCA=1 DONT_USE_ALLOCA=0 HAVE_ENDIAN_H=0)
+    endif()
 endif()
 
 # ------------------------------------------------------------------------------#
@@ -378,47 +302,125 @@ endif()
 
 # C FLAGS COMPILER OR GENERATOR
 # ------------------------------------------------------------------------------#
+if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
+    # These are the warning flags I need to get pd to compile withoout warnings
+    # Would be nice if these warnings were solved instead
+    add_compile_options(-Wno-format -Wno-format-security -Wno-conversion -Wno-unused-variable -Wno-int-to-pointer-cast -Wno-parentheses -Wno-unused-value -Wno-unknown-pragmas)
+
+    if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+        add_compile_options(-Wno-compare-distinct-pointer-types -Wno-implicit-int-conversion)
+    endif()
+
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-int-conversion -Wno-pointer-sign -Wno-pointer-to-int-cast -Wno-incompatible-pointer-types")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -fno-finite-math-only -ffast-math -funroll-loops -fomit-frame-pointer -O3")
+    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -g -O0")
+ endif()
+
+# ------------------------------------------------------------------------------#
+# SFONT~
+# ------------------------------------------------------------------------------#
+
+set(SFONT_DIR pd-else/Code_source/Compiled/audio/sfont~)
+set(FLUIDLITE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/FluidLite)
+
+list(APPEND SFONT_SOURCES
+    ${FLUIDLITE_DIR}/src/fluid_init.c
+    ${FLUIDLITE_DIR}/src/fluid_chan.c
+    ${FLUIDLITE_DIR}/src/fluid_chorus.c
+    ${FLUIDLITE_DIR}/src/fluid_conv.c
+    ${FLUIDLITE_DIR}/src/fluid_defsfont.c
+    ${FLUIDLITE_DIR}/src/fluid_dsp_float.c
+    ${FLUIDLITE_DIR}/src/fluid_gen.c
+    ${FLUIDLITE_DIR}/src/fluid_hash.c
+    ${FLUIDLITE_DIR}/src/fluid_list.c
+    ${FLUIDLITE_DIR}/src/fluid_mod.c
+    ${FLUIDLITE_DIR}/src/fluid_ramsfont.c
+    ${FLUIDLITE_DIR}/src/fluid_rev.c
+    ${FLUIDLITE_DIR}/src/fluid_settings.c
+    ${FLUIDLITE_DIR}/src/fluid_synth.c
+    ${FLUIDLITE_DIR}/src/fluid_sys.c
+    ${FLUIDLITE_DIR}/src/fluid_tuning.c
+    ${FLUIDLITE_DIR}/src/fluid_voice.c
+)
+
 if(MSVC)
-# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /w")
-else(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-compare-distinct-pointer-types -Wno-pointer-sign -Wno-int-conversion -Wno-unused-variable -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast -Wno-incompatible-pointer-types -Wno-parentheses -Wno-unused-value")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -ffast-math -funroll-loops -fomit-frame-pointer -O3")
+
+list(APPEND SFONT_SOURCES
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/vorbisenc.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/info.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/analysis.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/bitrate.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/block.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/codebook.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/envelope.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/floor0.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/floor1.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/lookup.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/lpc.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/lsp.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/mapping0.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/mdct.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/psy.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/registry.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/res0.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/sharedbook.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/smallft.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/vorbisfile.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/window.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/synthesis.c
+
+    ${FLUIDLITE_DIR}/libogg-1.3.2/src/bitwise.c
+    ${FLUIDLITE_DIR}/libogg-1.3.2/src/framing.c
+)
 endif()
 
-file(GLOB OFELIA_SOURCES ./plugdata-ofelia/Source/Objects/*.cpp ./plugdata-ofelia/Source/Objects/*.h ./plugdata-ofelia/Source/Shared/*.cpp ./plugdata-ofelia/Source/Shared/*.h)
-source_group(ofelia FILES ${OFELIA_SOURCES})
+list(APPEND SFONT_INCLUDES
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/include
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib
+    ${FLUIDLITE_DIR}/libogg-1.3.2/include
+    ${FLUIDLITE_DIR}/include
+)
+
+add_library(fluidlite STATIC ${SFONT_SOURCES})
+target_include_directories(fluidlite PRIVATE ${SFONT_INCLUDES})
+if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
+target_compile_options(fluidlite PRIVATE -Wno-compound-token-split-by-macro)
+endif()
+
+list(APPEND ELSE_SOURCES
+    ${SFONT_DIR}/sfont~.c
+)
+
 # ------------------------------------------------------------------------------#
 # TARGETS
 # ------------------------------------------------------------------------------#
-add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES} ${OFELIA_SOURCES})
-add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES} ${OFELIA_SOURCES})
+add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES})
+add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES})
 
 # ag: pdlua needs PLUGDATA symbol at compile time for PlugData integration.
 target_compile_definitions(externals PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PLUGDATA=1)
 target_compile_definitions(externals-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1 PLUGDATA=1)
 
-if(MSVC)
-    add_library(pd SHARED ${SOURCE_FILES})
-    target_compile_definitions(pd PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
-else()
-    add_library(pd STATIC ${SOURCE_FILES})
-    target_compile_definitions(pd PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
+add_library(pd-src STATIC ${SOURCE_FILES})
+target_compile_definitions(pd-src PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
 
-    # To make sure externals work, we need to make single-instance pd have its symbols be visible
-    target_compile_options(pd PRIVATE -fvisibility=default)
+if(UNIX)
+    target_compile_options(pd-src PRIVATE -fvisibility=default)
+    target_compile_options(externals PRIVATE -fvisibility=default)
 endif()
 
-add_library(pd-multi STATIC ${SOURCE_FILES})
-target_compile_definitions(pd-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1)
+add_library(pd-src-multi STATIC ${SOURCE_FILES})
+target_compile_definitions(pd-src-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1)
 
 if(MSVC)
-    target_compile_definitions(pd-multi PRIVATE PTW32_STATIC_LIB=1 "EXTERN= ")
+    target_compile_definitions(pd-src-multi PRIVATE PTW32_STATIC_LIB=1 "EXTERN= ")
 endif()
 
-set_target_properties(pd-multi PROPERTIES CXX_VISIBILITY_PRESET hidden)
+set_target_properties(externals-multi PROPERTIES CXX_VISIBILITY_PRESET hidden)
+set_target_properties(pd-src-multi PROPERTIES CXX_VISIBILITY_PRESET hidden)
 
-set_target_properties(pd PROPERTIES POSITION_INDEPENDENT_CODE ON)
-set_target_properties(pd-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(pd-src PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(pd-src-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 set_target_properties(externals PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(externals-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -426,65 +428,39 @@ set_target_properties(externals-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_include_directories(externals PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
 target_include_directories(externals-multi PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
 
-if(ENABLE_SFIZZ)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/sfz~)
-
-add_dependencies(externals sfizz)
-add_dependencies(externals-multi sfizz)
-target_link_libraries(externals sfizz)
-target_link_libraries(externals-multi sfizz)
-endif()
-
-target_link_libraries(externals fluidlite lua)
-target_link_libraries(externals-multi fluidlite lua)
-
-# ------------------------------------------------------------------------------#
-# GENERATOR OPTIONS
-# ------------------------------------------------------------------------------#
-if(CMAKE_GENERATOR STREQUAL Xcode)
-    set_target_properties(pd PROPERTIES GCC_WARN_UNUSED_VARIABLE False)
-    set_target_properties(pd PROPERTIES XCODE_ATTRIBUTE_LLVM_LTO[variant=Release] True)
-    set_target_properties(pd PROPERTIES GCC_OPTIMIZATION_LEVEL[variant=Release] 3)
-    set_target_properties(pd PROPERTIES GCC_UNROLL_LOOPS[variant=Release] True)
-    set_target_properties(pd PROPERTIES GCC_FAST_MATH[variant=Release] True)
-    set_target_properties(pd-multi PROPERTIES GCC_WARN_UNUSED_VARIABLE False)
-    set_target_properties(pd-multi PROPERTIES XCODE_ATTRIBUTE_LLVM_LTO[variant=Release] True)
-    set_target_properties(pd-multi PROPERTIES GCC_OPTIMIZATION_LEVEL[variant=Release] 3)
-    set_target_properties(pd-multi PROPERTIES GCC_UNROLL_LOOPS[variant=Release] True)
-    set_target_properties(pd-multi PROPERTIES GCC_FAST_MATH[variant=Release] True)
-endif()
 
 # ------------------------------------------------------------------------------#
 # LINK
 # ------------------------------------------------------------------------------#
 
-# LINK OS
-# ------------------------------------------------------------------------------#
+set(externals_libs fluidlite lua)
+if(ENABLE_SFIZZ)
+list(APPEND externals_libs sfizz)
+endif()
+
 if("${CMAKE_SYSTEM}" MATCHES "Linux")
+    add_library(pd INTERFACE)
+    add_library(pd-multi INTERFACE)
     find_library(MATH_LIB m)
-
-    target_link_libraries(pd ${MATH_LIB} ${CMAKE_DL_LIBS} externals)
-    target_link_libraries(pd-multi ${MATH_LIB} ${CMAKE_DL_LIBS} externals-multi)
-
+    target_link_libraries(externals ${externals_libs} ${GEM_LIBS})
+    target_link_libraries(externals-multi ${externals_libs} ${GEM_LIBS_MULTI})
 elseif(MSVC)
-    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 externals)
-    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 externals-multi)
+    add_library(pd SHARED $<TARGET_OBJECTS:externals> $<TARGET_OBJECTS:pd-src>)
+    add_library(pd-multi STATIC $<TARGET_OBJECTS:externals-multi> $<TARGET_OBJECTS:pd-src-multi>)
+
+    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS})
+    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS_MULTI})
 
     add_custom_command(TARGET pd POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
         "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/pd.dll"
         ${CMAKE_SOURCE_DIR}/Plugins/Standalone/pd.dll)
-
-    add_custom_command(TARGET pd POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/pd.lib"
-        ${CMAKE_SOURCE_DIR}/Plugins/Standalone/pd.lib)
 elseif(APPLE)
-    target_link_libraries(pd PUBLIC externals)
-    target_link_libraries(pd-multi PUBLIC externals-multi)
+    target_link_libraries(externals ${externals_libs} ${GEM_LIBS})
+    target_link_libraries(externals-multi ${externals_libs} ${GEM_LIBS_MULTI})
 endif()
 
-# LINK PTHREAD
+# PTHREAD
 # ------------------------------------------------------------------------------#
 set(THREADS_PREFER_PTHREAD_FLAG On)
 set(CMAKE_THREAD_PREFER_PTHREAD True)

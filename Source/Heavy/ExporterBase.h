@@ -5,6 +5,7 @@
  */
 
 #include "PluginEditor.h"
+#include "PluginProcessor.h"
 #include "Pd/Patch.h"
 
 struct ExporterBase : public Component
@@ -18,19 +19,14 @@ struct ExporterBase : public Component
     Value projectCopyrightValue;
 
 #if JUCE_WINDOWS
-    const inline static String exeSuffix = ".exe";
+    inline static String const exeSuffix = ".exe";
 #else
-    const inline static String exeSuffix = "";
+    inline static String const exeSuffix = "";
 #endif
 
     inline static File heavyExecutable = Toolchain::dir.getChildFile("bin").getChildFile("Heavy").getChildFile("Heavy" + exeSuffix);
 
     bool validPatchSelected = false;
-
-    std::unique_ptr<FileChooser> saveChooser;
-    std::unique_ptr<FileChooser> openChooser;
-
-    // OwnedArray<PropertiesPanel::Property> properties;
 
     File patchFile;
     File openedPatchFile;
@@ -40,7 +36,6 @@ struct ExporterBase : public Component
 
     ExportingProgressView* exportingView;
 
-    int labelWidth = 180;
     bool shouldQuit = false;
 
     PluginEditor* editor;
@@ -51,16 +46,23 @@ struct ExporterBase : public Component
         , editor(pluginEditor)
     {
         addAndMakeVisible(exportButton);
-        exportButton.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
-        
-        Array<PropertiesPanel::Property*> properties;
+
+        auto backgroundColour = findColour(PlugDataColour::panelBackgroundColourId);
+        exportButton.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+        exportButton.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
+        exportButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+
+        Array<PropertiesPanelProperty*> properties;
 
         auto* patchChooser = new PropertiesPanel::ComboComponent("Patch to export", inputPatchValue, { "Currently opened patch", "Other patch (browse)" });
         patchChooser->comboBox.setTextWhenNothingSelected("Choose a patch to export...");
         patchChooser->comboBox.setSelectedId(-1);
         properties.add(patchChooser);
 
-        properties.add(new PropertiesPanel::EditableComponent<String>("Project Name (optional)", projectNameValue));
+        auto* nameProperty = new PropertiesPanel::EditableComponent<String>("Project Name (optional)", projectNameValue);
+        nameProperty->setInputRestrictions("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_");
+        properties.add(nameProperty);
+
         properties.add(new PropertiesPanel::EditableComponent<String>("Project Copyright (optional)", projectCopyrightValue));
 
         for (auto* property : properties) {
@@ -95,15 +97,13 @@ struct ExporterBase : public Component
         }
 
         exportButton.onClick = [this]() {
-            saveChooser = std::make_unique<FileChooser>("Choose a location...", File::getSpecialLocation(File::userHomeDirectory), "", true);
-
-            saveChooser->launchAsync(FileBrowserComponent::canSelectDirectories,
-                [this](const FileChooser& fileChooser) {
-                    const auto folder = fileChooser.getResult();
-                    if(folder.exists()) {
-                        startExport(folder);
-                    }
-                });
+            Dialogs::showSaveDialog([this](URL url) {
+                auto result = url.getLocalFile();
+                if (result.getParentDirectory().exists()) {
+                    startExport(result);
+                }
+            },
+                "", "HeavyExport", nullptr, true);
         };
     }
 
@@ -119,24 +119,33 @@ struct ExporterBase : public Component
         removeAllJobs(true, -1);
     }
 
+    virtual ValueTree getState() = 0;
+    virtual void setState(ValueTree& state) = 0;
+
     void startExport(File const& outDir)
     {
-
         auto patchPath = patchFile.getFullPathName();
         auto const& outPath = outDir.getFullPathName();
         auto projectTitle = projectNameValue.toString();
         auto projectCopyright = projectCopyrightValue.toString();
 
-        if (projectTitle.isEmpty())
-            projectTitle = "Untitled";
+        if (!projectTitle.unquoted().containsNonWhitespaceChars())
+        {
+            if (!realPatchFile.getFileNameWithoutExtension().isEmpty())
+                projectTitle = realPatchFile.getFileNameWithoutExtension();
+            else
+                projectTitle = "Untitled";
+        }
 
         // Add file location to search paths
         auto searchPaths = StringArray { patchFile.getParentDirectory().getFullPathName() };
 
+        editor->pd->setThis();
+        
         // Get pd's search paths
         char* paths[1024];
         int numItems;
-        libpd_get_search_paths(paths, &numItems);
+        pd::Interface::getSearchPaths(paths, &numItems);
 
         if (realPatchFile.existsAsFile()) {
             searchPaths.add(realPatchFile.getParentDirectory().getFullPathName());
@@ -178,11 +187,8 @@ struct ExporterBase : public Component
                 patchFile = openedPatchFile;
                 validPatchSelected = true;
             } else if (idx == 2) {
-                // Open file browser
-                openChooser = std::make_unique<FileChooser>("Choose file to open", File::getSpecialLocation(File::userHomeDirectory), "*.pd", true);
-
-                openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [this](FileChooser const& fileChooser) {
-                    auto result = fileChooser.getResult();
+                Dialogs::showOpenDialog([this](URL url) {
+                    auto result = url.getLocalFile();
                     if (result.existsAsFile()) {
                         patchFile = result;
                         validPatchSelected = true;
@@ -191,7 +197,8 @@ struct ExporterBase : public Component
                         patchFile = "";
                         validPatchSelected = false;
                     }
-                });
+                },
+                    true, false, "*.pd", "HeavyPatchLocation", nullptr);
             }
         }
 

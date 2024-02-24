@@ -2,6 +2,8 @@ import shutil
 import os
 import glob
 import sys
+import platform
+import zipfile
 
 # Utility filesystem functions
 def removeFile(path):
@@ -46,10 +48,10 @@ def split(a, n):
 def splitFile(file, num_files):
   with open(file, 'rb') as fd:
     data_in = split(fd.read(), num_files)
-    count = 0;
+    count = 0
     for entry in data_in:
-      name = os.path.splitext(file)[0];
-      extension = os.path.splitext(file)[1];
+      name = os.path.splitext(file)[0]
+      extension = os.path.splitext(file)[1]
       filename = name + "_" + str(count) + extension
       with open(filename, "wb") as fd:
         fd.write(entry)
@@ -77,14 +79,17 @@ globCopy("../../Libraries/pd-else/Code_source/Abstractions/audio/*.pd", "./Abstr
 globCopy("../../Libraries/pd-else/Code_source/Abstractions/extra_abs/*.pd", "./Abstractions/else")
 copyFile("../Patches/playhead.pd", "./Abstractions")
 copyFile("../Patches/param.pd", "./Abstractions")
+copyFile("../Patches/daw_storage.pd", "./Abstractions")
 #copyFile("../Patches/beat.pd", "./Abstractions")
 
 globMove("./Abstractions/*-help.pd", "./Documentation/5.reference")
 copyDir("../../Libraries/pd-else/Documentation/Help-files/", "./Documentation/9.else")
+copyFile("../../Libraries/pd-else/Documentation/extra_files/f2s~-help.pd", "./Documentation/9.else")
 
 #copyFile("../Patches/beat-help.pd", "./Documentation/5.reference")
 copyFile("../Patches/param-help.pd", "./Documentation/5.reference")
 copyFile("../Patches/playhead-help.pd", "./Documentation/5.reference")
+copyFile("../Patches/daw_storage-help.pd", "./Documentation/5.reference")
 
 globCopy("../../Libraries/cyclone/cyclone_objects/abstractions/*.pd", "./Abstractions/cyclone")
 copyDir("../../Libraries/cyclone/documentation/help_files", "./Documentation/10.cyclone")
@@ -98,11 +103,13 @@ removeFile("./Documentation/Makefile.am")
 
 makeDir("Extra")
 makeDir("Extra/GS")
-copyDir("../../Libraries/pd-else/Documentation/extra_files", "Extra/else");
-copyDir("../../Libraries/pd-else/Code_source/Compiled/audio/sfont~/sf", "Extra/else/sf");
+copyDir("../../Libraries/pd-else/Documentation/extra_files", "Extra/else")
+copyFile("../../Libraries/pd-else/Documentation/README.pdf", "Extra/else")
+copyDir("../../Libraries/pd-else/Code_source/Compiled/audio/sfont~/sf", "Extra/else/sf")
 copyDir("../Patches/Presets", "./Extra/Presets")
 copyDir("../Patches/Palettes", "./Extra/palette")
-globCopy("../../Libraries/pure-data/doc/sound/*", "Extra/else");
+copyDir("../Documentation/Manual", "./Extra/Manual")
+globCopy("../../Libraries/pure-data/doc/sound/*", "Extra/else")
 
 # pd-lua
 makeDir("Extra/pdlua")
@@ -117,6 +124,53 @@ for src in ["pdlua*-help.pd"]:
     globCopy(pdlua_srcdir+src, "./Documentation/13.pdlua")
 for src in ["pdlua"]:
     copyDir(pdlua_srcdir+src, "./Documentation/13.pdlua/"+src)
+
+value_mappings = {
+    "0": False,
+    "1": True,
+    "ON": True,
+    "OFF": False,
+    "TRUE": True,
+    "FALSE": False
+}
+
+package_gem = value_mappings[sys.argv[1].upper()]
+
+if package_gem:
+    makeDir("Abstractions/Gem")
+
+    copyDir("../../Libraries/Gem/help", "Documentation/14.gem")
+    copyDir("../../Libraries/Gem/examples", "Documentation/14.gem/examples")
+    copyDir("../../Libraries/Gem/doc", "Documentation/14.gem/examples/Documentation")
+    globCopy("../../Libraries/Gem/abstractions/*.pd", "Abstractions/Gem/")
+    globMove("Abstractions/Gem/*-help.pd", "Documentation/14.gem/")
+
+    makeDir("Extra/Gem") # user can put plugins and resources in here
+
+    # extract precompiled Gem plugins for our architecture
+    system = platform.system().lower()
+    architecture = platform.architecture()
+    machine = platform.machine()
+
+    gem_plugin_path = "../../Libraries/Gem/"
+    gem_plugins_file = ""
+
+    if system == 'linux':
+        if 'aarch64' in machine or 'arm' in machine:
+            gem_plugins_file = 'plugins_linux_arm64'
+        elif '64' in machine:
+            gem_plugins_file = 'plugins_linux_x64'
+    elif system == 'darwin':
+        gem_plugins_file = 'plugins_macos'
+    elif system == 'windows' and '64' in architecture[0]:
+        gem_plugins_file = 'plugins_win64'
+
+    # unpack if architecture is supported
+    if len(gem_plugins_file) != 0:
+        with zipfile.ZipFile(gem_plugin_path + gem_plugins_file + ".zip", 'r') as zip_ref:
+                zip_ref.extractall("Extra/Gem/")
+                globMove("Extra/Gem/" + gem_plugins_file + "/*", "Extra/Gem/")
+                removeDir("Extra/Gem/" + gem_plugins_file)
 
 changeWorkingDir("./..")
 

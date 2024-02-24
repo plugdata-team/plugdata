@@ -6,7 +6,8 @@
 
 #include <utility>
 
-#include "../PluginEditor.h"
+#include "PluginEditor.h"
+#include "Utility/Autosave.h"
 
 class MainMenu : public PopupMenu {
 
@@ -33,12 +34,21 @@ public:
             for (int i = 0; i < recentlyOpenedTree.getNumChildren(); i++) {
                 auto path = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
                 recentlyOpened->addItem(path.getFileName(), [path, editor]() mutable {
-                    editor->pd->loadPatch(path);
-                    SettingsFile::getInstance()->addToRecentlyOpened(path);
+                    editor->autosave->checkForMoreRecentAutosave(path, [editor, path]() {
+                        editor->pd->loadPatch(URL(path), editor, -1);
+                        SettingsFile::getInstance()->addToRecentlyOpened(path);
+                    });
                 });
             }
 
-            menuItems[2]->isActive = recentlyOpenedTree.getNumChildren() > 0;
+            auto isActive = menuItems[2]->isActive = recentlyOpenedTree.getNumChildren() > 0;
+            if (isActive) {
+                recentlyOpened->addSeparator();
+                recentlyOpened->addItem("Clear recently opened", [recentlyOpenedTree]() mutable {
+                    recentlyOpenedTree.removeAllChildren(nullptr);
+                    SettingsFile::getInstance()->reloadSettings();
+                });
+            }
         }
 
         addCustomItem(getMenuItemID(MenuItem::History), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::History)]), std::unique_ptr<PopupMenu const>(recentlyOpened), "Recently opened");
@@ -74,8 +84,10 @@ public:
 
         addSeparator();
 
+#if !JUCE_IOS
         addCustomItem(getMenuItemID(MenuItem::CompiledMode), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::CompiledMode)]), nullptr, "Compiled mode");
         addCustomItem(getMenuItemID(MenuItem::Compile), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::Compile)]), nullptr, "Compile...");
+#endif
 
         addSeparator();
 
@@ -122,9 +134,14 @@ public:
             zoomReset.setButtonText(buttonText);
             zoomOut.setButtonText("-");
 
-            addAndMakeVisible(zoomIn);
-            addAndMakeVisible(zoomReset);
-            addAndMakeVisible(zoomOut);
+            for (auto* button : Array<TextButton*> { &zoomIn, &zoomReset, &zoomOut }) {
+                button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
+                button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuActiveTextColourId));
+                button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.035f));
+                button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.075f));
+                button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+                addAndMakeVisible(button);
+            }
 
             zoomIn.setConnectedEdges(Button::ConnectedOnLeft);
             zoomOut.setConnectedEdges(Button::ConnectedOnRight);
@@ -144,6 +161,17 @@ public:
         enum ZoomType { ZoomIn,
             ZoomOut,
             Reset };
+
+        void lookAndFeelChanged() override
+        {
+            for (auto* button : Array<TextButton*> { &zoomIn, &zoomReset, &zoomOut }) {
+                button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
+                button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuActiveTextColourId));
+                button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.035f));
+                button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.075f));
+                button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+            }
+        }
 
         void applyZoom(ZoomType zoomEventType)
         {
@@ -186,7 +214,6 @@ public:
             // Set the new canvas position
             // Alex: there is an accumulated error when zooming in/out
             //       possibly we should save the canvas position as an additional Point<float> ?
-            // Tim: pretty sure there isn't? You can tell more clearly by using a macbook trackpad, zooming appears to be accurate
             cnv->setTopLeftPosition((cnv->getPosition().toFloat() + offset).roundToInt());
 
             cnv->zoomScale = scale;
@@ -212,7 +239,6 @@ public:
 
         bool hasSubMenu;
         bool hasTickBox;
-        bool isMouseOver = false;
 
     public:
         bool isTicked = false;
@@ -231,6 +257,13 @@ public:
             idealWidth = 70;
             idealHeight = 24;
         }
+
+#if JUCE_IOS // On iOS, the mouseUp event arrives after the menu has already been dismissed...
+        void mouseDown(MouseEvent const& e) override
+        {
+            triggerMenuItem();
+        }
+#endif
 
         void paint(Graphics& g) override
         {
@@ -323,20 +356,22 @@ public:
             g.setColour(PlugDataLook::getThemeColour(secondThemeTree, PlugDataColour::canvasBackgroundColourId));
             g.fillEllipse(secondBounds.toFloat());
 
-            g.setColour(PlugDataLook::getThemeColour(firstThemeTree, PlugDataColour::objectOutlineColourId));
+            g.setColour(PlugDataLook::getThemeColour(firstThemeTree, PlugDataColour::outlineColourId));
             g.drawEllipse(firstBounds.toFloat(), 1.0f);
 
-            g.setColour(PlugDataLook::getThemeColour(secondThemeTree, PlugDataColour::objectOutlineColourId));
+            g.setColour(PlugDataLook::getThemeColour(secondThemeTree, PlugDataColour::outlineColourId));
             g.drawEllipse(secondBounds.toFloat(), 1.0f);
 
             auto tick = getLookAndFeel().getTickShape(0.6f);
             auto tickBounds = Rectangle<int>();
 
             if (theme.toString() == firstThemeTree.getProperty("theme").toString()) {
-                g.setColour(PlugDataLook::getThemeColour(firstThemeTree, PlugDataColour::canvasTextColourId));
+                auto textColour = PlugDataLook::getThemeColour(firstThemeTree, PlugDataColour::canvasBackgroundColourId).contrasting(0.8f);
+                g.setColour(textColour);
                 tickBounds = firstBounds;
             } else {
-                g.setColour(PlugDataLook::getThemeColour(secondThemeTree, PlugDataColour::canvasTextColourId));
+                auto textColour = PlugDataLook::getThemeColour(secondThemeTree, PlugDataColour::canvasBackgroundColourId).contrasting(0.8f);
+                g.setColour(textColour);
                 tickBounds = secondBounds;
             }
 
@@ -382,7 +417,7 @@ public:
             return 100;
 
         return item;
-    };
+    }
 
     static int getMenuItemIndex(MenuItem item)
     {

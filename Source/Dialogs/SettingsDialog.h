@@ -7,9 +7,13 @@
 
 #include <utility>
 
-#include "Utility/PropertiesPanel.h"
+#include "Components/PropertiesPanel.h"
 
 #include "AboutPanel.h"
+
+struct SettingsDialogPanel : public Component {
+    virtual PropertiesPanel* getPropertiesPanel() { return nullptr; }
+};
 
 #include "AudioSettingsPanel.h"
 #include "MIDISettingsPanel.h"
@@ -18,53 +22,12 @@
 #include "AdvancedSettingsPanel.h"
 #include "KeyMappingPanel.h"
 
-// Toolbar button for settings panel, with both icon and text
-// We have too many specific items to have only icons at this point
-class SettingsToolbarButton : public TextButton {
-
-    String icon;
-    String text;
-
-public:
-    SettingsToolbarButton(String iconToUse, String textToShow)
-        : icon(std::move(iconToUse))
-        , text(std::move(textToShow))
-    {
-    }
-
-    void paint(Graphics& g) override
-    {
-        auto b = getLocalBounds().reduced(2.0f, 4.0f);
-
-        if (isMouseOver() || getToggleState()) {
-            auto background = findColour(PlugDataColour::toolbarHoverColourId);
-            if (getToggleState())
-                background = background.darker(0.05f);
-
-            g.setColour(background);
-            PlugDataLook::fillSmoothedRectangle(g, b.toFloat(), Corners::defaultCornerRadius);
-        }
-
-        auto textColour = findColour(PlugDataColour::toolbarTextColourId);
-        auto boldFont = Fonts::getBoldFont().withHeight(13.5f);
-        auto iconFont = Fonts::getIconFont().withHeight(13.5f);
-
-        auto textWidth = boldFont.getStringWidth(text);
-        auto iconWidth = iconFont.getStringWidth(icon);
-
-        AttributedString attrStr;
-        attrStr.setJustification(Justification::centred);
-        attrStr.append(icon, iconFont, textColour);
-        attrStr.append("  " + text, boldFont, textColour);
-        attrStr.draw(g, b.toFloat());
-    }
-};
-
 class SettingsDialog : public Component {
 
 public:
-    explicit SettingsDialog(PluginEditor* editor)
-        : processor(dynamic_cast<PluginProcessor*>(editor->getAudioProcessor()))
+    explicit SettingsDialog(PluginEditor* pluginEditor)
+        : processor(dynamic_cast<PluginProcessor*>(pluginEditor->getAudioProcessor()))
+        , editor(pluginEditor)
     {
         setVisible(false);
 
@@ -89,7 +52,36 @@ public:
 
         currentPanel = std::clamp(lastPanel.load(), 0, toolbarButtons.size() - 1);
 
-        auto* processor = dynamic_cast<PluginProcessor*>(editor->getAudioProcessor());
+        for (int i = 0; i < toolbarButtons.size(); i++) {
+            toolbarButtons[i]->setRadioGroupId(hash("settings_toolbar_button"));
+            addAndMakeVisible(toolbarButtons[i]);
+            toolbarButtons[i]->onClick = [this, i]() mutable { showPanel(i); };
+        }
+
+        searchButton.setClickingTogglesState(true);
+        searchButton.onClick = [this]() {
+            if (searchButton.getToggleState()) {
+                searcher->startSearching();
+            } else {
+                reloadPanels();
+                searcher->stopSearching();
+            }
+        };
+        addAndMakeVisible(searchButton);
+
+        constrainer.setMinimumOnscreenAmounts(600, 400, 400, 400);
+        reloadPanels();
+    }
+
+    ~SettingsDialog() override
+    {
+        lastPanel = currentPanel;
+        SettingsFile::getInstance()->saveSettings();
+    }
+
+    void reloadPanels()
+    {
+        panels.clear();
 
         if (auto* deviceManager = ProjectInfo::getDeviceManager()) {
             panels.add(new StandaloneAudioSettings(*deviceManager));
@@ -100,37 +92,35 @@ public:
 
         panels.add(new ThemePanel(processor));
         panels.add(new PathsAndLibrariesPanel());
-        panels.add(new KeyMappingComponent(*editor->getKeyMappings()));
+        panels.add(new KeyMappingComponent(*editor->commandManager.getKeyMappings()));
         panels.add(new AdvancedSettingsPanel(editor));
 
-        for (int i = 0; i < toolbarButtons.size(); i++) {
-            toolbarButtons[i]->setClickingTogglesState(true);
-            toolbarButtons[i]->setRadioGroupId(hash("settings_toolbar_button"));
-            toolbarButtons[i]->setConnectedEdges(12);
-            toolbarButtons[i]->getProperties().set("Style", "LargeIcon");
-            addAndMakeVisible(toolbarButtons[i]);
+        Array<PropertiesPanel*> propertiesPanels;
+        for (auto* i : panels) {
+            addChildComponent(i);
 
-            addChildComponent(panels[i]);
-            toolbarButtons[i]->onClick = [this, i]() mutable { showPanel(i); };
+            if (auto* panel = i->getPropertiesPanel()) {
+                propertiesPanels.add(panel);
+            }
         }
+        searcher = std::make_unique<PropertiesSearchPanel>(propertiesPanels);
+        addChildComponent(searcher.get());
 
-        toolbarButtons[currentPanel]->setToggleState(true, sendNotification);
-
-        constrainer.setMinimumOnscreenAmounts(600, 400, 400, 400);
-    }
-
-    ~SettingsDialog() override
-    {
-        lastPanel = currentPanel;
-        SettingsFile::getInstance()->saveSettings();
+        searchButton.toFront(false);
+        toolbarButtons[currentPanel]->setToggleState(true, dontSendNotification);
+        panels[currentPanel]->setVisible(true);
+        resized();
     }
 
     void resized() override
     {
         auto b = getLocalBounds().withTrimmedTop(toolbarHeight);
 
-        int toolbarPosition = 24;
-        auto spacing = (getWidth() - 72) / toolbarButtons.size();
+        int toolbarPosition = 44;
+        auto spacing = (getWidth() - 96) / toolbarButtons.size();
+
+        searchButton.setBounds(4, 1, toolbarHeight - 2, toolbarHeight - 2);
+        searcher->setBounds(getLocalBounds());
 
         for (auto& button : toolbarButtons) {
             button->setBounds(toolbarPosition, 1, spacing, toolbarHeight - 2);
@@ -147,11 +137,13 @@ public:
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
 
-        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+        auto titlebarBounds = getLocalBounds().removeFromTop(toolbarHeight).toFloat();
 
-        auto toolbarBounds = Rectangle<float>(1, 1, getWidth() - 2, toolbarHeight);
-        g.fillRoundedRectangle(toolbarBounds, Corners::windowCornerRadius);
-        g.fillRect(toolbarBounds.withTrimmedTop(15.0f));
+        Path p;
+        p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);
+
+        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+        g.fillPath(p);
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawHorizontalLine(toolbarHeight, 0.0f, getWidth());
@@ -165,14 +157,18 @@ public:
         repaint();
     }
 
-    AudioProcessor* processor;
+    PluginProcessor* processor;
+    PluginEditor* editor;
     ComponentBoundsConstrainer constrainer;
 
-    static constexpr int toolbarHeight = 42;
+    MainToolbarButton searchButton = MainToolbarButton(Icons::Search);
+    std::unique_ptr<PropertiesSearchPanel> searcher;
+
+    static constexpr int toolbarHeight = 40;
 
     static inline std::atomic<int> lastPanel = 0;
     int currentPanel;
-    OwnedArray<Component> panels;
+    OwnedArray<SettingsDialogPanel> panels;
     AudioDeviceManager* deviceManager = nullptr;
 
     OwnedArray<SettingsToolbarButton> toolbarButtons;

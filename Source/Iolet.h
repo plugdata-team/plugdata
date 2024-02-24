@@ -36,7 +36,6 @@ public:
 
     void setHidden(bool hidden);
 
-    void clearConnections();
     Array<Connection*> getConnections();
 
     Rectangle<int> getCanvasBounds();
@@ -44,6 +43,7 @@ public:
     int ioletIdx;
     bool isInlet;
     bool isSignal;
+    bool isGemState;
 
     bool isTargeted = false;
 

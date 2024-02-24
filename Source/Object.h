@@ -7,15 +7,16 @@
 #pragma once
 
 #include "Utility/ModifierKeyListener.h"
-#include <JuceHeader.h>
+#include <juce_gui_basics/juce_gui_basics.h>
 #include "Utility/SettingsFile.h"
 #include "Utility/RateReducer.h"
+#include "Pd/WeakReference.h"
 
 #define ACTIVITY_UPDATE_RATE 15
 
+struct ObjectDragState;
 class ObjectBase;
 class Iolet;
-class ObjectDragState;
 class Canvas;
 class Connection;
 class ObjectBoundsConstrainer;
@@ -23,32 +24,38 @@ class ObjectBoundsConstrainer;
 class Object : public Component
     , public Value::Listener
     , public ChangeListener
-    , public MultiTimer
+    , public Timer
+    , public KeyListener
     , private TextEditor::Listener {
 public:
-    Object(Canvas* parent, String const& name = "", Point<int> position = { 100, 100 });
+    explicit Object(Canvas* parent, String const& name = "", Point<int> position = { 100, 100 });
 
-    Object(void* object, Canvas* parent);
+    Object(pd::WeakReference object, Canvas* parent);
 
     ~Object() override;
 
     void valueChanged(Value& v) override;
 
     void changeListenerCallback(ChangeBroadcaster* source) override;
-    void timerCallback(int timerID) override;
+    void timerCallback() override;
 
     void paint(Graphics&) override;
     void paintOverChildren(Graphics&) override;
     void resized() override;
+        
+    bool keyPressed(KeyPress const& key, Component* component) override;
 
     void updateIolets();
 
-    void setType(String const& newType, void* existingObject = nullptr);
+    void setType(String const& newType, pd::WeakReference existingObject = nullptr);
     void updateBounds();
     void applyBounds();
 
     void showEditor();
     void hideEditor();
+    bool isInitialEditorShown();
+        
+    String getType() const;
 
     Rectangle<int> getSelectableBounds();
     Rectangle<int> getObjectBounds();
@@ -57,7 +64,7 @@ public:
     ComponentBoundsConstrainer* getConstrainer() const;
 
     void openHelpPatch() const;
-    void* getPointer() const;
+    t_gobj* getPointer() const;
 
     Array<Connection*> getConnections() const;
 
@@ -97,17 +104,14 @@ public:
     OwnedArray<Iolet> iolets;
     ResizableBorderComponent::Zone resizeZone;
 
-    static inline constexpr int margin = 8;
-    static inline constexpr int doubleMargin = margin * 2;
-    static inline constexpr int height = 37;
+    static inline constexpr int margin = 6;
 
-    bool attachedToMouse = false;
-    bool isSearchTarget = false;
-    static inline Object* consoleTarget = nullptr;
+    static inline constexpr int doubleMargin = margin * 2;
+    static inline constexpr int height = 32;
 
     Rectangle<int> originalBounds;
 
-    static inline int const minimumSize = 12;
+    static inline int const minimumSize = 9;
 
     bool isSelected() const;
 
@@ -118,19 +122,22 @@ private:
 
     void openNewObjectEditor();
 
-    bool checkIfHvccCompatible();
+    bool checkIfHvccCompatible() const;
 
     void setSelected(bool shouldBeSelected);
     bool selectedFlag = false;
     bool selectionStateChanged = false;
 
-    bool createEditorOnMouseDown = false;
     bool wasLockedOnMouseDown = false;
     bool indexShown = false;
     bool isHvccCompatible = true;
+    bool isGemObject = false;
 
     bool showActiveState = false;
     float activeStateAlpha = 0.0f;
+
+    bool isObjectMouseActive = false;
+    bool isInsideUndoSequence = false;
 
     Image activityOverlayImage;
 

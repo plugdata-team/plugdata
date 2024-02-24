@@ -20,12 +20,12 @@ extern "C" {
 #include <m_imp.h>
 #include <s_stuff.h>
 #include <z_libpd.h>
-#include <x_libpd_mod_utils.h>
 }
 
 #include <utility>
 #include "Library.h"
 #include "Instance.h"
+#include "Pd/Interface.h"
 
 struct _canvasenvironment {
     t_symbol* ce_dir;    /* directory patch lives in */
@@ -81,6 +81,16 @@ void Library::updateLibrary()
         }
     }
 
+    // These can't be created by name in Pd, but plugdata allows it
+    allObjects.add("graph");
+    allObjects.add("garray");
+    
+
+    // These aren't in there but should be
+    allObjects.add("float");
+    allObjects.add("symbol");
+    allObjects.add("list");
+
     sys_unlock();
 }
 
@@ -89,30 +99,16 @@ Library::Library(pd::Instance* instance)
     MemoryInputStream instream(BinaryData::Documentation_bin, BinaryData::Documentation_binSize, false);
     documentationTree = ValueTree::readFromStream(instream);
 
-    for (auto object : documentationTree) {
-        auto categories = object.getChildWithName("categories");
-        if (!categories.isValid())
-            continue;
-
-        for (auto category : categories) {
-            allCategories.addIfNotAlreadyThere(category.getProperty("name").toString());
-        }
-    }
-
     watcher.addFolder(ProjectInfo::appDataDir);
     watcher.addListener(this);
 
-    // Paths to search
-    // First, only search vanilla, then search all documentation
-    // Lastly, check the deken folder
-    helpPaths = { ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("5.reference"), ProjectInfo::appDataDir.getChildFile("Documentation"),
-        ProjectInfo::appDataDir.getChildFile("Externals") };
-
     // This is unfortunately necessary to make Windows LV2 turtle dump work
     // Let's hope its not harmful
-    MessageManager::callAsync([this, instance]() {
-        instance->setThis();
-        updateLibrary();
+    MessageManager::callAsync([this, instance = juce::WeakReference(instance)]() {
+        if (instance.get()) {
+            instance->setThis();
+            updateLibrary();
+        }
     });
 }
 
@@ -192,7 +188,7 @@ void Library::getExtraSuggestions(int currentNumSuggestions, String const& query
 
 ValueTree Library::getObjectInfo(String const& name)
 {
-    return documentationTree.getChildWithProperty("name", name);
+    return documentationTree.getChildWithProperty("name", name.fromLastOccurrenceOf("/", false, false));
 }
 
 std::array<StringArray, 2> Library::parseIoletTooltips(ValueTree const& iolets, String const& name, int numIn, int numOut)
@@ -253,17 +249,12 @@ StringArray Library::getAllObjects()
     return allObjects;
 }
 
-StringArray Library::getAllCategories()
+void Library::filesystemChanged()
 {
-    return allCategories;
+    updateLibrary();
 }
 
-void Library::fsChangeCallback()
-{
-    appDirChanged();
-}
-
-File Library::findHelpfile(t_object* obj, File const& parentPatchFile) const
+File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile)
 {
     String helpName;
     String helpDir;
@@ -272,14 +263,14 @@ File Library::findHelpfile(t_object* obj, File const& parentPatchFile) const
 
     if (pdclass == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
         char namebuf[MAXPDSTRING];
-        t_object* ob = obj;
+        t_object* ob = pd::Interface::checkObject(obj);
         int ac = binbuf_getnatom(ob->te_binbuf);
         t_atom* av = binbuf_getvec(ob->te_binbuf);
         if (ac < 1)
             return {};
 
         atom_string(av, namebuf, MAXPDSTRING);
-        helpName = String::fromUTF8(namebuf); //.fromLastOccurrenceOf("/", false, false);
+        helpName = String::fromUTF8(namebuf);
     } else {
         helpDir = class_gethelpdir(pdclass);
         helpName = class_gethelpname(pdclass);
@@ -312,9 +303,14 @@ File Library::findHelpfile(t_object* obj, File const& parentPatchFile) const
     String firstName = helpName + "-help.pd";
     String secondName = "help-" + helpName + ".pd";
 
-    auto findHelpPatch = [&firstName, &secondName](File const& searchDir, bool recursive) -> File {
-        for (const auto& file : OSUtils::iterateDirectory(searchDir, recursive, true)) {
-            if (file.getFileName() == firstName || file.getFileName() == secondName) {
+    auto findHelpPatch = [&firstName, &secondName](File const& searchDir) -> File {
+        for (const auto& file : OSUtils::iterateDirectory(searchDir, false, true)) {
+            auto pathName = file.getFullPathName().replace("\\", "/").trimCharactersAtEnd("/");
+            // Hack to make it find else/cyclone helpfiles...
+            pathName = pathName.replace("/else", "/9.else");
+            pathName = pathName.replace("/cyclone", "/10.else");
+            
+            if (pathName.endsWith("/" + firstName) || pathName.endsWith("/" + secondName)) {
                 return file;
             }
         }
@@ -326,7 +322,7 @@ File Library::findHelpfile(t_object* obj, File const& parentPatchFile) const
         if (!path.exists())
             continue;
 
-        auto file = findHelpPatch(path, true);
+        auto file = findHelpPatch(path);
         if (file.existsAsFile()) {
             return file;
         }
@@ -336,8 +332,8 @@ File Library::findHelpfile(t_object* obj, File const& parentPatchFile) const
     helpDir = String::fromUTF8(rawHelpDir);
 
     if (helpDir.isNotEmpty() && File(helpDir).exists()) {
-        // Search for files int the patch directory
-        auto file = findHelpPatch(helpDir, true);
+        // Search for files in the patch directory
+        auto file = findHelpPatch(helpDir);
         if (file.existsAsFile()) {
             return file;
         }

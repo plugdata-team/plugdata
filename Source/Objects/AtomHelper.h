@@ -28,8 +28,10 @@ class AtomHelper {
     PluginProcessor* pd;
 
     pd::WeakReference ptr;
-
-    inline static int minWidth = 3;
+    
+    int lastFontHeight = 10;
+    hash32 lastLabelTextHash = 0;
+    int lastLabelLength = 0;
 
 public:
     Value labelColour = SynchronousValue();
@@ -41,12 +43,12 @@ public:
 
     ObjectParameters objectParameters;
 
-    AtomHelper(void* pointer, Object* parent, ObjectBase* base)
+    AtomHelper(pd::WeakReference pointer, Object* parent, ObjectBase* base)
         : object(parent)
         , gui(base)
         , cnv(parent->cnv)
         , pd(parent->cnv->pd)
-        , ptr(pointer, parent->cnv->pd)
+        , ptr(pointer)
     {
         objectParameters.addParamCombo("Font height", cDimensions, &fontSize, { "auto", "8", "10", "12", "16", "24", "36" });
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
@@ -91,7 +93,7 @@ public:
         }
     }
 
-    Rectangle<int> getPdBounds()
+    Rectangle<int> getPdBounds(int textLength)
     {
         if (auto atom = ptr.get<t_fake_gatom>()) {
             auto* patchPtr = cnv->patch.getPointer().get();
@@ -99,9 +101,13 @@ public:
                 return {};
 
             int x, y, w, h;
-            libpd_get_object_bounds(patchPtr, atom.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patchPtr, atom.cast<t_gobj>(), &x, &y, &w, &h);
 
-            w = (std::max<int>(minWidth, atom->a_text.te_width) * glist_fontwidth(patchPtr)) + 3;
+            if (atom->a_text.te_width == 0) {
+                w = textLength + 10;
+            } else {
+                w = (atom->a_text.te_width * glist_fontwidth(patchPtr)) + 3;
+            }
 
             return { x, y, w, getAtomHeight() };
         }
@@ -116,10 +122,12 @@ public:
             if (!patchPtr)
                 return;
 
-            libpd_moveobj(patchPtr, atom.cast<t_gobj>(), b.getX(), b.getY());
+            pd::Interface::moveObject(patchPtr, atom.cast<t_gobj>(), b.getX(), b.getY());
 
             auto fontWidth = glist_fontwidth(patchPtr);
-            atom->a_text.te_width = (b.getWidth() - 3) / fontWidth;
+            if (atom->a_text.te_width != 0) {
+                atom->a_text.te_width = (b.getWidth() - 3) / fontWidth;
+            }
         }
     }
 
@@ -155,7 +163,7 @@ public:
                 auto oldBounds = old.reduced(Object::margin);
                 auto newBounds = bounds.reduced(Object::margin);
 
-                auto* atom = static_cast<t_fake_gatom*>(object->getPointer());
+                auto* atom = reinterpret_cast<t_fake_gatom*>(object->getPointer());
                 auto* patch = object->cnv->patch.getPointer().get();
 
                 if (!atom || !patch)
@@ -165,7 +173,7 @@ public:
 
                 // Calculate the width in text characters for both
                 auto oldCharWidth = (oldBounds.getWidth() - 3) / fontWidth;
-                auto newCharWidth = std::max(minWidth, (newBounds.getWidth() - 3) / fontWidth);
+                auto newCharWidth = (newBounds.getWidth() - 3) / fontWidth;
 
                 // If we're resizing the left edge, move the object left
                 if (isStretchingLeft) {
@@ -174,7 +182,7 @@ public:
                     auto y = oldBounds.getY();
 
                     if (auto atom = helper->ptr.get<t_gobj>()) {
-                        libpd_moveobj(static_cast<t_glist*>(patch), atom.get(), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
+                        pd::Interface::moveObject(static_cast<t_glist*>(patch), atom.get(), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
                     }
                 }
 
@@ -189,7 +197,7 @@ public:
                 helper->setFontHeight(atomSizes[heightIdx]);
                 object->gui->setParameterExcludingListener(helper->fontSize, heightIdx + 1);
 
-                bounds = helper->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
+                bounds = helper->getPdBounds(0).expanded(Object::margin) + object->cnv->canvasOrigin;
             }
         };
 
@@ -269,12 +277,12 @@ public:
 
         setFontHeight(atomSizes[idx - 1]);
 
-        int fontHeight = getAtomHeight() - 6;
-        const String text = getExpandedLabelText();
+        int fontHeight = getAtomHeight() - 5;
+        String const text = getExpandedLabelText();
 
         if (text.isNotEmpty()) {
             if (!label) {
-                label = std::make_unique<ObjectLabel>(object);
+                label = std::make_unique<ObjectLabel>();
             }
 
             auto bounds = getLabelBounds();
@@ -312,30 +320,47 @@ public:
         }
     }
 
-    Rectangle<int> getLabelBounds() const
+    Rectangle<int> getLabelBounds()
     {
         auto objectBounds = object->getBounds().reduced(Object::margin);
-        int fontHeight = getAtomHeight() - 6;
-
-        int labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());
-
-        int labelPosition;
+        int fontHeight = getAtomHeight() - 5;
+        int fontWidth = sys_fontwidth(fontHeight);
+        int labelSpace = fontWidth * (getExpandedLabelText().length() + 1);
+        
+        auto currentHash = hash(getExpandedLabelText());
+        int labelLength = lastLabelLength;
+        
+        if(lastFontHeight != fontHeight || lastLabelTextHash != currentHash)
+        {
+            labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());
+            lastFontHeight = fontHeight;
+            lastLabelTextHash = currentHash;
+            lastLabelLength = labelLength;
+        }
+        
+        int labelPosition = 0;
         if (auto atom = ptr.get<t_fake_gatom>()) {
             labelPosition = atom->a_wherelabel;
         }
         auto labelBounds = objectBounds.withSizeKeepingCentre(labelLength, fontHeight);
-
+        int lengthDifference = labelLength - labelSpace; // difference between width in pd-vanilla and plugdata
+        
         if (labelPosition == 0) { // left
-            return labelBounds.withRightX(objectBounds.getX() - 4);
+            labelBounds.removeFromLeft(lengthDifference);
+            return labelBounds.withRightX(objectBounds.getX() - lengthDifference - 2);
         }
+        
+        labelBounds.removeFromRight(lengthDifference);
+        
         if (labelPosition == 1) { // right
-            return labelBounds.withX(objectBounds.getRight() + 4);
+            return labelBounds.withX(objectBounds.getRight() + 2);
         }
+        
         if (labelPosition == 2) { // top
-            return labelBounds.withX(objectBounds.getX()).withBottomY(objectBounds.getY());
+            return labelBounds.withX(objectBounds.getX()).withBottomY(objectBounds.getY() - 2);
         }
 
-        return labelBounds.withX(objectBounds.getX()).withY(objectBounds.getBottom());
+        return labelBounds.withX(objectBounds.getX()).withY(objectBounds.getBottom() + 2);
     }
 
     String getExpandedLabelText() const
@@ -422,6 +447,7 @@ public:
     void setSendSymbol(String const& symbol) const
     {
         if (auto atom = ptr.get<t_fake_gatom>()) {
+
             atom->a_symto = pd->generateSymbol(symbol);
             atom->a_expanded_to = canvas_realizedollar(atom->a_glist, atom->a_symto);
         }
@@ -436,36 +462,5 @@ public:
             if (*atom->a_symfrom->s_name)
                 pd_bind(&atom->a_text.te_pd, canvas_realizedollar(atom->a_glist, atom->a_symfrom));
         }
-    }
-
-    /* prepend "-" as necessary to avoid empty strings, so we can
-     use them in Pd messages. */
-    t_symbol* gatom_escapit(t_symbol* s)
-    {
-        if (!*s->s_name)
-            return (pd->generateSymbol("-"));
-        else if (*s->s_name == '-') {
-            char shmo[100];
-            shmo[0] = '-';
-            strncpy(shmo + 1, s->s_name, 99);
-            shmo[99] = 0;
-            return (pd->generateSymbol(shmo));
-        } else
-            return (s);
-    }
-
-    /* undo previous operation: strip leading "-" if found.  This is used
-     both to restore send, etc., names when loading from a file, and to
-     set them from the properties dialog.  In the former case, since before
-     version 0.52 '$" was aliases to "#", we also bash any "#" characters
-     to "$".  This is unnecessary when reading files saved from 0.52 or later,
-     and really we should test for that and only bash when necessary, just
-     in case someone wants to have a "#" in a name. */
-    t_symbol* gatom_unescapit(t_symbol* s)
-    {
-        if (*s->s_name == '-')
-            return (pd->generateSymbol(String::fromUTF8(s->s_name + 1)));
-        else
-            return (iemgui_raute2dollar(s));
     }
 };

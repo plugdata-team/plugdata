@@ -6,7 +6,7 @@
 
 class SaveDialogButton : public TextButton {
 public:
-    SaveDialogButton(String buttonText)
+    explicit SaveDialogButton(String const& buttonText)
         : TextButton(buttonText)
     {
     }
@@ -21,6 +21,8 @@ private:
 
         if (isMouseOver() || isMouseButtonDown()) {
             backgroundColour = backgroundColour.contrasting(0.1f);
+        } else {
+            backgroundColour = backgroundColour.contrasting(0.06f);
         }
 
         g.setColour(backgroundColour);
@@ -31,10 +33,10 @@ private:
 
         g.drawText(getButtonText(), getLocalBounds().reduced(3), Justification::centred);
 
-        auto outlineColour = hasKeyboardFocus(false) ? activeColour : findColour(PlugDataColour::outlineColourId);
-
-        g.setColour(outlineColour);
-        PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), bounds, Corners::defaultCornerRadius);
+        if (hasKeyboardFocus(false)) {
+            g.setColour(activeColour);
+            PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), bounds, Corners::defaultCornerRadius);
+        }
     }
 };
 
@@ -42,7 +44,8 @@ class SaveDialog : public Component {
 
 public:
     SaveDialog(Dialog* parent, String const& filename, std::function<void(int)> callback, bool withLogo)
-        : savelabel("savelabel", filename.isEmpty() ? "Save changes before closing?" : "Save changes to \"" + filename + "\"\n before closing?"), hasLogo(withLogo)
+        : hasLogo(withLogo)
+        , savelabel("savelabel", filename.isEmpty() ? "Save changes before closing?" : "Save changes to \"" + filename + "\"\n before closing?")
     {
         cb = callback;
         setSize(265, 270);
@@ -56,23 +59,23 @@ public:
 
         cancel.onClick = [parent] {
             MessageManager::callAsync(
-                [parent]() {
-                    cb(0);
+                [parent, callback = cb]() {
                     parent->closeDialog();
+                    callback(0);
                 });
         };
         save.onClick = [parent] {
             MessageManager::callAsync(
-                [parent]() {
-                    cb(2);
+                [parent, callback = cb]() {
                     parent->closeDialog();
+                    callback(2);
                 });
         };
         dontsave.onClick = [parent] {
             MessageManager::callAsync(
-                [parent]() {
-                    cb(1);
+                [parent, callback = cb]() {
                     parent->closeDialog();
+                    callback(1);
                 });
         };
 
@@ -80,17 +83,14 @@ public:
         dontsave.setColour(TextButton::buttonColourId, Colours::transparentBlack);
         save.setColour(TextButton::buttonColourId, Colours::transparentBlack);
 
-        cancel.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
-        dontsave.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
-        save.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
-
         setOpaque(false);
 
         MessageManager::callAsync([_this = SafePointer(this)]() {
             if (_this) {
                 // Move window to front when opening dialog
-                if(auto* topLevel = _this->getTopLevelComponent()) topLevel->toFront(false);
-    
+                if (auto* topLevel = _this->getTopLevelComponent())
+                    topLevel->toFront(false);
+
                 _this->save.grabKeyboardFocus();
             }
         });
@@ -98,8 +98,9 @@ public:
 
     void paint(Graphics& g) override
     {
-        if(!hasLogo) return;
-        
+        if (!hasLogo)
+            return;
+
         auto contentBounds = getLocalBounds().reduced(16);
         auto logoBounds = contentBounds.removeFromTop(contentBounds.getHeight() / 3.5f).withSizeKeepingCentre(64, 64);
 
@@ -113,10 +114,10 @@ public:
         auto contentBounds = getLocalBounds().reduced(16);
 
         // logo space
-        if(hasLogo) {
+        if (hasLogo) {
             contentBounds.removeFromTop(contentBounds.getHeight() / 3.5f + 8.0f);
         }
-    
+
         savelabel.setBounds(contentBounds.removeFromTop(contentBounds.getHeight() / 3));
         contentBounds.removeFromTop(8);
 

@@ -19,7 +19,7 @@ public:
             Run,
             Alt
         };
-        OwnedArray<TextButton> buttons { new TextButton("edit"), new TextButton("lock"), new TextButton("run"), new TextButton("alt") };
+        OwnedArray<SmallIconButton> buttons { new SmallIconButton("edit"), new SmallIconButton("lock"), new SmallIconButton("run"), new SmallIconButton("alt") };
 
         Label textLabel;
         String groupName;
@@ -29,6 +29,7 @@ public:
         Overlay group;
 
     public:
+
         OverlaySelector(ValueTree const& settings, Overlay groupType, String nameOfSetting, String nameOfGroup, String toolTipString)
             : groupName(std::move(nameOfGroup))
             , settingName(std::move(nameOfSetting))
@@ -37,15 +38,17 @@ public:
             , group(groupType)
         {
             auto controlVisibility = [this](String const& mode) {
-                if (settingName == "origin" || settingName == "border" || mode == "edit" || mode == "lock" || mode == "alt") {
-                    return true;
-                } else {
+                if (settingName == "behind" && (mode == "edit" || mode == "alt")) {
                     return false;
                 }
+                else if (settingName == "origin" || settingName == "border" || mode == "edit" || mode == "lock" || mode == "alt") {
+                    return true;
+                }
+
+                return false;
             };
 
             for (auto* button : buttons) {
-                button->getProperties().set("Style", "SmallIcon");
                 addAndMakeVisible(button);
                 button->setVisible(controlVisibility(button->getName()));
                 button->addListener(this);
@@ -56,10 +59,12 @@ public:
             buttons[Run]->setButtonText(Icons::Presentation);
             buttons[Alt]->setButtonText(Icons::Eye);
 
-            buttons[Edit]->setTooltip("Show " + groupName.toLowerCase() + " in edit mode");
-            buttons[Lock]->setTooltip("Show " + groupName.toLowerCase() + " in run mode");
-            buttons[Run]->setTooltip("Show " + groupName.toLowerCase() + " in presentation mode");
-            buttons[Alt]->setTooltip("Show " + groupName.toLowerCase() + " when overlay button is active");
+            auto lowerCaseToolTip = toolTip.toLowerCase();
+
+            buttons[Edit]->setTooltip("Show " + lowerCaseToolTip + " in edit mode");
+            buttons[Lock]->setTooltip("Show " + lowerCaseToolTip + " in run mode");
+            buttons[Run]->setTooltip("Show " + lowerCaseToolTip + " in presentation mode");
+            buttons[Alt]->setTooltip("Show " + lowerCaseToolTip + " when overlay button is active");
 
             textLabel.setText(groupName, dontSendNotification);
             textLabel.setTooltip(toolTip);
@@ -76,7 +81,7 @@ public:
             buttons[Run]->setToggleState(static_cast<bool>(runState & group), dontSendNotification);
             buttons[Alt]->setToggleState(static_cast<bool>(altState & group), dontSendNotification);
 
-            setSize(230, 30);
+            setSize(200, 30);
         }
 
         void buttonClicked(Button* button) override
@@ -98,7 +103,11 @@ public:
 
         void resized() override
         {
-            auto bounds = Rectangle<int>(0, 0, 30, 30);
+            auto bounds = Rectangle<int>(4, 0, 30, 30);
+
+            textLabel.setBounds(bounds.withWidth(getWidth() / 2.0));
+            bounds.translate((getWidth() / 2.0) - 12, 0);
+
             buttons[Edit]->setBounds(bounds);
             bounds.translate(25, 0);
             buttons[Lock]->setBounds(bounds);
@@ -107,8 +116,6 @@ public:
             bounds.translate(25, 0);
             buttons[Alt]->setBounds(bounds);
             bounds.translate(25, 0);
-
-            textLabel.setBounds(bounds.withWidth(150));
         }
     };
 
@@ -119,56 +126,85 @@ public:
         auto overlayTree = settingsTree.getChildWithName("Overlays");
 
         canvasLabel.setText("Canvas", dontSendNotification);
-        canvasLabel.setFont(Font(14));
+        canvasLabel.setFont(Fonts::getSemiBoldFont().withHeight(14));
         addAndMakeVisible(canvasLabel);
 
         objectLabel.setText("Object", dontSendNotification);
-        objectLabel.setFont(Font(14));
+        objectLabel.setFont(Fonts::getSemiBoldFont().withHeight(14));
         addAndMakeVisible(objectLabel);
 
         connectionLabel.setText("Connection", dontSendNotification);
-        connectionLabel.setFont(Font(14));
+        connectionLabel.setFont(Fonts::getSemiBoldFont().withHeight(14));
         addAndMakeVisible(connectionLabel);
 
-        buttonGroups.add(new OverlaySelector(overlayTree, Origin, "origin", "Origin", "0,0 point of canvas"));
-        buttonGroups.add(new OverlaySelector(overlayTree, Border, "border", "Border", "Plugin / window workspace size"));
-        buttonGroups.add(new OverlaySelector(overlayTree, Index, "index", "Index", "Object index in patch"));
-        // buttonGroups.add(new OverlaySelector(overlayTree, Coordinate, "coordinate", "Coordinate", "Object coordinate in patch"));
-        buttonGroups.add(new OverlaySelector(overlayTree, ActivationState, "activation_state", "Activity", "Show object activity"));
-        buttonGroups.add(new OverlaySelector(overlayTree, Direction, "direction", "Direction", "Direction of connection"));
-        buttonGroups.add(new OverlaySelector(overlayTree, Order, "order", "Order", "Trigger order of multiple outlets"));
+        canvas.add(new OverlaySelector(overlayTree, Origin, "origin", "Origin", "Origin point of canvas"));
+        canvas.add(new OverlaySelector(overlayTree, Border, "border", "Border", "Plugin / window workspace size"));
 
-        for (auto* buttonGroup : buttonGroups) {
-            addAndMakeVisible(buttonGroup);
+        object.add(new OverlaySelector(overlayTree, Index, "index", "Index", "Object index in patch"));
+        object.add(new OverlaySelector(overlayTree, ActivationState, "activation_state", "Activity", "Object activity"));
+
+        connection.add(new OverlaySelector(overlayTree, Direction, "direction", "Direction", "Direction of connections"));
+        connection.add(new OverlaySelector(overlayTree, Order, "order", "Order", "Trigger order of multiple outlets"));
+        connection.add(new OverlaySelector(overlayTree, Behind, "behind", "Behind", "Connection cables behind objects"));
+
+        groups.add(&canvas);
+        groups.add(&object);
+        groups.add(&connection);
+
+        for (auto& group : groups) {
+            for (auto& item : *group) {
+                addAndMakeVisible(item);
+            }
         }
-        setSize(170, 500);
+        setSize(200, 505);
     }
 
     void resized() override
     {
-        auto bounds = getLocalBounds();
+        auto bounds = getLocalBounds().reduced(4, 0);
 
         auto const labelHeight = 26;
         auto const itemHeight = 28;
         auto const spacing = 2;
 
         canvasLabel.setBounds(bounds.removeFromTop(labelHeight));
-        buttonGroups[OverlayOrigin]->setBounds(bounds.removeFromTop(itemHeight));
-        buttonGroups[OverlayBorder]->setBounds(bounds.removeFromTop(itemHeight));
+        for (auto& item : canvas) {
+            item->setBounds(bounds.removeFromTop(itemHeight));
+        }
 
         bounds.removeFromTop(spacing);
         objectLabel.setBounds(bounds.removeFromTop(labelHeight));
-        buttonGroups[OverlayIndex]->setBounds(bounds.removeFromTop(itemHeight));
-
-        // doesn't exist yet
-        // buttonGroups[OverlayCoordinate].setBounds(bounds.removeFromTop(28));
-        buttonGroups[OverlayActivationState]->setBounds(bounds.removeFromTop(itemHeight));
+        for (auto& item : object) {
+            item->setBounds(bounds.removeFromTop(itemHeight));
+        }
 
         bounds.removeFromTop(spacing);
         connectionLabel.setBounds(bounds.removeFromTop(labelHeight));
-        buttonGroups[OverlayDirection]->setBounds(bounds.removeFromTop(itemHeight));
-        buttonGroups[OverlayOrder]->setBounds(bounds.removeFromTop(itemHeight));
-        setSize(170, bounds.getY());
+        for (auto& item : connection) {
+            item->setBounds(bounds.removeFromTop(itemHeight));
+        }
+        setSize(200, bounds.getY() + 5);
+    }
+
+    void paint(Graphics& g) override
+    {
+        for (auto& group : groups) {
+            auto groupBounds = group->getFirst()->getBounds().getUnion(group->getLast()->getBounds());
+
+            // draw background rectangle
+            g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.035f));
+            g.fillRoundedRectangle(groupBounds.toFloat(), Corners::largeCornerRadius);
+
+            // draw outline rectangle
+            g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+            g.drawRoundedRectangle(groupBounds.toFloat(), Corners::largeCornerRadius, 1.0f);
+
+            // draw lines between items
+            for (auto& item : *group){
+                if ((group->size() >= 2) && (item != group->getLast()))
+                    g.drawHorizontalLine(item->getBottom(), groupBounds.getX(), groupBounds.getRight());
+            }
+        }
     }
 
     static void show(Component* parent, Rectangle<int> bounds)
@@ -200,7 +236,11 @@ private:
         AltDisplay
     };
 
-    OwnedArray<OverlayDisplaySettings::OverlaySelector> buttonGroups;
+    Array<OwnedArray<OverlayDisplaySettings::OverlaySelector>*> groups;
+
+    OwnedArray<OverlayDisplaySettings::OverlaySelector> canvas;
+    OwnedArray<OverlayDisplaySettings::OverlaySelector> object;
+    OwnedArray<OverlayDisplaySettings::OverlaySelector> connection;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OverlayDisplaySettings)
 };

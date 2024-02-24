@@ -5,8 +5,10 @@
  */
 
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_gui_extra/juce_gui_extra.h>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
+#include "Utility/OSUtils.h"
 
 #include "SettingsFile.h"
 #include "LookAndFeel.h"
@@ -22,6 +24,7 @@ SettingsFileListener::~SettingsFileListener()
 }
 
 JUCE_IMPLEMENT_SINGLETON(SettingsFile)
+
 
 SettingsFile::~SettingsFile()
 {
@@ -49,7 +52,6 @@ SettingsFile* SettingsFile::initialise()
 
     // Make sure all the properties exist
     for (auto& [propertyName, propertyValue] : defaultSettings) {
-
         // If it doesn't exists, set it to the default value
         if (!settingsTree.hasProperty(propertyName) || settingsTree.getProperty(propertyName).toString() == "") {
             settingsTree.setProperty(propertyName, propertyValue, nullptr);
@@ -66,11 +68,24 @@ SettingsFile* SettingsFile::initialise()
     initialiseThemesTree();
     initialiseOverlayTree();
 
-    Desktop::getInstance().setGlobalScaleFactor(getProperty<float>("global_scale"));
+#if JUCE_IOS
+    if(!ProjectInfo::isStandalone) {
+        Desktop::getInstance().setGlobalScaleFactor(1.0f); // scaling inside AUv3 is a bad idea
+    }
+    else if (OSUtils::isIPad()) {
+        Desktop::getInstance().setGlobalScaleFactor(1.125f);
+    } else {
+        Desktop::getInstance().setGlobalScaleFactor(0.825f);
+    }
 
+#else
+    Desktop::getInstance().setGlobalScaleFactor(getProperty<float>("global_scale"));
+#endif
     saveSettings();
 
     settingsTree.addListener(this);
+    settingsFileWatcher.addFolder(settingsFile.getParentDirectory());
+    settingsFileWatcher.addListener(this);
 
     return this;
 }
@@ -105,6 +120,22 @@ ValueTree SettingsFile::getTheme(String const& name)
     return getColourThemesTree().getChildWithProperty("theme", name);
 }
 
+void SettingsFile::setLastBrowserPathForId(String const& identifier, File& path)
+{
+    if (identifier.isEmpty())
+        return;
+
+    settingsTree.getChildWithName("LastBrowserPaths").setProperty(identifier, path.getFullPathName(), nullptr);
+}
+
+File SettingsFile::getLastBrowserPathForId(String const& identifier)
+{
+    if (identifier.isEmpty())
+        return {};
+
+    return File(settingsTree.getChildWithName("LastBrowserPaths").getProperty(identifier).toString());
+}
+
 ValueTree SettingsFile::getCurrentTheme()
 {
     return getColourThemesTree().getChildWithProperty("theme", settingsTree.getProperty("theme"));
@@ -114,21 +145,40 @@ void SettingsFile::initialisePathsTree()
 {
 
     // Make sure all the default paths are in place
-    StringArray currentPaths;
+    Array<File> currentPaths;
 
     auto pathTree = getPathsTree();
 
+    // on iOS, the containerisation of apps leads to problems with custom search paths
+    // So we completely reset them every time
+#if JUCE_IOS
+    pathTree.removeAllChildren(nullptr);
+#endif
+
     for (auto child : pathTree) {
-        currentPaths.add(child.getProperty("Path").toString());
+        currentPaths.add(File(child.getProperty("Path").toString()));
     }
 
     for (auto const& path : pd::Library::defaultPaths) {
-        if (!currentPaths.contains(path.getFullPathName())) {
+        if (!currentPaths.contains(path)) {
             auto pathSubTree = ValueTree("Path");
             pathSubTree.setProperty("Path", path.getFullPathName(), nullptr);
             pathTree.appendChild(pathSubTree, nullptr);
         }
     }
+    
+    // TODO: remove this later. this is to fix a mistake during v0.8.4 development
+    for (auto child : pathTree) {
+        if(child.getProperty("Path").toString().contains("Abstractions/Gem"))
+        {
+            pathTree.removeChild(child, nullptr);
+            break;
+        }
+    }
+    
+    
+   
+    
 }
 
 void SettingsFile::addToRecentlyOpened(File const& path)
@@ -307,6 +357,13 @@ void SettingsFile::reloadSettings()
 
     for (auto* listener : listeners) {
         listener->settingsFileReloaded();
+    }
+}
+
+void SettingsFile::fileChanged(File const file, FileSystemWatcher::FileSystemEvent fileEvent)
+{
+    if(file == settingsFile) {
+        reloadSettings();
     }
 }
 

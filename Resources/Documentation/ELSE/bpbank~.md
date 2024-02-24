@@ -49,7 +49,10 @@ methods:
     description: list of ramp time for all filters in the bank
   - type: rampal <float>
     description: ramp time for all filters in the bank
-
+  - name: -mc <float>
+    description: sets to multichannel output
+    default: 0
+    
 draft: false
 ---
 

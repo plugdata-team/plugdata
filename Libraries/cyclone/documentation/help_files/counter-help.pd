@@ -80,14 +80,6 @@
 #X text 117 472 float;
 #X text 157 502 -;
 #X text 117 502 float;
-#X obj 2 3 cnv 15 553 42 empty empty empty 20 12 0 14 #e0e0e0 #404040 0;
-#N canvas 0 22 450 278 (subpatch) 0;
-#X coords 0 1 100 -1 554 42 1 0 0;
-#X restore 2 2 graph;
-#X obj 305 3 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
-#N canvas 382 141 749 319 (subpatch) 0;
-#X coords 0 -1 1 1 252 42 2 100 100;
-#X restore 304 2 pd;
 #X obj 204 162 nbx 2 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X text 109 530 1) list -;
 #X obj 204 106 bng 19 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
@@ -163,7 +155,7 @@
 #X connect 29 2 18 0;
 #X connect 33 0 0 0;
 #X restore 465 138 pd compatmode;
-#N canvas 539 59 748 402 carrymode 1;
+#N canvas 539 59 748 402 carrymode 0;
 #X obj 171 250 nbx 2 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X obj 171 161 bng 19 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X obj 212 249 tgl 18 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000 0 1;
@@ -451,10 +443,6 @@
 #X connect 34 0 17 0;
 #X connect 48 0 11 0;
 #X restore 483 96 pd basic_2;
-#X obj 17 52 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0 0 255 255 255 0 0 Counts over a range;
-#X obj 16 3 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0 255 255 255 0 0 counter;
-#X obj 322 25 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228 220 0 255 255 255 0 0 Objects cloned from Max/MSP;
-#X obj 363 3 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228 220 0 255 255 255 0 0 cyclone;
 #X text 174 529 1 float: max / 2 floats: min & max / 3 floats: direction (0: up / 1: down / 2: updown) \, min & max - default values: direction = 0 (up) \, min = 0 \, max = 2^24.;
 #X text 172 238 switches up/down direction, f 60;
 #X text 65 79 [counter] counts up and/or down by '1' in a given range.;
@@ -465,5 +453,7 @@
 #X text 172 392 the current value of the counter, f 61;
 #X text 172 472 1 when min is reached \, 0 when next round starts (if carryint is set and counting down), f 61;
 #X text 172 427 1 when max is reached \, 0 when next round starts (and 'carryint' is set and counting up), f 61;
-#X connect 49 0 69 0;
-#X connect 69 0 47 0;
+#X obj 3 3 ./header counter;
+#X text 22 57 Counts over a range;
+#X connect 45 0 65 0;
+#X connect 65 0 43 0;

@@ -4,7 +4,7 @@ if [[ $1 == "x64" ]]; then
   X64BitMode="x64"
 fi
 
-VERSION=0.7.0
+VERSION=0.8.4
 
 rm -f ./plugdata.wxs 
 cat > ./plugdata.wxs <<-EOL
@@ -77,6 +77,7 @@ cat > ./plugdata.wxs <<-EOL
 							<RemoveFile Id="VST3_ICON" Name="Plugin.ico" On="both"/>
 							<File Id="VST3_DESKTOP" Source="Plugins\VST3\plugdata.vst3\desktop.ini"/>
 							<File Id="VST3_ICON" Source="Plugins\VST3\plugdata.vst3\Plugin.ico"/>
+							<File Id="VST3_MODULEINFO" Source="Plugins\VST3\plugdata.vst3\Contents\Resources\moduleinfo.json"/>
 							<ReserveCost Id="VST3_COST" RunFromSource="89900000" RunLocal="89900000"></ReserveCost>
 						</Component>
 					</Directory>
@@ -94,6 +95,7 @@ cat > ./plugdata.wxs <<-EOL
 							<RemoveFile Id="VST3_FX_ICON" Name="Plugin.ico" On="both"/>
 							<File Id="VST3_FX_DESKTOP" Source="Plugins\VST3\plugdata-fx.vst3\desktop.ini"/>
 							<File Id="VST3_FX_ICON" Source="Plugins\VST3\plugdata-fx.vst3\Plugin.ico"/>
+							<File Id="VST3_FX_MODULEINFO" Source="Plugins\VST3\plugdata-fx.vst3\Contents\Resources\moduleinfo.json"/>
 						</Component>
 					</Directory>
 				</Directory>

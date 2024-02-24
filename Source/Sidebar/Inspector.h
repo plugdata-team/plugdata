@@ -4,17 +4,40 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "../Utility/PropertiesPanel.h"
+#include "Components/PropertiesPanel.h"
 
-class InspectorPanel : public PropertiesPanel {
+class PropertyRedirector : public Value::Listener {
+public:
+    PropertyRedirector(Value* controllerValue, Array<Value*> attachedValues)
+        : values(attachedValues)
+    {
+        values.add(controllerValue);
+        baseValue.setValue(controllerValue->getValue());
+        baseValue.addListener(this);
+    }
+
+    ~PropertyRedirector() override
+    {
+        baseValue.removeListener(this);
+    }
+
+    void valueChanged(Value& v) override
+    {
+        for (auto* value : values) {
+            value->setValue(baseValue.getValue());
+        }
+    }
+
+    Value baseValue;
+    Array<Value*> values;
 };
 
 class Inspector : public Component {
 
-    InspectorPanel panel;
-    String title;
+    PropertiesPanel panel;
     TextButton resetButton;
-    ObjectParameters properties;
+    Array<ObjectParameters> properties;
+    OwnedArray<PropertyRedirector> redirectors;
 
 public:
     Inspector()
@@ -28,8 +51,8 @@ public:
 
     void lookAndFeelChanged() override
     {
-        panel.setSeparatorColour(findColour(PlugDataColour::sidebarBackgroundColourId));
-        panel.setPanelColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
+        panel.setSeparatorColour(PlugDataColour::sidebarBackgroundColourId);
+        panel.setPanelColour(PlugDataColour::sidebarActiveBackgroundColourId);
     }
 
     void paint(Graphics& g) override
@@ -45,17 +68,7 @@ public:
         panel.setContentWidth(getWidth() - 16);
     }
 
-    void setTitle(String const& name)
-    {
-        title = name;
-    }
-
-    String getTitle()
-    {
-        return title;
-    }
-
-    static PropertiesPanel::Property* createPanel(int type, String const& name, Value* value, StringArray& options)
+    static PropertiesPanelProperty* createPanel(int type, String const& name, Value* value, StringArray& options)
     {
         switch (type) {
         case tString:
@@ -86,23 +99,69 @@ public:
         loadParameters(properties);
     }
 
-    void loadParameters(ObjectParameters& params)
+    void loadParameters(Array<ObjectParameters>& objectParameters)
     {
-        properties = params;
+        properties = objectParameters;
 
         StringArray names = { "Dimensions", "General", "Appearance", "Label", "Extra" };
 
         panel.clear();
 
+        auto parameterIsInAllObjects = [&objectParameters](ObjectParameter& param, Array<Value*>& values) {
+            auto& [name1, type1, category1, value1, options1, defaultVal1, customComponent1] = param;
+
+            if (objectParameters.size() > 1 && (name1 == "Size" || name1 == "Position" || name1 == "Height")) {
+                return false;
+            }
+
+            bool isInAllObjects = true;
+            for (auto& parameters : objectParameters) {
+                bool hasParameter = false;
+                for (auto& [name2, type2, category2, value2, options2, defaultVal2, customComponent2] : parameters.getParameters()) {
+                    if (name1 == name2 && type1 == type2 && category1 == category2) {
+                        values.add(value2);
+                        hasParameter = true;
+                        break;
+                    }
+                }
+
+                isInAllObjects = isInAllObjects && hasParameter;
+            }
+
+            return isInAllObjects;
+        };
+
+        redirectors.clear();
+
         for (int i = 0; i < 4; i++) {
-            Array<PropertiesPanel::Property*> panels;
-            int idx = 0;
-            for (auto& [name, type, category, value, options, defaultVal] : params.getParameters()) {
-                if (static_cast<int>(category) == i) {
-                    auto newPanel = createPanel(type, name, value, options);
-                    newPanel->setPreferredHeight(26);
-                    panels.add(newPanel);
-                    idx++;
+            Array<PropertiesPanelProperty*> panels;
+            for (auto& parameter : objectParameters[0].getParameters()) {
+                auto& [name, type, category, value, options, defaultVal, customComponentFn] = parameter;
+
+                if (customComponentFn && objectParameters.size() == 1 && static_cast<int>(category) == i) {
+                    if (auto* customComponent = customComponentFn()) {
+                        panel.addSection("", { customComponent });
+                    } else {
+                        continue;
+                    }
+                } else if (customComponentFn) {
+                    continue;
+                } else if (static_cast<int>(category) == i) {
+
+                    Array<Value*> otherValues;
+                    if (!parameterIsInAllObjects(parameter, otherValues))
+                        continue;
+
+                    else if (objectParameters.size() == 1) {
+                        auto newPanel = createPanel(type, name, value, options);
+                        newPanel->setPreferredHeight(26);
+                        panels.add(newPanel);
+                    } else {
+                        auto* redirector = redirectors.add(new PropertyRedirector(value, otherValues));
+                        auto newPanel = createPanel(type, name, &redirector->baseValue, options);
+                        newPanel->setPreferredHeight(26);
+                        panels.add(newPanel);
+                    }
                 }
             }
             if (!panels.isEmpty()) {
@@ -113,12 +172,13 @@ public:
 
     std::unique_ptr<Component> getExtraSettingsComponent()
     {
-        auto* resetButton = new TextButton(Icons::Reset);
-        resetButton->getProperties().set("Style", "SmallIcon");
+        auto* resetButton = new SmallIconButton(Icons::Reset);
         resetButton->setTooltip("Reset to default");
         resetButton->setSize(23, 23);
         resetButton->onClick = [this]() {
-            properties.resetAll();
+            for (auto& propertiesList : properties) {
+                propertiesList.resetAll();
+            }
         };
 
         return std::unique_ptr<TextButton>(resetButton);

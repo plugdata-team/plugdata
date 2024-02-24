@@ -10,7 +10,9 @@
 
 #include "Patch.h"
 #include "Instance.h"
+#include "Interface.h"
 #include "Objects/ObjectBase.h"
+#include "../PluginEditor.h"
 
 extern "C" {
 #include <m_pd.h>
@@ -20,41 +22,17 @@ extern "C" {
 #include <utility>
 
 #include "g_undo.h"
-#include "x_libpd_extra_utils.h"
-#include "x_libpd_multi.h"
-
-struct _instanceeditor {
-    t_binbuf* copy_binbuf;
-    char* canvas_textcopybuf;
-    int canvas_textcopybufsize;
-    t_undofn canvas_undo_fn;      /* current undo function if any */
-    int canvas_undo_whatnext;     /* whether we can now UNDO or REDO */
-    void* canvas_undo_buf;        /* data private to the undo function */
-    t_canvas* canvas_undo_canvas; /* which canvas we can undo on */
-    char const* canvas_undo_name;
-    int canvas_undo_already_set_move;
-    double canvas_upclicktime;
-    int canvas_upx, canvas_upy;
-    int canvas_find_index, canvas_find_wholeword;
-    t_binbuf* canvas_findbuf;
-    int paste_onset;
-    t_canvas* paste_canvas;
-    t_glist* canvas_last_glist;
-    int canvas_last_glist_x, canvas_last_glist_y;
-    t_canvas* canvas_cursorcanvaswas;
-    unsigned int canvas_cursorwas;
-};
 
 extern void canvas_reload(t_symbol* name, t_symbol* dir, t_glist* except);
 }
 
 namespace pd {
 
-Patch::Patch(void* patchPtr, Instance* parentInstance, bool ownsPatch, File patchFile)
-    : ptr(patchPtr, parentInstance)
-    , instance(parentInstance)
-    , currentFile(std::move(patchFile))
+Patch::Patch(pd::WeakReference patchPtr, Instance* parentInstance, bool ownsPatch, File patchFile)
+    : instance(parentInstance)
     , closePatchOnDelete(ownsPatch)
+    , currentFile(std::move(patchFile))
+    , ptr(patchPtr)
 {
     jassert(parentInstance);
 }
@@ -95,18 +73,24 @@ Rectangle<int> Patch::getBounds() const
 
 bool Patch::isDirty() const
 {
-    if (auto patch = ptr.get<t_glist>()) {
-        return patch->gl_dirty;
-    }
-
-    return false;
+    return isPatchDirty.load();
 }
 
-void Patch::savePatch(File const& location)
+bool Patch::canUndo() const
 {
+    return canPatchUndo.load();
+}
 
+bool Patch::canRedo() const
+{
+    return canPatchRedo.load();
+}
+
+void Patch::savePatch(URL const& locationURL)
+{
+    auto location = locationURL.getLocalFile();
     String fullPathname = location.getParentDirectory().getFullPathName();
-    String filename = location.getFileName();
+    String filename = location.withFileExtension(".pd").getFileName();
 
     auto* dir = instance->generateSymbol(fullPathname.replace("\\", "/"));
     auto* file = instance->generateSymbol(filename);
@@ -115,13 +99,27 @@ void Patch::savePatch(File const& location)
         setTitle(filename);
         untitledPatchNum = 0;
         canvas_dirty(patch.get(), 0);
-
-        libpd_savetofile(patch.get(), file, dir);
+        
+#if JUCE_IOS
+        auto patchText = getCanvasContent();
+        auto outputStream = locationURL.createOutputStream();
+        
+        // on iOS, saving with pd's normal method doesn't work
+        // we need to use an outputstream on a URL
+        outputStream->write(patchText.toRawUTF8(), patchText.getNumBytesAsUTF8());
+        outputStream->flush();
+        
+        instance->logMessage("saved to: " + location.getFullPathName());
+        canvas_rename(patch.get(), file, dir);
+#else
+        pd::Interface::saveToFile(patch.get(), file, dir);
+#endif
 
         instance->reloadAbstractions(location, patch.get());
     }
 
     currentFile = location;
+    currentURL = locationURL;
 }
 
 t_glist* Patch::getRoot()
@@ -142,19 +140,26 @@ bool Patch::isSubpatch()
     return false;
 }
 
-bool Patch::isAbstraction()
+void Patch::updateUndoRedoState()
 {
-    if (auto patch = ptr.get<t_canvas>()) {
-        return canvas_isabstraction(patch.get());
-    }
+    if (auto patch = ptr.get<t_glist>()) {
+        canPatchUndo = pd::Interface::canUndo(patch.get());
+        canPatchRedo = pd::Interface::canRedo(patch.get());
+        isPatchDirty = patch->gl_dirty;
 
-    return false;
+        auto undoSize = pd::Interface::getUndoSize(patch.get());
+        if (undoQueueSize != undoSize) {
+            undoQueueSize = undoSize;
+            updateUndoRedoString();
+        }
+
+    }
 }
 
 void Patch::savePatch()
 {
     String fullPathname = currentFile.getParentDirectory().getFullPathName();
-    String filename = currentFile.getFileName();
+    String filename = currentFile.withFileExtension(".pd").getFileName();
 
     auto* dir = instance->generateSymbol(fullPathname.replace("\\", "/"));
     auto* file = instance->generateSymbol(filename);
@@ -163,21 +168,23 @@ void Patch::savePatch()
         setTitle(filename);
         untitledPatchNum = 0;
         canvas_dirty(patch.get(), 0);
-
-        libpd_savetofile(patch.get(), file, dir);
+        
+        pd::Interface::saveToFile(patch.get(), file, dir);
     }
 
-    MessageManager::callAsync([this, patch = ptr.getRaw<t_glist>()]() {
-        sys_lock();
-        instance->reloadAbstractions(currentFile, patch);
-        sys_unlock();
+    MessageManager::callAsync([instance = juce::WeakReference(this->instance), file = this->currentFile, patch = ptr.getRaw<t_glist>()]() {
+        if(instance) {
+            sys_lock();
+            instance->reloadAbstractions(file, patch);
+            sys_unlock();
+        }
     });
 }
 
 void Patch::setCurrent()
 {
     if (auto patch = ptr.get<t_glist>()) {
-        instance->setThis();
+        // Ugly fix: plugdata needs gl_havewindow to always be true!
         patch->gl_havewindow = true;
         canvas_create_editor(patch.get());
     }
@@ -209,81 +216,45 @@ Connections Patch::getConnections() const
     return connections;
 }
 
-std::vector<void*> Patch::getObjects()
+std::vector<pd::WeakReference> Patch::getObjects()
 {
     setCurrent();
 
-    std::vector<void*> objects;
+    std::vector<pd::WeakReference> objects;
     if (auto patch = ptr.get<t_glist>()) {
         for (t_gobj* y = patch->gl_list; y; y = y->g_next) {
-            objects.push_back(static_cast<void*>(y));
+            objects.push_back(pd::WeakReference(y, instance));
         }
     }
 
     return objects;
 }
 
-void* Patch::createGraphOnParent(int x, int y)
+t_gobj* Patch::createObject(int x, int y, String const& name)
 {
-    if (auto patch = ptr.get<t_glist>()) {
-        setCurrent();
-        return libpd_creategraphonparent(patch.get(), x, y);
-    }
-
-    return nullptr;
-}
-
-void* Patch::createGraph(int x, int y, String const& name, int size, int drawMode, bool saveContents, std::pair<float, float> range)
-{
-    if (auto patch = ptr.get<t_glist>()) {
-        setCurrent();
-        return libpd_creategraph(patch.get(), name.toRawUTF8(), size, x, y, drawMode, saveContents, range.first, range.second);
-    }
-
-    return nullptr;
-}
-
-void* Patch::createObject(int x, int y, String const& name)
-{
-
-    instance->setThis();
 
     StringArray tokens;
-    tokens.addTokens(name, false);
+    tokens.addTokens(name.replace("\\ ", "__%SPACE%__"), true); // Prevent "/ " from being tokenised
 
-    // See if we have preset parameters for this object
-    // These parameters are designed to make the experience in plugdata better
-    // Mostly larger GUI objects and a different colour scheme
-    if (guiDefaults.find(tokens[0]) != guiDefaults.end()) {
-        auto preset = guiDefaults.at(tokens[0]);
+    PluginEditor::getObjectManager()->formatObject(tokens);
 
-        auto bg = instance->getBackgroundColour();
-        auto fg = instance->getForegroundColour();
-        auto lbl = instance->getTextColour();
-        auto ln = instance->getOutlineColour();
+    if (tokens[0] == "garray") {
+        if (auto patch = ptr.get<t_glist>()) {
+            auto arrayPasta = "#N canvas 0 0 450 250 (subpatch) 0;\n#X array @arrName 100 float 2;\n#X coords 0 1 100 -1 200 140 1;\n#X restore " + String(x) + " " + String(y) + " graph;";
 
-        auto bg_str = bg.toString().substring(2);
-        auto fg_str = fg.toString().substring(2);
-        auto lbl_str = lbl.toString().substring(2);
-        auto ln_str = ln.toString().substring(2);
+            instance->setThis();
+            auto* newArraySymbol = pd::Interface::getUnusedArrayName();
+            arrayPasta = arrayPasta.replace("@arrName", String::fromUTF8(newArraySymbol->s_name));
 
-        preset = preset.replace("bgColour_rgb", String(bg.getRed()) + " " + String(bg.getGreen()) + " " + String(bg.getBlue()));
-        preset = preset.replace("fgColour_rgb", String(fg.getRed()) + " " + String(fg.getGreen()) + " " + String(fg.getBlue()));
-        preset = preset.replace("lblColour_rgb", String(lbl.getRed()) + " " + String(lbl.getGreen()) + " " + String(lbl.getBlue()));
-        preset = preset.replace("lnColour_rgb", String(ln.getRed()) + " " + String(ln.getGreen()) + " " + String(ln.getBlue()));
-
-        preset = preset.replace("bgColour", "#" + bg_str);
-        preset = preset.replace("fgColour", "#" + fg_str);
-        preset = preset.replace("lblColour", "#" + lbl_str);
-        preset = preset.replace("lnColour", "#" + ln_str);
-
-        tokens.addTokens(preset, false);
-    }
-
-    if (tokens[0] == "garray" && tokens.size() == 7) {
-        return createGraph(x, y, tokens[1], tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[4].getIntValue(), { tokens[5].getFloatValue(), tokens[6].getFloatValue() });
+            pd::Interface::paste(patch.get(), arrayPasta.toRawUTF8());
+            return pd::Interface::getNewest(patch.get());
+        }
     } else if (tokens[0] == "graph") {
-        return createGraphOnParent(x, y);
+        if (auto patch = ptr.get<t_glist>()) {
+            auto graphPasta = "#N canvas 0 0 450 250 (subpatch) 1;\n#X coords 0 1 100 -1 200 140 1 0 0;\n#X restore " + String(x) + " " + String(y) + " graph;";
+            pd::Interface::paste(patch.get(), graphPasta.toRawUTF8());
+            return pd::Interface::getNewest(patch.get());
+        }
     }
 
     t_symbol* typesymbol = instance->generateSymbol("obj");
@@ -324,73 +295,49 @@ void* Patch::createObject(int x, int y, String const& name)
 
     for (int i = 0; i < tokens.size(); i++) {
         // check if string is a valid number
-        auto charptr = tokens[i].getCharPointer();
+        auto token = tokens[i].replace("__%SPACE%__", "\\ ");
+        auto charptr = token.getCharPointer();
         auto ptr = charptr;
-        auto value = CharacterFunctions::readDoubleValue(ptr); // This will read the number and increment the pointer to be past the number
-        if (ptr - charptr == tokens[i].getNumBytesAsUTF8()) {
-            SETFLOAT(argv.data() + i + 2, tokens[i].getFloatValue());
+        CharacterFunctions::readDoubleValue(ptr); // This will read the number and increment the pointer to be past the number
+        if (ptr - charptr == token.getNumBytesAsUTF8()) {
+            SETFLOAT(argv.data() + i + 2, token.getFloatValue());
         } else {
-            SETSYMBOL(argv.data() + i + 2, instance->generateSymbol(tokens[i]));
+            SETSYMBOL(argv.data() + i + 2, instance->generateSymbol(token));
         }
     }
-
+    
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        return libpd_createobj(patch.get(), typesymbol, argc, argv.data());
+        EDITOR->canvas_undo_already_set_move = 1;
+        return pd::Interface::createObject(patch.get(), typesymbol, argc, argv.data());
     }
 
     return nullptr;
 }
 
-void* Patch::renameObject(void* obj, String const& name)
+t_gobj* Patch::renameObject(t_object* obj, String const& name)
 {
     StringArray tokens;
     tokens.addTokens(name, false);
 
-    // See if we have preset parameters for this object
-    // These parameters are designed to make the experience in plugdata better
-    // Mostly larger GUI objects and a different colour scheme
-    if (guiDefaults.find(tokens[0]) != guiDefaults.end()) {
-        auto preset = guiDefaults.at(tokens[0]);
-
-        auto bg = instance->getBackgroundColour();
-        auto fg = instance->getForegroundColour();
-        auto lbl = instance->getTextColour();
-        auto ln = instance->getOutlineColour();
-
-        auto bg_str = bg.toString().substring(2);
-        auto fg_str = fg.toString().substring(2);
-        auto lbl_str = lbl.toString().substring(2);
-        auto ln_str = ln.toString().substring(2);
-
-        preset = preset.replace("bgColour_rgb", String(bg.getRed()) + " " + String(bg.getGreen()) + " " + String(bg.getBlue()));
-        preset = preset.replace("fgColour_rgb", String(fg.getRed()) + " " + String(fg.getGreen()) + " " + String(fg.getBlue()));
-        preset = preset.replace("lblColour_rgb", String(lbl.getRed()) + " " + String(lbl.getGreen()) + " " + String(lbl.getBlue()));
-        preset = preset.replace("lnColour_rgb", String(ln.getRed()) + " " + String(ln.getGreen()) + " " + String(ln.getBlue()));
-
-        preset = preset.replace("bgColour", "#" + bg_str);
-        preset = preset.replace("fgColour", "#" + fg_str);
-        preset = preset.replace("lblColour", "#" + lbl_str);
-        preset = preset.replace("lnColour", "#" + ln_str);
-
-        tokens.addTokens(preset, false);
-    }
+    PluginEditor::getObjectManager()->formatObject(tokens);
     String newName = tokens.joinIntoString(" ");
 
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        libpd_renameobj(patch.get(), &checkObject(obj)->te_g, newName.toRawUTF8(), newName.getNumBytesAsUTF8());
-        return libpd_newest(patch.get());
+
+        pd::Interface::renameObject(patch.get(), &obj->te_g, newName.toRawUTF8(), newName.getNumBytesAsUTF8());
+        return pd::Interface::getNewest(patch.get());
     }
 
     return nullptr;
 }
 
-void Patch::copy()
+void Patch::copy(std::vector<t_gobj*> const& objects)
 {
     if (auto patch = ptr.get<t_glist>()) {
         int size;
-        char const* text = libpd_copy(patch.get(), &size);
+        char const* text = pd::Interface::copy(patch.get(), &size, objects);
         auto copied = String::fromUTF8(text, size);
         MessageManager::callAsync([copied]() mutable { SystemClipboard::copyTextToClipboard(copied); });
     }
@@ -492,30 +439,18 @@ void Patch::paste(Point<int> position)
 {
     auto text = SystemClipboard::getTextFromClipboard();
 
-    // for some reason when we paste into PD, we need to apply a translation?
-    auto translatedObjects = translatePatchAsString(text, position.translated(1540, 1540));
-
+    auto translatedObjects = translatePatchAsString(text, position);
+    
     if (auto patch = ptr.get<t_glist>()) {
-        libpd_paste(patch.get(), translatedObjects.toRawUTF8());
+        pd::Interface::paste(patch.get(), translatedObjects.toRawUTF8());
     }
 }
 
-void Patch::duplicate()
+void Patch::duplicate(std::vector<t_gobj*> const& objects)
 {
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        libpd_duplicate(patch.get());
-    }
-}
-
-void Patch::selectObject(void* obj)
-{
-
-    if (auto patch = ptr.get<t_glist>()) {
-        auto* checked = &checkObject(obj)->te_g;
-        if (!glist_isselected(patch.get(), checked)) {
-            glist_select(patch.get(), checked);
-        }
+        pd::Interface::duplicateSelection(patch.get(), objects);
     }
 }
 
@@ -523,100 +458,76 @@ void Patch::deselectAll()
 {
     if (auto patch = ptr.get<t_glist>()) {
         glist_noselect(patch.get());
-        libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
     }
 }
 
-void Patch::removeObject(void* obj)
-{
-    instance->lockAudioThread();
-
-    if (auto patch = ptr.get<t_glist>()) {
-        setCurrent();
-        libpd_removeobj(patch.get(), &checkObject(obj)->te_g);
-    }
-}
-
-bool Patch::hasConnection(void* src, int nout, void* sink, int nin)
+bool Patch::hasConnection(t_object* src, int nout, t_object* sink, int nin)
 {
     if (auto patch = ptr.get<t_glist>()) {
-        return libpd_hasconnection(patch.get(), checkObject(src), nout, checkObject(sink), nin);
+        return pd::Interface::hasConnection(patch.get(), src, nout, sink, nin);
     }
 
     return false;
 }
 
-bool Patch::canConnect(void* src, int nout, void* sink, int nin)
+bool Patch::canConnect(t_object* src, int nout, t_object* sink, int nin)
 {
     if (auto patch = ptr.get<t_glist>()) {
-        return libpd_canconnect(patch.get(), checkObject(src), nout, checkObject(sink), nin);
+
+        return pd::Interface::canConnect(patch.get(), src, nout, sink, nin);
     }
 
     return false;
 }
 
-void Patch::createConnection(void* src, int nout, void* sink, int nin)
+void Patch::createConnection(t_object* src, int nout, t_object* sink, int nin)
 {
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        libpd_createconnection(patch.get(), checkObject(src), nout, checkObject(sink), nin);
+        pd::Interface::createConnection(patch.get(), src, nout, sink, nin);
     }
 }
 
-void* Patch::createAndReturnConnection(void* src, int nout, void* sink, int nin)
+t_outconnect* Patch::createAndReturnConnection(t_object* src, int nout, t_object* sink, int nin)
 {
-    void* outconnect = nullptr;
-
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        return libpd_createconnection(patch.get(), checkObject(src), nout, checkObject(sink), nin);
+        return pd::Interface::createConnection(patch.get(), src, nout, sink, nin);
     }
 
     return nullptr;
 }
 
-void Patch::removeConnection(void* src, int nout, void* sink, int nin, t_symbol* connectionPath)
+void Patch::removeConnection(t_object* src, int nout, t_object* sink, int nin, t_symbol* connectionPath)
 {
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        libpd_removeconnection(patch.get(), checkObject(src), nout, checkObject(sink), nin, connectionPath);
+        pd::Interface::removeConnection(patch.get(), src, nout, sink, nin, connectionPath);
     }
 }
 
-void* Patch::setConnctionPath(void* src, int nout, void* sink, int nin, t_symbol* oldConnectionPath, t_symbol* newConnectionPath)
+t_outconnect* Patch::setConnctionPath(t_object* src, int nout, t_object* sink, int nin, t_symbol* oldConnectionPath, t_symbol* newConnectionPath)
 {
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        return libpd_setconnectionpath(patch.get(), checkObject(src), nout, checkObject(sink), nin, oldConnectionPath, newConnectionPath);
+        return pd::Interface::setConnectionPath(patch.get(), src, nout, sink, nin, oldConnectionPath, newConnectionPath);
     }
 
     return nullptr;
 }
 
-void Patch::moveObjects(std::vector<void*> const& objects, int dx, int dy)
+void Patch::moveObjects(std::vector<t_gobj*> const& objects, int dx, int dy)
 {
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-
-        glist_noselect(patch.get());
-
-        for (auto* obj : objects) {
-            glist_select(patch.get(), &checkObject(obj)->te_g);
-        }
-
-        libpd_moveselection(patch.get(), dx, dy);
-
-        glist_noselect(patch.get());
-
-        libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
-        setCurrent();
+        pd::Interface::moveObjects(patch.get(), dx, dy, objects);
     }
 }
 
-void Patch::moveObjectTo(void* object, int x, int y)
+void Patch::moveObjectTo(t_gobj* object, int x, int y)
 {
     if (auto patch = ptr.get<t_glist>()) {
-        libpd_moveobj(patch.get(), &checkObject(object)->te_g, x + 1544, y + 1544); // FIXME: why do we have to offset by 1544?
+        pd::Interface::moveObject(patch.get(), object, x + 1544, y + 1544); // FIXME: why do we have to offset by 1544?
     }
 }
 
@@ -624,15 +535,15 @@ void Patch::finishRemove()
 {
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        libpd_finishremove(patch.get());
+        pd::Interface::finishRemove(patch.get());
     }
 }
 
-void Patch::removeSelection()
+void Patch::removeObjects(std::vector<t_gobj*> const& objects)
 {
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        libpd_removeselection(patch.get());
+        pd::Interface::removeObjects(patch.get(), objects);
     }
 }
 
@@ -647,6 +558,8 @@ void Patch::endUndoSequence(String const& name)
 {
     if (auto patch = ptr.get<t_glist>()) {
         canvas_undo_add(patch.get(), UNDO_SEQUENCE_END, instance->generateSymbol(name)->s_name, nullptr);
+
+        updateUndoRedoString();
     }
 }
 
@@ -654,10 +567,13 @@ void Patch::undo()
 {
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        glist_noselect(patch.get());
-        libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
-
-        libpd_undo(patch.get());
+        auto x = patch.get();
+        glist_noselect(x);
+        
+        pd::Interface::undo(patch.get());
+        EDITOR->canvas_undo_already_set_move = 1;
+        
+        updateUndoRedoString();
     }
 }
 
@@ -665,15 +581,71 @@ void Patch::redo()
 {
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        glist_noselect(patch.get());
-        libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
-        libpd_redo(patch.get());
+        auto x = patch.get();
+        glist_noselect(x);
+        
+        pd::Interface::redo(patch.get());
+        EDITOR->canvas_undo_already_set_move = 1;
+
+        updateUndoRedoString();
     }
 }
 
-t_object* Patch::checkObject(void* obj)
+void Patch::updateUndoRedoString()
 {
-    return pd_checkobject(static_cast<t_pd*>(obj));
+    if (auto patch = ptr.get<t_glist>()) {
+        auto cnv = patch.get();
+        auto currentUndo = canvas_undo_get(cnv)->u_last;
+        auto undo = currentUndo;
+        auto redo = currentUndo->next;
+
+#ifdef DEBUG_UNDO_QUEUE
+        auto undoDbg = undo;
+        auto redoDbg = redo;
+#endif
+        
+        lastUndoSequence = "";
+        lastRedoSequence = "";
+
+        // undo / redo list will contain pd undo events
+        while (undo) {
+            String undoName = String::fromUTF8(undo->name);
+            if (undoName == "props") {
+                lastUndoSequence = "Change property";
+                break;
+            } else if (undoName != "no") {
+                lastUndoSequence = undoName.substring(0, 1).toUpperCase() + undoName.substring(1);
+                break;
+            }
+            undo = undo->prev;
+        }
+
+        while (redo) {
+            String redoName = String::fromUTF8(redo->name);
+            if (redoName == "props") {
+                lastRedoSequence = "Change property";
+                break;
+            } else if (redoName != "no") {
+                lastRedoSequence = redoName.substring(0, 1).toUpperCase() + redoName.substring(1);
+                break;
+            }
+            redo = redo->next;
+        }
+//#define DEBUG_UNDO_QUEUE
+#ifdef DEBUG_UNDO_QUEUE
+        std::cout << "<<<<<< undo list:" << std::endl;
+        while (undoDbg) {
+            std::cout << undoDbg->name << std::endl;
+            undoDbg = undoDbg->prev;
+        }
+        std::cout << ">>>>>> redo list:" << std::endl;
+        while (redoDbg) {
+            std::cout << redoDbg->name << std::endl;
+            redoDbg = redoDbg->next;
+        }
+        std::cout << "-------------------" << std::endl;
+#endif
+    }
 }
 
 String Patch::getTitle() const
@@ -694,6 +666,8 @@ String Patch::getTitle() const
             for (int i = 0; i < argc; i++) {
                 atom_string(&argv[i], namebuf, MAXPDSTRING);
                 name += String::fromUTF8(namebuf);
+                if (i != argc - 1)
+                    name += " ";
             }
             name += ")";
         }
@@ -740,9 +714,10 @@ File Patch::getPatchFile() const
     return File();
 }
 
-void Patch::setCurrentFile(File newFile)
+void Patch::setCurrentFile(URL const& newURL)
 {
-    currentFile = std::move(newFile);
+    currentFile = newURL.getLocalFile();
+    currentURL = newURL;
 }
 
 String Patch::getCanvasContent()
@@ -751,7 +726,7 @@ String Patch::getCanvasContent()
     int bufsize;
 
     if (auto patch = ptr.get<t_canvas>()) {
-        libpd_getcontent(patch.get(), &buf, &bufsize);
+        pd::Interface::getCanvasContent(patch.get(), &buf, &bufsize);
     } else {
         return {};
     }
@@ -759,8 +734,6 @@ String Patch::getCanvasContent()
     auto content = String::fromUTF8(buf, static_cast<size_t>(bufsize));
 
     freebytes(static_cast<void*>(buf), static_cast<size_t>(bufsize) * sizeof(char));
-
-    instance->unlockAudioThread();
 
     return content;
 }
@@ -772,33 +745,13 @@ void Patch::reloadPatch(File const& changedPatch, t_glist* except)
     canvas_reload(file, dir, except);
 }
 
-bool Patch::objectWasDeleted(void* objectPtr) const
+bool Patch::objectWasDeleted(t_gobj* objectPtr) const
 {
     if (auto patch = ptr.get<t_glist>()) {
         for (t_gobj* y = patch->gl_list; y; y = y->g_next) {
             if (y == objectPtr)
                 return false;
         }
-    }
-
-    return true;
-}
-bool Patch::connectionWasDeleted(void* connectionPtr) const
-{
-    t_outconnect* oc;
-    t_linetraverser t;
-
-    if (auto patch = ptr.get<t_glist>()) {
-        // Get connections from pd
-        linetraverser_start(&t, patch.get());
-
-        while ((oc = linetraverser_next(&t))) {
-            if (oc == connectionPtr) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     return true;

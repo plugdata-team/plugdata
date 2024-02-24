@@ -40,7 +40,7 @@ class CanvasViewport : public Viewport {
         }
 
         // warning: this only works because Canvas::mouseDown gets called before the listener's mouse down
-        // thus giving is a chance to attach the mouselistener on the middle-mouse click event
+        // thus giving us a chance to attach the mouselistener on the middle-mouse click event
         void mouseDown(MouseEvent const& e) override
         {
             e.originalComponent->setMouseCursor(MouseCursor::DraggingHandCursor);
@@ -62,7 +62,7 @@ class CanvasViewport : public Viewport {
         void mouseUp(MouseEvent const& e) override
         {
             e.originalComponent->setMouseCursor(MouseCursor::NormalCursor);
-            for (auto* object : viewport->cnv->objects){
+            for (auto* object : viewport->cnv->objects) {
                 object->setBufferedToImage(false);
             }
         }
@@ -143,8 +143,15 @@ class CanvasViewport : public Viewport {
 
         bool hitTest(int x, int y) override
         {
-            if (thumbBounds.contains(x, y))
+            Rectangle<float> fullBounds;
+            if (isVertical)
+                fullBounds = thumbBounds.withY(2).withHeight(getHeight() - 4);
+            else
+                fullBounds = thumbBounds.withX(2).withWidth(getWidth() - 4);
+
+            if (fullBounds.contains(x, y))
                 return true;
+
             return false;
         }
 
@@ -170,12 +177,13 @@ class CanvasViewport : public Viewport {
         {
             isMouseDragging = true;
             viewPosition = viewport->getViewPosition();
+            repaint();
         }
 
         void mouseUp(MouseEvent const& e) override
         {
+            isMouseDragging = false;
             if (e.mouseWasDraggedSinceMouseDown()) {
-                isMouseDragging = false;
                 if (!isMouseOver)
                     animator.shrink();
             }
@@ -222,12 +230,22 @@ class CanvasViewport : public Viewport {
 
             auto growingBounds = thumbBounds.reduced(1).withTop(thumbBounds.getY() + growPosition);
             auto roundedCorner = growingBounds.getHeight() * 0.5f;
+            auto fullBounds = growingBounds.withX(2).withWidth(getWidth() - 4);
+
             if (isVertical) {
                 growingBounds = thumbBounds.reduced(1).withLeft(thumbBounds.getX() + growPosition);
                 roundedCorner = growingBounds.getWidth() * 0.5f;
+                fullBounds = growingBounds.withY(2).withHeight(getHeight() - 4);
             }
 
-            g.setColour(findColour(ScrollBar::ColourIds::thumbColourId));
+            auto canvasColour = findColour(PlugDataColour::canvasBackgroundColourId);
+            auto scrollbarColour = findColour(ScrollBar::ColourIds::thumbColourId);
+            auto activeScrollbarColour = scrollbarColour.interpolatedWith(canvasColour.contrasting(0.6f), 0.7f);
+
+            g.setColour(scrollbarColour.interpolatedWith(canvasColour, 0.7f).withAlpha(std::clamp(1.0f - growAnimation, 0.0f, 1.0f)));
+            g.fillRoundedRectangle(fullBounds, roundedCorner);
+
+            g.setColour(isMouseDragging ? activeScrollbarColour : scrollbarColour);
             g.fillRoundedRectangle(growingBounds, roundedCorner);
         }
 
@@ -275,6 +293,10 @@ public:
         setScrollBarsShown(false, false);
 
         setPositioner(new ViewportPositioner(*this));
+
+#if JUCE_IOS
+        setScrollOnDragMode(ScrollOnDragMode::never);
+#endif
 
         setScrollBarThickness(8);
 
@@ -337,7 +359,7 @@ public:
         float scale = 1.0f / std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
         auto contentArea = getViewArea() * scale;
 
-        Rectangle<int> objectArea;
+        Rectangle<int> objectArea = contentArea.withPosition(cnv->canvasOrigin);
         for (auto object : cnv->objects) {
             objectArea = objectArea.getUnion(object->getBounds());
         }
@@ -350,7 +372,7 @@ public:
 
     void componentMovedOrResized(Component& c, bool moved, bool resized) override
     {
-        if (editor->pd->isInPluginMode())
+        if (cnv->pd->isInPluginMode())
             return;
 
         Viewport::componentMovedOrResized(c, moved, resized);
@@ -373,6 +395,11 @@ public:
 
         adjustScrollbarBounds();
 
+        if (!SettingsFile::getInstance()->getProperty<bool>("centre_resized_canvas")) {
+            Viewport::resized();
+            return;
+        }
+
         float scale = std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
 
         // centre canvas when resizing viewport
@@ -384,12 +411,12 @@ public:
             return getViewArea().withZeroOrigin().getCentre();
         };
 
-        auto currentCenter = getCentre(previousBounds);
+        auto currentCentre = getCentre(previousBounds);
         previousBounds = getBounds();
         Viewport::resized();
-        auto newCenter = getCentre(getBounds());
+        auto newCentre = getCentre(getBounds());
 
-        auto offset = currentCenter - newCenter;
+        auto offset = currentCentre - newCentre;
         setViewPosition(getViewPosition() + offset);
     }
 
