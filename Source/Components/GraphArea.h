@@ -6,18 +6,20 @@
 
 // Graph bounds component
 class GraphArea : public Component, public Value::Listener {
-    
+    ComponentBoundsConstrainer constrainer;
     ResizableBorderComponent resizer;
     Canvas* canvas;
     Rectangle<float> topLeftCorner, topRightCorner, bottomLeftCorner, bottomRightCorner;
 
 public:
     explicit GraphArea(Canvas* parent)
-        : resizer(this, nullptr)
+        : resizer(this, &constrainer)
         , canvas(parent)
     {
         addAndMakeVisible(resizer);
         updateBounds();
+        
+        constrainer.setMinimumSize(12, 12);
 
         resizer.setBorderThickness(BorderSize<int>(4, 4, 4, 4));
         resizer.addMouseListener(this, false);
