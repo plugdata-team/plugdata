@@ -172,6 +172,7 @@ PluginProcessor::PluginProcessor()
     objectLibrary = std::make_unique<pd::Library>(this);
 
     setLatencySamples(pd::Instance::getBlockSize());
+    settingsFile->startChangeListener();
 }
 
 PluginProcessor::~PluginProcessor()

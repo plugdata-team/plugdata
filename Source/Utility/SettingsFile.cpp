@@ -84,11 +84,15 @@ SettingsFile* SettingsFile::initialise()
     saveSettings();
 
     settingsTree.addListener(this);
-    settingsFileWatcher.addFolder(settingsFile.getParentDirectory());
-    settingsFileWatcher.addListener(this);
-
     return this;
 }
+
+void SettingsFile::startChangeListener()
+{
+    settingsFileWatcher.addFolder(settingsFile.getParentDirectory());
+    settingsFileWatcher.addListener(this);
+}
+
 
 ValueTree SettingsFile::getKeyMapTree()
 {

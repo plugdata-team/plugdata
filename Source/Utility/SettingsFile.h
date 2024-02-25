@@ -28,6 +28,8 @@ public:
 
     SettingsFile* initialise();
 
+    void startChangeListener();
+
     ValueTree getKeyMapTree();
     ValueTree getColourThemesTree();
     ValueTree getPathsTree();
