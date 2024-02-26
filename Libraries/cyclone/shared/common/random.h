@@ -11,8 +11,8 @@ typedef struct _cyrandom_state{
 }t_cyrandom_state;
 
 int cyrandom_get_id(void);
-void cyrandom_init(t_cyrandom_state* rstate, float f);
-unsigned int cyrandom_get_seed(t_symbol *s, int ac, t_atom *av, int n);
+void cyrandom_init(t_cyrandom_state* rstate, int seed);
+int cyget_seed(t_symbol *s, int ac, t_atom *av, int n);
 int cyclone_rand_int(unsigned int *statep, int range);
 float cyrandom_frand(uint32_t* s1, uint32_t* s2, uint32_t* s3);
 uint32_t cyrandom_trand(uint32_t* s1, uint32_t* s2, uint32_t* s3);
