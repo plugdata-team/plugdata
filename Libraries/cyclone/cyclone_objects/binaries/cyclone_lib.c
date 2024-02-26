@@ -630,31 +630,31 @@ static int printed;
 
 static int min_major = 0;
 static int min_minor = 54;
-static int min_bugfix = 0;
+static int min_bugfix = 1;
 
 static int cyclone_major = 0;
 static int cyclone_minor = 8;
-static int cyclone_bugfix = 0;
+static int cyclone_bugfix = 1;
 
 void print_cyclone(t_cyclone *x){
     int major = 0, minor = 0, bugfix = 0;
     sys_getversion(&major, &minor, &bugfix);
     post("");
     post("--------------------------------------------------------------------");
-    post(":: Cyclone %d.%d-%d; Released October 22nd 2023", cyclone_major, cyclone_minor, cyclone_bugfix);
+    post(":: Cyclone %d.%d-%d; Released February 21st 2024", cyclone_major, cyclone_minor, cyclone_bugfix);
     post(":: License: BSD-3-Clause (aka Revised BSD License)");
-    post(":: Copyright © 2003-2021 - Krzysztof Czaja, Hans-Christoph Steiner,");
-    post(":: Fred Jan Kraan, Alexandre Porres, Derek Kwan, Matt Barber\n:: and others.");
+    post(":: Copyright © 2003-2024 - Krzysztof Czaja, Hans-Christoph Steiner,");
+    post(":: Fred Jan Kraan, Alexandre Porres, Derek Kwan, Matt Barber\n\:: and others.");
     post(":: -----------------------------------------------------------------");
     if((major > min_major)
        || (major == min_major && minor > min_minor)
        || (major == min_major && minor == min_minor && bugfix >= min_bugfix))
-        post(":: Cyclone %d.%d-%d needs at least Pd %d.%d-%d\n::   (you have %d.%d-%d, you're good!)",
+        post(":: Cyclone %d.%d-%d needs at least Pd %d.%d-%d\n\::   (you have %d.%d-%d, you're good!)",
              cyclone_major, cyclone_minor, cyclone_bugfix,
              min_major, min_minor, min_bugfix,
              major, minor, bugfix);
     else
-        pd_error(x, ":: Cyclone %d.%d-%d needs at least Pd %d.%d-%d\n:: (you have %d.%d-%d, please upgrade!)",
+        pd_error(x, ":: Cyclone %d.%d-%d needs at least Pd %d.%d-%d\n\:: (you have %d.%d-%d, please upgrade!)",
             cyclone_major, cyclone_minor, cyclone_bugfix,
             min_major, min_minor, min_bugfix,
             major, minor, bugfix);
@@ -673,7 +673,8 @@ static void cyclone_about(t_cyclone *x){
 }
 
 static void cyclone_version(t_cyclone *x){
-    t_atom at[3];
+    int ac = 3;
+    t_atom at[ac];
 #ifdef PD_FLAVOR
     SETSYMBOL(at, gensym(PD_FLAVOR));
 #ifdef PD_L2ORK_VERSION
@@ -691,12 +692,12 @@ static void cyclone_version(t_cyclone *x){
     SETFLOAT(at+0, major);
     SETFLOAT(at+1, minor);
     SETFLOAT(at+2, bugfix);
-    outlet_list(x->x_out2,  &s_list, 3, at);
+    outlet_list(x->x_out2,  &s_list, ac, at);
     
     SETFLOAT(at, cyclone_major);
     SETFLOAT(at+1, cyclone_minor);
     SETFLOAT(at+2, cyclone_bugfix);
-    outlet_list(x->x_obj.te_outlet,  &s_list, 3, at);
+    outlet_list(x->x_obj.te_outlet,  &s_list, ac, at);
 }
 
 static void *cyclone_new(void){

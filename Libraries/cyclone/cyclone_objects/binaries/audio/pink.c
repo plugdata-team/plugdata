@@ -1,4 +1,4 @@
-// matt barber and porres (2018) for ELSE and here borrowed to Cyclone
+// matt barber and porres (2018) for ELSE and it's here lent to Cyclone
 // based on SuperCollider's pink UGen
 
 #include "m_pd.h"
@@ -16,19 +16,19 @@ typedef struct _pink{
     float          x_sr;
     int            x_octaves;
     int            x_octaves_set;
-    t_cyclone_random_state x_rstate;
+    t_cyrandom_state x_rstate;
     int             x_id;
 }t_pink;
 
 static void pink_init(t_pink *x){
     float *signals = x->x_signals;
     float total = 0;
-    t_cyclone_random_state *rstate = &x->x_rstate;
+    t_cyrandom_state *rstate = &x->x_rstate;
     uint32_t *s1 = &rstate->s1;
     uint32_t *s2 = &rstate->s2;
     uint32_t *s3 = &rstate->s3;
     for(int i = 0; i < x->x_octaves - 1; ++i){
-        float noise = (cyclone_random_frand(s1, s2, s3));
+        float noise = (cyrandom_frand(s1, s2, s3));
         total += noise;
         signals[i] = noise;
     }
@@ -36,7 +36,7 @@ static void pink_init(t_pink *x){
 }
 
 static void pink_seed(t_pink *x, t_symbol *s, int ac, t_atom *av){
-    cyclone_random_init(&x->x_rstate, cyclone_random_get_seed(s, ac, av, x->x_id));
+    cyrandom_init(&x->x_rstate, cyget_seed(s, ac, av, x->x_id));
     pink_init(x);
 }
 
@@ -49,7 +49,7 @@ static void pink_oct(t_pink *x, t_floatarg f){
 static t_int *pink_perform(t_int *w){
     t_pink *x = (t_pink *)(w[1]);
     int n = (t_int)(w[2]);
-    t_cyclone_random_state *rstate = (t_cyclone_random_state *)(w[3]);
+    t_cyrandom_state *rstate = (t_cyrandom_state *)(w[3]);
     float *signals = (float*)(w[4]);
     t_sample *out = (t_sample *)(w[5]);
     float total = x->x_total;
@@ -57,15 +57,15 @@ static t_int *pink_perform(t_int *w){
     uint32_t *s2 = &rstate->s2;
     uint32_t *s3 = &rstate->s3;
     while(n--){
-    	uint32_t rcounter = cyclone_random_trand(s1, s2, s3);
-    	float newrand = cyclone_random_frand(s1, s2, s3);
+    	uint32_t rcounter = cyrandom_trand(s1, s2, s3);
+    	float newrand = cyrandom_frand(s1, s2, s3);
     	int k = (CLZ(rcounter));
     	if(k < (x->x_octaves-1)){
     		float prevrand = signals[k];
     		signals[k] = newrand;
     		total += (newrand - prevrand);
     	}
-    	newrand = (cyclone_random_frand(s1, s2, s3));
+    	newrand = (cyrandom_frand(s1, s2, s3));
     	*out++ = (t_float)(total+newrand)/x->x_octaves;
 	}
 	x->x_total = total;
@@ -87,7 +87,7 @@ static void pink_dsp(t_pink *x, t_signal **sp){
 
 static void *pink_new(t_symbol *s, int ac, t_atom *av){
     t_pink *x = (t_pink *)pd_new(pink_class);
-    x->x_id = cyclone_random_get_id();
+    x->x_id = cyrandom_get_id();
     outlet_new(&x->x_obj, &s_signal);
     x->x_sr = 0;
     if(ac >= 2 && (atom_getsymbol(av) == gensym("-seed"))){
@@ -112,4 +112,5 @@ CYCLONE_OBJ_API void pink_tilde_setup(void){
     class_addfloat(pink_class, pink_oct);
     class_addmethod(pink_class, (t_method)pink_dsp, gensym("dsp"), A_CANT, 0);
     class_addmethod(pink_class, (t_method)pink_seed, gensym("seed"), A_GIMME, 0);
-}*/
+}
+*/

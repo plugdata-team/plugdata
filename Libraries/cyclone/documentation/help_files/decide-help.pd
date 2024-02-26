@@ -33,8 +33,8 @@
 #X obj 166 200 s \$0-bang;
 #X text 188 267 same as bang;
 #X text 186 372 sets the seed (default a random internal one);
-#X obj 2 3 ./header dcide;
 #X text 22 63 Randomly output 0 or 1;
+#X obj 2 3 ./header decide;
 #X connect 20 0 23 0;
 #X connect 20 0 24 0;
 #X connect 23 0 21 0;
