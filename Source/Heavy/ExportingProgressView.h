@@ -157,11 +157,16 @@ public:
 
     void paint(Graphics& g) override
     {
+        auto b = getLocalBounds();
+        
+        Path background;
+        background.addRoundedRectangle(b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, false, false, true, true);
+        
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
+        g.fillPath(background);
 
         g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawRoundedRectangle(console.getBounds().expanded(2).toFloat(), Corners::defaultCornerRadius, 1.0f);
+        g.strokePath(background, PathStrokeType(1.0f));
 
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
         g.fillRoundedRectangle(console.getBounds().expanded(2).toFloat(), Corners::defaultCornerRadius);
