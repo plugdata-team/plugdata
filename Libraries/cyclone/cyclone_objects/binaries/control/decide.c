@@ -32,7 +32,7 @@ static void decide_init(t_decide *x){
 }
 
 static void decide_seed(t_decide *x, t_symbol *s, int ac, t_atom *av){
-    cyrandom_init(&x->x_rstate, cyget_seed(s, ac, av, x->x_id));
+    cyrandom_init(&x->x_rstate, cyrandom_get_seed(s, ac, av, x->x_id));
     decide_init(x);
 }
 static void decide_ft1(t_decide *x, t_floatarg f){

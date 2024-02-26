@@ -74,7 +74,7 @@ static void rand_dsp(t_rand *x, t_signal **sp){
 }
 
 static void rand_seed(t_rand *x, t_symbol *s, int ac, t_atom *av){
-    cyrandom_init(&x->x_rstate, cyget_seed(s, ac, av, x->x_id));
+    cyrandom_init(&x->x_rstate, cyrandom_get_seed(s, ac, av, x->x_id));
 }
 
 static void *rand_new(t_floatarg f){

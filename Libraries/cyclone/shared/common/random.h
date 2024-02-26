@@ -4,18 +4,18 @@
 #include <stdint.h>
 #include <time.h>
 
-typedef struct _cyclone_random_state{
+typedef struct _cyrandom_state{
     uint32_t s1;
     uint32_t s2;
     uint32_t s3;
-}t_cyclone_random_state;
+}t_cyrandom_state;
 
-int cyclone_random_get_id(void);
-void cyclone_random_init(t_cyclone_random_state* rstate, float f);
-unsigned int cyclone_random_get_seed(t_symbol *s, int ac, t_atom *av, int n);
+int cyrandom_get_id(void);
+void cyrandom_init(t_cyrandom_state* rstate, float f);
+unsigned int cyrandom_get_seed(t_symbol *s, int ac, t_atom *av, int n);
 int cyclone_rand_int(unsigned int *statep, int range);
-float cyclone_random_frand(uint32_t* s1, uint32_t* s2, uint32_t* s3);
-uint32_t cyclone_random_trand(uint32_t* s1, uint32_t* s2, uint32_t* s3);
+float cyrandom_frand(uint32_t* s1, uint32_t* s2, uint32_t* s3);
+uint32_t cyrandom_trand(uint32_t* s1, uint32_t* s2, uint32_t* s3);
 
 ////////////// these are for pinknoise~
 

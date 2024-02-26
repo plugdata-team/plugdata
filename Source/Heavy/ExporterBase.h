@@ -41,7 +41,7 @@ struct ExporterBase : public Component
     PluginEditor* editor;
 
     ExporterBase(PluginEditor* pluginEditor, ExportingProgressView* exportView)
-        : ThreadPool(1)
+        : ThreadPool(1, Thread::osDefaultStackSize, Thread::Priority::highest)
         , exportingView(exportView)
         , editor(pluginEditor)
     {

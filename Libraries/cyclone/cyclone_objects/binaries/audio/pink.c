@@ -36,7 +36,7 @@ static void pink_init(t_pink *x){
 }
 
 static void pink_seed(t_pink *x, t_symbol *s, int ac, t_atom *av){
-    cyrandom_init(&x->x_rstate, cyget_seed(s, ac, av, x->x_id));
+    cyrandom_init(&x->x_rstate, cyrandom_get_seed(s, ac, av, x->x_id));
     pink_init(x);
 }
 

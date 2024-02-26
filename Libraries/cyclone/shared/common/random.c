@@ -30,7 +30,7 @@ static int32_t random_hash(int32_t inKey){
 }
 
 
-unsigned int cyclone_random_get_seed(t_symbol *s, int ac, t_atom *av, int n){
+unsigned int cyrandom_get_seed(t_symbol *s, int ac, t_atom *av, int n){
     s = NULL;
     unsigned int timeval;
     if(ac && av->a_type == A_FLOAT)
@@ -40,11 +40,11 @@ unsigned int cyclone_random_get_seed(t_symbol *s, int ac, t_atom *av, int n){
     return(timeval);
 }
 
-int cyclone_random_get_id(void){
+int cyrandom_get_id(void){
     return(++instance_number);
 }
 
-uint32_t cyclone_random_trand(uint32_t *s1, uint32_t *s2, uint32_t *s3){
+uint32_t cyrandom_trand(uint32_t *s1, uint32_t *s2, uint32_t *s3){
 // Provided for speed in inner loops where the state variables are loaded into registers.
 // Thus updating the instance variables can be postponed until the end of the loop.
     *s1 = ((*s1 & (uint32_t)- 2) << 12) ^ (((*s1 << 13) ^ *s1) >> 19);
@@ -53,10 +53,10 @@ uint32_t cyclone_random_trand(uint32_t *s1, uint32_t *s2, uint32_t *s3){
     return(*s1 ^ *s2 ^ *s3);
 }
 
-float cyclone_random_frand(uint32_t *s1, uint32_t *s2, uint32_t *s3){
+float cyrandom_frand(uint32_t *s1, uint32_t *s2, uint32_t *s3){
     // return a float from -1.0 to +0.999...
     union { uint32_t i; float f; } u; // union for floating point conversion of result
-    u.i = 0x40000000 | (cyclone_random_trand(s1, s2, s3) >> 9);
+    u.i = 0x40000000 | (cyrandom_trand(s1, s2, s3) >> 9);
     return(u.f - 3.f);
 }
 
@@ -66,7 +66,7 @@ int cyclone_rand_int(unsigned int *statep, int range){ // from [random]
     return(result < range ? result : range - 1);
 }
 
-void cyclone_random_init(t_cyclone_random_state* rstate, float f){
+void cyrandom_init(t_cyrandom_state* rstate, float f){
 	// humans tend to use small seeds - mess up the bits
 	uint32_t seedval = (uint32_t)random_hash((int)f);
 	uint32_t *s1 = &rstate->s1;
