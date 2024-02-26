@@ -300,33 +300,40 @@ void Canvas::paint(Graphics& g)
     auto scale = ::getValue<float>(zoomScale);
 
     if (!getValue<bool>(locked)) {
-        auto const& gridSize = objectGrid.gridSize;
-        if(scale < 1.0f)
-        {
-            auto const largeGridSize = gridSize * 4;
-            Image dotsImage(Image::PixelFormat::ARGB, largeGridSize, largeGridSize, true);
-            Graphics g2(dotsImage);
-            g2.setColour(findColour(PlugDataColour::canvasDotsColourId));
-            auto dotWidth = 1.0f / jmap(scale, 0.3f, 1.0f, 0.4f, 1.0f);
-            
-            for(int i = 0; i < 4; i++)
-            {
-                auto x = static_cast<float>(i * gridSize);
-                auto y = static_cast<float>(i * gridSize);
-                g2.fillRect(0.5f, y + 0.5f, dotWidth, dotWidth);
-                g2.fillRect(x + 0.5f, 0.5f, dotWidth, dotWidth);
+
+        auto startX = (canvasOrigin.x % objectGrid.gridSize);
+        startX += ((clipBounds.getX() / objectGrid.gridSize) * objectGrid.gridSize);
+
+        auto startY = (canvasOrigin.y % objectGrid.gridSize);
+        startY += ((clipBounds.getY() / objectGrid.gridSize) * objectGrid.gridSize);
+
+        g.setColour(findColour(PlugDataColour::canvasDotsColourId));
+
+        for (int x = startX; x < clipBounds.getRight(); x += objectGrid.gridSize) {
+            // calculate the x here, once per iteration, as it won't change for y
+            auto const gridSpacing = objectGrid.gridSize * 4;
+            auto const xGridSpacing = (x - canvasOrigin.x) % gridSpacing == 0;
+
+            for (int y = startY; y < clipBounds.getBottom(); y += objectGrid.gridSize) {
+
+                // Don't draw over origin or border line
+                if (showBorder || showOrigin) {
+                    if ((x == canvasOrigin.x && y >= canvasOrigin.y && (showOrigin || (y <= patchHeightCanvas))) || (y == canvasOrigin.y && x >= canvasOrigin.x && (showOrigin || (x <= patchWidthCanvas))))
+                        continue;
+                }
+                auto dotWidth = 1.0f;
+                if (scale < 1.0f) {
+                    if (((y - canvasOrigin.y) % gridSpacing == 0) || xGridSpacing) {
+                        dotWidth = 1.0f / jmap(scale, 0.3f, 1.0f, 0.4f, 1.0f);
+                    } else {
+                        // TIM: draw the dot's differently for some grid sizes, or not at all?
+                        if (objectGrid.gridSize == 5)
+                            continue;
+                    }
+                }
+                auto halfDotWidth = dotWidth * 0.5f;
+                g.fillRect(static_cast<float>(x) - halfDotWidth, static_cast<float>(y) - halfDotWidth, dotWidth, dotWidth);
             }
-            
-            g.setTiledImageFill(dotsImage, canvasOrigin.x - 1, canvasOrigin.y - 1, 1.0f);
-            g.fillAll();
-        }
-        else {
-            Image dotImage(Image::PixelFormat::ARGB, gridSize, gridSize, true);
-            Graphics g2(dotImage);
-            g2.setColour(findColour(PlugDataColour::canvasDotsColourId));
-            dotImage.setPixelAt(0, 0, findColour(PlugDataColour::canvasDotsColourId));
-            g.setTiledImageFill(dotImage, canvasOrigin.x - 1, canvasOrigin.y - 1, 1.0f);
-            g.fillAll();
         }
     }
 
