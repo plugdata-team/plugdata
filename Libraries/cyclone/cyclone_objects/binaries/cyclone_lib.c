@@ -691,12 +691,12 @@ static void cyclone_version(t_cyclone *x){
     SETFLOAT(at+0, major);
     SETFLOAT(at+1, minor);
     SETFLOAT(at+2, bugfix);
-    outlet_list(x->x_out2,  &s_list, ac, at);
+    outlet_list(x->x_out2,  &s_list, 3, at);
     
     SETFLOAT(at, cyclone_major);
     SETFLOAT(at+1, cyclone_minor);
     SETFLOAT(at+2, cyclone_bugfix);
-    outlet_list(x->x_obj.te_outlet,  &s_list, ac, at);
+    outlet_list(x->x_obj.te_outlet,  &s_list, 3, at);
 }
 
 static void *cyclone_new(void){
