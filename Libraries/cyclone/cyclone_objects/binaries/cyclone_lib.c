@@ -673,8 +673,7 @@ static void cyclone_about(t_cyclone *x){
 }
 
 static void cyclone_version(t_cyclone *x){
-    int ac = 3;
-    t_atom at[ac];
+    t_atom at[3];
 #ifdef PD_FLAVOR
     SETSYMBOL(at, gensym(PD_FLAVOR));
 #ifdef PD_L2ORK_VERSION
@@ -682,7 +681,7 @@ static void cyclone_version(t_cyclone *x){
 #elif defined(PD_PLUGDATA_VERSION)
     SETSYMBOL(at+1, gensym(PD_PLUGDATA_VERSION));
 #endif
-    outlet_list(x->x_out3,  &s_list, 2, at);
+    outlet_list(x->x_out3,  &s_list, 2, 3);
 #else
     outlet_symbol(x->x_out3, gensym("Pd-Vanilla"));
 #endif
