@@ -794,7 +794,9 @@ private:
             applySuggestionsToButtons(found, currentText);
         }
 
-        library->getExtraSuggestions(found.size(), currentText, [this, filterObjects, applySuggestionsToButtons, found, currentText](StringArray s) mutable {
+        library->getExtraSuggestions(found.size(), currentText, [_this = SafePointer(this), this, filterObjects, applySuggestionsToButtons, found, currentText](StringArray s) mutable {
+            if(!_this) return;
+            
             filterObjects(s);
 
             // This means the extra suggestions have returned too late to still be relevant
