@@ -61,13 +61,17 @@ class LuaObject : public ObjectBase, public Timer {
     std::unique_ptr<Graphics> graphics;
     Colour currentColour;
     std::map<t_symbol*, Path> currentPaths;
-    Image drawBuffer;
-    Image image;
+    Image firstBuffer;
+    Image secondBuffer;
+    Image* drawBuffer = &firstBuffer;
+    Image* displayBuffer = &secondBuffer;
     bool isSelected = false;
     moodycamel::ReaderWriterQueue<LuaGuiMessage> guiQueue = moodycamel::ReaderWriterQueue<LuaGuiMessage>(40);
     Value zoomScale;
     std::unique_ptr<Component> textEditor;
     std::unique_ptr<Dialog> saveDialog;
+    
+    static inline std::map<t_pdlua*, std::vector<LuaObject*>> allDrawTargets = std::map<t_pdlua*, std::vector<LuaObject*>>();
     
 public:
     LuaObject(pd::WeakReference obj, Object* parent)
@@ -76,19 +80,37 @@ public:
         if(auto pdlua = ptr.get<t_pdlua>())
         {
             pdlua->gfx.plugdata_draw_callback = &drawCallback;
-            pdlua->gfx.plugdata_callback_target = this;
+            allDrawTargets[pdlua.get()].push_back(this);
         }
         
-        zoomScale.referTo(cnv->zoomScale);
-        zoomScale.addListener(this);
+        parentHierarchyChanged();
         startTimerHz(60); // Check for paint messages at 60hz (but we only really repaint when needed)
+    }
+    
+    // We can only attach the zoomscale to canvas after the canvas has been added to its own parent
+    // When initialising, this isn't always the case
+    void parentHierarchyChanged() override
+    {
+        // We need to get the actual zoom from the top level canvas, not of the graph this happens to be inside of
+        auto* topLevelCanvas = cnv;
+        
+        while(topLevelCanvas && topLevelCanvas->isGraph)
+        {
+            topLevelCanvas = topLevelCanvas->findParentComponentOfClass<Canvas>();
+        }
+        if(topLevelCanvas) {
+            zoomScale.referTo(topLevelCanvas->zoomScale);
+            zoomScale.addListener(this);
+            sendRepaintMessage();
+        }
     }
     
     ~LuaObject()
     {
         if(auto pdlua = ptr.get<t_pdlua>())
         {
-            pdlua->gfx.plugdata_callback_target = NULL;
+            auto& listeners = allDrawTargets[pdlua.get()];
+            listeners.erase(std::remove(listeners.begin(), listeners.end(), this), listeners.end());
         }
         zoomScale.removeListener(this);
     }
@@ -103,7 +125,7 @@ public:
             int x = 0, y = 0, w = 0, h = 0;
             pd::Interface::getObjectBounds(patch, gobj.cast<t_gobj>(), &x, &y, &w, &h);
             
-            return Rectangle<int>(x, y, gobj->gfx.width, gobj->gfx.height);
+            return Rectangle<int>(x, y, gobj->gfx.width + 2, gobj->gfx.height + 2);
         }
         
         return {};
@@ -117,8 +139,8 @@ public:
                 return;
             
             pd::Interface::moveObject(patch, gobj.cast<t_gobj>(), b.getX(), b.getY());
-            gobj->gfx.width = b.getWidth();
-            gobj->gfx.height = b.getHeight();
+            gobj->gfx.width = b.getWidth() - 2;
+            gobj->gfx.height = b.getHeight() - 2;
         }
         
         sendRepaintMessage();
@@ -175,15 +197,12 @@ public:
     
     void paint(Graphics& g) override
     {
-        g.drawImage(image, getLocalBounds().toFloat());
+        g.drawImage(*displayBuffer, getLocalBounds().toFloat());
     }
     
     void valueChanged(Value& v) override
     {
-        if(v.refersToSameSourceAs(cnv->zoomScale))
-        {
-            sendRepaintMessage();
-        }
+        sendRepaintMessage();
     }
     
     void timerCallback() override
@@ -214,16 +233,31 @@ public:
         switch(hashsym)
         {
             case hash("lua_start_paint"): {
-                auto scale = getValue<float>(cnv->zoomScale) * 2.0f; // Multiply by 2 for hi-dpi screens
-                drawBuffer = Image(Image::PixelFormat::ARGB, getWidth() * scale, getHeight() * scale, true);
-                graphics = std::make_unique<Graphics>(drawBuffer);
-                graphics->addTransform(AffineTransform::scale(scale)); // for hi-dpi displays
+                auto scale = getValue<float>(zoomScale) * 2.0f; // Multiply by 2 for hi-dpi screens
+                if(firstBuffer.getBounds() != getLocalBounds() * scale)
+                {
+                    firstBuffer = Image(Image::PixelFormat::ARGB, getWidth() * scale, getHeight() * scale, true);
+                    secondBuffer = Image(Image::PixelFormat::ARGB, getWidth() * scale, getHeight() * scale, true);
+                }
+                else{
+                    drawBuffer->clear(getLocalBounds() * scale);
+                }
+                
+                graphics = std::make_unique<Graphics>(*drawBuffer);
                 graphics->saveState();
+                graphics->addTransform(AffineTransform::scale(scale)); // for hi-dpi displays and canvas zooming
+                //graphics->addTransform(AffineTransform::translation(1, 1));
                 return;
             }
             case hash("lua_end_paint"): {
+                graphics->restoreState();
                 graphics.reset(nullptr);
-                image = drawBuffer.createCopy();
+
+                // swap buffers
+                auto* oldDrawBuffer = drawBuffer;
+                drawBuffer = displayBuffer;
+                displayBuffer = oldDrawBuffer;
+                
                 repaint();
                 return;
             }
@@ -235,6 +269,7 @@ public:
                     }
                     object->updateBounds();
                 }
+                std::cout << "RESIZED" << std::endl;
                 return;
             }
             case hash("lua_start_path"): {
@@ -442,7 +477,7 @@ public:
                 
                 auto outlineColour = object->findColour(isSelected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
                 graphics->setColour(outlineColour);
-                graphics->drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+                graphics->drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f).withTrimmedRight(0.5f).withTrimmedBottom(0.5f), Corners::objectCornerRadius, 1.0f);
                 
                 graphics->setColour(colour);
                 
@@ -482,7 +517,10 @@ public:
     
     static void drawCallback(void* target, t_symbol* sym, int argc, t_atom* argv)
     {
-        reinterpret_cast<LuaObject*>(target)->receiveLuaPaintMessage(sym, argc, argv);
+        for(auto* object : allDrawTargets[static_cast<t_pdlua*>(target)])
+        {
+            object->receiveLuaPaintMessage(sym, argc, argv);
+        }
     }
     
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
