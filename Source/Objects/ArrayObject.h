@@ -129,7 +129,7 @@ public:
                 Path p;
                 p.startNewSubPath(0, h - (std::clamp(points[0], scale[0], scale[1]) - scale[0]) * dh);
 
-                for (size_t i = 1; i < points.size() - 2; i += 3) {
+                for (int i = 1; i < static_cast<int>(points.size()) - 2; i += 3) {
                     float const y1 = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
                     float const y2 = h - (std::clamp(points[i + 1], scale[0], scale[1]) - scale[0]) * dh;
                     float const y3 = h - (std::clamp(points[i + 2], scale[0], scale[1]) - scale[0]) * dh;
@@ -149,7 +149,7 @@ public:
                 Point<float> newPoint;
 
                 Path p;
-                for (size_t i = 1; i < points.size(); i++) {
+                for (int i = 1; i < static_cast<int>(points.size()); i++) {
                     float const y = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
                     newPoint = Point<float>(static_cast<float>(i) * dw, y);
 
