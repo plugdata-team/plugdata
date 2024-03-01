@@ -19,6 +19,7 @@ namespace pd {
 class Patch;
 }
 
+class NVGcontext;
 class SuggestionComponent;
 class GraphArea;
 class Iolet;
@@ -72,6 +73,8 @@ public:
 
     void focusGained(FocusChangeType cause) override;
     void focusLost(FocusChangeType cause) override;
+        
+    void renderNVG(NVGcontext* nvg);
 
     int getOverlays() const;
     void updateOverlays();

@@ -6,6 +6,15 @@
 
 #pragma once
 
+#include <JuceHeader.h>
+#include <juce_opengl/juce_opengl.h>
+using namespace juce::gl;
+
+#include <nanovg-dev/src/nanovg.h>
+
+#define NANOVG_GL3_IMPLEMENTATION
+#include <nanovg-dev/src/nanovg_gl.h>
+
 #include <utility>
 
 #include "Utility/GlobalMouseListener.h"
@@ -19,7 +28,7 @@
 #include "Utility/SettingsFile.h"
 
 // Special viewport that shows scrollbars on top of content instead of next to it
-class CanvasViewport : public Viewport {
+class CanvasViewport : public Viewport, public Timer {
 
     class MousePanner : public MouseListener {
     public:
@@ -290,6 +299,38 @@ public:
         : editor(parent)
         , cnv(cnv)
     {
+        gl::loadFunctions();
+        
+        glContext.setOpenGLVersionRequired(OpenGLContext::OpenGLVersion::openGL3_2);
+        glContext.setSwapInterval(0);
+        glContext.setMultisamplingEnabled(false);
+        glContext.setComponentPaintingEnabled(false);
+        
+        MessageManager::callAsync([this, cnv](){
+            
+            glContext.attachTo(*cnv->getParentComponent());
+
+            #if JUCE_LINUX
+            // Make sure only message thread has the context set as active
+                glContext.executeOnGLThread([](OpenGLContext& context){
+                // We get unpredictable behaviour if the context is active on multiple threads
+                OpenGLContext::deactivateCurrentContext();
+                }, true);
+            #endif
+            
+            glContext.makeActive();
+            
+            nvg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
+            if (!nvg)
+                std::cout << "could not init nvg" << std::endl;
+
+            //nvgWrapper.interFont = nvgCreateFont(nvg, "sans", "/Users/timschoen/Projecten/plugnvg/Data/InterSemiBold.ttf");
+            //if (nvgWrapper.interFont == -1)
+            //    std::cout << "could not init font" << std::endl;
+            
+            startTimerHz(60);
+        });
+        
         setScrollBarsShown(false, false);
 
         setPositioner(new ViewportPositioner(*this));
@@ -302,6 +343,20 @@ public:
 
         addAndMakeVisible(vbar);
         addAndMakeVisible(hbar);
+    }
+    
+    void timerCallback() override
+    {
+        glContext.makeActive();
+        
+        glViewport(0, 0, getWidth() * 2, getHeight() * 2);
+        OpenGLHelpers::clear(Colours::black);
+
+        nvgBeginFrame(nvg, getWidth() * 2, getHeight() * 2, 1.0f);
+        cnv->renderNVG(nvg);
+        nvgEndFrame(nvg);
+        
+        glContext.swapBuffers();
     }
 
     void lookAndFeelChanged() override
@@ -429,6 +484,8 @@ public:
     std::function<void()> onScroll = []() {};
 
 private:
+    NVGcontext* nvg;
+    OpenGLContext glContext;
     Time lastScrollTime;
     PluginEditor* editor;
     Canvas* cnv;

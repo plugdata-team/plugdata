@@ -19,6 +19,7 @@
 
 using PathPlan = std::vector<Point<float>>;
 
+class NVGcontext;
 class Canvas;
 class PathUpdater;
 
@@ -67,6 +68,8 @@ public:
 
     bool isSegmented() const;
     void setSegmented(bool segmented);
+        
+    void render(NVGcontext* nvg);
 
     void updatePath();
 

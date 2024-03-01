@@ -14,6 +14,7 @@
 
 #define ACTIVITY_UPDATE_RATE 15
 
+class NVGcontext;
 struct ObjectDragState;
 class ObjectBase;
 class Iolet;
@@ -70,6 +71,8 @@ public:
 
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
+        
+    void render(NVGcontext* nvg);
 
     void mouseMove(MouseEvent const& e) override;
     void mouseDown(MouseEvent const& e) override;

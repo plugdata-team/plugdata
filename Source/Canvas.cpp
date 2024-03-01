@@ -25,6 +25,7 @@
 #include "Components/GraphArea.h"
 #include "Utility/RateReducer.h"
 
+
 extern "C" {
 void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 }
@@ -153,6 +154,76 @@ Canvas::~Canvas()
     zoomScale.removeListener(this);
     editor->removeModifierKeyListener(this);
     pd->unregisterMessageListener(patch.getPointer().get(), this);
+}
+
+
+void Canvas::renderNVG(NVGcontext* nvg)
+{
+    int halfSize = infiniteCanvasSize / 2;
+    auto b = Rectangle<int>(0, 0, infiniteCanvasSize, infiniteCanvasSize);
+    
+    // apply translation to the canvas nvg objects
+    nvgSave(nvg);
+    
+    nvgScale(nvg, 2, 2);
+    nvgTranslate(nvg, -viewport->getViewPositionX(), -viewport->getViewPositionY());
+    nvgScale(nvg, getValue<float>(zoomScale), getValue<float>(zoomScale));
+    
+    /*
+    auto scaledMousePos = mousePos;
+    nvgTranslate(nvg, scaledMousePos.x, scaledMousePos.y);
+    nvgScale(nvg, canvasScale, canvasScale);
+    nvgTranslate(nvg, delta.x - scaledMousePos.x, delta.y - scaledMousePos.y); */
+
+    auto bgColour = nvgRGBf(.15, .15, .15);
+
+    nvgBeginPath(nvg);
+    //if (resetDots == true) {
+    NVGpaint dots = nvgDotPattern(nvg, nvgRGBf(.4, .4, .4), bgColour);
+    //    resetDots = false;
+    //}
+    //auto grad = nvgRadialGradient(nvg, 100000, 100000, 10, 100, nvgRGBf(1.0, 1.0, 1.0), bgColour);
+    nvgFillPaint(nvg, dots);
+    nvgRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight());
+    nvgFill(nvg);
+
+    nvgBeginPath(nvg);
+    
+    auto pos = Point<int>(halfSize, halfSize);
+    nvgMoveTo(nvg, pos.x, pos.y + 100000);
+    nvgLineTo(nvg, pos.x, pos.y);
+    nvgLineTo(nvg, pos.x + 100000, pos.y);
+
+    // place solid line behind (to fake removeing grid points for now)
+    nvgLineStyle(nvg, NVG_LINE_SOLID);
+    nvgStrokeColor(nvg, bgColour);
+    nvgStrokeWidth(nvg, 6.0f);
+    nvgStroke(nvg);
+
+    // draw 0,0 point lines
+    nvgLineStyle(nvg, NVG_LINE_DASHED);
+    nvgStrokeColor(nvg, nvgRGBf(1, 1, 1));
+    nvgStrokeWidth(nvg, 1.0f);
+    nvgStroke(nvg);
+
+    nvgLineStyle(nvg, NVG_LINE_SOLID);
+    
+    for(auto* obj : objects)
+    {
+        nvgSave(nvg);
+        nvgTranslate(nvg, obj->getX(), obj->getY());
+        obj->render(nvg);
+        nvgRestore(nvg);
+    }
+    
+    for(auto* connection : connections)
+    {
+        nvgSave(nvg);
+        connection->render(nvg);
+        nvgRestore(nvg);
+    }
+    
+    nvgRestore(nvg);
 }
 
 void Canvas::propertyChanged(String const& name, var const& value)

@@ -250,6 +250,7 @@ target_compile_options(juce PUBLIC $<$<CONFIG:Release>:${JUCE_LTO_FLAGS}>)
 set(libs
   juce
   PlugDataBinaryData
+  nanovg
 )
 
 if(UNIX AND NOT APPLE)

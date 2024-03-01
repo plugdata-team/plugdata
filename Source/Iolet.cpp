@@ -4,6 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <nanovg-dev/src/nanovg.h>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
 
@@ -47,6 +48,70 @@ Rectangle<int> Iolet::getCanvasBounds()
 {
     // Get bounds relative to canvas, used for positioning connections
     return cnv->getLocalArea(this, getLocalBounds());
+}
+
+void Iolet::render(NVGcontext* nvg)
+{
+    auto bounds = getLocalBounds().toFloat().reduced(0.5f);
+
+    bool isLocked = getValue<bool>(locked) || getValue<bool>(commandLocked);
+    bool down = isMouseButtonDown();
+    bool over = isMouseOver();
+
+    if ((!isTargeted && !over) || isLocked) {
+        bounds = bounds.reduced(2);
+    }
+
+    auto backgroundColour = isSignal ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId);
+    if(isGemState)
+    {
+        backgroundColour = findColour(PlugDataColour::gemColourId);
+    }
+    
+    if ((down || over) && !isLocked)
+        backgroundColour = backgroundColour.contrasting(down ? 0.2f : 0.05f);
+
+    if (isLocked) {
+        backgroundColour = findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.5f);
+    }
+
+    // Instead of drawing pie segments, just clip the graphics region to the visible iolets of the object
+    // This is much faster!
+    bool stateSaved = false;
+    if (!(object->isMouseOverOrDragging(true) || over || isTargeted) || isLocked) {
+        nvgSave(nvg);
+        auto clipBounds = getLocalArea(object, object->getLocalBounds().reduced(Object::margin));
+        nvgScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
+        stateSaved = true;
+    }
+
+    // TODO: this is kind of a hack to force inlets to align correctly. Find a better way to fix this!
+    if ((getHeight() % 2) == 0) {
+        bounds.translate(0.0f, isInlet ? -1.0f : 0.0f);
+    }
+
+    auto outlineColour = findColour(PlugDataColour::objectOutlineColourId);
+    
+    if (PlugDataLook::getUseSquareIolets()) {
+        
+        //g.fillRect(bounds);
+
+        //g.setColour(findColour(PlugDataColour::objectOutlineColourId));
+        //g.drawRect(bounds, 1.0f);
+    } else {
+        nvgBeginPath(nvg);
+        nvgFillColor(nvg, nvgRGB(backgroundColour.getRed(), backgroundColour.getGreen(), backgroundColour.getBlue()));
+        nvgCircle(nvg, bounds.getCentreX(), bounds.getCentreY(), bounds.getWidth() / 2);
+        nvgFill(nvg);
+        
+        nvgStrokeColor(nvg, nvgRGB(outlineColour.getRed(), outlineColour.getGreen(), outlineColour.getBlue()));
+        nvgStroke(nvg);
+
+    }
+
+    if (stateSaved) {
+        nvgRestore(nvg);
+    }
 }
 
 bool Iolet::hitTest(int x, int y)

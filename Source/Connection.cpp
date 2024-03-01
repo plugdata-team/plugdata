@@ -4,6 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <nanovg-dev/src/nanovg.h>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
 
@@ -123,6 +124,51 @@ void Connection::lookAndFeelChanged()
     updatePath();
     resizeToFit();
     repaint();
+}
+
+void Connection::render(NVGcontext* nvg)
+{
+    auto startPos = outlet->getCanvasBounds().getPosition();
+    auto endPos = inlet->getCanvasBounds().getPosition();
+    
+    const auto cPoint1 = Point<float>(startPos.x, ((endPos.y - startPos.y) * 0.75f) + startPos.y);
+    const auto cPoint2 = Point<float>(endPos.x, ((endPos.y - startPos.y) * 0.25f) + startPos.y);
+
+    auto cp1 = cPoint1;
+    auto cp2 = cPoint2;
+    auto start = startPos;
+    auto end = endPos;
+
+    // semi-transparent background line
+    nvgBeginPath(nvg);
+    nvgLineStyle(nvg, NVG_LINE_SOLID);
+    nvgMoveTo(nvg, start.x, start.y);
+    nvgBezierTo(nvg, cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
+    nvgStrokeColor(nvg, nvgRGBA(45, 45, 45, 100));
+    nvgLineCap(nvg, NVG_ROUND);
+    nvgStrokeWidth(nvg, 6.0f);
+    nvgStroke(nvg);
+/*
+    // solid background line
+    nvgBeginPath(nvg);
+    nvgLineStyle(nvg, NVG_LINE_SOLID);
+    nvgMoveTo(nvg, start.x, start.y);
+    nvgBezierTo(nvg, cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
+    nvgStrokeColor(nvg, nvgRGBA(55, 55, 55, 255));
+    nvgLineCap(nvg, NVG_ROUND);
+    nvgStrokeWidth(nvg, 3.5f);
+    nvgStroke(nvg);
+*/
+    // inner line
+    nvgBeginPath(nvg);
+    
+    nvgLineStyle(nvg, outlet->isSignal ? NVG_LINE_DASHED : NVG_LINE_SOLID);
+    nvgMoveTo(nvg, start.x, start.y);
+    nvgBezierTo(nvg, cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
+    nvgStrokeColor(nvg, nvgRGBA(250, 250, 250, 255));
+    nvgStrokeWidth(nvg, 2.0f);
+    nvgStroke(nvg);
+    nvgLineStyle(nvg, NVG_LINE_SOLID);
 }
 
 void Connection::pushPathState()

@@ -5,6 +5,7 @@
  */
 
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <nanovg-dev/src/nanovg.h>
 
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
@@ -1201,6 +1202,62 @@ void Object::mouseDrag(MouseEvent const& e)
                 }
             }
         }
+    }
+}
+
+void Object::render(NVGcontext* nvg)
+{
+    auto b = getLocalBounds().reduced(margin);
+    
+    auto convertColour = [](Colour c) { return nvgRGB(c.getRed(), c.getGreen(), c.getBlue()); };
+    
+    auto backgroundColour = convertColour(findColour(PlugDataColour::textObjectBackgroundColourId));
+    auto selectedOutlineColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
+    auto outlineColour = convertColour(findColour(PlugDataColour::objectOutlineColourId));
+    
+    if (selectedFlag) {
+        nvgFillColor(nvg, selectedOutlineColour);
+        // top left
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, b.getX() - 4, b.getY() - 4, 14, 14, Corners::objectCornerRadius);
+        nvgFill(nvg);
+        // bottom right
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, b.getX() + b.getWidth() - 10, b.getY() + b.getHeight() - 10, 14, 14, Corners::objectCornerRadius);
+        nvgFill(nvg);
+        // top right
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, b.getX() + b.getWidth() - 10, b.getY() - 4, 14, 14, Corners::objectCornerRadius);
+        nvgFill(nvg);
+        // bottom left
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, b.getX() - 4, b.getY() + b.getHeight() - 10, 14, 14, Corners::objectCornerRadius);
+        nvgFill(nvg);
+
+    }
+    
+    nvgBeginPath(nvg);
+    nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+    nvgFillColor(nvg, backgroundColour);
+    nvgFill(nvg);
+    nvgStrokeWidth(nvg, 1.f);
+    nvgStrokeColor(nvg, selectedFlag ? selectedOutlineColour : outlineColour);
+    nvgStroke(nvg);
+
+    nvgFillColor(nvg, nvgRGBf(.9, .9, .9));
+    nvgFontSize(nvg, 16.0f);
+    nvgFontFace(nvg, "sans");
+    nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
+    
+    auto text = gui ? gui->getText() : "empty";
+    nvgText(nvg, b.toFloat().getX() + 5, b.toFloat().getCentreY(), text.toRawUTF8(), nullptr);
+
+    // draw all iolets at once
+    for (auto* iolet : iolets) {
+        nvgSave(nvg);
+        nvgTranslate(nvg, iolet->getX(), iolet->getY());
+        iolet->render(nvg);
+        nvgRestore(nvg);
     }
 }
 

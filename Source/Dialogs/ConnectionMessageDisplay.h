@@ -13,7 +13,7 @@
 #include "LookAndFeel.h"
 #include "Connection.h"
 #include "PluginEditor.h"
-#include "CanvasViewport.h"
+#include "Object.h"
 
 class ConnectionMessageDisplay
     : public Component
