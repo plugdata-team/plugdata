@@ -349,14 +349,24 @@ public:
     {
         glContext.makeActive();
         
-        glViewport(0, 0, getWidth() * 2, getHeight() * 2);
+        glViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
         OpenGLHelpers::clear(Colours::black);
 
-        nvgBeginFrame(nvg, getWidth() * 2, getHeight() * 2, 1.0f);
+        nvgBeginFrame(nvg, getWidth() * pixelScale, getHeight() * pixelScale, 1.0f);
+        nvgSave(nvg);
+        nvgScale(nvg, pixelScale, pixelScale);
+        
         cnv->renderNVG(nvg);
+        
+        nvgRestore(nvg);
         nvgEndFrame(nvg);
         
         glContext.swapBuffers();
+    }
+    
+    void paint(Graphics& g) override
+    {
+        pixelScale = g.getInternalContext().getPhysicalPixelScaleFactor();
     }
 
     void lookAndFeelChanged() override
@@ -486,6 +496,7 @@ public:
 private:
     NVGcontext* nvg;
     OpenGLContext glContext;
+    float pixelScale = 1.0f;
     Time lastScrollTime;
     PluginEditor* editor;
     Canvas* cnv;

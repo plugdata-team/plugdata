@@ -165,7 +165,6 @@ void Canvas::renderNVG(NVGcontext* nvg)
     // apply translation to the canvas nvg objects
     nvgSave(nvg);
     
-    nvgScale(nvg, 2, 2);
     nvgTranslate(nvg, -viewport->getViewPositionX(), -viewport->getViewPositionY());
     nvgScale(nvg, getValue<float>(zoomScale), getValue<float>(zoomScale));
     
