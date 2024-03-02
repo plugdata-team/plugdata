@@ -246,6 +246,7 @@ public:
                 graphics = std::make_unique<Graphics>(*drawBuffer);
                 graphics->saveState();
                 graphics->addTransform(AffineTransform::scale(scale)); // for hi-dpi displays and canvas zooming
+                graphics->saveState();
                 //graphics->addTransform(AffineTransform::translation(1, 1));
                 return;
             }
