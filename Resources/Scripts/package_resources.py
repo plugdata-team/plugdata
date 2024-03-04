@@ -21,6 +21,9 @@ def changeWorkingDir(path):
 def copyFile(src, dst):
     shutil.copy(src, dst)
 
+def moveFile(src, dst):
+    shutil.copy(src, dst)
+
 def copyDir(src, dst):
     shutil.copytree(src, dst)
 
@@ -93,6 +96,8 @@ copyFile("../Patches/daw_storage-help.pd", "./Documentation/5.reference")
 
 globCopy("../../Libraries/cyclone/cyclone_objects/abstractions/*.pd", "./Abstractions/cyclone")
 copyDir("../../Libraries/cyclone/documentation/help_files", "./Documentation/10.cyclone")
+globCopy("../../Libraries/cyclone/documentation/extra_files/*", "./Documentation/10.cyclone/")
+moveFile("./Documentation/10.cyclone/dsponoff~.pd", "./Abstractions/cyclone/dsponoff~.pd")
 copyDir("../../Libraries/pd-else/Documentation/Live-Electronics-Tutorial/", "./Documentation/12.live-electronics-tutorial")
 
 makeDir("Documentation/11.heavylib")
