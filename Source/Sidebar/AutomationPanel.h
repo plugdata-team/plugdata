@@ -271,6 +271,19 @@ public:
         bool isEditable = PlugDataParameter::canDynamicallyAdjustParameters();
         bool isOverNameLable = nameLabel.getBounds().contains(e.getEventRelativeTo(&nameLabel).getPosition());
 
+        if(e.mods.isRightButtonDown() && !ProjectInfo::isStandalone)
+        {
+            auto* pluginEditor = findParentComponentOfClass<PluginEditor>();
+            if(auto* hostContext = pluginEditor->getHostContext()) {
+                hostContextMenu = hostContext->getContextMenuForParameter(param);
+                if(hostContextMenu) {
+                    auto menuPosition = pluginEditor->getMouseXYRelative();
+                    hostContextMenu->showNativeMenu(menuPosition);
+                }
+            }
+            return;
+        }
+        
         if (isEditable && isOverNameLable && !e.mouseWasDraggedSinceMouseDown() && e.getNumberOfClicks() >= 2) {
             nameLabel.showEditor();
         }
@@ -369,7 +382,8 @@ public:
     }
 
     std::function<void(AutomationItem*)> onDelete = [](AutomationItem*) {};
-
+    std::unique_ptr<HostProvidedContextMenu> hostContextMenu;
+        
     SmallIconButton deleteButton;
     ExpandButton settingsButton;
 
