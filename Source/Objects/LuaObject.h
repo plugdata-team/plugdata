@@ -7,7 +7,6 @@
 
 extern "C"
 {
-
 #include <pd-lua/lua/lua.h>
 
 #define PLUGDATA 1
@@ -21,56 +20,23 @@ void pdlua_gfx_mouse_drag(t_pdlua* o, int x, int y);
 void pdlua_gfx_repaint(t_pdlua* o, int firsttime);
 }
 
-struct LuaGuiMessage {
-    
-    t_symbol* symbol;
-    t_atom data[8];
-    int size;
-    
-    LuaGuiMessage() = default;
-    
-    LuaGuiMessage(t_symbol* sym, int argc, t_atom* argv)
-    : symbol(sym)
-    {
-        size = std::min(argc, 8);
-        std::copy(argv, argv + size, data);
-    }
-    
-    LuaGuiMessage(LuaGuiMessage const& other) noexcept
-    {
-        symbol = other.symbol;
-        size = other.size;
-        std::copy(other.data, other.data + other.size, data);
-    }
-    
-    LuaGuiMessage& operator=(LuaGuiMessage const& other) noexcept
-    {
-        // Check for self-assignment
-        if (this != &other) {
-            symbol = other.symbol;
-            size = other.size;
-            std::copy(other.data, other.data + other.size, data);
-        }
-        
-        return *this;
-    }
-};
-
-class LuaObject : public ObjectBase, public Timer {
+class LuaObject : public ObjectBase, public AsyncUpdater {
     
     std::unique_ptr<Graphics> graphics;
     Colour currentColour;
-    std::map<t_symbol*, Path> currentPaths;
+
+    
+    CriticalSection bufferSwapLock;
     Image firstBuffer;
     Image secondBuffer;
     Image* drawBuffer = &firstBuffer;
     Image* displayBuffer = &secondBuffer;
     bool isSelected = false;
-    moodycamel::ReaderWriterQueue<LuaGuiMessage> guiQueue = moodycamel::ReaderWriterQueue<LuaGuiMessage>(40);
     Value zoomScale;
     std::unique_ptr<Component> textEditor;
     std::unique_ptr<Dialog> saveDialog;
     
+    static inline std::map<t_gpointer*, Path> currentPaths = std::map<t_gpointer*, Path>();
     static inline std::map<t_pdlua*, std::vector<LuaObject*>> allDrawTargets = std::map<t_pdlua*, std::vector<LuaObject*>>();
     
 public:
@@ -84,7 +50,6 @@ public:
         }
         
         parentHierarchyChanged();
-        startTimerHz(60); // Check for paint messages at 60hz (but we only really repaint when needed)
     }
     
     // We can only attach the zoomscale to canvas after the canvas has been added to its own parent
@@ -197,6 +162,13 @@ public:
     
     void paint(Graphics& g) override
     {
+        if(isSelected != object->isSelected())
+        {
+            isSelected = object->isSelected();
+            sendRepaintMessage();
+        }
+        
+        ScopedLock swapLock(bufferSwapLock);
         g.drawImage(*displayBuffer, getLocalBounds().toFloat());
     }
     
@@ -205,269 +177,264 @@ public:
         sendRepaintMessage();
     }
     
-    void timerCallback() override
+    void handleAsyncUpdate() override
     {
-        LuaGuiMessage guiMessage;
-        while(guiQueue.try_dequeue(guiMessage))
-        {
-            handleGuiMessage(guiMessage);
-        }
+        repaint();
+    }
 
-        if(isSelected != object->isSelected())
-        {
-            isSelected = object->isSelected();
-            sendRepaintMessage();
+    static void receiveLuaPathMessage(t_gpointer* path, t_symbol* sym, int argc, t_atom* argv)
+    {
+        switch(hash(sym->s_name)) {
+            case hash("lua_start_path"): {
+                if (argc >= 2) {
+                    auto& currentPath = currentPaths[path];
+                    float x = atom_getfloat(argv);
+                    float y = atom_getfloat(argv + 1);
+                    currentPath.startNewSubPath(x, y);
+                }
+                break;
+            }
+            case hash("lua_line_to"): {
+                if (argc >= 2) {
+                    auto& currentPath = currentPaths[path];
+                    float x = atom_getfloat(argv);
+                    float y = atom_getfloat(argv + 1);
+                    currentPath.lineTo(x, y);
+                }
+                break;
+            }
+            case hash("lua_quad_to"): {
+                if (argc >= 4) { // Assuming quad_to takes 3 arguments
+                    auto& currentPath = currentPaths[path];
+                    float x1 = atom_getfloat(argv);
+                    float y1 = atom_getfloat(argv + 1);
+                    float x2 = atom_getfloat(argv + 2);
+                    float y2 = atom_getfloat(argv + 3);
+                    currentPath.quadraticTo(x1, y1, x2, y2);
+                }
+                break;
+            }
+            case hash("lua_cubic_to"): {
+                if (argc >= 5) { // Assuming cubic_to takes 4 arguments
+                    auto& currentPath = currentPaths[path];
+                    float x1 = atom_getfloat(argv);
+                    float y1 = atom_getfloat(argv + 1);
+                    float x2 = atom_getfloat(argv + 2);
+                    float y2 = atom_getfloat(argv + 3);
+                    float x3 = atom_getfloat(argv + 4);
+                    float y3 = atom_getfloat(argv + 5);
+                    currentPath.cubicTo(x1, y1, x2, y2, x3, y3);
+                }
+                break;
+            }
+            case hash("lua_close_path"): {
+                auto& currentPath = currentPaths[path];
+                currentPath.closeSubPath();
+                break;
+            }
+            case hash("lua_free_path"): {
+                currentPaths.erase(path);
+                break;
+            }
+            default: 
+                break;
         }
     }
     
-    void handleGuiMessage(LuaGuiMessage& message)
+    void receiveLuaPaintMessage(t_symbol* sym, int argc, t_atom* argv)
     {
-        pd::Atom atoms[8];
-        int numAtoms = message.size;
-        for (int at = 0; at < numAtoms; at++) {
-            atoms[at] = pd::Atom(message.data + at);
-        }
-        auto hashsym = hash(message.symbol->s_name);
-        
+        auto hashsym = hash(sym->s_name);
         // First check functions that don't need an active graphics context, of modify the active graphics context
         switch(hashsym)
         {
             case hash("lua_start_paint"): {
+                if(getLocalBounds().isEmpty()) break;
                 auto scale = getValue<float>(zoomScale) * 2.0f; // Multiply by 2 for hi-dpi screens
-                if(firstBuffer.getBounds() != getLocalBounds() * scale)
+                int imageWidth = std::ceil(getWidth() * scale);
+                int imageHeight = std::ceil(getHeight() * scale);
+                if(drawBuffer->getWidth() != imageWidth || drawBuffer->getHeight() != imageHeight)
                 {
-                    firstBuffer = Image(Image::PixelFormat::ARGB, getWidth() * scale, getHeight() * scale, true);
-                    secondBuffer = Image(Image::PixelFormat::ARGB, getWidth() * scale, getHeight() * scale, true);
+                    *drawBuffer = Image(Image::PixelFormat::ARGB, imageWidth, imageHeight, true);
                 }
                 else{
-                    drawBuffer->clear(getLocalBounds() * scale);
+                    drawBuffer->clear(Rectangle<int>(imageWidth, imageHeight));
                 }
                 
                 graphics = std::make_unique<Graphics>(*drawBuffer);
                 graphics->saveState();
                 graphics->addTransform(AffineTransform::scale(scale)); // for hi-dpi displays and canvas zooming
                 graphics->saveState();
-                //graphics->addTransform(AffineTransform::translation(1, 1));
                 return;
             }
             case hash("lua_end_paint"): {
+                if(!graphics) break;
                 graphics->restoreState();
                 graphics.reset(nullptr);
 
                 // swap buffers
-                auto* oldDrawBuffer = drawBuffer;
-                drawBuffer = displayBuffer;
-                displayBuffer = oldDrawBuffer;
+                {
+                    ScopedLock swapLock(bufferSwapLock);
+                    auto* oldDrawBuffer = drawBuffer;
+                    drawBuffer = displayBuffer;
+                    displayBuffer = oldDrawBuffer;
+                }
                 
-                repaint();
+                triggerAsyncUpdate();
                 return;
             }
             case hash("lua_resized"): {
-                if (numAtoms >= 2) {
+                if (argc >= 2) {
                     if (auto pdlua = ptr.get<t_pdlua>()) {
-                        pdlua->gfx.width = atoms[0].getFloat();
-                        pdlua->gfx.height = atoms[1].getFloat();
+                        pdlua->gfx.width = atom_getfloat(argv);
+                        pdlua->gfx.height = atom_getfloat(argv + 1);
                     }
                     object->updateBounds();
                 }
-                std::cout << "RESIZED" << std::endl;
                 return;
-            }
-            case hash("lua_start_path"): {
-                if (numAtoms >= 3) {
-                    auto& currentPath = currentPaths[atoms[0].getSymbol()];
-                    float x = atoms[1].getFloat();
-                    float y = atoms[2].getFloat();
-                    currentPath.startNewSubPath(x, y);
-                }
-                break;
-            }
-            case hash("lua_line_to"): {
-                if (numAtoms >= 3) {
-                    auto& currentPath = currentPaths[atoms[0].getSymbol()];
-                    float x = atoms[1].getFloat();
-                    float y = atoms[2].getFloat();
-                    currentPath.lineTo(x, y);
-                }
-                break;
-            }
-            case hash("lua_quad_to"): {
-                if (numAtoms >= 5) { // Assuming quad_to takes 3 arguments
-                    auto& currentPath = currentPaths[atoms[0].getSymbol()];
-                    float x1 = atoms[1].getFloat();
-                    float y1 = atoms[2].getFloat();
-                    float x2 = atoms[3].getFloat();
-                    float y2 = atoms[4].getFloat();
-                    currentPath.quadraticTo(x1, y1, x2, y2);
-                }
-                break;
-            }
-            case hash("lua_cubic_to"): {
-                if (numAtoms >= 6) { // Assuming cubic_to takes 4 arguments
-                    auto& currentPath = currentPaths[atoms[0].getSymbol()];
-                    float x1 = atoms[1].getFloat();
-                    float y1 = atoms[2].getFloat();
-                    float x2 = atoms[3].getFloat();
-                    float y2 = atoms[4].getFloat();
-                    float x3 = atoms[5].getFloat();
-                    float y3 = atoms[6].getFloat();
-                    currentPath.cubicTo(x1, y1, x2, y2, x3, y3);
-                }
-                break;
-            }
-            case hash("lua_close_path"): {
-                if (numAtoms >= 1) {
-                    auto& currentPath = currentPaths[atoms[0].getSymbol()];
-                    currentPath.closeSubPath();
-                }
-                break;
-            }
-            case hash("lua_free_path"): {
-                if (numAtoms >= 1) {
-                    currentPaths.erase(atoms[0].getSymbol());
-                }
-                break;
             }
         }
         
-        if(!graphics) return;
+        if(!graphics) return; // If there is no active graphics context at this point, return
         
         // Functions that do need an active graphics context
         switch (hashsym) {
             case hash("lua_set_color"): {
-                if (numAtoms == 1) {
-                    int colourID = atoms[0].getFloat();
-                    currentColour = Array<Colour>{object->findColour(PlugDataColour::guiObjectBackgroundColourId), object->findColour(PlugDataColour::canvasTextColourId), object->findColour(PlugDataColour::guiObjectInternalOutlineColour)}[colourID];
+                if (argc == 1) {
+                    int colourID = atom_getfloat(argv);
+                    
+                    auto& lnf = LookAndFeel::getDefaultLookAndFeel();
+                    currentColour = Array<Colour>{lnf.findColour(PlugDataColour::guiObjectBackgroundColourId), lnf.findColour(PlugDataColour::canvasTextColourId), lnf.findColour(PlugDataColour::guiObjectInternalOutlineColour)}[colourID];
                     graphics->setColour(currentColour);
                 }
-                if (numAtoms >= 3) {
-                    Colour color(static_cast<uint8>(atoms[0].getFloat()),
-                                 static_cast<uint8>(atoms[1].getFloat()),
-                                 static_cast<uint8>(atoms[2].getFloat()));
+                if (argc >= 3) {
+                    Colour color(static_cast<uint8>(atom_getfloat(argv)),
+                                 static_cast<uint8>(atom_getfloat(argv + 1)),
+                                 static_cast<uint8>(atom_getfloat(argv + 2)));
                     
-                    currentColour = color.withAlpha(numAtoms >= 4 ? atoms[3].getFloat() : 1.0f);
+                    currentColour = color.withAlpha(argc >= 4 ? atom_getfloat(argv + 3) : 1.0f);
                     graphics->setColour(currentColour);
                 }
                 break;
             }
             case hash("lua_stroke_line"): {
-                if (numAtoms >= 4) {
-                    float x1 = atoms[0].getFloat();
-                    float y1 = atoms[1].getFloat();
-                    float x2 = atoms[2].getFloat();
-                    float y2 = atoms[3].getFloat();
-                    float lineThickness = atoms[4].getFloat();
+                if (argc >= 4) {
+                    float x1 = atom_getfloat(argv);
+                    float y1 = atom_getfloat(argv + 1);
+                    float x2 = atom_getfloat(argv + 2);
+                    float y2 = atom_getfloat(argv + 3);
+                    float lineThickness = atom_getfloat(argv + 4);
                     
                     graphics->drawLine(x1, y1, x2, y2, lineThickness);
                 }
                 break;
             }
             case hash("lua_fill_ellipse"): {
-                if (numAtoms >= 3) {
-                    float x = atoms[0].getFloat();
-                    float y = atoms[1].getFloat();
-                    float w = atoms[2].getFloat();
-                    float h = atoms[3].getFloat();
+                if (argc >= 3) {
+                    float x = atom_getfloat(argv);
+                    float y = atom_getfloat(argv + 1);
+                    float w = atom_getfloat(argv + 2);
+                    float h = atom_getfloat(argv + 3);
                     graphics->fillEllipse(Rectangle<float>(x, y, w, h));
                 }
                 break;
             }
             case hash("lua_stroke_ellipse"): {
-                if (numAtoms >= 4) {
-                    float x = atoms[0].getFloat();
-                    float y = atoms[1].getFloat();
-                    float w = atoms[2].getFloat();
-                    float h = atoms[3].getFloat();
-                    float lineThickness = atoms[4].getFloat();
+                if (argc >= 4) {
+                    float x = atom_getfloat(argv);
+                    float y = atom_getfloat(argv + 1);
+                    float w = atom_getfloat(argv + 2);
+                    float h = atom_getfloat(argv + 3);
+                    float lineThickness = atom_getfloat(argv + 4);
                     graphics->drawEllipse(Rectangle<float>(x, y, w, h), lineThickness);
                 }
                 break;
             }
             case hash("lua_fill_rect"): {
-                if (numAtoms >= 4) {
-                    float x = atoms[0].getFloat();
-                    float y = atoms[1].getFloat();
-                    float w = atoms[2].getFloat();
-                    float h = atoms[3].getFloat();
+                if (argc >= 4) {
+                    float x = atom_getfloat(argv);
+                    float y = atom_getfloat(argv + 1);
+                    float w = atom_getfloat(argv + 2);
+                    float h = atom_getfloat(argv + 3);
                     graphics->fillRect(Rectangle<float>(x, y, w, h));
                 }
                 break;
             }
             case hash("lua_stroke_rect"): {
-                if (numAtoms >= 5) {
-                    float x = atoms[0].getFloat();
-                    float y = atoms[1].getFloat();
-                    float w = atoms[2].getFloat();
-                    float h = atoms[3].getFloat();
-                    float lineThickness = atoms[4].getFloat();
+                if (argc >= 5) {
+                    float x = atom_getfloat(argv);
+                    float y = atom_getfloat(argv + 1);
+                    float w = atom_getfloat(argv + 2);
+                    float h = atom_getfloat(argv + 3);
+                    float lineThickness = atom_getfloat(argv + 4);
                     graphics->drawRect(Rectangle<float>(x, y, w, h), lineThickness);
                 }
                 break;
             }
             case hash("lua_fill_rounded_rect"): {
-                if (numAtoms >= 4) {
-                    float x = atoms[0].getFloat();
-                    float y = atoms[1].getFloat();
-                    float w = atoms[2].getFloat();
-                    float h = atoms[3].getFloat();
-                    float cornerRadius = atoms[4].getFloat();
+                if (argc >= 4) {
+                    float x = atom_getfloat(argv);
+                    float y = atom_getfloat(argv + 1);
+                    float w = atom_getfloat(argv + 2);
+                    float h = atom_getfloat(argv + 3);
+                    float cornerRadius = atom_getfloat(argv + 4);
                     graphics->fillRoundedRectangle(Rectangle<float>(x, y, w, h), cornerRadius);
                 }
                 break;
             }
 
             case hash("lua_stroke_rounded_rect"): {
-                if (numAtoms >= 6) {
-                    float x = atoms[0].getFloat();
-                    float y = atoms[1].getFloat();
-                    float w = atoms[2].getFloat();
-                    float h = atoms[3].getFloat();
-                    float cornerRadius = atoms[4].getFloat();
-                    float lineThickness = atoms[5].getFloat();
+                if (argc >= 6) {
+                    float x = atom_getfloat(argv);
+                    float y = atom_getfloat(argv + 1);
+                    float w = atom_getfloat(argv + 2);
+                    float h = atom_getfloat(argv + 3);
+                    float cornerRadius = atom_getfloat(argv + 4);
+                    float lineThickness = atom_getfloat(argv + 5);
                     graphics->drawRoundedRectangle(Rectangle<float>(x, y, w, h), cornerRadius, lineThickness);
                 }
                 break;
             }
             case hash("lua_draw_line"): {
-                if (numAtoms >= 4) {
-                    float x1 = atoms[0].getFloat();
-                    float y1 = atoms[1].getFloat();
-                    float x2 = atoms[2].getFloat();
-                    float y2 = atoms[3].getFloat();
-                    float lineThickness = atoms[4].getFloat();
+                if (argc >= 4) {
+                    float x1 = atom_getfloat(argv);
+                    float y1 = atom_getfloat(argv + 1);
+                    float x2 = atom_getfloat(argv + 2);
+                    float y2 = atom_getfloat(argv + 3);
+                    float lineThickness = atom_getfloat(argv + 4);
                     graphics->drawLine(x1, y1, x2, y2, lineThickness);
                 }
                 break;
             }
             case hash("lua_draw_text"): {
-                if (numAtoms >= 4) {
-                    auto text = AttributedString(atoms[0].toString());
-                    float x = atoms[1].getFloat();
-                    float y = atoms[2].getFloat();
-                    float w = atoms[3].getFloat();
-                    float fontHeight = atoms[4].getFloat();
+                if (argc >= 4) {
+                    auto text = String::fromUTF8(atom_getsymbol(argv)->s_name);
+                    auto string = AttributedString(text);
+                    float x = atom_getfloat(argv + 1);
+                    float y = atom_getfloat(argv + 2);
+                    float w = atom_getfloat(argv + 3);
+                    float fontHeight = atom_getfloat(argv + 4) * 1.3; // Increase fontsize to match pd-vanilla
                     
-                    text.setFont(Font(fontHeight));
-                    text.setColour(currentColour);
-                    text.setJustification(Justification::topLeft);
+                    string.setFont(Font(fontHeight));
+                    string.setColour(currentColour);
+                    string.setJustification(Justification::topLeft);
                     
                     TextLayout layout;
-                    layout.createLayout(text, w);
+                    layout.createLayout(string, w);
                     layout.draw(*graphics, {x, y, w, layout.getHeight()});
                 }
                 break;
             }
             case hash("lua_fill_path"): {
-                if (numAtoms >= 1) {
-                    auto& currentPath = currentPaths[atoms[0].getSymbol()];
+                if (argc >= 1) {
+                    auto& currentPath = currentPaths[argv[0].a_w.w_gpointer];
                     graphics->fillPath(currentPath);
                 }
                 break;
             }
             case hash("lua_stroke_path"): {
-                if (numAtoms >= 2) {
-                    auto& currentPath = currentPaths[atoms[0].getSymbol()];
-                    graphics->strokePath(currentPath, PathStrokeType(atoms[1].getFloat()));
+                if (argc >= 2) {
+                    auto& currentPath = currentPaths[argv[0].a_w.w_gpointer];
+                    graphics->strokePath(currentPath, PathStrokeType(atom_getfloat(argv + 1)));
                 }
                 break;
             }
@@ -486,17 +453,17 @@ public:
             }
                 
             case hash("lua_translate"): {
-                if (numAtoms >= 2) {
-                    float tx = atoms[0].getFloat();
-                    float ty = atoms[1].getFloat();
+                if (argc >= 2) {
+                    float tx = atom_getfloat(argv);
+                    float ty = atom_getfloat(argv + 1);
                     graphics->addTransform(AffineTransform::translation(tx, ty));
                 }
                 break;
             }
             case hash("lua_scale"): {
-                if (numAtoms >= 2) {
-                    float sx = atoms[0].getFloat();
-                    float sy = atoms[1].getFloat();
+                if (argc >= 2) {
+                    float sx = atom_getfloat(argv);
+                    float sy = atom_getfloat(argv + 1);
                     graphics->addTransform(AffineTransform::scale(sx, sy));
                 }
                 break;
@@ -511,22 +478,23 @@ public:
         }
     }
     
-    void receiveLuaPaintMessage(t_symbol* sym, int argc, t_atom* argv)
-    {
-        guiQueue.enqueue({sym, argc, argv});
-    }
-    
     static void drawCallback(void* target, t_symbol* sym, int argc, t_atom* argv)
     {
+        if(target == nullptr && argc != 0)
+        {
+            receiveLuaPathMessage(argv[0].a_w.w_gpointer, sym, argc-1, argv+1);
+            return;
+        }
+        
         for(auto* object : allDrawTargets[static_cast<t_pdlua*>(target)])
         {
             object->receiveLuaPaintMessage(sym, argc, argv);
         }
     }
     
-    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int argc) override
     {
-        if(symbol == hash("open_textfile") && numAtoms >= 1)
+        if(symbol == hash("open_textfile") && argc >= 1)
         {
             openTextEditor(File(atoms[0].toString()));
         }
