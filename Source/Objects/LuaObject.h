@@ -252,6 +252,8 @@ public:
                 auto scale = getValue<float>(zoomScale) * 2.0f; // Multiply by 2 for hi-dpi screens
                 int imageWidth = std::ceil(getWidth() * scale);
                 int imageHeight = std::ceil(getHeight() * scale);
+                if(!imageWidth || !imageHeight) return;
+                
                 if(drawBuffer->getWidth() != imageWidth || drawBuffer->getHeight() != imageHeight)
                 {
                     *drawBuffer = Image(Image::PixelFormat::ARGB, imageWidth, imageHeight, true);
@@ -288,7 +290,9 @@ public:
                         pdlua->gfx.width = atom_getfloat(argv);
                         pdlua->gfx.height = atom_getfloat(argv + 1);
                     }
-                    object->updateBounds();
+                    MessageManager::callAsync([_object = SafePointer(object)](){
+                        if(_object) _object->updateBounds();
+                    });
                 }
                 return;
             }
