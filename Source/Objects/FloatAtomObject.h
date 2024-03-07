@@ -135,7 +135,7 @@ public:
         input.setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
         repaint();
     }
-
+    
     void paint(Graphics& g) override
     {
         g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));

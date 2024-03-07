@@ -102,6 +102,53 @@ public:
         alreadyBanged = true;
         trigger();
     }
+    
+    void render(NVGcontext* nvg) override
+    {
+        auto b = getLocalBounds().toFloat();
+        
+        auto convertColour = [](Colour c) { return nvgRGB(c.getRed(), c.getGreen(), c.getBlue()); };
+        auto foregroundColour = convertColour(iemHelper.getForegroundColour()); // TODO: this is some bad threading practice!
+        auto backgroundColour = convertColour(iemHelper.getBackgroundColour());
+        auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
+        auto internalLineColour = convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
+
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+        nvgFillColor(nvg, backgroundColour);
+        nvgFill(nvg);
+        nvgStrokeWidth(nvg, 1.f);
+        nvgStrokeColor(nvg, object->isSelected() ? selectedOutlineColour : outlineColour);
+        nvgStroke(nvg);
+        
+        b = b.reduced(1);
+        auto const width = std::max(b.getWidth(), b.getHeight());
+
+        auto const sizeReduction = std::min(1.0f, getWidth() / 20.0f);
+        
+        float const circleOuter = 80.f * (width * 0.01f);
+        float const circleThickness = std::max(width * 0.06f, 1.5f) * sizeReduction;
+
+        auto outerCircleBounds = b.reduced((width - circleOuter) * sizeReduction);
+        
+        nvgBeginPath(nvg);
+        nvgCircle(nvg, b.getCentreX(), b.getCentreY(),
+                   outerCircleBounds.getWidth() / 2.0f);
+        nvgStrokeColor(nvg, internalLineColour);
+        nvgStrokeWidth(nvg, circleThickness);
+        nvgStroke(nvg);
+        
+        // Fill ellipse if bangState is true
+        if (bangState) {
+            auto innerCircleBounds = b.reduced((width - circleOuter + circleThickness) * sizeReduction);
+            nvgBeginPath(nvg);
+            nvgCircle(nvg, b.getCentreX(), b.getCentreY(),
+                      innerCircleBounds.getWidth() / 2.0f);
+            nvgFillColor(nvg, foregroundColour);
+            nvgFill(nvg);
+        }
+    }
 
     void paint(Graphics& g) override
     {

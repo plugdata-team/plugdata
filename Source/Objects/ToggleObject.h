@@ -66,6 +66,43 @@ public:
         value = getValue();
         setToggleStateFromFloat(value);
     }
+    
+    
+    void render(NVGcontext* nvg)
+    {
+        auto b = getLocalBounds().toFloat();
+                
+        auto convertColour = [](Colour c) { return nvgRGB(c.getRed(), c.getGreen(), c.getBlue()); };
+        auto toggledColour = convertColour(iemHelper.getForegroundColour()); // TODO: this is some bad threading practice!
+        auto untoggledColour = convertColour(iemHelper.getForegroundColour().interpolatedWith(iemHelper.getBackgroundColour(), 0.8f));
+        auto backgroundColour = convertColour(iemHelper.getBackgroundColour());
+        auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
+ 
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+        nvgFillColor(nvg, backgroundColour);
+        nvgFill(nvg);
+        nvgStrokeWidth(nvg, 1.f);
+        nvgStrokeColor(nvg, object->isSelected() ? selectedOutlineColour : outlineColour);
+        nvgStroke(nvg);
+        
+        auto const sizeReduction = std::min(1.0f, getWidth() / 20.0f);
+        float margin = (getWidth() * 0.08f + 4.5f) * sizeReduction;
+        auto crossBounds = getLocalBounds().toFloat().reduced(margin);
+        
+        auto const max = std::max(crossBounds.getWidth(), crossBounds.getHeight());
+        auto strokeWidth = std::max(max * 0.15f, 2.0f) * sizeReduction;
+        
+        nvgBeginPath(nvg);
+        nvgMoveTo(nvg, crossBounds.getX(), crossBounds.getY());
+        nvgLineTo(nvg, crossBounds.getRight(), crossBounds.getBottom());
+        nvgMoveTo(nvg, crossBounds.getRight(), crossBounds.getY());
+        nvgLineTo(nvg, crossBounds.getX(), crossBounds.getBottom());
+        nvgStrokeColor(nvg, toggleState ? toggledColour : untoggledColour);
+        nvgStrokeWidth(nvg, strokeWidth);
+        nvgStroke(nvg);
+    }
 
     void paint(Graphics& g) override
     {
