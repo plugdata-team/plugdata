@@ -18,7 +18,6 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 add_subdirectory(JUCE)
 add_subdirectory(nanovg)
-include_directories(./nanovg/src/)
 
 juce_add_module(melatonin_blur)
 
