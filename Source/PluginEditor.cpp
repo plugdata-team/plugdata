@@ -306,6 +306,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
 PluginEditor::~PluginEditor()
 {
+    glContext.detach();
     pd->savePatchTabPositions();
     theme.removeListener(this);
 
