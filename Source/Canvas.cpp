@@ -222,6 +222,27 @@ void Canvas::renderNVG(NVGcontext* nvg)
         nvgRestore(nvg);
     }
     
+    for(auto* obj : objects)
+    {
+        nvgSave(nvg);
+        nvgTranslate(nvg, obj->getX(), obj->getY());
+        obj->renderIolets(nvg);
+        nvgRestore(nvg);
+    }
+    
+    if(lasso.isVisible()) {
+        auto lassoBounds = lasso.getBounds();
+        auto defaultColor = nvgRGBA(66, 162, 200, 20);
+        auto outlineColour = nvgRGB(66, 162, 200);;
+        nvgBeginPath(nvg);
+        nvgFillColor(nvg, defaultColor);
+        nvgRect(nvg, lassoBounds.getX(), lassoBounds.getY(), lassoBounds.getWidth(), lassoBounds.getHeight());
+        nvgFill(nvg);
+        nvgStrokeColor(nvg, outlineColour);
+        nvgStrokeWidth(nvg, 1.0f);
+        nvgStroke(nvg);
+    }
+    
     nvgRestore(nvg);
 }
 

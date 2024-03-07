@@ -12,6 +12,7 @@
 #include "ObjectParameters.h"
 #include "Utility/SynchronousValue.h"
 
+class NVGcontext;
 class PluginProcessor;
 class Canvas;
 
@@ -101,6 +102,12 @@ public:
     virtual void update() { }
 
     virtual void tabChanged() { }
+        
+    virtual void render(NVGcontext* nvg) {
+        renderSubcomponent(nvg, *this);
+    };
+        
+    void renderSubcomponent(NVGcontext* nvg, Component& component);
 
     virtual bool canOpenFromMenu();
     virtual void openFromMenu();
@@ -225,6 +232,8 @@ public:
     PluginProcessor* pd;
 
 protected:
+    int subcomponentImageId = 0;
+    int subImageWidth, subImageHeight;
     PropertyUndoListener propertyUndoListener;
 
     std::function<void()> onConstrainerCreate = []() {};

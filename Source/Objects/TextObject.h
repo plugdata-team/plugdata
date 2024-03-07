@@ -232,6 +232,39 @@ public:
             sizeProperty = TextObjectHelper::getWidthInChars(obj.get());
         }
     }
+        
+    void render(NVGcontext* nvg) override
+    {
+                
+        auto b = getLocalBounds();
+        
+        auto convertColour = [](Colour c) { return nvgRGB(c.getRed(), c.getGreen(), c.getBlue()); };
+        auto backgroundColour = convertColour(object->findColour(PlugDataColour::textObjectBackgroundColourId));
+        auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
+        
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+        nvgFillColor(nvg, backgroundColour);
+        nvgFill(nvg);
+        nvgStrokeWidth(nvg, 1.f);
+        nvgStrokeColor(nvg, object->isSelected() ? selectedOutlineColour : outlineColour);
+        nvgStroke(nvg);
+
+        nvgFillColor(nvg, nvgRGBf(.9, .9, .9));
+        nvgFontSize(nvg, 12.5f);
+        nvgFontFace(nvg, "Inter");
+        nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
+
+        if(editor)
+        {
+            renderSubcomponent(nvg, *editor);
+        }
+        else {
+            auto text = getText();
+            nvgText(nvg, b.toFloat().getX() + 5, b.toFloat().getCentreY(), text.toRawUTF8(), nullptr);
+        }
+    }
 
     void paint(Graphics& g) override
     {

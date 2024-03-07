@@ -28,7 +28,7 @@ using namespace juce::gl;
 #include "Utility/SettingsFile.h"
 
 // Special viewport that shows scrollbars on top of content instead of next to it
-class CanvasViewport : public Viewport, public Timer {
+class CanvasViewport : public Viewport, public OpenGLRenderer, public CachedComponentImage {
 
     class MousePanner : public MouseListener {
     public:
@@ -55,9 +55,6 @@ class CanvasViewport : public Viewport, public Timer {
             e.originalComponent->setMouseCursor(MouseCursor::DraggingHandCursor);
             downPosition = viewport->getViewPosition();
             downCanvasOrigin = viewport->cnv->canvasOrigin;
-
-            for (auto* object : viewport->cnv->objects)
-                object->setBufferedToImage(true);
         }
 
         void mouseDrag(MouseEvent const& e) override
@@ -68,20 +65,27 @@ class CanvasViewport : public Viewport, public Timer {
             viewport->setViewPosition(infiniteCanvasOriginOffset + downPosition - (scale * e.getOffsetFromDragStart().toFloat()).roundToInt());
         }
 
-        void mouseUp(MouseEvent const& e) override
-        {
-            e.originalComponent->setMouseCursor(MouseCursor::NormalCursor);
-            for (auto* object : viewport->cnv->objects) {
-                object->setBufferedToImage(false);
-            }
-        }
-
     private:
         CanvasViewport* viewport;
         Point<int> downPosition;
         Point<int> downCanvasOrigin;
     };
-
+    
+    bool invalidate (const juce::Rectangle<int>& rect) override
+    {
+        // Translate from canvas coords to viewport coords, expand by one to fix zoom rounding errors
+        invalidArea.add(getLocalArea(cnv, rect).expanded(1));
+        return true;
+    }
+    
+    bool invalidateAll() override
+    {
+        invalidArea = getLocalBounds();
+        return true;
+    }
+    
+    void releaseResources() override {};
+    
     class ViewportScrollBar : public Component {
         struct FadeTimer : private ::Timer {
             std::function<bool()> callback;
@@ -299,38 +303,24 @@ public:
         : editor(parent)
         , cnv(cnv)
     {
-        gl::loadFunctions();
-        
+
         glContext.setOpenGLVersionRequired(OpenGLContext::OpenGLVersion::openGL3_2);
         glContext.setSwapInterval(0);
         glContext.setMultisamplingEnabled(false);
         glContext.setComponentPaintingEnabled(false);
+        //glContext.setContinuousRepainting(true);
         
+        // TODO: do this in a better place
         MessageManager::callAsync([this, cnv](){
-            
-            glContext.attachTo(*cnv->getParentComponent());
+            if(auto* holder = cnv->getParentComponent())
+            {
+                glContext.setRenderer(this);
+                cnv->setCachedComponentImage(this);
+                glContext.attachTo(*holder);
 
-            #if JUCE_LINUX
-            // Make sure only message thread has the context set as active
-                glContext.executeOnGLThread([](OpenGLContext& context){
-                // We get unpredictable behaviour if the context is active on multiple threads
-                OpenGLContext::deactivateCurrentContext();
-                }, true);
-            #endif
-            
-            glContext.makeActive();
-            
-            nvg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
-            if (!nvg)
-                std::cout << "could not init nvg" << std::endl;
-
-            //nvgWrapper.interFont = nvgCreateFont(nvg, "sans", "/Users/timschoen/Projecten/plugnvg/Data/InterSemiBold.ttf");
-            //if (nvgWrapper.interFont == -1)
-            //    std::cout << "could not init font" << std::endl;
-            
-            startTimerHz(60);
+            }
         });
-        
+       
         setScrollBarsShown(false, false);
 
         setPositioner(new ViewportPositioner(*this));
@@ -345,23 +335,85 @@ public:
         addAndMakeVisible(hbar);
     }
     
-    void timerCallback() override
+    void newOpenGLContextCreated() override
     {
-        glContext.makeActive();
+        nvg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
+        if (!nvg)
+            std::cout << "could not init nvg" << std::endl;
         
-        glViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
-        OpenGLHelpers::clear(Colours::black);
+        
+        nvgCreateFontMem(nvg, "Inter", (unsigned char*)BinaryData::InterVariable_ttf, BinaryData::InterVariable_ttfSize, 0);
 
-        nvgBeginFrame(nvg, getWidth() * pixelScale, getHeight() * pixelScale, 1.0f);
-        nvgSave(nvg);
-        nvgScale(nvg, pixelScale, pixelScale);
+        // swap interval needs to be set after the context has been created (here)
+        // if the GPU is nvidia, and gsync is active, this setting will be ignored, and swap interval of 1 will be used instead
+        // this should be fine if gsync is controlling the swap however, as the mouse will be synced to gsync also.
+        glContext.setSwapInterval(0);
         
+    }
+    
+    void openGLContextClosing() override
+    {
+        
+    }
+    
+#define ENABLE_PARIAL_REPAINT 0
+    
+    void renderOpenGL() override
+    {
+        const MessageManagerLock mmLock;
+        
+        //invalidArea is the area that was invalidated!
+        auto invalidated = invalidArea.getBounds();
+        
+        int width = getWidth();
+        int height = getHeight();
+        int scaledWidth = getWidth() * pixelScale;
+        int scaledHeight = getHeight() * pixelScale;
+        
+#if !ENABLE_PARIAL_REPAINT
+        glViewport(0, 0, scaledWidth, scaledHeight);
+        OpenGLHelpers::clear(Colours::black);
+        
+        nvgBeginFrame(nvg, width, height, pixelScale);
         cnv->renderNVG(nvg);
-        
-        nvgRestore(nvg);
         nvgEndFrame(nvg);
+        return;
+#endif
+        if(!invalidated.isEmpty()) {
+            if(framebuffer.getWidth() != scaledWidth || framebuffer.getHeight() != scaledHeight) {
+                framebuffer.initialise(glContext, scaledWidth, scaledHeight);
+            }
+            
+            framebuffer.makeCurrentRenderingTarget();
+            glViewport(0, 0, scaledWidth, scaledHeight);
+            
+            nvgBeginFrame(nvg, width, height, pixelScale);
+            nvgScissor (nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
+            nvgBeginPath(nvg);
+            nvgFillColor(nvg, nvgRGB(0, 0, 0));
+            nvgRect(nvg, 0, 0, width, height);
+            nvgFill(nvg);
+            
+            cnv->renderNVG(nvg);
+#if 0
+            static juce::Random rng;
+            nvgBeginPath(nvg);
+            nvgFillColor(nvg, nvgRGBA(rng.nextInt(255), rng.nextInt(255), rng.nextInt(255), 0x50));
+            nvgRect(nvg, 0, 0, width, height);
+            nvgFill(nvg);
+#endif
+            nvgEndFrame(nvg);
+            
+            framebuffer.releaseAsRenderingTarget();
+        }
         
-        glContext.swapBuffers();
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.getFrameBufferID());
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glBlitFramebuffer(0, 0, scaledWidth, scaledHeight, 0, 0, scaledWidth, scaledHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    
+        
+        invalidArea = RectangleList<int>();
     }
     
     void paint(Graphics& g) override
@@ -446,6 +498,7 @@ public:
 
     void visibleAreaChanged(Rectangle<int> const& r) override
     {
+        invalidateAll();
         onScroll();
         adjustScrollbarBounds();
     }
@@ -496,6 +549,9 @@ public:
 private:
     NVGcontext* nvg;
     OpenGLContext glContext;
+    OpenGLFrameBuffer framebuffer;
+    RectangleList<int> invalidArea;
+    
     float pixelScale = 1.0f;
     Time lastScrollTime;
     PluginEditor* editor;

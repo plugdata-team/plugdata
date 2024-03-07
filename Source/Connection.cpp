@@ -28,7 +28,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     , ptr(parent->pd)
 {
     cnv->selectedComponents.addChangeListener(this);
-
+    
     locked.referTo(parent->locked);
     presentationMode.referTo(parent->presentationMode);
     presentationMode.addListener(this);
@@ -128,8 +128,8 @@ void Connection::lookAndFeelChanged()
 
 void Connection::render(NVGcontext* nvg)
 {
-    auto startPos = outlet->getCanvasBounds().getPosition();
-    auto endPos = inlet->getCanvasBounds().getPosition();
+    auto startPos = outlet->getCanvasBounds().toFloat().getCentre();
+    auto endPos = inlet->getCanvasBounds().toFloat().getCentre();
     
     const auto cPoint1 = Point<float>(startPos.x, ((endPos.y - startPos.y) * 0.75f) + startPos.y);
     const auto cPoint2 = Point<float>(endPos.x, ((endPos.y - startPos.y) * 0.25f) + startPos.y);
@@ -138,6 +138,11 @@ void Connection::render(NVGcontext* nvg)
     auto cp2 = cPoint2;
     auto start = startPos;
     auto end = endPos;
+    
+    auto b = Rectangle<float>(start, end);
+    
+    nvgSave(nvg);
+    //nvgIntersectScissor(nvg, b.getX() - 8, b.getY(), b.getWidth() + 16, b.getHeight());
 
     // semi-transparent background line
     nvgBeginPath(nvg);
@@ -169,6 +174,8 @@ void Connection::render(NVGcontext* nvg)
     nvgStrokeWidth(nvg, 2.0f);
     nvgStroke(nvg);
     nvgLineStyle(nvg, NVG_LINE_SOLID);
+    
+    nvgRestore(nvg);
 }
 
 void Connection::pushPathState()

@@ -919,7 +919,6 @@ void Object::mouseUp(MouseEvent const& e)
         }
 
         for (auto* object : cnv->getSelectionOfType<Object>()) {
-            object->setBufferedToImage(false);
             object->repaint();
         }
 
@@ -1077,7 +1076,6 @@ void Object::mouseDrag(MouseEvent const& e)
                 object->isObjectMouseActive = true;
                 auto newPosition = object->originalBounds.getPosition() + dragDistance;
 
-                object->setBufferedToImage(true);
                 object->setTopLeftPosition(newPosition);
             }
 
@@ -1210,10 +1208,7 @@ void Object::render(NVGcontext* nvg)
     auto b = getLocalBounds().reduced(margin);
     
     auto convertColour = [](Colour c) { return nvgRGB(c.getRed(), c.getGreen(), c.getBlue()); };
-    
-    auto backgroundColour = convertColour(findColour(PlugDataColour::textObjectBackgroundColourId));
     auto selectedOutlineColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
-    auto outlineColour = convertColour(findColour(PlugDataColour::objectOutlineColourId));
     
     if (selectedFlag) {
         nvgFillColor(nvg, selectedOutlineColour);
@@ -1233,26 +1228,85 @@ void Object::render(NVGcontext* nvg)
         nvgBeginPath(nvg);
         nvgRoundedRect(nvg, b.getX() - 4, b.getY() + b.getHeight() - 10, 14, 14, Corners::objectCornerRadius);
         nvgFill(nvg);
-
     }
     
-    nvgBeginPath(nvg);
-    nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
-    nvgFillColor(nvg, backgroundColour);
-    nvgFill(nvg);
-    nvgStrokeWidth(nvg, 1.f);
-    nvgStrokeColor(nvg, selectedFlag ? selectedOutlineColour : outlineColour);
-    nvgStroke(nvg);
+    if(newObjectEditor)
+    {
+        auto backgroundColour = convertColour(findColour(PlugDataColour::textObjectBackgroundColourId));
+        auto outlineColour = convertColour(findColour(PlugDataColour::objectOutlineColourId));
+        
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+        nvgFillColor(nvg, backgroundColour);
+        nvgFill(nvg);
+        nvgStrokeWidth(nvg, 1.f);
+        nvgStrokeColor(nvg, isSelected() ? selectedOutlineColour : outlineColour);
+        nvgStroke(nvg);
 
-    nvgFillColor(nvg, nvgRGBf(.9, .9, .9));
-    nvgFontSize(nvg, 16.0f);
-    nvgFontFace(nvg, "sans");
-    nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
+        nvgFillColor(nvg, nvgRGBf(.9, .9, .9));
+        nvgFontSize(nvg, 12.5f);
+        nvgFontFace(nvg, "Inter");
+        nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
+        
+        auto componentImage = newObjectEditor->createComponentSnapshot(newObjectEditor->getLocalBounds(), true, 2.0f * getValue<float>(cnv->zoomScale));
+        Image::BitmapData imageData(componentImage, juce::Image::BitmapData::readOnly);
+
+        int width = imageData.width;
+        int height = imageData.height;
+        uint8* pixelData = imageData.data;
+        size_t imageSize = width * height * 4; // 4 bytes per pixel for RGBA
+
+        for (int y = 0; y < height; ++y)
+        {
+            auto* scanLine = (juce::uint32*) imageData.getLinePointer(y);
+
+            for (int x = 0; x < width; ++x)
+            {
+                juce::uint32 argb = scanLine[x];
+                                
+                juce::uint8 a = argb >> 24;
+                juce::uint8 r = argb >> 16;
+                juce::uint8 g = argb >> 8;
+                juce::uint8 b = argb;
+                
+                // premultiply alpha
+                r = (r * a + 127) / 255;
+                g = (g * a + 127) / 255;
+                b = (b * a + 127) / 255;
+                
+                // order bytes as abgr
+                scanLine[x] = (a << 24) | (b << 16) | (g << 8) | r;
+            }
+        }
+        
+        if(subcomponentImageId && subImageWidth == width && subImageHeight == height) {
+            nvgUpdateImage(nvg, subcomponentImageId, pixelData);
+        }
+        else {
+            int imageFlags = 0;
+            if(subcomponentImageId) nvgDeleteImage(nvg, subcomponentImageId);
+            subcomponentImageId = nvgCreateImageRGBA(nvg, width, height, imageFlags, pixelData);
+            subImageWidth = width;
+            subImageHeight = height;
+        }
+        
+        nvgBeginPath(nvg);
+        nvgRect(nvg, margin, margin, newObjectEditor->getWidth(), newObjectEditor->getHeight());
+        nvgFillPaint(nvg, nvgImagePattern(nvg, margin, margin, newObjectEditor->getWidth(), newObjectEditor->getHeight(), 0, subcomponentImageId, 1.0f));
+        nvgFill(nvg);
+    }
     
-    auto text = gui ? gui->getText() : "empty";
-    nvgText(nvg, b.toFloat().getX() + 5, b.toFloat().getCentreY(), text.toRawUTF8(), nullptr);
+    if(gui) {
+        nvgSave(nvg);
+        nvgTranslate(nvg, margin, margin);
+        gui->render(nvg);
+        nvgRestore(nvg);
+    }
 
-    // draw all iolets at once
+}
+
+void Object::renderIolets(NVGcontext* nvg)
+{
     for (auto* iolet : iolets) {
         nvgSave(nvg);
         nvgTranslate(nvg, iolet->getX(), iolet->getY());

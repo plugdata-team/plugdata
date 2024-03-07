@@ -2098,7 +2098,7 @@ struct TextEditorDialog : public Component {
         addAndMakeVisible(editor);
         addAndMakeVisible(resizer);
         resizer.setAlwaysOnTop(true);
-        resizer.setAllowHostManagedResize(false);
+        //resizer.setAllowHostManagedResize(false);
 
         editor.grabKeyboardFocus();
     }

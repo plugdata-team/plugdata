@@ -73,6 +73,7 @@ public:
     void mouseExit(MouseEvent const& e) override;
         
     void render(NVGcontext* nvg);
+    void renderIolets(NVGcontext* nvg);
 
     void mouseMove(MouseEvent const& e) override;
     void mouseDown(MouseEvent const& e) override;
@@ -141,6 +142,8 @@ private:
 
     bool isObjectMouseActive = false;
     bool isInsideUndoSequence = false;
+    int subcomponentImageId;
+    int subImageWidth, subImageHeight;
 
     Image activityOverlayImage;
 

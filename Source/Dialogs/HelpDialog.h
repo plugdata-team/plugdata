@@ -110,7 +110,7 @@ public:
         constrainer.setFixedAspectRatio(0.0f);
         
         resizer = std::make_unique<MouseRateReducedComponent<ResizableBorderComponent>>(this, &constrainer);
-        resizer->setAllowHostManagedResize(false);
+        //resizer->setAllowHostManagedResize(false);
         resizer->setAlwaysOnTop(true);
         addAndMakeVisible(resizer.get());
 

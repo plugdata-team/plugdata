@@ -38,9 +38,6 @@ Iolet::Iolet(Object* parent, bool inlet)
     bool isPresenting = getValue<bool>(presentationMode);
     setVisible(!isPresenting && !insideGraph);
 
-    // Drawing circles is more expensive than you might think, especially because there can be a lot of iolets!
-    setBufferedToImage(true);
-
     cnv = findParentComponentOfClass<Canvas>();
 }
 
@@ -81,7 +78,7 @@ void Iolet::render(NVGcontext* nvg)
     if (!(object->isMouseOverOrDragging(true) || over || isTargeted) || isLocked) {
         nvgSave(nvg);
         auto clipBounds = getLocalArea(object, object->getLocalBounds().reduced(Object::margin));
-        nvgScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
+        nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
         stateSaved = true;
     }
 
