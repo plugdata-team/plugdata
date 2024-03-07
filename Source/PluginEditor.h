@@ -7,6 +7,7 @@
 #pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
+#include <juce_opengl/juce_opengl.h>
 
 #include "Utility/Fonts.h"
 #include "Utility/ModifierKeyListener.h"
@@ -41,6 +42,7 @@ class PluginEditor : public AudioProcessorEditor
     , public ModifierKeyListener
     , public ZoomableDragAndDropContainer
     , public AsyncUpdater
+    , public OpenGLRenderer
 {
 public:
     explicit PluginEditor(PluginProcessor&);
@@ -84,6 +86,10 @@ public:
 
     void updateCommandStatus();
     void handleAsyncUpdate() override;
+    
+    void newOpenGLContextCreated() override;
+    void openGLContextClosing() override;
+    void renderOpenGL() override;
 
     bool isInterestedInFileDrag(StringArray const& files) override;
     void filesDropped(StringArray const& files, int x, int y) override;
@@ -151,10 +157,14 @@ public:
     std::unique_ptr<Autosave> autosave;
     ApplicationCommandManager commandManager;
     
+    OpenGLContext glContext;
+    
     inline static ObjectThemeManager objectManager;
     static ObjectThemeManager* getObjectManager() { return &objectManager; };
 
 private:
+    NVGcontext* nvg;
+    float pixelScale = 2.0f;
     
     std::unique_ptr<TouchSelectionHelper> touchSelectionHelper;
 

@@ -232,6 +232,8 @@ public:
         }
         Connection::renderConnectionPath(g, (Canvas*)cnv, connectionPath, iolet->isSignal, iolet->isGemState, true);
     }
+    
+    void render(NVGcontext*);
 
     Iolet* getIolet()
     {

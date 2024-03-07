@@ -33,6 +33,14 @@
 #include "PluginMode.h"
 #include "Components/TouchSelectionHelper.h"
 
+#include <juce_opengl/juce_opengl.h>
+using namespace juce::gl;
+
+#include <nanovg-dev/src/nanovg.h>
+
+#define NANOVG_GL3_IMPLEMENTATION
+#include <nanovg-dev/src/nanovg_gl.h>
+
 class ZoomLabel : public TextButton
     , public Timer {
 
@@ -154,6 +162,14 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(splitView);
     addAndMakeVisible(*sidebar);
     sidebar->toBehind(statusbar.get());
+    
+    glContext.setOpenGLVersionRequired(OpenGLContext::OpenGLVersion::openGL3_2);
+    glContext.setSwapInterval(0);
+    glContext.setMultisamplingEnabled(false);
+    glContext.setComponentPaintingEnabled(true);
+    glContext.attachTo(*this);
+    glContext.setRenderer(this);
+    //glContext.setContinuousRepainting(true);
 
     for (auto* button : std::vector<MainToolbarButton*> {
              &mainMenuButton,
@@ -335,6 +351,8 @@ void PluginEditor::setUseBorderResizer(bool shouldUse)
 
 void PluginEditor::paint(Graphics& g)
 {
+    pixelScale = g.getInternalContext().getPhysicalPixelScaleFactor();
+    
     auto baseColour = findColour(PlugDataColour::toolbarBackgroundColourId);
 
     if (ProjectInfo::isStandalone && !isActiveWindow()) {
@@ -345,7 +363,7 @@ void PluginEditor::paint(Graphics& g)
 
     if (rounded) {
         g.setColour(baseColour);
-        g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
+        //g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
 
         // Toolbar background
         g.setColour(baseColour);
@@ -362,6 +380,50 @@ void PluginEditor::paint(Graphics& g)
 
     g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
     g.drawLine(29.0f, toolbarHeight - 0.5f, static_cast<float>(getWidth() - 29.5f), toolbarHeight - 0.5f, 1.0f);
+}
+
+void PluginEditor::newOpenGLContextCreated()
+{
+    nvg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
+    if (!nvg)
+        std::cout << "could not init nvg" << std::endl;
+    
+    
+    nvgCreateFontMem(nvg, "Inter", (unsigned char*)BinaryData::InterVariable_ttf, BinaryData::InterVariable_ttfSize, 0);
+
+    // swap interval needs to be set after the context has been created (here)
+    // if the GPU is nvidia, and gsync is active, this setting will be ignored, and swap interval of 1 will be used instead
+    // this should be fine if gsync is controlling the swap however, as the mouse will be synced to gsync also.
+    glContext.setSwapInterval(0);
+}
+
+void PluginEditor::openGLContextClosing()
+{
+}
+
+void PluginEditor::renderOpenGL()
+{
+    const MessageManagerLock mmLock;
+    
+    if(auto* cnv = getCurrentCanvas())
+    {
+        int width = cnv->getParentComponent()->getWidth();
+        int height = cnv->getParentComponent()->getHeight();
+        int scaledWidth = width * pixelScale;
+        int scaledHeight = height * pixelScale;
+        
+        int viewportX = getLocalPoint(cnv->getParentComponent(), Point<int>(0, 0)).x * pixelScale;
+        int viewportY = (getBottom() - getLocalArea(cnv->viewport.get(), cnv->viewport->getLocalBounds()).getBottom()) * pixelScale;
+        
+        glViewport(viewportX, viewportY + 15, scaledWidth, scaledHeight);
+        OpenGLHelpers::clear(Colours::black);
+        
+        nvgBeginFrame(nvg, width, height, pixelScale);
+        
+        //nvgTranslate(nvg, 14, 6);
+        cnv->renderNVG(nvg);
+        nvgEndFrame(nvg);
+    }
 }
 
 // Paint file drop outline

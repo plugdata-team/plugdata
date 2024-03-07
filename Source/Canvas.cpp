@@ -222,11 +222,19 @@ void Canvas::renderNVG(NVGcontext* nvg)
         nvgRestore(nvg);
     }
     
+    
     for(auto* obj : objects)
     {
         nvgSave(nvg);
         nvgTranslate(nvg, obj->getX(), obj->getY());
         obj->renderIolets(nvg);
+        nvgRestore(nvg);
+    }
+    
+    for(auto* connection : connectionsBeingCreated)
+    {
+        nvgSave(nvg);
+        connection->render(nvg);
         nvgRestore(nvg);
     }
     
@@ -365,6 +373,8 @@ void Canvas::lookAndFeelChanged()
 
 void Canvas::paint(Graphics& g)
 {
+    return;
+    
     if (isGraph)
         return;
 

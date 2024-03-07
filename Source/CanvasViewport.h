@@ -12,9 +12,6 @@ using namespace juce::gl;
 
 #include <nanovg-dev/src/nanovg.h>
 
-#define NANOVG_GL3_IMPLEMENTATION
-#include <nanovg-dev/src/nanovg_gl.h>
-
 #include <utility>
 
 #include "Utility/GlobalMouseListener.h"
@@ -26,6 +23,42 @@ using namespace juce::gl;
 #include "PluginProcessor.h"
 
 #include "Utility/SettingsFile.h"
+
+// Blocks a component and all its subcomponents from being rendered with JUCE rendering
+class RenderBlock
+        : public juce::CachedComponentImage
+    {
+    public:
+
+        RenderBlock ()
+        {
+        }
+
+        ~RenderBlock()
+        {
+        }
+        
+        void paint (juce::Graphics& g) override
+        {
+        }
+
+        bool invalidateAll() override
+        {
+            return true;
+        }
+        
+        bool invalidate (const juce::Rectangle<int>& rect) override
+        {
+            return true;
+        }
+
+        void releaseResources() override
+        {
+        }
+
+    private:
+    };
+
 
 // Special viewport that shows scrollbars on top of content instead of next to it
 class CanvasViewport : public Viewport, public OpenGLRenderer, public CachedComponentImage {
@@ -304,20 +337,12 @@ public:
         , cnv(cnv)
     {
 
-        glContext.setOpenGLVersionRequired(OpenGLContext::OpenGLVersion::openGL3_2);
-        glContext.setSwapInterval(0);
-        glContext.setMultisamplingEnabled(false);
-        glContext.setComponentPaintingEnabled(false);
-        //glContext.setContinuousRepainting(true);
         
         // TODO: do this in a better place
-        MessageManager::callAsync([this, cnv](){
+        MessageManager::callAsync([cnv](){
             if(auto* holder = cnv->getParentComponent())
             {
-                glContext.setRenderer(this);
-                cnv->setCachedComponentImage(this);
-                glContext.attachTo(*holder);
-
+                holder->setCachedComponentImage(new RenderBlock());
             }
         });
        
@@ -337,17 +362,7 @@ public:
     
     void newOpenGLContextCreated() override
     {
-        nvg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
-        if (!nvg)
-            std::cout << "could not init nvg" << std::endl;
-        
-        
-        nvgCreateFontMem(nvg, "Inter", (unsigned char*)BinaryData::InterVariable_ttf, BinaryData::InterVariable_ttfSize, 0);
 
-        // swap interval needs to be set after the context has been created (here)
-        // if the GPU is nvidia, and gsync is active, this setting will be ignored, and swap interval of 1 will be used instead
-        // this should be fine if gsync is controlling the swap however, as the mouse will be synced to gsync also.
-        glContext.setSwapInterval(0);
         
     }
     
@@ -379,6 +394,7 @@ public:
         nvgEndFrame(nvg);
         return;
 #endif
+        /*
         if(!invalidated.isEmpty()) {
             if(framebuffer.getWidth() != scaledWidth || framebuffer.getHeight() != scaledHeight) {
                 framebuffer.initialise(glContext, scaledWidth, scaledHeight);
@@ -413,7 +429,7 @@ public:
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     
         
-        invalidArea = RectangleList<int>();
+        invalidArea = RectangleList<int>(); */
     }
     
     void paint(Graphics& g) override
@@ -548,7 +564,6 @@ public:
 
 private:
     NVGcontext* nvg;
-    OpenGLContext glContext;
     OpenGLFrameBuffer framebuffer;
     RectangleList<int> invalidArea;
     

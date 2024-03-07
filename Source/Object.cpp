@@ -1212,22 +1212,12 @@ void Object::render(NVGcontext* nvg)
     
     if (selectedFlag) {
         nvgFillColor(nvg, selectedOutlineColour);
-        // top left
-        nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, b.getX() - 4, b.getY() - 4, 14, 14, Corners::objectCornerRadius);
-        nvgFill(nvg);
-        // bottom right
-        nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, b.getX() + b.getWidth() - 10, b.getY() + b.getHeight() - 10, 14, 14, Corners::objectCornerRadius);
-        nvgFill(nvg);
-        // top right
-        nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, b.getX() + b.getWidth() - 10, b.getY() - 4, 14, 14, Corners::objectCornerRadius);
-        nvgFill(nvg);
-        // bottom left
-        nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, b.getX() - 4, b.getY() + b.getHeight() - 10, 14, 14, Corners::objectCornerRadius);
-        nvgFill(nvg);
+        for(auto& corner : getCorners())
+        {
+            nvgBeginPath(nvg);
+            nvgRoundedRect(nvg, corner.getX(), corner.getY(), corner.getWidth(), corner.getHeight(), Corners::objectCornerRadius);
+            nvgFill(nvg);
+        }
     }
     
     if(newObjectEditor)

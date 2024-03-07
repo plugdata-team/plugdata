@@ -653,8 +653,9 @@ void TabComponent::paint(Graphics& g)
     if (ProjectInfo::isStandalone && !editor->isActiveWindow()) {
         backgroundColour = backgroundColour.brighter(backgroundColour.getBrightness() / 2.5f);
     }
-
-    g.fillAll(backgroundColour);
+    
+    g.setColour(backgroundColour);
+    g.fillRect(Rectangle<int>(0, 0, getWidth(), 30));
 }
 
 void TabComponent::paintOverChildren(Graphics& g)

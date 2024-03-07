@@ -48,7 +48,8 @@ class Canvas : public Component
     , public LassoSource<WeakReference<Component>>
     , public ModifierKeyListener
     , public pd::MessageListener
-    , public AsyncUpdater {
+    , public AsyncUpdater 
+{
 public:
     Canvas(PluginEditor* parent, pd::Patch::Ptr patch, Component* parentGraph = nullptr);
 
