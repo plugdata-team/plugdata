@@ -37,3 +37,6 @@
 [submodule "Libraries/ghc_filesystem"]
 	path = Libraries/ghc_filesystem
 	url = https://github.com/gulrak/filesystem.git
+[submodule "Libraries/nanovg"]
+	path = Libraries/nanovg
+	url = https://github.com/alcomposer/nanovg.git

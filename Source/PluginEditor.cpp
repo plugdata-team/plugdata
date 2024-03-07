@@ -36,10 +36,10 @@
 #include <juce_opengl/juce_opengl.h>
 using namespace juce::gl;
 
-#include <nanovg-dev/src/nanovg.h>
+#include <nanovg.h>
 
 #define NANOVG_GL3_IMPLEMENTATION
-#include <nanovg-dev/src/nanovg_gl.h>
+#include <nanovg_gl.h>
 
 class ZoomLabel : public TextButton
     , public Timer {

@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
 #include <juce_gui_basics/juce_gui_basics.h>
-#include <nanovg-dev/src/nanovg.h>
+#include <nanovg.h>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
 
