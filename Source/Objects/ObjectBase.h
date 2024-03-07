@@ -12,7 +12,7 @@
 #include "ObjectParameters.h"
 #include "Utility/SynchronousValue.h"
 
-class NVGcontext;
+struct NVGcontext;
 class PluginProcessor;
 class Canvas;
 

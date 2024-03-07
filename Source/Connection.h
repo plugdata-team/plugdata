@@ -19,7 +19,7 @@
 
 using PathPlan = std::vector<Point<float>>;
 
-class NVGcontext;
+struct NVGcontext;
 class Canvas;
 class PathUpdater;
 

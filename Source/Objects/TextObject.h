@@ -235,7 +235,6 @@ public:
         
     void render(NVGcontext* nvg) override
     {
-                
         auto b = getLocalBounds();
         
         auto convertColour = [](Colour c) { return nvgRGB(c.getRed(), c.getGreen(), c.getBlue()); };
@@ -251,17 +250,17 @@ public:
         nvgStrokeColor(nvg, object->isSelected() ? selectedOutlineColour : outlineColour);
         nvgStroke(nvg);
 
-        nvgFillColor(nvg, nvgRGBf(.9, .9, .9));
-        nvgFontSize(nvg, 12.5f);
-        nvgFontFace(nvg, "Inter");
-        nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
-
-        if(editor)
+        if(editor && editor->isVisible())
         {
             renderSubcomponent(nvg, *editor);
         }
         else {
             auto text = getText();
+            
+            nvgFillColor(nvg, nvgRGBf(.9, .9, .9));
+            nvgFontSize(nvg, 12.5f);
+            nvgFontFace(nvg, "Inter");
+            nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
             nvgText(nvg, b.toFloat().getX() + 5, b.toFloat().getCentreY(), text.toRawUTF8(), nullptr);
         }
     }

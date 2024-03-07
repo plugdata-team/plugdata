@@ -19,7 +19,7 @@ namespace pd {
 class Patch;
 }
 
-class NVGcontext;
+struct NVGcontext;
 class SuggestionComponent;
 class GraphArea;
 class Iolet;

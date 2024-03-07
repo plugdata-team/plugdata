@@ -14,7 +14,7 @@
 
 #define ACTIVITY_UPDATE_RATE 15
 
-class NVGcontext;
+struct NVGcontext;
 struct ObjectDragState;
 class ObjectBase;
 class Iolet;

@@ -9,7 +9,7 @@
 class Connection;
 class Object;
 class Canvas;
-class NVGcontext;
+struct NVGcontext;
 
 class Iolet : public Component
     , public SettableTooltipClient
