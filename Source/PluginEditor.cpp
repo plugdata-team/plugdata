@@ -167,9 +167,13 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     glContext.setSwapInterval(0);
     glContext.setMultisamplingEnabled(false);
     glContext.setComponentPaintingEnabled(true);
-    glContext.attachTo(*this);
     glContext.setRenderer(this);
-    //glContext.setContinuousRepainting(true);
+    
+    setOpaque(false);
+    
+    MessageManager::callAsync([this](){
+        glContext.attachTo(*getTopLevelComponent());
+    });
 
     for (auto* button : std::vector<MainToolbarButton*> {
              &mainMenuButton,

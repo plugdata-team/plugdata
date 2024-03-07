@@ -143,12 +143,13 @@ Point<float> normalize(const Point<float>& vec) {
 
 void Connection::render(NVGcontext* nvg)
 {
-    auto convertColour = [](Colour c) { return nvgRGB(c.getRed(), c.getGreen(), c.getBlue()); };
+    auto convertColour = [](Colour c) { return nvgRGBA(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha()); };
     
     auto baseColour = cnv->findColour(PlugDataColour::connectionColourId);
     auto dataColour = cnv->findColour(PlugDataColour::dataColourId);
     auto signalColour = cnv->findColour(PlugDataColour::signalColourId);
     auto handleColour = outlet->isSignal ? dataColour : signalColour;
+    auto shadowColour = findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.06f).withAlpha(0.24f);
 
     if (isSelected() || isMouseOver()) {
         
@@ -173,13 +174,13 @@ void Connection::render(NVGcontext* nvg)
     auto start = outlet->getCanvasBounds().toFloat().getCentre();
     auto end = inlet->getCanvasBounds().toFloat().getCentre();
     
-    auto drawConnection = [nvg, baseColour, convertColour](Point<float> start, Point<float> cp1, Point<float> cp2, Point<float> end){
+    auto drawConnection = [shadowColour, nvg, baseColour, convertColour](Point<float> start, Point<float> cp1, Point<float> cp2, Point<float> end){
         // semi-transparent background line
         nvgBeginPath(nvg);
         nvgLineStyle(nvg, NVG_LINE_SOLID);
         nvgMoveTo(nvg, start.x, start.y);
         nvgBezierTo(nvg, cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
-        nvgStrokeColor(nvg, nvgRGBA(45, 45, 45, 100));
+        nvgStrokeColor(nvg, convertColour(shadowColour));
         nvgLineCap(nvg, NVG_ROUND);
         nvgStrokeWidth(nvg, 6.0f);
         nvgStroke(nvg);
@@ -1441,14 +1442,15 @@ void ConnectionBeingCreated::render(NVGcontext* nvg)
     
     auto lineColour = cnv->findColour(PlugDataColour::dataColourId).brighter(0.6f);
     auto nvgColor = nvgRGB(lineColour.getRed(), lineColour.getGreen(), lineColour.getBlue());
-    
-    auto drawConnection = [nvg, nvgColor](Point<float> start, Point<float> cp1, Point<float> cp2, Point<float> end){
+    auto shadowColour = findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.06f).withAlpha(0.24f);
+    auto nvgShadowColour = nvgRGBA(shadowColour.getRed(), shadowColour.getGreen(), shadowColour.getBlue(), shadowColour.getAlpha());
+    auto drawConnection = [nvg, nvgColor, nvgShadowColour](Point<float> start, Point<float> cp1, Point<float> cp2, Point<float> end){
         // semi-transparent background line
         nvgBeginPath(nvg);
         nvgLineStyle(nvg, NVG_LINE_SOLID);
         nvgMoveTo(nvg, start.x, start.y);
         nvgBezierTo(nvg, cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
-        nvgStrokeColor(nvg, nvgRGBA(45, 45, 45, 100));
+        nvgStrokeColor(nvg, nvgShadowColour);
         nvgLineCap(nvg, NVG_ROUND);
         nvgStrokeWidth(nvg, 6.0f);
         nvgStroke(nvg);
@@ -1457,7 +1459,6 @@ void ConnectionBeingCreated::render(NVGcontext* nvg)
         nvgStrokeWidth(nvg, 2.0f);
         nvgStroke(nvg);
     };
-    
     
     if (!PlugDataLook::getUseStraightConnections()) {
         float const width = std::max(start.x, end.x) - std::min(start.x, end.x);

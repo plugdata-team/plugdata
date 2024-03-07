@@ -159,8 +159,12 @@ Canvas::~Canvas()
 
 void Canvas::renderNVG(NVGcontext* nvg)
 {
+    auto convertColour = [](Colour c) { return nvgRGBA(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha()); };
+    auto backgroundColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId));
+    auto dotsColour = convertColour(findColour(PlugDataColour::canvasDotsColourId));
+    
     int halfSize = infiniteCanvasSize / 2;
-    auto b = Rectangle<int>(0, 0, infiniteCanvasSize, infiniteCanvasSize);
+    //auto b = Rectangle<int>(0, 0, infiniteCanvasSize, infiniteCanvasSize);
     
     // apply translation to the canvas nvg objects
     nvgSave(nvg);
@@ -168,22 +172,14 @@ void Canvas::renderNVG(NVGcontext* nvg)
     nvgTranslate(nvg, -viewport->getViewPositionX(), -viewport->getViewPositionY());
     nvgScale(nvg, getValue<float>(zoomScale), getValue<float>(zoomScale));
     
-    /*
-    auto scaledMousePos = mousePos;
-    nvgTranslate(nvg, scaledMousePos.x, scaledMousePos.y);
-    nvgScale(nvg, canvasScale, canvasScale);
-    nvgTranslate(nvg, delta.x - scaledMousePos.x, delta.y - scaledMousePos.y); */
-
-    auto bgColour = nvgRGBf(.15, .15, .15);
-
     nvgBeginPath(nvg);
-    //if (resetDots == true) {
-    NVGpaint dots = nvgDotPattern(nvg, nvgRGBf(.4, .4, .4), bgColour);
-    //    resetDots = false;
-    //}
-    //auto grad = nvgRadialGradient(nvg, 100000, 100000, 10, 100, nvgRGBf(1.0, 1.0, 1.0), bgColour);
+    nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
+    
+    nvgFillColor(nvg, backgroundColour);
+    nvgFill(nvg);
+    
+    NVGpaint dots = nvgDotPattern(nvg, dotsColour, backgroundColour);
     nvgFillPaint(nvg, dots);
-    nvgRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight());
     nvgFill(nvg);
 
     nvgBeginPath(nvg);
@@ -195,13 +191,13 @@ void Canvas::renderNVG(NVGcontext* nvg)
 
     // place solid line behind (to fake removeing grid points for now)
     nvgLineStyle(nvg, NVG_LINE_SOLID);
-    nvgStrokeColor(nvg, bgColour);
+    nvgStrokeColor(nvg, backgroundColour);
     nvgStrokeWidth(nvg, 6.0f);
     nvgStroke(nvg);
 
     // draw 0,0 point lines
     nvgLineStyle(nvg, NVG_LINE_DASHED);
-    nvgStrokeColor(nvg, nvgRGBf(1, 1, 1));
+    nvgStrokeColor(nvg, dotsColour);
     nvgStrokeWidth(nvg, 1.0f);
     nvgStroke(nvg);
 
@@ -240,10 +236,12 @@ void Canvas::renderNVG(NVGcontext* nvg)
     
     if(lasso.isVisible()) {
         auto lassoBounds = lasso.getBounds();
-        auto defaultColor = nvgRGBA(66, 162, 200, 20);
-        auto outlineColour = nvgRGB(66, 162, 200);;
+        
+        auto fillColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.075f));
+        auto outlineColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId).interpolatedWith(findColour(PlugDataColour::objectSelectedOutlineColourId), 0.65f));
+        
         nvgBeginPath(nvg);
-        nvgFillColor(nvg, defaultColor);
+        nvgFillColor(nvg, fillColour);
         nvgRect(nvg, lassoBounds.getX(), lassoBounds.getY(), lassoBounds.getWidth(), lassoBounds.getHeight());
         nvgFill(nvg);
         nvgStrokeColor(nvg, outlineColour);
@@ -363,12 +361,6 @@ void Canvas::zoomToFitAll()
     auto viewportCentre = viewport->getViewArea().withZeroOrigin().getCentre();
     auto newViewPos = regionOfInterest.transformedBy(getTransform()).getCentre() - viewportCentre;
     viewport->setViewPosition(newViewPos);
-}
-
-void Canvas::lookAndFeelChanged()
-{
-    lasso.setColour(LassoComponent<Object>::lassoFillColourId, findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.075f));
-    lasso.setColour(LassoComponent<Object>::lassoOutlineColourId, findColour(PlugDataColour::canvasBackgroundColourId).interpolatedWith(findColour(PlugDataColour::objectSelectedOutlineColourId), 0.65f));
 }
 
 void Canvas::paint(Graphics& g)

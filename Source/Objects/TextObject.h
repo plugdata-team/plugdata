@@ -256,12 +256,11 @@ public:
         }
         else {
             auto text = getText();
-            
-            nvgFillColor(nvg, nvgRGBf(.9, .9, .9));
-            nvgFontSize(nvg, 12.5f);
+            nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::canvasTextColourId)));
+            nvgFontSize(nvg, 12.35f);
             nvgFontFace(nvg, "Inter");
             nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
-            nvgText(nvg, b.toFloat().getX() + 5, b.toFloat().getCentreY(), text.toRawUTF8(), nullptr);
+            nvgText(nvg, b.toFloat().getX() + 6, b.toFloat().getCentreY(), text.toRawUTF8(), nullptr);
         }
     }
 

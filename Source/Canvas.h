@@ -58,7 +58,6 @@ public:
     PluginEditor* editor;
     PluginProcessor* pd;
 
-    void lookAndFeelChanged() override;
     void paint(Graphics& g) override;
 
     void mouseDown(MouseEvent const& e) override;
