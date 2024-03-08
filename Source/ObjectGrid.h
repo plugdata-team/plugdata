@@ -11,7 +11,7 @@
 class Object;
 class Canvas;
 
-struct ObjectGrid : public SettingsFileListener {
+struct ObjectGrid : public SettingsFileListener, public Timer {
 
     int gridSize = 20;
 
@@ -33,6 +33,8 @@ private:
         VerticalCentre,
         HorizontalCentre,
     };
+    
+    void timerCallback() override;
 
     void propertyChanged(String const& name, var const& value) override;
 
@@ -45,9 +47,11 @@ private:
     static constexpr int objectTolerance = 6;
     static constexpr int connectionTolerance = 9;
 
-    DrawablePath gridLines[2];
     Line<int> lines[2];
-    ComponentAnimator gridLineAnimator;
+    float lineAlpha = 0.0f;
+    float lineTargetAlpha = 0.0f;
+    float lineAlphaMultiplier = 0.0f;
+    Canvas* cnv;
 
     int gridType;
     bool gridEnabled;

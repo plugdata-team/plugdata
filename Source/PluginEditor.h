@@ -42,7 +42,6 @@ class PluginEditor : public AudioProcessorEditor
     , public ModifierKeyListener
     , public ZoomableDragAndDropContainer
     , public AsyncUpdater
-    , public OpenGLRenderer
 {
 public:
     explicit PluginEditor(PluginProcessor&);
@@ -87,10 +86,6 @@ public:
     void updateCommandStatus();
     void handleAsyncUpdate() override;
     
-    void newOpenGLContextCreated() override;
-    void openGLContextClosing() override;
-    void renderOpenGL() override;
-
     bool isInterestedInFileDrag(StringArray const& files) override;
     void filesDropped(StringArray const& files, int x, int y) override;
     void fileDragEnter(StringArray const&, int, int) override;
@@ -156,9 +151,7 @@ public:
 
     std::unique_ptr<Autosave> autosave;
     ApplicationCommandManager commandManager;
-    
-    OpenGLContext glContext;
-    
+        
     inline static ObjectThemeManager objectManager;
     static ObjectThemeManager* getObjectManager() { return &objectManager; };
 

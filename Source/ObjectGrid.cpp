@@ -12,18 +12,12 @@
 #include "Canvas.h"
 #include "Connection.h"
 
-ObjectGrid::ObjectGrid(Canvas* cnv)
+ObjectGrid::ObjectGrid(Canvas* cnv) : cnv(cnv)
 {
 
     gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
     gridType = SettingsFile::getInstance()->getProperty<int>("grid_type");
     gridSize = SettingsFile::getInstance()->getProperty<int>("grid_size");
-
-    cnv->addAndMakeVisible(gridLines[0]);
-    cnv->addAndMakeVisible(gridLines[1]);
-
-    gridLines[0].setAlwaysOnTop(true);
-    gridLines[1].setAlwaysOnTop(true);
 }
 
 Array<Object*> ObjectGrid::getSnappableObjects(Object* draggedObject)
@@ -384,44 +378,54 @@ Line<int> ObjectGrid::getObjectIndicatorLine(Side side, Rectangle<int> b1, Recta
 
 void ObjectGrid::clearIndicators(bool fast)
 {
-    gridLineAnimator.fadeOut(&gridLines[0], fast ? 20 : 125);
-    gridLineAnimator.fadeOut(&gridLines[1], fast ? 20 : 125);
-
-    gridLines[0].setPath(Path());
-    gridLines[1].setPath(Path());
-    
-    lines[0] = Line<int>();
-    lines[1] = Line<int>();
+    float lineFadeMs = fast ? 50 : 250;
+    lineAlphaMultiplier = std::exp((-MathConstants<float>::twoPi * 1000.0f / 60.0f) / lineFadeMs);
+    lineTargetAlpha = 0.0f;
+    startTimerHz(60);
 }
 
 void ObjectGrid::setIndicator(int idx, Line<int> line, float scale)
 {
     auto lineIsEmpty = line.getLength() == 0;
-    if (gridLines[idx].isVisible() && lineIsEmpty) {
-        gridLineAnimator.fadeOut(&gridLines[idx], 20);
-        lines[idx] = Line<int>();
+    if (lineIsEmpty) {
+        lineAlphaMultiplier = std::exp((-MathConstants<float>::twoPi * 1000.0f / 60.0f) / 50.0f);
+        lineTargetAlpha = 0.0f;
+        startTimerHz(60);
+        return;
     }
-
-    auto& lnf = LookAndFeel::getDefaultLookAndFeel();
-    gridLines[idx].setStrokeFill(FillType(lnf.findColour(PlugDataColour::gridLineColourId)));
-    gridLines[idx].setStrokeThickness(scale);
-    gridLines[idx].toFront(false);
-
-    Path toDraw;
-    toDraw.addLineSegment(line.toFloat(), scale);
     
     lines[idx] = line;
-    gridLines[idx].setPath(toDraw);
 
-    if (!gridLines[idx].isVisible() && !lineIsEmpty) {
-        gridLineAnimator.fadeIn(&gridLines[idx], 25);
+    if (!lineIsEmpty) {
+        lineAlphaMultiplier = std::exp((-MathConstants<float>::twoPi * 1000.0f / 60.0f) / 50.0f);
+        lineTargetAlpha = 1.0f;
+        startTimerHz(60);
+    }
+}
+
+void ObjectGrid::timerCallback()
+{
+    cnv->repaint();
+    
+    lineAlpha = jmap(lineAlphaMultiplier, lineTargetAlpha, lineAlpha);
+    if(std::abs(lineAlpha - lineTargetAlpha) < 1e-5)  {
+        lineAlpha = lineTargetAlpha;
+        if(lineAlpha == 0.0f)
+        {
+            lines[0] = Line<int>();
+            lines[1] = Line<int>();
+        }
+        
+        stopTimer();
     }
 }
 
 void ObjectGrid::render(NVGcontext* nvg)
 {
+    if(lineAlpha == 0.0f) return;
+        
     auto& lnf = LookAndFeel::getDefaultLookAndFeel();
-    nvgStrokeColor(nvg, NVGHelper::convertColour(lnf.findColour(PlugDataColour::gridLineColourId)));
+    nvgStrokeColor(nvg, NVGHelper::convertColour(lnf.findColour(PlugDataColour::gridLineColourId).withAlpha(lineAlpha)));
     nvgStrokeWidth(nvg, 1.0f);
     
     if(lines[0].getLength() != 0) {

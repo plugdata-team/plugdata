@@ -163,12 +163,11 @@ void Canvas::renderNVG(NVGcontext* nvg)
     auto dotsColour = NVGHelper::convertColour(findColour(PlugDataColour::canvasDotsColourId));
     
     int halfSize = infiniteCanvasSize / 2;
-    //auto b = Rectangle<int>(0, 0, infiniteCanvasSize, infiniteCanvasSize);
-    
+
     // apply translation to the canvas nvg objects
     nvgSave(nvg);
     
-    nvgTranslate(nvg, -viewport->getViewPositionX(), -viewport->getViewPositionY());
+    if(viewport) nvgTranslate(nvg, -viewport->getViewPositionX(), -viewport->getViewPositionY());
     nvgScale(nvg, getValue<float>(zoomScale), getValue<float>(zoomScale));
     
     nvgBeginPath(nvg);
@@ -177,30 +176,44 @@ void Canvas::renderNVG(NVGcontext* nvg)
     nvgFillColor(nvg, backgroundColour);
     nvgFill(nvg);
     
-    NVGpaint dots = nvgDotPattern(nvg, dotsColour, backgroundColour);
-    nvgFillPaint(nvg, dots);
-    nvgFill(nvg);
+    if(!getValue<bool>(locked)) {
+        NVGpaint dots = nvgDotPattern(nvg, dotsColour, backgroundColour);
+        nvgFillPaint(nvg, dots);
+        nvgFill(nvg);
+    }
 
-    nvgBeginPath(nvg);
-    
-    auto pos = Point<int>(halfSize, halfSize);
-    nvgMoveTo(nvg, pos.x, pos.y + 100000);
-    nvgLineTo(nvg, pos.x, pos.y);
-    nvgLineTo(nvg, pos.x + 100000, pos.y);
+    if(showOrigin || showBorder) {
+        nvgBeginPath(nvg);
+        
+        auto borderWidth = getValue<float>(patchWidth);
+        auto borderHeight = getValue<float>(patchHeight);
+        auto pos = Point<int>(halfSize, halfSize);
 
-    // place solid line behind (to fake removeing grid points for now)
-    nvgLineStyle(nvg, NVG_LINE_SOLID);
-    nvgStrokeColor(nvg, backgroundColour);
-    nvgStrokeWidth(nvg, 6.0f);
-    nvgStroke(nvg);
+        nvgMoveTo(nvg, pos.x, pos.y + (showOrigin ? halfSize : borderHeight));
+        nvgLineTo(nvg, pos.x, pos.y);
+        nvgLineTo(nvg, pos.x + (showOrigin ? halfSize : borderWidth), pos.y);
+        
+        if(showBorder)
+        {
+            nvgMoveTo(nvg, pos.x + borderWidth, pos.y);
+            nvgLineTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
+            nvgLineTo(nvg, pos.x, pos.y + borderHeight);
+        }
 
-    // draw 0,0 point lines
-    nvgLineStyle(nvg, NVG_LINE_DASHED);
-    nvgStrokeColor(nvg, dotsColour);
-    nvgStrokeWidth(nvg, 1.0f);
-    nvgStroke(nvg);
-
-    nvgLineStyle(nvg, NVG_LINE_SOLID);
+        // place solid line behind (to fake removeing grid points for now)
+        nvgLineStyle(nvg, NVG_LINE_SOLID);
+        nvgStrokeColor(nvg, backgroundColour);
+        nvgStrokeWidth(nvg, 6.0f);
+        nvgStroke(nvg);
+        
+        // draw 0,0 point lines
+        nvgLineStyle(nvg, NVG_LINE_DASHED);
+        nvgStrokeColor(nvg, dotsColour);
+        nvgStrokeWidth(nvg, 1.0f);
+        nvgStroke(nvg);
+        
+        nvgLineStyle(nvg, NVG_LINE_SOLID);
+    }
     
     for(auto* obj : objects)
     {
@@ -362,126 +375,6 @@ void Canvas::zoomToFitAll()
     auto viewportCentre = viewport->getViewArea().withZeroOrigin().getCentre();
     auto newViewPos = regionOfInterest.transformedBy(getTransform()).getCentre() - viewportCentre;
     viewport->setViewPosition(newViewPos);
-}
-
-void Canvas::paint(Graphics& g)
-{
-    return;
-    
-    if (isGraph)
-        return;
-
-    g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
-
-    if (viewport)
-        g.reduceClipRegion(viewport->getViewArea().transformedBy(getTransform().inverted()));
-    auto clipBounds = g.getClipBounds();
-
-    // Clip bounds so that we have the smallest lines that fit the viewport, but also
-    // compensate for line start, so the dashes don't stay fixed in place if they are drawn from
-    // the top of the viewport
-    auto clippedOrigin = Point<float>(std::max(canvasOrigin.x, clipBounds.getX()), std::max(canvasOrigin.y, clipBounds.getY()));
-
-    auto originDiff = canvasOrigin.toFloat() - clippedOrigin;
-
-    // draw patch window dashed outline
-    auto patchWidthCanvas = clippedOrigin.x + (getValue<int>(patchWidth) + originDiff.x);
-    auto patchHeightCanvas = clippedOrigin.y + (getValue<int>(patchHeight) + originDiff.y);
-
-    clippedOrigin.x += fmod(originDiff.x, 10.0f) - 0.5f;
-    clippedOrigin.y += fmod(originDiff.y, 10.0f) - 0.5f;
-
-    auto scale = ::getValue<float>(zoomScale);
-
-    if (!getValue<bool>(locked)) {
-
-        auto startX = (canvasOrigin.x % objectGrid.gridSize);
-        startX += ((clipBounds.getX() / objectGrid.gridSize) * objectGrid.gridSize);
-
-        auto startY = (canvasOrigin.y % objectGrid.gridSize);
-        startY += ((clipBounds.getY() / objectGrid.gridSize) * objectGrid.gridSize);
-
-        g.setColour(findColour(PlugDataColour::canvasDotsColourId));
-
-        for (int x = startX; x < clipBounds.getRight(); x += objectGrid.gridSize) {
-            // calculate the x here, once per iteration, as it won't change for y
-            auto const gridSpacing = objectGrid.gridSize * 4;
-            auto const xGridSpacing = (x - canvasOrigin.x) % gridSpacing == 0;
-
-            for (int y = startY; y < clipBounds.getBottom(); y += objectGrid.gridSize) {
-
-                // Don't draw over origin or border line
-                if (showBorder || showOrigin) {
-                    if ((x == canvasOrigin.x && y >= canvasOrigin.y && (showOrigin || (y <= patchHeightCanvas))) || (y == canvasOrigin.y && x >= canvasOrigin.x && (showOrigin || (x <= patchWidthCanvas))))
-                        continue;
-                }
-                auto dotWidth = 1.0f;
-                if (scale < 1.0f) {
-                    if (((y - canvasOrigin.y) % gridSpacing == 0) || xGridSpacing) {
-                        dotWidth = 1.0f / jmap(scale, 0.3f, 1.0f, 0.4f, 1.0f);
-                    } else {
-                        // TIM: draw the dot's differently for some grid sizes, or not at all?
-                        if (objectGrid.gridSize == 5)
-                            continue;
-                    }
-                }
-                auto halfDotWidth = dotWidth * 0.5f;
-                g.fillRect(static_cast<float>(x) - halfDotWidth, static_cast<float>(y) - halfDotWidth, dotWidth, dotWidth);
-            }
-        }
-    }
-
-    if (!showOrigin && !showBorder)
-        return;
-
-    /*
-     ┌────────┐
-     │a      b│
-     │        │
-     │        │
-     │d      c│
-     └────────┘
-     */
-
-    // points for border
-    auto pointA = Point<float>(clippedOrigin.x, clippedOrigin.y);
-    auto pointB = Point<float>(patchWidthCanvas, clippedOrigin.y);
-    auto pointC = Point<float>(patchWidthCanvas, patchHeightCanvas);
-    auto pointD = Point<float>(clippedOrigin.x, patchHeightCanvas);
-
-    auto extentTop = Line<float>(pointA, pointB);
-    auto extentLeft = Line<float>(pointA, pointD);
-
-    // arrange line points so that dashes appear to grow from origin and bottom right
-    if (showOrigin) {
-
-        // points for origin extending to edge of view
-        auto pointOriginB = Point<float>(clipBounds.getRight(), clippedOrigin.y);
-        auto pointOriginD = Point<float>(clippedOrigin.x, clipBounds.getBottom());
-
-        extentTop = Line<float>(pointA, pointOriginB);
-        extentLeft = Line<float>(pointA, pointOriginD);
-    }
-
-    auto const scaleLimited = scale < 1.0f ? scale : 1.0f;
-    auto const scaleNormalised = 1.0f / scaleLimited;
-    auto const scaleMapped = jmap(scaleLimited, 0.3f, 1.0f, 0.4f, 1.0f);
-    auto const lineWidthMappedScale = 1.0f / scaleMapped;
-
-    float dash[2] = { 5.0f * scaleNormalised, 5.0f * scaleNormalised };
-
-    g.setColour(findColour(PlugDataColour::canvasDotsColourId));
-
-    g.drawDashedLine(extentLeft, dash, 2, lineWidthMappedScale);
-    g.drawDashedLine(extentTop, dash, 2, lineWidthMappedScale);
-
-    if (showBorder) {
-        auto extentRight = Line<float>(pointC, pointB);
-        auto extentBottom = Line<float>(pointC, pointD);
-
-        g.drawDashedLine(extentRight, dash, 2, lineWidthMappedScale);
-        g.drawDashedLine(extentBottom, dash, 2, lineWidthMappedScale);
-    }
 }
 
 TabComponent* Canvas::getTabbar()

@@ -431,47 +431,6 @@ Array<Rectangle<float>> Object::getCorners() const
     return corners;
 }
 
-void Object::paintOverChildren(Graphics& g)
-{
-    // If autoconnect is about to happen, draw a fake inlet with a dotted outline
-    if (getValue<bool>(cnv->editor->autoconnect) && isInitialEditorShown() && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs) {
-        auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
-        auto fakeInletBounds = Rectangle<float>(16, 4, 8, 8);
-        g.setColour(findColour(outlet->isSignal ? PlugDataColour::signalColourId : PlugDataColour::dataColourId).brighter());
-        g.fillEllipse(fakeInletBounds);
-
-        g.setColour(findColour(PlugDataColour::objectOutlineColourId));
-        g.drawEllipse(fakeInletBounds, 1.0f);
-    }
-
-    if (!isHvccCompatible) {
-        g.saveState();
-
-        // Don't draw line over iolets!
-        for (auto& iolet : iolets) {
-            g.excludeClipRegion(iolet->getBounds().reduced(2));
-        }
-
-        g.setColour(Colours::orange);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), Corners::objectCornerRadius, 2.0f);
-
-        g.restoreState();
-    } else if (indexShown) {
-        int halfHeight = 5;
-
-        auto text = String(cnv->objects.indexOf(this));
-        int textWidth = Fonts::getMonospaceFont().withHeight(10).getStringWidth(text) + 5;
-        int left = std::min<int>(getWidth() - (1.5 * margin), getWidth() - textWidth);
-
-        auto indexBounds = Rectangle<int>(left, (getHeight() / 2) - halfHeight, getWidth() - left, halfHeight * 2);
-
-        g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
-        g.fillRoundedRectangle(indexBounds.toFloat(), 2.0f);
-
-        Fonts::drawStyledText(g, text, indexBounds, findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting(), Monospace, 10, Justification::centred);
-    }
-}
-
 String Object::getType() const
 {
     return gui ? gui->getType() : String();
@@ -506,54 +465,6 @@ void Object::triggerOverlayActiveState()
     // it will not trigger it's callback until it's free-running
     // so we manually call the repaint here if this happens
     repaint();
-}
-
-void Object::paint(Graphics& g)
-{
-    if (gui && gui->isTransparent() && !getValue<bool>(locked)) {
-        g.setColour(findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.35f).withAlpha(0.1f));
-        
-        g.fillRoundedRectangle(getLocalBounds().reduced(Object::margin).toFloat(), Corners::objectCornerRadius);
-    }
-    if ((showActiveState || isTimerRunning())) {
-        g.setOpacity(activeStateAlpha);
-        // show activation state glow
-        g.drawImage(activityOverlayImage, getLocalBounds().toFloat());
-        g.setOpacity(1.0f);
-    }
-    if ((selectedFlag && !cnv->isGraph) || newObjectEditor) {
-        if (newObjectEditor) {
-
-            g.setColour(findColour(PlugDataColour::textObjectBackgroundColourId));
-            g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 0.5f), Corners::objectCornerRadius);
-
-            g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
-            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 0.5f), Corners::objectCornerRadius, 1.0f);
-        }
-
-        g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
-
-        g.saveState();
-        // Make a rounded rectangle hole path:
-        // We do this by creating a large rectangle path with inverted winding
-        // and adding the inner rounded rectangle path
-        // this creates one path that has a hole in the middle
-        Path outerArea;
-        outerArea.addRectangle(getLocalBounds());
-        outerArea.setUsingNonZeroWinding(false);
-        Path innerArea;
-        auto innerRect = getLocalBounds().reduced(margin + 1);
-        innerArea.addRoundedRectangle(innerRect, Corners::objectCornerRadius);
-        outerArea.addPath(innerArea);
-
-        // use the path with a hole in it to exclude the inner rounded rect from painting
-        g.reduceClipRegion(outerArea);
-
-        for (auto& rect : getCorners()) {
-            g.fillRoundedRectangle(rect, Corners::objectCornerRadius);
-        }
-        g.restoreState();
-    }
 }
 
 void Object::resized()
@@ -1269,6 +1180,51 @@ void Object::render(NVGcontext* nvg)
         nvgTranslate(nvg, margin, margin);
         NVGHelper::renderComponent(nvg, *newObjectEditor, getValue<float>(cnv->zoomScale) * 2, cachedImage);
     }
+    
+    // If autoconnect is about to happen, draw a fake inlet with a dotted outline
+    if (getValue<bool>(cnv->editor->autoconnect) && isInitialEditorShown() && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs) {
+        auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
+        float fakeInletBounds[4] = {16.0f, 4.0f, 8.0f, 8.0f};
+        nvgBeginPath(nvg);
+        nvgFillColor(nvg, NVGHelper::convertColour(findColour(outlet->isSignal ? PlugDataColour::signalColourId : PlugDataColour::dataColourId).brighter()));
+        nvgEllipse(nvg, fakeInletBounds[0] + fakeInletBounds[2] * 0.5f, fakeInletBounds[1] + fakeInletBounds[3] * 0.5f, fakeInletBounds[2] * 0.5f, fakeInletBounds[3] * 0.5f);
+        nvgFill(nvg);
+        
+        nvgStrokeColor(nvg, NVGHelper::convertColour(findColour(PlugDataColour::objectOutlineColourId)));
+        nvgStrokeWidth(nvg, 1.0f);
+        nvgStroke(nvg);
+    }
+
+    if (!isHvccCompatible) {
+        nvgSave(nvg);
+
+        nvgBeginPath(nvg);
+        nvgStrokeColor(nvg, nvgRGBAf(1.0f, 0.5f, 0.0f, 1.0f)); // orange
+        nvgStrokeWidth(nvg, 1.0f);
+        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+        nvgStroke(nvg);
+
+        nvgRestore(nvg);
+    } else if (indexShown) {
+        int halfHeight = 5;
+
+        auto text = std::to_string(cnv->objects.indexOf(this));
+        int textWidth = static_cast<int>(nvgTextBounds(nvg, 0, 0, text.c_str(), nullptr, nullptr)) + 5;
+        int left = std::min<int>(getWidth() - (1.5 * margin), getWidth() - textWidth);
+
+        auto indexBounds = Rectangle<int>(left, (getHeight() / 2) - halfHeight, getWidth() - left, halfHeight * 2);
+        
+        nvgBeginPath(nvg);
+        nvgFillColor(nvg, NVGHelper::convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId))); // Adjust fill color as needed
+        nvgRoundedRect(nvg, indexBounds.getX(), indexBounds.getY(), indexBounds.getWidth(), indexBounds.getHeight(), 2.0f);
+        nvgFill(nvg);
+
+        nvgFontSize(nvg, 8.0f);
+        nvgFontFace(nvg, "Inter");
+        nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_CENTER);
+        nvgFillColor(nvg, NVGHelper::convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting()));
+        nvgText(nvg, indexBounds.getCentreX(), indexBounds.getCentreY(), text.c_str(), nullptr);
+    }
 }
 
 void Object::renderIolets(NVGcontext* nvg)
@@ -1308,7 +1264,6 @@ void Object::hideEditor()
 
         outgoingEditor->removeListener(cnv->suggestor.get());
 
-        
         // Get entered text, remove extra spaces at the end
         auto newText = outgoingEditor->getText().trimEnd();
         

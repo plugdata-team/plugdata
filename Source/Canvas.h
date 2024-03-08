@@ -58,8 +58,6 @@ public:
     PluginEditor* editor;
     PluginProcessor* pd;
 
-    void paint(Graphics& g) override;
-
     void mouseDown(MouseEvent const& e) override;
     void mouseDrag(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;

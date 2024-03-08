@@ -38,9 +38,6 @@ using namespace juce::gl;
 
 #include <nanovg.h>
 
-#define NANOVG_GL3_IMPLEMENTATION
-#include <nanovg_gl.h>
-
 class ZoomLabel : public TextButton
     , public Timer {
 
@@ -162,13 +159,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(splitView);
     addAndMakeVisible(*sidebar);
     sidebar->toBehind(statusbar.get());
-    
-    glContext.setOpenGLVersionRequired(OpenGLContext::OpenGLVersion::openGL3_2);
-    glContext.setSwapInterval(0);
-    glContext.setMultisamplingEnabled(false);
-    glContext.setComponentPaintingEnabled(true);
-    glContext.setRenderer(this);
-    glContext.attachTo(*this);
     
     setOpaque(false);
 
@@ -303,7 +293,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
 PluginEditor::~PluginEditor()
 {
-    glContext.detach();
     pd->savePatchTabPositions();
     theme.removeListener(this);
 
@@ -382,55 +371,6 @@ void PluginEditor::paint(Graphics& g)
 
     g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
     g.drawLine(29.0f, toolbarHeight - 0.5f, static_cast<float>(getWidth() - 29.5f), toolbarHeight - 0.5f, 1.0f);
-}
-
-void PluginEditor::newOpenGLContextCreated()
-{
-    nvg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
-    if (!nvg)
-        std::cout << "could not init nvg" << std::endl;
-    
-    
-    nvgCreateFontMem(nvg, "Inter", (unsigned char*)BinaryData::InterVariable_ttf, BinaryData::InterVariable_ttfSize, 0);
-
-    // swap interval needs to be set after the context has been created (here)
-    // if the GPU is nvidia, and gsync is active, this setting will be ignored, and swap interval of 1 will be used instead
-    // this should be fine if gsync is controlling the swap however, as the mouse will be synced to gsync also.
-    glContext.setSwapInterval(0);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-}
-
-void PluginEditor::openGLContextClosing()
-{
-}
-
-void PluginEditor::renderOpenGL()
-{
-    // Allow transparency
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    
-    const MessageManagerLock mmLock;
-    
-    if(auto* cnv = getCurrentCanvas())
-    {
-        int width = cnv->getParentComponent()->getWidth();
-        int height = cnv->getParentComponent()->getHeight();
-        int scaledWidth = width * pixelScale;
-        int scaledHeight = height * pixelScale;
-        
-        int viewportX = getLocalPoint(cnv->getParentComponent(), Point<int>(0, 0)).x * pixelScale;
-        int viewportY = (getBottom() - getLocalArea(cnv->viewport.get(), cnv->viewport->getLocalBounds()).getBottom()) * pixelScale;
-        
-        glViewport(viewportX, viewportY + 15, scaledWidth, scaledHeight);
-        OpenGLHelpers::clear(Colours::black);
-        
-        nvgBeginFrame(nvg, width, height, pixelScale);
-        
-        cnv->renderNVG(nvg);
-        nvgEndFrame(nvg);
-    }
 }
 
 // Paint file drop outline
@@ -889,6 +829,7 @@ void PluginEditor::closeTab(Canvas* cnv)
     patch->setVisible(false);
 
     tabbar->removeTab(tabIdx);
+    cnv->setCachedComponentImage(nullptr);
     canvases.removeObject(cnv);
 
     // It's possible that the tabbar has been deleted if this was the last tab

@@ -12,6 +12,9 @@ using namespace juce::gl;
 
 #include <nanovg.h>
 
+#define NANOVG_GL3_IMPLEMENTATION
+#include <nanovg_gl.h>
+
 #include <utility>
 
 #include "Utility/GlobalMouseListener.h"
@@ -24,44 +27,8 @@ using namespace juce::gl;
 
 #include "Utility/SettingsFile.h"
 
-// Blocks a component and all its subcomponents from being rendered with JUCE rendering
-class RenderBlock
-        : public juce::CachedComponentImage
-    {
-    public:
-
-        RenderBlock ()
-        {
-        }
-
-        ~RenderBlock()
-        {
-        }
-        
-        void paint (juce::Graphics& g) override
-        {
-        }
-
-        bool invalidateAll() override
-        {
-            return true;
-        }
-        
-        bool invalidate (const juce::Rectangle<int>& rect) override
-        {
-            return true;
-        }
-
-        void releaseResources() override
-        {
-        }
-
-    private:
-    };
-
-
 // Special viewport that shows scrollbars on top of content instead of next to it
-class CanvasViewport : public Viewport
+class CanvasViewport : public Viewport, public OpenGLRenderer
 {
 
     class MousePanner : public MouseListener {
@@ -104,7 +71,6 @@ class CanvasViewport : public Viewport
         Point<int> downPosition;
         Point<int> downCanvasOrigin;
     };
-    
     
     class ViewportScrollBar : public Component {
         struct FadeTimer : private ::Timer {
@@ -317,6 +283,34 @@ class CanvasViewport : public Viewport
 
         int inset;
     };
+    
+    struct InvalidationListener : public CachedComponentImage
+    {
+        InvalidationListener(CanvasViewport* parent) : viewport(parent)
+        {
+        }
+    private:
+        void paint(Graphics& g) override {};
+        
+        bool invalidate (const juce::Rectangle<int>& rect) override
+        {
+            ScopedLock lock(viewport->invalidAreaLock);
+            // Translate from canvas coords to viewport coords, expand by one to fix zoom rounding errors
+            viewport->invalidArea.add(viewport->getLocalArea(viewport->cnv, rect).expanded(1));
+            return true;
+        }
+        
+        bool invalidateAll() override
+        {
+            ScopedLock lock(viewport->invalidAreaLock);
+            viewport->invalidArea = viewport->getLocalBounds();
+            return true;
+        }
+        
+        void releaseResources() override {};
+        
+        CanvasViewport* viewport;
+    };
 
 public:
     CanvasViewport(PluginEditor* parent, Canvas* cnv)
@@ -324,12 +318,20 @@ public:
         , cnv(cnv)
     {
 
+        glContext.setOpenGLVersionRequired(OpenGLContext::OpenGLVersion::openGL3_2);
+        glContext.setSwapInterval(0);
+        glContext.setMultisamplingEnabled(false);
+        glContext.setComponentPaintingEnabled(false);
+        glContext.setContinuousRepainting(true);
         
         // TODO: do this in a better place
-        MessageManager::callAsync([cnv](){
+        MessageManager::callAsync([this, cnv](){
             if(auto* holder = cnv->getParentComponent())
             {
-                holder->setCachedComponentImage(new RenderBlock());
+                glContext.setRenderer(this);
+                cnv->setCachedComponentImage(new InvalidationListener(this));
+                glContext.attachTo(*holder);
+
             }
         });
        
@@ -345,6 +347,105 @@ public:
 
         addAndMakeVisible(vbar);
         addAndMakeVisible(hbar);
+    }
+    
+    ~CanvasViewport()
+    {
+        glContext.detach();
+    }
+    
+    void newOpenGLContextCreated() override
+    {
+        nvg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
+        if (!nvg)
+            std::cout << "could not init nvg" << std::endl;
+        
+        
+        nvgCreateFontMem(nvg, "Inter", (unsigned char*)BinaryData::InterVariable_ttf, BinaryData::InterVariable_ttfSize, 0);
+
+        // swap interval needs to be set after the context has been created (here)
+        // if the GPU is nvidia, and gsync is active, this setting will be ignored, and swap interval of 1 will be used instead
+        // this should be fine if gsync is controlling the swap however, as the mouse will be synced to gsync also.
+        glContext.setSwapInterval(0);
+        
+    }
+    
+    void openGLContextClosing() override
+    {
+        
+    }
+    
+#define ENABLE_PARIAL_REPAINT 1
+    
+    void renderOpenGL() override
+    {
+        Rectangle<int> invalidated;
+        {
+            ScopedLock lock(invalidAreaLock);
+            invalidated = invalidArea.getBounds();
+            invalidArea = RectangleList<int>();
+        }
+        
+        int width = getWidth();
+        int height = getHeight();
+        int scaledWidth = getWidth() * pixelScale;
+        int scaledHeight = getHeight() * pixelScale;
+        
+#if !ENABLE_PARIAL_REPAINT
+        glViewport(0, 0, scaledWidth, scaledHeight);
+        OpenGLHelpers::clear(Colours::black);
+        
+        nvgBeginFrame(nvg, width, height, pixelScale);
+        {
+            const MessageManagerLock mmLock;
+            cnv->renderNVG(nvg);
+        }
+        nvgEndFrame(nvg);
+        return;
+#endif
+        if(!invalidated.isEmpty()) {
+            if(framebuffer.getWidth() != scaledWidth || framebuffer.getHeight() != scaledHeight) {
+                framebuffer.initialise(glContext, scaledWidth, scaledHeight);
+            }
+            
+            framebuffer.makeCurrentRenderingTarget();
+            glViewport(0, 0, scaledWidth, scaledHeight);
+            
+            nvgBeginFrame(nvg, width, height, pixelScale);
+            nvgScissor (nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
+            {
+                const MessageManagerLock mmLock;
+                if(mmLock.lockWasGained()) {
+                    // If the lock was not gained, don't clear the canvas background, just let it render the old frame again
+                    nvgBeginPath(nvg);
+                    nvgFillColor(nvg, nvgRGB(0, 0, 0));
+                    nvgRect(nvg, 0, 0, width, height);
+                    nvgFill(nvg);
+                    
+                    cnv->renderNVG(nvg);
+                }
+            }
+#if 0
+            static juce::Random rng;
+            nvgBeginPath(nvg);
+            nvgFillColor(nvg, nvgRGBA(rng.nextInt(255), rng.nextInt(255), rng.nextInt(255), 0x50));
+            nvgRect(nvg, 0, 0, width, height);
+            nvgFill(nvg);
+#endif
+            nvgEndFrame(nvg);
+            
+            framebuffer.releaseAsRenderingTarget();
+        }
+        
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.getFrameBufferID());
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glBlitFramebuffer(0, 0, scaledWidth, scaledHeight, 0, 0, scaledWidth, scaledHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+    
+    void paint(Graphics& g) override
+    {
+        pixelScale = g.getInternalContext().getPhysicalPixelScaleFactor();
     }
 
     void lookAndFeelChanged() override
@@ -424,6 +525,10 @@ public:
 
     void visibleAreaChanged(Rectangle<int> const& r) override
     {
+        {
+            ScopedLock lock(invalidAreaLock);
+            invalidArea = getLocalBounds();
+        }
         onScroll();
         adjustScrollbarBounds();
     }
@@ -472,6 +577,13 @@ public:
     std::function<void()> onScroll = []() {};
 
 private:
+    NVGcontext* nvg;
+    OpenGLContext glContext;
+    OpenGLFrameBuffer framebuffer;
+    RectangleList<int> invalidArea;
+    CriticalSection invalidAreaLock;
+    
+    float pixelScale = 1.0f;
     Time lastScrollTime;
     PluginEditor* editor;
     Canvas* cnv;

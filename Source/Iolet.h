@@ -19,8 +19,6 @@ public:
 
     Iolet(Object* parent, bool isInlet);
 
-    void paint(Graphics&) override;
-
     void mouseDrag(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
 

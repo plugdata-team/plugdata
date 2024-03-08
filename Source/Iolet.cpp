@@ -91,10 +91,13 @@ void Iolet::render(NVGcontext* nvg)
     
     if (PlugDataLook::getUseSquareIolets()) {
         
-        //g.fillRect(bounds);
-
-        //g.setColour(findColour(PlugDataColour::objectOutlineColourId));
-        //g.drawRect(bounds, 1.0f);
+        nvgBeginPath(nvg);
+        nvgFillColor(nvg, nvgRGB(backgroundColour.getRed(), backgroundColour.getGreen(), backgroundColour.getBlue()));
+        nvgRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+        nvgFill(nvg);
+        
+        nvgStrokeColor(nvg, nvgRGB(outlineColour.getRed(), outlineColour.getGreen(), outlineColour.getBlue()));
+        nvgStroke(nvg);
     } else {
         nvgBeginPath(nvg);
         nvgFillColor(nvg, nvgRGB(backgroundColour.getRed(), backgroundColour.getGreen(), backgroundColour.getBlue()));
@@ -133,64 +136,6 @@ bool Iolet::hitTest(int x, int y)
 
     // Check if we're hovering the total iolet hitbox
     return getLocalBounds().contains(x, y);
-}
-
-void Iolet::paint(Graphics& g)
-{
-    auto bounds = getLocalBounds().toFloat().reduced(0.5f);
-
-    bool isLocked = getValue<bool>(locked) || getValue<bool>(commandLocked);
-    bool down = isMouseButtonDown();
-    bool over = isMouseOver();
-
-    if ((!isTargeted && !over) || isLocked) {
-        bounds = bounds.reduced(2);
-    }
-
-    auto backgroundColour = isSignal ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId);
-    if(isGemState)
-    {
-        backgroundColour = findColour(PlugDataColour::gemColourId);
-    }
-    
-    if ((down || over) && !isLocked)
-        backgroundColour = backgroundColour.contrasting(down ? 0.2f : 0.05f);
-
-    if (isLocked) {
-        backgroundColour = findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.5f);
-    }
-
-    // Instead of drawing pie segments, just clip the graphics region to the visible iolets of the object
-    // This is much faster!
-    bool stateSaved = false;
-    if (!(object->isMouseOverOrDragging(true) || over || isTargeted) || isLocked) {
-        g.saveState();
-        g.reduceClipRegion(getLocalArea(object, object->getLocalBounds().reduced(Object::margin)));
-        stateSaved = true;
-    }
-
-    // TODO: this is kind of a hack to force inlets to align correctly. Find a better way to fix this!
-    if ((getHeight() % 2) == 0) {
-        bounds.translate(0.0f, isInlet ? -1.0f : 0.0f);
-    }
-
-    if (PlugDataLook::getUseSquareIolets()) {
-        g.setColour(backgroundColour);
-        g.fillRect(bounds);
-
-        g.setColour(findColour(PlugDataColour::objectOutlineColourId));
-        g.drawRect(bounds, 1.0f);
-    } else {
-        g.setColour(backgroundColour);
-        g.fillEllipse(bounds);
-
-        g.setColour(findColour(PlugDataColour::ioletOutlineColourId));
-        g.drawEllipse(bounds, 1.0f);
-    }
-
-    if (stateSaved) {
-        g.restoreState();
-    }
 }
 
 void Iolet::mouseDrag(MouseEvent const& e)

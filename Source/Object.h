@@ -40,8 +40,6 @@ public:
     void changeListenerCallback(ChangeBroadcaster* source) override;
     void timerCallback() override;
 
-    void paint(Graphics&) override;
-    void paintOverChildren(Graphics&) override;
     void resized() override;
         
     bool keyPressed(KeyPress const& key, Component* component) override;
