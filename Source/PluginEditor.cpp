@@ -354,7 +354,7 @@ void PluginEditor::paint(Graphics& g)
 
     if (rounded) {
         g.setColour(baseColour);
-        //g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
 
         // Toolbar background
         g.setColour(baseColour);

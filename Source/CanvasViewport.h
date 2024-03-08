@@ -367,7 +367,7 @@ public:
         // if the GPU is nvidia, and gsync is active, this setting will be ignored, and swap interval of 1 will be used instead
         // this should be fine if gsync is controlling the swap however, as the mouse will be synced to gsync also.
         glContext.setSwapInterval(0);
-        
+        contextChanged = true;
     }
     
     void openGLContextClosing() override
@@ -408,8 +408,9 @@ public:
         return;
 #endif
         if(!invalidated.isEmpty()) {
-            if(framebuffer.getWidth() != scaledWidth || framebuffer.getHeight() != scaledHeight) {
+            if(contextChanged || framebuffer.getWidth() != scaledWidth || framebuffer.getHeight() != scaledHeight) {
                 framebuffer.initialise(glContext, scaledWidth, scaledHeight);
+                contextChanged = false;
             }
             
             framebuffer.makeCurrentRenderingTarget();
@@ -591,6 +592,7 @@ private:
     RectangleList<int> invalidArea;
     CriticalSection invalidAreaLock;
     
+    bool contextChanged = false;
     float pixelScale = 1.0f;
     Time lastScrollTime;
     PluginEditor* editor;
