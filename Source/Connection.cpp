@@ -127,23 +127,63 @@ void Connection::lookAndFeelChanged()
     repaint();
 }
 
-// Function to calculate the length of a 2D vector
-float length(const Point<float>& vec) {
-    return std::sqrt(vec.x * vec.x + vec.y * vec.y);
+Point<float> Connection::bezierPointAtDistance(const Point<float>& start, const Point<float>& cp1,
+                                         const Point<float>& cp2, const Point<float>& end,
+                                         float distance) {
+    // De Casteljau's algorithm to find a point at parameter 't' along the Bezier curve
+    auto deCasteljau = [](const Point<float>& p0, const Point<float>& p1,
+                          const Point<float>& p2, const Point<float>& p3, float t) {
+        Point<float> result =
+            p0 * std::pow(1.0f - t, 3) +
+            p1 * (3.0f * std::pow(1.0f - t, 2) * t) +
+            p2 * (3.0f * (1.0f - t) * std::pow(t, 2)) +
+            p3 * std::pow(t, 3);
+        return result;
+    };
+
+    // Function to calculate the length of the Bezier curve between t1 and t2
+    auto calculateSegmentLength = [&](float t1, float t2) {
+        float step = 0.01f;
+        float segmentLength = 0.0f;
+
+        Point<float> prevPoint = deCasteljau(start, cp1, cp2, end, t1);
+        for (float t = t1 + step; t <= t2; t += step) {
+            Point<float> currentPoint = deCasteljau(start, cp1, cp2, end, t);
+
+            segmentLength += prevPoint.getDistanceFrom(currentPoint);
+            prevPoint = currentPoint;
+        }
+
+        return segmentLength;
+    };
+    
+    // Use binary search to find the correct t value
+    float epsilon = 0.0001f;
+    float minT = 0.0f;
+    float maxT = 1.0f;
+    float midT = 0.5f;
+
+    while (maxT - minT > epsilon) {
+        float lengthAtMidT = calculateSegmentLength(0.0f, midT);
+        if (lengthAtMidT < distance) {
+            minT = midT;
+        } else {
+            maxT = midT;
+        }
+        midT = (minT + maxT) / 2.0f;
+    }
+
+    // Use the found t value to calculate the point
+    Point<float> point = deCasteljau(start, cp1, cp2, end, midT);
+
+    return point;
 }
 
-// Function to normalize a 2D vector (make it unit length)
-Point<float> normalize(const Point<float>& vec) {
-    float len = length(vec);
-    if (len != 0) {
-        return Point<float>(vec.x / len, vec.y / len);
-    }
-    // Return a default vector if the input vector is a zero vector
-    return Point<float>(0, 0);
-}
 
 void Connection::render(NVGcontext* nvg)
 {
+    if(!isVisible()) return;
+    
     auto baseColour = cnv->findColour(PlugDataColour::connectionColourId);
     auto dataColour = cnv->findColour(PlugDataColour::dataColourId);
     auto signalColour = cnv->findColour(PlugDataColour::signalColourId);
@@ -169,7 +209,7 @@ void Connection::render(NVGcontext* nvg)
         baseColour = baseColour.brighter(0.6f);
     }
     
-    auto mousePos = getMouseXYRelative();
+    auto mousePos = cnv->getMouseXYRelative();
     auto start = outlet->getCanvasBounds().toFloat().getCentre();
     auto end = inlet->getCanvasBounds().toFloat().getCentre();
     
@@ -189,7 +229,7 @@ void Connection::render(NVGcontext* nvg)
         nvgStroke(nvg);
     };
     
-    auto drawSegmentedConnection = [this, nvg, baseColour](){
+    auto drawSegmentedConnection = [this, nvg, baseColour, shadowColour](){
         
         auto snap = [this](Point<float> point, int idx1, int idx2) {
             if (Line<float>(currentPlan[idx1], currentPlan[idx2]).isVertical()) {
@@ -237,7 +277,7 @@ void Connection::render(NVGcontext* nvg)
 
         nvgLineTo(nvg, pend.x, pend.y);
         
-        nvgStrokeColor(nvg, nvgRGBA(45, 45, 45, 100));
+        nvgStrokeColor(nvg, NVGHelper::convertColour(shadowColour));
         nvgStrokeWidth(nvg, 6.0f);
         nvgStroke(nvg);
         
@@ -247,8 +287,14 @@ void Connection::render(NVGcontext* nvg)
         nvgStroke(nvg);
     };
     
+    Rectangle<float> startReconnectHandle, endReconnectHandle;
     if(segmented)
     {
+        Point<float> startUnitDirection = (currentPlan[0] - currentPlan[1]) / (currentPlan[0].getDistanceFrom(currentPlan[1]));
+        Point<float> endUnitDirection = (currentPlan[currentPlan.size() - 2] - currentPlan[currentPlan.size() - 1]) / (currentPlan[currentPlan.size() - 2].getDistanceFrom(currentPlan[currentPlan.size() - 1]));
+        
+        startReconnectHandle = Rectangle<float>(5, 5).withCentre(start - startUnitDirection * 8.5f);
+        endReconnectHandle = Rectangle<float>(5, 5).withCentre(end + endUnitDirection * 8.5f);
         drawSegmentedConnection();
     }
     else if (!PlugDataLook::getUseStraightConnections()) {
@@ -257,43 +303,44 @@ void Connection::render(NVGcontext* nvg)
 
         float const min = std::min<float>(width, height);
         float const max = std::max<float>(width, height);
+        float const maxShift = 20.f;
 
-        float const maxShiftY = 20.f;
-        float const maxShiftX = 20.f;
-
-        float const shiftY = std::min<float>(maxShiftY, max * 0.5);
-
-        float const shiftX = ((start.y >= end.y) ? std::min<float>(maxShiftX, min * 0.5) : 0.f) * ((start.x < end.x) ? -1. : 1.);
+        float const shiftY = std::min<float>(maxShift, max * 0.5);
+        float const shiftX = ((start.y >= end.y) ? std::min<float>(maxShift, min * 0.5) : 0.f) * ((start.x < end.x) ? -1. : 1.);
 
         Point<float> const cp1 { start.x - shiftX, start.y + shiftY };
         Point<float> const cp2 { end.x + shiftX, end.y - shiftY };
         drawConnection(start, cp1, cp2, end);
-
+        
+        startReconnectHandle = Rectangle<float>(5, 5).withCentre(bezierPointAtDistance(start, cp1, cp2, end, 8.5f));
+        endReconnectHandle = Rectangle<float>(5, 5).withCentre(bezierPointAtDistance(end, cp2, cp1, start, 8.5f));
     } else {
         drawConnection(start, start, end, end);
+        
+        float lineLength = start.getDistanceFrom(end);
+        Point<float> unitDirection = (end - start) / lineLength;
+        startReconnectHandle = Rectangle<float>(5, 5).withCentre(start + unitDirection * 8.5f);
+        endReconnectHandle = Rectangle<float>(5, 5).withCentre(end - unitDirection * 8.5f);
     }
        
     // draw reconnect handles if connection is both selected & mouse is hovering over
     if (isSelected() && isHovering) {
-        /*
-        auto startReconnectHandle = Rectangle<float>(5, 5).withCentre(connectionPath.getPointAlongPath(8.5f));
-        auto endReconnectHandle = Rectangle<float>(5, 5).withCentre(connectionPath.getPointAlongPath(jmax(connectionLength - 8.5f, 9.5f)));
         if(startReconnectHandle.contains(mousePos.toFloat())) startReconnectHandle = startReconnectHandle.expanded(3.0f);
-        if(endReconnectHandle.contains(mousePos.toFloat())) startReconnectHandle = startReconnectHandle.expanded(3.0f);
+        if(endReconnectHandle.contains(mousePos.toFloat())) endReconnectHandle = endReconnectHandle.expanded(3.0f);
 
         nvgFillColor(nvg, NVGHelper::convertColour(handleColour));
         nvgStrokeColor(nvg, NVGHelper::convertColour(cnv->findColour(PlugDataColour::objectOutlineColourId)));
+        nvgStrokeWidth(nvg, 0.5f);
         
         nvgBeginPath(nvg);
-        nvgCircle(nvg, startReconnectHandle.getCentreX(), startReconnectHandle.getCentreY(), startReconnectHandle.getWidth());
+        nvgCircle(nvg, startReconnectHandle.getCentreX(), startReconnectHandle.getCentreY(), startReconnectHandle.getWidth() / 2);
         nvgFill(nvg);
         nvgStroke(nvg);
         
         nvgBeginPath(nvg);
-        nvgFillColor(nvg, NVGHelper::convertColour(handleColour));
-        nvgCircle(nvg, endReconnectHandle.getCentreX(), endReconnectHandle.getCentreY(), endReconnectHandle.getWidth());
+        nvgCircle(nvg, endReconnectHandle.getCentreX(), endReconnectHandle.getCentreY(), endReconnectHandle.getWidth() / 2);
         nvgFill(nvg);
-        nvgStroke(nvg); */
+        nvgStroke(nvg);
     }
 }
 

@@ -128,6 +128,8 @@ private:
     int getMultiConnectNumber();
     int getNumSignalChannels();
     int getNumberOfConnections();
+        
+    static Point<float> Connection::bezierPointAtDistance(const Point<float>& start, const Point<float>& cp1, const Point<float>& cp2, const Point<float>& end, float distance)
 
     void valueChanged(Value& v) override;
 
