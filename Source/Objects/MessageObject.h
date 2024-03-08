@@ -177,7 +177,7 @@ public:
 
         
         nvgBeginPath(nvg);
-        nvgFillColor(nvg, nvgRGBf(.9, .9, .9));
+        nvgFillColor(nvg, NVGHelper::convertColour(object->findColour(PlugDataColour::canvasTextColourId)));
         nvgFontSize(nvg, 12.5f);
         nvgFontFace(nvg, "Inter");
         nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
