@@ -303,7 +303,7 @@ class CanvasViewport : public Viewport, public OpenGLRenderer
         bool invalidateAll() override
         {
             ScopedLock lock(viewport->invalidAreaLock);
-            viewport->invalidArea = viewport->getLocalBounds();
+            viewport->invalidArea = viewport->getLocalBounds().withTrimmedTop(-10);
             return true;
         }
         
@@ -385,6 +385,10 @@ public:
             invalidated = invalidArea.getBounds();
             invalidArea = RectangleList<int>();
         }
+
+#if JUCE_LINUX          
+        invalidated = invalidated.translated(0, 10);
+#endif
         
         int width = getWidth();
         int height = getHeight();
@@ -409,8 +413,9 @@ public:
             }
             
             framebuffer.makeCurrentRenderingTarget();
+
             glViewport(0, 0, scaledWidth, scaledHeight);
-            
+
             nvgBeginFrame(nvg, width, height, pixelScale);
             nvgScissor (nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
             {
@@ -421,6 +426,9 @@ public:
                     nvgFillColor(nvg, nvgRGB(0, 0, 0));
                     nvgRect(nvg, 0, 0, width, height);
                     nvgFill(nvg);
+#if JUCE_LINUX          
+                    nvgTranslate(nvg, 0, 10);
+#endif
                     
                     cnv->renderNVG(nvg);
                 }
@@ -527,7 +535,7 @@ public:
     {
         {
             ScopedLock lock(invalidAreaLock);
-            invalidArea = getLocalBounds();
+            invalidArea = getLocalBounds().withTrimmedTop(-10);
         }
         onScroll();
         adjustScrollbarBounds();
