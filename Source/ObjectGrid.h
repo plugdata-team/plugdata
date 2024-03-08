@@ -6,6 +6,7 @@
 
 #pragma once
 #include "Utility/SettingsFile.h"
+#include "Utility/NVGHelper.h"
 
 class Object;
 class Canvas;
@@ -20,6 +21,8 @@ struct ObjectGrid : public SettingsFileListener {
     Point<int> performMove(Object* toDrag, Point<int> dragOffset);
 
     void clearIndicators(bool fast);
+    
+    void render(NVGcontext* nvg);
 
 private:
     enum Side {
@@ -43,6 +46,7 @@ private:
     static constexpr int connectionTolerance = 9;
 
     DrawablePath gridLines[2];
+    Line<int> lines[2];
     ComponentAnimator gridLineAnimator;
 
     int gridType;

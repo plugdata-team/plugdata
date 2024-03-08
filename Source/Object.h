@@ -139,6 +139,10 @@ private:
 
     bool showActiveState = false;
     float activeStateAlpha = 0.0f;
+        
+    NVGpaint glow;
+    bool glowDirty = true;
+
 
     bool isObjectMouseActive = false;
     bool isInsideUndoSequence = false;

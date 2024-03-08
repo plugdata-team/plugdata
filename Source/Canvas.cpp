@@ -233,6 +233,8 @@ void Canvas::renderNVG(NVGcontext* nvg)
         nvgRestore(nvg);
     }
     
+    objectGrid.render(nvg);
+    
     if(lasso.isVisible()) {
         auto lassoBounds = lasso.getBounds();
         

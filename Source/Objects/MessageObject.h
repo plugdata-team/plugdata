@@ -163,7 +163,7 @@ public:
         float bBottom = b.getBottom();
         float d = 6.0f;
 
-        // Create flagPath
+        // Create flag path
         nvgBeginPath(nvg);
         nvgMoveTo(nvg, bRight, bY);
         nvgLineTo(nvg, bRight - d, bY + d);
@@ -171,11 +171,9 @@ public:
         nvgLineTo(nvg, bRight, bBottom);
         nvgClosePath(nvg);
 
-        // Set fill color and fill flagPath
         nvgFillColor(nvg, flagColour);
         nvgFill(nvg);
 
-        
         nvgBeginPath(nvg);
         nvgFillColor(nvg, NVGHelper::convertColour(object->findColour(PlugDataColour::canvasTextColourId)));
         nvgFontSize(nvg, 12.5f);

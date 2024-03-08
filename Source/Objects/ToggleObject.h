@@ -68,7 +68,7 @@ public:
     }
     
     
-    void render(NVGcontext* nvg)
+    void render(NVGcontext* nvg) override
     {
         auto b = getLocalBounds().toFloat();
         

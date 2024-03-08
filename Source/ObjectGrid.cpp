@@ -396,6 +396,7 @@ void ObjectGrid::setIndicator(int idx, Line<int> line, float scale)
     auto lineIsEmpty = line.getLength() == 0;
     if (gridLines[idx].isVisible() && lineIsEmpty) {
         gridLineAnimator.fadeOut(&gridLines[idx], 20);
+        lines[idx] = Line<int>();
     }
 
     auto& lnf = LookAndFeel::getDefaultLookAndFeel();
@@ -405,9 +406,32 @@ void ObjectGrid::setIndicator(int idx, Line<int> line, float scale)
 
     Path toDraw;
     toDraw.addLineSegment(line.toFloat(), scale);
+    
+    lines[idx] = line;
     gridLines[idx].setPath(toDraw);
 
     if (!gridLines[idx].isVisible() && !lineIsEmpty) {
         gridLineAnimator.fadeIn(&gridLines[idx], 25);
+    }
+}
+
+void ObjectGrid::render(NVGcontext* nvg)
+{
+    auto& lnf = LookAndFeel::getDefaultLookAndFeel();
+    nvgStrokeColor(nvg, NVGHelper::convertColour(lnf.findColour(PlugDataColour::gridLineColourId)));
+    nvgStrokeWidth(nvg, 1.0f);
+    
+    if(lines[0].getLength() != 0) {
+        nvgBeginPath(nvg);
+        nvgMoveTo(nvg, lines[0].getStartX(), lines[0].getStartY());
+        nvgLineTo(nvg, lines[0].getEndX(), lines[0].getEndY());
+        nvgStroke(nvg);
+    }
+          
+    if(lines[1].getLength() != 0) {
+        nvgBeginPath(nvg);
+        nvgMoveTo(nvg, lines[1].getStartX(), lines[1].getStartY());
+        nvgLineTo(nvg, lines[1].getEndX(), lines[1].getEndY());
+        nvgStroke(nvg);
     }
 }

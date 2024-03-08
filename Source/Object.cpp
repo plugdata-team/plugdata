@@ -567,6 +567,8 @@ void Object::resized()
     if (newObjectEditor) {
         newObjectEditor->setBounds(getLocalBounds().reduced(margin));
     }
+    
+    glowDirty = true;
 
 #if JUCE_IOS
     int ioletSize = 15;
@@ -1218,6 +1220,34 @@ void Object::render(NVGcontext* nvg)
         }
     }
     
+    if(showActiveState && isTimerRunning())
+    {
+        auto cTransparent = nvgRGBAf(0, 0, 0, 0);
+        auto cGlow = NVGHelper::convertColour(findColour(PlugDataColour::dataColourId).withAlpha(activeStateAlpha));
+        nvgBeginPath(nvg);
+        auto ds = b.expanded(1);
+        if (1 || glowDirty) {
+            glow = nvgBoxGradient(nvg, ds.getX(), ds.getY(), ds.getWidth(), ds.getHeight(), Corners::objectCornerRadius, 12, cGlow, cTransparent);
+            glowDirty = false;
+        }
+        nvgFillPaint(nvg, glow);
+        nvgFill(nvg);
+    }
+    
+    if (gui && gui->isTransparent() && !getValue<bool>(locked)) {
+        nvgBeginPath(nvg);
+        nvgFillColor(nvg, NVGHelper::convertColour(findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.35f).withAlpha(0.1f)));
+        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+        nvgFill(nvg);
+    }
+    
+    if(gui) {
+        nvgSave(nvg);
+        nvgTranslate(nvg, margin, margin);
+        gui->render(nvg);
+        nvgRestore(nvg);
+    }
+    
     if(newObjectEditor)
     {
         auto backgroundColour = NVGHelper::convertColour(findColour(PlugDataColour::textObjectBackgroundColourId));
@@ -1239,14 +1269,6 @@ void Object::render(NVGcontext* nvg)
         nvgTranslate(nvg, margin, margin);
         NVGHelper::renderComponent(nvg, *newObjectEditor, getValue<float>(cnv->zoomScale) * 2, cachedImage);
     }
-    
-    if(gui) {
-        nvgSave(nvg);
-        nvgTranslate(nvg, margin, margin);
-        gui->render(nvg);
-        nvgRestore(nvg);
-    }
-
 }
 
 void Object::renderIolets(NVGcontext* nvg)
