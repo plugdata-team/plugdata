@@ -16,7 +16,7 @@
 #include "Pd/MessageListener.h"
 #include "Utility/RateReducer.h"
 #include "Utility/ModifierKeyListener.h"
-#include "Utility/NVGHelper.h"
+#include "Utility/NVGComponent.h"
 
 using PathPlan = std::vector<Point<float>>;
 
@@ -27,7 +27,9 @@ class Connection : public Component
     , public ComponentListener
     , public Value::Listener
     , public ChangeListener
-    , public pd::MessageListener {
+    , public pd::MessageListener 
+    , public NVGComponent
+{
 public:
     int inIdx;
     int outIdx;
@@ -69,7 +71,7 @@ public:
     bool isSegmented() const;
     void setSegmented(bool segmented);
         
-    void render(NVGcontext* nvg);
+    void render(NVGcontext* nvg) override;
 
     void updatePath();
 

@@ -7,7 +7,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "Utility/Config.h"
-#include "Utility/NVGHelper.h"
+#include "Utility/NVGComponent.h"
 #include "Utility/Fonts.h"
 
 #include "Object.h"
@@ -35,7 +35,8 @@ extern "C" {
 }
 
 Object::Object(Canvas* parent, String const& name, Point<int> position)
-    : cnv(parent)
+    : NVGComponent(static_cast<Component&>(*this))
+    , cnv(parent)
     , gui(nullptr)
     , ds(parent->dragState)
 {
@@ -57,7 +58,8 @@ Object::Object(Canvas* parent, String const& name, Point<int> position)
 }
 
 Object::Object(pd::WeakReference object, Canvas* parent)
-    : gui(nullptr)
+    : NVGComponent(static_cast<Component&>(*this))
+    , gui(nullptr)
     , ds(parent->dragState)
 {
     cnv = parent;
@@ -1119,7 +1121,7 @@ void Object::mouseDrag(MouseEvent const& e)
 void Object::render(NVGcontext* nvg)
 {
     auto b = getLocalBounds().reduced(margin);
-    auto selectedOutlineColour = NVGHelper::convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
+    auto selectedOutlineColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
     
     if (selectedFlag) {
         nvgFillColor(nvg, selectedOutlineColour);
@@ -1134,7 +1136,7 @@ void Object::render(NVGcontext* nvg)
     if(showActiveState && isTimerRunning())
     {
         auto cTransparent = nvgRGBAf(0, 0, 0, 0);
-        auto cGlow = NVGHelper::convertColour(findColour(PlugDataColour::dataColourId).withAlpha(activeStateAlpha));
+        auto cGlow = convertColour(findColour(PlugDataColour::dataColourId).withAlpha(activeStateAlpha));
         nvgBeginPath(nvg);
         auto ds = b.expanded(1);
         if (1 || glowDirty) {
@@ -1147,7 +1149,7 @@ void Object::render(NVGcontext* nvg)
     
     if (gui && gui->isTransparent() && !getValue<bool>(locked)) {
         nvgBeginPath(nvg);
-        nvgFillColor(nvg, NVGHelper::convertColour(findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.35f).withAlpha(0.1f)));
+        nvgFillColor(nvg, convertColour(findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.35f).withAlpha(0.1f)));
         nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
         nvgFill(nvg);
     }
@@ -1161,8 +1163,8 @@ void Object::render(NVGcontext* nvg)
     
     if(newObjectEditor)
     {
-        auto backgroundColour = NVGHelper::convertColour(findColour(PlugDataColour::textObjectBackgroundColourId));
-        auto outlineColour = NVGHelper::convertColour(findColour(PlugDataColour::objectOutlineColourId));
+        auto backgroundColour = convertColour(findColour(PlugDataColour::textObjectBackgroundColourId));
+        auto outlineColour = convertColour(findColour(PlugDataColour::objectOutlineColourId));
         
         nvgBeginPath(nvg);
         nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
@@ -1178,7 +1180,7 @@ void Object::render(NVGcontext* nvg)
         nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
         
         nvgTranslate(nvg, margin, margin);
-        NVGHelper::renderComponent(nvg, *newObjectEditor, getValue<float>(cnv->zoomScale) * 2, cachedImage);
+        renderComponentFromImage(nvg, *newObjectEditor, getValue<float>(cnv->zoomScale) * 2);
     }
     
     // If autoconnect is about to happen, draw a fake inlet with a dotted outline
@@ -1186,11 +1188,11 @@ void Object::render(NVGcontext* nvg)
         auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
         float fakeInletBounds[4] = {16.0f, 4.0f, 8.0f, 8.0f};
         nvgBeginPath(nvg);
-        nvgFillColor(nvg, NVGHelper::convertColour(findColour(outlet->isSignal ? PlugDataColour::signalColourId : PlugDataColour::dataColourId).brighter()));
+        nvgFillColor(nvg, convertColour(findColour(outlet->isSignal ? PlugDataColour::signalColourId : PlugDataColour::dataColourId).brighter()));
         nvgEllipse(nvg, fakeInletBounds[0] + fakeInletBounds[2] * 0.5f, fakeInletBounds[1] + fakeInletBounds[3] * 0.5f, fakeInletBounds[2] * 0.5f, fakeInletBounds[3] * 0.5f);
         nvgFill(nvg);
         
-        nvgStrokeColor(nvg, NVGHelper::convertColour(findColour(PlugDataColour::objectOutlineColourId)));
+        nvgStrokeColor(nvg, convertColour(findColour(PlugDataColour::objectOutlineColourId)));
         nvgStrokeWidth(nvg, 1.0f);
         nvgStroke(nvg);
     }
@@ -1215,14 +1217,14 @@ void Object::render(NVGcontext* nvg)
         auto indexBounds = Rectangle<int>(left, (getHeight() / 2) - halfHeight, getWidth() - left, halfHeight * 2);
         
         nvgBeginPath(nvg);
-        nvgFillColor(nvg, NVGHelper::convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId))); // Adjust fill color as needed
+        nvgFillColor(nvg, convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId))); // Adjust fill color as needed
         nvgRoundedRect(nvg, indexBounds.getX(), indexBounds.getY(), indexBounds.getWidth(), indexBounds.getHeight(), 2.0f);
         nvgFill(nvg);
 
         nvgFontSize(nvg, 8.0f);
         nvgFontFace(nvg, "Inter");
         nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_CENTER);
-        nvgFillColor(nvg, NVGHelper::convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting()));
+        nvgFillColor(nvg, convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting()));
         nvgText(nvg, indexBounds.getCentreX(), indexBounds.getCentreY(), text.c_str(), nullptr);
     }
 }

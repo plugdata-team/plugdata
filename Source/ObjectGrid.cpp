@@ -425,7 +425,7 @@ void ObjectGrid::render(NVGcontext* nvg)
     if(lineAlpha == 0.0f) return;
         
     auto& lnf = LookAndFeel::getDefaultLookAndFeel();
-    nvgStrokeColor(nvg, NVGHelper::convertColour(lnf.findColour(PlugDataColour::gridLineColourId).withAlpha(lineAlpha)));
+    nvgStrokeColor(nvg, NVGComponent::convertColour(lnf.findColour(PlugDataColour::gridLineColourId).withAlpha(lineAlpha)));
     nvgStrokeWidth(nvg, 1.0f);
     
     if(lines[0].getLength() != 0) {

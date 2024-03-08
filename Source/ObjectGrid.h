@@ -6,7 +6,7 @@
 
 #pragma once
 #include "Utility/SettingsFile.h"
-#include "Utility/NVGHelper.h"
+#include "Utility/NVGComponent.h"
 
 class Object;
 class Canvas;

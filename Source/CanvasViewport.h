@@ -17,8 +17,6 @@ using namespace juce::gl;
 
 #include <utility>
 
-#include "Utility/GlobalMouseListener.h"
-
 #include "Object.h"
 #include "Connection.h"
 #include "Canvas.h"
@@ -402,7 +400,7 @@ public:
         nvgBeginFrame(nvg, width, height, pixelScale);
         {
             const MessageManagerLock mmLock;
-            cnv->renderNVG(nvg);
+            cnv->renderNVG(nvg, invalidated);
         }
         nvgEndFrame(nvg);
         return;
@@ -431,7 +429,10 @@ public:
                     nvgTranslate(nvg, 0, 10);
 #endif
                     
-                    cnv->renderNVG(nvg);
+                    cnv->renderNVG(nvg, invalidated);
+                }
+                else {
+                    std::cout << "Lock not gained!" << std::endl;
                 }
             }
 #if 0

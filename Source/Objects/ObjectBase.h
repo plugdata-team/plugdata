@@ -11,7 +11,7 @@
 #include "Constants.h"
 #include "ObjectParameters.h"
 #include "Utility/SynchronousValue.h"
-#include "Utility/NVGHelper.h"
+#include "Utility/NVGComponent.h"
 
 class PluginProcessor;
 class Canvas;
@@ -40,7 +40,9 @@ private:
 class ObjectBase : public Component
     , public pd::MessageListener
     , public Value::Listener
-    , public SettableTooltipClient {
+    , public SettableTooltipClient
+    , public NVGComponent
+{
 
     struct ObjectSizeListener : public juce::ComponentListener
         , public Value::Listener {
@@ -103,7 +105,7 @@ public:
 
     virtual void tabChanged() { }
         
-    virtual void render(NVGcontext* nvg);
+    void render(NVGcontext* nvg) override;
 
     virtual bool canOpenFromMenu();
     virtual void openFromMenu();
@@ -228,7 +230,6 @@ public:
     PluginProcessor* pd;
 
 protected:
-    NVGHelper::NVGCachedImage cachedImage;
     PropertyUndoListener propertyUndoListener;
 
     std::function<void()> onConstrainerCreate = []() {};

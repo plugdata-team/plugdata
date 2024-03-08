@@ -7,7 +7,7 @@
 #include <nanovg.h>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
-#include "Utility/NVGHelper.h"
+#include "Utility/NVGComponent.h"
 
 #include "Connection.h"
 
@@ -21,7 +21,8 @@
 #include "Dialogs/ConnectionMessageDisplay.h"
 
 Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
-    : inlet(s->isInlet ? s : e)
+    : NVGComponent(static_cast<Component&>(*this))
+    , inlet(s->isInlet ? s : e)
     , outlet(s->isInlet ? e : s)
     , inobj(inlet->object)
     , outobj(outlet->object)
@@ -209,7 +210,7 @@ void Connection::render(NVGcontext* nvg)
         baseColour = baseColour.brighter(0.6f);
     }
     
-    auto mousePos = cnv->getMouseXYRelative();
+    auto mousePos = cnv->getLastMousePosition();
     auto start = outlet->getCanvasBounds().toFloat().getCentre();
     auto end = inlet->getCanvasBounds().toFloat().getCentre();
     
@@ -219,12 +220,12 @@ void Connection::render(NVGcontext* nvg)
         nvgLineStyle(nvg, NVG_LINE_SOLID);
         nvgMoveTo(nvg, start.x, start.y);
         nvgBezierTo(nvg, cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
-        nvgStrokeColor(nvg, NVGHelper::convertColour(shadowColour));
+        nvgStrokeColor(nvg, convertColour(shadowColour));
         nvgLineCap(nvg, NVG_ROUND);
         nvgStrokeWidth(nvg, 6.0f);
         nvgStroke(nvg);
 
-        nvgStrokeColor(nvg, NVGHelper::convertColour(baseColour));
+        nvgStrokeColor(nvg, convertColour(baseColour));
         nvgStrokeWidth(nvg, 2.0f);
         nvgStroke(nvg);
     };
@@ -277,12 +278,12 @@ void Connection::render(NVGcontext* nvg)
 
         nvgLineTo(nvg, pend.x, pend.y);
         
-        nvgStrokeColor(nvg, NVGHelper::convertColour(shadowColour));
+        nvgStrokeColor(nvg, convertColour(shadowColour));
         nvgStrokeWidth(nvg, 6.0f);
         nvgStroke(nvg);
         
         nvgLineStyle(nvg, NVG_LINE_SOLID);
-        nvgStrokeColor(nvg, NVGHelper::convertColour(baseColour));
+        nvgStrokeColor(nvg, convertColour(baseColour));
         nvgStrokeWidth(nvg, 2.0f);
         nvgStroke(nvg);
     };
@@ -328,8 +329,8 @@ void Connection::render(NVGcontext* nvg)
         if(startReconnectHandle.contains(mousePos.toFloat())) startReconnectHandle = startReconnectHandle.expanded(3.0f);
         if(endReconnectHandle.contains(mousePos.toFloat())) endReconnectHandle = endReconnectHandle.expanded(3.0f);
 
-        nvgFillColor(nvg, NVGHelper::convertColour(handleColour));
-        nvgStrokeColor(nvg, NVGHelper::convertColour(cnv->findColour(PlugDataColour::objectOutlineColourId)));
+        nvgFillColor(nvg, convertColour(handleColour));
+        nvgStrokeColor(nvg, convertColour(cnv->findColour(PlugDataColour::objectOutlineColourId)));
         nvgStrokeWidth(nvg, 0.5f);
         
         nvgBeginPath(nvg);
@@ -1484,7 +1485,7 @@ void Connection::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int n
 void ConnectionBeingCreated::render(NVGcontext* nvg)
 {
     auto start = cnv->getLocalPoint((Component*)iolet->object, iolet->getBounds().toFloat().getCentre());
-    auto end = cnv->getMouseXYRelative().toFloat();
+    auto end = dynamic_cast<Canvas*>(cnv)->getLastMousePosition().toFloat();
     
     auto lineColour = cnv->findColour(PlugDataColour::dataColourId).brighter(0.6f);
     auto nvgColor = nvgRGB(lineColour.getRed(), lineColour.getGreen(), lineColour.getBlue());

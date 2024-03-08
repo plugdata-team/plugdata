@@ -11,7 +11,7 @@
 #include "Utility/SettingsFile.h"
 #include "Utility/RateReducer.h"
 #include "Pd/WeakReference.h"
-#include "Utility/NVGHelper.h"
+#include "Utility/NVGComponent.h"
 
 #define ACTIVITY_UPDATE_RATE 15
 
@@ -27,7 +27,9 @@ class Object : public Component
     , public ChangeListener
     , public Timer
     , public KeyListener
-    , private TextEditor::Listener {
+    , public NVGComponent
+    , private TextEditor::Listener
+{
 public:
     explicit Object(Canvas* parent, String const& name = "", Point<int> position = { 100, 100 });
 
@@ -70,7 +72,7 @@ public:
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
         
-    void render(NVGcontext* nvg);
+    void render(NVGcontext* nvg) override;
     void renderIolets(NVGcontext* nvg);
 
     void mouseMove(MouseEvent const& e) override;
@@ -144,8 +146,6 @@ private:
 
     bool isObjectMouseActive = false;
     bool isInsideUndoSequence = false;
-
-    NVGHelper::NVGCachedImage cachedImage;
 
     Image activityOverlayImage;
 

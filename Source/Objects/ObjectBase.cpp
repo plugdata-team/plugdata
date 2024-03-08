@@ -134,7 +134,8 @@ void ObjectBase::PropertyUndoListener::valueChanged(Value& v)
 }
 
 ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
-    : ptr(obj)
+    : NVGComponent(static_cast<Component&>(*this))
+    , ptr(obj)
     , object(parent)
     , cnv(parent->cnv)
     , pd(parent->cnv->pd)
@@ -414,7 +415,7 @@ void ObjectBase::moveToBack()
 
 void ObjectBase::render(NVGcontext* nvg)
 {
-    NVGHelper::renderComponent(nvg, *this, getValue<float>(cnv->zoomScale) * 2, cachedImage);
+    renderComponentFromImage(nvg, *this, getValue<float>(cnv->zoomScale) * 2);
 }
 
 void ObjectBase::paint(Graphics& g)

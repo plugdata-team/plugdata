@@ -237,9 +237,9 @@ public:
     {
         auto b = getLocalBounds();
         
-        auto backgroundColour = NVGHelper::convertColour(object->findColour(PlugDataColour::textObjectBackgroundColourId));
-        auto selectedOutlineColour = NVGHelper::convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = NVGHelper::convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
+        auto backgroundColour = convertColour(object->findColour(PlugDataColour::textObjectBackgroundColourId));
+        auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
         
         nvgBeginPath(nvg);
         nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
@@ -251,11 +251,11 @@ public:
 
         if(editor && editor->isVisible())
         {
-            NVGHelper::renderComponent(nvg, *editor, getValue<float>(cnv->zoomScale) * 2, cachedImage);
+            renderComponentFromImage(nvg, *editor, getValue<float>(cnv->zoomScale) * 2);
         }
         else {
             auto text = getText();
-            nvgFillColor(nvg, NVGHelper::convertColour(object->findColour(PlugDataColour::canvasTextColourId)));
+            nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::canvasTextColourId)));
             nvgFontSize(nvg, 12.35f);
             nvgFontFace(nvg, "Inter");
             nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);

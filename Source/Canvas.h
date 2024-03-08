@@ -14,7 +14,8 @@
 #include "Pd/Patch.h"
 #include "Constants.h"
 #include "Objects/ObjectParameters.h"
-#include "Utility/NVGHelper.h"
+#include "Utility/NVGComponent.h"
+#include "Utility/GlobalMouseListener.h"
 
 namespace pd {
 class Patch;
@@ -49,6 +50,7 @@ class Canvas : public Component
     , public ModifierKeyListener
     , public pd::MessageListener
     , public AsyncUpdater 
+    , public NVGComponent
 {
 public:
     Canvas(PluginEditor* parent, pd::Patch::Ptr patch, Component* parentGraph = nullptr);
@@ -61,7 +63,9 @@ public:
     void mouseDown(MouseEvent const& e) override;
     void mouseDrag(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
-
+    
+    Point<int> getLastMousePosition();
+    
     void commandKeyChanged(bool isHeld) override;
     void spaceKeyChanged(bool isHeld) override;
     void middleMouseChanged(bool isHeld) override;
@@ -72,7 +76,7 @@ public:
     void focusGained(FocusChangeType cause) override;
     void focusLost(FocusChangeType cause) override;
         
-    void renderNVG(NVGcontext* nvg);
+    void renderNVG(NVGcontext* nvg, Rectangle<int> area);
 
     int getOverlays() const;
     void updateOverlays();
@@ -218,6 +222,10 @@ public:
     inline static constexpr int infiniteCanvasSize = 128000;
 
 private:
+    
+    GlobalMouseListener globalMouseListener;
+    
+    std::atomic<int> lastMouseX, lastMouseY;
     LassoComponent<WeakReference<Component>> lasso;
 
     RateReducer canvasRateReducer = RateReducer(90);

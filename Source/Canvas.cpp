@@ -31,13 +31,15 @@ void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 }
 
 Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
-    : editor(parent)
+    : NVGComponent(static_cast<Component&>(*this))
+    , editor(parent)
     , pd(parent->pd)
     , refCountedPatch(p)
     , patch(*p)
     , canvasOrigin(Point<int>(infiniteCanvasSize / 2, infiniteCanvasSize / 2))
     , graphArea(nullptr)
     , pathUpdater(new ConnectionPathUpdater(this))
+    , globalMouseListener(this)
 {
     if (auto patchPtr = patch.getPointer()) {
         isGraphChild = glist_isgraph(patchPtr.get());
@@ -60,6 +62,15 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
 
     patchWidth.addListener(this);
     patchHeight.addListener(this);
+    
+    globalMouseListener.globalMouseMove = [this](const MouseEvent& e){
+        lastMouseX = e.x;
+        lastMouseY = e.y;
+    };
+    globalMouseListener.globalMouseDrag = [this](const MouseEvent& e){
+        lastMouseX = e.x;
+        lastMouseY = e.y;
+    };
 
     suggestor = std::make_unique<SuggestionComponent>();
 
@@ -157,18 +168,24 @@ Canvas::~Canvas()
 }
 
 
-void Canvas::renderNVG(NVGcontext* nvg)
+void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> area)
 {
-    auto backgroundColour = NVGHelper::convertColour(findColour(PlugDataColour::canvasBackgroundColourId));
-    auto dotsColour = NVGHelper::convertColour(findColour(PlugDataColour::canvasDotsColourId));
+    auto backgroundColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId));
+    auto dotsColour = convertColour(findColour(PlugDataColour::canvasDotsColourId));
     
     int halfSize = infiniteCanvasSize / 2;
 
     // apply translation to the canvas nvg objects
     nvgSave(nvg);
     
-    if(viewport) nvgTranslate(nvg, -viewport->getViewPositionX(), -viewport->getViewPositionY());
-    nvgScale(nvg, getValue<float>(zoomScale), getValue<float>(zoomScale));
+    if(viewport)  {
+        nvgTranslate(nvg, -viewport->getViewPositionX(), -viewport->getViewPositionY());
+        area = area.translated(viewport->getViewPositionX(), viewport->getViewPositionY());
+    }
+    
+    auto zoom = getValue<float>(zoomScale);
+    nvgScale(nvg, zoom, zoom);
+    area /= zoom;
     
     nvgBeginPath(nvg);
     nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
@@ -219,14 +236,18 @@ void Canvas::renderNVG(NVGcontext* nvg)
     {
         nvgSave(nvg);
         nvgTranslate(nvg, obj->getX(), obj->getY());
-        obj->render(nvg);
+        if(obj->getBounds().intersects(area)) {
+            obj->render(nvg);
+        }
         nvgRestore(nvg);
     }
     
     for(auto* connection : connections)
     {
         nvgSave(nvg);
-        connection->render(nvg);
+        if(connection->getBounds().intersects(area)) {
+            connection->render(nvg);
+        }
         nvgRestore(nvg);
     }
     
@@ -235,7 +256,9 @@ void Canvas::renderNVG(NVGcontext* nvg)
     {
         nvgSave(nvg);
         nvgTranslate(nvg, obj->getX(), obj->getY());
-        obj->renderIolets(nvg);
+        if(obj->getBounds().intersects(area)) {
+            obj->renderIolets(nvg);
+        }
         nvgRestore(nvg);
     }
     
@@ -251,8 +274,8 @@ void Canvas::renderNVG(NVGcontext* nvg)
     if(lasso.isVisible()) {
         auto lassoBounds = lasso.getBounds();
         
-        auto fillColour = NVGHelper::convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.075f));
-        auto outlineColour = NVGHelper::convertColour(findColour(PlugDataColour::canvasBackgroundColourId).interpolatedWith(findColour(PlugDataColour::objectSelectedOutlineColourId), 0.65f));
+        auto fillColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.075f));
+        auto outlineColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId).interpolatedWith(findColour(PlugDataColour::objectSelectedOutlineColourId), 0.65f));
         
         nvgBeginPath(nvg);
         nvgFillColor(nvg, fillColour);
@@ -749,6 +772,11 @@ bool Canvas::autoscroll(MouseEvent const& e)
     }
 
     return false;
+}
+
+Point<int> Canvas::getLastMousePosition()
+{
+    return {lastMouseX.load(), lastMouseY.load()};
 }
 
 void Canvas::mouseUp(MouseEvent const& e)
