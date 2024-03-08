@@ -145,11 +145,10 @@ public:
     {
         auto b = getLocalBounds();
         
-        auto convertColour = [](Colour c) { return nvgRGB(c.getRed(), c.getGreen(), c.getBlue()); };
-        auto backgroundColour = convertColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-        auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
-        auto flagColour = convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
+        auto backgroundColour = NVGHelper::convertColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
+        auto selectedOutlineColour = NVGHelper::convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = NVGHelper::convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
+        auto flagColour = NVGHelper::convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
         
         nvgBeginPath(nvg);
         nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
@@ -185,7 +184,7 @@ public:
 
         if(editor)
         {
-            renderSubcomponent(nvg, *editor);
+            NVGHelper::renderComponent(nvg, *editor, getValue<float>(cnv->zoomScale) * 2, cachedImage);
         }
         else {
             auto text = getText();

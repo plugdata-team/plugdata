@@ -71,13 +71,12 @@ public:
     void render(NVGcontext* nvg)
     {
         auto b = getLocalBounds().toFloat();
-                
-        auto convertColour = [](Colour c) { return nvgRGB(c.getRed(), c.getGreen(), c.getBlue()); };
-        auto toggledColour = convertColour(iemHelper.getForegroundColour()); // TODO: this is some bad threading practice!
-        auto untoggledColour = convertColour(iemHelper.getForegroundColour().interpolatedWith(iemHelper.getBackgroundColour(), 0.8f));
-        auto backgroundColour = convertColour(iemHelper.getBackgroundColour());
-        auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
+        
+        auto toggledColour = NVGHelper::convertColour(iemHelper.getForegroundColour()); // TODO: this is some bad threading practice!
+        auto untoggledColour = NVGHelper::convertColour(iemHelper.getForegroundColour().interpolatedWith(iemHelper.getBackgroundColour(), 0.8f));
+        auto backgroundColour = NVGHelper::convertColour(iemHelper.getBackgroundColour());
+        auto selectedOutlineColour = NVGHelper::convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = NVGHelper::convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
  
         nvgBeginPath(nvg);
         nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);

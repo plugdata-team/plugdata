@@ -14,12 +14,12 @@
 #include "Pd/Patch.h"
 #include "Constants.h"
 #include "Objects/ObjectParameters.h"
+#include "Utility/NVGHelper.h"
 
 namespace pd {
 class Patch;
 }
 
-struct NVGcontext;
 class SuggestionComponent;
 class GraphArea;
 class Iolet;

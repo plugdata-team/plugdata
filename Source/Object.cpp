@@ -5,9 +5,9 @@
  */
 
 #include <juce_gui_basics/juce_gui_basics.h>
-#include <nanovg.h>
 
 #include "Utility/Config.h"
+#include "Utility/NVGHelper.h"
 #include "Utility/Fonts.h"
 
 #include "Object.h"
@@ -1206,9 +1206,7 @@ void Object::mouseDrag(MouseEvent const& e)
 void Object::render(NVGcontext* nvg)
 {
     auto b = getLocalBounds().reduced(margin);
-    
-    auto convertColour = [](Colour c) { return nvgRGB(c.getRed(), c.getGreen(), c.getBlue()); };
-    auto selectedOutlineColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
+    auto selectedOutlineColour = NVGHelper::convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
     
     if (selectedFlag) {
         nvgFillColor(nvg, selectedOutlineColour);
@@ -1222,8 +1220,8 @@ void Object::render(NVGcontext* nvg)
     
     if(newObjectEditor)
     {
-        auto backgroundColour = convertColour(findColour(PlugDataColour::textObjectBackgroundColourId));
-        auto outlineColour = convertColour(findColour(PlugDataColour::objectOutlineColourId));
+        auto backgroundColour = NVGHelper::convertColour(findColour(PlugDataColour::textObjectBackgroundColourId));
+        auto outlineColour = NVGHelper::convertColour(findColour(PlugDataColour::objectOutlineColourId));
         
         nvgBeginPath(nvg);
         nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
@@ -1238,52 +1236,8 @@ void Object::render(NVGcontext* nvg)
         nvgFontFace(nvg, "Inter");
         nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
         
-        auto componentImage = newObjectEditor->createComponentSnapshot(newObjectEditor->getLocalBounds(), true, 2.0f * getValue<float>(cnv->zoomScale));
-        Image::BitmapData imageData(componentImage, juce::Image::BitmapData::readOnly);
-
-        int width = imageData.width;
-        int height = imageData.height;
-        uint8* pixelData = imageData.data;
-        size_t imageSize = width * height * 4; // 4 bytes per pixel for RGBA
-
-        for (int y = 0; y < height; ++y)
-        {
-            auto* scanLine = (juce::uint32*) imageData.getLinePointer(y);
-
-            for (int x = 0; x < width; ++x)
-            {
-                juce::uint32 argb = scanLine[x];
-                                
-                juce::uint8 a = argb >> 24;
-                juce::uint8 r = argb >> 16;
-                juce::uint8 g = argb >> 8;
-                juce::uint8 b = argb;
-                
-                // premultiply alpha
-                r = (r * a + 127) / 255;
-                g = (g * a + 127) / 255;
-                b = (b * a + 127) / 255;
-                
-                // order bytes as abgr
-                scanLine[x] = (a << 24) | (b << 16) | (g << 8) | r;
-            }
-        }
-        
-        if(subcomponentImageId && subImageWidth == width && subImageHeight == height) {
-            nvgUpdateImage(nvg, subcomponentImageId, pixelData);
-        }
-        else {
-            int imageFlags = 0;
-            if(subcomponentImageId) nvgDeleteImage(nvg, subcomponentImageId);
-            subcomponentImageId = nvgCreateImageRGBA(nvg, width, height, imageFlags, pixelData);
-            subImageWidth = width;
-            subImageHeight = height;
-        }
-        
-        nvgBeginPath(nvg);
-        nvgRect(nvg, margin, margin, newObjectEditor->getWidth(), newObjectEditor->getHeight());
-        nvgFillPaint(nvg, nvgImagePattern(nvg, margin, margin, newObjectEditor->getWidth(), newObjectEditor->getHeight(), 0, subcomponentImageId, 1.0f));
-        nvgFill(nvg);
+        nvgTranslate(nvg, margin, margin);
+        NVGHelper::renderComponent(nvg, *newObjectEditor, getValue<float>(cnv->zoomScale) * 2, cachedImage);
     }
     
     if(gui) {

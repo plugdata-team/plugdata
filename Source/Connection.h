@@ -16,10 +16,10 @@
 #include "Pd/MessageListener.h"
 #include "Utility/RateReducer.h"
 #include "Utility/ModifierKeyListener.h"
+#include "Utility/NVGHelper.h"
 
 using PathPlan = std::vector<Point<float>>;
 
-struct NVGcontext;
 class Canvas;
 class PathUpdater;
 

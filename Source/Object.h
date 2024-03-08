@@ -11,10 +11,10 @@
 #include "Utility/SettingsFile.h"
 #include "Utility/RateReducer.h"
 #include "Pd/WeakReference.h"
+#include "Utility/NVGHelper.h"
 
 #define ACTIVITY_UPDATE_RATE 15
 
-struct NVGcontext;
 struct ObjectDragState;
 class ObjectBase;
 class Iolet;
@@ -142,8 +142,8 @@ private:
 
     bool isObjectMouseActive = false;
     bool isInsideUndoSequence = false;
-    int subcomponentImageId;
-    int subImageWidth, subImageHeight;
+
+    NVGHelper::NVGCachedImage cachedImage;
 
     Image activityOverlayImage;
 

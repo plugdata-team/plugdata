@@ -61,7 +61,8 @@ class RenderBlock
 
 
 // Special viewport that shows scrollbars on top of content instead of next to it
-class CanvasViewport : public Viewport, public OpenGLRenderer, public CachedComponentImage {
+class CanvasViewport : public Viewport
+{
 
     class MousePanner : public MouseListener {
     public:
@@ -104,20 +105,6 @@ class CanvasViewport : public Viewport, public OpenGLRenderer, public CachedComp
         Point<int> downCanvasOrigin;
     };
     
-    bool invalidate (const juce::Rectangle<int>& rect) override
-    {
-        // Translate from canvas coords to viewport coords, expand by one to fix zoom rounding errors
-        invalidArea.add(getLocalArea(cnv, rect).expanded(1));
-        return true;
-    }
-    
-    bool invalidateAll() override
-    {
-        invalidArea = getLocalBounds();
-        return true;
-    }
-    
-    void releaseResources() override {};
     
     class ViewportScrollBar : public Component {
         struct FadeTimer : private ::Timer {
@@ -359,83 +346,6 @@ public:
         addAndMakeVisible(vbar);
         addAndMakeVisible(hbar);
     }
-    
-    void newOpenGLContextCreated() override
-    {
-
-        
-    }
-    
-    void openGLContextClosing() override
-    {
-        
-    }
-    
-#define ENABLE_PARIAL_REPAINT 0
-    
-    void renderOpenGL() override
-    {
-        const MessageManagerLock mmLock;
-        
-        //invalidArea is the area that was invalidated!
-        auto invalidated = invalidArea.getBounds();
-        
-        int width = getWidth();
-        int height = getHeight();
-        int scaledWidth = getWidth() * pixelScale;
-        int scaledHeight = getHeight() * pixelScale;
-        
-#if !ENABLE_PARIAL_REPAINT
-        glViewport(0, 0, scaledWidth, scaledHeight);
-        OpenGLHelpers::clear(Colours::black);
-        
-        nvgBeginFrame(nvg, width, height, pixelScale);
-        cnv->renderNVG(nvg);
-        nvgEndFrame(nvg);
-        return;
-#endif
-        /*
-        if(!invalidated.isEmpty()) {
-            if(framebuffer.getWidth() != scaledWidth || framebuffer.getHeight() != scaledHeight) {
-                framebuffer.initialise(glContext, scaledWidth, scaledHeight);
-            }
-            
-            framebuffer.makeCurrentRenderingTarget();
-            glViewport(0, 0, scaledWidth, scaledHeight);
-            
-            nvgBeginFrame(nvg, width, height, pixelScale);
-            nvgScissor (nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
-            nvgBeginPath(nvg);
-            nvgFillColor(nvg, nvgRGB(0, 0, 0));
-            nvgRect(nvg, 0, 0, width, height);
-            nvgFill(nvg);
-            
-            cnv->renderNVG(nvg);
-#if 0
-            static juce::Random rng;
-            nvgBeginPath(nvg);
-            nvgFillColor(nvg, nvgRGBA(rng.nextInt(255), rng.nextInt(255), rng.nextInt(255), 0x50));
-            nvgRect(nvg, 0, 0, width, height);
-            nvgFill(nvg);
-#endif
-            nvgEndFrame(nvg);
-            
-            framebuffer.releaseAsRenderingTarget();
-        }
-        
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.getFrameBufferID());
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-        glBlitFramebuffer(0, 0, scaledWidth, scaledHeight, 0, 0, scaledWidth, scaledHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    
-        
-        invalidArea = RectangleList<int>(); */
-    }
-    
-    void paint(Graphics& g) override
-    {
-        pixelScale = g.getInternalContext().getPhysicalPixelScaleFactor();
-    }
 
     void lookAndFeelChanged() override
     {
@@ -514,7 +424,6 @@ public:
 
     void visibleAreaChanged(Rectangle<int> const& r) override
     {
-        invalidateAll();
         onScroll();
         adjustScrollbarBounds();
     }
@@ -563,11 +472,6 @@ public:
     std::function<void()> onScroll = []() {};
 
 private:
-    NVGcontext* nvg;
-    OpenGLFrameBuffer framebuffer;
-    RectangleList<int> invalidArea;
-    
-    float pixelScale = 1.0f;
     Time lastScrollTime;
     PluginEditor* editor;
     Canvas* cnv;

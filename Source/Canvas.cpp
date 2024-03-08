@@ -159,9 +159,8 @@ Canvas::~Canvas()
 
 void Canvas::renderNVG(NVGcontext* nvg)
 {
-    auto convertColour = [](Colour c) { return nvgRGBA(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha()); };
-    auto backgroundColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId));
-    auto dotsColour = convertColour(findColour(PlugDataColour::canvasDotsColourId));
+    auto backgroundColour = NVGHelper::convertColour(findColour(PlugDataColour::canvasBackgroundColourId));
+    auto dotsColour = NVGHelper::convertColour(findColour(PlugDataColour::canvasDotsColourId));
     
     int halfSize = infiniteCanvasSize / 2;
     //auto b = Rectangle<int>(0, 0, infiniteCanvasSize, infiniteCanvasSize);
@@ -237,8 +236,8 @@ void Canvas::renderNVG(NVGcontext* nvg)
     if(lasso.isVisible()) {
         auto lassoBounds = lasso.getBounds();
         
-        auto fillColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.075f));
-        auto outlineColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId).interpolatedWith(findColour(PlugDataColour::objectSelectedOutlineColourId), 0.65f));
+        auto fillColour = NVGHelper::convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.075f));
+        auto outlineColour = NVGHelper::convertColour(findColour(PlugDataColour::canvasBackgroundColourId).interpolatedWith(findColour(PlugDataColour::objectSelectedOutlineColourId), 0.65f));
         
         nvgBeginPath(nvg);
         nvgFillColor(nvg, fillColour);

@@ -6,7 +6,6 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_utils/juce_audio_utils.h>
-#include <nanovg.h>
 
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
@@ -413,6 +412,11 @@ void ObjectBase::moveToBack()
     }
 }
 
+void ObjectBase::render(NVGcontext* nvg)
+{
+    NVGHelper::renderComponent(nvg, *this, getValue<float>(cnv->zoomScale) * 2, cachedImage);
+}
+
 void ObjectBase::paint(Graphics& g)
 {
     g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
@@ -798,54 +802,4 @@ std::unique_ptr<ComponentBoundsConstrainer> ObjectBase::createConstrainer()
     };
 
     return std::make_unique<ObjectBoundsConstrainer>();
-}
-
-void ObjectBase::renderSubcomponent(NVGcontext* nvg, Component& component)
-{
-    auto componentImage = component.createComponentSnapshot(component.getLocalBounds(), true, 2.0f * getValue<float>(cnv->zoomScale));
-    Image::BitmapData imageData(componentImage, juce::Image::BitmapData::readOnly);
-
-    int width = imageData.width;
-    int height = imageData.height;
-    uint8* pixelData = imageData.data;
-    size_t imageSize = width * height * 4; // 4 bytes per pixel for RGBA
-
-    for (int y = 0; y < height; ++y)
-    {
-        auto* scanLine = (juce::uint32*) imageData.getLinePointer(y);
-
-        for (int x = 0; x < width; ++x)
-        {
-            juce::uint32 argb = scanLine[x];
-                            
-            juce::uint8 a = argb >> 24;
-            juce::uint8 r = argb >> 16;
-            juce::uint8 g = argb >> 8;
-            juce::uint8 b = argb;
-            
-            // premultiply alpha
-            r = (r * a + 127) / 255;
-            g = (g * a + 127) / 255;
-            b = (b * a + 127) / 255;
-            
-            // order bytes as abgr
-            scanLine[x] = (a << 24) | (b << 16) | (g << 8) | r;
-        }
-    }
-    
-    if(subcomponentImageId && subImageWidth == width && subImageHeight == height) {
-        nvgUpdateImage(nvg, subcomponentImageId, pixelData);
-    }
-    else {
-        int imageFlags = 0;
-        if(subcomponentImageId) nvgDeleteImage(nvg, subcomponentImageId);
-        subcomponentImageId = nvgCreateImageRGBA(nvg, width, height, imageFlags, pixelData);
-        subImageWidth = width;
-        subImageHeight = height;
-    }
-    
-    nvgBeginPath(nvg);
-    nvgRect(nvg, 0, 0, getWidth(), getHeight());
-    nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, subcomponentImageId, 1.0f));
-    nvgFill(nvg);
 }

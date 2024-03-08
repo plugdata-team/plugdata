@@ -107,12 +107,11 @@ public:
     {
         auto b = getLocalBounds().toFloat();
         
-        auto convertColour = [](Colour c) { return nvgRGB(c.getRed(), c.getGreen(), c.getBlue()); };
-        auto foregroundColour = convertColour(iemHelper.getForegroundColour()); // TODO: this is some bad threading practice!
-        auto backgroundColour = convertColour(iemHelper.getBackgroundColour());
-        auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
-        auto internalLineColour = convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
+        auto foregroundColour = NVGHelper::convertColour(iemHelper.getForegroundColour()); // TODO: this is some bad threading practice!
+        auto backgroundColour = NVGHelper::convertColour(iemHelper.getBackgroundColour());
+        auto selectedOutlineColour = NVGHelper::convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = NVGHelper::convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
+        auto internalLineColour = NVGHelper::convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
 
         nvgBeginPath(nvg);
         nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);

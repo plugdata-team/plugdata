@@ -7,6 +7,7 @@
 #include <nanovg.h>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
+#include "Utility/NVGHelper.h"
 
 #include "Connection.h"
 
@@ -143,8 +144,6 @@ Point<float> normalize(const Point<float>& vec) {
 
 void Connection::render(NVGcontext* nvg)
 {
-    auto convertColour = [](Colour c) { return nvgRGBA(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha()); };
-    
     auto baseColour = cnv->findColour(PlugDataColour::connectionColourId);
     auto dataColour = cnv->findColour(PlugDataColour::dataColourId);
     auto signalColour = cnv->findColour(PlugDataColour::signalColourId);
@@ -174,23 +173,23 @@ void Connection::render(NVGcontext* nvg)
     auto start = outlet->getCanvasBounds().toFloat().getCentre();
     auto end = inlet->getCanvasBounds().toFloat().getCentre();
     
-    auto drawConnection = [shadowColour, nvg, baseColour, convertColour](Point<float> start, Point<float> cp1, Point<float> cp2, Point<float> end){
+    auto drawConnection = [shadowColour, nvg, baseColour](Point<float> start, Point<float> cp1, Point<float> cp2, Point<float> end){
         // semi-transparent background line
         nvgBeginPath(nvg);
         nvgLineStyle(nvg, NVG_LINE_SOLID);
         nvgMoveTo(nvg, start.x, start.y);
         nvgBezierTo(nvg, cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
-        nvgStrokeColor(nvg, convertColour(shadowColour));
+        nvgStrokeColor(nvg, NVGHelper::convertColour(shadowColour));
         nvgLineCap(nvg, NVG_ROUND);
         nvgStrokeWidth(nvg, 6.0f);
         nvgStroke(nvg);
 
-        nvgStrokeColor(nvg, convertColour(baseColour));
+        nvgStrokeColor(nvg, NVGHelper::convertColour(baseColour));
         nvgStrokeWidth(nvg, 2.0f);
         nvgStroke(nvg);
     };
     
-    auto drawSegmentedConnection = [this, nvg, baseColour, convertColour](){
+    auto drawSegmentedConnection = [this, nvg, baseColour](){
         
         auto snap = [this](Point<float> point, int idx1, int idx2) {
             if (Line<float>(currentPlan[idx1], currentPlan[idx2]).isVertical()) {
@@ -243,7 +242,7 @@ void Connection::render(NVGcontext* nvg)
         nvgStroke(nvg);
         
         nvgLineStyle(nvg, NVG_LINE_SOLID);
-        nvgStrokeColor(nvg, convertColour(baseColour));
+        nvgStrokeColor(nvg, NVGHelper::convertColour(baseColour));
         nvgStrokeWidth(nvg, 2.0f);
         nvgStroke(nvg);
     };
@@ -282,8 +281,8 @@ void Connection::render(NVGcontext* nvg)
         if(startReconnectHandle.contains(mousePos.toFloat())) startReconnectHandle = startReconnectHandle.expanded(3.0f);
         if(endReconnectHandle.contains(mousePos.toFloat())) startReconnectHandle = startReconnectHandle.expanded(3.0f);
 
-        nvgFillColor(nvg, convertColour(handleColour));
-        nvgStrokeColor(nvg, convertColour(cnv->findColour(PlugDataColour::objectOutlineColourId)));
+        nvgFillColor(nvg, NVGHelper::convertColour(handleColour));
+        nvgStrokeColor(nvg, NVGHelper::convertColour(cnv->findColour(PlugDataColour::objectOutlineColourId)));
         
         nvgBeginPath(nvg);
         nvgCircle(nvg, startReconnectHandle.getCentreX(), startReconnectHandle.getCentreY(), startReconnectHandle.getWidth());
@@ -291,7 +290,7 @@ void Connection::render(NVGcontext* nvg)
         nvgStroke(nvg);
         
         nvgBeginPath(nvg);
-        nvgFillColor(nvg, convertColour(handleColour));
+        nvgFillColor(nvg, NVGHelper::convertColour(handleColour));
         nvgCircle(nvg, endReconnectHandle.getCentreX(), endReconnectHandle.getCentreY(), endReconnectHandle.getWidth());
         nvgFill(nvg);
         nvgStroke(nvg); */

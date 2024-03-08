@@ -172,7 +172,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     setOpaque(false);
     
     MessageManager::callAsync([this](){
-        glContext.attachTo(*getTopLevelComponent());
+        glContext.attachTo(*this);
     });
 
     for (auto* button : std::vector<MainToolbarButton*> {
@@ -400,6 +400,8 @@ void PluginEditor::newOpenGLContextCreated()
     // if the GPU is nvidia, and gsync is active, this setting will be ignored, and swap interval of 1 will be used instead
     // this should be fine if gsync is controlling the swap however, as the mouse will be synced to gsync also.
     glContext.setSwapInterval(0);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void PluginEditor::openGLContextClosing()
@@ -408,6 +410,10 @@ void PluginEditor::openGLContextClosing()
 
 void PluginEditor::renderOpenGL()
 {
+    // Allow transparency
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
     const MessageManagerLock mmLock;
     
     if(auto* cnv = getCurrentCanvas())
@@ -425,7 +431,6 @@ void PluginEditor::renderOpenGL()
         
         nvgBeginFrame(nvg, width, height, pixelScale);
         
-        //nvgTranslate(nvg, 14, 6);
         cnv->renderNVG(nvg);
         nvgEndFrame(nvg);
     }
