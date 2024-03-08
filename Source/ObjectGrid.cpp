@@ -389,6 +389,9 @@ void ObjectGrid::clearIndicators(bool fast)
 
     gridLines[0].setPath(Path());
     gridLines[1].setPath(Path());
+    
+    lines[0] = Line<int>();
+    lines[1] = Line<int>();
 }
 
 void ObjectGrid::setIndicator(int idx, Line<int> line, float scale)
