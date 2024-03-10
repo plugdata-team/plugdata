@@ -285,7 +285,7 @@ void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> area)
     objectGrid.render(nvg);
     
     if(lasso.isVisible()) {
-        auto lassoBounds = lasso.getBounds().toFloat().reduced(0.5f);
+        auto lassoBounds = lasso.getBounds().toFloat().reduced(1.0f);
         
         auto fillColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.075f));
         auto outlineColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId).interpolatedWith(findColour(PlugDataColour::objectSelectedOutlineColourId), 0.65f));

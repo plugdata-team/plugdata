@@ -425,7 +425,7 @@ public:
 #if JUCE_LINUX
         int offsetY = 10;
 #else
-        int offsetY = 7;
+        int offsetY = 6;
 #endif
         auto timeSeconds = timer.getTime();
         auto dt = timeSeconds - prevTime;
@@ -443,7 +443,7 @@ public:
         
         Rectangle<int> oldInvalidArea = invalidated; // so we can recover when paint fails
         
-        invalidated = invalidated.translated(0, offsetY);
+        invalidated = invalidated.translated(0, offsetY).expanded(1.0f);
         
         int width = lastWidth.load();
         int height = lastHeight.load();
