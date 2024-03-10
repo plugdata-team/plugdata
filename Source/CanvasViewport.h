@@ -343,7 +343,7 @@ public:
         glContext.setSwapInterval(0);
         glContext.setMultisamplingEnabled(true);
         glContext.setComponentPaintingEnabled(false);
-        glContext.setContinuousRepainting(true);
+        glContext.setContinuousRepainting(false);
         
         // TODO: do this in a better place
         MessageManager::callAsync([this, cnv](){

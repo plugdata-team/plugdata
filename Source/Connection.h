@@ -39,7 +39,6 @@ public:
     WeakReference<Object> inobj, outobj;
 
     Path toDraw, toDrawLocalSpace;
-    RectangleList<int> clipRegion;
     String lastId;
 
     std::atomic<int> messageActivity;

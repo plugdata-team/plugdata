@@ -288,14 +288,8 @@ void Connection::render(NVGcontext* nvg)
         nvgStroke(nvg);
     };
     
-    Rectangle<float> startReconnectHandle, endReconnectHandle;
     if(segmented)
     {
-        Point<float> startUnitDirection = (currentPlan[0] - currentPlan[1]) / (currentPlan[0].getDistanceFrom(currentPlan[1]));
-        Point<float> endUnitDirection = (currentPlan[currentPlan.size() - 2] - currentPlan[currentPlan.size() - 1]) / (currentPlan[currentPlan.size() - 2].getDistanceFrom(currentPlan[currentPlan.size() - 1]));
-        
-        startReconnectHandle = Rectangle<float>(5, 5).withCentre(start - startUnitDirection * 8.5f);
-        endReconnectHandle = Rectangle<float>(5, 5).withCentre(end + endUnitDirection * 8.5f);
         drawSegmentedConnection();
     }
     else if (!PlugDataLook::getUseStraightConnections()) {
@@ -312,34 +306,26 @@ void Connection::render(NVGcontext* nvg)
         Point<float> const cp1 { start.x - shiftX, start.y + shiftY };
         Point<float> const cp2 { end.x + shiftX, end.y - shiftY };
         drawConnection(start, cp1, cp2, end);
-        
-        startReconnectHandle = Rectangle<float>(5, 5).withCentre(bezierPointAtDistance(start, cp1, cp2, end, 8.5f));
-        endReconnectHandle = Rectangle<float>(5, 5).withCentre(bezierPointAtDistance(end, cp2, cp1, start, 8.5f));
     } else {
         drawConnection(start, start, end, end);
-        
-        float lineLength = start.getDistanceFrom(end);
-        Point<float> unitDirection = (end - start) / lineLength;
-        startReconnectHandle = Rectangle<float>(5, 5).withCentre(start + unitDirection * 8.5f);
-        endReconnectHandle = Rectangle<float>(5, 5).withCentre(end - unitDirection * 8.5f);
     }
        
     // draw reconnect handles if connection is both selected & mouse is hovering over
     if (isSelected() && isHovering) {
-        if(startReconnectHandle.contains(mousePos.toFloat())) startReconnectHandle = startReconnectHandle.expanded(3.0f);
-        if(endReconnectHandle.contains(mousePos.toFloat())) endReconnectHandle = endReconnectHandle.expanded(3.0f);
-
+        auto expandedStartHandle = startReconnectHandle.contains(mousePos.toFloat()) ? startReconnectHandle.expanded(3.0f) : startReconnectHandle;
+        auto expandedEndHandle = startReconnectHandle.contains(mousePos.toFloat()) ? endReconnectHandle.expanded(3.0f) : endReconnectHandle;
+   
         nvgFillColor(nvg, convertColour(handleColour));
         nvgStrokeColor(nvg, convertColour(cnv->findColour(PlugDataColour::objectOutlineColourId)));
         nvgStrokeWidth(nvg, 0.5f);
         
         nvgBeginPath(nvg);
-        nvgCircle(nvg, startReconnectHandle.getCentreX(), startReconnectHandle.getCentreY(), startReconnectHandle.getWidth() / 2);
+        nvgCircle(nvg, expandedStartHandle.getCentreX(), expandedStartHandle.getCentreY(), expandedStartHandle.getWidth() / 2);
         nvgFill(nvg);
         nvgStroke(nvg);
         
         nvgBeginPath(nvg);
-        nvgCircle(nvg, endReconnectHandle.getCentreX(), endReconnectHandle.getCentreY(), endReconnectHandle.getWidth() / 2);
+        nvgCircle(nvg, expandedEndHandle.getCentreX(), expandedEndHandle.getCentreY(), expandedEndHandle.getWidth() / 2);
         nvgFill(nvg);
         nvgStroke(nvg);
     }
@@ -641,7 +627,6 @@ void Connection::forceUpdate()
 
 void Connection::paint(Graphics& g)
 {
-    g.getInternalContext().clipToRectangleList(clipRegion);
     if(g.isClipEmpty()) return;
 
     renderConnectionPath(g,
@@ -962,20 +947,36 @@ void Connection::resizeToFit()
     auto offset = getLocalPoint(cnv, Point<int>());
     toDrawLocalSpace.applyTransform(AffineTransform::translation(offset));
     
-    // Calculate clip bounds for this connection as a list of rectangles
-    clipRegion = RectangleList<int>();
-    auto pathIter = PathFlatteningIterator(toDrawLocalSpace);
-    while(pathIter.next()) // skip first item, since only the x2/y2 coords of that one are valdid (and they will be the x1/y1 of the next item)
+    if(segmented)
     {
-        auto bounds = Rectangle<int>(Point<int>(pathIter.x1, pathIter.y1), Point<int>(pathIter.x2, pathIter.y2));
-        clipRegion.add(bounds.expanded(2));
+        Point<float> startUnitDirection = (currentPlan[0] - currentPlan[1]) / (currentPlan[0].getDistanceFrom(currentPlan[1]));
+        Point<float> endUnitDirection = (currentPlan[currentPlan.size() - 2] - currentPlan[currentPlan.size() - 1]) / (currentPlan[currentPlan.size() - 2].getDistanceFrom(currentPlan[currentPlan.size() - 1]));
+        
+        startReconnectHandle = Rectangle<float>(5, 5).withCentre(pStart - startUnitDirection * 8.5f);
+        endReconnectHandle = Rectangle<float>(5, 5).withCentre(pEnd + endUnitDirection * 8.5f);
     }
+    else if (!PlugDataLook::getUseStraightConnections()) {
+        float const width = std::max(pStart.x, pEnd.x) - std::min(pStart.x, pEnd.x);
+        float const height = std::max(pStart.y, pEnd.y) - std::min(pStart.y, pEnd.y);
 
-    startReconnectHandle = Rectangle<float>(5, 5).withCentre(toDrawLocalSpace.getPointAlongPath(8.5f));
-    endReconnectHandle = Rectangle<float>(5, 5).withCentre(toDrawLocalSpace.getPointAlongPath(std::max(toDrawLocalSpace.getLength() - 8.5f, 9.5f)));
-    
-    clipRegion.add(startReconnectHandle.toNearestIntEdges().expanded(4));
-    clipRegion.add(endReconnectHandle.toNearestIntEdges().expanded(4));
+        float const min = std::min<float>(width, height);
+        float const max = std::max<float>(width, height);
+        float const maxShift = 20.f;
+
+        float const shiftY = std::min<float>(maxShift, max * 0.5);
+        float const shiftX = ((pStart.y >= pEnd.y) ? std::min<float>(maxShift, min * 0.5) : 0.f) * ((pStart.x < pEnd.x) ? -1. : 1.);
+
+        Point<float> const cp1 { pStart.x - shiftX, pStart.y + shiftY };
+        Point<float> const cp2 { pEnd.x + shiftX, pEnd.y - shiftY };
+
+        startReconnectHandle = Rectangle<float>(5, 5).withCentre(bezierPointAtDistance(pStart, cp1, cp2, pEnd, 8.5f));
+        endReconnectHandle = Rectangle<float>(5, 5).withCentre(bezierPointAtDistance(pEnd, cp2, cp1, pStart, 8.5f));
+    } else {
+        float lineLength = pStart.getDistanceFrom(pEnd);
+        Point<float> unitDirection = (pEnd - pStart) / lineLength;
+        startReconnectHandle = Rectangle<float>(5, 5).withCentre(pStart + unitDirection * 8.5f);
+        endReconnectHandle = Rectangle<float>(5, 5).withCentre(pEnd - unitDirection * 8.5f);
+    }
 }
 
 void Connection::componentMovedOrResized(Component& component, bool wasMoved, bool wasResized)
