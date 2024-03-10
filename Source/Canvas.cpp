@@ -194,9 +194,12 @@ void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> area)
     nvgFill(nvg);
     
     if(!getValue<bool>(locked)) {
-        NVGpaint dots = nvgDotPattern(nvg, dotsColour, backgroundColour);
+        nvgSave(nvg);
+        nvgTranslate(nvg, canvasOrigin.x % objectGrid.gridSize, canvasOrigin.y % objectGrid.gridSize); // Make sure grid aligns with origin
+        NVGpaint dots = nvgDotPattern(nvg, dotsColour, backgroundColour, objectGrid.gridSize);
         nvgFillPaint(nvg, dots);
         nvgFill(nvg);
+        nvgRestore(nvg);
     }
 
     if(showOrigin || showBorder) {
