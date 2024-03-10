@@ -174,9 +174,9 @@ public:
 
     // Needs to be allocated before object and connection so they can deselect themselves in the destructor
     SelectedItemSet<WeakReference<Component>> selectedComponents;
-    OwnedArray<Object> objects;
-    OwnedArray<Connection> connections;
-    OwnedArray<ConnectionBeingCreated> connectionsBeingCreated;
+    OwnedArray<Object, CriticalSection> objects;
+    OwnedArray<Connection, CriticalSection> connections;
+    OwnedArray<ConnectionBeingCreated, CriticalSection> connectionsBeingCreated;
 
     Value locked = SynchronousValue();
     Value commandLocked;
@@ -184,9 +184,9 @@ public:
     Value showDirection;
     Value altMode;
 
-    bool showOrigin = false;
-    bool showBorder = false;
-    bool connectionsBehind = true;
+    std::atomic<bool> showOrigin = false;
+    std::atomic<bool> showBorder = false;
+    std::atomic<bool> connectionsBehind = true;
 
     bool isGraph = false;
     bool isDraggingLasso = false;
@@ -197,10 +197,10 @@ public:
     Value hideNameAndArgs = SynchronousValue(var(false));
     Value xRange = SynchronousValue();
     Value yRange = SynchronousValue();
-    Value patchWidth = SynchronousValue();
-    Value patchHeight = SynchronousValue();
+    Value patchWidth = ThreadSafeValue();
+    Value patchHeight = ThreadSafeValue();
 
-    Value zoomScale;
+    Value zoomScale = ThreadSafeValue();
 
     ObjectGrid objectGrid = ObjectGrid(this);
 

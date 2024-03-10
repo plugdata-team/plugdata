@@ -11,7 +11,7 @@ class BangObject final : public ObjectBase {
     Value bangHold = SynchronousValue(40.0f);
     Value sizeProperty = SynchronousValue();
 
-    bool bangState = false;
+    std::atomic<bool> bangState = false;
     bool alreadyBanged = false;
 
     IEMHelper iemHelper;

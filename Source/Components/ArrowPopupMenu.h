@@ -111,6 +111,11 @@ public:
             arrow->attachToMenu(popupMenuComponent, options.getParentComponent());
         }
     }
+        
+    void componentBroughtToFront (Component&) override
+    {
+        toFront(false);
+    }
 
     void componentMovedOrResized(Component& component, bool moved, bool resized) override
     {

@@ -215,7 +215,7 @@ public:
         isShowing = true;
 
         auto overlayDisplaySettings = std::make_unique<OverlayDisplaySettings>();
-        CallOutBox::launchAsynchronously(std::move(overlayDisplaySettings), bounds, parent);
+        CallOutBox::launchAsynchronously(std::move(overlayDisplaySettings), bounds, nullptr);
     }
 
     ~OverlayDisplaySettings() override

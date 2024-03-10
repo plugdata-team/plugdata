@@ -671,7 +671,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
 void Dialogs::showObjectMenu(PluginEditor* editor, Component* target)
 {
-    AddObjectMenu::show(editor, editor->getLocalArea(target, target->getLocalBounds()));
+    AddObjectMenu::show(editor, target->getScreenBounds());
 }
 
 void Dialogs::showOpenDialog(std::function<void(URL)> const& callback, bool canSelectFiles, bool canSelectDirectories, String const& extension, String const& lastFileId, Component* parentComponent)

@@ -16,7 +16,8 @@
 #include "LookAndFeel.h"
 
 Iolet::Iolet(Object* parent, bool inlet)
-    : object(parent)
+    : NVGComponent(static_cast<Component&>(*this))
+    , object(parent)
     , insideGraph(parent->cnv->isGraph)
 {
     isInlet = inlet;
@@ -44,16 +45,15 @@ Iolet::Iolet(Object* parent, bool inlet)
 Rectangle<int> Iolet::getCanvasBounds()
 {
     // Get bounds relative to canvas, used for positioning connections
-    return cnv->getLocalArea(this, getLocalBounds());
+    return getSafeBounds() + object->getSafeBounds().getPosition();
 }
 
 void Iolet::render(NVGcontext* nvg)
 {
-    auto bounds = getLocalBounds().toFloat().reduced(0.5f);
+    auto bounds = getSafeLocalBounds().toFloat().reduced(0.5f);
 
     bool isLocked = getValue<bool>(locked) || getValue<bool>(commandLocked);
-    bool down = isMouseButtonDown();
-    bool over = isMouseOver();
+    bool over = getCanvasBounds().contains(cnv->getLastMousePosition());
 
     if ((!isTargeted && !over) || isLocked) {
         bounds = bounds.reduced(2);
@@ -65,8 +65,8 @@ void Iolet::render(NVGcontext* nvg)
         backgroundColour = findColour(PlugDataColour::gemColourId);
     }
     
-    if ((down || over) && !isLocked)
-        backgroundColour = backgroundColour.contrasting(down ? 0.2f : 0.05f);
+    if ((mouseIsDown || over) && !isLocked)
+        backgroundColour = backgroundColour.contrasting(mouseIsDown ? 0.2f : 0.05f);
 
     if (isLocked) {
         backgroundColour = findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.5f);
@@ -75,9 +75,9 @@ void Iolet::render(NVGcontext* nvg)
     // Instead of drawing pie segments, just clip the graphics region to the visible iolets of the object
     // This is much faster!
     bool stateSaved = false;
-    if (!(object->isMouseOverOrDragging(true) || over || isTargeted) || isLocked) {
+    if (!(object->getSafeBounds().contains(cnv->getLastMousePosition()) || over || isTargeted) || isLocked) {
         nvgSave(nvg);
-        auto clipBounds = getLocalArea(object, object->getLocalBounds().reduced(Object::margin));
+        auto clipBounds = getLocalArea(object, object->getSafeLocalBounds().reduced(Object::margin));
         nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
         stateSaved = true;
     }
@@ -175,8 +175,15 @@ void Iolet::mouseDrag(MouseEvent const& e)
     }
 }
 
+void Iolet::mouseDown(MouseEvent const& e)
+{
+    mouseIsDown = true;
+}
+
 void Iolet::mouseUp(MouseEvent const& e)
 {
+    mouseIsDown = false;
+    
     if (getValue<bool>(locked) || e.mods.isRightButtonDown())
         return;
 

@@ -801,7 +801,7 @@ void PluginEditor::closeAllTabs(bool quitAfterComplete, Canvas* patchToExclude, 
                         if (!canvas)
                             return;
                         if (result == 2)
-                            saveProject([&deleteFunc]() mutable { deleteFunc(); });
+                            saveProject([deleteFunc]() mutable { deleteFunc(); });
                         else if (result == 1)
                             deleteFunc();
                     },
@@ -828,8 +828,8 @@ void PluginEditor::closeTab(Canvas* cnv)
 
     patch->setVisible(false);
 
-    tabbar->removeTab(tabIdx);
     cnv->setCachedComponentImage(nullptr);
+    tabbar->removeTab(tabIdx);
     canvases.removeObject(cnv);
 
     // It's possible that the tabbar has been deleted if this was the last tab

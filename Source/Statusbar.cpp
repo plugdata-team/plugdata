@@ -103,7 +103,6 @@ public:
             auto* editor = findParentComponentOfClass<PluginEditor>();
 
             auto oversampleSettings = std::make_unique<OversampleSettingsPopup>(selection);
-            auto bounds = editor->getLocalArea(this, getLocalBounds());
 
             oversampleSettings->onChange = [this, pd](int result) {
                 setButtonText(String(1 << result) + "x");
@@ -113,7 +112,7 @@ public:
                 repaint();
             };
 
-            CallOutBox::launchAsynchronously(std::move(oversampleSettings), bounds, editor);
+            CallOutBox::launchAsynchronously(std::move(oversampleSettings), getScreenBounds(), nullptr);
         };
     }
 
@@ -567,7 +566,6 @@ public:
             updateCPUGraph = cpuHistory->getUpdateFunc();
             updateCPUGraphLong = cpuHistory->getUpdateFuncLongHistory();
             auto editor = findParentComponentOfClass<PluginEditor>();
-            auto bounds = editor->getLocalArea(this, getLocalBounds());
 
             cpuHistory->onClose = [this]() {
                 updateCPUGraph = []() { return; };
@@ -575,7 +573,7 @@ public:
                 repaint();
             };
 
-            currentCalloutBox = &CallOutBox::launchAsynchronously(std::move(cpuHistory), bounds, editor);
+            currentCalloutBox = &CallOutBox::launchAsynchronously(std::move(cpuHistory), getScreenBounds(), nullptr);
             isCallOutBoxActive = true;
         } else {
             isCallOutBoxActive = false;
@@ -716,7 +714,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     overlaySettingsButton.onClick = [this]() {
         auto* editor = findParentComponentOfClass<PluginEditor>();
-        OverlayDisplaySettings::show(editor, editor->getLocalArea(this, overlaySettingsButton.getBounds()));
+        OverlayDisplaySettings::show(editor, overlaySettingsButton.getScreenBounds());
     };
 
     snapEnableButton.setButtonText(Icons::Magnet);
@@ -726,13 +724,13 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     snapSettingsButton.onClick = [this]() {
         auto* editor = findParentComponentOfClass<PluginEditor>();
-        SnapSettings::show(editor, editor->getLocalArea(this, snapSettingsButton.getBounds()));
+        SnapSettings::show(editor, snapSettingsButton.getScreenBounds());
     };
 
     alignmentButton.setButtonText(Icons::AlignLeft);
     alignmentButton.onClick = [this]() {
         auto* editor = findParentComponentOfClass<PluginEditor>();
-        AlignmentTools::show(editor, editor->getLocalArea(this, alignmentButton.getBounds()));
+        AlignmentTools::show(editor, alignmentButton.getScreenBounds());
     };
 
     overlayButton.setClickingTogglesState(true);

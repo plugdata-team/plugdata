@@ -4,6 +4,8 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
 
+#include "Utility/NVGComponent.h"
+
 #pragma once
 
 class Connection;
@@ -13,7 +15,8 @@ struct NVGcontext;
 
 class Iolet : public Component
     , public SettableTooltipClient
-    , public Value::Listener {
+    , public Value::Listener
+    , public NVGComponent {
 public:
     Object* object;
 
@@ -21,13 +24,14 @@ public:
 
     void mouseDrag(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
+    void mouseDown(MouseEvent const& e) override;
 
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
 
     bool hitTest(int x, int y) override;
         
-    void render(NVGcontext* nvg);
+    void render(NVGcontext* nvg) override;
 
     void valueChanged(Value& v) override;
 
@@ -42,15 +46,16 @@ public:
     Rectangle<int> getCanvasBounds();
 
     int ioletIdx;
-    bool isInlet;
-    bool isSignal;
-    bool isGemState;
+    std::atomic<bool> isInlet;
+    std::atomic<bool> isSignal;
+    std::atomic<bool> isGemState;
 
-    bool isTargeted = false;
+    std::atomic<bool> isTargeted = false;
 
     Canvas* cnv;
 
 private:
+    std::atomic<int> mouseIsDown;
     bool const insideGraph;
     bool hideIolet = false;
 

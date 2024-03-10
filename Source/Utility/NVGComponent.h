@@ -1,25 +1,36 @@
 #pragma once
 #include <nanovg.h>
+#include "NanoVGGraphicsContext.h"
 
 class NVGComponent
 {
-public:
-        
-    class NVGCachedImage
+    class MoveListener : public ComponentListener
     {
-        int imageId = 0, lastWidth = 0, lastHeight = 0;
-        friend class NVGComponent;
+        void componentMovedOrResized (Component& component, bool wasMoved, bool wasResized) override;
+    public:
+        std::function<void(Rectangle<int>)> callback;
     };
-    
+public:
+            
     NVGComponent(Component&);
     
     void renderComponentFromImage(NVGcontext* nvg, Component& component, float scale);
-
+    
+    Rectangle<int> getSafeBounds() const;
+    Rectangle<int> getSafeLocalBounds() const;
+    
     static NVGcolor convertColour(Colour c);
     NVGcolor findNVGColour(int colourId);
     
     virtual void render(NVGcontext*) {};
     
+private:
+    std::unique_ptr<NanoVGGraphicsContext> nvgLLGC;
+    
     Component& component;
-    NVGCachedImage cachedImage;
+    CriticalSection boundsLock;
+    Rectangle<int> safeComponentBounds;
+    MoveListener moveListener;
+    
+
 };

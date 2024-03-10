@@ -2,17 +2,54 @@
 #include "Utility/Config.h"
 
 #include "NVGComponent.h"
+#include "NanoVGGraphicsContext.h"
 #include "nanovg.h"
 
 
-NVGComponent::NVGComponent(Component& comp) : component(comp)
+NVGComponent::NVGComponent(Component& comp) : component(comp), nvgLLGC(nullptr)
 {
+    moveListener.callback = [this](Rectangle<int> newBounds){
+        const ScopedLock lock(boundsLock);
+        safeComponentBounds = newBounds;
+    };
     
+    comp.addComponentListener(&moveListener);
+}
+
+Rectangle<int> NVGComponent::getSafeBounds() const
+{
+    const ScopedLock lock(boundsLock);
+    return safeComponentBounds;
+}
+
+Rectangle<int> NVGComponent::getSafeLocalBounds() const
+{
+    const ScopedLock lock(boundsLock);
+    return safeComponentBounds.withZeroOrigin();
+}
+
+void NVGComponent::MoveListener::componentMovedOrResized (Component& component, bool wasMoved, bool wasResized)
+{
+    callback(component.getBounds());
 }
 
 void NVGComponent::renderComponentFromImage(NVGcontext* nvg, Component& component, float scale)
 {
-    auto componentImage = component.createComponentSnapshot(component.getLocalBounds(), true, scale);
+    if(!nvgLLGC) nvgLLGC = std::make_unique<NanoVGGraphicsContext>(nvg);
+    nvgLLGC->setPhysicalPixelScaleFactor(scale);
+    
+    Graphics g(*nvgLLGC);
+    {
+        component.paintEntireComponent(g, true);
+    }
+    
+    /*
+    Image componentImage;
+    {
+        const MessageManagerLock mmLock;
+        componentImage = component.createComponentSnapshot(component.getLocalBounds(), true, scale);
+    }
+    
     Image::BitmapData imageData(componentImage, juce::Image::BitmapData::readOnly);
 
     int width = imageData.width;
@@ -51,7 +88,7 @@ void NVGComponent::renderComponentFromImage(NVGcontext* nvg, Component& componen
     nvgBeginPath(nvg);
     nvgRect(nvg, 0, 0, component.getWidth(), component.getHeight());
     nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, component.getWidth(), component.getHeight(), 0, cachedImage.imageId, 1.0f));
-    nvgFill(nvg);
+    nvgFill(nvg); */
 }
 
 NVGcolor NVGComponent::convertColour(Colour c)

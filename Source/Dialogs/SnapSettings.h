@@ -213,7 +213,7 @@ public:
         isShowing = true;
 
         auto snapSettings = std::make_unique<SnapSettings>();
-        CallOutBox::launchAsynchronously(std::move(snapSettings), bounds, editor);
+        CallOutBox::launchAsynchronously(std::move(snapSettings), bounds, nullptr);
     }
 
     ~SnapSettings() override

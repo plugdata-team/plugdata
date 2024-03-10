@@ -129,7 +129,7 @@ private:
     bool checkIfHvccCompatible() const;
 
     void setSelected(bool shouldBeSelected);
-    bool selectedFlag = false;
+    std::atomic<bool> selectedFlag = false;
     bool selectionStateChanged = false;
 
     bool wasLockedOnMouseDown = false;
@@ -138,7 +138,7 @@ private:
     bool isGemObject = false;
 
     bool showActiveState = false;
-    float activeStateAlpha = 0.0f;
+    std::atomic<float> activeStateAlpha = 0.0f;
         
     NVGpaint glow;
     bool glowDirty = true;

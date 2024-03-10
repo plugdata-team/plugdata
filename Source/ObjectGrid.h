@@ -48,9 +48,9 @@ private:
     static constexpr int connectionTolerance = 9;
 
     Line<int> lines[2];
-    float lineAlpha = 0.0f;
-    float lineTargetAlpha = 0.0f;
-    float lineAlphaMultiplier = 0.0f;
+    std::atomic<float> lineAlpha[2] = {};
+    float lineTargetAlpha[2] = {};
+    float lineAlphaMultiplier[2] = {};
     Canvas* cnv;
 
     int gridType;

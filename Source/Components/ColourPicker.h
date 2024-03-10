@@ -185,18 +185,19 @@ public:
 
         _topLevelComponent = topLevelComponent;
 
+        /*
         Component* parent = nullptr;
         if (!ProjectInfo::canUseSemiTransparentWindows()) {
             parent = topLevelComponent;
             bounds = topLevelComponent->getLocalArea(nullptr, bounds);
-        }
+        } */
 
         setCurrentColour(currentColour);
 
         // we need to put the selector into a holder, as launchAsynchronously will delete the component when its done
         auto selectorHolder = std::make_unique<SelectorHolder>(this);
 
-        CallOutBox::launchAsynchronously(std::move(selectorHolder), bounds, parent);
+        CallOutBox::launchAsynchronously(std::move(selectorHolder), bounds, nullptr);
     }
 
     ColourPicker()

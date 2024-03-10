@@ -232,47 +232,60 @@ void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> area)
         nvgLineStyle(nvg, NVG_LINE_SOLID);
     }
     
-    for(auto* obj : objects)
     {
-        nvgSave(nvg);
-        nvgTranslate(nvg, obj->getX(), obj->getY());
-        if(obj->getBounds().intersects(area)) {
-            obj->render(nvg);
+        ScopedLock objLock(objects.getLock());
+        for(auto* obj : objects)
+        {
+            nvgSave(nvg);
+            auto b = obj->getSafeBounds();
+            nvgTranslate(nvg, b.getX(), b.getY());
+            if(b.intersects(area)) {
+                obj->render(nvg);
+            }
+            nvgRestore(nvg);
         }
-        nvgRestore(nvg);
     }
     
-    for(auto* connection : connections)
     {
-        nvgSave(nvg);
-        if(connection->getBounds().intersects(area)) {
+        ScopedLock connLock(connections.getLock());
+        for(auto* connection : connections)
+        {
+            nvgSave(nvg);
+            if(connection->getBounds().intersects(area)) {
+                connection->render(nvg);
+            }
+            nvgRestore(nvg);
+        }
+    }
+    
+    {
+        ScopedLock objLock(objects.getLock());
+        for(auto* obj : objects)
+        {
+            nvgSave(nvg);
+            auto b = obj->getSafeBounds();
+            nvgTranslate(nvg, b.getX(), b.getY());
+            if(b.intersects(area)) {
+                obj->renderIolets(nvg);
+            }
+            nvgRestore(nvg);
+        }
+    }
+    
+    {
+        ScopedLock connLock(connectionsBeingCreated.getLock());
+        for(auto* connection : connectionsBeingCreated)
+        {
+            nvgSave(nvg);
             connection->render(nvg);
+            nvgRestore(nvg);
         }
-        nvgRestore(nvg);
-    }
-    
-    
-    for(auto* obj : objects)
-    {
-        nvgSave(nvg);
-        nvgTranslate(nvg, obj->getX(), obj->getY());
-        if(obj->getBounds().intersects(area)) {
-            obj->renderIolets(nvg);
-        }
-        nvgRestore(nvg);
-    }
-    
-    for(auto* connection : connectionsBeingCreated)
-    {
-        nvgSave(nvg);
-        connection->render(nvg);
-        nvgRestore(nvg);
     }
     
     objectGrid.render(nvg);
     
     if(lasso.isVisible()) {
-        auto lassoBounds = lasso.getBounds();
+        auto lassoBounds = lasso.getBounds().toFloat().reduced(0.5f);
         
         auto fillColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.075f));
         auto outlineColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId).interpolatedWith(findColour(PlugDataColour::objectSelectedOutlineColourId), 0.65f));

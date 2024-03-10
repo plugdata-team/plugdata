@@ -13,7 +13,7 @@
 
 class Canvas;
 
-class Dialog : public Component {
+class Dialog : public Component, public ComponentListener {
 
 public:
     Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWidth, int childHeight, bool showCloseButton, int margin = 0)
@@ -23,8 +23,11 @@ public:
         , owner(ownerPtr)
         , backgroundMargin(margin)
     {
-        parentComponent->addAndMakeVisible(this);
-        setBounds(0, 0, parentComponent->getWidth(), parentComponent->getHeight());
+        addToDesktop(ComponentPeer::windowIsTemporary);
+        setVisible(true);
+        
+        setBounds(parentComponent->getScreenX(), parentComponent->getScreenY(), parentComponent->getWidth(), parentComponent->getHeight());
+        parentComponent->addComponentListener(this);
 
         setAlwaysOnTop(true);
         setWantsKeyboardFocus(true);
@@ -54,6 +57,8 @@ public:
 
     ~Dialog() override
     {
+        parentComponent->removeComponentListener(this);
+        
         if (auto* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent())) {
             if (ProjectInfo::isStandalone) {
                 if (auto* closeButton = window->getCloseButton())
@@ -64,6 +69,11 @@ public:
                     maximiseButton->setEnabled(true);
             }
         }
+    }
+    
+    void componentMovedOrResized(Component& comp, bool wasMoved, bool wasResized) override
+    {
+        setBounds(parentComponent->getScreenX(), parentComponent->getScreenY(), parentComponent->getWidth(), parentComponent->getHeight());
     }
 
     void setViewedComponent(Component* child)
@@ -111,7 +121,7 @@ public:
             viewedComponent->setBounds(0, 0, getWidth(), getHeight());
 #else
             viewedComponent->setSize(width, height);
-            viewedComponent->setCentrePosition({ getBounds().getCentreX(), getBounds().getCentreY() });
+            viewedComponent->setCentrePosition({ getLocalBounds().getCentreX(), getLocalBounds().getCentreY() });
 #endif
         }
 

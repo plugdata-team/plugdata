@@ -140,9 +140,10 @@ private:
     Array<SafePointer<Connection>> reconnecting;
     Rectangle<float> startReconnectHandle, endReconnectHandle, endCableOrderDisplay;
 
-    bool selectedFlag = false;
-    bool segmented = false;
-
+    std::atomic<bool> selectedFlag = false;
+    std::atomic<bool> segmented = false;
+    std::atomic<bool> isHovering = false;
+    
     PathPlan currentPlan;
 
     Value locked;
@@ -159,7 +160,6 @@ private:
     int dragIdx = -1;
 
     float mouseDownPosition = 0;
-    bool isHovering = false;
 
     pd::WeakReference ptr;
 

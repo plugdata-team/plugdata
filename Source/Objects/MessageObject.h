@@ -176,8 +176,9 @@ public:
 
         nvgBeginPath(nvg);
         nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::canvasTextColourId)));
-        nvgFontSize(nvg, 12.5f);
-        nvgFontFace(nvg, "Inter");
+        nvgFontSize(nvg, 12.75f);
+        nvgTextLetterSpacing(nvg, -0.275f);
+        nvgFontFace(nvg, "Inter-Regular");
         nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
 
         if(editor)
@@ -186,7 +187,7 @@ public:
         }
         else {
             auto text = getText();
-            nvgText(nvg, b.toFloat().getX() + 5, b.toFloat().getCentreY(), text.toRawUTF8(), nullptr);
+            nvgText(nvg, b.toFloat().getX() + 6, b.toFloat().getCentreY() + 0.5f, text.toRawUTF8(), nullptr);
         }
     }
     

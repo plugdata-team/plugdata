@@ -574,7 +574,6 @@ void TabComponent::changeCallback(int newCurrentTabIndex, String const& newTabNa
 
     if (newPanelComp != panelComponent) {
         if (panelComponent != nullptr) {
-            panelComponent->setVisible(false);
             removeChildComponent(panelComponent);
         }
 

@@ -256,10 +256,11 @@ public:
         else {
             auto text = getText();
             nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::canvasTextColourId)));
-            nvgFontSize(nvg, 12.35f);
-            nvgFontFace(nvg, "Inter");
+            nvgFontSize(nvg, 12.75f);
+            nvgTextLetterSpacing(nvg, -0.275f);
+            nvgFontFace(nvg, "Inter-Regular");
             nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
-            nvgText(nvg, b.toFloat().getX() + 6, b.toFloat().getCentreY(), text.toRawUTF8(), nullptr);
+            nvgText(nvg, b.toFloat().getX() + 6.f, b.toFloat().getCentreY(), text.toRawUTF8(), nullptr);
         }
     }
 

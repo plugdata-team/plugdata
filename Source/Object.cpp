@@ -119,7 +119,7 @@ void Object::initialise()
 
 void Object::timerCallback()
 {
-    activeStateAlpha -= 0.16f;
+    activeStateAlpha = activeStateAlpha - 0.16f;
     repaint();
     if (activeStateAlpha <= 0.0f) {
         activeStateAlpha = 0.0f;
@@ -243,7 +243,7 @@ void Object::mouseMove(MouseEvent const& e)
     }
 
     int zone = 0;
-    auto b = getLocalBounds().toFloat().reduced(margin - 2);
+    auto b = getSafeLocalBounds().toFloat().reduced(margin - 2);
     if (b.contains(e.position)
         && !b.reduced(7).contains(e.position)) {
         auto corners = getCorners();
@@ -424,7 +424,7 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
 
 Array<Rectangle<float>> Object::getCorners() const
 {
-    auto rect = getLocalBounds().reduced(margin);
+    auto rect = getSafeLocalBounds().reduced(margin);
     float const offset = 2.0f;
 
     Array<Rectangle<float>> corners = { Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopLeft().toFloat()).translated(offset, offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomLeft().toFloat()).translated(offset, -offset),
@@ -481,8 +481,6 @@ void Object::resized()
         newObjectEditor->setBounds(getLocalBounds().reduced(margin));
     }
     
-    glowDirty = true;
-
 #if JUCE_IOS
     int ioletSize = 15;
 #else
@@ -1120,7 +1118,7 @@ void Object::mouseDrag(MouseEvent const& e)
 
 void Object::render(NVGcontext* nvg)
 {
-    auto b = getLocalBounds().reduced(margin);
+    auto b = getSafeLocalBounds().reduced(margin);
     auto selectedOutlineColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
     
     if (selectedFlag) {
@@ -1133,16 +1131,13 @@ void Object::render(NVGcontext* nvg)
         }
     }
     
-    if(showActiveState && isTimerRunning())
+    if(showActiveState && !approximatelyEqual(activeStateAlpha.load(), 0.0f))
     {
         auto cTransparent = nvgRGBAf(0, 0, 0, 0);
         auto cGlow = convertColour(findColour(PlugDataColour::dataColourId).withAlpha(activeStateAlpha));
         nvgBeginPath(nvg);
         auto ds = b.expanded(1);
-        if (1 || glowDirty) {
-            glow = nvgBoxGradient(nvg, ds.getX(), ds.getY(), ds.getWidth(), ds.getHeight(), Corners::objectCornerRadius, 12, cGlow, cTransparent);
-            glowDirty = false;
-        }
+        glow = nvgBoxGradient(nvg, ds.getX(), ds.getY(), ds.getWidth(), ds.getHeight(), Corners::objectCornerRadius, 12, cGlow, cTransparent);
         nvgFillPaint(nvg, glow);
         nvgFill(nvg);
     }
@@ -1173,11 +1168,6 @@ void Object::render(NVGcontext* nvg)
         nvgStrokeWidth(nvg, 1.f);
         nvgStrokeColor(nvg, isSelected() ? selectedOutlineColour : outlineColour);
         nvgStroke(nvg);
-
-        nvgFillColor(nvg, nvgRGBf(.9, .9, .9));
-        nvgFontSize(nvg, 12.5f);
-        nvgFontFace(nvg, "Inter");
-        nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
         
         nvgTranslate(nvg, margin, margin);
         renderComponentFromImage(nvg, *newObjectEditor, getValue<float>(cnv->zoomScale) * 2);
@@ -1212,9 +1202,9 @@ void Object::render(NVGcontext* nvg)
 
         auto text = std::to_string(cnv->objects.indexOf(this));
         int textWidth = static_cast<int>(nvgTextBounds(nvg, 0, 0, text.c_str(), nullptr, nullptr)) + 5;
-        int left = std::min<int>(getWidth() - (1.5 * margin), getWidth() - textWidth);
+        int left = std::min<int>(b.getWidth() - (1.5 * margin), b.getWidth() - textWidth);
 
-        auto indexBounds = Rectangle<int>(left, (getHeight() / 2) - halfHeight, getWidth() - left, halfHeight * 2);
+        auto indexBounds = Rectangle<int>(left, (b.getHeight() / 2) - halfHeight, b.getWidth() - left, halfHeight * 2);
         
         nvgBeginPath(nvg);
         nvgFillColor(nvg, convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId))); // Adjust fill color as needed

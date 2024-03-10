@@ -5,7 +5,7 @@
  */
 
 class ToggleObject final : public ObjectBase {
-    bool toggleState = false;
+    std::atomic<bool> toggleState = false;
     bool alreadyToggled = false;
     Value nonZero = SynchronousValue();
     Value sizeProperty = SynchronousValue();
