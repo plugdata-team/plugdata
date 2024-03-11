@@ -112,9 +112,12 @@ public:
         }
     }
         
-    void componentBroughtToFront (Component&) override
+    void componentBroughtToFront (Component& c) override
     {
-        toFront(false);
+        MessageManager::callAsync([_this = SafePointer(this)](){
+            if(_this && _this->isOnDesktop()) _this->toFront(false);
+        });
+        
     }
 
     void componentMovedOrResized(Component& component, bool moved, bool resized) override
