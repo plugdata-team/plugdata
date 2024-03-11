@@ -207,6 +207,54 @@ public:
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
+    
+    void render(NVGcontext* nvg) override
+    {
+        auto b = getLocalBounds().toFloat().reduced(0.5f).toFloat();
+        
+        nvgFillColor(nvg, convertColour(iemHelper.getBackgroundColour()));
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+        nvgFill(nvg);
+        
+        float size = (isVertical ? static_cast<float>(getHeight()) / numItems : static_cast<float>(getWidth()) / numItems);
+
+        nvgStrokeColor(nvg, convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour)));
+        nvgStrokeWidth(nvg, 1.0f);
+
+        for (int i = 1; i < numItems; i++) {
+            if (isVertical) {
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, 0, i * size);
+                nvgLineTo(nvg, size, i * size);
+                nvgStroke(nvg);
+            } else {
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, i * size, 0);
+                nvgLineTo(nvg, i * size, size);
+                nvgStroke(nvg);
+            }
+        }
+
+        nvgFillColor(nvg, convertColour(iemHelper.getForegroundColour()));
+
+        float selectionX = isVertical ? 0 : selected * size;
+        float selectionY = isVertical ? selected * size : 0;
+        auto selectionBounds = Rectangle<float>(selectionX, selectionY, size, size).reduced(jmin<int>(size * 0.25f, 5));
+
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, selectionBounds.getX(), selectionBounds.getY(), selectionBounds.getWidth(), selectionBounds.getHeight(), Corners::objectCornerRadius / 2.0f);
+        nvgFill(nvg);
+        
+        bool isSelected = object->isSelected() && !cnv->isGraph;
+        auto outlineColour = object->findColour(isSelected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+
+        nvgStrokeColor(nvg, convertColour(outlineColour));
+        nvgStrokeWidth(nvg, 1.0f);
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+        nvgStroke(nvg);
+    }
 
     void updateAspectRatio()
     {

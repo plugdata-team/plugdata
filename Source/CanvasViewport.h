@@ -463,7 +463,6 @@ public:
         contextChanged = true;
         timer.setTime(0);
         prevTime = timer.getTime();
-
     }
     
     void openGLContextClosing() override
@@ -475,6 +474,7 @@ public:
     
     void renderOpenGL() override
     {
+        
 #if JUCE_LINUX
         int offsetY = 10;
 #else

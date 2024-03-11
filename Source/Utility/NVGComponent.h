@@ -31,6 +31,4 @@ private:
     CriticalSection boundsLock;
     Rectangle<int> safeComponentBounds;
     MoveListener moveListener;
-    
-
 };

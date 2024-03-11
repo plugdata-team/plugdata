@@ -165,6 +165,57 @@ public:
             g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), Corners::objectCornerRadius, 2.0f);
         }
     }
+        
+    void render(NVGcontext* nvg) override
+    {
+        auto b = getLocalBounds().toFloat().reduced(0.5f);
+
+        nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId)));
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+        nvgFill(nvg);
+
+        nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour)));
+        nvgBeginPath(nvg);
+        nvgMoveTo(nvg, b.getRight() - 8, b.getY());
+        nvgLineTo(nvg, b.getRight(), b.getY());
+        nvgLineTo(nvg, b.getRight(), b.getY() + 8);
+        nvgClosePath(nvg);
+        nvgFill(nvg);
+        
+        renderComponentFromImage(nvg, input, ::getValue<float>(cnv->zoomScale) * 2);
+
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+        nvgStroke(nvg);
+
+        nvgBeginPath(nvg);
+        nvgMoveTo(nvg, b.getRight() - 8, b.getY());
+        nvgLineTo(nvg, b.getRight(), b.getY());
+        nvgLineTo(nvg, b.getRight(), b.getY() + 8);
+        nvgClosePath(nvg);
+        nvgFill(nvg);
+
+
+        bool selected = object->isSelected() && !cnv->isGraph;
+        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+
+        nvgStrokeColor(nvg, convertColour(outlineColour));
+        nvgStrokeWidth(nvg, 1.0f);
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+        nvgStroke(nvg);
+
+        bool highlighed = hasKeyboardFocus(true) && getValue<bool>(object->locked);
+
+        if (highlighed) {
+            nvgStrokeColor(nvg, convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId)));
+            nvgStrokeWidth(nvg, 2.0f);
+            nvgBeginPath(nvg);
+            nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+            nvgStroke(nvg);
+        }
+    }
 
     bool hideInlets() override
     {

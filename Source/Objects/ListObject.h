@@ -162,36 +162,57 @@ public:
         return atomHelper.hasSendSymbol();
     }
 
-    void paintOverChildren(Graphics& g) override
+    
+    void render(NVGcontext* nvg) override
     {
-        g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
-        Path triangles;
-        triangles.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
-        triangles.addTriangle(Point<float>(getWidth() - 8, getHeight()), Point<float>(getWidth(), getHeight()), Point<float>(getWidth(), getHeight() - 8));
+        auto b = getLocalBounds().toFloat().reduced(0.5f);
 
-        auto reducedBounds = getLocalBounds().toFloat().reduced(0.5f);
+        nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId)));
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+        nvgFill(nvg);
+        
+        renderComponentFromImage(nvg, listLabel, ::getValue<float>(cnv->zoomScale) * 2);
 
-        Path roundEdgeClipping;
-        roundEdgeClipping.addRoundedRectangle(reducedBounds, Corners::objectCornerRadius);
+        nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour)));
+        nvgBeginPath(nvg);
+        nvgMoveTo(nvg, b.getRight() - 8, b.getY());
+        nvgLineTo(nvg, b.getRight(), b.getY());
+        nvgLineTo(nvg, b.getRight(), b.getY() + 8);
+        nvgClosePath(nvg);
+        nvgFill(nvg);
 
-        g.saveState();
-        g.reduceClipRegion(roundEdgeClipping);
-        g.fillPath(triangles);
-        g.restoreState();
+        nvgBeginPath(nvg);
+        nvgMoveTo(nvg, b.getRight() - 8, b.getBottom());
+        nvgLineTo(nvg, b.getRight(), b.getBottom());
+        nvgLineTo(nvg, b.getRight(), b.getBottom() - 8);
+        nvgClosePath(nvg);
+        nvgFill(nvg);
+
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+        nvgStroke(nvg);
 
         bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(reducedBounds, Corners::objectCornerRadius, 1.0f);
+        nvgStrokeColor(nvg, convertColour(outlineColour));
+        nvgStrokeWidth(nvg, 1.0f);
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+        nvgStroke(nvg);
 
         bool highlighed = hasKeyboardFocus(true) && getValue<bool>(object->locked);
 
         if (highlighed) {
-            g.setColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
-            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), Corners::objectCornerRadius, 2.0f);
+            nvgStrokeColor(nvg, convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId)));
+            nvgStrokeWidth(nvg, 2.0f);
+            nvgBeginPath(nvg);
+            nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+            nvgStroke(nvg);
         }
     }
+
 
     void lookAndFeelChanged() override
     {
@@ -199,12 +220,6 @@ public:
         listLabel.setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
         listLabel.setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
         repaint();
-    }
-
-    void paint(Graphics& g) override
-    {
-        g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
     }
 
     void updateValue()

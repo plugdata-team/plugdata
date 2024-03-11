@@ -51,9 +51,22 @@ public:
     {
         updateTextLayout();
         
+
+    }
+    
+    void render(NVGcontext* nvg) override
+    {
         if (!editor) {
             auto textArea = border.subtractedFrom(getLocalBounds());
+            
+            NanoVGGraphicsContext llgc(nvg); // this should be cached so it doesn't re-init fonts
+            llgc.setPhysicalPixelScaleFactor(getValue<float>(cnv->zoomScale) * 2);
+            
+            Graphics g(llgc);
             textLayout.draw(g, textArea.toFloat());
+        }
+        else {
+            renderComponentFromImage(nvg, *editor, 2.0f);
         }
     }
     

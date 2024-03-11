@@ -4,13 +4,13 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class ReversibleSlider : public Slider {
+class ReversibleSlider : public Slider, public NVGComponent {
 
     bool isInverted;
     bool isVertical;
 
 public:
-    ReversibleSlider()
+    ReversibleSlider() : NVGComponent(static_cast<Component&>(*this))
     {
         setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
         setTextBoxStyle(Slider::NoTextBox, 0, 0, 0);
@@ -87,6 +87,39 @@ public:
         else
             return Slider::valueToProportionOfLength(value);
     }
+    
+    void render(NVGcontext* nvg) override
+    {
+        auto b = getLocalBounds().toFloat().reduced(1.0f);
+
+        nvgFillColor(nvg, convertColour(findColour(Slider::backgroundColourId)));
+        nvgBeginPath(nvg);
+        nvgRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight());
+        nvgFill(nvg);
+
+        constexpr auto thumbSize = 4.0f;
+        auto cornerSize = Corners::objectCornerRadius / 2.0f;
+
+        if (isHorizontal()) {
+            auto sliderPos = jmap<float>(getValue(), getMinimum(), getMaximum(), b.getX(), b.getWidth() - thumbSize);
+            auto bounds = Rectangle<float>(sliderPos, b.getY(), thumbSize, b.getHeight());
+
+            nvgFillColor(nvg, convertColour(findColour(Slider::trackColourId)));
+            nvgBeginPath(nvg);
+            nvgRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), cornerSize);
+            nvgFill(nvg);
+        } else {
+            
+            auto sliderPos = jmap<float>(getValue(), getMaximum(), getMinimum(), b.getY(), b.getHeight() - thumbSize);
+            auto bounds = Rectangle<float>(b.getWidth(), thumbSize).translated(b.getX(), sliderPos);
+
+            nvgFillColor(nvg, convertColour(findColour(Slider::trackColourId)));
+            nvgBeginPath(nvg);
+            nvgRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), cornerSize);
+            nvgFill(nvg);
+        }
+    }
+    
 };
 
 class SliderObject : public ObjectBase {
@@ -306,6 +339,27 @@ public:
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+    }
+    
+    void render(NVGcontext* nvg) override
+    {
+        auto b = getLocalBounds().toFloat().reduced(0.5f);
+
+        nvgFillColor(nvg, convertColour(iemHelper.getBackgroundColour()));
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+        nvgFill(nvg);
+        
+        slider.render(nvg);
+
+        bool selected = object->isSelected() && !cnv->isGraph;
+        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+
+        nvgStrokeColor(nvg, convertColour(outlineColour));
+        nvgStrokeWidth(nvg, 1.0f);
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+        nvgStroke(nvg);
     }
 
     void resized() override
