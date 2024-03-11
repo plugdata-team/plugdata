@@ -41,6 +41,13 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     , pathUpdater(new ConnectionPathUpdater(this))
     , globalMouseListener(this)
 {
+
+    addAndMakeVisible(objectLayer);
+    addAndMakeVisible(connectionLayer);
+
+    objectLayer.setInterceptsMouseClicks(false, true);
+    connectionLayer.setInterceptsMouseClicks(false, true);
+
     if (auto patchPtr = patch.getPointer()) {
         isGraphChild = glist_isgraph(patchPtr.get());
     }
@@ -1826,20 +1833,11 @@ void Canvas::valueChanged(Value& v)
 
 void Canvas::orderConnections()
 {
-    // move all connections to back when canvas is locked & connections behind is active
+    // move connection layer to back when canvas is locked & connections behind is active
     if (locked == var(true) && connectionsBehind) {
-        // use reverse order to preserve correct connection layering
-        for (int i = connections.size() - 1; i >= 0; i--) {
-            connections[i]->setAlwaysOnTop(false);
-            connections[i]->toBack();
-        }
-    } else {
-        // otherwise move all connections to front
-        for (auto connection : connections) {
-            connection->setAlwaysOnTop(true);
-            connection->toFront(false);
-        }
-    }
+        connectionLayer.toBack();
+    } else
+        connectionLayer.toFront(false);
 
     repaint();
 }
@@ -1994,4 +1992,10 @@ void Canvas::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAt
         break;
     }
     }
+}
+
+void Canvas::resized()
+{
+    connectionLayer.setBounds(getLocalBounds());
+    objectLayer.setBounds(getLocalBounds());
 }

@@ -96,7 +96,7 @@ void Object::setObjectBounds(Rectangle<int> bounds)
 
 void Object::initialise()
 {
-    cnv->addAndMakeVisible(this);
+    cnv->objectLayer.addAndMakeVisible(this);
 
     cnv->selectedComponents.addChangeListener(this);
 

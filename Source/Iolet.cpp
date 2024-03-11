@@ -408,8 +408,9 @@ Array<Connection*> Iolet::getConnections()
 
 Iolet* Iolet::findNearestIolet(Canvas* cnv, Point<int> position, bool inlet, Object* boxToExclude)
 {
-    // Find all iolets
+    // Find all potential iolets
     Array<Iolet*> allEdges;
+
     for (auto* object : cnv->objects) {
         for (auto* iolet : object->iolets) {
             if (iolet->isInlet == inlet && iolet->object != boxToExclude) {
