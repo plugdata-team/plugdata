@@ -242,13 +242,18 @@ void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> area)
         nvgLineStyle(nvg, NVG_LINE_SOLID);
     }
 
-    // render connections infront or behind objects depending on lock mode or overlay setting
-    if (connectionsBehind) {
-        renderAllConnections(nvg, area);
+    // if canvas is a graph, or in presentation mode, don't render connections at all
+    if (::getValue<bool>(presentationMode)  || isGraph)
         renderAllObjects(nvg, area);
-    } else {
-        renderAllObjects(nvg, area);
-        renderAllConnections(nvg, area);
+    else {
+        // render connections infront or behind objects depending on lock mode or overlay setting
+        if (connectionsBehind) {
+            renderAllConnections(nvg, area);
+            renderAllObjects(nvg, area);
+        } else {
+            renderAllObjects(nvg, area);
+            renderAllConnections(nvg, area);
+        }
     }
 
     {
@@ -1778,6 +1783,7 @@ void Canvas::valueChanged(Value& v)
     }
     // Should only get called when the canvas isn't a real graph
     else if (v.refersToSameSourceAs(presentationMode)) {
+        connectionLayer.setVisible(!getValue<bool>(presentationMode));
         deselectAll();
     } else if (v.refersToSameSourceAs(hideNameAndArgs)) {
         if (!patch.getPointer())
@@ -1833,7 +1839,6 @@ void Canvas::valueChanged(Value& v)
 
 void Canvas::orderConnections()
 {
-    std::cout << "ordering connections: " << connectionsBehind << std::endl;
     // move connection layer to back when canvas is locked & connections behind is active
     if (connectionsBehind) {
         connectionLayer.toBack();
