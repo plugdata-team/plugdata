@@ -78,6 +78,11 @@ public:
         
     void renderNVG(NVGcontext* nvg, Rectangle<int> area);
 
+    void resized() override;
+
+    void renderAllObjects(NVGcontext* nvg, Rectangle<int> area);
+    void renderAllConnections(NVGcontext* nvg, Rectangle<int> area);
+
     int getOverlays() const;
     void updateOverlays();
 
@@ -220,6 +225,9 @@ public:
     ObjectDragState dragState;
 
     inline static constexpr int infiniteCanvasSize = 128000;
+
+    Component objectLayer;
+    Component connectionLayer;
 
 private:
     

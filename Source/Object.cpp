@@ -96,7 +96,7 @@ void Object::setObjectBounds(Rectangle<int> bounds)
 
 void Object::initialise()
 {
-    cnv->addAndMakeVisible(this);
+    cnv->objectLayer.addAndMakeVisible(this);
 
     cnv->selectedComponents.addChangeListener(this);
 
@@ -1120,7 +1120,7 @@ void Object::render(NVGcontext* nvg)
 {
     auto b = getSafeLocalBounds().reduced(margin);
     auto selectedOutlineColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
-    
+
     if (selectedFlag) {
         nvgFillColor(nvg, selectedOutlineColour);
         for(auto& corner : getCorners())
@@ -1217,6 +1217,8 @@ void Object::render(NVGcontext* nvg)
         nvgFillColor(nvg, convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting()));
         nvgText(nvg, indexBounds.getCentreX(), indexBounds.getCentreY(), text.c_str(), nullptr);
     }
+
+    renderIolets(nvg);
 }
 
 void Object::renderIolets(NVGcontext* nvg)

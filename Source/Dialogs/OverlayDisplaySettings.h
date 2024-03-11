@@ -38,10 +38,7 @@ public:
             , group(groupType)
         {
             auto controlVisibility = [this](String const& mode) {
-                if (settingName == "behind" && (mode == "edit" || mode == "alt")) {
-                    return false;
-                }
-                else if (settingName == "origin" || settingName == "border" || mode == "edit" || mode == "lock" || mode == "alt") {
+                if (settingName == "origin" || settingName == "border" || mode == "edit" || mode == "lock" || mode == "alt") {
                     return true;
                 }
 

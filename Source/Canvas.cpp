@@ -41,6 +41,13 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     , pathUpdater(new ConnectionPathUpdater(this))
     , globalMouseListener(this)
 {
+
+    addAndMakeVisible(objectLayer);
+    addAndMakeVisible(connectionLayer);
+
+    objectLayer.setInterceptsMouseClicks(false, true);
+    connectionLayer.setInterceptsMouseClicks(false, true);
+
     if (auto patchPtr = patch.getPointer()) {
         isGraphChild = glist_isgraph(patchPtr.get());
     }
@@ -234,47 +241,16 @@ void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> area)
         
         nvgLineStyle(nvg, NVG_LINE_SOLID);
     }
-    
-    {
-        ScopedLock objLock(objects.getLock());
-        for(auto* obj : objects)
-        {
-            nvgSave(nvg);
-            auto b = obj->getSafeBounds();
-            nvgTranslate(nvg, b.getX(), b.getY());
-            if(b.intersects(area)) {
-                obj->render(nvg);
-            }
-            nvgRestore(nvg);
-        }
+
+    // render connections infront or behind objects depending on lock mode or overlay setting
+    if (connectionsBehind) {
+        renderAllConnections(nvg, area);
+        renderAllObjects(nvg, area);
+    } else {
+        renderAllObjects(nvg, area);
+        renderAllConnections(nvg, area);
     }
-    
-    {
-        ScopedLock connLock(connections.getLock());
-        for(auto* connection : connections)
-        {
-            nvgSave(nvg);
-            if(connection->getBounds().intersects(area)) {
-                connection->render(nvg);
-            }
-            nvgRestore(nvg);
-        }
-    }
-    
-    {
-        ScopedLock objLock(objects.getLock());
-        for(auto* obj : objects)
-        {
-            nvgSave(nvg);
-            auto b = obj->getSafeBounds();
-            nvgTranslate(nvg, b.getX(), b.getY());
-            if(b.intersects(area)) {
-                obj->renderIolets(nvg);
-            }
-            nvgRestore(nvg);
-        }
-    }
-    
+
     {
         ScopedLock connLock(connectionsBeingCreated.getLock());
         for(auto* connection : connectionsBeingCreated)
@@ -303,6 +279,33 @@ void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> area)
     }
     
     nvgRestore(nvg);
+}
+
+void Canvas::renderAllObjects(NVGcontext* nvg, Rectangle<int> area)
+{
+    ScopedLock objLock(objects.getLock());
+    for(auto* obj : objects)
+    {
+        nvgSave(nvg);
+        auto b = obj->getSafeBounds();
+        nvgTranslate(nvg, b.getX(), b.getY());
+        if(b.intersects(area)) {
+            obj->render(nvg);
+        }
+        nvgRestore(nvg);
+    }
+}
+void Canvas::renderAllConnections(NVGcontext* nvg, Rectangle<int> area)
+{
+    ScopedLock connLock(connections.getLock());
+    for(auto* connection : connections)
+    {
+        nvgSave(nvg);
+        if(connection->getBounds().intersects(area)) {
+            connection->render(nvg);
+        }
+        nvgRestore(nvg);
+    }
 }
 
 void Canvas::propertyChanged(String const& name, var const& value)
@@ -1830,20 +1833,12 @@ void Canvas::valueChanged(Value& v)
 
 void Canvas::orderConnections()
 {
-    // move all connections to back when canvas is locked & connections behind is active
-    if (locked == var(true) && connectionsBehind) {
-        // use reverse order to preserve correct connection layering
-        for (int i = connections.size() - 1; i >= 0; i--) {
-            connections[i]->setAlwaysOnTop(false);
-            connections[i]->toBack();
-        }
-    } else {
-        // otherwise move all connections to front
-        for (auto connection : connections) {
-            connection->setAlwaysOnTop(true);
-            connection->toFront(false);
-        }
-    }
+    std::cout << "ordering connections: " << connectionsBehind << std::endl;
+    // move connection layer to back when canvas is locked & connections behind is active
+    if (connectionsBehind) {
+        connectionLayer.toBack();
+    } else
+        objectLayer.toBack();
 
     repaint();
 }
@@ -1895,8 +1890,10 @@ bool Canvas::setPanDragMode(bool shouldPan)
 
 void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, Rectangle<int> const& area)
 {
+    const auto lassoArea = area.withSize(jmax(area.getWidth(), 1), jmax(area.getHeight(), 1));
+
     for (auto* object : objects) {
-        if (area.intersects(object->getSelectableBounds())) {
+        if (lassoArea.intersects(object->getSelectableBounds())) {
             itemsFound.add(object);
         } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
             setSelected(object, false, false);
@@ -1906,13 +1903,13 @@ void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, R
     for (auto& connection : connections) {
         // If total bounds don't intersect, there can't be an intersection with the line
         // This is cheaper than checking the path intersection, so do this first
-        if (!connection->getBounds().intersects(lasso.getBounds())) {
+        if (!connection->getBounds().intersects(lassoArea)) {
             setSelected(connection, false, false);
             continue;
         }
 
         // Check if path intersects with lasso
-        if (connection->intersects(lasso.getBounds().toFloat())) {
+        if (connection->intersects(lassoArea.toFloat())) {
             itemsFound.add(connection);
         } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
             setSelected(connection, false, false);
@@ -1996,4 +1993,10 @@ void Canvas::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAt
         break;
     }
     }
+}
+
+void Canvas::resized()
+{
+    connectionLayer.setBounds(getLocalBounds());
+    objectLayer.setBounds(getLocalBounds());
 }
