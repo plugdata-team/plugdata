@@ -410,12 +410,7 @@ public:
         glContext.setSwapInterval(0);
         glContext.setMultisamplingEnabled(true);
         glContext.setComponentPaintingEnabled(false);
-        
-#if JUCE_MAC
         glContext.setContinuousRepainting(true);
-#else
-        glContext.setContinuousRepainting(false);
-#endif
 
         
         // TODO: do this in a better place
