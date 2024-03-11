@@ -45,7 +45,7 @@ class CanvasViewport : public Viewport, public OpenGLRenderer
                 viewport->invalidArea = viewport->getLocalBounds().withTrimmedTop(-10);
             }
             
-            viewport->pixelScale = g.getInternalContext().getPhysicalPixelScaleFactor();
+            viewport->cnv->pixelScale = g.getInternalContext().getPhysicalPixelScaleFactor();
         }
         
         bool invalidate (const Rectangle<int>& rect) override
@@ -390,13 +390,7 @@ public:
         glContext.setSwapInterval(0);
         glContext.setMultisamplingEnabled(true);
         glContext.setComponentPaintingEnabled(false);
-        
-#if JUCE_MAC
         glContext.setContinuousRepainting(true);
-#else
-        glContext.setContinuousRepainting(false);
-#endif
-
         
         // TODO: do this in a better place
         MessageManager::callAsync([this, cnv](){
@@ -471,17 +465,14 @@ public:
         }
         
         Rectangle<int> oldInvalidArea = invalidated; // so we can recover when paint fails
-                
+        
+        float pixelScale = cnv->pixelScale;
+        
         int width = lastWidth.load();
         int height = lastHeight.load();
         int scaledWidth = width * pixelScale;
         int scaledHeight = height * pixelScale;
-        
-        if(!stopRendering && messageManagerLock.tryEnter()) {
-            cnv->updateNVGFramebuffers(nvg); // update frame buffers outside of the nvgBegin/End
-            messageManagerLock.exit();
-        }
-        
+                
         frameTimer.addFrameTime();
         
         auto currentMs = Time::getMillisecondCounter();
@@ -501,6 +492,11 @@ public:
             if(contextChanged || framebuffer.getWidth() != scaledWidth || framebuffer.getHeight() != scaledHeight) {
                 framebuffer.initialise(glContext, scaledWidth, scaledHeight);
                 contextChanged = false;
+            }
+            
+            if(!stopRendering && messageManagerLock.tryEnter()) {
+                cnv->updateNVGFramebuffers(nvg, invalidated); // update frame buffers outside of the nvgBegin/End
+                messageManagerLock.exit();
             }
             
             framebuffer.makeCurrentRenderingTarget();
@@ -539,7 +535,7 @@ public:
                     invalidArea.add(oldInvalidArea);
                 }
             }
-#if 0
+#if ENABLE_CANVAS_FB_DEBUGGING
             static Random rng;
             nvgBeginPath(nvg);
             nvgFillColor(nvg, nvgRGBA(rng.nextInt(255), rng.nextInt(255), rng.nextInt(255), 0x50));
@@ -765,7 +761,6 @@ private:
     FrameTimer realFrameTimer;
     
     uint32 lastFrameTime;
-    std::atomic<float> pixelScale = 1.0f;
     std::atomic<int> lastWidth, lastHeight;
     bool contextChanged = false;
     

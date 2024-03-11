@@ -174,17 +174,20 @@ Canvas::~Canvas()
     pd->unregisterMessageListener(patch.getPointer().get(), this);
 }
 
-void Canvas::updateNVGFramebuffers(NVGcontext* nvg)
+void Canvas::updateNVGFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion)
 {
     ScopedLock objLock(objects.getLock());
     for(auto* obj : objects)
     {
-        obj->updateFramebuffer(nvg);
+        auto b = obj->getSafeBounds();
+        if(b.intersects(invalidRegion)) {
+            obj->updateFramebuffer(nvg);
+        }
     }
 }
 
 
-void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> area)
+void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> invalidRegion)
 {
     auto backgroundColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId));
     auto dotsColour = convertColour(findColour(PlugDataColour::canvasDotsColourId));
@@ -196,12 +199,12 @@ void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> area)
     
     if(viewport)  {
         nvgTranslate(nvg, -viewport->getViewPositionX(), -viewport->getViewPositionY());
-        area = area.translated(viewport->getViewPositionX(), viewport->getViewPositionY());
+        invalidRegion = invalidRegion.translated(viewport->getViewPositionX(), viewport->getViewPositionY());
     }
     
     auto zoom = getValue<float>(zoomScale);
     nvgScale(nvg, zoom, zoom);
-    area /= zoom;
+    invalidRegion /= zoom;
     
     nvgBeginPath(nvg);
     nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
@@ -253,15 +256,15 @@ void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> area)
 
     // if canvas is a graph, or in presentation mode, don't render connections at all
     if (::getValue<bool>(presentationMode)  || isGraph)
-        renderAllObjects(nvg, area);
+        renderAllObjects(nvg, invalidRegion);
     else {
         // render connections infront or behind objects depending on lock mode or overlay setting
         if (connectionsBehind) {
-            renderAllConnections(nvg, area);
-            renderAllObjects(nvg, area);
+            renderAllConnections(nvg, invalidRegion);
+            renderAllObjects(nvg, invalidRegion);
         } else {
-            renderAllObjects(nvg, area);
-            renderAllConnections(nvg, area);
+            renderAllObjects(nvg, invalidRegion);
+            renderAllConnections(nvg, invalidRegion);
         }
     }
 

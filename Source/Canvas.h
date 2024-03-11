@@ -76,8 +76,8 @@ public:
     void focusGained(FocusChangeType cause) override;
     void focusLost(FocusChangeType cause) override;
     
-    void updateNVGFramebuffers(NVGcontext* nvg);
-    void renderNVG(NVGcontext* nvg, Rectangle<int> area);
+    void updateNVGFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion);
+    void renderNVG(NVGcontext* nvg, Rectangle<int> invalidRegion);
 
     void resized() override;
 
@@ -193,6 +193,8 @@ public:
     std::atomic<bool> showOrigin = false;
     std::atomic<bool> showBorder = false;
     std::atomic<bool> connectionsBehind = true;
+    
+    std::atomic<float> pixelScale = 1.0f;
 
     bool isGraph = false;
     bool isDraggingLasso = false;

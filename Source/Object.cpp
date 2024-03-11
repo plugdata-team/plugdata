@@ -1120,7 +1120,7 @@ void Object::mouseDrag(MouseEvent const& e)
 void Object::updateFramebuffer(NVGcontext* nvg)
 {
     auto b = getSafeLocalBounds();
-    auto scale = getValue<float>(cnv->zoomScale) * pixelScale;
+    auto scale = getValue<float>(cnv->zoomScale) * cnv->pixelScale;
     bool boundsChanged = int(b.getWidth() * scale) != fbWidth || int(b.getHeight() * scale) != fbHeight;
     if(fbDirty || boundsChanged)
     {
@@ -1138,11 +1138,10 @@ void Object::updateFramebuffer(NVGcontext* nvg)
         OpenGLHelpers::clear(Colours::transparentBlack);
         
         nvgBeginFrame(nvg, b.getWidth(), b.getHeight(), scale);
-        nvgGlobalCompositeOperation(nvg, NVG_SOURCE_OVER);
         
         performRender(nvg);
         
-#if 0  // To debug object buffering
+#if ENABLE_OBJECT_FB_DEBUGGING
         static Random rng;
         nvgBeginPath(nvg);
         nvgFillColor(nvg, nvgRGBA(rng.nextInt(255), rng.nextInt(255), rng.nextInt(255), 0x50));
@@ -1158,6 +1157,8 @@ void Object::updateFramebuffer(NVGcontext* nvg)
 
 void Object::render(NVGcontext* nvg)
 {
+    if(!fb) return;
+    
     auto b = getSafeLocalBounds();
     nvgBeginPath(nvg);
     nvgRect(nvg, 0, 0, b.getWidth(), b.getHeight());

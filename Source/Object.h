@@ -38,10 +38,6 @@ public:
     ~Object() override;
 
     void valueChanged(Value& v) override;
-    
-    void paint(Graphics& g) override {
-        pixelScale = g.getInternalContext().getPhysicalPixelScaleFactor();
-    }
 
     void changeListenerCallback(ChangeBroadcaster* source) override;
     void timerCallback() override;
@@ -59,12 +55,6 @@ public:
     void showEditor();
     void hideEditor();
     bool isInitialEditorShown();
-    
-    void repaint() override
-    {
-        std::cout << "Repaint!" << std::endl;
-        Component::repaint();
-    }
         
     String getType() const;
 
@@ -155,7 +145,6 @@ private:
     NVGLUframebuffer* fb;
     std::atomic<bool> fbDirty = true;
     int fbWidth, fbHeight;
-    float pixelScale = 1.0f;
     
     NVGpaint glow;
     bool glowDirty = true;

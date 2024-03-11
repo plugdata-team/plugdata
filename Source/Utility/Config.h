@@ -7,6 +7,15 @@ using namespace juce;
 #include "Utility/HashUtils.h"
 #include "Utility/SynchronousValue.h"
 
+
+#ifndef ENABLE_OBJECT_FB_DEBUGGING
+#define ENABLE_OBJECT_FB_DEBUGGING 0
+#endif
+
+#ifndef ENABLE_CANVAS_FB_DEBUGGING
+#define ENABLE_CANVAS_FB_DEBUGGING 0
+#endif
+
 namespace juce {
 class AudioDeviceManager;
 }
