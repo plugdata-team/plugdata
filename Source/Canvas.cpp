@@ -693,7 +693,6 @@ void Canvas::mouseDown(MouseEvent const& e)
             }
             if (!e.mods.isShiftDown()) {
                 deselectAll();
-                repaint();
             }
 
             if (!(e.source.isTouch() && e.source.getIndex() != 0) && !getValue<bool>(locked)) {
