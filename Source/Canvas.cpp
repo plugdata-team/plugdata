@@ -1895,8 +1895,10 @@ bool Canvas::setPanDragMode(bool shouldPan)
 
 void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, Rectangle<int> const& area)
 {
+    const auto lassoArea = area.withSize(jmax(area.getWidth(), 1), jmax(area.getHeight(), 1));
+
     for (auto* object : objects) {
-        if (area.intersects(object->getSelectableBounds())) {
+        if (lassoArea.intersects(object->getSelectableBounds())) {
             itemsFound.add(object);
         } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
             setSelected(object, false, false);
@@ -1906,13 +1908,13 @@ void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, R
     for (auto& connection : connections) {
         // If total bounds don't intersect, there can't be an intersection with the line
         // This is cheaper than checking the path intersection, so do this first
-        if (!connection->getBounds().intersects(lasso.getBounds())) {
+        if (!connection->getBounds().intersects(lassoArea)) {
             setSelected(connection, false, false);
             continue;
         }
 
         // Check if path intersects with lasso
-        if (connection->intersects(lasso.getBounds().toFloat())) {
+        if (connection->intersects(lassoArea.toFloat())) {
             itemsFound.add(connection);
         } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
             setSelected(connection, false, false);
