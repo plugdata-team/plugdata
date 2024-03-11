@@ -26,6 +26,8 @@
 
 #include "Pd/Patch.h"
 
+#if USE_OBJECT_FRAMEBUFFER 0
+
 extern "C" {
 #include <m_pd.h>
 //#include <m_imp.h>
@@ -1119,22 +1121,26 @@ void Object::mouseDrag(MouseEvent const& e)
 
 void Object::updateFramebuffer(NVGcontext* nvg)
 {
+#if USE_OBJECT_FRAMEBUFFER
     auto b = getSafeLocalBounds();
-    auto scale = getValue<float>(cnv->zoomScale) * cnv->pixelScale;
-    bool boundsChanged = int(b.getWidth() * scale) != fbWidth || int(b.getHeight() * scale) != fbHeight;
+    auto scale = 3.0f * cnv->pixelScale;
+    bool boundsChanged = b.getWidth() != fbWidth || b.getHeight() != fbHeight;
     if(fbDirty || boundsChanged)
     {
+        int scaledWidth = b.getWidth() * scale;
+        int scaledHeight = b.getHeight() * scale;
+        
         if(!fb || boundsChanged)
         {
-            fbWidth = b.getWidth() * scale;
-            fbHeight = b.getHeight() * scale;
+            fbWidth = b.getWidth();
+            fbHeight = b.getHeight();
             
             if(fb) nvgluDeleteFramebuffer(fb);
-            fb = nvgluCreateFramebuffer(nvg, fbWidth, fbHeight, 0);
+            fb = nvgluCreateFramebuffer(nvg, scaledWidth, scaledHeight, 0);
         }
         
         nvgluBindFramebuffer(fb);
-        glViewport(0, 0, fbWidth, fbHeight);
+        glViewport(0, 0, scaledWidth, scaledHeight);
         OpenGLHelpers::clear(Colours::transparentBlack);
         
         nvgBeginFrame(nvg, b.getWidth(), b.getHeight(), scale);
@@ -1153,10 +1159,12 @@ void Object::updateFramebuffer(NVGcontext* nvg)
         nvgluBindFramebuffer(NULL);
         fbDirty = false;
     }
+#endif
 }
 
 void Object::render(NVGcontext* nvg)
 {
+#if USE_OBJECT_FRAMEBUFFER
     if(!fb) return;
     
     auto b = getSafeLocalBounds();
@@ -1164,6 +1172,9 @@ void Object::render(NVGcontext* nvg)
     nvgRect(nvg, 0, 0, b.getWidth(), b.getHeight());
     nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, b.getWidth(), b.getHeight(), 0, fb->image, 1));
     nvgFill(nvg);
+#else
+    performRender(nvg);
+#endif
 }
 
 void Object::performRender(NVGcontext* nvg)
