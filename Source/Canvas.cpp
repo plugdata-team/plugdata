@@ -242,8 +242,8 @@ void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> area)
         nvgLineStyle(nvg, NVG_LINE_SOLID);
     }
 
-    // render connections infront or behind objects depending on lock mode
-    if (::getValue<bool>(locked)) {
+    // render connections infront or behind objects depending on lock mode or overlay setting
+    if (connectionsBehind) {
         renderAllConnections(nvg, area);
         renderAllObjects(nvg, area);
     } else {
@@ -1833,11 +1833,12 @@ void Canvas::valueChanged(Value& v)
 
 void Canvas::orderConnections()
 {
+    std::cout << "ordering connections: " << connectionsBehind << std::endl;
     // move connection layer to back when canvas is locked & connections behind is active
-    if (locked == var(true) && connectionsBehind) {
+    if (connectionsBehind) {
         connectionLayer.toBack();
     } else
-        connectionLayer.toFront(false);
+        objectLayer.toBack();
 
     repaint();
 }

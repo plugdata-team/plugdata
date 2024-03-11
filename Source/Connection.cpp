@@ -76,7 +76,6 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     addMouseListener(cnv, true);
 
     cnv->connectionLayer.addAndMakeVisible(this);
-    setAlwaysOnTop(true);
 
     componentMovedOrResized(*outlet, true, true);
     componentMovedOrResized(*inlet, true, true);
