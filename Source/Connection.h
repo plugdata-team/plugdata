@@ -25,7 +25,6 @@ class PathUpdater;
 
 class Connection : public Component
     , public ComponentListener
-    , public Value::Listener
     , public ChangeListener
     , public pd::MessageListener 
     , public NVGComponent
@@ -131,8 +130,6 @@ private:
     int getNumberOfConnections();
         
     static Point<float> bezierPointAtDistance(const Point<float>& start, const Point<float>& cp1, const Point<float>& cp2, const Point<float>& end, float distance);
-
-    void valueChanged(Value& v) override;
 
     void setSelected(bool shouldBeSelected);
 

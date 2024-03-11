@@ -33,7 +33,6 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     
     locked.referTo(parent->locked);
     presentationMode.referTo(parent->presentationMode);
-    presentationMode.addListener(this);
 
     // Make sure it's not 2x the same iolet
     if (!outlet || !inlet || outlet->isInlet == inlet->isInlet) {
@@ -80,8 +79,6 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     componentMovedOrResized(*outlet, true, true);
     componentMovedOrResized(*inlet, true, true);
 
-    valueChanged(presentationMode);
-
     updateOverlays(cnv->getOverlays());
 }
 
@@ -111,13 +108,6 @@ void Connection::changeListenerCallback(ChangeBroadcaster* source)
 {
     if (auto selectedItems = dynamic_cast<SelectedItemSet<WeakReference<Component>>*>(source))
         setSelected(selectedItems->isSelected(this));
-}
-
-void Connection::valueChanged(Value& v)
-{
-    if (v.refersToSameSourceAs(presentationMode)) {
-        setVisible(presentationMode != var(true) && !cnv->isGraph);
-    }
 }
 
 void Connection::lookAndFeelChanged()
@@ -182,8 +172,6 @@ Point<float> Connection::bezierPointAtDistance(const Point<float>& start, const 
 
 void Connection::render(NVGcontext* nvg)
 {
-    if(!isVisible()) return;
-    
     auto baseColour = cnv->findColour(PlugDataColour::connectionColourId);
     auto dataColour = cnv->findColour(PlugDataColour::dataColourId);
     auto signalColour = cnv->findColour(PlugDataColour::signalColourId);
