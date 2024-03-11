@@ -26,7 +26,7 @@
 
 #include "Pd/Patch.h"
 
-#if USE_OBJECT_FRAMEBUFFER 0
+#define USE_OBJECT_FRAMEBUFFER 0
 
 extern "C" {
 #include <m_pd.h>
