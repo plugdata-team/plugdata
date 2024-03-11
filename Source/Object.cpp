@@ -7,7 +7,6 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "Utility/Config.h"
-#include "Utility/NVGComponent.h"
 #include "Utility/Fonts.h"
 
 #include "Object.h"
@@ -115,6 +114,7 @@ void Object::initialise()
     originalBounds.setBounds(0, 0, 0, 0);
 
     updateOverlays(cnv->getOverlays());
+    setCachedComponentImage(new InvalidationListener(this));
 }
 
 void Object::timerCallback()
@@ -167,7 +167,7 @@ void Object::valueChanged(Value& v)
         }
     }
     // FIXME: any value change triggers a repaint!
-    repaint();
+    //repaint();
 }
 
 bool Object::checkIfHvccCompatible() const
@@ -471,6 +471,7 @@ void Object::triggerOverlayActiveState()
 
 void Object::resized()
 {
+    fbDirty = true;
     setVisible(!((cnv->isGraph || cnv->presentationMode == var(true)) && gui && gui->hideInGraph()));
 
     if (gui) {
@@ -1116,7 +1117,55 @@ void Object::mouseDrag(MouseEvent const& e)
     }
 }
 
+void Object::updateFramebuffer(NVGcontext* nvg)
+{
+    auto b = getSafeLocalBounds();
+    auto scale = getValue<float>(cnv->zoomScale) * pixelScale;
+    bool boundsChanged = int(b.getWidth() * scale) != fbWidth || int(b.getHeight() * scale) != fbHeight;
+    if(fbDirty || boundsChanged)
+    {
+        if(!fb || boundsChanged)
+        {
+            fbWidth = b.getWidth() * scale;
+            fbHeight = b.getHeight() * scale;
+            
+            if(fb) nvgluDeleteFramebuffer(fb);
+            fb = nvgluCreateFramebuffer(nvg, fbWidth, fbHeight, 0);
+        }
+        
+        nvgluBindFramebuffer(fb);
+        glViewport(0, 0, fbWidth, fbHeight);
+        OpenGLHelpers::clear(Colours::transparentBlack);
+        
+        nvgBeginFrame(nvg, b.getWidth(), b.getHeight(), scale);
+        nvgGlobalCompositeOperation(nvg, NVG_SOURCE_OVER);
+        
+        performRender(nvg);
+        
+#if 0  // To debug object buffering
+        static Random rng;
+        nvgBeginPath(nvg);
+        nvgFillColor(nvg, nvgRGBA(rng.nextInt(255), rng.nextInt(255), rng.nextInt(255), 0x50));
+        nvgRect(nvg, 0, 0, b.getWidth(), b.getHeight());
+        nvgFill(nvg);
+#endif
+        
+        nvgEndFrame(nvg);
+        nvgluBindFramebuffer(NULL);
+        fbDirty = false;
+    }
+}
+
 void Object::render(NVGcontext* nvg)
+{
+    auto b = getSafeLocalBounds();
+    nvgBeginPath(nvg);
+    nvgRect(nvg, 0, 0, b.getWidth(), b.getHeight());
+    nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, b.getWidth(), b.getHeight(), 0, fb->image, 1));
+    nvgFill(nvg);
+}
+
+void Object::performRender(NVGcontext* nvg)
 {
     auto b = getSafeLocalBounds().reduced(margin);
     auto selectedOutlineColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId));

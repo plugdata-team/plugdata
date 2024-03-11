@@ -75,7 +75,8 @@ public:
 
     void focusGained(FocusChangeType cause) override;
     void focusLost(FocusChangeType cause) override;
-        
+    
+    void updateNVGFramebuffers(NVGcontext* nvg);
     void renderNVG(NVGcontext* nvg, Rectangle<int> area);
 
     void resized() override;

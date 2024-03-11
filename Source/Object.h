@@ -38,6 +38,10 @@ public:
     ~Object() override;
 
     void valueChanged(Value& v) override;
+    
+    void paint(Graphics& g) override {
+        pixelScale = g.getInternalContext().getPhysicalPixelScaleFactor();
+    }
 
     void changeListenerCallback(ChangeBroadcaster* source) override;
     void timerCallback() override;
@@ -55,6 +59,12 @@ public:
     void showEditor();
     void hideEditor();
     bool isInitialEditorShown();
+    
+    void repaint() override
+    {
+        std::cout << "Repaint!" << std::endl;
+        Component::repaint();
+    }
         
     String getType() const;
 
@@ -72,7 +82,9 @@ public:
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
         
+    void updateFramebuffer(NVGcontext* nvg);
     void render(NVGcontext* nvg) override;
+    void performRender(NVGcontext* nvg);
     void renderIolets(NVGcontext* nvg);
 
     void mouseMove(MouseEvent const& e) override;
@@ -140,6 +152,11 @@ private:
     bool showActiveState = false;
     std::atomic<float> activeStateAlpha = 0.0f;
         
+    NVGLUframebuffer* fb;
+    std::atomic<bool> fbDirty = true;
+    int fbWidth, fbHeight;
+    float pixelScale = 1.0f;
+    
     NVGpaint glow;
     bool glowDirty = true;
 
@@ -154,6 +171,33 @@ private:
     RateReducer rateReducer = RateReducer(ACTIVITY_UPDATE_RATE);
 
     std::unique_ptr<TextEditor> newObjectEditor;
+    
+    class InvalidationListener : public CachedComponentImage
+    {
+    public:
+        InvalidationListener(Object* parent) : object(parent)
+        {
+        }
+    private:
+        
+        void paint(Graphics& g) override {}
+        
+        bool invalidate(const Rectangle<int>& rect) override
+        {
+            object->fbDirty = true;
+            return true;
+        }
+        
+        bool invalidateAll() override
+        {
+            object->fbDirty = true;
+            return true;
+        }
+        
+        void releaseResources() override {}
+        
+        Object* object;
+    };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Object)
     JUCE_DECLARE_WEAK_REFERENCEABLE(Object)

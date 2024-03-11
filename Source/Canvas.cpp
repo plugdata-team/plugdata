@@ -174,6 +174,15 @@ Canvas::~Canvas()
     pd->unregisterMessageListener(patch.getPointer().get(), this);
 }
 
+void Canvas::updateNVGFramebuffers(NVGcontext* nvg)
+{
+    ScopedLock objLock(objects.getLock());
+    for(auto* obj : objects)
+    {
+        obj->updateFramebuffer(nvg);
+    }
+}
+
 
 void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> area)
 {

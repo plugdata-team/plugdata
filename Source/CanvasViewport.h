@@ -13,7 +13,9 @@ using namespace gl;
 #include <nanovg.h>
 
 #define NANOVG_GL3_IMPLEMENTATION
+// TODO: put these in a cpp file, because they can only be compiler once!
 #include <nanovg_gl.h>
+#include <nanovg_gl_utils.h>
 
 #include <utility>
 
@@ -24,28 +26,6 @@ using namespace gl;
 #include "PluginProcessor.h"
 
 #include "Utility/SettingsFile.h"
-
-class glfwLikeTimer
-    {
-    public:
-        glfwLikeTimer()
-        {
-            setTime(0);
-        }
-        void setTime(double offset)
-        {
-            startTime = getNow() + offset;
-        }
-
-        double getTime() { return getNow() - startTime; }
-    private:
-        double getNow()
-        {
-            auto ticks = Time::getHighResolutionTicks();
-            return Time::highResolutionTicksToSeconds(ticks);
-        }
-        double startTime = 0;
-    };
 
 // Special viewport that shows scrollbars on top of content instead of next to it
 class CanvasViewport : public Viewport, public OpenGLRenderer
@@ -410,7 +390,12 @@ public:
         glContext.setSwapInterval(0);
         glContext.setMultisamplingEnabled(true);
         glContext.setComponentPaintingEnabled(false);
+        
+#if JUCE_MAC
         glContext.setContinuousRepainting(true);
+#else
+        glContext.setContinuousRepainting(false);
+#endif
 
         
         // TODO: do this in a better place
@@ -440,7 +425,7 @@ public:
     
     ~CanvasViewport()
     {
-        messageManagerLock.abort();
+        //messageManagerLock.abort();
         glContext.detach();
     }
     
@@ -461,8 +446,6 @@ public:
         // this should be fine if gsync is controlling the swap however, as the mouse will be synced to gsync also.
         glContext.setSwapInterval(0);
         contextChanged = true;
-        timer.setTime(0);
-        prevTime = timer.getTime();
     }
     
     void openGLContextClosing() override
@@ -474,7 +457,6 @@ public:
     
     void renderOpenGL() override
     {
-        
 #if JUCE_LINUX
         int offsetY = 10;
 #else
@@ -495,20 +477,12 @@ public:
         int scaledWidth = width * pixelScale;
         int scaledHeight = height * pixelScale;
         
-#if !ENABLE_PARIAL_REPAINT
-        glViewport(0, 0, scaledWidth, scaledHeight);
-        OpenGLHelpers::clear(Colours::black);
-        
-        nvgBeginFrame(nvg, width, height, pixelScale);
-        {
-            if(!stopRendering && messageManagerLock.tryEnter()) {
-                cnv->renderNVG(nvg, getLocalBounds());
-                messageManagerLock.exit();
-            }
+        if(!stopRendering && messageManagerLock.tryEnter()) {
+            cnv->updateNVGFramebuffers(nvg); // update frame buffers outside of the nvgBegin/End
+            messageManagerLock.exit();
         }
-        nvgEndFrame(nvg);
-        return;
-#endif
+        
+        frameTimer.addFrameTime();
         
         auto currentMs = Time::getMillisecondCounter();
         if(currentMs - lastFrameTime < 16) // Lock framerate at which actual repainting can happen to 60hz. If GlContext wants more repaint, it will repaint from framebuffer
@@ -518,12 +492,10 @@ public:
         }
         else if(!invalidated.isEmpty()) {
             
-            invalidated = invalidated.translated(0, offsetY).expanded(2.0f);
+            invalidated = invalidated.translated(0, offsetY).expanded(1.0f);
             
-            auto timeSeconds = timer.getTime();
-            auto dt = timeSeconds - prevTime;
-            addFrameTime(dt);
-            prevTime = timeSeconds;
+            realFrameTimer.addFrameTime();
+  
             
             lastFrameTime = currentMs;
             if(contextChanged || framebuffer.getWidth() != scaledWidth || framebuffer.getHeight() != scaledHeight) {
@@ -577,6 +549,13 @@ public:
             
             nvgEndFrame(nvg);
             
+            glViewport(0, 0, scaledWidth, scaledHeight);
+            nvgBeginFrame(nvg, width, height, pixelScale);
+            frameTimer.render(nvg);
+            nvgTranslate(nvg, 48, 0);
+            realFrameTimer.render(nvg);
+            nvgEndFrame(nvg);
+            
             framebuffer.releaseAsRenderingTarget();
         }
                     
@@ -585,23 +564,6 @@ public:
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
         glBlitFramebuffer(0, 0, scaledWidth, scaledHeight, 0, 0, scaledWidth, scaledHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        
-#if 1
-            glViewport(0, 0, scaledWidth, scaledHeight);
-            nvgBeginFrame(nvg, width, height, pixelScale);
-            nvgBeginPath(nvg);
-            nvgRect(nvg, 0, 0, 48, 32);
-            nvgFillColor(nvg, nvgRGBA(40, 40, 40, 255));
-            nvgFill(nvg);
-            
-            nvgFontSize(nvg, 24.0f);
-            nvgTextAlign(nvg,NVG_ALIGN_LEFT|NVG_ALIGN_TOP);
-            nvgFillColor(nvg, nvgRGBA(240,240,240,255));
-            char fpsBuf[16];
-            snprintf(fpsBuf, 16, "%d", static_cast<int>(1.0f / getAverageFrameTime()));
-            nvgText(nvg, 4, 6, fpsBuf, nullptr);
-            nvgEndFrame(nvg);
-#endif
     }
         
     void lookAndFeelChanged() override
@@ -743,30 +705,70 @@ private:
     MessageManager::Lock messageManagerLock;
     std::atomic<bool> stopRendering = false;
     
-    float getAverageFrameTime()
+    struct FrameTimer
     {
-        int i;
-        float avg = 0;
-        for (i = 0; i < 32; i++) {
-            avg += frame_times[i];
+    public:
+        FrameTimer()
+        {
         }
-        return avg / (float)32;
-    }
-    void addFrameTime(float frameTime)
-    {
-        perf_head = (perf_head+1) % 32;
-        frame_times[perf_head] = frameTime;
-    }
+        
+        void render(NVGcontext* nvg)
+        {
+            nvgBeginPath(nvg);
+            nvgRect(nvg, 0, 0, 48, 32);
+            nvgFillColor(nvg, nvgRGBA(40, 40, 40, 255));
+            nvgFill(nvg);
+            
+            nvgFontSize(nvg, 24.0f);
+            nvgTextAlign(nvg,NVG_ALIGN_LEFT|NVG_ALIGN_TOP);
+            nvgFillColor(nvg, nvgRGBA(240,240,240,255));
+            char fpsBuf[16];
+            snprintf(fpsBuf, 16, "%d", static_cast<int>(1.0f / getAverageFrameTime()));
+            nvgText(nvg,8, 10, fpsBuf, nullptr);
+        }
+        void addFrameTime()
+        {
+            auto timeSeconds = getTime();
+            auto dt = timeSeconds - prevTime;
+            prevTime = timeSeconds;
+            
+            perf_head = (perf_head+1) % 32;
+            frame_times[perf_head] = dt;
+        }
+        
+        double getTime() { return getNow() - startTime; }
+    private:
+        double getNow()
+        {
+            auto ticks = Time::getHighResolutionTicks();
+            return Time::highResolutionTicksToSeconds(ticks);
+        }
+        
+        float getAverageFrameTime()
+        {
+            int i;
+            float avg = 0;
+            for (i = 0; i < 32; i++) {
+                avg += frame_times[i];
+            }
+            return avg / (float)32;
+        }
+
+        
+        float frame_times[32] = {};
+        int perf_head;
+        double prevTime;
+        double startTime = 0;
+    };
     
-    float frame_times[32] = {};
-    int perf_head;
-    double prevTime;
-    glfwLikeTimer timer;
+    FrameTimer frameTimer;
+    FrameTimer realFrameTimer;
+    
     uint32 lastFrameTime;
-    
-    bool contextChanged = false;
     std::atomic<float> pixelScale = 1.0f;
     std::atomic<int> lastWidth, lastHeight;
+    bool contextChanged = false;
+    
     Time lastScrollTime;
     PluginEditor* editor;
     Canvas* cnv;
