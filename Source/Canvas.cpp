@@ -234,47 +234,16 @@ void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> area)
         
         nvgLineStyle(nvg, NVG_LINE_SOLID);
     }
-    
-    {
-        ScopedLock objLock(objects.getLock());
-        for(auto* obj : objects)
-        {
-            nvgSave(nvg);
-            auto b = obj->getSafeBounds();
-            nvgTranslate(nvg, b.getX(), b.getY());
-            if(b.intersects(area)) {
-                obj->render(nvg);
-            }
-            nvgRestore(nvg);
-        }
+
+    // render connections infront or behind objects depending on lock mode
+    if (::getValue<bool>(locked)) {
+        renderAllConnections(nvg, area);
+        renderAllObjects(nvg, area);
+    } else {
+        renderAllObjects(nvg, area);
+        renderAllConnections(nvg, area);
     }
-    
-    {
-        ScopedLock connLock(connections.getLock());
-        for(auto* connection : connections)
-        {
-            nvgSave(nvg);
-            if(connection->getBounds().intersects(area)) {
-                connection->render(nvg);
-            }
-            nvgRestore(nvg);
-        }
-    }
-    
-    {
-        ScopedLock objLock(objects.getLock());
-        for(auto* obj : objects)
-        {
-            nvgSave(nvg);
-            auto b = obj->getSafeBounds();
-            nvgTranslate(nvg, b.getX(), b.getY());
-            if(b.intersects(area)) {
-                obj->renderIolets(nvg);
-            }
-            nvgRestore(nvg);
-        }
-    }
-    
+
     {
         ScopedLock connLock(connectionsBeingCreated.getLock());
         for(auto* connection : connectionsBeingCreated)
@@ -303,6 +272,33 @@ void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> area)
     }
     
     nvgRestore(nvg);
+}
+
+void Canvas::renderAllObjects(NVGcontext* nvg, Rectangle<int> area)
+{
+    ScopedLock objLock(objects.getLock());
+    for(auto* obj : objects)
+    {
+        nvgSave(nvg);
+        auto b = obj->getSafeBounds();
+        nvgTranslate(nvg, b.getX(), b.getY());
+        if(b.intersects(area)) {
+            obj->render(nvg);
+        }
+        nvgRestore(nvg);
+    }
+}
+void Canvas::renderAllConnections(NVGcontext* nvg, Rectangle<int> area)
+{
+    ScopedLock connLock(connections.getLock());
+    for(auto* connection : connections)
+    {
+        nvgSave(nvg);
+        if(connection->getBounds().intersects(area)) {
+            connection->render(nvg);
+        }
+        nvgRestore(nvg);
+    }
 }
 
 void Canvas::propertyChanged(String const& name, var const& value)

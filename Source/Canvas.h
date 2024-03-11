@@ -78,6 +78,9 @@ public:
         
     void renderNVG(NVGcontext* nvg, Rectangle<int> area);
 
+    void renderAllObjects(NVGcontext* nvg, Rectangle<int> area);
+    void renderAllConnections(NVGcontext* nvg, Rectangle<int> area);
+
     int getOverlays() const;
     void updateOverlays();
 

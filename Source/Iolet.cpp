@@ -55,10 +55,6 @@ void Iolet::render(NVGcontext* nvg)
     bool isLocked = getValue<bool>(locked) || getValue<bool>(commandLocked);
     bool over = getCanvasBounds().contains(cnv->getLastMousePosition());
 
-    if ((!isTargeted && !over) || isLocked) {
-        bounds = bounds.reduced(2);
-    }
-
     auto backgroundColour = isSignal ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId);
     if(isGemState)
     {
@@ -72,25 +68,9 @@ void Iolet::render(NVGcontext* nvg)
         backgroundColour = findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.5f);
     }
 
-    // Instead of drawing pie segments, just clip the graphics region to the visible iolets of the object
-    // This is much faster!
-    bool stateSaved = false;
-    if (!(object->getSafeBounds().contains(cnv->getLastMousePosition()) || over || isTargeted) || isLocked) {
-        nvgSave(nvg);
-        auto clipBounds = getLocalArea(object, object->getSafeLocalBounds().reduced(Object::margin));
-        nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
-        stateSaved = true;
-    }
-
-    // TODO: this is kind of a hack to force inlets to align correctly. Find a better way to fix this!
-    if ((getHeight() % 2) == 0) {
-        bounds.translate(0.0f, isInlet ? -1.0f : 0.0f);
-    }
-
     auto outlineColour = findColour(PlugDataColour::objectOutlineColourId);
     
     if (PlugDataLook::getUseSquareIolets()) {
-        
         nvgBeginPath(nvg);
         nvgFillColor(nvg, nvgRGB(backgroundColour.getRed(), backgroundColour.getGreen(), backgroundColour.getBlue()));
         nvgRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
@@ -99,18 +79,22 @@ void Iolet::render(NVGcontext* nvg)
         nvgStrokeColor(nvg, nvgRGB(outlineColour.getRed(), outlineColour.getGreen(), outlineColour.getBlue()));
         nvgStroke(nvg);
     } else {
+    // ALEX only done round at this point
         nvgBeginPath(nvg);
         nvgFillColor(nvg, nvgRGB(backgroundColour.getRed(), backgroundColour.getGreen(), backgroundColour.getBlue()));
-        nvgCircle(nvg, bounds.getCentreX(), bounds.getCentreY(), bounds.getWidth() / 2);
-        nvgFill(nvg);
-        
+
+        const auto ioletCentre = bounds.getCentre().translated(0.f, isInlet ? -1.0f : 1.0f);
+
+        if (isTargeted) {
+            nvgCircle(nvg, ioletCentre.x, ioletCentre.y, bounds.getWidth() * 0.4f);
+        } else {
+            nvgArc(nvg, ioletCentre.x, ioletCentre.y, bounds.getWidth() * 0.35f, 0, NVG_PI, isInlet ? NVG_CW : NVG_CCW);
+        }
         nvgStrokeColor(nvg, nvgRGB(outlineColour.getRed(), outlineColour.getGreen(), outlineColour.getBlue()));
+        nvgStrokeWidth(nvg, 1.0f);
+        nvgFill(nvg);
         nvgStroke(nvg);
 
-    }
-
-    if (stateSaved) {
-        nvgRestore(nvg);
     }
 }
 
@@ -330,14 +314,14 @@ void Iolet::mouseUp(MouseEvent const& e)
 
 void Iolet::mouseEnter(MouseEvent const& e)
 {
-    for (auto& iolet : object->iolets)
-        iolet->repaint();
+    isTargeted = true;
+    repaint();
 }
 
 void Iolet::mouseExit(MouseEvent const& e)
 {
-    for (auto& iolet : object->iolets)
-        iolet->repaint();
+    isTargeted = false;
+    repaint();
 }
 
 void Iolet::createConnection()

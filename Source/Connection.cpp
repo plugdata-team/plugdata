@@ -222,7 +222,7 @@ void Connection::render(NVGcontext* nvg)
         nvgBezierTo(nvg, cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
         nvgStrokeColor(nvg, convertColour(shadowColour));
         nvgLineCap(nvg, NVG_ROUND);
-        nvgStrokeWidth(nvg, 6.0f);
+        nvgStrokeWidth(nvg, 4.0f);
         nvgStroke(nvg);
 
         nvgStrokeColor(nvg, convertColour(baseColour));
@@ -279,7 +279,7 @@ void Connection::render(NVGcontext* nvg)
         nvgLineTo(nvg, pend.x, pend.y);
         
         nvgStrokeColor(nvg, convertColour(shadowColour));
-        nvgStrokeWidth(nvg, 6.0f);
+        nvgStrokeWidth(nvg, 3.0f);
         nvgStroke(nvg);
         
         nvgLineStyle(nvg, NVG_LINE_SOLID);
@@ -1500,7 +1500,7 @@ void ConnectionBeingCreated::render(NVGcontext* nvg)
         nvgBezierTo(nvg, cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
         nvgStrokeColor(nvg, nvgShadowColour);
         nvgLineCap(nvg, NVG_ROUND);
-        nvgStrokeWidth(nvg, 6.0f);
+        nvgStrokeWidth(nvg, 4.0f);
         nvgStroke(nvg);
 
         nvgStrokeColor(nvg, nvgColor);
