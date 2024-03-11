@@ -36,7 +36,8 @@ class AutomationItem : public ObjectDragAndDrop
 
 public:
     AutomationItem(PlugDataParameter* parameter, Component* parentComponent, PluginProcessor* processor)
-        : pd(processor)
+        : ObjectDragAndDrop(parentComponent->findParentComponentOfClass<PluginEditor>())
+        , pd(processor)
         , rangeProperty("Range", range, false)
         , modeProperty("Mode", mode, { "Float", "Integer", "Logarithmic", "Exponential" })
         , param(parameter)

@@ -8,7 +8,7 @@
 
 class ObjectDragAndDrop : public Component {
 public:
-    ObjectDragAndDrop() { }
+    ObjectDragAndDrop(PluginEditor* e) : editor(e) { }
 
     virtual String getObjectString() = 0;
 
@@ -23,7 +23,7 @@ public:
 
     MouseCursor getMouseCursor() override
     {
-        if ((dragContainer != nullptr) && dragContainer->isDragAndDropActive())
+        if (editor->isDragAndDropActive())
             return MouseCursor::DraggingHandCursor;
 
         return MouseCursor::PointingHandCursor;
@@ -45,14 +45,12 @@ public:
         if (reordering || e.getDistanceFromDragStart() < 5)
             return;
 
-        dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
-
-        if (!dragContainer || dragContainer->isDragAndDropActive())
+        if (!editor || editor->isDragAndDropActive())
             return;
 
         auto scale = 3.0f;
         if (dragImage.image.isNull() || errorImage.image.isNull()) {
-            auto offlineObjectRenderer = OfflineObjectRenderer::findParentOfflineObjectRendererFor(this);
+            auto* offlineObjectRenderer = &editor->offlineRenderer;
             dragImage = offlineObjectRenderer->patchToMaskedImage(getObjectString(), scale);
             errorImage = offlineObjectRenderer->patchToMaskedImage(getObjectString(), scale, true);
         }
@@ -64,14 +62,15 @@ public:
         palettePatchWithOffset.add(var(dragImage.offset.getY()));
         palettePatchWithOffset.add(var(getObjectString()));
         palettePatchWithOffset.add(var(getPatchStringName()));
-        dragContainer->startDragging(palettePatchWithOffset, this, ScaledImage(dragImage.image, scale), ScaledImage(errorImage.image, scale), true, nullptr, nullptr, true);
+        editor->startDragging(palettePatchWithOffset, this, ScaledImage(dragImage.image, scale), ScaledImage(errorImage.image, scale), true, nullptr, nullptr, true);
     }
 
 private:
     bool reordering = false;
-    ZoomableDragAndDropContainer* dragContainer = nullptr;
+    PluginEditor* editor;
     ImageWithOffset dragImage;
     ImageWithOffset errorImage;
+    friend class ObjectClickAndDrop;
 };
 
 class ObjectClickAndDrop : public Component
@@ -98,7 +97,6 @@ public:
     {
         objectString = target->getObjectString();
         objectName = target->getPatchStringName();
-        editor = target->findParentComponentOfClass<PluginEditor>();
 
         if (ProjectInfo::canUseSemiTransparentWindows()) {
             addToDesktop(ComponentPeer::windowIsTemporary);
@@ -109,7 +107,7 @@ public:
 
         setAlwaysOnTop(true);
 
-        auto offlineObjectRenderer = OfflineObjectRenderer::findParentOfflineObjectRendererFor(target);
+        auto* offlineObjectRenderer = &target->editor->offlineRenderer;
         // FIXME: we should only ask a new mask image when the theme has changed so it's the correct colour
         dragImage = offlineObjectRenderer->patchToMaskedImage(target->getObjectString(), 3.0f).image;
         dragInvalidImage = offlineObjectRenderer->patchToMaskedImage(target->getObjectString(), 3.0f, true).image;

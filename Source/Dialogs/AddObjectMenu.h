@@ -14,7 +14,8 @@ class ObjectItem : public ObjectDragAndDrop
     , public SettableTooltipClient {
 public:
     ObjectItem(PluginEditor* e, String const& text, String const& icon, String const& tooltip, String const& patch, ObjectIDs objectID, std::function<void(bool)> dismissCalloutBox)
-        : titleText(text)
+        : ObjectDragAndDrop(e)
+        , titleText(text)
         , iconText(icon)
         , objectPatch(patch)
         , dismissMenu(dismissCalloutBox)

@@ -8,7 +8,7 @@
 
 #include <JuceHeader.h>
 #include <juce_opengl/juce_opengl.h>
-using namespace juce::gl;
+using namespace gl;
 
 #include <nanovg.h>
 
@@ -41,15 +41,82 @@ class glfwLikeTimer
     private:
         double getNow()
         {
-            auto ticks = juce::Time::getHighResolutionTicks();
-            return juce::Time::highResolutionTicksToSeconds(ticks);
+            auto ticks = Time::getHighResolutionTicks();
+            return Time::highResolutionTicksToSeconds(ticks);
         }
         double startTime = 0;
     };
 
 // Special viewport that shows scrollbars on top of content instead of next to it
-class CanvasViewport : public Viewport, public OpenGLRenderer, public CachedComponentImage
+class CanvasViewport : public Viewport, public OpenGLRenderer
 {
+    
+    // Attached to viewport so we can clean stuff up correctly
+    struct ImageReleaseListener : public CachedComponentImage
+    {
+        ImageReleaseListener(CanvasViewport* parent) : viewport(parent)
+        {
+        }
+        
+        void paint(Graphics& g) override {
+            if(viewport->stopRendering) {
+                ScopedLock lock(viewport->invalidAreaLock);
+                viewport->stopRendering = false; // If we get a paint event here, it means we should also be allowed to render from now on
+                viewport->invalidArea = viewport->getLocalBounds().withTrimmedTop(-10);
+            }
+            
+            viewport->pixelScale = g.getInternalContext().getPhysicalPixelScaleFactor();
+        }
+        
+        bool invalidate (const Rectangle<int>& rect) override
+        {
+            ScopedLock lock(viewport->invalidAreaLock);
+            viewport->invalidArea.add(rect);
+            return false;
+        }
+        
+        bool invalidateAll() override
+        {
+            return false;
+        }
+        
+        void releaseResources() override {
+            viewport->stopRendering = true;
+            viewport->messageManagerLock.abort();
+        };
+        
+        CanvasViewport* viewport;
+    };
+    
+    // Attached to Canvas to listen to what areas it wants to see repainted
+    struct InvalidationListener : public CachedComponentImage
+    {
+        InvalidationListener(CanvasViewport* parent) : viewport(parent)
+        {
+        }
+        
+    private:
+        void paint(Graphics& g) override {};
+        
+        bool invalidate (const Rectangle<int>& rect) override
+        {
+            ScopedLock lock(viewport->invalidAreaLock);
+            // Translate from canvas coords to viewport coords as float to prevent rounding errors
+            viewport->invalidArea.add(viewport->getLocalArea(viewport->cnv, rect.toFloat()).getSmallestIntegerContainer());
+            return false;
+        }
+        
+        bool invalidateAll() override
+        {
+            ScopedLock lock(viewport->invalidAreaLock);
+            viewport->invalidArea = viewport->getLocalBounds().withTrimmedTop(-10);
+            return false;
+        }
+        
+        void releaseResources() override {};
+        
+        CanvasViewport* viewport;
+    };
 
     class MousePanner : public MouseListener {
     public:
@@ -267,6 +334,35 @@ class CanvasViewport : public Viewport, public OpenGLRenderer, public CachedComp
             g.setColour(isMouseDragging ? activeScrollbarColour : scrollbarColour);
             g.fillRoundedRectangle(growingBounds, roundedCorner);
         }
+        
+        void render(NVGcontext* nvg)
+        {
+            auto growPosition = scrollBarThickness * 0.5f * growAnimation;
+            auto growingBounds = thumbBounds.reduced(1).withTop(thumbBounds.getY() + growPosition);
+            auto thumbCornerRadius = growingBounds.getHeight() * 0.5f;
+            auto fullBounds = growingBounds.withX(2).withWidth(getWidth() - 4);
+            
+            auto canvasColour = findColour(PlugDataColour::canvasBackgroundColourId);
+            auto scrollbarColour = findColour(ScrollBar::ColourIds::thumbColourId);
+            auto activeScrollbarColour = scrollbarColour.interpolatedWith(canvasColour.contrasting(0.6f), 0.7f);
+            auto fadeColour = scrollbarColour.interpolatedWith(canvasColour, 0.7f).withAlpha(std::clamp(1.0f - growAnimation, 0.0f, 1.0f));
+            if (isVertical) {
+                growingBounds = thumbBounds.reduced(1).withLeft(thumbBounds.getX() + growPosition);
+                thumbCornerRadius = growingBounds.getWidth() * 0.5f;
+                fullBounds = growingBounds.withY(2).withHeight(getHeight() - 4);
+            }
+
+            nvgBeginPath(nvg);
+            nvgRoundedRect(nvg, fullBounds.getX(), fullBounds.getY(), fullBounds.getWidth(), fullBounds.getHeight(), thumbCornerRadius);
+            nvgFillColor(nvg, NVGComponent::convertColour(fadeColour));
+            nvgFill(nvg);
+            
+            nvgBeginPath(nvg);
+            nvgRoundedRect(nvg, growingBounds.getX(), growingBounds.getY(), growingBounds.getWidth(), growingBounds.getHeight(), thumbCornerRadius);
+            nvgFillColor(nvg, isMouseDragging ? NVGComponent::convertColour(activeScrollbarColour) : NVGComponent::convertColour(scrollbarColour));
+            nvgFill(nvg);
+
+        }
 
     private:
         bool isVertical = false;
@@ -303,35 +399,6 @@ class CanvasViewport : public Viewport, public OpenGLRenderer, public CachedComp
 
         int inset;
     };
-    
-    struct InvalidationListener : public CachedComponentImage
-    {
-        InvalidationListener(CanvasViewport* parent) : viewport(parent)
-        {
-        }
-        
-    private:
-        void paint(Graphics& g) override {};
-        
-        bool invalidate (const Rectangle<int>& rect) override
-        {
-            ScopedLock lock(viewport->invalidAreaLock);
-            // Translate from canvas coords to viewport coords as float to prevent rounding errors
-            viewport->invalidArea.add(viewport->getLocalArea(viewport->cnv, rect.toFloat()).getSmallestIntegerContainer());
-            return true;
-        }
-        
-        bool invalidateAll() override
-        {
-            ScopedLock lock(viewport->invalidAreaLock);
-            viewport->invalidArea = viewport->getLocalBounds().withTrimmedTop(-10);
-            return true;
-        }
-        
-        void releaseResources() override {};
-        
-        CanvasViewport* viewport;
-    };
 
 public:
     CanvasViewport(PluginEditor* parent, Canvas* cnv)
@@ -343,7 +410,13 @@ public:
         glContext.setSwapInterval(0);
         glContext.setMultisamplingEnabled(true);
         glContext.setComponentPaintingEnabled(false);
+        
+#if JUCE_MAC
+        glContext.setContinuousRepainting(true);
+#else
         glContext.setContinuousRepainting(false);
+#endif
+
         
         // TODO: do this in a better place
         MessageManager::callAsync([this, cnv](){
@@ -367,29 +440,14 @@ public:
 
         addAndMakeVisible(vbar);
         addAndMakeVisible(hbar);
-        setCachedComponentImage(this);
+        setCachedComponentImage(new ImageReleaseListener(this));
     }
     
     ~CanvasViewport()
     {
-        messageManagerLock.abort();
+        //messageManagerLock.abort();
         glContext.detach();
     }
-    
-    bool invalidate (const juce::Rectangle<int>& rect) override
-    {
-        return true;
-    }
-    
-    bool invalidateAll() override
-    {
-        return true;
-    }
-    
-    void releaseResources() override {
-        stopRendering = true;
-        messageManagerLock.abort();
-    };
     
     void newOpenGLContextCreated() override
     {
@@ -427,13 +485,7 @@ public:
 #else
         int offsetY = 6;
 #endif
-        auto timeSeconds = timer.getTime();
-        auto dt = timeSeconds - prevTime;
-        addFrameTime(dt);
-        prevTime = timeSeconds;
-        
-        // TODO: JUCE OpenGLContext will go over 60fps when we scroll, because it will still request extra repaints when continuousRepainting is enabled. We probably want to lock to 60fps somehow
-        
+
         Rectangle<int> invalidated;
         {
             ScopedLock lock(invalidAreaLock);
@@ -442,9 +494,7 @@ public:
         }
         
         Rectangle<int> oldInvalidArea = invalidated; // so we can recover when paint fails
-        
-        invalidated = invalidated.translated(0, offsetY).expanded(1.0f);
-        
+                
         int width = lastWidth.load();
         int height = lastHeight.load();
         int scaledWidth = width * pixelScale;
@@ -465,7 +515,22 @@ public:
         return;
 #endif
         
-        if(!invalidated.isEmpty()) {
+        auto currentMs = Time::getMillisecondCounter();
+        if(currentMs - lastFrameTime < 16) // Lock framerate at which actual repainting can happen to 60hz. If GlContext wants more repaint, it will repaint from framebuffer
+        {
+            ScopedLock lock(invalidAreaLock);
+            invalidArea.add(oldInvalidArea);
+        }
+        else if(!invalidated.isEmpty()) {
+            
+            invalidated = invalidated.translated(0, offsetY).expanded(1.0f);
+            
+            auto timeSeconds = timer.getTime();
+            auto dt = timeSeconds - prevTime;
+            addFrameTime(dt);
+            prevTime = timeSeconds;
+            
+            lastFrameTime = currentMs;
             if(contextChanged || framebuffer.getWidth() != scaledWidth || framebuffer.getHeight() != scaledHeight) {
                 framebuffer.initialise(glContext, scaledWidth, scaledHeight);
                 contextChanged = false;
@@ -488,6 +553,16 @@ public:
                     nvgTranslate(nvg, 0, offsetY);
                     
                     cnv->renderNVG(nvg, invalidated);
+                    
+                    nvgSave(nvg);
+                    nvgTranslate(nvg, vbar.getX(), vbar.getY());
+                    vbar.render(nvg);
+                    nvgRestore(nvg);
+                                 
+                    nvgSave(nvg);
+                    nvgTranslate(nvg, hbar.getX(), hbar.getY());
+                    hbar.render(nvg);
+                    nvgRestore(nvg);
 
                     messageManagerLock.exit();
                 }
@@ -498,14 +573,13 @@ public:
                 }
             }
 #if 0
-            static juce::Random rng;
+            static Random rng;
             nvgBeginPath(nvg);
             nvgFillColor(nvg, nvgRGBA(rng.nextInt(255), rng.nextInt(255), rng.nextInt(255), 0x50));
             nvgRect(nvg, 0, 0, width, height);
             nvgFill(nvg);
 #endif
             
-
             nvgEndFrame(nvg);
             
             framebuffer.releaseAsRenderingTarget();
@@ -518,6 +592,7 @@ public:
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         
 #if 1
+            glViewport(0, 0, scaledWidth, scaledHeight);
             nvgBeginFrame(nvg, width, height, pixelScale);
             nvgBeginPath(nvg);
             nvgRect(nvg, 0, 0, 48, 32);
@@ -533,17 +608,7 @@ public:
             nvgEndFrame(nvg);
 #endif
     }
-    
-    void paint(Graphics& g) override
-    {
-        if(stopRendering) {
-            ScopedLock lock(invalidAreaLock);
-            stopRendering = false; // If we get a paint event here, it means we should also be allowed to render from now on
-            invalidArea = getLocalBounds().withTrimmedTop(-10);
-        }
-        pixelScale = g.getInternalContext().getPhysicalPixelScaleFactor();
-    }
-
+        
     void lookAndFeelChanged() override
     {
         hbar.repaint();
@@ -702,6 +767,7 @@ private:
     int perf_head;
     double prevTime;
     glfwLikeTimer timer;
+    uint32 lastFrameTime;
     
     bool contextChanged = false;
     std::atomic<float> pixelScale = 1.0f;

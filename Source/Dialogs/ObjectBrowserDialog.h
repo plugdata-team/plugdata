@@ -76,8 +76,9 @@ class ObjectsListBox : public ListBox
 
     class ObjectListBoxItem : public ObjectDragAndDrop {
     public:
-        ObjectListBoxItem(ListBox* parent, String const& name, String const& description, bool isSelected, std::function<void(bool shouldFade)> dismissDialog)
-            : objectName(name)
+        ObjectListBoxItem(ListBox* parent, PluginEditor* editor, String const& name, String const& description, bool isSelected, std::function<void(bool shouldFade)> dismissDialog)
+            : ObjectDragAndDrop(editor)
+            , objectName(name)
             , objectDescription(description)
             , rowIsSelected(isSelected)
             , objectsListBox(parent)
@@ -182,8 +183,9 @@ class ObjectsListBox : public ListBox
     std::function<void(bool shouldFade)> dismiss;
 
 public:
-    explicit ObjectsListBox(pd::Library& library, std::function<void(bool shouldFade)> dismissMenu)
-        : bouncer(getViewport())
+    explicit ObjectsListBox(PluginEditor* editor, pd::Library& library, std::function<void(bool shouldFade)> dismissMenu)
+        : editor(editor)
+        , bouncer(getViewport())
         , dismiss(dismissMenu)
     {
         setOutlineThickness(0);
@@ -221,7 +223,7 @@ public:
         if (existingComponentToUpdate == nullptr) {
             auto name = objects[rowNumber];
             auto description = descriptions[name.fromLastOccurrenceOf("/", false, false)];
-            return new ObjectListBoxItem(this, name, description, isRowSelected, dismiss);
+            return new ObjectListBoxItem(this, editor, name, description, isRowSelected, dismiss);
         } else {
             auto* itemComponent = dynamic_cast<ObjectListBoxItem*>(existingComponentToUpdate);
             if (itemComponent != nullptr) {
@@ -259,6 +261,7 @@ public:
         selectRow(0, true, true);
     }
 
+    PluginEditor* editor;
     std::unordered_map<String, String> descriptions;
     StringArray objects;
     std::function<void(String const&)> changeCallback;
@@ -266,8 +269,8 @@ public:
 
 class ObjectViewerDragArea : public ObjectDragAndDrop {
 public:
-    ObjectViewerDragArea(std::function<void(bool shouldFade)> dismissMenu)
-        : dismissMenu(dismissMenu)
+    ObjectViewerDragArea(PluginEditor* editor, std::function<void(bool shouldFade)> dismissMenu)
+        : ObjectDragAndDrop(editor), dismissMenu(dismissMenu)
     {
         setBufferedToImage(true);
     }
@@ -335,7 +338,7 @@ class ObjectViewer : public Component {
 
 public:
     ObjectViewer(PluginEditor* editor, ObjectReferenceDialog& objectReference, std::function<void(bool shouldFade)> dismissMenu)
-        : objectDragArea(std::move(dismissMenu))
+        : objectDragArea(editor, std::move(dismissMenu))
         , library(*editor->pd->objectLibrary)
         , reference(objectReference)
     {
@@ -808,7 +811,7 @@ class ObjectBrowserDialog : public Component {
 public:
     ObjectBrowserDialog(Component* pluginEditor, Dialog* parent)
         : editor(dynamic_cast<PluginEditor*>(pluginEditor))
-        , objectsList(*editor->pd->objectLibrary, [this](bool shouldFade) { dismiss(shouldFade); })
+        , objectsList(editor, *editor->pd->objectLibrary, [this](bool shouldFade) { dismiss(shouldFade); })
         , objectReference(editor, true)
         , objectViewer(editor, objectReference, [this](bool shouldFade) { dismiss(shouldFade); })
         , objectSearch(*editor->pd->objectLibrary)

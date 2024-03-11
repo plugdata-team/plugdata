@@ -4,7 +4,8 @@
 #include "Utility/StackShadow.h"
 
 PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTree tree)
-    : itemTree(tree)
+    : ObjectDragAndDrop(e)
+    , itemTree(tree)
     , editor(e)
     , paletteComp(parent)
 {
