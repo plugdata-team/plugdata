@@ -142,7 +142,7 @@ private:
     bool showActiveState = false;
     std::atomic<float> activeStateAlpha = 0.0f;
         
-    NVGLUframebuffer* fb;
+    NVGLUframebuffer* fb = nullptr;
     std::atomic<bool> fbDirty = true;
     int fbWidth, fbHeight;
     

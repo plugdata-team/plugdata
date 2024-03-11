@@ -177,6 +177,7 @@ Canvas::~Canvas()
 void Canvas::updateNVGFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion)
 {
     ScopedLock objLock(objects.getLock());
+    if(viewport) invalidRegion = (invalidRegion + viewport->getViewPosition()) / getValue<float>(zoomScale);
     for(auto* obj : objects)
     {
         auto b = obj->getSafeBounds();
