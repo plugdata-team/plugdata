@@ -93,7 +93,7 @@ class ObjectClickAndDrop : public Component
     Canvas* canvas = nullptr;
 
 public:
-    ObjectClickAndDrop(ObjectDragAndDrop* target)
+    ObjectClickAndDrop(ObjectDragAndDrop* target) : editor(target->editor)
     {
         objectString = target->getObjectString();
         objectName = target->getPatchStringName();
