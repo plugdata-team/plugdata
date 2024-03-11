@@ -440,7 +440,7 @@ public:
     
     ~CanvasViewport()
     {
-        //messageManagerLock.abort();
+        messageManagerLock.abort();
         glContext.detach();
     }
     
@@ -518,7 +518,7 @@ public:
         }
         else if(!invalidated.isEmpty()) {
             
-            invalidated = invalidated.translated(0, offsetY).expanded(1.0f);
+            invalidated = invalidated.translated(0, offsetY).expanded(2.0f);
             
             auto timeSeconds = timer.getTime();
             auto dt = timeSeconds - prevTime;
