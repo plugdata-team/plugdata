@@ -182,7 +182,6 @@ public:
     SelectedItemSet<WeakReference<Component>> selectedComponents;
     OwnedArray<Object, CriticalSection> objects;
     OwnedArray<Connection, CriticalSection> connections;
-    OwnedArray<ConnectionBeingCreated, CriticalSection> connectionsBeingCreated;
 
     Value locked = SynchronousValue();
     Value commandLocked;

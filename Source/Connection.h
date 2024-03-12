@@ -38,33 +38,22 @@ public:
     WeakReference<Object> inobj, outobj;
 
     Path toDraw, toDrawLocalSpace;
+    // ALEXCONREFACTOR
+    Path hitTestPath;
     String lastId;
 
     std::atomic<int> messageActivity;
+
+    Connection(Canvas* parent, Iolet* start);
 
     Connection(Canvas* parent, Iolet* start, Iolet* end, t_outconnect* oc);
     ~Connection() override;
 
     void updateOverlays(int overlay);
 
-    static void renderConnectionPath(Graphics& g,
-        Canvas* cnv,
-        Path const& connectionPath,
-        bool isSignal,
-        bool isGemState,
-        bool isMouseOver = false,
-        bool showDirection = false,
-        bool showConnectionOrder = false,
-        bool isSelected = false,
-        Point<int> mousePos = { 0, 0 },
-        bool isHovering = false,
-        int connections = 0,
-        int connectionNum = 0,
-        int numSignalChannels = 0);
-
     static Path getNonSegmentedPath(Point<float> start, Point<float> end);
 
-    void paint(Graphics&) override;
+    void paintOverChildren(Graphics&) override;
 
     bool isSegmented() const;
     void setSegmented(bool segmented);
@@ -80,6 +69,8 @@ public:
     void changeListenerCallback(ChangeBroadcaster* source) override;
 
     bool hitTest(int x, int y) override;
+
+    void resized() override;
 
     void mouseDown(MouseEvent const& e) override;
     void mouseMove(MouseEvent const& e) override;
@@ -125,6 +116,8 @@ public:
 private:
     void resizeToFit();
 
+    void updateBounds();
+
     int getMultiConnectNumber();
     int getNumSignalChannels();
     int getNumberOfConnections();
@@ -153,6 +146,11 @@ private:
 
     Point<float> previousPStart = Point<float>();
 
+    Point<float> start_;
+    Point<float> end_;
+    Point<float> cp1_;
+    Point<float> cp2_;
+
     int dragIdx = -1;
 
     float mouseDownPosition = 0;
@@ -165,82 +163,6 @@ private:
 
     friend class ConnectionPathUpdater;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
-};
-
-class ConnectionBeingCreated : public Component {
-    SafePointer<Iolet> iolet;
-    Component* cnv;
-    Path connectionPath;
-
-public:
-    ConnectionBeingCreated(Iolet* target, Component* canvas)
-        : iolet(target)
-        , cnv(canvas)
-    {
-
-        // Only listen for mouse-events on canvas and the original iolet
-        setInterceptsMouseClicks(false, true);
-        cnv->addMouseListener(this, true);
-        iolet->addMouseListener(this, false);
-
-        cnv->addAndMakeVisible(this);
-
-        setAlwaysOnTop(true);
-    }
-
-    ~ConnectionBeingCreated() override
-    {
-        cnv->removeMouseListener(this);
-        iolet->removeMouseListener(this);
-    }
-
-    void mouseDrag(MouseEvent const& e) override
-    {
-        mouseMove(e);
-    }
-
-    void mouseMove(MouseEvent const& e) override
-    {
-        if (rateReducer.tooFast())
-            return;
-
-        auto ioletPoint = cnv->getLocalPoint((Component*)iolet->object, iolet->getBounds().toFloat().getCentre());
-        auto cursorPoint = e.getEventRelativeTo(cnv).position;
-
-        auto& startPoint = iolet->isInlet ? cursorPoint : ioletPoint;
-        auto& endPoint = iolet->isInlet ? ioletPoint : cursorPoint;
-
-        connectionPath = Connection::getNonSegmentedPath(startPoint.toFloat(), endPoint.toFloat());
-
-        auto bounds = connectionPath.getBounds().getSmallestIntegerContainer().expanded(3);
-
-        // Make sure we have minimal bounds, expand slightly to take line thickness into account
-        setBounds(bounds);
-
-        // Remove bounds offset from path, because we've already set our origin by setting component bounds
-        connectionPath.applyTransform(AffineTransform::translation(-bounds.getX(), -bounds.getY()));
-
-        repaint();
-        iolet->repaint();
-    }
-
-    void paint(Graphics& g) override
-    {
-        if (!iolet) {
-            jassertfalse; // shouldn't happen
-            return;
-        }
-        Connection::renderConnectionPath(g, (Canvas*)cnv, connectionPath, iolet->isSignal, iolet->isGemState, true);
-    }
-    
-    void render(NVGcontext*);
-
-    Iolet* getIolet()
-    {
-        return iolet;
-    }
-
-    RateReducer rateReducer = RateReducer(90);
 };
 
 // Helper class to group connection path changes together into undoable/redoable actions

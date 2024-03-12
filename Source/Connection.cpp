@@ -20,6 +20,23 @@
 #include "Pd/Patch.h"
 #include "Dialogs/ConnectionMessageDisplay.h"
 
+Connection::Connection(Canvas* parent, Iolet* start)
+    : NVGComponent(static_cast<Component&>(*this))
+    , inlet(nullptr)
+    , outlet(start)
+    , inobj(nullptr)
+    , outobj(outlet->object)
+    , cnv(parent)
+    , ptr(parent->pd)
+{
+
+    setInterceptsMouseClicks(false, true);
+    //cnv->addMouseListener(this, true);
+    outlet->addMouseListener(this, true);
+
+    cnv->connectionLayer.addAndMakeVisible(this);
+}
+
 Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     : NVGComponent(static_cast<Component&>(*this))
     , inlet(s->isInlet ? s : e)
@@ -72,14 +89,14 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
 
     setInterceptsMouseClicks(true, true);
 
-    addMouseListener(cnv, true);
-
     cnv->connectionLayer.addAndMakeVisible(this);
 
     componentMovedOrResized(*outlet, true, true);
     componentMovedOrResized(*inlet, true, true);
 
     updateOverlays(cnv->getOverlays());
+
+    updateBounds();
 }
 
 Connection::~Connection()
@@ -90,6 +107,7 @@ Connection::~Connection()
     if (outlet) {
         outlet->repaint();
         outlet->removeComponentListener(this);
+        outlet->removeMouseListener(this);
     }
     if (outobj) {
         outobj->removeComponentListener(this);
@@ -112,9 +130,6 @@ void Connection::changeListenerCallback(ChangeBroadcaster* source)
 
 void Connection::lookAndFeelChanged()
 {
-    updatePath();
-    resizeToFit();
-    repaint();
 }
 
 Point<float> Connection::bezierPointAtDistance(const Point<float>& start, const Point<float>& cp1,
@@ -178,28 +193,25 @@ void Connection::render(NVGcontext* nvg)
     auto handleColour = outlet->isSignal ? dataColour : signalColour;
     auto shadowColour = findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.06f).withAlpha(0.24f);
 
-    if (isSelected() || isMouseOver()) {
-        
-        if(outlet->isSignal)
-        {
-            baseColour = signalColour;
+    if (inobj) {
+        if (isSelected() || isMouseOver()) {
+
+            if (outlet->isSignal) {
+                baseColour = signalColour;
+            } else if (outlet->isGemState) {
+                baseColour = cnv->findColour(PlugDataColour::gemColourId);
+            } else {
+                baseColour = dataColour;
+            }
         }
-        else if(outlet->isGemState)
-        {
-            baseColour = cnv->findColour(PlugDataColour::gemColourId);
+        if (isMouseOver()) {
+            baseColour = baseColour.brighter(0.6f);
         }
-        else {
-            baseColour = dataColour;
-        }
-        
     }
-    if (isMouseOver()) {
-        baseColour = baseColour.brighter(0.6f);
-    }
-    
+
     auto mousePos = cnv->getLastMousePosition();
     auto start = outlet->getCanvasBounds().toFloat().getCentre();
-    auto end = inlet->getCanvasBounds().toFloat().getCentre();
+    auto end = inobj ? inlet->getCanvasBounds().toFloat().getCentre() : cnv->getLastMousePosition().toFloat();
     
     auto drawConnection = [shadowColour, nvg, baseColour](Point<float> start, Point<float> cp1, Point<float> cp2, Point<float> end){
         // semi-transparent background line
@@ -316,6 +328,15 @@ void Connection::render(NVGcontext* nvg)
         nvgFill(nvg);
         nvgStroke(nvg);
     }
+
+#ifdef DEBUG_CONNECTION_BOUNDS
+    auto b = getBoundsInParent();
+    nvgBeginPath(nvg);
+    nvgRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight());
+    nvgStrokeColor(nvg, nvgRGBf(1, 0, 0));
+    nvgStrokeWidth(nvg, 1.0f);
+    nvgStroke(nvg);
+#endif
 }
 
 void Connection::pushPathState()
@@ -410,7 +431,7 @@ bool Connection::hitTest(int x, int y)
     if (Canvas::panningModifierDown())
         return false;
 
-    if (cnv->commandLocked == var(true) || locked == var(true) || !cnv->connectionsBeingCreated.isEmpty())
+    if (cnv->commandLocked == var(true) || locked == var(true))
         return false;
 
     Point<float> position = Point<float>(static_cast<float>(x), static_cast<float>(y));
@@ -459,139 +480,6 @@ bool Connection::intersects(Rectangle<float> toCheck, int accuracy) const
     return false;
 }
 
-void Connection::renderConnectionPath(Graphics& g,
-    Canvas* cnv,
-    Path const& connectionPath,
-    bool isSignal,
-    bool isGemState,
-    bool isMouseOver,
-    bool showDirection,
-    bool showConnectionOrder,
-    bool isSelected,
-    Point<int> mousePos,
-    bool isHovering,
-    int connectionCount,
-    int multiConnectNumber,
-    int numSignalChannels)
-{
-    auto baseColour = cnv->findColour(PlugDataColour::connectionColourId);
-    auto dataColour = cnv->findColour(PlugDataColour::dataColourId);
-    auto signalColour = cnv->findColour(PlugDataColour::signalColourId);
-    auto gemColour = cnv->findColour(PlugDataColour::gemColourId);
-    auto handleColour = isSignal ? dataColour : signalColour;
-
-    auto connectionLength = connectionPath.getLength();
-
-    if (isSelected || isMouseOver) {
-        if(isSignal)
-        {
-            baseColour = signalColour;
-        }
-        else if(isGemState)
-        {
-            baseColour = gemColour;
-        }
-        else {
-            baseColour = dataColour;
-        }
-        
-    }
-    if (isMouseOver) {
-        baseColour = baseColour.brighter(0.6f);
-    }
-
-    bool useThinConnection = PlugDataLook::getUseThinConnections();
-
-    // outer stroke
-    g.setColour(baseColour.darker(1.0f));
-    g.strokePath(connectionPath, PathStrokeType(useThinConnection ? 1.0f : 2.5f, PathStrokeType::mitered, PathStrokeType::rounded));
-
-    // inner stroke
-    g.setColour(baseColour);
-    Path innerPath = connectionPath;
-    PathStrokeType innerStroke(useThinConnection ? 1.0f : 1.5f);
-
-    if (PlugDataLook::getUseDashedConnections() && isSignal) {
-        PathStrokeType dashedStroke(useThinConnection ? 0.5f : 0.8f);
-        float dash[1] = { numSignalChannels > 1 ? 2.5f : 5.0f };
-        Path dashedPath;
-        dashedStroke.createDashedStroke(dashedPath, connectionPath, dash, 1);
-        innerPath = dashedPath;
-        innerStroke = dashedStroke;
-    }
-    innerStroke.setEndStyle(PathStrokeType::EndCapStyle::rounded);
-    g.strokePath(innerPath, innerStroke);
-
-    // draw direction arrow if button is toggled (per canvas, default state is false)
-    //            c
-    //            |\
-    //            | \
-    //            |  \
-    //  ___path___|   \a___path___
-    //            |   /
-    //            |  /
-    //            | /
-    //            |/
-    //            b
-
-    // setup arrow parameters
-    float arrowWidth = 8.0f;
-    float arrowLength = 12.0f;
-
-    if (showDirection && connectionLength > arrowLength * 2) {
-        // get the center point of the connection path
-        auto arrowCenter = connectionLength * 0.5f;
-        auto arrowBase = connectionPath.getPointAlongPath(arrowCenter - (arrowLength * 0.5f));
-        auto arrowTip = connectionPath.getPointAlongPath(arrowCenter + (arrowLength * 0.5f));
-
-        Line<float> arrowLine(arrowBase, arrowTip);
-        auto point_a = arrowTip;
-        auto point_b = arrowLine.getPointAlongLine(0.0f, -(arrowWidth * 0.5f));
-        auto point_c = arrowLine.getPointAlongLine(0.0f, (arrowWidth * 0.5f));
-
-        // create the arrow path
-        Path arrow;
-        arrow.addTriangle(point_a, point_b, point_c);
-
-        // draw the arrow
-        g.setColour(baseColour);
-        g.fillPath(arrow);
-
-        // draw arrow outline to aid in visibility for dark / light themes
-        g.setColour(baseColour.darker(1.0f));
-        PathStrokeType arrowOutline(0.5f);
-        g.strokePath(arrow, arrowOutline);
-    }
-
-    // draw connection index number
-    if (showConnectionOrder && !isSignal && connectionCount > 1) {
-        auto endCableOrderDisplay = Rectangle<float>(13, 13).withCentre(connectionPath.getPointAlongPath(jmax(connectionPath.getLength() - 8.5f * 3, 9.5f)));
-        g.setColour(baseColour);
-        g.fillEllipse(endCableOrderDisplay);
-        g.setColour(baseColour.darker(1.0f));
-        g.drawEllipse(endCableOrderDisplay, 0.5f);
-        Fonts::drawStyledText(g, String(multiConnectNumber), endCableOrderDisplay, cnv->findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting(), Monospace, 10, Justification::centred);
-    }
-
-    // draw reconnect handles if connection is both selected & mouse is hovering over
-    if (isSelected && isHovering) {
-        auto startReconnectHandle = Rectangle<float>(5, 5).withCentre(connectionPath.getPointAlongPath(8.5f));
-        auto endReconnectHandle = Rectangle<float>(5, 5).withCentre(connectionPath.getPointAlongPath(jmax(connectionLength - 8.5f, 9.5f)));
-
-        bool overStart = startReconnectHandle.contains(mousePos.toFloat());
-        bool overEnd = endReconnectHandle.contains(mousePos.toFloat());
-
-        g.setColour(handleColour);
-
-        g.fillEllipse(startReconnectHandle.expanded(overStart ? 3.0f : 0.0f));
-        g.fillEllipse(endReconnectHandle.expanded(overEnd ? 3.0f : 0.0f));
-
-        g.setColour(cnv->findColour(PlugDataColour::objectOutlineColourId));
-        g.drawEllipse(startReconnectHandle.expanded(overStart ? 3.0f : 0.0f), 0.5f);
-        g.drawEllipse(endReconnectHandle.expanded(overEnd ? 3.0f : 0.0f), 0.5f);
-    }
-}
-
 void Connection::updateOverlays(int overlay)
 {
     if (!inlet || !outlet)
@@ -612,44 +500,17 @@ void Connection::forceUpdate()
     repaint();
 }
 
-void Connection::paint(Graphics& g)
+void Connection::paintOverChildren(Graphics& g)
 {
-    if(g.isClipEmpty()) return;
-
-    renderConnectionPath(g,
-        cnv,
-        toDrawLocalSpace,
-        outlet != nullptr && outlet->isSignal,
-        outlet != nullptr && outlet->isGemState,
-        isMouseOver(),
-        showDirection,
-        showConnectionOrder,
-        selectedFlag,
-        getMouseXYRelative(),
-        isHovering,
-        getNumberOfConnections(),
-        getMultiConnectNumber(),
-        numSignalChannels);
-
-    /* ENABLE_CONNECTION_GRAPHICS_DEBUGGING_REPAINT
-        static Random rng;
-
-        g.fillAll(Colour((uint8)rng.nextInt(255),
-            (uint8)rng.nextInt(255),
-            (uint8)rng.nextInt(255),
-            (uint8)0x50));
-    */
-
-    /* ENABLE_CONNECTION_GRAPHICS_DEBUGGING
-        g.setColour(Colours::orange);
-        for (auto& point : currentPlan) {
-            auto local = getLocalPoint(cnv, point);
-            g.fillEllipse(local.x, local.y, 2, 2);
-        }
-
-        g.setColour(Colours::red);
-        g.drawRect(getLocalBounds(), 1.0f);
-    */
+std::cout << "trying to paint" << std::endl;
+#ifdef DEBUG_CONNECTION_OUTLINE
+    g.setColour(Colours::green);
+    g.drawRect(getLocalBounds(), 1.0f);
+#endif
+#ifdef DEBUG_CONNECTION_HITPATH
+    g.setColour(Colours::green);
+    g.strokePath(hitTestPath, PathStrokeType(3.0f));
+#endif
 }
 
 bool Connection::isSegmented() const
@@ -760,6 +621,13 @@ void Connection::mouseExit(MouseEvent const& e)
     repaint();
 }
 
+void Connection::resized()
+{
+    hitTestPath.clear();
+    hitTestPath.startNewSubPath(start_);
+    hitTestPath.cubicTo(cp1_, cp2_, end_);
+}
+
 void Connection::mouseDown(MouseEvent const& e)
 {
     cnv->editor->connectionMessageDisplay->setConnection(nullptr);
@@ -792,35 +660,26 @@ void Connection::mouseDrag(MouseEvent const& e)
 {
     cnv->editor->connectionMessageDisplay->setConnection(nullptr);
 
-    if (selectedFlag && startReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && e.getDistanceFromDragStart() > 6) {
-        cnv->connectingWithDrag = true;
-        reconnect(inlet);
-    }
-    if (selectedFlag && endReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && e.getDistanceFromDragStart() > 6) {
-        cnv->connectingWithDrag = true;
-        reconnect(outlet);
-    }
+    updateBounds();
+}
 
-    if (currentPlan.empty())
-        return;
+void Connection::updateBounds()
+{
+    start_ = outlet->getCanvasBounds().toFloat().getCentre();
 
-    if (isSegmented() && dragIdx != -1) {
-        auto n = dragIdx;
-        auto delta = e.getPosition() - e.getMouseDownPosition();
-        auto line = Line<float>(currentPlan[n - 1], currentPlan[n]);
+    if (inobj == nullptr)
+        end_ = cnv->getLastMousePosition().toFloat();
+    else
+        end_ = inlet->getCanvasBounds().toFloat().getCentre();
 
-        if (line.isVertical()) {
-            currentPlan[n - 1].x = mouseDownPosition + delta.x;
-            currentPlan[n].x = mouseDownPosition + delta.x;
-        } else {
-            currentPlan[n - 1].y = mouseDownPosition + delta.y;
-            currentPlan[n].y = mouseDownPosition + delta.y;
-        }
+    Point<float> const pos = Point<float>(jmin(start_.x, end_.x), jmin(start_.y, end_.y));
 
-        updatePath();
-        resizeToFit();
-        repaint();
-    }
+    float const width = std::max(start_.x, end_.x) - std::min(start_.x, end_.x);
+    float const height = std::max(start_.y, end_.y) - std::min(start_.y, end_.y);
+
+    auto b = Rectangle<int>(pos.x, pos.y, width, height).expanded(14, 14);
+
+    setBounds(b);
 }
 
 void Connection::mouseUp(MouseEvent const& e)
@@ -896,9 +755,10 @@ void Connection::reconnect(Iolet* target)
             cnv->patch.removeConnection(checkedOut, c->outIdx, checkedIn, c->inIdx, c->getPathState());
         }
 
+        /* ALEXCONREFACTOR
         // Create new connection
         cnv->connectionsBeingCreated.add(new ConnectionBeingCreated(target->isInlet ? c->inlet : c->outlet, cnv));
-
+        */
         c->setVisible(false);
 
         reconnecting.add(SafePointer(c));
@@ -910,11 +770,15 @@ void Connection::reconnect(Iolet* target)
 
 void Connection::resizeToFit()
 {
-    if (!inlet || !outlet)
-        return;
-
+    return;
     auto pStart = getStartPoint();
-    auto pEnd = getEndPoint();
+
+    Point<float> pEnd;
+    if (inlet == nullptr)
+        pEnd = Desktop::getMousePosition().toFloat();
+    else
+        pEnd = getEndPoint();
+
 
     // heuristics to allow the overlay & reconnection handle to paint inside bounds
     // consider moving them to their own layers in future
@@ -927,7 +791,7 @@ void Connection::resizeToFit()
         newBounds = newBounds.getUnion(toDraw.getBounds().expanded(safteyMargin).getSmallestIntegerContainer());
     }
     if (newBounds != getBounds()) {
-        setBounds(newBounds);
+        //setBounds(newBounds);
     }
 
     toDrawLocalSpace = toDraw;
@@ -970,6 +834,10 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
 {
     if (!inlet || !outlet)
         return;
+
+    updateBounds();
+
+    return;
 
     auto pstart = getStartPoint();
     auto pend = getEndPoint();
@@ -1040,6 +908,7 @@ Point<float> Connection::getEndPoint() const
 
 Path Connection::getNonSegmentedPath(Point<float> start, Point<float> end)
 {
+    std::cout << "making non segmented path" << std::endl;
     Path connectionPath;
     connectionPath.startNewSubPath(start);
     if (!PlugDataLook::getUseStraightConnections()) {
@@ -1124,11 +993,14 @@ int Connection::getNumSignalChannels()
 
 void Connection::updatePath()
 {
-    if (!outlet || !inlet)
-        return;
-
+    return;
     auto pstart = getStartPoint();
-    auto pend = getEndPoint();
+
+    Point<float> pend;
+    if (inlet == nullptr)
+        pend = Desktop::getMousePosition().toFloat();
+    else
+        pend = getEndPoint();
 
     if (!segmented) {
         toDraw = getNonSegmentedPath(pstart, pend);
@@ -1468,53 +1340,4 @@ void Connection::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int n
     std::copy(atoms, atoms + numAtoms, lastValue);
     lastNumArgs = numAtoms;
     lastSelector = symbol;
-}
-
-void ConnectionBeingCreated::render(NVGcontext* nvg)
-{
-    auto start = cnv->getLocalPoint((Component*)iolet->object, iolet->getSafeBounds().toFloat().getCentre());
-    auto end = dynamic_cast<Canvas*>(cnv)->getLastMousePosition().toFloat();
-    
-    auto lineColour = cnv->findColour(PlugDataColour::dataColourId).brighter(0.6f);
-    auto nvgColor = nvgRGB(lineColour.getRed(), lineColour.getGreen(), lineColour.getBlue());
-    auto shadowColour = findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.06f).withAlpha(0.24f);
-    auto nvgShadowColour = nvgRGBA(shadowColour.getRed(), shadowColour.getGreen(), shadowColour.getBlue(), shadowColour.getAlpha());
-    auto drawConnection = [nvg, nvgColor, nvgShadowColour](Point<float> start, Point<float> cp1, Point<float> cp2, Point<float> end){
-        // semi-transparent background line
-        nvgBeginPath(nvg);
-        nvgLineStyle(nvg, NVG_LINE_SOLID);
-        nvgMoveTo(nvg, start.x, start.y);
-        nvgBezierTo(nvg, cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
-        nvgStrokeColor(nvg, nvgShadowColour);
-        nvgLineCap(nvg, NVG_ROUND);
-        nvgStrokeWidth(nvg, 4.0f);
-        nvgStroke(nvg);
-
-        nvgStrokeColor(nvg, nvgColor);
-        nvgStrokeWidth(nvg, 2.0f);
-        nvgStroke(nvg);
-    };
-    
-    if (!PlugDataLook::getUseStraightConnections()) {
-        float const width = std::max(start.x, end.x) - std::min(start.x, end.x);
-        float const height = std::max(start.y, end.y) - std::min(start.y, end.y);
-
-        float const min = std::min<float>(width, height);
-        float const max = std::max<float>(width, height);
-
-        float const maxShiftY = 20.f;
-        float const maxShiftX = 20.f;
-
-        float const shiftY = std::min<float>(maxShiftY, max * 0.5);
-
-        float const shiftX = ((start.y >= end.y) ? std::min<float>(maxShiftX, min * 0.5) : 0.f) * ((start.x < end.x) ? -1. : 1.);
-
-        Point<float> const cp1 { start.x - shiftX, start.y + shiftY };
-        Point<float> const cp2 { end.x + shiftX, end.y - shiftY };
-        drawConnection(start, cp1, cp2, end);
-
-    } else {
-        drawConnection(start, start, end, end);
-    }
-
 }

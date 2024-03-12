@@ -388,7 +388,7 @@ public:
 
         glContext.setOpenGLVersionRequired(OpenGLContext::OpenGLVersion::openGL3_2);
         glContext.setSwapInterval(0);
-        glContext.setMultisamplingEnabled(true);
+        glContext.setMultisamplingEnabled(false);
         glContext.setComponentPaintingEnabled(false);
         glContext.setContinuousRepainting(true);
         

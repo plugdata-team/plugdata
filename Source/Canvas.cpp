@@ -262,7 +262,7 @@ void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> invalidRegion)
     }
 
     // if canvas is a graph, or in presentation mode, don't render connections at all
-    if (::getValue<bool>(presentationMode)  || isGraph)
+    if (getValue<bool>(presentationMode)  || isGraph)
         renderAllObjects(nvg, invalidRegion);
     else {
         // render connections infront or behind objects depending on lock mode or overlay setting
@@ -274,7 +274,7 @@ void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> invalidRegion)
             renderAllConnections(nvg, invalidRegion);
         }
     }
-
+    /*ALEXCONREFACTOR
     {
         ScopedLock connLock(connectionsBeingCreated.getLock());
         for(auto* connection : connectionsBeingCreated)
@@ -284,7 +284,7 @@ void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> invalidRegion)
             nvgRestore(nvg);
         }
     }
-    
+    */
     objectGrid.render(nvg);
     
     if(lasso.isVisible()) {
@@ -950,12 +950,13 @@ bool Canvas::keyPressed(KeyPress const& key)
         }
         viewport->setViewPosition(viewX * scale, viewY * scale);
     };
-
+    /* ALEXCONREFACTOR
     // Cancel connections being created by ESC key
     if (keycode == KeyPress::escapeKey && !connectionsBeingCreated.isEmpty()) {
         cancelConnectionCreation();
         return true;
     }
+     */
 
     // Move objects with arrow keys
     int moveDistance = objectGrid.gridSize;
@@ -1515,7 +1516,8 @@ bool Canvas::connectSelectedObjects()
 
 void Canvas::cancelConnectionCreation()
 {
-    connectionsBeingCreated.clear();
+    //ALEXCONREFACTOR
+    //connectionsBeingCreated.clear();
     if (connectingWithDrag) {
         connectingWithDrag = false;
         connectionCancelled = true;

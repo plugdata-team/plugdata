@@ -55,6 +55,8 @@ public:
     Canvas* cnv;
 
 private:
+    void startConnection();
+
     std::atomic<int> mouseIsDown;
     bool const insideGraph;
     bool hideIolet = false;
