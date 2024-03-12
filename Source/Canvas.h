@@ -180,9 +180,9 @@ public:
 
     // Needs to be allocated before object and connection so they can deselect themselves in the destructor
     SelectedItemSet<WeakReference<Component>> selectedComponents;
-    OwnedArray<Object, CriticalSection> objects;
-    OwnedArray<Connection, CriticalSection> connections;
-    OwnedArray<ConnectionBeingCreated, CriticalSection> connectionsBeingCreated;
+    OwnedArray<Object> objects;
+    OwnedArray<Connection> connections;
+    OwnedArray<ConnectionBeingCreated> connectionsBeingCreated;
 
     Value locked = SynchronousValue();
     Value commandLocked;
@@ -190,12 +190,12 @@ public:
     Value showDirection;
     Value altMode;
 
-    std::atomic<bool> showOrigin = false;
-    std::atomic<bool> showBorder = false;
-    std::atomic<bool> connectionsBehind = true;
+    bool showOrigin = false;
+    bool showBorder = false;
+    bool connectionsBehind = true;
     
-    std::atomic<bool> isScrolling;
-    std::atomic<float> pixelScale = 1.0f;
+    bool isScrolling = false;
+    float pixelScale = 1.0f;
 
     bool isGraph = false;
     bool isDraggingLasso = false;
@@ -237,7 +237,7 @@ private:
     
     GlobalMouseListener globalMouseListener;
     
-    std::atomic<int> lastMouseX, lastMouseY;
+    int lastMouseX, lastMouseY;
     LassoComponent<WeakReference<Component>> lasso;
 
     RateReducer canvasRateReducer = RateReducer(90);

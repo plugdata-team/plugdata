@@ -54,11 +54,16 @@ void Iolet::render(NVGcontext* nvg)
 
     bool isLocked = getValue<bool>(locked) || getValue<bool>(commandLocked);
     bool over = getCanvasBounds().contains(cnv->getLastMousePosition());
-
+    bool overObject = object->drawIoletExpanded;
+                        
     auto backgroundColour = isSignal ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId);
     if(isGemState)
     {
         backgroundColour = findColour(PlugDataColour::gemColourId);
+    }
+    
+    if ((!isTargeted && !over) || isLocked) {
+        bounds = bounds.reduced(2);
     }
     
     if ((mouseIsDown || over) && !isLocked)
@@ -79,23 +84,18 @@ void Iolet::render(NVGcontext* nvg)
         nvgStrokeColor(nvg, nvgRGB(outlineColour.getRed(), outlineColour.getGreen(), outlineColour.getBlue()));
         nvgStroke(nvg);
     } else {
-    // ALEX only done round at this point
-        
         nvgBeginPath(nvg);
 
-        const auto ioletCentre = bounds.getCentre().translated(0.f, isInlet ? -1.0f : 1.0f);
-
-        if (isTargeted) {
-            nvgDrawRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), convertColour(backgroundColour), convertColour(outlineColour), bounds.getWidth() / 2.0f);
-        } else {
-            nvgFillColor(nvg, convertColour(backgroundColour));
-            nvgStrokeColor(nvg, nvgRGB(outlineColour.getRed(), outlineColour.getGreen(), outlineColour.getBlue()));
-            nvgStrokeWidth(nvg, 1.0f);
-            
-            nvgArc(nvg, ioletCentre.x, ioletCentre.y, bounds.getWidth() * 0.35f, 0, NVG_PI, isInlet ? NVG_CW : NVG_CCW);
-            nvgFill(nvg);
-            nvgStroke(nvg);
+        auto scissor = nvgCurrentScissor(nvg);
+        
+        if(!(overObject || over || isTargeted) || isLocked)
+        {
+            auto clipBounds = getLocalArea(object, object->getSafeLocalBounds().reduced(Object::margin));
+            nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
         }
+        
+        nvgDrawRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight() - 0.5f, convertColour(backgroundColour), convertColour(outlineColour), bounds.getWidth() / 2.1f);
+        nvgScissor(nvg, scissor.x, scissor.y, scissor.w, scissor.h);
     }
 }
 
@@ -316,13 +316,19 @@ void Iolet::mouseUp(MouseEvent const& e)
 void Iolet::mouseEnter(MouseEvent const& e)
 {
     isTargeted = true;
-    repaint();
+    object->drawIoletExpanded = true;
+
+    for (auto& iolet : object->iolets)
+        iolet->repaint();
 }
 
 void Iolet::mouseExit(MouseEvent const& e)
 {
     isTargeted = false;
-    repaint();
+    object->drawIoletExpanded = false;
+    
+    for (auto& iolet : object->iolets)
+        iolet->repaint();
 }
 
 void Iolet::createConnection()

@@ -109,6 +109,7 @@ public:
 
     OwnedArray<Iolet> iolets;
     ResizableBorderComponent::Zone resizeZone;
+    bool drawIoletExpanded = false;
 
     static inline constexpr int margin = 6;
 
@@ -131,7 +132,7 @@ private:
     bool checkIfHvccCompatible() const;
 
     void setSelected(bool shouldBeSelected);
-    std::atomic<bool> selectedFlag = false;
+    bool selectedFlag = false;
     bool selectionStateChanged = false;
 
     bool wasLockedOnMouseDown = false;
@@ -140,15 +141,14 @@ private:
     bool isGemObject = false;
 
     bool showActiveState = false;
-    std::atomic<float> activeStateAlpha = 0.0f;
+    float activeStateAlpha = 0.0f;
         
     NVGLUframebuffer* fb = nullptr;
-    std::atomic<bool> fbDirty = true;
+    bool fbDirty = true;
     int fbWidth, fbHeight;
     
     NVGpaint glow;
     bool glowDirty = true;
-
 
     bool isObjectMouseActive = false;
     bool isInsideUndoSequence = false;

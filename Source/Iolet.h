@@ -46,16 +46,16 @@ public:
     Rectangle<int> getCanvasBounds();
 
     int ioletIdx;
-    std::atomic<bool> isInlet;
-    std::atomic<bool> isSignal;
-    std::atomic<bool> isGemState;
+    bool isInlet;
+    bool isSignal;
+    bool isGemState;
 
-    std::atomic<bool> isTargeted = false;
+    bool isTargeted = false;
 
     Canvas* cnv;
 
 private:
-    std::atomic<int> mouseIsDown;
+    bool mouseIsDown;
     bool const insideGraph;
     bool hideIolet = false;
 

@@ -176,7 +176,6 @@ Canvas::~Canvas()
 
 void Canvas::updateNVGFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion)
 {
-    ScopedLock objLock(objects.getLock());
     if(viewport) invalidRegion = (invalidRegion + viewport->getViewPosition()) / getValue<float>(zoomScale);
     for(auto* obj : objects)
     {
@@ -275,14 +274,11 @@ void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> invalidRegion)
         }
     }
 
+    for(auto* connection : connectionsBeingCreated)
     {
-        ScopedLock connLock(connectionsBeingCreated.getLock());
-        for(auto* connection : connectionsBeingCreated)
-        {
-            nvgSave(nvg);
-            connection->render(nvg);
-            nvgRestore(nvg);
-        }
+        nvgSave(nvg);
+        connection->render(nvg);
+        nvgRestore(nvg);
     }
     
     objectGrid.render(nvg);
@@ -307,7 +303,6 @@ void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> invalidRegion)
 
 void Canvas::renderAllObjects(NVGcontext* nvg, Rectangle<int> area)
 {
-    ScopedLock objLock(objects.getLock());
     for(auto* obj : objects)
     {
         nvgSave(nvg);
@@ -321,7 +316,6 @@ void Canvas::renderAllObjects(NVGcontext* nvg, Rectangle<int> area)
 }
 void Canvas::renderAllConnections(NVGcontext* nvg, Rectangle<int> area)
 {
-    ScopedLock connLock(connections.getLock());
     for(auto* connection : connections)
     {
         nvgSave(nvg);
@@ -819,7 +813,7 @@ bool Canvas::autoscroll(MouseEvent const& e)
 
 Point<int> Canvas::getLastMousePosition()
 {
-    return {lastMouseX.load(), lastMouseY.load()};
+    return {lastMouseX, lastMouseY};
 }
 
 void Canvas::mouseUp(MouseEvent const& e)

@@ -72,6 +72,8 @@ Object::Object(pd::WeakReference object, Canvas* parent)
 
 Object::~Object()
 {
+    if(fb) nvgluDeleteFramebuffer(fb);
+    
     hideEditor(); // Make sure the editor is not still open, that could lead to issues with listeners attached to the editor (i.e. suggestioncomponent)
     cnv->selectedComponents.removeChangeListener(this);
 }
@@ -116,7 +118,6 @@ void Object::initialise()
     originalBounds.setBounds(0, 0, 0, 0);
 
     updateOverlays(cnv->getOverlays());
-    setCachedComponentImage(new InvalidationListener(this));
 }
 
 void Object::timerCallback()
@@ -221,7 +222,8 @@ bool Object::hitTest(int x, int y)
 // To make iolets show/hide
 void Object::mouseEnter(MouseEvent const& e)
 {
-    for (auto* iolet : iolets)
+    drawIoletExpanded = true;
+    for (auto& iolet : iolets) // TODO: maybe group this?
         iolet->repaint();
 }
 
@@ -231,8 +233,8 @@ void Object::mouseExit(MouseEvent const& e)
     // otherwise it can have an old zone already selected on re-entry
     resizeZone = ResizableBorderComponent::Zone(ResizableBorderComponent::Zone::centre);
     validResizeZone = false;
-
-    for (auto* iolet : iolets)
+    drawIoletExpanded = false;
+    for (auto& iolet : iolets)
         iolet->repaint();
 }
 
@@ -1167,6 +1169,7 @@ void Object::render(NVGcontext* nvg)
 {
     if(cnv->isScrolling && fb)
     {
+        if(!getCachedComponentImage()) setCachedComponentImage(new InvalidationListener(this));
         auto b = getSafeLocalBounds();
         nvgBeginPath(nvg);
         nvgRect(nvg, 0, 0, b.getWidth(), b.getHeight());
@@ -1174,6 +1177,7 @@ void Object::render(NVGcontext* nvg)
         nvgFill(nvg);
     }
     else {
+        if(getCachedComponentImage()) setCachedComponentImage(nullptr);
         performRender(nvg);
     }
 }
@@ -1187,13 +1191,11 @@ void Object::performRender(NVGcontext* nvg)
         nvgFillColor(nvg, selectedOutlineColour);
         for(auto& corner : getCorners())
         {
-            nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, corner.getX(), corner.getY(), corner.getWidth(), corner.getHeight(), Corners::objectCornerRadius);
-            nvgFill(nvg);
+            nvgDrawRoundedRect(nvg, corner.getX(), corner.getY(), corner.getWidth(), corner.getHeight(), selectedOutlineColour, selectedOutlineColour, Corners::objectCornerRadius);
         }
     }
     
-    if(showActiveState && !approximatelyEqual(activeStateAlpha.load(), 0.0f))
+    if(showActiveState && !approximatelyEqual(activeStateAlpha, 0.0f))
     {
         auto cTransparent = nvgRGBAf(0, 0, 0, 0);
         auto cGlow = convertColour(findColour(PlugDataColour::dataColourId).withAlpha(activeStateAlpha));
