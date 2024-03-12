@@ -640,15 +640,15 @@ public:
     void visibleAreaChanged(Rectangle<int> const& r) override
     {
         cnv->isScrolling = true;
-        startTimer(ScrollTimerId, 150);
+        startTimer(150);
         onScroll();
         adjustScrollbarBounds();
         invalidArea = getLocalBounds().withTrimmedTop(-10);
     }
     
-    void timerCallback(int timerId) override
+    void timerCallback() override
     {
-        stopTimer(ScrollTimerId);
+        stopTimer();
         cnv->isScrolling = false;
         invalidArea = getLocalBounds().withTrimmedTop(-10);
     }
