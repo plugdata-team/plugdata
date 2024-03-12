@@ -242,12 +242,11 @@ void Iolet::createConnection()
 
             cnv->patch.createConnection(outptr, outIdx, inptr, inIdx);
         }
-
-        cnv->patch.endUndoSequence("Connecting");
-
-        cnv->synchronise(); // Load all newly created connection from pd patch!
-
     }
+
+    cnv->patch.endUndoSequence("Connecting");
+    cnv->synchronise(); // Load all newly created connection from pd patch!
+
     // otherwise set this iolet as start of a connection
     /*
     else {
