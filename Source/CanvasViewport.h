@@ -28,7 +28,7 @@ using namespace gl;
 #include "Utility/SettingsFile.h"
 
 // Special viewport that shows scrollbars on top of content instead of next to it
-class CanvasViewport : public Viewport, public OpenGLRenderer
+class CanvasViewport : public Viewport, public OpenGLRenderer, public Timer
 {
     
     // Attached to viewport so we can clean stuff up correctly
@@ -639,12 +639,24 @@ public:
 
     void visibleAreaChanged(Rectangle<int> const& r) override
     {
+        cnv->isScrolling = true;
+        startTimer(150);
+        onScroll();
+        adjustScrollbarBounds();
         {
             ScopedLock lock(invalidAreaLock);
             invalidArea = getLocalBounds().withTrimmedTop(-10);
         }
-        onScroll();
-        adjustScrollbarBounds();
+    }
+    
+    void timerCallback() override
+    {
+        stopTimer();
+        cnv->isScrolling = false;
+        {
+            ScopedLock lock(invalidAreaLock);
+            invalidArea = getLocalBounds().withTrimmedTop(-10);
+        }
     }
 
     void resized() override

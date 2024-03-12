@@ -80,21 +80,25 @@ void Iolet::render(NVGcontext* nvg)
         nvgStroke(nvg);
     } else {
     // ALEX only done round at this point
+        
         nvgBeginPath(nvg);
-        nvgFillColor(nvg, nvgRGB(backgroundColour.getRed(), backgroundColour.getGreen(), backgroundColour.getBlue()));
 
         const auto ioletCentre = bounds.getCentre().translated(0.f, isInlet ? -1.0f : 1.0f);
 
         if (isTargeted) {
-            nvgCircle(nvg, ioletCentre.x, ioletCentre.y, bounds.getWidth() * 0.4f);
+            NVGpaint rectPaint = nvgRoundedRectPaint(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), convertColour(backgroundColour), convertColour(outlineColour), bounds.getWidth() / 2.0f);
+            nvgFillPaint(nvg, rectPaint);
+            nvgRect(nvg, bounds.getX() - 0.5f, bounds.getY() - 0.5f, bounds.getWidth() + 1.0f, bounds.getHeight() + 1.0f);
+            nvgFill(nvg);
         } else {
+            nvgFillColor(nvg, convertColour(backgroundColour));
+            nvgStrokeColor(nvg, nvgRGB(outlineColour.getRed(), outlineColour.getGreen(), outlineColour.getBlue()));
+            nvgStrokeWidth(nvg, 1.0f);
+            
             nvgArc(nvg, ioletCentre.x, ioletCentre.y, bounds.getWidth() * 0.35f, 0, NVG_PI, isInlet ? NVG_CW : NVG_CCW);
+            nvgFill(nvg);
+            nvgStroke(nvg);
         }
-        nvgStrokeColor(nvg, nvgRGB(outlineColour.getRed(), outlineColour.getGreen(), outlineColour.getBlue()));
-        nvgStrokeWidth(nvg, 1.0f);
-        nvgFill(nvg);
-        nvgStroke(nvg);
-
     }
 }
 

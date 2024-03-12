@@ -169,10 +169,15 @@ public:
     void render(NVGcontext* nvg) override
     {
         auto b = getLocalBounds().toFloat().reduced(0.5f);
-
-        nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId)));
+        auto backgroundColour = convertColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
+        auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
+        bool highlighed = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
+        
         nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+        NVGpaint rectPaint = nvgRoundedRectPaint(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, (object->isSelected() || highlighed) ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        nvgFillPaint(nvg, rectPaint);
+        nvgRect(nvg, b.getX() - 0.5f, b.getY() - 0.5f, b.getWidth() + 1.0f, b.getHeight() + 1.0f);
         nvgFill(nvg);
 
         nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour)));
@@ -186,27 +191,11 @@ public:
         renderComponentFromImage(nvg, input, ::getValue<float>(cnv->zoomScale) * 2);
 
         nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
-        nvgStroke(nvg);
-
-        nvgBeginPath(nvg);
         nvgMoveTo(nvg, b.getRight() - 8, b.getY());
         nvgLineTo(nvg, b.getRight(), b.getY());
         nvgLineTo(nvg, b.getRight(), b.getY() + 8);
         nvgClosePath(nvg);
         nvgFill(nvg);
-
-
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
-        nvgStrokeColor(nvg, convertColour(outlineColour));
-        nvgStrokeWidth(nvg, 1.0f);
-        nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
-        nvgStroke(nvg);
-
-        bool highlighed = hasKeyboardFocus(true) && getValue<bool>(object->locked);
 
         if (highlighed) {
             nvgStrokeColor(nvg, convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId)));

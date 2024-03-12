@@ -239,18 +239,24 @@ void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> invalidRegion)
             nvgLineTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
             nvgLineTo(nvg, pos.x, pos.y + borderHeight);
         }
-
+        
         // place solid line behind (to fake removeing grid points for now)
+        
         nvgLineStyle(nvg, NVG_LINE_SOLID);
         nvgStrokeColor(nvg, backgroundColour);
         nvgStrokeWidth(nvg, 6.0f);
         nvgStroke(nvg);
+        
+        auto scissor = nvgCurrentScissor(nvg);
+        //nvgResetScissor(nvg);
         
         // draw 0,0 point lines
         nvgLineStyle(nvg, NVG_LINE_DASHED);
         nvgStrokeColor(nvg, dotsColour);
         nvgStrokeWidth(nvg, 1.0f);
         nvgStroke(nvg);
+        
+        //nvgScissor(nvg, scissor.x, scissor.y, scissor.w, scissor.h);
         
         nvgLineStyle(nvg, NVG_LINE_SOLID);
     }

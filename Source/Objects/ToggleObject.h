@@ -72,19 +72,18 @@ public:
     {
         auto b = getLocalBounds().toFloat();
         
+        auto backgroundColour = convertColour(iemHelper.getBackgroundColour());
         auto toggledColour = convertColour(iemHelper.getForegroundColour()); // TODO: this is some bad threading practice!
         auto untoggledColour = convertColour(iemHelper.getForegroundColour().interpolatedWith(iemHelper.getBackgroundColour(), 0.8f));
-        auto backgroundColour = convertColour(iemHelper.getBackgroundColour());
         auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
         auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
- 
+        auto internalLineColour = convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
+
         nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
-        nvgFillColor(nvg, backgroundColour);
+        NVGpaint rectPaint = nvgRoundedRectPaint(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        nvgFillPaint(nvg, rectPaint);
+        nvgRect(nvg, b.getX() - 0.5f, b.getY() - 0.5f, b.getWidth() + 1.0f, b.getHeight() + 1.0f);
         nvgFill(nvg);
-        nvgStrokeWidth(nvg, 1.f);
-        nvgStrokeColor(nvg, object->isSelected() ? selectedOutlineColour : outlineColour);
-        nvgStroke(nvg);
         
         auto const sizeReduction = std::min(1.0f, getWidth() / 20.0f);
         float margin = (getWidth() * 0.08f + 4.5f) * sizeReduction;

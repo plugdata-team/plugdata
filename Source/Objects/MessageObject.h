@@ -151,12 +151,11 @@ public:
         auto flagColour = convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
         
         nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
-        nvgFillColor(nvg, backgroundColour);
+        NVGpaint rectPaint = nvgRoundedRectPaint(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        nvgFillPaint(nvg, rectPaint);
+        nvgRect(nvg, b.getX() - 0.5f, b.getY() - 0.5f, b.getWidth() + 1.0f, b.getHeight() + 1.0f);
         nvgFill(nvg);
-        nvgStrokeWidth(nvg, 1.f);
-        nvgStrokeColor(nvg, object->isSelected() ? selectedOutlineColour : outlineColour);
-        nvgStroke(nvg);
+
         
         float bRight = b.getRight();
         float bY = b.getY();

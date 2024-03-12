@@ -242,12 +242,11 @@ public:
         auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
         
         nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
-        nvgFillColor(nvg, backgroundColour);
+        nvgStrokeWidth(nvg, 1.0f);
+        NVGpaint rectPaint = nvgRoundedRectPaint(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        nvgFillPaint(nvg, rectPaint);
+        nvgRect(nvg, b.getX() - 0.5f, b.getY() - 0.5f, b.getWidth() + 1.0f, b.getHeight() + 1.0f);
         nvgFill(nvg);
-        nvgStrokeWidth(nvg, 1.f);
-        nvgStrokeColor(nvg, object->isSelected() ? selectedOutlineColour : outlineColour);
-        nvgStroke(nvg);
 
         if(editor && editor->isVisible())
         {

@@ -211,10 +211,15 @@ public:
     void render(NVGcontext* nvg) override
     {
         auto b = getLocalBounds().toFloat().reduced(0.5f).toFloat();
+        bool isSelected = object->isSelected() && !cnv->isGraph;
+        auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
+ 
         
-        nvgFillColor(nvg, convertColour(iemHelper.getBackgroundColour()));
         nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+        NVGpaint rectPaint = nvgRoundedRectPaint(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(iemHelper.getBackgroundColour()), isSelected ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        nvgFillPaint(nvg, rectPaint);
+        nvgRect(nvg, b.getX() - 0.5f, b.getY() - 0.5f, b.getWidth() + 1.0f, b.getHeight() + 1.0f);
         nvgFill(nvg);
         
         float size = (isVertical ? static_cast<float>(getHeight()) / numItems : static_cast<float>(getWidth()) / numItems);
@@ -245,15 +250,6 @@ public:
         nvgBeginPath(nvg);
         nvgRoundedRect(nvg, selectionBounds.getX(), selectionBounds.getY(), selectionBounds.getWidth(), selectionBounds.getHeight(), Corners::objectCornerRadius / 2.0f);
         nvgFill(nvg);
-        
-        bool isSelected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(isSelected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
-        nvgStrokeColor(nvg, convertColour(outlineColour));
-        nvgStrokeWidth(nvg, 1.0f);
-        nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
-        nvgStroke(nvg);
     }
 
     void updateAspectRatio()

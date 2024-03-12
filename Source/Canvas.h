@@ -194,6 +194,7 @@ public:
     std::atomic<bool> showBorder = false;
     std::atomic<bool> connectionsBehind = true;
     
+    std::atomic<bool> isScrolling;
     std::atomic<float> pixelScale = 1.0f;
 
     bool isGraph = false;
