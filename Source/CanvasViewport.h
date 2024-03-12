@@ -428,7 +428,7 @@ public:
 
     void initialiseNVG()
     {
-        if(nvg) nvgDeleteGL3(nvg);
+        //if(nvg) nvgDeleteGL3(nvg);
         nvg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
         if (!nvg)
             std::cout << "could not init nvg" << std::endl;
@@ -724,6 +724,7 @@ private:
     public:
         FrameTimer()
         {
+            startTime = getNow();
         }
         
         void render(NVGcontext* nvg)
@@ -744,10 +745,9 @@ private:
         {
             auto timeSeconds = getTime();
             auto dt = timeSeconds - prevTime;
-            prevTime = timeSeconds;
-            
             perf_head = (perf_head+1) % 32;
             frame_times[perf_head] = dt;
+            prevTime = timeSeconds;
         }
         
         double getTime() { return getNow() - startTime; }
