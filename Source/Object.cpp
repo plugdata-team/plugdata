@@ -1136,7 +1136,7 @@ void Object::updateFramebuffer(NVGcontext* nvg)
                 fbHeight = b.getHeight();
                 
                 if(fb) nvgluDeleteFramebuffer(fb);
-                fb = nvgluCreateFramebuffer(nvg, scaledWidth, scaledHeight, 0);
+                fb = nvgluCreateFramebuffer(nvg, scaledWidth, scaledHeight, NVG_IMAGE_PREMULTIPLIED);
             }
             
             nvgluBindFramebuffer(fb);
@@ -1144,7 +1144,6 @@ void Object::updateFramebuffer(NVGcontext* nvg)
             OpenGLHelpers::clear(Colours::transparentBlack);
             
             nvgBeginFrame(nvg, b.getWidth(), b.getHeight(), scale);
-            nvgGlobalAlpha(nvg, 1.0f);
             nvgScissor (nvg, 0, 0, b.getWidth(), b.getHeight());
             
             performRender(nvg);

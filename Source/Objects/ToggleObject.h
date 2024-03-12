@@ -79,12 +79,8 @@ public:
         auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
         auto internalLineColour = convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
 
-        nvgBeginPath(nvg);
-        NVGpaint rectPaint = nvgRoundedRectPaint(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
-        nvgFillPaint(nvg, rectPaint);
-        nvgRect(nvg, b.getX() - 0.5f, b.getY() - 0.5f, b.getWidth() + 1.0f, b.getHeight() + 1.0f);
-        nvgFill(nvg);
-        
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+
         auto const sizeReduction = std::min(1.0f, getWidth() / 20.0f);
         float margin = (getWidth() * 0.08f + 4.5f) * sizeReduction;
         auto crossBounds = getLocalBounds().toFloat().reduced(margin);

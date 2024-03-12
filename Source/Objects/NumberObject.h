@@ -276,12 +276,7 @@ public:
         auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
         auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
  
-        nvgBeginPath(nvg);
-        NVGpaint rectPaint = nvgRoundedRectPaint(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, selected ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
-        nvgFillPaint(nvg, rectPaint);
-        nvgRect(nvg, b.getX() - 0.5f, b.getY() - 0.5f, b.getWidth() + 1.0f, b.getHeight() + 1.0f);
-        nvgFill(nvg);
-
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, selected ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
         int const indent = 9;
         Rectangle<float> iconBounds = { static_cast<float>(b.getX() + 4), static_cast<float>(b.getY() + 4), static_cast<float>(indent - 4), static_cast<float>(b.getHeight() - 8) };

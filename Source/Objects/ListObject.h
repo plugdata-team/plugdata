@@ -170,12 +170,8 @@ public:
         auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
         auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
  
-        nvgBeginPath(nvg);
-        NVGpaint rectPaint = nvgRoundedRectPaint(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
-        nvgFillPaint(nvg, rectPaint);
-        nvgRect(nvg, b.getX() - 0.5f, b.getY() - 0.5f, b.getWidth() + 1.0f, b.getHeight() + 1.0f);
-        nvgFill(nvg);
-
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        
         renderComponentFromImage(nvg, listLabel, ::getValue<float>(cnv->zoomScale) * 2);
 
         nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour)));

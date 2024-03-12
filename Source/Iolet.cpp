@@ -86,10 +86,7 @@ void Iolet::render(NVGcontext* nvg)
         const auto ioletCentre = bounds.getCentre().translated(0.f, isInlet ? -1.0f : 1.0f);
 
         if (isTargeted) {
-            NVGpaint rectPaint = nvgRoundedRectPaint(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), convertColour(backgroundColour), convertColour(outlineColour), bounds.getWidth() / 2.0f);
-            nvgFillPaint(nvg, rectPaint);
-            nvgRect(nvg, bounds.getX() - 0.5f, bounds.getY() - 0.5f, bounds.getWidth() + 1.0f, bounds.getHeight() + 1.0f);
-            nvgFill(nvg);
+            nvgDrawRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), convertColour(backgroundColour), convertColour(outlineColour), bounds.getWidth() / 2.0f);
         } else {
             nvgFillColor(nvg, convertColour(backgroundColour));
             nvgStrokeColor(nvg, nvgRGB(outlineColour.getRed(), outlineColour.getGreen(), outlineColour.getBlue()));
