@@ -437,8 +437,8 @@ public:
         //if (nvgWrapper.interFont == -1)
         //    std::cout << "could not init font" << std::endl;
              
-         nvgCreateFontMem(nvg, "Inter", (unsigned char*)BinaryData::InterVariable_ttf, BinaryData::InterVariable_ttfSize, 0);
-         nvgCreateFontMem(nvg, "Inter-Regular", (unsigned char*)BinaryData::InterVariable_ttf, BinaryData::InterVariable_ttfSize, 0);
+         nvgCreateFontMem(nvg, "Inter", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);
+         nvgCreateFontMem(nvg, "Inter-Regular", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);
          nvgCreateFontMem(nvg, "Inter-Bold", (unsigned char*)BinaryData::InterBold_ttf, BinaryData::InterBold_ttfSize, 0);
          nvgCreateFontMem(nvg, "Inter-Semibold", (unsigned char*)BinaryData::InterSemiBold_ttf, BinaryData::InterSemiBold_ttfSize, 0);
          nvgCreateFontMem(nvg, "Inter-Thin", (unsigned char*)BinaryData::InterThin_ttf, BinaryData::InterThin_ttfSize, 0);
@@ -458,13 +458,17 @@ public:
                 OpenGLContext::deactivateCurrentContext();
             }, true);
 #endif
+            glContext->makeActive();
             
             // swap interval needs to be set after the context has been created (here)
             // if the GPU is nvidia, and gsync is active, this setting will be ignored, and swap interval of 1 will be used instead
             // this should be fine if gsync is controlling the swap however, as the mouse will be synced to gsync also.
             glContext->setSwapInterval(0);
             contextChanged = true;
+            
+#if JUCE_MAC
             glContext->makeActive();
+#endif
             
             startTimer(FrameTimerId, 1000.f / 60.f);
         }
