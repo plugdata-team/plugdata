@@ -485,7 +485,7 @@ public:
         }
 
         auto invalidated = invalidArea.getBounds();
-        invalidArea = RectangleList<int>();
+        invalidArea.clear();
         
         frameTimer.addFrameTime();
         
@@ -509,7 +509,7 @@ public:
             framebuffer.makeCurrentRenderingTarget();
 
             glViewport(0, 0, scaledWidth, scaledHeight);
-
+            
             nvgBeginFrame(nvg, width, height, pixelScale);
             nvgTranslate(nvg, 0, offsetY);
             nvgScissor (nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
@@ -542,7 +542,7 @@ public:
             
             nvgEndFrame(nvg);
             
-#if JUCE_DEBUG && !JUCE_WINDOWS
+#if JUCE_DEBUG
             glViewport(0, 0, scaledWidth, scaledHeight);
             nvgBeginFrame(nvg, width, height, pixelScale);
             frameTimer.render(nvg);
@@ -711,6 +711,7 @@ private:
         FrameTimer()
         {
             startTime = getNow();
+            prevTime = startTime;
         }
         
         void render(NVGcontext* nvg)
@@ -756,7 +757,7 @@ private:
 
         
         float frame_times[32] = {};
-        int perf_head;
+        int perf_head = 0;
         double prevTime;
         double startTime = 0;
     };
@@ -767,13 +768,7 @@ private:
     uint32 lastFrameTime;
     std::atomic<int> lastWidth, lastHeight;
     bool contextChanged = false;
-    
-    VBlankAttachment vBlankAttachment = { this, [this] {
-        glContext->makeActive();
-        renderOpenGL();
-        glContext->swapBuffers();
-    }};
-    
+        
     Time lastScrollTime;
     PluginEditor* editor;
     Canvas* cnv;
@@ -781,4 +776,10 @@ private:
     MousePanner panner = MousePanner(this);
     ViewportScrollBar vbar = ViewportScrollBar(true, this);
     ViewportScrollBar hbar = ViewportScrollBar(false, this);
+
+    VBlankAttachment vBlankAttachment = { this, [this] {
+                                            glContext->makeActive();
+                                            renderOpenGL();
+                                            glContext->swapBuffers();
+                                        } };
 };
