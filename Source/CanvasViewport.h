@@ -28,14 +28,8 @@ using namespace gl;
 #include "Utility/SettingsFile.h"
 
 // Special viewport that shows scrollbars on top of content instead of next to it
-class CanvasViewport : public Viewport, public MultiTimer
+class CanvasViewport : public Viewport, public Timer
 {
-    enum Timers
-    {
-        ScrollTimerId,
-        FrameTimerId
-    };
-    
     // Attached to viewport so we can clean stuff up correctly
     struct ImageReleaseListener : public CachedComponentImage
     {
@@ -389,7 +383,7 @@ public:
     {
         if(!glContext) {
             glContext = new OpenGLContext();
-            glContext->setOpenGLVersionRequired(OpenGLContext::OpenGLVersion::openGL3_2);
+            glContext->setOpenGLVersionRequired(OpenGLContext::OpenGLVersion::openGL4_1);
             glContext->setSwapInterval(0);
             glContext->setMultisamplingEnabled(false);
             glContext->setComponentPaintingEnabled(false);
@@ -422,7 +416,6 @@ public:
     ~CanvasViewport()
     {
         stopRendering = true;
-        stopTimer(FrameTimerId);
         glContext->detach();
     }
 
@@ -469,8 +462,6 @@ public:
 #if JUCE_MAC
             glContext->makeActive();
 #endif
-            
-            startTimer(FrameTimerId, 1000.f / 60.f);
         }
     }
     
@@ -483,7 +474,8 @@ public:
 #else
         int offsetY = 6;
 #endif
-        if(stopRendering) 
+        
+        if(stopRendering)
             return;
         
         if(glContext->getTargetComponent() != cnv->getParentComponent())
@@ -510,18 +502,16 @@ public:
         }
         
         if(!invalidated.isEmpty()) {
-            
-            invalidated = invalidated.translated(0, offsetY).expanded(1.0f);
-            
             realFrameTimer.addFrameTime();
                         
-            cnv->updateNVGFramebuffers(nvg, invalidated); // update frame buffers outside of the nvgBegin/End
+            cnv->updateNVGFramebuffers(nvg, invalidated.translated(0, offsetY)); // update frame buffers outside of the nvgBegin/End
             
             framebuffer.makeCurrentRenderingTarget();
 
             glViewport(0, 0, scaledWidth, scaledHeight);
 
             nvgBeginFrame(nvg, width, height, pixelScale);
+            nvgTranslate(nvg, 0, offsetY);
             nvgScissor (nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
 
             // If the lock was not gained, don't clear the canvas background, just let it render the old frame again
@@ -529,8 +519,6 @@ public:
             nvgFillColor(nvg, nvgRGB(0, 0, 0));
             nvgRect(nvg, 0, 0, width, height);
             nvgFill(nvg);
-
-            nvgTranslate(nvg, 0, offsetY);
             
             cnv->renderNVG(nvg, invalidated);
             
@@ -554,13 +542,14 @@ public:
             
             nvgEndFrame(nvg);
             
+#if JUCE_DEBUG && !JUCE_WINDOWS
             glViewport(0, 0, scaledWidth, scaledHeight);
             nvgBeginFrame(nvg, width, height, pixelScale);
             frameTimer.render(nvg);
             nvgTranslate(nvg, 48, 0);
             realFrameTimer.render(nvg);
             nvgEndFrame(nvg);
-            
+#endif
             framebuffer.releaseAsRenderingTarget();
         }
         
@@ -659,17 +648,9 @@ public:
     
     void timerCallback(int timerId) override
     {
-        if(timerId == ScrollTimerId) {
-            stopTimer(ScrollTimerId);
-            cnv->isScrolling = false;
-            invalidArea = getLocalBounds().withTrimmedTop(-10);
-        }
-        else {
-            OpenGLContext::deactivateCurrentContext();
-            glContext->makeActive();
-            renderOpenGL();
-            glContext->swapBuffers();
-        }
+        stopTimer(ScrollTimerId);
+        cnv->isScrolling = false;
+        invalidArea = getLocalBounds().withTrimmedTop(-10);
     }
 
     void resized() override
@@ -786,6 +767,12 @@ private:
     uint32 lastFrameTime;
     std::atomic<int> lastWidth, lastHeight;
     bool contextChanged = false;
+    
+    VBlankAttachment vBlankAttachment = { this, [this] {
+        glContext->makeActive();
+        renderOpenGL();
+        glContext->swapBuffers();
+    }};
     
     Time lastScrollTime;
     PluginEditor* editor;
