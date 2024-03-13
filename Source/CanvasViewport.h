@@ -481,7 +481,6 @@ public:
             vBlankAttachment = std::make_unique<VBlankAttachment>(holder, [this]{
                 glContext->makeActive();
                 renderOpenGL();
-                glContext->swapBuffers();
             });
         }
     }
@@ -516,6 +515,7 @@ public:
             cnv->updateNVGFramebuffers(nvg, getLocalBounds());
             renderFrame(getLocalBounds());
             renderPerfMeter();
+            glContext->swapBuffers();
             return;
         }
         else if(!invalidArea.isEmpty()) {
@@ -525,17 +525,18 @@ public:
             framebuffer.makeCurrentRenderingTarget();
             renderFrame(invalidated);
             framebuffer.releaseAsRenderingTarget();
-        }
-        
-        if(framebuffer.isValid()) {
-            glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.getFrameBufferID());
-            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-            glViewport(0, 0, scaledWidth, scaledHeight);
-            glBlitFramebuffer(0, 0, scaledWidth, scaledHeight, 0, 0, scaledWidth, scaledHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
             
-            renderPerfMeter();
-            
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            if(framebuffer.isValid()) {
+                glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.getFrameBufferID());
+                glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+                glViewport(0, 0, scaledWidth, scaledHeight);
+                glBlitFramebuffer(0, 0, scaledWidth, scaledHeight, 0, 0, scaledWidth, scaledHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+                
+                renderPerfMeter();
+                
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                glContext->swapBuffers();
+            }
         }
     }
     
@@ -827,6 +828,5 @@ private:
     FrameSync framesync = {[this]{
         glContext->makeActive();
         renderOpenGL();
-        glContext->swapBuffers();
     }};*/
 };

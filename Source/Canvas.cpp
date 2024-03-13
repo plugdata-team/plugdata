@@ -283,9 +283,10 @@ void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> invalidRegion)
     
     objectGrid.render(nvg);
     
-    if(lasso.isVisible()) {
-        auto lassoBounds = lasso.getBounds().toFloat().reduced(1.0f);
-        
+    if(lasso.isVisible() && !lasso.getBounds().isEmpty()) {
+        auto lassoBounds = lasso.getBounds().toFloat().reduced(0.5f);
+        auto smallestSide = lassoBounds.getWidth() < lassoBounds.getHeight() ? lassoBounds.getWidth() : lassoBounds.getHeight();
+
         auto fillColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.075f));
         auto outlineColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId).interpolatedWith(findColour(PlugDataColour::objectSelectedOutlineColourId), 0.65f));
         
@@ -294,7 +295,7 @@ void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> invalidRegion)
         nvgRect(nvg, lassoBounds.getX(), lassoBounds.getY(), lassoBounds.getWidth(), lassoBounds.getHeight());
         nvgFill(nvg);
         nvgStrokeColor(nvg, outlineColour);
-        nvgStrokeWidth(nvg, 1.0f);
+        nvgStrokeWidth(nvg, smallestSide < 1.0f ? 0.5f : 1.0f); // if one of the sides is smaller than 1px, we need to adjust the stroke width to prevent drawing out of bounds
         nvgStroke(nvg);
     }
     
