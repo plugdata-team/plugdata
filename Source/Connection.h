@@ -155,6 +155,8 @@ private:
 
     Rectangle<int> previousBounds;
 
+    bool generateHitPath;
+
     int dragIdx = -1;
 
     float mouseDownPosition = 0;

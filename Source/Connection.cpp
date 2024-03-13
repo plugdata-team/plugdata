@@ -26,8 +26,8 @@ Connection::Connection(Canvas* parent, Iolet* start)
     , outlet(start->isInlet ? nullptr : start)
     , cnv(parent)
     , ptr(parent->pd)
+    , generateHitPath(false)
 {
-
     setInterceptsMouseClicks(false, true);
     //cnv->addMouseListener(this, true);
     if (outlet)
@@ -49,7 +49,9 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     , outobj(outlet->object)
     , cnv(parent)
     , ptr(parent->pd)
+    , generateHitPath(true)
 {
+
     cnv->selectedComponents.addChangeListener(this);
     
     locked.referTo(parent->locked);
@@ -88,15 +90,15 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     // Listen to changes at iolets
     outobj->addComponentListener(this);
     inobj->addComponentListener(this);
-    outlet->addComponentListener(this);
-    inlet->addComponentListener(this);
+    //outlet->addComponentListener(this);
+    //inlet->addComponentListener(this);
 
     setInterceptsMouseClicks(true, true);
 
     cnv->connectionLayer.addAndMakeVisible(this);
 
-    componentMovedOrResized(*outlet, true, true);
-    componentMovedOrResized(*inlet, true, true);
+    //componentMovedOrResized(*outlet, true, true);
+    //componentMovedOrResized(*inlet, true, true);
 
     updateOverlays(cnv->getOverlays());
 
@@ -480,7 +482,9 @@ bool Connection::hitTest(int x, int y)
 
 bool Connection::intersects(Rectangle<float> toCheck, int accuracy) const
 {
-    PathFlatteningIterator i(toDraw);
+    PathFlatteningIterator i(hitTestPath);
+
+    auto toCheckLocal = getLocalArea(cnv, toCheck);
 
     while (i.next()) {
         auto point1 = Point<float>(i.x1, i.y1);
@@ -495,7 +499,7 @@ bool Connection::intersects(Rectangle<float> toCheck, int accuracy) const
         auto point2 = Point<float>(i.x2, i.y2);
         auto currentLine = Line<float>(point1, point2);
 
-        if (toCheck.intersects(currentLine)) {
+        if (toCheckLocal.intersects(currentLine)) {
             return true;
         }
     }
@@ -684,9 +688,6 @@ void Connection::updateBounds()
 
 void Connection::resized()
 {
-    hitTestPath.clear();
-    hitTestPath.startNewSubPath(getLocalPoint(cnv, start_));
-
     float const min = std::min<float>(width_, height_);
     float const max = std::max<float>(width_, height_);
     float const maxShift = 20.f;
@@ -697,11 +698,10 @@ void Connection::resized()
     cp1_ = Point<float>(start_.x - shiftX, start_.y + shiftY);
     cp2_ = Point<float>(end_.x + shiftX, end_.y - shiftY);
 
-    if ((previousBounds.getWidth() != getWidth()) || (previousBounds.getHeight() != getHeight())) {
-        static int c = 0;
-        std::cout << c++ << " regenerate path. previousBounds = " << previousBounds.toString() << " current bounds = " << getBounds().toString() << std::endl;
+    if (generateHitPath) {
+        hitTestPath.clear();
+        hitTestPath.startNewSubPath(getLocalPoint(cnv, start_));
         hitTestPath.cubicTo(getLocalPoint(cnv, cp1_), getLocalPoint(cnv, cp2_), getLocalPoint(cnv, end_));
-        previousBounds = getBounds();
     }
 }
 
@@ -892,6 +892,11 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
 {
     if (!inlet || !outlet)
         return;
+
+    if (outobj->isSelected() && inobj->isSelected() && !wasResized)
+        generateHitPath = false;
+    else
+        generateHitPath = true;
 
     updateBounds();
 
