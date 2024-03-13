@@ -336,15 +336,34 @@ void PluginEditor::initialiseCanvasRenderer()
         nvgCreateFontMem(nvg, "Inter-Semibold", (unsigned char*)BinaryData::InterSemiBold_ttf, BinaryData::InterSemiBold_ttfSize, 0);
         nvgCreateFontMem(nvg, "Inter-Thin", (unsigned char*)BinaryData::InterThin_ttf, BinaryData::InterThin_ttfSize, 0);
         
+        // Render on vblank
         vBlankAttachment = std::make_unique<VBlankAttachment>(&openGLView, [this]{
-            glContext->makeActive();
+            if(!glContext->isAttached() || !glContext->makeActive())
+            {
+                //openGLView.setVisible(true);
+                //glContext->attachTo(openGLView);
+                return; // render on next call
+            }
+            
+            bool hasCanvas = false;
             for(auto* split : splitView.splits)
             {
                 if(auto* cnv = split->getTabComponent()->getCurrentCanvas())
                 {
                     cnv->render(nvg);
+                    hasCanvas = true;
                 }
             }
+            
+            if(!hasCanvas && glContext->isAttached())
+            {
+                //glContext->detach();
+                //openGLView.setVisible(false);
+            }
+            else {
+                glContext->swapBuffers();
+            }
+            
         });
     });
 }

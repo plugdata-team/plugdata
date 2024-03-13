@@ -437,7 +437,6 @@ public:
             glViewport(splitPosition.x, splitPosition.y, scaledWidth, scaledHeight);
             renderFrame(nvg, getLocalBounds());
             renderPerfMeter(nvg);
-            glContext->swapBuffers();
             return;
         }
         else if(!invalidArea.isEmpty()) {
@@ -459,7 +458,6 @@ public:
                 renderPerfMeter(nvg);
                 
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
-                glContext->swapBuffers();
             }
         }
     }
@@ -480,9 +478,6 @@ public:
         float pixelScale = cnv->pixelScale;
         int width = getWidth();
         int height = getHeight();
-        int scaledWidth = width * pixelScale;
-        int scaledHeight = height * pixelScale;
-        auto splitPosition = glContext->getTargetComponent()->getLocalPoint(this, Point<int>(0, 0)) * pixelScale;
         
         realFrameTimer.addFrameTime();
         
