@@ -22,17 +22,18 @@
 
 Connection::Connection(Canvas* parent, Iolet* start)
     : NVGComponent(static_cast<Component&>(*this))
-    , inlet(nullptr)
-    , outlet(start)
-    , inobj(nullptr)
-    , outobj(outlet->object)
+    , inlet(start->isInlet ? start : nullptr)
+    , outlet(start->isInlet ? nullptr : start)
     , cnv(parent)
     , ptr(parent->pd)
 {
 
     setInterceptsMouseClicks(false, true);
     //cnv->addMouseListener(this, true);
-    outlet->addMouseListener(this, true);
+    if (outlet)
+        outlet->addMouseListener(this, true);
+    else
+        inlet->addMouseListener(this, true);
 
     cnv->connectionLayer.addAndMakeVisible(this);
 
@@ -121,6 +122,7 @@ Connection::~Connection()
     if (inlet) {
         inlet->repaint();
         inlet->removeComponentListener(this);
+        inlet->removeMouseListener(this);
     }
     if (inobj) {
         inobj->removeComponentListener(this);
@@ -138,7 +140,8 @@ void Connection::lookAndFeelChanged()
     baseColour = cnv->findColour(PlugDataColour::connectionColourId);
     dataColour = cnv->findColour(PlugDataColour::dataColourId);
     signalColour = cnv->findColour(PlugDataColour::signalColourId);
-    handleColour = outlet->isSignal ? dataColour : signalColour;
+    if (outlet)
+        handleColour = outlet->isSignal ? dataColour : signalColour;
     shadowColour = findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.06f).withAlpha(0.24f);
 }
 
@@ -197,7 +200,7 @@ Point<float> Connection::bezierPointAtDistance(const Point<float>& start, const 
 
 void Connection::render(NVGcontext* nvg)
 {
-    if (inobj) {
+    if (inobj && outobj) {
         if (isSelected() || isMouseOver()) {
 
             if (outlet->isSignal) {
@@ -212,17 +215,13 @@ void Connection::render(NVGcontext* nvg)
             baseColour = baseColour.brighter(0.6f);
         }
     }
-
-    auto mousePos = cnv->getLastMousePosition();
-    auto start = outlet->getCanvasBounds().toFloat().getCentre();
-    auto end = inobj ? inlet->getCanvasBounds().toFloat().getCentre() : cnv->getLastMousePosition().toFloat();
     
-    auto drawConnection = [this, nvg](Point<float> start, Point<float> cp1, Point<float> cp2, Point<float> end){
+    auto drawConnection = [this, nvg](){
         // semi-transparent background line
         nvgBeginPath(nvg);
         nvgLineStyle(nvg, NVG_LINE_SOLID);
-        nvgMoveTo(nvg, start.x, start.y);
-        nvgBezierTo(nvg, cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
+        nvgMoveTo(nvg, start_.x, start_.y);
+        nvgBezierTo(nvg, cp1_.x, cp1_.y, cp2_.x, cp2_.y, end_.x, end_.y);
         nvgStrokeColor(nvg, convertColour(shadowColour));
         nvgLineCap(nvg, NVG_ROUND);
         nvgStrokeWidth(nvg, 4.0f);
@@ -295,25 +294,26 @@ void Connection::render(NVGcontext* nvg)
         drawSegmentedConnection();
     }
     else if (!PlugDataLook::getUseStraightConnections()) {
-        float const width = std::max(start.x, end.x) - std::min(start.x, end.x);
-        float const height = std::max(start.y, end.y) - std::min(start.y, end.y);
+        float const width = std::max(start_.x, end_.x) - std::min(start_.x, end_.x);
+        float const height = std::max(start_.y, end_.y) - std::min(start_.y, end_.y);
 
         float const min = std::min<float>(width, height);
         float const max = std::max<float>(width, height);
         float const maxShift = 20.f;
 
         float const shiftY = std::min<float>(maxShift, max * 0.5);
-        float const shiftX = ((start.y >= end.y) ? std::min<float>(maxShift, min * 0.5) : 0.f) * ((start.x < end.x) ? -1. : 1.);
+        float const shiftX = ((start_.y >= end_.y) ? std::min<float>(maxShift, min * 0.5) : 0.f) * ((start_.x < end_.x) ? -1. : 1.);
 
-        cp1_ = Point<float>(start.x - shiftX, start.y + shiftY);
-        cp2_ = Point<float>(end.x + shiftX, end.y - shiftY);
-        drawConnection(start, cp1_, cp2_, end);
+        cp1_ = Point<float>(start_.x - shiftX, start_.y + shiftY);
+        cp2_ = Point<float>(end_.x + shiftX, end_.y - shiftY);
+        drawConnection();
     } else {
-        drawConnection(start, start, end, end);
+        drawConnection();
     }
        
     // draw reconnect handles if connection is both selected & mouse is hovering over
     if (isSelected() && isHovering) {
+        auto mousePos = cnv->getLastMousePosition();
         auto expandedStartHandle = startReconnectHandle.contains(mousePos.toFloat()) ? startReconnectHandle.expanded(3.0f) : startReconnectHandle;
         auto expandedEndHandle = startReconnectHandle.contains(mousePos.toFloat()) ? endReconnectHandle.expanded(3.0f) : endReconnectHandle;
    
@@ -345,12 +345,12 @@ void Connection::render(NVGcontext* nvg)
     nvgStrokeWidth(nvg, 1.0f);
     nvgStrokeColor(nvg, nvgRGB(0,255,0));
     nvgBeginPath(nvg);
-    nvgMoveTo(nvg, start.x, start.y);
+    nvgMoveTo(nvg, start_.x, start_.y);
     nvgLineTo(nvg, cp1_.x, cp1_.y);
     nvgStroke(nvg);
 
     nvgBeginPath(nvg);
-    nvgMoveTo(nvg, end.x, end.y);
+    nvgMoveTo(nvg, end_.x, end_.y);
     nvgLineTo(nvg, cp2_.x, cp2_.y);
     nvgStroke(nvg);
 
@@ -691,12 +691,19 @@ void Connection::mouseDrag(MouseEvent const& e)
 
 void Connection::updateBounds()
 {
-    start_ = outlet->getCanvasBounds().toFloat().getCentre();
-
-    if (inobj == nullptr)
-        end_ = cnv->getLastMousePosition().toFloat();
-    else
+    if (!inlet || !outlet) {
+        auto mousePos = cnv->getLastMousePosition();
+        if (outlet) {
+            start_ = outlet->getCanvasBounds().toFloat().getCentre();
+            end_ = mousePos.toFloat();
+        } else {
+            start_ = mousePos.toFloat();
+            end_ = inlet->getCanvasBounds().toFloat().getCentre();
+        }
+    } else {
+        start_ = outlet->getCanvasBounds().toFloat().getCentre();
         end_ = inlet->getCanvasBounds().toFloat().getCentre();
+    }
 
     Point<float> const pos = Point<float>(jmin(start_.x, end_.x), jmin(start_.y, end_.y));
 
