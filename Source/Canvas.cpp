@@ -261,7 +261,7 @@ void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> invalidRegion)
         nvgLineStyle(nvg, NVG_LINE_SOLID);
     }
 
-    auto renderAllObjects = [this](NVGcontext* nvg, Rectangle<int> area)
+    auto renderObjects = [this](NVGcontext* nvg, Rectangle<int> area)
     {
         ScopedLock objLock(objects.getLock());
         for(auto* obj : objects)
@@ -300,25 +300,33 @@ void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> invalidRegion)
     };
 
     // if canvas is a graph, or in presentation mode, don't render connections at all
-    if (getValue<bool>(presentationMode)  || isGraph)
-        renderAllObjects(nvg, invalidRegion);
-    else {
-        // render connections infront or behind objects depending on lock mode or overlay setting
-        if (connectionsBehind) {
-            renderConnections(nvg, invalidRegion);
-            renderAllObjects(nvg, invalidRegion);
-        } else {
-            renderAllObjects(nvg, invalidRegion);
-            renderConnections(nvg, invalidRegion);
-        }
+    if (getValue<bool>(presentationMode) || isGraph) {
+        renderObjects(nvg, invalidRegion);
+        nvgRestore(nvg);
+        return;
+    }
+
+    // render connections infront or behind objects depending on lock mode or overlay setting
+    if (connectionsBehind) {
+        renderConnections(nvg, invalidRegion);
+        renderObjects(nvg, invalidRegion);
+    } else {
+        renderObjects(nvg, invalidRegion);
+        renderConnections(nvg, invalidRegion);
+    }
+
+    // exit early if canvas is in locked mode, as new connections can't be created, objects can't move (no grid), and no lasso
+    if (getValue<bool>(locked)) {
+        nvgRestore(nvg);
+        return;
     }
 
     renderConnectionsBeingCreated(nvg);
 
     objectGrid.render(nvg);
-    
+
     if(lasso.isVisible()) {
-        auto lassoBounds = lasso.getBounds().toFloat().reduced(1.0f);
+        auto lassoBounds = lasso.getBounds().toFloat();
         
         auto fillColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.075f));
         auto outlineColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId).interpolatedWith(findColour(PlugDataColour::objectSelectedOutlineColourId), 0.65f));
@@ -1919,7 +1927,7 @@ bool Canvas::setPanDragMode(bool shouldPan)
 
 void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, Rectangle<int> const& area)
 {
-    const auto lassoArea = area.withSize(jmax(area.getWidth(), 1), jmax(area.getHeight(), 1));
+    const auto lassoArea = area.expanded(1, 1);
 
     for (auto* object : objects) {
         if (lassoArea.intersects(object->getSelectableBounds())) {
