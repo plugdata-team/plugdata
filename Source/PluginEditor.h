@@ -147,6 +147,7 @@ public:
     
     NVGcontext* nvg;
     Component openGLView;
+    bool swapBuffer = false;
     std::unique_ptr<OpenGLContext> glContext;
     std::unique_ptr<VBlankAttachment> vBlankAttachment;
 

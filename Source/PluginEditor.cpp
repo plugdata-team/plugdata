@@ -361,7 +361,10 @@ void PluginEditor::initialiseCanvasRenderer()
                 //openGLView.setVisible(false);
             }
             else {
-                glContext->swapBuffers();
+                if(swapBuffer) {
+                    glContext->swapBuffers();
+                    swapBuffer = false;
+                }
             }
             
         });

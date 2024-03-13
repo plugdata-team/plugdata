@@ -453,11 +453,12 @@ public:
                 glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
                 
                 glViewport(0, 0, scaledWidth, scaledHeight);
-                glBlitFramebuffer(0, 0, scaledWidth, scaledHeight, splitPosition.x, splitPosition.y, scaledWidth, scaledHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+                glBlitFramebuffer(0, 0, scaledWidth, scaledHeight, 0, 0, scaledWidth, scaledHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
                 
                 renderPerfMeter(nvg);
                 
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                editor->swapBuffer = true;
             }
         }
     }
