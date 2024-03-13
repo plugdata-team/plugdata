@@ -192,21 +192,5 @@ private:
     // Used in standalone
     std::unique_ptr<MouseRateReducedComponent<ResizableBorderComponent>> borderResizer;
     
-    struct FrameSync : public juce::Timer
-    {
-        FrameSync(std::function<void()> callback) : cb(callback) {
-            startTimerHz(60);
-        };
-        
-        void timerCallback() override
-        {
-            cb();
-        }
-        
-        std::function<void()> cb;
-    };
-    
-    std::unique_ptr<FrameSync> frameSync;
-
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginEditor)
 };

@@ -365,18 +365,11 @@ void PluginEditor::initialiseCanvasRenderer()
             }
             
         };
-#if JUCE_MAC
+
         // Render on vblank
         vBlankAttachment = std::make_unique<VBlankAttachment>(&openGLView, [this, renderLoop]{
             renderLoop();
         });
-#else
-        // Render on vblank
-        frameSync = std::make_unique<FrameSync>([this, renderLoop]{
-            renderLoop();
-        });
-#endif
-
     });
 }
 
