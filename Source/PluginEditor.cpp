@@ -372,7 +372,7 @@ void PluginEditor::initialiseCanvasRenderer()
         });
 #else
         // Render on vblank
-        frameSync = std::make_unique<FrameSync>(&openGLView, [this, renderLoop]{
+        frameSync = std::make_unique<FrameSync>([this, renderLoop]{
             renderLoop();
         });
 #endif
