@@ -465,10 +465,9 @@ void PluginEditor::resized()
 
     palettes->setBounds(0, toolbarHeight, palettes->getWidth(), workAreaHeight);
     
-    auto workAreaBounds = Rectangle<int>(paletteWidth, toolbarHeight, (getWidth() - sidebar->getWidth() - paletteWidth), workAreaHeight);
-    
-    splitView.setBounds(workAreaBounds);
-    openGLView.setBounds(workAreaBounds.withTrimmedTop(30));
+    auto workArea = Rectangle<int>(paletteWidth, toolbarHeight, (getWidth() - sidebar->getWidth() - paletteWidth), workAreaHeight);
+    splitView.setBounds(workArea);
+    openGLView.setBounds(workArea.withTrimmedTop(31));
     
     sidebar->setBounds(getWidth() - sidebar->getWidth(), toolbarHeight, sidebar->getWidth(), workAreaHeight);
 
