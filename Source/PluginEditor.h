@@ -145,7 +145,7 @@ public:
 
     OfflineObjectRenderer offlineRenderer;
     
-    NVGcontext* nvg;
+    NVGcontext* nvg = nullptr;
     Component openGLView;
     std::unique_ptr<OpenGLContext> glContext;
     std::unique_ptr<VBlankAttachment> vBlankAttachment;
