@@ -161,7 +161,14 @@ private:
     int lastNumArgs = 0;
     t_symbol* lastSelector = nullptr;
 
+    Colour baseColour;
+    Colour dataColour;
+    Colour signalColour;
+    Colour handleColour;
+    Colour shadowColour;
+
     friend class ConnectionPathUpdater;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
 };
 

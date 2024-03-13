@@ -35,6 +35,9 @@ Connection::Connection(Canvas* parent, Iolet* start)
     outlet->addMouseListener(this, true);
 
     cnv->connectionLayer.addAndMakeVisible(this);
+
+    // init colours first time
+    lookAndFeelChanged();
 }
 
 Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
@@ -96,6 +99,8 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
 
     updateOverlays(cnv->getOverlays());
 
+    lookAndFeelChanged();
+
     updateBounds();
 }
 
@@ -130,6 +135,11 @@ void Connection::changeListenerCallback(ChangeBroadcaster* source)
 
 void Connection::lookAndFeelChanged()
 {
+    baseColour = cnv->findColour(PlugDataColour::connectionColourId);
+    dataColour = cnv->findColour(PlugDataColour::dataColourId);
+    signalColour = cnv->findColour(PlugDataColour::signalColourId);
+    handleColour = outlet->isSignal ? dataColour : signalColour;
+    shadowColour = findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.06f).withAlpha(0.24f);
 }
 
 Point<float> Connection::bezierPointAtDistance(const Point<float>& start, const Point<float>& cp1,
@@ -187,12 +197,6 @@ Point<float> Connection::bezierPointAtDistance(const Point<float>& start, const 
 
 void Connection::render(NVGcontext* nvg)
 {
-    auto baseColour = cnv->findColour(PlugDataColour::connectionColourId);
-    auto dataColour = cnv->findColour(PlugDataColour::dataColourId);
-    auto signalColour = cnv->findColour(PlugDataColour::signalColourId);
-    auto handleColour = outlet->isSignal ? dataColour : signalColour;
-    auto shadowColour = findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.06f).withAlpha(0.24f);
-
     if (inobj) {
         if (isSelected() || isMouseOver()) {
 
@@ -213,7 +217,7 @@ void Connection::render(NVGcontext* nvg)
     auto start = outlet->getCanvasBounds().toFloat().getCentre();
     auto end = inobj ? inlet->getCanvasBounds().toFloat().getCentre() : cnv->getLastMousePosition().toFloat();
     
-    auto drawConnection = [shadowColour, nvg, baseColour](Point<float> start, Point<float> cp1, Point<float> cp2, Point<float> end){
+    auto drawConnection = [this, nvg](Point<float> start, Point<float> cp1, Point<float> cp2, Point<float> end){
         // semi-transparent background line
         nvgBeginPath(nvg);
         nvgLineStyle(nvg, NVG_LINE_SOLID);
@@ -229,8 +233,7 @@ void Connection::render(NVGcontext* nvg)
         nvgStroke(nvg);
     };
     
-    auto drawSegmentedConnection = [this, nvg, baseColour, shadowColour](){
-        
+    auto drawSegmentedConnection = [this, nvg](){
         auto snap = [this](Point<float> point, int idx1, int idx2) {
             if (Line<float>(currentPlan[idx1], currentPlan[idx2]).isVertical()) {
                 currentPlan[idx2].x = point.x;
@@ -302,9 +305,9 @@ void Connection::render(NVGcontext* nvg)
         float const shiftY = std::min<float>(maxShift, max * 0.5);
         float const shiftX = ((start.y >= end.y) ? std::min<float>(maxShift, min * 0.5) : 0.f) * ((start.x < end.x) ? -1. : 1.);
 
-        Point<float> const cp1 { start.x - shiftX, start.y + shiftY };
-        Point<float> const cp2 { end.x + shiftX, end.y - shiftY };
-        drawConnection(start, cp1, cp2, end);
+        cp1_ = Point<float>(start.x - shiftX, start.y + shiftY);
+        cp2_ = Point<float>(end.x + shiftX, end.y - shiftY);
+        drawConnection(start, cp1_, cp2_, end);
     } else {
         drawConnection(start, start, end, end);
     }
@@ -336,6 +339,29 @@ void Connection::render(NVGcontext* nvg)
     nvgStrokeColor(nvg, nvgRGBf(1, 0, 0));
     nvgStrokeWidth(nvg, 1.0f);
     nvgStroke(nvg);
+#endif
+
+#ifdef DEBUG_CONNECTION_PATH_CP
+    nvgStrokeWidth(nvg, 1.0f);
+    nvgStrokeColor(nvg, nvgRGB(0,255,0));
+    nvgBeginPath(nvg);
+    nvgMoveTo(nvg, start.x, start.y);
+    nvgLineTo(nvg, cp1_.x, cp1_.y);
+    nvgStroke(nvg);
+
+    nvgBeginPath(nvg);
+    nvgMoveTo(nvg, end.x, end.y);
+    nvgLineTo(nvg, cp2_.x, cp2_.y);
+    nvgStroke(nvg);
+
+    nvgBeginPath(nvg);
+    nvgFillColor(nvg, nvgRGB(0,255,0));
+    nvgCircle(nvg, cp1_.x, cp1_.y, 5);
+    nvgFill(nvg);
+
+    nvgBeginPath(nvg);
+    nvgCircle(nvg, cp2_.x, cp2_.y, 5);
+    nvgFill(nvg);
 #endif
 }
 
@@ -677,7 +703,7 @@ void Connection::updateBounds()
     float const width = std::max(start_.x, end_.x) - std::min(start_.x, end_.x);
     float const height = std::max(start_.y, end_.y) - std::min(start_.y, end_.y);
 
-    auto b = Rectangle<int>(pos.x, pos.y, width, height).expanded(14, 14);
+    auto b = Rectangle<int>(pos.x, pos.y, width, height).expanded(30, 30);
 
     setBounds(b);
 }
