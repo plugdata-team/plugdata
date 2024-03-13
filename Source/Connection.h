@@ -153,6 +153,8 @@ private:
     Point<float> cp1_;
     Point<float> cp2_;
 
+    Rectangle<int> previousBounds;
+
     int dragIdx = -1;
 
     float mouseDownPosition = 0;

@@ -646,6 +646,42 @@ void Connection::mouseExit(MouseEvent const& e)
     repaint();
 }
 
+
+void Connection::updateBounds()
+{
+    auto rectStart = Rectangle<int>(0,0,1,1);
+    auto rectEnd = Rectangle<int>(0,0,1,1);
+    if (!inlet || !outlet) {
+        auto mousePos = cnv->getLastMousePosition();
+        if (outlet) {
+            start_ = cnv->getLocalPoint(outlet, outlet->getLocalBounds().toFloat().getCentre());
+            end_ = mousePos.toFloat();
+
+            rectStart = cnv->getLocalArea(outlet, outlet->getLocalBounds());
+            rectEnd = rectEnd.withPosition(mousePos);
+        } else {
+            start_ = mousePos.toFloat();
+            end_ = cnv->getLocalPoint(inlet, inlet->getLocalBounds().toFloat().getCentre());
+
+            rectStart = rectStart.withPosition(mousePos);
+            rectEnd = cnv->getLocalArea(inlet, inlet->getLocalBounds());
+        }
+    } else {
+        start_ = cnv->getLocalPoint(outlet, outlet->getLocalBounds().toFloat().getCentre());
+        end_ = cnv->getLocalPoint(inlet, inlet->getLocalBounds().toFloat().getCentre());
+
+        rectStart = cnv->getLocalArea(outlet, outlet->getLocalBounds());
+        rectEnd = cnv->getLocalArea(inlet, inlet->getLocalBounds());
+    }
+
+    width_ = std::max(start_.x, end_.x) - std::min(start_.x, end_.x);
+    height_ = std::max(start_.y, end_.y) - std::min(start_.y, end_.y);
+
+    auto b = Rectangle<int>(rectStart.getUnion(rectEnd));
+
+    setBounds(b);
+}
+
 void Connection::resized()
 {
     hitTestPath.clear();
@@ -661,7 +697,12 @@ void Connection::resized()
     cp1_ = Point<float>(start_.x - shiftX, start_.y + shiftY);
     cp2_ = Point<float>(end_.x + shiftX, end_.y - shiftY);
 
-    hitTestPath.cubicTo(getLocalPoint(cnv, cp1_), getLocalPoint(cnv, cp2_), getLocalPoint(cnv, end_));
+    if ((previousBounds.getWidth() != getWidth()) || (previousBounds.getHeight() != getHeight())) {
+        static int c = 0;
+        std::cout << c++ << " regenerate path. previousBounds = " << previousBounds.toString() << " current bounds = " << getBounds().toString() << std::endl;
+        hitTestPath.cubicTo(getLocalPoint(cnv, cp1_), getLocalPoint(cnv, cp2_), getLocalPoint(cnv, end_));
+        previousBounds = getBounds();
+    }
 }
 
 void Connection::mouseDown(MouseEvent const& e)
@@ -697,32 +738,6 @@ void Connection::mouseDrag(MouseEvent const& e)
     cnv->editor->connectionMessageDisplay->setConnection(nullptr);
 
     updateBounds();
-}
-
-void Connection::updateBounds()
-{
-    if (!inlet || !outlet) {
-        auto mousePos = cnv->getLastMousePosition();
-        if (outlet) {
-            start_ = cnv->getLocalPoint(outlet, outlet->getLocalBounds().toFloat().getCentre());
-            end_ = mousePos.toFloat();
-        } else {
-            start_ = mousePos.toFloat();
-            end_ = cnv->getLocalPoint(inlet, inlet->getLocalBounds().toFloat().getCentre());
-        }
-    } else {
-        start_ = cnv->getLocalPoint(outlet, outlet->getLocalBounds().toFloat().getCentre());
-        end_ = cnv->getLocalPoint(inlet, inlet->getLocalBounds().toFloat().getCentre());
-    }
-
-    Point<float> const pos = Point<float>(jmin(start_.x, end_.x), jmin(start_.y, end_.y));
-
-    width_ = std::max(start_.x, end_.x) - std::min(start_.x, end_.x);
-    height_ = std::max(start_.y, end_.y) - std::min(start_.y, end_.y);
-
-    auto b = Rectangle<int>(pos.x, pos.y, width_, height_).expanded(30, 30);
-
-    setBounds(b);
 }
 
 void Connection::mouseUp(MouseEvent const& e)
