@@ -315,7 +315,7 @@ void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> invalidRegion)
         renderConnections(nvg, invalidRegion);
     }
 
-    // exit early if canvas is in locked mode, as new connections can't be created, objects can't move (no grid), and no lasso
+    // exit early if canvas is in locked mode, as new connections can't be created, objects can't move (no need for grid), and no lasso
     if (getValue<bool>(locked)) {
         nvgRestore(nvg);
         return;
@@ -1952,6 +1952,7 @@ void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, R
             setSelected(connection, false, false);
         }
     }
+    repaint();
 }
 
 ObjectParameters& Canvas::getInspectorParameters()
