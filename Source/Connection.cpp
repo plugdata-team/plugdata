@@ -200,23 +200,39 @@ Point<float> Connection::bezierPointAtDistance(const Point<float>& start, const 
 
 void Connection::render(NVGcontext* nvg)
 {
+    auto finalBaseColour = baseColour;
     if (inobj && outobj) {
         if (isSelected() || isMouseOver()) {
 
             if (outlet->isSignal) {
-                baseColour = signalColour;
+                finalBaseColour = signalColour;
             } else if (outlet->isGemState) {
-                baseColour = cnv->findColour(PlugDataColour::gemColourId);
+                finalBaseColour = cnv->findColour(PlugDataColour::gemColourId);
             } else {
-                baseColour = dataColour;
+                finalBaseColour = dataColour;
             }
         }
         if (isMouseOver()) {
-            baseColour = baseColour.brighter(0.6f);
+            finalBaseColour = finalBaseColour.brighter(0.6f);
         }
     }
+
+    auto drawStraightConnection = [this, nvg, finalBaseColour](){
+        nvgBeginPath(nvg);
+        nvgLineStyle(nvg, NVG_LINE_SOLID);
+        nvgMoveTo(nvg, start_.x, start_.y);
+        nvgLineTo(nvg, end_.x, end_.y);
+        nvgStrokeColor(nvg, convertColour(shadowColour));
+        nvgLineCap(nvg, NVG_ROUND);
+        nvgStrokeWidth(nvg, 4.0f);
+        nvgStroke(nvg);
+
+        nvgStrokeColor(nvg, convertColour(finalBaseColour));
+        nvgStrokeWidth(nvg, 2.0f);
+        nvgStroke(nvg);
+    };
     
-    auto drawConnection = [this, nvg](){
+    auto drawCurvedConnection = [this, nvg, finalBaseColour](){
         // semi-transparent background line
         nvgBeginPath(nvg);
         nvgLineStyle(nvg, NVG_LINE_SOLID);
@@ -227,12 +243,12 @@ void Connection::render(NVGcontext* nvg)
         nvgStrokeWidth(nvg, 4.0f);
         nvgStroke(nvg);
 
-        nvgStrokeColor(nvg, convertColour(baseColour));
+        nvgStrokeColor(nvg, convertColour(finalBaseColour));
         nvgStrokeWidth(nvg, 2.0f);
         nvgStroke(nvg);
     };
     
-    auto drawSegmentedConnection = [this, nvg](){
+    auto drawSegmentedConnection = [this, nvg, finalBaseColour](){
         auto snap = [this](Point<float> point, int idx1, int idx2) {
             if (Line<float>(currentPlan[idx1], currentPlan[idx2]).isVertical()) {
                 currentPlan[idx2].x = point.x;
@@ -284,7 +300,7 @@ void Connection::render(NVGcontext* nvg)
         nvgStroke(nvg);
         
         nvgLineStyle(nvg, NVG_LINE_SOLID);
-        nvgStrokeColor(nvg, convertColour(baseColour));
+        nvgStrokeColor(nvg, convertColour(finalBaseColour));
         nvgStrokeWidth(nvg, 2.0f);
         nvgStroke(nvg);
     };
@@ -294,21 +310,9 @@ void Connection::render(NVGcontext* nvg)
         drawSegmentedConnection();
     }
     else if (!PlugDataLook::getUseStraightConnections()) {
-        float const width = std::max(start_.x, end_.x) - std::min(start_.x, end_.x);
-        float const height = std::max(start_.y, end_.y) - std::min(start_.y, end_.y);
-
-        float const min = std::min<float>(width, height);
-        float const max = std::max<float>(width, height);
-        float const maxShift = 20.f;
-
-        float const shiftY = std::min<float>(maxShift, max * 0.5);
-        float const shiftX = ((start_.y >= end_.y) ? std::min<float>(maxShift, min * 0.5) : 0.f) * ((start_.x < end_.x) ? -1. : 1.);
-
-        cp1_ = Point<float>(start_.x - shiftX, start_.y + shiftY);
-        cp2_ = Point<float>(end_.x + shiftX, end_.y - shiftY);
-        drawConnection();
+        drawCurvedConnection();
     } else {
-        drawConnection();
+        drawStraightConnection();
     }
        
     // draw reconnect handles if connection is both selected & mouse is hovering over
@@ -460,25 +464,18 @@ bool Connection::hitTest(int x, int y)
     if (cnv->commandLocked == var(true) || locked == var(true))
         return false;
 
-    Point<float> position = Point<float>(static_cast<float>(x), static_cast<float>(y));
+    auto const hitPoint = Point<float>(x, y);
 
-    Point<float> nearestPoint;
-    toDrawLocalSpace.getNearestPoint(position, nearestPoint);
+    auto const startExculsionDistance = getLocalPoint(cnv, start_).getDistanceFrom(hitPoint);
+    auto const endExculsionDistance = getLocalPoint(cnv, end_).getDistanceFrom(hitPoint);
 
-    // Get outlet and inlet point
-    auto pstart = getStartPoint();
-    auto pend = getEndPoint();
-
-    if (selectedFlag && (startReconnectHandle.contains(position) || endReconnectHandle.contains(position))) {
-        repaint();
-        return true;
-    }
-
-    // If we click too close to the inlet, don't register the click on the connection
-    if (pstart.getDistanceFrom(position + getPosition().toFloat()) < 8.0f || pend.getDistanceFrom(position + getPosition().toFloat()) < 8.0f)
+    if ((startExculsionDistance < 10) || (endExculsionDistance < 10))
         return false;
 
-    return nearestPoint.getDistanceFrom(position) < 3;
+    Point<float> nearestPoint;
+    hitTestPath.getNearestPoint(hitPoint, nearestPoint);
+    auto distFromPath = nearestPoint.getDistanceFrom(hitPoint);
+    return distFromPath < 3.0f;
 }
 
 bool Connection::intersects(Rectangle<float> toCheck, int accuracy) const
@@ -570,6 +567,8 @@ bool Connection::isSelected() const
 
 void Connection::mouseMove(MouseEvent const& e)
 {
+    isHovering = true;
+
     int n = getClosestLineIdx(e.getPosition().toFloat(), currentPlan);
 
     if (isSegmented() && currentPlan.size() > 2 && n > 0) {
@@ -650,8 +649,19 @@ void Connection::mouseExit(MouseEvent const& e)
 void Connection::resized()
 {
     hitTestPath.clear();
-    hitTestPath.startNewSubPath(start_);
-    hitTestPath.cubicTo(cp1_, cp2_, end_);
+    hitTestPath.startNewSubPath(getLocalPoint(cnv, start_));
+
+    float const min = std::min<float>(width_, height_);
+    float const max = std::max<float>(width_, height_);
+    float const maxShift = 20.f;
+
+    float const shiftY = std::min<float>(maxShift, max * 0.5);
+    float const shiftX = ((start_.y >= end_.y) ? std::min<float>(maxShift, min * 0.5) : 0.f) * ((start_.x < end_.x) ? -1. : 1.);
+
+    cp1_ = Point<float>(start_.x - shiftX, start_.y + shiftY);
+    cp2_ = Point<float>(end_.x + shiftX, end_.y - shiftY);
+
+    hitTestPath.cubicTo(getLocalPoint(cnv, cp1_), getLocalPoint(cnv, cp2_), getLocalPoint(cnv, end_));
 }
 
 void Connection::mouseDown(MouseEvent const& e)
@@ -694,23 +704,23 @@ void Connection::updateBounds()
     if (!inlet || !outlet) {
         auto mousePos = cnv->getLastMousePosition();
         if (outlet) {
-            start_ = outlet->getCanvasBounds().toFloat().getCentre();
+            start_ = cnv->getLocalPoint(outlet, outlet->getLocalBounds().toFloat().getCentre());
             end_ = mousePos.toFloat();
         } else {
             start_ = mousePos.toFloat();
-            end_ = inlet->getCanvasBounds().toFloat().getCentre();
+            end_ = cnv->getLocalPoint(inlet, inlet->getLocalBounds().toFloat().getCentre());
         }
     } else {
-        start_ = outlet->getCanvasBounds().toFloat().getCentre();
-        end_ = inlet->getCanvasBounds().toFloat().getCentre();
+        start_ = cnv->getLocalPoint(outlet, outlet->getLocalBounds().toFloat().getCentre());
+        end_ = cnv->getLocalPoint(inlet, inlet->getLocalBounds().toFloat().getCentre());
     }
 
     Point<float> const pos = Point<float>(jmin(start_.x, end_.x), jmin(start_.y, end_.y));
 
-    float const width = std::max(start_.x, end_.x) - std::min(start_.x, end_.x);
-    float const height = std::max(start_.y, end_.y) - std::min(start_.y, end_.y);
+    width_ = std::max(start_.x, end_.x) - std::min(start_.x, end_.x);
+    height_ = std::max(start_.y, end_.y) - std::min(start_.y, end_.y);
 
-    auto b = Rectangle<int>(pos.x, pos.y, width, height).expanded(30, 30);
+    auto b = Rectangle<int>(pos.x, pos.y, width_, height_).expanded(30, 30);
 
     setBounds(b);
 }

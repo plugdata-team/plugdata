@@ -148,6 +148,8 @@ private:
 
     Point<float> start_;
     Point<float> end_;
+    float width_ = 0.0f;
+    float height_ = 0.0f;
     Point<float> cp1_;
     Point<float> cp2_;
 
