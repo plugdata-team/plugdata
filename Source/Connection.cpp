@@ -484,7 +484,7 @@ bool Connection::intersects(Rectangle<float> toCheck, int accuracy) const
 {
     PathFlatteningIterator i(hitTestPath);
 
-    auto toCheckLocal = getLocalArea(cnv, toCheck);
+    const auto toCheckLocal = getLocalArea(cnv, toCheck);
 
     while (i.next()) {
         auto point1 = Point<float>(i.x1, i.y1);
@@ -681,7 +681,7 @@ void Connection::updateBounds()
     width_ = std::max(start_.x, end_.x) - std::min(start_.x, end_.x);
     height_ = std::max(start_.y, end_.y) - std::min(start_.y, end_.y);
 
-    auto b = Rectangle<int>(rectStart.getUnion(rectEnd));
+    auto b = Rectangle<int>(rectStart.getUnion(rectEnd)).expanded(30);
 
     setBounds(b);
 }
