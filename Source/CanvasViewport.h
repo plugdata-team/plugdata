@@ -476,6 +476,13 @@ public:
 #if JUCE_MAC
             glContext->makeActive();
 #endif
+            // Set up vBlankAttachment to render on vblank
+            // We must attach it to the holder, so it get vblanks for the correct peer
+            vBlankAttachment = std::make_unique<VBlankAttachment>(holder, [this]{
+                glContext->makeActive();
+                renderOpenGL();
+                glContext->swapBuffers();
+            });
         }
     }
     
@@ -483,12 +490,7 @@ public:
     
     void renderOpenGL()
     {
-#if JUCE_LINUX
-        int offsetY = 10;
-#else
-        int offsetY = 6;
-#endif
-        
+
         if(stopRendering)
             return;
         
@@ -497,72 +499,31 @@ public:
             attachGLContext();
             initialiseNVG();
         }
-
-        auto invalidated = invalidArea.getBounds();
-        invalidArea.clear();
         
         frameTimer.addFrameTime();
         
         float pixelScale = cnv->pixelScale;
-        
-        int width = lastWidth.load();
-        int height = lastHeight.load();
-        int scaledWidth = width * pixelScale;
-        int scaledHeight = height * pixelScale;
+        int scaledWidth = getWidth() * pixelScale;
+        int scaledHeight = getHeight() * pixelScale;
         
         if(contextChanged || framebuffer.getWidth() != scaledWidth || framebuffer.getHeight() != scaledHeight || !framebuffer.isValid()) {
             framebuffer.initialise(*glContext, scaledWidth, scaledHeight);
             contextChanged = false;
         }
         
-        if(!invalidated.isEmpty()) {
-            realFrameTimer.addFrameTime();
-                        
-            cnv->updateNVGFramebuffers(nvg, invalidated.translated(0, offsetY)); // update frame buffers outside of the nvgBegin/End
-            
+        if(cnv->isScrolling) // If we're scrolling or zooming, everything gets invalidated so we may as well bypass invaldation
+        {
+            cnv->updateNVGFramebuffers(nvg, getLocalBounds());
+            renderFrame(getLocalBounds());
+            renderPerfMeter();
+            return;
+        }
+        else if(!invalidArea.isEmpty()) {
+            auto invalidated = invalidArea.getBounds();
+            invalidArea.clear();
+
             framebuffer.makeCurrentRenderingTarget();
-
-            glViewport(0, 0, scaledWidth, scaledHeight);
-            
-            nvgBeginFrame(nvg, width, height, pixelScale);
-            nvgTranslate(nvg, 0, offsetY);
-            nvgScissor (nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
-
-            nvgBeginPath(nvg);
-            nvgFillColor(nvg, nvgRGB(0, 0, 0));
-            nvgRect(nvg, 0, 0, width, height);
-            nvgFill(nvg);
-            
-            cnv->renderNVG(nvg, invalidated);
-            
-            nvgSave(nvg);
-            nvgTranslate(nvg, vbar.getX(), vbar.getY());
-            vbar.render(nvg);
-            nvgRestore(nvg);
-                         
-            nvgSave(nvg);
-            nvgTranslate(nvg, hbar.getX(), hbar.getY());
-            hbar.render(nvg);
-            nvgRestore(nvg);
-            
-#if ENABLE_CANVAS_FB_DEBUGGING
-            static Random rng;
-            nvgBeginPath(nvg);
-            nvgFillColor(nvg, nvgRGBA(rng.nextInt(255), rng.nextInt(255), rng.nextInt(255), 0x50));
-            nvgRect(nvg, 0, 0, width, height);
-            nvgFill(nvg);
-#endif
-            
-            nvgEndFrame(nvg);
-            
-#if JUCE_DEBUG
-            glViewport(0, 0, scaledWidth, scaledHeight);
-            nvgBeginFrame(nvg, width, height, pixelScale);
-            frameTimer.render(nvg);
-            nvgTranslate(nvg, 48, 0);
-            realFrameTimer.render(nvg);
-            nvgEndFrame(nvg);
-#endif
+            renderFrame(invalidated);
             framebuffer.releaseAsRenderingTarget();
         }
         
@@ -571,8 +532,67 @@ public:
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
             glViewport(0, 0, scaledWidth, scaledHeight);
             glBlitFramebuffer(0, 0, scaledWidth, scaledHeight, 0, 0, scaledWidth, scaledHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+            
+            renderPerfMeter();
+            
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
         }
+    }
+    
+    void renderPerfMeter()
+    {
+#if JUCE_DEBUG // draw fps meters
+        nvgBeginFrame(nvg, getWidth(), getHeight(), cnv->pixelScale);
+        frameTimer.render(nvg);
+        nvgTranslate(nvg, 48, 0);
+        realFrameTimer.render(nvg);
+        nvgEndFrame(nvg);
+#endif
+    }
+    
+    void renderFrame(Rectangle<int> const& invalidated)
+    {
+        float pixelScale = cnv->pixelScale;
+        int width = getWidth();
+        int height = getHeight();
+        int scaledWidth = width * pixelScale;
+        int scaledHeight = height * pixelScale;
+        
+        realFrameTimer.addFrameTime();
+        
+        glViewport(0, 0, scaledWidth, scaledHeight);
+        
+        nvgBeginFrame(nvg, width, height, pixelScale);
+        nvgTranslate(nvg, 0, viewportOffsetY);
+        nvgScissor (nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
+        
+        nvgBeginPath(nvg);
+        nvgFillColor(nvg, nvgRGB(0, 0, 0));
+        nvgRect(nvg, 0, 0, width, height);
+        nvgFill(nvg);
+        
+        cnv->renderNVG(nvg, invalidated);
+        
+        nvgSave(nvg);
+        nvgTranslate(nvg, vbar.getX(), vbar.getY());
+        vbar.render(nvg);
+        nvgRestore(nvg);
+        
+        nvgSave(nvg);
+        nvgTranslate(nvg, hbar.getX(), hbar.getY());
+        hbar.render(nvg);
+        nvgRestore(nvg);
+        
+#if ENABLE_CANVAS_FB_DEBUGGING
+        static Random rng;
+        nvgBeginPath(nvg);
+        nvgFillColor(nvg, nvgRGBA(rng.nextInt(255), rng.nextInt(255), rng.nextInt(255), 0x50));
+        nvgRect(nvg, 0, 0, width, height);
+        nvgFill(nvg);
+#endif
+        
+        nvgEndFrame(nvg);
+                    
     }
         
     void lookAndFeelChanged() override
@@ -790,14 +810,23 @@ private:
     ViewportScrollBar vbar = ViewportScrollBar(true, this);
     ViewportScrollBar hbar = ViewportScrollBar(false, this);
 
+    std::unique_ptr<VBlankAttachment> vBlankAttachment;
+    
+#if JUCE_LINUX
+        int viewportOffsetY = 10;
+#else
+        int viewportOffsetY = 6;
+#endif
+        
+    
     /* TODO: rendering on vblank causes glitches with framebuffers, I wonder why...
     VBlankAttachment vBlankAttachment = { this, [this] {
 
-    }}; */
+    }};
     
     FrameSync framesync = {[this]{
         glContext->makeActive();
         renderOpenGL();
         glContext->swapBuffers();
-    }};
+    }};*/
 };

@@ -206,10 +206,10 @@ public:
     Value hideNameAndArgs = SynchronousValue(var(false));
     Value xRange = SynchronousValue();
     Value yRange = SynchronousValue();
-    Value patchWidth = ThreadSafeValue();
-    Value patchHeight = ThreadSafeValue();
+    Value patchWidth = SynchronousValue();
+    Value patchHeight = SynchronousValue();
 
-    Value zoomScale = ThreadSafeValue();
+    Value zoomScale;
 
     ObjectGrid objectGrid = ObjectGrid(this);
 
