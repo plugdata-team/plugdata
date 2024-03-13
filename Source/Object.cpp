@@ -1301,8 +1301,10 @@ void Object::renderLabel(NVGcontext* nvg)
     {
         if(auto* label = gui->getLabel())
         {
+            nvgSave(nvg);
             nvgTranslate(nvg, label->getX(), label->getY());
             label->render(nvg);
+            nvgRestore(nvg);
         }
     }
 }
