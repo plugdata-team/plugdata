@@ -261,30 +261,60 @@ void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> invalidRegion)
         nvgLineStyle(nvg, NVG_LINE_SOLID);
     }
 
+    auto renderAllObjects = [this](NVGcontext* nvg, Rectangle<int> area)
+    {
+        ScopedLock objLock(objects.getLock());
+        for(auto* obj : objects)
+        {
+            nvgSave(nvg);
+            auto b = obj->getSafeBounds();
+            nvgTranslate(nvg, b.getX(), b.getY());
+            if(b.intersects(area)) {
+                obj->render(nvg);
+            }
+            nvgRestore(nvg);
+        }
+    };
+
+    auto renderConnections = [this](NVGcontext* nvg,  Rectangle<int> area)
+    {
+        ScopedLock connLock(connections.getLock());
+        for(auto* con : connections)
+        {
+            nvgSave(nvg);
+            if(con->getBounds().intersects(area))
+                con->render(nvg);
+            nvgRestore(nvg);
+        }
+    };
+
+    auto renderConnectionsBeingCreated = [this](NVGcontext* nvg)
+    {
+        ScopedLock connLock(connectionsBeingCreated.getLock());
+        for(auto* con : connectionsBeingCreated)
+        {
+            nvgSave(nvg);
+            con->render(nvg);
+            nvgRestore(nvg);
+        }
+    };
+
     // if canvas is a graph, or in presentation mode, don't render connections at all
     if (getValue<bool>(presentationMode)  || isGraph)
         renderAllObjects(nvg, invalidRegion);
     else {
         // render connections infront or behind objects depending on lock mode or overlay setting
         if (connectionsBehind) {
-            renderAllConnections(nvg, invalidRegion);
+            renderConnections(nvg, invalidRegion);
             renderAllObjects(nvg, invalidRegion);
         } else {
             renderAllObjects(nvg, invalidRegion);
-            renderAllConnections(nvg, invalidRegion);
+            renderConnections(nvg, invalidRegion);
         }
     }
-    /*ALEXCONREFACTOR
-    {
-        ScopedLock connLock(connectionsBeingCreated.getLock());
-        for(auto* connection : connectionsBeingCreated)
-        {
-            nvgSave(nvg);
-            connection->render(nvg);
-            nvgRestore(nvg);
-        }
-    }
-    */
+
+    renderConnectionsBeingCreated(nvg);
+
     objectGrid.render(nvg);
     
     if(lasso.isVisible()) {
@@ -303,33 +333,6 @@ void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> invalidRegion)
     }
     
     nvgRestore(nvg);
-}
-
-void Canvas::renderAllObjects(NVGcontext* nvg, Rectangle<int> area)
-{
-    ScopedLock objLock(objects.getLock());
-    for(auto* obj : objects)
-    {
-        nvgSave(nvg);
-        auto b = obj->getSafeBounds();
-        nvgTranslate(nvg, b.getX(), b.getY());
-        if(b.intersects(area)) {
-            obj->render(nvg);
-        }
-        nvgRestore(nvg);
-    }
-}
-void Canvas::renderAllConnections(NVGcontext* nvg, Rectangle<int> area)
-{
-    ScopedLock connLock(connections.getLock());
-    for(auto* connection : connections)
-    {
-        nvgSave(nvg);
-        if(connection->getBounds().intersects(area)) {
-            connection->render(nvg);
-        }
-        nvgRestore(nvg);
-    }
 }
 
 void Canvas::propertyChanged(String const& name, var const& value)

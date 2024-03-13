@@ -81,9 +81,6 @@ public:
 
     void resized() override;
 
-    void renderAllObjects(NVGcontext* nvg, Rectangle<int> area);
-    void renderAllConnections(NVGcontext* nvg, Rectangle<int> area);
-
     int getOverlays() const;
     void updateOverlays();
 
@@ -182,6 +179,7 @@ public:
     SelectedItemSet<WeakReference<Component>> selectedComponents;
     OwnedArray<Object, CriticalSection> objects;
     OwnedArray<Connection, CriticalSection> connections;
+    OwnedArray<Connection, CriticalSection> connectionsBeingCreated;
 
     Value locked = SynchronousValue();
     Value commandLocked;

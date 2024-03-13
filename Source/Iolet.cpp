@@ -159,7 +159,7 @@ void Iolet::startConnection()
 {
     std::cout << "starting connection" << std::endl;
     cnv->hideAllActiveEditors();
-    cnv->connections.add(new Connection(cnv, this));
+    cnv->connectionsBeingCreated.add(new Connection(cnv, this));
 }
 
 void Iolet::mouseDown(MouseEvent const& e)
@@ -174,14 +174,7 @@ void Iolet::mouseUp(MouseEvent const& e)
 
     std::cout << "mouse up on iolet" << std::endl;
 
-    // remove temp connections regardless if they are successful or not
-    for (int i = cnv->connections.size() - 1; i >= 0; --i) {
-        auto con = cnv->connections[i];
-        if (con->inobj == nullptr)
-            cnv->connections.removeObject(con, true);
-        else
-            break;
-    }
+    cnv->connectionsBeingCreated.clear();
 
     cnv->connectingWithDrag = false;
     mouseIsDown = false;
