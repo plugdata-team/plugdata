@@ -27,6 +27,20 @@ using namespace gl;
 
 #include "Utility/SettingsFile.h"
 
+struct FrameSync : public Timer
+{
+    FrameSync(std::function<void()> callback) : cb(callback) {
+        startTimerHz(60);
+    };
+    
+    void timerCallback() override
+    {
+        cb();
+    }
+    
+    std::function<void()> cb;
+};
+
 // Special viewport that shows scrollbars on top of content instead of next to it
 class CanvasViewport : public Viewport, public Timer
 {
@@ -393,7 +407,7 @@ public:
 
         
         // TODO: do this in a better place
-        MessageManager::callAsync([this, cnv](){
+        MessageManager::callAsync([this](){
             attachGLContext();
             initialiseNVG();
         });
@@ -776,9 +790,14 @@ private:
     ViewportScrollBar vbar = ViewportScrollBar(true, this);
     ViewportScrollBar hbar = ViewportScrollBar(false, this);
 
+    /* TODO: rendering on vblank causes glitches with framebuffers, I wonder why...
     VBlankAttachment vBlankAttachment = { this, [this] {
-                                            glContext->makeActive();
-                                            renderOpenGL();
-                                            glContext->swapBuffers();
-                                        } };
+
+    }}; */
+    
+    FrameSync framesync = {[this]{
+        glContext->makeActive();
+        renderOpenGL();
+        glContext->swapBuffers();
+    }};
 };
