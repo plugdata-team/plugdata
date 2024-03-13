@@ -360,7 +360,7 @@ void PluginEditor::initialiseCanvasRenderer()
                 glContext->detach();
                 openGLView.setVisible(false);
             }
-            else {
+            else if(hasCanvas && glContext->isAttached()) {
                 glContext->swapBuffers();
             }
             
