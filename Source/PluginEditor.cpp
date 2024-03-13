@@ -326,8 +326,8 @@ void PluginEditor::initialiseCanvasRenderer()
     addChildComponent(openGLView);
     
     MessageManager::callAsync([this](){
-        // Render on vblank
-        vBlankAttachment = std::make_unique<VBlankAttachment>(&openGLView, [this]{
+        
+        auto renderLoop = [this]{
             bool hasCanvas = false;
             for(auto* split : splitView.splits)
             {
@@ -364,7 +364,19 @@ void PluginEditor::initialiseCanvasRenderer()
                 glContext->swapBuffers();
             }
             
+        };
+#if JUCE_MAC
+        // Render on vblank
+        vBlankAttachment = std::make_unique<VBlankAttachment>(&openGLView, [this, renderLoop]{
+            renderLoop();
         });
+#else
+        // Render on vblank
+        frameSync = std::make_unique<FrameSync>(&openGLView, [this, renderLoop]{
+            renderLoop();
+        });
+#endif
+
     });
 }
 
