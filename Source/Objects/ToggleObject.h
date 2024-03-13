@@ -77,7 +77,6 @@ public:
         auto untoggledColour = convertColour(iemHelper.getForegroundColour().interpolatedWith(iemHelper.getBackgroundColour(), 0.8f));
         auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
         auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
-        auto internalLineColour = convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 

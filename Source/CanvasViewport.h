@@ -424,7 +424,7 @@ public:
         int scaledWidth = getWidth() * pixelScale;
         int scaledHeight = getHeight() * pixelScale;
         
-        auto splitPosition = glContext->getTargetComponent()->getLocalPoint(this, Point<int>(0, 0)) * pixelScale;
+        auto splitPosition = glContext->getTargetComponent()->getLocalPoint(this, Point<int>(0, 0)).x * pixelScale;
         
         if(framebuffer.getWidth() != scaledWidth || framebuffer.getHeight() != scaledHeight || !framebuffer.isValid()) {
             framebuffer.initialise(*glContext, scaledWidth, scaledHeight);
@@ -434,7 +434,7 @@ public:
         if(cnv->isScrolling) // If we're scrolling or zooming, everything gets invalidated so we may as well bypass invaldation
         {
             cnv->updateNVGFramebuffers(nvg, getLocalBounds());
-            glViewport(splitPosition.x, splitPosition.y, scaledWidth, scaledHeight);
+            glViewport(splitPosition, 0, scaledWidth, scaledHeight);
             renderFrame(nvg, getLocalBounds());
             renderPerfMeter(nvg);
             return;
@@ -447,19 +447,18 @@ public:
             glViewport(0, 0, scaledWidth, scaledHeight); // TODO: it's more efficient if we only viewport the current invalidated area, but our rounded rect shader hates it
             renderFrame(nvg, invalidated);
             framebuffer.releaseAsRenderingTarget();
+        }
+        
+        if(framebuffer.isValid()) {
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.getFrameBufferID());
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
             
-            if(framebuffer.isValid()) {
-                glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.getFrameBufferID());
-                glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-                
-                glViewport(0, 0, scaledWidth, scaledHeight);
-                glBlitFramebuffer(0, 0, scaledWidth, scaledHeight, 0, 0, scaledWidth, scaledHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-                
-                renderPerfMeter(nvg);
-                
-                glBindFramebuffer(GL_FRAMEBUFFER, 0);
-                editor->swapBuffer = true;
-            }
+            glViewport(0, 0, scaledWidth, scaledHeight);
+            glBlitFramebuffer(0, 0, scaledWidth, scaledHeight, splitPosition, 0, splitPosition + scaledWidth, scaledHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+            
+            renderPerfMeter(nvg);
+            
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
         }
     }
     

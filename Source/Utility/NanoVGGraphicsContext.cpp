@@ -510,6 +510,8 @@ bool NanoVGGraphicsContext::loadFont (const juce::String& name, const char* ptr,
         std::cerr << "Unable to load " << name << "\n";
         return false;
     }
+    
+    return false;
 }
 
 bool NanoVGGraphicsContext::loadFontFromResources (const juce::String& typefaceName)
