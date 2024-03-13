@@ -186,7 +186,6 @@ void Canvas::updateNVGFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion
     }
 }
 
-
 void Canvas::render(NVGcontext* nvg)
 {
     reinterpret_cast<CanvasViewport*>(viewport.get())->render(nvg);

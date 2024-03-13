@@ -319,46 +319,46 @@ void PluginEditor::initialiseCanvasRenderer()
     glContext = std::make_unique<OpenGLContext>();
     glContext->setOpenGLVersionRequired(OpenGLContext::OpenGLVersion::openGL3_2);
     glContext->setMultisamplingEnabled(false);
-    glContext->attachTo(openGLView);
     glContext->setSwapInterval(0);
     
     openGLView.setInterceptsMouseClicks(false, false);
     openGLView.setWantsKeyboardFocus(false);
-    addAndMakeVisible(openGLView);
+    addChildComponent(openGLView);
     
     MessageManager::callAsync([this](){
-        nvg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
-        if (!nvg) std::cerr << "could not initialise nvg" << std::endl;
-        
-        nvgCreateFontMem(nvg, "Inter", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);
-        nvgCreateFontMem(nvg, "Inter-Regular", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);
-        nvgCreateFontMem(nvg, "Inter-Bold", (unsigned char*)BinaryData::InterBold_ttf, BinaryData::InterBold_ttfSize, 0);
-        nvgCreateFontMem(nvg, "Inter-Semibold", (unsigned char*)BinaryData::InterSemiBold_ttf, BinaryData::InterSemiBold_ttfSize, 0);
-        nvgCreateFontMem(nvg, "Inter-Thin", (unsigned char*)BinaryData::InterThin_ttf, BinaryData::InterThin_ttfSize, 0);
-        
         // Render on vblank
         vBlankAttachment = std::make_unique<VBlankAttachment>(&openGLView, [this]{
-            if(!glContext->isAttached() || !glContext->makeActive())
-            {
-                //openGLView.setVisible(true);
-                //glContext->attachTo(openGLView);
-                return; // render on next call
-            }
-            
             bool hasCanvas = false;
             for(auto* split : splitView.splits)
             {
                 if(auto* cnv = split->getTabComponent()->getCurrentCanvas())
                 {
-                    cnv->render(nvg);
+                    if(glContext->makeActive()) cnv->render(nvg);
                     hasCanvas = true;
                 }
             }
             
-            if(!hasCanvas && glContext->isAttached())
+            if(hasCanvas && !glContext->isAttached())
             {
-                //glContext->detach();
-                //openGLView.setVisible(false);
+                openGLView.setVisible(true);
+                glContext->attachTo(openGLView);
+                
+                if(nvg) nvgDeleteGL3(nvg);
+                nvg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
+                if (!nvg) std::cerr << "could not initialise nvg" << std::endl;
+                
+                nvgCreateFontMem(nvg, "Inter", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);
+                nvgCreateFontMem(nvg, "Inter-Regular", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);
+                nvgCreateFontMem(nvg, "Inter-Bold", (unsigned char*)BinaryData::InterBold_ttf, BinaryData::InterBold_ttfSize, 0);
+                nvgCreateFontMem(nvg, "Inter-Semibold", (unsigned char*)BinaryData::InterSemiBold_ttf, BinaryData::InterSemiBold_ttfSize, 0);
+                nvgCreateFontMem(nvg, "Inter-Thin", (unsigned char*)BinaryData::InterThin_ttf, BinaryData::InterThin_ttfSize, 0);
+            }
+            else if(!hasCanvas && glContext->isAttached())
+            {
+                nvgDeleteGL3(nvg);
+                nvg = nullptr;
+                glContext->detach();
+                openGLView.setVisible(false);
             }
             else {
                 glContext->swapBuffers();
