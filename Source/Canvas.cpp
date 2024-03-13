@@ -312,6 +312,9 @@ void Canvas::renderAllObjects(NVGcontext* nvg, Rectangle<int> area)
             obj->render(nvg);
         }
         nvgRestore(nvg);
+        
+        // Draw label in canvas coordinates
+        obj->renderLabel(nvg);
     }
 }
 void Canvas::renderAllConnections(NVGcontext* nvg, Rectangle<int> area)

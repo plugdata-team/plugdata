@@ -1295,6 +1295,18 @@ void Object::renderIolets(NVGcontext* nvg)
     }
 }
 
+void Object::renderLabel(NVGcontext* nvg)
+{
+    if(gui)
+    {
+        if(auto* label = gui->getLabel())
+        {
+            nvgTranslate(nvg, label->getX(), label->getY());
+            label->render(nvg);
+        }
+    }
+}
+
 // Returns true is the object is showing its initial editor, and doesn't have a GUI yet
 bool Object::isInitialEditorShown()
 {

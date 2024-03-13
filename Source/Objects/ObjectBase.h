@@ -22,16 +22,21 @@ class Patch;
 
 class Object;
 
-class ObjectLabel : public Label {
+class ObjectLabel : public Label, public NVGComponent {
 
 public:
-    explicit ObjectLabel()
+    explicit ObjectLabel() : NVGComponent(static_cast<Component&>(*this))
     {
         setJustificationType(Justification::centredLeft);
         setBorderSize(BorderSize<int>(0, 0, 0, 0));
         setMinimumHorizontalScale(0.2f);
         setEditable(false, false);
         setInterceptsMouseClicks(false, false);
+    }
+    
+    void render(NVGcontext* nvg)
+    {
+        renderComponentFromImage(nvg, *this, 2.0f);
     }
 
 private:
