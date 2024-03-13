@@ -514,7 +514,6 @@ public:
             nvgTranslate(nvg, 0, offsetY);
             nvgScissor (nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
 
-            // If the lock was not gained, don't clear the canvas background, just let it render the old frame again
             nvgBeginPath(nvg);
             nvgFillColor(nvg, nvgRGB(0, 0, 0));
             nvgRect(nvg, 0, 0, width, height);

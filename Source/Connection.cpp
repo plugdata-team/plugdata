@@ -1472,7 +1472,7 @@ void Connection::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int n
 
 void ConnectionBeingCreated::render(NVGcontext* nvg)
 {
-    auto start = cnv->getLocalPoint((Component*)iolet->object, iolet->getSafeBounds().toFloat().getCentre());
+    auto start = cnv->getLocalPoint((Component*)iolet->object, iolet->getBounds().toFloat().getCentre());
     auto end = dynamic_cast<Canvas*>(cnv)->getLastMousePosition().toFloat();
     
     auto lineColour = cnv->findColour(PlugDataColour::dataColourId).brighter(0.6f);

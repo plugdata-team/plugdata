@@ -247,7 +247,7 @@ void Object::mouseMove(MouseEvent const& e)
     }
 
     int zone = 0;
-    auto b = getSafeLocalBounds().toFloat().reduced(margin - 2);
+    auto b = getLocalBounds().toFloat().reduced(margin - 2);
     if (b.contains(e.position)
         && !b.reduced(7).contains(e.position)) {
         auto corners = getCorners();
@@ -428,7 +428,7 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
 
 Array<Rectangle<float>> Object::getCorners() const
 {
-    auto rect = getSafeLocalBounds().reduced(margin);
+    auto rect = getLocalBounds().reduced(margin);
     float const offset = 2.0f;
 
     Array<Rectangle<float>> corners = { Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopLeft().toFloat()).translated(offset, offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomLeft().toFloat()).translated(offset, -offset),
@@ -1124,7 +1124,7 @@ void Object::mouseDrag(MouseEvent const& e)
 void Object::updateFramebuffer(NVGcontext* nvg)
 {
     if(cnv->isScrolling) {
-        auto b = getSafeLocalBounds();
+        auto b = getLocalBounds();
         auto scale = 3.0f * cnv->pixelScale;
         bool boundsChanged = b.getWidth() != fbWidth || b.getHeight() != fbHeight;
         if(fbDirty || boundsChanged)
@@ -1170,7 +1170,7 @@ void Object::render(NVGcontext* nvg)
     if(cnv->isScrolling && fb)
     {
         if(!getCachedComponentImage()) setCachedComponentImage(new InvalidationListener(this));
-        auto b = getSafeLocalBounds();
+        auto b = getLocalBounds();
         nvgBeginPath(nvg);
         nvgRect(nvg, 0, 0, b.getWidth(), b.getHeight());
         nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, b.getWidth(), b.getHeight(), 0, fb->image, 1));
@@ -1184,7 +1184,7 @@ void Object::render(NVGcontext* nvg)
 
 void Object::performRender(NVGcontext* nvg)
 {
-    auto b = getSafeLocalBounds().reduced(margin);
+    auto b = getLocalBounds().reduced(margin);
     auto selectedOutlineColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
 
     if (selectedFlag) {

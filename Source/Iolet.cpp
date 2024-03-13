@@ -45,12 +45,12 @@ Iolet::Iolet(Object* parent, bool inlet)
 Rectangle<int> Iolet::getCanvasBounds()
 {
     // Get bounds relative to canvas, used for positioning connections
-    return getSafeBounds() + object->getSafeBounds().getPosition();
+    return getBounds() + object->getBounds().getPosition();
 }
 
 void Iolet::render(NVGcontext* nvg)
 {
-    auto bounds = getSafeLocalBounds().toFloat().reduced(0.5f);
+    auto bounds = getLocalBounds().toFloat().reduced(0.5f);
 
     bool isLocked = getValue<bool>(locked) || getValue<bool>(commandLocked);
     bool over = getCanvasBounds().contains(cnv->getLastMousePosition());
@@ -90,7 +90,7 @@ void Iolet::render(NVGcontext* nvg)
         
         if(!(overObject || over || isTargeted) || isLocked)
         {
-            auto clipBounds = getLocalArea(object, object->getSafeLocalBounds().reduced(Object::margin));
+            auto clipBounds = getLocalArea(object, object->getLocalBounds().reduced(Object::margin));
             nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
         }
         

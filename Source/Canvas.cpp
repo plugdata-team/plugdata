@@ -179,7 +179,7 @@ void Canvas::updateNVGFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion
     if(viewport) invalidRegion = (invalidRegion + viewport->getViewPosition()) / getValue<float>(zoomScale);
     for(auto* obj : objects)
     {
-        auto b = obj->getSafeBounds();
+        auto b = obj->getBounds();
         if(b.intersects(invalidRegion)) {
             obj->updateFramebuffer(nvg);
         }
@@ -306,7 +306,7 @@ void Canvas::renderAllObjects(NVGcontext* nvg, Rectangle<int> area)
     for(auto* obj : objects)
     {
         nvgSave(nvg);
-        auto b = obj->getSafeBounds();
+        auto b = obj->getBounds();
         nvgTranslate(nvg, b.getX(), b.getY());
         if(b.intersects(area)) {
             obj->render(nvg);
