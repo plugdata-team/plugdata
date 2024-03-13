@@ -6,6 +6,15 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_processors/juce_audio_processors.h>
+
+#include <juce_opengl/juce_opengl.h>
+using namespace juce::gl;
+
+#define NANOVG_GL3_IMPLEMENTATION
+#include <nanovg.h>
+#include <nanovg_gl.h>
+#include <nanovg_gl_utils.h>
+
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
 #include "Utility/OSUtils.h"
@@ -173,7 +182,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
          }) {
         addAndMakeVisible(button);
     }
-
+    
     // Show settings
     mainMenuButton.setTooltip("Main menu");
     mainMenuButton.onClick = [this]() {
@@ -289,16 +298,55 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 #if JUCE_IOS
     addAndMakeVisible(touchSelectionHelper.get());
 #endif
+    
+    initialiseCanvasRenderer();
 }
 
 PluginEditor::~PluginEditor()
 {
+    glContext->detach();
+    
     pd->savePatchTabPositions();
     theme.removeListener(this);
 
     if (auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent())) {
         ProjectInfo::closeWindow(window); // Make sure plugdatawindow gets cleaned up
     }
+}
+
+void PluginEditor::initialiseCanvasRenderer()
+{
+    glContext = std::make_unique<OpenGLContext>();
+    glContext->setOpenGLVersionRequired(OpenGLContext::OpenGLVersion::openGL3_2);
+    glContext->setMultisamplingEnabled(false);
+    glContext->attachTo(openGLView);
+    glContext->setSwapInterval(0);
+    
+    openGLView.setInterceptsMouseClicks(false, false);
+    openGLView.setWantsKeyboardFocus(false);
+    addAndMakeVisible(openGLView);
+    
+    MessageManager::callAsync([this](){
+        nvg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
+        if (!nvg) std::cerr << "could not initialise nvg" << std::endl;
+        
+        nvgCreateFontMem(nvg, "Inter", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);
+        nvgCreateFontMem(nvg, "Inter-Regular", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);
+        nvgCreateFontMem(nvg, "Inter-Bold", (unsigned char*)BinaryData::InterBold_ttf, BinaryData::InterBold_ttfSize, 0);
+        nvgCreateFontMem(nvg, "Inter-Semibold", (unsigned char*)BinaryData::InterSemiBold_ttf, BinaryData::InterSemiBold_ttfSize, 0);
+        nvgCreateFontMem(nvg, "Inter-Thin", (unsigned char*)BinaryData::InterThin_ttf, BinaryData::InterThin_ttfSize, 0);
+        
+        vBlankAttachment = std::make_unique<VBlankAttachment>(&openGLView, [this]{
+            glContext->makeActive();
+            for(auto* split : splitView.splits)
+            {
+                if(auto* cnv = split->getTabComponent()->getCurrentCanvas())
+                {
+                    cnv->render(nvg);
+                }
+            }
+        });
+    });
 }
 
 SplitView* PluginEditor::getSplitView()
@@ -416,7 +464,12 @@ void PluginEditor::resized()
     auto workAreaHeight = getHeight() - toolbarHeight - statusbar->getHeight();
 
     palettes->setBounds(0, toolbarHeight, palettes->getWidth(), workAreaHeight);
-    splitView.setBounds(paletteWidth, toolbarHeight, (getWidth() - sidebar->getWidth() - paletteWidth), workAreaHeight);
+    
+    auto workAreaBounds = Rectangle<int>(paletteWidth, toolbarHeight, (getWidth() - sidebar->getWidth() - paletteWidth), workAreaHeight);
+    
+    splitView.setBounds(workAreaBounds);
+    openGLView.setBounds(workAreaBounds.withTrimmedTop(30));
+    
     sidebar->setBounds(getWidth() - sidebar->getWidth(), toolbarHeight, sidebar->getWidth(), workAreaHeight);
 
     auto useLeftButtons = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");

@@ -13,6 +13,8 @@
 #include "Pd/WeakReference.h"
 #include "Utility/NVGComponent.h"
 
+#include <nanovg_gl_utils.h>
+
 #define ACTIVITY_UPDATE_RATE 15
 
 struct ObjectDragState;

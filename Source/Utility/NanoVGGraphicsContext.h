@@ -7,8 +7,6 @@
 #include <juce_opengl/juce_opengl.h>
 using namespace juce::gl;
 
-#include <nanovg_gl_utils.h>
-
 /**
     JUCE low level graphics context backed by nanovg.
 

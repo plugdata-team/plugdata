@@ -12,11 +12,6 @@ using namespace gl;
 
 #include <nanovg.h>
 
-#define NANOVG_GL3_IMPLEMENTATION
-// TODO: put these in a cpp file, because they can only be compiler once!
-#include <nanovg_gl.h>
-#include <nanovg_gl_utils.h>
-
 #include <utility>
 
 #include "Object.h"
@@ -42,7 +37,7 @@ struct FrameSync : public Timer
 };
 
 // Special viewport that shows scrollbars on top of content instead of next to it
-class CanvasViewport : public Viewport, public Timer
+class CanvasViewport : public Viewport, public Timer, public NVGComponent
 {
     // Attached to viewport so we can clean stuff up correctly
     struct ImageReleaseListener : public CachedComponentImage
@@ -53,7 +48,6 @@ class CanvasViewport : public Viewport, public Timer
         
         void paint(Graphics& g) override {
             if(viewport->stopRendering) {
-                viewport->contextChanged = true;
                 viewport->stopRendering = false; // If we get a paint event here, it means we should also be allowed to render from now on
                 viewport->invalidArea = viewport->getLocalBounds().withTrimmedTop(-10);
             }
@@ -74,7 +68,6 @@ class CanvasViewport : public Viewport, public Timer
         
         void releaseResources() override {
             viewport->stopRendering = true;
-            viewport->contextChanged = true;
         };
         
         CanvasViewport* viewport;
@@ -344,12 +337,12 @@ class CanvasViewport : public Viewport, public Timer
 
             nvgBeginPath(nvg);
             nvgRoundedRect(nvg, fullBounds.getX(), fullBounds.getY(), fullBounds.getWidth(), fullBounds.getHeight(), thumbCornerRadius);
-            nvgFillColor(nvg, NVGComponent::convertColour(fadeColour));
+            nvgFillColor(nvg, convertColour(fadeColour));
             nvgFill(nvg);
             
             nvgBeginPath(nvg);
             nvgRoundedRect(nvg, growingBounds.getX(), growingBounds.getY(), growingBounds.getWidth(), growingBounds.getHeight(), thumbCornerRadius);
-            nvgFillColor(nvg, isMouseDragging ? NVGComponent::convertColour(activeScrollbarColour) : NVGComponent::convertColour(scrollbarColour));
+            nvgFillColor(nvg, isMouseDragging ? convertColour(activeScrollbarColour) : convertColour(scrollbarColour));
             nvgFill(nvg);
 
         }
@@ -392,26 +385,12 @@ class CanvasViewport : public Viewport, public Timer
 
 public:
     CanvasViewport(PluginEditor* parent, Canvas* cnv)
-        : editor(parent)
+        : NVGComponent(static_cast<Component&>(*this))
+        , editor(parent)
         , cnv(cnv)
     {
-        if(!glContext) {
-            glContext = new OpenGLContext();
-            glContext->setOpenGLVersionRequired(OpenGLContext::OpenGLVersion::openGL4_1);
-            glContext->setSwapInterval(0);
-            glContext->setMultisamplingEnabled(false);
-            glContext->setComponentPaintingEnabled(false);
-            glContext->setContinuousRepainting(false);
-        }
+        glContext = editor->glContext.get();
         
-
-        
-        // TODO: do this in a better place
-        MessageManager::callAsync([this](){
-            attachGLContext();
-            initialiseNVG();
-        });
-       
         setScrollBarsShown(false, false);
 
         setPositioner(new ViewportPositioner(*this));
@@ -424,80 +403,20 @@ public:
 
         addAndMakeVisible(vbar);
         addAndMakeVisible(hbar);
+            
+        cnv->setCachedComponentImage(new InvalidationListener(this));
         setCachedComponentImage(new ImageReleaseListener(this));
     }
     
     ~CanvasViewport()
     {
         stopRendering = true;
-        glContext->detach();
-    }
-
-    void initialiseNVG()
-    {
-        //if(nvg) nvgDeleteGL3(nvg);
-        nvg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
-        if (!nvg)
-            std::cout << "could not init nvg" << std::endl;
-
-        //nvgWrapper.interFont = nvgCreateFont(nvg, "sans", "/Users/timschoen/Projecten/plugnvg/Data/InterSemiBold.ttf");
-        //if (nvgWrapper.interFont == -1)
-        //    std::cout << "could not init font" << std::endl;
-             
-         nvgCreateFontMem(nvg, "Inter", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);
-         nvgCreateFontMem(nvg, "Inter-Regular", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);
-         nvgCreateFontMem(nvg, "Inter-Bold", (unsigned char*)BinaryData::InterBold_ttf, BinaryData::InterBold_ttfSize, 0);
-         nvgCreateFontMem(nvg, "Inter-Semibold", (unsigned char*)BinaryData::InterSemiBold_ttf, BinaryData::InterSemiBold_ttfSize, 0);
-         nvgCreateFontMem(nvg, "Inter-Thin", (unsigned char*)BinaryData::InterThin_ttf, BinaryData::InterThin_ttfSize, 0);
     }
     
-    void attachGLContext()
+    void render(NVGcontext* nvg) override
     {
-        if(auto* holder = cnv->getParentComponent())
-        {
-            cnv->setCachedComponentImage(new InvalidationListener(this));
-            glContext->attachTo(*holder);
-            
-#if JUCE_LINUX
-            // Make sure only message thread has the context set as active
-            glContext->executeOnGLThread([](OpenGLContext& context){
-                // We get unpredictable behaviour if the context is active on multiple threads
-                OpenGLContext::deactivateCurrentContext();
-            }, true);
-#endif
-            glContext->makeActive();
-            
-            // swap interval needs to be set after the context has been created (here)
-            // if the GPU is nvidia, and gsync is active, this setting will be ignored, and swap interval of 1 will be used instead
-            // this should be fine if gsync is controlling the swap however, as the mouse will be synced to gsync also.
-            glContext->setSwapInterval(0);
-            contextChanged = true;
-            
-#if JUCE_MAC
-            glContext->makeActive();
-#endif
-            // Set up vBlankAttachment to render on vblank
-            // We must attach it to the holder, so it get vblanks for the correct peer
-            vBlankAttachment = std::make_unique<VBlankAttachment>(holder, [this]{
-                glContext->makeActive();
-                renderOpenGL();
-            });
-        }
-    }
-    
-#define ENABLE_PARIAL_REPAINT 1
-    
-    void renderOpenGL()
-    {
-
         if(stopRendering)
             return;
-        
-        if(glContext->getTargetComponent() != cnv->getParentComponent())
-        {
-            attachGLContext();
-            initialiseNVG();
-        }
         
         frameTimer.addFrameTime();
         
@@ -505,16 +424,19 @@ public:
         int scaledWidth = getWidth() * pixelScale;
         int scaledHeight = getHeight() * pixelScale;
         
-        if(contextChanged || framebuffer.getWidth() != scaledWidth || framebuffer.getHeight() != scaledHeight || !framebuffer.isValid()) {
+        auto splitPosition = glContext->getTargetComponent()->getLocalPoint(this, Point<int>(0, 0)) * pixelScale;
+        
+        if(framebuffer.getWidth() != scaledWidth || framebuffer.getHeight() != scaledHeight || !framebuffer.isValid()) {
             framebuffer.initialise(*glContext, scaledWidth, scaledHeight);
-            contextChanged = false;
+            invalidArea = getLocalBounds().withTrimmedTop(-10);
         }
         
         if(cnv->isScrolling) // If we're scrolling or zooming, everything gets invalidated so we may as well bypass invaldation
         {
             cnv->updateNVGFramebuffers(nvg, getLocalBounds());
-            renderFrame(getLocalBounds());
-            renderPerfMeter();
+            glViewport(splitPosition.x, splitPosition.y, scaledWidth, scaledHeight);
+            renderFrame(nvg, getLocalBounds());
+            renderPerfMeter(nvg);
             glContext->swapBuffers();
             return;
         }
@@ -523,16 +445,18 @@ public:
             invalidArea.clear();
 
             framebuffer.makeCurrentRenderingTarget();
-            renderFrame(invalidated);
+            glViewport(0, 0, scaledWidth, scaledHeight); // TODO: it's more efficient if we only viewport the current invalidated area, but our rounded rect shader hates it
+            renderFrame(nvg, invalidated);
             framebuffer.releaseAsRenderingTarget();
             
             if(framebuffer.isValid()) {
                 glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.getFrameBufferID());
                 glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-                glViewport(0, 0, scaledWidth, scaledHeight);
-                glBlitFramebuffer(0, 0, scaledWidth, scaledHeight, 0, 0, scaledWidth, scaledHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
                 
-                renderPerfMeter();
+                glViewport(0, 0, scaledWidth, scaledHeight);
+                glBlitFramebuffer(0, 0, scaledWidth, scaledHeight, splitPosition.x, splitPosition.y, scaledWidth, scaledHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+                
+                renderPerfMeter(nvg);
                 
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
                 glContext->swapBuffers();
@@ -540,7 +464,7 @@ public:
         }
     }
     
-    void renderPerfMeter()
+    void renderPerfMeter(NVGcontext* nvg)
     {
 #if JUCE_DEBUG // draw fps meters
         nvgBeginFrame(nvg, getWidth(), getHeight(), cnv->pixelScale);
@@ -551,17 +475,16 @@ public:
 #endif
     }
     
-    void renderFrame(Rectangle<int> const& invalidated)
+    void renderFrame(NVGcontext* nvg, Rectangle<int> const& invalidated)
     {
         float pixelScale = cnv->pixelScale;
         int width = getWidth();
         int height = getHeight();
         int scaledWidth = width * pixelScale;
         int scaledHeight = height * pixelScale;
+        auto splitPosition = glContext->getTargetComponent()->getLocalPoint(this, Point<int>(0, 0)) * pixelScale;
         
         realFrameTimer.addFrameTime();
-        
-        glViewport(0, 0, scaledWidth, scaledHeight);
         
         nvgBeginFrame(nvg, width, height, pixelScale);
         nvgTranslate(nvg, 0, viewportOffsetY);
@@ -572,7 +495,7 @@ public:
         nvgRect(nvg, 0, 0, width, height);
         nvgFill(nvg);
         
-        cnv->renderNVG(nvg, invalidated);
+        cnv->performRender(nvg, invalidated);
         
         nvgSave(nvg);
         nvgTranslate(nvg, vbar.getX(), vbar.getY());
@@ -733,9 +656,8 @@ public:
     std::function<void()> onScroll = []() {};
 
 private:
-    NVGcontext* nvg = nullptr;
-    static inline OpenGLContext* glContext = nullptr;
-    static inline OpenGLFrameBuffer framebuffer = OpenGLFrameBuffer();
+    OpenGLContext* glContext = nullptr;
+    OpenGLFrameBuffer framebuffer = OpenGLFrameBuffer();
     RectangleList<int> invalidArea;
     bool stopRendering = false;
     
@@ -801,7 +723,6 @@ private:
     
     uint32 lastFrameTime;
     std::atomic<int> lastWidth, lastHeight;
-    bool contextChanged = false;
         
     Time lastScrollTime;
     PluginEditor* editor;
@@ -811,7 +732,7 @@ private:
     ViewportScrollBar vbar = ViewportScrollBar(true, this);
     ViewportScrollBar hbar = ViewportScrollBar(false, this);
 
-    std::unique_ptr<VBlankAttachment> vBlankAttachment;
+    
     
 #if JUCE_LINUX
         int viewportOffsetY = 10;
