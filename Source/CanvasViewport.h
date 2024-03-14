@@ -440,7 +440,7 @@ public:
     
     void blitToWindow(NVGcontext* nvg)
     {
-        if(framebuffer.isValid()) {
+        if(framebuffer.isValid() && !cnv->isScrolling) {
             float pixelScale = cnv->pixelScale;
             int scaledWidth = getWidth() * pixelScale;
             int scaledHeight = getHeight() * pixelScale;
