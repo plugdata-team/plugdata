@@ -114,6 +114,10 @@ public:
     int getSignalData(t_float* output, int maxChannels);
 
 private:
+    enum CableType { DataCable, GemCable, SignalCable, MultichannelCable };
+
+    CableType cableType;
+
     void resizeToFit();
 
     void updateBounds();
@@ -170,6 +174,7 @@ private:
     Colour baseColour;
     Colour dataColour;
     Colour signalColour;
+    Colour gemColour;
     Colour handleColour;
     Colour shadowColour;
 

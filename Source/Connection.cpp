@@ -30,11 +30,14 @@ Connection::Connection(Canvas* parent, Iolet* start)
 {
     setInterceptsMouseClicks(false, true);
     //cnv->addMouseListener(this, true);
-    if (outlet)
+    if (outlet) {
+        cableType = outlet->isSignal ? SignalCable : DataCable;
         outlet->addMouseListener(this, true);
-    else
+    }
+    else {
+        cableType = inlet->isSignal ? SignalCable : DataCable;
         inlet->addMouseListener(this, true);
-
+    }
     cnv->connectionLayer.addAndMakeVisible(this);
 
     // init colours first time
@@ -47,6 +50,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     , outlet(s->isInlet ? e : s)
     , inobj(inlet->object)
     , outobj(outlet->object)
+    , cableType(outlet->isSignal ? SignalCable : DataCable)
     , cnv(parent)
     , ptr(parent->pd)
     , generateHitPath(true)
@@ -139,11 +143,11 @@ void Connection::changeListenerCallback(ChangeBroadcaster* source)
 
 void Connection::lookAndFeelChanged()
 {
-    baseColour = cnv->findColour(PlugDataColour::connectionColourId);
-    dataColour = cnv->findColour(PlugDataColour::dataColourId);
+    baseColour   = cnv->findColour(PlugDataColour::connectionColourId);
+    dataColour   = cnv->findColour(PlugDataColour::dataColourId);
     signalColour = cnv->findColour(PlugDataColour::signalColourId);
-    if (outlet)
-        handleColour = outlet->isSignal ? dataColour : signalColour;
+    gemColour    = cnv->findColour(PlugDataColour::gemColourId);
+    handleColour = cableType == DataCable ? dataColour : signalColour;
     shadowColour = findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.06f).withAlpha(0.24f);
 }
 
@@ -205,12 +209,14 @@ void Connection::render(NVGcontext* nvg)
     auto finalBaseColour = baseColour;
     if (inobj && outobj) {
         if (isSelected() || isMouseOver()) {
-
-            if (outlet->isSignal) {
+            switch(cableType) {
+            case SignalCable:
                 finalBaseColour = signalColour;
-            } else if (outlet->isGemState) {
-                finalBaseColour = cnv->findColour(PlugDataColour::gemColourId);
-            } else {
+                break;
+            case GemCable:
+                finalBaseColour = gemColour;
+                break;
+            default:
                 finalBaseColour = dataColour;
             }
         }
@@ -245,9 +251,26 @@ void Connection::render(NVGcontext* nvg)
         nvgStrokeWidth(nvg, 4.0f);
         nvgStroke(nvg);
 
+        if (cableType == SignalCable) {
+            nvgBeginPath(nvg);
+            nvgLineStyle(nvg, NVG_LINE_SOLID);
+            nvgMoveTo(nvg, start_.x, start_.y);
+            nvgBezierTo(nvg, cp1_.x, cp1_.y, cp2_.x, cp2_.y, end_.x, end_.y);
+            nvgStrokeColor(nvg, convertColour(shadowColour.withAlpha(1.0f)));
+            nvgLineCap(nvg, NVG_ROUND);
+            nvgStrokeWidth(nvg, 2.0f);
+            nvgStroke(nvg);
+        }
+        // FIXME: We should be able to reuse the same path, make sure to update nanovg to Blakes latest work
+        // otherwise only a path that is defined as NVG_LINE_DASHED will not have flipping bugs
+        nvgBeginPath(nvg);
         nvgStrokeColor(nvg, convertColour(finalBaseColour));
+        nvgLineStyle(nvg, cableType == SignalCable ? NVG_LINE_DASHED : NVG_LINE_SOLID);
+        nvgMoveTo(nvg, start_.x, start_.y);
+        nvgBezierTo(nvg, cp1_.x, cp1_.y, cp2_.x, cp2_.y, end_.x, end_.y);
         nvgStrokeWidth(nvg, 2.0f);
         nvgStroke(nvg);
+        nvgLineStyle(nvg, NVG_LINE_SOLID);
     };
     
     auto drawSegmentedConnection = [this, nvg, finalBaseColour](){
