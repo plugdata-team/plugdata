@@ -319,7 +319,6 @@ void PluginEditor::initialiseCanvasRenderer()
     glContext = std::make_unique<OpenGLContext>();
     glContext->setOpenGLVersionRequired(OpenGLContext::OpenGLVersion::openGL3_2);
     glContext->setMultisamplingEnabled(false);
-    glContext->setSwapInterval(0);
     
     openGLView.setInterceptsMouseClicks(false, false);
     openGLView.setWantsKeyboardFocus(false);
@@ -341,7 +340,11 @@ void PluginEditor::initialiseCanvasRenderer()
             if(hasCanvas && !glContext->isAttached())
             {
                 openGLView.setVisible(true);
+                openGLView.setInterceptsMouseClicks(false, false);
+                openGLView.setWantsKeyboardFocus(false);
+                openGLView.toBehind(&splitView);
                 glContext->attachTo(openGLView);
+                glContext->setSwapInterval(0); // It's very important this happens after attachTo. Otherwise, it will be terribly slow on Windows/Linux
                 
                 if(nvg) nvgDeleteGL3(nvg);
                 nvg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
