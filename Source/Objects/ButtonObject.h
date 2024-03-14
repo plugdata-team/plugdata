@@ -126,7 +126,45 @@ public:
 
         repaint();
     }
+    
+    void render(NVGcontext* nvg) override
+    {
+        auto b = getLocalBounds().toFloat();
+        
+        auto foregroundColour = convertColour(Colour::fromString(primaryColour.toString())); // TODO: this is some bad threading practice!
+        auto backgroundColour = convertColour(Colour::fromString(secondaryColour.toString()));
+        auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
+        auto internalLineColour = convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
 
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        
+        b = b.reduced(1);
+        auto const width = std::max(b.getWidth(), b.getHeight());
+        auto const sizeReduction = std::min(1.0f, getWidth() / 20.0f);
+        
+        float const lineOuter = 80.f * (width * 0.01f);
+        float const lineThickness = std::max(width * 0.06f, 1.5f) * sizeReduction;
+
+        auto outerBounds = b.reduced((width - lineOuter) * sizeReduction);
+        
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, outerBounds.getX(),outerBounds.getY(), outerBounds.getWidth(), outerBounds.getHeight(), Corners::objectCornerRadius * sizeReduction);
+        nvgStrokeColor(nvg, internalLineColour);
+        nvgStrokeWidth(nvg, lineThickness);
+        nvgStroke(nvg);
+        
+        // Fill ellipse if bangState is true
+        if (state) {
+            auto innerBounds = b.reduced((width - lineOuter + lineThickness) * sizeReduction);
+            nvgBeginPath(nvg);
+            nvgRoundedRect(nvg, innerBounds.getX(), innerBounds.getY(), innerBounds.getWidth(), innerBounds.getHeight(), (Corners::objectCornerRadius - 1) * sizeReduction);
+            nvgFillColor(nvg, foregroundColour);
+            nvgFill(nvg);
+        }
+    }
+
+    /*
     void paint(Graphics& g) override
     {
         auto const bounds = getLocalBounds().toFloat();
@@ -145,9 +183,9 @@ public:
 
         if (state) {
             g.setColour(Colour::fromString(primaryColour.toString()));
-            g.fillRoundedRectangle(bounds.reduced(6 * sizeReduction), Corners::objectCornerRadius * sizeReduction);
+            g.fillRoundedRectangle(, Corners::objectCornerRadius * sizeReduction);
         }
-    }
+    } */
 
     void valueChanged(Value& value) override
     {

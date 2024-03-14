@@ -118,15 +118,10 @@ public:
     {
         auto b = getLocalBounds().toFloat().reduced(0.5f);
 
-        nvgFillColor(nvg, convertColour(Colour::fromString(secondaryColour.toString())));
-        nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
-        nvgFill(nvg);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(Colour::fromString(secondaryColour.toString())), convertColour(object->findColour(PlugDataColour::objectOutlineColourId)), Corners::objectCornerRadius);
 
         auto dx = getWidth() * 0.125f;
         auto dy = getHeight() * 0.25f;
-
-
 
         nvgBeginPath(nvg);
         nvgStrokeColor(nvg, convertColour(Colour::fromString(gridColour.toString())));
