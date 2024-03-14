@@ -416,18 +416,6 @@ void ObjectBase::moveToBack()
 void ObjectBase::render(NVGcontext* nvg)
 {
     renderComponentFromImage(nvg, *this, getValue<float>(cnv->zoomScale) * 2);
-    
-    /* TODO: Maybe at some point we want to use a shader for this?
-    if(!objectBackgroundShader) {
-        objectBackgroundShader = std::make_unique<OpenGLShaderProgram>(*OpenGLContext::getCurrentContext());
-        objectBackgroundShader->addVertexShader(vertexShaderSource);
-        objectBackgroundShader->addFragmentShader(fragmentShaderSource);
-        objectBackgroundShader->link();
-    }
-    objectBackgroundShader->setUniform("size", 800.0f, 600.0f); // Window size
-    objectBackgroundShader->setUniform("radius", 0.1f);         // Corner radius
-    objectBackgroundShader->setUniform("rectColor", 1.0f, 0.0f, 0.0f); // Rectangle color (red)
-    objectBackgroundShader->use(); */
 }
 
 void ObjectBase::paint(Graphics& g)

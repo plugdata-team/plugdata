@@ -184,9 +184,9 @@ class ObjectsListBox : public ListBox
 
 public:
     explicit ObjectsListBox(PluginEditor* editor, pd::Library& library, std::function<void(bool shouldFade)> dismissMenu)
-        : editor(editor)
-        , bouncer(getViewport())
+        : bouncer(getViewport())
         , dismiss(dismissMenu)
+        , editor(editor)
     {
         setOutlineThickness(0);
         setRowHeight(45);

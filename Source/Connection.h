@@ -136,9 +136,9 @@ private:
     Array<SafePointer<Connection>> reconnecting;
     Rectangle<float> startReconnectHandle, endReconnectHandle, endCableOrderDisplay;
 
-    std::atomic<bool> selectedFlag = false;
-    std::atomic<bool> segmented = false;
-    std::atomic<bool> isHovering = false;
+    bool selectedFlag = false;
+    bool segmented = false;
+    bool isHovering = false;
     
     PathPlan currentPlan;
 

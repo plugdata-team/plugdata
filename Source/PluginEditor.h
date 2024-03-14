@@ -51,6 +51,8 @@ public:
     void paint(Graphics& g) override;
     void paintOverChildren(Graphics& g) override;
 
+    void initialiseCanvasRenderer();
+    
     bool isActiveWindow() override;
 
     void resized() override;
@@ -142,6 +144,12 @@ public:
     std::unique_ptr<ZoomLabel> zoomLabel;
 
     OfflineObjectRenderer offlineRenderer;
+    
+    NVGcontext* nvg = nullptr;
+    bool needsBufferSwap = false;
+    Component openGLView;
+    std::unique_ptr<OpenGLContext> glContext;
+    std::unique_ptr<VBlankAttachment> vBlankAttachment;
 
     // used to display callOutBoxes only in a safe area between top & bottom toolbars
     Component callOutSafeArea;
@@ -156,7 +164,6 @@ public:
     static ObjectThemeManager* getObjectManager() { return &objectManager; };
 
 private:
-    NVGcontext* nvg;
     float pixelScale = 2.0f;
     
     std::unique_ptr<TouchSelectionHelper> touchSelectionHelper;
@@ -185,6 +192,6 @@ private:
 
     // Used in standalone
     std::unique_ptr<MouseRateReducedComponent<ResizableBorderComponent>> borderResizer;
-
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginEditor)
 };

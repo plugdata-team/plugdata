@@ -113,13 +113,7 @@ public:
         auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
         auto internalLineColour = convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
 
-        nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
-        nvgFillColor(nvg, backgroundColour);
-        nvgFill(nvg);
-        nvgStrokeWidth(nvg, 1.f);
-        nvgStrokeColor(nvg, object->isSelected() ? selectedOutlineColour : outlineColour);
-        nvgStroke(nvg);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
         
         b = b.reduced(1);
         auto const width = std::max(b.getWidth(), b.getHeight());

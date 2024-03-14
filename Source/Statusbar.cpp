@@ -100,7 +100,6 @@ public:
     {
         onClick = [this, pd]() {
             auto selection = log2(getButtonText().upToLastOccurrenceOf("x", false, false).getIntValue());
-            auto* editor = findParentComponentOfClass<PluginEditor>();
 
             auto oversampleSettings = std::make_unique<OversampleSettingsPopup>(selection);
 
@@ -565,7 +564,6 @@ public:
             auto cpuHistory = std::make_unique<CPUMeterPopup>(cpuUsage, cpuUsageLongHistory);
             updateCPUGraph = cpuHistory->getUpdateFunc();
             updateCPUGraphLong = cpuHistory->getUpdateFuncLongHistory();
-            auto editor = findParentComponentOfClass<PluginEditor>();
 
             cpuHistory->onClose = [this]() {
                 updateCPUGraph = []() { return; };

@@ -72,6 +72,8 @@ Object::Object(pd::WeakReference object, Canvas* parent)
 
 Object::~Object()
 {
+    if(fb) nvgluDeleteFramebuffer(fb);
+    
     hideEditor(); // Make sure the editor is not still open, that could lead to issues with listeners attached to the editor (i.e. suggestioncomponent)
     cnv->selectedComponents.removeChangeListener(this);
 }
@@ -116,7 +118,6 @@ void Object::initialise()
     originalBounds.setBounds(0, 0, 0, 0);
 
     updateOverlays(cnv->getOverlays());
-    setCachedComponentImage(new InvalidationListener(this));
 }
 
 void Object::timerCallback()
@@ -221,7 +222,8 @@ bool Object::hitTest(int x, int y)
 // To make iolets show/hide
 void Object::mouseEnter(MouseEvent const& e)
 {
-    for (auto* iolet : iolets)
+    drawIoletExpanded = true;
+    for (auto& iolet : iolets) // TODO: maybe group this?
         iolet->repaint();
 }
 
@@ -231,8 +233,8 @@ void Object::mouseExit(MouseEvent const& e)
     // otherwise it can have an old zone already selected on re-entry
     resizeZone = ResizableBorderComponent::Zone(ResizableBorderComponent::Zone::centre);
     validResizeZone = false;
-
-    for (auto* iolet : iolets)
+    drawIoletExpanded = false;
+    for (auto& iolet : iolets)
         iolet->repaint();
 }
 
@@ -245,7 +247,7 @@ void Object::mouseMove(MouseEvent const& e)
     }
 
     int zone = 0;
-    auto b = getSafeLocalBounds().toFloat().reduced(margin - 2);
+    auto b = getLocalBounds().toFloat().reduced(margin - 2);
     if (b.contains(e.position)
         && !b.reduced(7).contains(e.position)) {
         auto corners = getCorners();
@@ -426,7 +428,7 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
 
 Array<Rectangle<float>> Object::getCorners() const
 {
-    auto rect = getSafeLocalBounds().reduced(margin);
+    auto rect = getLocalBounds().reduced(margin);
     float const offset = 2.0f;
 
     Array<Rectangle<float>> corners = { Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopLeft().toFloat()).translated(offset, offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomLeft().toFloat()).translated(offset, -offset),
@@ -1122,7 +1124,7 @@ void Object::mouseDrag(MouseEvent const& e)
 void Object::updateFramebuffer(NVGcontext* nvg)
 {
     if(cnv->isScrolling) {
-        auto b = getSafeLocalBounds();
+        auto b = getLocalBounds();
         auto scale = 3.0f * cnv->pixelScale;
         bool boundsChanged = b.getWidth() != fbWidth || b.getHeight() != fbHeight;
         if(fbDirty || boundsChanged)
@@ -1167,33 +1169,33 @@ void Object::render(NVGcontext* nvg)
 {
     if(cnv->isScrolling && fb)
     {
-        auto b = getSafeLocalBounds();
+        if(!getCachedComponentImage()) setCachedComponentImage(new InvalidationListener(this));
+        auto b = getLocalBounds();
         nvgBeginPath(nvg);
         nvgRect(nvg, 0, 0, b.getWidth(), b.getHeight());
         nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, b.getWidth(), b.getHeight(), 0, fb->image, 1));
         nvgFill(nvg);
     }
     else {
+        if(getCachedComponentImage()) setCachedComponentImage(nullptr);
         performRender(nvg);
     }
 }
 
 void Object::performRender(NVGcontext* nvg)
 {
-    auto b = getSafeLocalBounds().reduced(margin);
+    auto b = getLocalBounds().reduced(margin);
     auto selectedOutlineColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
 
     if (selectedFlag) {
         nvgFillColor(nvg, selectedOutlineColour);
         for(auto& corner : getCorners())
         {
-            nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, corner.getX(), corner.getY(), corner.getWidth(), corner.getHeight(), Corners::objectCornerRadius);
-            nvgFill(nvg);
+            nvgDrawRoundedRect(nvg, corner.getX(), corner.getY(), corner.getWidth(), corner.getHeight(), selectedOutlineColour, selectedOutlineColour, Corners::objectCornerRadius);
         }
     }
     
-    if(showActiveState && !approximatelyEqual(activeStateAlpha.load(), 0.0f))
+    if(showActiveState && !approximatelyEqual(activeStateAlpha, 0.0f))
     {
         auto cTransparent = nvgRGBAf(0, 0, 0, 0);
         auto cGlow = convertColour(findColour(PlugDataColour::dataColourId).withAlpha(activeStateAlpha));
@@ -1290,6 +1292,20 @@ void Object::renderIolets(NVGcontext* nvg)
         nvgTranslate(nvg, iolet->getX(), iolet->getY());
         iolet->render(nvg);
         nvgRestore(nvg);
+    }
+}
+
+void Object::renderLabel(NVGcontext* nvg)
+{
+    if(gui)
+    {
+        if(auto* label = gui->getLabel())
+        {
+            nvgSave(nvg);
+            nvgTranslate(nvg, label->getX(), label->getY());
+            label->render(nvg);
+            nvgRestore(nvg);
+        }
     }
 }
 

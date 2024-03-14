@@ -410,7 +410,7 @@ void NanoVGGraphicsContext::setFont (const juce::Font& f)
     currentGlyphToCharMap = &loadedFonts[name];
 
     nvgFontFace (nvg, name.toUTF8());
-    nvgFontSize (nvg, font.getHeight() - 2.25f);
+    nvgFontSize (nvg, font.getHeight()  * 0.85f);
     nvgTextLetterSpacing(nvg, -0.275f);
 }
 
@@ -510,6 +510,8 @@ bool NanoVGGraphicsContext::loadFont (const juce::String& name, const char* ptr,
         std::cerr << "Unable to load " << name << "\n";
         return false;
     }
+    
+    return false;
 }
 
 bool NanoVGGraphicsContext::loadFontFromResources (const juce::String& typefaceName)

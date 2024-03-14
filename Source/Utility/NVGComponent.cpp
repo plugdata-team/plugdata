@@ -6,31 +6,8 @@
 #include "nanovg.h"
 
 
-NVGComponent::NVGComponent(Component& comp) : component(comp), nvgLLGC(nullptr)
+NVGComponent::NVGComponent(Component& comp) : component(comp)
 {
-    moveListener.callback = [this](Rectangle<int> newBounds){
-        const ScopedLock lock(boundsLock);
-        safeComponentBounds = newBounds;
-    };
-    
-    comp.addComponentListener(&moveListener);
-}
-
-Rectangle<int> NVGComponent::getSafeBounds() const
-{
-    const ScopedLock lock(boundsLock);
-    return safeComponentBounds;
-}
-
-Rectangle<int> NVGComponent::getSafeLocalBounds() const
-{
-    const ScopedLock lock(boundsLock);
-    return safeComponentBounds.withZeroOrigin();
-}
-
-void NVGComponent::MoveListener::componentMovedOrResized (Component& component, bool wasMoved, bool wasResized)
-{
-    callback(component.getBounds());
 }
 
 void NVGComponent::renderComponentFromImage(NVGcontext* nvg, Component& component, float scale)

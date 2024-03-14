@@ -176,19 +176,28 @@ Canvas::~Canvas()
 
 void Canvas::updateNVGFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion)
 {
-    ScopedLock objLock(objects.getLock());
     if(viewport) invalidRegion = (invalidRegion + viewport->getViewPosition()) / getValue<float>(zoomScale);
     for(auto* obj : objects)
     {
-        auto b = obj->getSafeBounds();
+        auto b = obj->getBounds();
         if(b.intersects(invalidRegion)) {
             obj->updateFramebuffer(nvg);
         }
     }
 }
 
+void Canvas::render(NVGcontext* nvg)
+{
+    reinterpret_cast<CanvasViewport*>(viewport.get())->render(nvg);
+}
 
-void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> invalidRegion)
+void Canvas::finaliseRender(NVGcontext* nvg)
+{
+    reinterpret_cast<CanvasViewport*>(viewport.get())->blitToWindow(nvg);
+}
+
+// Callback from canvasViewport to perform actual rendering
+void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
 {
     auto backgroundColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId));
     auto dotsColour = convertColour(findColour(PlugDataColour::canvasDotsColourId));
@@ -247,17 +256,12 @@ void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> invalidRegion)
         nvgStrokeWidth(nvg, 6.0f);
         nvgStroke(nvg);
         
-        auto scissor = nvgCurrentScissor(nvg);
-        //nvgResetScissor(nvg);
-        
         // draw 0,0 point lines
         nvgLineStyle(nvg, NVG_LINE_DASHED);
         nvgStrokeColor(nvg, dotsColour);
         nvgStrokeWidth(nvg, 1.0f);
         nvgStroke(nvg);
-        
-        //nvgScissor(nvg, scissor.x, scissor.y, scissor.w, scissor.h);
-        
+
         nvgLineStyle(nvg, NVG_LINE_SOLID);
     }
 
@@ -275,21 +279,19 @@ void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> invalidRegion)
         }
     }
 
+    for(auto* connection : connectionsBeingCreated)
     {
-        ScopedLock connLock(connectionsBeingCreated.getLock());
-        for(auto* connection : connectionsBeingCreated)
-        {
-            nvgSave(nvg);
-            connection->render(nvg);
-            nvgRestore(nvg);
-        }
+        nvgSave(nvg);
+        connection->render(nvg);
+        nvgRestore(nvg);
     }
     
     objectGrid.render(nvg);
     
-    if(lasso.isVisible()) {
-        auto lassoBounds = lasso.getBounds().toFloat().reduced(1.0f);
-        
+    if(lasso.isVisible() && !lasso.getBounds().isEmpty()) {
+        auto lassoBounds = lasso.getBounds().toFloat().reduced(0.5f);
+        auto smallestSide = lassoBounds.getWidth() < lassoBounds.getHeight() ? lassoBounds.getWidth() : lassoBounds.getHeight();
+
         auto fillColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.075f));
         auto outlineColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId).interpolatedWith(findColour(PlugDataColour::objectSelectedOutlineColourId), 0.65f));
         
@@ -298,7 +300,7 @@ void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> invalidRegion)
         nvgRect(nvg, lassoBounds.getX(), lassoBounds.getY(), lassoBounds.getWidth(), lassoBounds.getHeight());
         nvgFill(nvg);
         nvgStrokeColor(nvg, outlineColour);
-        nvgStrokeWidth(nvg, 1.0f);
+        nvgStrokeWidth(nvg, smallestSide < 1.0f ? 0.5f : 1.0f); // if one of the sides is smaller than 1px, we need to adjust the stroke width to prevent drawing out of bounds
         nvgStroke(nvg);
     }
     
@@ -307,21 +309,22 @@ void Canvas::renderNVG(NVGcontext* nvg, Rectangle<int> invalidRegion)
 
 void Canvas::renderAllObjects(NVGcontext* nvg, Rectangle<int> area)
 {
-    ScopedLock objLock(objects.getLock());
     for(auto* obj : objects)
     {
         nvgSave(nvg);
-        auto b = obj->getSafeBounds();
+        auto b = obj->getBounds();
         nvgTranslate(nvg, b.getX(), b.getY());
         if(b.intersects(area)) {
             obj->render(nvg);
         }
         nvgRestore(nvg);
+        
+        // Draw label in canvas coordinates
+        obj->renderLabel(nvg);
     }
 }
 void Canvas::renderAllConnections(NVGcontext* nvg, Rectangle<int> area)
 {
-    ScopedLock connLock(connections.getLock());
     for(auto* connection : connections)
     {
         nvgSave(nvg);
@@ -819,7 +822,7 @@ bool Canvas::autoscroll(MouseEvent const& e)
 
 Point<int> Canvas::getLastMousePosition()
 {
-    return {lastMouseX.load(), lastMouseY.load()};
+    return {lastMouseX, lastMouseY};
 }
 
 void Canvas::mouseUp(MouseEvent const& e)

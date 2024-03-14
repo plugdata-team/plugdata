@@ -13,6 +13,8 @@
 #include "Pd/WeakReference.h"
 #include "Utility/NVGComponent.h"
 
+#include <nanovg_gl_utils.h>
+
 #define ACTIVITY_UPDATE_RATE 15
 
 struct ObjectDragState;
@@ -55,6 +57,8 @@ public:
     void showEditor();
     void hideEditor();
     bool isInitialEditorShown();
+    
+    
         
     String getType() const;
 
@@ -76,6 +80,7 @@ public:
     void render(NVGcontext* nvg) override;
     void performRender(NVGcontext* nvg);
     void renderIolets(NVGcontext* nvg);
+    void renderLabel(NVGcontext* nvg);
 
     void mouseMove(MouseEvent const& e) override;
     void mouseDown(MouseEvent const& e) override;
@@ -109,6 +114,7 @@ public:
 
     OwnedArray<Iolet> iolets;
     ResizableBorderComponent::Zone resizeZone;
+    bool drawIoletExpanded = false;
 
     static inline constexpr int margin = 6;
 
@@ -131,7 +137,7 @@ private:
     bool checkIfHvccCompatible() const;
 
     void setSelected(bool shouldBeSelected);
-    std::atomic<bool> selectedFlag = false;
+    bool selectedFlag = false;
     bool selectionStateChanged = false;
 
     bool wasLockedOnMouseDown = false;
@@ -140,15 +146,14 @@ private:
     bool isGemObject = false;
 
     bool showActiveState = false;
-    std::atomic<float> activeStateAlpha = 0.0f;
+    float activeStateAlpha = 0.0f;
         
     NVGLUframebuffer* fb = nullptr;
-    std::atomic<bool> fbDirty = true;
+    bool fbDirty = true;
     int fbWidth, fbHeight;
     
     NVGpaint glow;
     bool glowDirty = true;
-
 
     bool isObjectMouseActive = false;
     bool isInsideUndoSequence = false;

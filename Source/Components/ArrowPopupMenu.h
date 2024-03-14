@@ -107,9 +107,11 @@ public:
             userCallback(result);
         });
 
+#if JUCE_MAC // TODO: broken Linux and Windows. Fix this!gi
         if (auto* popupMenuComponent = Component::getCurrentlyModalComponent(0)) {
             arrow->attachToMenu(popupMenuComponent, options.getParentComponent());
         }
+#endif
     }
         
     void componentBroughtToFront (Component& c) override
@@ -134,6 +136,7 @@ public:
             menuParent->addAndMakeVisible(this);
             setBounds(targetBounds.getUnion(menuTop));
         } else {
+            menuComponent->addAndMakeVisible(this);
             addToDesktop(ComponentPeer::windowIsTemporary);
             setBounds(targetComponent->getScreenBounds().getUnion(menuComponent->getScreenBounds().removeFromTop(menuMargin + 1)));
         }
