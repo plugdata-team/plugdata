@@ -39,7 +39,7 @@ public:
         auto menuMargin = getLookAndFeel().getPopupMenuBorderSize();
 
         // Apply a slight offset to the menu so we have enough space for the arrow...
-        menuToAttachTo->setBounds(menuToAttachTo->getBounds().expanded(15, menuMargin - 3));
+        menuToAttachTo->setBounds(menuToAttachTo->getBounds().translated(-15, menuMargin - 3));
     }
 
     void paint(Graphics& g) override
@@ -107,9 +107,11 @@ public:
             userCallback(result);
         });
 
+#if JUCE_MAC // TODO: broken Linux and Windows. Fix this!gi
         if (auto* popupMenuComponent = Component::getCurrentlyModalComponent(0)) {
             arrow->attachToMenu(popupMenuComponent, options.getParentComponent());
         }
+#endif
     }
         
     void componentBroughtToFront (Component& c) override
@@ -135,11 +137,8 @@ public:
             setBounds(targetBounds.getUnion(menuTop));
         } else {
             menuComponent->addAndMakeVisible(this);
-            auto targetBounds = menuComponent->getLocalArea(targetComponent, targetComponent->getLocalBounds());
-            auto menuTop = menuComponent->getLocalBounds().removeFromTop(menuMargin + 1);
-            
-            //addToDesktop(ComponentPeer::windowIsTemporary);
-            setBounds(targetBounds.getUnion(menuTop));
+            addToDesktop(ComponentPeer::windowIsTemporary);
+            setBounds(targetComponent->getScreenBounds().getUnion(menuComponent->getScreenBounds().removeFromTop(menuMargin + 1)));
         }
 
         menuBounds = getLocalArea(menuComponent.getComponent(), menuComponent->getLocalBounds());

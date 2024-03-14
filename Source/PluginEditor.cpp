@@ -369,10 +369,10 @@ void PluginEditor::initialiseCanvasRenderer()
                 glContext->detach();
                 openGLView.setVisible(false);
             }
-            else if(needsBufferSwap && hasCanvas && glContext->isAttached()) {
+            else if(needsBufferSwap && glContext->isAttached()) {
                 for(auto* cnv : renderTargets)
                 {
-                    cnv->blitToWindow(nvg);
+                    cnv->finaliseRender(nvg);
                 }
                 glContext->swapBuffers();
                 needsBufferSwap = false;
