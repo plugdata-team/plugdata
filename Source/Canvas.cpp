@@ -191,6 +191,11 @@ void Canvas::render(NVGcontext* nvg)
     reinterpret_cast<CanvasViewport*>(viewport.get())->render(nvg);
 }
 
+void Canvas::finaliseRender(NVGcontext* nvg)
+{
+    reinterpret_cast<CanvasViewport*>(viewport.get())->blitToWindow(nvg);
+}
+
 // Callback from canvasViewport to perform actual rendering
 void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
 {

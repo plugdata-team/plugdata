@@ -423,6 +423,7 @@ public:
             glViewport(splitPosition, 0, scaledWidth, scaledHeight);
             renderFrame(nvg, getLocalBounds());
             renderPerfMeter(nvg);
+            editor->needsBufferSwap = true;
             return;
         }
         else if(!invalidArea.isEmpty()) {
@@ -433,9 +434,18 @@ public:
             glViewport(0, 0, scaledWidth, scaledHeight); // TODO: it's more efficient if we only viewport the current invalidated area, but our rounded rect shader hates it
             renderFrame(nvg, invalidated);
             framebuffer.releaseAsRenderingTarget();
+            editor->needsBufferSwap = true;
         }
-        
+    }
+    
+    void blitToWindow(NVGcontext* nvg)
+    {
         if(framebuffer.isValid()) {
+            float pixelScale = cnv->pixelScale;
+            int scaledWidth = getWidth() * pixelScale;
+            int scaledHeight = getHeight() * pixelScale;
+            auto splitPosition = glContext->getTargetComponent()->getLocalPoint(this, Point<int>(0, 0)).x * pixelScale;
+            
             glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.getFrameBufferID());
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
             

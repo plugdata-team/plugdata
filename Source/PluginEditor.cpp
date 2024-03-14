@@ -327,17 +327,23 @@ void PluginEditor::initialiseCanvasRenderer()
     MessageManager::callAsync([this](){
         
         auto renderLoop = [this]{
-            bool hasCanvas = false;
+            Array<Canvas*> renderTargets;
             for(auto* split : splitView.splits)
             {
                 if(auto* cnv = split->getTabComponent()->getCurrentCanvas())
                 {
-                    if(glContext->makeActive()) cnv->render(nvg);
-                    hasCanvas = true;
+                    renderTargets.add(cnv);
+                }
+            }
+                    
+            if(glContext->makeActive()) {
+                for(auto* cnv : renderTargets)
+                {
+                    cnv->render(nvg);
                 }
             }
             
-            if(hasCanvas && !glContext->isAttached())
+            if(!renderTargets.isEmpty() && !glContext->isAttached())
             {
                 openGLView.setVisible(true);
                 openGLView.setInterceptsMouseClicks(false, false);
@@ -356,23 +362,25 @@ void PluginEditor::initialiseCanvasRenderer()
                 nvgCreateFontMem(nvg, "Inter-Semibold", (unsigned char*)BinaryData::InterSemiBold_ttf, BinaryData::InterSemiBold_ttfSize, 0);
                 nvgCreateFontMem(nvg, "Inter-Thin", (unsigned char*)BinaryData::InterThin_ttf, BinaryData::InterThin_ttfSize, 0);
             }
-            else if(!hasCanvas && glContext->isAttached())
+            else if(renderTargets.isEmpty() && glContext->isAttached())
             {
                 nvgDeleteGL3(nvg);
                 nvg = nullptr;
                 glContext->detach();
                 openGLView.setVisible(false);
             }
-            else if(hasCanvas && glContext->isAttached()) {
+            else if(needsBufferSwap && hasCanvas && glContext->isAttached()) {
+                for(auto* cnv : renderTargets)
+                {
+                    cnv->blitToWindow(nvg);
+                }
                 glContext->swapBuffers();
+                needsBufferSwap = false;
             }
-            
         };
 
         // Render on vblank
-        vBlankAttachment = std::make_unique<VBlankAttachment>(&openGLView, [this, renderLoop]{
-            renderLoop();
-        });
+        vBlankAttachment = std::make_unique<VBlankAttachment>(&openGLView, renderLoop);
     });
 }
 

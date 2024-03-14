@@ -146,6 +146,7 @@ public:
     OfflineObjectRenderer offlineRenderer;
     
     NVGcontext* nvg = nullptr;
+    bool needsBufferSwap = false;
     Component openGLView;
     std::unique_ptr<OpenGLContext> glContext;
     std::unique_ptr<VBlankAttachment> vBlankAttachment;
