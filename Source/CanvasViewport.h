@@ -427,7 +427,7 @@ public:
             return;
         }
         else if(!invalidArea.isEmpty()) {
-            auto invalidated = invalidArea.getBounds();
+            auto invalidated = invalidArea.getBounds().expanded(1);
             invalidArea.clear();
 
             framebuffer.makeCurrentRenderingTarget();
@@ -480,12 +480,7 @@ public:
         nvgBeginFrame(nvg, width, height, pixelScale);
         nvgTranslate(nvg, 0, viewportOffsetY);
         nvgScissor (nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
-        
-        nvgBeginPath(nvg);
-        nvgFillColor(nvg, nvgRGB(0, 0, 0));
-        nvgRect(nvg, 0, 0, width, height);
-        nvgFill(nvg);
-        
+
         cnv->performRender(nvg, invalidated);
         
         nvgSave(nvg);
