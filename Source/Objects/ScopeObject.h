@@ -111,6 +111,58 @@ public:
 
     void resized() override
     {
+
+    }
+
+    void render(NVGcontext* nvg) override
+    {
+        auto b = getLocalBounds().toFloat().reduced(0.5f);
+
+        nvgFillColor(nvg, convertColour(Colour::fromString(secondaryColour.toString())));
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+        nvgFill(nvg);
+
+        auto dx = getWidth() * 0.125f;
+        auto dy = getHeight() * 0.25f;
+
+
+
+        nvgBeginPath(nvg);
+        nvgStrokeColor(nvg, convertColour(Colour::fromString(gridColour.toString())));
+        nvgStrokeWidth(nvg, 1.0f);
+        auto xx = dx;
+        for (int i = 0; i < 7; i++) {
+            nvgMoveTo(nvg, xx, 0.0f);
+            nvgLineTo(nvg, xx, static_cast<float>(getHeight()));
+            xx += dx;
+        }
+
+        auto yy = dy;
+        for (int i = 0; i < 3; i++) {
+            nvgMoveTo(nvg, 0.0f, yy);
+            nvgLineTo(nvg, static_cast<float>(getWidth()), yy);
+            yy += dy;
+        }
+        nvgStroke(nvg);
+
+        nvgSave(nvg);
+        nvgScissor(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight());
+        if (!(y_buffer.empty() || x_buffer.empty())) {
+            nvgBeginPath(nvg);
+            nvgStrokeColor(nvg, convertColour(Colour::fromString(primaryColour.toString())));
+            nvgStrokeWidth(nvg, 2.0f);
+            nvgLineJoin(nvg, NVG_ROUND);
+            nvgLineCap(nvg, NVG_ROUND);
+
+            nvgMoveTo(nvg, x_buffer[1], y_buffer[1]);
+
+            for (size_t i = 2; i < y_buffer.size(); i++) {
+                nvgLineTo(nvg, x_buffer[i], y_buffer[i]);
+            }
+            nvgStroke(nvg);
+        }
+        nvgRestore(nvg);
     }
 
     void paint(Graphics& g) override
