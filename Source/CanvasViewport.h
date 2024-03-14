@@ -718,9 +718,9 @@ private:
     ViewportScrollBar vbar = ViewportScrollBar(true, this);
     ViewportScrollBar hbar = ViewportScrollBar(false, this);
     
-#if JUCE_LINUX
-        int viewportOffsetY = 10;
-#else
+#if JUCE_MAC
         int viewportOffsetY = 6;
+#else
+        int viewportOffsetY = 10;
 #endif
 };
