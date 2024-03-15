@@ -156,6 +156,81 @@ public:
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
+    
+    void render(NVGcontext* nvg) override
+    {
+        auto values = std::vector<float> { ptr.getRaw<t_vu>()->x_fp, ptr.getRaw<t_vu>()->x_fr };
+        auto backgroundColour = convertColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
+        auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
+        
+        int height = getHeight();
+        int width = getWidth();
+
+        nvgDrawRoundedRect(nvg, 0, 0, width, height, backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+
+        auto outerBorderWidth = 2.0f;
+        auto totalBlocks = 30;
+        auto spacingFraction = 0.05f;
+        auto doubleOuterBorderWidth = 2.0f * outerBorderWidth;
+
+        auto blockHeight = (height - doubleOuterBorderWidth) / static_cast<float>(totalBlocks);
+        auto blockWidth = width - doubleOuterBorderWidth;
+        auto blockRectHeight = (1.0f - 2.0f * spacingFraction) * blockHeight;
+        auto blockRectSpacing = spacingFraction * blockHeight;
+        auto blockCornerSize = 0.1f * blockHeight;
+
+        float rms = Decibels::decibelsToGain(values[1] - 12.0f);
+        float lvl = (float)std::exp(std::log(rms) / 3.0) * (rms > 0.002);
+        auto numBlocks = roundToInt(totalBlocks * lvl);
+
+        auto verticalGradient1 = nvgLinearGradient(nvg, 0, getHeight() * 0.25f, 0, getHeight() * 0.5f, nvgRGBAf(1, 0.5f, 0, 1), nvgRGBAf(0.26f, 0.64f, 0.78f, 1.0f));
+        auto verticalGradient2 = nvgLinearGradient(nvg, 0, 0, 0, getHeight() * 0.25f, nvgRGBAf(1, 0, 0, 1), nvgRGBAf(1, 0.5f, 0, 1));
+
+        for (auto i = 1; i < totalBlocks; ++i) {
+            NVGpaint gradient;
+            if (i >= numBlocks) {
+                nvgFillColor(nvg, nvgRGBAf(0.3f, 0.3f, 0.3f, 1.0f)); // Dark grey for inactive blocks
+            } else {
+                gradient = (i < totalBlocks * 0.75f) ? verticalGradient1 : verticalGradient2;
+                nvgFillPaint(nvg, gradient);
+            }
+
+            nvgBeginPath(nvg);
+            nvgRoundedRect(nvg, outerBorderWidth, outerBorderWidth + ((totalBlocks - i) * blockHeight) + blockRectSpacing, blockWidth, blockRectHeight, blockCornerSize);
+            nvgFill(nvg);
+        }
+
+        float peak = Decibels::decibelsToGain(values[0] - 12.0f);
+        float lvl2 = (float)std::exp(std::log(peak) / 3.0) * (peak > 0.002);
+        auto numBlocks2 = roundToInt(totalBlocks * lvl2);
+
+        nvgFillColor(nvg, nvgRGBAf(1, 1, 1, 1)); // White for the peak block
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, outerBorderWidth, outerBorderWidth + ((totalBlocks - numBlocks2) * blockHeight) + blockRectSpacing, blockWidth, blockRectHeight / 2.0f, blockCornerSize);
+        nvgFill(nvg);
+
+        // Get text value with 2 and 0 decimals
+        // Prevent going past -100 for size reasons
+        String textValue = String(std::max(values[1], -96.0f), 2);
+
+        if (width > nvgTextBounds(nvg, 0, 0, textValue.toRawUTF8(), nullptr, nullptr)) {
+            // Check noscale flag, otherwise display next to slider
+            nvgFontSize(nvg, 11);
+            nvgFontFace(nvg, "Inter-Regular");
+            nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+            nvgFillColor(nvg, nvgRGBAf(1, 1, 1, 1)); // White color
+            nvgText(nvg, width * 0.5f, height - 20, textValue.toRawUTF8(), nullptr);
+        } else {
+            // Fallback for smaller sizes
+            textValue = String(std::max(values[1], -96.0f), 0);
+            nvgFontSize(nvg, 11);
+            nvgFontFace(nvg, "Inter-Regular");
+            nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+            nvgFillColor(nvg, nvgRGBAf(1, 1, 1, 1)); // White color
+            nvgText(nvg, width * 0.5f, height - 20, textValue.toRawUTF8(), nullptr);
+        }
+    }
 
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {

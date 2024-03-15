@@ -349,9 +349,11 @@ void Sidebar::updateExtraSettingsButton()
         extraSettingsButton.reset(nullptr);
         return;
     }
-
-    addAndMakeVisible(*extraSettingsButton);
-    resized();
+    
+    if(!extraSettingsButton->isVisible()) {
+        addAndMakeVisible(*extraSettingsButton);
+        resized();
+    }
 }
 
 void Sidebar::hideParameters()

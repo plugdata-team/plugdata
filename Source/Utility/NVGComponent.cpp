@@ -6,7 +6,7 @@
 #include "nanovg.h"
 
 
-NVGComponent::NVGComponent(Component& comp) : component(comp)
+NVGComponent::NVGComponent(Component* comp) : component(*comp)
 {
 }
 

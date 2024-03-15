@@ -10,7 +10,7 @@ class ReversibleSlider : public Slider, public NVGComponent {
     bool isVertical;
 
 public:
-    ReversibleSlider() : NVGComponent(static_cast<Component&>(*this))
+    ReversibleSlider() : NVGComponent(this)
     {
         setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
         setTextBoxStyle(Slider::NoTextBox, 0, 0, 0);
@@ -91,11 +91,6 @@ public:
     void render(NVGcontext* nvg) override
     {
         auto b = getLocalBounds().toFloat().reduced(1.0f);
-
-        nvgFillColor(nvg, convertColour(findColour(Slider::backgroundColourId)));
-        nvgBeginPath(nvg);
-        nvgRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight());
-        nvgFill(nvg);
 
         constexpr auto thumbSize = 4.0f;
         auto cornerSize = Corners::objectCornerRadius / 2.0f;
@@ -344,22 +339,17 @@ public:
     void render(NVGcontext* nvg) override
     {
         auto b = getLocalBounds().toFloat().reduced(0.5f);
-
+        bool selected = object->isSelected() && !cnv->isGraph;
+        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+        
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(iemHelper.getBackgroundColour()), convertColour(outlineColour), Corners::objectCornerRadius);
+        
         nvgFillColor(nvg, convertColour(iemHelper.getBackgroundColour()));
         nvgBeginPath(nvg);
         nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
         nvgFill(nvg);
         
         slider.render(nvg);
-
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
-        nvgStrokeColor(nvg, convertColour(outlineColour));
-        nvgStrokeWidth(nvg, 1.0f);
-        nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
-        nvgStroke(nvg);
     }
 
     void resized() override

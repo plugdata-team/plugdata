@@ -7,7 +7,7 @@ class NVGComponent
     
 public:
             
-    NVGComponent(Component&);
+    NVGComponent(Component*);
     
     void renderComponentFromImage(NVGcontext* nvg, Component& component, float scale);
     

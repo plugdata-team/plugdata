@@ -16,7 +16,7 @@
 #include "LookAndFeel.h"
 
 Iolet::Iolet(Object* parent, bool inlet)
-    : NVGComponent(static_cast<Component&>(*this))
+    : NVGComponent(this)
     , object(parent)
     , insideGraph(parent->cnv->isGraph)
 {

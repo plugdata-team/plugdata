@@ -371,7 +371,7 @@ class CanvasViewport : public Viewport, public Timer, public NVGComponent
 
 public:
     CanvasViewport(PluginEditor* parent, Canvas* cnv)
-        : NVGComponent(static_cast<Component&>(*this))
+        : NVGComponent(this)
         , editor(parent)
         , cnv(cnv)
     {

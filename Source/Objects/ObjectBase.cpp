@@ -134,7 +134,7 @@ void ObjectBase::PropertyUndoListener::valueChanged(Value& v)
 }
 
 ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
-    : NVGComponent(static_cast<Component&>(*this))
+    : NVGComponent(this)
     , ptr(obj)
     , object(parent)
     , cnv(parent->cnv)

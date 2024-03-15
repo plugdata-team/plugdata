@@ -500,7 +500,7 @@ bool NanoVGGraphicsContext::loadFont (const juce::String& name, const char* ptr,
 {
     if (ptr != nullptr && size > 0)
     {
-        const int id = nvgCreateFontMem (nvg, name.toRawUTF8(),
+        nvgCreateFontMem (nvg, name.toRawUTF8(),
                                          (unsigned char*)ptr, size,
                                          0 // Tell nvg to take ownership of the font data
                                         );

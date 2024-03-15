@@ -36,7 +36,7 @@ extern "C" {
 }
 
 Object::Object(Canvas* parent, String const& name, Point<int> position)
-    : NVGComponent(static_cast<Component&>(*this))
+    : NVGComponent(this)
     , cnv(parent)
     , gui(nullptr)
     , ds(parent->dragState)
@@ -59,7 +59,7 @@ Object::Object(Canvas* parent, String const& name, Point<int> position)
 }
 
 Object::Object(pd::WeakReference object, Canvas* parent)
-    : NVGComponent(static_cast<Component&>(*this))
+    : NVGComponent(this)
     , gui(nullptr)
     , ds(parent->dragState)
 {
@@ -118,6 +118,8 @@ void Object::initialise()
     originalBounds.setBounds(0, 0, 0, 0);
 
     updateOverlays(cnv->getOverlays());
+    
+    setAccessible(false); // TODO: implement accessibility. We disable default, since it makes stuff slow on macOS
 }
 
 void Object::timerCallback()

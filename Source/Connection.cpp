@@ -21,7 +21,7 @@
 #include "Dialogs/ConnectionMessageDisplay.h"
 
 Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
-    : NVGComponent(static_cast<Component&>(*this))
+    : NVGComponent(this)
     , inlet(s->isInlet ? s : e)
     , outlet(s->isInlet ? e : s)
     , inobj(inlet->object)
@@ -80,6 +80,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     componentMovedOrResized(*inlet, true, true);
 
     updateOverlays(cnv->getOverlays());
+    setAccessible(false); // TODO: implement accessibility. We disable default, since it makes stuff slow on macOS
 }
 
 Connection::~Connection()

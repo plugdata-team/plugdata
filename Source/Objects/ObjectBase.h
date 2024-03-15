@@ -25,7 +25,7 @@ class Object;
 class ObjectLabel : public Label, public NVGComponent {
 
 public:
-    explicit ObjectLabel() : NVGComponent(static_cast<Component&>(*this))
+    explicit ObjectLabel() : NVGComponent(this)
     {
         setJustificationType(Justification::centredLeft);
         setBorderSize(BorderSize<int>(0, 0, 0, 0));

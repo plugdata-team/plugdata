@@ -210,7 +210,7 @@ public:
     
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat().reduced(0.5f).toFloat();
+        auto b = getLocalBounds().toFloat().reduced(0.5f);
         bool isSelected = object->isSelected() && !cnv->isGraph;
         auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
         auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));

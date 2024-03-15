@@ -31,7 +31,7 @@ void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 }
 
 Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
-    : NVGComponent(static_cast<Component&>(*this))
+    : NVGComponent(this)
     , editor(parent)
     , pd(parent->pd)
     , refCountedPatch(p)
