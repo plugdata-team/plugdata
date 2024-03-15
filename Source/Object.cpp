@@ -878,6 +878,8 @@ void Object::mouseDrag(MouseEvent const& e)
     if (e.mods.isMiddleButtonDown())
         return;
 
+    auto start = Time::getMillisecondCounter();
+
     beginDragAutoRepeat(25);
 
     if (validResizeZone && !originalBounds.isEmpty()) {
@@ -1121,7 +1123,11 @@ void Object::mouseDrag(MouseEvent const& e)
             }
         }
     }
+
+    auto end = Time::getMillisecondCounter();
+    std::cout << "Time: " << end - start << std::endl;
 }
+
 
 void Object::updateFramebuffer(NVGcontext* nvg)
 {

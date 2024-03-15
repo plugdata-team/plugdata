@@ -43,7 +43,7 @@ class CanvasViewport : public Viewport, public Timer, public NVGComponent
         
         bool invalidate (const Rectangle<int>& rect) override
         {
-            viewport->invalidArea.add(rect);
+            viewport->invalidArea = rect.getUnion(viewport->invalidArea);
             return false;
         }
         
@@ -72,7 +72,8 @@ class CanvasViewport : public Viewport, public Timer, public NVGComponent
         bool invalidate (const Rectangle<int>& rect) override
         {
             // Translate from canvas coords to viewport coords as float to prevent rounding errors
-            viewport->invalidArea.add(viewport->getLocalArea(viewport->cnv, rect.toFloat()).getSmallestIntegerContainer());
+            auto invalidatedBounds = viewport->getLocalArea(viewport->cnv, rect.toFloat()).getSmallestIntegerContainer();
+            viewport->invalidArea = invalidatedBounds.getUnion(viewport->invalidArea);
             return false;
         }
         
@@ -427,8 +428,8 @@ public:
             return;
         }
         else if(!invalidArea.isEmpty()) {
-            auto invalidated = invalidArea.getBounds().expanded(1);
-            invalidArea.clear();
+            auto invalidated = invalidArea.expanded(1);
+            invalidArea = Rectangle<int>(0, 0, 0, 0);
 
             framebuffer.makeCurrentRenderingTarget();
             glViewport(0, 0, scaledWidth, scaledHeight); // TODO: it's more efficient if we only viewport the current invalidated area, but our rounded rect shader hates it
@@ -644,7 +645,7 @@ public:
 private:
     OpenGLContext* glContext = nullptr;
     OpenGLFrameBuffer framebuffer = OpenGLFrameBuffer();
-    RectangleList<int> invalidArea;
+    Rectangle<int> invalidArea;
     bool stopRendering = false;
     
     struct FrameTimer
