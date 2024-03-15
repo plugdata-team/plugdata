@@ -135,6 +135,8 @@ private:
     void openNewObjectEditor();
 
     bool checkIfHvccCompatible() const;
+    
+    bool shouldRenderToFramebuffer();
 
     void setSelected(bool shouldBeSelected);
     bool selectedFlag = false;

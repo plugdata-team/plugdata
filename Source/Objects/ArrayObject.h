@@ -1231,10 +1231,11 @@ public:
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
         
+        /* TODO: implement when porting array render
         if(auto graph = ptr.get<t_glist>())
         {
             GraphOnParent::drawTicksForGraph(g, graph.get(), this);
-        }
+        } */
     }
 
     std::vector<void*> getArrays() const

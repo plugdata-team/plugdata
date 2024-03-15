@@ -183,6 +183,14 @@ void Canvas::updateNVGFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion
         if(b.intersects(invalidRegion)) {
             obj->updateFramebuffer(nvg);
         }
+        if(obj->gui)
+        {
+            // Update framebuffers inside graphs
+            if(auto* cnv = obj->gui->getCanvas())
+            {
+                cnv->updateNVGFramebuffers(nvg, cnv->getLocalBounds());
+            }
+        }
     }
 }
 
@@ -216,13 +224,16 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     nvgScale(nvg, zoom, zoom);
     invalidRegion /= zoom;
     
-    nvgBeginPath(nvg);
-    nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
+    if(viewport) {
+        nvgBeginPath(nvg);
+        nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
+        
+        nvgFillColor(nvg, backgroundColour);
+        nvgFill(nvg);
+    }
     
-    nvgFillColor(nvg, backgroundColour);
-    nvgFill(nvg);
     
-    if(!getValue<bool>(locked)) {
+    if(viewport && !getValue<bool>(locked)) {
         auto feather = pixelScale > 1.0f ? 0.25f : 0.75f;
         if(getValue<float>(zoomScale) >= 1.0f) {
             nvgSave(nvg);
@@ -259,7 +270,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         }
     }
 
-    if(showOrigin || showBorder) {
+    if(viewport && (showOrigin || showBorder)) {
         nvgBeginPath(nvg);
         
         auto borderWidth = getValue<float>(patchWidth);
@@ -326,8 +337,8 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     
     objectGrid.render(nvg);
     
-    if(lasso.isVisible() && !lasso.getBounds().isEmpty()) {
-        auto lassoBounds = lasso.getBounds().toFloat().reduced(0.5f);
+    if(viewport && lasso.isVisible() && !lasso.getBounds().isEmpty()) {
+        auto lassoBounds = lasso.getBounds().toFloat().reduced(1.0f);
         auto smallestSide = lassoBounds.getWidth() < lassoBounds.getHeight() ? lassoBounds.getWidth() : lassoBounds.getHeight();
 
         auto fillColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.075f));

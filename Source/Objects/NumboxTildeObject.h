@@ -243,23 +243,28 @@ public:
         ptr.get<t_fake_numbox>()->x_bg = pd->generateSymbol("#" + colour.substring(2));
         repaint();
     }
-
-    void paintOverChildren(Graphics& g) override
+        
+    void render(NVGcontext* nvg) override
     {
-        auto iconBounds = Rectangle<int>(2, 0, getHeight(), getHeight());
-        Fonts::drawIcon(g, mode ? Icons::ThinDown : Icons::Sine, iconBounds, object->findColour(PlugDataColour::dataColourId));
-    }
-
-    void paint(Graphics& g) override
-    {
-        g.setColour(Colour::fromString(secondaryColour.toString()));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
-
+        auto b = getLocalBounds().toFloat().reduced(0.5f);
+        auto backgroundColour = Colour::fromString(secondaryColour.toString());
         bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(backgroundColour), convertColour(outlineColour), Corners::objectCornerRadius);
+        
+        nvgSave(nvg);
+        nvgTranslate(nvg, input.getX(), input.getY());
+        renderComponentFromImage(nvg, input, ::getValue<float>(cnv->zoomScale) * 2);
+        nvgRestore(nvg);
+                     
+        auto icon = mode ? Icons::ThinDown : Icons::Sine;
+        auto iconBounds = Rectangle<int>(7, 3, getHeight(), getHeight());
+        nvgFontFace(nvg, "Icon");
+        nvgFontSize(nvg, 12.0f);
+        nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::dataColourId)));
+        nvgTextAlign(nvg, NVG_ALIGN_TOP | NVG_ALIGN_LEFT);
+        nvgText(nvg, iconBounds.getX(), iconBounds.getY(), icon.toRawUTF8(), nullptr);
     }
 
     void timerCallback() override

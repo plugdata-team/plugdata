@@ -413,8 +413,10 @@ public:
         
         auto splitPosition = glContext->getTargetComponent()->getLocalPoint(this, Point<int>(0, 0)).x * pixelScale;
         
-        if(framebuffer.getWidth() != scaledWidth || framebuffer.getHeight() != scaledHeight || !framebuffer.isValid()) {
-            framebuffer.initialise(*glContext, scaledWidth, scaledHeight);
+        if(fbWidth != scaledWidth || fbHeight != scaledHeight || !framebuffer) {
+            framebuffer = nvgluCreateFramebuffer(nvg, scaledWidth, scaledHeight, 0);
+            fbWidth = scaledWidth;
+            fbHeight = scaledHeight;
             invalidArea = getLocalBounds().withTrimmedTop(-10);
         }
         
@@ -430,32 +432,40 @@ public:
         else if(!invalidArea.isEmpty()) {
             auto invalidated = invalidArea.expanded(1);
             invalidArea = Rectangle<int>(0, 0, 0, 0);
+            
+            cnv->updateNVGFramebuffers(nvg, invalidated);
 
-            framebuffer.makeCurrentRenderingTarget();
+            nvgluBindFramebuffer(framebuffer);
             glViewport(0, 0, scaledWidth, scaledHeight); // TODO: it's more efficient if we only viewport the current invalidated area, but our rounded rect shader hates it
+
+            nvgRect(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
+            nvgFillColor(nvg, nvgRGBA(0, 0, 0, 0));
+            nvgFill(nvg);
+            
             renderFrame(nvg, invalidated);
-            framebuffer.releaseAsRenderingTarget();
+            nvgluBindFramebuffer(nullptr);
             editor->needsBufferSwap = true;
         }
     }
     
     void blitToWindow(NVGcontext* nvg)
     {
-        if(framebuffer.isValid() && !cnv->isScrolling) {
+        if(framebuffer && !cnv->isScrolling) {
             float pixelScale = cnv->pixelScale;
             int scaledWidth = getWidth() * pixelScale;
             int scaledHeight = getHeight() * pixelScale;
             auto splitPosition = glContext->getTargetComponent()->getLocalPoint(this, Point<int>(0, 0)).x * pixelScale;
             
-            glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.getFrameBufferID());
-            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-            
-            glViewport(0, 0, scaledWidth, scaledHeight);
-            glBlitFramebuffer(0, 0, scaledWidth, scaledHeight, splitPosition, 0, splitPosition + scaledWidth, scaledHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-            
-            renderPerfMeter(nvg);
-            
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glViewport(splitPosition, 0, scaledWidth, scaledHeight);
+            nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
+            nvgBeginPath(nvg);
+            nvgRect(nvg, 0, 0, getWidth(), getHeight());
+            nvgScissor(nvg, 0, 0, getWidth(), getHeight());
+            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, framebuffer->image, 1));
+            nvgFill(nvg);
+            nvgEndFrame(nvg);
+
+            //renderPerfMeter(nvg);
         }
     }
     
@@ -630,8 +640,6 @@ public:
 
         auto offset = currentCentre - newCentre;
         setViewPosition(getViewPosition() + offset);
-        lastHeight = getHeight();
-        lastWidth = getWidth();
     }
 
     // Never respond to arrow keys, they have a different meaning
@@ -643,11 +651,7 @@ public:
     std::function<void()> onScroll = []() {};
 
 private:
-    OpenGLContext* glContext = nullptr;
-    OpenGLFrameBuffer framebuffer = OpenGLFrameBuffer();
-    Rectangle<int> invalidArea;
-    bool stopRendering = false;
-    
+
     struct FrameTimer
     {
     public:
@@ -705,12 +709,13 @@ private:
         double startTime = 0;
     };
     
-    FrameTimer frameTimer;
-    FrameTimer realFrameTimer;
+    OpenGLContext* glContext = nullptr;
+    //OpenGLFrameBuffer framebuffer = OpenGLFrameBuffer();
+    Rectangle<int> invalidArea;
+    bool stopRendering = false;
+    NVGLUframebuffer* framebuffer;
+    int fbWidth = 0, fbHeight = 0;
     
-    uint32 lastFrameTime;
-    std::atomic<int> lastWidth, lastHeight;
-        
     Time lastScrollTime;
     PluginEditor* editor;
     Canvas* cnv;
@@ -718,6 +723,9 @@ private:
     MousePanner panner = MousePanner(this);
     ViewportScrollBar vbar = ViewportScrollBar(true, this);
     ViewportScrollBar hbar = ViewportScrollBar(false, this);
+    
+    FrameTimer frameTimer;
+    FrameTimer realFrameTimer;
     
 #if JUCE_MAC
         int viewportOffsetY = 6;

@@ -131,7 +131,7 @@ public:
     {
         auto b = getLocalBounds().toFloat();
         
-        auto foregroundColour = convertColour(Colour::fromString(primaryColour.toString())); // TODO: this is some bad threading practice!
+        auto foregroundColour = convertColour(Colour::fromString(primaryColour.toString()));
         auto backgroundColour = convertColour(Colour::fromString(secondaryColour.toString()));
         auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
         auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));

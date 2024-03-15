@@ -75,7 +75,8 @@ void Iolet::render(NVGcontext* nvg)
 
     auto outlineColour = findColour(PlugDataColour::objectOutlineColourId);
     
-    auto scissor = nvgCurrentScissor(nvg);
+
+    nvgSave(nvg);
     if(!(overObject || over || isTargeted) || isLocked)
     {
         auto clipBounds = getLocalArea(object, object->getLocalBounds().reduced(Object::margin));
@@ -97,7 +98,7 @@ void Iolet::render(NVGcontext* nvg)
     }
     
     // Reset original scissor
-    nvgScissor(nvg, scissor.x, scissor.y, scissor.w, scissor.h);
+    nvgRestore(nvg);
 }
 
 bool Iolet::hitTest(int x, int y)

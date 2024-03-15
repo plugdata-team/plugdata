@@ -26,8 +26,6 @@
 
 #include "Pd/Patch.h"
 
-#define USE_OBJECT_FRAMEBUFFER 0
-
 extern "C" {
 #include <m_pd.h>
 //#include <m_imp.h>
@@ -1124,7 +1122,7 @@ void Object::mouseDrag(MouseEvent const& e)
 
 void Object::updateFramebuffer(NVGcontext* nvg)
 {
-    if(cnv->isScrolling) {
+    if(shouldRenderToFramebuffer()) {
         auto b = getLocalBounds();
         auto scale = 3.0f * cnv->pixelScale;
         bool boundsChanged = b.getWidth() != fbWidth || b.getHeight() != fbHeight;
@@ -1139,7 +1137,7 @@ void Object::updateFramebuffer(NVGcontext* nvg)
                 fbHeight = b.getHeight();
                 
                 if(fb) nvgluDeleteFramebuffer(fb);
-                fb = nvgluCreateFramebuffer(nvg, scaledWidth, scaledHeight, NVG_IMAGE_PREMULTIPLIED);
+                fb = nvgluCreateFramebuffer(nvg, scaledWidth, scaledHeight, 0);
             }
             
             nvgluBindFramebuffer(fb);
@@ -1166,9 +1164,16 @@ void Object::updateFramebuffer(NVGcontext* nvg)
     }
 }
 
+bool Object::shouldRenderToFramebuffer()
+{
+    // We render to framebuffer if we are scrolling, but also for all graphs
+    // This is so that we can call glViewport before rendering a graph, which seems to reduce GPU cost
+    return cnv->isScrolling || (gui && gui->getCanvas());
+}
+
 void Object::render(NVGcontext* nvg)
 {
-    if(cnv->isScrolling && fb)
+    if(fb && shouldRenderToFramebuffer())
     {
         if(!getCachedComponentImage()) setCachedComponentImage(new InvalidationListener(this));
         auto b = getLocalBounds();
@@ -1288,6 +1293,8 @@ void Object::performRender(NVGcontext* nvg)
 
 void Object::renderIolets(NVGcontext* nvg)
 {
+    if(cnv->isGraph) return;
+    
     for (auto* iolet : iolets) {
         nvgSave(nvg);
         nvgTranslate(nvg, iolet->getX(), iolet->getY());

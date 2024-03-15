@@ -17,7 +17,10 @@ void NVGComponent::renderComponentFromImage(NVGcontext* nvg, Component& componen
     
     Graphics g(*nvgLLGC);
     {
+        nvgSave(nvg);
+        nvgScissor(nvg, 0, 0, component.getWidth(), component.getHeight());
         component.paintEntireComponent(g, true);
+        nvgRestore(nvg); // (in case it applies transformations)
     }
     
     /*

@@ -615,6 +615,7 @@ void Connection::forceUpdate()
 
 void Connection::paint(Graphics& g)
 {
+    return;
     if(g.isClipEmpty()) return;
 
     renderConnectionPath(g,
