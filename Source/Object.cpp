@@ -878,10 +878,6 @@ void Object::mouseDrag(MouseEvent const& e)
     if (e.mods.isMiddleButtonDown())
         return;
 
-    auto start = Time::getMillisecondCounter();
-
-    beginDragAutoRepeat(25);
-
     if (validResizeZone && !originalBounds.isEmpty()) {
 
         auto draggedBounds = resizeZone.resizeRectangleBy(originalBounds, e.getOffsetFromDragStart());
@@ -1123,9 +1119,6 @@ void Object::mouseDrag(MouseEvent const& e)
             }
         }
     }
-
-    auto end = Time::getMillisecondCounter();
-    std::cout << "Time: " << end - start << std::endl;
 }
 
 
