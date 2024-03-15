@@ -257,7 +257,6 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             
             nvgRestore(nvg);
         }
-
     }
 
     if(showOrigin || showBorder) {
@@ -266,32 +265,42 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         auto borderWidth = getValue<float>(patchWidth);
         auto borderHeight = getValue<float>(patchHeight);
         auto pos = Point<int>(halfSize, halfSize);
-
-        nvgMoveTo(nvg, pos.x, pos.y + (showOrigin ? halfSize : borderHeight));
-        nvgLineTo(nvg, pos.x, pos.y);
+        
+        // Origin line paths. Draw both from {0, 0} so the strokes touch at the origin
+        nvgMoveTo(nvg, pos.x, pos.y);
+        nvgLineTo(nvg, pos.x, pos.y + (showOrigin ? halfSize : borderHeight));
+        nvgMoveTo(nvg, pos.x, pos.y);
         nvgLineTo(nvg, pos.x + (showOrigin ? halfSize : borderWidth), pos.y);
         
         if(showBorder)
         {
-            nvgMoveTo(nvg, pos.x + borderWidth, pos.y);
-            nvgLineTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
+            nvgMoveTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
+            nvgLineTo(nvg, pos.x + borderWidth, pos.y);
+            nvgMoveTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
             nvgLineTo(nvg, pos.x, pos.y + borderHeight);
         }
         
         // place solid line behind (to fake removeing grid points for now)
-        
         nvgLineStyle(nvg, NVG_LINE_SOLID);
         nvgStrokeColor(nvg, backgroundColour);
         nvgStrokeWidth(nvg, 6.0f);
         nvgStroke(nvg);
         
         // draw 0,0 point lines
+        nvgLineCap(nvg, NVG_SQUARE);
         nvgLineStyle(nvg, NVG_LINE_DASHED);
         nvgStrokeColor(nvg, dotsColour);
-        nvgStrokeWidth(nvg, 1.0f);
+        nvgStrokeWidth(nvg, 1.5f);
         nvgStroke(nvg);
-
+        
+        // Connect origin lines at {0, 0}
+        nvgBeginPath(nvg);
+        nvgMoveTo(nvg, pos.x + 2.0f, pos.y);
+        nvgLineTo(nvg, pos.x, pos.y);
+        nvgLineTo(nvg, pos.x, pos.y + 2.0f);
         nvgLineStyle(nvg, NVG_LINE_SOLID);
+        nvgStrokeWidth(nvg, 1.25f);
+        nvgStroke(nvg);
     }
 
     // if canvas is a graph, or in presentation mode, don't render connections at all
