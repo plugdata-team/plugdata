@@ -223,7 +223,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     nvgFill(nvg);
     
     if(!getValue<bool>(locked)) {
-        auto feather = pixelScale > 1.0f ? 0.1f : 0.4f;
+        auto feather = pixelScale > 1.0f ? 0.25f : 0.75f;
         if(getValue<float>(zoomScale) >= 1.0f) {
             nvgSave(nvg);
             nvgTranslate(nvg, canvasOrigin.x % objectGrid.gridSize, canvasOrigin.y % objectGrid.gridSize); // Make sure grid aligns with origin
@@ -240,7 +240,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             {
                 nvgTranslate(nvg, objectGrid.gridSize, 0);
 
-                NVGpaint dots = nvgDotPattern(nvg, i == 0 ? darkDotColour : dotsColour, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize * 4, feather);
+                NVGpaint dots = nvgDotPattern(nvg, i == 3 ? darkDotColour : dotsColour, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize * 4, feather + 0.2f);
                 nvgFillPaint(nvg, dots);
                 nvgFill(nvg);
             }
@@ -250,7 +250,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             for(int i = 0; i < 4; i++)
             {
                 nvgTranslate(nvg, 0, objectGrid.gridSize);
-                NVGpaint dots = nvgDotPattern(nvg, i == 0 ? darkDotColour : dotsColour, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize * 4, feather);
+                NVGpaint dots = nvgDotPattern(nvg, i == 3 ? darkDotColour : dotsColour, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize * 4, feather + 0.2f);
                 nvgFillPaint(nvg, dots);
                 nvgFill(nvg);
             }
