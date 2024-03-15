@@ -223,12 +223,41 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     nvgFill(nvg);
     
     if(!getValue<bool>(locked)) {
-        nvgSave(nvg);
-        nvgTranslate(nvg, canvasOrigin.x % objectGrid.gridSize, canvasOrigin.y % objectGrid.gridSize); // Make sure grid aligns with origin
-        NVGpaint dots = nvgDotPattern(nvg, dotsColour, backgroundColour, objectGrid.gridSize);
-        nvgFillPaint(nvg, dots);
-        nvgFill(nvg);
-        nvgRestore(nvg);
+        auto feather = pixelScale > 1.0f ? 0.1f : 0.4f;
+        if(getValue<float>(zoomScale) >= 1.0f) {
+            nvgSave(nvg);
+            nvgTranslate(nvg, canvasOrigin.x % objectGrid.gridSize, canvasOrigin.y % objectGrid.gridSize); // Make sure grid aligns with origin
+            NVGpaint dots = nvgDotPattern(nvg, dotsColour, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize, feather);
+            nvgFillPaint(nvg, dots);
+            nvgFill(nvg);
+            nvgRestore(nvg);
+        }
+        else {
+            nvgSave(nvg);
+            nvgTranslate(nvg, canvasOrigin.x % (objectGrid.gridSize * 4), canvasOrigin.y % (objectGrid.gridSize * 4)); // Make sure grid aligns with origin
+            auto darkDotColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId).contrasting());
+            for(int i = 0; i < 4; i++)
+            {
+                nvgTranslate(nvg, objectGrid.gridSize, 0);
+
+                NVGpaint dots = nvgDotPattern(nvg, i == 0 ? darkDotColour : dotsColour, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize * 4, feather);
+                nvgFillPaint(nvg, dots);
+                nvgFill(nvg);
+            }
+            nvgRestore(nvg);
+            nvgSave(nvg);
+            
+            for(int i = 0; i < 4; i++)
+            {
+                nvgTranslate(nvg, 0, objectGrid.gridSize);
+                NVGpaint dots = nvgDotPattern(nvg, i == 0 ? darkDotColour : dotsColour, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize * 4, feather);
+                nvgFillPaint(nvg, dots);
+                nvgFill(nvg);
+            }
+            
+            nvgRestore(nvg);
+        }
+
     }
 
     if(showOrigin || showBorder) {
