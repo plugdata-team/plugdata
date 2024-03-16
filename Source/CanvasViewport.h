@@ -426,10 +426,6 @@ public:
 
             nvgluBindFramebuffer(framebuffer);
             glViewport(0, 0, scaledWidth, scaledHeight); // TODO: it's more efficient if we only viewport the current invalidated area, but our rounded rect shader hates it
-
-            nvgRect(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
-            nvgFillColor(nvg, nvgRGBA(0, 0, 0, 0));
-            nvgFill(nvg);
             
             renderFrame(nvg, invalidated);
             nvgluBindFramebuffer(nullptr);
@@ -481,6 +477,10 @@ public:
         nvgTranslate(nvg, 0, viewportOffsetY);
         nvgScissor (nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
 
+        nvgRect(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
+        nvgFillColor(nvg, nvgRGBA(0, 0, 0, 0));
+        nvgFill(nvg);
+        
         cnv->performRender(nvg, invalidated);
         
         nvgSave(nvg);
