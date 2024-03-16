@@ -1167,19 +1167,19 @@ void Object::updateFramebuffer(NVGcontext* nvg)
                 fbHeight = b.getHeight();
                 
                 if(fb) nvgluDeleteFramebuffer(fb);
-                fb = nvgluCreateFramebuffer(nvg, scaledWidth, scaledHeight, 0);
+                fb = nvgluCreateFramebuffer(nvg, scaledWidth, scaledHeight, NVG_IMAGE_GENERATE_MIPMAPS);
             }
             
             nvgluBindFramebuffer(fb);
             glViewport(0, 0, scaledWidth, scaledHeight);
-            //OpenGLHelpers::clear(Colours::transparentBlack);
+            OpenGLHelpers::clear(Colours::transparentBlack);
             
             nvgBeginFrame(nvg, b.getWidth(), b.getHeight(), scale);
             nvgScissor (nvg, 0, 0, b.getWidth(), b.getHeight());
             
             performRender(nvg);
             
-#if 1 //ENABLE_OBJECT_FB_DEBUGGING
+#if ENABLE_OBJECT_FB_DEBUGGING
             static Random rng;
             nvgBeginPath(nvg);
             nvgFillColor(nvg, nvgRGBA(rng.nextInt(255), rng.nextInt(255), rng.nextInt(255), 0x50));
@@ -1188,6 +1188,7 @@ void Object::updateFramebuffer(NVGcontext* nvg)
 #endif
             
             nvgEndFrame(nvg);
+            nvgluGenerateMipmaps(fb);
             nvgluBindFramebuffer(NULL);
             fbDirty = false;
         }
