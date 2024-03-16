@@ -4,6 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_dsp/juce_dsp.h>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
 

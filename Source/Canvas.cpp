@@ -174,24 +174,35 @@ Canvas::~Canvas()
     pd->unregisterMessageListener(patch.getPointer().get(), this);
 }
 
-void Canvas::updateNVGFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion)
+bool Canvas::updateNVGFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, int maxUpdateTimeMs)
 {
+    auto start = Time::getMillisecondCounter();
+    
     if(viewport) invalidRegion = (invalidRegion + viewport->getViewPosition()) / getValue<float>(zoomScale);
     for(auto* obj : objects)
     {
         auto b = obj->getBounds();
         if(b.intersects(invalidRegion)) {
             obj->updateFramebuffer(nvg);
-        }
-        if(obj->gui)
-        {
-            // Update framebuffers inside graphs
-            if(auto* cnv = obj->gui->getCanvas())
+            
+            if(obj->gui)
             {
-                cnv->updateNVGFramebuffers(nvg, cnv->getLocalBounds());
+                // Update framebuffers inside graphs
+                if(auto* cnv = obj->gui->getCanvas())
+                {
+                    cnv->updateNVGFramebuffers(nvg, cnv->getLocalBounds(), maxUpdateTimeMs / 2);
+                }
+            }
+        
+            auto elapsed = Time::getMillisecondCounter() - start;
+            if(elapsed > maxUpdateTimeMs) {
+                break; // TODO: this is fine, but it does mean objects earlier in the list are more likely to get buffered than ones later. They will all get buffered eventually, so it's fine I guess
+                return false;
             }
         }
     }
+    
+    return true;
 }
 
 void Canvas::render(NVGcontext* nvg)

@@ -78,7 +78,7 @@ public:
     
     void render(NVGcontext* nvg) override;
     void finaliseRender(NVGcontext* nvg);
-    void updateNVGFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion);
+    bool updateNVGFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, int maxUpdateTimeMs);
     void performRender(NVGcontext* nvg, Rectangle<int> invalidRegion);
 
     void resized() override;

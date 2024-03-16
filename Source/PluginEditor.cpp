@@ -7,14 +7,6 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_processors/juce_audio_processors.h>
 
-#include <juce_opengl/juce_opengl.h>
-using namespace juce::gl;
-
-#define NANOVG_GL3_IMPLEMENTATION
-#include <nanovg.h>
-#include <nanovg_gl.h>
-#include <nanovg_gl_utils.h>
-
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
 #include "Utility/OSUtils.h"
@@ -92,8 +84,9 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , splitView(this)
     , zoomLabel(std::make_unique<ZoomLabel>())
     , offlineRenderer(&p)
-, pluginConstrainer(*getConstrainer())
-, autosave(std::make_unique<Autosave>(pd))
+    , nvgSurface(this)
+    , pluginConstrainer(*getConstrainer())
+    , autosave(std::make_unique<Autosave>(pd))
     , touchSelectionHelper(std::make_unique<TouchSelectionHelper>(this))
     , tooltipWindow(this, [](Component* c) {
         if (auto* cnv = c->findParentComponentOfClass<Canvas>()) {
@@ -299,13 +292,12 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(touchSelectionHelper.get());
 #endif
     
-    initialiseCanvasRenderer();
+    addChildComponent(nvgSurface);
+    nvgSurface.toBehind(&splitView);
 }
 
 PluginEditor::~PluginEditor()
-{
-    glContext->detach();
-    
+{    
     pd->savePatchTabPositions();
     theme.removeListener(this);
 
@@ -314,77 +306,6 @@ PluginEditor::~PluginEditor()
     }
 }
 
-void PluginEditor::initialiseCanvasRenderer()
-{
-    glContext = std::make_unique<OpenGLContext>();
-    glContext->setOpenGLVersionRequired(OpenGLContext::OpenGLVersion::openGL3_2);
-    glContext->setMultisamplingEnabled(false);
-    glContext->setSwapInterval(0);
-    
-    openGLView.setInterceptsMouseClicks(false, false);
-    openGLView.setWantsKeyboardFocus(false);
-    addChildComponent(openGLView);
-    
-    MessageManager::callAsync([this](){
-        
-        auto renderLoop = [this]{
-            Array<Canvas*> renderTargets;
-            for(auto* split : splitView.splits)
-            {
-                if(auto* cnv = split->getTabComponent()->getCurrentCanvas())
-                {
-                    renderTargets.add(cnv);
-                }
-            }
-                    
-            if(glContext->makeActive()) {
-                for(auto* cnv : renderTargets)
-                {
-                    cnv->render(nvg);
-                }
-            }
-            
-            if(!renderTargets.isEmpty() && !glContext->isAttached())
-            {
-                openGLView.setVisible(true);
-                openGLView.setInterceptsMouseClicks(false, false);
-                openGLView.setWantsKeyboardFocus(false);
-                openGLView.toBehind(&splitView);
-                glContext->attachTo(openGLView);
-                glContext->setSwapInterval(0); // It's very important this happens after attachTo. Otherwise, it will be terribly slow on Windows/Linux
-                
-                if(nvg) nvgDeleteGL3(nvg);
-                nvg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
-                if (!nvg) std::cerr << "could not initialise nvg" << std::endl;
-                
-                nvgCreateFontMem(nvg, "Inter", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);
-                nvgCreateFontMem(nvg, "Inter-Regular", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);
-                nvgCreateFontMem(nvg, "Inter-Bold", (unsigned char*)BinaryData::InterBold_ttf, BinaryData::InterBold_ttfSize, 0);
-                nvgCreateFontMem(nvg, "Inter-Semibold", (unsigned char*)BinaryData::InterSemiBold_ttf, BinaryData::InterSemiBold_ttfSize, 0);
-                nvgCreateFontMem(nvg, "Inter-Thin", (unsigned char*)BinaryData::InterThin_ttf, BinaryData::InterThin_ttfSize, 0);
-                nvgCreateFontMem(nvg, "Icon", (unsigned char*)BinaryData::IconFont_ttf, BinaryData::IconFont_ttfSize, 0);
-            }
-            else if(renderTargets.isEmpty() && glContext->isAttached())
-            {
-                nvgDeleteGL3(nvg);
-                nvg = nullptr;
-                glContext->detach();
-                openGLView.setVisible(false);
-            }
-            else if(needsBufferSwap && glContext->isAttached()) {
-                for(auto* cnv : renderTargets)
-                {
-                    cnv->finaliseRender(nvg);
-                }
-                glContext->swapBuffers();
-                needsBufferSwap = false;
-            }
-        };
-
-        // Render on vblank
-        vBlankAttachment = std::make_unique<VBlankAttachment>(&openGLView, renderLoop);
-    });
-}
 
 SplitView* PluginEditor::getSplitView()
 {
@@ -504,7 +425,7 @@ void PluginEditor::resized()
     
     auto workArea = Rectangle<int>(paletteWidth, toolbarHeight, (getWidth() - sidebar->getWidth() - paletteWidth), workAreaHeight);
     splitView.setBounds(workArea);
-    openGLView.setBounds(workArea.withTrimmedTop(31));
+    nvgSurface.setBounds(workArea.withTrimmedTop(31));
     
     sidebar->setBounds(getWidth() - sidebar->getWidth(), toolbarHeight, sidebar->getWidth(), workAreaHeight);
 

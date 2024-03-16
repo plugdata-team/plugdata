@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <JuceHeader.h>
+#include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_opengl/juce_opengl.h>
 using namespace gl;
 
@@ -80,11 +80,12 @@ class CanvasViewport : public Viewport, public Timer, public NVGComponent
         
         CanvasViewport* viewport;
     };
+    
 
     class MousePanner : public MouseListener {
     public:
-        explicit MousePanner(CanvasViewport* v)
-            : viewport(v)
+        explicit MousePanner(CanvasViewport* vp)
+            : viewport(vp)
         {
         }
 
@@ -369,7 +370,7 @@ public:
         , editor(parent)
         , cnv(cnv)
     {
-        glContext = editor->glContext.get();
+        glContext = editor->nvgSurface.getGLContext();
         
         setScrollBarsShown(false, false);
 
@@ -411,16 +412,17 @@ public:
             auto invalidated = invalidArea.expanded(1);
             invalidArea = Rectangle<int>(0, 0, 0, 0);
             
-            cnv->updateNVGFramebuffers(nvg, invalidated);
+            cnv->updateNVGFramebuffers(nvg, invalidated, 8); // Try to update buffered objects for 8 milliseconds
 
             nvgluBindFramebuffer(framebuffer);
             glViewport(0, 0, scaledWidth, scaledHeight); // TODO: it's more efficient if we only viewport the current invalidated area, but our rounded rect shader hates it
             
             renderFrame(nvg, invalidated);
             nvgluBindFramebuffer(nullptr);
-            editor->needsBufferSwap = true;
+            editor->nvgSurface.swapBuffers();
         }
     }
+    
     
     void blitToWindow(NVGcontext* nvg)
     {

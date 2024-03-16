@@ -21,6 +21,7 @@
 #include "Dialogs/SnapSettings.h"
 
 #include "Utility/ObjectThemeManager.h"
+#include "NVGSurface.h"
 
 class ConnectionMessageDisplay;
 class Sidebar;
@@ -144,12 +145,7 @@ public:
     std::unique_ptr<ZoomLabel> zoomLabel;
 
     OfflineObjectRenderer offlineRenderer;
-    
-    NVGcontext* nvg = nullptr;
-    bool needsBufferSwap = false;
-    Component openGLView;
-    std::unique_ptr<OpenGLContext> glContext;
-    std::unique_ptr<VBlankAttachment> vBlankAttachment;
+    NVGSurface nvgSurface;
 
     // used to display callOutBoxes only in a safe area between top & bottom toolbars
     Component callOutSafeArea;
