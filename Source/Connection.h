@@ -186,6 +186,7 @@ public:
         cnv->addAndMakeVisible(this);
 
         setAlwaysOnTop(true);
+        setAccessible(false); // TODO: implement accessibility. We disable default, since it makes stuff slow on macOS
     }
 
     ~ConnectionBeingCreated() override
