@@ -72,7 +72,7 @@ class CanvasViewport : public Viewport, public Timer, public NVGComponent
         
         bool invalidateAll() override
         {
-            viewport->invalidArea = viewport->getLocalBounds().withTrimmedTop(-10);
+            viewport->invalidArea = viewport->getLocalBounds();
             return false;
         }
         
@@ -393,6 +393,11 @@ public:
     {
     }
     
+    void updateFramebuffers(NVGcontext* nvg)
+    {
+        cnv->performFramebufferUpdate(nvg, getLocalBounds(), 8); // Try to update buffered objects for 8 milliseconds
+    }
+    
     void render(NVGcontext* nvg) override
     {
         frameTimer.addFrameTime();
@@ -405,14 +410,12 @@ public:
             framebuffer = nvgluCreateFramebuffer(nvg, scaledWidth, scaledHeight, 0);
             fbWidth = scaledWidth;
             fbHeight = scaledHeight;
-            invalidArea = getLocalBounds().withTrimmedTop(-10);
+            invalidArea = getLocalBounds();
         }
         
         if(!invalidArea.isEmpty()) {
             auto invalidated = invalidArea.expanded(1);
             invalidArea = Rectangle<int>(0, 0, 0, 0);
-            
-            cnv->updateNVGFramebuffers(nvg, invalidated, 8); // Try to update buffered objects for 8 milliseconds
 
             nvgluBindFramebuffer(framebuffer);
             glViewport(0, 0, scaledWidth, scaledHeight); // TODO: it's more efficient if we only viewport the current invalidated area, but our rounded rect shader hates it
@@ -577,14 +580,14 @@ public:
         startTimer(150);
         onScroll();
         adjustScrollbarBounds();
-        invalidArea = getLocalBounds().withTrimmedTop(-10);
+        invalidArea = getLocalBounds();
     }
     
     void timerCallback() override
     {
         stopTimer();
         cnv->isScrolling = false;
-        invalidArea = getLocalBounds().withTrimmedTop(-10);
+        invalidArea = getLocalBounds();
     }
 
     void resized() override

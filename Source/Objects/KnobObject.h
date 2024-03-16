@@ -110,7 +110,7 @@ public:
         nvgStrokeColor(nvg, nvgRGBAf(fgColour.getFloatRed(), fgColour.getFloatGreen(), fgColour.getFloatBlue(), fgColour.getFloatAlpha()));
         nvgLineCap(nvg, NVG_ROUND);
         nvgStroke(nvg);
-
+        
         drawTicks(nvg, bounds, startAngle, endAngle, lineThickness);
     }
 

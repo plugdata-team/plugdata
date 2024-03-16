@@ -109,6 +109,12 @@ void NVGSurface::render()
         glContext->swapBuffers();
         needsBufferSwap = false;
     }
+    
+    // We update frambuffers after we call swapBuffers to make sure the frame is on time
+    for(auto* cnv : renderTargets)
+    {
+        cnv->updateFramebuffers(nvg);
+    }
 }
 
 

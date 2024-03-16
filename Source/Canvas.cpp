@@ -174,7 +174,7 @@ Canvas::~Canvas()
     pd->unregisterMessageListener(patch.getPointer().get(), this);
 }
 
-bool Canvas::updateNVGFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, int maxUpdateTimeMs)
+bool Canvas::performFramebufferUpdate(NVGcontext* nvg, Rectangle<int> invalidRegion, int maxUpdateTimeMs)
 {
     auto start = Time::getMillisecondCounter();
     
@@ -190,7 +190,7 @@ bool Canvas::updateNVGFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion
                 // Update framebuffers inside graphs
                 if(auto* cnv = obj->gui->getCanvas())
                 {
-                    cnv->updateNVGFramebuffers(nvg, cnv->getLocalBounds(), maxUpdateTimeMs / 2);
+                    cnv->performFramebufferUpdate(nvg, cnv->getLocalBounds(), maxUpdateTimeMs / 2);
                 }
             }
         
@@ -208,6 +208,12 @@ bool Canvas::updateNVGFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion
 void Canvas::render(NVGcontext* nvg)
 {
     reinterpret_cast<CanvasViewport*>(viewport.get())->render(nvg);
+}
+
+
+void Canvas::updateFramebuffers(NVGcontext* nvg)
+{
+    reinterpret_cast<CanvasViewport*>(viewport.get())->updateFramebuffers(nvg);
 }
 
 void Canvas::finaliseRender(NVGcontext* nvg)
@@ -309,7 +315,6 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         nvgStroke(nvg);
         
         // draw 0,0 point lines
-        nvgLineCap(nvg, NVG_SQUARE);
         nvgLineStyle(nvg, NVG_LINE_DASHED);
         nvgStrokeColor(nvg, dotsColour);
         nvgStrokeWidth(nvg, 1.5f);

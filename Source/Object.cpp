@@ -1154,12 +1154,12 @@ void Object::updateFramebuffer(NVGcontext* nvg)
 {
     if(shouldRenderToFramebuffer()) {
         auto b = getLocalBounds();
-        auto scale = 3.0f * cnv->pixelScale;
         bool boundsChanged = b.getWidth() != fbWidth || b.getHeight() != fbHeight;
+        auto maxScale = 3.0f;
         if(fbDirty || boundsChanged)
         {
-            int scaledWidth = b.getWidth() * scale;
-            int scaledHeight = b.getHeight() * scale;
+            int scaledWidth = b.getWidth() * maxScale * cnv->pixelScale;
+            int scaledHeight = b.getHeight() * maxScale * cnv->pixelScale;
             
             if(!fb || boundsChanged)
             {
@@ -1167,14 +1167,15 @@ void Object::updateFramebuffer(NVGcontext* nvg)
                 fbHeight = b.getHeight();
                 
                 if(fb) nvgluDeleteFramebuffer(fb);
-                fb = nvgluCreateFramebuffer(nvg, scaledWidth, scaledHeight, NVG_IMAGE_GENERATE_MIPMAPS);
+                fb = nvgluCreateFramebuffer(nvg, scaledWidth, scaledHeight, 0);
             }
             
             nvgluBindFramebuffer(fb);
             glViewport(0, 0, scaledWidth, scaledHeight);
             OpenGLHelpers::clear(Colours::transparentBlack);
-            
-            nvgBeginFrame(nvg, b.getWidth(), b.getHeight(), scale);
+
+            nvgBeginFrame(nvg, b.getWidth() * maxScale, b.getHeight() * maxScale, cnv->pixelScale);
+            nvgScale(nvg, maxScale, maxScale);
             nvgScissor (nvg, 0, 0, b.getWidth(), b.getHeight());
             
             performRender(nvg);
@@ -1188,7 +1189,6 @@ void Object::updateFramebuffer(NVGcontext* nvg)
 #endif
             
             nvgEndFrame(nvg);
-            nvgluGenerateMipmaps(fb);
             nvgluBindFramebuffer(NULL);
             fbDirty = false;
         }
