@@ -95,6 +95,34 @@ void Object::setObjectBounds(Rectangle<int> bounds)
     setBounds(bounds.expanded(margin) + cnv->canvasOrigin);
 }
 
+// CachedComponentImage that will block repaint messages to parent when scrolling/zooming, and keeps track of invaldation while scrolling/zooming
+class InvalidationListener : public CachedComponentImage
+{
+public:
+    InvalidationListener(Object* parent) : object(parent)
+    {
+    }
+private:
+    
+    void paint(Graphics& g) override {}
+    
+    bool invalidate(const Rectangle<int>& rect) override
+    {
+        object->fbDirty = true;
+        return !object->cnv->isScrolling;
+    }
+    
+    bool invalidateAll() override
+    {
+        object->fbDirty = true;
+        return !object->cnv->isScrolling;
+    }
+    
+    void releaseResources() override {}
+    
+    Object* object;
+};
+
 void Object::initialise()
 {
     cnv->objectLayer.addAndMakeVisible(this);
@@ -118,6 +146,8 @@ void Object::initialise()
     updateOverlays(cnv->getOverlays());
     
     setAccessible(false); // TODO: implement accessibility. We disable default, since it makes stuff slow on macOS
+    
+    setCachedComponentImage(new InvalidationListener(this));
 }
 
 void Object::timerCallback()
@@ -1142,14 +1172,14 @@ void Object::updateFramebuffer(NVGcontext* nvg)
             
             nvgluBindFramebuffer(fb);
             glViewport(0, 0, scaledWidth, scaledHeight);
-            OpenGLHelpers::clear(Colours::transparentBlack);
+            //OpenGLHelpers::clear(Colours::transparentBlack);
             
             nvgBeginFrame(nvg, b.getWidth(), b.getHeight(), scale);
             nvgScissor (nvg, 0, 0, b.getWidth(), b.getHeight());
             
             performRender(nvg);
             
-#if ENABLE_OBJECT_FB_DEBUGGING
+#if 1 //ENABLE_OBJECT_FB_DEBUGGING
             static Random rng;
             nvgBeginPath(nvg);
             nvgFillColor(nvg, nvgRGBA(rng.nextInt(255), rng.nextInt(255), rng.nextInt(255), 0x50));
@@ -1171,41 +1201,11 @@ bool Object::shouldRenderToFramebuffer()
     return cnv->isScrolling || (gui && gui->getCanvas());
 }
 
-// CachedComponentImage that will block repaint messages to parent when scrolling/zooming, and keeps track of invaldation while scrolling/zooming
-class InvalidationListener : public CachedComponentImage
-{
-public:
-    InvalidationListener(Object* parent) : object(parent)
-    {
-    }
-private:
-    
-    void paint(Graphics& g) override {}
-    
-    bool invalidate(const Rectangle<int>& rect) override
-    {
-        object->fbDirty = true;
-        return !object->cnv->isScrolling;
-    }
-    
-    bool invalidateAll() override
-    {
-        object->fbDirty = true;
-        return !object->cnv->isScrolling;
-    }
-    
-    void releaseResources() override {}
-    
-    Object* object;
-};
-
 void Object::render(NVGcontext* nvg)
 {
     if(fb && shouldRenderToFramebuffer())
     {
-        if(!getCachedComponentImage()) {
-            setCachedComponentImage(new InvalidationListener(this));
-            fbDirty = true; // Render next frame from framebuffer
+        if(fbDirty) { // If framebuffer is dirty, draw normally now and draw from buffer again on next render
             performRender(nvg);
             return;
         }
@@ -1217,7 +1217,6 @@ void Object::render(NVGcontext* nvg)
         nvgFill(nvg);
     }
     else {
-        if(getCachedComponentImage()) setCachedComponentImage(nullptr);
         performRender(nvg);
     }
 }

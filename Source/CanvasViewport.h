@@ -26,18 +26,13 @@ using namespace gl;
 class CanvasViewport : public Viewport, public Timer, public NVGComponent
 {
     // Attached to viewport so we can clean stuff up correctly
-    struct ImageReleaseListener : public CachedComponentImage
+    struct ScrollbarInvalidationListener : public CachedComponentImage
     {
-        ImageReleaseListener(CanvasViewport* parent) : viewport(parent)
+        ScrollbarInvalidationListener(CanvasViewport* parent) : viewport(parent)
         {
         }
         
         void paint(Graphics& g) override {
-            if(viewport->stopRendering) {
-                viewport->stopRendering = false; // If we get a paint event here, it means we should also be allowed to render from now on
-                viewport->invalidArea = viewport->getLocalBounds().withTrimmedTop(-10);
-            }
-            
             viewport->cnv->pixelScale = g.getInternalContext().getPhysicalPixelScaleFactor();
         }
         
@@ -52,9 +47,7 @@ class CanvasViewport : public Viewport, public Timer, public NVGComponent
             return false;
         }
         
-        void releaseResources() override {
-            viewport->stopRendering = true;
-        };
+        void releaseResources() override {};
         
         CanvasViewport* viewport;
     };
@@ -392,19 +385,15 @@ public:
         addAndMakeVisible(hbar);
             
         cnv->setCachedComponentImage(new InvalidationListener(this));
-        setCachedComponentImage(new ImageReleaseListener(this));
+        setCachedComponentImage(new ScrollbarInvalidationListener(this));
     }
     
     ~CanvasViewport()
     {
-        stopRendering = true;
     }
     
     void render(NVGcontext* nvg) override
     {
-        if(stopRendering)
-            return;
-        
         frameTimer.addFrameTime();
         
         float pixelScale = cnv->pixelScale;
@@ -699,10 +688,8 @@ private:
     };
     
     OpenGLContext* glContext = nullptr;
-    //OpenGLFrameBuffer framebuffer = OpenGLFrameBuffer();
     Rectangle<int> invalidArea;
-    bool stopRendering = false;
-    NVGLUframebuffer* framebuffer;
+    NVGLUframebuffer* framebuffer = nullptr;
     int fbWidth = 0, fbHeight = 0;
     
     Time lastScrollTime;
