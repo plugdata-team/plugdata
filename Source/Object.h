@@ -168,33 +168,7 @@ private:
 
     std::unique_ptr<TextEditor> newObjectEditor;
     
-    class InvalidationListener : public CachedComponentImage
-    {
-    public:
-        InvalidationListener(Object* parent) : object(parent)
-        {
-        }
-    private:
-        
-        void paint(Graphics& g) override {}
-        
-        bool invalidate(const Rectangle<int>& rect) override
-        {
-            object->fbDirty = true;
-            return false;
-        }
-        
-        bool invalidateAll() override
-        {
-            object->fbDirty = true;
-            return false;
-        }
-        
-        void releaseResources() override {}
-        
-        Object* object;
-    };
-
+    friend class InvalidationListener;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Object)
     JUCE_DECLARE_WEAK_REFERENCEABLE(Object)
 };

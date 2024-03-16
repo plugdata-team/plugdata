@@ -1171,6 +1171,33 @@ bool Object::shouldRenderToFramebuffer()
     return cnv->isScrolling || (gui && gui->getCanvas());
 }
 
+class InvalidationListener : public CachedComponentImage
+{
+public:
+    InvalidationListener(Object* parent) : object(parent)
+    {
+    }
+private:
+    
+    void paint(Graphics& g) override {}
+    
+    bool invalidate(const Rectangle<int>& rect) override
+    {
+        object->fbDirty = true;
+        return !object->cnv->isScrolling;
+    }
+    
+    bool invalidateAll() override
+    {
+        object->fbDirty = true;
+        return !object->cnv->isScrolling;
+    }
+    
+    void releaseResources() override {}
+    
+    Object* object;
+};
+
 void Object::render(NVGcontext* nvg)
 {
     if(fb && shouldRenderToFramebuffer())
