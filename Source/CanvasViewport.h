@@ -32,9 +32,7 @@ class CanvasViewport : public Viewport, public Timer, public NVGComponent
         {
         }
         
-        void paint(Graphics& g) override {
-            viewport->cnv->pixelScale = g.getInternalContext().getPhysicalPixelScaleFactor();
-        }
+        void paint(Graphics& g) override {}
         
         bool invalidate (const Rectangle<int>& rect) override
         {
@@ -402,7 +400,7 @@ public:
     {
         frameTimer.addFrameTime();
         
-        float pixelScale = cnv->pixelScale;
+        float pixelScale = cnv->getRenderScale();
         int scaledWidth = getWidth() * pixelScale;
         int scaledHeight = getHeight() * pixelScale;
         
@@ -430,7 +428,7 @@ public:
     void blitToWindow(NVGcontext* nvg)
     {
         if(framebuffer) {
-            float pixelScale = cnv->pixelScale;
+            float pixelScale = cnv->getRenderScale();
             int scaledWidth = getWidth() * pixelScale;
             int scaledHeight = getHeight() * pixelScale;
             auto splitPosition = glContext->getTargetComponent()->getLocalPoint(this, Point<int>(0, 0)).x * pixelScale;
@@ -451,7 +449,7 @@ public:
     void renderPerfMeter(NVGcontext* nvg)
     {
 #if JUCE_DEBUG // draw fps meters
-        nvgBeginFrame(nvg, getWidth(), getHeight(), cnv->pixelScale);
+        nvgBeginFrame(nvg, getWidth(), getHeight(), cnv->getRenderScale());
         frameTimer.render(nvg);
         nvgTranslate(nvg, 48, 0);
         realFrameTimer.render(nvg);
@@ -461,7 +459,7 @@ public:
     
     void renderFrame(NVGcontext* nvg, Rectangle<int> const& invalidated)
     {
-        float pixelScale = cnv->pixelScale;
+        float pixelScale = cnv->getRenderScale();
         int width = getWidth();
         int height = getHeight();
         

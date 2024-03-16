@@ -1158,8 +1158,8 @@ void Object::updateFramebuffer(NVGcontext* nvg)
         auto maxScale = 3.0f;
         if(fbDirty || boundsChanged)
         {
-            int scaledWidth = b.getWidth() * maxScale * cnv->pixelScale;
-            int scaledHeight = b.getHeight() * maxScale * cnv->pixelScale;
+            int scaledWidth = b.getWidth() * maxScale * cnv->getRenderScale();
+            int scaledHeight = b.getHeight() * maxScale * cnv->getRenderScale();
             
             if(!fb || boundsChanged)
             {
@@ -1174,7 +1174,7 @@ void Object::updateFramebuffer(NVGcontext* nvg)
             glViewport(0, 0, scaledWidth, scaledHeight);
             OpenGLHelpers::clear(Colours::transparentBlack);
 
-            nvgBeginFrame(nvg, b.getWidth() * maxScale, b.getHeight() * maxScale, cnv->pixelScale);
+            nvgBeginFrame(nvg, b.getWidth() * maxScale, b.getHeight() * maxScale, cnv->getRenderScale());
             nvgScale(nvg, maxScale, maxScale);
             nvgScissor (nvg, 0, 0, b.getWidth(), b.getHeight());
             

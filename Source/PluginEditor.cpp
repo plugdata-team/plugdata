@@ -348,8 +348,6 @@ void PluginEditor::setUseBorderResizer(bool shouldUse)
 
 void PluginEditor::paint(Graphics& g)
 {
-    pixelScale = g.getInternalContext().getPhysicalPixelScaleFactor();
-    
     auto baseColour = findColour(PlugDataColour::toolbarBackgroundColourId);
 
     if (ProjectInfo::isStandalone && !isActiveWindow()) {

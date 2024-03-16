@@ -160,7 +160,6 @@ public:
     static ObjectThemeManager* getObjectManager() { return &objectManager; };
 
 private:
-    float pixelScale = 2.0f;
     
     std::unique_ptr<TouchSelectionHelper> touchSelectionHelper;
 

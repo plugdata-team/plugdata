@@ -251,7 +251,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     
     
     if(viewport && !getValue<bool>(locked)) {
-        auto feather = pixelScale > 1.0f ? 0.25f : 0.75f;
+        auto feather = getRenderScale() > 1.0f ? 0.25f : 0.75f;
         if(getValue<float>(zoomScale) >= 1.0f) {
             nvgSave(nvg);
             nvgTranslate(nvg, canvasOrigin.x % objectGrid.gridSize, canvasOrigin.y % objectGrid.gridSize); // Make sure grid aligns with origin
@@ -370,6 +370,11 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     }
     
     nvgRestore(nvg);
+}
+
+float Canvas::getRenderScale() const
+{
+    return editor->nvgSurface.getRenderScale();
 }
 
 void Canvas::renderAllObjects(NVGcontext* nvg, Rectangle<int> area)

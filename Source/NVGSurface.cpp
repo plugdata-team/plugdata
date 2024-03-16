@@ -52,7 +52,7 @@ OpenGLContext* NVGSurface::getGLContext()
 }
 
 
-float NVGSurface::getRenderScale()
+float NVGSurface::getRenderScale() const
 {
     return glContext->getRenderingScale();
 }

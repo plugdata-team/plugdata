@@ -25,7 +25,7 @@ public:
     void swapBuffers();
     
     OpenGLContext* getGLContext();
-    float getRenderScale();
+    float getRenderScale() const;
     
 private:
     void handleAsyncUpdate() override;

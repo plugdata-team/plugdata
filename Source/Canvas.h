@@ -129,6 +129,8 @@ public:
 
     void jumpToOrigin();
     void zoomToFitAll();
+    
+    float getRenderScale() const;
 
     bool autoscroll(MouseEvent const& e);
 
@@ -198,7 +200,6 @@ public:
     bool connectionsBehind = true;
     
     bool isScrolling = false;
-    float pixelScale = 1.0f;
 
     bool isGraph = false;
     bool isDraggingLasso = false;
