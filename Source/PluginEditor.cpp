@@ -319,6 +319,7 @@ void PluginEditor::initialiseCanvasRenderer()
     glContext = std::make_unique<OpenGLContext>();
     glContext->setOpenGLVersionRequired(OpenGLContext::OpenGLVersion::openGL3_2);
     glContext->setMultisamplingEnabled(false);
+    glContext->setSwapInterval(0);
     
     openGLView.setInterceptsMouseClicks(false, false);
     openGLView.setWantsKeyboardFocus(false);

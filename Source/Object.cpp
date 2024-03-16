@@ -1171,6 +1171,7 @@ bool Object::shouldRenderToFramebuffer()
     return cnv->isScrolling || (gui && gui->getCanvas());
 }
 
+// CachedComponentImage that will block repaint messages to parent when scrolling/zooming, and keeps track of invaldation while scrolling/zooming
 class InvalidationListener : public CachedComponentImage
 {
 public:
@@ -1202,7 +1203,13 @@ void Object::render(NVGcontext* nvg)
 {
     if(fb && shouldRenderToFramebuffer())
     {
-        if(!getCachedComponentImage()) setCachedComponentImage(new InvalidationListener(this));
+        if(!getCachedComponentImage()) {
+            setCachedComponentImage(new InvalidationListener(this));
+            fbDirty = true; // Render next frame from framebuffer
+            performRender(nvg);
+            return;
+        }
+        
         auto b = getLocalBounds();
         nvgBeginPath(nvg);
         nvgRect(nvg, 0, 0, b.getWidth(), b.getHeight());

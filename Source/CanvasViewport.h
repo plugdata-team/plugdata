@@ -411,8 +411,6 @@ public:
         int scaledWidth = getWidth() * pixelScale;
         int scaledHeight = getHeight() * pixelScale;
         
-        auto splitPosition = glContext->getTargetComponent()->getLocalPoint(this, Point<int>(0, 0)).x * pixelScale;
-        
         if(fbWidth != scaledWidth || fbHeight != scaledHeight || !framebuffer) {
             framebuffer = nvgluCreateFramebuffer(nvg, scaledWidth, scaledHeight, 0);
             fbWidth = scaledWidth;
