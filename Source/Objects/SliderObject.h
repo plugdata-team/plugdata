@@ -343,12 +343,7 @@ public:
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
         
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(iemHelper.getBackgroundColour()), convertColour(outlineColour), Corners::objectCornerRadius);
-        
-        nvgFillColor(nvg, convertColour(iemHelper.getBackgroundColour()));
-        nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
-        nvgFill(nvg);
-        
+
         slider.render(nvg);
     }
 
