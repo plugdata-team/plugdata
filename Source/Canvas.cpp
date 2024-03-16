@@ -828,7 +828,7 @@ void Canvas::updateSidebarSelection()
         }
 
         if (!allParameters.isEmpty() || editor->sidebar->isPinned()) {
-            String objectName = "(multiple)";
+            String objectName = "(" + String(lassoSelection.size()) + " selected)";
             if (lassoSelection.size() == 1 && lassoSelection.getFirst()) {
                 objectName = lassoSelection.getFirst()->getType();
             }
