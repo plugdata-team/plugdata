@@ -420,16 +420,7 @@ public:
             invalidArea = getLocalBounds().withTrimmedTop(-10);
         }
         
-        if(cnv->isScrolling) // If we're scrolling or zooming, everything gets invalidated so we may as well bypass invaldation
-        {
-            cnv->updateNVGFramebuffers(nvg, getLocalBounds());
-            glViewport(splitPosition, 0, scaledWidth, scaledHeight);
-            renderFrame(nvg, getLocalBounds());
-            renderPerfMeter(nvg);
-            editor->needsBufferSwap = true;
-            return;
-        }
-        else if(!invalidArea.isEmpty()) {
+        if(!invalidArea.isEmpty()) {
             auto invalidated = invalidArea.expanded(1);
             invalidArea = Rectangle<int>(0, 0, 0, 0);
             
@@ -450,7 +441,7 @@ public:
     
     void blitToWindow(NVGcontext* nvg)
     {
-        if(framebuffer && !cnv->isScrolling) {
+        if(framebuffer) {
             float pixelScale = cnv->pixelScale;
             int scaledWidth = getWidth() * pixelScale;
             int scaledHeight = getHeight() * pixelScale;

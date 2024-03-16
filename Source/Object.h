@@ -181,13 +181,13 @@ private:
         bool invalidate(const Rectangle<int>& rect) override
         {
             object->fbDirty = true;
-            return true;
+            return false;
         }
         
         bool invalidateAll() override
         {
             object->fbDirty = true;
-            return true;
+            return false;
         }
         
         void releaseResources() override {}
