@@ -387,6 +387,12 @@ public:
         setCachedComponentImage(new ScrollbarInvalidationListener(this));
     }
     
+    ~CanvasViewport()
+    {
+        if(invalidFBO) nvgluDeleteFramebuffer(invalidFBO);
+        if(mainFBO) nvgluDeleteFramebuffer(mainFBO);
+    }
+    
     void updateFramebuffers(NVGcontext* nvg)
     {
         cnv->performFramebufferUpdate(nvg, getLocalBounds(), 8); // Try to update buffered objects for 8 milliseconds
@@ -400,9 +406,9 @@ public:
         int scaledWidth = getWidth() * pixelScale;
         int scaledHeight = getHeight() * pixelScale;
         
-        if(fbWidth != scaledWidth || fbHeight != scaledHeight || !framebuffer) {
-            framebuffer = nvgluCreateFramebuffer(nvg, scaledWidth, scaledHeight, 0);
-            renderBuffer = nvgluCreateFramebuffer(nvg, scaledWidth, scaledHeight, 0);
+        if(fbWidth != scaledWidth || fbHeight != scaledHeight || !mainFBO) {
+            mainFBO = nvgluCreateFramebuffer(nvg, scaledWidth, scaledHeight, 0);
+            invalidFBO = nvgluCreateFramebuffer(nvg, scaledWidth, scaledHeight, 0);
             fbWidth = scaledWidth;
             fbHeight = scaledHeight;
             invalidArea = getLocalBounds();
@@ -412,23 +418,23 @@ public:
             auto invalidated = invalidArea.expanded(1);
             invalidArea = Rectangle<int>(0, 0, 0, 0);
             
-            // First, draw only the invalidated region to a separate framebuffer
+            // First, draw only the invalidated region to a separate mainFBO
             // I've found that nvgScissor doesn't always clip everything, meaning that there will be graphical glitches if we don't do this
             
-            nvgluBindFramebuffer(renderBuffer);
+            nvgluBindFramebuffer(invalidFBO);
             glViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
             OpenGLHelpers::clear(Colours::transparentBlack);
             nvgTranslate(nvg, -invalidated.getX(), -invalidated.getY());
             renderFrame(nvg, invalidated);
             
-            nvgluBindFramebuffer(framebuffer);
+            nvgluBindFramebuffer(mainFBO);
             glViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
             nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
             nvgTranslate(nvg, 0, viewportOffsetY);
             nvgBeginPath(nvg);
             nvgRect(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
             nvgScissor(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
-            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, renderBuffer->image, 1));
+            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, invalidFBO->image, 1));
             nvgFill(nvg);
             nvgEndFrame(nvg);
             
@@ -440,7 +446,7 @@ public:
     
     void blitToWindow(NVGcontext* nvg)
     {
-        if(framebuffer) {
+        if(mainFBO) {
             float pixelScale = cnv->getRenderScale();
             int scaledWidth = getWidth() * pixelScale;
             int scaledHeight = getHeight() * pixelScale;
@@ -451,7 +457,7 @@ public:
             nvgBeginPath(nvg);
             nvgRect(nvg, 0, 0, getWidth(), getHeight());
             nvgScissor(nvg, 0, 0, getWidth(), getHeight());
-            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, framebuffer->image, 1));
+            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, mainFBO->image, 1));
             nvgFill(nvg);
             nvgEndFrame(nvg);
 
@@ -701,8 +707,8 @@ private:
     
     OpenGLContext* glContext = nullptr;
     Rectangle<int> invalidArea;
-    NVGLUframebuffer* framebuffer = nullptr;
-    NVGLUframebuffer* renderBuffer = nullptr;
+    NVGLUframebuffer* mainFBO = nullptr;
+    NVGLUframebuffer* invalidFBO = nullptr;
     int fbWidth = 0, fbHeight = 0;
     
     Time lastScrollTime;

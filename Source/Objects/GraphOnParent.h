@@ -233,7 +233,7 @@ public:
         auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
         
         nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth() - 0.5f, b.getHeight() - 0.5f, Corners::objectCornerRadius);
         nvgStrokeColor(nvg, object->isSelected() ? selectedOutlineColour : outlineColour);
         nvgStrokeWidth(nvg, 1.0f);
         nvgStroke(nvg);

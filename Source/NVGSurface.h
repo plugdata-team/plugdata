@@ -26,6 +26,8 @@ public:
     
     OpenGLContext* getGLContext();
     float getRenderScale() const;
+    
+    int getAvailableVRAMMegabytes() const;
         
 private:
     

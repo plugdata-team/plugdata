@@ -20,7 +20,7 @@ public:
         
         nvgBeginPath(nvg);
         nvgSave(nvg);
-        nvgScissor(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+        nvgIntersectScissor(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
         nvgRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
         nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, bounds.getWidth() + 1, bounds.getHeight(), 0, imageId, 1.0f));
         nvgFill(nvg);
