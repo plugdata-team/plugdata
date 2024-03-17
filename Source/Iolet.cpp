@@ -76,52 +76,6 @@ void Iolet::render(NVGcontext* nvg)
     nvgFill(nvg);
     
     nvgRestore(nvg);
-    
-/*
-                        
-    auto backgroundColour = isSignal ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId);
-    if(isGemState)
-    {
-        backgroundColour = findColour(PlugDataColour::gemColourId);
-    }
-    
-    if ((!isTargeted && !over) || isLocked) {
-        bounds = bounds.reduced(2);
-    }
-    
-    if ((mouseIsDown || over) && !isLocked)
-        backgroundColour = backgroundColour.contrasting(mouseIsDown ? 0.2f : 0.05f);
-
-    if (isLocked) {
-        backgroundColour = findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.5f);
-    }
-
-    auto outlineColour = findColour(PlugDataColour::objectOutlineColourId);
-    
-
-    nvgSave(nvg);
-    if(!(overObject || over || isTargeted) || isLocked)
-    {
-        auto clipBounds = getLocalArea(object, object->getLocalBounds().reduced(Object::margin));
-        nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
-    }
-    
-    if (PlugDataLook::getUseSquareIolets()) {
-        nvgBeginPath(nvg);
-        nvgFillColor(nvg, nvgRGB(backgroundColour.getRed(), backgroundColour.getGreen(), backgroundColour.getBlue()));
-        nvgRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
-        nvgFill(nvg);
-        
-        nvgStrokeColor(nvg, nvgRGB(outlineColour.getRed(), outlineColour.getGreen(), outlineColour.getBlue()));
-        nvgStroke(nvg);
-    } else {
-        nvgBeginPath(nvg);
-
-        nvgDrawRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight() - 0.5f, convertColour(backgroundColour), convertColour(outlineColour), bounds.getWidth() / 2.1f);
-    } */
-    
-    // Reset original scissor
-   // nvgRestore(nvg);
 }
 
 bool Iolet::hitTest(int x, int y)

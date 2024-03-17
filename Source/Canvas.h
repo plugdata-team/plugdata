@@ -206,7 +206,7 @@ public:
     bool connectionsBehind = true;
     
     bool isScrolling = false;
-
+    
     bool isGraph = false;
     bool isDraggingLasso = false;
     

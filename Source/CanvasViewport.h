@@ -369,6 +369,7 @@ public:
         , cnv(cnv)
     {
         glContext = editor->nvgSurface.getGLContext();
+        lastCanvasZoom = getValue<float>(cnv->zoomScale);
         
         setScrollBarsShown(false, false);
 
@@ -721,6 +722,9 @@ private:
     
     FrameTimer frameTimer;
     FrameTimer realFrameTimer;
+    
+    bool forceRepaintWhileScrolling = false;
+    float lastCanvasZoom = 1.0f;
     
 #if JUCE_MAC
         int viewportOffsetY = 6;

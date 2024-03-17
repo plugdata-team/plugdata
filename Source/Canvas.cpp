@@ -178,7 +178,7 @@ bool Canvas::performFramebufferUpdate(NVGcontext* nvg, Rectangle<int> invalidReg
 {
     auto start = Time::getMillisecondCounter();
     auto pixelScale = getRenderScale();
-    auto zoom = isScrolling ? 3.0f : getValue<float>(zoomScale);
+    auto zoom = isScrolling ? 2.0f : getValue<float>(zoomScale);
     
     // First, check if we need to update our iolet buffer
     if(!ioletBuffer || !approximatelyEqual(zoom, ioletScale))

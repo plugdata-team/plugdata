@@ -115,22 +115,3 @@ void NVGSurface::render()
         cnv->updateFramebuffers(nvg);
     }
 }
-
-
-int NVGSurface::getAvailableVRAMMegabytes() const
-{
-#if JUCE_MAC
-    return 2000; // The function to get available video ram doesn't work on Apple Silicon at least. Probably because vram and ram are connected.
-#endif
-
-    GLint currentAvailableMemoryKb = 0;
-    glGetIntegerv(GL_GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, &currentAvailableMemoryKb);
-
-    if(currentAvailableMemoryKb <= 0)
-    {
-        // for now we assume that it means this function is unsupported, we need to test it on more platforms!
-        return 2000;
-    }
-    
-    return currentAvailableMemoryKb / 1024.0f;
-}

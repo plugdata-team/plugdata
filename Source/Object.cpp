@@ -1197,10 +1197,8 @@ void Object::updateFramebuffer(NVGcontext* nvg)
 
 bool Object::shouldRenderToFramebuffer()
 {
-    // We render to framebuffer if we are scrolling, but also for all graphs
-    // This is so that we can call glViewport before rendering a graph, which seems to reduce GPU cost
-    // If we have less than 50mb left, we'll stop generating more framebuffers and leave some MBs for normal operation
-    return cnv->isScrolling && cnv->editor->nvgSurface.getAvailableVRAMMegabytes() > 50;
+    // We render to framebuffer if we are scrolling/zooming
+    return cnv->isScrolling;
 }
 
 void Object::render(NVGcontext* nvg)
