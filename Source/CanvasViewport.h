@@ -387,10 +387,6 @@ public:
         setCachedComponentImage(new ScrollbarInvalidationListener(this));
     }
     
-    ~CanvasViewport()
-    {
-    }
-    
     void updateFramebuffers(NVGcontext* nvg)
     {
         cnv->performFramebufferUpdate(nvg, getLocalBounds(), 8); // Try to update buffered objects for 8 milliseconds
@@ -406,6 +402,7 @@ public:
         
         if(fbWidth != scaledWidth || fbHeight != scaledHeight || !framebuffer) {
             framebuffer = nvgluCreateFramebuffer(nvg, scaledWidth, scaledHeight, 0);
+            renderBuffer = nvgluCreateFramebuffer(nvg, scaledWidth, scaledHeight, 0);
             fbWidth = scaledWidth;
             fbHeight = scaledHeight;
             invalidArea = getLocalBounds();
@@ -414,11 +411,27 @@ public:
         if(!invalidArea.isEmpty()) {
             auto invalidated = invalidArea.expanded(1);
             invalidArea = Rectangle<int>(0, 0, 0, 0);
-
-            nvgluBindFramebuffer(framebuffer);
-            glViewport(0, 0, scaledWidth, scaledHeight); // TODO: it's more efficient if we only viewport the current invalidated area, but our rounded rect shader hates it
             
+            // First, draw only the invalidated region to a separate framebuffer
+            // I've found that nvgScissor doesn't always clip everything, meaning that there will be graphical glitches if we don't do this
+            
+            nvgluBindFramebuffer(renderBuffer);
+            glViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
+            OpenGLHelpers::clear(Colours::transparentBlack);
+            nvgTranslate(nvg, -invalidated.getX(), -invalidated.getY());
             renderFrame(nvg, invalidated);
+            
+            nvgluBindFramebuffer(framebuffer);
+            glViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
+            nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
+            nvgTranslate(nvg, 0, viewportOffsetY);
+            nvgBeginPath(nvg);
+            nvgRect(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
+            nvgScissor(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
+            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, renderBuffer->image, 1));
+            nvgFill(nvg);
+            nvgEndFrame(nvg);
+            
             nvgluBindFramebuffer(nullptr);
             editor->nvgSurface.swapBuffers();
         }
@@ -442,13 +455,13 @@ public:
             nvgFill(nvg);
             nvgEndFrame(nvg);
 
-            //renderPerfMeter(nvg);
+            renderPerfMeter(nvg);
         }
     }
     
     void renderPerfMeter(NVGcontext* nvg)
     {
-#if JUCE_DEBUG // draw fps meters
+#if 1 //JUCE_DEBUG // draw fps meters
         nvgBeginFrame(nvg, getWidth(), getHeight(), cnv->getRenderScale());
         frameTimer.render(nvg);
         nvgTranslate(nvg, 48, 0);
@@ -466,13 +479,9 @@ public:
         realFrameTimer.addFrameTime();
         
         nvgBeginFrame(nvg, width, height, pixelScale);
-        nvgTranslate(nvg, 0, viewportOffsetY);
         nvgScissor (nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
-
-        nvgRect(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
-        nvgFillColor(nvg, nvgRGBA(0, 0, 0, 0));
-        nvgFill(nvg);
         
+        nvgGlobalCompositeOperation(nvg, NVG_SOURCE_OVER);
         cnv->performRender(nvg, invalidated);
         
         nvgSave(nvg);
@@ -693,6 +702,7 @@ private:
     OpenGLContext* glContext = nullptr;
     Rectangle<int> invalidArea;
     NVGLUframebuffer* framebuffer = nullptr;
+    NVGLUframebuffer* renderBuffer = nullptr;
     int fbWidth = 0, fbHeight = 0;
     
     Time lastScrollTime;

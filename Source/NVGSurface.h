@@ -15,7 +15,7 @@ using namespace juce::gl;
 #include <nanovg.h>
 
 class PluginEditor;
-class NVGSurface : public Component, public AsyncUpdater
+class NVGSurface : public Component
 {
 public:
     NVGSurface(PluginEditor* editor);
@@ -26,9 +26,8 @@ public:
     
     OpenGLContext* getGLContext();
     float getRenderScale() const;
-    
+        
 private:
-    void handleAsyncUpdate() override;
     
     PluginEditor* editor;
     NVGcontext* nvg = nullptr;

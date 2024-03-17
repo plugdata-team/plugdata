@@ -19,5 +19,13 @@ public:
 private:
     std::unique_ptr<NanoVGGraphicsContext> nvgLLGC;
     
+    struct CachedImage
+    {
+        int imageId = 0;
+        int lastHeight;
+        int lastWidth;
+    };
+    
+    CachedImage cachedImage;
     Component& component;
 };

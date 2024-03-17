@@ -207,9 +207,6 @@ public:
 
         auto const textArea = getBorderSize().subtractedFrom(getLocalBounds());
 
-        GlyphArrangement glyphs;
-        glyphs.addFittedText(getFont(), formatNumber(dragValue), textArea.getX(), 0., textArea.getWidth(), getHeight(), 1, getMinimumHorizontalScale());
-
         if (dragMode != Regular) {
             decimalDrag = 0;
             lastLogarithmicDragPosition = e.y;

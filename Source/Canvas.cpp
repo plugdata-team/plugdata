@@ -377,14 +377,16 @@ float Canvas::getRenderScale() const
     return editor->nvgSurface.getRenderScale();
 }
 
+
 void Canvas::renderAllObjects(NVGcontext* nvg, Rectangle<int> area)
 {
     for(auto* obj : objects)
     {
-        nvgSave(nvg);
         auto b = obj->getBounds();
+        
+        nvgSave(nvg);
         nvgTranslate(nvg, b.getX(), b.getY());
-        if(b.intersects(area)) {
+        if(b.intersects(area) && obj->isVisible()) {
             obj->render(nvg);
         }
         nvgRestore(nvg);
@@ -398,7 +400,7 @@ void Canvas::renderAllConnections(NVGcontext* nvg, Rectangle<int> area)
     for(auto* connection : connections)
     {
         nvgSave(nvg);
-        if(connection->getBounds().intersects(area)) {
+        if(connection->getBounds().intersects(area) && connection->isVisible()) {
             connection->render(nvg);
         }
         nvgRestore(nvg);

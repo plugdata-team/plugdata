@@ -263,11 +263,13 @@ void PlugDataWindow::closeAllPatches()
 
         if (openedEditors.size() == 1) {
             editor->closeAllTabs(true, nullptr, [this, editor, &openedEditors]() {
+                editor->nvgSurface.getGLContext()->detach();
                 removeFromDesktop();
                 openedEditors.removeObject(editor);
             });
         } else {
             editor->closeAllTabs(false, nullptr, [this, editor, &openedEditors]() {
+                editor->nvgSurface.getGLContext()->detach();
                 removeFromDesktop();
                 openedEditors.removeObject(editor);
             });

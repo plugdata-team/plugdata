@@ -21,6 +21,8 @@ class CommentObject final : public ObjectBase
     BorderSize<int> border = BorderSize<int>(2, 3, 0, 0);
     String objectText;
     
+    CachedTextRender textRenderer;
+    
 public:
     CommentObject(pd::WeakReference obj, Object* object)
     : ObjectBase(obj, object)
@@ -58,15 +60,10 @@ public:
     {
         if (!editor) {
             auto textArea = border.subtractedFrom(getLocalBounds());
-            
-            NanoVGGraphicsContext llgc(nvg); // this should be cached so it doesn't re-init fonts
-            llgc.setPhysicalPixelScaleFactor(getValue<float>(cnv->zoomScale) * 2);
-            
-            Graphics g(llgc);
-            textLayout.draw(g, textArea.toFloat());
+            textRenderer.renderText(nvg, getText(), Fonts::getDefaultFont().withHeight(15), object->findColour(PlugDataColour::commentTextColourId), textArea, cnv->getRenderScale() * 2.0f);
         }
         else {
-            renderComponentFromImage(nvg, *editor, 2.0f);
+            renderComponentFromImage(nvg, *editor, cnv->getRenderScale() * 2.0f);
         }
     }
     

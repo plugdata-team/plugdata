@@ -205,6 +205,8 @@ protected:
     hash32 layoutTextHash = 0;
     int lastTextWidth = 0;
     int32 lastColourARGB = 0;
+    
+    CachedTextRender cachedTextRender;
         
     Value sizeProperty = SynchronousValue();
     String objectText;
@@ -232,7 +234,7 @@ public:
             sizeProperty = TextObjectHelper::getWidthInChars(obj.get());
         }
     }
-        
+    
     void render(NVGcontext* nvg) override
     {
         auto b = getLocalBounds();
@@ -249,12 +251,13 @@ public:
         }
         else {
             auto text = getText();
-            nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::canvasTextColourId)));
-            nvgFontSize(nvg, 12.75f);
-            nvgTextLetterSpacing(nvg, -0.275f);
-            nvgFontFace(nvg, "Inter-Regular");
-            nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
-            nvgText(nvg, b.toFloat().getX() + 6.f, b.toFloat().getCentreY(), text.toRawUTF8(), nullptr);
+            
+            auto textArea = border.subtractedFrom(b);
+            
+            // we could render at the actual scale, but that makes the transition to scolling/zooming pretty rough
+            // Instead, rendering at 2x scale gives us pretty good sharpness overall
+            auto scale = 2.0f * cnv->getRenderScale();
+            cachedTextRender.renderText(nvg, text, Fonts::getDefaultFont().withHeight(15), object->findColour(PlugDataColour::canvasTextColourId), textArea, scale);
         }
     }
 
@@ -369,6 +372,7 @@ public:
             objText = cnv->suggestor->getText();
         }
         
+        /*
         int textWidth = getTextObjectWidth() - 11; // Reserve a bit of extra space for the text margin
         auto currentLayoutHash = hash(objText);
         auto colour = object->findColour(PlugDataColour::canvasTextColourId);
@@ -384,7 +388,7 @@ public:
             layoutTextHash = currentLayoutHash;
             lastColourARGB = colour.getARGB();
             lastTextWidth = textWidth;
-        }
+        } */
     }
 
     void setPdBounds(Rectangle<int> b) override

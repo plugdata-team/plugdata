@@ -13,6 +13,7 @@ class MessageObject final : public ObjectBase
     BorderSize<int> border = BorderSize<int>(1, 5, 1, 2);
 
     String objectText;
+    CachedTextRender textRenderer;
     
     TextLayout textLayout;
     hash32 layoutTextHash = 0;
@@ -167,21 +168,14 @@ public:
 
         nvgFillColor(nvg, flagColour);
         nvgFill(nvg);
-
-        nvgBeginPath(nvg);
-        nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::canvasTextColourId)));
-        nvgFontSize(nvg, 12.75f);
-        nvgTextLetterSpacing(nvg, -0.275f);
-        nvgFontFace(nvg, "Inter-Regular");
-        nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
-
+    
         if(editor)
         {
             renderComponentFromImage(nvg, *editor, getValue<float>(cnv->zoomScale) * 2);
         }
         else {
             auto text = getText();
-            nvgText(nvg, b.toFloat().getX() + 6, b.toFloat().getCentreY() + 0.5f, text.toRawUTF8(), nullptr);
+            textRenderer.renderText(nvg, text, Fonts::getDefaultFont().withHeight(15), object->findColour(PlugDataColour::canvasTextColourId), border.subtractedFrom(b), cnv->getRenderScale() * 2.0f);
         }
     }
     

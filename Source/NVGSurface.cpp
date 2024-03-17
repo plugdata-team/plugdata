@@ -51,7 +51,6 @@ OpenGLContext* NVGSurface::getGLContext()
     return glContext.get();
 }
 
-
 float NVGSurface::getRenderScale() const
 {
     return glContext->getRenderingScale();
@@ -115,10 +114,4 @@ void NVGSurface::render()
     {
         cnv->updateFramebuffers(nvg);
     }
-}
-
-
-void NVGSurface::handleAsyncUpdate()
-{
-    
 }

@@ -779,6 +779,7 @@ void PluginEditor::closeAllTabs(bool quitAfterComplete, Canvas* patchToExclude, 
     if (!canvases.size()) {
         afterComplete();
         if (quitAfterComplete) {
+            if(auto* context = nvgSurface.getGLContext()) context->detach();
             JUCEApplication::quit();
         }
         return;
@@ -1784,6 +1785,7 @@ void PluginEditor::quit(bool askToSave)
         auto* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent());
         window->closeButtonPressed();
     } else {
+        nvgSurface.getGLContext()->detach();
         JUCEApplication::quit();
     }
 }

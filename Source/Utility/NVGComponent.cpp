@@ -12,6 +12,7 @@ NVGComponent::NVGComponent(Component* comp) : component(*comp)
 
 void NVGComponent::renderComponentFromImage(NVGcontext* nvg, Component& component, float scale)
 {
+    /* This way is faster, but we mostly use this for text editors, so using JUCE will give us unicode text support through our unicode font
     if(!nvgLLGC) nvgLLGC = std::make_unique<NanoVGGraphicsContext>(nvg);
     nvgLLGC->setPhysicalPixelScaleFactor(scale);
     
@@ -21,13 +22,12 @@ void NVGComponent::renderComponentFromImage(NVGcontext* nvg, Component& componen
         nvgScissor(nvg, 0, 0, component.getWidth(), component.getHeight());
         component.paintEntireComponent(g, true);
         nvgRestore(nvg); // (in case it applies transformations)
-    }
+    } */
     
-    /*
     Image componentImage;
     {
         const MessageManagerLock mmLock;
-        componentImage = component.createComponentSnapshot(component.getLocalBounds(), true, scale);
+        componentImage = component.createComponentSnapshot(Rectangle<int>(0, 0, component.getWidth() + 1, component.getHeight() + 1), true, scale);
     }
     
     Image::BitmapData imageData(componentImage, juce::Image::BitmapData::readOnly);
@@ -35,7 +35,6 @@ void NVGComponent::renderComponentFromImage(NVGcontext* nvg, Component& componen
     int width = imageData.width;
     int height = imageData.height;
     uint8* pixelData = imageData.data;
-    size_t imageSize = width * height * 4; // 4 bytes per pixel for RGBA
 
     for (int y = 0; y < height; ++y)
     {
@@ -68,7 +67,7 @@ void NVGComponent::renderComponentFromImage(NVGcontext* nvg, Component& componen
     nvgBeginPath(nvg);
     nvgRect(nvg, 0, 0, component.getWidth(), component.getHeight());
     nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, component.getWidth(), component.getHeight(), 0, cachedImage.imageId, 1.0f));
-    nvgFill(nvg); */
+    nvgFill(nvg);
 }
 
 NVGcolor NVGComponent::convertColour(Colour c)

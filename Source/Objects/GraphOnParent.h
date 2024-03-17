@@ -17,6 +17,8 @@ class GraphOnParent final : public ObjectBase {
 
     pd::Patch::Ptr subpatch;
     std::unique_ptr<Canvas> canvas;
+    
+    CachedTextRender textRenderer;
 
 public:
     // Graph On Parent
@@ -214,12 +216,7 @@ public:
          // Strangly, the title goes below the graph content in pd
          if (!getValue<bool>(hideNameAndArgs) && getText() != "graph") {
              auto text = getText();
-             nvgBeginPath(nvg);
-             nvgFontFace(nvg, "Inter-Regular");
-             nvgFontSize(nvg, 12.0f);
-             nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::canvasTextColourId)));
-             nvgTextAlign(nvg, NVG_ALIGN_TOP | NVG_ALIGN_LEFT);
-             nvgText(nvg, 5, 0, text.toRawUTF8(), nullptr);
+             textRenderer.renderText(nvg, text, Fonts::getDefaultFont().withHeight(13), object->findColour(PlugDataColour::canvasTextColourId), Rectangle<int>(5, 0, getWidth() - 5, 16), cnv->getRenderScale() * 2.0f);
          }
         
         auto b = getLocalBounds().toFloat();
