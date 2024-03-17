@@ -6,6 +6,12 @@
 
 #pragma once
 
+#include <juce_opengl/juce_opengl.h>
+using namespace juce::gl;
+
+#include <nanovg.h>
+#include <nanovg_gl_utils.h>
+
 #include "ObjectGrid.h"          // move to impl
 #include "Utility/RateReducer.h" // move to impl
 #include "Utility/ModifierKeyListener.h"
@@ -236,6 +242,9 @@ public:
 
     Component objectLayer;
     Component connectionLayer;
+    
+    NVGLUframebuffer* ioletBuffer = nullptr;
+    float ioletScale;
 
 private:
     

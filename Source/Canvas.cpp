@@ -177,26 +177,72 @@ Canvas::~Canvas()
 bool Canvas::performFramebufferUpdate(NVGcontext* nvg, Rectangle<int> invalidRegion, int maxUpdateTimeMs)
 {
     auto start = Time::getMillisecondCounter();
+    auto pixelScale = getRenderScale();
+    auto zoom = getValue<float>(zoomScale);
     
-    if(viewport) invalidRegion = (invalidRegion + viewport->getViewPosition()) / getValue<float>(zoomScale);
+    // First, check if we need to update our iolet buffer
+    if(!ioletBuffer || !approximatelyEqual(zoom, ioletScale))
+    {
+        int const logicalSize = 16 * 3;
+        int const pixelSize = logicalSize * pixelScale * zoom;
+        if(ioletBuffer) nvgluDeleteFramebuffer(ioletBuffer);
+        ioletBuffer = nvgluCreateFramebuffer(nvg, pixelSize, pixelSize, 0);
+        
+        nvgluBindFramebuffer(ioletBuffer);
+        glViewport(0, 0, pixelSize, pixelSize);
+        OpenGLHelpers::clear(Colours::transparentBlack);
+        
+        nvgBeginFrame(nvg, logicalSize * zoom, logicalSize * zoom, pixelScale);
+        nvgScale(nvg, zoom, zoom);
+        
+        auto ioletColours = std::vector<Colour>{findColour(PlugDataColour::dataColourId), findColour(PlugDataColour::signalColourId), findColour(PlugDataColour::gemColourId)};
+        
+        for(int i = 0; i < 3; i++)
+        {
+            auto backgroundColour = convertColour(ioletColours[i]);
+            auto outlineColour = findNVGColour(PlugDataColour::objectOutlineColourId);
+            auto renderIolet = [](NVGcontext* nvg, Rectangle<float> bounds, NVGcolor background, NVGcolor outline){
+                if (PlugDataLook::getUseSquareIolets()) {
+                    nvgBeginPath(nvg);
+                    nvgFillColor(nvg, background);
+                    nvgRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+                    nvgFill(nvg);
+                    
+                    nvgStrokeColor(nvg, outline);
+                    nvgStroke(nvg);
+                }
+                else {
+                    nvgBeginPath(nvg);
+                    nvgFillColor(nvg, background);
+                    nvgCircle(nvg, bounds.getCentreX(), bounds.getCentreY(), bounds.getWidth() / 2.0f);
+                    nvgFill(nvg);
+                    
+                    nvgStrokeColor(nvg, outline);
+                    nvgStroke(nvg);
+                }
+            };
+            
+            // Draw expanded
+            auto ioletRow = Rectangle<float>(0, i * 16 + 0.5f, logicalSize, 12.5f);
+            renderIolet(nvg, ioletRow.removeFromLeft(16).reduced(3.5f), backgroundColour, outlineColour); // normal
+            renderIolet(nvg, ioletRow.removeFromLeft(16).reduced(2.0f), backgroundColour, outlineColour); // hovered
+        }
+        
+        nvgEndFrame(nvg);
+        nvgluBindFramebuffer(0);
+    }
+    
+    // Then, check if object framebuffers need to be updated
+    if(viewport) invalidRegion = (invalidRegion + viewport->getViewPosition()) / zoom;
     for(auto* obj : objects)
     {
         auto b = obj->getBounds();
         if(b.intersects(invalidRegion)) {
             obj->updateFramebuffer(nvg);
-            
-            if(obj->gui)
-            {
-                // Update framebuffers inside graphs
-                if(auto* cnv = obj->gui->getCanvas())
-                {
-                    cnv->performFramebufferUpdate(nvg, cnv->getLocalBounds(), maxUpdateTimeMs / 2);
-                }
-            }
         
             auto elapsed = Time::getMillisecondCounter() - start;
             if(elapsed > maxUpdateTimeMs) {
-                break; // TODO: this is fine, but it does mean objects earlier in the list are more likely to get buffered than ones later. They will all get buffered eventually, so it's fine I guess
+                break; // TODO: this does mean objects earlier in the list are more likely to get buffered than later ones. They will all get buffered eventually, so it's fine I guess
                 return false;
             }
         }
@@ -316,8 +362,10 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         
         // draw 0,0 point lines
         nvgLineStyle(nvg, NVG_LINE_DASHED);
+
         nvgStrokeColor(nvg, dotsColour);
         nvgStrokeWidth(nvg, 1.5f);
+        nvgDashLength(nvg, 8.0f);
         nvgStroke(nvg);
         
         // Connect origin lines at {0, 0}

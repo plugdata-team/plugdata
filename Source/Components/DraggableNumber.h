@@ -205,8 +205,6 @@ public:
 
         dragValue = getText().getDoubleValue();
 
-        auto const textArea = getBorderSize().subtractedFrom(getLocalBounds());
-
         if (dragMode != Regular) {
             decimalDrag = 0;
             lastLogarithmicDragPosition = e.y;

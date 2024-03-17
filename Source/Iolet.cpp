@@ -50,11 +50,33 @@ Rectangle<int> Iolet::getCanvasBounds()
 
 void Iolet::render(NVGcontext* nvg)
 {
-    auto bounds = getLocalBounds().toFloat().reduced(0.5f);
-
+    
+    auto* fb = cnv->ioletBuffer;
+    
     bool isLocked = getValue<bool>(locked) || getValue<bool>(commandLocked);
     bool over = getCanvasBounds().contains(cnv->getLastMousePosition());
     bool overObject = object->drawIoletExpanded;
+    bool isHovering = (isTargeted || over) && !isLocked;
+    int type = isSignal + (isGemState * 2);
+    
+    nvgSave(nvg);
+    
+    if(isLocked || !(overObject || isHovering))
+    {
+        auto clipBounds = getLocalArea(object, object->getLocalBounds().reduced(Object::margin));
+        nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
+    }
+    
+    auto size = 13;
+    
+    nvgBeginPath(nvg);
+    nvgRect(nvg, 0, 0, size, size);
+    nvgFillPaint(nvg, nvgImagePattern(nvg, isHovering * -16 - 1.5f, type * -16 - 0.5f, 16 * 3, 16 * 3, 0, fb->image, 1));
+    nvgFill(nvg);
+    
+    nvgRestore(nvg);
+    
+/*
                         
     auto backgroundColour = isSignal ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId);
     if(isGemState)
@@ -95,10 +117,10 @@ void Iolet::render(NVGcontext* nvg)
         nvgBeginPath(nvg);
 
         nvgDrawRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight() - 0.5f, convertColour(backgroundColour), convertColour(outlineColour), bounds.getWidth() / 2.1f);
-    }
+    } */
     
     // Reset original scissor
-    nvgRestore(nvg);
+   // nvgRestore(nvg);
 }
 
 bool Iolet::hitTest(int x, int y)
