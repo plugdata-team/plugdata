@@ -5,7 +5,7 @@
  */
 
 // Graph bounds component
-class GraphArea : public Component, public Value::Listener {
+class GraphArea : public Component, public NVGComponent, public Value::Listener {
     ComponentBoundsConstrainer constrainer;
     ResizableBorderComponent resizer;
     Canvas* canvas;
@@ -13,7 +13,8 @@ class GraphArea : public Component, public Value::Listener {
 
 public:
     explicit GraphArea(Canvas* parent)
-        : resizer(this, &constrainer)
+        : NVGComponent(this)
+        , resizer(this, &constrainer)
         , canvas(parent)
     {
         addAndMakeVisible(resizer);
@@ -36,36 +37,51 @@ public:
     {
         setVisible(!getValue<bool>(v));
     }
-
-    void paint(Graphics& g) override
+    
+    Array<Rectangle<float>> getCorners() const
     {
-        g.setColour(findColour(PlugDataColour::graphAreaColourId));
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(3.5f), Corners::objectCornerRadius, 1.0f);
+        auto rect = getLocalBounds().toFloat().reduced(3.5f);
+        float const offset = 2.0f;
 
-        g.saveState();
-        
-        // Make a rounded rectangle hole path:
-        // We do this by creating a large rectangle path with inverted winding
-        // and adding the inner rounded rectangle path
-        // this creates one path that has a hole in the middle
-        Path outerArea;
-        outerArea.addRectangle(getLocalBounds());
-        outerArea.setUsingNonZeroWinding(false);
-        Path innerArea;
-        
-        auto innerRect = getLocalBounds().toFloat().reduced(3.5f);
-        innerArea.addRoundedRectangle(innerRect, Corners::objectCornerRadius);
-        outerArea.addPath(innerArea);
+        Array<Rectangle<float>> corners = { Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopLeft().toFloat()).translated(offset, offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomLeft().toFloat()).translated(offset, -offset),
+            Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomRight().toFloat()).translated(-offset, -offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopRight().toFloat()).translated(-offset, offset) };
 
-        // use the path with a hole in it to exclude the inner rounded rect from painting
-        g.reduceClipRegion(outerArea);
+        return corners;
+    }
+    
+    void render(NVGcontext* nvg) override
+    {
+        auto lineBounds = getLocalBounds().toFloat().reduced(4.0f);
+        auto graphAreaColour = convertColour(findColour(PlugDataColour::graphAreaColourId));
 
-        g.fillRoundedRectangle(topLeftCorner, Corners::objectCornerRadius);
-        g.fillRoundedRectangle(topRightCorner, Corners::objectCornerRadius);
-        g.fillRoundedRectangle(bottomLeftCorner, Corners::objectCornerRadius);
-        g.fillRoundedRectangle(bottomRightCorner, Corners::objectCornerRadius);
-        
-        g.restoreState();
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, lineBounds.getX(), lineBounds.getY(), lineBounds.getWidth(), lineBounds.getHeight(), Corners::objectCornerRadius);
+        nvgStrokeColor(nvg, graphAreaColour);
+        nvgStrokeWidth(nvg, 1.0f);
+        nvgStroke(nvg);
+    
+
+        auto corners = getCorners();
+        for(int i = 0; i < corners.size(); i++)
+        {
+            auto& corner = corners.getReference(i);
+            RectangleList<float> cornerRects = corner;
+            cornerRects.subtract(Rectangle<float>(4.0f, 4.0f, getWidth() - 8.0f, getHeight() - 8.0f));
+            for(auto& r : cornerRects)
+            {
+                nvgDrawRoundedRect(nvg, r.getX(), r.getY(), r.getWidth(), r.getHeight(), graphAreaColour, graphAreaColour, 1.9f);
+            }
+            
+            nvgFillColor(nvg, graphAreaColour);
+            
+            // Connect the two rounded rect segments with another rounded rect
+            nvgBeginPath(nvg);
+            if(i == 0 || i == 3) nvgRoundedRect(nvg, corner.getX(), corner.getY() - 0.5f, corner.getWidth(), corner.getHeight() - 5.5f, 1.9f);
+            else                 nvgRoundedRect(nvg, corner.getX(), corner.getBottom() - (corner.getHeight() - 5.5f), corner.getWidth(), corner.getHeight() - 5.0f, 1.9f);
+            
+            nvgFill(nvg);
+    
+        }
     }
 
     bool hitTest(int x, int y) override

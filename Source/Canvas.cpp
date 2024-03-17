@@ -401,6 +401,13 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         nvgRestore(nvg);
     }
     
+    if(graphArea) {
+        nvgSave(nvg);
+        nvgTranslate(nvg, graphArea->getX(), graphArea->getY());
+        graphArea->render(nvg);
+        nvgRestore(nvg);
+    }
+    
     objectGrid.render(nvg);
     
     if(viewport && lasso.isVisible() && !lasso.getBounds().isEmpty()) {

@@ -1229,9 +1229,6 @@ void Object::performRender(NVGcontext* nvg)
     auto selectedOutlineColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
 
     if (selectedFlag) {
-        nvgFillColor(nvg, selectedOutlineColour);
-        nvgSave(nvg);
-
         auto corners = getCorners();
         for(int i = 0; i < corners.size(); i++)
         {
@@ -1253,7 +1250,6 @@ void Object::performRender(NVGcontext* nvg)
             nvgFill(nvg);
     
         }
-        nvgRestore(nvg);
     }
     
     if(showActiveState && !approximatelyEqual(activeStateAlpha, 0.0f))
