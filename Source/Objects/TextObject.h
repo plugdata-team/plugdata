@@ -247,7 +247,7 @@ public:
 
         if(editor && editor->isVisible())
         {
-            renderComponentFromImage(nvg, *editor, getValue<float>(cnv->zoomScale) * 2);
+            renderComponentFromImage(nvg, *editor, getImageScale());
         }
         else {
             auto text = getText();
@@ -256,8 +256,7 @@ public:
             
             // we could render at the actual scale, but that makes the transition to scolling/zooming pretty rough
             // Instead, rendering at 2x scale gives us pretty good sharpness overall
-            auto scale = 2.0f * cnv->getRenderScale();
-            cachedTextRender.renderText(nvg, text, Fonts::getDefaultFont().withHeight(15), object->findColour(PlugDataColour::canvasTextColourId), textArea, scale);
+            cachedTextRender.renderText(nvg, text, Fonts::getDefaultFont().withHeight(15), object->findColour(PlugDataColour::canvasTextColourId), textArea, getImageScale());
         }
     }
 

@@ -52,6 +52,7 @@ void Iolet::render(NVGcontext* nvg)
 {
     
     auto* fb = cnv->ioletBuffer;
+    if(!fb) return;
     
     bool isLocked = getValue<bool>(locked) || getValue<bool>(commandLocked);
     bool over = getCanvasBounds().contains(cnv->getLastMousePosition());

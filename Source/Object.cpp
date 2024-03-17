@@ -1248,7 +1248,6 @@ void Object::performRender(NVGcontext* nvg)
             else                 nvgRoundedRect(nvg, corner.getX(), corner.getBottom() - (corner.getHeight() - 5.5f), corner.getWidth(), corner.getHeight() - 5.0f, 1.9f);
             
             nvgFill(nvg);
-    
         }
     }
     
@@ -1291,7 +1290,7 @@ void Object::performRender(NVGcontext* nvg)
         nvgStroke(nvg);
         
         nvgTranslate(nvg, margin, margin);
-        renderComponentFromImage(nvg, *newObjectEditor, getValue<float>(cnv->zoomScale) * 2);
+        renderComponentFromImage(nvg, *newObjectEditor, getValue<float>(cnv->zoomScale) * cnv->getRenderScale());
     }
     
     // If autoconnect is about to happen, draw a fake inlet with a dotted outline
@@ -1362,7 +1361,7 @@ void Object::renderLabel(NVGcontext* nvg)
         {
             nvgSave(nvg);
             nvgTranslate(nvg, label->getX(), label->getY());
-            label->render(nvg);
+            label->renderLabel(nvg, cnv->getRenderScale() * 2.0f);
             nvgRestore(nvg);
         }
     }

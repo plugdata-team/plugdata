@@ -296,7 +296,7 @@ public:
         nvgFillColor(nvg, convertColour(highlighed ? highlightColour : normalColour));
         nvgFill(nvg);
         
-        renderComponentFromImage(nvg, input, ::getValue<float>(cnv->zoomScale) * 2);
+        renderComponentFromImage(nvg, input, getImageScale());
     }
 
     float getValue()

@@ -171,11 +171,11 @@ public:
     
         if(editor)
         {
-            renderComponentFromImage(nvg, *editor, getValue<float>(cnv->zoomScale) * 2);
+            renderComponentFromImage(nvg, *editor, getImageScale());
         }
         else {
             auto text = getText();
-            textRenderer.renderText(nvg, text, Fonts::getDefaultFont().withHeight(15), object->findColour(PlugDataColour::canvasTextColourId), border.subtractedFrom(b), cnv->getRenderScale() * 2.0f);
+            textRenderer.renderText(nvg, text, Fonts::getDefaultFont().withHeight(15), object->findColour(PlugDataColour::canvasTextColourId), border.subtractedFrom(b), getImageScale());
         }
     }
     

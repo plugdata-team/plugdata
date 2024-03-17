@@ -416,7 +416,7 @@ void ObjectBase::moveToBack()
 
 void ObjectBase::render(NVGcontext* nvg)
 {
-    renderComponentFromImage(nvg, *this, getValue<float>(cnv->zoomScale) * 2);
+    renderComponentFromImage(nvg, *this, getImageScale());
 }
 
 void ObjectBase::paint(Graphics& g)
@@ -429,6 +429,10 @@ void ObjectBase::paint(Graphics& g)
 
     g.setColour(outlineColour);
     g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+}
+
+float ObjectBase::getImageScale() {
+    return cnv->isScrolling ? cnv->getRenderScale() * 2.0f : cnv->getRenderScale() * getValue<float>(cnv->zoomScale);
 }
 
 ObjectParameters ObjectBase::getParameters()

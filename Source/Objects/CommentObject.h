@@ -60,10 +60,10 @@ public:
     {
         if (!editor) {
             auto textArea = border.subtractedFrom(getLocalBounds());
-            textRenderer.renderText(nvg, getText(), Fonts::getDefaultFont().withHeight(15), object->findColour(PlugDataColour::commentTextColourId), textArea, cnv->getRenderScale() * 2.0f);
+            textRenderer.renderText(nvg, getText(), Fonts::getDefaultFont().withHeight(15), object->findColour(PlugDataColour::commentTextColourId), textArea, getImageScale());
         }
         else {
-            renderComponentFromImage(nvg, *editor, cnv->getRenderScale() * 2.0f);
+            renderComponentFromImage(nvg, *editor, getImageScale());
         }
     }
     

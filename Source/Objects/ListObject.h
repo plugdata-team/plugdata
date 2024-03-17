@@ -172,7 +172,7 @@ public:
  
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
         
-        renderComponentFromImage(nvg, listLabel, ::getValue<float>(cnv->zoomScale) * 2);
+        renderComponentFromImage(nvg, listLabel, getImageScale());
 
         nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour)));
         nvgBeginPath(nvg);

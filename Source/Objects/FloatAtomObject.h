@@ -190,7 +190,8 @@ public:
         nvgClosePath(nvg);
         nvgFill(nvg);
         
-        renderComponentFromImage(nvg, input, ::getValue<float>(cnv->zoomScale) * 2);
+        
+        renderComponentFromImage(nvg, input, getImageScale());
     }
 
     void updateLabel() override

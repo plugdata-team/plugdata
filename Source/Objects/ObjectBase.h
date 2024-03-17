@@ -34,9 +34,9 @@ public:
         setInterceptsMouseClicks(false, false);
     }
     
-    void render(NVGcontext* nvg)
+    void renderLabel(NVGcontext* nvg, float scale)
     {
-        renderComponentFromImage(nvg, *this, 2.0f);
+        renderComponentFromImage(nvg, *this, scale);
     }
 
 private:
@@ -193,7 +193,10 @@ protected:
 
     // Send a float value to Pd
     void sendFloatValue(float value);
-
+    
+    // Gets the scale factor we need to use of we want to draw images inside the component
+    float getImageScale();
+    
     // Used by various ELSE objects, though sometimes with char*, sometimes with unsigned char*
     template<typename T>
     void colourToHexArray(Colour colour, T* hex)

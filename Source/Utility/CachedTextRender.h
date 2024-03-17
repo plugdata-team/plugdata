@@ -20,9 +20,9 @@ public:
         
         nvgBeginPath(nvg);
         nvgSave(nvg);
-        nvgIntersectScissor(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+        nvgIntersectScissor(nvg, bounds.getX(), bounds.getY(), bounds.getWidth() + 1, bounds.getHeight());
         nvgRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
-        nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, bounds.getWidth() + 1, bounds.getHeight(), 0, imageId, 1.0f));
+        nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, bounds.getWidth(), bounds.getHeight(), 0, imageId, 1.0f));
         nvgFill(nvg);
         nvgRestore(nvg);
     }
@@ -43,6 +43,7 @@ public:
             textLayout.createLayout(attributedText, bounds.getWidth());
             
             Graphics g(textImage);
+            g.getInternalContext().setInterpolationQuality(Graphics::ResamplingQuality::highResamplingQuality);
             g.addTransform(AffineTransform::scale(scale, scale));
             textLayout.draw(g, bounds.toFloat());
         }

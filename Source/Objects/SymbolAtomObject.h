@@ -184,7 +184,7 @@ public:
         nvgClosePath(nvg);
         nvgFill(nvg);
         
-        renderComponentFromImage(nvg, input, ::getValue<float>(cnv->zoomScale) * 2);
+        renderComponentFromImage(nvg, input, getImageScale());
 
         nvgBeginPath(nvg);
         nvgMoveTo(nvg, b.getRight() - 8, b.getY());
