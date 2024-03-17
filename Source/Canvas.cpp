@@ -178,11 +178,13 @@ bool Canvas::performFramebufferUpdate(NVGcontext* nvg, Rectangle<int> invalidReg
 {
     auto start = Time::getMillisecondCounter();
     auto pixelScale = getRenderScale();
-    auto zoom = getValue<float>(zoomScale);
+    auto zoom = isScrolling ? 3.0f : getValue<float>(zoomScale);
     
     // First, check if we need to update our iolet buffer
     if(!ioletBuffer || !approximatelyEqual(zoom, ioletScale))
     {
+        ioletScale = zoom;
+        
         int const logicalSize = 16 * 3;
         int const pixelSize = logicalSize * pixelScale * zoom;
         if(ioletBuffer) nvgluDeleteFramebuffer(ioletBuffer);
