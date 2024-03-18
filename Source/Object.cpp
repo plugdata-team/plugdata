@@ -1232,58 +1232,24 @@ void Object::performRender(NVGcontext* nvg)
     auto b = getLocalBounds().reduced(margin);
     auto selectedOutlineColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
 
-    // TODO: this is not very efficient
-    auto drawCorner = [](NVGcontext* nvg, float x, float y, int angle){
-        nvgSave(nvg);
-        
-        nvgTranslate(nvg, x, y);
-        nvgRotate(nvg, degreesToRadians<float>(angle));
-        
-        auto innerRadius = Corners::objectCornerRadius;
-        auto outerRadius = innerRadius + 0.5f;
-        auto p1 = Point<int>(1.0f, 1.0f); // Top Left
-        auto p2 = Point<int>(9.0f, 1.0f); // Top Right
-        auto p3 = Point<int>(4.5f, 4.5f); // Centre
-        auto p4 = Point<int>(1.0f, 9.0f); // Bottom Right
-        
-        auto p1c1 = p1.translated(0, outerRadius);
-        auto p1c2 = p1.translated(outerRadius, 0);
-
-        auto p2c1 = p2.translated(-outerRadius, 0);
-        auto p2c2 = p2.translated(0, outerRadius);
-        
-        auto p3c1 = p3.translated(innerRadius, 0);
-        auto p3c2 = p3.translated(0, innerRadius);
-        
-        auto p4c1 = p4.translated(outerRadius, 0);
-        auto p4c2 = p4.translated(0, -outerRadius);
-        
-        nvgBeginPath(nvg);
-        nvgMoveTo(nvg, p2c1.x, p2c1.y);
-        
-        nvgQuadTo(nvg, p2.x, p2.y, p2c2.x, p2c2.y);
-        nvgLineTo(nvg, p3c1.x, p3c1.y);
-        
-        nvgQuadTo(nvg, p3.x, p3.y, p3c2.x, p3c2.y);
-        nvgLineTo(nvg, p4c1.x, p4c1.y);
-    
-        nvgQuadTo(nvg, p4.x, p4.y, p4c2.x, p4c2.y);
-        nvgLineTo(nvg, p1c1.x, p1c1.y);
-        
-        nvgQuadTo(nvg, p1.x, p1.y, p1c2.x, p1c2.y);
-        nvgLineTo(nvg, p2c1.x, p2c1.y);
-        nvgClosePath(nvg);
-    
-        nvgFill(nvg);
-        nvgRestore(nvg);
-    };
-    
     if (selectedFlag) {
-        nvgFillColor(nvg, selectedOutlineColour);
-        drawCorner(nvg, 2.75f, 2.75f, 0);
-        drawCorner(nvg, getWidth() - 3, 2.75f, 90);
-        drawCorner(nvg, getWidth() - 3, getHeight() - 3, 180);
-        drawCorner(nvg, 2.75f, getHeight() - 3, 270);
+        auto& resizeHandleImage = cnv->resizeHandleImage;
+        int angle = 360;
+        for(auto& corner : getCorners())
+        {
+            nvgSave(nvg);
+            // Rotate around centre
+            nvgTranslate(nvg, corner.getCentreX(), corner.getCentreY());
+            nvgRotate(nvg, degreesToRadians<float>(angle));
+            nvgTranslate(nvg, -4.5f, -4.5f);
+            
+            nvgBeginPath(nvg);
+            nvgRect(nvg, 0, 0, 9, 9);
+            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage, 1));
+            nvgFill(nvg);
+            nvgRestore(nvg);
+            angle -= 90;
+        }
     }
     
     if(showActiveState && !approximatelyEqual(activeStateAlpha, 0.0f))

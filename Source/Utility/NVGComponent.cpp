@@ -12,25 +12,27 @@ NVGComponent::NVGComponent(Component* comp) : component(*comp)
 
 void NVGComponent::renderComponentFromImage(NVGcontext* nvg, Component& component, float scale)
 {
-    /* This way is faster, but we mostly use this for text editors, so using JUCE will give us unicode text support through our unicode font
-    if(!nvgLLGC) nvgLLGC = std::make_unique<NanoVGGraphicsContext>(nvg);
-    nvgLLGC->setPhysicalPixelScaleFactor(scale);
-    
-    Graphics g(*nvgLLGC);
-    {
-        nvgSave(nvg);
-        nvgScissor(nvg, 0, 0, component.getWidth(), component.getHeight());
-        component.paintEntireComponent(g, true);
-        nvgRestore(nvg); // (in case it applies transformations)
-    } */
-    
-    Image componentImage;
-    {
-        const MessageManagerLock mmLock;
-        componentImage = component.createComponentSnapshot(Rectangle<int>(0, 0, component.getWidth() + 1, component.getHeight() + 1), true, scale);
+    Image componentImage = component.createComponentSnapshot(Rectangle<int>(0, 0, component.getWidth() + 1, component.getHeight()), true, scale);
+
+    if(cachedImage.imageId && cachedImage.lastWidth == componentImage.getWidth() && cachedImage.lastHeight == componentImage.getHeight()) {
+        cachedImage.imageId = convertImage(nvg, componentImage, cachedImage.imageId);
     }
-    
-    Image::BitmapData imageData(componentImage, juce::Image::BitmapData::readOnly);
+    else {
+        if(cachedImage.imageId) nvgDeleteImage(nvg, cachedImage.imageId);
+        cachedImage.imageId = convertImage(nvg, componentImage);
+        cachedImage.lastWidth = componentImage.getWidth();
+        cachedImage.lastHeight = componentImage.getHeight();
+    }
+
+    nvgBeginPath(nvg);
+    nvgRect(nvg, 0, 0, component.getWidth(), component.getHeight());
+    nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, component.getWidth() + 1, component.getHeight(), 0, cachedImage.imageId, 1.0f));
+    nvgFill(nvg);
+}
+
+int NVGComponent::convertImage(NVGcontext* nvg, Image& image, int imageToUpdate)
+{
+    Image::BitmapData imageData(image, Image::BitmapData::readOnly);
 
     int width = imageData.width;
     int height = imageData.height;
@@ -42,32 +44,25 @@ void NVGComponent::renderComponentFromImage(NVGcontext* nvg, Component& componen
 
         for (int x = 0; x < width; ++x)
         {
-            juce::uint32 argb = scanLine[x];
+            uint32 argb = scanLine[x];
 
-            juce::uint8 a = argb >> 24;
-            juce::uint8 r = argb >> 16;
-            juce::uint8 g = argb >> 8;
-            juce::uint8 b = argb;
+            uint8 a = argb >> 24;
+            uint8 r = argb >> 16;
+            uint8 g = argb >> 8;
+            uint8 b = argb;
 
             // order bytes as abgr
             scanLine[x] = (a << 24) | (b << 16) | (g << 8) | r;
         }
     }
-
-    if(cachedImage.imageId && cachedImage.lastWidth == width && cachedImage.lastHeight == height) {
-        nvgUpdateImage(nvg, cachedImage.imageId, pixelData);
+    
+    if(imageToUpdate >= 0)
+    {
+        nvgUpdateImage(nvg, imageToUpdate, pixelData);
+        return imageToUpdate;
     }
-    else {
-        if(cachedImage.imageId) nvgDeleteImage(nvg, cachedImage.imageId);
-        cachedImage.imageId = nvgCreateImageRGBA(nvg, width, height, NVG_IMAGE_PREMULTIPLIED, pixelData);
-        cachedImage.lastWidth = width;
-        cachedImage.lastHeight = height;
-    }
-
-    nvgBeginPath(nvg);
-    nvgRect(nvg, 0, 0, component.getWidth(), component.getHeight());
-    nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, component.getWidth(), component.getHeight(), 0, cachedImage.imageId, 1.0f));
-    nvgFill(nvg);
+  
+    return nvgCreateImageRGBA(nvg, image.getWidth(), image.getHeight(), NVG_IMAGE_PREMULTIPLIED, pixelData);
 }
 
 NVGcolor NVGComponent::convertColour(Colour c)

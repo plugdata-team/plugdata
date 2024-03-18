@@ -245,7 +245,8 @@ public:
     Component connectionLayer;
     
     NVGLUframebuffer* ioletBuffer = nullptr;
-    float ioletScale;
+    int resizeHandleImage = 0;
+    float bufferScale;
 
 private:
     

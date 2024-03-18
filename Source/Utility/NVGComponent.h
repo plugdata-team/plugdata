@@ -11,6 +11,8 @@ public:
     
     void renderComponentFromImage(NVGcontext* nvg, Component& component, float scale);
     
+    int convertImage(NVGcontext* nvg, Image& image, int imageToUpdate = -1);
+    
     static NVGcolor convertColour(Colour c);
     NVGcolor findNVGColour(int colourId);
     

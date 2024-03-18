@@ -59,6 +59,7 @@ void Iolet::render(NVGcontext* nvg)
     bool overObject = object->drawIoletExpanded;
     bool isHovering = (isTargeted || over) && !isLocked;
     int type = isSignal + (isGemState * 2);
+    if(isLocked) type = 3;
     
     nvgSave(nvg);
     
@@ -72,7 +73,7 @@ void Iolet::render(NVGcontext* nvg)
     
     nvgBeginPath(nvg);
     nvgRect(nvg, 0, 0, size, size);
-    nvgFillPaint(nvg, nvgImagePattern(nvg, isHovering * -16 - 1.5f, type * -16 - 0.5f, 16 * 3, 16 * 3, 0, fb->image, 1));
+    nvgFillPaint(nvg, nvgImagePattern(nvg, isHovering * -16 - 1.5f, type * -16 - 0.5f, 16 * 4, 16 * 4, 0, fb->image, 1));
     nvgFill(nvg);
     
     nvgRestore(nvg);
