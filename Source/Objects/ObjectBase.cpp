@@ -432,7 +432,7 @@ void ObjectBase::paint(Graphics& g)
 }
 
 float ObjectBase::getImageScale() {
-    return cnv->isScrolling ? cnv->getRenderScale() * 2.0f : cnv->getRenderScale() * std::max(1.0f, getValue<float>(cnv->zoomScale));
+    return cnv->isScrolling ? cnv->getRenderScale() * 2.0f : cnv->getRenderScale() * getValue<float>(cnv->zoomScale);
 }
 
 ObjectParameters ObjectBase::getParameters()

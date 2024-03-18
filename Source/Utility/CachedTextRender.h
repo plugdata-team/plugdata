@@ -74,7 +74,7 @@ public:
         }
         else {
             if(imageId) nvgDeleteImage(nvg, imageId);
-            imageId = nvgCreateImageRGBA(nvg, width, height, 0, pixelData);
+            imageId = nvgCreateImageRGBA(nvg, width, height, NVG_IMAGE_PREMULTIPLIED, pixelData);
             imageWidth = width;
             imageHeight = height;
             lastScale = scale;

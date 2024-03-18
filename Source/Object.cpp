@@ -1167,7 +1167,7 @@ void Object::updateFramebuffer(NVGcontext* nvg)
                 fbHeight = b.getHeight();
                 
                 if(fb) nvgluDeleteFramebuffer(fb);
-                fb = nvgluCreateFramebuffer(nvg, scaledWidth, scaledHeight, 0);
+                fb = nvgluCreateFramebuffer(nvg, scaledWidth, scaledHeight, NVG_IMAGE_PREMULTIPLIED);
             }
             
             nvgluBindFramebuffer(fb);
@@ -1233,38 +1233,57 @@ void Object::performRender(NVGcontext* nvg)
     auto selectedOutlineColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
 
     // TODO: this is not very efficient
-    auto drawCorner = [](NVGcontext* nvg, int x, int y, int angle){
+    auto drawCorner = [](NVGcontext* nvg, float x, float y, int angle){
         nvgSave(nvg);
         
         nvgTranslate(nvg, x, y);
         nvgRotate(nvg, degreesToRadians<float>(angle));
         
-        // (Calculated from svg)
-        nvgBeginPath(nvg);
-        nvgMoveTo(nvg, 3.51f, 9.004f);
-        nvgLineTo(nvg, 2.251f, 9.004f);
-        nvgBezierTo(nvg, 0.0f, 9.004f, 0.0f, 7.996f, 0.0f, 2.251f);
-
-        nvgBezierTo(nvg, 0.0f, 1.009f, 1.008f, 0.0f, 2.251f, 0.0f);
-
-        nvgLineTo(nvg, 6.753f, 0.0f);
-        nvgBezierTo(nvg, 7.995f, 0.0f, 9.004f, 1.009f, 9.004f, 2.251f);
+        auto innerRadius = Corners::objectCornerRadius;
+        auto outerRadius = innerRadius + 0.5f;
+        auto p1 = Point<int>(1.0f, 1.0f); // Top Left
+        auto p2 = Point<int>(9.0f, 1.0f); // Top Right
+        auto p3 = Point<int>(4.5f, 4.5f); // Centre
+        auto p4 = Point<int>(1.0f, 9.0f); // Bottom Right
         
-        nvgLineTo(nvg, 9.004f, 3.511f);
-        nvgLineTo(nvg, 6.239f, 3.511f);
-        nvgBezierTo(nvg, 4.733f, 3.511f, 3.51f, 4.734f, 3.51f, 6.24f);
-        nvgClosePath(nvg);
+        auto p1c1 = p1.translated(0, outerRadius);
+        auto p1c2 = p1.translated(outerRadius, 0);
 
+        auto p2c1 = p2.translated(-outerRadius, 0);
+        auto p2c2 = p2.translated(0, outerRadius);
+        
+        auto p3c1 = p3.translated(innerRadius, 0);
+        auto p3c2 = p3.translated(0, innerRadius);
+        
+        auto p4c1 = p4.translated(outerRadius, 0);
+        auto p4c2 = p4.translated(0, -outerRadius);
+        
+        nvgBeginPath(nvg);
+        nvgMoveTo(nvg, p2c1.x, p2c1.y);
+        
+        nvgQuadTo(nvg, p2.x, p2.y, p2c2.x, p2c2.y);
+        nvgLineTo(nvg, p3c1.x, p3c1.y);
+        
+        nvgQuadTo(nvg, p3.x, p3.y, p3c2.x, p3c2.y);
+        nvgLineTo(nvg, p4c1.x, p4c1.y);
+    
+        nvgQuadTo(nvg, p4.x, p4.y, p4c2.x, p4c2.y);
+        nvgLineTo(nvg, p1c1.x, p1c1.y);
+        
+        nvgQuadTo(nvg, p1.x, p1.y, p1c2.x, p1c2.y);
+        nvgLineTo(nvg, p2c1.x, p2c1.y);
+        nvgClosePath(nvg);
+    
         nvgFill(nvg);
         nvgRestore(nvg);
     };
     
     if (selectedFlag) {
         nvgFillColor(nvg, selectedOutlineColour);
-        drawCorner(nvg, 3, 3, 0);
-        drawCorner(nvg, getWidth() - 3, 3, 90);
+        drawCorner(nvg, 2.75f, 2.75f, 0);
+        drawCorner(nvg, getWidth() - 3, 2.75f, 90);
         drawCorner(nvg, getWidth() - 3, getHeight() - 3, 180);
-        drawCorner(nvg, 3, getHeight() - 3, 270);
+        drawCorner(nvg, 2.75f, getHeight() - 3, 270);
     }
     
     if(showActiveState && !approximatelyEqual(activeStateAlpha, 0.0f))
