@@ -60,6 +60,7 @@ public:
         nvgStrokeColor(nvg, convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f)));
         nvgStrokeWidth(nvg, 2.5f);
         nvgBeginPath(nvg);
+        nvgScissor(nvg, 0, 0, getWidth(), getHeight());
         nvgRect(nvg, 0, 0, getWidth(), getHeight());
         nvgStroke(nvg);
     }
@@ -91,17 +92,17 @@ SplitView::~SplitView() = default;
 
 void SplitView::render(NVGcontext* nvg)
 {
-    for(auto* split : splits)
+    for(auto* it s : splits)
     {
         nvgSave(nvg);
-        auto splitPos = getLocalPoint(split, Point<int>(0, 0));
+        auto splitPos = editor->nvgSurface.getLocalPoint(split, Point<int>(0, 0));
         nvgTranslate(nvg, splitPos.x, splitPos.y);
         split->render(nvg); // Render active tab dnd areas
         nvgRestore(nvg);
     }
     
-    if(focusOutline) {
-        auto focusOutlinePos = getLocalPoint(focusOutline.get(), Point<int>(0, 0));
+    if(focusOutline && focusOutline->isVisible()) {
+        auto focusOutlinePos = editor->nvgSurface.getLocalPoint(focusOutline.get(), Point<int>(0, 0));
         nvgTranslate(nvg, focusOutlinePos.x, focusOutlinePos.y);
         focusOutline->render(nvg);
     }
@@ -192,6 +193,7 @@ void SplitView::setFocus(ResizableTabbedComponent* selectedTabComponent)
         activeTabComponent = selectedTabComponent;
         focusOutline->setActive(activeTabComponent);
         editor->updateCommandStatus();
+        editor->nvgSurface.triggerRepaint();
     }
 }
 
