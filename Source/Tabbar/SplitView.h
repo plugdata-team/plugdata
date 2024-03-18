@@ -13,6 +13,7 @@
 class PluginEditor;
 class Canvas;
 class SplitViewFocusOutline;
+class SplitViewResizer;
 class SplitView : public Component {
 public:
     explicit SplitView(PluginEditor* parent);
@@ -50,8 +51,6 @@ private:
     std::unique_ptr<SplitViewFocusOutline> focusOutline;
 
     PluginEditor* editor;
-
-    std::unique_ptr<Component> splitViewResizer;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SplitView)
 };

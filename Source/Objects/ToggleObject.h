@@ -70,7 +70,7 @@ public:
     
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat();
+        auto b = getLocalBounds().toFloat().reduced(0.5f);
         
         auto backgroundColour = convertColour(iemHelper.getBackgroundColour());
         auto toggledColour = convertColour(iemHelper.getForegroundColour()); // TODO: don't access audio thread variables in render loop

@@ -226,8 +226,8 @@ bool Canvas::performFramebufferUpdate(NVGcontext* nvg, Rectangle<int> invalidReg
             
             // Draw expanded
             auto ioletRow = Rectangle<float>(0, i * 16 + 0.5f, logicalSize, 12.5f);
-            renderIolet(nvg, ioletRow.removeFromLeft(16).reduced(3.5f), backgroundColour, outlineColour); // normal
-            renderIolet(nvg, ioletRow.removeFromLeft(16).reduced(2.0f), backgroundColour, outlineColour); // hovered
+            renderIolet(nvg, ioletRow.removeFromLeft(16).reduced(4.0f), backgroundColour, outlineColour); // normal
+            renderIolet(nvg, ioletRow.removeFromLeft(16).reduced(2.5f), backgroundColour, outlineColour); // hovered
         }
         
         nvgEndFrame(nvg);

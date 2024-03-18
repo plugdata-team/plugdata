@@ -491,15 +491,19 @@ public:
         nvgGlobalCompositeOperation(nvg, NVG_SOURCE_OVER);
         cnv->performRender(nvg, invalidated);
         
-        nvgSave(nvg);
-        nvgTranslate(nvg, vbar.getX(), vbar.getY());
-        vbar.render(nvg);
-        nvgRestore(nvg);
+        if(invalidated.intersects(vbar.getBounds())) {
+            nvgSave(nvg);
+            nvgTranslate(nvg, vbar.getX(), vbar.getY());
+            vbar.render(nvg);
+            nvgRestore(nvg);
+        }
         
-        nvgSave(nvg);
-        nvgTranslate(nvg, hbar.getX(), hbar.getY());
-        hbar.render(nvg);
-        nvgRestore(nvg);
+        if(invalidated.intersects(hbar.getBounds())) {
+            nvgSave(nvg);
+            nvgTranslate(nvg, hbar.getX(), hbar.getY());
+            hbar.render(nvg);
+            nvgRestore(nvg);
+        }
         
 #if ENABLE_CANVAS_FB_DEBUGGING
         static Random rng;

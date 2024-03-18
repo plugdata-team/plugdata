@@ -1226,10 +1226,47 @@ void Object::performRender(NVGcontext* nvg)
     auto b = getLocalBounds().reduced(margin);
     auto selectedOutlineColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
 
+    // TODO: this is not very efficient
+    auto drawCorner = [](NVGcontext* nvg, int x, int y, int angle){
+        nvgSave(nvg);
+        
+        nvgTranslate(nvg, x, y);
+        nvgRotate(nvg, degreesToRadians<float>(angle));
+        
+        // (Calculated from svg)
+        nvgBeginPath(nvg);
+        nvgMoveTo(nvg, 3.51f, 9.004f);
+        nvgLineTo(nvg, 2.251f, 9.004f);
+        nvgBezierTo(nvg, 0.0f, 9.004f, 0.0f, 7.996f, 0.0f, 2.251f);
+
+        nvgBezierTo(nvg, 0.0f, 1.009f, 1.008f, 0.0f, 2.251f, 0.0f);
+
+        nvgLineTo(nvg, 6.753f, 0.0f);
+        nvgBezierTo(nvg, 7.995f, 0.0f, 9.004f, 1.009f, 9.004f, 2.251f);
+        
+        nvgLineTo(nvg, 9.004f, 3.511f);
+        nvgLineTo(nvg, 6.239f, 3.511f);
+        nvgBezierTo(nvg, 4.733f, 3.511f, 3.51f, 4.734f, 3.51f, 6.24f);
+        nvgClosePath(nvg);
+
+        nvgFill(nvg);
+        nvgRestore(nvg);
+    };
+    
     if (selectedFlag) {
-        auto corners = getCorners();
+        nvgFillColor(nvg, selectedOutlineColour);
+        drawCorner(nvg, 3, 3, 0);
+        drawCorner(nvg, getWidth() - 3, 3, 90);
+        drawCorner(nvg, getWidth() - 3, getHeight() - 3, 180);
+        drawCorner(nvg, 3, getHeight() - 3, 270);
+    
+        
+        
+        /*
         for(int i = 0; i < corners.size(); i++)
         {
+                        
+            
             auto& corner = corners.getReference(i);
             RectangleList<float> cornerRects = corner;
             cornerRects.subtract(Rectangle<float>(margin, margin, getWidth() - doubleMargin, getHeight() - doubleMargin));
@@ -1246,7 +1283,7 @@ void Object::performRender(NVGcontext* nvg)
             else                 nvgRoundedRect(nvg, corner.getX(), corner.getBottom() - (corner.getHeight() - 5.5f), corner.getWidth(), corner.getHeight() - 5.0f, 1.9f);
             
             nvgFill(nvg);
-        }
+        } */
     }
     
     if(showActiveState && !approximatelyEqual(activeStateAlpha, 0.0f))

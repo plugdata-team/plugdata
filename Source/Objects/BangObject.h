@@ -105,7 +105,7 @@ public:
     
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat();
+        auto b = getLocalBounds().toFloat().reduced(0.5f);
         
         auto foregroundColour = convertColour(iemHelper.getForegroundColour()); // TODO: this is some bad threading practice!
         auto backgroundColour = convertColour(iemHelper.getBackgroundColour());
