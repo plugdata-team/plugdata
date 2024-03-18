@@ -40,15 +40,19 @@ using namespace juce::gl;
 #include <nanovg.h>
 
 class ZoomLabel : public TextButton
-    , public Timer {
-
-    ComponentAnimator labelAnimator;
-
-    // Ignore two times, when setting zoom scale and when setting split zoom scale
+    , public Timer, public NVGComponent
+{
+    float animationAlpha = 0.0f;
+    float targetAlpha = 0.0f;
+    float startAlpha = 0.0f;
+    int animationSteps = 0;
+    int currentStep = 0;
+    int animationDurationMs = 200;
+    bool isAnimating = false;
     int initRun = 2;
-
+    
 public:
-    ZoomLabel()
+    ZoomLabel() : NVGComponent(this)
     {
         setInterceptsMouseClicks(false, false);
     }
@@ -61,19 +65,72 @@ public:
         }
 
         setButtonText(String(value * 100, 1) + "%");
-        startTimer(2000);
+        startAnimation();
+    }
 
-        if (!labelAnimator.isAnimating(this)) {
-            labelAnimator.fadeIn(this, 200);
+    void startAnimation()
+    {
+        if (!isAnimating) {
+            targetAlpha = 1.0f;
+            startAlpha = animationAlpha;
+            currentStep = 0;
+            animationSteps = animationDurationMs / getTimerInterval();
+            startTimer(getTimerInterval());
+            isAnimating = true;
+        }
+    }
+
+    void stopAnimation()
+    {
+        if (isAnimating) {
+            targetAlpha = 0.0f;
+            startAlpha = animationAlpha;
+            currentStep = 0;
+            animationSteps = animationDurationMs / getTimerInterval();
+            startTimer(getTimerInterval());
+            isAnimating = true;
         }
     }
 
     void timerCallback() override
     {
-        labelAnimator.fadeOut(this, 200);
-        stopTimer();
+        if (currentStep >= animationSteps && targetAlpha > 0.0f) {
+            stopAnimation();
+            return;
+        }
+        else if(currentStep >= animationSteps)
+        {
+            stopTimer();
+            isAnimating = false;
+            return;
+        }
+
+        currentStep++;
+        float proportion = (float)currentStep / (float)animationSteps;
+        animationAlpha = startAlpha + (targetAlpha - startAlpha) * proportion;
+
+        repaint();
+    }
+
+    void render(NVGcontext* nvg) override
+    {
+        auto text = getButtonText();
+        auto bg = findNVGColour(PlugDataColour::toolbarBackgroundColourId);
+        auto outline = findNVGColour(PlugDataColour::outlineColourId);
+
+        nvgGlobalAlpha(nvg, animationAlpha);
+        nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), bg, outline, Corners::defaultCornerRadius);
+        nvgGlobalAlpha(nvg, 1.0f); // Reset alpha to 1.0 for other elements
+    }
+
+private:
+    int getTimerInterval() const
+    {
+        // Adjust this interval for smoother or faster animation
+        return 1000 / 60; // 60 FPS
     }
 };
+
 
 PluginEditor::PluginEditor(PluginProcessor& p)
     : AudioProcessorEditor(&p)

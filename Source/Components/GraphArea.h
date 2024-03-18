@@ -60,28 +60,38 @@ public:
         nvgStrokeWidth(nvg, 1.0f);
         nvgStroke(nvg);
     
-
-        auto corners = getCorners();
-        for(int i = 0; i < corners.size(); i++)
-        {
-            auto& corner = corners.getReference(i);
-            RectangleList<float> cornerRects = corner;
-            cornerRects.subtract(Rectangle<float>(4.0f, 4.0f, getWidth() - 8.0f, getHeight() - 8.0f));
-            for(auto& r : cornerRects)
-            {
-                nvgDrawRoundedRect(nvg, r.getX(), r.getY(), r.getWidth(), r.getHeight(), graphAreaColour, graphAreaColour, 1.9f);
-            }
+        
+        auto drawCorner = [](NVGcontext* nvg, int x, int y, int angle){
+            nvgSave(nvg);
             
-            nvgFillColor(nvg, graphAreaColour);
+            nvgTranslate(nvg, x, y);
+            nvgRotate(nvg, degreesToRadians<float>(angle));
             
-            // Connect the two rounded rect segments with another rounded rect
+            // (Calculated from svg)
             nvgBeginPath(nvg);
-            if(i == 0 || i == 3) nvgRoundedRect(nvg, corner.getX(), corner.getY() - 0.5f, corner.getWidth(), corner.getHeight() - 5.5f, 1.9f);
-            else                 nvgRoundedRect(nvg, corner.getX(), corner.getBottom() - (corner.getHeight() - 5.5f), corner.getWidth(), corner.getHeight() - 5.0f, 1.9f);
+            nvgMoveTo(nvg, 3.51f, 9.004f);
+            nvgLineTo(nvg, 2.251f, 9.004f);
+            nvgBezierTo(nvg, 0.0f, 9.004f, 0.0f, 7.996f, 0.0f, 2.251f);
+
+            nvgBezierTo(nvg, 0.0f, 1.009f, 1.008f, 0.0f, 2.251f, 0.0f);
+
+            nvgLineTo(nvg, 6.753f, 0.0f);
+            nvgBezierTo(nvg, 7.995f, 0.0f, 9.004f, 1.009f, 9.004f, 2.251f);
             
+            nvgLineTo(nvg, 9.004f, 3.511f);
+            nvgLineTo(nvg, 6.239f, 3.511f);
+            nvgBezierTo(nvg, 4.733f, 3.511f, 3.51f, 4.734f, 3.51f, 6.24f);
+            nvgClosePath(nvg);
+
             nvgFill(nvg);
-    
-        }
+            nvgRestore(nvg);
+        };
+        
+        nvgFillColor(nvg, graphAreaColour);
+        drawCorner(nvg, 1, 1, 0);
+        drawCorner(nvg, getWidth() - 1, 1, 90);
+        drawCorner(nvg, getWidth() - 1, getHeight() - 1, 180);
+        drawCorner(nvg, 1, getHeight() - 1, 270);
     }
 
     bool hitTest(int x, int y) override
