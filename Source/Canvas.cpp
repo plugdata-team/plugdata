@@ -354,7 +354,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             auto darkDotColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId).contrasting());
             auto scaledDotSize = jmap(zoom, 1.0f, 0.25f, 1.0f, 4.0f);
             if (zoom < 0.3f && getRenderScale() <= 1.0f)
-                scaledDotSize *= 2.0f;
+                scaledDotSize = jmap(zoom, 0.3f, 0.25f, 4.0f, 8.0f);
             //if (getRenderScale() <= 1.0f && zoom < 0.5f)
             //    scaledDotSize *= 1.5f;
 
@@ -410,7 +410,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         
         auto scaledStrokeSize = zoom < 1.0f ? jmap(zoom, 1.0f, 0.25f, 1.5f, 4.0f) : 1.5f;
         if (zoom < 0.3f && getRenderScale() <= 1.0f)
-            scaledStrokeSize *= 2.0f;
+            scaledStrokeSize = jmap(zoom, 0.3f, 0.25f, 4.0f, 8.0f);
 
         // draw 0,0 point lines
         nvgLineStyle(nvg, NVG_LINE_DASHED);
