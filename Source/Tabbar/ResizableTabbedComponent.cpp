@@ -314,7 +314,6 @@ void ResizableTabbedComponent::resized()
 void ResizableTabbedComponent::render(NVGcontext* nvg)
 {
     if (isDragAndDropOver) {
-        std::cout << editor->splitView.splits.indexOf(this) << std::endl;
         nvgBeginPath(nvg);
         nvgFillColor(nvg, convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.15f)));
         

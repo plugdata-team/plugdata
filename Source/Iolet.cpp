@@ -69,10 +69,12 @@ void Iolet::render(NVGcontext* nvg)
         nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
     }
     
-    auto size = 13;
+    auto scale = getWidth() / 13.0f;
+    nvgScale(nvg, scale, scale); // If the iolet is shrunk because there is little space, we scale it down
+    
     
     nvgBeginPath(nvg);
-    nvgRect(nvg, 0, 0, size, size);
+    nvgRect(nvg, 0, 0, 13, 13);
     nvgFillPaint(nvg, nvgImagePattern(nvg, isHovering * -16 - 1.5f, type * -16 - 0.5f, 16 * 4, 16 * 4, 0, fb->image, 1));
     nvgFill(nvg);
     

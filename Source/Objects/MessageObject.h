@@ -144,14 +144,14 @@ public:
         
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds();
+        auto b = getLocalBounds().toFloat().reduced(0.5f);
         
         auto backgroundColour = convertColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
         auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
         auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
         auto flagColour = convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
         
-        nvgDrawRoundedRect(nvg, b.getX() - 0.5f, b.getY() - 0.5f, b.getWidth() + 1.0f, b.getHeight() + 1.0f, backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
         
         float bRight = b.getRight();
         float bY = b.getY();
@@ -175,7 +175,7 @@ public:
         }
         else {
             auto text = getText();
-            textRenderer.renderText(nvg, text, Fonts::getDefaultFont().withHeight(15), object->findColour(PlugDataColour::canvasTextColourId), border.subtractedFrom(b), getImageScale());
+            textRenderer.renderText(nvg, text, Fonts::getDefaultFont().withHeight(15), object->findColour(PlugDataColour::canvasTextColourId), border.subtractedFrom(getLocalBounds()), getImageScale());
         }
     }
     

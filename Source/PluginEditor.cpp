@@ -40,15 +40,16 @@ using namespace juce::gl;
 #include <nanovg.h>
 
 class ZoomLabel : public TextButton
-    , public Timer, public NVGComponent
+    , public MultiTimer, public NVGComponent
 {
     float animationAlpha = 0.0f;
     float targetAlpha = 0.0f;
-    float startAlpha = 0.0f;
-    int animationSteps = 0;
-    int currentStep = 0;
-    int animationDurationMs = 200;
-    bool isAnimating = false;
+    float increment = 0.0f;
+    
+    int const fadeTimer = 0;
+    int const expireTimer = 1;
+
+    bool visible = false;
     int initRun = 2;
     
 public:
@@ -65,62 +66,76 @@ public:
         }
 
         setButtonText(String(value * 100, 1) + "%");
-        startAnimation();
+        fadeIn();
     }
 
-    void startAnimation()
+    void fadeIn()
     {
-        if (!isAnimating) {
-            targetAlpha = 1.0f;
-            startAlpha = animationAlpha;
-            currentStep = 0;
-            animationSteps = animationDurationMs / getTimerInterval();
-            startTimer(getTimerInterval());
-            isAnimating = true;
-        }
+        targetAlpha = 1.0f;
+        increment = 0.015f;
+        visible = true;
+        startTimer(fadeTimer, 1.0f / 60.0f);
     }
 
-    void stopAnimation()
+    void fadeOut()
     {
-        if (isAnimating) {
-            targetAlpha = 0.0f;
-            startAlpha = animationAlpha;
-            currentStep = 0;
-            animationSteps = animationDurationMs / getTimerInterval();
-            startTimer(getTimerInterval());
-            isAnimating = true;
-        }
+        targetAlpha = 0.0f;
+        increment = -0.015f;
+        startTimer(fadeTimer, 1.0f / 60.0f);
     }
 
-    void timerCallback() override
+    void timerCallback(int timerId) override
     {
-        if (currentStep >= animationSteps && targetAlpha > 0.0f) {
-            stopAnimation();
-            return;
+        if(timerId == fadeTimer) {
+            
+            if((increment > 0.0f && animationAlpha >= targetAlpha) || (increment < 0.0f && animationAlpha <= targetAlpha))
+            {
+                animationAlpha = targetAlpha;
+                visible = targetAlpha != 0.0f;
+                if(visible)
+                {
+                    startTimer(expireTimer, 1500);
+                }
+                stopTimer(fadeTimer);
+            }
+            else {
+                animationAlpha += increment;
+            }
+            
+            findParentComponentOfClass<PluginEditor>()->nvgSurface.triggerRepaint();
         }
-        else if(currentStep >= animationSteps)
-        {
-            stopTimer();
-            isAnimating = false;
-            return;
+        else {
+            fadeOut();
+            stopTimer(expireTimer);
         }
-
-        currentStep++;
-        float proportion = (float)currentStep / (float)animationSteps;
-        animationAlpha = startAlpha + (targetAlpha - startAlpha) * proportion;
-
-        repaint();
     }
 
     void render(NVGcontext* nvg) override
     {
-        auto text = getButtonText();
-        auto bg = findNVGColour(PlugDataColour::toolbarBackgroundColourId);
-        auto outline = findNVGColour(PlugDataColour::outlineColourId);
-        
-        nvgGlobalAlpha(nvg, animationAlpha);
-        nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), bg, outline, Corners::defaultCornerRadius);
-        nvgGlobalAlpha(nvg, 1.0f); // Reset alpha to 1.0 for other elements
+        if(visible) {
+            auto text = getButtonText();
+            auto bg = findNVGColour(PlugDataColour::toolbarBackgroundColourId);
+            auto outline = findNVGColour(PlugDataColour::outlineColourId);
+            auto textColour = findNVGColour(PlugDataColour::toolbarTextColourId);
+            
+            nvgGlobalAlpha(nvg, std::clamp(animationAlpha, 0.0f, 1.0f));
+            
+            nvgBeginPath(nvg);
+            nvgRoundedRect(nvg, 0, 0, getWidth(), getHeight(), Corners::defaultCornerRadius);
+            nvgFillColor(nvg, bg);
+            nvgFill(nvg);
+            nvgStrokeColor(nvg, outline);
+            nvgStrokeWidth(nvg, 1.0f);
+            nvgStroke(nvg);
+            
+            nvgFillColor(nvg, textColour);
+            nvgFontSize(nvg, 11.5f);
+            nvgFontFace(nvg, "Inter-Regular");
+            nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+            nvgText(nvg, getWidth() / 2.0f, getHeight() / 2.0f, text.toRawUTF8(), nullptr);
+            
+            nvgGlobalAlpha(nvg, 1.0f); // Reset alpha to 1.0 for other elements
+        }
     }
 
 private:
@@ -145,7 +160,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , pluginConstrainer(*getConstrainer())
     , autosave(std::make_unique<Autosave>(pd))
     , touchSelectionHelper(std::make_unique<TouchSelectionHelper>(this))
-    , tooltipWindow(this, [](Component* c) {
+    , tooltipWindow(nullptr, [](Component* c) {
         if (auto* cnv = c->findParentComponentOfClass<Canvas>()) {
             return !getValue<bool>(cnv->locked);
         }
