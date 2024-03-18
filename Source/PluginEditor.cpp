@@ -117,7 +117,7 @@ public:
         auto text = getButtonText();
         auto bg = findNVGColour(PlugDataColour::toolbarBackgroundColourId);
         auto outline = findNVGColour(PlugDataColour::outlineColourId);
-
+        
         nvgGlobalAlpha(nvg, animationAlpha);
         nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), bg, outline, Corners::defaultCornerRadius);
         nvgGlobalAlpha(nvg, 1.0f); // Reset alpha to 1.0 for other elements

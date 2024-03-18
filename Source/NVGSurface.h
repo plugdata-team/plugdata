@@ -22,7 +22,7 @@ public:
     ~NVGSurface();
     void render();
     
-    void swapBuffers();
+    void triggerRepaint();
     
     OpenGLContext* getGLContext();
     float getRenderScale() const;

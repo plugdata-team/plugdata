@@ -14,10 +14,10 @@
 #include "PluginProcessor.h"
 #include "Sidebar/Sidebar.h"
 
-class SplitViewFocusOutline : public Component
+class SplitViewFocusOutline : public Component, public NVGComponent
     , public ComponentListener {
 public:
-    SplitViewFocusOutline()
+    SplitViewFocusOutline() : NVGComponent(this)
     {
         setInterceptsMouseClicks(false, false);
     }
@@ -54,13 +54,22 @@ public:
         g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f));
         g.drawRect(getLocalBounds(), 2.5f);
     }
+        
+    void render(NVGcontext* nvg) override
+    {
+        nvgStrokeColor(nvg, convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f)));
+        nvgStrokeWidth(nvg, 2.5f);
+        nvgBeginPath(nvg);
+        nvgRect(nvg, 0, 0, getWidth(), getHeight());
+        nvgStroke(nvg);
+    }
 
 private:
     SafePointer<ResizableTabbedComponent> tabbedComponent = nullptr;
 };
 
 SplitView::SplitView(PluginEditor* parent)
-    : editor(parent)
+    : NVGComponent(this), editor(parent)
 {
     rootComponent = new ResizableTabbedComponent(editor);
     splits.add(rootComponent);
@@ -78,6 +87,25 @@ SplitView::SplitView(PluginEditor* parent)
 }
 
 SplitView::~SplitView() = default;
+
+
+void SplitView::render(NVGcontext* nvg)
+{
+    for(auto* split : splits)
+    {
+        nvgSave(nvg);
+        auto splitPos = getLocalPoint(split, Point<int>(0, 0));
+        nvgTranslate(nvg, splitPos.x, splitPos.y);
+        split->render(nvg); // Render active tab dnd areas
+        nvgRestore(nvg);
+    }
+    
+    if(focusOutline) {
+        auto focusOutlinePos = getLocalPoint(focusOutline.get(), Point<int>(0, 0));
+        nvgTranslate(nvg, focusOutlinePos.x, focusOutlinePos.y);
+        focusOutline->render(nvg);
+    }
+}
 
 bool SplitView::canSplit()
 {

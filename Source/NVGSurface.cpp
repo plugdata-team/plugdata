@@ -41,7 +41,7 @@ NVGSurface::~NVGSurface()
 }
 
 
-void NVGSurface::swapBuffers()
+void NVGSurface::triggerRepaint()
 {
     needsBufferSwap = true;
 }
@@ -105,6 +105,23 @@ void NVGSurface::render()
         {
             cnv->finaliseRender(nvg);
         }
+        
+        // Draw everything that needs to go on top of canvas
+        auto scale = getRenderScale();
+        nvgBeginFrame(nvg, getWidth(), getHeight(), scale);
+        glViewport(0, 0, getWidth() * scale, getHeight() * scale);
+        editor->splitView.render(nvg); // Render split view outlines and tab dnd areas
+        /*
+        if(auto* zoomLabel = reinterpret_cast<Component*>(editor->zoomLabel.get())) // If we don't cast through the first inherited class, this is UB
+        {
+            auto zoomLabelPos = getLocalPoint(zoomLabel, Point<int>(0, 0));
+            nvgSave(nvg);
+            nvgTranslate(nvg, zoomLabelPos.x, zoomLabelPos.y);
+            dynamic_cast<NVGComponent*>(zoomLabel)->render(nvg); // Render zoom notifier at the bottom left
+            nvgRestore(nvg);
+        } */
+        nvgEndFrame(nvg);
+        
         glContext->swapBuffers();
         needsBufferSwap = false;
     }

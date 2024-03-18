@@ -454,7 +454,7 @@ public:
             nvgEndFrame(nvg);
             
             nvgluBindFramebuffer(nullptr);
-            editor->nvgSurface.swapBuffers();
+            editor->nvgSurface.triggerRepaint();
         }
     }
     

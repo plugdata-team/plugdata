@@ -14,7 +14,7 @@ class PluginEditor;
 class Canvas;
 class SplitViewFocusOutline;
 class SplitViewResizer;
-class SplitView : public Component {
+class SplitView : public Component, public NVGComponent {
 public:
     explicit SplitView(PluginEditor* parent);
     ~SplitView() override;
@@ -30,6 +30,9 @@ public:
     bool canSplit();
 
     void setFocus(ResizableTabbedComponent* selectedTabComponent);
+    
+    
+    void render(NVGcontext* nvg) override;
 
     void closeEmptySplits();
 

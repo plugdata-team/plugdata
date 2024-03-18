@@ -13,7 +13,7 @@
 class TabComponent;
 class PluginEditor;
 class SplitViewResizer;
-class ResizableTabbedComponent : public Component
+class ResizableTabbedComponent : public Component, public NVGComponent
     , public DragAndDropTarget {
 public:
     ResizableTabbedComponent(PluginEditor* editor, TabComponent* splitTabComponent = nullptr);
@@ -23,7 +23,7 @@ public:
     void mouseDown(MouseEvent const& e) override;
 
     void resized() override;
-    void paintOverChildren(Graphics& g) override;
+    void render(NVGcontext* nvg) override;
 
     void itemDragMove(SourceDetails const& dragSourceDetails) override;
     bool isInterestedInDragSource(SourceDetails const& dragSourceDetails) override;
