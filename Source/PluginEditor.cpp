@@ -779,7 +779,6 @@ void PluginEditor::closeAllTabs(bool quitAfterComplete, Canvas* patchToExclude, 
     if (!canvases.size()) {
         afterComplete();
         if (quitAfterComplete) {
-            if(auto* context = nvgSurface.getGLContext()) context->detach();
             JUCEApplication::quit();
         }
         return;

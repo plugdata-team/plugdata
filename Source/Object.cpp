@@ -1201,6 +1201,12 @@ bool Object::shouldRenderToFramebuffer()
     return cnv->isScrolling;
 }
 
+void Object::deleteBuffers()
+{
+    if(fb) nvgluDeleteFramebuffer(fb);
+    fb = nullptr;
+}
+
 void Object::render(NVGcontext* nvg)
 {
     if(fb && shouldRenderToFramebuffer())
@@ -1259,31 +1265,6 @@ void Object::performRender(NVGcontext* nvg)
         drawCorner(nvg, getWidth() - 3, 3, 90);
         drawCorner(nvg, getWidth() - 3, getHeight() - 3, 180);
         drawCorner(nvg, 3, getHeight() - 3, 270);
-    
-        
-        
-        /*
-        for(int i = 0; i < corners.size(); i++)
-        {
-                        
-            
-            auto& corner = corners.getReference(i);
-            RectangleList<float> cornerRects = corner;
-            cornerRects.subtract(Rectangle<float>(margin, margin, getWidth() - doubleMargin, getHeight() - doubleMargin));
-            for(auto& r : cornerRects)
-            {
-                nvgDrawRoundedRect(nvg, r.getX(), r.getY(), r.getWidth(), r.getHeight(), selectedOutlineColour, selectedOutlineColour, 1.9f);
-            }
-            
-            nvgFillColor(nvg, selectedOutlineColour);
-            
-            // Connect the two rounded rect segments with another rounded rect
-            nvgBeginPath(nvg);
-            if(i == 0 || i == 3) nvgRoundedRect(nvg, corner.getX(), corner.getY() - 0.5f, corner.getWidth(), corner.getHeight() - 5.5f, 1.9f);
-            else                 nvgRoundedRect(nvg, corner.getX(), corner.getBottom() - (corner.getHeight() - 5.5f), corner.getWidth(), corner.getHeight() - 5.0f, 1.9f);
-            
-            nvgFill(nvg);
-        } */
     }
     
     if(showActiveState && !approximatelyEqual(activeStateAlpha, 0.0f))

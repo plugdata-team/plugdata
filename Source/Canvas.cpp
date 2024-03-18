@@ -174,6 +174,13 @@ Canvas::~Canvas()
     pd->unregisterMessageListener(patch.getPointer().get(), this);
 }
 
+void Canvas::deleteBuffers()
+{
+    if(ioletBuffer) nvgluDeleteFramebuffer(ioletBuffer);
+    ioletBuffer = nullptr;
+    for(auto* object : objects) object->deleteBuffers();
+}
+
 bool Canvas::performFramebufferUpdate(NVGcontext* nvg, Rectangle<int> invalidRegion, int maxUpdateTimeMs)
 {
     auto start = Time::getMillisecondCounter();
@@ -810,6 +817,7 @@ void Canvas::moveToWindow(PluginEditor* newEditor)
     if (newEditor != editor) {
         editor->canvases.removeAndReturn(editor->canvases.indexOf(this));
         newEditor->canvases.add(this);
+        dynamic_cast<CanvasViewport*>(viewport.get())->editorChanged(newEditor); // Let viewport know about new editor so it can change the openGL context it uses
         editor = newEditor;
     }
 }

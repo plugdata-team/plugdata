@@ -394,6 +394,20 @@ public:
         if(mainFBO) nvgluDeleteFramebuffer(mainFBO);
     }
     
+    
+    void editorChanged(PluginEditor* newEditor)
+    {
+        editor = newEditor;
+        glContext = editor->nvgSurface.getGLContext();
+
+        // Recreate framebuffers, they are still bound to old openGL context
+        if(invalidFBO) nvgluDeleteFramebuffer(invalidFBO);
+        if(mainFBO) nvgluDeleteFramebuffer(mainFBO);
+        invalidFBO = nullptr;
+        mainFBO = nullptr;
+        cnv->deleteBuffers();
+    }
+    
     void updateFramebuffers(NVGcontext* nvg)
     {
         cnv->performFramebufferUpdate(nvg, getLocalBounds(), 8); // Try to update buffered objects for 8 milliseconds

@@ -81,6 +81,7 @@ public:
     void performRender(NVGcontext* nvg);
     void renderIolets(NVGcontext* nvg);
     void renderLabel(NVGcontext* nvg);
+    void deleteBuffers();
 
     void mouseMove(MouseEvent const& e) override;
     void mouseDown(MouseEvent const& e) override;

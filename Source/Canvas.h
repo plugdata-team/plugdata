@@ -87,7 +87,8 @@ public:
     void finaliseRender(NVGcontext* nvg);
     bool performFramebufferUpdate(NVGcontext* nvg, Rectangle<int> invalidRegion, int maxUpdateTimeMs);
     void performRender(NVGcontext* nvg, Rectangle<int> invalidRegion);
-
+    void deleteBuffers();
+    
     void resized() override;
 
     void renderAllObjects(NVGcontext* nvg, Rectangle<int> area);
