@@ -9,7 +9,7 @@ class CachedTextRender
 public:
     void renderText(NVGcontext* nvg, String const& text, Font const& font, Colour const& colour, Rectangle<int> const& bounds, float scale)
     {
-        if(imageId < 0 || lastTextHash != hash(text) || scale != lastScale || colour != lastColour || bounds != lastBounds) // TODO: compare colour, bounds, everything
+        if(imageId < 0 || lastTextHash != hash(text) || scale != lastScale || colour != lastColour || bounds != lastBounds)
         {
             renderTextToImage(nvg, text, font, colour, Rectangle<int>(bounds.getX(), bounds.getY(), bounds.getWidth() + 1, bounds.getHeight()), scale);
             lastTextHash = hash(text);
@@ -22,7 +22,7 @@ public:
         nvgSave(nvg);
         nvgIntersectScissor(nvg, bounds.getX(), bounds.getY(), bounds.getWidth() + 1, bounds.getHeight());
         nvgRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
-        nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, bounds.getWidth(), bounds.getHeight(), 0, imageId, 1.0f));
+        nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, bounds.getWidth() + 1, bounds.getHeight(), 0, imageId, 1.0f));
         nvgFill(nvg);
         nvgRestore(nvg);
     }
