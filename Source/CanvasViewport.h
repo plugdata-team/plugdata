@@ -567,7 +567,7 @@ public:
         auto value = getValue<float>(scale);
 
         // Apply and limit zoom
-        value = std::clamp(value * scrollFactor, 0.2f, 3.0f);
+        value = std::clamp(value * scrollFactor, 0.25f, 3.0f);
 
         scale = value;
     }

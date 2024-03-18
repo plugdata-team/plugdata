@@ -1615,14 +1615,14 @@ bool PluginEditor::perform(InvocationInfo const& info)
     case CommandIDs::ZoomIn: {
         auto& scale = getCurrentCanvas()->zoomScale;
         float newScale = getValue<float>(scale) + 0.1f;
-        scale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.2f, 3.0f) * 10.))) / 10.;
+        scale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.25f, 3.0f) * 10.))) / 10.;
 
         return true;
     }
     case CommandIDs::ZoomOut: {
         auto& scale = getCurrentCanvas()->zoomScale;
         float newScale = getValue<float>(scale) - 0.1f;
-        scale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.2f, 3.0f) * 10.))) / 10.;
+        scale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.25f, 3.0f) * 10.))) / 10.;
 
         return true;
     }

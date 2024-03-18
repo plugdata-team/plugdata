@@ -352,7 +352,12 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             nvgSave(nvg);
             nvgTranslate(nvg, canvasOrigin.x % (objectGrid.gridSize * 4), canvasOrigin.y % (objectGrid.gridSize * 4)); // Make sure grid aligns with origin
             auto darkDotColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId).contrasting());
-            auto scaledDotSize = jmap(zoom, 1.0f, 0.2f, 1.0f, 5.0f);
+            auto scaledDotSize = jmap(zoom, 1.0f, 0.25f, 1.0f, 4.0f);
+            if (zoom < 0.3f && getRenderScale() <= 1.0f)
+                scaledDotSize *= 2.0f;
+            //if (getRenderScale() <= 1.0f && zoom < 0.5f)
+            //    scaledDotSize *= 1.5f;
+
             for(int i = 0; i < 4; i++)
             {
                 nvgTranslate(nvg, objectGrid.gridSize, 0);
@@ -403,8 +408,10 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         nvgStrokeWidth(nvg, 6.0f);
         nvgStroke(nvg);
         
-        auto scaledStrokeSize = zoom < 1.0f ? jmap(zoom, 1.0f, 0.2f, 1.5f, 5.0f) : 1.5f;
-        
+        auto scaledStrokeSize = zoom < 1.0f ? jmap(zoom, 1.0f, 0.25f, 1.5f, 4.0f) : 1.5f;
+        if (zoom < 0.3f && getRenderScale() <= 1.0f)
+            scaledStrokeSize *= 2.0f;
+
         // draw 0,0 point lines
         nvgLineStyle(nvg, NVG_LINE_DASHED);
 

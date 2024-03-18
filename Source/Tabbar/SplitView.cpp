@@ -92,7 +92,7 @@ SplitView::~SplitView() = default;
 
 void SplitView::render(NVGcontext* nvg)
 {
-    for(auto* it s : splits)
+    for(auto* split : splits)
     {
         nvgSave(nvg);
         auto splitPos = editor->nvgSurface.getLocalPoint(split, Point<int>(0, 0));
