@@ -34,6 +34,10 @@ struct OSUtils {
 
     static KeyboardLayout getKeyboardLayout();
 
+#if JUCE_MAC || JUCE_IOS
+    static void* MTLCreateView(void* parent, int x, int y, int width, int height);
+    static void MTLDeleteView(void* view);
+#endif
 #if JUCE_MAC
     class ScrollTracker {
     public:

@@ -102,9 +102,11 @@ void SplitView::render(NVGcontext* nvg)
     }
     
     if(focusOutline && focusOutline->isVisible()) {
+        nvgSave(nvg);
         auto focusOutlinePos = editor->nvgSurface.getLocalPoint(focusOutline.get(), Point<int>(0, 0));
         nvgTranslate(nvg, focusOutlinePos.x, focusOutlinePos.y);
         focusOutline->render(nvg);
+        nvgRestore(nvg);
     }
 }
 

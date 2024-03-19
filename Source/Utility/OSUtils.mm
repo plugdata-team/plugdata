@@ -10,6 +10,7 @@
 #import <string>
 #include <raw_keyboard_input/raw_keyboard_input.mm>
 
+
 int getStyleMask(bool nativeTitlebar) {
     
     unsigned int style = NSWindowStyleMaskTitled;
@@ -122,6 +123,27 @@ OSUtils::ScrollTracker::~ScrollTracker()
     
     [[NSNotificationCenter defaultCenter] removeObserver:static_cast<ScrollEventObserver*>(observer)];
 }
+
+void* OSUtils::MTLCreateView(void* parent, int x, int y, int width, int height)
+{
+    // Create child view
+    NSView *childView = [[NSView alloc] initWithFrame:NSMakeRect(x, y, width, height)];
+    auto* parentView = reinterpret_cast<NSView*>(parent);
+    
+    // Add child view as a subview of parent view
+    [parentView addSubview:childView];
+    
+    return childView;
+}
+
+void OSUtils::MTLDeleteView(void* view)
+{
+    auto* viewToRemove = reinterpret_cast<NSView*>(view);
+    [viewToRemove removeFromSuperview];
+    [viewToRemove release];
+}
+
+
 #endif
 
 #if JUCE_IOS
@@ -506,5 +528,27 @@ void OSUtils::showMobileCanvasMenu(juce::ComponentPeer* peer, std::function<void
     }
 }
 
+void* OSUtils::MTLCreateView(void* parent, int x, int y, int width, int height)
+{
+    // Create child view
+    UIView *childView = [[UIView alloc] initWithFrame:CGRectMake(x, y, width, height)];
+    UIView *parentView = reinterpret_cast<UIView*>(parent);
+    
+    // Add child view as a subview of parent view
+    [parentView addSubview:childView];
+    
+    return childView;
+}
+
+void OSUtils::MTLDeleteView(void* view)
+{
+    UIView *viewToRemove = reinterpret_cast<UIView*>(view);
+    [viewToRemove removeFromSuperview];
+    [viewToRemove release];
+}
+
 
 #endif
+
+
+

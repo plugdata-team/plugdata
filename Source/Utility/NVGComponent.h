@@ -1,5 +1,5 @@
 #pragma once
-#include <nanovg.h>
+#include "NVGSurface.h"
 #include "NanoVGGraphicsContext.h"
 
 class NVGComponent

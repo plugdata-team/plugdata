@@ -4,6 +4,9 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_opengl/juce_opengl.h>
+using namespace juce::gl;
+
 #include <nanovg.h>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"

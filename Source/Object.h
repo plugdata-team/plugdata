@@ -13,7 +13,14 @@
 #include "Pd/WeakReference.h"
 #include "Utility/NVGComponent.h"
 
+#include <nanovg.h>
+#if NANOVG_GL_IMPLEMENTATION
+#include <juce_opengl/juce_opengl.h>
+using namespace juce::gl;
+#undef NANOVG_GL_IMPLEMENTATION
 #include <nanovg_gl_utils.h>
+#define NANOVG_GL_IMPLEMENTATION 1
+#endif
 
 #define ACTIVITY_UPDATE_RATE 15
 
@@ -151,7 +158,7 @@ private:
     bool showActiveState = false;
     float activeStateAlpha = 0.0f;
         
-    NVGLUframebuffer* fb = nullptr;
+    NVGframebuffer* fb = nullptr;
     bool fbDirty = true;
     int fbWidth, fbHeight;
     

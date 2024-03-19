@@ -70,7 +70,7 @@ Object::Object(pd::WeakReference object, Canvas* parent)
 
 Object::~Object()
 {
-    if(fb) nvgluDeleteFramebuffer(fb);
+    if(fb) nvgDeleteFramebuffer(fb);
     
     hideEditor(); // Make sure the editor is not still open, that could lead to issues with listeners attached to the editor (i.e. suggestioncomponent)
     cnv->selectedComponents.removeChangeListener(this);
@@ -1166,13 +1166,17 @@ void Object::updateFramebuffer(NVGcontext* nvg)
                 fbWidth = b.getWidth();
                 fbHeight = b.getHeight();
                 
-                if(fb) nvgluDeleteFramebuffer(fb);
-                fb = nvgluCreateFramebuffer(nvg, scaledWidth, scaledHeight, NVG_IMAGE_PREMULTIPLIED);
+                if(fb) nvgDeleteFramebuffer(fb);
+                fb = nvgCreateFramebuffer(nvg, scaledWidth, scaledHeight, NVG_IMAGE_PREMULTIPLIED);
             }
             
-            nvgluBindFramebuffer(fb);
-            glViewport(0, 0, scaledWidth, scaledHeight);
+            nvgBindFramebuffer(fb);
+            nvgViewport(0, 0, scaledWidth, scaledHeight);
+#ifdef NANOVG_METAL_IMPLEMENTATION
+        
+#else
             OpenGLHelpers::clear(Colours::transparentBlack);
+#endif
 
             nvgBeginFrame(nvg, b.getWidth() * maxScale, b.getHeight() * maxScale, cnv->getRenderScale());
             nvgScale(nvg, maxScale, maxScale);
@@ -1189,7 +1193,7 @@ void Object::updateFramebuffer(NVGcontext* nvg)
 #endif
             
             nvgEndFrame(nvg);
-            nvgluBindFramebuffer(NULL);
+            nvgBindFramebuffer(NULL);
             fbDirty = false;
         }
     }
@@ -1203,7 +1207,7 @@ bool Object::shouldRenderToFramebuffer()
 
 void Object::deleteBuffers()
 {
-    if(fb) nvgluDeleteFramebuffer(fb);
+    if(fb) nvgDeleteFramebuffer(fb);
     fb = nullptr;
 }
 

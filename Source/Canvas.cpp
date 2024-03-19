@@ -176,7 +176,7 @@ Canvas::~Canvas()
 
 void Canvas::deleteBuffers()
 {
-    if(ioletBuffer) nvgluDeleteFramebuffer(ioletBuffer);
+    if(ioletBuffer) nvgDeleteFramebuffer(ioletBuffer);
     //if(resizeHandleImage) nvgDeleteImage(nvg, resizeHandleImage); TODO: where to delete this?
     ioletBuffer = nullptr;
     resizeHandleImage = 0;
@@ -194,12 +194,17 @@ bool Canvas::performFramebufferUpdate(NVGcontext* nvg, Rectangle<int> invalidReg
     {
         int const logicalSize = 16 * 4;
         int const pixelSize = logicalSize * pixelScale * zoom;
-        if(ioletBuffer) nvgluDeleteFramebuffer(ioletBuffer);
-        ioletBuffer = nvgluCreateFramebuffer(nvg, pixelSize, pixelSize, NVG_IMAGE_PREMULTIPLIED);
+        if(ioletBuffer) nvgDeleteFramebuffer(ioletBuffer);
+        ioletBuffer = nvgCreateFramebuffer(nvg, pixelSize, pixelSize, NVG_IMAGE_PREMULTIPLIED);
         
-        nvgluBindFramebuffer(ioletBuffer);
-        glViewport(0, 0, pixelSize, pixelSize);
+        nvgBindFramebuffer(ioletBuffer);
+        nvgViewport(0, 0, pixelSize, pixelSize);
+        
+#ifdef NANOVG_METAL_IMPLEMENTATION
+        
+#else
         OpenGLHelpers::clear(Colours::transparentBlack);
+#endif
         
         nvgBeginFrame(nvg, logicalSize * zoom, logicalSize * zoom, pixelScale);
         nvgScale(nvg, zoom, zoom);
@@ -241,7 +246,7 @@ bool Canvas::performFramebufferUpdate(NVGcontext* nvg, Rectangle<int> invalidReg
         }
         
         nvgEndFrame(nvg);
-        nvgluBindFramebuffer(0);
+        nvgBindFramebuffer(0);
     }
     
     if(!resizeHandleImage || !approximatelyEqual(zoom, bufferScale))
@@ -298,6 +303,10 @@ void Canvas::render(NVGcontext* nvg)
     reinterpret_cast<CanvasViewport*>(viewport.get())->render(nvg);
 }
 
+void Canvas::lookAndFeelChanged()
+{
+    deleteBuffers(); // Clear all buffered images when the theme changes
+}
 
 void Canvas::updateFramebuffers(NVGcontext* nvg)
 {

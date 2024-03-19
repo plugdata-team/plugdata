@@ -14,8 +14,16 @@ using namespace juce::gl;
 
 #include <nanovg.h>
 
+class FrameTimer;
 class PluginEditor;
-class NVGSurface : public Component
+class NVGSurface : 
+#if NANOVG_METAL_IMPLEMENTATION && JUCE_MAC
+public NSViewComponent
+#elif NANOVG_METAL_IMPLEMENTATION && JUCE_IOS
+public UIViewComponent
+#else
+public Component
+#endif
 {
 public:
     NVGSurface(PluginEditor* editor);
@@ -23,16 +31,25 @@ public:
     void render();
     
     void triggerRepaint();
+        
+    void detachContext();
+    bool makeContextActive();
     
-    OpenGLContext* getGLContext();
     float getRenderScale() const;
         
 private:
     
+    void resized() override;
+    
+    void renderPerfMeter(NVGcontext* nvg);
+    
     PluginEditor* editor;
     NVGcontext* nvg = nullptr;
     bool needsBufferSwap = false;
-    Component openGLView;
     std::unique_ptr<OpenGLContext> glContext;
     std::unique_ptr<VBlankAttachment> vBlankAttachment;
+    
+    std::unique_ptr<FrameTimer> frameTimer;
+    std::unique_ptr<FrameTimer> realFrameTimer;
+    
 };

@@ -1,7 +1,4 @@
 #pragma once
-#include <nanovg.h>
-#include <nanovg_gl_utils.h>
-#include "NanoVGGraphicsContext.h"
 
 class CachedTextRender
 {

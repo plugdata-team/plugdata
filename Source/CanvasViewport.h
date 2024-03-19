@@ -368,7 +368,6 @@ public:
         , editor(parent)
         , cnv(cnv)
     {
-        glContext = editor->nvgSurface.getGLContext();
         lastCanvasZoom = getValue<float>(cnv->zoomScale);
         
         setScrollBarsShown(false, false);
@@ -390,19 +389,18 @@ public:
     
     ~CanvasViewport()
     {
-        if(invalidFBO) nvgluDeleteFramebuffer(invalidFBO);
-        if(mainFBO) nvgluDeleteFramebuffer(mainFBO);
+        if(invalidFBO) nvgDeleteFramebuffer(invalidFBO);
+        if(mainFBO) nvgDeleteFramebuffer(mainFBO);
     }
     
     
     void editorChanged(PluginEditor* newEditor)
     {
         editor = newEditor;
-        glContext = editor->nvgSurface.getGLContext();
 
         // Recreate framebuffers, they are still bound to old openGL context
-        if(invalidFBO) nvgluDeleteFramebuffer(invalidFBO);
-        if(mainFBO) nvgluDeleteFramebuffer(mainFBO);
+        if(invalidFBO) nvgDeleteFramebuffer(invalidFBO);
+        if(mainFBO) nvgDeleteFramebuffer(mainFBO);
         invalidFBO = nullptr;
         mainFBO = nullptr;
         cnv->deleteBuffers();
@@ -414,16 +412,14 @@ public:
     }
     
     void render(NVGcontext* nvg) override
-    {
-        frameTimer.addFrameTime();
-        
+    {        
         float pixelScale = cnv->getRenderScale();
         int scaledWidth = getWidth() * pixelScale;
         int scaledHeight = getHeight() * pixelScale;
         
         if(fbWidth != scaledWidth || fbHeight != scaledHeight || !mainFBO) {
-            mainFBO = nvgluCreateFramebuffer(nvg, scaledWidth, scaledHeight, 0);
-            invalidFBO = nvgluCreateFramebuffer(nvg, scaledWidth, scaledHeight, 0);
+            mainFBO = nvgCreateFramebuffer(nvg, scaledWidth, scaledHeight, 0);
+            invalidFBO = nvgCreateFramebuffer(nvg, scaledWidth, scaledHeight, 0);
             fbWidth = scaledWidth;
             fbHeight = scaledHeight;
             invalidArea = getLocalBounds();
@@ -436,14 +432,19 @@ public:
             // First, draw only the invalidated region to a separate framebuffer
             // I've found that nvgScissor doesn't always clip everything, meaning that there will be graphical glitches if we don't do this
             
-            nvgluBindFramebuffer(invalidFBO);
-            glViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
+            nvgBindFramebuffer(invalidFBO);
+            nvgViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
+#ifdef NANOVG_METAL_IMPLEMENTATION
+        
+#else
             OpenGLHelpers::clear(Colours::transparentBlack);
+#endif
+            
             nvgTranslate(nvg, -invalidated.getX(), -invalidated.getY());
             renderFrame(nvg, invalidated);
             
-            nvgluBindFramebuffer(mainFBO);
-            glViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
+            nvgBindFramebuffer(mainFBO);
+            nvgViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
             nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
             nvgTranslate(nvg, 0, viewportOffsetY);
             nvgBeginPath(nvg);
@@ -453,7 +454,7 @@ public:
             nvgFill(nvg);
             nvgEndFrame(nvg);
             
-            nvgluBindFramebuffer(nullptr);
+            nvgBindFramebuffer(nullptr);
             editor->nvgSurface.triggerRepaint();
         }
     }
@@ -462,42 +463,25 @@ public:
     void blitToWindow(NVGcontext* nvg)
     {
         if(mainFBO) {
-            float pixelScale = cnv->getRenderScale();
-            int scaledWidth = getWidth() * pixelScale;
-            int scaledHeight = getHeight() * pixelScale;
-            auto splitPosition = glContext->getTargetComponent()->getLocalPoint(this, Point<int>(0, 0)).x * pixelScale;
-            
-            glViewport(splitPosition, 0, scaledWidth, scaledHeight);
-            nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
+            auto splitPosition = editor->nvgSurface.getLocalPoint(this, Point<int>(0, 0)).x;
+
             nvgBeginPath(nvg);
+            nvgSave(nvg);
+            nvgTranslate(nvg, splitPosition, 0);
             nvgRect(nvg, 0, 0, getWidth(), getHeight());
             nvgScissor(nvg, 0, 0, getWidth(), getHeight());
             nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, mainFBO->image, 1));
             nvgFill(nvg);
-            nvgEndFrame(nvg);
-
-            renderPerfMeter(nvg);
+            nvgRestore(nvg);
         }
     }
-    
-    void renderPerfMeter(NVGcontext* nvg)
-    {
-#if 1 //JUCE_DEBUG // draw fps meters
-        nvgBeginFrame(nvg, getWidth(), getHeight(), cnv->getRenderScale());
-        frameTimer.render(nvg);
-        nvgTranslate(nvg, 48, 0);
-        realFrameTimer.render(nvg);
-        nvgEndFrame(nvg);
-#endif
-    }
+
     
     void renderFrame(NVGcontext* nvg, Rectangle<int> const& invalidated)
     {
         float pixelScale = cnv->getRenderScale();
         int width = getWidth();
         int height = getHeight();
-        
-        realFrameTimer.addFrameTime();
         
         nvgBeginFrame(nvg, width, height, pixelScale);
         nvgScissor (nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
@@ -666,68 +650,10 @@ public:
     std::function<void()> onScroll = []() {};
 
 private:
-
-    struct FrameTimer
-    {
-    public:
-        FrameTimer()
-        {
-            startTime = getNow();
-            prevTime = startTime;
-        }
-        
-        void render(NVGcontext* nvg)
-        {
-            nvgBeginPath(nvg);
-            nvgRect(nvg, 0, 0, 48, 32);
-            nvgFillColor(nvg, nvgRGBA(40, 40, 40, 255));
-            nvgFill(nvg);
-            
-            nvgFontSize(nvg, 24.0f);
-            nvgTextAlign(nvg,NVG_ALIGN_LEFT|NVG_ALIGN_TOP);
-            nvgFillColor(nvg, nvgRGBA(240,240,240,255));
-            char fpsBuf[16];
-            snprintf(fpsBuf, 16, "%d", static_cast<int>(1.0f / getAverageFrameTime()));
-            nvgText(nvg,8, 10, fpsBuf, nullptr);
-        }
-        void addFrameTime()
-        {
-            auto timeSeconds = getTime();
-            auto dt = timeSeconds - prevTime;
-            perf_head = (perf_head+1) % 32;
-            frame_times[perf_head] = dt;
-            prevTime = timeSeconds;
-        }
-        
-        double getTime() { return getNow() - startTime; }
-    private:
-        double getNow()
-        {
-            auto ticks = Time::getHighResolutionTicks();
-            return Time::highResolutionTicksToSeconds(ticks);
-        }
-        
-        float getAverageFrameTime()
-        {
-            int i;
-            float avg = 0;
-            for (i = 0; i < 32; i++) {
-                avg += frame_times[i];
-            }
-            return avg / (float)32;
-        }
-
-        
-        float frame_times[32] = {};
-        int perf_head = 0;
-        double prevTime;
-        double startTime = 0;
-    };
     
-    OpenGLContext* glContext = nullptr;
     Rectangle<int> invalidArea;
-    NVGLUframebuffer* mainFBO = nullptr;
-    NVGLUframebuffer* invalidFBO = nullptr;
+    NVGframebuffer* mainFBO = nullptr;
+    NVGframebuffer* invalidFBO = nullptr;
     int fbWidth = 0, fbHeight = 0;
     
     Time lastScrollTime;
@@ -737,15 +663,12 @@ private:
     MousePanner panner = MousePanner(this);
     ViewportScrollBar vbar = ViewportScrollBar(true, this);
     ViewportScrollBar hbar = ViewportScrollBar(false, this);
-    
-    FrameTimer frameTimer;
-    FrameTimer realFrameTimer;
-    
+
     bool forceRepaintWhileScrolling = false;
     float lastCanvasZoom = 1.0f;
     
-#if JUCE_MAC
-        int viewportOffsetY = 6;
+#if JUCE_MAC || JUCE_IOS
+        int viewportOffsetY = 0;
 #else
         int viewportOffsetY = 10;
 #endif

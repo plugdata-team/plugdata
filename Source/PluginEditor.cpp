@@ -1856,7 +1856,7 @@ void PluginEditor::quit(bool askToSave)
         auto* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent());
         window->closeButtonPressed();
     } else {
-        nvgSurface.getGLContext()->detach();
+        nvgSurface.detachContext();
         JUCEApplication::quit();
     }
 }

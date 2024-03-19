@@ -11,6 +11,12 @@ option(ENABLE_GEM "" ON)
 option(ENABLE_ASAN "" OFF)
 option(VERBOSE "" OFF)
 
+if(APPLE)
+option(NANOVG_METAL_IMPLEMENTATION "" ON)
+else()
+option(NANOVG_METAL_IMPLEMENTATION "" OFF)
+endif()
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -247,6 +253,11 @@ target_link_libraries(juce
 
 target_compile_options(juce PUBLIC $<$<CONFIG:Release>:${JUCE_LTO_FLAGS}>)
 
+if(NANOVG_METAL_IMPLEMENTATION)
+add_compile_definitions(NANOVG_METAL_IMPLEMENTATION=1)
+else()
+add_compile_definitions(NANOVG_GL3_IMPLEMENTATION=1)
+endif()
 
 set(libs
   juce

@@ -3,10 +3,9 @@
 //
 
 #pragma once
-#include <nanovg.h>
 #include <juce_opengl/juce_opengl.h>
 using namespace juce::gl;
-
+#include <nanovg.h>
 /**
     JUCE low level graphics context backed by nanovg.
 

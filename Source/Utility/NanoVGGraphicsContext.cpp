@@ -3,7 +3,6 @@
 //
 
 #include "NanoVGGraphicsContext.h"
-#include <nanovg_gl_utils.h>
 #include <BinaryData.h>
 
 //==============================================================================
