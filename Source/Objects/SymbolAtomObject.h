@@ -175,23 +175,30 @@ public:
         bool highlighed = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
         
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, (object->isSelected() || highlighed) ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
-
-        nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour)));
+        
+        nvgSave(nvg);
+        nvgRoundedScissor(nvg, b.getX() + 0.25f, b.getY() + 0.25f, b.getWidth() - 0.5f, b.getHeight() - 0.5f, Corners::objectCornerRadius);
+        
         nvgBeginPath(nvg);
+        nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour)));
         nvgMoveTo(nvg, b.getRight() - 8, b.getY());
         nvgLineTo(nvg, b.getRight(), b.getY());
         nvgLineTo(nvg, b.getRight(), b.getY() + 8);
         nvgClosePath(nvg);
         nvgFill(nvg);
         
+        nvgRestore(nvg);
+        
         renderComponentFromImage(nvg, input, getImageScale());
 
-        nvgBeginPath(nvg);
-        nvgMoveTo(nvg, b.getRight() - 8, b.getY());
-        nvgLineTo(nvg, b.getRight(), b.getY());
-        nvgLineTo(nvg, b.getRight(), b.getY() + 8);
-        nvgClosePath(nvg);
-        nvgFill(nvg);
+        if(object->isSelected()) // If object is selected, draw outline over top too, so the flag doesn't poke into the selected outline
+        {
+            nvgBeginPath(nvg);
+            nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+            nvgStrokeColor(nvg, selectedOutlineColour);
+            nvgStrokeWidth(nvg, 1.0f);
+            nvgStroke(nvg);
+        }
 
         if (highlighed) {
             nvgStrokeColor(nvg, convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId)));

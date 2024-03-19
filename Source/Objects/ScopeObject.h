@@ -142,7 +142,7 @@ public:
         nvgStroke(nvg);
 
         nvgSave(nvg);
-        nvgScissor(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight());
+        nvgIntersectScissor(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight());
         if (!(y_buffer.empty() || x_buffer.empty())) {
             nvgBeginPath(nvg);
             nvgStrokeColor(nvg, convertColour(Colour::fromString(primaryColour.toString())));

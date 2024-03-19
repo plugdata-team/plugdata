@@ -153,11 +153,25 @@ public:
         
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
         
-        float bRight = b.getRight();
+        nvgSave(nvg);
+        nvgRoundedScissor(nvg, b.getX() + 0.25f, b.getY() + 0.25f, b.getWidth() - 0.5f, b.getHeight() - 0.5f, Corners::objectCornerRadius);
+        
+        
+        float bRight = b.getRight(); // offset to make it go completely under outline
         float bY = b.getY();
         float bBottom = b.getBottom();
         float d = 6.0f;
-
+        
+        if (isDown) {
+            nvgBeginPath(nvg);
+            nvgRect(nvg, b.getX(), b.getY(), b.getWidth(), d);
+            nvgRect(nvg, b.getRight() - d, b.getY(), d, b.getHeight());
+            nvgRect(nvg, b.getX(), b.getBottom() - d, b.getWidth(), d);
+            nvgRect(nvg, b.getX(), b.getY(), d, b.getHeight());
+            nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::outlineColourId)));
+            nvgFill(nvg);
+        }
+        
         // Create flag path
         nvgBeginPath(nvg);
         nvgMoveTo(nvg, bRight, bY);
@@ -168,6 +182,18 @@ public:
 
         nvgFillColor(nvg, flagColour);
         nvgFill(nvg);
+        
+        nvgRestore(nvg);
+        
+        if(object->isSelected()) // If object is selected, draw outline over top too, so the flag doesn't poke into the selected outline
+        {
+            nvgBeginPath(nvg);
+            nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+            nvgStrokeColor(nvg, selectedOutlineColour);
+            nvgStrokeWidth(nvg, 1.0f);
+            nvgStroke(nvg);
+        }
+        
     
         if(editor)
         {
