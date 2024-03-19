@@ -1594,6 +1594,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
             cnv->setSelected(con, true, false);
         }
         updateCommandStatus();
+        cnv->updateSidebarSelection();
         return true;
     }
     case CommandIDs::Lock: {
