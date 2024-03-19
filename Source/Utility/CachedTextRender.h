@@ -6,43 +6,61 @@ class CachedTextRender
 public:
     void renderText(NVGcontext* nvg, String const& text, Font const& font, Colour const& colour, Rectangle<int> const& bounds, float scale)
     {
-        if(imageId < 0 || lastTextHash != hash(text) || scale != lastScale || colour != lastColour || bounds != lastBounds)
+        if(imageId < 0 || lastTextHash != hash(text) || scale != lastScale || colour != lastColour || lastWidth != bounds.getWidth())
         {
-            renderTextToImage(nvg, text, font, colour, Rectangle<int>(bounds.getX(), bounds.getY(), bounds.getWidth() + 1, bounds.getHeight()), scale);
-            lastTextHash = hash(text);
-            lastBounds = bounds;
-            lastColour = colour;
-            lastScale = scale;
+            layoutReady = false;
+            renderTextToImage(nvg, text, font, colour, Rectangle<int>(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight()), scale);
         }
         
         nvgBeginPath(nvg);
         nvgSave(nvg);
-        nvgIntersectScissor(nvg, bounds.getX(), bounds.getY(), bounds.getWidth() + 1, bounds.getHeight());
-        nvgRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
-        nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, bounds.getWidth() + 1, bounds.getHeight(), 0, imageId, 1.0f));
+        nvgIntersectScissor(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+        nvgRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth() + 4, bounds.getHeight());
+        nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, bounds.getWidth() + 4, bounds.getHeight(), 0, imageId, 1.0f));
         nvgFill(nvg);
         nvgRestore(nvg);
     }
     
-    void renderTextToImage(NVGcontext* nvg, String const& text, Font const& font, const Colour& colour, Rectangle<int> const& bounds, float scale)
+    // If you want to use this for text measuring as well, you might want the measuring to be ready before
+    void prepareLayout(String const& text, Font const& font, Colour const& colour, int const width)
     {
-        int width = std::ceil(bounds.getWidth() * scale);
-        int height = std::ceil(bounds.getHeight() * scale);
-        
-        Image textImage = Image(Image::ARGB, width, height, true);
-        {
+        if(lastTextHash != hash(text) || colour != lastColour || width != lastWidth) {
             auto attributedText = AttributedString(text);
             attributedText.setColour(colour);
             attributedText.setJustification(Justification::centredLeft);
             attributedText.setFont(Font(15));
             
-            TextLayout textLayout = TextLayout();
-            textLayout.createLayout(attributedText, bounds.getWidth());
+            layout = TextLayout();
+            layout.createLayout(attributedText, width);
             
+            idealHeight = layout.getHeight();
+            idealWidth = CachedFontStringWidth::get()->calculateStringWidth(font, text);
+            lastWidth = width;
+            
+            lastTextHash = hash(text);
+            lastColour = colour;
+        }
+        
+        layoutReady = true;
+    }
+    
+    void renderTextToImage(NVGcontext* nvg, String const& text, Font const& font, const Colour& colour, Rectangle<int> const& bounds, float scale)
+    {
+        int width = std::floor((bounds.getWidth() + 4) * scale);
+        int height = std::floor(bounds.getHeight() * scale);
+        
+        if(!layoutReady)
+        {
+            prepareLayout(text, font, colour, bounds.getWidth());
+        }
+        
+        Image textImage = Image(Image::ARGB, width, height, true);
+        {
             Graphics g(textImage);
             g.getInternalContext().setInterpolationQuality(Graphics::ResamplingQuality::highResamplingQuality);
             g.addTransform(AffineTransform::scale(scale, scale));
-            textLayout.draw(g, bounds.toFloat());
+            g.reduceClipRegion(bounds);
+            layout.draw(g, bounds.toFloat());
         }
         
         Image::BitmapData imageData(textImage, juce::Image::BitmapData::readOnly);
@@ -78,11 +96,20 @@ public:
         }
     }
     
+    Rectangle<int> getTextBounds()
+    {
+        return {idealWidth, idealHeight};
+    }
+    
 private:
     int imageId = -1;
-    int imageWidth, imageHeight;
+    int imageWidth = 0, imageHeight = 0;
     hash32 lastTextHash;
-    float lastScale;
+    float lastScale = 1.0f;
     Colour lastColour;
-    Rectangle<int> lastBounds;
+    int lastWidth = 0;
+    int idealWidth = 0, idealHeight = 0;
+    
+    TextLayout layout;
+    bool layoutReady = false;
 };

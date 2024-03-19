@@ -87,7 +87,7 @@ struct CachedStringWidth {
 
 struct CachedFontStringWidth : public DeletedAtShutdown
 {
-    float calculateSingleLineWidth(Font& font, const String& singleLine)
+    float calculateSingleLineWidth(Font const& font, const String& singleLine)
     {
         auto stringHash = hash(singleLine);
         
@@ -110,7 +110,7 @@ struct CachedFontStringWidth : public DeletedAtShutdown
         return stringWidth;
     }
     
-    int calculateStringWidth(Font& font, const String& string)
+    int calculateStringWidth(Font const& font, const String& string)
     {
         float maximumLineWidth = 7;
         for(auto line : StringArray::fromLines(string))
