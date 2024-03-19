@@ -255,12 +255,6 @@ void NVGSurface::renderPerfMeter(NVGcontext* nvg)
 {
 #if ENABLE_FPS_COUNT
     nvgSave(nvg);
-#ifdef JUCE_MAC || JUCE_IOS
-    nvgTranslate(nvg, 0, 0);
-#else
-    nvgTranslate(nvg, 0, 8);
-#endif
-    
     frameTimer->render(nvg);
     nvgTranslate(nvg, 40, 0);
     realFrameTimer->render(nvg);

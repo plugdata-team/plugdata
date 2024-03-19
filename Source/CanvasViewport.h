@@ -446,7 +446,6 @@ public:
             nvgBindFramebuffer(mainFBO);
             nvgViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
             nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
-            nvgTranslate(nvg, 0, viewportOffsetY);
             nvgBeginPath(nvg);
             nvgRect(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
             nvgScissor(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
@@ -666,10 +665,4 @@ private:
 
     bool forceRepaintWhileScrolling = false;
     float lastCanvasZoom = 1.0f;
-    
-#if JUCE_MAC || JUCE_IOS
-        int viewportOffsetY = 0;
-#else
-        int viewportOffsetY = 10;
-#endif
 };
