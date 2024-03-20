@@ -13,7 +13,7 @@ class CommentObject final : public ObjectBase
     Value sizeProperty = SynchronousValue();
 
     std::unique_ptr<TextEditor> editor;
-    BorderSize<int> border = BorderSize<int>(2, 3, 0, 0);
+    BorderSize<int> border = BorderSize<int>(1, 3, 0, 0);
     String objectText;
     
     CachedTextRender textRenderer;
@@ -109,7 +109,7 @@ public:
         if (editor == nullptr) {
             editor.reset(TextObjectHelper::createTextEditor(object, 15));
             
-            editor->setBorder(border);
+            editor->setBorder(border.addedTo(BorderSize<int>(1, 0, 0, 0)));
             editor->setBounds(getLocalBounds());
             editor->setText(objectText, false);
             editor->addListener(this);

@@ -10,7 +10,7 @@ class MessageObject final : public ObjectBase
 
     Value sizeProperty = SynchronousValue();
     std::unique_ptr<TextEditor> editor;
-    BorderSize<int> border = BorderSize<int>(1, 5, 1, 2);
+    BorderSize<int> border = BorderSize<int>(0, 5, 0, 2);
 
     String objectText;
     CachedTextRender textRenderer;
@@ -71,7 +71,7 @@ public:
         // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
         int idealWidth = textSize.getWidth() + 14;
         
-        if(editor) idealWidth += 2;
+        if(editor) idealWidth += 1;
         
         // We want to adjust the width so ideal text with aligns with fontWidth
         int offset = idealWidth % fontWidth;
@@ -96,7 +96,7 @@ public:
          }
          
          auto colour = object->findColour(PlugDataColour::canvasTextColourId);
-         int textWidth = getTextSize().getWidth() + 14;
+         int textWidth = getTextSize().getWidth() - 12;
          textRenderer.prepareLayout(objText, Fonts::getDefaultFont().withHeight(15), colour, textWidth);
      }
 

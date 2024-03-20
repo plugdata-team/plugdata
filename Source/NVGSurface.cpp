@@ -37,7 +37,7 @@ public:
         nvgFillColor(nvg, nvgRGBA(240,240,240,255));
         char fpsBuf[16];
         snprintf(fpsBuf, 16, "%d", static_cast<int>(round(1.0f / getAverageFrameTime())));
-        nvgText(nvg, 8, 2, fpsBuf, nullptr);
+        nvgText(nvg, 7, 2, fpsBuf, nullptr);
     }
     void addFrameTime()
     {
@@ -82,7 +82,6 @@ NVGSurface::NVGSurface(PluginEditor* e) : editor(e)
     
 #if ENABLE_FPS_COUNT
     frameTimer = std::make_unique<FrameTimer>();
-    realFrameTimer = std::make_unique<FrameTimer>();
 #endif
     
     setInterceptsMouseClicks(false, false);
@@ -112,6 +111,7 @@ void NVGSurface::triggerRepaint()
 bool NVGSurface::makeContextActive()
 {
 #ifdef NANOVG_METAL_IMPLEMENTATION
+    // No need to make context active with Metal, so just check if we have initialised and return that
     return getView() != nullptr && nvg != nullptr;
 #else
     if(glContext) return glContext->makeActive();
@@ -231,10 +231,6 @@ void NVGSurface::render()
         detachContext();
     }
     else if(needsBufferSwap && isAttached()) {
-#if ENABLE_FPS_COUNT
-        realFrameTimer->addFrameTime();
-#endif
-        
         float pixelScale = getRenderScale();
         nvgViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
         
@@ -255,7 +251,11 @@ void NVGSurface::render()
             nvgRestore(nvg);
         }
         
-        renderPerfMeter(nvg);
+#if ENABLE_FPS_COUNT
+        nvgSave(nvg);
+        frameTimer->render(nvg);
+        nvgRestore(nvg);
+#endif
         
         nvgEndFrame(nvg);
 
@@ -270,16 +270,4 @@ void NVGSurface::render()
     {
         cnv->updateFramebuffers(nvg);
     }
-}
-
-
-void NVGSurface::renderPerfMeter(NVGcontext* nvg)
-{
-#if ENABLE_FPS_COUNT
-    nvgSave(nvg);
-    frameTimer->render(nvg);
-    nvgTranslate(nvg, 40, 0);
-    realFrameTimer->render(nvg);
-    nvgRestore(nvg);
-#endif
 }

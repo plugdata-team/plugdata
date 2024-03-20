@@ -251,6 +251,9 @@ public:
         {
             nvgFillColor(nvg, convertColour(getFill().colour));
             nvgFill(nvg);
+            nvgStrokeWidth(nvg, getStrokeType().getStrokeThickness());
+            nvgStrokeColor(nvg, convertColour(getStrokeFill().colour));
+            nvgStroke(nvg);
         }
         else {
             nvgStrokeWidth(nvg, getStrokeType().getStrokeThickness());
@@ -1095,7 +1098,16 @@ struct ScalarObject final : public ObjectBase {
         }
     }
 
-    Rectangle<int> getPdBounds() override { return cnv->getLocalBounds(); } // TODO: use viewport bounds
+    Rectangle<int> getPdBounds() override {
+        // Bounds are used for invalidation, so we do need to return something
+        Rectangle<int> bounds;
+        for(auto* templ : templates)
+        {
+            bounds = bounds.getUnion(templ->getBounds());
+        }
+        
+        return bounds.translated(-cnv->canvasOrigin.x, -cnv->canvasOrigin.y);
+    }
 
     void setPdBounds(Rectangle<int> b) override { }
 };

@@ -48,10 +48,11 @@ private:
     PluginEditor* editor;
     NVGcontext* nvg = nullptr;
     bool needsBufferSwap = false;
-    std::unique_ptr<OpenGLContext> glContext;
     std::unique_ptr<VBlankAttachment> vBlankAttachment;
     
-    std::unique_ptr<FrameTimer> frameTimer;
-    std::unique_ptr<FrameTimer> realFrameTimer;
+#if NANOVG_GL_IMPLEMENTATION
+    std::unique_ptr<OpenGLContext> glContext;
+#endif
     
+    std::unique_ptr<FrameTimer> frameTimer;
 };

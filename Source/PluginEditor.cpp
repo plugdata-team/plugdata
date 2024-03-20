@@ -510,7 +510,7 @@ void PluginEditor::resized()
     offset += 22;
 #endif
 
-    zoomLabel->setBounds(paletteWidth + 5, getHeight() - Statusbar::statusbarHeight - 36, 55, 23);
+    zoomLabel->setBounds(paletteWidth + 6, getHeight() - Statusbar::statusbarHeight - 32, 55, 23);
 
     int buttonDisctance = 56;
     mainMenuButton.setBounds(offset, 0, toolbarHeight, toolbarHeight);

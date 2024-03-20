@@ -9,14 +9,14 @@ public:
         if(imageId < 0 || lastTextHash != hash(text) || scale != lastScale || colour != lastColour || lastWidth != bounds.getWidth())
         {
             layoutReady = false;
-            renderTextToImage(nvg, text, font, colour, Rectangle<int>(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight()), scale);
+            renderTextToImage(nvg, text, font, colour, Rectangle<int>(bounds.getX(), bounds.getY(), bounds.getWidth() + 3, bounds.getHeight()), scale);
         }
         
         nvgBeginPath(nvg);
         nvgSave(nvg);
         nvgIntersectScissor(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
-        nvgRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth() + 4, bounds.getHeight());
-        nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, bounds.getWidth() + 4, bounds.getHeight(), 0, imageId, 1.0f));
+        nvgRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth() + 3, bounds.getHeight());
+        nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, bounds.getWidth() + 3, bounds.getHeight(), 0, imageId, 1.0f));
         nvgFill(nvg);
         nvgRestore(nvg);
     }
@@ -46,20 +46,19 @@ public:
     
     void renderTextToImage(NVGcontext* nvg, String const& text, Font const& font, const Colour& colour, Rectangle<int> const& bounds, float scale)
     {
-        int width = std::floor((bounds.getWidth() + 4) * scale);
+        int width = std::floor(bounds.getWidth() * scale);
         int height = std::floor(bounds.getHeight() * scale);
         
         if(!layoutReady)
         {
-            prepareLayout(text, font, colour, bounds.getWidth());
+            prepareLayout(text, font, colour, bounds.getWidth() - 3);
         }
         
         Image textImage = Image(Image::ARGB, width, height, true);
         {
             Graphics g(textImage);
-            g.getInternalContext().setInterpolationQuality(Graphics::ResamplingQuality::highResamplingQuality);
             g.addTransform(AffineTransform::scale(scale, scale));
-            g.reduceClipRegion(bounds);
+            g.reduceClipRegion(bounds.withTrimmedRight(4)); // If it touches the edges of the image, it'll look bad
             layout.draw(g, bounds.toFloat());
         }
         

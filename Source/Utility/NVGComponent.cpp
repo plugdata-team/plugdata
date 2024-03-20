@@ -12,7 +12,7 @@ NVGComponent::NVGComponent(Component* comp) : component(*comp)
 
 void NVGComponent::renderComponentFromImage(NVGcontext* nvg, Component& component, float scale)
 {
-    Image componentImage = component.createComponentSnapshot(Rectangle<int>(0, 0, component.getWidth() + 1, component.getHeight()), true, scale);
+    Image componentImage = component.createComponentSnapshot(Rectangle<int>(0, 0, component.getWidth() + 1, component.getHeight()), false, scale);
 
     if(cachedImage.imageId && cachedImage.lastWidth == componentImage.getWidth() && cachedImage.lastHeight == componentImage.getHeight()) {
         cachedImage.imageId = convertImage(nvg, componentImage, cachedImage.imageId);
@@ -25,7 +25,7 @@ void NVGComponent::renderComponentFromImage(NVGcontext* nvg, Component& componen
     }
 
     nvgBeginPath(nvg);
-    nvgRect(nvg, 0, 0, component.getWidth(), component.getHeight());
+    nvgRect(nvg, 0, 0, component.getWidth() + 1, component.getHeight());
     nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, component.getWidth() + 1, component.getHeight(), 0, cachedImage.imageId, 1.0f));
     nvgFill(nvg);
 }
