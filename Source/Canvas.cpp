@@ -439,6 +439,16 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         nvgStroke(nvg);
     }
 
+    
+    // Render objects like [drawcurve], [fillcurve] etc. at the back
+    for(auto* drawable : drawables)
+    {
+        auto* component = dynamic_cast<Component*>(drawable);
+        if(invalidRegion.intersects(component->getBounds())) {
+            drawable->render(nvg);
+        }
+    }
+    
     // if canvas is a graph, or in presentation mode, don't render connections at all
     if (::getValue<bool>(presentationMode)  || isGraph)
         renderAllObjects(nvg, invalidRegion);

@@ -252,6 +252,8 @@ public:
     NVGframebuffer* ioletBuffer = nullptr;
     int resizeHandleImage = 0;
     float bufferScale;
+    
+    Array<NVGComponent*> drawables;
 
 private:
     

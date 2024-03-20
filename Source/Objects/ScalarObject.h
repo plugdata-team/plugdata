@@ -217,16 +217,17 @@ public:
     void render(NVGcontext* nvg) override
     {
         Path p = getPath();
+                
+        Path::Iterator i (p);
         
         nvgBeginPath (nvg);
-        
-        Path::Iterator i (p);
         
         while (i.next())
         {
             switch (i.elementType)
             {
                 case Path::Iterator::startNewSubPath:
+                    nvgBeginPath (nvg);
                     nvgMoveTo (nvg, i.x1, i.y1);
                     break;
                 case Path::Iterator::lineTo:
@@ -249,6 +250,8 @@ public:
         // TODO: could be more optimised
         if(closed)
         {
+            nvgClosePath (nvg);
+            
             nvgFillColor(nvg, convertColour(getFill().colour));
             nvgFill(nvg);
             nvgStrokeWidth(nvg, getStrokeType().getStrokeThickness());
@@ -636,7 +639,6 @@ public:
         auto* glist = canvas->patch.getPointer().get();
         if (!glist)
             return;
-
 
         auto* x = reinterpret_cast<t_fake_plot*>(object);
         int elemsize, yonset, wonset, xonset, i;
@@ -1046,40 +1048,22 @@ struct ScalarObject final : public ObjectBase {
                 if (name == "drawtext" || name == "drawnumber" || name == "drawsymbol") {
                     cnv->addAndMakeVisible(templates.add(new DrawableSymbol(scalar.get(), y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY))));
                 } else if (name == "drawpolygon" || name == "drawcurve" || name == "filledpolygon" || name == "filledcurve") {
-                    cnv->addAndMakeVisible(templates.add(new DrawableCurve(scalar.get(), y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY))));
+                    auto* curve = templates.add(new DrawableCurve(scalar.get(), y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY)));
+                    cnv->addAndMakeVisible(curve);
+                    cnv->drawables.add(dynamic_cast<NVGComponent*>(curve));
                 } else if (name == "plot") {
                     auto* plot = new DrawablePlot(scalar.get(), y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY));
                     cnv->addAndMakeVisible(templates.add(plot));
                 }
             }
 
+            // TODO: this is very inefficient!
             for (int i = templates.size() - 1; i >= 0; i--) {
-                templates[i]->toBack();
+                cnv->drawables.move(cnv->drawables.indexOf(dynamic_cast<NVGComponent*>(templates[i])), 0);
             }
         }
 
         updateDrawables();
-    }
-    
-    void render(NVGcontext* nvg) override
-    {
-        auto localPoint = cnv->getLocalPoint(this, Point<int>(0,0));
-        
-        nvgSave(nvg);
-        nvgResetScissor(nvg);
-        nvgTranslate(nvg, -localPoint.getX(), -localPoint.getY()); // Translate back to canvas coordinates
-        
-        for(auto* templ : templates)
-        {
-            nvgSave(nvg);
-            
-            if(auto* nvgComponent = dynamic_cast<NVGComponent*>(templ))
-            {
-                nvgComponent->render(nvg);
-            }
-            nvgRestore(nvg);
-        }
-        nvgRestore(nvg);
     }
 
     ~ScalarObject() override
@@ -1098,16 +1082,7 @@ struct ScalarObject final : public ObjectBase {
         }
     }
 
-    Rectangle<int> getPdBounds() override {
-        // Bounds are used for invalidation, so we do need to return something
-        Rectangle<int> bounds;
-        for(auto* templ : templates)
-        {
-            bounds = bounds.getUnion(templ->getBounds());
-        }
-        
-        return bounds.translated(-cnv->canvasOrigin.x, -cnv->canvasOrigin.y);
-    }
+    Rectangle<int> getPdBounds() override { return {0, 0, 0, 0}; }
 
     void setPdBounds(Rectangle<int> b) override { }
 };
