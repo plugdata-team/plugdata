@@ -39,6 +39,8 @@ public:
         
 private:
     
+    bool isAttached() const;
+    
     void resized() override;
     
     void renderPerfMeter(NVGcontext* nvg);

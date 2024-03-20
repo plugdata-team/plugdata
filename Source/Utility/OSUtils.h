@@ -35,6 +35,7 @@ struct OSUtils {
     static KeyboardLayout getKeyboardLayout();
 
 #if JUCE_MAC || JUCE_IOS
+    static float MTLGetPixelScale(void* view);
     static void* MTLCreateView(void* parent, int x, int y, int width, int height);
     static void MTLDeleteView(void* view);
 #endif
@@ -91,5 +92,7 @@ struct OSUtils {
     static void showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(int)> callback);
     static void showMobileCanvasMenu(juce::ComponentPeer* peer, std::function<void(int)> callback);
 
+    static void MTLResizeView(void* view, int x, int y, int width, int height);
+    
 #endif
 };

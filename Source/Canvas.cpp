@@ -836,7 +836,7 @@ void Canvas::performSynchronise()
 }
 
 void Canvas::updateDrawables()
-{
+{    
     for (auto* object : objects) {
         if (object->gui) {
             object->gui->updateDrawables();

@@ -36,7 +36,7 @@ public:
         nvgTextAlign(nvg,NVG_ALIGN_LEFT|NVG_ALIGN_TOP);
         nvgFillColor(nvg, nvgRGBA(240,240,240,255));
         char fpsBuf[16];
-        snprintf(fpsBuf, 16, "%d", static_cast<int>(1.0f / getAverageFrameTime()));
+        snprintf(fpsBuf, 16, "%d", static_cast<int>(round(1.0f / getAverageFrameTime())));
         nvgText(nvg, 8, 2, fpsBuf, nullptr);
     }
     void addFrameTime()
@@ -134,17 +134,38 @@ void NVGSurface::detachContext()
 
 float NVGSurface::getRenderScale() const
 {
+    auto desktopScale = Desktop::getInstance().getGlobalScaleFactor();
 #ifdef NANOVG_METAL_IMPLEMENTATION
-    return 2.0f; // TODO: fix this!
+    if(!isAttached()) return 2.0f * desktopScale;
+    return OSUtils::MTLGetPixelScale(getView()) * desktopScale;
 #else
-    return glContext->getRenderingScale();
+    if(!isAttached()) return desktopScale;
+    return glContext->getRenderingScale() * desktopScale;
 #endif
 }
 
 void NVGSurface::resized()
 {
 #ifdef NANOVG_METAL_IMPLEMENTATION
-      mnvgSetViewBounds(getView(), getRenderScale() * getWidth(), getRenderScale() * getHeight());
+    if(auto* view = getView()) {
+        auto desktopScale = Desktop::getInstance().getGlobalScaleFactor();
+        auto renderScale = OSUtils::MTLGetPixelScale(view);
+        auto* topLevel = getTopLevelComponent();
+        auto bounds = topLevel->getLocalArea(this, getLocalBounds()) * desktopScale;
+#if JUCE_IOS
+        OSUtils::MTLResizeView(view, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+#endif
+        mnvgSetViewBounds(view, (renderScale * bounds.getWidth()) - 4, (renderScale * bounds.getHeight()) - 4);
+    }
+#endif
+}
+
+bool NVGSurface::isAttached() const
+{
+#ifdef NANOVG_METAL_IMPLEMENTATION
+    return getView() != nullptr;
+#else
+    return glContext->isAttached();
 #endif
 }
 
@@ -169,14 +190,8 @@ void NVGSurface::render()
             cnv->render(nvg);
         }
     }
-    
-#ifdef NANOVG_METAL_IMPLEMENTATION
-    bool isAttached = getView() != nullptr;
-#else
-    bool isAttached = glContext->isAttached();
-#endif
-    
-    if(!renderTargets.isEmpty() && !isAttached)
+
+    if(!renderTargets.isEmpty() && !isAttached())
     {
         setVisible(true);
         setInterceptsMouseClicks(false, false);
@@ -185,12 +200,19 @@ void NVGSurface::render()
         if(nvg) nvgDeleteContext(nvg);
         
 #ifdef NANOVG_METAL_IMPLEMENTATION
-        setView(OSUtils::MTLCreateView(getPeer()->getNativeHandle(), 20, 20, getRenderScale() * getWidth(), getRenderScale() * getHeight()));
-        nvg = nvgCreateContext(getView(), NVG_ANTIALIAS | NVG_TRIPLE_BUFFER, getRenderScale() * getWidth(), getRenderScale() * getHeight());
+        auto* peer = getPeer()->getNativeHandle();
+        auto renderScale = Desktop::getInstance().getGlobalScaleFactor() * OSUtils::MTLGetPixelScale(peer);
+        auto* view = OSUtils::MTLCreateView(peer, 0, 0, getWidth(), getHeight());
+        setView(view);
+        nvg = nvgCreateContext(view, NVG_ANTIALIAS | NVG_TRIPLE_BUFFER, getWidth() * renderScale, getHeight() * renderScale);
         setVisible(true);
+#if JUCE_IOS
+        resized();
+#endif
+        
 #else
         glContext->attachTo(*this);
-        glContext->setSwapInterval(0); // It's very important this happens after attachTo. Otherwise, it will be terribly slow on Windows/Linux
+        glContext->setSwapInterval(0); // It's very important this happens after attachTo. Otherwise, it will be terribly slow on Windows and Linux
         nvg = nvgCreateContext(NVG_ANTIALIAS);
 #endif
         
@@ -202,13 +224,13 @@ void NVGSurface::render()
         nvgCreateFontMem(nvg, "Inter-Thin", (unsigned char*)BinaryData::InterThin_ttf, BinaryData::InterThin_ttfSize, 0);
         nvgCreateFontMem(nvg, "Icon", (unsigned char*)BinaryData::IconFont_ttf, BinaryData::IconFont_ttfSize, 0);
     }
-    else if(renderTargets.isEmpty() && isAttached)
+    else if(renderTargets.isEmpty() && isAttached())
     {
         if(nvg) nvgDeleteContext(nvg);
         nvg = nullptr;
         detachContext();
     }
-    else if(needsBufferSwap && isAttached) {
+    else if(needsBufferSwap && isAttached()) {
 #if ENABLE_FPS_COUNT
         realFrameTimer->addFrameTime();
 #endif

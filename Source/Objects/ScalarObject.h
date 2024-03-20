@@ -18,7 +18,7 @@
 // This prevents that with a separation layer.
 
 class DrawableTemplate : public pd::MessageListener
-    , public AsyncUpdater {
+    , public AsyncUpdater, public NVGComponent {
 
 public:
     pd::Instance* pd;
@@ -31,7 +31,8 @@ public:
     bool mouseWasDown = false;
 
     DrawableTemplate(t_scalar* object, t_word* scalarData, t_template* scalarTemplate, t_template* parentTemplate, Canvas* cnv, t_float x, t_float y)
-        : pd(cnv->pd)
+        : NVGComponent(reinterpret_cast<Component*>(this)) // TODO: clean this up
+        , pd(cnv->pd)
         , canvas(cnv)
         , baseX(x)
         , baseY(y)
@@ -144,6 +145,7 @@ class DrawableCurve final : public DrawableTemplate
     t_fake_curve* object;
     GlobalMouseListener globalMouseListener;
     Point<int> lastMouseDragPosition = { 0, 0 };
+    bool closed;
 
 public:
     DrawableCurve(t_scalar* s, t_gobj* obj, t_word* data, t_template* templ, Canvas* cnv, int x, int y, t_template* parent = nullptr)
@@ -151,7 +153,7 @@ public:
         , object(reinterpret_cast<t_fake_curve*>(obj))
         , globalMouseListener(cnv)
     {
-
+        
         globalMouseListener.globalMouseDown = [this, cnv](MouseEvent const& e) {
             auto localPos = e.getEventRelativeTo(this).getMouseDownPosition();
             if (!getLocalBounds().contains(localPos) || !getValue<bool>(canvas->locked) || !canvas->isShowing())
@@ -211,6 +213,51 @@ public:
             }
         };
     }
+        
+    void render(NVGcontext* nvg) override
+    {
+        Path p = getPath();
+        
+        nvgBeginPath (nvg);
+        
+        Path::Iterator i (p);
+        
+        while (i.next())
+        {
+            switch (i.elementType)
+            {
+                case Path::Iterator::startNewSubPath:
+                    nvgMoveTo (nvg, i.x1, i.y1);
+                    break;
+                case Path::Iterator::lineTo:
+                    nvgLineTo (nvg, i.x1, i.y1);
+                    break;
+                case Path::Iterator::quadraticTo:
+                    nvgQuadTo (nvg, i.x1, i.y1, i.x2, i.y2);
+                    break;
+                case Path::Iterator::cubicTo:
+                    nvgBezierTo (nvg, i.x1, i.y1, i.x2, i.y2, i.x3, i.y3);
+                    break;
+                case Path::Iterator::closePath:
+                    nvgClosePath (nvg);
+                    break;
+            default:
+                break;
+            }
+        }
+        
+        // TODO: could be more optimised
+        if(closed)
+        {
+            nvgFillColor(nvg, convertColour(getFill().colour));
+            nvgFill(nvg);
+        }
+        else {
+            nvgStrokeWidth(nvg, getStrokeType().getStrokeThickness());
+            nvgStrokeColor(nvg, convertColour(getStrokeFill().colour));
+            nvgStroke(nvg);
+        }
+    }
 
     void update() override
     {
@@ -237,7 +284,7 @@ public:
 
         if (n > 1) {
             int flags = x->x_flags;
-            int closed = flags & CLOSED;
+            closed = flags & CLOSED;
 
             t_float width = fielddesc_getfloat(&x->x_width, templ, data, 1);
 
@@ -347,6 +394,12 @@ public:
         mouseListener.globalMouseDrag = [this](MouseEvent const& e) {
             handleMouseDrag(e.getEventRelativeTo(this));
         };
+    }
+        
+        
+    void render(NVGcontext* nvg) override
+    {
+        // TODO: implement this!
     }
 
     void handleMouseDown(MouseEvent const& e)
@@ -972,10 +1025,8 @@ struct ScalarObject final : public ObjectBase {
     ScalarObject(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
     {
-
-        // Make object invisible
-        object->setVisible(false);
-
+        setInterceptsMouseClicks(false, false);
+        
         if (auto scalar = obj.get<t_scalar>()) {
             auto* templ = template_findbyname(scalar->sc_template);
             auto* templatecanvas = template_findcanvas(templ);
@@ -1006,6 +1057,27 @@ struct ScalarObject final : public ObjectBase {
 
         updateDrawables();
     }
+    
+    void render(NVGcontext* nvg) override
+    {
+        auto localPoint = cnv->getLocalPoint(this, Point<int>(0,0));
+        
+        nvgSave(nvg);
+        nvgResetScissor(nvg);
+        nvgTranslate(nvg, -localPoint.getX(), -localPoint.getY()); // Translate back to canvas coordinates
+        
+        for(auto* templ : templates)
+        {
+            nvgSave(nvg);
+            
+            if(auto* nvgComponent = dynamic_cast<NVGComponent*>(templ))
+            {
+                nvgComponent->render(nvg);
+            }
+            nvgRestore(nvg);
+        }
+        nvgRestore(nvg);
+    }
 
     ~ScalarObject() override
     {
@@ -1023,7 +1095,7 @@ struct ScalarObject final : public ObjectBase {
         }
     }
 
-    Rectangle<int> getPdBounds() override { return { 0, 0, 0, 0 }; }
+    Rectangle<int> getPdBounds() override { return cnv->getLocalBounds(); } // TODO: use viewport bounds
 
     void setPdBounds(Rectangle<int> b) override { }
 };

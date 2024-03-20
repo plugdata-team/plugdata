@@ -3,6 +3,8 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "OSUtils.h"
 
+#import <Metal/Metal.h>
+
 #if JUCE_MAC
 #import <Foundation/Foundation.h>
 #import <Cocoa/Cocoa.h>
@@ -122,6 +124,23 @@ OSUtils::ScrollTracker::~ScrollTracker()
     // Remove the observer when no longer needed
     
     [[NSNotificationCenter defaultCenter] removeObserver:static_cast<ScrollEventObserver*>(observer)];
+}
+
+float OSUtils::MTLGetPixelScale(void* view) {
+    auto* nsView = reinterpret_cast<NSView*>(view);
+    
+    CGFloat scale = 1.0;
+        if ([nsView respondsToSelector:@selector(convertRectToBacking:)]) {
+            NSRect backingRect = [nsView convertRectToBacking:[nsView bounds]];
+            scale = backingRect.size.width / [nsView bounds].size.width;
+        } else {
+            // Fallback for macOS versions that do not support backing scale
+            NSWindow *window = [nsView window];
+            if (window) {
+                scale = [window backingScaleFactor];
+            }
+        }
+        return scale;
 }
 
 void* OSUtils::MTLCreateView(void* parent, int x, int y, int width, int height)
@@ -528,15 +547,64 @@ void OSUtils::showMobileCanvasMenu(juce::ComponentPeer* peer, std::function<void
     }
 }
 
+@interface NVGMetalView : UIView
+
+@property (nonatomic, strong) CAMetalLayer *metalLayer;
+
+@end
+
+@implementation NVGMetalView
+
++ (Class)layerClass {
+    return [CAMetalLayer class];
+}
+
+- (instancetype)initWithFrame:(CGRect)frame {
+    self = [super initWithFrame:frame];
+    if (self) {
+        [self commonInit];
+    }
+    return self;
+}
+
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
+    self = [super initWithCoder:aDecoder];
+    if (self) {
+        [self commonInit];
+    }
+    return self;
+}
+
+// Always return NO to pass through touch events
+- (BOOL)pointInside:(CGPoint)point withEvent:(UIEvent *)event {
+    return NO;
+}
+
+- (void)commonInit {
+    self.metalLayer = (CAMetalLayer *)self.layer;
+}
+
+@end
+
+float OSUtils::MTLGetPixelScale(void* view) {
+    return reinterpret_cast<UIView*>(view).window.screen.scale;
+}
+
+void OSUtils::MTLResizeView(void* view, int x, int y, int width, int height)
+{
+    CGRect bounds = CGRectMake(x, y, width, height);
+    [(__bridge UIView*)view setFrame:bounds];
+}
+
 void* OSUtils::MTLCreateView(void* parent, int x, int y, int width, int height)
 {
     // Create child view
-    UIView *childView = [[UIView alloc] initWithFrame:CGRectMake(x, y, width, height)];
+    NVGMetalView *childView = [[NVGMetalView alloc] initWithFrame:CGRectMake(x, y, width, height)];
     UIView *parentView = reinterpret_cast<UIView*>(parent);
     
     // Add child view as a subview of parent view
     [parentView addSubview:childView];
-    
+
     return childView;
 }
 
