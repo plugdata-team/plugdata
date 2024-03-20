@@ -223,7 +223,7 @@ public:
         if(canvas)
         {
             nvgSave(nvg);
-            nvgRoundedScissor(nvg, b.getX() + 0.75f, b.getY() + 0.75f, b.getWidth() - 1.5f, b.getHeight() - 1.5f, Corners::objectCornerRadius);
+            nvgIntersectRoundedScissor(nvg, b.getX() + 0.75f, b.getY() + 0.75f, b.getWidth() - 1.5f, b.getHeight() - 1.5f, Corners::objectCornerRadius);
             nvgTranslate(nvg, canvas->getX(), canvas->getY());
             canvas->performRender(nvg, canvas->getLocalBounds()); // TODO: more precise invalidation?
             nvgRestore(nvg);
