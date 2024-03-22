@@ -209,11 +209,9 @@ void Connection::render(NVGcontext* nvg)
     auto drawConnection = [shadowColour, nvg, baseColour](Point<float> start, Point<float> cp1, Point<float> cp2, Point<float> end){
         // semi-transparent background line
         nvgBeginPath(nvg);
-        nvgLineStyle(nvg, NVG_LINE_SOLID);
         nvgMoveTo(nvg, start.x, start.y - 1.5f);
         nvgBezierTo(nvg, cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y + 1.5f);
         
-        nvgLineStyle(nvg, NVG_LINE_DASHED);
         nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(baseColour), convertColour(shadowColour)));
         nvgStrokeWidth(nvg, 4.0f);
         nvgStroke(nvg);
@@ -927,9 +925,8 @@ void Connection::resizeToFit()
 
     // heuristics to allow the overlay & reconnection handle to paint inside bounds
     // consider moving them to their own layers in future
-    auto safteyMargin = showConnectionOrder ? 13 : isSelected() ? 10
-                                                                : 6;
-
+    auto safteyMargin = showConnectionOrder ? 13 : isSelected() ? 10 : 6;
+    
     auto newBounds = Rectangle<float>(pStart, pEnd).expanded(safteyMargin).getSmallestIntegerContainer();
 
     if (segmented) {
@@ -1495,16 +1492,11 @@ void ConnectionBeingCreated::render(NVGcontext* nvg)
     auto drawConnection = [nvg, nvgColor, nvgShadowColour](Point<float> start, Point<float> cp1, Point<float> cp2, Point<float> end){
         // semi-transparent background line
         nvgBeginPath(nvg);
-        nvgLineStyle(nvg, NVG_LINE_SOLID);
         nvgMoveTo(nvg, start.x, start.y);
         nvgBezierTo(nvg, cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
-        nvgStrokeColor(nvg, nvgShadowColour);
-        nvgLineCap(nvg, NVG_ROUND);
+        
+        nvgStrokePaint(nvg, nvgDoubleStroke(nvg, nvgColor, nvgShadowColour));
         nvgStrokeWidth(nvg, 4.0f);
-        nvgStroke(nvg);
-
-        nvgStrokeColor(nvg, nvgColor);
-        nvgStrokeWidth(nvg, 2.0f);
         nvgStroke(nvg);
     };
     
