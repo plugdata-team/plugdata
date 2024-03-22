@@ -364,12 +364,13 @@ public:
     void render(NVGcontext* nvg) override
     {
         if (error) {
-            /* TODO: implement this
+            auto position = getLocalBounds().getCentre();
+            auto errorText = "array " + getUnexpandedName() + " is invalid";
             nvgFontSize(nvg, 11);
             nvgFontFace(nvg, "Inter-Regular");
             nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-            nvgFillColor(nvg, co); // White color
-            Fonts::drawText(g, "array " + getUnexpandedName() + " is invalid", 0, 0, getWidth(), getHeight(), object->findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred); */
+            nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::canvasTextColourId)));
+            nvgText(nvg, position.x, position.y, errorText.toRawUTF8(), nullptr);
             error = false;
         } else if(visible) {
             paintGraph(nvg);

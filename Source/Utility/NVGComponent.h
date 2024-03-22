@@ -16,6 +16,9 @@ public:
     static NVGcolor convertColour(Colour c);
     NVGcolor findNVGColour(int colourId);
     
+    
+    static void setJUCEPath(NVGcontext* nvg, Path const& p);
+    
     virtual void render(NVGcontext*) {};
     
 private:

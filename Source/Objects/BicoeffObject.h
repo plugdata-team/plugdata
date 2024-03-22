@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class BicoeffGraph : public Component {
+class BicoeffGraph : public Component, public NVGComponent {
 
     float a1 = 0, a2 = 0, b0 = 1, b1 = 0, b2 = 0;
 
@@ -38,7 +38,7 @@ public:
     FilterType filterType = EQ;
 
     explicit BicoeffGraph(Object* parent)
-        : object(parent)
+        : NVGComponent(this), object(parent)
     {
         filterWidth = 0.2f;
         filterCentre = 0.5f;
@@ -187,6 +187,38 @@ public:
     {
         update();
     }
+    
+    void render(NVGcontext* nvg) override
+    {
+        auto b = getLocalBounds().reduced(0.5f);
+        auto backgroundColour = convertColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
+        auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
+
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+
+        nvgStrokeColor(nvg, convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour)));
+        nvgBeginPath(nvg);
+        nvgMoveTo(nvg, filterX1 * getWidth(), 0.0f);
+        nvgLineTo(nvg, filterX1 * getWidth(), getHeight());
+        nvgStroke(nvg);
+
+        nvgBeginPath(nvg);
+        nvgMoveTo(nvg, filterX2 * getWidth(), 0.0f);
+        nvgLineTo(nvg, filterX2 * getWidth(), getHeight());
+        nvgStroke(nvg);
+
+        nvgBeginPath(nvg);
+        nvgMoveTo(nvg, 0.0f, getHeight() / 2.0f);
+        nvgLineTo(nvg, getWidth(), getHeight() / 2.0f);
+        nvgStroke(nvg);
+        
+        nvgStrokeWidth(nvg, 1.0f);
+        nvgLineStyle(nvg, NVG_SQUARE);
+        setJUCEPath(nvg, magnitudePath);
+        nvgStrokeColor(nvg, convertColour(object->findColour(PlugDataColour::canvasTextColourId)));
+        nvgStroke(nvg);
+    }
 
     void paint(Graphics& g) override
     {
@@ -200,11 +232,7 @@ public:
 
         g.drawHorizontalLine(getHeight() / 2.0f, 0.0f, getWidth());
 
-        // g.setColour(Colours::green);
-        // g.strokePath(phasePath, PathStrokeType(1.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::square));
-
-        g.setColour(object->findColour(PlugDataColour::canvasTextColourId));
-        g.strokePath(magnitudePath, PathStrokeType(1.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::square));
+       
 
         bool selected = object->isSelected() && !object->cnv->isGraph;
 
@@ -525,6 +553,11 @@ public:
     void resized() override
     {
         graph.setBounds(getLocalBounds());
+    }
+    
+    void render(NVGcontext* nvg) override
+    {
+        graph.render(nvg);
     }
 
     void update() override

@@ -17,6 +17,8 @@ class PictureObject final : public ObjectBase {
 
     File imageFile;
     Image img;
+    
+    std::unique_ptr<NanoVGGraphicsContext> nvgCtx = nullptr;
 
 public:
     PictureObject(pd::WeakReference ptr, Object* object)
@@ -117,6 +119,16 @@ public:
                 openFile(atoms[0].toString());
             break;
         }
+        }
+    }
+    
+    void render(NVGcontext* nvg) override
+    {
+        if(!nvgCtx || nvgCtx->getContext() != nvg) nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
+        nvgCtx->setPhysicalPixelScaleFactor(getImageScale());
+        Graphics g(*nvgCtx);
+        {
+            paintEntireComponent(g, true);
         }
     }
 
