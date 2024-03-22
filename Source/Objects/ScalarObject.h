@@ -386,6 +386,7 @@ class DrawableSymbol final : public DrawableTemplate
 
     t_fake_drawnumber* object;
     GlobalMouseListener mouseListener;
+    CachedTextRender textRenderer;
 
     float mouseDownValue;
 
@@ -405,7 +406,12 @@ public:
         
     void render(NVGcontext* nvg) override
     {
-        // TODO: implement this!
+        auto scale = canvas->isScrolling ? canvas->getRenderScale() * 2.0f : canvas->getRenderScale() * std::max(1.0f, getValue<float>(canvas->zoomScale));
+        auto bounds = getBoundingBox().getBoundingBox().toNearestInt();
+        nvgSave(nvg);
+        nvgTranslate(nvg, bounds.getX(), bounds.getY());
+        textRenderer.renderText(nvg, getText(), getFont(), getColour(), bounds.withZeroOrigin(), scale);
+        nvgRestore(nvg);
     }
 
     void handleMouseDown(MouseEvent const& e)
@@ -594,6 +600,47 @@ public:
             canvas->removeChildComponent(subplot);
         }
     }
+        
+    void render(NVGcontext* nvg) override
+    {
+        Path p = getPath();
+                
+        Path::Iterator i (p);
+        
+        nvgBeginPath (nvg);
+        
+        while (i.next())
+        {
+            switch (i.elementType)
+            {
+                case Path::Iterator::startNewSubPath:
+                    nvgBeginPath (nvg);
+                    nvgMoveTo (nvg, i.x1, i.y1);
+                    break;
+                case Path::Iterator::lineTo:
+                    nvgLineTo (nvg, i.x1, i.y1);
+                    break;
+                case Path::Iterator::quadraticTo:
+                    nvgQuadTo (nvg, i.x1, i.y1, i.x2, i.y2);
+                    break;
+                case Path::Iterator::cubicTo:
+                    nvgBezierTo (nvg, i.x1, i.y1, i.x2, i.y2, i.x3, i.y3);
+                    break;
+                case Path::Iterator::closePath:
+                    nvgClosePath (nvg);
+                    break;
+            default:
+                break;
+            }
+        }
+                
+        nvgFillColor(nvg, convertColour(getFill().colour));
+        nvgFill(nvg);
+        nvgStrokeWidth(nvg, getStrokeType().getStrokeThickness());
+        nvgStrokeColor(nvg, convertColour(getStrokeFill().colour));
+        nvgStroke(nvg);
+    }
+
 
     static int readOwnerTemplate(t_fake_plot* x,
         t_word* data, t_template* ownertemplate,
@@ -1062,7 +1109,9 @@ struct ScalarObject final : public ObjectBase {
                 auto name = String::fromUTF8(y->g_pd->c_name->s_name);
 
                 if (name == "drawtext" || name == "drawnumber" || name == "drawsymbol") {
-                    cnv->addAndMakeVisible(templates.add(new DrawableSymbol(scalar.get(), y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY))));
+                    auto* symbol = templates.add(new DrawableSymbol(scalar.get(), y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY)));
+                    cnv->addAndMakeVisible(symbol);
+                    cnv->drawables.add(dynamic_cast<NVGComponent*>(symbol));
                 } else if (name == "drawpolygon" || name == "drawcurve" || name == "filledpolygon" || name == "filledcurve") {
                     auto* curve = templates.add(new DrawableCurve(scalar.get(), y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY)));
                     cnv->addAndMakeVisible(curve);
@@ -1070,6 +1119,7 @@ struct ScalarObject final : public ObjectBase {
                 } else if (name == "plot") {
                     auto* plot = new DrawablePlot(scalar.get(), y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY));
                     cnv->addAndMakeVisible(templates.add(plot));
+                    cnv->drawables.add(dynamic_cast<NVGComponent*>(plot));
                 }
             }
 
