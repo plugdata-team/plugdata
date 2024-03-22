@@ -469,8 +469,10 @@ DragAndDropTarget* PluginEditor::findNextDragAndDropTarget(Point<int> screenPos)
 
 void PluginEditor::resized()
 {
-    if (pd->isInPluginMode())
+    if (pd->isInPluginMode()) {
+        nvgSurface.setBounds(getLocalBounds().withTrimmedTop(toolbarHeight));
         return;
+    }
 
 #if JUCE_IOS
     if (auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent())) {

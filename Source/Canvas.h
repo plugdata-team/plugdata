@@ -253,7 +253,7 @@ public:
     int resizeHandleImage = 0;
     float bufferScale;
     
-    Array<NVGComponent*> drawables;
+    Array<juce::WeakReference<NVGComponent>> drawables;
 
 private:
     

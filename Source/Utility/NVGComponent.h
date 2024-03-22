@@ -30,4 +30,6 @@ private:
     
     CachedImage cachedImage;
     Component& component;
+    
+    JUCE_DECLARE_WEAK_REFERENCEABLE(NVGComponent)
 };

@@ -324,20 +324,20 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     auto backgroundColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId));
     auto dotsColour = convertColour(findColour(PlugDataColour::canvasDotsColourId));
     
-    int halfSize = infiniteCanvasSize / 2;
-
+    auto halfSize = infiniteCanvasSize / 2;
+    auto zoom = getValue<float>(zoomScale);
+    
     // apply translation to the canvas nvg objects
     nvgSave(nvg);
     
     if(viewport)  {
         nvgTranslate(nvg, -viewport->getViewPositionX(), -viewport->getViewPositionY());
         invalidRegion = invalidRegion.translated(viewport->getViewPositionX(), viewport->getViewPositionY());
+        
+        nvgScale(nvg, zoom, zoom);
+        invalidRegion /= zoom;
     }
-    
-    auto zoom = getValue<float>(zoomScale);
-    nvgScale(nvg, zoom, zoom);
-    invalidRegion /= zoom;
-    
+        
     if(viewport) {
         nvgBeginPath(nvg);
         nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
@@ -415,7 +415,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         nvgLineStyle(nvg, NVG_LINE_SOLID);
         nvgStrokeColor(nvg, backgroundColour);
         nvgStrokeWidth(nvg, 6.0f);
-        nvgStroke(nvg);
+        //nvgStroke(nvg);
         
         auto scaledStrokeSize = zoom < 1.0f ? jmap(zoom, 1.0f, 0.25f, 1.5f, 4.0f) : 1.5f;
         if (zoom < 0.3f && getRenderScale() <= 1.0f)
@@ -423,11 +423,11 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
 
         // draw 0,0 point lines
         nvgLineStyle(nvg, NVG_LINE_DASHED);
-
+        
         nvgStrokeColor(nvg, dotsColour);
         nvgStrokeWidth(nvg, scaledStrokeSize);
         nvgDashLength(nvg, 8.0f);
-        nvgStroke(nvg);
+        //nvgStroke(nvg);
         
         // Connect origin lines at {0, 0}
         nvgBeginPath(nvg);
@@ -436,16 +436,18 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         nvgLineTo(nvg, pos.x, pos.y + 2.0f);
         nvgLineStyle(nvg, NVG_LINE_SOLID);
         nvgStrokeWidth(nvg, 1.25f);
-        nvgStroke(nvg);
+       // nvgStroke(nvg);
     }
 
     
     // Render objects like [drawcurve], [fillcurve] etc. at the back
-    for(auto* drawable : drawables)
+    for(auto drawable : drawables)
     {
-        auto* component = dynamic_cast<Component*>(drawable);
-        if(invalidRegion.intersects(component->getBounds())) {
-            drawable->render(nvg);
+        if(drawable) {
+            auto* component = dynamic_cast<Component*>(drawable.get());
+            if(invalidRegion.intersects(component->getBounds())) {
+                drawable->render(nvg);
+            }
         }
     }
     

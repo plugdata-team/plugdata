@@ -586,6 +586,14 @@ public:
             }
         };
     }
+        
+    ~DrawablePlot()
+    {
+        for (auto* subplot : subplots) {
+            canvas->drawables.removeFirstMatchingValue(dynamic_cast<NVGComponent*>(subplot));
+            canvas->removeChildComponent(subplot);
+        }
+    }
 
     static int readOwnerTemplate(t_fake_plot* x,
         t_word* data, t_template* ownertemplate,
@@ -983,16 +991,24 @@ public:
             
             auto name = String::fromUTF8(y->g_pd->c_name->s_name);
             if (name == "drawtext" || name == "drawnumber" || name == "drawsymbol") {
-                subplots.add(new DrawableSymbol(s, y, subdata, elemtemplate, canvas, static_cast<int>(xloc), static_cast<int>(yloc), templ));
+                auto* symbol = new DrawableSymbol(s, y, subdata, elemtemplate, canvas, static_cast<int>(xloc), static_cast<int>(yloc), templ);
+                subplots.add(symbol);
                 canvas->addAndMakeVisible(subplots.getLast());
+                canvas->drawables.add(symbol);
             } else if (name == "drawpolygon" || name == "drawcurve" || name == "filledpolygon" || name == "filledcurve") {
-                subplots.add(new DrawableCurve(s, y, subdata, elemtemplate, canvas, static_cast<int>(xloc), static_cast<int>(yloc), templ));
+                auto* curve = new DrawableCurve(s, y, subdata, elemtemplate, canvas, static_cast<int>(xloc), static_cast<int>(yloc), templ);
+                subplots.add(curve);
                 canvas->addAndMakeVisible(subplots.getLast());
+                canvas->drawables.add(curve);
             } else if (name == "plot") {
-                subplots.add(new DrawablePlot(s, y, subdata, elemtemplate, canvas, static_cast<int>(xloc), static_cast<int>(yloc), templ));
+                auto* plot = new DrawablePlot(s, y, subdata, elemtemplate, canvas, static_cast<int>(xloc), static_cast<int>(yloc), templ);
+                subplots.add(plot);
                 canvas->addAndMakeVisible(subplots.getLast());
+                canvas->drawables.add(plot);
             }
         };
+        
+        // TODO: do these new subplots need to be re-ordered?
         
         for (xsum = xloc, i = 0; i < nelem; i++) {
             t_float usexloc, useyloc;
@@ -1069,6 +1085,7 @@ struct ScalarObject final : public ObjectBase {
     ~ScalarObject() override
     {
         for (auto* drawable : templates) {
+            cnv->drawables.removeFirstMatchingValue(dynamic_cast<NVGComponent*>(drawable));
             cnv->removeChildComponent(drawable);
         }
     }

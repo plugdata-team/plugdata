@@ -11,10 +11,12 @@
 #include "Tabbar/Tabbar.h"
 #include "Standalone/PlugDataWindow.h"
 
-class PluginMode : public Component {
+
+class PluginMode : public Component, public NVGComponent {
 public:
     explicit PluginMode(Canvas* cnv)
-        : cnv(cnv)
+        : NVGComponent(this)
+        , cnv(cnv)
         , editor(cnv->editor)
         , desktopWindow(editor->getPeer())
         , windowBounds(editor->getBounds().withPosition(editor->getTopLevelComponent()->getPosition()))
@@ -98,21 +100,10 @@ public:
 
         addAndMakeVisible(titleBar);
 
-        // Viewed Content (canvas)
-        content.setBounds(0, titlebarHeight, width, height);
-
-        content.addAndMakeVisible(cnv);
-
-        cnv->viewport->setSize(width + cnv->viewport->getScrollBarThickness(), height + cnv->viewport->getScrollBarThickness());
-
         cnv->locked = true;
         cnv->locked.getValueSource().sendChangeMessage(true);
         cnv->presentationMode = true;
         cnv->presentationMode.getValueSource().sendChangeMessage(true);
-
-        cnv->viewport->setViewedComponent(nullptr);
-
-        addAndMakeVisible(content);
 
         cnv->setTopLeftPosition(-cnv->canvasOrigin);
         setWidthAndHeight(1.0f);
@@ -147,6 +138,14 @@ public:
         editor->setSize(newWidth, newHeight);
         setBounds(0, 0, newWidth, newHeight);
     }
+    
+    void render(NVGcontext* nvg) override
+    {
+        nvgTranslate(nvg, -cnv->canvasOrigin.x, -cnv->canvasOrigin.y);
+        nvgScale(nvg, pluginModeScale, pluginModeScale);
+        cnv->performRender(nvg, getLocalBounds());
+        cnv->finaliseRender(nvg);
+    }
 
     void closePluginMode()
     {
@@ -174,9 +173,7 @@ public:
         }
 
         if (cnv) {
-            content.removeChildComponent(cnv);
             // Reset the canvas properties to before plugin mode was entered
-            cnv->viewport->setViewedComponent(cnv, false);
             cnv->patch.openInPluginMode = false;
             cnv->zoomScale.setValue(originalCanvasScale);
             cnv->zoomScale.getValueSource().sendChangeMessage(true);
@@ -256,19 +253,14 @@ public:
             int const x = (getWidth() - scaledWidth) / 2;
             int const y = (getHeight() - scaledHeight) / 2;
 
-            // Apply the scale and position to the editor
-            content.setTransform(content.getTransform().scale(scale));
-            content.setTopLeftPosition(x / scale, y / scale);
-
+            pluginModeScale = scale;
+            
             // Hide titlebar
             titleBar.setBounds(0, 0, 0, 0);
             scaleComboBox.setVisible(false);
             editorButton->setVisible(false);
         } else {
-            content.setTransform(content.getTransform().scale(scale));
-            content.setTopLeftPosition(0, titlebarHeight / scale);
-            titleBar.setBounds(0, 0, getWidth(), titlebarHeight);
-
+            pluginModeScale = scale;
             scaleComboBox.setVisible(true);
             editorButton->setVisible(true);
 
@@ -393,8 +385,6 @@ private:
 
     int selectedItemId = 3; // default is 100% for now
 
-    Component content;
-
     WindowDragger windowDragger;
     bool isDraggingWindow = false;
 
@@ -409,4 +399,5 @@ private:
     Rectangle<int> windowBounds;
     float const width = float(cnv->patchWidth.getValue()) + 1.0f;
     float const height = float(cnv->patchHeight.getValue()) + 1.0f;
+    float pluginModeScale = 1.0f;
 };

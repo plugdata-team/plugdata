@@ -12,6 +12,7 @@
 #endif
 
 #include "PluginEditor.h"
+#include "PluginMode.h"
 #include "Canvas.h"
 
 #define ENABLE_FPS_COUNT 1
@@ -172,6 +173,11 @@ bool NVGSurface::isAttached() const
 void NVGSurface::render()
 {
     Array<Canvas*> renderTargets;
+    if(editor->pluginMode) {
+        editor->pluginMode->render(nvg);
+        return;
+    }
+    
     for(auto* split : editor->splitView.splits)
     {
         if(auto* cnv = split->getTabComponent()->getCurrentCanvas())
@@ -209,7 +215,6 @@ void NVGSurface::render()
 #if JUCE_IOS
         resized();
 #endif
-        
 #else
         glContext->attachTo(*this);
         glContext->setSwapInterval(0); // It's very important this happens after attachTo. Otherwise, it will be terribly slow on Windows and Linux
