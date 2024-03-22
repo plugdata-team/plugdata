@@ -32,6 +32,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     , cnv(parent)
     , ptr(parent->pd)
 {
+    cacheId = rand();
     cnv->selectedComponents.addChangeListener(this);
     
     locked.referTo(parent->locked);
@@ -209,15 +210,12 @@ void Connection::render(NVGcontext* nvg)
         // semi-transparent background line
         nvgBeginPath(nvg);
         nvgLineStyle(nvg, NVG_LINE_SOLID);
-        nvgMoveTo(nvg, start.x, start.y);
-        nvgBezierTo(nvg, cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
-        nvgStrokeColor(nvg, convertColour(shadowColour));
-        nvgLineCap(nvg, NVG_ROUND);
+        nvgMoveTo(nvg, start.x, start.y - 1.5f);
+        nvgBezierTo(nvg, cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y + 1.5f);
+        
+        nvgLineStyle(nvg, NVG_LINE_DASHED);
+        nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(baseColour), convertColour(shadowColour)));
         nvgStrokeWidth(nvg, 4.0f);
-        nvgStroke(nvg);
-
-        nvgStrokeColor(nvg, convertColour(baseColour));
-        nvgStrokeWidth(nvg, 2.0f);
         nvgStroke(nvg);
     };
     
@@ -240,7 +238,7 @@ void Connection::render(NVGcontext* nvg)
         snap(pend, static_cast<int>(currentPlan.size() - 1), static_cast<int>(currentPlan.size() - 2));
 
         nvgBeginPath(nvg);
-        nvgMoveTo(nvg, pstart.x, pstart.y);
+        nvgMoveTo(nvg, pstart.x, pstart.y - 1.5f);
         
         // Add points in between if we've found a path
         for (int n = 1; n < currentPlan.size() - 1; n++) {
@@ -267,38 +265,44 @@ void Connection::render(NVGcontext* nvg)
             }
         }
 
-        nvgLineTo(nvg, pend.x, pend.y);
-        
-        nvgStrokeColor(nvg, convertColour(shadowColour));
-        nvgStrokeWidth(nvg, 3.0f);
-        nvgStroke(nvg);
-        
-        nvgLineStyle(nvg, NVG_LINE_SOLID);
-        nvgStrokeColor(nvg, convertColour(baseColour));
-        nvgStrokeWidth(nvg, 2.0f);
+        nvgLineTo(nvg, pend.x, pend.y + 1.5f);
+        nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(baseColour), convertColour(shadowColour)));
+        nvgStrokeWidth(nvg, 4.0f);
         nvgStroke(nvg);
     };
     
-    if(segmented)
+    if(!cachedIsValid) nvgDeletePath(nvg, cacheId);
+    if(nvgLoadPath(nvg, cacheId))
     {
-        drawSegmentedConnection();
+        nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(baseColour), convertColour(shadowColour)));
+        nvgStrokeWidth(nvg, 4.0f);
+        nvgStroke(nvg);
     }
-    else if (!PlugDataLook::getUseStraightConnections()) {
-        float const width = std::max(start.x, end.x) - std::min(start.x, end.x);
-        float const height = std::max(start.y, end.y) - std::min(start.y, end.y);
-
-        float const min = std::min<float>(width, height);
-        float const max = std::max<float>(width, height);
-        float const maxShift = 20.f;
-
-        float const shiftY = std::min<float>(maxShift, max * 0.5);
-        float const shiftX = ((start.y >= end.y) ? std::min<float>(maxShift, min * 0.5) : 0.f) * ((start.x < end.x) ? -1. : 1.);
-
-        Point<float> const cp1 { start.x - shiftX, start.y + shiftY };
-        Point<float> const cp2 { end.x + shiftX, end.y - shiftY };
-        drawConnection(start, cp1, cp2, end);
-    } else {
-        drawConnection(start, start, end, end);
+    else {
+        if(segmented)
+        {
+            drawSegmentedConnection();
+        }
+        else if (!PlugDataLook::getUseStraightConnections()) {
+            float const width = std::max(start.x, end.x) - std::min(start.x, end.x);
+            float const height = std::max(start.y, end.y) - std::min(start.y, end.y);
+            
+            float const min = std::min<float>(width, height);
+            float const max = std::max<float>(width, height);
+            float const maxShift = 20.f;
+            
+            float const shiftY = std::min<float>(maxShift, max * 0.5);
+            float const shiftX = ((start.y >= end.y) ? std::min<float>(maxShift, min * 0.5) : 0.f) * ((start.x < end.x) ? -1. : 1.);
+            
+            Point<float> const cp1 { start.x - shiftX, start.y + shiftY };
+            Point<float> const cp2 { end.x + shiftX, end.y - shiftY };
+            
+            drawConnection(start, cp1, cp2, end);
+        } else {
+            drawConnection(start, start, end, end);
+        }
+        nvgSavePath(nvg, cacheId);
+        cachedIsValid = true;
     }
        
     // draw reconnect handles if connection is both selected & mouse is hovering over
@@ -978,6 +982,8 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
 
     auto pstart = getStartPoint();
     auto pend = getEndPoint();
+    
+    cachedIsValid = false; // TODO: we could reuse the cache if we translated the connection to its origin coordinate
 
     // If both inlet and outlet are selected we can move the connection
     if (outobj->isSelected() && inobj->isSelected() && !wasResized) {
@@ -1131,7 +1137,7 @@ void Connection::updatePath()
 {
     if (!outlet || !inlet)
         return;
-
+    
     auto pstart = getStartPoint();
     auto pend = getEndPoint();
 
@@ -1170,6 +1176,8 @@ void Connection::updatePath()
         connectionPath.lineTo(pend);
         toDraw = connectionPath.createPathWithRoundedCorners(PlugDataLook::getUseStraightConnections() ? 0.0f : 8.0f);
     }
+    
+    cachedIsValid = false;
 }
 
 void Connection::applyBestPath()
