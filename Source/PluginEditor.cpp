@@ -336,8 +336,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     if (pd->isInPluginMode())
         enablePluginMode(nullptr);
 
-    connectionMessageDisplay = std::make_unique<ConnectionMessageDisplay>();
-    addChildComponent(connectionMessageDisplay.get());
+    connectionMessageDisplay = std::make_unique<ConnectionMessageDisplay>(this);
+    connectionMessageDisplay->addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses | ComponentPeer::windowIgnoresMouseClicks);
 
     // This cannot be done in MidiDeviceManager's constructor because SettingsFile is not yet initialised at that time
     if (ProjectInfo::isStandalone) {
