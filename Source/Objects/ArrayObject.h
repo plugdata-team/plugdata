@@ -375,8 +375,6 @@ public:
         } else if(visible) {
             paintGraph(nvg);
         }
-        
-        
     }
 
     void paint(Graphics& g) override
@@ -1222,6 +1220,11 @@ public:
         {
             graph->render(nvg);
         }
+        
+        if(auto graph = ptr.get<t_glist>())
+        {
+            GraphOnParent::drawTicksForGraph(nvg, graph.get(), this);
+        }
     }
     
     void updateGraphs()
@@ -1343,27 +1346,6 @@ public:
         else {
             ObjectBase::valueChanged(value);
         }
-    }
-
-    void paint(Graphics& g) override
-    {
-        g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
-    }
-
-    void paintOverChildren(Graphics& g) override
-    {
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-        
-        /* TODO: implement when porting array render
-        if(auto graph = ptr.get<t_glist>())
-        {
-            GraphOnParent::drawTicksForGraph(g, graph.get(), this);
-        } */
     }
 
     std::vector<void*> getArrays() const
