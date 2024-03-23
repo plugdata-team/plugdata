@@ -209,10 +209,14 @@ void Connection::render(NVGcontext* nvg)
     auto drawConnection = [shadowColour, nvg, baseColour](Point<float> start, Point<float> cp1, Point<float> cp2, Point<float> end){
         // semi-transparent background line
         nvgBeginPath(nvg);
-        nvgMoveTo(nvg, start.x, start.y - 1.5f);
+        nvgMoveTo(nvg, start.x, start.y - 3.5f);
+        nvgLineTo(nvg, start.x, start.y);
         nvgBezierTo(nvg, cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y + 1.5f);
+        nvgLineTo(nvg, end.x, end.y);
         
         nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(baseColour), convertColour(shadowColour)));
+        //nvgStrokeColor(nvg, convertColour(shadowColour));
+        nvgLineCap(nvg, NVG_MITER);
         nvgStrokeWidth(nvg, 4.0f);
         nvgStroke(nvg);
     };
@@ -270,7 +274,7 @@ void Connection::render(NVGcontext* nvg)
     };
     
     if(!cachedIsValid) nvgDeletePath(nvg, cacheId);
-    if(nvgLoadPath(nvg, cacheId))
+    if(false && nvgLoadPath(nvg, cacheId))
     {
         nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(baseColour), convertColour(shadowColour)));
         nvgStrokeWidth(nvg, 4.0f);
@@ -299,7 +303,7 @@ void Connection::render(NVGcontext* nvg)
         } else {
             drawConnection(start, start, end, end);
         }
-        nvgSavePath(nvg, cacheId);
+        //nvgSavePath(nvg, cacheId);
         cachedIsValid = true;
     }
        
