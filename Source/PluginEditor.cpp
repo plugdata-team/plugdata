@@ -491,7 +491,7 @@ void PluginEditor::resized()
     
     auto workArea = Rectangle<int>(paletteWidth, toolbarHeight, (getWidth() - sidebar->getWidth() - paletteWidth), workAreaHeight);
     splitView.setBounds(workArea);
-    nvgSurface.setBounds(workArea.withTrimmedTop(31));
+    nvgSurface.updateBounds(workArea.withTrimmedTop(31));
     
     sidebar->setBounds(getWidth() - sidebar->getWidth(), toolbarHeight, sidebar->getWidth(), workAreaHeight);
 

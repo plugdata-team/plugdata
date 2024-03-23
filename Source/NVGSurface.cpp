@@ -87,6 +87,8 @@ NVGSurface::NVGSurface(PluginEditor* e) : editor(e)
     
     setInterceptsMouseClicks(false, false);
     setWantsKeyboardFocus(false);
+
+    setSize(1,1);
     
     // Start rendering asynchronously, so we are sure the window has been added to the desktop
     // kind of a hack, but works well enough
@@ -102,6 +104,15 @@ NVGSurface::~NVGSurface()
 {
     detachContext();
 }
+
+#ifdef LIN_OR_WIN
+void NVGSurface::timerCallback()
+{
+    updateBounds(newBounds);
+    if (getBounds() == newBounds)
+        stopTimer();
+}
+#endif
 
 
 void NVGSurface::triggerRepaint()
@@ -143,6 +154,17 @@ float NVGSurface::getRenderScale() const
     if(!isAttached()) return desktopScale;
     return glContext->getRenderingScale() * desktopScale;
 #endif
+}
+
+void NVGSurface::updateBounds(Rectangle<int> bounds)
+{
+    newBounds = bounds;
+    if (hresize)
+        setBounds(bounds.withHeight(getHeight()));
+    else
+        setBounds(bounds.withWidth(getWidth()));
+
+    resizing = true;
 }
 
 void NVGSurface::resized()
@@ -266,6 +288,12 @@ void NVGSurface::render()
 
 #ifdef NANOVG_GL_IMPLEMENTATION
         glContext->swapBuffers();
+        if (resizing) {
+            hresize = !hresize;
+            resizing = false;
+        }
+        if (getBounds() != newBounds)
+            startTimerHz(60);
 #endif
         needsBufferSwap = false;
     }
