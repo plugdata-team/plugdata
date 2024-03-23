@@ -158,6 +158,7 @@ float NVGSurface::getRenderScale() const
 
 void NVGSurface::updateBounds(Rectangle<int> bounds)
 {
+#ifdef LIN_OR_WIN
     newBounds = bounds;
     if (hresize)
         setBounds(bounds.withHeight(getHeight()));
@@ -165,6 +166,9 @@ void NVGSurface::updateBounds(Rectangle<int> bounds)
         setBounds(bounds.withWidth(getWidth()));
 
     resizing = true;
+#else
+    setBounds(bounds);
+#endif
 }
 
 void NVGSurface::resized()
