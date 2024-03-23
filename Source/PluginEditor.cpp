@@ -429,18 +429,12 @@ void PluginEditor::paint(Graphics& g)
     bool rounded = wantsRoundedCorners();
 
     if (rounded) {
+#if JUCE_MAC || JUCE_LINUX
         g.setColour(baseColour);
         g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
-
-        // Toolbar background
-        g.setColour(baseColour);
-        g.fillRect(0, 10, getWidth(), toolbarHeight - 9);
-        g.fillRoundedRectangle(0.0f, 0.0f, getWidth(), toolbarHeight, Corners::windowCornerRadius);
-
-        // Statusbar background
-        g.setColour(baseColour);
-        g.fillRect(0, getHeight() - statusbar->getHeight(), getWidth(), statusbar->getHeight() - 12);
-        g.fillRoundedRectangle(0.0f, getHeight() - statusbar->getHeight(), getWidth(), statusbar->getHeight(), Corners::windowCornerRadius);
+#else
+        g.fillAll(baseColour);
+#endif
     } else {
         g.fillAll(baseColour);
     }

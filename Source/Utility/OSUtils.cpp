@@ -150,6 +150,28 @@ bool OSUtils::runAsAdmin(std::string command, std::string parameters, void* hWnd
     return (bool)retval;
 }
 
+void OSUtils::useWindowsNativeDecorations(void* windowHandle, bool rounded)
+{
+    if (auto hDwmApi = LoadLibrary("dwmapi.dll"); hDwmApi) {
+        typedef HRESULT(WINAPI * PFNSETWINDOWATTRIBUTE)(HWND hWnd, DWORD dwAttribute, LPCVOID pvAttribute, DWORD cbAttribute);
+
+        if (auto pfnSetWindowAttribute = reinterpret_cast<PFNSETWINDOWATTRIBUTE>(GetProcAddress(hDwmApi, "DwmSetWindowAttribute")); pfnSetWindowAttribute) {
+            enum : DWORD {
+                DWMWA_WINDOW_CORNER_PREFERENCE = 33,
+
+                DWMWCP_DEFAULT = 0,
+                DWMWCP_DONOTROUND,
+                DWMWCP_ROUND,
+            };
+
+            // Set corners to rounded
+            auto preference = rounded ? DWMWCP_ROUND : DWMWCP_DONOTROUND;
+            pfnSetWindowAttribute((HWND)windowHandle, DWMWA_WINDOW_CORNER_PREFERENCE, &preference, sizeof(preference));
+        }
+        FreeLibrary(hDwmApi);
+    }
+}
+
 OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 {
     CHAR layoutName[KL_NAMELENGTH];
