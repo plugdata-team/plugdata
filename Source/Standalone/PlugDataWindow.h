@@ -439,6 +439,16 @@ public:
         propertyChanged("native_window", settingsTree.getProperty("native_window"));
     }
 
+#if JUCE_WINDOWS
+    void parentHierarchyChanged () override
+    {
+        DocumentWindow::parentHierarchyChanged();
+
+        if (auto peer = getPeer())
+            OSUtils::useWindowsNativeDecorations(peer->getNativeHandle (), !isFullScreen());
+    }
+#endif
+
     void propertyChanged(String const& name, var const& value) override
     {
         if (name == "native_window") {
@@ -452,8 +462,18 @@ public:
 
             setUsingNativeTitleBar(nativeWindow);
 
+            pdEditor->nvgSurface.detachContext();
+            for (auto& split : pdEditor->splitView.splits) {
+                if (auto cnv = split->getTabComponent()->getCurrentCanvas())
+                    cnv->deleteBuffers();
+            }
+
             if (!nativeWindow) {
+#if JUCE_WINDOWS
+                setOpaque(true);
+#else
                 setOpaque(false);
+#endif
                 setResizable(false, false);
                 // we also need to set the constrainer of THIS window so it's set for the peer
                 setConstrainer(&pdEditor->constrainer);
@@ -463,8 +483,6 @@ public:
                     setDropShadowEnabled(true);
 #elif JUCE_WINDOWS
                     setDropShadowEnabled(false);
-                    dropShadower = std::make_unique<StackDropShadower>(DropShadow(Colour(0, 0, 0).withAlpha(0.8f), 23, { 0, 2 }));
-                    dropShadower->setOwner(this);
 #endif
                 } else {
                     setDropShadowEnabled(false);
@@ -585,18 +603,6 @@ public:
 
             int radius = isActiveWindow() ? 22 : 17;
             StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), radius, { 0, 2 });
-        }
-    }
-#endif
-
-#if JUCE_WINDOWS
-    void paintOverChildren(Graphics& g) override
-    {
-        g.setColour(findColour(PlugDataColour::outlineColourId));
-        if (isUsingNativeTitleBar() || isMaximised()) {
-            g.drawRect(getLocalBounds().toFloat(), 1.0f);
-        } else {
-            g.drawRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
         }
     }
 #endif
