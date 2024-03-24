@@ -8,7 +8,7 @@ class NVGComponent
 public:
             
     NVGComponent(Component*);
-    
+
     void renderComponentFromImage(NVGcontext* nvg, Component& component, float scale);
     
     int convertImage(NVGcontext* nvg, Image& image, int imageToUpdate = -1);
@@ -27,8 +27,8 @@ private:
     struct CachedImage
     {
         int imageId = 0;
-        int lastHeight;
-        int lastWidth;
+        int lastHeight = 0;
+        int lastWidth = 0;
     };
     
     CachedImage cachedImage;
