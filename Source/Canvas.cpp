@@ -165,6 +165,9 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     parameters.addParamRange("Y range", cGeneral, &yRange, { 1.0f, 0.0f });
     parameters.addParamInt("Width", cDimensions, &patchWidth, 527);
     parameters.addParamInt("Height", cDimensions, &patchHeight, 327);
+
+    // when a new canvas is added, delete the framebuffers for its viewport
+    reinterpret_cast<CanvasViewport*>(viewport.get())->deleteBuffers();
 }
 
 Canvas::~Canvas()

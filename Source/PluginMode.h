@@ -38,7 +38,11 @@ public:
 
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
             mainWindow->setUsingNativeTitleBar(false);
+#if JUCE_WINDOWS
+            mainWindow->setOpaque(true);
+#else
             mainWindow->setOpaque(false);
+#endif
         }
 
         desktopWindow = editor->getPeer();

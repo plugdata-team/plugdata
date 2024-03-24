@@ -35,6 +35,7 @@
 #include "Utility/RateReducer.h"
 #include "Utility/MidiDeviceManager.h"
 #include "../PluginEditor.h"
+#include "../CanvasViewport.h"
 
 // For each OS, we have a different approach to rendering the window shadow
 // macOS:
@@ -449,6 +450,25 @@ public:
     }
 #endif
 
+    void recreateCanvasBuffers()
+    {
+        if (!mainComponent)
+            return;
+
+        if (auto* editor = mainComponent->getEditor()) {
+            if (auto* pdEditor = dynamic_cast<PluginEditor*>(editor)) {
+
+                // clear all canvas / viewport buffers FIXME: some are still not cleared? Possibly do this all when nvg is init?
+                for (auto& split : pdEditor->splitView.splits) {
+                    if (auto cnv = split->getTabComponent()->getCurrentCanvas()) {
+                        if (auto viewport = dynamic_cast<CanvasViewport*>(cnv->viewport.get()))
+                            viewport->deleteBuffers();
+                    }
+                }
+            }
+        }
+    }
+
     void propertyChanged(String const& name, var const& value) override
     {
         if (name == "native_window") {
@@ -463,10 +483,7 @@ public:
             setUsingNativeTitleBar(nativeWindow);
 
             pdEditor->nvgSurface.detachContext();
-            for (auto& split : pdEditor->splitView.splits) {
-                if (auto cnv = split->getTabComponent()->getCurrentCanvas())
-                    cnv->deleteBuffers();
-            }
+            recreateCanvasBuffers();
 
             if (!nativeWindow) {
 #if JUCE_WINDOWS
@@ -609,12 +626,8 @@ public:
 
     void activeWindowStatusChanged() override
     {
+        recreateCanvasBuffers();
         repaint();
-
-#if JUCE_WINDOWS
-        if (drawWindowShadow && !isUsingNativeTitleBar() && dropShadower)
-            dropShadower->repaint();
-#endif
     }
 
     void resized() override
