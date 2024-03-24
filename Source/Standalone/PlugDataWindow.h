@@ -35,6 +35,7 @@
 #include "Utility/RateReducer.h"
 #include "Utility/MidiDeviceManager.h"
 #include "../PluginEditor.h"
+#include "../CanvasViewport.h"
 
 // For each OS, we have a different approach to rendering the window shadow
 // macOS:
@@ -463,9 +464,13 @@ public:
             setUsingNativeTitleBar(nativeWindow);
 
             pdEditor->nvgSurface.detachContext();
+
+            // clear all canvas / viewport buffers FIXME: some are still not cleared? Possibly do this all when nvg is init?
             for (auto& split : pdEditor->splitView.splits) {
-                if (auto cnv = split->getTabComponent()->getCurrentCanvas())
-                    cnv->deleteBuffers();
+                if (auto cnv = split->getTabComponent()->getCurrentCanvas()) {
+                    if (auto viewport = dynamic_cast<CanvasViewport*>(cnv->viewport.get()))
+                        viewport->deleteBuffers();
+                }
             }
 
             if (!nativeWindow) {
