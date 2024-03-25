@@ -318,6 +318,7 @@ enum CommandIDs {
     Lock,
     ConnectionStyle,
     ConnectionPathfind,
+    PanDragKey,
     ZoomIn,
     ZoomOut,
     ZoomNormal,

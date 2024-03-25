@@ -864,11 +864,6 @@ void Canvas::commandKeyChanged(bool isHeld)
     commandLocked = isHeld;
 }
 
-void Canvas::spaceKeyChanged(bool isHeld)
-{
-    checkPanDragMode();
-}
-
 void Canvas::middleMouseChanged(bool isHeld)
 {
     checkPanDragMode();
@@ -1117,7 +1112,7 @@ bool Canvas::keyPressed(KeyPress const& key)
     auto moveSelection = [this](int x, int y) {
         auto objects = getSelectionOfType<Object>();
         if (objects.isEmpty())
-            return;
+            return false;
 
         std::vector<t_gobj*> pdObjects;
 
@@ -2158,8 +2153,22 @@ bool Canvas::panningModifierDown()
 #if JUCE_IOS
     return OSUtils::ScrollTracker::isScrolling();
 #endif
+    auto& commandManager = editor->commandManager;
+    // check the command manager for the keycode that is assigned to pan drag key
+    auto panDragKeycode = commandManager.getKeyMappings()->getKeyPressesAssignedToCommand(CommandIDs::PanDragKey).getFirst().getKeyCode();
 
-    return KeyPress::isKeyCurrentlyDown(KeyPress::spaceKey) || ModifierKeys::getCurrentModifiersRealtime().isMiddleButtonDown();
+    // get the current modifier keys, removing the left mouse button modifier (as that is what is needed to activate a pan drag with key down)
+    auto currentMods = ModifierKeys(ModifierKeys::getCurrentModifiersRealtime().getRawFlags() &~ ModifierKeys::leftButtonModifier);
+
+    bool isPanDragKeysActive = false;
+
+    if (KeyPress::isKeyCurrentlyDown(panDragKeycode)) {
+        // construct a fake keypress with the current pan drag keycode key, with current modifiers, to test if it matches the command id's code & mods
+        auto keyWithMod = KeyPress(panDragKeycode, currentMods, 0);
+        isPanDragKeysActive = commandManager.getKeyMappings()->containsMapping(CommandIDs::PanDragKey, keyWithMod);
+    }
+
+    return isPanDragKeysActive || ModifierKeys::getCurrentModifiersRealtime().isMiddleButtonDown();
 }
 
 void Canvas::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms)

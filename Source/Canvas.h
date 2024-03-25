@@ -76,7 +76,6 @@ public:
     Point<int> getLastMousePosition();
     
     void commandKeyChanged(bool isHeld) override;
-    void spaceKeyChanged(bool isHeld) override;
     void middleMouseChanged(bool isHeld) override;
     void altKeyChanged(bool isHeld) override;
 
@@ -164,7 +163,7 @@ public:
     void showSuggestions(Object* object, TextEditor* textEditor);
     void hideSuggestions();
 
-    static bool panningModifierDown();
+    bool panningModifierDown();
 
     ObjectParameters& getInspectorParameters();
 

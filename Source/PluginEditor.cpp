@@ -1186,6 +1186,12 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         result.setActive(hasCanvas && !isDragging && hasConnectionSelection);
         break;
     }
+    case CommandIDs::PanDragKey: {
+        result.setInfo("Pan drag key", "Pan drag key", "View", 0);
+        result.addDefaultKeypress(KeyPress::spaceKey, ModifierKeys::noModifiers);
+        result.setActive(hasCanvas && !isDragging);
+        break;
+    }
     case CommandIDs::ZoomIn: {
         result.setInfo("Zoom in", "Zoom in", "View", 0);
         result.addDefaultKeypress(61, ModifierKeys::commandModifier);
