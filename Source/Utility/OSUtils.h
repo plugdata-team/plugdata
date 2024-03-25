@@ -21,6 +21,7 @@ struct OSUtils {
     static void createJunction(std::string from, std::string to);
     static void createHardLink(std::string from, std::string to);
     static bool runAsAdmin(std::string file, std::string lpParameters, void* hWnd);
+    static void useWindowsNativeDecorations(void* windowHandle, bool rounded);
 #elif defined(__unix__) && !defined(__APPLE__)
     static void maximiseX11Window(void* handle, bool shouldBeMaximised);
     static bool isX11WindowMaximised(void* handle);

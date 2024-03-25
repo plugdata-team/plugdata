@@ -398,6 +398,11 @@ public:
     {
         editor = newEditor;
 
+        deleteBuffers();
+    }
+
+    void deleteBuffers()
+    {
         // Recreate framebuffers, they are still bound to old openGL context
         if(invalidFBO) nvgDeleteFramebuffer(invalidFBO);
         if(mainFBO) nvgDeleteFramebuffer(mainFBO);

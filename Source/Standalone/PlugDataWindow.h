@@ -35,6 +35,7 @@
 #include "Utility/RateReducer.h"
 #include "Utility/MidiDeviceManager.h"
 #include "../PluginEditor.h"
+#include "../CanvasViewport.h"
 
 // For each OS, we have a different approach to rendering the window shadow
 // macOS:
@@ -439,6 +440,35 @@ public:
         propertyChanged("native_window", settingsTree.getProperty("native_window"));
     }
 
+#if JUCE_WINDOWS
+    void parentHierarchyChanged () override
+    {
+        DocumentWindow::parentHierarchyChanged();
+
+        if (auto peer = getPeer())
+            OSUtils::useWindowsNativeDecorations(peer->getNativeHandle (), !isFullScreen());
+    }
+#endif
+
+    void recreateCanvasBuffers()
+    {
+        if (!mainComponent)
+            return;
+
+        if (auto* editor = mainComponent->getEditor()) {
+            if (auto* pdEditor = dynamic_cast<PluginEditor*>(editor)) {
+
+                // clear all canvas / viewport buffers FIXME: some are still not cleared? Possibly do this all when nvg is init?
+                for (auto& split : pdEditor->splitView.splits) {
+                    if (auto cnv = split->getTabComponent()->getCurrentCanvas()) {
+                        if (auto viewport = dynamic_cast<CanvasViewport*>(cnv->viewport.get()))
+                            viewport->deleteBuffers();
+                    }
+                }
+            }
+        }
+    }
+
     void propertyChanged(String const& name, var const& value) override
     {
         if (name == "native_window") {
@@ -452,8 +482,15 @@ public:
 
             setUsingNativeTitleBar(nativeWindow);
 
+            pdEditor->nvgSurface.detachContext();
+            recreateCanvasBuffers();
+
             if (!nativeWindow) {
+#if JUCE_WINDOWS
+                setOpaque(true);
+#else
                 setOpaque(false);
+#endif
                 setResizable(false, false);
                 // we also need to set the constrainer of THIS window so it's set for the peer
                 setConstrainer(&pdEditor->constrainer);
@@ -463,8 +500,6 @@ public:
                     setDropShadowEnabled(true);
 #elif JUCE_WINDOWS
                     setDropShadowEnabled(false);
-                    dropShadower = std::make_unique<StackDropShadower>(DropShadow(Colour(0, 0, 0).withAlpha(0.8f), 23, { 0, 2 }));
-                    dropShadower->setOwner(this);
 #endif
                 } else {
                     setDropShadowEnabled(false);
@@ -589,26 +624,10 @@ public:
     }
 #endif
 
-#if JUCE_WINDOWS
-    void paintOverChildren(Graphics& g) override
-    {
-        g.setColour(findColour(PlugDataColour::outlineColourId));
-        if (isUsingNativeTitleBar() || isMaximised()) {
-            g.drawRect(getLocalBounds().toFloat(), 1.0f);
-        } else {
-            g.drawRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
-        }
-    }
-#endif
-
     void activeWindowStatusChanged() override
     {
+        recreateCanvasBuffers();
         repaint();
-
-#if JUCE_WINDOWS
-        if (drawWindowShadow && !isUsingNativeTitleBar() && dropShadower)
-            dropShadower->repaint();
-#endif
     }
 
     void resized() override

@@ -22,7 +22,8 @@ public NSViewComponent
 #elif NANOVG_METAL_IMPLEMENTATION && JUCE_IOS
 public UIViewComponent
 #else
-public Component
+#define LIN_OR_WIN
+public Component, public Timer
 #endif
 {
 public:
@@ -34,8 +35,15 @@ public:
         
     void detachContext();
     bool makeContextActive();
+
+#ifdef LIN_OR_WIN
+    void timerCallback() override;
+#endif
+
     
     float getRenderScale() const;
+
+    void updateBounds(Rectangle<int> bounds);
         
 private:
     
@@ -49,6 +57,10 @@ private:
     NVGcontext* nvg = nullptr;
     bool needsBufferSwap = false;
     std::unique_ptr<VBlankAttachment> vBlankAttachment;
+
+    bool hresize = false;
+    bool resizing = false;
+    Rectangle<int> newBounds;
     
 #if NANOVG_GL_IMPLEMENTATION
     std::unique_ptr<OpenGLContext> glContext;
