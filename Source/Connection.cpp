@@ -45,6 +45,19 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
         jassertfalse;
         return;
     }
+    
+    cableType = DataCable;
+    
+    if(outlet && outlet->isSignal)
+    {
+        cableType = SignalCable;
+    }
+    if(outlet && outlet->isGemState)
+    {
+        cableType = GemCable;
+    }
+
+    setStrokeThickness(12.0f); // This will make sure the DrawablePath's bounds get expanded, which we use for hit detection and drawing reconnect handles
 
     inIdx = inlet->ioletIdx;
     outIdx = outlet->ioletIdx;
@@ -71,8 +84,8 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     // Listen to changes at iolets
     outobj->addComponentListener(this);
     inobj->addComponentListener(this);
-    outlet->addComponentListener(this);
-    inlet->addComponentListener(this);
+    //outlet->addComponentListener(this);
+    //inlet->addComponentListener(this);
 
     setInterceptsMouseClicks(true, true);
 
@@ -80,11 +93,9 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
 
     cnv->connectionLayer.addAndMakeVisible(this);
 
-    componentMovedOrResized(*outlet, true, true);
-    componentMovedOrResized(*inlet, true, true);
-
     updateOverlays(cnv->getOverlays());
     setAccessible(false); // TODO: implement accessibility. We disable default, since it makes stuff slow on macOS
+    lookAndFeelChanged();
 }
 
 Connection::~Connection()
@@ -117,208 +128,81 @@ void Connection::changeListenerCallback(ChangeBroadcaster* source)
 
 void Connection::lookAndFeelChanged()
 {
+    baseColour = convertColour(findColour(PlugDataColour::connectionColourId));
+    dataColour = convertColour(findColour(PlugDataColour::dataColourId));
+    signalColour = convertColour(findColour(PlugDataColour::signalColourId));
+    handleColour = outlet->isSignal ? dataColour : signalColour;
+    shadowColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.06f).withAlpha(0.24f));
+    outlineColour =  convertColour(findColour(PlugDataColour::objectOutlineColourId));
+    gemColour = convertColour(findColour(PlugDataColour::gemColourId));
+    
     updatePath();
-    resizeToFit();
     repaint();
 }
 
-Point<float> Connection::bezierPointAtDistance(const Point<float>& start, const Point<float>& cp1,
-                                         const Point<float>& cp2, const Point<float>& end,
-                                         float distance) {
-    // De Casteljau's algorithm to find a point at parameter 't' along the Bezier curve
-    auto deCasteljau = [](const Point<float>& p0, const Point<float>& p1,
-                          const Point<float>& p2, const Point<float>& p3, float t) {
-        Point<float> result =
-            p0 * std::pow(1.0f - t, 3) +
-            p1 * (3.0f * std::pow(1.0f - t, 2) * t) +
-            p2 * (3.0f * (1.0f - t) * std::pow(t, 2)) +
-            p3 * std::pow(t, 3);
-        return result;
-    };
-
-    // Function to calculate the length of the Bezier curve between t1 and t2
-    auto calculateSegmentLength = [&](float t1, float t2) {
-        float step = 0.01f;
-        float segmentLength = 0.0f;
-
-        Point<float> prevPoint = deCasteljau(start, cp1, cp2, end, t1);
-        for (float t = t1 + step; t <= t2; t += step) {
-            Point<float> currentPoint = deCasteljau(start, cp1, cp2, end, t);
-
-            segmentLength += prevPoint.getDistanceFrom(currentPoint);
-            prevPoint = currentPoint;
-        }
-
-        return segmentLength;
-    };
-    
-    // Use binary search to find the correct t value
-    float epsilon = 0.0001f;
-    float minT = 0.0f;
-    float maxT = 1.0f;
-    float midT = 0.5f;
-
-    while (maxT - minT > epsilon) {
-        float lengthAtMidT = calculateSegmentLength(0.0f, midT);
-        if (lengthAtMidT < distance) {
-            minT = midT;
-        } else {
-            maxT = midT;
-        }
-        midT = (minT + maxT) / 2.0f;
-    }
-
-    // Use the found t value to calculate the point
-    Point<float> point = deCasteljau(start, cp1, cp2, end, midT);
-
-    return point;
-}
-
-
 void Connection::render(NVGcontext* nvg)
 {
-    auto baseColour = cnv->findColour(PlugDataColour::connectionColourId);
-    auto dataColour = cnv->findColour(PlugDataColour::dataColourId);
-    auto signalColour = cnv->findColour(PlugDataColour::signalColourId);
-    auto handleColour = outlet->isSignal ? dataColour : signalColour;
-    auto shadowColour = findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.06f).withAlpha(0.24f);
-
+    auto backgroundColour = baseColour;
     if (isSelected() || isMouseOver()) {
-        
         if(outlet->isSignal)
         {
-            baseColour = signalColour;
+            backgroundColour = signalColour;
         }
         else if(outlet->isGemState)
         {
-            baseColour = cnv->findColour(PlugDataColour::gemColourId);
+            backgroundColour = gemColour;
         }
         else {
-            baseColour = dataColour;
+            backgroundColour = dataColour;
         }
-        
     }
+    
     if (isMouseOver()) {
-        baseColour = baseColour.brighter(0.6f);
+        backgroundColour.r *= 1.2f;
+        backgroundColour.g *= 1.2f;
+        backgroundColour.b *= 1.2f;
     }
     
-    auto mousePos = cnv->getLastMousePosition();
-    auto start = outlet->getCanvasBounds().toFloat().getCentre();
-    auto end = inlet->getCanvasBounds().toFloat().getCentre();
-    
-    auto drawConnection = [shadowColour, nvg, baseColour](Point<float> start, Point<float> cp1, Point<float> cp2, Point<float> end){
-        // semi-transparent background line
-        nvgBeginPath(nvg);
-        nvgMoveTo(nvg, start.x, start.y);
-        nvgBezierTo(nvg, cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
-        
-        nvgLineCap(nvg, NVG_SQUARE);
-        nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(baseColour), convertColour(shadowColour)));
-        nvgStrokeWidth(nvg, 4.0f);
-        nvgStroke(nvg);
-    };
-    
-    auto drawSegmentedConnection = [this, nvg, baseColour, shadowColour](){
-        
-        auto snap = [this](Point<float> point, int idx1, int idx2) {
-            if (Line<float>(currentPlan[idx1], currentPlan[idx2]).isVertical()) {
-                currentPlan[idx2].x = point.x;
-            } else {
-                currentPlan[idx2].y = point.y;
-            }
-
-            currentPlan[idx1] = point;
-        };
-
-        auto pstart = getStartPoint();
-        auto pend = getEndPoint();
-        
-        snap(pstart, 0, 1);
-        snap(pend, static_cast<int>(currentPlan.size() - 1), static_cast<int>(currentPlan.size() - 2));
-
-        nvgBeginPath(nvg);
-        nvgMoveTo(nvg, pstart.x, pstart.y);
-        
-        // Add points in between if we've found a path
-        for (int n = 1; n < currentPlan.size() - 1; n++) {
-            auto p1 = currentPlan[n-1];
-            auto p2 = currentPlan[n];
-            auto p3 = currentPlan[n+1];
-            
-            if(p1.y == p3.y || p1.x == p3.x)
-            {
-                nvgLineTo(nvg, p3.x, p3.y);
-                n++;
-            }
-            else if(p2.y == p3.y && p2.x == p3.x)
-            {
-                nvgLineTo(nvg, p2.x, p2.y);
-            }
-            else if(p2.y == p3.y)
-            {
-                auto offsetX = std::clamp<float>((p1.x - p3.x) / 2, -8, 8);
-                auto offsetY = std::clamp<float>((p1.y - p3.y) / 2, -8, 8);
-                if(offsetX > -1 && offsetX < 0) offsetX = -1;
-                if(offsetX < 1 && offsetX > 0) offsetX = 1;
-                if(offsetY > -1 && offsetY < 0) offsetY = -1;
-                if(offsetY < 1 && offsetY > 0) offsetY = 1;
-                nvgLineTo(nvg, p2.x, p2.y + offsetY);
-                nvgQuadTo(nvg, p2.x, p2.y, p2.x - offsetX, p2.y);
-            }
-            else {
-                auto offsetX = std::clamp<float>((p1.x - p3.x) / 2, -8, 8);
-                auto offsetY = std::clamp<float>((p1.y - p3.y) / 2, -8, 8);
-                nvgLineTo(nvg, p2.x + offsetX, p2.y);
-                nvgQuadTo(nvg, p2.x, p2.y, p2.x, p2.y - offsetY);
-            }
-        }
-
-        nvgLineTo(nvg, pend.x, pend.y);
-        nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(baseColour), convertColour(shadowColour)));
-        nvgStrokeWidth(nvg, 4.0f);
-        nvgStroke(nvg);
-    };
+    nvgStrokePaint(nvg, nvgDoubleStroke(nvg, backgroundColour, shadowColour));
+    nvgStrokeWidth(nvg, 4.0f);
     
     if(!cachedIsValid) nvgDeletePath(nvg, cacheId);
     if(nvgLoadPath(nvg, cacheId))
     {
-        nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(baseColour), convertColour(shadowColour)));
-        nvgStrokeWidth(nvg, 4.0f);
         nvgStroke(nvg);
     }
-    else {
-        if(segmented)
-        {
-            drawSegmentedConnection();
-        }
-        else if (!PlugDataLook::getUseStraightConnections() && start.x != end.x && start.y != end.y) {
-            float const width = std::max(start.x, end.x) - std::min(start.x, end.x);
-            float const height = std::max(start.y, end.y) - std::min(start.y, end.y);
-            
-            float const min = std::min<float>(width, height);
-            float const max = std::max<float>(width, height);
-            float const maxShift = 20.f;
-            
-            float const shiftY = std::min<float>(maxShift, max * 0.5);
-            float const shiftX = ((start.y >= end.y) ? std::min<float>(maxShift, min * 0.5) : 0.f) * ((start.x < end.x) ? -1. : 1.);
-            
-            Point<float> const cp1 { start.x - shiftX, start.y + shiftY };
-            Point<float> const cp2 { end.x + shiftX, end.y - shiftY };
-            
-            drawConnection(start, cp1, cp2, end);
-        } else {
-            drawConnection(start, start, end, end);
-        }
+    else
+    {
+        setJUCEPath(nvg, getPath());
+        nvgStroke(nvg);
         nvgSavePath(nvg, cacheId);
         cachedIsValid = true;
     }
-       
-    // draw reconnect handles if connection is both selected & mouse is hovering over
+    
+    if (cableType == SignalCable) {
+        auto dashColor = shadowColour;
+        dashColor.a = 1.0f;
+        dashColor.r *= 0.5f;
+        dashColor.g *= 0.5f;
+        dashColor.b *= 0.5f;
+        
+        setJUCEPath(nvg, getPath());
+        nvgStrokeColor(nvg, dashColor);
+        nvgLineStyle(nvg, NVG_LINE_DASHED);
+        nvgDashLength(nvg, 4.0f);
+        nvgStrokeWidth(nvg, 2.0f);
+        nvgStroke(nvg);
+        
+        nvgLineStyle(nvg, NVG_LINE_SOLID);
+    }
+
+    auto mousePos = cnv->getLastMousePosition();
+    
     if (isSelected() && isHovering) {
         auto expandedStartHandle = startReconnectHandle.contains(mousePos.toFloat()) ? startReconnectHandle.expanded(3.0f) : startReconnectHandle;
-        auto expandedEndHandle = startReconnectHandle.contains(mousePos.toFloat()) ? endReconnectHandle.expanded(3.0f) : endReconnectHandle;
+        auto expandedEndHandle = endReconnectHandle.contains(mousePos.toFloat()) ? endReconnectHandle.expanded(3.0f) : endReconnectHandle;
    
-        nvgFillColor(nvg, convertColour(handleColour));
+        nvgFillColor(nvg, handleColour);
         nvgStrokeColor(nvg, convertColour(cnv->findColour(PlugDataColour::objectOutlineColourId)));
         nvgStrokeWidth(nvg, 0.5f);
         
@@ -429,10 +313,12 @@ bool Connection::hitTest(int x, int y)
     if (cnv->commandLocked == var(true) || locked == var(true) || !cnv->connectionsBeingCreated.isEmpty())
         return false;
 
-    Point<float> position = Point<float>(static_cast<float>(x), static_cast<float>(y));
+    Point<float> position = Point<float>(static_cast<float>(x), static_cast<float>(y)) + getPosition().toFloat();
 
     Point<float> nearestPoint;
-    toDrawLocalSpace.getNearestPoint(position, nearestPoint);
+    
+    auto path = getPath();
+    path.getNearestPoint(position, nearestPoint);
 
     // Get outlet and inlet point
     auto pstart = getStartPoint();
@@ -452,7 +338,7 @@ bool Connection::hitTest(int x, int y)
 
 bool Connection::intersects(Rectangle<float> toCheck, int accuracy) const
 {
-    PathFlatteningIterator i(toDraw);
+    PathFlatteningIterator i(getPath());
 
     while (i.next()) {
         auto point1 = Point<float>(i.x1, i.y1);
@@ -475,139 +361,6 @@ bool Connection::intersects(Rectangle<float> toCheck, int accuracy) const
     return false;
 }
 
-void Connection::renderConnectionPath(Graphics& g,
-    Canvas* cnv,
-    Path const& connectionPath,
-    bool isSignal,
-    bool isGemState,
-    bool isMouseOver,
-    bool showDirection,
-    bool showConnectionOrder,
-    bool isSelected,
-    Point<int> mousePos,
-    bool isHovering,
-    int connectionCount,
-    int multiConnectNumber,
-    int numSignalChannels)
-{
-    auto baseColour = cnv->findColour(PlugDataColour::connectionColourId);
-    auto dataColour = cnv->findColour(PlugDataColour::dataColourId);
-    auto signalColour = cnv->findColour(PlugDataColour::signalColourId);
-    auto gemColour = cnv->findColour(PlugDataColour::gemColourId);
-    auto handleColour = isSignal ? dataColour : signalColour;
-
-    auto connectionLength = connectionPath.getLength();
-
-    if (isSelected || isMouseOver) {
-        if(isSignal)
-        {
-            baseColour = signalColour;
-        }
-        else if(isGemState)
-        {
-            baseColour = gemColour;
-        }
-        else {
-            baseColour = dataColour;
-        }
-        
-    }
-    if (isMouseOver) {
-        baseColour = baseColour.brighter(0.6f);
-    }
-
-    bool useThinConnection = PlugDataLook::getUseThinConnections();
-
-    // outer stroke
-    g.setColour(baseColour.darker(1.0f));
-    g.strokePath(connectionPath, PathStrokeType(useThinConnection ? 1.0f : 2.5f, PathStrokeType::mitered, PathStrokeType::rounded));
-
-    // inner stroke
-    g.setColour(baseColour);
-    Path innerPath = connectionPath;
-    PathStrokeType innerStroke(useThinConnection ? 1.0f : 1.5f);
-
-    if (PlugDataLook::getUseDashedConnections() && isSignal) {
-        PathStrokeType dashedStroke(useThinConnection ? 0.5f : 0.8f);
-        float dash[1] = { numSignalChannels > 1 ? 2.5f : 5.0f };
-        Path dashedPath;
-        dashedStroke.createDashedStroke(dashedPath, connectionPath, dash, 1);
-        innerPath = dashedPath;
-        innerStroke = dashedStroke;
-    }
-    innerStroke.setEndStyle(PathStrokeType::EndCapStyle::rounded);
-    g.strokePath(innerPath, innerStroke);
-
-    // draw direction arrow if button is toggled (per canvas, default state is false)
-    //            c
-    //            |\
-    //            | \
-    //            |  \
-    //  ___path___|   \a___path___
-    //            |   /
-    //            |  /
-    //            | /
-    //            |/
-    //            b
-
-    // setup arrow parameters
-    float arrowWidth = 8.0f;
-    float arrowLength = 12.0f;
-
-    if (showDirection && connectionLength > arrowLength * 2) {
-        // get the center point of the connection path
-        auto arrowCenter = connectionLength * 0.5f;
-        auto arrowBase = connectionPath.getPointAlongPath(arrowCenter - (arrowLength * 0.5f));
-        auto arrowTip = connectionPath.getPointAlongPath(arrowCenter + (arrowLength * 0.5f));
-
-        Line<float> arrowLine(arrowBase, arrowTip);
-        auto point_a = arrowTip;
-        auto point_b = arrowLine.getPointAlongLine(0.0f, -(arrowWidth * 0.5f));
-        auto point_c = arrowLine.getPointAlongLine(0.0f, (arrowWidth * 0.5f));
-
-        // create the arrow path
-        Path arrow;
-        arrow.addTriangle(point_a, point_b, point_c);
-
-        // draw the arrow
-        g.setColour(baseColour);
-        g.fillPath(arrow);
-
-        // draw arrow outline to aid in visibility for dark / light themes
-        g.setColour(baseColour.darker(1.0f));
-        PathStrokeType arrowOutline(0.5f);
-        g.strokePath(arrow, arrowOutline);
-    }
-
-    // draw connection index number
-    if (showConnectionOrder && !isSignal && connectionCount > 1) {
-        auto endCableOrderDisplay = Rectangle<float>(13, 13).withCentre(connectionPath.getPointAlongPath(jmax(connectionPath.getLength() - 8.5f * 3, 9.5f)));
-        g.setColour(baseColour);
-        g.fillEllipse(endCableOrderDisplay);
-        g.setColour(baseColour.darker(1.0f));
-        g.drawEllipse(endCableOrderDisplay, 0.5f);
-        Fonts::drawStyledText(g, String(multiConnectNumber), endCableOrderDisplay, cnv->findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting(), Monospace, 10, Justification::centred);
-    }
-
-    // draw reconnect handles if connection is both selected & mouse is hovering over
-    if (isSelected && isHovering) {
-        auto startReconnectHandle = Rectangle<float>(5, 5).withCentre(connectionPath.getPointAlongPath(8.5f));
-        auto endReconnectHandle = Rectangle<float>(5, 5).withCentre(connectionPath.getPointAlongPath(jmax(connectionLength - 8.5f, 9.5f)));
-
-        bool overStart = startReconnectHandle.contains(mousePos.toFloat());
-        bool overEnd = endReconnectHandle.contains(mousePos.toFloat());
-
-        g.setColour(handleColour);
-
-        g.fillEllipse(startReconnectHandle.expanded(overStart ? 3.0f : 0.0f));
-        g.fillEllipse(endReconnectHandle.expanded(overEnd ? 3.0f : 0.0f));
-
-        g.setColour(cnv->findColour(PlugDataColour::objectOutlineColourId));
-        g.drawEllipse(startReconnectHandle.expanded(overStart ? 3.0f : 0.0f), 0.5f);
-        g.drawEllipse(endReconnectHandle.expanded(overEnd ? 3.0f : 0.0f), 0.5f);
-    }
-}
-
 void Connection::updateOverlays(int overlay)
 {
     if (!inlet || !outlet)
@@ -617,56 +370,13 @@ void Connection::updateOverlays(int overlay)
     showConnectionOrder = overlay & Overlay::Order;
     showActiveState = overlay & Overlay::ActivationState;
     updatePath();
-    resizeToFit();
     repaint();
 }
 
 void Connection::forceUpdate()
 {
     updatePath();
-    resizeToFit();
     repaint();
-}
-
-void Connection::paint(Graphics& g)
-{
-    return;
-    if(g.isClipEmpty()) return;
-
-    renderConnectionPath(g,
-        cnv,
-        toDrawLocalSpace,
-        outlet != nullptr && outlet->isSignal,
-        outlet != nullptr && outlet->isGemState,
-        isMouseOver(),
-        showDirection,
-        showConnectionOrder,
-        selectedFlag,
-        getMouseXYRelative(),
-        isHovering,
-        getNumberOfConnections(),
-        getMultiConnectNumber(),
-        numSignalChannels);
-
-    /* ENABLE_CONNECTION_GRAPHICS_DEBUGGING_REPAINT
-        static Random rng;
-
-        g.fillAll(Colour((uint8)rng.nextInt(255),
-            (uint8)rng.nextInt(255),
-            (uint8)rng.nextInt(255),
-            (uint8)0x50));
-    */
-
-    /* ENABLE_CONNECTION_GRAPHICS_DEBUGGING
-        g.setColour(Colours::orange);
-        for (auto& point : currentPlan) {
-            auto local = getLocalPoint(cnv, point);
-            g.fillEllipse(local.x, local.y, 2, 2);
-        }
-
-        g.setColour(Colours::red);
-        g.drawRect(getLocalBounds(), 1.0f);
-    */
 }
 
 bool Connection::isSegmented() const
@@ -678,7 +388,6 @@ void Connection::setSegmented(bool isSegmented)
 {
     segmented = isSegmented;
     updatePath();
-    resizeToFit();
     repaint();
     pushPathState();
 }
@@ -688,7 +397,6 @@ void Connection::setSelected(bool shouldBeSelected)
     if (selectedFlag != shouldBeSelected) {
         selectedFlag = shouldBeSelected;
         updatePath();
-        resizeToFit();
         repaint();
     }
 }
@@ -808,12 +516,12 @@ void Connection::mouseDown(MouseEvent const& e)
 void Connection::mouseDrag(MouseEvent const& e)
 {
     cnv->editor->connectionMessageDisplay->setConnection(nullptr);
-
-    if (selectedFlag && startReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && e.getDistanceFromDragStart() > 6) {
+    
+    if (selectedFlag && startReconnectHandle.contains(e.getMouseDownPosition().toFloat().translated(getX(), getY())) && e.getDistanceFromDragStart() > 6) {
         cnv->connectingWithDrag = true;
         reconnect(inlet);
     }
-    if (selectedFlag && endReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && e.getDistanceFromDragStart() > 6) {
+    if (selectedFlag && endReconnectHandle.contains(e.getMouseDownPosition().toFloat().translated(getX(), getY())) && e.getDistanceFromDragStart() > 6) {
         cnv->connectingWithDrag = true;
         reconnect(outlet);
     }
@@ -835,7 +543,6 @@ void Connection::mouseDrag(MouseEvent const& e)
         }
 
         updatePath();
-        resizeToFit();
         repaint();
     }
 }
@@ -925,63 +632,6 @@ void Connection::reconnect(Iolet* target)
     }
 }
 
-void Connection::resizeToFit()
-{
-    if (!inlet || !outlet)
-        return;
-
-    auto pStart = getStartPoint();
-    auto pEnd = getEndPoint();
-
-    // heuristics to allow the overlay & reconnection handle to paint inside bounds
-    // consider moving them to their own layers in future
-    auto safteyMargin = showConnectionOrder ? 13 : isSelected() ? 10 : 6;
-    
-    auto newBounds = Rectangle<float>(pStart, pEnd).expanded(safteyMargin).getSmallestIntegerContainer();
-
-    if (segmented) {
-        newBounds = newBounds.getUnion(toDraw.getBounds().expanded(safteyMargin).getSmallestIntegerContainer());
-    }
-    if (newBounds != getBounds()) {
-        setBounds(newBounds);
-    }
-
-    toDrawLocalSpace = toDraw;
-    auto offset = getLocalPoint(cnv, Point<int>());
-    toDrawLocalSpace.applyTransform(AffineTransform::translation(offset));
-    
-    if(segmented)
-    {
-        Point<float> startUnitDirection = (currentPlan[0] - currentPlan[1]) / (currentPlan[0].getDistanceFrom(currentPlan[1]));
-        Point<float> endUnitDirection = (currentPlan[currentPlan.size() - 2] - currentPlan[currentPlan.size() - 1]) / (currentPlan[currentPlan.size() - 2].getDistanceFrom(currentPlan[currentPlan.size() - 1]));
-        
-        startReconnectHandle = Rectangle<float>(5, 5).withCentre(pStart - startUnitDirection * 8.5f);
-        endReconnectHandle = Rectangle<float>(5, 5).withCentre(pEnd + endUnitDirection * 8.5f);
-    }
-    else if (!PlugDataLook::getUseStraightConnections()) {
-        float const width = std::max(pStart.x, pEnd.x) - std::min(pStart.x, pEnd.x);
-        float const height = std::max(pStart.y, pEnd.y) - std::min(pStart.y, pEnd.y);
-
-        float const min = std::min<float>(width, height);
-        float const max = std::max<float>(width, height);
-        float const maxShift = 20.f;
-
-        float const shiftY = std::min<float>(maxShift, max * 0.5);
-        float const shiftX = ((pStart.y >= pEnd.y) ? std::min<float>(maxShift, min * 0.5) : 0.f) * ((pStart.x < pEnd.x) ? -1. : 1.);
-
-        Point<float> const cp1 { pStart.x - shiftX, pStart.y + shiftY };
-        Point<float> const cp2 { pEnd.x + shiftX, pEnd.y - shiftY };
-
-        startReconnectHandle = Rectangle<float>(5, 5).withCentre(bezierPointAtDistance(pStart, cp1, cp2, pEnd, 8.5f));
-        endReconnectHandle = Rectangle<float>(5, 5).withCentre(bezierPointAtDistance(pEnd, cp2, cp1, pStart, 8.5f));
-    } else {
-        float lineLength = pStart.getDistanceFrom(pEnd);
-        Point<float> unitDirection = (pEnd - pStart) / lineLength;
-        startReconnectHandle = Rectangle<float>(5, 5).withCentre(pStart + unitDirection * 8.5f);
-        endReconnectHandle = Rectangle<float>(5, 5).withCentre(pEnd - unitDirection * 8.5f);
-    }
-}
-
 void Connection::componentMovedOrResized(Component& component, bool wasMoved, bool wasResized)
 {
     if (!inlet || !outlet)
@@ -1008,6 +658,10 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
         for (auto& point : currentPlan) {
             point += pointOffset;
         }
+        
+        auto oldPath = getPath();
+        oldPath.applyTransform(AffineTransform::translation(pointOffset.x, pointOffset.y));
+        setPath(oldPath);
 
         return;
     }
@@ -1015,7 +669,6 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
 
     if (currentPlan.size() <= 2) {
         updatePath();
-        resizeToFit();
         repaint();
         return;
     }
@@ -1042,7 +695,6 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     currentPlan[idx1] = position;
 
     updatePath();
-    resizeToFit();
     repaint();
 }
 
@@ -1147,7 +799,8 @@ void Connection::updatePath()
     
     auto pstart = getStartPoint();
     auto pend = getEndPoint();
-
+    Path toDraw;
+    
     if (!segmented) {
         toDraw = getNonSegmentedPath(pstart, pend);
         currentPlan.clear();
@@ -1184,6 +837,12 @@ void Connection::updatePath()
         toDraw = connectionPath.createPathWithRoundedCorners(PlugDataLook::getUseStraightConnections() ? 0.0f : 8.0f);
     }
     
+    setPath(toDraw);
+    
+    startReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(8.5f));
+    endReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(jmax(toDraw.getLength() - 8.5f, 9.5f)));
+
+    
     cachedIsValid = false;
 }
 
@@ -1192,7 +851,6 @@ void Connection::applyBestPath()
     segmented = true;
     findPath();
     updatePath();
-    resizeToFit();
     repaint();
 }
 
@@ -1374,11 +1032,12 @@ int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<
 
 bool Connection::intersectsObject(Object* object) const
 {
+    auto path = getPath();
     auto b = object->getBounds().toFloat();
-    return toDraw.intersectsLine({ b.getTopLeft(), b.getTopRight() })
-        || toDraw.intersectsLine({ b.getTopLeft(), b.getBottomLeft() })
-        || toDraw.intersectsLine({ b.getBottomRight(), b.getBottomLeft() })
-        || toDraw.intersectsLine({ b.getBottomRight(), b.getTopRight() });
+    return path.intersectsLine({ b.getTopLeft(), b.getTopRight() })
+        || path.intersectsLine({ b.getTopLeft(), b.getBottomLeft() })
+        || path.intersectsLine({ b.getBottomRight(), b.getBottomLeft() })
+        || path.intersectsLine({ b.getBottomRight(), b.getTopRight() });
 }
 
 bool Connection::straightLineIntersectsObject(Line<float> toCheck, Array<Object*>& objects)
@@ -1492,44 +1151,13 @@ void Connection::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int n
 
 void ConnectionBeingCreated::render(NVGcontext* nvg)
 {
-    auto start = cnv->getLocalPoint((Component*)iolet->object, iolet->getBounds().toFloat().getCentre());
-    auto end = dynamic_cast<Canvas*>(cnv)->getLastMousePosition().toFloat();
-    
     auto lineColour = cnv->findColour(PlugDataColour::dataColourId).brighter(0.6f);
-    auto nvgColor = nvgRGB(lineColour.getRed(), lineColour.getGreen(), lineColour.getBlue());
     auto shadowColour = findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.06f).withAlpha(0.24f);
-    auto nvgShadowColour = nvgRGBA(shadowColour.getRed(), shadowColour.getGreen(), shadowColour.getBlue(), shadowColour.getAlpha());
-    auto drawConnection = [nvg, nvgColor, nvgShadowColour](Point<float> start, Point<float> cp1, Point<float> cp2, Point<float> end){
-        // semi-transparent background line
-        nvgBeginPath(nvg);
-        nvgMoveTo(nvg, start.x, start.y);
-        nvgBezierTo(nvg, cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
-        
-        nvgStrokePaint(nvg, nvgDoubleStroke(nvg, nvgColor, nvgShadowColour));
-        nvgStrokeWidth(nvg, 4.0f);
-        nvgStroke(nvg);
-    };
-    
-    if (!PlugDataLook::getUseStraightConnections()) {
-        float const width = std::max(start.x, end.x) - std::min(start.x, end.x);
-        float const height = std::max(start.y, end.y) - std::min(start.y, end.y);
 
-        float const min = std::min<float>(width, height);
-        float const max = std::max<float>(width, height);
-
-        float const maxShiftY = 20.f;
-        float const maxShiftX = 20.f;
-
-        float const shiftY = std::min<float>(maxShiftY, max * 0.5);
-
-        float const shiftX = ((start.y >= end.y) ? std::min<float>(maxShiftX, min * 0.5) : 0.f) * ((start.x < end.x) ? -1. : 1.);
-
-        Point<float> const cp1 { start.x - shiftX, start.y + shiftY };
-        Point<float> const cp2 { end.x + shiftX, end.y - shiftY };
-        drawConnection(start, cp1, cp2, end);
-
-    } else {
-        drawConnection(start, start, end, end);
-    }
-
+    nvgSave(nvg);
+    setJUCEPath(nvg, getPath());
+    nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(lineColour), convertColour(shadowColour)));
+    nvgStrokeWidth(nvg, 4.0f);
+    nvgStroke(nvg);
+    nvgRestore(nvg);
 }

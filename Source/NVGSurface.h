@@ -87,11 +87,11 @@ public:
         bool passEvents;
     };
         
+    void invalidateArea(Rectangle<int> area);
+    
 private:
     
     void renderArea(Rectangle<int> area);
-    
-    void invalidateArea(Rectangle<int> area);
     
     bool isAttached() const;
     
@@ -118,6 +118,4 @@ private:
 #endif
     
     std::unique_ptr<FrameTimer> frameTimer;
-    
-    friend class InvalidationListener;
 };

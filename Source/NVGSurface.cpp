@@ -286,7 +286,7 @@ void NVGSurface::render()
             static Random rng;
             nvgBeginPath(nvg);
             nvgFillColor(nvg, nvgRGBA(rng.nextInt(255), rng.nextInt(255), rng.nextInt(255), 0x50));
-            nvgRect(nvg, 0, 0, width, height);
+            nvgRect(nvg, 0, 0, getWidth(), getHeight());
             nvgFill(nvg);
 #endif
         

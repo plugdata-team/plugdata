@@ -443,14 +443,14 @@ public:
         startTimer(150);
         onScroll();
         adjustScrollbarBounds();
-        //invalidArea = getLocalBounds();
+        editor->nvgSurface.invalidateArea(editor->nvgSurface.getLocalBounds());
     }
     
     void timerCallback() override
     {
         stopTimer();
         cnv->isScrolling = false;
-        //invalidArea = getLocalBounds();
+        editor->nvgSurface.invalidateArea(editor->nvgSurface.getLocalBounds());
     }
 
     void resized() override
