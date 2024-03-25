@@ -207,16 +207,14 @@ void Connection::render(NVGcontext* nvg)
     auto end = inlet->getCanvasBounds().toFloat().getCentre();
     
     auto drawConnection = [shadowColour, nvg, baseColour](Point<float> start, Point<float> cp1, Point<float> cp2, Point<float> end){
+        start.y -= 2.0f;
+        end.y += 2.0f;
         // semi-transparent background line
         nvgBeginPath(nvg);
-        nvgMoveTo(nvg, start.x, start.y - 3.5f);
-        nvgLineTo(nvg, start.x, start.y);
-        nvgBezierTo(nvg, cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y + 1.5f);
-        nvgLineTo(nvg, end.x, end.y);
+        nvgMoveTo(nvg, start.x, start.y);
+        nvgBezierTo(nvg, cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
         
         nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(baseColour), convertColour(shadowColour)));
-        //nvgStrokeColor(nvg, convertColour(shadowColour));
-        nvgLineCap(nvg, NVG_MITER);
         nvgStrokeWidth(nvg, 4.0f);
         nvgStroke(nvg);
     };
@@ -240,7 +238,7 @@ void Connection::render(NVGcontext* nvg)
         snap(pend, static_cast<int>(currentPlan.size() - 1), static_cast<int>(currentPlan.size() - 2));
 
         nvgBeginPath(nvg);
-        nvgMoveTo(nvg, pstart.x, pstart.y - 1.5f);
+        nvgMoveTo(nvg, pstart.x, pstart.y - 2.0f);
         
         // Add points in between if we've found a path
         for (int n = 1; n < currentPlan.size() - 1; n++) {
@@ -267,14 +265,14 @@ void Connection::render(NVGcontext* nvg)
             }
         }
 
-        nvgLineTo(nvg, pend.x, pend.y + 1.5f);
+        nvgLineTo(nvg, pend.x, pend.y + 2.0f);
         nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(baseColour), convertColour(shadowColour)));
         nvgStrokeWidth(nvg, 4.0f);
         nvgStroke(nvg);
     };
     
     if(!cachedIsValid) nvgDeletePath(nvg, cacheId);
-    if(false && nvgLoadPath(nvg, cacheId))
+    if(nvgLoadPath(nvg, cacheId))
     {
         nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(baseColour), convertColour(shadowColour)));
         nvgStrokeWidth(nvg, 4.0f);
@@ -303,7 +301,7 @@ void Connection::render(NVGcontext* nvg)
         } else {
             drawConnection(start, start, end, end);
         }
-        //nvgSavePath(nvg, cacheId);
+        nvgSavePath(nvg, cacheId);
         cachedIsValid = true;
     }
        
