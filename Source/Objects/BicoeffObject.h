@@ -214,7 +214,7 @@ public:
         nvgStroke(nvg);
         
         nvgStrokeWidth(nvg, 1.0f);
-        nvgLineStyle(nvg, NVG_SQUARE);
+        nvgLineStyle(nvg, NVG_BUTT);
         setJUCEPath(nvg, magnitudePath);
         nvgStrokeColor(nvg, convertColour(object->findColour(PlugDataColour::canvasTextColourId)));
         nvgStroke(nvg);

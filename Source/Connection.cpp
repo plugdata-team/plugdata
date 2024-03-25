@@ -207,13 +207,12 @@ void Connection::render(NVGcontext* nvg)
     auto end = inlet->getCanvasBounds().toFloat().getCentre();
     
     auto drawConnection = [shadowColour, nvg, baseColour](Point<float> start, Point<float> cp1, Point<float> cp2, Point<float> end){
-        start.y -= 2.0f;
-        end.y += 2.0f;
         // semi-transparent background line
         nvgBeginPath(nvg);
         nvgMoveTo(nvg, start.x, start.y);
         nvgBezierTo(nvg, cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
         
+        nvgLineCap(nvg, NVG_SQUARE);
         nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(baseColour), convertColour(shadowColour)));
         nvgStrokeWidth(nvg, 4.0f);
         nvgStroke(nvg);
@@ -238,7 +237,7 @@ void Connection::render(NVGcontext* nvg)
         snap(pend, static_cast<int>(currentPlan.size() - 1), static_cast<int>(currentPlan.size() - 2));
 
         nvgBeginPath(nvg);
-        nvgMoveTo(nvg, pstart.x, pstart.y - 2.0f);
+        nvgMoveTo(nvg, pstart.x, pstart.y);
         
         // Add points in between if we've found a path
         for (int n = 1; n < currentPlan.size() - 1; n++) {
@@ -246,26 +245,35 @@ void Connection::render(NVGcontext* nvg)
             auto p2 = currentPlan[n];
             auto p3 = currentPlan[n+1];
             
-            if(p2.y == p3.y && p2.x == p3.x)
+            if(p1.y == p3.y || p1.x == p3.x)
+            {
+                nvgLineTo(nvg, p3.x, p3.y);
+                n++;
+            }
+            else if(p2.y == p3.y && p2.x == p3.x)
             {
                 nvgLineTo(nvg, p2.x, p2.y);
             }
             else if(p2.y == p3.y)
             {
-                auto offsetX = std::clamp<float>(p1.x - p3.x, -8, 8);
-                auto offsetY = std::clamp<float>(p1.y - p3.y, -8, 8);
+                auto offsetX = std::clamp<float>((p1.x - p3.x) / 2, -8, 8);
+                auto offsetY = std::clamp<float>((p1.y - p3.y) / 2, -8, 8);
+                if(offsetX > -1 && offsetX < 0) offsetX = -1;
+                if(offsetX < 1 && offsetX > 0) offsetX = 1;
+                if(offsetY > -1 && offsetY < 0) offsetY = -1;
+                if(offsetY < 1 && offsetY > 0) offsetY = 1;
                 nvgLineTo(nvg, p2.x, p2.y + offsetY);
                 nvgQuadTo(nvg, p2.x, p2.y, p2.x - offsetX, p2.y);
             }
             else {
-                auto offsetX = std::clamp<float>(p1.x - p3.x, -8, 8);
-                auto offsetY = std::clamp<float>(p1.y - p3.y, -8, 8);
+                auto offsetX = std::clamp<float>((p1.x - p3.x) / 2, -8, 8);
+                auto offsetY = std::clamp<float>((p1.y - p3.y) / 2, -8, 8);
                 nvgLineTo(nvg, p2.x + offsetX, p2.y);
                 nvgQuadTo(nvg, p2.x, p2.y, p2.x, p2.y - offsetY);
             }
         }
 
-        nvgLineTo(nvg, pend.x, pend.y + 2.0f);
+        nvgLineTo(nvg, pend.x, pend.y);
         nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(baseColour), convertColour(shadowColour)));
         nvgStrokeWidth(nvg, 4.0f);
         nvgStroke(nvg);
@@ -283,7 +291,7 @@ void Connection::render(NVGcontext* nvg)
         {
             drawSegmentedConnection();
         }
-        else if (!PlugDataLook::getUseStraightConnections()) {
+        else if (!PlugDataLook::getUseStraightConnections() && start.x != end.x && start.y != end.y) {
             float const width = std::max(start.x, end.x) - std::min(start.x, end.x);
             float const height = std::max(start.y, end.y) - std::min(start.y, end.y);
             

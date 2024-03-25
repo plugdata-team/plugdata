@@ -25,61 +25,6 @@ using namespace gl;
 // Special viewport that shows scrollbars on top of content instead of next to it
 class CanvasViewport : public Viewport, public Timer, public NVGComponent
 {
-    // Attached to viewport so we can clean stuff up correctly
-    struct ScrollbarInvalidationListener : public CachedComponentImage
-    {
-        ScrollbarInvalidationListener(CanvasViewport* parent) : viewport(parent)
-        {
-        }
-        
-        void paint(Graphics& g) override {}
-        
-        bool invalidate (const Rectangle<int>& rect) override
-        {
-            viewport->invalidArea = rect.getUnion(viewport->invalidArea);
-            return false;
-        }
-        
-        bool invalidateAll() override
-        {
-            return false;
-        }
-        
-        void releaseResources() override {};
-        
-        CanvasViewport* viewport;
-    };
-    
-    // Attached to Canvas to listen to what areas it wants to see repainted
-    struct InvalidationListener : public CachedComponentImage
-    {
-        InvalidationListener(CanvasViewport* parent) : viewport(parent)
-        {
-        }
-        
-    private:
-        void paint(Graphics& g) override {};
-        
-        bool invalidate (const Rectangle<int>& rect) override
-        {
-            // Translate from canvas coords to viewport coords as float to prevent rounding errors
-            auto invalidatedBounds = viewport->getLocalArea(viewport->cnv, rect.toFloat()).getSmallestIntegerContainer();
-            viewport->invalidArea = invalidatedBounds.getUnion(viewport->invalidArea);
-            return false;
-        }
-        
-        bool invalidateAll() override
-        {
-            viewport->invalidArea = viewport->getLocalBounds();
-            return false;
-        }
-        
-        void releaseResources() override {};
-        
-        CanvasViewport* viewport;
-    };
-    
-
     class MousePanner : public MouseListener {
     public:
         explicit MousePanner(CanvasViewport* vp)
@@ -382,17 +327,14 @@ public:
 
         addAndMakeVisible(vbar);
         addAndMakeVisible(hbar);
-            
-        cnv->setCachedComponentImage(new InvalidationListener(this));
-        setCachedComponentImage(new ScrollbarInvalidationListener(this));
+        
+        cnv->setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, cnv));
+        setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this));
     }
     
     ~CanvasViewport()
     {
-        if(invalidFBO) nvgDeleteFramebuffer(invalidFBO);
-        if(mainFBO) nvgDeleteFramebuffer(mainFBO);
     }
-    
     
     void editorChanged(PluginEditor* newEditor)
     {
@@ -404,119 +346,20 @@ public:
     void deleteBuffers()
     {
         // Recreate framebuffers, they are still bound to old openGL context
-        if(invalidFBO) nvgDeleteFramebuffer(invalidFBO);
-        if(mainFBO) nvgDeleteFramebuffer(mainFBO);
-        invalidFBO = nullptr;
-        mainFBO = nullptr;
         cnv->deleteBuffers();
     }
     
-    void updateFramebuffers(NVGcontext* nvg)
-    {
-        cnv->performFramebufferUpdate(nvg, getLocalBounds(), 8); // Try to update buffered objects for 8 milliseconds
-    }
-    
     void render(NVGcontext* nvg) override
-    {        
-        float pixelScale = cnv->getRenderScale();
-        int scaledWidth = getWidth() * pixelScale;
-        int scaledHeight = getHeight() * pixelScale;
-        
-        if(fbWidth != scaledWidth || fbHeight != scaledHeight || !mainFBO) {
-            mainFBO = nvgCreateFramebuffer(nvg, scaledWidth, scaledHeight, 0);
-            invalidFBO = nvgCreateFramebuffer(nvg, scaledWidth, scaledHeight, 0);
-            fbWidth = scaledWidth;
-            fbHeight = scaledHeight;
-            invalidArea = getLocalBounds();
-        }
-        
-        if(!invalidArea.isEmpty()) {
-            auto invalidated = invalidArea.expanded(1);
-            invalidArea = Rectangle<int>(0, 0, 0, 0);
-            
-            // First, draw only the invalidated region to a separate framebuffer
-            // I've found that nvgScissor doesn't always clip everything, meaning that there will be graphical glitches if we don't do this
-            
-            nvgBindFramebuffer(invalidFBO);
-            nvgViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
-#ifdef NANOVG_METAL_IMPLEMENTATION
-        
-#else
-            OpenGLHelpers::clear(Colours::transparentBlack);
-#endif
-            
-            nvgTranslate(nvg, -invalidated.getX(), -invalidated.getY());
-            renderFrame(nvg, invalidated);
-            
-            nvgBindFramebuffer(mainFBO);
-            nvgViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
-            nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
-            nvgBeginPath(nvg);
-            nvgRect(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
-            nvgScissor(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
-            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, invalidFBO->image, 1));
-            nvgFill(nvg);
-            nvgEndFrame(nvg);
-            
-            nvgBindFramebuffer(nullptr);
-            editor->nvgSurface.triggerRepaint();
-        }
-    }
-    
-    
-    void blitToWindow(NVGcontext* nvg)
     {
-        if(mainFBO) {
-            auto splitPosition = editor->nvgSurface.getLocalPoint(this, Point<int>(0, 0)).x;
-
-            nvgBeginPath(nvg);
-            nvgSave(nvg);
-            nvgTranslate(nvg, splitPosition, 0);
-            nvgRect(nvg, 0, 0, getWidth(), getHeight());
-            nvgScissor(nvg, 0, 0, getWidth(), getHeight());
-            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, mainFBO->image, 1));
-            nvgFill(nvg);
-            nvgRestore(nvg);
-        }
-    }
-
-    
-    void renderFrame(NVGcontext* nvg, Rectangle<int> const& invalidated)
-    {
-        float pixelScale = cnv->getRenderScale();
-        int width = getWidth();
-        int height = getHeight();
+        nvgSave(nvg);
+        nvgTranslate(nvg, vbar.getX(), vbar.getY());
+        vbar.render(nvg);
+        nvgRestore(nvg);
         
-        nvgBeginFrame(nvg, width, height, pixelScale);
-        nvgScissor (nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
-        
-        nvgGlobalCompositeOperation(nvg, NVG_SOURCE_OVER);
-        cnv->performRender(nvg, invalidated);
-        
-        if(invalidated.intersects(vbar.getBounds())) {
-            nvgSave(nvg);
-            nvgTranslate(nvg, vbar.getX(), vbar.getY());
-            vbar.render(nvg);
-            nvgRestore(nvg);
-        }
-        
-        if(invalidated.intersects(hbar.getBounds())) {
-            nvgSave(nvg);
-            nvgTranslate(nvg, hbar.getX(), hbar.getY());
-            hbar.render(nvg);
-            nvgRestore(nvg);
-        }
-        
-#if ENABLE_CANVAS_FB_DEBUGGING
-        static Random rng;
-        nvgBeginPath(nvg);
-        nvgFillColor(nvg, nvgRGBA(rng.nextInt(255), rng.nextInt(255), rng.nextInt(255), 0x50));
-        nvgRect(nvg, 0, 0, width, height);
-        nvgFill(nvg);
-#endif
-        
-        nvgEndFrame(nvg);
-                    
+        nvgSave(nvg);
+        nvgTranslate(nvg, hbar.getX(), hbar.getY());
+        hbar.render(nvg);
+        nvgRestore(nvg);
     }
         
     void lookAndFeelChanged() override
@@ -600,14 +443,14 @@ public:
         startTimer(150);
         onScroll();
         adjustScrollbarBounds();
-        invalidArea = getLocalBounds();
+        //invalidArea = getLocalBounds();
     }
     
     void timerCallback() override
     {
         stopTimer();
         cnv->isScrolling = false;
-        invalidArea = getLocalBounds();
+        //invalidArea = getLocalBounds();
     }
 
     void resized() override
@@ -654,11 +497,6 @@ public:
     std::function<void()> onScroll = []() {};
 
 private:
-    
-    Rectangle<int> invalidArea;
-    NVGframebuffer* mainFBO = nullptr;
-    NVGframebuffer* invalidFBO = nullptr;
-    int fbWidth = 0, fbHeight = 0;
     
     Time lastScrollTime;
     PluginEditor* editor;

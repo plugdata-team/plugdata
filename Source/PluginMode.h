@@ -14,9 +14,10 @@
 
 class PluginMode : public Component, public NVGComponent {
 public:
-    explicit PluginMode(Canvas* cnv)
+    explicit PluginMode(Canvas* canvas)
         : NVGComponent(this)
-        , cnv(cnv)
+        , cnv(std::make_unique<Canvas>(canvas->editor, canvas->patch, this))
+        , originalCanvas(canvas)
         , editor(cnv->editor)
         , desktopWindow(editor->getPeer())
         , windowBounds(editor->getBounds().withPosition(editor->getTopLevelComponent()->getPosition()))
@@ -52,11 +53,10 @@ public:
         originalCanvasPos = cnv->getPosition();
         originalLockedMode = getValue<bool>(cnv->locked);
         originalPresentationMode = getValue<bool>(cnv->presentationMode);
-
-        // Set zoom value and update synchronously
-        cnv->zoomScale.setValue(1.0f);
-        cnv->zoomScale.getValueSource().sendChangeMessage(true);
-
+        
+        cnv->setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, cnv.get()));
+        originalCanvas->patch.openInPluginMode = true;
+        
         // Titlebar
         titleBar.setBounds(0, 0, width, titlebarHeight);
         titleBar.addMouseListener(this, true);
@@ -72,7 +72,7 @@ public:
 
         setAlwaysOnTop(true);
         setWantsKeyboardFocus(true);
-        setInterceptsMouseClicks(false, false);
+        setInterceptsMouseClicks(true, true);
 
         // Add this view to the editor
         editor->addAndMakeVisible(this);
@@ -104,12 +104,6 @@ public:
 
         addAndMakeVisible(titleBar);
 
-        cnv->locked = true;
-        cnv->locked.getValueSource().sendChangeMessage(true);
-        cnv->presentationMode = true;
-        cnv->presentationMode.getValueSource().sendChangeMessage(true);
-
-        cnv->setTopLeftPosition(-cnv->canvasOrigin);
         setWidthAndHeight(1.0f);
     }
 
@@ -145,10 +139,15 @@ public:
     
     void render(NVGcontext* nvg) override
     {
-        nvgTranslate(nvg, -cnv->canvasOrigin.x, -cnv->canvasOrigin.y);
+        nvgBeginPath(nvg);
+        nvgRect(nvg, 0, 0, getWidth(), getHeight());
+        nvgFillColor(nvg, findNVGColour(PlugDataColour::canvasBackgroundColourId));
+        nvgFill(nvg);
+        
         nvgScale(nvg, pluginModeScale, pluginModeScale);
-        cnv->performRender(nvg, getLocalBounds());
-        cnv->finaliseRender(nvg);
+        nvgTranslate(nvg, -cnv->canvasOrigin.x, -cnv->canvasOrigin.y);
+
+        cnv->performRender(nvg, getLocalBounds().translated(cnv->canvasOrigin.x, cnv->canvasOrigin.y));
     }
 
     void closePluginMode()
@@ -176,14 +175,9 @@ public:
             tabbar->resized();
         }
 
-        if (cnv) {
+        if (originalCanvas) {
             // Reset the canvas properties to before plugin mode was entered
-            cnv->patch.openInPluginMode = false;
-            cnv->zoomScale.setValue(originalCanvasScale);
-            cnv->zoomScale.getValueSource().sendChangeMessage(true);
-            cnv->setTopLeftPosition(originalCanvasPos);
-            cnv->locked = originalLockedMode;
-            cnv->presentationMode = originalPresentationMode;
+            originalCanvas->patch.openInPluginMode = false;
         }
 
         editor->parentSizeChanged();
@@ -267,10 +261,16 @@ public:
             pluginModeScale = scale;
             scaleComboBox.setVisible(true);
             editorButton->setVisible(true);
+            
 
+            titleBar.setBounds(0, 0, getWidth(), titlebarHeight);
             scaleComboBox.setBounds(8, 8, 74, titlebarHeight - 16);
-            editorButton->setBounds(titleBar.getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
+            editorButton->setBounds(getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
         }
+        
+        auto b = getLocalBounds() + cnv->canvasOrigin;
+        cnv->setBounds(-b.getX(), -b.getY() + (titlebarHeight / scale), b.getWidth() + b.getX(), b.getHeight() + b.getY());
+        cnv->setTransform(cnv->getTransform().scale(scale));
     }
 
     void parentSizeChanged() override
@@ -377,7 +377,8 @@ public:
     }
 
 private:
-    SafePointer<Canvas> cnv;
+    std::unique_ptr<Canvas> cnv;
+    SafePointer<Canvas> originalCanvas;
     PluginEditor* editor;
     ComponentPeer* desktopWindow;
 

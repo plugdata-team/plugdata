@@ -85,10 +85,7 @@ public:
     void focusGained(FocusChangeType cause) override;
     void focusLost(FocusChangeType cause) override;
     
-    void render(NVGcontext* nvg) override;
-    void updateFramebuffers(NVGcontext* nvg);
-    void finaliseRender(NVGcontext* nvg);
-    bool performFramebufferUpdate(NVGcontext* nvg, Rectangle<int> invalidRegion, int maxUpdateTimeMs);
+    bool updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, int maxUpdateTimeMs);
     void performRender(NVGcontext* nvg, Rectangle<int> invalidRegion);
     void deleteBuffers();
     

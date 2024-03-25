@@ -464,7 +464,7 @@ DragAndDropTarget* PluginEditor::findNextDragAndDropTarget(Point<int> screenPos)
 void PluginEditor::resized()
 {
     if (pd->isInPluginMode()) {
-        nvgSurface.setBounds(getLocalBounds().withTrimmedTop(toolbarHeight));
+        nvgSurface.updateBounds(getLocalBounds().withTrimmedTop(40));
         return;
     }
 

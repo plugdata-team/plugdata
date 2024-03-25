@@ -4,12 +4,17 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "NVGSurface.h"
+#include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_opengl/juce_opengl.h>
+using namespace juce::gl;
 
+#include <nanovg.h>
 #ifdef NANOVG_GL_IMPLEMENTATION
 #include <nanovg_gl.h>
 #include <nanovg_gl_utils.h>
 #endif
+
+#include "NVGSurface.h"
 
 #include "PluginEditor.h"
 #include "PluginMode.h"
@@ -196,34 +201,107 @@ bool NVGSurface::isAttached() const
 #endif
 }
 
-void NVGSurface::render()
+void NVGSurface::invalidateArea(Rectangle<int> area)
 {
-    Array<Canvas*> renderTargets;
+    invalidArea = invalidArea.getUnion(area);
+}
+
+void NVGSurface::renderArea(Rectangle<int> area)
+{
     if(editor->pluginMode) {
         editor->pluginMode->render(nvg);
-        return;
     }
-    
+    else {
+        for(auto* split : editor->splitView.splits)
+        {
+            if(auto* cnv = split->getTabComponent()->getCurrentCanvas())
+            {
+                nvgSave(nvg);
+                nvgTranslate(nvg, split->getX(), 0);
+                nvgScissor(nvg, 0, 0, split->getWidth(), split->getHeight());
+                cnv->performRender(nvg, area.translated(-split->getX(), 0));
+                nvgRestore(nvg);
+            }
+        }
+    }
+}
+
+void NVGSurface::render()
+{
+    bool hasCanvas = editor->pluginMode != nullptr;
     for(auto* split : editor->splitView.splits)
     {
         if(auto* cnv = split->getTabComponent()->getCurrentCanvas())
         {
-            renderTargets.add(cnv);
+            hasCanvas = true;
+            break;
         }
     }
     
     if(makeContextActive()) {
+        float pixelScale = getRenderScale();
+        int scaledWidth = getWidth() * pixelScale;
+        int scaledHeight = getHeight() * pixelScale;
+        
+        if(fbWidth != scaledWidth || fbHeight != scaledHeight || !mainFBO) {
+            mainFBO = nvgCreateFramebuffer(nvg, scaledWidth, scaledHeight, 0);
+            invalidFBO = nvgCreateFramebuffer(nvg, scaledWidth, scaledHeight, 0);
+            fbWidth = scaledWidth;
+            fbHeight = scaledHeight;
+            invalidArea = getLocalBounds();
+        }
+        
+        if(!invalidArea.isEmpty()) {
+            auto invalidated = invalidArea.expanded(1);
+            invalidArea = Rectangle<int>(0, 0, 0, 0);
+            
+            // First, draw only the invalidated region to a separate framebuffer
+            // I've found that nvgScissor doesn't always clip everything, meaning that there will be graphical glitches if we don't do this
+            
+            nvgBindFramebuffer(invalidFBO);
+            nvgViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
+            
+#ifdef NANOVG_METAL_IMPLEMENTATION
+        
+#else
+            OpenGLHelpers::clear(Colours::transparentBlack);
+#endif
+            nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
+            nvgScissor (nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
+            nvgGlobalCompositeOperation(nvg, NVG_SOURCE_OVER);
+            
+            renderArea(invalidated);
+            nvgEndFrame(nvg);
+            
+            nvgBindFramebuffer(mainFBO);
+            nvgViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
+            nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
+            nvgBeginPath(nvg);
+            nvgRect(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
+            nvgScissor(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
+            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, invalidFBO->image, 1));
+            nvgFill(nvg);
+        
+#if ENABLE_FB_DEBUGGING
+            static Random rng;
+            nvgBeginPath(nvg);
+            nvgFillColor(nvg, nvgRGBA(rng.nextInt(255), rng.nextInt(255), rng.nextInt(255), 0x50));
+            nvgRect(nvg, 0, 0, width, height);
+            nvgFill(nvg);
+#endif
+        
+            nvgEndFrame(nvg);
+            
+            nvgBindFramebuffer(nullptr);
+            needsBufferSwap = true;
+        }
+        
 #if ENABLE_FPS_COUNT
         frameTimer->addFrameTime();
 #endif
-        
-        for(auto* cnv : renderTargets)
-        {
-            cnv->render(nvg);
-        }
     }
-
-    if(!renderTargets.isEmpty() && !isAttached())
+    
+    if(hasCanvas && !isAttached())
     {
         setVisible(true);
         setInterceptsMouseClicks(false, false);
@@ -243,6 +321,7 @@ void NVGSurface::render()
 #endif
 #else
         glContext->attachTo(*this);
+        glContext->initialiseOnThread();
         glContext->setSwapInterval(0); // It's very important this happens after attachTo. Otherwise, it will be terribly slow on Windows and Linux
         nvg = nvgCreateContext(NVG_ANTIALIAS);
 #endif
@@ -255,22 +334,30 @@ void NVGSurface::render()
         nvgCreateFontMem(nvg, "Inter-Thin", (unsigned char*)BinaryData::InterThin_ttf, BinaryData::InterThin_ttfSize, 0);
         nvgCreateFontMem(nvg, "Icon", (unsigned char*)BinaryData::IconFont_ttf, BinaryData::IconFont_ttfSize, 0);
     }
-    else if(renderTargets.isEmpty() && isAttached())
+    else if(!hasCanvas && isAttached())
     {
+        if(invalidFBO) nvgDeleteFramebuffer(invalidFBO);
+        if(mainFBO) nvgDeleteFramebuffer(mainFBO);
+        invalidFBO = nullptr;
+        mainFBO = nullptr;
+        
         if(nvg) nvgDeleteContext(nvg);
         nvg = nullptr;
         detachContext();
     }
-    else if(needsBufferSwap && isAttached()) {
+    else if(needsBufferSwap && isAttached() && mainFBO) {
         float pixelScale = getRenderScale();
         nvgViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
         
         nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
         
-        for(auto* cnv : renderTargets)
-        {
-            cnv->finaliseRender(nvg);
-        }
+        nvgBeginPath(nvg);
+        nvgSave(nvg);
+        nvgRect(nvg, 0, 0, getWidth(), getHeight());
+        nvgScissor(nvg, 0, 0, getWidth(), getHeight());
+        nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, mainFBO->image, 1));
+        nvgFill(nvg);
+        nvgRestore(nvg);
         
         editor->splitView.render(nvg); // Render split view outlines and tab dnd areas
         if(auto* zoomLabel = reinterpret_cast<Component*>(editor->zoomLabel.get())) // If we don't cast through the first inherited class, this is UB
@@ -303,8 +390,13 @@ void NVGSurface::render()
     }
     
     // We update frambuffers after we call swapBuffers to make sure the frame is on time
-    for(auto* cnv : renderTargets)
-    {
-        cnv->updateFramebuffers(nvg);
+    if(isAttached()) {
+        for(auto* split : editor->splitView.splits)
+        {
+            if(auto* cnv = split->getTabComponent()->getCurrentCanvas())
+            {
+                cnv->updateFramebuffers(nvg, cnv->getLocalBounds(), 8);
+            }
+        }
     }
 }

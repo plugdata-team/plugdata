@@ -167,7 +167,9 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     parameters.addParamInt("Height", cDimensions, &patchHeight, 327);
 
     // when a new canvas is added, delete the framebuffers for its viewport
-    reinterpret_cast<CanvasViewport*>(viewport.get())->deleteBuffers();
+    if(viewport) {
+        reinterpret_cast<CanvasViewport*>(viewport.get())->deleteBuffers();
+    }
 }
 
 Canvas::~Canvas()
@@ -186,7 +188,13 @@ void Canvas::deleteBuffers()
     for(auto* object : objects) object->deleteBuffers();
 }
 
-bool Canvas::performFramebufferUpdate(NVGcontext* nvg, Rectangle<int> invalidRegion, int maxUpdateTimeMs)
+
+void Canvas::lookAndFeelChanged()
+{
+    deleteBuffers(); // Clear all buffered images when the theme changes
+}
+
+bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, int maxUpdateTimeMs)
 {
     auto start = Time::getMillisecondCounter();
     auto pixelScale = getRenderScale();
@@ -235,7 +243,7 @@ bool Canvas::performFramebufferUpdate(NVGcontext* nvg, Rectangle<int> invalidReg
         
         auto ioletColours = std::vector<Colour>{
             findColour(PlugDataColour::dataColourId),
-            findColour(PlugDataColour::signalColourId), 
+            findColour(PlugDataColour::signalColourId),
             findColour(PlugDataColour::gemColourId),
             findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.5f)};
         
@@ -301,26 +309,6 @@ bool Canvas::performFramebufferUpdate(NVGcontext* nvg, Rectangle<int> invalidReg
     return true;
 }
 
-void Canvas::render(NVGcontext* nvg)
-{
-    reinterpret_cast<CanvasViewport*>(viewport.get())->render(nvg);
-}
-
-void Canvas::lookAndFeelChanged()
-{
-    deleteBuffers(); // Clear all buffered images when the theme changes
-}
-
-void Canvas::updateFramebuffers(NVGcontext* nvg)
-{
-    reinterpret_cast<CanvasViewport*>(viewport.get())->updateFramebuffers(nvg);
-}
-
-void Canvas::finaliseRender(NVGcontext* nvg)
-{
-    reinterpret_cast<CanvasViewport*>(viewport.get())->blitToWindow(nvg);
-}
-
 // Callback from canvasViewport to perform actual rendering
 void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
 {
@@ -329,11 +317,12 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     
     auto halfSize = infiniteCanvasSize / 2;
     auto zoom = getValue<float>(zoomScale);
+    auto hasViewport = viewport && !editor->pluginMode;
     
     // apply translation to the canvas nvg objects
     nvgSave(nvg);
     
-    if(viewport)  {
+    if(hasViewport)  {
         nvgTranslate(nvg, -viewport->getViewPositionX(), -viewport->getViewPositionY());
         invalidRegion = invalidRegion.translated(viewport->getViewPositionX(), viewport->getViewPositionY());
         
@@ -341,16 +330,15 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         invalidRegion /= zoom;
     }
         
-    if(viewport) {
+    if(hasViewport) {
         nvgBeginPath(nvg);
         nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
-        
         nvgFillColor(nvg, backgroundColour);
         nvgFill(nvg);
     }
     
     
-    if(viewport && !getValue<bool>(locked)) {
+    if(hasViewport && !getValue<bool>(locked)) {
         auto feather = getRenderScale() > 1.0f ? 0.25f : 0.75f;
         if(getValue<float>(zoomScale) >= 1.0f) {
             nvgSave(nvg);
@@ -393,7 +381,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         }
     }
 
-    if(viewport && (showOrigin || showBorder)) {
+    if(hasViewport && (showOrigin || showBorder)) {
         nvgBeginPath(nvg);
         
         auto borderWidth = getValue<float>(patchWidth);
@@ -418,7 +406,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         nvgLineStyle(nvg, NVG_LINE_SOLID);
         nvgStrokeColor(nvg, backgroundColour);
         nvgStrokeWidth(nvg, 6.0f);
-        //nvgStroke(nvg);
+        nvgStroke(nvg);
         
         auto scaledStrokeSize = zoom < 1.0f ? jmap(zoom, 1.0f, 0.25f, 1.5f, 4.0f) : 1.5f;
         if (zoom < 0.3f && getRenderScale() <= 1.0f)
@@ -430,7 +418,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         nvgStrokeColor(nvg, dotsColour);
         nvgStrokeWidth(nvg, scaledStrokeSize);
         nvgDashLength(nvg, 8.0f);
-        //nvgStroke(nvg);
+        nvgStroke(nvg);
         
         // Connect origin lines at {0, 0}
         nvgBeginPath(nvg);
@@ -439,7 +427,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         nvgLineTo(nvg, pos.x, pos.y + 2.0f);
         nvgLineStyle(nvg, NVG_LINE_SOLID);
         nvgStrokeWidth(nvg, 1.25f);
-       // nvgStroke(nvg);
+        nvgStroke(nvg);
     }
 
     
@@ -501,6 +489,12 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     }
     
     nvgRestore(nvg);
+    
+    // Draw scrollbars
+    if(viewport)
+    {
+        reinterpret_cast<CanvasViewport*>(viewport.get())->render(nvg);
+    }
 }
 
 float Canvas::getRenderScale() const

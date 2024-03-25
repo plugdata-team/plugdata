@@ -73,7 +73,6 @@ public:
         auto pixelFormat = OpenGLPixelFormat(8, 8, 16, 8);
         pixelFormat.multisamplingLevel = 2;
         openGLContext.setPixelFormat(pixelFormat);
-        
         openGLContext.attachTo (*this);
         
         startTimerHz(30);
@@ -261,16 +260,7 @@ int createGemWindow(WindowInfo& info, WindowHints& hints)
             window->setTopLeftPosition(displays[1].userArea.getPosition() + window->getPosition());
         }
     }
-    
-    // TODO: hints.secondscreen
-    
-    // Make sure only audio thread has the context set as active
-    // We call async here, because if this call comes from the message thread already,
-    // we need to keep the context active until GLEW is initialised. Bit of a hack though
-    MessageManager::callAsync([](){
-      OpenGLContext::deactivateCurrentContext();
-    });
-    
+
     return 1;
 }
 void destroyGemWindow(WindowInfo& info) {
@@ -300,6 +290,7 @@ void gemWinSwapBuffers(WindowInfo& info) {
 }
 void gemWinMakeCurrent(WindowInfo& info) {
     if (auto* context = info.getContext()) {
+        context->initialiseOnThread();
         context->makeActive();
     }
 }
