@@ -218,7 +218,7 @@ bool Object::checkIfHvccCompatible() const
 
 bool Object::hitTest(int x, int y)
 {
-    if (Canvas::panningModifierDown())
+    if (cnv->panningModifierDown())
         return false;
 
     // Mouse over iolets
