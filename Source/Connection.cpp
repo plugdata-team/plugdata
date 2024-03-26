@@ -330,7 +330,7 @@ bool Connection::hitTest(int x, int y)
     }
 
     // If we click too close to the inlet, don't register the click on the connection
-    if (pstart.getDistanceFrom(position + getPosition().toFloat()) < 8.0f || pend.getDistanceFrom(position + getPosition().toFloat()) < 8.0f)
+    if (pstart.getDistanceFrom(position) < 8.0f || pend.getDistanceFrom(position) < 8.0f)
         return false;
 
     return nearestPoint.getDistanceFrom(position) < 3;

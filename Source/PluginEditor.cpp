@@ -236,9 +236,13 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
 
     calloutArea = std::make_unique<CalloutArea>(this);
+#if !JUCE_MAC // TODO: temporarily disabled on mac because it makes plugdata unusable
     calloutArea->addToDesktop(0);
+#endif
+    
     calloutArea->setVisible(true);
     calloutArea->setAlwaysOnTop(true);
+    calloutArea->setInterceptsMouseClicks(false, false);
     
     setOpaque(false);
 

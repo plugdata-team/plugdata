@@ -145,7 +145,6 @@ public:
     
     bool highlightSearchTarget(void* target, bool openNewTabIfNeeded);
 
-
     TabComponent* getActiveTabbar();
 
     PluginProcessor* pd;

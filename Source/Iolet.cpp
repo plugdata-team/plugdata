@@ -58,9 +58,8 @@ void Iolet::render(NVGcontext* nvg)
     if(!fb) return;
     
     bool isLocked = getValue<bool>(locked) || getValue<bool>(commandLocked);
-    bool over = getCanvasBounds().contains(cnv->getLastMousePosition());
     bool overObject = object->drawIoletExpanded;
-    bool isHovering = (isTargeted || over) && !isLocked;
+    bool isHovering = isTargeted  && !isLocked;
     int type = isSignal + (isGemState * 2);
     if(isLocked) type = 3;
     
