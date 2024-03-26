@@ -307,7 +307,7 @@ bool Connection::hitTest(int x, int y)
     if (inlet == nullptr || outlet == nullptr)
         return false;
 
-    if (Canvas::panningModifierDown())
+    if (cnv->panningModifierDown())
         return false;
 
     if (cnv->commandLocked == var(true) || locked == var(true) || !cnv->connectionsBeingCreated.isEmpty())

@@ -233,6 +233,12 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(splitView);
     addAndMakeVisible(*sidebar);
     sidebar->toBehind(statusbar.get());
+
+
+    calloutArea = std::make_unique<CalloutArea>(this);
+    calloutArea->addToDesktop(0);
+    calloutArea->setVisible(true);
+    calloutArea->setAlwaysOnTop(true);
     
     setOpaque(false);
 
@@ -1184,6 +1190,12 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         result.setInfo("Connection style", "Set connection style", "Edit", 0);
         result.addDefaultKeypress(76, ModifierKeys::commandModifier);
         result.setActive(hasCanvas && !isDragging && hasConnectionSelection);
+        break;
+    }
+    case CommandIDs::PanDragKey: {
+        result.setInfo("Pan drag key", "Pan drag key", "View", 0);
+        result.addDefaultKeypress(KeyPress::spaceKey, ModifierKeys::noModifiers);
+        result.setActive(hasCanvas && !isDragging);
         break;
     }
     case CommandIDs::ZoomIn: {
