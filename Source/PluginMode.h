@@ -257,6 +257,9 @@ public:
             titleBar.setBounds(0, 0, 0, 0);
             scaleComboBox.setVisible(false);
             editorButton->setVisible(false);
+            
+            auto b = getLocalBounds() + cnv->canvasOrigin;
+            cnv->setBounds(-b.getX(), -b.getY(), b.getWidth() + b.getX(), b.getHeight() + b.getY());
         } else {
             pluginModeScale = scale;
             scaleComboBox.setVisible(true);
@@ -266,10 +269,11 @@ public:
             titleBar.setBounds(0, 0, getWidth(), titlebarHeight);
             scaleComboBox.setBounds(8, 8, 74, titlebarHeight - 16);
             editorButton->setBounds(getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
+            
+            auto b = getLocalBounds() + cnv->canvasOrigin;
+            cnv->setBounds(-b.getX(), -b.getY() + (titlebarHeight / scale), b.getWidth() + b.getX(), b.getHeight() + b.getY());
         }
         
-        auto b = getLocalBounds() + cnv->canvasOrigin;
-        cnv->setBounds(-b.getX(), -b.getY() + (titlebarHeight / scale), b.getWidth() + b.getX(), b.getHeight() + b.getY());
         cnv->setTransform(cnv->getTransform().scale(scale));
     }
 

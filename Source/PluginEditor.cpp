@@ -157,6 +157,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , zoomLabel(std::make_unique<ZoomLabel>())
     , offlineRenderer(&p)
     , nvgSurface(this)
+    , pluginMode(nullptr)
     , pluginConstrainer(*getConstrainer())
     , autosave(std::make_unique<Autosave>(pd))
     , touchSelectionHelper(std::make_unique<TouchSelectionHelper>(this))
@@ -473,8 +474,8 @@ DragAndDropTarget* PluginEditor::findNextDragAndDropTarget(Point<int> screenPos)
 
 void PluginEditor::resized()
 {
-    if (pd->isInPluginMode()) {
-        nvgSurface.updateBounds(getLocalBounds().withTrimmedTop(40));
+    if (pluginMode && pd->isInPluginMode()) {
+        nvgSurface.updateBounds(getLocalBounds().withTrimmedTop(pluginMode->isWindowFullscreen() ? 0 : 40));
         return;
     }
 
@@ -1835,6 +1836,7 @@ void PluginEditor::enablePluginMode(Canvas* cnv)
     } else {
         cnv->patch.openInPluginMode = true;
         pluginMode = std::make_unique<PluginMode>(cnv);
+        resized();
     }
 }
 
