@@ -936,7 +936,7 @@ void Canvas::mouseDown(MouseEvent const& e)
 
 void Canvas::mouseDrag(MouseEvent const& e)
 {
-    if (canvasRateReducer.tooFast() || panningModifierDown())
+    if (panningModifierDown())
         return;
 
     if (connectingWithDrag) {

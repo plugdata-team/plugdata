@@ -237,7 +237,6 @@ public:
     Point<int> pastedPadding;
 
     std::unique_ptr<ConnectionPathUpdater> pathUpdater;
-    RateReducer objectRateReducer = RateReducer(90);
 
     ObjectDragState dragState;
 
@@ -258,8 +257,6 @@ private:
     
     int lastMouseX, lastMouseY;
     LassoComponent<WeakReference<Component>> lasso;
-
-    RateReducer canvasRateReducer = RateReducer(90);
 
     // Properties that can be shown in the inspector by right-clicking on canvas
     ObjectParameters parameters;

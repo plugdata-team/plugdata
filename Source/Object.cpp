@@ -477,8 +477,6 @@ void Object::triggerOverlayActiveState()
     if (!showActiveState)
         return;
 
-    if (rateReducer.tooFast())
-        return;
     
     if (!getLocalBounds().isEmpty() && activityOverlayImage.getBounds() != getLocalBounds()) {
         // render activity state overlay once for this object size since it'll always look the same for the same object size anyway
@@ -896,9 +894,6 @@ void Object::mouseUp(MouseEvent const& e)
 void Object::mouseDrag(MouseEvent const& e)
 {
     if (wasLockedOnMouseDown || (gui && gui->isEditorShown()))
-        return;
-
-    if (cnv->objectRateReducer.tooFast())
         return;
 
     cnv->cancelConnectionCreation();

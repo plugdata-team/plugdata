@@ -211,9 +211,6 @@ public:
 
     void mouseMove(MouseEvent const& e) override
     {
-        if (rateReducer.tooFast())
-            return;
-
         auto ioletPoint = cnv->getLocalPoint((Component*)iolet->object, iolet->getBounds().toFloat().getCentre());
         auto cursorPoint = e.getEventRelativeTo(cnv).position;
 
