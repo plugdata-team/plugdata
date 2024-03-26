@@ -33,7 +33,7 @@ public:
 
     ~CalloutArea(){}
 
-    void timerCallback()
+    void timerCallback() override
     {
         setBounds(target->getScreenBounds());
     }

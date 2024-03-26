@@ -250,7 +250,8 @@ public:
             int const scaledHeight = static_cast<int>(height * scale);
             int const x = (getWidth() - scaledWidth) / 2;
             int const y = (getHeight() - scaledHeight) / 2;
-
+            // TODO: do we need to use these?
+            
             pluginModeScale = scale;
             
             // Hide titlebar

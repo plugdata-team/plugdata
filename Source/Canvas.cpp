@@ -295,7 +295,7 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
     for(auto* obj : objects)
     {
         auto b = obj->getBounds();
-        //if(b.intersects(invalidRegion)) {
+        if(b.intersects(invalidRegion)) {
             obj->updateFramebuffer(nvg);
         
             auto elapsed = Time::getMillisecondCounter() - start;
@@ -303,7 +303,7 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
                 break; // TODO: this does mean objects earlier in the list are more likely to get buffered than later ones. They will all get buffered eventually, so it's fine I guess
                 return false;
             }
-        //}
+        }
     }
     
     return true;

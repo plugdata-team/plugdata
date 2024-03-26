@@ -24,7 +24,6 @@ class LuaObject : public ObjectBase, public AsyncUpdater {
     
     std::unique_ptr<Graphics> graphics;
     Colour currentColour;
-
     
     CriticalSection bufferSwapLock;
     Image firstBuffer;
@@ -35,7 +34,7 @@ class LuaObject : public ObjectBase, public AsyncUpdater {
     Value zoomScale;
     std::unique_ptr<Component> textEditor;
     std::unique_ptr<Dialog> saveDialog;
-    
+        
     static inline std::map<t_gpointer*, Path> currentPaths = std::map<t_gpointer*, Path>();
     static inline std::map<t_pdlua*, std::vector<LuaObject*>> allDrawTargets = std::map<t_pdlua*, std::vector<LuaObject*>>();
     
@@ -95,7 +94,7 @@ public:
         
         return {};
     }
-    
+
     void setPdBounds(Rectangle<int> b) override
     {
         if (auto gobj = ptr.get<t_pdlua>()) {
