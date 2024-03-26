@@ -233,6 +233,12 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(splitView);
     addAndMakeVisible(*sidebar);
     sidebar->toBehind(statusbar.get());
+
+
+    calloutArea = std::make_unique<CalloutArea>(this);
+    calloutArea->addToDesktop(0);
+    calloutArea->setVisible(true);
+    calloutArea->setAlwaysOnTop(true);
     
     setOpaque(false);
 
