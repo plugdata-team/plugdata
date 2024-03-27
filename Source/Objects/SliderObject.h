@@ -6,8 +6,8 @@
 
 class ReversibleSlider : public Slider, public NVGComponent {
 
-    bool isInverted;
-    bool isVertical;
+    bool isInverted = false;
+    bool isVertical = false;
 
 public:
     ReversibleSlider() : NVGComponent(this)

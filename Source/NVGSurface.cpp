@@ -231,7 +231,7 @@ void NVGSurface::render()
     bool hasCanvas = editor->pluginMode != nullptr;
     for(auto* split : editor->splitView.splits)
     {
-        if(auto* cnv = split->getTabComponent()->getCurrentCanvas())
+        if(split->getTabComponent()->getCurrentCanvas())
         {
             hasCanvas = true;
             break;
@@ -321,6 +321,7 @@ void NVGSurface::render()
         glContext->setSwapInterval(0); // It's very important this happens after attachTo. Otherwise, it will be terribly slow on Windows and Linux
         nvg = nvgCreateContext(NVG_ANTIALIAS);
 #endif
+        invalidArea = getLocalBounds();
         
         if (!nvg) std::cerr << "could not initialise nvg" << std::endl;
         nvgCreateFontMem(nvg, "Inter", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);

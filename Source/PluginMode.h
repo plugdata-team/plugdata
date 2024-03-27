@@ -55,6 +55,7 @@ public:
         originalPresentationMode = getValue<bool>(cnv->presentationMode);
         
 #if JUCE_LINUX
+        editor->sendLookAndFeelChange(); // TODO: this is just a hacky way to make sure all framebuffers area cleared. could be cleaner.
         editor->nvgSurface.detachContext();
 #endif
         cnv->setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, cnv.get()));
@@ -192,6 +193,7 @@ public:
         editor->resized();
 
 #if JUCE_LINUX
+        editor->sendLookAndFeelChange(); // TODO: this is just a hacky way to make sure all framebuffers area cleared. could be cleaner.
         editor->nvgSurface.detachContext();
 #endif
         // Destroy this view
