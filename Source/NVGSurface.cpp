@@ -260,6 +260,7 @@ void NVGSurface::render()
             
             nvgBindFramebuffer(invalidFBO);
             nvgViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
+            nvgClear(nvg);
             
             nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
             nvgScissor (nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());

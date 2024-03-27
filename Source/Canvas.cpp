@@ -210,12 +210,7 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
         
         nvgBindFramebuffer(ioletBuffer);
         nvgViewport(0, 0, pixelSize, pixelSize);
-        
-#ifdef NANOVG_METAL_IMPLEMENTATION
-        mnvgClearWithColor(nvg, nvgRGBA(0, 0, 0, 0));
-#else
-        OpenGLHelpers::clear(Colours::transparentBlack);
-#endif
+        nvgClear(nvg);
         
         nvgBeginFrame(nvg, logicalSize * zoom, logicalSize * zoom, pixelScale);
         nvgScale(nvg, zoom, zoom);

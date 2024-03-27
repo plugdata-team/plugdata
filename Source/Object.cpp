@@ -1167,12 +1167,7 @@ void Object::updateFramebuffer(NVGcontext* nvg)
             
             nvgBindFramebuffer(fb);
             nvgViewport(0, 0, scaledWidth, scaledHeight);
-            
-#ifdef NANOVG_METAL_IMPLEMENTATION
-            mnvgClearWithColor(nvg, nvgRGBA(0, 0, 0, 0));
-#else
-            OpenGLHelpers::clear(Colours::transparentBlack);
-#endif
+            nvgClear(nvg);
 
             nvgBeginFrame(nvg, b.getWidth() * maxScale, b.getHeight() * maxScale, cnv->getRenderScale());
             nvgScale(nvg, maxScale, maxScale);
