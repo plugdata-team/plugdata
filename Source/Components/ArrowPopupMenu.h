@@ -108,11 +108,9 @@ public:
             userCallback(result);
         });
 
-#if JUCE_MAC // TODO: broken Linux and Windows. Fix this!gi
         if (auto* popupMenuComponent = Component::getCurrentlyModalComponent(0)) {
             arrow->attachToMenu(popupMenuComponent, parent);
         }
-#endif
     }
         
     void componentBroughtToFront (Component& c) override
