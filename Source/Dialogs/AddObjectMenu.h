@@ -684,7 +684,9 @@ public:
     static void show(PluginEditor* editor, Rectangle<int> bounds)
     {
         auto addObjectMenu = std::make_unique<AddObjectMenu>(editor);
-        currentCalloutBox = &CallOutBox::launchAsynchronously(std::move(addObjectMenu), bounds, nullptr);
+        auto calloutArea = editor->calloutArea.get();
+        auto finalBounds = calloutArea->getLocalArea(nullptr, bounds);
+        currentCalloutBox = &CallOutBox::launchAsynchronously(std::move(addObjectMenu), finalBounds, calloutArea);
         currentCalloutBox->setColour(PlugDataColour::popupMenuBackgroundColourId, currentCalloutBox->findColour(PlugDataColour::popupMenuBackgroundColourId));
     }
 
