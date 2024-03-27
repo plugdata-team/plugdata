@@ -237,13 +237,9 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
 
     calloutArea = std::make_unique<CalloutArea>(this);
-#if !JUCE_MAC // TODO: temporarily disabled on mac because it makes plugdata unusable
-    calloutArea->addToDesktop(0);
-#endif
-    
     calloutArea->setVisible(true);
     calloutArea->setAlwaysOnTop(true);
-    calloutArea->setInterceptsMouseClicks(false, false);
+    calloutArea->setInterceptsMouseClicks(true, true);
     
     setOpaque(false);
 
@@ -465,6 +461,28 @@ void PluginEditor::paintOverChildren(Graphics& g)
         g.setColour(findColour(PlugDataColour::dataColourId));
         g.drawRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius, 2.0f);
     }
+}
+
+CallOutBox& PluginEditor::showCalloutBox(std::unique_ptr<Component> content, Rectangle<int> screenBounds)
+{
+    class CalloutDeletionListener : public ComponentListener
+    {
+        PluginEditor* editor;
+    public:
+        CalloutDeletionListener(PluginEditor* e) : editor(e) {}
+        
+        void componentBeingDeleted(Component& c) override
+        {
+            c.removeComponentListener(this);
+            editor->calloutArea->removeFromDesktop();
+            delete this;
+        }
+    };
+    
+    content->addComponentListener(new CalloutDeletionListener(this));
+    calloutArea->addToDesktop(ComponentPeer::windowIsTemporary);
+    auto bounds = calloutArea->getLocalArea(nullptr, screenBounds);
+    return CallOutBox::launchAsynchronously(std::move(content), bounds, calloutArea.get());
 }
 
 DragAndDropTarget* PluginEditor::findNextDragAndDropTarget(Point<int> screenPos)

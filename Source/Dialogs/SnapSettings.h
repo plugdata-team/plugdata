@@ -5,6 +5,7 @@
 #include <utility>
 #include "Constants.h"
 #include "LookAndFeel.h"
+#include "PluginEditor.h"
 
 class SnapSettings : public Component {
 public:
@@ -205,7 +206,7 @@ public:
         }
     }
 
-    static void show(Component* parent, Rectangle<int> bounds)
+    static void show(PluginEditor* editor, Rectangle<int> bounds)
     {
         if (isShowing)
             return;
@@ -213,8 +214,7 @@ public:
         isShowing = true;
 
         auto snapSettings = std::make_unique<SnapSettings>();
-        auto finalBounds = parent->getLocalArea(nullptr, bounds);
-        CallOutBox::launchAsynchronously(std::move(snapSettings), finalBounds, parent);
+        editor->showCalloutBox(std::move(snapSettings), bounds);
     }
 
     ~SnapSettings() override

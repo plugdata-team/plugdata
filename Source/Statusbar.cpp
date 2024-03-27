@@ -111,8 +111,7 @@ public:
                 repaint();
             };
             auto* editor = findParentComponentOfClass<PluginEditor>();
-            auto finalBounds = editor->calloutArea->getLocalArea(nullptr, getScreenBounds());
-            CallOutBox::launchAsynchronously(std::move(oversampleSettings), finalBounds, editor->calloutArea.get());
+            editor->showCalloutBox(std::move(oversampleSettings), getScreenBounds());
         };
     }
 
@@ -573,8 +572,7 @@ public:
             };
 
             auto* editor = findParentComponentOfClass<PluginEditor>();
-            auto finalBounds = editor->calloutArea->getLocalArea(nullptr, getScreenBounds());
-            currentCalloutBox = &CallOutBox::launchAsynchronously(std::move(cpuHistory), finalBounds, editor->calloutArea.get());
+            currentCalloutBox = &editor->showCalloutBox(std::move(cpuHistory), getScreenBounds());
             isCallOutBoxActive = true;
         } else {
             isCallOutBoxActive = false;
@@ -715,7 +713,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     overlaySettingsButton.onClick = [this]() {
         auto* editor = findParentComponentOfClass<PluginEditor>();
-        OverlayDisplaySettings::show(editor->calloutArea.get(), overlaySettingsButton.getScreenBounds());
+        OverlayDisplaySettings::show(editor, overlaySettingsButton.getScreenBounds());
     };
 
     snapEnableButton.setButtonText(Icons::Magnet);
@@ -725,7 +723,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     snapSettingsButton.onClick = [this]() {
         auto* editor = findParentComponentOfClass<PluginEditor>();
-        SnapSettings::show(editor->calloutArea.get(), snapSettingsButton.getScreenBounds());
+        SnapSettings::show(editor, snapSettingsButton.getScreenBounds());
     };
 
     alignmentButton.setButtonText(Icons::AlignLeft);

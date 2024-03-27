@@ -176,9 +176,7 @@ public:
 
         auto alignmentTools = std::make_unique<AlignmentTools>();
         alignmentTools->pluginEditor = dynamic_cast<PluginEditor*>(editor);
-        auto& calloutArea = alignmentTools->pluginEditor->calloutArea;
-        auto finalBounds = calloutArea->getLocalArea(nullptr, bounds);
-        CallOutBox::launchAsynchronously(std::move(alignmentTools), finalBounds, calloutArea.get());
+        alignmentTools->pluginEditor->showCalloutBox(std::move(alignmentTools), bounds);
     }
 
     ~AlignmentTools() override

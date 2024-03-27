@@ -17,8 +17,6 @@
 #include "Utility/WindowDragger.h"
 
 #include "Tabbar/SplitView.h"
-#include "Dialogs/OverlayDisplaySettings.h"
-#include "Dialogs/SnapSettings.h"
 
 #include "Utility/ObjectThemeManager.h"
 #include "NVGSurface.h"
@@ -135,6 +133,8 @@ public:
     bool wantsRoundedCorners();
 
     bool keyPressed(KeyPress const& key) override;
+    
+    CallOutBox& showCalloutBox(std::unique_ptr<Component> content, Rectangle<int> screenBounds);
 
     void enablePluginMode(Canvas* cnv);
 

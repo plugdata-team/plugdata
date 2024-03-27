@@ -204,7 +204,7 @@ public:
         }
     }
 
-    static void show(Component* parent, Rectangle<int> bounds)
+    static void show(PluginEditor* editor, Rectangle<int> bounds)
     {
         if (isShowing)
             return;
@@ -212,8 +212,7 @@ public:
         isShowing = true;
 
         auto overlayDisplaySettings = std::make_unique<OverlayDisplaySettings>();
-        auto finalBounds = parent->getLocalArea(nullptr, bounds);
-        CallOutBox::launchAsynchronously(std::move(overlayDisplaySettings), finalBounds, parent);
+        editor->showCalloutBox(std::move(overlayDisplaySettings), bounds);
     }
 
     ~OverlayDisplaySettings() override
