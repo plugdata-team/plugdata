@@ -235,7 +235,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(*sidebar);
     sidebar->toBehind(statusbar.get());
 
-
     calloutArea = std::make_unique<CalloutArea>(this);
     calloutArea->setVisible(true);
     calloutArea->setAlwaysOnTop(true);

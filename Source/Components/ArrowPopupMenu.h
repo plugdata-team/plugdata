@@ -98,18 +98,19 @@ public:
     static void showMenuAsync(PopupMenu* menu, PopupMenu::Options const& options, std::function<void(int)> const& userCallback)
     {
         auto* target = options.getTargetComponent();
-
+        auto* parent = options.getParentComponent();
+        
         auto* arrow = new ArrowPopupMenu(target);
 
         menu->showMenuAsync(options, [userCallback, arrow](int result) {
-            arrow->removeFromDesktop();
+            if(arrow->isOnDesktop()) arrow->removeFromDesktop();
             delete arrow;
             userCallback(result);
         });
 
 #if JUCE_MAC // TODO: broken Linux and Windows. Fix this!gi
         if (auto* popupMenuComponent = Component::getCurrentlyModalComponent(0)) {
-            arrow->attachToMenu(popupMenuComponent, options.getParentComponent());
+            arrow->attachToMenu(popupMenuComponent, parent);
         }
 #endif
     }
@@ -119,7 +120,6 @@ public:
         MessageManager::callAsync([_this = SafePointer(this)](){
             if(_this && _this->isOnDesktop()) _this->toFront(false);
         });
-        
     }
 
     void componentMovedOrResized(Component& component, bool moved, bool resized) override
