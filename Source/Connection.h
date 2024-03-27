@@ -211,9 +211,6 @@ public:
 
     void mouseMove(MouseEvent const& e) override
     {
-        if (rateReducer.tooFast())
-            return;
-
         auto ioletPoint = cnv->getLocalPoint((Component*)iolet->object, iolet->getBounds().toFloat().getCentre());
         auto cursorPoint = e.getEventRelativeTo(cnv).position;
 
@@ -226,8 +223,19 @@ public:
         repaint();
         iolet->repaint();
     }
+    
+    void render(NVGcontext* nvg) override
+    {
+        auto lineColour = cnv->findColour(PlugDataColour::dataColourId).brighter(0.6f);
+        auto shadowColour = findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.06f).withAlpha(0.24f);
 
-    void render(NVGcontext*) override;
+        nvgSave(nvg);
+        setJUCEPath(nvg, getPath());
+        nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(lineColour), convertColour(shadowColour)));
+        nvgStrokeWidth(nvg, 4.0f);
+        nvgStroke(nvg);
+        nvgRestore(nvg);
+    }
 
     Iolet* getIolet()
     {

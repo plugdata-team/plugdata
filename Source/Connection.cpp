@@ -166,6 +166,9 @@ void Connection::render(NVGcontext* nvg)
     nvgStrokePaint(nvg, nvgDoubleStroke(nvg, backgroundColour, shadowColour));
     nvgStrokeWidth(nvg, 4.0f);
     
+    nvgSave(nvg);
+    nvgTranslate(nvg, getX(), getY());
+    
     if(!cachedIsValid) nvgDeletePath(nvg, cacheId);
     if(nvgLoadPath(nvg, cacheId))
     {
@@ -173,28 +176,43 @@ void Connection::render(NVGcontext* nvg)
     }
     else
     {
-        setJUCEPath(nvg, getPath());
+        auto pathFromOrigin = getPath();
+        pathFromOrigin.applyTransform(AffineTransform::translation(-getX(), -getY()));
+                
+        setJUCEPath(nvg, pathFromOrigin);
         nvgStroke(nvg);
         nvgSavePath(nvg, cacheId);
-        cachedIsValid = true;
     }
     
     if (cableType == SignalCable) {
         auto dashColor = shadowColour;
         dashColor.a = 1.0f;
-        dashColor.r *= 0.5f;
-        dashColor.g *= 0.5f;
-        dashColor.b *= 0.5f;
+        dashColor.r *= 0.4f;
+        dashColor.g *= 0.4f;
+        dashColor.b *= 0.4f;
         
-        setJUCEPath(nvg, getPath());
+        
         nvgStrokeColor(nvg, dashColor);
         nvgLineStyle(nvg, NVG_LINE_DASHED);
         nvgDashLength(nvg, 4.0f);
         nvgStrokeWidth(nvg, 2.0f);
-        nvgStroke(nvg);
         
-        nvgLineStyle(nvg, NVG_LINE_SOLID);
+        if(!cachedIsValid) nvgDeletePath(nvg, cacheId+1);
+        if(nvgLoadPath(nvg, cacheId+1))
+        {
+            nvgStroke(nvg);
+        }
+        else {
+            auto pathFromOrigin = getPath();
+            pathFromOrigin.applyTransform(AffineTransform::translation(-getX(), -getY()));
+            setJUCEPath(nvg, pathFromOrigin);
+            nvgStroke(nvg);
+            nvgSavePath(nvg, cacheId+1);
+        }
     }
+    
+    nvgRestore(nvg);
+    cachedIsValid = true;
 
     auto mousePos = cnv->getLastMousePosition();
     
@@ -330,7 +348,7 @@ bool Connection::hitTest(int x, int y)
     }
 
     // If we click too close to the inlet, don't register the click on the connection
-    if (pstart.getDistanceFrom(position + getPosition().toFloat()) < 8.0f || pend.getDistanceFrom(position + getPosition().toFloat()) < 8.0f)
+    if (pstart.getDistanceFrom(position) < 8.0f || pend.getDistanceFrom(position) < 8.0f)
         return false;
 
     return nearestPoint.getDistanceFrom(position) < 3;
@@ -369,7 +387,6 @@ void Connection::updateOverlays(int overlay)
     showDirection = overlay & Overlay::Direction;
     showConnectionOrder = overlay & Overlay::Order;
     showActiveState = overlay & Overlay::ActivationState;
-    updatePath();
     repaint();
 }
 
@@ -396,7 +413,6 @@ void Connection::setSelected(bool shouldBeSelected)
 {
     if (selectedFlag != shouldBeSelected) {
         selectedFlag = shouldBeSelected;
-        updatePath();
         repaint();
     }
 }
@@ -639,9 +655,6 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
 
     auto pstart = getStartPoint();
     auto pend = getEndPoint();
-    
-    cachedIsValid = false; // TODO: we could reuse the cache if we translated the connection to its origin coordinate
-
     // If both inlet and outlet are selected we can move the connection
     if (outobj->isSelected() && inobj->isSelected() && !wasResized) {
         // calculate the offset for moving the whole connection
@@ -659,14 +672,16 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
             point += pointOffset;
         }
         
-        auto oldPath = getPath();
-        oldPath.applyTransform(AffineTransform::translation(pointOffset.x, pointOffset.y));
-        setPath(oldPath);
+        auto offsetPath = getPath();
+        offsetPath.applyTransform(AffineTransform::translation(pointOffset.x, pointOffset.y));
+        setPath(offsetPath);
 
         return;
     }
+    
     previousPStart = pstart;
-
+    cachedIsValid = false;
+    
     if (currentPlan.size() <= 2) {
         updatePath();
         repaint();
@@ -838,10 +853,9 @@ void Connection::updatePath()
     }
     
     setPath(toDraw);
-    
+    previousPStart = pstart;
     startReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(8.5f));
     endReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(jmax(toDraw.getLength() - 8.5f, 9.5f)));
-
     
     cachedIsValid = false;
 }
@@ -1147,17 +1161,4 @@ void Connection::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int n
     std::copy(atoms, atoms + numAtoms, lastValue);
     lastNumArgs = numAtoms;
     lastSelector = symbol;
-}
-
-void ConnectionBeingCreated::render(NVGcontext* nvg)
-{
-    auto lineColour = cnv->findColour(PlugDataColour::dataColourId).brighter(0.6f);
-    auto shadowColour = findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.06f).withAlpha(0.24f);
-
-    nvgSave(nvg);
-    setJUCEPath(nvg, getPath());
-    nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(lineColour), convertColour(shadowColour)));
-    nvgStrokeWidth(nvg, 4.0f);
-    nvgStroke(nvg);
-    nvgRestore(nvg);
 }

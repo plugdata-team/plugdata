@@ -212,7 +212,7 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
         nvgViewport(0, 0, pixelSize, pixelSize);
         
 #ifdef NANOVG_METAL_IMPLEMENTATION
-        
+        mnvgClearWithColor(nvg, nvgRGBA(0, 0, 0, 0));
 #else
         OpenGLHelpers::clear(Colours::transparentBlack);
 #endif
@@ -295,15 +295,14 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
     for(auto* obj : objects)
     {
         auto b = obj->getBounds();
-        //if(b.intersects(invalidRegion)) {
+        if(b.intersects(invalidRegion)) {
             obj->updateFramebuffer(nvg);
-        
+            
             auto elapsed = Time::getMillisecondCounter() - start;
             if(elapsed > maxUpdateTimeMs) {
-                break; // TODO: this does mean objects earlier in the list are more likely to get buffered than later ones. They will all get buffered eventually, so it's fine I guess
                 return false;
             }
-        //}
+        }
     }
     
     return true;
@@ -931,7 +930,7 @@ void Canvas::mouseDown(MouseEvent const& e)
 
 void Canvas::mouseDrag(MouseEvent const& e)
 {
-    if (canvasRateReducer.tooFast() || panningModifierDown())
+    if (panningModifierDown())
         return;
 
     if (connectingWithDrag) {

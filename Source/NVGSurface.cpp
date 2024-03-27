@@ -261,11 +261,6 @@ void NVGSurface::render()
             nvgBindFramebuffer(invalidFBO);
             nvgViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
             
-#ifdef NANOVG_METAL_IMPLEMENTATION
-        
-#else
-            OpenGLHelpers::clear(Colours::transparentBlack);
-#endif
             nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
             nvgScissor (nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
             nvgGlobalCompositeOperation(nvg, NVG_SOURCE_OVER);

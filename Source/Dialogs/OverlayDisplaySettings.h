@@ -212,7 +212,8 @@ public:
         isShowing = true;
 
         auto overlayDisplaySettings = std::make_unique<OverlayDisplaySettings>();
-        CallOutBox::launchAsynchronously(std::move(overlayDisplaySettings), bounds, nullptr);
+        auto finalBounds = parent->getLocalArea(nullptr, bounds);
+        CallOutBox::launchAsynchronously(std::move(overlayDisplaySettings), finalBounds, parent);
     }
 
     ~OverlayDisplaySettings() override

@@ -23,6 +23,34 @@
 #include "Utility/ObjectThemeManager.h"
 #include "NVGSurface.h"
 
+class CalloutArea : public Component, public Timer
+{
+public:
+    CalloutArea(Component* parent) : target(parent)
+    {
+        startTimerHz(3);
+    }
+
+    ~CalloutArea(){}
+
+    void timerCallback() override
+    {
+        setBounds(target->getScreenBounds());
+    }
+
+    void paint(Graphics& g) override
+    {
+//#define DEBUG_CALLOUT_AREA
+#ifdef DEBUG_CALLOUT_AREA
+        g.setColour(Colours::red);
+        g.drawRect(getLocalBounds());
+#endif
+    }
+
+private:
+    WeakReference<Component> target;
+};
+
 class ConnectionMessageDisplay;
 class Sidebar;
 class Statusbar;
@@ -117,7 +145,6 @@ public:
     
     bool highlightSearchTarget(void* target, bool openNewTabIfNeeded);
 
-
     TabComponent* getActiveTabbar();
 
     PluginProcessor* pd;
@@ -158,6 +185,8 @@ public:
         
     inline static ObjectThemeManager objectManager;
     static ObjectThemeManager* getObjectManager() { return &objectManager; };
+
+    std::unique_ptr<CalloutArea> calloutArea;
 
 private:
     

@@ -477,8 +477,6 @@ void Object::triggerOverlayActiveState()
     if (!showActiveState)
         return;
 
-    if (rateReducer.tooFast())
-        return;
     
     if (!getLocalBounds().isEmpty() && activityOverlayImage.getBounds() != getLocalBounds()) {
         // render activity state overlay once for this object size since it'll always look the same for the same object size anyway
@@ -898,9 +896,6 @@ void Object::mouseDrag(MouseEvent const& e)
     if (wasLockedOnMouseDown || (gui && gui->isEditorShown()))
         return;
 
-    if (cnv->objectRateReducer.tooFast())
-        return;
-
     cnv->cancelConnectionCreation();
 
     if (e.mods.isMiddleButtonDown())
@@ -1155,9 +1150,9 @@ void Object::updateFramebuffer(NVGcontext* nvg)
     if(shouldRenderToFramebuffer()) {
         auto b = getLocalBounds();
         bool boundsChanged = b.getWidth() != fbWidth || b.getHeight() != fbHeight;
-        auto maxScale = 3.0f;
         if(fbDirty || boundsChanged)
         {
+            auto maxScale = 3.0f;
             int scaledWidth = b.getWidth() * maxScale * cnv->getRenderScale();
             int scaledHeight = b.getHeight() * maxScale * cnv->getRenderScale();
             
@@ -1172,8 +1167,9 @@ void Object::updateFramebuffer(NVGcontext* nvg)
             
             nvgBindFramebuffer(fb);
             nvgViewport(0, 0, scaledWidth, scaledHeight);
+            
 #ifdef NANOVG_METAL_IMPLEMENTATION
-        
+            mnvgClearWithColor(nvg, nvgRGBA(0, 0, 0, 0));
 #else
             OpenGLHelpers::clear(Colours::transparentBlack);
 #endif
@@ -1194,7 +1190,6 @@ void Object::updateFramebuffer(NVGcontext* nvg)
             
             nvgEndFrame(nvg);
             nvgBindFramebuffer(NULL);
-            fbDirty = false;
         }
     }
 }

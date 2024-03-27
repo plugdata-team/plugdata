@@ -205,7 +205,7 @@ public:
         }
     }
 
-    static void show(Component* editor, Rectangle<int> bounds)
+    static void show(Component* parent, Rectangle<int> bounds)
     {
         if (isShowing)
             return;
@@ -213,7 +213,8 @@ public:
         isShowing = true;
 
         auto snapSettings = std::make_unique<SnapSettings>();
-        CallOutBox::launchAsynchronously(std::move(snapSettings), bounds, nullptr);
+        auto finalBounds = parent->getLocalArea(nullptr, bounds);
+        CallOutBox::launchAsynchronously(std::move(snapSettings), finalBounds, parent);
     }
 
     ~SnapSettings() override

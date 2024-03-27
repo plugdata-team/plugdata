@@ -153,6 +153,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , sidebar(std::make_unique<Sidebar>(&p, this))
     , statusbar(std::make_unique<Statusbar>(&p))
     , openedDialog(nullptr)
+    , pluginMode(nullptr)
     , splitView(this)
     , zoomLabel(std::make_unique<ZoomLabel>())
     , offlineRenderer(&p)
@@ -233,6 +234,16 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(splitView);
     addAndMakeVisible(*sidebar);
     sidebar->toBehind(statusbar.get());
+
+
+    calloutArea = std::make_unique<CalloutArea>(this);
+#if !JUCE_MAC // TODO: temporarily disabled on mac because it makes plugdata unusable
+    calloutArea->addToDesktop(0);
+#endif
+    
+    calloutArea->setVisible(true);
+    calloutArea->setAlwaysOnTop(true);
+    calloutArea->setInterceptsMouseClicks(false, false);
     
     setOpaque(false);
 
@@ -463,8 +474,8 @@ DragAndDropTarget* PluginEditor::findNextDragAndDropTarget(Point<int> screenPos)
 
 void PluginEditor::resized()
 {
-    if (pd->isInPluginMode()) {
-        nvgSurface.updateBounds(getLocalBounds().withTrimmedTop(40));
+    if (pluginMode && pd->isInPluginMode()) {
+        nvgSurface.updateBounds(getLocalBounds().withTrimmedTop(pluginMode->isWindowFullscreen() ? 0 : 40));
         return;
     }
 
@@ -1825,6 +1836,7 @@ void PluginEditor::enablePluginMode(Canvas* cnv)
     } else {
         cnv->patch.openInPluginMode = true;
         pluginMode = std::make_unique<PluginMode>(cnv);
+        resized();
     }
 }
 
