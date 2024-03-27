@@ -54,6 +54,9 @@ public:
         originalLockedMode = getValue<bool>(cnv->locked);
         originalPresentationMode = getValue<bool>(cnv->presentationMode);
         
+#if JUCE_LINUX
+        editor->nvgSurface.detachContext();
+#endif
         cnv->setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, cnv.get()));
         originalCanvas->patch.openInPluginMode = true;
         
@@ -129,12 +132,15 @@ public:
         }
 
 #if JUCE_LINUX || JUCE_BSD
+
         if (ProjectInfo::isStandalone) {
             OSUtils::updateX11Constraints(getPeer()->getNativeHandle());
         }
 #endif
         editor->setSize(newWidth, newHeight);
         setBounds(0, 0, newWidth, newHeight);
+
+        editor->nvgSurface.invalidateArea(editor->nvgSurface.getLocalBounds());
     }
     
     void render(NVGcontext* nvg) override
@@ -183,6 +189,9 @@ public:
         editor->parentSizeChanged();
         editor->resized();
 
+#if JUCE_LINUX
+        editor->nvgSurface.detachContext();
+#endif
         // Destroy this view
         editor->pluginMode.reset(nullptr);
     }
