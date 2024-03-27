@@ -241,10 +241,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     calloutArea->addToDesktop(0);
 #endif
     
-    calloutArea->setVisible(true);
-    calloutArea->setAlwaysOnTop(true);
-    calloutArea->setInterceptsMouseClicks(false, false);
-    
     setOpaque(false);
 
     for (auto* button : std::vector<MainToolbarButton*> {

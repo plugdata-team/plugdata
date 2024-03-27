@@ -28,6 +28,9 @@ class CalloutArea : public Component, public Timer
 public:
     CalloutArea(Component* parent) : target(parent)
     {
+        setVisible(true);
+        setAlwaysOnTop(true);
+        setInterceptsMouseClicks(false, true);
         startTimerHz(3);
     }
 
