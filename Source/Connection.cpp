@@ -209,9 +209,9 @@ void Connection::render(NVGcontext* nvg)
             nvgStroke(nvg);
             nvgSavePath(nvg, cacheId+1);
         }
-        
-        nvgRestore(nvg);
     }
+    
+    nvgRestore(nvg);
     cachedIsValid = true;
 
     auto mousePos = cnv->getLastMousePosition();
