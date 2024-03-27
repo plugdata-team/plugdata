@@ -144,10 +144,12 @@ public:
         nvgFillColor(nvg, findNVGColour(PlugDataColour::canvasBackgroundColourId));
         nvgFill(nvg);
         
+        nvgSave(nvg);
         nvgScale(nvg, pluginModeScale, pluginModeScale);
-        nvgTranslate(nvg, -cnv->canvasOrigin.x, -cnv->canvasOrigin.y);
-
+        nvgTranslate(nvg, cnv->getX(), cnv->getY() - (isWindowFullscreen() ? 0 : 40));
+       
         cnv->performRender(nvg, getLocalBounds().translated(cnv->canvasOrigin.x, cnv->canvasOrigin.y));
+        nvgRestore(nvg);
     }
 
     void closePluginMode()
@@ -237,20 +239,19 @@ public:
         }
 #endif
 
-        float const scale = getWidth() / width;
+        float scale = getWidth() / width;
         if (ProjectInfo::isStandalone && isWindowFullscreen()) {
 
             // Calculate the scale factor required to fit the editor in the screen
             float const scaleX = static_cast<float>(getWidth()) / width;
             float const scaleY = static_cast<float>(getHeight()) / height;
-            float const scale = jmin(scaleX, scaleY);
+            scale = jmin(scaleX, scaleY);
 
             // Calculate the position of the editor after scaling
             int const scaledWidth = static_cast<int>(width * scale);
             int const scaledHeight = static_cast<int>(height * scale);
             int const x = (getWidth() - scaledWidth) / 2;
             int const y = (getHeight() - scaledHeight) / 2;
-            // TODO: do we need to use these?
             
             pluginModeScale = scale;
             
@@ -260,22 +261,22 @@ public:
             editorButton->setVisible(false);
             
             auto b = getLocalBounds() + cnv->canvasOrigin;
-            cnv->setBounds(-b.getX(), -b.getY(), b.getWidth() + b.getX(), b.getHeight() + b.getY());
+            cnv->setTransform(cnv->getTransform().scale(scale));
+            cnv->setBounds(-b.getX() + (x / scale), -b.getY() + (y / scale), b.getWidth() + b.getX(), b.getHeight() + b.getY());
         } else {
             pluginModeScale = scale;
             scaleComboBox.setVisible(true);
             editorButton->setVisible(true);
-            
 
             titleBar.setBounds(0, 0, getWidth(), titlebarHeight);
             scaleComboBox.setBounds(8, 8, 74, titlebarHeight - 16);
             editorButton->setBounds(getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
             
             auto b = getLocalBounds() + cnv->canvasOrigin;
-            cnv->setBounds(-b.getX(), -b.getY() + (titlebarHeight / scale), b.getWidth() + b.getX(), b.getHeight() + b.getY());
+            cnv->setTransform(cnv->getTransform().scale(scale));
+            cnv->setBounds(-b.getX(), -b.getY() + 40, b.getWidth() + b.getX(), b.getHeight() + b.getY());
         }
-        
-        cnv->setTransform(cnv->getTransform().scale(scale));
+        repaint();
     }
 
     void parentSizeChanged() override
