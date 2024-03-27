@@ -32,7 +32,6 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     , cnv(parent)
     , ptr(parent->pd)
 {
-    cacheId = rand();
     cnv->selectedComponents.addChangeListener(this);
     
     locked.referTo(parent->locked);
@@ -181,7 +180,7 @@ void Connection::render(NVGcontext* nvg)
                 
         setJUCEPath(nvg, pathFromOrigin);
         nvgStroke(nvg);
-        nvgSavePath(nvg, cacheId);
+        cacheId = nvgSavePath(nvg, cacheId);
     }
     
     if (cableType == SignalCable) {
@@ -207,7 +206,7 @@ void Connection::render(NVGcontext* nvg)
             pathFromOrigin.applyTransform(AffineTransform::translation(-getX(), -getY()));
             setJUCEPath(nvg, pathFromOrigin);
             nvgStroke(nvg);
-            nvgSavePath(nvg, cacheId+1);
+            nvgSavePath(nvg, std::numeric_limits<int32_t>::max() - cacheId);
         }
     }
     

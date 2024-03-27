@@ -162,7 +162,7 @@ private:
     int dragIdx = -1;
 
     float mouseDownPosition = 0;
-    int cacheId;
+    int cacheId = -1;
     bool cachedIsValid;
 
     pd::WeakReference ptr;
