@@ -16,7 +16,7 @@ struct RateReducer : public Timer {
 
     bool tooFast()
     {
-#if 0
+#if JUCE_LINUX
         if (allowEvent) {
             allowEvent = false;
             startTimerHz(timerHz);
