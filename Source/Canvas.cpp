@@ -1139,6 +1139,7 @@ bool Canvas::keyPressed(KeyPress const& key)
             viewY = totalBounds.getBottom() - viewHeight;
         }
         viewport->setViewPosition(viewX * scale, viewY * scale);
+        return true;
     };
 
     // Cancel connections being created by ESC key
