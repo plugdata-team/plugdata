@@ -196,8 +196,8 @@ void Connection::render(NVGcontext* nvg)
         nvgDashLength(nvg, 4.0f);
         nvgStrokeWidth(nvg, 2.0f);
         
-        if(!cachedIsValid) nvgDeletePath(nvg, cacheId);
-        if(nvgLoadPath(nvg, cacheId))
+        if(!cachedIsValid) nvgDeletePath(nvg, std::numeric_limits<int32_t>::max() - cacheId);
+        if(nvgLoadPath(nvg, std::numeric_limits<int32_t>::max() -  cacheId))
         {
             nvgStroke(nvg);
         }
