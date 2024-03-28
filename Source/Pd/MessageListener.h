@@ -110,8 +110,6 @@ public:
 private:
     void handleAsyncUpdate() override
     {
-
-
         usedHashes.clear();
         nullListeners.clear();
 
@@ -163,7 +161,6 @@ private:
     std::unordered_set<size_t> usedHashes;
     MessageStack messageStack;
     
-    moodycamel::ReaderWriterQueue<Message> messageQueue = moodycamel::ReaderWriterQueue<Message>(32768);
     std::map<void*, std::set<juce::WeakReference<MessageListener>>> messageListeners;
     CriticalSection messageListenerLock;
 };
