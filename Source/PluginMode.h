@@ -39,6 +39,7 @@ public:
 
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
             mainWindow->setUsingNativeTitleBar(false);
+            editor->nvgSurface.detachContext();
 #if JUCE_WINDOWS
             mainWindow->setOpaque(true);
 #else
@@ -167,6 +168,7 @@ public:
                 mainWindow->setResizeLimits(850, 650, 99000, 99000);
                 mainWindow->setOpaque(true);
                 mainWindow->setUsingNativeTitleBar(true);
+                editor->nvgSurface.detachContext();
             }
             editor->constrainer.setSizeLimits(850, 650, 99000, 99000);
 #if JUCE_LINUX || JUCE_BSD

@@ -196,8 +196,8 @@ void Connection::render(NVGcontext* nvg)
         nvgDashLength(nvg, 4.0f);
         nvgStrokeWidth(nvg, 2.0f);
         
-        if(!cachedIsValid) nvgDeletePath(nvg, cacheId+1);
-        if(nvgLoadPath(nvg, cacheId+1))
+        if(!cachedIsValid) nvgDeletePath(nvg, cacheId);
+        if(nvgLoadPath(nvg, cacheId))
         {
             nvgStroke(nvg);
         }
