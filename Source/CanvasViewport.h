@@ -246,7 +246,7 @@ class CanvasViewport : public Viewport, public Timer, public NVGComponent
         {
             auto growPosition = scrollBarThickness * 0.5f * growAnimation;
             auto growingBounds = thumbBounds.reduced(1).withTop(thumbBounds.getY() + growPosition);
-            auto thumbCornerRadius = growingBounds.getHeight() * 0.5f;
+            auto thumbCornerRadius = growingBounds.getHeight();
             auto fullBounds = growingBounds.withX(2).withWidth(getWidth() - 4);
             
             auto canvasColour = findColour(PlugDataColour::canvasBackgroundColourId);
@@ -255,17 +255,20 @@ class CanvasViewport : public Viewport, public Timer, public NVGComponent
             auto fadeColour = scrollbarColour.interpolatedWith(canvasColour, 0.7f).withAlpha(std::clamp(1.0f - growAnimation, 0.0f, 1.0f));
             if (isVertical) {
                 growingBounds = thumbBounds.reduced(1).withLeft(thumbBounds.getX() + growPosition);
-                thumbCornerRadius = growingBounds.getWidth() * 0.5f;
+                thumbCornerRadius = growingBounds.getWidth();
                 fullBounds = growingBounds.withY(2).withHeight(getHeight() - 4);
             }
 
+            // FIXME: We shouldn't need to map this, we should be able to use growingBounds.getWidth() * 0.5f Possibly something is wrong with the SDF RoundedRect Shader?
+            auto scaledTCR = jmap(thumbCornerRadius, 3.0f, 7.0f, 1.8f, 3.5f);
+
             nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, fullBounds.getX(), fullBounds.getY(), fullBounds.getWidth(), fullBounds.getHeight(), thumbCornerRadius);
+            nvgRoundedRect(nvg, fullBounds.getX(), fullBounds.getY(), fullBounds.getWidth(), fullBounds.getHeight(), scaledTCR);
             nvgFillColor(nvg, convertColour(fadeColour));
             nvgFill(nvg);
             
             nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, growingBounds.getX(), growingBounds.getY(), growingBounds.getWidth(), growingBounds.getHeight(), thumbCornerRadius);
+            nvgRoundedRect(nvg, growingBounds.getX(), growingBounds.getY(), growingBounds.getWidth(), growingBounds.getHeight(), scaledTCR);
             nvgFillColor(nvg, isMouseDragging ? convertColour(activeScrollbarColour) : convertColour(scrollbarColour));
             nvgFill(nvg);
 
