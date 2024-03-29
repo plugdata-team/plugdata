@@ -12,7 +12,7 @@
 #include <string>
 #include <mutex>
 
-#if __x86_64
+#if __x86_64 || _M_X64
     #define cpu_relax() asm volatile ("pause" ::: "memory");
 #elif  __arm__
     #define cpu_relax() asm volatile ("yield" ::: "memory");
