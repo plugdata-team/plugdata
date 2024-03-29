@@ -19,7 +19,7 @@
 #elif  __aarch64__
     #define cpu_relax() asm volatile ("wfe" ::: "memory");
 #else
-    #error No known relax instruction for your CPU!
+    #warning No known relax instruction for your CPU!
     #define cpu_relax()
 #endif
 
