@@ -60,6 +60,7 @@ class Canvas : public Component
     , public pd::MessageListener
     , public AsyncUpdater 
     , public NVGComponent
+    , public NVGContextListener
 {
 public:
     Canvas(PluginEditor* parent, pd::Patch::Ptr patch, Component* parentGraph = nullptr);
@@ -156,6 +157,8 @@ public:
     void updateSidebarSelection();
 
     void orderConnections();
+    
+    void nvgContextDeleted() override;
 
     void showSuggestions(Object* object, TextEditor* textEditor);
     void hideSuggestions();

@@ -450,21 +450,14 @@ public:
     }
 #endif
 
-    void recreateCanvasBuffers()
+    void clearAllBuffers()
     {
         if (!mainComponent)
             return;
 
         if (auto* editor = mainComponent->getEditor()) {
             if (auto* pdEditor = dynamic_cast<PluginEditor*>(editor)) {
-
-                // clear all canvas / viewport buffers FIXME: some are still not cleared? Possibly do this all when nvg is init?
-                for (auto& split : pdEditor->splitView.splits) {
-                    if (auto cnv = split->getTabComponent()->getCurrentCanvas()) {
-                        if (auto viewport = dynamic_cast<CanvasViewport*>(cnv->viewport.get()))
-                            viewport->deleteBuffers();
-                    }
-                }
+                pdEditor->nvgSurface.sendFramebufferDeleteMessage();
             }
         }
     }
@@ -483,7 +476,7 @@ public:
             setUsingNativeTitleBar(nativeWindow);
 
             pdEditor->nvgSurface.detachContext();
-            recreateCanvasBuffers();
+            clearAllBuffers();
 
             if (!nativeWindow) {
 #if JUCE_WINDOWS
@@ -626,7 +619,7 @@ public:
 
     void activeWindowStatusChanged() override
     {
-        recreateCanvasBuffers();
+        clearAllBuffers();
         repaint();
     }
 

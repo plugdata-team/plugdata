@@ -24,7 +24,7 @@
 class CalloutArea : public Component, public Timer
 {
 public:
-    CalloutArea(Component* parent) : target(parent)
+    CalloutArea(Component* parent) : target(parent), tooltipWindow(this)
     {
         setVisible(true);
         setAlwaysOnTop(true);
@@ -50,6 +50,7 @@ public:
 
 private:
     WeakReference<Component> target;
+    TooltipWindow tooltipWindow;
 };
 
 class ConnectionMessageDisplay;

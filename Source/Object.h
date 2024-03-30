@@ -37,6 +37,7 @@ class Object : public Component
     , public Timer
     , public KeyListener
     , public NVGComponent
+    , public NVGContextListener
     , private TextEditor::Listener
 {
 public:
@@ -65,7 +66,7 @@ public:
     void hideEditor();
     bool isInitialEditorShown();
     
-    
+    void nvgContextDeleted() override;
         
     String getType() const;
 

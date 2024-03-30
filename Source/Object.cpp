@@ -74,6 +74,7 @@ Object::~Object()
     
     hideEditor(); // Make sure the editor is not still open, that could lead to issues with listeners attached to the editor (i.e. suggestioncomponent)
     cnv->selectedComponents.removeChangeListener(this);
+    cnv->editor->nvgSurface.removeNVGContextListener(this);
 }
 
 Rectangle<int> Object::getObjectBounds()
@@ -148,6 +149,13 @@ void Object::initialise()
     setAccessible(false); // TODO: implement accessibility. We disable default, since it makes stuff slow on macOS
     
     setCachedComponentImage(new InvalidationListener(this));
+    cnv->editor->nvgSurface.addNVGContextListener(this);
+}
+
+void Object::nvgContextDeleted()
+{
+    if(fb) nvgDeleteFramebuffer(fb);
+    fb = nullptr;
 }
 
 void Object::timerCallback()

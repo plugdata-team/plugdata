@@ -192,7 +192,6 @@ void Connection::render(NVGcontext* nvg)
         dashColor.g *= 0.4f;
         dashColor.b *= 0.4f;
         
-        
         nvgStrokeColor(nvg, dashColor);
         nvgLineStyle(nvg, NVG_LINE_DASHED);
         nvgDashLength(nvg, 4.0f);

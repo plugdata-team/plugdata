@@ -20,6 +20,15 @@ using namespace juce::gl;
 #define NANOVG_GL_IMPLEMENTATION 1
 #endif
 
+
+class NVGContextListener
+{
+public:
+    virtual void nvgContextDeleted() {};
+    
+    JUCE_DECLARE_WEAK_REFERENCEABLE(NVGContextListener);
+};
+
 class FrameTimer;
 class PluginEditor;
 class NVGSurface : 
@@ -45,6 +54,10 @@ public:
 #ifdef LIN_OR_WIN
     void timerCallback() override;
 #endif
+    
+    void sendFramebufferDeleteMessage();
+    void addNVGContextListener(NVGContextListener* listener);
+    void removeNVGContextListener(NVGContextListener* listener);
 
     
     float getRenderScale() const;
@@ -88,7 +101,8 @@ public:
     };
         
     void invalidateArea(Rectangle<int> area);
-    
+    void invalidateAll();
+
 private:
     
     void renderArea(Rectangle<int> area);
@@ -112,6 +126,8 @@ private:
     bool hresize = false;
     bool resizing = false;
     Rectangle<int> newBounds;
+    
+    Array<WeakReference<NVGContextListener>> nvgContextListeners;
     
 #if NANOVG_GL_IMPLEMENTATION
     std::unique_ptr<OpenGLContext> glContext;

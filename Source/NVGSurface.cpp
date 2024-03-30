@@ -201,6 +201,12 @@ bool NVGSurface::isAttached() const
 #endif
 }
 
+
+void NVGSurface::invalidateAll()
+{
+    invalidArea = getLocalBounds();
+}
+
 void NVGSurface::invalidateArea(Rectangle<int> area)
 {
     invalidArea = invalidArea.getUnion(area);
@@ -224,6 +230,24 @@ void NVGSurface::renderArea(Rectangle<int> area)
             }
         }
     }
+}
+
+void NVGSurface::sendFramebufferDeleteMessage()
+{
+    for(auto listener : nvgContextListeners)
+    {
+        if(listener) listener->nvgContextDeleted();
+    }
+}
+
+void NVGSurface::addNVGContextListener(NVGContextListener* listener)
+{
+    nvgContextListeners.add(listener);
+}
+
+void NVGSurface::removeNVGContextListener(NVGContextListener* listener)
+{
+    nvgContextListeners.removeAllInstancesOf(listener);
 }
 
 void NVGSurface::render()
@@ -303,6 +327,9 @@ void NVGSurface::render()
         setInterceptsMouseClicks(false, false);
         setWantsKeyboardFocus(false);
 
+        sendFramebufferDeleteMessage();
+        if(invalidFBO) nvgDeleteFramebuffer(invalidFBO);
+        if(mainFBO) nvgDeleteFramebuffer(mainFBO);
         if(nvg) nvgDeleteContext(nvg);
         
 #ifdef NANOVG_METAL_IMPLEMENTATION
@@ -311,6 +338,7 @@ void NVGSurface::render()
         auto* view = OSUtils::MTLCreateView(peer, 0, 0, getWidth(), getHeight());
         setView(view);
         nvg = nvgCreateContext(view, NVG_ANTIALIAS | NVG_TRIPLE_BUFFER, getWidth() * renderScale, getHeight() * renderScale);
+        
         setVisible(true);
 #if JUCE_IOS
         resized();
@@ -333,6 +361,8 @@ void NVGSurface::render()
     }
     else if(!hasCanvas && isAttached())
     {
+        sendFramebufferDeleteMessage();
+        
         if(invalidFBO) nvgDeleteFramebuffer(invalidFBO);
         if(mainFBO) nvgDeleteFramebuffer(mainFBO);
         invalidFBO = nullptr;

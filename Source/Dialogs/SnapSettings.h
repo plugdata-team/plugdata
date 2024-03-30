@@ -231,7 +231,7 @@ public:
 
 private:
     static inline bool isShowing = false;
-
+    
     std::unique_ptr<GridSizeSlider> gridSlider = std::make_unique<GridSizeSlider>();
 
     OwnedArray<SnapSettings::SnapSelector> buttonGroups = {

@@ -165,11 +165,8 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     parameters.addParamRange("Y range", cGeneral, &yRange, { 1.0f, 0.0f });
     parameters.addParamInt("Width", cDimensions, &patchWidth, 527);
     parameters.addParamInt("Height", cDimensions, &patchHeight, 327);
-
-    // when a new canvas is added, delete the framebuffers for its viewport
-    if(viewport) {
-        reinterpret_cast<CanvasViewport*>(viewport.get())->deleteBuffers();
-    }
+    
+    editor->nvgSurface.addNVGContextListener(this);
 }
 
 Canvas::~Canvas()
@@ -177,6 +174,7 @@ Canvas::~Canvas()
     zoomScale.removeListener(this);
     editor->removeModifierKeyListener(this);
     pd->unregisterMessageListener(patch.getPointer().get(), this);
+    editor->nvgSurface.removeNVGContextListener(this);
 }
 
 void Canvas::deleteBuffers()
@@ -192,6 +190,13 @@ void Canvas::deleteBuffers()
 void Canvas::lookAndFeelChanged()
 {
     deleteBuffers(); // Clear all buffered images when the theme changes
+}
+
+void Canvas::nvgContextDeleted()
+{
+    if(ioletBuffer) nvgDeleteFramebuffer(ioletBuffer);
+    resizeHandleImage = 0;
+    ioletBuffer = nullptr;
 }
 
 bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, int maxUpdateTimeMs)
@@ -253,6 +258,7 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
         
         nvgEndFrame(nvg);
         nvgBindFramebuffer(0);
+        editor->nvgSurface.invalidateAll();
     }
     
     if(!resizeHandleImage || !approximatelyEqual(zoom, bufferScale))
@@ -281,6 +287,7 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
         
         if(resizeHandleImage) nvgDeleteImage(nvg, resizeHandleImage);
         resizeHandleImage = convertImage(nvg, resizerImage);
+        editor->nvgSurface.invalidateAll();
     }
     
     bufferScale = zoom;
@@ -867,7 +874,7 @@ void Canvas::moveToWindow(PluginEditor* newEditor)
     if (newEditor != editor) {
         editor->canvases.removeAndReturn(editor->canvases.indexOf(this));
         newEditor->canvases.add(this);
-        dynamic_cast<CanvasViewport*>(viewport.get())->editorChanged(newEditor); // Let viewport know about new editor so it can change the openGL context it uses
+        deleteBuffers();
         editor = newEditor;
     }
 }
@@ -1025,6 +1032,15 @@ void Canvas::mouseUp(MouseEvent const& e)
         deselectAll();
         setSelected(objects[objects.size() - 1], true); // Select newly created object
     }
+    
+    // Make sure the drag-over toggle action is ended
+    if(!isDraggingLasso) {
+        for (auto* object : objects) {
+            if (auto* obj = object->gui.get()) {
+                obj->untoggleObject();
+            }
+        }
+    }
 
     updateSidebarSelection();
 
@@ -1044,13 +1060,6 @@ void Canvas::mouseUp(MouseEvent const& e)
                     iolet->mouseUp(relativeEvent);
                 }
             }
-        }
-    }
-    
-    // Make sure the drag-over toggle action is ended
-    for (auto* object : objects) {
-        if (auto* obj = object->gui.get()) {
-            obj->untoggleObject();
         }
     }
 }

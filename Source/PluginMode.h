@@ -142,7 +142,7 @@ public:
         editor->setSize(newWidth, newHeight);
         setBounds(0, 0, newWidth, newHeight);
 
-        editor->nvgSurface.invalidateArea(editor->nvgSurface.getLocalBounds());
+        editor->nvgSurface.invalidateAll();
     }
     
     void render(NVGcontext* nvg) override

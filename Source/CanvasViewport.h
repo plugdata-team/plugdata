@@ -339,19 +339,6 @@ public:
     {
     }
     
-    void editorChanged(PluginEditor* newEditor)
-    {
-        editor = newEditor;
-
-        deleteBuffers();
-    }
-
-    void deleteBuffers()
-    {
-        // Recreate framebuffers, they are still bound to old openGL context
-        cnv->deleteBuffers();
-    }
-    
     void render(NVGcontext* nvg) override
     {
         nvgSave(nvg);
@@ -446,14 +433,14 @@ public:
         startTimer(150);
         onScroll();
         adjustScrollbarBounds();
-        editor->nvgSurface.invalidateArea(editor->nvgSurface.getLocalBounds());
+        editor->nvgSurface.invalidateAll();
     }
     
     void timerCallback() override
     {
         stopTimer();
         cnv->isScrolling = false;
-        editor->nvgSurface.invalidateArea(editor->nvgSurface.getLocalBounds());
+        editor->nvgSurface.invalidateAll();
     }
 
     void resized() override
