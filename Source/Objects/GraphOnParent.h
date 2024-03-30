@@ -25,6 +25,7 @@ public:
     GraphOnParent(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
         , subpatch(new pd::Patch(obj, cnv->pd, false))
+        , textRenderer(cnv->editor->nvgSurface)
     {
         resized();
 

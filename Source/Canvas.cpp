@@ -177,24 +177,15 @@ Canvas::~Canvas()
     editor->nvgSurface.removeNVGContextListener(this);
 }
 
-void Canvas::deleteBuffers()
-{
-    if(ioletBuffer) nvgDeleteFramebuffer(ioletBuffer);
-    //if(resizeHandleImage) nvgDeleteImage(nvg, resizeHandleImage); TODO: where to delete this?
-    ioletBuffer = nullptr;
-    resizeHandleImage = 0;
-    for(auto* object : objects) object->deleteBuffers();
-}
-
-
 void Canvas::lookAndFeelChanged()
 {
-    deleteBuffers(); // Clear all buffered images when the theme changes
+    editor->nvgSurface.sendContextDeleteMessage();
 }
 
-void Canvas::nvgContextDeleted()
+void Canvas::nvgContextDeleted(NVGcontext* nvg)
 {
     if(ioletBuffer) nvgDeleteFramebuffer(ioletBuffer);
+    if(resizeHandleImage) nvgDeleteImage(nvg, resizeHandleImage);
     resizeHandleImage = 0;
     ioletBuffer = nullptr;
 }
@@ -874,7 +865,7 @@ void Canvas::moveToWindow(PluginEditor* newEditor)
     if (newEditor != editor) {
         editor->canvases.removeAndReturn(editor->canvases.indexOf(this));
         newEditor->canvases.add(this);
-        deleteBuffers();
+        newEditor->nvgSurface.sendContextDeleteMessage();
         editor = newEditor;
     }
 }

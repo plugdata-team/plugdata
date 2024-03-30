@@ -457,7 +457,7 @@ public:
 
         if (auto* editor = mainComponent->getEditor()) {
             if (auto* pdEditor = dynamic_cast<PluginEditor*>(editor)) {
-                pdEditor->nvgSurface.sendFramebufferDeleteMessage();
+                pdEditor->nvgSurface.sendContextDeleteMessage();
             }
         }
     }

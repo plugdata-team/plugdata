@@ -21,6 +21,7 @@ class MessageObject final : public ObjectBase
 public:
     MessageObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
+        , textRenderer(cnv->editor->nvgSurface)
     {
         objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
     }

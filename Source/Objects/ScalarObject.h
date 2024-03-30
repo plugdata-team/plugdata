@@ -366,6 +366,7 @@ public:
     DrawableSymbol(t_scalar* s, t_gobj* obj, t_word* data, t_template* templ, Canvas* cnv, int x, int y, t_template* parent = nullptr)
         : DrawableTemplate(s, data, templ, parent, cnv, x, y)
         , object(reinterpret_cast<t_fake_drawnumber*>(obj))
+        , textRenderer(cnv->editor->nvgSurface)
     {
         mouseListener.globalMouseDown = [this](MouseEvent const& e) {
             handleMouseDown(e.getEventRelativeTo(this));

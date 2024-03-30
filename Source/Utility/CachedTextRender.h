@@ -1,9 +1,28 @@
 #pragma once
 
-class CachedTextRender
+class CachedTextRender : public NVGContextListener
 {
 
+    NVGSurface& surface;
+    
 public:
+    
+    CachedTextRender(NVGSurface& nvgSurface) : surface(nvgSurface)
+    {
+        surface.addNVGContextListener(this);
+    }
+    
+    ~CachedTextRender()
+    {
+        surface.removeNVGContextListener(this);
+    }
+    
+    void nvgContextDeleted(NVGcontext* nvg) override
+    {
+        if(imageId) nvgDeleteImage(nvg, imageId);
+        imageId = 0;
+    }
+    
     void renderText(NVGcontext* nvg, String const& text, Font const& font, Colour const& colour, Rectangle<int> const& bounds, float scale)
     {
         if(imageId < 0 || lastTextHash != hash(text) || scale != lastScale || colour != lastColour || lastWidth != bounds.getWidth())

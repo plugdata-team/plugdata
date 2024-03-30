@@ -87,7 +87,6 @@ public:
     
     bool updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, int maxUpdateTimeMs);
     void performRender(NVGcontext* nvg, Rectangle<int> invalidRegion);
-    void deleteBuffers();
     
     void resized() override;
 
@@ -158,7 +157,7 @@ public:
 
     void orderConnections();
     
-    void nvgContextDeleted() override;
+    void nvgContextDeleted(NVGcontext* nvg) override;
 
     void showSuggestions(Object* object, TextEditor* textEditor);
     void hideSuggestions();

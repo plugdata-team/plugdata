@@ -24,7 +24,7 @@ using namespace juce::gl;
 class NVGContextListener
 {
 public:
-    virtual void nvgContextDeleted() {};
+    virtual void nvgContextDeleted(NVGcontext* nvg) {};
     
     JUCE_DECLARE_WEAK_REFERENCEABLE(NVGContextListener);
 };
@@ -55,7 +55,7 @@ public:
     void timerCallback() override;
 #endif
     
-    void sendFramebufferDeleteMessage();
+    void sendContextDeleteMessage();
     void addNVGContextListener(NVGContextListener* listener);
     void removeNVGContextListener(NVGContextListener* listener);
 

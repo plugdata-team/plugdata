@@ -152,7 +152,7 @@ void Object::initialise()
     cnv->editor->nvgSurface.addNVGContextListener(this);
 }
 
-void Object::nvgContextDeleted()
+void Object::nvgContextDeleted(NVGcontext* nvg)
 {
     if(fb) nvgDeleteFramebuffer(fb);
     fb = nullptr;
@@ -1206,12 +1206,6 @@ bool Object::shouldRenderToFramebuffer()
 {
     // We render to framebuffer if we are scrolling/zooming
     return cnv->isScrolling;
-}
-
-void Object::deleteBuffers()
-{
-    if(fb) nvgDeleteFramebuffer(fb);
-    fb = nullptr;
 }
 
 void Object::render(NVGcontext* nvg)

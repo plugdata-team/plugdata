@@ -20,7 +20,7 @@ using namespace juce::gl;
 #include "PluginMode.h"
 #include "Canvas.h"
 
-#define ENABLE_FPS_COUNT 1
+#define ENABLE_FPS_COUNT 0
 
 class FrameTimer
 {
@@ -232,11 +232,11 @@ void NVGSurface::renderArea(Rectangle<int> area)
     }
 }
 
-void NVGSurface::sendFramebufferDeleteMessage()
+void NVGSurface::sendContextDeleteMessage()
 {
     for(auto listener : nvgContextListeners)
     {
-        if(listener) listener->nvgContextDeleted();
+        if(listener) listener->nvgContextDeleted(nvg);
     }
 }
 
@@ -327,7 +327,7 @@ void NVGSurface::render()
         setInterceptsMouseClicks(false, false);
         setWantsKeyboardFocus(false);
 
-        sendFramebufferDeleteMessage();
+        sendContextDeleteMessage();
         if(invalidFBO) nvgDeleteFramebuffer(invalidFBO);
         if(mainFBO) nvgDeleteFramebuffer(mainFBO);
         if(nvg) nvgDeleteContext(nvg);
@@ -361,7 +361,7 @@ void NVGSurface::render()
     }
     else if(!hasCanvas && isAttached())
     {
-        sendFramebufferDeleteMessage();
+        sendContextDeleteMessage();
         
         if(invalidFBO) nvgDeleteFramebuffer(invalidFBO);
         if(mainFBO) nvgDeleteFramebuffer(mainFBO);
