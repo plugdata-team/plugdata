@@ -31,7 +31,7 @@ public:
             attributedText.setFont(Font(15));
             
             layout = TextLayout();
-            layout.createLayout(attributedText, width);
+            layout.createLayout(attributedText, width+1);
             
             idealHeight = layout.getHeight();
             idealWidth = CachedFontStringWidth::get()->calculateStringWidth(font, text);

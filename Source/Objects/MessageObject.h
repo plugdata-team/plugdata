@@ -143,7 +143,6 @@ public:
         nvgSave(nvg);
         nvgIntersectRoundedScissor(nvg, b.getX() + 0.25f, b.getY() + 0.25f, b.getWidth() - 0.5f, b.getHeight() - 0.5f, Corners::objectCornerRadius);
         
-        
         float bRight = b.getRight(); // offset to make it go completely under outline
         float bY = b.getY();
         float bBottom = b.getBottom();

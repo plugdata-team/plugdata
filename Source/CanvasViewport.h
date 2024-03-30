@@ -383,7 +383,7 @@ public:
         if (e.eventTime == lastScrollTime)
             return;
 
-        if (e.mods.isCommandDown() && !editor->pd->isInPluginMode()) {
+        if (e.mods.isCommandDown()) {
             mouseMagnify(e, 1.0f / (1.0f - wheel.deltaY));
         }
 

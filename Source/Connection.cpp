@@ -162,8 +162,10 @@ void Connection::render(NVGcontext* nvg)
         connectionColour.b *= 1.2f;
     }
     
+    bool useThinConnection = PlugDataLook::getUseThinConnections();
+    
     nvgStrokePaint(nvg, nvgDoubleStroke(nvg, connectionColour, shadowColour));
-    nvgStrokeWidth(nvg, 4.0f);
+    nvgStrokeWidth(nvg, useThinConnection ? 2.5f : 4.0f);
     
     nvgSave(nvg);
     nvgTranslate(nvg, getX(), getY());
@@ -194,7 +196,7 @@ void Connection::render(NVGcontext* nvg)
         nvgStrokeColor(nvg, dashColor);
         nvgLineStyle(nvg, NVG_LINE_DASHED);
         nvgDashLength(nvg, 4.0f);
-        nvgStrokeWidth(nvg, 2.0f);
+        nvgStrokeWidth(nvg, useThinConnection ? 1.5f : 2.0f);
         
         if(!cachedIsValid) nvgDeletePath(nvg, std::numeric_limits<int32_t>::max() - cacheId);
         if(nvgLoadPath(nvg, std::numeric_limits<int32_t>::max() -  cacheId))
