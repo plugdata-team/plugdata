@@ -142,7 +142,7 @@ void Connection::lookAndFeelChanged()
 void Connection::render(NVGcontext* nvg)
 {
     auto backgroundColour = baseColour;
-    if (isSelected() || isMouseOver()) {
+    if (isSelected() || isHovering) {
         if(outlet->isSignal)
         {
             backgroundColour = signalColour;
@@ -156,7 +156,7 @@ void Connection::render(NVGcontext* nvg)
         }
     }
     
-    if (isMouseOver()) {
+    if (isHovering) {
         backgroundColour.r *= 1.2f;
         backgroundColour.g *= 1.2f;
         backgroundColour.b *= 1.2f;
