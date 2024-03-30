@@ -184,7 +184,7 @@ public:
     
         if(editor)
         {
-            renderComponentFromImage(nvg, *editor, getImageScale());
+            imageRenderer.renderComponentFromImage(nvg, *editor, getImageScale());
         }
         else {
             auto text = getText();

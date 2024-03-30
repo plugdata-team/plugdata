@@ -52,7 +52,7 @@ public:
             textRenderer.renderText(nvg, getText(), Fonts::getDefaultFont().withHeight(15), object->findColour(PlugDataColour::commentTextColourId), textArea, getImageScale());
         }
         else {
-            renderComponentFromImage(nvg, *editor, getImageScale());
+            imageRenderer.renderComponentFromImage(nvg, *editor, getImageScale());
         }
     }
     

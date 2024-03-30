@@ -214,7 +214,7 @@ public:
 
         if(editor && editor->isVisible())
         {
-            renderComponentFromImage(nvg, *editor, getImageScale());
+            imageRenderer.renderComponentFromImage(nvg, *editor, getImageScale());
         }
         else {
             auto text = getText();

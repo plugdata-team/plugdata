@@ -24,8 +24,10 @@ class Object;
 
 class ObjectLabel : public Label, public NVGComponent {
 
+    NVGImageRenderer imageRenderer;
+    
 public:
-    explicit ObjectLabel() : NVGComponent(this)
+    explicit ObjectLabel(NVGSurface& surface) : NVGComponent(this), imageRenderer(surface)
     {
         setJustificationType(Justification::centredLeft);
         setBorderSize(BorderSize<int>(0, 0, 0, 0));
@@ -36,7 +38,7 @@ public:
     
     void renderLabel(NVGcontext* nvg, float scale)
     {
-        renderComponentFromImage(nvg, *this, scale);
+        imageRenderer.renderComponentFromImage(nvg, *this, scale);
     }
 
 private:
@@ -239,7 +241,9 @@ public:
 
 protected:
     PropertyUndoListener propertyUndoListener;
-
+    
+    NVGImageRenderer imageRenderer;
+    
     std::function<void()> onConstrainerCreate = []() {};
 
     virtual std::unique_ptr<ComponentBoundsConstrainer> createConstrainer();

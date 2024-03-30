@@ -277,7 +277,7 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
         g.fillRoundedRectangle(0.0f, 0.0f, 9.0f, 9.0f, Corners::objectCornerRadius);
         
         if(resizeHandleImage) nvgDeleteImage(nvg, resizeHandleImage);
-        resizeHandleImage = convertImage(nvg, resizerImage);
+        resizeHandleImage = NVGImageRenderer::convertImage(nvg, resizerImage);
         editor->nvgSurface.invalidateAll();
     }
     

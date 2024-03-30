@@ -189,7 +189,7 @@ public:
         
         nvgRestore(nvg);
         
-        renderComponentFromImage(nvg, input, getImageScale());
+        imageRenderer.renderComponentFromImage(nvg, input, getImageScale());
 
         if(object->isSelected()) // If object is selected, draw outline over top too, so the flag doesn't poke into the selected outline
         {

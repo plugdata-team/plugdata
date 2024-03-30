@@ -1251,7 +1251,7 @@ public:
   
         if (title.isNotEmpty()) {
             if (!label) {
-                label = std::make_unique<ObjectLabel>();
+                label = std::make_unique<ObjectLabel>(cnv->editor->nvgSurface);
             }
 
             auto bounds = object->getBounds().reduced(Object::margin).removeFromTop(fontHeight + 2);

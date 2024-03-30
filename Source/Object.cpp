@@ -28,9 +28,6 @@
 
 extern "C" {
 #include <m_pd.h>
-//#include <m_imp.h>
-
-//int is_gem_object(const char* sym);
 }
 
 Object::Object(Canvas* parent, String const& name, Point<int> position)
@@ -38,6 +35,7 @@ Object::Object(Canvas* parent, String const& name, Point<int> position)
     , cnv(parent)
     , gui(nullptr)
     , ds(parent->dragState)
+    , textEditorRenderer(parent->editor->nvgSurface)
 {
     setTopLeftPosition(position - Point<int>(margin, margin));
 
@@ -59,6 +57,7 @@ Object::Object(Canvas* parent, String const& name, Point<int> position)
 Object::Object(pd::WeakReference object, Canvas* parent)
     : NVGComponent(this)
     , gui(nullptr)
+    , textEditorRenderer(parent->editor->nvgSurface)
     , ds(parent->dragState)
 {
     cnv = parent;
@@ -1292,7 +1291,7 @@ void Object::performRender(NVGcontext* nvg)
         nvgStroke(nvg);
         
         nvgTranslate(nvg, margin, margin);
-        renderComponentFromImage(nvg, *newObjectEditor, getValue<float>(cnv->zoomScale) * cnv->getRenderScale());
+        textEditorRenderer.renderComponentFromImage(nvg, *newObjectEditor, getValue<float>(cnv->zoomScale) * cnv->getRenderScale());
     }
     
     // If autoconnect is about to happen, draw a fake inlet with a dotted outline

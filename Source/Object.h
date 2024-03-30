@@ -169,6 +169,7 @@ private:
     bool isInsideUndoSequence = false;
 
     Image activityOverlayImage;
+    NVGImageRenderer textEditorRenderer;
 
     ObjectDragState& ds;
 
