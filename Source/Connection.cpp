@@ -141,28 +141,28 @@ void Connection::lookAndFeelChanged()
 
 void Connection::render(NVGcontext* nvg)
 {
-    auto backgroundColour = baseColour;
+    auto connectionColour = baseColour;
     if (isSelected() || isHovering) {
         if(outlet->isSignal)
         {
-            backgroundColour = signalColour;
+            connectionColour = signalColour;
         }
         else if(outlet->isGemState)
         {
-            backgroundColour = gemColour;
+            connectionColour = gemColour;
         }
         else {
-            backgroundColour = dataColour;
+            connectionColour = dataColour;
         }
     }
     
     if (isHovering) {
-        backgroundColour.r *= 1.2f;
-        backgroundColour.g *= 1.2f;
-        backgroundColour.b *= 1.2f;
+        connectionColour.r *= 1.2f;
+        connectionColour.g *= 1.2f;
+        connectionColour.b *= 1.2f;
     }
     
-    nvgStrokePaint(nvg, nvgDoubleStroke(nvg, backgroundColour, shadowColour));
+    nvgStrokePaint(nvg, nvgDoubleStroke(nvg, connectionColour, shadowColour));
     nvgStrokeWidth(nvg, 4.0f);
     
     nvgSave(nvg);
@@ -232,6 +232,51 @@ void Connection::render(NVGcontext* nvg)
         nvgCircle(nvg, expandedEndHandle.getCentreX(), expandedEndHandle.getCentreY(), expandedEndHandle.getWidth() / 2);
         nvgFill(nvg);
         nvgStroke(nvg);
+    }
+
+    // draw direction arrow if button is toggled (per canvas, default state is false)
+    //            c
+    //            |\
+    //            | \
+    //            |  \
+    //  ___path___|   \a___path___
+    //            |   /
+    //            |  /
+    //            | /
+    //            |/
+    //            b
+
+    if (showDirection) {
+        // setup arrow parameters
+        float arrowWidth = 8.0f;
+        float arrowLength = 12.0f;
+        auto connectionPath = getPath();
+        connectionPath.applyTransform(AffineTransform::translation(-getX(), -getY()));
+        auto connectionLength = connectionPath.getLength();
+
+        if (connectionLength > arrowLength * 2) {
+            // get the center point of the connection path
+            auto arrowCenter = connectionLength * 0.5f;
+            auto arrowBase = connectionPath.getPointAlongPath(arrowCenter - (arrowLength * 0.5f));
+            auto arrowTip = connectionPath.getPointAlongPath(arrowCenter + (arrowLength * 0.5f));
+
+            Line<float> arrowLine(arrowBase, arrowTip);
+            auto point_a = cnv->getLocalPoint(this, arrowTip);
+            auto point_b = cnv->getLocalPoint(this, arrowLine.getPointAlongLine(0.0f, -(arrowWidth * 0.5f)));
+            auto point_c = cnv->getLocalPoint(this, arrowLine.getPointAlongLine(0.0f, (arrowWidth * 0.5f)));
+
+            // draw the arrow
+            nvgBeginPath(nvg);
+            nvgStrokeColor(nvg, outlineColour);
+            nvgFillColor(nvg, connectionColour);
+            nvgMoveTo(nvg, point_a.x, point_a.y);
+            nvgLineTo(nvg, point_b.x, point_b.y);
+            nvgLineTo(nvg, point_c.x, point_c.y);
+            nvgClosePath(nvg);
+            nvgStrokeWidth(nvg, 1.0f);
+            nvgFill(nvg);
+            nvgStroke(nvg);
+        }
     }
 }
 
