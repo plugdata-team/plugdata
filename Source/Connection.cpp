@@ -235,48 +235,70 @@ void Connection::render(NVGcontext* nvg)
         nvgStroke(nvg);
     }
 
-    // draw direction arrow if button is toggled (per canvas, default state is false)
-    //            c
-    //            |\
-    //            | \
-    //            |  \
-    //  ___path___|   \a___path___
-    //            |   /
-    //            |  /
-    //            | /
-    //            |/
-    //            b
+    // draw direction arrow if activated in overlay menu
+    //              c
+    //              |\
+    //              | \
+    //              |  \
+    //  ___path___  |   \a  ___path___
+    //              |   /
+    //              |  /
+    //              | /
+    //              |/
+    //              b
 
+    // setup arrow parameters
+    const float arrowWidth = 8.0f;
+    const float arrowLength = 12.0f;
+
+    auto renderArrow = [this, nvg, arrowLength, arrowWidth, connectionColour](Path& path, float connectionLength){
+        // get the center point of the connection path
+
+        const auto arrowCenter = connectionLength * 0.5f;
+        const auto arrowBase = path.getPointAlongPath(arrowCenter - (arrowLength * 0.5f));
+        const auto arrowTip = path.getPointAlongPath(arrowCenter + (arrowLength * 0.5f));
+
+        const Line<float> arrowLine(arrowBase, arrowTip);
+        const auto point_a = cnv->getLocalPoint(this, arrowTip);
+        const auto point_b = cnv->getLocalPoint(this, arrowLine.getPointAlongLine(0.0f, -(arrowWidth * 0.5f)));
+        const auto point_c = cnv->getLocalPoint(this, arrowLine.getPointAlongLine(0.0f, (arrowWidth * 0.5f)));
+
+        // draw the arrow
+        nvgBeginPath(nvg);
+        nvgStrokeColor(nvg, outlineColour);
+        nvgFillColor(nvg, connectionColour);
+        nvgMoveTo(nvg, point_a.x, point_a.y);
+        nvgLineTo(nvg, point_b.x, point_b.y);
+        nvgLineTo(nvg, point_c.x, point_c.y);
+        nvgClosePath(nvg);
+        nvgStrokeWidth(nvg, 1.0f);
+        nvgFill(nvg);
+        nvgStroke(nvg);
+    };
+
+    //TODO: refactor this outside of the render function
     if (showDirection) {
-        // setup arrow parameters
-        float arrowWidth = 8.0f;
-        float arrowLength = 12.0f;
-        auto connectionPath = getPath();
-        connectionPath.applyTransform(AffineTransform::translation(-getX(), -getY()));
-        auto connectionLength = connectionPath.getLength();
+        if (isSegmented()) {
+            for (int i = 1; i < currentPlan.size(); i++) {
+                const auto pathLine = Line<float>(currentPlan[i - 1], currentPlan[i]);
+                const auto length = pathLine.getLength();
+                // don't show arrow if start or end segment is too small, to give room for the reconnect handle
+                const auto isStartOrEnd = (i == 1) || (i == currentPlan.size() - 1);
+                if (length > arrowLength * (isStartOrEnd ? 3 : 2)) {
+                    Path segmentedPath;
+                    segmentedPath.addLineSegment(pathLine, 0.0f);
+                    segmentedPath.applyTransform(AffineTransform::translation(-getX(), -getY()));
+                    renderArrow(segmentedPath, length);
+                }
+            }
+        } else {
+            auto connectionPath = getPath();
+            connectionPath.applyTransform(AffineTransform::translation(-getX(), -getY()));
+            const auto connectionLength = connectionPath.getLength();
 
-        if (connectionLength > arrowLength * 2) {
-            // get the center point of the connection path
-            auto arrowCenter = connectionLength * 0.5f;
-            auto arrowBase = connectionPath.getPointAlongPath(arrowCenter - (arrowLength * 0.5f));
-            auto arrowTip = connectionPath.getPointAlongPath(arrowCenter + (arrowLength * 0.5f));
-
-            Line<float> arrowLine(arrowBase, arrowTip);
-            auto point_a = cnv->getLocalPoint(this, arrowTip);
-            auto point_b = cnv->getLocalPoint(this, arrowLine.getPointAlongLine(0.0f, -(arrowWidth * 0.5f)));
-            auto point_c = cnv->getLocalPoint(this, arrowLine.getPointAlongLine(0.0f, (arrowWidth * 0.5f)));
-
-            // draw the arrow
-            nvgBeginPath(nvg);
-            nvgStrokeColor(nvg, outlineColour);
-            nvgFillColor(nvg, connectionColour);
-            nvgMoveTo(nvg, point_a.x, point_a.y);
-            nvgLineTo(nvg, point_b.x, point_b.y);
-            nvgLineTo(nvg, point_c.x, point_c.y);
-            nvgClosePath(nvg);
-            nvgStrokeWidth(nvg, 1.0f);
-            nvgFill(nvg);
-            nvgStroke(nvg);
+            if (connectionLength > arrowLength * 2) {
+                renderArrow(connectionPath, connectionLength);
+            }
         }
     }
 }
