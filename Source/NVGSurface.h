@@ -21,6 +21,25 @@ using namespace juce::gl;
 #endif
 
 
+#if NANOVG_METAL_IMPLEMENTATION
+// With metal, all images and buffers get invalidated when the window becomes inactive
+// so, we need to get a callback when that happens to inform plugdata that all images/framebuffers are now invalid
+struct BackgroundProcessChecker
+{
+    bool checkIfWindowActivityChanged()
+    {
+        auto wasForeground = isForeground;
+        isForeground = Process::isForegroundProcess();
+        return wasForeground != isForeground;
+    }
+
+private:
+    bool isForeground = false;
+};
+#endif
+
+
+
 class NVGContextListener
 {
 public:
@@ -131,6 +150,10 @@ private:
     
 #if NANOVG_GL_IMPLEMENTATION
     std::unique_ptr<OpenGLContext> glContext;
+#endif
+    
+#if NANOVG_METAL_IMPLEMENTATION
+    BackgroundProcessChecker metalActivityChecker;
 #endif
     
     std::unique_ptr<FrameTimer> frameTimer;

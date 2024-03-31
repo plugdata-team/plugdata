@@ -194,7 +194,7 @@ void Connection::render(NVGcontext* nvg)
         
         nvgStrokeColor(nvg, dashColor);
         nvgLineStyle(nvg, NVG_LINE_DASHED);
-        nvgDashLength(nvg, 4.0f);
+        nvgDashLength(nvg, 5.0f);
         nvgStrokeWidth(nvg, useThinConnection ? 1.5f : 2.0f);
         
         if(!cachedIsValid) nvgDeletePath(nvg, std::numeric_limits<int32_t>::max() - cacheId);

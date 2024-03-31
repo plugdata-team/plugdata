@@ -262,6 +262,23 @@ void NVGSurface::render()
         }
     }
     
+#if NANOVG_METAL_IMPLEMENTATION
+    auto contextInvalidated = metalActivityChecker.checkIfWindowActivityChanged();
+    if(contextInvalidated)  {
+        sendContextDeleteMessage();
+        if(invalidFBO) nvgDeleteFramebuffer(invalidFBO);
+        if(mainFBO) nvgDeleteFramebuffer(mainFBO);
+        if(nvg) nvgDeleteContext(nvg);
+        invalidFBO = nullptr;
+        mainFBO = nullptr;
+        nvg = nullptr;
+        
+        detachContext();
+        invalidateAll();
+        return;
+    }
+#endif
+    
     if(makeContextActive()) {
         float pixelScale = getRenderScale();
         int scaledWidth = getWidth() * pixelScale;
@@ -338,7 +355,6 @@ void NVGSurface::render()
         auto* view = OSUtils::MTLCreateView(peer, 0, 0, getWidth(), getHeight());
         setView(view);
         nvg = nvgCreateContext(view, NVG_ANTIALIAS | NVG_TRIPLE_BUFFER, getWidth() * renderScale, getHeight() * renderScale);
-        
         setVisible(true);
 #if JUCE_IOS
         resized();
@@ -349,7 +365,7 @@ void NVGSurface::render()
         glContext->setSwapInterval(0); // It's very important this happens after attachTo. Otherwise, it will be terribly slow on Windows and Linux
         nvg = nvgCreateContext(NVG_ANTIALIAS);
 #endif
-        invalidArea = getLocalBounds();
+        invalidateAll();
         
         if (!nvg) std::cerr << "could not initialise nvg" << std::endl;
         nvgCreateFontMem(nvg, "Inter", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);

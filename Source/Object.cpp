@@ -34,8 +34,8 @@ Object::Object(Canvas* parent, String const& name, Point<int> position)
     : NVGComponent(this)
     , cnv(parent)
     , gui(nullptr)
-    , ds(parent->dragState)
     , textEditorRenderer(parent->editor->nvgSurface)
+    , ds(parent->dragState)
 {
     setTopLeftPosition(position - Point<int>(margin, margin));
 
