@@ -136,28 +136,7 @@ public:
             nvgStroke(nvg);
         }
     }
-
-    void paint(Graphics& g) override
-    {
-        auto bgcolour = Colour::fromString(iemHelper.secondaryColour.toString());
-
-        g.setColour(bgcolour);
-        g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::objectCornerRadius);
-
-        if (!locked) {
-
-            Rectangle<float> draggableRect;
-            if (auto iemgui = ptr.get<t_iemgui>()) {
-                draggableRect = Rectangle<float>(ptr.get<t_iemgui>()->x_w, ptr.get<t_iemgui>()->x_h);
-            } else {
-                return;
-            }
-            
-            g.setColour(object->isSelected() ? object->findColour(PlugDataColour::objectSelectedOutlineColourId) : bgcolour.contrasting(0.75f));
-            g.drawRoundedRectangle(draggableRect.reduced(1.0f), Corners::objectCornerRadius, 1.0f);
-        }
-    }
-
+    
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(sizeProperty)) {

@@ -143,34 +143,6 @@ public:
         }
     }
 
-    void paint(Graphics& g) override
-    {
-        g.setColour(iemHelper.getBackgroundColour());
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
-
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-
-        auto const bounds = getLocalBounds().reduced(1).toFloat();
-        auto const width = std::max(bounds.getWidth(), bounds.getHeight());
-
-        auto const sizeReduction = std::min(1.0f, getWidth() / 20.0f);
-        
-        float const circleOuter = 80.f * (width * 0.01f);
-        float const circleThickness = std::max(width * 0.06f, 1.5f) * sizeReduction;
-
-        g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
-        g.drawEllipse(bounds.reduced((width - circleOuter) * sizeReduction), circleThickness);
-
-        if (bangState) {
-            g.setColour(iemHelper.getForegroundColour());
-            g.fillEllipse(bounds.reduced((width - circleOuter + circleThickness) * sizeReduction));
-        }
-    }
-
     void trigger()
     {
         if (bangState)

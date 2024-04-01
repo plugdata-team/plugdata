@@ -163,30 +163,7 @@ public:
             nvgFill(nvg);
         }
     }
-
-    /*
-    void paint(Graphics& g) override
-    {
-        auto const bounds = getLocalBounds().toFloat();
-        auto const sizeReduction = std::min(1.0f, getWidth() / 20.0f);
-        
-        g.setColour(Colour::fromString(secondaryColour.toString()));
-        g.fillRoundedRectangle(bounds.reduced(0.5f), Corners::objectCornerRadius);
-
-        bool selected = object->isSelected() && !cnv->isGraph;
-
-        g.setColour(object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId));
-        g.drawRoundedRectangle(bounds.reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-
-        g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
-        g.drawRoundedRectangle(bounds.reduced(6 * sizeReduction), Corners::objectCornerRadius * sizeReduction, 1.5f);
-
-        if (state) {
-            g.setColour(Colour::fromString(primaryColour.toString()));
-            g.fillRoundedRectangle(, Corners::objectCornerRadius * sizeReduction);
-        }
-    } */
-
+    
     void valueChanged(Value& value) override
     {
 

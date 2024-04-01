@@ -97,36 +97,6 @@ public:
         nvgStroke(nvg);
     }
 
-    void paint(Graphics& g) override
-    {
-        g.setColour(iemHelper.getBackgroundColour());
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
-
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-
-        auto toggledColour = iemHelper.getForegroundColour();
-        auto untoggledColour = toggledColour.interpolatedWith(iemHelper.getBackgroundColour(), 0.8f);
-        g.setColour(toggleState ? toggledColour : untoggledColour);
-
-        auto const sizeReduction = std::min(1.0f, getWidth() / 20.0f);
-        float margin = (getWidth() * 0.08f + 4.5f) * sizeReduction;
-        auto crossBounds = getLocalBounds().toFloat().reduced(margin);
-        
-        auto const max = std::max(crossBounds.getWidth(), crossBounds.getHeight());
-        auto strokeWidth = std::max(max * 0.15f, 2.0f) * sizeReduction;
-        
-        if (getWidth() < 18) {
-            //crossBounds = getLocalBounds().toFloat().reduced(1.5f);
-        }
-        
-        g.drawLine({ crossBounds.getTopLeft(), crossBounds.getBottomRight() }, strokeWidth);
-        g.drawLine({ crossBounds.getBottomLeft(), crossBounds.getTopRight() }, strokeWidth);
-    }
-
     void toggleObject(Point<int> position) override
     {
         ignoreUnused(position);

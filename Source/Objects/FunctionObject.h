@@ -143,40 +143,7 @@ public:
             nvgStroke(nvg);
         }
     }
-
-    void paint(Graphics& g) override
-    {
-        g.setColour(Colour::fromString(secondaryColour.toString()));
-        g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::objectCornerRadius);
-
-        bool selected = object->isSelected() && !cnv->isGraph;
-        bool editing = cnv->locked == var(true) || cnv->presentationMode == var(true) || ModifierKeys::getCurrentModifiers().isCtrlDown();
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-
-        g.setColour(Colour::fromString(primaryColour.toString()));
-
-        auto realPoints = getRealPoints();
-        auto lastPoint = realPoints[0];
-        for (int i = 1; i < realPoints.size(); i++) {
-            auto newPoint = realPoints[i];
-            g.drawLine({ lastPoint, newPoint });
-            lastPoint = newPoint;
-        }
-
-        for (int i = 0; i < realPoints.size(); i++) {
-            auto point = realPoints[i];
-            // Make sure line isn't visible through the hole
-            g.setColour(Colour::fromString(secondaryColour.toString()));
-            g.fillEllipse(Rectangle<float>().withCentre(point).withSizeKeepingCentre(5, 5));
-
-            g.setColour(Colour::fromString(hoverIdx == i && editing ? outlineColour.toString() : primaryColour.toString()));
-            g.drawEllipse(Rectangle<float>().withCentre(point).withSizeKeepingCentre(5, 5), 1.5f);
-        }
-    }
-
+    
     void getPointsFromFunction(t_fake_function* function)
     {
         // Don't update while dragging

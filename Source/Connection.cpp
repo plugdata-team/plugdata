@@ -506,8 +506,6 @@ void Connection::mouseMove(MouseEvent const& e)
     } else {
         setMouseCursor(MouseCursor::NormalCursor);
     }
-
-    //repaint();
 }
 
 StringArray Connection::getMessageFormated()

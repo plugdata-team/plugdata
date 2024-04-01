@@ -136,12 +136,6 @@ public:
         repaint();
     }
     
-    void paint(Graphics& g) override
-    {
-        g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
-    }
-
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));

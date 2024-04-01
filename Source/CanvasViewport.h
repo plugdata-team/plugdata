@@ -217,31 +217,6 @@ class CanvasViewport : public Viewport, public Timer, public NVGComponent
             repaint();
         }
 
-        void paint(Graphics& g) override
-        {
-            auto growPosition = scrollBarThickness * 0.5f * growAnimation;
-
-            auto growingBounds = thumbBounds.reduced(1).withTop(thumbBounds.getY() + growPosition);
-            auto roundedCorner = growingBounds.getHeight() * 0.5f;
-            auto fullBounds = growingBounds.withX(2).withWidth(getWidth() - 4);
-
-            if (isVertical) {
-                growingBounds = thumbBounds.reduced(1).withLeft(thumbBounds.getX() + growPosition);
-                roundedCorner = growingBounds.getWidth() * 0.5f;
-                fullBounds = growingBounds.withY(2).withHeight(getHeight() - 4);
-            }
-
-            auto canvasColour = findColour(PlugDataColour::canvasBackgroundColourId);
-            auto scrollbarColour = findColour(ScrollBar::ColourIds::thumbColourId);
-            auto activeScrollbarColour = scrollbarColour.interpolatedWith(canvasColour.contrasting(0.6f), 0.7f);
-
-            g.setColour(scrollbarColour.interpolatedWith(canvasColour, 0.7f).withAlpha(std::clamp(1.0f - growAnimation, 0.0f, 1.0f)));
-            g.fillRoundedRectangle(fullBounds, roundedCorner);
-
-            g.setColour(isMouseDragging ? activeScrollbarColour : scrollbarColour);
-            g.fillRoundedRectangle(growingBounds, roundedCorner);
-        }
-        
         void render(NVGcontext* nvg)
         {
             auto growPosition = scrollBarThickness * 0.5f * growAnimation;

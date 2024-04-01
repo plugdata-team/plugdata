@@ -160,52 +160,6 @@ public:
         nvgRestore(nvg);
     }
 
-    void paint(Graphics& g) override
-    {
-        g.setColour(Colour::fromString(secondaryColour.toString()));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
-
-        auto dx = getWidth() * 0.125f;
-        auto dy = getHeight() * 0.25f;
-
-        g.setColour(Colour::fromString(gridColour.toString()));
-
-        auto xx = dx;
-        for (int i = 0; i < 7; i++) {
-            g.drawLine(xx, 0.0f, xx, static_cast<float>(getHeight()));
-            xx += dx;
-        }
-
-        auto yy = dy;
-        for (int i = 0; i < 3; i++) {
-            g.drawLine(0.0f, yy, static_cast<float>(getWidth()), yy);
-            yy += dy;
-        }
-
-        // skip drawing waveform if buffer is empty
-        if (!(y_buffer.empty() || x_buffer.empty())) {
-            Point<float> lastPoint = Point<float>(x_buffer[0], y_buffer[0]);
-            Point<float> newPoint;
-
-            g.setColour(Colour::fromString(primaryColour.toString()));
-
-            Path p;
-            for (size_t i = 1; i < y_buffer.size(); i++) {
-                newPoint = Point<float>(x_buffer[i], y_buffer[i]);
-                Line segment(lastPoint, newPoint);
-                p.addLineSegment(segment, 1.0f);
-                lastPoint = newPoint;
-            }
-            g.fillPath(p);
-        }
-
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-    }
-
     void timerCallback() override
     {
         int bufsize = 0, mode = 0;

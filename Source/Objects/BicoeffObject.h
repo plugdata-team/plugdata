@@ -220,26 +220,6 @@ public:
         nvgStroke(nvg);
     }
 
-    void paint(Graphics& g) override
-    {
-        g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
-
-        g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
-
-        g.drawVerticalLine(filterX1 * getWidth(), 0.0f, getHeight());
-        g.drawVerticalLine(filterX2 * getWidth(), 0.0f, getHeight());
-
-        g.drawHorizontalLine(getHeight() / 2.0f, 0.0f, getWidth());
-
-       
-
-        bool selected = object->isSelected() && !object->cnv->isGraph;
-
-        g.setColour(object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId));
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-    }
-
     std::pair<float, float> calcMagnitudePhase(float f, float a1, float a2, float b0, float b1, float b2)
     {
         float x1 = cos(-1.0 * f);

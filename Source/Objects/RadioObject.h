@@ -171,42 +171,6 @@ public:
     {
         return ptr.get<t_radio>()->x_on;
     }
-
-    void paint(Graphics& g) override
-    {
-        g.setColour(iemHelper.getBackgroundColour());
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
-
-        float size = (isVertical ? static_cast<float>(getHeight()) / numItems : static_cast<float>(getWidth()) / numItems);
-
-        g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
-
-        for (int i = 1; i < numItems; i++) {
-            if (isVertical) {
-                g.drawLine(0, i * size, size, i * size);
-            } else {
-                g.drawLine(i * size, 0, i * size, size);
-            }
-        }
-
-        g.setColour(iemHelper.getForegroundColour());
-
-        float selectionX = isVertical ? 0 : selected * size;
-        float selectionY = isVertical ? selected * size : 0;
-
-        auto selectionBounds = Rectangle<float>(selectionX, selectionY, size, size);
-        
-        g.fillRoundedRectangle(selectionBounds.reduced(jmin<int>(size * 0.25f, 5)), Corners::objectCornerRadius / 2.0f);
-    }
-
-    void paintOverChildren(Graphics& g) override
-    {
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-    }
     
     void render(NVGcontext* nvg) override
     {
