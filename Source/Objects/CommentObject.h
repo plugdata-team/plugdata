@@ -11,19 +11,17 @@ class CommentObject final : public ObjectBase
     bool locked;
     
     Value sizeProperty = SynchronousValue();
-    
-    TextLayout textLayout;
-    hash32 layoutTextHash = 0;
-    int lastTextWidth = 0;
-    int32 lastColourARGB = 0;
-    
+
     std::unique_ptr<TextEditor> editor;
-    BorderSize<int> border = BorderSize<int>(2, 3, 0, 0);
+    BorderSize<int> border = BorderSize<int>(1, 3, 0, 0);
     String objectText;
+    
+    CachedTextRender textRenderer;
     
 public:
     CommentObject(pd::WeakReference obj, Object* object)
     : ObjectBase(obj, object)
+    , textRenderer(cnv->editor->nvgSurface)
     {
         objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
         locked = getValue<bool>(object->locked);
@@ -47,13 +45,14 @@ public:
         updateTextLayout();
     }
     
-    void paint(Graphics& g) override
+    void render(NVGcontext* nvg) override
     {
-        updateTextLayout();
-        
         if (!editor) {
             auto textArea = border.subtractedFrom(getLocalBounds());
-            textLayout.draw(g, textArea.toFloat());
+            textRenderer.renderText(nvg, getText(), Fonts::getDefaultFont().withHeight(15), object->findColour(PlugDataColour::commentTextColourId), textArea, getImageScale());
+        }
+        else {
+            imageRenderer.renderComponentFromImage(nvg, *editor, getImageScale());
         }
     }
     
@@ -111,7 +110,7 @@ public:
         if (editor == nullptr) {
             editor.reset(TextObjectHelper::createTextEditor(object, 15));
             
-            editor->setBorder(border);
+            editor->setBorder(border.addedTo(BorderSize<int>(1, 0, 0, 0)));
             editor->setBounds(getLocalBounds());
             editor->setText(objectText, false);
             editor->addListener(this);
@@ -128,7 +127,7 @@ public:
                 hideEditor();
             };
             
-            resized();
+            object->updateBounds();
             repaint();
         }
     }
@@ -136,22 +135,27 @@ public:
     Rectangle<int> getPdBounds() override
     {
         updateTextLayout(); // make sure layout height is updated
+
+        auto textBounds = getTextSize();
         
         int x = 0, y = 0, w, h;
         if (auto obj = ptr.get<t_gobj>()) {
             auto* cnvPtr = cnv->patch.getPointer().get();
-            if (!cnvPtr) return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 4, 19)};
-            
+            if (!cnvPtr) return {x, y, textBounds.getWidth(), std::max<int>(textBounds.getHeight() + 4, 19)};
+    
             pd::Interface::getObjectBounds(cnvPtr, obj.get(), &x, &y, &w, &h);
         }
-        
-        return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 4, 19)};
+
+        return {x, y, textBounds.getWidth(), std::max<int>(textBounds.getHeight() + 4, 19)};
     }
     
-    int getTextObjectWidth()
+    Rectangle<int> getTextSize()
     {
         auto objText = editor ? editor->getText() : objectText;
-        
+        if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
+            objText = cnv->suggestor->getText();
+        }
+                
         int fontWidth = 7;
         int charWidth = 0;
         if (auto obj = ptr.get<void>()) {
@@ -159,8 +163,9 @@ public:
             fontWidth = glist_fontwidth(cnv->patch.getPointer().get());
         }
         
+        auto textSize = textRenderer.getTextBounds();
         // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
-        int idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 6;
+        int idealWidth = textSize.getWidth() + 8;
         
         // We want to adjust the width so ideal text with aligns with fontWidth
         int offset = idealWidth % fontWidth;
@@ -173,30 +178,20 @@ public:
         } else { // If width was set manually, calculate what the width is
             textWidth = std::max(charWidth, TextObjectHelper::minWidth) * fontWidth + offset;
         }
-        
-        return textWidth;
+
+        return {textWidth, textSize.getHeight()};
     }
     
     void updateTextLayout()
     {
         auto objText = editor ? editor->getText() : objectText;
-        
-        int textWidth = getTextObjectWidth() - 6; // Reserve a bit of extra space for the text margin
-        auto currentLayoutHash = hash(objText);
-        auto colour = object->findColour(PlugDataColour::commentTextColourId);
-        if(layoutTextHash != currentLayoutHash || colour.getARGB() != lastColourARGB || textWidth != lastTextWidth)
-        {
-            auto attributedText = AttributedString(objText);
-            attributedText.setColour(colour);
-            attributedText.setJustification(Justification::topLeft);
-            attributedText.setFont(Font(15));
-            
-            textLayout = TextLayout();
-            textLayout.createLayout(attributedText, textWidth);
-            layoutTextHash = currentLayoutHash;
-            lastColourARGB = colour.getARGB();
-            lastTextWidth = textWidth;
+        if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
+            objText = cnv->suggestor->getText();
         }
+        
+        auto colour = object->findColour(PlugDataColour::canvasTextColourId);
+        int textWidth = getTextSize().getWidth() - 6;
+        textRenderer.prepareLayout(objText, Fonts::getDefaultFont().withHeight(15), colour, textWidth);
     }
     
     std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
@@ -298,11 +293,11 @@ public:
     
     void resized() override
     {
+        updateTextLayout();
+        
         if (editor) {
             editor->setBounds(getLocalBounds());
         }
-        
-        updateTextLayout();
     }
     
     void textEditorReturnKeyPressed(TextEditor&) override

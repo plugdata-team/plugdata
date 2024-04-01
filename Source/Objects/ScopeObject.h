@@ -111,52 +111,53 @@ public:
 
     void resized() override
     {
+
     }
 
-    void paint(Graphics& g) override
+    void render(NVGcontext* nvg) override
     {
-        g.setColour(Colour::fromString(secondaryColour.toString()));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
+        auto b = getLocalBounds().toFloat().reduced(0.5f);
+
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(Colour::fromString(secondaryColour.toString())), convertColour(object->findColour(PlugDataColour::objectOutlineColourId)), Corners::objectCornerRadius);
 
         auto dx = getWidth() * 0.125f;
         auto dy = getHeight() * 0.25f;
 
-        g.setColour(Colour::fromString(gridColour.toString()));
-
+        nvgBeginPath(nvg);
+        nvgStrokeColor(nvg, convertColour(Colour::fromString(gridColour.toString())));
+        nvgStrokeWidth(nvg, 1.0f);
         auto xx = dx;
         for (int i = 0; i < 7; i++) {
-            g.drawLine(xx, 0.0f, xx, static_cast<float>(getHeight()));
+            nvgMoveTo(nvg, xx, 0.0f);
+            nvgLineTo(nvg, xx, static_cast<float>(getHeight()));
             xx += dx;
         }
 
         auto yy = dy;
         for (int i = 0; i < 3; i++) {
-            g.drawLine(0.0f, yy, static_cast<float>(getWidth()), yy);
+            nvgMoveTo(nvg, 0.0f, yy);
+            nvgLineTo(nvg, static_cast<float>(getWidth()), yy);
             yy += dy;
         }
+        nvgStroke(nvg);
 
-        // skip drawing waveform if buffer is empty
+        nvgSave(nvg);
+        nvgIntersectScissor(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight());
         if (!(y_buffer.empty() || x_buffer.empty())) {
-            Point<float> lastPoint = Point<float>(x_buffer[0], y_buffer[0]);
-            Point<float> newPoint;
+            nvgBeginPath(nvg);
+            nvgStrokeColor(nvg, convertColour(Colour::fromString(primaryColour.toString())));
+            nvgStrokeWidth(nvg, 2.0f);
+            nvgLineJoin(nvg, NVG_ROUND);
+            nvgLineCap(nvg, NVG_ROUND);
 
-            g.setColour(Colour::fromString(primaryColour.toString()));
+            nvgMoveTo(nvg, x_buffer[1], y_buffer[1]);
 
-            Path p;
-            for (size_t i = 1; i < y_buffer.size(); i++) {
-                newPoint = Point<float>(x_buffer[i], y_buffer[i]);
-                Line segment(lastPoint, newPoint);
-                p.addLineSegment(segment, 1.0f);
-                lastPoint = newPoint;
+            for (size_t i = 2; i < y_buffer.size(); i++) {
+                nvgLineTo(nvg, x_buffer[i], y_buffer[i]);
             }
-            g.fillPath(p);
+            nvgStroke(nvg);
         }
-
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        nvgRestore(nvg);
     }
 
     void timerCallback() override

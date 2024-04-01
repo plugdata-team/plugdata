@@ -4,6 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_dsp/juce_dsp.h>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
 
@@ -12,18 +13,12 @@
 #include "Canvas.h"
 #include "Connection.h"
 
-ObjectGrid::ObjectGrid(Canvas* cnv)
+ObjectGrid::ObjectGrid(Canvas* cnv) : cnv(cnv)
 {
 
     gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
     gridType = SettingsFile::getInstance()->getProperty<int>("grid_type");
     gridSize = SettingsFile::getInstance()->getProperty<int>("grid_size");
-
-    cnv->addAndMakeVisible(gridLines[0]);
-    cnv->addAndMakeVisible(gridLines[1]);
-
-    gridLines[0].setAlwaysOnTop(true);
-    gridLines[1].setAlwaysOnTop(true);
 }
 
 Array<Object*> ObjectGrid::getSnappableObjects(Object* draggedObject)
@@ -384,30 +379,78 @@ Line<int> ObjectGrid::getObjectIndicatorLine(Side side, Rectangle<int> b1, Recta
 
 void ObjectGrid::clearIndicators(bool fast)
 {
-    gridLineAnimator.fadeOut(&gridLines[0], fast ? 20 : 125);
-    gridLineAnimator.fadeOut(&gridLines[1], fast ? 20 : 125);
-
-    gridLines[0].setPath(Path());
-    gridLines[1].setPath(Path());
+    float lineFadeMs = fast ? 50 : 250;
+    
+    lineAlphaMultiplier[0] = dsp::FastMathApproximations::exp((-MathConstants<float>::twoPi * 1000.0f / 60.0f) / lineFadeMs);
+    lineAlphaMultiplier[1] = lineAlphaMultiplier[0];
+    if(lineTargetAlpha[0] != 0.0f || lineTargetAlpha[1] != 0.0f) {
+        lineTargetAlpha[0] = 0.0f;
+        lineTargetAlpha[1] = 0.0f;
+        startTimerHz(60);
+    }
 }
 
 void ObjectGrid::setIndicator(int idx, Line<int> line, float scale)
 {
     auto lineIsEmpty = line.getLength() == 0;
-    if (gridLines[idx].isVisible() && lineIsEmpty) {
-        gridLineAnimator.fadeOut(&gridLines[idx], 20);
+    if (lineIsEmpty) {
+        lineAlphaMultiplier[idx] = dsp::FastMathApproximations::exp((-MathConstants<float>::twoPi * 1000.0f / 60.0f) / 50.0f);
+        if(lineTargetAlpha[idx] != 0.0f) {
+            lineTargetAlpha[idx] = 0.0f;
+            startTimerHz(60);
+        }
     }
+    
+    lines[idx] = line;
 
-    auto& lnf = LookAndFeel::getDefaultLookAndFeel();
-    gridLines[idx].setStrokeFill(FillType(lnf.findColour(PlugDataColour::gridLineColourId)));
-    gridLines[idx].setStrokeThickness(scale);
-    gridLines[idx].toFront(false);
+    if (!lineIsEmpty) {
+        lineAlphaMultiplier[idx] = dsp::FastMathApproximations::exp((-MathConstants<float>::twoPi * 1000.0f / 60.0f) / 50.0f);
+        if(lineTargetAlpha[idx] != 1.0f) {
+            lineTargetAlpha[idx] = 1.0f;
+            startTimerHz(60);
+        }
+    }
+}
 
-    Path toDraw;
-    toDraw.addLineSegment(line.toFloat(), scale);
-    gridLines[idx].setPath(toDraw);
+void ObjectGrid::timerCallback()
+{
+    cnv->repaint();
+    
+    bool done = true; // TODO: use multi-timer?
+    for(int i = 0; i < 2; i++) {
+        lineAlpha[i] = jmap<float>(lineAlphaMultiplier[i], lineTargetAlpha[i], lineAlpha[i]);
+        if(std::abs(lineAlpha[i] - lineTargetAlpha[i]) < 1e-5)  {
+            lineAlpha[i] = lineTargetAlpha[i];
+        }
+        else {
+            done = false;
+        }
+    }
+    
+    if(done) stopTimer();
+}
 
-    if (!gridLines[idx].isVisible() && !lineIsEmpty) {
-        gridLineAnimator.fadeIn(&gridLines[idx], 25);
+void ObjectGrid::render(NVGcontext* nvg)
+{
+    if(lines[0].getLength() != 0) {
+        auto& lnf = LookAndFeel::getDefaultLookAndFeel();
+        nvgStrokeColor(nvg, NVGComponent::convertColour(lnf.findColour(PlugDataColour::gridLineColourId).withAlpha(lineAlpha[0])));
+        nvgStrokeWidth(nvg, 1.0f);
+        
+        nvgBeginPath(nvg);
+        nvgMoveTo(nvg, lines[0].getStartX(), lines[0].getStartY());
+        nvgLineTo(nvg, lines[0].getEndX(), lines[0].getEndY());
+        nvgStroke(nvg);
+    }
+          
+    if(lines[1].getLength() != 0) {
+        auto& lnf = LookAndFeel::getDefaultLookAndFeel();
+        nvgStrokeColor(nvg, NVGComponent::convertColour(lnf.findColour(PlugDataColour::gridLineColourId).withAlpha(lineAlpha[1])));
+        nvgStrokeWidth(nvg, 1.0f);
+        
+        nvgBeginPath(nvg);
+        nvgMoveTo(nvg, lines[1].getStartX(), lines[1].getStartY());
+        nvgLineTo(nvg, lines[1].getEndX(), lines[1].getEndY());
+        nvgStroke(nvg);
     }
 }

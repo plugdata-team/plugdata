@@ -296,7 +296,7 @@ void TabBarButtonComponent::mouseDown(MouseEvent const& e)
         });
                 
         // Show the popup menu at the mouse position
-        tabMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withParentComponent(getTabComponent()->getEditor()));
+        tabMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1));
     } else if (e.mods.isLeftButtonDown()) {
         getTabComponent()->setCurrentTabIndex(getIndex());
     }

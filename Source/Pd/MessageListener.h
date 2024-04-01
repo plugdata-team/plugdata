@@ -6,6 +6,7 @@
 #pragma once
 
 #include "Instance.h"
+#include "Utility/LockFreeStack.h"
 #include <readerwriterqueue.h>
 
 namespace pd {
@@ -24,7 +25,8 @@ class MessageDispatcher : private AsyncUpdater {
     // Wrapper to store 8 atoms in stack memory
     // We never read more than 8 args in the whole source code, so this prevents unnecessary memory copying
     // We also don't want this list to be dynamic since we want to stack allocate it
-    class Message {
+    class Message
+    {
     public:
         void* target;
         t_symbol* symbol;
@@ -62,11 +64,17 @@ class MessageDispatcher : private AsyncUpdater {
             return *this;
         }
     };
-
+    
 public:
+    MessageDispatcher()
+    {
+        usedHashes.reserve(stackSize);
+        nullListeners.reserve(stackSize);
+    }
+    
     void enqueueMessage(void* target, t_symbol* symbol, int argc, t_atom* argv)
     {
-        messageQueue.enqueue({ target, symbol, argc, argv });
+        messageStack.push({ target, symbol, argc, argv });
     }
 
     void addMessageListener(void* object, pd::MessageListener* messageListener)
@@ -94,7 +102,7 @@ public:
 
     void dispatch()
     {
-        if (messageQueue.size_approx() != 0) {
+        if(messageStack.numElements()) {
             triggerAsyncUpdate();
         }
     }
@@ -102,19 +110,20 @@ public:
 private:
     void handleAsyncUpdate() override
     {
-        Message incomingMessage;
-        std::map<size_t, Message> uniqueMessages;
+        usedHashes.clear();
+        nullListeners.clear();
 
-        while (messageQueue.try_dequeue(incomingMessage)) {
-            auto hash = reinterpret_cast<size_t>(incomingMessage.target) ^ reinterpret_cast<size_t>(incomingMessage.symbol);
-            uniqueMessages[hash] = std::move(incomingMessage);
-        }
-
-        // Collect MessageListeners that have been deallocated for later removal
-        std::vector<std::pair<void*, std::set<juce::WeakReference<pd::MessageListener>>::iterator>> nullListeners;
-
-        for (auto& [hash, message] : uniqueMessages) {
-
+        messageStack.swapBuffers();
+        Message message;
+        while(messageStack.pop(message))
+        {
+            auto hash = reinterpret_cast<size_t>(message.target) ^ reinterpret_cast<size_t>(message.symbol);
+            if (usedHashes.find(hash) != usedHashes.end())
+            {
+                continue;
+            }
+            usedHashes.insert(hash);
+                        
             if (messageListeners.find(message.target) == messageListeners.end())
                 continue;
 
@@ -135,6 +144,7 @@ private:
                 else
                     nullListeners.push_back({ message.target, it });
             }
+            
         }
 
         for (int i = nullListeners.size() - 1; i >= 0; i--) {
@@ -142,8 +152,15 @@ private:
             messageListeners[target].erase(iterator);
         }
     }
+    
+    static constexpr int stackSize = 32768;
+    using MessageStack = LockFreeStack<Message, stackSize>;
 
-    moodycamel::ReaderWriterQueue<Message> messageQueue = moodycamel::ReaderWriterQueue<Message>(32768);
+    
+    std::vector<std::pair<void*, std::set<juce::WeakReference<pd::MessageListener>>::iterator>> nullListeners;
+    std::unordered_set<size_t> usedHashes;
+    MessageStack messageStack;
+    
     std::map<void*, std::set<juce::WeakReference<MessageListener>>> messageListeners;
     CriticalSection messageListenerLock;
 };

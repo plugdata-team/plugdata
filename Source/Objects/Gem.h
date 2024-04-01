@@ -73,7 +73,6 @@ public:
         auto pixelFormat = OpenGLPixelFormat(8, 8, 16, 8);
         pixelFormat.multisamplingLevel = 2;
         openGLContext.setPixelFormat(pixelFormat);
-        
         openGLContext.attachTo (*this);
         
         startTimerHz(30);
@@ -232,13 +231,9 @@ int createGemWindow(WindowInfo& info, WindowHints& hints)
     gemJUCEWindow[window->instance].reset(window);
     info.window[window->instance] = window;
     
-    #if JUCE_LINUX
-    // Make sure only audio thread has the context set as active
-    window->openGLContext.executeOnGLThread([](OpenGLContext& context){
-        // We get unpredictable behaviour if the context is active on multiple threads
-        OpenGLContext::deactivateCurrentContext();
-        }, true);
-    #endif
+    /*
+     TODO: correctly initialise openGL on the right thread, using the new threading system
+     */
 
     window->openGLContext.makeActive();
     
@@ -265,16 +260,7 @@ int createGemWindow(WindowInfo& info, WindowHints& hints)
             window->setTopLeftPosition(displays[1].userArea.getPosition() + window->getPosition());
         }
     }
-    
-    // TODO: hints.secondscreen
-    
-    // Make sure only audio thread has the context set as active
-    // We call async here, because if this call comes from the message thread already,
-    // we need to keep the context active until GLEW is initialised. Bit of a hack though
-    MessageManager::callAsync([](){
-      OpenGLContext::deactivateCurrentContext();
-    });
-    
+
     return 1;
 }
 void destroyGemWindow(WindowInfo& info) {
@@ -304,6 +290,7 @@ void gemWinSwapBuffers(WindowInfo& info) {
 }
 void gemWinMakeCurrent(WindowInfo& info) {
     if (auto* context = info.getContext()) {
+        context->initialiseOnThread();
         context->makeActive();
     }
 }

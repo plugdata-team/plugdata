@@ -13,7 +13,8 @@
 class PluginEditor;
 class Canvas;
 class SplitViewFocusOutline;
-class SplitView : public Component {
+class SplitViewResizer;
+class SplitView : public Component, public NVGComponent {
 public:
     explicit SplitView(PluginEditor* parent);
     ~SplitView() override;
@@ -29,6 +30,9 @@ public:
     bool canSplit();
 
     void setFocus(ResizableTabbedComponent* selectedTabComponent);
+    
+    
+    void render(NVGcontext* nvg) override;
 
     void closeEmptySplits();
 
@@ -50,8 +54,6 @@ private:
     std::unique_ptr<SplitViewFocusOutline> focusOutline;
 
     PluginEditor* editor;
-
-    std::unique_ptr<Component> splitViewResizer;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SplitView)
 };

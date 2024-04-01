@@ -129,7 +129,7 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
 
     auto* popup = new MainMenu(editor);
 
-    ArrowPopupMenu::showMenuAsync(popup, PopupMenu::Options().withMinimumWidth(210).withMaximumNumColumns(1).withTargetComponent(centre).withParentComponent(editor),
+    ArrowPopupMenu::showMenuAsync(popup, PopupMenu::Options().withMinimumWidth(210).withMaximumNumColumns(1).withTargetComponent(centre).withParentComponent(editor->calloutArea.get()),
         [editor, popup, settingsTree = SettingsFile::getInstance()->getValueTree()](int result) mutable {
             switch (result) {
             case MainMenu::MenuItem::NewPatch: {
@@ -184,10 +184,13 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
             }
             }
 
-            MessageManager::callAsync([popup]() {
+            MessageManager::callAsync([popup, editor]() {
+                editor->calloutArea->removeFromDesktop();
                 delete popup;
             });
         });
+    
+    editor->calloutArea->addToDesktop(ComponentPeer::windowIsTemporary);
 }
 
 void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> const& callback, StringArray const& options)
@@ -671,7 +674,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
 void Dialogs::showObjectMenu(PluginEditor* editor, Component* target)
 {
-    AddObjectMenu::show(editor, editor->getLocalArea(target, target->getLocalBounds()));
+    AddObjectMenu::show(editor, target->getScreenBounds());
 }
 
 void Dialogs::showOpenDialog(std::function<void(URL)> const& callback, bool canSelectFiles, bool canSelectDirectories, String const& extension, String const& lastFileId, Component* parentComponent)

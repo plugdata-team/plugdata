@@ -325,7 +325,7 @@ void Sidebar::showParameters(String const& name, Array<ObjectParameters>& params
 {
     lastParameters = params;
     inspector->loadParameters(params);
-    inspector->setTitle(name.upToFirstOccurrenceOf(" ", false, false));
+    inspector->setTitle(name);
 
     if (!pinned) {
         inspector->setVisible(true);
@@ -349,9 +349,11 @@ void Sidebar::updateExtraSettingsButton()
         extraSettingsButton.reset(nullptr);
         return;
     }
-
-    addAndMakeVisible(*extraSettingsButton);
-    resized();
+    
+    if(!extraSettingsButton->isVisible()) {
+        addAndMakeVisible(*extraSettingsButton);
+        resized();
+    }
 }
 
 void Sidebar::hideParameters()

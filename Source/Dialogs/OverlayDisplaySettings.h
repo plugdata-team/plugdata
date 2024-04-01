@@ -38,10 +38,7 @@ public:
             , group(groupType)
         {
             auto controlVisibility = [this](String const& mode) {
-                if (settingName == "behind" && (mode == "edit" || mode == "alt")) {
-                    return false;
-                }
-                else if (settingName == "origin" || settingName == "border" || mode == "edit" || mode == "lock" || mode == "alt") {
+                if (settingName == "origin" || settingName == "border" || mode == "edit" || mode == "lock" || mode == "alt") {
                     return true;
                 }
 
@@ -207,7 +204,7 @@ public:
         }
     }
 
-    static void show(Component* parent, Rectangle<int> bounds)
+    static void show(PluginEditor* editor, Rectangle<int> bounds)
     {
         if (isShowing)
             return;
@@ -215,7 +212,7 @@ public:
         isShowing = true;
 
         auto overlayDisplaySettings = std::make_unique<OverlayDisplaySettings>();
-        CallOutBox::launchAsynchronously(std::move(overlayDisplaySettings), bounds, parent);
+        editor->showCalloutBox(std::move(overlayDisplaySettings), bounds);
     }
 
     ~OverlayDisplaySettings() override

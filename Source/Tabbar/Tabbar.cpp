@@ -574,7 +574,6 @@ void TabComponent::changeCallback(int newCurrentTabIndex, String const& newTabNa
 
     if (newPanelComp != panelComponent) {
         if (panelComponent != nullptr) {
-            panelComponent->setVisible(false);
             removeChildComponent(panelComponent);
         }
 
@@ -653,7 +652,7 @@ void TabComponent::paint(Graphics& g)
     if (ProjectInfo::isStandalone && !editor->isActiveWindow()) {
         backgroundColour = backgroundColour.brighter(backgroundColour.getBrightness() / 2.5f);
     }
-
+    
     g.fillAll(backgroundColour);
 }
 

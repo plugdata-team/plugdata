@@ -98,18 +98,26 @@ public:
     static void showMenuAsync(PopupMenu* menu, PopupMenu::Options const& options, std::function<void(int)> const& userCallback)
     {
         auto* target = options.getTargetComponent();
-
+        auto* parent = options.getParentComponent();
+        
         auto* arrow = new ArrowPopupMenu(target);
 
         menu->showMenuAsync(options, [userCallback, arrow](int result) {
-            arrow->removeFromDesktop();
+            if(arrow->isOnDesktop()) arrow->removeFromDesktop();
             delete arrow;
             userCallback(result);
         });
 
         if (auto* popupMenuComponent = Component::getCurrentlyModalComponent(0)) {
-            arrow->attachToMenu(popupMenuComponent, options.getParentComponent());
+            arrow->attachToMenu(popupMenuComponent, parent);
         }
+    }
+        
+    void componentBroughtToFront (Component& c) override
+    {
+        MessageManager::callAsync([_this = SafePointer(this)](){
+            if(_this && _this->isOnDesktop()) _this->toFront(false);
+        });
     }
 
     void componentMovedOrResized(Component& component, bool moved, bool resized) override
@@ -126,6 +134,7 @@ public:
             menuParent->addAndMakeVisible(this);
             setBounds(targetBounds.getUnion(menuTop));
         } else {
+            menuComponent->addAndMakeVisible(this);
             addToDesktop(ComponentPeer::windowIsTemporary);
             setBounds(targetComponent->getScreenBounds().getUnion(menuComponent->getScreenBounds().removeFromTop(menuMargin + 1)));
         }

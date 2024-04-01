@@ -18,7 +18,7 @@
 // This prevents that with a separation layer.
 
 class DrawableTemplate : public pd::MessageListener
-    , public AsyncUpdater {
+    , public AsyncUpdater, public NVGComponent {
 
 public:
     pd::Instance* pd;
@@ -31,7 +31,8 @@ public:
     bool mouseWasDown = false;
 
     DrawableTemplate(t_scalar* object, t_word* scalarData, t_template* scalarTemplate, t_template* parentTemplate, Canvas* cnv, t_float x, t_float y)
-        : pd(cnv->pd)
+        : NVGComponent(reinterpret_cast<Component*>(this)) // TODO: clean this up
+        , pd(cnv->pd)
         , canvas(cnv)
         , baseX(x)
         , baseY(y)
@@ -144,6 +145,7 @@ class DrawableCurve final : public DrawableTemplate
     t_fake_curve* object;
     GlobalMouseListener globalMouseListener;
     Point<int> lastMouseDragPosition = { 0, 0 };
+    bool closed;
 
 public:
     DrawableCurve(t_scalar* s, t_gobj* obj, t_word* data, t_template* templ, Canvas* cnv, int x, int y, t_template* parent = nullptr)
@@ -151,7 +153,7 @@ public:
         , object(reinterpret_cast<t_fake_curve*>(obj))
         , globalMouseListener(cnv)
     {
-
+        
         globalMouseListener.globalMouseDown = [this, cnv](MouseEvent const& e) {
             auto localPos = e.getEventRelativeTo(this).getMouseDownPosition();
             if (!getLocalBounds().contains(localPos) || !getValue<bool>(canvas->locked) || !canvas->isShowing())
@@ -211,6 +213,29 @@ public:
             }
         };
     }
+        
+    void render(NVGcontext* nvg) override
+    {
+        Path p = getPath();
+        setJUCEPath(nvg, p);
+        
+        // TODO: could be more optimised
+        if(closed)
+        {
+            nvgClosePath (nvg);
+            
+            nvgFillColor(nvg, convertColour(getFill().colour));
+            nvgFill(nvg);
+            nvgStrokeWidth(nvg, getStrokeType().getStrokeThickness());
+            nvgStrokeColor(nvg, convertColour(getStrokeFill().colour));
+            nvgStroke(nvg);
+        }
+        else {
+            nvgStrokeWidth(nvg, getStrokeType().getStrokeThickness());
+            nvgStrokeColor(nvg, convertColour(getStrokeFill().colour));
+            nvgStroke(nvg);
+        }
+    }
 
     void update() override
     {
@@ -237,7 +262,7 @@ public:
 
         if (n > 1) {
             int flags = x->x_flags;
-            int closed = flags & CLOSED;
+            closed = flags & CLOSED;
 
             t_float width = fielddesc_getfloat(&x->x_width, templ, data, 1);
 
@@ -333,6 +358,7 @@ class DrawableSymbol final : public DrawableTemplate
 
     t_fake_drawnumber* object;
     GlobalMouseListener mouseListener;
+    CachedTextRender textRenderer;
 
     float mouseDownValue;
 
@@ -340,6 +366,7 @@ public:
     DrawableSymbol(t_scalar* s, t_gobj* obj, t_word* data, t_template* templ, Canvas* cnv, int x, int y, t_template* parent = nullptr)
         : DrawableTemplate(s, data, templ, parent, cnv, x, y)
         , object(reinterpret_cast<t_fake_drawnumber*>(obj))
+        , textRenderer(cnv->editor->nvgSurface)
     {
         mouseListener.globalMouseDown = [this](MouseEvent const& e) {
             handleMouseDown(e.getEventRelativeTo(this));
@@ -347,6 +374,17 @@ public:
         mouseListener.globalMouseDrag = [this](MouseEvent const& e) {
             handleMouseDrag(e.getEventRelativeTo(this));
         };
+    }
+        
+        
+    void render(NVGcontext* nvg) override
+    {
+        auto scale = canvas->isScrolling ? canvas->getRenderScale() * 2.0f : canvas->getRenderScale() * std::max(1.0f, getValue<float>(canvas->zoomScale));
+        auto bounds = getBoundingBox().getBoundingBox().toNearestInt();
+        nvgSave(nvg);
+        nvgTranslate(nvg, bounds.getX(), bounds.getY());
+        textRenderer.renderText(nvg, getText(), getFont(), getColour(), bounds.withZeroOrigin(), scale);
+        nvgRestore(nvg);
     }
 
     void handleMouseDown(MouseEvent const& e)
@@ -527,6 +565,27 @@ public:
             }
         };
     }
+        
+    ~DrawablePlot()
+    {
+        for (auto* subplot : subplots) {
+            canvas->drawables.removeFirstMatchingValue(dynamic_cast<NVGComponent*>(subplot));
+            canvas->removeChildComponent(subplot);
+        }
+    }
+        
+    void render(NVGcontext* nvg) override
+    {
+        Path p = getPath();
+        setJUCEPath(nvg, p);
+                
+        nvgFillColor(nvg, convertColour(getFill().colour));
+        nvgFill(nvg);
+        nvgStrokeWidth(nvg, getStrokeType().getStrokeThickness());
+        nvgStrokeColor(nvg, convertColour(getStrokeFill().colour));
+        nvgStroke(nvg);
+    }
+
 
     static int readOwnerTemplate(t_fake_plot* x,
         t_word* data, t_template* ownertemplate,
@@ -580,7 +639,6 @@ public:
         auto* glist = canvas->patch.getPointer().get();
         if (!glist)
             return;
-
 
         auto* x = reinterpret_cast<t_fake_plot*>(object);
         int elemsize, yonset, wonset, xonset, i;
@@ -925,16 +983,24 @@ public:
             
             auto name = String::fromUTF8(y->g_pd->c_name->s_name);
             if (name == "drawtext" || name == "drawnumber" || name == "drawsymbol") {
-                subplots.add(new DrawableSymbol(s, y, subdata, elemtemplate, canvas, static_cast<int>(xloc), static_cast<int>(yloc), templ));
+                auto* symbol = new DrawableSymbol(s, y, subdata, elemtemplate, canvas, static_cast<int>(xloc), static_cast<int>(yloc), templ);
+                subplots.add(symbol);
                 canvas->addAndMakeVisible(subplots.getLast());
+                canvas->drawables.add(symbol);
             } else if (name == "drawpolygon" || name == "drawcurve" || name == "filledpolygon" || name == "filledcurve") {
-                subplots.add(new DrawableCurve(s, y, subdata, elemtemplate, canvas, static_cast<int>(xloc), static_cast<int>(yloc), templ));
+                auto* curve = new DrawableCurve(s, y, subdata, elemtemplate, canvas, static_cast<int>(xloc), static_cast<int>(yloc), templ);
+                subplots.add(curve);
                 canvas->addAndMakeVisible(subplots.getLast());
+                canvas->drawables.add(curve);
             } else if (name == "plot") {
-                subplots.add(new DrawablePlot(s, y, subdata, elemtemplate, canvas, static_cast<int>(xloc), static_cast<int>(yloc), templ));
+                auto* plot = new DrawablePlot(s, y, subdata, elemtemplate, canvas, static_cast<int>(xloc), static_cast<int>(yloc), templ);
+                subplots.add(plot);
                 canvas->addAndMakeVisible(subplots.getLast());
+                canvas->drawables.add(plot);
             }
         };
+        
+        // TODO: do these new subplots need to be re-ordered?
         
         for (xsum = xloc, i = 0; i < nelem; i++) {
             t_float usexloc, useyloc;
@@ -972,10 +1038,8 @@ struct ScalarObject final : public ObjectBase {
     ScalarObject(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
     {
-
-        // Make object invisible
-        object->setVisible(false);
-
+        setInterceptsMouseClicks(false, false);
+        
         if (auto scalar = obj.get<t_scalar>()) {
             auto* templ = template_findbyname(scalar->sc_template);
             auto* templatecanvas = template_findcanvas(templ);
@@ -990,17 +1054,23 @@ struct ScalarObject final : public ObjectBase {
                 auto name = String::fromUTF8(y->g_pd->c_name->s_name);
 
                 if (name == "drawtext" || name == "drawnumber" || name == "drawsymbol") {
-                    cnv->addAndMakeVisible(templates.add(new DrawableSymbol(scalar.get(), y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY))));
+                    auto* symbol = templates.add(new DrawableSymbol(scalar.get(), y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY)));
+                    cnv->addAndMakeVisible(symbol);
+                    cnv->drawables.add(dynamic_cast<NVGComponent*>(symbol));
                 } else if (name == "drawpolygon" || name == "drawcurve" || name == "filledpolygon" || name == "filledcurve") {
-                    cnv->addAndMakeVisible(templates.add(new DrawableCurve(scalar.get(), y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY))));
+                    auto* curve = templates.add(new DrawableCurve(scalar.get(), y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY)));
+                    cnv->addAndMakeVisible(curve);
+                    cnv->drawables.add(dynamic_cast<NVGComponent*>(curve));
                 } else if (name == "plot") {
                     auto* plot = new DrawablePlot(scalar.get(), y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY));
                     cnv->addAndMakeVisible(templates.add(plot));
+                    cnv->drawables.add(dynamic_cast<NVGComponent*>(plot));
                 }
             }
 
+            // TODO: this is very inefficient!
             for (int i = templates.size() - 1; i >= 0; i--) {
-                templates[i]->toBack();
+                cnv->drawables.move(cnv->drawables.indexOf(dynamic_cast<NVGComponent*>(templates[i])), 0);
             }
         }
 
@@ -1010,6 +1080,7 @@ struct ScalarObject final : public ObjectBase {
     ~ScalarObject() override
     {
         for (auto* drawable : templates) {
+            cnv->drawables.removeFirstMatchingValue(dynamic_cast<NVGComponent*>(drawable));
             cnv->removeChildComponent(drawable);
         }
     }
@@ -1023,7 +1094,7 @@ struct ScalarObject final : public ObjectBase {
         }
     }
 
-    Rectangle<int> getPdBounds() override { return { 0, 0, 0, 0 }; }
+    Rectangle<int> getPdBounds() override { return {0, 0, 0, 0}; }
 
     void setPdBounds(Rectangle<int> b) override { }
 };

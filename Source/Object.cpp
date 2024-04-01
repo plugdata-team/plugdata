@@ -28,14 +28,13 @@
 
 extern "C" {
 #include <m_pd.h>
-//#include <m_imp.h>
-
-//int is_gem_object(const char* sym);
 }
 
 Object::Object(Canvas* parent, String const& name, Point<int> position)
-    : cnv(parent)
+    : NVGComponent(this)
+    , cnv(parent)
     , gui(nullptr)
+    , textEditorRenderer(parent->editor->nvgSurface)
     , ds(parent->dragState)
 {
     setTopLeftPosition(position - Point<int>(margin, margin));
@@ -56,7 +55,9 @@ Object::Object(Canvas* parent, String const& name, Point<int> position)
 }
 
 Object::Object(pd::WeakReference object, Canvas* parent)
-    : gui(nullptr)
+    : NVGComponent(this)
+    , gui(nullptr)
+    , textEditorRenderer(parent->editor->nvgSurface)
     , ds(parent->dragState)
 {
     cnv = parent;
@@ -68,8 +69,11 @@ Object::Object(pd::WeakReference object, Canvas* parent)
 
 Object::~Object()
 {
+    if(fb) nvgDeleteFramebuffer(fb);
+    
     hideEditor(); // Make sure the editor is not still open, that could lead to issues with listeners attached to the editor (i.e. suggestioncomponent)
     cnv->selectedComponents.removeChangeListener(this);
+    cnv->editor->nvgSurface.removeNVGContextListener(this);
 }
 
 Rectangle<int> Object::getObjectBounds()
@@ -91,9 +95,37 @@ void Object::setObjectBounds(Rectangle<int> bounds)
     setBounds(bounds.expanded(margin) + cnv->canvasOrigin);
 }
 
+// CachedComponentImage that will block repaint messages to parent when scrolling/zooming, and keeps track of invaldation while scrolling/zooming
+class InvalidationListener : public CachedComponentImage
+{
+public:
+    InvalidationListener(Object* parent) : object(parent)
+    {
+    }
+private:
+    
+    void paint(Graphics& g) override {}
+    
+    bool invalidate(const Rectangle<int>& rect) override
+    {
+        object->fbDirty = true;
+        return !object->cnv->isScrolling;
+    }
+    
+    bool invalidateAll() override
+    {
+        object->fbDirty = true;
+        return !object->cnv->isScrolling;
+    }
+    
+    void releaseResources() override {}
+    
+    Object* object;
+};
+
 void Object::initialise()
 {
-    cnv->addAndMakeVisible(this);
+    cnv->objectLayer.addAndMakeVisible(this);
 
     cnv->selectedComponents.addChangeListener(this);
 
@@ -112,11 +144,22 @@ void Object::initialise()
     originalBounds.setBounds(0, 0, 0, 0);
 
     updateOverlays(cnv->getOverlays());
+    
+    setAccessible(false); // TODO: implement accessibility. We disable default, since it makes stuff slow on macOS
+    
+    setCachedComponentImage(new InvalidationListener(this));
+    cnv->editor->nvgSurface.addNVGContextListener(this);
+}
+
+void Object::nvgContextDeleted(NVGcontext* nvg)
+{
+    if(fb) nvgDeleteFramebuffer(fb);
+    fb = nullptr;
 }
 
 void Object::timerCallback()
 {
-    activeStateAlpha -= 0.16f;
+    activeStateAlpha = activeStateAlpha - 0.16f;
     repaint();
     if (activeStateAlpha <= 0.0f) {
         activeStateAlpha = 0.0f;
@@ -164,7 +207,7 @@ void Object::valueChanged(Value& v)
         }
     }
     // FIXME: any value change triggers a repaint!
-    repaint();
+    //repaint();
 }
 
 bool Object::checkIfHvccCompatible() const
@@ -182,7 +225,7 @@ bool Object::checkIfHvccCompatible() const
 
 bool Object::hitTest(int x, int y)
 {
-    if (Canvas::panningModifierDown())
+    if (cnv->panningModifierDown())
         return false;
 
     // Mouse over iolets
@@ -216,7 +259,8 @@ bool Object::hitTest(int x, int y)
 // To make iolets show/hide
 void Object::mouseEnter(MouseEvent const& e)
 {
-    for (auto* iolet : iolets)
+    drawIoletExpanded = true;
+    for (auto& iolet : iolets) // TODO: maybe group this?
         iolet->repaint();
 }
 
@@ -226,8 +270,8 @@ void Object::mouseExit(MouseEvent const& e)
     // otherwise it can have an old zone already selected on re-entry
     resizeZone = ResizableBorderComponent::Zone(ResizableBorderComponent::Zone::centre);
     validResizeZone = false;
-
-    for (auto* iolet : iolets)
+    drawIoletExpanded = false;
+    for (auto& iolet : iolets)
         iolet->repaint();
 }
 
@@ -430,47 +474,6 @@ Array<Rectangle<float>> Object::getCorners() const
     return corners;
 }
 
-void Object::paintOverChildren(Graphics& g)
-{
-    // If autoconnect is about to happen, draw a fake inlet with a dotted outline
-    if (getValue<bool>(cnv->editor->autoconnect) && isInitialEditorShown() && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs) {
-        auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
-        auto fakeInletBounds = Rectangle<float>(16, 4, 8, 8);
-        g.setColour(findColour(outlet->isSignal ? PlugDataColour::signalColourId : PlugDataColour::dataColourId).brighter());
-        g.fillEllipse(fakeInletBounds);
-
-        g.setColour(findColour(PlugDataColour::objectOutlineColourId));
-        g.drawEllipse(fakeInletBounds, 1.0f);
-    }
-
-    if (!isHvccCompatible) {
-        g.saveState();
-
-        // Don't draw line over iolets!
-        for (auto& iolet : iolets) {
-            g.excludeClipRegion(iolet->getBounds().reduced(2));
-        }
-
-        g.setColour(Colours::orange);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), Corners::objectCornerRadius, 2.0f);
-
-        g.restoreState();
-    } else if (indexShown) {
-        int halfHeight = 5;
-
-        auto text = String(cnv->objects.indexOf(this));
-        int textWidth = Fonts::getMonospaceFont().withHeight(10).getStringWidth(text) + 5;
-        int left = std::min<int>(getWidth() - (1.5 * margin), getWidth() - textWidth);
-
-        auto indexBounds = Rectangle<int>(left, (getHeight() / 2) - halfHeight, getWidth() - left, halfHeight * 2);
-
-        g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
-        g.fillRoundedRectangle(indexBounds.toFloat(), 2.0f);
-
-        Fonts::drawStyledText(g, text, indexBounds, findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting(), Monospace, 10, Justification::centred);
-    }
-}
-
 String Object::getType() const
 {
     return gui ? gui->getType() : String();
@@ -507,56 +510,9 @@ void Object::triggerOverlayActiveState()
     repaint();
 }
 
-void Object::paint(Graphics& g)
-{
-    if (gui && gui->isTransparent() && !getValue<bool>(locked)) {
-        g.setColour(findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.35f).withAlpha(0.1f));
-        
-        g.fillRoundedRectangle(getLocalBounds().reduced(Object::margin).toFloat(), Corners::objectCornerRadius);
-    }
-    if ((showActiveState || isTimerRunning())) {
-        g.setOpacity(activeStateAlpha);
-        // show activation state glow
-        g.drawImage(activityOverlayImage, getLocalBounds().toFloat());
-        g.setOpacity(1.0f);
-    }
-    if ((selectedFlag && !cnv->isGraph) || newObjectEditor) {
-        if (newObjectEditor) {
-
-            g.setColour(findColour(PlugDataColour::textObjectBackgroundColourId));
-            g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 0.5f), Corners::objectCornerRadius);
-
-            g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
-            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 0.5f), Corners::objectCornerRadius, 1.0f);
-        }
-
-        g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
-
-        g.saveState();
-        // Make a rounded rectangle hole path:
-        // We do this by creating a large rectangle path with inverted winding
-        // and adding the inner rounded rectangle path
-        // this creates one path that has a hole in the middle
-        Path outerArea;
-        outerArea.addRectangle(getLocalBounds());
-        outerArea.setUsingNonZeroWinding(false);
-        Path innerArea;
-        auto innerRect = getLocalBounds().reduced(margin + 1);
-        innerArea.addRoundedRectangle(innerRect, Corners::objectCornerRadius);
-        outerArea.addPath(innerArea);
-
-        // use the path with a hole in it to exclude the inner rounded rect from painting
-        g.reduceClipRegion(outerArea);
-
-        for (auto& rect : getCorners()) {
-            g.fillRoundedRectangle(rect, Corners::objectCornerRadius);
-        }
-        g.restoreState();
-    }
-}
-
 void Object::resized()
 {
+    fbDirty = true;
     setVisible(!((cnv->isGraph || cnv->presentationMode == var(true)) && gui && gui->hideInGraph()));
 
     if (gui) {
@@ -566,7 +522,7 @@ void Object::resized()
     if (newObjectEditor) {
         newObjectEditor->setBounds(getLocalBounds().reduced(margin));
     }
-
+    
 #if JUCE_IOS
     int ioletSize = 15;
 #else
@@ -918,7 +874,6 @@ void Object::mouseUp(MouseEvent const& e)
         }
 
         for (auto* object : cnv->getSelectionOfType<Object>()) {
-            object->setBufferedToImage(false);
             object->repaint();
         }
 
@@ -957,8 +912,6 @@ void Object::mouseDrag(MouseEvent const& e)
 
     if (e.mods.isMiddleButtonDown())
         return;
-
-    beginDragAutoRepeat(25);
 
     if (validResizeZone && !originalBounds.isEmpty()) {
 
@@ -1076,7 +1029,6 @@ void Object::mouseDrag(MouseEvent const& e)
                 object->isObjectMouseActive = true;
                 auto newPosition = object->originalBounds.getPosition() + dragDistance;
 
-                object->setBufferedToImage(true);
                 object->setTopLeftPosition(newPosition);
             }
 
@@ -1204,6 +1156,218 @@ void Object::mouseDrag(MouseEvent const& e)
     }
 }
 
+
+void Object::updateFramebuffer(NVGcontext* nvg)
+{
+    if(shouldRenderToFramebuffer()) {
+        auto b = getLocalBounds();
+        bool boundsChanged = b.getWidth() != fbWidth || b.getHeight() != fbHeight;
+        if(fbDirty || boundsChanged)
+        {
+            auto maxScale = 3.0f;
+            int scaledWidth = b.getWidth() * maxScale * cnv->getRenderScale();
+            int scaledHeight = b.getHeight() * maxScale * cnv->getRenderScale();
+            
+            if(!fb || boundsChanged)
+            {
+                fbWidth = b.getWidth();
+                fbHeight = b.getHeight();
+                
+                if(fb) nvgDeleteFramebuffer(fb);
+                fb = nvgCreateFramebuffer(nvg, scaledWidth, scaledHeight, NVG_IMAGE_PREMULTIPLIED);
+            }
+            
+            nvgBindFramebuffer(fb);
+            nvgViewport(0, 0, scaledWidth, scaledHeight);
+            nvgClear(nvg);
+
+            nvgBeginFrame(nvg, b.getWidth() * maxScale, b.getHeight() * maxScale, cnv->getRenderScale());
+            nvgScale(nvg, maxScale, maxScale);
+            nvgScissor (nvg, 0, 0, b.getWidth(), b.getHeight());
+            
+            performRender(nvg);
+            
+#if ENABLE_OBJECT_FB_DEBUGGING
+            static Random rng;
+            nvgBeginPath(nvg);
+            nvgFillColor(nvg, nvgRGBA(rng.nextInt(255), rng.nextInt(255), rng.nextInt(255), 0x50));
+            nvgRect(nvg, 0, 0, b.getWidth(), b.getHeight());
+            nvgFill(nvg);
+#endif
+            
+            nvgEndFrame(nvg);
+            nvgBindFramebuffer(NULL);
+        }
+    }
+}
+
+bool Object::shouldRenderToFramebuffer()
+{
+    // We render to framebuffer if we are scrolling/zooming
+    return cnv->isScrolling;
+}
+
+void Object::render(NVGcontext* nvg)
+{
+    if(fb && shouldRenderToFramebuffer())
+    {
+        if(fbDirty) { // If framebuffer is dirty, draw normally now and draw from buffer again on next render
+            performRender(nvg);
+            return;
+        }
+        
+        auto b = getLocalBounds();
+        nvgBeginPath(nvg);
+        nvgRect(nvg, 0, 0, b.getWidth(), b.getHeight());
+        nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, b.getWidth(), b.getHeight(), 0, fb->image, 1));
+        nvgFill(nvg);
+    }
+    else {
+        performRender(nvg);
+    }
+}
+
+void Object::performRender(NVGcontext* nvg)
+{
+    auto b = getLocalBounds().reduced(margin);
+    auto selectedOutlineColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
+
+    if (selectedFlag) {
+        auto& resizeHandleImage = cnv->resizeHandleImage;
+        int angle = 360;
+        for(auto& corner : getCorners())
+        {
+            nvgSave(nvg);
+            // Rotate around centre
+            nvgTranslate(nvg, corner.getCentreX(), corner.getCentreY());
+            nvgRotate(nvg, degreesToRadians<float>(angle));
+            nvgTranslate(nvg, -4.5f, -4.5f);
+            
+            nvgBeginPath(nvg);
+            nvgRect(nvg, 0, 0, 9, 9);
+            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage, 1));
+            nvgFill(nvg);
+            nvgRestore(nvg);
+            angle -= 90;
+        }
+    }
+    
+    if(showActiveState && !approximatelyEqual(activeStateAlpha, 0.0f))
+    {
+        auto cTransparent = nvgRGBAf(0, 0, 0, 0);
+        auto cGlow = convertColour(findColour(PlugDataColour::dataColourId).withAlpha(activeStateAlpha));
+        nvgBeginPath(nvg);
+        auto ds = b.expanded(1);
+        glow = nvgBoxGradient(nvg, ds.getX(), ds.getY(), ds.getWidth(), ds.getHeight(), Corners::objectCornerRadius, 12, cGlow, cTransparent);
+        nvgFillPaint(nvg, glow);
+        nvgFill(nvg);
+    }
+    
+    if (gui && gui->isTransparent() && !getValue<bool>(locked)) {
+        nvgBeginPath(nvg);
+        nvgFillColor(nvg, convertColour(findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.35f).withAlpha(0.1f)));
+        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+        nvgFill(nvg);
+    }
+    
+    if(gui) {
+        nvgSave(nvg);
+        nvgTranslate(nvg, margin, margin);
+        gui->render(nvg);
+        nvgRestore(nvg);
+    }
+    
+    if(newObjectEditor)
+    {
+        auto backgroundColour = convertColour(findColour(PlugDataColour::textObjectBackgroundColourId));
+        auto outlineColour = convertColour(findColour(PlugDataColour::objectOutlineColourId));
+        
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+        nvgFillColor(nvg, backgroundColour);
+        nvgFill(nvg);
+        nvgStrokeWidth(nvg, 1.f);
+        nvgStrokeColor(nvg, isSelected() ? selectedOutlineColour : outlineColour);
+        nvgStroke(nvg);
+        
+        nvgTranslate(nvg, margin, margin);
+        textEditorRenderer.renderComponentFromImage(nvg, *newObjectEditor, getValue<float>(cnv->zoomScale) * cnv->getRenderScale());
+    }
+    
+    // If autoconnect is about to happen, draw a fake inlet with a dotted outline
+    if (getValue<bool>(cnv->editor->autoconnect) && isInitialEditorShown() && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs) {
+        auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
+        float fakeInletBounds[4] = {16.0f, 4.0f, 8.0f, 8.0f};
+        nvgBeginPath(nvg);
+        nvgFillColor(nvg, convertColour(findColour(outlet->isSignal ? PlugDataColour::signalColourId : PlugDataColour::dataColourId).brighter()));
+        nvgEllipse(nvg, fakeInletBounds[0] + fakeInletBounds[2] * 0.5f, fakeInletBounds[1] + fakeInletBounds[3] * 0.5f, fakeInletBounds[2] * 0.5f, fakeInletBounds[3] * 0.5f);
+        nvgFill(nvg);
+        
+        nvgStrokeColor(nvg, convertColour(findColour(PlugDataColour::objectOutlineColourId)));
+        nvgStrokeWidth(nvg, 1.0f);
+        nvgStroke(nvg);
+    }
+
+    if (!isHvccCompatible) {
+        nvgSave(nvg);
+
+        nvgBeginPath(nvg);
+        nvgStrokeColor(nvg, nvgRGBAf(1.0f, 0.5f, 0.0f, 1.0f)); // orange
+        nvgStrokeWidth(nvg, 1.0f);
+        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+        nvgStroke(nvg);
+
+        nvgRestore(nvg);
+    } else if (indexShown) {
+        int halfHeight = 5;
+
+        auto text = std::to_string(cnv->objects.indexOf(this));
+        int textWidth = static_cast<int>(nvgTextBounds(nvg, 0, 0, text.c_str(), nullptr, nullptr)) + 5;
+        int left = std::min<int>(b.getWidth() - (1.5 * margin), b.getWidth() - textWidth);
+
+        auto indexBounds = Rectangle<int>(left, (b.getHeight() / 2) - halfHeight, b.getWidth() - left, halfHeight * 2);
+        
+        nvgBeginPath(nvg);
+        nvgFillColor(nvg, convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId))); // Adjust fill color as needed
+        nvgRoundedRect(nvg, indexBounds.getX(), indexBounds.getY(), indexBounds.getWidth(), indexBounds.getHeight(), 2.0f);
+        nvgFill(nvg);
+
+        nvgFontSize(nvg, 8.0f);
+        nvgFontFace(nvg, "Inter");
+        nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_CENTER);
+        nvgFillColor(nvg, convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting()));
+        nvgText(nvg, indexBounds.getCentreX(), indexBounds.getCentreY(), text.c_str(), nullptr);
+    }
+
+    renderIolets(nvg);
+}
+
+void Object::renderIolets(NVGcontext* nvg)
+{
+    if(cnv->isGraph) return;
+    
+    for (auto* iolet : iolets) {
+        nvgSave(nvg);
+        nvgTranslate(nvg, iolet->getX(), iolet->getY());
+        iolet->render(nvg);
+        nvgRestore(nvg);
+    }
+}
+
+void Object::renderLabel(NVGcontext* nvg)
+{
+    if(gui)
+    {
+        if(auto* label = gui->getLabel())
+        {
+            nvgSave(nvg);
+            nvgTranslate(nvg, label->getX(), label->getY());
+            label->renderLabel(nvg, cnv->getRenderScale() * 2.0f);
+            nvgRestore(nvg);
+        }
+    }
+}
+
 // Returns true is the object is showing its initial editor, and doesn't have a GUI yet
 bool Object::isInitialEditorShown()
 {
@@ -1231,7 +1395,6 @@ void Object::hideEditor()
 
         outgoingEditor->removeListener(cnv->suggestor.get());
 
-        
         // Get entered text, remove extra spaces at the end
         auto newText = outgoingEditor->getText().trimEnd();
         

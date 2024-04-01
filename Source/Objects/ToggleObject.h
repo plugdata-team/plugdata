@@ -5,7 +5,7 @@
  */
 
 class ToggleObject final : public ObjectBase {
-    bool toggleState = false;
+    std::atomic<bool> toggleState = false;
     bool alreadyToggled = false;
     Value nonZero = SynchronousValue();
     Value sizeProperty = SynchronousValue();
@@ -66,21 +66,19 @@ public:
         value = getValue();
         setToggleStateFromFloat(value);
     }
-
-    void paint(Graphics& g) override
+    
+    
+    void render(NVGcontext* nvg) override
     {
-        g.setColour(iemHelper.getBackgroundColour());
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
+        auto b = getLocalBounds().toFloat().reduced(0.5f);
+        
+        auto backgroundColour = convertColour(iemHelper.getBackgroundColour());
+        auto toggledColour = convertColour(iemHelper.getForegroundColour()); // TODO: don't access audio thread variables in render loop
+        auto untoggledColour = convertColour(iemHelper.getForegroundColour().interpolatedWith(iemHelper.getBackgroundColour(), 0.8f));
+        auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
 
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-
-        auto toggledColour = iemHelper.getForegroundColour();
-        auto untoggledColour = toggledColour.interpolatedWith(iemHelper.getBackgroundColour(), 0.8f);
-        g.setColour(toggleState ? toggledColour : untoggledColour);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
         auto const sizeReduction = std::min(1.0f, getWidth() / 20.0f);
         float margin = (getWidth() * 0.08f + 4.5f) * sizeReduction;
@@ -89,12 +87,14 @@ public:
         auto const max = std::max(crossBounds.getWidth(), crossBounds.getHeight());
         auto strokeWidth = std::max(max * 0.15f, 2.0f) * sizeReduction;
         
-        if (getWidth() < 18) {
-            //crossBounds = getLocalBounds().toFloat().reduced(1.5f);
-        }
-        
-        g.drawLine({ crossBounds.getTopLeft(), crossBounds.getBottomRight() }, strokeWidth);
-        g.drawLine({ crossBounds.getBottomLeft(), crossBounds.getTopRight() }, strokeWidth);
+        nvgBeginPath(nvg);
+        nvgMoveTo(nvg, crossBounds.getX(), crossBounds.getY());
+        nvgLineTo(nvg, crossBounds.getRight(), crossBounds.getBottom());
+        nvgMoveTo(nvg, crossBounds.getRight(), crossBounds.getY());
+        nvgLineTo(nvg, crossBounds.getX(), crossBounds.getBottom());
+        nvgStrokeColor(nvg, toggleState ? toggledColour : untoggledColour);
+        nvgStrokeWidth(nvg, strokeWidth);
+        nvgStroke(nvg);
     }
 
     void toggleObject(Point<int> position) override

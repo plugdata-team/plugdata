@@ -39,6 +39,7 @@ void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg ypos, t_floatarg shif
 #include "LookAndFeel.h"
 #include "Pd/Patch.h"
 #include "Sidebar/Sidebar.h"
+#include "Utility/CachedTextRender.h"
 
 #include "IEMHelper.h"
 #include "AtomHelper.h"
@@ -134,10 +135,12 @@ void ObjectBase::PropertyUndoListener::valueChanged(Value& v)
 }
 
 ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
-    : ptr(obj)
+    : NVGComponent(this)
+    , ptr(obj)
     , object(parent)
     , cnv(parent->cnv)
     , pd(parent->cnv->pd)
+    , imageRenderer(cnv->editor->nvgSurface)
     , objectSizeListener(parent)
 {
     object->addComponentListener(&objectSizeListener);
@@ -412,6 +415,11 @@ void ObjectBase::moveToBack()
     }
 }
 
+void ObjectBase::render(NVGcontext* nvg)
+{
+    imageRenderer.renderComponentFromImage(nvg, *this, getImageScale());
+}
+
 void ObjectBase::paint(Graphics& g)
 {
     g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
@@ -422,6 +430,10 @@ void ObjectBase::paint(Graphics& g)
 
     g.setColour(outlineColour);
     g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+}
+
+float ObjectBase::getImageScale() {
+    return cnv->isScrolling ? cnv->getRenderScale() * 2.0f : cnv->getRenderScale() * std::max(1.0f, getValue<float>(cnv->zoomScale));
 }
 
 ObjectParameters ObjectBase::getParameters()

@@ -11,6 +11,16 @@
 #include "Utility/SettingsFile.h"
 #include "Utility/RateReducer.h"
 #include "Pd/WeakReference.h"
+#include "Utility/NVGComponent.h"
+
+#include <nanovg.h>
+#if NANOVG_GL_IMPLEMENTATION
+#include <juce_opengl/juce_opengl.h>
+using namespace juce::gl;
+#undef NANOVG_GL_IMPLEMENTATION
+#include <nanovg_gl_utils.h>
+#define NANOVG_GL_IMPLEMENTATION 1
+#endif
 
 #define ACTIVITY_UPDATE_RATE 15
 
@@ -26,7 +36,10 @@ class Object : public Component
     , public ChangeListener
     , public Timer
     , public KeyListener
-    , private TextEditor::Listener {
+    , public NVGComponent
+    , public NVGContextListener
+    , private TextEditor::Listener
+{
 public:
     explicit Object(Canvas* parent, String const& name = "", Point<int> position = { 100, 100 });
 
@@ -39,8 +52,6 @@ public:
     void changeListenerCallback(ChangeBroadcaster* source) override;
     void timerCallback() override;
 
-    void paint(Graphics&) override;
-    void paintOverChildren(Graphics&) override;
     void resized() override;
         
     bool keyPressed(KeyPress const& key, Component* component) override;
@@ -54,6 +65,8 @@ public:
     void showEditor();
     void hideEditor();
     bool isInitialEditorShown();
+    
+    void nvgContextDeleted(NVGcontext* nvg) override;
         
     String getType() const;
 
@@ -70,6 +83,12 @@ public:
 
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
+        
+    void updateFramebuffer(NVGcontext* nvg);
+    void render(NVGcontext* nvg) override;
+    void performRender(NVGcontext* nvg);
+    void renderIolets(NVGcontext* nvg);
+    void renderLabel(NVGcontext* nvg);
 
     void mouseMove(MouseEvent const& e) override;
     void mouseDown(MouseEvent const& e) override;
@@ -103,6 +122,7 @@ public:
 
     OwnedArray<Iolet> iolets;
     ResizableBorderComponent::Zone resizeZone;
+    bool drawIoletExpanded = false;
 
     static inline constexpr int margin = 6;
 
@@ -123,6 +143,8 @@ private:
     void openNewObjectEditor();
 
     bool checkIfHvccCompatible() const;
+    
+    bool shouldRenderToFramebuffer();
 
     void setSelected(bool shouldBeSelected);
     bool selectedFlag = false;
@@ -135,18 +157,27 @@ private:
 
     bool showActiveState = false;
     float activeStateAlpha = 0.0f;
+        
+    NVGframebuffer* fb = nullptr;
+    bool fbDirty = true;
+    int fbWidth, fbHeight;
+    
+    NVGpaint glow;
+    bool glowDirty = true;
 
     bool isObjectMouseActive = false;
     bool isInsideUndoSequence = false;
 
     Image activityOverlayImage;
+    NVGImageRenderer textEditorRenderer;
 
     ObjectDragState& ds;
 
     RateReducer rateReducer = RateReducer(ACTIVITY_UPDATE_RATE);
 
     std::unique_ptr<TextEditor> newObjectEditor;
-
+    
+    friend class InvalidationListener;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Object)
     JUCE_DECLARE_WEAK_REFERENCEABLE(Object)
 };

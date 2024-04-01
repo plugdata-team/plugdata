@@ -215,6 +215,8 @@ class KeyboardObject final : public ObjectBase
 
     MIDIKeyboard keyboard;
     int keyRatio = 5;
+        
+    std::unique_ptr<NanoVGGraphicsContext> nvgCtx = nullptr;
 
 public:
     KeyboardObject(pd::WeakReference ptr, Object* object)
@@ -282,6 +284,16 @@ public:
                 // Call async to make sure pd obj has updated
                 object->updateBounds();
             });
+        }
+    }
+        
+    void render(NVGcontext* nvg) override
+    {
+        if(!nvgCtx || nvgCtx->getContext() != nvg) nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
+        nvgCtx->setPhysicalPixelScaleFactor(getImageScale());
+        Graphics g(*nvgCtx);
+        {
+            paintEntireComponent(g, true);
         }
     }
 

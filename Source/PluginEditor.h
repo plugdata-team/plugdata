@@ -7,6 +7,7 @@
 #pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
+#include <juce_opengl/juce_opengl.h>
 
 #include "Utility/Fonts.h"
 #include "Utility/ModifierKeyListener.h"
@@ -16,10 +17,41 @@
 #include "Utility/WindowDragger.h"
 
 #include "Tabbar/SplitView.h"
-#include "Dialogs/OverlayDisplaySettings.h"
-#include "Dialogs/SnapSettings.h"
 
 #include "Utility/ObjectThemeManager.h"
+#include "NVGSurface.h"
+
+class CalloutArea : public Component, public Timer
+{
+public:
+    CalloutArea(Component* parent) : target(parent), tooltipWindow(this)
+    {
+        setVisible(true);
+        setAlwaysOnTop(true);
+        setInterceptsMouseClicks(false, true);
+        startTimerHz(3);
+    }
+
+    ~CalloutArea(){}
+
+    void timerCallback() override
+    {
+        setBounds(target->getScreenBounds());
+    }
+
+    void paint(Graphics& g) override
+    {
+//#define DEBUG_CALLOUT_AREA
+#ifdef DEBUG_CALLOUT_AREA
+        g.setColour(Colours::red);
+        g.drawRect(getLocalBounds());
+#endif
+    }
+
+private:
+    WeakReference<Component> target;
+    TooltipWindow tooltipWindow;
+};
 
 class ConnectionMessageDisplay;
 class Sidebar;
@@ -50,6 +82,8 @@ public:
     void paint(Graphics& g) override;
     void paintOverChildren(Graphics& g) override;
 
+    void initialiseCanvasRenderer();
+    
     bool isActiveWindow() override;
 
     void resized() override;
@@ -84,7 +118,7 @@ public:
 
     void updateCommandStatus();
     void handleAsyncUpdate() override;
-
+    
     bool isInterestedInFileDrag(StringArray const& files) override;
     void filesDropped(StringArray const& files, int x, int y) override;
     void fileDragEnter(StringArray const&, int, int) override;
@@ -103,6 +137,8 @@ public:
     bool wantsRoundedCorners();
 
     bool keyPressed(KeyPress const& key) override;
+    
+    CallOutBox& showCalloutBox(std::unique_ptr<Component> content, Rectangle<int> screenBounds);
 
     void enablePluginMode(Canvas* cnv);
 
@@ -112,7 +148,6 @@ public:
     void showTouchSelectionHelper(bool shouldBeShown);
     
     bool highlightSearchTarget(void* target, bool openNewTabIfNeeded);
-
 
     TabComponent* getActiveTabbar();
 
@@ -141,6 +176,7 @@ public:
     std::unique_ptr<ZoomLabel> zoomLabel;
 
     OfflineObjectRenderer offlineRenderer;
+    NVGSurface nvgSurface;
 
     // used to display callOutBoxes only in a safe area between top & bottom toolbars
     Component callOutSafeArea;
@@ -150,9 +186,11 @@ public:
 
     std::unique_ptr<Autosave> autosave;
     ApplicationCommandManager commandManager;
-    
+        
     inline static ObjectThemeManager objectManager;
     static ObjectThemeManager* getObjectManager() { return &objectManager; };
+
+    std::unique_ptr<CalloutArea> calloutArea;
 
 private:
     
@@ -182,6 +220,6 @@ private:
 
     // Used in standalone
     std::unique_ptr<MouseRateReducedComponent<ResizableBorderComponent>> borderResizer;
-
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginEditor)
 };

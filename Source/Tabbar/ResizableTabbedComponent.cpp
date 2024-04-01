@@ -19,7 +19,7 @@
 #define ENABLE_SPLITS_DROPZONE_DEBUGGING 0
 
 ResizableTabbedComponent::ResizableTabbedComponent(PluginEditor* editor, TabComponent* mainTabComponent)
-    : editor(editor)
+    : NVGComponent(this), editor(editor)
 {
     if (mainTabComponent != nullptr)
         tabComponent.reset(mainTabComponent);
@@ -51,7 +51,7 @@ bool ResizableTabbedComponent::isInterestedInDragSource(SourceDetails const& dra
 void ResizableTabbedComponent::itemDropped(SourceDetails const& dragSourceDetails)
 {
     isDragAndDropOver = false;
-    repaint();
+    editor->nvgSurface.triggerRepaint();
 
     if (dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
         switch (activeZone) {
@@ -311,6 +311,47 @@ void ResizableTabbedComponent::resized()
     tabComponent->setBounds(getLocalBounds());
 }
 
+void ResizableTabbedComponent::render(NVGcontext* nvg)
+{
+    if (isDragAndDropOver) {
+        nvgBeginPath(nvg);
+        nvgFillColor(nvg, convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.15f)));
+        
+        Rectangle<int> highlight;
+        switch (activeZone) {
+            case DropZones::Left:
+                highlight = splitBoundsLeft;
+                break;
+            case DropZones::Top:
+                // highlight = splitBoundsTop;
+                if (editor->splitView.splits.size() > 1) {
+                    highlight = splitBoundsFull;
+                }
+                break;
+            case DropZones::Right:
+                highlight = splitBoundsRight;
+                break;
+            case DropZones::Bottom:
+                // highlight = splitBoundsBottom;
+                if (editor->splitView.splits.size() > 1) {
+                    highlight = splitBoundsFull;
+                }
+                break;
+            case DropZones::Centre:
+            case DropZones::TabBar:
+                if (editor->splitView.splits.size() > 1) {
+                    highlight = getLocalBounds();
+                }
+                break;
+        }
+        if(!highlight.isEmpty()) {
+            nvgRect(nvg, highlight.getX(), highlight.getY(), highlight.getWidth(), highlight.getHeight());
+            nvgFill(nvg);
+        }
+    }
+}
+
+/*
 void ResizableTabbedComponent::paintOverChildren(Graphics& g)
 {
 #if (ENABLE_SPLITS_DROPZONE_DEBUGGING == 1)
@@ -324,40 +365,12 @@ void ResizableTabbedComponent::paintOverChildren(Graphics& g)
     }
 #endif
 
-    g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.15f));
-
-    if (isDragAndDropOver) {
-        Rectangle<int> highlight;
-        switch (activeZone) {
-        case DropZones::Left:
-            highlight = splitBoundsLeft;
-            break;
-        case DropZones::Top:
-            // highlight = splitBoundsTop;
-            if (editor->splitView.splits.size() > 1) {
-                highlight = splitBoundsFull;
-            }
-            break;
-        case DropZones::Right:
-            highlight = splitBoundsRight;
-            break;
-        case DropZones::Bottom:
-            // highlight = splitBoundsBottom;
-            if (editor->splitView.splits.size() > 1) {
-                highlight = splitBoundsFull;
-            }
-            break;
-        case DropZones::Centre:
-        case DropZones::TabBar:
-            if (editor->splitView.splits.size() > 1) {
-                highlight = getLocalBounds();
-            }
-            break;
-        }
+    
 
         g.fillRect(highlight);
     }
-}
+} */
+
 
 void ResizableTabbedComponent::itemDragEnter(SourceDetails const& dragSourceDetails)
 {
@@ -365,7 +378,7 @@ void ResizableTabbedComponent::itemDragEnter(SourceDetails const& dragSourceDeta
     // if we are dragging a tabbar, update the highlight split
     if (dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
         isDragAndDropOver = true;
-        repaint();
+        editor->nvgSurface.triggerRepaint();
     }
 }
 
@@ -373,7 +386,7 @@ void ResizableTabbedComponent::itemDragExit(SourceDetails const& dragSourceDetai
 {
     if (dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
         isDragAndDropOver = false;
-        repaint();
+        editor->nvgSurface.triggerRepaint();
     }
 }
 
@@ -389,19 +402,19 @@ void ResizableTabbedComponent::itemDragMove(SourceDetails const& dragSourceDetai
         if (editor->splitView.canSplit() && sourceNumTabs > 1) {
             if (activeZone != zone) {
                 activeZone = zone;
-                repaint();
+                editor->nvgSurface.triggerRepaint();
                 // std::cout << "dragging over: " << getZoneName(zone) << std::endl;
             }
         } else if (sourceTabButton->getTabComponent() != tabComponent.get()) {
             auto foundZone = zone == DropZones::TabBar ? DropZones::None : DropZones::Centre;
             if (activeZone != foundZone) {
                 activeZone = foundZone;
-                repaint();
+                editor->nvgSurface.triggerRepaint();
             }
         } else if (sourceTabButton->getTabComponent() == tabComponent.get()) {
             if (activeZone != DropZones::None) {
                 activeZone = DropZones::None;
-                repaint();
+                editor->nvgSurface.triggerRepaint();
             }
         }
     }

@@ -5,6 +5,7 @@
 #include <utility>
 #include "Constants.h"
 #include "LookAndFeel.h"
+#include "PluginEditor.h"
 
 class SnapSettings : public Component {
 public:
@@ -205,7 +206,7 @@ public:
         }
     }
 
-    static void show(Component* editor, Rectangle<int> bounds)
+    static void show(PluginEditor* editor, Rectangle<int> bounds)
     {
         if (isShowing)
             return;
@@ -213,7 +214,7 @@ public:
         isShowing = true;
 
         auto snapSettings = std::make_unique<SnapSettings>();
-        CallOutBox::launchAsynchronously(std::move(snapSettings), bounds, editor);
+        editor->showCalloutBox(std::move(snapSettings), bounds);
     }
 
     ~SnapSettings() override
@@ -230,7 +231,7 @@ public:
 
 private:
     static inline bool isShowing = false;
-
+    
     std::unique_ptr<GridSizeSlider> gridSlider = std::make_unique<GridSizeSlider>();
 
     OwnedArray<SnapSettings::SnapSelector> buttonGroups = {

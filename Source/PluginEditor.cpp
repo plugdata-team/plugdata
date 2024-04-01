@@ -6,6 +6,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_processors/juce_audio_processors.h>
+
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
 #include "Utility/OSUtils.h"
@@ -33,16 +34,26 @@
 #include "PluginMode.h"
 #include "Components/TouchSelectionHelper.h"
 
+#include <juce_opengl/juce_opengl.h>
+using namespace juce::gl;
+
+#include <nanovg.h>
+
 class ZoomLabel : public TextButton
-    , public Timer {
+    , public MultiTimer, public NVGComponent
+{
+    float animationAlpha = 0.0f;
+    float targetAlpha = 0.0f;
+    float increment = 0.0f;
+    
+    int const fadeTimer = 0;
+    int const expireTimer = 1;
 
-    ComponentAnimator labelAnimator;
-
-    // Ignore two times, when setting zoom scale and when setting split zoom scale
+    bool visible = false;
     int initRun = 2;
-
+    
 public:
-    ZoomLabel()
+    ZoomLabel() : NVGComponent(this)
     {
         setInterceptsMouseClicks(false, false);
     }
@@ -55,19 +66,86 @@ public:
         }
 
         setButtonText(String(value * 100, 1) + "%");
-        startTimer(2000);
+        fadeIn();
+    }
 
-        if (!labelAnimator.isAnimating(this)) {
-            labelAnimator.fadeIn(this, 200);
+    void fadeIn()
+    {
+        targetAlpha = 1.0f;
+        increment = 0.015f;
+        visible = true;
+        startTimer(fadeTimer, 1.0f / 60.0f);
+    }
+
+    void fadeOut()
+    {
+        targetAlpha = 0.0f;
+        increment = -0.015f;
+        startTimer(fadeTimer, 1.0f / 60.0f);
+    }
+
+    void timerCallback(int timerId) override
+    {
+        if(timerId == fadeTimer) {
+            
+            if((increment > 0.0f && animationAlpha >= targetAlpha) || (increment < 0.0f && animationAlpha <= targetAlpha))
+            {
+                animationAlpha = targetAlpha;
+                visible = targetAlpha != 0.0f;
+                if(visible)
+                {
+                    startTimer(expireTimer, 1500);
+                }
+                stopTimer(fadeTimer);
+            }
+            else {
+                animationAlpha += increment;
+            }
+            
+            findParentComponentOfClass<PluginEditor>()->nvgSurface.triggerRepaint();
+        }
+        else {
+            fadeOut();
+            stopTimer(expireTimer);
         }
     }
 
-    void timerCallback() override
+    void render(NVGcontext* nvg) override
     {
-        labelAnimator.fadeOut(this, 200);
-        stopTimer();
+        if(visible) {
+            auto text = getButtonText();
+            auto bg = findNVGColour(PlugDataColour::toolbarBackgroundColourId);
+            auto outline = findNVGColour(PlugDataColour::outlineColourId);
+            auto textColour = findNVGColour(PlugDataColour::toolbarTextColourId);
+            
+            nvgGlobalAlpha(nvg, std::clamp(animationAlpha, 0.0f, 1.0f));
+            
+            nvgBeginPath(nvg);
+            nvgRoundedRect(nvg, 0, 0, getWidth(), getHeight(), Corners::defaultCornerRadius);
+            nvgFillColor(nvg, bg);
+            nvgFill(nvg);
+            nvgStrokeColor(nvg, outline);
+            nvgStrokeWidth(nvg, 1.0f);
+            nvgStroke(nvg);
+            
+            nvgFillColor(nvg, textColour);
+            nvgFontSize(nvg, 11.5f);
+            nvgFontFace(nvg, "Inter-Regular");
+            nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+            nvgText(nvg, getWidth() / 2.0f, getHeight() / 2.0f, text.toRawUTF8(), nullptr);
+            
+            nvgGlobalAlpha(nvg, 1.0f); // Reset alpha to 1.0 for other elements
+        }
+    }
+
+private:
+    int getTimerInterval() const
+    {
+        // Adjust this interval for smoother or faster animation
+        return 1000 / 60; // 60 FPS
     }
 };
+
 
 PluginEditor::PluginEditor(PluginProcessor& p)
     : AudioProcessorEditor(&p)
@@ -75,13 +153,15 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , sidebar(std::make_unique<Sidebar>(&p, this))
     , statusbar(std::make_unique<Statusbar>(&p))
     , openedDialog(nullptr)
+    , pluginMode(nullptr)
     , splitView(this)
     , zoomLabel(std::make_unique<ZoomLabel>())
     , offlineRenderer(&p)
-, pluginConstrainer(*getConstrainer())
-, autosave(std::make_unique<Autosave>(pd))
+    , nvgSurface(this)
+    , pluginConstrainer(*getConstrainer())
+    , autosave(std::make_unique<Autosave>(pd))
     , touchSelectionHelper(std::make_unique<TouchSelectionHelper>(this))
-    , tooltipWindow(this, [](Component* c) {
+    , tooltipWindow(nullptr, [](Component* c) {
         if (auto* cnv = c->findParentComponentOfClass<Canvas>()) {
             return !getValue<bool>(cnv->locked);
         }
@@ -155,6 +235,13 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(*sidebar);
     sidebar->toBehind(statusbar.get());
 
+    calloutArea = std::make_unique<CalloutArea>(this);
+    calloutArea->setVisible(true);
+    calloutArea->setAlwaysOnTop(true);
+    calloutArea->setInterceptsMouseClicks(true, true);
+    
+    setOpaque(false);
+
     for (auto* button : std::vector<MainToolbarButton*> {
              &mainMenuButton,
                  &undoButton,
@@ -166,7 +253,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
          }) {
         addAndMakeVisible(button);
     }
-
+    
     // Show settings
     mainMenuButton.setTooltip("Main menu");
     mainMenuButton.onClick = [this]() {
@@ -255,8 +342,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     if (pd->isInPluginMode())
         enablePluginMode(nullptr);
 
-    connectionMessageDisplay = std::make_unique<ConnectionMessageDisplay>();
-    addChildComponent(connectionMessageDisplay.get());
+    connectionMessageDisplay = std::make_unique<ConnectionMessageDisplay>(this);
+    connectionMessageDisplay->addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses | ComponentPeer::windowIgnoresMouseClicks);
 
     // This cannot be done in MidiDeviceManager's constructor because SettingsFile is not yet initialised at that time
     if (ProjectInfo::isStandalone) {
@@ -282,10 +369,13 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 #if JUCE_IOS
     addAndMakeVisible(touchSelectionHelper.get());
 #endif
+    
+    addChildComponent(nvgSurface);
+    nvgSurface.toBehind(&splitView);
 }
 
 PluginEditor::~PluginEditor()
-{
+{    
     pd->savePatchTabPositions();
     theme.removeListener(this);
 
@@ -293,6 +383,7 @@ PluginEditor::~PluginEditor()
         ProjectInfo::closeWindow(window); // Make sure plugdatawindow gets cleaned up
     }
 }
+
 
 SplitView* PluginEditor::getSplitView()
 {
@@ -344,18 +435,12 @@ void PluginEditor::paint(Graphics& g)
     bool rounded = wantsRoundedCorners();
 
     if (rounded) {
+#if JUCE_MAC || JUCE_LINUX
         g.setColour(baseColour);
         g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
-
-        // Toolbar background
-        g.setColour(baseColour);
-        g.fillRect(0, 10, getWidth(), toolbarHeight - 9);
-        g.fillRoundedRectangle(0.0f, 0.0f, getWidth(), toolbarHeight, Corners::windowCornerRadius);
-
-        // Statusbar background
-        g.setColour(baseColour);
-        g.fillRect(0, getHeight() - statusbar->getHeight(), getWidth(), statusbar->getHeight() - 12);
-        g.fillRoundedRectangle(0.0f, getHeight() - statusbar->getHeight(), getWidth(), statusbar->getHeight(), Corners::windowCornerRadius);
+#else
+        g.fillAll(baseColour);
+#endif
     } else {
         g.fillAll(baseColour);
     }
@@ -377,6 +462,28 @@ void PluginEditor::paintOverChildren(Graphics& g)
     }
 }
 
+CallOutBox& PluginEditor::showCalloutBox(std::unique_ptr<Component> content, Rectangle<int> screenBounds)
+{
+    class CalloutDeletionListener : public ComponentListener
+    {
+        PluginEditor* editor;
+    public:
+        CalloutDeletionListener(PluginEditor* e) : editor(e) {}
+        
+        void componentBeingDeleted(Component& c) override
+        {
+            c.removeComponentListener(this);
+            editor->calloutArea->removeFromDesktop();
+            delete this;
+        }
+    };
+    
+    content->addComponentListener(new CalloutDeletionListener(this));
+    calloutArea->addToDesktop(ComponentPeer::windowIsTemporary);
+    auto bounds = calloutArea->getLocalArea(nullptr, screenBounds);
+    return CallOutBox::launchAsynchronously(std::move(content), bounds, calloutArea.get());
+}
+
 DragAndDropTarget* PluginEditor::findNextDragAndDropTarget(Point<int> screenPos)
 {
     return splitView.getSplitAtScreenPosition(screenPos);
@@ -384,8 +491,10 @@ DragAndDropTarget* PluginEditor::findNextDragAndDropTarget(Point<int> screenPos)
 
 void PluginEditor::resized()
 {
-    if (pd->isInPluginMode())
+    if (pluginMode && pd->isInPluginMode()) {
+        nvgSurface.updateBounds(getLocalBounds().withTrimmedTop(pluginMode->isWindowFullscreen() ? 0 : 40));
         return;
+    }
 
 #if JUCE_IOS
     if (auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent())) {
@@ -407,7 +516,11 @@ void PluginEditor::resized()
     auto workAreaHeight = getHeight() - toolbarHeight - statusbar->getHeight();
 
     palettes->setBounds(0, toolbarHeight, palettes->getWidth(), workAreaHeight);
-    splitView.setBounds(paletteWidth, toolbarHeight, (getWidth() - sidebar->getWidth() - paletteWidth), workAreaHeight);
+    
+    auto workArea = Rectangle<int>(paletteWidth, toolbarHeight, (getWidth() - sidebar->getWidth() - paletteWidth), workAreaHeight);
+    splitView.setBounds(workArea);
+    nvgSurface.updateBounds(workArea.withTrimmedTop(31));
+    
     sidebar->setBounds(getWidth() - sidebar->getWidth(), toolbarHeight, sidebar->getWidth(), workAreaHeight);
 
     auto useLeftButtons = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");
@@ -421,7 +534,7 @@ void PluginEditor::resized()
     offset += 22;
 #endif
 
-    zoomLabel->setBounds(paletteWidth + 5, getHeight() - Statusbar::statusbarHeight - 36, 55, 23);
+    zoomLabel->setBounds(paletteWidth + 6, getHeight() - Statusbar::statusbarHeight - 32, 55, 23);
 
     int buttonDisctance = 56;
     mainMenuButton.setBounds(offset, 0, toolbarHeight, toolbarHeight);
@@ -792,7 +905,7 @@ void PluginEditor::closeAllTabs(bool quitAfterComplete, Canvas* patchToExclude, 
                         if (!canvas)
                             return;
                         if (result == 2)
-                            saveProject([&deleteFunc]() mutable { deleteFunc(); });
+                            saveProject([deleteFunc]() mutable { deleteFunc(); });
                         else if (result == 1)
                             deleteFunc();
                     },
@@ -819,6 +932,7 @@ void PluginEditor::closeTab(Canvas* cnv)
 
     patch->setVisible(false);
 
+    cnv->setCachedComponentImage(nullptr);
     tabbar->removeTab(tabIdx);
     canvases.removeObject(cnv);
 
@@ -1098,6 +1212,12 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         result.setInfo("Connection style", "Set connection style", "Edit", 0);
         result.addDefaultKeypress(76, ModifierKeys::commandModifier);
         result.setActive(hasCanvas && !isDragging && hasConnectionSelection);
+        break;
+    }
+    case CommandIDs::PanDragKey: {
+        result.setInfo("Pan drag key", "Pan drag key", "View", 0);
+        result.addDefaultKeypress(KeyPress::spaceKey, ModifierKeys::noModifiers);
+        result.setActive(hasCanvas && !isDragging);
         break;
     }
     case CommandIDs::ZoomIn: {
@@ -1504,6 +1624,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
             cnv->setSelected(con, true, false);
         }
         updateCommandStatus();
+        cnv->updateSidebarSelection();
         return true;
     }
     case CommandIDs::Lock: {
@@ -1540,14 +1661,14 @@ bool PluginEditor::perform(InvocationInfo const& info)
     case CommandIDs::ZoomIn: {
         auto& scale = getCurrentCanvas()->zoomScale;
         float newScale = getValue<float>(scale) + 0.1f;
-        scale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.2f, 3.0f) * 10.))) / 10.;
+        scale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.25f, 3.0f) * 10.))) / 10.;
 
         return true;
     }
     case CommandIDs::ZoomOut: {
         auto& scale = getCurrentCanvas()->zoomScale;
         float newScale = getValue<float>(scale) - 0.1f;
-        scale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.2f, 3.0f) * 10.))) / 10.;
+        scale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.25f, 3.0f) * 10.))) / 10.;
 
         return true;
     }
@@ -1732,6 +1853,7 @@ void PluginEditor::enablePluginMode(Canvas* cnv)
     } else {
         cnv->patch.openInPluginMode = true;
         pluginMode = std::make_unique<PluginMode>(cnv);
+        resized();
     }
 }
 
@@ -1766,6 +1888,7 @@ void PluginEditor::quit(bool askToSave)
         auto* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent());
         window->closeButtonPressed();
     } else {
+        nvgSurface.detachContext();
         JUCEApplication::quit();
     }
 }

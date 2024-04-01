@@ -25,19 +25,29 @@
 #include "Components/GraphArea.h"
 #include "Utility/RateReducer.h"
 
+
 extern "C" {
 void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 }
 
 Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
-    : editor(parent)
+    : NVGComponent(this)
+    , editor(parent)
     , pd(parent->pd)
     , refCountedPatch(p)
     , patch(*p)
     , canvasOrigin(Point<int>(infiniteCanvasSize / 2, infiniteCanvasSize / 2))
     , graphArea(nullptr)
     , pathUpdater(new ConnectionPathUpdater(this))
+    , globalMouseListener(this)
 {
+
+    addAndMakeVisible(objectLayer);
+    addAndMakeVisible(connectionLayer);
+
+    objectLayer.setInterceptsMouseClicks(false, true);
+    connectionLayer.setInterceptsMouseClicks(false, true);
+
     if (auto patchPtr = patch.getPointer()) {
         isGraphChild = glist_isgraph(patchPtr.get());
     }
@@ -59,6 +69,15 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
 
     patchWidth.addListener(this);
     patchHeight.addListener(this);
+    
+    globalMouseListener.globalMouseMove = [this](const MouseEvent& e){
+        lastMouseX = e.x;
+        lastMouseY = e.y;
+    };
+    globalMouseListener.globalMouseDrag = [this](const MouseEvent& e){
+        lastMouseX = e.x;
+        lastMouseY = e.y;
+    };
 
     suggestor = std::make_unique<SuggestionComponent>();
 
@@ -146,6 +165,8 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     parameters.addParamRange("Y range", cGeneral, &yRange, { 1.0f, 0.0f });
     parameters.addParamInt("Width", cDimensions, &patchWidth, 527);
     parameters.addParamInt("Height", cDimensions, &patchHeight, 327);
+    
+    editor->nvgSurface.addNVGContextListener(this);
 }
 
 Canvas::~Canvas()
@@ -153,6 +174,354 @@ Canvas::~Canvas()
     zoomScale.removeListener(this);
     editor->removeModifierKeyListener(this);
     pd->unregisterMessageListener(patch.getPointer().get(), this);
+    editor->nvgSurface.removeNVGContextListener(this);
+}
+
+void Canvas::lookAndFeelChanged()
+{
+    editor->nvgSurface.sendContextDeleteMessage();
+}
+
+void Canvas::nvgContextDeleted(NVGcontext* nvg)
+{
+    if(ioletBuffer) nvgDeleteFramebuffer(ioletBuffer);
+    if(resizeHandleImage) nvgDeleteImage(nvg, resizeHandleImage);
+    resizeHandleImage = 0;
+    ioletBuffer = nullptr;
+}
+
+bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, int maxUpdateTimeMs)
+{
+    auto start = Time::getMillisecondCounter();
+    auto pixelScale = getRenderScale();
+    auto zoom = isScrolling ? 2.0f : getValue<float>(zoomScale);
+    
+    // First, check if we need to update our iolet buffer
+    if(!ioletBuffer || !approximatelyEqual(zoom, bufferScale))
+    {
+        int const logicalSize = 16 * 4;
+        int const pixelSize = logicalSize * pixelScale * zoom;
+        if(ioletBuffer) nvgDeleteFramebuffer(ioletBuffer);
+        ioletBuffer = nvgCreateFramebuffer(nvg, pixelSize, pixelSize, NVG_IMAGE_PREMULTIPLIED);
+        
+        nvgBindFramebuffer(ioletBuffer);
+        nvgViewport(0, 0, pixelSize, pixelSize);
+        nvgClear(nvg);
+        
+        nvgBeginFrame(nvg, logicalSize * zoom, logicalSize * zoom, pixelScale);
+        nvgScale(nvg, zoom, zoom);
+        
+        auto renderIolet = [](NVGcontext* nvg, Rectangle<float> bounds, NVGcolor background, NVGcolor outline){
+            if (PlugDataLook::getUseSquareIolets()) {
+                nvgBeginPath(nvg);
+                nvgFillColor(nvg, background);
+                nvgRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+                nvgFill(nvg);
+                
+                nvgStrokeColor(nvg, outline);
+                nvgStroke(nvg);
+            }
+            else {
+                nvgBeginPath(nvg);
+                nvgFillColor(nvg, background);
+                nvgCircle(nvg, bounds.getCentreX(), bounds.getCentreY(), bounds.getWidth() / 2.0f);
+                nvgFill(nvg);
+                
+                nvgStrokeColor(nvg, outline);
+                nvgStroke(nvg);
+            }
+        };
+        
+        auto ioletColours = std::vector<Colour>{
+            findColour(PlugDataColour::dataColourId),
+            findColour(PlugDataColour::signalColourId),
+            findColour(PlugDataColour::gemColourId),
+            findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.5f)};
+        
+        auto outlineColour = findNVGColour(PlugDataColour::objectOutlineColourId);
+        for(int i = 0; i < 4; i++)
+        {
+            auto backgroundColour = convertColour(ioletColours[i]);
+            auto ioletRow = Rectangle<float>(0, i * 16 + 0.5f, logicalSize, 12.5f);
+            renderIolet(nvg, ioletRow.removeFromLeft(16).reduced(4.0f), backgroundColour, outlineColour); // normal
+            renderIolet(nvg, ioletRow.removeFromLeft(16).reduced(2.5f), backgroundColour, outlineColour); // hovered
+        }
+        
+        nvgEndFrame(nvg);
+        nvgBindFramebuffer(0);
+        editor->nvgSurface.invalidateAll();
+    }
+    
+    if(!resizeHandleImage || !approximatelyEqual(zoom, bufferScale))
+    {
+        int const logicalSize = 9;
+        int const pixelSize = logicalSize * pixelScale * zoom;
+        Image resizerImage = Image(Image::ARGB, pixelSize, pixelSize, true);
+        Graphics g(resizerImage); // Render resize handles with JUCE, since rounded rect exclusion is hard with nanovg
+        g.addTransform(AffineTransform::scale(pixelScale * zoom, pixelScale * zoom));
+        
+        auto b = Rectangle<int>(0, 0, 9, 9);
+        // use the path with a hole in it to exclude the inner rounded rect from painting
+        Path outerArea;
+        outerArea.addRectangle(b);
+        outerArea.setUsingNonZeroWinding(false);
+        
+        Path innerArea;
+        
+        auto innerRect = b.translated(Object::margin / 2, Object::margin / 2);
+        innerArea.addRoundedRectangle(innerRect, Corners::objectCornerRadius);
+        outerArea.addPath(innerArea);
+        g.reduceClipRegion(outerArea);
+        
+        g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
+        g.fillRoundedRectangle(0.0f, 0.0f, 9.0f, 9.0f, Corners::objectCornerRadius);
+        
+        if(resizeHandleImage) nvgDeleteImage(nvg, resizeHandleImage);
+        resizeHandleImage = NVGImageRenderer::convertImage(nvg, resizerImage);
+        editor->nvgSurface.invalidateAll();
+    }
+    
+    bufferScale = zoom;
+    
+    // Then, check if object framebuffers need to be updated
+    if(viewport) invalidRegion = (invalidRegion + viewport->getViewPosition()) / zoom;
+    for(auto* obj : objects)
+    {
+        auto b = obj->getBounds();
+        if(b.intersects(invalidRegion)) {
+            obj->updateFramebuffer(nvg);
+            
+            auto elapsed = Time::getMillisecondCounter() - start;
+            if(elapsed > maxUpdateTimeMs) {
+                return false;
+            }
+        }
+    }
+    
+    return true;
+}
+
+// Callback from canvasViewport to perform actual rendering
+void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
+{
+    auto backgroundColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId));
+    auto dotsColour = convertColour(findColour(PlugDataColour::canvasDotsColourId));
+    
+    auto halfSize = infiniteCanvasSize / 2;
+    auto zoom = getValue<float>(zoomScale);
+    auto hasViewport = viewport && !editor->pluginMode;
+    
+    // apply translation to the canvas nvg objects
+    nvgSave(nvg);
+    
+    if(hasViewport)  {
+        nvgTranslate(nvg, -viewport->getViewPositionX(), -viewport->getViewPositionY());
+        invalidRegion = invalidRegion.translated(viewport->getViewPositionX(), viewport->getViewPositionY());
+        
+        nvgScale(nvg, zoom, zoom);
+        invalidRegion /= zoom;
+    }
+        
+    if(hasViewport) {
+        nvgBeginPath(nvg);
+        nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
+        nvgFillColor(nvg, backgroundColour);
+        nvgFill(nvg);
+    }
+    
+    
+    if(hasViewport && !getValue<bool>(locked)) {
+        auto feather = getRenderScale() > 1.0f ? 0.25f : 0.75f;
+        if(getValue<float>(zoomScale) >= 1.0f) {
+            nvgSave(nvg);
+            nvgTranslate(nvg, canvasOrigin.x % objectGrid.gridSize, canvasOrigin.y % objectGrid.gridSize); // Make sure grid aligns with origin
+            NVGpaint dots = nvgDotPattern(nvg, dotsColour, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize, 1.0f, feather);
+            nvgFillPaint(nvg, dots);
+            nvgFill(nvg);
+            nvgRestore(nvg);
+        }
+        else {
+            nvgSave(nvg);
+            nvgTranslate(nvg, canvasOrigin.x % (objectGrid.gridSize * 4), canvasOrigin.y % (objectGrid.gridSize * 4)); // Make sure grid aligns with origin
+            auto darkDotColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId).contrasting());
+            auto scaledDotSize = jmap(zoom, 1.0f, 0.25f, 1.0f, 4.0f);
+            if (zoom < 0.3f && getRenderScale() <= 1.0f)
+                scaledDotSize = jmap(zoom, 0.3f, 0.25f, 4.0f, 8.0f);
+            //if (getRenderScale() <= 1.0f && zoom < 0.5f)
+            //    scaledDotSize *= 1.5f;
+
+            for(int i = 0; i < 4; i++)
+            {
+                nvgTranslate(nvg, objectGrid.gridSize, 0);
+
+                NVGpaint dots = nvgDotPattern(nvg, i == 3 ? darkDotColour : dotsColour, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize * 4,  scaledDotSize, feather + 0.2f);
+                nvgFillPaint(nvg, dots);
+                nvgFill(nvg);
+            }
+            nvgRestore(nvg);
+            nvgSave(nvg);
+            
+            for(int i = 0; i < 4; i++)
+            {
+                nvgTranslate(nvg, 0, objectGrid.gridSize);
+                NVGpaint dots = nvgDotPattern(nvg, i == 3 ? darkDotColour : dotsColour, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize * 4, scaledDotSize, feather + 0.2f);
+                nvgFillPaint(nvg, dots);
+                nvgFill(nvg);
+            }
+            
+            nvgRestore(nvg);
+        }
+    }
+
+    if(hasViewport && (showOrigin || showBorder)) {
+        nvgBeginPath(nvg);
+        
+        auto borderWidth = getValue<float>(patchWidth);
+        auto borderHeight = getValue<float>(patchHeight);
+        auto pos = Point<int>(halfSize, halfSize);
+        
+        // Origin line paths. Draw both from {0, 0} so the strokes touch at the origin
+        nvgMoveTo(nvg, pos.x, pos.y);
+        nvgLineTo(nvg, pos.x, pos.y + (showOrigin ? halfSize : borderHeight));
+        nvgMoveTo(nvg, pos.x, pos.y);
+        nvgLineTo(nvg, pos.x + (showOrigin ? halfSize : borderWidth), pos.y);
+        
+        if(showBorder)
+        {
+            nvgMoveTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
+            nvgLineTo(nvg, pos.x + borderWidth, pos.y);
+            nvgMoveTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
+            nvgLineTo(nvg, pos.x, pos.y + borderHeight);
+        }
+        
+        // place solid line behind (to fake removeing grid points for now)
+        nvgLineStyle(nvg, NVG_LINE_SOLID);
+        nvgStrokeColor(nvg, backgroundColour);
+        nvgStrokeWidth(nvg, 6.0f);
+        nvgStroke(nvg);
+        
+        auto scaledStrokeSize = zoom < 1.0f ? jmap(zoom, 1.0f, 0.25f, 1.5f, 4.0f) : 1.5f;
+        if (zoom < 0.3f && getRenderScale() <= 1.0f)
+            scaledStrokeSize = jmap(zoom, 0.3f, 0.25f, 4.0f, 8.0f);
+
+        // draw 0,0 point lines
+        nvgLineStyle(nvg, NVG_LINE_DASHED);
+        
+        nvgStrokeColor(nvg, dotsColour);
+        nvgStrokeWidth(nvg, scaledStrokeSize);
+        nvgDashLength(nvg, 8.0f);
+        nvgStroke(nvg);
+        
+        // Connect origin lines at {0, 0}
+        nvgBeginPath(nvg);
+        nvgMoveTo(nvg, pos.x + 2.0f, pos.y);
+        nvgLineTo(nvg, pos.x, pos.y);
+        nvgLineTo(nvg, pos.x, pos.y + 2.0f);
+        nvgLineStyle(nvg, NVG_LINE_SOLID);
+        nvgStrokeWidth(nvg, 1.25f);
+        nvgStroke(nvg);
+    }
+
+    
+    // Render objects like [drawcurve], [fillcurve] etc. at the back
+    for(auto drawable : drawables)
+    {
+        if(drawable) {
+            auto* component = dynamic_cast<Component*>(drawable.get());
+            if(invalidRegion.intersects(component->getBounds())) {
+                drawable->render(nvg);
+            }
+        }
+    }
+    
+    // if canvas is a graph, or in presentation mode, don't render connections at all
+    if (::getValue<bool>(presentationMode)  || isGraph)
+        renderAllObjects(nvg, invalidRegion);
+    else {
+        // render connections infront or behind objects depending on lock mode or overlay setting
+        if (connectionsBehind) {
+            renderAllConnections(nvg, invalidRegion);
+            renderAllObjects(nvg, invalidRegion);
+        } else {
+            renderAllObjects(nvg, invalidRegion);
+            renderAllConnections(nvg, invalidRegion);
+        }
+    }
+
+    for(auto* connection : connectionsBeingCreated)
+    {
+        nvgSave(nvg);
+        connection->render(nvg);
+        nvgRestore(nvg);
+    }
+    
+    if(graphArea) {
+        nvgSave(nvg);
+        nvgTranslate(nvg, graphArea->getX(), graphArea->getY());
+        graphArea->render(nvg);
+        nvgRestore(nvg);
+    }
+    
+    objectGrid.render(nvg);
+    
+    if(viewport && lasso.isVisible() && !lasso.getBounds().isEmpty()) {
+        auto lassoBounds = lasso.getBounds().toFloat().reduced(1.0f);
+        auto smallestSide = lassoBounds.getWidth() < lassoBounds.getHeight() ? lassoBounds.getWidth() : lassoBounds.getHeight();
+
+        auto fillColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.075f));
+        auto outlineColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId).interpolatedWith(findColour(PlugDataColour::objectSelectedOutlineColourId), 0.65f));
+        
+        nvgBeginPath(nvg);
+        nvgFillColor(nvg, fillColour);
+        nvgRect(nvg, lassoBounds.getX(), lassoBounds.getY(), lassoBounds.getWidth(), lassoBounds.getHeight());
+        nvgFill(nvg);
+        nvgStrokeColor(nvg, outlineColour);
+        nvgStrokeWidth(nvg, smallestSide < 1.0f ? 0.5f : 1.0f); // if one of the sides is smaller than 1px, we need to adjust the stroke width to prevent drawing out of bounds
+        nvgStroke(nvg);
+    }
+    
+    nvgRestore(nvg);
+    
+    // Draw scrollbars
+    if(viewport)
+    {
+        reinterpret_cast<CanvasViewport*>(viewport.get())->render(nvg);
+    }
+}
+
+float Canvas::getRenderScale() const
+{
+    return editor->nvgSurface.getRenderScale();
+}
+
+
+void Canvas::renderAllObjects(NVGcontext* nvg, Rectangle<int> area)
+{
+    for(auto* obj : objects)
+    {
+        auto b = obj->getBounds();
+        
+        nvgSave(nvg);
+        nvgTranslate(nvg, b.getX(), b.getY());
+        if(b.intersects(area) && obj->isVisible()) {
+            obj->render(nvg);
+        }
+        nvgRestore(nvg);
+        
+        // Draw label in canvas coordinates
+        obj->renderLabel(nvg);
+    }
+}
+void Canvas::renderAllConnections(NVGcontext* nvg, Rectangle<int> area)
+{
+    for(auto* connection : connections)
+    {
+        nvgSave(nvg);
+        if(connection->getBounds().intersects(area) && connection->isVisible()) {
+            connection->render(nvg);
+        }
+        nvgRestore(nvg);
+    }
 }
 
 void Canvas::propertyChanged(String const& name, var const& value)
@@ -264,130 +633,6 @@ void Canvas::zoomToFitAll()
     auto viewportCentre = viewport->getViewArea().withZeroOrigin().getCentre();
     auto newViewPos = regionOfInterest.transformedBy(getTransform()).getCentre() - viewportCentre;
     viewport->setViewPosition(newViewPos);
-}
-
-void Canvas::lookAndFeelChanged()
-{
-    lasso.setColour(LassoComponent<Object>::lassoFillColourId, findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.075f));
-    lasso.setColour(LassoComponent<Object>::lassoOutlineColourId, findColour(PlugDataColour::canvasBackgroundColourId).interpolatedWith(findColour(PlugDataColour::objectSelectedOutlineColourId), 0.65f));
-}
-
-void Canvas::paint(Graphics& g)
-{
-    if (isGraph)
-        return;
-
-    g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
-
-    if (viewport)
-        g.reduceClipRegion(viewport->getViewArea().transformedBy(getTransform().inverted()));
-    auto clipBounds = g.getClipBounds();
-
-    // Clip bounds so that we have the smallest lines that fit the viewport, but also
-    // compensate for line start, so the dashes don't stay fixed in place if they are drawn from
-    // the top of the viewport
-    auto clippedOrigin = Point<float>(std::max(canvasOrigin.x, clipBounds.getX()), std::max(canvasOrigin.y, clipBounds.getY()));
-
-    auto originDiff = canvasOrigin.toFloat() - clippedOrigin;
-
-    // draw patch window dashed outline
-    auto patchWidthCanvas = clippedOrigin.x + (getValue<int>(patchWidth) + originDiff.x);
-    auto patchHeightCanvas = clippedOrigin.y + (getValue<int>(patchHeight) + originDiff.y);
-
-    clippedOrigin.x += fmod(originDiff.x, 10.0f) - 0.5f;
-    clippedOrigin.y += fmod(originDiff.y, 10.0f) - 0.5f;
-
-    auto scale = ::getValue<float>(zoomScale);
-
-    if (!getValue<bool>(locked)) {
-
-        auto startX = (canvasOrigin.x % objectGrid.gridSize);
-        startX += ((clipBounds.getX() / objectGrid.gridSize) * objectGrid.gridSize);
-
-        auto startY = (canvasOrigin.y % objectGrid.gridSize);
-        startY += ((clipBounds.getY() / objectGrid.gridSize) * objectGrid.gridSize);
-
-        g.setColour(findColour(PlugDataColour::canvasDotsColourId));
-
-        for (int x = startX; x < clipBounds.getRight(); x += objectGrid.gridSize) {
-            // calculate the x here, once per iteration, as it won't change for y
-            auto const gridSpacing = objectGrid.gridSize * 4;
-            auto const xGridSpacing = (x - canvasOrigin.x) % gridSpacing == 0;
-
-            for (int y = startY; y < clipBounds.getBottom(); y += objectGrid.gridSize) {
-
-                // Don't draw over origin or border line
-                if (showBorder || showOrigin) {
-                    if ((x == canvasOrigin.x && y >= canvasOrigin.y && (showOrigin || (y <= patchHeightCanvas))) || (y == canvasOrigin.y && x >= canvasOrigin.x && (showOrigin || (x <= patchWidthCanvas))))
-                        continue;
-                }
-                auto dotWidth = 1.0f;
-                if (scale < 1.0f) {
-                    if (((y - canvasOrigin.y) % gridSpacing == 0) || xGridSpacing) {
-                        dotWidth = 1.0f / jmap(scale, 0.3f, 1.0f, 0.4f, 1.0f);
-                    } else {
-                        // TIM: draw the dot's differently for some grid sizes, or not at all?
-                        if (objectGrid.gridSize == 5)
-                            continue;
-                    }
-                }
-                auto halfDotWidth = dotWidth * 0.5f;
-                g.fillRect(static_cast<float>(x) - halfDotWidth, static_cast<float>(y) - halfDotWidth, dotWidth, dotWidth);
-            }
-        }
-    }
-
-    if (!showOrigin && !showBorder)
-        return;
-
-    /*
-     ┌────────┐
-     │a      b│
-     │        │
-     │        │
-     │d      c│
-     └────────┘
-     */
-
-    // points for border
-    auto pointA = Point<float>(clippedOrigin.x, clippedOrigin.y);
-    auto pointB = Point<float>(patchWidthCanvas, clippedOrigin.y);
-    auto pointC = Point<float>(patchWidthCanvas, patchHeightCanvas);
-    auto pointD = Point<float>(clippedOrigin.x, patchHeightCanvas);
-
-    auto extentTop = Line<float>(pointA, pointB);
-    auto extentLeft = Line<float>(pointA, pointD);
-
-    // arrange line points so that dashes appear to grow from origin and bottom right
-    if (showOrigin) {
-
-        // points for origin extending to edge of view
-        auto pointOriginB = Point<float>(clipBounds.getRight(), clippedOrigin.y);
-        auto pointOriginD = Point<float>(clippedOrigin.x, clipBounds.getBottom());
-
-        extentTop = Line<float>(pointA, pointOriginB);
-        extentLeft = Line<float>(pointA, pointOriginD);
-    }
-
-    auto const scaleLimited = scale < 1.0f ? scale : 1.0f;
-    auto const scaleNormalised = 1.0f / scaleLimited;
-    auto const scaleMapped = jmap(scaleLimited, 0.3f, 1.0f, 0.4f, 1.0f);
-    auto const lineWidthMappedScale = 1.0f / scaleMapped;
-
-    float dash[2] = { 5.0f * scaleNormalised, 5.0f * scaleNormalised };
-
-    g.setColour(findColour(PlugDataColour::canvasDotsColourId));
-
-    g.drawDashedLine(extentLeft, dash, 2, lineWidthMappedScale);
-    g.drawDashedLine(extentTop, dash, 2, lineWidthMappedScale);
-
-    if (showBorder) {
-        auto extentRight = Line<float>(pointC, pointB);
-        auto extentBottom = Line<float>(pointC, pointD);
-
-        g.drawDashedLine(extentRight, dash, 2, lineWidthMappedScale);
-        g.drawDashedLine(extentBottom, dash, 2, lineWidthMappedScale);
-    }
 }
 
 TabComponent* Canvas::getTabbar()
@@ -592,7 +837,7 @@ void Canvas::performSynchronise()
 }
 
 void Canvas::updateDrawables()
-{
+{    
     for (auto* object : objects) {
         if (object->gui) {
             object->gui->updateDrawables();
@@ -603,11 +848,6 @@ void Canvas::updateDrawables()
 void Canvas::commandKeyChanged(bool isHeld)
 {
     commandLocked = isHeld;
-}
-
-void Canvas::spaceKeyChanged(bool isHeld)
-{
-    checkPanDragMode();
 }
 
 void Canvas::middleMouseChanged(bool isHeld)
@@ -625,6 +865,7 @@ void Canvas::moveToWindow(PluginEditor* newEditor)
     if (newEditor != editor) {
         editor->canvases.removeAndReturn(editor->canvases.indexOf(this));
         newEditor->canvases.add(this);
+        newEditor->nvgSurface.sendContextDeleteMessage();
         editor = newEditor;
     }
 }
@@ -764,6 +1005,11 @@ bool Canvas::autoscroll(MouseEvent const& e)
     return false;
 }
 
+Point<int> Canvas::getLastMousePosition()
+{
+    return {lastMouseX, lastMouseY};
+}
+
 void Canvas::mouseUp(MouseEvent const& e)
 {
     setPanDragMode(false);
@@ -776,6 +1022,15 @@ void Canvas::mouseUp(MouseEvent const& e)
         objects.add(new Object(this, "", e.getPosition()));
         deselectAll();
         setSelected(objects[objects.size() - 1], true); // Select newly created object
+    }
+    
+    // Make sure the drag-over toggle action is ended
+    if(!isDraggingLasso) {
+        for (auto* object : objects) {
+            if (auto* obj = object->gui.get()) {
+                obj->untoggleObject();
+            }
+        }
     }
 
     updateSidebarSelection();
@@ -796,13 +1051,6 @@ void Canvas::mouseUp(MouseEvent const& e)
                     iolet->mouseUp(relativeEvent);
                 }
             }
-        }
-    }
-    
-    // Make sure the drag-over toggle action is ended
-    for (auto* object : objects) {
-        if (auto* obj = object->gui.get()) {
-            obj->untoggleObject();
         }
     }
 }
@@ -828,7 +1076,7 @@ void Canvas::updateSidebarSelection()
         }
 
         if (!allParameters.isEmpty() || editor->sidebar->isPinned()) {
-            String objectName = "(multiple)";
+            String objectName = "(" + String(lassoSelection.size()) + " selected)";
             if (lassoSelection.size() == 1 && lassoSelection.getFirst()) {
                 objectName = lassoSelection.getFirst()->getType();
             }
@@ -852,7 +1100,7 @@ bool Canvas::keyPressed(KeyPress const& key)
     auto moveSelection = [this](int x, int y) {
         auto objects = getSelectionOfType<Object>();
         if (objects.isEmpty())
-            return;
+            return false;
 
         std::vector<t_gobj*> pdObjects;
 
@@ -891,6 +1139,7 @@ bool Canvas::keyPressed(KeyPress const& key)
             viewY = totalBounds.getBottom() - viewHeight;
         }
         viewport->setViewPosition(viewX * scale, viewY * scale);
+        return true;
     };
 
     // Cancel connections being created by ESC key
@@ -958,7 +1207,7 @@ void Canvas::copySelection()
 
 void Canvas::focusGained(FocusChangeType cause)
 {
-    pd->enqueueFunctionAsync([_this = SafePointer(this), this]() {
+    pd->enqueueFunctionAsync([_this = SafePointer(this), this, hasFocus = static_cast<float>(hasKeyboardFocus(true))]() {
         if (!_this)
             return;
         auto* glist = patch.getPointer().get();
@@ -968,10 +1217,10 @@ void Canvas::focusGained(FocusChangeType cause)
         // canvas.active listener
         char buf[MAXPDSTRING];
         snprintf(buf, MAXPDSTRING - 1, ".x%lx.c", (unsigned long)glist);
-        pd->sendMessage("#active_gui", "_focus", { pd::Atom(pd->generateSymbol(buf)), static_cast<float>(hasKeyboardFocus(true)) });
+        pd->sendMessage("#active_gui", "_focus", { pd::Atom(pd->generateSymbol(buf)), hasFocus });
 
         // cyclone focus listeners
-        pd->sendMessage("#hammergui", "_focus", { pd::Atom(pd->generateSymbol(buf)), static_cast<float>(hasKeyboardFocus(true)) });
+        pd->sendMessage("#hammergui", "_focus", { pd::Atom(pd->generateSymbol(buf)), hasFocus });
     });
 }
 
@@ -1744,6 +1993,7 @@ void Canvas::valueChanged(Value& v)
     }
     // Should only get called when the canvas isn't a real graph
     else if (v.refersToSameSourceAs(presentationMode)) {
+        connectionLayer.setVisible(!getValue<bool>(presentationMode));
         deselectAll();
     } else if (v.refersToSameSourceAs(hideNameAndArgs)) {
         if (!patch.getPointer())
@@ -1799,20 +2049,11 @@ void Canvas::valueChanged(Value& v)
 
 void Canvas::orderConnections()
 {
-    // move all connections to back when canvas is locked & connections behind is active
-    if (locked == var(true) && connectionsBehind) {
-        // use reverse order to preserve correct connection layering
-        for (int i = connections.size() - 1; i >= 0; i--) {
-            connections[i]->setAlwaysOnTop(false);
-            connections[i]->toBack();
-        }
-    } else {
-        // otherwise move all connections to front
-        for (auto connection : connections) {
-            connection->setAlwaysOnTop(true);
-            connection->toFront(false);
-        }
-    }
+    // move connection layer to back when canvas is locked & connections behind is active
+    if (connectionsBehind) {
+        connectionLayer.toBack();
+    } else
+        objectLayer.toBack();
 
     repaint();
 }
@@ -1864,8 +2105,10 @@ bool Canvas::setPanDragMode(bool shouldPan)
 
 void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, Rectangle<int> const& area)
 {
+    const auto lassoArea = area.withSize(jmax(area.getWidth(), 1), jmax(area.getHeight(), 1));
+
     for (auto* object : objects) {
-        if (area.intersects(object->getSelectableBounds())) {
+        if (lassoArea.intersects(object->getSelectableBounds())) {
             itemsFound.add(object);
         } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
             setSelected(object, false, false);
@@ -1875,13 +2118,13 @@ void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, R
     for (auto& connection : connections) {
         // If total bounds don't intersect, there can't be an intersection with the line
         // This is cheaper than checking the path intersection, so do this first
-        if (!connection->getBounds().intersects(lasso.getBounds())) {
+        if (!connection->getBounds().intersects(lassoArea)) {
             setSelected(connection, false, false);
             continue;
         }
 
         // Check if path intersects with lasso
-        if (connection->intersects(lasso.getBounds().toFloat())) {
+        if (connection->intersects(lassoArea.toFloat())) {
             itemsFound.add(connection);
         } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
             setSelected(connection, false, false);
@@ -1899,8 +2142,22 @@ bool Canvas::panningModifierDown()
 #if JUCE_IOS
     return OSUtils::ScrollTracker::isScrolling();
 #endif
+    auto& commandManager = editor->commandManager;
+    // check the command manager for the keycode that is assigned to pan drag key
+    auto panDragKeycode = commandManager.getKeyMappings()->getKeyPressesAssignedToCommand(CommandIDs::PanDragKey).getFirst().getKeyCode();
 
-    return KeyPress::isKeyCurrentlyDown(KeyPress::spaceKey) || ModifierKeys::getCurrentModifiersRealtime().isMiddleButtonDown();
+    // get the current modifier keys, removing the left mouse button modifier (as that is what is needed to activate a pan drag with key down)
+    auto currentMods = ModifierKeys(ModifierKeys::getCurrentModifiersRealtime().getRawFlags() &~ ModifierKeys::leftButtonModifier);
+
+    bool isPanDragKeysActive = false;
+
+    if (KeyPress::isKeyCurrentlyDown(panDragKeycode)) {
+        // construct a fake keypress with the current pan drag keycode key, with current modifiers, to test if it matches the command id's code & mods
+        auto keyWithMod = KeyPress(panDragKeycode, currentMods, 0);
+        isPanDragKeysActive = commandManager.getKeyMappings()->containsMapping(CommandIDs::PanDragKey, keyWithMod);
+    }
+
+    return isPanDragKeysActive || ModifierKeys::getCurrentModifiersRealtime().isMiddleButtonDown();
 }
 
 void Canvas::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms)
@@ -1965,4 +2222,10 @@ void Canvas::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAt
         break;
     }
     }
+}
+
+void Canvas::resized()
+{
+    connectionLayer.setBounds(getLocalBounds());
+    objectLayer.setBounds(getLocalBounds());
 }

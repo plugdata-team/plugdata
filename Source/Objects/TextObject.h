@@ -8,39 +8,6 @@ struct TextObjectHelper {
 
     inline static int minWidth = 3;
 
-    
-    static Rectangle<int> recalculateTextObjectBounds(t_canvas* patch, t_gobj* obj, String const& currentText, int& numLines, bool applyOffset = false, int maxIolets = 0)
-    {
-        int const fontHeight = 15;
-        
-        int x, y, w, h;
-        pd::Interface::getObjectBounds(patch, obj, &x, &y, &w, &h);
-
-        auto fontWidth = glist_fontwidth(static_cast<t_glist*>(patch));
-        int idealTextWidth = getIdealWidthForText(currentText);
-
-        // For regular text object, we want to adjust the width so ideal text with aligns with fontWidth
-        int offset = applyOffset ? idealTextWidth % fontWidth : 0;
-        int charWidth = getWidthInChars(obj);
-
-        if (currentText.isEmpty()) { // If text is empty, set to minimum width
-            w = std::max(charWidth, minWidth) * fontWidth;
-        } else if (charWidth == 0) { // If width is set to automatic, calculate based on text width
-            w = std::clamp(idealTextWidth, minWidth * fontWidth, fontWidth * 60);
-        } else { // If width was set manually, calculate what the width is
-            w = std::max(charWidth, minWidth) * fontWidth + offset;
-        }
-
-        w = std::max(w, maxIolets * 18);
-
-        numLines = getNumLines(currentText, w, fontHeight);
-
-        // Calculate height so that height with 1 line is 21px, after that scale along with fontheight
-        h = numLines * fontHeight + (21.f - fontHeight);
-
-        return { x, y, w, h };
-    }
-
     static int getWidthInChars(void* ptr)
     {
         return static_cast<t_text*>(ptr)->te_width;
@@ -200,11 +167,8 @@ class TextBase : public ObjectBase
 protected:
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 6, 1, 1);
-    
-    TextLayout textLayout;
-    hash32 layoutTextHash = 0;
-    int lastTextWidth = 0;
-    int32 lastColourARGB = 0;
+        
+    CachedTextRender cachedTextRender;
         
     Value sizeProperty = SynchronousValue();
     String objectText;
@@ -214,6 +178,7 @@ protected:
 public:
     TextBase(pd::WeakReference obj, Object* parent, bool valid = true)
         : ObjectBase(obj, parent)
+        , cachedTextRender(cnv->editor->nvgSurface)
         , isValid(valid)
     {
         objectText = getText();
@@ -232,41 +197,34 @@ public:
             sizeProperty = TextObjectHelper::getWidthInChars(obj.get());
         }
     }
-
-    void paint(Graphics& g) override
+    
+    void render(NVGcontext* nvg) override
     {
-        updateTextLayout();
+        auto b = getLocalBounds();
         
-        auto backgroundColour = object->findColour(PlugDataColour::textObjectBackgroundColourId);
-        g.setColour(backgroundColour);
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
-
-        auto ioletAreaColour = object->findColour(PlugDataColour::ioletAreaColourId);
-
-        if (ioletAreaColour != backgroundColour) {
-            g.setColour(ioletAreaColour);
-            g.fillRect(getLocalBounds().toFloat().removeFromTop(3.5f));
-            g.fillRect(getLocalBounds().toFloat().removeFromBottom(3.5f));
-        }
-
-        if (!editor) {
-            auto textArea = border.subtractedFrom(getLocalBounds());
-            textLayout.draw(g, textArea.toFloat());
-        }
-    }
-
-    void paintOverChildren(Graphics& g) override
-    {
-        bool selected = object->isSelected() && !cnv->isGraph;
-
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
+        auto backgroundColour = convertColour(object->findColour(PlugDataColour::textObjectBackgroundColourId));
+        auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
+        
         if (!isValid) {
-            outlineColour = selected ? Colours::red.brighter(1.5) : Colours::red;
+            outlineColour = convertColour(object->isSelected() ? Colours::red.brighter(1.5) : Colours::red);
         }
+        
+        nvgDrawRoundedRect(nvg, b.getX() + 0.5f, b.getY() + 0.5f, b.getWidth() - 1.0f, b.getHeight() - 1.0f, backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        if(editor && editor->isVisible())
+        {
+            imageRenderer.renderComponentFromImage(nvg, *editor, getImageScale());
+        }
+        else {
+            auto text = getText();
+            
+            auto textArea = border.subtractedFrom(b);
+            
+            // we could render at the actual scale, but that makes the transition to scolling/zooming pretty rough
+            // Instead, rendering at 2x scale gives us pretty good sharpness overall
+            cachedTextRender.renderText(nvg, text, Fonts::getDefaultFont().withHeight(15), object->findColour(PlugDataColour::canvasTextColourId), textArea, getImageScale());
+        }
     }
 
     // Override to cancel default behaviour
@@ -291,18 +249,20 @@ public:
     {
         updateTextLayout(); // make sure layout height is updated
 
+        auto textBounds = getTextSize();
+        
         int x = 0, y = 0, w, h;
         if (auto obj = ptr.get<t_gobj>()) {
             auto* cnvPtr = cnv->patch.getPointer().get();
-            if (!cnvPtr) return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 5, 20)};
+            if (!cnvPtr) return {x, y, textBounds.getWidth(), std::max<int>(textBounds.getHeight() + 5, 20)};
     
             pd::Interface::getObjectBounds(cnvPtr, obj.get(), &x, &y, &w, &h);
         }
 
-        return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 5, 20)};
+        return {x, y, textBounds.getWidth(), std::max<int>(textBounds.getHeight() + 5, 20)};
     }
         
-    virtual int getTextObjectWidth()
+    virtual Rectangle<int> getTextSize()
     {
         auto objText = editor ? editor->getText() : objectText;
         if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
@@ -316,8 +276,9 @@ public:
             fontWidth = glist_fontwidth(cnv->patch.getPointer().get());
         }
         
+        auto textSize = cachedTextRender.getTextBounds();
         // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
-        int idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 12;
+        int idealWidth = textSize.getWidth() + 12;
         
         // We want to adjust the width so ideal text with aligns with fontWidth
         int offset = idealWidth % fontWidth;
@@ -334,7 +295,7 @@ public:
         auto maxIolets = std::max(object->numInputs, object->numOutputs);
         textWidth = std::max(textWidth, maxIolets * 18);
         
-        return textWidth;
+        return {textWidth, textSize.getHeight()};
     }
         
     virtual void updateTextLayout()
@@ -344,22 +305,9 @@ public:
             objText = cnv->suggestor->getText();
         }
         
-        int textWidth = getTextObjectWidth() - 11; // Reserve a bit of extra space for the text margin
-        auto currentLayoutHash = hash(objText);
         auto colour = object->findColour(PlugDataColour::canvasTextColourId);
-        if(layoutTextHash != currentLayoutHash || colour.getARGB() != lastColourARGB || textWidth != lastTextWidth)
-        {
-            auto attributedText = AttributedString(objText);
-            attributedText.setColour(colour);
-            attributedText.setJustification(Justification::centredLeft);
-            attributedText.setFont(Font(15));
-            
-            textLayout = TextLayout();
-            textLayout.createLayout(attributedText, textWidth + 0.5f);
-            layoutTextHash = currentLayoutHash;
-            lastColourARGB = colour.getARGB();
-            lastTextWidth = textWidth;
-        }
+        int textWidth = getTextSize().getWidth() - 11;
+        cachedTextRender.prepareLayout(objText, Fonts::getDefaultFont().withHeight(15), colour, textWidth);
     }
 
     void setPdBounds(Rectangle<int> b) override
@@ -470,7 +418,7 @@ public:
 
             cnv->showSuggestions(object, editor.get());
 
-            resized();
+            object->updateBounds();
             repaint();
         }
     }
@@ -527,11 +475,11 @@ public:
         
     void resized() override
     {
+        updateTextLayout();
+        
         if (editor) {
             editor->setBounds(getLocalBounds());
         }
-        
-        updateTextLayout();
     }
 
     /** Returns the currently-visible text editor, or nullptr if none is open. */

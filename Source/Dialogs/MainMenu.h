@@ -326,7 +326,7 @@ public:
         }
     };
 
-    class ThemeSelector : public Component {
+    class ThemeSelector : public Component, public AsyncUpdater {
 
         Value theme;
         ValueTree settingsTree;
@@ -388,11 +388,17 @@ public:
 
             if (firstBounds.contains(e.x, e.y)) {
                 theme = PlugDataLook::selectedThemes[0];
-                repaint();
+                triggerAsyncUpdate();
             } else if (secondBounds.contains(e.x, e.y)) {
                 theme = PlugDataLook::selectedThemes[1];
-                repaint();
+                triggerAsyncUpdate();
             }
+        }
+        
+        void handleAsyncUpdate() override
+        {
+            // Make sure the actual popup menu updates its theme
+            getTopLevelComponent()->sendLookAndFeelChange();
         }
     };
 

@@ -170,12 +170,12 @@ EOL
 
 
 if [[ $X64BitMode == "x64" ]]; then
-"C:/Program Files (x86)/WiX Toolset v3.11/bin/candle" -arch x64 plugdata.wxs
-"C:/Program Files (x86)/WiX Toolset v3.11/bin/light" plugdata.wixobj -out plugdata-Installer.msi -ext WixUIExtension
+"C:/Program Files (x86)/WiX Toolset v3.14/bin/candle" -arch x64 plugdata.wxs
+"C:/Program Files (x86)/WiX Toolset v3.14/bin/light" plugdata.wixobj -out plugdata-Installer.msi -ext WixUIExtension
 cp ".\plugdata-Installer.msi" ".\plugdata-Win64.msi"
 else
-"C:/Program Files (x86)/WiX Toolset v3.11/bin/candle" plugdata.wxs
-"C:/Program Files (x86)/WiX Toolset v3.11/bin/light" plugdata.wixobj -out plugdata-Installer.msi -ext WixUIExtension
+"C:/Program Files (x86)/WiX Toolset v3.14/bin/candle" plugdata.wxs
+"C:/Program Files (x86)/WiX Toolset v3.14/bin/light" plugdata.wixobj -out plugdata-Installer.msi -ext WixUIExtension
 cp ".\plugdata-Installer.msi" ".\plugdata-Win32.msi"
 fi
 

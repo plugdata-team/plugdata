@@ -11,12 +11,15 @@ public:
     
     bool mouseWasOver = false;
     
+    TextLayout textLayout;
+    hash32 layoutTextHash = 0;
+    int lastTextWidth = 0;
+    int32 lastColourARGB = 0;
+    
     OpenFileObject(pd::WeakReference ptr, Object* object)
         : TextBase(ptr, object)
     {
     }
-    
-    bool hideInlets() override { return true; }
 
     void showEditor() override
     {
@@ -47,7 +50,7 @@ public:
         }
     }
     
-    int getTextObjectWidth() override
+    int getTextObjectWidth()
     {
         auto objText = getLinkText();
         if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
@@ -209,6 +212,11 @@ public:
         if (auto openfile = ptr.get<void>()) {
             pd->sendDirectMessage(openfile.get(), "bang", std::vector<pd::Atom> {});
         }
+    }
+    
+    void render(NVGcontext* nvg) override
+    {
+        imageRenderer.renderComponentFromImage(nvg, *this, getImageScale());
     }
 
     void paintOverChildren(Graphics& g) override

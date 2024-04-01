@@ -171,41 +171,44 @@ public:
     {
         return ptr.get<t_radio>()->x_on;
     }
-
-    void paint(Graphics& g) override
+    
+    void render(NVGcontext* nvg) override
     {
-        g.setColour(iemHelper.getBackgroundColour());
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
+        auto b = getLocalBounds().toFloat().reduced(0.5f);
+        bool isSelected = object->isSelected() && !cnv->isGraph;
+        auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
+ 
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(iemHelper.getBackgroundColour()), isSelected ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
         float size = (isVertical ? static_cast<float>(getHeight()) / numItems : static_cast<float>(getWidth()) / numItems);
 
-        g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
+        nvgStrokeColor(nvg, convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour)));
+        nvgStrokeWidth(nvg, 1.0f);
 
         for (int i = 1; i < numItems; i++) {
             if (isVertical) {
-                g.drawLine(0, i * size, size, i * size);
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, 0, i * size);
+                nvgLineTo(nvg, size, i * size);
+                nvgStroke(nvg);
             } else {
-                g.drawLine(i * size, 0, i * size, size);
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, i * size, 0);
+                nvgLineTo(nvg, i * size, size);
+                nvgStroke(nvg);
             }
         }
 
-        g.setColour(iemHelper.getForegroundColour());
+        nvgFillColor(nvg, convertColour(iemHelper.getForegroundColour()));
 
         float selectionX = isVertical ? 0 : selected * size;
         float selectionY = isVertical ? selected * size : 0;
+        auto selectionBounds = Rectangle<float>(selectionX, selectionY, size, size).reduced(jmin<int>(size * 0.25f, 5));
 
-        auto selectionBounds = Rectangle<float>(selectionX, selectionY, size, size);
-        
-        g.fillRoundedRectangle(selectionBounds.reduced(jmin<int>(size * 0.25f, 5)), Corners::objectCornerRadius / 2.0f);
-    }
-
-    void paintOverChildren(Graphics& g) override
-    {
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, selectionBounds.getX(), selectionBounds.getY(), selectionBounds.getWidth(), selectionBounds.getHeight(), Corners::objectCornerRadius / 2.0f);
+        nvgFill(nvg);
     }
 
     void updateAspectRatio()

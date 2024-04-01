@@ -11,7 +11,7 @@ void garray_arraydialog(t_fake_garray* x, t_symbol* name, t_floatarg fsize, t_fl
 }
 
 
-class GraphicalArray : public Component, public Value::Listener, public pd::MessageListener {
+class GraphicalArray : public Component, public Value::Listener, public pd::MessageListener, public NVGComponent {
 public:
     Object* object;
 
@@ -31,7 +31,8 @@ public:
     std::function<void()> reloadGraphs = [](){};
 
     GraphicalArray(PluginProcessor* instance, void* ptr, Object* parent)
-        : object(parent)
+        : NVGComponent(this)
+        , object(parent)
         , arr(ptr, instance)
         , edited(false)
         , pd(instance)
@@ -183,6 +184,99 @@ public:
         }
     }
     
+    void paintGraph(NVGcontext* nvg)
+    {
+        auto const h = static_cast<float>(getHeight());
+        auto const w = static_cast<float>(getWidth());
+        std::vector<float> points = vec;
+
+        if (!points.empty()) {
+            std::array<float, 2> scale = getScale();
+            bool invert = false;
+
+            if (scale[0] >= scale[1]) {
+                invert = true;
+                std::swap(scale[0], scale[1]);
+            }
+
+            // More than a point per pixel will cause insane loads, and isn't actually helpful
+            // Instead, linearly interpolate the vector to a max size of width in pixels
+            if (vec.size() >= w) {
+                points = rescale(points, w);
+            }
+
+            float const dh = h / (scale[1] - scale[0]);
+            float const dw = w / static_cast<float>(points.size() - 1);
+
+            switch (getDrawType()) {
+            case DrawType::Curve: {
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, 0, h - (std::clamp(points[0], scale[0], scale[1]) - scale[0]) * dh);
+
+                for (int i = 1; i < static_cast<int>(points.size()) - 2; i += 3) {
+                    float const y1 = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
+                    float const y2 = h - (std::clamp(points[i + 1], scale[0], scale[1]) - scale[0]) * dh;
+                    float const y3 = h - (std::clamp(points[i + 2], scale[0], scale[1]) - scale[0]) * dh;
+                    nvgBezierTo(nvg, static_cast<float>(i) * dw, y1, static_cast<float>(i + 1) * dw, y2, static_cast<float>(i + 2) * dw, y3);
+                }
+
+                if (invert) {
+                    nvgScale(nvg, 1.0f, -1.0f);
+                    nvgTranslate(nvg, 0.0f, -getHeight());
+                }
+
+                nvgStrokeColor(nvg, nvgRGBAf(getContentColour().getFloatRed(), getContentColour().getFloatGreen(), getContentColour().getFloatBlue(), getContentColour().getFloatAlpha()));
+                nvgStrokeWidth(nvg, getLineWidth());
+                nvgStroke(nvg);
+
+                break;
+            }
+            case DrawType::Polygon: {
+                nvgBeginPath(nvg);
+                int startY = h - (std::clamp(points[0], scale[0], scale[1]) - scale[0]) * dh;
+                nvgMoveTo(nvg, 0, startY);
+
+                for (int i = 1; i < static_cast<int>(points.size()); i++) {
+                    float const y = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
+                    nvgLineTo(nvg, static_cast<float>(i) * dw, y);
+                }
+
+                if (invert) {
+                    nvgScale(nvg, 1.0f, -1.0f);
+                    nvgTranslate(nvg, 0.0f, -getHeight());
+                }
+
+                nvgStrokeColor(nvg, nvgRGBAf(getContentColour().getFloatRed(), getContentColour().getFloatGreen(), getContentColour().getFloatBlue(), getContentColour().getFloatAlpha()));
+                nvgStroke(nvg);
+
+                break;
+            }
+            case DrawType::Points: {
+                nvgStrokeColor(nvg, nvgRGBAf(getContentColour().getFloatRed(), getContentColour().getFloatGreen(), getContentColour().getFloatBlue(), getContentColour().getFloatAlpha()));
+                nvgStrokeWidth(nvg, getLineWidth());
+
+                float const dw_points = w / static_cast<float>(points.size());
+
+                for (size_t i = 0; i < points.size(); i++) {
+                    float y = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
+                    if (invert) {
+                        y = getHeight() - y;
+                    }
+                    nvgBeginPath(nvg);
+                    nvgMoveTo(nvg, static_cast<float>(i) * dw_points, y);
+                    nvgLineTo(nvg, static_cast<float>(i + 1) * dw_points, y);
+                    nvgStroke(nvg);
+                }
+
+                break;
+            }
+            default:
+                break;
+            }
+        }
+    }
+
+    
     void receiveMessage(t_symbol* symbol, const pd::Atom atoms[8], int numAtoms) override
     {
         switch(hash(symbol->s_name)) {
@@ -225,6 +319,7 @@ public:
                     {
                         _this->drawMode = newDrawMode + 1;
                         _this->updateSettings();
+                        _this->repaint();
                     }
                 });
                 break;
@@ -263,6 +358,22 @@ public:
                 });
                 break;
             }
+        }
+    }
+    
+    void render(NVGcontext* nvg) override
+    {
+        if (error) {
+            auto position = getLocalBounds().getCentre();
+            auto errorText = "array " + getUnexpandedName() + " is invalid";
+            nvgFontSize(nvg, 11);
+            nvgFontFace(nvg, "Inter-Regular");
+            nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+            nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::canvasTextColourId)));
+            nvgText(nvg, position.x, position.y, errorText.toRawUTF8(), nullptr);
+            error = false;
+        } else if(visible) {
+            paintGraph(nvg);
         }
     }
 
@@ -1096,6 +1207,26 @@ public:
         reinitialiseGraphs();
     }
     
+    void render(NVGcontext* nvg) override
+    {
+        auto b = getLocalBounds().toFloat().reduced(0.5f);
+        auto backgroundColour = convertColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
+        auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
+
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        
+        for(auto* graph : graphs)
+        {
+            graph->render(nvg);
+        }
+        
+        if(auto graph = ptr.get<t_glist>())
+        {
+            GraphOnParent::drawTicksForGraph(nvg, graph.get(), this);
+        }
+    }
+    
     void updateGraphs()
     {
         pd->lockAudioThread();
@@ -1120,7 +1251,7 @@ public:
   
         if (title.isNotEmpty()) {
             if (!label) {
-                label = std::make_unique<ObjectLabel>();
+                label = std::make_unique<ObjectLabel>(cnv->editor->nvgSurface);
             }
 
             auto bounds = object->getBounds().reduced(Object::margin).removeFromTop(fontHeight + 2);
@@ -1214,26 +1345,6 @@ public:
         } 
         else {
             ObjectBase::valueChanged(value);
-        }
-    }
-
-    void paint(Graphics& g) override
-    {
-        g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
-    }
-
-    void paintOverChildren(Graphics& g) override
-    {
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-        
-        if(auto graph = ptr.get<t_glist>())
-        {
-            GraphOnParent::drawTicksForGraph(g, graph.get(), this);
         }
     }
 

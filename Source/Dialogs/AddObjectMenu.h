@@ -14,7 +14,8 @@ class ObjectItem : public ObjectDragAndDrop
     , public SettableTooltipClient {
 public:
     ObjectItem(PluginEditor* e, String const& text, String const& icon, String const& tooltip, String const& patch, ObjectIDs objectID, std::function<void(bool)> dismissCalloutBox)
-        : titleText(text)
+        : ObjectDragAndDrop(e)
+        , titleText(text)
         , iconText(icon)
         , objectPatch(patch)
         , dismissMenu(dismissCalloutBox)
@@ -683,8 +684,7 @@ public:
     static void show(PluginEditor* editor, Rectangle<int> bounds)
     {
         auto addObjectMenu = std::make_unique<AddObjectMenu>(editor);
-        currentCalloutBox = &CallOutBox::launchAsynchronously(std::move(addObjectMenu), bounds, editor);
-        currentCalloutBox->setColour(PlugDataColour::popupMenuBackgroundColourId, currentCalloutBox->findColour(PlugDataColour::popupMenuBackgroundColourId));
+        currentCalloutBox = &editor->showCalloutBox(std::move(addObjectMenu), bounds);
     }
 
 private:

@@ -126,29 +126,44 @@ public:
 
         repaint();
     }
-
-    void paint(Graphics& g) override
+    
+    void render(NVGcontext* nvg) override
     {
-        auto const bounds = getLocalBounds().toFloat();
+        auto b = getLocalBounds().toFloat();
+        
+        auto foregroundColour = convertColour(Colour::fromString(primaryColour.toString()));
+        auto backgroundColour = convertColour(Colour::fromString(secondaryColour.toString()));
+        auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
+        auto internalLineColour = convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
+
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        
+        b = b.reduced(1);
+        auto const width = std::max(b.getWidth(), b.getHeight());
         auto const sizeReduction = std::min(1.0f, getWidth() / 20.0f);
         
-        g.setColour(Colour::fromString(secondaryColour.toString()));
-        g.fillRoundedRectangle(bounds.reduced(0.5f), Corners::objectCornerRadius);
+        float const lineOuter = 80.f * (width * 0.01f);
+        float const lineThickness = std::max(width * 0.06f, 1.5f) * sizeReduction;
 
-        bool selected = object->isSelected() && !cnv->isGraph;
-
-        g.setColour(object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId));
-        g.drawRoundedRectangle(bounds.reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-
-        g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
-        g.drawRoundedRectangle(bounds.reduced(6 * sizeReduction), Corners::objectCornerRadius * sizeReduction, 1.5f);
-
+        auto outerBounds = b.reduced((width - lineOuter) * sizeReduction);
+        
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, outerBounds.getX(),outerBounds.getY(), outerBounds.getWidth(), outerBounds.getHeight(), Corners::objectCornerRadius * sizeReduction);
+        nvgStrokeColor(nvg, internalLineColour);
+        nvgStrokeWidth(nvg, lineThickness);
+        nvgStroke(nvg);
+        
+        // Fill ellipse if bangState is true
         if (state) {
-            g.setColour(Colour::fromString(primaryColour.toString()));
-            g.fillRoundedRectangle(bounds.reduced(6 * sizeReduction), Corners::objectCornerRadius * sizeReduction);
+            auto innerBounds = b.reduced((width - lineOuter + lineThickness) * sizeReduction);
+            nvgBeginPath(nvg);
+            nvgRoundedRect(nvg, innerBounds.getX(), innerBounds.getY(), innerBounds.getWidth(), innerBounds.getHeight(), (Corners::objectCornerRadius - 1) * sizeReduction);
+            nvgFillColor(nvg, foregroundColour);
+            nvgFill(nvg);
         }
     }
-
+    
     void valueChanged(Value& value) override
     {
 

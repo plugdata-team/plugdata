@@ -11,6 +11,12 @@ option(ENABLE_GEM "" ON)
 option(ENABLE_ASAN "" OFF)
 option(VERBOSE "" OFF)
 
+if(APPLE)
+option(NANOVG_METAL_IMPLEMENTATION "" ON)
+else()
+option(NANOVG_METAL_IMPLEMENTATION "" OFF)
+endif()
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -49,7 +55,7 @@ set(HARDENED_RUNTIME_OPTIONS "com.apple.security.device.audio-input")
 set(JUCE_ENABLE_MODULE_SOURCE_GROUPS ON CACHE BOOL "" FORCE)
 set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
-project(plugdata VERSION 0.8.4 LANGUAGES C CXX)
+project(plugdata VERSION 0.9.0 LANGUAGES C CXX)
 
 if(("${CMAKE_SYSTEM_NAME}" MATCHES "Linux" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
   OR ("${CMAKE_SYSTEM_NAME}" MATCHES "iOS"))
@@ -93,7 +99,7 @@ execute_process(COMMAND python3 parse_documentation.py WORKING_DIRECTORY ${CMAKE
 message(STATUS "Packaging resources")
 execute_process(COMMAND python3 package_resources.py ${ENABLE_GEM} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts)
 
-set(PLUGDATA_VERSION                    "0.8.4")
+set(PLUGDATA_VERSION                    "0.9.0")
 set(PLUGDATA_COMPANY_NAME               "plugdata")
 set(PLUGDATA_COMPANY_COPYRIGHT          "plugdata by Timothy Schoen")
 set(PLUGDATA_COMPANY_WEBSITE            "github.com/plugdata-team/plugdata")
@@ -122,6 +128,7 @@ file(GLOB plugdata_resources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterSemiBold.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterThin.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterVariable.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterRegular.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/RobotoMono-Regular.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_large_logo.png
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo.png
@@ -246,10 +253,16 @@ target_link_libraries(juce
 
 target_compile_options(juce PUBLIC $<$<CONFIG:Release>:${JUCE_LTO_FLAGS}>)
 
+if(NANOVG_METAL_IMPLEMENTATION)
+add_compile_definitions(NANOVG_METAL_IMPLEMENTATION=1)
+else()
+add_compile_definitions(NANOVG_GL3_IMPLEMENTATION=1)
+endif()
 
 set(libs
   juce
   PlugDataBinaryData
+  nanovg
 )
 
 if(UNIX AND NOT APPLE)
@@ -277,6 +290,7 @@ target_compile_definitions(plugdata_core PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
 target_include_directories(plugdata_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Tests ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/raw-keyboard-input-module ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src ${CMAKE_CURRENT_SOURCE_DIR}/Source ${CMAKE_CURRENT_SOURCE_DIR}/Libraries)
 target_link_libraries(plugdata_core PUBLIC ${libs})
 target_include_directories(plugdata_core PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
+include_directories(./Libraries/nanovg/src/)
 
 source_group("Source" FILES ${plugdata_global_sources})
 

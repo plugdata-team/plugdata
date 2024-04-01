@@ -17,12 +17,15 @@ class GraphOnParent final : public ObjectBase {
 
     pd::Patch::Ptr subpatch;
     std::unique_ptr<Canvas> canvas;
+    
+    CachedTextRender textRenderer;
 
 public:
     // Graph On Parent
     GraphOnParent(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
         , subpatch(new pd::Patch(obj, cnv->pd, false))
+        , textRenderer(cnv->editor->nvgSurface)
     {
         resized();
 
@@ -208,26 +211,59 @@ public:
 
         canvas->updateDrawables();
     }
-
-    // override to make transparent
-    void paint(Graphics& g) override
+    
+    void render(NVGcontext* nvg) override
     {
-        // Strangly, the title goes below the graph content in pd
-        if (!getValue<bool>(hideNameAndArgs) && getText() != "graph") {
-            auto text = getText();
+         // Strangly, the title goes below the graph content in pd
+         if (!getValue<bool>(hideNameAndArgs) && getText() != "graph") {
+             auto text = getText();
+             textRenderer.renderText(nvg, text, Fonts::getDefaultFont().withHeight(13), object->findColour(PlugDataColour::canvasTextColourId), Rectangle<int>(5, 0, getWidth() - 5, 16), getImageScale());
+         }
+        
+        auto b = getLocalBounds().toFloat();
+        if(canvas)
+        {
+            nvgSave(nvg);
+            nvgIntersectRoundedScissor(nvg, b.getX() + 0.75f, b.getY() + 0.75f, b.getWidth() - 1.5f, b.getHeight() - 1.5f, Corners::objectCornerRadius);
+            nvgTranslate(nvg, canvas->getX(), canvas->getY());
+            canvas->performRender(nvg, canvas->getLocalBounds()); // TODO: more precise invalidation?
+            nvgRestore(nvg);
+        }
+        
+        auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
+        
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth() - 0.5f, b.getHeight() - 0.5f, Corners::objectCornerRadius);
+        nvgStrokeColor(nvg, object->isSelected() ? selectedOutlineColour : outlineColour);
+        nvgStrokeWidth(nvg, 1.0f);
+        nvgStroke(nvg);
+        
+        if (isOpenedInSplitView) {
+            nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId)));
+            nvgFill(nvg);
 
-            auto textArea = getLocalBounds().removeFromTop(16).withTrimmedLeft(5);
-            Fonts::drawFittedText(g, text, textArea, object->findColour(PlugDataColour::canvasTextColourId));
+            nvgBeginPath(nvg);
+            nvgFontFace(nvg, "Inter-Regular");
+            nvgFontSize(nvg, 12.0f);
+            nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::commentTextColourId))); // why comment colour?
+            nvgTextAlign(nvg, NVG_ALIGN_TOP | NVG_ALIGN_CENTER);
+            nvgText(nvg, b.getCentreX(), b.getCentreY(), "Graph opened in split view", nullptr);
+        }
+        
+        if(auto graph = ptr.get<t_glist>())
+        {
+            drawTicksForGraph(nvg, graph.get(), this);
         }
     }
     
     
-    static void drawTicksForGraph(Graphics& g, t_glist* x, ObjectBase* parent)
+    static void drawTicksForGraph(NVGcontext* nvg, t_glist* x, ObjectBase* parent)
     {
         auto b = parent->getLocalBounds();
         t_float y1 = b.getY(), y2 = b.getBottom(), x1 = b.getX(), x2 = b.getRight();
 
-        g.setColour(parent->cnv->findColour(PlugDataColour::guiObjectInternalOutlineColour));
+        nvgStrokeColor(nvg, convertColour(parent->cnv->findColour(PlugDataColour::guiObjectInternalOutlineColour)));
         if (x->gl_xtick.k_lperb)
         {
             t_float f = x->gl_xtick.k_point;
@@ -235,8 +271,15 @@ public:
             {
                 auto xpos = jmap<float>(f, x->gl_x2, x->gl_x1, x1, x2);
                 int tickpix = (i % x->gl_xtick.k_lperb ? 2 : 4);
-                g.drawLine((int)xpos, (int)y2, (int)xpos, (int)y2 - tickpix);
-                g.drawLine((int)xpos, (int)y1, (int)xpos, (int)y1 + tickpix);
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, xpos, y2);
+                nvgLineTo(nvg, xpos, y2 - tickpix);
+                nvgStroke(nvg);
+                
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, xpos, y1);
+                nvgLineTo(nvg, xpos, y1 + tickpix);
+                nvgStroke(nvg);
             }
             
             f = x->gl_xtick.k_point - x->gl_xtick.k_inc;
@@ -244,8 +287,15 @@ public:
             {
                 auto xpos = jmap<float>(f, x->gl_x2, x->gl_x1, x1, x2);
                 int tickpix = (i % x->gl_xtick.k_lperb ? 2 : 4);
-                g.drawLine(xpos, y2, xpos, y2 - tickpix);
-                g.drawLine(xpos, y1, xpos, y1 + tickpix);
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, xpos, y2);
+                nvgLineTo(nvg, xpos, y2 - tickpix);
+                nvgStroke(nvg);
+                
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, xpos, y1);
+                nvgLineTo(nvg, xpos, y1 + tickpix);
+                nvgStroke(nvg);
             }
         }
 
@@ -256,8 +306,15 @@ public:
             {
                 auto ypos = jmap<float>(f, x->gl_y2, x->gl_y1, y1, y2);
                 int tickpix = (i % x->gl_ytick.k_lperb ? 2 : 4);
-                g.drawLine(x1, ypos, x1 + tickpix, ypos);
-                g.drawLine(x2, ypos, x2 - tickpix, ypos);
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, x1, ypos);
+                nvgLineTo(nvg, x1 + tickpix, ypos);
+                nvgStroke(nvg);
+                
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, x2, ypos);
+                nvgLineTo(nvg, x2 - tickpix, ypos);
+                nvgStroke(nvg);
             }
             
             f = x->gl_ytick.k_point - x->gl_ytick.k_inc;
@@ -265,34 +322,19 @@ public:
             {
                 auto ypos = jmap<float>(f, x->gl_y2, x->gl_y1, y1, y2);
                 int tickpix = (i % x->gl_ytick.k_lperb ? 2 : 4);
-                g.drawLine(x1, ypos, x1 + tickpix, ypos);
-                g.drawLine(x2, ypos, x2 - tickpix, ypos);
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, x1, ypos);
+                nvgLineTo(nvg, x1 + tickpix, ypos);
+                nvgStroke(nvg);
+                
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, x2, ypos);
+                nvgLineTo(nvg, x2 - tickpix, ypos);
+                nvgStroke(nvg);
             }
         }
     }
 
-    void paintOverChildren(Graphics& g) override
-    {
-        if (isOpenedInSplitView) {
-
-            g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-            g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::objectCornerRadius);
-
-            auto colour = object->findColour(PlugDataColour::commentTextColourId);
-            Fonts::drawText(g, "Graph opened in split view", getLocalBounds(), colour, 14, Justification::centred);
-        }
-
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-        
-        if(auto graph = ptr.get<t_glist>())
-        {
-            drawTicksForGraph(g, graph.get(), this);
-        }
-    }
 
     pd::Patch::Ptr getPatch() override
     {

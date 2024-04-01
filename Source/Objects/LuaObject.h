@@ -24,7 +24,6 @@ class LuaObject : public ObjectBase, public AsyncUpdater {
     
     std::unique_ptr<Graphics> graphics;
     Colour currentColour;
-
     
     CriticalSection bufferSwapLock;
     Image firstBuffer;
@@ -35,7 +34,7 @@ class LuaObject : public ObjectBase, public AsyncUpdater {
     Value zoomScale;
     std::unique_ptr<Component> textEditor;
     std::unique_ptr<Dialog> saveDialog;
-    
+        
     static inline std::map<t_gpointer*, Path> currentPaths = std::map<t_gpointer*, Path>();
     static inline std::map<t_pdlua*, std::vector<LuaObject*>> allDrawTargets = std::map<t_pdlua*, std::vector<LuaObject*>>();
     
@@ -95,7 +94,7 @@ public:
         
         return {};
     }
-    
+
     void setPdBounds(Rectangle<int> b) override
     {
         if (auto gobj = ptr.get<t_pdlua>()) {
@@ -252,6 +251,8 @@ public:
                 auto scale = getValue<float>(zoomScale) * 2.0f; // Multiply by 2 for hi-dpi screens
                 int imageWidth = std::ceil(getWidth() * scale);
                 int imageHeight = std::ceil(getHeight() * scale);
+                if(!imageWidth || !imageHeight) return;
+                
                 if(drawBuffer->getWidth() != imageWidth || drawBuffer->getHeight() != imageHeight)
                 {
                     *drawBuffer = Image(Image::PixelFormat::ARGB, imageWidth, imageHeight, true);
@@ -288,7 +289,9 @@ public:
                         pdlua->gfx.width = atom_getfloat(argv);
                         pdlua->gfx.height = atom_getfloat(argv + 1);
                     }
-                    object->updateBounds();
+                    MessageManager::callAsync([_object = SafePointer(object)](){
+                        if(_object) _object->updateBounds();
+                    });
                 }
                 return;
             }

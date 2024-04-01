@@ -46,7 +46,6 @@ public:
         setWantsKeyboardFocus(true);
         addListener(this);
         setFont(Fonts::getTabularNumbersFont().withHeight(14.0f));
-        setBufferedToImage(true);
     }
 
     void labelTextChanged(Label* labelThatHasChanged) override { }
@@ -205,11 +204,6 @@ public:
         }
 
         dragValue = getText().getDoubleValue();
-
-        auto const textArea = getBorderSize().subtractedFrom(getLocalBounds());
-
-        GlyphArrangement glyphs;
-        glyphs.addFittedText(getFont(), formatNumber(dragValue), textArea.getX(), 0., textArea.getWidth(), getHeight(), 1, getMinimumHorizontalScale());
 
         if (dragMode != Regular) {
             decimalDrag = 0;

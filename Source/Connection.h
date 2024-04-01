@@ -16,17 +16,19 @@
 #include "Pd/MessageListener.h"
 #include "Utility/RateReducer.h"
 #include "Utility/ModifierKeyListener.h"
+#include "Utility/NVGComponent.h"
 
 using PathPlan = std::vector<Point<float>>;
 
 class Canvas;
 class PathUpdater;
 
-class Connection : public Component
+class Connection : public DrawablePath
     , public ComponentListener
-    , public Value::Listener
     , public ChangeListener
-    , public pd::MessageListener {
+    , public pd::MessageListener 
+    , public NVGComponent
+{
 public:
     int inIdx;
     int outIdx;
@@ -35,8 +37,7 @@ public:
     WeakReference<Iolet> inlet, outlet;
     WeakReference<Object> inobj, outobj;
 
-    Path toDraw, toDrawLocalSpace;
-    RectangleList<int> clipRegion;
+    Path toDrawLocalSpace;
     String lastId;
 
     std::atomic<int> messageActivity;
@@ -63,10 +64,10 @@ public:
 
     static Path getNonSegmentedPath(Point<float> start, Point<float> end);
 
-    void paint(Graphics&) override;
-
     bool isSegmented() const;
     void setSegmented(bool segmented);
+        
+    void render(NVGcontext* nvg) override;
 
     void updatePath();
 
@@ -120,14 +121,11 @@ public:
     int getSignalData(t_float* output, int maxChannels);
 
 private:
-    void resizeToFit();
 
     int getMultiConnectNumber();
     int getNumSignalChannels();
     int getNumberOfConnections();
-
-    void valueChanged(Value& v) override;
-
+    
     void setSelected(bool shouldBeSelected);
 
     Array<SafePointer<Connection>> reconnecting;
@@ -135,7 +133,8 @@ private:
 
     bool selectedFlag = false;
     bool segmented = false;
-
+    bool isHovering = false;
+    
     PathPlan currentPlan;
 
     Value locked;
@@ -144,6 +143,17 @@ private:
     bool showDirection = false;
     bool showConnectionOrder = false;
     bool showActiveState = false;
+    
+    NVGcolor baseColour;
+    NVGcolor dataColour;
+    NVGcolor signalColour;
+    NVGcolor handleColour;
+    NVGcolor shadowColour;
+    NVGcolor outlineColour;
+    NVGcolor gemColour;
+    
+    enum CableType { DataCable, GemCable, SignalCable, MultichannelCable };
+    CableType cableType;
 
     Canvas* cnv;
 
@@ -152,7 +162,8 @@ private:
     int dragIdx = -1;
 
     float mouseDownPosition = 0;
-    bool isHovering = false;
+    int cacheId = -1;
+    bool cachedIsValid;
 
     pd::WeakReference ptr;
 
@@ -164,17 +175,18 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
 };
 
-class ConnectionBeingCreated : public Component {
+class ConnectionBeingCreated : public DrawablePath, public NVGComponent {
     SafePointer<Iolet> iolet;
     Component* cnv;
-    Path connectionPath;
 
 public:
     ConnectionBeingCreated(Iolet* target, Component* canvas)
-        : iolet(target)
+        : NVGComponent(this)
+        , iolet(target)
         , cnv(canvas)
     {
-
+        setStrokeThickness(5.0f);
+        
         // Only listen for mouse-events on canvas and the original iolet
         setInterceptsMouseClicks(false, true);
         cnv->addMouseListener(this, true);
@@ -183,6 +195,7 @@ public:
         cnv->addAndMakeVisible(this);
 
         setAlwaysOnTop(true);
+        setAccessible(false); // TODO: implement accessibility. We disable default, since it makes stuff slow on macOS
     }
 
     ~ConnectionBeingCreated() override
@@ -207,27 +220,24 @@ public:
         auto& startPoint = iolet->isInlet ? cursorPoint : ioletPoint;
         auto& endPoint = iolet->isInlet ? ioletPoint : cursorPoint;
 
-        connectionPath = Connection::getNonSegmentedPath(startPoint.toFloat(), endPoint.toFloat());
-
-        auto bounds = connectionPath.getBounds().getSmallestIntegerContainer().expanded(3);
-
-        // Make sure we have minimal bounds, expand slightly to take line thickness into account
-        setBounds(bounds);
-
-        // Remove bounds offset from path, because we've already set our origin by setting component bounds
-        connectionPath.applyTransform(AffineTransform::translation(-bounds.getX(), -bounds.getY()));
-
+        auto connectionPath = Connection::getNonSegmentedPath(startPoint.toFloat(), endPoint.toFloat());
+        setPath(connectionPath);
+        
         repaint();
         iolet->repaint();
     }
-
-    void paint(Graphics& g) override
+    
+    void render(NVGcontext* nvg) override
     {
-        if (!iolet) {
-            jassertfalse; // shouldn't happen
-            return;
-        }
-        Connection::renderConnectionPath(g, (Canvas*)cnv, connectionPath, iolet->isSignal, iolet->isGemState, true);
+        auto lineColour = cnv->findColour(PlugDataColour::dataColourId).brighter(0.6f);
+        auto shadowColour = findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.06f).withAlpha(0.24f);
+
+        nvgSave(nvg);
+        setJUCEPath(nvg, getPath());
+        nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(lineColour), convertColour(shadowColour)));
+        nvgStrokeWidth(nvg, 4.0f);
+        nvgStroke(nvg);
+        nvgRestore(nvg);
     }
 
     Iolet* getIolet()

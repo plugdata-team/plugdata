@@ -283,7 +283,7 @@ public:
 
         if (text.isNotEmpty()) {
             if (!label) {
-                label = std::make_unique<ObjectLabel>();
+                label = std::make_unique<ObjectLabel>(cnv->editor->nvgSurface);
                 object->cnv->addChildComponent(label.get());
             }
 

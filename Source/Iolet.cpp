@@ -4,6 +4,10 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_opengl/juce_opengl.h>
+using namespace juce::gl;
+
+#include <nanovg.h>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
 
@@ -15,7 +19,8 @@
 #include "LookAndFeel.h"
 
 Iolet::Iolet(Object* parent, bool inlet)
-    : object(parent)
+    : NVGComponent(this)
+    , object(parent)
     , insideGraph(parent->cnv->isGraph)
 {
     isInlet = inlet;
@@ -37,16 +42,45 @@ Iolet::Iolet(Object* parent, bool inlet)
     bool isPresenting = getValue<bool>(presentationMode);
     setVisible(!isPresenting && !insideGraph);
 
-    // Drawing circles is more expensive than you might think, especially because there can be a lot of iolets!
-    setBufferedToImage(true);
-
     cnv = findParentComponentOfClass<Canvas>();
 }
 
 Rectangle<int> Iolet::getCanvasBounds()
 {
     // Get bounds relative to canvas, used for positioning connections
-    return cnv->getLocalArea(this, getLocalBounds());
+    return getBounds() + object->getBounds().getPosition();
+}
+
+void Iolet::render(NVGcontext* nvg)
+{
+    
+    auto* fb = cnv->ioletBuffer;
+    if(!fb) return;
+    
+    bool isLocked = getValue<bool>(locked) || getValue<bool>(commandLocked);
+    bool overObject = object->drawIoletExpanded;
+    bool isHovering = isTargeted  && !isLocked;
+    int type = isSignal + (isGemState * 2);
+    if(isLocked) type = 3;
+    
+    nvgSave(nvg);
+    
+    if(isLocked || !(overObject || isHovering))
+    {
+        auto clipBounds = getLocalArea(object, object->getLocalBounds().reduced(Object::margin));
+        nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
+    }
+    
+    auto scale = getWidth() / 13.0f;
+    nvgScale(nvg, scale, scale); // If the iolet is shrunk because there is little space, we scale it down
+    
+    
+    nvgBeginPath(nvg);
+    nvgRect(nvg, 0, 0, 13, 13);
+    nvgFillPaint(nvg, nvgImagePattern(nvg, isHovering * -16 - 1.5f, type * -16 - 0.5f, 16 * 4, 16 * 4, 0, fb->image, 1));
+    nvgFill(nvg);
+    
+    nvgRestore(nvg);
 }
 
 bool Iolet::hitTest(int x, int y)
@@ -71,64 +105,6 @@ bool Iolet::hitTest(int x, int y)
 
     // Check if we're hovering the total iolet hitbox
     return getLocalBounds().contains(x, y);
-}
-
-void Iolet::paint(Graphics& g)
-{
-    auto bounds = getLocalBounds().toFloat().reduced(0.5f);
-
-    bool isLocked = getValue<bool>(locked) || getValue<bool>(commandLocked);
-    bool down = isMouseButtonDown();
-    bool over = isMouseOver();
-
-    if ((!isTargeted && !over) || isLocked) {
-        bounds = bounds.reduced(2);
-    }
-
-    auto backgroundColour = isSignal ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId);
-    if(isGemState)
-    {
-        backgroundColour = findColour(PlugDataColour::gemColourId);
-    }
-    
-    if ((down || over) && !isLocked)
-        backgroundColour = backgroundColour.contrasting(down ? 0.2f : 0.05f);
-
-    if (isLocked) {
-        backgroundColour = findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.5f);
-    }
-
-    // Instead of drawing pie segments, just clip the graphics region to the visible iolets of the object
-    // This is much faster!
-    bool stateSaved = false;
-    if (!(object->isMouseOverOrDragging(true) || over || isTargeted) || isLocked) {
-        g.saveState();
-        g.reduceClipRegion(getLocalArea(object, object->getLocalBounds().reduced(Object::margin)));
-        stateSaved = true;
-    }
-
-    // TODO: this is kind of a hack to force inlets to align correctly. Find a better way to fix this!
-    if ((getHeight() % 2) == 0) {
-        bounds.translate(0.0f, isInlet ? -1.0f : 0.0f);
-    }
-
-    if (PlugDataLook::getUseSquareIolets()) {
-        g.setColour(backgroundColour);
-        g.fillRect(bounds);
-
-        g.setColour(findColour(PlugDataColour::objectOutlineColourId));
-        g.drawRect(bounds, 1.0f);
-    } else {
-        g.setColour(backgroundColour);
-        g.fillEllipse(bounds);
-
-        g.setColour(findColour(PlugDataColour::ioletOutlineColourId));
-        g.drawEllipse(bounds, 1.0f);
-    }
-
-    if (stateSaved) {
-        g.restoreState();
-    }
 }
 
 void Iolet::mouseDrag(MouseEvent const& e)
@@ -168,8 +144,15 @@ void Iolet::mouseDrag(MouseEvent const& e)
     }
 }
 
+void Iolet::mouseDown(MouseEvent const& e)
+{
+    mouseIsDown = true;
+}
+
 void Iolet::mouseUp(MouseEvent const& e)
 {
+    mouseIsDown = false;
+    
     if (getValue<bool>(locked) || e.mods.isRightButtonDown())
         return;
 
@@ -316,12 +299,18 @@ void Iolet::mouseUp(MouseEvent const& e)
 
 void Iolet::mouseEnter(MouseEvent const& e)
 {
+    isTargeted = true;
+    object->drawIoletExpanded = true;
+
     for (auto& iolet : object->iolets)
         iolet->repaint();
 }
 
 void Iolet::mouseExit(MouseEvent const& e)
 {
+    isTargeted = false;
+    object->drawIoletExpanded = false;
+    
     for (auto& iolet : object->iolets)
         iolet->repaint();
 }
@@ -410,8 +399,9 @@ Array<Connection*> Iolet::getConnections()
 
 Iolet* Iolet::findNearestIolet(Canvas* cnv, Point<int> position, bool inlet, Object* boxToExclude)
 {
-    // Find all iolets
+    // Find all potential iolets
     Array<Iolet*> allEdges;
+
     for (auto* object : cnv->objects) {
         for (auto* iolet : object->iolets) {
             if (iolet->isInlet == inlet && iolet->object != boxToExclude) {

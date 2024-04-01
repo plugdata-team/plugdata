@@ -11,6 +11,7 @@
 #include "Constants.h"
 #include "ObjectParameters.h"
 #include "Utility/SynchronousValue.h"
+#include "Utility/NVGComponent.h"
 
 class PluginProcessor;
 class Canvas;
@@ -21,16 +22,23 @@ class Patch;
 
 class Object;
 
-class ObjectLabel : public Label {
+class ObjectLabel : public Label, public NVGComponent {
 
+    NVGImageRenderer imageRenderer;
+    
 public:
-    explicit ObjectLabel()
+    explicit ObjectLabel(NVGSurface& surface) : NVGComponent(this), imageRenderer(surface)
     {
         setJustificationType(Justification::centredLeft);
         setBorderSize(BorderSize<int>(0, 0, 0, 0));
         setMinimumHorizontalScale(0.2f);
         setEditable(false, false);
         setInterceptsMouseClicks(false, false);
+    }
+    
+    void renderLabel(NVGcontext* nvg, float scale)
+    {
+        imageRenderer.renderComponentFromImage(nvg, *this, scale);
     }
 
 private:
@@ -39,7 +47,9 @@ private:
 class ObjectBase : public Component
     , public pd::MessageListener
     , public Value::Listener
-    , public SettableTooltipClient {
+    , public SettableTooltipClient
+    , public NVGComponent
+{
 
     struct ObjectSizeListener : public juce::ComponentListener
         , public Value::Listener {
@@ -101,6 +111,8 @@ public:
     virtual void update() { }
 
     virtual void tabChanged() { }
+        
+    void render(NVGcontext* nvg) override;
 
     virtual bool canOpenFromMenu();
     virtual void openFromMenu();
@@ -183,7 +195,10 @@ protected:
 
     // Send a float value to Pd
     void sendFloatValue(float value);
-
+    
+    // Gets the scale factor we need to use of we want to draw images inside the component
+    float getImageScale();
+    
     // Used by various ELSE objects, though sometimes with char*, sometimes with unsigned char*
     template<typename T>
     void colourToHexArray(Colour colour, T* hex)
@@ -226,7 +241,9 @@ public:
 
 protected:
     PropertyUndoListener propertyUndoListener;
-
+    
+    NVGImageRenderer imageRenderer;
+    
     std::function<void()> onConstrainerCreate = []() {};
 
     virtual std::unique_ptr<ComponentBoundsConstrainer> createConstrainer();

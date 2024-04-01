@@ -117,9 +117,7 @@ public:
                 }
             }
 
-            auto* parent = ProjectInfo::canUseSemiTransparentWindows() ? nullptr : cnv->editor;
-
-            popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(80).withMaximumNumColumns(1).withParentComponent(parent).withTargetComponent(this), ModalCallbackFunction::create([this](int itemID) {
+            popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(80).withMaximumNumColumns(1).withTargetComponent(this), ModalCallbackFunction::create([this](int itemID) {
                 if (itemID == 0)
                     return;
 

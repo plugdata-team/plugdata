@@ -11,7 +11,7 @@ class BangObject final : public ObjectBase {
     Value bangHold = SynchronousValue(40.0f);
     Value sizeProperty = SynchronousValue();
 
-    bool bangState = false;
+    std::atomic<bool> bangState = false;
     bool alreadyBanged = false;
 
     IEMHelper iemHelper;
@@ -102,32 +102,44 @@ public:
         alreadyBanged = true;
         trigger();
     }
-
-    void paint(Graphics& g) override
+    
+    void render(NVGcontext* nvg) override
     {
-        g.setColour(iemHelper.getBackgroundColour());
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
+        auto b = getLocalBounds().toFloat().reduced(0.5f);
+        
+        auto foregroundColour = convertColour(iemHelper.getForegroundColour()); // TODO: this is some bad threading practice!
+        auto backgroundColour = convertColour(iemHelper.getBackgroundColour());
+        auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
+        auto internalLineColour = convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
 
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-
-        auto const bounds = getLocalBounds().reduced(1).toFloat();
-        auto const width = std::max(bounds.getWidth(), bounds.getHeight());
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        
+        b = b.reduced(1);
+        auto const width = std::max(b.getWidth(), b.getHeight());
 
         auto const sizeReduction = std::min(1.0f, getWidth() / 20.0f);
         
         float const circleOuter = 80.f * (width * 0.01f);
         float const circleThickness = std::max(width * 0.06f, 1.5f) * sizeReduction;
 
-        g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
-        g.drawEllipse(bounds.reduced((width - circleOuter) * sizeReduction), circleThickness);
-
+        auto outerCircleBounds = b.reduced((width - circleOuter) * sizeReduction);
+        
+        nvgBeginPath(nvg);
+        nvgCircle(nvg, b.getCentreX(), b.getCentreY(),
+                   outerCircleBounds.getWidth() / 2.0f);
+        nvgStrokeColor(nvg, internalLineColour);
+        nvgStrokeWidth(nvg, circleThickness);
+        nvgStroke(nvg);
+        
+        // Fill ellipse if bangState is true
         if (bangState) {
-            g.setColour(iemHelper.getForegroundColour());
-            g.fillEllipse(bounds.reduced((width - circleOuter + circleThickness) * sizeReduction));
+            auto innerCircleBounds = b.reduced((width - circleOuter + circleThickness) * sizeReduction);
+            nvgBeginPath(nvg);
+            nvgCircle(nvg, b.getCentreX(), b.getCentreY(),
+                      innerCircleBounds.getWidth() / 2.0f);
+            nvgFillColor(nvg, foregroundColour);
+            nvgFill(nvg);
         }
     }
 

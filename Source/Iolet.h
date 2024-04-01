@@ -1,32 +1,35 @@
-/*
- // Copyright (c) 2021-2022 Timothy Schoen
- // For information on usage and redistribution, and for a DISCLAIMER OF ALL
- // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
-*/
+// Copyright (c) 2021-2022 Timothy Schoen
+// For information on usage and redistribution, and for a DISCLAIMER OF ALL
+// WARRANTIES, see the file, "LICENSE.txt," in this distribution.
+
+#include "Utility/NVGComponent.h"
 
 #pragma once
 
 class Connection;
 class Object;
 class Canvas;
+struct NVGcontext;
 
 class Iolet : public Component
     , public SettableTooltipClient
-    , public Value::Listener {
+    , public Value::Listener
+    , public NVGComponent {
 public:
     Object* object;
 
     Iolet(Object* parent, bool isInlet);
 
-    void paint(Graphics&) override;
-
     void mouseDrag(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
+    void mouseDown(MouseEvent const& e) override;
 
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
 
     bool hitTest(int x, int y) override;
+        
+    void render(NVGcontext* nvg) override;
 
     void valueChanged(Value& v) override;
 
@@ -50,6 +53,7 @@ public:
     Canvas* cnv;
 
 private:
+    bool mouseIsDown;
     bool const insideGraph;
     bool hideIolet = false;
 

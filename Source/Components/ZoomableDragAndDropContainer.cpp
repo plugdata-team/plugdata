@@ -624,6 +624,10 @@ void ZoomableDragAndDropContainer::startDragging(var const& sourceDescription,
         peer->performAnyPendingRepaintsNow();
 #endif
 
+#if JUCE_IOS
+    dragImageComponent->setAlwaysOnTop(true);
+#endif
+    
     dragOperationStarted(dragImageComponent->sourceDetails);
     if (auto* topLevel = TopLevelWindow::getActiveTopLevelWindow()) {
         topLevel->repaint();

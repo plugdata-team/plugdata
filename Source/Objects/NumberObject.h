@@ -267,46 +267,36 @@ public:
         }
     }
 
-    void paint(Graphics& g) override
+    void render(NVGcontext* nvg) override
     {
-        g.setColour(iemHelper.getBackgroundColour());
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
+        auto b = getLocalBounds().toFloat().reduced(0.5f);
 
         bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+        auto backgroundColour = convertColour(iemHelper.getBackgroundColour());
+        auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
+ 
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, selected ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-    }
-
-    void paintOverChildren(Graphics& g) override
-    {
         int const indent = 9;
+        Rectangle<float> iconBounds = { static_cast<float>(b.getX() + 4), static_cast<float>(b.getY() + 4), static_cast<float>(indent - 4), static_cast<float>(b.getHeight() - 8) };
 
-        Rectangle<int> const iconBounds = getLocalBounds().withWidth(indent - 4).withHeight(getHeight() - 8).translated(4, 4);
-
-        Path triangle;
-        //    a
-        //    |\
-        //    | \
-        //    |  b
-        //    | /
-        //    |/
-        //    c
-
-        auto centre_y = iconBounds.getCentreY();
-        auto left_x = iconBounds.getTopLeft().getX();
-        Point<float> point_a(left_x, centre_y + 5.0);
-        Point<float> point_b(iconBounds.getRight(), centre_y);
-        Point<float> point_c(left_x, centre_y - 5.0);
-        triangle.addTriangle(point_a, point_b, point_c);
+        auto centreY = iconBounds.getCentreY();
+        auto leftX = iconBounds.getX();
+        nvgBeginPath(nvg);
+        nvgMoveTo(nvg, leftX, centreY + 5.0f);
+        nvgLineTo(nvg, iconBounds.getRight(), centreY);
+        nvgLineTo(nvg, leftX, centreY - 5.0f);
+        nvgClosePath(nvg);
 
         auto normalColour = object->findColour(PlugDataColour::guiObjectInternalOutlineColour);
         auto highlightColour = object->findColour(PlugDataColour::objectSelectedOutlineColourId);
         bool highlighed = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
 
-        g.setColour(highlighed ? highlightColour : normalColour);
-        g.fillPath(triangle);
+        nvgFillColor(nvg, convertColour(highlighed ? highlightColour : normalColour));
+        nvgFill(nvg);
+        
+        imageRenderer.renderComponentFromImage(nvg, input, getImageScale());
     }
 
     float getValue()

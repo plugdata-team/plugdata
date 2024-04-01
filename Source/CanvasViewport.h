@@ -6,9 +6,13 @@
 
 #pragma once
 
-#include <utility>
+#include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_opengl/juce_opengl.h>
+using namespace gl;
 
-#include "Utility/GlobalMouseListener.h"
+#include <nanovg.h>
+
+#include <utility>
 
 #include "Object.h"
 #include "Connection.h"
@@ -19,12 +23,12 @@
 #include "Utility/SettingsFile.h"
 
 // Special viewport that shows scrollbars on top of content instead of next to it
-class CanvasViewport : public Viewport {
-
+class CanvasViewport : public Viewport, public Timer, public NVGComponent
+{
     class MousePanner : public MouseListener {
     public:
-        explicit MousePanner(CanvasViewport* v)
-            : viewport(v)
+        explicit MousePanner(CanvasViewport* vp)
+            : viewport(vp)
         {
         }
 
@@ -46,9 +50,6 @@ class CanvasViewport : public Viewport {
             e.originalComponent->setMouseCursor(MouseCursor::DraggingHandCursor);
             downPosition = viewport->getViewPosition();
             downCanvasOrigin = viewport->cnv->canvasOrigin;
-
-            for (auto* object : viewport->cnv->objects)
-                object->setBufferedToImage(true);
         }
 
         void mouseDrag(MouseEvent const& e) override
@@ -59,20 +60,12 @@ class CanvasViewport : public Viewport {
             viewport->setViewPosition(infiniteCanvasOriginOffset + downPosition - (scale * e.getOffsetFromDragStart().toFloat()).roundToInt());
         }
 
-        void mouseUp(MouseEvent const& e) override
-        {
-            e.originalComponent->setMouseCursor(MouseCursor::NormalCursor);
-            for (auto* object : viewport->cnv->objects) {
-                object->setBufferedToImage(false);
-            }
-        }
-
     private:
         CanvasViewport* viewport;
         Point<int> downPosition;
         Point<int> downCanvasOrigin;
     };
-
+    
     class ViewportScrollBar : public Component {
         struct FadeTimer : private ::Timer {
             std::function<bool()> callback;
@@ -224,29 +217,36 @@ class CanvasViewport : public Viewport {
             repaint();
         }
 
-        void paint(Graphics& g) override
+        void render(NVGcontext* nvg)
         {
             auto growPosition = scrollBarThickness * 0.5f * growAnimation;
-
             auto growingBounds = thumbBounds.reduced(1).withTop(thumbBounds.getY() + growPosition);
-            auto roundedCorner = growingBounds.getHeight() * 0.5f;
+            auto thumbCornerRadius = growingBounds.getHeight();
             auto fullBounds = growingBounds.withX(2).withWidth(getWidth() - 4);
-
-            if (isVertical) {
-                growingBounds = thumbBounds.reduced(1).withLeft(thumbBounds.getX() + growPosition);
-                roundedCorner = growingBounds.getWidth() * 0.5f;
-                fullBounds = growingBounds.withY(2).withHeight(getHeight() - 4);
-            }
-
+            
             auto canvasColour = findColour(PlugDataColour::canvasBackgroundColourId);
             auto scrollbarColour = findColour(ScrollBar::ColourIds::thumbColourId);
             auto activeScrollbarColour = scrollbarColour.interpolatedWith(canvasColour.contrasting(0.6f), 0.7f);
+            auto fadeColour = scrollbarColour.interpolatedWith(canvasColour, 0.7f).withAlpha(std::clamp(1.0f - growAnimation, 0.0f, 1.0f));
+            if (isVertical) {
+                growingBounds = thumbBounds.reduced(1).withLeft(thumbBounds.getX() + growPosition);
+                thumbCornerRadius = growingBounds.getWidth();
+                fullBounds = growingBounds.withY(2).withHeight(getHeight() - 4);
+            }
 
-            g.setColour(scrollbarColour.interpolatedWith(canvasColour, 0.7f).withAlpha(std::clamp(1.0f - growAnimation, 0.0f, 1.0f)));
-            g.fillRoundedRectangle(fullBounds, roundedCorner);
+            // FIXME: We shouldn't need to map this, we should be able to use growingBounds.getWidth() * 0.5f Possibly something is wrong with the SDF RoundedRect Shader?
+            auto scaledTCR = jmap(thumbCornerRadius, 3.0f, 7.0f, 1.8f, 3.5f);
 
-            g.setColour(isMouseDragging ? activeScrollbarColour : scrollbarColour);
-            g.fillRoundedRectangle(growingBounds, roundedCorner);
+            nvgBeginPath(nvg);
+            nvgRoundedRect(nvg, fullBounds.getX(), fullBounds.getY(), fullBounds.getWidth(), fullBounds.getHeight(), scaledTCR);
+            nvgFillColor(nvg, convertColour(fadeColour));
+            nvgFill(nvg);
+            
+            nvgBeginPath(nvg);
+            nvgRoundedRect(nvg, growingBounds.getX(), growingBounds.getY(), growingBounds.getWidth(), growingBounds.getHeight(), scaledTCR);
+            nvgFillColor(nvg, isMouseDragging ? convertColour(activeScrollbarColour) : convertColour(scrollbarColour));
+            nvgFill(nvg);
+
         }
 
     private:
@@ -287,9 +287,12 @@ class CanvasViewport : public Viewport {
 
 public:
     CanvasViewport(PluginEditor* parent, Canvas* cnv)
-        : editor(parent)
+        : NVGComponent(this)
+        , editor(parent)
         , cnv(cnv)
     {
+        lastCanvasZoom = getValue<float>(cnv->zoomScale);
+        
         setScrollBarsShown(false, false);
 
         setPositioner(new ViewportPositioner(*this));
@@ -302,8 +305,28 @@ public:
 
         addAndMakeVisible(vbar);
         addAndMakeVisible(hbar);
+        
+        cnv->setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, cnv));
+        setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this));
     }
-
+    
+    ~CanvasViewport()
+    {
+    }
+    
+    void render(NVGcontext* nvg) override
+    {
+        nvgSave(nvg);
+        nvgTranslate(nvg, vbar.getX(), vbar.getY());
+        vbar.render(nvg);
+        nvgRestore(nvg);
+        
+        nvgSave(nvg);
+        nvgTranslate(nvg, hbar.getX(), hbar.getY());
+        hbar.render(nvg);
+        nvgRestore(nvg);
+    }
+        
     void lookAndFeelChanged() override
     {
         hbar.repaint();
@@ -322,7 +345,7 @@ public:
         if (e.eventTime == lastScrollTime)
             return;
 
-        if (e.mods.isCommandDown() && !editor->pd->isInPluginMode()) {
+        if (e.mods.isCommandDown()) {
             mouseMagnify(e, 1.0f / (1.0f - wheel.deltaY));
         }
 
@@ -340,7 +363,7 @@ public:
         auto value = getValue<float>(scale);
 
         // Apply and limit zoom
-        value = std::clamp(value * scrollFactor, 0.2f, 3.0f);
+        value = std::clamp(value * scrollFactor, 0.25f, 3.0f);
 
         scale = value;
     }
@@ -381,8 +404,18 @@ public:
 
     void visibleAreaChanged(Rectangle<int> const& r) override
     {
+        cnv->isScrolling = true;
+        startTimer(150);
         onScroll();
         adjustScrollbarBounds();
+        editor->nvgSurface.invalidateAll();
+    }
+    
+    void timerCallback() override
+    {
+        stopTimer();
+        cnv->isScrolling = false;
+        editor->nvgSurface.invalidateAll();
     }
 
     void resized() override
@@ -429,6 +462,7 @@ public:
     std::function<void()> onScroll = []() {};
 
 private:
+    
     Time lastScrollTime;
     PluginEditor* editor;
     Canvas* cnv;
@@ -436,4 +470,7 @@ private:
     MousePanner panner = MousePanner(this);
     ViewportScrollBar vbar = ViewportScrollBar(true, this);
     ViewportScrollBar hbar = ViewportScrollBar(false, this);
+
+    bool forceRepaintWhileScrolling = false;
+    float lastCanvasZoom = 1.0f;
 };

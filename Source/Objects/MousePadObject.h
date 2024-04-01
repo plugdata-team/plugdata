@@ -85,18 +85,16 @@ public:
 
     ~MousePadObject() override = default;
 
-    void paint(Graphics& g) override
+    void render(NVGcontext* nvg) override
     {
+        auto b = getLocalBounds().toFloat().reduced(0.5f);
         auto* x = ptr.getRaw<t_fake_pad>();
         auto fillColour = Colour(x->x_color[0], x->x_color[1], x->x_color[2]);
-        g.setColour(fillColour);
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
-
         auto outlineColour = object->findColour(object->isSelected() && !cnv->isGraph ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::outlineColourId);
 
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        nvgDrawRoundedRect(nvg, b.getX(),  b.getY(),  b.getWidth(),  b.getHeight(), convertColour(fillColour), convertColour(outlineColour), Corners::objectCornerRadius);
     }
+    
 
     void setPdBounds(Rectangle<int> b) override
     {

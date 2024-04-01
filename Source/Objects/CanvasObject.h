@@ -110,28 +110,33 @@ public:
 
         return {};
     }
-
-    void paint(Graphics& g) override
+    
+    void render(NVGcontext* nvg) override
     {
-        auto bgcolour = Colour::fromString(iemHelper.secondaryColour.toString());
+        Colour bgcolour = Colour::fromString(iemHelper.secondaryColour.toString());
+        auto b = getLocalBounds().toFloat();
 
-        g.setColour(bgcolour);
-        g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::objectCornerRadius);
+        nvgFillColor(nvg, convertColour(bgcolour));
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+        nvgFill(nvg);
 
         if (!locked) {
-
             Rectangle<float> draggableRect;
             if (auto iemgui = ptr.get<t_iemgui>()) {
                 draggableRect = Rectangle<float>(ptr.get<t_iemgui>()->x_w, ptr.get<t_iemgui>()->x_h);
             } else {
                 return;
             }
-            
-            g.setColour(object->isSelected() ? object->findColour(PlugDataColour::objectSelectedOutlineColourId) : bgcolour.contrasting(0.75f));
-            g.drawRoundedRectangle(draggableRect.reduced(1.0f), Corners::objectCornerRadius, 1.0f);
+
+            nvgStrokeColor(nvg, convertColour(object->isSelected() ? object->findColour(PlugDataColour::objectSelectedOutlineColourId) : bgcolour.contrasting(0.75f)));
+            nvgStrokeWidth(nvg, 1.0f);
+            nvgBeginPath(nvg);
+            nvgRoundedRect(nvg, draggableRect.getX() + 1.0f, draggableRect.getY() + 1.0f, draggableRect.getWidth() - 2.0f, draggableRect.getHeight() - 2.0f, Corners::objectCornerRadius);
+            nvgStroke(nvg);
         }
     }
-
+    
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(sizeProperty)) {

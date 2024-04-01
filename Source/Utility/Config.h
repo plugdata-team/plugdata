@@ -7,6 +7,15 @@ using namespace juce;
 #include "Utility/HashUtils.h"
 #include "Utility/SynchronousValue.h"
 
+
+#ifndef ENABLE_OBJECT_FB_DEBUGGING
+#define ENABLE_OBJECT_FB_DEBUGGING 0
+#endif
+
+#ifndef ENABLE_FB_DEBUGGING
+#define ENABLE_FB_DEBUGGING 0
+#endif
+
 namespace juce {
 class AudioDeviceManager;
 }
@@ -42,7 +51,7 @@ struct ProjectInfo {
 #else
     static inline File const appDataDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata");
 #endif
-    static inline String const versionSuffix = "-8";
+    static inline String const versionSuffix = "-test";
     static inline File const versionDataDir = appDataDir.getChildFile("Versions").getChildFile(ProjectInfo::versionString + versionSuffix);
 };
 

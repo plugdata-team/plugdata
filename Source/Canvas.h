@@ -6,6 +6,15 @@
 
 #pragma once
 
+#include <nanovg.h>
+#if NANOVG_GL_IMPLEMENTATION
+#include <juce_opengl/juce_opengl.h>
+using namespace juce::gl;
+#undef NANOVG_GL_IMPLEMENTATION
+#include <nanovg_gl_utils.h>
+#define NANOVG_GL_IMPLEMENTATION 1
+#endif
+
 #include "ObjectGrid.h"          // move to impl
 #include "Utility/RateReducer.h" // move to impl
 #include "Utility/ModifierKeyListener.h"
@@ -14,6 +23,8 @@
 #include "Pd/Patch.h"
 #include "Constants.h"
 #include "Objects/ObjectParameters.h"
+#include "Utility/NVGComponent.h"
+#include "Utility/GlobalMouseListener.h"
 
 namespace pd {
 class Patch;
@@ -47,7 +58,10 @@ class Canvas : public Component
     , public LassoSource<WeakReference<Component>>
     , public ModifierKeyListener
     , public pd::MessageListener
-    , public AsyncUpdater {
+    , public AsyncUpdater 
+    , public NVGComponent
+    , public NVGContextListener
+{
 public:
     Canvas(PluginEditor* parent, pd::Patch::Ptr patch, Component* parentGraph = nullptr);
 
@@ -56,15 +70,13 @@ public:
     PluginEditor* editor;
     PluginProcessor* pd;
 
-    void lookAndFeelChanged() override;
-    void paint(Graphics& g) override;
-
     void mouseDown(MouseEvent const& e) override;
     void mouseDrag(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
-
+    
+    Point<int> getLastMousePosition();
+    
     void commandKeyChanged(bool isHeld) override;
-    void spaceKeyChanged(bool isHeld) override;
     void middleMouseChanged(bool isHeld) override;
     void altKeyChanged(bool isHeld) override;
 
@@ -72,6 +84,14 @@ public:
 
     void focusGained(FocusChangeType cause) override;
     void focusLost(FocusChangeType cause) override;
+    
+    bool updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, int maxUpdateTimeMs);
+    void performRender(NVGcontext* nvg, Rectangle<int> invalidRegion);
+    
+    void resized() override;
+
+    void renderAllObjects(NVGcontext* nvg, Rectangle<int> area);
+    void renderAllConnections(NVGcontext* nvg, Rectangle<int> area);
 
     int getOverlays() const;
     void updateOverlays();
@@ -82,6 +102,8 @@ public:
     void handleAsyncUpdate() override;
 
     void moveToWindow(PluginEditor* newWindow);
+    
+    void lookAndFeelChanged() override;
 
     void updateDrawables();
 
@@ -115,7 +137,9 @@ public:
 
     void jumpToOrigin();
     void zoomToFitAll();
-
+    
+    float getRenderScale() const;
+    
     bool autoscroll(MouseEvent const& e);
 
     // Multi-dragger functions
@@ -132,11 +156,13 @@ public:
     void updateSidebarSelection();
 
     void orderConnections();
+    
+    void nvgContextDeleted(NVGcontext* nvg) override;
 
     void showSuggestions(Object* object, TextEditor* textEditor);
     void hideSuggestions();
 
-    static bool panningModifierDown();
+    bool panningModifierDown();
 
     ObjectParameters& getInspectorParameters();
 
@@ -182,7 +208,9 @@ public:
     bool showOrigin = false;
     bool showBorder = false;
     bool connectionsBehind = true;
-
+    
+    bool isScrolling = false;
+    
     bool isGraph = false;
     bool isDraggingLasso = false;
     
@@ -216,7 +244,20 @@ public:
 
     inline static constexpr int infiniteCanvasSize = 128000;
 
+    Component objectLayer;
+    Component connectionLayer;
+    
+    NVGframebuffer* ioletBuffer = nullptr;
+    int resizeHandleImage = 0;
+    float bufferScale;
+    
+    Array<juce::WeakReference<NVGComponent>> drawables;
+
 private:
+    
+    GlobalMouseListener globalMouseListener;
+    
+    int lastMouseX, lastMouseY;
     LassoComponent<WeakReference<Component>> lasso;
 
     RateReducer canvasRateReducer = RateReducer(90);

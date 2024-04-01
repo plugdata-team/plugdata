@@ -13,13 +13,15 @@
 #include "LookAndFeel.h"
 #include "Connection.h"
 #include "PluginEditor.h"
-#include "CanvasViewport.h"
+#include "Object.h"
 
 class ConnectionMessageDisplay
     : public Component
     , public MultiTimer {
+        
+    PluginEditor* editor;
 public:
-    ConnectionMessageDisplay()
+    ConnectionMessageDisplay(PluginEditor* parentEditor) : editor(parentEditor)
     {
         setSize(36, 36);
         setVisible(false);
@@ -101,7 +103,7 @@ private:
             textString = StringArray("no message yet");
         }
 
-        auto halfEditorWidth = getParentComponent()->getWidth() / 2;
+        auto halfEditorWidth = editor->getWidth() / 2;
         auto fontStyle = haveMessage ? FontStyle::Semibold : FontStyle::Regular;
         auto textFont = Font(haveMessage ? Fonts::getSemiBoldFont() : Fonts::getDefaultFont());
         textFont.setSizeAndStyle(14, FontStyle::Regular, 1.0f, 0.0f);
@@ -156,8 +158,8 @@ private:
     void updateBoundsFromProposed(Rectangle<int> proposedPosition)
     {
         // make sure the proposed position is inside the editor area
-        proposedPosition.setCentre(getParentComponent()->getLocalPoint(nullptr, mousePosition).translated(0, -(getHeight() * 0.5)));
-        constrainedBounds = proposedPosition.constrainedWithin(getParentComponent()->getLocalBounds());
+        proposedPosition.setCentre(mousePosition.translated(0, -(getHeight() * 0.5)));
+        constrainedBounds = proposedPosition.constrainedWithin(editor->getScreenBounds());
         if (getBounds() != constrainedBounds)
             setBounds(constrainedBounds);
     }
