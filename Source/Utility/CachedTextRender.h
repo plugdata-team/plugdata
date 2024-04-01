@@ -2,7 +2,6 @@
 
 class CachedTextRender : public NVGContextListener
 {
-
     NVGSurface& surface;
     
 public:

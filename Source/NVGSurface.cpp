@@ -129,7 +129,7 @@ bool NVGSurface::makeContextActive()
 {
 #ifdef NANOVG_METAL_IMPLEMENTATION
     // No need to make context active with Metal, so just check if we have initialised and return that
-    return getView() != nullptr && nvg != nullptr;
+    return isAttached();
 #else
     if(glContext) return glContext->makeActive();
 #endif
@@ -195,9 +195,9 @@ void NVGSurface::resized()
 bool NVGSurface::isAttached() const
 {
 #ifdef NANOVG_METAL_IMPLEMENTATION
-    return getView() != nullptr;
+    return getView() != nullptr && nvg != nullptr;
 #else
-    return glContext->isAttached();
+    return glContext->isAttached() && nvg != nullptr;
 #endif
 }
 
@@ -298,7 +298,6 @@ void NVGSurface::render()
             
             // First, draw only the invalidated region to a separate framebuffer
             // I've found that nvgScissor doesn't always clip everything, meaning that there will be graphical glitches if we don't do this
-            
             nvgBindFramebuffer(invalidFBO);
             nvgViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
             nvgClear(nvg);
