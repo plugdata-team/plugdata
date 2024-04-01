@@ -11,12 +11,15 @@ public:
     
     bool mouseWasOver = false;
     
+    TextLayout textLayout;
+    hash32 layoutTextHash = 0;
+    int lastTextWidth = 0;
+    int32 lastColourARGB = 0;
+    
     OpenFileObject(pd::WeakReference ptr, Object* object)
         : TextBase(ptr, object)
     {
     }
-    
-    bool hideInlets() override { return true; }
 
     void showEditor() override
     {
@@ -47,7 +50,7 @@ public:
         }
     }
     
-    Rectangle<int> getTextSize() override
+    int getTextObjectWidth()
     {
         auto objText = getLinkText();
         if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
@@ -61,10 +64,8 @@ public:
             fontWidth = glist_fontwidth(cnv->patch.getPointer().get());
         }
         
-        auto textBounds = cachedTextRender.getTextBounds();
-        
         // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
-        int idealWidth = textBounds.getWidth() + 14;
+        int idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 14;
         
         // We want to adjust the width so ideal text with aligns with fontWidth
         int offset = idealWidth % fontWidth;
@@ -81,12 +82,11 @@ public:
         auto maxIolets = std::max(object->numInputs, object->numOutputs);
         textWidth = std::max(textWidth, maxIolets * 18);
         
-        return {textWidth, textBounds.getHeight()};
+        return textWidth;
     }
         
     void updateTextLayout() override
     {
-        /*
         auto objText = getLinkText();
         if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
             objText = cnv->suggestor->getText();
@@ -94,7 +94,7 @@ public:
         
         auto mouseIsOver = isMouseOver();
         
-        int textWidth = getTextSize().getWidth() - 14; // Reserve a bit of extra space for the text margin
+        int textWidth = getTextObjectWidth() - 14; // Reserve a bit of extra space for the text margin
         auto currentLayoutHash = hash(objText);
         auto colour = object->findColour(PlugDataColour::canvasTextColourId);
         
@@ -114,7 +114,7 @@ public:
             layoutTextHash = currentLayoutHash;
             lastColourARGB = colour.getARGB();
             lastTextWidth = textWidth;
-        } */
+        }
     }
     
     String getLinkText()
@@ -122,6 +122,25 @@ public:
         auto tokens = StringArray::fromTokens(editor ? editor->getText() : objectText, true);
         tokens.removeRange(0, tokens.indexOf("-h") + 2);
         return tokens.joinIntoString(" ");
+    }
+
+    Rectangle<int> getPdBounds() override
+    {
+        updateTextLayout(); // make sure layout height is updated
+
+        int x = 0, y = 0, w, h;
+        if (auto obj = ptr.get<t_gobj>()) {
+            auto* cnvPtr = cnv->patch.getPointer().get();
+            if (!cnvPtr) return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 6, 21)};
+    
+            pd::Interface::getObjectBounds(cnvPtr, obj.get(), &x, &y, &w, &h);
+        }
+
+        return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 6, 21)};
+    }
+
+    void setPdBounds(Rectangle<int> b) override
+    {
     }
 
     std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
@@ -150,9 +169,27 @@ public:
         return std::make_unique<LinkObjectBoundsConstrainer>(object);
     }
 
-    void render(NVGcontext* nvg) override
+    void paint(Graphics& g) override
     {
-        // TODO: IMPLEMENT THIS
+        updateTextLayout();
+        
+        auto backgroundColour = object->findColour(PlugDataColour::textObjectBackgroundColourId);
+
+        g.setColour(backgroundColour);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
+
+        auto ioletAreaColour = object->findColour(PlugDataColour::ioletAreaColourId);
+
+        if (ioletAreaColour != backgroundColour) {
+            g.setColour(ioletAreaColour);
+            g.fillRect(getLocalBounds().removeFromTop(3));
+            g.fillRect(getLocalBounds().removeFromBottom(3));
+        }
+
+        if (!editor) {
+            auto textArea = border.subtractedFrom(getLocalBounds());
+            textLayout.draw(g, textArea.toFloat());
+        }
     }
 
     void mouseEnter(MouseEvent const& e) override
@@ -175,6 +212,11 @@ public:
         if (auto openfile = ptr.get<void>()) {
             pd->sendDirectMessage(openfile.get(), "bang", std::vector<pd::Atom> {});
         }
+    }
+    
+    void render(NVGcontext* nvg) override
+    {
+        imageRenderer.renderComponentFromImage(nvg, *this, getImageScale());
     }
 
     void paintOverChildren(Graphics& g) override
