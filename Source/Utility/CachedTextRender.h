@@ -119,7 +119,7 @@ public:
     }
     
 private:
-    int imageId = -1;
+    int imageId = 0;
     int imageWidth = 0, imageHeight = 0;
     hash32 lastTextHash;
     float lastScale = 1.0f;
