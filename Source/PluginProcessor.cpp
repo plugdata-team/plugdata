@@ -1135,7 +1135,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 
     auto openPatch = [this](String const& content, File const& location, bool pluginMode = false, int splitIndex = 0) {
         
-        // CHANGED IN v0.8.4:
+        // CHANGED IN v0.9.0:
         // We now prefer loading the patch content over the patch file, if possible
         // This generally makes it work more like the users expects, but before we couldn't get it to load abstractions (this is now fixed)
         if(content.isNotEmpty())
