@@ -234,6 +234,9 @@ void NVGSurface::renderArea(Rectangle<int> area)
 
 void NVGSurface::sendContextDeleteMessage()
 {
+    if (nvg == nullptr)
+        return;
+
     for(auto listener : nvgContextListeners)
     {
         if(listener) listener->nvgContextDeleted(nvg);
@@ -285,8 +288,8 @@ void NVGSurface::render()
         int scaledHeight = getHeight() * pixelScale;
         
         if(fbWidth != scaledWidth || fbHeight != scaledHeight || !mainFBO) {
-            mainFBO = nvgCreateFramebuffer(nvg, scaledWidth, scaledHeight, 0);
-            invalidFBO = nvgCreateFramebuffer(nvg, scaledWidth, scaledHeight, 0);
+            mainFBO = nvgCreateFramebuffer(nvg, scaledWidth, scaledHeight, NVG_IMAGE_PREMULTIPLIED);
+            invalidFBO = nvgCreateFramebuffer(nvg, scaledWidth, scaledHeight, NVG_IMAGE_PREMULTIPLIED);
             fbWidth = scaledWidth;
             fbHeight = scaledHeight;
             invalidArea = getLocalBounds();

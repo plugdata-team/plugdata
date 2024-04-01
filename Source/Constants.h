@@ -405,9 +405,10 @@ enum Overlay {
     Index = 4,
     Coordinate = 8,
     ActivationState = 16,
-    Order = 32,
-    Direction = 64,
-    Behind = 128
+    ConnectionActivity = 32,
+    Order = 64,
+    Direction = 128,
+    Behind = 256
 };
 
 enum Align {

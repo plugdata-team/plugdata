@@ -22,7 +22,7 @@ using namespace juce::gl;
 #define NANOVG_GL_IMPLEMENTATION 1
 #endif
 
-#define ACTIVITY_UPDATE_RATE 15
+#define ACTIVITY_UPDATE_RATE 30
 
 struct ObjectDragState;
 class ObjectBase;
