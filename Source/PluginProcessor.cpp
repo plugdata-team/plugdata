@@ -898,7 +898,7 @@ void PluginProcessor::sendPlayhead()
             atoms_playhead.emplace_back(0.0f);
         }
 
-        sendMessage("playhead", "position", atoms_playhead);
+        sendMessage("_playhead", "position", atoms_playhead);
         atoms_playhead.resize(1);
     }
 }
