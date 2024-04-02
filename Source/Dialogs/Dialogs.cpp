@@ -544,6 +544,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     // showObjectReferenceDialog
     auto callback = [cnv, editor, object, originalComponent, params, selectedBoxes](int result) mutable {
         cnv->grabKeyboardFocus();
+        editor->calloutArea->removeFromDesktop();
 
         // Make sure that iolets don't hang in hovered state
         for (auto* o : cnv->objects) {
@@ -667,8 +668,9 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
         }
     };
 
-    auto* parent = ProjectInfo::canUseSemiTransparentWindows() ? nullptr : editor;
-
+    auto* parent = ProjectInfo::canUseSemiTransparentWindows() ? nullptr : editor->calloutArea.get();
+    editor->calloutArea->addToDesktop(ComponentPeer::windowIsTemporary);
+    
     popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(parent).withTargetScreenArea(Rectangle<int>(position, position.translated(1, 1))), ModalCallbackFunction::create(callback));
 }
 
