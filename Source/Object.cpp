@@ -907,6 +907,10 @@ void Object::mouseDrag(MouseEvent const& e)
 
     if (cnv->objectRateReducer.tooFast())
         return;
+    
+#if JUCE_MAC || JUCE_WINDOWS
+    beginDragAutoRepeat(25); // Doing this leads to terrible performance on Linux, unfortunately
+#endif
 
     cnv->cancelConnectionCreation();
 
