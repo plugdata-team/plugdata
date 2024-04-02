@@ -24,9 +24,7 @@
 <img width="1093" alt="darkmode" src="https://github.com/plugdata-team/plugdata/assets/44585538/8411f664-563f-449d-91a6-ca0221439307">
 </p>
 
-plugdata is a plugin wrapper for Pure Data, featuring a new GUI made with JUCE. This is still a WIP, and there are probably still some bugs. By default, it ships with the ELSE collection of externals and abstractions. The aim is to provide a more comfortable patching experience for a large selection of DAWs. It can also be used as a standalone replacement for pure-data.
-
-Join the Discord here, for sharing patches, reporting issues or requesting features: https://discord.gg/eT2RxdF9Nq
+Introducing PlugData: a dynamic plugin wrapper for Pure Data, currently in development with an innovative GUI built using JUCE. While still a work in progress, expect some bugs as we refine the experience. PlugData comes equipped with the ELSE collection of externals and abstractions out of the box. Our goal? To enhance the patching experience across a variety of DAWs, offering seamless integration. Plus, it doubles as a standalone alternative to pure-data. Join our Discord community for patch sharing, issue reporting, and feature requests: https://discord.gg/eT2RxdF9Nq
 
 <p align="middle">
 <img width="431" alt="LIRA-8" src="https://github.com/plugdata-team/plugdata/assets/44585538/1eb2e36f-6552-4caa-8e7b-2cd6adf03917">
@@ -71,10 +69,17 @@ cmake --build .
 - The CMake build system has been tested with *Unix Makefiles*, *XCode*, *Visual Studio 17 2022* and *Visual Studio 16 2019*
 
 ## Adding your own externals
-You can use externals inside plugdata's plugin version by recompiling the externals along with plugdata. This can be achieved by making the following modification to plugdata:
 
--  Add your sources to the "externals" target inside Libraries/CMakeLists.txt. Alternatively the source files can be placed inside the Libraries/ELSE/Source folder, as all .c files in that folder will be compiled automatically.
--  In Source/Pd/Setup.cpp, add the setup function for your external. The best place to call your setup function is inside libpd_init_pdlua. initialiseELSE and initialiseCyclone will also work, but it has the side-effect that the externals will also be available under the else/* and cyclone/* prefix.
+To integrate externals into PlugData's plugin version, follow these steps:
+
+Add External Sources:
+
+Include your external's source files in the "externals" target within Libraries/CMakeLists.txt. Alternatively, you can place the source files in Libraries/ELSE/Source, as all .c files in this folder will be compiled automatically.
+Modify Setup.cpp:
+
+Navigate to Source/Pd/Setup.cpp.
+Add the setup function for your external. The recommended location to call your setup function is inside libpd_init_pdlua. Alternatively, initialiseELSE and initialiseCyclone can also be used, but note that this might result in the externals being accessible under the else/* and cyclone/* prefix as well.
+By following these steps, you can recompile PlugData along with your externals, enabling their usage within the plugin version. This customization expands the capabilities of PlugData, allowing for a more tailored and versatile patching experience.
 
 ## Corporate sponsors
 <p align="center" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
@@ -102,13 +107,17 @@ You can use externals inside plugdata's plugin version by recompiling the extern
 - [FluidLite](https://github.com/divideconcept/FluidLite) by divideconcept, based on [Fluidsynth](https://github.com/FluidSynth/fluidsynth)
 
 ## Status
-What works:
-- Nearly complete support for pd
-- Most ELSE and cyclone library objects work
-- VST3, LV2, CLAP and AU format available, tested on Windows (x86/x64), Mac (arm64/x64) and Linux (arm64/armhf/x64)
-- Receive 512 DAW parameters using the [param] abstraction
-- Receive DAW playhead position, tempo and more using the [playhead] abstraction
 
-Known issues:
-- Broken ELSE objects: See [#174](https://github.com/plugdata-team/plugdata/issues/174)
-- There may still be some more bugs
+What Works:
+
+- Extensive support for Pure Data (pd), with nearly complete functionality.
+- Compatibility with most ELSE and Cyclone library objects.
+- Availability in VST3, LV2, CLAP, and AU formats, extensively tested across various platforms including Windows (x86/x64), Mac (arm64/x64), and Linux (arm64/armhf/x64).
+- Seamless integration with DAW parameters, enabling reception of up to 512 parameters using the versatile [param] abstraction.
+- Access to DAW playhead position, tempo, and additional parameters facilitated by the [playhead] abstraction.
+
+Known Issues:
+
+- Some ELSE objects may currently be non-functional. Refer to #174 for details.
+- Possible existence of additional bugs.
+- Despite these known issues, PlugData offers a robust platform for patching and audio manipulation, with comprehensive support across multiple plugin formats - and platforms. Ongoing development aims to address any outstanding issues, ensuring an optimal user experience.
