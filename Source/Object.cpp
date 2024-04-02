@@ -750,8 +750,10 @@ void Object::mouseDown(MouseEvent const& e)
     // We don't allow alt+click for popupmenus here, as that will conflict with some object behaviour, like for [range.hsl]
     if (e.mods.isRightButtonDown() && !cnv->editor->pluginMode) {
         PopupMenu::dismissAllActiveMenus();
-        if (!getValue<bool>(locked))
+        if (!getValue<bool>(locked)) {
+            if(!e.mods.isAnyModifierKeyDown()) cnv->deselectAll();
             cnv->setSelected(this, true);
+        }
         Dialogs::showCanvasRightClickMenu(cnv, this, e.getScreenPosition());
         return;
     }
