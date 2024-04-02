@@ -41,11 +41,10 @@ public:
 
     void paint(Graphics& g) override
     {
-//#define DEBUG_CALLOUT_AREA
-#ifdef DEBUG_CALLOUT_AREA
-        g.setColour(Colours::red);
-        g.drawRect(getLocalBounds());
-#endif
+        if(!ProjectInfo::canUseSemiTransparentWindows())
+        {
+            g.fillAll(findColour(PlugDataColour::popupMenuBackgroundColourId));
+        }
     }
 
 private:

@@ -481,7 +481,12 @@ CallOutBox& PluginEditor::showCalloutBox(std::unique_ptr<Component> content, Rec
     content->addComponentListener(new CalloutDeletionListener(this));
     calloutArea->addToDesktop(ComponentPeer::windowIsTemporary);
     auto bounds = calloutArea->getLocalArea(nullptr, screenBounds);
-    return CallOutBox::launchAsynchronously(std::move(content), bounds, calloutArea.get());
+    auto& calloutBox = CallOutBox::launchAsynchronously(std::move(content), bounds, calloutArea.get());
+    
+    if(!ProjectInfo::canUseSemiTransparentWindows()) {
+        calloutArea->setBounds(bounds);
+    }
+    return calloutBox;
 }
 
 DragAndDropTarget* PluginEditor::findNextDragAndDropTarget(Point<int> screenPos)
