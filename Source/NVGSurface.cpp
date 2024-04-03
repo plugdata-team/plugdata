@@ -110,7 +110,7 @@ NVGSurface::~NVGSurface()
     detachContext();
 }
 
-#ifdef LIN_OR_WIN
+#ifdef NANOVG_GL_IMPLEMENTATION
 void NVGSurface::timerCallback()
 {
     updateBounds(newBounds);
@@ -163,7 +163,7 @@ float NVGSurface::getRenderScale() const
 
 void NVGSurface::updateBounds(Rectangle<int> bounds)
 {
-#ifdef LIN_OR_WIN
+#ifdef NANOVG_GL_IMPLEMENTATION
     newBounds = bounds;
     if (hresize)
         setBounds(bounds.withHeight(getHeight()));

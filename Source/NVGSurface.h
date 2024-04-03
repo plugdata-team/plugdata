@@ -56,7 +56,7 @@ public NSViewComponent
 #elif NANOVG_METAL_IMPLEMENTATION && JUCE_IOS
 public UIViewComponent
 #else
-#define LIN_OR_WIN
+#define NANOVG_GL_IMPLEMENTATION
 public Component, public Timer
 #endif
 {
@@ -70,7 +70,7 @@ public:
     void detachContext();
     bool makeContextActive();
 
-#ifdef LIN_OR_WIN
+#ifdef NANOVG_GL_IMPLEMENTATION
     void timerCallback() override;
 #endif
     
