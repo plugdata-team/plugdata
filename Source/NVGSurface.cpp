@@ -368,7 +368,6 @@ void NVGSurface::render()
 #else
         glContext->attachTo(*this);
         glContext->initialiseOnThread();
-        glContext->setSwapInterval(0); // It's very important this happens after attachTo. Otherwise, it will be terribly slow on Windows and Linux
         nvg = nvgCreateContext(NVG_ANTIALIAS);
 #endif
         invalidateAll();
