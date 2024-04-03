@@ -793,7 +793,7 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
         offsetPath.applyTransform(translation);
         setPath(offsetPath);
         
-        clipRegion.transformAll(translation)
+        clipRegion.transformAll(translation);
 
         return;
     }
