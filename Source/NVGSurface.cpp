@@ -108,8 +108,13 @@ NVGSurface::NVGSurface(PluginEditor* e) : editor(e)
                 // By dequeueing messages before rendering, we can ensure that we display the absolute latest state of objects
                 // If will also prevent unnecessary extra repaint() calls if a message would be received right after this frame
                 editor->pd->messageDispatcher->dequeueMessages();
+                
+                // Perform rendering
                 render();
                 
+                // If rendering and dequeueing takes so long that we're already in the next frame's time,
+                // skip the next frame.
+                // It appears that Linux and Windows will still send the next vsync if we miss the callback time, meaning vsyncs will pile up and leave no space for other message manager activites
                 auto endTime = Time::getMillisecondCounter();
                 auto dt = endTime - startTime;
                 framesToSkip = dt / 16;
