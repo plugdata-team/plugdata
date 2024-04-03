@@ -517,7 +517,7 @@ void Canvas::renderAllConnections(NVGcontext* nvg, Rectangle<int> area)
     for(auto* connection : connections)
     {
         nvgSave(nvg);
-        if(connection->getBounds().intersects(area) && connection->isVisible()) {
+        if(connection->intersectsRectangle(area) && connection->isVisible()) {
             connection->render(nvg);
         }
         nvgRestore(nvg);
@@ -2145,9 +2145,9 @@ bool Canvas::panningModifierDown()
     auto& commandManager = editor->commandManager;
     // check the command manager for the keycode that is assigned to pan drag key
     auto panDragKeycode = commandManager.getKeyMappings()->getKeyPressesAssignedToCommand(CommandIDs::PanDragKey).getFirst().getKeyCode();
-
+    
     // get the current modifier keys, removing the left mouse button modifier (as that is what is needed to activate a pan drag with key down)
-    auto currentMods = ModifierKeys(ModifierKeys::getCurrentModifiersRealtime().getRawFlags() &~ ModifierKeys::leftButtonModifier);
+    auto currentMods = ModifierKeys(ModifierKeys::getCurrentModifiers().getRawFlags() &~ ModifierKeys::leftButtonModifier);
 
     bool isPanDragKeysActive = false;
 
@@ -2157,7 +2157,7 @@ bool Canvas::panningModifierDown()
         isPanDragKeysActive = commandManager.getKeyMappings()->containsMapping(CommandIDs::PanDragKey, keyWithMod);
     }
 
-    return isPanDragKeysActive || ModifierKeys::getCurrentModifiersRealtime().isMiddleButtonDown();
+    return isPanDragKeysActive || ModifierKeys::getCurrentModifiers().isMiddleButtonDown();
 }
 
 void Canvas::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms)
