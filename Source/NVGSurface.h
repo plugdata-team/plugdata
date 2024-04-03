@@ -145,6 +145,8 @@ private:
     bool resizing = false;
     Rectangle<int> newBounds;
     
+    int framesToSkip = 0;
+    
     Array<WeakReference<NVGContextListener>> nvgContextListeners;
     
 #if NANOVG_GL_IMPLEMENTATION
