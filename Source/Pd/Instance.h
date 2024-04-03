@@ -312,7 +312,8 @@ public:
     bool isPerformingGlobalSync = false;
     CriticalSection const audioLock;
     std::recursive_mutex weakReferenceMutex;
-
+    std::unique_ptr<pd::MessageDispatcher> messageDispatcher;
+    
 private:
     std::unordered_map<void*, std::vector<pd_weak_reference*>> pdWeakReferences;
 
@@ -325,7 +326,6 @@ private:
 protected:
     struct internal;
 
-    std::unique_ptr<pd::MessageDispatcher> messageDispatcher;
     std::unique_ptr<ObjectImplementationManager> objectImplementations; // must be after messageDispatcher (!)
     
     struct ConsoleHandler : public Timer {

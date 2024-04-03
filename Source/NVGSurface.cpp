@@ -100,6 +100,10 @@ NVGSurface::NVGSurface(PluginEditor* e) : editor(e)
     MessageManager::callAsync([this](){
         // Render on vblank
         vBlankAttachment = std::make_unique<VBlankAttachment>(this, [this](){
+            // By dequeueing messages before rendering, we can ensure that we display the absolute latest state of objects
+            // If will also prevent unnecessary extra repaint() calls if a message would be received right after this frame
+            editor->pd->messageDispatcher->dequeueMessages();
+            
             render();
         });
     });

@@ -6,7 +6,7 @@
 #pragma once
 
 #include "Instance.h"
-#include "Utility/LockFreeStack.h"
+#include "Utility/ThreadSafeStack.h"
 #include <readerwriterqueue.h>
 
 namespace pd {
@@ -21,7 +21,7 @@ public:
 // MessageDispatcher handles the organising of messages from Pd to the plugdata GUI
 // It provides an optimised way to listen to messages within pd from the message thread,
 // without performing and memory allocation on the audio thread, and which groups messages within the same audio block (or multiple audio blocks, depending on how long it takes to get a callback from the message thread) togethter
-class MessageDispatcher : private AsyncUpdater {
+class MessageDispatcher {
     // Wrapper to store 8 atoms in stack memory
     // We never read more than 8 args in the whole source code, so this prevents unnecessary memory copying
     // We also don't want this list to be dynamic since we want to stack allocate it
@@ -100,15 +100,7 @@ public:
             messageListeners.erase(object);
     }
 
-    void dispatch()
-    {
-        if(messageStack.numElements()) {
-            triggerAsyncUpdate();
-        }
-    }
-
-private:
-    void handleAsyncUpdate() override
+    void dequeueMessages()
     {
         usedHashes.clear();
         nullListeners.clear();
@@ -117,7 +109,7 @@ private:
         Message message;
         while(messageStack.pop(message))
         {
-            auto hash = reinterpret_cast<size_t>(message.target) ^ reinterpret_cast<size_t>(message.symbol);
+            auto hash = reinterpret_cast<intptr_t>(message.target) ^ reinterpret_cast<intptr_t>(message.symbol);
             if (usedHashes.find(hash) != usedHashes.end())
             {
                 continue;
@@ -153,12 +145,12 @@ private:
         }
     }
     
+private:
     static constexpr int stackSize = 32768;
-    using MessageStack = LockFreeStack<Message, stackSize>;
-
+    using MessageStack = ThreadSafeStack<Message, stackSize>;=
     
     std::vector<std::pair<void*, std::set<juce::WeakReference<pd::MessageListener>>::iterator>> nullListeners;
-    std::unordered_set<size_t> usedHashes;
+    std::unordered_set<intptr_t> usedHashes;
     MessageStack messageStack;
     
     std::map<void*, std::set<juce::WeakReference<MessageListener>>> messageListeners;
