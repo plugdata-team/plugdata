@@ -56,7 +56,6 @@ public NSViewComponent
 #elif NANOVG_METAL_IMPLEMENTATION && JUCE_IOS
 public UIViewComponent
 #else
-#define NANOVG_GL_IMPLEMENTATION
 public Component, public Timer
 #endif
 {
