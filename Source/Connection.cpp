@@ -33,6 +33,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     , ptr(parent->pd)
 {
     cnv->selectedComponents.addChangeListener(this);
+    cnv->editor->nvgSurface.addNVGContextListener(this);
     
     locked.referTo(parent->locked);
     presentationMode.referTo(parent->presentationMode);
@@ -101,6 +102,7 @@ Connection::~Connection()
 {
     cnv->pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
     cnv->selectedComponents.removeChangeListener(this);
+    cnv->editor->nvgSurface.removeNVGContextListener(this);
 
     if (outlet) {
         outlet->repaint();
@@ -123,6 +125,11 @@ void Connection::changeListenerCallback(ChangeBroadcaster* source)
 {
     if (auto selectedItems = dynamic_cast<SelectedItemSet<WeakReference<Component>>*>(source))
         setSelected(selectedItems->isSelected(this));
+}
+
+void Connection::nvgContextDeleted(NVGcontext* nvg)
+{
+    cacheId = -1;
 }
 
 void Connection::lookAndFeelChanged()
@@ -919,10 +926,27 @@ void Connection::updatePath()
     
     setPath(toDraw);
     previousPStart = pstart;
+    
+    clipRegion = RectangleList<int>();
+    auto pathIter = PathFlatteningIterator(toDraw);
+    while(pathIter.next()) // skip first item, since only the x2/y2 coords of that one are valid (and they will be the x1/y1 of the next item)
+    {
+        auto bounds = Rectangle<int>(Point<int>(pathIter.x1, pathIter.y1), Point<int>(pathIter.x2, pathIter.y2));
+        clipRegion.add(bounds.expanded(2));
+    }
+
     startReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(8.5f));
     endReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(jmax(toDraw.getLength() - 8.5f, 9.5f)));
     
+    clipRegion.add(startReconnectHandle.toNearestIntEdges().expanded(4));
+    clipRegion.add(endReconnectHandle.toNearestIntEdges().expanded(4));
+
     cachedIsValid = false;
+}
+
+bool Connection::intersectsRectangle(Rectangle<int> invalidatedArea)
+{
+    return clipRegion.intersectsRectangle(invalidatedArea);
 }
 
 void Connection::applyBestPath()

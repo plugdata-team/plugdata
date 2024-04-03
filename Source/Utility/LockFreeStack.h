@@ -68,7 +68,6 @@ public:
 
         while(!front_.compare_exchange_strong(current_front, current_back, std::memory_order_seq_cst, std::memory_order_seq_cst)) {
             // wait a little before a retry -- preserving CPU resources
-            jassertfalse;
             cpu_relax();
         } */
         

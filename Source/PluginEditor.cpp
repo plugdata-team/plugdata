@@ -483,9 +483,10 @@ CallOutBox& PluginEditor::showCalloutBox(std::unique_ptr<Component> content, Rec
     auto bounds = calloutArea->getLocalArea(nullptr, screenBounds);
     auto& calloutBox = CallOutBox::launchAsynchronously(std::move(content), bounds, calloutArea.get());
     
+    /*
     if(!ProjectInfo::canUseSemiTransparentWindows()) {
         calloutArea->setBounds(bounds);
-    }
+    } */
     return calloutBox;
 }
 

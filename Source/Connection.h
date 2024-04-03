@@ -28,6 +28,7 @@ class Connection : public DrawablePath
     , public ChangeListener
     , public pd::MessageListener 
     , public NVGComponent
+    , public NVGContextListener
 {
 public:
     int inIdx;
@@ -66,8 +67,11 @@ public:
 
     bool isSegmented() const;
     void setSegmented(bool segmented);
+    
+    bool intersectsRectangle(Rectangle<int> invalidatedArea);
         
     void render(NVGcontext* nvg) override;
+    void nvgContextDeleted(NVGcontext* nvg) override;
 
     void updatePath();
 
@@ -151,6 +155,8 @@ private:
     NVGcolor shadowColour;
     NVGcolor outlineColour;
     NVGcolor gemColour;
+    
+    RectangleList<int> clipRegion;
     
     enum CableType { DataCable, GemCable, SignalCable, MultichannelCable };
     CableType cableType;
