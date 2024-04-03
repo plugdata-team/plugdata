@@ -29,6 +29,7 @@ class Connection : public DrawablePath
     , public pd::MessageListener 
     , public NVGComponent
     , public NVGContextListener
+    , public MultiTimer
 {
 public:
     int inIdx;
@@ -126,6 +127,12 @@ public:
 
 private:
 
+    enum Timer { StopAnimation, Animation };
+
+    void timerCallback(int ID) override;
+
+    void animate();
+
     int getMultiConnectNumber();
     int getNumSignalChannels();
     int getNumberOfConnections();
@@ -146,7 +153,7 @@ private:
 
     bool showDirection = false;
     bool showConnectionOrder = false;
-    bool showActiveState = false;
+    bool showActivity = false;
     
     NVGcolor baseColour;
     NVGcolor dataColour;
@@ -168,6 +175,7 @@ private:
     int dragIdx = -1;
 
     float mouseDownPosition = 0;
+
     int cacheId = -1;
     bool cachedIsValid;
 
@@ -176,6 +184,8 @@ private:
     pd::Atom lastValue[8];
     int lastNumArgs = 0;
     t_symbol* lastSelector = nullptr;
+
+    float offset = 0.0f;
 
     friend class ConnectionPathUpdater;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)

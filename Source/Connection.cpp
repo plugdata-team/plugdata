@@ -171,12 +171,32 @@ void Connection::render(NVGcontext* nvg)
     
     bool useThinConnection = PlugDataLook::getUseThinConnections();
     
-    nvgStrokePaint(nvg, nvgDoubleStroke(nvg, connectionColour, shadowColour));
-    nvgStrokeWidth(nvg, useThinConnection ? 2.5f : 4.0f);
-    
     nvgSave(nvg);
     nvgTranslate(nvg, getX(), getY());
-    
+
+    if (cableType == DataCable && showActivity) {
+        auto dashColor = connectionColour;
+        dashColor.a = 1.0f;
+        dashColor.r *= 0.8f;
+        dashColor.g *= 0.8f;
+        dashColor.b *= 0.8f;
+
+        nvgBeginPath(nvg);
+        nvgStrokeColor(nvg, dashColor);
+        nvgLineStyle(nvg, NVG_LINE_DASHED);
+        nvgDashLength(nvg, 5.0f);
+        nvgDashPhaseOffset(nvg, offset);
+        nvgStrokeWidth(nvg, useThinConnection ? 3.0f : 5.0f);
+
+        auto pathFromOrigin = getPath();
+        pathFromOrigin.applyTransform(AffineTransform::translation(-getX(), -getY()));
+        setJUCEPath(nvg, pathFromOrigin);
+        nvgStroke(nvg);
+    }
+
+    nvgStrokePaint(nvg, nvgDoubleStroke(nvg, connectionColour, shadowColour));
+    nvgStrokeWidth(nvg, useThinConnection ? 2.5f : 4.0f);
+
     if(!cachedIsValid) nvgDeletePath(nvg, cacheId);
     if(nvgLoadPath(nvg, cacheId))
     {
@@ -460,7 +480,7 @@ void Connection::updateOverlays(int overlay)
 
     showDirection = overlay & Overlay::Direction;
     showConnectionOrder = overlay & Overlay::Order;
-    showActiveState = overlay & Overlay::ActivationState;
+    showActivity = overlay & Overlay::ConnectionActivity;
     repaint();
 }
 
@@ -513,6 +533,29 @@ void Connection::mouseMove(MouseEvent const& e)
     } else {
         setMouseCursor(MouseCursor::NormalCursor);
     }
+}
+
+void Connection::timerCallback(int ID)
+{
+    switch(ID){
+        case StopAnimation:
+            stopTimer(Animation);
+            stopTimer(StopAnimation);
+        break;
+        case Animation:
+            animate();
+        break;
+        default:
+        break;
+    }
+}
+
+void Connection::animate()
+{
+    offset += 0.1f;
+    if (offset >= 1.0f)
+        offset = 0.0f;
+    repaint();
 }
 
 StringArray Connection::getMessageFormated()
@@ -1243,8 +1286,11 @@ void ConnectionPathUpdater::timerCallback()
 
 void Connection::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms)
 {
-    // TODO: indicator
-    // messageActivity = messageActivity >= 12 ? 0 : messageActivity + 1;
+    if (showActivity) {
+        startTimer(StopAnimation, 1000 / 8.0f);
+        startTimer(Animation, 1000 / 60.0f);
+        animate();
+    }
 
     outobj->triggerOverlayActiveState();
     std::copy(atoms, atoms + numAtoms, lastValue);

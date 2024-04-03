@@ -159,7 +159,7 @@ void Object::nvgContextDeleted(NVGcontext* nvg)
 
 void Object::timerCallback()
 {
-    activeStateAlpha = activeStateAlpha - 0.16f;
+    activeStateAlpha -= 0.04f;
     repaint();
     if (activeStateAlpha <= 0.0f) {
         activeStateAlpha = 0.0f;
@@ -486,7 +486,7 @@ void Object::triggerOverlayActiveState()
 
     if (rateReducer.tooFast())
         return;
-    
+
     if (!getLocalBounds().isEmpty() && activityOverlayImage.getBounds() != getLocalBounds()) {
         // render activity state overlay once for this object size since it'll always look the same for the same object size anyway
         activityOverlayImage = Image(Image::ARGB, getWidth(), getHeight(), true);
@@ -1235,7 +1235,8 @@ void Object::render(NVGcontext* nvg)
 
 void Object::performRender(NVGcontext* nvg)
 {
-    auto b = getLocalBounds().reduced(margin);
+    auto lb = getLocalBounds();
+    auto b = lb.reduced(margin);
     auto selectedOutlineColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
 
     if (selectedFlag) {
@@ -1263,8 +1264,9 @@ void Object::performRender(NVGcontext* nvg)
         auto cTransparent = nvgRGBAf(0, 0, 0, 0);
         auto cGlow = convertColour(findColour(PlugDataColour::dataColourId).withAlpha(activeStateAlpha));
         nvgBeginPath(nvg);
-        auto ds = b.expanded(1);
+        auto ds = b;
         glow = nvgBoxGradient(nvg, ds.getX(), ds.getY(), ds.getWidth(), ds.getHeight(), Corners::objectCornerRadius, 12, cGlow, cTransparent);
+        nvgRect(nvg, lb.getX(), lb.getY(), lb.getWidth(), lb.getHeight());
         nvgFillPaint(nvg, glow);
         nvgFill(nvg);
     }

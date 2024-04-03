@@ -137,9 +137,10 @@ public:
         canvas.add(new OverlaySelector(overlayTree, Origin, "origin", "Origin", "Origin point of canvas"));
         canvas.add(new OverlaySelector(overlayTree, Border, "border", "Border", "Plugin / window workspace size"));
 
-        object.add(new OverlaySelector(overlayTree, Index, "index", "Index", "Object index in patch"));
         object.add(new OverlaySelector(overlayTree, ActivationState, "activation_state", "Activity", "Object activity"));
+        object.add(new OverlaySelector(overlayTree, Index, "index", "Index", "Object index in patch"));
 
+        connection.add(new OverlaySelector(overlayTree, ConnectionActivity, "connection_activity", "Activity", "Connection activity"));
         connection.add(new OverlaySelector(overlayTree, Direction, "direction", "Direction", "Direction of connections"));
         connection.add(new OverlaySelector(overlayTree, Order, "order", "Order", "Trigger order of multiple outlets"));
         connection.add(new OverlaySelector(overlayTree, Behind, "behind", "Behind", "Connection cables behind objects"));
