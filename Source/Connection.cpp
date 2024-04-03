@@ -787,9 +787,13 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
             point += pointOffset;
         }
         
+        auto translation = AffineTransform::translation(pointOffset.x, pointOffset.y);
+        
         auto offsetPath = getPath();
-        offsetPath.applyTransform(AffineTransform::translation(pointOffset.x, pointOffset.y));
+        offsetPath.applyTransform(translation);
         setPath(offsetPath);
+        
+        clipRegion.transformAll(translation)
 
         return;
     }
