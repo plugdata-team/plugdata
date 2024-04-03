@@ -147,7 +147,7 @@ public:
     
 private:
     static constexpr int stackSize = 32768;
-    using MessageStack = ThreadSafeStack<Message, stackSize>;=
+    using MessageStack = ThreadSafeStack<Message, stackSize>;
     
     std::vector<std::pair<void*, std::set<juce::WeakReference<pd::MessageListener>>::iterator>> nullListeners;
     std::unordered_set<intptr_t> usedHashes;
