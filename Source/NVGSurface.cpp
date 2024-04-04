@@ -297,6 +297,9 @@ void NVGSurface::render()
         }
         
         if(!invalidArea.isEmpty()) {
+            auto invalidated = invalidArea.expanded(1);
+            invalidArea = Rectangle<int>(0, 0, 0, 0);
+            
             // First, draw only the invalidated region to a separate framebuffer
             // I've found that nvgScissor doesn't always clip everything, meaning that there will be graphical glitches if we don't do this
             nvgBindFramebuffer(invalidFBO);
@@ -304,18 +307,18 @@ void NVGSurface::render()
             nvgClear(nvg);
             
             nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
-            nvgScissor (nvg, invalidArea.getX(), invalidArea.getY(), invalidArea.getWidth(), invalidArea.getHeight());
+            nvgScissor (nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
             nvgGlobalCompositeOperation(nvg, NVG_SOURCE_OVER);
             
-            renderArea(invalidArea);
+            renderArea(invalidated);
             nvgEndFrame(nvg);
             
             nvgBindFramebuffer(mainFBO);
             nvgViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
             nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
             nvgBeginPath(nvg);
-            nvgRect(nvg, invalidArea.getX(), invalidArea.getY(), invalidArea.getWidth(), invalidArea.getHeight());
-            nvgScissor(nvg, invalidArea.getX(), invalidArea.getY(), invalidArea.getWidth(), invalidArea.getHeight());
+            nvgRect(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
+            nvgScissor(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
             nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, invalidFBO->image, 1));
             nvgFill(nvg);
         
@@ -331,7 +334,6 @@ void NVGSurface::render()
             
             nvgBindFramebuffer(nullptr);
             needsBufferSwap = true;
-            invalidArea = Rectangle<int>(0, 0, 0, 0);
         }
         
 #if ENABLE_FPS_COUNT
