@@ -1292,8 +1292,10 @@ void Connection::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int n
 {
     if (showActivity) {
         startTimer(StopAnimation, 1000 / 8.0f);
-        startTimer(Animation, 1000 / 60.0f);
-        animate();
+        if (!isTimerRunning(Animation)) {
+            startTimer(Animation, 1000 / 60.0f);
+            animate();
+        }
     }
 
     outobj->triggerOverlayActiveState();
