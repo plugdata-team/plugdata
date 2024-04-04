@@ -107,9 +107,11 @@ public:
             delete arrow;
             userCallback(result);
         });
-
-        if (auto* popupMenuComponent = Component::getCurrentlyModalComponent(0)) {
-            arrow->attachToMenu(popupMenuComponent, parent);
+        
+        if(ProjectInfo::canUseSemiTransparentWindows()) {
+            if (auto* popupMenuComponent = Component::getCurrentlyModalComponent(0)) {
+                arrow->attachToMenu(popupMenuComponent, parent);
+            }
         }
     }
         

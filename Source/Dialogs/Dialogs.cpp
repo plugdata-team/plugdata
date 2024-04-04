@@ -128,8 +128,9 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
 #endif
 
     auto* popup = new MainMenu(editor);
+    auto* parent = ProjectInfo::canUseSemiTransparentWindows() ? editor->calloutArea.get() : nullptr;
 
-    ArrowPopupMenu::showMenuAsync(popup, PopupMenu::Options().withMinimumWidth(210).withMaximumNumColumns(1).withTargetComponent(centre).withParentComponent(editor->calloutArea.get()),
+    ArrowPopupMenu::showMenuAsync(popup, PopupMenu::Options().withMinimumWidth(210).withMaximumNumColumns(1).withTargetComponent(centre).withParentComponent(parent),
         [editor, popup, settingsTree = SettingsFile::getInstance()->getValueTree()](int result) mutable {
             switch (result) {
             case MainMenu::MenuItem::NewPatch: {
@@ -190,7 +191,9 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
             });
         });
     
-    editor->calloutArea->addToDesktop(ComponentPeer::windowIsTemporary);
+    if(ProjectInfo::canUseSemiTransparentWindows()) {
+        editor->calloutArea->addToDesktop(ComponentPeer::windowIsTemporary);
+    }
 }
 
 void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> const& callback, StringArray const& options)

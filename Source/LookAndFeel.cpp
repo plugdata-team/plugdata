@@ -317,6 +317,17 @@ void PlugDataLook::drawToolbarButtonBackground(Graphics& g, Button& button, bool
 
 void PlugDataLook::drawCallOutBoxBackground(CallOutBox& box, Graphics& g, Path const& path, Image& cachedImage)
 {
+    
+    if(!ProjectInfo::canUseSemiTransparentWindows())
+    {
+        auto bounds = path.getBounds();
+        g.setColour(box.findColour(PlugDataColour::popupMenuBackgroundColourId));
+        g.fillRect(bounds);
+
+        g.setColour(box.findColour(PlugDataColour::outlineColourId));
+        g.drawRect(bounds);
+        return;
+    }
     if (cachedImage.isNull()) {
         cachedImage = { Image::ARGB, box.getWidth(), box.getHeight(), true };
         Graphics g2(cachedImage);
