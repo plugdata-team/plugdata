@@ -100,28 +100,8 @@ NVGSurface::NVGSurface(PluginEditor* e) : editor(e)
     MessageManager::callAsync([this](){
         // Render on vblank
         vBlankAttachment = std::make_unique<VBlankAttachment>(this, [this](){
-            // Adjust rendering frequency
-            if (framesToSkip == 0) {
-                
-                auto startTime = Time::getMillisecondCounter();
-                
-                // By dequeueing messages before rendering, we can ensure that we display the absolute latest state of objects
-                // If will also prevent unnecessary extra repaint() calls if a message would be received right after this frame
-                editor->pd->messageDispatcher->dequeueMessages();
-                
-                // Perform rendering
-                render();
-                
-                // If rendering and dequeueing takes so long that we're already in the next frame's time,
-                // skip the next frame.
-                // It appears that Linux and Windows will still send the next vsync if we miss the callback time, meaning vsyncs will pile up and leave no space for other message manager activites
-                auto endTime = Time::getMillisecondCounter();
-                auto dt = endTime - startTime;
-                framesToSkip = dt / 16;
-            }
-            else {
-                framesToSkip--;
-            }
+            editor->pd->messageDispatcher->dequeueMessages();
+            render();
         });
     });
 }
@@ -327,18 +307,18 @@ void NVGSurface::render()
             nvgClear(nvg);
             
             nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
-            nvgScissor (nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
+            nvgScissor (nvg, invalidArea.getX(), invalidArea.getY(), invalidArea.getWidth(), invalidArea.getHeight());
             nvgGlobalCompositeOperation(nvg, NVG_SOURCE_OVER);
             
-            renderArea(invalidated);
+            renderArea(invalidArea);
             nvgEndFrame(nvg);
             
             nvgBindFramebuffer(mainFBO);
             nvgViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
             nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
             nvgBeginPath(nvg);
-            nvgRect(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
-            nvgScissor(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
+            nvgRect(nvg, invalidArea.getX(), invalidArea.getY(), invalidArea.getWidth(), invalidArea.getHeight());
+            nvgScissor(nvg, invalidArea.getX(), invalidArea.getY(), invalidArea.getWidth(), invalidArea.getHeight());
             nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, invalidFBO->image, 1));
             nvgFill(nvg);
         
@@ -354,6 +334,7 @@ void NVGSurface::render()
             
             nvgBindFramebuffer(nullptr);
             needsBufferSwap = true;
+            invalidArea = Rectangle<int>(0, 0, 0, 0);
         }
         
 #if ENABLE_FPS_COUNT
