@@ -297,9 +297,6 @@ void NVGSurface::render()
         }
         
         if(!invalidArea.isEmpty()) {
-            auto invalidated = invalidArea.expanded(1);
-            invalidArea = Rectangle<int>(0, 0, 0, 0);
-            
             // First, draw only the invalidated region to a separate framebuffer
             // I've found that nvgScissor doesn't always clip everything, meaning that there will be graphical glitches if we don't do this
             nvgBindFramebuffer(invalidFBO);

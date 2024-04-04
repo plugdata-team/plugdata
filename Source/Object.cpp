@@ -1200,7 +1200,6 @@ void Object::updateFramebuffer(NVGcontext* nvg)
             nvgRect(nvg, 0, 0, b.getWidth(), b.getHeight());
             nvgFill(nvg);
 #endif
-            
             nvgEndFrame(nvg);
             nvgBindFramebuffer(NULL);
         }
@@ -1209,6 +1208,7 @@ void Object::updateFramebuffer(NVGcontext* nvg)
 
 bool Object::shouldRenderToFramebuffer()
 {
+    return false;
     // We render to framebuffer if we are scrolling/zooming
     return cnv->isScrolling;
 }

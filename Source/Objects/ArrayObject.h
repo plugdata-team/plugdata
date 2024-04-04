@@ -206,7 +206,6 @@ public:
             }
 
             float const dh = h / (scale[1] - scale[0]);
-            float const dw = w / static_cast<float>(points.size() - 1);
 
             switch (getDrawType()) {
             case DrawType::Curve: {
@@ -217,7 +216,11 @@ public:
                     float const y1 = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
                     float const y2 = h - (std::clamp(points[i + 1], scale[0], scale[1]) - scale[0]) * dh;
                     float const y3 = h - (std::clamp(points[i + 2], scale[0], scale[1]) - scale[0]) * dh;
-                    nvgBezierTo(nvg, static_cast<float>(i) * dw, y1, static_cast<float>(i + 1) * dw, y2, static_cast<float>(i + 2) * dw, y3);
+                    float const x1 = jmap<float>(i, 1, static_cast<int>(points.size()) - 2, 0, w);
+                    float const x2 = jmap<float>(i+1, 1, static_cast<int>(points.size()) - 2, 0, w);
+                    float const x3 = jmap<float>(i+2, 1, static_cast<int>(points.size()) - 2, 0, w);
+                    
+                    nvgBezierTo(nvg, x1, y1, x2, y2, x3, y3);
                 }
 
                 if (invert) {
@@ -235,7 +238,8 @@ public:
                 nvgBeginPath(nvg);
                 int startY = h - (std::clamp(points[0], scale[0], scale[1]) - scale[0]) * dh;
                 nvgMoveTo(nvg, 0, startY);
-
+                float const dw = w / static_cast<float>(points.size());
+                
                 for (int i = 1; i < static_cast<int>(points.size()); i++) {
                     float const y = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
                     nvgLineTo(nvg, static_cast<float>(i) * dw, y);
@@ -627,6 +631,7 @@ public:
     {
         if (value.refersToSameSourceAs(name) || value.refersToSameSourceAs(size) || value.refersToSameSourceAs(drawMode) || value.refersToSameSourceAs(saveContents)) {
             updateSettings();
+            repaint();
         } else if (value.refersToSameSourceAs(range)) {
             auto min = static_cast<float>(range.getValue().getArray()->getReference(0));
             auto max = static_cast<float>(range.getValue().getArray()->getReference(1));

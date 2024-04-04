@@ -317,11 +317,10 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     if(hasViewport)  {
         nvgTranslate(nvg, -viewport->getViewPositionX(), -viewport->getViewPositionY());
         invalidRegion = invalidRegion.translated(viewport->getViewPositionX(), viewport->getViewPositionY());
-        
         nvgScale(nvg, zoom, zoom);
         invalidRegion /= zoom;
     }
-        
+    
     if(hasViewport) {
         nvgBeginPath(nvg);
         nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
