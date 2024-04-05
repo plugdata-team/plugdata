@@ -408,9 +408,11 @@ public:
             for (int i = keyboard.getRangeStart(); i < keyboard.getRangeEnd(); i++) {
                 if (obj->x_tgl_notes[i] && !keyboard.heldKeys.contains(i)) {
                     keyboard.heldKeys.insert(i);
+                    repaint();
                 }
                 if (!obj->x_tgl_notes[i] && keyboard.heldKeys.contains(i)) {
                     keyboard.heldKeys.erase(i);
+                    repaint();
                 }
             }
         }
