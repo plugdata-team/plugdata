@@ -672,7 +672,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     };
 
     auto* parent = ProjectInfo::canUseSemiTransparentWindows() ? nullptr : editor->calloutArea.get();
-    editor->calloutArea->addToDesktop(ComponentPeer::windowIsTemporary);
+    if(parent) parent->addToDesktop(ComponentPeer::windowIsTemporary);
     
     popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(parent).withTargetScreenArea(Rectangle<int>(position, position.translated(1, 1))), ModalCallbackFunction::create(callback));
 }
