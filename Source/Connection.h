@@ -162,6 +162,8 @@ private:
     NVGcolor shadowColour;
     NVGcolor outlineColour;
     NVGcolor gemColour;
+
+    NVGcolor textColour;
     
     RectangleList<int> clipRegion;
     
