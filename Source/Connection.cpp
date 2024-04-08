@@ -141,6 +141,8 @@ void Connection::lookAndFeelChanged()
     shadowColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.06f).withAlpha(0.24f));
     outlineColour =  convertColour(findColour(PlugDataColour::objectOutlineColourId));
     gemColour = convertColour(findColour(PlugDataColour::gemColourId));
+
+    textColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting());
     
     updatePath();
     repaint();
@@ -326,6 +328,33 @@ void Connection::render(NVGcontext* nvg)
             if (connectionLength > arrowLength * 2) {
                 renderArrow(connectionPath, connectionLength);
             }
+        }
+    }
+
+    // draw connection index number
+    if (showConnectionOrder) {
+        if ((cableType == DataCable) && (getNumberOfConnections() > 1)) {
+            auto connectionPath = getPath();
+            connectionPath.applyTransform(AffineTransform::translation(-getX(), -getY()));
+            auto pos = cnv->getLocalPoint(this, connectionPath.getPointAlongPath(jmax(connectionPath.getLength() - 8.5f * 3, 9.5f)));
+
+            // circle background
+            nvgBeginPath(nvg);
+            nvgStrokeColor(nvg, outlineColour);
+            nvgFillColor(nvg, connectionColour);
+            const auto radius = 7.0f;
+            const auto diameter = radius * 2.0f;
+            const auto circleTopLeft = pos - Point<float>(radius, radius);
+            nvgRoundedRect(nvg, circleTopLeft.getX(), circleTopLeft.getY(), diameter, diameter, radius);
+            nvgStrokeWidth(nvg, 1.0f);
+            nvgFill(nvg);
+            nvgStroke(nvg);
+
+            // connection index number
+            nvgFillColor(nvg, textColour);
+            nvgFontSize(nvg, 9.0f);
+            nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_CENTER);
+            nvgText(nvg, pos.getX(), pos.getY(), String(getMultiConnectNumber()).toUTF8(), nullptr);
         }
     }
 }
