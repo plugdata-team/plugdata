@@ -155,11 +155,13 @@ void Object::nvgContextDeleted(NVGcontext* nvg)
 {
     if(fb) nvgDeleteFramebuffer(fb);
     fb = nullptr;
+    if(activityOverlayImage) nvgDeleteImage(nvg, activityOverlayImage);
+    activityOverlayImage = 0;
 }
 
 void Object::timerCallback()
 {
-    activeStateAlpha -= 0.04f;
+    activeStateAlpha -= 0.06f;
     repaint();
     if (activeStateAlpha <= 0.0f) {
         activeStateAlpha = 0.0f;
@@ -487,20 +489,6 @@ void Object::triggerOverlayActiveState()
     if (rateReducer.tooFast())
         return;
 
-    if (!getLocalBounds().isEmpty() && activityOverlayImage.getBounds() != getLocalBounds()) {
-        // render activity state overlay once for this object size since it'll always look the same for the same object size anyway
-        activityOverlayImage = Image(Image::ARGB, getWidth(), getHeight(), true);
-        Graphics g(activityOverlayImage);
-        g.saveState();
-
-        g.excludeClipRegion(getLocalBounds().reduced(Object::margin + 1));
-
-        Path objectShadow;
-        objectShadow.addRoundedRectangle(getLocalBounds().reduced(Object::margin - 2), Corners::objectCornerRadius);
-        StackShadow::renderDropShadow(g, objectShadow, findColour(PlugDataColour::dataColourId), 6, { 0, 0 }, 0);
-        g.restoreState();
-    }
-    
     activeStateAlpha = 1.0f;
     startTimer(1000 / ACTIVITY_UPDATE_RATE);
 
@@ -513,6 +501,8 @@ void Object::triggerOverlayActiveState()
 void Object::resized()
 {
     fbDirty = true;
+    activityOverlayDirty = true;
+    
     setVisible(!((cnv->isGraph || cnv->presentationMode == var(true)) && gui && gui->hideInGraph()));
 
     if (gui) {
@@ -1208,13 +1198,20 @@ void Object::updateFramebuffer(NVGcontext* nvg)
 
 bool Object::shouldRenderToFramebuffer()
 {
-    return false;
     // We render to framebuffer if we are scrolling/zooming
     return cnv->isScrolling;
 }
 
 void Object::render(NVGcontext* nvg)
 {
+    if(!activityOverlayImage || activityOverlayDirty)
+    {
+        Path objectShadow;
+        objectShadow.addRoundedRectangle(getLocalBounds().reduced(Object::margin - 1), Corners::objectCornerRadius);
+        activityOverlayImage = StackShadow::createDropShadowImage(nvg, getLocalBounds(), objectShadow, findColour(PlugDataColour::dataColourId), 5.5f, { 0, 0 }, 0);
+        activityOverlayDirty = false;
+    }
+    
     if(fb && shouldRenderToFramebuffer())
     {
         if(fbDirty) { // If framebuffer is dirty, draw normally now and draw from buffer again on next render
@@ -1259,15 +1256,11 @@ void Object::performRender(NVGcontext* nvg)
         }
     }
     
-    if(showActiveState && !approximatelyEqual(activeStateAlpha, 0.0f))
+    if(showActiveState && !approximatelyEqual(activeStateAlpha, 0.0f) && activityOverlayImage)
     {
-        auto cTransparent = nvgRGBAf(0, 0, 0, 0);
-        auto cGlow = convertColour(findColour(PlugDataColour::dataColourId).withAlpha(activeStateAlpha));
         nvgBeginPath(nvg);
-        auto ds = b;
-        glow = nvgBoxGradient(nvg, ds.getX(), ds.getY(), ds.getWidth(), ds.getHeight(), Corners::objectCornerRadius, 12, cGlow, cTransparent);
+        nvgFillPaint(nvg, nvgImagePattern(nvg, lb.getX(), lb.getY(), lb.getWidth(), lb.getHeight(), 0, activityOverlayImage, activeStateAlpha));
         nvgRect(nvg, lb.getX(), lb.getY(), lb.getWidth(), lb.getHeight());
-        nvgFillPaint(nvg, glow);
         nvgFill(nvg);
     }
     
