@@ -498,6 +498,11 @@ void Object::triggerOverlayActiveState()
     repaint();
 }
 
+void Object::lookAndFeelChanged()
+{
+    activityOverlayDirty = true;
+}
+
 void Object::resized()
 {
     fbDirty = true;
@@ -1206,6 +1211,7 @@ void Object::render(NVGcontext* nvg)
 {
     if(!activityOverlayImage || activityOverlayDirty)
     {
+        if(activityOverlayImage) nvgDeleteImage(nvg, activityOverlayImage);
         Path objectShadow;
         objectShadow.addRoundedRectangle(getLocalBounds().reduced(Object::margin - 1), Corners::objectCornerRadius);
         activityOverlayImage = StackShadow::createDropShadowImage(nvg, getLocalBounds(), objectShadow, findColour(PlugDataColour::dataColourId), 5.5f, { 0, 0 }, 0);
