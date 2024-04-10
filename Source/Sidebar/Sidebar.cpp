@@ -123,9 +123,9 @@ void Sidebar::paint(Graphics& g)
 
     if (!sidebarHidden) {
         if (inspector->isVisible()) {
-            Fonts::drawStyledText(g, "Inspector: " + inspector->getTitle(), Rectangle<int>(0, 0, getWidth() - 30, 30), findColour(PlugDataColour::toolbarTextColourId), Semibold, 15, Justification::centred);
+            Fonts::drawStyledText(g, "Inspector: " + inspector->getTitle(), Rectangle<int>(0, 0, getWidth() - 30, 30), findColour(PlugDataColour::toolbarTextColourId), RegularBoldened, 15, Justification::centred);
         } else {
-            Fonts::drawStyledText(g, panelNames[currentPanel], Rectangle<int>(0, 0, getWidth() - 30, 30), findColour(PlugDataColour::toolbarTextColourId), Semibold, 15, Justification::centred);
+            Fonts::drawStyledText(g, panelNames[currentPanel], Rectangle<int>(0, 0, getWidth() - 30, 30), findColour(PlugDataColour::toolbarTextColourId), RegularBoldened, 15, Justification::centred);
         }
     }
 }

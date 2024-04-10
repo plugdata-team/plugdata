@@ -309,11 +309,17 @@ public:
         };
 
         addAndMakeVisible(nameLabel);
+        lookAndFeelChanged();
     }
 
     ~PaletteComponent()
     {
         delete paletteDraggableList;
+    }
+
+    void lookAndFeelChanged()
+    {
+        nameLabel.setFont(Fonts::getCurrentFont().boldened());
     }
 
     void showAndGrabEditorFocus()
@@ -388,6 +394,11 @@ public:
         setButtonText(text);
     }
 
+    void lookAndFeelChanged() override
+    {
+        repaint();
+    }
+
     void paint(Graphics& g) override
     {
         auto backgroundColour = findColour(PlugDataColour::toolbarBackgroundColourId);
@@ -415,9 +426,8 @@ public:
         auto transform = AffineTransform::rotation(-MathConstants<float>::halfPi, midX, midY);
         g.addTransform(transform);
 
-        Font font(getWidth() / 2.0f);
+        g.setFont(Fonts::getCurrentFont().withHeight(getWidth() * 0.5f));
 
-        g.setFont(font);
         auto colour = findColour(getToggleState() ? TextButton::textColourOnId
                                                   : TextButton::textColourOffId)
                           .withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
@@ -596,11 +606,21 @@ private:
         return true;
     }
 
+    void lookAndFeelChanged() override
+    {
+        updateGeometry();
+    }
+
     void resized() override
+    {
+        updateGeometry();
+    }
+
+    void updateGeometry()
     {
         int totalHeight = 0;
         for (auto* button : paletteSelectors) {
-            totalHeight += Font(14).getStringWidth(button->getButtonText()) + 30;
+            totalHeight += Fonts::getCurrentFont().withHeight(14).getStringWidth(button->getButtonText()) + 30;
         }
 
         totalHeight += 46;
@@ -624,7 +644,7 @@ private:
 
         for (auto* button : paletteSelectors) {
             String buttonText = button->getButtonText();
-            int height = Font(14).getStringWidth(buttonText) + 30;
+            int height = Fonts::getCurrentFont().withHeight(14).getStringWidth(buttonText) + 30;
 
             if (button != draggedTab) {
                 auto bounds = Rectangle<int>(offset, totalHeight, 30, height);

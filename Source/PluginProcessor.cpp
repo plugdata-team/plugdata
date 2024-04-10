@@ -1368,11 +1368,7 @@ void PluginProcessor::setTheme(String themeToUse, bool force)
 
     lnf->setTheme(themeTree);
 
-    for (auto* editor : getEditors()) {
-        editor->sendLookAndFeelChange();
-        editor->getTopLevelComponent()->repaint();
-        editor->repaint();
-    }
+    updateAllEditorsLNF();
 }
 
 Colour PluginProcessor::getOutlineColour()
@@ -1393,6 +1389,12 @@ Colour PluginProcessor::getBackgroundColour()
 Colour PluginProcessor::getTextColour()
 {
     return lnf->findColour(PlugDataColour::toolbarTextColourId);
+}
+
+void PluginProcessor::updateAllEditorsLNF()
+{
+    for (auto& editor : getEditors())
+        editor->sendLookAndFeelChange();
 }
 
 void PluginProcessor::receiveNoteOn(int const channel, int const pitch, int const velocity)

@@ -516,9 +516,7 @@ public:
         if (v.refersToSameSourceAs(fontValue)) {
             PlugDataLook::setDefaultFont(fontValue.toString());
             SettingsFile::getInstance()->setProperty("default_font", fontValue.getValue());
-            getTopLevelComponent()->repaint();
-            for (auto* panel : allPanels)
-                panel->repaint();
+            pd->updateAllEditorsLNF();
 
             return;
         }

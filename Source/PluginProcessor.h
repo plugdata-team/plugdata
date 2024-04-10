@@ -41,6 +41,8 @@ public:
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
 
+    void updateAllEditorsLNF();
+
 #ifndef JucePlugin_PreferredChannelConfigurations
     bool isBusesLayoutSupported(BusesLayout const& layouts) const override;
 #endif
