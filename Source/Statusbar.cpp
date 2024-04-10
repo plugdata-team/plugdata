@@ -116,6 +116,11 @@ public:
     }
 
 private:
+    void lookAndFeelChanged() override
+    {
+        repaint();
+    }
+
     void paint(Graphics& g) override
     {
         auto buttonText = getButtonText();
@@ -125,7 +130,7 @@ private:
             g.setColour(isMouseOverOrDragging() ? findColour(PlugDataColour::toolbarActiveColourId).brighter(0.8f) : findColour(PlugDataColour::toolbarActiveColourId));
         }
 
-        g.setFont(14.0f);
+        g.setFont(Fonts::getCurrentFont().withHeight(14.0f));
         g.drawText(buttonText, getLocalBounds(), Justification::centred);
     }
 };
