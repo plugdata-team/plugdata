@@ -129,6 +129,13 @@ public:
                 return;
             }
 
+            catch (...) {
+                errorMessage = "Error: Unknown error, contact support";
+                installButton.topText = "Try Again";
+                repaint();
+                return;
+            }
+
             String downloadLocation = "https://github.com/plugdata-team/plugdata-heavy-toolchain/releases/download/v" + latestVersion + "/";
 
 #if JUCE_MAC
