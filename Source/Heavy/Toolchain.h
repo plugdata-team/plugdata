@@ -110,14 +110,27 @@ public:
             String latestVersion;
             try {
                 auto compatTable = JSON::parse(URL("https://raw.githubusercontent.com/plugdata-team/plugdata-heavy-toolchain/main/COMPATIBILITY").readEntireTextStream());
+                if (compatTable.toString().isEmpty())
+                    throw 204;
                 // Get latest version
                 latestVersion = compatTable.getDynamicObject()->getProperty(String(ProjectInfo::versionString).upToFirstOccurrenceOf("-", false, false)).toString();
                 if (latestVersion.isEmpty())
-                    throw;
+                    throw 418;
             }
             // Network error, JSON error or empty version string somehow
+            catch (int error) {
+                if (error == 418) {
+                    errorMessage = "Error: Heavy compatibility issue, contact support";
+                } else {
+                    errorMessage = "Error: Could not download files (possibly no network connection)";
+                    installButton.topText = "Try Again";
+                }
+                repaint();
+                return;
+            }
+
             catch (...) {
-                errorMessage = "Error: Could not download files (possibly no network connection)";
+                errorMessage = "Error: Unknown error, contact support";
                 installButton.topText = "Try Again";
                 repaint();
                 return;
