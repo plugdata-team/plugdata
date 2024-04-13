@@ -825,7 +825,8 @@ void PluginEditor::saveProjectAs(std::function<void()> const& nestedCallback)
         if (result.getFullPathName().isNotEmpty()) {
             if (result.exists())
                 result.deleteFile();
-            result = result.withFileExtension(".pd");
+            
+            if(!result.hasFileExtension("pd")) result = result.getFullPathName() + ".pd";
 
             getCurrentCanvas()->patch.savePatch(resultURL);
             SettingsFile::getInstance()->addToRecentlyOpened(result);
