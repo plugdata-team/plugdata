@@ -63,6 +63,11 @@ PaletteItem::~PaletteItem()
         removeMouseListener(paletteComp);
 }
 
+void PaletteItem::lookAndFeelChanged()
+{
+    nameLabel.setFont(Fonts::getCurrentFont());
+}
+
 bool PaletteItem::hitTest(int x, int y)
 {
     auto hit = false;

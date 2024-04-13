@@ -24,6 +24,8 @@ public:
 
     String getObjectString() override;
 
+    void lookAndFeelChanged() override;
+
     String getPatchStringName() override;
 
     bool hitTest(int x, int y) override;
