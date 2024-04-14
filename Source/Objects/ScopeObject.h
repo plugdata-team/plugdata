@@ -4,8 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-template<typename S>
-class ScopeBase : public ObjectBase
+class ScopeObject : public ObjectBase
     , public Timer {
 
     std::vector<float> x_buffer;
@@ -24,7 +23,7 @@ class ScopeBase : public ObjectBase
     Value sizeProperty = SynchronousValue();
 
 public:
-    ScopeBase(pd::WeakReference ptr, Object* object)
+    ScopeObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
     {
 
@@ -48,14 +47,14 @@ public:
     {
         setPdBounds(object->getObjectBounds());
 
-        if (auto scope = ptr.get<S>()) {
+        if (auto scope = ptr.get<t_fake_scope>()) {
             setParameterExcludingListener(sizeProperty, Array<var> { var(scope->x_width), var(scope->x_height) });
         }
     }
 
     void update() override
     {
-        if (auto scope = ptr.get<S>()) {
+        if (auto scope = ptr.get<t_fake_scope>()) {
             triggerMode = scope->x_trigmode + 1;
             triggerValue = scope->x_triglevel;
             bufferSize = scope->x_bufsize;
@@ -81,7 +80,7 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        if (auto scope = ptr.get<S>()) {
+        if (auto scope = ptr.get<t_fake_scope>()) {
             auto* patch = cnv->patch.getPointer().get();
             if (!patch)
                 return {};
@@ -97,7 +96,7 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        if (auto scope = ptr.get<S>()) {
+        if (auto scope = ptr.get<t_fake_scope>()) {
             auto* patch = cnv->patch.getPointer().get();
             if (!patch)
                 return;
@@ -168,7 +167,7 @@ public:
         if (object->iolets.size() == 3)
             object->iolets[2]->setVisible(false);
 
-        if (auto scope = ptr.get<S>()) {
+        if (auto scope = ptr.get<t_fake_scope>()) {
             bufsize = scope->x_bufsize;
             min = scope->x_min;
             max = scope->x_max;
@@ -231,48 +230,48 @@ public:
 
             setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
 
-            if (auto scope = ptr.get<S>()) {
+            if (auto scope = ptr.get<t_fake_scope>()) {
                 scope->x_width = width;
                 scope->x_height = height;
             }
 
             object->updateBounds();
         } else if (v.refersToSameSourceAs(primaryColour)) {
-            if (auto scope = ptr.get<S>())
+            if (auto scope = ptr.get<t_fake_scope>())
                 colourToHexArray(Colour::fromString(primaryColour.toString()), scope->x_fg);
         } else if (v.refersToSameSourceAs(secondaryColour)) {
-            if (auto scope = ptr.get<S>())
+            if (auto scope = ptr.get<t_fake_scope>())
                 colourToHexArray(Colour::fromString(secondaryColour.toString()), scope->x_bg);
         } else if (v.refersToSameSourceAs(gridColour)) {
-            if (auto scope = ptr.get<S>())
+            if (auto scope = ptr.get<t_fake_scope>())
                 colourToHexArray(Colour::fromString(gridColour.toString()), scope->x_gg);
         } else if (v.refersToSameSourceAs(bufferSize)) {
             bufferSize = std::clamp<int>(getValue<int>(bufferSize), 0, SCOPE_MAXBUFSIZE * 4);
 
-            if (auto scope = ptr.get<S>()) {
+            if (auto scope = ptr.get<t_fake_scope>()) {
                 scope->x_bufsize = bufferSize.getValue();
                 scope->x_bufphase = 0;
             }
 
         } else if (v.refersToSameSourceAs(samplesPerPoint)) {
-            if (auto scope = ptr.get<S>()) {
+            if (auto scope = ptr.get<t_fake_scope>()) {
                 scope->x_period = limitValueMin(v, 0);
             }
         } else if (v.refersToSameSourceAs(signalRange)) {
             auto min = static_cast<float>(signalRange.getValue().getArray()->getReference(0));
             auto max = static_cast<float>(signalRange.getValue().getArray()->getReference(1));
-            if (auto scope = ptr.get<S>()) {
+            if (auto scope = ptr.get<t_fake_scope>()) {
                 scope->x_min = min;
                 scope->x_max = max;
             }
         } else if (v.refersToSameSourceAs(delay)) {
-            if (auto scope = ptr.get<S>())
+            if (auto scope = ptr.get<t_fake_scope>())
                 scope->x_delay = getValue<int>(delay);
         } else if (v.refersToSameSourceAs(triggerMode)) {
-            if (auto scope = ptr.get<S>())
+            if (auto scope = ptr.get<t_fake_scope>())
                 scope->x_trigmode = getValue<int>(triggerMode) - 1;
         } else if (v.refersToSameSourceAs(triggerValue)) {
-            if (auto scope = ptr.get<S>())
+            if (auto scope = ptr.get<t_fake_scope>())
                 scope->x_triglevel = getValue<int>(triggerValue);
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
             auto symbol = receiveSymbol.toString();
@@ -307,22 +306,5 @@ public:
         default:
             break;
         }
-    }
-};
-
-// Hilarious use of templates to support both cyclone/scope and else/oscope in the same code
-class ScopeObject final : public ScopeBase<t_fake_scope> {
-public:
-    ScopeObject(pd::WeakReference ptr, Object* object)
-        : ScopeBase<t_fake_scope>(ptr, object)
-    {
-    }
-};
-
-class OscopeObject final : public ScopeBase<t_fake_oscope> {
-public:
-    OscopeObject(pd::WeakReference ptr, Object* object)
-        : ScopeBase<t_fake_oscope>(ptr, object)
-    {
     }
 };

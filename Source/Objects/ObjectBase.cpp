@@ -589,8 +589,6 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
             }
             case hash("colors"):
                 return new ColourPickerObject(ptr, parent);
-            case hash("oscope~"):
-                return new OscopeObject(ptr, parent);
             case hash("scope~"):
                 return new ScopeObject(ptr, parent);
             case hash("function"):

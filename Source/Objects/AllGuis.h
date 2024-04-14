@@ -558,44 +558,7 @@ struct t_fake_plot {
 
 #define SCOPE_MAXBUFSIZE 256
 
-// [else/oscope~]
-struct t_fake_oscope {
-    t_object x_obj;
-    t_inlet* x_rightinlet;
-    t_glist* x_glist;
-    t_canvas* x_cv;
-    void* x_proxy;
-    unsigned char x_bg[3], x_fg[3], x_gg[3];
-    float x_xbuffer[SCOPE_MAXBUFSIZE * 4];
-    float x_ybuffer[SCOPE_MAXBUFSIZE * 4];
-    float x_xbuflast[SCOPE_MAXBUFSIZE * 4];
-    float x_ybuflast[SCOPE_MAXBUFSIZE * 4];
-    float x_min, x_max;
-    float x_trigx, x_triglevel;
-    float x_ksr;
-    float x_currx, x_curry;
-    int x_select;
-    int x_width, x_height;
-    int x_delay;
-    int x_trigmode;
-    int x_bufsize, x_lastbufsize;
-    int x_period;
-    int x_bufphase, x_precount, x_phase;
-    int x_xymode, x_frozen, x_retrigger;
-    int x_zoom;
-    int x_edit;
-    t_float* x_signalscalar;
-    int x_rcv_set;
-    int x_flag;
-    int x_r_flag;
-    t_symbol* x_receive;
-    t_symbol* x_rcv_raw;
-    t_symbol* x_bindsym;
-    t_clock* x_clock;
-    t_pd* x_handle;
-};
-
-// [cyclone/scope~]
+// [else/scope~]
 struct t_fake_scope {
     t_object x_obj;
     t_inlet* x_rightinlet;
@@ -613,7 +576,6 @@ struct t_fake_scope {
     float x_currx, x_curry;
     int x_select;
     int x_width, x_height;
-    int x_drawstyle;
     int x_delay;
     int x_trigmode;
     int x_bufsize, x_lastbufsize;
