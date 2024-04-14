@@ -921,7 +921,6 @@ void round_tilde_setup();
 void sah_tilde_setup();
 void sampstoms_tilde_setup();
 void scale_tilde_setup();
-void scope_tilde_setup();
 void selector_tilde_setup();
 void sinh_tilde_setup();
 void sinx_tilde_setup();
@@ -995,7 +994,6 @@ void changed_setup();
 void changed_tilde_setup();
 void changed2_tilde_setup();
 void click_setup();
-void cmul_tilde_setup();
 void colors_setup();
 void setup_comb0x2efilt_tilde();
 void setup_comb0x2erev_tilde();
@@ -1095,7 +1093,7 @@ void noteinfo_setup();
 void nyquist_tilde_setup();
 void op_tilde_setup();
 void openfile_setup();
-void oscope_tilde_setup();
+void scope_tilde_setup();
 void pack2_setup();
 void pad_setup();
 void pan2_tilde_setup();
@@ -1241,7 +1239,6 @@ void pan_tilde_setup();
 void setup_pan0x2emc_tilde();
 void setup_xgate20x2emc_tilde();
 void setup_xselect20x2emc_tilde();
-void findfile_setup();
 void setup_autofade0x2emc_tilde();
 void wt2d_tilde_setup();
 
@@ -1467,7 +1464,6 @@ void Setup::initialiseELSE()
     changed2_tilde_setup();
     click_setup();
     white_tilde_setup();
-    cmul_tilde_setup();
     colors_setup();
     setup_comb0x2efilt_tilde();
     setup_comb0x2erev_tilde();
@@ -1567,7 +1563,7 @@ void Setup::initialiseELSE()
     nyquist_tilde_setup();
     op_tilde_setup();
     openfile_setup();
-    oscope_tilde_setup();
+    scope_tilde_setup();
     pack2_setup();
     pad_setup();
     pan2_tilde_setup();
@@ -1717,7 +1713,6 @@ void Setup::initialiseELSE()
     setup_pan0x2emc_tilde();
     setup_xgate20x2emc_tilde();
     setup_xselect20x2emc_tilde();
-    findfile_setup();
     wt2d_tilde_setup();
 
     pm_tilde_setup();
@@ -2493,7 +2488,6 @@ void Setup::initialiseCyclone()
     sah_tilde_setup();
     sampstoms_tilde_setup();
     scale_tilde_setup();
-    scope_tilde_setup();
     selector_tilde_setup();
     sinh_tilde_setup();
     sinx_tilde_setup();
