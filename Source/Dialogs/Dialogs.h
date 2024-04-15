@@ -29,7 +29,12 @@ public:
         setBounds(parentComponent->getScreenX(), parentComponent->getScreenY(), parentComponent->getWidth(), parentComponent->getHeight());
         parentComponent->addComponentListener(this);
 
-        toFront(true);
+        if(ProjectInfo::isStandalone) {
+            toFront(true);
+        }
+        else {
+            setAlwaysOnTop(true);
+        }
         setWantsKeyboardFocus(true);
 
         if (showCloseButton) {
