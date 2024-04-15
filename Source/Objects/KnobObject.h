@@ -78,7 +78,8 @@ public:
         auto endAngle = getRotaryParameters().endAngleRadians - (MathConstants<float>::pi * 0.5f);
 
         auto angle = jmap<float>(sliderPosProportional, startAngle, endAngle);
-
+        auto centre = jmap<double>(arcStart, startAngle, endAngle);
+        
         startAngle = std::clamp(startAngle, endAngle - MathConstants<float>::twoPi, endAngle + MathConstants<float>::twoPi);
 
         if (drawArc) {
@@ -93,7 +94,12 @@ public:
             nvgStroke(nvg);
 
             nvgBeginPath(nvg);
-            nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, startAngle, angle, NVG_CW);
+            if(centre < angle) {
+                nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, centre, angle, NVG_CW);
+            }
+            else {
+                nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, angle, centre, NVG_CW);
+            }
             nvgStrokeColor(nvg, nvgRGBAf(fgColour.getFloatRed(), fgColour.getFloatGreen(), fgColour.getFloatBlue(), fgColour.getFloatAlpha()));
             nvgStrokeWidth(nvg, arcWidth * lineThickness);
             nvgStroke(nvg);
