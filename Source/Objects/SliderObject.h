@@ -94,9 +94,10 @@ public:
 
         constexpr auto thumbSize = 4.0f;
         auto cornerSize = Corners::objectCornerRadius / 2.0f;
-
+        
+        
         if (isHorizontal()) {
-            auto sliderPos = jmap<float>(getValue(), getMinimum(), getMaximum(), b.getX(), b.getWidth() - thumbSize);
+            auto sliderPos = jmap<float>(valueToProportionOfLength(getValue()), 0.0f, 1.0f, b.getX(), b.getWidth() - thumbSize);
             auto bounds = Rectangle<float>(sliderPos, b.getY(), thumbSize, b.getHeight());
 
             nvgFillColor(nvg, convertColour(findColour(Slider::trackColourId)));
@@ -105,7 +106,7 @@ public:
             nvgFill(nvg);
         } else {
             
-            auto sliderPos = jmap<float>(getValue(), getMaximum(), getMinimum(), b.getY(), b.getHeight() - thumbSize);
+            auto sliderPos = jmap<float>(valueToProportionOfLength(getValue()), 1.0f, 0.0f, b.getY(), b.getHeight() - thumbSize);
             auto bounds = Rectangle<float>(b.getWidth(), thumbSize).translated(b.getX(), sliderPos);
 
             nvgFillColor(nvg, convertColour(findColour(Slider::trackColourId)));
