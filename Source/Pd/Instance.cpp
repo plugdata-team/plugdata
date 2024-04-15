@@ -272,7 +272,7 @@ void Instance::initialisePd(String& pdlua_version)
 
     // Make sure we set the maininstance when initialising objects
     // Whenever a new instance is created, the functions will be copied from this one
-    libpd_set_instance(libpd_get_instance(0));
+    libpd_set_instance(libpd_main_instance());
 
     static bool initialised = false;
     if (!initialised) {
