@@ -1093,7 +1093,7 @@ void noteinfo_setup();
 void nyquist_tilde_setup();
 void op_tilde_setup();
 void openfile_setup();
-void scope_tilde_setup();
+void oscope_tilde_setup();
 void pack2_setup();
 void pad_setup();
 void pan2_tilde_setup();
@@ -1308,9 +1308,9 @@ int Setup::initialisePd()
             SETFLOAT(zz + i + 2, defaultfontshit[i]);
         }
         pd_typedmess(gensym("pd")->s_thing, gensym("init"), 2 + ndefaultfont, zz);
-        
+
         socket_init();
-        
+
         sys_unlock();
 
         initialized = 1;
@@ -1563,7 +1563,7 @@ void Setup::initialiseELSE()
     nyquist_tilde_setup();
     op_tilde_setup();
     openfile_setup();
-    scope_tilde_setup();
+    oscope_tilde_setup();
     pack2_setup();
     pad_setup();
     pan2_tilde_setup();
@@ -1705,7 +1705,7 @@ void Setup::initialiseELSE()
     setup_rotate0x2emc_tilde();
     pipe2_setup();
     circuit_tilde_setup();
-    
+
     setup_autofade0x2emc_tilde();
     setup_autofade20x2emc_tilde();
     setup_mtx0x2emc_tilde();
@@ -1835,8 +1835,8 @@ void Setup::initialiseGem(std::string const& gemPluginPath)
     gemsdl2window_setup();
     gemsdlwindow_setup();
     gemw32window_setup(); */
-    
-    
+
+
     part_color_setup();
     part_damp_setup();
     part_draw_setup();
@@ -1857,7 +1857,7 @@ void Setup::initialiseGem(std::string const& gemPluginPath)
     part_velocity_setup();
     part_velsphere_setup();
     part_vertex_setup();
-    
+
     pix_2grey_setup();
     pix_a_2grey_setup();
     pix_add_setup();
