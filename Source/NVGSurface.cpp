@@ -351,6 +351,8 @@ void NVGSurface::render()
         if(invalidFBO) nvgDeleteFramebuffer(invalidFBO);
         if(mainFBO) nvgDeleteFramebuffer(mainFBO);
         if(nvg) nvgDeleteContext(nvg);
+        invalidFBO = nullptr;
+        mainFBO = nullptr;
         
 #ifdef NANOVG_METAL_IMPLEMENTATION
         auto* peer = getPeer()->getNativeHandle();
