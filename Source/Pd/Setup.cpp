@@ -863,7 +863,6 @@ void change_tilde_setup();
 void click_tilde_setup();
 void clip_tilde_setup();
 void comb_tilde_setup();
-void comment_setup();
 void cosh_tilde_setup();
 void cosx_tilde_setup();
 void count_tilde_setup();
@@ -2432,7 +2431,6 @@ void Setup::initialiseCyclone()
     click_tilde_setup();
     clip_tilde_setup();
     comb_tilde_setup();
-    comment_setup();
     cosh_tilde_setup();
     cosx_tilde_setup();
     count_tilde_setup();

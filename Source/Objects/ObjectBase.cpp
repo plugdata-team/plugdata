@@ -66,7 +66,6 @@ void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg ypos, t_floatarg shif
 #include "SubpatchObject.h"
 #include "CloneObject.h"
 #include "CommentObject.h"
-#include "CycloneCommentObject.h"
 #include "FloatAtomObject.h"
 #include "SymbolAtomObject.h"
 #include "ScalarObject.h"
@@ -525,9 +524,7 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
                     return new CommentObject(ptr, parent);
                 }
             }
-            case hash("comment"):
-                return new CycloneCommentObject(ptr, parent);
-                // Check if message type text object to prevent confusing it with else/message
+            // Check if message type text object to prevent confusing it with else/message
             case hash("message"): {
                 if (pd::Interface::isTextObject(checked.get()) && checked.cast<t_text>()->te_type == T_MESSAGE) {
                     return new MessageObject(ptr, parent);
