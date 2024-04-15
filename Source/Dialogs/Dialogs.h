@@ -29,13 +29,14 @@ public:
         setBounds(parentComponent->getScreenX(), parentComponent->getScreenY(), parentComponent->getWidth(), parentComponent->getHeight());
         parentComponent->addComponentListener(this);
 
-        setAlwaysOnTop(true);
+        toFront(true);
         setWantsKeyboardFocus(true);
 
         if (showCloseButton) {
             closeButton.reset(getLookAndFeel().createDocumentWindowButton(-1));
             addAndMakeVisible(closeButton.get());
             closeButton->onClick = [this]() {
+                parentComponent->toFront(true);
                 closeDialog();
             };
             closeButton->setAlwaysOnTop(true);
@@ -70,7 +71,7 @@ public:
             }
         }
     }
-    
+
     void componentMovedOrResized(Component& comp, bool wasMoved, bool wasResized) override
     {
         setBounds(parentComponent->getScreenX(), parentComponent->getScreenY(), parentComponent->getWidth(), parentComponent->getHeight());
@@ -134,10 +135,16 @@ public:
 #if !JUCE_IOS
     void mouseDown(MouseEvent const& e) override
     {
+        if(!hasKeyboardFocus(false)) {
+            parentComponent->toFront(true);
+            toFront(true);
+        }
+
         if (isPositiveAndBelow(e.getEventRelativeTo(viewedComponent.get()).getMouseDownY(), 40) && ProjectInfo::isStandalone) {
             dragger.startDraggingWindow(parentComponent->getTopLevelComponent(), e);
             dragging = true;
         } else if (!viewedComponent->getBounds().contains(e.getPosition()) && !blockCloseAction) {
+            parentComponent->toFront(true);
             closeDialog();
         }
     }
@@ -146,6 +153,7 @@ public:
     {
         if (dragging) {
             dragger.dragWindow(parentComponent->getTopLevelComponent(), e, nullptr);
+            dragger.dragWindow(this, e, nullptr);
         }
     }
 
