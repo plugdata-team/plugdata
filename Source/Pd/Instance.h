@@ -333,7 +333,6 @@ protected:
 
         explicit ConsoleHandler(Instance* parent)
             : instance(parent)
-            , fastStringWidth(Font(14))
         {
         }
 
@@ -366,10 +365,10 @@ protected:
                 if (object == lastObject && message == lastMessage && type == lastType) {
                     numMessages++;
                 } else {
-                    consoleMessages.emplace_back(object, message, type, fastStringWidth.getStringWidth(message) + 8, 1);
+                    consoleMessages.emplace_back(object, message, type, CachedStringWidth<14>::calculateStringWidth(message) + 40, 1);
                 }
             } else {
-                consoleMessages.emplace_back(object, message, type, fastStringWidth.getStringWidth(message) + 8, 1);
+                consoleMessages.emplace_back(object, message, type, CachedStringWidth<14>::calculateStringWidth(message) + 40, 1);
             }
 
             if (consoleMessages.size() > 800)
@@ -462,8 +461,6 @@ protected:
         char printConcatBuffer[2048];
 
         moodycamel::ReaderWriterQueue<std::tuple<void*, String, bool>> pendingMessages;
-
-        StringUtils fastStringWidth; // For formatting console messages more quickly
     };
 
     ConsoleHandler consoleHandler;

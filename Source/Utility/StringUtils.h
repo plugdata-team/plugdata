@@ -81,7 +81,8 @@ struct CachedStringWidth {
         
         return maximumLineWidth;
     }
-    
+
+
     static inline std::unordered_map<hash32, int> stringWidthCache = std::unordered_map<hash32, int>();
 };
 

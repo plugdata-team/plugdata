@@ -233,7 +233,7 @@ public:
 
                 // Approximate number of lines from string length and current width
                 auto totalLength = length + calculateRepeatOffset(repeats);
-                auto numLines = StringUtils::getNumLines(console.getWidth(), totalLength);
+                auto numLines = Console::calculateNumLines(message, totalLength, console.getWidth());
 
                 auto textColour = findColour(isSelected ? PlugDataColour::sidebarActiveTextColourId : PlugDataColour::sidebarTextColourId);
 
@@ -360,7 +360,7 @@ public:
 
             for (auto& [object, message, type, length, repeats] : pd->getConsoleMessages()) {
                 auto totalLength = length + calculateRepeatOffset(repeats);
-                auto numLines = StringUtils::getNumLines(getWidth(), totalLength);
+                auto numLines = Console::calculateNumLines(message, totalLength, getWidth());
                 auto height = numLines * 13 + 12;
 
                 if ((type == 0 && !showMessages) || (type == 1 && !showErrors))
@@ -400,7 +400,7 @@ public:
                 auto& [object, message, type, length, repeats] = pd->getConsoleMessages()[row];
 
                 auto totalLength = length + calculateRepeatOffset(repeats);
-                auto numLines = StringUtils::getNumLines(getWidth(), totalLength);
+                auto numLines = Console::calculateNumLines(message, totalLength, getWidth());
                 auto height = numLines * 13 + 12;
 
                 if ((type == 0 && !showMessages) || (type == 1 && !showErrors))
@@ -429,6 +429,32 @@ public:
         };
 
         return std::unique_ptr<TextButton>(settingsCalloutButton);
+    }
+        
+        
+    static int calculateNumLines(String& message, int length, int maxWidth)
+    {
+        if(message.containsAnyOf("\n\r") && message.containsNonWhitespaceChars())
+        {
+            int numLines = 0;
+            for(auto line : StringArray::fromLines(message))
+            {
+                numLines++;
+                int lineWidth = CachedStringWidth<14>::calculateSingleLineWidth(line);
+                while(lineWidth > maxWidth && numLines < 64)
+                {
+                    lineWidth -= maxWidth;
+                    numLines++;
+                }
+            }
+            return numLines;
+        }
+        else {
+            if (length == 0) return 0;
+            return std::max<int>(round(static_cast<float>(length) / (maxWidth - 38.0f)), 1);
+        }
+        
+        return 1;
     }
 
 private:

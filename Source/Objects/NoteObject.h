@@ -243,7 +243,7 @@ public:
         auto height = noteEditor.getTextHeight();
 
         if (auto note = ptr.get<t_fake_note>()) {
-            int width = note->x_resized ? note->x_max_pixwidth : StringUtils::getPreciseStringWidth(getNote(), getFont()) + 12;
+            int width = note->x_resized ? note->x_max_pixwidth :  CachedFontStringWidth::get()->calculateStringWidth(getFont(), getNote()) + 12;
 
             return { note->x_obj.te_xpix, note->x_obj.te_ypix, width, height + 4 };
         }
