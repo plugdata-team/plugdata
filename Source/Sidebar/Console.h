@@ -434,6 +434,7 @@ public:
         
     static int calculateNumLines(String& message, int length, int maxWidth)
     {
+        maxWidth -= 38.0f;
         if(message.containsAnyOf("\n\r") && message.containsNonWhitespaceChars())
         {
             int numLines = 0;
@@ -451,7 +452,7 @@ public:
         }
         else {
             if (length == 0) return 0;
-            return std::max<int>(round(static_cast<float>(length) / (maxWidth - 38.0f)), 1);
+            return std::max<int>(round(static_cast<float>(length) / maxWidth), 1);
         }
         
         return 1;
