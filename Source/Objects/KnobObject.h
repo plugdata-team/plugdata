@@ -71,7 +71,7 @@ public:
         auto bounds = getLocalBounds().toFloat().reduced(getWidth() * 0.14f);
 
         auto const lineThickness = std::max(bounds.getWidth() * 0.09f, 1.5f);
-
+        
         auto sliderPosProportional = getValue();
 
         auto startAngle = getRotaryParameters().startAngleRadians - (MathConstants<float>::pi * 0.5f);
@@ -253,6 +253,7 @@ public:
             arcColour = getArcColour().toString();
             outline = knb->x_outline;
             sizeProperty = knb->x_size;
+            arcStart = knb->x_start;
         }
 
         min = getMinimum();

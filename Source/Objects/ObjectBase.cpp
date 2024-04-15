@@ -432,7 +432,12 @@ void ObjectBase::paint(Graphics& g)
 }
 
 float ObjectBase::getImageScale() {
-    return cnv->isScrolling ? cnv->getRenderScale() * 2.0f : cnv->getRenderScale() * std::max(1.0f, getValue<float>(cnv->zoomScale));
+    Canvas* topLevel = cnv;
+    while(auto* nextCnv = topLevel->findParentComponentOfClass<Canvas>())
+    {
+        topLevel = nextCnv;
+    }
+    return topLevel->isScrolling ? topLevel->getRenderScale() * 2.0f : topLevel->getRenderScale() * std::max(1.0f, getValue<float>(topLevel->zoomScale));
 }
 
 ObjectParameters ObjectBase::getParameters()

@@ -1272,7 +1272,7 @@ void Object::performRender(NVGcontext* nvg)
         nvgFill(nvg);
     }
     
-    if (gui && gui->isTransparent() && !getValue<bool>(locked)) {
+    if (gui && gui->isTransparent() && !getValue<bool>(locked) && !cnv->isGraph) {
         nvgBeginPath(nvg);
         nvgFillColor(nvg, convertColour(findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.35f).withAlpha(0.1f)));
         nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
