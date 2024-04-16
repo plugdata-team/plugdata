@@ -36,6 +36,7 @@
 #include "Utility/MidiDeviceManager.h"
 #include "../PluginEditor.h"
 #include "../CanvasViewport.h"
+#include "Dialogs/Dialogs.h"
 
 // For each OS, we have a different approach to rendering the window shadow
 // macOS:
@@ -413,6 +414,9 @@ class PlugDataWindow : public DocumentWindow
 public:
     typedef StandalonePluginHolder::PluginInOuts PluginInOuts;
 
+    bool movedFromDialog = false;
+    SafePointer<Dialog> dialog;
+
     /** Creates a window with a given title and colour.
      The settings object can be a PropertySet that the class should use to
      store its settings (it can also be null). If takeOwnershipOfSettings is
@@ -621,6 +625,15 @@ public:
     {
         clearAllBuffers();
         repaint();
+    }
+
+    void moved() override
+    {
+        if (movedFromDialog) {
+            movedFromDialog = false;
+        } else if (dialog) {
+            dialog.getComponent()->closeDialog();
+        }
     }
 
     void resized() override
