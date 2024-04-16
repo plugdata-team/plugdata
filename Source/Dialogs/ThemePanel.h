@@ -517,21 +517,42 @@ public:
             PlugDataLook::setDefaultFont(fontValue.toString());
             SettingsFile::getInstance()->setProperty("default_font", fontValue.getValue());
             pd->updateAllEditorsLNF();
-
             return;
         }
 
+        auto themeTree = SettingsFile::getInstance()->getColourThemesTree();
         if (v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["dashed_signal_connections"])
             || v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["straight_connections"])
             || v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["square_iolets"])
             || v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["square_object_corners"])
             || v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["thin_connections"])) {
-
+            for (auto theme : themeTree) {
+                auto themeName = theme.getProperty("theme").toString();
+                if (v.refersToSameSourceAs(swatches[themeName]["dashed_signal_connections"])) {
+                    theme.setProperty("dashed_signal_connections", v.toString(), nullptr);
+                }
+                else if(v.refersToSameSourceAs(swatches[themeName]["straight_connections"]))
+                {
+                    theme.setProperty("straight_connections", v.toString(), nullptr);
+                }
+                else if(v.refersToSameSourceAs(swatches[themeName]["square_iolets"]))
+                {
+                    theme.setProperty("square_iolets", v.toString(), nullptr);
+                }
+                else if(v.refersToSameSourceAs(swatches[themeName]["square_object_corners"]))
+                {
+                    theme.setProperty("square_object_corners", v.toString(), nullptr);
+                }
+                else if(v.refersToSameSourceAs(swatches[themeName]["thin_connections"]))
+                {
+                    theme.setProperty("thin_connections", v.toString(), nullptr);
+                }
+            }
+            
             pd->setTheme(PlugDataLook::currentTheme, true);
             return;
         }
-
-        auto themeTree = SettingsFile::getInstance()->getColourThemesTree();
+        
         for (auto theme : themeTree) {
             auto themeName = theme.getProperty("theme").toString();
 
