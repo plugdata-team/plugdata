@@ -55,6 +55,8 @@ PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTre
         inlets = iolets.first;
         outlets = iolets.second;
     }
+
+    lookAndFeelChanged();
 }
 
 PaletteItem::~PaletteItem()
