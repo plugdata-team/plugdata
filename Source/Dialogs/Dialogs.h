@@ -16,50 +16,7 @@ class Canvas;
 class Dialog : public Component, public ComponentListener {
 
 public:
-    Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWidth, int childHeight, bool showCloseButton, int margin = 0)
-        : height(childHeight)
-        , width(childWidth)
-        , parentComponent(editor)
-        , owner(ownerPtr)
-        , backgroundMargin(margin)
-    {
-        addToDesktop(ComponentPeer::windowIsTemporary);
-        setVisible(true);
-        
-        setBounds(parentComponent->getScreenX(), parentComponent->getScreenY(), parentComponent->getWidth(), parentComponent->getHeight());
-        parentComponent->addComponentListener(this);
-
-        if(ProjectInfo::isStandalone) {
-            toFront(true);
-        }
-        else {
-            setAlwaysOnTop(true);
-        }
-        setWantsKeyboardFocus(true);
-
-        if (showCloseButton) {
-            closeButton.reset(getLookAndFeel().createDocumentWindowButton(-1));
-            addAndMakeVisible(closeButton.get());
-            closeButton->onClick = [this]() {
-                parentComponent->toFront(true);
-                closeDialog();
-            };
-            closeButton->setAlwaysOnTop(true);
-        }
-
-        // Make sure titlebar buttons are greyed out when a dialog is showing
-        if (auto* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent())) {
-            if (ProjectInfo::isStandalone) {
-                if (auto* closeButton = window->getCloseButton())
-                    closeButton->setEnabled(false);
-                if (auto* minimiseButton = window->getMinimiseButton())
-                    minimiseButton->setEnabled(false);
-                if (auto* maximiseButton = window->getMaximiseButton())
-                    maximiseButton->setEnabled(false);
-            }
-            window->repaint();
-        }
-    }
+    Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWidth, int childHeight, bool showCloseButton, int margin = 0);
 
     ~Dialog() override
     {
@@ -154,13 +111,7 @@ public:
         }
     }
 
-    void mouseDrag(MouseEvent const& e) override
-    {
-        if (dragging) {
-            dragger.dragWindow(parentComponent->getTopLevelComponent(), e, nullptr);
-            dragger.dragWindow(this, e, nullptr);
-        }
-    }
+    void mouseDrag(MouseEvent const& e) override;
 
     void mouseUp(MouseEvent const& e) override
     {

@@ -38,6 +38,78 @@
 #include "Deken.h"
 // #include "PatchStorage.h"
 
+#include "Standalone/PlugDataWindow.h"
+
+Dialog::Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWidth, int childHeight, bool showCloseButton, int margin)
+: height(childHeight)
+, width(childWidth)
+, parentComponent(editor)
+, owner(ownerPtr)
+, backgroundMargin(margin)
+{
+    addToDesktop(ComponentPeer::windowIsTemporary);
+    setVisible(true);
+
+    setBounds(parentComponent->getScreenX(), parentComponent->getScreenY(), parentComponent->getWidth(), parentComponent->getHeight());
+    parentComponent->addComponentListener(this);
+
+    if(ProjectInfo::isStandalone) {
+        if (auto* mainWindow = dynamic_cast<PlugDataWindow *>(parentComponent->getTopLevelComponent()))
+            mainWindow->dialog = SafePointer(this);
+        toFront(true);
+    }
+    else {
+        setAlwaysOnTop(true);
+    }
+    setWantsKeyboardFocus(true);
+
+    if (showCloseButton) {
+        closeButton.reset(getLookAndFeel().createDocumentWindowButton(-1));
+        addAndMakeVisible(closeButton.get());
+        closeButton->onClick = [this]() {
+            parentComponent->toFront(true);
+            closeDialog();
+        };
+        closeButton->setAlwaysOnTop(true);
+    }
+
+    // Make sure titlebar buttons are greyed out when a dialog is showing
+    if (auto* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent())) {
+        if (ProjectInfo::isStandalone) {
+            if (auto* closeButton = window->getCloseButton())
+                closeButton->setEnabled(false);
+            if (auto* minimiseButton = window->getMinimiseButton())
+                minimiseButton->setEnabled(false);
+            if (auto* maximiseButton = window->getMaximiseButton())
+                maximiseButton->setEnabled(false);
+        }
+        window->repaint();
+    }
+}
+
+void Dialog::mouseDrag(MouseEvent const &e)
+{
+    if (dragging) {
+        if (auto mainWindow = dynamic_cast<PlugDataWindow *>(parentComponent->getTopLevelComponent())) {
+            mainWindow->movedFromDialog = true;
+        }
+        dragger.dragWindow(parentComponent->getTopLevelComponent(), e, nullptr);
+        dragger.dragWindow(this, e, nullptr);
+    }
+}
+
+bool Dialog::wantsRoundedCorners() const
+{
+    // Check if the editor wants rounded corners
+    if (auto* editor = dynamic_cast<PluginEditor*>(parentComponent)) {
+        return editor->wantsRoundedCorners();
+    }
+        // Otherwise assume rounded corners for the rest of the UI
+    else {
+        return true;
+    }
+}
+
 Component* Dialogs::showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> callback)
 {
     auto* editor = new TextEditorDialog(std::move(filename));
@@ -336,18 +408,6 @@ StringArray DekenInterface::getExternalPaths()
     }
 
     return searchPaths;
-}
-
-bool Dialog::wantsRoundedCorners() const
-{
-    // Check if the editor wants rounded corners
-    if (auto* editor = dynamic_cast<PluginEditor*>(parentComponent)) {
-        return editor->wantsRoundedCorners();
-    }
-    // Otherwise assume rounded corners for the rest of the UI
-    else {
-        return true;
-    }
 }
 
 void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent, Point<int> position)
