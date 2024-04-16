@@ -317,7 +317,7 @@ public:
         delete paletteDraggableList;
     }
 
-    void lookAndFeelChanged()
+    void lookAndFeelChanged() override
     {
         nameLabel.setFont(Fonts::getCurrentFont().boldened());
     }
