@@ -148,8 +148,6 @@ private:
     
     bool shouldRenderToFramebuffer();
 
-    bool isCanvas() const;
-
     void setSelected(bool shouldBeSelected);
     bool selectedFlag = false;
     bool selectionStateChanged = false;
