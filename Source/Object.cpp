@@ -481,6 +481,11 @@ String Object::getType() const
     return gui ? gui->getType() : String();
 }
 
+bool Object::isCanvas() const
+{
+    return getType() == "canvas";
+}
+
 void Object::triggerOverlayActiveState()
 {
     if (!showActiveState)
@@ -1216,7 +1221,7 @@ void Object::render(NVGcontext* nvg)
         if(activityOverlayImage) nvgDeleteImage(nvg, activityOverlayImage);
         Path objectShadow;
         objectShadow.addRoundedRectangle(getLocalBounds().reduced(Object::margin - 1), Corners::objectCornerRadius);
-        activityOverlayImage = StackShadow::createActivityDropShadowImage(nvg, getLocalBounds(), objectShadow, findColour(PlugDataColour::dataColourId), 5.5f, { 0, 0 }, 0);
+        activityOverlayImage = StackShadow::createActivityDropShadowImage(nvg, getLocalBounds(), objectShadow, findColour(PlugDataColour::dataColourId), 5.5f, { 0, 0 }, 0, isCanvas());
         activityOverlayDirty = false;
     }
     
