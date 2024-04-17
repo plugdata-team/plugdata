@@ -482,6 +482,7 @@ CallOutBox& PluginEditor::showCalloutBox(std::unique_ptr<Component> content, Rec
     {
         content->addComponentListener(new CalloutDeletionListener(this));
         calloutArea->addToDesktop(ComponentPeer::windowIsTemporary);
+        calloutArea->toFront(true);
         auto bounds = calloutArea->getLocalArea(nullptr, screenBounds);
         return CallOutBox::launchAsynchronously(std::move(content), bounds, calloutArea.get());
     }
