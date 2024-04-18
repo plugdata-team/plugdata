@@ -1626,6 +1626,18 @@ void PluginProcessor::showTextEditor(unsigned long ptr, Rectangle<int> bounds, S
     }));
 }
 
+void PluginProcessor::handleAsyncUpdate()
+{
+    setLatencySamples(customLatencySamples);
+}
+
+// set custom plugin latency
+void PluginProcessor::performLatencyCompensationChange(float value)
+{
+    customLatencySamples = floor(value);
+    triggerAsyncUpdate();
+}
+
 void PluginProcessor::performParameterChange(int type, String const& name, float value)
 {
     // Type == 1 means it sets the change gesture state
