@@ -87,6 +87,8 @@ public:
         
     void updateTextLayout() override
     {
+        if(cnv->isGraph) return; // Text layouting is expensive, so skip if it's not necessary
+        
         auto objText = getLinkText();
         if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
             objText = cnv->suggestor->getText();
@@ -202,6 +204,11 @@ public:
     {
         updateTextLayout();
         repaint();
+    }
+    
+    bool hideInGraph() override
+    {
+        return false;
     }
 
     void mouseDown(MouseEvent const& e) override

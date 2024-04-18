@@ -77,6 +77,7 @@ public:
     void addNVGContextListener(NVGContextListener* listener);
     void removeNVGContextListener(NVGContextListener* listener);
 
+    Rectangle<int> getInvalidArea() { return invalidArea; }
     
     float getRenderScale() const;
 

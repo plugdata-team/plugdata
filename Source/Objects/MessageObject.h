@@ -91,6 +91,8 @@ public:
          
      void updateTextLayout()
      {
+         if(cnv->isGraph) return; // Text layouting is expensive, so skip if it's not necessary
+         
          auto objText = editor ? editor->getText() : objectText;
          if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
              objText = cnv->suggestor->getText();

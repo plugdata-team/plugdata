@@ -12,6 +12,7 @@
 #include "ObjectParameters.h"
 #include "Utility/SynchronousValue.h"
 #include "Utility/NVGComponent.h"
+#include "Utility/CachedTextRender.h"
 
 class PluginProcessor;
 class Canvas;
@@ -22,23 +23,64 @@ class Patch;
 
 class Object;
 
-class ObjectLabel : public Label, public NVGComponent {
+class ObjectLabel : public Label, public NVGComponent, public NVGContextListener {
 
-    NVGImageRenderer imageRenderer;
+    hash32 lastTextHash = 0;
+    int imageId = 0;
+    int lastWidth = 0, lastHeight = 0;
+    float lastScale = 1.0f;
+    NVGSurface& surface;
     
 public:
-    explicit ObjectLabel(NVGSurface& surface) : NVGComponent(this), imageRenderer(surface)
+    explicit ObjectLabel(NVGSurface& s) : NVGComponent(this), surface(s)
     {
         setJustificationType(Justification::centredLeft);
         setBorderSize(BorderSize<int>(0, 0, 0, 0));
         setMinimumHorizontalScale(0.2f);
         setEditable(false, false);
         setInterceptsMouseClicks(false, false);
+        surface.addNVGContextListener(this);
+    }
+    
+    ~ObjectLabel()
+    {
+        surface.removeNVGContextListener(this);
+    }
+    
+    void nvgContextDeleted(NVGcontext* nvg) {
+        if(imageId) nvgDeleteImage(nvg, imageId);
+        imageId = 0;
     }
     
     void renderLabel(NVGcontext* nvg, float scale)
     {
-        imageRenderer.renderComponentFromImage(nvg, *this, scale);
+        auto textHash = hash(getText());
+        if(!imageId || lastTextHash != textHash || lastScale != scale || lastWidth != getWidth() || lastHeight != getHeight())
+        {
+            updateImage(nvg, scale);
+            lastTextHash = textHash;
+            lastScale = scale;
+            lastWidth = getWidth();
+            lastHeight = getHeight();
+        }
+        
+        nvgBeginPath(nvg);
+        nvgRect(nvg, 0, 0, getWidth() + 1, getHeight());
+        nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth() + 1, getHeight(), 0, imageId, 1.0f));
+        nvgFill(nvg);
+    }
+    
+    void updateImage(NVGcontext* nvg, float scale)
+    {
+        auto componentImage = createComponentSnapshot(Rectangle<int>(0, 0, getWidth() + 1, getHeight()), false, scale);
+        
+        if(imageId && lastWidth == getWidth() && lastHeight == getHeight()) {
+            imageId = NVGImageRenderer::convertImage(nvg, componentImage, imageId);
+        }
+        else {
+            if(imageId) nvgDeleteImage(nvg, imageId);
+            imageId = NVGImageRenderer::convertImage(nvg, componentImage);
+        }
     }
 
 private:

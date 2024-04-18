@@ -478,7 +478,7 @@ public:
             auto* pdEditor = dynamic_cast<PluginEditor*>(editor);
 
             setUsingNativeTitleBar(nativeWindow);
-
+            
             pdEditor->nvgSurface.detachContext();
             clearAllBuffers();
 

@@ -11,6 +11,7 @@
 #include "ObjectGrid.h"
 #include "Object.h"
 #include "Canvas.h"
+#include "PluginEditor.h"
 #include "Connection.h"
 
 ObjectGrid::ObjectGrid(Canvas* cnv) : cnv(cnv)
@@ -400,6 +401,10 @@ void ObjectGrid::setIndicator(int idx, Line<int> line, float scale)
             startTimerHz(60);
         }
     }
+    else {
+        auto lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[idx].getStart(), lines[idx].getEnd()).expanded(2));
+        cnv->editor->nvgSurface.invalidateArea(lineArea);
+    }
     
     lines[idx] = line;
 
@@ -410,11 +415,22 @@ void ObjectGrid::setIndicator(int idx, Line<int> line, float scale)
             startTimerHz(60);
         }
     }
+    else {
+        auto lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[idx].getStart(), lines[idx].getEnd()).expanded(2));
+        cnv->editor->nvgSurface.invalidateArea(lineArea);
+    }
 }
 
 void ObjectGrid::timerCallback()
 {
-    cnv->repaint();
+    if(lines[0].getLength() != 0 && lineAlpha[0] != 0.0f) {
+        auto lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[0].getStart(), lines[0].getEnd()).expanded(2));
+        cnv->editor->nvgSurface.invalidateArea(lineArea);
+    }
+    if(lines[1].getLength() != 0 && lineAlpha[1] != 0.0f) {
+        auto lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[1].getStart(), lines[1].getEnd()).expanded(2));
+        cnv->editor->nvgSurface.invalidateArea(lineArea);
+    }
     
     bool done = true; // TODO: use multi-timer?
     for(int i = 0; i < 2; i++) {
@@ -427,7 +443,9 @@ void ObjectGrid::timerCallback()
         }
     }
     
-    if(done) stopTimer();
+    if(done)  {
+        stopTimer();
+    }
 }
 
 void ObjectGrid::render(NVGcontext* nvg)

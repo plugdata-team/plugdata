@@ -220,13 +220,25 @@ public:
              textRenderer.renderText(nvg, text, Fonts::getDefaultFont().withHeight(13), object->findColour(PlugDataColour::canvasTextColourId), Rectangle<int>(5, 0, getWidth() - 5, 16), getImageScale());
          }
         
+        Canvas* topLevel = cnv;
+        while(auto* nextCnv = topLevel->findParentComponentOfClass<Canvas>())
+        {
+            topLevel = nextCnv;
+        }
+        
         auto b = getLocalBounds().toFloat();
         if(canvas)
         {
+            auto invalidArea = cnv->editor->nvgSurface.getInvalidArea();
+            
+            if(topLevel->isScrolling) invalidArea = canvas->getLocalBounds();
+            else if(!invalidArea.isEmpty()) invalidArea = canvas->getLocalArea(&cnv->editor->nvgSurface, invalidArea).expanded(1);
+            else return;
+            
             nvgSave(nvg);
             nvgIntersectRoundedScissor(nvg, b.getX() + 0.75f, b.getY() + 0.75f, b.getWidth() - 1.5f, b.getHeight() - 1.5f, Corners::objectCornerRadius);
             nvgTranslate(nvg, canvas->getX(), canvas->getY());
-            canvas->performRender(nvg, canvas->getLocalBounds()); // TODO: more precise invalidation?
+            canvas->performRender(nvg,  invalidArea); // TODO: more precise invalidation?
             nvgRestore(nvg);
         }
         
