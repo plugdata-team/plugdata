@@ -171,7 +171,7 @@ public:
             int prev_size = 0;
             AffineTransform transform;
             for (auto glyph : glyphs) {
-                font.getTypefacePtr()->getOutlineForGlyph(glyph, p);
+                font.getTypefacePtr()->getOutlineForGlyph(TypefaceMetricsKind::portable, glyph, p);
                 if (glyphs.size() > 1) {
                     prev_size = outline.getBounds().getWidth();
                 }

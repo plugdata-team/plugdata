@@ -71,7 +71,7 @@ void NanoVGGraphicsContext::addTransform (const juce::AffineTransform& t)
     nvgTransform (nvg, t.mat00, t.mat10, t.mat01, t.mat11, t.mat02, t.mat12);
 }
 
-float NanoVGGraphicsContext::getPhysicalPixelScaleFactor() { return scale; }
+float NanoVGGraphicsContext::getPhysicalPixelScaleFactor() const { return scale; }
 
 void NanoVGGraphicsContext::setPhysicalPixelScaleFactor(float newScale) { scale = newScale; } 
 
@@ -418,6 +418,17 @@ const juce::Font& NanoVGGraphicsContext::getFont()
     return font;
 }
 
+void NanoVGGraphicsContext::drawGlyphs (juce::Span<const uint16_t> glyphs,
+                                        juce::Span<const juce::Point<float>> positions,
+                         const juce::AffineTransform& t)
+{
+    for(int i = 0; i < glyphs.size(); i++)
+    {
+        auto pos = positions[i];
+        drawGlyph(glyphs[i], t.translated(pos.x, pos.y));
+    }
+}
+
 void NanoVGGraphicsContext::drawGlyph (int glyphNumber, const juce::AffineTransform& transform)
 {
     char txt[2] = {'?', 0};
@@ -608,8 +619,9 @@ void NanoVGGraphicsContext::reduceImageCache()
 
 NanoVGGraphicsContext::GlyphToCharMap NanoVGGraphicsContext::getGlyphToCharMapForFont (const juce::Font& f)
 {
-    NanoVGGraphicsContext::GlyphToCharMap map;
 
+    NanoVGGraphicsContext::GlyphToCharMap map;
+    /*
     if (auto tf = f.getTypefacePtr())
     {
         juce::Array<int> glyphs;
@@ -624,7 +636,7 @@ NanoVGGraphicsContext::GlyphToCharMap NanoVGGraphicsContext::getGlyphToCharMapFo
         for (int i = 0; i < allPrintableAsciiCharacters.length(); ++i) {
             map[glyphs[i]] = wstr[i];
         }
-    }
+    } */
 
     return map;
 }

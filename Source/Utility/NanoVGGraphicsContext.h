@@ -22,7 +22,7 @@ public:
     bool isVectorDevice() const override;
     void setOrigin (juce::Point<int>) override;
     void addTransform (const juce::AffineTransform&) override;
-    float getPhysicalPixelScaleFactor() override;
+    float getPhysicalPixelScaleFactor() const override;
     void setPhysicalPixelScaleFactor(float newScale);
     
     bool clipToRectangle (const juce::Rectangle<int>&) override;
@@ -51,17 +51,21 @@ public:
 
     void setPath (const juce::Path& path, const juce::AffineTransform& transform);
 
-    void strokePath (const juce::Path&, const juce::PathStrokeType&, const juce::AffineTransform&);
+    void strokePath (const juce::Path&, const juce::PathStrokeType&, const juce::AffineTransform&) override;
     void fillPath (const juce::Path&, const juce::AffineTransform&) override;
     void drawImage (const juce::Image&, const juce::AffineTransform&) override;
     void drawLine (const juce::Line<float>&) override;
 
     void setFont (const juce::Font&) override;
     const juce::Font& getFont() override;
-    void drawGlyph (int glyphNumber, const juce::AffineTransform&) override;
-    bool drawTextLayout (const juce::AttributedString&, const juce::Rectangle<float>&) override;
+    void drawGlyph (int glyphNumber, const juce::AffineTransform&);
+    bool drawTextLayout (const juce::AttributedString&, const juce::Rectangle<float>&);
 
     void removeCachedImages();
+    
+    uint64_t getFrameId() const override { return 0; }
+    
+    void drawGlyphs (juce::Span<const uint16_t>, juce::Span<const juce::Point<float>>, const juce::AffineTransform&) override;
 
     NVGcontext* getContext() const { return nvg; }
 
