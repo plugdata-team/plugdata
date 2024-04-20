@@ -17,6 +17,7 @@ public:
         setScrollWheelEnabled(false);
         getProperties().set("Style", "SliderObject");
         setVelocityModeParameters(1.0f, 1, 0.0f, false);
+        setRepaintsOnMouseActivity(false);
     }
 
     ~ReversibleSlider() override { }

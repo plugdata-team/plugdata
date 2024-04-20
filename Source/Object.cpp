@@ -157,6 +157,7 @@ void Object::nvgContextDeleted(NVGcontext* nvg)
     fb = nullptr;
     if(activityOverlayImage) nvgDeleteImage(nvg, activityOverlayImage);
     activityOverlayImage = 0;
+    fbDirty = true;
 }
 
 void Object::timerCallback()

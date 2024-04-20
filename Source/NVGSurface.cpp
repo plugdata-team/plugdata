@@ -256,6 +256,7 @@ void NVGSurface::removeNVGContextListener(NVGContextListener* listener)
 
 void NVGSurface::render()
 {
+    auto startTime = Time::getMillisecondCounter();
     bool hasCanvas = editor->pluginMode != nullptr;
     for(auto* split : editor->splitView.splits)
     {
@@ -438,13 +439,14 @@ void NVGSurface::render()
         needsBufferSwap = false;
     }
     
+    auto elapsed = Time::getMillisecondCounter() - startTime;
     // We update frambuffers after we call swapBuffers to make sure the frame is on time
-    if(isAttached()) {
+    if(isAttached() && elapsed < 14) {
         for(auto* split : editor->splitView.splits)
         {
             if(auto* cnv = split->getTabComponent()->getCurrentCanvas())
             {
-                cnv->updateFramebuffers(nvg, cnv->getLocalBounds(), 8);
+                cnv->updateFramebuffers(nvg, cnv->getLocalBounds(), 14 - elapsed);
             }
         }
     }
