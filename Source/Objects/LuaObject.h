@@ -19,23 +19,57 @@ void pdlua_gfx_mouse_move(t_pdlua* o, int x, int y);
 void pdlua_gfx_mouse_drag(t_pdlua* o, int x, int y);
 void pdlua_gfx_repaint(t_pdlua* o, int firsttime);
 }
-
-class LuaObject : public ObjectBase, public AsyncUpdater {
     
-    std::unique_ptr<Graphics> graphics;
+class LuaObject : public ObjectBase, public Timer, public NVGContextListener {
+    
     Colour currentColour;
     
     CriticalSection bufferSwapLock;
-    Image firstBuffer;
-    Image secondBuffer;
-    Image* drawBuffer = &firstBuffer;
-    Image* displayBuffer = &secondBuffer;
     bool isSelected = false;
     Value zoomScale;
     std::unique_ptr<Component> textEditor;
     std::unique_ptr<Dialog> saveDialog;
+    
+    NVGframebuffer* framebuffer = nullptr;
+    int framebufferWidth = 0, framebufferHeight = 0;
+    
+    struct LuaGuiMessage {
+        t_symbol* symbol;
+        std::vector<t_atom> data;
+        int size;
         
-    static inline std::map<t_gpointer*, Path> currentPaths = std::map<t_gpointer*, Path>();
+        LuaGuiMessage() {};
+        
+        LuaGuiMessage(t_symbol* sym, int argc, t_atom* argv)
+        : symbol(sym)
+        {
+            data = std::vector<t_atom>(argv, argv + argc);
+            size = argc;
+        }
+        
+        LuaGuiMessage(LuaGuiMessage const& other) noexcept
+        {
+            symbol = other.symbol;
+            size = other.size;
+            data = other.data;
+        }
+        
+        LuaGuiMessage& operator=(LuaGuiMessage const& other) noexcept
+        {
+            // Check for self-assignment
+            if (this != &other) {
+                symbol = other.symbol;
+                size = other.size;
+                data = other.data;
+            }
+            
+            return *this;
+        }
+    };
+    
+    std::vector<LuaGuiMessage> guiCommandBuffer;
+    moodycamel::ReaderWriterQueue<LuaGuiMessage> guiMessageQueue;
+        
     static inline std::map<t_pdlua*, std::vector<LuaObject*>> allDrawTargets = std::map<t_pdlua*, std::vector<LuaObject*>>();
     
 public:
@@ -48,8 +82,24 @@ public:
             allDrawTargets[pdlua.get()].push_back(this);
         }
         
+        cnv->editor->nvgSurface.addNVGContextListener(this);
+        
         parentHierarchyChanged();
+        startTimerHz(60);
     }
+    
+    ~LuaObject()
+    {
+        if(auto pdlua = ptr.get<t_pdlua>())
+        {
+            auto& listeners = allDrawTargets[pdlua.get()];
+            listeners.erase(std::remove(listeners.begin(), listeners.end(), this), listeners.end());
+        }
+        
+        cnv->editor->nvgSurface.removeNVGContextListener(this);
+        zoomScale.removeListener(this);
+    }
+    
     
     // We can only attach the zoomscale to canvas after the canvas has been added to its own parent
     // When initialising, this isn't always the case
@@ -69,15 +119,10 @@ public:
         }
     }
     
-    ~LuaObject()
-    {
-        if(auto pdlua = ptr.get<t_pdlua>())
-        {
-            auto& listeners = allDrawTargets[pdlua.get()];
-            listeners.erase(std::remove(listeners.begin(), listeners.end(), this), listeners.end());
-        }
-        zoomScale.removeListener(this);
-    }
+    void nvgContextDeleted(NVGcontext* nvg) override {
+        if(framebuffer) nvgDeleteFramebuffer(framebuffer);
+        framebuffer = nullptr;
+    };
     
     Rectangle<int> getPdBounds() override
     {
@@ -159,16 +204,14 @@ public:
         sendRepaintMessage();
     }
     
-    void paint(Graphics& g) override
+    void render(NVGcontext* nvg) override
     {
-        if(isSelected != object->isSelected())
-        {
-            isSelected = object->isSelected();
-            sendRepaintMessage();
+        if(framebuffer) {
+            nvgBeginPath(nvg);
+            nvgRect(nvg, 0, 0, getWidth() + 1, getHeight());
+            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth() + 1, getHeight(), 0, framebuffer->image, 1.0f));
+            nvgFill(nvg);
         }
-        
-        ScopedLock swapLock(bufferSwapLock);
-        g.drawImage(*displayBuffer, getLocalBounds().toFloat());
     }
     
     void valueChanged(Value& v) override
@@ -176,72 +219,11 @@ public:
         sendRepaintMessage();
     }
     
-    void handleAsyncUpdate() override
+    void handleGuiMessage(t_symbol* sym, int argc, t_atom* argv)
     {
-        repaint();
-    }
-
-    static void receiveLuaPathMessage(t_gpointer* path, t_symbol* sym, int argc, t_atom* argv)
-    {
-        switch(hash(sym->s_name)) {
-            case hash("lua_start_path"): {
-                if (argc >= 2) {
-                    auto& currentPath = currentPaths[path];
-                    float x = atom_getfloat(argv);
-                    float y = atom_getfloat(argv + 1);
-                    currentPath.startNewSubPath(x, y);
-                }
-                break;
-            }
-            case hash("lua_line_to"): {
-                if (argc >= 2) {
-                    auto& currentPath = currentPaths[path];
-                    float x = atom_getfloat(argv);
-                    float y = atom_getfloat(argv + 1);
-                    currentPath.lineTo(x, y);
-                }
-                break;
-            }
-            case hash("lua_quad_to"): {
-                if (argc >= 4) { // Assuming quad_to takes 3 arguments
-                    auto& currentPath = currentPaths[path];
-                    float x1 = atom_getfloat(argv);
-                    float y1 = atom_getfloat(argv + 1);
-                    float x2 = atom_getfloat(argv + 2);
-                    float y2 = atom_getfloat(argv + 3);
-                    currentPath.quadraticTo(x1, y1, x2, y2);
-                }
-                break;
-            }
-            case hash("lua_cubic_to"): {
-                if (argc >= 5) { // Assuming cubic_to takes 4 arguments
-                    auto& currentPath = currentPaths[path];
-                    float x1 = atom_getfloat(argv);
-                    float y1 = atom_getfloat(argv + 1);
-                    float x2 = atom_getfloat(argv + 2);
-                    float y2 = atom_getfloat(argv + 3);
-                    float x3 = atom_getfloat(argv + 4);
-                    float y3 = atom_getfloat(argv + 5);
-                    currentPath.cubicTo(x1, y1, x2, y2, x3, y3);
-                }
-                break;
-            }
-            case hash("lua_close_path"): {
-                auto& currentPath = currentPaths[path];
-                currentPath.closeSubPath();
-                break;
-            }
-            case hash("lua_free_path"): {
-                currentPaths.erase(path);
-                break;
-            }
-            default: 
-                break;
-        }
-    }
-    
-    void receiveLuaPaintMessage(t_symbol* sym, int argc, t_atom* argv)
-    {
+        NVGcontext* nvg = cnv->editor->nvgSurface.getRawContext();
+        if(!nvg) return;
+        
         auto hashsym = hash(sym->s_name);
         // First check functions that don't need an active graphics context, of modify the active graphics context
         switch(hashsym)
@@ -253,34 +235,31 @@ public:
                 int imageHeight = std::ceil(getHeight() * scale);
                 if(!imageWidth || !imageHeight) return;
                 
-                if(drawBuffer->getWidth() != imageWidth || drawBuffer->getHeight() != imageHeight)
+                if(!framebuffer || framebufferWidth != imageWidth || framebufferHeight != imageHeight)
                 {
-                    *drawBuffer = Image(Image::PixelFormat::ARGB, imageWidth, imageHeight, true);
+                    nvgBindFramebuffer(nullptr);
+                    if(framebuffer) nvgDeleteFramebuffer(framebuffer);
+                    framebuffer = nvgCreateFramebuffer(nvg, imageWidth, imageHeight, NVG_IMAGE_PREMULTIPLIED);
+                    nvgBindFramebuffer(framebuffer);
+                    framebufferWidth = imageWidth;
+                    framebufferHeight = imageHeight;
                 }
-                else{
-                    drawBuffer->clear(Rectangle<int>(imageWidth, imageHeight));
+                else {
+                    nvgBindFramebuffer(framebuffer);
                 }
                 
-                graphics = std::make_unique<Graphics>(*drawBuffer);
-                graphics->saveState();
-                graphics->addTransform(AffineTransform::scale(scale)); // for hi-dpi displays and canvas zooming
-                graphics->saveState();
+                nvgViewport(0, 0, getWidth(), getHeight());
+                nvgClear(nvg);
+                nvgBeginFrame(nvg, getWidth(), getHeight(), scale);
+                nvgSave(nvg);
                 return;
             }
             case hash("lua_end_paint"): {
-                if(!graphics) break;
-                graphics->restoreState();
-                graphics.reset(nullptr);
-
-                // swap buffers
-                {
-                    ScopedLock swapLock(bufferSwapLock);
-                    auto* oldDrawBuffer = drawBuffer;
-                    drawBuffer = displayBuffer;
-                    displayBuffer = oldDrawBuffer;
-                }
+                if(!framebuffer) return;
                 
-                triggerAsyncUpdate();
+                nvgEndFrame(nvg);
+                nvgBindFramebuffer(nullptr);
+                repaint();
                 return;
             }
             case hash("lua_resized"): {
@@ -297,9 +276,8 @@ public:
             }
         }
         
-        if(!graphics) return; // If there is no active graphics context at this point, return
+        if(!framebuffer) return; // If there is no active framebuffer at this point, return
         
-        // Functions that do need an active graphics context
         switch (hashsym) {
             case hash("lua_set_color"): {
                 if (argc == 1) {
@@ -307,7 +285,8 @@ public:
                     
                     auto& lnf = LookAndFeel::getDefaultLookAndFeel();
                     currentColour = Array<Colour>{lnf.findColour(PlugDataColour::guiObjectBackgroundColourId), lnf.findColour(PlugDataColour::canvasTextColourId), lnf.findColour(PlugDataColour::guiObjectInternalOutlineColour)}[colourID];
-                    graphics->setColour(currentColour);
+                    nvgFillColor(nvg, convertColour(currentColour));
+                    nvgStrokeColor(nvg, convertColour(currentColour));
                 }
                 if (argc >= 3) {
                     Colour color(static_cast<uint8>(atom_getfloat(argv)),
@@ -315,7 +294,8 @@ public:
                                  static_cast<uint8>(atom_getfloat(argv + 2)));
                     
                     currentColour = color.withAlpha(argc >= 4 ? atom_getfloat(argv + 3) : 1.0f);
-                    graphics->setColour(currentColour);
+                    nvgFillColor(nvg, convertColour(currentColour));
+                    nvgStrokeColor(nvg, convertColour(currentColour));
                 }
                 break;
             }
@@ -327,7 +307,11 @@ public:
                     float y2 = atom_getfloat(argv + 3);
                     float lineThickness = atom_getfloat(argv + 4);
                     
-                    graphics->drawLine(x1, y1, x2, y2, lineThickness);
+                    nvgStrokeWidth(nvg, lineThickness);
+                    nvgBeginPath(nvg);
+                    nvgMoveTo(nvg, x1, y1);
+                    nvgLineTo(nvg, x2, y2);
+                    nvgStroke(nvg);
                 }
                 break;
             }
@@ -337,7 +321,10 @@ public:
                     float y = atom_getfloat(argv + 1);
                     float w = atom_getfloat(argv + 2);
                     float h = atom_getfloat(argv + 3);
-                    graphics->fillEllipse(Rectangle<float>(x, y, w, h));
+                    
+                    nvgBeginPath(nvg);
+                    nvgEllipse(nvg, x + (w / 2), y + (h / 2), w / 2, h / 2);
+                    nvgFill(nvg);
                 }
                 break;
             }
@@ -348,7 +335,11 @@ public:
                     float w = atom_getfloat(argv + 2);
                     float h = atom_getfloat(argv + 3);
                     float lineThickness = atom_getfloat(argv + 4);
-                    graphics->drawEllipse(Rectangle<float>(x, y, w, h), lineThickness);
+
+                    nvgStrokeWidth(nvg, lineThickness);
+                    nvgBeginPath(nvg);
+                    nvgEllipse(nvg, x + (w / 2), y + (h / 2), w / 2, h / 2);
+                    nvgStroke(nvg);
                 }
                 break;
             }
@@ -358,7 +349,10 @@ public:
                     float y = atom_getfloat(argv + 1);
                     float w = atom_getfloat(argv + 2);
                     float h = atom_getfloat(argv + 3);
-                    graphics->fillRect(Rectangle<float>(x, y, w, h));
+ 
+                    nvgBeginPath(nvg);
+                    nvgRect(nvg, x, y, w, h);
+                    nvgFill(nvg);
                 }
                 break;
             }
@@ -369,7 +363,11 @@ public:
                     float w = atom_getfloat(argv + 2);
                     float h = atom_getfloat(argv + 3);
                     float lineThickness = atom_getfloat(argv + 4);
-                    graphics->drawRect(Rectangle<float>(x, y, w, h), lineThickness);
+
+                    nvgStrokeWidth(nvg, lineThickness);
+                    nvgBeginPath(nvg);
+                    nvgRect(nvg, x, y, w, h);
+                    nvgStroke(nvg);
                 }
                 break;
             }
@@ -380,7 +378,10 @@ public:
                     float w = atom_getfloat(argv + 2);
                     float h = atom_getfloat(argv + 3);
                     float cornerRadius = atom_getfloat(argv + 4);
-                    graphics->fillRoundedRectangle(Rectangle<float>(x, y, w, h), cornerRadius);
+                    
+                    nvgBeginPath(nvg);
+                    nvgRoundedRect(nvg, x, y, w, h, cornerRadius);
+                    nvgFill(nvg);
                 }
                 break;
             }
@@ -393,7 +394,11 @@ public:
                     float h = atom_getfloat(argv + 3);
                     float cornerRadius = atom_getfloat(argv + 4);
                     float lineThickness = atom_getfloat(argv + 5);
-                    graphics->drawRoundedRectangle(Rectangle<float>(x, y, w, h), cornerRadius, lineThickness);
+                    
+                    nvgStrokeWidth(nvg, lineThickness);
+                    nvgBeginPath(nvg);
+                    nvgRoundedRect(nvg, x, y, w, h, cornerRadius);
+                    nvgStroke(nvg);
                 }
                 break;
             }
@@ -404,54 +409,74 @@ public:
                     float x2 = atom_getfloat(argv + 2);
                     float y2 = atom_getfloat(argv + 3);
                     float lineThickness = atom_getfloat(argv + 4);
-                    graphics->drawLine(x1, y1, x2, y2, lineThickness);
+                    
+                    nvgStrokeWidth(nvg, lineThickness);
+                    nvgBeginPath(nvg);
+                    nvgMoveTo(nvg, x1, y1);
+                    nvgLineTo(nvg, x2, y2);
+                    nvgStroke(nvg);
                 }
                 break;
             }
             case hash("lua_draw_text"): {
                 if (argc >= 4) {
-                    auto text = String::fromUTF8(atom_getsymbol(argv)->s_name);
-                    auto string = AttributedString(text);
                     float x = atom_getfloat(argv + 1);
                     float y = atom_getfloat(argv + 2);
                     float w = atom_getfloat(argv + 3);
-                    float fontHeight = atom_getfloat(argv + 4) * 1.3; // Increase fontsize to match pd-vanilla
+                    float fontHeight = atom_getfloat(argv + 4);
                     
-                    string.setFont(Font(fontHeight));
-                    string.setColour(currentColour);
-                    string.setJustification(Justification::topLeft);
-                    
-                    TextLayout layout;
-                    layout.createLayout(string, w);
-                    layout.draw(*graphics, {x, y, w, layout.getHeight()});
+                    nvgBeginPath(nvg);
+                    nvgFontSize(nvg, fontHeight);
+                    nvgTextAlign(nvg, NVG_ALIGN_TOP | NVG_ALIGN_LEFT);
+                    nvgTextBox(nvg, x, y, w, atom_getsymbol(argv)->s_name, nullptr);
                 }
                 break;
             }
             case hash("lua_fill_path"): {
-                if (argc >= 1) {
-                    auto& currentPath = currentPaths[argv[0].a_w.w_gpointer];
-                    graphics->fillPath(currentPath);
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, atom_getfloat(argv), atom_getfloat(argv + 1));
+                for(int i = 1; i < argc / 2; i++)
+                {
+                    float x = atom_getfloat(argv + (i * 2));
+                    float y = atom_getfloat(argv + (i * 2) + 1);
+                    nvgLineTo(nvg, x, y);
                 }
+                
+                nvgClosePath(nvg);
+                nvgFill(nvg);
                 break;
             }
             case hash("lua_stroke_path"): {
-                if (argc >= 2) {
-                    auto& currentPath = currentPaths[argv[0].a_w.w_gpointer];
-                    graphics->strokePath(currentPath, PathStrokeType(atom_getfloat(argv + 1)));
+                nvgBeginPath(nvg);
+                auto strokeWidth = atom_getfloat(argv);
+                
+                int numPoints = (argc - 1) / 2;
+                nvgMoveTo(nvg, atom_getfloat(argv + 1), atom_getfloat(argv + 2));
+                for(int i = 1; i < numPoints - 1; i++)
+                {
+                    float x = atom_getfloat(argv + (i * 2) + 1);
+                    float y = atom_getfloat(argv + (i * 2) + 2);
+                    nvgLineTo(nvg, x, y);
                 }
+                
+                nvgStrokeWidth(nvg, strokeWidth);
+                nvgStroke(nvg);
                 break;
             }
             case hash("lua_fill_all"): {
-                auto colour = currentColour;
-                
-                graphics->fillRoundedRectangle(getLocalBounds().toFloat(), Corners::objectCornerRadius);
-                
+                auto bounds = getLocalBounds().toFloat().reduced(0.5f);
                 auto outlineColour = object->findColour(isSelected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-                graphics->setColour(outlineColour);
-                graphics->drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f).withTrimmedRight(0.5f).withTrimmedBottom(0.5f), Corners::objectCornerRadius, 1.0f);
                 
-                graphics->setColour(colour);
+                nvgBeginPath(nvg);
+                nvgRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::objectCornerRadius);
+                nvgFill(nvg);
                 
+                nvgStrokeWidth(nvg, 1.0f);
+                nvgStrokeColor(nvg, convertColour(outlineColour));
+                nvgStroke(nvg);
+                
+                nvgStrokeColor(nvg, convertColour(currentColour));
+
                 break;
             }
                 
@@ -459,7 +484,7 @@ public:
                 if (argc >= 2) {
                     float tx = atom_getfloat(argv);
                     float ty = atom_getfloat(argv + 1);
-                    graphics->addTransform(AffineTransform::translation(tx, ty));
+                    nvgTranslate(nvg, tx, ty);
                 }
                 break;
             }
@@ -467,13 +492,13 @@ public:
                 if (argc >= 2) {
                     float sx = atom_getfloat(argv);
                     float sy = atom_getfloat(argv + 1);
-                    graphics->addTransform(AffineTransform::scale(sx, sy));
+                    nvgScale(nvg, sx, sy);
                 }
                 break;
             }
             case hash("lua_reset_transform"): {
-                graphics->restoreState();
-                graphics->saveState();
+                nvgRestore(nvg);
+                nvgSave(nvg);
                 break;
             }
             default:
@@ -481,17 +506,52 @@ public:
         }
     }
     
-    static void drawCallback(void* target, t_symbol* sym, int argc, t_atom* argv)
+    void timerCallback() override
     {
-        if(target == nullptr && argc != 0)
+        LuaGuiMessage guiMessage;
+        while(guiMessageQueue.try_dequeue(guiMessage))
         {
-            receiveLuaPathMessage(argv[0].a_w.w_gpointer, sym, argc-1, argv+1);
-            return;
+            guiCommandBuffer.push_back(guiMessage);
         }
         
+        auto* startMesage = pd->generateSymbol("lua_start_paint");
+        auto* endMessage = pd->generateSymbol("lua_end_paint");
+        
+        int startIdx = -1, endIdx = -1;
+        bool updateScene = false;
+        for(int i = guiCommandBuffer.size() - 1; i >= 0; i--)
+        {
+            if(guiCommandBuffer[i].symbol == startMesage) startIdx = i;
+            if(guiCommandBuffer[i].symbol == endMessage) endIdx = i + 1;
+
+            if(startIdx != -1 && endIdx != -1)  {
+                updateScene = true;
+                break;
+            }
+        }
+        
+        if(updateScene) {
+            if(endIdx > startIdx) {
+                for(int i = startIdx; i < endIdx; i++)
+                {
+                    handleGuiMessage(guiCommandBuffer[i].symbol, guiCommandBuffer[i].size, guiCommandBuffer[i].data.data());
+                }
+            }
+            guiCommandBuffer.erase(guiCommandBuffer.begin(), guiCommandBuffer.begin() + endIdx);
+        }
+        
+        if(isSelected != object->isSelected())
+        {
+            isSelected = object->isSelected();
+            sendRepaintMessage();
+        }
+    }
+    
+    static void drawCallback(void* target, t_symbol* sym, int argc, t_atom* argv)
+    {
         for(auto* object : allDrawTargets[static_cast<t_pdlua*>(target)])
         {
-            object->receiveLuaPaintMessage(sym, argc, argv);
+            object->guiMessageQueue.enqueue({sym, argc, argv});
         }
     }
     
