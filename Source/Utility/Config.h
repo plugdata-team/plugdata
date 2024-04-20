@@ -9,7 +9,7 @@ using namespace juce;
 
 
 #ifndef ENABLE_OBJECT_FB_DEBUGGING
-#define ENABLE_OBJECT_FB_DEBUGGING 1
+#define ENABLE_OBJECT_FB_DEBUGGING 0
 #endif
 
 #ifndef ENABLE_FB_DEBUGGING
