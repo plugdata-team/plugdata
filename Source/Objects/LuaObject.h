@@ -452,7 +452,7 @@ public:
                 
                 int numPoints = (argc - 1) / 2;
                 nvgMoveTo(nvg, atom_getfloat(argv + 1), atom_getfloat(argv + 2));
-                for(int i = 1; i < numPoints - 1; i++)
+                for(int i = 1; i < numPoints; i++)
                 {
                     float x = atom_getfloat(argv + (i * 2) + 1);
                     float y = atom_getfloat(argv + (i * 2) + 2);
