@@ -125,7 +125,6 @@ public:
     void render(NVGcontext* nvg) override
     {
         if(!nvgCtx || nvgCtx->getContext() != nvg) nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
-        nvgCtx->setPhysicalPixelScaleFactor(getImageScale());
         Graphics g(*nvgCtx);
         {
             paintEntireComponent(g, true);

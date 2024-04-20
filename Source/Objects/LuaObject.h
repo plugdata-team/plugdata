@@ -248,7 +248,7 @@ public:
                     nvgBindFramebuffer(framebuffer);
                 }
                 
-                nvgViewport(0, 0, getWidth(), getHeight());
+                nvgViewport(0, 0, getWidth() * scale, getHeight() * scale);
                 nvgClear(nvg);
                 nvgBeginFrame(nvg, getWidth(), getHeight(), scale);
                 nvgSave(nvg);

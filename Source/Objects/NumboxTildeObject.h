@@ -255,7 +255,7 @@ public:
         
         nvgSave(nvg);
         nvgTranslate(nvg, input.getX(), input.getY());
-        input.render(nvg, getImageScale());
+        input.render(nvg);
         nvgRestore(nvg);
                      
         auto icon = mode ? Icons::ThinDown : Icons::Sine;

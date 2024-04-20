@@ -150,6 +150,14 @@ void NVGSurface::detachContext()
 #endif
 }
 
+
+void NVGSurface::propertyChanged(String const& name, var const& value) {
+    if(name == "global_scale")
+    {
+        sendContextDeleteMessage();
+    }
+}
+
 float NVGSurface::getRenderScale() const
 {
     auto desktopScale = Desktop::getInstance().getGlobalScaleFactor();
@@ -158,7 +166,7 @@ float NVGSurface::getRenderScale() const
     return OSUtils::MTLGetPixelScale(getView()) * desktopScale;
 #else
     if(!isAttached()) return desktopScale;
-    return glContext->getRenderingScale() * desktopScale;
+    return glContext->getRenderingScale();// * desktopScale;
 #endif
 }
 

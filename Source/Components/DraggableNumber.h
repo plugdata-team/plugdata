@@ -285,10 +285,9 @@ public:
         return draggedDecimal;
     }
         
-    void render(NVGcontext* nvg, float scale)
+    void render(NVGcontext* nvg)
     {
         if(!nvgCtx || nvgCtx->getContext() != nvg) nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
-        nvgCtx->setPhysicalPixelScaleFactor(scale);
         Graphics g(*nvgCtx);
         {
             paintEntireComponent(g, true);

@@ -12,6 +12,7 @@ using namespace juce::gl;
 
 
 #include "Utility/Config.h"
+#include "Utility/SettingsFile.h"
 
 #include <nanovg.h>
 #ifdef NANOVG_GL_IMPLEMENTATION
@@ -56,7 +57,7 @@ public NSViewComponent
 #elif NANOVG_METAL_IMPLEMENTATION && JUCE_IOS
 public UIViewComponent
 #else
-public Component, public Timer
+public Component, public Timer, public SettingsFileListener
 #endif
 {
 public:
@@ -72,6 +73,8 @@ public:
 #ifdef NANOVG_GL_IMPLEMENTATION
     void timerCallback() override;
 #endif
+    
+    void propertyChanged(String const& name, var const& value) override;
     
     void sendContextDeleteMessage();
     void addNVGContextListener(NVGContextListener* listener);

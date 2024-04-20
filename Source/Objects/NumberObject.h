@@ -296,7 +296,7 @@ public:
         nvgFillColor(nvg, convertColour(highlighed ? highlightColour : normalColour));
         nvgFill(nvg);
         
-        input.render(nvg, getImageScale());
+        input.render(nvg);
     }
 
     float getValue()
