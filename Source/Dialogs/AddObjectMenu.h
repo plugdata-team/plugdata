@@ -220,7 +220,7 @@ public:
                 { Icons::GlyphNumber, "nbx", "(@keypress) Number box", "Number", NewNumbox },
                 { Icons::GlyphCanvas, "cnv", "(@keypress) Canvas", "Canvas", NewCanvas },
                 { Icons::GlyphFunction, "function", "Function", "Function", OtherObject },
-                { Icons::GlyphOscilloscope, "oscope~", "Oscilloscope", "Scope", OtherObject },
+                { Icons::GlyphOscilloscope, "scope~", "Oscilloscope", "Scope", OtherObject },
                 { Icons::GlyphKeyboard, "#X obj 0 0 keyboard 16 80 4 2 0 0 empty empty", "Piano keyboard", "Keyboard", OtherObject },
                 { Icons::GlyphMessbox, "messbox", "ELSE Message box", "Messbox", OtherObject },
                 { Icons::GlyphBicoeff, "#X obj 0 0 bicoeff 450 150 peaking", "Bicoeff generator", "Bicoeff", OtherObject },
