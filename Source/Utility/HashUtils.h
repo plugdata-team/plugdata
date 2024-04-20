@@ -34,5 +34,5 @@ constexpr hash32 hash(char const* str)
  */
 inline hash32 hash(juce::String const& str)
 {
-    return hash(str.toUTF8().getAddress());
+    return hash(str.toRawUTF8());
 }

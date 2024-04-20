@@ -199,7 +199,8 @@ public:
             nvgStroke(nvg);
         }
         
-        imageRenderer.renderComponentFromImage(nvg, input, getImageScale());
+        input.render(nvg, getImageScale());
+        //imageRenderer.renderComponentFromImage(nvg, input, getImageScale());
     }
 
     void updateLabel() override

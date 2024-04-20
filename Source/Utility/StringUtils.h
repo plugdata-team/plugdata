@@ -92,12 +92,13 @@ struct CachedFontStringWidth : public DeletedAtShutdown
     {
         auto stringHash = hash(singleLine);
         
-        for(auto [cachedFont, cache] : stringWidthCache)
+        for(auto& [cachedFont, cache] : stringWidthCache)
         {
             if(cachedFont == font)
             {
                 auto cacheHit = cache.find(stringHash);
-                if(cacheHit != cache.end()) return cacheHit->second;
+                if(cacheHit != cache.end()) 
+                    return cacheHit->second;
                 
                 auto stringWidth = font.getStringWidthFloat(singleLine);
                 cache[stringHash] = stringWidth;
@@ -131,5 +132,5 @@ struct CachedFontStringWidth : public DeletedAtShutdown
         return instance;
     }
     
-    static inline CachedFontStringWidth* instance;
+    static inline CachedFontStringWidth* instance = nullptr;
 };

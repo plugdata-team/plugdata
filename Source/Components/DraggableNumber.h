@@ -34,6 +34,8 @@ protected:
     double valueToResetTo = 0.0;
     double valueToRevertTo = 0.0;
     bool showEllipses = true;
+        
+    std::unique_ptr<NanoVGGraphicsContext> nvgCtx;
 
 public:
     std::function<void(double)> onValueChange = [](double) {};
@@ -282,6 +284,16 @@ public:
 
         return draggedDecimal;
     }
+        
+    void render(NVGcontext* nvg, float scale)
+    {
+        if(!nvgCtx || nvgCtx->getContext() != nvg) nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
+        nvgCtx->setPhysicalPixelScaleFactor(scale);
+        Graphics g(*nvgCtx);
+        {
+            paintEntireComponent(g, true);
+        }
+    }
 
     void paint(Graphics& g) override
     {
@@ -292,7 +304,6 @@ public:
         }
 
         auto font = getFont();
-        
         if (!isBeingEdited()) {
             auto textArea = getBorderSize().subtractedFrom(getLocalBounds()).toFloat();
             auto numberText = formatNumber(getText().getDoubleValue(), decimalDrag);

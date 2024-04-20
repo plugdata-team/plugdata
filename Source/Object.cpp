@@ -1197,7 +1197,7 @@ void Object::updateFramebuffer(NVGcontext* nvg)
             nvgFill(nvg);
 #endif
             nvgEndFrame(nvg);
-            nvgBindFramebuffer(NULL);
+            nvgBindFramebuffer(nullptr);
             fbDirty = false;
             
         }

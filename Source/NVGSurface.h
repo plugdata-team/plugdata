@@ -121,6 +121,8 @@ public:
         
     void invalidateArea(Rectangle<int> area);
     void invalidateAll();
+    
+    NVGcontext* getRawContext() { return nvg; }
 
 private:
     
