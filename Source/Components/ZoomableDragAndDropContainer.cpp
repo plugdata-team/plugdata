@@ -598,20 +598,11 @@ void ZoomableDragAndDropContainer::startDragging(var const& sourceDescription,
     auto* dragImageComponent = dragImageComponents.add(new DragImageComponent(imageToUse(dragImage).image, imageToUse(invalidImage).image, sourceDescription, sourceComponent,
         draggingSource, *this, imageToUse(dragImage).offset.roundToInt(), canZoom));
 
-    if (allowDraggingToExternalWindows) {
-        if (!Desktop::canUseSemiTransparentWindows())
-            dragImageComponent->setOpaque(true);
-
-        dragImageComponent->addToDesktop(ComponentPeer::windowIgnoresMouseClicks
-            | ComponentPeer::windowIsTemporary);
-    } else {
-        if (auto* thisComp = dynamic_cast<Component*>(this)) {
-            thisComp->addChildComponent(dragImageComponent);
-        } else {
-            jassertfalse; // Your ZoomableDragAndDropContainer needs to be a Component!
-            return;
-        }
+    if (allowDraggingToExternalWindows && !Desktop::canUseSemiTransparentWindows()) {
+        dragImageComponent->setOpaque(true);
     }
+    
+    dragImageComponent->addToDesktop(ComponentPeer::windowIgnoresMouseClicks | ComponentPeer::windowIsTemporary);
 
     dragImageComponent->sourceDetails.localPosition = sourceComponent->getLocalPoint(nullptr, lastMouseDown).toInt();
     dragImageComponent->updateLocation(false, lastMouseDown.toInt());
