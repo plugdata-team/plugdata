@@ -43,7 +43,7 @@ Array<Object*> ObjectGrid::getSnappableObjects(Object* draggedObject)
         auto distA = a->getBounds().getCentre().getDistanceFrom(centre);
         auto distB = b->getBounds().getCentre().getDistanceFrom(centre);
 
-        return distA < distB;
+        return distA > distB;
     });
 
     return snappable;
