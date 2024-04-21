@@ -85,7 +85,6 @@ class ObjectClickAndDrop : public Component
     ImageComponent imageComponent;
 
     static inline std::unique_ptr<ObjectClickAndDrop> instance = nullptr;
-    bool isOnEditor = false;
 
     bool dropState = false;
 
@@ -98,12 +97,7 @@ public:
         objectString = target->getObjectString();
         objectName = target->getPatchStringName();
 
-        if (ProjectInfo::canUseSemiTransparentWindows()) {
-            addToDesktop(ComponentPeer::windowIsTemporary);
-        } else {
-            isOnEditor = true;
-            editor->addChildComponent(this);
-        }
+        addToDesktop(ComponentPeer::windowIsTemporary);
 
         setAlwaysOnTop(true);
 
@@ -124,7 +118,7 @@ public:
         imageComponent.setAlpha(0.0f);
 
         auto screenPos = Desktop::getMousePosition();
-        setCentrePosition(isOnEditor ? getLocalPoint(nullptr, screenPos) : screenPos);
+        setCentrePosition(screenPos);
         startTimerHz(60);
         setVisible(true);
 
@@ -146,14 +140,9 @@ public:
         auto screenPos = Desktop::getMousePosition();
         auto mousePosition = Point<int>();
         Component* underMouse;
-
-        if (isOnEditor) {
-            mousePosition = editor->getLocalPoint(nullptr, screenPos);
-            underMouse = editor->getComponentAt(mousePosition);
-        } else {
-            mousePosition = screenPos;
-            underMouse = editor->getComponentAt(editor->getLocalPoint(nullptr, screenPos));
-        }
+        
+        mousePosition = screenPos;
+        underMouse = editor->getComponentAt(editor->getLocalPoint(nullptr, screenPos));
 
         Canvas* foundCanvas = nullptr;
 

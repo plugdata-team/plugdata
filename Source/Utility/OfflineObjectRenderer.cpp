@@ -120,7 +120,12 @@ ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, flo
     g.addTransform(AffineTransform::scale(scale));
     g.setColour(Colours::white);
     for (auto& rect : objectRects) {
-        g.fillRoundedRectangle(rect.toFloat(), 5.0f);
+        if(ProjectInfo::canUseSemiTransparentWindows()) {
+            g.fillRoundedRectangle(rect.toFloat(), 5.0f);
+        }
+        else {
+            g.fillRect(rect);
+        }
     }
 
     auto output = ImageWithOffset(image, size);
