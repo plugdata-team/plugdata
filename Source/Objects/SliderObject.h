@@ -304,16 +304,17 @@ public:
             }
             break;
         }
+        case hash("color"): {
+            iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
+            getLookAndFeel().setColour(Slider::backgroundColourId, Colour::fromString(iemHelper.secondaryColour.toString()));
+            getLookAndFeel().setColour(Slider::trackColourId, Colour::fromString(iemHelper.primaryColour.toString()));
+            object->repaint();
+            break;
+        }
         default: {
             iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
             break;
         }
-        }
-
-        // Update the colours of the actual slider
-        if (symbol == hash("color")) {
-            getLookAndFeel().setColour(Slider::backgroundColourId, Colour::fromString(iemHelper.secondaryColour.toString()));
-            getLookAndFeel().setColour(Slider::trackColourId, Colour::fromString(iemHelper.primaryColour.toString()));
         }
     }
     

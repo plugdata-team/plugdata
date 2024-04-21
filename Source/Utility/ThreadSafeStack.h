@@ -11,71 +11,49 @@
 #include <iostream>
 #include <string>
 #include <mutex>
+#include <plf_stack/plf_stack.h>
 
 template <typename T, int stackSize>
 class ThreadSafeStack {
-private:
-    struct Buffer {
-        T data[stackSize];
-        int index = 0;
-    };
-    
-    Buffer buffers[2];
 
-    Buffer* front_;
-    Buffer* back_;
-    std::atomic<bool> empty = true;
+    using StackBuffer = plf::stack<T>;
+    StackBuffer buffers[2];
+    StackBuffer* frontBuffer;
+    StackBuffer* backBuffer;
     std::mutex swapLock;
 
 public:
     ThreadSafeStack() {
-        front_ = &buffers[0];
-        back_ = &buffers[1];
+        frontBuffer = &buffers[0];
+        backBuffer = &buffers[1];
+        frontBuffer->reserve(stackSize);
+        backBuffer->reserve(stackSize);
     }
 
     bool isEmpty()
     {
-        return empty.load(std::memory_order_relaxed);
+        std::lock_guard<std::mutex> lock(swapLock);
+        return backBuffer->empty();
     }
     
     // Swap front and back buffers
     void swapBuffers()
     {
-        swapLock.lock();
-        back_ = std::exchange(front_, back_);
-        swapLock.unlock();
-        empty = true;
+        std::lock_guard<std::mutex> lock(swapLock);
+        backBuffer = std::exchange(frontBuffer, backBuffer);
+        backBuffer->clear();
     }
 
     void push(const T& value) {
-        swapLock.lock();
-        Buffer* current_back = back_;
-        int current_index = current_back->index;
-
-        // Check if the current back buffer is full
-        while(current_index >= stackSize) {
-            current_index -= stackSize;
-        }
-
-        // Perform the push
-        current_back->data[current_index] = value;
-        current_back->index = current_index + 1;
-        swapLock.unlock();
-        empty.store(false, std::memory_order_relaxed);
+        std::lock_guard<std::mutex> lock(swapLock);
+        backBuffer->push(value);
     }
 
      bool pop(T& result) {
-         if(front_->index == 0) {
-             return false;
-         }
+        if(frontBuffer->empty()) return false;
 
-        // Perform the pop
-        int current_index = (front_->index - 1) % stackSize;
-        T* element = &front_->data[current_index];
-        // Decrement the index
-        front_->index = current_index;
-
-        result = *element;
+        result = frontBuffer->top();
+        frontBuffer->pop();
         return true;
     }
 };

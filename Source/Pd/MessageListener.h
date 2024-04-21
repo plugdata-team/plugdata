@@ -146,12 +146,15 @@ public:
     }
     
 private:
-    static constexpr int stackSize = 32768;
+    static constexpr int stackSize = 65536;
     using MessageStack = ThreadSafeStack<Message, stackSize>;
     
     std::vector<std::pair<void*, std::set<juce::WeakReference<pd::MessageListener>>::iterator>> nullListeners;
     std::unordered_set<intptr_t> usedHashes;
     MessageStack messageStack;
+    
+    // Queue to use in case our fast stack queue is full
+    moodycamel::ConcurrentQueue<Message> backupQueue;
     
     std::map<void*, std::set<juce::WeakReference<MessageListener>>> messageListeners;
     CriticalSection messageListenerLock;
