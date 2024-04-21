@@ -51,14 +51,15 @@ public:
 
 class FrameTimer;
 class PluginEditor;
-class NVGSurface : 
+class NVGSurface :
 #if NANOVG_METAL_IMPLEMENTATION && JUCE_MAC
 public NSViewComponent
 #elif NANOVG_METAL_IMPLEMENTATION && JUCE_IOS
 public UIViewComponent
 #else
-public Component, public Timer, public SettingsFileListener
+public Component, public Timer
 #endif
+,  public SettingsFileListener
 {
 public:
     NVGSurface(PluginEditor* editor);
