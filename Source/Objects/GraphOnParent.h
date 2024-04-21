@@ -217,7 +217,7 @@ public:
          // Strangly, the title goes below the graph content in pd
          if (!getValue<bool>(hideNameAndArgs) && getText() != "graph") {
              auto text = getText();
-             textRenderer.renderText(nvg, text, Fonts::getDefaultFont().withHeight(13), object->findColour(PlugDataColour::canvasTextColourId), Rectangle<int>(5, 0, getWidth() - 5, 16), getImageScale());
+             textRenderer.renderText(nvg, text, Fonts::getDefaultFont().withHeight(13), object->findColour(PlugDataColour::canvasTextColourId), Rectangle<int>(5, 0, getWidth() - 5, 16), getImageScale(), getWidth());
          }
         
         Canvas* topLevel = cnv;

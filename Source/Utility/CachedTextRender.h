@@ -2,8 +2,6 @@
 
 class CachedTextRender : public NVGContextListener
 {
-    NVGSurface& surface;
-    
 public:
     
     CachedTextRender(NVGSurface& nvgSurface) : surface(nvgSurface)
@@ -22,12 +20,13 @@ public:
         imageId = 0;
     }
     
-    void renderText(NVGcontext* nvg, String const& text, Font const& font, Colour const& colour, Rectangle<int> const& bounds, float scale)
+    void renderText(NVGcontext* nvg, String const& text, Font const& font, Colour const& colour, Rectangle<int> const& bounds, float scale, int width)
     {
-        if(imageId <= 0 || lastTextHash != hash(text) || scale != lastScale || colour != lastColour || lastWidth != bounds.getWidth())
+        if(updateImage || imageId <= 0 || lastTextHash != hash(text) || scale != lastScale || colour != lastColour || lastWidth != width)
         {
             layoutReady = false;
-            renderTextToImage(nvg, text, font, colour, Rectangle<int>(bounds.getX(), bounds.getY(), bounds.getWidth() + 3, bounds.getHeight()), scale);
+            renderTextToImage(nvg, text, font, colour, Rectangle<int>(bounds.getX(), bounds.getY(), bounds.getWidth() + 3, bounds.getHeight()), scale, width);
+            updateImage = false;
         }
         
         nvgBeginPath(nvg);
@@ -40,38 +39,36 @@ public:
     }
     
     // If you want to use this for text measuring as well, you might want the measuring to be ready before
-    void prepareLayout(String const& text, Font const& font, Colour const& colour, int const width)
+    bool prepareLayout(String const& text, Font const& font, Colour const& colour, int const width, int const cachedWidth)
     {
-        if(lastTextHash != hash(text) || colour != lastColour || width != lastWidth) {
+        auto textHash = hash(text);
+        bool needsUpdate = lastTextHash != textHash || colour != lastColour || cachedWidth != lastWidth;
+        if(needsUpdate) {
             auto attributedText = AttributedString(text);
             attributedText.setColour(colour);
             attributedText.setJustification(Justification::centredLeft);
             attributedText.setFont(Font(15));
             
             layout = TextLayout();
-            layout.createLayout(attributedText, width+1);
+            layout.createLayout(attributedText, width);
             
             idealHeight = layout.getHeight();
-            idealWidth = CachedFontStringWidth::get()->calculateStringWidth(font, text);
-            lastWidth = width;
+            lastWidth = cachedWidth;
             
-            lastTextHash = hash(text);
+            lastTextHash = textHash;
             lastColour = colour;
+            updateImage = true;
         }
         
         layoutReady = true;
+        return needsUpdate;
     }
     
-    void renderTextToImage(NVGcontext* nvg, String const& text, Font const& font, const Colour& colour, Rectangle<int> const& bounds, float scale)
+    void renderTextToImage(NVGcontext* nvg, String const& text, Font const& font, const Colour& colour, Rectangle<int> const& bounds, float scale, int cachedWidth)
     {
         int width = std::floor(bounds.getWidth() * scale);
         int height = std::floor(bounds.getHeight() * scale);
-        
-        if(!layoutReady)
-        {
-            prepareLayout(text, font, colour, bounds.getWidth() - 3);
-        }
-        
+ 
         Image textImage = Image(Image::ARGB, width, height, true);
         {
             Graphics g(textImage);
@@ -119,6 +116,8 @@ public:
     }
     
 private:
+    NVGSurface& surface;
+
     int imageId = 0;
     int imageWidth = 0, imageHeight = 0;
     hash32 lastTextHash;
@@ -129,4 +128,5 @@ private:
     
     TextLayout layout;
     bool layoutReady = false;
+    bool updateImage = false;
 };

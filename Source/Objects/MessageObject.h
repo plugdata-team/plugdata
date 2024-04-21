@@ -69,10 +69,9 @@ public:
         }
         
         auto textSize = textRenderer.getTextBounds();
-        // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
-        int idealWidth = textSize.getWidth() + 14;
         
-        if(editor) idealWidth += 1;
+        // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
+        int idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 14;
         
         // We want to adjust the width so ideal text with aligns with fontWidth
         int offset = idealWidth % fontWidth;
@@ -99,8 +98,11 @@ public:
          }
          
          auto colour = object->findColour(PlugDataColour::canvasTextColourId);
-         int textWidth = getTextSize().getWidth() - 12;
-         textRenderer.prepareLayout(objText, Fonts::getDefaultFont().withHeight(15), colour, textWidth);
+         int textWidth = getTextSize().getWidth() - 14;
+         if(textRenderer.prepareLayout(objText, Fonts::getDefaultFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty)))
+         {
+             repaint();
+         }
      }
 
     void setPdBounds(Rectangle<int> b) override
@@ -182,7 +184,6 @@ public:
             nvgStrokeWidth(nvg, 1.0f);
             nvgStroke(nvg);
         }
-        
     
         if(editor)
         {
@@ -190,7 +191,7 @@ public:
         }
         else {
             auto text = getText();
-            textRenderer.renderText(nvg, text, Fonts::getDefaultFont().withHeight(15), object->findColour(PlugDataColour::canvasTextColourId), border.subtractedFrom(getLocalBounds()), getImageScale());
+            textRenderer.renderText(nvg, text, Fonts::getDefaultFont().withHeight(15), object->findColour(PlugDataColour::canvasTextColourId), border.subtractedFrom(getLocalBounds()), getImageScale(), getValue<int>(sizeProperty));
         }
     }
 
@@ -317,7 +318,6 @@ public:
     // For resize-while-typing behaviour
     void textEditorTextChanged(TextEditor& ed) override
     {
-        updateTextLayout();
         object->updateBounds();
     }
 

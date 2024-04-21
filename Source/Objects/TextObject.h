@@ -223,7 +223,7 @@ public:
             
             // we could render at the actual scale, but that makes the transition to scolling/zooming pretty rough
             // Instead, rendering at 2x scale gives us pretty good sharpness overall
-            cachedTextRender.renderText(nvg, text, Fonts::getDefaultFont().withHeight(15), object->findColour(PlugDataColour::canvasTextColourId), textArea, getImageScale());
+            cachedTextRender.renderText(nvg, text, Fonts::getDefaultFont().withHeight(15), object->findColour(PlugDataColour::canvasTextColourId), textArea, getImageScale(), getValue<int>(sizeProperty));
         }
     }
 
@@ -277,8 +277,9 @@ public:
         }
         
         auto textSize = cachedTextRender.getTextBounds();
+        
         // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
-        int idealWidth = textSize.getWidth() + 12;
+        int idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 11;
         
         // We want to adjust the width so ideal text with aligns with fontWidth
         int offset = idealWidth % fontWidth;
@@ -307,7 +308,10 @@ public:
         
         auto colour = object->findColour(PlugDataColour::canvasTextColourId);
         int textWidth = getTextSize().getWidth() - 11;
-        cachedTextRender.prepareLayout(objText, Fonts::getDefaultFont().withHeight(15), colour, textWidth);
+        if(cachedTextRender.prepareLayout(objText, Fonts::getDefaultFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty)))
+        {
+            repaint();
+        }
     }
 
     void setPdBounds(Rectangle<int> b) override

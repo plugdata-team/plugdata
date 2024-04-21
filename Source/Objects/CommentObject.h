@@ -49,7 +49,7 @@ public:
     {
         if (!editor) {
             auto textArea = border.subtractedFrom(getLocalBounds());
-            textRenderer.renderText(nvg, getText(), Fonts::getDefaultFont().withHeight(15), object->findColour(PlugDataColour::commentTextColourId), textArea, getImageScale());
+            textRenderer.renderText(nvg, getText(), Fonts::getDefaultFont().withHeight(15), object->findColour(PlugDataColour::commentTextColourId), textArea, getImageScale(), getValue<int>(sizeProperty));
         }
         else {
             imageRenderer.renderComponentFromImage(nvg, *editor, getImageScale());
@@ -164,8 +164,9 @@ public:
         }
         
         auto textSize = textRenderer.getTextBounds();
+ 
         // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
-        int idealWidth = textSize.getWidth() + 8;
+        int idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 8;
         
         // We want to adjust the width so ideal text with aligns with fontWidth
         int offset = idealWidth % fontWidth;
@@ -190,8 +191,11 @@ public:
         }
         
         auto colour = object->findColour(PlugDataColour::canvasTextColourId);
-        int textWidth = getTextSize().getWidth() - 6;
-        textRenderer.prepareLayout(objText, Fonts::getDefaultFont().withHeight(15), colour, textWidth);
+        int textWidth = getTextSize().getWidth() - 8;
+        if(textRenderer.prepareLayout(objText, Fonts::getDefaultFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty)))
+        {
+            repaint();
+        }
     }
     
     std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
@@ -308,7 +312,6 @@ public:
     // For resize-while-typing behaviour
     void textEditorTextChanged(TextEditor&) override
     {
-        updateTextLayout();
         object->updateBounds();
     }
 };

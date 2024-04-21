@@ -220,13 +220,4 @@ public:
             pd->sendDirectMessage(openfile.get(), "bang", std::vector<pd::Atom> {});
         }
     }
-    
-    void render(NVGcontext* nvg) override
-    {
-        imageRenderer.renderComponentFromImage(nvg, *this, getImageScale());
-    }
-
-    void paintOverChildren(Graphics& g) override
-    {
-    }
 };
