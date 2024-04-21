@@ -762,17 +762,21 @@ void PluginEditor::createNewWindow(TabBarButtonComponent* tabButton)
 
     newWindow->addToDesktop(window->getDesktopWindowStyleFlags());
     newWindow->setVisible(true);
-
-    auto* targetSplit = newEditor->getSplitView()->splits[0];
+    
     auto* originalTabComponent = tabButton->getTabComponent();
     auto* originalCanvas = originalTabComponent->getCanvas(tabButton->getIndex());
-    auto originalSplitIndex = splitView.getTabComponentSplitIndex(originalTabComponent);
 
-    splitView.splits[originalSplitIndex]->moveToSplit(targetSplit, originalCanvas);
-    originalCanvas->moveToWindow(newEditor);
+    newEditor->pd->patches.add(originalCanvas->patch);
+    auto newPatch = newEditor->pd->patches.getLast();
+    auto* newCanvas = newEditor->canvases.add(new Canvas(newEditor, *newPatch, nullptr));
+    newEditor->addTab(newCanvas);
+    newCanvas->jumpToOrigin();
 
     newWindow->setTopLeftPosition(Desktop::getInstance().getMousePosition() - Point<int>(500, 60));
     newWindow->toFront(true);
+    
+    closeTab(originalCanvas);
+    nvgSurface.sendContextDeleteMessage();
 }
 
 bool PluginEditor::isActiveWindow()

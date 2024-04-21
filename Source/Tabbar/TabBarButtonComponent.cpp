@@ -257,6 +257,7 @@ void TabBarButtonComponent::mouseDown(MouseEvent const& e)
                     auto* patch = new pd::Patch(pd::WeakReference(parent, pd), pd, false);
                     auto* newCanvas = editor->canvases.add(new Canvas(editor, patch));
                     editor->addTab(newCanvas);
+                    newCanvas->jumpToOrigin();
                     newCanvas->getTabbar()->setCurrentTabIndex(newCanvas->getTabIndex());
                 });
             }

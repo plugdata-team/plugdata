@@ -263,19 +263,26 @@ void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
     } else {
         auto sourceTabButton = static_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get());
         int sourceTabIndex = sourceTabButton->getIndex();
-        auto sourceTabContent = sourceTabButton->getTabComponent();
+        auto sourceTabContent = SafePointer(sourceTabButton->getTabComponent());
         int sourceNumTabs = sourceTabContent->getNumVisibleTabs();
         bool otherWindow = sourceTabContent->getTopLevelComponent() != getTopLevelComponent();
         auto ghostTabBounds = ghostTab->getBounds();
 
+        auto* tabCanvas = sourceTabContent->getCanvas(sourceTabIndex);
+        
+        auto* newEditor = owner.getEditor();
+        newEditor->pd->patches.add(tabCanvas->patch);
+        auto newPatch = newEditor->pd->patches.getLast();
+        auto* newCanvas = newEditor->canvases.add(new Canvas(newEditor, *newPatch, nullptr));
+        
         inOtherSplit = false;
         // we remove the ghost tab, which is NOT a proper tab, (it only a tab, and doesn't have a viewport)
         owner.removeTab(ghostTabIdx);
-        auto* tabCanvas = sourceTabContent->getCanvas(sourceTabIndex);
+
         auto tabTitle = tabCanvas->patch.getTitle();
         // we then re-add the ghost tab, but this time we add it from the owner (tabComponent)
         // which allows us to inject the viewport
-        owner.addTab(tabTitle, sourceTabContent->getCanvas(sourceTabIndex)->viewport.get(), ghostTabIdx);
+        owner.addTab(tabTitle, newCanvas->viewport.get(), ghostTabIdx);
         owner.setCurrentTabIndex(ghostTabIdx);
 
         // we need to give the ghost tab the new tab button, as the old one will be deleted before
@@ -284,19 +291,20 @@ void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
         auto newTab = owner.tabs->getTabButton(ghostTabIdx);
         newTab->setBounds(ghostTabBounds);
         ghostTab->setTabButtonToGhost(newTab);
-
-        tabCanvas->moveToWindow(owner.getEditor()); // In case it got dragged into a new window
-
-        sourceTabContent->removeTab(sourceTabIndex);
-        auto sourceCurrentIndex = sourceTabIndex > (sourceTabContent->getNumVisibleTabs() - 1) ? sourceTabIndex - 1 : sourceTabIndex;
-        sourceTabContent->setCurrentTabIndex(sourceCurrentIndex);
+                
+        if(sourceTabContent) {
+            sourceTabContent->removeTab(sourceTabIndex);
+            auto sourceCurrentIndex = sourceTabIndex > (sourceTabContent->getNumVisibleTabs() - 1) ? sourceTabIndex - 1 : sourceTabIndex;
+            sourceTabContent->setCurrentTabIndex(sourceCurrentIndex);
+        }
+        tabCanvas->editor->splitView.closeEmptySplits();
 
         if (sourceNumTabs < 2 && !otherWindow) {
             // we don't animate the ghostTab moving into position, as the geometry of the splits is changing
             ghostTab->setVisible(false);
             ghostTabAnimator.cancelAllAnimations(true);
 
-            owner.editor->splitView.removeSplit(sourceTabContent);
+            if(sourceTabContent) owner.editor->splitView.removeSplit(sourceTabContent);
             for (auto* split : owner.editor->splitView.splits) {
                 split->setBoundsWithFactors(owner.editor->splitView.getLocalBounds());
             }

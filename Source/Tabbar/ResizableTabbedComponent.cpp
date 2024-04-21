@@ -162,10 +162,14 @@ void ResizableTabbedComponent::createNewSplit(DropZones activeZone, Canvas* canv
     editor->splitView.addSplit(newSplit);
     editor->splitView.addResizer(resizer);
 
+    editor->pd->patches.add(canvas->patch);
+    auto newPatch = editor->pd->patches.getLast();
+    auto* newCanvas = editor->canvases.add(new Canvas(editor, *newPatch, nullptr));
+    
     auto tabTitle = canvas->patch.getTitle();
-    newSplit->getTabComponent()->addTab(tabTitle, canvas->viewport.get(), 0);
+    newSplit->getTabComponent()->addTab(tabTitle, newCanvas->viewport.get(), 0);
     canvas->viewport->setVisible(true);
-    canvas->moveToWindow(editor);
+    newCanvas->jumpToOrigin();
 
     newSplit->resized();
     newSplit->getTabComponent()->resized();
@@ -176,20 +180,31 @@ void ResizableTabbedComponent::moveTabToNewSplit(SourceDetails const& dragSource
     // get the dragging tab
     auto* sourceTabButton = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get());
     int sourceTabIndex = sourceTabButton->getIndex();
-    auto sourceTabContent = sourceTabButton->getTabComponent();
+    auto* sourceTabContent = sourceTabButton->getTabComponent();
     int sourceNumTabs = sourceTabContent->getNumTabs();
     bool shouldDelete = (sourceNumTabs - 1) == 0;
     bool dropZoneCentre = (activeZone == DropZones::Centre) ? true : false;
-
+    auto* tabCanvas = sourceTabContent->getCanvas(sourceTabIndex);
+        
     if (dropZoneCentre) {
-        auto* tabCanvas = sourceTabContent->getCanvas(sourceTabIndex);
         auto tabTitle = tabCanvas->patch.getTitle();
         auto newTabIdx = tabComponent->getNumTabs();
-        tabComponent->addTab(tabTitle, sourceTabContent->getCanvas(sourceTabIndex)->viewport.get(), newTabIdx);
-        tabComponent->setCurrentTabIndex(newTabIdx);
+        
+        if(tabCanvas->editor != editor)
+        {
+            editor->pd->patches.add(tabCanvas->patch);
+            auto newPatch = editor->pd->patches.getLast();
+            auto* newCanvas = editor->canvases.add(new Canvas(editor, *newPatch, nullptr));
+            editor->addTab(newCanvas);
+            newCanvas->jumpToOrigin();
+        }
+        else {
+            tabComponent->addTab(tabTitle, sourceTabContent->getCanvas(sourceTabIndex)->viewport.get(), newTabIdx);
+            tabComponent->setCurrentTabIndex(newTabIdx);
+        }
 
         editor->splitView.setFocus(this);
-        tabCanvas->moveToWindow(editor);
+
         sourceTabContent->removeTab(sourceTabIndex);
         sourceTabContent->setCurrentTabIndex(sourceTabIndex > (sourceTabContent->getNumTabs() - 1) ? sourceTabIndex - 1 : sourceTabIndex);
         for (auto* split : editor->splitView.splits) {
@@ -198,15 +213,17 @@ void ResizableTabbedComponent::moveTabToNewSplit(SourceDetails const& dragSource
     } else if (activeZone == DropZones::Left || activeZone == DropZones::Right) {
         createNewSplit(static_cast<DropZones>(activeZone), sourceTabContent->getCanvas(sourceTabIndex));
     }
-
+    
     if (shouldDelete) {
-        editor->splitView.setFocus(this);
-        editor->splitView.removeSplit(sourceTabContent);
+        tabCanvas->editor->splitView.setFocus(this);
+        tabCanvas->editor->splitView.removeSplit(sourceTabContent);
         for (auto* split : editor->splitView.splits) {
             split->setBoundsWithFactors(getParentComponent()->getLocalBounds());
         }
+        tabCanvas->editor->closeTab(tabCanvas);
+        tabCanvas->editor->splitView.resized();
     }
-
+        
     // set all current canvas viewports to visible, (if they already are this shouldn't do anything)
     for (auto* split : editor->splitView.splits) {
         if (auto tabComponent = split->getTabComponent()) {

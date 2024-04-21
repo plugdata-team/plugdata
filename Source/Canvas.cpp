@@ -862,9 +862,9 @@ void Canvas::altKeyChanged(bool isHeld)
 void Canvas::moveToWindow(PluginEditor* newEditor)
 {
     if (newEditor != editor) {
+        newEditor->nvgSurface.sendContextDeleteMessage();
         editor->canvases.removeAndReturn(editor->canvases.indexOf(this));
         newEditor->canvases.add(this);
-        newEditor->nvgSurface.sendContextDeleteMessage();
         editor = newEditor;
     }
 }
