@@ -540,12 +540,6 @@ void ZoomableDragAndDropContainer::startDragging(var const& sourceDescription,
     if (isAlreadyDragging(sourceComponent))
         return;
 
-    if (!ProjectInfo::canUseSemiTransparentWindows()) {
-        // If window transparency isn't supported, we should add it to the source component instead of to desktop
-        // This can be accomplished by disabling cross-window dragging
-        allowDraggingToExternalWindows = false;
-    }
-
     auto* draggingSource = getMouseInputSourceForDrag(sourceComponent, inputSourceCausingDrag);
 
     if (draggingSource == nullptr || !draggingSource->isDragging()) {
@@ -598,7 +592,7 @@ void ZoomableDragAndDropContainer::startDragging(var const& sourceDescription,
     auto* dragImageComponent = dragImageComponents.add(new DragImageComponent(imageToUse(dragImage).image, imageToUse(invalidImage).image, sourceDescription, sourceComponent,
         draggingSource, *this, imageToUse(dragImage).offset.roundToInt(), canZoom));
 
-    if (allowDraggingToExternalWindows && !Desktop::canUseSemiTransparentWindows()) {
+    if (!Desktop::canUseSemiTransparentWindows()) {
         dragImageComponent->setOpaque(true);
     }
     
