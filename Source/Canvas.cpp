@@ -859,16 +859,6 @@ void Canvas::altKeyChanged(bool isHeld)
     SettingsFile::getInstance()->getValueTree().getChildWithName("Overlays").setProperty("alt_mode", isHeld, nullptr);
 }
 
-void Canvas::moveToWindow(PluginEditor* newEditor)
-{
-    if (newEditor != editor) {
-        newEditor->nvgSurface.sendContextDeleteMessage();
-        editor->canvases.removeAndReturn(editor->canvases.indexOf(this));
-        newEditor->canvases.add(this);
-        editor = newEditor;
-    }
-}
-
 void Canvas::mouseDown(MouseEvent const& e)
 {
     PopupMenu::dismissAllActiveMenus();

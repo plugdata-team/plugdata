@@ -291,13 +291,13 @@ void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
         auto newTab = owner.tabs->getTabButton(ghostTabIdx);
         newTab->setBounds(ghostTabBounds);
         ghostTab->setTabButtonToGhost(newTab);
-                
+        
+        tabCanvas->editor->closeTab(tabCanvas);
+        
         if(sourceTabContent) {
-            sourceTabContent->removeTab(sourceTabIndex);
             auto sourceCurrentIndex = sourceTabIndex > (sourceTabContent->getNumVisibleTabs() - 1) ? sourceTabIndex - 1 : sourceTabIndex;
             sourceTabContent->setCurrentTabIndex(sourceCurrentIndex);
         }
-        tabCanvas->editor->splitView.closeEmptySplits();
 
         if (sourceNumTabs < 2 && !otherWindow) {
             // we don't animate the ghostTab moving into position, as the geometry of the splits is changing

@@ -101,8 +101,6 @@ public:
     void performSynchronise();
     void handleAsyncUpdate() override;
 
-    void moveToWindow(PluginEditor* newWindow);
-    
     void lookAndFeelChanged() override;
 
     void updateDrawables();

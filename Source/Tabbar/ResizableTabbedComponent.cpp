@@ -217,12 +217,13 @@ void ResizableTabbedComponent::moveTabToNewSplit(SourceDetails const& dragSource
     if (shouldDelete) {
         tabCanvas->editor->splitView.setFocus(this);
         tabCanvas->editor->splitView.removeSplit(sourceTabContent);
+        tabCanvas->editor->splitView.resized();
         for (auto* split : editor->splitView.splits) {
             split->setBoundsWithFactors(getParentComponent()->getLocalBounds());
         }
-        tabCanvas->editor->closeTab(tabCanvas);
-        tabCanvas->editor->splitView.resized();
     }
+    
+    tabCanvas->editor->canvases.removeObject(tabCanvas);
         
     // set all current canvas viewports to visible, (if they already are this shouldn't do anything)
     for (auto* split : editor->splitView.splits) {
