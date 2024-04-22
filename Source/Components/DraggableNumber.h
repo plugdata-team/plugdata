@@ -288,6 +288,7 @@ public:
     void render(NVGcontext* nvg)
     {
         if(!nvgCtx || nvgCtx->getContext() != nvg) nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
+        nvgCtx->setPhysicalPixelScaleFactor(2.0f);
         Graphics g(*nvgCtx);
         {
             paintEntireComponent(g, true);
