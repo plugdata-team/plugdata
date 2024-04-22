@@ -410,7 +410,7 @@ void NanoVGGraphicsContext::setFont (const juce::Font& f)
     
     nvgFontFace (nvg, name.toUTF8());
     nvgFontSize (nvg, font.getHeight()  * 0.86f);
-    //nvgTextLetterSpacing(nvg, -0.275f);
+    nvgTextLetterSpacing(nvg, -0.275f);
 }
 
 const juce::Font& NanoVGGraphicsContext::getFont()

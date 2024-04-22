@@ -31,6 +31,7 @@ class LuaObject : public ObjectBase, public Timer, public NVGContextListener {
     std::unique_ptr<Dialog> saveDialog;
     
     NVGframebuffer* framebuffer = nullptr;
+    bool imageNeedsRefresh = false;
     int framebufferWidth = 0, framebufferHeight = 0;
     
     struct LuaGuiMessage {
@@ -122,6 +123,7 @@ public:
     void nvgContextDeleted(NVGcontext* nvg) override {
         if(framebuffer) nvgDeleteFramebuffer(framebuffer);
         framebuffer = nullptr;
+        imageNeedsRefresh = true;
     };
     
     Rectangle<int> getPdBounds() override
@@ -508,6 +510,12 @@ public:
     
     void timerCallback() override
     {
+        if(imageNeedsRefresh && cnv->editor->nvgSurface.getRawContext())
+        {
+            sendRepaintMessage();
+            imageNeedsRefresh = false;
+        }
+        
         LuaGuiMessage guiMessage;
         while(guiMessageQueue.try_dequeue(guiMessage))
         {
