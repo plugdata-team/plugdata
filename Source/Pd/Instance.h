@@ -259,6 +259,8 @@ public:
 
     virtual void performParameterChange(int type, String const& name, float value) { }
 
+    virtual void performLatencyCompensationChange(float value) { }
+
     // JYG added this
     virtual void fillDataBuffer(std::vector<pd::Atom> const& list) { }
     virtual void parseDataBuffer(XmlElement const& xml) { }
@@ -300,6 +302,7 @@ public:
     void* atoms = nullptr;
     void* messageReceiver = nullptr;
     void* parameterReceiver = nullptr;
+    void* pluginLatencyReceiver = nullptr;
     void* parameterChangeReceiver = nullptr;
     void* midiReceiver = nullptr;
     void* printReceiver = nullptr;

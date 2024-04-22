@@ -142,6 +142,7 @@ Instance::~Instance()
     pd_free(static_cast<t_pd*>(midiReceiver));
     pd_free(static_cast<t_pd*>(printReceiver));
     pd_free(static_cast<t_pd*>(parameterReceiver));
+    pd_free(static_cast<t_pd*>(pluginLatencyReceiver));
     pd_free(static_cast<t_pd*>(parameterChangeReceiver));
 
     // JYG added this
@@ -194,6 +195,9 @@ void Instance::initialisePd(String& pdlua_version)
 
     parameterReceiver = pd::Setup::createReceiver(this, "param", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
+
+    pluginLatencyReceiver = pd::Setup::createReceiver(this, "latency_compensation", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
+                                                  reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
     // JYG added This
     dataBufferReceiver = pd::Setup::createReceiver(this, "to_daw_databuffer", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
@@ -463,26 +467,44 @@ void Instance::sendMessage(char const* receiver, char const* msg, std::vector<At
     sendTypedMessage(generateSymbol(receiver)->s_thing, msg, list);
 }
 
-void Instance::processMessage(Message mess)
-{
-    if (mess.destination == "pd") {
-        receiveSysMessage(mess.selector, mess.list);
-    }
-    if (mess.destination == "param" && mess.list.size() >= 2) {
-        if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
-            return;
-        auto name = mess.list[0].toString();
-        float value = mess.list[1].getFloat();
-        performParameterChange(0, name, value);
-    } else if (mess.destination == "param_change" && mess.list.size() >= 2) {
-        if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
-            return;
-        auto name = mess.list[0].toString();
-        int state = mess.list[1].getFloat() != 0;
-        performParameterChange(1, name, state);
-        // JYG added This
-    } else if (mess.destination == "to_daw_databuffer") {
-        fillDataBuffer(mess.list);
+void Instance::processMessage(Message mess) {
+    const auto dest = hash(mess.destination);
+
+    switch (dest) {
+        case hash("pd"):
+            receiveSysMessage(mess.selector, mess.list);
+            break;
+        case hash("latency_compensation"):
+            if (mess.list.size() == 1) {
+                if (!mess.list[0].isFloat())
+                    return;
+                performLatencyCompensationChange(mess.list[0].getFloat());
+            }
+            break;
+        case hash("param"):
+            if (mess.list.size() >= 2) {
+                if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
+                    return;
+                auto name = mess.list[0].toString();
+                float value = mess.list[1].getFloat();
+                performParameterChange(0, name, value);
+            }
+            break;
+        case hash("param_change"):
+            if (mess.list.size() >= 2) {
+                if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
+                    return;
+                auto name = mess.list[0].toString();
+                int state = mess.list[1].getFloat() != 0;
+                performParameterChange(1, name, state);
+            }
+            break;
+            // JYG added this
+        case hash("to_daw_databuffer"):
+            fillDataBuffer(mess.list);
+            break;
+        default:
+            break;
     }
 }
 

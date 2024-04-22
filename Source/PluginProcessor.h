@@ -27,7 +27,7 @@ class StatusbarSource;
 struct PlugDataLook;
 class PluginEditor;
 class ConnectionMessageDisplay;
-class PluginProcessor : public AudioProcessor
+class PluginProcessor : public AudioProcessor, public AsyncUpdater
     , public pd::Instance, public SettingsFileListener {
 public:
     PluginProcessor();
@@ -115,6 +115,8 @@ public:
     Array<PluginEditor*> getEditors() const;
 
     void performParameterChange(int type, String const& name, float value) override;
+
+    void performLatencyCompensationChange(float value) override;
         
     // Jyg added this
     void fillDataBuffer(std::vector<pd::Atom> const& list) override;
@@ -172,6 +174,9 @@ public:
     Component::SafePointer<ConnectionMessageDisplay> connectionListener;
 
 private:
+    void handleAsyncUpdate() override;
+    int customLatencySamples = 0;
+
     SmoothedValue<float, ValueSmoothingTypes::Linear> smoothedGain;
 
     int audioAdvancement = 0;
