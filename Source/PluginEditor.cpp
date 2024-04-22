@@ -959,7 +959,7 @@ void PluginEditor::closeTab(Canvas* cnv)
         tabbar->setCurrentTabIndex(newTabIdx);
     }
 
-    pd->patches.removeAllInstancesOf(patch);
+    pd->patches.removeFirstMatchingValue(patch);
 
     for (auto split : splitView.splits) {
         auto tabbar = split->getTabComponent();

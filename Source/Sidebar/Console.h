@@ -281,6 +281,7 @@ public:
             , viewport(v)
             , pd(instance)
         {
+            setAccessible(false);
             setWantsKeyboardFocus(true);
             repaint();
         }
