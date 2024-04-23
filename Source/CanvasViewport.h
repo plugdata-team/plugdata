@@ -353,7 +353,9 @@ public:
 
     void mouseMagnify(MouseEvent const& e, float scrollFactor) override
     {
-        if (!cnv)
+        // Check event time to filter out duplicate events
+        // This is a workaround for a bug in JUCE that can cause mouse events to be duplicated when an object has a MouseListener on its parent
+        if (e.eventTime == lastZoomTime || !cnv)
             return;
 
         auto& scale = cnv->zoomScale;
@@ -386,6 +388,7 @@ public:
         editor->setZoomLabelLevel(newScaleFactor);
 
         scale = newScaleFactor;
+        lastZoomTime = e.eventTime;
     }
 
     void adjustScrollbarBounds()
@@ -484,6 +487,7 @@ public:
 private:
     
     Time lastScrollTime;
+    Time lastZoomTime;
     PluginEditor* editor;
     Canvas* cnv;
     Rectangle<int> previousBounds;
