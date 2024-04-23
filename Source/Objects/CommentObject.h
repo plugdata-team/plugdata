@@ -190,7 +190,7 @@ public:
             objText = cnv->suggestor->getText();
         }
         
-        auto colour = object->findColour(PlugDataColour::canvasTextColourId);
+        auto colour = object->findColour(PlugDataColour::commentTextColourId);
         int textWidth = getTextSize().getWidth() - 8;
         if(textRenderer.prepareLayout(objText, Fonts::getDefaultFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty)))
         {
