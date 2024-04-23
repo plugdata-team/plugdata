@@ -291,8 +291,6 @@ public:
         , editor(parent)
         , cnv(cnv)
     {
-        lastCanvasZoom = getValue<float>(cnv->zoomScale);
-        
         setScrollBarsShown(false, false);
 
         setPositioner(new ViewportPositioner(*this));
@@ -360,12 +358,34 @@ public:
 
         auto& scale = cnv->zoomScale;
 
-        auto value = getValue<float>(scale);
+        auto newScaleFactor = getValue<float>(scale);
 
         // Apply and limit zoom
-        value = std::clamp(value * scrollFactor, 0.25f, 3.0f);
+        newScaleFactor = std::clamp(newScaleFactor * scrollFactor, 0.25f, 3.0f);
+        
+        if (approximatelyEqual(newScaleFactor, 0.0f)) {
+            newScaleFactor = 1.0f;
+        }
+        
+        // Get floating point mouse position relative to screen
+        auto mousePosition = Desktop::getInstance().getMainMouseSource().getScreenPosition();
+        // Get mouse position relative to canvas
+        auto oldPosition = cnv->getLocalPoint(nullptr, mousePosition);
+        // Apply transform and make sure viewport bounds get updated
+        cnv->setTransform(AffineTransform().scaled(newScaleFactor));
+        // After zooming, get mouse position relative to canvas again
+        auto newPosition = cnv->getLocalPoint(nullptr, mousePosition);
+        // Calculate offset to keep our mouse position the same as before this zoom action
+        auto offset = newPosition - oldPosition;
+        cnv->setTopLeftPosition(cnv->getPosition() + offset.roundToInt());
+        
+        // This is needed to make sure the viewport the current canvas bounds to the lastVisibleArea variable
+        // Without this, future calls to getViewPosition() will give wrong results
+        resized();
 
-        scale = value;
+        editor->setZoomLabelLevel(newScaleFactor);
+
+        scale = newScaleFactor;
     }
 
     void adjustScrollbarBounds()
@@ -472,5 +492,4 @@ private:
     ViewportScrollBar hbar = ViewportScrollBar(false, this);
 
     bool forceRepaintWhileScrolling = false;
-    float lastCanvasZoom = 1.0f;
 };

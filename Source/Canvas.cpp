@@ -316,18 +316,16 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     
     if(hasViewport)  {
         nvgTranslate(nvg, -viewport->getViewPositionX(), -viewport->getViewPositionY());
-        invalidRegion = invalidRegion.translated(viewport->getViewPositionX(), viewport->getViewPositionY());
         nvgScale(nvg, zoom, zoom);
+        
+        invalidRegion = invalidRegion.translated(viewport->getViewPositionX(), viewport->getViewPositionY());
         invalidRegion /= zoom;
-    }
-    
-    if(hasViewport) {
+        
         nvgBeginPath(nvg);
         nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
         nvgFillColor(nvg, backgroundColour);
         nvgFill(nvg);
     }
-    
     
     if(hasViewport && !getValue<bool>(locked)) {
         auto feather = getRenderScale() > 1.0f ? 0.25f : 0.75f;
@@ -346,8 +344,6 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             auto scaledDotSize = jmap(zoom, 1.0f, 0.25f, 1.0f, 4.0f);
             if (zoom < 0.3f && getRenderScale() <= 1.0f)
                 scaledDotSize = jmap(zoom, 0.3f, 0.25f, 4.0f, 8.0f);
-            //if (getRenderScale() <= 1.0f && zoom < 0.5f)
-            //    scaledDotSize *= 1.5f;
 
             for(int i = 0; i < 4; i++)
             {
@@ -1895,37 +1891,7 @@ void Canvas::valueChanged(Value& v)
 {
     // Update zoom
     if (v.refersToSameSourceAs(zoomScale)) {
-
-        auto newScaleFactor = getValue<float>(v);
-
-        if (approximatelyEqual(newScaleFactor, 0.0f)) {
-            newScaleFactor = 1.0f;
-            zoomScale = 1.0f;
-        }
-
         hideSuggestions();
-
-        if (!viewport)
-            return;
-
-        // Get floating point mouse position relative to screen
-        auto mousePosition = Desktop::getInstance().getMainMouseSource().getScreenPosition();
-        // Get mouse position relative to canvas
-        auto oldPosition = getLocalPoint(nullptr, mousePosition);
-        // Apply transform and make sure viewport bounds get updated
-        setTransform(AffineTransform().scaled(newScaleFactor));
-        // After zooming, get mouse position relative to canvas again
-        auto newPosition = getLocalPoint(nullptr, mousePosition);
-        // Calculate offset to keep our mouse position the same as before this zoom action
-        auto offset = newPosition - oldPosition;
-        setTopLeftPosition(getPosition() + offset.roundToInt());
-        // This is needed to make sure the viewport the current canvas bounds to the lastVisibleArea variable
-        // Without this, future calls to getViewPosition() will give wrong results
-        viewport->resized();
-
-        // set and trigger the zoom labsetValueExcludingListenerel popup in the bottom left corner
-        // TODO: move this to viewport, and have one per viewport?
-        editor->setZoomLabelLevel(newScaleFactor);
     } else if (v.refersToSameSourceAs(patchWidth)) {
         // limit canvas width to smallest object (11px)
         patchWidth = jmax(11, getValue<int>(patchWidth));
