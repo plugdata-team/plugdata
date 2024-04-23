@@ -1667,21 +1667,20 @@ bool PluginEditor::perform(InvocationInfo const& info)
         }
 
         cnv->patch.endUndoSequence("ConnectionPathFind");
-
         return true;
     }
     case CommandIDs::ZoomIn: {
-        auto& scale = getCurrentCanvas()->zoomScale;
-        float newScale = getValue<float>(scale) + 0.1f;
-        scale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.25f, 3.0f) * 10.))) / 10.;
-
+        auto* viewport = dynamic_cast<CanvasViewport*>(cnv->viewport.get());
+        float newScale = getValue<float>(getCurrentCanvas()->zoomScale) + 0.1f;
+        newScale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.25f, 3.0f) * 10.))) / 10.;
+        viewport->magnify(newScale);
         return true;
     }
     case CommandIDs::ZoomOut: {
-        auto& scale = getCurrentCanvas()->zoomScale;
-        float newScale = getValue<float>(scale) - 0.1f;
-        scale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.25f, 3.0f) * 10.))) / 10.;
-
+        auto* viewport = dynamic_cast<CanvasViewport*>(cnv->viewport.get());
+        float newScale = getValue<float>(getCurrentCanvas()->zoomScale) - 0.1f;
+        newScale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.25f, 3.0f) * 10.))) / 10.;
+        viewport->magnify(newScale);
         return true;
     }
     case CommandIDs::ZoomNormal: {
@@ -1708,7 +1707,6 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::NextTab: {
-
         auto* tabbar = cnv->getTabbar();
 
         int currentIdx = cnv->getTabIndex() + 1;
@@ -1767,7 +1765,6 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::ToggleDSP: {
-        
         if(pd_getdspstate())
         {
             pd->releaseDSP();
@@ -1779,7 +1776,6 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     default: {
-
         cnv = getCurrentCanvas();
 
         // This should close any opened editors before creating a new object

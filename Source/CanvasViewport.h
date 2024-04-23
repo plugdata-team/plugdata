@@ -358,13 +358,15 @@ public:
         if (e.eventTime == lastZoomTime || !cnv)
             return;
 
-        auto& scale = cnv->zoomScale;
-
-        auto newScaleFactor = getValue<float>(scale);
-
         // Apply and limit zoom
-        newScaleFactor = std::clamp(newScaleFactor * scrollFactor, 0.25f, 3.0f);
+        magnify(std::clamp(getValue<float>(cnv->zoomScale) * scrollFactor, 0.25f, 3.0f));
         
+        lastZoomTime = e.eventTime;
+    }
+    
+    
+    void magnify(float newScaleFactor)
+    {
         if (approximatelyEqual(newScaleFactor, 0.0f)) {
             newScaleFactor = 1.0f;
         }
@@ -387,8 +389,7 @@ public:
 
         editor->setZoomLabelLevel(newScaleFactor);
 
-        scale = newScaleFactor;
-        lastZoomTime = e.eventTime;
+        cnv->zoomScale = newScaleFactor;
     }
 
     void adjustScrollbarBounds()
