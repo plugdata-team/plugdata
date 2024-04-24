@@ -1635,6 +1635,9 @@ void PluginProcessor::handleAsyncUpdate()
 void PluginProcessor::performLatencyCompensationChange(float value)
 {
     customLatencySamples = floor(value);
+    for (auto& editor : getEditors()) {
+        editor->statusbar->setLatencyDisplay(customLatencySamples);
+    }
     triggerAsyncUpdate();
 }
 
