@@ -6,9 +6,6 @@
 
 // Inherit to customise drawing
 class MIDIKeyboard : public MidiKeyboardState, public MidiKeyboardComponent {
-
-    Object* object;
-
     bool toggleMode = false;
     int lastKey = -1;
 
@@ -20,7 +17,6 @@ public:
     
     MIDIKeyboard(Object* parent)
         : MidiKeyboardComponent(*this, MidiKeyboardComponent::horizontalKeyboard)
-        , object(parent)
     {
         // Make sure nothing is drawn outside of our custom draw functions
         setColour(MidiKeyboardComponent::whiteNoteColourId, Colours::transparentBlack);

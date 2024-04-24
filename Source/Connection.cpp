@@ -1004,11 +1004,11 @@ void Connection::updatePath()
     previousPStart = pstart;
     
     clipRegion = RectangleList<int>();
-    auto pathIter = PathFlatteningIterator(toDraw);
+    auto pathIter = PathFlatteningIterator(toDraw, AffineTransform(), 12.0f);
     while(pathIter.next()) // skip first item, since only the x2/y2 coords of that one are valid (and they will be the x1/y1 of the next item)
     {
         auto bounds = Rectangle<int>(Point<int>(pathIter.x1, pathIter.y1), Point<int>(pathIter.x2, pathIter.y2));
-        clipRegion.add(bounds.expanded(2));
+        clipRegion.add(bounds.expanded(3));
     }
 
     startReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(8.5f));
@@ -1016,12 +1016,15 @@ void Connection::updatePath()
     
     clipRegion.add(startReconnectHandle.toNearestIntEdges().expanded(4));
     clipRegion.add(endReconnectHandle.toNearestIntEdges().expanded(4));
-
+    
     cachedIsValid = false;
 }
 
 bool Connection::intersectsRectangle(Rectangle<int> invalidatedArea)
 {
+    if(invalidatedArea.contains(getBounds()))
+        return true;
+    
     return clipRegion.intersectsRectangle(invalidatedArea);
 }
 

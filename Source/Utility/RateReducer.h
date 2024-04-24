@@ -12,6 +12,7 @@ struct RateReducer : public Timer {
     explicit RateReducer(int rate)
         : timerHz(rate)
     {
+        ignoreUnused(timerHz);
     }
 
     bool tooFast()
