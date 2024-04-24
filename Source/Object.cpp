@@ -1161,53 +1161,45 @@ void Object::mouseDrag(MouseEvent const& e)
 
 void Object::updateFramebuffer(NVGcontext* nvg)
 {
-    if(shouldRenderToFramebuffer()) {
-        auto b = getLocalBounds();
-        bool boundsChanged = b.getWidth() != fbWidth || b.getHeight() != fbHeight;
-        if(fbDirty || boundsChanged)
+    auto b = getLocalBounds();
+    bool boundsChanged = b.getWidth() != fbWidth || b.getHeight() != fbHeight;
+    if(fbDirty || boundsChanged)
+    {
+        auto maxScale = 3.0f;
+        int scaledWidth = b.getWidth() * maxScale * cnv->getRenderScale();
+        int scaledHeight = b.getHeight() * maxScale * cnv->getRenderScale();
+        
+        if(!fb || boundsChanged)
         {
-            auto maxScale = 3.0f;
-            int scaledWidth = b.getWidth() * maxScale * cnv->getRenderScale();
-            int scaledHeight = b.getHeight() * maxScale * cnv->getRenderScale();
+            fbWidth = b.getWidth();
+            fbHeight = b.getHeight();
             
-            if(!fb || boundsChanged)
-            {
-                fbWidth = b.getWidth();
-                fbHeight = b.getHeight();
-                
-                if(fb) nvgDeleteFramebuffer(fb);
-                fb = nvgCreateFramebuffer(nvg, scaledWidth, scaledHeight, NVG_IMAGE_PREMULTIPLIED);
-            }
-            
-            nvgBindFramebuffer(fb);
-            nvgViewport(0, 0, scaledWidth, scaledHeight);
-            nvgClear(nvg);
-
-            nvgBeginFrame(nvg, b.getWidth() * maxScale, b.getHeight() * maxScale, cnv->getRenderScale());
-            nvgScale(nvg, maxScale, maxScale);
-            nvgScissor (nvg, 0, 0, b.getWidth(), b.getHeight());
-            
-            performRender(nvg);
-            
-#if ENABLE_OBJECT_FB_DEBUGGING
-            static Random rng;
-            nvgBeginPath(nvg);
-            nvgFillColor(nvg, nvgRGBA(rng.nextInt(255), rng.nextInt(255), rng.nextInt(255), 0x50));
-            nvgRect(nvg, 0, 0, b.getWidth(), b.getHeight());
-            nvgFill(nvg);
-#endif
-            nvgEndFrame(nvg);
-            nvgBindFramebuffer(nullptr);
-            fbDirty = false;
-            
+            if(fb) nvgDeleteFramebuffer(fb);
+            fb = nvgCreateFramebuffer(nvg, scaledWidth, scaledHeight, NVG_IMAGE_PREMULTIPLIED);
         }
-    }
-}
+        
+        nvgBindFramebuffer(fb);
+        nvgViewport(0, 0, scaledWidth, scaledHeight);
+        nvgClear(nvg);
 
-bool Object::shouldRenderToFramebuffer()
-{
-    // We render to framebuffer if we are scrolling/zooming
-    return cnv->isScrolling;
+        nvgBeginFrame(nvg, b.getWidth() * maxScale, b.getHeight() * maxScale, cnv->getRenderScale());
+        nvgScale(nvg, maxScale, maxScale);
+        nvgScissor (nvg, 0, 0, b.getWidth(), b.getHeight());
+        
+        performRender(nvg);
+        
+#if ENABLE_OBJECT_FB_DEBUGGING
+        static Random rng;
+        nvgBeginPath(nvg);
+        nvgFillColor(nvg, nvgRGBA(rng.nextInt(255), rng.nextInt(255), rng.nextInt(255), 0x50));
+        nvgRect(nvg, 0, 0, b.getWidth(), b.getHeight());
+        nvgFill(nvg);
+#endif
+        nvgEndFrame(nvg);
+        nvgBindFramebuffer(nullptr);
+        fbDirty = false;
+        
+    }
 }
 
 void Object::render(NVGcontext* nvg)
@@ -1217,11 +1209,11 @@ void Object::render(NVGcontext* nvg)
         if(activityOverlayImage) nvgDeleteImage(nvg, activityOverlayImage);
         Path objectShadow;
         objectShadow.addRoundedRectangle(getLocalBounds().reduced(Object::margin - 1), Corners::objectCornerRadius);
-        activityOverlayImage = StackShadow::createActivityDropShadowImage(nvg, getLocalBounds(), objectShadow, findColour(PlugDataColour::dataColourId), 5.5f, { 0, 0 }, 0, gui && gui->getCanvas());
+        activityOverlayImage = StackShadow::createActivityDropShadowImage(nvg, getLocalBounds(), objectShadow, getLookAndFeel().findColour(PlugDataColour::dataColourId), 5.5f, { 0, 0 }, 0, gui && gui->getCanvas());
         activityOverlayDirty = false;
     }
     
-    if(fb && shouldRenderToFramebuffer())
+    if(fb && cnv->isScrolling)
     {
         if(fbDirty) { // If framebuffer is dirty, draw normally now and draw from buffer again on next render
             performRender(nvg);
@@ -1243,7 +1235,7 @@ void Object::performRender(NVGcontext* nvg)
 {
     auto lb = getLocalBounds();
     auto b = lb.reduced(margin);
-    auto selectedOutlineColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
+    auto selectedOutlineColour = convertColour(getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
 
     if (selectedFlag) {
         auto& resizeHandleImage = cnv->resizeHandleImage;
@@ -1275,7 +1267,7 @@ void Object::performRender(NVGcontext* nvg)
     
     if (gui && gui->isTransparent() && !getValue<bool>(locked) && !cnv->isGraph) {
         nvgBeginPath(nvg);
-        nvgFillColor(nvg, convertColour(findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.35f).withAlpha(0.1f)));
+        nvgFillColor(nvg, convertColour(getLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.35f).withAlpha(0.1f)));
         nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
         nvgFill(nvg);
     }
@@ -1289,8 +1281,8 @@ void Object::performRender(NVGcontext* nvg)
     
     if(newObjectEditor)
     {
-        auto backgroundColour = convertColour(findColour(PlugDataColour::textObjectBackgroundColourId));
-        auto outlineColour = convertColour(findColour(PlugDataColour::objectOutlineColourId));
+        auto backgroundColour = convertColour(getLookAndFeel().findColour(PlugDataColour::textObjectBackgroundColourId));
+        auto outlineColour = convertColour(getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
         
         nvgBeginPath(nvg);
         nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
@@ -1309,11 +1301,11 @@ void Object::performRender(NVGcontext* nvg)
         auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
         float fakeInletBounds[4] = {16.0f, 4.0f, 8.0f, 8.0f};
         nvgBeginPath(nvg);
-        nvgFillColor(nvg, convertColour(findColour(outlet->isSignal ? PlugDataColour::signalColourId : PlugDataColour::dataColourId).brighter()));
+        nvgFillColor(nvg, convertColour(getLookAndFeel().findColour(outlet->isSignal ? PlugDataColour::signalColourId : PlugDataColour::dataColourId).brighter()));
         nvgEllipse(nvg, fakeInletBounds[0] + fakeInletBounds[2] * 0.5f, fakeInletBounds[1] + fakeInletBounds[3] * 0.5f, fakeInletBounds[2] * 0.5f, fakeInletBounds[3] * 0.5f);
         nvgFill(nvg);
         
-        nvgStrokeColor(nvg, convertColour(findColour(PlugDataColour::objectOutlineColourId)));
+        nvgStrokeColor(nvg, convertColour(getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId)));
         nvgStrokeWidth(nvg, 1.0f);
         nvgStroke(nvg);
     }
@@ -1338,14 +1330,14 @@ void Object::performRender(NVGcontext* nvg)
         auto indexBounds = Rectangle<int>(left, (b.getHeight() / 2) - halfHeight, b.getWidth() - left, halfHeight * 2);
         
         nvgBeginPath(nvg);
-        nvgFillColor(nvg, convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId))); // Adjust fill color as needed
+        nvgFillColor(nvg, convertColour(getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId))); // Adjust fill color as needed
         nvgRoundedRect(nvg, indexBounds.getX(), indexBounds.getY(), indexBounds.getWidth(), indexBounds.getHeight(), 2.0f);
         nvgFill(nvg);
 
         nvgFontSize(nvg, 8.0f);
         nvgFontFace(nvg, "Inter");
         nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_CENTER);
-        nvgFillColor(nvg, convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting()));
+        nvgFillColor(nvg, convertColour(getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting()));
         nvgText(nvg, indexBounds.getCentreX(), indexBounds.getCentreY(), text.c_str(), nullptr);
     }
 
@@ -1442,7 +1434,7 @@ void Object::openNewObjectEditor()
         editor->applyFontToAllText(Font(15));
 
         copyAllExplicitColoursTo(*editor);
-        editor->setColour(TextEditor::textColourId, findColour(PlugDataColour::canvasTextColourId));
+        editor->setColour(TextEditor::textColourId, getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
         editor->setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         editor->setColour(TextEditor::outlineColourId, Colours::transparentBlack);
         editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);

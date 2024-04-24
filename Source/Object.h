@@ -146,8 +146,6 @@ private:
 
     bool checkIfHvccCompatible() const;
     
-    bool shouldRenderToFramebuffer();
-
     void setSelected(bool shouldBeSelected);
     bool selectedFlag = false;
     bool selectionStateChanged = false;

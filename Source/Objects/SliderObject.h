@@ -324,7 +324,7 @@ public:
         bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = LookAndFeel::getDefaultLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
         
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(iemHelper.getBackgroundColour()), convertColour(outlineColour), Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(getLookAndFeel().findColour(Slider::backgroundColourId)), convertColour(outlineColour), Corners::objectCornerRadius);
 
         slider.render(nvg);
     }

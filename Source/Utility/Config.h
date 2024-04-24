@@ -1,6 +1,7 @@
 #pragma once
 
 #include <juce_data_structures/juce_data_structures.h>
+#include <juce_graphics/juce_graphics.h>
 
 using namespace juce;
 
@@ -60,7 +61,12 @@ inline T getValue(Value const& v)
 {
     if constexpr (std::is_same_v<T, String>) {
         return v.toString();
-    } else {
+    } 
+    else if constexpr (std::is_same_v<T, Colour>)
+    {
+        return Colour::fromString(v.toString());
+    }
+    else {
         return static_cast<T>(v.getValue());
     }
 }

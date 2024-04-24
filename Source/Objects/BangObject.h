@@ -107,8 +107,8 @@ public:
     {
         auto b = getLocalBounds().toFloat().reduced(0.5f);
         
-        auto foregroundColour = convertColour(iemHelper.getForegroundColour()); // TODO: this is some bad threading practice!
-        auto backgroundColour = convertColour(iemHelper.getBackgroundColour());
+        auto foregroundColour = convertColour(getValue<Colour>(iemHelper.primaryColour)); // TODO: this is some bad threading practice!
+        auto backgroundColour = convertColour(getValue<Colour>(iemHelper.secondaryColour));
         auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
         auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
         auto internalLineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour));

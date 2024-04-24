@@ -72,9 +72,9 @@ public:
     {
         auto b = getLocalBounds().toFloat().reduced(0.5f);
         
-        auto backgroundColour = convertColour(iemHelper.getBackgroundColour());
-        auto toggledColour = convertColour(iemHelper.getForegroundColour()); // TODO: don't access audio thread variables in render loop
-        auto untoggledColour = convertColour(iemHelper.getForegroundColour().interpolatedWith(iemHelper.getBackgroundColour(), 0.8f));
+        auto backgroundColour = convertColour(::getValue<Colour>(iemHelper.secondaryColour));
+        auto toggledColour = convertColour(::getValue<Colour>(iemHelper.primaryColour)); // TODO: don't access audio thread variables in render loop
+        auto untoggledColour = convertColour(::getValue<Colour>(iemHelper.primaryColour).interpolatedWith(::getValue<Colour>(iemHelper.secondaryColour), 0.8f));
         auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
         auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 

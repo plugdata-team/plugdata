@@ -199,8 +199,8 @@ public:
                 nvgStroke(nvg);
             }
         }
-
-        nvgFillColor(nvg, convertColour(iemHelper.getForegroundColour()));
+        
+        nvgFillColor(nvg, convertColour(::getValue<Colour>(iemHelper.primaryColour)));
 
         float selectionX = isVertical ? 0 : selected * size;
         float selectionY = isVertical ? selected * size : 0;

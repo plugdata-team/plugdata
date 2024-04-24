@@ -284,16 +284,18 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
     bufferScale = zoom;
     
     // Then, check if object framebuffers need to be updated
-    if(viewport) invalidRegion = (invalidRegion + viewport->getViewPosition()) / zoom;
-    for(auto* obj : objects)
-    {
-        auto b = obj->getBounds();
-        if(b.intersects(invalidRegion)) {
-            obj->updateFramebuffer(nvg);
-            
-            auto elapsed = Time::getMillisecondCounter() - start;
-            if(elapsed > maxUpdateTimeMs) {
-                return false;
+    if(isScrolling) {
+        if(viewport) invalidRegion = (invalidRegion + viewport->getViewPosition()) / zoom;
+        for(auto* obj : objects)
+        {
+            auto b = obj->getBounds();
+            if(b.intersects(invalidRegion)) {
+                obj->updateFramebuffer(nvg);
+                
+                auto elapsed = Time::getMillisecondCounter() - start;
+                if(elapsed > maxUpdateTimeMs) {
+                    return false;
+                }
             }
         }
     }
