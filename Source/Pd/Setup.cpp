@@ -1270,15 +1270,8 @@ int Setup::initialisePd()
 {
     static int initialized = 0;
     if (!initialized) {
-        libpd_set_noteonhook(plugdata_noteon);
-        libpd_set_controlchangehook(plugdata_controlchange);
-        libpd_set_programchangehook(plugdata_programchange);
-        libpd_set_pitchbendhook(plugdata_pitchbend);
-        libpd_set_aftertouchhook(plugdata_aftertouch);
-        libpd_set_polyaftertouchhook(plugdata_polyaftertouch);
-        libpd_set_midibytehook(plugdata_midibyte);
         libpd_set_printhook(plugdata_print);
-
+        
         // Initialise pd
         libpd_init();
 
@@ -1390,6 +1383,15 @@ void* Setup::createMIDIHook(void* ptr,
         x->x_hook_polyaftertouch = hook_polyaftertouch;
         x->x_hook_midibyte = hook_midibyte;
     }
+    
+    libpd_set_noteonhook(plugdata_noteon);
+    libpd_set_controlchangehook(plugdata_controlchange);
+    libpd_set_programchangehook(plugdata_programchange);
+    libpd_set_pitchbendhook(plugdata_pitchbend);
+    libpd_set_aftertouchhook(plugdata_aftertouch);
+    libpd_set_polyaftertouchhook(plugdata_polyaftertouch);
+    libpd_set_midibytehook(plugdata_midibyte);
+    
     return x;
 }
 

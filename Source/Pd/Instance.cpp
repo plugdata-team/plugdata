@@ -274,12 +274,12 @@ void Instance::initialisePd(String& pdlua_version)
 
     register_gui_triggers(static_cast<t_pdinstance*>(instance), this, gui_trigger, message_trigger);
 
-    // Make sure we set the maininstance when initialising objects
-    // Whenever a new instance is created, the functions will be copied from this one
-    libpd_set_instance(libpd_main_instance());
-
     static bool initialised = false;
     if (!initialised) {
+        // Make sure we set the maininstance when initialising objects
+        // Whenever a new instance is created, the functions will be copied from this one
+        libpd_set_instance(libpd_main_instance());
+        
         set_class_prefix(gensym("else"));
         class_set_extern_dir(gensym("9.else"));
         pd::Setup::initialiseELSE();
@@ -310,7 +310,6 @@ void Instance::initialisePd(String& pdlua_version)
     setThis();
     pd::Setup::initialisePdLuaInstance();
     
-
     // ag: need to do this here to suppress noise from chatty externals
     printReceiver = pd::Setup::createPrintHook(this, reinterpret_cast<t_plugdata_printhook>(internal::instance_multi_print));
     libpd_set_verbose(0);
