@@ -20,6 +20,7 @@ class CPUMeter;
 class PluginProcessor;
 class VolumeSlider;
 class OversampleSelector;
+class LatencyDisplayButton;
 
 class StatusbarSource : public Timer {
 
@@ -87,6 +88,8 @@ public:
 
     void audioProcessedChanged(bool audioProcessed) override;
 
+    void setLatencyDisplay(int value);
+
     bool wasLocked = false; // Make sure it doesn't re-lock after unlocking (because cmd is still down)
 
     std::unique_ptr<LevelMeter> levelMeter;
@@ -104,7 +107,11 @@ public:
 
     std::unique_ptr<OversampleSelector> oversampleSelector;
 
+    std::unique_ptr<LatencyDisplayButton> latencyDisplayButton;
+
     Label zoomLabel;
+
+    int currentLatency = 64;
 
     Value showDirection;
 

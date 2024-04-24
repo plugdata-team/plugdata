@@ -23,6 +23,125 @@
 
 #include "Components/ArrowPopupMenu.h"
 
+class LatencyDisplayButton : public Component, public MultiTimer, public SettableTooltipClient {
+    Label latencyValue;
+    Label icon;
+    bool isHover = false;
+    Colour bgColour;
+
+    enum TimerRoutine { Timeout, Animate };
+    float alpha = 1.0f;
+    bool fading = false;
+public:
+    std::function<void()> onClick = []() {};
+    LatencyDisplayButton()
+    {
+        icon.setFont(Fonts::getIconFont());
+        icon.setText(Icons::GlyphDelay, dontSendNotification);
+
+        icon.setJustificationType(Justification::centredLeft);
+        latencyValue.setJustificationType(Justification::centredRight);
+
+        setInterceptsMouseClicks(true, false);
+        addMouseListener(this, true);
+
+        setTooltip("Plugin latency, click to reset");
+
+        addAndMakeVisible(latencyValue);
+        addAndMakeVisible(icon);
+
+        buttonStateChanged();
+    };
+
+    void lookAndFeelChanged() override
+    {
+        buttonStateChanged();
+    }
+
+    void timerCallback(int ID) override
+    {
+        switch (ID) {
+            case Timeout:
+                startTimer(Animate, 1000 / 30.0f);
+                break;
+            case Animate:
+                alpha = pow(alpha, 1.0f / 2.2f);
+                alpha -= 0.02f;
+                alpha = pow(alpha, 2.2f);
+                fading = true;
+                if (alpha <= 0.01f) {
+                    stopTimer(Animate);
+                    setVisible(false);
+                }
+                buttonStateChanged();
+                break;
+            default:
+                break;
+        }
+    }
+
+    void paint(Graphics& g) override
+    {
+        auto b = getLocalBounds().reduced(1, 6).toFloat();
+        g.setColour(bgColour);
+        g.fillRoundedRectangle(b, Corners::defaultCornerRadius);
+    }
+
+    void setLatencyValue(const int value)
+    {
+        latencyValue.setText(String(value) + " smpl", dontSendNotification);
+        if (value == 64) {
+            startTimer(Timeout, 1000 / 3.0f);
+        } else {
+            stopTimer(Timeout);
+            stopTimer(Animate);
+            fading = false;
+            setVisible(true);
+            alpha = 1.0f;
+            buttonStateChanged();
+        }
+    }
+
+    void mouseDown(const MouseEvent& e) override
+    {
+        onClick();
+    }
+
+    void buttonStateChanged()
+    {
+        bgColour = getLookAndFeel().findColour(isHover ? PlugDataColour::toolbarHoverColourId : PlugDataColour::toolbarActiveColourId).withAlpha(alpha);
+        auto textColour = bgColour.contrasting().withAlpha(alpha);
+        icon.setColour(Label::textColourId, textColour);
+        latencyValue.setColour(Label::textColourId, textColour);
+
+        repaint();
+    }
+
+    void mouseEnter(const MouseEvent& e) override
+    {
+        if (fading)
+            return;
+
+        isHover = true;
+        buttonStateChanged();
+    }
+
+    void mouseExit(const MouseEvent& e) override
+    {
+        if (fading)
+            return;
+
+        isHover = false;
+        buttonStateChanged();
+    }
+
+    void resized() override
+    {
+        icon.setBounds(0, 0, getHeight(), getHeight());
+        latencyValue.setBounds(getHeight(), 0, getWidth() - getHeight(), getHeight());
+    }
+};
+
 class OversampleSelector : public TextButton {
 
     class OversampleSettingsPopup : public Component {
@@ -637,6 +756,14 @@ Statusbar::Statusbar(PluginProcessor* processor)
     oversampleSelector->setButtonText(String(1 << pd->oversampling) + "x");
     addAndMakeVisible(*oversampleSelector);
 
+    latencyDisplayButton = std::make_unique<LatencyDisplayButton>();
+    addChildComponent(latencyDisplayButton.get());
+    latencyDisplayButton->onClick = [this](){
+        currentLatency = 64;
+        pd->setLatencySamples(64);
+        latencyDisplayButton->setVisible(false);
+    };
+
     powerButton.setButtonText(Icons::Power);
     protectButton.setButtonText(Icons::Protection);
     centreButton.setButtonText(Icons::Centre);
@@ -851,6 +978,15 @@ void Statusbar::resized()
     midiBlinker->setBounds(position(40, true) - 8, 0, 55, getHeight());
     fourthSeparatorPosition = position(10, true);
     cpuMeter->setBounds(position(48, true), 0, 50, getHeight());
+    latencyDisplayButton->setBounds(position(100, true), 0, 100, getHeight());
+}
+
+void Statusbar::setLatencyDisplay(int value)
+{
+    if (currentLatency != value) {
+        currentLatency = value;
+        latencyDisplayButton->setLatencyValue(value);
+    }
 }
 
 void Statusbar::audioProcessedChanged(bool audioProcessed)
