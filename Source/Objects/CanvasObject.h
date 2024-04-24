@@ -129,7 +129,7 @@ public:
                 return;
             }
 
-            nvgStrokeColor(nvg, convertColour(object->isSelected() ? object->findColour(PlugDataColour::objectSelectedOutlineColourId) : bgcolour.contrasting(0.75f)));
+            nvgStrokeColor(nvg, convertColour(object->isSelected() ? LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId) : bgcolour.contrasting(0.75f)));
             nvgStrokeWidth(nvg, 1.0f);
             nvgBeginPath(nvg);
             nvgRoundedRect(nvg, draggableRect.getX() + 1.0f, draggableRect.getY() + 1.0f, draggableRect.getWidth() - 2.0f, draggableRect.getHeight() - 2.0f, Corners::objectCornerRadius);

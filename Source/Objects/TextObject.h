@@ -144,7 +144,7 @@ struct TextObjectHelper {
         editor->applyFontToAllText(Font(fontHeight));
 
         object->copyAllExplicitColoursTo(*editor);
-        editor->setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
+        editor->setColour(TextEditor::textColourId, LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
         editor->setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
 
@@ -202,9 +202,9 @@ public:
     {
         auto b = getLocalBounds();
         
-        auto backgroundColour = convertColour(object->findColour(PlugDataColour::textObjectBackgroundColourId));
-        auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
+        auto backgroundColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::textObjectBackgroundColourId));
+        auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
         
         if (!isValid) {
             outlineColour = convertColour(object->isSelected() ? Colours::red.brighter(1.5) : Colours::red);
@@ -223,7 +223,7 @@ public:
             
             // we could render at the actual scale, but that makes the transition to scolling/zooming pretty rough
             // Instead, rendering at 2x scale gives us pretty good sharpness overall
-            cachedTextRender.renderText(nvg, text, Fonts::getDefaultFont().withHeight(15), object->findColour(PlugDataColour::canvasTextColourId), textArea, getImageScale(), getValue<int>(sizeProperty));
+            cachedTextRender.renderText(nvg, text, Fonts::getDefaultFont().withHeight(15), LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId), textArea, getImageScale(), getValue<int>(sizeProperty));
         }
     }
 
@@ -306,7 +306,7 @@ public:
             objText = cnv->suggestor->getText();
         }
         
-        auto colour = object->findColour(PlugDataColour::canvasTextColourId);
+        auto colour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
         int textWidth = getTextSize().getWidth() - 11;
         if(cachedTextRender.prepareLayout(objText, Fonts::getDefaultFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty)))
         {

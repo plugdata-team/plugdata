@@ -31,7 +31,7 @@ public:
         secondaryColour = Colour(getBackgroundColour()).toString();
         labelColour = Colour(getLabelColour()).toString();
 
-        gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(Label::textWhenEditingColourId));
+        gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, LookAndFeel::getDefaultLookAndFeel().findColour(Label::textWhenEditingColourId));
         gui->getLookAndFeel().setColour(Label::textColourId, Colour::fromString(primaryColour.toString()));
 
         gui->getLookAndFeel().setColour(TextButton::buttonOnColourId, Colour::fromString(primaryColour.toString()));
@@ -108,7 +108,6 @@ public:
                 auto colour = "#FF" + atom.toString().fromFirstOccurrenceOf("#", false, false);
                 gui->setParameterExcludingListener(targetValue, colour);
             } else {
-
                 int iemcolor = atom.getFloat();
 
                 if (iemcolor >= 0) {

@@ -93,9 +93,9 @@ public:
     void render(NVGcontext* nvg) override
     {
         auto values = std::vector<float> { ptr.getRaw<t_vu>()->x_fp, ptr.getRaw<t_vu>()->x_fr };
-        auto backgroundColour = convertColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-        auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
+        auto backgroundColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
+        auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
         
         int height = getHeight();
         int width = getWidth();

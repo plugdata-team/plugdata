@@ -136,11 +136,11 @@ public:
         if (imageFile.existsAsFile()) {
             g.drawImageAt(img, 0, 0);
         } else {
-            Fonts::drawText(g, "?", getLocalBounds(), object->findColour(PlugDataColour::canvasTextColourId), 30, Justification::centred);
+            Fonts::drawText(g, "?", getLocalBounds(), LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId), 30, Justification::centred);
         }
 
         bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+        auto outlineColour = LookAndFeel::getDefaultLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         if (getValue<bool>(outline)) {
             g.setColour(outlineColour);

@@ -133,9 +133,9 @@ public:
         
         auto foregroundColour = convertColour(Colour::fromString(primaryColour.toString()));
         auto backgroundColour = convertColour(Colour::fromString(secondaryColour.toString()));
-        auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
-        auto internalLineColour = convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
+        auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
+        auto internalLineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour));
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
         

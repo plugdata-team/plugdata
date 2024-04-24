@@ -101,7 +101,7 @@ public:
             auto sliderPos = jmap<float>(valueToProportionOfLength(getValue()), 0.0f, 1.0f, b.getX(), b.getWidth() - thumbSize);
             auto bounds = Rectangle<float>(sliderPos, b.getY(), thumbSize, b.getHeight());
 
-            nvgFillColor(nvg, convertColour(findColour(Slider::trackColourId)));
+            nvgFillColor(nvg, convertColour(getLookAndFeel().findColour(Slider::trackColourId)));
             nvgBeginPath(nvg);
             nvgRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), cornerSize);
             nvgFill(nvg);
@@ -110,7 +110,7 @@ public:
             auto sliderPos = jmap<float>(valueToProportionOfLength(getValue()), 1.0f, 0.0f, b.getY(), b.getHeight() - thumbSize);
             auto bounds = Rectangle<float>(b.getWidth(), thumbSize).translated(b.getX(), sliderPos);
 
-            nvgFillColor(nvg, convertColour(findColour(Slider::trackColourId)));
+            nvgFillColor(nvg, convertColour(getLookAndFeel().findColour(Slider::trackColourId)));
             nvgBeginPath(nvg);
             nvgRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), cornerSize);
             nvgFill(nvg);
@@ -322,7 +322,7 @@ public:
     {
         auto b = getLocalBounds().toFloat().reduced(0.5f);
         bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+        auto outlineColour = LookAndFeel::getDefaultLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
         
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(iemHelper.getBackgroundColour()), convertColour(outlineColour), Corners::objectCornerRadius);
 

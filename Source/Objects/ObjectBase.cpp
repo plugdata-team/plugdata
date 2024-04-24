@@ -421,11 +421,11 @@ void ObjectBase::render(NVGcontext* nvg)
 
 void ObjectBase::paint(Graphics& g)
 {
-    g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
+    g.setColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
     g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
     bool selected = object->isSelected() && !cnv->isGraph;
-    auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+    auto outlineColour = LookAndFeel::getDefaultLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
     g.setColour(outlineColour);
     g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);

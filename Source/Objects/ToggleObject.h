@@ -75,8 +75,8 @@ public:
         auto backgroundColour = convertColour(iemHelper.getBackgroundColour());
         auto toggledColour = convertColour(iemHelper.getForegroundColour()); // TODO: don't access audio thread variables in render loop
         auto untoggledColour = convertColour(iemHelper.getForegroundColour().interpolatedWith(iemHelper.getBackgroundColour(), 0.8f));
-        auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
+        auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 

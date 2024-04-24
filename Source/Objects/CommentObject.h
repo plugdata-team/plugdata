@@ -49,7 +49,7 @@ public:
     {
         if (!editor) {
             auto textArea = border.subtractedFrom(getLocalBounds());
-            textRenderer.renderText(nvg, getText(), Fonts::getDefaultFont().withHeight(15), object->findColour(PlugDataColour::commentTextColourId), textArea, getImageScale(), getValue<int>(sizeProperty));
+            textRenderer.renderText(nvg, getText(), Fonts::getDefaultFont().withHeight(15), LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::commentTextColourId), textArea, getImageScale(), getValue<int>(sizeProperty));
         }
         else {
             imageRenderer.renderComponentFromImage(nvg, *editor, getImageScale());
@@ -60,7 +60,7 @@ public:
     {
         auto selected = object->isSelected();
         if (!locked && (object->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
-            g.setColour(object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId));
+            g.setColour(LookAndFeel::getDefaultLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId));
             
             g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
         }
@@ -121,7 +121,7 @@ public:
             addAndMakeVisible(editor.get());
             editor->grabKeyboardFocus();
             
-            editor->setColour(TextEditor::textColourId, object->findColour(PlugDataColour::commentTextColourId));
+            editor->setColour(TextEditor::textColourId, LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::commentTextColourId));
             
             editor->onFocusLost = [this]() {
                 hideEditor();
@@ -190,7 +190,7 @@ public:
             objText = cnv->suggestor->getText();
         }
         
-        auto colour = object->findColour(PlugDataColour::commentTextColourId);
+        auto colour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::commentTextColourId);
         int textWidth = getTextSize().getWidth() - 8;
         if(textRenderer.prepareLayout(objText, Fonts::getDefaultFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty)))
         {

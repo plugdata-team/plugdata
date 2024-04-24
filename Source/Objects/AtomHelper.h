@@ -73,8 +73,8 @@ public:
         sendSymbol = getSendSymbol();
         receiveSymbol = getReceiveSymbol();
 
-        gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(Label::textWhenEditingColourId));
-        gui->getLookAndFeel().setColour(Label::textColourId, object->findColour(Label::textColourId));
+        gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, LookAndFeel::getDefaultLookAndFeel().findColour(Label::textWhenEditingColourId));
+        gui->getLookAndFeel().setColour(Label::textColourId, LookAndFeel::getDefaultLookAndFeel().findColour(Label::textColourId));
     }
 
     int getWidthInChars()
@@ -291,9 +291,9 @@ public:
             label->setFont(Font(fontHeight));
             label->setText(text, dontSendNotification);
 
-            auto textColour = object->findColour(PlugDataColour::canvasTextColourId);
-            if (std::abs(textColour.getBrightness() - object->findColour(PlugDataColour::canvasBackgroundColourId).getBrightness()) < 0.3f) {
-                textColour = object->findColour(PlugDataColour::canvasBackgroundColourId).contrasting();
+            auto textColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
+            if (std::abs(textColour.getBrightness() - LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId).getBrightness()) < 0.3f) {
+                textColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId).contrasting();
             }
 
             label->setColour(Label::textColourId, textColour);

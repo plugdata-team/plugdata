@@ -379,7 +379,7 @@ public:
             nvgFontSize(nvg, 11);
             nvgFontFace(nvg, "Inter-Regular");
             nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-            nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::canvasTextColourId)));
+            nvgFillColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId)));
             nvgText(nvg, position.x, position.y, errorText.toRawUTF8(), nullptr);
             error = false;
         } else if(visible) {
@@ -391,7 +391,7 @@ public:
     {
         if (error) {
             // TODO: error colour
-            Fonts::drawText(g, "array " + getUnexpandedName() + " is invalid", 0, 0, getWidth(), getHeight(), object->findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred);
+            Fonts::drawText(g, "array " + getUnexpandedName() + " is invalid", 0, 0, getWidth(), getHeight(), LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred);
             error = false;
         } else if(visible) {
             paintGraph(g);
@@ -611,7 +611,7 @@ public:
             int colour = template_getfloat(templ, gensym("color"), scalar->sc_vec, 1);
 
             if (colour <= 0) {
-                return object->findColour(PlugDataColour::guiObjectInternalOutlineColour);
+                return LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour);
             }
 
             auto rangecolor = [](int n) /* 0 to 9 in 5 steps */
@@ -630,7 +630,7 @@ public:
             return Colour(red, green, blue);
         }
 
-        return object->findColour(PlugDataColour::guiObjectInternalOutlineColour);
+        return LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour);
     }
         
     void valueChanged(Value& value) override
@@ -1113,8 +1113,6 @@ public:
     {
         g.setColour(findColour(PlugDataColour::guiObjectBackgroundColourId));
         g.drawRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
-        
-        
     }
 
     void paint(Graphics& g) override
@@ -1221,9 +1219,9 @@ public:
     void render(NVGcontext* nvg) override
     {
         auto b = getLocalBounds().toFloat().reduced(0.5f);
-        auto backgroundColour = convertColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-        auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
+        auto backgroundColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
+        auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
         
@@ -1273,7 +1271,7 @@ public:
             label->setBounds(bounds);
             label->setText(title, dontSendNotification);
 
-            label->setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
+            label->setColour(Label::textColourId, LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
 
             object->cnv->addAndMakeVisible(label.get());
         }

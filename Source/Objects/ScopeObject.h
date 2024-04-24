@@ -117,7 +117,7 @@ public:
     {
         auto b = getLocalBounds().toFloat().reduced(0.5f);
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(Colour::fromString(secondaryColour.toString())), convertColour(object->findColour(PlugDataColour::objectOutlineColourId)), Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(Colour::fromString(secondaryColour.toString())), convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId)), Corners::objectCornerRadius);
 
         auto dx = getWidth() * 0.125f;
         auto dy = getHeight() * 0.25f;

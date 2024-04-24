@@ -217,7 +217,7 @@ public:
          // Strangly, the title goes below the graph content in pd
          if (!getValue<bool>(hideNameAndArgs) && getText() != "graph") {
              auto text = getText();
-             textRenderer.renderText(nvg, text, Fonts::getDefaultFont().withHeight(13), object->findColour(PlugDataColour::canvasTextColourId), Rectangle<int>(5, 0, getWidth() - 5, 16), getImageScale(), getWidth());
+             textRenderer.renderText(nvg, text, Fonts::getDefaultFont().withHeight(13), LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId), Rectangle<int>(5, 0, getWidth() - 5, 16), getImageScale(), getWidth());
          }
         
         Canvas* topLevel = cnv;
@@ -242,8 +242,8 @@ public:
             nvgRestore(nvg);
         }
         
-        auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
+        auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
         
         nvgBeginPath(nvg);
         nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth() - 0.5f, b.getHeight() - 0.5f, Corners::objectCornerRadius);
@@ -252,13 +252,13 @@ public:
         nvgStroke(nvg);
         
         if (isOpenedInSplitView) {
-            nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId)));
+            nvgFillColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId)));
             nvgFill(nvg);
 
             nvgBeginPath(nvg);
             nvgFontFace(nvg, "Inter-Regular");
             nvgFontSize(nvg, 12.0f);
-            nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::commentTextColourId))); // why comment colour?
+            nvgFillColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::commentTextColourId))); // why comment colour?
             nvgTextAlign(nvg, NVG_ALIGN_TOP | NVG_ALIGN_CENTER);
             nvgText(nvg, b.getCentreX(), b.getCentreY(), "Graph opened in split view", nullptr);
         }

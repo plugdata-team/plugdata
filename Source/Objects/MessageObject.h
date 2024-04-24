@@ -97,7 +97,7 @@ public:
              objText = cnv->suggestor->getText();
          }
          
-         auto colour = object->findColour(PlugDataColour::canvasTextColourId);
+         auto colour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
          int textWidth = getTextSize().getWidth() - 14;
          if(textRenderer.prepareLayout(objText, Fonts::getDefaultFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty)))
          {
@@ -138,10 +138,10 @@ public:
     {
         auto b = getLocalBounds().toFloat().reduced(0.5f);
         
-        auto backgroundColour = convertColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-        auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
-        auto flagColour = convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
+        auto backgroundColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
+        auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
+        auto flagColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour));
         
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
         
@@ -159,7 +159,7 @@ public:
             nvgRect(nvg, b.getRight() - d, b.getY(), d, b.getHeight());
             nvgRect(nvg, b.getX(), b.getBottom() - d, b.getWidth(), d);
             nvgRect(nvg, b.getX(), b.getY(), d, b.getHeight());
-            nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::outlineColourId)));
+            nvgFillColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::outlineColourId)));
             nvgFill(nvg);
         }
         
@@ -191,7 +191,7 @@ public:
         }
         else {
             auto text = getText();
-            textRenderer.renderText(nvg, text, Fonts::getDefaultFont().withHeight(15), object->findColour(PlugDataColour::canvasTextColourId), border.subtractedFrom(getLocalBounds()), getImageScale(), getValue<int>(sizeProperty));
+            textRenderer.renderText(nvg, text, Fonts::getDefaultFont().withHeight(15), LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId), border.subtractedFrom(getLocalBounds()), getImageScale(), getValue<int>(sizeProperty));
         }
     }
 

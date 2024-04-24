@@ -130,7 +130,7 @@ public:
         if (isOver)
             c = Colour(235, 235, 235);
         if (isDown)
-            c = object->findColour(PlugDataColour::dataColourId);
+            c = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::dataColourId);
 
         area = area.reduced(0.0f, 0.5f);
 
@@ -153,7 +153,7 @@ public:
 
         // don't draw the first separator line to fix object look
         if (midiNoteNumber != getRangeStart()) {
-            g.setColour(object->findColour(PlugDataColour::outlineColourId));
+            g.setColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::outlineColourId));
             g.fillRect(area.withWidth(1.0f));
         }
 
@@ -194,7 +194,7 @@ public:
         if (isOver)
             c = Colour(101, 101, 101);
         if (isDown)
-            c = object->findColour(PlugDataColour::dataColourId).darker(0.5f);
+            c = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::dataColourId).darker(0.5f);
 
         g.setColour(c);
         g.fillRect(area);
@@ -508,7 +508,7 @@ public:
     void paintOverChildren(Graphics& g) override
     {
         bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
+        auto outlineColour = LookAndFeel::getDefaultLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);

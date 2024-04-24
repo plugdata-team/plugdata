@@ -435,7 +435,7 @@ public:
         auto b = getLocalBounds().toFloat().reduced(0.5f);
         if (::getValue<bool>(outline)) {
             bool selected = object->isSelected() && !cnv->isGraph;
-            auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+            auto outlineColour = LookAndFeel::getDefaultLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
             nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(Colour::fromString(secondaryColour.toString())), convertColour(outlineColour), Corners::objectCornerRadius);
         } else {
@@ -448,7 +448,7 @@ public:
             nvgCircle(nvg, circleBounds.getCentreX(), circleBounds.getCentreY(), circleBounds.getWidth() / 2.0f);
             nvgFill(nvg);
             
-            nvgStrokeColor(nvg, convertColour(object->findColour(objectOutlineColourId)));
+            nvgStrokeColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(objectOutlineColourId)));
             nvgStrokeWidth(nvg, 1.0f);
             nvgStroke(nvg);
         }

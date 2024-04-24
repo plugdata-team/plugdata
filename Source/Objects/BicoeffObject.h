@@ -191,13 +191,13 @@ public:
     void render(NVGcontext* nvg) override
     {
         auto b = getLocalBounds().reduced(0.5f);
-        auto backgroundColour = convertColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-        auto selectedOutlineColour = convertColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(object->findColour(PlugDataColour::objectOutlineColourId));
+        auto backgroundColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
+        auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
-        nvgStrokeColor(nvg, convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour)));
+        nvgStrokeColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour)));
         nvgBeginPath(nvg);
         nvgMoveTo(nvg, filterX1 * getWidth(), 0.0f);
         nvgLineTo(nvg, filterX1 * getWidth(), getHeight());
@@ -216,7 +216,7 @@ public:
         nvgStrokeWidth(nvg, 1.0f);
         nvgLineStyle(nvg, NVG_BUTT);
         setJUCEPath(nvg, magnitudePath);
-        nvgStrokeColor(nvg, convertColour(object->findColour(PlugDataColour::canvasTextColourId)));
+        nvgStrokeColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId)));
         nvgStroke(nvg);
     }
 
