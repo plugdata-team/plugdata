@@ -316,10 +316,12 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
         }
         
         void paint(Graphics& g) override
-        {
-            g.setColour(findColour(PlugDataColour::panelTextColourId));
-            g.setFont(Fonts::getIconFont().withHeight(48));
-            g.drawFittedText(Icons::Warning, getLocalBounds().removeFromTop(90), Justification::centred, 1);
+        {            
+            AttributedString warningIcon(Icons::Warning);
+            warningIcon.setFont(Fonts::getIconFont().withHeight(48));
+            warningIcon.setColour(findColour(PlugDataColour::panelTextColourId));
+            warningIcon.setJustification(Justification::centred);
+            warningIcon.draw(g, getLocalBounds().toFloat().removeFromTop(90));
             
             auto contentBounds = getLocalBounds().withTrimmedTop(63).reduced(16);
             layout.draw(g, contentBounds.removeFromTop(48).toFloat());
