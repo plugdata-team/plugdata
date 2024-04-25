@@ -8,8 +8,11 @@
 class MIDIKeyboard : public MidiKeyboardState, public MidiKeyboardComponent {
     bool toggleMode = false;
     int lastKey = -1;
-
+    
 public:
+    
+    int clickedKey = -1;
+    
     std::set<int> heldKeys;
     std::set<int> toggledKeys;
     std::function<void(int, int)> noteOn;
@@ -51,6 +54,8 @@ public:
 
     bool mouseDownOnKey(int midiNoteNumber, MouseEvent const& e) override
     {
+        clickedKey = midiNoteNumber;
+        
         if (e.mods.isShiftDown()) {
             if (toggledKeys.count(midiNoteNumber)) {
                 toggledKeys.erase(midiNoteNumber);
@@ -80,6 +85,8 @@ public:
 
     bool mouseDraggedToKey(int midiNoteNumber, MouseEvent const& e) override
     {
+        clickedKey = midiNoteNumber;
+        
         if (!toggleMode && !e.mods.isShiftDown() && !heldKeys.count(midiNoteNumber)) {
             for (auto& note : heldKeys) {
                 noteOff(note);
@@ -106,6 +113,8 @@ public:
     // So we completely replace mouseUpOnKey functionality here, mouseUp() will stop mouseUpOnKey() being called.
     void mouseUp(MouseEvent const& e) override
     {
+        clickedKey = -1;
+        
         if (!toggleMode && !e.mods.isShiftDown()) {
             heldKeys.erase(lastKey);
             noteOff(lastKey);
@@ -257,7 +266,7 @@ public:
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
         objectParameters.addParamSendSymbol(&sendSymbol);
 
-        startTimer(150);
+        startTimer(50);
     }
 
     void update() override
@@ -398,17 +407,19 @@ public:
 
     void updateValue()
     {
+        int notes[256];
         if (auto obj = ptr.get<t_fake_keyboard>()) {
+            memcpy(notes, obj->x_tgl_notes, 256 * sizeof(int));
+        }
 
-            for (int i = keyboard.getRangeStart(); i < keyboard.getRangeEnd(); i++) {
-                if (obj->x_tgl_notes[i] && !keyboard.heldKeys.contains(i)) {
-                    keyboard.heldKeys.insert(i);
-                    repaint();
-                }
-                if (!obj->x_tgl_notes[i] && keyboard.heldKeys.contains(i)) {
-                    keyboard.heldKeys.erase(i);
-                    repaint();
-                }
+        for (int i = keyboard.getRangeStart(); i <= keyboard.getRangeEnd(); i++) {
+            if (notes[i] && !keyboard.heldKeys.contains(i)) {
+                keyboard.heldKeys.insert(i);
+                repaint();
+            }
+            if (!notes[i] && keyboard.heldKeys.contains(i) && keyboard.clickedKey != i) {
+                keyboard.heldKeys.erase(i);
+                repaint();
             }
         }
     }
