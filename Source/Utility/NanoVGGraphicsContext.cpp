@@ -399,16 +399,20 @@ void NanoVGGraphicsContext::drawLine (const juce::Line<float>& line)
 void NanoVGGraphicsContext::setFont (const juce::Font& f)
 {
     font = f;
-    auto name = font.getTypefacePtr()->getName() + "-" + font.getTypefaceStyle();
+    auto typefaceName = font.getTypefacePtr()->getName();
+    if (typefaceName.contains(" "))
+        typefaceName = typefaceName.replace(" ", "-");
+    else
+        typefaceName = +"-" + font.getTypefaceStyle();
     
-    if(!loadedFonts.count(name))
+    if (!loadedFonts.count(typefaceName))
     {
-        loadedFonts[name] = getGlyphToCharMapForFont(f);
+        loadedFonts[typefaceName] = getGlyphToCharMapForFont(f);
     }
     
-    currentGlyphToCharMap = &loadedFonts[name];
+    currentGlyphToCharMap = &loadedFonts[typefaceName];
     
-    nvgFontFace (nvg, name.toUTF8());
+    nvgFontFace(nvg, typefaceName.toUTF8());
     nvgFontSize (nvg, font.getHeight()  * 0.86f);
     nvgTextLetterSpacing(nvg, -0.275f);
 }
