@@ -88,6 +88,11 @@ struct CachedStringWidth {
 
 struct CachedFontStringWidth : public DeletedAtShutdown
 {
+    ~CachedFontStringWidth()
+    {
+        instance = nullptr;
+    }
+    
     float calculateSingleLineWidth(Font const& font, const String& singleLine)
     {
         auto stringHash = hash(singleLine);
