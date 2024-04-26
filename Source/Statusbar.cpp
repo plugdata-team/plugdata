@@ -46,6 +46,11 @@ public:
         setInterceptsMouseClicks(true, false);
         addMouseListener(this, true);
 
+        // we need to specifically turn off mouse intercept for child components for tooltip of parent to work
+        // setting child components intercept to false in parent is not enough
+        latencyValue.setInterceptsMouseClicks(false, false);
+        icon.setInterceptsMouseClicks(false, false);
+
         setTooltip("Plugin latency, click to reset");
 
         addAndMakeVisible(latencyValue);
@@ -155,6 +160,8 @@ public:
         icon.setBounds(0, 0, getHeight(), getHeight());
         latencyValue.setBounds(getHeight(), 0, getWidth() - getHeight(), getHeight());
     }
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LatencyDisplayButton);
 };
 
 class OversampleSelector : public TextButton {
