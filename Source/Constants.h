@@ -400,15 +400,15 @@ struct Corners {
 
 enum Overlay {
     None = 0,
-    Origin = 1,
-    Border = 2,
-    Index = 4,
-    Coordinate = 8,
-    ActivationState = 16,
-    ConnectionActivity = 32,
-    Order = 64,
-    Direction = 128,
-    Behind = 256
+    Origin = 1 << 0,
+    Border = 1 << 1,
+    Index = 1 << 2,
+    Coordinate = 1 << 3,
+    ActivationState = 1 << 4,
+    ConnectionActivity = 1 << 5,
+    Order = 1 << 6,
+    Direction = 1 << 7,
+    Behind = 1 << 8
 };
 
 enum Align {
