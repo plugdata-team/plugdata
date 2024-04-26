@@ -51,7 +51,7 @@ public:
         latencyValue.setInterceptsMouseClicks(false, false);
         icon.setInterceptsMouseClicks(false, false);
 
-        setTooltip("Plugin latency, click to reset");
+        setTooltip("Plugin latency, click to reset to 64 samples");
 
         addAndMakeVisible(latencyValue);
         addAndMakeVisible(icon);
