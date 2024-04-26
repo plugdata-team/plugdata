@@ -28,6 +28,7 @@ class LatencyDisplayButton : public Component, public MultiTimer, public Settabl
     Label icon;
     bool isHover = false;
     Colour bgColour;
+    int currentLatencyValue = 0;
 
     enum TimerRoutine { Timeout, Animate };
     float alpha = 1.0f;
@@ -45,7 +46,12 @@ public:
         setInterceptsMouseClicks(true, false);
         addMouseListener(this, true);
 
-        setTooltip("Plugin latency, click to reset");
+        // we need to specifically turn off mouse intercept for child components for tooltip of parent to work
+        // setting child components intercept to false in parent is not enough
+        latencyValue.setInterceptsMouseClicks(false, false);
+        icon.setInterceptsMouseClicks(false, false);
+
+        setTooltip("Plugin latency, click to reset to 64 samples");
 
         addAndMakeVisible(latencyValue);
         addAndMakeVisible(icon);
@@ -89,7 +95,8 @@ public:
 
     void setLatencyValue(const int value)
     {
-        latencyValue.setText(String(value) + " smpl", dontSendNotification);
+        currentLatencyValue = value;
+        updateValue();
         if (value == 64) {
             startTimer(Timeout, 1000 / 3.0f);
         } else {
@@ -99,6 +106,17 @@ public:
             setVisible(true);
             alpha = 1.0f;
             buttonStateChanged();
+        }
+    }
+
+    void updateValue()
+    {
+        if (isHover) {
+            latencyValue.setJustificationType(Justification::centredLeft);
+            latencyValue.setText("Reset", dontSendNotification);
+        } else {
+            latencyValue.setJustificationType(Justification::centredRight);
+            latencyValue.setText(String(currentLatencyValue) + " smpl", dontSendNotification);
         }
     }
 
@@ -113,6 +131,8 @@ public:
         auto textColour = bgColour.contrasting().withAlpha(alpha);
         icon.setColour(Label::textColourId, textColour);
         latencyValue.setColour(Label::textColourId, textColour);
+
+        updateValue();
 
         repaint();
     }
@@ -140,6 +160,8 @@ public:
         icon.setBounds(0, 0, getHeight(), getHeight());
         latencyValue.setBounds(getHeight(), 0, getWidth() - getHeight(), getHeight());
     }
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LatencyDisplayButton);
 };
 
 class OversampleSelector : public TextButton {
