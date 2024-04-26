@@ -1204,7 +1204,7 @@ void Object::updateFramebuffer(NVGcontext* nvg)
 
 void Object::render(NVGcontext* nvg)
 {
-    if(!activityOverlayImage || activityOverlayDirty)
+    if(showActiveState && (!activityOverlayImage || activityOverlayDirty))
     {
         if(activityOverlayImage) nvgDeleteImage(nvg, activityOverlayImage);
         Path objectShadow;

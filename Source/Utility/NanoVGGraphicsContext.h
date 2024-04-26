@@ -83,12 +83,12 @@ private:
     juce::Font font;
 
     // Mapping glyph number to a character
-    using GlyphToCharMap = std::map<int, wchar_t>;
+    using GlyphToCharMap = std::unordered_map<int, wchar_t>;
 
     GlyphToCharMap getGlyphToCharMapForFont (const juce::Font& f);
 
     // Mapping font names to glyph-to-character tables
-    std::map<juce::String, GlyphToCharMap> loadedFonts;
+    std::unordered_map<juce::String, GlyphToCharMap> loadedFonts;
     const GlyphToCharMap* currentGlyphToCharMap;
 
     // Tracking images mapped tomtextures.
@@ -98,5 +98,5 @@ private:
         int accessCounter {0};  ///< Usage counter.
     };
 
-    std::map<juce::uint64, NvgImage> images;
+    std::unordered_map<juce::uint64, NvgImage> images;
 };

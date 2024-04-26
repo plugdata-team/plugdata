@@ -72,11 +72,26 @@ public:
 
         while (readPos >= buffer.getNumSamples())
             readPos -= bufferSize;
-
+        
         audioBufferMutex.lock();
         for (int ch = 0; ch < std::min(2, peakBuffer.getNumChannels()); ch++) {
-            for (int i = 0; i < peakWindowSize; i++) {
-                peakBuffer.setSample(ch, i, buffer.getSample(ch, (readPos + i) % bufferSize));
+            // Get pointers to the source and destination data
+            const auto* srcData = buffer.getReadPointer(ch);
+            auto* destData = peakBuffer.getWritePointer(ch);
+            
+            int readPosWrapped = (readPos + peakWindowSize) % bufferSize;
+            if (readPosWrapped < peakWindowSize) {
+                // Calculate the length of the first copy operation
+                int firstCopyLength = bufferSize - readPos;
+
+                // Perform the first copy operation
+                juce::FloatVectorOperations::copy(destData, srcData + readPos, firstCopyLength);
+
+                // Perform the second copy operation
+                juce::FloatVectorOperations::copy(destData + firstCopyLength, srcData, peakWindowSize - firstCopyLength);
+            } else {
+                // If no wrap-around is needed, perform a single SIMD copy operation
+                juce::FloatVectorOperations::copy(destData, srcData + readPos, peakWindowSize);
             }
         }
         audioBufferMutex.unlock();

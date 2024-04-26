@@ -156,7 +156,7 @@ private:
     // Queue to use in case our fast stack queue is full
     moodycamel::ConcurrentQueue<Message> backupQueue;
     
-    std::map<void*, std::set<juce::WeakReference<MessageListener>>> messageListeners;
+    std::unordered_map<void*, std::set<juce::WeakReference<MessageListener>>> messageListeners;
     CriticalSection messageListenerLock;
 };
 
