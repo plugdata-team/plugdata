@@ -28,6 +28,7 @@ class LatencyDisplayButton : public Component, public MultiTimer, public Settabl
     Label icon;
     bool isHover = false;
     Colour bgColour;
+    int currentLatencyValue = 0;
 
     enum TimerRoutine { Timeout, Animate };
     float alpha = 1.0f;
@@ -89,7 +90,8 @@ public:
 
     void setLatencyValue(const int value)
     {
-        latencyValue.setText(String(value) + " smpl", dontSendNotification);
+        currentLatencyValue = value;
+        updateValue();
         if (value == 64) {
             startTimer(Timeout, 1000 / 3.0f);
         } else {
@@ -99,6 +101,17 @@ public:
             setVisible(true);
             alpha = 1.0f;
             buttonStateChanged();
+        }
+    }
+
+    void updateValue()
+    {
+        if (isHover) {
+            latencyValue.setJustificationType(Justification::centredLeft);
+            latencyValue.setText("Reset", dontSendNotification);
+        } else {
+            latencyValue.setJustificationType(Justification::centredRight);
+            latencyValue.setText(String(currentLatencyValue) + " smpl", dontSendNotification);
         }
     }
 
@@ -113,6 +126,8 @@ public:
         auto textColour = bgColour.contrasting().withAlpha(alpha);
         icon.setColour(Label::textColourId, textColour);
         latencyValue.setColour(Label::textColourId, textColour);
+
+        updateValue();
 
         repaint();
     }
