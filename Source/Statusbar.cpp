@@ -111,7 +111,7 @@ public:
 
     void updateValue()
     {
-        if (isHover) {
+        if (isHover && !fading) {
             latencyValue.setJustificationType(Justification::centredLeft);
             latencyValue.setText("Reset", dontSendNotification);
         } else {
@@ -139,18 +139,12 @@ public:
 
     void mouseEnter(const MouseEvent& e) override
     {
-        if (fading)
-            return;
-
         isHover = true;
         buttonStateChanged();
     }
 
     void mouseExit(const MouseEvent& e) override
     {
-        if (fading)
-            return;
-
         isHover = false;
         buttonStateChanged();
     }
@@ -781,9 +775,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
     latencyDisplayButton = std::make_unique<LatencyDisplayButton>();
     addChildComponent(latencyDisplayButton.get());
     latencyDisplayButton->onClick = [this](){
-        currentLatency = 64;
-        pd->setLatencySamples(64);
-        latencyDisplayButton->setVisible(false);
+        pd->performLatencyCompensationChange(64);
     };
 
     powerButton.setButtonText(Icons::Power);
@@ -914,6 +906,8 @@ Statusbar::Statusbar(PluginProcessor* processor)
     addAndMakeVisible(alignmentButton);
 
     alignmentButton.setTooltip(String("Alignment tools"));
+
+    setLatencyDisplay(pd->getLatencySamples());
 
     setSize(getWidth(), statusbarHeight);
 }
