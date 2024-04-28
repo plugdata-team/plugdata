@@ -119,6 +119,12 @@ Connection::~Connection()
     if (inobj) {
         inobj->removeComponentListener(this);
     }
+    
+    auto* nvg = cnv->editor->nvgSurface.getRawContext();
+    if(cacheId >= 0) nvgDeletePath(nvg, cacheId);
+    if (cacheId >= 0 && cableType == SignalCable) {
+        nvgDeletePath(nvg, std::numeric_limits<int32_t>::max() - cacheId);
+    }
 }
 
 void Connection::changeListenerCallback(ChangeBroadcaster* source)

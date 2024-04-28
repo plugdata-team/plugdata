@@ -175,6 +175,7 @@ Canvas::~Canvas()
     editor->removeModifierKeyListener(this);
     pd->unregisterMessageListener(patch.getPointer().get(), this);
     editor->nvgSurface.removeNVGContextListener(this);
+    if(ioletBuffer) nvgDeleteFramebuffer(ioletBuffer);
 }
 
 void Canvas::lookAndFeelChanged()

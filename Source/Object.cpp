@@ -345,6 +345,8 @@ void Object::applyBounds()
 }
 void Object::updateBounds()
 {
+    if(cnv->isGraph && gui && gui->hideInGraph()) return;
+    
     // only update if we have a gui and the object isn't been moved by the user
     // otherwise PD hasn't been informed of the new position 'while' we are dragging
     // so we don't need to update the bounds when an object is being interacted with
@@ -567,7 +569,7 @@ void Object::resized()
 
 void Object::updateTooltips()
 {
-    if (!gui)
+    if (!gui || cnv->isGraph)
         return;
 
     auto objectInfo = cnv->pd->objectLibrary->getObjectInfo(gui->getType());

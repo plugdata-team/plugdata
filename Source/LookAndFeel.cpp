@@ -261,7 +261,6 @@ private:
 
 PlugDataLook::PlugDataLook()
 {
-    setDefaultSansSerifTypeface(Fonts::getCurrentFont().getTypefacePtr());
 }
 
 void PlugDataLook::fillResizableWindowBackground(Graphics& g, int w, int h, BorderSize<int> const& border, ResizableWindow& window)
