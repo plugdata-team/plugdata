@@ -479,6 +479,11 @@ public:
         return false;
     }
         
+    void lookAndFeelChanged() override
+    {
+        updateTextLayout();
+    }
+        
     void resized() override
     {
         updateTextLayout();

@@ -217,6 +217,11 @@ public:
         }
     }
 
+    void lookAndFeelChanged() override
+    {
+        updateTextLayout();
+    }
+        
     bool isEditorShown() override
     {
         return editor != nullptr;

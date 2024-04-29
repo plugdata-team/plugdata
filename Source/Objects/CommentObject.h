@@ -183,6 +183,11 @@ public:
         return {textWidth, textSize.getHeight()};
     }
     
+    void lookAndFeelChanged() override
+    {
+        updateTextLayout();
+    }
+    
     void updateTextLayout()
     {
         auto objText = editor ? editor->getText() : objectText;
