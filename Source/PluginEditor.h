@@ -148,6 +148,8 @@ public:
     
     bool highlightSearchTarget(void* target, bool openNewTabIfNeeded);
 
+    Array<pd::WeakReference> openTextEditors;
+
     TabComponent* getActiveTabbar();
 
     PluginProcessor* pd;

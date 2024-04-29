@@ -577,9 +577,14 @@ public:
             textEditor->toFront(true);
             return;
         }
+
+        if (cnv->editor->openTextEditors.contains(ptr))
+            return;
+
         textEditor.reset(
             Dialogs::showTextEditorDialog(fileToOpen.loadFileAsString(), "lua: " + getText(), [this, fileToOpen](String const& newText, bool hasChanged) {
                 if (!hasChanged) {
+                    cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
                     textEditor.reset(nullptr);
                     return;
                 }
@@ -597,17 +602,20 @@ public:
                                 auto* patch = cnv->patch.getPointer().get();
                                 pd::Interface::recreateTextObject(patch, pdlua.cast<t_gobj>());
                             }
+                            cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
                             textEditor.reset(nullptr);
                             cnv->performSynchronise();
                         }
                         if (result == 1) {
+                            cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
                             textEditor.reset(nullptr);
                         }
                     },
                     15, false);
             }));
+        if (textEditor)
+            cnv->editor->openTextEditors.addIfNotAlreadyThere(ptr);
     }
-
 };
 
 // A non-GUI Lua object, that we would still like to have clickable for opening the editor
@@ -645,9 +653,14 @@ public:
             textEditor->toFront(true);
             return;
         }
+
+        if (cnv->editor->openTextEditors.contains(ptr))
+            return;
+
         textEditor.reset(
             Dialogs::showTextEditorDialog(fileToOpen.loadFileAsString(), "lua: " + getText(), [this, fileToOpen](String const& newText, bool hasChanged) {
                 if (!hasChanged) {
+                    cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
                     textEditor.reset(nullptr);
                     return;
                 }
@@ -665,14 +678,18 @@ public:
                                 auto* patch = cnv->patch.getPointer().get();
                                 pd::Interface::recreateTextObject(patch, pdlua.cast<t_gobj>());
                             }
+                            cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
                             textEditor.reset(nullptr);
                             cnv->performSynchronise();
                         }
                         if (result == 1) {
+                            cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
                             textEditor.reset(nullptr);
                         }
                     },
                     15, false);
             }));
+        if (textEditor)
+            cnv->editor->openTextEditors.addIfNotAlreadyThere(ptr);
     }
 };
