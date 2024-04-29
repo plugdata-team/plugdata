@@ -1326,16 +1326,13 @@ void Object::performRender(NVGcontext* nvg)
         int halfHeight = 5;
 
         auto text = std::to_string(cnv->objects.indexOf(this));
-        int textWidth = static_cast<int>(nvgTextBounds(nvg, 0, 0, text.c_str(), nullptr, nullptr)) + 5;
-        int left = std::min<int>(b.getWidth() - (1.5 * margin), b.getWidth() - textWidth);
+        int textWidth = 6 + text.length() * 4;
+        auto indexBounds = b.withSizeKeepingCentre(b.getWidth() + doubleMargin, halfHeight * 2).removeFromRight(textWidth);
+    
+        auto fillColour = convertColour(getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        nvgDrawRoundedRect(nvg, indexBounds.getX(), indexBounds.getY(), indexBounds.getWidth(), indexBounds.getHeight(), fillColour, fillColour, 2.0f);
 
-        auto indexBounds = Rectangle<int>(left, (b.getHeight() / 2) - halfHeight, b.getWidth() - left, halfHeight * 2);
         
-        nvgBeginPath(nvg);
-        nvgFillColor(nvg, convertColour(getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId))); // Adjust fill color as needed
-        nvgRoundedRect(nvg, indexBounds.getX(), indexBounds.getY(), indexBounds.getWidth(), indexBounds.getHeight(), 2.0f);
-        nvgFill(nvg);
-
         nvgFontSize(nvg, 8.0f);
         nvgFontFace(nvg, "Inter");
         nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_CENTER);
