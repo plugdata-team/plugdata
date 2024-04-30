@@ -138,7 +138,6 @@ public:
 
     int convertImage(NVGcontext* nvg, Image& image, Rectangle<int> bounds)
     {
-        Image::BitmapData imageData(image, Image::BitmapData::readOnly);
         const auto argbImage = image.convertedToFormat(Image::ARGB);
         const Image::BitmapData imageData(argbImage, Image::BitmapData::readOnly);
         
