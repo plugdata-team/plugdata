@@ -5,7 +5,7 @@
  */
 
 // ELSE pic
-class PictureObject final : public ObjectBase {
+class PictureObject final : public ObjectBase, public NVGContextListener {
 
     Value path = SynchronousValue();
     Value latch = SynchronousValue();
@@ -17,9 +17,10 @@ class PictureObject final : public ObjectBase {
 
     File imageFile;
     Image img;
+    std::vector<std::pair<int, Rectangle<int>>> imageBuffers;
+    bool imageNeedsReload = false;
+    uint8 pixelDataBuffer[8192 * 8192 * 4];
     
-    std::unique_ptr<NanoVGGraphicsContext> nvgCtx = nullptr;
-
 public:
     PictureObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
@@ -44,6 +45,15 @@ public:
         objectParameters.addParamBool("Report Size", cAppearance, &reportSize, { "No", "Yes" }, 0);
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
         objectParameters.addParamSendSymbol(&sendSymbol);
+        
+        cnv->editor->nvgSurface.addNVGContextListener(this);
+    }
+    
+    ~PictureObject()
+    {
+        // TODO: delete image buffers!
+        
+        cnv->editor->nvgSurface.addNVGContextListener(this);
     }
     
     bool isTransparent() override
@@ -66,6 +76,10 @@ public:
             }
         }
     }
+    
+    void nvgContextDeleted(NVGcontext* nvg) override {
+        imageNeedsReload = true;
+    };
 
     void mouseUp(MouseEvent const& e) override
     {
@@ -121,31 +135,96 @@ public:
         }
         }
     }
+
+    int convertImage(NVGcontext* nvg, Image& image, Rectangle<int> bounds)
+    {
+        Image::BitmapData imageData(image, Image::BitmapData::readOnly);
+        for (int y = 0; y < bounds.getHeight(); y++)
+        {
+            auto* scanLine = (uint32*) imageData.getLinePointer(y + bounds.getY());
+            
+            for (int x = 0; x < bounds.getWidth(); x++)
+            {
+                uint32 argb = scanLine[x + bounds.getX()];
+                int bufferPos = (y * bounds.getWidth() + x) * 4;
+                
+                pixelDataBuffer[bufferPos + 0] = (argb >> 16) & 0xFF; // Red
+                pixelDataBuffer[bufferPos + 1] = (argb >> 8) & 0xFF;  // Green
+                pixelDataBuffer[bufferPos + 2] = argb & 0xFF;         // Blue
+                pixelDataBuffer[bufferPos + 3] = (argb >> 24) & 0xFF; // Alpha
+            }
+        }
+        
+        return nvgCreateImageRGBA(nvg, bounds.getWidth(), bounds.getHeight(), NVG_IMAGE_PREMULTIPLIED, pixelDataBuffer);
+    }
+    
+    void updateImage(NVGcontext* nvg)
+    {
+        for(auto& [image, bounds] : imageBuffers)
+        {
+            nvgDeleteImage(nvg, image);
+        }
+        imageBuffers.clear();
+        
+        int imageWidth = img.getWidth();
+        int imageHeight = img.getHeight();
+        int x = 0;
+        while(x < imageWidth)
+        {
+            int y = 0;
+            int width = std::min(8192, imageWidth - x);
+            while(y < imageHeight)
+            {
+                int height = std::min(8192, imageHeight - y);
+                auto bounds = Rectangle<int>(x, y, width, height);
+                imageBuffers.emplace_back(convertImage(nvg, img, bounds), bounds);
+                y += 8192;
+                
+            }
+            x += 8192;
+        }
+        
+        imageNeedsReload = false;
+    }
     
     void render(NVGcontext* nvg) override
     {
-        if(!nvgCtx || nvgCtx->getContext() != nvg) nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
-        Graphics g(*nvgCtx);
+        if(imageNeedsReload) updateImage(nvg);
+        
+        auto b = getLocalBounds().toFloat();
+        
+        nvgSave(nvg);
+        nvgIntersectScissor(nvg, 0, 0, getWidth(), getHeight());
+        if(imageBuffers.empty())
         {
-            paintEntireComponent(g, true);
+            nvgFontSize(nvg, 20);
+            nvgFontFace(nvg, "Inter-Regular");
+            nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+            nvgFillColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId)));
+            nvgText(nvg, b.getCentreX(), b.getCentreY(), "?", 0);
         }
-    }
-
-    void paint(Graphics& g) override
-    {
-        if (imageFile.existsAsFile()) {
-            g.drawImageAt(img, 0, 0);
-        } else {
-            Fonts::drawText(g, "?", getLocalBounds(), LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId), 30, Justification::centred);
+        else {
+            for(auto& [image, bounds] : imageBuffers)
+            {
+                nvgBeginPath(nvg);
+                nvgRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+                nvgFillPaint(nvg, nvgImagePattern(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), 0, image, 1.0f));
+                nvgFill(nvg);
+            }
         }
-
+        
         bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = LookAndFeel::getDefaultLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         if (getValue<bool>(outline)) {
-            g.setColour(outlineColour);
-            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+            nvgBeginPath(nvg);
+            nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+            nvgStrokeWidth(nvg, 1.0f);
+            nvgStrokeColor(nvg, convertColour(outlineColour));
+            nvgStroke(nvg);
         }
+        
+        nvgRestore(nvg);
     }
 
     void valueChanged(Value& value) override
@@ -171,7 +250,7 @@ public:
                 pic->x_latch = getValue<int>(latch);
         } else if (value.refersToSameSourceAs(outline)) {
             if (auto pic = ptr.get<t_fake_pic>())
-                pic->x_outline = getValue<int>(latch);
+                pic->x_outline = getValue<int>(outline);
         } else if (value.refersToSameSourceAs(reportSize)) {
             if (auto pic = ptr.get<t_fake_pic>())
                 pic->x_size = getValue<int>(reportSize);
@@ -267,6 +346,7 @@ public:
         auto* rawPath = pathString.toRawUTF8();
 
         img = ImageFileFormat::loadFrom(imageFile);
+        imageNeedsReload = true;
 
         if (auto pic = ptr.get<t_fake_pic>()) {
             pic->x_filename = pd->generateSymbol(rawFileName);

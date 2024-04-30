@@ -573,12 +573,15 @@ void Object::updateTooltips()
         return;
 
     auto objectInfo = cnv->pd->objectLibrary->getObjectInfo(gui->getType());
-
-    // Set object tooltip
-    gui->setTooltip(objectInfo.getProperty("description").toString());
-
-    // Check pd library for pddp tooltips, those have priority
-    auto ioletTooltips = cnv->pd->objectLibrary->parseIoletTooltips(objectInfo.getChildWithName("iolets"), gui->getText(), numInputs, numOutputs);
+    
+    std::array<StringArray, 2> ioletTooltips;
+    
+    if(objectInfo.isValid()) {
+        // Set object tooltip
+        gui->setTooltip(objectInfo.getProperty("description").toString());
+        // Check pd library for pddp tooltips, those have priority
+        ioletTooltips = cnv->pd->objectLibrary->parseIoletTooltips(objectInfo.getChildWithName("iolets"), gui->getText(), numInputs, numOutputs);
+    }
 
     // First clear all tooltips, so we can see later if it has already been set or not
     for (auto iolet : iolets) {
@@ -1160,9 +1163,12 @@ void Object::mouseDrag(MouseEvent const& e)
     }
 }
 
-
 void Object::updateFramebuffer(NVGcontext* nvg)
 {
+    // For very large objects, buffering is just gonna take up GPU memory, with minimal performance benefits
+    // Also, Metal has a limitation on image size, so this will also prevent crashing
+    if(getWidth() * 3 * cnv->getRenderScale() > 8192 || getHeight() * 3 * cnv->getRenderScale() > 8192) return;
+    
     auto b = getLocalBounds();
     bool boundsChanged = b.getWidth() != fbWidth || b.getHeight() != fbHeight;
     if(fbDirty || boundsChanged)
