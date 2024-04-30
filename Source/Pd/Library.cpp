@@ -335,9 +335,9 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile)
         for (const auto& file : OSUtils::iterateDirectory(searchDir, false, true)) {
             auto pathName = file.getFullPathName().replace("\\", "/").trimCharactersAtEnd("/");
             // Hack to make it find else/cyclone/Gem helpfiles...
-            pathName = pathName.replace("/else", "/9.else");
-            pathName = pathName.replace("/cyclone", "/10.else");
-            pathName = pathName.replace("/Gem", "/14.gem");
+            pathName = pathName.replace("/9.else", "/else");
+            pathName = pathName.replace("/10.cyclone", "/cyclone");
+            pathName = pathName.replace("/14.gem", "/Gem");
             
             if (pathName.endsWith("/" + firstName) || pathName.endsWith("/" + secondName)) {
                 return file;
