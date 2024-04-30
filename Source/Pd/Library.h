@@ -77,6 +77,7 @@ private:
     ThreadPool objectSearchThread = ThreadPool(1);
 
     ValueTree documentationTree;
+    std::unordered_map<hash32, ValueTree> documentationIndex;
 };
 
 } // namespace pd

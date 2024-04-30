@@ -99,6 +99,25 @@ Library::Library(pd::Instance* instance)
     MemoryInputStream instream(BinaryData::Documentation_bin, BinaryData::Documentation_binSize, false);
     documentationTree = ValueTree::readFromStream(instream);
 
+    for(auto child : documentationTree)
+    {
+        auto categoriesTree = child.getChildWithName("categories");
+
+        String origin;
+        for (auto category : categoriesTree) {
+            auto cat = category.getProperty("name").toString();
+            if (objectOrigins.contains(cat)) {
+                origin = cat;
+            }
+        }
+        
+        documentationIndex[hash(child.getProperty("name").toString())] = child;
+        if(origin.isNotEmpty()) {
+            documentationIndex[hash(origin + "/" + child.getProperty("name").toString())] = child;
+        }
+    }
+    
+    
     watcher.addFolder(ProjectInfo::appDataDir);
     watcher.addListener(this);
 
@@ -149,9 +168,11 @@ void Library::getExtraSuggestions(int currentNumSuggestions, String const& query
         StringArray result;
         StringArray matches;
 
+        // TODO: why not iterate the documentation tree directly??
         for (const auto& object : getAllObjects()) {
             auto info = getObjectInfo(object);
-
+            if(!info.isValid()) continue;
+            
             auto description = info.getProperty("description").toString();
 
             auto iolets = info.getChildWithName("iolets");
@@ -188,7 +209,7 @@ void Library::getExtraSuggestions(int currentNumSuggestions, String const& query
 
 ValueTree Library::getObjectInfo(String const& name)
 {
-    return documentationTree.getChildWithProperty("name", name.fromLastOccurrenceOf("/", false, false));
+    return documentationIndex[hash(name)];
 }
 
 std::array<StringArray, 2> Library::parseIoletTooltips(ValueTree const& iolets, String const& name, int numIn, int numOut)

@@ -1645,7 +1645,6 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::ConnectionStyle: {
-
         bool noneSegmented = true;
         for (auto* con : cnv->getSelectionOfType<Connection>()) {
             if (con->isSegmented())

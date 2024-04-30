@@ -198,7 +198,7 @@ public:
 
         for (auto const& object : library.getAllObjects()) {
             auto info = library.getObjectInfo(object);
-            if (info.hasProperty("name") && info.hasProperty("description")) {
+            if (info.isValid() && info.hasProperty("name") && info.hasProperty("description")) {
                 descriptions[info.getProperty("name").toString()] = info.getProperty("description").toString();
             }
         }
@@ -495,7 +495,9 @@ public:
 
     void showObject(String const& name)
     {
-        bool valid = name.isNotEmpty();
+        auto objectInfo = library.getObjectInfo(name);
+        bool valid = name.isNotEmpty() && objectInfo.isValid();
+        
         // openHelp.setVisible(valid);
         openReference.setVisible(valid);
         objectDragArea.setVisible(valid);
@@ -513,8 +515,7 @@ public:
 
         bool hasUnknownInletLayout = false;
         bool hasUnknownOutletLayout = false;
-
-        auto objectInfo = library.getObjectInfo(name);
+        
         auto ioletDescriptions = objectInfo.getChildWithName("iolets");
         for (auto iolet : ioletDescriptions) {
             auto variable = iolet.getProperty("variable").toString() == "1";
@@ -819,7 +820,10 @@ public:
         auto& library = *editor->pd->objectLibrary;
 
         for (auto& object : library.getAllObjects()) {
-            auto categoriesTree = library.getObjectInfo(object).getChildWithName("categories");
+            auto info = library.getObjectInfo(object);
+            if(!info.isValid()) continue;
+            
+            auto categoriesTree = info.getChildWithName("categories");
 
             for (auto category : categoriesTree) {
                 auto cat = category.getProperty("name").toString();
