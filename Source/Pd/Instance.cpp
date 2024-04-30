@@ -281,15 +281,15 @@ void Instance::initialisePd(String& pdlua_version)
         libpd_set_instance(libpd_main_instance());
         
         set_class_prefix(gensym("else"));
-        class_set_extern_dir(gensym("else"));
+        class_set_extern_dir(gensym("9.else"));
         pd::Setup::initialiseELSE();
         set_class_prefix(gensym("cyclone"));
-        class_set_extern_dir(gensym("cyclone"));
+        class_set_extern_dir(gensym("10.cyclone"));
         pd::Setup::initialiseCyclone();
         
         set_class_prefix(gensym("Gem"));
                 
-        class_set_extern_dir(gensym("Gem"));
+        class_set_extern_dir(gensym("14.gem"));
         pd::Setup::initialiseGem(ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Gem").getFullPathName().toStdString());
 
         class_set_extern_dir(gensym(""));

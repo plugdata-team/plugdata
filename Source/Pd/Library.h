@@ -53,6 +53,7 @@ public:
         ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("10.cyclone"),
         ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("11.heavylib"),
         ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("13.pdlua"),
+        ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("14.gem"),
         ProjectInfo::appDataDir.getChildFile("Extra"),
         ProjectInfo::appDataDir.getChildFile("Externals")
     };
