@@ -110,9 +110,16 @@ Library::Library(pd::Instance* instance)
                 origin = cat;
             }
         }
-        
-        documentationIndex[hash(child.getProperty("name").toString())] = child;
-        if(origin.isNotEmpty()) {
+       
+        if(origin.isEmpty()) {
+            documentationIndex[hash(child.getProperty("name").toString())] = child;
+        }
+        else if(origin == "Gem")
+        {
+            documentationIndex[hash(origin + "/" + child.getProperty("name").toString())] = child;
+        }
+        else {
+            documentationIndex[hash(child.getProperty("name").toString())] = child;
             documentationIndex[hash(origin + "/" + child.getProperty("name").toString())] = child;
         }
     }
