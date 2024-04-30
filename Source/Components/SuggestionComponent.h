@@ -16,15 +16,16 @@ int is_gem_object(const char* sym);
 
 // Component that sits on top of a TextEditor and will draw auto-complete suggestions over it
 class AutoCompleteComponent
-    : public Component
+    : public Component, public NVGComponent
     , public ComponentListener {
     String suggestion;
     Canvas* cnv;
     Component::SafePointer<TextEditor> editor;
-
+    std::unique_ptr<NanoVGGraphicsContext> nvgCtx;
+        
 public:
     AutoCompleteComponent(TextEditor* e, Canvas* c)
-        : cnv(c)
+        : NVGComponent(this), cnv(c)
         , editor(e)
     {
         setAlwaysOnTop(true);
@@ -77,7 +78,7 @@ public:
             return;
 
         auto editorText = editor->getText();
-
+        
         if (editorText.startsWith(suggestionText)) {
             suggestion = "";
             repaint();
@@ -102,7 +103,20 @@ public:
         suggestion = suggestion.upToFirstOccurrenceOf(" ", false, false);
         repaint();
     }
+        
+    void render(NVGcontext* nvg) override
+    {
+        nvgSave(nvg);
+        nvgTranslate(nvg, getX(), getY());
+        if(!nvgCtx || nvgCtx->getContext() != nvg) nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
+        Graphics g(*nvgCtx);
+        {
+            paintEntireComponent(g, true);
+        }
+        nvgRestore(nvg);
+    }
 
+        
 private:
     bool shouldAutocomplete = true;
     String stashedText;
@@ -131,7 +145,7 @@ private:
         auto completionBounds = getLocalBounds().toFloat().withTrimmedLeft(editorTextWidth + 7.5f);
 
         auto colour = findColour(PlugDataColour::canvasTextColourId).withAlpha(0.65f);
-        Fonts::drawText(g, suggestion, completionBounds.translated(-1, -1), colour);
+        Fonts::drawText(g, suggestion, completionBounds.translated(-1.25f, -0.25f), colour);
     }
 };
 // Suggestions component that shows up when objects are edited
@@ -292,6 +306,11 @@ public:
     ~SuggestionComponent() override
     {
         buttons.clear();
+    }
+        
+    void renderAutocompletion(NVGcontext* nvg)
+    {
+        if(autoCompleteComponent) autoCompleteComponent->render(nvg);
     }
 
     void createCalloutBox(Object* object, TextEditor* editor)
@@ -893,7 +912,7 @@ private:
 
         return nearbyMethods;
     }
-
+        
     void deselectAll()
     {
         for (auto* button : buttons) {

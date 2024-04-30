@@ -478,6 +478,8 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         nvgStroke(nvg);
     }
     
+    suggestor->renderAutocompletion(nvg);
+    
     nvgRestore(nvg);
     
     // Draw scrollbars
