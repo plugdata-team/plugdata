@@ -633,7 +633,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
                 cnv->pd->unlockAudioThread();
 
                 Array<ObjectParameters> parameters = { object->gui->getParameters() };
-                editor->sidebar->showParameters(object->gui->getType(), parameters);
+                editor->sidebar->showParameters(object->getType(false), parameters);
             }
 
             return;
@@ -726,7 +726,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             object->openHelpPatch();
             break;
         case Reference:
-            Dialogs::showObjectReferenceDialog(&editor->openedDialog, editor, object->gui->getType());
+            Dialogs::showObjectReferenceDialog(&editor->openedDialog, editor, object->getType());
             break;
         default:
             break;

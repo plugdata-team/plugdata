@@ -230,6 +230,20 @@ String ObjectBase::getText()
     return "";
 }
 
+String ObjectBase::getTypeWithOriginPrefix() const
+{
+    if (auto obj = ptr.get<t_gobj>()) {
+        auto origin = pd::Library::getObjectOrigin(obj.get());
+        auto type = getType();
+        
+        if(origin.isEmpty()) return type;
+        
+        return  origin + "/" + type;
+    }
+    
+    return {};
+}
+
 String ObjectBase::getType() const
 {
     if (auto obj = ptr.get<t_pd>()) {

@@ -1068,7 +1068,7 @@ void Canvas::updateSidebarSelection()
         if (!allParameters.isEmpty() || editor->sidebar->isPinned()) {
             String objectName = "(" + String(lassoSelection.size()) + " selected)";
             if (lassoSelection.size() == 1 && lassoSelection.getFirst()) {
-                objectName = lassoSelection.getFirst()->getType();
+                objectName = lassoSelection.getFirst()->getType(false);
             }
 
             editor->sidebar->showParameters(objectName, allParameters);

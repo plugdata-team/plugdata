@@ -282,6 +282,34 @@ void Library::filesystemChanged()
     updateLibrary();
 }
 
+String Library::getObjectOrigin(t_gobj* obj)
+{
+    auto* pdclass = pd_class(reinterpret_cast<t_pd*>(obj));
+    
+    if (pdclass == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
+        auto* cnv = reinterpret_cast<t_canvas*>(obj);
+        auto parentPath = String::fromUTF8(canvas_getenv(cnv)->ce_dir->s_name);
+        for(auto& origin : objectOrigins)
+        {
+            if(parentPath.containsIgnoreCase("/" + origin))
+            {
+                return origin;
+            }
+        }
+    }
+    
+    auto externDir = String::fromUTF8(pdclass->c_externdir->s_name);
+    for(auto& origin : objectOrigins)
+    {
+        if(externDir.containsIgnoreCase(origin))
+        {
+            return origin;
+        }
+    }
+    
+    return {};
+}
+
 File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile)
 {
     String helpName;
@@ -308,7 +336,7 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile)
     auto patchHelpPaths = Array<File>();
 
     // Add abstraction dir to search paths
-    if (pd_class(reinterpret_cast<t_pd*>(obj)) == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
+    if (pdclass == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
         auto* cnv = reinterpret_cast<t_canvas*>(obj);
         patchHelpPaths.add(File(String::fromUTF8(canvas_getenv(cnv)->ce_dir->s_name)));
         if (helpDir.isNotEmpty()) {

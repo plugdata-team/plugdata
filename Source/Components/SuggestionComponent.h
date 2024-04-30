@@ -615,7 +615,7 @@ private:
             return suggestions;
         };
 
-        if (currentObject->gui && currentObject->gui->getType() == "message") {
+        if (currentObject->gui && currentObject->getType(false) == "message") {
             auto nearbyMethods = findNearbyMethods(currentText);
 
             numOptions = std::min<int>(buttons.size(), nearbyMethods.size());
@@ -843,7 +843,7 @@ private:
             if (!obj->getPointer() || obj == currentObject || distance > 300)
                 continue;
 
-            auto objectName = obj->gui->getType();
+            auto objectName = obj->getType();
             auto alreadyExists = std::find_if(objects.begin(), objects.end(), [objectName](auto const& toCompare) {
                 return std::get<0>(toCompare) == objectName;
             }) != objects.end();

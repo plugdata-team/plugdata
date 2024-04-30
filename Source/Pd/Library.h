@@ -36,6 +36,8 @@ public:
     static File findHelpfile(t_gobj* obj, File const& parentPatchFile);
 
     ValueTree getObjectInfo(String const& name);
+    
+    static String getObjectOrigin(t_gobj* obj);
 
     StringArray getAllObjects();
 

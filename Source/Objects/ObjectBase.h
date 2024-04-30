@@ -169,6 +169,9 @@ public:
     // Returns the Pd class name of the object
     String getType() const;
 
+    // Returns the Pd class name of the object with the library prefix in front of it, eg "else"
+    String getTypeWithOriginPrefix() const;
+    
     void moveToFront();
     void moveForward();
     void moveBackward();

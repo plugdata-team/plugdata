@@ -68,7 +68,7 @@ public:
     
     void nvgContextDeleted(NVGcontext* nvg) override;
         
-    String getType() const;
+    String getType(bool withOriginPrefix = true) const;
 
     Rectangle<int> getSelectableBounds();
     Rectangle<int> getObjectBounds();

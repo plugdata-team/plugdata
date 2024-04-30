@@ -479,9 +479,11 @@ Array<Rectangle<float>> Object::getCorners() const
     return corners;
 }
 
-String Object::getType() const
+String Object::getType(bool withOriginPrefix) const
 {
-    return gui ? gui->getType() : String();
+    if(gui && withOriginPrefix) return gui->getTypeWithOriginPrefix();
+    else if(gui) return gui->getType();
+    return String();
 }
 
 void Object::triggerOverlayActiveState()
@@ -571,8 +573,9 @@ void Object::updateTooltips()
 {
     if (!gui || cnv->isGraph)
         return;
-
-    auto objectInfo = cnv->pd->objectLibrary->getObjectInfo(gui->getType());
+    
+    
+    auto objectInfo = cnv->pd->objectLibrary->getObjectInfo(gui->getTypeWithOriginPrefix());
     
     std::array<StringArray, 2> ioletTooltips;
     
