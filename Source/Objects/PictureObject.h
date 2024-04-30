@@ -139,6 +139,9 @@ public:
     int convertImage(NVGcontext* nvg, Image& image, Rectangle<int> bounds)
     {
         Image::BitmapData imageData(image, Image::BitmapData::readOnly);
+        const auto argbImage = image.convertedToFormat(Image::ARGB);
+        const Image::BitmapData imageData(argbImage, Image::BitmapData::readOnly);
+        
         for (int y = 0; y < bounds.getHeight(); y++)
         {
             auto* scanLine = (uint32*) imageData.getLinePointer(y + bounds.getY());
