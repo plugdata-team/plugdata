@@ -326,6 +326,7 @@ public:
             // Get pd's search paths
             char* paths[1024];
             int numItems;
+            pd->setThis();
             pd::Interface::getSearchPaths(paths, &numItems);
 
             for (int i = 0; i < numItems; i++) {

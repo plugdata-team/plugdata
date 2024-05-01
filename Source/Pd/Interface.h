@@ -53,7 +53,6 @@ struct Interface {
         auto* cnv = static_cast<t_canvas*>(libpd_openfile(name, path));
         if (cnv) {
             canvas_vis(cnv, 1.f);
-            canvas_rename(cnv, gensym(name), gensym(path));
         }
         return cnv;
     }
@@ -90,24 +89,7 @@ struct Interface {
 
     static void getSearchPaths(char** paths, int* numItems)
     {
-
-        t_namelist* pathList = STUFF->st_searchpath;
-        int i = 0;
-        while (pathList) {
-            i++;
-            pathList = pathList->nl_next;
-        }
-
-        *numItems = i;
-
-        pathList = STUFF->st_searchpath;
-        i = 0;
-        while (pathList) {
-            paths[i] = pathList->nl_string;
-            i++;
-
-            pathList = pathList->nl_next;
-        }
+        libpd_get_search_paths(paths, numItems);
     }
 
     static t_object* checkObject(t_pd* obj)
