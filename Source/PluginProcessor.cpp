@@ -1524,7 +1524,7 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
                     patches[0]->openInPluginMode = true;
                     auto editors = getEditors();
                     if(editors.size()) {
-                        for(auto* canvas : openedEditors[0]->canvases)
+                        for(auto* canvas : editors[0]->canvases)
                         {
                             if(patches[0] == canvas->patch)
                             {
