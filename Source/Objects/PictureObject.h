@@ -53,7 +53,7 @@ public:
     {
         // TODO: delete image buffers!
         
-        cnv->editor->nvgSurface.addNVGContextListener(this);
+        cnv->editor->nvgSurface.removeNVGContextListener(this);
     }
     
     bool isTransparent() override
