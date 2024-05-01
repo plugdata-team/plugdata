@@ -1519,8 +1519,24 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
     case hash("pluginmode"): {
         MessageManager::callAsync(
             [this]() mutable {
-                for (auto* editor : getEditors()) {
-                    editor->enablePluginMode(editor->getCurrentCanvas());
+                if(!ProjectInfo::isStandalone) {
+                    // TODO: it would be nicer if we could specifically target the correct patch here, instead of picking the first one and praying
+                    patches[0]->openInPluginMode = true;
+                    auto editors = getEditors();
+                    if(editors.size()) {
+                        for(auto* canvas : openedEditors[0]->canvases)
+                        {
+                            if(patches[0] == canvas->patch)
+                            {
+                                editors[0]->enablePluginMode(canvas);
+                            }
+                        }
+                    }
+                }
+                else {
+                    for (auto* editor : getEditors()) {
+                        editor->enablePluginMode(editor->getCurrentCanvas());
+                    }
                 }
             });
         break;
