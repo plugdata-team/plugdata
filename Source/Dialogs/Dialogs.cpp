@@ -744,6 +744,11 @@ void Dialogs::showObjectMenu(PluginEditor* editor, Component* target)
     AddObjectMenu::show(editor, target->getScreenBounds());
 }
 
+void Dialogs::dismissFileDialog()
+{
+    fileChooser.reset(nullptr);
+}
+
 void Dialogs::showOpenDialog(std::function<void(URL)> const& callback, bool canSelectFiles, bool canSelectDirectories, String const& extension, String const& lastFileId, Component* parentComponent)
 {
     bool nativeDialog = SettingsFile::getInstance()->wantsNativeDialog();

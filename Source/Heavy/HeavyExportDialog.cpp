@@ -242,6 +242,8 @@ HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
 
 HeavyExportDialog::~HeavyExportDialog()
 {
+    Dialogs::dismissFileDialog();
+    
     // Clean up temp files
     Toolchain::deleteTempFiles();
 }

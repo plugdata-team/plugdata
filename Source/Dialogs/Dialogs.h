@@ -184,6 +184,8 @@ struct Dialogs {
     static void showDeken(PluginEditor* editor);
     static void showPatchStorage(PluginEditor* editor);
 
+    static void dismissFileDialog();
+    
     static void showOpenDialog(std::function<void(URL)> const& callback, bool canSelectFiles, bool canSelectDirectories, String const& lastFileId, String const& extension, Component* parentComponent);
 
     static void showSaveDialog(std::function<void(URL)> const& callback, String const& extension, String const& lastFileId, Component* parentComponent = nullptr, bool directoryMode = false);
