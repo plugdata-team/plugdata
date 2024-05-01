@@ -1516,6 +1516,15 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
             });
         break;
     }
+    case hash("pluginmode"): {
+        MessageManager::callAsync(
+            [this]() mutable {
+                for (auto* editor : getEditors()) {
+                    editor->enablePluginMode(editor->getCurrentCanvas());
+                }
+            });
+        break;
+    }
     case hash("quit"):
     case hash("verifyquit"): {
         if (ProjectInfo::isStandalone) {
