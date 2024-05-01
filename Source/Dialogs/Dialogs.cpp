@@ -47,7 +47,11 @@ Dialog::Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWi
 , owner(ownerPtr)
 , backgroundMargin(margin)
 {
+#if JUCE_LINUX || JUCE_BSD
+    addToDesktop(0);
+#else
     addToDesktop(ComponentPeer::windowIsTemporary);
+#endif
     setVisible(true);
 
     setBounds(parentComponent->getScreenX(), parentComponent->getScreenY(), parentComponent->getWidth(), parentComponent->getHeight());

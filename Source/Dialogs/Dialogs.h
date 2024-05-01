@@ -33,7 +33,7 @@ public:
             }
         }
     }
-
+    
     void componentMovedOrResized(Component& comp, bool wasMoved, bool wasResized) override
     {
         setBounds(parentComponent->getScreenX(), parentComponent->getScreenY(), parentComponent->getWidth(), parentComponent->getHeight());
@@ -104,7 +104,7 @@ public:
     void mouseDown(MouseEvent const& e) override
     {
         if(!hasKeyboardFocus(false)) {
-            parentComponent->toFront(true);
+            parentComponent->toFront(false);
             toFront(true);
         }
 
