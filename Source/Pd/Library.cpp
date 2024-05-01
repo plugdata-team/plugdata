@@ -298,12 +298,14 @@ String Library::getObjectOrigin(t_gobj* obj)
         }
     }
     
-    auto externDir = String::fromUTF8(pdclass->c_externdir->s_name);
-    for(auto& origin : objectOrigins)
-    {
-        if(externDir.containsIgnoreCase(origin))
+    if(pdclass->c_externdir) {
+        auto externDir = String::fromUTF8(pdclass->c_externdir->s_name);
+        for(auto& origin : objectOrigins)
         {
-            return origin;
+            if(externDir.containsIgnoreCase(origin))
+            {
+                return origin;
+            }
         }
     }
     
