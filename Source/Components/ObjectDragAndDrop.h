@@ -23,7 +23,7 @@ public:
 
     MouseCursor getMouseCursor() override
     {
-        if (editor->isDragAndDropActive())
+        if (editor && editor->isDragAndDropActive())
             return MouseCursor::DraggingHandCursor;
 
         return MouseCursor::PointingHandCursor;
