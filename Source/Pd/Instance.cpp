@@ -144,6 +144,9 @@ Instance::~Instance()
     pd_free(static_cast<t_pd*>(parameterReceiver));
     pd_free(static_cast<t_pd*>(pluginLatencyReceiver));
     pd_free(static_cast<t_pd*>(parameterChangeReceiver));
+    pd_free(static_cast<t_pd*>(parameterCreateReceiver));
+    pd_free(static_cast<t_pd*>(parameterRangeReceiver));
+    pd_free(static_cast<t_pd*>(parameterModeReceiver));
 
     // JYG added this
     pd_free(static_cast<t_pd*>(dataBufferReceiver));
@@ -206,6 +209,14 @@ void Instance::initialisePd(String& pdlua_version)
     parameterChangeReceiver = pd::Setup::createReceiver(this, "param_change", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
+    parameterCreateReceiver = pd::Setup::createReceiver(this, "param_create", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
+        reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
+    
+    parameterRangeReceiver = pd::Setup::createReceiver(this, "param_range", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
+        reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
+    
+    parameterModeReceiver = pd::Setup::createReceiver(this, "param_mode", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
+        reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
     atoms = malloc(sizeof(t_atom) * 512);
 
     // Register callback when pd's gui changes
@@ -487,6 +498,30 @@ void Instance::processMessage(Message mess) {
                 auto name = mess.list[0].toString();
                 float value = mess.list[1].getFloat();
                 performParameterChange(0, name, value);
+            }
+            break;
+        case hash("param_create"):
+            if (mess.list.size() >= 1) {
+                if (!mess.list[0].isSymbol()) return;
+                auto name = mess.list[0].toString();
+                enableAudioParameter(name);
+            }
+            break;
+        case hash("param_range"):
+            if (mess.list.size() >= 3) {
+                if (!mess.list[0].isSymbol() || !mess.list[1].isFloat() || !mess.list[2].isFloat()) return;
+                auto name = mess.list[0].toString();
+                float min = mess.list[1].getFloat();
+                float max = mess.list[2].getFloat();
+                setParameterRange(name, min, max);
+            }
+            break;
+        case hash("param_mode"):
+            if (mess.list.size() >= 2) {
+                if (!mess.list[0].isSymbol() || !mess.list[1].isFloat()) return;
+                auto name = mess.list[0].toString();
+                float mode = mess.list[1].getFloat();
+                setParameterMode(name, mode);
             }
             break;
         case hash("param_change"):

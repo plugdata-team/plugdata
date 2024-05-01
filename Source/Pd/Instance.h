@@ -228,11 +228,9 @@ public:
     static void registerLuaClass(const char* object);
     bool isLuaClass(hash32 objectNameHash);
 
-    virtual void receiveDSPState(bool dsp) { }
+    virtual void updateConsole(int numMessages, bool newWarning) = 0;
 
-    virtual void updateConsole(int numMessages, bool newWarning) { }
-
-    virtual void titleChanged() { }
+    virtual void titleChanged() = 0;
 
     void enqueueFunctionAsync(std::function<void(void)> const& fn);
     
@@ -257,13 +255,16 @@ public:
     void updateObjectImplementations();
     void clearObjectImplementationsForPatch(pd::Patch* p);
 
-    virtual void performParameterChange(int type, String const& name, float value) { }
-
-    virtual void performLatencyCompensationChange(float value) { }
+    virtual void performParameterChange(int type, String const& name, float value) = 0;
+    virtual void enableAudioParameter(String const& name) = 0;
+    virtual void setParameterRange(String const& name, float min, float max) = 0;
+    virtual void setParameterMode(String const& name, int mode) = 0;
+    
+    virtual void performLatencyCompensationChange(float value) = 0;
 
     // JYG added this
-    virtual void fillDataBuffer(std::vector<pd::Atom> const& list) { }
-    virtual void parseDataBuffer(XmlElement const& xml) { }
+    virtual void fillDataBuffer(std::vector<pd::Atom> const& list) = 0;
+    virtual void parseDataBuffer(XmlElement const& xml) = 0;
 
     void logMessage(String const& message);
     void logError(String const& message);
@@ -304,6 +305,9 @@ public:
     void* parameterReceiver = nullptr;
     void* pluginLatencyReceiver = nullptr;
     void* parameterChangeReceiver = nullptr;
+    void* parameterCreateReceiver = nullptr;
+    void* parameterRangeReceiver = nullptr;
+    void* parameterModeReceiver = nullptr;
     void* midiReceiver = nullptr;
     void* printReceiver = nullptr;
 

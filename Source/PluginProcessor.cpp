@@ -1641,6 +1641,67 @@ void PluginProcessor::performLatencyCompensationChange(float value)
     triggerAsyncUpdate();
 }
 
+void PluginProcessor::setParameterRange(String const& name, float min, float max)
+{
+   for (auto* p : getParameters()) {
+       auto* param = dynamic_cast<PlugDataParameter*>(p);
+       if (param->isEnabled() && param->getTitle() == name) {
+           max = std::max(max, min + 0.000001f);
+           param->setRange(min, max);
+           break;
+       }
+   }
+    
+    for(auto* editor : getEditors())
+    {
+        editor->sidebar->updateAutomationParameters();
+    }
+}
+
+void PluginProcessor::setParameterMode(String const& name, int mode)
+{
+    for (auto* p : getParameters()) {
+        auto* param = dynamic_cast<PlugDataParameter*>(p);
+        if (param->isEnabled() && param->getTitle() == name) {
+            param->setMode(static_cast<PlugDataParameter::Mode>(std::clamp<int>(mode, 1, 4)));
+            break;
+        }
+    }
+     
+     for(auto* editor : getEditors())
+     {
+         editor->sidebar->updateAutomationParameters();
+     }
+}
+
+void PluginProcessor::enableAudioParameter(String const& name)
+{
+   int numEnabled = 0;
+   for (auto* p : getParameters()) {
+       auto* param = dynamic_cast<PlugDataParameter*>(p);
+       numEnabled += param->isEnabled();
+       if (param->isEnabled() && param->getTitle() == name) {
+           return;
+       }
+   }
+
+   for (auto* p : getParameters()) {
+       auto* param = dynamic_cast<PlugDataParameter*>(p);
+       if (!param->isEnabled()) {
+           param->setEnabled(true);
+           param->setName(name);
+           param->setIndex(numEnabled + 1);
+           param->notifyDAW();
+           break;
+       }
+   }
+    
+    for(auto* editor : getEditors())
+    {
+        editor->sidebar->updateAutomationParameters();
+    }
+}
+
 void PluginProcessor::performParameterChange(int type, String const& name, float value)
 {
     // Type == 1 means it sets the change gesture state
