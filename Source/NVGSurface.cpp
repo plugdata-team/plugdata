@@ -292,6 +292,7 @@ void NVGSurface::render()
     }
 #endif
     
+    bool scaleChanged = false;
     if(makeContextActive()) {
         float pixelScale = getRenderScale();
         int scaledWidth = getWidth() * pixelScale;
@@ -303,6 +304,8 @@ void NVGSurface::render()
             fbWidth = scaledWidth;
             fbHeight = scaledHeight;
             invalidArea = getLocalBounds();
+            scaleChanged = !approximatelyEqual(lastScaleFactor, pixelScale);
+            lastScaleFactor = pixelScale;
         }
         
         if(!invalidArea.isEmpty()) {
@@ -350,7 +353,7 @@ void NVGSurface::render()
 #endif
     }
     
-    if(hasCanvas && !isAttached())
+    if(hasCanvas && (!isAttached() || scaleChanged))
     {
         setVisible(true);
         setInterceptsMouseClicks(false, false);
