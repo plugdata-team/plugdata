@@ -206,11 +206,24 @@ public:
         auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
         auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
         
+        auto ioletAreaColour = convertColour(object->findColour(PlugDataColour::ioletAreaColourId));
+
         if (!isValid) {
             outlineColour = convertColour(object->isSelected() ? Colours::red.brighter(1.5) : Colours::red);
         }
         
         nvgDrawRoundedRect(nvg, b.getX() + 0.5f, b.getY() + 0.5f, b.getWidth() - 1.0f, b.getHeight() - 1.0f, backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+
+        if (ioletAreaColour.r != backgroundColour.r ||
+            ioletAreaColour.g != backgroundColour.g ||
+            ioletAreaColour.b != backgroundColour.b ||
+            ioletAreaColour.a != backgroundColour.a) {
+            nvgFillColor(nvg, ioletAreaColour);
+            nvgBeginPath(nvg);
+            nvgRoundedRect(nvg, 0.5f, 0, getWidth() - 1.0f, 3.5f, Corners::objectCornerRadius);
+            nvgRoundedRect(nvg, 0.5f, getHeight() - 3.5f, getWidth() - 1.0f, 3.5f, Corners::objectCornerRadius);
+            nvgFill(nvg);
+        }
 
         if(editor && editor->isVisible())
         {
