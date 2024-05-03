@@ -214,7 +214,7 @@ private:
             , isInput(in)
         {
         }
-        int compareElements(MidiDeviceInfo const& dev1, MidiDeviceInfo const& dev2)
+        int compareElements(MidiDeviceInfo const& dev1, MidiDeviceInfo const& dev2) const
         {
             auto id1 = dev1.identifier;
             auto id2 = dev2.identifier;

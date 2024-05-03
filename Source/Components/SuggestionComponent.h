@@ -564,7 +564,7 @@ private:
             {
             }
 
-            int compareElements(String const& a, String const& b)
+            int compareElements(String const& a, String const& b) const
             {
                 // Check if suggestion exacly matches query
                 if (a == query) {

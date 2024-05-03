@@ -34,7 +34,7 @@ public:
         for (int i = 0; i < valueTreeNode.getNumChildren(); ++i)
         {
             auto* childComponent = nodes.add(new ValueTreeNodeComponent(valueTreeNode.getChild(i), this, prepend));
-            addAndMakeVisible(childComponent);
+            addChildComponent(childComponent);
         }
     }
 
@@ -575,7 +575,7 @@ private:
         struct {
             bool sortDirection = false;
 
-            int compareElements (const ValueTreeNodeComponent* a, const ValueTreeNodeComponent* b)
+            int compareElements (const ValueTreeNodeComponent* a, const ValueTreeNodeComponent* b) const
             {
                 auto firstIdx = a->valueTreeNode. getParent().indexOf(a->valueTreeNode);
                 auto secondIdx = b->valueTreeNode.getParent().indexOf (b->valueTreeNode);
