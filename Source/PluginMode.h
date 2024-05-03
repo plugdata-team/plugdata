@@ -154,9 +154,15 @@ public:
         
         nvgSave(nvg);
         nvgScale(nvg, pluginModeScale, pluginModeScale);
-        nvgTranslate(nvg, cnv->getX(), cnv->getY() - (isWindowFullscreen() ? 0 : 40));
+        nvgTranslate(nvg, cnv->getX(), cnv->getY() - ((isWindowFullscreen() ? 0 : 40) / pluginModeScale));
        
-        cnv->performRender(nvg, getLocalBounds().translated(cnv->canvasOrigin.x, cnv->canvasOrigin.y));
+        auto bounds = getLocalBounds();
+        bounds /= pluginModeScale;
+        bounds = bounds.translated(cnv->canvasOrigin.x, cnv->canvasOrigin.y);
+        
+        cnv->performRender(nvg, bounds);
+        
+        
         nvgRestore(nvg);
     }
 
@@ -287,7 +293,7 @@ public:
             
             auto b = getLocalBounds() + cnv->canvasOrigin;
             cnv->setTransform(cnv->getTransform().scale(scale));
-            cnv->setBounds(-b.getX(), -b.getY() + 40, b.getWidth() + b.getX(), b.getHeight() + b.getY());
+            cnv->setBounds(-b.getX(), -b.getY() + (titlebarHeight / scale), (b.getWidth() / scale) + b.getX(), (b.getHeight() / scale) + b.getY());
         }
         repaint();
     }

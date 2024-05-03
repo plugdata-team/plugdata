@@ -752,7 +752,7 @@ void Object::mouseDown(MouseEvent const& e)
 {
     // Only show right-click menu in locked mode if the object can be opened
     // We don't allow alt+click for popupmenus here, as that will conflict with some object behaviour, like for [range.hsl]
-    if (e.mods.isRightButtonDown() && !cnv->editor->pluginMode && !cnv->isGraph) {
+    if (e.mods.isRightButtonDown() && !cnv->isGraph) {
         PopupMenu::dismissAllActiveMenus();
         if (!getValue<bool>(locked)) {
             if(!e.mods.isAnyModifierKeyDown()) cnv->deselectAll();
