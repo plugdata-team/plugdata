@@ -1229,7 +1229,7 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
     case CommandIDs::PanDragKey: {
         result.setInfo("Pan drag key", "Pan drag key", "View", 0);
         result.addDefaultKeypress(KeyPress::spaceKey, ModifierKeys::noModifiers);
-        result.setActive(hasCanvas && !isDragging);
+        result.setActive(hasCanvas && !isDragging && !pluginMode);
         break;
     }
     case CommandIDs::ZoomIn: {
@@ -1870,10 +1870,17 @@ void PluginEditor::enablePluginMode(Canvas* cnv)
 // it would be annoying to hear the bloop sound for every key that isn't a valid command
 bool PluginEditor::keyPressed(KeyPress const& key)
 {    
+    //if(pluginMode) return false;
     // Claim tab keys on canvas to prevent cycling selection
     // The user might want to catch the tab key with an object, this behaviour just gets in the way
     // We do still want to allow tab cycling on other components, so if canvas doesn't have focus, don't grab the tab key
     return getCurrentCanvas()->hasKeyboardFocus(true) || key.getKeyCode() != KeyPress::tabKey;
+}
+
+void PluginEditor::parentHierarchyChanged()
+{
+    if(isShowing() || isOnDesktop())
+        grabKeyboardFocus();
 }
 
 void PluginEditor::commandKeyChanged(bool isHeld)

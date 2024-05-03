@@ -87,6 +87,7 @@ public:
 
     void resized() override;
     void parentSizeChanged() override;
+    void parentHierarchyChanged() override;
 
     // For dragging parent window
     void mouseDrag(MouseEvent const& e) override;
