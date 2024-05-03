@@ -169,7 +169,7 @@ public:
             topLevel = nextCanvas;
         }
 
-        return static_cast<bool>(topLevel->locked.getValue() || topLevel->commandLocked.getValue());
+        return static_cast<bool>(topLevel->locked.getValue() || topLevel->commandLocked.getValue()) || topLevel->isGraph;
     }
 
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
