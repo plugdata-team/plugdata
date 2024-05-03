@@ -1263,7 +1263,6 @@ pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL, PluginEditor* edi
     // First, check if patch is already opened
     for (auto const& patch : patches) {
         if (patch->getCurrentFile() == patchFile) {
-
             MessageManager::callAsync([this, patch]() mutable {
                 for (auto* editor : getEditors()) {
                     for (auto* cnv : editor->canvases) {
