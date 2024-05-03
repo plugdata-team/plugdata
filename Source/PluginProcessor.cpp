@@ -1522,21 +1522,26 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
                 if(!ProjectInfo::isStandalone) {
                     // TODO: it would be nicer if we could specifically target the correct patch here, instead of picking the first one and praying
                     patches[0]->openInPluginMode = true;
-                    auto editors = getEditors();
-                    if(editors.size()) {
-                        for(auto* canvas : editors[0]->canvases)
-                        {
-                            if(patches[0] == canvas->patch)
+                    MessageManager::callAsync([this](){
+                        auto editors = getEditors();
+                        if(editors.size()) {
+                            for(auto* canvas : editors[0]->canvases)
                             {
-                                editors[0]->enablePluginMode(canvas);
+                                if(patches[0] == canvas->patch)
+                                {
+                                    editors[0]->enablePluginMode(canvas);
+                                }
                             }
                         }
-                    }
+                    });
+                    
                 }
                 else {
-                    for (auto* editor : getEditors()) {
-                        editor->enablePluginMode(editor->getCurrentCanvas());
-                    }
+                    MessageManager::callAsync([this](){
+                        for (auto* editor : getEditors()) {
+                            editor->enablePluginMode(editor->getCurrentCanvas());
+                        }
+                    });
                 }
             });
         break;
@@ -1653,34 +1658,40 @@ void PluginProcessor::showTextEditor(unsigned long ptr, Rectangle<int> bounds, S
 
 void PluginProcessor::handleAsyncUpdate()
 {
+    for (auto& editor : getEditors()) {
+        editor->statusbar->setLatencyDisplay(customLatencySamples);
+    }
+    
     setLatencySamples(customLatencySamples);
 }
 
 // set custom plugin latency
 void PluginProcessor::performLatencyCompensationChange(float value)
 {
-    customLatencySamples = floor(value);
-    for (auto& editor : getEditors()) {
-        editor->statusbar->setLatencyDisplay(customLatencySamples);
+    if(!approximatelyEqual<int>(customLatencySamples, value))
+    {
+        customLatencySamples = value;
+        triggerAsyncUpdate();
     }
-    triggerAsyncUpdate();
 }
 
 void PluginProcessor::setParameterRange(String const& name, float min, float max)
 {
-   for (auto* p : getParameters()) {
-       auto* param = dynamic_cast<PlugDataParameter*>(p);
-       if (param->isEnabled() && param->getTitle() == name) {
-           max = std::max(max, min + 0.000001f);
-           param->setRange(min, max);
-           break;
-       }
-   }
-    
-    for(auto* editor : getEditors())
-    {
-        editor->sidebar->updateAutomationParameters();
+    for (auto* p : getParameters()) {
+        auto* param = dynamic_cast<PlugDataParameter*>(p);
+        if (param->isEnabled() && param->getTitle() == name) {
+            max = std::max(max, min + 0.000001f);
+            param->setRange(min, max);
+            break;
+        }
     }
+    
+    MessageManager::callAsync([this](){
+         for(auto* editor : getEditors())
+         {
+             editor->sidebar->updateAutomationParameters();
+         }
+    });
 }
 
 void PluginProcessor::setParameterMode(String const& name, int mode)
@@ -1693,10 +1704,12 @@ void PluginProcessor::setParameterMode(String const& name, int mode)
         }
     }
      
-     for(auto* editor : getEditors())
-     {
-         editor->sidebar->updateAutomationParameters();
-     }
+    MessageManager::callAsync([this](){
+         for(auto* editor : getEditors())
+         {
+             editor->sidebar->updateAutomationParameters();
+         }
+    });
 }
 
 void PluginProcessor::enableAudioParameter(String const& name)
@@ -1721,10 +1734,12 @@ void PluginProcessor::enableAudioParameter(String const& name)
        }
    }
     
-    for(auto* editor : getEditors())
-    {
-        editor->sidebar->updateAutomationParameters();
-    }
+    MessageManager::callAsync([this](){
+         for(auto* editor : getEditors())
+         {
+             editor->sidebar->updateAutomationParameters();
+         }
+    });
 }
 
 void PluginProcessor::performParameterChange(int type, String const& name, float value)
