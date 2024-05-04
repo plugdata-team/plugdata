@@ -97,12 +97,14 @@ NVGSurface::NVGSurface(PluginEditor* e) : editor(e)
     
     // Start rendering asynchronously, so we are sure the window has been added to the desktop
     // kind of a hack, but works well enough
-    MessageManager::callAsync([this](){
-        // Render on vblank
-        vBlankAttachment = std::make_unique<VBlankAttachment>(this, [this](){
-            editor->pd->messageDispatcher->dequeueMessages();
-            render();
-        });
+    MessageManager::callAsync([_this = SafePointer(this)](){
+        if(_this) {
+            // Render on vblank
+            _this->vBlankAttachment = std::make_unique<VBlankAttachment>(_this.getComponent(), [_this](){
+                _this->editor->pd->messageDispatcher->dequeueMessages();
+                _this->render();
+            });
+        }
     });
 }
 
