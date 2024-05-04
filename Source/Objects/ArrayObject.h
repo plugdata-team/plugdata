@@ -1219,7 +1219,7 @@ public:
     void render(NVGcontext* nvg) override
     {
         auto b = getLocalBounds().toFloat().reduced(0.5f);
-        auto backgroundColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
+        auto backgroundColour = nvgRGBA(0, 0, 0, 0);
         auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
         auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 
@@ -1235,6 +1235,8 @@ public:
             GraphOnParent::drawTicksForGraph(nvg, graph.get(), this);
         }
     }
+    
+    bool isTransparent() override { return true; };
     
     void updateGraphs()
     {
