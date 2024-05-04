@@ -647,11 +647,13 @@ void Instance::sendDirectMessage(void* object, float const msg)
 void Instance::sendMessagesFromQueue()
 {
     libpd_set_instance(static_cast<t_pdinstance*>(instance));
-
+    
+    sys_lock();
     std::function<void(void)> callback;
     while (functionQueue.try_dequeue(callback)) {
         callback();
     }
+    sys_unlock();
 }
 
 String Instance::getExtraInfo(File const& toOpen)

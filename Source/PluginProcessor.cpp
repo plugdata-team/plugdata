@@ -141,8 +141,6 @@ PluginProcessor::PluginProcessor()
     atoms_playhead.reserve(3);
     atoms_playhead.resize(1);
 
-    sendMessagesFromQueue();
-
     auto themeName = settingsFile->getProperty<String>("theme");
 
     // Make sure theme exists
@@ -173,6 +171,8 @@ PluginProcessor::PluginProcessor()
 
     setLatencySamples(pd::Instance::getBlockSize());
     settingsFile->startChangeListener();
+    
+    sendMessagesFromQueue();
 }
 
 PluginProcessor::~PluginProcessor()
