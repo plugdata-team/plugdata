@@ -101,8 +101,10 @@ NVGSurface::NVGSurface(PluginEditor* e) : editor(e)
         if(_this) {
             // Render on vblank
             _this->vBlankAttachment = std::make_unique<VBlankAttachment>(_this.getComponent(), [_this](){
-                _this->editor->pd->messageDispatcher->dequeueMessages();
-                _this->render();
+                if(_this) {
+                    _this->editor->pd->messageDispatcher->dequeueMessages();
+                    _this->render();
+                }
             });
         }
     });
@@ -278,7 +280,7 @@ void NVGSurface::render()
     }
     
 #if NANOVG_METAL_IMPLEMENTATION
-    auto contextInvalidated = metalActivityChecker.checkIfWindowActivityChanged();
+    auto contextInvalidated = ProjectInfo::isStandalone && metalActivityChecker.checkIfWindowActivityChanged();
     if(contextInvalidated)  {
         sendContextDeleteMessage();
         if(invalidFBO) nvgDeleteFramebuffer(invalidFBO);
@@ -367,6 +369,7 @@ void NVGSurface::render()
         if(nvg) nvgDeleteContext(nvg);
         invalidFBO = nullptr;
         mainFBO = nullptr;
+        nvg = nullptr;
         
 #ifdef NANOVG_METAL_IMPLEMENTATION
         auto* peer = getPeer()->getNativeHandle();
