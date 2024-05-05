@@ -39,6 +39,7 @@ public:
     void setOversampling(int amount);
     void setProtectedMode(bool enabled);
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
+    void numChannelsChanged() override;
     void releaseResources() override;
 
     void updateAllEditorsLNF();

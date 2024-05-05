@@ -451,6 +451,17 @@ void PluginProcessor::setProtectedMode(bool enabled)
     protectedMode = enabled;
 }
 
+
+void PluginProcessor::numChannelsChanged()
+{
+    auto blockSize = AudioProcessor::getBlockSize();
+    auto sampleRate = AudioProcessor::getSampleRate();
+
+    suspendProcessing(true);
+    prepareToPlay(sampleRate, blockSize);
+    suspendProcessing(false);
+}
+
 void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     float oversampleFactor = 1 << oversampling;
