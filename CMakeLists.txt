@@ -94,10 +94,18 @@ else()
 endif()
 
 message(STATUS "Preparing documentation")
-execute_process(COMMAND python3 parse_documentation.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts)
+execute_process(COMMAND python3 parse_documentation.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts RESULT_VARIABLE PREPARE_DOCUMENTATION_RESULT)
+
+if(NOT PREPARE_DOCUMENTATION_RESULT EQUAL 0)
+    message(FATAL_ERROR "Preparing documentation failed with error code ${PREPARE_DOCUMENTATION_RESULT}")
+endif()
 
 message(STATUS "Packaging resources")
-execute_process(COMMAND python3 package_resources.py ${ENABLE_GEM} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts)
+execute_process(COMMAND python3 package_resources.py ${ENABLE_GEM} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts RESULT_VARIABLE PACKAGE_RESOURCES_RESULT)
+
+if(NOT PACKAGE_RESOURCES_RESULT EQUAL 0)
+    message(FATAL_ERROR "Resource packaging failed with error code ${PACKAGE_RESOURCES_RESULT}")
+endif()
 
 set(PLUGDATA_VERSION                    "0.9.0")
 set(PLUGDATA_COMPANY_NAME               "plugdata")

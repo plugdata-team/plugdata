@@ -25,6 +25,10 @@ def moveFile(src, dst):
     shutil.copy(src, dst)
 
 def copyDir(src, dst):
+    # Prepend paths with \\?\ to deal with file names >260 chars in ELSE and DOS
+    if (platform.system().lower() == "windows"):
+        src = '\\\\?\\' + os.path.abspath(src)
+        dst = '\\\\?\\' + os.path.abspath(dst)
     shutil.copytree(src, dst)
 
 def globCopy(srcs, dst):
