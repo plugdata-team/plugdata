@@ -995,7 +995,9 @@ public:
             auto* list = lists.add(new ArrayListView(pd, arr));
             addChildComponent(list);
         }
-        graphs[0]->setVisible(true);
+        if(graphs.size()) {
+            graphs[0]->setVisible(true);
+        }
 
         for(int i = 0; i < graphs.size(); i++)
         {
@@ -1390,11 +1392,17 @@ public:
             dialog->toFront(true);
             return;
         }
-
-        dialog = std::make_unique<ArrayEditorDialog>(cnv->pd, getArrays(), object);
-        dialog->onClose = [this]() {
-            dialog.reset(nullptr);
-        };
+        
+        auto arrays = getArrays();
+        if(arrays.size()) {
+            dialog = std::make_unique<ArrayEditorDialog>(cnv->pd, arrays, object);
+            dialog->onClose = [this]() {
+                dialog.reset(nullptr);
+            };
+        }
+        else {
+            pd->logWarning("Can't open: contains no arrays");
+        }
     }
 
     void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
