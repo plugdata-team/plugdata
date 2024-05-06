@@ -239,7 +239,7 @@ public:
                     element.setProperty("Object", reinterpret_cast<int64>(object.cast<void>()), nullptr);
                     element.setProperty("TopLevel", reinterpret_cast<int64>(top), nullptr);
                 } else {
-                    element.setProperty("Name", name.upToFirstOccurrenceOf(" ", false, false), nullptr);
+                    element.setProperty("Name", name, nullptr);
                     element.setProperty("RightText", positionText, nullptr);
                     element.setProperty("Icon", Icons::Object, nullptr);
                     element.setProperty("Object", reinterpret_cast<int64>(object.cast<void>()), nullptr);
