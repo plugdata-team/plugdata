@@ -46,7 +46,7 @@ public:
     {
         surface.removeNVGContextListener(this);
     }
-    
+        
     void nvgContextDeleted(NVGcontext* nvg) {
         if(imageId) nvgDeleteImage(nvg, imageId);
         imageId = 0;

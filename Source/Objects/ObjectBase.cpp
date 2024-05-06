@@ -233,9 +233,11 @@ String ObjectBase::getText()
 String ObjectBase::getTypeWithOriginPrefix() const
 {
     if (auto obj = ptr.get<t_gobj>()) {
-        auto origin = pd::Library::getObjectOrigin(obj.get());
         auto type = getType();
+        if(type.contains("/")) return type;
         
+        auto origin = pd::Library::getObjectOrigin(obj.get());
+
         if(origin.isEmpty()) return type;
         
         return  origin + "/" + type;

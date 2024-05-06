@@ -506,6 +506,7 @@ void Object::triggerOverlayActiveState()
 void Object::lookAndFeelChanged()
 {
     activityOverlayDirty = true;
+    if(gui) gui->updateLabel();
 }
 
 void Object::resized()
