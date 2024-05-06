@@ -278,24 +278,7 @@ void NVGSurface::render()
             break;
         }
     }
-    
-#if NANOVG_METAL_IMPLEMENTATION
-    auto contextInvalidated = ProjectInfo::isStandalone && metalActivityChecker.checkIfWindowActivityChanged();
-    if(contextInvalidated)  {
-        sendContextDeleteMessage();
-        if(invalidFBO) nvgDeleteFramebuffer(invalidFBO);
-        if(mainFBO) nvgDeleteFramebuffer(mainFBO);
-        if(nvg) nvgDeleteContext(nvg);
-        invalidFBO = nullptr;
-        mainFBO = nullptr;
-        nvg = nullptr;
         
-        detachContext();
-        invalidateAll();
-        return;
-    }
-#endif
-    
     bool scaleChanged = false;
     if(makeContextActive()) {
         float pixelScale = getRenderScale();
@@ -303,6 +286,8 @@ void NVGSurface::render()
         int scaledHeight = getHeight() * pixelScale;
         
         if(fbWidth != scaledWidth || fbHeight != scaledHeight || !mainFBO) {
+            if(invalidFBO) nvgDeleteFramebuffer(invalidFBO);
+            if(mainFBO) nvgDeleteFramebuffer(mainFBO);
             mainFBO = nvgCreateFramebuffer(nvg, scaledWidth, scaledHeight, NVG_IMAGE_PREMULTIPLIED);
             invalidFBO = nvgCreateFramebuffer(nvg, scaledWidth, scaledHeight, NVG_IMAGE_PREMULTIPLIED);
             fbWidth = scaledWidth;
@@ -311,8 +296,7 @@ void NVGSurface::render()
             scaleChanged = !approximatelyEqual(lastScaleFactor, pixelScale);
             lastScaleFactor = pixelScale;
         }
-        
-        if(!invalidArea.isEmpty()) {
+        else if(!invalidArea.isEmpty()) {
             auto invalidated = invalidArea.expanded(1);
             
             // First, draw only the invalidated region to a separate framebuffer
