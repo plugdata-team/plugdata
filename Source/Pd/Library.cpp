@@ -111,16 +111,21 @@ Library::Library(pd::Instance* instance)
             }
         }
        
+        auto name = child.getProperty("name").toString();
         if(origin.isEmpty()) {
-            documentationIndex[hash(child.getProperty("name").toString())] = child;
+            documentationIndex[hash(name)] = child;
         }
         else if(origin == "Gem")
         {
-            documentationIndex[hash(origin + "/" + child.getProperty("name").toString())] = child;
+            documentationIndex[hash(origin + "/" + name)] = child;
+        }
+        else if(documentationIndex.count(hash(name)))
+        {
+            documentationIndex[hash(origin + "/" + name)] = child;
         }
         else {
-            documentationIndex[hash(child.getProperty("name").toString())] = child;
-            documentationIndex[hash(origin + "/" + child.getProperty("name").toString())] = child;
+            documentationIndex[hash(name)] = child;
+            documentationIndex[hash(origin + "/" + name)] = child;
         }
     }
     
