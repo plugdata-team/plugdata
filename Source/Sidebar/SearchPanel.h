@@ -206,7 +206,7 @@ public:
         patchTree.setBounds(tableBounds);
     }
 
-    ValueTree generatePatchTree(pd::Patch::Ptr patch, void* topLevel = nullptr)
+    ValueTree generatePatchTree(pd::Patch::Ptr patch, void* topLevel = nullptr, int* toSkip = (int*) nullptr)
     {
         auto patchString = patch->getCanvasContent();
         StringArray patchStringArray;
@@ -216,9 +216,16 @@ public:
         int objectIndex = 0;
         for (auto objectPtr : patch->getObjects()) {
             objectIndex++;
+
             if (auto object = objectPtr.get<t_pd>()) {
                 auto* top = topLevel ? topLevel : object.get();
-                auto type = pd::Interface::getObjectClassName(object.get());
+                String type = pd::Interface::getObjectClassName(object.get());
+
+                if (type == "array") {
+                    if (toSkip)
+                        *toSkip = 1;
+                    continue;
+                }
 
                 if (!pd::Interface::checkObject(object.get())) {
                     continue;
@@ -255,10 +262,12 @@ public:
 
                 if (type == "canvas" || type == "graph") {
                     pd::Patch::Ptr subpatch = new pd::Patch(objectPtr, editor->pd, false);
-                    ValueTree subpatchTree = generatePatchTree(subpatch, top);
 
-                    // canvas or graph has coords & restore objects, so we have to skip over them on the root patch
-                    objectIndex += (subpatchTree.getNumChildren() + 2);
+                    int arraySkip = 0;
+                    ValueTree subpatchTree = generatePatchTree(subpatch, top, &arraySkip);
+
+                    // canvas has coords & restore objects, so we have to skip over them on the root patch
+                    objectIndex += (subpatchTree.getNumChildren() + 2 + arraySkip);
 
                     element.copyPropertiesAndChildrenFrom(subpatchTree, nullptr);
 
