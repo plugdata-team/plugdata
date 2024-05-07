@@ -464,6 +464,8 @@ void PluginProcessor::numChannelsChanged()
 
 void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
+    if(approximatelyEqual(sampleRate, 0.0)) return;
+    
     float oversampleFactor = 1 << oversampling;
     auto maxChannels = std::max(getTotalNumInputChannels(), getTotalNumOutputChannels());
 

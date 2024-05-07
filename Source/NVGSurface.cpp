@@ -194,7 +194,7 @@ void NVGSurface::resized()
 #ifdef NANOVG_METAL_IMPLEMENTATION
     if(auto* view = getView()) {
         auto desktopScale = Desktop::getInstance().getGlobalScaleFactor();
-        auto renderScale = OSUtils::MTLGetPixelScale(view);
+        auto renderScale = OSUtils::MTLGetPixelScale(view); // TODO: we can simplify with getRenderScale() function, but needs testing on iOS
         auto* topLevel = getTopLevelComponent();
         auto bounds = topLevel->getLocalArea(this, getLocalBounds()) * desktopScale;
 #if JUCE_IOS
@@ -294,7 +294,6 @@ void NVGSurface::render()
             fbHeight = scaledHeight;
             invalidArea = getLocalBounds();
             scaleChanged = !approximatelyEqual(lastScaleFactor, pixelScale);
-            lastScaleFactor = pixelScale;
         }
         else if(!invalidArea.isEmpty()) {
             auto invalidated = invalidArea.expanded(1);
@@ -357,7 +356,7 @@ void NVGSurface::render()
         
 #ifdef NANOVG_METAL_IMPLEMENTATION
         auto* peer = getPeer()->getNativeHandle();
-        auto renderScale = Desktop::getInstance().getGlobalScaleFactor() * OSUtils::MTLGetPixelScale(peer);
+        auto renderScale = getRenderScale();
         auto* view = OSUtils::MTLCreateView(peer, 0, 0, getWidth(), getHeight());
         setView(view);
         nvg = nvgCreateContext(view, NVG_ANTIALIAS | NVG_TRIPLE_BUFFER, getWidth() * renderScale, getHeight() * renderScale);
@@ -370,6 +369,8 @@ void NVGSurface::render()
         glContext->initialiseOnThread();
         nvg = nvgCreateContext(NVG_ANTIALIAS);
 #endif
+        lastScaleFactor = renderScale;
+        
         invalidateAll();
         
         if (!nvg) std::cerr << "could not initialise nvg" << std::endl;
