@@ -354,9 +354,9 @@ void NVGSurface::render()
         mainFBO = nullptr;
         nvg = nullptr;
         
+        auto renderScale = getRenderScale();
 #ifdef NANOVG_METAL_IMPLEMENTATION
         auto* peer = getPeer()->getNativeHandle();
-        auto renderScale = getRenderScale();
         auto* view = OSUtils::MTLCreateView(peer, 0, 0, getWidth(), getHeight());
         setView(view);
         nvg = nvgCreateContext(view, NVG_ANTIALIAS | NVG_TRIPLE_BUFFER, getWidth() * renderScale, getHeight() * renderScale);
