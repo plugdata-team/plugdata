@@ -225,6 +225,7 @@ public:
                 pd::Interface::getObjectBounds(patch->getPointer().get(), object.cast<t_gobj>(), &x, &y, &w, &h);
 
                 auto name = String::fromUTF8(objectText, len);
+                auto nameWithoutArgs = name.upToFirstOccurrenceOf(" ", false, false);
                 auto positionText = " (" + String(x) + ":" + String(y) + ")";
 
                 ValueTree element("Object");
@@ -232,47 +233,78 @@ public:
                     pd::Patch::Ptr subpatch = new pd::Patch(objectPtr, editor->pd, false);
                     ValueTree subpatchTree = generatePatchTree(subpatch, top);
                     element.copyPropertiesAndChildrenFrom(subpatchTree, nullptr);
-
+                    
+                    if(auto patchPtr = subpatch->getPointer())
+                    {
+                        if(patchPtr->gl_list)
+                        {
+                            t_class* c = patchPtr->gl_list->g_pd;
+                            if (c && c->c_name && (String::fromUTF8(c->c_name->s_name) == "array")) {
+                                name = "array"; // TODO: add array name
+                            } else if (patchPtr->gl_isgraph) {
+                                name = nameWithoutArgs;
+                            }
+                        }
+                        else if(patchPtr->gl_isgraph)
+                        {
+                            name = nameWithoutArgs;
+                        }
+                    }
+                
                     element.setProperty("Name", name, nullptr);
                     element.setProperty("RightText", positionText, nullptr);
                     element.setProperty("Icon", canvas_isabstraction(subpatch->getPointer().get()) ? Icons::File : Icons::Object, nullptr);
                     element.setProperty("Object", reinterpret_cast<int64>(object.cast<void>()), nullptr);
                     element.setProperty("TopLevel", reinterpret_cast<int64>(top), nullptr);
                 } else {
-                    auto includeNumArguments = [](const juce::String& mainString, int upto)
-                    {
-                        StringArray words;
-                        words.addTokens(mainString, " ", "");
-
-                        int textToInclude = upto + 1;
-
-                        String rtnString;
-                        for (int i = 0; i < jmin(words.size(), textToInclude); i++) {
-                            rtnString += words[i] + " ";
-                            if (textToInclude == i)
-                                break;
-                        }
-                        return rtnString;
-                    };
-
-                    auto nameOnly = name.upToFirstOccurrenceOf(" ", false, false);
-
                     String finalFormatedName;
 
-                    switch(hash(nameOnly)){
-                        case hash("s"):
-                        case hash("send"):
-                        case hash("r"):
-                        case hash("receive"):
-                            finalFormatedName = includeNumArguments(name, 1);
+                    switch(hash(type)){
+                        case hash("bng"):
+                        case hash("button"):
+                        case hash("hsl"):
+                        case hash("vsl"):
+                        case hash("slider"):
+                        case hash("tgl"):
+                        case hash("nbx"):
+                        case hash("numbox~"):
+                        case hash("vradio"):
+                        case hash("hradio"):
+                        case hash("cnv"):
+                        case hash("vu"):
+                        case hash("pad"):
+                        case hash("keyboard"):
+                        case hash("pic"):
+                        case hash("gatom"):
+                        case hash("canvas"):
+                        case hash("scope~"):
+                        case hash("function"):
+                        case hash("bicoeff"):
+                        case hash("messbox"):
+                        case hash("note"):
+                        case hash("knob"):
+                        {
+                            finalFormatedName = nameWithoutArgs;
                             break;
-                        case hash("metro"):
-                            finalFormatedName = includeNumArguments(name, 3);
+                        }
+                        case hash("message"):
+                        {
+                            finalFormatedName = "msg " + name;
                             break;
+                        }
+                        case hash("comment"):
+                        {
+                            finalFormatedName = "comment " + name;
+                            break;
+                        }
                         default:
-                            finalFormatedName = nameOnly;
+                        {
+                            finalFormatedName = name;
                             break;
+                        }
+                            
                     }
+                    
                     element.setProperty("Name", finalFormatedName, nullptr);
                     element.setProperty("RightText", positionText, nullptr);
                     element.setProperty("Icon", Icons::Object, nullptr);
