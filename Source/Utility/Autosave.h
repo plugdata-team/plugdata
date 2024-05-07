@@ -88,36 +88,37 @@ private:
 
     void save()
     {
-        for (auto& patch : pd->patches) {
-            if (!patch->isDirty())
-                continue;
-
-            // Check if patch is a root canvas
-            bool isRootCanvas = false;
-            for (auto* x = pd_getcanvaslist(); x; x = x->gl_next) {
-                if (x == patch->getPointer().get()) {
-                    isRootCanvas = true;
-                    break;
+        const ScopedTryLock stl (pd->patches.getLock());
+        if (stl.isLocked())
+        {
+            for (auto& patch : pd->patches) {
+                auto* patchPtr = patch->getPointer().get();
+                if (!patchPtr->gl_dirty)
+                    continue;
+                
+                // Check if patch is a root canvas
+                for (auto* x = pd_getcanvaslist(); x; x = x->gl_next) {
+                    if (x == patchPtr) {
+                        
+                        auto patchFile = patch->getPatchFile();
+                        
+                        // Simple way to filter out plugdata default patches which we don't want to save.
+                        if (!isInternalPatch(patchFile)) {
+                            autoSaveQueue.enqueue({ patchFile.getFullPathName(), patch->getCanvasContent() });
+                        }
+                        
+                        triggerAsyncUpdate();
+                        break;
+                    }
                 }
             }
-            if (!isRootCanvas)
-                continue;
-
-            auto patchFile = patch->getPatchFile();
-
-            // Simple way to filter out plugdata default patches which we don't want to save.
-            if (!isInternalPatch(patchFile)) {
-                autoSaveQueue.enqueue({ patchFile.getFullPathName(), patch->getCanvasContent() });
-            }
         }
-
-        triggerAsyncUpdate();
     }
 
     bool isInternalPatch(File const& patch)
     {
-        auto const pathName = patch.getFullPathName();
-        return pathName.contains("Documents/plugdata/Abstractions") || pathName.contains("Documents\\plugdata\\Abstractions") || pathName.contains("Documents/plugdata/Documentation") || pathName.contains("Documents\\plugdata\\Documentation") || pathName.contains("Documents/plugdata/Extra") || pathName.contains("Documents\\plugdata\\Extra") || patch.getParentDirectory() == File::getSpecialLocation(File::tempDirectory);
+        auto const pathName = patch.getFullPathName().replace("\\", "/");
+        return pathName.contains("Documents/plugdata/Abstractions") || pathName.contains("Documents/plugdata/Documentation") || pathName.contains("Documents/plugdata/Extra") || patch.getParentDirectory() == File::getSpecialLocation(File::tempDirectory);
     }
 
     void handleAsyncUpdate() override
