@@ -6,6 +6,7 @@
 
 #include "Object.h"
 #include "Objects/ObjectBase.h"
+#include "Objects/AllGuis.h"
 #include <m_pd.h>
 #include <m_imp.h>
 
@@ -240,7 +241,8 @@ public:
                         {
                             t_class* c = patchPtr->gl_list->g_pd;
                             if (c && c->c_name && (String::fromUTF8(c->c_name->s_name) == "array")) {
-                                name = "array"; // TODO: add array name
+                                auto* array = reinterpret_cast<t_fake_garray*>(patchPtr->gl_list);
+                                name = "array " + String::fromUTF8(array->x_name->s_name);
                             } else if (patchPtr->gl_isgraph) {
                                 name = nameWithoutArgs;
                             }
@@ -302,7 +304,6 @@ public:
                             finalFormatedName = name;
                             break;
                         }
-                            
                     }
                     
                     element.setProperty("Name", finalFormatedName, nullptr);
