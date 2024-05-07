@@ -208,29 +208,58 @@ public:
 
     ValueTree generatePatchTree(pd::Patch::Ptr patch, void* topLevel = nullptr)
     {
+        auto patchString = patch->getCanvasContent();
+        StringArray patchStringArray;
+        patchStringArray.addTokens(patchString, ";", "");
+
         ValueTree patchTree("Patch");
+        int objectIndex = 0;
         for (auto objectPtr : patch->getObjects()) {
+            objectIndex++;
             if (auto object = objectPtr.get<t_pd>()) {
                 auto* top = topLevel ? topLevel : object.get();
-                String type = pd::Interface::getObjectClassName(object.get());
+                auto type = pd::Interface::getObjectClassName(object.get());
 
-                if (!pd::Interface::checkObject(object.get()))
+                if (!pd::Interface::checkObject(object.get())) {
                     continue;
-
-                char* objectText;
-                int len;
-                pd::Interface::getObjectText(object.cast<t_text>(), &objectText, &len);
+                }
 
                 int x, y, w, h;
                 pd::Interface::getObjectBounds(patch->getPointer().get(), object.cast<t_gobj>(), &x, &y, &w, &h);
 
-                auto name = String::fromUTF8(objectText, len);
-                auto positionText = " (" + String(x) + ":" + String(y) + ")";
-
                 ValueTree element("Object");
+
+                auto invertType = [](String type){
+                    switch(hash(type)){
+                        case hash("vsl"):
+                            return "hsl";
+                        case hash("hsl"):
+                            return "vsl";
+                        case hash("hradio"):
+                            return "vradio";
+                        case hash("vradio"):
+                            return "hradio";
+                        default:
+                            return "unknown type";
+                    }
+                };
+
+                auto const& rawName = patchStringArray[objectIndex];
+                auto name = rawName.fromFirstOccurrenceOf(type, true, true);
+                // vsl / hsl & vraido / hradio can both describe the same object.
+                // If the formated name string is empty here, check it's other inverted type
+                if (name.isEmpty())
+                    name = rawName.fromFirstOccurrenceOf(invertType(type), true, true);
+
+                auto const& positionText = " (" + String(x) + ":" + String(y) + ")";
+
                 if (type == "canvas" || type == "graph") {
                     pd::Patch::Ptr subpatch = new pd::Patch(objectPtr, editor->pd, false);
                     ValueTree subpatchTree = generatePatchTree(subpatch, top);
+
+                    // canvas or graph has coords & restore objects, so we have to skip over them on the root patch
+                    objectIndex += (subpatchTree.getNumChildren() + 2);
+
                     element.copyPropertiesAndChildrenFrom(subpatchTree, nullptr);
 
                     element.setProperty("Name", name, nullptr);
