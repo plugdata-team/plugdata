@@ -218,7 +218,7 @@ public:
             objectIndex++;
             if (auto object = objectPtr.get<t_pd>()) {
                 auto* top = topLevel ? topLevel : object.get();
-                auto type = pd::Interface::getObjectClassName(object.get());
+                auto type = String::fromUTF8(pd::Interface::getObjectClassName(object.get()));
 
                 if (!pd::Interface::checkObject(object.get())) {
                     continue;
