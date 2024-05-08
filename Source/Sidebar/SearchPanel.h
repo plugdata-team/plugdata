@@ -305,6 +305,9 @@ public:
                             break;
                         }
                     }
+
+                    if (finalFormatedName.isEmpty())
+                        finalFormatedName = String("empty");
                     
                     element.setProperty("Name", finalFormatedName, nullptr);
                     element.setProperty("RightText", positionText, nullptr);
