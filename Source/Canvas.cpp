@@ -1233,10 +1233,20 @@ void Canvas::focusLost(FocusChangeType cause)
     });
 }
 
+Object* Canvas::getObjectForPointer(t_pd* pdObject)
+{
+    for (auto& object : objects) {
+        if (object->getPointer() == (_gobj*) pdObject)
+            return object;
+    }
+    return nullptr;
+}
+
 void Canvas::dragAndDropPaste(String const& patchString, Point<int> mousePos, int patchWidth, int patchHeight, String name)
 {
     locked = false;
     presentationMode = false;
+    objectAdded = true;
 
     // force the valueChanged to run, and wait for them to return
     locked.getValueSource().sendChangeMessage(true);
