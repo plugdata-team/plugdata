@@ -261,16 +261,6 @@ public:
                 } else {
                     String finalFormatedName;
 
-                    auto getRealNameFromCanvas = [this](pd::Patch* patch, t_pd* object){
-                        // search inside the canvas->objects to find it's real name
-                        if (auto patchCnv = editor->getCanvasForPatch(patch)) {
-                            if (auto cnvObject = patchCnv->getObjectForPointer(object)) {
-                                return cnvObject->getType();
-                            }
-                        }
-                        return String();
-                    };
-
                     switch(hash(type)){
                         case hash("bng"):
                         case hash("button"):
@@ -310,26 +300,23 @@ public:
                         }
                         case hash("text"):
                         {
-                            // for some reason invalid objects get type 'text', so we have to check if it's invalid
-                            // or actually a text object
-                            auto foundName = getRealNameFromCanvas(patch.get(), object.get());
-
-                            // display invalid empty object with "empty" & change icon colour to red
-                            if (foundName == "invalid") {
-                                if (name.isEmpty())
-                                    finalFormatedName = String("empty");
-                                else
-                                    finalFormatedName = String("unknown: ") + name;
-
-                                element.setProperty("IconColour", Colours::red.toString(), nullptr);
-                            } else {
-                                finalFormatedName = foundName + ": " + name;
-                            }
+                            if (name.isEmpty())
+                                finalFormatedName = String("empty");
+                            else
+                                finalFormatedName = String("unknown: ") + name;
+                            
+                            element.setProperty("IconColour", Colours::red.toString(), nullptr);
                             break;
                         }
                         case hash("gatom"):
                         {
-                            finalFormatedName = getRealNameFromCanvas(patch.get(), object.get()) + ": " + name;
+                            auto* gatom = object.cast<t_fake_gatom>();
+                            if (gatom->a_flavor == A_FLOAT)
+                                finalFormatedName = "floatbox";
+                            if (gatom->a_flavor == A_SYMBOL)
+                                finalFormatedName = "symbolbox";
+                            if (gatom->a_flavor == A_NULL)
+                                finalFormatedName = "listbox";
                             break;
                         }
                         default:
