@@ -882,6 +882,15 @@ Canvas* PluginEditor::getCurrentCanvas()
     return nullptr;
 }
 
+Canvas* PluginEditor::getCanvasForPatch(pd::Patch* patch)
+{
+    for (auto* cnv : canvases) {
+        if (cnv->patch == *patch)
+            return cnv;
+    }
+    return nullptr;
+}
+
 void PluginEditor::closeAllTabs(bool quitAfterComplete, Canvas* patchToExclude, std::function<void()> afterComplete)
 {
     if (!canvases.size()) {

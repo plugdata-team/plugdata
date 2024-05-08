@@ -96,6 +96,8 @@ public:
     int getOverlays() const;
     void updateOverlays();
 
+    Object* getObjectForPointer(t_pd* pdObject);
+
     void synchroniseSplitCanvas();
     void synchronise();
     void performSynchronise();

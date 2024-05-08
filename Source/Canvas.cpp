@@ -1233,6 +1233,15 @@ void Canvas::focusLost(FocusChangeType cause)
     });
 }
 
+Object* Canvas::getObjectForPointer(t_pd* pdObject)
+{
+    for (auto& object : objects) {
+        if (object->getPointer() == (_gobj*) pdObject)
+            return object;
+    }
+    return nullptr;
+}
+
 void Canvas::dragAndDropPaste(String const& patchString, Point<int> mousePos, int patchWidth, int patchHeight, String name)
 {
     locked = false;

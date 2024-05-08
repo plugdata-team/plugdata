@@ -176,7 +176,10 @@ public:
         
         if(valueTreeNode.hasProperty("Icon"))
         {
-            Fonts::drawIcon(g, valueTreeNode.getProperty("Icon"), itemBounds.removeFromLeft(22).reduced(2), colour, 12, false);
+            auto iconColour = colour;
+            if (valueTreeNode.hasProperty("IconColour"))
+                iconColour = Colour::fromString(valueTreeNode.getProperty("IconColour").toString());
+            Fonts::drawIcon(g, valueTreeNode.getProperty("Icon"), itemBounds.removeFromLeft(22).reduced(2), iconColour, 12, false);
         }
         if(valueTreeNode.hasProperty("RightText"))
         {
