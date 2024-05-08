@@ -147,6 +147,9 @@ void Iolet::mouseDrag(MouseEvent const& e)
 void Iolet::mouseDown(MouseEvent const& e)
 {
     mouseIsDown = true;
+
+    // make sure that intentional clicks on iolet get through after a DnD action
+    cnv->objectAdded = false;
 }
 
 void Iolet::mouseUp(MouseEvent const& e)
