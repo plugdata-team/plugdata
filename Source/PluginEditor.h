@@ -107,6 +107,8 @@ public:
 
     Canvas* getCurrentCanvas();
 
+    Canvas* getCanvasForPatch(pd::Patch* patch);
+
     // Part of the ZoomableDragAndDropContainer, we give it the splitview
     // so it can check if the drag image is over the entire splitview
     // otherwise some objects inside the splitview will trigger a zoom

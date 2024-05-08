@@ -273,16 +273,13 @@ public:
 
             if (objectText != newText) {
                 objectText = newText;
+                cnv->synchronise();
+                object->updateBounds(); // Recalculate bounds
+                setPdBounds(object->getObjectBounds());
+                setSymbol(objectText);
             }
             
             outgoingEditor.reset();
-
-            object->updateBounds(); // Recalculate bounds
-
-            setPdBounds(object->getObjectBounds());
-
-            setSymbol(objectText);
-
             repaint();
         }
     }

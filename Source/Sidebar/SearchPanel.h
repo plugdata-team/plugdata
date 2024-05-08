@@ -242,7 +242,7 @@ public:
                             t_class* c = patchPtr->gl_list->g_pd;
                             if (c && c->c_name && (String::fromUTF8(c->c_name->s_name) == "array")) {
                                 auto* array = reinterpret_cast<t_fake_garray*>(patchPtr->gl_list);
-                                name = "array " + String::fromUTF8(array->x_name->s_name);
+                                name = "array: " + String::fromUTF8(array->x_name->s_name);
                             } else if (patchPtr->gl_isgraph) {
                                 name = nameWithoutArgs;
                             }
@@ -261,6 +261,16 @@ public:
                 } else {
                     String finalFormatedName;
 
+                    auto getRealNameFromCanvas = [this](pd::Patch* patch, t_pd* object){
+                        // search inside the canvas->objects to find it's real name
+                        if (auto patchCnv = editor->getCanvasForPatch(patch)) {
+                            if (auto cnvObject = patchCnv->getObjectForPointer(object)) {
+                                return cnvObject->getType();
+                            }
+                        }
+                        return String();
+                    };
+
                     switch(hash(type)){
                         case hash("bng"):
                         case hash("button"):
@@ -277,7 +287,6 @@ public:
                         case hash("pad"):
                         case hash("keyboard"):
                         case hash("pic"):
-                        case hash("gatom"):
                         case hash("canvas"):
                         case hash("scope~"):
                         case hash("function"):
@@ -291,12 +300,36 @@ public:
                         }
                         case hash("message"):
                         {
-                            finalFormatedName = "msg " + name;
+                            finalFormatedName = "msg: " + name;
                             break;
                         }
                         case hash("comment"):
                         {
-                            finalFormatedName = "comment " + name;
+                            finalFormatedName = "comment: " + name;
+                            break;
+                        }
+                        case hash("text"):
+                        {
+                            // for some reason invalid objects get type 'text', so we have to check if it's invalid
+                            // or actually a text object
+                            auto foundName = getRealNameFromCanvas(patch.get(), object.get());
+
+                            // display invalid empty object with "empty" & change icon colour to red
+                            if (foundName == "invalid") {
+                                if (name.isEmpty())
+                                    finalFormatedName = String("empty");
+                                else
+                                    finalFormatedName = String("unknown: ") + name;
+
+                                element.setProperty("IconColour", Colours::red.toString(), nullptr);
+                            } else {
+                                finalFormatedName = foundName + ": " + name;
+                            }
+                            break;
+                        }
+                        case hash("gatom"):
+                        {
+                            finalFormatedName = getRealNameFromCanvas(patch.get(), object.get()) + ": " + name;
                             break;
                         }
                         default:
@@ -305,7 +338,7 @@ public:
                             break;
                         }
                     }
-                    
+
                     element.setProperty("Name", finalFormatedName, nullptr);
                     element.setProperty("RightText", positionText, nullptr);
                     element.setProperty("Icon", Icons::Object, nullptr);
