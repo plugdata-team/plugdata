@@ -147,7 +147,7 @@ private:
     NVGframebuffer* mainFBO = nullptr;
     NVGframebuffer* invalidFBO = nullptr;
     int fbWidth = 0, fbHeight = 0;
-    float lastScaleFactor = 1.0f;
+    float lastScaleFactor = 0.0f;
     
     bool hresize = false;
     bool resizing = false;
