@@ -1221,7 +1221,7 @@ void Object::render(NVGcontext* nvg)
         if(activityOverlayImage) nvgDeleteImage(nvg, activityOverlayImage);
         Path objectShadow;
         objectShadow.addRoundedRectangle(getLocalBounds().reduced(Object::margin - 1), Corners::objectCornerRadius);
-        activityOverlayImage = StackShadow::createActivityDropShadowImage(nvg, getLocalBounds(), objectShadow, getLookAndFeel().findColour(PlugDataColour::dataColourId), 5.5f, { 0, 0 }, 0, gui && gui->getCanvas());
+        activityOverlayImage = StackShadow::createActivityDropShadowImage(nvg, getLocalBounds(), objectShadow, getLookAndFeel().findColour(PlugDataColour::dataColourId), 5.5f, { 0, 0 }, 0, gui && (gui->getCanvas() || gui->isTransparent()));
         activityOverlayDirty = false;
     }
     
