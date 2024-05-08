@@ -251,6 +251,8 @@ public:
     
     Array<juce::WeakReference<NVGComponent>> drawables;
 
+    bool objectAdded = false;
+
 private:
     
     GlobalMouseListener globalMouseListener;
