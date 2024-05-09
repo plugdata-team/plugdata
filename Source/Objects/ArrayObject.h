@@ -803,14 +803,17 @@ struct ArrayPropertiesPanel : public PropertiesPanelProperty, public Value::List
     AddArrayButton addButton;
     OwnedArray<SmallIconButton> deleteButtons;
     Array<Value> nameValues;
-        
-    ArrayPropertiesPanel(std::function<void()> addArrayCallback)
+
+    std::function<void()> syncCanvas = []() {};
+
+    ArrayPropertiesPanel(std::function<void()> addArrayCallback, std::function<void()> syncCanvasFunc)
     : PropertiesPanelProperty("array")
     {
         setHideLabel(true);
         
         addAndMakeVisible(addButton);
         addButton.onClick = addArrayCallback;
+        syncCanvas = syncCanvasFunc;
     }
     
     void reloadGraphs(const Array<SafePointer<GraphicalArray>>& safeGraphs)
@@ -853,6 +856,9 @@ struct ArrayPropertiesPanel : public PropertiesPanelProperty, public Value::List
     
     void valueChanged(Value& v) override
     {
+        // when array parameters are changed we need to resync the canavs to PD
+        // TODO: do we need to protect this in a callasync also?
+        syncCanvas();
         repaint();
     }
     
@@ -1156,7 +1162,7 @@ public:
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamCustom([_this = SafePointer(this)](){
             
-            if(!_this) return static_cast<ArrayPropertiesPanel*>(nullptr);
+            if(!_this) return static_cast<ArrayPropertiesPanel*>(nullptr, nullptr);
             
             Array<SafePointer<GraphicalArray>> safeGraphs;
             for(auto* graph : _this->graphs)
@@ -1166,6 +1172,8 @@ public:
             
             auto* panel = new ArrayPropertiesPanel([_this](){
                 if(_this) _this->addArray();
+            }, [_this](){
+                if(_this) _this->cnv->synchronise();
             });
             
             panel->reloadGraphs(safeGraphs);
