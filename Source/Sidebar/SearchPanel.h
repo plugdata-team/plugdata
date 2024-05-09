@@ -300,29 +300,46 @@ public:
                         }
                         case hash("text"):
                         {
-                            auto *text = object.cast<t_fake_text_define>();
-                            auto objectType = text->x_textbuf.b_ob.te_type;
-                            if (objectType == T_TEXT) {
-                                finalFormatedName = String("comment: ") + name;
-                            } else if (objectType == T_OBJECT) {
-                                element.setProperty("IconColour", Colours::red.toString(), nullptr);
+                            switch(object.cast<t_fake_text_define>()->x_textbuf.b_ob.te_type){
+                                case T_TEXT:
+                                {
+                                    // if object & classname is text, then it's a comment
+                                    finalFormatedName = String("comment: ") + name;
+                                    break;
+                                }
+                                case T_OBJECT:
+                                {
+                                    // if object is T_OBJECT but classname is 'text' object is in error state
+                                    element.setProperty("IconColour", Colours::red.toString(), nullptr);
 
-                                if (name.isEmpty())
-                                    finalFormatedName = String("empty");
-                                else
-                                    finalFormatedName = String("unknown: ") + name;
+                                    if (name.isEmpty())
+                                        finalFormatedName = String("empty");
+                                    else
+                                        finalFormatedName = String("unknown: ") + name;
+
+                                    break;
+                                }
+                                default:
+                                    break;
+
                             }
                             break;
                         }
                         case hash("gatom"):
                         {
-                            auto* gatom = object.cast<t_fake_gatom>();
-                            if (gatom->a_flavor == A_FLOAT)
-                                finalFormatedName = "floatbox";
-                            if (gatom->a_flavor == A_SYMBOL)
-                                finalFormatedName = "symbolbox";
-                            if (gatom->a_flavor == A_NULL)
-                                finalFormatedName = "listbox";
+                            switch(object.cast<t_fake_gatom>()->a_flavor){
+                                case A_FLOAT:
+                                    finalFormatedName = "floatbox";
+                                    break;
+                                case A_SYMBOL:
+                                    finalFormatedName = "symbolbox";
+                                    break;
+                                case A_NULL:
+                                    finalFormatedName = "listbox";
+                                    break;
+                                default:
+                                    break;
+                            }
                             break;
                         }
                         default:
