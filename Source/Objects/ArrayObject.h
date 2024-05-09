@@ -1215,6 +1215,7 @@ public:
         if (auto glist = ptr.get<_glist>()) {
             graph_array(glist.get(), pd::Interface::getUnusedArrayName(), gensym("float"), 100, 0);
         }
+        cnv->synchronise();
         reinitialiseGraphs();
     }
     

@@ -241,8 +241,18 @@ public:
                         {
                             t_class* c = patchPtr->gl_list->g_pd;
                             if (c && c->c_name && (String::fromUTF8(c->c_name->s_name) == "array")) {
-                                auto* array = reinterpret_cast<t_fake_garray*>(patchPtr->gl_list);
-                                name = "array: " + String::fromUTF8(array->x_name->s_name);
+                                StringArray arrays;
+                                auto arrayIt = patchPtr->gl_list;
+                                while(arrayIt) {
+                                    if (auto* array = reinterpret_cast<t_fake_garray*>(arrayIt))
+                                        arrays.add(String::fromUTF8(array->x_name->s_name));
+                                    arrayIt = arrayIt->g_next;
+                                }
+                                String formatedArraysText;
+                                for (int i = 0; i < arrays.size(); i++) {
+                                    formatedArraysText += arrays[i] + String(i < arrays.size() - 1 ? ", " : "");
+                                }
+                                name = "array: " + formatedArraysText;
                             } else if (patchPtr->gl_isgraph) {
                                 name = nameWithoutArgs;
                             }
