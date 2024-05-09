@@ -226,18 +226,39 @@ public:
             finalOutlineColour = convertColour(object->isSelected() ? Colours::red.brighter(1.5f) : Colours::red);
             finalBackgroundColour = nvgRGBAf(outlineColour.r, outlineColour.g, outlineColour.b, 0.2f);
         }
-        else if (ioletAreaColour.r != backgroundColour.r ||
-            ioletAreaColour.g != backgroundColour.g ||
-            ioletAreaColour.b != backgroundColour.b ||
-            ioletAreaColour.a != backgroundColour.a) {
-            nvgFillColor(nvg, ioletAreaColour);
-            nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, 0.5f, 0, getWidth() - 1.0f, 3.5f, Corners::objectCornerRadius);
-            nvgRoundedRect(nvg, 0.5f, getHeight() - 3.5f, getWidth() - 1.0f, 3.5f, Corners::objectCornerRadius);
-            nvgFill(nvg);
-        }
 
         nvgDrawRoundedRect(nvg, b.getX() + 0.5f, b.getY() + 0.5f, b.getWidth() - 1.0f, b.getHeight() - 1.0f, finalBackgroundColour, object->isSelected() ? selectedOutlineColour : finalOutlineColour, Corners::objectCornerRadius);
+
+        // if the object is valid & iolet area colour is differnet from background colour
+        // draw two non-rounded rectangles at top / bottom
+        // scissor with rounded rectangle
+        //   ┌──────────────────┐
+        //   │┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼│
+        //   ├──────────────────┤
+        //   │                  │
+        //   │      object      │
+        //   │                  │
+        //   ├──────────────────┤
+        //   │┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼│
+        //   └──────────────────┘
+
+        if (isValid && (ioletAreaColour.r != backgroundColour.r ||
+            ioletAreaColour.g != backgroundColour.g ||
+            ioletAreaColour.b != backgroundColour.b ||
+            ioletAreaColour.a != backgroundColour.a)) {
+            nvgSave(nvg);
+            const float padding = 1.3f;
+            const float padding2x = padding * 2;
+            nvgRoundedScissor(nvg, padding, padding, getWidth() - padding2x, getHeight() - padding2x, jmax(0.0f, Corners::objectCornerRadius - 0.7f));
+
+            nvgFillColor(nvg, ioletAreaColour);
+            nvgBeginPath(nvg);
+            nvgRect(nvg, 0, 0, getWidth(), 3.5f);
+            nvgRect(nvg, 0, getHeight() - 3.5f, getWidth(), 3.5f);
+            nvgFill(nvg);
+
+            nvgRestore(nvg);
+        }
 
         if(editor && editor->isVisible())
         {

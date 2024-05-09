@@ -241,8 +241,18 @@ public:
                         {
                             t_class* c = patchPtr->gl_list->g_pd;
                             if (c && c->c_name && (String::fromUTF8(c->c_name->s_name) == "array")) {
-                                auto* array = reinterpret_cast<t_fake_garray*>(patchPtr->gl_list);
-                                name = "array: " + String::fromUTF8(array->x_name->s_name);
+                                StringArray arrays;
+                                auto arrayIt = patchPtr->gl_list;
+                                while(arrayIt) {
+                                    if (auto* array = reinterpret_cast<t_fake_garray*>(arrayIt))
+                                        arrays.add(String::fromUTF8(array->x_name->s_name));
+                                    arrayIt = arrayIt->g_next;
+                                }
+                                String formatedArraysText;
+                                for (int i = 0; i < arrays.size(); i++) {
+                                    formatedArraysText += arrays[i] + String(i < arrays.size() - 1 ? ", " : "");
+                                }
+                                name = "array: " + formatedArraysText;
                             } else if (patchPtr->gl_isgraph) {
                                 name = nameWithoutArgs;
                             }
@@ -300,23 +310,45 @@ public:
                         }
                         case hash("text"):
                         {
-                            if (name.isEmpty())
-                                finalFormatedName = String("empty");
-                            else
-                                finalFormatedName = String("unknown: ") + name;
-                            
-                            element.setProperty("IconColour", Colours::red.toString(), nullptr);
+                            switch(object.cast<t_fake_text_define>()->x_textbuf.b_ob.te_type){
+                                case T_TEXT:
+                                {
+                                    // if object & classname is text, then it's a comment
+                                    finalFormatedName = String("comment: ") + name;
+                                    break;
+                                }
+                                case T_OBJECT:
+                                {
+                                    // if object is T_OBJECT but classname is 'text' object is in error state
+                                    element.setProperty("IconColour", Colours::red.toString(), nullptr);
+
+                                    if (name.isEmpty())
+                                        finalFormatedName = String("empty");
+                                    else
+                                        finalFormatedName = String("unknown: ") + name;
+
+                                    break;
+                                }
+                                default:
+                                    break;
+                            }
                             break;
                         }
                         case hash("gatom"):
                         {
-                            auto* gatom = object.cast<t_fake_gatom>();
-                            if (gatom->a_flavor == A_FLOAT)
-                                finalFormatedName = "floatbox";
-                            if (gatom->a_flavor == A_SYMBOL)
-                                finalFormatedName = "symbolbox";
-                            if (gatom->a_flavor == A_NULL)
-                                finalFormatedName = "listbox";
+                            switch(object.cast<t_fake_gatom>()->a_flavor){
+                                case A_FLOAT:
+                                    finalFormatedName = "floatbox";
+                                    break;
+                                case A_SYMBOL:
+                                    finalFormatedName = "symbolbox";
+                                    break;
+                                case A_NULL:
+                                    finalFormatedName = "listbox";
+                                    break;
+                                default:
+                                    break;
+                            }
                             break;
                         }
                         default:
