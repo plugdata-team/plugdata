@@ -300,12 +300,18 @@ public:
                         }
                         case hash("text"):
                         {
-                            if (name.isEmpty())
-                                finalFormatedName = String("empty");
-                            else
-                                finalFormatedName = String("unknown: ") + name;
-                            
-                            element.setProperty("IconColour", Colours::red.toString(), nullptr);
+                            auto *text = object.cast<t_fake_text_define>();
+                            auto objectType = text->x_textbuf.b_ob.te_type;
+                            if (objectType == T_TEXT) {
+                                finalFormatedName = String("comment: ") + name;
+                            } else if (objectType == T_OBJECT) {
+                                element.setProperty("IconColour", Colours::red.toString(), nullptr);
+
+                                if (name.isEmpty())
+                                    finalFormatedName = String("empty");
+                                else
+                                    finalFormatedName = String("unknown: ") + name;
+                            }
                             break;
                         }
                         case hash("gatom"):
