@@ -226,18 +226,19 @@ public:
             finalOutlineColour = convertColour(object->isSelected() ? Colours::red.brighter(1.5f) : Colours::red);
             finalBackgroundColour = nvgRGBAf(outlineColour.r, outlineColour.g, outlineColour.b, 0.2f);
         }
-        else if (ioletAreaColour.r != backgroundColour.r ||
+
+        nvgDrawRoundedRect(nvg, b.getX() + 0.5f, b.getY() + 0.5f, b.getWidth() - 1.0f, b.getHeight() - 1.0f, finalBackgroundColour, object->isSelected() ? selectedOutlineColour : finalOutlineColour, Corners::objectCornerRadius);
+
+        if (isValid && (ioletAreaColour.r != backgroundColour.r ||
             ioletAreaColour.g != backgroundColour.g ||
             ioletAreaColour.b != backgroundColour.b ||
-            ioletAreaColour.a != backgroundColour.a) {
+            ioletAreaColour.a != backgroundColour.a)) {
             nvgFillColor(nvg, ioletAreaColour);
             nvgBeginPath(nvg);
             nvgRoundedRect(nvg, 0.5f, 0, getWidth() - 1.0f, 3.5f, Corners::objectCornerRadius);
             nvgRoundedRect(nvg, 0.5f, getHeight() - 3.5f, getWidth() - 1.0f, 3.5f, Corners::objectCornerRadius);
             nvgFill(nvg);
         }
-
-        nvgDrawRoundedRect(nvg, b.getX() + 0.5f, b.getY() + 0.5f, b.getWidth() - 1.0f, b.getHeight() - 1.0f, finalBackgroundColour, object->isSelected() ? selectedOutlineColour : finalOutlineColour, Corners::objectCornerRadius);
 
         if(editor && editor->isVisible())
         {
