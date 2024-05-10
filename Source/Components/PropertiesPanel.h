@@ -611,8 +611,16 @@ public:
             hexValueEditor.setColour(outlineColourId, Colour());
             hexValueEditor.setJustification(Justification::centred);
 
+            hexValueEditor.onReturnKey = [this]() {
+                grabKeyboardFocus();
+            };
+
             hexValueEditor.onTextChange = [this]() {
-                currentColour = String("ff") + hexValueEditor.getText().substring(1).toLowerCase();
+                colour = String("ff") + hexValueEditor.getText().substring(1).toLowerCase();
+            };
+
+            hexValueEditor.onFocusLost = [this]() {
+                currentColour.setValue(colour);
             };
 
             addAndMakeVisible(swatchComponent);
@@ -664,6 +672,7 @@ public:
     private:
         SwatchComponent swatchComponent;
         Value currentColour;
+        Value colour;
         TextEditor hexValueEditor;
     };
 
