@@ -417,7 +417,7 @@ public:
                 keyboard.heldKeys.insert(i);
                 repaint();
             }
-            if (!notes[i] && keyboard.heldKeys.contains(i) && keyboard.clickedKey != i) {
+            if (!notes[i] && keyboard.heldKeys.contains(i) && keyboard.clickedKey != i && !getValue<bool>(toggleMode)) {
                 keyboard.heldKeys.erase(i);
                 repaint();
             }

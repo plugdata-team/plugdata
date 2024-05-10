@@ -476,7 +476,7 @@ public:
             toggleStateValue.removeListener(this);
         }
 
-        void lookAndFeelChanged()
+        void lookAndFeelChanged() override
         {
             repaint();
         }
