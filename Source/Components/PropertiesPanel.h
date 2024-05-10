@@ -331,12 +331,22 @@ public:
                 fontValue.setValue(options[comboBox.getSelectedItemIndex()]);
             };
 
+            setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
+
             addAndMakeVisible(comboBox);
+
+            lookAndFeelChanged();
+
         }
 
         PropertiesPanelProperty* createCopy() override
         {
             return new FontComponent(getName(), fontValue);
+        }
+
+        void lookAndFeelChanged() override
+        {
+            comboBox.setColour(ComboBox::textColourId, findColour(PlugDataColour::panelTextColourId));
         }
 
         void setFont(String const& fontName)
@@ -370,6 +380,8 @@ public:
                 property->setHideLabel(true);
                 addAndMakeVisible(property);
             }
+
+            setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
         }
 
         MultiPropertyComponent(String const& propertyName, Array<Value*> values, StringArray options)
@@ -390,6 +402,13 @@ public:
                 return new MultiPropertyComponent<T>(getName(), propertyValues, propertyOptions);
             } else {
                 return new MultiPropertyComponent<T>(getName(), propertyValues);
+            }
+        }
+
+        void lookAndFeelChanged() override
+        {
+            for (auto& property : properties){
+                property->setColour(ComboBox::textColourId, findColour(PlugDataColour::panelTextColourId));
             }
         }
 
@@ -426,32 +445,40 @@ public:
         BoolComponent(String const& propertyName, Value& value, StringArray options)
             : PropertiesPanelProperty(propertyName)
             , textOptions(std::move(options))
-            , toggleStateValue(value)
-        {
-            toggleStateValue.addListener(this);
+            , toggleStateValue(value) {
+            init();
         }
 
         // Also allow creating it without passing in a Value, makes it easier to derive from this class for custom bool components
         BoolComponent(String const& propertyName, StringArray options)
             : PropertiesPanelProperty(propertyName)
-            , textOptions(std::move(options))
-        {
-            toggleStateValue.addListener(this);
+            , textOptions(std::move(options)) {
+            init();
         }
 
         // Allow creation without an attached juce::Value, but with an initial value
         // We need this constructor sometimes to prevent feedback caused by the initial value being set after the listener is attached
         BoolComponent(String const& propertyName, bool initialValue, StringArray options)
             : PropertiesPanelProperty(propertyName)
-            , textOptions(std::move(options))
-        {
+            , textOptions(std::move(options)) {
             toggleStateValue = initialValue;
-            toggleStateValue.addListener(this);
+            init();
         }
 
-        ~BoolComponent()
+        void init()
         {
+            toggleStateValue.addListener(this);
+            setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
+            lookAndFeelChanged();
+        }
+
+        ~BoolComponent() {
             toggleStateValue.removeListener(this);
+        }
+
+        void lookAndFeelChanged()
+        {
+            repaint();
         }
 
         PropertiesPanelProperty* createCopy() override
@@ -571,6 +598,7 @@ public:
             : PropertiesPanelProperty(propertyName)
             , swatchComponent(value)
         {
+
             currentColour.referTo(value);
             setWantsKeyboardFocus(true);
 
@@ -583,18 +611,35 @@ public:
             hexValueEditor.setColour(outlineColourId, Colour());
             hexValueEditor.setJustification(Justification::centred);
 
+            hexValueEditor.onReturnKey = [this]() {
+                grabKeyboardFocus();
+            };
+
             hexValueEditor.onTextChange = [this]() {
-                currentColour = String("ff") + hexValueEditor.getText().substring(1).toLowerCase();
+                colour = String("ff") + hexValueEditor.getText().substring(1).toLowerCase();
+            };
+
+            hexValueEditor.onFocusLost = [this]() {
+                currentColour.setValue(colour);
             };
 
             addAndMakeVisible(swatchComponent);
             updateHexValue();
+
+            setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
+
             repaint();
         }
 
         ~ColourComponent() override
         {
             currentColour.removeListener(this);
+        }
+
+        void lookAndFeelChanged() override
+        {
+            // TextEditor is special, setColour() will only change newly typed text colour
+            hexValueEditor.applyColourToAllText(findColour(PlugDataColour::panelTextColourId));
         }
 
         PropertiesPanelProperty* createCopy() override
@@ -627,6 +672,7 @@ public:
     private:
         SwatchComponent swatchComponent;
         Value currentColour;
+        Value colour;
         TextEditor hexValueEditor;
     };
 
