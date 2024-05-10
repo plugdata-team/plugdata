@@ -1279,6 +1279,9 @@ public:
 
             object->cnv->addAndMakeVisible(label.get());
         }
+        else {
+            label.reset(nullptr);
+        }
     }
 
     Rectangle<int> getPdBounds() override
