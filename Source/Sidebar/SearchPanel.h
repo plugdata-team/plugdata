@@ -10,6 +10,14 @@
 #include <m_pd.h>
 #include <m_imp.h>
 
+extern "C" {
+#include <g_all_guis.h>
+}
+
+static int srl_is_valid(t_symbol const *s) {
+    return (s != nullptr && s != gensym(""));
+}
+
 class SearchPanelSettings : public Component
 {
 public:
@@ -271,9 +279,16 @@ public:
                 } else {
                     String finalFormatedName;
 
+                    auto formatSendRecieve = [](const String& send, const String& receive) -> String {
+                        const String formatedSen = (send.isEmpty() || (send == "empty")) ? "" : " send: " + send;
+                        const String formatedRcv = (receive.isEmpty() || (receive == "empty")) ? "" : String(formatedSen.isNotEmpty()? "," : "") + " rec: " + receive;
+
+                        return String(formatedSen + formatedRcv);
+                    };
+
                     switch(hash(type)){
+                        // IEM send-receive symbols
                         case hash("bng"):
-                        case hash("button"):
                         case hash("hsl"):
                         case hash("vsl"):
                         case hash("slider"):
@@ -282,22 +297,105 @@ public:
                         case hash("numbox~"):
                         case hash("vradio"):
                         case hash("hradio"):
-                        case hash("cnv"):
                         case hash("vu"):
-                        case hash("pad"):
-                        case hash("keyboard"):
-                        case hash("pic"):
-                        case hash("canvas"):
-                        case hash("scope~"):
-                        case hash("function"):
-                        case hash("bicoeff"):
-                        case hash("messbox"):
-                        case hash("note"):
-                        case hash("knob"):
+                        case hash("cnv"):
                         {
-                            finalFormatedName = nameWithoutArgs;
+                            String receiveSym, sendSym;
+                            if (auto iemgui = objectPtr.get<t_iemgui>()) {
+                                t_symbol* srlsym[3];
+                                iemgui_all_sym2dollararg(iemgui.get(), srlsym);
+                                if (srl_is_valid(srlsym[0])) {
+                                    sendSym = String::fromUTF8(iemgui->x_snd_unexpanded->s_name);
+                                }
+                                if (srl_is_valid(srlsym[1])) {
+                                    receiveSym = String::fromUTF8(iemgui->x_rcv_unexpanded->s_name);
+                                }
+                            }
+                            finalFormatedName = nameWithoutArgs + formatSendRecieve(sendSym, receiveSym);
                             break;
                         }
+                        case hash("keyboard"):
+                        {
+                            String receiveSym, sendSym;
+                            if (auto keyboardObject = object.cast<t_fake_keyboard>()) {
+                                sendSym = String(keyboardObject->x_send->s_name);
+                                receiveSym = String(keyboardObject->x_receive->s_name);
+                            }
+                            finalFormatedName = nameWithoutArgs + formatSendRecieve(sendSym, receiveSym);
+                            break;
+                        }
+                        case hash("pic"):
+                        {
+                            String receiveSym, sendSym;
+                            if (auto picObject = object.cast<t_fake_pic>()) {
+                                sendSym = String(picObject->x_send->s_name);
+                                receiveSym = String(picObject->x_receive->s_name);
+                            }
+                            finalFormatedName = nameWithoutArgs + formatSendRecieve(sendSym, receiveSym);
+                            break;
+                        }
+                        case hash("scope~"):
+                        {
+                            String receiveSym;
+                            if (auto scopeObject = object.cast<t_fake_scope>()){
+                                receiveSym = String(scopeObject->x_receive->s_name);
+                            }
+                            finalFormatedName = nameWithoutArgs + formatSendRecieve("", receiveSym);
+                            break;
+                        }
+                        case hash("function"):
+                        {
+                            String receiveSym, sendSym;
+                            if (auto keyboardObject = object.cast<t_fake_function>()) {
+                                sendSym = String(keyboardObject->x_send->s_name);
+                                receiveSym = String(keyboardObject->x_receive->s_name);
+
+                            }
+                            finalFormatedName = nameWithoutArgs + formatSendRecieve(sendSym, receiveSym);
+                            break;
+                        }
+                        case hash("note"):
+                        {
+                            String receiveSym;
+                            if (auto noteObject = object.cast<t_fake_note>()) {
+                                receiveSym = String(noteObject->x_receive->s_name);
+                            }
+                            finalFormatedName = nameWithoutArgs + formatSendRecieve("", receiveSym);
+                            break;
+                        }
+                        case hash("knob"):
+                        {
+                            String receiveSym, sendSym;
+                            if (auto knobObj = object.cast<t_fake_knob>()) {
+                                sendSym = String(knobObj->x_snd->s_name);
+                                receiveSym = String(knobObj->x_rcv->s_name);
+                            }
+                            finalFormatedName = nameWithoutArgs + formatSendRecieve(sendSym, receiveSym);
+                            break;
+                        }
+                        case hash("gatom"):
+                        {
+                            auto gatomObject = object.cast<t_fake_gatom>();
+                            String gatomName;
+                            switch(gatomObject->a_flavor){
+                                case A_FLOAT:
+                                    gatomName = "floatbox";
+                                    break;
+                                case A_SYMBOL:
+                                    gatomName = "symbolbox";
+                                    break;
+                                case A_NULL:
+                                    gatomName = "listbox";
+                                    break;
+                                default:
+                                    break;
+                            }
+                            const auto receive = String(gatomObject->a_symfrom->s_name);
+                            const auto send = String(gatomObject->a_symto->s_name);
+                            finalFormatedName = gatomName + formatSendRecieve(send, receive);
+                            break;
+                        }
+                        // ============ no send-receive symbols ============
                         case hash("message"):
                         {
                             finalFormatedName = "msg: " + name;
@@ -334,21 +432,13 @@ public:
                             }
                             break;
                         }
-                        case hash("gatom"):
+                        case hash("canvas"):
+                        case hash("bicoeff"):
+                        case hash("messbox"):
+                        case hash("pad"):
+                        case hash("button"):
                         {
-                            switch(object.cast<t_fake_gatom>()->a_flavor){
-                                case A_FLOAT:
-                                    finalFormatedName = "floatbox";
-                                    break;
-                                case A_SYMBOL:
-                                    finalFormatedName = "symbolbox";
-                                    break;
-                                case A_NULL:
-                                    finalFormatedName = "listbox";
-                                    break;
-                                default:
-                                    break;
-                            }
+                            finalFormatedName = nameWithoutArgs;
                             break;
                         }
                         default:
