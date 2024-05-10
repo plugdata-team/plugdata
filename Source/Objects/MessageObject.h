@@ -273,15 +273,10 @@ public:
 
             if (objectText != newText) {
                 objectText = newText;
-                MessageManager::callAsync([this, _this = SafePointer(this)]() mutable {
-                    // syncronising canvas may remove this object (highly unlikely)
-                    if (!_this)
-                        return;
-                    cnv->synchronise();
-                    object->updateBounds(); // Recalculate bounds
-                    setPdBounds(object->getObjectBounds());
-                    setSymbol(objectText);
-                });
+                object->updateBounds(); // Recalculate bounds
+                setPdBounds(object->getObjectBounds());
+                setSymbol(objectText);
+                cnv->synchronise();
             }
             
             outgoingEditor.reset();
