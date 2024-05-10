@@ -53,7 +53,7 @@ public:
     Canvas* cnv;
 
 private:
-    bool mouseIsDown;
+    bool mouseIsDown = false;
     bool const insideGraph;
     bool hideIolet = false;
 

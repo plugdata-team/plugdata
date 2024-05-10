@@ -88,14 +88,12 @@ public:
             
             if (objectText != newText) {
                 objectText = newText;
+                object->updateBounds(); // Recalculate bounds
+                setPdBounds(object->getObjectBounds());
+                setSymbol(objectText);
+                cnv->synchronise();
             }
-            
             outgoingEditor.reset();
-            
-            object->updateBounds(); // Recalculate bounds
-            setPdBounds(object->getObjectBounds());
-            
-            setSymbol(objectText);
             repaint();
         }
     }

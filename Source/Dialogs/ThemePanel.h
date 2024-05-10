@@ -126,11 +126,10 @@ struct ThemeSelectorProperty : public PropertiesPanelProperty {
             callback(comboBox.getText());
         };
 
-        comboBox.setColour(ComboBox::backgroundColourId, Colours::transparentBlack);
-        comboBox.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-        comboBox.setColour(ComboBox::textColourId, findColour(PlugDataColour::panelTextColourId));
-
         addAndMakeVisible(comboBox);
+
+        setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
+        lookAndFeelChanged();
     }
 
     PropertiesPanelProperty* createCopy() override
@@ -139,6 +138,13 @@ struct ThemeSelectorProperty : public PropertiesPanelProperty {
         themeSelector->setOptions(items);
         themeSelector->setSelectedItem(comboBox.getSelectedItemIndex());
         return themeSelector;
+    }
+
+    void lookAndFeelChanged() override
+    {
+        comboBox.setColour(ComboBox::backgroundColourId, Colours::transparentBlack);
+        comboBox.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+        comboBox.setColour(ComboBox::textColourId, findColour(PlugDataColour::panelTextColourId));
     }
 
     String getText() const
@@ -562,6 +568,7 @@ public:
                 if (v.refersToSameSourceAs(swatches[themeName][colourName])) {
                     theme.setProperty(colourName, v.toString(), nullptr);
                     pd->setTheme(PlugDataLook::currentTheme, true);
+                    sendLookAndFeelChange();
                     return;
                 }
             }
@@ -609,5 +616,6 @@ public:
         
         updateSwatches();
         pd->setTheme(PlugDataLook::selectedThemes[0], true);
+        sendLookAndFeelChange();
     }
 };
