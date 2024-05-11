@@ -105,6 +105,7 @@ public:
         addAndMakeVisible(patchTree);
         addAndMakeVisible(input);
 
+        input.setTooltip("Use \"send\" or \"receive\" keyword to search symbols");
         input.setJustification(Justification::centredLeft);
         input.setBorder({ 1, 23, 5, 1 });
     }
@@ -195,6 +196,7 @@ public:
             cnv->pd->lockAudioThread(); // It locks inside of this anyway, so we might as well lock around it to prevent constantly locking/unlocking
             auto tree = generatePatchTree(cnv->refCountedPatch);
             patchTree.setValueTree(tree);
+            patchTree.filterNodes();
             cnv->pd->unlockAudioThread();
         }
     }
@@ -278,13 +280,8 @@ public:
                     element.setProperty("TopLevel", reinterpret_cast<int64>(top), nullptr);
                 } else {
                     String finalFormatedName;
-
-                    auto formatSendRecieve = [](const String& send, const String& receive) -> String {
-                        const String formatedSen = (send.isEmpty() || (send == "empty")) ? "" : " send: " + send;
-                        const String formatedRcv = (receive.isEmpty() || (receive == "empty")) ? "" : String(formatedSen.isNotEmpty()? "," : "") + " rec: " + receive;
-
-                        return String(formatedSen + formatedRcv);
-                    };
+                    String sendSymbol;
+                    String receiveSymbol;
 
                     switch(hash(type)){
                         // IEM send-receive symbols
@@ -300,77 +297,70 @@ public:
                         case hash("vu"):
                         case hash("cnv"):
                         {
-                            String receiveSym, sendSym;
                             if (auto iemgui = objectPtr.get<t_iemgui>()) {
                                 t_symbol* srlsym[3];
                                 iemgui_all_sym2dollararg(iemgui.get(), srlsym);
                                 if (srl_is_valid(srlsym[0])) {
-                                    sendSym = String::fromUTF8(iemgui->x_snd_unexpanded->s_name);
+                                    sendSymbol = String::fromUTF8(iemgui->x_snd_unexpanded->s_name);
                                 }
                                 if (srl_is_valid(srlsym[1])) {
-                                    receiveSym = String::fromUTF8(iemgui->x_rcv_unexpanded->s_name);
+                                    receiveSymbol = String::fromUTF8(iemgui->x_rcv_unexpanded->s_name);
                                 }
                             }
-                            finalFormatedName = nameWithoutArgs + formatSendRecieve(sendSym, receiveSym);
+                            finalFormatedName = nameWithoutArgs;
                             break;
                         }
                         case hash("keyboard"):
                         {
-                            String receiveSym, sendSym;
                             if (auto keyboardObject = object.cast<t_fake_keyboard>()) {
-                                sendSym = String(keyboardObject->x_send->s_name);
-                                receiveSym = String(keyboardObject->x_receive->s_name);
+                                sendSymbol = String(keyboardObject->x_send->s_name);
+                                receiveSymbol = String(keyboardObject->x_receive->s_name);
                             }
-                            finalFormatedName = nameWithoutArgs + formatSendRecieve(sendSym, receiveSym);
+                            finalFormatedName = nameWithoutArgs;
                             break;
                         }
                         case hash("pic"):
                         {
-                            String receiveSym, sendSym;
                             if (auto picObject = object.cast<t_fake_pic>()) {
-                                sendSym = String(picObject->x_send->s_name);
-                                receiveSym = String(picObject->x_receive->s_name);
+                                sendSymbol = String(picObject->x_send->s_name);
+                                sendSymbol = String(picObject->x_receive->s_name);
                             }
-                            finalFormatedName = nameWithoutArgs + formatSendRecieve(sendSym, receiveSym);
+                            finalFormatedName = nameWithoutArgs;
                             break;
                         }
                         case hash("scope~"):
                         {
-                            String receiveSym;
                             if (auto scopeObject = object.cast<t_fake_scope>()){
-                                receiveSym = String(scopeObject->x_receive->s_name);
+                                receiveSymbol = String(scopeObject->x_receive->s_name);
                             }
-                            finalFormatedName = nameWithoutArgs + formatSendRecieve("", receiveSym);
+                            finalFormatedName = nameWithoutArgs;
                             break;
                         }
                         case hash("function"):
                         {
-                            String receiveSym, sendSym;
                             if (auto keyboardObject = object.cast<t_fake_function>()) {
-                                sendSym = String(keyboardObject->x_send->s_name);
-                                receiveSym = String(keyboardObject->x_receive->s_name);
+                                sendSymbol = String(keyboardObject->x_send->s_name);
+                                receiveSymbol = String(keyboardObject->x_receive->s_name);
 
                             }
-                            finalFormatedName = nameWithoutArgs + formatSendRecieve(sendSym, receiveSym);
+                            finalFormatedName = nameWithoutArgs;
                             break;
                         }
                         case hash("note"):
                         {
-                            String receiveSym;
                             if (auto noteObject = object.cast<t_fake_note>()) {
-                                receiveSym = String(noteObject->x_receive->s_name);
+                                receiveSymbol = String(noteObject->x_receive->s_name);
                             }
-                            finalFormatedName = nameWithoutArgs + formatSendRecieve("", receiveSym);
+                            finalFormatedName = nameWithoutArgs;
                             break;
                         }
                         case hash("knob"):
                         {
-                            String receiveSym, sendSym;
                             if (auto knobObj = object.cast<t_fake_knob>()) {
-                                sendSym = String(knobObj->x_snd->s_name);
-                                receiveSym = String(knobObj->x_rcv->s_name);
+                                sendSymbol = String(knobObj->x_snd->s_name);
+                                receiveSymbol = String(knobObj->x_rcv->s_name);
                             }
-                            finalFormatedName = nameWithoutArgs + formatSendRecieve(sendSym, receiveSym);
+                            finalFormatedName = nameWithoutArgs;
                             break;
                         }
                         case hash("gatom"):
@@ -390,9 +380,9 @@ public:
                                 default:
                                     break;
                             }
-                            const auto receive = String(gatomObject->a_symfrom->s_name);
-                            const auto send = String(gatomObject->a_symto->s_name);
-                            finalFormatedName = gatomName + formatSendRecieve(send, receive);
+                            receiveSymbol = String(gatomObject->a_symfrom->s_name);
+                            sendSymbol = String(gatomObject->a_symto->s_name);
+                            finalFormatedName = gatomName;
                             break;
                         }
                         // ============ no send-receive symbols ============
@@ -449,6 +439,13 @@ public:
                     }
 
                     element.setProperty("Name", finalFormatedName, nullptr);
+                    // Add send/receive tags if they exist
+                    if (sendSymbol.isNotEmpty() && (sendSymbol != "empty")) {
+                        element.setProperty("SendSymbol", sendSymbol, nullptr);
+                    }
+                    if (receiveSymbol.isNotEmpty() && (receiveSymbol != "empty")) {
+                        element.setProperty("ReceiveSymbol", receiveSymbol, nullptr);
+                    }
                     element.setProperty("RightText", positionText, nullptr);
                     element.setProperty("Icon", Icons::Object, nullptr);
                     element.setProperty("Object", reinterpret_cast<int64>(object.cast<void>()), nullptr);
