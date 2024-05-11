@@ -294,6 +294,7 @@ void NVGSurface::render()
             fbHeight = scaledHeight;
             invalidArea = getLocalBounds();
             scaleChanged = !approximatelyEqual(lastScaleFactor, pixelScale);
+            lastScaleFactor = pixelScale;
         }
         else if(!invalidArea.isEmpty()) {
             auto invalidated = invalidArea.expanded(1);
@@ -369,7 +370,6 @@ void NVGSurface::render()
         glContext->initialiseOnThread();
         nvg = nvgCreateContext(NVG_ANTIALIAS);
 #endif
-        lastScaleFactor = renderScale;
         
         invalidateAll();
         
