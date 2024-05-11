@@ -195,7 +195,7 @@ public:
             g.setColour(sendColour);
             auto tagBounds = itemBounds.removeFromLeft(length).translated(4, 0).reduced(0, 5).expanded(2, 0);
             //g.fillRect(tagBounds.withTop(getHeight() * 0.5f));
-            g.fillRoundedRectangle(tagBounds.toFloat(), Corners::defaultCornerRadius);
+            g.fillRoundedRectangle(tagBounds.toFloat(), Corners::defaultCornerRadius * 0.8f);
             Fonts::drawFittedText(g, sendSymbolText, tagBounds.translated(2,0), sendColour.contrasting());
             itemBounds.translate(8,0);
         }
@@ -208,7 +208,7 @@ public:
             g.setColour(recColour);
             auto tagBounds = itemBounds.removeFromLeft(length).translated(4, 0).reduced(0, 5).expanded(2, 0);
             //g.fillRect(tagBounds.withBottom(getHeight() * 0.5f));
-            g.fillRoundedRectangle(tagBounds.toFloat(), Corners::defaultCornerRadius);
+            g.fillRoundedRectangle(tagBounds.toFloat(), Corners::defaultCornerRadius * 0.8f);
             Fonts::drawFittedText(g, receiveSymbolText, tagBounds.translated(2,0), recColour.contrasting());
         }
 
