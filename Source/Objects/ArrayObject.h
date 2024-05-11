@@ -1162,7 +1162,7 @@ public:
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamCustom([_this = SafePointer(this)](){
             
-            if(!_this) return static_cast<ArrayPropertiesPanel*>(nullptr, nullptr);
+            if(!_this) return nullptr;
             
             Array<SafePointer<GraphicalArray>> safeGraphs;
             for(auto* graph : _this->graphs)
