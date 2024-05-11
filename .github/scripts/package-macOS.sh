@@ -40,7 +40,7 @@ build_flavor()
 
   mkdir -p $TMPDIR
   cp -a $flavorprod $TMPDIR
-  
+
   pkgbuild --analyze --root $TMPDIR ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.plist
   plutil -replace BundleIsRelocatable -bool NO ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.plist
   plutil -replace BundleIsVersionChecked -bool NO ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.plist
@@ -155,14 +155,14 @@ rm -r $PKG_DIR
 if [ -z "$AC_USERNAME" ]; then
     echo "No user name, skipping sign/notarize"
     # pretend that we signed the package and bail out
-    mv ${PRODUCT_NAME}.pkg ${PRODUCT_NAME}-MacOS-Universal.pkg
+    mv ${PRODUCT_NAME}.pkg ${PRODUCT_NAME}-MacOS-$1.pkg
     exit 0
 fi
 
 # Sign installer
-productsign -s "Developer ID Installer: Timothy Schoen (7SV7JPRR2L)" ${PRODUCT_NAME}.pkg ${PRODUCT_NAME}-MacOS-Universal.pkg
+productsign -s "Developer ID Installer: Timothy Schoen (7SV7JPRR2L)" ${PRODUCT_NAME}.pkg ${PRODUCT_NAME}-MacOS-$1.pkg
 
 # Notarize installer
 xcrun notarytool store-credentials "notary_login" --apple-id ${AC_USERNAME} --password ${AC_PASSWORD} --team-id "7SV7JPRR2L"
-xcrun notarytool submit ./plugdata-MacOS-Universal.pkg --keychain-profile "notary_login" --wait
-xcrun stapler staple "plugdata-MacOS-Universal.pkg"
+xcrun notarytool submit ./plugdata-MacOS-$1.pkg --keychain-profile "notary_login" --wait
+xcrun stapler staple "plugdata-MacOS-$1.pkg"
