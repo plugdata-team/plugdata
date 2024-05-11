@@ -181,16 +181,45 @@ public:
                 iconColour = Colour::fromString(valueTreeNode.getProperty("IconColour").toString());
             Fonts::drawIcon(g, valueTreeNode.getProperty("Icon"), itemBounds.removeFromLeft(22).reduced(2), iconColour, 12, false);
         }
+
+        auto nameText = valueTreeNode.getProperty("Name");
+        auto nameLength = Font(15).getStringWidth(nameText);
+        Fonts::drawFittedText(g, nameText, itemBounds.removeFromLeft(nameLength), colour);
+
+        // draw send symbol label tag
+        if(valueTreeNode.hasProperty("SendSymbol"))
+        {
+            auto sendSymbolText = "s: " + valueTreeNode.getProperty("SendSymbol").toString();
+            auto length = Font(15).getStringWidth(sendSymbolText);
+            auto sendColour = findColour(PlugDataColour::objectSelectedOutlineColourId);
+            g.setColour(sendColour);
+            auto tagBounds = itemBounds.removeFromLeft(length).translated(4, 0).reduced(0, 5).expanded(2, 0);
+            //g.fillRect(tagBounds.withTop(getHeight() * 0.5f));
+            g.fillRoundedRectangle(tagBounds.toFloat(), Corners::defaultCornerRadius);
+            Fonts::drawFittedText(g, sendSymbolText, tagBounds.translated(2,0), sendColour.contrasting());
+            itemBounds.translate(8,0);
+        }
+        // draw receive symbol label tag
+        if(valueTreeNode.hasProperty("ReceiveSymbol"))
+        {
+            auto receiveSymbolText = "r: " + valueTreeNode.getProperty("ReceiveSymbol").toString();
+            auto length = Font(15).getStringWidth(receiveSymbolText);
+            auto recColour = findColour(PlugDataColour::objectSelectedOutlineColourId).withRotatedHue(0.5f);
+            g.setColour(recColour);
+            auto tagBounds = itemBounds.removeFromLeft(length).translated(4, 0).reduced(0, 5).expanded(2, 0);
+            //g.fillRect(tagBounds.withBottom(getHeight() * 0.5f));
+            g.fillRoundedRectangle(tagBounds.toFloat(), Corners::defaultCornerRadius);
+            Fonts::drawFittedText(g, receiveSymbolText, tagBounds.translated(2,0), recColour.contrasting());
+        }
+
         if(valueTreeNode.hasProperty("RightText"))
         {
             auto text = valueTreeNode.getProperty("Name").toString();
             auto rightText = valueTreeNode.getProperty("RightText").toString();
             if(Font(15).getStringWidth(text + rightText) < itemBounds.getWidth() - 16) {
-                Fonts::drawFittedText(g, valueTreeNode.getProperty("RightText"), itemBounds.removeFromRight(Font(15).getStringWidth(rightText) + 4), colour.withAlpha(0.5f));
+                Fonts::drawFittedText(g, valueTreeNode.getProperty("RightText"), getLocalBounds().removeFromRight(Font(15).getStringWidth(rightText) + 4).removeFromTop(25), colour.withAlpha(0.5f), Justification::topLeft);
             }
         }
-        
-        Fonts::drawFittedText(g, valueTreeNode.getProperty("Name"), itemBounds, colour);
     }
 
     void resized() override
@@ -252,6 +281,8 @@ public:
     }
 
     ValueTree valueTreeNode;
+
+    bool isOpenInSearchMode() { return isOpenedBySearch; };
 
 private:
     ValueTreeNodeComponent* parent;
@@ -498,22 +529,26 @@ public:
     void setFilterString(const String& toFilter)
     {
         filterString = toFilter;
-        
+        filterNodes();
+    }
+
+    void filterNodes()
+    {
         if(filterString.isEmpty())
         {
             for (auto* topLevelNode : nodes)
             {
                 clearSearch(topLevelNode);
             }
-            
+
             resized();
             return;
         }
-        
+
 
         for (auto* topLevelNode : nodes)
         {
-           searchInNode(topLevelNode);
+            searchInNode(topLevelNode);
         }
 
         resized();
@@ -547,7 +582,18 @@ private:
     bool searchInNode(ValueTreeNodeComponent* node)
     {
         // Check if the current node matches the filterString
-        bool found = filterString.isEmpty() || node->valueTreeNode.getProperty("Name").toString().containsIgnoreCase(filterString);
+        bool found = false;
+        if (filterString.isEmpty() ||
+            node->valueTreeNode.getProperty("Name").toString().containsIgnoreCase(filterString) ||
+            // search over the send/receive tags
+            node->valueTreeNode.getProperty("SendSymbol").toString().containsIgnoreCase(filterString) ||
+            node->valueTreeNode.getProperty("ReceiveSymbol").toString().containsIgnoreCase(filterString) ||
+            // return all nodes that have send/receive for the patch with the keywords: "send" "receive"
+            (node->valueTreeNode.hasProperty("SendSymbol") && filterString.containsIgnoreCase("send")) ||
+            (node->valueTreeNode.hasProperty("ReceiveSymbol") && filterString.containsIgnoreCase("receive")) )
+        {
+            found = true;
+        }
         
         for (auto* child : node->nodes)
         {

@@ -15,15 +15,7 @@ public:
     {
     }
 
-    void paint(Graphics& g) override
-    {
-        if (!treeLine.isEmpty()) {
-            auto colour = isHover ? findColour(PlugDataColour::objectSelectedOutlineColourId) : findColour(PlugDataColour::panelTextColourId).withAlpha(0.25f);
-
-            g.reduceClipRegion(treeLineImage, AffineTransform());
-            g.fillAll(colour);
-        }
-    }
+    void paint(Graphics& g) override;
 
     void mouseEnter(const MouseEvent& e) override
     {

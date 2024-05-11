@@ -21,3 +21,13 @@ void ValueTreeNodeBranchLine::mouseUp(MouseEvent const& e)
         viewerComponent->repaint();
     }
 }
+
+void ValueTreeNodeBranchLine::paint(Graphics& g)
+{
+    if (!treeLine.isEmpty()) {
+        auto colour = (isHover && !node->isOpenInSearchMode()) ? findColour(PlugDataColour::objectSelectedOutlineColourId) : findColour(PlugDataColour::panelTextColourId).withAlpha(0.25f);
+
+        g.reduceClipRegion(treeLineImage, AffineTransform());
+        g.fillAll(colour);
+    }
+}
