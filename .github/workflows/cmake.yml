@@ -132,13 +132,13 @@ jobs:
         FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
         FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
         GIT_HASH: ${{ github.sha }}
-      run: ./.github/scripts/upload-ftp.sh plugdata-macOS-Universal.pkg
+      run: ./.github/scripts/upload-ftp.sh plugdata-macOS-Legacy.pkg
 
     - name: Archive Artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: plugdata-macOS-Universal
-        path: plugdata-macOS-Universal.pkg
+        name: plugdata-macOS-Legacy
+        path: plugdata-macOS-Legacy.pkg
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
@@ -146,7 +146,7 @@ jobs:
       with:
         prerelease: true
         draft: true
-        files: plugdata-macOS-Universal
+        files: plugdata-macOS-Legacy
 
   windows-64-build:
     runs-on: windows-2022

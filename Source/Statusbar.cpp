@@ -76,6 +76,7 @@ public:
                 alpha = pow(alpha, 2.2f);
                 fading = true;
                 if (alpha <= 0.01f) {
+                    alpha = 0.0f; 
                     stopTimer(Animate);
                     setVisible(false);
                 }
