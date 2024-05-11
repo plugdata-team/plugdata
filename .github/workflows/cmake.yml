@@ -27,7 +27,77 @@ jobs:
 
     - name: Configure CMake
       working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DBUILD_GEM_PLUGINS=1
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+    - name: Check for Code-Signing secrets
+      id: secret-check
+      shell: bash
+      run: |
+        if [ "${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12_BASE64 }}" != '' ]; then
+          echo "available=true" >> $GITHUB_OUTPUT;
+        else
+          echo "available=false" >> $GITHUB_OUTPUT;
+        fi
+
+    - name: Import Code-Signing Certificates
+      uses: figleafteam/import-codesign-certs@v2
+      if: ${{ steps.secret-check.outputs.available == 'true' }}
+      with:
+        p12-file-base64: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12_BASE64 }}
+        p12-password: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
+
+    - name: Build
+      working-directory: ${{github.workspace}}/build
+      run: cmake --build . --config $BUILD_TYPE
+
+    - name: Creating Installer
+      working-directory: ${{github.workspace}}
+      env:
+        AC_USERNAME: ${{ secrets.AC_USERNAME }}
+        AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
+      run: ./.github/scripts/package-macOS.sh
+
+    - name: Upload to server
+      env:
+        FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+        FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        GIT_HASH: ${{ github.sha }}
+      run: ./.github/scripts/upload-ftp.sh plugdata-macOS-Universal.pkg
+
+    - name: Archive Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: plugdata-macOS-Universal
+        path: plugdata-macOS-Universal.pkg
+
+    - name: Release Artifacts
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        prerelease: true
+        draft: true
+        files: plugdata-macOS-Universal
+
+  macos-legacy-build:
+    runs-on: macos-12
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+        fetch-depth: 0
+
+    - name: ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: macos
+
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{github.workspace}}/build
+
+    - name: Configure CMake
+      working-directory: ${{github.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DNANOVG_METAL_IMPLEMENTATION=0 -DMACOS_LEGACY=1
 
     - name: Check for Code-Signing secrets
       id: secret-check
