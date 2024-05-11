@@ -53,7 +53,7 @@ Rectangle<int> Iolet::getCanvasBounds()
 
 void Iolet::render(NVGcontext* nvg)
 {
-    if (getValue<bool>(presentationMode) || insideGraph || hideIolet)
+    if (!isVisible())
         return;
 
     auto* fb = cnv->ioletBuffer;
@@ -451,5 +451,6 @@ void Iolet::valueChanged(Value& v)
 void Iolet::setHidden(bool hidden)
 {
     hideIolet = hidden;
+    setVisible(!getValue<bool>(presentationMode) && !insideGraph && !hideIolet);
     repaint();
 }
