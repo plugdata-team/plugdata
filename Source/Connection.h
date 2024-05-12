@@ -69,7 +69,7 @@ public:
     bool isSegmented() const;
     void setSegmented(bool segmented);
     
-    bool intersectsRectangle(Rectangle<int> invalidatedArea);
+    bool intersectsRectangle(Rectangle<int> rectToIntersect);
         
     void render(NVGcontext* nvg) override;
     void nvgContextDeleted(NVGcontext* nvg) override;

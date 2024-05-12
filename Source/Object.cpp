@@ -1128,8 +1128,8 @@ void Object::mouseDrag(MouseEvent const& e)
         }
 
         // Behaviour for shift-dragging objects over
-        if (ds.objectSnappingInbetween) {
-            if (ds.connectionToSnapInbetween->intersectsObject(ds.objectSnappingInbetween)) {
+        if (ds.objectSnappingInbetween && !ds.objectSnappingInbetween->iolets.isEmpty()) {
+            if (ds.connectionToSnapInbetween->intersectsRectangle(ds.objectSnappingInbetween->iolets[0]->getCanvasBounds())) {
                 return;
             }
 
@@ -1141,10 +1141,11 @@ void Object::mouseDrag(MouseEvent const& e)
 
         if (e.mods.isShiftDown() && selection.size() == 1) {
             auto* object = selection.getFirst();
-            if (object->numInputs && object->numOutputs) {
+            if (object->numInputs && object->numOutputs && !object->iolets.isEmpty()) {
                 bool intersected = false;
                 for (auto* connection : cnv->connections) {
-                    if (connection->intersectsObject(object)) {
+                    
+                    if (connection->intersectsRectangle(object->iolets[0]->getCanvasBounds())) {
                         object->iolets[0]->isTargeted = true;
                         object->iolets[object->numInputs]->isTargeted = true;
                         object->iolets[0]->repaint();

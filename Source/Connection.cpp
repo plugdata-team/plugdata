@@ -1026,12 +1026,12 @@ void Connection::updatePath()
     cachedIsValid = false;
 }
 
-bool Connection::intersectsRectangle(Rectangle<int> invalidatedArea)
+bool Connection::intersectsRectangle(Rectangle<int> rectToIntersect)
 {
-    if(invalidatedArea.contains(getBounds()))
+    if(rectToIntersect.contains(getBounds()))
         return true;
     
-    return clipRegion.intersectsRectangle(invalidatedArea);
+    return clipRegion.intersectsRectangle(rectToIntersect);
 }
 
 void Connection::applyBestPath()
@@ -1216,16 +1216,6 @@ int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<
     }
 
     return count;
-}
-
-bool Connection::intersectsObject(Object* object) const
-{
-    auto path = getPath();
-    auto b = object->getBounds().toFloat();
-    return path.intersectsLine({ b.getTopLeft(), b.getTopRight() })
-        || path.intersectsLine({ b.getTopLeft(), b.getBottomLeft() })
-        || path.intersectsLine({ b.getBottomRight(), b.getBottomLeft() })
-        || path.intersectsLine({ b.getBottomRight(), b.getTopRight() });
 }
 
 bool Connection::straightLineIntersectsObject(Line<float> toCheck, Array<Object*>& objects)
