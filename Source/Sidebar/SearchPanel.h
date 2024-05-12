@@ -91,12 +91,12 @@ public:
 
         input.addKeyListener(this);
         patchTree.addKeyListener(this);
-        
+
         patchTree.onClick = [this](ValueTree& tree){
             auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("Object")));
             editor->highlightSearchTarget(ptr, true);
         };
-        
+
         patchTree.onSelect = [this](ValueTree& tree){
             auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("TopLevel")));
             editor->highlightSearchTarget(ptr, false);
@@ -105,12 +105,13 @@ public:
         addAndMakeVisible(patchTree);
         addAndMakeVisible(input);
 
-        input.setTooltip("Use \"send\" or \"receive\" keyword to search symbols");
+        // TODO: dismiss this tooltip when the input text editor is active!
+        input.setTooltip("Use \"send\" or \"receive\" keyword to search symbols, \"symbols\" show all symbols");
         input.setJustification(Justification::centredLeft);
         input.setBorder({ 1, 23, 5, 1 });
     }
-    
-    
+
+
     bool keyPressed(KeyPress const& key, Component* originatingComponent) override
     {
         return false;
@@ -120,7 +121,7 @@ public:
     {
         patchTree.clearValueTree();
     }
-    
+
     void timerCallback() override
     {
         auto* cnv = editor->getCurrentCanvas();
@@ -131,7 +132,7 @@ public:
             updateResults();
         }
     }
-    
+
     void visibilityChanged() override
     {
         if(isVisible())
@@ -142,7 +143,7 @@ public:
             stopTimer();
         }
     }
-    
+
     void lookAndFeelChanged() override
     {
         input.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
@@ -188,7 +189,7 @@ public:
 
         return std::unique_ptr<TextButton>(settingsCalloutButton);
     }
-    
+
     void updateResults()
     {
         auto* cnv = editor->getCurrentCanvas();
@@ -200,12 +201,12 @@ public:
             cnv->pd->unlockAudioThread();
         }
     }
-    
+
     void grabFocus()
     {
         input.grabKeyboardFocus();
     }
-    
+
     void resized() override
     {
         auto tableBounds = getLocalBounds();
@@ -244,7 +245,7 @@ public:
                     pd::Patch::Ptr subpatch = new pd::Patch(objectPtr, editor->pd, false);
                     ValueTree subpatchTree = generatePatchTree(subpatch, top);
                     element.copyPropertiesAndChildrenFrom(subpatchTree, nullptr);
-                    
+
                     if(auto patchPtr = subpatch->getPointer())
                     {
                         if(patchPtr->gl_list)
@@ -272,7 +273,7 @@ public:
                             name = nameWithoutArgs;
                         }
                     }
-                
+
                     element.setProperty("Name", name, nullptr);
                     element.setProperty("RightText", positionText, nullptr);
                     element.setProperty("Icon", canvas_isabstraction(subpatch->getPointer().get()) ? Icons::File : Icons::Object, nullptr);
@@ -434,6 +435,15 @@ public:
                         default:
                         {
                             finalFormatedName = name;
+                            if ((nameWithoutArgs == "s") || (nameWithoutArgs == "s~") || (nameWithoutArgs == "send") || (nameWithoutArgs == "send~")) {
+                                sendSymbol = name.fromFirstOccurrenceOf(" ", false, true).upToFirstOccurrenceOf(" ", false, true);
+                                element.setProperty("SymbolIsObject", 1, nullptr);
+                                finalFormatedName = nameWithoutArgs;
+                            } else if ((nameWithoutArgs == "r") || (nameWithoutArgs == "r~") || (nameWithoutArgs == "receive") || (nameWithoutArgs == "receive~")) {
+                                receiveSymbol = name.fromFirstOccurrenceOf(" ", false, true).upToFirstOccurrenceOf(" ", false, true);
+                                element.setProperty("SymbolIsObject", 1, nullptr);
+                                finalFormatedName = nameWithoutArgs;
+                            }
                             break;
                         }
                     }

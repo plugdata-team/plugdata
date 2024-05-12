@@ -189,34 +189,34 @@ public:
         // draw send symbol label tag
         if(valueTreeNode.hasProperty("SendSymbol"))
         {
-            auto sendSymbolText = "s: " + valueTreeNode.getProperty("SendSymbol").toString();
+            auto sendSymbolText = (valueTreeNode.hasProperty("SymbolIsObject") ? "" : "s: ") + valueTreeNode.getProperty("SendSymbol").toString();
             auto length = Font(15).getStringWidth(sendSymbolText);
             auto sendColour = findColour(PlugDataColour::objectSelectedOutlineColourId);
-            g.setColour(sendColour);
+            g.setColour(sendColour.withAlpha(0.15f));
             auto tagBounds = itemBounds.removeFromLeft(length).translated(4, 0).reduced(0, 5).expanded(2, 0);
             //g.fillRect(tagBounds.withTop(getHeight() * 0.5f));
             g.fillRoundedRectangle(tagBounds.toFloat(), Corners::defaultCornerRadius * 0.8f);
-            Fonts::drawFittedText(g, sendSymbolText, tagBounds.translated(2,0), sendColour.contrasting());
+            Fonts::drawFittedText(g, sendSymbolText, tagBounds.translated(2,0), sendColour);
             itemBounds.translate(8,0);
         }
         // draw receive symbol label tag
         if(valueTreeNode.hasProperty("ReceiveSymbol"))
         {
-            auto receiveSymbolText = "r: " + valueTreeNode.getProperty("ReceiveSymbol").toString();
+            auto receiveSymbolText = (valueTreeNode.hasProperty("SymbolIsObject") ? "" : "r: ") + valueTreeNode.getProperty("ReceiveSymbol").toString();
             auto length = Font(15).getStringWidth(receiveSymbolText);
             auto recColour = findColour(PlugDataColour::objectSelectedOutlineColourId).withRotatedHue(0.5f);
-            g.setColour(recColour);
+            g.setColour(recColour.withAlpha(0.15f));
             auto tagBounds = itemBounds.removeFromLeft(length).translated(4, 0).reduced(0, 5).expanded(2, 0);
             //g.fillRect(tagBounds.withBottom(getHeight() * 0.5f));
             g.fillRoundedRectangle(tagBounds.toFloat(), Corners::defaultCornerRadius * 0.8f);
-            Fonts::drawFittedText(g, receiveSymbolText, tagBounds.translated(2,0), recColour.contrasting());
+            Fonts::drawFittedText(g, receiveSymbolText, tagBounds.translated(2,0), recColour);
         }
 
         if(valueTreeNode.hasProperty("RightText"))
         {
             auto text = valueTreeNode.getProperty("Name").toString();
             auto rightText = valueTreeNode.getProperty("RightText").toString();
-            if(Font(15).getStringWidth(text + rightText) < itemBounds.getWidth() - 16) {
+            if((itemBounds.getWidth() - Font(15).getStringWidth(rightText)) >= 8) {
                 Fonts::drawFittedText(g, valueTreeNode.getProperty("RightText"), getLocalBounds().removeFromRight(Font(15).getStringWidth(rightText) + 4).removeFromTop(25), colour.withAlpha(0.5f), Justification::topLeft);
             }
         }
@@ -582,18 +582,27 @@ private:
     bool searchInNode(ValueTreeNodeComponent* node)
     {
         // Check if the current node matches the filterString
-        bool found = false;
-        if (filterString.isEmpty() ||
-            node->valueTreeNode.getProperty("Name").toString().containsIgnoreCase(filterString) ||
-            // search over the send/receive tags
-            node->valueTreeNode.getProperty("SendSymbol").toString().containsIgnoreCase(filterString) ||
-            node->valueTreeNode.getProperty("ReceiveSymbol").toString().containsIgnoreCase(filterString) ||
-            // return all nodes that have send/receive for the patch with the keywords: "send" "receive"
-            (node->valueTreeNode.hasProperty("SendSymbol") && filterString.containsIgnoreCase("send")) ||
-            (node->valueTreeNode.hasProperty("ReceiveSymbol") && filterString.containsIgnoreCase("receive")) )
-        {
-            found = true;
+        int found = 0;
+        StringArray searchTokens;
+        searchTokens.addTokens(filterString, " ", "");
+        for (auto& token : searchTokens) {
+            if (token.isEmpty() ||
+                node->valueTreeNode.getProperty("Name").toString().containsIgnoreCase(token) ||
+                // search over the send/receive tags
+                node->valueTreeNode.getProperty("SendSymbol").toString().containsIgnoreCase(token) ||
+                node->valueTreeNode.getProperty("ReceiveSymbol").toString().containsIgnoreCase(token) ||
+                // return all nodes that have send/receive for the patch with the keywords: "send" "receive"
+                (node->valueTreeNode.hasProperty("SendSymbol") && (token == "send")) ||
+                (node->valueTreeNode.hasProperty("ReceiveSymbol") && (token == "receive")) ||
+                // return all nodes that have send or recieve when keyword is "symbols"
+                ((token == "symbols") && (node->valueTreeNode.hasProperty("SendSymbol") || node->valueTreeNode.hasProperty("ReceiveSymbol"))) )
+            {
+                found++;
+            }
         }
+
+        // attempt at implementing an 'and' search, all search text tokens need to be true
+        found = searchTokens.size() == found;
         
         for (auto* child : node->nodes)
         {
