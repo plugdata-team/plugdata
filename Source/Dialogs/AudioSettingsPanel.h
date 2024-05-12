@@ -456,7 +456,7 @@ class DAWAudioSettings : public SettingsDialogPanel
     , public Value::Listener {
 
 public:
-    explicit DAWAudioSettings(AudioProcessor* p)
+    explicit DAWAudioSettings(PluginProcessor* p)
         : processor(p)
     {
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
@@ -491,11 +491,11 @@ public:
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(latencyValue)) {
-            processor->setLatencySamples(getValue<int>(latencyValue));
+            processor->performLatencyCompensationChange(getValue<int>(latencyValue));
         }
     }
 
-    AudioProcessor* processor;
+    PluginProcessor* processor;
 
     Value latencyValue;
     Value tailLengthValue;

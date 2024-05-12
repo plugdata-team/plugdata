@@ -793,7 +793,8 @@ public:
                 draggableNumber->getTextValue().referTo(property);
                 draggableNumber->setFont(draggableNumber->getFont().withHeight(14));
                 draggableNumber->setEditableOnClick(true);
-                draggableNumber->setMinMax(minimum, maximum);
+                if(minimum != 0.0f) draggableNumber->setMinimum(minimum);
+                if(maximum != 0.0f) draggableNumber->setMaximum(maximum);
 
                 draggableNumber->onEditorShow = [draggableNumber]() {
                     auto* editor = draggableNumber->getCurrentTextEditor();
