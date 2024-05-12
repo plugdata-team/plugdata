@@ -216,7 +216,7 @@ public:
         {
             auto text = valueTreeNode.getProperty("Name").toString();
             auto rightText = valueTreeNode.getProperty("RightText").toString();
-            if(Font(15).getStringWidth(text + rightText) < itemBounds.getWidth() - 16) {
+            if((itemBounds.getWidth() - Font(15).getStringWidth(rightText)) >= 8) {
                 Fonts::drawFittedText(g, valueTreeNode.getProperty("RightText"), getLocalBounds().removeFromRight(Font(15).getStringWidth(rightText) + 4).removeFromTop(25), colour.withAlpha(0.5f), Justification::topLeft);
             }
         }
