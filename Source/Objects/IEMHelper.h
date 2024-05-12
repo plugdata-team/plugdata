@@ -231,6 +231,7 @@ public:
             setLabelPosition({ getValue<int>(labelX), getValue<int>(labelY) });
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelHeight)) {
+            gui->limitValueMin(labelHeight, 0.f);
             setFontHeight(getValue<int>(labelHeight));
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelText)) {
@@ -306,17 +307,18 @@ public:
         
     Rectangle<int> getLabelBounds()
     {
-        auto objectBounds = object->getBounds().reduced(Object::margin);
+        auto const objectBounds = object->getBounds().reduced(Object::margin);
 
         if (auto iemgui = ptr.get<t_iemgui>()) {
             t_symbol const* sym = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab);
             if (sym) {
-                int fontHeight = getFontHeight();
-                int fontWidth = sys_fontwidth(fontHeight);
+                auto const labelText = getExpandedLabelText();
+                int const fontHeight = getFontHeight();
+                int const fontWidth = sys_fontwidth(fontHeight);
                 int const posx = objectBounds.getX() + iemgui->x_ldx;
                 int const posy = objectBounds.getY() + iemgui->x_ldy;
-                
-                return { posx, posy, fontWidth * (getExpandedLabelText().length() + 1), fontHeight + 2 };
+                int const textWidth = fontHeight > 55 ? Font(fontHeight).getStringWidth(labelText) : fontWidth * (labelText.length() + 1);
+                return { posx, posy, textWidth, fontHeight + 2 };
             }
         }
 

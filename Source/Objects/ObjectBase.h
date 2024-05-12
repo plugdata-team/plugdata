@@ -74,12 +74,14 @@ public:
     {
         auto componentImage = createComponentSnapshot(Rectangle<int>(0, 0, getWidth() + 1, getHeight()), false, scale);
         
-        if(imageId && lastWidth == getWidth() && lastHeight == getHeight()) {
-            imageId = NVGImageRenderer::convertImage(nvg, componentImage, imageId);
-        }
-        else {
-            if(imageId) nvgDeleteImage(nvg, imageId);
-            imageId = NVGImageRenderer::convertImage(nvg, componentImage);
+        if(!componentImage.isNull()) {
+            if(imageId && lastWidth == getWidth() && lastHeight == getHeight()) {
+                imageId = NVGImageRenderer::convertImage(nvg, componentImage, imageId);
+            }
+            else {
+                if(imageId) nvgDeleteImage(nvg, imageId);
+                imageId = NVGImageRenderer::convertImage(nvg, componentImage);
+            }
         }
     }
 
