@@ -115,11 +115,10 @@ void Patch::savePatch(URL const& locationURL)
         pd::Interface::saveToFile(patch.get(), file, dir);
 #endif
 
+        currentFile = location;
+        currentURL = locationURL;
         instance->reloadAbstractions(location, patch.get());
     }
-
-    currentFile = location;
-    currentURL = locationURL;
 }
 
 t_glist* Patch::getRoot()
