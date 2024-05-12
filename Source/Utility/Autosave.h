@@ -81,8 +81,8 @@ private:
         if (!getValue<bool>(autosaveEnabled))
             return;
 
-        pd->enqueueFunctionAsync([this]() {
-            save();
+        pd->enqueueFunctionAsync([_this = WeakReference(this)]() {
+            if(_this) _this->save();
         });
     }
 
@@ -170,6 +170,7 @@ private:
     }
 
     friend class AutosaveHistoryComponent;
+    JUCE_DECLARE_WEAK_REFERENCEABLE(Autosave);
 };
 
 class AutosaveHistoryComponent : public Component {
