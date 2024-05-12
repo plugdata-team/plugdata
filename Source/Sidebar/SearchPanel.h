@@ -435,11 +435,11 @@ public:
                         default:
                         {
                             finalFormatedName = name;
-                            if ((nameWithoutArgs == "s") || (nameWithoutArgs == "send")) {
+                            if ((nameWithoutArgs == "s") || (nameWithoutArgs == "s~") || (nameWithoutArgs == "send") || (nameWithoutArgs == "send~")) {
                                 sendSymbol = name.fromFirstOccurrenceOf(" ", false, true).upToFirstOccurrenceOf(" ", false, true);
                                 element.setProperty("SymbolIsObject", 1, nullptr);
                                 finalFormatedName = nameWithoutArgs;
-                            } else if ((nameWithoutArgs == "r") || (nameWithoutArgs == "receive")) {
+                            } else if ((nameWithoutArgs == "r") || (nameWithoutArgs == "r~") || (nameWithoutArgs == "receive") || (nameWithoutArgs == "receive~")) {
                                 receiveSymbol = name.fromFirstOccurrenceOf(" ", false, true).upToFirstOccurrenceOf(" ", false, true);
                                 element.setProperty("SymbolIsObject", 1, nullptr);
                                 finalFormatedName = nameWithoutArgs;
