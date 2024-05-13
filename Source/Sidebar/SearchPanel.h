@@ -240,6 +240,10 @@ public:
                 auto nameWithoutArgs = name.upToFirstOccurrenceOf(" ", false, false);
                 auto positionText = " (" + String(x) + ":" + String(y) + ")";
 
+                auto getFirstArgumentFromFullName = [](const String& fullName) -> String {
+                    return fullName.fromFirstOccurrenceOf(" ", false, true).upToFirstOccurrenceOf(" ", false, true);
+                };
+
                 ValueTree element("Object");
                 if (type == "canvas" || type == "graph") {
                     pd::Patch::Ptr subpatch = new pd::Patch(objectPtr, editor->pd, false);
@@ -273,7 +277,13 @@ public:
                             name = nameWithoutArgs;
                         }
                     }
-
+#ifdef SHOW_PD_SUBPATCH_SYMBOL
+                    if (nameWithoutArgs == "pd") {
+                        auto arg = getFirstArgumentFromFullName(name);
+                        if (arg.isNotEmpty())
+                            element.setProperty("PDSymbol", nameWithoutArgs + "-" + arg, nullptr);
+                    }
+#endif
                     element.setProperty("Name", name, nullptr);
                     element.setProperty("RightText", positionText, nullptr);
                     element.setProperty("Icon", canvas_isabstraction(subpatch->getPointer().get()) ? Icons::File : Icons::Object, nullptr);
@@ -386,7 +396,6 @@ public:
                             finalFormatedName = gatomName;
                             break;
                         }
-                        // ============ no send-receive symbols ============
                         case hash("message"):
                         {
                             finalFormatedName = "msg: " + name;
@@ -432,17 +441,33 @@ public:
                             finalFormatedName = nameWithoutArgs;
                             break;
                         }
+
                         default:
                         {
-                            finalFormatedName = name;
-                            if ((nameWithoutArgs == "s") || (nameWithoutArgs == "s~") || (nameWithoutArgs == "send") || (nameWithoutArgs == "send~")) {
-                                sendSymbol = name.fromFirstOccurrenceOf(" ", false, true).upToFirstOccurrenceOf(" ", false, true);
-                                element.setProperty("SymbolIsObject", 1, nullptr);
-                                finalFormatedName = nameWithoutArgs;
-                            } else if ((nameWithoutArgs == "r") || (nameWithoutArgs == "r~") || (nameWithoutArgs == "receive") || (nameWithoutArgs == "receive~")) {
-                                receiveSymbol = name.fromFirstOccurrenceOf(" ", false, true).upToFirstOccurrenceOf(" ", false, true);
-                                element.setProperty("SymbolIsObject", 1, nullptr);
-                                finalFormatedName = nameWithoutArgs;
+                            switch (hash(nameWithoutArgs)) {
+                                case hash("s"):
+                                case hash("s~"):
+                                case hash("send"):
+                                case hash("send~"):
+                                case hash("throw~"): {
+                                    sendSymbol = getFirstArgumentFromFullName(name);
+                                    element.setProperty("SymbolIsObject", 1, nullptr);
+                                    finalFormatedName = nameWithoutArgs;
+                                    break;
+                                }
+                                case hash("r"):
+                                case hash("r~"):
+                                case hash("receive"):
+                                case hash("receive~"):
+                                case hash("catch~"): {
+                                    receiveSymbol = getFirstArgumentFromFullName(name);
+                                    element.setProperty("SymbolIsObject", 1, nullptr);
+                                    finalFormatedName = nameWithoutArgs;
+                                    break;
+                                }
+                                default:
+                                    finalFormatedName = name;
+                                    break;
                             }
                             break;
                         }
