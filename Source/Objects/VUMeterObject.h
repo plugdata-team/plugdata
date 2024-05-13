@@ -22,7 +22,6 @@ public:
 
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamReceiveSymbol(&iemHelper.receiveSymbol);
-        objectParameters.addParamSendSymbol(&iemHelper.sendSymbol, "nosndno");
         iemHelper.addIemParameters(objectParameters, false, false, -1);
     }
 

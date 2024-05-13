@@ -334,7 +334,7 @@ public:
                         {
                             if (auto picObject = object.cast<t_fake_pic>()) {
                                 sendSymbol = String(picObject->x_send->s_name);
-                                sendSymbol = String(picObject->x_receive->s_name);
+                                receiveSymbol = String(picObject->x_receive->s_name);
                             }
                             finalFormatedName = nameWithoutArgs;
                             break;
@@ -475,7 +475,7 @@ public:
 
                     element.setProperty("Name", finalFormatedName, nullptr);
                     // Add send/receive tags if they exist
-                    if (sendSymbol.isNotEmpty() && (sendSymbol != "empty")) {
+                    if (sendSymbol.isNotEmpty() && (sendSymbol != "empty") && (sendSymbol != "nosndno")) {
                         element.setProperty("SendSymbol", sendSymbol, nullptr);
                     }
                     if (receiveSymbol.isNotEmpty() && (receiveSymbol != "empty")) {
