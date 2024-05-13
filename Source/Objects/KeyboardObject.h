@@ -283,11 +283,12 @@ public:
             sendSymbol = sndSym != "empty" ? sndSym : "";
             receiveSymbol = rcvSym != "empty" ? rcvSym : "";
 
-            MessageManager::callAsync([this] {
-                updateAspectRatio();
-
-                // Call async to make sure pd obj has updated
-                object->updateBounds();
+            MessageManager::callAsync([_this = SafePointer(this)] {
+                if(_this) {
+                    _this->updateAspectRatio();
+                    // Call async to make sure pd obj has updated
+                    _this->object->updateBounds();
+                }
             });
         }
     }
