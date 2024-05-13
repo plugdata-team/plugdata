@@ -334,7 +334,7 @@ public:
                         {
                             if (auto picObject = object.cast<t_fake_pic>()) {
                                 sendSymbol = String(picObject->x_send->s_name);
-                                sendSymbol = String(picObject->x_receive->s_name);
+                                receiveSymbol = String(picObject->x_receive->s_name);
                             }
                             finalFormatedName = nameWithoutArgs;
                             break;
