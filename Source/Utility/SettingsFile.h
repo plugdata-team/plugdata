@@ -127,7 +127,7 @@ private:
         { "centre_sidepanel_buttons", var(true) },
         { "show_all_audio_device_rates", var(false) },
         { "add_object_menu_pinned", var(false) },
-        { "autosave_interval", var(120) },
+        { "autosave_interautosave_interval", var(120) },
         { "autosave_enabled", var(1) },
         { "macos_buttons",
 #if JUCE_MAC

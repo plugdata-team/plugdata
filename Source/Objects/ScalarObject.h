@@ -383,7 +383,8 @@ public:
         auto bounds = getBoundingBox().getBoundingBox().toNearestInt();
         nvgSave(nvg);
         nvgTranslate(nvg, bounds.getX(), bounds.getY());
-        textRenderer.renderText(nvg, getText(), getFont(), getColour(), bounds.withZeroOrigin(), scale, getWidth());
+        textRenderer.prepareLayout(getText(), getFont(), getColour(), getWidth(), getWidth());
+        textRenderer.renderText(nvg, bounds.withZeroOrigin(), scale);
         nvgRestore(nvg);
     }
 

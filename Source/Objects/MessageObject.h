@@ -191,7 +191,7 @@ public:
         }
         else {
             auto text = getText();
-            textRenderer.renderText(nvg, text, Fonts::getDefaultFont().withHeight(15), LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId), border.subtractedFrom(getLocalBounds()), getImageScale(), getValue<int>(sizeProperty));
+            textRenderer.renderText(nvg, border.subtractedFrom(getLocalBounds()), getImageScale());
         }
     }
 

@@ -49,7 +49,7 @@ public:
     {
         if (!editor) {
             auto textArea = border.subtractedFrom(getLocalBounds());
-            textRenderer.renderText(nvg, getText(), Fonts::getDefaultFont().withHeight(15), LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::commentTextColourId), textArea, getImageScale(), getValue<int>(sizeProperty));
+            textRenderer.renderText(nvg, textArea, getImageScale());
         }
         else {
             imageRenderer.renderComponentFromImage(nvg, *editor, getImageScale());

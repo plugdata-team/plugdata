@@ -93,8 +93,14 @@ public:
 
     void resized() override
     {
+        textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId), getWidth(), getWidth());
         updateCanvas();
         updateDrawables();
+    }
+    
+    void lookAndFeelChanged() override
+    {
+        textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId), getWidth(), getWidth());
     }
 
     // Called by object to make sure clicks on empty parts of the graph are passed on
@@ -217,7 +223,7 @@ public:
          // Strangly, the title goes below the graph content in pd
          if (!getValue<bool>(hideNameAndArgs) && getText() != "graph") {
              auto text = getText();
-             textRenderer.renderText(nvg, text, Fonts::getDefaultFont().withHeight(13), LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId), Rectangle<int>(5, 0, getWidth() - 5, 16), getImageScale(), getWidth());
+             textRenderer.renderText(nvg, Rectangle<int>(5, 0, getWidth() - 5, 16), getImageScale());
          }
         
         Canvas* topLevel = cnv;

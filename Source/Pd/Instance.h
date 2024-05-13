@@ -13,7 +13,7 @@ extern "C" {
 
 #include <concurrentqueue.h>
 #include <readerwriterqueue.h>
-#include "Utility/StringUtils.h"
+#include "Utility/CachedStringWidth.h"
 #include "Patch.h"
 
 class ObjectImplementationManager;

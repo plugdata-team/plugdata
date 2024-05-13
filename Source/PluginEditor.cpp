@@ -1885,6 +1885,14 @@ void PluginEditor::parentHierarchyChanged()
         grabKeyboardFocus();
 }
 
+void PluginEditor::broughtToFront()
+{
+    if(isShowing() || isOnDesktop())
+        grabKeyboardFocus();
+    
+    if(openedDialog) openedDialog->toFront(true);
+}
+
 void PluginEditor::commandKeyChanged(bool isHeld)
 {
     if (isHeld) {

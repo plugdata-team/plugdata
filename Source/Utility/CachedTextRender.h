@@ -20,12 +20,13 @@ public:
         imageId = 0;
     }
     
-    void renderText(NVGcontext* nvg, String const& text, Font const& font, Colour const& colour, Rectangle<int> const& bounds, float scale, int width)
+    void renderText(NVGcontext* nvg, Rectangle<int> const& bounds, float scale)
     {
-        if(updateImage || imageId <= 0 || lastTextHash != hash(text) || scale != lastScale || colour != lastColour || lastWidth != width)
+        if(updateImage || imageId <= 0 || lastRenderBounds != bounds || lastScale != scale)
         {
-            layoutReady = false;
-            renderTextToImage(nvg, text, font, colour, Rectangle<int>(bounds.getX(), bounds.getY(), bounds.getWidth() + 3, bounds.getHeight()), scale, width);
+            renderTextToImage(nvg, Rectangle<int>(bounds.getX(), bounds.getY(), bounds.getWidth() + 3, bounds.getHeight()), scale);
+            lastRenderBounds = bounds;
+            lastScale = scale;
             updateImage = false;
         }
         
@@ -60,11 +61,10 @@ public:
             updateImage = true;
         }
         
-        layoutReady = true;
         return needsUpdate;
     }
     
-    void renderTextToImage(NVGcontext* nvg, String const& text, Font const& font, const Colour& colour, Rectangle<int> const& bounds, float scale, int cachedWidth)
+    void renderTextToImage(NVGcontext* nvg, Rectangle<int> const& bounds, float scale)
     {
         int width = std::floor(bounds.getWidth() * scale);
         int height = std::floor(bounds.getHeight() * scale);
@@ -98,7 +98,7 @@ public:
             }
         }
 
-        if(imageId && imageWidth == width && imageHeight == height && scale == lastScale) {
+        if(imageId && imageWidth == width && imageHeight == height) {
             nvgUpdateImage(nvg, imageId, pixelData);
         }
         else {
@@ -106,7 +106,6 @@ public:
             imageId = nvgCreateImageRGBA(nvg, width, height, NVG_IMAGE_PREMULTIPLIED, pixelData);
             imageWidth = width;
             imageHeight = height;
-            lastScale = scale;
         }
     }
     
@@ -125,8 +124,8 @@ private:
     Colour lastColour;
     int lastWidth = 0;
     int idealWidth = 0, idealHeight = 0;
+    Rectangle<int> lastRenderBounds;
     
     TextLayout layout;
-    bool layoutReady = false;
     bool updateImage = false;
 };

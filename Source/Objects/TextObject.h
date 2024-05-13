@@ -271,7 +271,7 @@ public:
             
             // we could render at the actual scale, but that makes the transition to scolling/zooming pretty rough
             // Instead, rendering at 2x scale gives us pretty good sharpness overall
-            cachedTextRender.renderText(nvg, text, Fonts::getDefaultFont().withHeight(15), LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId), textArea, getImageScale(), getValue<int>(sizeProperty));
+            cachedTextRender.renderText(nvg, textArea, getImageScale());
         }
     }
 
