@@ -74,7 +74,7 @@ public:
     MidiDeviceManager midiDeviceManager;
 };
 
-class StandalonePluginHolder : private AudioIODeviceCallback {
+class StandalonePluginHolder : private AudioIODeviceCallback, public Component {
 public:
     /** Structure used for the number of inputs and outputs. */
     struct PluginInOuts {
@@ -220,7 +220,7 @@ public:
     {
         if (settings != nullptr) {
             // Async to give the app a chance to start up before loading the patch
-            MessageManager::callAsync([_this = SafePointer(this)]() {
+            MessageManager::callAsync([this, _this = SafePointer(this)]() {
                 if(_this) {
                     MemoryOutputStream data;
                     Base64::convertFromBase64(data, settings->getValue("filterState"));

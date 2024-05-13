@@ -475,7 +475,7 @@ public:
 
                     element.setProperty("Name", finalFormatedName, nullptr);
                     // Add send/receive tags if they exist
-                    if (sendSymbol.isNotEmpty() && (sendSymbol != "empty")) {
+                    if (sendSymbol.isNotEmpty() && (sendSymbol != "empty") && (sendSymbol != "nosndno")) {
                         element.setProperty("SendSymbol", sendSymbol, nullptr);
                     }
                     if (receiveSymbol.isNotEmpty() && (receiveSymbol != "empty")) {
