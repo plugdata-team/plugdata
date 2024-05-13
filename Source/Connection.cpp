@@ -934,7 +934,7 @@ int Connection::getSignalData(t_float* output, int maxChannels)
 {
     if (auto oc = ptr.get<t_outconnect>()) {
         if (auto* signal = outconnect_get_signal(oc.get())) {
-            auto numChannels = std::min(signal->s_nchans, maxChannels);
+            auto numChannels = std::min(signal->s_nchans, maxChannels-1);
             auto* samples = signal->s_vec;
             if (!samples)
                 return 0;

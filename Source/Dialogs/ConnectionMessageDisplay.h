@@ -57,7 +57,7 @@ public:
         if (activeConnection.getComponent()) {
             mousePosition = screenPosition;
             isSignalDisplay = activeConnection->outlet->isSignal;
-            lastNumChannels = std::min(activeConnection->numSignalChannels, 8);
+            lastNumChannels = std::min(activeConnection->numSignalChannels, 7);
             startTimer(MouseHoverDelay, mouseDelay);
             stopTimer(MouseHoverExitDelay);
             if (isSignalDisplay) {
@@ -171,7 +171,7 @@ private:
             SignalBlock block;
             while (sampleQueue.try_dequeue(block)) {
                 if (i < numBlocks) {
-                    lastNumChannels = std::min(8, block.numChannels);
+                    lastNumChannels = std::min(block.numChannels, 7);
                     for (int ch = 0; ch < lastNumChannels; ch++) {
                         std::copy(block.samples + ch * DEFDACBLKSIZE, block.samples + ch * DEFDACBLKSIZE + DEFDACBLKSIZE, lastSamples[ch] + (i * DEFDACBLKSIZE));
                     }

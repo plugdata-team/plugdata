@@ -1201,10 +1201,8 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         result.setInfo("Undo", "Undo action", "General", 0);
         result.addDefaultKeypress(90, ModifierKeys::commandModifier);
         result.setActive(canUndo);
-
         break;
     }
-
     case CommandIDs::Redo: {
         result.setInfo("Redo", "Redo action", "General", 0);
         result.addDefaultKeypress(90, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
