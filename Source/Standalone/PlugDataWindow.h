@@ -220,11 +220,13 @@ public:
     {
         if (settings != nullptr) {
             // Async to give the app a chance to start up before loading the patch
-            MessageManager::callAsync([this]() {
-                MemoryOutputStream data;
-                Base64::convertFromBase64(data, settings->getValue("filterState"));
-                if (data.getDataSize() > 0)
-                    processor->setStateInformation(data.getData(), static_cast<int>(data.getDataSize()));
+            MessageManager::callAsync([_this = SafePointer(this)]() {
+                if(_this) {
+                    MemoryOutputStream data;
+                    Base64::convertFromBase64(data, settings->getValue("filterState"));
+                    if (data.getDataSize() > 0)
+                        processor->setStateInformation(data.getData(), static_cast<int>(data.getDataSize()));
+                }
             });
         }
     }
@@ -654,8 +656,8 @@ public:
         if (auto* content = getContentComponent()) {
             content->resized();
             content->repaint();
-            MessageManager::callAsync([content] {
-                if (content->isShowing())
+            MessageManager::callAsync([content = SafePointer(content)] {
+                if (content && content->isShowing())
                     content->grabKeyboardFocus();
             });
         }
