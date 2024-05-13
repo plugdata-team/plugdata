@@ -1237,6 +1237,7 @@ void Canvas::dragAndDropPaste(String const& patchString, Point<int> mousePos, in
 {
     locked = false;
     presentationMode = false;
+    objectAdded = true;
 
     // force the valueChanged to run, and wait for them to return
     locked.getValueSource().sendChangeMessage(true);

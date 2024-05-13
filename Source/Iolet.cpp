@@ -149,19 +149,25 @@ void Iolet::mouseDrag(MouseEvent const& e)
 void Iolet::mouseDown(MouseEvent const& e)
 {
     mouseIsDown = true;
+
+    // make sure that intentional clicks on iolet get through after a DnD action
+    cnv->objectAdded = false;
 }
 
 void Iolet::mouseUp(MouseEvent const& e)
 {
-    // make sure only intentional mouse down/up events trigger iolet events
-    // click dragging objects onto canvas can give us an errant mouseup if cursor is over iolet
-    if (!mouseIsDown)
-        return;
-
     mouseIsDown = false;
     
     if (getValue<bool>(locked) || e.mods.isRightButtonDown())
         return;
+
+    // If an object is addded to canvas, the mouse can potentially be over an iolet when dropped onto canvas
+    // This situation could cause a cable to be created when an object is added
+    // Disregard mouseup if this happens
+    if (cnv->objectAdded) {
+        cnv->objectAdded = false;
+        return;
+    }
 
     // This might end up calling Canvas::synchronise, at which point we are not sure this class will survive, so we do an async call
 
