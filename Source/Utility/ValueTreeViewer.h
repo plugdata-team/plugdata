@@ -186,30 +186,81 @@ public:
         auto nameLength = Font(15).getStringWidth(nameText);
         Fonts::drawFittedText(g, nameText, itemBounds.removeFromLeft(nameLength), colour);
 
-        // draw send symbol label tag
-        if(valueTreeNode.hasProperty("SendSymbol"))
-        {
-            auto sendSymbolText = (valueTreeNode.hasProperty("SymbolIsObject") ? "" : "s: ") + valueTreeNode.getProperty("SendSymbol").toString();
+        const auto tagCornerRadius = Corners::defaultCornerRadius * 0.7f;
+
+#ifdef SHOW_PD_SUBPATCH_SYMBOL
+        if (valueTreeNode.hasProperty("PDSymbol")) {
+            // draw generic symbol label tag
+            //  ╭──────────╮
+            //  │  symbol  │
+            //  ╰──────────╯
+            auto sendSymbolText = valueTreeNode.getProperty("PDSymbol").toString();
             auto length = Font(15).getStringWidth(sendSymbolText);
-            auto sendColour = findColour(PlugDataColour::objectSelectedOutlineColourId);
-            g.setColour(sendColour.withAlpha(0.15f));
+            auto sendColour = findColour(PlugDataColour::objectSelectedOutlineColourId).withRotatedHue(0.25);
+            g.setColour(sendColour.withAlpha(0.2f));
             auto tagBounds = itemBounds.removeFromLeft(length).translated(4, 0).reduced(0, 5).expanded(2, 0);
-            //g.fillRect(tagBounds.withTop(getHeight() * 0.5f));
             g.fillRoundedRectangle(tagBounds.toFloat(), Corners::defaultCornerRadius * 0.8f);
-            Fonts::drawFittedText(g, sendSymbolText, tagBounds.translated(2,0), sendColour);
-            itemBounds.translate(8,0);
-        }
-        // draw receive symbol label tag
-        if(valueTreeNode.hasProperty("ReceiveSymbol"))
+            Fonts::drawFittedText(g, sendSymbolText, tagBounds.translated(2, 0), sendColour);
+            itemBounds.translate(8, 0);
+        } else
+#endif
         {
-            auto receiveSymbolText = (valueTreeNode.hasProperty("SymbolIsObject") ? "" : "r: ") + valueTreeNode.getProperty("ReceiveSymbol").toString();
-            auto length = Font(15).getStringWidth(receiveSymbolText);
-            auto recColour = findColour(PlugDataColour::objectSelectedOutlineColourId).withRotatedHue(0.5f);
-            g.setColour(recColour.withAlpha(0.15f));
-            auto tagBounds = itemBounds.removeFromLeft(length).translated(4, 0).reduced(0, 5).expanded(2, 0);
-            //g.fillRect(tagBounds.withBottom(getHeight() * 0.5f));
-            g.fillRoundedRectangle(tagBounds.toFloat(), Corners::defaultCornerRadius * 0.8f);
-            Fonts::drawFittedText(g, receiveSymbolText, tagBounds.translated(2,0), recColour);
+            // draw receive symbol label tag
+            //  a──b───────────╮
+            //   \ │           │
+            //     c   symbol  │
+            //   / │           │
+            //  e──d───────────╯
+            if (valueTreeNode.hasProperty("ReceiveSymbol")) {
+                auto receiveSymbolText = (valueTreeNode.hasProperty("SymbolIsObject") ? "" : "r: ") +
+                                         valueTreeNode.getProperty("ReceiveSymbol").toString();
+                auto length = Font(15).getStringWidth(receiveSymbolText);
+                auto recColour = findColour(PlugDataColour::objectSelectedOutlineColourId);
+                g.setColour(recColour.withAlpha(0.2f));
+                auto tagBounds = itemBounds.removeFromLeft(length).translated(4, 0).reduced(0, 5).expanded(2, 0).toFloat();
+                Path flag;
+                const Point a = tagBounds.getTopLeft().toFloat();
+                const Point b = Point<float>(tagBounds.getX() + tagBounds.getHeight() * 0.5f, tagBounds.getY());
+                const Point c = Point<float>(tagBounds.getX() + tagBounds.getHeight() * 0.5f, tagBounds.getCentreY());
+                const Point d = Point<float>(tagBounds.getX() + tagBounds.getHeight() * 0.5f, tagBounds.getBottom());
+                const Point e = tagBounds.getBottomLeft().toFloat();
+                flag.startNewSubPath(a);
+                flag.lineTo(b);
+                flag.lineTo(c);
+                flag.closeSubPath();
+                flag.startNewSubPath(c);
+                flag.lineTo(d);
+                flag.lineTo(e);
+                flag.closeSubPath();
+                flag.addRoundedRectangle(b.getX(), b.getY(), tagBounds.getWidth(), tagBounds.getHeight(), tagCornerRadius, tagCornerRadius, false, true, false, true);
+                g.fillPath(flag);
+                Fonts::drawFittedText(g, receiveSymbolText, tagBounds.translated(2 + tagBounds.getHeight() * 0.5f, 0).toNearestIntEdges(), recColour);
+                itemBounds.translate(16, 0);
+            }
+            // draw send symbol label tag
+            //  ╭────────── a
+            //  │          │ \
+            //  │  symbol  │  b
+            //  │          │ /
+            //  ╰────────── c
+            if (valueTreeNode.hasProperty("SendSymbol")) {
+                auto sendSymbolText = (valueTreeNode.hasProperty("SymbolIsObject") ? "" : "s: ") + valueTreeNode.getProperty("SendSymbol").toString();
+                auto length = Font(15).getStringWidth(sendSymbolText);
+                auto sendColour = findColour(PlugDataColour::objectSelectedOutlineColourId).withRotatedHue(0.5f);
+                g.setColour(sendColour.withAlpha(0.2f));
+                auto tagBounds = itemBounds.removeFromLeft(length).translated(4, 0).reduced(0, 5).expanded(2, 0).toFloat();
+                Path flag;
+                const Point a = tagBounds.getTopRight().toFloat();
+                const Point b = Point<float>(tagBounds.getRight() + (tagBounds.getHeight() * 0.5f), tagBounds.getCentreY());
+                const Point c = tagBounds.getBottomRight().toFloat();
+                flag.startNewSubPath(a);
+                flag.lineTo(b);
+                flag.lineTo(c);
+                flag.closeSubPath();
+                flag.addRoundedRectangle(tagBounds.getX(), tagBounds.getY(), tagBounds.getWidth(),tagBounds.getHeight(), tagCornerRadius, tagCornerRadius, true, false, true,false);
+                g.fillPath(flag);
+                Fonts::drawFittedText(g, sendSymbolText, tagBounds.translated(2, 0).toNearestIntEdges(), sendColour);
+            }
         }
 
         if(valueTreeNode.hasProperty("RightText"))
