@@ -165,16 +165,14 @@ public:
 
         lastBang = currentTime;
 
-        auto deletionChecker = SafePointer(this);
         Timer::callAfterDelay(holdTime,
-            [deletionChecker, this]() mutable {
+            [_this = SafePointer(this)]() mutable {
                 // First check if this object still exists
-                if (!deletionChecker)
-                    return;
+                if (!_this) return;
 
-                if (bangState) {
-                    bangState = false;
-                    repaint();
+                if (_this->bangState) {
+                    _this->bangState = false;
+                    _this->repaint();
                 }
             });
     }

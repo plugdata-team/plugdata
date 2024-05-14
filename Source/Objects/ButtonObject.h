@@ -12,6 +12,15 @@ class ButtonObject : public ObjectBase {
     Value primaryColour = SynchronousValue();
     Value secondaryColour = SynchronousValue();
     Value sizeProperty = SynchronousValue();
+    
+    enum Mode
+    {
+        Latch,
+        Toggle,
+        Bang
+    };
+    
+    Mode mode;
 
 public:
     ButtonObject(pd::WeakReference obj, Object* parent)
@@ -32,6 +41,18 @@ public:
             primaryColour = Colour(button->x_fgcolor[0], button->x_fgcolor[1], button->x_fgcolor[2]).toString();
             secondaryColour = Colour(button->x_bgcolor[0], button->x_bgcolor[1], button->x_bgcolor[2]).toString();
             sizeProperty = button->x_w;
+            if(button->x_mode == 0)
+            {
+                mode = Latch;
+            }
+            else if(button->x_mode == 1)
+            {
+                mode = Toggle;
+            }
+            else
+            {
+                mode = Bang;
+            }
         }
 
         repaint();
@@ -105,11 +126,38 @@ public:
         if (!e.mods.isLeftButtonDown())
             return;
 
-        if (auto button = ptr.get<t_fake_button>()) {
-            outlet_float(button->x_obj.ob_outlet, 1);
+        if(mode == Latch) {
+            state = true;
         }
-        state = true;
+        else if(mode == Toggle){
+            state = !state;
+        }
+        
+        if(mode == Bang)
+        {
+            state = true;
+            if (auto button = ptr.get<t_fake_button>()) {
+                outlet_bang(button->x_obj.ob_outlet);
+            }
+            Timer::callAfterDelay(250,
+                [_this = SafePointer(this)]() mutable {
+                    // First check if this object still exists
+                    if (!_this) return;
 
+                    if (_this->state) {
+                        _this->state = false;
+                        _this->repaint();
+                    }
+                });
+        }
+        else {
+            if (auto button = ptr.get<t_fake_button>()) {
+                outlet_float(button->x_obj.ob_outlet, state);
+            }
+        }
+        
+
+        
         // Make sure we don't re-click with an accidental drag
         alreadyTriggered = true;
 
@@ -119,9 +167,11 @@ public:
     void mouseUp(MouseEvent const& e) override
     {
         alreadyTriggered = false;
-        state = false;
-        if (auto button = ptr.get<t_fake_button>()) {
-            outlet_float(button->x_obj.ob_outlet, 0);
+        if(mode == Latch) {
+            state = false;
+            if (auto button = ptr.get<t_fake_button>()) {
+                outlet_float(button->x_obj.ob_outlet, 0);
+            }
         }
 
         repaint();
@@ -207,6 +257,11 @@ public:
             setParameterExcludingListener(primaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
             repaint();
             break;
+        }
+        case hash("latch"):
+        case hash("bang"):
+        case hash("toggle"): {
+            update();
         }
         default:
             break;

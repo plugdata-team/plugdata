@@ -47,9 +47,9 @@ flags:
 methods:
   - type: latch
     description: sets to latch mode
-  - type: tgl
+  - type: toggle
     description: sets to toggle mode
-  - type: bng
+  - type: bang
     description: sets to bang mode
   - type: dim <f, f>
     description: sets horizontal and vertical size in pixels
