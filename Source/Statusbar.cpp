@@ -908,7 +908,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     alignmentButton.setTooltip(String("Alignment tools"));
 
-    setLatencyDisplay(pd->getLatencySamples());
+    setLatencyDisplay(pd->getLatencySamples() - pd::Instance::getBlockSize());
 
     setSize(getWidth(), statusbarHeight);
 }

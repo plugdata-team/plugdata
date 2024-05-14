@@ -167,7 +167,7 @@ public:
     void startDSP();
     void releaseDSP();
     void performDSP(float const* inputs, float* outputs);
-    int getBlockSize() const;
+    static int getBlockSize();
 
     void sendNoteOn(int channel, int pitch, int velocity) const;
     void sendControlChange(int channel, int controller, int value) const;

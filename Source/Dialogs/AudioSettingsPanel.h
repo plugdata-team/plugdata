@@ -465,8 +465,8 @@ public:
         tailLengthValue.referTo(proc->tailLength);
 
         latencyValue.addListener(this);
-
-        latencyValue = proc->getLatencySamples();
+        
+        latencyValue = proc->getLatencySamples() - pd::Instance::getBlockSize();
 
         latencyNumberBox = new PropertiesPanel::EditableComponent<int>("Latency (samples)", latencyValue);
         tailLengthNumberBox = new PropertiesPanel::EditableComponent<float>("Tail length (seconds)", tailLengthValue);

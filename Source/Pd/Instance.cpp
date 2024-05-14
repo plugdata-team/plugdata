@@ -326,7 +326,7 @@ void Instance::initialisePd(String& pdlua_version)
     libpd_set_verbose(0);
 }
 
-int Instance::getBlockSize() const
+int Instance::getBlockSize()
 {
     return libpd_blocksize();
 }

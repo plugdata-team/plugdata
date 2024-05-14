@@ -137,7 +137,7 @@ PluginProcessor::PluginProcessor()
     midiBufferIn.ensureSize(2048);
     midiBufferOut.ensureSize(2048);
     midiBufferInternalSynth.ensureSize(2048);
-
+    
     atoms_playhead.reserve(3);
     atoms_playhead.resize(1);
 
@@ -497,6 +497,7 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     if (variableBlockSize) {
         inputFifo = std::make_unique<AudioMidiFifo>(maxChannels, std::max<int>(pdBlockSize, samplesPerBlock) * 3);
         outputFifo = std::make_unique<AudioMidiFifo>(maxChannels, std::max<int>(pdBlockSize, samplesPerBlock) * 3);
+        outputFifo->writeSilence(Instance::getBlockSize());
     }
 
     midiByteIndex = 0;
@@ -819,13 +820,8 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
 
         outputFifo->writeAudioAndMidi(audioBufferOut, midiBufferOut);
     }
-    
-    // When the amount of samples availabble is larger than (2 * pdBlockSize) - buffer.getNumSamples(), we know for sure that we'll have enough samples to process the next block as well
-    auto numAvailable = outputFifo->getNumSamplesAvailable();
-    auto enough = std::max<int>((2 * pdBlockSize) - static_cast<int>(buffer.getNumSamples()), static_cast<int>(buffer.getNumSamples()));
-    if (numAvailable >= enough) {
-        outputFifo->readAudioAndMidi(buffer, midiMessages);
-    }
+
+    outputFifo->readAudioAndMidi(buffer, midiMessages);
 }
 
 void PluginProcessor::sendPlayhead()
@@ -1045,7 +1041,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     }
     unlockAudioThread();
 
-    ostream.writeInt(getLatencySamples());
+    ostream.writeInt(getLatencySamples() - Instance::getBlockSize());
     ostream.writeInt(oversampling);
     ostream.writeFloat(getValue<float>(tailLength));
 
@@ -1055,7 +1051,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     // In the future, we're gonna load everything from xml, to make it easier to add new properties
     // By putting this here, we can prepare for making this change without breaking existing DAW saves
     xml.setAttribute("Oversampling", oversampling);
-    xml.setAttribute("Latency", getLatencySamples());
+    xml.setAttribute("Latency", getLatencySamples() - Instance::getBlockSize());
     xml.setAttribute("TailLength", getValue<float>(tailLength));
     xml.setAttribute("Legacy", false);
 
@@ -1207,12 +1203,12 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
         auto versionString = String("0.6.1"); // latest version that didn't have version inside the daw state
 
         if (!xmlState->hasAttribute("Legacy") || xmlState->getBoolAttribute("Legacy")) {
-            setLatencySamples(legacyLatency);
+            setLatencySamples(legacyLatency + Instance::getBlockSize());
             setOversampling(legacyOversampling);
             tailLength = legacyTail;
         } else {
             setOversampling(xmlState->getDoubleAttribute("Oversampling"));
-            setLatencySamples(xmlState->getDoubleAttribute("Latency"));
+            setLatencySamples(xmlState->getDoubleAttribute("Latency") + Instance::getBlockSize());
             tailLength = xmlState->getDoubleAttribute("TailLength");
         }
 
@@ -1674,7 +1670,7 @@ void PluginProcessor::handleAsyncUpdate()
         editor->statusbar->setLatencyDisplay(customLatencySamples);
     }
     
-    setLatencySamples(customLatencySamples);
+    setLatencySamples(customLatencySamples + Instance::getBlockSize());
 }
 
 // set custom plugin latency
