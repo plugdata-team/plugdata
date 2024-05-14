@@ -296,7 +296,7 @@ public:
                 textColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId).contrasting();
             }
 
-            label->setColour(Label::textColourId, textColour);
+            label->setColour(textColour);
 
             object->cnv->addAndMakeVisible(label.get());
         } else {
