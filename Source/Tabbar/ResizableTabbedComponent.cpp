@@ -185,8 +185,8 @@ void ResizableTabbedComponent::moveTabToNewSplit(SourceDetails const& dragSource
     bool shouldDelete = (sourceNumTabs - 1) == 0;
     bool dropZoneCentre = (activeZone == DropZones::Centre) ? true : false;
     auto* tabCanvas = sourceTabContent->getCanvas(sourceTabIndex);
-        
-    if (dropZoneCentre) {
+    
+    if (dropZoneCentre && tabComponent.get() != sourceTabContent) {
         auto tabTitle = tabCanvas->patch.getTitle();
         auto newTabIdx = tabComponent->getNumTabs();
         
@@ -212,6 +212,10 @@ void ResizableTabbedComponent::moveTabToNewSplit(SourceDetails const& dragSource
         }
     } else if (activeZone == DropZones::Left || activeZone == DropZones::Right) {
         createNewSplit(static_cast<DropZones>(activeZone), sourceTabContent->getCanvas(sourceTabIndex));
+    }
+    else
+    {
+        return;
     }
     
     if (shouldDelete) {

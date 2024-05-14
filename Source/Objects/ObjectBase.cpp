@@ -765,6 +765,7 @@ ObjectLabel* ObjectBase::getLabel()
 {
     return label.get();
 }
+
 bool ObjectBase::isBeingEdited()
 {
     return edited;
