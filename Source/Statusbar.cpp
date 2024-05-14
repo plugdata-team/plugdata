@@ -76,7 +76,7 @@ public:
                 alpha = pow(alpha, 2.2f);
                 fading = true;
                 if (alpha <= 0.01f) {
-                    alpha = 0.0f; 
+                    alpha = 0.0f;
                     stopTimer(Animate);
                     setVisible(false);
                 }
@@ -98,7 +98,7 @@ public:
     {
         currentLatencyValue = value;
         updateValue();
-        if (value == 64) {
+        if (value == 0) {
             startTimer(Timeout, 1000 / 3.0f);
         } else {
             stopTimer(Timeout);
@@ -765,8 +765,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
     pd->statusbarSource->addListener(cpuMeter.get());
     pd->statusbarSource->addListener(this);
 
-    setWantsKeyboardFocus(true);
-
     oversampleSelector->setTooltip("Set oversampling");
     oversampleSelector->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
 
@@ -1000,9 +998,11 @@ void Statusbar::resized()
 
 void Statusbar::setLatencyDisplay(int value)
 {
-    if (currentLatency != value) {
-        currentLatency = value;
-        latencyDisplayButton->setLatencyValue(value);
+    if(!ProjectInfo::isStandalone) {
+        if (currentLatency != value) {
+            currentLatency = value;
+            latencyDisplayButton->setLatencyValue(value);
+        }
     }
 }
 
