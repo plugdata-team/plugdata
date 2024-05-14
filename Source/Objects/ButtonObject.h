@@ -285,10 +285,17 @@ public:
             repaint();
             break;
         }
+        case hash("float"):
+        {
+            state = !approximatelyEqual(atoms[0].getFloat(), 0.0f);
+            repaint();
+            break;
+        }
         case hash("latch"):
         case hash("bang"):
         case hash("toggle"): {
             update();
+            break;
         }
         default:
             break;
