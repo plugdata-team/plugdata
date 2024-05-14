@@ -1284,7 +1284,7 @@ public:
             label->setBounds(bounds);
             label->setText(title, dontSendNotification);
 
-            label->setColour(Label::textColourId, LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
+            label->setColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
 
             object->cnv->addAndMakeVisible(label.get());
         }
