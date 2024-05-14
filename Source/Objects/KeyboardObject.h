@@ -276,7 +276,7 @@ public:
             octaves.setValue(obj->x_octaves);
             toggleMode.setValue(obj->x_toggle_mode);
             sizeProperty.setValue(obj->x_height);
-
+            
             auto sndSym = obj->x_snd_set ? String::fromUTF8(obj->x_snd_raw->s_name) : getBinbufSymbol(7);
             auto rcvSym = obj->x_rcv_set ? String::fromUTF8(obj->x_rcv_raw->s_name) : getBinbufSymbol(8);
 
@@ -291,6 +291,8 @@ public:
                 }
             });
         }
+        
+        keyboard.setToggleMode(getValue<bool>(toggleMode));
     }
         
     void render(NVGcontext* nvg) override
