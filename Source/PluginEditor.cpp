@@ -1228,7 +1228,7 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         break;
     }
     case CommandIDs::PanDragKey: {
-        result.setInfo("Pan drag key", "Pan drag key", "View", 0);
+        result.setInfo("Pan drag key", "Pan drag key", "View", ApplicationCommandInfo::dontTriggerAlertSound);
         result.addDefaultKeypress(KeyPress::spaceKey, ModifierKeys::noModifiers);
         result.setActive(hasCanvas && !isDragging && !pluginMode);
         break;
@@ -1874,7 +1874,7 @@ bool PluginEditor::keyPressed(KeyPress const& key)
     // Claim tab keys on canvas to prevent cycling selection
     // The user might want to catch the tab key with an object, this behaviour just gets in the way
     // We do still want to allow tab cycling on other components, so if canvas doesn't have focus, don't grab the tab key
-    return getCurrentCanvas()->hasKeyboardFocus(true) || key.getKeyCode() != KeyPress::tabKey;
+    return getCurrentCanvas()->hasKeyboardFocus(true) || (key.getKeyCode() != KeyPress::tabKey && key.getKeyCode() != KeyPress::spaceKey);
 }
 
 void PluginEditor::parentHierarchyChanged()
