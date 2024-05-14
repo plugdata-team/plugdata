@@ -145,7 +145,7 @@ public:
             
             if(auto* label = gui->getLabel())
             {
-                label->setColour(Label::textColourId, getLabelColour());
+                label->setColour(getLabelColour());
             }
             
             gui->repaint();
@@ -295,7 +295,7 @@ public:
             label->setBounds(bounds + offset);
             label->setText(text, dontSendNotification);
 
-            label->setColour(Label::textColourId, getLabelColour());
+            label->setColour(getLabelColour());
 
             label->setVisible(true);
         } else {

@@ -30,6 +30,8 @@ class ObjectLabel : public Label, public NVGComponent, public NVGContextListener
     int lastWidth = 0, lastHeight = 0;
     float lastScale = 1.0f;
     NVGSurface& surface;
+    bool updateColour = false;
+    Colour lastColour;
     
 public:
     explicit ObjectLabel(NVGSurface& s) : NVGComponent(this), surface(s)
@@ -55,19 +57,29 @@ public:
     void renderLabel(NVGcontext* nvg, float scale)
     {
         auto textHash = hash(getText());
-        if(!imageId || lastTextHash != textHash || lastScale != scale || lastWidth != getWidth() || lastHeight != getHeight())
+        if(!imageId || updateColour || lastTextHash != textHash || lastScale != scale || lastWidth != getWidth() || lastHeight != getHeight())
         {
             updateImage(nvg, scale);
             lastTextHash = textHash;
             lastScale = scale;
             lastWidth = getWidth();
             lastHeight = getHeight();
+            updateColour = false;
         }
         
         nvgBeginPath(nvg);
         nvgRect(nvg, 0, 0, getWidth() + 1, getHeight());
         nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth() + 1, getHeight(), 0, imageId, 1.0f));
         nvgFill(nvg);
+    }
+
+    void setColour(const Colour colour)
+    {
+        if (colour != lastColour) {
+            Label::setColour(Label::textColourId, colour);
+            lastColour = colour;
+            updateColour = true;
+        }
     }
     
     void updateImage(NVGcontext* nvg, float scale)
