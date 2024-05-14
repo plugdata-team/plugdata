@@ -1871,6 +1871,8 @@ void PluginEditor::enablePluginMode(Canvas* cnv)
 // it would be annoying to hear the bloop sound for every key that isn't a valid command
 bool PluginEditor::keyPressed(KeyPress const& key)
 {    
+    if(!getCurrentCanvas()) return false;
+    
     // Claim tab keys on canvas to prevent cycling selection
     // The user might want to catch the tab key with an object, this behaviour just gets in the way
     // We do still want to allow tab cycling on other components, so if canvas doesn't have focus, don't grab the tab key

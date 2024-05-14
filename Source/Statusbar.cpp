@@ -74,6 +74,8 @@ public:
                 alpha = pow(alpha, 1.0f / 2.2f);
                 alpha -= 0.02f;
                 alpha = pow(alpha, 2.2f);
+                alpha = std::clamp(alpha, 0.0f, 1.0f);
+                alpha = std::isfinite(alpha) ? alpha : 0.0f;
                 fading = true;
                 if (alpha <= 0.01f) {
                     alpha = 0.0f;
