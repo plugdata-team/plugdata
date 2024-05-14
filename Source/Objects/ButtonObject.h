@@ -62,10 +62,35 @@ public:
     {
         if (!alreadyTriggered) {
 
-            if(auto button = ptr.get<t_fake_button>()) {
-                outlet_float(button->x_obj.ob_outlet, 1);
+            if(mode == Latch) {
+                state = true;
             }
-            state = true;
+            else if(mode == Toggle){
+                state = !state;
+            }
+            
+            if(mode == Bang)
+            {
+                state = true;
+                if (auto button = ptr.get<t_fake_button>()) {
+                    outlet_bang(button->x_obj.ob_outlet);
+                }
+                Timer::callAfterDelay(250,
+                    [_this = SafePointer(this)]() mutable {
+                        // First check if this object still exists
+                        if (!_this) return;
+
+                        if (_this->state) {
+                            _this->state = false;
+                            _this->repaint();
+                        }
+                    });
+            }
+            else {
+                if (auto button = ptr.get<t_fake_button>()) {
+                    outlet_float(button->x_obj.ob_outlet, state);
+                }
+            }
             repaint();
             alreadyTriggered = true;
         }
@@ -74,10 +99,12 @@ public:
     {
         if(alreadyTriggered)
         {
-            if(auto button = ptr.get<t_fake_button>()) {
-                outlet_float(button->x_obj.ob_outlet, 0);
+            if(mode == Latch) {
+                state = false;
+                if (auto button = ptr.get<t_fake_button>()) {
+                    outlet_float(button->x_obj.ob_outlet, 0);
+                }
             }
-            state = false;
             repaint();
             alreadyTriggered = false;
         }
