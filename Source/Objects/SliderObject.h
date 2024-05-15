@@ -216,7 +216,7 @@ public:
 
     void updateLabel() override
     {
-        iemHelper.updateLabel(label, isVertical ? Point<int>(0, 2) : Point<int>(2, 0));
+        iemHelper.updateLabel(labels, isVertical ? Point<int>(0, 2) : Point<int>(2, 0));
     }
 
     Rectangle<int> getPdBounds() override

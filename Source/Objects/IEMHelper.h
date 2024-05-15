@@ -4,6 +4,8 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#pragma once
+
 static int srl_is_valid(t_symbol const* s)
 {
     return (s != nullptr && s != gensym(""));
@@ -277,31 +279,36 @@ public:
         }
     }
 
-    void updateLabel(std::unique_ptr<ObjectLabel>& label, Point<int> offset = {0, 0})
+    void updateLabel(std::unique_ptr<ObjectLabels>& labels, Point<int> offset = {0, 0})
     {
         String const text = labelText.toString();
 
-        if (text.isNotEmpty()) {
-            if (!label) {
-                label = std::make_unique<ObjectLabel>(cnv->editor->nvgSurface);
-                object->cnv->addChildComponent(label.get());
+        if (text.isNotEmpty() || (gui->showVU())) {
+            if (!labels) {
+                labels = std::make_unique<ObjectLabels>(cnv->editor->nvgSurface);
+                object->cnv->addChildComponent(labels.get());
+                if (gui->showVU())
+                    labels->setObjectToTrack(object);
             }
 
-            auto bounds = getLabelBounds();
+            if (text.isNotEmpty()) {
+                auto bounds = getLabelBounds();
 
-            bounds.translate(0, bounds.getHeight() / -2.0f);
+                bounds.translate(0, bounds.getHeight() / -2.0f);
 
-            label->setFont(Font(bounds.getHeight()));
-            label->setBounds(bounds + offset);
-            label->setText(text, dontSendNotification);
-
-            label->setColour(getLabelColour());
-
-            label->setVisible(true);
+                labels->getObjectLabel()->setFont(Font(bounds.getHeight()));
+                labels->setLabelBounds(bounds + offset);
+                labels->getObjectLabel()->setText(text, dontSendNotification);
+            } else {
+                // updating side VU label only, by sending empty rectangle
+                labels->setLabelBounds(Rectangle<int>());
+            }
+            labels->setColour(getLabelColour());
+            labels->setVisible(true);
         } else {
-            if (label)
-                label->setVisible(false);
-            label.reset(nullptr);
+            if (labels)
+                labels->setVisible(false);
+            labels.reset(nullptr);
         }
     }
         

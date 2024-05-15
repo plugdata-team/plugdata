@@ -204,7 +204,7 @@ public:
 
     void updateLabel() override
     {
-        atomHelper.updateLabel(label);
+        atomHelper.updateLabel(labels);
     }
 
     Rectangle<int> getPdBounds() override

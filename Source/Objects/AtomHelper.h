@@ -271,7 +271,7 @@ public:
         }
     }
 
-    void updateLabel(std::unique_ptr<ObjectLabel>& label)
+    void updateLabel(std::unique_ptr<ObjectLabels>& labels)
     {
         int idx = std::clamp<int>(fontSize.getValue(), 1, 7);
 
@@ -281,26 +281,26 @@ public:
         String const text = getExpandedLabelText();
 
         if (text.isNotEmpty()) {
-            if (!label) {
-                label = std::make_unique<ObjectLabel>(cnv->editor->nvgSurface);
+            if (!labels) {
+                labels = std::make_unique<ObjectLabels>(cnv->editor->nvgSurface);
             }
 
             auto bounds = getLabelBounds();
 
-            label->setBounds(bounds);
-            label->setFont(Font(fontHeight));
-            label->setText(text, dontSendNotification);
+            labels->setLabelBounds(bounds);
+            labels->getObjectLabel()->setFont(Font(fontHeight));
+            labels->getObjectLabel()->setText(text, dontSendNotification);
 
             auto textColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
             if (std::abs(textColour.getBrightness() - LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId).getBrightness()) < 0.3f) {
                 textColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId).contrasting();
             }
 
-            label->setColour(textColour);
+            labels->setColour(textColour);
 
-            object->cnv->addAndMakeVisible(label.get());
+            object->cnv->addAndMakeVisible(labels.get());
         } else {
-            label.reset(nullptr);
+            labels.reset(nullptr);
         }
     }
 

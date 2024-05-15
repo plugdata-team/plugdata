@@ -763,7 +763,9 @@ void ObjectBase::setParameterExcludingListener(Value& parameter, var const& valu
 
 ObjectLabel* ObjectBase::getLabel()
 {
-    return label.get();
+    if (labels)
+        return labels->getObjectLabel();
+    return nullptr;
 }
 
 bool ObjectBase::isBeingEdited()

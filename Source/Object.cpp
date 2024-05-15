@@ -1373,9 +1373,20 @@ void Object::renderLabel(NVGcontext* nvg)
         if(auto* label = gui->getLabel())
         {
             nvgSave(nvg);
-            nvgTranslate(nvg, label->getX(), label->getY());
+            auto posOnCanvas = cnv->getLocalPoint(gui->labels.get(), label->getPosition());
+            nvgTranslate(nvg, posOnCanvas.getX(), posOnCanvas.getY());
             label->renderLabel(nvg, cnv->getRenderScale() * 2.0f);
             nvgRestore(nvg);
+        }
+        if(auto* vu = gui->getVU())
+        {
+            if (vu->isVisible()) {
+                nvgSave(nvg);
+                auto posOnCanvas = cnv->getLocalPoint(gui->labels.get(), vu->getPosition());
+                nvgTranslate(nvg, posOnCanvas.getX(), posOnCanvas.getY());
+                vu->render(nvg);
+                nvgRestore(nvg);
+            }
         }
     }
 }

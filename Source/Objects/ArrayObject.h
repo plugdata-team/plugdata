@@ -1272,24 +1272,24 @@ public:
         }
   
         if (title.isNotEmpty()) {
-            if (!label) {
-                label = std::make_unique<ObjectLabel>(cnv->editor->nvgSurface);
+            if (!labels) {
+                labels = std::make_unique<ObjectLabels>(cnv->editor->nvgSurface);
             }
 
-            auto bounds = object->getBounds().reduced(Object::margin).removeFromTop(fontHeight + 2);
+            auto bounds = object->getBounds().reduced(Object::margin).removeFromTop(fontHeight + 2).withWidth(Font(fontHeight).getStringWidth(title));
 
             bounds.translate(2, -(fontHeight + 2));
 
-            label->setFont(Font(fontHeight));
-            label->setBounds(bounds);
-            label->setText(title, dontSendNotification);
+            labels->getObjectLabel()->setFont(Font(fontHeight));
+            labels->setLabelBounds(bounds);
+            labels->getObjectLabel()->setText(title, dontSendNotification);
 
-            label->setColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
+            labels->setColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
 
-            object->cnv->addAndMakeVisible(label.get());
+            object->cnv->addAndMakeVisible(labels.get());
         }
         else {
-            label.reset(nullptr);
+            labels.reset(nullptr);
         }
     }
 

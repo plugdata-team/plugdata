@@ -45,7 +45,7 @@ public:
 
     void updateLabel() override
     {
-        iemHelper.updateLabel(label);
+        iemHelper.updateLabel(labels);
     }
 
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override

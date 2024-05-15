@@ -185,7 +185,7 @@ public:
 
     void updateLabel() override
     {
-        atomHelper.updateLabel(label);
+        atomHelper.updateLabel(labels);
     }
 
     void valueChanged(Value& v) override
