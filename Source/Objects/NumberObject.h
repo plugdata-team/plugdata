@@ -5,6 +5,8 @@
  */
 
 #include "Components/DraggableNumber.h"
+#include "ObjectBase.h"
+#include "IEMHelper.h"
 
 class NumberObject final : public ObjectBase {
 
@@ -109,7 +111,7 @@ public:
 
     void updateLabel() override
     {
-        iemHelper.updateLabel(label);
+        iemHelper.updateLabel(labels);
     }
 
     Rectangle<int> getPdBounds() override

@@ -149,7 +149,7 @@ public:
 
     void updateLabel() override
     {
-        atomHelper.updateLabel(label);
+        atomHelper.updateLabel(labels);
     }
 
     bool hideInlets() override

@@ -13,6 +13,8 @@
 #include "Utility/SynchronousValue.h"
 #include "Utility/NVGComponent.h"
 #include "Utility/CachedTextRender.h"
+#include "Object.h"
+#include "Canvas.h"
 
 class PluginProcessor;
 class Canvas;
@@ -73,7 +75,7 @@ public:
         nvgFill(nvg);
     }
 
-    void setColour(const Colour colour)
+    void setColour(const Colour& colour)
     {
         if (colour != lastColour) {
             Label::setColour(Label::textColourId, colour);
@@ -98,6 +100,115 @@ public:
     }
 
 private:
+};
+
+class VUScale : public Component, public NVGComponent, public NVGContextListener
+{
+    NVGSurface& surface;
+    Colour textColour;
+    StringArray scale = {"+12", "+6", "+2", "-0dB", "-2", "-6", "-12", "-20", "-30", "-50", "-99"};
+    StringArray scaleDecim = {"+12", "", "", "-0dB", "", "", "-12", "", "", "", "-99"};
+public:
+    VUScale(NVGSurface& s) : NVGComponent(this), surface(s)
+    {
+        surface.addNVGContextListener(this);
+    }
+
+    ~VUScale()
+    {
+        surface.removeNVGContextListener(this);
+    }
+
+    void setColour(const Colour& colour)
+    {
+        textColour = colour;
+        repaint();
+    }
+
+    void render(NVGcontext * nvg) override
+    {
+        nvgFontSize(nvg, 8);
+        nvgFontFace(nvg, "Inter-Regular");
+        nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
+        nvgFillColor(nvg, convertColour(textColour));
+        auto scaleToUse = getHeight() < 80 ? scaleDecim : scale;
+        for (int i = 0; i < scale.size(); i++) {
+            auto posY = ((getHeight() - 20) * (i / 10.0f)) + 10;
+            // align the "-" and "+" text element centre
+            nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+            nvgText(nvg, 2, posY, scaleToUse[i].substring(0,1).toRawUTF8(), nullptr);
+            // align the number text element left
+            nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
+            nvgText(nvg, 5, posY, scaleToUse[i].substring(1).toRawUTF8(), nullptr);
+        }
+    }
+};
+
+class ObjectLabels : public Component
+{
+public:
+    ObjectLabels(NVGSurface& s) : objectLabel(s), vuScale(s)
+    {
+        addAndMakeVisible(objectLabel);
+        addAndMakeVisible(vuScale);
+
+        setInterceptsMouseClicks(false, false);
+    }
+
+    ~ObjectLabels()
+    {
+    }
+
+    ObjectLabel* getObjectLabel()
+    {
+        return &objectLabel;
+    }
+
+    VUScale* getVUObject()
+    {
+        return &vuScale;
+    }
+
+    void setColour(const Colour& colour)
+    {
+        objectLabel.setColour(colour);
+        vuScale.setColour(colour);
+    }
+
+    void setObjectToTrack(Object* object)
+    {
+        obj = object;
+    }
+
+    void setLabelBounds(Rectangle<int> bounds)
+    {
+        labelBounds = bounds;
+        if (obj)
+            vuScaleBounds = Rectangle<int>(obj->getBounds().getTopRight().x - 3, obj->getBounds().getTopRight().y, 20, obj->getBounds().getHeight());
+        auto allBounds = bounds.getUnion(vuScaleBounds);
+        setBounds(allBounds);
+        // force resize to run, so position updates even when union size doesn't change
+        resized();
+    }
+
+    void resized() override
+    {
+        if (obj) {
+            auto lb = getLocalArea(obj->cnv, labelBounds);
+            auto vb = getLocalArea(obj->cnv, vuScaleBounds);
+            objectLabel.setBounds(lb);
+            vuScale.setBounds(vb);
+        } else {
+            objectLabel.setBounds(getLocalBounds());
+        }
+    }
+private:
+    Object* obj = nullptr;
+
+    Rectangle<int> labelBounds;
+    Rectangle<int> vuScaleBounds;
+    ObjectLabel objectLabel;
+    VUScale vuScale;
 };
 
 class ObjectBase : public Component
@@ -226,6 +337,9 @@ public:
 
     virtual ObjectLabel* getLabel();
 
+    virtual VUScale* getVU() { return nullptr; };
+    virtual bool showVU() { return false; };
+
     // Should return current object text if applicable
     // Currently only used to subsitute arguments in tooltips
     // TODO: does that even work?
@@ -298,6 +412,8 @@ public:
     Canvas* cnv;
     PluginProcessor* pd;
 
+    std::unique_ptr<ObjectLabels> labels;
+
 protected:
     PropertyUndoListener propertyUndoListener;
     
@@ -307,7 +423,7 @@ protected:
 
     virtual std::unique_ptr<ComponentBoundsConstrainer> createConstrainer();
 
-    std::unique_ptr<ObjectLabel> label;
+
     static inline constexpr int maxSize = 1000000;
     static inline std::atomic<bool> edited = false;
     std::unique_ptr<ComponentBoundsConstrainer> constrainer;

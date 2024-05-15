@@ -8,6 +8,7 @@ class VUMeterObject final : public ObjectBase {
 
     IEMHelper iemHelper;
     Value sizeProperty = SynchronousValue();
+    Value showScale = SynchronousValue();
 
 public:
     VUMeterObject(pd::WeakReference ptr, Object* object)
@@ -22,7 +23,12 @@ public:
 
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamReceiveSymbol(&iemHelper.receiveSymbol);
+        objectParameters.addParamBool("Show scale", ParameterCategory::cAppearance, &showScale, {"No", "Yes"}, 1);
         iemHelper.addIemParameters(objectParameters, false, false, -1);
+
+        updateLabel();
+        showScale = ptr.get<t_vu>()->x_scale;
+        valueChanged(showScale);
     }
 
     void updateSizeProperty() override
@@ -46,7 +52,19 @@ public:
 
     void updateLabel() override
     {
-        iemHelper.updateLabel(label);
+        iemHelper.updateLabel(labels);
+    }
+
+    VUScale* getVU() override
+    {
+        if (labels)
+            return labels->getVUObject();
+        return nullptr;
+    }
+
+    bool showVU() override
+    {
+        return true;
     }
 
     void valueChanged(Value& v) override
@@ -65,6 +83,12 @@ public:
             }
 
             object->updateBounds();
+        } else if (v.refersToSameSourceAs(showScale)) {
+            if (auto vu = ptr.get<t_vu>()) {
+                auto showVU = getValue<bool>(showScale);
+                vu->x_scale = showVU;
+                getVU()->setVisible(showVU);
+            }
         } else {
             iemHelper.valueChanged(v);
         }
@@ -141,27 +165,6 @@ public:
         nvgBeginPath(nvg);
         nvgRoundedRect(nvg, outerBorderWidth, outerBorderWidth + ((totalBlocks - numBlocks2) * blockHeight) + blockRectSpacing, blockWidth, blockRectHeight / 2.0f, blockCornerSize);
         nvgFill(nvg);
-
-        // Get text value with 2 and 0 decimals
-        // Prevent going past -100 for size reasons
-        String textValue = String(std::max(values[1], -96.0f), 2);
-
-        if (width > nvgTextBounds(nvg, 0, 0, textValue.toRawUTF8(), nullptr, nullptr)) {
-            // Check noscale flag, otherwise display next to slider
-            nvgFontSize(nvg, 11);
-            nvgFontFace(nvg, "Inter-Regular");
-            nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-            nvgFillColor(nvg, nvgRGBAf(1, 1, 1, 1)); // White color
-            nvgText(nvg, width * 0.5f, height - 20, textValue.toRawUTF8(), nullptr);
-        } else {
-            // Fallback for smaller sizes
-            textValue = String(std::max(values[1], -96.0f), 0);
-            nvgFontSize(nvg, 11);
-            nvgFontFace(nvg, "Inter-Regular");
-            nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-            nvgFillColor(nvg, nvgRGBAf(1, 1, 1, 1)); // White color
-            nvgText(nvg, width * 0.5f, height - 20, textValue.toRawUTF8(), nullptr);
-        }
     }
 
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override

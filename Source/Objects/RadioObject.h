@@ -67,7 +67,7 @@ public:
 
     void updateLabel() override
     {
-        iemHelper.updateLabel(label);
+        iemHelper.updateLabel(labels);
     }
 
     void setPdBounds(Rectangle<int> b) override
