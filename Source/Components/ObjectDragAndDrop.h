@@ -194,7 +194,7 @@ public:
         setCentrePosition(mousePosition);
     }
 
-    void mouseDown(MouseEvent const& e) override
+    void mouseUp(MouseEvent const& e) override
     {
         // This is nicer, but also makes sure that getComponentAt doesn't return this object
         setVisible(false);
