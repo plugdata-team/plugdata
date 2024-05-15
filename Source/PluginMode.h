@@ -110,6 +110,8 @@ public:
         addAndMakeVisible(titleBar);
 
         setWidthAndHeight(1.0f);
+
+        cnv->connectionLayer.setVisible(false);
     }
 
     ~PluginMode() override = default;
@@ -199,6 +201,8 @@ public:
 
         editor->parentSizeChanged();
         editor->resized();
+
+        cnv->connectionLayer.setVisible(true);
 
 #if JUCE_LINUX
         editor->sendLookAndFeelChange(); // TODO: this is just a hacky way to make sure all framebuffers area cleared. could be cleaner.
