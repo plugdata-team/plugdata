@@ -6,6 +6,7 @@
 #include "LookAndFeel.h"
 
 enum ParameterType {
+    tStringSymbol,
     tString,
     tInt,
     tFloat,
@@ -105,12 +106,12 @@ public:
 
     void addParamReceiveSymbol(Value* pVal)
     {
-        objectParameters.add(makeParam("Receive Symbol", tString, cGeneral, pVal, StringArray(), ""));
+        objectParameters.add(makeParam("Receive Symbol", tStringSymbol, cGeneral, pVal, StringArray(), ""));
     }
 
     void addParamSendSymbol(Value* pVal, String const& pDefault = "")
     {
-        objectParameters.add(makeParam("Send Symbol", tString, cGeneral, pVal, StringArray(), pDefault));
+        objectParameters.add(makeParam("Send Symbol", tStringSymbol, cGeneral, pVal, StringArray(), pDefault));
     }
 
     void addParamCombo(String const& pString, ParameterCategory pCat, Value* pVal, StringArray const& pStringList, var const& pDefault = var())

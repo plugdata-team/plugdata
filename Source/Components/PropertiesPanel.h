@@ -780,7 +780,7 @@ public:
         Value property;
         String allowedCharacters = "";
 
-        EditableComponent(String propertyName, Value& value, double minimum = 0.0, double maximum = 0.0)
+        EditableComponent(String propertyName, Value& value, bool isSymbol = false, double minimum = 0.0, double maximum = 0.0)
             : PropertiesPanelProperty(propertyName)
             , property(value)
         {
@@ -820,6 +820,11 @@ public:
                     if (allowedCharacters.isNotEmpty()) {
                         editor->setInputRestrictions(0, allowedCharacters);
                     }
+                };
+                label->onTextChange = [this, isSymbol]() {
+                    // if the editable text is a symbol, we remove all text after space, as symbols can't have spaces
+                    if (isSymbol)
+                        label->setText(label->getText().upToFirstOccurrenceOf(" ", false, true), dontSendNotification);
                 };
             }
 

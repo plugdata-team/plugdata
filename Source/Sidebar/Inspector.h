@@ -71,6 +71,8 @@ public:
     static PropertiesPanelProperty* createPanel(int type, String const& name, Value* value, StringArray& options)
     {
         switch (type) {
+        case tStringSymbol:
+            return new PropertiesPanel::EditableComponent<String>(name, *value, true);
         case tString:
             return new PropertiesPanel::EditableComponent<String>(name, *value);
         case tFloat:

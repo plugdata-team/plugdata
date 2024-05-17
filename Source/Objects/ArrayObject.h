@@ -826,7 +826,7 @@ struct ArrayPropertiesPanel : public PropertiesPanelProperty, public Value::List
         
         for(auto graph : graphs)
         {
-            addAndMakeVisible(properties.add(new PropertiesPanel::EditableComponent<String>("Name", graph->name)));
+            addAndMakeVisible(properties.add(new PropertiesPanel::EditableComponent<String>("Name", graph->name, true)));
             addAndMakeVisible(properties.add(new PropertiesPanel::EditableComponent<int>("Size", graph->size)));
             addAndMakeVisible(properties.add(new PropertiesPanel::RangeComponent("Range", graph->range, false)));
             addAndMakeVisible(properties.add(new PropertiesPanel::BoolComponent("Save contents", graph->saveContents, {"No", "Yes"})));
