@@ -11,6 +11,8 @@
 
 #include "Pd/Interface.h"
 #include "Pd/Patch.h"
+#include "Objects/AllGuis.h"
+#include <g_all_guis.h>
 
 OfflineObjectRenderer::OfflineObjectRenderer(pd::Instance* instance)
     : pd(instance)
@@ -89,9 +91,79 @@ ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, flo
     auto object = offlineCnv->gl_list;
     while (object) {
         pd::Interface::getObjectBounds(offlineCnv, object, &obj_x, &obj_y, &obj_w, &obj_h);
+
         auto* objectPtr = pd::Interface::checkObject(object);
+
+        char *objectText;
+        int len;
+        pd::Interface::getObjectText(objectPtr, &objectText, &len);
+        const auto objectTextString = String::fromUTF8(objectText, len);
+
+        String type = String::fromUTF8(object->g_pd->c_name->s_name);
+        const auto objectNameHash = hash(type);
+
+        std::cout << "object type: " << type << std::endl;
+
+        switch(objectNameHash){
+            case hash("bng"):
+            case hash("hsl"):
+            case hash("vsl"):
+            case hash("slider"):
+            case hash("tgl"):
+            case hash("nbx"):
+            case hash("numbox~"):
+            case hash("vradio"):
+            case hash("hradio"):
+            case hash("vu"):
+            case hash("canvas"):
+            case hash("pic"):
+            case hash("keyboard"):
+            case hash("scope~"):
+            case hash("function"):
+            case hash("note"):
+            case hash("knob"):
+            case hash("gatom"):
+            case hash("button"):
+            case hash("graph"):
+            case hash("bicoeff"):
+            case hash("messbox"):
+            case hash("pad"):
+            {
+                break;
+            }
+            case hash("cnv"): {
+                auto cnvObject = ((t_my_canvas*)object);
+                obj_w = cnvObject->x_vis_w;
+                obj_h = cnvObject->x_vis_h;
+                break;
+            }
+            case hash("message"):
+            case hash("comment"):
+            case hash("text"): {
+                StringArray lines;
+                lines.addTokens(objectTextString, ";", "");
+                auto charWidth = objectPtr->te_width;
+                // charWidth of 0 == auto width, which means we need to calculate the width manually :facepalm:
+                obj_w = jmax(Font(16).getStringWidth(objectTextString), charWidth * 7);
+                obj_h = jmax(20, 20 * lines.size());
+
+                if ((objectNameHash == hash("message")) || (((t_fake_text_define *) object)->x_textbuf.b_ob.te_type == T_OBJECT)) {
+                    obj_w = 45;
+                }
+                break;
+            }
+            default:
+            {
+                obj_h = 20;
+                if (objectPtr->te_width == 0) {
+                    std::cout << "object text is: " << objectTextString << std::endl;
+                    obj_w = Font(16).getStringWidth(objectTextString);
+                }
+            }
+            break;
+        }
+
         auto maxIolets = jmax<int>(pd::Interface::numOutlets(objectPtr), pd::Interface::numInlets(objectPtr));
-        // ALEX TODO: fix this heuristic, it doesn't work well for everything
         auto maxSize = jmax<int>(maxIolets * 18, obj_w);
         rect.setBounds(obj_x, obj_y, maxSize, obj_h);
 

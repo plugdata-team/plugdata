@@ -156,7 +156,7 @@ void Connection::lookAndFeelChanged()
 
 void Connection::render(NVGcontext* nvg)
 {
-    auto connectionColour = baseColour;
+    connectionColour = baseColour;
     if (isSelected() || isHovering) {
         if(outlet->isSignal)
         {
@@ -286,7 +286,7 @@ void Connection::render(NVGcontext* nvg)
     const float arrowWidth = 8.0f;
     const float arrowLength = 12.0f;
 
-    auto renderArrow = [this, nvg, arrowLength, arrowWidth, connectionColour](Path& path, float connectionLength){
+    auto renderArrow = [this, nvg, arrowLength, arrowWidth](Path& path, float connectionLength){
         // get the center point of the connection path
 
         const auto arrowCenter = connectionLength * 0.5f;
@@ -336,32 +336,30 @@ void Connection::render(NVGcontext* nvg)
             }
         }
     }
+}
 
-    // draw connection index number
-    if (showConnectionOrder) {
-        if ((cableType == DataCable) && (getNumberOfConnections() > 1)) {
-            auto connectionPath = getPath();
-            connectionPath.applyTransform(AffineTransform::translation(-getX(), -getY()));
-            auto pos = cnv->getLocalPoint(this, connectionPath.getPointAlongPath(jmax(connectionPath.getLength() - 8.5f * 3, 9.5f)));
-
-            // circle background
-            nvgBeginPath(nvg);
-            nvgStrokeColor(nvg, outlineColour);
-            nvgFillColor(nvg, connectionColour);
-            const auto radius = 7.0f;
-            const auto diameter = radius * 2.0f;
-            const auto circleTopLeft = pos - Point<float>(radius, radius);
-            nvgRoundedRect(nvg, circleTopLeft.getX(), circleTopLeft.getY(), diameter, diameter, radius);
-            nvgStrokeWidth(nvg, 1.0f);
-            nvgFill(nvg);
-            nvgStroke(nvg);
-
-            // connection index number
-            nvgFillColor(nvg, textColour);
-            nvgFontSize(nvg, 9.0f);
-            nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_CENTER);
-            nvgText(nvg, pos.getX(), pos.getY(), String(getMultiConnectNumber()).toUTF8(), nullptr);
-        }
+void Connection::renderConnectionOrder(NVGcontext* nvg)
+{
+    if ((cableType == DataCable) && (getNumberOfConnections() > 1)) {
+        auto connectionPath = getPath();
+        connectionPath.applyTransform(AffineTransform::translation(-getX(), -getY()));
+        auto pos = cnv->getLocalPoint(this, connectionPath.getPointAlongPath(jmax(connectionPath.getLength() - 8.5f * 3, 9.5f)));
+        // circle background
+        nvgBeginPath(nvg);
+        nvgStrokeColor(nvg, outlineColour);
+        nvgFillColor(nvg, connectionColour);
+        const auto radius = 7.0f;
+        const auto diameter = radius * 2.0f;
+        const auto circleTopLeft = pos - Point<float>(radius, radius);
+        nvgRoundedRect(nvg, circleTopLeft.getX(), circleTopLeft.getY(), diameter, diameter, radius);
+        nvgStrokeWidth(nvg, 1.0f);
+        nvgFill(nvg);
+        nvgStroke(nvg);
+        // connection index number
+        nvgFillColor(nvg, textColour);
+        nvgFontSize(nvg, 9.0f);
+        nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_CENTER);
+        nvgText(nvg, pos.getX(), pos.getY(), String(getMultiConnectNumber()).toUTF8(), nullptr);
     }
 }
 
@@ -514,7 +512,6 @@ void Connection::updateOverlays(int overlay)
         return;
 
     showDirection = overlay & Overlay::Direction;
-    showConnectionOrder = overlay & Overlay::Order;
     showActivity = overlay & Overlay::ConnectionActivity;
     repaint();
 }

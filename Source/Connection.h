@@ -72,6 +72,7 @@ public:
     bool intersectsRectangle(Rectangle<int> rectToIntersect);
         
     void render(NVGcontext* nvg) override;
+    void renderConnectionOrder(NVGcontext* nvg);
     void nvgContextDeleted(NVGcontext* nvg) override;
 
     void updatePath();
@@ -162,6 +163,7 @@ private:
     NVGcolor shadowColour;
     NVGcolor outlineColour;
     NVGcolor gemColour;
+    NVGcolor connectionColour;
 
     NVGcolor textColour;
     
