@@ -180,6 +180,7 @@ protected:
     NVGcolor outlineColour;
     NVGcolor ioletAreaColour;
 
+    bool isSubpatch = false;
 public:
     TextBase(pd::WeakReference obj, Object* parent, bool valid = true)
         : ObjectBase(obj, parent)
@@ -196,6 +197,11 @@ public:
     }
 
     ~TextBase() override = default;
+
+    void setIsSubpatch()
+    {
+        isSubpatch = true;
+    }
 
     void update() override
     {
@@ -272,6 +278,12 @@ public:
             // we could render at the actual scale, but that makes the transition to scolling/zooming pretty rough
             // Instead, rendering at 2x scale gives us pretty good sharpness overall
             cachedTextRender.renderText(nvg, textArea, getImageScale());
+        }
+        if (isSubpatch){
+            nvgBeginPath(nvg);
+            nvgCircle(nvg, 3, getHeight() * 0.5, 2);
+            nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour)));
+            nvgFill(nvg);
         }
     }
 
