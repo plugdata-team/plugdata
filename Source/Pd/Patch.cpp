@@ -526,7 +526,9 @@ void Patch::moveObjects(std::vector<t_gobj*> const& objects, int dx, int dy)
 void Patch::moveObjectTo(t_gobj* object, int x, int y)
 {
     if (auto patch = ptr.get<t_glist>()) {
-        pd::Interface::moveObject(patch.get(), object, x + 1544, y + 1544); // FIXME: why do we have to offset by 1544?
+        // Originally this was +1544, but caused issues with alignment tools being off-by xy +2px.
+        // FIXME: why do we have to do this at all?
+        pd::Interface::moveObject(patch.get(), object, x + 1542, y + 1542);
     }
 }
 
