@@ -93,14 +93,14 @@ public:
 
     void resized() override
     {
-        textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId), getWidth(), getWidth());
+        textRenderer.prepareLayout(getText(), Fonts::getCurrentFont().withHeight(13), LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId), getWidth(), getWidth());
         updateCanvas();
         updateDrawables();
     }
     
     void lookAndFeelChanged() override
     {
-        textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId), getWidth(), getWidth());
+        textRenderer.prepareLayout(getText(), Fonts::getCurrentFont().withHeight(13), LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId), getWidth(), getWidth());
     }
 
     // Called by object to make sure clicks on empty parts of the graph are passed on

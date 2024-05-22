@@ -380,6 +380,11 @@ Font PlugDataLook::getTextButtonFont(TextButton& but, int buttonHeight)
     return Fonts::getCurrentFont();
 }
 
+Font PlugDataLook::getLabelFont(Label& label)
+{
+    return Fonts::getCurrentFont();
+}
+
 void PlugDataLook::drawLinearSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, Slider::SliderStyle const style, Slider& slider)
 {
     if (slider.getProperties()["Style"] == "SliderObject") {

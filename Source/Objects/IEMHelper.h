@@ -296,7 +296,7 @@ public:
 
                 bounds.translate(0, bounds.getHeight() / -2.0f);
 
-                labels->getObjectLabel()->setFont(Font(bounds.getHeight()));
+                labels->getObjectLabel()->setFont(Fonts::getCurrentFont().withHeight(bounds.getHeight()));
                 labels->setLabelBounds(bounds + offset);
                 labels->getObjectLabel()->setText(text, dontSendNotification);
             } else {

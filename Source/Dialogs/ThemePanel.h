@@ -558,9 +558,10 @@ public:
             pd->setTheme(PlugDataLook::currentTheme, true);
             return;
         }
-        
+
         for (auto theme : themeTree) {
             auto themeName = theme.getProperty("theme").toString();
+
 
             for (auto [colourId, colourInfo] : PlugDataColourNames) {
                 auto& [colId, colourName, colCat] = colourInfo;

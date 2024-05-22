@@ -34,10 +34,12 @@ class ObjectLabel : public Label, public NVGComponent, public NVGContextListener
     NVGSurface& surface;
     bool updateColour = false;
     Colour lastColour;
+    Font lastFont;
     
 public:
     explicit ObjectLabel(NVGSurface& s) : NVGComponent(this), surface(s)
     {
+        Label::setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
         setJustificationType(Justification::centredLeft);
         setBorderSize(BorderSize<int>(0, 0, 0, 0));
         setMinimumHorizontalScale(0.2f);
@@ -55,11 +57,17 @@ public:
         if(imageId) nvgDeleteImage(nvg, imageId);
         imageId = 0;
     }
+
+    void lookAndFeelChanged() override
+    {
+        setFont(Fonts::getCurrentFont());
+        Label::repaint();
+    }
     
     void renderLabel(NVGcontext* nvg, float scale)
     {
         auto textHash = hash(getText());
-        if(!imageId || updateColour || lastTextHash != textHash || lastScale != scale || lastWidth != getWidth() || lastHeight != getHeight())
+        if(!imageId || updateColour || lastTextHash != textHash || lastScale != scale || lastWidth != getWidth() || lastHeight != getHeight() || getFont() != lastFont)
         {
             updateImage(nvg, scale);
             lastTextHash = textHash;
@@ -67,6 +75,7 @@ public:
             lastWidth = getWidth();
             lastHeight = getHeight();
             updateColour = false;
+            lastFont = getFont();
         }
         
         nvgBeginPath(nvg);

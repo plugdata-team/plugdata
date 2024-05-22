@@ -288,7 +288,7 @@ public:
             auto bounds = getLabelBounds();
 
             labels->setLabelBounds(bounds);
-            labels->getObjectLabel()->setFont(Font(fontHeight));
+            labels->getObjectLabel()->setFont(Fonts::getCurrentFont().withHeight(fontHeight));
             labels->getObjectLabel()->setText(text, dontSendNotification);
 
             auto textColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId);

@@ -95,6 +95,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     void drawButtonText(Graphics& g, TextButton& button, bool isMouseOverButton, bool isButtonDown) override;
 
     Font getTextButtonFont(TextButton& but, int buttonHeight) override;
+    Font getLabelFont(Label& label) override;
 
     void drawLinearSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, Slider::SliderStyle const style, Slider& slider) override;
 

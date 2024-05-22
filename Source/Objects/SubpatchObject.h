@@ -40,6 +40,12 @@ public:
         closeOpenedSubpatchers();
     }
 
+    void lookAndFeelChanged() override
+    {
+        TextBase::updateTextLayout();
+        TextBase::object->updateBounds();
+    }
+
     void update() override
     {
         isGraphChild = static_cast<bool>(subpatch->getPointer()->gl_isgraph);

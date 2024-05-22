@@ -79,8 +79,6 @@ struct Fonts {
 
     static float getAverageFontWidth(int fontHeight)
     {
-        const juce::String commonCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~ ";
-
         using FontKey = std::pair<juce::String, int>;
 
         // Static map to cache the average widths for "font & size" key
@@ -94,6 +92,8 @@ struct Fonts {
 
         // Measure the width of each character
         float totalWidth = 0.0f;
+        const juce::String commonCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~ ";
+
         for (auto wideChar : commonCharacters){
             totalWidth += getCurrentFont().withHeight(fontHeight).getStringWidthFloat(String::charToString(wideChar));
         }
