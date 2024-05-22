@@ -77,6 +77,32 @@ struct Fonts {
         g.drawText(icon, bounds, justification, false);
     }
 
+    static float getAverageFontWidth(int fontHeight)
+    {
+        const juce::String commonCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~ ";
+
+        using FontKey = std::pair<juce::String, int>;
+
+        // Static map to cache the average widths for "font & size" key
+        static std::map<FontKey, int> cachedAverageWidths;
+        FontKey key = { getCurrentFont().toString(), fontHeight };
+
+        if (cachedAverageWidths.find(key) != cachedAverageWidths.end())
+        {
+            return cachedAverageWidths[key];
+        }
+
+        // Measure the width of each character
+        float totalWidth = 0.0f;
+        for (auto wideChar : commonCharacters){
+            totalWidth += getCurrentFont().withHeight(fontHeight).getStringWidthFloat(String::charToString(wideChar));
+        }
+        float averageWidth = totalWidth / commonCharacters.length();
+        cachedAverageWidths[key] = averageWidth;
+
+        return averageWidth;
+    }
+
     static void drawIcon(Graphics& g, String const& icon, int x, int y, int size, Colour colour, int fontHeight = -1, bool centred = true)
     {
         drawIcon(g, icon, { x, y, size, size }, colour, fontHeight, centred);

@@ -15,6 +15,7 @@ public:
     hash32 layoutTextHash = 0;
     int lastTextWidth = 0;
     int32 lastColourARGB = 0;
+    Font lastTextFont;
     
     OpenFileObject(pd::WeakReference ptr, Object* object)
         : TextBase(ptr, object)
@@ -94,11 +95,12 @@ public:
         
         auto mouseIsOver = isMouseOver();
         
-        int textWidth = getTextObjectWidth() - 14; // Reserve a bit of extra space for the text margin
-        auto currentLayoutHash = hash(objText);
-        auto colour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
+        const int textWidth = getTextObjectWidth() - 14; // Reserve a bit of extra space for the text margin
+        const auto currentLayoutHash = hash(objText);
+        const auto colour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
+        const auto font = Fonts::getCurrentFont();
         
-        if(layoutTextHash != currentLayoutHash || colour.getARGB() != lastColourARGB || textWidth != lastTextWidth || mouseIsOver != mouseWasOver)
+        if(layoutTextHash != currentLayoutHash || colour.getARGB() != lastColourARGB || textWidth != lastTextWidth || mouseIsOver != mouseWasOver || font != lastTextFont)
         {
             bool locked = getValue<bool>(object->locked) || getValue<bool>(object->commandLocked);
             auto colour = LookAndFeel::getDefaultLookAndFeel().findColour((locked && mouseIsOver) ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::canvasTextColourId);
@@ -114,6 +116,7 @@ public:
             layoutTextHash = currentLayoutHash;
             lastColourARGB = colour.getARGB();
             lastTextWidth = textWidth;
+            lastTextFont = font;
         }
     }
     

@@ -43,12 +43,12 @@ public:
     bool prepareLayout(String const& text, Font const& font, Colour const& colour, int const width, int const cachedWidth)
     {
         auto textHash = hash(text);
-        bool needsUpdate = lastTextHash != textHash || colour != lastColour || cachedWidth != lastWidth;
+        bool needsUpdate = lastTextHash != textHash || colour != lastColour || cachedWidth != lastWidth || font != lastFont;
         if(needsUpdate) {
             auto attributedText = AttributedString(text);
             attributedText.setColour(colour);
             attributedText.setJustification(Justification::centredLeft);
-            attributedText.setFont(Font(15));
+            attributedText.setFont(font);
             
             layout = TextLayout();
             layout.createLayout(attributedText, width);
@@ -58,6 +58,7 @@ public:
             
             lastTextHash = textHash;
             lastColour = colour;
+            lastFont = font;
             updateImage = true;
         }
         
@@ -122,6 +123,7 @@ private:
     hash32 lastTextHash;
     float lastScale = 1.0f;
     Colour lastColour;
+    Font lastFont;
     int lastWidth = 0;
     int idealWidth = 0, idealHeight = 0;
     Rectangle<int> lastRenderBounds;

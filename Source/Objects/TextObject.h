@@ -121,7 +121,7 @@ struct TextObjectHelper {
         Array<int> glyphs;
         Array<float> xOffsets;
 
-        auto font = Font(fontSize);
+        auto font = Fonts::getCurrentFont().withHeight(fontSize);
         font.getGlyphPositions(text.trimCharactersAtEnd(";\n"), glyphs, xOffsets);
 
         wchar_t lastChar;
@@ -141,7 +141,7 @@ struct TextObjectHelper {
     static TextEditor* createTextEditor(Object* object, int fontHeight)
     {
         auto* editor = new TextEditor;
-        editor->applyFontToAllText(Font(fontHeight));
+        editor->applyFontToAllText(Fonts::getCurrentFont().withHeight(fontHeight));
 
         object->copyAllExplicitColoursTo(*editor);
         editor->setColour(TextEditor::textColourId, LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
@@ -212,6 +212,7 @@ public:
         ioletAreaColour = convertColour(object->findColour(PlugDataColour::ioletAreaColourId));
 
         updateTextLayout();
+        object->updateBounds();
     }
     
     void render(NVGcontext* nvg) override
@@ -321,7 +322,7 @@ public:
         int charWidth = 0;
         if (auto obj = ptr.get<void>()) {
             charWidth = TextObjectHelper::getWidthInChars(obj.get());
-            fontWidth = glist_fontwidth(cnv->patch.getPointer().get());
+            fontWidth = Fonts::getAverageFontWidth(15);
         }
         
         auto textSize = cachedTextRender.getTextBounds();
@@ -358,7 +359,7 @@ public:
         
         auto colour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
         int textWidth = getTextSize().getWidth() - 11;
-        if(cachedTextRender.prepareLayout(objText, Fonts::getDefaultFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty)))
+        if(cachedTextRender.prepareLayout(objText, Fonts::getCurrentFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty)))
         {
             repaint();
         }

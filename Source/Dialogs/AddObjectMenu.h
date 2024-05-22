@@ -512,6 +512,7 @@ public:
                 list.showCategory(cName);
                 resized();
             };
+            button->setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
             button->setClickingTogglesState(true);
             button->setRadioGroupId(hash("add_menu_category"));
             button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));

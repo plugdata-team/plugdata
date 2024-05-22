@@ -377,7 +377,7 @@ void PlugDataLook::drawButtonText(Graphics& g, TextButton& button, bool isMouseO
 
 Font PlugDataLook::getTextButtonFont(TextButton& but, int buttonHeight)
 {
-    return { buttonHeight / 1.7f };
+    return Fonts::getCurrentFont();
 }
 
 void PlugDataLook::drawLinearSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, Slider::SliderStyle const style, Slider& slider)
