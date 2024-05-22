@@ -22,8 +22,6 @@ public:
             checkHvccCompatibility(getText(), subpatch.get());
         }
 
-        setIsSubpatch();
-
         objectParameters.addParamBool("Is graph", cGeneral, &isGraphChild, { "No", "Yes" });
 
         // There is a possibility that a donecanvasdialog message is sent inbetween the initialisation in pd and the initialisation of the plugdata object, making it possible to miss this message. This especially tends to happen if the messagebox is connected to a loadbang.
@@ -41,7 +39,16 @@ public:
         object->hvccMode.removeListener(this);
         closeOpenedSubpatchers();
     }
-
+    void render(NVGcontext* nvg) override
+    {
+        TextBase::render(nvg);
+        
+        nvgBeginPath(nvg);
+        nvgCircle(nvg, 4, getHeight() * 0.5, 2);
+        nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour)));
+        nvgFill(nvg);
+    }
+    
     void update() override
     {
         isGraphChild = static_cast<bool>(subpatch->getPointer()->gl_isgraph);

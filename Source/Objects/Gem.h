@@ -267,6 +267,7 @@ void destroyGemWindow(WindowInfo& info) {
     if(auto* window = info.getWindow()) {
         GemCallOnMessageThread([window, &info](){
             window->removeFromDesktop();
+            window->openGLContext.detach();
             info.window.erase(window->instance);
             info.context.erase(window->instance);
             gemJUCEWindow[window->instance].reset(nullptr);

@@ -21,6 +21,8 @@ using namespace juce::gl;
 Iolet::Iolet(Object* parent, bool inlet)
     : NVGComponent(this)
     , object(parent)
+    , isSignal(false)
+    , isGemState(false)
     , insideGraph(parent->cnv->isGraph)
 {
     isInlet = inlet;
