@@ -522,7 +522,7 @@ void Canvas::renderAllConnections(NVGcontext* nvg, Rectangle<int> area)
     for(auto* connection : connections)
     {
         nvgSave(nvg);
-        if(connection->intersectsRectangle(area)) {
+        if(connection->intersectsRectangle(area) && connection->isVisible()) {
             connection->render(nvg);
             if (showConnectionOrder)
                 connectionsToDraw.add(connection);
