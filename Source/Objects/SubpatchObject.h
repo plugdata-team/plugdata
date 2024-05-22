@@ -87,7 +87,10 @@ public:
 
     void valueChanged(Value& v) override
     {
-        if (v.refersToSameSourceAs(isGraphChild)) {
+        if (v.refersToSameSourceAs(sizeProperty)){
+            // forward the value change to the text object
+            TextBase::valueChanged(v);
+        } else if (v.refersToSameSourceAs(isGraphChild)) {
             int isGraph = getValue<bool>(isGraphChild);
             if (auto glist = ptr.get<t_glist>()) {
                 canvas_setgraph(glist.get(), isGraph + 2 * glist->gl_hidetext, 0);
@@ -139,7 +142,7 @@ public:
 
     bool showParametersWhenSelected() override
     {
-        return true;
+        return cnv->isGraph;
     }
 
     static void checkHvccCompatibility(String const& objectText, pd::Patch::Ptr patch, String const& prefix = "")

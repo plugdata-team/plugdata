@@ -95,6 +95,11 @@ public:
         }
     }
 
+    static Rectangle<int> getPDSize(t_my_canvas* cnvObj)
+    {
+        return Rectangle<int>(0, 0, cnvObj->x_vis_w + 1, cnvObj->x_vis_h + 1);
+    }
+
     Rectangle<int> getPdBounds() override
     {
         if (auto canvas = ptr.get<t_my_canvas>()) {
@@ -104,8 +109,9 @@ public:
 
             int x = 0, y = 0, w = 0, h = 0;
             pd::Interface::getObjectBounds(patch, canvas.cast<t_gobj>(), &x, &y, &w, &h);
+            const auto pdSize = getPDSize(ptr.get<t_my_canvas>().get());
 
-            return Rectangle<int>(x, y, ptr.get<t_my_canvas>()->x_vis_w + 1, ptr.get<t_my_canvas>()->x_vis_h + 1);
+            return Rectangle<int>(x, y, pdSize.getWidth(), pdSize.getHeight());
         }
 
         return {};

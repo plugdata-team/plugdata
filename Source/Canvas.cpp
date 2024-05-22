@@ -514,13 +514,28 @@ void Canvas::renderAllObjects(NVGcontext* nvg, Rectangle<int> area)
 }
 void Canvas::renderAllConnections(NVGcontext* nvg, Rectangle<int> area)
 {
+    if (! connectionLayer.isVisible())
+        return;
+
+    Array<Connection*> connectionsToDraw;
+
     for(auto* connection : connections)
     {
         nvgSave(nvg);
-        if(connection->intersectsRectangle(area) && connection->isVisible()) {
+        if(connection->intersectsRectangle(area)) {
             connection->render(nvg);
+            if (showConnectionOrder)
+                connectionsToDraw.add(connection);
         }
         nvgRestore(nvg);
+    }
+    if (!connectionsToDraw.isEmpty()){
+        for (auto* connection : connectionsToDraw)
+        {
+            nvgSave(nvg);
+            connection->renderConnectionOrder(nvg);
+            nvgRestore(nvg);
+        }
     }
 }
 
@@ -575,6 +590,7 @@ void Canvas::updateOverlays()
 
     showBorder = overlayState & Border;
     showOrigin = overlayState & Origin;
+    showConnectionOrder = overlayState & Order;
     connectionsBehind = overlayState & Behind;
 
     orderConnections();

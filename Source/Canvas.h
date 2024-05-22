@@ -205,6 +205,7 @@ public:
 
     bool showOrigin = false;
     bool showBorder = false;
+    bool showConnectionOrder = false;
     bool connectionsBehind = true;
     
     bool isScrolling = false;

@@ -11,6 +11,13 @@
 
 #include "Pd/Interface.h"
 #include "Pd/Patch.h"
+#include "Objects/AllGuis.h"
+#include <g_all_guis.h>
+
+#include "Objects/ObjectBase.h"
+#include "PluginProcessor.h"
+#include "Objects/IEMHelper.h"
+#include "Objects/CanvasObject.h"
 
 OfflineObjectRenderer::OfflineObjectRenderer(pd::Instance* instance)
     : pd(instance)
@@ -89,11 +96,151 @@ ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, flo
     auto object = offlineCnv->gl_list;
     while (object) {
         pd::Interface::getObjectBounds(offlineCnv, object, &obj_x, &obj_y, &obj_w, &obj_h);
+
+        obj_w = obj_w + 1;
+        obj_h = obj_h + 1;
+
+        auto const padding = 5;
+
         auto* objectPtr = pd::Interface::checkObject(object);
-        auto maxIolets = jmax<int>(pd::Interface::numOutlets(objectPtr), pd::Interface::numInlets(objectPtr));
-        // ALEX TODO: fix this heuristic, it doesn't work well for everything
-        auto maxSize = jmax<int>(maxIolets * 18, obj_w);
-        rect.setBounds(obj_x, obj_y, maxSize, obj_h);
+
+        char *objectText;
+        int len;
+        pd::Interface::getObjectText(objectPtr, &objectText, &len);
+        const auto objectTextString = String::fromUTF8(objectText, len);
+
+        String type = String::fromUTF8(pd::Interface::getObjectClassName(&object->g_pd));
+        const auto typeHash = hash(type);
+
+        switch(typeHash){
+            case hash("bng"):
+            case hash("hsl"):
+            case hash("vsl"):
+            case hash("slider"):
+            case hash("tgl"):
+            case hash("nbx"):
+            case hash("numbox~"):
+            case hash("vradio"):
+            case hash("hradio"):
+            case hash("vu"):
+            case hash("pic"):
+            case hash("keyboard"):
+            case hash("scope~"):
+            case hash("function"):
+            case hash("knob"):
+            case hash("gatom"):
+            case hash("button"):
+            case hash("graph"):
+            case hash("bicoeff"):
+            case hash("messbox"):
+            case hash("pad"):
+            {
+                // use the bounds obtained from pd::Interface::getObjectBounds()
+                break;
+            }
+            case hash("note"):
+            {
+                auto noteObject = (t_fake_note*)object;
+
+                // if note object isn't init, initialize because text buf will be empty
+                if (noteObject->x_init == 0) {
+                    auto notePtr = (t_pd*)object;
+                    (*notePtr)->c_wb->w_visfn((t_gobj*)noteObject, offlineCnv, 1);
+                }
+                obj_w = noteObject->x_max_pixwidth;
+                auto const noteText = String::fromUTF8(noteObject->x_buf, noteObject->x_bufsize).trim().replace("\\,", ",").replace("\\;", ";");
+                auto const fontName = String::fromUTF8(noteObject->x_fontname->s_name);
+                auto const fontSize = noteObject->x_fontsize;
+
+                Font fontMetrics;
+
+                if (fontName.isEmpty() || fontName == "Inter") {
+                    fontMetrics = Fonts::getVariableFont().withStyle(Font::plain).withHeight(fontSize);
+                }
+                else {
+                    fontMetrics = Font(fontName, fontSize, Font::plain);
+                }
+
+                int lineLength = 0;
+                int lineChars = 0;
+                int lineCount = 1;
+                int charIndex = 0;
+
+                const auto objReducedPadding = obj_w - 3;
+
+                while (charIndex < noteText.length()){
+                    auto charLength = fontMetrics.getStringWidth(noteText.substring(charIndex, charIndex + 1));
+                    lineLength += charLength;
+                    lineChars++;
+                    if (lineLength > objReducedPadding) {
+                        if (lineChars == 1) {
+                            charIndex++;
+                        }
+                        lineCount++;
+                        lineLength = 0;
+                        lineChars = 0;
+                    } else {
+                        charIndex++;
+                    }
+                }
+                obj_h = lineCount * fontMetrics.getHeight();
+                break;
+            }
+            case hash("canvas"):
+            {
+                if (((t_canvas*)object)->gl_isgraph == 1) {
+                    break;
+                }
+                StringArray lines;
+                lines.addTokens(objectTextString, ";", "");
+                auto charWidth = objectPtr->te_width;
+                obj_w = jmax<int>(Font(16).getStringWidth(objectTextString), charWidth * 7);
+                obj_h = jmax<int>(20, 20 * lines.size());
+                break;
+            }
+            case hash("cnv"): {
+                // example of how we could get the size from the objects themselves via static function
+                // in which case we would get the whole bounds
+                // this way all object dimension calculations would be in the same place
+                auto const cnvBounds = CanvasObject::getPDSize((t_my_canvas*)object);
+                obj_w = cnvBounds.getWidth();
+                obj_h = cnvBounds.getHeight();
+                break;
+            }
+            case hash("message"):
+            case hash("comment"):
+            case hash("text"): {
+                StringArray lines;
+                lines.addTokens(objectTextString, ";", "");
+                auto charWidth = objectPtr->te_width;
+                // charWidth of 0 == auto width, which means we need to calculate the width manually
+                obj_w = jmax<int>(Font(15).getStringWidth(objectTextString), charWidth * 7) + padding;
+                obj_h = 20 * jmax<int>(1, lines.size());
+
+                if ((typeHash == hash("message")) || (((t_fake_text_define *) object)->x_textbuf.b_ob.te_type == T_OBJECT)) {
+                    if (objectPtr->te_width == 0) {
+                        obj_w = jmax<int>(42, Font(15).getStringWidth(objectTextString) + padding);
+                    } else {
+                        obj_w = (objectPtr->te_width * 7) + padding;
+                    }
+                }
+                break;
+            }
+            default:
+            {
+                obj_h = 20;
+                if (objectPtr->te_width == 0) {
+                    obj_w = Font(15).getStringWidth(objectTextString) + padding;
+                } else {
+                    obj_w = (objectPtr->te_width * 7);
+                }
+                auto maxIolets = jmax<int>(pd::Interface::numOutlets(objectPtr), pd::Interface::numInlets(objectPtr));
+                obj_w = jmax<int>((maxIolets * 18) + padding, obj_w);
+                break;
+            }
+        }
+
+        rect.setBounds(obj_x, obj_y, obj_w, obj_h);
 
         // put the object bounds into the rect list, and also calculate the total size of all objects
         objectRects.add(rect);
