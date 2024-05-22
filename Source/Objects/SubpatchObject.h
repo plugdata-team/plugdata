@@ -22,6 +22,8 @@ public:
             checkHvccCompatibility(getText(), subpatch.get());
         }
 
+        setIsSubpatch();
+
         objectParameters.addParamBool("Is graph", cGeneral, &isGraphChild, { "No", "Yes" });
 
         // There is a possibility that a donecanvasdialog message is sent inbetween the initialisation in pd and the initialisation of the plugdata object, making it possible to miss this message. This especially tends to happen if the messagebox is connected to a loadbang.
