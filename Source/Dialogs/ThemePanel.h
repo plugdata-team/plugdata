@@ -569,7 +569,7 @@ public:
                 if (v.refersToSameSourceAs(swatches[themeName][colourName])) {
                     theme.setProperty(colourName, v.toString(), nullptr);
                     pd->setTheme(PlugDataLook::currentTheme, true);
-                    sendLookAndFeelChange();
+                    pd->updateAllEditorsLNF();
                     return;
                 }
             }
@@ -617,6 +617,6 @@ public:
         
         updateSwatches();
         pd->setTheme(PlugDataLook::selectedThemes[0], true);
-        sendLookAndFeelChange();
+        pd->updateAllEditorsLNF();
     }
 };

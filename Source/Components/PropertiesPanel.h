@@ -610,6 +610,7 @@ public:
             hexValueEditor.setInputRestrictions(7, "#0123456789ABCDEFabcdef");
             hexValueEditor.setColour(outlineColourId, Colour());
             hexValueEditor.setJustification(Justification::centred);
+            hexValueEditor.setFont(Fonts::getCurrentFont());
 
             hexValueEditor.onReturnKey = [this]() {
                 grabKeyboardFocus();
@@ -640,6 +641,7 @@ public:
         {
             // TextEditor is special, setColour() will only change newly typed text colour
             hexValueEditor.applyColourToAllText(findColour(PlugDataColour::panelTextColourId));
+            hexValueEditor.applyFontToAllText(Fonts::getCurrentFont());
         }
 
         PropertiesPanelProperty* createCopy() override
@@ -810,7 +812,7 @@ public:
                 label = std::make_unique<Label>();
                 label->setEditable(true, false);
                 label->getTextValue().referTo(property);
-                label->setFont(Font(14));
+                label->setFont(Fonts::getCurrentFont().withHeight(14));
 
                 label->onEditorShow = [this]() {
                     auto* editor = label->getCurrentTextEditor();
@@ -826,6 +828,11 @@ public:
             addAndMakeVisible(label.get());
 
             label->addMouseListener(this, true);
+        }
+
+        void lookAndFeelChanged() override
+        {
+            label->setFont(Fonts::getCurrentFont().withHeight(14));
         }
 
         PropertiesPanelProperty* createCopy() override
