@@ -88,6 +88,7 @@ void ResizableTabbedComponent::itemDropped(SourceDetails const& dragSourceDetail
                     }
                 }
                 moveToSplit(this, tabCanvas);
+                getTabComponent()->setCanvasActive(tabCanvas);
                 break;
             }
             default:
