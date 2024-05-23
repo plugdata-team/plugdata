@@ -55,29 +55,44 @@ void ResizableTabbedComponent::itemDropped(SourceDetails const& dragSourceDetail
 
     if (dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
         switch (activeZone) {
-        case DropZones::Right:
-            splitMode = Split::SplitMode::Horizontal;
-            moveTabToNewSplit(dragSourceDetails);
-            break;
-        case DropZones::Left:
-            splitMode = Split::SplitMode::Horizontal;
-            moveTabToNewSplit(dragSourceDetails);
-            break;
-        case DropZones::Top:
-            moveTabToNewSplit(dragSourceDetails);
-            // splitMode = Split::SplitMode::Vertical;
-            break;
-        case DropZones::Bottom:
-            moveTabToNewSplit(dragSourceDetails);
-            // splitMode = Split::SplitMode::Vertical;
-            break;
-        case DropZones::TabBar:
-            splitMode = Split::SplitMode::None;
-            break;
-        case DropZones::Centre:
-            moveTabToNewSplit(dragSourceDetails);
-            break;
-        }
+            case DropZones::Right:
+                splitMode = Split::SplitMode::Horizontal;
+                moveTabToNewSplit(dragSourceDetails);
+                break;
+            case DropZones::Left:
+                splitMode = Split::SplitMode::Horizontal;
+                moveTabToNewSplit(dragSourceDetails);
+                break;
+            case DropZones::Top:
+                moveTabToNewSplit(dragSourceDetails);
+                // splitMode = Split::SplitMode::Vertical;
+                break;
+            case DropZones::Bottom:
+                moveTabToNewSplit(dragSourceDetails);
+                // splitMode = Split::SplitMode::Vertical;
+                break;
+            case DropZones::TabBar:
+                splitMode = Split::SplitMode::None;
+                break;
+            case DropZones::Centre:
+            {
+                auto *sourceTabButton = dynamic_cast<TabBarButtonComponent *>(dragSourceDetails.sourceComponent.get());
+                auto tabCanvas = sourceTabButton->getTabComponent()->getCurrentCanvas();
+
+                if (sourceTabButton->getTabComponent()->getNumTabs() < 2) {
+                    tabCanvas->editor->splitView.setFocus(this);
+                    tabCanvas->editor->splitView.removeSplit(sourceTabButton->getTabComponent());
+                    tabCanvas->editor->splitView.resized();
+                    for (auto *split: editor->splitView.splits) {
+                        split->setBoundsWithFactors(getParentComponent()->getLocalBounds());
+                    }
+                }
+                moveToSplit(this, tabCanvas);
+                break;
+            }
+            default:
+                break;
+            }
     } else if (dynamic_cast<ObjectDragAndDrop*>(dragSourceDetails.sourceComponent.get())) {
         if (!tabComponent)
             return;
