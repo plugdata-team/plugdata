@@ -484,6 +484,13 @@ void TabComponent::setCurrentTabIndex(int idx)
     }
 }
 
+void TabComponent::setCanvasActive(Canvas* cnv)
+{
+    auto cnvIdx = getIndexOfCanvas(cnv);
+    if (cnvIdx != -1)
+        setCurrentTabIndex(cnvIdx);
+}
+
 int TabComponent::getNumVisibleTabs()
 {
     int numVisibleTabs = 0;
