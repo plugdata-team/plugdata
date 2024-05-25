@@ -188,6 +188,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     undoButton.setButtonText(Icons::Undo);
     redoButton.setButtonText(Icons::Redo);
     pluginModeButton.setButtonText(Icons::PluginMode);
+    pureModeButton.setButtonText(Icons::GlyphCanvas);
 
     editButton.setButtonText(Icons::Edit);
     runButton.setButtonText(Icons::Lock);
@@ -249,6 +250,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
                  &addObjectMenuButton,
 #if !JUCE_IOS
                  &pluginModeButton,
+                 &pureModeButton,
 #endif
          }) {
         addAndMakeVisible(button);
@@ -315,6 +317,14 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     pluginModeButton.onClick = [this]() {
         if (auto* cnv = getCurrentCanvas()) {
             enablePluginMode(cnv);
+        }
+    };
+    
+    pureModeButton.setTooltip("Toggle pure mode");
+    pureModeButton.setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
+    pureModeButton.onClick = [this]() {
+        if (auto* cnv = getCurrentCanvas()) {
+            enablePureMode(cnv);
         }
     };
 
@@ -501,10 +511,47 @@ DragAndDropTarget* PluginEditor::findNextDragAndDropTarget(Point<int> screenPos)
 
 void PluginEditor::resized()
 {
-    if (pluginMode && pd->isInPluginMode()) {
-        nvgSurface.updateBounds(getLocalBounds().withTrimmedTop(pluginMode->isWindowFullscreen() ? 0 : 40));
-        return;
+    auto paletteWidth = palettes->isExpanded() ? palettes->getWidth() : 30;
+
+    if (isPureMode) {
+        sidebar->setVisible(false);
+        statusbar->setVisible(false);
+        paletteWidth = 0;
+    } else {
+        sidebar->setVisible(true);
+        statusbar->setVisible(true);
+        if (!palettes->isVisible())
+            paletteWidth = 0;
     }
+
+    auto sidebarWidth = sidebar->isVisible() ? sidebar->getWidth() : 0;
+    auto statusbarHeight = statusbar->isVisible() ? Statusbar::statusbarHeight : 0;
+
+    // calculate bar measures dependent on mode
+    auto updateCommonBounds = [&](int topOffset) {
+        callOutSafeArea.setBounds(0, toolbarHeight, getWidth(), getHeight() - toolbarHeight - 30);
+        auto workAreaHeight = getHeight() - toolbarHeight - statusbarHeight;
+        auto workArea = Rectangle<int>(paletteWidth, toolbarHeight, getWidth() - sidebarWidth - paletteWidth, workAreaHeight);
+
+        splitView.setBounds(workArea);
+        nvgSurface.updateBounds(workArea.withTrimmedTop(topOffset));
+
+        if (sidebar->isVisible()) {
+            sidebar->setBounds(getWidth() - sidebarWidth, toolbarHeight, sidebarWidth, workAreaHeight);
+        }
+
+        if (statusbar->isVisible()) {
+            statusbar->setBounds(0, getHeight() - statusbarHeight, getWidth(), statusbarHeight);
+        }
+
+        palettes->setBounds(0, toolbarHeight, paletteWidth, workAreaHeight);
+    };
+
+    if (pluginMode && pd->isInPluginMode()) {
+        updateCommonBounds(pluginMode->isWindowFullscreen() ? 0 : 40);
+        return;
+    } else
+        updateCommonBounds(31);
 
 #if JUCE_IOS
     if (auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent())) {
@@ -514,24 +561,6 @@ void PluginEditor::resized()
         OSUtils::ScrollTracker::create(peer);
     }
 #endif
-
-    auto paletteWidth = palettes->isExpanded() ? palettes->getWidth() : 30;
-    if (!palettes->isVisible())
-        paletteWidth = 0;
-
-    callOutSafeArea.setBounds(0, toolbarHeight, getWidth(), getHeight() - toolbarHeight - 30);
-
-    statusbar->setBounds(0, getHeight() - Statusbar::statusbarHeight, getWidth(), statusbar->getHeight());
-
-    auto workAreaHeight = getHeight() - toolbarHeight - statusbar->getHeight();
-
-    palettes->setBounds(0, toolbarHeight, palettes->getWidth(), workAreaHeight);
-    
-    auto workArea = Rectangle<int>(paletteWidth, toolbarHeight, (getWidth() - sidebar->getWidth() - paletteWidth), workAreaHeight);
-    splitView.setBounds(workArea);
-    nvgSurface.updateBounds(workArea.withTrimmedTop(31));
-    
-    sidebar->setBounds(getWidth() - sidebar->getWidth(), toolbarHeight, sidebar->getWidth(), workAreaHeight);
 
     auto useLeftButtons = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");
     auto useNonNativeTitlebar = ProjectInfo::isStandalone && !SettingsFile::getInstance()->getProperty<bool>("native_window");
@@ -546,11 +575,11 @@ void PluginEditor::resized()
 
     zoomLabel->setBounds(paletteWidth + 6, getHeight() - Statusbar::statusbarHeight - 32, 55, 23);
 
-    int buttonDisctance = 56;
+    int buttonDistance = 56;
     mainMenuButton.setBounds(offset, 0, toolbarHeight, toolbarHeight);
-    undoButton.setBounds(buttonDisctance + offset, 0, toolbarHeight, toolbarHeight);
-    redoButton.setBounds((2 * buttonDisctance) + offset, 0, toolbarHeight, toolbarHeight);
-    addObjectMenuButton.setBounds((3 * buttonDisctance) + offset, 0, toolbarHeight, toolbarHeight);
+    undoButton.setBounds(buttonDistance + offset, 0, toolbarHeight, toolbarHeight);
+    redoButton.setBounds((2 * buttonDistance) + offset, 0, toolbarHeight, toolbarHeight);
+    addObjectMenuButton.setBounds((3 * buttonDistance) + offset, 0, toolbarHeight, toolbarHeight);
 
     auto startX = (getWidth() / 2) - (toolbarHeight * 1.5);
 
@@ -570,6 +599,7 @@ void PluginEditor::resized()
     }
 
     pluginModeButton.setBounds(getWidth() - windowControlsOffset, 0, toolbarHeight, toolbarHeight);
+    pureModeButton.setBounds(getWidth() - windowControlsOffset - 40, 0, toolbarHeight, toolbarHeight);
 
     pd->lastUIWidth = getWidth();
     pd->lastUIHeight = getHeight();
@@ -1075,6 +1105,7 @@ void PluginEditor::handleAsyncUpdate()
         commandManager.commandStatusChanged();
 
         pluginModeButton.setEnabled(true);
+        pureModeButton.setEnabled(true);
 
         editButton.setEnabled(true);
         runButton.setEnabled(true);
@@ -1087,6 +1118,7 @@ void PluginEditor::handleAsyncUpdate()
     } else {
 
         pluginModeButton.setEnabled(false);
+        pureModeButton.setEnabled(false);
 
         editButton.setEnabled(false);
         runButton.setEnabled(false);
@@ -1863,6 +1895,12 @@ void PluginEditor::enablePluginMode(Canvas* cnv)
         pluginMode = std::make_unique<PluginMode>(cnv);
         resized();
     }
+}
+
+void PluginEditor::enablePureMode(Canvas* cnv)
+{
+    isPureMode = !isPureMode;
+    resized();
 }
 
 // At the top-level, always catch all keypresses

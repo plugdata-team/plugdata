@@ -142,6 +142,7 @@ public:
     CallOutBox& showCalloutBox(std::unique_ptr<Component> content, Rectangle<int> screenBounds);
 
     void enablePluginMode(Canvas* cnv);
+    void enablePureMode(Canvas* cnv);
 
     void commandKeyChanged(bool isHeld) override;
     void setZoomLabelLevel(float value);
@@ -203,8 +204,9 @@ private:
     WindowDragger windowDragger;
 
     int const toolbarHeight = ProjectInfo::isStandalone ? 40 : 35;
+    bool isPureMode = false;
 
-    MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pluginModeButton;
+    MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pluginModeButton, pureModeButton;
     ToolbarRadioButton editButton, runButton, presentButton;
 
     CheckedTooltip tooltipWindow;
