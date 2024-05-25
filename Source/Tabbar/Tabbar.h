@@ -74,6 +74,7 @@ public:
     Component* getCurrentContentComponent() const noexcept { return panelComponent.get(); }
     int getCurrentTabIndex();
     void setCurrentTabIndex(int idx);
+    void setCanvasActive(Canvas* cnv);
     int getNumTabs() const noexcept { return tabs->getNumTabs(); }
     int getNumVisibleTabs();
     void removeTab(int idx);
