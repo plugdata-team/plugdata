@@ -873,8 +873,6 @@ void Statusbar::resized()
     levelMeter->setBounds(levelMeterPosition, 2, 120, getHeight() - 4);
     volumeSlider->setBounds(levelMeterPosition, 2, 120, getHeight() - 4);
 
-    secondSeparatorPosition = position(2, true) + 4; // Third seperator
-
     // Hide these if there isn't enough space
     midiBlinker->setVisible(getWidth() > 500);
     cpuMeter->setVisible(getWidth() > 500);
