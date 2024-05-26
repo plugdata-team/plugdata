@@ -107,21 +107,10 @@ Sidebar::~Sidebar()
 
 void Sidebar::paint(Graphics& g)
 {
-    // Sidebar
-    g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
-    g.fillRect(0, 30, getWidth(), getHeight());
-
-    auto toolbarColour = findColour(PlugDataColour::toolbarBackgroundColourId);
-    if (ProjectInfo::isStandalone && !editor->isActiveWindow()) {
-        toolbarColour = toolbarColour.brighter(toolbarColour.getBrightness() / 2.5f);
-    }
-
-    // Background for buttons
-    g.setColour(toolbarColour);
-    g.fillRect(getWidth() - 30, 0, 30, getHeight());
-    g.fillRect(0, 0, getWidth() - 30, 30);
-
     if (!sidebarHidden) {
+        g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
+        g.fillRect(0, 30, getWidth(), getHeight());
+        
         if (inspector->isVisible()) {
             Fonts::drawStyledText(g, "Inspector: " + inspector->getTitle(), Rectangle<int>(0, 0, getWidth() - 30, 30), findColour(PlugDataColour::toolbarTextColourId), RegularBoldened, 15, Justification::centred);
         } else {
@@ -133,9 +122,13 @@ void Sidebar::paint(Graphics& g)
 void Sidebar::paintOverChildren(Graphics& g)
 {
     g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-    g.drawLine(getWidth() - 30, 0, getWidth() - 30, getHeight());
-    g.drawLine(0.5f, 0, 0.5f, getHeight() + 0.5f);
-    g.drawLine(0, 30, getWidth() - 30, 30);
+    g.drawLine(0.5f, 30, 0.5f, getHeight() + 0.5f);
+    if(!sidebarHidden) {
+        g.drawLine(0, 30, getWidth(), 30);
+        
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId).withAlpha(0.5f));
+        g.drawLine(getWidth() - 30, 30, getWidth() - 30, getHeight() + 0.5f);
+    }
 }
 
 void Sidebar::propertyChanged(String const& name, var const& value)
@@ -162,7 +155,7 @@ void Sidebar::resized()
     buttonBarBounds.removeFromTop(8);
     searchButton.setBounds(buttonBarBounds.removeFromTop(30));
 
-    auto panelTitleBarBounds = bounds.removeFromTop(30);
+    auto panelTitleBarBounds = bounds.removeFromTop(30).withTrimmedRight(-30);
 
     if (extraSettingsButton)
         extraSettingsButton->setBounds(panelTitleBarBounds.removeFromRight(30));
@@ -290,6 +283,7 @@ void Sidebar::showSidebar(bool show)
         lastWidth = getWidth();
         int newWidth = 30;
         setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
+        if(extraSettingsButton) extraSettingsButton->setVisible(false);
     } else {
         int newWidth = lastWidth;
         setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
@@ -297,6 +291,7 @@ void Sidebar::showSidebar(bool show)
         if (inspector->isVisible()) {
             inspector->showParameters();
         }
+        if(extraSettingsButton) extraSettingsButton->setVisible(true);
     }
 
     editor->resized();

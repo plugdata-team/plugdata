@@ -18,129 +18,193 @@
 
 class WelcomePanel : public Component {
 
-    class RecentlyOpenedListBox : public Component
-        , public SettingsFileListener
-        , public ListBoxModel {
+    class WelcomePanelTile : public Component
+    {
+        String tileName;
+        String tileSubtitle;
+        float snapshotScale;
+        bool isHovered = false;
+        std::unique_ptr<Drawable> snapshot = nullptr;
     public:
-        RecentlyOpenedListBox()
+        
+        std::function<void()> onClick = [](){};
+        
+        WelcomePanelTile(String name, String subtitle, String svgImage, Colour iconColour, float scale)
+        : tileName(name)
+        , tileSubtitle(subtitle)
+        , snapshotScale(scale)
         {
-            listBox.setRowHeight(26);
-            listBox.setModel(this);
-            update();
-
-            listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
-
-            addAndMakeVisible(listBox);
-
-            // To get a hover effect on viewport items
-            listBox.setMouseMoveSelectsRows(true);
-
-            bouncer = std::make_unique<BouncingViewportAttachment>(listBox.getViewport());
-        }
-
-        void settingsFileReloaded() override
-        {
-            update();
-        }
-
-        void update()
-        {
-            items.clear();
-
-            auto settingsTree = SettingsFile::getInstance()->getValueTree();
-            auto recentlyOpenedTree = settingsTree.getChildWithName("RecentlyOpened");
-            if (recentlyOpenedTree.isValid()) {
-                for (int i = 0; i < recentlyOpenedTree.getNumChildren(); i++) {
-                    auto path = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
-                    items.add({ path.getFileName(), path });
-                }
+            snapshot = Drawable::createFromImageData(svgImage.toRawUTF8(), svgImage.getNumBytesAsUTF8());
+            if(snapshot) {
+                snapshot->replaceColour (Colours::black, iconColour);
             }
-
-            listBox.updateContent();
+            
+            resized();
         }
-
-        std::function<void(File)> onPatchOpen = [](File) {};
-
-    private:
-        int getNumRows() override
-        {
-            return items.size();
-        }
-
-        void listBoxItemClicked(int row, MouseEvent const& e) override
-        {
-            onPatchOpen(items[row].second);
-        }
-
+        
         void paint(Graphics& g) override
         {
-            g.setColour(findColour(PlugDataColour::outlineColourId));
-            PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), Rectangle<float>(1, 32, getWidth() - 2, getHeight() - 32), Corners::defaultCornerRadius);
-
-            Fonts::drawStyledText(g, "Recently Opened", 0, 0, getWidth(), 30, findColour(PlugDataColour::panelTextColourId), Semibold, 15, Justification::centred);
+            auto bounds = getLocalBounds().reduced(12);
+            
+            Path tilePath;
+            tilePath.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::largeCornerRadius);
+            
+            StackShadow::renderDropShadow(g, tilePath, Colour(0, 0, 0).withAlpha(0.1f), 7, {0, 2});
+            g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
+            g.fillPath(tilePath);
+            
+            if(snapshot)  {
+                snapshot->drawAt(g, 0, 0, 1.0f);
+            }
+            
+            Path textAreaPath;
+            textAreaPath.addRoundedRectangle(bounds.getX(), bounds.getHeight() - 32, bounds.getWidth(), 44, Corners::largeCornerRadius, Corners::largeCornerRadius, false, false, true, true);
+        
+            auto hoverColour = findColour(PlugDataColour::toolbarHoverColourId).interpolatedWith(findColour(PlugDataColour::toolbarBackgroundColourId), 0.5f);
+            g.setColour(isHovered ? hoverColour : findColour(PlugDataColour::toolbarBackgroundColourId));
+            g.fillPath(textAreaPath);
+            
+            g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+            g.strokePath(tilePath, PathStrokeType(1.0f));
+            
+            Fonts::drawStyledText(g, tileName, bounds.getX() + 10, bounds.getHeight() - 30, bounds.getWidth() - 8, 24, findColour(PlugDataColour::panelTextColourId), Semibold, 14);
+            
+            g.setColour(findColour(PlugDataColour::panelTextColourId).withAlpha(0.75f));
+            g.setFont(Fonts::getCurrentFont().withHeight(13.5f));
+            g.drawText(tileSubtitle, bounds.getX() + 10, bounds.getHeight() - 10, bounds.getWidth() - 8, 16, Justification::centredLeft);
         }
-
-        void mouseExit(MouseEvent const& e) override
+        
+        void mouseEnter(const MouseEvent& e) override
         {
+            isHovered = true;
             repaint();
         }
-
+        
+        void mouseExit(const MouseEvent& e) override
+        {
+            isHovered = false;
+            repaint();
+        }
+        
+        void mouseUp(const MouseEvent& e) override
+        {
+            onClick();
+        }
+        
         void resized() override
         {
-            listBox.setBounds(getLocalBounds().withTrimmedTop(35));
-        }
-
-        void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
-        {
-            if (rowIsSelected && isMouseOver(true)) {
-                g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-                PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(5.5, 1.5, width - 9, height - 4), Corners::defaultCornerRadius);
+            if(snapshot) {
+                auto bounds = getLocalBounds().reduced(12).withTrimmedBottom(44);
+                snapshot->setTransformToFit(bounds.withSizeKeepingCentre(bounds.getWidth() * snapshotScale, bounds.getHeight() * snapshotScale).toFloat(), RectanglePlacement::centred);
             }
-
-            auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
-
-            Fonts::drawText(g, items[rowNumber].first, height + 4, 0, width - 4, height, colour, 14);
-            Fonts::drawIcon(g, Icons::File, 12, 0, height, colour, 12, false);
         }
-
-        std::unique_ptr<BouncingViewportAttachment> bouncer;
-        ListBox listBox;
-        Array<std::pair<String, File>> items;
     };
-
+    
 public:
     WelcomePanel()
-        : newButton(Icons::New, "New patch", "Create a new empty patch")
-        , openButton(Icons::Open, "Open patch...", "Open a saved patch")
-
     {
-        addAndMakeVisible(newButton);
-        addAndMakeVisible(openButton);
-    
-        // Opening files from recently opened list will likely fail,
-        // since the file browser is what grants us the permission to read/write files
-#if !JUCE_IOS
-        addAndMakeVisible(recentlyOpened);
-#endif
+        recentlyOpenedViewport.setViewedComponent(&recentlyOpenedComponent);
+        recentlyOpenedViewport.setScrollBarsShown(true, false, false, false);
+        recentlyOpenedComponent.setVisible(true);
+        addAndMakeVisible(recentlyOpenedViewport);
+        
+        // Update async to make sure silhouettes are available
+        MessageManager::callAsync([_this = SafePointer(this)](){
+            _this->update();
+        });
     }
 
     void resized() override
     {
-        if (getHeight() > 400) {
-            newButton.setBounds(getLocalBounds().withSizeKeepingCentre(275, 50).translated(0, -70));
-            openButton.setBounds(getLocalBounds().withSizeKeepingCentre(275, 50).translated(0, -10));
-            recentlyOpened.setBounds(getLocalBounds().withSizeKeepingCentre(275, 170).translated(0, 110));
-            recentlyOpened.setVisible(true);
-        } else {
-            newButton.setBounds(getLocalBounds().withSizeKeepingCentre(275, 50).translated(0, -20));
-            openButton.setBounds(getLocalBounds().withSizeKeepingCentre(275, 50).translated(0, 50));
-            recentlyOpened.setVisible(false);
+        auto bounds = getLocalBounds().reduced(24).withTrimmedTop(36);
+        auto rowBounds = bounds.removeFromTop(160);
+        
+        const int desiredTileWidth = 190;
+        const int tileSpacing = 4;
+
+        int totalWidth = bounds.getWidth();
+        // Calculate the number of columns that can fit in the total width
+        int numColumns = totalWidth / (desiredTileWidth + tileSpacing);
+        // Adjust the tile width to fit within the available width
+        int actualTileWidth = (totalWidth - (numColumns - 1) * tileSpacing) / numColumns;
+        
+        if(newPatchTile) newPatchTile->setBounds(rowBounds.removeFromLeft(actualTileWidth));
+        rowBounds.removeFromLeft(4);
+        if(openPatchTile) openPatchTile->setBounds(rowBounds.removeFromLeft(actualTileWidth));
+        
+        bounds.removeFromTop(16);
+        
+        recentlyOpenedViewport.setBounds(getLocalBounds().withTrimmedTop(260));
+
+        int numRows = (tiles.size() + numColumns - 1) / numColumns;
+        int totalHeight = numRows * 160;
+
+        auto scrollable = Rectangle<int>(24, 0, totalWidth + 24, totalHeight);
+        recentlyOpenedComponent.setBounds(scrollable);
+
+        // Start positioning the tiles
+        rowBounds = scrollable.removeFromTop(160);
+        for (auto* tile : tiles)
+        {
+            if (rowBounds.getWidth() < actualTileWidth) {
+                rowBounds = scrollable.removeFromTop(160);
+            }
+            tile->setBounds(rowBounds.removeFromLeft(actualTileWidth));
+            rowBounds.removeFromLeft(tileSpacing);
         }
+    }
+    
+    void update()
+    {
+        newPatchTile = std::make_unique<WelcomePanelTile>("New Patch", "Create a new empty patch", newIcon, findColour(PlugDataColour::panelTextColourId), 0.33f);
+        openPatchTile = std::make_unique<WelcomePanelTile>("Open Patch", "Browse for a patch to open", openIcon, findColour(PlugDataColour::panelTextColourId), 0.33f);
+        
+        newPatchTile->onClick = [this]() { newTab(); };
+        openPatchTile->onClick = [this](){ openPatch(); };
+        
+        addAndMakeVisible(*newPatchTile);
+        addAndMakeVisible(*openPatchTile);
+        
+        tiles.clear();
+
+        auto settingsTree = SettingsFile::getInstance()->getValueTree();
+        auto recentlyOpenedTree = settingsTree.getChildWithName("RecentlyOpened");
+        
+        auto snapshotColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f);
+        
+        if (recentlyOpenedTree.isValid()) {
+            for (int i = 0; i < recentlyOpenedTree.getNumChildren(); i++) {
+                auto path = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
+                auto silhoutteSvg = Autosave::findPatchSilhouette(path);
+                
+                if(silhoutteSvg.isEmpty() && path.existsAsFile())
+                {
+                    silhoutteSvg = OfflineObjectRenderer::patchToSVGFast(path.loadFileAsString());
+                }
+                
+                auto openTime = Time(static_cast<int64>(recentlyOpenedTree.getChild(i).getProperty("Time")));
+                auto diff = Time::getCurrentTime() - openTime;
+                String date;
+                if(diff.inDays() == 0) date = "Today";
+                else if(diff.inDays() == 1) date = "Yesterday";
+                else date = openTime.toString(true, false);
+                String time = openTime.toString(false, true, false, true);
+                String timeDescription = date + ", " + time;
+                
+                auto* tile = tiles.add(new WelcomePanelTile(path.getFileName(), timeDescription, silhoutteSvg, snapshotColour, 1.0f));
+                tile->onClick = [this, path](){
+                    onPatchOpen(path);
+                };
+                recentlyOpenedComponent.addAndMakeVisible(tile);
+            }
+        }
+
+        resized();
     }
 
     void show()
     {
-        recentlyOpened.update();
+        update();
         setVisible(true);
     }
 
@@ -148,21 +212,48 @@ public:
     {
         setVisible(false);
     }
-
+    
     void paint(Graphics& g) override
     {
-        auto offset = getHeight() > 400 ? 0 : 50;
         g.fillAll(findColour(PlugDataColour::panelBackgroundColourId));
 
-        Fonts::drawStyledText(g, "Welcome to plugdata", 0, getHeight() / 2 - 195 + offset, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
-
-        Fonts::drawStyledText(g, "Open a file to begin patching", 0, getHeight() / 2 - 160 + offset, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Thin, 23, Justification::centred);
+        Fonts::drawStyledText(g, "Welcome to plugdata", 32, 12, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 30, Justification::centredLeft);
+        //Fonts::drawStyledText(g, "Open a file to begin patching", 32, 42, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Thin, 23, Justification::centredLeft);
+        
+        Fonts::drawStyledText(g, "Recently opened", 32, 228, getWidth(), 32, findColour(PlugDataColour::panelTextColourId), Bold, 24, Justification::centredLeft);
     }
+    
+    void lookAndFeelChanged() override
+    {
+        update();
+    }
+    
+    std::function<void(File)> onPatchOpen = [](File){};
+    std::function<void()> newTab = [](){};
+    std::function<void()> openPatch = [](){};
+    
+    static inline const String newIcon = "<?xml version=\"1.0\" standalone=\"no\"?>\n"
+    "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\" >\n"
+    "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" version=\"1.1\" viewBox=\"-10 0 2058 2048\">\n"
+    "   <path fill=\"currentColor\"\n"
+    "d=\"M1024 170v512q0 72 50 122t120 50h512v852q0 72 -50 122t-120 50h-1024q-70 0 -120 -50.5t-50 -121.5v-1364q0 -72 50 -122t120 -50h512zM1151 213l512 512h-469q-16 0 -29.5 -12.5t-13.5 -30.5v-469z\" />\n"
+    "</svg>\n";
+    
+    static inline const String openIcon = "<?xml version=\"1.0\" standalone=\"no\"?>\n"
+    "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\" >\n"
+    "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" version=\"1.1\" viewBox=\"-10 0 2058 2048\">\n"
+    "   <path fill=\"currentColor\"\n"
+    "d=\"M1180 555h506q72 0 126 47t64 118v13l2 14v768q0 76 -52 131t-128 60h-12h-1324q-76 0 -131 -51.5t-59 -127.5l-2 -12v-620l530 2l17 -2q51 -4 92 -33l4 -3t6 -5l4 -2zM700 342q59 0 109 32l14 11l181 149l-263 219l-8 4q-10 8 -24 11h-9h-530v-236q0 -76 52 -131\n"
+    "t128 -59h12h338z\" />\n"
+    "</svg>\n";
 
-    WelcomePanelButton newButton;
-    WelcomePanelButton openButton;
-
-    RecentlyOpenedListBox recentlyOpened;
+    std::unique_ptr<WelcomePanelTile> newPatchTile;
+    std::unique_ptr<WelcomePanelTile> openPatchTile;
+    
+    Component recentlyOpenedComponent;
+    BouncingViewport recentlyOpenedViewport;
+    
+    OwnedArray<WelcomePanelTile> tiles;
 };
 
 class ButtonBar::GhostTab : public Component {
@@ -439,15 +530,15 @@ TabComponent::TabComponent(PluginEditor* parent)
     welcomePanel = std::make_unique<WelcomePanel>();
     addAndMakeVisible(welcomePanel.get());
 
-    welcomePanel->newButton.onClick = [this]() {
+    welcomePanel->newTab = [this]() {
         newTab();
     };
 
-    welcomePanel->openButton.onClick = [this]() {
+    welcomePanel->openPatch = [this]() {
         openProject();
     };
 
-    welcomePanel->recentlyOpened.onPatchOpen = [this](File patchFile) {
+    welcomePanel->onPatchOpen = [this](File patchFile) {
         openProjectFile(patchFile);
     };
 

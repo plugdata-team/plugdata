@@ -144,6 +144,7 @@ public:
     }
 };
 
+// TODO: only used for Heavy toolchain now. rename, and move it over there
 class WelcomePanelButton : public Component {
 
 public:

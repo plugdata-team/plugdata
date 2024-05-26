@@ -12,7 +12,7 @@ class Autosave : public Timer
     Value autosaveEnabled;
 
     PluginProcessor* pd;
-    moodycamel::ReaderWriterQueue<std::pair<String, String>> autoSaveQueue;
+    moodycamel::ReaderWriterQueue<std::tuple<String, String, void*>> autoSaveQueue;
 
 public:
     Autosave(PluginProcessor* procesor)
@@ -66,6 +66,18 @@ public:
             callback();
         }
     }
+        
+    static String findPatchSilhouette(File path)
+    {
+        auto entry = autoSaveTree.getChildWithProperty("Path", path.getFullPathName());
+        if (entry.isValid() && entry.hasProperty("Snapshot")) {
+            MemoryOutputStream ostream;
+            Base64::convertFromBase64(ostream, entry.getProperty("Snapshot").toString());
+            return String::fromUTF8(static_cast<const char*>(ostream.getData()), ostream.getDataSize());
+        }
+        
+        return {};
+    }
 
 private:
     void valueChanged(Value& v) override
@@ -104,7 +116,7 @@ private:
                         
                         // Simple way to filter out plugdata default patches which we don't want to save.
                         if (!isInternalPatch(patchFile)) {
-                            autoSaveQueue.enqueue({ patchFile.getFullPathName(), patch->getCanvasContent() });
+                            autoSaveQueue.enqueue({ patchFile.getFullPathName(), patch->getCanvasContent(), x});
                         }
                         
                         triggerAsyncUpdate();
@@ -121,11 +133,27 @@ private:
         return pathName.contains("Documents/plugdata/Abstractions") || pathName.contains("Documents/plugdata/Documentation") || pathName.contains("Documents/plugdata/Extra") || patch.getParentDirectory() == File::getSpecialLocation(File::tempDirectory);
     }
 
+
     void handleAsyncUpdate() override
     {
-        std::pair<String, String> pathAndContent;
+        std::tuple<String, String, void*> pathAndContent;
         while (autoSaveQueue.try_dequeue(pathAndContent)) {
-            auto& [path, content] = pathAndContent;
+            auto& [path, content, ptr] = pathAndContent;
+            
+            String patchSnapshot;
+            for(auto* editor : pd->getEditors())
+            {
+                for(auto* canvas : editor->canvases)
+                {
+                    auto& patch = canvas->patch;
+                    if(patch.getPointer().get() == ptr)
+                    {
+                        
+                        patchSnapshot = Base64::toBase64(canvas->generateSilhouetteSVG());
+                        break;
+                    }
+                }
+            }
 
             // Make sure we get current time in the correct format used by the OS for file modification time
             auto tempFile = File::createTempFile("temp_time_test");
@@ -138,11 +166,13 @@ private:
             if (existingPatch.isValid()) {
                 existingPatch.setProperty("Patch", Base64::toBase64(content), nullptr);
                 existingPatch.setProperty("LastModified", (int64)time, nullptr);
+                existingPatch.setProperty("Snapshot", patchSnapshot, nullptr);
             } else {
                 ValueTree newAutoSave = ValueTree("Save");
                 newAutoSave.setProperty("Path", path, nullptr);
                 newAutoSave.setProperty("Patch", Base64::toBase64(content), nullptr);
                 newAutoSave.setProperty("LastModified", (int64)time, nullptr);
+                newAutoSave.setProperty("Snapshot", patchSnapshot, nullptr);
                 autoSaveTree.addChild(newAutoSave, 0, nullptr);
 
                 if (autoSaveTree.getNumChildren() > 15) {

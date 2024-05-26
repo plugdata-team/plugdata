@@ -677,6 +677,9 @@ void Canvas::tabChanged()
 
         obj->gui->tabChanged();
     }
+    
+    editor->statusbar->updateZoomLevel();
+    editor->repaint(); // Make sure everything it up to date
 }
 
 int Canvas::getTabIndex()
@@ -1812,7 +1815,7 @@ void Canvas::alignObjects(Align alignment)
         }
         break;
     }
-    case Align::VCenter: {
+    case Align::VCentre: {
         auto centrePos = selectedBounds.getCentreX();
         for (auto* object : objects) {
             auto objectBounds = object->getBounds();
@@ -1835,7 +1838,7 @@ void Canvas::alignObjects(Align alignment)
         }
         break;
     }
-    case Align::HCenter: {
+    case Align::HCentre: {
         auto centerPos = selectedBounds.getCentreY();
         for (auto* object : objects) {
             auto objectBounds = object->getBounds();
@@ -1912,6 +1915,7 @@ void Canvas::valueChanged(Value& v)
 {
     // Update zoom
     if (v.refersToSameSourceAs(zoomScale)) {
+        editor->statusbar->updateZoomLevel();
         hideSuggestions();
     } else if (v.refersToSameSourceAs(patchWidth)) {
         // limit canvas width to smallest object (11px)
@@ -2204,4 +2208,24 @@ void Canvas::resized()
 {
     connectionLayer.setBounds(getLocalBounds());
     objectLayer.setBounds(getLocalBounds());
+}
+
+String Canvas::generateSilhouetteSVG()
+{
+    String svgContent;
+    
+    auto regionOfInterest = Rectangle<int>();
+    for (auto* object : objects) {
+        regionOfInterest = regionOfInterest.getUnion(object->getBounds().reduced(Object::margin));
+    }
+    
+    for (auto* object : objects)
+    {
+        auto rect = object->getBounds().reduced(Object::margin) - regionOfInterest.getPosition();
+        svgContent += String::formatted(
+            "<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" rx=\"%.1f\" ry=\"%.1f\" />\n",
+            rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight(), Corners::objectCornerRadius, Corners::objectCornerRadius);
+    }
+
+    return "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">\n" + svgContent + "</svg>";
 }

@@ -9,6 +9,7 @@
 #include "Components/Buttons.h"
 #include "Objects/ObjectParameters.h"
 #include "Utility/SettingsFile.h"
+#include "Utility/NVGComponent.h"
 
 class Console;
 class Inspector;
@@ -78,7 +79,7 @@ public:
 
 class PluginEditor;
 class Sidebar : public Component
-    , public SettingsFileListener {
+    , public SettingsFileListener{
 
 public:
     explicit Sidebar(PluginProcessor* instance, PluginEditor* parent);

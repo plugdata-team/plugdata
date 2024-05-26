@@ -19,6 +19,7 @@ using namespace juce::gl;
 #include "PluginEditor.h"
 #include "PluginMode.h"
 #include "Canvas.h"
+#include "Sidebar/Sidebar.h" // meh...
 
 #define ENABLE_FPS_COUNT 0
 
@@ -408,14 +409,6 @@ void NVGSurface::render()
         
         if(!editor->pluginMode) {
             editor->splitView.render(nvg); // Render split view outlines and tab dnd areas
-            if(auto* zoomLabel = reinterpret_cast<Component*>(editor->zoomLabel.get())) // If we don't cast through the first inherited class, this is UB
-            {
-                auto zoomLabelPos = getLocalPoint(zoomLabel, Point<int>(0, 0));
-                nvgSave(nvg);
-                nvgTranslate(nvg, zoomLabelPos.x, zoomLabelPos.y);
-                dynamic_cast<NVGComponent*>(zoomLabel)->render(nvg); // Render zoom notifier at the bottom left
-                nvgRestore(nvg);
-            }
         }
         
 #if ENABLE_FPS_COUNT

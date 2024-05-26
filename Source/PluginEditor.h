@@ -55,7 +55,6 @@ private:
 class ConnectionMessageDisplay;
 class Sidebar;
 class Statusbar;
-class ZoomLabel;
 class Dialog;
 class Canvas;
 class TabComponent;
@@ -144,7 +143,6 @@ public:
     void enablePluginMode(Canvas* cnv);
 
     void commandKeyChanged(bool isHeld) override;
-    void setZoomLabelLevel(float value);
     void setUseBorderResizer(bool shouldUse);
     void showTouchSelectionHelper(bool shouldBeShown);
     
@@ -176,8 +174,6 @@ public:
 
     std::unique_ptr<Palettes> palettes;
 
-    std::unique_ptr<ZoomLabel> zoomLabel;
-
     OfflineObjectRenderer offlineRenderer;
     NVGSurface nvgSurface;
 
@@ -202,7 +198,7 @@ private:
     // Used by standalone to handle dragging the window
     WindowDragger windowDragger;
 
-    int const toolbarHeight = ProjectInfo::isStandalone ? 40 : 35;
+    int const toolbarHeight = ProjectInfo::isStandalone ? 38 : 35;
 
     MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pluginModeButton;
     ToolbarRadioButton editButton, runButton, presentButton;

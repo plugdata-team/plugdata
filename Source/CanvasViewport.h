@@ -386,9 +386,6 @@ public:
         // This is needed to make sure the viewport the current canvas bounds to the lastVisibleArea variable
         // Without this, future calls to getViewPosition() will give wrong results
         resized();
-
-        editor->setZoomLabelLevel(newScaleFactor);
-
         cnv->zoomScale = newScaleFactor;
     }
 

@@ -7,6 +7,7 @@
 #include "Constants.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
+#include "Components/PropertiesPanel.h"
 
 class OverlayDisplaySettings : public Component {
 public:
@@ -16,10 +17,9 @@ public:
         enum ButtonType {
             Edit = 0,
             Lock,
-            Run,
             Alt
         };
-        OwnedArray<SmallIconButton> buttons { new SmallIconButton("edit"), new SmallIconButton("lock"), new SmallIconButton("run"), new SmallIconButton("alt") };
+        OwnedArray<SmallIconButton> buttons { new SmallIconButton("edit"), new SmallIconButton("lock"), new SmallIconButton("alt") };
 
         Label textLabel;
         String groupName;
@@ -53,14 +53,12 @@ public:
 
             buttons[Edit]->setButtonText(Icons::Edit);
             buttons[Lock]->setButtonText(Icons::Lock);
-            buttons[Run]->setButtonText(Icons::Presentation);
             buttons[Alt]->setButtonText(Icons::Eye);
 
             auto lowerCaseToolTip = toolTip.toLowerCase();
 
             buttons[Edit]->setTooltip("Show " + lowerCaseToolTip + " in edit mode");
-            buttons[Lock]->setTooltip("Show " + lowerCaseToolTip + " in run mode");
-            buttons[Run]->setTooltip("Show " + lowerCaseToolTip + " in presentation mode");
+            buttons[Lock]->setTooltip("Show " + lowerCaseToolTip + " in lock mode");
             buttons[Alt]->setTooltip("Show " + lowerCaseToolTip + " when overlay button is active");
 
             textLabel.setText(groupName, dontSendNotification);
@@ -70,12 +68,10 @@ public:
 
             auto editState = static_cast<int>(settings.getProperty("edit"));
             auto lockState = static_cast<int>(settings.getProperty("lock"));
-            auto runState = static_cast<int>(settings.getProperty("run"));
             auto altState = static_cast<int>(settings.getProperty("alt"));
 
             buttons[Edit]->setToggleState(static_cast<bool>(editState & group), dontSendNotification);
             buttons[Lock]->setToggleState(static_cast<bool>(lockState & group), dontSendNotification);
-            buttons[Run]->setToggleState(static_cast<bool>(runState & group), dontSendNotification);
             buttons[Alt]->setToggleState(static_cast<bool>(altState & group), dontSendNotification);
 
             setSize(200, 30);
@@ -108,8 +104,6 @@ public:
             buttons[Edit]->setBounds(bounds);
             bounds.translate(25, 0);
             buttons[Lock]->setBounds(bounds);
-            bounds.translate(25, 0);
-            buttons[Run]->setBounds(bounds);
             bounds.translate(25, 0);
             buttons[Alt]->setBounds(bounds);
             bounds.translate(25, 0);
@@ -145,6 +139,11 @@ public:
         connection.add(new OverlaySelector(overlayTree, Order, "order", "Order", "Trigger order of multiple outlets"));
         connection.add(new OverlaySelector(overlayTree, Behind, "behind", "Behind", "Connection cables behind objects"));
 
+        debugModeValue.referTo(SettingsFile::getInstance()->getPropertyAsValue("debug_connections"));
+        connectionDebugToggle.reset(new PropertiesPanel::BoolComponent("Debug", debugModeValue, { "No", "Yes" }));
+        connectionDebugToggle->setTooltip("Enable connection debugging tooltips");
+        addAndMakeVisible(*connectionDebugToggle);
+        
         groups.add(&canvas);
         groups.add(&object);
         groups.add(&connection);
@@ -154,41 +153,57 @@ public:
                 addAndMakeVisible(item);
             }
         }
-        setSize(200, 505);
+        setSize(335, 200);
+        
     }
 
     void resized() override
     {
-        auto bounds = getLocalBounds().reduced(4, 0);
+        auto bounds = getLocalBounds().reduced(4, 0).withTrimmedTop(24);
 
         auto const labelHeight = 26;
         auto const itemHeight = 28;
-        auto const spacing = 2;
 
-        canvasLabel.setBounds(bounds.removeFromTop(labelHeight));
+        auto leftSide = bounds.removeFromLeft(bounds.proportionOfWidth(0.5f)).withTrimmedRight(4);
+        auto rightSide = bounds.withTrimmedLeft(4);
+        
+        canvasLabel.setBounds(leftSide.removeFromTop(labelHeight));
         for (auto& item : canvas) {
-            item->setBounds(bounds.removeFromTop(itemHeight));
+            item->setBounds(leftSide.removeFromTop(itemHeight));
         }
 
-        bounds.removeFromTop(spacing);
-        objectLabel.setBounds(bounds.removeFromTop(labelHeight));
+        leftSide.removeFromTop(2);
+        objectLabel.setBounds(leftSide.removeFromTop(labelHeight));
         for (auto& item : object) {
-            item->setBounds(bounds.removeFromTop(itemHeight));
+            item->setBounds(leftSide.removeFromTop(itemHeight));
         }
 
-        bounds.removeFromTop(spacing);
-        connectionLabel.setBounds(bounds.removeFromTop(labelHeight));
+        connectionLabel.setBounds(rightSide.removeFromTop(labelHeight));
         for (auto& item : connection) {
-            item->setBounds(bounds.removeFromTop(itemHeight));
+            item->setBounds(rightSide.removeFromTop(itemHeight));
         }
-        setSize(200, bounds.getY() + 5);
+        
+        connectionDebugToggle->setBounds(rightSide.removeFromTop(itemHeight));
     }
 
     void paint(Graphics& g) override
     {
+        g.setColour(findColour(PlugDataColour::popupMenuTextColourId));
+        g.setFont(Fonts::getBoldFont().withHeight(15));
+        g.drawText("Overlays", 0, 0, getWidth(), 24, Justification::centred);
+        
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.drawLine(4, 24, getWidth() - 8, 24);
+        
         for (auto& group : groups) {
             auto groupBounds = group->getFirst()->getBounds().getUnion(group->getLast()->getBounds());
-
+            
+            bool isConnectionGroup = group == &connection;
+            if(isConnectionGroup)
+            {
+                groupBounds = groupBounds.withTrimmedBottom(-28);
+            }
+            
             // draw background rectangle
             g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.035f));
             g.fillRoundedRectangle(groupBounds.toFloat(), Corners::largeCornerRadius);
@@ -199,7 +214,7 @@ public:
 
             // draw lines between items
             for (auto& item : *group){
-                if ((group->size() >= 2) && (item != group->getLast()))
+                if ((group->size() >= 2) && ((item != group->getLast()) || isConnectionGroup))
                     g.drawHorizontalLine(item->getBottom(), groupBounds.getX(), groupBounds.getRight());
             }
         }
@@ -230,15 +245,18 @@ private:
         AllOff = 0,
         EditDisplay,
         LockDisplay,
-        RunDisplay,
         AltDisplay
     };
 
-    Array<OwnedArray<OverlayDisplaySettings::OverlaySelector>*> groups;
+    Array<OwnedArray<OverlaySelector>*> groups;
 
-    OwnedArray<OverlayDisplaySettings::OverlaySelector> canvas;
-    OwnedArray<OverlayDisplaySettings::OverlaySelector> object;
-    OwnedArray<OverlayDisplaySettings::OverlaySelector> connection;
+    OwnedArray<OverlaySelector> canvas;
+    OwnedArray<OverlaySelector> object;
+    OwnedArray<OverlaySelector> connection;
+    
+    Value debugModeValue;
+    std::unique_ptr<PropertiesPanel::BoolComponent> connectionDebugToggle;
+    
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OverlayDisplaySettings)
 };

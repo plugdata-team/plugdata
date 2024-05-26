@@ -70,6 +70,173 @@ ImageWithOffset OfflineObjectRenderer::patchToMaskedImage(String const& patch, f
     return ImageWithOffset(output, image.offset);
 }
 
+String OfflineObjectRenderer::patchToSVGFast(String const& patch)
+{
+    int canvasDepth = -1;
+
+    auto isObject = [](StringArray& tokens) {
+        return tokens[0] == "#X" && tokens[1] != "connect" && tokens[1] != "f" && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789");
+    };
+
+    auto isStartingCanvas = [](StringArray& tokens) {
+        return tokens[0] == "#N" && tokens[1] == "canvas" && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789") && tokens[4].containsOnly("-0123456789") && tokens[5].containsOnly("-0123456789");
+    };
+
+    auto isEndingCanvas = [](StringArray& tokens) {
+        return tokens[0] == "#X" && tokens[1] == "restore" && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789");
+    };
+    
+    auto isGraphCoords = [](StringArray& tokens) {
+        return tokens[0] == "#X" && tokens[1] == "coords" && tokens[5].containsOnly("-0123456789") && tokens[6].containsOnly("-0123456789");
+    };
+    
+    StringArray objects;
+    Rectangle<int> nextGraphCoords;
+    String canvasName;
+    bool hasGraphCoords = false;
+    for (auto& line : StringArray::fromLines(patch)) {
+
+        line = line.upToLastOccurrenceOf(";", false, false);
+
+        auto tokens = StringArray::fromTokens(line, true);
+
+        if (isStartingCanvas(tokens)) {
+            if(tokens.size() > 6) canvasName = tokens[6];
+            canvasDepth++;
+        }
+
+        if (canvasDepth == 0 && isObject(tokens)) {
+            objects.add(line);
+        }
+        
+        if(isGraphCoords(tokens) && tokens.size() > 6)
+        {
+            nextGraphCoords = Rectangle<int>(tokens[5].getIntValue(), tokens[6].getIntValue());
+            hasGraphCoords = true;
+        }
+
+        if (isEndingCanvas(tokens)) {
+            if (canvasDepth == 1) {
+                if(hasGraphCoords)
+                {
+                    objects.add(line + " " + String(nextGraphCoords.getWidth()) + " " + String(nextGraphCoords.getHeight()));
+                    hasGraphCoords = false;
+                }
+                else {
+                    objects.add(line + " " + String(canvasName.length() * 12) + " 24");
+                }
+            }
+            canvasDepth--;
+        }
+    }
+    
+    Array<Rectangle<int>> objectBounds;
+    for(auto& object : objects)
+    {
+        auto tokens = StringArray::fromTokens(object, true);
+        if((tokens[1] == "floatatom" || tokens[1] == "symbolatom" || tokens[1] == "listatom") && tokens.size() > 11)
+        {
+            objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[4].getIntValue() * 8, tokens[11].getIntValue()));
+            continue;
+        }
+        switch(hash(tokens[4])){
+            case hash("restore"):
+            {
+                if(tokens.size() < 6) break;
+                objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[4].getIntValue(), tokens[5].getIntValue()));
+                break;
+            }
+            case hash("bng"):
+            case hash("tgl"): {
+                if(tokens.size() < 6) break;
+                objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[5].getIntValue(), tokens[5].getIntValue()));
+                break;
+            }
+            case hash("vradio"):
+            {
+                if(tokens.size() < 7) break;
+                objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[5].getIntValue(), tokens[5].getIntValue() * tokens[6].getIntValue()));
+                break;
+            }
+            case hash("hradio"):
+            {
+                if(tokens.size() < 7) break;
+                objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[5].getIntValue() * tokens[6].getIntValue(), tokens[5].getIntValue()));
+                break;
+            }
+            case hash("cnv"): {
+                if(tokens.size() < 8) break;
+                objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[6].getIntValue(), tokens[7].getIntValue()));
+                break;
+            }
+            case hash("vu"):
+            case hash("hsl"):
+            case hash("vsl"):
+            case hash("slider"):
+            {
+                if(tokens.size() < 7) break;
+                objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[5].getIntValue(), tokens[6].getIntValue()));
+                break;
+            }
+            case hash("nbx"): {
+                if(tokens.size() < 7) break;
+                objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[5].getIntValue() * 8, tokens[6].getIntValue()));
+                break;
+            }
+            /* // TODO: implement all of these!
+            case hash("numbox~"):
+            {
+                break;
+            }
+            case hash("pic"):
+            case hash("keyboard"):
+            case hash("scope~"):
+            case hash("function"):
+            case hash("knob"):
+            case hash("gatom"):
+            case hash("button"):
+            case hash("bicoeff"):
+            case hash("messbox"):
+            case hash("pad"):
+            {
+                
+                break;
+            }
+            case hash("note"):
+            {
+                
+                break;
+            }
+             */
+            default:
+            {
+                if(tokens.size() < 4) break;
+                auto x = tokens[2].getIntValue();
+                auto y = tokens[3].getIntValue();
+                tokens.removeRange(0, 4);
+                objectBounds.add(Rectangle<int>(x, y, tokens.joinIntoString(" ").length() * 8, 24));
+                break;
+            }
+        }
+    }
+    
+    String svgContent;
+    auto regionOfInterest = Rectangle<int>();
+    for (auto& b : objectBounds) {
+        regionOfInterest = regionOfInterest.getUnion(b.reduced(Object::margin));
+    }
+    
+    for (auto& b : objectBounds)
+    {
+        auto rect = b - regionOfInterest.getPosition();
+        svgContent += String::formatted(
+            "<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" rx=\"%.1f\" ry=\"%.1f\" />\n",
+            rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight(), Corners::objectCornerRadius, Corners::objectCornerRadius);
+    }
+
+    return "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">\n" + svgContent + "</svg>";
+}
+
 ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, float scale)
 {
     static std::unordered_map<String, ImageWithOffset> patchImageCache;

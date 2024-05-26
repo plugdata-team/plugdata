@@ -136,6 +136,8 @@ public:
     void jumpToOrigin();
     void zoomToFitAll();
     
+    String generateSilhouetteSVG();
+    
     float getRenderScale() const;
     
     bool autoscroll(MouseEvent const& e);

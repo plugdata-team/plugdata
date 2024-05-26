@@ -112,7 +112,7 @@ public:
         alignButtons[AlignButton::VCentre]->onClick = [this]() {
             auto cnv = pluginEditor->getCurrentCanvas();
             if (cnv)
-                cnv->alignObjects(Align::VCenter);
+                cnv->alignObjects(Align::VCentre);
         };
 
         alignButtons[AlignButton::Top]->onClick = [this]() {
@@ -130,7 +130,7 @@ public:
         alignButtons[AlignButton::HCentre]->onClick = [this]() {
             auto cnv = pluginEditor->getCurrentCanvas();
             if (cnv)
-                cnv->alignObjects(Align::HCenter);
+                cnv->alignObjects(Align::HCentre);
         };
 
         alignButtons[AlignButton::HDistribute]->onClick = [this]() {
