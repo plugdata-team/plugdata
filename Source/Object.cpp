@@ -756,7 +756,7 @@ void Object::mouseDown(MouseEvent const& e)
     if (e.mods.isRightButtonDown() && !cnv->isGraph) {
         PopupMenu::dismissAllActiveMenus();
         if (!getValue<bool>(locked)) {
-            if(!e.mods.isAnyModifierKeyDown()) cnv->deselectAll();
+            if(!e.mods.isAnyModifierKeyDown() && !e.mods.isRightButtonDown()) cnv->deselectAll();
             cnv->setSelected(this, true);
         }
         Dialogs::showCanvasRightClickMenu(cnv, this, e.getScreenPosition());
