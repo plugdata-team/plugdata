@@ -168,6 +168,7 @@ public:
 
 class VolumeSlider : public Slider {
 public:
+    
     VolumeSlider()
         : Slider(Slider::LinearHorizontal, Slider::NoTextBox)
     {
@@ -284,7 +285,7 @@ public:
         auto width = getWidth() - 12.0f;
         auto x = 6.0f;
 
-        auto outerBorderWidth = 2.0f;
+        auto outerBorderWidth = 2.5f;
         auto doubleOuterBorderWidth = 2.0f * outerBorderWidth;
         auto bgHeight = getHeight() - doubleOuterBorderWidth;
         auto bgWidth = width - doubleOuterBorderWidth;
@@ -809,8 +810,20 @@ Statusbar::Statusbar(PluginProcessor* processor)
         OverlayDisplaySettings::show(editor, overlaySettingsButton.getScreenBounds());
     };
     addAndMakeVisible(overlaySettingsButton);
+    
+    limiterButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+    limiterButton.setColour(TextButton::buttonColourId, findColour(PlugDataColour::levelMeterBackgroundColourId));
+    limiterButton.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::levelMeterThumbColourId).withAlpha(0.3f));
+    limiterButton.setClickingTogglesState(true);
+    limiterButton.setToggleState(SettingsFile::getInstance()->getProperty<bool>("protected"), dontSendNotification);
+    limiterButton.onClick = [this](){
+        auto state = limiterButton.getToggleState();
+        pd->setProtectedMode(state);
+        SettingsFile::getInstance()->setProperty("protected", state);
+    };
+    addAndMakeVisible(limiterButton);
 
-
+    
     zoomComboButton.setTooltip(String("Select zoom"));
 
     addAndMakeVisible(audioSettingsButton);
@@ -898,10 +911,12 @@ void Statusbar::resized()
     powerButton.setBounds(position(spacing, true) + 16, 0, getHeight(), getHeight());
 
     // TODO: combine these both into one
-    int levelMeterPosition = position(95, true);
+    int levelMeterPosition = position(132, true);
     levelMeter->setBounds(levelMeterPosition, 2, 120, getHeight() - 4);
     volumeSlider->setBounds(levelMeterPosition, 2, 120, getHeight() - 4);
-
+    
+    limiterButton.setBounds(volumeSlider->getBounds().removeFromRight(42).translated(32, 0).reduced(2));
+    
     // Hide these if there isn't enough space
     midiBlinker->setVisible(getWidth() > 500);
     cpuMeter->setVisible(getWidth() > 500);

@@ -102,7 +102,9 @@ public:
     SmallIconButton overlayButton, overlaySettingsButton;
     SmallIconButton snapEnableButton, snapSettingsButton;
     SmallIconButton powerButton, audioSettingsButton;
-
+    
+    TextButton limiterButton = TextButton("Limit", "Enable limiter");
+        
     std::unique_ptr<LatencyDisplayButton> latencyDisplayButton;
 
     std::unique_ptr<ZoomLabel> zoomLabel;

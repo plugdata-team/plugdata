@@ -102,6 +102,7 @@ private:
         { "browser_path", var(ProjectInfo::appDataDir.getFullPathName()) },
         { "theme", var("light") },
         { "oversampling", var(0) },
+        { "limiter_threshold", var(1) },
         { "protected", var(1) },
         { "debug_connections", var(1) },
         { "internal_synth", var(0) },

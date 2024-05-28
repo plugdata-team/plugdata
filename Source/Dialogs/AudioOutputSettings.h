@@ -62,6 +62,61 @@ private:
     TextButton eight = TextButton("8x");
 };
 
+class LimiterSettings : public Component {
+public:
+    std::function<void(int)> onChange = [](int) {};
+    
+    explicit LimiterSettings(int currentSelection)
+    {
+        one.setConnectedEdges(Button::ConnectedOnRight);
+        two.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
+        three.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
+        four.setConnectedEdges(Button::ConnectedOnLeft);
+
+        auto buttons = Array<TextButton*> { &one, &two, &three, &four };
+
+        int i = 0;
+        for (auto* button : buttons) {
+            button->setRadioGroupId(hash("oversampling_selector"));
+            button->setClickingTogglesState(true);
+            button->onClick = [this, i]() {
+                onChange(i);
+            };
+
+            button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
+            button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuActiveTextColourId));
+            button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.04f));
+            button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.075f));
+            button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+
+            addAndMakeVisible(button);
+            i++;
+        }
+
+        buttons[currentSelection]->setToggleState(true, dontSendNotification);
+
+        setSize(180, 50);
+    }
+
+    private:
+    void resized() override
+    {
+        auto b = getLocalBounds().reduced(4, 4);
+        auto buttonWidth = b.getWidth() / 4;
+
+        one.setBounds(b.removeFromLeft(buttonWidth));
+        two.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
+        three.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
+        four.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
+    }
+
+    TextButton one = TextButton("-12db");
+    TextButton two = TextButton("-6db");
+    TextButton three = TextButton("0db");
+    TextButton four = TextButton("3db");
+};
+
+
 class AudioOutputSettings : public Component {
     
     class LimiterEnableButton : public Component
@@ -118,20 +173,19 @@ class AudioOutputSettings : public Component {
     };
     
 public:
-    AudioOutputSettings(PluginProcessor* pd) : oversampleSettings(SettingsFile::getInstance()->getValueTree().getProperty("Oversampling"))
+    AudioOutputSettings(PluginProcessor* pd) : oversampleSettings(SettingsFile::getInstance()->getProperty<int>("oversampling")), limiterSettings(SettingsFile::getInstance()->getProperty<int>("limiter_threshold"))
     {
-        enableLimiterButton = std::make_unique<LimiterEnableButton>(this, Icons::Protection, "Enable limiter", SettingsFile::getInstance()->getProperty<int>("protected"));
-        enableLimiterButton->onClick = [pd](bool state){
-            pd->setProtectedMode(state);
-            SettingsFile::getInstance()->setProperty("protected", state);
+        addAndMakeVisible(limiterSettings);
+        limiterSettings.onChange = [pd](int value){
+            pd->setLimiterThreshold(value);
         };
-        addAndMakeVisible(*enableLimiterButton);
+        
         addAndMakeVisible(oversampleSettings);
         oversampleSettings.onChange = [pd](int value){
             pd->setOversampling(value);
         };
         
-        setSize(160, 125);
+        setSize(170, 125);
     }
     
     ~AudioOutputSettings()
@@ -143,7 +197,7 @@ public:
     {
         auto bounds = getLocalBounds().reduced(4.0f).withTrimmedTop(24);
     
-        enableLimiterButton->setBounds(bounds.removeFromTop(32));
+        limiterSettings.setBounds(bounds.removeFromTop(28));
         
         bounds.removeFromTop(32);
         oversampleSettings.setBounds(bounds.removeFromTop(28));
@@ -153,7 +207,7 @@ public:
     {
         g.setColour(findColour(PlugDataColour::popupMenuTextColourId));
         g.setFont(Fonts::getBoldFont().withHeight(15));
-        g.drawText("Limiter", 0, 0, getWidth(), 24, Justification::centred);
+        g.drawText("Limiter Threshold", 0, 0, getWidth(), 24, Justification::centred);
         
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(4, 24, getWidth() - 8, 24);
@@ -181,7 +235,7 @@ public:
 private:
     static inline bool isShowing = false;
     
-    std::unique_ptr<LimiterEnableButton> enableLimiterButton;
+    LimiterSettings limiterSettings;
     OversampleSettings oversampleSettings;
 
 };
