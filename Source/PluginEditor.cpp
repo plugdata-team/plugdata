@@ -29,6 +29,7 @@
 #include "Dialogs/Dialogs.h"
 #include "Statusbar.h"
 #include "Tabbar/TabBarButtonComponent.h"
+#include "Tabbar/WelcomePanel.h"
 #include "Sidebar/Sidebar.h"
 #include "Object.h"
 #include "PluginMode.h"
@@ -62,9 +63,9 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     })
 {
 #if JUCE_IOS
-        //constrainer.setMinimumSize(100, 100);
-        //pluginConstrainer.setMinimumSize(100, 100);
-        //setResizable(true, false);
+    //constrainer.setMinimumSize(100, 100);
+    //pluginConstrainer.setMinimumSize(100, 100);
+    //setResizable(true, false);
 #else
     // if we are inside a DAW / host set up the border resizer now
     if (!ProjectInfo::isStandalone) {
@@ -75,17 +76,21 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         constrainer.setMinimumSize(850, 650);
     }
 #endif
-
+    
     mainMenuButton.setButtonText(Icons::Menu);
     undoButton.setButtonText(Icons::Undo);
     redoButton.setButtonText(Icons::Redo);
     pluginModeButton.setButtonText(Icons::PluginMode);
-
+    
     editButton.setButtonText(Icons::Edit);
     runButton.setButtonText(Icons::Lock);
     presentButton.setButtonText(Icons::Presentation);
-
+    
     addKeyListener(commandManager.getKeyMappings());
+    
+    welcomePanel = std::make_unique<WelcomePanel>(this);
+    addAndMakeVisible(*welcomePanel);
+    welcomePanel->setAlwaysOnTop(true);
 
     setWantsKeyboardFocus(true);
     commandManager.registerAllCommandsForTarget(this);
@@ -418,7 +423,8 @@ void PluginEditor::resized()
     
     auto workArea = Rectangle<int>(paletteWidth, toolbarHeight, (getWidth() - sidebar->getWidth() - paletteWidth), workAreaHeight);
     splitView.setBounds(workArea);
-    nvgSurface.updateBounds(workArea.withTrimmedTop(31));
+    welcomePanel->setBounds(workArea.withTrimmedTop(welcomePanel->isVisible() ? 0 : 31));
+    nvgSurface.updateBounds(workArea.withTrimmedTop(welcomePanel->isVisible() ? 0 : 31));
     
     sidebar->setBounds(getWidth() - sidebar->getWidth(), toolbarHeight, sidebar->getWidth(), workAreaHeight);
 
@@ -668,7 +674,6 @@ void PluginEditor::createNewWindow(TabBarButtonComponent* tabButton)
     newWindow->toFront(true);
     
     closeTab(originalCanvas);
-    nvgSurface.sendContextDeleteMessage();
 }
 
 bool PluginEditor::isActiveWindow()

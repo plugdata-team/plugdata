@@ -28,7 +28,6 @@ class Connection : public DrawablePath
     , public ChangeListener
     , public pd::MessageListener 
     , public NVGComponent
-    , public NVGContextListener
     , public MultiTimer
 {
 public:
@@ -73,8 +72,7 @@ public:
         
     void render(NVGcontext* nvg) override;
     void renderConnectionOrder(NVGcontext* nvg);
-    void nvgContextDeleted(NVGcontext* nvg) override;
-
+    
     void updatePath();
 
     void forceUpdate();

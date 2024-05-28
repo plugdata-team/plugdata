@@ -165,8 +165,6 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     parameters.addParamRange("Y range", cGeneral, &yRange, { 1.0f, 0.0f });
     parameters.addParamInt("Width", cDimensions, &patchWidth, 527);
     parameters.addParamInt("Height", cDimensions, &patchHeight, 327);
-    
-    editor->nvgSurface.addNVGContextListener(this);
 }
 
 Canvas::~Canvas()
@@ -174,21 +172,7 @@ Canvas::~Canvas()
     zoomScale.removeListener(this);
     editor->removeModifierKeyListener(this);
     pd->unregisterMessageListener(patch.getPointer().get(), this);
-    editor->nvgSurface.removeNVGContextListener(this);
     if(ioletBuffer) nvgDeleteFramebuffer(ioletBuffer);
-}
-
-void Canvas::lookAndFeelChanged()
-{
-    editor->nvgSurface.sendContextDeleteMessage();
-}
-
-void Canvas::nvgContextDeleted(NVGcontext* nvg)
-{
-    if(ioletBuffer) nvgDeleteFramebuffer(ioletBuffer);
-    if(resizeHandleImage) nvgDeleteImage(nvg, resizeHandleImage);
-    resizeHandleImage = 0;
-    ioletBuffer = nullptr;
 }
 
 bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, int maxUpdateTimeMs)

@@ -37,7 +37,6 @@ class Object : public Component
     , public Timer
     , public KeyListener
     , public NVGComponent
-    , public NVGContextListener
     , private TextEditor::Listener
 {
 public:
@@ -66,8 +65,6 @@ public:
     void hideEditor();
     bool isInitialEditorShown();
     
-    void nvgContextDeleted(NVGcontext* nvg) override;
-        
     String getType(bool withOriginPrefix = true) const;
 
     Rectangle<int> getSelectableBounds();

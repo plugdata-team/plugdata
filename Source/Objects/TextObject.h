@@ -183,7 +183,6 @@ protected:
 public:
     TextBase(pd::WeakReference obj, Object* parent, bool valid = true)
         : ObjectBase(obj, parent)
-        , cachedTextRender(cnv->editor->nvgSurface)
         , isValid(valid)
     {
         objectText = getText();

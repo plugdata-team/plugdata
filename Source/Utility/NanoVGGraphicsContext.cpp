@@ -289,7 +289,8 @@ void NanoVGGraphicsContext::setPath (const juce::Path& path, const juce::AffineT
 
     // Flag is used to flip winding when drawing shapes with holes.
     bool solid = true;
-
+    nvgPathWinding(nvg, NVG_SOLID);
+    
     while (i.next())
     {
         switch (i.elementType)
@@ -315,7 +316,6 @@ void NanoVGGraphicsContext::setPath (const juce::Path& path, const juce::AffineT
             break;
         }
     }
-
 }
 
 void NanoVGGraphicsContext::fillPath (const juce::Path& path, const juce::AffineTransform& transform)

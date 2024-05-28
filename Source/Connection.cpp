@@ -33,7 +33,6 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     , ptr(parent->pd)
 {
     cnv->selectedComponents.addChangeListener(this);
-    cnv->editor->nvgSurface.addNVGContextListener(this);
     
     locked.referTo(parent->locked);
     presentationMode.referTo(parent->presentationMode);
@@ -102,7 +101,6 @@ Connection::~Connection()
 {
     cnv->pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
     cnv->selectedComponents.removeChangeListener(this);
-    cnv->editor->nvgSurface.removeNVGContextListener(this);
 
     if (outlet) {
         outlet->repaint();
@@ -131,11 +129,6 @@ void Connection::changeListenerCallback(ChangeBroadcaster* source)
 {
     if (auto selectedItems = dynamic_cast<SelectedItemSet<WeakReference<Component>>*>(source))
         setSelected(selectedItems->isSelected(this));
-}
-
-void Connection::nvgContextDeleted(NVGcontext* nvg)
-{
-    cacheId = -1;
 }
 
 void Connection::lookAndFeelChanged()

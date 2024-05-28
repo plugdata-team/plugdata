@@ -58,7 +58,7 @@ struct OSUtils {
         }
 
     private:
-        bool scrolling;
+        bool scrolling = false;
         void* observer;
         static inline ScrollTracker* instance = create();
     };

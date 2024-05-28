@@ -18,6 +18,7 @@
 
 #include "Tabbar/SplitView.h"
 
+
 #include "Utility/ObjectThemeManager.h"
 #include "NVGSurface.h"
 
@@ -63,6 +64,7 @@ class Palettes;
 class Autosave;
 class PluginMode;
 class TouchSelectionHelper;
+class WelcomePanel;
 class PluginEditor : public AudioProcessorEditor
     , public Value::Listener
     , public ApplicationCommandTarget
@@ -190,9 +192,9 @@ public:
     static ObjectThemeManager* getObjectManager() { return &objectManager; };
 
     std::unique_ptr<CalloutArea> calloutArea;
-
-private:
+    std::unique_ptr<WelcomePanel> welcomePanel;
     
+private:
     std::unique_ptr<TouchSelectionHelper> touchSelectionHelper;
 
     // Used by standalone to handle dragging the window

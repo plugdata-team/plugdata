@@ -1273,7 +1273,7 @@ public:
   
         if (title.isNotEmpty()) {
             if (!labels) {
-                labels = std::make_unique<ObjectLabels>(cnv->editor->nvgSurface);
+                labels = std::make_unique<ObjectLabels>();
             }
 
             auto bounds = object->getBounds().reduced(Object::margin).removeFromTop(fontHeight + 2).withWidth(Font(fontHeight).getStringWidth(title));

@@ -20,7 +20,7 @@ void pdlua_gfx_mouse_drag(t_pdlua* o, int x, int y);
 void pdlua_gfx_repaint(t_pdlua* o, int firsttime);
 }
     
-class LuaObject : public ObjectBase, public Timer, public NVGContextListener {
+class LuaObject : public ObjectBase, public Timer {
     
     Colour currentColour;
     
@@ -83,8 +83,6 @@ public:
             allDrawTargets[pdlua.get()].push_back(this);
         }
         
-        cnv->editor->nvgSurface.addNVGContextListener(this);
-        
         parentHierarchyChanged();
         startTimerHz(60);
     }
@@ -97,7 +95,6 @@ public:
             listeners.erase(std::remove(listeners.begin(), listeners.end(), this), listeners.end());
         }
         
-        cnv->editor->nvgSurface.removeNVGContextListener(this);
         zoomScale.removeListener(this);
     }
     
@@ -119,12 +116,6 @@ public:
             sendRepaintMessage();
         }
     }
-    
-    void nvgContextDeleted(NVGcontext* nvg) override {
-        if(framebuffer) nvgDeleteFramebuffer(framebuffer);
-        framebuffer = nullptr;
-        imageNeedsRefresh = true;
-    };
     
     Rectangle<int> getPdBounds() override
     {
