@@ -194,6 +194,8 @@ public:
     std::unique_ptr<CalloutArea> calloutArea;
     std::unique_ptr<WelcomePanel> welcomePanel;
     
+    CheckedTooltip tooltipWindow;
+    
 private:
     std::unique_ptr<TouchSelectionHelper> touchSelectionHelper;
 
@@ -205,7 +207,6 @@ private:
     MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pluginModeButton;
     ToolbarRadioButton editButton, runButton, presentButton;
 
-    CheckedTooltip tooltipWindow;
 
     TextButton seperators[8];
 
