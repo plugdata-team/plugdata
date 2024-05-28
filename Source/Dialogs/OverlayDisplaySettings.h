@@ -9,7 +9,7 @@
 #include "LookAndFeel.h"
 #include "Components/PropertiesPanel.h"
 
-class OverlayDisplaySettings : public Component {
+class OverlayDisplaySettings : public Component, public Value::Listener {
 public:
     class OverlaySelector : public Component
         , public Button::Listener {
@@ -140,6 +140,7 @@ public:
         connection.add(new OverlaySelector(overlayTree, Behind, "behind", "Behind", "Connection cables behind objects"));
 
         debugModeValue.referTo(SettingsFile::getInstance()->getPropertyAsValue("debug_connections"));
+        debugModeValue.addListener(this);
         connectionDebugToggle.reset(new PropertiesPanel::BoolComponent("Debug", debugModeValue, { "No", "Yes" }));
         connectionDebugToggle->setTooltip("Enable connection debugging tooltips");
         addAndMakeVisible(*connectionDebugToggle);
@@ -154,7 +155,14 @@ public:
             }
         }
         setSize(335, 200);
-        
+    }
+    
+    void valueChanged(Value& v) override
+    {
+        if(v.refersToSameSourceAs(debugModeValue))
+        {
+            set_plugdata_debugging_enabled(getValue<bool>(debugModeValue));
+        }
     }
 
     void resized() override

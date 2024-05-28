@@ -646,6 +646,36 @@ public:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CPUMeter);
 };
 
+class ZoomLabel : public Component
+{
+public:
+    ZoomLabel(Statusbar* parent) : statusbar(parent)
+    {
+        setRepaintsOnMouseActivity(true);
+    }
+private:
+    
+    void paint(Graphics& g) override
+    {
+        // We can use a tabular numbers font here, but I'm not sure it really looks better that way
+        //g.setFont(Fonts::getTabularNumbersFont().withHeight(14));
+        g.setColour(findColour(PlugDataColour::toolbarTextColourId).contrasting(isMouseOver() ? 0.35f : 0.0f));
+        g.drawText(String(int(statusbar->currentZoomLevel)) + "%", 0, 0, 44, getHeight(), Justification::centredLeft);
+    }
+    
+    void mouseDown(const MouseEvent& e) override
+    {
+        auto* editor = findParentComponentOfClass<PluginEditor>();
+        if (auto* cnv = editor->getCurrentCanvas()) {
+            cnv->zoomScale.setValue(1.0f);
+            cnv->setTransform(AffineTransform().scaled(1.0f));
+            cnv->viewport->resized();
+        }
+    }
+    
+    Statusbar* statusbar;
+};
+
 Statusbar::Statusbar(PluginProcessor* processor)
     : pd(processor)
 {
@@ -653,6 +683,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
     cpuMeter = std::make_unique<CPUMeter>();
     midiBlinker = std::make_unique<MIDIBlinker>();
     volumeSlider = std::make_unique<VolumeSlider>();
+    zoomLabel = std::make_unique<ZoomLabel>(this);
 
     pd->statusbarSource->addListener(levelMeter.get());
     pd->statusbarSource->addListener(midiBlinker.get());
@@ -713,6 +744,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
     addAndMakeVisible(*levelMeter);
     addAndMakeVisible(*midiBlinker);
     addAndMakeVisible(*cpuMeter);
+    addAndMakeVisible(*zoomLabel);
 
     levelMeter->toBehind(volumeSlider.get());
 
@@ -814,9 +846,6 @@ void Statusbar::updateZoomLevel()
 
 void Statusbar::paint(Graphics& g)
 {
-    g.setColour(findColour(PlugDataColour::toolbarTextColourId));
-    g.drawText(String(int(currentZoomLevel)) + "%", 10, 0, 44, getHeight(), Justification::centredLeft);
-    
     g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
     
     auto* editor = findParentComponentOfClass<PluginEditor>();
@@ -839,7 +868,7 @@ void Statusbar::resized()
 
     auto spacing = getHeight();
 
-    position(34); // Space for zoom label
+    zoomLabel->setBounds(position(34), 0, 34, getHeight());
     zoomComboButton.setBounds(position(8) - 11, 0, getHeight(), getHeight());
     
     firstSeparatorPosition = position(4) + 3.5f; // fifth seperator

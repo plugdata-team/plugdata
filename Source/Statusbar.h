@@ -72,6 +72,7 @@ private:
 };
 
 class VolumeSlider;
+class ZoomLabel;
 class Statusbar : public Component
     , public StatusbarSource::Listener
     , public ModifierKeyListener {
@@ -104,7 +105,7 @@ public:
 
     std::unique_ptr<LatencyDisplayButton> latencyDisplayButton;
 
-    Label zoomLabel;
+    std::unique_ptr<ZoomLabel> zoomLabel;
 
     int currentLatency = 64;
     float currentZoomLevel = 100.f;
