@@ -21,13 +21,6 @@ using namespace juce::gl;
 #define NANOVG_GL_IMPLEMENTATION 1
 #endif
 
-class NVGContextListener
-{
-public:
-    virtual void nvgContextDeleted(NVGcontext* nvg) {};
-    
-    JUCE_DECLARE_WEAK_REFERENCEABLE(NVGContextListener);
-};
 
 class FrameTimer;
 class PluginEditor;
@@ -44,6 +37,10 @@ public Component, public Timer
 public:
     NVGSurface(PluginEditor* editor);
     ~NVGSurface();
+    
+    void initialise();
+    void updateBufferSize();
+    
     void render();
     
     void triggerRepaint();
@@ -56,10 +53,6 @@ public:
 #endif
     
     void propertyChanged(String const& name, var const& value) override;
-    
-    void sendContextDeleteMessage();
-    void addNVGContextListener(NVGContextListener* listener);
-    void removeNVGContextListener(NVGContextListener* listener);
 
     Rectangle<int> getInvalidArea() { return invalidArea; }
     
@@ -132,10 +125,6 @@ private:
     bool hresize = false;
     bool resizing = false;
     Rectangle<int> newBounds;
-    
-    int framesToSkip = 0;
-    
-    Array<WeakReference<NVGContextListener>> nvgContextListeners;
     
 #if NANOVG_GL_IMPLEMENTATION
     std::unique_ptr<OpenGLContext> glContext;

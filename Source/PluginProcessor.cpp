@@ -156,6 +156,7 @@ PluginProcessor::PluginProcessor()
     oversampling = settingsFile->getProperty<int>("oversampling");
 
     setProtectedMode(settingsFile->getProperty<int>("protected"));
+    setLimiterThreshold(settingsFile->getProperty<int>("limiter_threshold"));
     enableInternalSynth = settingsFile->getProperty<int>("internal_synth");
 
     auto currentThemeTree = settingsFile->getCurrentTheme();
@@ -434,7 +435,7 @@ void PluginProcessor::setOversampling(int amount)
     if (oversampling == amount)
         return;
 
-    settingsFile->setProperty("Oversampling", var(amount));
+    settingsFile->setProperty("oversampling", var(amount));
     settingsFile->saveSettings(); // TODO: i think this is unnecessary?
 
     oversampling = amount;
@@ -444,6 +445,15 @@ void PluginProcessor::setOversampling(int amount)
     suspendProcessing(true);
     prepareToPlay(sampleRate, blockSize);
     suspendProcessing(false);
+}
+
+void PluginProcessor::setLimiterThreshold(int amount)
+{
+    auto threshold = (std::vector<float>{-12, -6, 0, 3})[amount];
+    limiter.setThreshold(threshold);
+
+    settingsFile->setProperty("limiter_threshold", var(amount));
+    settingsFile->saveSettings(); // TODO: i think this is unnecessary?
 }
 
 void PluginProcessor::setProtectedMode(bool enabled)

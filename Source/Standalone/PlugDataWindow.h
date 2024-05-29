@@ -456,17 +456,6 @@ public:
     }
 #endif
 
-    void clearAllBuffers()
-    {
-        if (!mainComponent)
-            return;
-
-        if (auto* editor = mainComponent->getEditor()) {
-            if (auto* pdEditor = dynamic_cast<PluginEditor*>(editor)) {
-                pdEditor->nvgSurface.sendContextDeleteMessage();
-            }
-        }
-    }
 
     void propertyChanged(String const& name, var const& value) override
     {
@@ -481,8 +470,7 @@ public:
 
             setUsingNativeTitleBar(nativeWindow);
             
-            pdEditor->nvgSurface.detachContext();
-            clearAllBuffers();
+            //pdEditor->nvgSurface.initialise();
 
             if (!nativeWindow) {
 #if JUCE_WINDOWS
@@ -625,7 +613,6 @@ public:
 
     void activeWindowStatusChanged() override
     {
-        clearAllBuffers();
         repaint();
     }
 

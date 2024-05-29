@@ -562,7 +562,16 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
         Forward,
         Backward,
         ToBack,
-        Properties
+        Properties,
+        
+        AlignLeft,
+        AlignHCentre,
+        AlignRight,
+        AlignHDistribute,
+        AlignTop,
+        AlignVCentre,
+        AlignBottom,
+        AlignVDistribute
     };
     // Create popup menu
     PopupMenu popupMenu;
@@ -607,6 +616,67 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     orderMenu.addItem(Backward, "Move backward", object != nullptr && !locked);
     orderMenu.addItem(ToBack, "To Back", object != nullptr && !locked);
     popupMenu.addSubMenu("Order", orderMenu, !locked);
+    
+    class AlignmentMenuItem : public PopupMenu::CustomComponent {
+
+        String menuItemIcon;
+        String menuItemText;
+
+    public:
+        bool isActive = true;
+
+        AlignmentMenuItem(String icon, String text)
+            : menuItemIcon(std::move(icon))
+            , menuItemText(std::move(text))
+        {
+        }
+
+        void getIdealSize(int& idealWidth, int& idealHeight) override
+        {
+            idealWidth = 170;
+            idealHeight = 24;
+        }
+
+        void paint(Graphics& g) override
+        {
+            auto r = getLocalBounds();
+
+            auto colour = findColour(PopupMenu::textColourId).withMultipliedAlpha(isActive ? 1.0f : 0.5f);
+            if (isItemHighlighted() && isActive) {
+                g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
+
+                PlugDataLook::fillSmoothedRectangle(g, r.toFloat().reduced(0, 1), Corners::defaultCornerRadius);
+                colour = findColour(PlugDataColour::popupMenuActiveTextColourId);
+            }
+            g.setColour(colour);
+
+            r.reduce(jmin(5, r.getWidth() / 20), 0);
+
+            auto maxFontHeight = (float)r.getHeight() / 1.3f;
+            auto iconArea = r.removeFromLeft(roundToInt(maxFontHeight)).withSizeKeepingCentre(maxFontHeight, maxFontHeight);
+
+            if (menuItemIcon.isNotEmpty()) {
+                Fonts::drawIcon(g, menuItemIcon, iconArea.translated(3.0f, 0.0f), colour, std::min(15.0f, maxFontHeight), true);
+            }
+            r.removeFromLeft(roundToInt(maxFontHeight * 0.5f));
+
+            int fontHeight = std::min(17.0f, maxFontHeight);
+            r.removeFromRight(3);
+            Fonts::drawFittedText(g, menuItemText, r, colour, fontHeight);
+        }
+    };
+    
+    PopupMenu alignMenu;
+    alignMenu.addCustomItem(AlignLeft, std::make_unique<AlignmentMenuItem>(Icons::AlignLeft, "Left"), nullptr, "Left");
+    alignMenu.addCustomItem(AlignHCentre, std::make_unique<AlignmentMenuItem>(Icons::AlignHCentre, "Centre horizontally"), nullptr, "Centre horizontally");
+    alignMenu.addCustomItem(AlignRight, std::make_unique<AlignmentMenuItem>(Icons::AlignRight, "Right"), nullptr, "Right");
+    alignMenu.addCustomItem(AlignHDistribute, std::make_unique<AlignmentMenuItem>(Icons::AlignHDistribute, "Distribute horizonally"), nullptr, "Distribute horizonally");
+    alignMenu.addSeparator();
+    alignMenu.addCustomItem(AlignTop, std::make_unique<AlignmentMenuItem>(Icons::AlignTop, "Top"), nullptr, "Top");
+    alignMenu.addCustomItem(AlignVCentre, std::make_unique<AlignmentMenuItem>(Icons::AlignVCentre, "Centre verticaly"), nullptr, "Centre verticaly");
+    alignMenu.addCustomItem(AlignBottom, std::make_unique<AlignmentMenuItem>(Icons::AlignBottom, "Bottom"), nullptr, "Bottom");
+    alignMenu.addCustomItem(AlignVDistribute, std::make_unique<AlignmentMenuItem>(Icons::AlignVDistribute, "Distribute vertically"), nullptr, "Distribute vertically");
+    popupMenu.addSubMenu("Align", alignMenu, !locked);
 
     popupMenu.addSeparator();
     popupMenu.addItem(Properties, "Properties", (originalComponent == cnv || (object && !params.getParameters().isEmpty())) && !locked);
@@ -732,6 +802,30 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
         case Reference:
             Dialogs::showObjectReferenceDialog(&editor->openedDialog, editor, object->getType());
             break;
+        case AlignLeft:
+                cnv->alignObjects(Align::Left);
+                break;
+        case AlignHCentre:
+                cnv->alignObjects(Align::HCentre);
+                break;
+        case AlignRight:
+                cnv->alignObjects(Align::Right);
+                break;
+        case AlignHDistribute:
+                cnv->alignObjects(Align::HDistribute);
+                break;
+        case AlignTop:
+                cnv->alignObjects(Align::Top);
+                break;
+        case AlignVCentre:
+                cnv->alignObjects(Align::VCentre);
+                break;
+        case AlignBottom:
+                cnv->alignObjects(Align::Bottom);
+                break;
+        case AlignVDistribute:
+                cnv->alignObjects(Align::VDistribute);
+                break;
         default:
             break;
         }

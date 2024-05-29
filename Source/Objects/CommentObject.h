@@ -21,7 +21,6 @@ class CommentObject final : public ObjectBase
 public:
     CommentObject(pd::WeakReference obj, Object* object)
     : ObjectBase(obj, object)
-    , textRenderer(cnv->editor->nvgSurface)
     {
         objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
         locked = getValue<bool>(object->locked);

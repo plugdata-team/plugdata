@@ -401,23 +401,10 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto backgroundColour = findColour(PlugDataColour::toolbarBackgroundColourId);
-        auto* editor = findParentComponentOfClass<PluginEditor>();
-        if (ProjectInfo::isStandalone && editor && !editor->isActiveWindow()) {
-            backgroundColour = backgroundColour.brighter(backgroundColour.getBrightness() / 2.5f);
-        }
-
-        g.setColour(backgroundColour);
-        g.fillRect(getLocalBounds().toFloat().withTrimmedTop(0.5f));
-
-        if (getToggleState()) {
-            g.setColour(findColour(PlugDataColour::toolbarActiveColourId).brighter(isMouseOver() ? 0.3f : 0.0f));
-            g.fillRect(getLocalBounds().toFloat().withTrimmedTop(0.5f).removeFromRight(4));
-        } else if (isMouseOver()) {
+        if (getToggleState() || isMouseOver()) {
             g.setColour(findColour(PlugDataColour::toolbarHoverColourId));
-            g.fillRect(getLocalBounds().toFloat().withTrimmedTop(0.5f).removeFromRight(4));
+            g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(4.0f, 4.0f), Corners::defaultCornerRadius);
         }
-
         g.saveState();
 
         auto midX = static_cast<float>(getWidth()) * 0.5f;
@@ -748,24 +735,25 @@ private:
     {
         if (view) {
             g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
-            g.fillRect(getLocalBounds().toFloat().withTrimmedTop(0.5f));
+            g.fillRect(getLocalBounds().toFloat().withTrimmedTop(29.5f));
+            g.fillRect(getLocalBounds().toFloat().removeFromLeft(30).withTrimmedTop(29.5f));
         }
-
-        auto backgroundColour = findColour(PlugDataColour::toolbarBackgroundColourId);
-        if (ProjectInfo::isStandalone && !editor->isActiveWindow()) {
-            backgroundColour = backgroundColour.brighter(backgroundColour.getBrightness() / 2.5f);
-        }
-        g.setColour(backgroundColour);
-        g.fillRect(getLocalBounds().toFloat().removeFromLeft(30).withTrimmedTop(0.5f));
     }
 
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawLine(29.5f, 0.0f, 29.5f, getHeight());
-
-        if (view) {
-            g.drawLine(getWidth() - 0.5f, 0.0f, getWidth() - 0.5f, getHeight());
+        if(view) {
+            auto hasTabbar = editor->getCurrentCanvas() != nullptr;
+            auto lineHeight = hasTabbar ? 30.f : 0.0f;
+            g.drawLine(0, lineHeight, getWidth(), lineHeight);
+            g.drawLine(getWidth() - 0.5f, 29.5f, getWidth() - 0.5f, getHeight());
+            
+            g.setColour(findColour(PlugDataColour::toolbarOutlineColourId).withAlpha(0.5f));
+            g.drawLine(29.5f, 29.5f, 29.5f, getHeight());
+        }
+        else {
+            g.drawLine(29.5f, 29.5f, 29.5f, getHeight());
         }
     }
 
@@ -876,7 +864,7 @@ private:
     Viewport paletteViewport;
     Component paletteBar;
 
-    SmallIconButton addButton = SmallIconButton(Icons::Add);
+    MainToolbarButton addButton = MainToolbarButton(Icons::Add);
 
     OwnedArray<PaletteSelector> paletteSelectors;
 

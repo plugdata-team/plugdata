@@ -25,37 +25,25 @@ class Patch;
 
 class Object;
 
-class ObjectLabel : public Label, public NVGComponent, public NVGContextListener {
+class ObjectLabel : public Label, public NVGComponent {
 
     hash32 lastTextHash = 0;
     int imageId = 0;
     int lastWidth = 0, lastHeight = 0;
     float lastScale = 1.0f;
-    NVGSurface& surface;
     bool updateColour = false;
     Colour lastColour;
     
 public:
-    explicit ObjectLabel(NVGSurface& s) : NVGComponent(this), surface(s)
+    explicit ObjectLabel() : NVGComponent(this)
     {
         setJustificationType(Justification::centredLeft);
         setBorderSize(BorderSize<int>(0, 0, 0, 0));
         setMinimumHorizontalScale(0.2f);
         setEditable(false, false);
         setInterceptsMouseClicks(false, false);
-        surface.addNVGContextListener(this);
     }
-    
-    ~ObjectLabel()
-    {
-        surface.removeNVGContextListener(this);
-    }
-        
-    void nvgContextDeleted(NVGcontext* nvg) {
-        if(imageId) nvgDeleteImage(nvg, imageId);
-        imageId = 0;
-    }
-    
+
     void renderLabel(NVGcontext* nvg, float scale)
     {
         auto textHash = hash(getText());
@@ -102,21 +90,18 @@ public:
 private:
 };
 
-class VUScale : public Component, public NVGComponent, public NVGContextListener
+class VUScale : public Component, public NVGComponent
 {
-    NVGSurface& surface;
     Colour textColour;
     StringArray scale = {"+12", "+6", "+2", "-0dB", "-2", "-6", "-12", "-20", "-30", "-50", "-99"};
     StringArray scaleDecim = {"+12", "", "", "-0dB", "", "", "-12", "", "", "", "-99"};
 public:
-    VUScale(NVGSurface& s) : NVGComponent(this), surface(s)
+    VUScale() : NVGComponent(this)
     {
-        surface.addNVGContextListener(this);
     }
 
     ~VUScale()
     {
-        surface.removeNVGContextListener(this);
     }
 
     void setColour(const Colour& colour)
@@ -147,7 +132,7 @@ public:
 class ObjectLabels : public Component
 {
 public:
-    ObjectLabels(NVGSurface& s) : objectLabel(s), vuScale(s)
+    ObjectLabels()
     {
         addAndMakeVisible(objectLabel);
         addAndMakeVisible(vuScale);

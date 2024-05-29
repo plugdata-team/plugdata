@@ -4,7 +4,6 @@
 
 class NVGComponent
 {
-    
 public:
             
     NVGComponent(Component*);
@@ -24,18 +23,15 @@ private:
     JUCE_DECLARE_WEAK_REFERENCEABLE(NVGComponent)
 };
 
-class NVGImageRenderer : public NVGContextListener
+class NVGImageRenderer
 {
-    NVGSurface& surface;
 public:
-    NVGImageRenderer(NVGSurface& nvgSurace) : surface(nvgSurace)
+    NVGImageRenderer()
     {
-        surface.addNVGContextListener(this);
     }
     
     ~NVGImageRenderer()
     {
-        surface.removeNVGContextListener(this);
     }
     
     static int convertImage(NVGcontext* nvg, Image& image, int imageToUpdate = -1)
@@ -93,13 +89,6 @@ public:
         nvgFill(nvg);
     }
 
-    
-    void nvgContextDeleted(NVGcontext* nvg) override
-    {
-        if(imageId) nvgDeleteImage(nvg, imageId);
-        imageId = 0;
-    }
-    
 private:
     int imageId = 0;
     int lastHeight = 0;

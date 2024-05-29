@@ -5,7 +5,7 @@
  */
 
 // ELSE pic
-class PictureObject final : public ObjectBase, public NVGContextListener {
+class PictureObject final : public ObjectBase {
 
     Value path = SynchronousValue();
     Value latch = SynchronousValue();
@@ -45,15 +45,11 @@ public:
         objectParameters.addParamBool("Report Size", cAppearance, &reportSize, { "No", "Yes" }, 0);
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
         objectParameters.addParamSendSymbol(&sendSymbol);
-        
-        cnv->editor->nvgSurface.addNVGContextListener(this);
     }
     
     ~PictureObject()
     {
         // TODO: delete image buffers!
-        
-        cnv->editor->nvgSurface.removeNVGContextListener(this);
     }
     
     bool isTransparent() override
@@ -76,10 +72,6 @@ public:
             }
         }
     }
-    
-    void nvgContextDeleted(NVGcontext* nvg) override {
-        imageNeedsReload = true;
-    };
 
     void mouseUp(MouseEvent const& e) override
     {

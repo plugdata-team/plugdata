@@ -60,7 +60,6 @@ class Canvas : public Component
     , public pd::MessageListener
     , public AsyncUpdater 
     , public NVGComponent
-    , public NVGContextListener
 {
 public:
     Canvas(PluginEditor* parent, pd::Patch::Ptr patch, Component* parentGraph = nullptr);
@@ -101,8 +100,6 @@ public:
     void performSynchronise();
     void handleAsyncUpdate() override;
 
-    void lookAndFeelChanged() override;
-
     void updateDrawables();
 
     bool keyPressed(KeyPress const& key) override;
@@ -136,6 +133,8 @@ public:
     void jumpToOrigin();
     void zoomToFitAll();
     
+    void updatePatchSnapshot();
+    
     float getRenderScale() const;
     
     bool autoscroll(MouseEvent const& e);
@@ -155,8 +154,6 @@ public:
 
     void orderConnections();
     
-    void nvgContextDeleted(NVGcontext* nvg) override;
-
     void showSuggestions(Object* object, TextEditor* textEditor);
     void hideSuggestions();
 

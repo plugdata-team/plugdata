@@ -16,155 +16,6 @@
 #include "Utility/StackShadow.h"
 #include "Utility/Autosave.h"
 
-class WelcomePanel : public Component {
-
-    class RecentlyOpenedListBox : public Component
-        , public SettingsFileListener
-        , public ListBoxModel {
-    public:
-        RecentlyOpenedListBox()
-        {
-            listBox.setRowHeight(26);
-            listBox.setModel(this);
-            update();
-
-            listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
-
-            addAndMakeVisible(listBox);
-
-            // To get a hover effect on viewport items
-            listBox.setMouseMoveSelectsRows(true);
-
-            bouncer = std::make_unique<BouncingViewportAttachment>(listBox.getViewport());
-        }
-
-        void settingsFileReloaded() override
-        {
-            update();
-        }
-
-        void update()
-        {
-            items.clear();
-
-            auto settingsTree = SettingsFile::getInstance()->getValueTree();
-            auto recentlyOpenedTree = settingsTree.getChildWithName("RecentlyOpened");
-            if (recentlyOpenedTree.isValid()) {
-                for (int i = 0; i < recentlyOpenedTree.getNumChildren(); i++) {
-                    auto path = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
-                    items.add({ path.getFileName(), path });
-                }
-            }
-
-            listBox.updateContent();
-        }
-
-        std::function<void(File)> onPatchOpen = [](File) {};
-
-    private:
-        int getNumRows() override
-        {
-            return items.size();
-        }
-
-        void listBoxItemClicked(int row, MouseEvent const& e) override
-        {
-            onPatchOpen(items[row].second);
-        }
-
-        void paint(Graphics& g) override
-        {
-            g.setColour(findColour(PlugDataColour::outlineColourId));
-            PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), Rectangle<float>(1, 32, getWidth() - 2, getHeight() - 32), Corners::defaultCornerRadius);
-
-            Fonts::drawStyledText(g, "Recently Opened", 0, 0, getWidth(), 30, findColour(PlugDataColour::panelTextColourId), Semibold, 15, Justification::centred);
-        }
-
-        void mouseExit(MouseEvent const& e) override
-        {
-            repaint();
-        }
-
-        void resized() override
-        {
-            listBox.setBounds(getLocalBounds().withTrimmedTop(35));
-        }
-
-        void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
-        {
-            if (rowIsSelected && isMouseOver(true)) {
-                g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-                PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(5.5, 1.5, width - 9, height - 4), Corners::defaultCornerRadius);
-            }
-
-            auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
-
-            Fonts::drawText(g, items[rowNumber].first, height + 4, 0, width - 4, height, colour, 14);
-            Fonts::drawIcon(g, Icons::File, 12, 0, height, colour, 12, false);
-        }
-
-        std::unique_ptr<BouncingViewportAttachment> bouncer;
-        ListBox listBox;
-        Array<std::pair<String, File>> items;
-    };
-
-public:
-    WelcomePanel()
-        : newButton(Icons::New, "New patch", "Create a new empty patch")
-        , openButton(Icons::Open, "Open patch...", "Open a saved patch")
-
-    {
-        addAndMakeVisible(newButton);
-        addAndMakeVisible(openButton);
-    
-        // Opening files from recently opened list will likely fail,
-        // since the file browser is what grants us the permission to read/write files
-#if !JUCE_IOS
-        addAndMakeVisible(recentlyOpened);
-#endif
-    }
-
-    void resized() override
-    {
-        if (getHeight() > 400) {
-            newButton.setBounds(getLocalBounds().withSizeKeepingCentre(275, 50).translated(0, -70));
-            openButton.setBounds(getLocalBounds().withSizeKeepingCentre(275, 50).translated(0, -10));
-            recentlyOpened.setBounds(getLocalBounds().withSizeKeepingCentre(275, 170).translated(0, 110));
-            recentlyOpened.setVisible(true);
-        } else {
-            newButton.setBounds(getLocalBounds().withSizeKeepingCentre(275, 50).translated(0, -20));
-            openButton.setBounds(getLocalBounds().withSizeKeepingCentre(275, 50).translated(0, 50));
-            recentlyOpened.setVisible(false);
-        }
-    }
-
-    void show()
-    {
-        recentlyOpened.update();
-        setVisible(true);
-    }
-
-    void hide()
-    {
-        setVisible(false);
-    }
-
-    void paint(Graphics& g) override
-    {
-        auto offset = getHeight() > 400 ? 0 : 50;
-        g.fillAll(findColour(PlugDataColour::panelBackgroundColourId));
-
-        Fonts::drawStyledText(g, "Welcome to plugdata", 0, getHeight() / 2 - 195 + offset, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
-
-        Fonts::drawStyledText(g, "Open a file to begin patching", 0, getHeight() / 2 - 160 + offset, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Thin, 23, Justification::centred);
-    }
-
-    WelcomePanelButton newButton;
-    WelcomePanelButton openButton;
-
-    RecentlyOpenedListBox recentlyOpened;
-};
-
 class ButtonBar::GhostTab : public Component {
 public:
     explicit GhostTab(PlugDataLook& lnfRef)
@@ -435,22 +286,7 @@ TabComponent::TabComponent(PluginEditor* parent)
     newButton.onClick = [this]() {
         newTab();
     };
-
-    welcomePanel = std::make_unique<WelcomePanel>();
-    addAndMakeVisible(welcomePanel.get());
-
-    welcomePanel->newButton.onClick = [this]() {
-        newTab();
-    };
-
-    welcomePanel->openButton.onClick = [this]() {
-        openProject();
-    };
-
-    welcomePanel->recentlyOpened.onPatchOpen = [this](File patchFile) {
-        openProjectFile(patchFile);
-    };
-
+    
     setVisible(false);
     setTabBarDepth(0);
     tabs->addMouseListener(this, true);
@@ -546,29 +382,24 @@ void TabComponent::moveTab(int currentIndex, int newIndex)
     tabs->moveTab(currentIndex, newIndex, true);
 }
 
-void TabComponent::openProject()
-{
-    editor->openProject();
-}
-
 void TabComponent::onTabChange(int tabIndex)
 {
     editor->updateCommandStatus();
-
+    
     // Show welcome panel if there are no tabs open
     if (tabs->getNumTabs() == 0) {
         setTabBarDepth(0);
         tabs->setVisible(false);
-        welcomePanel->show();
     } else {
         tabs->setVisible(true);
-        welcomePanel->hide();
         setTabBarDepth(30);
         // we need to update the dropzones, because no resize will be automatically triggered when there is a tab added from welcome screen
         if (auto* parentHolder = dynamic_cast<ResizableTabbedComponent*>(getParentComponent()))
             parentHolder->updateDropZones();
     }
 
+    editor->resized();
+    
     auto* cnv = getCurrentCanvas();
     if (!cnv || tabIndex == -1 || editor->pd->isPerformingGlobalSync)
         return;
@@ -581,6 +412,8 @@ void TabComponent::onTabChange(int tabIndex)
         if (tabBar->getCurrentCanvas())
             tabBar->getCurrentCanvas()->tabChanged();
     }
+    
+
 }
 
 void TabComponent::changeCallback(int newCurrentTabIndex, String const& newTabName)
@@ -607,15 +440,6 @@ void TabComponent::changeCallback(int newCurrentTabIndex, String const& newTabNa
     currentTabChanged(newCurrentTabIndex, newTabName);
 }
 
-void TabComponent::openProjectFile(File& patchFile)
-{
-    editor->autosave->checkForMoreRecentAutosave(patchFile, [this, patchFile]() {
-        editor->pd->loadPatch(URL(patchFile), editor);
-        SettingsFile::getInstance()->addToRecentlyOpened(patchFile);
-        editor->pd->titleChanged();
-    });
-}
-
 void TabComponent::setTabBarDepth(int newDepth)
 {
     if (tabDepth != newDepth) {
@@ -637,8 +461,6 @@ void TabComponent::handleAsyncUpdate()
 void TabComponent::resized()
 {
     auto content = getLocalBounds();
-
-    welcomePanel->setBounds(content);
     newButton.setBounds(3, 0, tabDepth, tabDepth); // slighly offset to make it centred next to the tabs
 
     auto tabBounds = content.removeFromTop(tabDepth).withTrimmedLeft(tabDepth);

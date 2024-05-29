@@ -19,6 +19,8 @@ using namespace juce::gl;
 #include "PluginEditor.h"
 #include "PluginMode.h"
 #include "Canvas.h"
+#include "Tabbar/WelcomePanel.h"
+#include "Sidebar/Sidebar.h" // meh...
 
 #define ENABLE_FPS_COUNT 0
 
@@ -70,7 +72,7 @@ private:
         }
         return avg / (float)32;
     }
-
+    
     float frame_times[32] = {};
     int perf_head = 0;
     double startTime = 0, prevTime = 0;
@@ -92,13 +94,16 @@ NVGSurface::NVGSurface(PluginEditor* e) : editor(e)
     
     setInterceptsMouseClicks(false, false);
     setWantsKeyboardFocus(false);
-
+    
     setSize(1,1);
     
     // Start rendering asynchronously, so we are sure the window has been added to the desktop
     // kind of a hack, but works well enough
     MessageManager::callAsync([_this = SafePointer(this)](){
         if(_this) {
+            _this->initialise();
+            _this->updateBufferSize();
+            
             // Render on vblank
             _this->vBlankAttachment = std::make_unique<VBlankAttachment>(_this.getComponent(), [_this](){
                 if(_this) {
@@ -114,6 +119,58 @@ NVGSurface::~NVGSurface()
 {
     detachContext();
 }
+
+void NVGSurface::initialise()
+{
+#ifdef NANOVG_METAL_IMPLEMENTATION
+    auto renderScale = getRenderScale();
+    auto* peer = getPeer()->getNativeHandle();
+    auto* view = OSUtils::MTLCreateView(peer, 0, 0, getWidth(), getHeight());
+    setView(view);
+    nvg = nvgCreateContext(view, NVG_ANTIALIAS | NVG_TRIPLE_BUFFER, getWidth() * renderScale, getHeight() * renderScale);
+    setVisible(true);
+#if JUCE_IOS
+    resized();
+#endif
+#else
+    setVisible(true);
+    glContext->attachTo(*this);
+    glContext->initialiseOnThread();
+    glContext->makeActive();
+    nvg = nvgCreateContext(NVG_ANTIALIAS);
+#endif
+    
+    invalidateAll();
+    
+    if (!nvg) std::cerr << "could not initialise nvg" << std::endl;
+    nvgCreateFontMem(nvg, "Inter", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);
+    nvgCreateFontMem(nvg, "Inter-Regular", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);
+    nvgCreateFontMem(nvg, "Inter-Bold", (unsigned char*)BinaryData::InterBold_ttf, BinaryData::InterBold_ttfSize, 0);
+    nvgCreateFontMem(nvg, "Inter-SemiBold", (unsigned char*)BinaryData::InterSemiBold_ttf, BinaryData::InterSemiBold_ttfSize, 0);
+    nvgCreateFontMem(nvg, "Inter-Tabular", (unsigned char*)BinaryData::InterTabular_ttf, BinaryData::InterTabular_ttfSize, 0);
+    nvgCreateFontMem(nvg, "Icon", (unsigned char*)BinaryData::IconFont_ttf, BinaryData::IconFont_ttfSize, 0);
+}
+
+void NVGSurface::updateBufferSize()
+{
+    float pixelScale = getRenderScale();
+    int scaledWidth = getWidth() * pixelScale;
+    int scaledHeight = getHeight() * pixelScale;
+    
+    if(fbWidth != scaledWidth || fbHeight != scaledHeight || !mainFBO) {
+        if(invalidFBO) nvgDeleteFramebuffer(invalidFBO);
+        if(mainFBO) nvgDeleteFramebuffer(mainFBO);
+        mainFBO = nvgCreateFramebuffer(nvg, scaledWidth, scaledHeight, NVG_IMAGE_PREMULTIPLIED);
+        invalidFBO = nvgCreateFramebuffer(nvg, scaledWidth, scaledHeight, NVG_IMAGE_PREMULTIPLIED);
+        fbWidth = scaledWidth;
+        fbHeight = scaledHeight;
+        invalidArea = getLocalBounds();
+        lastScaleFactor = pixelScale;
+    }
+    
+    //scaleChanged = !approximatelyEqual(lastScaleFactor, pixelScale);
+}
+
 
 #ifdef NANOVG_GL_IMPLEMENTATION
 void NVGSurface::timerCallback()
@@ -158,7 +215,8 @@ void NVGSurface::detachContext()
 void NVGSurface::propertyChanged(String const& name, var const& value) {
     if(name == "global_scale")
     {
-        sendContextDeleteMessage();
+        // TODO: handle this?
+        //sendContextDeleteMessage();
     }
 }
 
@@ -182,7 +240,7 @@ void NVGSurface::updateBounds(Rectangle<int> bounds)
         setBounds(bounds.withHeight(getHeight()));
     else
         setBounds(bounds.withWidth(getWidth()));
-
+    
     resizing = true;
 #else
     setBounds(bounds);
@@ -231,6 +289,7 @@ void NVGSurface::renderArea(Rectangle<int> area)
         editor->pluginMode->render(nvg);
     }
     else {
+        bool hasCanvas = false;
         for(auto* split : editor->splitView.splits)
         {
             if(auto* cnv = split->getTabComponent()->getCurrentCanvas())
@@ -240,159 +299,92 @@ void NVGSurface::renderArea(Rectangle<int> area)
                 nvgScissor(nvg, 0, 0, split->getWidth(), split->getHeight());
                 cnv->performRender(nvg, area.translated(-split->getX(), 0));
                 nvgRestore(nvg);
+                hasCanvas = true;
             }
         }
+        if(!hasCanvas)
+        {
+            nvgSave(nvg);
+            editor->welcomePanel->render(nvg);
+            nvgRestore(nvg);
+        }
     }
-}
-
-void NVGSurface::sendContextDeleteMessage()
-{
-    if (nvg == nullptr)
-        return;
-
-    for(auto listener : nvgContextListeners)
-    {
-        if(listener) listener->nvgContextDeleted(nvg);
-    }
-}
-
-void NVGSurface::addNVGContextListener(NVGContextListener* listener)
-{
-    nvgContextListeners.add(listener);
-}
-
-void NVGSurface::removeNVGContextListener(NVGContextListener* listener)
-{
-    nvgContextListeners.removeAllInstancesOf(listener);
 }
 
 void NVGSurface::render()
 {
     auto startTime = Time::getMillisecondCounter();
-    bool hasCanvas = editor->pluginMode != nullptr;
+    
+    if(!isAttached() && isVisible()) initialise();
+    updateBufferSize();
+
+    auto pixelScale = getRenderScale();
+    
+    bool hasCanvas = false;
     for(auto* split : editor->splitView.splits)
     {
-        if(split->getTabComponent()->getCurrentCanvas())
+        if(auto* cnv = split->getTabComponent()->getCurrentCanvas())
         {
             hasCanvas = true;
-            break;
         }
     }
+    
+    // Manage showing/hiding welcome panel
+    if(hasCanvas && editor->welcomePanel->isVisible()) {
+        editor->welcomePanel->hide();
+        editor->resized();
+        updateBufferSize();
+    }
+    else if(!hasCanvas && !editor->welcomePanel->isVisible()) {
+        editor->welcomePanel->show();
+        editor->resized();
+        updateBufferSize();
+    }
+    
+    if(!invalidArea.isEmpty() && makeContextActive()) {
+        auto invalidated = invalidArea.expanded(1);
         
-    bool scaleChanged = false;
-    if(makeContextActive()) {
-        float pixelScale = getRenderScale();
-        int scaledWidth = getWidth() * pixelScale;
-        int scaledHeight = getHeight() * pixelScale;
+        // First, draw only the invalidated region to a separate framebuffer
+        // I've found that nvgScissor doesn't always clip everything, meaning that there will be graphical glitches if we don't do this
+        nvgBindFramebuffer(invalidFBO);
+        nvgViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
+        nvgClear(nvg);
         
-        if(fbWidth != scaledWidth || fbHeight != scaledHeight || !mainFBO) {
-            if(invalidFBO) nvgDeleteFramebuffer(invalidFBO);
-            if(mainFBO) nvgDeleteFramebuffer(mainFBO);
-            mainFBO = nvgCreateFramebuffer(nvg, scaledWidth, scaledHeight, NVG_IMAGE_PREMULTIPLIED);
-            invalidFBO = nvgCreateFramebuffer(nvg, scaledWidth, scaledHeight, NVG_IMAGE_PREMULTIPLIED);
-            fbWidth = scaledWidth;
-            fbHeight = scaledHeight;
-            invalidArea = getLocalBounds();
-            scaleChanged = !approximatelyEqual(lastScaleFactor, pixelScale);
-            lastScaleFactor = pixelScale;
-        }
-        else if(!invalidArea.isEmpty()) {
-            auto invalidated = invalidArea.expanded(1);
-            
-            // First, draw only the invalidated region to a separate framebuffer
-            // I've found that nvgScissor doesn't always clip everything, meaning that there will be graphical glitches if we don't do this
-            nvgBindFramebuffer(invalidFBO);
-            nvgViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
-            nvgClear(nvg);
-            
-            nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
-            nvgScissor (nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
-            nvgGlobalCompositeOperation(nvg, NVG_SOURCE_OVER);
-            
-            renderArea(invalidated);
-            nvgEndFrame(nvg);
-            
-            nvgBindFramebuffer(mainFBO);
-            nvgViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
-            nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
-            nvgBeginPath(nvg);
-            nvgRect(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
-            nvgScissor(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
-            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, invalidFBO->image, 1));
-            nvgFill(nvg);
+        nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
+        nvgScissor (nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
+
+        renderArea(invalidated);
+        nvgEndFrame(nvg);
+        
+        nvgBindFramebuffer(mainFBO);
+        nvgViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
+        nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
+        nvgBeginPath(nvg);
+        nvgRect(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
+        nvgScissor(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
+        nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, invalidFBO->image, 1));
+        nvgFill(nvg);
         
 #if ENABLE_FB_DEBUGGING
-            static Random rng;
-            nvgBeginPath(nvg);
-            nvgFillColor(nvg, nvgRGBA(rng.nextInt(255), rng.nextInt(255), rng.nextInt(255), 0x50));
-            nvgRect(nvg, 0, 0, getWidth(), getHeight());
-            nvgFill(nvg);
+        static Random rng;
+        nvgBeginPath(nvg);
+        nvgFillColor(nvg, nvgRGBA(rng.nextInt(255), rng.nextInt(255), rng.nextInt(255), 0x50));
+        nvgRect(nvg, 0, 0, getWidth(), getHeight());
+        nvgFill(nvg);
 #endif
         
-            nvgEndFrame(nvg);
-            
-            nvgBindFramebuffer(nullptr);
-            needsBufferSwap = true;
-            invalidArea = Rectangle<int>(0, 0, 0, 0);
-        }
+        nvgEndFrame(nvg);
+        
+        nvgBindFramebuffer(nullptr);
+        needsBufferSwap = true;
+        invalidArea = Rectangle<int>(0, 0, 0, 0);
         
 #if ENABLE_FPS_COUNT
         frameTimer->addFrameTime();
 #endif
     }
     
-    if(hasCanvas && (!isAttached() || scaleChanged))
-    {
-        setVisible(true);
-        setInterceptsMouseClicks(false, false);
-        setWantsKeyboardFocus(false);
-
-        sendContextDeleteMessage();
-        if(invalidFBO) nvgDeleteFramebuffer(invalidFBO);
-        if(mainFBO) nvgDeleteFramebuffer(mainFBO);
-        if(nvg) nvgDeleteContext(nvg);
-        invalidFBO = nullptr;
-        mainFBO = nullptr;
-        nvg = nullptr;
-        
-#ifdef NANOVG_METAL_IMPLEMENTATION
-        auto renderScale = getRenderScale();
-        auto* peer = getPeer()->getNativeHandle();
-        auto* view = OSUtils::MTLCreateView(peer, 0, 0, getWidth(), getHeight());
-        setView(view);
-        nvg = nvgCreateContext(view, NVG_ANTIALIAS | NVG_TRIPLE_BUFFER, getWidth() * renderScale, getHeight() * renderScale);
-        setVisible(true);
-#if JUCE_IOS
-        resized();
-#endif
-#else
-        glContext->attachTo(*this);
-        glContext->initialiseOnThread();
-        nvg = nvgCreateContext(NVG_ANTIALIAS);
-#endif
-        
-        invalidateAll();
-        
-        if (!nvg) std::cerr << "could not initialise nvg" << std::endl;
-        nvgCreateFontMem(nvg, "Inter", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);
-        nvgCreateFontMem(nvg, "Inter-Regular", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);
-        nvgCreateFontMem(nvg, "Inter-Tabular", (unsigned char*)BinaryData::InterTabular_ttf, BinaryData::InterTabular_ttfSize, 0);
-        nvgCreateFontMem(nvg, "Icon", (unsigned char*)BinaryData::IconFont_ttf, BinaryData::IconFont_ttfSize, 0);
-    }
-    else if(!hasCanvas && isAttached())
-    {
-        sendContextDeleteMessage();
-        
-        if(invalidFBO) nvgDeleteFramebuffer(invalidFBO);
-        if(mainFBO) nvgDeleteFramebuffer(mainFBO);
-        invalidFBO = nullptr;
-        mainFBO = nullptr;
-        
-        if(nvg) nvgDeleteContext(nvg);
-        nvg = nullptr;
-        detachContext();
-    }
-    else if(needsBufferSwap && isAttached() && mainFBO) {
+    if(needsBufferSwap && makeContextActive()) {
         float pixelScale = getRenderScale();
         nvgViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
         
@@ -408,14 +400,6 @@ void NVGSurface::render()
         
         if(!editor->pluginMode) {
             editor->splitView.render(nvg); // Render split view outlines and tab dnd areas
-            if(auto* zoomLabel = reinterpret_cast<Component*>(editor->zoomLabel.get())) // If we don't cast through the first inherited class, this is UB
-            {
-                auto zoomLabelPos = getLocalPoint(zoomLabel, Point<int>(0, 0));
-                nvgSave(nvg);
-                nvgTranslate(nvg, zoomLabelPos.x, zoomLabelPos.y);
-                dynamic_cast<NVGComponent*>(zoomLabel)->render(nvg); // Render zoom notifier at the bottom left
-                nvgRestore(nvg);
-            }
         }
         
 #if ENABLE_FPS_COUNT
@@ -425,7 +409,7 @@ void NVGSurface::render()
 #endif
         
         nvgEndFrame(nvg);
-
+        
 #ifdef NANOVG_GL_IMPLEMENTATION
         glContext->swapBuffers();
         if (resizing) {
@@ -440,7 +424,7 @@ void NVGSurface::render()
     
     auto elapsed = Time::getMillisecondCounter() - startTime;
     // We update frambuffers after we call swapBuffers to make sure the frame is on time
-    if(isAttached() && elapsed < 14) {
+    if(elapsed < 14) {
         for(auto* split : editor->splitView.splits)
         {
             if(auto* cnv = split->getTabComponent()->getCurrentCanvas())

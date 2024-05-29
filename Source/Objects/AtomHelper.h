@@ -282,7 +282,7 @@ public:
 
         if (text.isNotEmpty()) {
             if (!labels) {
-                labels = std::make_unique<ObjectLabels>(cnv->editor->nvgSurface);
+                labels = std::make_unique<ObjectLabels>();
             }
 
             auto bounds = getLabelBounds();

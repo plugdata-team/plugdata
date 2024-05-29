@@ -15,6 +15,7 @@ using namespace juce::gl;
 
 #include "Object.h"
 #include "Canvas.h"
+#include "PluginEditor.h"
 #include "Connection.h"
 #include "LookAndFeel.h"
 
@@ -131,7 +132,8 @@ void Iolet::mouseDrag(MouseEvent const& e)
 
             if (nearest && cnv->nearestIolet != nearest) {
                 nearest->isTargeted = true;
-
+                cnv->editor->tooltipWindow.displayTip(nearest->getScreenPosition(), nearest->getTooltip());
+                
                 if (cnv->nearestIolet) {
                     cnv->nearestIolet->isTargeted = false;
                     cnv->nearestIolet->repaint();
@@ -140,6 +142,7 @@ void Iolet::mouseDrag(MouseEvent const& e)
                 cnv->nearestIolet = nearest;
                 cnv->nearestIolet->repaint();
             } else if (!nearest && cnv->nearestIolet) {
+                cnv->editor->tooltipWindow.hideTip();
                 cnv->nearestIolet->isTargeted = false;
                 cnv->nearestIolet->repaint();
                 cnv->nearestIolet = nullptr;
@@ -305,6 +308,11 @@ void Iolet::mouseEnter(MouseEvent const& e)
 {
     isTargeted = true;
     object->drawIoletExpanded = true;
+    
+    if(cnv->connectionsBeingCreated.size() == 1)
+    {
+        cnv->editor->tooltipWindow.displayTip(getScreenPosition(), getTooltip());
+    }
 
     for (auto& iolet : object->iolets)
         iolet->repaint();
@@ -314,6 +322,11 @@ void Iolet::mouseExit(MouseEvent const& e)
 {
     isTargeted = false;
     object->drawIoletExpanded = false;
+    
+    if(cnv->connectionsBeingCreated.size() == 1)
+    {
+        cnv->editor->tooltipWindow.hideTip();
+    }
     
     for (auto& iolet : object->iolets)
         iolet->repaint();

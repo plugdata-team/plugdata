@@ -52,12 +52,11 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ButtonBar)
 };
 
-class WelcomePanel;
 class TabComponent : public Component
     , public AsyncUpdater {
 
     MainToolbarButton newButton = MainToolbarButton(Icons::Add);
-    std::unique_ptr<WelcomePanel> welcomePanel;
+    
     PluginEditor* editor;
 
 public:
@@ -80,9 +79,6 @@ public:
     void removeTab(int idx);
     int getTabBarDepth() const noexcept { return tabDepth; }
     void changeCallback(int newCurrentTabIndex, String const& newTabName);
-
-    void openProject();
-    void openProjectFile(File& patchFile);
 
     void currentTabChanged(int newCurrentTabIndex, String const& newCurrentTabName);
     void handleAsyncUpdate() override;

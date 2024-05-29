@@ -166,7 +166,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     parameters.addParamInt("Width", cDimensions, &patchWidth, 527);
     parameters.addParamInt("Height", cDimensions, &patchHeight, 327);
     
-    editor->nvgSurface.addNVGContextListener(this);
+    updatePatchSnapshot();
 }
 
 Canvas::~Canvas()
@@ -174,21 +174,7 @@ Canvas::~Canvas()
     zoomScale.removeListener(this);
     editor->removeModifierKeyListener(this);
     pd->unregisterMessageListener(patch.getPointer().get(), this);
-    editor->nvgSurface.removeNVGContextListener(this);
     if(ioletBuffer) nvgDeleteFramebuffer(ioletBuffer);
-}
-
-void Canvas::lookAndFeelChanged()
-{
-    editor->nvgSurface.sendContextDeleteMessage();
-}
-
-void Canvas::nvgContextDeleted(NVGcontext* nvg)
-{
-    if(ioletBuffer) nvgDeleteFramebuffer(ioletBuffer);
-    if(resizeHandleImage) nvgDeleteImage(nvg, resizeHandleImage);
-    resizeHandleImage = 0;
-    ioletBuffer = nullptr;
 }
 
 bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, int maxUpdateTimeMs)
@@ -495,6 +481,43 @@ float Canvas::getRenderScale() const
 }
 
 
+void Canvas::updatePatchSnapshot()
+{
+    auto patchFile = patch.getCurrentFile();
+    
+    if(patchFile.existsAsFile())
+    {
+        auto recentlyOpenedTree = SettingsFile::getInstance()->getValueTree().getChildWithName("RecentlyOpened");
+        for (int i = 0; i < recentlyOpenedTree.getNumChildren(); i++) {
+            auto recentlyOpenedFile = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
+            // Check if patch is in the recently opened list
+            if(File(recentlyOpenedFile) == patchFile)
+            {
+                // If so, generate an svg sihouette that we can show on the welcome page
+                String svgSilhouette;
+                
+                auto regionOfInterest = Rectangle<int>();
+                for (auto* object : objects) {
+                    regionOfInterest = regionOfInterest.getUnion(object->getBounds().reduced(Object::margin));
+                }
+                
+                for (auto* object : objects)
+                {
+                    auto rect = object->getBounds().reduced(Object::margin) - regionOfInterest.getPosition();
+                    svgSilhouette += String::formatted(
+                        "<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" rx=\"%.1f\" ry=\"%.1f\" />\n",
+                        rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight(), Corners::objectCornerRadius, Corners::objectCornerRadius);
+                }
+                svgSilhouette = "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">\n" + svgSilhouette + "</svg>";
+                
+                recentlyOpenedTree.getChild(i).setProperty("Snapshot", svgSilhouette, nullptr);
+                break;
+            }
+        }
+    }
+}
+
+
 void Canvas::renderAllObjects(NVGcontext* nvg, Rectangle<int> area)
 {
     for(auto* obj : objects)
@@ -677,6 +700,9 @@ void Canvas::tabChanged()
 
         obj->gui->tabChanged();
     }
+    
+    editor->statusbar->updateZoomLevel();
+    editor->repaint(); // Make sure everything it up to date
 }
 
 int Canvas::getTabIndex()
@@ -1812,7 +1838,7 @@ void Canvas::alignObjects(Align alignment)
         }
         break;
     }
-    case Align::VCenter: {
+    case Align::VCentre: {
         auto centrePos = selectedBounds.getCentreX();
         for (auto* object : objects) {
             auto objectBounds = object->getBounds();
@@ -1835,7 +1861,7 @@ void Canvas::alignObjects(Align alignment)
         }
         break;
     }
-    case Align::HCenter: {
+    case Align::HCentre: {
         auto centerPos = selectedBounds.getCentreY();
         for (auto* object : objects) {
             auto objectBounds = object->getBounds();
@@ -1912,6 +1938,7 @@ void Canvas::valueChanged(Value& v)
 {
     // Update zoom
     if (v.refersToSameSourceAs(zoomScale)) {
+        editor->statusbar->updateZoomLevel();
         hideSuggestions();
     } else if (v.refersToSameSourceAs(patchWidth)) {
         // limit canvas width to smallest object (11px)

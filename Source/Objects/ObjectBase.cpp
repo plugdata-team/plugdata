@@ -139,7 +139,6 @@ ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
     , object(parent)
     , cnv(parent->cnv)
     , pd(parent->cnv->pd)
-    , imageRenderer(cnv->editor->nvgSurface)
     , objectSizeListener(parent)
 {
     object->addComponentListener(&objectSizeListener);

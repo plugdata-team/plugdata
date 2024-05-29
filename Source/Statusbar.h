@@ -19,7 +19,6 @@ class MIDIBlinker;
 class CPUMeter;
 class PluginProcessor;
 class VolumeSlider;
-class OversampleSelector;
 class LatencyDisplayButton;
 
 class StatusbarSource : public Timer {
@@ -73,6 +72,7 @@ private:
 };
 
 class VolumeSlider;
+class ZoomLabel;
 class Statusbar : public Component
     , public StatusbarSource::Listener
     , public ModifierKeyListener {
@@ -89,6 +89,7 @@ public:
     void audioProcessedChanged(bool audioProcessed) override;
 
     void setLatencyDisplay(int value);
+    void updateZoomLevel();
 
     bool wasLocked = false; // Make sure it doesn't re-lock after unlocking (because cmd is still down)
 
@@ -96,22 +97,20 @@ public:
     std::unique_ptr<VolumeSlider> volumeSlider;
     std::unique_ptr<MIDIBlinker> midiBlinker;
     std::unique_ptr<CPUMeter> cpuMeter;
-
-    SmallIconButton powerButton, centreButton, fitAllButton, protectButton;
-
+    
+    SmallIconButton zoomComboButton, centreButton;
     SmallIconButton overlayButton, overlaySettingsButton;
-
     SmallIconButton snapEnableButton, snapSettingsButton;
-
-    SmallIconButton alignmentButton, debugButton;
-
-    std::unique_ptr<OversampleSelector> oversampleSelector;
-
+    SmallIconButton powerButton, audioSettingsButton;
+    
+    TextButton limiterButton = TextButton("Limit", "Enable limiter");
+        
     std::unique_ptr<LatencyDisplayButton> latencyDisplayButton;
 
-    Label zoomLabel;
+    std::unique_ptr<ZoomLabel> zoomLabel;
 
     int currentLatency = 64;
+    float currentZoomLevel = 100.f;
 
     Value showDirection;
 
@@ -122,8 +121,6 @@ public:
 
     int firstSeparatorPosition;
     int secondSeparatorPosition;
-    int thirdSeparatorPosition;
-    int fourthSeparatorPosition;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Statusbar)
 };

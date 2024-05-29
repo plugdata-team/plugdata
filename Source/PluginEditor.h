@@ -18,6 +18,7 @@
 
 #include "Tabbar/SplitView.h"
 
+
 #include "Utility/ObjectThemeManager.h"
 #include "NVGSurface.h"
 
@@ -55,7 +56,6 @@ private:
 class ConnectionMessageDisplay;
 class Sidebar;
 class Statusbar;
-class ZoomLabel;
 class Dialog;
 class Canvas;
 class TabComponent;
@@ -64,6 +64,7 @@ class Palettes;
 class Autosave;
 class PluginMode;
 class TouchSelectionHelper;
+class WelcomePanel;
 class PluginEditor : public AudioProcessorEditor
     , public Value::Listener
     , public ApplicationCommandTarget
@@ -144,7 +145,6 @@ public:
     void enablePluginMode(Canvas* cnv);
 
     void commandKeyChanged(bool isHeld) override;
-    void setZoomLabelLevel(float value);
     void setUseBorderResizer(bool shouldUse);
     void showTouchSelectionHelper(bool shouldBeShown);
     
@@ -176,8 +176,6 @@ public:
 
     std::unique_ptr<Palettes> palettes;
 
-    std::unique_ptr<ZoomLabel> zoomLabel;
-
     OfflineObjectRenderer offlineRenderer;
     NVGSurface nvgSurface;
 
@@ -194,20 +192,21 @@ public:
     static ObjectThemeManager* getObjectManager() { return &objectManager; };
 
     std::unique_ptr<CalloutArea> calloutArea;
-
-private:
+    std::unique_ptr<WelcomePanel> welcomePanel;
     
+    CheckedTooltip tooltipWindow;
+    
+private:
     std::unique_ptr<TouchSelectionHelper> touchSelectionHelper;
 
     // Used by standalone to handle dragging the window
     WindowDragger windowDragger;
 
-    int const toolbarHeight = ProjectInfo::isStandalone ? 40 : 35;
+    int const toolbarHeight = ProjectInfo::isStandalone ? 38 : 35;
 
     MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pluginModeButton;
     ToolbarRadioButton editButton, runButton, presentButton;
 
-    CheckedTooltip tooltipWindow;
 
     TextButton seperators[8];
 

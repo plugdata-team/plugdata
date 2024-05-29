@@ -285,7 +285,7 @@ public:
 
         if (text.isNotEmpty() || (gui->showVU())) {
             if (!labels) {
-                labels = std::make_unique<ObjectLabels>(cnv->editor->nvgSurface);
+                labels = std::make_unique<ObjectLabels>();
                 object->cnv->addChildComponent(labels.get());
                 if (gui->showVU())
                     labels->setObjectToTrack(object);

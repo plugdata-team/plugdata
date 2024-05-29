@@ -78,10 +78,11 @@ struct Icons {
     inline static String const SnapCenters = "$";
     inline static String const ExportState = "^";
     inline static String const Trash = "~";
-    inline static String const Fullscreen = "&";
+    inline static String const CanvasSettings = "&";
     inline static String const Eyedropper = "@";
-    inline static String const Debug = "?";
-
+    inline static String const HeartFilled = "?";
+    inline static String const HeartStroked = ">";
+    
     inline static String const Reset = "'";
     inline static String const More = ".";
     inline static String const MIDI = "`";
@@ -104,11 +105,11 @@ struct Icons {
 
     inline static String const AlignLeft = "4";
     inline static String const AlignRight = "5";
-    inline static String const AlignVCentre = "6";
+    inline static String const AlignHCentre = "6";
     inline static String const AlignHDistribute = "/";
     inline static String const AlignTop = "7";
     inline static String const AlignBottom = "8";
-    inline static String const AlignHCentre = "9";
+    inline static String const AlignVCentre = "9";
     inline static String const AlignVDistribute = "*";
     
     
@@ -414,10 +415,10 @@ enum Overlay {
 enum Align {
     Left = 0,
     Right,
-    HCenter,
+    HCentre,
     HDistribute,
     Top,
     Bottom,
-    VCenter,
+    VCentre,
     VDistribute
 };

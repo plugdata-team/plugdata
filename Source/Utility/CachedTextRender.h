@@ -1,25 +1,11 @@
 #pragma once
 
-class CachedTextRender : public NVGContextListener
+class CachedTextRender
 {
 public:
     
-    CachedTextRender(NVGSurface& nvgSurface) : surface(nvgSurface)
-    {
-        surface.addNVGContextListener(this);
-    }
-    
-    ~CachedTextRender()
-    {
-        surface.removeNVGContextListener(this);
-    }
-    
-    void nvgContextDeleted(NVGcontext* nvg) override
-    {
-        if(imageId) nvgDeleteImage(nvg, imageId);
-        imageId = 0;
-    }
-    
+    CachedTextRender() = default;
+
     void renderText(NVGcontext* nvg, Rectangle<int> const& bounds, float scale)
     {
         if(updateImage || imageId <= 0 || lastRenderBounds != bounds || lastScale != scale)
@@ -48,7 +34,7 @@ public:
             auto attributedText = AttributedString(text);
             attributedText.setColour(colour);
             attributedText.setJustification(Justification::centredLeft);
-            attributedText.setFont(Font(15));
+            attributedText.setFont(font);
             
             layout = TextLayout();
             layout.createLayout(attributedText, width);
@@ -115,7 +101,6 @@ public:
     }
     
 private:
-    NVGSurface& surface;
 
     int imageId = 0;
     int imageWidth = 0, imageHeight = 0;

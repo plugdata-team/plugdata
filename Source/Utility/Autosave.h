@@ -104,7 +104,7 @@ private:
                         
                         // Simple way to filter out plugdata default patches which we don't want to save.
                         if (!isInternalPatch(patchFile)) {
-                            autoSaveQueue.enqueue({ patchFile.getFullPathName(), patch->getCanvasContent() });
+                            autoSaveQueue.enqueue({ patchFile.getFullPathName(), patch->getCanvasContent()});
                         }
                         
                         triggerAsyncUpdate();
@@ -120,6 +120,7 @@ private:
         auto const pathName = patch.getFullPathName().replace("\\", "/");
         return pathName.contains("Documents/plugdata/Abstractions") || pathName.contains("Documents/plugdata/Documentation") || pathName.contains("Documents/plugdata/Extra") || patch.getParentDirectory() == File::getSpecialLocation(File::tempDirectory);
     }
+
 
     void handleAsyncUpdate() override
     {

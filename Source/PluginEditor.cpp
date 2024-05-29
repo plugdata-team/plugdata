@@ -29,6 +29,7 @@
 #include "Dialogs/Dialogs.h"
 #include "Statusbar.h"
 #include "Tabbar/TabBarButtonComponent.h"
+#include "Tabbar/WelcomePanel.h"
 #include "Sidebar/Sidebar.h"
 #include "Object.h"
 #include "PluginMode.h"
@@ -39,113 +40,6 @@ using namespace juce::gl;
 
 #include <nanovg.h>
 
-class ZoomLabel : public TextButton
-    , public MultiTimer, public NVGComponent
-{
-    float animationAlpha = 0.0f;
-    float targetAlpha = 0.0f;
-    float increment = 0.0f;
-    
-    int const fadeTimer = 0;
-    int const expireTimer = 1;
-
-    bool visible = false;
-    int initRun = 2;
-    
-public:
-    ZoomLabel() : NVGComponent(this)
-    {
-        setInterceptsMouseClicks(false, false);
-    }
-
-    void setZoomLevel(float value)
-    {
-        if (initRun > 0) {
-            initRun--;
-            return;
-        }
-
-        setButtonText(String(value * 100, 1) + "%");
-        fadeIn();
-    }
-
-    void fadeIn()
-    {
-        targetAlpha = 1.0f;
-        increment = 0.015f;
-        visible = true;
-        startTimer(fadeTimer, 1.0f / 60.0f);
-    }
-
-    void fadeOut()
-    {
-        targetAlpha = 0.0f;
-        increment = -0.015f;
-        startTimer(fadeTimer, 1.0f / 60.0f);
-    }
-
-    void timerCallback(int timerId) override
-    {
-        if(timerId == fadeTimer) {
-            
-            if((increment > 0.0f && animationAlpha >= targetAlpha) || (increment < 0.0f && animationAlpha <= targetAlpha))
-            {
-                animationAlpha = targetAlpha;
-                visible = targetAlpha != 0.0f;
-                if(visible)
-                {
-                    startTimer(expireTimer, 1500);
-                }
-                stopTimer(fadeTimer);
-            }
-            else {
-                animationAlpha += increment;
-            }
-            
-            findParentComponentOfClass<PluginEditor>()->nvgSurface.triggerRepaint();
-        }
-        else {
-            fadeOut();
-            stopTimer(expireTimer);
-        }
-    }
-
-    void render(NVGcontext* nvg) override
-    {
-        if(visible) {
-            auto text = getButtonText();
-            auto bg = findNVGColour(PlugDataColour::toolbarBackgroundColourId);
-            auto outline = findNVGColour(PlugDataColour::outlineColourId);
-            auto textColour = findNVGColour(PlugDataColour::toolbarTextColourId);
-            
-            nvgGlobalAlpha(nvg, std::clamp(animationAlpha, 0.0f, 1.0f));
-            
-            nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, 0, 0, getWidth(), getHeight(), Corners::defaultCornerRadius);
-            nvgFillColor(nvg, bg);
-            nvgFill(nvg);
-            nvgStrokeColor(nvg, outline);
-            nvgStrokeWidth(nvg, 1.0f);
-            nvgStroke(nvg);
-            
-            nvgFillColor(nvg, textColour);
-            nvgFontSize(nvg, 11.5f);
-            nvgFontFace(nvg, "Inter-Regular");
-            nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-            nvgText(nvg, getWidth() / 2.0f, getHeight() / 2.0f, text.toRawUTF8(), nullptr);
-            
-            nvgGlobalAlpha(nvg, 1.0f); // Reset alpha to 1.0 for other elements
-        }
-    }
-
-private:
-    int getTimerInterval() const
-    {
-        // Adjust this interval for smoother or faster animation
-        return 1000 / 60; // 60 FPS
-    }
-};
-
 
 PluginEditor::PluginEditor(PluginProcessor& p)
     : AudioProcessorEditor(&p)
@@ -155,24 +49,23 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , openedDialog(nullptr)
     , pluginMode(nullptr)
     , splitView(this)
-    , zoomLabel(std::make_unique<ZoomLabel>())
     , offlineRenderer(&p)
     , nvgSurface(this)
     , pluginConstrainer(*getConstrainer())
     , autosave(std::make_unique<Autosave>(pd))
-    , touchSelectionHelper(std::make_unique<TouchSelectionHelper>(this))
     , tooltipWindow(nullptr, [](Component* c) {
         if (auto* cnv = c->findParentComponentOfClass<Canvas>()) {
             return !getValue<bool>(cnv->locked);
         }
-
+        
         return true;
     })
+    , touchSelectionHelper(std::make_unique<TouchSelectionHelper>(this))
 {
 #if JUCE_IOS
-        //constrainer.setMinimumSize(100, 100);
-        //pluginConstrainer.setMinimumSize(100, 100);
-        //setResizable(true, false);
+    //constrainer.setMinimumSize(100, 100);
+    //pluginConstrainer.setMinimumSize(100, 100);
+    //setResizable(true, false);
 #else
     // if we are inside a DAW / host set up the border resizer now
     if (!ProjectInfo::isStandalone) {
@@ -183,17 +76,21 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         constrainer.setMinimumSize(850, 650);
     }
 #endif
-
+    
     mainMenuButton.setButtonText(Icons::Menu);
     undoButton.setButtonText(Icons::Undo);
     redoButton.setButtonText(Icons::Redo);
     pluginModeButton.setButtonText(Icons::PluginMode);
-
+    
     editButton.setButtonText(Icons::Edit);
     runButton.setButtonText(Icons::Lock);
     presentButton.setButtonText(Icons::Presentation);
-
+    
     addKeyListener(commandManager.getKeyMappings());
+    
+    welcomePanel = std::make_unique<WelcomePanel>(this);
+    addAndMakeVisible(*welcomePanel);
+    welcomePanel->setAlwaysOnTop(true);
 
     setWantsKeyboardFocus(true);
     commandManager.registerAllCommandsForTarget(this);
@@ -330,8 +227,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     addModifierKeyListener(statusbar.get());
 
-    addChildComponent(*zoomLabel);
-
     addAndMakeVisible(&callOutSafeArea);
     callOutSafeArea.setAlwaysOnTop(true);
     callOutSafeArea.setInterceptsMouseClicks(false, true);
@@ -393,11 +288,6 @@ SplitView* PluginEditor::getSplitView()
     return &splitView;
 }
 
-void PluginEditor::setZoomLabelLevel(float value)
-{
-    zoomLabel->setZoomLevel(value);
-}
-
 void PluginEditor::setUseBorderResizer(bool shouldUse)
 {
     if (shouldUse) {
@@ -447,9 +337,13 @@ void PluginEditor::paint(Graphics& g)
     } else {
         g.fillAll(baseColour);
     }
-
-    g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-    g.drawLine(29.0f, toolbarHeight - 0.5f, static_cast<float>(getWidth() - 29.5f), toolbarHeight - 0.5f, 1.0f);
+    
+    // Draw lines in case tabbar is not visible. Otherwise the sidebar outlines will stop too soon
+    if(!getCurrentCanvas()) {
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.drawLine(palettes->isExpanded() ? palettes->getRight() : 29.5f, toolbarHeight, palettes->isExpanded() ? palettes->getRight() : 29.5f, toolbarHeight + 30);
+        g.drawLine(sidebar->getX(), toolbarHeight, sidebar->getX(), toolbarHeight + 30);
+    }
 }
 
 // Paint file drop outline
@@ -529,7 +423,8 @@ void PluginEditor::resized()
     
     auto workArea = Rectangle<int>(paletteWidth, toolbarHeight, (getWidth() - sidebar->getWidth() - paletteWidth), workAreaHeight);
     splitView.setBounds(workArea);
-    nvgSurface.updateBounds(workArea.withTrimmedTop(31));
+    welcomePanel->setBounds(workArea.withTrimmedTop(welcomePanel->isVisible() ? 0 : 31));
+    nvgSurface.updateBounds(workArea.withTrimmedTop(welcomePanel->isVisible() ? 0 : 31));
     
     sidebar->setBounds(getWidth() - sidebar->getWidth(), toolbarHeight, sidebar->getWidth(), workAreaHeight);
 
@@ -544,8 +439,6 @@ void PluginEditor::resized()
     offset += 22;
 #endif
 
-    zoomLabel->setBounds(paletteWidth + 6, getHeight() - Statusbar::statusbarHeight - 32, 55, 23);
-
     int buttonDisctance = 56;
     mainMenuButton.setBounds(offset, 0, toolbarHeight, toolbarHeight);
     undoButton.setBounds(buttonDisctance + offset, 0, toolbarHeight, toolbarHeight);
@@ -558,8 +451,8 @@ void PluginEditor::resized()
     runButton.setBounds(startX + toolbarHeight - 1, 1, toolbarHeight, toolbarHeight - 2);
     presentButton.setBounds(startX + (2 * toolbarHeight) - 2, 1, toolbarHeight, toolbarHeight - 2);
 
-    auto windowControlsOffset = (useNonNativeTitlebar && !useLeftButtons) ? 150.0f : 60.0f;
-
+    auto windowControlsOffset = (useNonNativeTitlebar && !useLeftButtons) ? 140.0f : 50.0f;
+    
     if (borderResizer && ProjectInfo::isStandalone) {
         borderResizer->setBounds(getLocalBounds());
     } else if (cornerResizer) {
@@ -573,6 +466,8 @@ void PluginEditor::resized()
 
     pd->lastUIWidth = getWidth();
     pd->lastUIHeight = getHeight();
+    
+    repaint(); // Some outlines are dependent on whether or not the sidebars are expanded, or whether or not a patch is opened
 }
 
 void PluginEditor::parentSizeChanged()
@@ -779,7 +674,6 @@ void PluginEditor::createNewWindow(TabBarButtonComponent* tabButton)
     newWindow->toFront(true);
     
     closeTab(originalCanvas);
-    nvgSurface.sendContextDeleteMessage();
 }
 
 bool PluginEditor::isActiveWindow()
@@ -835,8 +729,10 @@ void PluginEditor::saveProjectAs(std::function<void()> const& nestedCallback)
                 result.deleteFile();
             
             if(!result.hasFileExtension("pd")) result = result.getFullPathName() + ".pd";
-
-            getCurrentCanvas()->patch.savePatch(resultURL);
+            
+            auto* cnv = getCurrentCanvas();
+            cnv->updatePatchSnapshot();
+            cnv->patch.savePatch(resultURL);
             SettingsFile::getInstance()->addToRecentlyOpened(result);
             pd->titleChanged();
         }
@@ -863,6 +759,7 @@ void PluginEditor::saveProject(std::function<void()> const& nestedCallback)
     }
 
     if (cnv->patch.getCurrentFile().existsAsFile()) {
+        cnv->updatePatchSnapshot();
         cnv->patch.savePatch();
         SettingsFile::getInstance()->addToRecentlyOpened(cnv->patch.getCurrentFile());
         nestedCallback();
@@ -1081,7 +978,7 @@ void PluginEditor::handleAsyncUpdate()
         presentButton.setEnabled(true);
 
         statusbar->centreButton.setEnabled(true);
-        statusbar->fitAllButton.setEnabled(true);
+        statusbar->zoomComboButton.setEnabled(true);
 
         addObjectMenuButton.setEnabled(true);
     } else {
@@ -1093,7 +990,7 @@ void PluginEditor::handleAsyncUpdate()
         presentButton.setEnabled(false);
 
         statusbar->centreButton.setEnabled(false);
-        statusbar->fitAllButton.setEnabled(false);
+        statusbar->zoomComboButton.setEnabled(false);
 
         undoButton.setEnabled(false);
         redoButton.setEnabled(false);
@@ -1103,6 +1000,8 @@ void PluginEditor::handleAsyncUpdate()
 
 void PluginEditor::updateCommandStatus()
 {
+    statusbar->updateZoomLevel();
+    
     // Make sure patches update their undo/redo state information soon
     pd->updatePatchUndoRedoState();
     AsyncUpdater::triggerAsyncUpdate();

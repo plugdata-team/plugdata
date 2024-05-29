@@ -34,7 +34,6 @@ Object::Object(Canvas* parent, String const& name, Point<int> position)
     : NVGComponent(this)
     , cnv(parent)
     , gui(nullptr)
-    , textEditorRenderer(parent->editor->nvgSurface)
     , ds(parent->dragState)
 {
     setTopLeftPosition(position - Point<int>(margin, margin));
@@ -57,7 +56,6 @@ Object::Object(Canvas* parent, String const& name, Point<int> position)
 Object::Object(pd::WeakReference object, Canvas* parent)
     : NVGComponent(this)
     , gui(nullptr)
-    , textEditorRenderer(parent->editor->nvgSurface)
     , ds(parent->dragState)
 {
     cnv = parent;
@@ -73,7 +71,6 @@ Object::~Object()
     
     hideEditor(); // Make sure the editor is not still open, that could lead to issues with listeners attached to the editor (i.e. suggestioncomponent)
     cnv->selectedComponents.removeChangeListener(this);
-    cnv->editor->nvgSurface.removeNVGContextListener(this);
 }
 
 Rectangle<int> Object::getObjectBounds()
@@ -148,16 +145,6 @@ void Object::initialise()
     setAccessible(false); // TODO: implement accessibility. We disable default, since it makes stuff slow on macOS
     
     setCachedComponentImage(new InvalidationListener(this));
-    cnv->editor->nvgSurface.addNVGContextListener(this);
-}
-
-void Object::nvgContextDeleted(NVGcontext* nvg)
-{
-    if(fb) nvgDeleteFramebuffer(fb);
-    fb = nullptr;
-    if(activityOverlayImage) nvgDeleteImage(nvg, activityOverlayImage);
-    activityOverlayImage = 0;
-    fbDirty = true;
 }
 
 void Object::timerCallback()
@@ -756,7 +743,7 @@ void Object::mouseDown(MouseEvent const& e)
     if (e.mods.isRightButtonDown() && !cnv->isGraph) {
         PopupMenu::dismissAllActiveMenus();
         if (!getValue<bool>(locked)) {
-            if(!e.mods.isAnyModifierKeyDown()) cnv->deselectAll();
+            if(!e.mods.isAnyModifierKeyDown() && !e.mods.isRightButtonDown()) cnv->deselectAll();
             cnv->setSelected(this, true);
         }
         Dialogs::showCanvasRightClickMenu(cnv, this, e.getScreenPosition());
