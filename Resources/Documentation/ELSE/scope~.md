@@ -1,5 +1,5 @@
 ---
-title: oscope~
+title: scope~
 
 description: oscilloscope display
 
@@ -7,8 +7,6 @@ categories:
  - object
 
 pdcategory: ELSE, UI, Analysis
-
-arguments:
 
 inlets:
   1st:
