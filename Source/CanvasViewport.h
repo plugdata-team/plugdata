@@ -397,8 +397,8 @@ public:
         auto thickness = getScrollBarThickness();
         auto localArea = getLocalBounds().reduced(8);
 
-        vbar.setBounds(localArea.removeFromRight(thickness).withTrimmedBottom(thickness).translated(-3, 0));
-        hbar.setBounds(localArea.removeFromBottom(thickness).translated(0, -3));
+        vbar.setBounds(localArea.removeFromRight(thickness).withTrimmedBottom(thickness).translated(-1, 0));
+        hbar.setBounds(localArea.removeFromBottom(thickness).translated(0, -1));
 
         float scale = 1.0f / std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
         auto contentArea = getViewArea() * scale;

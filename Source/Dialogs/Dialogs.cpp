@@ -91,6 +91,7 @@ Dialog::Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWi
     }
 }
 
+#if !JUCE_IOS
 void Dialog::mouseDrag(MouseEvent const &e)
 {
     if (dragging) {
@@ -101,6 +102,7 @@ void Dialog::mouseDrag(MouseEvent const &e)
         dragger.dragWindow(this, e, nullptr);
     }
 }
+#endif
 
 bool Dialog::wantsRoundedCorners() const
 {

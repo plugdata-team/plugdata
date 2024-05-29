@@ -258,7 +258,7 @@ void NVGSurface::resized()
 #if JUCE_IOS
         OSUtils::MTLResizeView(view, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
 #endif
-        mnvgSetViewBounds(view, (renderScale * bounds.getWidth()) - 4, (renderScale * bounds.getHeight()) - 4);
+        mnvgSetViewBounds(view, (renderScale * bounds.getWidth()), (renderScale * bounds.getHeight()));
     }
 #endif
 }
