@@ -165,6 +165,8 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     parameters.addParamRange("Y range", cGeneral, &yRange, { 1.0f, 0.0f });
     parameters.addParamInt("Width", cDimensions, &patchWidth, 527);
     parameters.addParamInt("Height", cDimensions, &patchHeight, 327);
+    
+    updatePatchSnapshot();
 }
 
 Canvas::~Canvas()
@@ -476,6 +478,43 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
 float Canvas::getRenderScale() const
 {
     return editor->nvgSurface.getRenderScale();
+}
+
+
+void Canvas::updatePatchSnapshot()
+{
+    auto patchFile = patch.getCurrentFile();
+    
+    if(patchFile.existsAsFile())
+    {
+        auto recentlyOpenedTree = SettingsFile::getInstance()->getValueTree().getChildWithName("RecentlyOpened");
+        for (int i = 0; i < recentlyOpenedTree.getNumChildren(); i++) {
+            auto recentlyOpenedFile = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
+            // Check if patch is in the recently opened list
+            if(File(recentlyOpenedFile) == patchFile)
+            {
+                // If so, generate an svg sihouette that we can show on the welcome page
+                String svgSilhouette;
+                
+                auto regionOfInterest = Rectangle<int>();
+                for (auto* object : objects) {
+                    regionOfInterest = regionOfInterest.getUnion(object->getBounds().reduced(Object::margin));
+                }
+                
+                for (auto* object : objects)
+                {
+                    auto rect = object->getBounds().reduced(Object::margin) - regionOfInterest.getPosition();
+                    svgSilhouette += String::formatted(
+                        "<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" rx=\"%.1f\" ry=\"%.1f\" />\n",
+                        rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight(), Corners::objectCornerRadius, Corners::objectCornerRadius);
+                }
+                svgSilhouette = "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">\n" + svgSilhouette + "</svg>";
+                
+                recentlyOpenedTree.getChild(i).setProperty("Snapshot", svgSilhouette, nullptr);
+                break;
+            }
+        }
+    }
 }
 
 
@@ -2192,24 +2231,4 @@ void Canvas::resized()
 {
     connectionLayer.setBounds(getLocalBounds());
     objectLayer.setBounds(getLocalBounds());
-}
-
-String Canvas::generateSilhouetteSVG()
-{
-    String svgContent;
-    
-    auto regionOfInterest = Rectangle<int>();
-    for (auto* object : objects) {
-        regionOfInterest = regionOfInterest.getUnion(object->getBounds().reduced(Object::margin));
-    }
-    
-    for (auto* object : objects)
-    {
-        auto rect = object->getBounds().reduced(Object::margin) - regionOfInterest.getPosition();
-        svgContent += String::formatted(
-            "<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" rx=\"%.1f\" ry=\"%.1f\" />\n",
-            rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight(), Corners::objectCornerRadius, Corners::objectCornerRadius);
-    }
-
-    return "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">\n" + svgContent + "</svg>";
 }

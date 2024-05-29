@@ -179,10 +179,6 @@ void SettingsFile::initialisePathsTree()
             break;
         }
     }
-    
-    
-   
-    
 }
 
 void SettingsFile::addToRecentlyOpened(File const& path)
@@ -213,8 +209,10 @@ void SettingsFile::addToRecentlyOpened(File const& path)
 
         // Find oldest entry
         for (int i = 0; i < recentlyOpened.getNumChildren(); i++) {
-            auto time = static_cast<int64>(recentlyOpened.getChild(i).getProperty("Time"));
-            if (time < minTime) {
+            auto child = recentlyOpened.getChild(i);
+            auto pinned = child.hasProperty("Pinned") && static_cast<bool>(child.getProperty("Pinned"));
+            auto time = static_cast<int64>(child.getProperty("Time"));
+            if (time < minTime && !pinned) {
                 minIdx = i;
                 minTime = time;
             }

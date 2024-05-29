@@ -331,12 +331,12 @@ void NVGSurface::render()
     
     // Manage showing/hiding welcome panel
     if(hasCanvas && editor->welcomePanel->isVisible()) {
-        editor->welcomePanel->setVisible(false);
+        editor->welcomePanel->hide();
         editor->resized();
         updateBufferSize();
     }
     else if(!hasCanvas && !editor->welcomePanel->isVisible()) {
-        editor->welcomePanel->setVisible(true);
+        editor->welcomePanel->show();
         editor->resized();
         updateBufferSize();
     }

@@ -80,8 +80,9 @@ struct Icons {
     inline static String const Trash = "~";
     inline static String const CanvasSettings = "&";
     inline static String const Eyedropper = "@";
-    inline static String const Debug = "?";
-
+    inline static String const HeartFilled = "?";
+    inline static String const HeartStroked = ">";
+    
     inline static String const Reset = "'";
     inline static String const More = ".";
     inline static String const MIDI = "`";

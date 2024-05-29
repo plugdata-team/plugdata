@@ -173,7 +173,9 @@ class AudioOutputSettings : public Component {
     };
     
 public:
-    AudioOutputSettings(PluginProcessor* pd) : oversampleSettings(SettingsFile::getInstance()->getProperty<int>("oversampling")), limiterSettings(SettingsFile::getInstance()->getProperty<int>("limiter_threshold"))
+    AudioOutputSettings(PluginProcessor* pd) 
+    : limiterSettings(SettingsFile::getInstance()->getProperty<int>("limiter_threshold"))
+    , oversampleSettings(SettingsFile::getInstance()->getProperty<int>("oversampling"))
     {
         addAndMakeVisible(limiterSettings);
         limiterSettings.onChange = [pd](int value){

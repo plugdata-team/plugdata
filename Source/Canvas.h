@@ -133,7 +133,7 @@ public:
     void jumpToOrigin();
     void zoomToFitAll();
     
-    String generateSilhouetteSVG();
+    void updatePatchSnapshot();
     
     float getRenderScale() const;
     

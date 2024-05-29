@@ -719,16 +719,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     addAndMakeVisible(centreButton);
 
-    /*
-    protectButton.setTooltip("Clip output signal and filter non-finite values");
-    protectButton.setClickingTogglesState(true);
-    protectButton.setToggleState(SettingsFile::getInstance()->getProperty<int>("protected"), dontSendNotification);
-    protectButton.onClick = [this]() {
-        int state = protectButton.getToggleState();
-        pd->setProtectedMode(state);
-        SettingsFile::getInstance()->setProperty("protected", state);
-    }; */
-
     volumeSlider->setRange(0.0f, 1.0f);
     volumeSlider->setValue(0.8f);
     volumeSlider->setDoubleClickReturnValue(true, 0.8f);

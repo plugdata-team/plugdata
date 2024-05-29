@@ -53,14 +53,14 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , nvgSurface(this)
     , pluginConstrainer(*getConstrainer())
     , autosave(std::make_unique<Autosave>(pd))
-    , touchSelectionHelper(std::make_unique<TouchSelectionHelper>(this))
     , tooltipWindow(nullptr, [](Component* c) {
         if (auto* cnv = c->findParentComponentOfClass<Canvas>()) {
             return !getValue<bool>(cnv->locked);
         }
-
+        
         return true;
     })
+    , touchSelectionHelper(std::make_unique<TouchSelectionHelper>(this))
 {
 #if JUCE_IOS
     //constrainer.setMinimumSize(100, 100);
@@ -729,8 +729,10 @@ void PluginEditor::saveProjectAs(std::function<void()> const& nestedCallback)
                 result.deleteFile();
             
             if(!result.hasFileExtension("pd")) result = result.getFullPathName() + ".pd";
-
-            getCurrentCanvas()->patch.savePatch(resultURL);
+            
+            auto* cnv = getCurrentCanvas();
+            cnv->updatePatchSnapshot();
+            cnv->patch.savePatch(resultURL);
             SettingsFile::getInstance()->addToRecentlyOpened(result);
             pd->titleChanged();
         }
@@ -757,6 +759,7 @@ void PluginEditor::saveProject(std::function<void()> const& nestedCallback)
     }
 
     if (cnv->patch.getCurrentFile().existsAsFile()) {
+        cnv->updatePatchSnapshot();
         cnv->patch.savePatch();
         SettingsFile::getInstance()->addToRecentlyOpened(cnv->patch.getCurrentFile());
         nestedCallback();
