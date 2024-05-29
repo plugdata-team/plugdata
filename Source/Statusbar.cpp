@@ -938,6 +938,13 @@ void Statusbar::audioProcessedChanged(bool audioProcessed)
     powerButton.setColour(TextButton::textColourOnId, colour);
 }
 
+void Statusbar::lookAndFeelChanged()
+{
+    limiterButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+    limiterButton.setColour(TextButton::buttonColourId, findColour(PlugDataColour::levelMeterBackgroundColourId));
+    limiterButton.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::levelMeterThumbColourId).withAlpha(0.3f));
+}
+
 StatusbarSource::StatusbarSource()
     : numChannels(0)
 {
@@ -953,6 +960,7 @@ void StatusbarSource::setBufferSize(int bufferSize)
 {
     this->bufferSize = bufferSize;
 }
+
 
 void StatusbarSource::process(bool hasMidiInput, bool hasMidiOutput, int channels)
 {

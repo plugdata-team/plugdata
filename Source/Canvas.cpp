@@ -184,7 +184,7 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
     auto zoom = isScrolling ? 2.0f : getValue<float>(zoomScale);
     
     // First, check if we need to update our iolet buffer
-    if(!ioletBuffer || !approximatelyEqual(zoom, bufferScale))
+    if(!ioletBuffer || !approximatelyEqual(zoom, bufferScale) || needsFramebufferUpdate)
     {
         int const logicalSize = 16 * 4;
         int const pixelSize = logicalSize * pixelScale * zoom;
@@ -239,7 +239,7 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
         editor->nvgSurface.invalidateAll();
     }
     
-    if(!resizeHandleImage || !approximatelyEqual(zoom, bufferScale))
+    if(!resizeHandleImage || !approximatelyEqual(zoom, bufferScale) || needsFramebufferUpdate)
     {
         int const logicalSize = 9;
         int const pixelSize = logicalSize * pixelScale * zoom;
@@ -286,6 +286,8 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
             }
         }
     }
+    
+    needsFramebufferUpdate = false;
     
     return true;
 }
@@ -460,7 +462,6 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
                 shadowPath.addRoundedRectangle(expanededBorder.reduced(shadowSize).withPosition(shadowSize, shadowSize), Corners::windowCornerRadius);
                 StackShadow::renderDropShadow(g, shadowPath, Colours::black, shadowSize);
                 presentationShadowImage = NVGImageRenderer::convertImage(nvg, shadow);
-
             }
             auto shadowImage = nvgImagePattern(nvg, pos.getX() - shadowSize, pos.getY() - shadowSize, expanededBorder.getWidth(), expanededBorder.getHeight(), 0, presentationShadowImage, 0.33f);
             nvgFillPaint(nvg, shadowImage);
@@ -528,6 +529,12 @@ float Canvas::getRenderScale() const
     return editor->nvgSurface.getRenderScale();
 }
 
+
+void Canvas::lookAndFeelChanged()
+{
+    needsFramebufferUpdate = true;
+    presentationShadowImage = -1;
+}
 
 void Canvas::updatePatchSnapshot()
 {

@@ -137,6 +137,8 @@ public:
     
     float getRenderScale() const;
     
+    void lookAndFeelChanged() override;
+    
     bool autoscroll(MouseEvent const& e);
 
     // Multi-dragger functions
@@ -248,6 +250,7 @@ public:
     float bufferScale;
 
     int presentationShadowImage = -1;
+    bool needsFramebufferUpdate = false;
     Rectangle<int> lastPresentationBounds;
     
     Array<juce::WeakReference<NVGComponent>> drawables;

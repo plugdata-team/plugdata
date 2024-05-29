@@ -49,7 +49,7 @@ public:
     void removeListener(Listener* l);
 
     void setCPUUsage(float cpuUsage);
-
+    
     AudioSampleRingBuffer peakBuffer;
 
 private:
@@ -85,6 +85,8 @@ public:
     void paint(Graphics& g) override;
 
     void resized() override;
+        
+    void lookAndFeelChanged() override;
 
     void audioProcessedChanged(bool audioProcessed) override;
 

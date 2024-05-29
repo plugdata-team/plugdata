@@ -415,16 +415,16 @@ void PluginEditor::resized()
 
     callOutSafeArea.setBounds(0, toolbarHeight, getWidth(), getHeight() - toolbarHeight - 30);
 
-    statusbar->setBounds(0, getHeight() - Statusbar::statusbarHeight, getWidth(), statusbar->getHeight());
+    statusbar->setBounds(0, getHeight() - Statusbar::statusbarHeight, getWidth(), Statusbar::statusbarHeight);
 
-    auto workAreaHeight = getHeight() - toolbarHeight - statusbar->getHeight();
+    auto workAreaHeight = getHeight() - toolbarHeight - Statusbar::statusbarHeight;
 
     palettes->setBounds(0, toolbarHeight, palettes->getWidth(), workAreaHeight);
     
     auto workArea = Rectangle<int>(paletteWidth, toolbarHeight, (getWidth() - sidebar->getWidth() - paletteWidth), workAreaHeight);
     splitView.setBounds(workArea);
-    welcomePanel->setBounds(workArea.withTrimmedTop(welcomePanel->isVisible() ? 0 : 31));
-    nvgSurface.updateBounds(workArea.withTrimmedTop(welcomePanel->isVisible() ? 0 : 31));
+    welcomePanel->setBounds(workArea);
+    nvgSurface.updateBounds(welcomePanel->isVisible() ? workArea : workArea.withTrimmedTop(31));
     
     sidebar->setBounds(getWidth() - sidebar->getWidth(), toolbarHeight, sidebar->getWidth(), workAreaHeight);
 
