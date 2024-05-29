@@ -90,7 +90,7 @@ class WelcomePanel : public Component, public NVGComponent, public AsyncUpdater 
         
         Rectangle<int> getHeartIconBounds()
         {
-            return Rectangle<int>(20, getHeight() - 76, 16, 16);
+            return Rectangle<int>(20, getHeight() - 80, 16, 16);
         }
         
         void mouseEnter(const MouseEvent& e) override
@@ -241,7 +241,13 @@ public:
                         editor->pd->titleChanged();
                     });
                 };
-                tile->onFavourite = [this, subTree](bool shouldBeFavourite) mutable {
+                tile->onFavourite = [this, path = subTree.getProperty("Path")](bool shouldBeFavourite) mutable {
+                    auto settingsTree = SettingsFile::getInstance()->getValueTree();
+                    auto recentlyOpenedTree = settingsTree.getChildWithName("RecentlyOpened");
+                    
+                    // Settings file could be reloaded, we can't assume the old recently opened tree is still valid!
+                    // So look up the entry by file path
+                    auto subTree = recentlyOpenedTree.getChildWithProperty("Path", path);
                     subTree.setProperty("Pinned", shouldBeFavourite, nullptr);
                     resized();
                 };
