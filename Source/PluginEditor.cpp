@@ -337,13 +337,6 @@ void PluginEditor::paint(Graphics& g)
     } else {
         g.fillAll(baseColour);
     }
-    
-    // Draw lines in case tabbar is not visible. Otherwise the sidebar outlines will stop too soon
-    if(!getCurrentCanvas()) {
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawLine(palettes->isExpanded() ? palettes->getRight() : 29.5f, toolbarHeight, palettes->isExpanded() ? palettes->getRight() : 29.5f, toolbarHeight + 30);
-        g.drawLine(sidebar->getX(), toolbarHeight, sidebar->getX(), toolbarHeight + 30);
-    }
 }
 
 // Paint file drop outline
@@ -356,6 +349,14 @@ void PluginEditor::paintOverChildren(Graphics& g)
     if (isDraggingFile) {
         g.setColour(findColour(PlugDataColour::dataColourId));
         g.drawRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius, 2.0f);
+    }
+    
+    // Draw extra lines in case tabbar is not visible. Otherwise some outlines will stop too soon
+    if(!getCurrentCanvas()) {
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.drawLine(palettes->isExpanded() ? palettes->getRight() : 29.5f, toolbarHeight, palettes->isExpanded() ? palettes->getRight() : 29.5f, toolbarHeight + 30);
+        g.drawLine(sidebar->getX() + 0.5f, toolbarHeight, sidebar->getX() + 0.5f, toolbarHeight + 30);
+        g.drawLine(palettes->isExpanded() ? palettes->getRight() : 29.0f, toolbarHeight - 0.5f, sidebar->getX() + 1.0f, toolbarHeight - 0.5f);
     }
 }
 

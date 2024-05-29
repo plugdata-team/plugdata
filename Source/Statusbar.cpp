@@ -857,8 +857,8 @@ void Statusbar::paint(Graphics& g)
     g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
     
     auto* editor = findParentComponentOfClass<PluginEditor>();
-    auto start = !editor->palettes->isExpanded() ? 29.5f : 0.0f;
-    auto end = editor->sidebar->isHidden() ? 29.5f : 0.0f;
+    auto start = !editor->palettes->isExpanded() ? 29.0f : 0.0f;
+    auto end = editor->sidebar->isHidden() ? 29.0f : 0.0f;
     g.drawLine(start, 0.5f, static_cast<float>(getWidth()) - end, 0.5f);
     
     g.drawLine(firstSeparatorPosition, 6.0f, firstSeparatorPosition, getHeight() - 6.0f);
