@@ -249,18 +249,14 @@ void Connection::render(NVGcontext* nvg)
         auto expandedEndHandle = endReconnectHandle.contains(mousePos.toFloat()) ? endReconnectHandle.expanded(3.0f) : endReconnectHandle;
    
         nvgFillColor(nvg, handleColour);
-        nvgStrokeColor(nvg, convertColour(cnv->findColour(PlugDataColour::objectOutlineColourId)));
-        nvgStrokeWidth(nvg, 0.5f);
-        
+
         nvgBeginPath(nvg);
         nvgCircle(nvg, expandedStartHandle.getCentreX(), expandedStartHandle.getCentreY(), expandedStartHandle.getWidth() / 2);
         nvgFill(nvg);
-        nvgStroke(nvg);
         
         nvgBeginPath(nvg);
         nvgCircle(nvg, expandedEndHandle.getCentreX(), expandedEndHandle.getCentreY(), expandedEndHandle.getWidth() / 2);
         nvgFill(nvg);
-        nvgStroke(nvg);
     }
 
     // draw direction arrow if activated in overlay menu
