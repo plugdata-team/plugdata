@@ -258,6 +258,8 @@ enum PlugDataColour {
     canvasTextColourId,
     canvasDotsColourId,
 
+    presentationBackgroundColourId,
+
     guiObjectBackgroundColourId,
     guiObjectInternalOutlineColour,
     textObjectBackgroundColourId,

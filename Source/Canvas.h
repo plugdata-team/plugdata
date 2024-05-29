@@ -246,6 +246,9 @@ public:
     NVGframebuffer* ioletBuffer = nullptr;
     int resizeHandleImage = 0;
     float bufferScale;
+
+    int presentationShadowImage = -1;
+    Rectangle<int> lastPresentationBounds;
     
     Array<juce::WeakReference<NVGComponent>> drawables;
 

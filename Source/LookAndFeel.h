@@ -27,6 +27,8 @@ inline std::map<PlugDataColour, std::tuple<String, String, String>> const PlugDa
     { canvasTextColourId, { "Canvas text", "canvas_text", "Canvas" } },
     { canvasDotsColourId, { "Canvas dots colour", "canvas_dots", "Canvas" } },
 
+    { presentationBackgroundColourId, { "Presentation background", "presentation_background", "Canvas" } },
+
     { guiObjectBackgroundColourId, { "GUI object background", "default_object_background", "Object" } },
     { guiObjectInternalOutlineColour, { "GUI Object internal outline colour", "gui_internal_outline_colour", "Object" } },
     { textObjectBackgroundColourId, { "Object background", "text_object_background", "Object" } },
