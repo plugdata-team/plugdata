@@ -806,6 +806,11 @@ Statusbar::Statusbar(PluginProcessor* processor)
     limiterButton.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::levelMeterThumbColourId).withAlpha(0.3f));
     limiterButton.setClickingTogglesState(true);
     limiterButton.setToggleState(SettingsFile::getInstance()->getProperty<bool>("protected"), dontSendNotification);
+
+    limiterButton.onStateChange = [this](){
+        limiterButton.setTooltip(limiterButton.getToggleState() ? "Turn off limiter" : "Turn on limiter");
+    };
+
     limiterButton.onClick = [this](){
         auto state = limiterButton.getToggleState();
         pd->setProtectedMode(state);
