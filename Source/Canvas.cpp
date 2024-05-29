@@ -357,7 +357,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         }
     }
 
-    if(hasViewport && (showOrigin || showBorder)) {
+    if(hasViewport && (showOrigin || showBorder) && !::getValue<bool>(presentationMode)) {
         nvgBeginPath(nvg);
         
         auto borderWidth = getValue<float>(patchWidth);
@@ -418,11 +418,57 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         }
     }
     
-    // if canvas is a graph, or in presentation mode, don't render connections at all
-    if (::getValue<bool>(presentationMode)  || isGraph)
+
+    if (::getValue<bool>(presentationMode) || isGraph) {
         renderAllObjects(nvg, invalidRegion);
+        // render presentation mode as clipped 'virtual' plugin view
+        if (::getValue<bool>(presentationMode) && !editor->pluginMode) {
+            auto borderWidth = getValue<float>(patchWidth);
+            auto borderHeight = getValue<float>(patchHeight);
+            auto pos = Point<int>(halfSize, halfSize);
+
+            nvgSave(nvg);
+
+            // background colour to crop outside of border area
+            nvgBeginPath(nvg);
+            nvgFillColor(nvg, convertColour(findColour(PlugDataColour::levelMeterBackgroundColourId)));
+            nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
+
+            nvgPathWinding(nvg, NVG_HOLE);
+            nvgRoundedRect(nvg, pos.getX(), pos.getY(), borderWidth, borderHeight, Corners::windowCornerRadius);
+            nvgFillColor(nvg, convertColour(findColour(PlugDataColour::levelMeterBackgroundColourId)));
+            nvgFill(nvg);
+
+            // background drop shadow to simulate a virtual plugin
+            nvgBeginPath(nvg);
+            nvgFillColor(nvg, convertColour(findColour(PlugDataColour::levelMeterBackgroundColourId)));
+            nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
+
+            nvgPathWinding(nvg, NVG_HOLE);
+            nvgRoundedRect(nvg, pos.getX(), pos.getY(), borderWidth, borderHeight, Corners::windowCornerRadius);
+
+            const int shadowSize = 40;
+            auto borderArea = Rectangle<int>(0, 0, borderWidth, borderHeight);
+            auto expanededBorder = borderArea.expanded(shadowSize);
+            if (lastPresentationBounds != borderArea || presentationShadowImage == -1) {
+                lastPresentationBounds = borderArea;
+                Image shadow(Image::ARGB, expanededBorder.getWidth(), expanededBorder.getHeight(), true);
+                Graphics g(shadow);
+                auto shadowPath = Path();
+                shadowPath.addRoundedRectangle(expanededBorder.reduced(shadowSize).withPosition(shadowSize, shadowSize), Corners::windowCornerRadius);
+                StackShadow::renderDropShadow(g, shadowPath, Colours::black, shadowSize);
+                presentationShadowImage = NVGImageRenderer::convertImage(nvg, shadow);
+
+            }
+            auto shadowImage = nvgImagePattern(nvg, pos.getX() - shadowSize, pos.getY() - shadowSize, expanededBorder.getWidth(), expanededBorder.getHeight(), 0, presentationShadowImage, 0.33f);
+            nvgFillPaint(nvg, shadowImage);
+            nvgFill(nvg);
+
+            nvgRestore(nvg);
+        }
+    }
+    // render connections infront or behind objects depending on lock mode or overlay setting
     else {
-        // render connections infront or behind objects depending on lock mode or overlay setting
         if (connectionsBehind) {
             renderAllConnections(nvg, invalidRegion);
             renderAllObjects(nvg, invalidRegion);

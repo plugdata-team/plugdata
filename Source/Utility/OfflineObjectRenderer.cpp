@@ -134,9 +134,50 @@ String OfflineObjectRenderer::patchToSVGFast(String const& patch)
     for(auto& object : objects)
     {
         auto tokens = StringArray::fromTokens(object, true);
+
         if((tokens[1] == "floatatom" || tokens[1] == "symbolatom" || tokens[1] == "listatom") && tokens.size() > 11)
         {
             objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[4].getIntValue() * 8, tokens[11].getIntValue()));
+            continue;
+        }
+
+        if(tokens[1] == "text") {
+            auto fontMetrics = Fonts::getCurrentFont().withHeight(15);
+            StringArray textString;
+            textString.addArray(tokens, 4, tokens.size() - 2 - 4);
+
+            int textAreaWidth = 0;
+            int lines = 1;
+
+            // calcuate the length of the text string:
+            // if char number is specified, then use that
+            // if it's not, then it's auto sizing, which is max of 92 chars, or min of the text length
+            if(tokens[tokens.size() - 2] == "f") {
+                textAreaWidth = tokens[tokens.size() - 1].getIntValue() * 8;
+            }
+            else {
+                int autoWidth = 0;
+                for (auto text : textString) {
+                    autoWidth += fontMetrics.getStringWidth(text + " ");
+                }
+                textAreaWidth = jmin(92 * 8, autoWidth);
+            }
+
+            int wordsInLine = 1;
+            int lineWidth = 0;
+            int wordIdx = 0;
+            while (wordIdx < textString.size()) {
+                lineWidth += fontMetrics.getStringWidth(textString[wordIdx] + " ");
+                if (lineWidth > textAreaWidth) {
+                    if (wordsInLine == 1) {
+                        break;
+                    }
+                    lines++;
+                }
+                wordIdx++;
+                wordsInLine++;
+            }
+            objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), textAreaWidth, lines * 12));
             continue;
         }
         switch(hash(tokens[4])){
