@@ -16,7 +16,9 @@ public:
         secondStageCompressor.process(dsp::ProcessContextReplacing<float>(block));
 
         for (size_t channel = 0; channel < block.getNumChannels(); ++channel) {
-            FloatVectorOperations::clip(block.getChannelPointer(channel), block.getChannelPointer(channel), -1.0f, 1.0f, block.getNumSamples());
+            // Clip if limter goes far out of bounds
+            // We'd rather not do hard clipping, but it's for the better when things get really loud
+            FloatVectorOperations::clip(block.getChannelPointer(channel), block.getChannelPointer(channel), -std::sqrt(2.0f), std::sqrt(2.0f), block.getNumSamples());
         }
     }
 

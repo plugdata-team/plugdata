@@ -77,7 +77,7 @@ class WelcomePanel : public Component, public NVGComponent, public AsyncUpdater 
                 nvgFontFace(nvg, "Icon");
                 
                 if(isFavourited) {
-                    nvgFillColor(nvg, nvgRGB(250, 50, 40));
+                    nvgFillColor(nvg, nvgRGBA(250, 50, 40, 200));
                     nvgText(nvg, favouriteIconBounds.getX(), favouriteIconBounds.getY() + 14, Icons::HeartFilled.toRawUTF8(), nullptr);
                 }
                 else if(isMouseOver())
