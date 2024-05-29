@@ -427,21 +427,23 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             auto borderHeight = getValue<float>(patchHeight);
             auto pos = Point<int>(halfSize, halfSize);
 
+            auto bgColour = convertColour(findColour(PlugDataColour::presentationBackgroundColourId));
+
             nvgSave(nvg);
 
             // background colour to crop outside of border area
             nvgBeginPath(nvg);
-            nvgFillColor(nvg, convertColour(findColour(PlugDataColour::levelMeterBackgroundColourId)));
+            nvgFillColor(nvg, bgColour);
             nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
 
             nvgPathWinding(nvg, NVG_HOLE);
             nvgRoundedRect(nvg, pos.getX(), pos.getY(), borderWidth, borderHeight, Corners::windowCornerRadius);
-            nvgFillColor(nvg, convertColour(findColour(PlugDataColour::levelMeterBackgroundColourId)));
+            nvgFillColor(nvg, bgColour);
             nvgFill(nvg);
 
             // background drop shadow to simulate a virtual plugin
             nvgBeginPath(nvg);
-            nvgFillColor(nvg, convertColour(findColour(PlugDataColour::levelMeterBackgroundColourId)));
+            nvgFillColor(nvg, bgColour);
             nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
 
             nvgPathWinding(nvg, NVG_HOLE);
