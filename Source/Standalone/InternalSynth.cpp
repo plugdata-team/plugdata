@@ -142,6 +142,8 @@ void InternalSynth::process(AudioBuffer<float>& buffer, MidiBuffer& midiMessages
         return;
     }
 
+    unprepareLock.lock();
+    
     // Pass MIDI messages to fluidsynth
     for (auto const& event : midiMessages) {
         auto const message = event.getMessage();
@@ -173,13 +175,18 @@ void InternalSynth::process(AudioBuffer<float>& buffer, MidiBuffer& midiMessages
             fluid_synth_sysex(synth, reinterpret_cast<char const*>(message.getSysExData()), message.getSysExDataSize(), nullptr, nullptr, nullptr, 0);
         }
     }
-
+    
+    buffer.clear();
+    internalBuffer.clear();
+    
     // Run audio through fluidsynth
-    fluid_synth_process(synth, buffer.getNumSamples(), internalBuffer.getNumChannels(), const_cast<float**>(internalBuffer.getArrayOfReadPointers()), internalBuffer.getNumChannels(), const_cast<float**>(internalBuffer.getArrayOfWritePointers()));
+    fluid_synth_process(synth, buffer.getNumSamples(), buffer.getNumChannels(), const_cast<float**>(internalBuffer.getArrayOfReadPointers()), buffer.getNumChannels(), const_cast<float**>(internalBuffer.getArrayOfWritePointers()));
 
     for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
         buffer.addFrom(ch, 0, internalBuffer, ch, 0, buffer.getNumSamples());
     }
+    
+    unprepareLock.unlock();
 
 #endif
 }

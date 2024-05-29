@@ -247,6 +247,7 @@ target_compile_definitions(juce
         $<TARGET_PROPERTY:juce,COMPILE_DEFINITIONS>
     )
 
+if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
 target_link_libraries(juce
     PRIVATE
         juce::juce_audio_utils
@@ -256,6 +257,16 @@ target_link_libraries(juce
         juce::juce_opengl
         melatonin_blur
         )
+else()
+target_link_libraries(juce
+    PRIVATE
+        juce::juce_audio_utils
+        juce::juce_audio_plugin_client
+        juce::juce_dsp
+        juce::juce_cryptography
+        melatonin_blur
+        )
+endif()
 
 target_compile_options(juce PUBLIC $<$<CONFIG:Release>:${JUCE_LTO_FLAGS}>)
 
