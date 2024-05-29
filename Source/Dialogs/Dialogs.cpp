@@ -667,15 +667,15 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     };
     
     PopupMenu alignMenu;
-    alignMenu.addCustomItem(AlignLeft, std::make_unique<AlignmentMenuItem>(Icons::AlignLeft, "Left"), nullptr, "Left");
-    alignMenu.addCustomItem(AlignHCentre, std::make_unique<AlignmentMenuItem>(Icons::AlignHCentre, "Centre horizontally"), nullptr, "Centre horizontally");
-    alignMenu.addCustomItem(AlignRight, std::make_unique<AlignmentMenuItem>(Icons::AlignRight, "Right"), nullptr, "Right");
-    alignMenu.addCustomItem(AlignHDistribute, std::make_unique<AlignmentMenuItem>(Icons::AlignHDistribute, "Distribute horizonally"), nullptr, "Distribute horizonally");
+    alignMenu.addCustomItem(AlignLeft, std::make_unique<AlignmentMenuItem>(Icons::AlignLeft, "Align left"), nullptr, "Align left");
+    alignMenu.addCustomItem(AlignHCentre, std::make_unique<AlignmentMenuItem>(Icons::AlignVCentre, "Align centre"), nullptr, "Align centre");
+    alignMenu.addCustomItem(AlignRight, std::make_unique<AlignmentMenuItem>(Icons::AlignRight, "Align right"), nullptr, "Align right");
+    alignMenu.addCustomItem(AlignHDistribute, std::make_unique<AlignmentMenuItem>(Icons::AlignHDistribute, "Space horizonally"), nullptr, "Space horizonally");
     alignMenu.addSeparator();
-    alignMenu.addCustomItem(AlignTop, std::make_unique<AlignmentMenuItem>(Icons::AlignTop, "Top"), nullptr, "Top");
-    alignMenu.addCustomItem(AlignVCentre, std::make_unique<AlignmentMenuItem>(Icons::AlignVCentre, "Centre verticaly"), nullptr, "Centre verticaly");
-    alignMenu.addCustomItem(AlignBottom, std::make_unique<AlignmentMenuItem>(Icons::AlignBottom, "Bottom"), nullptr, "Bottom");
-    alignMenu.addCustomItem(AlignVDistribute, std::make_unique<AlignmentMenuItem>(Icons::AlignVDistribute, "Distribute vertically"), nullptr, "Distribute vertically");
+    alignMenu.addCustomItem(AlignTop, std::make_unique<AlignmentMenuItem>(Icons::AlignTop, "Align top"), nullptr, "Align top");
+    alignMenu.addCustomItem(AlignVCentre, std::make_unique<AlignmentMenuItem>(Icons::AlignHCentre, "Align middle"), nullptr, "Align middle");
+    alignMenu.addCustomItem(AlignBottom, std::make_unique<AlignmentMenuItem>(Icons::AlignBottom, "Align bottom"), nullptr, "Align bottom");
+    alignMenu.addCustomItem(AlignVDistribute, std::make_unique<AlignmentMenuItem>(Icons::AlignVDistribute, "Space vertically"), nullptr, "Space vertically");
     popupMenu.addSubMenu("Align", alignMenu, !locked);
 
     popupMenu.addSeparator();
