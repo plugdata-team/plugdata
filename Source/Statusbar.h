@@ -111,7 +111,7 @@ public:
 
     std::unique_ptr<ZoomLabel> zoomLabel;
 
-    int currentLatency = 64;
+    int currentLatency = 0;
     float currentZoomLevel = 100.f;
 
     Value showDirection;

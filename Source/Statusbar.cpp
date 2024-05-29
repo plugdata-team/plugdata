@@ -695,7 +695,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
     latencyDisplayButton = std::make_unique<LatencyDisplayButton>();
     addChildComponent(latencyDisplayButton.get());
     latencyDisplayButton->onClick = [this](){
-        pd->performLatencyCompensationChange(64);
+        pd->performLatencyCompensationChange(0);
     };
 
     powerButton.setButtonText(Icons::Power);
