@@ -103,7 +103,7 @@ public:
     SmallIconButton snapEnableButton, snapSettingsButton;
     SmallIconButton powerButton, audioSettingsButton;
     
-    TextButton limiterButton = TextButton("Limit", "Enable limiter");
+    TextButton limiterButton = TextButton("Limit");
         
     std::unique_ptr<LatencyDisplayButton> latencyDisplayButton;
 
