@@ -28,7 +28,6 @@ if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.21")
 endif()
 
 set(PD_DIR "pure-data/")
-add_subdirectory(vstplugin)
 
 # ------------------------------------------------------------------------------#
 set(CMAKE_MACOSX_RPATH ON)
@@ -442,8 +441,6 @@ set(externals_libs fluidlite lua)
 if(ENABLE_SFIZZ)
 list(APPEND externals_libs sfizz)
 endif()
-target_link_libraries(externals vstplugin_tilde)
-target_link_libraries(externals-multi vstplugin_tilde_multi)
 
 if("${CMAKE_SYSTEM}" MATCHES "Linux")
     add_library(pd INTERFACE)
