@@ -341,7 +341,7 @@ void TabBarButtonComponent::drawTabButton(Graphics& g, Rectangle<int> customBoun
     if (!customBounds.isEmpty())
         bounds = customBounds;
 
-    g.fillRoundedRectangle(bounds.reduced(4).toFloat(), Corners::defaultCornerRadius);
+    g.fillRoundedRectangle(bounds.toFloat().reduced(4.5f), Corners::defaultCornerRadius);
 }
 
 // FIXME: we are only using this to draw the DnD tab image

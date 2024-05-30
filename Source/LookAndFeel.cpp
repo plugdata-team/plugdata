@@ -547,7 +547,7 @@ void PlugDataLook::drawTabButton(TabBarButton& button, Graphics& g, bool isMouse
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
     }
 
-    fillSmoothedRectangle(g, button.getLocalBounds().reduced(4).toFloat(), Corners::defaultCornerRadius);
+    fillSmoothedRectangle(g, button.getLocalBounds().toFloat().reduced(4.5f), Corners::defaultCornerRadius);
     drawTabButtonText(button, g, isMouseOver, isMouseDown);
 }
 
