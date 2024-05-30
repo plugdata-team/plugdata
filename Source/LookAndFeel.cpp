@@ -354,7 +354,7 @@ void PlugDataLook::drawButtonText(Graphics& g, TextButton& button, bool isMouseO
     Font font(getTextButtonFont(button, button.getHeight()));
 
     if (static_cast<bool>(button.getProperties().getVarPointer("bold_text"))) {
-        font = Font(Fonts::getCurrentFont()).withHeight(button.getHeight() * 0.7f).withStyle(FontStyle::RegularBoldened);
+        font = Font(Fonts::getSemiBoldFont()).withHeight(button.getHeight() * 0.65f);
     }
 
     g.setFont(font);

@@ -801,7 +801,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
     };
     addAndMakeVisible(overlaySettingsButton);
 
-    limiterButton.setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
     limiterButton.getProperties().set("bold_text", true);
     limiterButton.setClickingTogglesState(true);
     limiterButton.setToggleState(SettingsFile::getInstance()->getProperty<bool>("protected"), dontSendNotification);

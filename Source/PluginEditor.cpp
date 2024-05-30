@@ -456,7 +456,7 @@ void PluginEditor::resized()
     runButton.setBounds(startX + buttonSize - 1, 1, buttonSize, buttonSize - 2);
     presentButton.setBounds(startX + (2 * buttonSize) - 2, 1, buttonSize, buttonSize - 2);
 
-    auto windowControlsOffset = (useNonNativeTitlebar && !useLeftButtons) ? 140.0f : 50.0f;
+    auto windowControlsOffset = (useNonNativeTitlebar && !useLeftButtons) ? 135.0f : 45.0f;
     
     if (borderResizer && ProjectInfo::isStandalone) {
         borderResizer->setBounds(getLocalBounds());
