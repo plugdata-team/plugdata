@@ -590,12 +590,6 @@ float OSUtils::MTLGetPixelScale(void* view) {
     return reinterpret_cast<UIView*>(view).window.screen.scale;
 }
 
-void OSUtils::MTLResizeView(void* view, int x, int y, int width, int height)
-{
-    CGRect bounds = CGRectMake(x, y, width, height);
-    [(__bridge UIView*)view setFrame:bounds];
-}
-
 void* OSUtils::MTLCreateView(void* parent, int x, int y, int width, int height)
 {
     // Create child view

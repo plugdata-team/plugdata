@@ -92,8 +92,6 @@ struct OSUtils {
     static bool isIPad();
     static void showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(int)> callback);
     static void showMobileCanvasMenu(juce::ComponentPeer* peer, std::function<void(int)> callback);
-
-    static void MTLResizeView(void* view, int x, int y, int width, int height);
     
 #endif
 };

@@ -254,10 +254,7 @@ void NVGSurface::resized()
         auto desktopScale = Desktop::getInstance().getGlobalScaleFactor();
         auto renderScale = OSUtils::MTLGetPixelScale(view); // TODO: we can simplify with getRenderScale() function, but needs testing on iOS
         auto* topLevel = getTopLevelComponent();
-        auto bounds = topLevel->getLocalArea(this, getLocalBounds()) * desktopScale;
-#if JUCE_IOS
-        OSUtils::MTLResizeView(view, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
-#endif
+        auto bounds = topLevel->getLocalArea(this, getLocalBounds()).toFloat() * desktopScale;
         mnvgSetViewBounds(view, (renderScale * bounds.getWidth()), (renderScale * bounds.getHeight()));
     }
 #endif

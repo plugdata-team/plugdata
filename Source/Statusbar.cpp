@@ -875,16 +875,16 @@ void Statusbar::resized()
 
     auto spacing = getHeight();
 
-    zoomLabel->setBounds(position(34), 0, 34, getHeight());
-    zoomComboButton.setBounds(position(8) - 11, 0, getHeight(), getHeight());
-    
-    firstSeparatorPosition = position(4) + 3.5f; // fifth seperator
-    
     // Some newer iPhone models have a very large corner radius
 #if JUCE_IOS
     position(22);
 #endif
 
+    zoomLabel->setBounds(position(34), 0, 34, getHeight());
+    zoomComboButton.setBounds(position(8) - 11, 0, getHeight(), getHeight());
+    
+    firstSeparatorPosition = position(4) + 3.5f; // fifth seperator
+    
     centreButton.setBounds(position(spacing), 0, getHeight(), getHeight());
 
     secondSeparatorPosition = position(4) + 1.f; // Second seperator
