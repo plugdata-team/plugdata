@@ -352,6 +352,11 @@ int PlugDataLook::getCallOutBoxBorderSize(CallOutBox const& c)
 void PlugDataLook::drawButtonText(Graphics& g, TextButton& button, bool isMouseOverButton, bool isButtonDown)
 {
     Font font(getTextButtonFont(button, button.getHeight()));
+
+    if (static_cast<bool>(button.getProperties().getVarPointer("bold_text"))) {
+        font = Font(Fonts::getCurrentFont()).withHeight(button.getHeight() * 0.7f).withStyle(FontStyle::RegularBoldened);
+    }
+
     g.setFont(font);
     auto colour = button.findColour(button.getToggleState() ? TextButton::textColourOnId
                                                             : TextButton::textColourOffId)
