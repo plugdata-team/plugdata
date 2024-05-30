@@ -297,10 +297,10 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
 {
     auto backgroundColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId));
     auto dotsColour = convertColour(findColour(PlugDataColour::canvasDotsColourId));
-    
-    auto halfSize = infiniteCanvasSize / 2;
-    auto zoom = getValue<float>(zoomScale);
-    auto hasViewport = viewport && !editor->pluginMode;
+
+    const auto halfSize = infiniteCanvasSize / 2;
+    const auto zoom = getValue<float>(zoomScale);
+    const auto hasViewport = viewport && !editor->pluginMode;
     
     // apply translation to the canvas nvg objects
     nvgSave(nvg);
@@ -362,9 +362,9 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     if(hasViewport && (showOrigin || showBorder) && !::getValue<bool>(presentationMode)) {
         nvgBeginPath(nvg);
         
-        auto borderWidth = getValue<float>(patchWidth);
-        auto borderHeight = getValue<float>(patchHeight);
-        auto pos = Point<int>(halfSize, halfSize);
+        const auto borderWidth = getValue<float>(patchWidth);
+        const auto borderHeight = getValue<float>(patchHeight);
+        const auto pos = Point<int>(halfSize, halfSize);
         
         // Origin line paths. Draw both from {0, 0} so the strokes touch at the origin
         nvgMoveTo(nvg, pos.x, pos.y);
@@ -1006,6 +1006,20 @@ void Canvas::mouseDown(MouseEvent const& e)
     else if (!editor->pluginMode) {
         Dialogs::showCanvasRightClickMenu(this, source, e.getScreenPosition());
     }
+}
+
+bool Canvas::hitTest(int x, int y)
+{
+    // allow panning to happen anywhere, even when in presentation mode
+    if (panningModifierDown())
+        return true;
+
+    // disregard mouse drag if outside of patch
+    if (::getValue<bool>(presentationMode)) {
+        if (isPointOutsidePluginArea(Point<int>(x, y)))
+            return false;
+    }
+    return true;
 }
 
 void Canvas::mouseDrag(MouseEvent const& e)
@@ -2159,6 +2173,18 @@ bool Canvas::setPanDragMode(bool shouldPan)
         return true;
     }
     return false;
+}
+
+bool Canvas::isPointOutsidePluginArea(Point<int> point)
+{
+    const auto borderWidth = getValue<float>(patchWidth);
+    const auto borderHeight = getValue<float>(patchHeight);
+    const auto halfSize = infiniteCanvasSize / 2;
+    const auto pos = Point<int>(halfSize, halfSize);
+
+    auto pluginBounds = Rectangle<int>(pos.x, pos.y, borderWidth, borderHeight);
+
+    return !pluginBounds.contains(point);
 }
 
 void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, Rectangle<int> const& area)
