@@ -33,7 +33,7 @@ public:
         // autosave timer trigger
         autosaveInterval.referTo(SettingsFile::getInstance()->getPropertyAsValue("autosave_interval"));
         autosaveInterval.addListener(this);
-        startTimer(1000 * getValue<int>(autosaveInterval));
+        startTimer(1000 * std::max(getValue<int>(autosaveInterval), 15));
     }
 
     // Call this whenever we load a file
