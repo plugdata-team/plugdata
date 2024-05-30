@@ -16,30 +16,27 @@ inline std::map<PlugDataColour, std::tuple<String, String, String>> const PlugDa
     { toolbarTextColourId, { "Toolbar text", "toolbar_text", "Toolbar" } },
     { toolbarHoverColourId, { "Toolbar hover", "toolbar_hover", "Toolbar" } },
     { toolbarActiveColourId, { "Toolbar active text", "toolbar_active", "Toolbar" } },
-    { activeTabBackgroundColourId, { "Selected tab background", "selected_tab_background", "Tabbar" } },
+    { activeTabBackgroundColourId, { "Selected tab background", "selected_tab_background", "Toolbar" } },
 
     { canvasBackgroundColourId, { "Canvas background", "canvas_background", "Canvas" } },
     { canvasTextColourId, { "Canvas text", "canvas_text", "Canvas" } },
     { canvasDotsColourId, { "Canvas dots colour", "canvas_dots", "Canvas" } },
-
     { presentationBackgroundColourId, { "Presentation background", "presentation_background", "Canvas" } },
-
-    { guiObjectBackgroundColourId, { "GUI object background", "default_object_background", "Object" } },
-    { guiObjectInternalOutlineColour, { "GUI object internal outline colour", "gui_internal_outline_colour", "Object" } },
-    { textObjectBackgroundColourId, { "Object background", "text_object_background", "Object" } },
-    { commentTextColourId, { "Comment text", "comment_text_colour", "Object" } },
-    { objectOutlineColourId, { "Object outline", "object_outline_colour", "Object" } },
-    { objectSelectedOutlineColourId, { "Selected object outline", "selected_object_outline_colour", "Object" } },
-
-    { ioletAreaColourId, { "Inlet/Outlet area", "iolet_area_colour", "Inlet/Outlet" } },
-    { ioletOutlineColourId, { "Inlet/Outlet outline", "iolet_outline_colour", "Inlet/Outlet" } },
-
     { dataColourId, { "Data colour", "data_colour", "Canvas" } },
     { connectionColourId, { "Connection", "connection_colour", "Canvas" } },
     { signalColourId, { "Signal", "signal_colour", "Canvas" } },
     { gemColourId, { "Gem", "gem_colour", "Canvas" } },
     { graphAreaColourId, { "Graph resizer", "graph_area", "Canvas" } },
     { gridLineColourId, { "Grid line", "grid_colour", "Canvas" } },
+    
+    { guiObjectBackgroundColourId, { "GUI object background", "default_object_background", "Object" } },
+    { guiObjectInternalOutlineColour, { "GUI object internal outline colour", "gui_internal_outline_colour", "Object" } },
+    { textObjectBackgroundColourId, { "Object background", "text_object_background", "Object" } },
+    { commentTextColourId, { "Comment text", "comment_text_colour", "Object" } },
+    { objectOutlineColourId, { "Object outline", "object_outline_colour", "Object" } },
+    { objectSelectedOutlineColourId, { "Selected object outline", "selected_object_outline_colour", "Object" } },
+    { ioletAreaColourId, { "Inlet/Outlet area", "iolet_area_colour", "Object" } },
+    { ioletOutlineColourId, { "Inlet/Outlet outline", "iolet_outline_colour", "Object" } },
 
     { popupMenuBackgroundColourId, { "Popup menu background", "popup_background", "Popup Menu" } },
     { popupMenuActiveBackgroundColourId, { "Popup menu background active", "popup_background_active", "Popup Menu" } },
@@ -49,17 +46,16 @@ inline std::map<PlugDataColour, std::tuple<String, String, String>> const PlugDa
     { dialogBackgroundColourId, { "Dialog background", "dialog_background", "Other" } },
     { caretColourId, { "Text editor caret", "caret_colour", "Other" } },
     { toolbarOutlineColourId, { "Outline", "toolbar_outline_colour", "Other" } },
-
+    { scrollbarThumbColourId, { "Scrollbar thumb", "scrollbar_thumb", "Other" } },
+    
     { levelMeterActiveColourId, { "Level meter active", "levelmeter_active", "Level Meter" } },
     { levelMeterBackgroundColourId, { "Level meter track", "levelmeter_background", "Level Meter" } },
     { levelMeterThumbColourId, { "Level meter thumb", "levelmeter_thumb", "Level Meter" } },
 
-    { scrollbarThumbColourId, { "Scrollbar thumb", "scrollbar_thumb", "Other" } },
-
-    { panelBackgroundColourId, { "Panel background", "panel_background", "Panel" } },
-    { panelForegroundColourId, { "Panel foreground", "panel_foreground", "Panel" } },
-    { panelTextColourId, { "Panel text", "panel_text", "Panel" } },
-    { panelActiveBackgroundColourId, { "Panel background active", "panel_background_active", "Panel" } },
+    { panelBackgroundColourId, { "Panel background", "panel_background", "Properties Panel" } },
+    { panelForegroundColourId, { "Panel foreground", "panel_foreground", "Properties  Panel" } },
+    { panelTextColourId, { "Panel text", "panel_text", "Properties Panel" } },
+    { panelActiveBackgroundColourId, { "Panel background active", "panel_background_active", "Properties Panel" } },
     
     { sidebarBackgroundColourId, { "Sidebar background", "sidebar_colour", "Sidebar" } },
     { sidebarTextColourId, { "Sidebar text", "sidebar_text", "Sidebar" } },
