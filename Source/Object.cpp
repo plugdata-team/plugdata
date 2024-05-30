@@ -215,6 +215,11 @@ bool Object::checkIfHvccCompatible() const
 
 bool Object::hitTest(int x, int y)
 {
+    if (::getValue<bool>(presentationMode)) {
+        if (cnv->isPointOutsidePluginArea(cnv->getLocalPoint(this, Point<int>(x, y))))
+            return false;
+    }
+
     if (cnv->panningModifierDown())
         return false;
 

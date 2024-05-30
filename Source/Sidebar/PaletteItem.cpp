@@ -39,7 +39,6 @@ PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTre
 
     addChildComponent(reorderButton.get());
 
-    deleteButton.setButtonText(Icons::Clear);
     deleteButton.setTooltip("Delete item");
     deleteButton.setSize(25, 25);
     deleteButton.onClick = [this]() {

@@ -50,7 +50,6 @@ public:
         range.addListener(this);
         mode.addListener(this);
 
-        deleteButton.setButtonText(Icons::Clear);
         deleteButton.onClick = [this]() mutable {
             onDelete(this);
         };
@@ -385,7 +384,7 @@ public:
     std::function<void(AutomationItem*)> onDelete = [](AutomationItem*) {};
     std::unique_ptr<HostProvidedContextMenu> hostContextMenu;
         
-    SmallIconButton deleteButton;
+    SmallIconButton deleteButton = SmallIconButton(Icons::Clear);
     ExpandButton settingsButton;
 
     Value range = Value(var(Array<var> { var(0.0f), var(127.0f) }));

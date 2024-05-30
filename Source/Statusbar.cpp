@@ -800,10 +800,9 @@ Statusbar::Statusbar(PluginProcessor* processor)
         OverlayDisplaySettings::show(editor, overlaySettingsButton.getScreenBounds());
     };
     addAndMakeVisible(overlaySettingsButton);
-    
-    limiterButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-    limiterButton.setColour(TextButton::buttonColourId, findColour(PlugDataColour::levelMeterBackgroundColourId));
-    limiterButton.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::levelMeterThumbColourId).withAlpha(0.3f));
+
+    limiterButton.setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
+    limiterButton.getProperties().set("bold_text", true);
     limiterButton.setClickingTogglesState(true);
     limiterButton.setToggleState(SettingsFile::getInstance()->getProperty<bool>("protected"), dontSendNotification);
 
@@ -817,7 +816,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
         SettingsFile::getInstance()->setProperty("protected", state);
     };
     addAndMakeVisible(limiterButton);
-
     
     zoomComboButton.setTooltip(String("Select zoom"));
 
@@ -829,6 +827,8 @@ Statusbar::Statusbar(PluginProcessor* processor)
     setLatencyDisplay(pd->getLatencySamples() - pd::Instance::getBlockSize());
 
     setSize(getWidth(), statusbarHeight);
+
+    lookAndFeelChanged();
 }
 
 Statusbar::~Statusbar()
@@ -902,16 +902,16 @@ void Statusbar::resized()
     position(22, true);
 #endif
 
-    audioSettingsButton.setBounds(position(24, true), 0, getHeight(), getHeight());
-    powerButton.setBounds(position(spacing, true) + 16, 0, getHeight(), getHeight());
+    audioSettingsButton.setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
+    powerButton.setBounds(position(getHeight() - 16, true), 0, getHeight(), getHeight());
+    
+    limiterButton.setBounds(position(44, true), 4, 44, getHeight() - 8);
 
     // TODO: combine these both into one
-    int levelMeterPosition = position(132, true);
+    int levelMeterPosition = position(112, true);
     levelMeter->setBounds(levelMeterPosition, 2, 120, getHeight() - 4);
     volumeSlider->setBounds(levelMeterPosition, 2, 120, getHeight() - 4);
-    
-    limiterButton.setBounds(volumeSlider->getBounds().removeFromRight(42).translated(32, 0).reduced(2));
-    
+
     // Hide these if there isn't enough space
     midiBlinker->setVisible(getWidth() > 500);
     cpuMeter->setVisible(getWidth() > 500);
@@ -942,7 +942,23 @@ void Statusbar::lookAndFeelChanged()
 {
     limiterButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
     limiterButton.setColour(TextButton::buttonColourId, findColour(PlugDataColour::levelMeterBackgroundColourId));
-    limiterButton.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::levelMeterThumbColourId).withAlpha(0.3f));
+    auto limiterButtonActiveColour = findColour(PlugDataColour::toolbarActiveColourId).withAlpha(0.3f);
+    limiterButton.setColour(TextButton::buttonOnColourId, limiterButtonActiveColour);
+
+    auto blendColours = [](const juce::Colour& bottomColour, const juce::Colour& topColour) -> Colour {
+        float alpha = topColour.getFloatAlpha();
+
+        float r = alpha * topColour.getFloatRed() + (1 - alpha) * bottomColour.getFloatRed();
+        float g = alpha * topColour.getFloatGreen() + (1 - alpha) * bottomColour.getFloatGreen();
+        float b = alpha * topColour.getFloatBlue() + (1 - alpha) * bottomColour.getFloatBlue();
+
+        return Colour::fromFloatRGBA(r, g, b, 1.0f);
+    };
+
+    auto blendedButtonColour = blendColours(findColour(PlugDataColour::panelBackgroundColourId), limiterButtonActiveColour);
+
+    limiterButton.setColour(TextButton::textColourOffId, findColour(PlugDataColour::panelTextColourId));
+    limiterButton.setColour(TextButton::textColourOnId, blendedButtonColour.contrasting());
 }
 
 StatusbarSource::StatusbarSource()

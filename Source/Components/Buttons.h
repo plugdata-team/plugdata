@@ -87,20 +87,17 @@ class SmallIconButton : public TextButton {
 
     void paint(Graphics& g) override
     {
-        auto font = Fonts::getIconFont().withHeight(11.5);
-        g.setFont(font);
+        auto colour = findColour(PlugDataColour::toolbarTextColourId);
 
         if (!isEnabled()) {
-            g.setColour(Colours::grey);
+            colour = Colours::grey;
         } else if (getToggleState()) {
-            g.setColour(findColour(PlugDataColour::toolbarActiveColourId));
+            colour = findColour(PlugDataColour::toolbarActiveColourId);
         } else if (isMouseOver()) {
-            g.setColour(findColour(PlugDataColour::toolbarTextColourId).brighter(0.8f));
-        } else {
-            g.setColour(findColour(PlugDataColour::toolbarTextColourId));
+            colour = findColour(PlugDataColour::toolbarTextColourId).brighter(0.8f);
         }
 
-        g.drawText(getButtonText(), 0, 0, getWidth(), getHeight(), Justification::centred);
+        Fonts::drawIcon(g, getButtonText(), getLocalBounds(), colour, 12);
     }
 };
 
@@ -195,9 +192,8 @@ public:
 class ReorderButton : public SmallIconButton {
 public:
     ReorderButton()
-        : SmallIconButton()
+        : SmallIconButton(Icons::Reorder)
     {
-        setButtonText(Icons::Reorder);
         setSize(25, 25);
     }
 
