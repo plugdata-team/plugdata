@@ -445,7 +445,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
                     g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
                     PlugDataLook::fillSmoothedRectangle(g, bounds, Corners::defaultCornerRadius);
 
-                    textColour = findColour(PlugDataColour::sidebarActiveTextColourId);
+                    textColour = findColour(PlugDataColour::sidebarTextColourId);
                 }
 
                 Fonts::drawIcon(g, getButtonText(), std::max(0, getWidth() - getHeight()) / 2, 0, getHeight(), textColour, 12.8f);
@@ -648,7 +648,6 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
                 g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
 
                 PlugDataLook::fillSmoothedRectangle(g, r.toFloat().reduced(0, 1), Corners::defaultCornerRadius);
-                colour = findColour(PlugDataColour::popupMenuActiveTextColourId);
             }
             g.setColour(colour);
 

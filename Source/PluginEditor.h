@@ -202,7 +202,7 @@ private:
     // Used by standalone to handle dragging the window
     WindowDragger windowDragger;
 
-    int const toolbarHeight = ProjectInfo::isStandalone ? 38 : 35;
+    int const toolbarHeight = 32;
 
     MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pluginModeButton;
     ToolbarRadioButton editButton, runButton, presentButton;

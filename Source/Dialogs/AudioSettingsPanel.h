@@ -151,8 +151,7 @@ public:
             g.fillPath(buttonShape);
         }
 
-        auto textColour = isDown ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
-        Fonts::drawText(g, textOptions[isDown], buttonBounds, textColour, 14.0f, Justification::centred);
+        Fonts::drawText(g, textOptions[isDown], buttonBounds, findColour(PlugDataColour::panelTextColourId), 14.0f, Justification::centred);
 
         // Paint label
         PropertiesPanelProperty::paint(g);

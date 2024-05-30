@@ -39,8 +39,6 @@ public:
         if (mouseIsOver) {
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
             g.fillRoundedRectangle(bounds.toFloat(), Corners::defaultCornerRadius);
-
-            colour = findColour(PlugDataColour::sidebarActiveTextColourId);
         }
 
         Fonts::drawIcon(g, Icons::Add, iconBounds, colour, 12);

@@ -331,9 +331,9 @@ void TabBarButtonComponent::drawTabButton(Graphics& g, Rectangle<int> customBoun
     if (isActive) {
         g.setColour(findColour(PlugDataColour::activeTabBackgroundColourId));
     } else if (isMouseOver(true)) {
-        g.setColour(findColour(PlugDataColour::activeTabBackgroundColourId).interpolatedWith(findColour(PlugDataColour::tabBackgroundColourId), 0.4f));
+        g.setColour(findColour(PlugDataColour::activeTabBackgroundColourId).interpolatedWith(findColour(PlugDataColour::toolbarBackgroundColourId), 0.4f));
     } else {
-        g.setColour(findColour(PlugDataColour::tabBackgroundColourId));
+        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
     }
 
     auto bounds = getLocalBounds();
@@ -358,7 +358,7 @@ void TabBarButtonComponent::drawTabButtonText(Graphics& g, Rectangle<int> custom
 
     AffineTransform t = AffineTransform::translation(area.getX(), area.getY());
 
-    g.setColour(findColour(PlugDataColour::tabTextColourId));
+    g.setColour(findColour(PlugDataColour::toolbarTextColourId));
     g.setFont(font);
     g.addTransform(t);
 

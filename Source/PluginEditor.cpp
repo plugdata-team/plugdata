@@ -351,12 +351,15 @@ void PluginEditor::paintOverChildren(Graphics& g)
         g.drawRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius, 2.0f);
     }
     
+    auto tabbarDepth = welcomePanel->isVisible() ? toolbarHeight + 5.5f : toolbarHeight + 30.0f;
+    g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+    g.drawLine(palettes->isExpanded() ? palettes->getRight() : 29.0f, tabbarDepth, sidebar->getX() + 1.0f, tabbarDepth);
+    
     // Draw extra lines in case tabbar is not visible. Otherwise some outlines will stop too soon
     if(!getCurrentCanvas()) {
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawLine(palettes->isExpanded() ? palettes->getRight() : 29.5f, toolbarHeight, palettes->isExpanded() ? palettes->getRight() : 29.5f, toolbarHeight + 30);
-        g.drawLine(sidebar->getX() + 0.5f, toolbarHeight, sidebar->getX() + 0.5f, toolbarHeight + 30);
-        g.drawLine(palettes->isExpanded() ? palettes->getRight() : 29.0f, toolbarHeight - 0.5f, sidebar->getX() + 1.0f, toolbarHeight - 0.5f);
+        auto toolbarDepth = welcomePanel->isVisible() ? toolbarHeight + 6 : toolbarHeight;
+        g.drawLine(palettes->isExpanded() ? palettes->getRight() : 29.5f, toolbarDepth, palettes->isExpanded() ? palettes->getRight() : 29.5f, toolbarDepth + 30);
+        g.drawLine(sidebar->getX() + 0.5f, toolbarDepth, sidebar->getX() + 0.5f, toolbarHeight + 30);
     }
 }
 
@@ -424,8 +427,8 @@ void PluginEditor::resized()
     
     auto workArea = Rectangle<int>(paletteWidth, toolbarHeight, (getWidth() - sidebar->getWidth() - paletteWidth), workAreaHeight);
     splitView.setBounds(workArea);
-    welcomePanel->setBounds(workArea);
-    nvgSurface.updateBounds(welcomePanel->isVisible() ? workArea : workArea.withTrimmedTop(31));
+    welcomePanel->setBounds(workArea.withTrimmedTop(4));
+    nvgSurface.updateBounds(welcomePanel->isVisible() ? workArea.withTrimmedTop(6) : workArea.withTrimmedTop(31));
     
     sidebar->setBounds(getWidth() - sidebar->getWidth(), toolbarHeight, sidebar->getWidth(), workAreaHeight);
 
@@ -440,17 +443,18 @@ void PluginEditor::resized()
     offset += 22;
 #endif
 
-    int buttonDisctance = 56;
-    mainMenuButton.setBounds(offset, 0, toolbarHeight, toolbarHeight);
-    undoButton.setBounds(buttonDisctance + offset, 0, toolbarHeight, toolbarHeight);
-    redoButton.setBounds((2 * buttonDisctance) + offset, 0, toolbarHeight, toolbarHeight);
-    addObjectMenuButton.setBounds((3 * buttonDisctance) + offset, 0, toolbarHeight, toolbarHeight);
+    auto const buttonDistance = 56;
+    auto const buttonSize = toolbarHeight + 5;
+    mainMenuButton.setBounds(offset, 0, buttonSize, buttonSize);
+    undoButton.setBounds(buttonDistance + offset, 0, buttonSize, buttonSize);
+    redoButton.setBounds((2 * buttonDistance) + offset, 0, buttonSize, buttonSize);
+    addObjectMenuButton.setBounds((3 * buttonDistance) + offset, 0, buttonSize, buttonSize);
 
     auto startX = (getWidth() / 2) - (toolbarHeight * 1.5);
 
-    editButton.setBounds(startX, 1, toolbarHeight, toolbarHeight - 2);
-    runButton.setBounds(startX + toolbarHeight - 1, 1, toolbarHeight, toolbarHeight - 2);
-    presentButton.setBounds(startX + (2 * toolbarHeight) - 2, 1, toolbarHeight, toolbarHeight - 2);
+    editButton.setBounds(startX, 1, buttonSize, buttonSize - 2);
+    runButton.setBounds(startX + buttonSize - 1, 1, buttonSize, buttonSize - 2);
+    presentButton.setBounds(startX + (2 * buttonSize) - 2, 1, buttonSize, buttonSize - 2);
 
     auto windowControlsOffset = (useNonNativeTitlebar && !useLeftButtons) ? 140.0f : 50.0f;
     
@@ -463,7 +467,7 @@ void PluginEditor::resized()
             resizerSize, resizerSize);
     }
 
-    pluginModeButton.setBounds(getWidth() - windowControlsOffset, 0, toolbarHeight, toolbarHeight);
+    pluginModeButton.setBounds(getWidth() - windowControlsOffset, 0, buttonSize, buttonSize);
 
     pd->lastUIWidth = getWidth();
     pd->lastUIHeight = getHeight();

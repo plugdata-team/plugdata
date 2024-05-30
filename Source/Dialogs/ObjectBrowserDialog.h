@@ -53,10 +53,8 @@ public:
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
             g.fillRoundedRectangle({ 4.0f, 1.0f, width - 8.0f, height - 2.0f }, Corners::defaultCornerRadius);
         }
-
-        auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
-
-        Fonts::drawText(g, categories[rowNumber], 12, 0, width - 9, height, colour, 15);
+        
+        Fonts::drawText(g, categories[rowNumber], 12, 0, width - 9, height, findColour(PlugDataColour::panelTextColourId), 15);
     }
 
     void initialise(StringArray newCategories)
@@ -97,7 +95,7 @@ class ObjectsListBox : public ListBox
                 g.fillRoundedRectangle(getLocalBounds().reduced(4, 2).toFloat(), Corners::defaultCornerRadius);
             }
 
-            auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
+            auto colour = findColour(PlugDataColour::panelTextColourId);
 
             auto textBounds = Rectangle<int>(0, 0, getWidth(), getHeight()).reduced(18, 6);
 
@@ -687,11 +685,10 @@ public:
             g.fillRoundedRectangle(4, 2, w - 8, h - 4, Corners::defaultCornerRadius);
         }
 
-        g.setColour(rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(ComboBox::textColourId));
+        g.setColour(findColour(ComboBox::textColourId));
         String const item = searchResult[rowNumber];
 
-        auto colour = rowIsSelected ? findColour(PlugDataColour::popupMenuActiveTextColourId) : findColour(PlugDataColour::popupMenuTextColourId);
-
+        auto colour = findColour(PlugDataColour::popupMenuTextColourId);
         auto yIndent = jmin<float>(4, h * 0.3f);
         auto leftIndent = 34;
         auto rightIndent = 11;

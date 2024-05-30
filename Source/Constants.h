@@ -248,11 +248,7 @@ enum PlugDataColour {
     toolbarActiveColourId,
     toolbarHoverColourId,
     toolbarOutlineColourId,
-
-    tabBackgroundColourId,
-    tabTextColourId,
     activeTabBackgroundColourId,
-    activeTabTextColourId,
 
     canvasBackgroundColourId,
     canvasTextColourId,
@@ -282,7 +278,6 @@ enum PlugDataColour {
     sidebarBackgroundColourId,
     sidebarTextColourId,
     sidebarActiveBackgroundColourId,
-    sidebarActiveTextColourId,
 
     levelMeterActiveColourId,
     levelMeterBackgroundColourId,
@@ -292,14 +287,11 @@ enum PlugDataColour {
     panelForegroundColourId,
     panelTextColourId,
     panelActiveBackgroundColourId,
-    panelActiveTextColourId,
 
     popupMenuBackgroundColourId,
     popupMenuActiveBackgroundColourId,
     popupMenuTextColourId,
-    popupMenuActiveTextColourId,
 
-    sliderThumbColourId,
     scrollbarThumbColourId,
     graphAreaColourId,
     gridLineColourId,

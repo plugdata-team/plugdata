@@ -235,7 +235,7 @@ public:
                 auto totalLength = length + calculateRepeatOffset(repeats);
                 auto numLines = Console::calculateNumLines(message, totalLength, console.getWidth());
 
-                auto textColour = findColour(isSelected ? PlugDataColour::sidebarActiveTextColourId : PlugDataColour::sidebarTextColourId);
+                auto textColour = findColour(PlugDataColour::sidebarTextColourId);
 
                 if (type == 1)
                     textColour = Colours::orange;

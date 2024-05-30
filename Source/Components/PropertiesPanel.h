@@ -511,7 +511,7 @@ public:
                 g.fillPath(p);
             }
 
-            auto textColour = isDown ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
+            auto textColour = findColour(PlugDataColour::panelTextColourId);
 
             if (!isEnabled()) {
                 textColour = findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f);
@@ -946,8 +946,6 @@ public:
                 Path p;
                 p.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, roundTop, roundTop, roundBottom, roundBottom);
                 g.fillPath(p);
-
-                colour = findColour(PlugDataColour::panelActiveTextColourId);
             }
 
             Fonts::drawIcon(g, icon, iconBounds, colour, 12);

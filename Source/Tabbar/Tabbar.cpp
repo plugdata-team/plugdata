@@ -463,7 +463,7 @@ void TabComponent::resized()
     auto content = getLocalBounds();
     newButton.setBounds(3, 0, tabDepth, tabDepth); // slighly offset to make it centred next to the tabs
 
-    auto tabBounds = content.removeFromTop(tabDepth).withTrimmedLeft(tabDepth);
+    auto tabBounds = content.removeFromTop(tabDepth).withTrimmedLeft(tabDepth).translated(0, -1);
     tabs->setBounds(tabBounds);
 
     for (int c = 0; c < tabs->getNumTabs(); c++) {
@@ -480,23 +480,6 @@ void TabComponent::resized()
 Component* TabComponent::getTabContentComponent(int tabIndex) const noexcept
 {
     return contentComponents[tabIndex].get();
-}
-
-void TabComponent::paint(Graphics& g)
-{
-    auto backgroundColour = findColour(PlugDataColour::tabBackgroundColourId);
-
-    if (ProjectInfo::isStandalone && !editor->isActiveWindow()) {
-        backgroundColour = backgroundColour.brighter(backgroundColour.getBrightness() / 2.5f);
-    }
-    
-    g.fillAll(backgroundColour);
-}
-
-void TabComponent::paintOverChildren(Graphics& g)
-{
-    g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-    g.drawLine(0, tabDepth, getWidth(), tabDepth);
 }
 
 int TabComponent::getIndexOfCanvas(Canvas* cnv)

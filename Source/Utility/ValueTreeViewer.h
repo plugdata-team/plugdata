@@ -89,7 +89,7 @@ public:
         p.lineTo(0.5f, 0.5f);
         p.lineTo(isOpen() ? 1.0f : 0.0f, isOpen() ? 0.0f : 1.0f);
         
-        g.setColour(isSelected() ? findColour(PlugDataColour::sidebarActiveTextColourId) : getOwnerView()->findColour(PlugDataColour::sidebarTextColourId));
+        g.setColour(getOwnerView()->findColour(PlugDataColour::sidebarTextColourId));
         g.strokePath(p, PathStrokeType(1.5f, PathStrokeType::curved, PathStrokeType::rounded), p.getTransformToScaleToFit(arrowArea, true));
     }
     
@@ -171,8 +171,7 @@ public:
             paintOpenCloseButton(g, arrowBounds);
         }
         
-        auto& owner = *getOwnerView();
-        auto colour = isSelected() ? owner.findColour(PlugDataColour::sidebarActiveTextColourId) : getOwnerView()->findColour(PlugDataColour::sidebarTextColourId);
+        auto colour = getOwnerView()->findColour(PlugDataColour::sidebarTextColourId);
         
         if(valueTreeNode.hasProperty("Icon"))
         {

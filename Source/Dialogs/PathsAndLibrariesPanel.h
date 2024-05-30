@@ -37,8 +37,6 @@ public:
             Path p;
             p.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, roundTop, roundTop, true, true);
             g.fillPath(p);
-
-            colour = findColour(PlugDataColour::panelActiveTextColourId);
         }
 
         Fonts::drawIcon(g, icon, iconBounds, colour, 12);
@@ -204,10 +202,8 @@ public:
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId).withAlpha(0.5f));
         g.drawHorizontalLine(height - 1.0f, x, x + newWidth);
-
-        auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
-
-        Fonts::drawText(g, paths[rowNumber], x + 12, 0, width - 9, height, colour, 15);
+        
+        Fonts::drawText(g, paths[rowNumber], x + 12, 0, width - 9, height, findColour(PlugDataColour::panelTextColourId), 15);
     }
 
     void deleteKeyPressed(int row) override
@@ -552,9 +548,7 @@ public:
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId).withAlpha(0.5f));
         g.drawHorizontalLine(height - 1.0f, x, x + newWidth);
 
-        auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
-
-        Fonts::drawText(g, librariesToLoad[rowNumber], x + 12, 0, width - 9, height, colour, 15);
+        Fonts::drawText(g, librariesToLoad[rowNumber], x + 12, 0, width - 9, height, findColour(PlugDataColour::panelTextColourId), 15);
     }
 
     void deleteKeyPressed(int row) override

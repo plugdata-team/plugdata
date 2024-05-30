@@ -16,12 +16,7 @@ inline std::map<PlugDataColour, std::tuple<String, String, String>> const PlugDa
     { toolbarTextColourId, { "Toolbar text", "toolbar_text", "Toolbar" } },
     { toolbarHoverColourId, { "Toolbar hover", "toolbar_hover", "Toolbar" } },
     { toolbarActiveColourId, { "Toolbar active text", "toolbar_active", "Toolbar" } },
-
-    { tabBackgroundColourId, { "Tab background", "tabbar_background", "Tabbar" } },
-
-    { tabTextColourId, { "Tab text", "tab_text", "Tabbar" } },
     { activeTabBackgroundColourId, { "Selected tab background", "selected_tab_background", "Tabbar" } },
-    { activeTabTextColourId, { "Selected tab text", "selected_tab_text", "Tabbar" } },
 
     { canvasBackgroundColourId, { "Canvas background", "canvas_background", "Canvas" } },
     { canvasTextColourId, { "Canvas text", "canvas_text", "Canvas" } },
@@ -30,7 +25,7 @@ inline std::map<PlugDataColour, std::tuple<String, String, String>> const PlugDa
     { presentationBackgroundColourId, { "Presentation background", "presentation_background", "Canvas" } },
 
     { guiObjectBackgroundColourId, { "GUI object background", "default_object_background", "Object" } },
-    { guiObjectInternalOutlineColour, { "GUI Object internal outline colour", "gui_internal_outline_colour", "Object" } },
+    { guiObjectInternalOutlineColour, { "GUI object internal outline colour", "gui_internal_outline_colour", "Object" } },
     { textObjectBackgroundColourId, { "Object background", "text_object_background", "Object" } },
     { commentTextColourId, { "Comment text", "comment_text_colour", "Object" } },
     { objectOutlineColourId, { "Object outline", "object_outline_colour", "Object" } },
@@ -49,7 +44,6 @@ inline std::map<PlugDataColour, std::tuple<String, String, String>> const PlugDa
     { popupMenuBackgroundColourId, { "Popup menu background", "popup_background", "Popup Menu" } },
     { popupMenuActiveBackgroundColourId, { "Popup menu background active", "popup_background_active", "Popup Menu" } },
     { popupMenuTextColourId, { "Popup menu text", "popup_text", "Popup Menu" } },
-    { popupMenuActiveTextColourId, { "Popup menu active text", "popup_active_text", "Popup Menu" } },
     { outlineColourId, { "Popup menu outline", "outline_colour", "Popup Menu" } },
 
     { dialogBackgroundColourId, { "Dialog background", "dialog_background", "Other" } },
@@ -60,19 +54,16 @@ inline std::map<PlugDataColour, std::tuple<String, String, String>> const PlugDa
     { levelMeterBackgroundColourId, { "Level meter track", "levelmeter_background", "Level Meter" } },
     { levelMeterThumbColourId, { "Level meter thumb", "levelmeter_thumb", "Level Meter" } },
 
-    { sliderThumbColourId, { "Slider thumb", "slider_thumb", "Other" } },
     { scrollbarThumbColourId, { "Scrollbar thumb", "scrollbar_thumb", "Other" } },
 
     { panelBackgroundColourId, { "Panel background", "panel_background", "Panel" } },
     { panelForegroundColourId, { "Panel foreground", "panel_foreground", "Panel" } },
     { panelTextColourId, { "Panel text", "panel_text", "Panel" } },
     { panelActiveBackgroundColourId, { "Panel background active", "panel_background_active", "Panel" } },
-    { panelActiveTextColourId, { "Panel active text", "panel_active_text", "Panel" } },
-
+    
     { sidebarBackgroundColourId, { "Sidebar background", "sidebar_colour", "Sidebar" } },
     { sidebarTextColourId, { "Sidebar text", "sidebar_text", "Sidebar" } },
     { sidebarActiveBackgroundColourId, { "Sidebar background active", "sidebar_background_active", "Sidebar" } },
-    { sidebarActiveTextColourId, { "Sidebar active text", "sidebar_active_text", "Sidebar" } },
 };
 
 struct PlugDataLook : public LookAndFeel_V4 {

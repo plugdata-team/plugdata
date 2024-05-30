@@ -537,9 +537,9 @@ void PlugDataLook::drawTabButton(TabBarButton& button, Graphics& g, bool isMouse
     if (isActive) {
         g.setColour(findColour(PlugDataColour::activeTabBackgroundColourId));
     } else if (isMouseOver) {
-        g.setColour(findColour(PlugDataColour::activeTabBackgroundColourId).interpolatedWith(findColour(PlugDataColour::tabBackgroundColourId), 0.4f));
+        g.setColour(findColour(PlugDataColour::activeTabBackgroundColourId).interpolatedWith(findColour(PlugDataColour::toolbarBackgroundColourId), 0.4f));
     } else {
-        g.setColour(findColour(PlugDataColour::tabBackgroundColourId));
+        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
     }
 
     fillSmoothedRectangle(g, button.getLocalBounds().reduced(4).toFloat(), Corners::defaultCornerRadius);
@@ -625,11 +625,11 @@ Button* PlugDataLook::createTabBarExtrasButton()
                 g.setColour(findColour(PlugDataColour::toolbarHoverColourId));
                 fillSmoothedRectangle(g, getLocalBounds().reduced(3).toFloat(), Corners::defaultCornerRadius);
             } else {
-                g.setColour(findColour(PlugDataColour::tabBackgroundColourId));
+                g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
             }
 
             g.setFont(Fonts::getIconFont().withHeight(15));
-            g.setColour(findColour(PlugDataColour::tabTextColourId));
+            g.setColour(findColour(PlugDataColour::toolbarTextColourId));
 
             g.drawText(getButtonText(), getLocalBounds().reduced(3), Justification::centred);
         }
@@ -858,8 +858,6 @@ void PlugDataLook::drawPopupMenuItem(Graphics& g, Rectangle<int> const& area,
         if (isHighlighted && isActive) {
             g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
             fillSmoothedRectangle(g, r.toFloat().reduced(4, 0), Corners::defaultCornerRadius);
-            // g.fillRoundedRectangle(r.toFloat().reduced(4, 0), Corners::defaultCornerRadius);
-            colour = findColour(PlugDataColour::popupMenuActiveTextColourId);
         }
 
         g.setColour(colour);
@@ -1285,7 +1283,7 @@ void PlugDataLook::setColours(std::map<PlugDataColour, Colour> colours)
     setColour(TextButton::textColourOnId,
         colours.at(PlugDataColour::toolbarTextColourId));
     setColour(Slider::thumbColourId,
-        colours.at(PlugDataColour::sliderThumbColourId));
+        colours.at(PlugDataColour::levelMeterThumbColourId));
     setColour(ScrollBar::thumbColourId,
         colours.at(PlugDataColour::scrollbarThumbColourId));
     setColour(DirectoryContentsDisplayComponent::highlightColourId,
@@ -1320,7 +1318,7 @@ void PlugDataLook::setColours(std::map<PlugDataColour, Colour> colours)
     setColour(Slider::backgroundColourId,
         colours.at(PlugDataColour::canvasBackgroundColourId));
     setColour(Slider::trackColourId,
-        colours.at(PlugDataColour::sliderThumbColourId));
+        colours.at(PlugDataColour::levelMeterBackgroundColourId));
     setColour(TextEditor::backgroundColourId,
         colours.at(PlugDataColour::canvasBackgroundColourId));
     setColour(FileBrowserComponent::currentPathBoxBackgroundColourId,
@@ -1351,9 +1349,9 @@ void PlugDataLook::setColours(std::map<PlugDataColour, Colour> colours)
     setColour(KeyMappingEditorComponent::textColourId,
         colours.at(PlugDataColour::panelTextColourId));
     setColour(TabbedButtonBar::frontTextColourId,
-        colours.at(PlugDataColour::activeTabTextColourId));
+        colours.at(PlugDataColour::toolbarTextColourId));
     setColour(TabbedButtonBar::tabTextColourId,
-        colours.at(PlugDataColour::tabTextColourId));
+        colours.at(PlugDataColour::toolbarTextColourId));
     setColour(ToggleButton::textColourId,
         colours.at(PlugDataColour::panelTextColourId));
     setColour(ToggleButton::tickColourId,
@@ -1367,16 +1365,16 @@ void PlugDataLook::setColours(std::map<PlugDataColour, Colour> colours)
     setColour(Slider::textBoxTextColourId,
         colours.at(PlugDataColour::panelTextColourId));
     setColour(FileBrowserComponent::currentPathBoxTextColourId,
-        colours.at(PlugDataColour::panelActiveTextColourId));
+        colours.at(PlugDataColour::panelTextColourId));
     setColour(FileBrowserComponent::currentPathBoxArrowColourId,
-        colours.at(PlugDataColour::panelActiveTextColourId));
+        colours.at(PlugDataColour::panelTextColourId));
     setColour(FileBrowserComponent::filenameBoxTextColourId,
         colours.at(PlugDataColour::panelTextColourId));
     setColour(FileChooserDialogBox::titleTextColourId,
         colours.at(PlugDataColour::panelTextColourId));
 
     setColour(DirectoryContentsDisplayComponent::highlightedTextColourId,
-        colours.at(PlugDataColour::panelActiveTextColourId));
+        colours.at(PlugDataColour::panelTextColourId));
 
     setColour(TooltipWindow::outlineColourId,
         colours.at(PlugDataColour::outlineColourId));

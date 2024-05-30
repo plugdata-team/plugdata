@@ -169,7 +169,6 @@ public:
         if (isMouseOver()) {
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
             PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(1, 1, getWidth() - 2, getHeight() - 2), Corners::largeCornerRadius);
-            colour = findColour(PlugDataColour::panelActiveTextColourId);
         }
 
         Fonts::drawIcon(g, iconText, 20, 5, 40, colour, 24, false);

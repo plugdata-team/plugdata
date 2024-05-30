@@ -529,8 +529,6 @@ class AutomationComponent : public Component {
             if (mouseIsOver) {
                 g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
                 PlugDataLook::fillSmoothedRectangle(g, bounds.toFloat(), Corners::defaultCornerRadius);
-
-                colour = findColour(PlugDataColour::sidebarActiveTextColourId);
             }
 
             Fonts::drawIcon(g, Icons::Add, iconBounds, colour, 12);

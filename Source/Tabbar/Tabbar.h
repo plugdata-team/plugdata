@@ -84,10 +84,6 @@ public:
     void handleAsyncUpdate() override;
     void resized() override;
 
-    void paint(Graphics& g) override;
-
-    void paintOverChildren(Graphics& g) override;
-
     int getIndexOfCanvas(Canvas* cnv);
 
     void setTabText(int tabIndex, String const& newName);

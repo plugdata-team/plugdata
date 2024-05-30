@@ -213,8 +213,7 @@ class SuggestionComponent : public Component
             g.setColour(backgroundColour);
             PlugDataLook::fillSmoothedRectangle(g, buttonArea, Corners::defaultCornerRadius);
 
-            auto colour = getToggleState() ? findColour(PlugDataColour::popupMenuActiveTextColourId) : findColour(PlugDataColour::popupMenuTextColourId);
-
+            auto colour = findColour(PlugDataColour::popupMenuTextColourId);
             auto yIndent = jmin(4, proportionOfHeight(0.3f));
             auto leftIndent = drawIcon ? 32 : 11;
             auto rightIndent = 14;
