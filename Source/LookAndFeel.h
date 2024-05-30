@@ -53,7 +53,7 @@ inline std::map<PlugDataColour, std::tuple<String, String, String>> const PlugDa
     { levelMeterThumbColourId, { "Level meter thumb", "levelmeter_thumb", "Level Meter" } },
 
     { panelBackgroundColourId, { "Panel background", "panel_background", "Properties Panel" } },
-    { panelForegroundColourId, { "Panel foreground", "panel_foreground", "Properties  Panel" } },
+    { panelForegroundColourId, { "Panel foreground", "panel_foreground", "Properties Panel" } },
     { panelTextColourId, { "Panel text", "panel_text", "Properties Panel" } },
     { panelActiveBackgroundColourId, { "Panel background active", "panel_background_active", "Properties Panel" } },
     

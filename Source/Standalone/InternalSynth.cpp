@@ -176,7 +176,6 @@ void InternalSynth::process(AudioBuffer<float>& buffer, MidiBuffer& midiMessages
         }
     }
     
-    buffer.clear();
     internalBuffer.clear();
     
     // Run audio through fluidsynth
