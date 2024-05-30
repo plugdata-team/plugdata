@@ -106,13 +106,13 @@ private:
     bool invalidate(const Rectangle<int>& rect) override
     {
         object->fbDirty = true;
-        return !object->cnv->isScrolling;
+        return true;
     }
     
     bool invalidateAll() override
     {
         object->fbDirty = true;
-        return !object->cnv->isScrolling;
+        return true;
     }
     
     void releaseResources() override {}
