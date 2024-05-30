@@ -72,6 +72,7 @@ public:
     void mouseDown(MouseEvent const& e) override;
     void mouseDrag(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
+    bool hitTest(int x, int y) override;
     
     Point<int> getLastMousePosition();
     
@@ -149,6 +150,8 @@ public:
 
     bool checkPanDragMode();
     bool setPanDragMode(bool shouldPan);
+
+    bool isPointOutsidePluginArea(Point<int> point);
 
     void findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, Rectangle<int> const& area) override;
 
