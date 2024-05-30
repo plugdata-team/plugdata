@@ -1250,8 +1250,6 @@ void conv_tilde_setup();
 void fm_tilde_setup();
 
 
-void vstplugin_tilde_setup();
-
 #ifdef ENABLE_SFIZZ
  void sfz_tilde_setup();
 #endif
@@ -1727,8 +1725,6 @@ void Setup::initialiseELSE()
     var_setup();
     conv_tilde_setup();
     fm_tilde_setup();
-    
-    vstplugin_tilde_setup();
 }
 
 void Setup::initialiseGem(std::string const& gemPluginPath)
