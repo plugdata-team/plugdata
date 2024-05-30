@@ -148,7 +148,7 @@ void NVGSurface::initialise()
     nvgCreateFontMem(nvg, "Inter-Bold", (unsigned char*)BinaryData::InterBold_ttf, BinaryData::InterBold_ttfSize, 0);
     nvgCreateFontMem(nvg, "Inter-SemiBold", (unsigned char*)BinaryData::InterSemiBold_ttf, BinaryData::InterSemiBold_ttfSize, 0);
     nvgCreateFontMem(nvg, "Inter-Tabular", (unsigned char*)BinaryData::InterTabular_ttf, BinaryData::InterTabular_ttfSize, 0);
-    nvgCreateFontMem(nvg, "Icon", (unsigned char*)BinaryData::IconFont_ttf, BinaryData::IconFont_ttfSize, 0);
+    nvgCreateFontMem(nvg, "icon_font-Regular", (unsigned char*)BinaryData::IconFont_ttf, BinaryData::IconFont_ttfSize, 0);
 }
 
 void NVGSurface::updateBufferSize()
@@ -280,42 +280,11 @@ void NVGSurface::invalidateArea(Rectangle<int> area)
     invalidArea = invalidArea.getUnion(area);
 }
 
-void NVGSurface::renderArea(Rectangle<int> area)
-{
-    if(editor->pluginMode) {
-        editor->pluginMode->render(nvg);
-    }
-    else {
-        bool hasCanvas = false;
-        for(auto* split : editor->splitView.splits)
-        {
-            if(auto* cnv = split->getTabComponent()->getCurrentCanvas())
-            {
-                nvgSave(nvg);
-                nvgTranslate(nvg, split->getX(), 0);
-                nvgScissor(nvg, 0, 0, split->getWidth(), split->getHeight());
-                cnv->performRender(nvg, area.translated(-split->getX(), 0));
-                nvgRestore(nvg);
-                hasCanvas = true;
-            }
-        }
-        if(!hasCanvas)
-        {
-            nvgSave(nvg);
-            editor->welcomePanel->render(nvg);
-            nvgRestore(nvg);
-        }
-    }
-}
-
 void NVGSurface::render()
 {
     auto startTime = Time::getMillisecondCounter();
     
     if(!isAttached() && isVisible()) initialise();
-    updateBufferSize();
-
-    auto pixelScale = getRenderScale();
     
     bool hasCanvas = false;
     for(auto* split : editor->splitView.splits)
@@ -325,19 +294,19 @@ void NVGSurface::render()
             hasCanvas = true;
         }
     }
-    
     // Manage showing/hiding welcome panel
     if(hasCanvas && editor->welcomePanel->isVisible()) {
         editor->welcomePanel->hide();
         editor->resized();
-        updateBufferSize();
     }
     else if(!hasCanvas && !editor->welcomePanel->isVisible()) {
         editor->welcomePanel->show();
         editor->resized();
-        updateBufferSize();
     }
     
+    updateBufferSize();
+
+    auto pixelScale = getRenderScale();
     if(!invalidArea.isEmpty() && makeContextActive()) {
         auto invalidated = invalidArea.expanded(1);
         
@@ -350,7 +319,7 @@ void NVGSurface::render()
         nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
         nvgScissor (nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
 
-        renderArea(invalidated);
+        editor->renderArea(nvg, invalidated);
         nvgEndFrame(nvg);
         
         nvgBindFramebuffer(mainFBO);

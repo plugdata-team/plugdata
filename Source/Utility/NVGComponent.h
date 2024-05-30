@@ -26,14 +26,7 @@ private:
 class NVGImageRenderer
 {
 public:
-    NVGImageRenderer()
-    {
-    }
-    
-    ~NVGImageRenderer()
-    {
-    }
-    
+
     static int convertImage(NVGcontext* nvg, Image& image, int imageToUpdate = -1)
     {
         Image::BitmapData imageData(image, Image::BitmapData::readOnly);
@@ -72,7 +65,8 @@ public:
     void renderComponentFromImage(NVGcontext* nvg, Component& component, float scale)
     {
         Image componentImage = component.createComponentSnapshot(Rectangle<int>(0, 0, component.getWidth() + 1, component.getHeight()), false, scale);
-
+        if(componentImage.isNull()) return;
+        
         if(imageId && lastWidth == componentImage.getWidth() && lastHeight == componentImage.getHeight()) {
             imageId = convertImage(nvg, componentImage, imageId);
         }

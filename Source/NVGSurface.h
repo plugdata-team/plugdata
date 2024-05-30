@@ -102,9 +102,7 @@ public:
     NVGcontext* getRawContext() { return nvg; }
 
 private:
-    
-    void renderArea(Rectangle<int> area);
-    
+
     bool isAttached() const;
     
     void resized() override;

@@ -74,7 +74,7 @@ class WelcomePanel : public Component, public NVGComponent, public AsyncUpdater 
             if(onFavourite)
             {
                 auto favouriteIconBounds = getHeartIconBounds();
-                nvgFontFace(nvg, "Icon");
+                nvgFontFace(nvg, "icon_font-Regular");
                 
                 if(isFavourited) {
                     nvgFillColor(nvg, nvgRGBA(250, 50, 40, 200));

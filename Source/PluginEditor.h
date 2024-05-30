@@ -81,6 +81,8 @@ public:
 
     void paint(Graphics& g) override;
     void paintOverChildren(Graphics& g) override;
+    
+    void renderArea(NVGcontext* nvg, Rectangle<int> area);
 
     void initialiseCanvasRenderer();
     

@@ -12,18 +12,20 @@
 #include "PluginEditor.h"
 #include "Objects/ObjectBase.h"
 
-class TouchSelectionHelper : public Component {
+class TouchSelectionHelper : public Component, public NVGComponent {
 
     PluginEditor* editor;
 
 public:
     TouchSelectionHelper(PluginEditor* e)
-        : editor(e)
+        : NVGComponent(this), editor(e)
     {
         addAndMakeVisible(actionButtons.add(new MainToolbarButton(Icons::ExportState))); // This icon doubles as a "open" icon in the mobile app
         addAndMakeVisible(actionButtons.add(new MainToolbarButton(Icons::Help)));
         addAndMakeVisible(actionButtons.add(new MainToolbarButton(Icons::Trash)));
         addAndMakeVisible(actionButtons.add(new MainToolbarButton(Icons::More)));
+        
+        setCachedComponentImage(new NVGSurface::InvalidationListener(e->nvgSurface, this));
 
         actionButtons[0]->onClick = [this]() {
             auto* cnv = editor->getCurrentCanvas();
@@ -95,8 +97,8 @@ public:
     {
         actionButtons[1]->setEnabled(editor->isCommandActive(CommandIDs::ShowHelp));
         actionButtons[2]->setEnabled(editor->isCommandActive(CommandIDs::Delete));
-
         setVisible(true);
+        toFront(false);
     }
 
     void resized() override
@@ -106,6 +108,11 @@ public:
         for (auto* button : actionButtons) {
             button->setBounds(b.removeFromLeft(48));
         }
+    }
+
+    void render(NVGcontext* nvg) override
+    {
+        imageRenderer.renderComponentFromImage(nvg, *this, 2.0f);
     }
 
 private:
@@ -124,5 +131,6 @@ private:
         g.drawRoundedRectangle(b.toFloat(), Corners::largeCornerRadius, 1.0f);
     }
 
+    NVGImageRenderer imageRenderer;
     OwnedArray<MainToolbarButton> actionButtons;
 };

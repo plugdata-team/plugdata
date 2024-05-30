@@ -108,7 +108,7 @@ public:
     {
         nvgSave(nvg);
         nvgTranslate(nvg, getX(), getY());
-        if(!nvgCtx || nvgCtx->getContext() != nvg) nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
+        if(!nvgCtx) nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
         Graphics g(*nvgCtx);
         {
             paintEntireComponent(g, true);

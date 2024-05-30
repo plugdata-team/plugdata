@@ -263,13 +263,14 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     addChildComponent(&objectManager);
     objectManager.lookAndFeelChanged();
-
-#if JUCE_IOS
-    addAndMakeVisible(touchSelectionHelper.get());
-#endif
     
     addChildComponent(nvgSurface);
     nvgSurface.toBehind(&splitView);
+    
+#if JUCE_IOS
+    addAndMakeVisible(touchSelectionHelper.get());
+    touchSelectionHelper->setAlwaysOnTop(true);
+#endif
 }
 
 PluginEditor::~PluginEditor()
@@ -360,6 +361,42 @@ void PluginEditor::paintOverChildren(Graphics& g)
         auto toolbarDepth = welcomePanel->isVisible() ? toolbarHeight + 6 : toolbarHeight;
         g.drawLine(palettes->isExpanded() ? palettes->getRight() : 29.5f, toolbarDepth, palettes->isExpanded() ? palettes->getRight() : 29.5f, toolbarDepth + 30);
         g.drawLine(sidebar->getX() + 0.5f, toolbarDepth, sidebar->getX() + 0.5f, toolbarHeight + 30);
+    }
+}
+
+void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> area)
+{
+    if(pluginMode) {
+        pluginMode->render(nvg);
+    }
+    else {
+        bool hasCanvas = false;
+        for(auto* split : splitView.splits)
+        {
+            if(auto* cnv = split->getTabComponent()->getCurrentCanvas())
+            {
+                nvgSave(nvg);
+                nvgTranslate(nvg, split->getX(), 0);
+                nvgScissor(nvg, 0, 0, split->getWidth(), split->getHeight());
+                cnv->performRender(nvg, area.translated(-split->getX(), 0));
+                nvgRestore(nvg);
+                hasCanvas = true;
+            }
+        }
+        if(!hasCanvas)
+        {
+            nvgSave(nvg);
+            welcomePanel->render(nvg);
+            nvgRestore(nvg);
+        }
+        else {
+            if(touchSelectionHelper && touchSelectionHelper->isVisible() && area.intersects(touchSelectionHelper->getBounds() - nvgSurface.getPosition())) {
+                nvgSave(nvg);
+                nvgTranslate(nvg, touchSelectionHelper->getX() - nvgSurface.getX(), touchSelectionHelper->getY() - nvgSurface.getY());
+                touchSelectionHelper->render(nvg);
+                nvgRestore(nvg);
+            }
+        }
     }
 }
 
@@ -1823,7 +1860,7 @@ void PluginEditor::quit(bool askToSave)
 
 void PluginEditor::showTouchSelectionHelper(bool shouldBeShown)
 {
-    touchSelectionHelper->setVisible(shouldBeShown);
+    touchSelectionHelper->show();
     if (shouldBeShown) {
         auto touchHelperBounds = getLocalBounds().removeFromBottom(48).withSizeKeepingCentre(192, 48).translated(0, -54);
         touchSelectionHelper->setBounds(touchHelperBounds);
