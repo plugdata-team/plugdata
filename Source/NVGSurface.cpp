@@ -20,7 +20,7 @@ using namespace juce::gl;
 #include "PluginProcessor.h"
 #include "Tabbar/WelcomePanel.h"
 
-#define ENABLE_FPS_COUNT 1
+#define ENABLE_FPS_COUNT 0
 
 class FrameTimer
 {

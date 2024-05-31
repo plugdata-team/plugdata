@@ -102,8 +102,6 @@ private:
 
     void resized() override;
     
-    void renderPerfMeter(NVGcontext* nvg);
-    
     PluginEditor* editor;
     NVGcontext* nvg = nullptr;
     bool needsBufferSwap = false;
@@ -163,7 +161,6 @@ public:
         // Check for self-assignment
         if (this != &other) {
             nvg = other.nvg;
-            
             imageId = other.imageId;
             imageWidth = other.imageWidth;
             imageHeight = other.imageHeight;
