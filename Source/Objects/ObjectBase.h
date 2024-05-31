@@ -71,8 +71,7 @@ public:
     
     void updateImage(NVGcontext* nvg, float scale)
     {
-        auto componentImage = createComponentSnapshot(Rectangle<int>(0, 0, getWidth() + 1, getHeight()), false, scale);
-        image.loadJUCEImage(nvg, componentImage);
+        image.renderJUCEComponent(nvg, *this, scale);
     }
 
 private:

@@ -130,15 +130,6 @@ class NVGImage
 {
 public:
     
-    NVGImage(NVGcontext* ctx, int width, int height, int image)
-    : nvg(ctx)
-    , imageId(image)
-    , imageWidth(width)
-    , imageHeight(height)
-    {
-        allImages.insert(this);
-    }
-    
     NVGImage(NVGcontext* nvg, int width, int height, std::function<void(Graphics&)> renderCall)
     {
         Image image = Image(Image::ARGB, width, height, true);
@@ -147,13 +138,7 @@ public:
         loadJUCEImage(nvg, image);
         allImages.insert(this);
     }
-    
-    NVGImage(NVGcontext* nvg, Image image)
-    {
-        loadJUCEImage(nvg, image);
-        allImages.insert(this);
-    }
-    
+
     NVGImage()
     {
         allImages.insert(this);
@@ -178,6 +163,7 @@ public:
         // Check for self-assignment
         if (this != &other) {
             nvg = other.nvg;
+            
             imageId = other.imageId;
             imageWidth = other.imageWidth;
             imageHeight = other.imageHeight;
@@ -250,7 +236,7 @@ public:
         
         if(imageId && imageWidth == width && imageHeight == height && nvg == context)
         {
-            update(pixelData);
+            nvgUpdateImage(nvg, imageId, pixelData);
         }
         else {
             nvg = context;
@@ -258,11 +244,6 @@ public:
             imageWidth = width;
             imageHeight = height;
         }
-    }
-    
-    void update(uint8* pixelData)
-    {
-        nvgUpdateImage(nvg, imageId, pixelData);
     }
     
     bool needsUpdate(int width, int height)

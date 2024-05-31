@@ -19,7 +19,6 @@ class PictureObject final : public ObjectBase {
     Image img;
     std::vector<std::pair<std::unique_ptr<NVGImage>, Rectangle<int>>> imageBuffers;
     bool imageNeedsReload = false;
-    uint8 pixelDataBuffer[8192 * 8192 * 4];
     
 public:
     PictureObject(pd::WeakReference ptr, Object* object)
@@ -49,7 +48,6 @@ public:
     
     ~PictureObject()
     {
-        // TODO: delete image buffers!
     }
     
     bool isTransparent() override
@@ -143,8 +141,13 @@ public:
             {
                 int height = std::min(8192, imageHeight - y);
                 auto bounds = Rectangle<int>(x, y, width, height);
-                auto clip = img.getClippedImage(bounds).createCopy();
-                imageBuffers.emplace_back(std::make_unique<NVGImage>(nvg, clip), bounds);
+                auto clip = img.getClippedImage(bounds);
+                
+                auto partialImage = std::make_unique<NVGImage>(nvg, width, height, [&clip](Graphics& g){
+                    g.drawImageAt(clip, 0, 0);
+                });
+                
+                imageBuffers.emplace_back(std::move(partialImage), bounds);
                 y += 8192;
                 
             }
