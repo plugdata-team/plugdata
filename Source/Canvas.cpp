@@ -643,7 +643,7 @@ void Canvas::propertyChanged(String const& name, var const& value)
 
 bool Canvas::shouldShowObjectActivity()
 {
-    return showObjectActivity && !presentationMode.getValue();
+    return showObjectActivity && !presentationMode.getValue() && !isGraph;
 }
 
 bool Canvas::shouldShowIndex()
