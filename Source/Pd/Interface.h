@@ -233,6 +233,21 @@ struct Interface {
 
         return gensym(arraybuf);
     }
+    
+    static void triggerize(t_canvas* cnv,std::vector<t_gobj*> const& objects)
+    {
+        glist_noselect(cnv);
+
+        for (auto* obj : objects) {
+            glist_select(cnv, obj);
+        }
+
+        canvas_setcurrent(cnv);
+        pd_typedmess((t_pd*)cnv, gensym("triggerize"), 0, nullptr);
+        canvas_unsetcurrent(cnv);
+        
+        glist_noselect(cnv);
+    }
 
     static void paste(t_canvas* cnv, char const* buf)
     {

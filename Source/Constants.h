@@ -325,6 +325,7 @@ enum CommandIDs {
     Delete,
     Duplicate,
     Encapsulate,
+    Triggerize,
     CreateConnection,
     RemoveConnections,
     SelectAll,

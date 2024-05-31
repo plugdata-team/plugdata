@@ -1622,9 +1622,27 @@ void Canvas::removeSelectedConnections()
     synchroniseSplitCanvas();
 }
 
+void Canvas::triggerizeSelection()
+{
+    auto selectedBoxes = getSelectionOfType<Object>();
+    
+    std::vector<t_gobj*> objects;
+    for (auto* object : getSelectionOfType<Object>()) {
+        if (auto* ptr = object->getPointer()) {
+            objects.push_back(ptr);
+        }
+    }
+    
+    if(auto patchPtr = patch.getPointer())
+    {
+        pd::Interface::triggerize(patchPtr.get(), objects);
+    }
+    
+    synchronise();
+}
+
 void Canvas::encapsulateSelection()
 {
-
     auto selectedBoxes = getSelectionOfType<Object>();
 
     // Sort by index in pd patch

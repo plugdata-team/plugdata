@@ -1236,6 +1236,12 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         result.setActive(hasCanvas && !isDragging && !locked && hasSelection);
         break;
     }
+    case CommandIDs::Triggerize: {
+        result.setInfo("Triggerize", "Triggerize objects", "Edit", 0);
+        result.addDefaultKeypress(84, ModifierKeys::commandModifier);
+        result.setActive(hasCanvas && !isDragging && !locked && hasSelection);
+        break;
+    }
     case CommandIDs::Duplicate: {
 
         result.setInfo("Duplicate", "Duplicate selection", "Edit", 0);
@@ -1558,6 +1564,11 @@ bool PluginEditor::perform(InvocationInfo const& info)
     case CommandIDs::Encapsulate: {
         cnv = getCurrentCanvas();
         cnv->encapsulateSelection();
+        return true;
+    }
+    case CommandIDs::Triggerize: {
+        cnv = getCurrentCanvas();
+        cnv->triggerizeSelection();
         return true;
     }
     case CommandIDs::CreateConnection: {

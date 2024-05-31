@@ -120,6 +120,7 @@ public:
     void duplicateSelection();
 
     void encapsulateSelection();
+    void triggerizeSelection();
 
     bool canConnectSelectedObjects();
     bool connectSelectedObjects();
