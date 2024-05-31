@@ -149,7 +149,7 @@ void NVGSurface::initialise()
 
 void NVGSurface::detachContext()
 {
-    editor->welcomePanel->clearBuffers();
+    if(editor->welcomePanel) editor->welcomePanel->clearBuffers();
     NVGFramebuffer::clearAll();
     NVGImage::clearAll();
     
