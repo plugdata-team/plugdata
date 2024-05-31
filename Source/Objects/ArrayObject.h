@@ -196,6 +196,11 @@ public:
         std::vector<float> points = vec;
 
         if (!points.empty()) {
+
+            nvgSave(nvg);
+            const auto arrB = Rectangle<float>(0,0,w,h).reduced(1);
+            nvgRoundedScissor(nvg, arrB.getX(), arrB.getY(), arrB.getWidth(), arrB.getHeight(), Corners::objectCornerRadius);
+
             std::array<float, 2> scale = getScale();
             bool invert = false;
 
@@ -234,6 +239,8 @@ public:
                     nvgTranslate(nvg, 0.0f, -getHeight());
                 }
 
+                nvgLineCap(nvg, NVG_ROUND);
+                nvgLineJoin(nvg, NVG_ROUND);
                 nvgStrokeColor(nvg, nvgRGBAf(getContentColour().getFloatRed(), getContentColour().getFloatGreen(), getContentColour().getFloatBlue(), getContentColour().getFloatAlpha()));
                 nvgStrokeWidth(nvg, getLineWidth());
                 nvgStroke(nvg);
@@ -283,6 +290,7 @@ public:
             default:
                 break;
             }
+            nvgRestore(nvg);
         }
     }
 
