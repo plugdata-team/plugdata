@@ -476,10 +476,14 @@ String Object::getType(bool withOriginPrefix) const
 
 void Object::triggerOverlayActiveState()
 {
-    if (!cnv->shouldShowObjectActivity())
+    if (rateReducer.tooFast())
         return;
 
-    if (rateReducer.tooFast())
+    // propagate the activity overlay upwards if object is inside GOP
+    if (auto parentObject = findParentComponentOfClass<Object>())
+        parentObject->triggerOverlayActiveState();
+
+    if (!cnv->shouldShowObjectActivity())
         return;
 
     activeStateAlpha = 1.0f;
