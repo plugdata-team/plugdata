@@ -714,9 +714,19 @@ bool ObjectBase::canReceiveMouseEvent(int x, int y)
     return true;
 }
 
-void ObjectBase::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms)
+void ObjectBase::triggerActivity()
 {
     object->triggerOverlayActiveState();
+    if (cnv->isGraph) {
+        if (auto *graphOnParent = dynamic_cast<GraphOnParent *>(cnv->parentGraph)) {
+            graphOnParent->triggerActivity();
+        }
+    }
+}
+
+void ObjectBase::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms)
+{
+    triggerActivity();
 
     auto symHash = hash(symbol->s_name);
 

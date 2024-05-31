@@ -305,6 +305,8 @@ public:
 
     void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms) override;
 
+    void triggerActivity();
+
     static ObjectBase* createGui(pd::WeakReference ptr, Object* parent);
 
     // Override this to return parameters that will be shown in the inspector
