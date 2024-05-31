@@ -270,9 +270,15 @@ public:
         setVisible(false);
     }
     
+    void clearBuffers()
+    {
+        nvgContext.reset(nullptr);
+        handleAsyncUpdate();
+    }
+    
     void render(NVGcontext* nvg) override
     {
-        if(!nvgContext) nvgContext = std::make_unique<NanoVGGraphicsContext>(nvg);
+        if(!nvgContext || nvgContext->getContext() != nvg) nvgContext = std::make_unique<NanoVGGraphicsContext>(nvg);
         
         nvgBeginPath(nvg);
         nvgRect(nvg, 0, 0, getWidth(), getHeight());

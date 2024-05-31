@@ -17,7 +17,7 @@ class PictureObject final : public ObjectBase {
 
     File imageFile;
     Image img;
-    std::vector<std::pair<int, Rectangle<int>>> imageBuffers;
+    std::vector<std::pair<std::unique_ptr<NVGImage>, Rectangle<int>>> imageBuffers;
     bool imageNeedsReload = false;
     uint8 pixelDataBuffer[8192 * 8192 * 4];
     
@@ -127,37 +127,9 @@ public:
         }
         }
     }
-
-    int convertImage(NVGcontext* nvg, Image& image, Rectangle<int> bounds)
-    {
-        const auto argbImage = image.convertedToFormat(Image::ARGB);
-        const Image::BitmapData imageData(argbImage, Image::BitmapData::readOnly);
-        
-        for (int y = 0; y < bounds.getHeight(); y++)
-        {
-            auto* scanLine = (uint32*) imageData.getLinePointer(y + bounds.getY());
-            
-            for (int x = 0; x < bounds.getWidth(); x++)
-            {
-                uint32 argb = scanLine[x + bounds.getX()];
-                int bufferPos = (y * bounds.getWidth() + x) * 4;
-                
-                pixelDataBuffer[bufferPos + 0] = (argb >> 16) & 0xFF; // Red
-                pixelDataBuffer[bufferPos + 1] = (argb >> 8) & 0xFF;  // Green
-                pixelDataBuffer[bufferPos + 2] = argb & 0xFF;         // Blue
-                pixelDataBuffer[bufferPos + 3] = (argb >> 24) & 0xFF; // Alpha
-            }
-        }
-        
-        return nvgCreateImageRGBA(nvg, bounds.getWidth(), bounds.getHeight(), NVG_IMAGE_PREMULTIPLIED, pixelDataBuffer);
-    }
     
     void updateImage(NVGcontext* nvg)
     {
-        for(auto& [image, bounds] : imageBuffers)
-        {
-            nvgDeleteImage(nvg, image);
-        }
         imageBuffers.clear();
         
         int imageWidth = img.getWidth();
@@ -171,7 +143,8 @@ public:
             {
                 int height = std::min(8192, imageHeight - y);
                 auto bounds = Rectangle<int>(x, y, width, height);
-                imageBuffers.emplace_back(convertImage(nvg, img, bounds), bounds);
+                auto clip = img.getClippedImage(bounds).createCopy();
+                imageBuffers.emplace_back(std::make_unique<NVGImage>(nvg, clip), bounds);
                 y += 8192;
                 
             }
@@ -202,7 +175,7 @@ public:
             {
                 nvgBeginPath(nvg);
                 nvgRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
-                nvgFillPaint(nvg, nvgImagePattern(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), 0, image, 1.0f));
+                nvgFillPaint(nvg, nvgImagePattern(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), 0, image->getImageId(), 1.0f));
                 nvgFill(nvg);
             }
         }
@@ -340,7 +313,7 @@ public:
         auto* rawFileName = fileNameString.toRawUTF8();
         auto* rawPath = pathString.toRawUTF8();
 
-        img = ImageFileFormat::loadFrom(imageFile);
+        img = ImageFileFormat::loadFrom(imageFile).convertedToFormat(Image::ARGB);
         imageNeedsReload = true;
 
         if (auto pic = ptr.get<t_fake_pic>()) {

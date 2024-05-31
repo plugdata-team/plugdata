@@ -431,7 +431,7 @@ void ObjectBase::moveToBack()
 
 void ObjectBase::render(NVGcontext* nvg)
 {
-    imageRenderer.renderComponentFromImage(nvg, *this, getImageScale());
+    imageRenderer.renderJUCEComponent(nvg, *this, getImageScale());
 }
 
 void ObjectBase::paint(Graphics& g)

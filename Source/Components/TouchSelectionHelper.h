@@ -112,7 +112,7 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        imageRenderer.renderComponentFromImage(nvg, *this, 2.0f);
+        componentImage.renderJUCEComponent(nvg, *this, 2.0f);
     }
 
 private:
@@ -131,6 +131,6 @@ private:
         g.drawRoundedRectangle(b.toFloat(), Corners::largeCornerRadius, 1.0f);
     }
 
-    NVGImageRenderer imageRenderer;
+    NVGImage componentImage;
     OwnedArray<MainToolbarButton> actionButtons;
 };

@@ -30,9 +30,7 @@ class LuaObject : public ObjectBase, public Timer {
     std::unique_ptr<Component> textEditor;
     std::unique_ptr<Dialog> saveDialog;
     
-    NVGframebuffer* framebuffer = nullptr;
-    bool imageNeedsRefresh = false;
-    int framebufferWidth = 0, framebufferHeight = 0;
+    NVGFramebuffer framebuffer;
     
     struct LuaGuiMessage {
         t_symbol* symbol;
@@ -199,12 +197,7 @@ public:
     
     void render(NVGcontext* nvg) override
     {
-        if(framebuffer) {
-            nvgBeginPath(nvg);
-            nvgRect(nvg, 0, 0, getWidth() + 1, getHeight());
-            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth() + 1, getHeight(), 0, framebuffer->image, 1.0f));
-            nvgFill(nvg);
-        }
+        framebuffer.render(nvg, Rectangle<int>(getWidth() + 1, getHeight()));
     }
     
     void valueChanged(Value& v) override
@@ -227,19 +220,8 @@ public:
                 int imageWidth = std::ceil(getWidth() * scale);
                 int imageHeight = std::ceil(getHeight() * scale);
                 if(!imageWidth || !imageHeight) return;
-                
-                if(!framebuffer || framebufferWidth != imageWidth || framebufferHeight != imageHeight)
-                {
-                    nvgBindFramebuffer(nullptr);
-                    if(framebuffer) nvgDeleteFramebuffer(framebuffer);
-                    framebuffer = nvgCreateFramebuffer(nvg, imageWidth, imageHeight, NVG_IMAGE_PREMULTIPLIED);
-                    nvgBindFramebuffer(framebuffer);
-                    framebufferWidth = imageWidth;
-                    framebufferHeight = imageHeight;
-                }
-                else {
-                    nvgBindFramebuffer(framebuffer);
-                }
+
+                framebuffer.bind(nvg, imageWidth, imageHeight);
                 
                 nvgViewport(0, 0, getWidth() * scale, getHeight() * scale);
                 nvgClear(nvg);
@@ -248,10 +230,10 @@ public:
                 return;
             }
             case hash("lua_end_paint"): {
-                if(!framebuffer) return;
+                if(!framebuffer.isValid()) return;
                 
                 nvgEndFrame(nvg);
-                nvgBindFramebuffer(nullptr);
+                framebuffer.unbind();
                 repaint();
                 return;
             }
@@ -269,7 +251,7 @@ public:
             }
         }
         
-        if(!framebuffer) return; // If there is no active framebuffer at this point, return
+        if(!framebuffer.isValid()) return; // If there is no active framebuffer at this point, return
         
         switch (hashsym) {
             case hash("lua_set_color"): {
@@ -501,12 +483,6 @@ public:
     
     void timerCallback() override
     {
-        if(imageNeedsRefresh && cnv->editor->nvgSurface.getRawContext())
-        {
-            sendRepaintMessage();
-            imageNeedsRefresh = false;
-        }
-        
         LuaGuiMessage guiMessage;
         while(guiMessageQueue.try_dequeue(guiMessage))
         {
@@ -539,11 +515,12 @@ public:
             guiCommandBuffer.erase(guiCommandBuffer.begin(), guiCommandBuffer.begin() + endIdx);
         }
         
-        if(isSelected != object->isSelected())
+        if(isSelected != object->isSelected() || !framebuffer.isValid())
         {
             isSelected = object->isSelected();
             sendRepaintMessage();
         }
+        
     }
     
     static void drawCallback(void* target, t_symbol* sym, int argc, t_atom* argv)

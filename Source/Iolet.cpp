@@ -59,8 +59,8 @@ void Iolet::render(NVGcontext* nvg)
     if (!isVisible())
         return;
 
-    auto* fb = cnv->ioletBuffer;
-    if(!fb) return;
+    auto fb = cnv->ioletBuffer;
+    if(!fb.isValid()) return;
     
     bool isLocked = getValue<bool>(locked) || getValue<bool>(commandLocked);
     bool overObject = object->drawIoletExpanded;
@@ -79,10 +79,9 @@ void Iolet::render(NVGcontext* nvg)
     auto scale = getWidth() / 13.0f;
     nvgScale(nvg, scale, scale); // If the iolet is shrunk because there is little space, we scale it down
     
-    
     nvgBeginPath(nvg);
     nvgRect(nvg, 0, 0, 13, 13);
-    nvgFillPaint(nvg, nvgImagePattern(nvg, isHovering * -16 - 1.5f, type * -16 - 0.5f, 16 * 4, 16 * 4, 0, fb->image, 1));
+    nvgFillPaint(nvg, nvgImagePattern(nvg, isHovering * -16 - 1.5f, type * -16 - 0.5f, 16 * 4, 16 * 4, 0, fb.getImage(), 1));
     nvgFill(nvg);
     
     nvgRestore(nvg);

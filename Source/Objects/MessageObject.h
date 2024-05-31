@@ -186,7 +186,7 @@ public:
     
         if(editor)
         {
-            imageRenderer.renderComponentFromImage(nvg, *editor, getImageScale());
+            imageRenderer.renderJUCEComponent(nvg, *editor, getImageScale());
         }
         else {
             auto text = getText();

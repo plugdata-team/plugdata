@@ -2,7 +2,6 @@
 #include "Utility/Config.h"
 
 #include "NVGComponent.h"
-#include "NanoVGGraphicsContext.h"
 #include "nanovg.h"
 
 

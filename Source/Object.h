@@ -151,12 +151,10 @@ private:
 
     float activeStateAlpha = 0.0f;
         
-    int activityOverlayImage = 0;
+    NVGImage activityOverlayImage;
     bool activityOverlayDirty = false;
     
-    NVGframebuffer* fb = nullptr;
-    bool fbDirty = true;
-    int fbWidth, fbHeight;
+    NVGFramebuffer scrollBuffer;
     
     NVGpaint glow;
     bool glowDirty = true;
@@ -164,7 +162,7 @@ private:
     bool isObjectMouseActive = false;
     bool isInsideUndoSequence = false;
 
-    NVGImageRenderer textEditorRenderer;
+    NVGImage textEditorRenderer;
 
     ObjectDragState& ds;
 

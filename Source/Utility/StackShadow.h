@@ -17,7 +17,7 @@ struct StackShadow : public juce::DeletedAtShutdown
     
     static void renderDropShadow(juce::Graphics& g, juce::Path const& path, juce::Colour color, int radius = 1, juce::Point<int> offset = { 0, 0 }, int spread = 0);
     
-    static int createActivityDropShadowImage(NVGcontext* nvg, juce::Rectangle<int> bounds, juce::Path const& path, juce::Colour color, int radius = 1, juce::Point<int> offset = { 0, 0 }, int spread = 0, bool isCanvas = false);
+    static NVGImage createActivityDropShadowImage(NVGcontext* nvg, juce::Rectangle<int> bounds, juce::Path const& path, juce::Colour color, int radius = 1, juce::Point<int> offset = { 0, 0 }, int spread = 0, bool isCanvas = false);
     
     melatonin::DropShadow* dropShadow;
     

@@ -39,12 +39,12 @@ public:
 
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
             mainWindow->setUsingNativeTitleBar(false);
-            editor->nvgSurface.detachContext();
 #if JUCE_WINDOWS
             mainWindow->setOpaque(true);
 #else
             mainWindow->setOpaque(false);
 #endif
+            editor->nvgSurface.detachContext();
         }
 
         desktopWindow = editor->getPeer();
@@ -55,10 +55,7 @@ public:
         originalLockedMode = getValue<bool>(cnv->locked);
         originalPresentationMode = getValue<bool>(cnv->presentationMode);
         
-#if JUCE_LINUX
-        editor->sendLookAndFeelChange(); // TODO: this is just a hacky way to make sure all framebuffers area cleared. could be cleaner.
-        editor->nvgSurface.detachContext();
-#endif
+        editor->nvgSurface.invalidateAll();
         cnv->setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, cnv.get()));
         originalCanvas->patch.openInPluginMode = true;
         
@@ -204,10 +201,7 @@ public:
 
         cnv->connectionLayer.setVisible(true);
 
-#if JUCE_LINUX
-        editor->sendLookAndFeelChange(); // TODO: this is just a hacky way to make sure all framebuffers area cleared. could be cleaner.
-        editor->nvgSurface.detachContext();
-#endif
+        editor->nvgSurface.invalidateAll();
         // Destroy this view
         editor->pluginMode.reset(nullptr);
     }

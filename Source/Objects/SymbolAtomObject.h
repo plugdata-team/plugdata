@@ -153,7 +153,7 @@ public:
         
         nvgRestore(nvg);
         
-        imageRenderer.renderComponentFromImage(nvg, input, getImageScale());
+        imageRenderer.renderJUCEComponent(nvg, input, getImageScale());
 
         if(object->isSelected()) // If object is selected, draw outline over top too, so the flag doesn't poke into the selected outline
         {

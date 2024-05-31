@@ -51,7 +51,7 @@ public:
             textRenderer.renderText(nvg, textArea, getImageScale());
         }
         else {
-            imageRenderer.renderComponentFromImage(nvg, *editor, getImageScale());
+            imageRenderer.renderJUCEComponent(nvg, *editor, getImageScale());
         }
     }
     

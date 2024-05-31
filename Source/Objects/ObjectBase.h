@@ -28,8 +28,7 @@ class Object;
 class ObjectLabel : public Label, public NVGComponent {
 
     hash32 lastTextHash = 0;
-    int imageId = 0;
-    int lastWidth = 0, lastHeight = 0;
+    NVGImage image;
     float lastScale = 1.0f;
     bool updateColour = false;
     Colour lastColour;
@@ -47,19 +46,17 @@ public:
     void renderLabel(NVGcontext* nvg, float scale)
     {
         auto textHash = hash(getText());
-        if(!imageId || updateColour || lastTextHash != textHash || lastScale != scale || lastWidth != getWidth() || lastHeight != getHeight())
+        if(image.needsUpdate(getWidth(), getHeight()) || updateColour || lastTextHash != textHash || lastScale != scale)
         {
             updateImage(nvg, scale);
             lastTextHash = textHash;
             lastScale = scale;
-            lastWidth = getWidth();
-            lastHeight = getHeight();
             updateColour = false;
         }
         
         nvgBeginPath(nvg);
         nvgRect(nvg, 0, 0, getWidth() + 1, getHeight());
-        nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth() + 1, getHeight(), 0, imageId, 1.0f));
+        nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth() + 1, getHeight(), 0, image.getImageId(), 1.0f));
         nvgFill(nvg);
     }
 
@@ -75,16 +72,7 @@ public:
     void updateImage(NVGcontext* nvg, float scale)
     {
         auto componentImage = createComponentSnapshot(Rectangle<int>(0, 0, getWidth() + 1, getHeight()), false, scale);
-        
-        if(!componentImage.isNull()) {
-            if(imageId && lastWidth == getWidth() && lastHeight == getHeight()) {
-                imageId = NVGImageRenderer::convertImage(nvg, componentImage, imageId);
-            }
-            else {
-                if(imageId) nvgDeleteImage(nvg, imageId);
-                imageId = NVGImageRenderer::convertImage(nvg, componentImage);
-            }
-        }
+        image.loadJUCEImage(nvg, componentImage);
     }
 
 private:
@@ -402,7 +390,7 @@ public:
 protected:
     PropertyUndoListener propertyUndoListener;
     
-    NVGImageRenderer imageRenderer;
+    NVGImage imageRenderer;
     
     std::function<void()> onConstrainerCreate = []() {};
 

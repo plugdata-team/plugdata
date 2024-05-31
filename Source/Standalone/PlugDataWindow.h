@@ -470,7 +470,7 @@ public:
 
             setUsingNativeTitleBar(nativeWindow);
             
-            //pdEditor->nvgSurface.initialise();
+            pdEditor->nvgSurface.detachContext();
 
             if (!nativeWindow) {
 #if JUCE_WINDOWS

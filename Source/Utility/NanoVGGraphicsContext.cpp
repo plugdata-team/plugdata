@@ -134,6 +134,7 @@ void NanoVGGraphicsContext::clipToImageAlpha (const juce::Image& sourceImage, co
 
         // Restore the original transformations
         nvgRestore(nvg);
+        nvgDeleteImage(nvg, image);
     }
 }
 

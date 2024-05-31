@@ -174,7 +174,6 @@ Canvas::~Canvas()
     zoomScale.removeListener(this);
     editor->removeModifierKeyListener(this);
     pd->unregisterMessageListener(patch.getPointer().get(), this);
-    if(ioletBuffer) nvgDeleteFramebuffer(ioletBuffer);
 }
 
 bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, int maxUpdateTimeMs)
@@ -183,92 +182,89 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
     auto pixelScale = getRenderScale();
     auto zoom = isScrolling ? 2.0f : getValue<float>(zoomScale);
     
+    int const logicalIoletsSize = 16 * 4;
+    int const ioletBufferSize = logicalIoletsSize * pixelScale * zoom;
+    
     // First, check if we need to update our iolet buffer
-    if(!ioletBuffer || !approximatelyEqual(zoom, bufferScale) || needsFramebufferUpdate)
+    if(ioletBuffer.needsUpdate(ioletBufferSize, ioletBufferSize))
     {
-        int const logicalSize = 16 * 4;
-        int const pixelSize = logicalSize * pixelScale * zoom;
-        if(ioletBuffer) nvgDeleteFramebuffer(ioletBuffer);
-        ioletBuffer = nvgCreateFramebuffer(nvg, pixelSize, pixelSize, NVG_IMAGE_PREMULTIPLIED);
-        
-        nvgBindFramebuffer(ioletBuffer);
-        nvgViewport(0, 0, pixelSize, pixelSize);
-        nvgClear(nvg);
-        
-        nvgBeginFrame(nvg, logicalSize * zoom, logicalSize * zoom, pixelScale);
-        nvgScale(nvg, zoom, zoom);
-        
-        auto renderIolet = [](NVGcontext* nvg, Rectangle<float> bounds, NVGcolor background, NVGcolor outline){
-            if (PlugDataLook::getUseSquareIolets()) {
-                nvgBeginPath(nvg);
-                nvgFillColor(nvg, background);
-                nvgRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
-                nvgFill(nvg);
-                
-                nvgStrokeColor(nvg, outline);
-                nvgStroke(nvg);
+        ioletBuffer.renderToFramebuffer(nvg, ioletBufferSize, ioletBufferSize, [this, zoom, ioletBufferSize](NVGcontext* nvg){
+            nvgViewport(0, 0, ioletBufferSize, ioletBufferSize);
+            nvgClear(nvg);
+            
+            nvgBeginFrame(nvg, logicalIoletsSize * zoom, logicalIoletsSize * zoom, ioletBufferSize);
+            nvgScale(nvg, zoom, zoom);
+            
+            auto renderIolet = [](NVGcontext* nvg, Rectangle<float> bounds, NVGcolor background, NVGcolor outline){
+                if (PlugDataLook::getUseSquareIolets()) {
+                    nvgBeginPath(nvg);
+                    nvgFillColor(nvg, background);
+                    nvgRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+                    nvgFill(nvg);
+                    
+                    nvgStrokeColor(nvg, outline);
+                    nvgStroke(nvg);
+                }
+                else {
+                    nvgBeginPath(nvg);
+                    nvgFillColor(nvg, background);
+                    nvgCircle(nvg, bounds.getCentreX(), bounds.getCentreY(), bounds.getWidth() / 2.0f);
+                    nvgFill(nvg);
+                    
+                    nvgStrokeColor(nvg, outline);
+                    nvgStroke(nvg);
+                }
+            };
+            
+            auto ioletColours = std::vector<Colour>{
+                findColour(PlugDataColour::dataColourId),
+                findColour(PlugDataColour::signalColourId),
+                findColour(PlugDataColour::gemColourId),
+                findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.5f)};
+            
+            auto outlineColour = findNVGColour(PlugDataColour::objectOutlineColourId);
+            for(int i = 0; i < 4; i++)
+            {
+                auto backgroundColour = convertColour(ioletColours[i]);
+                auto ioletRow = Rectangle<float>(0, i * 16 + 0.5f, logicalIoletsSize, 12.5f);
+                renderIolet(nvg, ioletRow.removeFromLeft(16).reduced(4.0f), backgroundColour, outlineColour); // normal
+                renderIolet(nvg, ioletRow.removeFromLeft(16).reduced(2.5f), backgroundColour, outlineColour); // hovered
             }
-            else {
-                nvgBeginPath(nvg);
-                nvgFillColor(nvg, background);
-                nvgCircle(nvg, bounds.getCentreX(), bounds.getCentreY(), bounds.getWidth() / 2.0f);
-                nvgFill(nvg);
-                
-                nvgStrokeColor(nvg, outline);
-                nvgStroke(nvg);
-            }
-        };
+            
+            nvgEndFrame(nvg);
+        });
         
-        auto ioletColours = std::vector<Colour>{
-            findColour(PlugDataColour::dataColourId),
-            findColour(PlugDataColour::signalColourId),
-            findColour(PlugDataColour::gemColourId),
-            findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.5f)};
-        
-        auto outlineColour = findNVGColour(PlugDataColour::objectOutlineColourId);
-        for(int i = 0; i < 4; i++)
-        {
-            auto backgroundColour = convertColour(ioletColours[i]);
-            auto ioletRow = Rectangle<float>(0, i * 16 + 0.5f, logicalSize, 12.5f);
-            renderIolet(nvg, ioletRow.removeFromLeft(16).reduced(4.0f), backgroundColour, outlineColour); // normal
-            renderIolet(nvg, ioletRow.removeFromLeft(16).reduced(2.5f), backgroundColour, outlineColour); // hovered
-        }
-        
-        nvgEndFrame(nvg);
-        nvgBindFramebuffer(0);
         editor->nvgSurface.invalidateAll();
     }
     
-    if(!resizeHandleImage || !approximatelyEqual(zoom, bufferScale) || needsFramebufferUpdate)
+    int const resizerLogicalSize = 9;
+    int const resizerBufferSize = resizerLogicalSize * pixelScale * zoom;
+    
+    if(resizeHandleImage.needsUpdate(resizerBufferSize, resizerBufferSize))
     {
-        int const logicalSize = 9;
-        int const pixelSize = logicalSize * pixelScale * zoom;
-        Image resizerImage = Image(Image::ARGB, pixelSize, pixelSize, true);
-        Graphics g(resizerImage); // Render resize handles with JUCE, since rounded rect exclusion is hard with nanovg
-        g.addTransform(AffineTransform::scale(pixelScale * zoom, pixelScale * zoom));
+        resizeHandleImage = NVGImage(nvg, resizerBufferSize, resizerBufferSize, [this, pixelScale, zoom](Graphics& g){
+            g.addTransform(AffineTransform::scale(pixelScale * zoom, pixelScale * zoom));
+            
+            auto b = Rectangle<int>(0, 0, 9, 9);
+            // use the path with a hole in it to exclude the inner rounded rect from painting
+            Path outerArea;
+            outerArea.addRectangle(b);
+            outerArea.setUsingNonZeroWinding(false);
+            
+            Path innerArea;
+            
+            auto innerRect = b.translated(Object::margin / 2, Object::margin / 2);
+            innerArea.addRoundedRectangle(innerRect, Corners::objectCornerRadius);
+            outerArea.addPath(innerArea);
+            g.reduceClipRegion(outerArea);
+            
+            g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
+            g.fillRoundedRectangle(0.0f, 0.0f, 9.0f, 9.0f, Corners::objectCornerRadius);
+        });
         
-        auto b = Rectangle<int>(0, 0, 9, 9);
-        // use the path with a hole in it to exclude the inner rounded rect from painting
-        Path outerArea;
-        outerArea.addRectangle(b);
-        outerArea.setUsingNonZeroWinding(false);
-        
-        Path innerArea;
-        
-        auto innerRect = b.translated(Object::margin / 2, Object::margin / 2);
-        innerArea.addRoundedRectangle(innerRect, Corners::objectCornerRadius);
-        outerArea.addPath(innerArea);
-        g.reduceClipRegion(outerArea);
-        
-        g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
-        g.fillRoundedRectangle(0.0f, 0.0f, 9.0f, 9.0f, Corners::objectCornerRadius);
-        
-        if(resizeHandleImage) nvgDeleteImage(nvg, resizeHandleImage);
-        resizeHandleImage = NVGImageRenderer::convertImage(nvg, resizerImage);
+       
         editor->nvgSurface.invalidateAll();
     }
-    
-    bufferScale = zoom;
     
     // Then, check if object framebuffers need to be updated
     if(isScrolling) {
@@ -286,9 +282,7 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
             }
         }
     }
-    
-    needsFramebufferUpdate = false;
-    
+        
     return true;
 }
 
@@ -452,21 +446,16 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             nvgRoundedRect(nvg, pos.getX(), pos.getY(), borderWidth, borderHeight, Corners::windowCornerRadius);
 
             const int shadowSize = 40;
-            auto borderArea = Rectangle<int>(0, 0, borderWidth, borderHeight);
-            auto expanededBorder = borderArea.expanded(shadowSize);
-            if (lastPresentationBounds != borderArea || presentationShadowImage == -1)
+            auto borderArea = Rectangle<int>(0, 0, borderWidth, borderHeight).expanded(shadowSize);
+            if (presentationShadowImage.needsUpdate(borderArea.getWidth(), borderArea.getHeight()))
             {
-                lastPresentationBounds = borderArea;
-                if (presentationShadowImage) nvgDeleteImage(nvg, presentationShadowImage);
-
-                Image shadow(Image::ARGB, expanededBorder.getWidth(), expanededBorder.getHeight(), true);
-                Graphics g(shadow);
-                auto shadowPath = Path();
-                shadowPath.addRoundedRectangle(expanededBorder.reduced(shadowSize).withPosition(shadowSize, shadowSize), Corners::windowCornerRadius);
-                StackShadow::renderDropShadow(g, shadowPath, Colours::black, shadowSize);
-                presentationShadowImage = NVGImageRenderer::convertImage(nvg, shadow);
+                presentationShadowImage = NVGImage(nvg, borderArea.getWidth(), borderArea.getHeight(), [borderArea](Graphics& g){
+                    auto shadowPath = Path();
+                    shadowPath.addRoundedRectangle(borderArea.reduced(shadowSize).withPosition(shadowSize, shadowSize), Corners::windowCornerRadius);
+                    StackShadow::renderDropShadow(g, shadowPath, Colours::black, shadowSize);
+                });
             }
-            auto shadowImage = nvgImagePattern(nvg, pos.getX() - shadowSize, pos.getY() - shadowSize, expanededBorder.getWidth(), expanededBorder.getHeight(), 0, presentationShadowImage, 0.33f);
+            auto shadowImage = nvgImagePattern(nvg, pos.getX() - shadowSize, pos.getY() - shadowSize, borderArea.getWidth(), borderArea.getHeight(), 0, presentationShadowImage.getImageId(), 0.33f);
             nvgFillPaint(nvg, shadowImage);
             nvgFill(nvg);
 
@@ -535,8 +524,7 @@ float Canvas::getRenderScale() const
 
 void Canvas::lookAndFeelChanged()
 {
-    needsFramebufferUpdate = true;
-    presentationShadowImage = -1;
+    //presentationShadowImage = -1;
 }
 
 void Canvas::updatePatchSnapshot()

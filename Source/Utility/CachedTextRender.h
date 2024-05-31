@@ -8,7 +8,7 @@ public:
 
     void renderText(NVGcontext* nvg, Rectangle<int> const& bounds, float scale)
     {
-        if(updateImage || imageId <= 0 || lastRenderBounds != bounds || lastScale != scale)
+        if(updateImage || !image.isValid() || lastRenderBounds != bounds || lastScale != scale)
         {
             renderTextToImage(nvg, Rectangle<int>(bounds.getX(), bounds.getY(), bounds.getWidth() + 3, bounds.getHeight()), scale);
             lastRenderBounds = bounds;
@@ -20,7 +20,7 @@ public:
         nvgSave(nvg);
         nvgIntersectScissor(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
         nvgRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth() + 3, bounds.getHeight());
-        nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, bounds.getWidth() + 3, bounds.getHeight(), 0, imageId, 1.0f));
+        nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, bounds.getWidth() + 3, bounds.getHeight(), 0, image.getImageId(), 1.0f));
         nvgFill(nvg);
         nvgRestore(nvg);
     }
@@ -55,44 +55,11 @@ public:
         int width = std::floor(bounds.getWidth() * scale);
         int height = std::floor(bounds.getHeight() * scale);
  
-        Image textImage = Image(Image::ARGB, width, height, true);
-        {
-            Graphics g(textImage);
+        image = NVGImage(nvg, width, height, [this, bounds, scale](Graphics& g){
             g.addTransform(AffineTransform::scale(scale, scale));
             g.reduceClipRegion(bounds.withTrimmedRight(4)); // If it touches the edges of the image, it'll look bad
             layout.draw(g, bounds.toFloat());
-        }
-        
-        Image::BitmapData imageData(textImage, juce::Image::BitmapData::readOnly);
-
-        uint8* pixelData = imageData.data;
-        for (int y = 0; y < height; ++y)
-        {
-            auto* scanLine = (uint32*) imageData.getLinePointer(y);
-
-            for (int x = 0; x < width; ++x)
-            {
-                juce::uint32 argb = scanLine[x];
-
-                juce::uint8 a = argb >> 24;
-                juce::uint8 r = argb >> 16;
-                juce::uint8 g = argb >> 8;
-                juce::uint8 b = argb;
-
-                // order bytes as abgr
-                scanLine[x] = (a << 24) | (b << 16) | (g << 8) | r;
-            }
-        }
-
-        if(imageId && imageWidth == width && imageHeight == height) {
-            nvgUpdateImage(nvg, imageId, pixelData);
-        }
-        else {
-            if(imageId) nvgDeleteImage(nvg, imageId);
-            imageId = nvgCreateImageRGBA(nvg, width, height, NVG_IMAGE_PREMULTIPLIED, pixelData);
-            imageWidth = width;
-            imageHeight = height;
-        }
+        });
     }
     
     Rectangle<int> getTextBounds()
@@ -102,8 +69,7 @@ public:
     
 private:
 
-    int imageId = 0;
-    int imageWidth = 0, imageHeight = 0;
+    NVGImage image;
     hash32 lastTextHash;
     float lastScale = 1.0f;
     Colour lastColour;

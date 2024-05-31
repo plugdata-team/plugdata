@@ -67,8 +67,6 @@ Object::Object(pd::WeakReference object, Canvas* parent)
 
 Object::~Object()
 {
-    if(fb) nvgDeleteFramebuffer(fb);
-    
     hideEditor(); // Make sure the editor is not still open, that could lead to issues with listeners attached to the editor (i.e. suggestioncomponent)
     cnv->selectedComponents.removeChangeListener(this);
 }
@@ -105,13 +103,13 @@ private:
     
     bool invalidate(const Rectangle<int>& rect) override
     {
-        object->fbDirty = true;
+        object->scrollBuffer.setDirty();
         return true;
     }
     
     bool invalidateAll() override
     {
-        object->fbDirty = true;
+        object->scrollBuffer.setDirty();
         return true;
     }
     
@@ -501,7 +499,7 @@ void Object::lookAndFeelChanged()
 
 void Object::resized()
 {
-    fbDirty = true;
+    scrollBuffer.setDirty();
     activityOverlayDirty = true;
     
     setVisible(!((cnv->isGraph || cnv->presentationMode == var(true)) && gui && gui->hideInGraph()));
@@ -1165,69 +1163,51 @@ void Object::updateFramebuffer(NVGcontext* nvg)
     if(getWidth() * 3 * cnv->getRenderScale() > 8192 || getHeight() * 3 * cnv->getRenderScale() > 8192) return;
     
     auto b = getLocalBounds();
-    bool boundsChanged = b.getWidth() != fbWidth || b.getHeight() != fbHeight;
-    if(fbDirty || boundsChanged)
+    auto maxScale = 3.0f;
+    int scaledWidth = b.getWidth() * maxScale * cnv->getRenderScale();
+    int scaledHeight = b.getHeight() * maxScale * cnv->getRenderScale();
+    
+    if(scrollBuffer.needsUpdate(scaledWidth, scaledHeight))
     {
-        auto maxScale = 3.0f;
-        int scaledWidth = b.getWidth() * maxScale * cnv->getRenderScale();
-        int scaledHeight = b.getHeight() * maxScale * cnv->getRenderScale();
-        
-        if(!fb || boundsChanged)
-        {
-            fbWidth = b.getWidth();
-            fbHeight = b.getHeight();
-            
-            if(fb) nvgDeleteFramebuffer(fb);
-            fb = nvgCreateFramebuffer(nvg, scaledWidth, scaledHeight, NVG_IMAGE_PREMULTIPLIED);
-        }
-        
-        nvgBindFramebuffer(fb);
-        nvgViewport(0, 0, scaledWidth, scaledHeight);
-        nvgClear(nvg);
+        scrollBuffer.renderToFramebuffer(nvg, scaledWidth, scaledHeight, [this, scaledWidth, scaledHeight, maxScale, b](NVGcontext* nvg){
+            nvgViewport(0, 0, scaledWidth, scaledHeight);
+            nvgClear(nvg);
 
-        nvgBeginFrame(nvg, b.getWidth() * maxScale, b.getHeight() * maxScale, cnv->getRenderScale());
-        nvgScale(nvg, maxScale, maxScale);
-        nvgScissor (nvg, 0, 0, b.getWidth(), b.getHeight());
-        
-        performRender(nvg);
-        
-#if ENABLE_OBJECT_FB_DEBUGGING
-        static Random rng;
-        nvgBeginPath(nvg);
-        nvgFillColor(nvg, nvgRGBA(rng.nextInt(255), rng.nextInt(255), rng.nextInt(255), 0x50));
-        nvgRect(nvg, 0, 0, b.getWidth(), b.getHeight());
-        nvgFill(nvg);
-#endif
-        nvgEndFrame(nvg);
-        nvgBindFramebuffer(nullptr);
-        fbDirty = false;
-        
+            nvgBeginFrame(nvg, b.getWidth() * maxScale, b.getHeight() * maxScale, cnv->getRenderScale());
+            nvgScale(nvg, maxScale, maxScale);
+            nvgScissor (nvg, 0, 0, b.getWidth(), b.getHeight());
+            
+            performRender(nvg);
+            
+    #if ENABLE_OBJECT_FB_DEBUGGING
+            static Random rng;
+            nvgBeginPath(nvg);
+            nvgFillColor(nvg, nvgRGBA(rng.nextInt(255), rng.nextInt(255), rng.nextInt(255), 0x50));
+            nvgRect(nvg, 0, 0, b.getWidth(), b.getHeight());
+            nvgFill(nvg);
+    #endif
+            nvgEndFrame(nvg);
+        });
     }
 }
 
 void Object::render(NVGcontext* nvg)
 {
-    if(cnv->shouldShowObjectActivity() && (!activityOverlayImage || activityOverlayDirty))
+    if(cnv->shouldShowObjectActivity() && (!activityOverlayImage.isValid() || activityOverlayDirty))
     {
-        if(activityOverlayImage) nvgDeleteImage(nvg, activityOverlayImage);
         Path objectShadow;
         objectShadow.addRoundedRectangle(getLocalBounds().reduced(Object::margin - 1), Corners::objectCornerRadius);
         activityOverlayImage = StackShadow::createActivityDropShadowImage(nvg, getLocalBounds(), objectShadow, getLookAndFeel().findColour(PlugDataColour::dataColourId), 5.5f, { 0, 0 }, 0, gui && (gui->getCanvas() || gui->isTransparent()));
         activityOverlayDirty = false;
     }
     
-    if(fb && cnv->isScrolling)
+    if(cnv->isScrolling && scrollBuffer.needsUpdate(getWidth(), getHeight()))
     {
-        if(fbDirty) { // If framebuffer is dirty, draw normally now and draw from buffer again on next render
-            performRender(nvg);
-            return;
-        }
-        
-        auto b = getLocalBounds();
-        nvgBeginPath(nvg);
-        nvgRect(nvg, 0, 0, b.getWidth(), b.getHeight());
-        nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, b.getWidth(), b.getHeight(), 0, fb->image, 1));
-        nvgFill(nvg);
+        performRender(nvg);
+    }
+    else if(cnv->isScrolling && scrollBuffer.isValid())
+    {
+        scrollBuffer.render(nvg, Rectangle<int>(0, 0, getWidth(), getHeight()));
     }
     else {
         performRender(nvg);
@@ -1253,17 +1233,17 @@ void Object::performRender(NVGcontext* nvg)
             
             nvgBeginPath(nvg);
             nvgRect(nvg, 0, 0, 9, 9);
-            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage, 1));
+            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage.getImageId(), 1));
             nvgFill(nvg);
             nvgRestore(nvg);
             angle -= 90;
         }
     }
     
-    if(cnv->shouldShowObjectActivity() && !approximatelyEqual(activeStateAlpha, 0.0f) && activityOverlayImage)
+    if(cnv->shouldShowObjectActivity() && !approximatelyEqual(activeStateAlpha, 0.0f) && activityOverlayImage.isValid())
     {
         nvgBeginPath(nvg);
-        nvgFillPaint(nvg, nvgImagePattern(nvg, lb.getX(), lb.getY(), lb.getWidth(), lb.getHeight(), 0, activityOverlayImage, activeStateAlpha));
+        nvgFillPaint(nvg, nvgImagePattern(nvg, lb.getX(), lb.getY(), lb.getWidth(), lb.getHeight(), 0, activityOverlayImage.getImageId(), activeStateAlpha));
         nvgRect(nvg, lb.getX(), lb.getY(), lb.getWidth(), lb.getHeight());
         nvgFill(nvg);
     }
@@ -1296,7 +1276,7 @@ void Object::performRender(NVGcontext* nvg)
         nvgStroke(nvg);
         
         nvgTranslate(nvg, margin, margin);
-        textEditorRenderer.renderComponentFromImage(nvg, *newObjectEditor, getValue<float>(cnv->zoomScale) * cnv->getRenderScale());
+        textEditorRenderer.renderJUCEComponent(nvg, *newObjectEditor, getValue<float>(cnv->zoomScale) * cnv->getRenderScale());
     }
     
     // If autoconnect is about to happen, draw a fake inlet with a dotted outline

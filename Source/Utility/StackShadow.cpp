@@ -24,7 +24,7 @@ void StackShadow::renderDropShadow(juce::Graphics& g, juce::Path const& path, ju
 }
 
 
-int StackShadow::createActivityDropShadowImage(NVGcontext* nvg, juce::Rectangle<int> bounds, juce::Path const& path, juce::Colour color, int radius, juce::Point<int> offset, int spread, bool isCanvas)
+NVGImage StackShadow::createActivityDropShadowImage(NVGcontext* nvg, juce::Rectangle<int> bounds, juce::Path const& path, juce::Colour color, int radius, juce::Point<int> offset, int spread, bool isCanvas)
 {
     Image shadow(Image::ARGB, bounds.getWidth(), bounds.getHeight(), true);
     Graphics g(shadow);
@@ -45,7 +45,9 @@ int StackShadow::createActivityDropShadowImage(NVGcontext* nvg, juce::Rectangle<
 
     renderDropShadow(g, path, color, radius, offset, spread);
     
-    return NVGImageRenderer::convertImage(nvg, shadow);
+    NVGImage image;
+    image.loadJUCEImage(nvg, shadow);
+    return image;
 }
 
 JUCE_IMPLEMENT_SINGLETON(StackShadow)

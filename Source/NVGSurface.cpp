@@ -17,12 +17,10 @@ using namespace juce::gl;
 #include "NVGSurface.h"
 
 #include "PluginEditor.h"
-#include "PluginMode.h"
-#include "Canvas.h"
+#include "PluginProcessor.h"
 #include "Tabbar/WelcomePanel.h"
-#include "Sidebar/Sidebar.h" // meh...
 
-#define ENABLE_FPS_COUNT 0
+#define ENABLE_FPS_COUNT 1
 
 class FrameTimer
 {
@@ -102,7 +100,6 @@ NVGSurface::NVGSurface(PluginEditor* e) : editor(e)
     MessageManager::callAsync([_this = SafePointer(this)](){
         if(_this) {
             _this->initialise();
-            _this->updateBufferSize();
             
             // Render on vblank
             _this->vBlankAttachment = std::make_unique<VBlankAttachment>(_this.getComponent(), [_this](){
@@ -123,15 +120,14 @@ NVGSurface::~NVGSurface()
 void NVGSurface::initialise()
 {
 #ifdef NANOVG_METAL_IMPLEMENTATION
-    auto renderScale = getRenderScale();
     auto* peer = getPeer()->getNativeHandle();
     auto* view = OSUtils::MTLCreateView(peer, 0, 0, getWidth(), getHeight());
     setView(view);
-    nvg = nvgCreateContext(view, NVG_ANTIALIAS | NVG_TRIPLE_BUFFER, getWidth() * renderScale, getHeight() * renderScale);
     setVisible(true);
-#if JUCE_IOS
+    
+    auto renderScale = getRenderScale();
+    nvg = nvgCreateContext(view, NVG_ANTIALIAS | NVG_TRIPLE_BUFFER, getWidth() * renderScale, getHeight() * renderScale);
     resized();
-#endif
 #else
     setVisible(true);
     glContext->attachTo(*this);
@@ -151,6 +147,36 @@ void NVGSurface::initialise()
     nvgCreateFontMem(nvg, "icon_font-Regular", (unsigned char*)BinaryData::IconFont_ttf, BinaryData::IconFont_ttfSize, 0);
 }
 
+void NVGSurface::detachContext()
+{
+    editor->welcomePanel->clearBuffers();
+    NVGFramebuffer::clearAll();
+    NVGImage::clearAll();
+    
+    if(invalidFBO) {
+        nvgDeleteFramebuffer(invalidFBO);
+        invalidFBO = nullptr;
+    }
+    if(mainFBO)  {
+        nvgDeleteFramebuffer(mainFBO);
+        mainFBO = nullptr;
+    }
+    if(nvg)
+    {
+        nvgDeleteContext(nvg);
+        nvg = nullptr;
+    }
+    
+#ifdef NANOVG_METAL_IMPLEMENTATION
+    if(auto* view = getView()) {
+        OSUtils::MTLDeleteView(view);
+        setView(nullptr);
+    }
+#else
+    if(glContext) glContext->detach();
+#endif
+}
+
 void NVGSurface::updateBufferSize()
 {
     float pixelScale = getRenderScale();
@@ -165,10 +191,7 @@ void NVGSurface::updateBufferSize()
         fbWidth = scaledWidth;
         fbHeight = scaledHeight;
         invalidArea = getLocalBounds();
-        lastScaleFactor = pixelScale;
     }
-    
-    //scaleChanged = !approximatelyEqual(lastScaleFactor, pixelScale);
 }
 
 
@@ -191,44 +214,21 @@ bool NVGSurface::makeContextActive()
 {
 #ifdef NANOVG_METAL_IMPLEMENTATION
     // No need to make context active with Metal, so just check if we have initialised and return that
-    return isAttached();
+    return getView() != nullptr && nvg != nullptr;
 #else
     if(glContext) return glContext->makeActive();
-#endif
-    
     return false;
-}
-
-void NVGSurface::detachContext()
-{
-#ifdef NANOVG_METAL_IMPLEMENTATION
-    if(auto* view = getView()) {
-        OSUtils::MTLDeleteView(view);
-        setView(nullptr);
-    }
-#else
-    if(glContext) glContext->detach();
 #endif
 }
 
-
-void NVGSurface::propertyChanged(String const& name, var const& value) {
-    if(name == "global_scale")
-    {
-        // TODO: handle this?
-        //sendContextDeleteMessage();
-    }
-}
 
 float NVGSurface::getRenderScale() const
 {
-    auto desktopScale = Desktop::getInstance().getGlobalScaleFactor();
 #ifdef NANOVG_METAL_IMPLEMENTATION
-    if(!isAttached()) return 2.0f * desktopScale;
+    auto desktopScale = Desktop::getInstance().getGlobalScaleFactor();
     return OSUtils::MTLGetPixelScale(getView()) * desktopScale;
 #else
-    if(!isAttached()) return desktopScale;
-    return glContext->getRenderingScale();// * desktopScale;
+    return glContext->getRenderingScale();
 #endif
 }
 
@@ -251,24 +251,13 @@ void NVGSurface::resized()
 {
 #ifdef NANOVG_METAL_IMPLEMENTATION
     if(auto* view = getView()) {
-        auto desktopScale = Desktop::getInstance().getGlobalScaleFactor();
-        auto renderScale = OSUtils::MTLGetPixelScale(view); // TODO: we can simplify with getRenderScale() function, but needs testing on iOS
+        auto renderScale = getRenderScale();
         auto* topLevel = getTopLevelComponent();
-        auto bounds = topLevel->getLocalArea(this, getLocalBounds()).toFloat() * desktopScale;
-        mnvgSetViewBounds(view, (renderScale * bounds.getWidth()), (renderScale * bounds.getHeight()));
+        auto bounds = topLevel->getLocalArea(this, getLocalBounds()).toFloat() * renderScale;
+        mnvgSetViewBounds(view, bounds.getWidth(), bounds.getHeight());
     }
 #endif
 }
-
-bool NVGSurface::isAttached() const
-{
-#ifdef NANOVG_METAL_IMPLEMENTATION
-    return getView() != nullptr && nvg != nullptr;
-#else
-    return glContext->isAttached() && nvg != nullptr;
-#endif
-}
-
 
 void NVGSurface::invalidateAll()
 {
@@ -282,9 +271,16 @@ void NVGSurface::invalidateArea(Rectangle<int> area)
 
 void NVGSurface::render()
 {
-    auto startTime = Time::getMillisecondCounter();
+#if ENABLE_FPS_COUNT
+    frameTimer->addFrameTime();
+#endif
     
-    if(!isAttached() && isVisible()) initialise();
+    auto startTime = Time::getMillisecondCounter();
+
+    if(!nvg)  {
+        initialise();
+        return; // Render on next frame
+    }
     
     bool hasCanvas = false;
     for(auto* split : editor->splitView.splits)
@@ -292,6 +288,7 @@ void NVGSurface::render()
         if(auto* cnv = split->getTabComponent()->getCurrentCanvas())
         {
             hasCanvas = true;
+            break;
         }
     }
     // Manage showing/hiding welcome panel
@@ -305,7 +302,7 @@ void NVGSurface::render()
     }
     
     updateBufferSize();
-
+    
     auto pixelScale = getRenderScale();
     if(!invalidArea.isEmpty() && makeContextActive()) {
         auto invalidated = invalidArea.expanded(1);
@@ -344,10 +341,6 @@ void NVGSurface::render()
         nvgBindFramebuffer(nullptr);
         needsBufferSwap = true;
         invalidArea = Rectangle<int>(0, 0, 0, 0);
-        
-#if ENABLE_FPS_COUNT
-        frameTimer->addFrameTime();
-#endif
     }
     
     if(needsBufferSwap && makeContextActive()) {
