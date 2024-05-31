@@ -20,7 +20,7 @@
 #include "Utility/OSUtils.h"
 #include "Utility/AudioSampleRingBuffer.h"
 #include "Utility/MidiDeviceManager.h"
-#include "Dialogs/ConnectionMessageDisplay.h"
+
 
 #include "Utility/Presets.h"
 #include "Canvas.h"
@@ -32,6 +32,8 @@
 #include "Statusbar.h"
 
 #include "Dialogs/Dialogs.h"
+#include "Dialogs/ConnectionMessageDisplay.h"
+
 #include "Sidebar/Sidebar.h"
 
 extern "C" {

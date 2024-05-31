@@ -9,7 +9,7 @@
 #include "Components/Buttons.h"
 #include "Objects/ObjectParameters.h"
 #include "Utility/SettingsFile.h"
-#include "Utility/NVGComponent.h"
+#include "NVGSurface.h"
 
 class Console;
 class Inspector;

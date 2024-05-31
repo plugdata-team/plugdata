@@ -6,11 +6,10 @@
 
 #pragma once
 #include "Utility/SettingsFile.h"
-#include "Utility/NVGComponent.h"
+#include "NVGSurface.h"
 
 class Object;
 class Canvas;
-
 struct ObjectGrid : public SettingsFileListener, public Timer {
 
     int gridSize = 20;

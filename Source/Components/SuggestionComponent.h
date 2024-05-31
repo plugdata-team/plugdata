@@ -8,6 +8,7 @@
 #include "PluginProcessor.h" // TODO: We shouldn't need this!
 #include "Objects/ObjectBase.h"
 #include "Heavy/CompatibleObjects.h"
+#include "Utility/NanoVGGraphicsContext.h"
 
 extern "C"
 {

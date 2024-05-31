@@ -23,7 +23,7 @@ using namespace juce::gl;
 #include "Pd/Patch.h"
 #include "Constants.h"
 #include "Objects/ObjectParameters.h"
-#include "Utility/NVGComponent.h"
+#include "NVGSurface.h"
 #include "Utility/GlobalMouseListener.h"
 
 namespace pd {

@@ -10,8 +10,8 @@ using namespace juce::gl;
 #include <nanovg.h>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
-#include "Utility/NVGComponent.h"
 
+#include "NVGSurface.h"
 #include "Connection.h"
 
 #include "Canvas.h"

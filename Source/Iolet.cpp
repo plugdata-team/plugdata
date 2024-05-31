@@ -11,6 +11,7 @@ using namespace juce::gl;
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
 
+#include "NVGSurface.h"
 #include "Iolet.h"
 
 #include "Object.h"

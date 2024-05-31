@@ -1,5 +1,5 @@
 #include "StackShadow.h"
-#include "NVGComponent.h"
+#include "NVGSurface.h"
 #include <melatonin_blur/melatonin_blur.h>
 
 

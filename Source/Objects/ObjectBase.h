@@ -11,7 +11,7 @@
 #include "Constants.h"
 #include "ObjectParameters.h"
 #include "Utility/SynchronousValue.h"
-#include "Utility/NVGComponent.h"
+#include "NVGSurface.h"
 #include "Utility/CachedTextRender.h"
 #include "Object.h"
 #include "Canvas.h"

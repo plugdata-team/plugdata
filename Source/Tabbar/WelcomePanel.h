@@ -7,6 +7,7 @@
 #pragma once
 #include "Utility/Autosave.h"
 #include "Utility/CachedTextRender.h"
+#include "Utility/NanoVGGraphicsContext.h"
 
 class WelcomePanel : public Component, public NVGComponent, public AsyncUpdater {
 

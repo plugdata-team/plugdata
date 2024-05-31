@@ -10,8 +10,8 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "Utility/SettingsFile.h"
 #include "Utility/RateReducer.h"
+#include "NVGSurface.h"
 #include "Pd/WeakReference.h"
-#include "Utility/NVGComponent.h"
 
 #include <nanovg.h>
 #if NANOVG_GL_IMPLEMENTATION

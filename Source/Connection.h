@@ -16,7 +16,7 @@
 #include "Pd/MessageListener.h"
 #include "Utility/RateReducer.h"
 #include "Utility/ModifierKeyListener.h"
-#include "Utility/NVGComponent.h"
+#include "NVGSurface.h"
 
 using PathPlan = std::vector<Point<float>>;
 
