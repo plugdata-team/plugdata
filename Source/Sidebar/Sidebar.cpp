@@ -345,10 +345,9 @@ void Sidebar::updateExtraSettingsButton()
         return;
     }
     
-    if(!extraSettingsButton->isVisible()) {
-        addAndMakeVisible(*extraSettingsButton);
-        resized();
-    }
+    addChildComponent(extraSettingsButton.get());
+    extraSettingsButton->setVisible(!isHidden());
+    resized();
 }
 
 void Sidebar::hideParameters()
