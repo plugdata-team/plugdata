@@ -212,7 +212,9 @@ public:
     bool connectionsBehind = true;
     
     bool isScrolling = false;
-    
+
+    Component* parentGraph;
+
     bool isGraph = false;
     bool isDraggingLasso = false;
     

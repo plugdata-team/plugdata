@@ -480,10 +480,19 @@ String Object::getType(bool withOriginPrefix) const
 
 void Object::triggerOverlayActiveState()
 {
-    if (!showActiveState)
+    // Trigger active state can get spammed heavily, also due to objects triggering parent GOPs
+    if (rateReducer.tooFast())
         return;
 
-    if (rateReducer.tooFast())
+    // Trigger activity of GOP parent, if this object is inside a GOP
+    if (cnv->isGraph) {
+        if (auto *graphObject = dynamic_cast<ObjectBase*>(cnv->parentGraph)) {
+            graphObject->object->triggerOverlayActiveState();
+        }
+    }
+
+    // Exit here if we shouldn't show activity, as we need to trigger the state of parent GOP's above first
+    if (!showActiveState)
         return;
 
     activeStateAlpha = 1.0f;

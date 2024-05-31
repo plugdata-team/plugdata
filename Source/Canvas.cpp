@@ -40,6 +40,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     , graphArea(nullptr)
     , pathUpdater(new ConnectionPathUpdater(this))
     , globalMouseListener(this)
+    , parentGraph(parentGraph)
 {
 
     addAndMakeVisible(objectLayer);
