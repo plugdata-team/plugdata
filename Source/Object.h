@@ -94,8 +94,6 @@ public:
     
     void lookAndFeelChanged() override;
 
-    void updateOverlays(int overlay);
-
     void textEditorReturnKeyPressed(TextEditor& ed) override;
     void textEditorTextChanged(TextEditor& ed) override;
 
@@ -148,11 +146,9 @@ private:
     bool selectionStateChanged = false;
 
     bool wasLockedOnMouseDown = false;
-    bool indexShown = false;
     bool isHvccCompatible = true;
     bool isGemObject = false;
 
-    bool showActiveState = false;
     float activeStateAlpha = 0.0f;
         
     int activityOverlayImage = 0;

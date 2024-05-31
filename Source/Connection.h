@@ -46,8 +46,6 @@ public:
     Connection(Canvas* parent, Iolet* start, Iolet* end, t_outconnect* oc);
     ~Connection() override;
 
-    void updateOverlays(int overlay);
-
     static void renderConnectionPath(Graphics& g,
         Canvas* cnv,
         Path const& connectionPath,
@@ -149,10 +147,6 @@ private:
 
     Value locked;
     Value presentationMode;
-
-    bool showDirection = false;
-    bool showConnectionOrder = false;
-    bool showActivity = false;
     
     NVGcolor baseColour;
     NVGcolor dataColour;

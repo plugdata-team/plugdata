@@ -92,7 +92,6 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
 
     cnv->connectionLayer.addAndMakeVisible(this);
 
-    updateOverlays(cnv->getOverlays());
     setAccessible(false); // TODO: implement accessibility. We disable default, since it makes stuff slow on macOS
     lookAndFeelChanged();
 }
@@ -175,7 +174,7 @@ void Connection::render(NVGcontext* nvg)
     nvgSave(nvg);
     nvgTranslate(nvg, getX(), getY());
 
-    if (cableType == DataCable && showActivity) {
+    if (cableType == DataCable && cnv->shouldShowConnectionActivity()) {
         auto dashColor = connectionColour;
         dashColor.a = 1.0f;
         dashColor.r *= 0.8f;
@@ -301,7 +300,7 @@ void Connection::render(NVGcontext* nvg)
     };
 
     //TODO: refactor this outside of the render function
-    if (showDirection) {
+    if (cnv->shouldShowConnectionDirection()) {
         if (isSegmented()) {
             for (int i = 1; i < currentPlan.size(); i++) {
                 const auto pathLine = Line<float>(currentPlan[i - 1], currentPlan[i]);
@@ -493,16 +492,6 @@ bool Connection::intersects(Rectangle<float> toCheck, int accuracy) const
     }
 
     return false;
-}
-
-void Connection::updateOverlays(int overlay)
-{
-    if (!inlet || !outlet)
-        return;
-
-    showDirection = overlay & Overlay::Direction;
-    showActivity = overlay & Overlay::ConnectionActivity;
-    repaint();
 }
 
 void Connection::forceUpdate()
@@ -1304,7 +1293,7 @@ void ConnectionPathUpdater::timerCallback()
 
 void Connection::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms)
 {
-    if (showActivity) {
+    if (cnv->shouldShowConnectionActivity()) {
         startTimer(StopAnimation, 1000 / 8.0f);
         if (!isTimerRunning(Animation)) {
             startTimer(Animation, 1000 / 60.0f);

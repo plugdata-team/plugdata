@@ -638,6 +638,26 @@ void Canvas::propertyChanged(String const& name, var const& value)
     }
 }
 
+bool Canvas::shouldShowObjectActivity()
+{
+    return showObjectActivity && !presentationMode.getValue();
+}
+
+bool Canvas::shouldShowIndex()
+{
+    return showIndex && !presentationMode.getValue();
+}
+
+bool Canvas::shouldShowConnectionDirection()
+{
+    return showConnectionDirection;
+}
+
+bool Canvas::shouldShowConnectionActivity()
+{
+    return showConnectionActivity;
+}
+
 int Canvas::getOverlays() const
 {
     int overlayState = 0;
@@ -670,16 +690,12 @@ void Canvas::updateOverlays()
     showOrigin = overlayState & Origin;
     showConnectionOrder = overlayState & Order;
     connectionsBehind = overlayState & Behind;
+    showObjectActivity = overlayState & ActivationState;
+    showIndex = overlayState & Index;
+    showConnectionDirection = overlayState & Direction;
+    showConnectionActivity = overlayState & ConnectionActivity;
 
     orderConnections();
-
-    for (auto* object : objects) {
-        object->updateOverlays(overlayState);
-    }
-
-    for (auto* connection : connections) {
-        connection->updateOverlays(overlayState);
-    }
 
     repaint();
 }
