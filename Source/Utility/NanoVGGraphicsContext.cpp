@@ -152,8 +152,9 @@ juce::Rectangle<int> NanoVGGraphicsContext::getClipBounds() const
 
 bool NanoVGGraphicsContext::isClipEmpty() const
 {
-    //auto scissorBounds = nvgCurrentScissor(nvg);  TODO: fix this!
-    return false;
+    float x, y, w, h;
+    nvgCurrentScissor(nvg, &x, &y, &w, &h);
+    return w <= 0 || h <= 0;
 }
 
 void NanoVGGraphicsContext::saveState()

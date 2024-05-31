@@ -179,7 +179,7 @@ void InternalSynth::process(AudioBuffer<float>& buffer, MidiBuffer& midiMessages
     internalBuffer.clear();
     
     // Run audio through fluidsynth
-    fluid_synth_process(synth, buffer.getNumSamples(), buffer.getNumChannels(), const_cast<float**>(internalBuffer.getArrayOfReadPointers()), buffer.getNumChannels(), const_cast<float**>(internalBuffer.getArrayOfWritePointers()));
+    fluid_synth_process(synth, buffer.getNumSamples(), std::max(2, buffer.getNumChannels()), const_cast<float**>(internalBuffer.getArrayOfReadPointers()), std::max(2, buffer.getNumChannels()), const_cast<float**>(internalBuffer.getArrayOfWritePointers()));
 
     for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
         buffer.addFrom(ch, 0, internalBuffer, ch, 0, buffer.getNumSamples());
