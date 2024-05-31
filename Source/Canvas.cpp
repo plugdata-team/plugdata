@@ -454,8 +454,11 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             const int shadowSize = 40;
             auto borderArea = Rectangle<int>(0, 0, borderWidth, borderHeight);
             auto expanededBorder = borderArea.expanded(shadowSize);
-            if (lastPresentationBounds != borderArea || presentationShadowImage == -1) {
+            if (lastPresentationBounds != borderArea || presentationShadowImage == -1)
+            {
                 lastPresentationBounds = borderArea;
+                if (presentationShadowImage) nvgDeleteImage(nvg, presentationShadowImage);
+
                 Image shadow(Image::ARGB, expanededBorder.getWidth(), expanededBorder.getHeight(), true);
                 Graphics g(shadow);
                 auto shadowPath = Path();
