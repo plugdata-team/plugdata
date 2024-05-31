@@ -954,7 +954,9 @@ void Statusbar::lookAndFeelChanged()
         return Colour::fromFloatRGBA(r, g, b, 1.0f);
     };
 
-    auto blendedButtonColour = blendColours(findColour(PlugDataColour::panelBackgroundColourId), limiterButtonActiveColour);
+    // Blend the button colour & toolbar background colour to make sure that the button's 'on' text is visible
+    // as we are using the active colour with alpha to reduce how distracting the limiter button active state is.
+    auto blendedButtonColour = blendColours(findColour(PlugDataColour::toolbarBackgroundColourId), limiterButtonActiveColour);
 
     limiterButton.setColour(TextButton::textColourOffId, findColour(PlugDataColour::panelTextColourId));
     limiterButton.setColour(TextButton::textColourOnId, blendedButtonColour.contrasting());
