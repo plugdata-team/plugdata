@@ -139,8 +139,6 @@ void Object::initialise()
     hvccMode.addListener(this);
 
     originalBounds.setBounds(0, 0, 0, 0);
-
-    updateOverlays(cnv->getOverlays());
     
     setAccessible(false); // TODO: implement accessibility. We disable default, since it makes stuff slow on macOS
     
@@ -480,7 +478,7 @@ String Object::getType(bool withOriginPrefix) const
 
 void Object::triggerOverlayActiveState()
 {
-    if (!showActiveState)
+    if (!cnv->shouldShowObjectActivity())
         return;
 
     if (rateReducer.tooFast())
@@ -1209,7 +1207,7 @@ void Object::updateFramebuffer(NVGcontext* nvg)
 
 void Object::render(NVGcontext* nvg)
 {
-    if(showActiveState && (!activityOverlayImage || activityOverlayDirty))
+    if(cnv->shouldShowObjectActivity() && (!activityOverlayImage || activityOverlayDirty))
     {
         if(activityOverlayImage) nvgDeleteImage(nvg, activityOverlayImage);
         Path objectShadow;
@@ -1262,7 +1260,7 @@ void Object::performRender(NVGcontext* nvg)
         }
     }
     
-    if(showActiveState && !approximatelyEqual(activeStateAlpha, 0.0f) && activityOverlayImage)
+    if(cnv->shouldShowObjectActivity() && !approximatelyEqual(activeStateAlpha, 0.0f) && activityOverlayImage)
     {
         nvgBeginPath(nvg);
         nvgFillPaint(nvg, nvgImagePattern(nvg, lb.getX(), lb.getY(), lb.getWidth(), lb.getHeight(), 0, activityOverlayImage, activeStateAlpha));
@@ -1325,7 +1323,7 @@ void Object::performRender(NVGcontext* nvg)
         nvgStroke(nvg);
 
         nvgRestore(nvg);
-    } else if (indexShown) {
+    } else if (cnv->shouldShowIndex()) {
         int halfHeight = 5;
 
         auto text = std::to_string(cnv->objects.indexOf(this));
@@ -1531,20 +1529,6 @@ bool Object::keyPressed(KeyPress const& key, Component* component)
     }
 
     return false;
-}
-
-void Object::updateOverlays(int overlay)
-{
-    if (cnv->isGraph)
-        return;
-
-    bool indexWasShown = indexShown;
-    indexShown = overlay & Overlay::Index;
-    showActiveState = overlay & Overlay::ActivationState;
-
-    if (indexWasShown != indexShown) {
-        repaint();
-    }
 }
 
 // For resize-while-typing behaviour

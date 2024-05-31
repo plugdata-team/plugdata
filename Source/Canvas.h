@@ -96,6 +96,11 @@ public:
     int getOverlays() const;
     void updateOverlays();
 
+    bool shouldShowObjectActivity();
+    bool shouldShowIndex();
+    bool shouldShowConnectionDirection();
+    bool shouldShowConnectionActivity();
+
     void synchroniseSplitCanvas();
     void synchronise();
     void performSynchronise();
@@ -210,6 +215,11 @@ public:
     bool showBorder = false;
     bool showConnectionOrder = false;
     bool connectionsBehind = true;
+    bool showObjectActivity = false;
+    bool showIndex = false;
+
+    bool showConnectionDirection = false;
+    bool showConnectionActivity = false;
     
     bool isScrolling = false;
     
