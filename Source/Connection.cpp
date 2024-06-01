@@ -118,8 +118,8 @@ Connection::~Connection()
     }
     
     auto* nvg = cnv->editor->nvgSurface.getRawContext();
-    if(cacheId >= 0) nvgDeletePath(nvg, cacheId);
-    if (cacheId >= 0 && cableType == SignalCable) {
+    if(nvg && cacheId >= 0) nvgDeletePath(nvg, cacheId);
+    if (nvg && cacheId >= 0 && cableType == SignalCable) {
         nvgDeletePath(nvg, std::numeric_limits<int32_t>::max() - cacheId);
     }
 }
