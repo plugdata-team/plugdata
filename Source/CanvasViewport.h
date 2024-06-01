@@ -336,6 +336,12 @@ public:
         panner.enablePanning(enablePanning);
     }
 
+    bool hitTest(int x, int y) override
+    {
+        // needed so that mouseWheel event is registered in presentation mode
+        return true;
+    }
+
     void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel) override
     {
         // Check event time to filter out duplicate events
