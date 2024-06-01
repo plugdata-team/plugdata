@@ -23,15 +23,15 @@ public:
 
   bool isKeyDown(int keyCode);
   void allKeysUp();
-  
+
   std::function<void(int)> onKeyDownFn;
   std::function<void(int)> onKeyUpFn;
 
 protected:
-  static std::set<Keyboard*> thisses;
+  static std::set<juce::WeakReference<Keyboard>> thisses;
 
   static juce::ComponentPeer* getFocusedPeer();
-  
+
   void addPressedKey(int keyCode);
   void removePressedKey(int keyCode);
 
@@ -40,5 +40,6 @@ private:
   juce::Component* parent;
   juce::Component* auxParent = nullptr;
   std::set<int> pressedKeys;
-  
+
+  JUCE_DECLARE_WEAK_REFERENCEABLE(Keyboard);
 };

@@ -1,10 +1,10 @@
 #include "Keyboard.h"
 
-std::set<Keyboard*> Keyboard::thisses;
+std::set<juce::WeakReference<Keyboard>> Keyboard::thisses;
 
 Keyboard::Keyboard(juce::Component* initialParent) : parent(initialParent)
 {
-  thisses.emplace(this);
+  thisses.emplace(juce::WeakReference(this));
   startTimer(1);
 }
 
@@ -21,12 +21,14 @@ bool Keyboard::processKeyEvent(int keyCode, bool isKeyDown)
     return false;
 
   for (auto t : thisses) {
-    if (t->peer == focusedPeer || (t->auxPeer != nullptr && t->auxPeer == focusedPeer)) {
-      if (isKeyDown)
-        t->addPressedKey(keyCode);
-      else
-        t->removePressedKey(keyCode);
-    }
+      if(t) {
+        if (t->peer == focusedPeer || (t->auxPeer != nullptr && t->auxPeer == focusedPeer)) {
+        if (isKeyDown)
+            t->addPressedKey(keyCode);
+        else
+            t->removePressedKey(keyCode);
+        }
+      }
   }
 
   return true;
