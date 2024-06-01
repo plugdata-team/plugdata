@@ -188,11 +188,11 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
     // First, check if we need to update our iolet buffer
     if(ioletBuffer.needsUpdate(ioletBufferSize, ioletBufferSize))
     {
-        ioletBuffer.renderToFramebuffer(nvg, ioletBufferSize, ioletBufferSize, [this, zoom, ioletBufferSize](NVGcontext* nvg){
+        ioletBuffer.renderToFramebuffer(nvg, ioletBufferSize, ioletBufferSize, [this, zoom, ioletBufferSize, pixelScale](NVGcontext* nvg){
             nvgViewport(0, 0, ioletBufferSize, ioletBufferSize);
             nvgClear(nvg);
             
-            nvgBeginFrame(nvg, logicalIoletsSize * zoom, logicalIoletsSize * zoom, ioletBufferSize);
+            nvgBeginFrame(nvg, logicalIoletsSize * zoom, logicalIoletsSize * zoom, pixelScale);
             nvgScale(nvg, zoom, zoom);
             
             auto renderIolet = [](NVGcontext* nvg, Rectangle<float> bounds, NVGcolor background, NVGcolor outline){
