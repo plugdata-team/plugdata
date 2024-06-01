@@ -216,6 +216,8 @@ public:
 
     ~ObjectBase() override;
 
+    Colour brightenOrDarken(const Colour& colour);
+
     void initialise();
 
     void paint(Graphics& g) override;

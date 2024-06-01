@@ -177,6 +177,17 @@ ObjectBase::~ObjectBase()
     delete lnf;
 }
 
+
+Colour ObjectBase::brightenOrDarken(const Colour& colour)
+{
+    auto brightness = colour.getBrightness();
+    const float threshold = 0.5f;
+    if (brightness < threshold)
+        return colour.brighter(0.05f);
+    else
+        return colour.darker(0.03f);
+}
+
 void ObjectBase::initialise()
 {
     update();

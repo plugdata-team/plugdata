@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include <juce_gui_basics/juce_gui_basics.h>
+#include <JuceHeader.h>
 #include "TclColours.h"
 
 extern "C" {
@@ -23,6 +23,9 @@ class Knob : public Slider, public NVGComponent {
     float arcStart = 63.5f;
 
 public:
+    bool hasOutline = true;
+    bool ticks = false;
+
     Knob()
     : Slider(Slider::RotaryHorizontalVerticalDrag, Slider::NoTextBox), NVGComponent(this)
     {
@@ -53,6 +56,31 @@ public:
             nvgFillColor(nvg, convertColour(fgColour));
             nvgFill(nvg);
         }
+    }
+
+    bool hitTest(int x, int y) override
+    {
+        if (hasOutline) return true;
+
+        // If knob is circular limit hit test to circle, and expand more if there are ticks around the knob
+        auto centre = getLocalBounds().toFloat().getCentre();
+        auto knobRadius = getWidth() * 0.33f;
+        auto knobRadiusWithTicks = knobRadius + (getWidth() * 0.06f);
+        if (centre.getDistanceFrom(Point<float>(x, y)) < (ticks ? knobRadiusWithTicks : knobRadius)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    void mouseEnter(const MouseEvent& e) override
+    {
+        getParentComponent()->getProperties().set("hover", true);
+    }
+
+    void mouseExit(const MouseEvent& e) override
+    {
+        getParentComponent()->getProperties().set("hover", false);
     }
 
     void showArc(bool show)
@@ -241,7 +269,7 @@ public:
 
         if (auto knb = ptr.get<t_fake_knob>()) {
             initialValue = knb->x_load;
-            ticks = knb->x_ticks;
+            ticks = knob.ticks = knb->x_ticks;
             angularRange = knb->x_range;
             angularOffset = knb->x_offset;
             discrete = knb->x_discrete;
@@ -251,7 +279,7 @@ public:
             primaryColour = getForegroundColour().toString();
             secondaryColour = getBackgroundColour().toString();
             arcColour = getArcColour().toString();
-            outline = knb->x_outline;
+            outline = knob.hasOutline = knb->x_outline;
             sizeProperty = knb->x_size;
             arcStart = knb->x_start;
         }
@@ -433,17 +461,22 @@ public:
     void render(NVGcontext* nvg) override
     {
         auto b = getLocalBounds().toFloat().reduced(0.5f);
+        auto bgColour = Colour::fromString(secondaryColour.toString());
+
+        if (getProperties()["hover"])
+            bgColour = brightenOrDarken(bgColour);
+
         if (::getValue<bool>(outline)) {
             bool selected = object->isSelected() && !cnv->isGraph;
             auto outlineColour = LookAndFeel::getDefaultLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
-            nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(Colour::fromString(secondaryColour.toString())), convertColour(outlineColour), Corners::objectCornerRadius);
+            nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(bgColour), convertColour(outlineColour), Corners::objectCornerRadius);
         } else {
             auto circleBounds = getLocalBounds().toFloat().reduced(getWidth() * 0.13f);
             auto const lineThickness = std::max(circleBounds.getWidth() * 0.07f, 1.5f);
             circleBounds = circleBounds.reduced(lineThickness - 0.5f);
             
-            nvgFillColor(nvg, convertColour(Colour::fromString(secondaryColour.toString())));
+            nvgFillColor(nvg, convertColour(bgColour));
             nvgBeginPath(nvg);
             nvgCircle(nvg, circleBounds.getCentreX(), circleBounds.getCentreY(), circleBounds.getWidth() / 2.0f);
             nvgFill(nvg);
@@ -662,7 +695,6 @@ public:
 
     void valueChanged(Value& value) override
     {
-
         if (value.refersToSameSourceAs(sizeProperty)) {
             auto* constrainer = getConstrainer();
             auto size = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
@@ -719,7 +751,7 @@ public:
         } else if (value.refersToSameSourceAs(ticks)) {
             ticks = jmax(::getValue<int>(ticks), 0);
             if (auto knb = ptr.get<t_fake_knob>())
-                knb->x_ticks = ::getValue<int>(ticks);
+                knob.ticks = knb->x_ticks = ::getValue<int>(ticks);
             updateRotaryParameters();
             updateRange();
         } else if (value.refersToSameSourceAs(angularRange)) {
@@ -744,8 +776,9 @@ public:
                 knb->x_discrete = ::getValue<bool>(discrete);
             updateRange();
         } else if (value.refersToSameSourceAs(outline)) {
-            if (auto knb = ptr.get<t_fake_knob>())
-                knb->x_outline = ::getValue<bool>(outline);
+            if (auto knb = ptr.get<t_fake_knob>()) {
+                knob.hasOutline = knb->x_outline = ::getValue < bool > (outline);
+            }
             repaint();
         } else if (value.refersToSameSourceAs(exponential)) {
             if (auto knb = ptr.get<t_fake_knob>())
