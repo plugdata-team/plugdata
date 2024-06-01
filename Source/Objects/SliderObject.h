@@ -45,6 +45,18 @@ public:
         Slider::resized();
     }
 
+    void mouseEnter(MouseEvent const& e) override
+    {
+        getParentComponent()->getProperties().set("hover", true);
+        getParentComponent()->repaint();
+    }
+
+    void mouseExit(MouseEvent const& e) override
+    {
+        getParentComponent()->getProperties().set("hover", false);
+        getParentComponent()->repaint();
+    }
+
     void mouseDown(MouseEvent const& e) override
     {
         if (!e.mods.isLeftButtonDown())
@@ -323,8 +335,13 @@ public:
         auto b = getLocalBounds().toFloat().reduced(0.5f);
         bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = LookAndFeel::getDefaultLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-        
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(getLookAndFeel().findColour(Slider::backgroundColourId)), convertColour(outlineColour), Corners::objectCornerRadius);
+
+        auto bgColour = getLookAndFeel().findColour(Slider::backgroundColourId);
+
+        if (getProperties()["hover"])
+            bgColour = brightenOrDarken(bgColour);
+
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(bgColour), convertColour(outlineColour), Corners::objectCornerRadius);
 
         slider.render(nvg);
     }

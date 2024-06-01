@@ -16,6 +16,8 @@ class BangObject final : public ObjectBase {
 
     IEMHelper iemHelper;
 
+    bool mouseHover = false;
+
 public:
     BangObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
@@ -102,13 +104,31 @@ public:
         alreadyBanged = true;
         trigger();
     }
+
+    void mouseEnter(MouseEvent const& e) override
+    {
+        mouseHover = true;
+        repaint();
+    }
+
+    void mouseExit(MouseEvent const& e) override
+    {
+        mouseHover = false;
+        repaint();
+    }
     
     void render(NVGcontext* nvg) override
     {
         auto b = getLocalBounds().toFloat().reduced(0.5f);
         
         auto foregroundColour = convertColour(getValue<Colour>(iemHelper.primaryColour)); // TODO: this is some bad threading practice!
-        auto backgroundColour = convertColour(getValue<Colour>(iemHelper.secondaryColour));
+
+        auto bgColour = getValue<Colour>(iemHelper.secondaryColour);
+
+        if (mouseHover)
+            bgColour = brightenOrDarken(bgColour);
+
+        auto backgroundColour = convertColour(bgColour);
         auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
         auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
         auto internalLineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour));

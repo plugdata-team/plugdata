@@ -12,6 +12,9 @@ class RadioObject final : public ObjectBase {
 
     int selected;
 
+    int hoverIdx = -1;
+    bool mouseHover = false;
+
     IEMHelper iemHelper;
 
     Value max = SynchronousValue(0.0f);
@@ -149,6 +152,27 @@ public:
         alreadyToggled = false;
     }
 
+    void mouseEnter(MouseEvent const& e) override
+    {
+        mouseHover = true;
+        repaint();
+    }
+
+    void mouseExit(MouseEvent const& e) override
+    {
+        mouseHover = false;
+        repaint();
+    }
+
+    void mouseMove(MouseEvent const& e) override
+    {
+        float pos = isVertical ? e.y : e.x;
+        float div = isVertical ? getHeight() : getWidth();
+
+        hoverIdx = (pos / div) * numItems;
+        repaint();
+    }
+
     void mouseDown(MouseEvent const& e) override
     {
         if (!e.mods.isLeftButtonDown())
@@ -189,24 +213,35 @@ public:
         for (int i = 1; i < numItems; i++) {
             if (isVertical) {
                 nvgBeginPath(nvg);
-                nvgMoveTo(nvg, 0, i * size);
-                nvgLineTo(nvg, size, i * size);
+                nvgMoveTo(nvg, 1, i * size);
+                nvgLineTo(nvg, size - 0.5, i * size);
                 nvgStroke(nvg);
             } else {
                 nvgBeginPath(nvg);
-                nvgMoveTo(nvg, i * size, 0);
-                nvgLineTo(nvg, i * size, size);
+                nvgMoveTo(nvg, i * size, 1);
+                nvgLineTo(nvg, i * size, size - 0.5);
                 nvgStroke(nvg);
             }
         }
-        
-        nvgFillColor(nvg, convertColour(::getValue<Colour>(iemHelper.primaryColour)));
+
+        auto bgColour = brightenOrDarken(::getValue<Colour>(iemHelper.secondaryColour));
+
+        if (mouseHover) {
+            nvgBeginPath(nvg);
+            float hoverX = isVertical ? 0 : hoverIdx * size;
+            float hoverY = isVertical ? hoverIdx * size : 0;
+            auto hoverBounds = Rectangle<float>(hoverX, hoverY, size, size).reduced(jmin<int>(size * 0.25f, 5));
+            nvgFillColor(nvg, convertColour(bgColour));
+            nvgRoundedRect(nvg, hoverBounds.getX(), hoverBounds.getY(), hoverBounds.getWidth(), hoverBounds.getHeight(), Corners::objectCornerRadius / 2.0f);
+            nvgFill(nvg);
+        }
 
         float selectionX = isVertical ? 0 : selected * size;
         float selectionY = isVertical ? selected * size : 0;
         auto selectionBounds = Rectangle<float>(selectionX, selectionY, size, size).reduced(jmin<int>(size * 0.25f, 5));
 
         nvgBeginPath(nvg);
+        nvgFillColor(nvg, convertColour(::getValue<Colour>(iemHelper.primaryColour)));
         nvgRoundedRect(nvg, selectionBounds.getX(), selectionBounds.getY(), selectionBounds.getWidth(), selectionBounds.getHeight(), Corners::objectCornerRadius / 2.0f);
         nvgFill(nvg);
     }
