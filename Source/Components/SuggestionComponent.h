@@ -146,7 +146,7 @@ private:
         auto completionBounds = getLocalBounds().toFloat().withTrimmedLeft(editorTextWidth + 7.5f);
 
         auto colour = findColour(PlugDataColour::canvasTextColourId).withAlpha(0.65f);
-        Fonts::drawText(g, suggestion, completionBounds.translated(-1.25f, -0.25f), colour);
+        Fonts::drawText(g, suggestion, completionBounds.translated(-1.25f, -1.25f), colour);
     }
 };
 // Suggestions component that shows up when objects are edited

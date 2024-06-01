@@ -415,7 +415,7 @@ void NanoVGGraphicsContext::setFont (const juce::Font& f)
     currentGlyphToCharMap = &loadedFonts[typefaceName];
     
     nvgFontFace(nvg, typefaceName.toUTF8());
-    nvgFontSize (nvg, font.getHeight()  * 0.86f);
+    nvgFontSize (nvg, font.getHeight()  * 0.862f);
     nvgTextLetterSpacing(nvg, -0.275f);
 }
 
@@ -435,7 +435,7 @@ void NanoVGGraphicsContext::drawGlyph (int glyphNumber, const juce::AffineTransf
     setFont(getFont());
     nvgTransform (nvg, transform.mat00, transform.mat10, transform.mat01, transform.mat11, transform.mat02, transform.mat12);
     nvgTextAlign (nvg, NVG_ALIGN_BASELINE | NVG_ALIGN_LEFT);
-    nvgText (nvg, 0, 0, txt, &txt[1]);
+    nvgText (nvg, 0, 1, txt, &txt[1]);
     nvgRestore(nvg);
 }
 

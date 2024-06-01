@@ -231,11 +231,11 @@ public:
         allImages.erase(this);
     }
 
-    static void clearAll()
+    static void clearAll(NVGcontext* nvg)
     {
         for(auto* image : allImages)
         {
-            if(image->isValid() && image->nvg) nvgDeleteImage(image->nvg, image->imageId);
+            if(image->isValid() && image->nvg == nvg) nvgDeleteImage(image->nvg, image->imageId);
             image->imageId = 0;
         }
     }
@@ -247,14 +247,14 @@ public:
     
     void renderJUCEComponent(NVGcontext* nvg, Component& component, float scale)
     {
-        Image componentImage = component.createComponentSnapshot(Rectangle<int>(0, 0, component.getWidth() + 1, component.getHeight()), false, scale);
+        Image componentImage = component.createComponentSnapshot(Rectangle<int>(0, 0, component.getWidth(), component.getHeight()), false, scale);
         if(componentImage.isNull()) return;
         
         loadJUCEImage(nvg, componentImage);
 
         nvgBeginPath(nvg);
-        nvgRect(nvg, 0, 0, component.getWidth() + 1, component.getHeight());
-        nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, component.getWidth() + 1, component.getHeight(), 0, imageId, 1.0f));
+        nvgRect(nvg, 0, 0, component.getWidth(), component.getHeight());
+        nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, component.getWidth(), component.getHeight(), 0, imageId, 1.0f));
         nvgFill(nvg);
     }
     
@@ -296,6 +296,16 @@ public:
         }
     }
     
+    void render(NVGcontext* nvg, Rectangle<int> b)
+    {
+        if(imageId) {
+            nvgBeginPath(nvg);
+            nvgRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight());
+            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, b.getWidth(), b.getHeight(), 0, imageId, 1));
+            nvgFill(nvg);
+        }
+    }
+    
     bool needsUpdate(int width, int height)
     {
         return imageId == 0 || width != imageWidth || height != imageHeight;
@@ -327,11 +337,11 @@ public:
         allFramebuffers.erase(this);
     }
     
-    static void clearAll()
+    static void clearAll(NVGcontext* nvg)
     {
         for(auto* buffer : allFramebuffers)
         {
-            if(buffer->fb) nvgDeleteFramebuffer(buffer->fb);
+            if(buffer->nvg == nvg && buffer->fb) nvgDeleteFramebuffer(buffer->fb);
             buffer->fb = nullptr;
         }
     }
@@ -351,9 +361,10 @@ public:
         fbDirty = true;
     }
     
-    void bind(NVGcontext* nvg, int width, int height)
+    void bind(NVGcontext* ctx, int width, int height)
     {
         if(!fb || fbWidth != width || fbHeight != height) {
+            nvg = ctx;
             if(fb) nvgDeleteFramebuffer(fb);
             fb = nvgCreateFramebuffer(nvg, width, height, NVG_IMAGE_PREMULTIPLIED);
             fbWidth = width;
@@ -396,6 +407,7 @@ public:
 private:
     static inline std::set<NVGFramebuffer*> allFramebuffers;
     
+    NVGcontext* nvg;
     NVGframebuffer* fb = nullptr;
     int fbWidth, fbHeight;
     bool fbDirty = false;

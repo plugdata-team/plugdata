@@ -15,9 +15,9 @@ class WelcomePanel : public Component, public NVGComponent, public AsyncUpdater 
     {
         float snapshotScale;
         bool isHovered = false;
-        String tileName;
+        String tileName, tileSubtitle;
         std::unique_ptr<Drawable> snapshot = nullptr;
-        CachedTextRender titleRenderer, subtitleRenderer;
+        NVGImage titleImage, subtitleImage;
         
     public:
         bool isFavourited;
@@ -25,7 +25,7 @@ class WelcomePanel : public Component, public NVGComponent, public AsyncUpdater 
         std::function<void(bool)> onFavourite = nullptr;
         
         WelcomePanelTile(String name, String subtitle, String svgImage, Colour iconColour, float scale, bool favourited)
-        : snapshotScale(scale), tileName(name), isFavourited(favourited)
+        : snapshotScale(scale), tileName(name), tileSubtitle(subtitle), isFavourited(favourited)
         {
             snapshot = Drawable::createFromImageData(svgImage.toRawUTF8(), svgImage.getNumBytesAsUTF8());
             if(snapshot) {
@@ -33,10 +33,6 @@ class WelcomePanel : public Component, public NVGComponent, public AsyncUpdater 
             }
 
             resized();
-
-            auto textColour = findColour(PlugDataColour::panelTextColourId);
-            titleRenderer.prepareLayout(name, Fonts::getBoldFont().withHeight(14), textColour, 500, 500);
-            subtitleRenderer.prepareLayout(subtitle, Fonts::getCurrentFont().withHeight(13.5f), textColour, 500, 500);
         }
         
         void paint(Graphics& g) override
@@ -65,11 +61,31 @@ class WelcomePanel : public Component, public NVGComponent, public AsyncUpdater 
             g.strokePath(tilePath, PathStrokeType(1.0f));
             
             auto* nvg = dynamic_cast<NanoVGGraphicsContext&>(g.getInternalContext()).getContext();
+            
+            auto textWidth = bounds.getWidth() - 8;
+            if(titleImage.needsUpdate(textWidth, 24) || subtitleImage.needsUpdate(textWidth, 16))
+            {
+                auto textColour = findColour(PlugDataColour::panelTextColourId);
+                titleImage = NVGImage(nvg, textWidth * 2.0f, 24 * 2.0f, [this, textColour, textWidth](Graphics& g){
+                    g.addTransform(AffineTransform::scale(2.0f, 2.0f));
+                    g.setColour(textColour);
+                    g.setFont(Fonts::getBoldFont().withHeight(14));
+                    g.drawText(tileName, Rectangle<int>(0, 0, textWidth, 24), Justification::centredLeft, true);
+                });
+                
+                subtitleImage = NVGImage(nvg, textWidth * 2.0f, 16 * 2.0f, [this, textColour, textWidth](Graphics& g){
+                    g.addTransform(AffineTransform::scale(2.0f, 2.0f));
+                    g.setColour(textColour);
+                    g.setFont(Fonts::getDefaultFont().withHeight(13.5f));
+                    g.drawText(tileSubtitle, Rectangle<int>(0, 0, textWidth, 16), Justification::centredLeft, true);
+                });
+            }
+            
             nvgSave(nvg);
-            nvgTranslate(nvg, 0, bounds.getHeight() - 30);
-            titleRenderer.renderText(nvg, Rectangle<int>(bounds.getX() + 10, 0, bounds.getWidth() - 8, 24), 2.0f);
+            nvgTranslate(nvg, 22, bounds.getHeight() - 30);
+            titleImage.render(nvg, Rectangle<int>(0, 0, bounds.getWidth() - 8, 24));
             nvgTranslate(nvg, 0, 20);
-            subtitleRenderer.renderText(nvg, Rectangle<int>(bounds.getX() + 10, 0, bounds.getWidth() - 8, 16), 2.0f);
+            subtitleImage.render(nvg, Rectangle<int>(0, 0, bounds.getWidth() - 8, 16));
             nvgRestore(nvg);
             
             if(onFavourite)

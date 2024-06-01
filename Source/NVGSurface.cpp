@@ -150,8 +150,8 @@ void NVGSurface::initialise()
 void NVGSurface::detachContext()
 {
     if(editor->welcomePanel) editor->welcomePanel->clearBuffers();
-    NVGFramebuffer::clearAll();
-    NVGImage::clearAll();
+    NVGFramebuffer::clearAll(nvg);
+    NVGImage::clearAll(nvg);
     
     if(invalidFBO) {
         nvgDeleteFramebuffer(invalidFBO);
