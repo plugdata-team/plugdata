@@ -166,7 +166,7 @@ public:
 
         int totalWidth = bounds.getWidth();
         // Calculate the number of columns that can fit in the total width
-        int numColumns = totalWidth / (desiredTileWidth + tileSpacing);
+        int numColumns = std::max(1, totalWidth / (desiredTileWidth + tileSpacing));
         // Adjust the tile width to fit within the available width
         int actualTileWidth = (totalWidth - (numColumns - 1) * tileSpacing) / numColumns;
         
