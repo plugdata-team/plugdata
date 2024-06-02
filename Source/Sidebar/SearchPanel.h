@@ -302,7 +302,6 @@ public:
                         case hash("slider"):
                         case hash("tgl"):
                         case hash("nbx"):
-                        case hash("numbox~"):
                         case hash("vradio"):
                         case hash("hradio"):
                         case hash("vu"):
