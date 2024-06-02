@@ -660,12 +660,25 @@ private:
     {
         // We can use a tabular numbers font here, but I'm not sure it really looks better that way
         //g.setFont(Fonts::getTabularNumbersFont().withHeight(14));
-        g.setColour(findColour(PlugDataColour::toolbarTextColourId).contrasting(isMouseOver() ? 0.35f : 0.0f));
+        if(isEnabled()) {
+            g.setColour(findColour(PlugDataColour::toolbarTextColourId).contrasting(isMouseOver() ? 0.35f : 0.0f));
+        }
+        else 
+        {
+            g.setColour(findColour(PlugDataColour::toolbarTextColourId).withAlpha(0.65f));
+        }
         g.drawText(String(int(statusbar->currentZoomLevel)) + "%", 0, 0, 44, getHeight(), Justification::centredLeft);
+    }
+    
+    void enablementChanged() override
+    {
+        repaint();
     }
     
     void mouseDown(const MouseEvent& e) override
     {
+        if(!isEnabled()) return;
+        
         auto* editor = findParentComponentOfClass<PluginEditor>();
         if (auto* cnv = editor->getCurrentCanvas()) {
             cnv->zoomScale.setValue(1.0f);

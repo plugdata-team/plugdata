@@ -1022,6 +1022,7 @@ void PluginEditor::handleAsyncUpdate()
 
         statusbar->centreButton.setEnabled(true);
         statusbar->zoomComboButton.setEnabled(true);
+        reinterpret_cast<Component*>(statusbar->zoomLabel.get())->setEnabled(true);
 
         addObjectMenuButton.setEnabled(true);
     } else {
@@ -1034,6 +1035,7 @@ void PluginEditor::handleAsyncUpdate()
 
         statusbar->centreButton.setEnabled(false);
         statusbar->zoomComboButton.setEnabled(false);
+        reinterpret_cast<Component*>(statusbar->zoomLabel.get())->setEnabled(false);
 
         undoButton.setEnabled(false);
         redoButton.setEnabled(false);
