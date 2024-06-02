@@ -2,6 +2,8 @@
 
 std::set<juce::WeakReference<Keyboard>> Keyboard::thisses;
 
+std::recursive_mutex Keyboard::instanceMutex;
+
 Keyboard::Keyboard(juce::Component* initialParent) : parent(initialParent)
 {
   instanceMutex.lock();
