@@ -287,12 +287,6 @@ public:
         setVisible(false);
     }
     
-    void clearBuffers()
-    {
-        nvgContext.reset(nullptr);
-        handleAsyncUpdate();
-    }
-    
     void render(NVGcontext* nvg) override
     {
         if(!nvgContext || nvgContext->getContext() != nvg) nvgContext = std::make_unique<NanoVGGraphicsContext>(nvg);
