@@ -37,6 +37,7 @@ protected:
 
 private:
   std::recursive_mutex pressedKeysMutex;
+  std::recursive_mutex instanceMutex;
   juce::Component* parent;
   juce::Component* auxParent = nullptr;
   std::set<int> pressedKeys;

@@ -4,13 +4,17 @@ std::set<juce::WeakReference<Keyboard>> Keyboard::thisses;
 
 Keyboard::Keyboard(juce::Component* initialParent) : parent(initialParent)
 {
+  instanceMutex.lock();
   thisses.emplace(juce::WeakReference(this));
+  instanceMutex.unlock();
   startTimer(1);
 }
 
 Keyboard::~Keyboard()
 {
+  instanceMutex.lock();
   thisses.erase(this);
+  instanceMutex.unlock();
 }
 
 bool Keyboard::processKeyEvent(int keyCode, bool isKeyDown)
@@ -20,6 +24,7 @@ bool Keyboard::processKeyEvent(int keyCode, bool isKeyDown)
   if (focusedPeer == nullptr)
     return false;
 
+  instanceMutex.lock();
   for (auto t : thisses) {
       if(t) {
         if (t->peer == focusedPeer || (t->auxPeer != nullptr && t->auxPeer == focusedPeer)) {
@@ -30,6 +35,7 @@ bool Keyboard::processKeyEvent(int keyCode, bool isKeyDown)
         }
       }
   }
+  instanceMutex.unlock();
 
   return true;
 }
