@@ -14,9 +14,11 @@ struct ExporterBase : public Component
     , public ThreadPool {
     TextButton exportButton = TextButton("Export");
 
-    Value inputPatchValue;
+    Value inputPatchValue = SynchronousValue();
     Value projectNameValue;
     Value projectCopyrightValue;
+        
+    bool blockDialog = false;
 
 #if JUCE_WINDOWS
     inline static String const exeSuffix = ".exe";
@@ -186,7 +188,7 @@ struct ExporterBase : public Component
             if (idx == 1) {
                 patchFile = openedPatchFile;
                 validPatchSelected = true;
-            } else if (idx == 2) {
+            } else if (idx == 2 && !blockDialog) {
                 Dialogs::showOpenDialog([this](URL url) {
                     auto result = url.getLocalFile();
                     if (result.existsAsFile()) {
