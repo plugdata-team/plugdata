@@ -42,7 +42,7 @@ class WelcomePanel : public Component, public NVGComponent, public AsyncUpdater 
             Path tilePath;
             tilePath.addRoundedRectangle(bounds.getX() + 1, bounds.getY() + 1, bounds.getWidth() - 2, bounds.getHeight() - 2, Corners::largeCornerRadius);
             
-            StackShadow::renderDropShadow(g, tilePath, Colour(0, 0, 0).withAlpha(0.1f), 7, {0, 2});
+            StackShadow::renderDropShadow(g, tilePath, Colour(0, 0, 0).withAlpha(0.08f), 6, {0, 1});
             g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
             g.fillPath(tilePath);
             
