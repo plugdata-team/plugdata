@@ -28,7 +28,7 @@ class AboutPanel : public Component {
         void paintOverChildren(Graphics& g) override
         {
             g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-            g.fillRoundedRectangle(getLocalBounds().removeFromTop(16).withTrimmedRight(16).toFloat(), Corners::windowCornerRadius);
+            g.fillRoundedRectangle(getLocalBounds().removeFromTop(16).withTrimmedRight(8).toFloat(), Corners::windowCornerRadius);
             
             // Draw fade for credits viewport
             g.setGradientFill(ColourGradient::vertical(findColour(PlugDataColour::panelBackgroundColourId), 36, findColour(PlugDataColour::panelBackgroundColourId).withAlpha(0.0f), 48));
