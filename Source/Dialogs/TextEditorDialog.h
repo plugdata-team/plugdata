@@ -2089,7 +2089,7 @@ struct TextEditorDialog : public Component {
             });
         };
 
-        addToDesktop(ComponentPeer::windowIsTemporary);
+        addToDesktop(0);
         setVisible(true);
 
         // Position in centre of screen
