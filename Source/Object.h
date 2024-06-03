@@ -132,6 +132,8 @@ public:
 
     bool isSelected() const;
 
+    std::function<bool(int x, int y)> transparentHitTest = nullptr;
+
 private:
     void initialise();
 
