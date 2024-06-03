@@ -40,7 +40,7 @@ class WelcomePanel : public Component, public NVGComponent, public AsyncUpdater 
             auto bounds = getLocalBounds().reduced(12);
             
             Path tilePath;
-            tilePath.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::largeCornerRadius);
+            tilePath.addRoundedRectangle(bounds.getX() + 1, bounds.getY() + 1, bounds.getWidth() - 2, bounds.getHeight() - 2, Corners::largeCornerRadius);
             
             StackShadow::renderDropShadow(g, tilePath, Colour(0, 0, 0).withAlpha(0.1f), 7, {0, 2});
             g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
@@ -182,7 +182,7 @@ public:
         int numRows = (tiles.size() + numColumns - 1) / numColumns;
         int totalHeight = numRows * 160;
 
-        auto scrollable = Rectangle<int>(24, 6, totalWidth + 24, totalHeight);
+        auto scrollable = Rectangle<int>(24, 6, totalWidth + 24, totalHeight + 24);
         recentlyOpenedComponent.setBounds(scrollable);
 
         // Start positioning the tiles
@@ -308,15 +308,15 @@ public:
         nvgFill(nvg);
         
         nvgBeginPath(nvg);
-        nvgFillColor(nvg, convertColour(findColour(PlugDataColour::panelTextColourId)));
+        nvgFillColor(nvg, findNVGColour(PlugDataColour::panelTextColourId));
         nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
         nvgFontSize(nvg, 30);
         nvgFontFace(nvg, "Inter-Bold");
-        nvgText(nvg, 32, 32, "Welcome to plugdata", nullptr);
+        nvgText(nvg, 35, 38, "Welcome to plugdata", nullptr);
         
         nvgBeginPath(nvg);
         nvgFontSize(nvg, 24);
-        nvgText(nvg, 32, 240, "Recently Opened", nullptr);
+        nvgText(nvg, 35, 244, "Recently Opened", nullptr);
     }
 
     void lookAndFeelChanged() override
