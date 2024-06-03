@@ -445,14 +445,14 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             nvgPathWinding(nvg, NVG_HOLE);
             nvgRoundedRect(nvg, pos.getX(), pos.getY(), borderWidth, borderHeight, Corners::windowCornerRadius);
 
-            const int shadowSize = 40;
+            const int shadowSize = 16;
             auto borderArea = Rectangle<int>(0, 0, borderWidth, borderHeight).expanded(shadowSize);
             if (presentationShadowImage.needsUpdate(borderArea.getWidth(), borderArea.getHeight()))
             {
                 presentationShadowImage = NVGImage(nvg, borderArea.getWidth(), borderArea.getHeight(), [borderArea](Graphics& g){
                     auto shadowPath = Path();
                     shadowPath.addRoundedRectangle(borderArea.reduced(shadowSize).withPosition(shadowSize, shadowSize), Corners::windowCornerRadius);
-                    StackShadow::renderDropShadow(g, shadowPath, Colours::black, shadowSize);
+                    StackShadow::renderDropShadow(g, shadowPath, Colours::black.withAlpha(0.35f), shadowSize, Point<int>(0, 2));
                 });
             }
             auto shadowImage = nvgImagePattern(nvg, pos.getX() - shadowSize, pos.getY() - shadowSize, borderArea.getWidth(), borderArea.getHeight(), 0, presentationShadowImage.getImageId(), 0.33f);
