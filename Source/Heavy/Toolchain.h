@@ -339,8 +339,55 @@ public:
 #else
     String downloadSize = "1.45 GB";
 #endif
+        
+    class ToolchainInstallerButton : public Component {
+        
+    public:
+        String iconText;
+        String topText;
+        String bottomText;
+        
+        std::function<void(void)> onClick = []() {};
+        
+        ToolchainInstallerButton(String icon, String mainText, String subText)
+        : iconText(std::move(icon))
+        , topText(std::move(mainText))
+        , bottomText(std::move(subText))
+        {
+            setInterceptsMouseClicks(true, false);
+            setAlwaysOnTop(true);
+        }
+        
+        void paint(Graphics& g) override
+        {
+            auto colour = findColour(PlugDataColour::panelTextColourId);
+            if (isMouseOver()) {
+                g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+                PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(1, 1, getWidth() - 2, getHeight() - 2), Corners::largeCornerRadius);
+            }
+            
+            Fonts::drawIcon(g, iconText, 20, 5, 40, colour, 24, false);
+            Fonts::drawText(g, topText, 60, 7, getWidth() - 60, 20, colour, 16);
+            Fonts::drawStyledText(g, bottomText, 60, 25, getWidth() - 60, 16, colour, Thin, 14);
+        }
+        
+        void mouseUp(MouseEvent const& e) override
+        {
+            onClick();
+        }
+        
+        void mouseEnter(MouseEvent const& e) override
+        {
+            repaint();
+        }
+        
+        void mouseExit(MouseEvent const& e) override
+        {
+            repaint();
+        }
+    };
 
-    WelcomePanelButton installButton = WelcomePanelButton(Icons::SaveAs, "Download Toolchain", "Download compilation utilities (" + downloadSize + ")");
+    ToolchainInstallerButton installButton = ToolchainInstallerButton(Icons::SaveAs, "Download Toolchain", "Download compilation utilities (" + downloadSize + ")");
 
     std::function<void()> toolchainInstalledCallback;
 

@@ -75,7 +75,7 @@ class WelcomePanel : public Component, public NVGComponent, public AsyncUpdater 
                 
                 subtitleImage = NVGImage(nvg, textWidth * 2.0f, 16 * 2.0f, [this, textColour, textWidth](Graphics& g){
                     g.addTransform(AffineTransform::scale(2.0f, 2.0f));
-                    g.setColour(textColour);
+                    g.setColour(textColour.withAlpha(0.75f));
                     g.setFont(Fonts::getDefaultFont().withHeight(13.5f));
                     g.drawText(tileSubtitle, Rectangle<int>(0, 0, textWidth, 16), Justification::centredLeft, true);
                 });

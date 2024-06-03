@@ -145,7 +145,7 @@ private:
         auto editorTextWidth = editor->getFont().getStringWidthFloat(editorText);
         auto completionBounds = getLocalBounds().toFloat().withTrimmedLeft(editorTextWidth + 7.5f);
 
-        auto colour = findColour(PlugDataColour::canvasTextColourId).withAlpha(0.65f);
+        auto colour = findColour(PlugDataColour::canvasTextColourId).withAlpha(0.5f);
         Fonts::drawText(g, suggestion, completionBounds.translated(-1.25f, -1.25f), colour);
     }
 };

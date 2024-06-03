@@ -101,6 +101,52 @@ class SmallIconButton : public TextButton {
     }
 };
 
+class WidePanelButton : public TextButton {
+    String icon;
+    int iconSize;
+    
+public:
+    WidePanelButton(String icon, int iconSize = 13) : icon(icon), iconSize(iconSize) {};
+
+    void mouseEnter(MouseEvent const& e) override
+    {
+        repaint();
+    }
+
+    void mouseExit(MouseEvent const& e) override
+    {
+        repaint();
+    }
+
+    void paint(Graphics& g) override
+    {
+        const bool flatOnLeft   = isConnectedOnLeft();
+        const bool flatOnRight  = isConnectedOnRight();
+        const bool flatOnTop    = isConnectedOnTop();
+        const bool flatOnBottom = isConnectedOnBottom();
+
+        const float width  = getWidth()  - 1.0f;
+        const float height = getHeight() - 1.0f;
+
+        const float cornerSize = Corners::largeCornerRadius;
+        Path outline;
+        outline.addRoundedRectangle (0.5f, 0.5f, width, height, cornerSize, cornerSize,
+                                     ! (flatOnLeft  || flatOnTop),
+                                     ! (flatOnRight || flatOnTop),
+                                     ! (flatOnLeft  || flatOnBottom),
+                                     ! (flatOnRight || flatOnBottom));
+        
+        g.setColour(findColour(isMouseOver() ? PlugDataColour::panelActiveBackgroundColourId : PlugDataColour::panelForegroundColourId));
+        g.fillPath(outline);
+
+        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.strokePath(outline, PathStrokeType(1));
+        
+        Fonts::drawText(g, getButtonText(), getLocalBounds().reduced(12, 2), findColour(PlugDataColour::panelTextColourId), 15);
+        Fonts::drawIcon(g, icon, getLocalBounds().reduced(12, 2).removeFromRight(24), findColour(PlugDataColour::panelTextColourId), iconSize);
+    }
+};
+
 // Toolbar button for settings panel, with both icon and text
 class SettingsToolbarButton : public TextButton {
 
@@ -138,54 +184,6 @@ public:
         attrStr.append(icon, iconFont, textColour);
         attrStr.append("  " + text, boldFont, textColour);
         attrStr.draw(g, b.toFloat());
-    }
-};
-
-// TODO: only used for Heavy toolchain now. rename, and move it over there
-class WelcomePanelButton : public Component {
-
-public:
-    String iconText;
-    String topText;
-    String bottomText;
-
-    std::function<void(void)> onClick = []() {};
-
-    WelcomePanelButton(String icon, String mainText, String subText)
-        : iconText(std::move(icon))
-        , topText(std::move(mainText))
-        , bottomText(std::move(subText))
-    {
-        setInterceptsMouseClicks(true, false);
-        setAlwaysOnTop(true);
-    }
-
-    void paint(Graphics& g) override
-    {
-        auto colour = findColour(PlugDataColour::panelTextColourId);
-        if (isMouseOver()) {
-            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-            PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(1, 1, getWidth() - 2, getHeight() - 2), Corners::largeCornerRadius);
-        }
-
-        Fonts::drawIcon(g, iconText, 20, 5, 40, colour, 24, false);
-        Fonts::drawText(g, topText, 60, 7, getWidth() - 60, 20, colour, 16);
-        Fonts::drawStyledText(g, bottomText, 60, 25, getWidth() - 60, 16, colour, Thin, 14);
-    }
-
-    void mouseUp(MouseEvent const& e) override
-    {
-        onClick();
-    }
-
-    void mouseEnter(MouseEvent const& e) override
-    {
-        repaint();
-    }
-
-    void mouseExit(MouseEvent const& e) override
-    {
-        repaint();
     }
 };
 

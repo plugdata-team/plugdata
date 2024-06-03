@@ -186,7 +186,7 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
             break;
         }
         case 6: {
-            auto* dialog = new Dialog(&editor->openedDialog, editor, 675, 500, true);
+            auto* dialog = new Dialog(&editor->openedDialog, editor, 360, 490, true);
             auto* aboutPanel = new AboutPanel();
             dialog->setViewedComponent(aboutPanel);
             editor->openedDialog.reset(dialog);
@@ -252,7 +252,7 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
                 break;
             }
             case MainMenu::MenuItem::About: {
-                auto* dialog = new Dialog(&editor->openedDialog, editor, 675, 500, true);
+                auto* dialog = new Dialog(&editor->openedDialog, editor, 360, 490, true);
                 auto* aboutPanel = new AboutPanel();
                 dialog->setViewedComponent(aboutPanel);
                 editor->openedDialog.reset(dialog);

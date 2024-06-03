@@ -53,7 +53,7 @@ struct Icons {
     inline static String const Documentation = "N";
     inline static String const AddCircled = "O";
     inline static String const Console = "P";
-    inline static String const GitHub = "Q";
+    inline static String const OpenLink = "Q";
     inline static String const Wrench = "R";
     inline static String const Back = "S";
     inline static String const Forward = "T";
