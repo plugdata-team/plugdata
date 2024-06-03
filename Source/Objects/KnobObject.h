@@ -58,21 +58,6 @@ public:
         }
     }
 
-    bool hitTest(int x, int y) override
-    {
-        if (hasOutline) return true;
-
-        // If knob is circular limit hit test to circle, and expand more if there are ticks around the knob
-        auto centre = getLocalBounds().toFloat().getCentre();
-        auto knobRadius = getWidth() * 0.33f;
-        auto knobRadiusWithTicks = knobRadius + (getWidth() * 0.06f);
-        if (centre.getDistanceFrom(Point<float>(x, y)) < (ticks ? knobRadiusWithTicks : knobRadius)) {
-            return true;
-        }
-
-        return false;
-    }
-
     void mouseEnter(const MouseEvent& e) override
     {
         getParentComponent()->getProperties().set("hover", true);
@@ -216,6 +201,21 @@ public:
 
         knob.onDragEnd = [this]() {
             stopEdition();
+        };
+
+        object->transparentHitTest = [this, object](int x, int y) -> bool {
+                if (outline.getValue()) return true;
+
+                // If knob is circular limit hit test to circle, and expand more if there are ticks around the knob
+                auto hitPoint = getLocalPoint(object, Point<float>(x, y));
+                auto centre = getLocalBounds().toFloat().getCentre();
+                auto knobRadius = getWidth() * 0.33f;
+                auto knobRadiusWithTicks = knobRadius + (getWidth() * 0.06f);
+                if (centre.getDistanceFrom(hitPoint) < (ticks.getValue() ? knobRadiusWithTicks : knobRadius)) {
+                    return true;
+                }
+
+                return false;
         };
 
         onConstrainerCreate = [this]() {
