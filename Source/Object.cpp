@@ -219,6 +219,22 @@ bool Object::hitTest(int x, int y)
     if (cnv->panningModifierDown())
         return false;
 
+    // Knob object is able to reduce its bounds when transparent.
+    // Use the objects hit-test if it is populated (currently only for knob)
+    if (transparentHitTest && (presentationMode.getValue() || locked.getValue() || commandLocked.getValue())) {
+        return transparentHitTest(x, y);
+    }
+
+    // Mouse over object
+    if (getLocalBounds().reduced(margin).contains(x, y)) {
+        return true;
+    }
+
+    // If the hit-test get's to here, and any of these are still true
+    // return! Otherwise it will test non-existent iolets and return true!
+    if ((presentationMode.getValue() || locked.getValue() || commandLocked.getValue()))
+        return false;
+
     // Mouse over iolets
     for (auto* iolet : iolets) {
         if (iolet->getBounds().contains(x, y))
@@ -237,11 +253,6 @@ bool Object::hitTest(int x, int y)
 
     if (gui && !gui->canReceiveMouseEvent(x, y)) {
         return false;
-    }
-
-    // Mouse over object
-    if (getLocalBounds().reduced(margin).contains(x, y)) {
-        return true;
     }
 
     return false;
