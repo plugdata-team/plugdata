@@ -703,9 +703,12 @@ void Canvas::zoomToFitAll()
 
     auto scale = getValue<float>(zoomScale);
 
-    auto regionOfInterest = Rectangle<int>();
-    for (auto* object : objects) {
-        regionOfInterest = regionOfInterest.getUnion(object->getBounds().reduced(Object::margin));
+    auto regionOfInterest = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, getValue<float>(patchWidth), getValue<float>(patchHeight));
+
+    if (!presentationMode.getValue()) {
+        for (auto *object: objects) {
+            regionOfInterest = regionOfInterest.getUnion(object->getBounds().reduced(Object::margin));
+        }
     }
 
     // Add a bit of margin to make it nice
