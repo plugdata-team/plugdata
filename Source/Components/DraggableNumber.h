@@ -43,6 +43,8 @@ public:
     std::function<void()> dragStart = []() {};
     std::function<void()> dragEnd = []() {};
 
+    std::function<void(bool)> onInteraction = [](bool) {};
+
     explicit DraggableNumber(bool integerDrag)
         : dragMode(integerDrag ? Integer : Regular)
     {
@@ -55,6 +57,7 @@ public:
 
     void editorShown(Label* l, TextEditor& editor) override
     {
+        onInteraction(true);
         dragStart();
         editor.onTextChange = [this]() {
             if (onTextChange)
@@ -64,6 +67,7 @@ public:
 
     void editorHidden(Label*, TextEditor& editor) override
     {
+        onInteraction(false);
         auto newValue = editor.getText().getDoubleValue();
         setValue(newValue, dontSendNotification);
         decimalDrag = 0;
@@ -187,6 +191,8 @@ public:
     {
         if (isBeingEdited())
             return;
+
+        onInteraction(true);
 
         bool command = e.mods.isCommandDown();
 
@@ -418,6 +424,8 @@ public:
     {
         if (isBeingEdited())
             return;
+
+        onInteraction(false);
 
         repaint();
 

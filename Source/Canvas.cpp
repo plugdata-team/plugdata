@@ -163,8 +163,14 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     parameters.addParamBool("Hide name and arguments", cGeneral, &hideNameAndArgs, { "No", "Yes" }, 0);
     parameters.addParamRange("X range", cGeneral, &xRange, { 0.0f, 1.0f });
     parameters.addParamRange("Y range", cGeneral, &yRange, { 1.0f, 0.0f });
-    parameters.addParamInt("Width", cDimensions, &patchWidth, 527);
-    parameters.addParamInt("Height", cDimensions, &patchHeight, 327);
+
+    auto onInteractionFn = [this](bool state){
+        dimensionsAreBeingEdited = state;
+        repaint();
+    };
+
+    parameters.addParamInt("Width", cDimensions, &patchWidth, 527, onInteractionFn);
+    parameters.addParamInt("Height", cDimensions, &patchHeight, 327, onInteractionFn);
     
     updatePatchSnapshot();
 }
@@ -352,55 +358,63 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             nvgRestore(nvg);
         }
     }
+    auto drawBorder = [this, nvg, hasViewport, backgroundColour, zoom, dotsColour](bool bg, bool fg) {
+        if (hasViewport && (showOrigin || showBorder) && !::getValue<bool>(presentationMode)) {
+            nvgBeginPath(nvg);
 
-    if(hasViewport && (showOrigin || showBorder) && !::getValue<bool>(presentationMode)) {
-        nvgBeginPath(nvg);
-        
-        const auto borderWidth = getValue<float>(patchWidth);
-        const auto borderHeight = getValue<float>(patchHeight);
-        const auto pos = Point<int>(halfSize, halfSize);
-        
-        // Origin line paths. Draw both from {0, 0} so the strokes touch at the origin
-        nvgMoveTo(nvg, pos.x, pos.y);
-        nvgLineTo(nvg, pos.x, pos.y + (showOrigin ? halfSize : borderHeight));
-        nvgMoveTo(nvg, pos.x, pos.y);
-        nvgLineTo(nvg, pos.x + (showOrigin ? halfSize : borderWidth), pos.y);
-        
-        if(showBorder)
-        {
-            nvgMoveTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
-            nvgLineTo(nvg, pos.x + borderWidth, pos.y);
-            nvgMoveTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
-            nvgLineTo(nvg, pos.x, pos.y + borderHeight);
+            const auto borderWidth = getValue<float>(patchWidth);
+            const auto borderHeight = getValue<float>(patchHeight);
+            const auto pos = Point<int>(halfSize, halfSize);
+
+            // Origin line paths. Draw both from {0, 0} so the strokes touch at the origin
+            nvgMoveTo(nvg, pos.x, pos.y);
+            nvgLineTo(nvg, pos.x, pos.y + (showOrigin ? halfSize : borderHeight));
+            nvgMoveTo(nvg, pos.x, pos.y);
+            nvgLineTo(nvg, pos.x + (showOrigin ? halfSize : borderWidth), pos.y);
+
+            if (showBorder) {
+                nvgMoveTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
+                nvgLineTo(nvg, pos.x + borderWidth, pos.y);
+                nvgMoveTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
+                nvgLineTo(nvg, pos.x, pos.y + borderHeight);
+            }
+
+            if (bg) {
+                // place solid line behind (to fake removeing grid points for now)
+                nvgLineStyle(nvg, NVG_LINE_SOLID);
+                nvgStrokeColor(nvg, backgroundColour);
+                nvgStrokeWidth(nvg, 6.0f);
+                nvgStroke(nvg);
+            }
+            if (fg) {
+                auto scaledStrokeSize = zoom < 1.0f ? jmap(zoom, 1.0f, 0.25f, 1.5f, 4.0f) : 1.5f;
+                if (zoom < 0.3f && getRenderScale() <= 1.0f)
+                    scaledStrokeSize = jmap(zoom, 0.3f, 0.25f, 4.0f, 8.0f);
+
+                // draw 0,0 point lines
+                nvgLineStyle(nvg, NVG_LINE_DASHED);
+
+                nvgStrokeColor(nvg, dotsColour);
+                nvgStrokeWidth(nvg, scaledStrokeSize);
+                nvgDashLength(nvg, 8.0f);
+                nvgStroke(nvg);
+
+                // Connect origin lines at {0, 0}
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, pos.x + 2.0f, pos.y);
+                nvgLineTo(nvg, pos.x, pos.y);
+                nvgLineTo(nvg, pos.x, pos.y + 2.0f);
+                nvgLineStyle(nvg, NVG_LINE_SOLID);
+                nvgStrokeWidth(nvg, 1.25f);
+                nvgStroke(nvg);
+            }
         }
-        
-        // place solid line behind (to fake removeing grid points for now)
-        nvgLineStyle(nvg, NVG_LINE_SOLID);
-        nvgStrokeColor(nvg, backgroundColour);
-        nvgStrokeWidth(nvg, 6.0f);
-        nvgStroke(nvg);
-        
-        auto scaledStrokeSize = zoom < 1.0f ? jmap(zoom, 1.0f, 0.25f, 1.5f, 4.0f) : 1.5f;
-        if (zoom < 0.3f && getRenderScale() <= 1.0f)
-            scaledStrokeSize = jmap(zoom, 0.3f, 0.25f, 4.0f, 8.0f);
+    };
 
-        // draw 0,0 point lines
-        nvgLineStyle(nvg, NVG_LINE_DASHED);
-        
-        nvgStrokeColor(nvg, dotsColour);
-        nvgStrokeWidth(nvg, scaledStrokeSize);
-        nvgDashLength(nvg, 8.0f);
-        nvgStroke(nvg);
-        
-        // Connect origin lines at {0, 0}
-        nvgBeginPath(nvg);
-        nvgMoveTo(nvg, pos.x + 2.0f, pos.y);
-        nvgLineTo(nvg, pos.x, pos.y);
-        nvgLineTo(nvg, pos.x, pos.y + 2.0f);
-        nvgLineStyle(nvg, NVG_LINE_SOLID);
-        nvgStrokeWidth(nvg, 1.25f);
-        nvgStroke(nvg);
-    }
+    if (!dimensionsAreBeingEdited)
+        drawBorder(true, true);
+    else
+        drawBorder(true, false);
 
     
     // Render objects like [drawcurve], [fillcurve] etc. at the back
@@ -506,6 +520,9 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     }
     
     suggestor->renderAutocompletion(nvg);
+
+    if (dimensionsAreBeingEdited)
+        drawBorder(false, true);
     
     nvgRestore(nvg);
     
