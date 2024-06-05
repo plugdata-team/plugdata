@@ -23,9 +23,6 @@ class Knob : public Slider, public NVGComponent {
     float arcStart = 63.5f;
 
 public:
-    bool hasOutline = true;
-    bool ticks = false;
-
     Knob()
     : Slider(Slider::RotaryHorizontalVerticalDrag, Slider::NoTextBox), NVGComponent(this)
     {
@@ -269,7 +266,7 @@ public:
 
         if (auto knb = ptr.get<t_fake_knob>()) {
             initialValue = knb->x_load;
-            ticks = knob.ticks = knb->x_ticks;
+            ticks = knb->x_ticks;
             angularRange = knb->x_range;
             angularOffset = knb->x_offset;
             discrete = knb->x_discrete;
@@ -279,7 +276,7 @@ public:
             primaryColour = getForegroundColour().toString();
             secondaryColour = getBackgroundColour().toString();
             arcColour = getArcColour().toString();
-            outline = knob.hasOutline = knb->x_outline;
+            outline = knb->x_outline;
             sizeProperty = knb->x_size;
             arcStart = knb->x_start;
         }
@@ -751,7 +748,7 @@ public:
         } else if (value.refersToSameSourceAs(ticks)) {
             ticks = jmax(::getValue<int>(ticks), 0);
             if (auto knb = ptr.get<t_fake_knob>())
-                knob.ticks = knb->x_ticks = ::getValue<int>(ticks);
+                knb->x_ticks = ::getValue<int>(ticks);
             updateRotaryParameters();
             updateRange();
         } else if (value.refersToSameSourceAs(angularRange)) {
@@ -777,7 +774,7 @@ public:
             updateRange();
         } else if (value.refersToSameSourceAs(outline)) {
             if (auto knb = ptr.get<t_fake_knob>()) {
-                knob.hasOutline = knb->x_outline = ::getValue < bool > (outline);
+                knb->x_outline = ::getValue < bool > (outline);
             }
             repaint();
         } else if (value.refersToSameSourceAs(exponential)) {

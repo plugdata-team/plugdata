@@ -270,6 +270,8 @@ public:
 private:
     
     GlobalMouseListener globalMouseListener;
+
+    bool dimensionsAreBeingEdited = false;
     
     int lastMouseX, lastMouseY;
     LassoComponent<WeakReference<Component>> lasso;

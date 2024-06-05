@@ -162,8 +162,14 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     parameters.addParamBool("Hide name and arguments", cGeneral, &hideNameAndArgs, { "No", "Yes" }, 0);
     parameters.addParamRange("X range", cGeneral, &xRange, { 0.0f, 1.0f });
     parameters.addParamRange("Y range", cGeneral, &yRange, { 1.0f, 0.0f });
-    parameters.addParamInt("Width", cDimensions, &patchWidth, 527);
-    parameters.addParamInt("Height", cDimensions, &patchHeight, 327);
+
+    auto onInteractionFn = [this](bool state){
+        dimensionsAreBeingEdited = state;
+        repaint();
+    };
+
+    parameters.addParamInt("Width", cDimensions, &patchWidth, 527, onInteractionFn);
+    parameters.addParamInt("Height", cDimensions, &patchHeight, 327, onInteractionFn);
     
     updatePatchSnapshot();
 }
@@ -351,55 +357,63 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             nvgRestore(nvg);
         }
     }
+    auto drawBorder = [this, nvg, hasViewport, backgroundColour, zoom, dotsColour](bool bg, bool fg) {
+        if (hasViewport && (showOrigin || showBorder) && !::getValue<bool>(presentationMode)) {
+            nvgBeginPath(nvg);
 
-    if(hasViewport && (showOrigin || showBorder) && !::getValue<bool>(presentationMode)) {
-        nvgBeginPath(nvg);
-        
-        const auto borderWidth = getValue<float>(patchWidth);
-        const auto borderHeight = getValue<float>(patchHeight);
-        const auto pos = Point<int>(halfSize, halfSize);
-        
-        // Origin line paths. Draw both from {0, 0} so the strokes touch at the origin
-        nvgMoveTo(nvg, pos.x, pos.y);
-        nvgLineTo(nvg, pos.x, pos.y + (showOrigin ? halfSize : borderHeight));
-        nvgMoveTo(nvg, pos.x, pos.y);
-        nvgLineTo(nvg, pos.x + (showOrigin ? halfSize : borderWidth), pos.y);
-        
-        if(showBorder)
-        {
-            nvgMoveTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
-            nvgLineTo(nvg, pos.x + borderWidth, pos.y);
-            nvgMoveTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
-            nvgLineTo(nvg, pos.x, pos.y + borderHeight);
+            const auto borderWidth = getValue<float>(patchWidth);
+            const auto borderHeight = getValue<float>(patchHeight);
+            const auto pos = Point<int>(halfSize, halfSize);
+
+            // Origin line paths. Draw both from {0, 0} so the strokes touch at the origin
+            nvgMoveTo(nvg, pos.x, pos.y);
+            nvgLineTo(nvg, pos.x, pos.y + (showOrigin ? halfSize : borderHeight));
+            nvgMoveTo(nvg, pos.x, pos.y);
+            nvgLineTo(nvg, pos.x + (showOrigin ? halfSize : borderWidth), pos.y);
+
+            if (showBorder) {
+                nvgMoveTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
+                nvgLineTo(nvg, pos.x + borderWidth, pos.y);
+                nvgMoveTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
+                nvgLineTo(nvg, pos.x, pos.y + borderHeight);
+            }
+
+            if (bg) {
+                // place solid line behind (to fake removeing grid points for now)
+                nvgLineStyle(nvg, NVG_LINE_SOLID);
+                nvgStrokeColor(nvg, backgroundColour);
+                nvgStrokeWidth(nvg, 6.0f);
+                nvgStroke(nvg);
+            }
+            if (fg) {
+                auto scaledStrokeSize = zoom < 1.0f ? jmap(zoom, 1.0f, 0.25f, 1.5f, 4.0f) : 1.5f;
+                if (zoom < 0.3f && getRenderScale() <= 1.0f)
+                    scaledStrokeSize = jmap(zoom, 0.3f, 0.25f, 4.0f, 8.0f);
+
+                // draw 0,0 point lines
+                nvgLineStyle(nvg, NVG_LINE_DASHED);
+
+                nvgStrokeColor(nvg, dotsColour);
+                nvgStrokeWidth(nvg, scaledStrokeSize);
+                nvgDashLength(nvg, 8.0f);
+                nvgStroke(nvg);
+
+                // Connect origin lines at {0, 0}
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, pos.x + 2.0f, pos.y);
+                nvgLineTo(nvg, pos.x, pos.y);
+                nvgLineTo(nvg, pos.x, pos.y + 2.0f);
+                nvgLineStyle(nvg, NVG_LINE_SOLID);
+                nvgStrokeWidth(nvg, 1.25f);
+                nvgStroke(nvg);
+            }
         }
-        
-        // place solid line behind (to fake removeing grid points for now)
-        nvgLineStyle(nvg, NVG_LINE_SOLID);
-        nvgStrokeColor(nvg, backgroundColour);
-        nvgStrokeWidth(nvg, 6.0f);
-        nvgStroke(nvg);
-        
-        auto scaledStrokeSize = zoom < 1.0f ? jmap(zoom, 1.0f, 0.25f, 1.5f, 4.0f) : 1.5f;
-        if (zoom < 0.3f && getRenderScale() <= 1.0f)
-            scaledStrokeSize = jmap(zoom, 0.3f, 0.25f, 4.0f, 8.0f);
+    };
 
-        // draw 0,0 point lines
-        nvgLineStyle(nvg, NVG_LINE_DASHED);
-        
-        nvgStrokeColor(nvg, dotsColour);
-        nvgStrokeWidth(nvg, scaledStrokeSize);
-        nvgDashLength(nvg, 8.0f);
-        nvgStroke(nvg);
-        
-        // Connect origin lines at {0, 0}
-        nvgBeginPath(nvg);
-        nvgMoveTo(nvg, pos.x + 2.0f, pos.y);
-        nvgLineTo(nvg, pos.x, pos.y);
-        nvgLineTo(nvg, pos.x, pos.y + 2.0f);
-        nvgLineStyle(nvg, NVG_LINE_SOLID);
-        nvgStrokeWidth(nvg, 1.25f);
-        nvgStroke(nvg);
-    }
+    if (!dimensionsAreBeingEdited)
+        drawBorder(true, true);
+    else
+        drawBorder(true, false);
 
     
     // Render objects like [drawcurve], [fillcurve] etc. at the back
@@ -418,11 +432,14 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         renderAllObjects(nvg, invalidRegion);
         // render presentation mode as clipped 'virtual' plugin view
         if (::getValue<bool>(presentationMode) && !editor->pluginMode) {
-            auto borderWidth = getValue<float>(patchWidth);
-            auto borderHeight = getValue<float>(patchHeight);
-            auto pos = Point<int>(halfSize, halfSize);
+            const auto borderWidth = getValue<float>(patchWidth);
+            const auto borderHeight = getValue<float>(patchHeight);
+            const auto pos = Point<int>(halfSize, halfSize);
+            const auto scale = getValue<float>(zoomScale);
+            const auto windowCorner = Corners::windowCornerRadius / scale;
 
-            auto bgColour = convertColour(findColour(PlugDataColour::presentationBackgroundColourId));
+            const auto bgColour = convertColour(findColour(PlugDataColour::presentationBackgroundColourId));
+            const auto windowOutlineColour = convertColour(findColour(PlugDataColour::presentationBackgroundColourId).contrasting(0.3f));
 
             nvgSave(nvg);
 
@@ -432,7 +449,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
 
             nvgPathWinding(nvg, NVG_HOLE);
-            nvgRoundedRect(nvg, pos.getX(), pos.getY(), borderWidth, borderHeight, Corners::windowCornerRadius);
+            nvgRoundedRect(nvg, pos.getX(), pos.getY(), borderWidth, borderHeight, windowCorner);
             nvgFillColor(nvg, bgColour);
             nvgFill(nvg);
 
@@ -442,21 +459,25 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
 
             nvgPathWinding(nvg, NVG_HOLE);
-            nvgRoundedRect(nvg, pos.getX(), pos.getY(), borderWidth, borderHeight, Corners::windowCornerRadius);
+            nvgRoundedRect(nvg, pos.getX(), pos.getY(), borderWidth, borderHeight, windowCorner);
 
-            const int shadowSize = 16;
+            const int shadowSize = 24 / scale;
             auto borderArea = Rectangle<int>(0, 0, borderWidth, borderHeight).expanded(shadowSize);
             if (presentationShadowImage.needsUpdate(borderArea.getWidth(), borderArea.getHeight()))
             {
-                presentationShadowImage = NVGImage(nvg, borderArea.getWidth(), borderArea.getHeight(), [borderArea](Graphics& g){
+                presentationShadowImage = NVGImage(nvg, borderArea.getWidth(), borderArea.getHeight(), [borderArea, shadowSize, windowCorner](Graphics& g){
                     auto shadowPath = Path();
-                    shadowPath.addRoundedRectangle(borderArea.reduced(shadowSize).withPosition(shadowSize, shadowSize), Corners::windowCornerRadius);
-                    StackShadow::renderDropShadow(g, shadowPath, Colours::black.withAlpha(0.35f), shadowSize, Point<int>(0, 2));
+                    shadowPath.addRoundedRectangle(borderArea.reduced(shadowSize).withPosition(shadowSize, shadowSize), windowCorner);
+                    StackShadow::renderDropShadow(g, shadowPath, Colours::black, shadowSize, Point<int>(0, 2));
                 });
             }
-            auto shadowImage = nvgImagePattern(nvg, pos.getX() - shadowSize, pos.getY() - shadowSize, borderArea.getWidth(), borderArea.getHeight(), 0, presentationShadowImage.getImageId(), 0.33f);
+            auto shadowImage = nvgImagePattern(nvg, pos.getX() - shadowSize, pos.getY() - shadowSize, borderArea.getWidth(), borderArea.getHeight(), 0, presentationShadowImage.getImageId(), 0.16f);
+
+            nvgStrokeColor(nvg, windowOutlineColour);
+            nvgStrokeWidth(nvg, 0.5f / scale);
             nvgFillPaint(nvg, shadowImage);
             nvgFill(nvg);
+            nvgStroke(nvg);
 
             nvgRestore(nvg);
         }
@@ -505,6 +526,9 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     }
     
     suggestor->renderAutocompletion(nvg);
+
+    if (dimensionsAreBeingEdited)
+        drawBorder(false, true);
     
     nvgRestore(nvg);
     
@@ -702,9 +726,12 @@ void Canvas::zoomToFitAll()
 
     auto scale = getValue<float>(zoomScale);
 
-    auto regionOfInterest = Rectangle<int>();
-    for (auto* object : objects) {
-        regionOfInterest = regionOfInterest.getUnion(object->getBounds().reduced(Object::margin));
+    auto regionOfInterest = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, getValue<float>(patchWidth), getValue<float>(patchHeight));
+
+    if (!presentationMode.getValue()) {
+        for (auto *object: objects) {
+            regionOfInterest = regionOfInterest.getUnion(object->getBounds().reduced(Object::margin));
+        }
     }
 
     // Add a bit of margin to make it nice
