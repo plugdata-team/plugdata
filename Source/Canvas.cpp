@@ -419,11 +419,14 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         renderAllObjects(nvg, invalidRegion);
         // render presentation mode as clipped 'virtual' plugin view
         if (::getValue<bool>(presentationMode) && !editor->pluginMode) {
-            auto borderWidth = getValue<float>(patchWidth);
-            auto borderHeight = getValue<float>(patchHeight);
-            auto pos = Point<int>(halfSize, halfSize);
+            const auto borderWidth = getValue<float>(patchWidth);
+            const auto borderHeight = getValue<float>(patchHeight);
+            const auto pos = Point<int>(halfSize, halfSize);
+            const auto scale = getValue<float>(zoomScale);
+            const auto windowCorner = Corners::windowCornerRadius / scale;
 
-            auto bgColour = convertColour(findColour(PlugDataColour::presentationBackgroundColourId));
+            const auto bgColour = convertColour(findColour(PlugDataColour::presentationBackgroundColourId));
+            const auto windowOutlineColour = convertColour(findColour(PlugDataColour::presentationBackgroundColourId).contrasting(0.3f));
 
             nvgSave(nvg);
 
@@ -433,7 +436,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
 
             nvgPathWinding(nvg, NVG_HOLE);
-            nvgRoundedRect(nvg, pos.getX(), pos.getY(), borderWidth, borderHeight, Corners::windowCornerRadius);
+            nvgRoundedRect(nvg, pos.getX(), pos.getY(), borderWidth, borderHeight, windowCorner);
             nvgFillColor(nvg, bgColour);
             nvgFill(nvg);
 
@@ -443,21 +446,25 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
 
             nvgPathWinding(nvg, NVG_HOLE);
-            nvgRoundedRect(nvg, pos.getX(), pos.getY(), borderWidth, borderHeight, Corners::windowCornerRadius);
+            nvgRoundedRect(nvg, pos.getX(), pos.getY(), borderWidth, borderHeight, windowCorner);
 
-            const int shadowSize = 16;
+            const int shadowSize = 24 / scale;
             auto borderArea = Rectangle<int>(0, 0, borderWidth, borderHeight).expanded(shadowSize);
             if (presentationShadowImage.needsUpdate(borderArea.getWidth(), borderArea.getHeight()))
             {
-                presentationShadowImage = NVGImage(nvg, borderArea.getWidth(), borderArea.getHeight(), [borderArea](Graphics& g){
+                presentationShadowImage = NVGImage(nvg, borderArea.getWidth(), borderArea.getHeight(), [borderArea, shadowSize, windowCorner](Graphics& g){
                     auto shadowPath = Path();
-                    shadowPath.addRoundedRectangle(borderArea.reduced(shadowSize).withPosition(shadowSize, shadowSize), Corners::windowCornerRadius);
-                    StackShadow::renderDropShadow(g, shadowPath, Colours::black.withAlpha(0.35f), shadowSize, Point<int>(0, 2));
+                    shadowPath.addRoundedRectangle(borderArea.reduced(shadowSize).withPosition(shadowSize, shadowSize), windowCorner);
+                    StackShadow::renderDropShadow(g, shadowPath, Colours::black, shadowSize, Point<int>(0, 2));
                 });
             }
-            auto shadowImage = nvgImagePattern(nvg, pos.getX() - shadowSize, pos.getY() - shadowSize, borderArea.getWidth(), borderArea.getHeight(), 0, presentationShadowImage.getImageId(), 0.33f);
+            auto shadowImage = nvgImagePattern(nvg, pos.getX() - shadowSize, pos.getY() - shadowSize, borderArea.getWidth(), borderArea.getHeight(), 0, presentationShadowImage.getImageId(), 0.16f);
+
+            nvgStrokeColor(nvg, windowOutlineColour);
+            nvgStrokeWidth(nvg, 0.5f / scale);
             nvgFillPaint(nvg, shadowImage);
             nvgFill(nvg);
+            nvgStroke(nvg);
 
             nvgRestore(nvg);
         }
