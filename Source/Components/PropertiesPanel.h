@@ -780,7 +780,7 @@ public:
         Value property;
         String allowedCharacters = "";
 
-        EditableComponent(String propertyName, Value& value, double minimum = 0.0, double maximum = 0.0)
+        EditableComponent(String propertyName, Value& value, double minimum = 0.0, double maximum = 0.0, std::function<void(bool)> onInteractionFn = nullptr)
             : PropertiesPanelProperty(propertyName)
             , property(value)
         {
@@ -795,6 +795,9 @@ public:
                 draggableNumber->setEditableOnClick(true);
                 if(minimum != 0.0f) draggableNumber->setMinimum(minimum);
                 if(maximum != 0.0f) draggableNumber->setMaximum(maximum);
+
+                if (onInteractionFn)
+                    draggableNumber->onInteraction = onInteractionFn;
 
                 draggableNumber->onEditorShow = [draggableNumber]() {
                     auto* editor = draggableNumber->getCurrentTextEditor();
