@@ -17,6 +17,11 @@ TabComponent::TabComponent(PluginEditor* editor) : editor(editor), pd(editor->pd
             activeSplitIndex = i;
             newPatch();
         };
+        
+        addChildComponent(tabOverflowButtons[i]);
+        tabOverflowButtons[i].onClick = [this, i](){
+            showHiddenTabsMenu(i);
+        };
     }
     
     addMouseListener(this, true);
@@ -70,7 +75,7 @@ Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch)
     
     existingPatch->splitViewIndex = activeSplitIndex;
     
-    update();
+    triggerAsyncUpdate();
     pd->titleChanged();
     
     showTab(cnv, activeSplitIndex);
@@ -140,8 +145,7 @@ void TabComponent::previousTab() {
     }
 }
 
-
-void TabComponent::update()
+void TabComponent::handleAsyncUpdate()
 {
     tabbars[0].clear();
     tabbars[1].clear();
@@ -347,7 +351,7 @@ void TabComponent::mouseMove(const MouseEvent& e)
 
 void TabComponent::parentSizeChanged()
 {
-    // TODO: keep split proportion?
+    // TODO: split, keep proportion?
     splitSize = getWidth() / 2;
 }
 
@@ -363,10 +367,33 @@ void TabComponent::resized()
         auto& tabButtons = tabbars[i];
         auto splitBounds = tabbarBounds.removeFromLeft((isSplit && i == 0) ? splitSize : getWidth());
         newTabButtons[i].setBounds(splitBounds.removeFromLeft(30));
+        
+        // TODO: use a better formula for overflow
+        auto totalWidth = splitBounds.getWidth();
         auto tabWidth = splitBounds.getWidth() / std::max(1, tabButtons.size());
+        auto minTabWidth = 120;
+        
+        if(minTabWidth * tabButtons.size() > totalWidth)
+        {
+            int tabsThatFit = totalWidth / 150;
+            tabWidth = (totalWidth - 30) / std::max(1, std::min(static_cast<int>(tabButtons.size()), tabsThatFit));
+        }
+        
+        bool wasOverflown = false;
         
         for(auto* tabButton : tabButtons)
         {
+            if(tabWidth > splitBounds.getWidth())
+            {
+                wasOverflown = true;
+            }
+            if(wasOverflown)
+            {
+                tabButton->setVisible(false);
+                continue;
+            }
+            tabButton->setVisible(true);
+            
             auto targetBounds = splitBounds.removeFromLeft(tabWidth);
             if(tabButton->isDragging)  {
                 tabButton->setSize(tabWidth, 30);
@@ -384,6 +411,9 @@ void TabComponent::resized()
                 tabButton->setBounds(targetBounds);
             }
         }
+        
+        tabOverflowButtons[i].setVisible(wasOverflown);
+        tabOverflowButtons[i].setBounds(splitBounds.removeFromRight(wasOverflown ? 30 : 0));
     }
     
     for(auto& split : splits)
@@ -413,7 +443,7 @@ void TabComponent::closeTab(Canvas* cnv) {
     pd->patches.removeFirstMatchingValue(patch);
     pd->updateObjectImplementations();
     
-    update();
+    triggerAsyncUpdate();
 }
 
 
@@ -648,4 +678,102 @@ void TabComponent::itemDragMove(SourceDetails const& dragSourceDetails)
         // Repaint for updated split drop bounds
         editor->nvgSurface.invalidateAll();
     }
+}
+
+void TabComponent::showHiddenTabsMenu(int splitIndex) {
+
+    class HiddenTabMenuItem : public PopupMenu::CustomComponent {
+
+        String tabTitle;
+        SafePointer<Canvas> cnv;
+
+    public:
+        TabComponent& tabbar;
+
+        HiddenTabMenuItem(SafePointer<Canvas> canvas, String const& text, TabComponent& tabs)
+            : tabTitle(text)
+            , cnv(canvas)
+            , tabbar(tabs)
+        {
+            closeTabButton.setButtonText(Icons::Clear);
+            closeTabButton.setSize(26, 26);
+            closeTabButton.addMouseListener(this, false);
+            closeTabButton.onClick = [this]() mutable {
+                tabbar.closeTab(cnv.getComponent());
+            };
+
+            addChildComponent(closeTabButton);
+        }
+
+        void resized() override
+        {
+            closeTabButton.setTopLeftPosition(getWidth() - 26, -2);
+        }
+
+        void getIdealSize(int& idealWidth, int& idealHeight) override
+        {
+            idealWidth = 150;
+            idealHeight = 24;
+        }
+
+        void mouseDown(MouseEvent const& e) override
+        {
+            if (e.originalComponent == &closeTabButton)
+                return;
+
+            tabbar.showTab(cnv);
+            triggerMenuItem();
+        }
+
+        void mouseEnter(MouseEvent const& e) override
+        {
+            closeTabButton.setVisible(true);
+        }
+
+        void mouseExit(MouseEvent const& e) override
+        {
+            closeTabButton.setVisible(false);
+        }
+
+        void paint(Graphics& g) override
+        {
+            bool isActive = tabbar.getVisibleCanvases().contains(cnv);
+
+            if (isActive) {
+                g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
+            } else if (isItemHighlighted()) {
+                g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId).interpolatedWith(findColour(PlugDataColour::popupMenuBackgroundColourId), 0.4f));
+            } else {
+                g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
+            }
+
+            PlugDataLook::fillSmoothedRectangle(g, getLocalBounds().reduced(1).toFloat(), Corners::defaultCornerRadius);
+
+            auto area = getLocalBounds().reduced(4, 1).toFloat();
+
+            Font font = Font(14);
+
+            g.setColour(findColour(TabbedButtonBar::tabTextColourId));
+            g.setFont(font);
+            g.drawText(tabTitle.trim(), area.reduced(4, 0), Justification::centred, false);
+        }
+
+        SmallIconButton closeTabButton;
+    };
+
+    PopupMenu m;
+
+        
+    auto& tabbar = tabbars[splitIndex];
+    for (int i = 0; i < tabbar.size(); ++i) {
+        auto* tab = tabbar[i];
+        if (!tab->isVisible()) {
+            auto title = tab->cnv->patch.getTitle();
+            m.addCustomItem(i + 1, std::make_unique<HiddenTabMenuItem>(tab->cnv, title, *this), nullptr, title);
+        }
+    }
+
+    m.showMenuAsync(PopupMenu::Options()
+                        .withDeletionCheck(*this)
+                        .withTargetComponent(&tabOverflowButtons[splitIndex]));
 }

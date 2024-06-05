@@ -194,7 +194,7 @@ class AutosaveHistoryComponent : public Component {
                 auto patch = editor->pd->loadPatch(String::fromUTF8(static_cast<const char*>(ostream.getData()), ostream.getDataSize()), editor);
                 patch->setTitle(patchPath.fromLastOccurrenceOf("/", false, false));
                 patch->setCurrentFile(URL(patchPath));
-                editor->getTabComponent().update();
+                editor->getTabComponent().triggerAsyncUpdate();
 
                 MessageManager::callAsync([editor]() {
                     // Close the whole chain of dialogs

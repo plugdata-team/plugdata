@@ -3,7 +3,7 @@
 #include "Utility/ZoomableDragAndDropContainer.h"
 
 class TabBarButtonComponent;
-class TabComponent : public Component, public DragAndDropTarget
+class TabComponent : public Component, public DragAndDropTarget, public AsyncUpdater
 {
 public:
     TabComponent(PluginEditor* editor);
@@ -14,8 +14,6 @@ public:
     Canvas* openPatch(const String& patchContent);
     Canvas* openPatch(pd::Patch::Ptr existingPatch);
     void openPatch();
-    
-    void update();
     
     void renderArea(NVGcontext* nvg, Rectangle<int> bounds);
 
@@ -34,10 +32,12 @@ public:
     Array<Canvas*> getCanvases();
     Array<Canvas*> getVisibleCanvases();
     
+private:
+    
+    void handleAsyncUpdate() override;
+    
     void resized() override;
     void parentSizeChanged() override;
-    
-private:
     
     void saveTabPositions();
     void closeEmptySplits();
@@ -52,6 +52,8 @@ private:
     void mouseUp(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
     void mouseMove(const MouseEvent& e) override;
+    
+    void showHiddenTabsMenu(int splitIndex);
     
     class TabBarButtonComponent : public Component
     {
@@ -135,7 +137,7 @@ private:
             auto textColour = findColour(PlugDataColour::toolbarTextColourId);
             g.setGradientFill(ColourGradient(textColour, fadeX - 18, area.getY(), Colours::transparentBlack, fadeX, area.getY(), false));
             
-            auto text = cnv->patch.getTitle();
+            auto text = cnv->patch.getTitle() + (cnv->patch.isDirty() ? String("*") : String());
             
             g.setFont(Fonts::getCurrentFont().withHeight(14.0f));
             g.drawText(text, area.reduced(4, 0), Justification::centred, false);
@@ -224,6 +226,7 @@ private:
     };
     
     std::array<MainToolbarButton, 2> newTabButtons = {MainToolbarButton(Icons::Add), MainToolbarButton(Icons::Add)};
+    std::array<MainToolbarButton, 2> tabOverflowButtons = {MainToolbarButton(Icons::ThinDown), MainToolbarButton(Icons::ThinDown)};
     
     std::array<OwnedArray<TabBarButtonComponent>, 2> tabbars;
     std::array<SafePointer<Canvas>, 2> splits = {nullptr, nullptr};

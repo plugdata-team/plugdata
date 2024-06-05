@@ -779,20 +779,7 @@ void PluginEditor::modifierKeysChanged(ModifierKeys const& modifiers)
 // Updates command status asynchronously
 void PluginEditor::handleAsyncUpdate()
 {
-    // Reflect patch dirty state in tab title
-    /* TODO: split restucture fix
-    for (auto split : splitView.splits) {
-        auto tabbar = split->getTabComponent();
-        for (int n = 0; n < tabbar->getNumTabs(); n++) {
-            auto* cnv = tabbar->getCanvas(n);
-            if (!cnv)
-                return;
-
-            auto isDirty = cnv->patch.isDirty();
-            auto tabText = tabbar->getTabText(n);
-            tabbar->setTabText(n, tabText.trimCharactersAtEnd("*") + (isDirty ? "*" : ""));
-        }
-    } */
+    tabComponent.repaint(); // So tab dirty titles can be reflected
 
     if (auto* cnv = getCurrentCanvas()) {
         bool locked = getValue<bool>(cnv->locked);

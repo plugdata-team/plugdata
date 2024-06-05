@@ -173,15 +173,14 @@ public:
     void tabChanged() override
     {
         isOpenedInSplitView = false;
-        /* TODO: split restucture!
-        for (auto* split : cnv->editor->splitView.splits) {
-            if (auto* cnv = split->getTabComponent().getCurrentCanvas()) {
-                if (cnv->patch == *getPatch()) {
-                    isOpenedInSplitView = true;
-                }
+        for (auto* visibleCanvas : cnv->editor->getTabComponent().getVisibleCanvases()) {
+            if(visibleCanvas->patch == *getPatch())
+            {
+                isOpenedInSplitView = true;
+                break;
             }
-        } */
-
+        }
+        
         updateCanvas();
         repaint();
     }

@@ -186,8 +186,6 @@ public:
             editor->setBounds(windowBounds);
         }
 
-        editor->getTabComponent().resized();
-
         if (originalCanvas) {
             // Reset the canvas properties to before plugin mode was entered
             originalCanvas->patch.openInPluginMode = false;
