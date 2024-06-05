@@ -321,6 +321,9 @@ public:
     std::recursive_mutex weakReferenceMutex;
     std::unique_ptr<pd::MessageDispatcher> messageDispatcher;
     
+    // All opened patches
+    Array<pd::Patch::Ptr, CriticalSection> patches;
+    
 private:
     std::unordered_map<void*, std::vector<pd_weak_reference*>> pdWeakReferences;
 

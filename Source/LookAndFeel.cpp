@@ -11,7 +11,6 @@
 #include "Utility/SettingsFile.h"
 #include "Constants.h"
 #include "Utility/Fonts.h"
-#include "Tabbar/TabBarButtonComponent.h"
 
 class PlugData_DocumentWindowButton_macOS : public Button
     , public FocusChangeListener {
@@ -468,8 +467,7 @@ void PlugDataLook::positionDocumentWindowButtons(DocumentWindow& window,
     }
 }
 
-// ==================== LookAndFeel TabBarButton ====================
-
+/*
 Rectangle<int> PlugDataLook::getTabButtonExtraComponentBounds(TabBarButton const& button, Rectangle<int>& textArea, Component& comp)
 {
     Rectangle<int> extraComp;
@@ -513,68 +511,6 @@ Rectangle<int> PlugDataLook::getTabButtonExtraComponentBounds(TabBarButton const
     }
 
     return extraComp;
-}
-
-int PlugDataLook::getTabButtonBestWidth(TabBarButton& button, int tabDepth)
-{
-    auto& buttonBar = button.getTabbedButtonBar();
-    return std::max((buttonBar.getWidth() / buttonBar.getNumTabs()) + 1, 120);
-}
-
-int PlugDataLook::getTabButtonOverlap(int tabDepth)
-{
-    return 0;
-}
-
-void PlugDataLook::drawTabButton(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown)
-{
-    drawTabButton(button, g, isMouseOver, isMouseDown, false);
-}
-
-void PlugDataLook::drawTabButton(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown, bool isForceDrawn)
-{
-    auto dragged = button.getProperties()["dragged"];
-    if (!isForceDrawn && !dragged.isVoid() && static_cast<bool>(dragged))
-        return;
-
-    bool isActive = button.getToggleState();
-
-    if (isActive) {
-        g.setColour(findColour(PlugDataColour::activeTabBackgroundColourId));
-    } else if (isMouseOver) {
-        g.setColour(findColour(PlugDataColour::activeTabBackgroundColourId).interpolatedWith(findColour(PlugDataColour::toolbarBackgroundColourId), 0.4f));
-    } else {
-        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-    }
-
-    fillSmoothedRectangle(g, button.getLocalBounds().toFloat().reduced(4.5f), Corners::defaultCornerRadius);
-    drawTabButtonText(button, g, isMouseOver, isMouseDown);
-}
-
-void PlugDataLook::drawTabButtonText(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown)
-{
-    auto area = button.getLocalBounds().reduced(4, 1).toFloat();
-
-    Font font(getTabButtonFont(button, area.getHeight()));
-    font.setUnderline(button.hasKeyboardFocus(false));
-
-    Colour col;
-
-    if (button.isFrontTab() && (button.isColourSpecified(TabbedButtonBar::frontTextColourId) || isColourSpecified(TabbedButtonBar::frontTextColourId)))
-        col = findColour(TabbedButtonBar::frontTextColourId);
-    else if (button.isColourSpecified(TabbedButtonBar::tabTextColourId)
-        || isColourSpecified(TabbedButtonBar::tabTextColourId))
-        col = findColour(TabbedButtonBar::tabTextColourId);
-    else
-        col = button.getTabBackgroundColour().contrasting();
-
-    // Use a gradient to make it fade out when it gets near to the close button
-    auto fadeX = (isMouseOver || button.getToggleState()) ? area.getRight() - 25 : area.getRight() - 8;
-    g.setGradientFill(ColourGradient(col, fadeX - 18, area.getY(), Colours::transparentBlack, fadeX, area.getY(), false));
-
-    g.setFont(font);
-
-    g.drawText(button.getButtonText().trim(), area.reduced(4, 0), Justification::centred, false);
 }
 
 Button* PlugDataLook::createTabBarExtrasButton()
@@ -641,6 +577,7 @@ Button* PlugDataLook::createTabBarExtrasButton()
 
         void mouseDown(MouseEvent const& e) override
         {
+            // TODO: split refactor fix
             class HiddenTabMenuItem : public PopupMenu::CustomComponent {
 
                 String tabTitle;
@@ -736,10 +673,8 @@ Button* PlugDataLook::createTabBarExtrasButton()
                     if (!tab->isVisible()) {
                         m.addCustomItem(i + 1, std::make_unique<HiddenTabMenuItem>(tabNames[i], i, *parent), nullptr, tabNames[i]);
                     }
-                    /*
-                     m.addItem (PopupMenu::Item (tabNames[i])
-                                  .setTicked (i == parent->getCurrentTabIndex())
-                                  .setAction ([this, i, parent] { parent->setCurrentTabIndex (i); })); */
+                    
+                     //m.addItem (PopupMenu::Item (tabNames[i]).setTicked (i == parent->getCurrentTabIndex()) .setAction ([this, i, parent] { parent->setCurrentTabIndex (i); }));
                 }
 
                 m.showMenuAsync(PopupMenu::Options()
@@ -750,7 +685,7 @@ Button* PlugDataLook::createTabBarExtrasButton()
     };
 
     return new TabBarExtrasButton();
-}
+} */
 
 Font PlugDataLook::getTabButtonFont(TabBarButton&, float height)
 {

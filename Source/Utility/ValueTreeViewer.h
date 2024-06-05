@@ -10,12 +10,93 @@ struct ValueTreeOwnerView : public Component
     std::function<void(ValueTree&)> onDragStart = [](ValueTree&){};
 };
 
-#include "ValueTreeNodeBranchLine.h"
 #include "Fonts.h"
 #include "../Components/BouncingViewport.h"
 
 class ValueTreeNodeComponent : public Component
 {
+    class ValueTreeNodeBranchLine : public Component, public SettableTooltipClient
+    {
+    public:
+        explicit ValueTreeNodeBranchLine(ValueTreeNodeComponent* node) : node(node)
+        {
+        }
+        
+        void paint(Graphics& g) override
+        {
+            if (!treeLine.isEmpty()) {
+                auto colour = (isHover && !node->isOpenInSearchMode()) ? findColour(PlugDataColour::objectSelectedOutlineColourId) : findColour(PlugDataColour::panelTextColourId).withAlpha(0.25f);
+
+                g.reduceClipRegion(treeLineImage, AffineTransform());
+                g.fillAll(colour);
+            }
+        }
+
+
+        void mouseEnter(const MouseEvent& e) override
+        {
+            isHover = true;
+            repaint();
+        }
+
+        void mouseExit(const MouseEvent& e) override
+        {
+            isHover = false;
+            repaint();
+        }
+
+        void mouseMove(const MouseEvent& e) override
+        {
+            if (!isHover) {
+                isHover = true;
+                repaint();
+            }
+        }
+
+        void mouseUp(MouseEvent const& e) override
+        {
+            // single click to collapse directory / node
+            if (e.getNumberOfClicks() == 1) {
+                node->closeNode();
+                auto nodePos = node->getPositionInViewport();
+                auto* viewport = node->findParentComponentOfClass<Viewport>();
+                auto mousePosInViewport = e.getEventRelativeTo(viewport).getPosition().getY();
+                
+                viewport->setViewPosition(0, nodePos - mousePosInViewport + (node->getHeight() * 0.5f));
+                viewport->repaint();
+            }
+        }
+
+        void resized() override
+        {
+            treeLine.clear();
+
+            if (getParentComponent()->isVisible()) {
+                // create a line to show the current branch
+                auto b = getLocalBounds();
+                auto lineEnd = Point<float>(4.0f, b.getHeight() - 3.0f);
+                treeLine.startNewSubPath(4.0f, 0.0f);
+                treeLine.lineTo(lineEnd);
+                
+                if(!b.isEmpty()) {
+                    treeLineImage = Image(Image::PixelFormat::ARGB, b.getWidth(), b.getHeight(), true);
+                    Graphics treeLineG(treeLineImage);
+                    treeLineG.setColour(Colours::white);
+                    treeLineG.strokePath(treeLine, PathStrokeType(1.0f));
+                    auto ballEnd = Rectangle<float>(0, 0, 5, 5).withCentre(lineEnd);
+                    treeLineG.fillEllipse(ballEnd);
+                }
+            }
+        }
+
+    private:
+        ValueTreeNodeComponent* node;
+        Path treeLine;
+        Image treeLineImage;
+        bool isHover = false;
+    };
+
+    
 public:
     ValueTreeNodeComponent(const ValueTree& node, ValueTreeNodeComponent* parentNode, String const& prepend = String()) : valueTreeNode(node), parent(parentNode)
     {

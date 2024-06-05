@@ -111,7 +111,7 @@ public:
                         return;
 
                     _this->cnv->setSelected(object, false);
-                    _this->object->cnv->editor->sidebar->hideParameters();
+                    _this->object->editor->sidebar->hideParameters();
                     _this->object->setType(_this->getText(), ptr);
                 });
             }

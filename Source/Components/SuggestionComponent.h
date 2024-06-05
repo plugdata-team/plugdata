@@ -4,11 +4,13 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include <juce_gui_extra/juce_gui_extra.h>
 #include "PluginEditor.h"
 #include "PluginProcessor.h" // TODO: We shouldn't need this!
 #include "Objects/ObjectBase.h"
 #include "Heavy/CompatibleObjects.h"
 #include "Utility/NanoVGGraphicsContext.h"
+#include "Components/BouncingViewport.h"
 
 extern "C"
 {
@@ -318,7 +320,7 @@ public:
         currentObject = object;
         openedEditor = editor;
 
-        setTransform(object->cnv->editor->getTransform());
+        setTransform(object->editor->getTransform());
 
         editor->addComponentListener(this);
         editor->addListener(this);
@@ -717,7 +719,7 @@ private:
                 return;
 
             // When hvcc mode is enabled, show only hvcc compatible objects
-            if (getValue<bool>(_this->currentObject->cnv->editor->hvccMode)) {
+            if (getValue<bool>(_this->currentObject->editor->hvccMode)) {
 
                 StringArray hvccObjectsFound;
                 for (auto& object : toFilter) {

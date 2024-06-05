@@ -100,6 +100,9 @@ public:
     bool shouldShowIndex();
     bool shouldShowConnectionDirection();
     bool shouldShowConnectionActivity();
+    
+    void save(std::function<void()> const& nestedCallback = [](){});
+    void saveAs(std::function<void()> const& nestedCallback = [](){});
 
     void synchroniseSplitCanvas();
     void synchronise();
@@ -111,8 +114,6 @@ public:
     bool keyPressed(KeyPress const& key) override;
     void valueChanged(Value& v) override;
 
-    TabComponent* getTabbar();
-    int getTabIndex();
     void tabChanged();
 
     void hideAllActiveEditors();

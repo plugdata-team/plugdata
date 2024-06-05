@@ -114,6 +114,7 @@ public:
     Value hvccMode = Value(var(false));
 
     Canvas* cnv;
+    PluginEditor* editor;
 
     std::unique_ptr<ObjectBase> gui;
 

@@ -114,6 +114,7 @@ public:
 
     String getTitle() const;
     void setTitle(String const& title);
+    void setUntitled();
 
     Instance* instance = nullptr;
     bool closePatchOnDelete;

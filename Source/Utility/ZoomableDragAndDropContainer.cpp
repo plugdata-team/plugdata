@@ -23,25 +23,14 @@
   ==============================================================================
 */
 #include "ZoomableDragAndDropContainer.h"
-#include "Utility/RateReducer.h"
+#include "RateReducer.h"
 
 #include "Constants.h"
 #include "LookAndFeel.h"
 
-// this is to find if we are over a split, and if so, we zoom the dragged image to the canvas zoom value
-#include "Tabbar/ResizableTabbedComponent.h"
-
-// if the drag is over a tab bar, then we don't show the drag image
-#include "Tabbar/Tabbar.h"
-
-// to reset the active split to what it was originally
-#include "Tabbar/TabBarButtonComponent.h"
-
-// if we are inside the splitview, don't reset the scale of the dragged image, regardless of what we are over
-#include "Tabbar/SplitView.h"
 
 // objects are only drag and dropped onto a canvas, so we dynamic cast straight away to see if the dragged object is from an object
-#include "ObjectDragAndDrop.h"
+#include "Components/ObjectDragAndDrop.h"
 
 bool juce_performDragDropFiles(StringArray const&, bool const copyFiles, bool& shouldStop);
 bool juce_performDragDropText(String const&, bool& shouldStop);
@@ -131,10 +120,12 @@ public:
             if (finalTarget != nullptr) {
                 currentlyOverComp = nullptr;
                 finalTarget->itemDropped(details);
-            } else if (auto* tab = dynamic_cast<TabBarButtonComponent*>(details.sourceComponent.get())) {
+            } 
+            /* TODO: split refactor
+             else if (auto* tab = dynamic_cast<TabBarButtonComponent*>(details.sourceComponent.get())) {
                 if (ProjectInfo::isStandalone)
                     owner.createNewWindow(tab);
-            }
+            } */
             // careful - this object could now be deleted..
         }
     }
@@ -162,36 +153,29 @@ public:
                 }
             }
 
-            if (target == previousTarget) {
-                return;
-            } else {
-                previousTarget = target;
-            }
-
-            if (isZoomable) {
-                auto* split = dynamic_cast<ResizableTabbedComponent*>(target);
+            auto* tabbar = dynamic_cast<TabComponent*>(target);
+            
+            if (tabbar && isZoomable) {
                 if (newTarget) {
-                    if (split && split->getTabComponent() && split->getTabComponent()->getCurrentCanvas()) {
-                        auto zoomScale = ::getValue<float>(split->getTabComponent()->getCurrentCanvas()->zoomScale);
+                    if (tabbar->getCurrentCanvas()) {
+                        auto zoomScale = ::getValue<float>(tabbar->getCurrentCanvas()->zoomScale);
                         updateScale(zoomScale, true);
                         return;
                     }
                 }
-                if (auto splitView = owner.getSplitView()) {
-                    // don't reset the scale of the dragged image if we are inside of the splitview area
-                    // there are some objects (splitview resizer, and edges of canvas objects) that
-                    // register as a target that's null.
-                    // this is a fix for that
-                    if (splitView->getScreenBounds().contains(currentScreenPos.toInt())) {
-                        return;
-                    }
+            
+                if (tabbar->getScreenBounds().contains(currentScreenPos.toInt())) {
+                    return;
                 }
             }
-            if (dynamic_cast<ButtonBar*>(target)) {
+            
+            if(tabbar && e.getEventRelativeTo(tabbar).y < 30)
+            {
                 updateScale(0.0f, true);
-                return;
             }
-            updateScale(1.0f, true);
+            else {
+                updateScale(1.0f, true);
+            }
         }
     }
 
@@ -235,12 +219,12 @@ public:
     }
 
     void updateScale(float newScale, bool withAnimation)
-    {
+    {        
         if (approximatelyEqual<float>(newScale, previousScale))
             return;
 
         previousScale = newScale;
-
+        
         auto newWidth = image.getScaledBounds().getWidth() * newScale;
         auto newHeight = image.getScaledBounds().getHeight() * newScale;
         auto zoomedImageBounds = getLocalBounds().withSizeKeepingCentre(newWidth, newHeight);
@@ -681,10 +665,6 @@ void ZoomableDragAndDropContainer::dragOperationStarted(DragAndDropTarget::Sourc
 
 void ZoomableDragAndDropContainer::dragOperationEnded(DragAndDropTarget::SourceDetails const& sourceComponent)
 {
-    // dragOperationEnded only runs when the DnD is unsuccessful
-    if (auto* tab = dynamic_cast<TabBarButtonComponent*>(sourceComponent.sourceComponent.get())) {
-        tab->setFocusForTabSplit();
-    }
 }
 
 MouseInputSource const* ZoomableDragAndDropContainer::getMouseInputSourceForDrag(Component* sourceComponent,

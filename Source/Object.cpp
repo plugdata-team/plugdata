@@ -33,6 +33,7 @@ extern "C" {
 Object::Object(Canvas* parent, String const& name, Point<int> position)
     : NVGComponent(this)
     , cnv(parent)
+    , editor(parent->editor)
     , gui(nullptr)
     , ds(parent->dragState)
 {
@@ -55,11 +56,11 @@ Object::Object(Canvas* parent, String const& name, Point<int> position)
 
 Object::Object(pd::WeakReference object, Canvas* parent)
     : NVGComponent(this)
+    , cnv(parent)
+    , editor(parent->editor)
     , gui(nullptr)
     , ds(parent->dragState)
 {
-    cnv = parent;
-
     initialise();
 
     setType("", object);
@@ -129,7 +130,7 @@ void Object::initialise()
     commandLocked.referTo(cnv->pd->commandLocked);
     presentationMode.referTo(cnv->presentationMode);
 
-    hvccMode.referTo(cnv->editor->hvccMode);
+    hvccMode.referTo(editor->hvccMode);
 
     presentationMode.addListener(this);
     locked.addListener(this);
@@ -335,9 +336,9 @@ void Object::applyBounds()
 
     patch->endUndoSequence("Resize");
 
-    MessageManager::callAsync([cnv = SafePointer(this->cnv)] {
-        if (cnv)
-            cnv->editor->updateCommandStatus();
+    MessageManager::callAsync([editor = SafePointer(this->editor)] {
+        if (editor)
+            editor->updateCommandStatus();
     });
 
     cnv->pd->unlockAudioThread();
@@ -425,7 +426,7 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
     resized(); // If bounds haven't changed, we'll still want to update gui and iolets bounds
 
     // Auto patching
-    if (getValue<bool>(cnv->editor->autoconnect) && numInputs && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs) {
+    if (getValue<bool>(editor->autoconnect) && numInputs && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs) {
         auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
         auto inlet = iolets[0];
         if (outlet->isSignal == inlet->isSignal) {
@@ -461,7 +462,7 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
 
     cnv->lastSelectedConnection = nullptr;
 
-    cnv->editor->updateCommandStatus();
+    editor->updateCommandStatus();
 
     cnv->synchroniseSplitCanvas();
     cnv->pd->updateObjectImplementations();
@@ -1295,7 +1296,7 @@ void Object::performRender(NVGcontext* nvg)
     }
     
     // If autoconnect is about to happen, draw a fake inlet with a dotted outline
-    if (getValue<bool>(cnv->editor->autoconnect) && isInitialEditorShown() && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs) {
+    if (getValue<bool>(editor->autoconnect) && isInitialEditorShown() && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs) {
         auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
         float fakeInletBounds[4] = {16.0f, 4.0f, 8.0f, 8.0f};
         nvgBeginPath(nvg);
@@ -1559,7 +1560,6 @@ void Object::openHelpPatch() const
     cnv->pd->setThis();
 
     if (auto* ptr = getPointer()) {
-
         auto file = cnv->pd->objectLibrary->findHelpfile(ptr, cnv->patch.getCurrentFile());
 
         if (!file.existsAsFile()) {
@@ -1567,16 +1567,12 @@ void Object::openHelpPatch() const
             return;
         }
 
-        cnv->pd->lockAudioThread();
-        auto patchPtr = cnv->pd->loadPatch(URL(file), cnv->editor, -1);
-        if(patchPtr) {
-            if(auto patch = patchPtr->getPointer()) {
+        auto* helpCanvas = editor->getTabComponent().openPatch(URL(file));
+        if(helpCanvas) {
+            if(auto patch = helpCanvas->patch.getPointer()) {
                 patch->gl_edit = 0;
             }
         }
-
-        cnv->pd->unlockAudioThread();
-        
         return;
     }
 

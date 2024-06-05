@@ -96,22 +96,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
         Button* closeButton,
         bool positionTitleBarButtonsOnLeft) override;
 
-    Rectangle<int> getTabButtonExtraComponentBounds(TabBarButton const& button, Rectangle<int>& textArea, Component& comp) override;
-
-    int getTabButtonBestWidth(TabBarButton& button, int tabDepth) override;
-
-    int getTabButtonOverlap(int tabDepth) override;
-
-    void drawTabButton(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override;
-
-    void drawTabButton(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown, bool isForceDrawn);
-
-    void drawTabButtonText(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override;
-
-    void drawTabAreaBehindFrontButton(TabbedButtonBar& bar, Graphics& g, int const w, int const h) override { }
-
-    Button* createTabBarExtrasButton() override;
-
     Font getTabButtonFont(TabBarButton&, float height) override;
 
     void drawScrollbar(Graphics& g, ScrollBar& scrollbar, int x, int y, int width, int height,

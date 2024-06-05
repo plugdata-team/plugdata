@@ -401,7 +401,7 @@ public:
             return;
 
         auto thickness = getScrollBarThickness();
-        auto localArea = getLocalBounds().reduced(8);
+        auto localArea = getLocalBounds().reduced(2);
 
         vbar.setBounds(localArea.removeFromRight(thickness).withTrimmedBottom(thickness).translated(-1, 0));
         hbar.setBounds(localArea.removeFromBottom(thickness).translated(0, -1));

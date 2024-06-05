@@ -17,7 +17,6 @@
 #include "LookAndFeel.h"
 #include "Components/SuggestionComponent.h"
 #include "CanvasViewport.h"
-#include "Tabbar/SplitView.h"
 
 #include "Objects/ObjectBase.h"
 
@@ -736,17 +735,6 @@ void Canvas::zoomToFitAll()
     viewport->setViewPosition(newViewPos);
 }
 
-TabComponent* Canvas::getTabbar()
-{
-    for (auto* split : editor->splitView.splits) {
-        auto tabbar = split->getTabComponent();
-        if (tabbar->getIndexOfCanvas(this) >= 0)
-            return tabbar;
-    }
-
-    return nullptr;
-}
-
 void Canvas::tabChanged()
 {
     patch.setCurrent();
@@ -767,13 +755,49 @@ void Canvas::tabChanged()
     editor->repaint(); // Make sure everything it up to date
 }
 
-int Canvas::getTabIndex()
+void Canvas::save(std::function<void()> const& nestedCallback)
 {
-    if (auto* tabbar = getTabbar()) {
-        return tabbar->getIndexOfCanvas(this);
+    Canvas* canvasToSave = this;
+    if (patch.isSubpatch()) {
+        for (auto& parentCanvas : editor->getCanvases()) {
+            if (patch.getRoot() == parentCanvas->patch.getPointer().get()) {
+                canvasToSave = parentCanvas;
+            }
+        }
     }
-    return -1;
+    
+    if (patch.getCurrentFile().existsAsFile()) {
+        canvasToSave->updatePatchSnapshot();
+        canvasToSave->patch.savePatch();
+        SettingsFile::getInstance()->addToRecentlyOpened(canvasToSave->patch.getCurrentFile());
+        nestedCallback();
+        pd->titleChanged();
+    } else {
+        saveAs(nestedCallback);
+    }
 }
+
+void Canvas::saveAs(std::function<void()> const& nestedCallback)
+{
+    Dialogs::showSaveDialog([this, nestedCallback](URL resultURL) mutable {
+        auto result = resultURL.getLocalFile();
+        if (result.getFullPathName().isNotEmpty()) {
+            if (result.exists())
+                result.deleteFile();
+            
+            if(!result.hasFileExtension("pd")) result = result.getFullPathName() + ".pd";
+            
+            updatePatchSnapshot();
+            patch.savePatch(resultURL);
+            SettingsFile::getInstance()->addToRecentlyOpened(result);
+            pd->titleChanged();
+        }
+
+        nestedCallback();
+    },
+        "*.pd", "Patch", this);
+}
+
 
 void Canvas::handleAsyncUpdate()
 {
@@ -787,10 +811,9 @@ void Canvas::synchronise()
 
 void Canvas::synchroniseSplitCanvas()
 {
-    for (auto split : editor->splitView.splits) {
-        auto tabbar = split->getTabComponent();
-        if (auto* activeTabCanvas = tabbar->getCurrentCanvas())
-            activeTabCanvas->synchronise();
+    for(auto* canvas : editor->getTabComponent().getVisibleCanvases())
+    {
+        canvas->synchronise();
     }
 }
 

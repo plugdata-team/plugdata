@@ -49,8 +49,8 @@
 
     @tags{GUI}
 */
-class TabBarButtonComponent;
-class SplitView;
+class Canvas;
+class TabComponent;
 class ZoomableDragAndDropContainer {
 public:
     /** Creates a ZoomableDragAndDropContainer.
@@ -175,9 +175,9 @@ public:
     */
     static ZoomableDragAndDropContainer* findParentDragContainerFor(Component* childComponent);
 
-    virtual void createNewWindow(TabBarButtonComponent* tabButton) { }
+    virtual void createNewWindow(Canvas* tabButton) { }
 
-    virtual SplitView* getSplitView() { return nullptr; }
+    virtual TabComponent& getTabComponent() = 0;
     /** This performs an asynchronous drag-and-drop of a set of files to some external
         application.
 

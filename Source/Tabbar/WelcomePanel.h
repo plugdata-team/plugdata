@@ -8,6 +8,7 @@
 #include "Utility/Autosave.h"
 #include "Utility/CachedTextRender.h"
 #include "Utility/NanoVGGraphicsContext.h"
+#include "Components/BouncingViewport.h"
 
 class WelcomePanel : public Component, public NVGComponent, public AsyncUpdater {
 
@@ -216,8 +217,8 @@ public:
         newPatchTile = std::make_unique<WelcomePanelTile>("New Patch", "Create a new empty patch", newIcon, findColour(PlugDataColour::panelTextColourId), 0.33f, false);
         openPatchTile = std::make_unique<WelcomePanelTile>("Open Patch", "Browse for a patch to open", openIcon, findColour(PlugDataColour::panelTextColourId), 0.33f, false);
         
-        newPatchTile->onClick = [this]() { editor->newProject(); };
-        openPatchTile->onClick = [this](){ editor->openProject(); };
+        newPatchTile->onClick = [this]() { editor->getTabComponent().newPatch(); };
+        openPatchTile->onClick = [this](){ editor->getTabComponent().openPatch(); };
         
         addAndMakeVisible(*newPatchTile);
         addAndMakeVisible(*openPatchTile);
@@ -253,7 +254,7 @@ public:
                 auto* tile = tiles.add(new WelcomePanelTile(patchFile.getFileName(), timeDescription, silhoutteSvg, snapshotColour, 1.0f, favourited));
                 tile->onClick = [this, patchFile]() mutable {
                     editor->autosave->checkForMoreRecentAutosave(patchFile, [this, patchFile]() {
-                        editor->pd->loadPatch(URL(patchFile), editor);
+                        editor->getTabComponent().openPatch(URL(patchFile));
                         SettingsFile::getInstance()->addToRecentlyOpened(patchFile);
                         editor->pd->titleChanged();
                     });

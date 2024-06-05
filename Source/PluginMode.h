@@ -8,7 +8,6 @@
 
 #include "PluginEditor.h"
 #include "Canvas.h"
-#include "Tabbar/Tabbar.h"
 #include "Standalone/PlugDataWindow.h"
 
 
@@ -187,9 +186,7 @@ public:
             editor->setBounds(windowBounds);
         }
 
-        if (auto* tabbar = editor->getActiveTabbar()) {
-            tabbar->resized();
-        }
+        editor->getTabComponent().resized();
 
         if (originalCanvas) {
             // Reset the canvas properties to before plugin mode was entered

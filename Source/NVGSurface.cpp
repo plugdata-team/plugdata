@@ -281,15 +281,8 @@ void NVGSurface::render()
         return; // Render on next frame
     }
     
-    bool hasCanvas = false;
-    for(auto* split : editor->splitView.splits)
-    {
-        if(auto* cnv = split->getTabComponent()->getCurrentCanvas())
-        {
-            hasCanvas = true;
-            break;
-        }
-    }
+    bool hasCanvas = editor->getCurrentCanvas() != nullptr;
+
     // Manage showing/hiding welcome panel
     if(hasCanvas && editor->welcomePanel->isVisible()) {
         editor->welcomePanel->hide();
@@ -356,10 +349,6 @@ void NVGSurface::render()
         nvgFill(nvg);
         nvgRestore(nvg);
         
-        if(!editor->pluginMode) {
-            editor->splitView.render(nvg); // Render split view outlines and tab dnd areas
-        }
-        
 #if ENABLE_FPS_COUNT
         nvgSave(nvg);
         frameTimer->render(nvg);
@@ -383,12 +372,9 @@ void NVGSurface::render()
     auto elapsed = Time::getMillisecondCounter() - startTime;
     // We update frambuffers after we call swapBuffers to make sure the frame is on time
     if(elapsed < 14) {
-        for(auto* split : editor->splitView.splits)
+        for(auto* cnv : editor->getTabComponent().getVisibleCanvases())
         {
-            if(auto* cnv = split->getTabComponent()->getCurrentCanvas())
-            {
-                cnv->updateFramebuffers(nvg, cnv->getLocalBounds(), 14 - elapsed);
-            }
+            cnv->updateFramebuffers(nvg, cnv->getLocalBounds(), 14 - elapsed);
         }
     }
 }

@@ -313,7 +313,7 @@ public:
                         return;
                     
                     _this->object->cnv->setSelected(_this->object, false);
-                    _this->object->cnv->editor->sidebar->hideParameters();
+                    _this->object->editor->sidebar->hideParameters();
                     _this->name = newName;
                 });
                 

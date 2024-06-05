@@ -697,6 +697,19 @@ void Patch::setTitle(String const& title)
     });
 }
 
+void Patch::setUntitled()
+{
+    // find the lowest `Untitled-N` number, for the new patch title
+    int lowestNumber = 0;
+    for (auto patch : instance->patches) {
+        lowestNumber = std::max(lowestNumber, patch->untitledPatchNum);
+    }
+    lowestNumber += 1;
+    
+    untitledPatchNum = lowestNumber;
+    setTitle("Untitled-" + String(lowestNumber));
+}
+
 File Patch::getCurrentFile() const
 {
     return currentFile;

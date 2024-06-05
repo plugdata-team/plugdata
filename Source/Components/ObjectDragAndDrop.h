@@ -1,7 +1,7 @@
 #pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
-#include "ZoomableDragAndDropContainer.h"
+//#include "Utility/ZoomableDragAndDropContainer.h"
 #include "Utility/OfflineObjectRenderer.h"
 #include "../PluginEditor.h"
 #include "Canvas.h"
@@ -154,26 +154,16 @@ public:
         } else if (auto* cnv = underMouse->findParentComponentOfClass<Canvas>()) {
             foundCanvas = cnv;
             scale = getValue<float>(cnv->zoomScale);
-        } else if (auto* split = editor->splitView.getSplitAtScreenPosition(screenPos)) {
-            // if we get here, this object is on the editor (not a window) - so we have to manually find the canvas
-            if (auto* tabComponent = split->getTabComponent()) {
-                foundCanvas = tabComponent->getCurrentCanvas();
-                scale = getValue<float>(foundCanvas->zoomScale);
-            } else {
-                scale = 1.0f;
-            }
+        } else if (auto* cnv = editor->getTabComponent().getCanvasAtScreenPosition(screenPos)) {
+            foundCanvas = cnv;
+            scale = getValue<float>(foundCanvas->zoomScale);
         } else {
             scale = 1.0f;
         }
-
+        
         if (foundCanvas && (foundCanvas != canvas)) {
             canvas = foundCanvas;
-            for (auto* split : editor->splitView.splits) {
-                if (canvas == split->getTabComponent()->getCurrentCanvas()) {
-                    editor->splitView.setFocus(split);
-                    break;
-                }
-            }
+            editor->getTabComponent().setActiveSplit(canvas);
         }
 
         // swap the image to show if the current drop position will result in adding a new object
