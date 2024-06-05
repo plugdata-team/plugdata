@@ -375,11 +375,17 @@ void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> area)
                 nvgRestore(nvg);
             }
         }
-        else
+        else if(!tabComponent.isUpdatePending())
         {
             nvgSave(nvg);
             welcomePanel->render(nvg);
             nvgRestore(nvg);
+        }
+        else {
+            nvgBeginPath(nvg);
+            nvgRect(nvg, 0, 0, nvgSurface.getWidth(), nvgSurface.getHeight());
+            nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::canvasBackgroundColourId)));
+            nvgFill(nvg);
         }
     }
 }
@@ -674,31 +680,6 @@ TabComponent& PluginEditor::getTabComponent()
     return tabComponent;
 }
 
-void PluginEditor::createNewWindow(Canvas* cnv)
-{
-    if (!ProjectInfo::isStandalone)
-        return;
-
-    auto* newEditor = new PluginEditor(*pd);
-    auto* newWindow = ProjectInfo::createNewWindow(newEditor);
-
-    auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
-
-    pd->openedEditors.add(newEditor);
-
-    newWindow->addToDesktop(window->getDesktopWindowStyleFlags());
-    newWindow->setVisible(true);
-    
-    /* TODO: split refactor fix
-    auto* newCanvas = newEditor->getTabComponent().openPatch(subpatch);
-    newCanvas->jumpToOrigin(); */
-
-    newWindow->setTopLeftPosition(Desktop::getInstance().getMousePosition() - Point<int>(500, 60));
-    newWindow->toFront(true);
-    
-    tabComponent.closeTab(cnv);
-}
-
 bool PluginEditor::isActiveWindow()
 {
     bool isDraggingTab = ZoomableDragAndDropContainer::isDragAndDropActive();
@@ -713,53 +694,6 @@ Array<Canvas*> PluginEditor::getCanvases()
 Canvas* PluginEditor::getCurrentCanvas()
 {
     return tabComponent.getCurrentCanvas();
-}
-
-void PluginEditor::closeAllTabs(bool quitAfterComplete, Canvas* patchToExclude, std::function<void()> afterComplete)
-{
-    if (!getCanvases().size()) {
-        afterComplete();
-        if (quitAfterComplete) {
-            JUCEApplication::quit();
-        }
-        return;
-    }
-    if (patchToExclude && getCanvases().size() == 1) {
-        afterComplete();
-        return;
-    }
-
-    auto canvas = SafePointer<Canvas>(getCanvases().getLast());
-
-    auto patch = canvas->refCountedPatch;
-
-    auto deleteFunc = [this, canvas, quitAfterComplete, patchToExclude, afterComplete]() {
-        if (canvas && !(patchToExclude && canvas == patchToExclude)) {
-            tabComponent.closeTab(canvas);
-        }
-
-        closeAllTabs(quitAfterComplete, patchToExclude, afterComplete);
-    };
-
-    if (canvas) {
-        MessageManager::callAsync([this, canvas, patch, deleteFunc]() mutable {
-            if (patch->isDirty()) {
-                Dialogs::showAskToSaveDialog(
-                    &openedDialog, this, patch->getTitle(),
-                    [canvas, deleteFunc](int result) mutable {
-                        if (!canvas)
-                            return;
-                        if (result == 2)
-                            canvas->save([deleteFunc]() mutable { deleteFunc(); });
-                        else if (result == 1)
-                            deleteFunc();
-                    },
-                    0, true);
-            } else {
-                deleteFunc();
-            }
-        });
-    }
 }
 
 void PluginEditor::valueChanged(Value& v)

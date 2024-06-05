@@ -120,12 +120,10 @@ public:
             if (finalTarget != nullptr) {
                 currentlyOverComp = nullptr;
                 finalTarget->itemDropped(details);
-            } 
-            /* TODO: split refactor
-             else if (auto* tab = dynamic_cast<TabBarButtonComponent*>(details.sourceComponent.get())) {
-                if (ProjectInfo::isStandalone)
-                    owner.createNewWindow(tab);
-            } */
+            }
+             else  {
+                 owner.getTabComponent().createNewWindow(details.sourceComponent.get());
+            }
             // careful - this object could now be deleted..
         }
     }

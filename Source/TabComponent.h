@@ -1,10 +1,12 @@
 #pragma once
 
 #include "Utility/ZoomableDragAndDropContainer.h"
+#include "PluginProcessor.h"
 
-class TabBarButtonComponent;
 class TabComponent : public Component, public DragAndDropTarget, public AsyncUpdater
 {
+    class TabBarButtonComponent;
+    
 public:
     TabComponent(PluginEditor* editor);
     
@@ -24,7 +26,8 @@ public:
     void showTab(Canvas* cnv, int splitIndex = 0);
     void setActiveSplit(Canvas* cnv);
     
-    void closeAllTabs();
+    void closeAllTabs(bool quitAfterComplete = false, Canvas* patchToExclude = nullptr, std::function<void()> afterComplete = [](){});
+    void createNewWindow(Component* draggedTab);
 
     Canvas* getCurrentCanvas();
     Canvas* getCanvasAtScreenPosition(Point<int> screenPosition);
@@ -38,6 +41,9 @@ private:
     
     void resized() override;
     void parentSizeChanged() override;
+    
+    void moveToLeftSplit(TabComponent::TabBarButtonComponent* tab);
+    void moveToRightSplit(TabComponent::TabBarButtonComponent* tab);
     
     void saveTabPositions();
     void closeEmptySplits();
@@ -137,10 +143,12 @@ private:
             auto textColour = findColour(PlugDataColour::toolbarTextColourId);
             g.setGradientFill(ColourGradient(textColour, fadeX - 18, area.getY(), Colours::transparentBlack, fadeX, area.getY(), false));
             
-            auto text = cnv->patch.getTitle() + (cnv->patch.isDirty() ? String("*") : String());
-            
-            g.setFont(Fonts::getCurrentFont().withHeight(14.0f));
-            g.drawText(text, area.reduced(4, 0), Justification::centred, false);
+            if(cnv) {
+                auto text = cnv->patch.getTitle() + (cnv->patch.isDirty() ? String("*") : String());
+                
+                g.setFont(Fonts::getCurrentFont().withHeight(14.0f));
+                g.drawText(text, area.reduced(4, 0), Justification::centred, false);
+            }
         }
         
         void resized() override
@@ -150,6 +158,8 @@ private:
         
         ScaledImage generateTabBarButtonImage()
         {
+            if(!cnv) return {};
+            
             auto scale = 2.0f;
             // we calculate the best size for the tab DnD image
             auto text = cnv->patch.getTitle();
@@ -167,11 +177,11 @@ private:
             g.addTransform(AffineTransform::scale(scale));
             Path path;
             path.addRoundedRectangle(bounds.reduced(10), 5.0f);
-            StackShadow::renderDropShadow(g, path, Colour(0, 0, 0).withAlpha(0.3f), 7, { 0, 1 }, scale);
+            StackShadow::renderDropShadow(g, path, Colour(0, 0, 0).withAlpha(0.2f), 6, { 0, 1 }, scale);
             g.setOpacity(1.0f);
             
-            g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-            PlugDataLook::fillSmoothedRectangle(g, textBounds.withPosition(10, 10).toFloat(), Corners::defaultCornerRadius);
+            g.setColour(findColour(PlugDataColour::activeTabBackgroundColourId));
+            PlugDataLook::fillSmoothedRectangle(g, textBounds.withPosition(10, 10).reduced(2).toFloat(), Corners::defaultCornerRadius);
 
             g.setColour(findColour(PlugDataColour::toolbarTextColourId));
 
@@ -183,9 +193,79 @@ private:
         
         void mouseDown(const MouseEvent& e) override
         {
-            toFront(false);
-            parent->showTab(cnv, parent->tabbars[1].contains(this));
-            dragger.startDraggingComponent(this, e);
+            if (e.mods.isPopupMenu() && cnv) {
+                PopupMenu tabMenu;
+
+        #if JUCE_MAC
+                String revealTip = "Reveal in Finder";
+        #elif JUCE_WINDOWS
+                String revealTip = "Reveal in Explorer";
+        #else
+                String revealTip = "Reveal in file browser";
+        #endif
+                
+                bool canReveal = cnv->patch.getCurrentFile().existsAsFile();
+
+                tabMenu.addItem(revealTip, canReveal, false, [this]() {
+                    cnv->patch.getCurrentFile().revealToUser();
+                });
+
+                tabMenu.addSeparator();
+                
+                PopupMenu parentPatchMenu;
+                
+                if(auto patch = cnv->patch.getPointer())
+                {
+                    auto* parentPatch = patch.get();
+                    while((parentPatch = parentPatch->gl_owner))
+                    {
+                        parentPatchMenu.addItem(String::fromUTF8(parentPatch->gl_name->s_name), [this, parentPatch](){
+                            auto* pdInstance = dynamic_cast<pd::Instance*>(parent->pd);
+                            parent->openPatch(new pd::Patch(pd::WeakReference(parentPatch, pdInstance), pdInstance, false));
+                        });
+                    }
+                }
+
+                tabMenu.addSubMenu("Parent patches", parentPatchMenu, parentPatchMenu.getNumItems());
+                
+                tabMenu.addSeparator();
+                
+                auto splitIndex = parent->splits[1] && parent->tabbars[1].contains(this);
+                auto canSplitTab = parent->splits[1] || parent->tabbars[splitIndex].size() > 1;
+                tabMenu.addItem("Split left", canSplitTab, false, [this]() {
+                    parent->moveToLeftSplit(this);
+                    parent->closeEmptySplits();
+                    parent->saveTabPositions();
+                });
+                tabMenu.addItem("Split right", canSplitTab, false, [this]() {
+                    parent->moveToRightSplit(this);
+                    parent->closeEmptySplits();
+                    parent->saveTabPositions();
+                });
+
+                tabMenu.addSeparator();
+                
+
+                tabMenu.addItem("Close patch", true, false, [this]() {
+                    parent->closeTab(cnv);
+                });
+
+                tabMenu.addItem("Close all other patches", true, false, [this]() {
+                    parent->closeAllTabs(false, cnv);
+                });
+
+                tabMenu.addItem("Close all patches", true, false, [this]() {
+                    parent->closeAllTabs(false);
+                });
+                        
+                // Show the popup menu at the mouse position
+                tabMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1));
+            }
+            else if(cnv) {
+                toFront(false);
+                parent->showTab(cnv, parent->tabbars[1].contains(this));
+                dragger.startDraggingComponent(this, e);
+            }
         }
         
         void mouseDrag(const MouseEvent& e) override
@@ -235,6 +315,7 @@ private:
     bool draggingSplitResizer = false;
     Rectangle<int> splitDropBounds;
     
+    float splitProportion = 2;
     int splitSize = 0;
     int activeSplitIndex = 0;
     uint32 lastMouseTime = 0;

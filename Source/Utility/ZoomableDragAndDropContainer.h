@@ -175,8 +175,6 @@ public:
     */
     static ZoomableDragAndDropContainer* findParentDragContainerFor(Component* childComponent);
 
-    virtual void createNewWindow(Canvas* tabButton) { }
-
     virtual TabComponent& getTabComponent() = 0;
     /** This performs an asynchronous drag-and-drop of a set of files to some external
         application.
