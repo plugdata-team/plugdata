@@ -1141,42 +1141,22 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             // This makes sure the patch can find abstractions/resources, even though it's loading patch from state
             glob_forcefilename(generateSymbol(location.getFileName().toRawUTF8()), generateSymbol(location.getParentDirectory().getFullPathName().toRawUTF8()));
             
-            if(auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor()))
+            auto patchPtr = loadPatch(content, nullptr);
+            patchPtr->splitViewIndex = splitIndex;
+            patchPtr->openInPluginMode = pluginMode;
+            if(!location.exists() || (location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)))
             {
-                auto* cnv = editor->getTabComponent().openPatch(content);
-                cnv->patch.splitViewIndex = splitIndex;
-                cnv->patch.openInPluginMode = pluginMode;
-                if(!location.exists() || (location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)))
-                {
-                    cnv->patch.setUntitled();
-                }
-                else
-                {
-                    cnv->patch.setTitle(location.getFileName());
-                }
+                patchPtr->setUntitled();
             }
-            else {
-                loadPatch(content, nullptr);
+            else
+            {
+                patchPtr->setTitle(location.getFileName());
             }
         }
         else {
-            if(auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor()))
-            {
-                auto* cnv = editor->getTabComponent().openPatch(URL(location));
-                cnv->patch.splitViewIndex = splitIndex;
-                cnv->patch.openInPluginMode = pluginMode;
-                if(!location.exists() || (location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)))
-                {
-                    cnv->patch.setUntitled();
-                }
-                else
-                {
-                    cnv->patch.setTitle(location.getFileName());
-                }
-            }
-            else {
-                loadPatch(URL(location), nullptr);
-            }
+            auto patchPtr = loadPatch(URL(location), nullptr);
+            patchPtr->splitViewIndex = splitIndex;
+            patchPtr->openInPluginMode = pluginMode;
         }
     };
 
@@ -1250,17 +1230,12 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     unlockAudioThread();
 
     delete[] xmlData;
-
-    // TODO: ugly, clean this up
-    MessageManager::callAsync([this]() {
-        for (auto* editor : getEditors()) {
-            editor->sidebar->updateAutomationParameters();
-
-            if (editor->pluginMode && !editor->pd->isInPluginMode()) {
-                editor->pluginMode->closePluginMode();
-            }
-        }
-    });
+    
+    if(auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor()))
+    {
+        editor->getTabComponent().triggerAsyncUpdate();
+        editor->sidebar->updateAutomationParameters();
+    }
     
     // After loading a state, we need to update all the parameters
     if(PluginHostType::getPluginLoadedAs() == AudioProcessor::wrapperType_AudioUnit || PluginHostType::getPluginLoadedAs() == AudioProcessor::wrapperType_AudioUnitv3)

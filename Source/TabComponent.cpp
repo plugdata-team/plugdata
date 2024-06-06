@@ -233,6 +233,24 @@ void TabComponent::handleAsyncUpdate()
     
     auto editorIndex = pd->getEditors().indexOf(editor);
     
+    // First, remove canvases that no longer exist
+    for(int i = canvases.size() - 1; i >= 0; i--)
+    {
+        bool exists = false;
+        for(auto& patch : pd->patches)
+        {
+            if(canvases[i]->patch == *patch)
+            {
+                exists = true;
+            }
+        }
+        
+        if(!exists)
+        {
+            canvases.remove(i);
+        }
+    }
+    
     // Load all patches from pd patch array
     pd->patches.getLock().enter();
     for(auto& patch : pd->patches)

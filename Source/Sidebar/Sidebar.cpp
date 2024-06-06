@@ -268,10 +268,7 @@ bool Sidebar::isShowingBrowser()
 void Sidebar::updateAutomationParameters()
 {
     if (automationPanel) {
-        // Might be called from audio thread
-        MessageManager::callAsync([this]() {
-            automationPanel->updateParameters();
-        });
+        automationPanel->triggerAsyncUpdate();
     }
 }
 
