@@ -24,6 +24,7 @@ public:
     void nextTab();
     void previousTab();
 
+    void askToCloseTab(Canvas* cnv);
     void closeTab(Canvas* cnv);
     void showTab(Canvas* cnv, int splitIndex = 0);
     void setActiveSplit(Canvas* cnv);
@@ -116,7 +117,7 @@ private:
         TabBarButtonComponent(Canvas* cnv, TabComponent* parent) : cnv(cnv), parent(parent), tabDragConstrainer(parent)
         {
             closeButton.onClick = [cnv = SafePointer(cnv), parent](){
-                if(cnv) parent->closeTab(cnv);
+                if(cnv) parent->askToCloseTab(cnv);
             };
             closeButton.addMouseListener(this, false);
             closeButton.setSize(28, 28);

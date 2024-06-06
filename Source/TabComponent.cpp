@@ -542,7 +542,29 @@ void TabComponent::resized()
     newTabButtons[1].setVisible(!tabbars[1].isEmpty());
 }
 
+void TabComponent::askToCloseTab(Canvas* cnv)
+{
+    MessageManager::callAsync([_cnv = SafePointer(cnv), _editor = SafePointer(editor), _this = SafePointer(this)]() mutable {
+        // Don't show save dialog, if patch is still open in another view
+        if (_editor && _cnv && _cnv->patch.isDirty()) {
+            Dialogs::showAskToSaveDialog(
+                &_editor->openedDialog, _editor, _cnv->patch.getTitle(),
+                [_cnv, _this](int result) mutable {
+                    if (!_cnv || !_this) return;
+                    if (result == 2)
+                        _cnv->save([_cnv, _this]() mutable { _this->closeTab(_cnv); });
+                    else if (result == 1)
+                        _this->closeTab(_cnv);
+                },
+                0, true);
+        } else if(_this && _cnv) {
+            _this->closeTab(_cnv);
+        }
+    });
+}
+
 void TabComponent::closeTab(Canvas* cnv) {
+    
     auto patch = cnv->refCountedPatch;
 
     editor->sidebar->hideParameters();
@@ -796,7 +818,7 @@ void TabComponent::showHiddenTabsMenu(int splitIndex) {
             closeTabButton.setButtonText(Icons::Clear);
             closeTabButton.addMouseListener(this, false);
             closeTabButton.onClick = [this]() mutable {
-                tabbar.closeTab(cnv.getComponent());
+                tabbar.askToCloseTab(cnv.getComponent());
             };
             addChildComponent(closeTabButton);
         }
