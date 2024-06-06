@@ -542,12 +542,6 @@ float Canvas::getRenderScale() const
     return editor->nvgSurface.getRenderScale();
 }
 
-
-void Canvas::lookAndFeelChanged()
-{
-    //presentationShadowImage = -1;
-}
-
 void Canvas::updatePatchSnapshot()
 {
     auto patchFile = patch.getCurrentFile();

@@ -144,9 +144,7 @@ public:
     void updatePatchSnapshot();
     
     float getRenderScale() const;
-    
-    void lookAndFeelChanged() override;
-    
+
     bool autoscroll(MouseEvent const& e);
 
     // Multi-dragger functions

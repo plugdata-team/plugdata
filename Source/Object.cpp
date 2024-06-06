@@ -1215,7 +1215,7 @@ void Object::render(NVGcontext* nvg)
         activityOverlayDirty = false;
     }
     
-    if(cnv->isScrolling && scrollBuffer.needsUpdate(getWidth(), getHeight()))
+    if(cnv->isScrolling && scrollBuffer.needsUpdate(getWidth() * 3.0f * cnv->getRenderScale(), getHeight() * 3.0f * cnv->getRenderScale()))
     {
         performRender(nvg);
     }
