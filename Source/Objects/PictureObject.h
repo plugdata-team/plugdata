@@ -146,6 +146,11 @@ public:
                 auto partialImage = std::make_unique<NVGImage>(nvg, width, height, [&clip](Graphics& g){
                     g.drawImageAt(clip, 0, 0);
                 });
+
+                partialImage->onImageInvalidate = [this](){
+                    imageNeedsReload = true;
+                    repaint();
+                };
                 
                 imageBuffers.emplace_back(std::move(partialImage), bounds);
                 y += 8192;

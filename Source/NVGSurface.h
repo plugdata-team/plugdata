@@ -237,6 +237,8 @@ public:
         {
             if(image->isValid() && image->nvg == nvg) nvgDeleteImage(image->nvg, image->imageId);
             image->imageId = 0;
+            if (image->onImageInvalidate)
+                image->onImageInvalidate();
         }
     }
     
@@ -319,6 +321,8 @@ public:
     NVGcontext* nvg = nullptr;
     int imageId = 0;
     int imageWidth = 0, imageHeight = 0;
+
+    std::function<void()> onImageInvalidate = nullptr;
     
     static inline std::set<NVGImage*> allImages;
 };
