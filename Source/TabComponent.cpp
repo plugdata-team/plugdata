@@ -220,6 +220,7 @@ void TabComponent::handleAsyncUpdate()
                 canvases.clear();
                 editor->pluginMode = std::make_unique<PluginMode>(editor, patch);
                 editor->resized();
+                lastPluginModePatchPtr = patch->getPointer().get();
                 return;
             }
         }
@@ -258,6 +259,20 @@ void TabComponent::handleAsyncUpdate()
         addAndMakeVisible(newTabButton);
     }
     pd->patches.getLock().exit();
+    
+    // Show plugin mode tab after closing pluginmode
+    if(lastPluginModePatchPtr != nullptr)
+    {
+        for(auto* canvas : canvases)
+        {
+            if(canvas->patch.getPointer().get() == lastPluginModePatchPtr)
+            {
+                showTab(canvas);
+                break;
+            }
+        }
+        lastPluginModePatchPtr = nullptr;
+    }
 
     closeEmptySplits();
     resized(); // Update tab and canvas layout

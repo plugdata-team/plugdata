@@ -323,6 +323,8 @@ private:
     Time lastMouseTime;
     
     OwnedArray<Canvas, CriticalSection> canvases;
+    
+    t_glist* lastPluginModePatchPtr = nullptr;
 
     PluginEditor* editor;
     PluginProcessor* pd;
