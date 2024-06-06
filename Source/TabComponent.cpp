@@ -26,6 +26,10 @@ TabComponent::TabComponent(PluginEditor* editor) : editor(editor), pd(editor->pd
     }
     
     addMouseListener(this, true);
+    
+    if(!pd->isInPluginMode()) {
+        triggerAsyncUpdate();
+    }
 }
 
 Canvas* TabComponent::newPatch()
@@ -202,9 +206,12 @@ void TabComponent::handleAsyncUpdate()
     tabbars[0].clear();
     tabbars[1].clear();
     
+    if(pd->isInPluginMode()) return;
+    
     auto editorIndex = pd->getEditors().indexOf(editor);
     
     // Load all patches from pd patch array
+    pd->patches.getLock().enter();
     for(auto& patch : pd->patches)
     {
         if(patch->windowIndex != editorIndex) continue;
@@ -228,6 +235,7 @@ void TabComponent::handleAsyncUpdate()
         tabbars[patch->splitViewIndex == 1].add(newTabButton);
         addAndMakeVisible(newTabButton);
     }
+    pd->patches.getLock().exit();
 
     closeEmptySplits();
     resized(); // Update tab and canvas layout
@@ -273,6 +281,7 @@ void TabComponent::closeEmptySplits()
             }
         }
     }
+    editor->resized();
 }
 
 void TabComponent::showTab(Canvas* cnv, int splitIndex)
@@ -293,6 +302,13 @@ void TabComponent::showTab(Canvas* cnv, int splitIndex)
     repaint();
     
     editor->nvgSurface.invalidateAll();
+    
+    for(auto* tab : getVisibleCanvases())
+    {
+        tab->tabChanged();
+    }
+    
+    editor->updateCommandStatus();
 }
 
 Canvas* TabComponent::getCurrentCanvas()
@@ -309,6 +325,9 @@ Array<Canvas*> TabComponent::getCanvases()
 
 void TabComponent::renderArea(NVGcontext* nvg, Rectangle<int> area)
 {
+    nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::canvasBackgroundColourId)));
+    nvgFillRect(nvg, 0, 0, area.getWidth(), area.getHeight());
+    
     if(splits[0])
     {
         nvgSave(nvg);
@@ -328,26 +347,20 @@ void TabComponent::renderArea(NVGcontext* nvg, Rectangle<int> area)
     
     if(!splitDropBounds.isEmpty())
     {
-        nvgBeginPath(nvg);
-        nvgRect(nvg, splitDropBounds.getX(), splitDropBounds.getY(), splitDropBounds.getWidth(), splitDropBounds.getHeight());
         nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::dataColourId).withAlpha(0.1f)));
-        nvgFill(nvg);
+        nvgFillRect(nvg, splitDropBounds.getX(), splitDropBounds.getY(), splitDropBounds.getWidth(), splitDropBounds.getHeight());
     }
     
     if(splits[1])
     {
-        nvgBeginPath(nvg);
-        nvgRect(nvg, splitSize - 3, 0, 6, getHeight());
         nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::canvasBackgroundColourId)));
-        nvgFill(nvg);
+        nvgFillRect(nvg, splitSize - 3, 0, 6, getHeight());
         
         auto activeSplitBounds = activeSplitIndex ? Rectangle<int>(splitSize, 0, getWidth() - splitSize, getHeight() - 31) : Rectangle<int>(0, 0, splitSize, getHeight() - 31);
         
-        nvgBeginPath(nvg);
-        nvgRect(nvg, activeSplitBounds.getX(), activeSplitBounds.getY(), activeSplitBounds.getWidth(), activeSplitBounds.getHeight());
         nvgStrokeWidth(nvg, 3.0f);
         nvgStrokeColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.25f)));
-        nvgStroke(nvg);
+        nvgStrokeRect(nvg, activeSplitBounds.getX(), activeSplitBounds.getY(), activeSplitBounds.getWidth(), activeSplitBounds.getHeight());
     }
 }
 
@@ -520,6 +533,10 @@ void TabComponent::closeAllTabs(bool quitAfterComplete, Canvas* patchToExclude, 
     auto deleteFunc = [this, canvas, quitAfterComplete, patchToExclude, afterComplete]() {
         if (canvas && !(patchToExclude && canvas == patchToExclude)) {
             closeTab(canvas);
+        }
+        else if(canvas == patchToExclude)
+        {
+            canvases.move(canvases.indexOf(patchToExclude), 0);
         }
 
         closeAllTabs(quitAfterComplete, patchToExclude, afterComplete);

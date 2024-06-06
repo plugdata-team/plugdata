@@ -203,8 +203,9 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
             auto renderIolet = [](NVGcontext* nvg, Rectangle<float> bounds, NVGcolor background, NVGcolor outline){
                 if (PlugDataLook::getUseSquareIolets()) {
                     nvgBeginPath(nvg);
-                    nvgFillColor(nvg, background);
                     nvgRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+                    
+                    nvgFillColor(nvg, background);
                     nvgFill(nvg);
                     
                     nvgStrokeColor(nvg, outline);
@@ -311,10 +312,8 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         invalidRegion = invalidRegion.translated(viewport->getViewPositionX(), viewport->getViewPositionY());
         invalidRegion /= zoom;
         
-        nvgBeginPath(nvg);
-        nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
         nvgFillColor(nvg, backgroundColour);
-        nvgFill(nvg);
+        nvgFillRect(nvg, invalidRegion.getX(), invalidRegion.getY(), invalidRegion.getWidth(), invalidRegion.getHeight());
     }
     
     if(hasViewport && !getValue<bool>(locked)) {
@@ -324,7 +323,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             nvgTranslate(nvg, canvasOrigin.x % objectGrid.gridSize, canvasOrigin.y % objectGrid.gridSize); // Make sure grid aligns with origin
             NVGpaint dots = nvgDotPattern(nvg, dotsColour, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize, 1.0f, feather);
             nvgFillPaint(nvg, dots);
-            nvgFill(nvg);
+            nvgFillRect(nvg, invalidRegion.getX(), invalidRegion.getY(), invalidRegion.getWidth(), invalidRegion.getHeight());
             nvgRestore(nvg);
         }
         else {
@@ -445,9 +444,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
 
             // background colour to crop outside of border area
             nvgBeginPath(nvg);
-            nvgFillColor(nvg, bgColour);
             nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
-
             nvgPathWinding(nvg, NVG_HOLE);
             nvgRoundedRect(nvg, pos.getX(), pos.getY(), borderWidth, borderHeight, windowCorner);
             nvgFillColor(nvg, bgColour);
@@ -455,9 +452,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
 
             // background drop shadow to simulate a virtual plugin
             nvgBeginPath(nvg);
-            nvgFillColor(nvg, bgColour);
             nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
-
             nvgPathWinding(nvg, NVG_HOLE);
             nvgRoundedRect(nvg, pos.getX(), pos.getY(), borderWidth, borderHeight, windowCorner);
 

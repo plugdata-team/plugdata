@@ -292,10 +292,8 @@ public:
     {
         if(!nvgContext || nvgContext->getContext() != nvg) nvgContext = std::make_unique<NanoVGGraphicsContext>(nvg);
         
-        nvgBeginPath(nvg);
-        nvgRect(nvg, 0, 0, getWidth(), getHeight());
         nvgFillColor(nvg, convertColour(findColour(PlugDataColour::panelBackgroundColourId)));
-        nvgFill(nvg);
+        nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
         
         Graphics g(*nvgContext);
         g.reduceClipRegion(editor->nvgSurface.getInvalidArea());
@@ -304,9 +302,7 @@ public:
         auto gradient = nvgLinearGradient(nvg, 0, recentlyOpenedViewport.getY(), 0, recentlyOpenedViewport.getY() + 20, convertColour(findColour(PlugDataColour::panelBackgroundColourId)), nvgRGBAf(1, 1, 1, 0));
         
         nvgFillPaint(nvg, gradient);
-        nvgBeginPath(nvg);
-        nvgRect(nvg, recentlyOpenedViewport.getX() + 8, recentlyOpenedViewport.getY(), recentlyOpenedViewport.getWidth() - 16, 20);
-        nvgFill(nvg);
+        nvgFillRect(nvg, recentlyOpenedViewport.getX() + 8, recentlyOpenedViewport.getY(), recentlyOpenedViewport.getWidth() - 16, 20);
         
         nvgBeginPath(nvg);
         nvgFillColor(nvg, findNVGColour(PlugDataColour::panelTextColourId));

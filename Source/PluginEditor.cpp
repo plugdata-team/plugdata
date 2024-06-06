@@ -345,13 +345,14 @@ void PluginEditor::paintOverChildren(Graphics& g)
         g.drawRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius, 2.0f);
     }
     
-    auto tabbarDepth = welcomePanel->isVisible() ? toolbarHeight + 5.5f : toolbarHeight + 30.0f;
+    auto welcomePanelVisible = !getCurrentCanvas();
+    auto tabbarDepth = welcomePanelVisible ? toolbarHeight + 5.5f : toolbarHeight + 30.0f;
     g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
     g.drawLine(palettes->isExpanded() ? palettes->getRight() : 29.0f, tabbarDepth, sidebar->getX() + 1.0f, tabbarDepth);
     
     // Draw extra lines in case tabbar is not visible. Otherwise some outlines will stop too soon
     if(!getCurrentCanvas()) {
-        auto toolbarDepth = welcomePanel->isVisible() ? toolbarHeight + 6 : toolbarHeight;
+        auto toolbarDepth = welcomePanelVisible ? toolbarHeight + 6 : toolbarHeight;
         g.drawLine(palettes->isExpanded() ? palettes->getRight() : 29.5f, toolbarDepth, palettes->isExpanded() ? palettes->getRight() : 29.5f, toolbarDepth + 30);
         g.drawLine(sidebar->getX() + 0.5f, toolbarDepth, sidebar->getX() + 0.5f, toolbarHeight + 30);
     }
@@ -363,9 +364,13 @@ void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> area)
         pluginMode->render(nvg);
     }
     else {
-        bool hasCanvas = getCurrentCanvas() != nullptr;
-        if(hasCanvas)
+        if(!getCurrentCanvas())
         {
+            nvgSave(nvg);
+            welcomePanel->render(nvg);
+            nvgRestore(nvg);
+        }
+        else {
             tabComponent.renderArea(nvg, area);
             
             if(touchSelectionHelper && touchSelectionHelper->isVisible() && area.intersects(touchSelectionHelper->getBounds() - nvgSurface.getPosition())) {
@@ -374,18 +379,6 @@ void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> area)
                 touchSelectionHelper->render(nvg);
                 nvgRestore(nvg);
             }
-        }
-        else if(!tabComponent.isUpdatePending())
-        {
-            nvgSave(nvg);
-            welcomePanel->render(nvg);
-            nvgRestore(nvg);
-        }
-        else {
-            nvgBeginPath(nvg);
-            nvgRect(nvg, 0, 0, nvgSurface.getWidth(), nvgSurface.getHeight());
-            nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::canvasBackgroundColourId)));
-            nvgFill(nvg);
         }
     }
 }

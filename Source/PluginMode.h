@@ -145,10 +145,8 @@ public:
     
     void render(NVGcontext* nvg) override
     {
-        nvgBeginPath(nvg);
-        nvgRect(nvg, 0, 0, getWidth(), getHeight());
         nvgFillColor(nvg, findNVGColour(PlugDataColour::canvasBackgroundColourId));
-        nvgFill(nvg);
+        nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
         
         nvgSave(nvg);
         nvgScale(nvg, pluginModeScale, pluginModeScale);
@@ -191,6 +189,7 @@ public:
             originalCanvas->patch.openInPluginMode = false;
         }
 
+        editor->getTabComponent().triggerAsyncUpdate();
         editor->parentSizeChanged();
         editor->resized();
 

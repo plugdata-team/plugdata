@@ -1197,10 +1197,8 @@ void Object::updateFramebuffer(NVGcontext* nvg)
             
     #if ENABLE_OBJECT_FB_DEBUGGING
             static Random rng;
-            nvgBeginPath(nvg);
             nvgFillColor(nvg, nvgRGBA(rng.nextInt(255), rng.nextInt(255), rng.nextInt(255), 0x50));
-            nvgRect(nvg, 0, 0, b.getWidth(), b.getHeight());
-            nvgFill(nvg);
+            nvgFillRect(nvg, 0, 0, b.getWidth(), b.getHeight());
     #endif
             nvgEndFrame(nvg);
         });
@@ -1258,10 +1256,8 @@ void Object::performRender(NVGcontext* nvg)
     
     if(cnv->shouldShowObjectActivity() && !approximatelyEqual(activeStateAlpha, 0.0f) && activityOverlayImage.isValid())
     {
-        nvgBeginPath(nvg);
         nvgFillPaint(nvg, nvgImagePattern(nvg, lb.getX(), lb.getY(), lb.getWidth(), lb.getHeight(), 0, activityOverlayImage.getImageId(), activeStateAlpha));
-        nvgRect(nvg, lb.getX(), lb.getY(), lb.getWidth(), lb.getHeight());
-        nvgFill(nvg);
+        nvgFillRect(nvg, lb.getX(), lb.getY(), lb.getWidth(), lb.getHeight());
     }
     
     if (gui && gui->isTransparent() && !getValue<bool>(locked) && !cnv->isGraph) {
