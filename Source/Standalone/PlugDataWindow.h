@@ -613,6 +613,14 @@ public:
 
     void activeWindowStatusChanged() override
     {
+#if JUCE_WINDOWS
+        // Windows looses the opengl buffers when minimised,
+        // regenerate here when restored from minimised
+        if (isActiveWindow()) {
+            if (auto *pluginEditor = dynamic_cast<PluginEditor *>(editor))
+                pluginEditor->nvgSurface.invalidateAll();
+        }
+#endif
         repaint();
     }
 
