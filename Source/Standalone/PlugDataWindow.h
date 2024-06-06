@@ -464,7 +464,6 @@ public:
 #if JUCE_IOS
             nativeWindow = true;
 #endif
-
             auto* editor = mainComponent->getEditor();
             auto* pdEditor = dynamic_cast<PluginEditor*>(editor);
 

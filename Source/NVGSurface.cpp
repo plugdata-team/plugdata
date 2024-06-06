@@ -201,6 +201,12 @@ void NVGSurface::timerCallback()
 }
 #endif
 
+void NVGSurface::lookAndFeelChanged()
+{
+    NVGFramebuffer::clearAll(nvg);
+    NVGImage::clearAll(nvg);
+    invalidateAll();
+}
 
 void NVGSurface::triggerRepaint()
 {

@@ -50,6 +50,8 @@ public:
 #ifdef NANOVG_GL_IMPLEMENTATION
     void timerCallback() override;
 #endif
+    
+    void lookAndFeelChanged() override;
 
     Rectangle<int> getInvalidArea() { return invalidArea; }
     
