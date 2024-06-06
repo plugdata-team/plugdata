@@ -662,7 +662,7 @@ bool TabComponent::isInterestedInDragSource(SourceDetails const& dragSourceDetai
 
 void TabComponent::itemDropped(SourceDetails const& dragSourceDetails)
 {
-    if(auto* objectDnD = dynamic_cast<ObjectDragAndDrop*>(dragSourceDetails.sourceComponent.get()))
+    if(dynamic_cast<ObjectDragAndDrop*>(dragSourceDetails.sourceComponent.get()))
     {
         auto screenPosition = localPointToGlobal(dragSourceDetails.localPosition);
         
