@@ -317,13 +317,16 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     }
     
     if(hasViewport && !getValue<bool>(locked)) {
+        nvgBeginPath(nvg);
+        nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
+        
         auto feather = getRenderScale() > 1.0f ? 0.25f : 0.75f;
         if(getValue<float>(zoomScale) >= 1.0f) {
             nvgSave(nvg);
             nvgTranslate(nvg, canvasOrigin.x % objectGrid.gridSize, canvasOrigin.y % objectGrid.gridSize); // Make sure grid aligns with origin
             NVGpaint dots = nvgDotPattern(nvg, dotsColour, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize, 1.0f, feather);
             nvgFillPaint(nvg, dots);
-            nvgFillRect(nvg, invalidRegion.getX(), invalidRegion.getY(), invalidRegion.getWidth(), invalidRegion.getHeight());
+            nvgFill(nvg);
             nvgRestore(nvg);
         }
         else {
@@ -340,7 +343,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
 
                 NVGpaint dots = nvgDotPattern(nvg, i == 3 ? darkDotColour : dotsColour, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize * 4,  scaledDotSize, feather + 0.2f);
                 nvgFillPaint(nvg, dots);
-                nvgFillRect(nvg, invalidRegion.getX(), invalidRegion.getY(), invalidRegion.getWidth(), invalidRegion.getHeight());
+                nvgFill(nvg);
             }
             nvgRestore(nvg);
             nvgSave(nvg);
@@ -350,7 +353,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
                 nvgTranslate(nvg, 0, objectGrid.gridSize);
                 NVGpaint dots = nvgDotPattern(nvg, i == 3 ? darkDotColour : dotsColour, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize * 4, scaledDotSize, feather + 0.2f);
                 nvgFillPaint(nvg, dots);
-                nvgFillRect(nvg, invalidRegion.getX(), invalidRegion.getY(), invalidRegion.getWidth(), invalidRegion.getHeight());
+                nvgFill(nvg);
             }
             
             nvgRestore(nvg);
