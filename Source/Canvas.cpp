@@ -340,7 +340,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
 
                 NVGpaint dots = nvgDotPattern(nvg, i == 3 ? darkDotColour : dotsColour, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize * 4,  scaledDotSize, feather + 0.2f);
                 nvgFillPaint(nvg, dots);
-                nvgFill(nvg);
+                nvgFillRect(nvg, invalidRegion.getX(), invalidRegion.getY(), invalidRegion.getWidth(), invalidRegion.getHeight());
             }
             nvgRestore(nvg);
             nvgSave(nvg);
@@ -350,7 +350,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
                 nvgTranslate(nvg, 0, objectGrid.gridSize);
                 NVGpaint dots = nvgDotPattern(nvg, i == 3 ? darkDotColour : dotsColour, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize * 4, scaledDotSize, feather + 0.2f);
                 nvgFillPaint(nvg, dots);
-                nvgFill(nvg);
+                nvgFillRect(nvg, invalidRegion.getX(), invalidRegion.getY(), invalidRegion.getWidth(), invalidRegion.getHeight());
             }
             
             nvgRestore(nvg);
