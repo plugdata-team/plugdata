@@ -129,8 +129,6 @@ public:
     
     CallOutBox& showCalloutBox(std::unique_ptr<Component> content, Rectangle<int> screenBounds);
 
-    void enablePluginMode(Canvas* cnv);
-
     void commandKeyChanged(bool isHeld) override;
     void setUseBorderResizer(bool shouldUse);
     void showTouchSelectionHelper(bool shouldBeShown);

@@ -210,7 +210,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     pluginModeButton.setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
     pluginModeButton.onClick = [this]() {
         if (auto* cnv = getCurrentCanvas()) {
-            enablePluginMode(cnv);
+            tabComponent.openInPluginMode(cnv->refCountedPatch);
         }
     };
 
@@ -231,10 +231,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     callOutSafeArea.setInterceptsMouseClicks(false, true);
 
     addModifierKeyListener(this);
-
-    // Restore Plugin Mode View
-    if (pd->isInPluginMode())
-        enablePluginMode(nullptr);
 
     connectionMessageDisplay = std::make_unique<ConnectionMessageDisplay>(this);
     connectionMessageDisplay->addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses | ComponentPeer::windowIgnoresMouseClicks);
@@ -1483,31 +1479,6 @@ bool PluginEditor::wantsRoundedCorners()
         return !window->isUsingNativeTitleBar() && !window->isMaximised() && ProjectInfo::canUseSemiTransparentWindows();
     } else {
         return true;
-    }
-}
-
-void PluginEditor::enablePluginMode(Canvas* cnv)
-{
-    if (!cnv) {
-        if (pd->isInPluginMode()) {
-            MessageManager::callAsync([_this = SafePointer(this), this]() {
-                if (!_this)
-                    return;
-
-                // Restore Plugin Mode View
-                for (auto* canvas : getCanvases()) {
-                    if (canvas && canvas->patch.openInPluginMode) {
-                        enablePluginMode(canvas);
-                    }
-                }
-            });
-        } else {
-            return;
-        }
-    } else {
-        cnv->patch.openInPluginMode = true;
-        pluginMode = std::make_unique<PluginMode>(cnv);
-        resized();
     }
 }
 

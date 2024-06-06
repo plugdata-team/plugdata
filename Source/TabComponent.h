@@ -17,6 +17,8 @@ public:
     Canvas* openPatch(pd::Patch::Ptr existingPatch);
     void openPatch();
     
+    void openInPluginMode(pd::Patch::Ptr patch);
+    
     void renderArea(NVGcontext* nvg, Rectangle<int> bounds);
 
     void nextTab();
@@ -318,7 +320,7 @@ private:
     float splitProportion = 2;
     int splitSize = 0;
     int activeSplitIndex = 0;
-    uint32 lastMouseTime = 0;
+    Time lastMouseTime;
     
     OwnedArray<Canvas, CriticalSection> canvases;
 

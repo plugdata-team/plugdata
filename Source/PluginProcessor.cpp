@@ -1099,16 +1099,6 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     if (sizeInBytes == 0)
         return;
     
-    // Don't clear tabs if there is no editor open before loading state, if we don't check this it will not load properly in some DAWs
-    if(getEditors().size()) {
-        // Close any opened patches
-        MessageManager::callAsync([this]() {
-            for (auto* editor : getEditors()) {
-                editor->getTabComponent().closeAllTabs();
-            }
-        });
-    }
-
     MemoryInputStream istream(data, sizeInBytes, false);
     
     lockAudioThread();
@@ -1523,7 +1513,7 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
                             {
                                 if(patches[0] == canvas->patch)
                                 {
-                                    editors[0]->enablePluginMode(canvas);
+                                    editors[0]->getTabComponent().openInPluginMode(canvas->refCountedPatch);
                                 }
                             }
                         }
@@ -1533,7 +1523,10 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
                 else {
                     MessageManager::callAsync([this](){
                         for (auto* editor : getEditors()) {
-                            editor->enablePluginMode(editor->getCurrentCanvas());
+                            if(auto* cnv = editor->getCurrentCanvas())
+                            {
+                                editor->getTabComponent().openInPluginMode(cnv->refCountedPatch);
+                            }
                         }
                     });
                 }

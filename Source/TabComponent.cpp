@@ -7,6 +7,7 @@
 #include "Utility/Autosave.h"
 #include "Components/ObjectDragAndDrop.h"
 #include "NVGSurface.h"
+#include "PluginMode.h"
 #include "Standalone/PlugDataWindow.h"
 
 TabComponent::TabComponent(PluginEditor* editor) : editor(editor), pd(editor->pd)
@@ -26,10 +27,7 @@ TabComponent::TabComponent(PluginEditor* editor) : editor(editor), pd(editor->pd
     }
     
     addMouseListener(this, true);
-    
-    if(!pd->isInPluginMode()) {
-        triggerAsyncUpdate();
-    }
+    triggerAsyncUpdate();
 }
 
 Canvas* TabComponent::newPatch()
@@ -201,12 +199,36 @@ void TabComponent::createNewWindow(Component* draggedTab)
     newWindow->toFront(true);
 }
 
+void TabComponent::openInPluginMode(pd::Patch::Ptr patch)
+{
+    patch->openInPluginMode = true;
+    triggerAsyncUpdate();
+}
+
 void TabComponent::handleAsyncUpdate()
 {
     tabbars[0].clear();
     tabbars[1].clear();
     
-    if(pd->isInPluginMode()) return;
+    if(pd->isInPluginMode() && !editor->pluginMode)
+    {
+        // Initialise plugin mode
+        for(auto& patch : pd->patches)
+        {
+            if(patch->openInPluginMode) // Found pluginmode patch
+            {
+                canvases.clear();
+                editor->pluginMode = std::make_unique<PluginMode>(editor, patch);
+                editor->resized();
+                return;
+            }
+        }
+    }
+    else if(pd->isInPluginMode())
+    {
+        canvases.clear();
+        return;
+    }
     
     auto editorIndex = pd->getEditors().indexOf(editor);
     
@@ -366,9 +388,6 @@ void TabComponent::renderArea(NVGcontext* nvg, Rectangle<int> area)
 
 void TabComponent::mouseDown(const MouseEvent& e)
 {
-    if(e.eventTime.getMillisecondCounter() == lastMouseTime) return;
-    lastMouseTime = e.eventTime.getMillisecondCounter();
-    
     auto localPos = e.getEventRelativeTo(this).getPosition();
     if(localPos.x > splitSize - 3 && localPos.x < splitSize + 3)
     {
@@ -392,9 +411,6 @@ void TabComponent::mouseUp(const MouseEvent& e)
 
 void TabComponent::mouseDrag(const MouseEvent& e)
 {
-    if(e.eventTime.getMillisecondCounter() == lastMouseTime) return;
-    lastMouseTime = e.eventTime.getMillisecondCounter();
-    
     auto localPos = e.getEventRelativeTo(this).getPosition();
     if(draggingSplitResizer) {
         splitSize = localPos.x;
@@ -405,9 +421,6 @@ void TabComponent::mouseDrag(const MouseEvent& e)
 
 void TabComponent::mouseMove(const MouseEvent& e)
 {
-    if(e.eventTime.getMillisecondCounter() == lastMouseTime) return;
-    lastMouseTime = e.eventTime.getMillisecondCounter();
-    
     auto localPos = e.getEventRelativeTo(this).getPosition();
     if(localPos.x > splitSize - 3 && localPos.x < splitSize + 3)
     {

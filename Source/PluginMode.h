@@ -13,11 +13,10 @@
 
 class PluginMode : public Component, public NVGComponent {
 public:
-    explicit PluginMode(Canvas* canvas)
+    explicit PluginMode(PluginEditor* editor, pd::Patch::Ptr patch)
         : NVGComponent(this)
-        , cnv(std::make_unique<Canvas>(canvas->editor, canvas->patch, this))
-        , originalCanvas(canvas)
-        , editor(cnv->editor)
+        , cnv(std::make_unique<Canvas>(editor, patch, this))
+        , editor(editor)
         , desktopWindow(editor->getPeer())
         , windowBounds(editor->getBounds().withPosition(editor->getTopLevelComponent()->getPosition()))
     {
@@ -48,15 +47,9 @@ public:
 
         desktopWindow = editor->getPeer();
 
-        // Save original canvas properties
-        originalCanvasScale = getValue<float>(cnv->zoomScale);
-        originalCanvasPos = cnv->getPosition();
-        originalLockedMode = getValue<bool>(cnv->locked);
-        originalPresentationMode = getValue<bool>(cnv->presentationMode);
-        
         editor->nvgSurface.invalidateAll();
         cnv->setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, cnv.get()));
-        originalCanvas->patch.openInPluginMode = true;
+        patch->openInPluginMode = true;
         
         // Titlebar
         titleBar.setBounds(0, 0, width, titlebarHeight);
@@ -184,10 +177,7 @@ public:
             editor->setBounds(windowBounds);
         }
 
-        if (originalCanvas) {
-            // Reset the canvas properties to before plugin mode was entered
-            originalCanvas->patch.openInPluginMode = false;
-        }
+        cnv->patch.openInPluginMode = false;
 
         editor->getTabComponent().triggerAsyncUpdate();
         editor->parentSizeChanged();
@@ -410,10 +400,6 @@ private:
     WindowDragger windowDragger;
     bool isDraggingWindow = false;
 
-    Point<int> originalCanvasPos;
-    float originalCanvasScale;
-    bool originalLockedMode;
-    bool originalPresentationMode;
     bool isFullScreenKioskMode = false;
 
     Rectangle<int> originalPluginWindowBounds;
