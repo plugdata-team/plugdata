@@ -360,7 +360,7 @@ void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> area)
         pluginMode->render(nvg);
     }
     else {
-        if(!getCurrentCanvas())
+        if(welcomePanel->isVisible())
         {
             nvgSave(nvg);
             welcomePanel->render(nvg);

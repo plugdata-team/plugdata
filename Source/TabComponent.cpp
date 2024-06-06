@@ -6,6 +6,7 @@
 #include "Dialogs/Dialogs.h"
 #include "Utility/Autosave.h"
 #include "Components/ObjectDragAndDrop.h"
+#include "Components/WelcomePanel.h"
 #include "NVGSurface.h"
 #include "PluginMode.h"
 #include "Standalone/PlugDataWindow.h"
@@ -293,6 +294,18 @@ void TabComponent::handleAsyncUpdate()
     }
 
     closeEmptySplits();
+    
+    // Show welcome panel if there are no tabs
+    if(tabbars[0].size() == 0 && tabbars[1].size() == 0)
+    {
+        editor->welcomePanel->show();
+        editor->resized();
+    }
+    else {
+        editor->welcomePanel->hide();
+        editor->resized();
+    }
+    
     resized(); // Update tab and canvas layout
 }
 
@@ -682,14 +695,14 @@ void TabComponent::itemDropped(SourceDetails const& dragSourceDetails)
         return;
     }
     
-    auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get());
-    
-    if(getLocalBounds().removeFromRight(getWidth() - splitSize).contains(dragSourceDetails.localPosition) && (dragSourceDetails.localPosition.y > 30 || splits[1])) // Dragging to right split
-    {
-        moveToRightSplit(tab);
-    }
-    else if(dragSourceDetails.localPosition.y > 30) {
-        moveToLeftSplit(tab);
+    if(auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
+        if(getLocalBounds().removeFromRight(getWidth() - splitSize).contains(dragSourceDetails.localPosition) && (dragSourceDetails.localPosition.y > 30 || splits[1])) // Dragging to right split
+        {
+            moveToRightSplit(tab);
+        }
+        else if(dragSourceDetails.localPosition.y > 30) {
+            moveToLeftSplit(tab);
+        }
     }
     
     closeEmptySplits();
@@ -698,6 +711,7 @@ void TabComponent::itemDropped(SourceDetails const& dragSourceDetails)
     draggingOverTabbar = false;
     splitDropBounds = Rectangle<int>();
     editor->nvgSurface.invalidateAll();
+
 }
 
 void TabComponent::itemDragEnter(SourceDetails const& dragSourceDetails)

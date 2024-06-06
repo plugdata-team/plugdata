@@ -279,18 +279,6 @@ void NVGSurface::render()
         return; // Render on next frame
     }
     
-    bool hasCanvas = editor->getCurrentCanvas() != nullptr;
-
-    // Manage showing/hiding welcome panel
-    if(hasCanvas && editor->welcomePanel->isVisible()) {
-        editor->welcomePanel->hide();
-        editor->resized();
-    }
-    else if(!hasCanvas && !editor->welcomePanel->isVisible()) {
-        editor->welcomePanel->show();
-        editor->resized();
-    }
-    
     updateBufferSize();
     
     auto pixelScale = getRenderScale();
