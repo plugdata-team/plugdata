@@ -783,7 +783,7 @@ public:
 };
 
 class AutomationPanel : public Component
-    , public ScrollBar::Listener {
+    , public ScrollBar::Listener, public AsyncUpdater {
 
 public:
     explicit AutomationPanel(PluginProcessor* processor)
@@ -819,7 +819,7 @@ public:
         sliders.setSize(getWidth(), std::max(sliders.getTotalHeight(), viewport.getMaximumVisibleHeight()));
     }
 
-    void updateParameters()
+    void handleAsyncUpdate() override
     {
         if (ProjectInfo::isStandalone) {
 

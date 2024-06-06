@@ -173,14 +173,14 @@ public:
     void tabChanged() override
     {
         isOpenedInSplitView = false;
-        for (auto* split : cnv->editor->splitView.splits) {
-            if (auto* cnv = split->getTabComponent()->getCurrentCanvas()) {
-                if (cnv->patch == *getPatch()) {
-                    isOpenedInSplitView = true;
-                }
+        for (auto* visibleCanvas : cnv->editor->getTabComponent().getVisibleCanvases()) {
+            if(visibleCanvas->patch == *getPatch())
+            {
+                isOpenedInSplitView = true;
+                break;
             }
         }
-
+        
         updateCanvas();
         repaint();
     }
@@ -399,7 +399,7 @@ public:
                         return;
 
                     _this->cnv->setSelected(_this->object, false);
-                    _this->object->cnv->editor->sidebar->hideParameters();
+                    _this->object->editor->sidebar->hideParameters();
 
                     _this->object->setType(_this->getText(), _this->ptr);
                 });

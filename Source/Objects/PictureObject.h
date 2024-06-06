@@ -181,10 +181,8 @@ public:
         else {
             for(auto& [image, bounds] : imageBuffers)
             {
-                nvgBeginPath(nvg);
-                nvgRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
                 nvgFillPaint(nvg, nvgImagePattern(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), 0, image->getImageId(), 1.0f));
-                nvgFill(nvg);
+                nvgFillRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
             }
         }
         

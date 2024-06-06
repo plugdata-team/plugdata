@@ -33,10 +33,10 @@ void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg ypos, t_floatarg shif
 #include "Object.h"
 #include "Iolet.h"
 #include "Canvas.h"
-#include "Tabbar/Tabbar.h"
 #include "Components/SuggestionComponent.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
+#include "TabComponent.h"
 #include "Pd/Patch.h"
 #include "Sidebar/Sidebar.h"
 #include "Utility/CachedTextRender.h"
@@ -321,13 +321,13 @@ Rectangle<int> ObjectBase::getSelectableBounds()
 // Makes sure that any tabs refering to the now deleted patch will be closed
 void ObjectBase::closeOpenedSubpatchers()
 {
-    auto* editor = object->cnv->editor;
+    auto* editor = object->editor;
 
-    for (auto* canvas : editor->canvases) {
+    for (auto* canvas : editor->getCanvases()) {
         auto* patch = getPatch().get();
         if (patch && canvas && canvas->patch == *patch) {
 
-            canvas->editor->closeTab(canvas);
+            canvas->editor->getTabComponent().closeTab(canvas);
             break;
         }
     }
@@ -377,23 +377,18 @@ void ObjectBase::openSubpatch()
     }
 
     // Check if subpatch is already opened
-    for (auto* cnv : cnv->editor->canvases) {
+    for (auto* cnv : cnv->editor->getCanvases()) {
         if (cnv->patch == *subpatch) {
-            auto* tabbar = cnv->getTabbar();
-            tabbar->setCurrentTabIndex(cnv->getTabIndex());
+            cnv->editor->getTabComponent().showTab(cnv);
             return;
         }
     }
 
-    cnv->editor->pd->patches.add(subpatch);
-    auto newPatch = cnv->editor->pd->patches.getLast();
-    auto* newCanvas = cnv->editor->canvases.add(new Canvas(cnv->editor, *newPatch, nullptr));
+    cnv->editor->getTabComponent().openPatch(subpatch);
     
     if(path.getFullPathName().isNotEmpty()) {
-        newPatch->setCurrentFile(URL(path));
+        subpatch->setCurrentFile(URL(path));
     }
-
-    cnv->editor->addTab(newCanvas);
 }
 
 void ObjectBase::moveToFront()

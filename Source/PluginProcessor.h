@@ -100,7 +100,6 @@ public:
         return nbus > 0;
     }
 
-    void savePatchTabPositions();
     void updatePatchUndoRedoState();
         
     void settingsFileReloaded() override;
@@ -128,8 +127,8 @@ public:
     void parseDataBuffer(XmlElement const& xml) override;
     std::unique_ptr<XmlElement> extraData;
 
-    pd::Patch::Ptr loadPatch(String patch, PluginEditor* editor, int splitIndex = -1);
-    pd::Patch::Ptr loadPatch(URL const& patchURL, PluginEditor* editor, int splitIndex = -1);
+    pd::Patch::Ptr loadPatch(String patch, PluginEditor* editor, int splitIndex = 0);
+    pd::Patch::Ptr loadPatch(URL const& patchURL, PluginEditor* editor, int splitIndex = 0);
 
     void titleChanged() override;
 
@@ -139,9 +138,6 @@ public:
     Colour getBackgroundColour() override;
     Colour getTextColour() override;
     Colour getOutlineColour() override;
-        
-    // All opened patches
-    Array<pd::Patch::Ptr, CriticalSection> patches;
 
     int lastUIWidth = 1000, lastUIHeight = 650;
 

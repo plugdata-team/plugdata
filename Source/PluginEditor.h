@@ -12,11 +12,12 @@
 #include "Utility/Fonts.h"
 #include "Utility/ModifierKeyListener.h"
 #include "Components/CheckedTooltip.h"
-#include "Components/ZoomableDragAndDropContainer.h"
+#include "Utility/ZoomableDragAndDropContainer.h"
 #include "Utility/OfflineObjectRenderer.h"
 #include "Utility/WindowDragger.h"
-
-#include "Tabbar/SplitView.h"
+#include "Canvas.h"
+#include "Components/Buttons.h"
+#include "TabComponent.h"
 
 
 #include "Utility/ObjectThemeManager.h"
@@ -83,8 +84,6 @@ public:
     void paintOverChildren(Graphics& g) override;
     
     void renderArea(NVGcontext* nvg, Rectangle<int> area);
-
-    void initialiseCanvasRenderer();
     
     bool isActiveWindow() override;
 
@@ -97,27 +96,13 @@ public:
     void mouseDrag(MouseEvent const& e) override;
     void mouseDown(MouseEvent const& e) override;
 
-    void newProject();
-    void openProject();
-    void saveProject(std::function<void()> const& nestedCallback = []() {});
-    void saveProjectAs(std::function<void()> const& nestedCallback = []() {});
-
-    void addTab(Canvas* cnv, int splitIdx = -1);
-    void closeTab(Canvas* cnv);
-    void closeAllTabs(
-        bool quitAfterComplete = false, Canvas* patchToExclude = nullptr, std::function<void()> afterComplete = []() {});
-
     void quit(bool askToSave);
 
+    Array<Canvas*> getCanvases();
     Canvas* getCurrentCanvas();
 
-    // Part of the ZoomableDragAndDropContainer, we give it the splitview
-    // so it can check if the drag image is over the entire splitview
-    // otherwise some objects inside the splitview will trigger a zoom
-    SplitView* getSplitView() override;
-
     void modifierKeysChanged(ModifierKeys const& modifiers) override;
-
+    
     void valueChanged(Value& v) override;
 
     void updateCommandStatus();
@@ -129,7 +114,7 @@ public:
     void fileDragMove(StringArray const& files, int x, int y) override;
     void fileDragExit(StringArray const&) override;
 
-    void createNewWindow(TabBarButtonComponent* tabButton) override;
+    TabComponent& getTabComponent() override;
 
     DragAndDropTarget* findNextDragAndDropTarget(Point<int> screenPos) override;
 
@@ -144,8 +129,6 @@ public:
     
     CallOutBox& showCalloutBox(std::unique_ptr<Component> content, Rectangle<int> screenBounds);
 
-    void enablePluginMode(Canvas* cnv);
-
     void commandKeyChanged(bool isHeld) override;
     void setUseBorderResizer(bool shouldUse);
     void showTouchSelectionHelper(bool shouldBeShown);
@@ -154,13 +137,10 @@ public:
 
     Array<pd::WeakReference> openTextEditors;
 
-    TabComponent* getActiveTabbar();
-
     PluginProcessor* pd;
 
     std::unique_ptr<ConnectionMessageDisplay> connectionMessageDisplay;
 
-    OwnedArray<Canvas, CriticalSection> canvases;
     std::unique_ptr<Sidebar> sidebar;
     std::unique_ptr<Statusbar> statusbar;
 
@@ -172,10 +152,7 @@ public:
 
     Value hvccMode;
     Value autoconnect;
-
-    SplitView splitView;
-    DrawableRectangle selectedSplitRect;
-
+    
     std::unique_ptr<Palettes> palettes;
 
     OfflineObjectRenderer offlineRenderer;
@@ -199,6 +176,8 @@ public:
     CheckedTooltip tooltipWindow;
     
 private:
+    
+    TabComponent tabComponent;
     std::unique_ptr<TouchSelectionHelper> touchSelectionHelper;
 
     // Used by standalone to handle dragging the window
@@ -208,10 +187,9 @@ private:
 
     MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pluginModeButton;
     ToolbarRadioButton editButton, runButton, presentButton;
-
-
     TextButton seperators[8];
 
+    
 #if JUCE_MAC
     Rectangle<int> unmaximisedSize;
 #endif

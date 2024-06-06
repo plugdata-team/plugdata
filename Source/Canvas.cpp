@@ -17,7 +17,6 @@
 #include "LookAndFeel.h"
 #include "Components/SuggestionComponent.h"
 #include "CanvasViewport.h"
-#include "Tabbar/SplitView.h"
 
 #include "Objects/ObjectBase.h"
 
@@ -204,8 +203,9 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
             auto renderIolet = [](NVGcontext* nvg, Rectangle<float> bounds, NVGcolor background, NVGcolor outline){
                 if (PlugDataLook::getUseSquareIolets()) {
                     nvgBeginPath(nvg);
-                    nvgFillColor(nvg, background);
                     nvgRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+                    
+                    nvgFillColor(nvg, background);
                     nvgFill(nvg);
                     
                     nvgStrokeColor(nvg, outline);
@@ -312,13 +312,14 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         invalidRegion = invalidRegion.translated(viewport->getViewPositionX(), viewport->getViewPositionY());
         invalidRegion /= zoom;
         
-        nvgBeginPath(nvg);
-        nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
         nvgFillColor(nvg, backgroundColour);
-        nvgFill(nvg);
+        nvgFillRect(nvg, invalidRegion.getX(), invalidRegion.getY(), invalidRegion.getWidth(), invalidRegion.getHeight());
     }
     
     if(hasViewport && !getValue<bool>(locked)) {
+        nvgBeginPath(nvg);
+        nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
+        
         auto feather = getRenderScale() > 1.0f ? 0.25f : 0.75f;
         if(getValue<float>(zoomScale) >= 1.0f) {
             nvgSave(nvg);
@@ -446,9 +447,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
 
             // background colour to crop outside of border area
             nvgBeginPath(nvg);
-            nvgFillColor(nvg, bgColour);
             nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
-
             nvgPathWinding(nvg, NVG_HOLE);
             nvgRoundedRect(nvg, pos.getX(), pos.getY(), borderWidth, borderHeight, windowCorner);
             nvgFillColor(nvg, bgColour);
@@ -456,9 +455,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
 
             // background drop shadow to simulate a virtual plugin
             nvgBeginPath(nvg);
-            nvgFillColor(nvg, bgColour);
             nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
-
             nvgPathWinding(nvg, NVG_HOLE);
             nvgRoundedRect(nvg, pos.getX(), pos.getY(), borderWidth, borderHeight, windowCorner);
 
@@ -763,17 +760,6 @@ void Canvas::zoomToFitAll()
     viewport->setViewPosition(newViewPos);
 }
 
-TabComponent* Canvas::getTabbar()
-{
-    for (auto* split : editor->splitView.splits) {
-        auto tabbar = split->getTabComponent();
-        if (tabbar->getIndexOfCanvas(this) >= 0)
-            return tabbar;
-    }
-
-    return nullptr;
-}
-
 void Canvas::tabChanged()
 {
     patch.setCurrent();
@@ -794,13 +780,49 @@ void Canvas::tabChanged()
     editor->repaint(); // Make sure everything it up to date
 }
 
-int Canvas::getTabIndex()
+void Canvas::save(std::function<void()> const& nestedCallback)
 {
-    if (auto* tabbar = getTabbar()) {
-        return tabbar->getIndexOfCanvas(this);
+    Canvas* canvasToSave = this;
+    if (patch.isSubpatch()) {
+        for (auto& parentCanvas : editor->getCanvases()) {
+            if (patch.getRoot() == parentCanvas->patch.getPointer().get()) {
+                canvasToSave = parentCanvas;
+            }
+        }
     }
-    return -1;
+    
+    if (patch.getCurrentFile().existsAsFile()) {
+        canvasToSave->updatePatchSnapshot();
+        canvasToSave->patch.savePatch();
+        SettingsFile::getInstance()->addToRecentlyOpened(canvasToSave->patch.getCurrentFile());
+        nestedCallback();
+        pd->titleChanged();
+    } else {
+        saveAs(nestedCallback);
+    }
 }
+
+void Canvas::saveAs(std::function<void()> const& nestedCallback)
+{
+    Dialogs::showSaveDialog([this, nestedCallback](URL resultURL) mutable {
+        auto result = resultURL.getLocalFile();
+        if (result.getFullPathName().isNotEmpty()) {
+            if (result.exists())
+                result.deleteFile();
+            
+            if(!result.hasFileExtension("pd")) result = result.getFullPathName() + ".pd";
+            
+            updatePatchSnapshot();
+            patch.savePatch(resultURL);
+            SettingsFile::getInstance()->addToRecentlyOpened(result);
+            pd->titleChanged();
+        }
+
+        nestedCallback();
+    },
+        "*.pd", "Patch", this);
+}
+
 
 void Canvas::handleAsyncUpdate()
 {
@@ -814,10 +836,9 @@ void Canvas::synchronise()
 
 void Canvas::synchroniseSplitCanvas()
 {
-    for (auto split : editor->splitView.splits) {
-        auto tabbar = split->getTabComponent();
-        if (auto* activeTabCanvas = tabbar->getCurrentCanvas())
-            activeTabCanvas->synchronise();
+    for(auto* canvas : editor->getTabComponent().getVisibleCanvases())
+    {
+        canvas->synchronise();
     }
 }
 

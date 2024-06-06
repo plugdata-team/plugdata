@@ -254,10 +254,8 @@ public:
         
         loadJUCEImage(nvg, componentImage);
 
-        nvgBeginPath(nvg);
-        nvgRect(nvg, 0, 0, component.getWidth(), component.getHeight());
         nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, component.getWidth(), component.getHeight(), 0, imageId, 1.0f));
-        nvgFill(nvg);
+        nvgFillRect(nvg, 0, 0, component.getWidth(), component.getHeight());
     }
     
     void loadJUCEImage(NVGcontext* context, Image& image)
@@ -301,10 +299,8 @@ public:
     void render(NVGcontext* nvg, Rectangle<int> b)
     {
         if(imageId) {
-            nvgBeginPath(nvg);
-            nvgRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight());
             nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, b.getWidth(), b.getHeight(), 0, imageId, 1));
-            nvgFill(nvg);
+            nvgFillRect(nvg,  b.getX(), b.getY(), b.getWidth(), b.getHeight());
         }
     }
     
@@ -394,10 +390,8 @@ public:
     void render(NVGcontext* nvg, Rectangle<int> b)
     {
         if(fb) {
-            nvgBeginPath(nvg);
-            nvgRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight());
             nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, b.getWidth(), b.getHeight(), 0, fb->image, 1));
-            nvgFill(nvg);
+            nvgFillRect(nvg,  b.getX(), b.getY(), b.getWidth(), b.getHeight());
         }
     }
     

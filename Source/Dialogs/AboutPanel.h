@@ -38,7 +38,7 @@ class AboutPanel : public Component {
     class CreditsPanel : public Component
     {
         const std::vector<std::pair<String, String>> contributors = {
-            {"Timothy Schoen", "Development, UI/UX design"},
+            {"Timothy Schoen", "Lead development, UI/UX design"},
             {"Alex Mitchell", "Development, UI/UX design"},
             {"Joshua A.C. Newman", "Community management, logo and identity design"},
             {"Bas de Bruin", "Logo design"},

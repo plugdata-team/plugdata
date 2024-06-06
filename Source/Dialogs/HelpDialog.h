@@ -4,7 +4,8 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include <Utility/MarkupDisplay.h>
+#include "Components/MarkupDisplay.h"
+#include "Components/BouncingViewport.h"
 
 class HelpDialog : public TopLevelWindow
     , public MarkupDisplay::FileSource {

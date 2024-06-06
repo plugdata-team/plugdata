@@ -18,7 +18,7 @@ using namespace juce::gl;
 
 #include "PluginEditor.h"
 #include "PluginProcessor.h"
-#include "Tabbar/WelcomePanel.h"
+#include "Components/WelcomePanel.h"
 
 #define ENABLE_FPS_COUNT 0
 
@@ -33,10 +33,8 @@ public:
     
     void render(NVGcontext* nvg)
     {
-        nvgBeginPath(nvg);
-        nvgRect(nvg, 0, 0, 40, 22);
         nvgFillColor(nvg, nvgRGBA(40, 40, 40, 255));
-        nvgFill(nvg);
+        nvgFillRect(nvg, 0, 0, 40, 22);
         
         nvgFontSize(nvg, 20.0f);
         nvgTextAlign(nvg,NVG_ALIGN_LEFT|NVG_ALIGN_TOP);
@@ -281,25 +279,6 @@ void NVGSurface::render()
         return; // Render on next frame
     }
     
-    bool hasCanvas = false;
-    for(auto* split : editor->splitView.splits)
-    {
-        if(auto* cnv = split->getTabComponent()->getCurrentCanvas())
-        {
-            hasCanvas = true;
-            break;
-        }
-    }
-    // Manage showing/hiding welcome panel
-    if(hasCanvas && editor->welcomePanel->isVisible()) {
-        editor->welcomePanel->hide();
-        editor->resized();
-    }
-    else if(!hasCanvas && !editor->welcomePanel->isVisible()) {
-        editor->welcomePanel->show();
-        editor->resized();
-    }
-    
     updateBufferSize();
     
     auto pixelScale = getRenderScale();
@@ -322,17 +301,15 @@ void NVGSurface::render()
         nvgViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
         nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
         nvgBeginPath(nvg);
-        nvgRect(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
         nvgScissor(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
+        
         nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, invalidFBO->image, 1));
-        nvgFill(nvg);
+        nvgFillRect(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
         
 #if ENABLE_FB_DEBUGGING
         static Random rng;
-        nvgBeginPath(nvg);
         nvgFillColor(nvg, nvgRGBA(rng.nextInt(255), rng.nextInt(255), rng.nextInt(255), 0x50));
-        nvgRect(nvg, 0, 0, getWidth(), getHeight());
-        nvgFill(nvg);
+        nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
 #endif
         
         nvgEndFrame(nvg);
@@ -348,17 +325,11 @@ void NVGSurface::render()
         
         nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
         
-        nvgBeginPath(nvg);
         nvgSave(nvg);
-        nvgRect(nvg, 0, 0, getWidth(), getHeight());
         nvgScissor(nvg, 0, 0, getWidth(), getHeight());
         nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, mainFBO->image, 1));
-        nvgFill(nvg);
+        nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
         nvgRestore(nvg);
-        
-        if(!editor->pluginMode) {
-            editor->splitView.render(nvg); // Render split view outlines and tab dnd areas
-        }
         
 #if ENABLE_FPS_COUNT
         nvgSave(nvg);
@@ -383,12 +354,9 @@ void NVGSurface::render()
     auto elapsed = Time::getMillisecondCounter() - startTime;
     // We update frambuffers after we call swapBuffers to make sure the frame is on time
     if(elapsed < 14) {
-        for(auto* split : editor->splitView.splits)
+        for(auto* cnv : editor->getTabComponent().getVisibleCanvases())
         {
-            if(auto* cnv = split->getTabComponent()->getCurrentCanvas())
-            {
-                cnv->updateFramebuffers(nvg, cnv->getLocalBounds(), 14 - elapsed);
-            }
+            cnv->updateFramebuffers(nvg, cnv->getLocalBounds(), 14 - elapsed);
         }
     }
 }

@@ -27,7 +27,6 @@
 #include "PluginMode.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
-#include "Tabbar/Tabbar.h"
 #include "Object.h"
 #include "Statusbar.h"
 
@@ -995,12 +994,7 @@ AudioProcessorEditor* PluginProcessor::createEditor()
     if (ProjectInfo::isStandalone) {
         openedEditors.add(editor);
     }
-
-    for (auto const& patch : patches) {
-        auto* cnv = editor->canvases.add(new Canvas(editor, *patch, nullptr));
-        editor->addTab(cnv, patch->splitViewIndex);
-    }
-
+    
     editor->resized();
     return editor;
 }
@@ -1019,8 +1013,6 @@ bool PluginProcessor::isInPluginMode()
 void PluginProcessor::getStateInformation(MemoryBlock& destData)
 {
     setThis();
-
-    savePatchTabPositions();
 
     // Store pure-data and parameter state
     MemoryOutputStream ostream(destData, false);
@@ -1107,19 +1099,6 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     if (sizeInBytes == 0)
         return;
     
-    // Don't clear tabs if there is no editor open before loading state, if we don't check this it will not load properly in some DAWs
-    if(getEditors().size()) {
-        // Close any opened patches
-        MessageManager::callAsync([this]() {
-            for (auto* editor : getEditors()) {
-                for (auto split : editor->splitView.splits) {
-                    split->getTabComponent()->clearTabs();
-                }
-                editor->canvases.clear();
-            }
-        });
-    }
-
     MemoryInputStream istream(data, sizeInBytes, false);
     
     lockAudioThread();
@@ -1162,24 +1141,22 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             // This makes sure the patch can find abstractions/resources, even though it's loading patch from state
             glob_forcefilename(generateSymbol(location.getFileName().toRawUTF8()), generateSymbol(location.getParentDirectory().getFullPathName().toRawUTF8()));
             
-            auto patch = loadPatch(content, getEditors()[0], splitIndex);
-            if (patch && ((location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) || !location.exists())) {
-                patch->setTitle("Untitled Patcher");
-                patch->openInPluginMode = pluginMode;
-                patch->splitViewIndex = splitIndex;
-            } else if (patch && location.existsAsFile()) {
-                patch->setCurrentFile(URL(location));
-                patch->setTitle(location.getFileName());
-                patch->openInPluginMode = pluginMode;
-                patch->splitViewIndex = splitIndex;
+            auto patchPtr = loadPatch(content, nullptr);
+            patchPtr->splitViewIndex = splitIndex;
+            patchPtr->openInPluginMode = pluginMode;
+            if(!location.exists() || (location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)))
+            {
+                patchPtr->setUntitled();
+            }
+            else
+            {
+                patchPtr->setTitle(location.getFileName());
             }
         }
-        else if (location.getFullPathName().isNotEmpty() && location.existsAsFile()) {
-            auto patch = loadPatch(URL(location), getEditors()[0], splitIndex);
-            if (patch) {
-                patch->setTitle(location.getFileName());
-                patch->openInPluginMode = pluginMode;
-            }
+        else {
+            auto patchPtr = loadPatch(URL(location), nullptr);
+            patchPtr->splitViewIndex = splitIndex;
+            patchPtr->openInPluginMode = pluginMode;
         }
     };
 
@@ -1253,16 +1230,12 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     unlockAudioThread();
 
     delete[] xmlData;
-
-    MessageManager::callAsync([this]() {
-        for (auto* editor : getEditors()) {
-            editor->sidebar->updateAutomationParameters();
-
-            if (editor->pluginMode && !editor->pd->isInPluginMode()) {
-                editor->pluginMode->closePluginMode();
-            }
-        }
-    });
+    
+    if(auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor()))
+    {
+        editor->getTabComponent().triggerAsyncUpdate();
+        editor->sidebar->updateAutomationParameters();
+    }
     
     // After loading a state, we need to update all the parameters
     if(PluginHostType::getPluginLoadedAs() == AudioProcessor::wrapperType_AudioUnit || PluginHostType::getPluginLoadedAs() == AudioProcessor::wrapperType_AudioUnitv3)
@@ -1282,25 +1255,6 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL, PluginEditor* editor, int splitIndex)
 {
     auto patchFile = patchURL.getLocalFile();
-    // First, check if patch is already opened
-    for (auto const& patch : patches) {
-        if (patch->getCurrentFile() == patchFile) {
-            MessageManager::callAsync([this, patch]() mutable {
-                for (auto* editor : getEditors()) {
-                    for (auto* cnv : editor->canvases) {
-                        if (cnv->patch == *patch) {
-                            cnv->getTabbar()->setCurrentTabIndex(cnv->getTabIndex());
-                        }
-                    }
-                    editor->pd->logError("Patch is already open");
-                }
-            });
-
-            // Patch is already opened
-            return nullptr;
-        }
-    }
-
     // Stop the audio callback when loading a new patch
     // TODO: why though?
     lockAudioThread();
@@ -1337,22 +1291,6 @@ pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL, PluginEditor* edi
 
     patches.add(newPatch);
     auto* patch = patches.getLast().get();
-
-    if (editor) {
-        MessageManager::callAsync([this, patch, splitIndex, _editor = Component::SafePointer<PluginEditor>(editor)]() mutable {
-            if (!_editor)
-                return;
-            // There are some subroutines that get called when we create a canvas, that will lock the audio thread
-            // By locking it around this whole function, we can prevent slowdowns from constantly locking/unlocking the audio thread
-            lockAudioThread();
-
-            auto* cnv = _editor->canvases.add(new Canvas(_editor.getComponent(), *patch, nullptr));
-
-            unlockAudioThread();
-
-            _editor->addTab(cnv, splitIndex);
-        });
-    }
     patch->setCurrentFile(URL(patchFile));
 
     return patch;
@@ -1546,11 +1484,11 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
                     MessageManager::callAsync([this](){
                         auto editors = getEditors();
                         if(editors.size()) {
-                            for(auto* canvas : editors[0]->canvases)
+                            for(auto* canvas : editors[0]->getCanvases())
                             {
                                 if(patches[0] == canvas->patch)
                                 {
-                                    editors[0]->enablePluginMode(canvas);
+                                    editors[0]->getTabComponent().openInPluginMode(canvas->refCountedPatch);
                                 }
                             }
                         }
@@ -1560,7 +1498,10 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
                 else {
                     MessageManager::callAsync([this](){
                         for (auto* editor : getEditors()) {
-                            editor->enablePluginMode(editor->getCurrentCanvas());
+                            if(auto* cnv = editor->getCurrentCanvas())
+                            {
+                                editor->getTabComponent().openInPluginMode(cnv->refCountedPatch);
+                            }
                         }
                     });
                 }
@@ -1916,7 +1857,7 @@ void PluginProcessor::reloadAbstractions(File changedPatch, t_glist* except)
         // Synchronising can potentially delete some other canvases, so make sure we use a safepointer
         Array<Component::SafePointer<Canvas>> canvases;
 
-        for (auto* canvas : editor->canvases) {
+        for (auto* canvas : editor->getCanvases()) {
             canvases.add(canvas);
         }
 
@@ -1936,51 +1877,8 @@ void PluginProcessor::reloadAbstractions(File changedPatch, t_glist* except)
 void PluginProcessor::titleChanged()
 {
     for (auto* editor : getEditors()) {
-        for (auto split : editor->splitView.splits) {
-            auto tabbar = split->getTabComponent();
-            for (int n = 0; n < tabbar->getNumTabs(); n++) {
-                auto* cnv = tabbar->getCanvas(n);
-                if (!cnv)
-                    return;
-
-                tabbar->setTabText(n, cnv->patch.getTitle() + String(cnv->patch.isDirty() ? "*" : ""));
-            }
-        }
+        editor->getTabComponent().triggerAsyncUpdate();
     }
-}
-
-void PluginProcessor::savePatchTabPositions()
-{
-    Array<std::tuple<pd::Patch*, int>> sortedPatches;
-    // TODO: make multi-window friendly
-    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        for (auto* cnv : editor->canvases) {
-            cnv->patch.splitViewIndex = editor->splitView.getTabComponentSplitIndex(cnv->getTabbar());
-            sortedPatches.add({ &cnv->patch, cnv->getTabIndex() });
-        }
-    }
-
-    std::sort(sortedPatches.begin(), sortedPatches.end(), [](auto const& a, auto const& b) {
-        auto& [patchA, idxA] = a;
-        auto& [patchB, idxB] = b;
-
-        if (patchA->splitViewIndex == patchB->splitViewIndex)
-            return idxA < idxB;
-
-        return patchA->splitViewIndex < patchB->splitViewIndex;
-    });
-
-    patches.getLock().enter();
-    int i = 0;
-    for (auto& [patch, tabIdx] : sortedPatches) {
-
-        if (i >= patches.size())
-            break;
-
-        patches.set(i, patch);
-        i++;
-    }
-    patches.getLock().exit();
 }
 
 // This creates new instances of the plugin..

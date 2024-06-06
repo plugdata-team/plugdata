@@ -112,9 +112,9 @@ void Sidebar::paint(Graphics& g)
         g.fillRect(0, 30, getWidth(), getHeight());
         
         if (inspector->isVisible()) {
-            Fonts::drawStyledText(g, "Inspector: " + inspector->getTitle(), Rectangle<int>(0, 0, getWidth() - 30, 30), findColour(PlugDataColour::toolbarTextColourId), RegularBoldened, 15, Justification::centred);
+            Fonts::drawStyledText(g, "Inspector: " + inspector->getTitle(), Rectangle<int>(0, 0, getWidth() - 30, 30), findColour(PlugDataColour::toolbarTextColourId), Bold, 15, Justification::centred);
         } else {
-            Fonts::drawStyledText(g, panelNames[currentPanel], Rectangle<int>(0, 0, getWidth() - 30, 30), findColour(PlugDataColour::toolbarTextColourId), RegularBoldened, 15, Justification::centred);
+            Fonts::drawStyledText(g, panelNames[currentPanel], Rectangle<int>(0, 0, getWidth() - 30, 30), findColour(PlugDataColour::toolbarTextColourId), Bold, 15, Justification::centred);
         }
     }
 }
@@ -268,10 +268,7 @@ bool Sidebar::isShowingBrowser()
 void Sidebar::updateAutomationParameters()
 {
     if (automationPanel) {
-        // Might be called from audio thread
-        MessageManager::callAsync([this]() {
-            automationPanel->updateParameters();
-        });
+        automationPanel->triggerAsyncUpdate();
     }
 }
 

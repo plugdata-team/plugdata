@@ -54,10 +54,8 @@ public:
             updateColour = false;
         }
         
-        nvgBeginPath(nvg);
-        nvgRect(nvg, 0, 0, getWidth() + 1, getHeight());
         nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth() + 1, getHeight(), 0, image.getImageId(), 1.0f));
-        nvgFill(nvg);
+        nvgFillRect(nvg, 0, 0, getWidth() + 1, getHeight());
     }
 
     void setColour(const Colour& colour)

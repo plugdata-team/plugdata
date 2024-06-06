@@ -164,7 +164,7 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
 
         switch (result) {
         case 1: {
-            editor->newProject();
+            editor->getTabComponent().newPatch();
             break;
         }
         case 2: {
@@ -172,13 +172,13 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
             break;
         }
         case 3: {
-            if (editor->getCurrentCanvas())
-                editor->saveProject();
+            if (auto* cnv = editor->getCurrentCanvas())
+                cnv->saveProject();
             break;
         }
         case 4: {
-            if (editor->getCurrentCanvas())
-                editor->saveProjectAs();
+            if (auto* cnv = editor->getCurrentCanvas())
+                cnv->saveAs();
             break;
         }
         case 5: {
@@ -212,21 +212,21 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
         [editor, popup, settingsTree = SettingsFile::getInstance()->getValueTree()](int result) mutable {
             switch (result) {
             case MainMenu::MenuItem::NewPatch: {
-                editor->newProject();
+                editor->getTabComponent().newPatch();
                 break;
             }
             case MainMenu::MenuItem::OpenPatch: {
-                editor->openProject();
+                editor->getTabComponent().openPatch();
                 break;
             }
             case MainMenu::MenuItem::Save: {
-                if (editor->getCurrentCanvas())
-                    editor->saveProject();
+                if (auto* cnv = editor->getCurrentCanvas())
+                    cnv->save();
                 break;
             }
             case MainMenu::MenuItem::SaveAs: {
-                if (editor->getCurrentCanvas())
-                    editor->saveProjectAs();
+                if (auto* cnv = editor->getCurrentCanvas())
+                    cnv->saveAs();
                 break;
             }
             case MainMenu::MenuItem::CompiledMode: {

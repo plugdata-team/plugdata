@@ -19,7 +19,7 @@
 #include "PluginEditor.h"
 #include "Sidebar/PaletteItem.h"
 #include "Utility/OfflineObjectRenderer.h"
-#include "Components/ZoomableDragAndDropContainer.h"
+#include "Utility/ZoomableDragAndDropContainer.h"
 #include "Components/Buttons.h"
 
 class AddItemButton : public Component {
@@ -317,7 +317,7 @@ public:
 
     void lookAndFeelChanged() override
     {
-        nameLabel.setFont(Fonts::getCurrentFont().boldened());
+        nameLabel.setFont(Fonts::getBoldFont());
     }
 
     void showAndGrabEditorFocus()

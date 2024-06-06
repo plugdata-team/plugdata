@@ -100,7 +100,8 @@ public:
         fileList.onClick = [this](ValueTree& tree){
             auto file = File(tree.getProperty("Path").toString());
             if (file.existsAsFile() && file.hasFileExtension("pd")) {
-                pd->loadPatch(URL(file), findParentComponentOfClass<PluginEditor>());
+                auto* editor = findParentComponentOfClass<PluginEditor>();
+                editor->getTabComponent().openPatch(URL(file));
                 SettingsFile::getInstance()->addToRecentlyOpened(file);
             }
             else if(file.isDirectory())

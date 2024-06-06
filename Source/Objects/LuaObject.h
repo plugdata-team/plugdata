@@ -324,10 +324,8 @@ public:
                     float y = atom_getfloat(argv + 1);
                     float w = atom_getfloat(argv + 2);
                     float h = atom_getfloat(argv + 3);
- 
-                    nvgBeginPath(nvg);
-                    nvgRect(nvg, x, y, w, h);
-                    nvgFill(nvg);
+                    
+                    nvgFillRect(nvg, x, y, w, h);
                 }
                 break;
             }
@@ -340,9 +338,7 @@ public:
                     float lineThickness = atom_getfloat(argv + 4);
 
                     nvgStrokeWidth(nvg, lineThickness);
-                    nvgBeginPath(nvg);
-                    nvgRect(nvg, x, y, w, h);
-                    nvgStroke(nvg);
+                    nvgStrokeRect(nvg, x, y, w, h);
                 }
                 break;
             }
