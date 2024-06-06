@@ -317,7 +317,7 @@ public:
 
     void lookAndFeelChanged() override
     {
-        nameLabel.setFont(Fonts::getCurrentFont().boldened());
+        nameLabel.setFont(Fonts::getBoldFont());
     }
 
     void showAndGrabEditorFocus()

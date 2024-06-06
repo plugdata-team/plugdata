@@ -6,7 +6,6 @@
 
 enum FontStyle {
     Regular,
-    RegularBoldened,
     Bold,
     Semibold,
     Thin,
@@ -88,9 +87,6 @@ struct Fonts {
         switch (style) {
         case Regular:
             font = Fonts::getCurrentFont();
-            break;
-        case RegularBoldened:
-            font = Fonts::getCurrentFont().boldened();
             break;
         case Bold:
             font = Fonts::getBoldFont();
