@@ -853,7 +853,7 @@ void TabComponent::showHiddenTabsMenu(int splitIndex) {
             if (e.originalComponent == &closeTabButton)
                 return;
 
-            tabbar.showTab(cnv);
+            tabbar.showTab(cnv, cnv->patch.splitViewIndex);
             triggerMenuItem();
         }
 
