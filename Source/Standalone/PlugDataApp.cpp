@@ -184,11 +184,9 @@ public:
             if (toOpen.existsAsFile() && toOpen.hasFileExtension("pd")) {
 
                 auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
-                if (auto* pd = dynamic_cast<PluginProcessor*>(pluginHolder->processor.get())) {
-                    editor->getTabComponent().openPatch(URL(toOpen));
-                    SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
-                    openedPatches.add(toOpen.getFullPathName());
-                }
+                editor->getTabComponent().openPatch(URL(toOpen));
+                SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
+                openedPatches.add(toOpen.getFullPathName());
             }
         }
 
@@ -203,7 +201,6 @@ public:
 #    endif
             auto toOpen = File(arg);
             if (toOpen.existsAsFile() && toOpen.hasFileExtension("pd") && !openedPatches.contains(toOpen.getFullPathName())) {
-                auto* pd = dynamic_cast<PluginProcessor*>(pluginHolder->processor.get());
                 auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
                 editor->getTabComponent().openPatch(URL(toOpen));
                 SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
