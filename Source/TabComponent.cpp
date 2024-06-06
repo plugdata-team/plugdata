@@ -592,7 +592,7 @@ void TabComponent::closeAllTabs(bool quitAfterComplete, Canvas* patchToExclude, 
         MessageManager::callAsync([this, canvas, patch, deleteFunc]() mutable {
             if (patch->isDirty()) {
                 Dialogs::showAskToSaveDialog(
-                    &editor->openedDialog, this, patch->getTitle(),
+                    &editor->openedDialog, editor, patch->getTitle(),
                     [canvas, deleteFunc](int result) mutable {
                         if (!canvas)
                             return;
