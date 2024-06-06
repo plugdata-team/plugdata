@@ -28,7 +28,7 @@
 #include "Dialogs/ConnectionMessageDisplay.h"
 #include "Dialogs/Dialogs.h"
 #include "Statusbar.h"
-#include "Tabbar/WelcomePanel.h"
+#include "Components/WelcomePanel.h"
 #include "Sidebar/Sidebar.h"
 #include "Object.h"
 #include "PluginMode.h"
