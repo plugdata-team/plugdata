@@ -64,17 +64,17 @@ class WelcomePanel : public Component, public NVGComponent, public AsyncUpdater 
             auto* nvg = dynamic_cast<NanoVGGraphicsContext&>(g.getInternalContext()).getContext();
             
             auto textWidth = bounds.getWidth() - 8;
-            if(titleImage.needsUpdate(textWidth, 24) || subtitleImage.needsUpdate(textWidth, 16))
+            if(titleImage.needsUpdate(textWidth * 2, 24 * 2) || subtitleImage.needsUpdate(textWidth * 2, 16 * 2))
             {
                 auto textColour = findColour(PlugDataColour::panelTextColourId);
-                titleImage = NVGImage(nvg, textWidth * 2.0f, 24 * 2.0f, [this, textColour, textWidth](Graphics& g){
+                titleImage = NVGImage(nvg, textWidth * 2, 24 * 2, [this, textColour, textWidth](Graphics& g){
                     g.addTransform(AffineTransform::scale(2.0f, 2.0f));
                     g.setColour(textColour);
                     g.setFont(Fonts::getBoldFont().withHeight(14));
                     g.drawText(tileName, Rectangle<int>(0, 0, textWidth, 24), Justification::centredLeft, true);
                 });
                 
-                subtitleImage = NVGImage(nvg, textWidth * 2.0f, 16 * 2.0f, [this, textColour, textWidth](Graphics& g){
+                subtitleImage = NVGImage(nvg, textWidth * 2, 16 * 2, [this, textColour, textWidth](Graphics& g){
                     g.addTransform(AffineTransform::scale(2.0f, 2.0f));
                     g.setColour(textColour.withAlpha(0.75f));
                     g.setFont(Fonts::getDefaultFont().withHeight(13.5f));
