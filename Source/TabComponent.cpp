@@ -107,7 +107,7 @@ void TabComponent::moveToLeftSplit(TabBarButtonComponent* tab)
             auto* cnv = canvases.add(new Canvas(editor, patch));
             cnv->jumpToOrigin();
             tabbars[0].add(new TabBarButtonComponent(cnv, this));
-            showTab(cnv, 1);
+            showTab(cnv, 0);
             
             triggerAsyncUpdate();
             oldTabbar->triggerAsyncUpdate();
@@ -124,7 +124,7 @@ void TabComponent::moveToLeftSplit(TabBarButtonComponent* tab)
             auto* cnv = canvases.add(new Canvas(editor, patch));
             cnv->jumpToOrigin();
             tabbars[0].add(new TabBarButtonComponent(cnv, this));
-            showTab(cnv, 1);
+            showTab(cnv, 0);
             
             triggerAsyncUpdate();
             oldTabbar->triggerAsyncUpdate();
@@ -851,6 +851,11 @@ void TabComponent::itemDragMove(SourceDetails const& dragSourceDetails)
     if(!tab) return;
     
     Rectangle<int> oldSplitDropBounds = splitDropBounds;
+    
+    if(!splits[1]) {
+        splitProportion = 2;
+        splitSize = getWidth() / 2;
+    }
     
     if(getLocalBounds().removeFromTop(30).contains(dragSourceDetails.localPosition)) // Dragging over tabbar
     {
