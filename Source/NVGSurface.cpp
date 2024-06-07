@@ -181,11 +181,13 @@ void NVGSurface::detachContext()
 
 void NVGSurface::updateBufferSize()
 {
+    if(!makeContextActive()) return;
+    
     float pixelScale = getRenderScale();
     int scaledWidth = getWidth() * pixelScale;
     int scaledHeight = getHeight() * pixelScale;
     
-    if((fbWidth != scaledWidth || fbHeight != scaledHeight || !mainFBO) && makeContextActive()) {
+    if(fbWidth != scaledWidth || fbHeight != scaledHeight || !mainFBO) {
         if(invalidFBO) nvgDeleteFramebuffer(invalidFBO);
         if(mainFBO) nvgDeleteFramebuffer(mainFBO);
         mainFBO = nvgCreateFramebuffer(nvg, scaledWidth, scaledHeight, NVG_IMAGE_PREMULTIPLIED);
