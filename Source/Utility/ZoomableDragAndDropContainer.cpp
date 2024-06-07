@@ -403,6 +403,10 @@ private:
             auto details = sourceDetails;
 
             while (hit != nullptr) {
+                if(auto* ddt = dynamic_cast<PluginEditor*>(hit))
+                {
+                    hit = &ddt->getTabComponent();
+                }
                 if (auto* ddt = dynamic_cast<DragAndDropTarget*>(hit)) {
                     if (ddt->isInterestedInDragSource(details)) {
                         relativePos = hit->getLocalPoint(nullptr, screenPos);
