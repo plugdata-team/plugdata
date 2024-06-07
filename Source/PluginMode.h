@@ -14,11 +14,11 @@ class PluginMode : public Component, public NVGComponent {
 public:
     explicit PluginMode(PluginEditor* editor, pd::Patch::Ptr patch)
         : NVGComponent(this)
+        , patchPtr(patch)
         , cnv(std::make_unique<Canvas>(editor, patch, this))
         , editor(editor)
         , desktopWindow(editor->getPeer())
         , windowBounds(editor->getBounds().withPosition(editor->getTopLevelComponent()->getPosition()))
-        , patchPtr(patch)
     {
         if (ProjectInfo::isStandalone) {
             // If the window is already maximised, unmaximise it to prevent problems

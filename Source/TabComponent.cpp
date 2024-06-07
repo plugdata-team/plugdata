@@ -93,12 +93,51 @@ Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch)
 
 void TabComponent::moveToLeftSplit(TabBarButtonComponent* tab)
 {
+    if(tab->parent != this) // Move to another window
+    {
+        if(tab->parent->tabbars[0].contains(tab))
+        {
+            auto patch = tab->cnv->refCountedPatch;
+            patch->windowIndex = pd->getEditors().indexOf(editor);
+            
+            auto* oldTabbar = tab->parent;
+            oldTabbar->canvases.removeObject(tab->cnv);
+            oldTabbar->tabbars[0].removeObject(tab);
+            
+            auto* cnv = canvases.add(new Canvas(editor, patch));
+            cnv->jumpToOrigin();
+            tabbars[0].add(new TabBarButtonComponent(cnv, this));
+            showTab(cnv, 1);
+            
+            triggerAsyncUpdate();
+            oldTabbar->triggerAsyncUpdate();
+        }
+        else if(tab->parent->tabbars[1].contains(tab))
+        {
+            auto patch = tab->cnv->refCountedPatch;
+            patch->windowIndex = pd->getEditors().indexOf(editor);
+            
+            auto* oldTabbar = tab->parent;
+            oldTabbar->canvases.removeObject(tab->cnv);
+            oldTabbar->tabbars[1].removeObject(tab);
+            
+            auto* cnv = canvases.add(new Canvas(editor, patch));
+            cnv->jumpToOrigin();
+            tabbars[0].add(new TabBarButtonComponent(cnv, this));
+            showTab(cnv, 1);
+            
+            triggerAsyncUpdate();
+            oldTabbar->triggerAsyncUpdate();
+        }
+        return;
+    }
+    
     if(tabbars[1].size() && splits[1] && tabbars[1].indexOf(tab) >= 0) {
         tabbars[0].add(tabbars[1].removeAndReturn(tabbars[1].indexOf(tab)));  // Move tab to left tabbar
         if(tabbars[1].size()) showTab(tabbars[1][0]->cnv, 1); // Show first tab of right tabbar, if there are any tabs left
         else showTab(nullptr, 1); // If no tabs are left on right tabbar
         
-        showTab(tab->cnv, 0); // Show moved tab in left tabbar
+        showTab(tab->cnv, 0); // Show moved tab on left split
     }
     else if(tabbars[0].size() > 1 && splits[0] && !splits[1] && tabbars[0].indexOf(tab) >= 0) // If we try to create a left splits when there are no splits open
     {
@@ -119,6 +158,45 @@ void TabComponent::moveToLeftSplit(TabBarButtonComponent* tab)
 
 void TabComponent::moveToRightSplit(TabBarButtonComponent* tab)
 {
+    if(tab->parent != this) // Move to another window
+    {
+        if(tab->parent->tabbars[0].contains(tab))
+        {
+            auto patch = tab->cnv->refCountedPatch;
+            patch->windowIndex = pd->getEditors().indexOf(editor);
+            
+            auto* oldTabbar = tab->parent;
+            oldTabbar->canvases.removeObject(tab->cnv);
+            oldTabbar->tabbars[0].removeObject(tab);
+            
+            auto* cnv = canvases.add(new Canvas(editor, patch));
+            cnv->jumpToOrigin();
+            tabbars[1].add(new TabBarButtonComponent(cnv, this));
+            showTab(cnv, 1);
+            
+            triggerAsyncUpdate();
+            oldTabbar->triggerAsyncUpdate();
+        }
+        else if(tab->parent->tabbars[1].contains(tab))
+        {
+            auto patch = tab->cnv->refCountedPatch;
+            patch->windowIndex = pd->getEditors().indexOf(editor);
+            
+            auto* oldTabbar = tab->parent;
+            oldTabbar->canvases.removeObject(tab->cnv);
+            oldTabbar->tabbars[1].removeObject(tab);
+            
+            auto* cnv = canvases.add(new Canvas(editor, patch));
+            cnv->jumpToOrigin();
+            tabbars[1].add(new TabBarButtonComponent(cnv, this));
+            showTab(cnv, 1);
+            
+            triggerAsyncUpdate();
+            oldTabbar->triggerAsyncUpdate();
+        }
+        return;
+    }
+    
     if(tabbars[0].size() && splits[0] && tabbars[0].indexOf(tab) >= 0)
     {
         tabbars[1].add(tabbars[0].removeAndReturn(tabbars[0].indexOf(tab))); // Move tab to right tabbar
@@ -218,6 +296,7 @@ void TabComponent::handleAsyncUpdate()
         {
             if(patch->openInPluginMode) // Found pluginmode patch
             {
+                canvases.clear();
                 editor->pluginMode = std::make_unique<PluginMode>(editor, patch);
                 editor->resized();
                 lastPluginModePatchPtr = patch->getPointer().get();
@@ -239,7 +318,7 @@ void TabComponent::handleAsyncUpdate()
         bool exists = false;
         for(auto& patch : pd->patches)
         {
-            if(canvases[i]->patch == *patch)
+            if(canvases[i]->patch == *patch && canvases[i]->patch.windowIndex == editorIndex)
             {
                 exists = true;
             }
@@ -458,8 +537,8 @@ void TabComponent::mouseDrag(const MouseEvent& e)
 {
     auto localPos = e.getEventRelativeTo(this).getPosition();
     if(draggingSplitResizer) {
-        splitSize = localPos.x;
-        splitProportion = getWidth() / static_cast<float>(localPos.x);
+        splitProportion = std::clamp(getWidth() / static_cast<float>(localPos.x), 1.25f, 5.0f);
+        splitSize = getWidth() / splitProportion;
         resized();
     }
 }
@@ -724,25 +803,36 @@ void TabComponent::itemDragExit(SourceDetails const& dragSourceDetails)
     tab->setVisible(false);
     splitDropBounds = Rectangle<int>();
     draggingOverTabbar = false;
+    editor->nvgSurface.invalidateAll();
 }
 
 void TabComponent::saveTabPositions()
 {
+    auto editors = pd->getEditors();
+    
     Array<std::pair<pd::Patch::Ptr, int>> sortedPatches;
-    for(int i = 0; i < tabbars.size(); i++) {
-        for(int j = 0; j < tabbars[i].size(); j++)
-        {
-            if(auto* cnv = tabbars[i][j]->cnv.getComponent()) {
-                cnv->patch.splitViewIndex = i;
-                sortedPatches.add({ cnv->refCountedPatch, j });
+    for(int e = 0; e < editors.size(); e++) {
+        auto& tabbar = editors[e]->getTabComponent();
+        for(int i = 0; i < tabbar.tabbars.size(); i++) {
+            for(int j = 0; j < tabbar.tabbars[i].size(); j++)
+            {
+                if(auto* cnv = tabbar.tabbars[i][j]->cnv.getComponent()) {
+                    cnv->patch.splitViewIndex = i;
+                    cnv->patch.windowIndex = e;
+                    sortedPatches.add({ cnv->refCountedPatch, j });
+                }
             }
         }
     }
 
     std::sort(sortedPatches.begin(), sortedPatches.end(), [](auto const& a, auto const& b) {
-        if (a.first->splitViewIndex == b.first->splitViewIndex)
-            return a.second < b.second;
-        return a.first->splitViewIndex < b.first->splitViewIndex;
+        if (a.first->windowIndex != b.first->windowIndex)
+            return a.first->windowIndex < b.first->windowIndex;
+        
+        if (a.first->splitViewIndex != b.first->splitViewIndex)
+            return a.first->splitViewIndex < b.first->splitViewIndex;
+        
+        return a.second < b.second;
     });
 
     pd->patches.getLock().enter();
@@ -799,7 +889,7 @@ void TabComponent::itemDragMove(SourceDetails const& dragSourceDetails)
     else if(getLocalBounds().removeFromRight(getWidth() - splitSize).contains(dragSourceDetails.localPosition)) // Dragging over right split
     {
         draggingOverTabbar = false;
-        splitDropBounds = getLocalBounds().removeFromRight(splitSize);
+        splitDropBounds = getLocalBounds().removeFromRight(getWidth() - splitSize);
         tab->setVisible(false);
     }
     else { // Dragging over left split
