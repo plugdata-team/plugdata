@@ -213,7 +213,7 @@ void TabComponent::openPatch()
     Dialogs::showOpenDialog([this](URL resultURL) {
         auto result = resultURL.getLocalFile();
         if (result.exists() && result.getFileExtension().equalsIgnoreCase(".pd")) {
-            editor->autosave->checkForMoreRecentAutosave(result, [this, result, resultURL]() {
+            editor->autosave->checkForMoreRecentAutosave(result, editor, [this, result, resultURL]() {
                 openPatch(resultURL);
                 SettingsFile::getInstance()->addToRecentlyOpened(result);
             });

@@ -760,8 +760,6 @@ void Canvas::tabChanged()
     synchronise();
     updateDrawables();
 
-    // update GraphOnParent when changing tabs
-    // TODO: shouldn't we do this always on sync?
     for (auto* obj : objects) {
         if (!obj->gui)
             continue;

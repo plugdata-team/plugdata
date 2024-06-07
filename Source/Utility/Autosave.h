@@ -38,12 +38,8 @@ public:
     }
 
     // Call this whenever we load a file
-    void checkForMoreRecentAutosave(File& patchPath, std::function<void()> callback)
+    void checkForMoreRecentAutosave(File& patchPath, PluginEditor* editor, std::function<void()> callback)
     {
-        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
-        if (!editor)
-            return;
-
         auto lastAutoSavedPatch = autoSaveTree.getChildWithProperty("Path", patchPath.getFullPathName());
         auto autoSavedTime = static_cast<int64>(lastAutoSavedPatch.getProperty("LastModified"));
         auto fileChangedTime = patchPath.getLastModificationTime().toMilliseconds();

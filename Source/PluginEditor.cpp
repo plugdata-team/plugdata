@@ -629,7 +629,7 @@ void PluginEditor::filesDropped(StringArray const& files, int x, int y)
         auto file = File(path);
         if (file.exists() && file.hasFileExtension("pd")) {
             openedPdFiles = true;
-            autosave->checkForMoreRecentAutosave(file, [this, file]() {
+            autosave->checkForMoreRecentAutosave(file, editor, [this, file]() {
                 tabComponent.openPatch(URL(file));
                 SettingsFile::getInstance()->addToRecentlyOpened(file);
                 pd->titleChanged();
