@@ -78,7 +78,7 @@ Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch)
         cnv->locked.setValue(true);
     
     existingPatch->splitViewIndex = activeSplitIndex;
-    existingPatch->windowIndex = pd->getEditors().indexOf(editor);
+    existingPatch->windowIndex = editor->editorIndex;
     
     triggerAsyncUpdate();
     pd->titleChanged();
@@ -98,7 +98,7 @@ void TabComponent::moveToLeftSplit(TabBarButtonComponent* tab)
         if(tab->parent->tabbars[0].contains(tab))
         {
             auto patch = tab->cnv->refCountedPatch;
-            patch->windowIndex = pd->getEditors().indexOf(editor);
+            patch->windowIndex = editor->editorIndex;
             
             auto* oldTabbar = tab->parent;
             oldTabbar->canvases.removeObject(tab->cnv);
@@ -115,7 +115,7 @@ void TabComponent::moveToLeftSplit(TabBarButtonComponent* tab)
         else if(tab->parent->tabbars[1].contains(tab))
         {
             auto patch = tab->cnv->refCountedPatch;
-            patch->windowIndex = pd->getEditors().indexOf(editor);
+            patch->windowIndex = editor->editorIndex;
             
             auto* oldTabbar = tab->parent;
             oldTabbar->canvases.removeObject(tab->cnv);
@@ -163,7 +163,7 @@ void TabComponent::moveToRightSplit(TabBarButtonComponent* tab)
         if(tab->parent->tabbars[0].contains(tab))
         {
             auto patch = tab->cnv->refCountedPatch;
-            patch->windowIndex = pd->getEditors().indexOf(editor);
+            patch->windowIndex = editor->editorIndex;
             
             auto* oldTabbar = tab->parent;
             oldTabbar->canvases.removeObject(tab->cnv);
@@ -180,7 +180,7 @@ void TabComponent::moveToRightSplit(TabBarButtonComponent* tab)
         else if(tab->parent->tabbars[1].contains(tab))
         {
             auto patch = tab->cnv->refCountedPatch;
-            patch->windowIndex = pd->getEditors().indexOf(editor);
+            patch->windowIndex = editor->editorIndex;
             
             auto* oldTabbar = tab->parent;
             oldTabbar->canvases.removeObject(tab->cnv);
@@ -269,7 +269,7 @@ void TabComponent::createNewWindow(Component* draggedTab)
     auto patch = tab->cnv->refCountedPatch;
     closeTab(tab->cnv);
     
-    patch->windowIndex = pd->getEditors().size() - 1;
+    patch->windowIndex = newEditor->editorIndex;
     
     auto* newCanvas = newEditor->getTabComponent().openPatch(patch);
     newCanvas->jumpToOrigin();
@@ -289,7 +289,7 @@ void TabComponent::handleAsyncUpdate()
     tabbars[0].clear();
     tabbars[1].clear();
     
-    auto editorIndex = pd->getEditors().indexOf(editor);
+    auto editorIndex = editor->editorIndex;
     
     if(pd->isInPluginMode())
     {
@@ -361,7 +361,7 @@ void TabComponent::handleAsyncUpdate()
         {
             if(canvas->patch.getPointer().get() == lastPluginModePatchPtr)
             {
-                showTab(canvas);
+                showTab(canvas, canvas->patch.splitViewIndex);
                 break;
             }
         }
@@ -429,6 +429,8 @@ void TabComponent::closeEmptySplits()
 
 void TabComponent::showTab(Canvas* cnv, int splitIndex)
 {
+    if(cnv == splits[splitIndex]) return;
+    
     if(splits[splitIndex]) removeChildComponent(splits[splitIndex]->viewport.get());
     
     splits[splitIndex] = cnv;
@@ -451,6 +453,8 @@ void TabComponent::showTab(Canvas* cnv, int splitIndex)
         tab->tabChanged();
     }
     
+    editor->sidebar->hideParameters();
+    editor->sidebar->clearSearchOutliner();
     editor->updateCommandStatus();
 }
 
@@ -808,14 +812,14 @@ void TabComponent::saveTabPositions()
     auto editors = pd->getEditors();
     
     Array<std::pair<pd::Patch::Ptr, int>> sortedPatches;
-    for(int e = 0; e < editors.size(); e++) {
-        auto& tabbar = editors[e]->getTabComponent();
+    for(auto* editor : pd->getEditors()) {
+        auto& tabbar = editor->getTabComponent();
         for(int i = 0; i < tabbar.tabbars.size(); i++) {
             for(int j = 0; j < tabbar.tabbars[i].size(); j++)
             {
                 if(auto* cnv = tabbar.tabbars[i][j]->cnv.getComponent()) {
                     cnv->patch.splitViewIndex = i;
-                    cnv->patch.windowIndex = e;
+                    cnv->patch.windowIndex = editor->editorIndex;
                     sortedPatches.add({ cnv->refCountedPatch, j });
                 }
             }

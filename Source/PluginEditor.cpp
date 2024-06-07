@@ -263,6 +263,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addChildComponent(nvgSurface);
     nvgSurface.toBehind(&tabComponent);
     
+    editorIndex = numEditors++;
+    
 #if JUCE_IOS
     addAndMakeVisible(touchSelectionHelper.get());
     touchSelectionHelper->setAlwaysOnTop(true);

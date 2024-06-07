@@ -178,6 +178,7 @@ public:
     CheckedTooltip tooltipWindow;
 
     static std::map<t_canvas*, int> pluginModeScaleMap;
+    int editorIndex;
     
 private:
     
@@ -200,6 +201,8 @@ private:
 
     bool isMaximised = false;
     bool isDraggingFile = false;
+    
+    static inline int numEditors = 0;
 
     // Used in plugin
     std::unique_ptr<MouseRateReducedComponent<ResizableCornerComponent>> cornerResizer;
