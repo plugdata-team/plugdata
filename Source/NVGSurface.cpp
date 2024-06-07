@@ -134,6 +134,8 @@ void NVGSurface::initialise()
     nvg = nvgCreateContext(NVG_ANTIALIAS);
 #endif
     
+    surfaces[nvg] = this;
+    
     invalidateAll();
     
     if (!nvg) std::cerr << "could not initialise nvg" << std::endl;
@@ -163,6 +165,7 @@ void NVGSurface::detachContext()
         {
             nvgDeleteContext(nvg);
             nvg = nullptr;
+            surfaces.erase(nvg);
         }
         
 #ifdef NANOVG_METAL_IMPLEMENTATION
@@ -205,9 +208,11 @@ void NVGSurface::timerCallback()
 
 void NVGSurface::lookAndFeelChanged()
 {
-    NVGFramebuffer::clearAll(nvg);
-    NVGImage::clearAll(nvg);
-    invalidateAll();
+    if(makeContextActive()) {
+        NVGFramebuffer::clearAll(nvg);
+        NVGImage::clearAll(nvg);
+        invalidateAll();
+    }
 }
 
 void NVGSurface::triggerRepaint()
@@ -367,4 +372,12 @@ void NVGSurface::render()
             cnv->updateFramebuffers(nvg, cnv->getLocalBounds(), 14 - elapsed);
         }
     }
+}
+
+
+NVGSurface* NVGSurface::getSurfaceForContext(NVGcontext* nvg)
+{
+    if(!surfaces.count(nvg)) return nullptr;
+    
+    return surfaces[nvg];
 }

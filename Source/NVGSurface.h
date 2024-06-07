@@ -99,6 +99,8 @@ public:
     
     NVGcontext* getRawContext() { return nvg; }
 
+    static NVGSurface* getSurfaceForContext(NVGcontext*);
+    
 private:
 
     void resized() override;
@@ -112,6 +114,8 @@ private:
     NVGframebuffer* mainFBO = nullptr;
     NVGframebuffer* invalidFBO = nullptr;
     int fbWidth = 0, fbHeight = 0;
+    
+    static inline std::map<NVGcontext*, NVGSurface*> surfaces;
     
     bool hresize = false;
     bool resizing = false;
@@ -229,6 +233,11 @@ public:
     
     ~NVGImage()
     {
+        if(auto* surface = NVGSurface::getSurfaceForContext(nvg))
+        {
+            surface->makeContextActive();
+        }
+        
         if(imageId && nvg) nvgDeleteImage(nvg, imageId);
         allImages.erase(this);
     }
@@ -337,7 +346,12 @@ public:
     
     ~NVGFramebuffer()
     {
+        if(auto* surface = NVGSurface::getSurfaceForContext(nvg))
+        {
+            surface->makeContextActive();
+        }
         
+        nvgDeleteFramebuffer(fb);
         allFramebuffers.erase(this);
     }
     
