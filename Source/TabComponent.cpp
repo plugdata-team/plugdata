@@ -218,7 +218,6 @@ void TabComponent::handleAsyncUpdate()
         {
             if(patch->openInPluginMode) // Found pluginmode patch
             {
-                canvases.clear();
                 editor->pluginMode = std::make_unique<PluginMode>(editor, patch);
                 editor->resized();
                 lastPluginModePatchPtr = patch->getPointer().get();

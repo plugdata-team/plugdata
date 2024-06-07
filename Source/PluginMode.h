@@ -385,7 +385,6 @@ public:
 
 private:
     std::unique_ptr<Canvas> cnv;
-    SafePointer<Canvas> originalCanvas;
     PluginEditor* editor;
     ComponentPeer* desktopWindow;
 
