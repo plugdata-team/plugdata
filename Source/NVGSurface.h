@@ -351,7 +351,10 @@ public:
             surface->makeContextActive();
         }
         
-        nvgDeleteFramebuffer(fb);
+        if(fb) {
+            nvgDeleteFramebuffer(fb);
+            fb = nullptr;
+        }
         allFramebuffers.erase(this);
     }
     

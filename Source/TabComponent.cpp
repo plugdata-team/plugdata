@@ -39,11 +39,16 @@ Canvas* TabComponent::newPatch()
 Canvas* TabComponent::openPatch(const URL& path)
 {
     auto patchFile = path.getLocalFile();
-    for (auto* cnv : canvases) {
-        if (cnv->patch.getCurrentFile() == patchFile) {
+    
+    for (auto& patch : pd->patches) {
+        if (patch->getCurrentFile() == patchFile) {
             pd->logError("Patch is already open");
-            showTab(cnv);
-            return cnv;
+            for (auto* cnv : canvases) {
+                if(cnv->patch == *patch) {
+                    showTab(cnv);
+                    return cnv;
+                }
+            }
         }
     }
     
@@ -295,7 +300,7 @@ void TabComponent::handleAsyncUpdate()
         // Initialise plugin mode
         for(auto& patch : pd->patches)
         {
-            if(patch->openInPluginMode && patch->windowIndex == editorIndex) // Found pluginmode patch for current window
+            if(patch->openInPluginMode && (patch->windowIndex == editorIndex || ProjectInfo::isStandalone)) // Found pluginmode patch for current window
             {
                 canvases.clear();
                 if(!editor->pluginMode) {

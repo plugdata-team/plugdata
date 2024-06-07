@@ -60,7 +60,7 @@ void Iolet::render(NVGcontext* nvg)
     if (!isVisible())
         return;
 
-    auto fb = cnv->ioletBuffer;
+    auto& fb = cnv->ioletBuffer;
     if(!fb.isValid()) return;
     
     bool isLocked = getValue<bool>(locked) || getValue<bool>(commandLocked);
