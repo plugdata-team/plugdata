@@ -289,29 +289,26 @@ void TabComponent::handleAsyncUpdate()
     tabbars[0].clear();
     tabbars[1].clear();
     
-    if(pd->isInPluginMode() && !editor->pluginMode)
+    auto editorIndex = pd->getEditors().indexOf(editor);
+    
+    if(pd->isInPluginMode())
     {
         // Initialise plugin mode
         for(auto& patch : pd->patches)
         {
-            if(patch->openInPluginMode) // Found pluginmode patch
+            if(patch->openInPluginMode && patch->windowIndex == editorIndex) // Found pluginmode patch for current window
             {
                 canvases.clear();
-                editor->pluginMode = std::make_unique<PluginMode>(editor, patch);
-                editor->resized();
-                lastPluginModePatchPtr = patch->getPointer().get();
+                if(!editor->pluginMode) {
+                    editor->pluginMode = std::make_unique<PluginMode>(editor, patch);
+                    editor->resized();
+                    lastPluginModePatchPtr = patch->getPointer().get();
+                }
                 return;
             }
         }
     }
-    else if(pd->isInPluginMode())
-    {
-        canvases.clear();
-        return;
-    }
-    
-    auto editorIndex = pd->getEditors().indexOf(editor);
-    
+        
     // First, remove canvases that no longer exist
     for(int i = canvases.size() - 1; i >= 0; i--)
     {
