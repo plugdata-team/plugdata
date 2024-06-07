@@ -148,8 +148,6 @@ public:
 
     std::unique_ptr<Dialog> openedDialog;
 
-    std::unique_ptr<PluginMode> pluginMode;
-
     Value theme;
 
     Value hvccMode;

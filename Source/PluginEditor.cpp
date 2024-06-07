@@ -47,7 +47,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , sidebar(std::make_unique<Sidebar>(&p, this))
     , statusbar(std::make_unique<Statusbar>(&p))
     , openedDialog(nullptr)
-    , pluginMode(nullptr)
     , offlineRenderer(&p)
     , nvgSurface(this)
     , pluginConstrainer(*getConstrainer())
@@ -293,8 +292,8 @@ void PluginEditor::setUseBorderResizer(bool shouldUse)
             borderResizer->setVisible(true);
             resized(); // Makes sure resizer gets resized
 
-            if (pluginMode) {
-                borderResizer->toBehind(pluginMode.get());
+            if (auto* pluginMode = tabComponent.getPluginModeComponent()) {
+                borderResizer->toBehind(pluginMode);
             }
         } else {
             if (!cornerResizer) {
@@ -359,7 +358,7 @@ void PluginEditor::paintOverChildren(Graphics& g)
 
 void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> area)
 {
-    if(pluginMode) {
+    if(auto* pluginMode = tabComponent.getPluginModeComponent()) {
         pluginMode->render(nvg);
     }
     else {
@@ -419,7 +418,7 @@ DragAndDropTarget* PluginEditor::findNextDragAndDropTarget(Point<int> screenPos)
 
 void PluginEditor::resized()
 {
-    if (pluginMode && pd->isInPluginMode()) {
+    if (auto* pluginMode = tabComponent.getPluginModeComponent()) {
         nvgSurface.updateBounds(getLocalBounds().withTrimmedTop(pluginMode->isWindowFullscreen() ? 0 : 40));
         return;
     }
@@ -888,7 +887,7 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
     case CommandIDs::PanDragKey: {
         result.setInfo("Pan drag key", "Pan drag key", "View", ApplicationCommandInfo::dontTriggerAlertSound);
         result.addDefaultKeypress(KeyPress::spaceKey, ModifierKeys::noModifiers);
-        result.setActive(hasCanvas && !isDragging && !pluginMode);
+        result.setActive(hasCanvas && !isDragging && !tabComponent.getPluginModeComponent());
         break;
     }
     case CommandIDs::ZoomIn: {

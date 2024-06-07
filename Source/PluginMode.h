@@ -204,8 +204,6 @@ public:
         cnv->connectionLayer.setVisible(true);
 
         editor->nvgSurface.invalidateAll();
-        // Destroy this view
-        editor->pluginMode.reset(nullptr);
     }
 
     bool isWindowFullscreen() const

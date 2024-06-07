@@ -3,6 +3,7 @@
 #include "Utility/ZoomableDragAndDropContainer.h"
 #include "PluginProcessor.h"
 
+class PluginMode;
 class TabComponent : public Component, public DragAndDropTarget, public AsyncUpdater
 {
     class TabBarButtonComponent;
@@ -37,6 +38,8 @@ public:
     
     Array<Canvas*> getCanvases();
     Array<Canvas*> getVisibleCanvases();
+    
+    PluginMode* getPluginModeComponent();
     
 private:
     
@@ -325,6 +328,7 @@ private:
     
     OwnedArray<Canvas, CriticalSection> canvases;
     
+    std::unique_ptr<PluginMode> pluginMode;
     t_glist* lastPluginModePatchPtr = nullptr;
 
     PluginEditor* editor;

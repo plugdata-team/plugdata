@@ -300,12 +300,11 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
 
     const auto halfSize = infiniteCanvasSize / 2;
     const auto zoom = getValue<float>(zoomScale);
-    const auto hasViewport = viewport && !editor->pluginMode;
-    
+
     // apply translation to the canvas nvg objects
     nvgSave(nvg);
     
-    if(hasViewport)  {
+    if(viewport)  {
         nvgTranslate(nvg, -viewport->getViewPositionX(), -viewport->getViewPositionY());
         nvgScale(nvg, zoom, zoom);
         
@@ -316,7 +315,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         nvgFillRect(nvg, invalidRegion.getX(), invalidRegion.getY(), invalidRegion.getWidth(), invalidRegion.getHeight());
     }
     
-    if(hasViewport && !getValue<bool>(locked)) {
+    if(viewport && !getValue<bool>(locked)) {
         nvgBeginPath(nvg);
         nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
         
@@ -359,8 +358,8 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             nvgRestore(nvg);
         }
     }
-    auto drawBorder = [this, nvg, hasViewport, backgroundColour, zoom, dotsColour](bool bg, bool fg) {
-        if (hasViewport && (showOrigin || showBorder) && !::getValue<bool>(presentationMode)) {
+    auto drawBorder = [this, nvg, backgroundColour, zoom, dotsColour](bool bg, bool fg) {
+        if (viewport && (showOrigin || showBorder) && !::getValue<bool>(presentationMode)) {
             nvgBeginPath(nvg);
 
             const auto borderWidth = getValue<float>(patchWidth);
@@ -433,7 +432,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     if (::getValue<bool>(presentationMode) || isGraph) {
         renderAllObjects(nvg, invalidRegion);
         // render presentation mode as clipped 'virtual' plugin view
-        if (::getValue<bool>(presentationMode) && !editor->pluginMode) {
+        if (::getValue<bool>(presentationMode)) {
             const auto borderWidth = getValue<float>(patchWidth);
             const auto borderHeight = getValue<float>(patchHeight);
             const auto pos = Point<int>(halfSize, halfSize);
@@ -1052,7 +1051,7 @@ void Canvas::mouseDown(MouseEvent const& e)
         editor->updateCommandStatus();
     }
     // Right click
-    else if (!editor->pluginMode) {
+    else {
         Dialogs::showCanvasRightClickMenu(this, source, e.getScreenPosition());
     }
 }

@@ -11,7 +11,7 @@
 #include "PluginMode.h"
 #include "Standalone/PlugDataWindow.h"
 
-TabComponent::TabComponent(PluginEditor* editor) : editor(editor), pd(editor->pd)
+TabComponent::TabComponent(PluginEditor* editor) : pluginMode(nullptr), editor(editor), pd(editor->pd)
 {
     for(int i = 0; i < tabbars.size(); i++)
     {
@@ -282,6 +282,11 @@ void TabComponent::createNewWindow(Component* draggedTab)
     newEditor->nvgSurface.detachContext();
 }
 
+PluginMode* TabComponent::getPluginModeComponent()
+{
+    return pluginMode.get();
+}
+
 void TabComponent::openInPluginMode(pd::Patch::Ptr patch)
 {
     patch->openInPluginMode = true;
@@ -303,14 +308,18 @@ void TabComponent::handleAsyncUpdate()
             if(patch->openInPluginMode && patch->windowIndex == editorIndex) // Found pluginmode patch for current window
             {
                 canvases.clear();
-                if(!editor->pluginMode) {
-                    editor->pluginMode = std::make_unique<PluginMode>(editor, patch);
+                if(!pluginMode) {
+                    pluginMode = std::make_unique<PluginMode>(editor, patch);
                     editor->resized();
                     lastPluginModePatchPtr = patch->getPointer().get();
                 }
                 return;
             }
         }
+    }
+    else if(pluginMode)
+    {
+        pluginMode.reset(nullptr);
     }
         
     // First, remove canvases that no longer exist
