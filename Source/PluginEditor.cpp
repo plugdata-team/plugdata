@@ -263,7 +263,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addChildComponent(nvgSurface);
     nvgSurface.toBehind(&tabComponent);
     
-    editorIndex = numEditors++;
+    editorIndex = ProjectInfo::isStandalone ? numEditors++ : 0;
     
 #if JUCE_IOS
     addAndMakeVisible(touchSelectionHelper.get());

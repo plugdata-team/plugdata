@@ -300,7 +300,7 @@ void TabComponent::handleAsyncUpdate()
         // Initialise plugin mode
         for(auto& patch : pd->patches)
         {
-            if(patch->openInPluginMode && (patch->windowIndex == editorIndex || !ProjectInfo::isStandalone)) // Found pluginmode patch for current window
+            if(patch->openInPluginMode && patch->windowIndex == editorIndex) // Found pluginmode patch for current window
             {
                 canvases.clear();
                 if(!editor->pluginMode) {
