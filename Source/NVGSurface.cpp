@@ -181,8 +181,6 @@ void NVGSurface::detachContext()
 
 void NVGSurface::updateBufferSize()
 {
-    if(!makeContextActive()) return;
-    
     float pixelScale = getRenderScale();
     int scaledWidth = getWidth() * pixelScale;
     int scaledHeight = getHeight() * pixelScale;
@@ -294,10 +292,12 @@ void NVGSurface::render()
         return; // Render on next frame
     }
     
+    if(!makeContextActive()) return;
+    
     updateBufferSize();
     
     auto pixelScale = getRenderScale();
-    if(!invalidArea.isEmpty() && makeContextActive()) {
+    if(!invalidArea.isEmpty()) {
         auto invalidated = invalidArea.expanded(1);
         
         // First, draw only the invalidated region to a separate framebuffer
@@ -334,7 +334,7 @@ void NVGSurface::render()
         invalidArea = Rectangle<int>(0, 0, 0, 0);
     }
     
-    if(needsBufferSwap && makeContextActive()) {
+    if(needsBufferSwap) {
         float pixelScale = getRenderScale();
         nvgViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
         
@@ -368,7 +368,7 @@ void NVGSurface::render()
     
     auto elapsed = Time::getMillisecondCounter() - startTime;
     // We update frambuffers after we call swapBuffers to make sure the frame is on time
-    if(elapsed < 14 && makeContextActive()) {
+    if(elapsed < 14) {
         for(auto* cnv : editor->getTabComponent().getVisibleCanvases())
         {
             cnv->updateFramebuffers(nvg, cnv->getLocalBounds(), 14 - elapsed);

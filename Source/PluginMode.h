@@ -42,9 +42,9 @@ public:
 #else
             mainWindow->setOpaque(false);
 #endif
-            editor->nvgSurface.detachContext();
         }
-
+        editor->nvgSurface.detachContext();
+        
         desktopWindow = editor->getPeer();
 
         editor->nvgSurface.invalidateAll();
