@@ -39,6 +39,7 @@ using namespace juce::gl;
 
 #include <nanovg.h>
 
+std::map<t_canvas*, int> PluginEditor::pluginModeScaleMap;
 
 PluginEditor::PluginEditor(PluginProcessor& p)
     : AudioProcessorEditor(&p)

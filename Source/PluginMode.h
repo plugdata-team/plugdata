@@ -10,7 +10,6 @@
 #include "Canvas.h"
 #include "Standalone/PlugDataWindow.h"
 
-
 class PluginMode : public Component, public NVGComponent {
 public:
     explicit PluginMode(PluginEditor* editor, pd::Patch::Ptr patch)
@@ -19,6 +18,7 @@ public:
         , editor(editor)
         , desktopWindow(editor->getPeer())
         , windowBounds(editor->getBounds().withPosition(editor->getTopLevelComponent()->getPosition()))
+        , patchPtr(patch)
     {
         if (ProjectInfo::isStandalone) {
             // If the window is already maximised, unmaximise it to prevent problems
@@ -71,7 +71,12 @@ public:
         // Add this view to the editor
         editor->addAndMakeVisible(this);
 
-        scaleComboBox.addItemList({ "50%", "75%", "100%", "125%", "150%", "175%", "200%" }, 1);
+        StringArray itemList;
+        for (auto scale : pluginScales ){
+            itemList.add(String(scale.intScale) + "%");
+        }
+
+        scaleComboBox.addItemList(itemList, 1);
         if (ProjectInfo::isStandalone) {
             scaleComboBox.addSeparator();
             scaleComboBox.addItem("Fullscreen", 8);
@@ -87,10 +92,10 @@ public:
                 setKioskMode(true);
                 return;
             }
-            auto scale = std::vector<float> { 0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f }[itemId - 1];
             if (selectedItemId != itemId) {
                 selectedItemId = itemId;
-                setWidthAndHeight(scale);
+                setWidthAndHeight(pluginScales[itemId - 1].floatScale);
+                pluginPreviousScale = pluginScales[itemId - 1].intScale;
             }
         };
 
@@ -98,7 +103,16 @@ public:
 
         addAndMakeVisible(titleBar);
 
-        setWidthAndHeight(1.0f);
+        // set scale to the last scale that was set for this patches plugin mode
+        // if none was set, use 100% scale
+        if (PluginEditor::pluginModeScaleMap.contains(patchPtr->getPointer().get()))
+        {
+            int previousScale = PluginEditor::pluginModeScaleMap[patchPtr->getPointer().get()];
+            scaleComboBox.setText(String(previousScale) + String("%"), dontSendNotification);
+            setWidthAndHeight(previousScale * 0.01f);
+        } else {
+            setWidthAndHeight(1.0f);
+        }
 
         cnv->connectionLayer.setVisible(false);
     }
@@ -157,6 +171,9 @@ public:
 
     void closePluginMode()
     {
+        // save the current scale in map for retrieval, so plugin mode remembers the last set scale
+        PluginEditor::pluginModeScaleMap[patchPtr->getPointer().get()] = pluginPreviousScale;
+
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
             bool isUsingNativeTitlebar = SettingsFile::getInstance()->getProperty<bool>("native_window");
             if (isUsingNativeTitlebar) {
@@ -384,8 +401,8 @@ public:
     }
 
 private:
+    pd::Patch::Ptr patchPtr;
     std::unique_ptr<Canvas> cnv;
-    SafePointer<Canvas> originalCanvas;
     PluginEditor* editor;
     ComponentPeer* desktopWindow;
 
@@ -408,4 +425,12 @@ private:
     float const width = float(cnv->patchWidth.getValue()) + 1.0f;
     float const height = float(cnv->patchHeight.getValue()) + 1.0f;
     float pluginModeScale = 1.0f;
+    int pluginPreviousScale = 100;
+
+    struct Scale {
+        float floatScale;
+        int intScale;
+    };
+    std::vector<Scale> pluginScales { Scale{0.5f, 50}, Scale{0.75f, 75}, Scale{1.0f, 100}, Scale{1.25f, 125}, Scale{1.5f, 150}, Scale{1.75f, 175}, Scale{2.0f, 200} };
+
 };

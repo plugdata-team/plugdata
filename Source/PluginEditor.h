@@ -9,6 +9,8 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_opengl/juce_opengl.h>
 
+#include <map>
+
 #include "Utility/Fonts.h"
 #include "Utility/ModifierKeyListener.h"
 #include "Components/CheckedTooltip.h"
@@ -174,6 +176,8 @@ public:
     std::unique_ptr<WelcomePanel> welcomePanel;
     
     CheckedTooltip tooltipWindow;
+
+    static std::map<t_canvas*, int> pluginModeScaleMap;
     
 private:
     
