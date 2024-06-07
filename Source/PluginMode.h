@@ -173,26 +173,27 @@ public:
     {
         // save the current scale in map for retrieval, so plugin mode remembers the last set scale
         PluginEditor::pluginModeScaleMap[patchPtr->getPointer().get()] = pluginPreviousScale;
-
+        
+        auto constrainedNewBounds = windowBounds.withWidth(std::max(windowBounds.getWidth(), 850)).withHeight(std::max(windowBounds.getHeight(), 650));
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
             bool isUsingNativeTitlebar = SettingsFile::getInstance()->getProperty<bool>("native_window");
             if (isUsingNativeTitlebar) {
                 mainWindow->setResizeLimits(850, 650, 99000, 99000);
                 mainWindow->setOpaque(true);
                 mainWindow->setUsingNativeTitleBar(true);
-                editor->nvgSurface.detachContext();
             }
             editor->constrainer.setSizeLimits(850, 650, 99000, 99000);
 #if JUCE_LINUX || JUCE_BSD
             OSUtils::updateX11Constraints(getPeer()->getNativeHandle());
 #endif
-
-            auto correctedPosition = windowBounds.getTopLeft() - Point<int>(0, nativeTitleBarHeight);
-            mainWindow->setBoundsConstrained(windowBounds.withPosition(correctedPosition));
+            auto correctedPosition = constrainedNewBounds.getTopLeft() - Point<int>(0, nativeTitleBarHeight);
+            mainWindow->setBoundsConstrained(constrainedNewBounds.withPosition(correctedPosition));
         } else {
             editor->pluginConstrainer.setSizeLimits(850, 650, 99000, 99000);
-            editor->setBounds(windowBounds);
+            editor->setBounds(constrainedNewBounds);
         }
+        
+        editor->nvgSurface.detachContext();
 
         cnv->patch.openInPluginMode = false;
 
