@@ -299,8 +299,6 @@ public:
     bool loadLibrary(String const& library);
 
     void* instance = nullptr;
-    void* patch = nullptr;
-    void* atoms = nullptr;
     void* messageReceiver = nullptr;
     void* parameterReceiver = nullptr;
     void* pluginLatencyReceiver = nullptr;
@@ -310,8 +308,6 @@ public:
     void* parameterModeReceiver = nullptr;
     void* midiReceiver = nullptr;
     void* printReceiver = nullptr;
-
-    // JYG added this
     void* dataBufferReceiver = nullptr;
 
     inline static String const defaultPatch = "#N canvas 827 239 527 327 12;";

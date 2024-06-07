@@ -217,7 +217,6 @@ void Instance::initialisePd(String& pdlua_version)
     
     parameterModeReceiver = pd::Setup::createReceiver(this, "param_mode", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
-    atoms = malloc(sizeof(t_atom) * 512);
 
     // Register callback when pd's gui changes
     // Needs to be done on pd's thread
@@ -442,15 +441,15 @@ void Instance::sendSymbol(char const* receiver, char const* symbol) const
 
 void Instance::sendList(char const* receiver, std::vector<Atom> const& list) const
 {
-    auto* argv = static_cast<t_atom*>(atoms);
+    auto argv = std::vector<t_atom>(list.size());
     libpd_set_instance(static_cast<t_pdinstance*>(instance));
     for (size_t i = 0; i < list.size(); ++i) {
         if (list[i].isFloat())
-            libpd_set_float(argv + i, list[i].getFloat());
+            libpd_set_float(argv.data() + i, list[i].getFloat());
         else
-            libpd_set_symbol(argv + i, list[i].getSymbol()->s_name);
+            libpd_set_symbol(argv.data() + i, list[i].getSymbol()->s_name);
     }
-    libpd_list(receiver, static_cast<int>(list.size()), argv);
+    libpd_list(receiver, static_cast<int>(list.size()), argv.data());
 }
 
 void Instance::sendTypedMessage(void* object, char const* msg, std::vector<Atom> const& list) const
