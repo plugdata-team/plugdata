@@ -80,13 +80,11 @@ Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch)
     existingPatch->splitViewIndex = activeSplitIndex;
     existingPatch->windowIndex = editor->editorIndex;
     
+    showTab(cnv, activeSplitIndex);
+    cnv->jumpToOrigin();
+    
     triggerAsyncUpdate();
     pd->titleChanged();
-    
-    showTab(cnv, activeSplitIndex);
-    closeEmptySplits();
-    
-    cnv->jumpToOrigin();
     
     return cnv;
 }
