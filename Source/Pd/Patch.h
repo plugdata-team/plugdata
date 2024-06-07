@@ -118,9 +118,11 @@ public:
 
     Instance* instance = nullptr;
     bool closePatchOnDelete;
+    
     bool openInPluginMode = false;
     int splitViewIndex = 0;
     int windowIndex = 0;
+    
 
     String lastUndoSequence;
     String lastRedoSequence;

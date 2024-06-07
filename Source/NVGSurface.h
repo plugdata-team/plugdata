@@ -233,12 +233,14 @@ public:
     
     ~NVGImage()
     {
-        if(auto* surface = NVGSurface::getSurfaceForContext(nvg))
-        {
-            surface->makeContextActive();
+        if(imageId && nvg) {
+            if(auto* surface = NVGSurface::getSurfaceForContext(nvg))
+            {
+                surface->makeContextActive();
+            }
+            
+            nvgDeleteImage(nvg, imageId);
         }
-        
-        if(imageId && nvg) nvgDeleteImage(nvg, imageId);
         allImages.erase(this);
     }
 
@@ -346,12 +348,12 @@ public:
     
     ~NVGFramebuffer()
     {
-        if(auto* surface = NVGSurface::getSurfaceForContext(nvg))
-        {
-            surface->makeContextActive();
-        }
-        
         if(fb) {
+            if(auto* surface = NVGSurface::getSurfaceForContext(nvg))
+            {
+                surface->makeContextActive();
+            }
+            
             nvgDeleteFramebuffer(fb);
             fb = nullptr;
         }
