@@ -459,16 +459,16 @@ void Instance::sendTypedMessage(void* object, char const* msg, std::vector<Atom>
 
     libpd_set_instance(static_cast<t_pdinstance*>(instance));
 
-    auto* argv = static_cast<t_atom*>(atoms);
+    auto argv = std::vector<t_atom>(list.size());
 
     for (size_t i = 0; i < list.size(); ++i) {
         if (list[i].isFloat())
-            libpd_set_float(argv + i, list[i].getFloat());
+            libpd_set_float(argv.data() + i, list[i].getFloat());
         else
-            libpd_set_symbol(argv + i, list[i].getSymbol()->s_name);
+            libpd_set_symbol(argv.data() + i, list[i].getSymbol()->s_name);
     }
 
-    pd_typedmess(static_cast<t_pd*>(object), generateSymbol(msg), static_cast<int>(list.size()), argv);
+    pd_typedmess(static_cast<t_pd*>(object), generateSymbol(msg), static_cast<int>(list.size()), argv.data());
 }
 
 void Instance::sendMessage(char const* receiver, char const* msg, std::vector<Atom> const& list) const
@@ -545,16 +545,16 @@ void Instance::processSend(dmessage mess)
 {
     if (auto obj = mess.object.get<t_pd>()) {
         if (mess.selector == "list") {
-            auto* argv = static_cast<t_atom*>(atoms);
+            auto argv = std::vector<t_atom>(mess.list.size());
             for (size_t i = 0; i < mess.list.size(); ++i) {
                 if (mess.list[i].isFloat())
-                    SETFLOAT(argv + i, mess.list[i].getFloat());
+                    SETFLOAT(argv.data() + i, mess.list[i].getFloat());
                 else if (mess.list[i].isSymbol()) {
-                    SETSYMBOL(argv + i, mess.list[i].getSymbol());
+                    SETSYMBOL(argv.data() + i, mess.list[i].getSymbol());
                 } else
-                    SETFLOAT(argv + i, 0.0);
+                    SETFLOAT(argv.data() + i, 0.0);
             }
-            pd_list(obj.get(), generateSymbol("list"), static_cast<int>(mess.list.size()), argv);
+            pd_list(obj.get(), generateSymbol("list"), static_cast<int>(mess.list.size()), argv.data());
         } else if (mess.selector == "float" && !mess.list.empty() && mess.list[0].isFloat()) {
             pd_float(obj.get(), mess.list[0].getFloat());
         } else if (mess.selector == "symbol" && !mess.list.empty() && mess.list[0].isSymbol()) {
