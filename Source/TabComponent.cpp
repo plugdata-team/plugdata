@@ -274,6 +274,7 @@ void TabComponent::createNewWindow(Component* draggedTab)
 
     newWindow->setTopLeftPosition(Desktop::getInstance().getMousePosition() - Point<int>(500, 60));
     newWindow->toFront(true);
+    newEditor->nvgSurface.detachContext();
 }
 
 void TabComponent::openInPluginMode(pd::Patch::Ptr patch)

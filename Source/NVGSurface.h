@@ -237,10 +237,12 @@ public:
     {
         for(auto* image : allImages)
         {
-            if(image->isValid() && image->nvg == nvg) nvgDeleteImage(image->nvg, image->imageId);
-            image->imageId = 0;
-            if (image->onImageInvalidate)
-                image->onImageInvalidate();
+            if(image->isValid() && image->nvg == nvg) {
+                nvgDeleteImage(image->nvg, image->imageId);
+                image->imageId = 0;
+                if (image->onImageInvalidate)
+                    image->onImageInvalidate();
+            }
         }
     }
     
@@ -343,8 +345,10 @@ public:
     {
         for(auto* buffer : allFramebuffers)
         {
-            if(buffer->nvg == nvg && buffer->fb) nvgDeleteFramebuffer(buffer->fb);
-            buffer->fb = nullptr;
+            if(buffer->nvg == nvg && buffer->fb) {
+                nvgDeleteFramebuffer(buffer->fb);
+                buffer->fb = nullptr;
+            }
         }
     }
     

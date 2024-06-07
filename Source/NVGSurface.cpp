@@ -147,31 +147,33 @@ void NVGSurface::initialise()
 
 void NVGSurface::detachContext()
 {
-    NVGFramebuffer::clearAll(nvg);
-    NVGImage::clearAll(nvg);
-    
-    if(invalidFBO) {
-        nvgDeleteFramebuffer(invalidFBO);
-        invalidFBO = nullptr;
-    }
-    if(mainFBO)  {
-        nvgDeleteFramebuffer(mainFBO);
-        mainFBO = nullptr;
-    }
-    if(nvg)
-    {
-        nvgDeleteContext(nvg);
-        nvg = nullptr;
-    }
-    
+    if(makeContextActive()) {
+        NVGFramebuffer::clearAll(nvg);
+        NVGImage::clearAll(nvg);
+        
+        if(invalidFBO) {
+            nvgDeleteFramebuffer(invalidFBO);
+            invalidFBO = nullptr;
+        }
+        if(mainFBO)  {
+            nvgDeleteFramebuffer(mainFBO);
+            mainFBO = nullptr;
+        }
+        if(nvg)
+        {
+            nvgDeleteContext(nvg);
+            nvg = nullptr;
+        }
+        
 #ifdef NANOVG_METAL_IMPLEMENTATION
-    if(auto* view = getView()) {
-        OSUtils::MTLDeleteView(view);
-        setView(nullptr);
-    }
+        if(auto* view = getView()) {
+            OSUtils::MTLDeleteView(view);
+            setView(nullptr);
+        }
 #else
-    if(glContext) glContext->detach();
+        glContext->detach();
 #endif
+    }
 }
 
 void NVGSurface::updateBufferSize()
@@ -180,7 +182,7 @@ void NVGSurface::updateBufferSize()
     int scaledWidth = getWidth() * pixelScale;
     int scaledHeight = getHeight() * pixelScale;
     
-    if(fbWidth != scaledWidth || fbHeight != scaledHeight || !mainFBO) {
+    if((fbWidth != scaledWidth || fbHeight != scaledHeight || !mainFBO) && makeContextActive()) {
         if(invalidFBO) nvgDeleteFramebuffer(invalidFBO);
         if(mainFBO) nvgDeleteFramebuffer(mainFBO);
         mainFBO = nvgCreateFramebuffer(nvg, scaledWidth, scaledHeight, NVG_IMAGE_PREMULTIPLIED);
@@ -359,7 +361,7 @@ void NVGSurface::render()
     
     auto elapsed = Time::getMillisecondCounter() - startTime;
     // We update frambuffers after we call swapBuffers to make sure the frame is on time
-    if(elapsed < 14) {
+    if(elapsed < 14 && makeContextActive()) {
         for(auto* cnv : editor->getTabComponent().getVisibleCanvases())
         {
             cnv->updateFramebuffers(nvg, cnv->getLocalBounds(), 14 - elapsed);
