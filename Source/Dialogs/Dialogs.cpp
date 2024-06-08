@@ -532,7 +532,11 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     auto selectedBoxes = cnv->getSelectionOfType<Object>();
 
     // If we directly right-clicked on an object, make sure it has been added to selection
-    if (auto* obj = dynamic_cast<Object*>(originalComponent)) {
+    if(!originalComponent)
+    {
+        return;
+    }
+    else if (auto* obj = dynamic_cast<Object*>(originalComponent)) {
         selectedBoxes.addIfNotAlreadyThere(obj);
     } else if (auto* parentOfTypeObject = originalComponent->findParentComponentOfClass<Object>()) {
         selectedBoxes.addIfNotAlreadyThere(parentOfTypeObject);

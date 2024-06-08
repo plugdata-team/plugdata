@@ -25,7 +25,7 @@ public:
 
     virtual void update() { }
 
-    void openSubpatch(pd::Patch* subpatch);
+    void openSubpatch(pd::Patch::Ptr subpatch);
     void closeOpenedSubpatchers();
 
     Canvas* getMainCanvas(t_canvas* patchPtr, bool alsoSearchRoot = false) const;

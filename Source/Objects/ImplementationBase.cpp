@@ -122,7 +122,7 @@ ImplementationBase* ImplementationBase::createImplementation(String const& type,
     return nullptr;
 }
 
-void ImplementationBase::openSubpatch(pd::Patch* subpatch)
+void ImplementationBase::openSubpatch(pd::Patch::Ptr subpatch)
 {
     if (auto glist = ptr.get<t_glist>()) {
         if (!subpatch) {
