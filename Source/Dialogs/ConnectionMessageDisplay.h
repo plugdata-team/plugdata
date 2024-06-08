@@ -45,7 +45,7 @@ public:
 
         auto clearSignalDisplayBuffer = [this]() {
             SignalBlock sample;
-            while (sampleQueue.try_dequeue(sample)) { };
+            while (sampleQueue.try_dequeue(sample)) {}
             for (int ch = 0; ch < 8; ch++) {
                 std::fill(lastSamples[ch], lastSamples[ch] + signalBlockSize, 0.0f);
                 cycleLength[ch] = 0.0f;

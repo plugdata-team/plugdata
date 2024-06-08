@@ -133,8 +133,7 @@ public:
         int maxColumns = width / itemSize;
         int offset = 0;
 
-        for (int i = 0; i < objectButtons.size(); i++) {
-            auto* button = objectButtons[i];
+        for (auto button : objectButtons) {
             button->setBounds(column * itemSize, offset, itemSize, itemSize);
             column++;
             if (column >= maxColumns) {
@@ -170,7 +169,7 @@ public:
         resized();
     }
 
-    void printAllObjects()
+    static void printAllObjects()
     {
         static bool hasRun = false;
         if (hasRun)
@@ -557,7 +556,7 @@ public:
     bool clickingTogglesState = false;
     std::function<void(void)> onClick = []() {};
 
-    AddObjectMenuButton(String iconStr, String textStr = String())
+    explicit AddObjectMenuButton(const String& iconStr, const String& textStr = String())
         : icon(iconStr)
         , text(textStr)
     {
@@ -617,7 +616,7 @@ public:
 class AddObjectMenu : public Component {
 
 public:
-    AddObjectMenu(PluginEditor* e)
+    explicit AddObjectMenu(PluginEditor* e)
         : objectBrowserButton(Icons::Object, "Show Object Browser")
         , pinButton(Icons::Pin)
         , editor(e)

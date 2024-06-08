@@ -385,7 +385,7 @@ CallOutBox& PluginEditor::showCalloutBox(std::unique_ptr<Component> content, Rec
     {
         PluginEditor* editor;
     public:
-        CalloutDeletionListener(PluginEditor* e) : editor(e) {}
+        explicit CalloutDeletionListener(PluginEditor* e) : editor(e) {}
         
         void componentBeingDeleted(Component& c) override
         {
@@ -466,7 +466,7 @@ void PluginEditor::resized()
     redoButton.setBounds((2 * buttonDistance) + offset, 0, buttonSize, buttonSize);
     addObjectMenuButton.setBounds((3 * buttonDistance) + offset, 0, buttonSize, buttonSize);
 
-    auto startX = (getWidth() / 2) - (toolbarHeight * 1.5);
+    auto startX = (getWidth() / 2.0f) - (toolbarHeight * 1.5);
 
     editButton.setBounds(startX, 1, buttonSize, buttonSize - 2);
     runButton.setBounds(startX + buttonSize - 1, 1, buttonSize, buttonSize - 2);

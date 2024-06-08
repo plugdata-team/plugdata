@@ -175,8 +175,9 @@ public:
         isShowing = true;
 
         auto alignmentTools = std::make_unique<AlignmentTools>();
-        alignmentTools->pluginEditor = dynamic_cast<PluginEditor*>(editor);
-        alignmentTools->pluginEditor->showCalloutBox(std::move(alignmentTools), bounds);
+        auto* editor = dynamic_cast<PluginEditor*>(editor);
+        alignmentTools->pluginEditor = editor;
+        editor->showCalloutBox(std::move(alignmentTools), bounds);
     }
 
     ~AlignmentTools() override

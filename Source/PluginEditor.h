@@ -28,7 +28,7 @@
 class CalloutArea : public Component, public Timer
 {
 public:
-    CalloutArea(Component* parent) : target(parent), tooltipWindow(this)
+    explicit CalloutArea(Component* parent) : target(parent), tooltipWindow(this)
     {
         setVisible(true);
         setAlwaysOnTop(true);
@@ -36,7 +36,7 @@ public:
         startTimerHz(3);
     }
 
-    ~CalloutArea(){}
+    ~CalloutArea()= default;
 
     void timerCallback() override
     {

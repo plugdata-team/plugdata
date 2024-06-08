@@ -9,7 +9,7 @@ class TabComponent : public Component, public DragAndDropTarget, public AsyncUpd
     class TabBarButtonComponent;
     
 public:
-    TabComponent(PluginEditor* editor);
+    explicit TabComponent(PluginEditor* editor);
     
     Canvas* newPatch();
     
@@ -72,7 +72,7 @@ private:
         
         struct TabDragConstrainer : public ComponentBoundsConstrainer
         {
-            TabDragConstrainer(TabComponent* parent) : parent(parent)
+            explicit TabDragConstrainer(TabComponent* parent) : parent(parent)
             {
                 
             }
@@ -162,7 +162,7 @@ private:
             closeButton.setCentrePosition(getLocalBounds().getCentre().withX(getWidth() - 15).translated(0, 1));
         }
         
-        ScaledImage generateTabBarButtonImage()
+        ScaledImage generateTabBarButtonImage() const
         {
             if(!cnv) return {};
             

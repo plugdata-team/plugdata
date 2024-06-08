@@ -949,7 +949,7 @@ public:
                 label->dragEnd = [this](){
                     if (auto ptr = array.get<t_fake_garray>()) {
                         plugdata_forward_message(ptr->x_glist, gensym("redraw"), 0, NULL);
-                    };
+                    }
                 };
                 properties.set(i, property);
             }
@@ -996,7 +996,7 @@ public:
     OwnedArray<ArrayListView> lists;
     PluginProcessor* pd;
 
-    ArrayEditorDialog(PluginProcessor* instance, std::vector<void*> arrays, Object* parent)
+    ArrayEditorDialog(PluginProcessor* instance, const std::vector<void*>& arrays, Object* parent)
         : resizer(this, &constrainer)
         , pd(instance)
     {
@@ -1490,7 +1490,7 @@ public:
             std::vector<void*> arrays;
 
             t_glist* x = c.get();
-            t_gobj* gl = (x->gl_list ? pd_checkglist(&x->gl_list->g_pd)->gl_list : 0);
+            t_gobj* gl = (x->gl_list ? pd_checkglist(&x->gl_list->g_pd)->gl_list : nullptr);
 
             if (gl) {
                 arrays.push_back(gl);
@@ -1499,7 +1499,7 @@ public:
                 }
             }
 
-            if (arrays.size() && arrays[0] != nullptr) {
+            if (!arrays.empty() && arrays[0] != nullptr) {
                 editor = std::make_unique<ArrayEditorDialog>(cnv->pd, arrays, object);
                 editor->onClose = [this]() {
                     editor.reset(nullptr);
