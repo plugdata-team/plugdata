@@ -5,7 +5,7 @@
 
 using namespace juce;
 
-#include "Utility/HashUtils.h"
+#include "Utility/Hash.h"
 #include "Utility/SynchronousValue.h"
 
 #ifndef ENABLE_OBJECT_FB_DEBUGGING

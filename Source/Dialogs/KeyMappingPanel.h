@@ -226,6 +226,7 @@ private:
 
                 setWantsKeyboardFocus(true);
                 grabKeyboardFocus();
+                setOpaque(false);
             }
 
             bool keyPressed(KeyPress const& key) override

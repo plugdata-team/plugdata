@@ -26,6 +26,7 @@ class NoteObject final : public ObjectBase {
 
     bool locked;
     bool wasSelectedOnMouseDown = false;
+    bool needsRepaint = false;
 
 public:
     NoteObject(pd::WeakReference obj, Object* object)
@@ -73,6 +74,11 @@ public:
                 atoms.emplace_back();
                 SETSYMBOL(&atoms.back(), pd->generateSymbol(word));
             }
+            if(noteEditor.getText().endsWith(" "))
+            {
+                atoms.emplace_back();
+                SETSYMBOL(&atoms.back(), pd->generateSymbol(" "));
+            }
 
             if (auto note = ptr.get<t_fake_note>()) {
                 binbuf_clear(note->x_binbuf);
@@ -81,6 +87,7 @@ public:
             }
 
             object->updateBounds();
+            needsRepaint = true;
         };
 
         objectParameters.addParamInt("Width", cDimensions, &width);
@@ -101,6 +108,21 @@ public:
     {
         return true;
     }
+    
+    void render(NVGcontext* nvg) override
+    {
+        auto scale = getImageScale();
+        
+        if(needsRepaint || noteEditor.isVisible() || imageRenderer.needsUpdate(std::ceil(getWidth() * scale), std::ceil(getHeight() * scale)))
+        {
+            imageRenderer.renderJUCEComponent(nvg, *this, scale);
+            needsRepaint = false;
+        }
+        else {
+            imageRenderer.render(nvg, getLocalBounds());
+        }
+    }
+
 
     void update() override
     {
@@ -141,7 +163,7 @@ public:
 
         noteEditor.setColour(TextEditor::textColourId, Colour::fromString(primaryColour.toString()));
 
-        repaint();
+        needsRepaint = true;
         updateFont();
 
         getLookAndFeel().setColour(Label::textWhenEditingColourId, LookAndFeel::getDefaultLookAndFeel().findColour(Label::textWhenEditingColourId));
@@ -176,7 +198,7 @@ public:
     void lock(bool isLocked) override
     {
         locked = isLocked;
-        repaint();
+        needsRepaint = true;
 
         noteEditor.setInterceptsMouseClicks(!isLocked, !isLocked);
         object->updateIolets(); // TODO: why?
@@ -215,11 +237,13 @@ public:
 
     void mouseEnter(MouseEvent const& e) override
     {
+        needsRepaint = true;
         repaint();
     }
 
     void mouseExit(MouseEvent const& e) override
     {
+        needsRepaint = true;
         repaint();
     }
 
@@ -333,11 +357,13 @@ public:
             auto colour = Colour::fromString(primaryColour.toString());
             noteEditor.applyColourToAllText(colour);
             if (auto note = ptr.get<t_fake_note>())
-                colourToHexArray(colour, &note->x_red); // this should be illegal, but it works
+                colourToHexArray(colour, &note->x_red);
+            needsRepaint = true;
             repaint();
         } else if (v.refersToSameSourceAs(secondaryColour)) {
             if (auto note = ptr.get<t_fake_note>())
                 colourToHexArray(Colour::fromString(secondaryColour.toString()), note->x_bg);
+            needsRepaint = true;
             repaint();
         } else if (v.refersToSameSourceAs(fontSize)) {
             if (auto note = ptr.get<t_fake_note>())
@@ -364,6 +390,7 @@ public:
         } else if (v.refersToSameSourceAs(fillBackground)) {
             if (auto note = ptr.get<t_fake_note>())
                 note->x_bg_flag = getValue<int>(fillBackground);
+            needsRepaint = true;
             repaint();
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
             auto receive = receiveSymbol.toString();
@@ -384,6 +411,7 @@ public:
         } else if (v.refersToSameSourceAs(outline)) {
             if (auto note = ptr.get<t_fake_note>())
                 note->x_outline = getValue<int>(outline);
+            needsRepaint = true;
             repaint();
         } else if (v.refersToSameSourceAs(font)) {
             auto fontName = font.toString();
@@ -414,6 +442,8 @@ public:
     {
         noteEditor.applyFontToAllText(getFont());
         object->updateBounds();
+        needsRepaint = true;
+        repaint();
     }
 
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
@@ -460,6 +490,7 @@ public:
         case hash("set"): {
             noteEditor.setText(getNote());
             object->updateBounds();
+            needsRepaint = true;
             break;
         }
         case hash("color"): {
