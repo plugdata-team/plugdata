@@ -443,7 +443,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
                     bounds = bounds.withSizeKeepingCentre(bounds.getHeight(), bounds.getHeight());
 
                     g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
-                    PlugDataLook::fillSmoothedRectangle(g, bounds, Corners::defaultCornerRadius);
+                    g.fillRoundedRectangle(bounds, Corners::defaultCornerRadius);
 
                     textColour = findColour(PlugDataColour::sidebarTextColourId);
                 }
@@ -650,8 +650,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             auto colour = findColour(PopupMenu::textColourId).withMultipliedAlpha(isActive ? 1.0f : 0.5f);
             if (isItemHighlighted() && isActive) {
                 g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
-
-                PlugDataLook::fillSmoothedRectangle(g, r.toFloat().reduced(0, 1), Corners::defaultCornerRadius);
+                g.fillRoundedRectangle(r.toFloat().reduced(0, 1), Corners::defaultCornerRadius);
             }
             g.setColour(colour);
 

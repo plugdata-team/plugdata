@@ -48,7 +48,7 @@ public:
 
         if (isHovering) {
             g.setColour(highlight);
-            PlugDataLook::fillSmoothedRectangle(g, iconBounds.toFloat(), Corners::defaultCornerRadius);
+            g.fillRoundedRectangle(iconBounds.toFloat(), Corners::defaultCornerRadius);
         }
 
         Fonts::drawText(g, titleText, textBounds, findColour(PlugDataColour::popupMenuTextColourId), 13.0f, Justification::centred);
@@ -573,7 +573,7 @@ public:
 
         if (isMouseOver()) {
             g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
-            PlugDataLook::fillSmoothedRectangle(g, b.toFloat(), Corners::defaultCornerRadius);
+            g.fillRoundedRectangle(b.toFloat(), Corners::defaultCornerRadius);
         }
 
         if (toggleState) {

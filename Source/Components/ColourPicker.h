@@ -651,10 +651,10 @@ private:
             auto radius = jmin(Corners::defaultCornerRadius, bounds.getWidth() / 2.0f);
 
             g.setGradientFill(ColourGradient(colour, 0.0f, 0.0f, Colours::black, bounds.getHeight() / 2, bounds.getHeight() / 2, false));
-            PlugDataLook::fillSmoothedRectangle(g, bounds, radius);
+            g.fillRoundedRectangle(bounds, radius);
 
             g.setColour(findColour(PlugDataColour::outlineColourId));
-            PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), bounds, radius);
+            g.drawRoundedRectangle(bounds, radius, 1.0f);
         }
 
         void resized() override

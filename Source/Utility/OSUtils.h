@@ -32,7 +32,7 @@ struct OSUtils {
 #endif
 
     static juce::Array<juce::File> iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles, int maximum = -1);
-
+    
     static KeyboardLayout getKeyboardLayout();
 
 #if JUCE_MAC || JUCE_IOS

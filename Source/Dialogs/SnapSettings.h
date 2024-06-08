@@ -106,7 +106,7 @@ public:
         {
             if (dragToggledInteraction) {
                 g.setColour(findColour(PlugDataColour::toolbarHoverColourId));
-                PlugDataLook::fillSmoothedRectangle(g, getLocalBounds().toFloat().reduced(1.0f), Corners::defaultCornerRadius);
+                g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), Corners::defaultCornerRadius);
             }
 
             auto iconColour = getToggleState() ? findColour(PlugDataColour::toolbarActiveColourId) : findColour(PlugDataColour::toolbarTextColourId);

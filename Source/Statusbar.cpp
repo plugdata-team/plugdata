@@ -208,7 +208,7 @@ public:
         auto thumb = Rectangle<float>(thumbSize, thumbSize).withCentre(position);
         thumb = thumb.withSizeKeepingCentre(thumb.getWidth() - 12, thumb.getHeight());
         g.setColour(backgroundColour.darker(thumb.contains(getMouseXYRelative().toFloat()) ? 0.3f : 0.0f).withAlpha(0.8f));
-        PlugDataLook::fillSmoothedRectangle(g, thumb, Corners::defaultCornerRadius * 0.5f);
+        g.fillRoundedRectangle(thumb, Corners::defaultCornerRadius * 0.5f);
     }
 
 private:

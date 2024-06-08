@@ -182,10 +182,10 @@ public:
             auto downloadBar = Rectangle<float>(91.5f, 250.0f - (downloadBarHeight * 0.5), progress, downloadBarHeight);
 
             g.setColour(findColour(PlugDataColour::panelTextColourId));
-            PlugDataLook::fillSmoothedRectangle(g, downloadBarBg, Corners::defaultCornerRadius);
+            g.fillRoundedRectangle(downloadBarBg, Corners::defaultCornerRadius);
 
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-            PlugDataLook::fillSmoothedRectangle(g, downloadBar, Corners::defaultCornerRadius);
+            g.fillRoundedRectangle(downloadBar, Corners::defaultCornerRadius);
         }
 
         if (errorMessage.isNotEmpty()) {
@@ -363,7 +363,7 @@ public:
             auto colour = findColour(PlugDataColour::panelTextColourId);
             if (isMouseOver()) {
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-                PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(1, 1, getWidth() - 2, getHeight() - 2), Corners::largeCornerRadius);
+                g.fillRoundedRectangle(Rectangle<float>(1, 1, getWidth() - 2, getHeight() - 2), Corners::largeCornerRadius);
             }
             
             Fonts::drawIcon(g, iconText, 20, 5, 40, colour, 24, false);

@@ -378,7 +378,7 @@ public:
         valueLabel.setColour(Label::textColourId, findColour(PlugDataColour::sidebarTextColourId));
 
         g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-        PlugDataLook::fillSmoothedRectangle(g, getLocalBounds().toFloat().reduced(6.0f, 3.0f), Corners::defaultCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(6.0f, 3.0f), Corners::defaultCornerRadius);
     }
 
     std::function<void(AutomationItem*)> onDelete = [](AutomationItem*) {};
@@ -527,7 +527,7 @@ class AutomationComponent : public Component {
             auto colour = findColour(PlugDataColour::sidebarTextColourId);
             if (mouseIsOver) {
                 g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-                PlugDataLook::fillSmoothedRectangle(g, bounds.toFloat(), Corners::defaultCornerRadius);
+                g.fillRoundedRectangle(bounds.toFloat(), Corners::defaultCornerRadius);
             }
 
             Fonts::drawIcon(g, Icons::Add, iconBounds, colour, 12);

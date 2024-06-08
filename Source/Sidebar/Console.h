@@ -200,7 +200,7 @@ public:
                 if (isSelected) {
                     // Draw selected background
                     g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-                    PlugDataLook::fillSmoothedRectangle(g, getLocalBounds().reduced(0, 1).toFloat().withTrimmedTop(0.5f), Corners::defaultCornerRadius);
+                    g.fillRoundedRectangle(getLocalBounds().reduced(0, 1).toFloat().withTrimmedTop(0.5f), Corners::defaultCornerRadius);
 
                     for (auto& item : console.selectedItems) {
 

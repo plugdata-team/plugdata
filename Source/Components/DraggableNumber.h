@@ -301,7 +301,7 @@ public:
         if (hoveredDecimal >= 0) {
             // TODO: make this colour Id configurable?
             g.setColour(findColour(ComboBox::outlineColourId).withAlpha(isMouseButtonDown() ? 0.5f : 0.3f));
-            PlugDataLook::fillSmoothedRectangle(g, hoveredDecimalPosition, 2.5f);
+            g.fillRoundedRectangle(hoveredDecimalPosition, 2.5f);
         }
 
         auto font = getFont();
@@ -551,7 +551,7 @@ struct DraggableListNumber : public DraggableNumber {
         if (hoveredDecimal >= 0) {
             // TODO: make this colour Id configurable?
             g.setColour(findColour(ComboBox::outlineColourId).withAlpha(isMouseButtonDown() ? 0.5f : 0.3f));
-            PlugDataLook::fillSmoothedRectangle(g, hoveredDecimalPosition, 2.5f);
+            g.fillRoundedRectangle(hoveredDecimalPosition, 2.5f);
         }
 
         if (!isBeingEdited()) {

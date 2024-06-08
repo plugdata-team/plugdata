@@ -46,7 +46,7 @@ public:
         auto bounds = getLocalBounds().toFloat().reduced(3.0f, 4.0f);
 
         g.setColour(backgroundColour);
-        PlugDataLook::fillSmoothedRectangle(g, bounds, cornerSize);
+        g.fillRoundedRectangle(bounds, cornerSize);
 
         auto font = Fonts::getIconFont().withHeight(13);
         g.setFont(font);

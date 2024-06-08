@@ -770,7 +770,7 @@ struct ArrayPropertiesPanel : public PropertiesPanelProperty, public Value::List
             auto colour = findColour(PlugDataColour::sidebarTextColourId);
             if (mouseIsOver) {
                 g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-                PlugDataLook::fillSmoothedRectangle(g, bounds.toFloat(), Corners::defaultCornerRadius);
+                g.fillRoundedRectangle(bounds.toFloat(), Corners::defaultCornerRadius);
             }
 
             Fonts::drawIcon(g, Icons::Add, iconBounds, colour, 12);

@@ -138,7 +138,7 @@ public:
             if (isItemHighlighted() && isActive) {
                 g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
 
-                PlugDataLook::fillSmoothedRectangle(g, r.toFloat().reduced(0, 1), Corners::defaultCornerRadius);
+                g.fillRoundedRectangle(r.toFloat().reduced(0, 1), Corners::defaultCornerRadius);
             }
 
             g.setColour(colour);

@@ -21,7 +21,7 @@ public:
         auto bounds = getLocalBounds().reduced(3, 4).toFloat();
 
         g.setColour(backgroundColour);
-        PlugDataLook::fillSmoothedRectangle(g, bounds, cornerSize);
+        g.fillRoundedRectangle(bounds, cornerSize);
 
 
         auto textColour = findColour(PlugDataColour::toolbarTextColourId).withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
@@ -58,11 +58,13 @@ public:
         bounds = bounds.reduced(0.0f, bounds.proportionOfHeight(0.17f));
 
         g.setColour(backgroundColour);
-        PlugDataLook::fillSmoothedRectangle(g, bounds, Corners::defaultCornerRadius,
-            !(flatOnLeft || flatOnTop),
-            !(flatOnRight || flatOnTop),
-            !(flatOnLeft || flatOnBottom),
-            !(flatOnRight || flatOnBottom));
+        Path p;
+        p.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::defaultCornerRadius, Corners::defaultCornerRadius,
+                              !(flatOnLeft || flatOnTop),
+                              !(flatOnRight || flatOnTop),
+                              !(flatOnLeft || flatOnBottom),
+                              !(flatOnRight || flatOnBottom));
+        g.fillPath(p);
 
         auto textColour = findColour(PlugDataColour::toolbarTextColourId).withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
 
@@ -173,7 +175,7 @@ public:
                 background = background.darker(0.025f);
 
             g.setColour(background);
-            PlugDataLook::fillSmoothedRectangle(g, b.toFloat(), Corners::defaultCornerRadius);
+            g.fillRoundedRectangle(b.toFloat(), Corners::defaultCornerRadius);
         }
 
         auto textColour = findColour(PlugDataColour::toolbarTextColourId);

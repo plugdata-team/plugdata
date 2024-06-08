@@ -318,17 +318,16 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 }
 #endif // Linux/BSD
 
-
-juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles, int maximum)
+juce::Array<fs::path> iterateDirectoryPaths(juce::File const& directory, bool recursive, bool onlyFiles, int maximum)
 {
-    juce::Array<juce::File> result;
+    juce::Array<fs::path> result;
 
     if (recursive) {
         try {
             for (auto const& dirEntry : fs::recursive_directory_iterator(directory.getFullPathName().toStdString())) {
                 auto isDir = dirEntry.is_directory();
                 if ((isDir && !onlyFiles) || !isDir) {
-                    result.add(juce::File(dirEntry.path().string()));
+                    result.add(dirEntry.path().string());
                 }
 
                 if (maximum > 0 && result.size() >= maximum)
@@ -342,7 +341,7 @@ juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, b
             for (auto const& dirEntry : fs::directory_iterator(directory.getFullPathName().toStdString())) {
                 auto isDir = dirEntry.is_directory();
                 if ((isDir && !onlyFiles) || !isDir) {
-                    result.add(juce::File(dirEntry.path().string()));
+                    result.add(dirEntry.path());
                 }
 
                 if (maximum > 0 && result.size() >= maximum)
@@ -354,6 +353,17 @@ juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, b
     }
 
     return result;
+}
+
+juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles, int maximum)
+{
+    auto paths = iterateDirectoryPaths(directory, recursive, onlyFiles, maximum);
+    auto files = juce::Array<juce::File>();
+    for(auto& path : paths) {
+        files.add(juce::File(path.string()));
+    }
+    
+    return files;
 }
 
 // needs to be in OSutils because it needs <windows.h>

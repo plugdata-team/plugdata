@@ -1000,7 +1000,7 @@ void TabComponent::showHiddenTabsMenu(int splitIndex) {
                 g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
             }
             
-            PlugDataLook::fillSmoothedRectangle(g, getLocalBounds().reduced(1).toFloat(), Corners::defaultCornerRadius);
+            g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::defaultCornerRadius);
             
             auto area = getLocalBounds().reduced(4, 1).toFloat();
             

@@ -214,7 +214,7 @@ class SuggestionComponent : public Component
             auto buttonArea = getLocalBounds().withTrimmedRight((parent->canBeTransparent() ? 42 : 2) + scrollbarIndent).toFloat().reduced(4, 1);
 
             g.setColour(backgroundColour);
-            PlugDataLook::fillSmoothedRectangle(g, buttonArea, Corners::defaultCornerRadius);
+            g.fillRoundedRectangle(buttonArea, Corners::defaultCornerRadius);
 
             auto colour = findColour(PlugDataColour::popupMenuTextColourId);
             auto yIndent = jmin(4, proportionOfHeight(0.3f));
@@ -255,7 +255,7 @@ class SuggestionComponent : public Component
                 auto iconbound = getLocalBounds().reduced(4);
                 iconbound.setWidth(getHeight() - 8);
                 iconbound.translate(4, 0);
-                PlugDataLook::fillSmoothedRectangle(g, iconbound.toFloat(), Corners::defaultCornerRadius);
+                g.fillRoundedRectangle(iconbound.toFloat(), Corners::defaultCornerRadius);
 
                 
                 Fonts::drawFittedText(g, iconText, iconbound.reduced(1), Colours::white, 1, 1.0f, type ? 12 : 10, Justification::centred);
@@ -498,13 +498,13 @@ private:
         }
 
         g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
-        PlugDataLook::fillSmoothedRectangle(g, port->getBounds().reduced(1).toFloat(), Corners::defaultCornerRadius);
+        g.fillRoundedRectangle(port->getBounds().reduced(1).toFloat(), Corners::defaultCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::outlineColourId).darker(0.1f));
-        PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), port->getBounds().reduced(1).toFloat(), Corners::defaultCornerRadius);
+        g.drawRoundedRectangle(port->getBounds().reduced(1).toFloat(), Corners::defaultCornerRadius, 1.0f);
     }
 
     bool keyPressed(KeyPress const& key, Component* originatingComponent) override

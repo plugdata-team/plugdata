@@ -269,50 +269,6 @@ void PlugDataLook::fillResizableWindowBackground(Graphics& g, int w, int h, Bord
     }
 }
 
-void PlugDataLook::drawTextButtonBackground(Graphics& g, Button& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
-{
-    auto backgroundColour = findColour(shouldDrawButtonAsDown || button.getToggleState() ? PlugDataColour::dataColourId : PlugDataColour::canvasTextColourId);
-    if (shouldDrawButtonAsHighlighted)
-        backgroundColour = backgroundColour.brighter(0.5f);
-    auto cornerSize = Corners::defaultCornerRadius;
-    g.setColour(backgroundColour);
-    fillSmoothedRectangle(g, button.getLocalBounds().toFloat(), cornerSize);
-    jassertfalse; // I think we don't use this anymore?
-}
-
-void PlugDataLook::drawToolbarButtonBackground(Graphics& g, Button& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
-{
-    bool active = shouldDrawButtonAsHighlighted || shouldDrawButtonAsDown || button.getToggleState();
-
-    auto cornerSize = Corners::defaultCornerRadius;
-    auto flatOnLeft = button.isConnectedOnLeft();
-    auto flatOnRight = button.isConnectedOnRight();
-    auto flatOnTop = button.isConnectedOnTop();
-    auto flatOnBottom = button.isConnectedOnBottom();
-
-    if (flatOnLeft || flatOnRight || flatOnTop || flatOnBottom) {
-
-        auto backgroundColour = findColour(active ? PlugDataColour::toolbarHoverColourId : PlugDataColour::toolbarBackgroundColourId).contrasting((shouldDrawButtonAsHighlighted && !button.getToggleState()) ? 0.0f : 0.05f);
-
-        auto bounds = button.getLocalBounds().toFloat();
-        bounds = bounds.reduced(0.0f, bounds.proportionOfHeight(0.17f));
-
-        g.setColour(backgroundColour);
-        fillSmoothedRectangle(g, bounds, Corners::defaultCornerRadius,
-            !(flatOnLeft || flatOnTop),
-            !(flatOnRight || flatOnTop),
-            !(flatOnLeft || flatOnBottom),
-            !(flatOnRight || flatOnBottom));
-    } else {
-        auto backgroundColour = active ? findColour(PlugDataColour::toolbarHoverColourId) : Colours::transparentBlack;
-        auto bounds = button.getLocalBounds().toFloat().reduced(2.0f, 4.0f);
-
-        g.setColour(backgroundColour);
-        fillSmoothedRectangle(g, bounds, cornerSize);
-        // g.fillRoundedRectangle(bounds, cornerSize);
-    }
-}
-
 void PlugDataLook::drawCallOutBoxBackground(CallOutBox& box, Graphics& g, Path const& path, Image& cachedImage)
 {
     
@@ -528,10 +484,10 @@ void PlugDataLook::drawPopupMenuBackgroundWithOptions(Graphics& g, int width, in
         g.setColour(background);
 
         auto bounds = Rectangle<float>(5, 6, width - 10, height - 12);
-        fillSmoothedRectangle(g, bounds, Corners::largeCornerRadius);
+        g.fillRoundedRectangle(bounds, Corners::largeCornerRadius);
 
         g.setColour(findColour(PlugDataColour::outlineColourId));
-        drawSmoothedRectangle(g, PathStrokeType(1.0f), bounds, Corners::largeCornerRadius);
+        g.drawRoundedRectangle(bounds, Corners::largeCornerRadius, 1.0f);
     } else {
         auto bounds = Rectangle<float>(0, 0, width, height);
 
@@ -577,7 +533,7 @@ void PlugDataLook::drawPopupMenuItem(Graphics& g, Rectangle<int> const& area,
         auto colour = findColour(PopupMenu::textColourId).withMultipliedAlpha(isActive ? 1.0f : 0.5f);
         if (isHighlighted && isActive) {
             g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
-            fillSmoothedRectangle(g, r.toFloat().reduced(4, 0), Corners::defaultCornerRadius);
+            g.fillRoundedRectangle(r.toFloat().reduced(4, 0), Corners::defaultCornerRadius);
         }
 
         g.setColour(colour);
@@ -861,68 +817,6 @@ void PlugDataLook::drawLabel(Graphics& g, Label& label)
     }
 
     g.drawRect(label.getLocalBounds());
-}
-
-Path PlugDataLook::getSquircle(Rectangle<float> const& bounds, float cornerRadius, bool const curveTopLeft, bool const curveTopRight, bool const curveBottomLeft, bool const curveBottomRight)
-{
-    Path path;
-
-    float x = bounds.getX();
-    float y = bounds.getY();
-    float width = bounds.getWidth();
-    float height = bounds.getHeight();
-
-    float radius = cornerRadius;
-    if (radius > width * 0.5f)
-        radius = width * 0.5f;
-    if (radius > height * 0.5f)
-        radius = height * 0.5f;
-
-    float controlOffset = radius * 0.45f;
-
-    path.startNewSubPath(x + radius, y);
-
-    if (curveTopRight) {
-        path.lineTo(x + width - radius, y);
-        path.cubicTo(x + width - radius + controlOffset, y, x + width, y + radius - controlOffset, x + width, y + radius);
-    } else {
-        path.lineTo(x + width, y);
-    }
-
-    if (curveBottomRight) {
-        path.lineTo(x + width, y + height - radius);
-        path.cubicTo(x + width, y + height - radius + controlOffset, x + width - radius + controlOffset, y + height, x + width - radius, y + height);
-    } else {
-        path.lineTo(x + width, y + height);
-    }
-
-    if (curveBottomLeft) {
-        path.lineTo(x + radius, y + height);
-        path.cubicTo(x + radius - controlOffset, y + height, x, y + height - radius + controlOffset, x, y + height - radius);
-    } else {
-        path.lineTo(x, y + height);
-    }
-
-    if (curveTopLeft) {
-        path.lineTo(x, y + radius);
-        path.cubicTo(x, y + radius - controlOffset, x + radius - controlOffset, y, x + radius, y);
-    } else {
-        path.lineTo(x, y);
-    }
-
-    path.closeSubPath();
-
-    return path;
-}
-
-void PlugDataLook::fillSmoothedRectangle(Graphics& g, Rectangle<float> const& bounds, float cornerRadius, bool const curveTopLeft, bool const curveTopRight, bool const curveBottomLeft, bool const curveBottomRight)
-{
-    g.fillPath(getSquircle(bounds, cornerRadius, curveTopLeft, curveTopRight, curveBottomLeft, curveBottomRight));
-}
-
-void PlugDataLook::drawSmoothedRectangle(Graphics& g, PathStrokeType strokeType, Rectangle<float> const& bounds, float cornerRadius, bool const curveTopLeft, bool const curveTopRight, bool const curveBottomLeft, bool const curveBottomRight)
-{
-    g.strokePath(getSquircle(bounds, cornerRadius, curveTopLeft, curveTopRight, curveBottomLeft, curveBottomRight), strokeType);
 }
 
 void PlugDataLook::drawPropertyComponentLabel(Graphics& g, int width, int height, PropertyComponent& component)

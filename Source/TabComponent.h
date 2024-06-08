@@ -140,7 +140,7 @@ private:
                 g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
             }
             
-            PlugDataLook::fillSmoothedRectangle(g, getLocalBounds().toFloat().reduced(4.5f), Corners::defaultCornerRadius);
+            g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(4.5f), Corners::defaultCornerRadius);
             
             auto area = getLocalBounds().reduced(4, 1).toFloat();
             
@@ -187,7 +187,7 @@ private:
             g.setOpacity(1.0f);
             
             g.setColour(findColour(PlugDataColour::activeTabBackgroundColourId));
-            PlugDataLook::fillSmoothedRectangle(g, textBounds.withPosition(10, 10).reduced(2).toFloat(), Corners::defaultCornerRadius);
+            g.fillRoundedRectangle(textBounds.withPosition(10, 10).reduced(2).toFloat(), Corners::defaultCornerRadius);
             
             g.setColour(findColour(PlugDataColour::toolbarTextColourId));
             

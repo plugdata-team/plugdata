@@ -71,11 +71,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     void fillResizableWindowBackground(Graphics& g, int w, int h, BorderSize<int> const& border, ResizableWindow& window) override;
 
-    void drawResizableWindowBorder(Graphics&, int w, int h, BorderSize<int> const& border, ResizableWindow&) override { }
-
-    void drawTextButtonBackground(Graphics& g, Button& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown);
-
-    void drawToolbarButtonBackground(Graphics& g, Button& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown);
+    void drawResizableWindowBorder(Graphics&, int w, int h, BorderSize<int> const& border, ResizableWindow&) override {}
 
     void drawCallOutBoxBackground(CallOutBox& box, Graphics& g, Path const& path, Image& cachedImage) override;
 
@@ -144,12 +140,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
     void drawTooltip(Graphics& g, String const& text, int width, int height) override;
 
     void drawLabel(Graphics& g, Label& label) override;
-
-    static Path getSquircle(Rectangle<float> const& bounds, float cornerRadius, bool const curveTopLeft = true, bool const curveTopRight = true, bool const curveBottomLeft = true, bool const curveBottomRight = true);
-
-    static void fillSmoothedRectangle(Graphics& g, Rectangle<float> const& bounds, float cornerRadius, bool const curveTopLeft = true, bool const curveTopRight = true, bool const curveBottomLeft = true, bool const curveBottomRight = true);
-
-    static void drawSmoothedRectangle(Graphics& g, PathStrokeType strokeType, Rectangle<float> const& bounds, float cornerRadius, bool const curveTopLeft = true, bool const curveTopRight = true, bool const curveBottomLeft = true, bool const curveBottomRight = true);
 
     void drawPropertyComponentLabel(Graphics& g, int width, int height, PropertyComponent& component) override;
 
