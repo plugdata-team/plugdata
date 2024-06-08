@@ -158,10 +158,10 @@ public:
     void paint(Graphics& g) override
     {
         auto b = getLocalBounds();
-        
+
         Path background;
         background.addRoundedRectangle(b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, false, false, true, true);
-        
+
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillPath(background);
 

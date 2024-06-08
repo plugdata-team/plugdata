@@ -84,7 +84,6 @@ void Library::updateLibrary()
     // These can't be created by name in Pd, but plugdata allows it
     allObjects.add("graph");
     allObjects.add("garray");
-    
 
     // These aren't in there but should be
     allObjects.add("float");
@@ -99,8 +98,7 @@ Library::Library(pd::Instance* instance)
     MemoryInputStream instream(BinaryData::Documentation_bin, BinaryData::Documentation_binSize, false);
     documentationTree = ValueTree::readFromStream(instream);
 
-    for(auto child : documentationTree)
-    {
+    for (auto child : documentationTree) {
         auto categoriesTree = child.getChildWithName("categories");
 
         String origin;
@@ -110,26 +108,20 @@ Library::Library(pd::Instance* instance)
                 origin = cat;
             }
         }
-       
+
         auto name = child.getProperty("name").toString();
-        if(origin.isEmpty()) {
+        if (origin.isEmpty()) {
             documentationIndex[hash(name)] = child;
-        }
-        else if(origin == "Gem")
-        {
+        } else if (origin == "Gem") {
             documentationIndex[hash(origin + "/" + name)] = child;
-        }
-        else if(documentationIndex.count(hash(name)))
-        {
+        } else if (documentationIndex.count(hash(name))) {
             documentationIndex[hash(origin + "/" + name)] = child;
-        }
-        else {
+        } else {
             documentationIndex[hash(name)] = child;
             documentationIndex[hash(origin + "/" + name)] = child;
         }
     }
-    
-    
+
     watcher.addFolder(ProjectInfo::appDataDir);
     watcher.addListener(this);
 
@@ -183,8 +175,9 @@ void Library::getExtraSuggestions(int currentNumSuggestions, String const& query
         // TODO: why not iterate the documentation tree directly??
         for (const auto& object : getAllObjects()) {
             auto info = getObjectInfo(object);
-            if(!info.isValid()) continue;
-            
+            if (!info.isValid())
+                continue;
+
             auto description = info.getProperty("description").toString();
 
             auto iolets = info.getChildWithName("iolets");
@@ -290,30 +283,26 @@ void Library::filesystemChanged()
 String Library::getObjectOrigin(t_gobj* obj)
 {
     auto* pdclass = pd_class(reinterpret_cast<t_pd*>(obj));
-    
+
     if (pdclass == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
         auto* cnv = reinterpret_cast<t_canvas*>(obj);
         auto parentPath = String::fromUTF8(canvas_getenv(cnv)->ce_dir->s_name);
-        for(auto& origin : objectOrigins)
-        {
-            if(parentPath.containsIgnoreCase("/" + origin))
-            {
+        for (auto& origin : objectOrigins) {
+            if (parentPath.containsIgnoreCase("/" + origin)) {
                 return origin;
             }
         }
     }
-    
-    if(pdclass->c_externdir) {
+
+    if (pdclass->c_externdir) {
         auto externDir = String::fromUTF8(pdclass->c_externdir->s_name);
-        for(auto& origin : objectOrigins)
-        {
-            if(externDir.containsIgnoreCase(origin))
-            {
+        for (auto& origin : objectOrigins) {
+            if (externDir.containsIgnoreCase(origin)) {
                 return origin;
             }
         }
     }
-    
+
     return {};
 }
 
@@ -373,7 +362,7 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile)
             pathName = pathName.replace("/9.else", "/else");
             pathName = pathName.replace("/10.cyclone", "/cyclone");
             pathName = pathName.replace("/14.gem", "/Gem");
-            
+
             if (pathName.endsWith("/" + firstName) || pathName.endsWith("/" + secondName)) {
                 return file;
             }

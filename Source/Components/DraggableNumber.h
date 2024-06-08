@@ -35,7 +35,7 @@ protected:
     double valueToResetTo = 0.0;
     double valueToRevertTo = 0.0;
     bool showEllipses = true;
-        
+
     std::unique_ptr<NanoVGGraphicsContext> nvgCtx;
 
 public:
@@ -96,7 +96,7 @@ public:
     {
         logarithmicHeight = logHeight;
     }
-        
+
     // Toggle between showing ellipses or ">" if number is too large to fit
     void setShowEllipsesIfTooLong(bool shouldShowEllipses)
     {
@@ -285,10 +285,11 @@ public:
 
         return draggedDecimal;
     }
-        
+
     void render(NVGcontext* nvg)
     {
-        if(!nvgCtx || nvgCtx->getContext() != nvg) nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
+        if (!nvgCtx || nvgCtx->getContext() != nvg)
+            nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
         nvgCtx->setPhysicalPixelScaleFactor(2.0f);
         Graphics g(*nvgCtx);
         {
@@ -311,26 +312,24 @@ public:
             auto extraNumberText = String();
             auto numDecimals = numberText.fromFirstOccurrenceOf(".", false, false).length();
             auto numberTextLength = CachedFontStringWidth::get()->calculateSingleLineWidth(font, numberText);
-            
+
             for (int i = 0; i < std::min(hoveredDecimal - decimalDrag, 7 - numDecimals); ++i)
                 extraNumberText += "0";
-            
+
             // If show ellipses is false, only show ">" when integers are too large to fit
-            if(!showEllipses && numDecimals == 0)
-            {
-                while(numberTextLength > textArea.getWidth() + 3)
-                {
+            if (!showEllipses && numDecimals == 0) {
+                while (numberTextLength > textArea.getWidth() + 3) {
                     numberText = numberText.trimCharactersAtEnd(".>");
                     numberText = numberText.dropLastCharacters(1);
                     numberText += ">";
                     numberTextLength = CachedFontStringWidth::get()->calculateSingleLineWidth(font, numberText);
                 }
             }
-            
+
             g.setFont(font);
             g.setColour(findColour(Label::textColourId));
             g.drawText(numberText, textArea, Justification::centredLeft, showEllipses);
-           
+
             if (dragMode == Regular) {
                 g.setColour(findColour(Label::textColourId).withAlpha(0.4f));
                 g.drawText(extraNumberText, textArea.withTrimmedLeft(numberTextLength), Justification::centredLeft, false);
@@ -449,7 +448,8 @@ public:
         auto text = String(value, precision == -1 ? 8 : precision);
 
         if (dragMode != Integer) {
-            if(!text.containsChar('.'))  text << '.';
+            if (!text.containsChar('.'))
+                text << '.';
             text = text.trimCharactersAtEnd("0");
         }
 
@@ -497,7 +497,7 @@ struct DraggableListNumber : public DraggableNumber {
     {
         if (isBeingEdited() || !targetFound)
             return;
-        
+
         // Hide cursor and set unbounded mouse movement
         setMouseCursor(MouseCursor::NoCursor);
         updateMouseCursor();
@@ -507,7 +507,7 @@ struct DraggableListNumber : public DraggableNumber {
 
         double const deltaY = (e.y - e.mouseDownPosition.y) * 0.7;
         double const increment = e.mods.isShiftDown() ? (0.01 * std::floor(-deltaY)) : std::floor(-deltaY);
-        
+
         double newValue = dragValue + increment;
 
         newValue = limitValue(newValue);
@@ -526,7 +526,7 @@ struct DraggableListNumber : public DraggableNumber {
 
         setText(newText, dontSendNotification);
         onValueChange(0);
-        
+
         updateListHoverPosition(e.getMouseDownX());
     }
 

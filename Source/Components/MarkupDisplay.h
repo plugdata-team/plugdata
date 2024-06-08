@@ -196,29 +196,25 @@ public:
     {
         mouseDownPosition = event.position; // keep track of position
     }
-    
+
     void mouseMove(MouseEvent const& event) override
     {
         bool isHoveringLink = false;
-        
-        for(auto& [link, bounds] : linkBounds)
-        {
-            if(bounds.contains(event.x, event.y))
-            {
+
+        for (auto& [link, bounds] : linkBounds) {
+            if (bounds.contains(event.x, event.y)) {
                 isHoveringLink = true;
                 break;
             }
         }
-        
+
         setMouseCursor(isHoveringLink ? MouseCursor::PointingHandCursor : MouseCursor::NormalCursor);
     }
 
     void mouseUp(MouseEvent const& event) override
     {
-        for(auto& [link, bounds] : linkBounds)
-        {
-            if(bounds.contains(event.x, event.y))
-            {
+        for (auto& [link, bounds] : linkBounds) {
+            if (bounds.contains(event.x, event.y)) {
                 URL(link).launchInDefaultBrowser();
                 break;
             }
@@ -368,11 +364,11 @@ protected:
         }
         return attributedString;
     }
-    
+
     void updateLinkBounds(TextLayout& layout)
     {
         linkBounds.clear();
-        
+
         // Look for clickable links
         for (auto& [link, start, end] : links) {
             int offset = 0;
@@ -382,13 +378,13 @@ protected:
                     for (int i = start - offset; i < end - offset; i++) {
                         if (i < 0 || i >= run->glyphs.size())
                             continue;
-                        
+
                         auto& glyph = run->glyphs.getReference(i);
                         auto lineBounds = Rectangle<float>(glyph.width, 14).withPosition((glyph.anchor + line.lineOrigin));
                         currentLinkBounds = linkBounds.isEmpty() ? lineBounds : currentLinkBounds.getUnion(lineBounds);
                     }
-                    
-                    linkBounds.add({link, currentLinkBounds.translated(0, -11)});
+
+                    linkBounds.add({ link, currentLinkBounds.translated(0, -11) });
                     offset += run->glyphs.size();
                 }
             }
@@ -404,9 +400,8 @@ protected:
         return parseHexColourStatic(s, defaultColour);
     }
 
-
     AttributedString attributedString;
-    
+
 private:
     Array<std::pair<String, Rectangle<float>>> linkBounds;
     Array<std::tuple<String, int, int>> links;
@@ -433,7 +428,7 @@ public:
         layout.createLayout(attributedString, getWidth());
         layout.draw(g, getLocalBounds().toFloat());
     }
-    
+
     void resized() override
     {
         TextLayout layout;
@@ -849,7 +844,7 @@ public:
         label.draw(g, getLocalBounds().withTrimmedLeft(indent).toFloat());
         attributedString.draw(g, getLocalBounds().withTrimmedLeft(indent + gap).toFloat());
     }
-    
+
     void resized() override
     {
         TextLayout layout;
@@ -889,7 +884,7 @@ public:
         colours.set("darkyellow", "#AA0");
         colours.set("purple", "#A0F");
         colours.set("gray", "#777");
-        
+
         // default font
         font = Fonts::getDefaultFont().withHeight(15);
 
@@ -922,11 +917,12 @@ public:
         viewport.setScrollOnDragMode(Viewport::ScrollOnDragMode::nonHover);
     }
 
-    void paint(Graphics& g) override {
+    void paint(Graphics& g) override
+    {
         g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
     }
-    
+
     // clear the background
     void resized() override
     {

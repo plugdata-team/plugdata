@@ -18,10 +18,12 @@
 class ConnectionMessageDisplay
     : public Component
     , public MultiTimer {
-        
+
     PluginEditor* editor;
+
 public:
-    ConnectionMessageDisplay(PluginEditor* parentEditor) : editor(parentEditor)
+    ConnectionMessageDisplay(PluginEditor* parentEditor)
+        : editor(parentEditor)
     {
         setSize(36, 36);
         setVisible(false);
@@ -45,7 +47,7 @@ public:
 
         auto clearSignalDisplayBuffer = [this]() {
             SignalBlock sample;
-            while (sampleQueue.try_dequeue(sample)) {}
+            while (sampleQueue.try_dequeue(sample)) { }
             for (int ch = 0; ch < 8; ch++) {
                 std::fill(lastSamples[ch], lastSamples[ch] + signalBlockSize, 0.0f);
                 cycleLength[ch] = 0.0f;
@@ -115,7 +117,7 @@ private:
             auto firstOrLast = (i == 0 || i == textString.size() - 1);
             stringItem = textString[i];
             stringItem += firstOrLast ? "" : ",";
-            
+
             // first item uses system font
             // use cached width calculation for performance
             stringWidth = CachedFontStringWidth::get()->calculateSingleLineWidth(textFont, stringItem);
@@ -123,7 +125,7 @@ private:
             if ((totalStringWidth + stringWidth) > halfEditorWidth) {
                 auto elideText = String("(" + String(textString.size() - i) + String(")..."));
                 auto elideFont = Font(Fonts::getSemiBoldFont());
-                
+
                 auto elideWidth = CachedFontStringWidth::get()->calculateSingleLineWidth(elideFont, elideText);
                 messageItemsWithFormat.add(TextStringWithMetrics(elideText, FontStyle::Semibold, elideWidth));
                 totalStringWidth += elideWidth + 4;
@@ -146,10 +148,9 @@ private:
         if (totalStringWidth > getWidth() || isHoverEntered) {
             updateBoundsFromProposed(Rectangle<int>().withSize(totalStringWidth, 36));
         }
-        
+
         // Check if changed
-        if(lastTextString != textString)
-        {
+        if (lastTextString != textString) {
             lastTextString = textString;
             repaint();
         }

@@ -5,7 +5,9 @@
  */
 
 // Graph bounds component
-class GraphArea : public Component, public NVGComponent, public Value::Listener {
+class GraphArea : public Component
+    , public NVGComponent
+    , public Value::Listener {
     ComponentBoundsConstrainer constrainer;
     ResizableBorderComponent resizer;
     Canvas* canvas;
@@ -19,7 +21,7 @@ public:
     {
         addAndMakeVisible(resizer);
         updateBounds();
-        
+
         constrainer.setMinimumSize(12, 12);
 
         resizer.setBorderThickness(BorderSize<int>(4, 4, 4, 4));
@@ -37,7 +39,7 @@ public:
     {
         setVisible(!getValue<bool>(v));
     }
-    
+
     Array<Rectangle<float>> getCorners() const
     {
         auto rect = getLocalBounds().toFloat().reduced(3.5f);
@@ -48,7 +50,7 @@ public:
 
         return corners;
     }
-    
+
     void render(NVGcontext* nvg) override
     {
         auto lineBounds = getLocalBounds().toFloat().reduced(4.0f);
@@ -59,14 +61,13 @@ public:
         nvgStrokeColor(nvg, graphAreaColour);
         nvgStrokeWidth(nvg, 1.0f);
         nvgStroke(nvg);
-    
-        
-        auto drawCorner = [](NVGcontext* nvg, int x, int y, int angle){
+
+        auto drawCorner = [](NVGcontext* nvg, int x, int y, int angle) {
             nvgSave(nvg);
-            
+
             nvgTranslate(nvg, x, y);
             nvgRotate(nvg, degreesToRadians<float>(angle));
-            
+
             // (Calculated from svg)
             nvgBeginPath(nvg);
             nvgMoveTo(nvg, 3.51f, 9.004f);
@@ -77,7 +78,7 @@ public:
 
             nvgLineTo(nvg, 6.753f, 0.0f);
             nvgBezierTo(nvg, 7.995f, 0.0f, 9.004f, 1.009f, 9.004f, 2.251f);
-            
+
             nvgLineTo(nvg, 9.004f, 3.511f);
             nvgLineTo(nvg, 6.239f, 3.511f);
             nvgBezierTo(nvg, 4.733f, 3.511f, 3.51f, 4.734f, 3.51f, 6.24f);
@@ -86,7 +87,7 @@ public:
             nvgFill(nvg);
             nvgRestore(nvg);
         };
-        
+
         nvgFillColor(nvg, graphAreaColour);
         drawCorner(nvg, 1, 1, 0);
         drawCorner(nvg, getWidth() - 1, 1, 90);
@@ -96,19 +97,19 @@ public:
 
     bool hitTest(int x, int y) override
     {
-        return (topLeftCorner.contains(x, y) || topRightCorner.contains(x, y) || bottomLeftCorner.contains(x, y)|| bottomRightCorner.contains(x, y)) && !getLocalBounds().reduced(4).contains(x, y);
+        return (topLeftCorner.contains(x, y) || topRightCorner.contains(x, y) || bottomLeftCorner.contains(x, y) || bottomRightCorner.contains(x, y)) && !getLocalBounds().reduced(4).contains(x, y);
     }
-    
+
     void mouseEnter(MouseEvent const& e) override
     {
         repaint();
     }
-    
+
     void mouseExit(MouseEvent const& e) override
     {
         repaint();
     }
-    
+
     void mouseMove(MouseEvent const& e) override
     {
         repaint();
@@ -126,7 +127,7 @@ public:
         topRightCorner = getLocalBounds().toFloat().removeFromTop(9).removeFromRight(9).translated(-0.5f, 0.5f);
         bottomLeftCorner = getLocalBounds().toFloat().removeFromBottom(9).removeFromLeft(9).translated(0.5f, -0.5f);
         bottomRightCorner = getLocalBounds().toFloat().removeFromBottom(9).removeFromRight(9).translated(-0.5f, -0.5f);
-        
+
         resizer.setBounds(getLocalBounds());
         repaint();
     }
@@ -140,7 +141,7 @@ public:
             cnv->gl_xmargin = getX() - canvas->canvasOrigin.x + 4;
             cnv->gl_ymargin = getY() - canvas->canvasOrigin.y + 4;
         }
-        
+
         canvas->updateDrawables();
     }
 

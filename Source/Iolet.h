@@ -26,7 +26,7 @@ public:
     void mouseExit(MouseEvent const& e) override;
 
     bool hitTest(int x, int y) override;
-        
+
     void render(NVGcontext* nvg) override;
 
     void valueChanged(Value& v) override;

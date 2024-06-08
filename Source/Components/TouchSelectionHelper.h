@@ -12,19 +12,21 @@
 #include "PluginEditor.h"
 #include "Objects/ObjectBase.h"
 
-class TouchSelectionHelper : public Component, public NVGComponent {
+class TouchSelectionHelper : public Component
+    , public NVGComponent {
 
     PluginEditor* editor;
 
 public:
     TouchSelectionHelper(PluginEditor* e)
-        : NVGComponent(this), editor(e)
+        : NVGComponent(this)
+        , editor(e)
     {
         addAndMakeVisible(actionButtons.add(new MainToolbarButton(Icons::ExportState))); // This icon doubles as a "open" icon in the mobile app
         addAndMakeVisible(actionButtons.add(new MainToolbarButton(Icons::Help)));
         addAndMakeVisible(actionButtons.add(new MainToolbarButton(Icons::Trash)));
         addAndMakeVisible(actionButtons.add(new MainToolbarButton(Icons::More)));
-        
+
         setCachedComponentImage(new NVGSurface::InvalidationListener(e->nvgSurface, this));
 
         actionButtons[0]->onClick = [this]() {

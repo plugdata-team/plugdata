@@ -49,7 +49,7 @@ public:
     void removeListener(Listener* l);
 
     void setCPUUsage(float cpuUsage);
-    
+
     AudioSampleRingBuffer peakBuffer;
 
 private:
@@ -85,19 +85,19 @@ public:
     void paint(Graphics& g) override;
 
     void resized() override;
-        
+
     void lookAndFeelChanged() override;
 
     void audioProcessedChanged(bool audioProcessed) override;
 
     void setLatencyDisplay(int value);
     void updateZoomLevel();
-    
+
     void showDSPState(bool dspState);
     void setHasActiveCanvas(bool hasActiveCanvas);
 
     static constexpr int statusbarHeight = 30;
-        
+
 private:
     bool wasLocked = false; // Make sure it doesn't re-lock after unlocking (because cmd is still down)
 
@@ -105,14 +105,14 @@ private:
     std::unique_ptr<VolumeSlider> volumeSlider;
     std::unique_ptr<MIDIBlinker> midiBlinker;
     std::unique_ptr<CPUMeter> cpuMeter;
-    
+
     SmallIconButton zoomComboButton, centreButton;
     SmallIconButton overlayButton, overlaySettingsButton;
     SmallIconButton snapEnableButton, snapSettingsButton;
     SmallIconButton powerButton, audioSettingsButton;
-    
+
     TextButton limiterButton = TextButton("Limit");
-        
+
     std::unique_ptr<LatencyDisplayButton> latencyDisplayButton;
 
     std::unique_ptr<ZoomLabel> zoomLabel;

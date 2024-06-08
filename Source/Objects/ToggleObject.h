@@ -68,12 +68,10 @@ public:
         value = getValue();
         setToggleStateFromFloat(value);
     }
-    
-    
+
     void render(NVGcontext* nvg) override
     {
         auto b = getLocalBounds().toFloat().reduced(0.5f);
-
 
         auto bgColour = ::getValue<Colour>(iemHelper.secondaryColour);
         if (mouseHover)
@@ -90,10 +88,10 @@ public:
         auto const sizeReduction = std::min(1.0f, getWidth() / 20.0f);
         float margin = (getWidth() * 0.08f + 4.5f) * sizeReduction;
         auto crossBounds = getLocalBounds().toFloat().reduced(margin);
-        
+
         auto const max = std::max(crossBounds.getWidth(), crossBounds.getHeight());
         auto strokeWidth = std::max(max * 0.15f, 2.0f) * sizeReduction;
-        
+
         nvgBeginPath(nvg);
         nvgMoveTo(nvg, crossBounds.getX(), crossBounds.getY());
         nvgLineTo(nvg, crossBounds.getRight(), crossBounds.getBottom());

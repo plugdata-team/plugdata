@@ -12,23 +12,24 @@
 #include "Utility/NanoVGGraphicsContext.h"
 #include "Components/BouncingViewport.h"
 
-extern "C"
-{
-int is_gem_object(const char* sym);
+extern "C" {
+int is_gem_object(char const* sym);
 }
 
 // Component that sits on top of a TextEditor and will draw auto-complete suggestions over it
 class AutoCompleteComponent
-    : public Component, public NVGComponent
+    : public Component
+    , public NVGComponent
     , public ComponentListener {
     String suggestion;
     Canvas* cnv;
     Component::SafePointer<TextEditor> editor;
     std::unique_ptr<NanoVGGraphicsContext> nvgCtx;
-        
+
 public:
     AutoCompleteComponent(TextEditor* e, Canvas* c)
-        : NVGComponent(this), cnv(c)
+        : NVGComponent(this)
+        , cnv(c)
         , editor(e)
     {
         setAlwaysOnTop(true);
@@ -81,7 +82,7 @@ public:
             return;
 
         auto editorText = editor->getText();
-        
+
         if (editorText.startsWith(suggestionText)) {
             suggestion = "";
             repaint();
@@ -106,12 +107,13 @@ public:
         suggestion = suggestion.upToFirstOccurrenceOf(" ", false, false);
         repaint();
     }
-        
+
     void render(NVGcontext* nvg) override
     {
         nvgSave(nvg);
         nvgTranslate(nvg, getX(), getY());
-        if(!nvgCtx || nvgCtx->getContext() != nvg) nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
+        if (!nvgCtx || nvgCtx->getContext() != nvg)
+            nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
         Graphics g(*nvgCtx);
         {
             paintEntireComponent(g, true);
@@ -119,7 +121,6 @@ public:
         nvgRestore(nvg);
     }
 
-        
 private:
     bool shouldAutocomplete = true;
     String stashedText;
@@ -158,14 +159,13 @@ class SuggestionComponent : public Component
     , public ComponentListener {
 
     class Suggestion : public TextButton {
-        
-        enum ObjectType
-        {
+
+        enum ObjectType {
             Data = 0,
             Signal = 1,
             Gem = 2
         };
-        
+
         ObjectType type;
 
         String objectDescription;
@@ -187,9 +187,8 @@ class SuggestionComponent : public Component
             objectDescription = description;
             setButtonText(name);
             type = name.contains("~") ? Signal : Data;
-            
-            if(!type && is_gem_object(name.toRawUTF8()))
-            {
+
+            if (!type && is_gem_object(name.toRawUTF8())) {
                 type = Gem;
             }
 
@@ -208,7 +207,7 @@ class SuggestionComponent : public Component
         void paint(Graphics& g) override
         {
             auto scrollbarIndent = parent->port->canScrollVertically() ? 6 : 0;
-            
+
             auto backgroundColour = findColour(getToggleState() ? PlugDataColour::popupMenuActiveBackgroundColourId : PlugDataColour::popupMenuBackgroundColourId);
 
             auto buttonArea = getLocalBounds().withTrimmedRight((parent->canBeTransparent() ? 42 : 2) + scrollbarIndent).toFloat().reduced(4, 1);
@@ -238,26 +237,23 @@ class SuggestionComponent : public Component
             if (drawIcon) {
                 Colour iconColour;
                 String iconText;
-                if(type == Data) {
+                if (type == Data) {
                     iconColour = findColour(PlugDataColour::dataColourId);
                     iconText = "pd";
-                }
-                else if(type == Signal) {
+                } else if (type == Signal) {
                     iconColour = findColour(PlugDataColour::signalColourId);
                     iconText = "~";
-                }
-                else if (type == Gem) {
+                } else if (type == Gem) {
                     iconColour = findColour(PlugDataColour::gemColourId);
                     iconText = "g";
                 }
                 g.setColour(iconColour);
-                
+
                 auto iconbound = getLocalBounds().reduced(4);
                 iconbound.setWidth(getHeight() - 8);
                 iconbound.translate(4, 0);
                 g.fillRoundedRectangle(iconbound.toFloat(), Corners::defaultCornerRadius);
 
-                
                 Fonts::drawFittedText(g, iconText, iconbound.reduced(1), Colours::white, 1, 1.0f, type ? 12 : 10, Justification::centred);
             }
         }
@@ -297,7 +293,7 @@ public:
         constrainer.setSizeLimits(150, 120, 500, 400);
         setSize(310 + (2 * windowMargin), 140 + (2 * windowMargin));
 
-        //resizer.setAllowHostManagedResize(false);
+        // resizer.setAllowHostManagedResize(false);
         addAndMakeVisible(resizer);
 
         setInterceptsMouseClicks(true, true);
@@ -309,10 +305,11 @@ public:
     {
         buttons.clear();
     }
-        
+
     void renderAutocompletion(NVGcontext* nvg)
     {
-        if(autoCompleteComponent) autoCompleteComponent->render(nvg);
+        if (autoCompleteComponent)
+            autoCompleteComponent->render(nvg);
     }
 
     void createCalloutBox(Object* object, TextEditor* editor)
@@ -665,47 +662,47 @@ private:
             state = ShowingArguments;
             auto name = currentText.upToFirstOccurrenceOf(" ", false, false);
             auto objectInfo = library->getObjectInfo(name);
-            if(objectInfo.isValid()) {
+            if (objectInfo.isValid()) {
                 auto found = objectInfo.getChildWithName("arguments").createCopy();
                 for (auto flag : objectInfo.getChildWithName("flags")) {
                     auto flagCopy = flag.createCopy();
                     auto name = flagCopy.getProperty("name").toString().trim();
-                    
+
                     if (!name.startsWith("-"))
                         name = "-" + name;
-                    
+
                     flagCopy.setProperty("type", name, nullptr);
                     found.appendChild(flagCopy, nullptr);
                 }
-                
+
                 numOptions = std::min<int>(buttons.size(), found.getNumChildren());
                 for (int i = 0; i < numOptions; i++) {
                     auto type = found.getChild(i).getProperty("type").toString();
                     auto description = found.getChild(i).getProperty("description").toString();
                     auto def = found.getChild(i).getProperty("default").toString();
-                    
+
                     if (def.isNotEmpty())
                         description += " (default: " + def + ")";
-                    
+
                     buttons[i]->setText(type, description, false);
                     buttons[i]->setInterceptsMouseClicks(false, false);
                     buttons[i]->setToggleState(false, dontSendNotification);
                 }
-                
+
                 for (int i = numOptions; i < buttons.size(); i++) {
                     buttons[i]->setText("", "", false);
                     buttons[i]->setToggleState(false, dontSendNotification);
                 }
-                
+
                 setVisible(numOptions);
-                
+
                 if (autoCompleteComponent) {
                     autoCompleteComponent->enableAutocomplete(false);
                     currentObject->updateBounds();
                 }
-                
+
                 resized();
-                
+
                 return;
             }
         }
@@ -766,8 +763,9 @@ private:
                 auto& name = suggestions[i];
 
                 auto info = library->getObjectInfo(name);
-                if(!info.isValid()) continue;
-                
+                if (!info.isValid())
+                    continue;
+
                 auto description = info.getProperty("description").toString();
                 buttons[i]->setText(name, description, true);
 
@@ -821,8 +819,9 @@ private:
         }
 
         library->getExtraSuggestions(found.size(), currentText, [_this = SafePointer(this), this, filterObjects, applySuggestionsToButtons, found, currentText](StringArray s) mutable {
-            if(!_this) return;
-            
+            if (!_this)
+                return;
+
             filterObjects(s);
 
             // This means the extra suggestions have returned too late to still be relevant
@@ -854,7 +853,7 @@ private:
                 continue;
 
             auto info = cnv->pd->objectLibrary->getObjectInfo(objectName);
-            if(info.isValid()) {
+            if (info.isValid()) {
                 auto methods = info.getChildWithName("methods");
                 objects.add({ objectName, methods, distance });
             }
@@ -914,7 +913,7 @@ private:
 
         return nearbyMethods;
     }
-        
+
     void deselectAll()
     {
         for (auto* button : buttons) {

@@ -25,16 +25,18 @@ class Patch;
 
 class Object;
 
-class ObjectLabel : public Label, public NVGComponent {
+class ObjectLabel : public Label
+    , public NVGComponent {
 
     hash32 lastTextHash = 0;
     NVGImage image;
     float lastScale = 1.0f;
     bool updateColour = false;
     Colour lastColour;
-    
+
 public:
-    explicit ObjectLabel() : NVGComponent(this)
+    explicit ObjectLabel()
+        : NVGComponent(this)
     {
         setJustificationType(Justification::centredLeft);
         setBorderSize(BorderSize<int>(0, 0, 0, 0));
@@ -46,19 +48,18 @@ public:
     void renderLabel(NVGcontext* nvg, float scale)
     {
         auto textHash = hash(getText());
-        if(image.needsUpdate(getWidth() * scale, getHeight() * scale) || updateColour || lastTextHash != textHash || lastScale != scale)
-        {
+        if (image.needsUpdate(getWidth() * scale, getHeight() * scale) || updateColour || lastTextHash != textHash || lastScale != scale) {
             updateImage(nvg, scale);
             lastTextHash = textHash;
             lastScale = scale;
             updateColour = false;
         }
-        
+
         nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth() + 1, getHeight(), 0, image.getImageId(), 1.0f));
         nvgFillRect(nvg, 0, 0, getWidth() + 1, getHeight());
     }
 
-    void setColour(const Colour& colour)
+    void setColour(Colour const& colour)
     {
         if (colour != lastColour) {
             Label::setColour(Label::textColourId, colour);
@@ -66,7 +67,7 @@ public:
             updateColour = true;
         }
     }
-    
+
     void updateImage(NVGcontext* nvg, float scale)
     {
         image.renderJUCEComponent(nvg, *this, scale);
@@ -75,13 +76,15 @@ public:
 private:
 };
 
-class VUScale : public Component, public NVGComponent
-{
+class VUScale : public Component
+    , public NVGComponent {
     Colour textColour;
-    StringArray scale = {"+12", "+6", "+2", "-0dB", "-2", "-6", "-12", "-20", "-30", "-50", "-99"};
-    StringArray scaleDecim = {"+12", "", "", "-0dB", "", "", "-12", "", "", "", "-99"};
+    StringArray scale = { "+12", "+6", "+2", "-0dB", "-2", "-6", "-12", "-20", "-30", "-50", "-99" };
+    StringArray scaleDecim = { "+12", "", "", "-0dB", "", "", "-12", "", "", "", "-99" };
+
 public:
-    VUScale() : NVGComponent(this)
+    VUScale()
+        : NVGComponent(this)
     {
     }
 
@@ -89,13 +92,13 @@ public:
     {
     }
 
-    void setColour(const Colour& colour)
+    void setColour(Colour const& colour)
     {
         textColour = colour;
         repaint();
     }
 
-    void render(NVGcontext * nvg) override
+    void render(NVGcontext* nvg) override
     {
         nvgFontSize(nvg, 8);
         nvgFontFace(nvg, "Inter-Regular");
@@ -106,7 +109,7 @@ public:
             auto posY = ((getHeight() - 20) * (i / 10.0f)) + 10;
             // align the "-" and "+" text element centre
             nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-            nvgText(nvg, 2, posY, scaleToUse[i].substring(0,1).toRawUTF8(), nullptr);
+            nvgText(nvg, 2, posY, scaleToUse[i].substring(0, 1).toRawUTF8(), nullptr);
             // align the number text element left
             nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
             nvgText(nvg, 5, posY, scaleToUse[i].substring(1).toRawUTF8(), nullptr);
@@ -114,8 +117,7 @@ public:
     }
 };
 
-class ObjectLabels : public Component
-{
+class ObjectLabels : public Component {
 public:
     ObjectLabels()
     {
@@ -139,7 +141,7 @@ public:
         return &vuScale;
     }
 
-    void setColour(const Colour& colour)
+    void setColour(Colour const& colour)
     {
         objectLabel.setColour(colour);
         vuScale.setColour(colour);
@@ -172,6 +174,7 @@ public:
             objectLabel.setBounds(getLocalBounds());
         }
     }
+
 private:
     Object* obj = nullptr;
 
@@ -185,8 +188,7 @@ class ObjectBase : public Component
     , public pd::MessageListener
     , public Value::Listener
     , public SettableTooltipClient
-    , public NVGComponent
-{
+    , public NVGComponent {
 
     struct ObjectSizeListener : public juce::ComponentListener
         , public Value::Listener {
@@ -214,7 +216,7 @@ public:
 
     ~ObjectBase() override;
 
-    Colour brightenOrDarken(const Colour& colour);
+    Colour brightenOrDarken(Colour const& colour);
 
     void initialise();
 
@@ -250,7 +252,7 @@ public:
     virtual void update() { }
 
     virtual void tabChanged() { }
-        
+
     void render(NVGcontext* nvg) override;
 
     virtual bool canOpenFromMenu();
@@ -268,7 +270,7 @@ public:
 
     // Returns the Pd class name of the object with the library prefix in front of it, eg "else"
     String getTypeWithOriginPrefix() const;
-    
+
     void moveToFront();
     void moveForward();
     void moveBackward();
@@ -340,10 +342,10 @@ protected:
 
     // Send a float value to Pd
     void sendFloatValue(float value);
-    
+
     // Gets the scale factor we need to use of we want to draw images inside the component
     float getImageScale();
-    
+
     // Used by various ELSE objects, though sometimes with char*, sometimes with unsigned char*
     template<typename T>
     void colourToHexArray(Colour colour, T* hex)
@@ -388,13 +390,12 @@ public:
 
 protected:
     PropertyUndoListener propertyUndoListener;
-    
+
     NVGImage imageRenderer;
-    
+
     std::function<void()> onConstrainerCreate = []() {};
 
     virtual std::unique_ptr<ComponentBoundsConstrainer> createConstrainer();
-
 
     static inline constexpr int maxSize = 1000000;
     static inline std::atomic<bool> edited = false;

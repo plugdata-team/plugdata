@@ -23,7 +23,6 @@ public:
         g.setColour(backgroundColour);
         g.fillRoundedRectangle(bounds, cornerSize);
 
-
         auto textColour = findColour(PlugDataColour::toolbarTextColourId).withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
 
         AttributedString attributedIcon;
@@ -60,10 +59,10 @@ public:
         g.setColour(backgroundColour);
         Path p;
         p.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::defaultCornerRadius, Corners::defaultCornerRadius,
-                              !(flatOnLeft || flatOnTop),
-                              !(flatOnRight || flatOnTop),
-                              !(flatOnLeft || flatOnBottom),
-                              !(flatOnRight || flatOnBottom));
+            !(flatOnLeft || flatOnTop),
+            !(flatOnRight || flatOnTop),
+            !(flatOnLeft || flatOnBottom),
+            !(flatOnRight || flatOnBottom));
         g.fillPath(p);
 
         auto textColour = findColour(PlugDataColour::toolbarTextColourId).withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
@@ -107,9 +106,11 @@ class SmallIconButton : public TextButton {
 class WidePanelButton : public TextButton {
     String icon;
     int iconSize;
-    
+
 public:
-    WidePanelButton(String icon, int iconSize = 13) : icon(icon), iconSize(iconSize) {};
+    WidePanelButton(String icon, int iconSize = 13)
+        : icon(icon)
+        , iconSize(iconSize) {};
 
     void mouseEnter(MouseEvent const& e) override
     {
@@ -123,28 +124,28 @@ public:
 
     void paint(Graphics& g) override
     {
-        const bool flatOnLeft   = isConnectedOnLeft();
-        const bool flatOnRight  = isConnectedOnRight();
-        const bool flatOnTop    = isConnectedOnTop();
-        const bool flatOnBottom = isConnectedOnBottom();
+        bool const flatOnLeft = isConnectedOnLeft();
+        bool const flatOnRight = isConnectedOnRight();
+        bool const flatOnTop = isConnectedOnTop();
+        bool const flatOnBottom = isConnectedOnBottom();
 
-        const float width  = getWidth()  - 1.0f;
-        const float height = getHeight() - 1.0f;
+        float const width = getWidth() - 1.0f;
+        float const height = getHeight() - 1.0f;
 
-        const float cornerSize = Corners::largeCornerRadius;
+        float const cornerSize = Corners::largeCornerRadius;
         Path outline;
-        outline.addRoundedRectangle (0.5f, 0.5f, width, height, cornerSize, cornerSize,
-                                     ! (flatOnLeft  || flatOnTop),
-                                     ! (flatOnRight || flatOnTop),
-                                     ! (flatOnLeft  || flatOnBottom),
-                                     ! (flatOnRight || flatOnBottom));
-        
+        outline.addRoundedRectangle(0.5f, 0.5f, width, height, cornerSize, cornerSize,
+            !(flatOnLeft || flatOnTop),
+            !(flatOnRight || flatOnTop),
+            !(flatOnLeft || flatOnBottom),
+            !(flatOnRight || flatOnBottom));
+
         g.setColour(findColour(isMouseOver() ? PlugDataColour::panelActiveBackgroundColourId : PlugDataColour::panelForegroundColourId));
         g.fillPath(outline);
 
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.strokePath(outline, PathStrokeType(1));
-        
+
         Fonts::drawText(g, getButtonText(), getLocalBounds().reduced(12, 2), findColour(PlugDataColour::panelTextColourId), 15);
         Fonts::drawIcon(g, icon, getLocalBounds().reduced(12, 2).removeFromRight(24), findColour(PlugDataColour::panelTextColourId), iconSize);
     }

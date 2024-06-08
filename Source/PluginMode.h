@@ -10,7 +10,8 @@
 #include "Canvas.h"
 #include "Standalone/PlugDataWindow.h"
 
-class PluginMode : public Component, public NVGComponent {
+class PluginMode : public Component
+    , public NVGComponent {
 public:
     explicit PluginMode(PluginEditor* editor, pd::Patch::Ptr patch)
         : NVGComponent(this)
@@ -44,13 +45,13 @@ public:
 #endif
         }
         editor->nvgSurface.detachContext();
-        
+
         desktopWindow = editor->getPeer();
 
         editor->nvgSurface.invalidateAll();
         cnv->setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, cnv.get()));
         patch->openInPluginMode = true;
-        
+
         // Titlebar
         titleBar.setBounds(0, 0, width, titlebarHeight);
         titleBar.addMouseListener(this, true);
@@ -72,7 +73,7 @@ public:
         editor->addAndMakeVisible(this);
 
         StringArray itemList;
-        for (auto scale : pluginScales ){
+        for (auto scale : pluginScales) {
             itemList.add(String(scale.intScale) + "%");
         }
 
@@ -105,8 +106,7 @@ public:
 
         // set scale to the last scale that was set for this patches plugin mode
         // if none was set, use 100% scale
-        if (pluginModeScaleMap.contains(patchPtr->getPointer().get()))
-        {
+        if (pluginModeScaleMap.contains(patchPtr->getPointer().get())) {
             int previousScale = pluginModeScaleMap[patchPtr->getPointer().get()];
             scaleComboBox.setText(String(previousScale) + String("%"), dontSendNotification);
             setWidthAndHeight(previousScale * 0.01f);
@@ -149,23 +149,22 @@ public:
 
         editor->nvgSurface.invalidateAll();
     }
-    
+
     void render(NVGcontext* nvg) override
     {
         nvgFillColor(nvg, findNVGColour(PlugDataColour::canvasBackgroundColourId));
         nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
-        
+
         nvgSave(nvg);
         nvgScale(nvg, pluginModeScale, pluginModeScale);
         nvgTranslate(nvg, cnv->getX(), cnv->getY() - ((isWindowFullscreen() ? 0 : 40) / pluginModeScale));
-       
+
         auto bounds = getLocalBounds();
         bounds /= pluginModeScale;
         bounds = bounds.translated(cnv->canvasOrigin.x, cnv->canvasOrigin.y);
-        
+
         cnv->performRender(nvg, bounds);
-        
-        
+
         nvgRestore(nvg);
     }
 
@@ -173,7 +172,7 @@ public:
     {
         // save the current scale in map for retrieval, so plugin mode remembers the last set scale
         pluginModeScaleMap[patchPtr->getPointer().get()] = pluginPreviousScale;
-        
+
         auto constrainedNewBounds = windowBounds.withWidth(std::max(windowBounds.getWidth(), 850)).withHeight(std::max(windowBounds.getHeight(), 650));
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
             bool isUsingNativeTitlebar = SettingsFile::getInstance()->getProperty<bool>("native_window");
@@ -192,11 +191,11 @@ public:
             editor->pluginConstrainer.setSizeLimits(850, 650, 99000, 99000);
             editor->setBounds(constrainedNewBounds);
         }
-        
+
         editor->nvgSurface.detachContext();
         cnv->patch.openInPluginMode = false;
         editor->getTabComponent().triggerAsyncUpdate();
-        
+
         editor->parentSizeChanged();
     }
 
@@ -263,14 +262,14 @@ public:
             int const scaledHeight = static_cast<int>(height * scale);
             int const x = (getWidth() - scaledWidth) / 2;
             int const y = (getHeight() - scaledHeight) / 2;
-            
+
             pluginModeScale = scale;
-            
+
             // Hide titlebar
             titleBar.setBounds(0, 0, 0, 0);
             scaleComboBox.setVisible(false);
             editorButton->setVisible(false);
-            
+
             auto b = getLocalBounds() + cnv->canvasOrigin;
             cnv->setTransform(cnv->getTransform().scale(scale));
             cnv->setBounds(-b.getX() + (x / scale), -b.getY() + (y / scale), b.getWidth() + b.getX(), b.getHeight() + b.getY());
@@ -282,7 +281,7 @@ public:
             titleBar.setBounds(0, 0, getWidth(), titlebarHeight);
             scaleComboBox.setBounds(8, 8, 74, titlebarHeight - 16);
             editorButton->setBounds(getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
-            
+
             auto b = getLocalBounds() + cnv->canvasOrigin;
             cnv->setTransform(cnv->getTransform().scale(scale));
             cnv->setBounds(-b.getX(), -b.getY() + (titlebarHeight / scale), (b.getWidth() / scale) + b.getX(), (b.getHeight() / scale) + b.getY());
@@ -392,7 +391,7 @@ public:
             return false;
         }
     }
-    
+
     Canvas* getCanvas()
     {
         return cnv.get();
@@ -424,13 +423,12 @@ private:
     float const height = float(cnv->patchHeight.getValue()) + 1.0f;
     float pluginModeScale = 1.0f;
     int pluginPreviousScale = 100;
-    
+
     static inline std::map<t_canvas*, int> pluginModeScaleMap;
 
     struct Scale {
         float floatScale;
         int intScale;
     };
-    std::vector<Scale> pluginScales { Scale{0.5f, 50}, Scale{0.75f, 75}, Scale{1.0f, 100}, Scale{1.25f, 125}, Scale{1.5f, 150}, Scale{1.75f, 175}, Scale{2.0f, 200} };
-
+    std::vector<Scale> pluginScales { Scale { 0.5f, 50 }, Scale { 0.75f, 75 }, Scale { 1.0f, 100 }, Scale { 1.25f, 125 }, Scale { 1.5f, 150 }, Scale { 1.75f, 175 }, Scale { 2.0f, 200 } };
 };

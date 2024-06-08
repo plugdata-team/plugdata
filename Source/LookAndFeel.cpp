@@ -271,9 +271,8 @@ void PlugDataLook::fillResizableWindowBackground(Graphics& g, int w, int h, Bord
 
 void PlugDataLook::drawCallOutBoxBackground(CallOutBox& box, Graphics& g, Path const& path, Image& cachedImage)
 {
-    
-    if(!ProjectInfo::canUseSemiTransparentWindows())
-    {
+
+    if (!ProjectInfo::canUseSemiTransparentWindows()) {
         auto bounds = path.getBounds();
         g.setColour(box.findColour(PlugDataColour::popupMenuBackgroundColourId));
         g.fillRect(bounds);
@@ -578,38 +577,36 @@ void PlugDataLook::drawPopupMenuItem(Graphics& g, Rectangle<int> const& area,
 
         r.removeFromRight(3);
         Fonts::drawFittedText(g, text, r, colour);
-        
+
         auto shortcutBounds = r.translated(-4, 0);
-        
+
 #if JUCE_MAC
-        for(int i = shortcutKeyText.length() - 1; i >= 0; i--)
-        {
+        for (int i = shortcutKeyText.length() - 1; i >= 0; i--) {
             auto font = Fonts::getSemiBoldFont().withHeight(10.5f);
-            auto text = shortcutKeyText.substring(i, i+1);
+            auto text = shortcutKeyText.substring(i, i + 1);
             auto width = std::max(font.getStringWidth(text) + 4, 16);
             auto b = shortcutBounds.removeFromRight(width).toFloat().reduced(1.0f, 5.0f).translated(1.5f, 0.5f);
-            
+
             g.setColour(findColour(PlugDataColour::popupMenuTextColourId).withAlpha(isActive ? 0.9f : 0.35f));
             g.fillRoundedRectangle(b.toFloat(), 3.0f);
-            
+
             g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
-            
+
             g.setFont(Fonts::getSemiBoldFont().withHeight(11));
             g.drawText(text, b, Justification::centred);
         }
 #else
         auto keys = StringArray::fromTokens(shortcutKeyText, "+", "");
-        for(int i = keys.size() - 1; i >= 0; i--)
-        {
+        for (int i = keys.size() - 1; i >= 0; i--) {
             auto font = Fonts::getSemiBoldFont().withHeight(10.5f);
             auto width = std::max(font.getStringWidth(keys[i].trim()) + 8, 15);
             auto b = shortcutBounds.removeFromRight(width).reduced(1, 5);
-            
+
             g.setColour(findColour(PlugDataColour::popupMenuTextColourId).withAlpha(isActive ? 0.9f : 0.35f));
             g.fillRoundedRectangle(b.toFloat(), 3.0f);
-            
+
             g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
-            
+
             g.setFont(font);
             g.drawText(keys[i], b, Justification::centred);
         }
@@ -988,84 +985,80 @@ void PlugDataLook::setColours(std::map<PlugDataColour, Colour> colours)
         colours.at(PlugDataColour::outlineColourId));
 
     setColour(AlertWindow::textColourId, colours.at(PlugDataColour::panelTextColourId));
-    
+
     setColour(Slider::textBoxOutlineColourId,
         Colours::transparentBlack);
     setColour(TreeView::backgroundColourId,
         Colours::transparentBlack);
 }
 
-void PlugDataLook::drawAlertBox (Graphics& g, AlertWindow& alert,
-                   const Rectangle<int>& textArea, TextLayout& textLayout)
+void PlugDataLook::drawAlertBox(Graphics& g, AlertWindow& alert,
+    Rectangle<int> const& textArea, TextLayout& textLayout)
 {
     auto cornerSize = Corners::largeCornerRadius;
-    
-    g.setColour (alert.findColour (PlugDataColour::outlineColourId));
-    g.drawRoundedRectangle (alert.getLocalBounds().toFloat(), cornerSize, 1.0f);
-    
-    auto bounds = alert.getLocalBounds().reduced (1);
-    g.reduceClipRegion (bounds);
-    
-    g.setColour (alert.findColour (PlugDataColour::dialogBackgroundColourId));
-    g.fillRoundedRectangle (bounds.toFloat(), cornerSize);
-    
+
+    g.setColour(alert.findColour(PlugDataColour::outlineColourId));
+    g.drawRoundedRectangle(alert.getLocalBounds().toFloat(), cornerSize, 1.0f);
+
+    auto bounds = alert.getLocalBounds().reduced(1);
+    g.reduceClipRegion(bounds);
+
+    g.setColour(alert.findColour(PlugDataColour::dialogBackgroundColourId));
+    g.fillRoundedRectangle(bounds.toFloat(), cornerSize);
+
     auto iconSpaceUsed = 0;
-    
+
     auto iconWidth = 80;
-    auto iconSize = jmin (iconWidth + 50, bounds.getHeight() + 20);
-    
+    auto iconSize = jmin(iconWidth + 50, bounds.getHeight() + 20);
+
     if (alert.containsAnyExtraComponents() || alert.getNumButtons() > 2)
-        iconSize = jmin (iconSize, textArea.getHeight() + 50);
-    
-    Rectangle<int> iconRect (iconSize / -10, iconSize / -10,
-                             iconSize, iconSize);
-    
-    if (alert.getAlertType() != MessageBoxIconType::NoIcon)
-    {
+        iconSize = jmin(iconSize, textArea.getHeight() + 50);
+
+    Rectangle<int> iconRect(iconSize / -10, iconSize / -10,
+        iconSize, iconSize);
+
+    if (alert.getAlertType() != MessageBoxIconType::NoIcon) {
         Path icon;
         char character;
         uint32 colour;
-        
-        if (alert.getAlertType() == MessageBoxIconType::WarningIcon)
-        {
+
+        if (alert.getAlertType() == MessageBoxIconType::WarningIcon) {
             character = '!';
-            
-            icon.addTriangle ((float) iconRect.getX() + (float) iconRect.getWidth() * 0.5f, (float) iconRect.getY(),
-                              static_cast<float> (iconRect.getRight()), static_cast<float> (iconRect.getBottom()),
-                              static_cast<float> (iconRect.getX()), static_cast<float> (iconRect.getBottom()));
-            
-            icon = icon.createPathWithRoundedCorners (5.0f);
+
+            icon.addTriangle((float)iconRect.getX() + (float)iconRect.getWidth() * 0.5f, (float)iconRect.getY(),
+                static_cast<float>(iconRect.getRight()), static_cast<float>(iconRect.getBottom()),
+                static_cast<float>(iconRect.getX()), static_cast<float>(iconRect.getBottom()));
+
+            icon = icon.createPathWithRoundedCorners(5.0f);
             colour = 0x66ff2a00;
-        }
-        else
-        {
-            colour = Colour (0xff00b0b9).withAlpha (0.4f).getARGB();
+        } else {
+            colour = Colour(0xff00b0b9).withAlpha(0.4f).getARGB();
             character = alert.getAlertType() == MessageBoxIconType::InfoIcon ? 'i' : '?';
-            
-            icon.addEllipse (iconRect.toFloat());
+
+            icon.addEllipse(iconRect.toFloat());
         }
-        
+
         GlyphArrangement ga;
-        ga.addFittedText ({ (float) iconRect.getHeight() * 0.9f, Font::bold },
-                          String::charToString ((juce_wchar) (uint8) character),
-                          static_cast<float> (iconRect.getX()), static_cast<float> (iconRect.getY()),
-                          static_cast<float> (iconRect.getWidth()), static_cast<float> (iconRect.getHeight()),
-                          Justification::centred, false);
-        ga.createPath (icon);
-        
-        icon.setUsingNonZeroWinding (false);
-        g.setColour (Colour (colour));
-        g.fillPath (icon);
-        
+        ga.addFittedText({ (float)iconRect.getHeight() * 0.9f, Font::bold },
+            String::charToString((juce_wchar)(uint8)character),
+            static_cast<float>(iconRect.getX()), static_cast<float>(iconRect.getY()),
+            static_cast<float>(iconRect.getWidth()), static_cast<float>(iconRect.getHeight()),
+            Justification::centred, false);
+        ga.createPath(icon);
+
+        icon.setUsingNonZeroWinding(false);
+        g.setColour(Colour(colour));
+        g.fillPath(icon);
+
         iconSpaceUsed = iconWidth;
     }
-    
-    g.setColour (alert.findColour (AlertWindow::textColourId));
-    
-    Rectangle<int> alertBounds (bounds.getX() + iconSpaceUsed, 30,
-                                bounds.getWidth(), bounds.getHeight() - getAlertWindowButtonHeight() - 20);
-    
-    textLayout.draw (g, alertBounds.toFloat());
+
+    g.setColour(alert.findColour(AlertWindow::textColourId));
+
+    Rectangle<int> alertBounds(bounds.getX() + iconSpaceUsed, 30,
+        bounds.getWidth(), bounds.getHeight() - getAlertWindowButtonHeight() - 20);
+
+    textLayout.draw(g, alertBounds.toFloat());
 }
 
 void PlugDataLook::setDefaultFont(String const& fontName)

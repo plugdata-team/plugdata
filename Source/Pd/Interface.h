@@ -110,16 +110,16 @@ struct Interface {
     static void moveObjects(t_canvas* cnv, int dx, int dy, std::vector<t_gobj*> const& objects)
     {
         glist_noselect(cnv);
-        
+
         for (auto* obj : objects) {
             glist_select(cnv, obj);
         }
-        
-        if(!EDITOR->canvas_undo_already_set_move) {
+
+        if (!EDITOR->canvas_undo_already_set_move) {
             canvas_undo_add(cnv, UNDO_MOTION, "motion", canvas_undo_set_move(cnv, 1));
             EDITOR->canvas_undo_already_set_move = 1;
         }
-        
+
         int resortin = 0, resortout = 0;
         for (auto* obj : objects) {
             gobj_displace(obj, cnv, dx, dy);
@@ -233,8 +233,8 @@ struct Interface {
 
         return gensym(arraybuf);
     }
-    
-    static void triggerize(t_canvas* cnv,std::vector<t_gobj*> const& objects)
+
+    static void triggerize(t_canvas* cnv, std::vector<t_gobj*> const& objects)
     {
         glist_noselect(cnv);
 
@@ -245,7 +245,7 @@ struct Interface {
         canvas_setcurrent(cnv);
         pd_typedmess((t_pd*)cnv, gensym("triggerize"), 0, nullptr);
         canvas_unsetcurrent(cnv);
-        
+
         glist_noselect(cnv);
     }
 
@@ -342,7 +342,7 @@ struct Interface {
     {
         canvas_setcurrent(cnv);
         pd_typedmess((t_pd*)cnv, s, argc, argv);
-        
+
         canvas_undo_add(cnv, UNDO_SEQUENCE_START, "create", nullptr);
 
         canvas_undo_add(cnv, UNDO_CREATE, "create",
@@ -355,16 +355,16 @@ struct Interface {
                 canvas_loadbang(reinterpret_cast<t_canvas*>(new_object));
             else if (zgetfn(&new_object->g_pd, gensym("loadbang")))
                 vmess(&new_object->g_pd, gensym("loadbang"), "f", LB_LOAD);
-            
+
             // This is needed since object creation happens in 2 undo steps in pd-vanilla, but is only 1 undo step in plugdata
             int pos = glist_getindex(cnv, new_object);
             canvas_undo_add(glist_getcanvas(cnv), UNDO_RECREATE, "recreate",
-                (void *)canvas_undo_set_recreate(cnv,
-                                                 new_object, pos));
+                (void*)canvas_undo_set_recreate(cnv,
+                    new_object, pos));
         }
 
         canvas_undo_add(cnv, UNDO_SEQUENCE_END, "create", nullptr);
-        
+
         canvas_unsetcurrent(cnv);
 
         glist_noselect(cnv);
@@ -372,15 +372,14 @@ struct Interface {
 
         return new_object;
     }
-    
+
     // Can recreate any object of type t_text
     static void recreateTextObject(t_canvas* cnv, t_gobj* obj)
     {
-        if(auto* textObject = checkObject(obj))
-        {
+        if (auto* textObject = checkObject(obj)) {
             char* text = nullptr;
             int len = 0;
-            
+
             getObjectText(textObject, &text, &len);
             renameObject(cnv, obj, text, len);
         }
@@ -435,7 +434,7 @@ struct Interface {
         auto* undo = canvas_undo_get(cnv)->u_queue;
 
         int count = 0;
-        while(undo) {
+        while (undo) {
             count++;
             undo = undo->next;
         }
@@ -473,18 +472,18 @@ struct Interface {
 
     static void moveObject(t_canvas* cnv, t_gobj* obj, int x, int y)
     {
-        if(!EDITOR->canvas_undo_already_set_move) {
+        if (!EDITOR->canvas_undo_already_set_move) {
             canvas_undo_add(cnv, UNDO_MOTION, "motion", canvas_undo_set_move(cnv, 0));
             EDITOR->canvas_undo_already_set_move = 1;
         }
-        
+
         if (obj->g_pd->c_wb && obj->g_pd->c_wb->w_getrectfn && obj->g_pd->c_wb && obj->g_pd->c_wb->w_displacefn) {
             int x1, y1, x2, y2;
-            
+
             (*obj->g_pd->c_wb->w_getrectfn)(obj, cnv, &x1, &y1, &x2, &y2);
             (*obj->g_pd->c_wb->w_displacefn)(obj, cnv, x - x1, y - y1);
         }
-        
+
         EDITOR->canvas_undo_already_set_move = 0;
     }
 

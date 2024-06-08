@@ -21,7 +21,6 @@
 #include "Utility/AudioSampleRingBuffer.h"
 #include "Utility/MidiDeviceManager.h"
 
-
 #include "Utility/Presets.h"
 #include "Canvas.h"
 #include "PluginMode.h"
@@ -46,16 +45,15 @@ bool gemWinUnsetCurrent();
 AudioProcessor::BusesProperties PluginProcessor::buildBusesProperties()
 {
 #if JUCE_IOS
-    
-    if(ProjectInfo::isStandalone) {
-        return BusesProperties().withOutput ("Output", AudioChannelSet::stereo(), true).withInput ("Input", AudioChannelSet::mono(), true);
+
+    if (ProjectInfo::isStandalone) {
+        return BusesProperties().withOutput("Output", AudioChannelSet::stereo(), true).withInput("Input", AudioChannelSet::mono(), true);
     }
     // If you intend to build AUv3 on macOS, you'll also need these
-    if(ProjectInfo::isFx) {
-        return BusesProperties().withOutput ("Output", AudioChannelSet::stereo(), true).withInput ("Input", AudioChannelSet::stereo(), true);
-    }
-    else {
-        return BusesProperties().withOutput ("Output", AudioChannelSet::stereo(), true);
+    if (ProjectInfo::isFx) {
+        return BusesProperties().withOutput("Output", AudioChannelSet::stereo(), true).withInput("Input", AudioChannelSet::stereo(), true);
+    } else {
+        return BusesProperties().withOutput("Output", AudioChannelSet::stereo(), true);
     }
 #else
     AudioProcessor::BusesProperties busesProperties;
@@ -132,13 +130,12 @@ PluginProcessor::PluginProcessor()
     logMessage(gem_version);
 #endif
     logMessage(heavylib_version);
-    
 
     // Set up midi buffers
     midiBufferIn.ensureSize(2048);
     midiBufferOut.ensureSize(2048);
     midiBufferInternalSynth.ensureSize(2048);
-    
+
     atoms_playhead.reserve(3);
     atoms_playhead.resize(1);
 
@@ -173,7 +170,7 @@ PluginProcessor::PluginProcessor()
 
     setLatencySamples(pd::Instance::getBlockSize());
     settingsFile->startChangeListener();
-    
+
     sendMessagesFromQueue();
 }
 
@@ -183,31 +180,30 @@ PluginProcessor::~PluginProcessor()
     patches.clear();
 }
 
-
 void PluginProcessor::initialiseFilesystem()
 {
     auto const& homeDir = ProjectInfo::appDataDir;
     auto const& versionDataDir = ProjectInfo::versionDataDir;
     auto deken = homeDir.getChildFile("Externals");
     auto patches = homeDir.getChildFile("Patches");
-    
+
 #if !JUCE_WINDOWS
-    if(!homeDir.exists()) homeDir.createDirectory();
+    if (!homeDir.exists())
+        homeDir.createDirectory();
 #endif
-    
+
     auto initMutex = homeDir.getChildFile(".initialising");
-    
+
     // If this is true, another instance of plugdata is already initialising
     // We wait a maximum of 5 seconds before we continue initialising, to prevent problems
     int wait = 0;
-    while(initMutex.exists() && wait < 20)
-    {
+    while (initMutex.exists() && wait < 20) {
         Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 500);
         wait++;
     }
-    
+
     initMutex.create();
-    
+
     // Check if the abstractions directory exists, if not, unzip it from binaryData
     if (!versionDataDir.exists()) {
 
@@ -228,17 +224,17 @@ void PluginProcessor::initialiseFilesystem()
         }
 
         MemoryInputStream memstream(allData.data(), allData.size(), false);
-        
+
         versionDataDir.getParentDirectory().createDirectory();
         auto tempVersionDataDir = versionDataDir.getParentDirectory().getChildFile("plugdata_version");
-        
+
         auto file = ZipFile(memstream);
         file.uncompressTo(tempVersionDataDir.getParentDirectory());
-        
+
         // Create filesystem for this specific version
         tempVersionDataDir.moveFileTo(versionDataDir);
 
-        if(versionDataDir.isDirectory()) 
+        if (versionDataDir.isDirectory())
             internalSynth->extractSoundfont();
     }
     if (!deken.exists()) {
@@ -277,13 +273,13 @@ void PluginProcessor::initialiseFilesystem()
     OSUtils::createJunction(homeDir.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\").toStdString(), abstractionsPath.toStdString());
     OSUtils::createJunction(homeDir.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\").toStdString(), documentationPath.toStdString());
     OSUtils::createJunction(homeDir.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\").toStdString(), extraPath.toStdString());
- 
+
     auto oldlocation = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata");
     auto backupLocation = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata.old");
-    if (oldlocation.isDirectory() && !backupLocation.isDirectory())
-    {
+    if (oldlocation.isDirectory() && !backupLocation.isDirectory()) {
         // don't bother copying this, it's huge!
-        if (oldlocation.getChildFile("Toolchain").isDirectory()) oldlocation.getChildFile("Toolchain").deleteRecursively();
+        if (oldlocation.getChildFile("Toolchain").isDirectory())
+            oldlocation.getChildFile("Toolchain").deleteRecursively();
 
         oldlocation.copyDirectoryTo(backupLocation);
         oldlocation.deleteRecursively();
@@ -302,7 +298,7 @@ void PluginProcessor::initialiseFilesystem()
     versionDataDir.getChildFile("Documentation").createSymbolicLink(homeDir.getChildFile("Documentation"), true);
     versionDataDir.getChildFile("Extra").createSymbolicLink(homeDir.getChildFile("Extra"), true);
 #endif
-    
+
     initMutex.deleteFile();
 }
 
@@ -374,7 +370,7 @@ bool PluginProcessor::acceptsMidi() const
 #if JUCE_IOS
     return !ProjectInfo::isFx;
 #endif
-    
+
     return true;
 }
 
@@ -383,7 +379,7 @@ bool PluginProcessor::producesMidi() const
 #if JUCE_IOS
     return ProjectInfo::isStandalone;
 #endif
-    
+
     return true;
 }
 
@@ -451,7 +447,7 @@ void PluginProcessor::setOversampling(int amount)
 
 void PluginProcessor::setLimiterThreshold(int amount)
 {
-    auto threshold = (std::vector<float>{-12, -6, 0, 3})[amount];
+    auto threshold = (std::vector<float> { -12, -6, 0, 3 })[amount];
     limiter.setThreshold(threshold);
 
     settingsFile->setProperty("limiter_threshold", var(amount));
@@ -462,7 +458,6 @@ void PluginProcessor::setProtectedMode(bool enabled)
 {
     protectedMode = enabled;
 }
-
 
 void PluginProcessor::numChannelsChanged()
 {
@@ -476,8 +471,9 @@ void PluginProcessor::numChannelsChanged()
 
 void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
-    if(approximatelyEqual(sampleRate, 0.0)) return;
-    
+    if (approximatelyEqual(sampleRate, 0.0))
+        return;
+
     float oversampleFactor = 1 << oversampling;
     auto maxChannels = std::max(getTotalNumInputChannels(), getTotalNumOutputChannels());
 
@@ -540,7 +536,7 @@ bool PluginProcessor::isBusesLayoutSupported(BusesLayout const& layouts) const
 #if JUCE_IOS
     return (layouts.getMainOutputChannels() <= 2) && (layouts.getMainInputChannels() <= 2);
 #endif
-    
+
 #if JucePlugin_IsMidiEffect
     ignoreUnused(layouts);
     return true;
@@ -593,9 +589,9 @@ void PluginProcessor::settingsFileReloaded()
     }
 
     updateSearchPaths();
-    if(objectLibrary) objectLibrary->updateLibrary();
+    if (objectLibrary)
+        objectLibrary->updateLibrary();
 }
-
 
 void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {
@@ -711,18 +707,16 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     }
 }
 
-
 void PluginProcessor::updatePatchUndoRedoState()
 {
-    if(isSuspended())
-    {
+    if (isSuspended()) {
         for (auto& patch : patches) {
             patch->updateUndoRedoState();
         }
         return;
     }
-        
-    enqueueFunctionAsync([this](){
+
+    enqueueFunctionAsync([this]() {
         for (auto& patch : patches) {
             patch->updateUndoRedoState();
         }
@@ -994,7 +988,7 @@ AudioProcessorEditor* PluginProcessor::createEditor()
     if (ProjectInfo::isStandalone) {
         openedEditors.add(editor);
     }
-    
+
     editor->resized();
     return editor;
 }
@@ -1098,9 +1092,9 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 {
     if (sizeInBytes == 0)
         return;
-    
+
     MemoryInputStream istream(data, sizeInBytes, false);
-    
+
     lockAudioThread();
 
     setThis();
@@ -1131,30 +1125,24 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     std::unique_ptr<XmlElement> xmlState(getXmlFromBinary(xmlData, xmlSize));
 
     auto openPatch = [this](String const& content, File const& location, bool pluginMode = false, int splitIndex = 0) {
-        
         // CHANGED IN v0.9.0:
         // We now prefer loading the patch content over the patch file, if possible
         // This generally makes it work more like the users expects, but before we couldn't get it to load abstractions (this is now fixed)
-        if(content.isNotEmpty())
-        {
+        if (content.isNotEmpty()) {
             // Force pd to use this path for the next opened patch
             // This makes sure the patch can find abstractions/resources, even though it's loading patch from state
             glob_forcefilename(generateSymbol(location.getFileName().toRawUTF8()), generateSymbol(location.getParentDirectory().getFullPathName().toRawUTF8()));
-            
+
             auto patchPtr = loadPatch(content, nullptr);
             patchPtr->splitViewIndex = splitIndex;
             patchPtr->openInPluginMode = pluginMode;
             patchPtr->setCurrentFile(URL(location));
-            if(!location.exists() || (location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)))
-            {
+            if (!location.exists() || (location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory))) {
                 patchPtr->setUntitled();
-            }
-            else
-            {
+            } else {
                 patchPtr->setTitle(location.getFileName());
             }
-        }
-        else {
+        } else {
             auto patchPtr = loadPatch(URL(location), nullptr);
             patchPtr->splitViewIndex = splitIndex;
             patchPtr->openInPluginMode = pluginMode;
@@ -1190,7 +1178,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
         jassert(xmlState);
 
         PlugDataParameter::loadStateInformation(*xmlState, getParameters());
-        
+
         auto versionString = String("0.6.1"); // latest version that didn't have version inside the daw state
 
         if (!xmlState->hasAttribute("Legacy") || xmlState->getBoolAttribute("Legacy")) {
@@ -1231,24 +1219,21 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     unlockAudioThread();
 
     delete[] xmlData;
-    
-    if(auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor()))
-    {
+
+    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         editor->getTabComponent().triggerAsyncUpdate();
         editor->sidebar->updateAutomationParameters();
     }
-    
+
     // After loading a state, we need to update all the parameters
-    if(PluginHostType::getPluginLoadedAs() == AudioProcessor::wrapperType_AudioUnit || PluginHostType::getPluginLoadedAs() == AudioProcessor::wrapperType_AudioUnitv3)
-    {
+    if (PluginHostType::getPluginLoadedAs() == AudioProcessor::wrapperType_AudioUnit || PluginHostType::getPluginLoadedAs() == AudioProcessor::wrapperType_AudioUnitv3) {
         // In Logic, loading them instantly causes a crash :(
-        Timer::callAfterDelay(800, [this, _this = WeakReference<pd::Instance>(this)](){
-            if(_this) {
+        Timer::callAfterDelay(800, [this, _this = WeakReference<pd::Instance>(this)]() {
+            if (_this) {
                 updateHostDisplay(AudioProcessorListener::ChangeDetails {}.withParameterInfoChanged(true));
             }
         });
-    }
-    else {
+    } else {
         updateHostDisplay(AudioProcessorListener::ChangeDetails {}.withParameterInfoChanged(true));
     }
 }
@@ -1259,23 +1244,21 @@ pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL, PluginEditor* edi
     // Stop the audio callback when loading a new patch
     // TODO: why though?
     lockAudioThread();
-    
+
 #if JUCE_IOS
     auto tempFile = File::createTempFile(".pd");
     auto patchContent = patchFile.loadFileAsString();
-    
-    auto inputStream = patchURL.createInputStream (URL::InputStreamOptions (URL::ParameterHandling::inAddress));
+
+    auto inputStream = patchURL.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress));
     tempFile.appendText(inputStream->readEntireStreamAsString());
-    
+
     auto dirname = patchFile.getParentDirectory().getFullPathName().replace("\\", "/");
     auto filename = patchFile.getFileName();
 
     glob_forcefilename(generateSymbol(filename), generateSymbol(dirname));
     auto newPatch = openPatch(tempFile);
-    if(newPatch)
-    {
-        if(auto patch = newPatch->getPointer())
-        {
+    if (newPatch) {
+        if (auto patch = newPatch->getPointer()) {
             newPatch->setTitle(filename);
             newPatch->setCurrentFile(patchURL);
         }
@@ -1479,28 +1462,24 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
     case hash("pluginmode"): {
         MessageManager::callAsync(
             [this]() mutable {
-                if(!ProjectInfo::isStandalone) {
+                if (!ProjectInfo::isStandalone) {
                     // TODO: it would be nicer if we could specifically target the correct patch here, instead of picking the first one and praying
                     patches[0]->openInPluginMode = true;
-                    MessageManager::callAsync([this](){
+                    MessageManager::callAsync([this]() {
                         auto editors = getEditors();
-                        if(editors.size()) {
-                            for(auto* canvas : editors[0]->getCanvases())
-                            {
-                                if(patches[0] == canvas->patch)
-                                {
+                        if (editors.size()) {
+                            for (auto* canvas : editors[0]->getCanvases()) {
+                                if (patches[0] == canvas->patch) {
                                     editors[0]->getTabComponent().openInPluginMode(canvas->refCountedPatch);
                                 }
                             }
                         }
                     });
-                    
-                }
-                else {
-                    MessageManager::callAsync([this](){
+
+                } else {
+                    MessageManager::callAsync([this]() {
                         for (auto* editor : getEditors()) {
-                            if(auto* cnv = editor->getCurrentCanvas())
-                            {
+                            if (auto* cnv = editor->getCurrentCanvas()) {
                                 editor->getTabComponent().openInPluginMode(cnv->refCountedPatch);
                             }
                         }
@@ -1624,15 +1603,14 @@ void PluginProcessor::handleAsyncUpdate()
     for (auto& editor : getEditors()) {
         editor->statusbar->setLatencyDisplay(customLatencySamples);
     }
-    
+
     setLatencySamples(customLatencySamples + Instance::getBlockSize());
 }
 
 // set custom plugin latency
 void PluginProcessor::performLatencyCompensationChange(float value)
 {
-    if(!approximatelyEqual<int>(customLatencySamples, value))
-    {
+    if (!approximatelyEqual<int>(customLatencySamples, value)) {
         customLatencySamples = value;
         triggerAsyncUpdate();
     }
@@ -1648,12 +1626,11 @@ void PluginProcessor::setParameterRange(String const& name, float min, float max
             break;
         }
     }
-    
-    MessageManager::callAsync([this](){
-         for(auto* editor : getEditors())
-         {
-             editor->sidebar->updateAutomationParameters();
-         }
+
+    MessageManager::callAsync([this]() {
+        for (auto* editor : getEditors()) {
+            editor->sidebar->updateAutomationParameters();
+        }
     });
 }
 
@@ -1666,42 +1643,40 @@ void PluginProcessor::setParameterMode(String const& name, int mode)
             break;
         }
     }
-     
-    MessageManager::callAsync([this](){
-         for(auto* editor : getEditors())
-         {
-             editor->sidebar->updateAutomationParameters();
-         }
+
+    MessageManager::callAsync([this]() {
+        for (auto* editor : getEditors()) {
+            editor->sidebar->updateAutomationParameters();
+        }
     });
 }
 
 void PluginProcessor::enableAudioParameter(String const& name)
 {
-   int numEnabled = 0;
-   for (auto* p : getParameters()) {
-       auto* param = dynamic_cast<PlugDataParameter*>(p);
-       numEnabled += param->isEnabled();
-       if (param->isEnabled() && param->getTitle() == name) {
-           return;
-       }
-   }
+    int numEnabled = 0;
+    for (auto* p : getParameters()) {
+        auto* param = dynamic_cast<PlugDataParameter*>(p);
+        numEnabled += param->isEnabled();
+        if (param->isEnabled() && param->getTitle() == name) {
+            return;
+        }
+    }
 
-   for (auto* p : getParameters()) {
-       auto* param = dynamic_cast<PlugDataParameter*>(p);
-       if (!param->isEnabled()) {
-           param->setEnabled(true);
-           param->setName(name);
-           param->setIndex(numEnabled + 1);
-           param->notifyDAW();
-           break;
-       }
-   }
-    
-    MessageManager::callAsync([this](){
-         for(auto* editor : getEditors())
-         {
-             editor->sidebar->updateAutomationParameters();
-         }
+    for (auto* p : getParameters()) {
+        auto* param = dynamic_cast<PlugDataParameter*>(p);
+        if (!param->isEnabled()) {
+            param->setEnabled(true);
+            param->setName(name);
+            param->setIndex(numEnabled + 1);
+            param->notifyDAW();
+            break;
+        }
+    }
+
+    MessageManager::callAsync([this]() {
+        for (auto* editor : getEditors()) {
+            editor->sidebar->updateAutomationParameters();
+        }
     });
 }
 

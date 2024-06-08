@@ -30,7 +30,7 @@ class PropertiesPanelProperty;
 using CustomPanelCreateFn = std::function<PropertiesPanelProperty*(void)>;
 using InteractionFn = std::function<void(bool)>;
 
-using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Value*, StringArray, var, CustomPanelCreateFn, InteractionFn >;
+using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Value*, StringArray, var, CustomPanelCreateFn, InteractionFn>;
 
 class ObjectParameters {
 public:

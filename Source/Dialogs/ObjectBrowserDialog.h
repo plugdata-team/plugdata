@@ -53,7 +53,7 @@ public:
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
             g.fillRoundedRectangle({ 4.0f, 1.0f, width - 8.0f, height - 2.0f }, Corners::defaultCornerRadius);
         }
-        
+
         Fonts::drawText(g, categories[rowNumber], 12, 0, width - 9, height, findColour(PlugDataColour::panelTextColourId), 15);
     }
 
@@ -232,19 +232,16 @@ public:
             return itemComponent;
         }
     }
-        
+
     void removeAliasedDuplicates(StringArray& objectsToShow)
     {
         StringArray gemObjects;
-        for(auto& object : objectsToShow)
-        {
-            if(object.startsWith("Gem"))
-            {
+        for (auto& object : objectsToShow) {
+            if (object.startsWith("Gem")) {
                 gemObjects.add(object.fromLastOccurrenceOf("/", false, false));
             }
         }
-        for(auto& gemObject : gemObjects)
-        {
+        for (auto& gemObject : gemObjects) {
             objectsToShow.removeString(gemObject);
         }
     }
@@ -268,7 +265,8 @@ public:
 class ObjectViewerDragArea : public ObjectDragAndDrop {
 public:
     ObjectViewerDragArea(PluginEditor* editor, std::function<void(bool shouldFade)> dismissMenu)
-        : ObjectDragAndDrop(editor), dismissMenu(dismissMenu)
+        : ObjectDragAndDrop(editor)
+        , dismissMenu(dismissMenu)
     {
         setBufferedToImage(true);
     }
@@ -495,7 +493,7 @@ public:
     {
         auto objectInfo = library.getObjectInfo(name);
         bool valid = name.isNotEmpty() && objectInfo.isValid();
-        
+
         // openHelp.setVisible(valid);
         openReference.setVisible(valid);
         objectDragArea.setVisible(valid);
@@ -513,7 +511,7 @@ public:
 
         bool hasUnknownInletLayout = false;
         bool hasUnknownOutletLayout = false;
-        
+
         auto ioletDescriptions = objectInfo.getChildWithName("iolets");
         for (auto iolet : ioletDescriptions) {
             auto variable = iolet.getProperty("variable").toString() == "1";
@@ -818,8 +816,9 @@ public:
 
         for (auto& object : library.getAllObjects()) {
             auto info = library.getObjectInfo(object);
-            if(!info.isValid()) continue;
-            
+            if (!info.isValid())
+                continue;
+
             auto categoriesTree = info.getChildWithName("categories");
 
             for (auto category : categoriesTree) {

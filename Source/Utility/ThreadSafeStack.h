@@ -5,7 +5,6 @@
 // Lock-free multithread (single consumer/single producer) stack implementation
 // Before you start popping values, you need to call swapBuffers(). Other than that, push/pop like a regular stack implementation
 
-
 #pragma once
 #include <atomic>
 #include <iostream>
@@ -13,7 +12,7 @@
 #include <mutex>
 #include <plf_stack/plf_stack.h>
 
-template <typename T, int stackSize>
+template<typename T, int stackSize>
 class ThreadSafeStack {
 
     using StackBuffer = plf::stack<T>;
@@ -23,7 +22,8 @@ class ThreadSafeStack {
     std::mutex swapLock;
 
 public:
-    ThreadSafeStack() {
+    ThreadSafeStack()
+    {
         frontBuffer = &buffers[0];
         backBuffer = &buffers[1];
         frontBuffer->reserve(stackSize);
@@ -35,7 +35,7 @@ public:
         std::lock_guard<std::mutex> lock(swapLock);
         return backBuffer->empty();
     }
-    
+
     // Swap front and back buffers
     void swapBuffers()
     {
@@ -44,13 +44,16 @@ public:
         backBuffer->clear();
     }
 
-    void push(const T& value) {
+    void push(T const& value)
+    {
         std::lock_guard<std::mutex> lock(swapLock);
         backBuffer->push(value);
     }
 
-     bool pop(T& result) {
-        if(frontBuffer->empty()) return false;
+    bool pop(T& result)
+    {
+        if (frontBuffer->empty())
+            return false;
 
         result = frontBuffer->top();
         frontBuffer->pop();

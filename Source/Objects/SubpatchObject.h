@@ -42,13 +42,13 @@ public:
     void render(NVGcontext* nvg) override
     {
         TextBase::render(nvg);
-        
+
         nvgBeginPath(nvg);
         nvgCircle(nvg, 4, getHeight() * 0.5, 2);
         nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour)));
         nvgFill(nvg);
     }
-    
+
     void update() override
     {
         isGraphChild = static_cast<bool>(subpatch->getPointer()->gl_isgraph);
@@ -96,7 +96,7 @@ public:
 
     void valueChanged(Value& v) override
     {
-        if (v.refersToSameSourceAs(sizeProperty)){
+        if (v.refersToSameSourceAs(sizeProperty)) {
             // forward the value change to the text object
             TextBase::valueChanged(v);
         } else if (v.refersToSameSourceAs(isGraphChild)) {

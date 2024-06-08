@@ -192,8 +192,7 @@ public:
 
     OwnedArray<ObjectItem> objectButtons;
 
-
-    static inline const std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> defaultObjectList = {
+    static inline std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> const defaultObjectList = {
         { "Default",
             {
                 { Icons::GlyphEmptyObject, "#X obj 0 0", "(@keypress) Empty object", "Object", NewObject },
@@ -356,7 +355,7 @@ public:
             } },
     };
 
-    static inline const std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> heavyObjectList = {
+    static inline std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> const heavyObjectList = {
         { "Default",
             {
                 { Icons::GlyphEmptyObject, "#X obj 0 0", "(@keypress) Empty object", "Object", NewObject },
@@ -556,7 +555,7 @@ public:
     bool clickingTogglesState = false;
     std::function<void(void)> onClick = []() {};
 
-    explicit AddObjectMenuButton(const String& iconStr, const String& textStr = String())
+    explicit AddObjectMenuButton(String const& iconStr, String const& textStr = String())
         : icon(iconStr)
         , text(textStr)
     {

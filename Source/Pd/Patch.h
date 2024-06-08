@@ -118,13 +118,13 @@ public:
 
     Instance* instance = nullptr;
     bool closePatchOnDelete;
-    
+
     bool openInPluginMode = false;
     int splitViewIndex = 0;
     int windowIndex = 0;
-    Point<int> lastViewportPosition = {1, 1};
+    Point<int> lastViewportPosition = { 1, 1 };
     float lastViewportScale = 1.0f;
-    
+
     String lastUndoSequence;
     String lastRedoSequence;
 
@@ -136,7 +136,7 @@ private:
     std::atomic<bool> canPatchUndo;
     std::atomic<bool> canPatchRedo;
     std::atomic<bool> isPatchDirty;
-    
+
     File currentFile;
     URL currentURL; // We hold a URL to the patch as well, which is needed for file IO on iOS
 

@@ -27,8 +27,10 @@ class StatusbarSource;
 struct PlugDataLook;
 class PluginEditor;
 class ConnectionMessageDisplay;
-class PluginProcessor : public AudioProcessor, public AsyncUpdater
-    , public pd::Instance, public SettingsFileListener {
+class PluginProcessor : public AudioProcessor
+    , public AsyncUpdater
+    , public pd::Instance
+    , public SettingsFileListener {
 public:
     PluginProcessor();
 
@@ -101,7 +103,7 @@ public:
     }
 
     void updatePatchUndoRedoState();
-        
+
     void settingsFileReloaded() override;
 
     void initialiseFilesystem();
@@ -121,7 +123,7 @@ public:
     void setParameterMode(String const& name, int mode) override;
 
     void performLatencyCompensationChange(float value) override;
-        
+
     // Jyg added this
     void fillDataBuffer(std::vector<pd::Atom> const& list) override;
     void parseDataBuffer(XmlElement const& xml) override;

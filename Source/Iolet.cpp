@@ -61,28 +61,29 @@ void Iolet::render(NVGcontext* nvg)
         return;
 
     auto& fb = cnv->ioletBuffer;
-    if(!fb.isValid()) return;
-    
+    if (!fb.isValid())
+        return;
+
     bool isLocked = getValue<bool>(locked) || getValue<bool>(commandLocked);
     bool overObject = object->drawIoletExpanded;
-    bool isHovering = isTargeted  && !isLocked;
+    bool isHovering = isTargeted && !isLocked;
     int type = isSignal + (isGemState * 2);
-    if(isLocked) type = 3;
-    
+    if (isLocked)
+        type = 3;
+
     nvgSave(nvg);
-    
-    if(isLocked || !(overObject || isHovering))
-    {
+
+    if (isLocked || !(overObject || isHovering)) {
         auto clipBounds = getLocalArea(object, object->getLocalBounds().reduced(Object::margin));
         nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
     }
-    
+
     auto scale = getWidth() / 13.0f;
     nvgScale(nvg, scale, scale); // If the iolet is shrunk because there is little space, we scale it down
-    
+
     nvgFillPaint(nvg, nvgImagePattern(nvg, isHovering * -16 - 1.5f, type * -16 - 0.5f, 16 * 4, 16 * 4, 0, fb.getImage(), 1));
     nvgFillRect(nvg, 0, 0, 13, 13);
-    
+
     nvgRestore(nvg);
 }
 
@@ -131,7 +132,7 @@ void Iolet::mouseDrag(MouseEvent const& e)
             if (nearest && cnv->nearestIolet != nearest) {
                 nearest->isTargeted = true;
                 cnv->editor->tooltipWindow.displayTip(nearest->getScreenPosition(), nearest->getTooltip());
-                
+
                 if (cnv->nearestIolet) {
                     cnv->nearestIolet->isTargeted = false;
                     cnv->nearestIolet->repaint();
@@ -157,7 +158,7 @@ void Iolet::mouseDown(MouseEvent const& e)
 void Iolet::mouseUp(MouseEvent const& e)
 {
     mouseIsDown = false;
-    
+
     if (getValue<bool>(locked) || e.mods.isRightButtonDown())
         return;
 
@@ -306,9 +307,8 @@ void Iolet::mouseEnter(MouseEvent const& e)
 {
     isTargeted = true;
     object->drawIoletExpanded = true;
-    
-    if(cnv->connectionsBeingCreated.size() == 1)
-    {
+
+    if (cnv->connectionsBeingCreated.size() == 1) {
         cnv->editor->tooltipWindow.displayTip(getScreenPosition(), getTooltip());
     }
 
@@ -320,12 +320,11 @@ void Iolet::mouseExit(MouseEvent const& e)
 {
     isTargeted = false;
     object->drawIoletExpanded = false;
-    
-    if(cnv->connectionsBeingCreated.size() == 1)
-    {
+
+    if (cnv->connectionsBeingCreated.size() == 1) {
         cnv->editor->tooltipWindow.hideTip();
     }
-    
+
     for (auto& iolet : object->iolets)
         iolet->repaint();
 }

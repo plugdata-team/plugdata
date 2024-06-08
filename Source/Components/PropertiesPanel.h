@@ -336,7 +336,6 @@ public:
             addAndMakeVisible(comboBox);
 
             lookAndFeelChanged();
-
         }
 
         PropertiesPanelProperty* createCopy() override
@@ -407,7 +406,7 @@ public:
 
         void lookAndFeelChanged() override
         {
-            for (auto& property : properties){
+            for (auto& property : properties) {
                 property->setColour(ComboBox::textColourId, findColour(PlugDataColour::panelTextColourId));
             }
         }
@@ -445,14 +444,16 @@ public:
         BoolComponent(String const& propertyName, Value& value, StringArray options)
             : PropertiesPanelProperty(propertyName)
             , textOptions(std::move(options))
-            , toggleStateValue(value) {
+            , toggleStateValue(value)
+        {
             init();
         }
 
         // Also allow creating it without passing in a Value, makes it easier to derive from this class for custom bool components
         BoolComponent(String const& propertyName, StringArray options)
             : PropertiesPanelProperty(propertyName)
-            , textOptions(std::move(options)) {
+            , textOptions(std::move(options))
+        {
             init();
         }
 
@@ -460,7 +461,8 @@ public:
         // We need this constructor sometimes to prevent feedback caused by the initial value being set after the listener is attached
         BoolComponent(String const& propertyName, bool initialValue, StringArray options)
             : PropertiesPanelProperty(propertyName)
-            , textOptions(std::move(options)) {
+            , textOptions(std::move(options))
+        {
             toggleStateValue = initialValue;
             init();
         }
@@ -472,7 +474,8 @@ public:
             lookAndFeelChanged();
         }
 
-        ~BoolComponent() {
+        ~BoolComponent()
+        {
             toggleStateValue.removeListener(this);
         }
 
@@ -793,8 +796,10 @@ public:
                 draggableNumber->getTextValue().referTo(property);
                 draggableNumber->setFont(draggableNumber->getFont().withHeight(14));
                 draggableNumber->setEditableOnClick(true);
-                if(minimum != 0.0f) draggableNumber->setMinimum(minimum);
-                if(maximum != 0.0f) draggableNumber->setMaximum(maximum);
+                if (minimum != 0.0f)
+                    draggableNumber->setMinimum(minimum);
+                if (maximum != 0.0f)
+                    draggableNumber->setMaximum(maximum);
 
                 if (onInteractionFn)
                     draggableNumber->onInteraction = onInteractionFn;

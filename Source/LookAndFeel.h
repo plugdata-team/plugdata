@@ -28,7 +28,7 @@ inline std::map<PlugDataColour, std::tuple<String, String, String>> const PlugDa
     { gemColourId, { "Gem", "gem_colour", "Canvas" } },
     { graphAreaColourId, { "Graph resizer", "graph_area", "Canvas" } },
     { gridLineColourId, { "Grid line", "grid_colour", "Canvas" } },
-    
+
     { guiObjectBackgroundColourId, { "GUI object background", "default_object_background", "Object" } },
     { guiObjectInternalOutlineColour, { "GUI object internal outline colour", "gui_internal_outline_colour", "Object" } },
     { textObjectBackgroundColourId, { "Object background", "text_object_background", "Object" } },
@@ -47,7 +47,7 @@ inline std::map<PlugDataColour, std::tuple<String, String, String>> const PlugDa
     { caretColourId, { "Text editor caret", "caret_colour", "Other" } },
     { toolbarOutlineColourId, { "Outline", "toolbar_outline_colour", "Other" } },
     { scrollbarThumbColourId, { "Scrollbar thumb", "scrollbar_thumb", "Other" } },
-    
+
     { levelMeterActiveColourId, { "Level meter active", "levelmeter_active", "Level Meter" } },
     { levelMeterBackgroundColourId, { "Level meter track", "levelmeter_background", "Level Meter" } },
     { levelMeterThumbColourId, { "Level meter thumb", "levelmeter_thumb", "Level Meter" } },
@@ -56,7 +56,7 @@ inline std::map<PlugDataColour, std::tuple<String, String, String>> const PlugDa
     { panelForegroundColourId, { "Panel foreground", "panel_foreground", "Properties Panel" } },
     { panelTextColourId, { "Panel text", "panel_text", "Properties Panel" } },
     { panelActiveBackgroundColourId, { "Panel background active", "panel_background_active", "Properties Panel" } },
-    
+
     { sidebarBackgroundColourId, { "Sidebar background", "sidebar_colour", "Sidebar" } },
     { sidebarTextColourId, { "Sidebar text", "sidebar_text", "Sidebar" } },
     { sidebarActiveBackgroundColourId, { "Sidebar background active", "sidebar_background_active", "Sidebar" } },
@@ -71,7 +71,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     void fillResizableWindowBackground(Graphics& g, int w, int h, BorderSize<int> const& border, ResizableWindow& window) override;
 
-    void drawResizableWindowBorder(Graphics&, int w, int h, BorderSize<int> const& border, ResizableWindow&) override {}
+    void drawResizableWindowBorder(Graphics&, int w, int h, BorderSize<int> const& border, ResizableWindow&) override { }
 
     void drawCallOutBoxBackground(CallOutBox& box, Graphics& g, Path const& path, Image& cachedImage) override;
 
@@ -133,9 +133,9 @@ struct PlugDataLook : public LookAndFeel_V4 {
     void drawCornerResizer(Graphics& g, int w, int h, bool isMouseOver, bool isMouseDragging) override;
 
     void drawLasso(Graphics& g, Component& lassoComp) override;
-    
-    void drawAlertBox (Graphics& g, AlertWindow& alert,
-                       const Rectangle<int>& textArea, TextLayout& textLayout) override;
+
+    void drawAlertBox(Graphics& g, AlertWindow& alert,
+        Rectangle<int> const& textArea, TextLayout& textLayout) override;
 
     void drawTooltip(Graphics& g, String const& text, int width, int height) override;
 

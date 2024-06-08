@@ -8,11 +8,11 @@
 
 #include <nanovg.h>
 #if NANOVG_GL_IMPLEMENTATION
-#include <juce_opengl/juce_opengl.h>
+#    include <juce_opengl/juce_opengl.h>
 using namespace juce::gl;
-#undef NANOVG_GL_IMPLEMENTATION
-#include <nanovg_gl_utils.h>
-#define NANOVG_GL_IMPLEMENTATION 1
+#    undef NANOVG_GL_IMPLEMENTATION
+#    include <nanovg_gl_utils.h>
+#    define NANOVG_GL_IMPLEMENTATION 1
 #endif
 
 #include "ObjectGrid.h"          // move to impl
@@ -58,9 +58,8 @@ class Canvas : public Component
     , public LassoSource<WeakReference<Component>>
     , public ModifierKeyListener
     , public pd::MessageListener
-    , public AsyncUpdater 
-    , public NVGComponent
-{
+    , public AsyncUpdater
+    , public NVGComponent {
 public:
     Canvas(PluginEditor* parent, pd::Patch::Ptr patch, Component* parentGraph = nullptr);
 
@@ -73,9 +72,9 @@ public:
     void mouseDrag(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
     bool hitTest(int x, int y) override;
-    
+
     Point<int> getLastMousePosition();
-    
+
     void commandKeyChanged(bool isHeld) override;
     void middleMouseChanged(bool isHeld) override;
     void altKeyChanged(bool isHeld) override;
@@ -84,10 +83,10 @@ public:
 
     void focusGained(FocusChangeType cause) override;
     void focusLost(FocusChangeType cause) override;
-    
+
     bool updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, int maxUpdateTimeMs);
     void performRender(NVGcontext* nvg, Rectangle<int> invalidRegion);
-    
+
     void resized() override;
 
     void renderAllObjects(NVGcontext* nvg, Rectangle<int> area);
@@ -100,9 +99,9 @@ public:
     bool shouldShowIndex();
     bool shouldShowConnectionDirection();
     bool shouldShowConnectionActivity();
-    
-    void save(std::function<void()> const& nestedCallback = [](){});
-    void saveAs(std::function<void()> const& nestedCallback = [](){});
+
+    void save(std::function<void()> const& nestedCallback = []() {});
+    void saveAs(std::function<void()> const& nestedCallback = []() {});
 
     void synchroniseSplitCanvas();
     void synchronise();
@@ -141,11 +140,11 @@ public:
     void jumpToOrigin();
     void jumpToLastKnownPosition();
     void saveViewportPosition();
-    
+
     void zoomToFitAll();
-    
+
     void updatePatchSnapshot();
-    
+
     float getRenderScale() const;
 
     bool autoscroll(MouseEvent const& e);
@@ -166,7 +165,7 @@ public:
     void updateSidebarSelection();
 
     void orderConnections();
-    
+
     void showSuggestions(Object* object, TextEditor* textEditor);
     void hideSuggestions();
 
@@ -222,12 +221,12 @@ public:
 
     bool showConnectionDirection = false;
     bool showConnectionActivity = false;
-    
+
     bool isScrolling = false;
-    
+
     bool isGraph = false;
     bool isDraggingLasso = false;
-    
+
     bool needsSearchUpdate = false;
 
     Value isGraphChild = SynchronousValue(var(false));
@@ -260,20 +259,19 @@ public:
 
     Component objectLayer;
     Component connectionLayer;
-    
+
     NVGFramebuffer ioletBuffer;
     NVGImage resizeHandleImage;
     NVGImage presentationShadowImage;
     Rectangle<int> lastPresentationBounds;
-    
+
     Array<juce::WeakReference<NVGComponent>> drawables;
 
 private:
-    
     GlobalMouseListener globalMouseListener;
 
     bool dimensionsAreBeingEdited = false;
-    
+
     int lastMouseX, lastMouseY;
     LassoComponent<WeakReference<Component>> lasso;
 

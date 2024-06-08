@@ -92,9 +92,8 @@ public:
         auto fillColour = Colour(x->x_color[0], x->x_color[1], x->x_color[2]);
         auto outlineColour = LookAndFeel::getDefaultLookAndFeel().findColour(object->isSelected() && !cnv->isGraph ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::outlineColourId);
 
-        nvgDrawRoundedRect(nvg, b.getX(),  b.getY(),  b.getWidth(),  b.getHeight(), convertColour(fillColour), convertColour(outlineColour), Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(fillColour), convertColour(outlineColour), Corners::objectCornerRadius);
     }
-    
 
     void setPdBounds(Rectangle<int> b) override
     {

@@ -59,7 +59,7 @@ public:
         EdgesBit = 2,
         CentersBit = 4
     };
-    
+
     static void show(PluginEditor* editor, Rectangle<int> bounds)
     {
         if (isShowing)
@@ -70,7 +70,7 @@ public:
         auto snapSettings = std::make_unique<SnapSettings>();
         editor->showCalloutBox(std::move(snapSettings), bounds);
     }
-    
+
     class SnapSelector : public Component
         , public Value::Listener
         , public SettableTooltipClient {
@@ -175,11 +175,11 @@ public:
         snapLabel.setText("Snap", dontSendNotification);
         snapLabel.setFont(Fonts::getSemiBoldFont().withHeight(14));
         addAndMakeVisible(snapLabel);
-        
+
         gridSizeLabel.setText("Grid Size", dontSendNotification);
         gridSizeLabel.setFont(Fonts::getSemiBoldFont().withHeight(14));
         addAndMakeVisible(gridSizeLabel);
-        
+
         for (auto* group : buttonGroups) {
             addAndMakeVisible(group);
             group->addMouseListener(this, true);
@@ -192,12 +192,12 @@ public:
         addAndMakeVisible(gridSlider.get());
         setSize(140, 182);
     }
-    
+
     ~SnapSettings()
     {
         isShowing = false;
     }
-    
+
     void resized() override
     {
         auto bounds = getLocalBounds().withTrimmedTop(24);
@@ -205,7 +205,7 @@ public:
         buttonGroups[SnapItem::Edges]->setBounds(bounds.removeFromTop(26));
         buttonGroups[SnapItem::Centers]->setBounds(bounds.removeFromTop(26));
         buttonGroups[SnapItem::Grid]->setBounds(bounds.removeFromTop(26));
-        
+
         gridSizeLabel.setBounds(bounds.removeFromTop(24));
         gridSlider->setBounds(bounds.removeFromTop(34));
     }
@@ -227,13 +227,13 @@ public:
             }
         }
     }
-    
+
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::popupMenuTextColourId));
         g.setFont(Fonts::getBoldFont().withHeight(15));
         g.drawText("Grid", 0, 0, getWidth(), 24, Justification::centred);
-        
+
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(4, 24, getWidth() - 8, 24);
     }
@@ -246,7 +246,6 @@ public:
     MouseInteraction mouseInteraction = ToggledButtonOff;
 
 private:
-
     static inline bool isShowing = false;
     Label snapLabel, gridSizeLabel;
     std::unique_ptr<GridSizeSlider> gridSlider = std::make_unique<GridSizeSlider>();

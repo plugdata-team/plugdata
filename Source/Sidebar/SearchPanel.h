@@ -14,12 +14,12 @@ extern "C" {
 #include <g_all_guis.h>
 }
 
-static int srl_is_valid(t_symbol const *s) {
+static int srl_is_valid(t_symbol const* s)
+{
     return (s != nullptr && s != gensym(""));
 }
 
-class SearchPanelSettings : public Component
-{
+class SearchPanelSettings : public Component {
 public:
     struct SearchPanelSettingsButton : public TextButton {
         String const icon;
@@ -34,7 +34,7 @@ public:
             auto sortLayerOrder = SettingsFile::getInstance()->getProperty<bool>("search_order");
             setToggleState(sortLayerOrder, dontSendNotification);
 
-            onClick = [this](){
+            onClick = [this]() {
                 SettingsFile::getInstance()->setProperty("search_order", var(getToggleState()));
             };
         }
@@ -71,16 +71,19 @@ public:
 
         sortLayerOrder.setBounds(buttonBounds.removeFromTop(buttonHeight));
     }
+
 private:
     SearchPanelSettingsButton sortLayerOrder = SearchPanelSettingsButton(Icons::AutoScroll, "Display layer order");
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SearchPanelSettings);
 };
 
-class SearchPanel : public Component, public KeyListener, public Timer
-{
+class SearchPanel : public Component
+    , public KeyListener
+    , public Timer {
 public:
-    explicit SearchPanel(PluginEditor* pluginEditor) : editor(pluginEditor)
+    explicit SearchPanel(PluginEditor* pluginEditor)
+        : editor(pluginEditor)
     {
         input.setBackgroundColour(PlugDataColour::sidebarActiveBackgroundColourId);
         input.setTextToShowWhenEmpty("Type to search in patch", findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f));
@@ -92,12 +95,12 @@ public:
         input.addKeyListener(this);
         patchTree.addKeyListener(this);
 
-        patchTree.onClick = [this](ValueTree& tree){
+        patchTree.onClick = [this](ValueTree& tree) {
             auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("Object")));
             editor->highlightSearchTarget(ptr, true);
         };
 
-        patchTree.onSelect = [this](ValueTree& tree){
+        patchTree.onSelect = [this](ValueTree& tree) {
             auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("TopLevel")));
             editor->highlightSearchTarget(ptr, false);
         };
@@ -110,7 +113,6 @@ public:
         input.setJustification(Justification::centredLeft);
         input.setBorder({ 1, 23, 5, 1 });
     }
-
 
     bool keyPressed(KeyPress const& key, Component* originatingComponent) override
     {
@@ -125,8 +127,7 @@ public:
     void timerCallback() override
     {
         auto* cnv = editor->getCurrentCanvas();
-        if(cnv && (currentCanvas.getComponent() != cnv || cnv->needsSearchUpdate))
-        {
+        if (cnv && (currentCanvas.getComponent() != cnv || cnv->needsSearchUpdate)) {
             currentCanvas = cnv;
             currentCanvas->needsSearchUpdate = false;
             updateResults();
@@ -135,11 +136,9 @@ public:
 
     void visibilityChanged() override
     {
-        if(isVisible())
-        {
+        if (isVisible()) {
             startTimer(100);
-        }
-        else {
+        } else {
             stopTimer();
         }
     }
@@ -193,7 +192,7 @@ public:
     void updateResults()
     {
         auto* cnv = editor->getCurrentCanvas();
-        if(cnv) {
+        if (cnv) {
             cnv->pd->lockAudioThread(); // It locks inside of this anyway, so we might as well lock around it to prevent constantly locking/unlocking
             auto tree = generatePatchTree(cnv->refCountedPatch);
             patchTree.setValueTree(tree);
@@ -240,7 +239,7 @@ public:
                 auto nameWithoutArgs = name.upToFirstOccurrenceOf(" ", false, false);
                 auto positionText = " (" + String(x) + ":" + String(y) + ")";
 
-                auto getFirstArgumentFromFullName = [](const String& fullName) -> String {
+                auto getFirstArgumentFromFullName = [](String const& fullName) -> String {
                     return fullName.fromFirstOccurrenceOf(" ", false, true).upToFirstOccurrenceOf(" ", false, true);
                 };
 
@@ -250,15 +249,13 @@ public:
                     ValueTree subpatchTree = generatePatchTree(subpatch, top);
                     element.copyPropertiesAndChildrenFrom(subpatchTree, nullptr);
 
-                    if(auto patchPtr = subpatch->getPointer())
-                    {
-                        if(patchPtr->gl_list)
-                        {
+                    if (auto patchPtr = subpatch->getPointer()) {
+                        if (patchPtr->gl_list) {
                             t_class* c = patchPtr->gl_list->g_pd;
                             if (c && c->c_name && (String::fromUTF8(c->c_name->s_name) == "array")) {
                                 StringArray arrays;
                                 auto arrayIt = patchPtr->gl_list;
-                                while(arrayIt) {
+                                while (arrayIt) {
                                     if (auto* array = reinterpret_cast<t_fake_garray*>(arrayIt))
                                         arrays.add(String::fromUTF8(array->x_name->s_name));
                                     arrayIt = arrayIt->g_next;
@@ -271,9 +268,7 @@ public:
                             } else if (patchPtr->gl_isgraph) {
                                 name = nameWithoutArgs;
                             }
-                        }
-                        else if(patchPtr->gl_isgraph)
-                        {
+                        } else if (patchPtr->gl_isgraph) {
                             name = nameWithoutArgs;
                         }
                     }
@@ -294,182 +289,166 @@ public:
                     String sendSymbol;
                     String receiveSymbol;
 
-                    switch(hash(type)){
-                        // IEM send-receive symbols
-                        case hash("bng"):
-                        case hash("hsl"):
-                        case hash("vsl"):
-                        case hash("slider"):
-                        case hash("tgl"):
-                        case hash("nbx"):
-                        case hash("vradio"):
-                        case hash("hradio"):
-                        case hash("vu"):
-                        case hash("cnv"):
-                        {
-                            if (auto iemgui = objectPtr.get<t_iemgui>()) {
-                                t_symbol* srlsym[3];
-                                iemgui_all_sym2dollararg(iemgui.get(), srlsym);
-                                if (srl_is_valid(srlsym[0])) {
-                                    sendSymbol = String::fromUTF8(iemgui->x_snd_unexpanded->s_name);
-                                }
-                                if (srl_is_valid(srlsym[1])) {
-                                    receiveSymbol = String::fromUTF8(iemgui->x_rcv_unexpanded->s_name);
-                                }
+                    switch (hash(type)) {
+                    // IEM send-receive symbols
+                    case hash("bng"):
+                    case hash("hsl"):
+                    case hash("vsl"):
+                    case hash("slider"):
+                    case hash("tgl"):
+                    case hash("nbx"):
+                    case hash("vradio"):
+                    case hash("hradio"):
+                    case hash("vu"):
+                    case hash("cnv"): {
+                        if (auto iemgui = objectPtr.get<t_iemgui>()) {
+                            t_symbol* srlsym[3];
+                            iemgui_all_sym2dollararg(iemgui.get(), srlsym);
+                            if (srl_is_valid(srlsym[0])) {
+                                sendSymbol = String::fromUTF8(iemgui->x_snd_unexpanded->s_name);
                             }
-                            finalFormatedName = nameWithoutArgs;
-                            break;
-                        }
-                        case hash("keyboard"):
-                        {
-                            if (auto keyboardObject = object.cast<t_fake_keyboard>()) {
-                                sendSymbol = String(keyboardObject->x_send->s_name);
-                                receiveSymbol = String(keyboardObject->x_receive->s_name);
+                            if (srl_is_valid(srlsym[1])) {
+                                receiveSymbol = String::fromUTF8(iemgui->x_rcv_unexpanded->s_name);
                             }
-                            finalFormatedName = nameWithoutArgs;
-                            break;
                         }
-                        case hash("pic"):
-                        {
-                            if (auto picObject = object.cast<t_fake_pic>()) {
-                                sendSymbol = String(picObject->x_send->s_name);
-                                receiveSymbol = String(picObject->x_receive->s_name);
-                            }
-                            finalFormatedName = nameWithoutArgs;
-                            break;
+                        finalFormatedName = nameWithoutArgs;
+                        break;
+                    }
+                    case hash("keyboard"): {
+                        if (auto keyboardObject = object.cast<t_fake_keyboard>()) {
+                            sendSymbol = String(keyboardObject->x_send->s_name);
+                            receiveSymbol = String(keyboardObject->x_receive->s_name);
                         }
-                        case hash("scope~"):
-                        {
-                            if (auto scopeObject = object.cast<t_fake_scope>()){
-                                receiveSymbol = String(scopeObject->x_receive->s_name);
-                            }
-                            finalFormatedName = nameWithoutArgs;
-                            break;
+                        finalFormatedName = nameWithoutArgs;
+                        break;
+                    }
+                    case hash("pic"): {
+                        if (auto picObject = object.cast<t_fake_pic>()) {
+                            sendSymbol = String(picObject->x_send->s_name);
+                            receiveSymbol = String(picObject->x_receive->s_name);
                         }
-                        case hash("function"):
-                        {
-                            if (auto keyboardObject = object.cast<t_fake_function>()) {
-                                sendSymbol = String(keyboardObject->x_send->s_name);
-                                receiveSymbol = String(keyboardObject->x_receive->s_name);
-
-                            }
-                            finalFormatedName = nameWithoutArgs;
-                            break;
+                        finalFormatedName = nameWithoutArgs;
+                        break;
+                    }
+                    case hash("scope~"): {
+                        if (auto scopeObject = object.cast<t_fake_scope>()) {
+                            receiveSymbol = String(scopeObject->x_receive->s_name);
                         }
-                        case hash("note"):
-                        {
-                            if (auto noteObject = object.cast<t_fake_note>()) {
-                                receiveSymbol = String(noteObject->x_receive->s_name);
-                            }
-                            finalFormatedName = nameWithoutArgs;
-                            break;
+                        finalFormatedName = nameWithoutArgs;
+                        break;
+                    }
+                    case hash("function"): {
+                        if (auto keyboardObject = object.cast<t_fake_function>()) {
+                            sendSymbol = String(keyboardObject->x_send->s_name);
+                            receiveSymbol = String(keyboardObject->x_receive->s_name);
                         }
-                        case hash("knob"):
-                        {
-                            if (auto knobObj = object.cast<t_fake_knob>()) {
-                                sendSymbol = String(knobObj->x_snd->s_name);
-                                receiveSymbol = String(knobObj->x_rcv->s_name);
-                            }
-                            finalFormatedName = nameWithoutArgs;
-                            break;
+                        finalFormatedName = nameWithoutArgs;
+                        break;
+                    }
+                    case hash("note"): {
+                        if (auto noteObject = object.cast<t_fake_note>()) {
+                            receiveSymbol = String(noteObject->x_receive->s_name);
                         }
-                        case hash("gatom"):
-                        {
-                            auto gatomObject = object.cast<t_fake_gatom>();
-                            String gatomName;
-                            switch(gatomObject->a_flavor){
-                                case A_FLOAT:
-                                    gatomName = "floatbox";
-                                    break;
-                                case A_SYMBOL:
-                                    gatomName = "symbolbox";
-                                    break;
-                                case A_NULL:
-                                    gatomName = "listbox";
-                                    break;
-                                default:
-                                    break;
-                            }
-                            receiveSymbol = String(gatomObject->a_symfrom->s_name);
-                            sendSymbol = String(gatomObject->a_symto->s_name);
-                            finalFormatedName = gatomName;
-                            break;
+                        finalFormatedName = nameWithoutArgs;
+                        break;
+                    }
+                    case hash("knob"): {
+                        if (auto knobObj = object.cast<t_fake_knob>()) {
+                            sendSymbol = String(knobObj->x_snd->s_name);
+                            receiveSymbol = String(knobObj->x_rcv->s_name);
                         }
-                        case hash("message"):
-                        {
-                            finalFormatedName = "msg: " + name;
+                        finalFormatedName = nameWithoutArgs;
+                        break;
+                    }
+                    case hash("gatom"): {
+                        auto gatomObject = object.cast<t_fake_gatom>();
+                        String gatomName;
+                        switch (gatomObject->a_flavor) {
+                        case A_FLOAT:
+                            gatomName = "floatbox";
                             break;
-                        }
-                        case hash("comment"):
-                        {
-                            finalFormatedName = "comment: " + name;
+                        case A_SYMBOL:
+                            gatomName = "symbolbox";
                             break;
-                        }
-                        case hash("text"):
-                        {
-                            switch(object.cast<t_fake_text_define>()->x_textbuf.b_ob.te_type){
-                                case T_TEXT:
-                                {
-                                    // if object & classname is text, then it's a comment
-                                    finalFormatedName = String("comment: ") + name;
-                                    break;
-                                }
-                                case T_OBJECT:
-                                {
-                                    // if object is T_OBJECT but classname is 'text' object is in error state
-                                    element.setProperty("IconColour", Colours::red.toString(), nullptr);
-
-                                    if (name.isEmpty())
-                                        finalFormatedName = String("empty");
-                                    else
-                                        finalFormatedName = String("unknown: ") + name;
-
-                                    break;
-                                }
-                                default:
-                                    break;
-                            }
+                        case A_NULL:
+                            gatomName = "listbox";
                             break;
-                        }
-                        case hash("canvas"):
-                        case hash("bicoeff"):
-                        case hash("messbox"):
-                        case hash("pad"):
-                        case hash("button"):
-                        {
-                            finalFormatedName = nameWithoutArgs;
-                            break;
-                        }
-
                         default:
-                        {
-                            switch (hash(nameWithoutArgs)) {
-                                case hash("s"):
-                                case hash("s~"):
-                                case hash("send"):
-                                case hash("send~"):
-                                case hash("throw~"): {
-                                    sendSymbol = getFirstArgumentFromFullName(name);
-                                    element.setProperty("SymbolIsObject", 1, nullptr);
-                                    finalFormatedName = nameWithoutArgs;
-                                    break;
-                                }
-                                case hash("r"):
-                                case hash("r~"):
-                                case hash("receive"):
-                                case hash("receive~"):
-                                case hash("catch~"): {
-                                    receiveSymbol = getFirstArgumentFromFullName(name);
-                                    element.setProperty("SymbolIsObject", 1, nullptr);
-                                    finalFormatedName = nameWithoutArgs;
-                                    break;
-                                }
-                                default:
-                                    finalFormatedName = name;
-                                    break;
-                            }
                             break;
                         }
+                        receiveSymbol = String(gatomObject->a_symfrom->s_name);
+                        sendSymbol = String(gatomObject->a_symto->s_name);
+                        finalFormatedName = gatomName;
+                        break;
+                    }
+                    case hash("message"): {
+                        finalFormatedName = "msg: " + name;
+                        break;
+                    }
+                    case hash("comment"): {
+                        finalFormatedName = "comment: " + name;
+                        break;
+                    }
+                    case hash("text"): {
+                        switch (object.cast<t_fake_text_define>()->x_textbuf.b_ob.te_type) {
+                        case T_TEXT: {
+                            // if object & classname is text, then it's a comment
+                            finalFormatedName = String("comment: ") + name;
+                            break;
+                        }
+                        case T_OBJECT: {
+                            // if object is T_OBJECT but classname is 'text' object is in error state
+                            element.setProperty("IconColour", Colours::red.toString(), nullptr);
+
+                            if (name.isEmpty())
+                                finalFormatedName = String("empty");
+                            else
+                                finalFormatedName = String("unknown: ") + name;
+
+                            break;
+                        }
+                        default:
+                            break;
+                        }
+                        break;
+                    }
+                    case hash("canvas"):
+                    case hash("bicoeff"):
+                    case hash("messbox"):
+                    case hash("pad"):
+                    case hash("button"): {
+                        finalFormatedName = nameWithoutArgs;
+                        break;
+                    }
+
+                    default: {
+                        switch (hash(nameWithoutArgs)) {
+                        case hash("s"):
+                        case hash("s~"):
+                        case hash("send"):
+                        case hash("send~"):
+                        case hash("throw~"): {
+                            sendSymbol = getFirstArgumentFromFullName(name);
+                            element.setProperty("SymbolIsObject", 1, nullptr);
+                            finalFormatedName = nameWithoutArgs;
+                            break;
+                        }
+                        case hash("r"):
+                        case hash("r~"):
+                        case hash("receive"):
+                        case hash("receive~"):
+                        case hash("catch~"): {
+                            receiveSymbol = getFirstArgumentFromFullName(name);
+                            element.setProperty("SymbolIsObject", 1, nullptr);
+                            finalFormatedName = nameWithoutArgs;
+                            break;
+                        }
+                        default:
+                            finalFormatedName = name;
+                            break;
+                        }
+                        break;
+                    }
                     }
 
                     element.setProperty("Name", finalFormatedName, nullptr);

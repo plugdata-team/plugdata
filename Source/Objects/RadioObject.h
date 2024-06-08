@@ -28,7 +28,7 @@ public:
         objectParameters.addParamSize(&sizeProperty, true);
         objectParameters.addParamInt("Options", cGeneral, &max, 8);
         iemHelper.addIemParameters(objectParameters);
-        
+
         if (auto radio = ptr.get<t_radio>()) {
             isVertical = radio->x_orientation;
             sizeProperty = isVertical ? radio->x_gui.x_w : radio->x_gui.x_h;
@@ -195,14 +195,14 @@ public:
     {
         return ptr.get<t_radio>()->x_on;
     }
-    
+
     void render(NVGcontext* nvg) override
     {
         auto b = getLocalBounds().toFloat().reduced(0.5f);
         bool isSelected = object->isSelected() && !cnv->isGraph;
         auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
         auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
- 
+
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(iemHelper.getBackgroundColour()), isSelected ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
         float size = (isVertical ? static_cast<float>(getHeight()) / numItems : static_cast<float>(getWidth()) / numItems);
@@ -315,10 +315,10 @@ public:
         if (auto radio = ptr.get<t_radio>()) {
             auto size = isVertical ? object->getWidth() : object->getHeight();
             size -= (Object::doubleMargin + 1);
-            
+
             radio->x_gui.x_w = size;
             radio->x_gui.x_h = size;
-            
+
             setParameterExcludingListener(sizeProperty, isVertical ? var(radio->x_gui.x_w) : var(radio->x_gui.x_h));
         }
     }

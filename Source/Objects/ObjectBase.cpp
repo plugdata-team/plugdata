@@ -177,11 +177,10 @@ ObjectBase::~ObjectBase()
     delete lnf;
 }
 
-
-Colour ObjectBase::brightenOrDarken(const Colour& colour)
+Colour ObjectBase::brightenOrDarken(Colour const& colour)
 {
     auto brightness = colour.getBrightness();
-    const float threshold = 0.5f;
+    float const threshold = 0.5f;
     if (brightness < threshold)
         return colour.brighter(0.05f);
     else
@@ -208,7 +207,7 @@ void ObjectBase::initialise()
 void ObjectBase::objectMovedOrResized(bool resized)
 {
     auto objectBounds = object->getObjectBounds();
-    
+
     setParameterExcludingListener(positionParameter, Array<var> { var(objectBounds.getX()), var(objectBounds.getY()) }, &objectSizeListener);
 
     if (resized)
@@ -244,15 +243,17 @@ String ObjectBase::getTypeWithOriginPrefix() const
 {
     if (auto obj = ptr.get<t_gobj>()) {
         auto type = getType();
-        if(type.contains("/")) return type;
-        
+        if (type.contains("/"))
+            return type;
+
         auto origin = pd::Library::getObjectOrigin(obj.get());
 
-        if(origin.isEmpty()) return type;
-        
-        return  origin + "/" + type;
+        if (origin.isEmpty())
+            return type;
+
+        return origin + "/" + type;
     }
-    
+
     return {};
 }
 
@@ -385,8 +386,8 @@ void ObjectBase::openSubpatch()
     }
 
     cnv->editor->getTabComponent().openPatch(subpatch);
-    
-    if(path.getFullPathName().isNotEmpty()) {
+
+    if (path.getFullPathName().isNotEmpty()) {
         subpatch->setCurrentFile(URL(path));
     }
 }
@@ -452,10 +453,10 @@ void ObjectBase::paint(Graphics& g)
     g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
 }
 
-float ObjectBase::getImageScale() {
+float ObjectBase::getImageScale()
+{
     Canvas* topLevel = cnv;
-    while(auto* nextCnv = topLevel->findParentComponentOfClass<Canvas>())
-    {
+    while (auto* nextCnv = topLevel->findParentComponentOfClass<Canvas>()) {
         topLevel = nextCnv;
     }
     return topLevel->isScrolling ? topLevel->getRenderScale() * 2.0f : topLevel->getRenderScale() * std::max(1.0f, getValue<float>(topLevel->zoomScale));
@@ -503,17 +504,15 @@ void ObjectBase::sendFloatValue(float newValue)
 ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
 {
     parent->cnv->pd->setThis();
-    
+
     // This will ensure the object is still valid at this point, and also locks the audio thread to make sure it will remain valid
-    if (auto checked = ptr.get<t_gobj>()) {        
+    if (auto checked = ptr.get<t_gobj>()) {
         auto const name = hash(pd::Interface::getObjectClassName(checked.cast<t_pd>()));
 
-        if(parent->cnv->pd->isLuaClass(name))
-        {
+        if (parent->cnv->pd->isLuaClass(name)) {
             if (checked.cast<t_pdlua>()->has_gui) {
                 return new LuaObject(ptr, parent);
-            }
-            else {
+            } else {
                 return new LuaTextObject(ptr, parent);
             }
         }
@@ -759,7 +758,7 @@ void ObjectBase::setParameterExcludingListener(Value& parameter, var const& valu
 {
     parameter.removeListener(&propertyUndoListener);
     parameter.removeListener(otherListener);
-    
+
     setValueExcludingListener(parameter, value, this);
 
     parameter.addListener(otherListener);

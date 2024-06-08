@@ -28,7 +28,6 @@
 #include "Constants.h"
 #include "LookAndFeel.h"
 
-
 // objects are only drag and dropped onto a canvas, so we dynamic cast straight away to see if the dragged object is from an object
 #include "Components/ObjectDragAndDrop.h"
 
@@ -120,9 +119,8 @@ public:
             if (finalTarget != nullptr) {
                 currentlyOverComp = nullptr;
                 finalTarget->itemDropped(details);
-            }
-             else  {
-                 owner.getTabComponent().createNewWindow(details.sourceComponent.get());
+            } else {
+                owner.getTabComponent().createNewWindow(details.sourceComponent.get());
             }
             // careful - this object could now be deleted..
         }
@@ -152,7 +150,7 @@ public:
             }
 
             auto* tabbar = dynamic_cast<TabComponent*>(target);
-            
+
             if (tabbar && isZoomable) {
                 if (newTarget) {
                     if (tabbar->getCurrentCanvas()) {
@@ -161,17 +159,15 @@ public:
                         return;
                     }
                 }
-            
+
                 if (tabbar->getScreenBounds().contains(currentScreenPos.toInt())) {
                     return;
                 }
             }
-            
-            if(tabbar && e.getEventRelativeTo(tabbar).y < 30)
-            {
+
+            if (tabbar && e.getEventRelativeTo(tabbar).y < 30) {
                 updateScale(0.0f, true);
-            }
-            else {
+            } else {
                 updateScale(1.0f, true);
             }
         }
@@ -217,12 +213,12 @@ public:
     }
 
     void updateScale(float newScale, bool withAnimation)
-    {        
+    {
         if (approximatelyEqual<float>(newScale, previousScale))
             return;
 
         previousScale = newScale;
-        
+
         auto newWidth = image.getScaledBounds().getWidth() * newScale;
         auto newHeight = image.getScaledBounds().getHeight() * newScale;
         auto zoomedImageBounds = getLocalBounds().withSizeKeepingCentre(newWidth, newHeight);
@@ -403,8 +399,7 @@ private:
             auto details = sourceDetails;
 
             while (hit != nullptr) {
-                if(auto* ddt = dynamic_cast<PluginEditor*>(hit))
-                {
+                if (auto* ddt = dynamic_cast<PluginEditor*>(hit)) {
                     hit = &ddt->getTabComponent();
                 }
                 if (auto* ddt = dynamic_cast<DragAndDropTarget*>(hit)) {
@@ -581,7 +576,7 @@ void ZoomableDragAndDropContainer::startDragging(var const& sourceDescription,
     if (!Desktop::canUseSemiTransparentWindows()) {
         dragImageComponent->setOpaque(true);
     }
-    
+
     dragImageComponent->addToDesktop(ComponentPeer::windowIgnoresMouseClicks | ComponentPeer::windowIsTemporary);
 
     dragImageComponent->sourceDetails.localPosition = sourceComponent->getLocalPoint(nullptr, lastMouseDown).toInt();
@@ -598,7 +593,7 @@ void ZoomableDragAndDropContainer::startDragging(var const& sourceDescription,
 #if JUCE_IOS
     dragImageComponent->setAlwaysOnTop(true);
 #endif
-    
+
     dragOperationStarted(dragImageComponent->sourceDetails);
     if (auto* topLevel = TopLevelWindow::getActiveTopLevelWindow()) {
         topLevel->repaint();

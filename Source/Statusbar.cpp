@@ -27,16 +27,20 @@
 
 #include "Components/ArrowPopupMenu.h"
 
-class LatencyDisplayButton : public Component, public MultiTimer, public SettableTooltipClient {
+class LatencyDisplayButton : public Component
+    , public MultiTimer
+    , public SettableTooltipClient {
     Label latencyValue;
     Label icon;
     bool isHover = false;
     Colour bgColour;
     int currentLatencyValue = 0;
 
-    enum TimerRoutine { Timeout, Animate };
+    enum TimerRoutine { Timeout,
+        Animate };
     float alpha = 1.0f;
     bool fading = false;
+
 public:
     std::function<void()> onClick = []() {};
     LatencyDisplayButton()
@@ -71,25 +75,25 @@ public:
     void timerCallback(int ID) override
     {
         switch (ID) {
-            case Timeout:
-                startTimer(Animate, 1000 / 30.0f);
-                break;
-            case Animate:
-                alpha = pow(alpha, 1.0f / 2.2f);
-                alpha -= 0.02f;
-                alpha = pow(alpha, 2.2f);
-                alpha = std::clamp(alpha, 0.0f, 1.0f);
-                alpha = std::isfinite(alpha) ? alpha : 0.0f;
-                fading = true;
-                if (alpha <= 0.01f) {
-                    alpha = 0.0f;
-                    stopTimer(Animate);
-                    setVisible(false);
-                }
-                buttonStateChanged();
-                break;
-            default:
-                break;
+        case Timeout:
+            startTimer(Animate, 1000 / 30.0f);
+            break;
+        case Animate:
+            alpha = pow(alpha, 1.0f / 2.2f);
+            alpha -= 0.02f;
+            alpha = pow(alpha, 2.2f);
+            alpha = std::clamp(alpha, 0.0f, 1.0f);
+            alpha = std::isfinite(alpha) ? alpha : 0.0f;
+            fading = true;
+            if (alpha <= 0.01f) {
+                alpha = 0.0f;
+                stopTimer(Animate);
+                setVisible(false);
+            }
+            buttonStateChanged();
+            break;
+        default:
+            break;
         }
     }
 
@@ -100,7 +104,7 @@ public:
         g.fillRoundedRectangle(b, Corners::defaultCornerRadius);
     }
 
-    void setLatencyValue(const int value)
+    void setLatencyValue(int const value)
     {
         currentLatencyValue = value;
         updateValue();
@@ -127,7 +131,7 @@ public:
         }
     }
 
-    void mouseDown(const MouseEvent& e) override
+    void mouseDown(MouseEvent const& e) override
     {
         onClick();
     }
@@ -144,13 +148,13 @@ public:
         repaint();
     }
 
-    void mouseEnter(const MouseEvent& e) override
+    void mouseEnter(MouseEvent const& e) override
     {
         isHover = true;
         buttonStateChanged();
     }
 
-    void mouseExit(const MouseEvent& e) override
+    void mouseExit(MouseEvent const& e) override
     {
         isHover = false;
         buttonStateChanged();
@@ -165,10 +169,8 @@ public:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LatencyDisplayButton);
 };
 
-
 class VolumeSlider : public Slider {
 public:
-    
     VolumeSlider()
         : Slider(Slider::LinearHorizontal, Slider::NoTextBox)
     {
@@ -647,46 +649,46 @@ public:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CPUMeter);
 };
 
-class ZoomLabel : public Component
-{
+class ZoomLabel : public Component {
 public:
-    ZoomLabel(Statusbar* parent) : statusbar(parent)
+    ZoomLabel(Statusbar* parent)
+        : statusbar(parent)
     {
         setRepaintsOnMouseActivity(true);
     }
+
 private:
-    
     void paint(Graphics& g) override
     {
         // We can use a tabular numbers font here, but I'm not sure it really looks better that way
-        //g.setFont(Fonts::getTabularNumbersFont().withHeight(14));
-        if(isEnabled()) {
+        // g.setFont(Fonts::getTabularNumbersFont().withHeight(14));
+        if (isEnabled()) {
             g.setColour(findColour(PlugDataColour::toolbarTextColourId).contrasting(isMouseOver() ? 0.35f : 0.0f));
-        }
-        else 
-        {
+        } else {
             g.setColour(findColour(PlugDataColour::toolbarTextColourId).withAlpha(0.65f));
         }
         g.drawText(String(int(statusbar->currentZoomLevel)) + "%", 0, 0, 44, getHeight(), Justification::centredLeft);
     }
-    
+
     void enablementChanged() override
     {
         repaint();
     }
-    
-    void mouseDown(const MouseEvent& e) override
+
+    void mouseDown(MouseEvent const& e) override
     {
-        if(!isEnabled()) return;
-        
+        if (!isEnabled())
+            return;
+
         auto* editor = findParentComponentOfClass<PluginEditor>();
         if (auto* cnv = editor->getCurrentCanvas()) {
             cnv->zoomScale.setValue(1.0f);
             cnv->setTransform(AffineTransform().scaled(1.0f));
-            if(cnv->viewport) cnv->viewport->resized();
+            if (cnv->viewport)
+                cnv->viewport->resized();
         }
     }
-    
+
     Statusbar* statusbar;
 };
 
@@ -704,10 +706,9 @@ Statusbar::Statusbar(PluginProcessor* processor)
     pd->statusbarSource->addListener(cpuMeter.get());
     pd->statusbarSource->addListener(this);
 
-
     latencyDisplayButton = std::make_unique<LatencyDisplayButton>();
     addChildComponent(latencyDisplayButton.get());
-    latencyDisplayButton->onClick = [this](){
+    latencyDisplayButton->onClick = [this]() {
         pd->performLatencyCompensationChange(0);
     };
 
@@ -756,22 +757,22 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     zoomComboButton.onClick = [this]() {
         PopupMenu zoomMenu;
-        auto zoomOptions = StringArray{"25%", "50%", "75%", "100%", "125%", "150%", "175%", "200%", "250%", "300%"};
-        for(auto zoomOption : zoomOptions)
-        {
+        auto zoomOptions = StringArray { "25%", "50%", "75%", "100%", "125%", "150%", "175%", "200%", "250%", "300%" };
+        for (auto zoomOption : zoomOptions) {
             auto scale = zoomOption.upToFirstOccurrenceOf("%", false, false).getIntValue() / 100.0f;
-            zoomMenu.addItem(zoomOption, [this, scale](){
+            zoomMenu.addItem(zoomOption, [this, scale]() {
                 auto* editor = findParentComponentOfClass<PluginEditor>();
                 if (auto* cnv = editor->getCurrentCanvas()) {
                     cnv->zoomScale.setValue(scale);
                     cnv->setTransform(AffineTransform().scaled(scale));
-                    if(cnv->viewport) cnv->viewport->resized();
+                    if (cnv->viewport)
+                        cnv->viewport->resized();
                 }
             });
         }
-        
+
         zoomMenu.addSeparator();
-        zoomMenu.addItem("Zoom to fit content", [this](){
+        zoomMenu.addItem("Zoom to fit content", [this]() {
             auto* editor = findParentComponentOfClass<PluginEditor>();
             if (auto* cnv = editor->getCurrentCanvas()) {
                 cnv->zoomToFitAll();
@@ -788,17 +789,17 @@ Statusbar::Statusbar(PluginProcessor* processor)
         auto* editor = findParentComponentOfClass<PluginEditor>();
         AudioOutputSettings::show(editor, audioSettingsButton.getScreenBounds());
     };
-    
+
     snapEnableButton.getToggleStateValue().referTo(SettingsFile::getInstance()->getPropertyAsValue("grid_enabled"));
     snapEnableButton.setClickingTogglesState(true);
     addAndMakeVisible(snapEnableButton);
-    
+
     snapSettingsButton.onClick = [this]() {
         auto* editor = findParentComponentOfClass<PluginEditor>();
         SnapSettings::show(editor, snapSettingsButton.getScreenBounds());
     };
     addAndMakeVisible(snapSettingsButton);
-    
+
     addAndMakeVisible(zoomComboButton);
 
     overlayButton.getToggleStateValue().referTo(SettingsFile::getInstance()->getValueTree().getChildWithName("Overlays").getPropertyAsValue("alt_mode", nullptr));
@@ -807,7 +808,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
     overlayButton.setClickingTogglesState(true);
     overlaySettingsButton.setButtonText(Icons::ThinDown);
     addAndMakeVisible(overlayButton);
-    
+
     overlaySettingsButton.onClick = [this]() {
         auto* editor = findParentComponentOfClass<PluginEditor>();
         OverlayDisplaySettings::show(editor, overlaySettingsButton.getScreenBounds());
@@ -818,24 +819,24 @@ Statusbar::Statusbar(PluginProcessor* processor)
     limiterButton.setClickingTogglesState(true);
     limiterButton.setToggleState(SettingsFile::getInstance()->getProperty<bool>("protected"), dontSendNotification);
 
-    limiterButton.onStateChange = [this](){
+    limiterButton.onStateChange = [this]() {
         limiterButton.setTooltip(limiterButton.getToggleState() ? "Turn off limiter" : "Turn on limiter");
     };
 
-    limiterButton.onClick = [this](){
+    limiterButton.onClick = [this]() {
         auto state = limiterButton.getToggleState();
         pd->setProtectedMode(state);
         SettingsFile::getInstance()->setProperty("protected", state);
     };
     addAndMakeVisible(limiterButton);
-    
+
     zoomComboButton.setTooltip(String("Select zoom"));
 
     addAndMakeVisible(audioSettingsButton);
-    
+
     audioSettingsButton.setTooltip(String("Audio settings"));
     snapSettingsButton.setTooltip(String("Snap settings"));
-    
+
     setLatencyDisplay(pd->getLatencySamples() - pd::Instance::getBlockSize());
 
     setSize(getWidth(), statusbarHeight);
@@ -854,11 +855,9 @@ Statusbar::~Statusbar()
 void Statusbar::updateZoomLevel()
 {
     auto* editor = findParentComponentOfClass<PluginEditor>();
-    if(auto* cnv = editor->getCurrentCanvas())
-    {
+    if (auto* cnv = editor->getCurrentCanvas()) {
         currentZoomLevel = getValue<float>(cnv->zoomScale) * 100;
-    }
-    else {
+    } else {
         currentZoomLevel = 100.0f;
     }
     repaint();
@@ -867,12 +866,12 @@ void Statusbar::updateZoomLevel()
 void Statusbar::paint(Graphics& g)
 {
     g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-    
+
     auto* editor = findParentComponentOfClass<PluginEditor>();
     auto start = !editor->palettes->isExpanded() ? 29.0f : 0.0f;
     auto end = editor->sidebar->isHidden() ? 29.0f : 0.0f;
     g.drawLine(start, 0.5f, static_cast<float>(getWidth()) - end, 0.5f);
-    
+
     g.drawLine(firstSeparatorPosition, 6.0f, firstSeparatorPosition, getHeight() - 6.0f);
     g.drawLine(secondSeparatorPosition, 6.0f, secondSeparatorPosition, getHeight() - 6.0f);
 }
@@ -895,19 +894,19 @@ void Statusbar::resized()
 
     zoomLabel->setBounds(position(34), 0, 34, getHeight());
     zoomComboButton.setBounds(position(8) - 11, 0, getHeight(), getHeight());
-    
+
     firstSeparatorPosition = position(4) + 3.5f; // fifth seperator
-    
+
     centreButton.setBounds(position(spacing), 0, getHeight(), getHeight());
 
     secondSeparatorPosition = position(4) + 1.f; // Second seperator
 
     snapEnableButton.setBounds(position(14), 0, getHeight(), getHeight());
     snapSettingsButton.setBounds(position(spacing - 4), 0, getHeight(), getHeight());
-    
+
     overlayButton.setBounds(position(14), 0, getHeight(), getHeight());
     overlaySettingsButton.setBounds(position(spacing - 4), 0, getHeight(), getHeight());
-    
+
     pos = 4; // reset position for elements on the right
 
 #if JUCE_IOS
@@ -916,7 +915,7 @@ void Statusbar::resized()
 
     audioSettingsButton.setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
     powerButton.setBounds(position(getHeight() - 16, true), 0, getHeight(), getHeight());
-    
+
     limiterButton.setBounds(position(44, true), 4, 44, getHeight() - 8);
 
     // TODO: combine these both into one
@@ -927,7 +926,7 @@ void Statusbar::resized()
     // Hide these if there isn't enough space
     midiBlinker->setVisible(getWidth() > 500);
     cpuMeter->setVisible(getWidth() > 500);
-    
+
     midiBlinker->setBounds(position(55, true) + 10, 0, 55, getHeight());
     cpuMeter->setBounds(position(50, true), 0, 50, getHeight());
     latencyDisplayButton->setBounds(position(100, true), 0, 100, getHeight());
@@ -935,7 +934,7 @@ void Statusbar::resized()
 
 void Statusbar::setLatencyDisplay(int value)
 {
-    if(!ProjectInfo::isStandalone) {
+    if (!ProjectInfo::isStandalone) {
         if (currentLatency != value) {
             currentLatency = value;
             latencyDisplayButton->setLatencyValue(value);
@@ -969,7 +968,7 @@ void Statusbar::lookAndFeelChanged()
     auto limiterButtonActiveColour = findColour(PlugDataColour::toolbarActiveColourId).withAlpha(0.3f);
     limiterButton.setColour(TextButton::buttonOnColourId, limiterButtonActiveColour);
 
-    auto blendColours = [](const juce::Colour& bottomColour, const juce::Colour& topColour) -> Colour {
+    auto blendColours = [](juce::Colour const& bottomColour, juce::Colour const& topColour) -> Colour {
         float alpha = topColour.getFloatAlpha();
 
         float r = alpha * topColour.getFloatRed() + (1 - alpha) * bottomColour.getFloatRed();
@@ -1002,7 +1001,6 @@ void StatusbarSource::setBufferSize(int bufferSize)
 {
     this->bufferSize = bufferSize;
 }
-
 
 void StatusbarSource::process(bool hasMidiInput, bool hasMidiOutput, int channels)
 {

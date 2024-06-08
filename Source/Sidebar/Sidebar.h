@@ -79,7 +79,7 @@ public:
 
 class PluginEditor;
 class Sidebar : public Component
-    , public SettingsFileListener{
+    , public SettingsFileListener {
 
 public:
     explicit Sidebar(PluginProcessor* instance, PluginEditor* parent);

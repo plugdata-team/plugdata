@@ -97,14 +97,15 @@ class ToolchainInstaller : public Component
 public:
     explicit ToolchainInstaller(PluginEditor* pluginEditor, Dialog* parentDialog)
         : Thread("Toolchain Install Thread")
-        , editor(pluginEditor), dialog(parentDialog)
+        , editor(pluginEditor)
+        , dialog(parentDialog)
     {
         addAndMakeVisible(&installButton);
 
         installButton.onClick = [this]() {
             errorMessage = "";
             repaint();
-            
+
             dialog->setBlockFromClosing(true);
 
             String latestVersion;
@@ -213,7 +214,7 @@ public:
         int64 bytesDownloaded = 0;
 
         MemoryOutputStream mo(toolchainData, false);
-        
+
         // pre-allocate memory to improve download speed
 #if JUCE_MAC
         mo.preallocate(1024 * 1024 * 128);
@@ -339,25 +340,25 @@ public:
 #else
     String downloadSize = "1.45 GB";
 #endif
-        
+
     class ToolchainInstallerButton : public Component {
-        
+
     public:
         String iconText;
         String topText;
         String bottomText;
-        
+
         std::function<void(void)> onClick = []() {};
-        
+
         ToolchainInstallerButton(String icon, String mainText, String subText)
-        : iconText(std::move(icon))
-        , topText(std::move(mainText))
-        , bottomText(std::move(subText))
+            : iconText(std::move(icon))
+            , topText(std::move(mainText))
+            , bottomText(std::move(subText))
         {
             setInterceptsMouseClicks(true, false);
             setAlwaysOnTop(true);
         }
-        
+
         void paint(Graphics& g) override
         {
             auto colour = findColour(PlugDataColour::panelTextColourId);
@@ -365,22 +366,22 @@ public:
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
                 g.fillRoundedRectangle(Rectangle<float>(1, 1, getWidth() - 2, getHeight() - 2), Corners::largeCornerRadius);
             }
-            
+
             Fonts::drawIcon(g, iconText, 20, 5, 40, colour, 24, false);
             Fonts::drawText(g, topText, 60, 7, getWidth() - 60, 20, colour, 16);
             Fonts::drawStyledText(g, bottomText, 60, 25, getWidth() - 60, 16, colour, Thin, 14);
         }
-        
+
         void mouseUp(MouseEvent const& e) override
         {
             onClick();
         }
-        
+
         void mouseEnter(MouseEvent const& e) override
         {
             repaint();
         }
-        
+
         void mouseExit(MouseEvent const& e) override
         {
             repaint();

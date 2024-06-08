@@ -9,7 +9,8 @@
 #include "LookAndFeel.h"
 #include "Components/PropertiesPanel.h"
 
-class OverlayDisplaySettings : public Component, public Value::Listener {
+class OverlayDisplaySettings : public Component
+    , public Value::Listener {
 public:
     class OverlaySelector : public Component
         , public Button::Listener {
@@ -29,7 +30,6 @@ public:
         Overlay group;
 
     public:
-
         OverlaySelector(ValueTree const& settings, Overlay groupType, String nameOfSetting, String nameOfGroup, String toolTipString)
             : groupName(std::move(nameOfGroup))
             , settingName(std::move(nameOfSetting))
@@ -144,7 +144,7 @@ public:
         connectionDebugToggle.reset(new PropertiesPanel::BoolComponent("Debug", debugModeValue, { "No", "Yes" }));
         connectionDebugToggle->setTooltip("Enable connection debugging tooltips");
         addAndMakeVisible(*connectionDebugToggle);
-        
+
         groups.add(&canvas);
         groups.add(&object);
         groups.add(&connection);
@@ -156,11 +156,10 @@ public:
         }
         setSize(335, 200);
     }
-    
+
     void valueChanged(Value& v) override
     {
-        if(v.refersToSameSourceAs(debugModeValue))
-        {
+        if (v.refersToSameSourceAs(debugModeValue)) {
             set_plugdata_debugging_enabled(getValue<bool>(debugModeValue));
         }
     }
@@ -174,7 +173,7 @@ public:
 
         auto leftSide = bounds.removeFromLeft(bounds.proportionOfWidth(0.5f)).withTrimmedRight(4);
         auto rightSide = bounds.withTrimmedLeft(4);
-        
+
         canvasLabel.setBounds(leftSide.removeFromTop(labelHeight));
         for (auto& item : canvas) {
             item->setBounds(leftSide.removeFromTop(itemHeight));
@@ -190,7 +189,7 @@ public:
         for (auto& item : connection) {
             item->setBounds(rightSide.removeFromTop(itemHeight));
         }
-        
+
         connectionDebugToggle->setBounds(rightSide.removeFromTop(itemHeight));
     }
 
@@ -199,19 +198,18 @@ public:
         g.setColour(findColour(PlugDataColour::popupMenuTextColourId));
         g.setFont(Fonts::getBoldFont().withHeight(15));
         g.drawText("Overlays", 0, 0, getWidth(), 24, Justification::centred);
-        
+
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(4, 24, getWidth() - 8, 24);
-        
+
         for (auto& group : groups) {
             auto groupBounds = group->getFirst()->getBounds().getUnion(group->getLast()->getBounds());
-            
+
             bool isConnectionGroup = group == &connection;
-            if(isConnectionGroup)
-            {
+            if (isConnectionGroup) {
                 groupBounds = groupBounds.withTrimmedBottom(-28);
             }
-            
+
             // draw background rectangle
             g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.035f));
             g.fillRoundedRectangle(groupBounds.toFloat(), Corners::largeCornerRadius);
@@ -221,7 +219,7 @@ public:
             g.drawRoundedRectangle(groupBounds.toFloat(), Corners::largeCornerRadius, 1.0f);
 
             // draw lines between items
-            for (auto& item : *group){
+            for (auto& item : *group) {
                 if ((group->size() >= 2) && ((item != group->getLast()) || isConnectionGroup))
                     g.drawHorizontalLine(item->getBottom(), groupBounds.getX(), groupBounds.getRight());
             }
@@ -261,10 +259,9 @@ private:
     OwnedArray<OverlaySelector> canvas;
     OwnedArray<OverlaySelector> object;
     OwnedArray<OverlaySelector> connection;
-    
+
     Value debugModeValue;
     std::unique_ptr<PropertiesPanel::BoolComponent> connectionDebugToggle;
-    
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OverlayDisplaySettings)
 };

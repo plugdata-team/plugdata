@@ -24,7 +24,6 @@
 #include "Components/GraphArea.h"
 #include "Utility/RateReducer.h"
 
-
 extern "C" {
 void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 }
@@ -68,12 +67,12 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
 
     patchWidth.addListener(this);
     patchHeight.addListener(this);
-    
-    globalMouseListener.globalMouseMove = [this](const MouseEvent& e){
+
+    globalMouseListener.globalMouseMove = [this](MouseEvent const& e) {
         lastMouseX = e.x;
         lastMouseY = e.y;
     };
-    globalMouseListener.globalMouseDrag = [this](const MouseEvent& e){
+    globalMouseListener.globalMouseDrag = [this](MouseEvent const& e) {
         lastMouseX = e.x;
         lastMouseY = e.y;
     };
@@ -163,14 +162,14 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     parameters.addParamRange("X range", cGeneral, &xRange, { 0.0f, 1.0f });
     parameters.addParamRange("Y range", cGeneral, &yRange, { 1.0f, 0.0f });
 
-    auto onInteractionFn = [this](bool state){
+    auto onInteractionFn = [this](bool state) {
         dimensionsAreBeingEdited = state;
         repaint();
     };
 
     parameters.addParamInt("Width", cDimensions, &patchWidth, 527, onInteractionFn);
     parameters.addParamInt("Height", cDimensions, &patchHeight, 327, onInteractionFn);
-    
+
     updatePatchSnapshot();
 }
 
@@ -187,109 +186,105 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
     auto start = Time::getMillisecondCounter();
     auto pixelScale = getRenderScale();
     auto zoom = isScrolling ? 2.0f : getValue<float>(zoomScale);
-    
+
     int const logicalIoletsSize = 16 * 4;
     int const ioletBufferSize = logicalIoletsSize * pixelScale * zoom;
-    
+
     // First, check if we need to update our iolet buffer
-    if(ioletBuffer.needsUpdate(ioletBufferSize, ioletBufferSize))
-    {
-        ioletBuffer.renderToFramebuffer(nvg, ioletBufferSize, ioletBufferSize, [this, zoom, ioletBufferSize, pixelScale](NVGcontext* nvg){
+    if (ioletBuffer.needsUpdate(ioletBufferSize, ioletBufferSize)) {
+        ioletBuffer.renderToFramebuffer(nvg, ioletBufferSize, ioletBufferSize, [this, zoom, ioletBufferSize, pixelScale](NVGcontext* nvg) {
             nvgViewport(0, 0, ioletBufferSize, ioletBufferSize);
             nvgClear(nvg);
-            
+
             nvgBeginFrame(nvg, logicalIoletsSize * zoom, logicalIoletsSize * zoom, pixelScale);
             nvgScale(nvg, zoom, zoom);
-            
-            auto renderIolet = [](NVGcontext* nvg, Rectangle<float> bounds, NVGcolor background, NVGcolor outline){
+
+            auto renderIolet = [](NVGcontext* nvg, Rectangle<float> bounds, NVGcolor background, NVGcolor outline) {
                 if (PlugDataLook::getUseSquareIolets()) {
                     nvgBeginPath(nvg);
                     nvgRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
-                    
+
                     nvgFillColor(nvg, background);
                     nvgFill(nvg);
-                    
+
                     nvgStrokeColor(nvg, outline);
                     nvgStroke(nvg);
-                }
-                else {
+                } else {
                     nvgBeginPath(nvg);
                     nvgFillColor(nvg, background);
                     nvgCircle(nvg, bounds.getCentreX(), bounds.getCentreY(), bounds.getWidth() / 2.0f);
                     nvgFill(nvg);
-                    
+
                     nvgStrokeColor(nvg, outline);
                     nvgStroke(nvg);
                 }
             };
-            
-            auto ioletColours = std::vector<Colour>{
+
+            auto ioletColours = std::vector<Colour> {
                 findColour(PlugDataColour::dataColourId),
                 findColour(PlugDataColour::signalColourId),
                 findColour(PlugDataColour::gemColourId),
-                findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.5f)};
-            
+                findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.5f)
+            };
+
             auto outlineColour = findNVGColour(PlugDataColour::objectOutlineColourId);
-            for(int i = 0; i < 4; i++)
-            {
+            for (int i = 0; i < 4; i++) {
                 auto backgroundColour = convertColour(ioletColours[i]);
                 auto ioletRow = Rectangle<float>(0, i * 16 + 0.5f, logicalIoletsSize, 12.5f);
                 renderIolet(nvg, ioletRow.removeFromLeft(16).reduced(4.0f), backgroundColour, outlineColour); // normal
                 renderIolet(nvg, ioletRow.removeFromLeft(16).reduced(2.5f), backgroundColour, outlineColour); // hovered
             }
-            
+
             nvgEndFrame(nvg);
         });
-        
+
         editor->nvgSurface.invalidateAll();
     }
-    
+
     int const resizerLogicalSize = 9;
     int const resizerBufferSize = resizerLogicalSize * pixelScale * zoom;
-    
-    if(resizeHandleImage.needsUpdate(resizerBufferSize, resizerBufferSize))
-    {
-        resizeHandleImage = NVGImage(nvg, resizerBufferSize, resizerBufferSize, [this, pixelScale, zoom](Graphics& g){
+
+    if (resizeHandleImage.needsUpdate(resizerBufferSize, resizerBufferSize)) {
+        resizeHandleImage = NVGImage(nvg, resizerBufferSize, resizerBufferSize, [this, pixelScale, zoom](Graphics& g) {
             g.addTransform(AffineTransform::scale(pixelScale * zoom, pixelScale * zoom));
-            
+
             auto b = Rectangle<int>(0, 0, 9, 9);
             // use the path with a hole in it to exclude the inner rounded rect from painting
             Path outerArea;
             outerArea.addRectangle(b);
             outerArea.setUsingNonZeroWinding(false);
-            
+
             Path innerArea;
-            
+
             auto innerRect = b.translated(Object::margin / 2, Object::margin / 2);
             innerArea.addRoundedRectangle(innerRect, Corners::objectCornerRadius);
             outerArea.addPath(innerArea);
             g.reduceClipRegion(outerArea);
-            
+
             g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
             g.fillRoundedRectangle(0.0f, 0.0f, 9.0f, 9.0f, Corners::objectCornerRadius);
         });
-        
-       
+
         editor->nvgSurface.invalidateAll();
     }
-    
+
     // Then, check if object framebuffers need to be updated
-    if(isScrolling) {
-        if(viewport) invalidRegion = (invalidRegion + viewport->getViewPosition()) / zoom;
-        for(auto* obj : objects)
-        {
+    if (isScrolling) {
+        if (viewport)
+            invalidRegion = (invalidRegion + viewport->getViewPosition()) / zoom;
+        for (auto* obj : objects) {
             auto b = obj->getBounds();
-            if(b.intersects(invalidRegion)) {
+            if (b.intersects(invalidRegion)) {
                 obj->updateFramebuffer(nvg);
-                
+
                 auto elapsed = Time::getMillisecondCounter() - start;
-                if(elapsed > maxUpdateTimeMs) {
+                if (elapsed > maxUpdateTimeMs) {
                     return false;
                 }
             }
         }
     }
-        
+
     return true;
 }
 
@@ -299,37 +294,36 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     auto backgroundColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId));
     auto dotsColour = convertColour(findColour(PlugDataColour::canvasDotsColourId));
 
-    const auto halfSize = infiniteCanvasSize / 2;
-    const auto zoom = getValue<float>(zoomScale);
+    auto const halfSize = infiniteCanvasSize / 2;
+    auto const zoom = getValue<float>(zoomScale);
 
     // apply translation to the canvas nvg objects
     nvgSave(nvg);
-    
-    if(viewport)  {
+
+    if (viewport) {
         nvgTranslate(nvg, -viewport->getViewPositionX(), -viewport->getViewPositionY());
         nvgScale(nvg, zoom, zoom);
-        
+
         invalidRegion = invalidRegion.translated(viewport->getViewPositionX(), viewport->getViewPositionY());
         invalidRegion /= zoom;
-        
+
         nvgFillColor(nvg, backgroundColour);
         nvgFillRect(nvg, invalidRegion.getX(), invalidRegion.getY(), invalidRegion.getWidth(), invalidRegion.getHeight());
     }
-    
-    if(viewport && !getValue<bool>(locked)) {
+
+    if (viewport && !getValue<bool>(locked)) {
         nvgBeginPath(nvg);
         nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
-        
+
         auto feather = getRenderScale() > 1.0f ? 0.25f : 0.75f;
-        if(getValue<float>(zoomScale) >= 1.0f) {
+        if (getValue<float>(zoomScale) >= 1.0f) {
             nvgSave(nvg);
             nvgTranslate(nvg, canvasOrigin.x % objectGrid.gridSize, canvasOrigin.y % objectGrid.gridSize); // Make sure grid aligns with origin
             NVGpaint dots = nvgDotPattern(nvg, dotsColour, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize, 1.0f, feather);
             nvgFillPaint(nvg, dots);
             nvgFill(nvg);
             nvgRestore(nvg);
-        }
-        else {
+        } else {
             nvgSave(nvg);
             nvgTranslate(nvg, canvasOrigin.x % (objectGrid.gridSize * 4), canvasOrigin.y % (objectGrid.gridSize * 4)); // Make sure grid aligns with origin
             auto darkDotColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId).contrasting());
@@ -337,25 +331,23 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             if (zoom < 0.3f && getRenderScale() <= 1.0f)
                 scaledDotSize = jmap(zoom, 0.3f, 0.25f, 4.0f, 8.0f);
 
-            for(int i = 0; i < 4; i++)
-            {
+            for (int i = 0; i < 4; i++) {
                 nvgTranslate(nvg, objectGrid.gridSize, 0);
 
-                NVGpaint dots = nvgDotPattern(nvg, i == 3 ? darkDotColour : dotsColour, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize * 4,  scaledDotSize, feather + 0.2f);
+                NVGpaint dots = nvgDotPattern(nvg, i == 3 ? darkDotColour : dotsColour, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize * 4, scaledDotSize, feather + 0.2f);
                 nvgFillPaint(nvg, dots);
                 nvgFill(nvg);
             }
             nvgRestore(nvg);
             nvgSave(nvg);
-            
-            for(int i = 0; i < 4; i++)
-            {
+
+            for (int i = 0; i < 4; i++) {
                 nvgTranslate(nvg, 0, objectGrid.gridSize);
                 NVGpaint dots = nvgDotPattern(nvg, i == 3 ? darkDotColour : dotsColour, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize * 4, scaledDotSize, feather + 0.2f);
                 nvgFillPaint(nvg, dots);
                 nvgFill(nvg);
             }
-            
+
             nvgRestore(nvg);
         }
     }
@@ -417,31 +409,28 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     else
         drawBorder(true, false);
 
-    
     // Render objects like [drawcurve], [fillcurve] etc. at the back
-    for(auto drawable : drawables)
-    {
-        if(drawable) {
+    for (auto drawable : drawables) {
+        if (drawable) {
             auto* component = dynamic_cast<Component*>(drawable.get());
-            if(invalidRegion.intersects(component->getBounds())) {
+            if (invalidRegion.intersects(component->getBounds())) {
                 drawable->render(nvg);
             }
         }
     }
-    
 
     if (::getValue<bool>(presentationMode) || isGraph) {
         renderAllObjects(nvg, invalidRegion);
         // render presentation mode as clipped 'virtual' plugin view
         if (::getValue<bool>(presentationMode)) {
-            const auto borderWidth = getValue<float>(patchWidth);
-            const auto borderHeight = getValue<float>(patchHeight);
-            const auto pos = Point<int>(halfSize, halfSize);
-            const auto scale = getValue<float>(zoomScale);
-            const auto windowCorner = Corners::windowCornerRadius / scale;
+            auto const borderWidth = getValue<float>(patchWidth);
+            auto const borderHeight = getValue<float>(patchHeight);
+            auto const pos = Point<int>(halfSize, halfSize);
+            auto const scale = getValue<float>(zoomScale);
+            auto const windowCorner = Corners::windowCornerRadius / scale;
 
-            const auto bgColour = convertColour(findColour(PlugDataColour::presentationBackgroundColourId));
-            const auto windowOutlineColour = convertColour(findColour(PlugDataColour::presentationBackgroundColourId).contrasting(0.3f));
+            auto const bgColour = convertColour(findColour(PlugDataColour::presentationBackgroundColourId));
+            auto const windowOutlineColour = convertColour(findColour(PlugDataColour::presentationBackgroundColourId).contrasting(0.3f));
 
             nvgSave(nvg);
 
@@ -459,11 +448,10 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             nvgPathWinding(nvg, NVG_HOLE);
             nvgRoundedRect(nvg, pos.getX(), pos.getY(), borderWidth, borderHeight, windowCorner);
 
-            const int shadowSize = 24 / scale;
+            int const shadowSize = 24 / scale;
             auto borderArea = Rectangle<int>(0, 0, borderWidth, borderHeight).expanded(shadowSize);
-            if (presentationShadowImage.needsUpdate(borderArea.getWidth(), borderArea.getHeight()))
-            {
-                presentationShadowImage = NVGImage(nvg, borderArea.getWidth(), borderArea.getHeight(), [borderArea, shadowSize, windowCorner](Graphics& g){
+            if (presentationShadowImage.needsUpdate(borderArea.getWidth(), borderArea.getHeight())) {
+                presentationShadowImage = NVGImage(nvg, borderArea.getWidth(), borderArea.getHeight(), [borderArea, shadowSize, windowCorner](Graphics& g) {
                     auto shadowPath = Path();
                     shadowPath.addRoundedRectangle(borderArea.reduced(shadowSize).withPosition(shadowSize, shadowSize), windowCorner);
                     StackShadow::renderDropShadow(g, shadowPath, Colours::black, shadowSize, Point<int>(0, 2));
@@ -491,29 +479,28 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         }
     }
 
-    for(auto* connection : connectionsBeingCreated)
-    {
+    for (auto* connection : connectionsBeingCreated) {
         nvgSave(nvg);
         connection->render(nvg);
         nvgRestore(nvg);
     }
-    
-    if(graphArea) {
+
+    if (graphArea) {
         nvgSave(nvg);
         nvgTranslate(nvg, graphArea->getX(), graphArea->getY());
         graphArea->render(nvg);
         nvgRestore(nvg);
     }
-    
+
     objectGrid.render(nvg);
-    
-    if(viewport && lasso.isVisible() && !lasso.getBounds().isEmpty()) {
+
+    if (viewport && lasso.isVisible() && !lasso.getBounds().isEmpty()) {
         auto lassoBounds = lasso.getBounds().toFloat().reduced(1.0f);
         auto smallestSide = lassoBounds.getWidth() < lassoBounds.getHeight() ? lassoBounds.getWidth() : lassoBounds.getHeight();
 
         auto fillColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.075f));
         auto outlineColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId).interpolatedWith(findColour(PlugDataColour::objectSelectedOutlineColourId), 0.65f));
-        
+
         nvgBeginPath(nvg);
         nvgFillColor(nvg, fillColour);
         nvgRect(nvg, lassoBounds.getX(), lassoBounds.getY(), lassoBounds.getWidth(), lassoBounds.getHeight());
@@ -522,17 +509,16 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         nvgStrokeWidth(nvg, smallestSide < 1.0f ? 0.5f : 1.0f); // if one of the sides is smaller than 1px, we need to adjust the stroke width to prevent drawing out of bounds
         nvgStroke(nvg);
     }
-    
+
     suggestor->renderAutocompletion(nvg);
 
     if (dimensionsAreBeingEdited)
         drawBorder(false, true);
-    
+
     nvgRestore(nvg);
-    
+
     // Draw scrollbars
-    if(viewport)
-    {
+    if (viewport) {
         reinterpret_cast<CanvasViewport*>(viewport.get())->render(nvg);
     }
 }
@@ -545,32 +531,29 @@ float Canvas::getRenderScale() const
 void Canvas::updatePatchSnapshot()
 {
     auto patchFile = patch.getCurrentFile();
-    
-    if(patchFile.existsAsFile())
-    {
+
+    if (patchFile.existsAsFile()) {
         auto recentlyOpenedTree = SettingsFile::getInstance()->getValueTree().getChildWithName("RecentlyOpened");
         for (int i = 0; i < recentlyOpenedTree.getNumChildren(); i++) {
             auto recentlyOpenedFile = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
             // Check if patch is in the recently opened list
-            if(File(recentlyOpenedFile) == patchFile)
-            {
+            if (File(recentlyOpenedFile) == patchFile) {
                 // If so, generate an svg sihouette that we can show on the welcome page
                 String svgSilhouette;
-                
+
                 auto regionOfInterest = Rectangle<int>();
                 for (auto* object : objects) {
                     regionOfInterest = regionOfInterest.getUnion(object->getBounds().reduced(Object::margin));
                 }
-                
-                for (auto* object : objects)
-                {
+
+                for (auto* object : objects) {
                     auto rect = object->getBounds().reduced(Object::margin) - regionOfInterest.getPosition();
                     svgSilhouette += String::formatted(
                         "<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" rx=\"%.1f\" ry=\"%.1f\" />\n",
                         rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight(), Corners::objectCornerRadius, Corners::objectCornerRadius);
                 }
                 svgSilhouette = "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">\n" + svgSilhouette + "</svg>";
-                
+
                 recentlyOpenedTree.getChild(i).setProperty("Snapshot", svgSilhouette, nullptr);
                 break;
             }
@@ -578,44 +561,40 @@ void Canvas::updatePatchSnapshot()
     }
 }
 
-
 void Canvas::renderAllObjects(NVGcontext* nvg, Rectangle<int> area)
 {
-    for(auto* obj : objects)
-    {
+    for (auto* obj : objects) {
         auto b = obj->getBounds();
-        
+
         nvgSave(nvg);
         nvgTranslate(nvg, b.getX(), b.getY());
-        if(b.intersects(area) && obj->isVisible()) {
+        if (b.intersects(area) && obj->isVisible()) {
             obj->render(nvg);
         }
         nvgRestore(nvg);
-        
+
         // Draw label in canvas coordinates
         obj->renderLabel(nvg);
     }
 }
 void Canvas::renderAllConnections(NVGcontext* nvg, Rectangle<int> area)
 {
-    if (! connectionLayer.isVisible())
+    if (!connectionLayer.isVisible())
         return;
 
     Array<Connection*> connectionsToDraw;
 
-    for(auto* connection : connections)
-    {
+    for (auto* connection : connections) {
         nvgSave(nvg);
-        if(connection->intersectsRectangle(area) && connection->isVisible()) {
+        if (connection->intersectsRectangle(area) && connection->isVisible()) {
             connection->render(nvg);
             if (showConnectionOrder)
                 connectionsToDraw.add(connection);
         }
         nvgRestore(nvg);
     }
-    if (!connectionsToDraw.isEmpty()){
-        for (auto* connection : connectionsToDraw)
-        {
+    if (!connectionsToDraw.isEmpty()) {
+        for (auto* connection : connectionsToDraw) {
             nvgSave(nvg);
             connection->renderConnectionOrder(nvg);
             nvgRestore(nvg);
@@ -718,8 +697,7 @@ void Canvas::jumpToLastKnownPosition()
 
 void Canvas::saveViewportPosition()
 {
-    if(viewport)
-    {
+    if (viewport) {
         patch.lastViewportPosition = viewport->getViewPosition().transformedBy(getTransform().inverted()) - canvasOrigin;
     }
 }
@@ -734,7 +712,7 @@ void Canvas::zoomToFitAll()
     auto regionOfInterest = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, getValue<float>(patchWidth), getValue<float>(patchHeight));
 
     if (!presentationMode.getValue()) {
-        for (auto *object: objects) {
+        for (auto* object : objects) {
             regionOfInterest = regionOfInterest.getUnion(object->getBounds().reduced(Object::margin));
         }
     }
@@ -780,7 +758,7 @@ void Canvas::tabChanged()
 
         obj->gui->tabChanged();
     }
-    
+
     editor->statusbar->updateZoomLevel();
     editor->repaint(); // Make sure everything it up to date
 }
@@ -795,7 +773,7 @@ void Canvas::save(std::function<void()> const& nestedCallback)
             }
         }
     }
-    
+
     if (patch.getCurrentFile().existsAsFile()) {
         canvasToSave->updatePatchSnapshot();
         canvasToSave->patch.savePatch();
@@ -814,9 +792,10 @@ void Canvas::saveAs(std::function<void()> const& nestedCallback)
         if (result.getFullPathName().isNotEmpty()) {
             if (result.exists())
                 result.deleteFile();
-            
-            if(!result.hasFileExtension("pd")) result = result.getFullPathName() + ".pd";
-            
+
+            if (!result.hasFileExtension("pd"))
+                result = result.getFullPathName() + ".pd";
+
             updatePatchSnapshot();
             patch.savePatch(resultURL);
             SettingsFile::getInstance()->addToRecentlyOpened(result);
@@ -827,7 +806,6 @@ void Canvas::saveAs(std::function<void()> const& nestedCallback)
     },
         "*.pd", "Patch", this);
 }
-
 
 void Canvas::handleAsyncUpdate()
 {
@@ -841,8 +819,7 @@ void Canvas::synchronise()
 
 void Canvas::synchroniseSplitCanvas()
 {
-    for(auto* canvas : editor->getTabComponent().getVisibleCanvases())
-    {
+    for (auto* canvas : editor->getTabComponent().getVisibleCanvases()) {
         canvas->synchronise();
     }
 }
@@ -987,14 +964,14 @@ void Canvas::performSynchronise()
 
     editor->updateCommandStatus();
     repaint();
-    
+
     needsSearchUpdate = true;
 
     pd->updateObjectImplementations();
 }
 
 void Canvas::updateDrawables()
-{    
+{
     for (auto* object : objects) {
         if (object->gui) {
             object->gui->updateDrawables();
@@ -1168,7 +1145,7 @@ bool Canvas::autoscroll(MouseEvent const& e)
 
 Point<int> Canvas::getLastMousePosition()
 {
-    return {lastMouseX, lastMouseY};
+    return { lastMouseX, lastMouseY };
 }
 
 void Canvas::mouseUp(MouseEvent const& e)
@@ -1184,9 +1161,9 @@ void Canvas::mouseUp(MouseEvent const& e)
         deselectAll();
         setSelected(objects[objects.size() - 1], true); // Select newly created object
     }
-    
+
     // Make sure the drag-over toggle action is ended
-    if(!isDraggingLasso) {
+    if (!isDraggingLasso) {
         for (auto* object : objects) {
             if (auto* obj = object->gui.get()) {
                 obj->untoggleObject();
@@ -1221,9 +1198,9 @@ void Canvas::updateSidebarSelection()
 #if JUCE_IOS
     editor->showTouchSelectionHelper(selectedComponents.getNumSelected());
 #endif
-    
+
     auto lassoSelection = getSelectionOfType<Object>();
-    
+
     if (lassoSelection.size() > 0) {
         Array<ObjectParameters> allParameters;
         for (auto* object : lassoSelection) {
@@ -1685,19 +1662,18 @@ void Canvas::removeSelectedConnections()
 void Canvas::triggerizeSelection()
 {
     auto selectedBoxes = getSelectionOfType<Object>();
-    
+
     std::vector<t_gobj*> objects;
     for (auto* object : getSelectionOfType<Object>()) {
         if (auto* ptr = object->getPointer()) {
             objects.push_back(ptr);
         }
     }
-    
-    if(auto patchPtr = patch.getPointer())
-    {
+
+    if (auto patchPtr = patch.getPointer()) {
         pd::Interface::triggerize(patchPtr.get(), objects);
     }
-    
+
     synchronise();
 }
 
@@ -2256,10 +2232,10 @@ bool Canvas::setPanDragMode(bool shouldPan)
 
 bool Canvas::isPointOutsidePluginArea(Point<int> point)
 {
-    const auto borderWidth = getValue<float>(patchWidth);
-    const auto borderHeight = getValue<float>(patchHeight);
-    const auto halfSize = infiniteCanvasSize / 2;
-    const auto pos = Point<int>(halfSize, halfSize);
+    auto const borderWidth = getValue<float>(patchWidth);
+    auto const borderHeight = getValue<float>(patchHeight);
+    auto const halfSize = infiniteCanvasSize / 2;
+    auto const pos = Point<int>(halfSize, halfSize);
 
     auto pluginBounds = Rectangle<int>(pos.x, pos.y, borderWidth, borderHeight);
 
@@ -2268,7 +2244,7 @@ bool Canvas::isPointOutsidePluginArea(Point<int> point)
 
 void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, Rectangle<int> const& area)
 {
-    const auto lassoArea = area.withSize(jmax(area.getWidth(), 1), jmax(area.getHeight(), 1));
+    auto const lassoArea = area.withSize(jmax(area.getWidth(), 1), jmax(area.getHeight(), 1));
 
     for (auto* object : objects) {
         if (lassoArea.intersects(object->getSelectableBounds())) {
@@ -2308,9 +2284,9 @@ bool Canvas::panningModifierDown()
     auto& commandManager = editor->commandManager;
     // check the command manager for the keycode that is assigned to pan drag key
     auto panDragKeycode = commandManager.getKeyMappings()->getKeyPressesAssignedToCommand(CommandIDs::PanDragKey).getFirst().getKeyCode();
-    
+
     // get the current modifier keys, removing the left mouse button modifier (as that is what is needed to activate a pan drag with key down)
-    auto currentMods = ModifierKeys(ModifierKeys::getCurrentModifiers().getRawFlags() &~ ModifierKeys::leftButtonModifier);
+    auto currentMods = ModifierKeys(ModifierKeys::getCurrentModifiers().getRawFlags() & ~ModifierKeys::leftButtonModifier);
 
     bool isPanDragKeysActive = false;
 

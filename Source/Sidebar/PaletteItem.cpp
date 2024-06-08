@@ -275,7 +275,7 @@ void PaletteItem::deleteItem()
     MessageManager::callAsync([this, parentTree, itemTree = this->itemTree, _paletteComp = SafePointer(paletteComp)]() mutable {
         parentTree.removeChild(itemTree, nullptr);
         auto paletteComponent = findParentComponentOfClass<PaletteComponent>();
-        if(_paletteComp) {
+        if (_paletteComp) {
             _paletteComp->items.removeObject(this);
             paletteComponent->resized();
             _paletteComp->resized();

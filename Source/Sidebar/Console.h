@@ -176,8 +176,7 @@ public:
 
                 auto& [object, message, type, length, repeats] = console.pd->getConsoleMessages()[idx];
                 if (e.mods.isPopupMenu()) {
-                    
-                    
+
                     PopupMenu menu;
                     menu.addItem("Copy", [this]() { console.copySelectionToClipboard(); });
                     menu.addItem("Show origin", object != nullptr, false, [this, target = object]() {
@@ -190,7 +189,7 @@ public:
                 console.selectedItems.addIfNotAlreadyThere(SafePointer(this));
                 console.repaint();
             }
-            
+
             void paint(Graphics& g) override
             {
                 auto isSelected = console.selectedItems.contains(this);
@@ -431,31 +430,27 @@ public:
 
         return std::unique_ptr<TextButton>(settingsCalloutButton);
     }
-        
-        
+
     static int calculateNumLines(String& message, int length, int maxWidth)
     {
         maxWidth -= 38.0f;
-        if(message.containsAnyOf("\n\r") && message.containsNonWhitespaceChars())
-        {
+        if (message.containsAnyOf("\n\r") && message.containsNonWhitespaceChars()) {
             int numLines = 0;
-            for(auto line : StringArray::fromLines(message))
-            {
+            for (auto line : StringArray::fromLines(message)) {
                 numLines++;
                 int lineWidth = CachedStringWidth<14>::calculateSingleLineWidth(line);
-                while(lineWidth > maxWidth && numLines < 64)
-                {
+                while (lineWidth > maxWidth && numLines < 64) {
                     lineWidth -= maxWidth;
                     numLines++;
                 }
             }
             return numLines;
-        }
-        else {
-            if (length == 0) return 0;
+        } else {
+            if (length == 0)
+                return 0;
             return std::max<int>(round(static_cast<float>(length) / maxWidth), 1);
         }
-        
+
         return 1;
     }
 

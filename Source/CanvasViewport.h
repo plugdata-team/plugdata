@@ -23,8 +23,9 @@ using namespace gl;
 #include "Utility/SettingsFile.h"
 
 // Special viewport that shows scrollbars on top of content instead of next to it
-class CanvasViewport : public Viewport, public Timer, public NVGComponent
-{
+class CanvasViewport : public Viewport
+    , public Timer
+    , public NVGComponent {
     class MousePanner : public MouseListener {
     public:
         explicit MousePanner(CanvasViewport* vp)
@@ -65,7 +66,7 @@ class CanvasViewport : public Viewport, public Timer, public NVGComponent
         Point<int> downPosition;
         Point<int> downCanvasOrigin;
     };
-    
+
     class ViewportScrollBar : public Component {
         struct FadeTimer : private ::Timer {
             std::function<bool()> callback;
@@ -223,7 +224,7 @@ class CanvasViewport : public Viewport, public Timer, public NVGComponent
             auto growingBounds = thumbBounds.reduced(1).withTop(thumbBounds.getY() + growPosition);
             auto thumbCornerRadius = growingBounds.getHeight();
             auto fullBounds = growingBounds.withX(2).withWidth(getWidth() - 4);
-            
+
             auto canvasColour = findColour(PlugDataColour::canvasBackgroundColourId);
             auto scrollbarColour = findColour(ScrollBar::ColourIds::thumbColourId);
             auto activeScrollbarColour = scrollbarColour.interpolatedWith(canvasColour.contrasting(0.6f), 0.7f);
@@ -241,12 +242,11 @@ class CanvasViewport : public Viewport, public Timer, public NVGComponent
             nvgRoundedRect(nvg, fullBounds.getX(), fullBounds.getY(), fullBounds.getWidth(), fullBounds.getHeight(), scaledTCR);
             nvgFillColor(nvg, convertColour(fadeColour));
             nvgFill(nvg);
-            
+
             nvgBeginPath(nvg);
             nvgRoundedRect(nvg, growingBounds.getX(), growingBounds.getY(), growingBounds.getWidth(), growingBounds.getHeight(), scaledTCR);
             nvgFillColor(nvg, isMouseDragging ? convertColour(activeScrollbarColour) : convertColour(scrollbarColour));
             nvgFill(nvg);
-
         }
 
     private:
@@ -303,28 +303,28 @@ public:
 
         addAndMakeVisible(vbar);
         addAndMakeVisible(hbar);
-        
+
         cnv->setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, cnv));
         setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this));
     }
-    
+
     ~CanvasViewport()
     {
     }
-    
+
     void render(NVGcontext* nvg) override
     {
         nvgSave(nvg);
         nvgTranslate(nvg, vbar.getX(), vbar.getY());
         vbar.render(nvg);
         nvgRestore(nvg);
-        
+
         nvgSave(nvg);
         nvgTranslate(nvg, hbar.getX(), hbar.getY());
         hbar.render(nvg);
         nvgRestore(nvg);
     }
-        
+
     void lookAndFeelChanged() override
     {
         hbar.repaint();
@@ -366,17 +366,16 @@ public:
 
         // Apply and limit zoom
         magnify(std::clamp(getValue<float>(cnv->zoomScale) * scrollFactor, 0.25f, 3.0f));
-        
+
         lastZoomTime = e.eventTime;
     }
-    
-    
+
     void magnify(float newScaleFactor)
     {
         if (approximatelyEqual(newScaleFactor, 0.0f)) {
             newScaleFactor = 1.0f;
         }
-        
+
         // Get floating point mouse position relative to screen
         auto mousePosition = Desktop::getInstance().getMainMouseSource().getScreenPosition();
         // Get mouse position relative to canvas
@@ -388,7 +387,7 @@ public:
         // Calculate offset to keep our mouse position the same as before this zoom action
         auto offset = newPosition - oldPosition;
         cnv->setTopLeftPosition(cnv->getPosition() + offset.roundToInt());
-        
+
         // This is needed to make sure the viewport the current canvas bounds to the lastVisibleArea variable
         // Without this, future calls to getViewPosition() will give wrong results
         resized();
@@ -437,7 +436,7 @@ public:
         adjustScrollbarBounds();
         editor->nvgSurface.invalidateAll();
     }
-    
+
     void timerCallback() override
     {
         stopTimer();
@@ -489,7 +488,6 @@ public:
     std::function<void()> onScroll = []() {};
 
 private:
-    
     Time lastScrollTime;
     Time lastZoomTime;
     PluginEditor* editor;

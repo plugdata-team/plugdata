@@ -15,11 +15,11 @@
 
 #include <nanovg.h>
 #if NANOVG_GL_IMPLEMENTATION
-#include <juce_opengl/juce_opengl.h>
+#    include <juce_opengl/juce_opengl.h>
 using namespace juce::gl;
-#undef NANOVG_GL_IMPLEMENTATION
-#include <nanovg_gl_utils.h>
-#define NANOVG_GL_IMPLEMENTATION 1
+#    undef NANOVG_GL_IMPLEMENTATION
+#    include <nanovg_gl_utils.h>
+#    define NANOVG_GL_IMPLEMENTATION 1
 #endif
 
 #define ACTIVITY_UPDATE_RATE 30
@@ -37,8 +37,7 @@ class Object : public Component
     , public Timer
     , public KeyListener
     , public NVGComponent
-    , private TextEditor::Listener
-{
+    , private TextEditor::Listener {
 public:
     explicit Object(Canvas* parent, String const& name = "", Point<int> position = { 100, 100 });
 
@@ -52,7 +51,7 @@ public:
     void timerCallback() override;
 
     void resized() override;
-        
+
     bool keyPressed(KeyPress const& key, Component* component) override;
 
     void updateIolets();
@@ -64,7 +63,7 @@ public:
     void showEditor();
     void hideEditor();
     bool isInitialEditorShown();
-    
+
     String getType(bool withOriginPrefix = true) const;
 
     Rectangle<int> getSelectableBounds();
@@ -80,7 +79,7 @@ public:
 
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
-        
+
     void updateFramebuffer(NVGcontext* nvg);
     void render(NVGcontext* nvg) override;
     void performRender(NVGcontext* nvg);
@@ -91,7 +90,7 @@ public:
     void mouseDown(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
     void mouseDrag(MouseEvent const& e) override;
-    
+
     void lookAndFeelChanged() override;
 
     void textEditorReturnKeyPressed(TextEditor& ed) override;
@@ -143,7 +142,7 @@ private:
     void openNewObjectEditor();
 
     bool checkIfHvccCompatible() const;
-    
+
     void setSelected(bool shouldBeSelected);
     bool selectedFlag = false;
     bool selectionStateChanged = false;
@@ -153,12 +152,12 @@ private:
     bool isGemObject = false;
 
     float activeStateAlpha = 0.0f;
-        
+
     NVGImage activityOverlayImage;
     bool activityOverlayDirty = false;
-    
+
     NVGFramebuffer scrollBuffer;
-    
+
     NVGpaint glow;
     bool glowDirty = true;
 
@@ -172,7 +171,7 @@ private:
     RateReducer rateReducer = RateReducer(ACTIVITY_UPDATE_RATE);
 
     std::unique_ptr<TextEditor> newObjectEditor;
-    
+
     friend class InvalidationListener;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Object)
     JUCE_DECLARE_WEAK_REFERENCEABLE(Object)

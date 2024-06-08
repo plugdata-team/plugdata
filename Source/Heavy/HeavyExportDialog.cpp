@@ -84,8 +84,7 @@ public:
         auto heavyState = settingsTree.getChildWithName("HeavyState");
         if (heavyState.isValid()) {
             this->setState(heavyState);
-            for(int i = 0; i < 4; i++)
-            {
+            for (int i = 0; i < 4; i++) {
                 views[i]->blockDialog = true;
                 views[i]->setState(heavyState);
                 views[i]->blockDialog = false;
@@ -140,7 +139,7 @@ public:
                 views[lastRowSelected]->patchFile = view->patchFile;
                 views[lastRowSelected]->projectNameValue = view->projectNameValue.getValue();
                 views[lastRowSelected]->projectCopyrightValue = view->projectCopyrightValue.getValue();
-                
+
                 views[lastRowSelected]->blockDialog = true;
                 views[lastRowSelected]->inputPatchValue = view->inputPatchValue.getValue();
                 views[lastRowSelected]->blockDialog = false;
@@ -248,7 +247,7 @@ HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
 HeavyExportDialog::~HeavyExportDialog()
 {
     Dialogs::dismissFileDialog();
-    
+
     // Clean up temp files
     Toolchain::deleteTempFiles();
 }

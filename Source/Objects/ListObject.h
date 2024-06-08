@@ -162,22 +162,20 @@ public:
         return atomHelper.hasSendSymbol();
     }
 
-    
     void render(NVGcontext* nvg) override
     {
         auto b = getLocalBounds().toFloat().reduced(0.5f);
         auto backgroundColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
         auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
         auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
- 
+
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
-        
+
         imageRenderer.renderJUCEComponent(nvg, listLabel, getImageScale());
-        
+
         nvgSave(nvg);
         nvgIntersectRoundedScissor(nvg, b.getX() + 0.25f, b.getY() + 0.25f, b.getWidth() - 0.5f, b.getHeight() - 0.5f, Corners::objectCornerRadius);
-        
-        
+
         nvgFillColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour)));
         nvgBeginPath(nvg);
         nvgMoveTo(nvg, b.getRight() - 8, b.getY());
@@ -192,10 +190,10 @@ public:
         nvgLineTo(nvg, b.getRight(), b.getBottom() - 8);
         nvgClosePath(nvg);
         nvgFill(nvg);
-        
+
         nvgRestore(nvg);
-        
-        if(object->isSelected()) // If object is selected, draw outline over top too, so the flag doesn't poke into the selected outline
+
+        if (object->isSelected()) // If object is selected, draw outline over top too, so the flag doesn't poke into the selected outline
         {
             nvgBeginPath(nvg);
             nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
@@ -214,7 +212,6 @@ public:
             nvgStroke(nvg);
         }
     }
-
 
     void lookAndFeelChanged() override
     {

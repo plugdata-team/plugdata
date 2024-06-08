@@ -23,7 +23,7 @@ public:
         setOpaque(false);
         tooltipShadow.setOwner(this);
     }
-    
+
     float getDesktopScaleFactor() const override
     {
         return Component::getDesktopScaleFactor();

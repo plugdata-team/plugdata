@@ -389,7 +389,7 @@ void vertex_combine_setup();
 void vertex_draw_setup();
 void vertex_grid_setup();
 void vertex_info_setup();
-//void vertex_model_setup();
+// void vertex_model_setup();
 void vertex_mul_setup();
 void vertex_offset_setup();
 void vertex_quad_setup();
@@ -1249,13 +1249,12 @@ void var_setup();
 void conv_tilde_setup();
 void fm_tilde_setup();
 
-
 #ifdef ENABLE_SFIZZ
- void sfz_tilde_setup();
+void sfz_tilde_setup();
 #endif
 void knob_setup();
 
-void pdlua_setup(char const* datadir, char* vers, int vers_len, void(*register_class_callback)(const char*));
+void pdlua_setup(char const* datadir, char* vers, int vers_len, void (*register_class_callback)(char const*));
 void pdlua_instance_setup();
 }
 
@@ -1272,7 +1271,7 @@ int Setup::initialisePd()
     static int initialized = 0;
     if (!initialized) {
         libpd_set_printhook(plugdata_print);
-        
+
         // Initialise pd
         libpd_init();
 
@@ -1301,9 +1300,9 @@ int Setup::initialisePd()
             SETFLOAT(zz + i + 2, defaultfontshit[i]);
         }
         pd_typedmess(gensym("pd")->s_thing, gensym("init"), 2 + ndefaultfont, zz);
-        
+
         socket_init();
-        
+
         sys_unlock();
 
         initialized = 1;
@@ -1335,7 +1334,7 @@ void* Setup::createReceiver(void* ptr, char const* s,
     return x;
 }
 
-void Setup::initialisePdLua(char const* datadir, char* vers, int vers_len, void(*register_class_callback)(const char*))
+void Setup::initialisePdLua(char const* datadir, char* vers, int vers_len, void (*register_class_callback)(char const*))
 {
     pdlua_setup(datadir, vers, vers_len, register_class_callback);
 }
@@ -1384,7 +1383,7 @@ void* Setup::createMIDIHook(void* ptr,
         x->x_hook_polyaftertouch = hook_polyaftertouch;
         x->x_hook_midibyte = hook_midibyte;
     }
-    
+
     libpd_set_noteonhook(plugdata_noteon);
     libpd_set_controlchangehook(plugdata_controlchange);
     libpd_set_programchangehook(plugdata_programchange);
@@ -1392,7 +1391,7 @@ void* Setup::createMIDIHook(void* ptr,
     libpd_set_aftertouchhook(plugdata_aftertouch);
     libpd_set_polyaftertouchhook(plugdata_polyaftertouch);
     libpd_set_midibytehook(plugdata_midibyte);
-    
+
     return x;
 }
 
@@ -1707,7 +1706,7 @@ void Setup::initialiseELSE()
     setup_rotate0x2emc_tilde();
     pipe2_setup();
     circuit_tilde_setup();
-    
+
     setup_autofade0x2emc_tilde();
     setup_autofade20x2emc_tilde();
     setup_mtx0x2emc_tilde();
@@ -1837,8 +1836,7 @@ void Setup::initialiseGem(std::string const& gemPluginPath)
     gemsdl2window_setup();
     gemsdlwindow_setup();
     gemw32window_setup(); */
-    
-    
+
     part_color_setup();
     part_damp_setup();
     part_draw_setup();
@@ -1859,7 +1857,7 @@ void Setup::initialiseGem(std::string const& gemPluginPath)
     part_velocity_setup();
     part_velsphere_setup();
     part_vertex_setup();
-    
+
     pix_2grey_setup();
     pix_a_2grey_setup();
     pix_add_setup();
@@ -1971,7 +1969,7 @@ void Setup::initialiseGem(std::string const& gemPluginPath)
     vertex_draw_setup();
     vertex_grid_setup();
     vertex_info_setup();
-    //vertex_model_setup();
+    // vertex_model_setup();
     vertex_mul_setup();
     vertex_offset_setup();
     vertex_quad_setup();

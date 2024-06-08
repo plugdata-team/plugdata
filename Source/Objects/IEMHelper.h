@@ -144,14 +144,13 @@ public:
                 setColour(primaryColour, atoms[1]);
             if (numAtoms > 2)
                 setColour(labelColour, atoms[2]);
-            
-            if(auto* label = gui->getLabel())
-            {
+
+            if (auto* label = gui->getLabel()) {
                 label->setColour(getLabelColour());
             }
-            
+
             gui->repaint();
-            
+
             return true;
         }
         case hash("label"): {
@@ -273,13 +272,13 @@ public:
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
             pd::Interface::moveObject(iemgui->x_glist, &iemgui->x_obj.te_g, b.getX(), b.getY());
-            
+
             iemgui->x_w = b.getWidth() - 1;
             iemgui->x_h = b.getHeight() - 1;
         }
     }
 
-    void updateLabel(std::unique_ptr<ObjectLabels>& labels, Point<int> offset = {0, 0})
+    void updateLabel(std::unique_ptr<ObjectLabels>& labels, Point<int> offset = { 0, 0 })
     {
         String const text = labelText.toString();
 
@@ -311,7 +310,7 @@ public:
             labels.reset(nullptr);
         }
     }
-        
+
     Rectangle<int> getLabelBounds()
     {
         auto const objectBounds = object->getBounds().reduced(Object::margin);

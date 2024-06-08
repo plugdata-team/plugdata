@@ -200,7 +200,7 @@ void Instance::initialisePd(String& pdlua_version)
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
     pluginLatencyReceiver = pd::Setup::createReceiver(this, "latency_compensation", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
-                                                  reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
+        reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
     // JYG added This
     dataBufferReceiver = pd::Setup::createReceiver(this, "to_daw_databuffer", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
@@ -211,10 +211,10 @@ void Instance::initialisePd(String& pdlua_version)
 
     parameterCreateReceiver = pd::Setup::createReceiver(this, "param_create", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
-    
+
     parameterRangeReceiver = pd::Setup::createReceiver(this, "param_range", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
-    
+
     parameterModeReceiver = pd::Setup::createReceiver(this, "param_mode", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
@@ -289,25 +289,25 @@ void Instance::initialisePd(String& pdlua_version)
         // Make sure we set the maininstance when initialising objects
         // Whenever a new instance is created, the functions will be copied from this one
         libpd_set_instance(libpd_main_instance());
-        
+
         set_class_prefix(gensym("else"));
         class_set_extern_dir(gensym("9.else"));
         pd::Setup::initialiseELSE();
         set_class_prefix(gensym("cyclone"));
         class_set_extern_dir(gensym("10.cyclone"));
         pd::Setup::initialiseCyclone();
-        
+
         set_class_prefix(gensym("Gem"));
-                
+
         class_set_extern_dir(gensym("14.gem"));
         pd::Setup::initialiseGem(ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Gem").getFullPathName().toStdString());
 
         class_set_extern_dir(gensym(""));
         set_class_prefix(nullptr);
         initialised = true;
-        
+
         clear_class_loadsym();
-        
+
         // We want to initialise pdlua separately for each instance
         auto extra = ProjectInfo::appDataDir.getChildFile("Extra");
         char vers[1000];
@@ -316,10 +316,10 @@ void Instance::initialisePd(String& pdlua_version)
         if (*vers)
             pdlua_version = vers;
     }
-    
+
     setThis();
     pd::Setup::initialisePdLuaInstance();
-    
+
     // ag: need to do this here to suppress noise from chatty externals
     printReceiver = pd::Setup::createPrintHook(this, reinterpret_cast<t_plugdata_printhook>(internal::instance_multi_print));
     libpd_set_verbose(0);
@@ -476,68 +476,72 @@ void Instance::sendMessage(char const* receiver, char const* msg, std::vector<At
     sendTypedMessage(generateSymbol(receiver)->s_thing, msg, list);
 }
 
-void Instance::processMessage(Message mess) {
-    const auto dest = hash(mess.destination);
+void Instance::processMessage(Message mess)
+{
+    auto const dest = hash(mess.destination);
 
     switch (dest) {
-        case hash("pd"):
-            receiveSysMessage(mess.selector, mess.list);
-            break;
-        case hash("latency_compensation"):
-            if (mess.list.size() == 1) {
-                if (!mess.list[0].isFloat())
-                    return;
-                performLatencyCompensationChange(mess.list[0].getFloat());
-            }
-            break;
-        case hash("param"):
-            if (mess.list.size() >= 2) {
-                if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
-                    return;
-                auto name = mess.list[0].toString();
-                float value = mess.list[1].getFloat();
-                performParameterChange(0, name, value);
-            }
-            break;
-        case hash("param_create"):
-            if (mess.list.size() >= 1) {
-                if (!mess.list[0].isSymbol()) return;
-                auto name = mess.list[0].toString();
-                enableAudioParameter(name);
-            }
-            break;
-        case hash("param_range"):
-            if (mess.list.size() >= 3) {
-                if (!mess.list[0].isSymbol() || !mess.list[1].isFloat() || !mess.list[2].isFloat()) return;
-                auto name = mess.list[0].toString();
-                float min = mess.list[1].getFloat();
-                float max = mess.list[2].getFloat();
-                setParameterRange(name, min, max);
-            }
-            break;
-        case hash("param_mode"):
-            if (mess.list.size() >= 2) {
-                if (!mess.list[0].isSymbol() || !mess.list[1].isFloat()) return;
-                auto name = mess.list[0].toString();
-                float mode = mess.list[1].getFloat();
-                setParameterMode(name, mode);
-            }
-            break;
-        case hash("param_change"):
-            if (mess.list.size() >= 2) {
-                if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
-                    return;
-                auto name = mess.list[0].toString();
-                int state = mess.list[1].getFloat() != 0;
-                performParameterChange(1, name, state);
-            }
-            break;
-            // JYG added this
-        case hash("to_daw_databuffer"):
-            fillDataBuffer(mess.list);
-            break;
-        default:
-            break;
+    case hash("pd"):
+        receiveSysMessage(mess.selector, mess.list);
+        break;
+    case hash("latency_compensation"):
+        if (mess.list.size() == 1) {
+            if (!mess.list[0].isFloat())
+                return;
+            performLatencyCompensationChange(mess.list[0].getFloat());
+        }
+        break;
+    case hash("param"):
+        if (mess.list.size() >= 2) {
+            if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
+                return;
+            auto name = mess.list[0].toString();
+            float value = mess.list[1].getFloat();
+            performParameterChange(0, name, value);
+        }
+        break;
+    case hash("param_create"):
+        if (mess.list.size() >= 1) {
+            if (!mess.list[0].isSymbol())
+                return;
+            auto name = mess.list[0].toString();
+            enableAudioParameter(name);
+        }
+        break;
+    case hash("param_range"):
+        if (mess.list.size() >= 3) {
+            if (!mess.list[0].isSymbol() || !mess.list[1].isFloat() || !mess.list[2].isFloat())
+                return;
+            auto name = mess.list[0].toString();
+            float min = mess.list[1].getFloat();
+            float max = mess.list[2].getFloat();
+            setParameterRange(name, min, max);
+        }
+        break;
+    case hash("param_mode"):
+        if (mess.list.size() >= 2) {
+            if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
+                return;
+            auto name = mess.list[0].toString();
+            float mode = mess.list[1].getFloat();
+            setParameterMode(name, mode);
+        }
+        break;
+    case hash("param_change"):
+        if (mess.list.size() >= 2) {
+            if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
+                return;
+            auto name = mess.list[0].toString();
+            int state = mess.list[1].getFloat() != 0;
+            performParameterChange(1, name, state);
+        }
+        break;
+        // JYG added this
+    case hash("to_daw_databuffer"):
+        fillDataBuffer(mess.list);
+        break;
+    default:
+        break;
     }
 }
 
@@ -646,7 +650,7 @@ void Instance::sendDirectMessage(void* object, float const msg)
 void Instance::sendMessagesFromQueue()
 {
     libpd_set_instance(static_cast<t_pdinstance*>(instance));
-    
+
     sys_lock();
     std::function<void(void)> callback;
     while (functionQueue.try_dequeue(callback)) {
@@ -791,13 +795,13 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
     } else {
         MessageManager::callAsync(
             [this, obj, defaultFile, callback = String(callbackName)]() mutable {
-                
+
 #if JUCE_IOS
-          Component* dialogParent = dynamic_cast<AudioProcessor*>(this)->getActiveEditor();
+                Component* dialogParent = dynamic_cast<AudioProcessor*>(this)->getActiveEditor();
 #else
-          Component* dialogParent = nullptr;
+                Component* dialogParent = nullptr;
 #endif
-                
+
                 Dialogs::showSaveDialog([this, obj, callback](URL result) {
                     auto pathName = result.toString(false);
                     const auto* path = pathName.toRawUTF8();
@@ -810,7 +814,6 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
                     unlockAudioThread();
                 },
                     "", "openpanel", dialogParent);
-                
             });
     }
 }
@@ -851,7 +854,7 @@ void Instance::clearObjectImplementationsForPatch(pd::Patch* p)
     }
 }
 
-void Instance::registerLuaClass(const char* className)
+void Instance::registerLuaClass(char const* className)
 {
     luaClasses.insert(hash(className));
 }

@@ -42,7 +42,7 @@ public:
                 editor->setInputRestrictions(0, "e.-0123456789");
             }
         };
-        
+
         input.setFont(Fonts::getTabularNumbersFont().withHeight(15.5f));
 
         input.onEditorHide = [this]() {
@@ -277,7 +277,7 @@ public:
         auto backgroundColour = convertColour(iemHelper.getBackgroundColour());
         auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
         auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
- 
+
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, selected ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
         int const indent = 9;
@@ -297,7 +297,7 @@ public:
 
         nvgFillColor(nvg, convertColour(highlighed ? highlightColour : normalColour));
         nvgFill(nvg);
-        
+
         input.render(nvg);
     }
 

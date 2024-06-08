@@ -10,7 +10,8 @@
 
 class Object;
 class Canvas;
-struct ObjectGrid : public SettingsFileListener, public Timer {
+struct ObjectGrid : public SettingsFileListener
+    , public Timer {
 
     int gridSize = 20;
 
@@ -20,7 +21,7 @@ struct ObjectGrid : public SettingsFileListener, public Timer {
     Point<int> performMove(Object* toDrag, Point<int> dragOffset);
 
     void clearIndicators(bool fast);
-    
+
     void render(NVGcontext* nvg);
 
 private:
@@ -32,7 +33,7 @@ private:
         VerticalCentre,
         HorizontalCentre,
     };
-    
+
     void timerCallback() override;
 
     void propertyChanged(String const& name, var const& value) override;

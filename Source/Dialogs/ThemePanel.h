@@ -229,7 +229,7 @@ public:
     void updateSwatches()
     {
         auto scrollPosition = panel.getViewport().getViewPositionY();
-        
+
         panel.clear();
         allPanels.clear();
 
@@ -428,14 +428,14 @@ public:
         auto allThemes = PlugDataLook::getAllThemes();
         auto firstThemes = allThemes;
         auto secondThemes = allThemes;
-        
+
         // Remove theme selected in other combobox (so you can't pick the same theme twice)
         firstThemes.removeString(PlugDataLook::selectedThemes[1]);
         secondThemes.removeString(PlugDataLook::selectedThemes[0]);
-        
+
         primaryThemeSelector->setOptions(firstThemes);
         secondaryThemeSelector->setOptions(secondThemes);
-        
+
         primaryThemeSelector->setSelectedItem(firstThemes.indexOf(PlugDataLook::selectedThemes[0]));
         secondaryThemeSelector->setSelectedItem(secondThemes.indexOf(PlugDataLook::selectedThemes[1]));
 
@@ -536,29 +536,21 @@ public:
                 auto themeName = theme.getProperty("theme").toString();
                 if (v.refersToSameSourceAs(swatches[themeName]["dashed_signal_connections"])) {
                     theme.setProperty("dashed_signal_connections", v.toString(), nullptr);
-                }
-                else if(v.refersToSameSourceAs(swatches[themeName]["straight_connections"]))
-                {
+                } else if (v.refersToSameSourceAs(swatches[themeName]["straight_connections"])) {
                     theme.setProperty("straight_connections", v.toString(), nullptr);
-                }
-                else if(v.refersToSameSourceAs(swatches[themeName]["square_iolets"]))
-                {
+                } else if (v.refersToSameSourceAs(swatches[themeName]["square_iolets"])) {
                     theme.setProperty("square_iolets", v.toString(), nullptr);
-                }
-                else if(v.refersToSameSourceAs(swatches[themeName]["square_object_corners"]))
-                {
+                } else if (v.refersToSameSourceAs(swatches[themeName]["square_object_corners"])) {
                     theme.setProperty("square_object_corners", v.toString(), nullptr);
-                }
-                else if(v.refersToSameSourceAs(swatches[themeName]["thin_connections"]))
-                {
+                } else if (v.refersToSameSourceAs(swatches[themeName]["thin_connections"])) {
                     theme.setProperty("thin_connections", v.toString(), nullptr);
                 }
             }
-            
+
             pd->setTheme(PlugDataLook::currentTheme, true);
             return;
         }
-        
+
         for (auto theme : themeTree) {
             auto themeName = theme.getProperty("theme").toString();
 
@@ -599,21 +591,21 @@ public:
 
         PlugDataLook::setDefaultFont(fontValue.toString());
         SettingsFile::getInstance()->setProperty("default_font", fontValue.getValue());
-        
+
         auto allThemes = PlugDataLook::getAllThemes();
         auto firstThemes = allThemes;
         auto secondThemes = allThemes;
-        
+
         firstThemes.removeString(PlugDataLook::selectedThemes[1]);
         secondThemes.removeString(PlugDataLook::selectedThemes[0]);
-        
+
         primaryThemeSelector->setSelectedItem(firstThemes.indexOf(PlugDataLook::selectedThemes[0]));
         secondaryThemeSelector->setSelectedItem(secondThemes.indexOf(PlugDataLook::selectedThemes[1]));
-        
+
         SettingsFile::getInstance()->getSelectedThemesTree().setProperty("first", "light", nullptr);
         SettingsFile::getInstance()->getSelectedThemesTree().setProperty("second", "dark", nullptr);
         SettingsFile::getInstance()->setProperty("theme", "light");
-        
+
         updateSwatches();
         pd->setTheme(PlugDataLook::selectedThemes[0], true);
         sendLookAndFeelChange();

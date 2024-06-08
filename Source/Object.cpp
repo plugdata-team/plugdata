@@ -92,30 +92,30 @@ void Object::setObjectBounds(Rectangle<int> bounds)
 }
 
 // CachedComponentImage that will block repaint messages to parent when scrolling/zooming, and keeps track of invaldation while scrolling/zooming
-class InvalidationListener : public CachedComponentImage
-{
+class InvalidationListener : public CachedComponentImage {
 public:
-    InvalidationListener(Object* parent) : object(parent)
+    InvalidationListener(Object* parent)
+        : object(parent)
     {
     }
+
 private:
-    
-    void paint(Graphics& g) override {}
-    
-    bool invalidate(const Rectangle<int>& rect) override
+    void paint(Graphics& g) override { }
+
+    bool invalidate(Rectangle<int> const& rect) override
     {
         object->scrollBuffer.setDirty();
         return true;
     }
-    
+
     bool invalidateAll() override
     {
         object->scrollBuffer.setDirty();
         return true;
     }
-    
-    void releaseResources() override {}
-    
+
+    void releaseResources() override { }
+
     Object* object;
 };
 
@@ -138,9 +138,9 @@ void Object::initialise()
     hvccMode.addListener(this);
 
     originalBounds.setBounds(0, 0, 0, 0);
-    
+
     setAccessible(false); // TODO: implement accessibility. We disable default, since it makes stuff slow on macOS
-    
+
     setCachedComponentImage(new InvalidationListener(this));
 }
 
@@ -194,7 +194,7 @@ void Object::valueChanged(Value& v)
         }
     }
     // FIXME: any value change triggers a repaint!
-    //repaint();
+    // repaint();
 }
 
 bool Object::checkIfHvccCompatible() const
@@ -345,8 +345,9 @@ void Object::applyBounds()
 }
 void Object::updateBounds()
 {
-    if(cnv->isGraph && gui && gui->hideInGraph()) return;
-    
+    if (cnv->isGraph && gui && gui->hideInGraph())
+        return;
+
     // only update if we have a gui and the object isn't been moved by the user
     // otherwise PD hasn't been informed of the new position 'while' we are dragging
     // so we don't need to update the bounds when an object is being interacted with
@@ -401,10 +402,10 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
         jassertfalse;
         return;
     }
-    
+
     // Create gui for the object
     gui.reset(ObjectBase::createGui(objectPtr, this));
-    
+
     isGemObject = is_gem_object(gui->getText().toRawUTF8());
 
     if (gui) {
@@ -481,8 +482,10 @@ Array<Rectangle<float>> Object::getCorners() const
 
 String Object::getType(bool withOriginPrefix) const
 {
-    if(gui && withOriginPrefix) return gui->getTypeWithOriginPrefix();
-    else if(gui) return gui->getType();
+    if (gui && withOriginPrefix)
+        return gui->getTypeWithOriginPrefix();
+    else if (gui)
+        return gui->getType();
     return String();
 }
 
@@ -510,14 +513,15 @@ void Object::triggerOverlayActiveState()
 void Object::lookAndFeelChanged()
 {
     activityOverlayDirty = true;
-    if(gui) gui->updateLabel();
+    if (gui)
+        gui->updateLabel();
 }
 
 void Object::resized()
 {
     scrollBuffer.setDirty();
     activityOverlayDirty = true;
-    
+
     setVisible(!((cnv->isGraph || cnv->presentationMode == var(true)) && gui && gui->hideInGraph()));
 
     if (gui) {
@@ -527,7 +531,7 @@ void Object::resized()
     if (newObjectEditor) {
         newObjectEditor->setBounds(getLocalBounds().reduced(margin));
     }
-    
+
 #if JUCE_IOS
     int ioletSize = 15;
 #else
@@ -578,13 +582,12 @@ void Object::updateTooltips()
 {
     if (!gui || cnv->isGraph)
         return;
-    
-    
+
     auto objectInfo = cnv->pd->objectLibrary->getObjectInfo(gui->getTypeWithOriginPrefix());
-    
+
     std::array<StringArray, 2> ioletTooltips;
-    
-    if(objectInfo.isValid()) {
+
+    if (objectInfo.isValid()) {
         // Set object tooltip
         gui->setTooltip(objectInfo.getProperty("description").toString());
         // Check pd library for pddp tooltips, those have priority
@@ -601,12 +604,10 @@ void Object::updateTooltips()
         auto* iolet = iolets[i];
 
         auto& tooltip = ioletTooltips[!iolet->isInlet][iolet->isInlet ? i : i - numInputs];
-        if(tooltip.startsWith("(gemlist)"))
-        {
+        if (tooltip.startsWith("(gemlist)")) {
             iolet->isGemState = true;
             iolet->setTooltip("(gemlist)");
-        }
-        else {
+        } else {
             if (tooltip.isNotEmpty()) { // Don't overwrite custom documentation if there is no md documentation
                 iolet->setTooltip(tooltip);
             }
@@ -616,7 +617,7 @@ void Object::updateTooltips()
 
     std::vector<std::pair<int, String>> inletMessages;
     std::vector<std::pair<int, String>> outletMessages;
-    
+
     if (auto subpatch = gui->getPatch()) {
         cnv->pd->lockAudioThread();
         auto* subpatchPtr = subpatch->getPointer().get();
@@ -705,7 +706,7 @@ void Object::updateIolets()
         numInputs = pd::Interface::numInlets(ptr);
         numOutputs = pd::Interface::numOutlets(ptr);
     }
-    
+
     // Looking up tooltips takes a bit of time, so we make sure we're not constantly updating them for no reason
     bool tooltipsNeedUpdate = gui->getPatch() != nullptr || numInputs != oldNumInputs || numOutputs != oldNumOutputs || isGemObject;
 
@@ -749,7 +750,8 @@ void Object::updateIolets()
         numOut += !input;
     }
 
-    if(tooltipsNeedUpdate) updateTooltips();
+    if (tooltipsNeedUpdate)
+        updateTooltips();
     resized();
 }
 
@@ -760,7 +762,8 @@ void Object::mouseDown(MouseEvent const& e)
     if (e.mods.isRightButtonDown() && !cnv->isGraph) {
         PopupMenu::dismissAllActiveMenus();
         if (!getValue<bool>(locked)) {
-            if(!e.mods.isAnyModifierKeyDown() && !e.mods.isRightButtonDown()) cnv->deselectAll();
+            if (!e.mods.isAnyModifierKeyDown() && !e.mods.isRightButtonDown())
+                cnv->deselectAll();
             cnv->setSelected(this, true);
         }
         Dialogs::showCanvasRightClickMenu(cnv, this, e.getScreenPosition());
@@ -907,7 +910,7 @@ void Object::mouseUp(MouseEvent const& e)
         isInsideUndoSequence = false;
         cnv->patch.endUndoSequence("Drag");
     }
-    
+
     cnv->needsSearchUpdate = true;
 }
 
@@ -918,7 +921,7 @@ void Object::mouseDrag(MouseEvent const& e)
 
     if (cnv->objectRateReducer.tooFast())
         return;
-    
+
 #if JUCE_MAC || JUCE_WINDOWS
     beginDragAutoRepeat(25); // Doing this leads to terrible performance on Linux, unfortunately
 #endif
@@ -1046,8 +1049,8 @@ void Object::mouseDrag(MouseEvent const& e)
 
                 object->setTopLeftPosition(newPosition);
             }
-            
-            if(cnv->viewport) {
+
+            if (cnv->viewport) {
                 cnv->autoscroll(e.getEventRelativeTo(cnv->viewport.get()));
             }
         }
@@ -1150,7 +1153,7 @@ void Object::mouseDrag(MouseEvent const& e)
             if (object->numInputs && object->numOutputs && !object->iolets.isEmpty()) {
                 bool intersected = false;
                 for (auto* connection : cnv->connections) {
-                    
+
                     if (connection->intersectsRectangle(object->iolets[0]->getCanvasBounds())) {
                         object->iolets[0]->isTargeted = true;
                         object->iolets[object->numInputs]->isTargeted = true;
@@ -1178,30 +1181,30 @@ void Object::updateFramebuffer(NVGcontext* nvg)
 {
     // For very large objects, buffering is just gonna take up GPU memory, with minimal performance benefits
     // Also, Metal has a limitation on image size, so this will also prevent crashing
-    if(getWidth() * 3 * cnv->getRenderScale() > 8192 || getHeight() * 3 * cnv->getRenderScale() > 8192) return;
-    
+    if (getWidth() * 3 * cnv->getRenderScale() > 8192 || getHeight() * 3 * cnv->getRenderScale() > 8192)
+        return;
+
     auto b = getLocalBounds();
     auto maxScale = 3.0f;
     int scaledWidth = b.getWidth() * maxScale * cnv->getRenderScale();
     int scaledHeight = b.getHeight() * maxScale * cnv->getRenderScale();
-    
-    if(scrollBuffer.needsUpdate(scaledWidth, scaledHeight))
-    {
-        scrollBuffer.renderToFramebuffer(nvg, scaledWidth, scaledHeight, [this, scaledWidth, scaledHeight, maxScale, b](NVGcontext* nvg){
+
+    if (scrollBuffer.needsUpdate(scaledWidth, scaledHeight)) {
+        scrollBuffer.renderToFramebuffer(nvg, scaledWidth, scaledHeight, [this, scaledWidth, scaledHeight, maxScale, b](NVGcontext* nvg) {
             nvgViewport(0, 0, scaledWidth, scaledHeight);
             nvgClear(nvg);
 
             nvgBeginFrame(nvg, b.getWidth() * maxScale, b.getHeight() * maxScale, cnv->getRenderScale());
             nvgScale(nvg, maxScale, maxScale);
-            nvgScissor (nvg, 0, 0, b.getWidth(), b.getHeight());
-            
+            nvgScissor(nvg, 0, 0, b.getWidth(), b.getHeight());
+
             performRender(nvg);
-            
-    #if ENABLE_OBJECT_FB_DEBUGGING
+
+#if ENABLE_OBJECT_FB_DEBUGGING
             static Random rng;
             nvgFillColor(nvg, nvgRGBA(rng.nextInt(255), rng.nextInt(255), rng.nextInt(255), 0x50));
             nvgFillRect(nvg, 0, 0, b.getWidth(), b.getHeight());
-    #endif
+#endif
             nvgEndFrame(nvg);
         });
     }
@@ -1209,23 +1212,18 @@ void Object::updateFramebuffer(NVGcontext* nvg)
 
 void Object::render(NVGcontext* nvg)
 {
-    if(cnv->shouldShowObjectActivity() && (!activityOverlayImage.isValid() || activityOverlayDirty))
-    {
+    if (cnv->shouldShowObjectActivity() && (!activityOverlayImage.isValid() || activityOverlayDirty)) {
         Path objectShadow;
         objectShadow.addRoundedRectangle(getLocalBounds().reduced(Object::margin - 1), Corners::objectCornerRadius);
         activityOverlayImage = StackShadow::createActivityDropShadowImage(nvg, getLocalBounds(), objectShadow, getLookAndFeel().findColour(PlugDataColour::dataColourId), 5.5f, { 0, 0 }, 0, gui && (gui->getCanvas() || gui->isTransparent()));
         activityOverlayDirty = false;
     }
-    
-    if(cnv->isScrolling && scrollBuffer.needsUpdate(getWidth() * 3.0f * cnv->getRenderScale(), getHeight() * 3.0f * cnv->getRenderScale()))
-    {
+
+    if (cnv->isScrolling && scrollBuffer.needsUpdate(getWidth() * 3.0f * cnv->getRenderScale(), getHeight() * 3.0f * cnv->getRenderScale())) {
         performRender(nvg);
-    }
-    else if(cnv->isScrolling && scrollBuffer.isValid())
-    {
+    } else if (cnv->isScrolling && scrollBuffer.isValid()) {
         scrollBuffer.render(nvg, Rectangle<int>(0, 0, getWidth(), getHeight()));
-    }
-    else {
+    } else {
         performRender(nvg);
     }
 }
@@ -1239,14 +1237,13 @@ void Object::performRender(NVGcontext* nvg)
     if (selectedFlag) {
         auto& resizeHandleImage = cnv->resizeHandleImage;
         int angle = 360;
-        for(auto& corner : getCorners())
-        {
+        for (auto& corner : getCorners()) {
             nvgSave(nvg);
             // Rotate around centre
             nvgTranslate(nvg, corner.getCentreX(), corner.getCentreY());
             nvgRotate(nvg, degreesToRadians<float>(angle));
             nvgTranslate(nvg, -4.5f, -4.5f);
-            
+
             nvgBeginPath(nvg);
             nvgRect(nvg, 0, 0, 9, 9);
             nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage.getImageId(), 1));
@@ -1255,32 +1252,30 @@ void Object::performRender(NVGcontext* nvg)
             angle -= 90;
         }
     }
-    
-    if(cnv->shouldShowObjectActivity() && !approximatelyEqual(activeStateAlpha, 0.0f) && activityOverlayImage.isValid())
-    {
+
+    if (cnv->shouldShowObjectActivity() && !approximatelyEqual(activeStateAlpha, 0.0f) && activityOverlayImage.isValid()) {
         nvgFillPaint(nvg, nvgImagePattern(nvg, lb.getX(), lb.getY(), lb.getWidth(), lb.getHeight(), 0, activityOverlayImage.getImageId(), activeStateAlpha));
         nvgFillRect(nvg, lb.getX(), lb.getY(), lb.getWidth(), lb.getHeight());
     }
-    
+
     if (gui && gui->isTransparent() && !getValue<bool>(locked) && !cnv->isGraph) {
         nvgBeginPath(nvg);
         nvgFillColor(nvg, convertColour(getLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.35f).withAlpha(0.1f)));
         nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
         nvgFill(nvg);
     }
-    
-    if(gui) {
+
+    if (gui) {
         nvgSave(nvg);
         nvgTranslate(nvg, margin, margin);
         gui->render(nvg);
         nvgRestore(nvg);
     }
-    
-    if(newObjectEditor)
-    {
+
+    if (newObjectEditor) {
         auto backgroundColour = convertColour(getLookAndFeel().findColour(PlugDataColour::textObjectBackgroundColourId));
         auto outlineColour = convertColour(getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
-        
+
         nvgBeginPath(nvg);
         nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
         nvgFillColor(nvg, backgroundColour);
@@ -1288,20 +1283,20 @@ void Object::performRender(NVGcontext* nvg)
         nvgStrokeWidth(nvg, 1.f);
         nvgStrokeColor(nvg, isSelected() ? selectedOutlineColour : outlineColour);
         nvgStroke(nvg);
-        
+
         nvgTranslate(nvg, margin, margin);
         textEditorRenderer.renderJUCEComponent(nvg, *newObjectEditor, getValue<float>(cnv->zoomScale) * cnv->getRenderScale());
     }
-    
+
     // If autoconnect is about to happen, draw a fake inlet with a dotted outline
     if (getValue<bool>(editor->autoconnect) && isInitialEditorShown() && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs) {
         auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
-        float fakeInletBounds[4] = {16.0f, 4.0f, 8.0f, 8.0f};
+        float fakeInletBounds[4] = { 16.0f, 4.0f, 8.0f, 8.0f };
         nvgBeginPath(nvg);
         nvgFillColor(nvg, convertColour(getLookAndFeel().findColour(outlet->isSignal ? PlugDataColour::signalColourId : PlugDataColour::dataColourId).brighter()));
         nvgEllipse(nvg, fakeInletBounds[0] + fakeInletBounds[2] * 0.5f, fakeInletBounds[1] + fakeInletBounds[3] * 0.5f, fakeInletBounds[2] * 0.5f, fakeInletBounds[3] * 0.5f);
         nvgFill(nvg);
-        
+
         nvgStrokeColor(nvg, convertColour(getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId)));
         nvgStrokeWidth(nvg, 1.0f);
         nvgStroke(nvg);
@@ -1323,11 +1318,10 @@ void Object::performRender(NVGcontext* nvg)
         auto text = std::to_string(cnv->objects.indexOf(this));
         int textWidth = 6 + text.length() * 4;
         auto indexBounds = b.withSizeKeepingCentre(b.getWidth() + doubleMargin, halfHeight * 2).removeFromRight(textWidth);
-    
+
         auto fillColour = convertColour(getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
         nvgDrawRoundedRect(nvg, indexBounds.getX(), indexBounds.getY(), indexBounds.getWidth(), indexBounds.getHeight(), fillColour, fillColour, 2.0f);
 
-        
         nvgFontSize(nvg, 8.0f);
         nvgFontFace(nvg, "Inter");
         nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_CENTER);
@@ -1340,8 +1334,9 @@ void Object::performRender(NVGcontext* nvg)
 
 void Object::renderIolets(NVGcontext* nvg)
 {
-    if(cnv->isGraph) return;
-    
+    if (cnv->isGraph)
+        return;
+
     for (auto* iolet : iolets) {
         nvgSave(nvg);
         nvgTranslate(nvg, iolet->getX(), iolet->getY());
@@ -1352,18 +1347,15 @@ void Object::renderIolets(NVGcontext* nvg)
 
 void Object::renderLabel(NVGcontext* nvg)
 {
-    if(gui)
-    {
-        if(auto* label = gui->getLabel())
-        {
+    if (gui) {
+        if (auto* label = gui->getLabel()) {
             nvgSave(nvg);
             auto posOnCanvas = cnv->getLocalPoint(gui->labels.get(), label->getPosition());
             nvgTranslate(nvg, posOnCanvas.getX(), posOnCanvas.getY());
             label->renderLabel(nvg, cnv->getRenderScale() * 2.0f);
             nvgRestore(nvg);
         }
-        if(auto* vu = gui->getVU())
-        {
+        if (auto* vu = gui->getVU()) {
             if (vu->isVisible()) {
                 nvgSave(nvg);
                 auto posOnCanvas = cnv->getLocalPoint(gui->labels.get(), vu->getPosition());
@@ -1404,10 +1396,10 @@ void Object::hideEditor()
 
         // Get entered text, remove extra spaces at the end
         auto newText = outgoingEditor->getText().trimEnd();
-        
+
         newText = newText.replace("\n", " ");
         newText = newText.replace(";", " ;");
-        
+
         outgoingEditor.reset();
 
         repaint();
@@ -1499,11 +1491,11 @@ void Object::textEditorReturnKeyPressed(TextEditor& ed)
 
 bool Object::keyPressed(KeyPress const& key, Component* component)
 {
-    if(auto* editor = newObjectEditor.get()) {
+    if (auto* editor = newObjectEditor.get()) {
         if (key.getKeyCode() == KeyPress::returnKey && editor && key.getModifiers().isShiftDown()) {
             int caretPosition = editor->getCaretPosition();
             auto text = editor->getText();
-            
+
             if (!editor->getHighlightedRegion().isEmpty())
                 return false;
             if (text[caretPosition - 1] == ';') {
@@ -1513,11 +1505,11 @@ bool Object::keyPressed(KeyPress const& key, Component* component)
                 text = text.substring(0, caretPosition) + ";\n" + text.substring(caretPosition);
                 caretPosition += 2;
             }
-            
+
             editor->setText(text);
             editor->setCaretPosition(caretPosition);
             cnv->hideSuggestions();
-            
+
             return true;
         }
     }
@@ -1534,11 +1526,11 @@ void Object::textEditorTextChanged(TextEditor& ed)
     } else {
         currentText = ed.getText();
     }
-   
+
     // For resize-while-typing behaviour
     auto newWidth = CachedStringWidth<15>::calculateStringWidth(currentText) + 14.0f;
     newWidth += Object::doubleMargin;
-    
+
     auto numLines = StringArray::fromLines(currentText.trimEnd()).size();
     auto newHeight = std::max((numLines * 15) + 5 + Object::doubleMargin, height);
     setSize(newWidth, newHeight);
@@ -1566,8 +1558,8 @@ void Object::openHelpPatch() const
         }
 
         auto* helpCanvas = editor->getTabComponent().openPatch(URL(file));
-        if(helpCanvas) {
-            if(auto patch = helpCanvas->patch.getPointer()) {
+        if (helpCanvas) {
+            if (auto patch = helpCanvas->patch.getPointer()) {
                 patch->gl_edit = 0;
             }
         }

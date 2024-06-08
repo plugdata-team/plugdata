@@ -23,7 +23,7 @@ public:
 
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamReceiveSymbol(&iemHelper.receiveSymbol);
-        objectParameters.addParamBool("Show scale", ParameterCategory::cAppearance, &showScale, {"No", "Yes"}, 1);
+        objectParameters.addParamBool("Show scale", ParameterCategory::cAppearance, &showScale, { "No", "Yes" }, 1);
         iemHelper.addIemParameters(objectParameters, false, false, -1);
 
         updateLabel();
@@ -119,7 +119,7 @@ public:
         auto backgroundColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
         auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
         auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
-        
+
         int height = getHeight();
         int width = getWidth();
 

@@ -72,7 +72,7 @@ struct TextObjectHelper {
 
                 // Set new width
                 TextObjectHelper::setWidthInChars(object->getPointer(), newCharWidth);
-                
+
                 bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
             }
         };
@@ -102,7 +102,7 @@ struct TextObjectHelper {
 
     static int getIdealWidthForText(String const& text)
     {
-        
+
         auto lines = StringArray::fromLines(text);
         int w = minWidth;
 
@@ -162,14 +162,15 @@ struct TextObjectHelper {
 
 // Text base class that text objects with special implementation details can derive from
 class TextBase : public ObjectBase
-    , public TextEditor::Listener, public KeyListener {
+    , public TextEditor::Listener
+    , public KeyListener {
 
 protected:
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 6, 1, 1);
-        
+
     CachedTextRender cachedTextRender;
-        
+
     Value sizeProperty = SynchronousValue();
     String objectText;
     bool isValid = true;
@@ -186,7 +187,7 @@ public:
         , isValid(valid)
     {
         objectText = getText();
-        
+
         isLocked = getValue<bool>(cnv->locked);
 
         objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
@@ -212,7 +213,7 @@ public:
 
         updateTextLayout();
     }
-    
+
     void render(NVGcontext* nvg) override
     {
         auto b = getLocalBounds();
@@ -241,13 +242,10 @@ public:
         //   │┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼│
         //   └──────────────────┘
 
-        if (isValid && (ioletAreaColour.r != backgroundColour.r ||
-            ioletAreaColour.g != backgroundColour.g ||
-            ioletAreaColour.b != backgroundColour.b ||
-            ioletAreaColour.a != backgroundColour.a)) {
+        if (isValid && (ioletAreaColour.r != backgroundColour.r || ioletAreaColour.g != backgroundColour.g || ioletAreaColour.b != backgroundColour.b || ioletAreaColour.a != backgroundColour.a)) {
             nvgSave(nvg);
-            const float padding = 1.3f;
-            const float padding2x = padding * 2;
+            float const padding = 1.3f;
+            float const padding2x = padding * 2;
             nvgRoundedScissor(nvg, padding, padding, getWidth() - padding2x, getHeight() - padding2x, jmax(0.0f, Corners::objectCornerRadius - 0.7f));
 
             nvgFillColor(nvg, ioletAreaColour);
@@ -259,15 +257,13 @@ public:
             nvgRestore(nvg);
         }
 
-        if(editor && editor->isVisible())
-        {
+        if (editor && editor->isVisible()) {
             imageRenderer.renderJUCEComponent(nvg, *editor, getImageScale());
-        }
-        else {
+        } else {
             auto text = getText();
-            
+
             auto textArea = border.subtractedFrom(b);
-            
+
             // we could render at the actual scale, but that makes the transition to scolling/zooming pretty rough
             // Instead, rendering at 2x scale gives us pretty good sharpness overall
             cachedTextRender.renderText(nvg, textArea, getImageScale());
@@ -297,40 +293,41 @@ public:
         updateTextLayout(); // make sure layout height is updated
 
         auto textBounds = getTextSize();
-        
+
         int x = 0, y = 0, w, h;
         if (auto obj = ptr.get<t_gobj>()) {
             auto* cnvPtr = cnv->patch.getPointer().get();
-            if (!cnvPtr) return {x, y, textBounds.getWidth(), std::max<int>(textBounds.getHeight() + 5, 20)};
-    
+            if (!cnvPtr)
+                return { x, y, textBounds.getWidth(), std::max<int>(textBounds.getHeight() + 5, 20) };
+
             pd::Interface::getObjectBounds(cnvPtr, obj.get(), &x, &y, &w, &h);
         }
 
-        return {x, y, textBounds.getWidth(), std::max<int>(textBounds.getHeight() + 5, 20)};
+        return { x, y, textBounds.getWidth(), std::max<int>(textBounds.getHeight() + 5, 20) };
     }
-        
+
     virtual Rectangle<int> getTextSize()
     {
         auto objText = editor ? editor->getText() : objectText;
         if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
             objText = cnv->suggestor->getText();
         }
-                
+
         int fontWidth = 7;
         int charWidth = 0;
         if (auto obj = ptr.get<void>()) {
             charWidth = TextObjectHelper::getWidthInChars(obj.get());
             fontWidth = glist_fontwidth(cnv->patch.getPointer().get());
         }
-        
+
         auto textSize = cachedTextRender.getTextBounds();
-        
+
         // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
         int idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 11;
-        
+
         // We want to adjust the width so ideal text with aligns with fontWidth
         int offset = idealWidth % fontWidth;
-        
+
         int textWidth;
         if (objText.isEmpty()) { // If text is empty, set to minimum width
             textWidth = std::max(charWidth, 6) * fontWidth;
@@ -339,26 +336,26 @@ public:
         } else { // If width was set manually, calculate what the width is
             textWidth = std::max(charWidth, TextObjectHelper::minWidth) * fontWidth + offset;
         }
-        
+
         auto maxIolets = std::max(object->numInputs, object->numOutputs);
         textWidth = std::max(textWidth, maxIolets * 18);
-        
-        return {textWidth, textSize.getHeight()};
+
+        return { textWidth, textSize.getHeight() };
     }
-        
+
     virtual void updateTextLayout()
     {
-        if(cnv->isGraph) return; // Text layouting is expensive, so skip if it's not necessary
-        
+        if (cnv->isGraph)
+            return; // Text layouting is expensive, so skip if it's not necessary
+
         auto objText = editor ? editor->getText() : objectText;
         if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
             objText = cnv->suggestor->getText();
         }
-        
+
         auto colour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
         int textWidth = getTextSize().getWidth() - 11;
-        if(cachedTextRender.prepareLayout(objText, Fonts::getDefaultFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty)))
-        {
+        if (cachedTextRender.prepareLayout(objText, Fonts::getDefaultFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty))) {
             repaint();
         }
     }
@@ -384,7 +381,7 @@ public:
                 canvas_resortoutlets(patch);
             }
         }
-        
+
         updateTextLayout();
     }
 
@@ -500,7 +497,7 @@ public:
             object->updateBounds();
         }
     }
-        
+
     bool keyPressed(KeyPress const& key, Component* component) override
     {
         if (key.getKeyCode() == KeyPress::returnKey && editor && key.getModifiers().isShiftDown()) {
@@ -525,11 +522,11 @@ public:
 
         return false;
     }
-        
+
     void resized() override
     {
         updateTextLayout();
-        
+
         if (editor) {
             editor->setBounds(getLocalBounds());
         }

@@ -25,8 +25,7 @@ class MessageDispatcher {
     // Wrapper to store 8 atoms in stack memory
     // We never read more than 8 args in the whole source code, so this prevents unnecessary memory copying
     // We also don't want this list to be dynamic since we want to stack allocate it
-    class Message
-    {
+    class Message {
     public:
         void* target;
         t_symbol* symbol;
@@ -64,14 +63,14 @@ class MessageDispatcher {
             return *this;
         }
     };
-    
+
 public:
     MessageDispatcher()
     {
         usedHashes.reserve(stackSize);
         nullListeners.reserve(stackSize);
     }
-    
+
     void enqueueMessage(void* target, t_symbol* symbol, int argc, t_atom* argv)
     {
         messageStack.push({ target, symbol, argc, argv });
@@ -107,15 +106,13 @@ public:
 
         messageStack.swapBuffers();
         Message message;
-        while(messageStack.pop(message))
-        {
+        while (messageStack.pop(message)) {
             auto hash = reinterpret_cast<intptr_t>(message.target) ^ reinterpret_cast<intptr_t>(message.symbol);
-            if (usedHashes.find(hash) != usedHashes.end())
-            {
+            if (usedHashes.find(hash) != usedHashes.end()) {
                 continue;
             }
             usedHashes.insert(hash);
-                        
+
             if (messageListeners.find(message.target) == messageListeners.end())
                 continue;
 
@@ -136,7 +133,6 @@ public:
                 else
                     nullListeners.push_back({ message.target, it });
             }
-            
         }
 
         for (int i = nullListeners.size() - 1; i >= 0; i--) {
@@ -144,18 +140,18 @@ public:
             messageListeners[target].erase(iterator);
         }
     }
-    
+
 private:
     static constexpr int stackSize = 65536;
     using MessageStack = ThreadSafeStack<Message, stackSize>;
-    
+
     std::vector<std::pair<void*, std::set<juce::WeakReference<pd::MessageListener>>::iterator>> nullListeners;
     std::unordered_set<intptr_t> usedHashes;
     MessageStack messageStack;
-    
+
     // Queue to use in case our fast stack queue is full
     moodycamel::ConcurrentQueue<Message> backupQueue;
-    
+
     std::unordered_map<void*, std::set<juce::WeakReference<MessageListener>>> messageListeners;
     CriticalSection messageListenerLock;
 };

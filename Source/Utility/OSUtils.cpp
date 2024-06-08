@@ -4,12 +4,11 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-
 #define JUCE_GUI_BASICS_INCLUDE_XHEADERS 1
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #if !defined(__APPLE__)
-#undef JUCE_GUI_BASICS_INCLUDE_XHEADERS
+#    undef JUCE_GUI_BASICS_INCLUDE_XHEADERS
 #    include <raw_keyboard_input/raw_keyboard_input.cpp>
 #endif
 
@@ -359,10 +358,10 @@ juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, b
 {
     auto paths = iterateDirectoryPaths(directory, recursive, onlyFiles, maximum);
     auto files = juce::Array<juce::File>();
-    for(auto& path : paths) {
+    for (auto& path : paths) {
         files.add(juce::File(path.string()));
     }
-    
+
     return files;
 }
 

@@ -8,13 +8,12 @@ using namespace juce;
 #include "Utility/HashUtils.h"
 #include "Utility/SynchronousValue.h"
 
-
 #ifndef ENABLE_OBJECT_FB_DEBUGGING
-#define ENABLE_OBJECT_FB_DEBUGGING 0
+#    define ENABLE_OBJECT_FB_DEBUGGING 0
 #endif
 
 #ifndef ENABLE_FB_DEBUGGING
-#define ENABLE_FB_DEBUGGING 0
+#    define ENABLE_FB_DEBUGGING 0
 #endif
 
 namespace juce {
@@ -61,12 +60,9 @@ inline T getValue(Value const& v)
 {
     if constexpr (std::is_same_v<T, String>) {
         return v.toString();
-    } 
-    else if constexpr (std::is_same_v<T, Colour>)
-    {
+    } else if constexpr (std::is_same_v<T, Colour>) {
         return Colour::fromString(v.toString());
-    }
-    else {
+    } else {
         return static_cast<T>(v.getValue());
     }
 }
@@ -96,13 +92,12 @@ static inline String convertURLtoUTF8(String const& input)
         if (token.startsWithChar('#')) {
             // Extract the hex value and convert it to a character
             auto hexString = token.substring(1) + "\0";
-            char *endptr;
+            char* endptr;
             int hexValue = strtoul(hexString.toRawUTF8(), &endptr, 16);
-            if(*endptr == '\0') {
+            if (*endptr == '\0') {
                 output += String::charToString(static_cast<wchar_t>(hexValue));
                 output += token.substring(3);
-            }
-            else {
+            } else {
                 jassertfalse;
                 output += token;
             }

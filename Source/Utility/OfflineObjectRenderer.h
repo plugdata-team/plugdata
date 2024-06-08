@@ -29,7 +29,7 @@ public:
     static OfflineObjectRenderer* findParentOfflineObjectRendererFor(Component* childComponent);
 
     static String patchToSVGFast(String const& patch);
-    
+
     ImageWithOffset patchToMaskedImage(String const& patch, float scale, bool makeInvalidImage = false);
 
     bool checkIfPatchIsValid(String const& patch);

@@ -8,7 +8,7 @@ class CanvasObject final : public ObjectBase {
 
     bool locked;
     Value sizeProperty = SynchronousValue();
-        
+
     IEMHelper iemHelper;
 
 public:
@@ -18,7 +18,7 @@ public:
     {
         object->setColour(PlugDataColour::outlineColourId, Colours::transparentBlack);
         locked = getValue<bool>(object->locked);
-        
+
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamColour("Canvas color", cGeneral, &iemHelper.secondaryColour, PlugDataColour::guiObjectInternalOutlineColour);
         iemHelper.addIemParameters(objectParameters, false, true, 20, 12, 14);
@@ -109,14 +109,14 @@ public:
 
             int x = 0, y = 0, w = 0, h = 0;
             pd::Interface::getObjectBounds(patch, canvas.cast<t_gobj>(), &x, &y, &w, &h);
-            const auto pdSize = getPDSize(ptr.get<t_my_canvas>().get());
+            auto const pdSize = getPDSize(ptr.get<t_my_canvas>().get());
 
             return Rectangle<int>(x, y, pdSize.getWidth(), pdSize.getHeight());
         }
 
         return {};
     }
-    
+
     void render(NVGcontext* nvg) override
     {
         Colour bgcolour = Colour::fromString(iemHelper.secondaryColour.toString());
@@ -142,7 +142,7 @@ public:
             nvgStroke(nvg);
         }
     }
-    
+
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(sizeProperty)) {
@@ -159,8 +159,7 @@ public:
             }
 
             object->updateBounds();
-        }
-        else {
+        } else {
             iemHelper.valueChanged(v);
         }
     }

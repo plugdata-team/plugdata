@@ -13,7 +13,8 @@
 
 class Canvas;
 
-class Dialog : public Component, public ComponentListener {
+class Dialog : public Component
+    , public ComponentListener {
 
 public:
     Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWidth, int childHeight, bool showCloseButton, int margin = 0);
@@ -21,7 +22,7 @@ public:
     ~Dialog() override
     {
         parentComponent->removeComponentListener(this);
-        
+
         if (auto* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent())) {
             if (ProjectInfo::isStandalone) {
                 if (auto* closeButton = window->getCloseButton())
@@ -33,7 +34,7 @@ public:
             }
         }
     }
-    
+
     void componentMovedOrResized(Component& comp, bool wasMoved, bool wasResized) override
     {
         setBounds(parentComponent->getScreenX(), parentComponent->getScreenY(), parentComponent->getWidth(), parentComponent->getHeight());
@@ -51,14 +52,12 @@ public:
 
     void paint(Graphics& g) override
     {
-        if(!ProjectInfo::canUseSemiTransparentWindows())
-        {
+        if (!ProjectInfo::canUseSemiTransparentWindows()) {
             g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-        }
-        else {
+        } else {
             g.setColour(Colours::black.withAlpha(0.5f));
         }
-        
+
         auto bounds = getLocalBounds().toFloat().reduced(backgroundMargin);
 
         if (wantsRoundedCorners()) {
@@ -103,7 +102,7 @@ public:
 #if !JUCE_IOS
     void mouseDown(MouseEvent const& e) override
     {
-        if(!hasKeyboardFocus(false)) {
+        if (!hasKeyboardFocus(false)) {
             parentComponent->toFront(false);
             toFront(true);
         }
@@ -124,12 +123,11 @@ public:
         dragging = false;
     }
 #endif
-    
+
     void setBlockFromClosing(bool block)
     {
         blockCloseAction = block;
     }
-    
 
     bool keyPressed(KeyPress const& key) override
     {
@@ -185,7 +183,7 @@ struct Dialogs {
     static void showPatchStorage(PluginEditor* editor);
 
     static void dismissFileDialog();
-    
+
     static void showOpenDialog(std::function<void(URL)> const& callback, bool canSelectFiles, bool canSelectDirectories, String const& lastFileId, String const& extension, Component* parentComponent);
 
     static void showSaveDialog(std::function<void(URL)> const& callback, String const& extension, String const& lastFileId, Component* parentComponent = nullptr, bool directoryMode = false);

@@ -225,7 +225,7 @@ public:
     void unregisterWeakReference(void* ptr, pd_weak_reference const* ref);
     void clearWeakReferences(void* ptr);
 
-    static void registerLuaClass(const char* object);
+    static void registerLuaClass(char const* object);
     bool isLuaClass(hash32 objectNameHash);
 
     virtual void updateConsole(int numMessages, bool newWarning) = 0;
@@ -233,15 +233,14 @@ public:
     virtual void titleChanged() = 0;
 
     void enqueueFunctionAsync(std::function<void(void)> const& fn);
-    
+
     // Enqueue a message to an pd::WeakReference
     // This will first check if the weakreference is valid before triggering the callback
     template<typename T>
     void enqueueFunctionAsync(WeakReference& ref, std::function<void(T*)> const& fn)
     {
-        functionQueue.enqueue([ref, fn](){
-            if(auto obj = ref.get<T>())
-            {
+        functionQueue.enqueue([ref, fn]() {
+            if (auto obj = ref.get<T>()) {
                 fn(obj.get());
             }
         });
@@ -259,7 +258,7 @@ public:
     virtual void enableAudioParameter(String const& name) = 0;
     virtual void setParameterRange(String const& name, float min, float max) = 0;
     virtual void setParameterMode(String const& name, int mode) = 0;
-    
+
     virtual void performLatencyCompensationChange(float value) = 0;
 
     // JYG added this
@@ -316,10 +315,10 @@ public:
     CriticalSection const audioLock;
     std::recursive_mutex weakReferenceMutex;
     std::unique_ptr<pd::MessageDispatcher> messageDispatcher;
-    
+
     // All opened patches
     Array<pd::Patch::Ptr, CriticalSection> patches;
-    
+
 private:
     std::unordered_map<void*, std::vector<pd_weak_reference*>> pdWeakReferences;
 
@@ -328,12 +327,12 @@ private:
     std::unique_ptr<FileChooser> openChooser;
     std::atomic<bool> consoleMute;
     static inline std::set<hash32> luaClasses = std::set<hash32>(); // Keep track of class names that correspond to pdlua objects
-    
+
 protected:
     struct internal;
 
     std::unique_ptr<ObjectImplementationManager> objectImplementations; // must be after messageDispatcher (!)
-    
+
     struct ConsoleHandler : public Timer {
         Instance* instance;
 

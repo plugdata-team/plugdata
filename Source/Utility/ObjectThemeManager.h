@@ -15,14 +15,13 @@
 class ObjectThemeManager {
 public:
     static inline ObjectThemeManager* instance = nullptr;
-    
+
     static ObjectThemeManager* get()
     {
-        if(!instance)
-        {
+        if (!instance) {
             instance = new ObjectThemeManager();
         }
-        
+
         return instance;
     }
 

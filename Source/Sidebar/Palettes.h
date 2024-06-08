@@ -447,22 +447,18 @@ public:
             initialisePalettesFile();
         } else {
             auto paletteFileContent = palettesFile.loadFileAsString();
-            if(paletteFileContent.isEmpty())
-            {
+            if (paletteFileContent.isEmpty()) {
                 initialisePalettesFile();
-            }
-            else 
-            {
+            } else {
                 palettesTree = ValueTree::fromXml(paletteFileContent);
-                
-                for(auto paletteCategory : palettesTree)
-                {
+
+                for (auto paletteCategory : palettesTree) {
                     for (auto [name, palette] : defaultPalettes) {
-                        if(name != static_cast<String>(paletteCategory.getProperty("Name").toString())) continue;
-       
+                        if (name != static_cast<String>(paletteCategory.getProperty("Name").toString()))
+                            continue;
+
                         for (auto& [paletteName, patch] : palette) {
-                            if(!paletteCategory.getChildWithProperty("Name", paletteName).isValid())
-                            {
+                            if (!paletteCategory.getChildWithProperty("Name", paletteName).isValid()) {
                                 ValueTree paletteTree("Item");
                                 paletteTree.setProperty("Name", paletteName, nullptr);
                                 paletteTree.setProperty("Patch", patch, nullptr);
@@ -548,7 +544,7 @@ public:
     {
         return (view.get() && view->isVisible());
     }
-        
+
     void initialisePalettesFile()
     {
         palettesTree = ValueTree("Palettes");
@@ -567,7 +563,7 @@ public:
 
             palettesTree.appendChild(categoryTree, nullptr);
         }
-        
+
         savePalettes();
     }
 
@@ -741,16 +737,15 @@ private:
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        if(view) {
+        if (view) {
             auto hasTabbar = editor->getCurrentCanvas() != nullptr;
             auto lineHeight = hasTabbar ? 30.f : 0.0f;
             g.drawLine(0, lineHeight, getWidth(), lineHeight);
             g.drawLine(getWidth() - 0.5f, 29.5f, getWidth() - 0.5f, getHeight());
-            
+
             g.setColour(findColour(PlugDataColour::toolbarOutlineColourId).withAlpha(0.5f));
             g.drawLine(29.5f, 29.5f, 29.5f, getHeight());
-        }
-        else {
+        } else {
             g.drawLine(29.5f, 29.5f, 29.5f, getHeight());
         }
     }
@@ -758,7 +753,7 @@ private:
     void savePalettes()
     {
         auto paletteContent = palettesTree.toXmlString();
-        if(paletteContent.isNotEmpty()) {
+        if (paletteContent.isNotEmpty()) {
             palettesFile.replaceWithText(paletteContent);
         }
     }

@@ -26,10 +26,9 @@ class PathUpdater;
 class Connection : public DrawablePath
     , public ComponentListener
     , public ChangeListener
-    , public pd::MessageListener 
+    , public pd::MessageListener
     , public NVGComponent
-    , public MultiTimer
-{
+    , public MultiTimer {
 public:
     int inIdx;
     int outIdx;
@@ -65,12 +64,12 @@ public:
 
     bool isSegmented() const;
     void setSegmented(bool segmented);
-    
+
     bool intersectsRectangle(Rectangle<int> rectToIntersect);
-        
+
     void render(NVGcontext* nvg) override;
     void renderConnectionOrder(NVGcontext* nvg);
-    
+
     void updatePath();
 
     void forceUpdate();
@@ -123,8 +122,8 @@ public:
     int getSignalData(t_float* output, int maxChannels);
 
 private:
-
-    enum Timer { StopAnimation, Animation };
+    enum Timer { StopAnimation,
+        Animation };
 
     void timerCallback(int ID) override;
 
@@ -133,7 +132,7 @@ private:
     int getMultiConnectNumber();
     int getNumSignalChannels();
     int getNumberOfConnections();
-    
+
     void setSelected(bool shouldBeSelected);
 
     Array<SafePointer<Connection>> reconnecting;
@@ -142,12 +141,12 @@ private:
     bool selectedFlag = false;
     bool segmented = false;
     bool isHovering = false;
-    
+
     PathPlan currentPlan;
 
     Value locked;
     Value presentationMode;
-    
+
     NVGcolor baseColour;
     NVGcolor dataColour;
     NVGcolor signalColour;
@@ -158,10 +157,13 @@ private:
     NVGcolor connectionColour;
 
     NVGcolor textColour;
-    
+
     RectangleList<int> clipRegion;
-    
-    enum CableType { DataCable, GemCable, SignalCable, MultichannelCable };
+
+    enum CableType { DataCable,
+        GemCable,
+        SignalCable,
+        MultichannelCable };
     CableType cableType;
 
     Canvas* cnv;
@@ -187,7 +189,8 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
 };
 
-class ConnectionBeingCreated : public DrawablePath, public NVGComponent {
+class ConnectionBeingCreated : public DrawablePath
+    , public NVGComponent {
     SafePointer<Iolet> iolet;
     Component* cnv;
 
@@ -198,7 +201,7 @@ public:
         , cnv(canvas)
     {
         setStrokeThickness(5.0f);
-        
+
         // Only listen for mouse-events on canvas and the original iolet
         setInterceptsMouseClicks(false, true);
         cnv->addMouseListener(this, true);
@@ -234,11 +237,11 @@ public:
 
         auto connectionPath = Connection::getNonSegmentedPath(startPoint.toFloat(), endPoint.toFloat());
         setPath(connectionPath);
-        
+
         repaint();
         iolet->repaint();
     }
-    
+
     void render(NVGcontext* nvg) override
     {
         auto lineColour = cnv->findColour(PlugDataColour::dataColourId).brighter(0.6f);

@@ -243,21 +243,21 @@ public:
         ptr.get<t_fake_numbox>()->x_bg = pd->generateSymbol("#" + colour.substring(2));
         repaint();
     }
-        
+
     void render(NVGcontext* nvg) override
     {
         auto b = getLocalBounds().toFloat().reduced(0.5f);
         auto backgroundColour = Colour::fromString(secondaryColour.toString());
         bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = LookAndFeel::getDefaultLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
-        
+
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(backgroundColour), convertColour(outlineColour), Corners::objectCornerRadius);
-        
+
         nvgSave(nvg);
         nvgTranslate(nvg, input.getX(), input.getY());
         input.render(nvg);
         nvgRestore(nvg);
-                     
+
         auto icon = mode ? Icons::ThinDown : Icons::Sine;
         auto iconBounds = Rectangle<int>(7, 3, getHeight(), getHeight());
         nvgFontFace(nvg, "icon_font-Regular");

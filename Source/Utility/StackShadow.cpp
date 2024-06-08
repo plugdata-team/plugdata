@@ -2,7 +2,6 @@
 #include "NVGSurface.h"
 #include <melatonin_blur/melatonin_blur.h>
 
-
 StackShadow::StackShadow()
 {
     dropShadow = new melatonin::DropShadow();
@@ -23,10 +22,9 @@ void StackShadow::renderDropShadow(juce::Graphics& g, juce::Path const& path, ju
     dropShadow->render(g, path);
 }
 
-
 NVGImage StackShadow::createActivityDropShadowImage(NVGcontext* nvg, juce::Rectangle<int> bounds, juce::Path const& path, juce::Colour color, int radius, juce::Point<int> offset, int spread, bool isCanvas)
 {
-    return NVGImage(nvg, bounds.getWidth(), bounds.getHeight(), [=](Graphics& g){
+    return NVGImage(nvg, bounds.getWidth(), bounds.getHeight(), [=](Graphics& g) {
         // make a hole in the middle of the dropshadow so that GOP doesn't render internal activity shadow
         if (isCanvas) {
             Path outside;

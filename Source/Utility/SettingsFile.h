@@ -49,7 +49,7 @@ public:
     void initialiseOverlayTree();
 
     void reloadSettings();
-        
+
     void fileChanged(File const file, FileSystemWatcher::FileSystemEvent fileEvent) override;
 
     void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, Identifier const& property) override;
@@ -88,7 +88,7 @@ public:
 
 private:
     bool isInitialised = false;
-        
+
     FileSystemWatcher settingsFileWatcher;
 
     Array<SettingsFileListener*> listeners;

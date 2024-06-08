@@ -5,19 +5,19 @@
  */
 
 // Inherit to customise drawing
-class MIDIKeyboard : public MidiKeyboardState, public MidiKeyboardComponent {
+class MIDIKeyboard : public MidiKeyboardState
+    , public MidiKeyboardComponent {
     bool toggleMode = false;
     int lastKey = -1;
-    
+
 public:
-    
     int clickedKey = -1;
-    
+
     std::set<int> heldKeys;
     std::set<int> toggledKeys;
     std::function<void(int, int)> noteOn;
     std::function<void(int)> noteOff;
-    
+
     MIDIKeyboard(Object* parent)
         : MidiKeyboardComponent(*this, MidiKeyboardComponent::horizontalKeyboard)
     {
@@ -55,7 +55,7 @@ public:
     bool mouseDownOnKey(int midiNoteNumber, MouseEvent const& e) override
     {
         clickedKey = midiNoteNumber;
-        
+
         if (e.mods.isShiftDown()) {
             if (toggledKeys.count(midiNoteNumber)) {
                 toggledKeys.erase(midiNoteNumber);
@@ -86,7 +86,7 @@ public:
     bool mouseDraggedToKey(int midiNoteNumber, MouseEvent const& e) override
     {
         clickedKey = midiNoteNumber;
-        
+
         if (!toggleMode && !e.mods.isShiftDown() && !heldKeys.count(midiNoteNumber)) {
             for (auto& note : heldKeys) {
                 noteOff(note);
@@ -114,7 +114,7 @@ public:
     void mouseUp(MouseEvent const& e) override
     {
         clickedKey = -1;
-        
+
         if (!toggleMode && !e.mods.isShiftDown()) {
             heldKeys.erase(lastKey);
             noteOff(lastKey);
@@ -220,7 +220,7 @@ class KeyboardObject final : public ObjectBase
 
     MIDIKeyboard keyboard;
     int keyRatio = 5;
-        
+
     std::unique_ptr<NanoVGGraphicsContext> nvgCtx = nullptr;
 
 public:
@@ -276,7 +276,7 @@ public:
             octaves.setValue(obj->x_octaves);
             toggleMode.setValue(obj->x_toggle_mode);
             sizeProperty.setValue(obj->x_height);
-            
+
             auto sndSym = obj->x_snd_set ? String::fromUTF8(obj->x_snd_raw->s_name) : getBinbufSymbol(7);
             auto rcvSym = obj->x_rcv_set ? String::fromUTF8(obj->x_rcv_raw->s_name) : getBinbufSymbol(8);
 
@@ -284,20 +284,21 @@ public:
             receiveSymbol = rcvSym != "empty" ? rcvSym : "";
 
             MessageManager::callAsync([_this = SafePointer(this)] {
-                if(_this) {
+                if (_this) {
                     _this->updateAspectRatio();
                     // Call async to make sure pd obj has updated
                     _this->object->updateBounds();
                 }
             });
         }
-        
+
         keyboard.setToggleMode(getValue<bool>(toggleMode));
     }
-        
+
     void render(NVGcontext* nvg) override
     {
-        if(!nvgCtx || nvgCtx->getContext() != nvg) nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
+        if (!nvgCtx || nvgCtx->getContext() != nvg)
+            nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
         Graphics g(*nvgCtx);
         {
             paintEntireComponent(g, true);
@@ -453,7 +454,7 @@ public:
         auto elseKeyboard = ptr.get<t_fake_keyboard>();
 
         switch (symbol) {
-            case hash("float"): {
+        case hash("float"): {
             auto note = std::clamp<int>(atoms[0].getFloat(), 0, 128);
             noteOn(atoms[0].getFloat(), elseKeyboard->x_tgl_notes[note]);
             break;

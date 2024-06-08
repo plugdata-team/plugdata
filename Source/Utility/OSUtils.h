@@ -32,7 +32,7 @@ struct OSUtils {
 #endif
 
     static juce::Array<juce::File> iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles, int maximum = -1);
-    
+
     static KeyboardLayout getKeyboardLayout();
 
 #if JUCE_MAC || JUCE_IOS
@@ -92,6 +92,6 @@ struct OSUtils {
     static bool isIPad();
     static void showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(int)> callback);
     static void showMobileCanvasMenu(juce::ComponentPeer* peer, std::function<void(int)> callback);
-    
+
 #endif
 };

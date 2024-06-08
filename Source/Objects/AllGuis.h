@@ -230,59 +230,59 @@ struct t_fake_keyboard {
 
 // [else/knob]
 struct t_fake_knob {
-    t_object        x_obj;
-    void           *x_proxy;
-    t_glist        *x_glist;
-    int             x_ctrl;
-    int             x_size;
-    double          x_pos;          // 0-1 normalized position
-    t_float         x_exp;
-    int             x_expmode;
-    int             x_log;
-    t_float         x_load;         // value when loading patch
-    t_float         x_start;        // arc start value
-    int             x_start_angle;
-    int             x_end_angle;
-    int             x_range;
-    int             x_offset;
-    int             x_ticks;
-    int             x_outline;
-    double          x_min;
-    double          x_max;
-    int             x_clicked;
-    int             x_sel;
-    int             x_shift;
-    int             x_edit;
-    int             x_jump;
-    double          x_fval;
-    t_symbol       *x_fg;
-    t_symbol       *x_mg;
-    t_symbol       *x_bg;
-    t_symbol       *x_snd;
-    t_symbol       *x_snd_raw;
-    int             x_flag;
-    int             x_r_flag;
-    int             x_s_flag;
-    int             x_rcv_set;
-    int             x_snd_set;
-    t_symbol       *x_rcv;
-    t_symbol       *x_rcv_raw;
-    int             x_circular;
-    int             x_arc;
-    int             x_zoom;
-    int             x_discrete;
-    char            x_tag_obj[128];
-    char            x_tag_circle[128];
-    char            x_tag_bg_arc[128];
-    char            x_tag_arc[128];
-    char            x_tag_center[128];
-    char            x_tag_wiper[128];
-    char            x_tag_wpr_c[128];
-    char            x_tag_ticks[128];
-    char            x_tag_outline[128];
-    char            x_tag_in[128];
-    char            x_tag_out[128];
-    char            x_tag_sel[128];
+    t_object x_obj;
+    void* x_proxy;
+    t_glist* x_glist;
+    int x_ctrl;
+    int x_size;
+    double x_pos; // 0-1 normalized position
+    t_float x_exp;
+    int x_expmode;
+    int x_log;
+    t_float x_load;  // value when loading patch
+    t_float x_start; // arc start value
+    int x_start_angle;
+    int x_end_angle;
+    int x_range;
+    int x_offset;
+    int x_ticks;
+    int x_outline;
+    double x_min;
+    double x_max;
+    int x_clicked;
+    int x_sel;
+    int x_shift;
+    int x_edit;
+    int x_jump;
+    double x_fval;
+    t_symbol* x_fg;
+    t_symbol* x_mg;
+    t_symbol* x_bg;
+    t_symbol* x_snd;
+    t_symbol* x_snd_raw;
+    int x_flag;
+    int x_r_flag;
+    int x_s_flag;
+    int x_rcv_set;
+    int x_snd_set;
+    t_symbol* x_rcv;
+    t_symbol* x_rcv_raw;
+    int x_circular;
+    int x_arc;
+    int x_zoom;
+    int x_discrete;
+    char x_tag_obj[128];
+    char x_tag_circle[128];
+    char x_tag_bg_arc[128];
+    char x_tag_arc[128];
+    char x_tag_center[128];
+    char x_tag_wiper[128];
+    char x_tag_wpr_c[128];
+    char x_tag_ticks[128];
+    char x_tag_outline[128];
+    char x_tag_in[128];
+    char x_tag_out[128];
+    char x_tag_sel[128];
 };
 
 // [else/messbox]

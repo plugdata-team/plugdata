@@ -99,26 +99,28 @@ public:
     {
         auto* target = options.getTargetComponent();
         auto* parent = options.getParentComponent();
-        
+
         auto* arrow = new ArrowPopupMenu(target);
 
         menu->showMenuAsync(options, [userCallback, arrow](int result) {
-            if(arrow->isOnDesktop()) arrow->removeFromDesktop();
+            if (arrow->isOnDesktop())
+                arrow->removeFromDesktop();
             delete arrow;
             userCallback(result);
         });
-        
-        if(ProjectInfo::canUseSemiTransparentWindows()) {
+
+        if (ProjectInfo::canUseSemiTransparentWindows()) {
             if (auto* popupMenuComponent = Component::getCurrentlyModalComponent(0)) {
                 arrow->attachToMenu(popupMenuComponent, parent);
             }
         }
     }
-        
-    void componentBroughtToFront (Component& c) override
+
+    void componentBroughtToFront(Component& c) override
     {
-        MessageManager::callAsync([_this = SafePointer(this)](){
-            if(_this && _this->isOnDesktop()) _this->toFront(false);
+        MessageManager::callAsync([_this = SafePointer(this)]() {
+            if (_this && _this->isOnDesktop())
+                _this->toFront(false);
         });
     }
 

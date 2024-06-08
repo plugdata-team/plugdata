@@ -7,33 +7,32 @@
 
 //==============================================================================
 
-const static auto allPrintableAsciiCharacters = []() -> juce::String {
+static auto const allPrintableAsciiCharacters = []() -> juce::String {
     juce::String str;
 
     // Only map printable characters
     for (juce::juce_wchar c = 32; c < 127; ++c)
-        str += juce::String::charToString (c);
+        str += juce::String::charToString(c);
 
     return str;
 }();
 
-const static int maxImageCacheSize = 256;
+static int const maxImageCacheSize = 256;
 
-static NVGcolor nvgColour (const juce::Colour& c)
+static NVGcolor nvgColour(juce::Colour const& c)
 {
-    return nvgRGBA (c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
+    return nvgRGBA(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
 }
 
-static uint64_t getImageHash (const juce::Image& image)
+static uint64_t getImageHash(juce::Image const& image)
 {
-    juce::Image::BitmapData src (image, juce::Image::BitmapData::readOnly);
-    return (uint64_t) src.data;
+    juce::Image::BitmapData src(image, juce::Image::BitmapData::readOnly);
+    return (uint64_t)src.data;
 }
 
-static const char* getResourceByFileName(const juce::String& fileName, int& size)
+static char const* getResourceByFileName(juce::String const& fileName, int& size)
 {
-    for (int i = 0; i < BinaryData::namedResourceListSize; ++i)
-    {
+    for (int i = 0; i < BinaryData::namedResourceListSize; ++i) {
         if (juce::String(BinaryData::originalFilenames[i]) == fileName)
             return BinaryData::getNamedResource(BinaryData::namedResourceList[i], size);
     }
@@ -43,13 +42,12 @@ static const char* getResourceByFileName(const juce::String& fileName, int& size
 
 //==============================================================================
 
-const int NanoVGGraphicsContext::imageCacheSize = 256;
+int const NanoVGGraphicsContext::imageCacheSize = 256;
 
 //==============================================================================
 
-
-NanoVGGraphicsContext::NanoVGGraphicsContext (NVGcontext* nativeHandle) :
-      nvg(nativeHandle)
+NanoVGGraphicsContext::NanoVGGraphicsContext(NVGcontext* nativeHandle)
+    : nvg(nativeHandle)
 {
     jassert(nvg);
     nvgGlobalCompositeOperation(nvg, NVG_SOURCE_OVER);
@@ -61,49 +59,49 @@ NanoVGGraphicsContext::~NanoVGGraphicsContext()
 
 bool NanoVGGraphicsContext::isVectorDevice() const { return false; }
 
-void NanoVGGraphicsContext::setOrigin (juce::Point<int> origin)
+void NanoVGGraphicsContext::setOrigin(juce::Point<int> origin)
 {
-    nvgTranslate (nvg, origin.getX(), origin.getY());
+    nvgTranslate(nvg, origin.getX(), origin.getY());
 }
 
-void NanoVGGraphicsContext::addTransform (const juce::AffineTransform& t)
+void NanoVGGraphicsContext::addTransform(juce::AffineTransform const& t)
 {
-    nvgTransform (nvg, t.mat00, t.mat10, t.mat01, t.mat11, t.mat02, t.mat12);
+    nvgTransform(nvg, t.mat00, t.mat10, t.mat01, t.mat11, t.mat02, t.mat12);
 }
 
 float NanoVGGraphicsContext::getPhysicalPixelScaleFactor() { return scale; }
 
-void NanoVGGraphicsContext::setPhysicalPixelScaleFactor(float newScale) { scale = newScale; } 
+void NanoVGGraphicsContext::setPhysicalPixelScaleFactor(float newScale) { scale = newScale; }
 
-bool NanoVGGraphicsContext::clipToRectangle (const juce::Rectangle<int>& rect)
+bool NanoVGGraphicsContext::clipToRectangle(juce::Rectangle<int> const& rect)
 {
-    nvgIntersectScissor (nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
+    nvgIntersectScissor(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
     return !getClipBounds().isEmpty();
 }
 
-bool NanoVGGraphicsContext::clipToRectangleList (const juce::RectangleList<int>& rects)
+bool NanoVGGraphicsContext::clipToRectangleList(juce::RectangleList<int> const& rects)
 {
     auto rect = rects.getBounds();
-    nvgIntersectScissor (nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
-    return ! getClipBounds().isEmpty();
+    nvgIntersectScissor(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
+    return !getClipBounds().isEmpty();
 }
 
-void NanoVGGraphicsContext::excludeClipRectangle (const juce::Rectangle<int>& rectangle)
+void NanoVGGraphicsContext::excludeClipRectangle(juce::Rectangle<int> const& rectangle)
 {
     juce::RectangleList<int> rectangles;
     rectangles.add(getClipBounds());
     rectangles.subtract(rectangle);
-    
+
     clipToRectangleList(rectangles);
 }
 
-void NanoVGGraphicsContext::clipToPath (const juce::Path& path, const juce::AffineTransform& t)
+void NanoVGGraphicsContext::clipToPath(juce::Path const& path, juce::AffineTransform const& t)
 {
-    const auto rect = path.getBoundsTransformed (t);
-    nvgIntersectScissor (nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
+    auto const rect = path.getBoundsTransformed(t);
+    nvgIntersectScissor(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
 }
 
-void NanoVGGraphicsContext::clipToImageAlpha (const juce::Image& sourceImage, const juce::AffineTransform& transform)
+void NanoVGGraphicsContext::clipToImageAlpha(juce::Image const& sourceImage, juce::AffineTransform const& transform)
 {
     if (!transform.isSingularity()) {
         // Convert the image to a single-channel image if necessary
@@ -120,7 +118,7 @@ void NanoVGGraphicsContext::clipToImageAlpha (const juce::Image& sourceImage, co
         int height = singleChannelImage.getHeight();
         auto image = nvgCreateImageRGBA(nvg, width, height, 0, pixelData);
         auto paint = nvgImagePattern(nvg, 0, 0, width, height, 0, image, 1);
-        
+
         nvgSave(nvg);
         nvgTransform(nvg, transform.mat00, transform.mat10, transform.mat01, transform.mat11, transform.mat02, transform.mat12);
         nvgScale(nvg, 1.0f, -1.0f);
@@ -138,16 +136,15 @@ void NanoVGGraphicsContext::clipToImageAlpha (const juce::Image& sourceImage, co
     }
 }
 
-
-bool NanoVGGraphicsContext::clipRegionIntersects (const juce::Rectangle<int>& rect)
+bool NanoVGGraphicsContext::clipRegionIntersects(juce::Rectangle<int> const& rect)
 {
     auto clip = getClipBounds();
-    return clip.intersects (rect);
+    return clip.intersects(rect);
 }
 
 juce::Rectangle<int> NanoVGGraphicsContext::getClipBounds() const
 {
-    //auto scissorBounds = nvgCurrentScissor(nvg); TODO: fix this!
+    // auto scissorBounds = nvgCurrentScissor(nvg); TODO: fix this!
     return juce::Rectangle<int>(0, 0, 999999, 999999);
 }
 
@@ -160,18 +157,18 @@ bool NanoVGGraphicsContext::isClipEmpty() const
 
 void NanoVGGraphicsContext::saveState()
 {
-    nvgSave (nvg);
+    nvgSave(nvg);
 }
 
 void NanoVGGraphicsContext::restoreState()
 {
-    nvgRestore (nvg);
+    nvgRestore(nvg);
 }
 
-void NanoVGGraphicsContext::beginTransparencyLayer (float op)
+void NanoVGGraphicsContext::beginTransparencyLayer(float op)
 {
     saveState();
-    nvgGlobalAlpha (nvg, op);
+    nvgGlobalAlpha(nvg, op);
 }
 
 void NanoVGGraphicsContext::endTransparencyLayer()
@@ -179,45 +176,35 @@ void NanoVGGraphicsContext::endTransparencyLayer()
     restoreState();
 }
 
-void NanoVGGraphicsContext::setFill (const juce::FillType& fillType)
+void NanoVGGraphicsContext::setFill(juce::FillType const& fillType)
 {
-    if (fillType.isColour())
-    {
-        auto c = nvgColour (fillType.colour);
-        nvgFillColor (nvg, c);
-        nvgStrokeColor (nvg, c);
-    }
-    else if (fillType.isGradient())
-    {
-        if (juce::ColourGradient* gradient = fillType.gradient.get())
-        {
-            const auto numColours = gradient->getNumColours();
+    if (fillType.isColour()) {
+        auto c = nvgColour(fillType.colour);
+        nvgFillColor(nvg, c);
+        nvgStrokeColor(nvg, c);
+    } else if (fillType.isGradient()) {
+        if (juce::ColourGradient* gradient = fillType.gradient.get()) {
+            auto const numColours = gradient->getNumColours();
 
-            if (numColours == 1)
-            {
+            if (numColours == 1) {
                 // Just a solid fill
-                nvgFillColor (nvg, nvgColour (gradient->getColour (0)));
-            }
-            else if (numColours > 1)
-            {
+                nvgFillColor(nvg, nvgColour(gradient->getColour(0)));
+            } else if (numColours > 1) {
                 NVGpaint p;
 
-                if (gradient->isRadial)
-                {
-                    p = nvgRadialGradient (nvg,
-                                           gradient->point1.getX(), gradient->point1.getY(),
-                                           gradient->point2.getX(), gradient->point2.getY(),
-                                           nvgColour (gradient->getColour (0)), nvgColour (gradient->getColour (numColours - 1)));
-                }
-                else
-                {
-                    p = nvgLinearGradient (nvg,
-                                           gradient->point1.getX(), gradient->point1.getY(),
-                                           gradient->point2.getX(), gradient->point2.getY(),
-                                           nvgColour (gradient->getColour (0)), nvgColour (gradient->getColour (numColours - 1)));
+                if (gradient->isRadial) {
+                    p = nvgRadialGradient(nvg,
+                        gradient->point1.getX(), gradient->point1.getY(),
+                        gradient->point2.getX(), gradient->point2.getY(),
+                        nvgColour(gradient->getColour(0)), nvgColour(gradient->getColour(numColours - 1)));
+                } else {
+                    p = nvgLinearGradient(nvg,
+                        gradient->point1.getX(), gradient->point1.getY(),
+                        gradient->point2.getX(), gradient->point2.getY(),
+                        nvgColour(gradient->getColour(0)), nvgColour(gradient->getColour(numColours - 1)));
                 }
 
-                nvgFillPaint (nvg, p);
+                nvgFillPaint(nvg, p);
             }
         }
     }
@@ -232,46 +219,56 @@ void NanoVGGraphicsContext::setOpacity(float op)
     nvgStrokeColor(nvg, c); */
 }
 
-void NanoVGGraphicsContext::setInterpolationQuality (juce::Graphics::ResamplingQuality)
+void NanoVGGraphicsContext::setInterpolationQuality(juce::Graphics::ResamplingQuality)
 {
     // @todo
 }
 
-void NanoVGGraphicsContext::fillRect (const juce::Rectangle<int>& rect, bool /* replaceExistingContents */)
+void NanoVGGraphicsContext::fillRect(juce::Rectangle<int> const& rect, bool /* replaceExistingContents */)
 {
-    nvgBeginPath (nvg);
-    nvgRect (nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
-    nvgFill (nvg);
+    nvgBeginPath(nvg);
+    nvgRect(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
+    nvgFill(nvg);
 }
 
-void NanoVGGraphicsContext::fillRect (const juce::Rectangle<float>& rect)
+void NanoVGGraphicsContext::fillRect(juce::Rectangle<float> const& rect)
 {
-    nvgBeginPath (nvg);
-    nvgRect (nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
-    nvgFill (nvg);
+    nvgBeginPath(nvg);
+    nvgRect(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
+    nvgFill(nvg);
 }
 
-void NanoVGGraphicsContext::fillRectList (const juce::RectangleList<float>& rects)
+void NanoVGGraphicsContext::fillRectList(juce::RectangleList<float> const& rects)
 {
-    for (const auto& rect : rects)
-        fillRect (rect);
+    for (auto const& rect : rects)
+        fillRect(rect);
 }
 
-void NanoVGGraphicsContext::strokePath (const juce::Path& path, const juce::PathStrokeType& strokeType, const juce::AffineTransform& transform)
+void NanoVGGraphicsContext::strokePath(juce::Path const& path, juce::PathStrokeType const& strokeType, juce::AffineTransform const& transform)
 {
     // First set options
-    switch (strokeType.getEndStyle())
-    {
-        case juce::PathStrokeType::EndCapStyle::butt:     nvgLineCap(nvg, NVG_BUTT);     break;
-        case juce::PathStrokeType::EndCapStyle::rounded:  nvgLineCap(nvg, NVG_ROUND);    break;
-        case juce::PathStrokeType::EndCapStyle::square:   nvgLineCap(nvg, NVG_SQUARE);   break;
+    switch (strokeType.getEndStyle()) {
+    case juce::PathStrokeType::EndCapStyle::butt:
+        nvgLineCap(nvg, NVG_BUTT);
+        break;
+    case juce::PathStrokeType::EndCapStyle::rounded:
+        nvgLineCap(nvg, NVG_ROUND);
+        break;
+    case juce::PathStrokeType::EndCapStyle::square:
+        nvgLineCap(nvg, NVG_SQUARE);
+        break;
     }
 
-    switch (strokeType.getJointStyle())
-    {
-        case juce::PathStrokeType::JointStyle::mitered: nvgLineJoin(nvg, NVG_MITER);   break;
-        case juce::PathStrokeType::JointStyle::curved:  nvgLineJoin(nvg, NVG_ROUND);   break;
-        case juce::PathStrokeType::JointStyle::beveled: nvgLineJoin(nvg, NVG_BEVEL);   break;
+    switch (strokeType.getJointStyle()) {
+    case juce::PathStrokeType::JointStyle::mitered:
+        nvgLineJoin(nvg, NVG_MITER);
+        break;
+    case juce::PathStrokeType::JointStyle::curved:
+        nvgLineJoin(nvg, NVG_ROUND);
+        break;
+    case juce::PathStrokeType::JointStyle::beveled:
+        nvgLineJoin(nvg, NVG_BEVEL);
+        break;
     }
 
     nvgStrokeWidth(nvg, strokeType.getStrokeThickness());
@@ -280,108 +277,99 @@ void NanoVGGraphicsContext::strokePath (const juce::Path& path, const juce::Path
     nvgStroke(nvg);
 }
 
-void NanoVGGraphicsContext::setPath (const juce::Path& path, const juce::AffineTransform& transform)
+void NanoVGGraphicsContext::setPath(juce::Path const& path, juce::AffineTransform const& transform)
 {
-    juce::Path p (path);
-    p.applyTransform (transform);
+    juce::Path p(path);
+    p.applyTransform(transform);
 
-    nvgBeginPath (nvg);
+    nvgBeginPath(nvg);
 
-    juce::Path::Iterator i (p);
+    juce::Path::Iterator i(p);
 
     // Flag is used to flip winding when drawing shapes with holes.
     bool solid = true;
     nvgPathWinding(nvg, NVG_SOLID);
-    
-    while (i.next())
-    {
-        switch (i.elementType)
-        {
-            case juce::Path::Iterator::startNewSubPath:
-                nvgMoveTo (nvg, i.x1, i.y1);
-                break;
-            case juce::Path::Iterator::lineTo:
-                nvgLineTo (nvg, i.x1, i.y1);
-                break;
-            case juce::Path::Iterator::quadraticTo:
-                nvgQuadTo (nvg, i.x1, i.y1, i.x2, i.y2);
-                break;
-            case juce::Path::Iterator::cubicTo:
-                nvgBezierTo (nvg, i.x1, i.y1, i.x2, i.y2, i.x3, i.y3);
-                break;
-            case juce::Path::Iterator::closePath:
-                nvgClosePath (nvg);
-                nvgPathWinding (nvg, solid ? NVG_SOLID : NVG_HOLE);
-                solid = ! solid;
-                break;
+
+    while (i.next()) {
+        switch (i.elementType) {
+        case juce::Path::Iterator::startNewSubPath:
+            nvgMoveTo(nvg, i.x1, i.y1);
+            break;
+        case juce::Path::Iterator::lineTo:
+            nvgLineTo(nvg, i.x1, i.y1);
+            break;
+        case juce::Path::Iterator::quadraticTo:
+            nvgQuadTo(nvg, i.x1, i.y1, i.x2, i.y2);
+            break;
+        case juce::Path::Iterator::cubicTo:
+            nvgBezierTo(nvg, i.x1, i.y1, i.x2, i.y2, i.x3, i.y3);
+            break;
+        case juce::Path::Iterator::closePath:
+            nvgClosePath(nvg);
+            nvgPathWinding(nvg, solid ? NVG_SOLID : NVG_HOLE);
+            solid = !solid;
+            break;
         default:
             break;
         }
     }
 }
 
-void NanoVGGraphicsContext::fillPath (const juce::Path& path, const juce::AffineTransform& transform)
+void NanoVGGraphicsContext::fillPath(juce::Path const& path, juce::AffineTransform const& transform)
 {
     setPath(path, transform);
-    nvgFill (nvg);
+    nvgFill(nvg);
 }
 
-void NanoVGGraphicsContext::drawImage (const juce::Image& image, const juce::AffineTransform& t)
+void NanoVGGraphicsContext::drawImage(juce::Image const& image, juce::AffineTransform const& t)
 {
-    if (image.isARGB())
-    {
-        juce::Image::BitmapData srcData (image, juce::Image::BitmapData::readOnly);
-        auto id = getNvgImageId (image);
-        
+    if (image.isARGB()) {
+        juce::Image::BitmapData srcData(image, juce::Image::BitmapData::readOnly);
+        auto id = getNvgImageId(image);
+
         if (id < 0)
             return; // invalid image.
-        
-        juce::Rectangle<float> rect (0.0f, 0.0f, image.getWidth(), image.getHeight());
 
-        //rect = rect.transformedBy (t);
+        juce::Rectangle<float> rect(0.0f, 0.0f, image.getWidth(), image.getHeight());
 
-        NVGpaint imgPaint = nvgImagePattern (nvg,
-                                             0, 0,
-                                             rect.getWidth(), rect.getHeight(),
-                                             0.0f,   // angle
-                                             id,
-                                             1.0f    // alpha
-                                             );
+        // rect = rect.transformedBy (t);
+
+        NVGpaint imgPaint = nvgImagePattern(nvg,
+            0, 0,
+            rect.getWidth(), rect.getHeight(),
+            0.0f, // angle
+            id,
+            1.0f // alpha
+        );
 
         nvgSave(nvg);
-        nvgTransform (nvg, t.mat00, t.mat10, t.mat01, t.mat11, t.mat02, t.mat12);
-        nvgBeginPath (nvg);
-        nvgRect (nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
-        nvgFillPaint (nvg, imgPaint);
-        nvgFill (nvg);
+        nvgTransform(nvg, t.mat00, t.mat10, t.mat01, t.mat11, t.mat02, t.mat12);
+        nvgBeginPath(nvg);
+        nvgRect(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
+        nvgFillPaint(nvg, imgPaint);
+        nvgFill(nvg);
         nvgRestore(nvg);
-    }
-    else if(image.isRGB()){
-        
-        auto argbImage = juce::Image (juce::Image::ARGB, image.getWidth(), image.getHeight(), true);
-        
+    } else if (image.isRGB()) {
+
+        auto argbImage = juce::Image(juce::Image::ARGB, image.getWidth(), image.getHeight(), true);
+
         // TODO: can this be done more efficiently?
-        for (int y = 0; y < image.getHeight(); ++y)
-        {
-            for (int x = 0; x < image.getWidth(); ++x)
-            {
-                argbImage.setPixelAt (x, y, image.getPixelAt (x, y).withAlpha(1.0f));
+        for (int y = 0; y < image.getHeight(); ++y) {
+            for (int x = 0; x < image.getWidth(); ++x) {
+                argbImage.setPixelAt(x, y, image.getPixelAt(x, y).withAlpha(1.0f));
             }
         }
 
         // Render using ARGB image data
         drawImage(argbImage, t);
-    }
-    else if(image.isSingleChannel()){
-        
-        auto argbImage = juce::Image (juce::Image::ARGB, image.getWidth(), image.getHeight(), true);
-        
-        for (int y = 0; y < image.getHeight(); ++y)
-        {
-            for (int x = 0; x < image.getWidth(); ++x)
-            {
-                const auto alpha = image.getPixelAt (x, y).getAlpha();
-                argbImage.setPixelAt (x, y, juce::Colour::fromRGBA(0, 0, 0, alpha));
+    } else if (image.isSingleChannel()) {
+
+        auto argbImage = juce::Image(juce::Image::ARGB, image.getWidth(), image.getHeight(), true);
+
+        for (int y = 0; y < image.getHeight(); ++y) {
+            for (int x = 0; x < image.getWidth(); ++x) {
+                auto const alpha = image.getPixelAt(x, y).getAlpha();
+                argbImage.setPixelAt(x, y, juce::Colour::fromRGBA(0, 0, 0, alpha));
             }
         }
 
@@ -390,15 +378,15 @@ void NanoVGGraphicsContext::drawImage (const juce::Image& image, const juce::Aff
     }
 }
 
-void NanoVGGraphicsContext::drawLine (const juce::Line<float>& line)
+void NanoVGGraphicsContext::drawLine(juce::Line<float> const& line)
 {
-    nvgBeginPath (nvg);
-    nvgMoveTo (nvg, line.getStartX(), line.getStartY());
-    nvgLineTo (nvg, line.getEndX(), line.getEndY());
-    nvgStroke (nvg);
+    nvgBeginPath(nvg);
+    nvgMoveTo(nvg, line.getStartX(), line.getStartY());
+    nvgLineTo(nvg, line.getEndX(), line.getEndY());
+    nvgStroke(nvg);
 }
 
-void NanoVGGraphicsContext::setFont (const juce::Font& f)
+void NanoVGGraphicsContext::setFont(juce::Font const& f)
 {
     font = f;
     auto typefaceName = font.getTypefacePtr()->getName();
@@ -406,46 +394,45 @@ void NanoVGGraphicsContext::setFont (const juce::Font& f)
         typefaceName = typefaceName.replace(" ", "-");
     else
         typefaceName += "-" + font.getTypefaceStyle();
-    
-    if (!loadedFonts.count(typefaceName))
-    {
+
+    if (!loadedFonts.count(typefaceName)) {
         loadedFonts[typefaceName] = getGlyphToCharMapForFont(f);
     }
-    
+
     currentGlyphToCharMap = &loadedFonts[typefaceName];
-    
+
     nvgFontFace(nvg, typefaceName.toUTF8());
-    nvgFontSize (nvg, font.getHeight()  * 0.862f);
+    nvgFontSize(nvg, font.getHeight() * 0.862f);
     nvgTextLetterSpacing(nvg, -0.275f);
 }
 
-const juce::Font& NanoVGGraphicsContext::getFont()
+juce::Font const& NanoVGGraphicsContext::getFont()
 {
     return font;
 }
 
-void NanoVGGraphicsContext::drawGlyph (int glyphNumber, const juce::AffineTransform& transform)
+void NanoVGGraphicsContext::drawGlyph(int glyphNumber, juce::AffineTransform const& transform)
 {
-    char txt[2] = {'?', 0};
-    
-    if (currentGlyphToCharMap->find (glyphNumber) != currentGlyphToCharMap->end())
-        txt[0] = (char)currentGlyphToCharMap->at (glyphNumber);
-    
+    char txt[2] = { '?', 0 };
+
+    if (currentGlyphToCharMap->find(glyphNumber) != currentGlyphToCharMap->end())
+        txt[0] = (char)currentGlyphToCharMap->at(glyphNumber);
+
     nvgSave(nvg);
     setFont(getFont());
-    nvgTransform (nvg, transform.mat00, transform.mat10, transform.mat01, transform.mat11, transform.mat02, transform.mat12);
-    nvgTextAlign (nvg, NVG_ALIGN_BASELINE | NVG_ALIGN_LEFT);
-    nvgText (nvg, 0, 1, txt, &txt[1]);
+    nvgTransform(nvg, transform.mat00, transform.mat10, transform.mat01, transform.mat11, transform.mat02, transform.mat12);
+    nvgTextAlign(nvg, NVG_ALIGN_BASELINE | NVG_ALIGN_LEFT);
+    nvgText(nvg, 0, 1, txt, &txt[1]);
     nvgRestore(nvg);
 }
 
-bool NanoVGGraphicsContext::drawTextLayout (const juce::AttributedString& str, const juce::Rectangle<float>& rect)
+bool NanoVGGraphicsContext::drawTextLayout(juce::AttributedString const& str, juce::Rectangle<float> const& rect)
 {
-    nvgSave (nvg);
-    nvgIntersectScissor (nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
+    nvgSave(nvg);
+    nvgIntersectScissor(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
 
-    const std::string text = str.getText().toStdString();
-    const char* textPtr = text.c_str();
+    std::string const text = str.getText().toStdString();
+    char const* textPtr = text.c_str();
 
     // NOTE:
     // This will not perform the correct rendering when JUCE's assumed font
@@ -460,105 +447,103 @@ bool NanoVGGraphicsContext::drawTextLayout (const juce::AttributedString& str, c
     //  Monospace:  Lucida Console
 
     float x = rect.getX();
-    const float y = rect.getY();
-    
+    float const y = rect.getY();
+
     auto just = str.getJustification();
     int nvgJust = 0;
-    
-    if(just.testFlags(juce::Justification::top)) nvgJust |= NVG_ALIGN_TOP;
-    else if(just.testFlags(juce::Justification::verticallyCentred)) nvgJust |= NVG_ALIGN_MIDDLE;
-    else if(just.testFlags(juce::Justification::bottom)) nvgJust |= NVG_ALIGN_BOTTOM;
-    
-    if(just.testFlags(juce::Justification::left)) nvgJust |= NVG_ALIGN_LEFT;
-        else if(just.testFlags(juce::Justification::horizontallyCentred)) nvgJust |= NVG_ALIGN_CENTER;
-    else if(just.testFlags(juce::Justification::bottom)) nvgJust |= NVG_ALIGN_RIGHT;
-    
-    nvgTextAlign (nvg, nvgJust);
 
-    for (int i = 0; i < str.getNumAttributes(); ++i)
-    {
-        const auto attr = str.getAttribute (i);
-        setFont (attr.font);
-        nvgFillColor (nvg, nvgColour (attr.colour));
+    if (just.testFlags(juce::Justification::top))
+        nvgJust |= NVG_ALIGN_TOP;
+    else if (just.testFlags(juce::Justification::verticallyCentred))
+        nvgJust |= NVG_ALIGN_MIDDLE;
+    else if (just.testFlags(juce::Justification::bottom))
+        nvgJust |= NVG_ALIGN_BOTTOM;
 
-        const char* begin = &textPtr[attr.range.getStart()];
-        const char* end = &textPtr[attr.range.getEnd()];
+    if (just.testFlags(juce::Justification::left))
+        nvgJust |= NVG_ALIGN_LEFT;
+    else if (just.testFlags(juce::Justification::horizontallyCentred))
+        nvgJust |= NVG_ALIGN_CENTER;
+    else if (just.testFlags(juce::Justification::bottom))
+        nvgJust |= NVG_ALIGN_RIGHT;
+
+    nvgTextAlign(nvg, nvgJust);
+
+    for (int i = 0; i < str.getNumAttributes(); ++i) {
+        auto const attr = str.getAttribute(i);
+        setFont(attr.font);
+        nvgFillColor(nvg, nvgColour(attr.colour));
+
+        char const* begin = &textPtr[attr.range.getStart()];
+        char const* end = &textPtr[attr.range.getEnd()];
 
         // We assume that ranges are sorted by x so that we can move
         // to the next glyph position efficiently.
-        x = nvgText (nvg, x, y, begin, end);
+        x = nvgText(nvg, x, y, begin, end);
     }
 
-    nvgRestore (nvg);
+    nvgRestore(nvg);
     return true;
 }
 
 void NanoVGGraphicsContext::removeCachedImages()
 {
     for (auto it = images.begin(); it != images.end(); ++it)
-        nvgDeleteImage (nvg, it->second.id);
+        nvgDeleteImage(nvg, it->second.id);
 
     images.clear();
 }
 
-bool NanoVGGraphicsContext::loadFont (const juce::String& name, const char* ptr, int size)
+bool NanoVGGraphicsContext::loadFont(juce::String const& name, char const* ptr, int size)
 {
-    if (ptr != nullptr && size > 0)
-    {
-        nvgCreateFontMem (nvg, name.toRawUTF8(),
-                                         (unsigned char*)ptr, size,
-                                         0 // Tell nvg to take ownership of the font data
-                                        );
-    }
-    else
-    {
+    if (ptr != nullptr && size > 0) {
+        nvgCreateFontMem(nvg, name.toRawUTF8(),
+            (unsigned char*)ptr, size,
+            0 // Tell nvg to take ownership of the font data
+        );
+    } else {
         std::cerr << "Unable to load " << name << "\n";
         return false;
     }
-    
+
     return false;
 }
 
-bool NanoVGGraphicsContext::loadFontFromResources (const juce::String& typefaceName)
+bool NanoVGGraphicsContext::loadFontFromResources(juce::String const& typefaceName)
 {
-    auto it = loadedFonts.find (typefaceName);
+    auto it = loadedFonts.find(typefaceName);
 
-    if (it != loadedFonts.end())
-    {
+    if (it != loadedFonts.end()) {
         currentGlyphToCharMap = &it->second;
         return true;
     }
 
     int size;
-    juce::String resName {typefaceName + "_ttf"};
-    const auto* ptr {getResourceByFileName(resName, size)};
+    juce::String resName { typefaceName + "_ttf" };
+    auto const* ptr { getResourceByFileName(resName, size) };
 
     return loadFont(typefaceName, ptr, size);
 }
 
-int NanoVGGraphicsContext::getNvgImageId (const juce::Image& image)
+int NanoVGGraphicsContext::getNvgImageId(juce::Image const& image)
 {
     int id = -1;
-    const auto hash = getImageHash (image);
-    auto it = images.find (hash);
+    auto const hash = getImageHash(image);
+    auto it = images.find(hash);
 
-    if (it == images.end())
-    {
+    if (it == images.end()) {
         // Nanovg expects images in RGBA format, so we do conversion here
-        juce::Image argbImage (image);
+        juce::Image argbImage(image);
         argbImage.duplicateIfShared();
 
-        argbImage = argbImage.convertedToFormat (juce::Image::PixelFormat::ARGB);
-        juce::Image::BitmapData bitmap (argbImage, juce::Image::BitmapData::readOnly);
+        argbImage = argbImage.convertedToFormat(juce::Image::PixelFormat::ARGB);
+        juce::Image::BitmapData bitmap(argbImage, juce::Image::BitmapData::readOnly);
 
-        for (int y = 0; y < argbImage.getHeight(); ++y)
-        {
-            auto* scanLine = (juce::uint32*) bitmap.getLinePointer (y);
+        for (int y = 0; y < argbImage.getHeight(); ++y) {
+            auto* scanLine = (juce::uint32*)bitmap.getLinePointer(y);
 
-            for (int x = 0; x < argbImage.getWidth(); ++x)
-            {
+            for (int x = 0; x < argbImage.getWidth(); ++x) {
                 juce::uint32 argb = scanLine[x];
-                
+
                 juce::uint8 a = argb >> 24;
                 juce::uint8 r = argb >> 16;
                 juce::uint8 g = argb >> 8;
@@ -569,15 +554,13 @@ int NanoVGGraphicsContext::getNvgImageId (const juce::Image& image)
             }
         }
 
-        id = nvgCreateImageRGBA (nvg, argbImage.getWidth(), argbImage.getHeight(), NVG_IMAGE_PREMULTIPLIED, bitmap.data);
+        id = nvgCreateImageRGBA(nvg, argbImage.getWidth(), argbImage.getHeight(), NVG_IMAGE_PREMULTIPLIED, bitmap.data);
 
         if (images.size() >= maxImageCacheSize)
             reduceImageCache();
 
         images[hash] = { id, 1 };
-    }
-    else
-    {
+    } else {
         it->second.accessCounter++;
         id = it->second.id;
     }
@@ -589,43 +572,37 @@ void NanoVGGraphicsContext::reduceImageCache()
 {
     int minAccessCounter = 0;
 
-    for (auto it = images.begin(); it != images.end(); ++it)
-    {
+    for (auto it = images.begin(); it != images.end(); ++it) {
         minAccessCounter = minAccessCounter == 0 ? it->second.accessCounter
-                                                 : juce::jmin (minAccessCounter, it->second.accessCounter);
+                                                 : juce::jmin(minAccessCounter, it->second.accessCounter);
     }
 
     auto it = images.begin();
 
-    while (it != images.end())
-    {
-        if (it->second.accessCounter == minAccessCounter)
-        {
-            nvgDeleteImage (nvg, it->second.id);
+    while (it != images.end()) {
+        if (it->second.accessCounter == minAccessCounter) {
+            nvgDeleteImage(nvg, it->second.id);
             it = images.erase(it);
-        }
-        else
-        {
+        } else {
             it->second.accessCounter -= minAccessCounter;
             ++it;
         }
     }
 }
 
-NanoVGGraphicsContext::GlyphToCharMap NanoVGGraphicsContext::getGlyphToCharMapForFont (const juce::Font& f)
+NanoVGGraphicsContext::GlyphToCharMap NanoVGGraphicsContext::getGlyphToCharMapForFont(juce::Font const& f)
 {
     NanoVGGraphicsContext::GlyphToCharMap map;
 
-    if (auto tf = f.getTypefacePtr())
-    {
+    if (auto tf = f.getTypefacePtr()) {
         juce::Array<int> glyphs;
         juce::Array<float> offsets;
-        tf->getGlyphPositions (allPrintableAsciiCharacters, glyphs, offsets);
+        tf->getGlyphPositions(allPrintableAsciiCharacters, glyphs, offsets);
 
         // Make sure we get all the glyphs for the printable characters
-        //jassert (glyphs.size() >= allPrintableAsciiCharacters.length());
+        // jassert (glyphs.size() >= allPrintableAsciiCharacters.length());
 
-        const auto* wstr = allPrintableAsciiCharacters.toWideCharPointer();
+        auto const* wstr = allPrintableAsciiCharacters.toWideCharPointer();
 
         for (int i = 0; i < allPrintableAsciiCharacters.length(); ++i) {
             map[glyphs[i]] = wstr[i];

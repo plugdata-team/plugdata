@@ -45,7 +45,7 @@ public:
         auto fileChangedTime = patchPath.getLastModificationTime().toMilliseconds();
         if (lastAutoSavedPatch.isValid() && autoSavedTime > fileChangedTime) {
             auto timeDescription = RelativeTime((autoSavedTime - fileChangedTime) / 1000.0f).getApproximateDescription();
-            
+
             Dialogs::showOkayCancelDialog(
                 &editor->openedDialog, editor, "Restore autosave?\n (last autosave is " + timeDescription + " newer)", [lastAutoSavedPatch, patchPath, callback](bool useAutosaved) {
                     if (useAutosaved) {
@@ -79,31 +79,31 @@ private:
             return;
 
         pd->enqueueFunctionAsync([_this = WeakReference(this)]() {
-            if(_this) _this->save();
+            if (_this)
+                _this->save();
         });
     }
 
     void save()
     {
-        const ScopedTryLock stl (pd->patches.getLock());
-        if (stl.isLocked())
-        {
+        ScopedTryLock const stl(pd->patches.getLock());
+        if (stl.isLocked()) {
             for (auto& patch : pd->patches) {
                 auto* patchPtr = patch->getPointer().get();
                 if (!patchPtr->gl_dirty)
                     continue;
-                
+
                 // Check if patch is a root canvas
                 for (auto* x = pd_getcanvaslist(); x; x = x->gl_next) {
                     if (x == patchPtr) {
-                        
+
                         auto patchFile = patch->getPatchFile();
-                        
+
                         // Simple way to filter out plugdata default patches which we don't want to save.
                         if (!isInternalPatch(patchFile)) {
-                            autoSaveQueue.enqueue({ patchFile.getFullPathName(), patch->getCanvasContent()});
+                            autoSaveQueue.enqueue({ patchFile.getFullPathName(), patch->getCanvasContent() });
                         }
-                        
+
                         triggerAsyncUpdate();
                         break;
                     }
@@ -117,7 +117,6 @@ private:
         auto const pathName = patch.getFullPathName().replace("\\", "/");
         return pathName.contains("Documents/plugdata/Abstractions") || pathName.contains("Documents/plugdata/Documentation") || pathName.contains("Documents/plugdata/Extra") || patch.getParentDirectory() == File::getSpecialLocation(File::tempDirectory);
     }
-
 
     void handleAsyncUpdate() override
     {

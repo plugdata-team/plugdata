@@ -4,7 +4,8 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class BicoeffGraph : public Component, public NVGComponent {
+class BicoeffGraph : public Component
+    , public NVGComponent {
 
     float a1 = 0, a2 = 0, b0 = 1, b1 = 0, b2 = 0;
 
@@ -38,7 +39,8 @@ public:
     FilterType filterType = EQ;
 
     explicit BicoeffGraph(Object* parent)
-        : NVGComponent(this), object(parent)
+        : NVGComponent(this)
+        , object(parent)
     {
         filterWidth = 0.2f;
         filterCentre = 0.5f;
@@ -187,7 +189,7 @@ public:
     {
         update();
     }
-    
+
     void render(NVGcontext* nvg) override
     {
         auto b = getLocalBounds().reduced(0.5f);
@@ -212,7 +214,7 @@ public:
         nvgMoveTo(nvg, 0.0f, getHeight() / 2.0f);
         nvgLineTo(nvg, getWidth(), getHeight() / 2.0f);
         nvgStroke(nvg);
-        
+
         nvgStrokeWidth(nvg, 1.0f);
         nvgLineStyle(nvg, NVG_BUTT);
         setJUCEPath(nvg, magnitudePath);
@@ -534,7 +536,7 @@ public:
     {
         graph.setBounds(getLocalBounds());
     }
-    
+
     void render(NVGcontext* nvg) override
     {
         graph.render(nvg);

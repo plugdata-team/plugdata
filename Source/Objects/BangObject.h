@@ -94,11 +94,11 @@ public:
         if (!e.mods.isLeftButtonDown())
             return;
 
-        //startEdition();
-        pd->enqueueFunctionAsync<t_pd>(ptr, [](t_pd* bng){
+        // startEdition();
+        pd->enqueueFunctionAsync<t_pd>(ptr, [](t_pd* bng) {
             pd_bang(bng);
         });
-        //stopEdition();
+        // stopEdition();
 
         // Make sure we don't re-click with an accidental drag
         alreadyBanged = true;
@@ -116,11 +116,11 @@ public:
         mouseHover = false;
         repaint();
     }
-    
+
     void render(NVGcontext* nvg) override
     {
         auto b = getLocalBounds().toFloat().reduced(0.5f);
-        
+
         auto foregroundColour = convertColour(getValue<Colour>(iemHelper.primaryColour)); // TODO: this is some bad threading practice!
 
         auto bgColour = getValue<Colour>(iemHelper.secondaryColour);
@@ -134,30 +134,30 @@ public:
         auto internalLineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour));
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
-        
+
         b = b.reduced(1);
         auto const width = std::max(b.getWidth(), b.getHeight());
 
         auto const sizeReduction = std::min(1.0f, getWidth() / 20.0f);
-        
+
         float const circleOuter = 80.f * (width * 0.01f);
         float const circleThickness = std::max(width * 0.06f, 1.5f) * sizeReduction;
 
         auto outerCircleBounds = b.reduced((width - circleOuter) * sizeReduction);
-        
+
         nvgBeginPath(nvg);
         nvgCircle(nvg, b.getCentreX(), b.getCentreY(),
-                   outerCircleBounds.getWidth() / 2.0f);
+            outerCircleBounds.getWidth() / 2.0f);
         nvgStrokeColor(nvg, internalLineColour);
         nvgStrokeWidth(nvg, circleThickness);
         nvgStroke(nvg);
-        
+
         // Fill ellipse if bangState is true
         if (bangState) {
             auto innerCircleBounds = b.reduced((width - circleOuter + circleThickness) * sizeReduction);
             nvgBeginPath(nvg);
             nvgCircle(nvg, b.getCentreX(), b.getCentreY(),
-                      innerCircleBounds.getWidth() / 2.0f);
+                innerCircleBounds.getWidth() / 2.0f);
             nvgFillColor(nvg, foregroundColour);
             nvgFill(nvg);
         }
@@ -188,7 +188,8 @@ public:
         Timer::callAfterDelay(holdTime,
             [_this = SafePointer(this)]() mutable {
                 // First check if this object still exists
-                if (!_this) return;
+                if (!_this)
+                    return;
 
                 if (_this->bangState) {
                     _this->bangState = false;

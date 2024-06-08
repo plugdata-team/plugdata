@@ -12,7 +12,8 @@ void knob_get_snd(void* x);
 void knob_get_rcv(void* x);
 }
 
-class Knob : public Slider, public NVGComponent {
+class Knob : public Slider
+    , public NVGComponent {
 
     Colour fgColour;
     Colour arcColour;
@@ -24,7 +25,8 @@ class Knob : public Slider, public NVGComponent {
 
 public:
     Knob()
-    : Slider(Slider::RotaryHorizontalVerticalDrag, Slider::NoTextBox), NVGComponent(this)
+        : Slider(Slider::RotaryHorizontalVerticalDrag, Slider::NoTextBox)
+        , NVGComponent(this)
     {
         setScrollWheelEnabled(false);
         setVelocityModeParameters(1.0f, 1, 0.0f, false, ModifierKeys::shiftModifier);
@@ -55,12 +57,12 @@ public:
         }
     }
 
-    void mouseEnter(const MouseEvent& e) override
+    void mouseEnter(MouseEvent const& e) override
     {
         getParentComponent()->getProperties().set("hover", true);
     }
 
-    void mouseExit(const MouseEvent& e) override
+    void mouseExit(MouseEvent const& e) override
     {
         getParentComponent()->getProperties().set("hover", false);
     }
@@ -81,7 +83,7 @@ public:
         auto bounds = getLocalBounds().toFloat().reduced(getWidth() * 0.14f);
 
         auto const lineThickness = std::max(bounds.getWidth() * 0.09f, 1.5f);
-        
+
         auto sliderPosProportional = getValue();
 
         auto startAngle = getRotaryParameters().startAngleRadians - (MathConstants<float>::pi * 0.5f);
@@ -89,14 +91,14 @@ public:
 
         auto angle = jmap<float>(sliderPosProportional, startAngle, endAngle);
         auto centre = jmap<double>(arcStart, startAngle, endAngle);
-        
+
         startAngle = std::clamp(startAngle, endAngle - MathConstants<float>::twoPi, endAngle + MathConstants<float>::twoPi);
 
         if (drawArc) {
             auto arcBounds = bounds.reduced(lineThickness);
             auto arcRadius = arcBounds.getWidth() * 0.5;
             auto arcWidth = (arcRadius - lineThickness) / arcRadius;
-            
+
             nvgBeginPath(nvg);
             nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, startAngle, endAngle, NVG_CW);
             nvgStrokeWidth(nvg, arcWidth * lineThickness);
@@ -104,10 +106,9 @@ public:
             nvgStroke(nvg);
 
             nvgBeginPath(nvg);
-            if(centre < angle) {
+            if (centre < angle) {
                 nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, centre, angle, NVG_CW);
-            }
-            else {
+            } else {
                 nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, angle, centre, NVG_CW);
             }
             nvgStrokeColor(nvg, nvgRGBAf(fgColour.getFloatRed(), fgColour.getFloatGreen(), fgColour.getFloatBlue(), fgColour.getFloatAlpha()));
@@ -117,16 +118,16 @@ public:
 
         float wiperX = bounds.getCentreX() + (bounds.getWidth() * 0.4f) * std::cos(angle);
         float wiperY = bounds.getCentreY() + (bounds.getWidth() * 0.4f) * std::sin(angle);
-        
+
         // draw wiper
         nvgBeginPath(nvg);
-        nvgMoveTo(nvg, bounds.getCentreX(), bounds.getCentreY());  // Adjust parameters as needed
-        nvgLineTo(nvg, wiperX, wiperY);  // Adjust parameters as needed
+        nvgMoveTo(nvg, bounds.getCentreX(), bounds.getCentreY()); // Adjust parameters as needed
+        nvgLineTo(nvg, wiperX, wiperY);                           // Adjust parameters as needed
         nvgStrokeWidth(nvg, lineThickness);
         nvgStrokeColor(nvg, nvgRGBAf(fgColour.getFloatRed(), fgColour.getFloatGreen(), fgColour.getFloatBlue(), fgColour.getFloatAlpha()));
         nvgLineCap(nvg, NVG_ROUND);
         nvgStroke(nvg);
-        
+
         drawTicks(nvg, bounds, startAngle, endAngle, lineThickness);
     }
 
@@ -173,7 +174,7 @@ class KnobObject : public ObjectBase {
     Value arcStart = SynchronousValue();
 
     Value sizeProperty = SynchronousValue();
-    
+
     bool locked;
     float value = 0.0f;
 
@@ -201,27 +202,28 @@ public:
         };
 
         object->transparentHitTest = [this, object](int x, int y) -> bool {
-                if (outline.getValue()) return true;
+            if (outline.getValue())
+                return true;
 
-                // If knob is circular limit hit test to circle, and expand more if there are ticks around the knob
-                auto hitPoint = getLocalPoint(object, Point<float>(x, y));
-                auto centre = getLocalBounds().toFloat().getCentre();
-                auto knobRadius = getWidth() * 0.33f;
-                auto knobRadiusWithTicks = knobRadius + (getWidth() * 0.06f);
-                if (centre.getDistanceFrom(hitPoint) < (ticks.getValue() ? knobRadiusWithTicks : knobRadius)) {
-                    return true;
-                }
+            // If knob is circular limit hit test to circle, and expand more if there are ticks around the knob
+            auto hitPoint = getLocalPoint(object, Point<float>(x, y));
+            auto centre = getLocalBounds().toFloat().getCentre();
+            auto knobRadius = getWidth() * 0.33f;
+            auto knobRadiusWithTicks = knobRadius + (getWidth() * 0.06f);
+            if (centre.getDistanceFrom(hitPoint) < (ticks.getValue() ? knobRadiusWithTicks : knobRadius)) {
+                return true;
+            }
 
-                return false;
+            return false;
         };
 
         onConstrainerCreate = [this]() {
             constrainer->setFixedAspectRatio(1.0f);
             constrainer->setMinimumSize(this->object->minimumSize, this->object->minimumSize);
         };
-        
+
         locked = ::getValue<bool>(object->locked);
-        
+
         objectParameters.addParamSize(&sizeProperty, true);
         objectParameters.addParamFloat("Minimum", cGeneral, &min, 0.0f);
         objectParameters.addParamFloat("Maximum", cGeneral, &max, 127.0f);
@@ -472,17 +474,17 @@ public:
             auto circleBounds = getLocalBounds().toFloat().reduced(getWidth() * 0.13f);
             auto const lineThickness = std::max(circleBounds.getWidth() * 0.07f, 1.5f);
             circleBounds = circleBounds.reduced(lineThickness - 0.5f);
-            
+
             nvgFillColor(nvg, convertColour(bgColour));
             nvgBeginPath(nvg);
             nvgCircle(nvg, circleBounds.getCentreX(), circleBounds.getCentreY(), circleBounds.getWidth() / 2.0f);
             nvgFill(nvg);
-            
+
             nvgStrokeColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(objectOutlineColourId)));
             nvgStrokeWidth(nvg, 1.0f);
             nvgStroke(nvg);
         }
-        
+
         knob.render(nvg);
     }
 
@@ -774,7 +776,7 @@ public:
             updateRange();
         } else if (value.refersToSameSourceAs(outline)) {
             if (auto knb = ptr.get<t_fake_knob>()) {
-                knb->x_outline = ::getValue < bool > (outline);
+                knb->x_outline = ::getValue<bool>(outline);
             }
             repaint();
         } else if (value.refersToSameSourceAs(exponential)) {
@@ -811,7 +813,7 @@ public:
             repaint();
         }
     }
-    
+
     void lock(bool isLocked) override
     {
         ObjectBase::lock(isLocked);

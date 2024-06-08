@@ -72,13 +72,13 @@ public:
 
         while (readPos >= buffer.getNumSamples())
             readPos -= bufferSize;
-        
+
         audioBufferMutex.lock();
         for (int ch = 0; ch < std::min(2, peakBuffer.getNumChannels()); ch++) {
             // Get pointers to the source and destination data
-            const auto* srcData = buffer.getReadPointer(ch);
+            auto const* srcData = buffer.getReadPointer(ch);
             auto* destData = peakBuffer.getWritePointer(ch);
-            
+
             int readPosWrapped = (readPos + peakWindowSize) % bufferSize;
             if (readPosWrapped < peakWindowSize) {
                 // Calculate the length of the first copy operation

@@ -28,9 +28,7 @@ public:
         : ExporterBase(editor, exportingView)
     {
         Array<PropertiesPanelProperty*> properties;
-        properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, {
-            "Pod", "Petal", "Patch", "Patch.Init()", "Field", "Versio", "Terrarium", "Simple", "Custom JSON..."
-            }));
+        properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "Pod", "Petal", "Patch", "Patch.Init()", "Field", "Versio", "Terrarium", "Simple", "Custom JSON..." }));
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary", "Flash" }));
         usbMidiProperty = new PropertiesPanel::BoolComponent("USB MIDI", usbMidiValue, { "No", "Yes" });
         properties.add(usbMidiProperty);
@@ -137,8 +135,7 @@ public:
         int patchSize = getValue<int>(patchSizeValue);
         appTypeProperty->setEnabled(patchSize == 4);
 
-        if(patchSize <= 3)
-        {
+        if (patchSize <= 3) {
             appTypeValue.setValue(patchSize - 1);
         }
 

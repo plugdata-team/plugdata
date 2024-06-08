@@ -19,7 +19,7 @@ class PictureObject final : public ObjectBase {
     Image img;
     std::vector<std::pair<std::unique_ptr<NVGImage>, Rectangle<int>>> imageBuffers;
     bool imageNeedsReload = false;
-    
+
 public:
     PictureObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
@@ -45,11 +45,11 @@ public:
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
         objectParameters.addParamSendSymbol(&sendSymbol);
     }
-    
+
     ~PictureObject()
     {
     }
-    
+
     bool isTransparent() override
     {
         return true;
@@ -125,67 +125,62 @@ public:
         }
         }
     }
-    
+
     void updateImage(NVGcontext* nvg)
     {
         imageBuffers.clear();
-        
+
         int imageWidth = img.getWidth();
         int imageHeight = img.getHeight();
         int x = 0;
-        while(x < imageWidth)
-        {
+        while (x < imageWidth) {
             int y = 0;
             int width = std::min(8192, imageWidth - x);
-            while(y < imageHeight)
-            {
+            while (y < imageHeight) {
                 int height = std::min(8192, imageHeight - y);
                 auto bounds = Rectangle<int>(x, y, width, height);
                 auto clip = img.getClippedImage(bounds);
-                
-                auto partialImage = std::make_unique<NVGImage>(nvg, width, height, [&clip](Graphics& g){
+
+                auto partialImage = std::make_unique<NVGImage>(nvg, width, height, [&clip](Graphics& g) {
                     g.drawImageAt(clip, 0, 0);
                 });
 
-                partialImage->onImageInvalidate = [this](){
+                partialImage->onImageInvalidate = [this]() {
                     imageNeedsReload = true;
                     repaint();
                 };
-                
+
                 imageBuffers.emplace_back(std::move(partialImage), bounds);
                 y += 8192;
-                
             }
             x += 8192;
         }
-        
+
         imageNeedsReload = false;
     }
-    
+
     void render(NVGcontext* nvg) override
     {
-        if(imageNeedsReload) updateImage(nvg);
-        
+        if (imageNeedsReload)
+            updateImage(nvg);
+
         auto b = getLocalBounds().toFloat();
-        
+
         nvgSave(nvg);
         nvgIntersectScissor(nvg, 0, 0, getWidth(), getHeight());
-        if(imageBuffers.empty())
-        {
+        if (imageBuffers.empty()) {
             nvgFontSize(nvg, 20);
             nvgFontFace(nvg, "Inter-Regular");
             nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
             nvgFillColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId)));
             nvgText(nvg, b.getCentreX(), b.getCentreY(), "?", 0);
-        }
-        else {
-            for(auto& [image, bounds] : imageBuffers)
-            {
+        } else {
+            for (auto& [image, bounds] : imageBuffers) {
                 nvgFillPaint(nvg, nvgImagePattern(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), 0, image->getImageId(), 1.0f));
                 nvgFillRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
             }
         }
-        
+
         bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = LookAndFeel::getDefaultLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
@@ -196,7 +191,7 @@ public:
             nvgStrokeColor(nvg, convertColour(outlineColour));
             nvgStroke(nvg);
         }
-        
+
         nvgRestore(nvg);
     }
 

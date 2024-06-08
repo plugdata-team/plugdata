@@ -17,7 +17,7 @@ class GraphOnParent final : public ObjectBase {
 
     pd::Patch::Ptr subpatch;
     std::unique_ptr<Canvas> canvas;
-    
+
     CachedTextRender textRenderer;
 
 public:
@@ -57,7 +57,7 @@ public:
         updateCanvas();
     }
 
-    void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
         switch (symbol) {
         case hash("yticks"):
@@ -96,7 +96,7 @@ public:
         updateCanvas();
         updateDrawables();
     }
-    
+
     void lookAndFeelChanged() override
     {
         textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId), getWidth(), getWidth());
@@ -174,13 +174,12 @@ public:
     {
         isOpenedInSplitView = false;
         for (auto* visibleCanvas : cnv->editor->getTabComponent().getVisibleCanvases()) {
-            if(visibleCanvas->patch == *getPatch())
-            {
+            if (visibleCanvas->patch == *getPatch()) {
                 isOpenedInSplitView = true;
                 break;
             }
         }
-        
+
         updateCanvas();
         repaint();
     }
@@ -216,46 +215,47 @@ public:
 
         canvas->updateDrawables();
     }
-    
+
     void render(NVGcontext* nvg) override
     {
-         // Strangly, the title goes below the graph content in pd
-         if (!getValue<bool>(hideNameAndArgs) && getText() != "graph") {
-             auto text = getText();
-             textRenderer.renderText(nvg, Rectangle<int>(5, 0, getWidth() - 5, 16), getImageScale());
-         }
-        
+        // Strangly, the title goes below the graph content in pd
+        if (!getValue<bool>(hideNameAndArgs) && getText() != "graph") {
+            auto text = getText();
+            textRenderer.renderText(nvg, Rectangle<int>(5, 0, getWidth() - 5, 16), getImageScale());
+        }
+
         Canvas* topLevel = cnv;
-        while(auto* nextCnv = topLevel->findParentComponentOfClass<Canvas>())
-        {
+        while (auto* nextCnv = topLevel->findParentComponentOfClass<Canvas>()) {
             topLevel = nextCnv;
         }
-        
+
         auto b = getLocalBounds().toFloat();
-        if(canvas)
-        {
+        if (canvas) {
             auto invalidArea = cnv->editor->nvgSurface.getInvalidArea();
-            
-            if(topLevel->isScrolling) invalidArea = canvas->getLocalBounds();
-            else if(!invalidArea.isEmpty()) invalidArea = canvas->getLocalArea(&cnv->editor->nvgSurface, invalidArea).expanded(1);
-            else return;
-            
+
+            if (topLevel->isScrolling)
+                invalidArea = canvas->getLocalBounds();
+            else if (!invalidArea.isEmpty())
+                invalidArea = canvas->getLocalArea(&cnv->editor->nvgSurface, invalidArea).expanded(1);
+            else
+                return;
+
             nvgSave(nvg);
             nvgIntersectRoundedScissor(nvg, b.getX() + 0.75f, b.getY() + 0.75f, b.getWidth() - 1.5f, b.getHeight() - 1.5f, Corners::objectCornerRadius);
             nvgTranslate(nvg, canvas->getX(), canvas->getY());
-            canvas->performRender(nvg,  invalidArea);
+            canvas->performRender(nvg, invalidArea);
             nvgRestore(nvg);
         }
-        
+
         auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
         auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
-        
+
         nvgBeginPath(nvg);
         nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth() - 0.5f, b.getHeight() - 0.5f, Corners::objectCornerRadius);
         nvgStrokeColor(nvg, object->isSelected() ? selectedOutlineColour : outlineColour);
         nvgStrokeWidth(nvg, 1.0f);
         nvgStroke(nvg);
-        
+
         if (isOpenedInSplitView) {
             nvgFillColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId)));
             nvgFill(nvg);
@@ -267,48 +267,43 @@ public:
             nvgTextAlign(nvg, NVG_ALIGN_TOP | NVG_ALIGN_CENTER);
             nvgText(nvg, b.getCentreX(), b.getCentreY(), "Graph opened in split view", nullptr);
         }
-        
-        if(auto graph = ptr.get<t_glist>())
-        {
+
+        if (auto graph = ptr.get<t_glist>()) {
             drawTicksForGraph(nvg, graph.get(), this);
         }
     }
-    
-    
+
     static void drawTicksForGraph(NVGcontext* nvg, t_glist* x, ObjectBase* parent)
     {
         auto b = parent->getLocalBounds();
         t_float y1 = b.getY(), y2 = b.getBottom(), x1 = b.getX(), x2 = b.getRight();
 
         nvgStrokeColor(nvg, convertColour(parent->cnv->findColour(PlugDataColour::guiObjectInternalOutlineColour)));
-        if (x->gl_xtick.k_lperb)
-        {
+        if (x->gl_xtick.k_lperb) {
             t_float f = x->gl_xtick.k_point;
-            for (int i = 0; f < 0.99f * x->gl_x2 + 0.01f * x->gl_x1; i++, f += x->gl_xtick.k_inc)
-            {
+            for (int i = 0; f < 0.99f * x->gl_x2 + 0.01f * x->gl_x1; i++, f += x->gl_xtick.k_inc) {
                 auto xpos = jmap<float>(f, x->gl_x2, x->gl_x1, x1, x2);
                 int tickpix = (i % x->gl_xtick.k_lperb ? 2 : 4);
                 nvgBeginPath(nvg);
                 nvgMoveTo(nvg, xpos, y2);
                 nvgLineTo(nvg, xpos, y2 - tickpix);
                 nvgStroke(nvg);
-                
+
                 nvgBeginPath(nvg);
                 nvgMoveTo(nvg, xpos, y1);
                 nvgLineTo(nvg, xpos, y1 + tickpix);
                 nvgStroke(nvg);
             }
-            
+
             f = x->gl_xtick.k_point - x->gl_xtick.k_inc;
-            for (int i = 1; f > 0.99f * x->gl_x1 + 0.01f * x->gl_x2; i++, f -= x->gl_xtick.k_inc)
-            {
+            for (int i = 1; f > 0.99f * x->gl_x1 + 0.01f * x->gl_x2; i++, f -= x->gl_xtick.k_inc) {
                 auto xpos = jmap<float>(f, x->gl_x2, x->gl_x1, x1, x2);
                 int tickpix = (i % x->gl_xtick.k_lperb ? 2 : 4);
                 nvgBeginPath(nvg);
                 nvgMoveTo(nvg, xpos, y2);
                 nvgLineTo(nvg, xpos, y2 - tickpix);
                 nvgStroke(nvg);
-                
+
                 nvgBeginPath(nvg);
                 nvgMoveTo(nvg, xpos, y1);
                 nvgLineTo(nvg, xpos, y1 + tickpix);
@@ -316,34 +311,31 @@ public:
             }
         }
 
-        if (x->gl_ytick.k_lperb)
-        {
+        if (x->gl_ytick.k_lperb) {
             t_float f = x->gl_ytick.k_point;
-            for (int i = 0; f < 0.99f * x->gl_y1 + 0.01f * x->gl_y2; i++, f += x->gl_ytick.k_inc)
-            {
+            for (int i = 0; f < 0.99f * x->gl_y1 + 0.01f * x->gl_y2; i++, f += x->gl_ytick.k_inc) {
                 auto ypos = jmap<float>(f, x->gl_y2, x->gl_y1, y1, y2);
                 int tickpix = (i % x->gl_ytick.k_lperb ? 2 : 4);
                 nvgBeginPath(nvg);
                 nvgMoveTo(nvg, x1, ypos);
                 nvgLineTo(nvg, x1 + tickpix, ypos);
                 nvgStroke(nvg);
-                
+
                 nvgBeginPath(nvg);
                 nvgMoveTo(nvg, x2, ypos);
                 nvgLineTo(nvg, x2 - tickpix, ypos);
                 nvgStroke(nvg);
             }
-            
+
             f = x->gl_ytick.k_point - x->gl_ytick.k_inc;
-            for (int i = 1; f > 0.99f * x->gl_y2 + 0.01f * x->gl_y1; i++, f -= x->gl_ytick.k_inc)
-            {
+            for (int i = 1; f > 0.99f * x->gl_y2 + 0.01f * x->gl_y1; i++, f -= x->gl_ytick.k_inc) {
                 auto ypos = jmap<float>(f, x->gl_y2, x->gl_y1, y1, y2);
                 int tickpix = (i % x->gl_ytick.k_lperb ? 2 : 4);
                 nvgBeginPath(nvg);
                 nvgMoveTo(nvg, x1, ypos);
                 nvgLineTo(nvg, x1 + tickpix, ypos);
                 nvgStroke(nvg);
-                
+
                 nvgBeginPath(nvg);
                 nvgMoveTo(nvg, x2, ypos);
                 nvgLineTo(nvg, x2 - tickpix, ypos);
@@ -351,7 +343,6 @@ public:
             }
         }
     }
-
 
     pd::Patch::Ptr getPatch() override
     {

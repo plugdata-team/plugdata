@@ -4,13 +4,15 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class ReversibleSlider : public Slider, public NVGComponent {
+class ReversibleSlider : public Slider
+    , public NVGComponent {
 
     bool isInverted = false;
     bool isVertical = false;
 
 public:
-    ReversibleSlider() : NVGComponent(this)
+    ReversibleSlider()
+        : NVGComponent(this)
     {
         setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
         setTextBoxStyle(Slider::NoTextBox, 0, 0, 0);
@@ -100,15 +102,14 @@ public:
         else
             return Slider::valueToProportionOfLength(value);
     }
-    
+
     void render(NVGcontext* nvg) override
     {
         auto b = getLocalBounds().toFloat().reduced(1.0f);
 
         constexpr auto thumbSize = 4.0f;
         auto cornerSize = Corners::objectCornerRadius / 2.0f;
-        
-        
+
         if (isHorizontal()) {
             auto sliderPos = jmap<float>(valueToProportionOfLength(getValue()), 0.0f, 1.0f, b.getX(), b.getWidth() - thumbSize);
             auto bounds = Rectangle<float>(sliderPos, b.getY(), thumbSize, b.getHeight());
@@ -118,7 +119,7 @@ public:
             nvgRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), cornerSize);
             nvgFill(nvg);
         } else {
-            
+
             auto sliderPos = jmap<float>(valueToProportionOfLength(getValue()), 1.0f, 0.0f, b.getY(), b.getHeight() - thumbSize);
             auto bounds = Rectangle<float>(b.getWidth(), thumbSize).translated(b.getX(), sliderPos);
 
@@ -128,7 +129,6 @@ public:
             nvgFill(nvg);
         }
     }
-    
 };
 
 class SliderObject : public ObjectBase {
@@ -233,24 +233,19 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        if(isVertical)
-        {
+        if (isVertical) {
             return iemHelper.getPdBounds().expanded(0, 2).withTrimmedBottom(-1);
-        }
-        else {
+        } else {
             return iemHelper.getPdBounds().expanded(2, 0).withTrimmedLeft(-1);
         }
-       
     }
 
     void setPdBounds(Rectangle<int> b) override
     {
         // Hsl/vsl lies to us in slider_getrect: the x/y coordintates it returns are 2 or 3 px offset from what text_xpix/text_ypix reports
-        if(isVertical)
-        {
+        if (isVertical) {
             iemHelper.setPdBounds(b.reduced(0, 2).withTrimmedBottom(1).translated(0, -2));
-        }
-        else {
+        } else {
             iemHelper.setPdBounds(b.reduced(2, 0).withTrimmedLeft(1).translated(-3, 0));
         }
     }
@@ -329,7 +324,7 @@ public:
         }
         }
     }
-    
+
     void render(NVGcontext* nvg) override
     {
         auto b = getLocalBounds().toFloat().reduced(0.5f);
@@ -354,15 +349,14 @@ public:
     void updateSizeProperty() override
     {
         if (auto iem = ptr.get<t_iemgui>()) {
-            if(isVertical) {
+            if (isVertical) {
                 iem->x_w = object->getObjectBounds().getWidth() - 1;
                 iem->x_h = object->getObjectBounds().getHeight() - 6;
-            }
-            else {
+            } else {
                 iem->x_w = object->getObjectBounds().getWidth() - 6;
                 iem->x_h = object->getObjectBounds().getHeight() - 1;
             }
-            
+
             setParameterExcludingListener(sizeProperty, Array<var> { var(iem->x_w), var(iem->x_h) });
         }
     }

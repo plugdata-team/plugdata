@@ -32,27 +32,28 @@ public:
         if (auto obj = ptr.get<t_text>()) {
             sizeProperty = TextObjectHelper::getWidthInChars(obj.get());
         }
-        
+
         updateTextLayout();
     }
 
-     Rectangle<int> getPdBounds() override
-     {
-         updateTextLayout(); // make sure layout height is updated
+    Rectangle<int> getPdBounds() override
+    {
+        updateTextLayout(); // make sure layout height is updated
 
-         auto textBounds = getTextSize();
-         
-         int x = 0, y = 0, w, h;
-         if (auto obj = ptr.get<t_gobj>()) {
-             auto* cnvPtr = cnv->patch.getPointer().get();
-             if (!cnvPtr) return {x, y, textBounds.getWidth(), std::max<int>(textBounds.getHeight() + 5, 20)};
-     
-             pd::Interface::getObjectBounds(cnvPtr, obj.get(), &x, &y, &w, &h);
-         }
+        auto textBounds = getTextSize();
 
-         return {x, y, textBounds.getWidth(), std::max<int>(textBounds.getHeight() + 5, 20)};
-     }
-         
+        int x = 0, y = 0, w, h;
+        if (auto obj = ptr.get<t_gobj>()) {
+            auto* cnvPtr = cnv->patch.getPointer().get();
+            if (!cnvPtr)
+                return { x, y, textBounds.getWidth(), std::max<int>(textBounds.getHeight() + 5, 20) };
+
+            pd::Interface::getObjectBounds(cnvPtr, obj.get(), &x, &y, &w, &h);
+        }
+
+        return { x, y, textBounds.getWidth(), std::max<int>(textBounds.getHeight() + 5, 20) };
+    }
+
     Rectangle<int> getTextSize()
     {
         auto objText = editor ? editor->getText() : objectText;
@@ -66,15 +67,15 @@ public:
             charWidth = TextObjectHelper::getWidthInChars(obj.get());
             fontWidth = glist_fontwidth(cnv->patch.getPointer().get());
         }
-        
+
         auto textSize = textRenderer.getTextBounds();
-        
+
         // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
         int idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 14;
-        
+
         // We want to adjust the width so ideal text with aligns with fontWidth
         int offset = idealWidth % fontWidth;
-        
+
         int textWidth;
         if (objText.isEmpty()) { // If text is empty, set to minimum width
             textWidth = std::max(charWidth, 6) * fontWidth;
@@ -83,26 +84,26 @@ public:
         } else { // If width was set manually, calculate what the width is
             textWidth = std::max(charWidth, TextObjectHelper::minWidth) * fontWidth + offset;
         }
-        
-        return {textWidth, textSize.getHeight()};
+
+        return { textWidth, textSize.getHeight() };
     }
-         
-     void updateTextLayout()
-     {
-         if(cnv->isGraph) return; // Text layouting is expensive, so skip if it's not necessary
-         
-         auto objText = editor ? editor->getText() : objectText;
-         if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
-             objText = cnv->suggestor->getText();
-         }
-         
-         auto colour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
-         int textWidth = getTextSize().getWidth() - 14;
-         if(textRenderer.prepareLayout(objText, Fonts::getDefaultFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty)))
-         {
-             repaint();
-         }
-     }
+
+    void updateTextLayout()
+    {
+        if (cnv->isGraph)
+            return; // Text layouting is expensive, so skip if it's not necessary
+
+        auto objText = editor ? editor->getText() : objectText;
+        if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
+            objText = cnv->suggestor->getText();
+        }
+
+        auto colour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
+        int textWidth = getTextSize().getWidth() - 14;
+        if (textRenderer.prepareLayout(objText, Fonts::getDefaultFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty))) {
+            repaint();
+        }
+    }
 
     void setPdBounds(Rectangle<int> b) override
     {
@@ -132,26 +133,26 @@ public:
     {
         isLocked = locked;
     }
-        
+
     void render(NVGcontext* nvg) override
     {
         auto b = getLocalBounds().toFloat().reduced(0.5f);
-        
+
         auto backgroundColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
         auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
         auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
         auto flagColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour));
-        
+
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
-        
+
         nvgSave(nvg);
         nvgIntersectRoundedScissor(nvg, b.getX() + 0.25f, b.getY() + 0.25f, b.getWidth() - 0.5f, b.getHeight() - 0.5f, Corners::objectCornerRadius);
-        
+
         float bRight = b.getRight(); // offset to make it go completely under outline
         float bY = b.getY();
         float bBottom = b.getBottom();
         float d = 6.0f;
-        
+
         if (isDown) {
             nvgBeginPath(nvg);
             nvgRect(nvg, b.getX(), b.getY(), b.getWidth(), d);
@@ -161,7 +162,7 @@ public:
             nvgFillColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::outlineColourId)));
             nvgFill(nvg);
         }
-        
+
         // Create flag path
         nvgBeginPath(nvg);
         nvgMoveTo(nvg, bRight, bY);
@@ -172,10 +173,10 @@ public:
 
         nvgFillColor(nvg, flagColour);
         nvgFill(nvg);
-        
+
         nvgRestore(nvg);
-        
-        if(object->isSelected()) // If object is selected, draw outline over top too, so the flag doesn't poke into the selected outline
+
+        if (object->isSelected()) // If object is selected, draw outline over top too, so the flag doesn't poke into the selected outline
         {
             nvgBeginPath(nvg);
             nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
@@ -183,12 +184,10 @@ public:
             nvgStrokeWidth(nvg, 1.0f);
             nvgStroke(nvg);
         }
-    
-        if(editor)
-        {
+
+        if (editor) {
             imageRenderer.renderJUCEComponent(nvg, *editor, getImageScale());
-        }
-        else {
+        } else {
             auto text = getText();
             textRenderer.renderText(nvg, border.subtractedFrom(getLocalBounds()), getImageScale());
         }
@@ -210,7 +209,7 @@ public:
     void resized() override
     {
         updateTextLayout();
-        
+
         if (editor) {
             editor->setBounds(getLocalBounds().withTrimmedRight(5));
         }
@@ -220,7 +219,7 @@ public:
     {
         updateTextLayout();
     }
-        
+
     bool isEditorShown() override
     {
         return editor != nullptr;
@@ -265,7 +264,7 @@ public:
             std::swap(outgoingEditor, editor);
 
             cnv->hideSuggestions();
-            
+
             auto newText = outgoingEditor->getText();
 
             newText = TextObjectHelper::fixNewlines(newText);
@@ -277,7 +276,7 @@ public:
                 setSymbol(objectText);
                 cnv->synchronise();
             }
-            
+
             outgoingEditor.reset();
             repaint();
         }

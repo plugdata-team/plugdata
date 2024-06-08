@@ -74,7 +74,8 @@ public:
     MidiDeviceManager midiDeviceManager;
 };
 
-class StandalonePluginHolder : private AudioIODeviceCallback, public Component {
+class StandalonePluginHolder : private AudioIODeviceCallback
+    , public Component {
 public:
     /** Structure used for the number of inputs and outputs. */
     struct PluginInOuts {
@@ -221,7 +222,7 @@ public:
         if (settings != nullptr) {
             // Async to give the app a chance to start up before loading the patch
             MessageManager::callAsync([this, _this = SafePointer(this)]() {
-                if(_this) {
+                if (_this) {
                     MemoryOutputStream data;
                     Base64::convertFromBase64(data, settings->getValue("filterState"));
                     if (data.getDataSize() > 0)
@@ -447,15 +448,14 @@ public:
     }
 
 #if JUCE_WINDOWS
-    void parentHierarchyChanged () override
+    void parentHierarchyChanged() override
     {
         DocumentWindow::parentHierarchyChanged();
 
         if (auto peer = getPeer())
-            OSUtils::useWindowsNativeDecorations(peer->getNativeHandle (), !isFullScreen());
+            OSUtils::useWindowsNativeDecorations(peer->getNativeHandle(), !isFullScreen());
     }
 #endif
-
 
     void propertyChanged(String const& name, var const& value) override
     {
@@ -468,7 +468,7 @@ public:
             auto* pdEditor = dynamic_cast<PluginEditor*>(editor);
 
             setUsingNativeTitleBar(nativeWindow);
-            
+
             pdEditor->nvgSurface.detachContext();
 
             if (!nativeWindow) {
@@ -616,7 +616,7 @@ public:
         // Windows looses the opengl buffers when minimised,
         // regenerate here when restored from minimised
         if (isActiveWindow()) {
-            if (auto *pluginEditor = dynamic_cast<PluginEditor *>(editor))
+            if (auto* pluginEditor = dynamic_cast<PluginEditor*>(editor))
                 pluginEditor->nvgSurface.invalidateAll();
         }
 #endif
@@ -757,24 +757,24 @@ private:
                 editor->removeComponentListener(this);
             }
         }
-            
+
 #if JUCE_IOS
-            void paint(Graphics& g) override
-            {
-                g.fillAll(findColour(PlugDataColour::toolbarBackgroundColourId));
-            }
+        void paint(Graphics& g) override
+        {
+            g.fillAll(findColour(PlugDataColour::toolbarBackgroundColourId));
+        }
 #endif
 
         void resized() override
         {
             auto r = getLocalBounds().reduced(getMargin());
-            
+
 #if JUCE_IOS
-            if(auto* peer = getPeer()) {
+            if (auto* peer = getPeer()) {
                 r = OSUtils::getSafeAreaInsets().subtractedFrom(r);
             }
 #endif
-            
+
             if (editor != nullptr) {
                 auto const newPos = r.getTopLeft().toFloat().transformedBy(editor->getTransform().inverted());
 

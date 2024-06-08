@@ -99,16 +99,16 @@ void Patch::savePatch(URL const& locationURL)
         setTitle(filename);
         untitledPatchNum = 0;
         canvas_dirty(patch.get(), 0);
-        
+
 #if JUCE_IOS
         auto patchText = getCanvasContent();
         auto outputStream = locationURL.createOutputStream();
-        
+
         // on iOS, saving with pd's normal method doesn't work
         // we need to use an outputstream on a URL
         outputStream->write(patchText.toRawUTF8(), patchText.getNumBytesAsUTF8());
         outputStream->flush();
-        
+
         instance->logMessage("saved to: " + location.getFullPathName());
         canvas_rename(patch.get(), file, dir);
 #else
@@ -151,7 +151,6 @@ void Patch::updateUndoRedoState()
             undoQueueSize = undoSize;
             updateUndoRedoString();
         }
-
     }
 }
 
@@ -167,12 +166,12 @@ void Patch::savePatch()
         setTitle(filename);
         untitledPatchNum = 0;
         canvas_dirty(patch.get(), 0);
-        
+
         pd::Interface::saveToFile(patch.get(), file, dir);
     }
 
     MessageManager::callAsync([instance = juce::WeakReference(this->instance), file = this->currentFile, patch = ptr.getRaw<t_glist>()]() {
-        if(instance) {
+        if (instance) {
             sys_lock();
             instance->reloadAbstractions(file, patch);
             sys_unlock();
@@ -304,7 +303,7 @@ t_gobj* Patch::createObject(int x, int y, String const& name)
             SETSYMBOL(argv.data() + i + 2, instance->generateSymbol(token));
         }
     }
-    
+
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
         EDITOR->canvas_undo_already_set_move = 1;
@@ -439,7 +438,7 @@ void Patch::paste(Point<int> position)
     auto text = SystemClipboard::getTextFromClipboard();
 
     auto translatedObjects = translatePatchAsString(text, position);
-    
+
     if (auto patch = ptr.get<t_glist>()) {
         pd::Interface::paste(patch.get(), translatedObjects.toRawUTF8());
     }
@@ -570,10 +569,10 @@ void Patch::undo()
         setCurrent();
         auto x = patch.get();
         glist_noselect(x);
-        
+
         pd::Interface::undo(patch.get());
         EDITOR->canvas_undo_already_set_move = 1;
-        
+
         updateUndoRedoString();
     }
 }
@@ -584,7 +583,7 @@ void Patch::redo()
         setCurrent();
         auto x = patch.get();
         glist_noselect(x);
-        
+
         pd::Interface::redo(patch.get());
         EDITOR->canvas_undo_already_set_move = 1;
 
@@ -604,7 +603,7 @@ void Patch::updateUndoRedoString()
         auto undoDbg = undo;
         auto redoDbg = redo;
 #endif
-        
+
         lastUndoSequence = "";
         lastRedoSequence = "";
 
@@ -632,7 +631,7 @@ void Patch::updateUndoRedoString()
             }
             redo = redo->next;
         }
-//#define DEBUG_UNDO_QUEUE
+// #define DEBUG_UNDO_QUEUE
 #ifdef DEBUG_UNDO_QUEUE
         std::cout << "<<<<<< undo list:" << std::endl;
         while (undoDbg) {
@@ -705,7 +704,7 @@ void Patch::setUntitled()
         lowestNumber = std::max(lowestNumber, patch->untitledPatchNum);
     }
     lowestNumber += 1;
-    
+
     untitledPatchNum = lowestNumber;
     setTitle("Untitled-" + String(lowestNumber));
 }

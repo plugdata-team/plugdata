@@ -110,7 +110,7 @@ void Sidebar::paint(Graphics& g)
     if (!sidebarHidden) {
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
         g.fillRect(0, 30, getWidth(), getHeight());
-        
+
         if (inspector->isVisible()) {
             Fonts::drawStyledText(g, "Inspector: " + inspector->getTitle(), Rectangle<int>(0, 0, getWidth() - 30, 30), findColour(PlugDataColour::toolbarTextColourId), Bold, 15, Justification::centred);
         } else {
@@ -123,9 +123,9 @@ void Sidebar::paintOverChildren(Graphics& g)
 {
     g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
     g.drawLine(0.5f, 30, 0.5f, getHeight() + 0.5f);
-    if(!sidebarHidden) {
+    if (!sidebarHidden) {
         g.drawLine(0, 30, getWidth(), 30);
-        
+
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId).withAlpha(0.5f));
         g.drawLine(getWidth() - 30, 30, getWidth() - 30, getHeight() + 0.5f);
     }
@@ -280,7 +280,8 @@ void Sidebar::showSidebar(bool show)
         lastWidth = getWidth();
         int newWidth = 30;
         setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
-        if(extraSettingsButton) extraSettingsButton->setVisible(false);
+        if (extraSettingsButton)
+            extraSettingsButton->setVisible(false);
     } else {
         int newWidth = lastWidth;
         setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
@@ -288,7 +289,8 @@ void Sidebar::showSidebar(bool show)
         if (inspector->isVisible()) {
             inspector->showParameters();
         }
-        if(extraSettingsButton) extraSettingsButton->setVisible(true);
+        if (extraSettingsButton)
+            extraSettingsButton->setVisible(true);
     }
 
     editor->resized();
@@ -341,7 +343,7 @@ void Sidebar::updateExtraSettingsButton()
         extraSettingsButton.reset(nullptr);
         return;
     }
-    
+
     addChildComponent(extraSettingsButton.get());
     extraSettingsButton->setVisible(!isHidden());
     resized();

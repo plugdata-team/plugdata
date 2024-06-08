@@ -2098,7 +2098,7 @@ struct TextEditorDialog : public Component {
         addAndMakeVisible(editor);
         addAndMakeVisible(resizer);
         resizer.setAlwaysOnTop(true);
-        //resizer.setAllowHostManagedResize(false);
+        // resizer.setAllowHostManagedResize(false);
 
         editor.grabKeyboardFocus();
     }
@@ -2132,22 +2132,22 @@ struct TextEditorDialog : public Component {
 
     void paint(Graphics& g) override
     {
-        if(ProjectInfo::canUseSemiTransparentWindows()) {
+        if (ProjectInfo::canUseSemiTransparentWindows()) {
             auto shadowPath = Path();
             shadowPath.addRoundedRectangle(getLocalBounds().reduced(20), Corners::windowCornerRadius);
             StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 13.0f);
         }
-        
+
         auto radius = ProjectInfo::canUseSemiTransparentWindows() ? Corners::windowCornerRadius : 0.0f;
 
         auto b = getLocalBounds().reduced(margin);
 
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.fillRoundedRectangle(b.toFloat(), radius);
-        
+
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawRoundedRectangle(b.toFloat().reduced(0.5f), radius, 1.0f);
-        
+
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         // g.drawHorizontalLine(b.getX() + 39, b.getY() + 48, b.getWidth());
         g.drawHorizontalLine(b.getHeight() - 20, b.getY() + 48, b.getWidth());

@@ -17,7 +17,7 @@ struct ExporterBase : public Component
     Value inputPatchValue = SynchronousValue();
     Value projectNameValue;
     Value projectCopyrightValue;
-        
+
     bool blockDialog = false;
 
 #if JUCE_WINDOWS
@@ -131,8 +131,7 @@ struct ExporterBase : public Component
         auto projectTitle = projectNameValue.toString();
         auto projectCopyright = projectCopyrightValue.toString();
 
-        if (!projectTitle.unquoted().containsNonWhitespaceChars())
-        {
+        if (!projectTitle.unquoted().containsNonWhitespaceChars()) {
             if (!realPatchFile.getFileNameWithoutExtension().isEmpty())
                 projectTitle = realPatchFile.getFileNameWithoutExtension();
             else
@@ -143,7 +142,7 @@ struct ExporterBase : public Component
         auto searchPaths = StringArray { patchFile.getParentDirectory().getFullPathName() };
 
         editor->pd->setThis();
-        
+
         // Get pd's search paths
         char* paths[1024];
         int numItems;

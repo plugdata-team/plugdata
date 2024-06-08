@@ -36,13 +36,13 @@ public:
     static File findHelpfile(t_gobj* obj, File const& parentPatchFile);
 
     ValueTree getObjectInfo(String const& name);
-    
+
     static String getObjectOrigin(t_gobj* obj);
 
     StringArray getAllObjects();
 
     std::function<void()> appDirChanged;
-    
+
     // Paths to search for helpfiles
     // First, only search vanilla, then search all documentation
     // Lastly, check the deken folder
@@ -69,7 +69,7 @@ public:
         ProjectInfo::appDataDir.getChildFile("Extra")
     };
 
-    static inline StringArray objectOrigins = { "vanilla", "ELSE", "cyclone",  "Gem", "heavylib", "pdlua"};
+    static inline StringArray objectOrigins = { "vanilla", "ELSE", "cyclone", "Gem", "heavylib", "pdlua" };
 
 private:
     StringArray allObjects;

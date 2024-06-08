@@ -25,7 +25,6 @@ SettingsFileListener::~SettingsFileListener()
 
 JUCE_IMPLEMENT_SINGLETON(SettingsFile)
 
-
 SettingsFile::~SettingsFile()
 {
     // Save current settings before quitting
@@ -69,10 +68,9 @@ SettingsFile* SettingsFile::initialise()
     initialiseOverlayTree();
 
 #if JUCE_IOS
-    if(!ProjectInfo::isStandalone) {
+    if (!ProjectInfo::isStandalone) {
         Desktop::getInstance().setGlobalScaleFactor(1.0f); // scaling inside AUv3 is a bad idea
-    }
-    else if (OSUtils::isIPad()) {
+    } else if (OSUtils::isIPad()) {
         Desktop::getInstance().setGlobalScaleFactor(1.125f);
     } else {
         Desktop::getInstance().setGlobalScaleFactor(0.825f);
@@ -92,7 +90,6 @@ void SettingsFile::startChangeListener()
     settingsFileWatcher.addFolder(settingsFile.getParentDirectory());
     settingsFileWatcher.addListener(this);
 }
-
 
 ValueTree SettingsFile::getKeyMapTree()
 {
@@ -170,11 +167,10 @@ void SettingsFile::initialisePathsTree()
             pathTree.appendChild(pathSubTree, nullptr);
         }
     }
-    
+
     // TODO: remove this later. this is to fix a mistake during v0.8.4 development
     for (auto child : pathTree) {
-        if(child.getProperty("Path").toString().contains("Abstractions/Gem"))
-        {
+        if (child.getProperty("Path").toString().contains("Abstractions/Gem")) {
             pathTree.removeChild(child, nullptr);
             break;
         }
@@ -364,7 +360,7 @@ void SettingsFile::reloadSettings()
 
 void SettingsFile::fileChanged(File const file, FileSystemWatcher::FileSystemEvent fileEvent)
 {
-    if(file == settingsFile) {
+    if (file == settingsFile) {
         reloadSettings();
     }
 }

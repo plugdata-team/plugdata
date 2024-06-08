@@ -185,7 +185,8 @@ public:
         }
     };
 
-    class ThemeSelector : public Component, public AsyncUpdater {
+    class ThemeSelector : public Component
+        , public AsyncUpdater {
 
         Value theme;
         ValueTree settingsTree;
@@ -253,7 +254,7 @@ public:
                 triggerAsyncUpdate();
             }
         }
-        
+
         void handleAsyncUpdate() override
         {
             // Make sure the actual popup menu updates its theme

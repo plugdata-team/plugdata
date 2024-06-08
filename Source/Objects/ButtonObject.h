@@ -13,14 +13,13 @@ class ButtonObject : public ObjectBase {
     Value primaryColour = SynchronousValue();
     Value secondaryColour = SynchronousValue();
     Value sizeProperty = SynchronousValue();
-    
-    enum Mode
-    {
+
+    enum Mode {
         Latch,
         Toggle,
         Bang
     };
-    
+
     Mode mode;
 
 public:
@@ -42,16 +41,11 @@ public:
             primaryColour = Colour(button->x_fgcolor[0], button->x_fgcolor[1], button->x_fgcolor[2]).toString();
             secondaryColour = Colour(button->x_bgcolor[0], button->x_bgcolor[1], button->x_bgcolor[2]).toString();
             sizeProperty = button->x_w;
-            if(button->x_mode == 0)
-            {
+            if (button->x_mode == 0) {
                 mode = Latch;
-            }
-            else if(button->x_mode == 1)
-            {
+            } else if (button->x_mode == 1) {
                 mode = Toggle;
-            }
-            else
-            {
+            } else {
                 mode = Bang;
             }
         }
@@ -63,15 +57,13 @@ public:
     {
         if (!alreadyTriggered) {
 
-            if(mode == Latch) {
+            if (mode == Latch) {
                 state = true;
-            }
-            else if(mode == Toggle){
+            } else if (mode == Toggle) {
                 state = !state;
             }
-            
-            if(mode == Bang)
-            {
+
+            if (mode == Bang) {
                 state = true;
                 if (auto button = ptr.get<t_fake_button>()) {
                     outlet_bang(button->x_obj.ob_outlet);
@@ -79,15 +71,15 @@ public:
                 Timer::callAfterDelay(250,
                     [_this = SafePointer(this)]() mutable {
                         // First check if this object still exists
-                        if (!_this) return;
+                        if (!_this)
+                            return;
 
                         if (_this->state) {
                             _this->state = false;
                             _this->repaint();
                         }
                     });
-            }
-            else {
+            } else {
                 if (auto button = ptr.get<t_fake_button>()) {
                     outlet_float(button->x_obj.ob_outlet, state);
                 }
@@ -98,9 +90,8 @@ public:
     }
     void untoggleObject() override
     {
-        if(alreadyTriggered)
-        {
-            if(mode == Latch) {
+        if (alreadyTriggered) {
+            if (mode == Latch) {
                 state = false;
                 if (auto button = ptr.get<t_fake_button>()) {
                     outlet_float(button->x_obj.ob_outlet, 0);
@@ -154,15 +145,13 @@ public:
         if (!e.mods.isLeftButtonDown())
             return;
 
-        if(mode == Latch) {
+        if (mode == Latch) {
             state = true;
-        }
-        else if(mode == Toggle){
+        } else if (mode == Toggle) {
             state = !state;
         }
-        
-        if(mode == Bang)
-        {
+
+        if (mode == Bang) {
             state = true;
             if (auto button = ptr.get<t_fake_button>()) {
                 outlet_bang(button->x_obj.ob_outlet);
@@ -170,22 +159,20 @@ public:
             Timer::callAfterDelay(250,
                 [_this = SafePointer(this)]() mutable {
                     // First check if this object still exists
-                    if (!_this) return;
+                    if (!_this)
+                        return;
 
                     if (_this->state) {
                         _this->state = false;
                         _this->repaint();
                     }
                 });
-        }
-        else {
+        } else {
             if (auto button = ptr.get<t_fake_button>()) {
                 outlet_float(button->x_obj.ob_outlet, state);
             }
         }
-        
 
-        
         // Make sure we don't re-click with an accidental drag
         alreadyTriggered = true;
 
@@ -195,7 +182,7 @@ public:
     void mouseUp(MouseEvent const& e) override
     {
         alreadyTriggered = false;
-        if(mode == Latch) {
+        if (mode == Latch) {
             state = false;
             if (auto button = ptr.get<t_fake_button>()) {
                 outlet_float(button->x_obj.ob_outlet, 0);
@@ -220,7 +207,7 @@ public:
     void render(NVGcontext* nvg) override
     {
         auto b = getLocalBounds().toFloat();
-        
+
         auto foregroundColour = convertColour(Colour::fromString(primaryColour.toString()));
         auto bgColour = Colour::fromString(secondaryColour.toString());
         if (mouseHover)
@@ -232,22 +219,22 @@ public:
         auto internalLineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour));
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
-        
+
         b = b.reduced(1);
         auto const width = std::max(b.getWidth(), b.getHeight());
         auto const sizeReduction = std::min(1.0f, getWidth() / 20.0f);
-        
+
         float const lineOuter = 80.f * (width * 0.01f);
         float const lineThickness = std::max(width * 0.06f, 1.5f) * sizeReduction;
 
         auto outerBounds = b.reduced((width - lineOuter) * sizeReduction);
-        
+
         nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, outerBounds.getX(),outerBounds.getY(), outerBounds.getWidth(), outerBounds.getHeight(), Corners::objectCornerRadius * sizeReduction);
+        nvgRoundedRect(nvg, outerBounds.getX(), outerBounds.getY(), outerBounds.getWidth(), outerBounds.getHeight(), Corners::objectCornerRadius * sizeReduction);
         nvgStrokeColor(nvg, internalLineColour);
         nvgStrokeWidth(nvg, lineThickness);
         nvgStroke(nvg);
-        
+
         // Fill ellipse if bangState is true
         if (state) {
             auto innerBounds = b.reduced((width - lineOuter + lineThickness) * sizeReduction);
@@ -257,7 +244,7 @@ public:
             nvgFill(nvg);
         }
     }
-    
+
     void valueChanged(Value& value) override
     {
 
@@ -302,8 +289,7 @@ public:
             repaint();
             break;
         }
-        case hash("float"):
-        {
+        case hash("float"): {
             state = !approximatelyEqual(atoms[0].getFloat(), 0.0f);
             repaint();
             break;

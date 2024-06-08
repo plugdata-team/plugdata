@@ -110,7 +110,6 @@ public:
 
     void resized() override
     {
-
     }
 
     void render(NVGcontext* nvg) override

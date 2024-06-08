@@ -28,7 +28,7 @@ class AtomHelper {
     PluginProcessor* pd;
 
     pd::WeakReference ptr;
-    
+
     int lastFontHeight = 10;
     hash32 lastLabelTextHash = 0;
     int lastLabelLength = 0;
@@ -326,36 +326,35 @@ public:
         int fontHeight = getAtomHeight() - 5;
         int fontWidth = sys_fontwidth(fontHeight);
         int labelSpace = fontWidth * (getExpandedLabelText().length() + 1);
-        
+
         auto currentHash = hash(getExpandedLabelText());
         int labelLength = lastLabelLength;
-        
-        if(lastFontHeight != fontHeight || lastLabelTextHash != currentHash)
-        {
+
+        if (lastFontHeight != fontHeight || lastLabelTextHash != currentHash) {
             labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());
             lastFontHeight = fontHeight;
             lastLabelTextHash = currentHash;
             lastLabelLength = labelLength;
         }
-        
+
         int labelPosition = 0;
         if (auto atom = ptr.get<t_fake_gatom>()) {
             labelPosition = atom->a_wherelabel;
         }
         auto labelBounds = objectBounds.withSizeKeepingCentre(labelLength, fontHeight);
         int lengthDifference = labelLength - labelSpace; // difference between width in pd-vanilla and plugdata
-        
+
         if (labelPosition == 0) { // left
             labelBounds.removeFromLeft(lengthDifference);
             return labelBounds.withRightX(objectBounds.getX() - lengthDifference - 2);
         }
-        
+
         labelBounds.removeFromRight(lengthDifference);
-        
+
         if (labelPosition == 1) { // right
             return labelBounds.withX(objectBounds.getRight() + 2);
         }
-        
+
         if (labelPosition == 2) { // top
             return labelBounds.withX(objectBounds.getX()).withBottomY(objectBounds.getY() - 2);
         }

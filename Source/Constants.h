@@ -82,7 +82,7 @@ struct Icons {
     inline static String const Eyedropper = "@";
     inline static String const HeartFilled = "?";
     inline static String const HeartStroked = ">";
-    
+
     inline static String const Reset = "'";
     inline static String const More = ".";
     inline static String const MIDI = "`";
@@ -111,8 +111,6 @@ struct Icons {
     inline static String const AlignBottom = "8";
     inline static String const AlignVCentre = "9";
     inline static String const AlignVDistribute = "*";
-    
-    
 
     // ================== OBJECT ICONS ==================
 

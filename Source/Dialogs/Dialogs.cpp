@@ -41,11 +41,11 @@
 #include "Standalone/PlugDataWindow.h"
 
 Dialog::Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWidth, int childHeight, bool showCloseButton, int margin)
-: height(childHeight)
-, width(childWidth)
-, parentComponent(editor)
-, owner(ownerPtr)
-, backgroundMargin(margin)
+    : height(childHeight)
+    , width(childWidth)
+    , parentComponent(editor)
+    , owner(ownerPtr)
+    , backgroundMargin(margin)
 {
 #if JUCE_LINUX || JUCE_BSD
     addToDesktop(0);
@@ -57,12 +57,11 @@ Dialog::Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWi
     setBounds(parentComponent->getScreenX(), parentComponent->getScreenY(), parentComponent->getWidth(), parentComponent->getHeight());
     parentComponent->addComponentListener(this);
 
-    if(ProjectInfo::isStandalone) {
-        if (auto* mainWindow = dynamic_cast<PlugDataWindow *>(parentComponent->getTopLevelComponent()))
+    if (ProjectInfo::isStandalone) {
+        if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(parentComponent->getTopLevelComponent()))
             mainWindow->dialog = SafePointer(this);
         toFront(true);
-    }
-    else {
+    } else {
         setAlwaysOnTop(true);
     }
     setWantsKeyboardFocus(true);
@@ -92,10 +91,10 @@ Dialog::Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWi
 }
 
 #if !JUCE_IOS
-void Dialog::mouseDrag(MouseEvent const &e)
+void Dialog::mouseDrag(MouseEvent const& e)
 {
     if (dragging) {
-        if (auto mainWindow = dynamic_cast<PlugDataWindow *>(parentComponent->getTopLevelComponent())) {
+        if (auto mainWindow = dynamic_cast<PlugDataWindow*>(parentComponent->getTopLevelComponent())) {
             mainWindow->movedFromDialog = true;
         }
         dragger.dragWindow(parentComponent->getTopLevelComponent(), e, nullptr);
@@ -110,7 +109,7 @@ bool Dialog::wantsRoundedCorners() const
     if (auto* editor = dynamic_cast<PluginEditor*>(parentComponent)) {
         return editor->wantsRoundedCorners();
     }
-        // Otherwise assume rounded corners for the rest of the UI
+    // Otherwise assume rounded corners for the rest of the UI
     else {
         return true;
     }
@@ -268,8 +267,8 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
                 delete popup;
             });
         });
-    
-    if(ProjectInfo::canUseSemiTransparentWindows()) {
+
+    if (ProjectInfo::canUseSemiTransparentWindows()) {
         editor->calloutArea->addToDesktop(ComponentPeer::windowIsTemporary);
     }
 }
@@ -278,9 +277,9 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
 {
 
     class OkayCancelDialog : public Component {
-        
+
         TextLayout layout;
-        
+
     public:
         OkayCancelDialog(Dialog* dialog, String const& title, std::function<void(bool)> const& callback, StringArray const& options)
             : label("", title)
@@ -289,7 +288,7 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
             attributedTitle.setJustification(Justification::centred);
             attributedTitle.setFont(Fonts::getBoldFont().withHeight(14));
             attributedTitle.setColour(findColour(PlugDataColour::panelTextColourId));
-            
+
             setSize(270, 220);
             layout.createLayout(attributedTitle, getWidth() - 32);
 
@@ -320,15 +319,15 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
 
             setOpaque(false);
         }
-        
+
         void paint(Graphics& g) override
-        {            
+        {
             AttributedString warningIcon(Icons::Warning);
             warningIcon.setFont(Fonts::getIconFont().withHeight(48));
             warningIcon.setColour(findColour(PlugDataColour::panelTextColourId));
             warningIcon.setJustification(Justification::centred);
             warningIcon.draw(g, getLocalBounds().toFloat().removeFromTop(90));
-            
+
             auto contentBounds = getLocalBounds().withTrimmedTop(63).reduced(16);
             layout.draw(g, contentBounds.removeFromTop(48).toFloat());
         }
@@ -337,7 +336,7 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
         {
             auto contentBounds = getLocalBounds().reduced(16);
             contentBounds.removeFromTop(126);
-            
+
             okay.setBounds(contentBounds.removeFromTop(28));
             contentBounds.removeFromTop(6);
             cancel.setBounds(contentBounds.removeFromTop(28));
@@ -427,7 +426,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
     struct QuickActionsBar : public PopupMenu::CustomComponent {
         struct QuickActionButton : public TextButton {
-            explicit QuickActionButton(const String& buttonText)
+            explicit QuickActionButton(String const& buttonText)
                 : TextButton(buttonText)
             {
             }
@@ -467,7 +466,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
                 auto id = commandIds.removeAndReturn(0);
 
                 button->setCommandToTrigger(&editor->commandManager, id, false);
-                
+
                 if (auto* registeredInfo = editor->commandManager.getCommandForID(id)) {
                     ApplicationCommandInfo info(*registeredInfo);
                     editor->commandManager.getTargetForCommand(id, info);
@@ -532,11 +531,9 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     auto selectedBoxes = cnv->getSelectionOfType<Object>();
 
     // If we directly right-clicked on an object, make sure it has been added to selection
-    if(!originalComponent)
-    {
+    if (!originalComponent) {
         return;
-    }
-    else if (auto* obj = dynamic_cast<Object*>(originalComponent)) {
+    } else if (auto* obj = dynamic_cast<Object*>(originalComponent)) {
         selectedBoxes.addIfNotAlreadyThere(obj);
     } else if (auto* parentOfTypeObject = originalComponent->findParentComponentOfClass<Object>()) {
         selectedBoxes.addIfNotAlreadyThere(parentOfTypeObject);
@@ -569,7 +566,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
         Backward,
         ToBack,
         Properties,
-        
+
         AlignLeft,
         AlignHCentre,
         AlignRight,
@@ -622,7 +619,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     orderMenu.addItem(Backward, "Move backward", object != nullptr && !locked);
     orderMenu.addItem(ToBack, "To Back", object != nullptr && !locked);
     popupMenu.addSubMenu("Order", orderMenu, !locked);
-    
+
     class AlignmentMenuItem : public PopupMenu::CustomComponent {
 
         String menuItemIcon;
@@ -669,7 +666,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             Fonts::drawFittedText(g, menuItemText, r, colour, fontHeight);
         }
     };
-    
+
     PopupMenu alignMenu;
     alignMenu.addCustomItem(AlignLeft, std::make_unique<AlignmentMenuItem>(Icons::AlignLeft, "Align left"), nullptr, "Align left");
     alignMenu.addCustomItem(AlignHCentre, std::make_unique<AlignmentMenuItem>(Icons::AlignVCentre, "Align centre"), nullptr, "Align centre");
@@ -807,37 +804,38 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             Dialogs::showObjectReferenceDialog(&editor->openedDialog, editor, object->getType());
             break;
         case AlignLeft:
-                cnv->alignObjects(Align::Left);
-                break;
+            cnv->alignObjects(Align::Left);
+            break;
         case AlignHCentre:
-                cnv->alignObjects(Align::HCentre);
-                break;
+            cnv->alignObjects(Align::HCentre);
+            break;
         case AlignRight:
-                cnv->alignObjects(Align::Right);
-                break;
+            cnv->alignObjects(Align::Right);
+            break;
         case AlignHDistribute:
-                cnv->alignObjects(Align::HDistribute);
-                break;
+            cnv->alignObjects(Align::HDistribute);
+            break;
         case AlignTop:
-                cnv->alignObjects(Align::Top);
-                break;
+            cnv->alignObjects(Align::Top);
+            break;
         case AlignVCentre:
-                cnv->alignObjects(Align::VCentre);
-                break;
+            cnv->alignObjects(Align::VCentre);
+            break;
         case AlignBottom:
-                cnv->alignObjects(Align::Bottom);
-                break;
+            cnv->alignObjects(Align::Bottom);
+            break;
         case AlignVDistribute:
-                cnv->alignObjects(Align::VDistribute);
-                break;
+            cnv->alignObjects(Align::VDistribute);
+            break;
         default:
             break;
         }
     };
 
     auto* parent = ProjectInfo::canUseSemiTransparentWindows() ? editor->calloutArea.get() : nullptr;
-    if(parent) parent->addToDesktop(ComponentPeer::windowIsTemporary);
-    
+    if (parent)
+        parent->addToDesktop(ComponentPeer::windowIsTemporary);
+
     popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(parent).withTargetScreenArea(Rectangle<int>(position, position.translated(1, 1))), ModalCallbackFunction::create(callback));
 }
 
@@ -870,14 +868,13 @@ void Dialogs::showOpenDialog(std::function<void(URL)> const& callback, bool canS
     if (canSelectDirectories)
         openChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(openChooserFlags | FileBrowserComponent::canSelectDirectories);
 
-
     fileChooser->launchAsync(openChooserFlags,
         [callback, lastFileId](FileChooser const& fileChooser) {
             auto result = fileChooser.getResult();
 
             auto lastDir = result.isDirectory() ? result : result.getParentDirectory();
             SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, lastDir);
-            if(result.exists()) {
+            if (result.exists()) {
                 callback(fileChooser.getURLResult());
             }
             Dialogs::fileChooser = nullptr;
@@ -913,6 +910,5 @@ void Dialogs::showSaveDialog(std::function<void(URL)> const& callback, String co
                 callback(fileChooser.getURLResult());
                 Dialogs::fileChooser = nullptr;
             }
-        
         });
 }

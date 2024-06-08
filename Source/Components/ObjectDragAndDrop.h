@@ -1,14 +1,17 @@
 #pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
-//#include "Utility/ZoomableDragAndDropContainer.h"
+// #include "Utility/ZoomableDragAndDropContainer.h"
 #include "Utility/OfflineObjectRenderer.h"
 #include "../PluginEditor.h"
 #include "Canvas.h"
 
 class ObjectDragAndDrop : public Component {
 public:
-    ObjectDragAndDrop(PluginEditor* e) : editor(e) { }
+    ObjectDragAndDrop(PluginEditor* e)
+        : editor(e)
+    {
+    }
 
     virtual String getObjectString() = 0;
 
@@ -92,7 +95,8 @@ class ObjectClickAndDrop : public Component
     Canvas* canvas = nullptr;
 
 public:
-    ObjectClickAndDrop(ObjectDragAndDrop* target) : editor(target->editor)
+    ObjectClickAndDrop(ObjectDragAndDrop* target)
+        : editor(target->editor)
     {
         objectString = target->getObjectString();
         objectName = target->getPatchStringName();
@@ -140,7 +144,7 @@ public:
         auto screenPos = Desktop::getMousePosition();
         auto mousePosition = Point<int>();
         Component* underMouse;
-        
+
         mousePosition = screenPos;
         underMouse = editor->getComponentAt(editor->getLocalPoint(nullptr, screenPos));
 
@@ -160,7 +164,7 @@ public:
         } else {
             scale = 1.0f;
         }
-        
+
         if (foundCanvas && (foundCanvas != canvas)) {
             canvas = foundCanvas;
             editor->getTabComponent().setActiveSplit(canvas);

@@ -118,7 +118,6 @@ public:
 
         addAndMakeVisible(resetButton);
         resetButton.onClick = [this]() {
-            
             Dialogs::showOkayCancelDialog(&confirmationDialog, findParentComponentOfClass<Dialog>(), "Are you sure you want to reset all the search paths?",
                 [this](int result) {
                     if (result == 0)
@@ -202,7 +201,7 @@ public:
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId).withAlpha(0.5f));
         g.drawHorizontalLine(height - 1.0f, x, x + newWidth);
-        
+
         Fonts::drawText(g, paths[rowNumber], x + 12, 0, width - 9, height, findColour(PlugDataColour::panelTextColourId), 15);
     }
 
@@ -618,7 +617,7 @@ public:
         librariesTree.removeAllChildren(nullptr);
 
         for (auto const& name : librariesToLoad) {
-            if(name.isNotEmpty()) {
+            if (name.isNotEmpty()) {
                 auto newLibrary = ValueTree("Library");
                 newLibrary.setProperty("Name", name, nullptr);
                 librariesTree.appendChild(newLibrary, nullptr);

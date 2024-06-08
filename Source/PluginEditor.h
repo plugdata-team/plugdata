@@ -21,14 +21,15 @@
 #include "Components/Buttons.h"
 #include "TabComponent.h"
 
-
 #include "Utility/ObjectThemeManager.h"
 #include "NVGSurface.h"
 
-class CalloutArea : public Component, public Timer
-{
+class CalloutArea : public Component
+    , public Timer {
 public:
-    explicit CalloutArea(Component* parent) : target(parent), tooltipWindow(this)
+    explicit CalloutArea(Component* parent)
+        : target(parent)
+        , tooltipWindow(this)
     {
         setVisible(true);
         setAlwaysOnTop(true);
@@ -36,7 +37,7 @@ public:
         startTimerHz(3);
     }
 
-    ~CalloutArea()= default;
+    ~CalloutArea() = default;
 
     void timerCallback() override
     {
@@ -45,8 +46,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        if(!ProjectInfo::canUseSemiTransparentWindows())
-        {
+        if (!ProjectInfo::canUseSemiTransparentWindows()) {
             g.fillAll(findColour(PlugDataColour::popupMenuBackgroundColourId));
         }
     }
@@ -75,8 +75,7 @@ class PluginEditor : public AudioProcessorEditor
     , public ModifierKeyBroadcaster
     , public ModifierKeyListener
     , public ZoomableDragAndDropContainer
-    , public AsyncUpdater
-{
+    , public AsyncUpdater {
 public:
     explicit PluginEditor(PluginProcessor&);
 
@@ -84,16 +83,16 @@ public:
 
     void paint(Graphics& g) override;
     void paintOverChildren(Graphics& g) override;
-    
+
     void renderArea(NVGcontext* nvg, Rectangle<int> area);
-    
+
     bool isActiveWindow() override;
 
     void resized() override;
     void parentSizeChanged() override;
     void parentHierarchyChanged() override;
     void broughtToFront() override;
-    
+
     void lookAndFeelChanged() override;
 
     // For dragging parent window
@@ -106,12 +105,12 @@ public:
     Canvas* getCurrentCanvas();
 
     void modifierKeysChanged(ModifierKeys const& modifiers) override;
-    
+
     void valueChanged(Value& v) override;
 
     void updateCommandStatus();
     void handleAsyncUpdate() override;
-    
+
     bool isInterestedInFileDrag(StringArray const& files) override;
     void filesDropped(StringArray const& files, int x, int y) override;
     void fileDragEnter(StringArray const&, int, int) override;
@@ -130,13 +129,13 @@ public:
     bool wantsRoundedCorners();
 
     bool keyPressed(KeyPress const& key) override;
-    
+
     CallOutBox& showCalloutBox(std::unique_ptr<Component> content, Rectangle<int> screenBounds);
 
     void commandKeyChanged(bool isHeld) override;
     void setUseBorderResizer(bool shouldUse);
     void showTouchSelectionHelper(bool shouldBeShown);
-    
+
     bool highlightSearchTarget(void* target, bool openNewTabIfNeeded);
 
     Array<pd::WeakReference> openTextEditors;
@@ -154,7 +153,7 @@ public:
 
     Value hvccMode;
     Value autoconnect;
-    
+
     std::unique_ptr<Palettes> palettes;
 
     OfflineObjectRenderer offlineRenderer;
@@ -168,16 +167,15 @@ public:
 
     std::unique_ptr<Autosave> autosave;
     ApplicationCommandManager commandManager;
-    
+
     std::unique_ptr<CalloutArea> calloutArea;
     std::unique_ptr<WelcomePanel> welcomePanel;
-    
+
     CheckedTooltip tooltipWindow;
 
     int editorIndex;
-    
+
 private:
-    
     TabComponent tabComponent;
     std::unique_ptr<TouchSelectionHelper> touchSelectionHelper;
 
@@ -190,14 +188,13 @@ private:
     ToolbarRadioButton editButton, runButton, presentButton;
     TextButton seperators[8];
 
-    
 #if JUCE_MAC
     Rectangle<int> unmaximisedSize;
 #endif
 
     bool isMaximised = false;
     bool isDraggingFile = false;
-    
+
     static inline int numEditors = 0;
 
     // Used in plugin
@@ -205,6 +202,6 @@ private:
 
     // Used in standalone
     std::unique_ptr<MouseRateReducedComponent<ResizableBorderComponent>> borderResizer;
-    
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginEditor)
 };

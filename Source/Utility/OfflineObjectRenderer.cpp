@@ -85,11 +85,11 @@ String OfflineObjectRenderer::patchToSVGFast(String const& patch)
     auto isEndingCanvas = [](StringArray& tokens) {
         return tokens[0] == "#X" && tokens[1] == "restore" && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789");
     };
-    
+
     auto isGraphCoords = [](StringArray& tokens) {
         return tokens[0] == "#X" && tokens[1] == "coords" && tokens[5].containsOnly("-0123456789") && tokens[6].containsOnly("-0123456789");
     };
-    
+
     StringArray objects;
     Rectangle<int> nextGraphCoords;
     String canvasName;
@@ -101,47 +101,43 @@ String OfflineObjectRenderer::patchToSVGFast(String const& patch)
         auto tokens = StringArray::fromTokens(line, true);
 
         if (isStartingCanvas(tokens)) {
-            if(tokens.size() > 6) canvasName = tokens[6];
+            if (tokens.size() > 6)
+                canvasName = tokens[6];
             canvasDepth++;
         }
 
         if (canvasDepth == 0 && isObject(tokens)) {
             objects.add(line);
         }
-        
-        if(isGraphCoords(tokens) && tokens.size() > 6)
-        {
+
+        if (isGraphCoords(tokens) && tokens.size() > 6) {
             nextGraphCoords = Rectangle<int>(tokens[5].getIntValue(), tokens[6].getIntValue());
             hasGraphCoords = true;
         }
 
         if (isEndingCanvas(tokens)) {
             if (canvasDepth == 1) {
-                if(hasGraphCoords)
-                {
+                if (hasGraphCoords) {
                     objects.add(line + " " + String(nextGraphCoords.getWidth()) + " " + String(nextGraphCoords.getHeight()));
                     hasGraphCoords = false;
-                }
-                else {
+                } else {
                     objects.add(line + " " + String(canvasName.length() * 12) + " 24");
                 }
             }
             canvasDepth--;
         }
     }
-    
+
     Array<Rectangle<int>> objectBounds;
-    for(auto& object : objects)
-    {
+    for (auto& object : objects) {
         auto tokens = StringArray::fromTokens(object, true);
 
-        if((tokens[1] == "floatatom" || tokens[1] == "symbolatom" || tokens[1] == "listatom") && tokens.size() > 11)
-        {
+        if ((tokens[1] == "floatatom" || tokens[1] == "symbolatom" || tokens[1] == "listatom") && tokens.size() > 11) {
             objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[4].getIntValue() * 8, tokens[11].getIntValue()));
             continue;
         }
 
-        if(tokens[1] == "text") {
+        if (tokens[1] == "text") {
             auto fontMetrics = Fonts::getCurrentFont().withHeight(15);
             StringArray textString;
             textString.addArray(tokens, 4, tokens.size() - 2 - 4);
@@ -152,10 +148,9 @@ String OfflineObjectRenderer::patchToSVGFast(String const& patch)
             // calcuate the length of the text string:
             // if char number is specified, then use that
             // if it's not, then it's auto sizing, which is max of 92 chars, or min of the text length
-            if(tokens[tokens.size() - 2] == "f") {
+            if (tokens[tokens.size() - 2] == "f") {
                 textAreaWidth = tokens[tokens.size() - 1].getIntValue() * 8;
-            }
-            else {
+            } else {
                 int autoWidth = 0;
                 for (auto text : textString) {
                     autoWidth += fontMetrics.getStringWidth(text + " ");
@@ -180,95 +175,97 @@ String OfflineObjectRenderer::patchToSVGFast(String const& patch)
             objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), textAreaWidth, lines * 12));
             continue;
         }
-        switch(hash(tokens[4])){
-            case hash("restore"):
-            {
-                if(tokens.size() < 6) break;
-                objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[4].getIntValue(), tokens[5].getIntValue()));
+        switch (hash(tokens[4])) {
+        case hash("restore"): {
+            if (tokens.size() < 6)
                 break;
-            }
-            case hash("bng"):
-            case hash("tgl"): {
-                if(tokens.size() < 6) break;
-                objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[5].getIntValue(), tokens[5].getIntValue()));
+            objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[4].getIntValue(), tokens[5].getIntValue()));
+            break;
+        }
+        case hash("bng"):
+        case hash("tgl"): {
+            if (tokens.size() < 6)
                 break;
-            }
-            case hash("vradio"):
-            {
-                if(tokens.size() < 7) break;
-                objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[5].getIntValue(), tokens[5].getIntValue() * tokens[6].getIntValue()));
+            objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[5].getIntValue(), tokens[5].getIntValue()));
+            break;
+        }
+        case hash("vradio"): {
+            if (tokens.size() < 7)
                 break;
-            }
-            case hash("hradio"):
-            {
-                if(tokens.size() < 7) break;
-                objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[5].getIntValue() * tokens[6].getIntValue(), tokens[5].getIntValue()));
+            objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[5].getIntValue(), tokens[5].getIntValue() * tokens[6].getIntValue()));
+            break;
+        }
+        case hash("hradio"): {
+            if (tokens.size() < 7)
                 break;
-            }
-            case hash("cnv"): {
-                if(tokens.size() < 8) break;
-                objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[6].getIntValue(), tokens[7].getIntValue()));
+            objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[5].getIntValue() * tokens[6].getIntValue(), tokens[5].getIntValue()));
+            break;
+        }
+        case hash("cnv"): {
+            if (tokens.size() < 8)
                 break;
-            }
-            case hash("vu"):
-            case hash("hsl"):
-            case hash("vsl"):
-            case hash("slider"):
-            {
-                if(tokens.size() < 7) break;
-                objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[5].getIntValue(), tokens[6].getIntValue()));
+            objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[6].getIntValue(), tokens[7].getIntValue()));
+            break;
+        }
+        case hash("vu"):
+        case hash("hsl"):
+        case hash("vsl"):
+        case hash("slider"): {
+            if (tokens.size() < 7)
                 break;
-            }
-            case hash("nbx"): {
-                if(tokens.size() < 7) break;
-                objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[5].getIntValue() * 8, tokens[6].getIntValue()));
+            objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[5].getIntValue(), tokens[6].getIntValue()));
+            break;
+        }
+        case hash("nbx"): {
+            if (tokens.size() < 7)
                 break;
-            }
-            /* // TODO: implement all of these!
-            case hash("numbox~"):
-            {
+            objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[5].getIntValue() * 8, tokens[6].getIntValue()));
+            break;
+        }
+        /* // TODO: implement all of these!
+        case hash("numbox~"):
+        {
+            break;
+        }
+        case hash("pic"):
+        case hash("keyboard"):
+        case hash("scope~"):
+        case hash("function"):
+        case hash("knob"):
+        case hash("gatom"):
+        case hash("button"):
+        case hash("bicoeff"):
+        case hash("messbox"):
+        case hash("pad"):
+        {
+
+            break;
+        }
+        case hash("note"):
+        {
+
+            break;
+        }
+         */
+        default: {
+            if (tokens.size() < 4)
                 break;
-            }
-            case hash("pic"):
-            case hash("keyboard"):
-            case hash("scope~"):
-            case hash("function"):
-            case hash("knob"):
-            case hash("gatom"):
-            case hash("button"):
-            case hash("bicoeff"):
-            case hash("messbox"):
-            case hash("pad"):
-            {
-                
-                break;
-            }
-            case hash("note"):
-            {
-                
-                break;
-            }
-             */
-            default:
-            {
-                if(tokens.size() < 4) break;
-                auto x = tokens[2].getIntValue();
-                auto y = tokens[3].getIntValue();
-                tokens.removeRange(0, 4);
-                objectBounds.add(Rectangle<int>(x, y, tokens.joinIntoString(" ").length() * 8, 24));
-                break;
-            }
+            auto x = tokens[2].getIntValue();
+            auto y = tokens[3].getIntValue();
+            tokens.removeRange(0, 4);
+            objectBounds.add(Rectangle<int>(x, y, tokens.joinIntoString(" ").length() * 8, 24));
+            break;
+        }
         }
     }
-    
+
     String svgContent;
     auto regionOfInterest = Rectangle<int>();
     for (auto& b : objectBounds) {
         regionOfInterest = regionOfInterest.getUnion(b.reduced(Object::margin));
     }
-    
-    for (auto& b : objectBounds)
-    {
+
+    for (auto& b : objectBounds) {
         auto rect = b - regionOfInterest.getPosition();
         svgContent += String::formatted(
             "<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" rx=\"%.1f\" ry=\"%.1f\" />\n",
@@ -312,140 +309,135 @@ ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, flo
 
         auto* objectPtr = pd::Interface::checkObject(object);
 
-        char *objectText;
+        char* objectText;
         int len;
         pd::Interface::getObjectText(objectPtr, &objectText, &len);
-        const auto objectTextString = String::fromUTF8(objectText, len);
+        auto const objectTextString = String::fromUTF8(objectText, len);
 
         String type = String::fromUTF8(pd::Interface::getObjectClassName(&object->g_pd));
-        const auto typeHash = hash(type);
+        auto const typeHash = hash(type);
 
-        switch(typeHash){
-            case hash("bng"):
-            case hash("hsl"):
-            case hash("vsl"):
-            case hash("slider"):
-            case hash("tgl"):
-            case hash("nbx"):
-            case hash("numbox~"):
-            case hash("vradio"):
-            case hash("hradio"):
-            case hash("vu"):
-            case hash("pic"):
-            case hash("keyboard"):
-            case hash("scope~"):
-            case hash("function"):
-            case hash("knob"):
-            case hash("gatom"):
-            case hash("button"):
-            case hash("graph"):
-            case hash("bicoeff"):
-            case hash("messbox"):
-            case hash("pad"):
-            {
-                // use the bounds obtained from pd::Interface::getObjectBounds()
-                break;
+        switch (typeHash) {
+        case hash("bng"):
+        case hash("hsl"):
+        case hash("vsl"):
+        case hash("slider"):
+        case hash("tgl"):
+        case hash("nbx"):
+        case hash("numbox~"):
+        case hash("vradio"):
+        case hash("hradio"):
+        case hash("vu"):
+        case hash("pic"):
+        case hash("keyboard"):
+        case hash("scope~"):
+        case hash("function"):
+        case hash("knob"):
+        case hash("gatom"):
+        case hash("button"):
+        case hash("graph"):
+        case hash("bicoeff"):
+        case hash("messbox"):
+        case hash("pad"): {
+            // use the bounds obtained from pd::Interface::getObjectBounds()
+            break;
+        }
+        case hash("note"): {
+            auto noteObject = (t_fake_note*)object;
+
+            // if note object isn't init, initialize because text buf will be empty
+            if (noteObject->x_init == 0) {
+                auto notePtr = (t_pd*)object;
+                (*notePtr)->c_wb->w_visfn((t_gobj*)noteObject, offlineCnv, 1);
             }
-            case hash("note"):
-            {
-                auto noteObject = (t_fake_note*)object;
+            obj_w = noteObject->x_max_pixwidth;
+            auto const noteText = String::fromUTF8(noteObject->x_buf, noteObject->x_bufsize).trim().replace("\\,", ",").replace("\\;", ";");
+            auto const fontName = String::fromUTF8(noteObject->x_fontname->s_name);
+            auto const fontSize = noteObject->x_fontsize;
 
-                // if note object isn't init, initialize because text buf will be empty
-                if (noteObject->x_init == 0) {
-                    auto notePtr = (t_pd*)object;
-                    (*notePtr)->c_wb->w_visfn((t_gobj*)noteObject, offlineCnv, 1);
-                }
-                obj_w = noteObject->x_max_pixwidth;
-                auto const noteText = String::fromUTF8(noteObject->x_buf, noteObject->x_bufsize).trim().replace("\\,", ",").replace("\\;", ";");
-                auto const fontName = String::fromUTF8(noteObject->x_fontname->s_name);
-                auto const fontSize = noteObject->x_fontsize;
+            Font fontMetrics;
 
-                Font fontMetrics;
+            if (fontName.isEmpty() || fontName == "Inter") {
+                fontMetrics = Fonts::getVariableFont().withStyle(Font::plain).withHeight(fontSize);
+            } else {
+                fontMetrics = Font(fontName, fontSize, Font::plain);
+            }
 
-                if (fontName.isEmpty() || fontName == "Inter") {
-                    fontMetrics = Fonts::getVariableFont().withStyle(Font::plain).withHeight(fontSize);
-                }
-                else {
-                    fontMetrics = Font(fontName, fontSize, Font::plain);
-                }
+            int lineLength = 0;
+            int lineChars = 0;
+            int lineCount = 1;
+            int charIndex = 0;
 
-                int lineLength = 0;
-                int lineChars = 0;
-                int lineCount = 1;
-                int charIndex = 0;
+            auto const objReducedPadding = obj_w - 3;
 
-                const auto objReducedPadding = obj_w - 3;
-
-                while (charIndex < noteText.length()){
-                    auto charLength = fontMetrics.getStringWidth(noteText.substring(charIndex, charIndex + 1));
-                    lineLength += charLength;
-                    lineChars++;
-                    if (lineLength > objReducedPadding) {
-                        if (lineChars == 1) {
-                            charIndex++;
-                        }
-                        lineCount++;
-                        lineLength = 0;
-                        lineChars = 0;
-                    } else {
+            while (charIndex < noteText.length()) {
+                auto charLength = fontMetrics.getStringWidth(noteText.substring(charIndex, charIndex + 1));
+                lineLength += charLength;
+                lineChars++;
+                if (lineLength > objReducedPadding) {
+                    if (lineChars == 1) {
                         charIndex++;
                     }
-                }
-                obj_h = lineCount * fontMetrics.getHeight();
-                break;
-            }
-            case hash("canvas"):
-            {
-                if (((t_canvas*)object)->gl_isgraph == 1) {
-                    break;
-                }
-                StringArray lines;
-                lines.addTokens(objectTextString, ";", "");
-                auto charWidth = objectPtr->te_width;
-                obj_w = jmax<int>(Font(16).getStringWidth(objectTextString), charWidth * 7);
-                obj_h = jmax<int>(20, 20 * lines.size());
-                break;
-            }
-            case hash("cnv"): {
-                // example of how we could get the size from the objects themselves via static function
-                // in which case we would get the whole bounds
-                // this way all object dimension calculations would be in the same place
-                auto const cnvBounds = CanvasObject::getPDSize((t_my_canvas*)object);
-                obj_w = cnvBounds.getWidth();
-                obj_h = cnvBounds.getHeight();
-                break;
-            }
-            case hash("message"):
-            case hash("comment"):
-            case hash("text"): {
-                StringArray lines;
-                lines.addTokens(objectTextString, ";", "");
-                auto charWidth = objectPtr->te_width;
-                // charWidth of 0 == auto width, which means we need to calculate the width manually
-                obj_w = jmax<int>(Font(15).getStringWidth(objectTextString), charWidth * 7) + padding;
-                obj_h = 20 * jmax<int>(1, lines.size());
-
-                if ((typeHash == hash("message")) || (((t_fake_text_define *) object)->x_textbuf.b_ob.te_type == T_OBJECT)) {
-                    if (objectPtr->te_width == 0) {
-                        obj_w = jmax<int>(42, Font(15).getStringWidth(objectTextString) + padding);
-                    } else {
-                        obj_w = (objectPtr->te_width * 7) + padding;
-                    }
-                }
-                break;
-            }
-            default:
-            {
-                obj_h = 20;
-                if (objectPtr->te_width == 0) {
-                    obj_w = Font(15).getStringWidth(objectTextString) + padding;
+                    lineCount++;
+                    lineLength = 0;
+                    lineChars = 0;
                 } else {
-                    obj_w = (objectPtr->te_width * 7);
+                    charIndex++;
                 }
-                auto maxIolets = jmax<int>(pd::Interface::numOutlets(objectPtr), pd::Interface::numInlets(objectPtr));
-                obj_w = jmax<int>((maxIolets * 18) + padding, obj_w);
+            }
+            obj_h = lineCount * fontMetrics.getHeight();
+            break;
+        }
+        case hash("canvas"): {
+            if (((t_canvas*)object)->gl_isgraph == 1) {
                 break;
             }
+            StringArray lines;
+            lines.addTokens(objectTextString, ";", "");
+            auto charWidth = objectPtr->te_width;
+            obj_w = jmax<int>(Font(16).getStringWidth(objectTextString), charWidth * 7);
+            obj_h = jmax<int>(20, 20 * lines.size());
+            break;
+        }
+        case hash("cnv"): {
+            // example of how we could get the size from the objects themselves via static function
+            // in which case we would get the whole bounds
+            // this way all object dimension calculations would be in the same place
+            auto const cnvBounds = CanvasObject::getPDSize((t_my_canvas*)object);
+            obj_w = cnvBounds.getWidth();
+            obj_h = cnvBounds.getHeight();
+            break;
+        }
+        case hash("message"):
+        case hash("comment"):
+        case hash("text"): {
+            StringArray lines;
+            lines.addTokens(objectTextString, ";", "");
+            auto charWidth = objectPtr->te_width;
+            // charWidth of 0 == auto width, which means we need to calculate the width manually
+            obj_w = jmax<int>(Font(15).getStringWidth(objectTextString), charWidth * 7) + padding;
+            obj_h = 20 * jmax<int>(1, lines.size());
+
+            if ((typeHash == hash("message")) || (((t_fake_text_define*)object)->x_textbuf.b_ob.te_type == T_OBJECT)) {
+                if (objectPtr->te_width == 0) {
+                    obj_w = jmax<int>(42, Font(15).getStringWidth(objectTextString) + padding);
+                } else {
+                    obj_w = (objectPtr->te_width * 7) + padding;
+                }
+            }
+            break;
+        }
+        default: {
+            obj_h = 20;
+            if (objectPtr->te_width == 0) {
+                obj_w = Font(15).getStringWidth(objectTextString) + padding;
+            } else {
+                obj_w = (objectPtr->te_width * 7);
+            }
+            auto maxIolets = jmax<int>(pd::Interface::numOutlets(objectPtr), pd::Interface::numInlets(objectPtr));
+            obj_w = jmax<int>((maxIolets * 18) + padding, obj_w);
+            break;
+        }
         }
 
         rect.setBounds(obj_x, obj_y, obj_w, obj_h);
@@ -475,10 +467,9 @@ ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, flo
     g.addTransform(AffineTransform::scale(scale));
     g.setColour(Colours::white);
     for (auto& rect : objectRects) {
-        if(ProjectInfo::canUseSemiTransparentWindows()) {
+        if (ProjectInfo::canUseSemiTransparentWindows()) {
             g.fillRoundedRectangle(rect.toFloat(), 5.0f);
-        }
-        else {
+        } else {
             g.fillRect(rect);
         }
     }

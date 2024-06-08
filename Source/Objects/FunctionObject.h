@@ -101,7 +101,7 @@ public:
 
         return realPoints;
     }
-    
+
     void render(NVGcontext* nvg) override
     {
         bool selected = object->isSelected() && !cnv->isGraph;
@@ -114,7 +114,7 @@ public:
         auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, selected ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
-        
+
         nvgStrokeColor(nvg, foregroundColour);
 
         auto realPoints = getRealPoints();
@@ -143,7 +143,7 @@ public:
             nvgStroke(nvg);
         }
     }
-    
+
     void getPointsFromFunction(t_fake_function* function)
     {
         // Don't update while dragging

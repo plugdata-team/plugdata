@@ -14,7 +14,8 @@
 #include "PluginEditor.h"
 #include "Connection.h"
 
-ObjectGrid::ObjectGrid(Canvas* cnv) : cnv(cnv)
+ObjectGrid::ObjectGrid(Canvas* cnv)
+    : cnv(cnv)
 {
 
     gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
@@ -25,8 +26,9 @@ ObjectGrid::ObjectGrid(Canvas* cnv) : cnv(cnv)
 Array<Object*> ObjectGrid::getSnappableObjects(Object* draggedObject)
 {
     auto& cnv = draggedObject->cnv;
-    if(!cnv->viewport) return {};
-    
+    if (!cnv->viewport)
+        return {};
+
     Array<Object*> snappable;
 
     auto scaleFactor = std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
@@ -213,18 +215,15 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
     auto isDraggingLeft = resizeZone.isDraggingLeftEdge();
     auto isDraggingRight = resizeZone.isDraggingRightEdge();
 
-    if(auto* constrainer = toDrag->getConstrainer())
-    {
+    if (auto* constrainer = toDrag->getConstrainer()) {
         // Not great that we need to do this, but otherwise we don't really know the object bounds for sure
         constrainer->checkBounds(newResizeBounds, toDrag->originalBounds, limits,
             isDraggingTop, isDraggingLeft, isDraggingBottom, isDraggingRight);
     }
 
-
     // Returns non-zero if the object has a fixed ratio
     auto ratio = 0.0;
-    if(auto* constrainer = toDrag->getConstrainer())
-    {
+    if (auto* constrainer = toDrag->getConstrainer()) {
         ratio = constrainer->getFixedAspectRatio();
     }
 
@@ -383,10 +382,10 @@ Line<int> ObjectGrid::getObjectIndicatorLine(Side side, Rectangle<int> b1, Recta
 void ObjectGrid::clearIndicators(bool fast)
 {
     float lineFadeMs = fast ? 50 : 250;
-    
+
     lineAlphaMultiplier[0] = dsp::FastMathApproximations::exp((-MathConstants<float>::twoPi * 1000.0f / 60.0f) / lineFadeMs);
     lineAlphaMultiplier[1] = lineAlphaMultiplier[0];
-    if(lineTargetAlpha[0] != 0.0f || lineTargetAlpha[1] != 0.0f) {
+    if (lineTargetAlpha[0] != 0.0f || lineTargetAlpha[1] != 0.0f) {
         lineTargetAlpha[0] = 0.0f;
         lineTargetAlpha[1] = 0.0f;
         startTimerHz(60);
@@ -398,26 +397,24 @@ void ObjectGrid::setIndicator(int idx, Line<int> line, float scale)
     auto lineIsEmpty = line.getLength() == 0;
     if (lineIsEmpty) {
         lineAlphaMultiplier[idx] = dsp::FastMathApproximations::exp((-MathConstants<float>::twoPi * 1000.0f / 60.0f) / 50.0f);
-        if(lineTargetAlpha[idx] != 0.0f) {
+        if (lineTargetAlpha[idx] != 0.0f) {
             lineTargetAlpha[idx] = 0.0f;
             startTimerHz(60);
         }
-    }
-    else {
+    } else {
         auto lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[idx].getStart(), lines[idx].getEnd()).expanded(2));
         cnv->editor->nvgSurface.invalidateArea(lineArea);
     }
-    
+
     lines[idx] = line;
 
     if (!lineIsEmpty) {
         lineAlphaMultiplier[idx] = dsp::FastMathApproximations::exp((-MathConstants<float>::twoPi * 1000.0f / 60.0f) / 50.0f);
-        if(lineTargetAlpha[idx] != 1.0f) {
+        if (lineTargetAlpha[idx] != 1.0f) {
             lineTargetAlpha[idx] = 1.0f;
             startTimerHz(60);
         }
-    }
-    else {
+    } else {
         auto lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[idx].getStart(), lines[idx].getEnd()).expanded(2));
         cnv->editor->nvgSurface.invalidateArea(lineArea);
     }
@@ -425,49 +422,48 @@ void ObjectGrid::setIndicator(int idx, Line<int> line, float scale)
 
 void ObjectGrid::timerCallback()
 {
-    if(lines[0].getLength() != 0 && lineAlpha[0] != 0.0f) {
+    if (lines[0].getLength() != 0 && lineAlpha[0] != 0.0f) {
         auto lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[0].getStart(), lines[0].getEnd()).expanded(2));
         cnv->editor->nvgSurface.invalidateArea(lineArea);
     }
-    if(lines[1].getLength() != 0 && lineAlpha[1] != 0.0f) {
+    if (lines[1].getLength() != 0 && lineAlpha[1] != 0.0f) {
         auto lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[1].getStart(), lines[1].getEnd()).expanded(2));
         cnv->editor->nvgSurface.invalidateArea(lineArea);
     }
-    
+
     bool done = true; // TODO: use multi-timer?
-    for(int i = 0; i < 2; i++) {
+    for (int i = 0; i < 2; i++) {
         lineAlpha[i] = jmap<float>(lineAlphaMultiplier[i], lineTargetAlpha[i], lineAlpha[i]);
-        if(std::abs(lineAlpha[i] - lineTargetAlpha[i]) < 1e-5)  {
+        if (std::abs(lineAlpha[i] - lineTargetAlpha[i]) < 1e-5) {
             lineAlpha[i] = lineTargetAlpha[i];
-        }
-        else {
+        } else {
             done = false;
         }
     }
-    
-    if(done)  {
+
+    if (done) {
         stopTimer();
     }
 }
 
 void ObjectGrid::render(NVGcontext* nvg)
 {
-    if(lines[0].getLength() != 0) {
+    if (lines[0].getLength() != 0) {
         auto& lnf = LookAndFeel::getDefaultLookAndFeel();
         nvgStrokeColor(nvg, NVGComponent::convertColour(lnf.findColour(PlugDataColour::gridLineColourId).withAlpha(lineAlpha[0])));
         nvgStrokeWidth(nvg, 1.0f);
-        
+
         nvgBeginPath(nvg);
         nvgMoveTo(nvg, lines[0].getStartX(), lines[0].getStartY());
         nvgLineTo(nvg, lines[0].getEndX(), lines[0].getEndY());
         nvgStroke(nvg);
     }
-          
-    if(lines[1].getLength() != 0) {
+
+    if (lines[1].getLength() != 0) {
         auto& lnf = LookAndFeel::getDefaultLookAndFeel();
         nvgStrokeColor(nvg, NVGComponent::convertColour(lnf.findColour(PlugDataColour::gridLineColourId).withAlpha(lineAlpha[1])));
         nvgStrokeWidth(nvg, 1.0f);
-        
+
         nvgBeginPath(nvg);
         nvgMoveTo(nvg, lines[1].getStartX(), lines[1].getStartY());
         nvgLineTo(nvg, lines[1].getEndX(), lines[1].getEndY());
