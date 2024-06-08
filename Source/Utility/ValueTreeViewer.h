@@ -122,10 +122,8 @@ public:
     void update()
     {
         // Compare existing child nodes with current children
-        for (int i = 0; i < valueTreeNode.getNumChildren(); ++i)
+        for (const auto& childNode : valueTreeNode)
         {
-            ValueTree childNode = valueTreeNode.getChild(i);
-            
             // Check if an existing node exists for this child
             ValueTreeNodeComponent* existingNode = nullptr;
             for (auto* node : nodes)
@@ -389,7 +387,7 @@ public:
         return totalHeight;
     }
     
-    static bool compareProperties(ValueTree oldTree, ValueTree newTree)
+    static bool compareProperties(const ValueTree& oldTree, const ValueTree& newTree)
     {
         for(int i = 0; i < oldTree.getNumProperties(); i++)
         {

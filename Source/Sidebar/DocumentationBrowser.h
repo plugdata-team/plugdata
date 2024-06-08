@@ -20,77 +20,208 @@ public:
     struct DocumentBrowserSettingsButton : public TextButton {
         String const icon;
         String const description;
-
+        
         DocumentBrowserSettingsButton(String iconString, String descriptionString)
-            : icon(std::move(iconString))
-            , description(std::move(descriptionString))
+        : icon(std::move(iconString))
+        , description(std::move(descriptionString))
         {
         }
-
+        
         void paint(Graphics& g) override
         {
             auto colour = findColour(PlugDataColour::toolbarTextColourId);
             if (isMouseOver()) {
                 colour = colour.contrasting(0.3f);
             }
-
+            
             Fonts::drawText(g, description, getLocalBounds().withTrimmedLeft(28), colour, 14);
-
+            
             if (getToggleState()) {
                 colour = findColour(PlugDataColour::toolbarActiveColourId);
             }
-
+            
             Fonts::drawIcon(g, icon, getLocalBounds().withTrimmedLeft(8), colour, 14, false);
         }
     };
-
+    
     DocumentBrowserSettings(std::function<void()> const& chooseCustomLocation, std::function<void()> const& resetDefaultLocation)
     {
         addAndMakeVisible(customLocationButton);
         addAndMakeVisible(restoreLocationButton);
-
+        
         customLocationButton.onClick = [chooseCustomLocation]() {
             chooseCustomLocation();
         };
-
+        
         restoreLocationButton.onClick = [resetDefaultLocation]() {
             resetDefaultLocation();
         };
-
+        
         setSize(180, 54);
     }
-
+    
     void resized() override
     {
         auto buttonBounds = getLocalBounds();
-
+        
         int buttonHeight = buttonBounds.getHeight() / 2;
-
+        
         customLocationButton.setBounds(buttonBounds.removeFromTop(buttonHeight));
         restoreLocationButton.setBounds(buttonBounds.removeFromTop(buttonHeight));
     }
-
+    
 private:
     DocumentBrowserSettingsButton customLocationButton = DocumentBrowserSettingsButton(Icons::Open, "Show custom folder...");
     DocumentBrowserSettingsButton restoreLocationButton = DocumentBrowserSettingsButton(Icons::Restore, "Show default folder");
-
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DocumentBrowserSettings)
 };
 
-class DocumentationBrowser : public Component, public FileDragAndDropTarget, private FileSystemWatcher::Listener,  private Thread, public KeyListener {
+class DocumentationBrowserUpdateThread : public Thread, public ChangeBroadcaster, private FileSystemWatcher::Listener, private SettingsFileListener, public DeletedAtShutdown
+{
+public:
+    DocumentationBrowserUpdateThread() : Thread("Documentation Browser Thread")
+    {
+        fsWatcher.removeAllFolders();
+        fsWatcher.addFolder(File(SettingsFile::getInstance()->getProperty<String>("browser_path")));
+        fsWatcher.addListener(this);
+        
+        update();
+    }
+    
+    ~DocumentationBrowserUpdateThread()
+    {
+        stopThread(-1);
+    }
+    
+    void update()
+    {
+        //startThread(fileTree.isValid() ? Thread::Priority::low : Thread::Priority::background);
+        startThread(Thread::Priority::low);
+    }
+    
+    ValueTree getCurrentTree()
+    {
+        ScopedLock treeLock(fileTreeLock);
+        return fileTree;
+    }
+    
+private:
+   
+    static inline const Identifier fileIdentifier = Identifier("File");
+    static inline const Identifier nameIdentifier = Identifier("Name");
+    static inline const Identifier pathIdentifier = Identifier("Path");
+    static inline const Identifier iconIdentifier = Identifier("Icon");
+    
+    ValueTree generateDirectoryValueTree(const File& directory) {
+        
+        static File versionDataDir = ProjectInfo::appDataDir.getChildFile("Versions");
+        static File toolchainDir = ProjectInfo::appDataDir.getChildFile("Toolchain");
+        
+        if (threadShouldExit() || !directory.exists() || !directory.isDirectory() || directory == versionDataDir || directory == toolchainDir)
+        {
+            return {};
+        }
+        
+        ValueTree rootNode("Folder");
+        rootNode.setProperty(nameIdentifier, directory.getFileName(), nullptr);
+        rootNode.setProperty(pathIdentifier, directory.getFullPathName(), nullptr);
+        rootNode.setProperty(iconIdentifier, Icons::Folder, nullptr);
+        
+        // visitedDirectories keeps track of dirs we've already processed to prevent infinite loops
+        static Array<File> visitedDirectories = {};
+        
+        // Protect against symlink loops!
+        if (!visitedDirectories.contains(directory)) {
+            for (const auto& subDirectory : OSUtils::iterateDirectory(directory, false, false)) {
+                visitedDirectories.add(directory);
+                
+                if(subDirectory.isDirectory() && subDirectory != directory) {
+                    ValueTree childNode = generateDirectoryValueTree(subDirectory);
+                    if(childNode.isValid()) rootNode.appendChild(childNode, nullptr);
+                }
+                
+                visitedDirectories.removeLast();
+            }
+        }
+        
+        for (const auto& file : OSUtils::iterateDirectory(directory, false, true)) {
+            if(file.getFileName().startsWith(".") || file.isDirectory()) continue;
+            
+            ValueTree childNode(fileIdentifier);
+            childNode.setProperty(nameIdentifier, file.getFileName(), nullptr);
+            childNode.setProperty(pathIdentifier, file.getFullPathName(), nullptr);
+            childNode.setProperty(iconIdentifier, Icons::File, nullptr);
+            
+            rootNode.appendChild(childNode, nullptr);
+        }
+        
+        if (threadShouldExit()) return {};
+        
+        struct {
+            static int compareElements (const ValueTree& first, const ValueTree& second)
+            {
+                if(first.getProperty(iconIdentifier) == Icons::File && second.getProperty(iconIdentifier) == Icons::Folder)
+                {
+                    return 1;
+                }
+                if(first.getProperty(iconIdentifier) == Icons::Folder && second.getProperty(iconIdentifier) == Icons::File)
+                {
+                    return -1;
+                }
+                
+                return first.getProperty(nameIdentifier).toString().compareNatural(second.getProperty(nameIdentifier).toString());
+            }
+        } valueTreeSorter;
+        
+        rootNode.sort(valueTreeSorter, nullptr, false);
+        return rootNode;
+    }
 
+    
+    void propertyChanged(String const& name, var const& value) override {
+        if(name == "browser_path")
+        {
+            fsWatcher.removeAllFolders();
+            fsWatcher.addFolder(File(SettingsFile::getInstance()->getProperty<String>("browser_path")));
+            update();
+        }
+    }
+    
+    void run() override
+    {
+        fileTreeLock.enter();
+        fileTree = generateDirectoryValueTree(File(SettingsFile::getInstance()->getProperty<String>("browser_path")));
+        fileTreeLock.exit();
+        sendChangeMessage();
+    }
+    
+    void filesystemChanged() override
+    {
+        update();
+    }
+    
+    
+    CriticalSection fileTreeLock;
+    ValueTree fileTree;
+    FileSystemWatcher fsWatcher;
+};
+
+class DocumentationBrowser : public Component, public FileDragAndDropTarget, public ChangeListener, public KeyListener {
+    
 public:
     explicit DocumentationBrowser(PluginProcessor* processor)
-        : Thread("Documentation Browser Thread"), pd(processor)
+    : pd(processor)
     {
+        if(!updater) updater = new DocumentationBrowserUpdateThread();
+        updater->addChangeListener(this);
+        
         searchInput.setBackgroundColour(PlugDataColour::sidebarActiveBackgroundColourId);
         searchInput.addKeyListener(this);
         searchInput.onTextChange = [this]() {
             fileList.setFilterString(searchInput.getText());
         };
         
-        fsWatcher.addListener(this);
-
         searchInput.setJustification(Justification::centredLeft);
         searchInput.setBorder({ 1, 23, 5, 1 });
         searchInput.setTextToShowWhenEmpty("Type to search documentation", findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f));
@@ -114,194 +245,110 @@ public:
             DragAndDropContainer::performExternalDragDropOfFiles({ tree.getProperty("Path") }, false, this, nullptr);
         };
         
-        updateContent();
+        fileTree = updater->getCurrentTree();
+        if(fileTree.isValid())
+        {
+            fileList.setValueTree(fileTree);
+        }
         addAndMakeVisible(fileList);
     }
     
     ~DocumentationBrowser() override
     {
-        stopThread(-1);
+        updater->removeChangeListener(this);
+    }
+    
+    void changeListenerCallback (ChangeBroadcaster *source) override
+    {
+        fileTree = updater->getCurrentTree();
+        
+        if(isVisible()) {
+            fileList.setValueTree(fileTree);
+        }
     }
     
     bool isInterestedInFileDrag(StringArray const& files) override
-   {
-       if (!isVisible())
-           return false;
-
-       for (auto& path : files) {
-           auto file = File(path);
-           if (file.exists() && (file.isDirectory() || file.hasFileExtension("pd"))) {
-               return true;
-           }
-       }
-
-       return false;
-   }
-    
-   void updateContent()
-   {
-       fsWatcher.removeAllFolders();
-       fsWatcher.addFolder(File(pd->settingsFile->getProperty<String>("browser_path")));
-       startThread(Thread::Priority::background);
-   }
-    
-   bool keyPressed(KeyPress const& key, Component* originatingComponent) override
-   {
-       if (key.isKeyCode(KeyPress::upKey) || key.isKeyCode(KeyPress::downKey)) {
-           fileList.keyPressed(key, originatingComponent);
-           return true;
-       }
-
-       return false;
-   }
-
-    
-    void filesystemChanged() override
     {
-        if(isVisible())
-        {
-            startThread(Thread::Priority::background);
+        if (!isVisible())
+            return false;
+        
+        for (auto& path : files) {
+            auto file = File(path);
+            if (file.exists() && (file.isDirectory() || file.hasFileExtension("pd"))) {
+                return true;
+            }
         }
-        else {
-            needsUpdate = true;
+        
+        return false;
+    }
+    
+    bool keyPressed(KeyPress const& key, Component* originatingComponent) override
+    {
+        if (key.isKeyCode(KeyPress::upKey) || key.isKeyCode(KeyPress::downKey)) {
+            fileList.keyPressed(key, originatingComponent);
+            return true;
         }
+        
+        return false;
     }
     
     void visibilityChanged() override
     {
-        if(needsUpdate && isVisible())
-        {
-            startThread(Thread::Priority::low);
-            needsUpdate = false;
+        if(fileList.getValueTree() != fileTree) {
+            fileList.setValueTree(fileTree);
         }
     }
-
-   void filesDropped(StringArray const& files, int x, int y) override
-   {
-       auto parentDirectory = File(pd->settingsFile->getProperty<String>("browser_path"));
-       
-       for (auto& path : files) {
-           auto file = File(path);
-           if (file.exists() && (file.isDirectory() || file.hasFileExtension("pd"))) {
-               auto alias = parentDirectory.getChildFile(file.getFileName());
-
-               if (alias.exists()) continue;
-               
-#if JUCE_WINDOWS
-               // Symlinks on Windows are weird!
-               if (file.isDirectory()) {
-                   // Create NTFS directory junction
-                   OSUtils::createJunction(alias.getFullPathName().replaceCharacters("/", "\\").toStdString(), file.getFullPathName().toStdString());
-               } else {
-                   // Create hard link
-                   OSUtils::createHardLink(alias.getFullPathName().replaceCharacters("/", "\\").toStdString(), file.getFullPathName().toStdString());
-               }
-
-#else
-               file.createSymbolicLink(alias, true);
-#endif
-           }
-       }
-
-       updateContent();
-
-       isDraggingFile = false;
-       repaint();
-   }
-
-   void fileDragEnter(StringArray const&, int, int) override
-   {
-       isDraggingFile = true;
-       repaint();
-   }
-
-   void fileDragExit(StringArray const&) override
-   {
-       isDraggingFile = false;
-       repaint();
-   }
     
-    void run() override
+    void filesDropped(StringArray const& files, int x, int y) override
     {
-        auto tree = generateDirectoryValueTree(File(pd->settingsFile->getProperty<String>("browser_path")));
-        if(tree.isValid()) {
-            MessageManager::callAsync([_this = SafePointer(this), tree](){
-                if(_this) {
-                    _this->fileTree = tree;
-                    _this->fileList.setValueTree(tree);
-                }
-            });
-        }
-    }
-    
-    ValueTree generateDirectoryValueTree(const File& directory) {
+        auto parentDirectory = File(pd->settingsFile->getProperty<String>("browser_path"));
         
-        static File versionDataDir = ProjectInfo::appDataDir.getChildFile("Versions");
-        static File toolchainDir = ProjectInfo::appDataDir.getChildFile("Toolchain");
-        
-        if (threadShouldExit() || !directory.exists() || !directory.isDirectory() || directory == versionDataDir || directory == toolchainDir)
-        {
-            return {};
-        }
-        
-        ValueTree rootNode("Folder");
-        rootNode.setProperty("Name", directory.getFileName(), nullptr);
-        rootNode.setProperty("Path", directory.getFullPathName(), nullptr);
-        rootNode.setProperty("Icon", Icons::Folder, nullptr);
-        
-        // visitedDirectories keeps track of dirs we've already processed to prevent infinite loops
-        static Array<File> visitedDirectories = {};
-    
-        // Protect against symlink loops!
-        if (!visitedDirectories.contains(directory)) {
-            for (const auto& subDirectory : OSUtils::iterateDirectory(directory, false, false)) {
-                visitedDirectories.add(directory);
+        for (auto& path : files) {
+            auto file = File(path);
+            if (file.exists() && (file.isDirectory() || file.hasFileExtension("pd"))) {
+                auto alias = parentDirectory.getChildFile(file.getFileName());
                 
-                if(subDirectory.isDirectory() && subDirectory != directory) {
-                    ValueTree childNode = generateDirectoryValueTree(subDirectory);
-                    if(childNode.isValid()) rootNode.appendChild(childNode, nullptr);
+                if (alias.exists()) continue;
+                
+#if JUCE_WINDOWS
+                // Symlinks on Windows are weird!
+                if (file.isDirectory()) {
+                    // Create NTFS directory junction
+                    OSUtils::createJunction(alias.getFullPathName().replaceCharacters("/", "\\").toStdString(), file.getFullPathName().toStdString());
+                } else {
+                    // Create hard link
+                    OSUtils::createHardLink(alias.getFullPathName().replaceCharacters("/", "\\").toStdString(), file.getFullPathName().toStdString());
                 }
                 
-                visitedDirectories.removeLast();
+#else
+                file.createSymbolicLink(alias, true);
+#endif
             }
         }
         
-        for (const auto& file : OSUtils::iterateDirectory(directory, false, true)) {
-            if(file.getFileName().startsWith(".") || file.isDirectory()) continue;
-            
-            ValueTree childNode("File");
-            childNode.setProperty("Name", file.getFileName(), nullptr);
-            childNode.setProperty("Path", file.getFullPathName(), nullptr);
-            childNode.setProperty("Icon", Icons::File, nullptr);
-
-            rootNode.appendChild(childNode, nullptr);
-        }
+        updater->update();
         
-        struct {
-            static int compareElements (const ValueTree& first, const ValueTree& second)
-            {
-                if(first.getProperty("Icon") == Icons::File && second.getProperty("Icon") == Icons::Folder)
-                {
-                    return 1;
-                }
-                if(first.getProperty("Icon") == Icons::Folder && second.getProperty("Icon") == Icons::File)
-                {
-                    return -1;
-                }
-                
-                return first.getProperty("Name").toString().compareNatural(second.getProperty("Name").toString());
-            }
-        } valueTreeSorter;
-        
-        rootNode.sort(valueTreeSorter, nullptr, false);
-        return rootNode;
+        isDraggingFile = false;
+        repaint();
     }
-
+    
+    void fileDragEnter(StringArray const&, int, int) override
+    {
+        isDraggingFile = true;
+        repaint();
+    }
+    
+    void fileDragExit(StringArray const&) override
+    {
+        isDraggingFile = false;
+        repaint();
+    }
+    
     bool hitTest(int x, int y) override
     {
         if (x < 5)
             return false;
-
+        
         return true;
     }
     
@@ -310,20 +357,20 @@ public:
         g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
         g.fillRoundedRectangle(searchInput.getBounds().reduced(6, 4).toFloat(), Corners::defaultCornerRadius);
     }
-
+    
     void lookAndFeelChanged() override
     {
         searchInput.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         searchInput.setColour(TextEditor::textColourId, findColour(PlugDataColour::sidebarTextColourId));
         searchInput.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
     }
-
+    
     void resized() override
     {
         searchInput.setBounds(getLocalBounds().removeFromTop(34).reduced(5, 4));
         fileList.setBounds(getLocalBounds().withHeight(getHeight() - 32).withY(32).reduced(2, 0));
     }
-
+    
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
@@ -331,12 +378,12 @@ public:
         
         auto backgroundColour = findColour(PlugDataColour::sidebarBackgroundColourId);
         auto transparentColour = backgroundColour.withAlpha(0.0f);
-
+        
         // Draw a gradient to fade the content out underneath the search input
         auto scrollOffset = fileList.getViewport().canScrollVertically();
         g.setGradientFill(ColourGradient(backgroundColour, 0.0f, 26.0f, transparentColour, 0.0f, 42.0f, false));
         g.fillRect(Rectangle<int>(0, searchInput.getBottom(), getWidth() - scrollOffset, 12));
-
+        
         Fonts::drawIcon(g, Icons::Search, 2, 1, 32, findColour(PlugDataColour::sidebarTextColourId), 12);
         
         if (isDraggingFile) {
@@ -344,7 +391,7 @@ public:
             g.drawRect(getLocalBounds().reduced(1), 2.0f);
         }
     }
-
+    
     std::unique_ptr<Component> getExtraSettingsComponent()
     {
         auto* settingsCalloutButton = new SmallIconButton(Icons::More);
@@ -358,32 +405,26 @@ public:
                 Dialogs::showOpenDialog([this](URL result) {
                     if (result.getLocalFile().isDirectory()) {
                         pd->settingsFile->setProperty("browser_path", result.toString(false));
-                        updateContent();
                     }
                 },
-                    false, true, "", "DocumentationFileChooser", editor);
+                                        false, true, "", "DocumentationFileChooser", editor);
             };
-
+            
             auto resetFolderCallback = [this]() {
                 auto location = ProjectInfo::appDataDir;
                 pd->settingsFile->setProperty("browser_path", location.getFullPathName());
-                updateContent();
             };
-
+            
             auto docsSettings = std::make_unique<DocumentBrowserSettings>(openFolderCallback, resetFolderCallback);
             CallOutBox::launchAsynchronously(std::move(docsSettings), bounds, editor);
         };
-
+        
         return std::unique_ptr<TextButton>(settingsCalloutButton);
     }
-
+    
 private:
     PluginProcessor* pd;
-    
-    bool needsUpdate = false;
-    
-    FileSystemWatcher fsWatcher;
-    
+        
     TextButton revealButton = TextButton(Icons::OpenedFolder);
     TextButton loadFolderButton = TextButton(Icons::Folder);
     TextButton resetFolderButton = TextButton(Icons::Restore);
@@ -391,6 +432,8 @@ private:
     
     ValueTree fileTree;
     ValueTreeViewerComponent fileList = ValueTreeViewerComponent("(Folder)");
+    
+    static inline DocumentationBrowserUpdateThread* updater = nullptr;
     SearchEditor searchInput;
     
     bool isDraggingFile = false;
