@@ -191,12 +191,6 @@ private:
             return y + (title.isNotEmpty() ? 16 : 0);
         }
 
-        void refreshAll() const
-        {
-            for (auto* propertyComponent : propertyComponents)
-                propertyComponent->refresh();
-        }
-
         void mouseUp(MouseEvent const& e) override
         {
             if (e.getMouseDownX() < parent.titleHeight
@@ -229,12 +223,6 @@ private:
 
             setSize(width, std::max(viewHeight, y));
             repaint();
-        }
-
-        void refreshAll() const
-        {
-            for (auto* section : sections)
-                section->refreshAll();
         }
 
         void insertSection(int indexToInsertAt, SectionComponent* newSection)

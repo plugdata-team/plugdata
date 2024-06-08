@@ -66,20 +66,6 @@ public:
         pd->unregisterMessageListener(arr.getRawUnchecked<void>(), this);
     }
 
-    void setArray(void* array)
-    {
-        if (!array)
-            return;
-
-        // TODO: Not great design
-
-        // Manually call destructor
-        arr.~WeakReference();
-
-        // Initialise new weakreference in place, to prevent calling copy constructor
-        new (&arr) pd::WeakReference(array, pd);
-    }
-
     std::vector<float> rescale(std::vector<float> const& v, unsigned const newSize)
     {
         if (v.empty()) {
@@ -514,16 +500,6 @@ public:
         return false;
     }
 
-    // Gets the name of the array. Currently not used anywhere
-    String getExpandedName() const
-    {
-        if (auto ptr = arr.get<t_fake_garray>()) {
-            return String::fromUTF8(ptr->x_realname->s_name);
-        }
-
-        return {};
-    }
-
     // Gets the text label of the array
     String getUnexpandedName() const
     {
@@ -591,13 +567,6 @@ public:
         }
 
         return true;
-    }
-
-    void setEditMode(bool editMode)
-    {
-        if (auto ptr = arr.get<t_fake_garray>()) {
-            ptr->x_edit = editMode;
-        }
     }
 
     // Gets the scale of the array.

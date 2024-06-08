@@ -247,13 +247,6 @@ private:
 
     Label canvasLabel, objectLabel, connectionLabel;
 
-    enum OverlayState {
-        AllOff = 0,
-        EditDisplay,
-        LockDisplay,
-        AltDisplay
-    };
-
     Array<OwnedArray<OverlaySelector>*> groups;
 
     OwnedArray<OverlaySelector> canvas;

@@ -21,8 +21,6 @@
 using PathPlan = std::vector<Point<float>>;
 
 class Canvas;
-class PathUpdater;
-
 class Connection : public DrawablePath
     , public ComponentListener
     , public ChangeListener
@@ -40,25 +38,8 @@ public:
     Path toDrawLocalSpace;
     String lastId;
 
-    std::atomic<int> messageActivity;
-
     Connection(Canvas* parent, Iolet* start, Iolet* end, t_outconnect* oc);
     ~Connection() override;
-
-    static void renderConnectionPath(Graphics& g,
-        Canvas* cnv,
-        Path const& connectionPath,
-        bool isSignal,
-        bool isGemState,
-        bool isMouseOver = false,
-        bool showDirection = false,
-        bool showConnectionOrder = false,
-        bool isSelected = false,
-        Point<int> mousePos = { 0, 0 },
-        bool isHovering = false,
-        int connections = 0,
-        int connectionNum = 0,
-        int numSignalChannels = 0);
 
     static Path getNonSegmentedPath(Point<float> start, Point<float> end);
 
@@ -111,7 +92,6 @@ public:
 
     void applyBestPath();
 
-    bool intersectsObject(Object* object) const;
     bool straightLineIntersectsObject(Line<float> toCheck, Array<Object*>& objects);
 
     void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms) override;
@@ -136,7 +116,7 @@ private:
     void setSelected(bool shouldBeSelected);
 
     Array<SafePointer<Connection>> reconnecting;
-    Rectangle<float> startReconnectHandle, endReconnectHandle, endCableOrderDisplay;
+    Rectangle<float> startReconnectHandle, endReconnectHandle;
 
     bool selectedFlag = false;
     bool segmented = false;

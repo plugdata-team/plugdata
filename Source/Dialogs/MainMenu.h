@@ -272,7 +272,6 @@ public:
         CompiledMode,
         Compile,
         FindExternals,
-        // Discover,
         Settings,
         About
     };

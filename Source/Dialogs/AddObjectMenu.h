@@ -100,11 +100,6 @@ public:
         }
     }
 
-    String getTitleText()
-    {
-        return titleText;
-    }
-
 private:
     String titleText;
     String iconText;

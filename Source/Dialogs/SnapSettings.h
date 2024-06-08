@@ -88,8 +88,6 @@ public:
 
         bool dragToggledInteraction = false;
 
-        bool buttonHover = false;
-
     public:
         SnapSelector(SnapSettings* parent, String const& iconText, String nameOfGroup, SnapBitMask snapBitValue)
             : snapBit(snapBitValue)
@@ -138,20 +136,6 @@ public:
 
             SettingsFile::getInstance()->setProperty(property, snapValue);
 
-            repaint();
-        }
-
-        void mouseEnter(MouseEvent const& e) override
-        {
-            if (!dragToggledInteraction) {
-                buttonHover = true;
-                repaint();
-            }
-        }
-
-        void mouseExit(MouseEvent const& e) override
-        {
-            buttonHover = false;
             repaint();
         }
 

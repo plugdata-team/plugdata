@@ -1094,7 +1094,7 @@ const String PlugDataLook::defaultThemesXml = "<ColourThemes> "
 "           scrollbar_thumb=\"ffa9a9a9\" graph_area=\"ffff0000\" grid_colour=\"ff72aedf\"\n"
 "           caret_colour=\"ff72aedf\" iolet_area_colour=\"ff808080\" iolet_outline_colour=\"ff696969\"\n"
 "           text_object_background=\"ff333333\" comment_text_colour=\"ff111111\"\n"
-"           dashed_signal_connections=\"1\" straight_connections=\"0\"\n"
+"           straight_connections=\"0\"\n"
 "           thin_connections=\"0\" square_iolets=\"0\" square_object_corners=\"1\"/>\n"
 "    <Theme theme=\"classic\" toolbar_background=\"ffffffff\" toolbar_text=\"ff000000\"\n"
 "           toolbar_active=\"ff787878\" toolbar_hover=\"ffededed\" tabbar_background=\"ffffffff\"\n"
@@ -1114,7 +1114,7 @@ const String PlugDataLook::defaultThemesXml = "<ColourThemes> "
 "           popup_text=\"ff000000\"\n"
 "           scrollbar_thumb=\"ffa9a9a9\" graph_area=\"ffff0000\" grid_colour=\"ff000000\"\n"
 "           caret_colour=\"ff000000\" comment_text_colour=\"ff000000\"\n"
-"           dashed_signal_connections=\"0\" straight_connections=\"1\" thin_connections=\"1\"\n"
+"           straight_connections=\"1\" thin_connections=\"1\"\n"
 "           square_iolets=\"1\" square_object_corners=\"1\"/>\n"
 "    <Theme theme=\"classic_dark\" toolbar_background=\"ff000000\" toolbar_text=\"ffffffff\"\n"
 "           toolbar_active=\"ff787878\" toolbar_hover=\"ff888888\" tabbar_background=\"ff000000\"\n"
@@ -1133,7 +1133,7 @@ const String PlugDataLook::defaultThemesXml = "<ColourThemes> "
 "           scrollbar_thumb=\"ff7f7f7f\" graph_area=\"ffff0000\" grid_colour=\"ffffffff\"\n"
 "           caret_colour=\"ffffffff\" iolet_area_colour=\"ff000000\" iolet_outline_colour=\"ffffffff\"\n"
 "           text_object_background=\"ff000000\" comment_text_colour=\"ffffffff\"\n"
-"           dashed_signal_connections=\"0\" straight_connections=\"1\"\n"
+"           straight_connections=\"1\"\n"
 "           thin_connections=\"1\" square_iolets=\"1\" square_object_corners=\"1\"/>\n"
 "    <Theme theme=\"dark\" toolbar_background=\"ff191919\" toolbar_text=\"ffe1e1e1\"\n"
 "           toolbar_active=\"ff42a2c8\" toolbar_hover=\"ff282828\" tabbar_background=\"ff191919\"\n"
@@ -1152,7 +1152,7 @@ const String PlugDataLook::defaultThemesXml = "<ColourThemes> "
 "           scrollbar_thumb=\"ff7f7f7f\" graph_area=\"ffff0000\" grid_colour=\"ff42a2c8\"\n"
 "           caret_colour=\"ff42a2c8\" text_object_background=\"ff232323\" iolet_area_colour=\"ff232323\"\n"
 "           iolet_outline_colour=\"ff696969\" comment_text_colour=\"ffe1e1e1\"\n"
-"           dashed_signal_connections=\"1\" straight_connections=\"0\"\n"
+"           straight_connections=\"0\"\n"
 "           thin_connections=\"0\" square_iolets=\"0\" square_object_corners=\"0\"/>\n"
 "    <Theme theme=\"light\" toolbar_background=\"ffebebeb\" toolbar_text=\"ff373737\"\n"
 "           toolbar_active=\"ff007aff\" toolbar_hover=\"ffe0e0e0\" tabbar_background=\"ffebebeb\"\n"
@@ -1171,7 +1171,7 @@ const String PlugDataLook::defaultThemesXml = "<ColourThemes> "
 "           scrollbar_thumb=\"ffa9a9a9\" graph_area=\"ffff0000\" grid_colour=\"ff007aff\"\n"
 "           caret_colour=\"ff007aff\" square_object_corners=\"0\" text_object_background=\"fffafafa\"\n"
 "           iolet_area_colour=\"fffafafa\" iolet_outline_colour=\"ffc2c2c2\"\n"
-"           comment_text_colour=\"ff373737\" dashed_signal_connections=\"1\"\n"
+"           comment_text_colour=\"ff373737\"\n"
 "           straight_connections=\"0\" thin_connections=\"0\" square_iolets=\"0\"/>"
 "    <Theme theme=\"warm\" toolbar_background=\"ffd2cdc4\" toolbar_text=\"ff5a5a5a\"\n"
 "           toolbar_active=\"ff5da0c4\" toolbar_hover=\"ffc0bbb2\" tabbar_background=\"ffd2cdc4\"\n"
@@ -1190,7 +1190,7 @@ const String PlugDataLook::defaultThemesXml = "<ColourThemes> "
 "           scrollbar_thumb=\"ffa9a9a9\" graph_area=\"ffff0000\" grid_colour=\"ff5da0c4\"\n"
 "           caret_colour=\"ff5da0c4\" iolet_area_colour=\"ffe3dfd9\" iolet_outline_colour=\"ff968e82\"\n"
 "           text_object_background=\"ffe3dfd9\" comment_text_colour=\"ff5a5a5a\"\n"
-"           dashed_signal_connections=\"1\" straight_connections=\"0\"\n"
+"           straight_connections=\"0\"\n"
 "           thin_connections=\"0\" square_iolets=\"0\" square_object_corners=\"0\"/>\n"
 "    <Theme theme=\"fangs\" toolbar_background=\"ff232323\" toolbar_text=\"ffffffff\"\n"
 "           toolbar_active=\"ff5bcefa\" toolbar_hover=\"ff383838\" tabbar_background=\"ff232323\"\n"
@@ -1209,7 +1209,7 @@ const String PlugDataLook::defaultThemesXml = "<ColourThemes> "
 "           graph_area=\"ff5bcefa\" grid_colour=\"ffff0000\" caret_colour=\"ffffacab\"\n"
 "           text_object_background=\"ff232323\" iolet_area_colour=\"ff232323\"\n"
 "           iolet_outline_colour=\"ff696969\" comment_text_colour=\"ffffffff\"\n"
-"           dashed_signal_connections=\"1\" straight_connections=\"0\"\n"
+"           straight_connections=\"0\"\n"
 "           thin_connections=\"1\" square_iolets=\"1\" square_object_corners=\"0\"/>\n"
 "  </ColourThemes>";
 
@@ -1253,7 +1253,6 @@ void PlugDataLook::setTheme(ValueTree themeTree)
     currentTheme = themeTree.getProperty("theme").toString();
 
     Corners::objectCornerRadius = themeTree.getProperty("square_object_corners") ? 0.0f : 2.75f;
-    useDashedConnections = themeTree.getProperty("dashed_signal_connections");
     useStraightConnections = themeTree.getProperty("straight_connections");
     useThinConnections = themeTree.getProperty("thin_connections");
     useSquareIolets = themeTree.getProperty("square_iolets");
@@ -1270,10 +1269,6 @@ StringArray PlugDataLook::getAllThemes()
     return allThemes;
 }
 
-bool PlugDataLook::getUseDashedConnections()
-{
-    return useDashedConnections;
-}
 bool PlugDataLook::getUseStraightConnections()
 {
     return useStraightConnections;

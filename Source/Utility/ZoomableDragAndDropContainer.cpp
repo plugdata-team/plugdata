@@ -31,9 +31,6 @@
 // objects are only drag and dropped onto a canvas, so we dynamic cast straight away to see if the dragged object is from an object
 #include "Components/ObjectDragAndDrop.h"
 
-bool juce_performDragDropFiles(StringArray const&, bool const copyFiles, bool& shouldStop);
-bool juce_performDragDropText(String const&, bool& shouldStop);
-
 //==============================================================================
 class ZoomableDragAndDropContainer::DragImageComponent : public Component
     , public Timer {
@@ -300,8 +297,6 @@ private:
     float previousScale = 1.0f;
 
     ImageComponent zoomImageComponent;
-
-    Point<int> oldScreenPos = { 0, 0 };
 
     ZoomableDragAndDropContainer& owner;
     WeakReference<Component> mouseDragSource, currentlyOverComp;
@@ -603,44 +598,6 @@ void ZoomableDragAndDropContainer::startDragging(var const& sourceDescription,
 bool ZoomableDragAndDropContainer::isDragAndDropActive() const
 {
     return dragImageComponents.size() > 0;
-}
-
-int ZoomableDragAndDropContainer::getNumCurrentDrags() const
-{
-    return dragImageComponents.size();
-}
-
-var ZoomableDragAndDropContainer::getCurrentDragDescription() const
-{
-    // If you are performing drag and drop in a multi-touch environment then
-    // you should use the getDragDescriptionForIndex() method instead!
-    jassert(dragImageComponents.size() < 2);
-
-    return dragImageComponents.size() != 0 ? dragImageComponents[0]->sourceDetails.description
-                                           : var();
-}
-
-var ZoomableDragAndDropContainer::getDragDescriptionForIndex(int index) const
-{
-    if (!isPositiveAndBelow(index, dragImageComponents.size()))
-        return {};
-
-    return dragImageComponents.getUnchecked(index)->sourceDetails.description;
-}
-
-void ZoomableDragAndDropContainer::setCurrentDragImage(ScaledImage const& newImage)
-{
-    // If you are performing drag and drop in a multi-touch environment then
-    // you should use the setDragImageForIndex() method instead!
-    jassert(dragImageComponents.size() < 2);
-
-    dragImageComponents[0]->updateImage(newImage);
-}
-
-void ZoomableDragAndDropContainer::setDragImageForIndex(int index, ScaledImage const& newImage)
-{
-    if (isPositiveAndBelow(index, dragImageComponents.size()))
-        dragImageComponents.getUnchecked(index)->updateImage(newImage);
 }
 
 ZoomableDragAndDropContainer* ZoomableDragAndDropContainer::findParentDragContainerFor(Component* c)

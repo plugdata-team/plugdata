@@ -583,8 +583,6 @@ public:
 
     pd::Library& library;
     ObjectReferenceDialog& reference;
-
-    bool isHovering = false;
 };
 
 class ObjectSearchComponent : public Component
@@ -767,15 +765,6 @@ public:
             listBox.selectRow(0, true, true);
 
         selectedRowsChanged(listBox.getSelectedRow());
-    }
-
-    bool hasSelection()
-    {
-        return listBox.isVisible() && isPositiveAndBelow(listBox.getSelectedRow(), searchResult.size());
-    }
-    bool isSearching()
-    {
-        return listBox.isVisible();
     }
 
     void resized() override

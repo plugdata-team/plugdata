@@ -235,8 +235,6 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-        isPaletteShowingMenu = false;
-
         if (draggedItem) {
             isDragging = false;
             draggedItem->deleteButton.setVisible(true);
@@ -267,7 +265,6 @@ public:
     Point<int> mouseDownPos;
     bool isDragging = false;
     bool isItemShowingMenu = false;
-    bool isPaletteShowingMenu = false;
 
     bool shouldAnimate = false;
 

@@ -323,7 +323,6 @@ private:
     float splitProportion = 2;
     int splitSize = 0;
     int activeSplitIndex = 0;
-    Time lastMouseTime;
 
     OwnedArray<Canvas, CriticalSection> canvases;
 

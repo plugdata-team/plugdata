@@ -163,12 +163,10 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     static StringArray getAllThemes();
 
-    static bool getUseDashedConnections();
     static bool getUseStraightConnections();
     static bool getUseThinConnections();
     static bool getUseSquareIolets();
 
-    static inline bool useDashedConnections = true;
     static inline bool useStraightConnections = false;
     static inline bool useThinConnections = false;
     static inline bool useSquareIolets = false;

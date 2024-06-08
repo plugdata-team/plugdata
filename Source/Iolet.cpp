@@ -150,15 +150,8 @@ void Iolet::mouseDrag(MouseEvent const& e)
     }
 }
 
-void Iolet::mouseDown(MouseEvent const& e)
-{
-    mouseIsDown = true;
-}
-
 void Iolet::mouseUp(MouseEvent const& e)
 {
-    mouseIsDown = false;
-
     if (getValue<bool>(locked) || e.mods.isRightButtonDown())
         return;
 

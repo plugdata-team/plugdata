@@ -496,6 +496,4 @@ private:
     MousePanner panner = MousePanner(this);
     ViewportScrollBar vbar = ViewportScrollBar(true, this);
     ViewportScrollBar hbar = ViewportScrollBar(false, this);
-
-    bool forceRepaintWhileScrolling = false;
 };

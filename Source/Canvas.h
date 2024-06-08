@@ -263,7 +263,6 @@ public:
     NVGFramebuffer ioletBuffer;
     NVGImage resizeHandleImage;
     NVGImage presentationShadowImage;
-    Rectangle<int> lastPresentationBounds;
 
     Array<juce::WeakReference<NVGComponent>> drawables;
 

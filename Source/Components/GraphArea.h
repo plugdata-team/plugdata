@@ -40,17 +40,6 @@ public:
         setVisible(!getValue<bool>(v));
     }
 
-    Array<Rectangle<float>> getCorners() const
-    {
-        auto rect = getLocalBounds().toFloat().reduced(3.5f);
-        float const offset = 2.0f;
-
-        Array<Rectangle<float>> corners = { Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopLeft().toFloat()).translated(offset, offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomLeft().toFloat()).translated(offset, -offset),
-            Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomRight().toFloat()).translated(-offset, -offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopRight().toFloat()).translated(-offset, offset) };
-
-        return corners;
-    }
-
     void render(NVGcontext* nvg) override
     {
         auto lineBounds = getLocalBounds().toFloat().reduced(4.0f);

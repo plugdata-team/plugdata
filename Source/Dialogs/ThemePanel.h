@@ -449,26 +449,23 @@ public:
 
         panel.addSection("Active Themes", { primaryThemeSelector, secondaryThemeSelector });
 
-        Array<Value*> dashedConnectionValues, straightConnectionValues, squareIoletsValues, squareObjectCornersValues, thinConnectionValues;
+        Array<Value*> straightConnectionValues, squareIoletsValues, squareObjectCornersValues, thinConnectionValues;
 
         for (int i = 0; i < 2; i++) {
             auto const& themeName = PlugDataLook::selectedThemes[i];
             auto& swatch = swatches[themeName];
             auto themeTree = SettingsFile::getInstance()->getTheme(themeName);
 
-            swatch["dashed_signal_connections"].referTo(themeTree.getPropertyAsValue("dashed_signal_connections", nullptr));
             swatch["straight_connections"].referTo(themeTree.getPropertyAsValue("straight_connections", nullptr));
             swatch["square_iolets"].referTo(themeTree.getPropertyAsValue("square_iolets", nullptr));
             swatch["square_object_corners"].referTo(themeTree.getPropertyAsValue("square_object_corners", nullptr));
             swatch["thin_connections"].referTo(themeTree.getPropertyAsValue("thin_connections", nullptr));
 
-            swatch["dashed_signal_connections"].addListener(this);
             swatch["straight_connections"].addListener(this);
             swatch["square_iolets"].addListener(this);
             swatch["square_object_corners"].addListener(this);
             swatch["thin_connections"].addListener(this);
 
-            dashedConnectionValues.add(&swatch["dashed_signal_connections"]);
             straightConnectionValues.add(&swatch["straight_connections"]);
             squareIoletsValues.add(&swatch["square_iolets"]);
             squareObjectCornersValues.add(&swatch["square_object_corners"]);
@@ -479,15 +476,11 @@ public:
         allPanels.add(useStraightConnections);
         addAndMakeVisible(*useStraightConnections);
 
-        auto* useDashedSignalConnection = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Display signal connections dashed", dashedConnectionValues, { "No", "Yes" });
-        allPanels.add(useDashedSignalConnection);
-        addAndMakeVisible(*useDashedSignalConnection);
-
         auto* useThinConnection = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Use thin connection style", thinConnectionValues, { "No", "Yes" });
         allPanels.add(useThinConnection);
         addAndMakeVisible(*useThinConnection);
 
-        panel.addSection("Connection Look", { useStraightConnections, useDashedSignalConnection, useThinConnection });
+        panel.addSection("Connection Look", { useStraightConnections, useThinConnection });
 
         auto* useSquareObjectCorners = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Use squared object corners", squareObjectCornersValues, { "No", "Yes" });
         allPanels.add(useSquareObjectCorners);
@@ -527,16 +520,13 @@ public:
         }
 
         auto themeTree = SettingsFile::getInstance()->getColourThemesTree();
-        if (v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["dashed_signal_connections"])
-            || v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["straight_connections"])
+        if (v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["straight_connections"])
             || v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["square_iolets"])
             || v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["square_object_corners"])
             || v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["thin_connections"])) {
             for (auto theme : themeTree) {
                 auto themeName = theme.getProperty("theme").toString();
-                if (v.refersToSameSourceAs(swatches[themeName]["dashed_signal_connections"])) {
-                    theme.setProperty("dashed_signal_connections", v.toString(), nullptr);
-                } else if (v.refersToSameSourceAs(swatches[themeName]["straight_connections"])) {
+                if (v.refersToSameSourceAs(swatches[themeName]["straight_connections"])) {
                     theme.setProperty("straight_connections", v.toString(), nullptr);
                 } else if (v.refersToSameSourceAs(swatches[themeName]["square_iolets"])) {
                     theme.setProperty("square_iolets", v.toString(), nullptr);

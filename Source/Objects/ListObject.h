@@ -40,9 +40,7 @@ public:
             startEdition();
             auto* editor = listLabel.getCurrentTextEditor();
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
-            if (editor != nullptr) {
-                editor->setBorder({ 0, 1, 3, 0 });
-            }
+            editor->setBorder({ 0, 1, 3, 0 });
         };
 
         listLabel.dragStart = [this]() {

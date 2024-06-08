@@ -136,11 +136,6 @@ public:
 
     void setTheme(String themeToUse, bool force = false);
 
-    Colour getForegroundColour() override;
-    Colour getBackgroundColour() override;
-    Colour getTextColour() override;
-    Colour getOutlineColour() override;
-
     int lastUIWidth = 1000, lastUIHeight = 650;
 
     std::atomic<float>* volume;

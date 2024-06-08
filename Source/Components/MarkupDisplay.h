@@ -191,11 +191,6 @@ public:
         defaultColour = parseHexColour((*colours)["default"]);
     };
     virtual bool canExtendBeyondMargin() { return false; }; // for tables
-    // mouse handlers for clicking on links
-    void mouseDown(MouseEvent const& event) override
-    {
-        mouseDownPosition = event.position; // keep track of position
-    }
 
     void mouseMove(MouseEvent const& event) override
     {
@@ -405,7 +400,6 @@ protected:
 private:
     Array<std::pair<String, Rectangle<float>>> linkBounds;
     Array<std::tuple<String, int, int>> links;
-    Point<float> mouseDownPosition;
 };
 
 class TextBlock : public Block {

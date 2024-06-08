@@ -145,7 +145,6 @@ class DrawableCurve final : public DrawableTemplate
 
     t_fake_curve* object;
     GlobalMouseListener globalMouseListener;
-    Point<int> lastMouseDragPosition = { 0, 0 };
     bool closed;
 
 public:
@@ -491,7 +490,6 @@ public:
 class DrawablePlot final : public DrawableTemplate
     , public DrawablePath {
 
-    Point<int> lastMouseDragPosition = { 0, 0 };
     t_fake_curve* object;
     GlobalMouseListener globalMouseListener;
     OwnedArray<Component> subplots;

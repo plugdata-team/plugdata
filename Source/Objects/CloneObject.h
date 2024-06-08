@@ -104,7 +104,8 @@ public:
             path = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
         }
 
-        cnv->editor->getTabComponent().openPatch(patch);
+        auto* newCanvas = cnv->editor->getTabComponent().openPatch(patch);
+        newCanvas->patch.setCurrentFile(URL(path));
     }
 
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override

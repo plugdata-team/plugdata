@@ -100,19 +100,6 @@ struct TextObjectHelper {
         return text;
     }
 
-    static int getIdealWidthForText(String const& text)
-    {
-
-        auto lines = StringArray::fromLines(text);
-        int w = minWidth;
-
-        for (auto& line : lines) {
-            w = std::max<int>(CachedStringWidth<15>::calculateStringWidth(line) + 11, w);
-        }
-
-        return w;
-    }
-
     // Used by text objects for estimating best text height for a set width
     static int getNumLines(String const& text, int width, int fontSize)
     {

@@ -57,7 +57,6 @@ private:
     std::atomic<int> lastMidiSentTime = 0;
     std::atomic<int> lastAudioProcessedTime = 0;
     std::atomic<float> level[2] = { 0 };
-    std::atomic<float> peakHold[2] = { 0 };
     std::atomic<float> cpuUsage;
 
     int numChannels;
@@ -99,8 +98,6 @@ public:
     static constexpr int statusbarHeight = 30;
 
 private:
-    bool wasLocked = false; // Make sure it doesn't re-lock after unlocking (because cmd is still down)
-
     std::unique_ptr<LevelMeter> levelMeter;
     std::unique_ptr<VolumeSlider> volumeSlider;
     std::unique_ptr<MIDIBlinker> midiBlinker;

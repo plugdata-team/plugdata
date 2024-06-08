@@ -247,17 +247,6 @@ private:
         g.setColour(findColour(PlugDataColour::dialogBackgroundColourId));
         g.fillRoundedRectangle(internalBounds, Corners::defaultCornerRadius);
 
-        // indicator - TODO
-        // if(activeConnection.getComponent()) {
-        //    Path indicatorPath;
-        //    indicatorPath.addPieSegment(circlePosition.x - circleRadius,
-        //                          circlePosition.y - circleRadius,
-        //                          circleRadius * 2.0f,
-        //                          circleRadius * 2.0f, 0, (activeConnection->messageActivity * (1.0f / 12.0f)) * MathConstants<float>::twoPi, 0.5f);
-        //    g.setColour(findColour(PlugDataColour::panelTextColourId));
-        //    g.fillPath(indicatorPath);
-        //}
-
         if (isSignalDisplay) {
             auto totalHeight = internalBounds.getHeight();
             auto textColour = findColour(PlugDataColour::canvasTextColourId);
@@ -382,8 +371,6 @@ private:
         MouseHoverDelay,
         MouseHoverExitDelay };
     Rectangle<int> constrainedBounds = { 0, 0, 0, 0 };
-
-    Point<float> circlePosition = { 8.0f + 4.0f, 36.0f / 2.0f };
 
     struct SignalBlock {
         SignalBlock()

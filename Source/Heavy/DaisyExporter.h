@@ -382,10 +382,6 @@ public:
 
                         Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 900);
 
-                        // We need to enable DFU mode again after flashing the bootloader
-                        // This will show DFU mode dialog synchonously
-                        // exportingView->waitForUserInput("Please put your Daisy in DFU mode again");
-
                     } else {
                         exportingView->logToConsole("Bootloader found...\n");
                     }

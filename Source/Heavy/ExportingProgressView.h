@@ -19,7 +19,6 @@ class ExportingProgressView : public Component
 public:
     enum ExportState {
         Busy,
-        WaitingForUserInput,
         Success,
         Failure,
         NotExporting
@@ -30,8 +29,6 @@ public:
     ExportState state = NotExporting;
 
     String userInteractionMessage;
-    WaitableEvent userInteractionWait;
-    TextButton confirmButton = TextButton("Done!");
 
     static constexpr int maxLength = 512;
     char processOutput[maxLength];
@@ -41,16 +38,10 @@ public:
     {
         setVisible(false);
         addChildComponent(continueButton);
-        addChildComponent(confirmButton);
         addAndMakeVisible(console);
 
         continueButton.onClick = [this]() {
             showState(NotExporting);
-        };
-
-        confirmButton.onClick = [this]() {
-            showState(Busy);
-            userInteractionWait.signal();
         };
 
         console.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
@@ -115,7 +106,6 @@ public:
 
         MessageManager::callAsync([this]() {
             setVisible(state < NotExporting);
-            confirmButton.setVisible(state == WaitingForUserInput);
             continueButton.setVisible(state >= Success);
             if (state == Busy)
                 console.setText("");
@@ -143,18 +133,6 @@ public:
         }
     }
 
-    // Don't call from message thread!
-    void waitForUserInput(String const& message)
-    {
-        MessageManager::callAsync([this, message]() mutable {
-            userInteractionMessage = message;
-            showState(WaitingForUserInput);
-            repaint();
-        });
-
-        userInteractionWait.wait();
-    }
-
     void paint(Graphics& g) override
     {
         auto b = getLocalBounds();
@@ -180,8 +158,6 @@ public:
 
         } else if (state == Failure) {
             Fonts::drawStyledText(g, "Exporting failed", 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
-        } else if (state == WaitingForUserInput) {
-            Fonts::drawStyledText(g, userInteractionMessage, 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
         }
     }
 
@@ -189,6 +165,5 @@ public:
     {
         console.setBounds(proportionOfWidth(0.05f), 80, proportionOfWidth(0.9f), getHeight() - 172);
         continueButton.setBounds(proportionOfWidth(0.42f), getHeight() - 60, proportionOfWidth(0.12f), 24);
-        confirmButton.setBounds(proportionOfWidth(0.42f), getHeight() - 60, proportionOfWidth(0.12f), 24);
     }
 };

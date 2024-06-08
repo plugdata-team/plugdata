@@ -18,7 +18,7 @@ public:
     std::function<void(int, int)> noteOn;
     std::function<void(int)> noteOff;
 
-    MIDIKeyboard(Object* parent)
+    MIDIKeyboard()
         : MidiKeyboardComponent(*this, MidiKeyboardComponent::horizontalKeyboard)
     {
         // Make sure nothing is drawn outside of our custom draw functions
@@ -226,7 +226,6 @@ class KeyboardObject final : public ObjectBase
 public:
     KeyboardObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
-        , keyboard(object)
     {
         keyboard.setMidiChannel(1);
         keyboard.setScrollButtonsVisible(false);

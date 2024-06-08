@@ -118,58 +118,6 @@ private:
 
 class AudioOutputSettings : public Component {
 
-    class LimiterEnableButton : public Component
-        , public SettableTooltipClient {
-
-        String icon;
-        String text;
-        bool state;
-        bool buttonHover = false;
-
-    public:
-        std::function<void(bool)> onClick;
-
-        LimiterEnableButton(AudioOutputSettings* parent, String const& iconText, String text, bool initState)
-            : icon(iconText)
-            , text(text)
-            , state(initState)
-        {
-        }
-
-        void paint(Graphics& g) override
-        {
-            auto iconColour = state ? findColour(PlugDataColour::toolbarActiveColourId) : findColour(PlugDataColour::toolbarTextColourId);
-            auto textColour = findColour(PlugDataColour::toolbarTextColourId);
-
-            if (isMouseOver()) {
-                iconColour = iconColour.contrasting(0.3f);
-                textColour = textColour.contrasting(0.3f);
-            }
-
-            Fonts::drawIcon(g, icon, Rectangle<int>(0, 0, 30, getHeight()), iconColour, 14);
-            Fonts::drawText(g, text, Rectangle<int>(30, 0, getWidth(), getHeight()), textColour, 14);
-        }
-
-        void mouseEnter(MouseEvent const& e) override
-        {
-            buttonHover = true;
-            repaint();
-        }
-
-        void mouseExit(MouseEvent const& e) override
-        {
-            buttonHover = false;
-            repaint();
-        }
-
-        void mouseDown(MouseEvent const& e) override
-        {
-            state = !state;
-            onClick(state);
-            repaint();
-        }
-    };
-
 public:
     AudioOutputSettings(PluginProcessor* pd)
         : limiterSettings(SettingsFile::getInstance()->getProperty<int>("limiter_threshold"))

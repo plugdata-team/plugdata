@@ -158,9 +158,6 @@ private:
 
     NVGFramebuffer scrollBuffer;
 
-    NVGpaint glow;
-    bool glowDirty = true;
-
     bool isObjectMouseActive = false;
     bool isInsideUndoSequence = false;
 

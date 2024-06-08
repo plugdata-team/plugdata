@@ -139,24 +139,6 @@ struct Fonts {
     }
 
     // For drawing regular text
-    static void drawTextWithTabularNumbers(Graphics& g, String const& textToDraw, Rectangle<float> bounds, Colour colour, int fontHeight = 15, Justification justification = Justification::centredLeft)
-    {
-        g.setFont(Fonts::getTabularNumbersFont().withHeight(fontHeight));
-        g.setColour(colour);
-        g.drawText(textToDraw, bounds, justification);
-    }
-
-    static void drawTextWithTabularNumbers(Graphics& g, String const& textToDraw, Rectangle<int> bounds, Colour colour, int fontHeight = 15, Justification justification = Justification::centredLeft)
-    {
-        drawTextWithTabularNumbers(g, textToDraw, bounds.toFloat(), colour, fontHeight, justification);
-    }
-
-    static void drawTextWithTabularNumbers(Graphics& g, String const& textToDraw, int x, int y, int w, int h, Colour colour, int fontHeight = 15, Justification justification = Justification::centredLeft)
-    {
-        drawTextWithTabularNumbers(g, textToDraw, Rectangle<float>(x, y, w, h), colour, fontHeight, justification);
-    }
-
-    // For drawing regular text
     static void drawText(Graphics& g, String const& textToDraw, Rectangle<float> bounds, Colour colour, int fontHeight = 15, Justification justification = Justification::centredLeft)
     {
         g.setFont(Fonts::getCurrentFont().withHeight(fontHeight));

@@ -277,9 +277,6 @@ void SettingsFile::initialiseThemesTree()
                 continue;
             }
 
-            if (!themeTree.hasProperty("dashed_signal_connections")) {
-                themeTree.setProperty("dashed_signal_connections", true, nullptr);
-            }
             if (!themeTree.hasProperty("straight_connections")) {
                 themeTree.setProperty("straight_connections", false, nullptr);
             }

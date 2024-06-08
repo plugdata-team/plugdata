@@ -159,14 +159,6 @@ public:
         return (channelConfiguration.size() > 0 ? channelConfiguration[0].numOuts : processor->getMainBusNumOutputChannels());
     }
 
-    static String getFilePatterns(String const& fileSuffix)
-    {
-        if (fileSuffix.isEmpty())
-            return {};
-
-        return (fileSuffix.startsWithChar('.') ? "*" : "*.") + fileSuffix;
-    }
-
     void startPlaying()
     {
         player.setProcessor(processor.get());
@@ -790,8 +782,6 @@ private:
         }
 
     public:
-        Rectangle<int> oldBounds;
-
         void componentMovedOrResized(Component&, bool, bool) override
         {
             ScopedValueSetter<bool> const scope(preventResizingEditor, true);

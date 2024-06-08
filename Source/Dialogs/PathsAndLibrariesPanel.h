@@ -487,17 +487,6 @@ public:
         externalChange();
     }
 
-    void updateLibraries()
-    {
-        librariesToLoad.clear();
-
-        for (auto child : tree) {
-            librariesToLoad.add(child.getProperty("Name").toString());
-        }
-
-        internalChange();
-    }
-
     int getNumRows() override
     {
         return librariesToLoad.size();

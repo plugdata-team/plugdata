@@ -199,23 +199,6 @@ public:
     virtual void addTextToTextEditor(unsigned long ptr, String text) { }
     virtual void showTextEditor(unsigned long ptr, Rectangle<int> bounds, String title) { }
 
-    virtual void receivePrint(String const& message) {};
-
-    virtual void receiveBang(String const& dest)
-    {
-    }
-    virtual void receiveFloat(String const& dest, float num)
-    {
-    }
-    virtual void receiveSymbol(String const& dest, String const& symbol)
-    {
-    }
-    virtual void receiveList(String const& dest, std::vector<pd::Atom> const& list)
-    {
-    }
-    virtual void receiveMessage(String const& dest, String const& msg, std::vector<pd::Atom> const& list)
-    {
-    }
     virtual void receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list) {};
 
     void registerMessageListener(void* object, MessageListener* messageListener);
@@ -277,13 +260,7 @@ public:
     void processMessage(Message mess);
     void processSend(dmessage mess);
 
-    String getExtraInfo(File const& toOpen);
     Patch::Ptr openPatch(File const& toOpen);
-
-    virtual Colour getForegroundColour() = 0;
-    virtual Colour getBackgroundColour() = 0;
-    virtual Colour getTextColour() = 0;
-    virtual Colour getOutlineColour() = 0;
 
     virtual void reloadAbstractions(File changedPatch, t_glist* except) = 0;
 

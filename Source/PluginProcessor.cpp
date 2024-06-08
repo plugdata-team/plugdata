@@ -1314,26 +1314,6 @@ void PluginProcessor::setTheme(String themeToUse, bool force)
     updateAllEditorsLNF();
 }
 
-Colour PluginProcessor::getOutlineColour()
-{
-    return lnf->findColour(PlugDataColour::guiObjectInternalOutlineColour);
-}
-
-Colour PluginProcessor::getForegroundColour()
-{
-    return lnf->findColour(PlugDataColour::canvasTextColourId);
-}
-
-Colour PluginProcessor::getBackgroundColour()
-{
-    return lnf->findColour(PlugDataColour::guiObjectBackgroundColourId);
-}
-
-Colour PluginProcessor::getTextColour()
-{
-    return lnf->findColour(PlugDataColour::toolbarTextColourId);
-}
-
 void PluginProcessor::updateAllEditorsLNF()
 {
     for (auto& editor : getEditors())
