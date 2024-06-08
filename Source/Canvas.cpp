@@ -708,7 +708,7 @@ void Canvas::updateOverlays()
 
 void Canvas::jumpToOrigin()
 {
-    viewport->setViewPosition(canvasOrigin.transformedBy(getTransform()) + Point<int>(1, 1));
+    viewport->setViewPosition((canvasOrigin + Point<int>(1, 1)).transformedBy(getTransform()));
 }
 
 void Canvas::jumpToLastKnownPosition()
@@ -720,7 +720,7 @@ void Canvas::saveViewportPosition()
 {
     if(viewport)
     {
-        patch.lastViewportPosition = viewport->getViewPosition() - canvasOrigin;
+        patch.lastViewportPosition = viewport->getViewPosition().transformedBy(getTransform().inverted()) - canvasOrigin;
     }
 }
 
