@@ -683,7 +683,7 @@ private:
         if (auto* cnv = editor->getCurrentCanvas()) {
             cnv->zoomScale.setValue(1.0f);
             cnv->setTransform(AffineTransform().scaled(1.0f));
-            cnv->viewport->resized();
+            if(cnv->viewport) cnv->viewport->resized();
         }
     }
     
@@ -765,7 +765,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
                 if (auto* cnv = editor->getCurrentCanvas()) {
                     cnv->zoomScale.setValue(scale);
                     cnv->setTransform(AffineTransform().scaled(scale));
-                    cnv->viewport->resized();
+                    if(cnv->viewport) cnv->viewport->resized();
                 }
             });
         }
@@ -941,6 +941,18 @@ void Statusbar::setLatencyDisplay(int value)
             latencyDisplayButton->setLatencyValue(value);
         }
     }
+}
+
+void Statusbar::showDSPState(bool dspState)
+{
+    powerButton.setToggleState(dspState, dontSendNotification);
+}
+
+void Statusbar::setHasActiveCanvas(bool hasActiveCanvas)
+{
+    centreButton.setEnabled(hasActiveCanvas);
+    zoomComboButton.setEnabled(hasActiveCanvas);
+    zoomLabel->setEnabled(hasActiveCanvas);
 }
 
 void Statusbar::audioProcessedChanged(bool audioProcessed)

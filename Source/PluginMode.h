@@ -105,9 +105,9 @@ public:
 
         // set scale to the last scale that was set for this patches plugin mode
         // if none was set, use 100% scale
-        if (PluginEditor::pluginModeScaleMap.contains(patchPtr->getPointer().get()))
+        if (pluginModeScaleMap.contains(patchPtr->getPointer().get()))
         {
-            int previousScale = PluginEditor::pluginModeScaleMap[patchPtr->getPointer().get()];
+            int previousScale = pluginModeScaleMap[patchPtr->getPointer().get()];
             scaleComboBox.setText(String(previousScale) + String("%"), dontSendNotification);
             setWidthAndHeight(previousScale * 0.01f);
         } else {
@@ -172,7 +172,7 @@ public:
     void closePluginMode()
     {
         // save the current scale in map for retrieval, so plugin mode remembers the last set scale
-        PluginEditor::pluginModeScaleMap[patchPtr->getPointer().get()] = pluginPreviousScale;
+        pluginModeScaleMap[patchPtr->getPointer().get()] = pluginPreviousScale;
         
         auto constrainedNewBounds = windowBounds.withWidth(std::max(windowBounds.getWidth(), 850)).withHeight(std::max(windowBounds.getHeight(), 650));
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
@@ -194,16 +194,10 @@ public:
         }
         
         editor->nvgSurface.detachContext();
-
         cnv->patch.openInPluginMode = false;
-
         editor->getTabComponent().triggerAsyncUpdate();
+        
         editor->parentSizeChanged();
-        editor->resized();
-
-        cnv->connectionLayer.setVisible(true);
-
-        editor->nvgSurface.invalidateAll();
     }
 
     bool isWindowFullscreen() const
@@ -398,6 +392,11 @@ public:
             return false;
         }
     }
+    
+    Canvas* getCanvas()
+    {
+        return cnv.get();
+    }
 
 private:
     pd::Patch::Ptr patchPtr;
@@ -425,6 +424,8 @@ private:
     float const height = float(cnv->patchHeight.getValue()) + 1.0f;
     float pluginModeScale = 1.0f;
     int pluginPreviousScale = 100;
+    
+    static inline std::map<t_canvas*, int> pluginModeScaleMap;
 
     struct Scale {
         float floatScale;

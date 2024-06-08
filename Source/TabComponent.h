@@ -21,10 +21,10 @@ public:
     void openInPluginMode(pd::Patch::Ptr patch);
     
     void renderArea(NVGcontext* nvg, Rectangle<int> bounds);
-
+    
     void nextTab();
     void previousTab();
-
+    
     void askToCloseTab(Canvas* cnv);
     void closeTab(Canvas* cnv);
     void showTab(Canvas* cnv, int splitIndex = 0);
@@ -32,7 +32,7 @@ public:
     
     void closeAllTabs(bool quitAfterComplete = false, Canvas* patchToExclude = nullptr, std::function<void()> afterComplete = [](){});
     void createNewWindow(Component* draggedTab);
-
+    
     Canvas* getCurrentCanvas();
     Canvas* getCanvasAtScreenPosition(Point<int> screenPosition);
     
@@ -53,7 +53,7 @@ private:
     
     void saveTabPositions();
     void closeEmptySplits();
-
+    
     bool isInterestedInDragSource(SourceDetails const& dragSourceDetails) override;
     void itemDropped(SourceDetails const& dragSourceDetails) override;
     void itemDragEnter(SourceDetails const& dragSourceDetails) override;
@@ -83,16 +83,16 @@ private:
             
             TabComponent* parent;
         };
-     
+        
         class CloseTabButton : public SmallIconButton {
-
+            
             using SmallIconButton::SmallIconButton;
-
+            
             void paint(Graphics& g) override
             {
                 auto font = Fonts::getIconFont().withHeight(12);
                 g.setFont(font);
-
+                
                 if (!isEnabled()) {
                     g.setColour(Colours::grey);
                 } else if (getToggleState()) {
@@ -102,15 +102,15 @@ private:
                 } else {
                     g.setColour(findColour(PlugDataColour::toolbarTextColourId));
                 }
-
+                
                 int const yIndent = jmin(4, proportionOfHeight(0.3f));
                 int const cornerSize = jmin(getHeight(), getWidth()) / 2;
-
+                
                 int const fontHeight = roundToInt(font.getHeight() * 0.6f);
                 int const leftIndent = jmin(fontHeight, 2 + cornerSize / (isConnectedOnLeft() ? 4 : 2));
                 int const rightIndent = jmin(fontHeight, 2 + cornerSize / (isConnectedOnRight() ? 4 : 2));
                 int const textWidth = getWidth() - leftIndent - rightIndent;
-
+                
                 if (textWidth > 0)
                     g.drawFittedText(getButtonText(), leftIndent, yIndent, textWidth, getHeight() - yIndent * 2, Justification::centred, 2);
             }
@@ -139,11 +139,11 @@ private:
             } else {
                 g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
             }
-
+            
             PlugDataLook::fillSmoothedRectangle(g, getLocalBounds().toFloat().reduced(4.5f), Corners::defaultCornerRadius);
-
+            
             auto area = getLocalBounds().reduced(4, 1).toFloat();
-
+            
             // Use a gradient to make it fade out when it gets near to the close button
             auto fadeX = (mouseOver || active) ? area.getRight() - 25 : area.getRight() - 8;
             auto textColour = findColour(PlugDataColour::toolbarTextColourId);
@@ -172,7 +172,7 @@ private:
             Font font(Fonts::getCurrentFont());
             auto length = font.getStringWidth(text) + 32;
             auto const boundsOffset = 10;
-
+            
             // we need to expand the bounds, but reset the position to top left
             // then we offset the mouse drag by the same amount
             // this is to allow area for the shadow to render correctly
@@ -188,12 +188,12 @@ private:
             
             g.setColour(findColour(PlugDataColour::activeTabBackgroundColourId));
             PlugDataLook::fillSmoothedRectangle(g, textBounds.withPosition(10, 10).reduced(2).toFloat(), Corners::defaultCornerRadius);
-
+            
             g.setColour(findColour(PlugDataColour::toolbarTextColourId));
-
+            
             g.setFont(font);
             g.drawText(text, textBounds.withPosition(10, 10), Justification::centred, false);
-
+            
             return ScaledImage(image, scale);
         }
         
@@ -201,21 +201,21 @@ private:
         {
             if (e.mods.isPopupMenu() && cnv) {
                 PopupMenu tabMenu;
-
-        #if JUCE_MAC
+                
+#if JUCE_MAC
                 String revealTip = "Reveal in Finder";
-        #elif JUCE_WINDOWS
+#elif JUCE_WINDOWS
                 String revealTip = "Reveal in Explorer";
-        #else
+#else
                 String revealTip = "Reveal in file browser";
-        #endif
+#endif
                 
                 bool canReveal = cnv->patch.getCurrentFile().existsAsFile();
-
+                
                 tabMenu.addItem(revealTip, canReveal, false, [this]() {
                     cnv->patch.getCurrentFile().revealToUser();
                 });
-
+                
                 tabMenu.addSeparator();
                 
                 PopupMenu parentPatchMenu;
@@ -231,7 +231,7 @@ private:
                         });
                     }
                 }
-
+                
                 tabMenu.addSubMenu("Parent patches", parentPatchMenu, parentPatchMenu.getNumItems());
                 
                 tabMenu.addSeparator();
@@ -248,22 +248,22 @@ private:
                     parent->closeEmptySplits();
                     parent->saveTabPositions();
                 });
-
+                
                 tabMenu.addSeparator();
                 
-
+                
                 tabMenu.addItem("Close patch", true, false, [this]() {
                     parent->closeTab(cnv);
                 });
-
+                
                 tabMenu.addItem("Close all other patches", true, false, [this]() {
                     parent->closeAllTabs(false, cnv);
                 });
-
+                
                 tabMenu.addItem("Close all patches", true, false, [this]() {
                     parent->closeAllTabs(false);
                 });
-                        
+                
                 // Show the popup menu at the mouse position
                 tabMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1));
             }
@@ -330,7 +330,7 @@ private:
     
     std::unique_ptr<PluginMode> pluginMode;
     t_glist* lastPluginModePatchPtr = nullptr;
-
+    
     PluginEditor* editor;
     PluginProcessor* pd;
 };

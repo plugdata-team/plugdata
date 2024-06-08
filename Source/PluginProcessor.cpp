@@ -1471,7 +1471,7 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
         MessageManager::callAsync(
             [this, dsp]() mutable {
                 for (auto* editor : getEditors()) {
-                    editor->statusbar->powerButton.setToggleState(dsp, dontSendNotification);
+                    editor->statusbar->showDSPState(dsp);
                 }
             });
         break;

@@ -160,7 +160,7 @@ public:
                 if (objectPatch.isEmpty())
                     objectPatch = "#X obj 0 0 " + name;
                 else if (!objectPatch.startsWith("#")) {
-                    objectPatch = editor->getObjectManager()->getCompleteFormat(objectPatch);
+                    objectPatch = ObjectThemeManager::get()->getCompleteFormat(objectPatch);
                 }
                 auto* button = objectButtons.add(new ObjectItem(editor, name, icon, tooltip, objectPatch, objectID, dismissMenu));
                 addAndMakeVisible(button);

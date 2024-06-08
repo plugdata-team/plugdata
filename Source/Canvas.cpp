@@ -107,7 +107,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
         canvasViewport->setScrollBarsShown(true, true, true, true);
 
         viewport.reset(canvasViewport); // Owned by the tabbar, but doesn't exist for graph!
-        jumpToOrigin();
+        jumpToLastKnownPosition();
     }
 
     commandLocked.referTo(pd->commandLocked);
@@ -176,6 +176,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
 
 Canvas::~Canvas()
 {
+    saveViewportPosition();
     zoomScale.removeListener(this);
     editor->removeModifierKeyListener(this);
     pd->unregisterMessageListener(patch.getPointer().get(), this);
@@ -708,6 +709,19 @@ void Canvas::updateOverlays()
 void Canvas::jumpToOrigin()
 {
     viewport->setViewPosition(canvasOrigin.transformedBy(getTransform()) + Point<int>(1, 1));
+}
+
+void Canvas::jumpToLastKnownPosition()
+{
+    viewport->setViewPosition((patch.lastViewportPosition + canvasOrigin).transformedBy(getTransform()));
+}
+
+void Canvas::saveViewportPosition()
+{
+    if(viewport)
+    {
+        patch.lastViewportPosition = viewport->getViewPosition() - canvasOrigin;
+    }
 }
 
 void Canvas::zoomToFitAll()
@@ -2072,6 +2086,7 @@ void Canvas::valueChanged(Value& v)
     // Update zoom
     if (v.refersToSameSourceAs(zoomScale)) {
         editor->statusbar->updateZoomLevel();
+        patch.lastViewportScale = getValue<float>(zoomScale);
         hideSuggestions();
     } else if (v.refersToSameSourceAs(patchWidth)) {
         // limit canvas width to smallest object (11px)

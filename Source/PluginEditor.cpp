@@ -39,8 +39,6 @@ using namespace juce::gl;
 
 #include <nanovg.h>
 
-std::map<t_canvas*, int> PluginEditor::pluginModeScaleMap;
-
 PluginEditor::PluginEditor(PluginProcessor& p)
     : AudioProcessorEditor(&p)
     , pd(&p)
@@ -256,8 +254,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         _this->grabKeyboardFocus();
     });
 
-    addChildComponent(&objectManager);
-    objectManager.lookAndFeelChanged();
+    ObjectThemeManager::get()->updateTheme();
     
     addChildComponent(nvgSurface);
     nvgSurface.toBehind(&tabComponent);
@@ -733,10 +730,7 @@ void PluginEditor::handleAsyncUpdate()
         runButton.setEnabled(true);
         presentButton.setEnabled(true);
 
-        statusbar->centreButton.setEnabled(true);
-        statusbar->zoomComboButton.setEnabled(true);
-        reinterpret_cast<Component*>(statusbar->zoomLabel.get())->setEnabled(true);
-
+        statusbar->setHasActiveCanvas(true);
         addObjectMenuButton.setEnabled(true);
     } else {
 
@@ -746,9 +740,7 @@ void PluginEditor::handleAsyncUpdate()
         runButton.setEnabled(false);
         presentButton.setEnabled(false);
 
-        statusbar->centreButton.setEnabled(false);
-        statusbar->zoomComboButton.setEnabled(false);
-        reinterpret_cast<Component*>(statusbar->zoomLabel.get())->setEnabled(false);
+        statusbar->setHasActiveCanvas(false);
 
         undoButton.setEnabled(false);
         redoButton.setEnabled(false);
@@ -1335,6 +1327,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
     }
     case CommandIDs::ZoomIn: {
         auto* viewport = dynamic_cast<CanvasViewport*>(cnv->viewport.get());
+        if(!viewport) return false;
         float newScale = getValue<float>(getCurrentCanvas()->zoomScale) + 0.1f;
         newScale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.25f, 3.0f) * 10.))) / 10.;
         viewport->magnify(newScale);
@@ -1342,6 +1335,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
     }
     case CommandIDs::ZoomOut: {
         auto* viewport = dynamic_cast<CanvasViewport*>(cnv->viewport.get());
+        if(!viewport) return false;
         float newScale = getValue<float>(getCurrentCanvas()->zoomScale) - 0.1f;
         newScale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.25f, 3.0f) * 10.))) / 10.;
         viewport->magnify(newScale);
@@ -1421,6 +1415,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
     }
     default: {
         cnv = getCurrentCanvas();
+        if(!cnv->viewport) return false;
 
         // This should close any opened editors before creating a new object
         cnv->grabKeyboardFocus();
@@ -1512,6 +1507,11 @@ void PluginEditor::broughtToFront()
     if(openedDialog) openedDialog->toFront(true);
 }
 
+void PluginEditor::lookAndFeelChanged()
+{
+    ObjectThemeManager::get()->updateTheme();
+}
+
 void PluginEditor::commandKeyChanged(bool isHeld)
 {
     if (isHeld) {
@@ -1597,6 +1597,8 @@ bool PluginEditor::highlightSearchTarget(void* target, bool openNewTabIfNeeded)
                 cnv->setSelected(found, true);
                 
                 auto* viewport = cnv->viewport.get();
+                if(!viewport) return false;
+                
                 auto scale = getValue<float>(cnv->zoomScale);
                 auto pos = found->getBounds().getCentre() * scale;
 
@@ -1628,6 +1630,8 @@ bool PluginEditor::highlightSearchTarget(void* target, bool openNewTabIfNeeded)
             cnv->setSelected(found, true);
             
             auto* viewport = cnv->viewport.get();
+            if(!viewport) return false;
+            
             auto scale = getValue<float>(cnv->zoomScale);
             auto pos = found->getBounds().getCentre() * scale;
             

@@ -92,7 +92,13 @@ public:
 
     void setLatencyDisplay(int value);
     void updateZoomLevel();
+    
+    void showDSPState(bool dspState);
+    void setHasActiveCanvas(bool hasActiveCanvas);
 
+    static constexpr int statusbarHeight = 30;
+        
+private:
     bool wasLocked = false; // Make sure it doesn't re-lock after unlocking (because cmd is still down)
 
     std::unique_ptr<LevelMeter> levelMeter;
@@ -116,13 +122,12 @@ public:
 
     Value showDirection;
 
-    static constexpr int statusbarHeight = 30;
-
     std::unique_ptr<ButtonParameterAttachment> enableAttachment;
     std::unique_ptr<SliderParameterAttachment> volumeAttachment;
 
     int firstSeparatorPosition;
     int secondSeparatorPosition;
 
+    friend class ZoomLabel;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Statusbar)
 };

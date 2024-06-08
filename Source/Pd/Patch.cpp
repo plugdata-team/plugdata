@@ -235,7 +235,7 @@ t_gobj* Patch::createObject(int x, int y, String const& name)
     StringArray tokens;
     tokens.addTokens(name.replace("\\ ", "__%SPACE%__"), true); // Prevent "/ " from being tokenised
 
-    PluginEditor::getObjectManager()->formatObject(tokens);
+    ObjectThemeManager::get()->formatObject(tokens);
 
     if (tokens[0] == "garray") {
         if (auto patch = ptr.get<t_glist>()) {
@@ -319,7 +319,7 @@ t_gobj* Patch::renameObject(t_object* obj, String const& name)
     StringArray tokens;
     tokens.addTokens(name, false);
 
-    PluginEditor::getObjectManager()->formatObject(tokens);
+    ObjectThemeManager::get()->formatObject(tokens);
     String newName = tokens.joinIntoString(" ");
 
     if (auto patch = ptr.get<t_glist>()) {

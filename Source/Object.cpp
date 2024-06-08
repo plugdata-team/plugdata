@@ -1046,8 +1046,10 @@ void Object::mouseDrag(MouseEvent const& e)
 
                 object->setTopLeftPosition(newPosition);
             }
-
-            cnv->autoscroll(e.getEventRelativeTo(cnv->viewport.get()));
+            
+            if(cnv->viewport) {
+                cnv->autoscroll(e.getEventRelativeTo(cnv->viewport.get()));
+            }
         }
 
         // This handles the "unsnap" action when you shift-drag a connected object

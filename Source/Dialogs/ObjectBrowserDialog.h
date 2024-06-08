@@ -148,7 +148,7 @@ class ObjectsListBox : public ListBox
 
         String getObjectString() override
         {
-            return PluginEditor::getObjectManager()->getCompleteFormat(objectName);
+            return ObjectThemeManager::get()->getCompleteFormat(objectName);
         }
 
         String getPatchStringName() override
@@ -282,7 +282,7 @@ public:
 
     String getObjectString() override
     {
-        return PluginEditor::getObjectManager()->getCompleteFormat(objectName);
+        return ObjectThemeManager::get()->getCompleteFormat(objectName);
     }
 
     String getPatchStringName() override

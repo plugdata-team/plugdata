@@ -93,6 +93,8 @@ public:
     void parentSizeChanged() override;
     void parentHierarchyChanged() override;
     void broughtToFront() override;
+    
+    void lookAndFeelChanged() override;
 
     // For dragging parent window
     void mouseDrag(MouseEvent const& e) override;
@@ -166,16 +168,12 @@ public:
 
     std::unique_ptr<Autosave> autosave;
     ApplicationCommandManager commandManager;
-        
-    inline static ObjectThemeManager objectManager;
-    static ObjectThemeManager* getObjectManager() { return &objectManager; };
-
+    
     std::unique_ptr<CalloutArea> calloutArea;
     std::unique_ptr<WelcomePanel> welcomePanel;
     
     CheckedTooltip tooltipWindow;
 
-    static std::map<t_canvas*, int> pluginModeScaleMap;
     int editorIndex;
     
 private:

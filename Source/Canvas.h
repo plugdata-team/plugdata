@@ -139,6 +139,9 @@ public:
     void redo();
 
     void jumpToOrigin();
+    void jumpToLastKnownPosition();
+    void saveViewportPosition();
+    
     void zoomToFitAll();
     
     void updatePatchSnapshot();
