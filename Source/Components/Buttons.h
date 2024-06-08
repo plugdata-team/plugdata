@@ -23,6 +23,7 @@ public:
         g.setColour(backgroundColour);
         PlugDataLook::fillSmoothedRectangle(g, bounds, cornerSize);
 
+
         auto textColour = findColour(PlugDataColour::toolbarTextColourId).withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
 
         AttributedString attributedIcon;

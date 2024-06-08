@@ -707,7 +707,7 @@ void PlugDataLook::drawComboBox(Graphics& g, int width, int height, bool, int, i
     path.startNewSubPath((float)arrowZone.getX() + 3.0f, (float)arrowZone.getCentreY() - 2.0f);
     path.lineTo((float)arrowZone.getCentreX(), (float)arrowZone.getCentreY() + 2.0f);
     path.lineTo((float)arrowZone.getRight() - 3.0f, (float)arrowZone.getCentreY() - 2.0f);
-    g.setColour(object.findColour(ComboBox::arrowColourId).withAlpha((object.isEnabled() ? 0.9f : 0.2f)));
+    g.setColour(object.findColour(PlugDataColour::panelTextColourId).withAlpha((object.isEnabled() ? 0.9f : 0.2f)));
 
     g.strokePath(path, PathStrokeType(2.0f));
 }
@@ -1067,18 +1067,6 @@ void PlugDataLook::setColours(std::map<PlugDataColour, Colour> colours)
     setColour(PopupMenu::textColourId,
         colours.at(PlugDataColour::panelTextColourId));
     setColour(KeyMappingEditorComponent::textColourId,
-        colours.at(PlugDataColour::panelTextColourId));
-    setColour(TabbedButtonBar::frontTextColourId,
-        colours.at(PlugDataColour::toolbarTextColourId));
-    setColour(TabbedButtonBar::tabTextColourId,
-        colours.at(PlugDataColour::toolbarTextColourId));
-    setColour(ToggleButton::textColourId,
-        colours.at(PlugDataColour::panelTextColourId));
-    setColour(ToggleButton::tickColourId,
-        colours.at(PlugDataColour::panelTextColourId));
-    setColour(ToggleButton::tickDisabledColourId,
-        colours.at(PlugDataColour::panelTextColourId));
-    setColour(ComboBox::arrowColourId,
         colours.at(PlugDataColour::panelTextColourId));
     setColour(DirectoryContentsDisplayComponent::textColourId,
         colours.at(PlugDataColour::panelTextColourId));

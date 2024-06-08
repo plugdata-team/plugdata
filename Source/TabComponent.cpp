@@ -1006,7 +1006,7 @@ void TabComponent::showHiddenTabsMenu(int splitIndex) {
             
             Font font = Font(14);
             
-            g.setColour(findColour(TabbedButtonBar::tabTextColourId));
+            g.setColour(findColour(PlugDataColour::toolbarTextColourId));
             g.setFont(font);
             g.drawText(tabTitle.trim(), area.reduced(4, 0), Justification::centred, false);
         }
