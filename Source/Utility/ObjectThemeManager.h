@@ -12,19 +12,30 @@
  * This is a static class that handles all theming & formatting for UI objects placed onto the canvas
  */
 
-class ObjectThemeManager : public Component {
+class ObjectThemeManager {
 public:
-    ObjectThemeManager() = default;
-
-    void lookAndFeelChanged() override
+    static inline ObjectThemeManager* instance = nullptr;
+    
+    static ObjectThemeManager* get()
     {
-        bg = findColour(PlugDataColour::guiObjectBackgroundColourId);
-        fg = findColour(PlugDataColour::canvasTextColourId);
-        lbl = findColour(PlugDataColour::toolbarTextColourId);
-        ln = findColour(PlugDataColour::guiObjectInternalOutlineColour);
+        if(!instance)
+        {
+            instance = new ObjectThemeManager();
+        }
+        
+        return instance;
     }
 
-    static String getCompleteFormat(String& name)
+    void updateTheme()
+    {
+        auto& lnf = LookAndFeel::getDefaultLookAndFeel();
+        bg = lnf.findColour(PlugDataColour::guiObjectBackgroundColourId);
+        fg = lnf.findColour(PlugDataColour::canvasTextColourId);
+        lbl = lnf.findColour(PlugDataColour::toolbarTextColourId);
+        ln = lnf.findColour(PlugDataColour::guiObjectInternalOutlineColour);
+    }
+
+    String getCompleteFormat(String& name)
     {
         StringArray token;
         token.add(name);
@@ -32,7 +43,7 @@ public:
         return String("#X obj 0 0 " + token.joinIntoString(" "));
     }
 
-    static void formatObject(StringArray& tokens)
+    void formatObject(StringArray& tokens)
     {
         // See if we have preset parameters for this object
         // These parameters are designed to make the experience in plugdata better
@@ -64,10 +75,10 @@ public:
     }
 
 private:
-    inline static Colour bg = Colour();
-    inline static Colour fg = Colour();
-    inline static Colour lbl = Colour();
-    inline static Colour ln = Colour();
+    Colour bg = Colour();
+    Colour fg = Colour();
+    Colour lbl = Colour();
+    Colour ln = Colour();
 
     // Initialisation parameters for GUI objects
     // Taken from pd save files, this will make sure that it directly initialises objects with the right parameters
