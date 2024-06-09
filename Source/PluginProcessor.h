@@ -113,8 +113,6 @@ public:
     void sendPlayhead();
     void sendParameters();
 
-    bool isInPluginMode();
-
     Array<PluginEditor*> getEditors() const;
 
     void performParameterChange(int type, String const& name, float value) override;

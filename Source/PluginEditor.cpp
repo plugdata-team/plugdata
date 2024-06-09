@@ -41,6 +41,7 @@ using namespace juce::gl;
 
 PluginEditor::PluginEditor(PluginProcessor& p)
     : AudioProcessorEditor(&p)
+    , pluginMode(nullptr)
     , pd(&p)
     , sidebar(std::make_unique<Sidebar>(&p, this))
     , statusbar(std::make_unique<Statusbar>(&p))
@@ -288,8 +289,8 @@ void PluginEditor::setUseBorderResizer(bool shouldUse)
             borderResizer->setVisible(true);
             resized(); // Makes sure resizer gets resized
 
-            if (auto* pluginMode = tabComponent.getPluginModeComponent()) {
-                borderResizer->toBehind(pluginMode);
+            if (isInPluginMode()) {
+                borderResizer->toBehind(pluginMode.get());
             }
         } else {
             if (!cornerResizer) {
@@ -354,7 +355,7 @@ void PluginEditor::paintOverChildren(Graphics& g)
 
 void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> area)
 {
-    if (auto* pluginMode = tabComponent.getPluginModeComponent()) {
+    if (isInPluginMode()) {
         pluginMode->render(nvg);
     } else {
         if (welcomePanel->isVisible()) {
@@ -411,7 +412,7 @@ DragAndDropTarget* PluginEditor::findNextDragAndDropTarget(Point<int> screenPos)
 
 void PluginEditor::resized()
 {
-    if (auto* pluginMode = tabComponent.getPluginModeComponent()) {
+    if (isInPluginMode()) {
         nvgSurface.updateBounds(getLocalBounds().withTrimmedTop(pluginMode->isWindowFullscreen() ? 0 : 40));
         return;
     }
@@ -487,6 +488,23 @@ void PluginEditor::resized()
     repaint(); // Some outlines are dependent on whether or not the sidebars are expanded, or whether or not a patch is opened
 }
 
+bool PluginEditor::isInPluginMode() const
+{
+    return static_cast<bool>(pluginMode);
+}
+
+// Find out if any canvases that belong to this editor are in plugin mode
+// NOTE: When plugin mode is activated, the editor does not have this canvas anymore
+pd::Patch* PluginEditor::findPatchInPluginMode()
+{
+    for (auto *cnv : getCanvases()) {
+        if (cnv->patch.openInPluginMode) {
+            return &cnv->patch;
+        }
+    }
+    return nullptr;
+}
+
 void PluginEditor::parentSizeChanged()
 {
     if (!ProjectInfo::isStandalone)
@@ -494,7 +512,7 @@ void PluginEditor::parentSizeChanged()
 
     auto* standalone = dynamic_cast<DocumentWindow*>(getTopLevelComponent());
     // Hide TitleBar Buttons in Plugin Mode
-    bool visible = !pd->isInPluginMode();
+    bool visible = !isInPluginMode();
 #if JUCE_MAC
     if (!standalone->isUsingNativeTitleBar()) {
         // & hide TitleBar buttons when fullscreen on MacOS
@@ -872,7 +890,7 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
     case CommandIDs::PanDragKey: {
         result.setInfo("Pan drag key", "Pan drag key", "View", ApplicationCommandInfo::dontTriggerAlertSound);
         result.addDefaultKeypress(KeyPress::spaceKey, ModifierKeys::noModifiers);
-        result.setActive(hasCanvas && !isDragging && !tabComponent.getPluginModeComponent());
+        result.setActive(hasCanvas && !isDragging && !isInPluginMode());
         break;
     }
     case CommandIDs::ZoomIn: {
