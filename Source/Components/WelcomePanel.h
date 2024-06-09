@@ -258,7 +258,6 @@ public:
                     editor->autosave->checkForMoreRecentAutosave(patchFile, editor, [this, patchFile]() {
                         editor->getTabComponent().openPatch(URL(patchFile));
                         SettingsFile::getInstance()->addToRecentlyOpened(patchFile);
-                        editor->pd->titleChanged();
                     });
                 };
                 tile->onFavourite = [this, path = subTree.getProperty("Path")](bool shouldBeFavourite) mutable {

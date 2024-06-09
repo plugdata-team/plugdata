@@ -640,7 +640,6 @@ void PluginEditor::filesDropped(StringArray const& files, int x, int y)
             autosave->checkForMoreRecentAutosave(file, this, [this, file]() {
                 tabComponent.openPatch(URL(file));
                 SettingsFile::getInstance()->addToRecentlyOpened(file);
-                pd->titleChanged();
             });
         }
     }

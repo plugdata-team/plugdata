@@ -90,7 +90,6 @@ Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch)
     cnv->jumpToLastKnownPosition();
 
     triggerAsyncUpdate();
-    pd->titleChanged();
 
     return cnv;
 }
@@ -660,6 +659,29 @@ void TabComponent::closeTab(Canvas* cnv)
     editor->sidebar->clearSearchOutliner();
 
     patch->setVisible(false);
+    
+    auto* tab = [this, cnv](){
+        for(auto& tabbar : tabbars)
+        {
+            for(auto* tab : tabbar)
+            {
+                if(tab->cnv == cnv)
+                {
+                    return tab;
+                }
+            }
+        }
+        return static_cast<TabBarButtonComponent*>(nullptr);
+    }();
+    
+    if(splits[0] == cnv && tabbars[0].indexOf(tab) >= 1)
+    {
+        splits[0] = tabbars[0][tabbars[0].indexOf(tab) - 1]->cnv;
+    }
+    if(splits[1] == cnv && tabbars[1].indexOf(tab) >= 1)
+    {
+        splits[1] = tabbars[1][tabbars[1].indexOf(tab) - 1]->cnv;
+    }
 
     cnv->setCachedComponentImage(nullptr); // Clear nanovg invalidation listener, just to be sure
     canvases.removeObject(cnv);
