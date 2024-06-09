@@ -170,8 +170,6 @@ private:
     class DragImageComponent;
     OwnedArray<DragImageComponent> dragImageComponents;
 
-    Point<int> oldLocation = { 0, 0 };
-
     float zoomScale;
 
     MouseInputSource const* getMouseInputSourceForDrag(Component* sourceComponent, MouseInputSource const* inputSourceCausingDrag);

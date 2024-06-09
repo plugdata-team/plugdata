@@ -126,6 +126,8 @@ public:
 
     void update() override
     {
+        auto oldFont = getFont();
+        
         if (auto note = ptr.get<t_fake_note>()) {
             textColour = Colour(note->x_red, note->x_green, note->x_blue);
             noteEditor.setText(getNote());
@@ -152,6 +154,8 @@ public:
             receiveSymbol = receiveSym == "empty" ? "" : note->x_rcv_raw->s_name;
         }
 
+        auto newFont = getFont();
+        
         auto justificationType = getValue<int>(justification);
         if (justificationType == 1) {
             noteEditor.setJustification(Justification::topLeft);
@@ -163,8 +167,9 @@ public:
 
         noteEditor.setColour(TextEditor::textColourId, Colour::fromString(primaryColour.toString()));
 
-        needsRepaint = true;
-        updateFont();
+        if(oldFont != newFont) {
+            updateFont();
+        }
 
         getLookAndFeel().setColour(Label::textWhenEditingColourId, LookAndFeel::getDefaultLookAndFeel().findColour(Label::textWhenEditingColourId));
         getLookAndFeel().setColour(Label::textColourId, LookAndFeel::getDefaultLookAndFeel().findColour(Label::textColourId));

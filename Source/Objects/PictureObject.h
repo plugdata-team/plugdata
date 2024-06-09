@@ -106,11 +106,14 @@ public:
 
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-
         switch (symbol) {
         case hash("latch"): {
             if (auto pic = ptr.get<t_fake_pic>())
                 latch = pic->x_latch;
+            break;
+        }
+        case hash("offset"): {
+            repaint();
             break;
         }
         case hash("outline"): {
@@ -175,10 +178,20 @@ public:
             nvgFillColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId)));
             nvgText(nvg, b.getCentreX(), b.getCentreY(), "?", 0);
         } else {
+            
+            int offsetX = 0, offsetY = 0;
+            if (auto pic = ptr.get<t_fake_pic>()) {
+                offsetX = pic->x_offset_x;
+                offsetY = pic->x_offset_y;
+            }
+            
+            nvgSave(nvg);
+            nvgTranslate(nvg, offsetX, offsetY);
             for (auto& [image, bounds] : imageBuffers) {
                 nvgFillPaint(nvg, nvgImagePattern(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), 0, image->getImageId(), 1.0f));
                 nvgFillRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
             }
+            nvgRestore(nvg);
         }
 
         bool selected = object->isSelected() && !cnv->isGraph;

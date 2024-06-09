@@ -426,6 +426,8 @@ struct t_fake_pic {
     int x_flag;
     int x_size;
     int x_latch;
+    int x_offset_x;
+    int x_offset_y;
     t_symbol* x_fullname;
     t_symbol* x_filename;
     t_symbol* x_x;
