@@ -218,7 +218,6 @@ void TabComponent::openPatch()
 
 void TabComponent::nextTab()
 {
-
     auto splitIndex = activeSplitIndex && splits[1];
     auto& tabbar = tabbars[splitIndex];
     auto oldTabIndex = 0;
@@ -440,8 +439,9 @@ void TabComponent::closeEmptySplits()
 
 void TabComponent::showTab(Canvas* cnv, int splitIndex)
 {
-    if (cnv == splits[splitIndex])
+    if (cnv == splits[splitIndex] /*&& cnv->findParentComponentOfClass<TabComponent>() != nullptr */) {
         return;
+    }
 
     if (splits[splitIndex]) {
         splits[splitIndex]->saveViewportPosition();
@@ -683,11 +683,11 @@ void TabComponent::closeTab(Canvas* cnv)
     
     if(splits[0] == cnv && tabbars[0].indexOf(tab) >= 1)
     {
-        splits[0] = tabbars[0][tabbars[0].indexOf(tab) - 1]->cnv;
+        showTab(tabbars[0][tabbars[0].indexOf(tab) - 1]->cnv, 0);
     }
     if(splits[1] == cnv && tabbars[1].indexOf(tab) >= 1)
     {
-        splits[1] = tabbars[1][tabbars[1].indexOf(tab) - 1]->cnv;
+        showTab(tabbars[1][tabbars[1].indexOf(tab) - 1]->cnv, 1);
     }
 
     cnv->setCachedComponentImage(nullptr); // Clear nanovg invalidation listener, just to be sure
