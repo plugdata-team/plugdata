@@ -377,7 +377,7 @@ void TabComponent::handleAsyncUpdate()
         lastPluginModePatchPtr = nullptr;
     }
 
-    for (auto* cnv : getVisibleCanvases()) {
+    for (auto* cnv : getCanvases()) {
         cnv->jumpToLastKnownPosition();
     }
 }

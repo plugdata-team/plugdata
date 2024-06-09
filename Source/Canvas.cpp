@@ -687,18 +687,24 @@ void Canvas::updateOverlays()
 
 void Canvas::jumpToOrigin()
 {
-    viewport->setViewPosition((canvasOrigin + Point<int>(1, 1)).transformedBy(getTransform()));
+    if(viewport) viewport->setViewPosition((canvasOrigin + Point<int>(1, 1)).transformedBy(getTransform()));
 }
 
 void Canvas::jumpToLastKnownPosition()
 {
-    viewport->setViewPosition((patch.lastViewportPosition + canvasOrigin).transformedBy(getTransform()));
+    if (viewport) {
+        viewport->setViewPosition((patch.lastViewportPosition + canvasOrigin).transformedBy(getTransform()));
+        zoomScale.setValue(patch.lastViewportScale);
+        setTransform(AffineTransform().scaled(patch.lastViewportScale));
+        viewport->resized();
+    }
 }
 
 void Canvas::saveViewportPosition()
 {
     if (viewport) {
         patch.lastViewportPosition = viewport->getViewPosition().transformedBy(getTransform().inverted()) - canvasOrigin;
+        patch.lastViewportScale = getValue<float>(zoomScale);
     }
 }
 
