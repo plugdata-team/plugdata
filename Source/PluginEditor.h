@@ -175,7 +175,7 @@ public:
 
     int editorIndex;
 
-    pd::Patch* findPatchInPluginMode();
+    pd::Patch::Ptr findPatchInPluginMode();
 
     bool isInPluginMode() const;
 
