@@ -493,8 +493,7 @@ bool PluginEditor::isInPluginMode() const
     return static_cast<bool>(pluginMode);
 }
 
-// Find out if any canvases that belong to this editor are in plugin mode
-// NOTE: When plugin mode is activated, the editor does not have this canvas anymore
+// Retern the patch that belongs to this editor that's in plugin mode
 pd::Patch::Ptr PluginEditor::findPatchInPluginMode()
 {
     for (auto& patch : pd->patches) {
