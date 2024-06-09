@@ -264,7 +264,7 @@ private:
 
                 // Show the popup menu at the mouse position
                 tabMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1));
-            } else if (cnv) {
+            } else if (cnv && e.originalComponent == this) {
                 toFront(false);
                 parent->showTab(cnv, parent->tabbars[1].contains(this));
                 dragger.startDraggingComponent(this, e);
