@@ -122,6 +122,7 @@ public:
     bool openInPluginMode = false;
     int splitViewIndex = 0;
     int windowIndex = 0;
+
     Point<int> lastViewportPosition = { 1, 1 };
     float lastViewportScale = 1.0f;
 

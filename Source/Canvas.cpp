@@ -88,7 +88,6 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     } else {
         isGraph = false;
     }
-
     if (!isGraph) {
         auto* canvasViewport = new CanvasViewport(editor, this);
 
@@ -696,7 +695,7 @@ void Canvas::jumpToLastKnownPosition()
         viewport->setViewPosition((patch.lastViewportPosition + canvasOrigin).transformedBy(getTransform()));
         zoomScale.setValue(patch.lastViewportScale);
         setTransform(AffineTransform().scaled(patch.lastViewportScale));
-        viewport->resized();
+        //viewport->resized();
     }
 }
 

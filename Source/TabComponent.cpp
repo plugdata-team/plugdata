@@ -284,11 +284,19 @@ void TabComponent::openInPluginMode(pd::Patch::Ptr patch)
 
 void TabComponent::handleAsyncUpdate()
 {
+    auto editorIndex = editor->editorIndex;
+
+    // save the patch from the canvases that were the two splits
+    for (int i = 0; i < splits.size(); i++){
+        if (splits[i]) {
+            lastSplitPatches[i] = splits[i]->patch;
+        }
+    }
+    if (getCurrentCanvas())
+        lastActiveCanvas = getCurrentCanvas()->patch;
+
     tabbars[0].clear();
     tabbars[1].clear();
-
-    auto editorIndex = editor->editorIndex;
-    pd::Patch::Ptr pluginPatch;
 
     // Check if there is a patch that should be in plugin mode for this tabComponents editor
     // If so, we create a new pluginmode object, and delete all canvases from this editor
@@ -301,15 +309,12 @@ void TabComponent::handleAsyncUpdate()
                 editor->resized();
                 // hack to force the window title buttons to hide
                 editor->parentSizeChanged();
-                lastPluginModePatchPtr = patchInPluginMode->getPointer().get();
             }
             return;
         }
     // if the editor is in pluginmode
     } else if (editor->isInPluginMode()) {
         if (!editor->pluginMode->getCanvas()->patch.openInPluginMode) {
-            // save the patch that was used for plugin mode
-            pluginPatch = &editor->pluginMode->getCanvas()->patch;
             // exit plugin mode, and continue below to rebuild editor
             editor->pluginMode.reset(nullptr);
         } else {
@@ -347,6 +352,7 @@ void TabComponent::handleAsyncUpdate()
 
         if (!cnv) {
             cnv = canvases.add(new Canvas(editor, patch));
+            resized();
             cnv->jumpToLastKnownPosition();
         }
 
@@ -372,26 +378,22 @@ void TabComponent::handleAsyncUpdate()
 
     resized(); // Update tab and canvas layout
 
-    // Show plugin mode tab after closing pluginmode
-    if (lastPluginModePatchPtr != nullptr) {
-        for (auto* canvas : canvases) {
-            if (canvas->patch.getPointer().get() == lastPluginModePatchPtr) {
-                showTab(canvas, canvas->patch.splitViewIndex);
-                break;
-            }
-        }
-        lastPluginModePatchPtr = nullptr;
-    }
-
     for (auto* cnv : getCanvases()) {
         cnv->jumpToLastKnownPosition();
     }
 
-    // if we are converting back to editor, we need to find the new canvas
-    // that is associated with the patch that was just in plugin mode
-    if (pluginPatch) {
-        for (auto* cnv : getCanvases()){
-            if (&cnv->patch == pluginPatch) {
+    // Show plugin mode tab after closing pluginmode
+    for (int i = 0; i < tabbars.size(); i++) {
+        for (auto *canvas: getCanvases()) {
+            if (!tabbars[i].isEmpty() && (&canvas->patch == lastSplitPatches[i])) {
+                showTab(canvas, i);
+                break;
+            }
+        }
+    }
+    if (lastActiveCanvas) {
+        for (auto *cnv: getCanvases()) {
+            if (&cnv->patch == lastActiveCanvas) {
                 setActiveSplit(cnv);
                 break;
             }
@@ -617,9 +619,16 @@ void TabComponent::resized()
         tabOverflowButtons[i].setBounds(splitBounds.removeFromRight(wasOverflown ? 30 : 0));
     }
 
-    for (auto& split : splits) {
-        if (split) {
-            split->viewport->setBounds(bounds.removeFromLeft((isSplit && split == splits[0]) ? (splitSize - 3) : getWidth()));
+    // go over all canvases in each split (a split is simply a pointer to the active canvas)
+    // use the active canvas viewports dimensions (the one that is assigned to the split) for resizing each canvas
+    for (int i = 0; i < splits.size(); i++) {
+        if (splits[i]) {
+            auto splitBounds = bounds.removeFromLeft((isSplit && splits[i] == splits[0]) ? (splitSize - 3) : getWidth());
+            for (auto* tab : tabbars[i]){
+                if (auto canvas = tab->cnv) {
+                    canvas->viewport->setBounds(splitBounds);
+                }
+            }
             bounds.removeFromLeft(6); // For split resizer
         }
     }
