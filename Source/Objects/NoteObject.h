@@ -74,8 +74,7 @@ public:
                 atoms.emplace_back();
                 SETSYMBOL(&atoms.back(), pd->generateSymbol(word));
             }
-            if(noteEditor.getText().endsWith(" "))
-            {
+            if (noteEditor.getText().endsWith(" ")) {
                 atoms.emplace_back();
                 SETSYMBOL(&atoms.back(), pd->generateSymbol(" "));
             }
@@ -108,26 +107,23 @@ public:
     {
         return true;
     }
-    
+
     void render(NVGcontext* nvg) override
     {
         auto scale = getImageScale();
-        
-        if(needsRepaint || noteEditor.isVisible() || imageRenderer.needsUpdate(std::ceil(getWidth() * scale), std::ceil(getHeight() * scale)))
-        {
+
+        if (needsRepaint || noteEditor.isVisible() || imageRenderer.needsUpdate(std::ceil(getWidth() * scale), std::ceil(getHeight() * scale))) {
             imageRenderer.renderJUCEComponent(nvg, *this, scale);
             needsRepaint = false;
-        }
-        else {
+        } else {
             imageRenderer.render(nvg, getLocalBounds());
         }
     }
 
-
     void update() override
     {
         auto oldFont = getFont();
-        
+
         if (auto note = ptr.get<t_fake_note>()) {
             textColour = Colour(note->x_red, note->x_green, note->x_blue);
             noteEditor.setText(getNote());
@@ -155,7 +151,7 @@ public:
         }
 
         auto newFont = getFont();
-        
+
         auto justificationType = getValue<int>(justification);
         if (justificationType == 1) {
             noteEditor.setJustification(Justification::topLeft);
@@ -167,7 +163,7 @@ public:
 
         noteEditor.setColour(TextEditor::textColourId, Colour::fromString(primaryColour.toString()));
 
-        if(oldFont != newFont) {
+        if (oldFont != newFont) {
             updateFont();
         }
 

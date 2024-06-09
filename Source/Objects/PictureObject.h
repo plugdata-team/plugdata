@@ -178,13 +178,13 @@ public:
             nvgFillColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId)));
             nvgText(nvg, b.getCentreX(), b.getCentreY(), "?", 0);
         } else {
-            
+
             int offsetX = 0, offsetY = 0;
             if (auto pic = ptr.get<t_fake_pic>()) {
                 offsetX = pic->x_offset_x;
                 offsetY = pic->x_offset_y;
             }
-            
+
             nvgSave(nvg);
             nvgTranslate(nvg, offsetX, offsetY);
             for (auto& [image, bounds] : imageBuffers) {

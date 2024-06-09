@@ -286,7 +286,7 @@ void TabComponent::handleAsyncUpdate()
     auto editorIndex = editor->editorIndex;
 
     // save the patch from the canvases that were the two splits
-    for (int i = 0; i < splits.size(); i++){
+    for (int i = 0; i < splits.size(); i++) {
         if (splits[i]) {
             lastSplitPatches[i] = splits[i]->patch;
         }
@@ -311,7 +311,7 @@ void TabComponent::handleAsyncUpdate()
             }
             return;
         }
-    // if the editor is in pluginmode
+        // if the editor is in pluginmode
     } else if (editor->isInPluginMode()) {
         if (!editor->pluginMode->getCanvas()->patch.openInPluginMode) {
             // exit plugin mode, and continue below to rebuild editor
@@ -383,7 +383,7 @@ void TabComponent::handleAsyncUpdate()
 
     // Show plugin mode tab after closing pluginmode
     for (int i = 0; i < tabbars.size(); i++) {
-        for (auto *canvas: getCanvases()) {
+        for (auto* canvas : getCanvases()) {
             if (!tabbars[i].isEmpty() && (&canvas->patch == lastSplitPatches[i])) {
                 showTab(canvas, i);
                 break;
@@ -391,7 +391,7 @@ void TabComponent::handleAsyncUpdate()
         }
     }
     if (lastActiveCanvas) {
-        for (auto *cnv: getCanvases()) {
+        for (auto* cnv : getCanvases()) {
             if (cnv->patch.getPointer().get() == lastActiveCanvas) {
                 setActiveSplit(cnv);
                 break;
@@ -622,7 +622,7 @@ void TabComponent::resized()
     for (int i = 0; i < splits.size(); i++) {
         if (splits[i]) {
             auto splitBounds = bounds.removeFromLeft((isSplit && splits[i] == splits[0]) ? (splitSize - 3) : getWidth());
-            for (auto* tab : tabbars[i]){
+            for (auto* tab : tabbars[i]) {
                 if (auto canvas = tab->cnv) {
                     canvas->viewport->setBounds(splitBounds);
                 }
@@ -666,27 +666,22 @@ void TabComponent::closeTab(Canvas* cnv)
     editor->sidebar->clearSearchOutliner();
 
     patch->setVisible(false);
-    
-    auto* tab = [this, cnv](){
-        for(auto& tabbar : tabbars)
-        {
-            for(auto* tab : tabbar)
-            {
-                if(tab->cnv == cnv)
-                {
+
+    auto* tab = [this, cnv]() {
+        for (auto& tabbar : tabbars) {
+            for (auto* tab : tabbar) {
+                if (tab->cnv == cnv) {
                     return tab;
                 }
             }
         }
         return static_cast<TabBarButtonComponent*>(nullptr);
     }();
-    
-    if(splits[0] == cnv && tabbars[0].indexOf(tab) >= 1)
-    {
+
+    if (splits[0] == cnv && tabbars[0].indexOf(tab) >= 1) {
         showTab(tabbars[0][tabbars[0].indexOf(tab) - 1]->cnv, 0);
     }
-    if(splits[1] == cnv && tabbars[1].indexOf(tab) >= 1)
-    {
+    if (splits[1] == cnv && tabbars[1].indexOf(tab) >= 1) {
         showTab(tabbars[1][tabbars[1].indexOf(tab) - 1]->cnv, 1);
     }
 

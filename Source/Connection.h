@@ -142,7 +142,7 @@ private:
 
     enum CableType { DataCable,
         GemCable,
-        SignalCable};
+        SignalCable };
     CableType cableType;
 
     Canvas* cnv;
