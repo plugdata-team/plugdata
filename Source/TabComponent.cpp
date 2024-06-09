@@ -541,7 +541,7 @@ void TabComponent::mouseDown(MouseEvent const& e)
 void TabComponent::mouseUp(MouseEvent const& e)
 {
     draggingSplitResizer = false;
-    e.eventComponent->setMouseCursor(MouseCursor::NormalCursor);
+    setMouseCursor(MouseCursor::NormalCursor);
 }
 
 void TabComponent::mouseDrag(MouseEvent const& e)
@@ -558,9 +558,7 @@ void TabComponent::mouseMove(MouseEvent const& e)
 {
     auto localPos = e.getEventRelativeTo(this).getPosition();
     if (localPos.x > splitSize - 3 && localPos.x < splitSize + 3) {
-        e.eventComponent->setMouseCursor(MouseCursor::LeftRightResizeCursor);
-    } else {
-        e.eventComponent->setMouseCursor(MouseCursor::NormalCursor);
+        setMouseCursor(MouseCursor::LeftRightResizeCursor);
     }
 }
 
