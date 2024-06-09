@@ -293,7 +293,7 @@ void TabComponent::handleAsyncUpdate()
         }
     }
     if (getCurrentCanvas())
-        lastActiveCanvas = getCurrentCanvas()->patch;
+        lastActiveCanvas = getCurrentCanvas()->patch.getPointer().get();
 
     tabbars[0].clear();
     tabbars[1].clear();
@@ -393,7 +393,7 @@ void TabComponent::handleAsyncUpdate()
     }
     if (lastActiveCanvas) {
         for (auto *cnv: getCanvases()) {
-            if (&cnv->patch == lastActiveCanvas) {
+            if (cnv->patch.getPointer().get() == lastActiveCanvas) {
                 setActiveSplit(cnv);
                 break;
             }

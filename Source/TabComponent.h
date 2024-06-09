@@ -314,7 +314,7 @@ private:
     std::array<SafePointer<Canvas>, 2> splits = { nullptr, nullptr };
 
     std::array<pd::Patch::Ptr, 2> lastSplitPatches { nullptr , nullptr };
-    pd::Patch::Ptr lastActiveCanvas = nullptr;
+    t_glist* lastActiveCanvas = nullptr;
 
 
     bool draggingOverTabbar = false;
