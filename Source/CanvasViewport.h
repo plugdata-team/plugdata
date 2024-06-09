@@ -421,7 +421,7 @@ public:
 
     void componentMovedOrResized(Component& c, bool moved, bool resized) override
     {
-        if (cnv->pd->isInPluginMode())
+        if (editor->isInPluginMode())
             return;
 
         Viewport::componentMovedOrResized(c, moved, resized);
@@ -449,7 +449,7 @@ public:
         vbar.setVisible(isVerticalScrollBarShown());
         hbar.setVisible(isHorizontalScrollBarShown());
 
-        if (editor->pd->isInPluginMode())
+        if (editor->isInPluginMode())
             return;
 
         adjustScrollbarBounds();

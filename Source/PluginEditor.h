@@ -175,6 +175,12 @@ public:
 
     int editorIndex;
 
+    pd::Patch* findPatchInPluginMode();
+
+    bool isInPluginMode() const;
+
+    std::unique_ptr<PluginMode> pluginMode;
+
 private:
     TabComponent tabComponent;
     std::unique_ptr<TouchSelectionHelper> touchSelectionHelper;
