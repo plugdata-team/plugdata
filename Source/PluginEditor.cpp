@@ -1526,7 +1526,7 @@ void PluginEditor::lookAndFeelChanged()
 
 void PluginEditor::commandKeyChanged(bool isHeld)
 {
-    if (isHeld) {
+    if (isHeld && !presentButton.getToggleState()) {
         runButton.setToggleState(true, dontSendNotification);
     } else if (auto* cnv = getCurrentCanvas()) {
         if (!getValue<bool>(cnv->locked)) {
