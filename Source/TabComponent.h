@@ -313,6 +313,10 @@ private:
     std::array<OwnedArray<TabBarButtonComponent>, 2> tabbars;
     std::array<SafePointer<Canvas>, 2> splits = { nullptr, nullptr };
 
+    std::array<pd::Patch::Ptr, 2> lastSplitPatches { nullptr , nullptr };
+    pd::Patch::Ptr lastActiveCanvas = nullptr;
+
+
     bool draggingOverTabbar = false;
     bool draggingSplitResizer = false;
     Rectangle<int> splitDropBounds;
@@ -322,8 +326,6 @@ private:
     int activeSplitIndex = 0;
 
     OwnedArray<Canvas, CriticalSection> canvases;
-
-    t_glist* lastPluginModePatchPtr = nullptr;
 
     PluginEditor* editor;
     PluginProcessor* pd;
