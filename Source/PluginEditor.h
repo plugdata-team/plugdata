@@ -179,10 +179,13 @@ public:
 
     bool isInPluginMode() const;
 
+private:
+    TabComponent tabComponent;
+
+public:
     std::unique_ptr<PluginMode> pluginMode;
 
 private:
-    TabComponent tabComponent;
     std::unique_ptr<TouchSelectionHelper> touchSelectionHelper;
 
     // Used by standalone to handle dragging the window
