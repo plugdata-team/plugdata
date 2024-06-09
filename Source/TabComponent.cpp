@@ -529,7 +529,7 @@ void TabComponent::mouseDrag(MouseEvent const& e)
 {
     auto localPos = e.getEventRelativeTo(this).getPosition();
     if (draggingSplitResizer) {
-        splitProportion = std::clamp(getWidth() / static_cast<float>(localPos.x), 1.25f, 5.0f);
+        splitProportion = std::clamp(getWidth() / static_cast<float>(jmax(0, localPos.x)), 1.25f, 5.0f);
         splitSize = getWidth() / splitProportion;
         resized();
     }
