@@ -175,8 +175,17 @@ public:
 
     int editorIndex;
 
+    pd::Patch* findPatchInPluginMode();
+
+    bool isInPluginMode() const;
+
 private:
     TabComponent tabComponent;
+
+public:
+    std::unique_ptr<PluginMode> pluginMode;
+
+private:
     std::unique_ptr<TouchSelectionHelper> touchSelectionHelper;
 
     // Used by standalone to handle dragging the window

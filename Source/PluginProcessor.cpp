@@ -993,17 +993,6 @@ AudioProcessorEditor* PluginProcessor::createEditor()
     return editor;
 }
 
-bool PluginProcessor::isInPluginMode()
-{
-    for (auto& patch : patches) {
-        if (patch->openInPluginMode) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 void PluginProcessor::getStateInformation(MemoryBlock& destData)
 {
     setThis();

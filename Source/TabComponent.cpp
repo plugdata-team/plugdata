@@ -12,8 +12,7 @@
 #include "Standalone/PlugDataWindow.h"
 
 TabComponent::TabComponent(PluginEditor* editor)
-    : pluginMode(nullptr)
-    , editor(editor)
+    : editor(editor)
     , pd(editor->pd)
 {
     for (int i = 0; i < tabbars.size(); i++) {
@@ -278,11 +277,6 @@ void TabComponent::createNewWindow(Component* draggedTab)
     newEditor->nvgSurface.detachContext();
 }
 
-PluginMode* TabComponent::getPluginModeComponent()
-{
-    return pluginMode.get();
-}
-
 void TabComponent::openInPluginMode(pd::Patch::Ptr patch)
 {
     patch->openInPluginMode = true;
@@ -295,23 +289,34 @@ void TabComponent::handleAsyncUpdate()
     tabbars[1].clear();
 
     auto editorIndex = editor->editorIndex;
+    pd::Patch* pluginPatch = nullptr;
 
-    if (pd->isInPluginMode()) {
-        // Initialise plugin mode
-        for (auto& patch : pd->patches) {
-            if (patch->openInPluginMode && patch->windowIndex == editorIndex) // Found pluginmode patch for current window
-            {
-                canvases.clear();
-                if (!pluginMode) {
-                    pluginMode = std::make_unique<PluginMode>(editor, patch);
-                    editor->resized();
-                    lastPluginModePatchPtr = patch->getPointer().get();
-                }
-                return;
+    // Check if there is a patch that should be in plugin mode for this tabComponents editor
+    // If so, we create a new pluginmode object, and delete all canvases from this editor
+    if (auto* patchInPluginMode = editor->findPatchInPluginMode()) {
+        if (patchInPluginMode->windowIndex == editorIndex) {
+            // Initialise plugin mode
+            canvases.clear();
+            if (!editor->isInPluginMode()) {
+                editor->pluginMode = std::make_unique<PluginMode>(editor, patchInPluginMode);
+                editor->resized();
+                // hack to force the window title buttons to hide
+                editor->parentSizeChanged();
+                lastPluginModePatchPtr = patchInPluginMode->getPointer().get();
             }
+            return;
         }
-    } else if (pluginMode) {
-        pluginMode.reset(nullptr);
+    // if the editor is in pluginmode
+    } else if (editor->isInPluginMode()) {
+        if (!editor->pluginMode->getCanvas()->patch.openInPluginMode) {
+            // save the patch that was used for plugin mode
+            pluginPatch = &editor->pluginMode->getCanvas()->patch;
+            // exit plugin mode, and continue below to rebuild editor
+            editor->pluginMode.reset(nullptr);
+        } else {
+            // editor is in plugin mode, and should be, no further action needed
+            return;
+        }
     }
 
     // First, remove canvases that no longer exist
@@ -359,9 +364,11 @@ void TabComponent::handleAsyncUpdate()
     if (tabbars[0].size() == 0 && tabbars[1].size() == 0) {
         editor->welcomePanel->show();
         editor->resized();
+        editor->parentSizeChanged();
     } else {
         editor->welcomePanel->hide();
         editor->resized();
+        editor->parentSizeChanged();
     }
 
     resized(); // Update tab and canvas layout
@@ -379,6 +386,18 @@ void TabComponent::handleAsyncUpdate()
 
     for (auto* cnv : getCanvases()) {
         cnv->jumpToLastKnownPosition();
+    }
+
+    // if we are converting back to editor, we need to find the new canvas
+    // that is associated with the patch that was just in plugin mode
+    if (pluginPatch) {
+        auto findCanvasForPatch = [this](pd::Patch* patch) -> Canvas* {
+            for (auto* cnv : getCanvases()){
+                if (&cnv->patch == patch)
+                    return cnv;
+            }
+        };
+        setActiveSplit(findCanvasForPatch(pluginPatch));
     }
 }
 
@@ -455,8 +474,8 @@ void TabComponent::showTab(Canvas* cnv, int splitIndex)
 
 Canvas* TabComponent::getCurrentCanvas()
 {
-    if (pluginMode) {
-        return pluginMode->getCanvas();
+    if (editor->pluginMode) {
+        return editor->pluginMode->getCanvas();
     }
 
     return activeSplitIndex && splits[1] ? splits[1] : splits[0];
@@ -529,7 +548,7 @@ void TabComponent::mouseDrag(MouseEvent const& e)
 {
     auto localPos = e.getEventRelativeTo(this).getPosition();
     if (draggingSplitResizer) {
-        splitProportion = std::clamp(getWidth() / static_cast<float>(localPos.x), 1.25f, 5.0f);
+        splitProportion = std::clamp(getWidth() / static_cast<float>(jmax(0, localPos.x)), 1.25f, 5.0f);
         splitSize = getWidth() / splitProportion;
         resized();
     }

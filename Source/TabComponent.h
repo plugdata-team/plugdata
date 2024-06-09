@@ -41,8 +41,6 @@ public:
     Array<Canvas*> getCanvases();
     Array<Canvas*> getVisibleCanvases();
 
-    PluginMode* getPluginModeComponent();
-
 private:
     void handleAsyncUpdate() override;
 
@@ -326,7 +324,6 @@ private:
 
     OwnedArray<Canvas, CriticalSection> canvases;
 
-    std::unique_ptr<PluginMode> pluginMode;
     t_glist* lastPluginModePatchPtr = nullptr;
 
     PluginEditor* editor;
