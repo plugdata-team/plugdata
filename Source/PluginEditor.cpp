@@ -499,7 +499,7 @@ pd::Patch* PluginEditor::findPatchInPluginMode()
 {
     for (auto& patch : pd->patches) {
         if (editorIndex == patch->windowIndex && patch->openInPluginMode) {
-            return &patch;
+            return patch.get();
         }
     }
     return nullptr;
