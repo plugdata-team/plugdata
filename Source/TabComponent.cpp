@@ -195,7 +195,7 @@ void TabComponent::moveToRightSplit(TabBarButtonComponent* tab)
         return;
     }
 
-    if (tabbars[0].size() && splits[0] && tabbars[0].indexOf(tab) >= 0) {
+    if (tabbars[0].size() > 1 && splits[0] && tabbars[0].indexOf(tab) >= 0) {
         tabbars[1].add(tabbars[0].removeAndReturn(tabbars[0].indexOf(tab))); // Move tab to right tabbar
         if (tabbars[0].size())
             showTab(tabbars[0][0]->cnv, 0); // Show first tab of left tabbar
@@ -561,10 +561,6 @@ void TabComponent::mouseMove(MouseEvent const& e)
     } else {
         e.eventComponent->setMouseCursor(MouseCursor::NormalCursor);
     }
-}
-
-void TabComponent::parentSizeChanged()
-{
 }
 
 void TabComponent::resized()

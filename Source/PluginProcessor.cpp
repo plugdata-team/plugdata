@@ -1822,7 +1822,7 @@ void PluginProcessor::reloadAbstractions(File changedPatch, t_glist* except)
 void PluginProcessor::titleChanged()
 {
     for (auto* editor : getEditors()) {
-        editor->getTabComponent().triggerAsyncUpdate();
+        editor->getTabComponent().repaint();
     }
 }
 

@@ -45,7 +45,6 @@ private:
     void handleAsyncUpdate() override;
 
     void resized() override;
-    void parentSizeChanged() override;
 
     void moveToLeftSplit(TabComponent::TabBarButtonComponent* tab);
     void moveToRightSplit(TabComponent::TabBarButtonComponent* tab);
