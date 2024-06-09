@@ -391,13 +391,12 @@ void TabComponent::handleAsyncUpdate()
     // if we are converting back to editor, we need to find the new canvas
     // that is associated with the patch that was just in plugin mode
     if (pluginPatch) {
-        auto findCanvasForPatch = [this](pd::Patch* patch) -> Canvas* {
-            for (auto* cnv : getCanvases()){
-                if (&cnv->patch == patch)
-                    return cnv;
+        for (auto* cnv : getCanvases()){
+            if (&cnv->patch == pluginPatch) {
+                setActiveSplit(cnv);
+                break;
             }
-        };
-        setActiveSplit(findCanvasForPatch(pluginPatch));
+        }
     }
 }
 

@@ -497,9 +497,9 @@ bool PluginEditor::isInPluginMode() const
 // NOTE: When plugin mode is activated, the editor does not have this canvas anymore
 pd::Patch* PluginEditor::findPatchInPluginMode()
 {
-    for (auto *cnv : getCanvases()) {
-        if (cnv->patch.openInPluginMode) {
-            return &cnv->patch;
+    for (auto& patch : pd->patches) {
+        if (editorIndex == patch->windowIndex && patch->openInPluginMode) {
+            return &patch;
         }
     }
     return nullptr;
