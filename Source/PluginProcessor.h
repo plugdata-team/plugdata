@@ -28,7 +28,6 @@ struct PlugDataLook;
 class PluginEditor;
 class ConnectionMessageDisplay;
 class PluginProcessor : public AudioProcessor
-    , public AsyncUpdater
     , public pd::Instance
     , public SettingsFileListener {
 public:
@@ -121,14 +120,15 @@ public:
     void setParameterMode(String const& name, int mode) override;
 
     void performLatencyCompensationChange(float value) override;
+    void sendParameterInfoChangeMessage();
 
     // Jyg added this
     void fillDataBuffer(std::vector<pd::Atom> const& list) override;
     void parseDataBuffer(XmlElement const& xml) override;
     std::unique_ptr<XmlElement> extraData;
 
-    pd::Patch::Ptr loadPatch(String patch, PluginEditor* editor, int splitIndex = 0);
-    pd::Patch::Ptr loadPatch(URL const& patchURL, PluginEditor* editor, int splitIndex = 0);
+    pd::Patch::Ptr loadPatch(String patch, int splitIndex = 0);
+    pd::Patch::Ptr loadPatch(URL const& patchURL, int splitIndex = 0);
 
     void titleChanged() override;
 
@@ -170,7 +170,6 @@ public:
     Component::SafePointer<ConnectionMessageDisplay> connectionListener;
 
 private:
-    void handleAsyncUpdate() override;
     int customLatencySamples = 0;
 
     SmoothedValue<float, ValueSmoothingTypes::Linear> smoothedGain;
@@ -212,6 +211,24 @@ private:
     static inline String const gem_version = "Gem v0.94";
     // this gets updated with live version data later
     static String pdlua_version;
+        
+    class HostInfoUpdater : public AsyncUpdater
+    {
+    public:
+        HostInfoUpdater(PluginProcessor* parentProcessor) : processor(*parentProcessor) {};
+        
+        void handleAsyncUpdate() override
+        {
+            if (ProjectInfo::isStandalone) return;
+            
+            auto const details = AudioProcessorListener::ChangeDetails {}.withParameterInfoChanged(true);
+            processor.updateHostDisplay(details);
+        }
+        
+        PluginProcessor& processor;
+    };
+        
+    HostInfoUpdater hostInfoUpdater;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)
 };

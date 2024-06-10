@@ -186,7 +186,7 @@ class AutosaveHistoryComponent : public Component {
             openPatch.onClick = [this, editor]() {
                 MemoryOutputStream ostream;
                 Base64::convertFromBase64(ostream, patch);
-                auto patch = editor->pd->loadPatch(String::fromUTF8(static_cast<const char*>(ostream.getData()), ostream.getDataSize()), editor);
+                auto patch = editor->pd->loadPatch(String::fromUTF8(static_cast<const char*>(ostream.getData()), ostream.getDataSize()));
                 patch->setTitle(patchPath.fromLastOccurrenceOf("/", false, false));
                 patch->setCurrentFile(URL(patchPath));
                 editor->getTabComponent().triggerAsyncUpdate();

@@ -265,6 +265,13 @@ bool Sidebar::isShowingBrowser()
     return browser->isVisible();
 }
 
+void Sidebar::updateAutomationParameterValues()
+{
+    if (ProjectInfo::isStandalone && automationPanel) {
+        automationPanel->updateParameterValues();
+    }
+}
+
 void Sidebar::updateAutomationParameters()
 {
     if (automationPanel) {

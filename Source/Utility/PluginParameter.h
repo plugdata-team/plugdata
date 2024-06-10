@@ -8,7 +8,7 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
-class PlugDataParameter : public RangedAudioParameter {
+class PlugDataParameter : public RangedAudioParameter{
 public:
     enum Mode {
         Float = 1,
@@ -24,9 +24,9 @@ public:
         , processor(*p)
         , defaultValue(def)
         , index(idx)
-        , range(minimum, maximum, 0.000001f)
-        , name(defaultName)
         , enabled(enabled)
+        , name(defaultName)
+        , range(minimum, maximum, 0.000001f)
         , mode(Float)
     {
         value = range.convertFrom0to1(getDefaultValue());
@@ -112,8 +112,7 @@ public:
     void notifyDAW()
     {
         if (!ProjectInfo::isStandalone) {
-            auto const details = AudioProcessorListener::ChangeDetails {}.withParameterInfoChanged(true);
-            processor.updateHostDisplay(details);
+            processor.sendParameterInfoChangeMessage();
         }
     }
 
@@ -127,7 +126,7 @@ public:
         value = std::clamp(newValue, range.start, range.end);
         sendValueChangedMessageToListeners(getValue());
     }
-
+    
     float getValue() const override
     {
         return range.convertTo0to1(value);
@@ -296,10 +295,14 @@ public:
 
     void setGestureState(float v)
     {
-
         if (!ProjectInfo::isStandalone) {
             // Send new value to DAW
-            v ? beginChangeGesture() : endChangeGesture();
+            if(v) {
+                beginChangeGesture();
+            }
+            else {
+                endChangeGesture();
+            }
         }
 
         gestureState = v;
@@ -307,16 +310,20 @@ public:
 
 private:
     float lastValue = 0.0f;
-    float gestureState = 0.0f;
+    std::atomic<float> gestureState = 0.0f;
     float const defaultValue;
 
     std::atomic<int> index;
     std::atomic<float> value;
-    NormalisableRange<float> range;
-    String name;
     std::atomic<bool> enabled = false;
-
+    std::atomic<bool> needsHostUpdate = false;
+    
+    CriticalSection propertiesCriticalSection;
+    String name;
+    NormalisableRange<float> range;
     Mode mode;
-
+    
+    moodycamel::ConcurrentQueue<std::function<void(void)>> parameterChangeQueue;
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataParameter)
 };

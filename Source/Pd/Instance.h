@@ -134,7 +134,8 @@ private:
 class MessageListener;
 class MessageDispatcher;
 class Patch;
-class Instance {
+class Instance : public AsyncUpdater
+{
     struct Message {
         String selector;
         String destination;
@@ -168,6 +169,8 @@ public:
     void releaseDSP();
     void performDSP(float const* inputs, float* outputs);
     static int getBlockSize();
+    
+    void handleAsyncUpdate() override;
 
     void sendNoteOn(int channel, int pitch, int velocity) const;
     void sendControlChange(int channel, int controller, int value) const;
@@ -217,6 +220,8 @@ public:
 
     void enqueueFunctionAsync(std::function<void(void)> const& fn);
 
+    void enqueueGuiMessage(Message const& fn);
+    
     // Enqueue a message to an pd::WeakReference
     // This will first check if the weakreference is valid before triggering the callback
     template<typename T>
@@ -257,7 +262,6 @@ public:
     std::deque<std::tuple<void*, String, int, int, int>>& getConsoleHistory();
 
     void sendMessagesFromQueue();
-    void processMessage(Message mess);
     void processSend(dmessage mess);
 
     Patch::Ptr openPatch(File const& toOpen);
@@ -300,7 +304,8 @@ private:
     std::unordered_map<void*, std::vector<pd_weak_reference*>> pdWeakReferences;
 
     moodycamel::ConcurrentQueue<std::function<void(void)>> functionQueue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
-
+    moodycamel::ConcurrentQueue<Message> guiMessageQueue = moodycamel::ConcurrentQueue<Message>(64);
+    
     std::unique_ptr<FileChooser> openChooser;
     std::atomic<bool> consoleMute;
     static inline std::set<hash32> luaClasses = std::set<hash32>(); // Keep track of class names that correspond to pdlua objects

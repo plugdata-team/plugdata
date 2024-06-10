@@ -32,17 +32,17 @@ struct pd::Instance::internal {
 
     static void instance_multi_bang(pd::Instance* ptr, char const* recv)
     {
-        ptr->enqueueFunctionAsync([ptr, recv]() { ptr->processMessage({ String("bang"), String::fromUTF8(recv) }); });
+        ptr->enqueueGuiMessage({ String("bang"), String::fromUTF8(recv) });
     }
 
     static void instance_multi_float(pd::Instance* ptr, char const* recv, float f)
     {
-        ptr->enqueueFunctionAsync([ptr, recv, f]() mutable { ptr->processMessage({ String("float"), String::fromUTF8(recv), std::vector<Atom>(1, { f }) }); });
+        ptr->enqueueGuiMessage({ String("float"), String::fromUTF8(recv), std::vector<Atom>(1, { f })});
     }
 
     static void instance_multi_symbol(pd::Instance* ptr, char const* recv, char const* sym)
     {
-        ptr->enqueueFunctionAsync([ptr, recv, sym]() mutable { ptr->processMessage({ String("symbol"), String::fromUTF8(recv), std::vector<Atom>(1, ptr->generateSymbol(sym)) }); });
+        ptr->enqueueGuiMessage({ String("symbol"), String::fromUTF8(recv), std::vector<Atom>(1, ptr->generateSymbol(sym)) });
     }
 
     static void instance_multi_list(pd::Instance* ptr, char const* recv, int argc, t_atom* argv)
@@ -55,7 +55,7 @@ struct pd::Instance::internal {
                 mess.list[i] = Atom(atom_getsymbol(argv + i));
         }
 
-        ptr->enqueueFunctionAsync([ptr, mess]() mutable { ptr->processMessage(mess); });
+        ptr->enqueueGuiMessage(mess);
     }
 
     static void instance_multi_message(pd::Instance* ptr, char const* recv, char const* msg, int argc, t_atom* argv)
@@ -67,7 +67,7 @@ struct pd::Instance::internal {
             else if (argv[i].a_type == A_SYMBOL)
                 mess.list[i] = Atom(atom_getsymbol(argv + i));
         }
-        ptr->enqueueFunctionAsync([ptr, mess]() mutable { ptr->processMessage(std::move(mess)); });
+        ptr->enqueueGuiMessage(mess);
     }
 
     static void instance_multi_noteon(pd::Instance* ptr, int channel, int pitch, int velocity)
@@ -476,75 +476,6 @@ void Instance::sendMessage(char const* receiver, char const* msg, std::vector<At
     sendTypedMessage(generateSymbol(receiver)->s_thing, msg, list);
 }
 
-void Instance::processMessage(Message mess)
-{
-    auto const dest = hash(mess.destination);
-
-    switch (dest) {
-    case hash("pd"):
-        receiveSysMessage(mess.selector, mess.list);
-        break;
-    case hash("latency_compensation"):
-        if (mess.list.size() == 1) {
-            if (!mess.list[0].isFloat())
-                return;
-            performLatencyCompensationChange(mess.list[0].getFloat());
-        }
-        break;
-    case hash("param"):
-        if (mess.list.size() >= 2) {
-            if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
-                return;
-            auto name = mess.list[0].toString();
-            float value = mess.list[1].getFloat();
-            performParameterChange(0, name, value);
-        }
-        break;
-    case hash("param_create"):
-        if (mess.list.size() >= 1) {
-            if (!mess.list[0].isSymbol())
-                return;
-            auto name = mess.list[0].toString();
-            enableAudioParameter(name);
-        }
-        break;
-    case hash("param_range"):
-        if (mess.list.size() >= 3) {
-            if (!mess.list[0].isSymbol() || !mess.list[1].isFloat() || !mess.list[2].isFloat())
-                return;
-            auto name = mess.list[0].toString();
-            float min = mess.list[1].getFloat();
-            float max = mess.list[2].getFloat();
-            setParameterRange(name, min, max);
-        }
-        break;
-    case hash("param_mode"):
-        if (mess.list.size() >= 2) {
-            if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
-                return;
-            auto name = mess.list[0].toString();
-            float mode = mess.list[1].getFloat();
-            setParameterMode(name, mode);
-        }
-        break;
-    case hash("param_change"):
-        if (mess.list.size() >= 2) {
-            if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
-                return;
-            auto name = mess.list[0].toString();
-            int state = mess.list[1].getFloat() != 0;
-            performParameterChange(1, name, state);
-        }
-        break;
-        // JYG added this
-    case hash("to_daw_databuffer"):
-        fillDataBuffer(mess.list);
-        break;
-    default:
-        break;
-    }
-}
-
 void Instance::processSend(dmessage mess)
 {
     if (auto obj = mess.object.get<t_pd>()) {
@@ -618,6 +549,12 @@ void Instance::enqueueFunctionAsync(std::function<void(void)> const& fn)
     functionQueue.enqueue(fn);
 }
 
+void Instance::enqueueGuiMessage(Message const& message)
+{
+    guiMessageQueue.enqueue(message);
+    triggerAsyncUpdate();
+}
+
 void Instance::sendDirectMessage(void* object, String const& msg, std::vector<Atom>&& list)
 {
     lockAudioThread();
@@ -645,6 +582,78 @@ void Instance::sendDirectMessage(void* object, float const msg)
     lockAudioThread();
     processSend(dmessage(this, object, String(), "float", std::vector<Atom>(1, msg)));
     unlockAudioThread();
+}
+
+void Instance::handleAsyncUpdate()
+{
+    Message mess;
+    while (guiMessageQueue.try_dequeue(mess)) {
+        auto const dest = hash(mess.destination);
+
+        switch (dest) {
+        case hash("pd"):
+            receiveSysMessage(mess.selector, mess.list);
+            break;
+        case hash("latency_compensation"):
+            if (mess.list.size() == 1) {
+                if (!mess.list[0].isFloat())
+                    return;
+                performLatencyCompensationChange(mess.list[0].getFloat());
+            }
+            break;
+        case hash("param"):
+            if (mess.list.size() >= 2) {
+                if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
+                    return;
+                auto name = mess.list[0].toString();
+                float value = mess.list[1].getFloat();
+                performParameterChange(0, name, value);
+            }
+            break;
+        case hash("param_create"):
+            if (mess.list.size() >= 1) {
+                if (!mess.list[0].isSymbol())
+                    return;
+                auto name = mess.list[0].toString();
+                enableAudioParameter(name);
+            }
+            break;
+        case hash("param_range"):
+            if (mess.list.size() >= 3) {
+                if (!mess.list[0].isSymbol() || !mess.list[1].isFloat() || !mess.list[2].isFloat())
+                    return;
+                auto name = mess.list[0].toString();
+                float min = mess.list[1].getFloat();
+                float max = mess.list[2].getFloat();
+                setParameterRange(name, min, max);
+            }
+            break;
+        case hash("param_mode"):
+            if (mess.list.size() >= 2) {
+                if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
+                    return;
+                auto name = mess.list[0].toString();
+                float mode = mess.list[1].getFloat();
+                setParameterMode(name, mode);
+            }
+            break;
+        case hash("param_change"):
+            if (mess.list.size() >= 2) {
+                if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
+                    return;
+                auto name = mess.list[0].toString();
+                int state = mess.list[1].getFloat() != 0;
+                performParameterChange(1, name, state);
+            }
+            break;
+            // JYG added this
+        case hash("to_daw_databuffer"):
+            fillDataBuffer(mess.list);
+            break;
+        default:
+            break;
+        }
+    }
 }
 
 void Instance::sendMessagesFromQueue()

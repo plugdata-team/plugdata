@@ -53,13 +53,13 @@ Canvas* TabComponent::openPatch(const URL& path)
         }
     }
 
-    auto patch = pd->loadPatch(path, editor);
+    auto patch = pd->loadPatch(path);
     return openPatch(patch);
 }
 
 Canvas* TabComponent::openPatch(String const& patchContent)
 {
-    auto patch = pd->loadPatch(patchContent, editor);
+    auto patch = pd->loadPatch(patchContent);
     patch->setUntitled();
     return openPatch(patch);
 }

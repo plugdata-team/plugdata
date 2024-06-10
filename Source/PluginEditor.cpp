@@ -41,23 +41,23 @@ using namespace juce::gl;
 
 PluginEditor::PluginEditor(PluginProcessor& p)
     : AudioProcessorEditor(&p)
-    , pluginMode(nullptr)
-    , pd(&p)
-    , sidebar(std::make_unique<Sidebar>(&p, this))
-    , statusbar(std::make_unique<Statusbar>(&p))
-    , openedDialog(nullptr)
-    , offlineRenderer(&p)
-    , nvgSurface(this)
-    , pluginConstrainer(*getConstrainer())
-    , autosave(std::make_unique<Autosave>(pd))
-    , tooltipWindow(nullptr, [](Component* c) {
-        if (auto* cnv = c->findParentComponentOfClass<Canvas>()) {
-            return !getValue<bool>(cnv->locked);
-        }
-
-        return true;
-    })
-    , tabComponent(this)
+, pd(&p)
+, sidebar(std::make_unique<Sidebar>(&p, this))
+, statusbar(std::make_unique<Statusbar>(&p))
+, openedDialog(nullptr)
+, offlineRenderer(&p)
+, nvgSurface(this)
+, pluginConstrainer(*getConstrainer())
+, autosave(std::make_unique<Autosave>(pd))
+, tooltipWindow(nullptr, [](Component* c) {
+    if (auto* cnv = c->findParentComponentOfClass<Canvas>()) {
+        return !getValue<bool>(cnv->locked);
+    }
+    
+    return true;
+})
+, tabComponent(this)
+, pluginMode(nullptr)
     , touchSelectionHelper(std::make_unique<TouchSelectionHelper>(this))
 {
 #if JUCE_IOS

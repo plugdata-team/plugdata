@@ -85,6 +85,7 @@ PluginProcessor::PluginProcessor()
     : AudioProcessor(buildBusesProperties())
     , pd::Instance("plugdata")
     , internalSynth(std::make_unique<InternalSynth>())
+    , hostInfoUpdater(this)
 {
     // Make sure to use dots for decimal numbers, pd requires that
     std::setlocale(LC_ALL, "C");
@@ -1120,7 +1121,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             // This makes sure the patch can find abstractions/resources, even though it's loading patch from state
             glob_forcefilename(generateSymbol(location.getFileName().toRawUTF8()), generateSymbol(location.getParentDirectory().getFullPathName().toRawUTF8()));
 
-            auto patchPtr = loadPatch(content, nullptr);
+            auto patchPtr = loadPatch(content);
             patchPtr->splitViewIndex = splitIndex;
             patchPtr->openInPluginMode = pluginMode;
             patchPtr->setCurrentFile(URL(location));
@@ -1130,7 +1131,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
                 patchPtr->setTitle(location.getFileName());
             }
         } else {
-            auto patchPtr = loadPatch(URL(location), nullptr);
+            auto patchPtr = loadPatch(URL(location));
             patchPtr->splitViewIndex = splitIndex;
             patchPtr->openInPluginMode = pluginMode;
         }
@@ -1213,6 +1214,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     }
 
     // After loading a state, we need to update all the parameters
+    /*
     if (PluginHostType::getPluginLoadedAs() == AudioProcessor::wrapperType_AudioUnit || PluginHostType::getPluginLoadedAs() == AudioProcessor::wrapperType_AudioUnitv3) {
         // In Logic, loading them instantly causes a crash :(
         Timer::callAfterDelay(800, [this, _this = WeakReference<pd::Instance>(this)]() {
@@ -1222,10 +1224,11 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
         });
     } else {
         updateHostDisplay(AudioProcessorListener::ChangeDetails {}.withParameterInfoChanged(true));
-    }
+    } */
+    hostInfoUpdater.triggerAsyncUpdate();
 }
 
-pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL, PluginEditor* editor, int splitIndex)
+pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL, int splitIndex)
 {
     auto patchFile = patchURL.getLocalFile();
     
@@ -1266,7 +1269,7 @@ pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL, PluginEditor* edi
     return patch;
 }
 
-pd::Patch::Ptr PluginProcessor::loadPatch(String patchText, PluginEditor* editor, int splitIndex)
+pd::Patch::Ptr PluginProcessor::loadPatch(String patchText, int splitIndex)
 {
     if (patchText.isEmpty())
         patchText = pd::Instance::defaultPatch;
@@ -1274,7 +1277,7 @@ pd::Patch::Ptr PluginProcessor::loadPatch(String patchText, PluginEditor* editor
     auto patchFile = File::createTempFile(".pd");
     patchFile.replaceWithText(patchText);
 
-    auto patch = loadPatch(URL(patchFile), editor, splitIndex);
+    auto patch = loadPatch(URL(patchFile), splitIndex);
 
     // Set to unknown file when loading temp patch
     patch->setCurrentFile(URL("file://"));
@@ -1398,9 +1401,11 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
         if (list.size() >= 2) {
             auto filename = list[0].toString();
             auto directory = list[1].toString();
-
+            auto editors = getEditors();
+            
             auto patch = File(directory).getChildFile(filename);
-            loadPatch(URL(patch), getEditors()[0]);
+            loadPatch(URL(patch));
+            if(!editors.isEmpty()) editors[0]->getTabComponent().triggerAsyncUpdate();
         }
         break;
     }
@@ -1408,63 +1413,45 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
         if (list.size() >= 2) {
             auto filename = list[0].toString();
             auto directory = list[1].toString();
-
-            auto patchPtr = loadPatch(defaultPatch, getEditors()[0]);
+            auto editors = getEditors();
+            
+            auto patchPtr = loadPatch(defaultPatch);
             patchPtr->setCurrentFile(File(directory).getChildFile(filename).getFullPathName());
             patchPtr->setTitle(filename);
+            if(!editors.isEmpty()) editors[0]->getTabComponent().triggerAsyncUpdate();
         }
         break;
     }
     case hash("dsp"): {
         bool dsp = list[0].getFloat();
-        MessageManager::callAsync(
-            [this, dsp]() mutable {
-                for (auto* editor : getEditors()) {
-                    editor->statusbar->showDSPState(dsp);
-                }
-            });
+        for (auto* editor : getEditors()) {
+            editor->statusbar->showDSPState(dsp);
+        }
         break;
     }
     case hash("pluginmode"): {
-        MessageManager::callAsync(
-            [this]() mutable {
-                if (!ProjectInfo::isStandalone) {
-                    // TODO: it would be nicer if we could specifically target the correct patch here, instead of picking the first one and praying
-                    patches[0]->openInPluginMode = true;
-                    MessageManager::callAsync([this]() {
-                        auto editors = getEditors();
-                        if (editors.size()) {
-                            for (auto* canvas : editors[0]->getCanvases()) {
-                                if (patches[0] == canvas->patch) {
-                                    editors[0]->getTabComponent().openInPluginMode(canvas->refCountedPatch);
-                                }
-                            }
-                        }
-                    });
-
-                } else {
-                    MessageManager::callAsync([this]() {
-                        for (auto* editor : getEditors()) {
-                            if (auto* cnv = editor->getCurrentCanvas()) {
-                                editor->getTabComponent().openInPluginMode(cnv->refCountedPatch);
-                            }
-                        }
-                    });
-                }
-            });
+        // TODO: it would be nicer if we could specifically target the correct editor here, instead of picking the first one and praying
+        auto editors = getEditors();
+        if(!editors.isEmpty()) {
+            auto* editor = editors[0];
+            if(auto* cnv = editor->getCurrentCanvas())
+            {
+                editor->getTabComponent().openInPluginMode(cnv->patch);
+            }
+        }
+        else
+        {
+            patches[0]->openInPluginMode = true;
+        }
         break;
     }
     case hash("quit"):
     case hash("verifyquit"): {
         if (ProjectInfo::isStandalone) {
             bool askToSave = hash(selector) == hash("verifyquit");
-            MessageManager::callAsync(
-                [this, askToSave]() mutable {
-                    // TODO: make multi-window friendly
-                    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-                        editor->quit(askToSave);
-                    }
-                });
+            for(auto* editor : getEditors()) {
+                editor->quit(askToSave);
+            }
         } else {
             logWarning("Quitting Pd not supported in plugin");
         }
@@ -1477,6 +1464,7 @@ void PluginProcessor::addTextToTextEditor(unsigned long ptr, String text)
 {
     Dialogs::appendTextToTextEditorDialog(textEditorDialogs[ptr].get(), text);
 }
+    
 void PluginProcessor::showTextEditor(unsigned long ptr, Rectangle<int> bounds, String title)
 {
     static std::unique_ptr<Dialog> saveDialog = nullptr;
@@ -1564,22 +1552,23 @@ void PluginProcessor::showTextEditor(unsigned long ptr, Rectangle<int> bounds, S
     }));
 }
 
-void PluginProcessor::handleAsyncUpdate()
-{
-    for (auto& editor : getEditors()) {
-        editor->statusbar->setLatencyDisplay(customLatencySamples);
-    }
-
-    setLatencySamples(customLatencySamples + Instance::getBlockSize());
-}
-
 // set custom plugin latency
 void PluginProcessor::performLatencyCompensationChange(float value)
 {
     if (!approximatelyEqual<int>(customLatencySamples, value)) {
         customLatencySamples = value;
-        triggerAsyncUpdate();
+        
+        for (auto& editor : getEditors()) {
+            editor->statusbar->setLatencyDisplay(customLatencySamples);
+        }
+
+        setLatencySamples(customLatencySamples + Instance::getBlockSize());
     }
+}
+
+void PluginProcessor::sendParameterInfoChangeMessage()
+{
+    hostInfoUpdater.triggerAsyncUpdate();
 }
 
 void PluginProcessor::setParameterRange(String const& name, float min, float max)
@@ -1593,11 +1582,9 @@ void PluginProcessor::setParameterRange(String const& name, float min, float max
         }
     }
 
-    MessageManager::callAsync([this]() {
-        for (auto* editor : getEditors()) {
-            editor->sidebar->updateAutomationParameters();
-        }
-    });
+    for (auto* editor : getEditors()) {
+        editor->sidebar->updateAutomationParameters();
+    } 
 }
 
 void PluginProcessor::setParameterMode(String const& name, int mode)
@@ -1610,11 +1597,9 @@ void PluginProcessor::setParameterMode(String const& name, int mode)
         }
     }
 
-    MessageManager::callAsync([this]() {
-        for (auto* editor : getEditors()) {
-            editor->sidebar->updateAutomationParameters();
-        }
-    });
+    for (auto* editor : getEditors()) {
+        editor->sidebar->updateAutomationParameters();
+    }
 }
 
 void PluginProcessor::enableAudioParameter(String const& name)
@@ -1638,12 +1623,10 @@ void PluginProcessor::enableAudioParameter(String const& name)
             break;
         }
     }
-
-    MessageManager::callAsync([this]() {
-        for (auto* editor : getEditors()) {
-            editor->sidebar->updateAutomationParameters();
-        }
-    });
+    
+    for (auto* editor : getEditors()) {
+        editor->sidebar->updateAutomationParameters();
+    }
 }
 
 void PluginProcessor::performParameterChange(int type, String const& name, float value)
@@ -1668,18 +1651,12 @@ void PluginProcessor::performParameterChange(int type, String const& name, float
             if (!pldParam->isEnabled() || pldParam->getTitle() != name)
                 continue;
 
-            // Update values in automation panel
-            // if (pldParam->getLastValue() == value)
-            //    return;
-
-            // pldParam->setLastValue(value);
-
             // Send new value to DAW
             pldParam->setUnscaledValueNotifyingHost(value);
 
             if (ProjectInfo::isStandalone) {
                 for (auto* editor : getEditors()) {
-                    editor->sidebar->updateAutomationParameters();
+                    editor->sidebar->updateAutomationParameterValues();
                 }
             }
         }

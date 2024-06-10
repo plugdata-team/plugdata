@@ -818,18 +818,22 @@ public:
 
         sliders.setSize(getWidth(), std::max(sliders.getTotalHeight(), viewport.getMaximumVisibleHeight()));
     }
+        
+    void updateParameterValues()
+    {
+        for (int p = 0; p < sliders.rows.size(); p++) {
+            auto* param = dynamic_cast<PlugDataParameter*>(pd->getParameters()[p + 1]);
+            auto& slider = sliders.rows[p]->slider;
+            if(slider.getThumbBeingDragged() == -1) {
+                slider.setValue(param->getUnscaledValue());
+            }
+        }
+    }
 
     void handleAsyncUpdate() override
     {
         if (ProjectInfo::isStandalone) {
-
             sliders.updateSliders();
-
-            for (int p = 0; p < sliders.rows.size(); p++) {
-                auto* param = dynamic_cast<PlugDataParameter*>(pd->getParameters()[p + 1]);
-                sliders.rows[p]->slider.setValue(param->getUnscaledValue());
-            }
-
         } else {
             sliders.updateSliders();
         }

@@ -131,7 +131,10 @@ void Iolet::mouseDrag(MouseEvent const& e)
 
             if (nearest && cnv->nearestIolet != nearest) {
                 nearest->isTargeted = true;
-                cnv->editor->tooltipWindow.displayTip(nearest->getScreenPosition(), nearest->getTooltip());
+                auto tooltip = nearest->getTooltip();
+                if(tooltip.isNotEmpty()) {
+                    cnv->editor->tooltipWindow.displayTip(nearest->getScreenPosition(), tooltip);
+                }
 
                 if (cnv->nearestIolet) {
                     cnv->nearestIolet->isTargeted = false;
@@ -301,8 +304,9 @@ void Iolet::mouseEnter(MouseEvent const& e)
     isTargeted = true;
     object->drawIoletExpanded = true;
 
-    if (cnv->connectionsBeingCreated.size() == 1) {
-        cnv->editor->tooltipWindow.displayTip(getScreenPosition(), getTooltip());
+    auto tooltip = getTooltip();
+    if (cnv->connectionsBeingCreated.size() == 1 && tooltip.isNotEmpty()) {
+        cnv->editor->tooltipWindow.displayTip(getScreenPosition(), tooltip);
     }
 
     for (auto& iolet : object->iolets)

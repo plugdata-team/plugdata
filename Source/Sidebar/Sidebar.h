@@ -117,6 +117,7 @@ public:
 
     void clearSearchOutliner();
 
+    void updateAutomationParameterValues();
     void updateAutomationParameters();
 
     static constexpr int dragbarWidth = 6;
