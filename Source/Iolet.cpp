@@ -132,7 +132,7 @@ void Iolet::mouseDrag(MouseEvent const& e)
             if (nearest && cnv->nearestIolet != nearest) {
                 nearest->isTargeted = true;
                 auto tooltip = nearest->getTooltip();
-                if(tooltip.isNotEmpty()) {
+                if (tooltip.isNotEmpty()) {
                     cnv->editor->tooltipWindow.displayTip(nearest->getScreenPosition(), tooltip);
                 }
 

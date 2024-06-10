@@ -317,12 +317,12 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 }
 #endif // Linux/BSD
 
-bool OSUtils::isDirectoryFast(const juce::String& path)
+bool OSUtils::isDirectoryFast(juce::String const& path)
 {
     return fs::is_directory(path.toStdString());
 }
 
-hash32 OSUtils::getUniqueFileHash(const juce::String& path)
+hash32 OSUtils::getUniqueFileHash(juce::String const& path)
 {
     return hash(fs::canonical(path.toStdString()).c_str());
 }

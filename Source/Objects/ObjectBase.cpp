@@ -478,7 +478,7 @@ void ObjectBase::startEdition()
         return;
 
     edited = true;
-    if(auto lockedPtr = ptr.get<void>()) {
+    if (auto lockedPtr = ptr.get<void>()) {
         pd->sendMessage("gui", "mouse", { 1.f });
     }
 }
@@ -489,7 +489,7 @@ void ObjectBase::stopEdition()
         return;
 
     edited = false;
-    if(auto lockedPtr = ptr.get<void>()) {
+    if (auto lockedPtr = ptr.get<void>()) {
         pd->sendMessage("gui", "mouse", { 0.f });
     }
 }

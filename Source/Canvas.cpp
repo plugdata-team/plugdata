@@ -535,7 +535,7 @@ void Canvas::updatePatchSnapshot()
         auto recentlyOpenedTree = SettingsFile::getInstance()->getValueTree().getChildWithName("RecentlyOpened");
         for (int i = 0; i < recentlyOpenedTree.getNumChildren(); i++) {
             auto recentlyOpenedFile = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
-            
+
             // Check if patch is in the recently opened list
             if (File(recentlyOpenedFile) == patchFile) {
                 // If so, generate an svg sihouette that we can show on the welcome page
@@ -545,7 +545,7 @@ void Canvas::updatePatchSnapshot()
                 for (auto* object : objects) {
                     regionOfInterest = regionOfInterest.getUnion(object->getBounds().reduced(Object::margin));
                 }
-                
+
                 MemoryOutputStream objectBoundsStream;
 
                 for (auto* object : objects) {

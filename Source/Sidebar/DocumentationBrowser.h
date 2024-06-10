@@ -132,7 +132,7 @@ private:
 
         // visitedDirectories keeps track of dirs we've already processed to prevent infinite loops
         static Array<hash32> visitedDirectories = {};
-        
+
         auto directoryHash = OSUtils::getUniqueFileHash(directory.getFullPathName());
         if (!visitedDirectories.contains(directoryHash)) {
             for (auto const& subDirectory : OSUtils::iterateDirectory(directory, false, false)) {

@@ -211,23 +211,24 @@ private:
     static inline String const gem_version = "Gem v0.94";
     // this gets updated with live version data later
     static String pdlua_version;
-        
-    class HostInfoUpdater : public AsyncUpdater
-    {
+
+    class HostInfoUpdater : public AsyncUpdater {
     public:
-        HostInfoUpdater(PluginProcessor* parentProcessor) : processor(*parentProcessor) {};
-        
+        HostInfoUpdater(PluginProcessor* parentProcessor)
+            : processor(*parentProcessor) {};
+
         void handleAsyncUpdate() override
         {
-            if (ProjectInfo::isStandalone) return;
-            
+            if (ProjectInfo::isStandalone)
+                return;
+
             auto const details = AudioProcessorListener::ChangeDetails {}.withParameterInfoChanged(true);
             processor.updateHostDisplay(details);
         }
-        
+
         PluginProcessor& processor;
     };
-        
+
     HostInfoUpdater hostInfoUpdater;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)

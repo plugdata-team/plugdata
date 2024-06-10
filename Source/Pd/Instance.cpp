@@ -37,7 +37,7 @@ struct pd::Instance::internal {
 
     static void instance_multi_float(pd::Instance* ptr, char const* recv, float f)
     {
-        ptr->enqueueGuiMessage({ String("float"), String::fromUTF8(recv), std::vector<Atom>(1, { f })});
+        ptr->enqueueGuiMessage({ String("float"), String::fromUTF8(recv), std::vector<Atom>(1, { f }) });
     }
 
     static void instance_multi_symbol(pd::Instance* ptr, char const* recv, char const* sym)

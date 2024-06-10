@@ -8,7 +8,7 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
-class PlugDataParameter : public RangedAudioParameter{
+class PlugDataParameter : public RangedAudioParameter {
 public:
     enum Mode {
         Float = 1,
@@ -56,7 +56,7 @@ public:
     void setMode(Mode newMode, bool notify = true)
     {
         ScopedLock lock(rangeLock);
-        
+
         mode = newMode;
         if (newMode == Logarithmic) {
             normalisableRange.skew = 4.0f;
@@ -137,7 +137,7 @@ public:
         value = std::clamp(newValue, range.start, range.end);
         sendValueChangedMessageToListeners(getValue());
     }
-    
+
     float getValue() const override
     {
         auto range = getNormalisableRange();
@@ -312,10 +312,9 @@ public:
     {
         if (!ProjectInfo::isStandalone) {
             // Send new value to DAW
-            if(v) {
+            if (v) {
                 beginChangeGesture();
-            }
-            else {
+            } else {
                 endChangeGesture();
             }
         }
@@ -326,22 +325,22 @@ public:
 private:
     float lastValue = 0.0f;
     float const defaultValue;
-    
+
     std::atomic<float> gestureState = 0.0f;
     std::atomic<int> index;
     std::atomic<float> value;
     std::atomic<bool> enabled = false;
     std::atomic<bool> needsHostUpdate = false;
-    
+
     CriticalSection nameLock;
     String parameterName;
-    
+
     CriticalSection rangeLock;
     NormalisableRange<float> normalisableRange;
-    
+
     Mode mode;
-    
+
     moodycamel::ConcurrentQueue<std::function<void(void)>> parameterChangeQueue;
-    
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataParameter)
 };

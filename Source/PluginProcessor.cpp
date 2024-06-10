@@ -1231,7 +1231,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL, int splitIndex)
 {
     auto patchFile = patchURL.getLocalFile();
-    
+
     lockAudioThread();
 
 #if JUCE_IOS
@@ -1402,10 +1402,11 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
             auto filename = list[0].toString();
             auto directory = list[1].toString();
             auto editors = getEditors();
-            
+
             auto patch = File(directory).getChildFile(filename);
             loadPatch(URL(patch));
-            if(!editors.isEmpty()) editors[0]->getTabComponent().triggerAsyncUpdate();
+            if (!editors.isEmpty())
+                editors[0]->getTabComponent().triggerAsyncUpdate();
         }
         break;
     }
@@ -1414,11 +1415,12 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
             auto filename = list[0].toString();
             auto directory = list[1].toString();
             auto editors = getEditors();
-            
+
             auto patchPtr = loadPatch(defaultPatch);
             patchPtr->setCurrentFile(File(directory).getChildFile(filename).getFullPathName());
             patchPtr->setTitle(filename);
-            if(!editors.isEmpty()) editors[0]->getTabComponent().triggerAsyncUpdate();
+            if (!editors.isEmpty())
+                editors[0]->getTabComponent().triggerAsyncUpdate();
         }
         break;
     }
@@ -1432,15 +1434,12 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
     case hash("pluginmode"): {
         // TODO: it would be nicer if we could specifically target the correct editor here, instead of picking the first one and praying
         auto editors = getEditors();
-        if(!editors.isEmpty()) {
+        if (!editors.isEmpty()) {
             auto* editor = editors[0];
-            if(auto* cnv = editor->getCurrentCanvas())
-            {
+            if (auto* cnv = editor->getCurrentCanvas()) {
                 editor->getTabComponent().openInPluginMode(cnv->patch);
             }
-        }
-        else
-        {
+        } else {
             patches[0]->openInPluginMode = true;
         }
         break;
@@ -1449,7 +1448,7 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
     case hash("verifyquit"): {
         if (ProjectInfo::isStandalone) {
             bool askToSave = hash(selector) == hash("verifyquit");
-            for(auto* editor : getEditors()) {
+            for (auto* editor : getEditors()) {
                 editor->quit(askToSave);
             }
         } else {
@@ -1464,7 +1463,7 @@ void PluginProcessor::addTextToTextEditor(unsigned long ptr, String text)
 {
     Dialogs::appendTextToTextEditorDialog(textEditorDialogs[ptr].get(), text);
 }
-    
+
 void PluginProcessor::showTextEditor(unsigned long ptr, Rectangle<int> bounds, String title)
 {
     static std::unique_ptr<Dialog> saveDialog = nullptr;
@@ -1557,7 +1556,7 @@ void PluginProcessor::performLatencyCompensationChange(float value)
 {
     if (!approximatelyEqual<int>(customLatencySamples, value)) {
         customLatencySamples = value;
-        
+
         for (auto& editor : getEditors()) {
             editor->statusbar->setLatencyDisplay(customLatencySamples);
         }
@@ -1584,7 +1583,7 @@ void PluginProcessor::setParameterRange(String const& name, float min, float max
 
     for (auto* editor : getEditors()) {
         editor->sidebar->updateAutomationParameters();
-    } 
+    }
 }
 
 void PluginProcessor::setParameterMode(String const& name, int mode)
@@ -1623,7 +1622,7 @@ void PluginProcessor::enableAudioParameter(String const& name)
             break;
         }
     }
-    
+
     for (auto* editor : getEditors()) {
         editor->sidebar->updateAutomationParameters();
     }
@@ -1646,7 +1645,6 @@ void PluginProcessor::performParameterChange(int type, String const& name, float
             }
         }
     } else { // otherwise set parameter value
-        int i = 0;
         for (auto* param : getParameters()) {
             auto* pldParam = dynamic_cast<PlugDataParameter*>(param);
             if (!pldParam->isEnabled() || pldParam->getTitle() != name)
@@ -1660,7 +1658,6 @@ void PluginProcessor::performParameterChange(int type, String const& name, float
                     editor->sidebar->updateAutomationParameterValue(pldParam);
                 }
             }
-            i++;
         }
     }
 }

@@ -231,34 +231,32 @@ public:
         if (recentlyOpenedTree.isValid()) {
             // Place favourited patches at the top
             for (int i = 0; i < recentlyOpenedTree.getNumChildren(); i++) {
-                
+
                 auto subTree = recentlyOpenedTree.getChild(i);
                 auto patchFile = File(subTree.getProperty("Path").toString());
                 auto patchImage = subTree.getProperty("PatchImage").toString();
-                
+
                 subTree.setProperty("Snapshot", "", nullptr); // TODO: this is cleanup for v0.9.0 transition period, remove later
-                
+
                 auto favourited = subTree.hasProperty("Pinned") && static_cast<bool>(subTree.getProperty("Pinned"));
                 auto snapshotColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f);
 
                 String silhoutteSvg;
                 if (patchImage.isEmpty() && patchFile.existsAsFile()) {
                     silhoutteSvg = OfflineObjectRenderer::patchToSVGFast(patchFile.loadFileAsString());
-                }
-                else {
+                } else {
                     MemoryOutputStream ostream;
                     Base64::convertFromBase64(ostream, patchImage);
                     MemoryInputStream istream(ostream.getMemoryBlock());
-                    
-                    while(!istream.isExhausted())
-                    {
+
+                    while (!istream.isExhausted()) {
                         int const x = istream.readCompressedInt();
                         int const y = istream.readCompressedInt();
                         int const w = istream.readCompressedInt();
                         int const h = istream.readCompressedInt();
                         float const rad = Corners::objectCornerRadius;
-                        
-                        silhoutteSvg += String::formatted( "<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" rx=\"%.1f\" ry=\"%.1f\" />\n",  x, y, w, h, rad, rad);
+
+                        silhoutteSvg += String::formatted("<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" rx=\"%.1f\" ry=\"%.1f\" />\n", x, y, w, h, rad, rad);
                     }
                     silhoutteSvg = "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">\n" + silhoutteSvg + "</svg>";
                 }
