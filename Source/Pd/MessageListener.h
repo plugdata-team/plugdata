@@ -99,7 +99,7 @@ public:
             messageListeners.erase(object);
     }
 
-    void dequeueMessages()
+    void dequeueMessages() // Note: make sure correct pd instance is active when calling this
     {
         usedHashes.clear();
         nullListeners.clear();
@@ -126,7 +126,7 @@ public:
                 for (int at = 0; at < message.size; at++) {
                     atoms[at] = pd::Atom(message.data + at);
                 }
-                auto symbol = message.symbol ? message.symbol : gensym(""); // TODO: fix instance issues!
+                auto symbol = message.symbol ? message.symbol : gensym("");
 
                 if (listener)
                     listener->receiveMessage(symbol, atoms, message.size);

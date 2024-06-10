@@ -9,6 +9,9 @@
 // 2. Improve simplicity and efficiency by not using OS file icons (they look bad anyway)
 
 #include <utility>
+#include <ghc_filesystem/include/ghc/filesystem.hpp>
+namespace fs = ghc::filesystem;
+
 
 #include "Utility/OSUtils.h"
 #include "Utility/Autosave.h"
@@ -118,7 +121,6 @@ private:
 
     ValueTree generateDirectoryValueTree(File const& directory)
     {
-
         static File versionDataDir = ProjectInfo::appDataDir.getChildFile("Versions");
         static File toolchainDir = ProjectInfo::appDataDir.getChildFile("Toolchain");
 
@@ -132,14 +134,14 @@ private:
         rootNode.setProperty(iconIdentifier, Icons::Folder, nullptr);
 
         // visitedDirectories keeps track of dirs we've already processed to prevent infinite loops
-        static Array<File> visitedDirectories = {};
-
-        // Protect against symlink loops!
-        if (!visitedDirectories.contains(directory)) {
+        static Array<hash32> visitedDirectories = {};
+        
+        auto directoryHash = hash(fs::canonical(directory.getFullPathName().toStdString()).string().c_str());
+        if (!visitedDirectories.contains(directoryHash)) {
             for (auto const& subDirectory : OSUtils::iterateDirectory(directory, false, false)) {
-                visitedDirectories.add(directory);
-
-                if (subDirectory.isDirectory() && subDirectory != directory) {
+                auto fsPath = fs::path(subDirectory.getFullPathName().toStdString());
+                visitedDirectories.add(hash(fs::canonical(fsPath).string().c_str())); // Protect against symlink loops!
+                if (fs::is_directory(fsPath) && subDirectory != directory) {
                     ValueTree childNode = generateDirectoryValueTree(subDirectory);
                     if (childNode.isValid())
                         rootNode.appendChild(childNode, nullptr);
@@ -150,7 +152,7 @@ private:
         }
 
         for (auto const& file : OSUtils::iterateDirectory(directory, false, true)) {
-            if (file.getFileName().startsWith(".") || file.isDirectory())
+            if (file.getFileName().startsWith("."))
                 continue;
 
             ValueTree childNode(fileIdentifier);

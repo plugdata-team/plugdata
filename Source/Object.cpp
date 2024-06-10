@@ -263,8 +263,7 @@ bool Object::hitTest(int x, int y)
 void Object::mouseEnter(MouseEvent const& e)
 {
     drawIoletExpanded = true;
-    for (auto& iolet : iolets) // TODO: maybe group this?
-        iolet->repaint();
+    repaint();
 }
 
 void Object::mouseExit(MouseEvent const& e)
@@ -274,8 +273,7 @@ void Object::mouseExit(MouseEvent const& e)
     resizeZone = ResizableBorderComponent::Zone(ResizableBorderComponent::Zone::centre);
     validResizeZone = false;
     drawIoletExpanded = false;
-    for (auto& iolet : iolets)
-        iolet->repaint();
+    repaint();
 }
 
 void Object::mouseMove(MouseEvent const& e)

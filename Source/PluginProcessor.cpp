@@ -434,7 +434,6 @@ void PluginProcessor::setOversampling(int amount)
         return;
 
     settingsFile->setProperty("oversampling", var(amount));
-    settingsFile->saveSettings(); // TODO: i think this is unnecessary?
 
     oversampling = amount;
     auto blockSize = AudioProcessor::getBlockSize();
@@ -451,7 +450,6 @@ void PluginProcessor::setLimiterThreshold(int amount)
     limiter.setThreshold(threshold);
 
     settingsFile->setProperty("limiter_threshold", var(amount));
-    settingsFile->saveSettings(); // TODO: i think this is unnecessary?
 }
 
 void PluginProcessor::setProtectedMode(bool enabled)
@@ -1230,8 +1228,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL, PluginEditor* editor, int splitIndex)
 {
     auto patchFile = patchURL.getLocalFile();
-    // Stop the audio callback when loading a new patch
-    // TODO: why though?
+    
     lockAudioThread();
 
 #if JUCE_IOS

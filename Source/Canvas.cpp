@@ -535,6 +535,7 @@ void Canvas::updatePatchSnapshot()
         auto recentlyOpenedTree = SettingsFile::getInstance()->getValueTree().getChildWithName("RecentlyOpened");
         for (int i = 0; i < recentlyOpenedTree.getNumChildren(); i++) {
             auto recentlyOpenedFile = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
+            
             // Check if patch is in the recently opened list
             if (File(recentlyOpenedFile) == patchFile) {
                 // If so, generate an svg sihouette that we can show on the welcome page
@@ -544,16 +545,18 @@ void Canvas::updatePatchSnapshot()
                 for (auto* object : objects) {
                     regionOfInterest = regionOfInterest.getUnion(object->getBounds().reduced(Object::margin));
                 }
+                
+                MemoryOutputStream objectBoundsStream;
 
                 for (auto* object : objects) {
                     auto rect = object->getBounds().reduced(Object::margin) - regionOfInterest.getPosition();
-                    svgSilhouette += String::formatted(
-                        "<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" rx=\"%.1f\" ry=\"%.1f\" />\n",
-                        rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight(), Corners::objectCornerRadius, Corners::objectCornerRadius);
+                    objectBoundsStream.writeCompressedInt(rect.getX());
+                    objectBoundsStream.writeCompressedInt(rect.getY());
+                    objectBoundsStream.writeCompressedInt(rect.getWidth());
+                    objectBoundsStream.writeCompressedInt(rect.getHeight());
                 }
-                svgSilhouette = "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">\n" + svgSilhouette + "</svg>";
 
-                recentlyOpenedTree.getChild(i).setProperty("Snapshot", svgSilhouette, nullptr);
+                recentlyOpenedTree.getChild(i).setProperty("PatchImage", Base64::toBase64(objectBoundsStream.getData(), objectBoundsStream.getDataSize()), nullptr);
                 break;
             }
         }
@@ -876,7 +879,6 @@ void Canvas::performSynchronise()
             auto* newBox = objects.add(new Object(object, this));
             newBox->toFront(false);
 
-            // TODO: don't do this on Canvas!!
             if (newBox->gui && newBox->gui->getLabel())
                 newBox->gui->getLabel()->toFront(false);
         } else {
