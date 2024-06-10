@@ -155,7 +155,6 @@ private:
 // Suggestions component that shows up when objects are edited
 class SuggestionComponent : public Component
     , public KeyListener
-    , public TextEditor::Listener
     , public ComponentListener {
 
     class Suggestion : public TextButton {
@@ -320,7 +319,6 @@ public:
         setTransform(object->editor->getTransform());
 
         editor->addComponentListener(this);
-        editor->addListener(this);
         editor->addKeyListener(this);
 
         autoCompleteComponent = std::make_unique<AutoCompleteComponent>(editor, object->cnv);
@@ -384,7 +382,6 @@ public:
 
         autoCompleteComponent.reset(nullptr);
         if (openedEditor) {
-            openedEditor->removeListener(this);
             openedEditor->removeComponentListener(this);
             openedEditor->removeKeyListener(this);
         }
@@ -425,6 +422,7 @@ public:
             autoCompleteComponent->setSuggestion(newText);
             autoCompleteComponent->enableAutocomplete(true);
             currentObject->updateBounds();
+            resized();
         }
 
         // Auto-scroll item into viewport bounds
@@ -464,96 +462,11 @@ public:
 
         return {};
     }
-
-private:
-    void mouseDown(MouseEvent const& e) override
-    {
-        if (openedEditor)
-            openedEditor->grabKeyboardFocus();
-    }
-
-    bool hitTest(int x, int y) override
-    {
-        return getLocalBounds().reduced(windowMargin).contains(x, y);
-    }
-
-    static bool canBeTransparent()
-    {
-        return ProjectInfo::canUseSemiTransparentWindows();
-    }
-
-    void paint(Graphics& g) override
-    {
-        auto b = getLocalBounds().reduced(windowMargin);
-
-        if (!canBeTransparent()) {
-            g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
-        } else {
-            Path localPath;
-            localPath.addRoundedRectangle(b.toFloat().reduced(6.0f), Corners::defaultCornerRadius);
-            StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), 13, { 0, 1 });
-        }
-
-        g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
-        g.fillRoundedRectangle(port->getBounds().reduced(1).toFloat(), Corners::defaultCornerRadius);
-    }
-
-    void paintOverChildren(Graphics& g) override
-    {
-        g.setColour(findColour(PlugDataColour::outlineColourId).darker(0.1f));
-        g.drawRoundedRectangle(port->getBounds().reduced(1).toFloat(), Corners::defaultCornerRadius, 1.0f);
-    }
-
-    bool keyPressed(KeyPress const& key, Component* originatingComponent) override
-    {
-        if (!currentObject) {
-            return false;
-        }
-        if (openedEditor->getHighlightedRegion().isEmpty() && key == KeyPress::rightKey && autoCompleteComponent && openedEditor->getCaretPosition() == openedEditor->getText().length()) {
-            autoCompleteComponent->autocomplete();
-            currentidx = 0;
-            if (buttons.size())
-                buttons[0]->setToggleState(true, dontSendNotification);
-            return true;
-        }
-        if (key == KeyPress::tabKey && autoCompleteComponent->isAutocompleting() && openedEditor->getText() != autoCompleteComponent->getSuggestion() && numOptions != 0) {
-            autoCompleteComponent->autocomplete();
-            currentidx = 0;
-            if (buttons.size())
-                buttons[0]->setToggleState(true, dontSendNotification);
-            return true;
-        }
-        if (key == KeyPress::returnKey) {
-            if (autoCompleteComponent->isAutocompleting() && openedEditor->getText() != autoCompleteComponent->getSuggestion() && numOptions != 0) {
-                autoCompleteComponent->autocomplete();
-                currentidx = 0;
-                if (buttons.size())
-                    buttons[0]->setToggleState(true, dontSendNotification);
-                return true;
-            } else {
-                // if there is no autocomplete action going on, we want to close upon error
-                // By ignoring the keypress we'll trigger the return callback on text editor which will close it
-                return false;
-            }
-        }
-        if (state != ShowingObjects || !isVisible())
-            return false;
-
-        if (key == KeyPress::upKey || key == KeyPress::downKey) {
-            move(key == KeyPress::downKey ? 1 : -1);
-            return true;
-        }
-        return false;
-    }
-
-    void textEditorTextChanged(TextEditor& e) override
+    void updateSuggestions(String const& currentText)
     {
         if (!currentObject)
             return;
-
-        String currentText = e.getText();
-        resized();
-
+        
         auto& library = currentObject->cnv->pd->objectLibrary;
 
         class ObjectSorter {
@@ -640,7 +553,6 @@ private:
                 state = Hidden;
                 if (autoCompleteComponent)
                     autoCompleteComponent->enableAutocomplete(false);
-                currentObject->updateBounds();
                 setVisible(false);
                 return;
             }
@@ -650,7 +562,6 @@ private:
 
             if (autoCompleteComponent) {
                 autoCompleteComponent->setSuggestion("");
-                currentObject->updateBounds();
             }
 
             resized();
@@ -698,10 +609,7 @@ private:
 
                 if (autoCompleteComponent) {
                     autoCompleteComponent->enableAutocomplete(false);
-                    currentObject->updateBounds();
                 }
-
-                resized();
 
                 return;
             }
@@ -751,7 +659,7 @@ private:
             currentidx = -1;
         } else {
             found = sortSuggestions(currentText, found);
-            currentidx = 0;
+            //currentidx = 0;
             autoCompleteComponent->enableAutocomplete(true);
         }
 
@@ -784,16 +692,12 @@ private:
                 state = Hidden;
                 if (autoCompleteComponent)
                     autoCompleteComponent->enableAutocomplete(false);
-                currentObject->updateBounds();
                 setVisible(false);
                 return;
             }
 
             // Limit it to minimum of the number of buttons and the number of suggestions
             int numButtons = std::min(20, numOptions);
-
-            // duplicate call to updateBounds :( do we need this?t
-            currentObject->updateBounds();
 
             setVisible(true);
 
@@ -833,6 +737,87 @@ private:
 
             applySuggestionsToButtons(found, currentText);
         });
+    }
+
+private:
+    void mouseDown(MouseEvent const& e) override
+    {
+        if (openedEditor)
+            openedEditor->grabKeyboardFocus();
+    }
+
+    bool hitTest(int x, int y) override
+    {
+        return getLocalBounds().reduced(windowMargin).contains(x, y);
+    }
+
+    static bool canBeTransparent()
+    {
+        return ProjectInfo::canUseSemiTransparentWindows();
+    }
+
+    void paint(Graphics& g) override
+    {
+        auto b = getLocalBounds().reduced(windowMargin);
+
+        if (!canBeTransparent()) {
+            g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
+        } else {
+            Path localPath;
+            localPath.addRoundedRectangle(b.toFloat().reduced(6.0f), Corners::defaultCornerRadius);
+            StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), 13, { 0, 1 });
+        }
+
+        g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
+        g.fillRoundedRectangle(port->getBounds().reduced(1).toFloat(), Corners::defaultCornerRadius);
+    }
+
+    void paintOverChildren(Graphics& g) override
+    {
+        g.setColour(findColour(PlugDataColour::outlineColourId).darker(0.1f));
+        g.drawRoundedRectangle(port->getBounds().reduced(1).toFloat(), Corners::defaultCornerRadius, 1.0f);
+    }
+
+    bool keyPressed(KeyPress const& key, Component* originatingComponent) override
+    {
+        if (!currentObject) {
+            return false;
+        }
+        if (openedEditor->getHighlightedRegion().isEmpty() && key == KeyPress::rightKey && autoCompleteComponent && openedEditor->getCaretPosition() == openedEditor->getText().length()) {
+            autoCompleteComponent->autocomplete();
+            currentidx = 0;
+            if (buttons.size())
+                buttons[0]->setToggleState(true, dontSendNotification);
+            return true;
+        }
+        if (key == KeyPress::tabKey && autoCompleteComponent->isAutocompleting() && openedEditor->getText() != autoCompleteComponent->getSuggestion() && numOptions != 0) {
+            autoCompleteComponent->autocomplete();
+            currentidx = 0;
+            if (buttons.size())
+                buttons[0]->setToggleState(true, dontSendNotification);
+            return true;
+        }
+        if (key == KeyPress::returnKey) {
+            if (autoCompleteComponent->isAutocompleting() && openedEditor->getText() != autoCompleteComponent->getSuggestion() && numOptions != 0) {
+                autoCompleteComponent->autocomplete();
+                currentidx = 0;
+                if (buttons.size())
+                    buttons[0]->setToggleState(true, dontSendNotification);
+                return true;
+            } else {
+                // if there is no autocomplete action going on, we want to close upon error
+                // By ignoring the keypress we'll trigger the return callback on text editor which will close it
+                return false;
+            }
+        }
+        if (state != ShowingObjects || !isVisible())
+            return false;
+
+        if (key == KeyPress::upKey || key == KeyPress::downKey) {
+            move(key == KeyPress::downKey ? 1 : -1);
+            return true;
+        }
+        return false;
     }
 
     Array<std::tuple<String, String, String>> findNearbyMethods(String const& toSearch)

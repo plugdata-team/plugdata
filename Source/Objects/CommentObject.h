@@ -149,10 +149,7 @@ public:
     Rectangle<int> getTextSize()
     {
         auto objText = editor ? editor->getText() : objectText;
-        if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
-            objText = cnv->suggestor->getText();
-        }
-
+        
         int fontWidth = 7;
         int charWidth = 0;
         if (auto obj = ptr.get<void>()) {
@@ -188,9 +185,6 @@ public:
     void updateTextLayout()
     {
         auto objText = editor ? editor->getText() : objectText;
-        if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
-            objText = cnv->suggestor->getText();
-        }
 
         auto colour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::commentTextColourId);
         int textWidth = getTextSize().getWidth() - 8;

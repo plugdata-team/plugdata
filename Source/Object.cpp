@@ -1390,8 +1390,6 @@ void Object::hideEditor()
 
         cnv->hideSuggestions();
 
-        outgoingEditor->removeListener(cnv->suggestor.get());
-
         // Get entered text, remove extra spaces at the end
         auto newText = outgoingEditor->getText().trimEnd();
 
@@ -1518,6 +1516,8 @@ bool Object::keyPressed(KeyPress const& key, Component* component)
 // For resize-while-typing behaviour
 void Object::textEditorTextChanged(TextEditor& ed)
 {
+    cnv->suggestor->updateSuggestions(ed.getText());
+    
     String currentText;
     if (cnv->suggestor && !cnv->suggestor->getText().isEmpty() && !ed.getText().containsChar('\n')) {
         currentText = cnv->suggestor->getText();

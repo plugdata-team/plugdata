@@ -296,8 +296,12 @@ public:
     virtual Rectangle<int> getTextSize()
     {
         auto objText = editor ? editor->getText() : objectText;
-        if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
-            objText = cnv->suggestor->getText();
+        
+        if (editor && cnv->suggestor) {
+            cnv->suggestor->updateSuggestions(objText);
+            if(cnv->suggestor->getText().isNotEmpty()) {
+                objText = cnv->suggestor->getText();
+            }
         }
 
         int fontWidth = 7;
@@ -396,9 +400,7 @@ public:
             cnv->hideSuggestions();
 
             auto newText = outgoingEditor->getText();
-
-            outgoingEditor->removeListener(cnv->suggestor.get());
-
+            
             newText = TextObjectHelper::fixNewlines(newText);
 
             bool changed;

@@ -87,10 +87,6 @@ public:
     void updateTextLayout() override
     {
         auto objText = getLinkText();
-        if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
-            objText = cnv->suggestor->getText();
-        }
-
         auto mouseIsOver = isMouseOver();
 
         int textWidth = getTextObjectWidth() - 14; // Reserve a bit of extra space for the text margin

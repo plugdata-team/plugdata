@@ -336,6 +336,16 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
 // Calculates the path of the grid lines
 Line<int> ObjectGrid::getObjectIndicatorLine(Side side, Rectangle<int> b1, Rectangle<int> b2)
 {
+    // When snapping from both sides, we need to shorten the lines to prevent artifacts (because the line will follow mouse position on the opposite axis)
+    if(side == Top || side == Bottom || side == VerticalCentre)
+    {
+        b2 = b2.reduced(2, 0);
+    }
+    else {
+        b2 = b2.reduced(0, 2);
+    }
+
+    
     switch (side) {
     case Left:
         if (b1.getY() > b2.getY()) {
@@ -396,11 +406,7 @@ void ObjectGrid::setIndicator(int idx, Line<int> line, float scale)
 {
     auto lineIsEmpty = line.getLength() == 0;
     if (lineIsEmpty) {
-        lineAlphaMultiplier[idx] = dsp::FastMathApproximations::exp((-MathConstants<float>::twoPi * 1000.0f / 60.0f) / 50.0f);
-        if (lineTargetAlpha[idx] != 0.0f) {
-            lineTargetAlpha[idx] = 0.0f;
-            startTimerHz(60);
-        }
+        cnv->editor->nvgSurface.invalidateAll();
     } else {
         auto lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[idx].getStart(), lines[idx].getEnd()).expanded(2));
         cnv->editor->nvgSurface.invalidateArea(lineArea);

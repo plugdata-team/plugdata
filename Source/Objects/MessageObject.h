@@ -57,8 +57,12 @@ public:
     Rectangle<int> getTextSize()
     {
         auto objText = editor ? editor->getText() : objectText;
-        if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
-            objText = cnv->suggestor->getText();
+        
+        if (editor && cnv->suggestor) {
+            cnv->suggestor->updateSuggestions(objText);
+            if(cnv->suggestor->getText().isNotEmpty()) {
+                objText = cnv->suggestor->getText();
+            }
         }
 
         int fontWidth = 7;
