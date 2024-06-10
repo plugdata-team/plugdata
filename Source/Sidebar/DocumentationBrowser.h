@@ -121,7 +121,7 @@ private:
         static File versionDataDir = ProjectInfo::appDataDir.getChildFile("Versions");
         static File toolchainDir = ProjectInfo::appDataDir.getChildFile("Toolchain");
 
-        if (threadShouldExit() || !directory.exists() || directory == versionDataDir || directory == toolchainDir) {
+        if (threadShouldExit() || directory == versionDataDir || directory == toolchainDir) {
             return {};
         }
 
