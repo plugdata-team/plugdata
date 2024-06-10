@@ -319,7 +319,7 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 
 bool OSUtils::isDirectoryFast(juce::String const& path)
 {
-    return fs::is_directory(path.toStdString());
+    return fs::is_directory(fs::canonical(path.toStdString()));
 }
 
 hash32 OSUtils::getUniqueFileHash(juce::String const& path)

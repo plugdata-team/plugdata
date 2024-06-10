@@ -121,7 +121,7 @@ private:
         static File versionDataDir = ProjectInfo::appDataDir.getChildFile("Versions");
         static File toolchainDir = ProjectInfo::appDataDir.getChildFile("Toolchain");
 
-        if (threadShouldExit() || !directory.exists() || !directory.isDirectory() || directory == versionDataDir || directory == toolchainDir) {
+        if (threadShouldExit() || !directory.exists() || directory == versionDataDir || directory == toolchainDir) {
             return {};
         }
 
@@ -135,17 +135,16 @@ private:
 
         auto directoryHash = OSUtils::getUniqueFileHash(directory.getFullPathName());
         if (!visitedDirectories.contains(directoryHash)) {
+            visitedDirectories.add(directoryHash); // Protect against symlink loops!
             for (auto const& subDirectory : OSUtils::iterateDirectory(directory, false, false)) {
                 auto pathName = subDirectory.getFullPathName();
-                visitedDirectories.add(OSUtils::getUniqueFileHash(pathName)); // Protect against symlink loops!
                 if (OSUtils::isDirectoryFast(pathName) && subDirectory != directory) {
                     ValueTree childNode = generateDirectoryValueTree(subDirectory);
                     if (childNode.isValid())
                         rootNode.appendChild(childNode, nullptr);
                 }
-
-                visitedDirectories.removeLast();
             }
+            visitedDirectories.removeLast();
         }
 
         for (auto const& file : OSUtils::iterateDirectory(directory, false, true)) {
