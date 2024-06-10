@@ -1274,14 +1274,8 @@ void Object::performRender(NVGcontext* nvg)
         auto backgroundColour = convertColour(getLookAndFeel().findColour(PlugDataColour::textObjectBackgroundColourId));
         auto outlineColour = convertColour(getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 
-        nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
-        nvgFillColor(nvg, backgroundColour);
-        nvgFill(nvg);
-        nvgStrokeWidth(nvg, 1.f);
-        nvgStrokeColor(nvg, isSelected() ? selectedOutlineColour : outlineColour);
-        nvgStroke(nvg);
-
+        nvgDrawRoundedRect(nvg, b.getX() + 0.5f, b.getY() + 0.5f, b.getWidth() - 1.0f, b.getHeight() - 1.0f, backgroundColour, isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        
         nvgTranslate(nvg, margin, margin);
         textEditorRenderer.renderJUCEComponent(nvg, *newObjectEditor, getValue<float>(cnv->zoomScale) * cnv->getRenderScale());
     }
