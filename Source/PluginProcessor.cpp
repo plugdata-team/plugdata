@@ -837,7 +837,8 @@ void PluginProcessor::sendPlayhead()
         return;
 
     auto infos = playhead->getPosition();
-
+    
+    lockAudioThread();
     setThis();
     if (infos.hasValue()) {
         atoms_playhead[0] = static_cast<float>(infos->getIsPlaying());
@@ -911,6 +912,7 @@ void PluginProcessor::sendPlayhead()
         sendMessage("_playhead", "position", atoms_playhead);
         atoms_playhead.resize(1);
     }
+    unlockAudioThread();
 }
 
 void PluginProcessor::sendParameters()
@@ -1210,21 +1212,10 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         editor->getTabComponent().triggerAsyncUpdate();
-        editor->sidebar->updateAutomationParameters();
+        editor->sidebar->updateAutomationParameters();  // After loading a state, we need to update all the parameters
     }
 
-    // After loading a state, we need to update all the parameters
-    /*
-    if (PluginHostType::getPluginLoadedAs() == AudioProcessor::wrapperType_AudioUnit || PluginHostType::getPluginLoadedAs() == AudioProcessor::wrapperType_AudioUnitv3) {
-        // In Logic, loading them instantly causes a crash :(
-        Timer::callAfterDelay(800, [this, _this = WeakReference<pd::Instance>(this)]() {
-            if (_this) {
-                updateHostDisplay(AudioProcessorListener::ChangeDetails {}.withParameterInfoChanged(true));
-            }
-        });
-    } else {
-        updateHostDisplay(AudioProcessorListener::ChangeDetails {}.withParameterInfoChanged(true));
-    } */
+    // Let host know our parameter layout (likely) changed
     hostInfoUpdater.triggerAsyncUpdate();
 }
 

@@ -353,6 +353,10 @@ public:
 #endif
     }
 
+    pd::Patch::Ptr getPatch()
+    {
+        return patchPtr;
+    }
     void setKioskMode(bool shouldBeKiosk)
     {
         auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());

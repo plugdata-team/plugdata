@@ -338,17 +338,21 @@ void Instance::prepareDSP(int const nins, int const nouts, double const samplera
 
 void Instance::startDSP()
 {
+    lockAudioThread();
     t_atom av;
     libpd_set_float(&av, 1.f);
     libpd_message("pd", "dsp", 1, &av);
+    unlockAudioThread();
 }
 
 void Instance::releaseDSP()
 {
+    lockAudioThread();
     t_atom av;
     libpd_set_instance(static_cast<t_pdinstance*>(instance));
     libpd_set_float(&av, 0.f);
     libpd_message("pd", "dsp", 1, &av);
+    unlockAudioThread();
 }
 
 void Instance::performDSP(float const* inputs, float* outputs)
