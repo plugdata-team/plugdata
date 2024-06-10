@@ -826,6 +826,7 @@ public:
             auto& slider = sliders.rows[p]->slider;
             if (changedParameter == param && slider.getThumbBeingDragged() == -1) {
                 slider.setValue(param->getUnscaledValue());
+                break;
             }
         }
     }

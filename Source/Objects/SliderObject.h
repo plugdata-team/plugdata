@@ -365,16 +365,11 @@ public:
     {
         if (auto slider = ptr.get<t_slider>()) {
             t_float fval;
-            int rounded_val = (slider->x_gui.x_fsf.x_finemoved) ? slider->x_val : (slider->x_val / 100) * 100;
-
-            /* if rcv==snd, don't round the value to prevent bad dragging when zoomed-in */
-            if (slider->x_gui.x_fsf.x_snd_able && (slider->x_gui.x_snd == slider->x_gui.x_rcv))
-                rounded_val = slider->x_val;
 
             if (slider->x_lin0_log1)
-                fval = slider->x_min * exp(slider->x_k * (double)(rounded_val) * 0.01);
+                fval = slider->x_min * exp(slider->x_k * (double)(slider->x_val) * 0.01);
             else
-                fval = (double)(rounded_val) * 0.01 * slider->x_k + slider->x_min;
+                fval = (double)(slider->x_val) * 0.01 * slider->x_k + slider->x_min;
             if ((fval < 1.0e-10) && (fval > -1.0e-10))
                 fval = 0.0;
 
