@@ -7,6 +7,7 @@
 #pragma once
 
 #include <string>
+#include "Hash.h"
 
 struct OSUtils {
     enum KeyboardLayout {
@@ -32,7 +33,9 @@ struct OSUtils {
 #endif
 
     static juce::Array<juce::File> iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles, int maximum = -1);
-
+    static bool isDirectoryFast(const juce::String& path);
+    static hash32 getUniqueFileHash(const juce::String& path);
+    
     static KeyboardLayout getKeyboardLayout();
 
 #if JUCE_MAC || JUCE_IOS

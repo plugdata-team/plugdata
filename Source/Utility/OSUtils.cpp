@@ -317,6 +317,16 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 }
 #endif // Linux/BSD
 
+bool OSUtils::isDirectoryFast(const juce::String& path)
+{
+    return fs::is_directory(path.toStdString());
+}
+
+hash32 OSUtils::getUniqueFileHash(const juce::String& path)
+{
+    return hash(fs::canonical(path.toStdString()).c_str());
+}
+
 juce::Array<fs::path> iterateDirectoryPaths(juce::File const& directory, bool recursive, bool onlyFiles, int maximum)
 {
     juce::Array<fs::path> result;

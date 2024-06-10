@@ -9,9 +9,6 @@
 // 2. Improve simplicity and efficiency by not using OS file icons (they look bad anyway)
 
 #include <utility>
-#include <ghc_filesystem/include/ghc/filesystem.hpp>
-namespace fs = ghc::filesystem;
-
 
 #include "Utility/OSUtils.h"
 #include "Utility/Autosave.h"
@@ -136,12 +133,12 @@ private:
         // visitedDirectories keeps track of dirs we've already processed to prevent infinite loops
         static Array<hash32> visitedDirectories = {};
         
-        auto directoryHash = hash(fs::canonical(directory.getFullPathName().toStdString()).string().c_str());
+        auto directoryHash = OSUtils::getUniqueFileHash(directory.getFullPathName());
         if (!visitedDirectories.contains(directoryHash)) {
             for (auto const& subDirectory : OSUtils::iterateDirectory(directory, false, false)) {
-                auto fsPath = fs::path(subDirectory.getFullPathName().toStdString());
-                visitedDirectories.add(hash(fs::canonical(fsPath).string().c_str())); // Protect against symlink loops!
-                if (fs::is_directory(fsPath) && subDirectory != directory) {
+                auto pathName = subDirectory.getFullPathName();
+                visitedDirectories.add(OSUtils::getUniqueFileHash(pathName)); // Protect against symlink loops!
+                if (OSUtils::isDirectoryFast(pathName) && subDirectory != directory) {
                     ValueTree childNode = generateDirectoryValueTree(subDirectory);
                     if (childNode.isValid())
                         rootNode.appendChild(childNode, nullptr);

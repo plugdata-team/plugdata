@@ -7,7 +7,6 @@
 #pragma once
 
 using hash32 = uint32_t;
-using u8 = uint8_t;
 #define EMPTY_HASH ((hash32)0x811c9dc5)
 
 /**
