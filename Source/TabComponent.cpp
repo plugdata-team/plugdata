@@ -398,6 +398,8 @@ void TabComponent::handleAsyncUpdate()
             }
         }
     }
+    
+    editor->updateCommandStatus();
 }
 
 void TabComponent::closeEmptySplits()
