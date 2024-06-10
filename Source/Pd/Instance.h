@@ -315,7 +315,7 @@ protected:
 
     std::unique_ptr<ObjectImplementationManager> objectImplementations; // must be after messageDispatcher (!)
 
-    struct ConsoleHandler : public Timer {
+    struct ConsoleHandler : public AsyncUpdater {
         Instance* instance;
 
         explicit ConsoleHandler(Instance* parent)
@@ -323,7 +323,7 @@ protected:
         {
         }
 
-        void timerCallback() override
+        void handleAsyncUpdate() override
         {
             auto item = std::tuple<void*, String, bool>();
             int numReceived = 0;
@@ -341,8 +341,6 @@ protected:
             if (numReceived) {
                 instance->updateConsole(numReceived, newWarning);
             }
-
-            stopTimer();
         }
 
         void addMessage(void* object, String const& message, bool type)
@@ -369,7 +367,7 @@ protected:
                 instance->updateConsole(1, false);
             } else {
                 pendingMessages.enqueue({ object, message, false });
-                startTimer(10);
+                triggerAsyncUpdate();
             }
         }
 
@@ -380,7 +378,7 @@ protected:
                 instance->updateConsole(1, true);
             } else {
                 pendingMessages.enqueue({ object, warning, true });
-                startTimer(10);
+                triggerAsyncUpdate();
             }
         }
 
@@ -391,7 +389,7 @@ protected:
                 instance->updateConsole(1, true);
             } else {
                 pendingMessages.enqueue({ object, error, true });
-                startTimer(10);
+                triggerAsyncUpdate();
             }
         }
 

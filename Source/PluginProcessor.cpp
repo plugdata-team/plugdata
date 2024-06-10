@@ -1646,6 +1646,7 @@ void PluginProcessor::performParameterChange(int type, String const& name, float
             }
         }
     } else { // otherwise set parameter value
+        int i = 0;
         for (auto* param : getParameters()) {
             auto* pldParam = dynamic_cast<PlugDataParameter*>(param);
             if (!pldParam->isEnabled() || pldParam->getTitle() != name)
@@ -1656,9 +1657,10 @@ void PluginProcessor::performParameterChange(int type, String const& name, float
 
             if (ProjectInfo::isStandalone) {
                 for (auto* editor : getEditors()) {
-                    editor->sidebar->updateAutomationParameterValues();
+                    editor->sidebar->updateAutomationParameterValue(pldParam);
                 }
             }
+            i++;
         }
     }
 }

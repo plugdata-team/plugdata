@@ -265,10 +265,10 @@ bool Sidebar::isShowingBrowser()
     return browser->isVisible();
 }
 
-void Sidebar::updateAutomationParameterValues()
+void Sidebar::updateAutomationParameterValue(PlugDataParameter* param)
 {
     if (ProjectInfo::isStandalone && automationPanel) {
-        automationPanel->updateParameterValues();
+        automationPanel->updateParameterValue(param);
     }
 }
 

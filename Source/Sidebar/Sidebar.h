@@ -78,6 +78,7 @@ public:
 };
 
 class PluginEditor;
+class PlugDataParameter;
 class Sidebar : public Component
     , public SettingsFileListener {
 
@@ -117,7 +118,7 @@ public:
 
     void clearSearchOutliner();
 
-    void updateAutomationParameterValues();
+    void updateAutomationParameterValue(PlugDataParameter* param);
     void updateAutomationParameters();
 
     static constexpr int dragbarWidth = 6;

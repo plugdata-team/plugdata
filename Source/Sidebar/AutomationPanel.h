@@ -819,12 +819,13 @@ public:
         sliders.setSize(getWidth(), std::max(sliders.getTotalHeight(), viewport.getMaximumVisibleHeight()));
     }
         
-    void updateParameterValues()
+    void updateParameterValue(PlugDataParameter* changedParameter)
     {
         for (int p = 0; p < sliders.rows.size(); p++) {
-            auto* param = dynamic_cast<PlugDataParameter*>(pd->getParameters()[p + 1]);
+            auto* param = sliders.rows[p]->param;
             auto& slider = sliders.rows[p]->slider;
-            if(slider.getThumbBeingDragged() == -1) {
+            if(changedParameter == param && slider.getThumbBeingDragged() == -1)
+            {
                 slider.setValue(param->getUnscaledValue());
             }
         }
@@ -832,11 +833,7 @@ public:
 
     void handleAsyncUpdate() override
     {
-        if (ProjectInfo::isStandalone) {
-            sliders.updateSliders();
-        } else {
-            sliders.updateSliders();
-        }
+        sliders.updateSliders();
     }
     BouncingViewport viewport;
     AutomationComponent sliders;
