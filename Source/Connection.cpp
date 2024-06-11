@@ -972,7 +972,11 @@ void Connection::updatePath()
         connectionPath.lineTo(pend);
         toDraw = connectionPath.createPathWithRoundedCorners(PlugDataLook::getUseStraightConnections() ? 0.0f : 8.0f);
     }
-
+    
+    if(getPath() == toDraw) {
+        return;
+    }
+    
     setPath(toDraw);
     previousPStart = pstart;
 
