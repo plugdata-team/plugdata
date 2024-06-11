@@ -51,11 +51,10 @@ public:
 
     void update() override
     {
-        isGraphChild = static_cast<bool>(subpatch->getPointer()->gl_isgraph);
-
         // Change from subpatch to graph
         bool graph;
         if (auto canvas = ptr.get<t_canvas>()) {
+            isGraphChild = canvas->gl_isgraph;
             graph = canvas->gl_isgraph;
         } else {
             return;

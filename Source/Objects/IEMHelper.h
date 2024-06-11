@@ -316,15 +316,17 @@ public:
         auto const objectBounds = object->getBounds().reduced(Object::margin);
 
         if (auto iemgui = ptr.get<t_iemgui>()) {
-            t_symbol const* sym = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab);
-            if (sym) {
-                auto const labelText = getExpandedLabelText();
-                int const fontHeight = getFontHeight();
-                int const fontWidth = sys_fontwidth(fontHeight);
-                int const posx = objectBounds.getX() + iemgui->x_ldx;
-                int const posy = objectBounds.getY() + iemgui->x_ldy;
-                int const textWidth = fontHeight > 55 ? Font(fontHeight).getStringWidth(labelText) : fontWidth * (labelText.length() + 1);
-                return { posx, posy, textWidth, fontHeight + 2 };
+            if(iemgui->x_lab) {
+                t_symbol const* sym = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab);
+                if (sym) {
+                    auto const labelText = getExpandedLabelText();
+                    int const fontHeight = getFontHeight();
+                    int const fontWidth = sys_fontwidth(fontHeight);
+                    int const posx = objectBounds.getX() + iemgui->x_ldx;
+                    int const posy = objectBounds.getY() + iemgui->x_ldy;
+                    int const textWidth = fontHeight > 55 ? Font(fontHeight).getStringWidth(labelText) : fontWidth * (labelText.length() + 1);
+                    return { posx, posy, textWidth, fontHeight + 2 };
+                }
             }
         }
 

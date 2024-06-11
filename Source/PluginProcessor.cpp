@@ -1091,9 +1091,16 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     
     patches.clear();
 
+    std::vector<pd::WeakReference> openedPatches;
     // Close all patches
     for (auto* cnv = pd_getcanvaslist(); cnv; cnv = cnv->gl_next) {
-        libpd_closefile(cnv);
+        openedPatches.push_back(pd::WeakReference(cnv, this));
+    }
+    for(auto patch : openedPatches)
+    {
+        if(auto cnv = patch.get<t_glist*>()) {
+            libpd_closefile(cnv.get());
+        }
     }
     
     int numPatches = istream.readInt();

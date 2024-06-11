@@ -94,12 +94,13 @@ public:
                 juce::FloatVectorOperations::copy(destData, srcData + readPos, peakWindowSize);
             }
         }
-        audioBufferMutex.unlock();
 
         Array<float> peak;
         for (int ch = 0; ch < peakBuffer.getNumChannels(); ch++) {
             peak.add(pow(peakBuffer.getMagnitude(ch, 0, peakWindowSize), 0.5f));
         }
+        audioBufferMutex.unlock();
+        
         return peak;
     }
 
