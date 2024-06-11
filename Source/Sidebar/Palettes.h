@@ -502,6 +502,7 @@ public:
 
             auto* parent = ProjectInfo::canUseSemiTransparentWindows() ? editor->calloutArea.get() : nullptr;
 
+            
             ArrowPopupMenu::showMenuAsync(menu, PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(&addButton).withParentComponent(parent), [this, menu](int result) {
                 if (result > 0) {
                     auto newUntitledPalette = ValueTree("Palette");

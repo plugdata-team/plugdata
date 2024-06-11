@@ -48,7 +48,7 @@ public:
             menuToAttachTo->setBounds(menuToAttachTo->getBounds().translated(-15, menuMargin - 3));
         }
         else {
-            menuToAttachTo->setBounds(menuToAttachTo->getBounds().translated(20, menuMargin + 35));
+            menuToAttachTo->setBounds(menuToAttachTo->getBounds().translated(20, menuMargin - 60));
         }
     }
 

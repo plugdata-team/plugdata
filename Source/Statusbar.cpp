@@ -935,10 +935,8 @@ void Statusbar::resized()
 void Statusbar::setLatencyDisplay(int value)
 {
     if (!ProjectInfo::isStandalone) {
-        if (currentLatency != value) {
-            currentLatency = value;
-            latencyDisplayButton->setLatencyValue(value);
-        }
+        currentLatency = value;
+        latencyDisplayButton->setLatencyValue(value);
     }
 }
 
