@@ -1088,8 +1088,14 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     lockAudioThread();
 
     setThis();
+    
     patches.clear();
 
+    // Close all patches
+    for (auto* cnv = pd_getcanvaslist(); cnv; cnv = cnv->gl_next) {
+        libpd_closefile(cnv);
+    }
+    
     int numPatches = istream.readInt();
 
     Array<std::pair<String, File>> patches;
