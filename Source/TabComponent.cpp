@@ -292,7 +292,7 @@ void TabComponent::handleAsyncUpdate()
         }
     }
     if (getCurrentCanvas())
-        lastActiveCanvas = getCurrentCanvas()->patch.getPointer().get();
+        lastActiveCanvas = getCurrentCanvas()->patch.getUncheckedPointer();
 
     tabbars[0].clear();
     tabbars[1].clear();
@@ -303,7 +303,7 @@ void TabComponent::handleAsyncUpdate()
         if (patchInPluginMode->windowIndex == editorIndex) {
             // Initialise plugin mode
             canvases.clear();
-            if (!editor->isInPluginMode() || editor->pluginMode->getPatch()->getPointer().get() != patchInPluginMode->getPointer().get()) {
+            if (!editor->isInPluginMode() || editor->pluginMode->getPatch()->getUncheckedPointer() != patchInPluginMode->getUncheckedPointer()) {
                 editor->pluginMode = std::make_unique<PluginMode>(editor, patchInPluginMode);
                 editor->resized();
                 // hack to force the window title buttons to hide
@@ -313,13 +313,7 @@ void TabComponent::handleAsyncUpdate()
         }
         // if the editor is in pluginmode
     } else if (editor->isInPluginMode()) {
-        if (!editor->pluginMode->getCanvas()->patch.openInPluginMode) {
-            // exit plugin mode, and continue below to rebuild editor
-            editor->pluginMode.reset(nullptr);
-        } else {
-            // editor is in plugin mode, and should be, no further action needed
-            return;
-        }
+        editor->pluginMode.reset(nullptr);
     }
 
     // First, remove canvases that no longer exist
@@ -392,7 +386,7 @@ void TabComponent::handleAsyncUpdate()
     }
     if (lastActiveCanvas) {
         for (auto* cnv : getCanvases()) {
-            if (cnv->patch.getPointer().get() == lastActiveCanvas) {
+            if (cnv->patch.getUncheckedPointer() == lastActiveCanvas) {
                 setActiveSplit(cnv);
                 break;
             }

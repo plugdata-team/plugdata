@@ -170,11 +170,11 @@ void Patch::savePatch()
         pd::Interface::saveToFile(patch.get(), file, dir);
     }
 
-    MessageManager::callAsync([instance = juce::WeakReference(this->instance), file = this->currentFile, patch = ptr.getRaw<t_glist>()]() {
+    MessageManager::callAsync([instance = juce::WeakReference(this->instance), file = this->currentFile, ptr = this->ptr]() {
         if (instance) {
-            sys_lock();
-            instance->reloadAbstractions(file, patch);
-            sys_unlock();
+            if(auto patch = ptr.get<t_glist>()) {
+                instance->reloadAbstractions(file, patch.get());
+            }
         }
     });
 }

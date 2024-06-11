@@ -126,8 +126,8 @@ public:
     void parseDataBuffer(XmlElement const& xml) override;
     std::unique_ptr<XmlElement> extraData;
 
-    pd::Patch::Ptr loadPatch(String patch, int splitIndex = 0);
-    pd::Patch::Ptr loadPatch(URL const& patchURL, int splitIndex = 0);
+    pd::Patch::Ptr loadPatch(String patch);
+    pd::Patch::Ptr loadPatch(URL const& patchURL);
 
     void titleChanged() override;
 

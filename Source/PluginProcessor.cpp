@@ -1225,7 +1225,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     hostInfoUpdater.triggerAsyncUpdate();
 }
 
-pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL, int splitIndex)
+pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL)
 {
     auto patchFile = patchURL.getLocalFile();
 
@@ -1266,7 +1266,7 @@ pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL, int splitIndex)
     return patch;
 }
 
-pd::Patch::Ptr PluginProcessor::loadPatch(String patchText, int splitIndex)
+pd::Patch::Ptr PluginProcessor::loadPatch(String patchText)
 {
     if (patchText.isEmpty())
         patchText = pd::Instance::defaultPatch;
@@ -1274,7 +1274,7 @@ pd::Patch::Ptr PluginProcessor::loadPatch(String patchText, int splitIndex)
     auto patchFile = File::createTempFile(".pd");
     patchFile.replaceWithText(patchText);
 
-    auto patch = loadPatch(URL(patchFile), splitIndex);
+    auto patch = loadPatch(URL(patchFile));
 
     // Set to unknown file when loading temp patch
     patch->setCurrentFile(URL("file://"));
