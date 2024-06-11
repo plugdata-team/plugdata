@@ -21,6 +21,7 @@
 #include "Utility/OfflineObjectRenderer.h"
 #include "Utility/ZoomableDragAndDropContainer.h"
 #include "Components/Buttons.h"
+#include "Components/ArrowPopupMenu.h"
 
 class AddItemButton : public Component {
 
@@ -470,8 +471,8 @@ public:
         palettesTree.addListener(this);
 
         addButton.onClick = [this]() {
-            PopupMenu menu;
-            menu.addItem(1, "New palette");
+            auto menu = new PopupMenu();
+            menu->addItem(1, "New palette");
 
             PopupMenu defaultPalettesMenu;
 
@@ -497,15 +498,26 @@ public:
                 });
             }
 
-            menu.addSubMenu("Add default palette", defaultPalettesMenu);
+            menu->addSubMenu("Add default palette", defaultPalettesMenu);
 
-            menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(editor).withTargetComponent(&addButton), ModalCallbackFunction::create([this](int result) {
+            auto* parent = ProjectInfo::canUseSemiTransparentWindows() ? editor->calloutArea.get() : nullptr;
+
+            ArrowPopupMenu::showMenuAsync(menu, PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(&addButton).withParentComponent(parent), [this, menu](int result) {
                 if (result > 0) {
                     auto newUntitledPalette = ValueTree("Palette");
                     newUntitledPalette.setProperty("Name", var("Untitled palette"), nullptr);
                     newPalette(newUntitledPalette);
                 }
-            }));
+
+                MessageManager::callAsync([menu, this]() {
+                    editor->calloutArea->removeFromDesktop();
+                    delete menu;
+                });
+            }, ArrowPopupMenu::ArrowDirection::LeftRight);
+
+            if (ProjectInfo::canUseSemiTransparentWindows()) {
+                editor->calloutArea->addToDesktop(ComponentPeer::windowIsTemporary);
+            }
         };
 
         paletteBar.setVisible(true);
