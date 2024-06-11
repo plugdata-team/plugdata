@@ -180,6 +180,7 @@ private:
     bool variableBlockSize = false;
     AudioBuffer<float> audioBufferIn;
     AudioBuffer<float> audioBufferOut;
+    AudioBuffer<float> bypassBuffer;
 
     std::vector<float> audioVectorIn;
     std::vector<float> audioVectorOut;
