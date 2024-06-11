@@ -639,6 +639,7 @@ public:
 
         getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
 
+
         if (auto* content = getContentComponent()) {
             content->resized();
             content->repaint();

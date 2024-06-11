@@ -1653,7 +1653,6 @@ void PluginProcessor::performParameterChange(int type, String const& name, float
     }
 }
 
-// JYG added this
 void PluginProcessor::fillDataBuffer(std::vector<pd::Atom> const& vec)
 {
     if (!vec[0].isSymbol()) {

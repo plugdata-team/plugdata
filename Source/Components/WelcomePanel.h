@@ -329,6 +329,7 @@ public:
         nvgFillColor(nvg, findNVGColour(PlugDataColour::panelTextColourId));
         nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
         nvgFontSize(nvg, 30);
+        nvgTextLetterSpacing(nvg, -0.275f);
         nvgFontFace(nvg, "Inter-Bold");
         nvgText(nvg, 35, 38, "Welcome to plugdata", nullptr);
 

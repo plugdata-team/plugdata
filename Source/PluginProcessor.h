@@ -122,7 +122,6 @@ public:
     void performLatencyCompensationChange(float value) override;
     void sendParameterInfoChangeMessage();
 
-    // Jyg added this
     void fillDataBuffer(std::vector<pd::Atom> const& list) override;
     void parseDataBuffer(XmlElement const& xml) override;
     std::unique_ptr<XmlElement> extraData;
