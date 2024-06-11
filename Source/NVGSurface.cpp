@@ -125,6 +125,8 @@ void NVGSurface::initialise()
     setVisible(true);
 
     auto renderScale = getRenderScale();
+    
+    lastRenderScale = renderScale;
     nvg = nvgCreateContext(view, NVG_ANTIALIAS | NVG_TRIPLE_BUFFER, getWidth() * renderScale, getHeight() * renderScale);
     resized();
 #else
@@ -288,7 +290,7 @@ void NVGSurface::render()
 #endif
 
     auto startTime = Time::getMillisecondCounter();
-
+    
     if (!nvg) {
         initialise();
         return; // Render on next frame
@@ -297,9 +299,17 @@ void NVGSurface::render()
     if (!makeContextActive())
         return;
 
+    auto pixelScale = getRenderScale();
+#if NANOVG_METAL_IMPLEMENTATION
+    if(lastRenderScale != pixelScale)
+    {
+        detachContext();
+        return; // Render on next frame
+    }
+#endif
+    
     updateBufferSize();
 
-    auto pixelScale = getRenderScale();
     if (!invalidArea.isEmpty()) {
         auto invalidated = invalidArea.expanded(1);
 
