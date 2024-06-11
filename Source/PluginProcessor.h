@@ -51,6 +51,8 @@ public:
 #endif
 
     void processBlock(AudioBuffer<float>&, MidiBuffer&) override;
+        
+    void processBlockBypassed(AudioBuffer<float>& buffer, MidiBuffer&) override;
 
     AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;

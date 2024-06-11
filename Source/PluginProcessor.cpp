@@ -592,6 +592,15 @@ void PluginProcessor::settingsFileReloaded()
         objectLibrary->updateLibrary();
 }
 
+void PluginProcessor::processBlockBypassed(AudioBuffer<float>& buffer, MidiBuffer& midiBuffer)
+{
+    // It's better to keep sending blocks into Pd, so messaging can still work and there are no gaps in the users' audio stream
+    processBlock(buffer, midiBuffer);
+    
+    for (int ch = 0; ch < getTotalNumOutputChannels(); ch++)
+        buffer.clear (ch, 0, buffer.getNumSamples());
+}
+
 void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {
     ScopedNoDenormals noDenormals;
@@ -787,7 +796,7 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
         midiBufferIn.clear();
         inputFifo->readAudioAndMidi(audioBufferIn, midiBufferIn);
 
-        for (int channel = 0; channel < audioBufferIn.getNumChannels(); ++channel) {
+        for (int channel = 0; channel < audioBufferIn.getNumChannels(); channel++) {
             // Copy the channel data into the vector
             juce::FloatVectorOperations::copy(
                 audioVectorIn.data() + (channel * pdBlockSize),
@@ -815,7 +824,7 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
         if (connectionListener && plugdata_debugging_enabled())
             connectionListener->updateSignalData();
 
-        for (int channel = 0; channel < numChannels; ++channel) {
+        for (int channel = 0; channel < numChannels; channel++) {
             // Use FloatVectorOperations to copy the vector data into the audioBuffer
             juce::FloatVectorOperations::copy(
                 audioBufferOut.getWritePointer(channel),
