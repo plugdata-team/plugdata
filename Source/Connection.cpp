@@ -1253,34 +1253,33 @@ void ConnectionPathUpdater::timerCallback()
         t_object* inObj;
         int inIdx;
 
-        auto* patch = connection->cnv->patch.getPointer().get();
-        if (!patch)
-            continue;
-
-        // Get connections from pd
-        linetraverser_start(&t, patch);
-
-        while (auto* oc = linetraverser_next(&t)) {
-
-            if (oc && oc == connection->ptr.getRaw<t_outconnect>()) {
-
-                outObj = t.tr_ob;
-                outIdx = t.tr_outno;
-                inObj = t.tr_ob2;
-                inIdx = t.tr_inno;
-
-                found = true;
-                break;
+        if(auto patch = connection->cnv->patch.getPointer()) {
+            
+            // Get connections from pd
+            linetraverser_start(&t, patch.get());
+            
+            while (auto* oc = linetraverser_next(&t)) {
+                
+                if (oc && oc == connection->ptr.getRaw<t_outconnect>()) {
+                    
+                    outObj = t.tr_ob;
+                    outIdx = t.tr_outno;
+                    inObj = t.tr_ob2;
+                    inIdx = t.tr_inno;
+                    
+                    found = true;
+                    break;
+                }
             }
-        }
-
-        if (!found)
-            continue;
-
-        if (auto oc = connection->ptr.get<t_outconnect>()) {
-            t_symbol* oldPathState = outconnect_get_path_data(oc.get());
-            auto* newConnection = connection->cnv->patch.setConnctionPath(outObj, outIdx, inObj, inIdx, oldPathState, newPathState);
-            connection->setPointer(newConnection);
+            
+            if (!found)
+                continue;
+            
+            if (auto oc = connection->ptr.get<t_outconnect>()) {
+                t_symbol* oldPathState = outconnect_get_path_data(oc.get());
+                auto* newConnection = connection->cnv->patch.setConnctionPath(outObj, outIdx, inObj, inIdx, oldPathState, newPathState);
+                connection->setPointer(newConnection);
+            }
         }
     }
 

@@ -54,7 +54,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     xRange = Array<var> { var(patch.getPointer()->gl_x1), var(patch.getPointer()->gl_x2) };
     yRange = Array<var> { var(patch.getPointer()->gl_y2), var(patch.getPointer()->gl_y1) };
 
-    pd->registerMessageListener(patch.getPointer().get(), this);
+    pd->registerMessageListener(patch.getUncheckedPointer(), this);
 
     isGraphChild.addListener(this);
     hideNameAndArgs.addListener(this);
@@ -177,7 +177,7 @@ Canvas::~Canvas()
     saveViewportPosition();
     zoomScale.removeListener(this);
     editor->removeModifierKeyListener(this);
-    pd->unregisterMessageListener(patch.getPointer().get(), this);
+    pd->unregisterMessageListener(patch.getUncheckedPointer(), this);
 }
 
 bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, int maxUpdateTimeMs)
@@ -1922,11 +1922,12 @@ void Canvas::alignObjects(Align alignment)
     patch.startUndoSequence("Align objects");
 
     // mark canvas as dirty, and set undo for all positions
-    auto patchPtr = patch.getPointer().get();
-    canvas_dirty(patch.getPointer().get(), 1);
-    for (auto object : objects) {
-        if (auto* ptr = object->getPointer())
-            pd::Interface::undoApply(patchPtr, ptr);
+    if(auto patchPtr = patch.getPointer()) {
+        canvas_dirty(patchPtr.get(), 1);
+        for (auto object : objects) {
+            if (auto* ptr = object->getPointer())
+                pd::Interface::undoApply(patchPtr, ptr);
+        }
     }
 
     // get the bounding box of all selected objects

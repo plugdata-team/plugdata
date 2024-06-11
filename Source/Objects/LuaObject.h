@@ -555,8 +555,9 @@ public:
                                 pd_typedmess(pdlua.get(), pd->generateSymbol("_reload"), 0, nullptr);
 
                                 // Recreate this object
-                                auto* patch = cnv->patch.getPointer().get();
-                                pd::Interface::recreateTextObject(patch, pdlua.cast<t_gobj>());
+                                if(auto patch = cnv->patch.getPointer()) {
+                                    pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
+                                }
                             }
                             cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
                             textEditor.reset(nullptr);
@@ -629,8 +630,9 @@ public:
                                 pd_typedmess(pdlua.get(), pd->generateSymbol("_reload"), 0, nullptr);
 
                                 // Recreate this object
-                                auto* patch = cnv->patch.getPointer().get();
-                                pd::Interface::recreateTextObject(patch, pdlua.cast<t_gobj>());
+                                if(auto patch = cnv->patch.getPointer()) {
+                                    pd::Interface::recreateTextObject(patch, pdlua.cast<t_gobj>());
+                                }
                             }
                             cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
                             textEditor.reset(nullptr);
