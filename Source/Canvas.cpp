@@ -1926,7 +1926,7 @@ void Canvas::alignObjects(Align alignment)
         canvas_dirty(patchPtr.get(), 1);
         for (auto object : objects) {
             if (auto* ptr = object->getPointer())
-                pd::Interface::undoApply(patchPtr, ptr);
+                pd::Interface::undoApply(patchPtr.get(), ptr);
         }
     }
 

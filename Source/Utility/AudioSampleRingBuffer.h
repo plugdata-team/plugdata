@@ -105,10 +105,10 @@ public:
     }
 
 private:
-    int bufferSize = 0;
-    int mainBufferSize = 0;
-    int sampleRate = 0;
-    int peakWindowSize = 0;
+    std::atomic<int> bufferSize = 0;
+    std::atomic<int> mainBufferSize = 0;
+    std::atomic<int> sampleRate = 0;
+    std::atomic<int> peakWindowSize = 0;
 
     AudioBuffer<float> buffer;
     AudioBuffer<float> peakBuffer;

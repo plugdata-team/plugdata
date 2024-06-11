@@ -631,7 +631,7 @@ public:
 
                                 // Recreate this object
                                 if(auto patch = cnv->patch.getPointer()) {
-                                    pd::Interface::recreateTextObject(patch, pdlua.cast<t_gobj>());
+                                    pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
                                 }
                             }
                             cnv->editor->openTextEditors.removeAllInstancesOf(ptr);

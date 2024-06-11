@@ -16,6 +16,7 @@
 #include "Object.h"
 
 class DocumentBrowserSettings : public Component {
+    
 public:
     struct DocumentBrowserSettingsButton : public TextButton {
         String const icon;
@@ -82,6 +83,9 @@ class DocumentationBrowserUpdateThread : public Thread
     , private FileSystemWatcher::Listener
     , private SettingsFileListener
     , public DeletedAtShutdown {
+        
+    static inline DocumentationBrowserUpdateThread* instance = nullptr;
+        
 public:
     DocumentationBrowserUpdateThread()
         : Thread("Documentation Browser Thread")
@@ -95,6 +99,7 @@ public:
 
     ~DocumentationBrowserUpdateThread()
     {
+        instance = nullptr;
         stopThread(-1);
     }
 
@@ -108,6 +113,12 @@ public:
     {
         ScopedLock treeLock(fileTreeLock);
         return fileTree;
+    }
+        
+    static DocumentationBrowserUpdateThread* getInstance()
+    {
+        if(!instance) instance = new DocumentationBrowserUpdateThread();
+        return instance;
     }
 
 private:
@@ -216,8 +227,7 @@ public:
     explicit DocumentationBrowser(PluginProcessor* processor)
         : pd(processor)
     {
-        if (!updater)
-            updater = new DocumentationBrowserUpdateThread();
+        updater = DocumentationBrowserUpdateThread::getInstance();
         updater->addChangeListener(this);
 
         searchInput.setBackgroundColour(PlugDataColour::sidebarActiveBackgroundColourId);
@@ -435,7 +445,7 @@ private:
     ValueTree fileTree;
     ValueTreeViewerComponent fileList = ValueTreeViewerComponent("(Folder)");
 
-    static inline DocumentationBrowserUpdateThread* updater = nullptr;
+    DocumentationBrowserUpdateThread* updater;
     SearchEditor searchInput;
 
     bool isDraggingFile = false;

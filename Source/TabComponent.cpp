@@ -283,6 +283,8 @@ void TabComponent::openInPluginMode(pd::Patch::Ptr patch)
 
 void TabComponent::handleAsyncUpdate()
 {
+    pd->setThis();
+    
     auto editorIndex = editor->editorIndex;
 
     // save the patch from the canvases that were the two splits
