@@ -52,15 +52,11 @@ public:
     void update() override
     {
         // Change from subpatch to graph
-        bool graph;
         if (auto canvas = ptr.get<t_canvas>()) {
             isGraphChild = static_cast<bool>(canvas->gl_isgraph);
-            graph = canvas->gl_isgraph;
         } else {
             return;
         }
-
-        isGraphChild = graph;
     }
 
     void mouseDown(MouseEvent const& e) override
