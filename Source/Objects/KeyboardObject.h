@@ -162,6 +162,11 @@ public:
             g.fillRect(area.withWidth(1.0f));
         }
 
+        // FIXME: have a unified way to detect when mode changes outside of render callback
+        auto cnv =  findParentComponentOfClass<Canvas>();
+        if (cnv->locked.getValue() || cnv->editor->isInPluginMode())
+            return;
+
         // draw C octave numbers
         if (!(midiNoteNumber % 12)) {
             Array<int> glyphs;
