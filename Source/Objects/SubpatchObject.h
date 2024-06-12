@@ -54,7 +54,7 @@ public:
         // Change from subpatch to graph
         bool graph;
         if (auto canvas = ptr.get<t_canvas>()) {
-            isGraphChild = canvas->gl_isgraph;
+            isGraphChild = static_cast<bool>(canvas->gl_isgraph);
             graph = canvas->gl_isgraph;
         } else {
             return;
