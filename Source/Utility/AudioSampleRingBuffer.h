@@ -23,43 +23,45 @@ public:
 
     void reset(double sourceSampleRate, int sourceBufferSize, int numChannels)
     {
+        ScopedLock lock(audioBufferMutex);
+        
         sampleRate = sourceSampleRate;
         mainBufferSize = sourceBufferSize;
         peakWindowSize = sampleRate / 60;
         bufferSize = jmax(peakWindowSize, mainBufferSize) * 3;
 
-        audioBufferMutex.lock();
         peakBuffer.setSize(numChannels, peakWindowSize, true, true);
         buffer.setSize(numChannels, bufferSize, false, true);
-        audioBufferMutex.unlock();
         useNewPosition = true;
     }
 
     void write(AudioBuffer<float>& samples)
     {
-        audioBufferMutex.lock();
+        ScopedLock lock(audioBufferMutex);
+        
         for (int ch = 0; ch < peakBuffer.getNumChannels(); ch++) {
             for (int i = 0; i < samples.getNumSamples(); i++) {
                 buffer.setSample(ch, (writePosition + i) % buffer.getNumSamples(), samples.getSample(ch, i));
             }
         }
-        audioBufferMutex.unlock();
 
-        writeTime.store(Time::getMillisecondCounter());
-        oldWritePosition.store(writePosition);
+        writeTime = Time::getMillisecondCounter();
+        oldWritePosition = writePosition;
         writePosition = (writePosition + samples.getNumSamples()) % buffer.getNumSamples();
         useNewPosition = true;
     }
 
     Array<float> getPeak()
     {
+        ScopedLock lock(audioBufferMutex);
+        
         if (sampleRate == 0)
             return { 0.0f, 0.0f };
         auto currentTime = Time::getMillisecondCounter();
 
         if (useNewPosition) {
-            readTime = writeTime.load();
-            readPosition = oldWritePosition.load();
+            readTime = writeTime;
+            readPosition = oldWritePosition;
             useNewPosition = false;
         }
 
@@ -73,7 +75,6 @@ public:
         while (readPos >= buffer.getNumSamples())
             readPos -= bufferSize;
 
-        audioBufferMutex.lock();
         for (int ch = 0; ch < std::min(2, peakBuffer.getNumChannels()); ch++) {
             // Get pointers to the source and destination data
             auto const* srcData = buffer.getReadPointer(ch);
@@ -99,25 +100,24 @@ public:
         for (int ch = 0; ch < peakBuffer.getNumChannels(); ch++) {
             peak.add(pow(peakBuffer.getMagnitude(ch, 0, peakWindowSize), 0.5f));
         }
-        audioBufferMutex.unlock();
         
         return peak;
     }
 
 private:
-    std::atomic<int> bufferSize = 0;
-    std::atomic<int> mainBufferSize = 0;
-    std::atomic<int> sampleRate = 0;
-    std::atomic<int> peakWindowSize = 0;
+    int bufferSize = 0;
+    int mainBufferSize = 0;
+    int sampleRate = 0;
+    int peakWindowSize = 0;
 
     AudioBuffer<float> buffer;
     AudioBuffer<float> peakBuffer;
 
     int writePosition = 0;
-    std::atomic<int> oldWritePosition = 0;
+    int oldWritePosition = 0;
     int readPosition = 0;
-    std::atomic<bool> useNewPosition = false;
-    std::atomic<double> writeTime = 0;
-    std::atomic<double> readTime = 0;
-    std::mutex audioBufferMutex;
+    bool useNewPosition = false;
+    double writeTime = 0;
+    double readTime = 0;
+    CriticalSection audioBufferMutex;
 };
