@@ -48,7 +48,13 @@ public:
             menuToAttachTo->setBounds(menuToAttachTo->getBounds().translated(-15, menuMargin - 3));
         }
         else {
-            menuToAttachTo->setBounds(menuToAttachTo->getBounds().translated(20, menuMargin - 60));
+            // adjust the popupMenu to be in the correct y position
+            auto menuBounds = menuToAttachTo->getScreenBounds().reduced(menuMargin + 5);
+            auto targetBounds = targetComponent->getScreenBounds();
+
+            auto yOffset = targetBounds.getBottom() - menuBounds.getBottom();
+
+            menuToAttachTo->setBounds(menuToAttachTo->getBounds().translated(20, yOffset));
         }
     }
 
