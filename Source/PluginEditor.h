@@ -24,8 +24,7 @@
 #include "Utility/ObjectThemeManager.h"
 #include "NVGSurface.h"
 
-class CalloutArea : public Component
-    , public Timer {
+class CalloutArea : public Component, public Timer {
 public:
     explicit CalloutArea(Component* parent)
         : target(parent)
