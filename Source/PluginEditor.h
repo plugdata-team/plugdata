@@ -24,7 +24,7 @@
 #include "Utility/ObjectThemeManager.h"
 #include "NVGSurface.h"
 
-class CalloutArea : public Component {
+class CalloutArea : public Component, public Timer {
 public:
     explicit CalloutArea(Component* parent)
         : target(parent)
@@ -33,11 +33,12 @@ public:
         setVisible(true);
         setAlwaysOnTop(true);
         setInterceptsMouseClicks(false, true);
+        startTimerHz(3);
     }
 
     ~CalloutArea() = default;
 
-    void childrenChanged() override
+    void timerCallback() override
     {
         setBounds(target->getScreenBounds());
     }
