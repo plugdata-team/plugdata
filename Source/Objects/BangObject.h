@@ -171,7 +171,7 @@ public:
         bangState = true;
         repaint();
 
-        auto currentTime = Time::getCurrentTime().getMillisecondCounter();
+        auto currentTime = Time::getMillisecondCounter();
         auto timeSinceLast = currentTime - lastBang;
 
         int holdTime = bangHold.getValue();

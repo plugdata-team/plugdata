@@ -1009,7 +1009,7 @@ void StatusbarSource::process(bool hasMidiInput, bool hasMidiOutput, int channel
         level[1] = 0;
     }
 
-    auto nowInMs = Time::getCurrentTime().getMillisecondCounter();
+    auto nowInMs = Time::getMillisecondCounter();
 
     lastAudioProcessedTime = nowInMs;
 
@@ -1027,7 +1027,7 @@ void StatusbarSource::prepareToPlay(int nChannels)
 
 void StatusbarSource::timerCallback()
 {
-    auto currentTime = Time::getCurrentTime().getMillisecondCounter();
+    auto currentTime = Time::getMillisecondCounter();
 
     auto hasReceivedMidi = currentTime - lastMidiReceivedTime < 700;
     auto hasSentMidi = currentTime - lastMidiSentTime < 700;

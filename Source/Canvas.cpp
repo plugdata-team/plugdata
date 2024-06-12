@@ -1372,8 +1372,7 @@ void Canvas::focusGained(FocusChangeType cause)
 void Canvas::focusLost(FocusChangeType cause)
 {
     pd->enqueueFunctionAsync([_this = SafePointer(this), this, focused = hasKeyboardFocus(true)]() {
-        if (!_this)
-            return;
+        if (!_this) return;
         auto* glist = patch.getPointer().get();
         if (!glist)
             return;
@@ -1383,6 +1382,7 @@ void Canvas::focusLost(FocusChangeType cause)
         snprintf(buf, MAXPDSTRING - 1, ".x%lx.c", (unsigned long)glist);
         pd->sendMessage("#active_gui", "_focus", { pd->generateSymbol(buf), static_cast<float>(focused) });
 
+        if (!_this) return;
         // cyclone focus listeners
         pd->sendMessage("#hammergui", "_focus", { pd->generateSymbol(buf), static_cast<float>(focused) });
     });

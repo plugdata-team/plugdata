@@ -286,8 +286,10 @@ public:
             if (numAtoms <= 0)
                 break;
             MessageManager::callAsync([_this = SafePointer(this), shouldBeEditable = static_cast<bool>(atoms[0].getFloat())]() {
-                _this->editable = shouldBeEditable;
-                _this->setInterceptsMouseClicks(shouldBeEditable, false);
+                if(_this) {
+                    _this->editable = shouldBeEditable;
+                    _this->setInterceptsMouseClicks(shouldBeEditable, false);
+                }
             });
             break;
         }
@@ -295,12 +297,11 @@ public:
             if (numAtoms <= 0)
                 break;
             MessageManager::callAsync([_this = SafePointer(this), newName = atoms[0].toString()]() {
-                if (!_this)
-                    return;
-
-                _this->object->cnv->setSelected(_this->object, false);
-                _this->object->editor->sidebar->hideParameters();
-                _this->name = newName;
+                if (_this) {
+                    _this->object->cnv->setSelected(_this->object, false);
+                    _this->object->editor->sidebar->hideParameters();
+                    _this->name = newName;
+                }
             });
 
             break;

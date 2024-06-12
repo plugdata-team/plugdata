@@ -657,7 +657,6 @@ void TabComponent::askToCloseTab(Canvas* cnv)
 
 void TabComponent::closeTab(Canvas* cnv)
 {
-
     auto patch = cnv->refCountedPatch;
 
     editor->sidebar->hideParameters();

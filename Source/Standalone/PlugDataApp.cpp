@@ -44,6 +44,10 @@
 #    define snprintf _snprintf
 #endif
 
+#ifdef JUCE_DEBUG // Just to make sure this never accidentally gets in our CI builds
+#define RUN_HELPFILE_TESTS 0
+#endif
+
 class PlugDataApp : public JUCEApplication {
 
     Image logo = ImageFileFormat::loadFrom(BinaryData::plugdata_logo_png, BinaryData::plugdata_logo_pngSize);
@@ -65,8 +69,91 @@ public:
 #endif
 
         appProperties.setStorageParameters(options);
+        
+#if RUN_HELPFILE_TESTS
+        // Call after window is ready
+        Timer::callAfterDelay(200, [this](){
+            runTests();
+        });
+#endif
     }
+    
+#if RUN_HELPFILE_TESTS
+    std::vector<std::pair<File, double>> patchLoadDurations;
+    
+    void openHelpfilesRecursively(TabComponent& tabbar, std::vector<File>& helpFiles)
+    {
+        if(helpFiles.empty())
+        {
+            std::cout << "TEST COMPLETED SUCCESFULLY" << std::endl;
+            std::cout << "Slowest patches:" << std::endl;
+            
+            std::sort(patchLoadDurations.begin(), patchLoadDurations.end(), [](const auto& a, const auto& b){
+                return a.second > b.second;
+            });
+            
+            for(int i = 0; i < 20; i++)
+            {
+                auto& [file, time] = patchLoadDurations[i];
+                std::cout << file.getFullPathName() << ",  " << time << "ms" << std::endl;
+            }
+            return;
+        }
+        
+        auto helpFile = helpFiles.back();
+        auto start = Time::getMillisecondCounterHiRes();
+        tabbar.openPatch(URL(helpFile));
+        auto end = Time::getMillisecondCounterHiRes();
+        
+        patchLoadDurations.emplace_back(helpFile, end - start);
+        helpFiles.pop_back();
+        
+        std::cout << "DONE PROCESSING: " << patchLoadDurations.size() << ", " << helpFile.getFullPathName() << std::endl;
+        
+        // Evil test that deletes the patch instantly after being created, leaving dangling pointers
+        // plugdata should be able to handle this!
+#if TEST_PATCH_DETACHED
+        std::vector<pd::WeakReference> openedPatches;
+        // Close all patches
+        for (auto* cnv = pd_getcanvaslist(); cnv; cnv = cnv->gl_next) {
+            openedPatches.push_back(pd::WeakReference(cnv, this));
+        }
+        
+        for(auto patch : openedPatches)
+        {
+            if(auto cnv = patch.get<t_glist*>()) {
+                libpd_closefile(cnv.get());
+            }
+        }
+#endif
+        
+        Timer::callAfterDelay(50, [this, &helpFiles, tabbar = &tabbar]() mutable {
+            while(auto* cnv = tabbar->getCurrentCanvas()) { // TODO: why is this faster than closeAllTabs?()
+                tabbar->closeTab(cnv);
+            }
+            openHelpfilesRecursively(*tabbar, helpFiles);
+        });
+    }
+    
+    void runTests()
+    {
+        static std::vector<File> allHelpfiles = {};
+        // Open every helpfile, this will make sure it initialises and closes every object at least once (but probasbly a whole bunch of times in different contexts)
+        // Run with AddressSanitizer, UBSanitizer or ThreadSanitizer to find all memory, UB and threading problems
+        for(auto& file : OSUtils::iterateDirectory(ProjectInfo::appDataDir.getChildFile("Documentation"), true, true))
+        {
+            if(file.hasFileExtension(".pd"))
+            {
+                allHelpfiles.push_back(file);
+            }
+        }
 
+        auto& tabbar = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor())->getTabComponent();
+        
+        openHelpfilesRecursively(tabbar, allHelpfiles);
+    }
+#endif
+    
     String const getApplicationName() override
     {
         return "plugdata";
