@@ -28,7 +28,7 @@ public:
         sampleRate = sourceSampleRate;
         mainBufferSize = sourceBufferSize;
         peakWindowSize = sampleRate / 60;
-        bufferSize = jmax(peakWindowSize.load(), mainBufferSize.load()) * 3;
+        bufferSize = jmax(peakWindowSize, mainBufferSize) * 3;
 
         peakBuffer.setSize(numChannels, peakWindowSize, true, true);
         buffer.setSize(numChannels, bufferSize, false, true);
