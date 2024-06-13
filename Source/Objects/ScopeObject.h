@@ -279,6 +279,12 @@ public:
         }
     }
 
+    bool inletIsSymbol() override
+    {
+        auto rSymbol = receiveSymbol.toString();
+        return rSymbol.isNotEmpty() && (rSymbol != "empty");
+    }
+
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
         switch (symbol) {

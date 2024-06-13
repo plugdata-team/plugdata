@@ -415,6 +415,18 @@ public:
         return { hex[0], hex[1], hex[2] };
     }
 
+    bool inletIsSymbol() override
+    {
+        auto rSymbol = receiveSymbol.toString();
+        return rSymbol.isNotEmpty() && (rSymbol != "empty");
+    }
+
+    bool outletIsSymbol() override
+    {
+        auto sSymbol = sendSymbol.toString();
+        return sSymbol.isNotEmpty() && (sSymbol != "empty");
+    }
+
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
         switch (symbol) {

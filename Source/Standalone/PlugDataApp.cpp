@@ -44,13 +44,13 @@
 #    define snprintf _snprintf
 #endif
 
-//#ifdef JUCE_DEBUG // Just to make sure this never accidentally gets in our CI builds
-#define RUN_HELPFILE_TESTS 1
+#ifdef JUCE_DEBUG // Just to make sure this never accidentally gets in our CI builds
+#define RUN_HELPFILE_TESTS 0
 
 #if RUN_HELPFILE_TESTS
 #include "Sidebar/Sidebar.h" // So we can read and clear the console
 #endif
-//#endif
+#endif
 
 class PlugDataApp : public JUCEApplication {
 
