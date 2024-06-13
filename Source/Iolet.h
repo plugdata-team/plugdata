@@ -51,7 +51,7 @@ public:
 
 private:
     bool const insideGraph;
-    bool hideIolet = false;
+    bool isSymbolIolet = false;
 
     Value locked;
     Value commandLocked;

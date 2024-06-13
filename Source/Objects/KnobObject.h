@@ -300,12 +300,12 @@ public:
         knob.showArc(::getValue<bool>(showArc));
     }
 
-    bool hideInlets() override
+    bool inletIsSymbol() override
     {
         return hasReceiveSymbol();
     }
 
-    bool hideOutlets() override
+    bool outletIsSymbol() override
     {
         return hasSendSymbol();
     }

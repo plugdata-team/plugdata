@@ -187,6 +187,8 @@ public:
         iolet->addMouseListener(this, false);
 
         cnv->addAndMakeVisible(this);
+        cnv->getProperties().set("SHOW_SYMBOL_IOLETS", var(target->isInlet));
+        cnv->repaint();
 
         setAlwaysOnTop(true);
         setAccessible(false); // TODO: implement accessibility. We disable default, since it makes stuff slow on macOS
@@ -194,6 +196,7 @@ public:
 
     ~ConnectionBeingCreated() override
     {
+        cnv->getProperties().remove("SHOW_SYMBOL_IOLETS");
         cnv->removeMouseListener(this);
         iolet->removeMouseListener(this);
     }

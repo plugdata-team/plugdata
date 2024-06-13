@@ -710,9 +710,9 @@ void Object::updateIolets()
 
     for (auto* iolet : iolets) {
         if (gui && !iolet->isInlet) {
-            iolet->setHidden(gui->hideOutlets());
+            iolet->setHidden(gui->outletIsSymbol());
         } else if (gui && iolet->isInlet) {
-            iolet->setHidden(gui->hideInlets());
+            iolet->setHidden(gui->inletIsSymbol());
         }
     }
 

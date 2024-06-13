@@ -61,27 +61,34 @@ void Iolet::render(NVGcontext* nvg)
         return;
 
     auto& fb = cnv->ioletBuffer;
+
     if (!fb.isValid())
         return;
 
     bool isLocked = getValue<bool>(locked) || getValue<bool>(commandLocked);
     bool overObject = object->drawIoletExpanded;
     bool isHovering = isTargeted && !isLocked;
+
+    if (!(cnv->getProperties().contains("SHOW_SYMBOL_IOLETS") && (static_cast<bool>(*cnv->getProperties().getVarPointer("SHOW_SYMBOL_IOLETS")) != isInlet))) {
+        if ((isLocked && isSymbolIolet) || (isSymbolIolet && !isHovering && !overObject && !object->isSelected()))
+            return;
+    }
+
     int type = isSignal + (isGemState * 2);
     if (isLocked)
         type = 3;
 
     nvgSave(nvg);
 
-    if (isLocked || !(overObject || isHovering)) {
+    if (isLocked || !(overObject || isHovering )) {
         auto clipBounds = getLocalArea(object, object->getLocalBounds().reduced(Object::margin));
         nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
     }
 
     auto scale = getWidth() / 13.0f;
     nvgScale(nvg, scale, scale); // If the iolet is shrunk because there is little space, we scale it down
-
     nvgFillPaint(nvg, nvgImagePattern(nvg, isHovering * -16 - 1.5f, type * -16 - 0.5f, 16 * 4, 16 * 4, 0, fb.getImage(), 1));
+
     nvgFillRect(nvg, 0, 0, 13, 13);
 
     nvgRestore(nvg);
@@ -447,14 +454,14 @@ void Iolet::valueChanged(Value& v)
         repaint();
     }
     if (v.refersToSameSourceAs(presentationMode)) {
-        setVisible(!getValue<bool>(presentationMode) && !insideGraph && !hideIolet);
+        setVisible(!getValue<bool>(presentationMode) && !insideGraph);
         repaint();
     }
 }
 
 void Iolet::setHidden(bool hidden)
 {
-    hideIolet = hidden;
-    setVisible(!getValue<bool>(presentationMode) && !insideGraph && !hideIolet);
+    isSymbolIolet = hidden;
+    setVisible(!getValue<bool>(presentationMode) && !insideGraph);
     repaint();
 }
