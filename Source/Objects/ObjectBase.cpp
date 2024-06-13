@@ -280,20 +280,20 @@ String ObjectBase::getType() const
         // Deal with different text objects
         switch (hash(className)) {
         case hash("text"):
-            if (ptr.get<t_text>()->te_type == T_OBJECT)
+            if (obj.cast<t_text>()->te_type == T_OBJECT)
                 return "invalid";
-            if (ptr.get<t_text>()->te_type == T_TEXT)
+            if (obj.cast<t_text>()->te_type == T_TEXT)
                 return "comment";
-            if (ptr.get<t_text>()->te_type == T_MESSAGE)
+            if (obj.cast<t_text>()->te_type == T_MESSAGE)
                 return "message";
             break;
         // Deal with atoms
         case hash("gatom"):
-            if (ptr.get<t_fake_gatom>()->a_flavor == A_FLOAT)
+            if (obj.cast<t_fake_gatom>()->a_flavor == A_FLOAT)
                 return "floatbox";
-            if (ptr.get<t_fake_gatom>()->a_flavor == A_SYMBOL)
+            if (obj.cast<t_fake_gatom>()->a_flavor == A_SYMBOL)
                 return "symbolbox";
-            if (ptr.get<t_fake_gatom>()->a_flavor == A_NULL)
+            if (obj.cast<t_fake_gatom>()->a_flavor == A_NULL)
                 return "listbox";
             break;
         default:

@@ -130,7 +130,7 @@ public:
         if (!locked) {
             Rectangle<float> draggableRect;
             if (auto iemgui = ptr.get<t_iemgui>()) {
-                draggableRect = Rectangle<float>(ptr.get<t_iemgui>()->x_w, ptr.get<t_iemgui>()->x_h);
+                draggableRect = Rectangle<float>(iemgui->x_w, iemgui->x_h);
             } else {
                 return;
             }

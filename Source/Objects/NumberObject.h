@@ -303,28 +303,45 @@ public:
 
     float getValue()
     {
-        return (ptr.get<t_my_numbox>())->x_val;
+        if(auto numbox = ptr.get<t_my_numbox>())
+        {
+            return numbox->x_val;
+        }
+        return 0.0f;
     }
 
     float getMinimum()
     {
-        return (ptr.get<t_my_numbox>())->x_min;
+        if(auto numbox = ptr.get<t_my_numbox>())
+        {
+            return numbox->x_min;
+        }
+        return -std::numeric_limits<float>::infinity();
     }
 
     float getMaximum()
     {
-        return (ptr.get<t_my_numbox>())->x_max;
+        if(auto numbox = ptr.get<t_my_numbox>())
+        {
+            return numbox->x_min;
+        }
+        return std::numeric_limits<float>::infinity();
     }
 
     void setMinimum(float value)
     {
         input.setMinimum(value);
-        ptr.get<t_my_numbox>()->x_min = value;
+        if(auto numbox = ptr.get<t_my_numbox>()) {
+            numbox->x_min = value;
+        }
     }
 
     void setMaximum(float value)
     {
         input.setMaximum(value);
-        ptr.get<t_my_numbox>()->x_max = value;
+        if(auto numbox = ptr.get<t_my_numbox>()) {
+            numbox->x_max = value;
+        }
+        
     }
 };

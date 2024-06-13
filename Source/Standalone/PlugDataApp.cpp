@@ -101,6 +101,8 @@ public:
         }
         
         auto helpFile = helpFiles.back();
+        std::cout << "STARTED PROCESSING: " << helpFile.getFullPathName() << std::endl;
+        
         auto start = Time::getMillisecondCounterHiRes();
         tabbar.openPatch(URL(helpFile));
         auto end = Time::getMillisecondCounterHiRes();
@@ -112,13 +114,16 @@ public:
         
         // Evil test that deletes the patch instantly after being created, leaving dangling pointers
         // plugdata should be able to handle this!
+#define TEST_PATCH_DETACHED 1
 #if TEST_PATCH_DETACHED
+        auto* pd = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor())->pd;
         std::vector<pd::WeakReference> openedPatches;
         // Close all patches
         for (auto* cnv = pd_getcanvaslist(); cnv; cnv = cnv->gl_next) {
-            openedPatches.push_back(pd::WeakReference(cnv, this));
+            openedPatches.push_back(pd::WeakReference(cnv, pd));
         }
         
+        pd->patches.clear();
         for(auto patch : openedPatches)
         {
             if(auto cnv = patch.get<t_glist*>()) {

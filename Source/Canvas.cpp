@@ -836,12 +836,13 @@ void Canvas::synchroniseSplitCanvas()
 // Used for loading and for complicated actions like undo/redo
 void Canvas::performSynchronise()
 {
-    pd->lockAudioThread();
-
-    patch.setCurrent();
-    pd->sendMessagesFromQueue();
-
-    pd->unlockAudioThread();
+    if(auto patchPtr = patch.getPointer()) {
+        patch.setCurrent();
+        pd->sendMessagesFromQueue();
+    }
+    else {
+        return;
+    }
 
     // Remove deleted connections
     for (int n = connections.size() - 1; n >= 0; n--) {

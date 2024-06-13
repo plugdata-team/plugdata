@@ -193,7 +193,9 @@ public:
 
     float getValue()
     {
-        return ptr.get<t_radio>()->x_on;
+        if(auto radio = ptr.get<t_radio>()) return radio->x_on;
+        
+        return 0.0f;
     }
 
     void render(NVGcontext* nvg) override
@@ -296,7 +298,12 @@ public:
 
     float getMaximum()
     {
-        return ptr.get<t_radio>()->x_number;
+        if(auto radio = ptr.get<t_radio>())
+        {
+            return radio->x_number;
+        }
+        
+        return 0.0f;
     }
 
     void setMaximum(float maxValue)
@@ -305,7 +312,10 @@ public:
             selected = maxValue - 1;
         }
 
-        ptr.get<t_radio>()->x_number = maxValue;
+        if(auto radio = ptr.get<t_radio>())
+        {
+            radio->x_number = maxValue;
+        }
 
         resized();
     }

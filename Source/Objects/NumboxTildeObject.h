@@ -228,7 +228,10 @@ public:
     void setForegroundColour(String const& colour)
     {
         // Remove alpha channel and add #
-        ptr.get<t_fake_numbox>()->x_fg = pd->generateSymbol("#" + colour.substring(2));
+        if(auto numbox = ptr.get<t_fake_numbox>())
+        {
+            numbox->x_fg = pd->generateSymbol("#" + colour.substring(2));
+        }
 
         auto col = Colour::fromString(colour);
         getLookAndFeel().setColour(Label::textColourId, col);
@@ -240,7 +243,11 @@ public:
 
     void setBackgroundColour(String const& colour)
     {
-        ptr.get<t_fake_numbox>()->x_bg = pd->generateSymbol("#" + colour.substring(2));
+        if(auto numbox = ptr.get<t_fake_numbox>())
+        {
+            numbox->x_bg = pd->generateSymbol("#" + colour.substring(2));
+        }
+        
         repaint();
     }
 

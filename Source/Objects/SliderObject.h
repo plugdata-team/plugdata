@@ -401,7 +401,7 @@ public:
     {
         float min = 0.0f, max = 127.0f;
         if (auto slider = ptr.get<t_slider>()) {
-            ptr.get<t_slider>()->x_min = value;
+            slider->x_min = value;
             min = slider->x_min;
             max = slider->x_max;
         }
@@ -413,7 +413,7 @@ public:
     {
         float min = 0.0f, max = 127.0f;
         if (auto slider = ptr.get<t_slider>()) {
-            ptr.get<t_slider>()->x_max = value;
+            slider->x_max = value;
             min = slider->x_min;
             max = slider->x_max;
         }

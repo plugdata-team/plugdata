@@ -574,7 +574,7 @@ public:
     Colour getArcColour() const
     {
         if (auto knob = ptr.get<t_fake_knob>()) {
-            auto mg = String::fromUTF8(ptr.get<t_fake_knob>()->x_mg->s_name);
+            auto mg = String::fromUTF8(knob->x_mg->s_name);
             return convertTclColour(mg);
         }
 

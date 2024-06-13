@@ -219,9 +219,11 @@ public:
     void render(NVGcontext* nvg) override
     {
         // Strangly, the title goes below the graph content in pd
-        if (!getValue<bool>(hideNameAndArgs) && getText() != "graph") {
+        if(!getValue<bool>(hideNameAndArgs)) {
             auto text = getText();
-            textRenderer.renderText(nvg, Rectangle<int>(5, 0, getWidth() - 5, 16), getImageScale());
+            if (text != "graph" && text.isNotEmpty()) {
+                textRenderer.renderText(nvg, Rectangle<int>(5, 0, getWidth() - 5, 16), getImageScale());
+            }
         }
 
         Canvas* topLevel = cnv;

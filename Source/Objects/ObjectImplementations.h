@@ -493,7 +493,10 @@ public:
 
     void update() override
     {
-        cnv = getMainCanvas(ptr.get<t_fake_canvas_vis>()->x_canvas);
+        if(auto canvas_vis = ptr.get<t_fake_canvas_vis>())
+        {
+            cnv = getMainCanvas(canvas_vis->x_canvas);
+        }
 
         if (!cnv)
             return;
@@ -559,9 +562,12 @@ public:
             cnv->locked.removeListener(this);
         }
 
-        cnv = getMainCanvas(ptr.get<t_fake_zoom>()->x_canvas);
-        if (!cnv)
-            return;
+        if(auto canvas_zoom = ptr.get<t_fake_zoom>())
+        {
+            cnv = getMainCanvas(canvas_zoom->x_canvas);
+        }
+        
+        if (!cnv) return;
 
         zoomScaleValue.referTo(cnv->zoomScale);
         zoomScaleValue.addListener(this);
@@ -596,7 +602,10 @@ public:
         lastPosition = mouseSource.getScreenPosition();
         lastMouseDownTime = mouseSource.getLastMouseDownTime();
         startTimer(timerInterval);
-        canvas = this->ptr.get<t_fake_mouse>()->x_glist;
+        if(auto mouse = this->ptr.get<t_fake_mouse>())
+        {
+            canvas = mouse->x_glist;
+        }
     }
 
     void timerCallback() override

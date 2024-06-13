@@ -27,7 +27,7 @@ public:
         iemHelper.addIemParameters(objectParameters, false, false, -1);
 
         updateLabel();
-        showScale = ptr.get<t_vu>()->x_scale;
+        if(auto vu = ptr.get<t_vu>()) showScale = vu->x_scale;
         valueChanged(showScale);
     }
 
@@ -115,6 +115,8 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        if(!ptr.isValid()) return;
+        
         auto values = std::vector<float> { ptr.get<t_vu>()->x_fp, ptr.get<t_vu>()->x_fr };
         auto backgroundColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
         auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
