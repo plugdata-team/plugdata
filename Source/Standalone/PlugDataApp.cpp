@@ -44,13 +44,14 @@
 #    define snprintf _snprintf
 #endif
 
-#ifdef JUCE_DEBUG // Just to make sure this never accidentally gets in our CI builds
-#define RUN_HELPFILE_TESTS 0
+//#ifdef JUCE_DEBUG // Just to make sure this never accidentally gets in our CI builds
+#define RUN_HELPFILE_TESTS 1
 
 #if RUN_HELPFILE_TESTS
 #include "Sidebar/Sidebar.h" // So we can read and clear the console
+#include "Objects/ObjectBase.h" // So we can interact with object GUIs
 #endif
-#endif
+//#endif
 
 class PlugDataApp : public JUCEApplication {
 
@@ -102,10 +103,10 @@ public:
         
         std::cout << "STARTED PROCESSING: " << numProcessed++ << " " << helpFile.getFullPathName() << std::endl;
         
-        tabbar.openPatch(URL(helpFile));
+        auto* cnv = tabbar.openPatch(URL(helpFile));
 
-        auto* pd = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor())->pd;
-        auto* editor = pd->getEditors()[0];
+        auto* pd = cnv->pd;
+        auto* editor = cnv->editor;
         
         // Evil test that deletes the patch instantly after being created, leaving dangling pointers everywhere
         // plugdata should be able to handle that!
@@ -126,6 +127,18 @@ public:
             }
         }
 #endif
+        /*
+        // Click everything
+        cnv->locked.setValue(true);
+        for(auto* object : cnv->objects)
+        {
+            auto mms = Desktop::getInstance().getMainMouseSource();
+            auto pos = object->gui->getLocalBounds().getCentre().toFloat();
+            auto fakeEvent = MouseEvent (mms, pos, ModifierKeys::noModifiers, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, object->gui.get(), object->gui.get(), Time::getCurrentTime(), pos, Time::getCurrentTime(), 1, false);
+            
+            object->gui->mouseDown(fakeEvent);
+            object->gui->mouseUp(fakeEvent);
+        } */
         
         StringArray errors;
         auto messages = pd->getConsoleMessages();

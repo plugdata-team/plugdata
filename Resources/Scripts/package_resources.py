@@ -1,5 +1,6 @@
 import shutil
 import os
+import re
 import glob
 import sys
 import platform
@@ -64,6 +65,24 @@ def splitFile(file, num_files):
         fd.write(entry)
       count += 1
 
+def replaceTextInFile(file_path, old_string, new_string):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        content = file.read()
+
+    content_new = re.sub(re.escape(old_string), new_string, content)
+
+    with open(file_path, 'w', encoding='utf-8') as file:
+        file.write(content_new)
+
+def replaceTextInFolder(folder_path, old_string, new_string):
+    for root, dirs, files in os.walk(folder_path):
+        for file_name in files:
+            file_path = os.path.join(root, file_name)
+            replaceTextInFile(file_path, old_string, new_string)
+        for dir_name in dirs:
+            replaceTextInFolder(os.path.join(root, dir_name), old_string, new_string)
+
+
 if existsAsFile("../Filesystem.zip"):
     removeFile("../Filesystem.zip")
 
@@ -84,7 +103,10 @@ globCopy("../../Libraries/pure-data/extra/**/*-help.pd", "./Abstractions")
 globCopy("../../Libraries/pd-else/Code_source/Abstractions/control/*.pd", "./Abstractions/else")
 globCopy("../../Libraries/pd-else/Code_source/Abstractions/audio/*.pd", "./Abstractions/else")
 globCopy("../../Libraries/pd-else/Code_source/Abstractions/extra_abs/*.pd", "./Abstractions/else")
+globCopy("../../Libraries/pd-else/Code_source/Compiled/control/*.pd_lua", "./Abstractions/else")
+globCopy("../../Libraries/pd-else/Code_source/Compiled/audio/*.pd_lua", "./Abstractions/else")
 globCopy("../../Libraries/pd-else/Code_source/Abstractions/extra_abs/*.pd_lua", "./Abstractions/else")
+copyFile("../Patches/lua.pd_lua", "./Abstractions/else")
 copyFile("../Patches/playhead.pd", "./Abstractions")
 copyFile("../Patches/param.pd", "./Abstractions")
 copyFile("../Patches/daw_storage.pd", "./Abstractions")
@@ -122,6 +144,10 @@ copyDir("../../Libraries/pd-else/Code_source/Compiled/audio/sfont~/sf", "Extra/e
 copyDir("../Patches/Presets", "./Extra/Presets")
 copyDir("../Patches/Palettes", "./Extra/palette")
 globCopy("../../Libraries/pure-data/doc/sound/*", "Extra/else")
+
+# Our folder is called "Documentation" instead of "doc", which makes some file paths in default helpfiles invalid
+replaceTextInFolder("./Documentation/5.reference", "../doc/5.reference/", "../Documentation/5.reference/")
+replaceTextInFolder("./Documentation/5.reference", "../doc/sound/", "../Documentation/sound/")
 
 # pd-lua
 makeDir("Extra/pdlua")
