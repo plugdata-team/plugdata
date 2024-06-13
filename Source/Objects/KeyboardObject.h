@@ -515,6 +515,18 @@ public:
         }
     }
 
+    bool inletIsSymbol() override
+    {
+        auto rSymbol = receiveSymbol.toString();
+        return rSymbol.isNotEmpty() && (rSymbol != "empty");
+    }
+
+    bool outletIsSymbol() override
+    {
+        auto sSymbol = sendSymbol.toString();
+        return sSymbol.isNotEmpty() && (sSymbol != "empty");
+    }
+
     void timerCallback() override
     {
         updateValue();
