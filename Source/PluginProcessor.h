@@ -208,7 +208,7 @@ private:
     std::map<unsigned long, std::unique_ptr<Component>> textEditorDialogs;
 
     static inline String const else_version = "ELSE v1.0-rc11";
-    static inline String const cyclone_version = "cyclone v0.8-1";
+    static inline String const cyclone_version = "cyclone v0.9-0";
     static inline String const heavylib_version = "heavylib v0.3.1";
     static inline String const gem_version = "Gem v0.94";
     // this gets updated with live version data later

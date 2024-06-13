@@ -15,7 +15,6 @@ class BangObject final : public ObjectBase {
     bool alreadyBanged = false;
 
     IEMHelper iemHelper;
-
     bool mouseHover = false;
 
 public:

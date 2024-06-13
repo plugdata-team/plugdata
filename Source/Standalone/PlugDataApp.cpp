@@ -44,9 +44,13 @@
 #    define snprintf _snprintf
 #endif
 
-#ifdef JUCE_DEBUG // Just to make sure this never accidentally gets in our CI builds
-#define RUN_HELPFILE_TESTS 0
+//#ifdef JUCE_DEBUG // Just to make sure this never accidentally gets in our CI builds
+#define RUN_HELPFILE_TESTS 1
+
+#if RUN_HELPFILE_TESTS
+#include "Sidebar/Sidebar.h" // So we can read and clear the console
 #endif
+//#endif
 
 class PlugDataApp : public JUCEApplication {
 
@@ -79,44 +83,35 @@ public:
     }
     
 #if RUN_HELPFILE_TESTS
-    std::vector<std::pair<File, double>> patchLoadDurations;
+
+    int numProcessed = 0;
+    String loggedErrors;
     
     void openHelpfilesRecursively(TabComponent& tabbar, std::vector<File>& helpFiles)
     {
         if(helpFiles.empty())
         {
             std::cout << "TEST COMPLETED SUCCESFULLY" << std::endl;
-            std::cout << "Slowest patches:" << std::endl;
-            
-            std::sort(patchLoadDurations.begin(), patchLoadDurations.end(), [](const auto& a, const auto& b){
-                return a.second > b.second;
-            });
-            
-            for(int i = 0; i < 20; i++)
-            {
-                auto& [file, time] = patchLoadDurations[i];
-                std::cout << file.getFullPathName() << ",  " << time << "ms" << std::endl;
-            }
+
+            File("~/Projecten/plugdata/testdata.md").replaceWithText(loggedErrors);
             return;
         }
         
         auto helpFile = helpFiles.back();
-        std::cout << "STARTED PROCESSING: " << helpFile.getFullPathName() << std::endl;
-        
-        auto start = Time::getMillisecondCounterHiRes();
-        tabbar.openPatch(URL(helpFile));
-        auto end = Time::getMillisecondCounterHiRes();
-        
-        patchLoadDurations.emplace_back(helpFile, end - start);
         helpFiles.pop_back();
         
-        std::cout << "DONE PROCESSING: " << patchLoadDurations.size() << ", " << helpFile.getFullPathName() << std::endl;
+        std::cout << "STARTED PROCESSING: " << numProcessed++ << " " << helpFile.getFullPathName() << std::endl;
         
-        // Evil test that deletes the patch instantly after being created, leaving dangling pointers
-        // plugdata should be able to handle this!
-#define TEST_PATCH_DETACHED 1
-#if TEST_PATCH_DETACHED
+        tabbar.openPatch(URL(helpFile));
+
         auto* pd = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor())->pd;
+        auto* editor = pd->getEditors()[0];
+        
+        // Evil test that deletes the patch instantly after being created, leaving dangling pointers everywhere
+        // plugdata should be able to handle that!
+#define TEST_PATCH_DETACHED 0
+#if TEST_PATCH_DETACHED
+       
         std::vector<pd::WeakReference> openedPatches;
         // Close all patches
         for (auto* cnv = pd_getcanvaslist(); cnv; cnv = cnv->gl_next) {
@@ -131,6 +126,27 @@ public:
             }
         }
 #endif
+        
+        StringArray errors;
+        auto messages = pd->getConsoleMessages();
+        for(auto& [ptr, message, type, length, repeats] : messages)
+        {
+            if(type == 1)
+            {
+                errors.add(message);
+            }
+        }
+        
+        if(!errors.isEmpty())
+        {
+            loggedErrors += "\n\n\n" + helpFile.getFullPathName() + "\n--------------------------------------------------------------------------\n";
+            for(auto& error : errors)
+            {
+                loggedErrors += error + "\n";
+            }
+        }
+        
+        editor->sidebar->clearConsole();
         
         Timer::callAfterDelay(50, [this, &helpFiles, tabbar = &tabbar]() mutable {
             while(auto* cnv = tabbar->getCurrentCanvas()) { // TODO: why is this faster than closeAllTabs?()

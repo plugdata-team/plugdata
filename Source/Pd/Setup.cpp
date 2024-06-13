@@ -775,6 +775,7 @@ void poltocar_setup();
 void pong_setup();
 void prepend_setup();
 void prob_setup();
+void cyclone_pink_tilde_setup();
 void pv_setup();
 void rdiv_setup();
 void rminus_setup();
@@ -796,6 +797,7 @@ void thresh_setup();
 void togedge_setup();
 void tosymbol_setup();
 void trough_setup();
+void cyclone_trunc_tilde_setup();
 void universal_setup();
 void unjoin_setup();
 void urn_setup();
@@ -910,6 +912,7 @@ void poke_tilde_setup();
 void poltocar_tilde_setup();
 void pong_tilde_setup();
 void pow_tilde_setup();
+void Pow_tilde_setup();
 void rampsmooth_tilde_setup();
 void rand_tilde_setup();
 void rdiv_tilde_setup();
@@ -1248,6 +1251,8 @@ void pm6_tilde_setup();
 void var_setup();
 void conv_tilde_setup();
 void fm_tilde_setup();
+void vcf2_tilde_setup();
+void setup_mpe0x2ein();
 
 #ifdef ENABLE_SFIZZ
 void sfz_tilde_setup();
@@ -1724,6 +1729,8 @@ void Setup::initialiseELSE()
     var_setup();
     conv_tilde_setup();
     fm_tilde_setup();
+    vcf2_tilde_setup();
+    setup_mpe0x2ein();
 }
 
 void Setup::initialiseGem(std::string const& gemPluginPath)
@@ -2345,6 +2352,7 @@ void Setup::initialiseCyclone()
     pong_setup();
     prepend_setup();
     prob_setup();
+    cyclone_pink_tilde_setup();
     pv_setup();
     rdiv_setup();
     rminus_setup();
@@ -2366,6 +2374,7 @@ void Setup::initialiseCyclone()
     togedge_setup();
     tosymbol_setup();
     trough_setup();
+    cyclone_trunc_tilde_setup();
     universal_setup();
     unjoin_setup();
     urn_setup();
@@ -2477,6 +2486,7 @@ void Setup::initialiseCyclone()
     poltocar_tilde_setup();
     pong_tilde_setup();
     pow_tilde_setup();
+    Pow_tilde_setup();
     rampsmooth_tilde_setup();
     rand_tilde_setup();
     rdiv_tilde_setup();

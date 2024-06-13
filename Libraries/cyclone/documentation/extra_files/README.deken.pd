@@ -1,8 +1,0 @@
-#N canvas 439 57 505 390 12;
-#X text 169 265 <-- check its help file;
-#X obj 94 34 cnv 15 250 42 empty empty Cyclone 70 13 0 18 #7c7c7c #e0e4dc 0;
-#X obj 107 66 cnv 5 5 5 empty empty Objects\ cloned\ from\ MAX/MSP 10 0 0 13 #7c7c7c #e0e4dc 0;
-#X text 45 107 Hey \, you downloaded the 'cylone' library from 'deken' \, nice! This A library with separate binaries and a sub library. You need to add its path to your search paths and you should also load the 'cyclone' binary as a library \, which will give you some information on the terminal and install a subset of non-alphanumeric objects. You can also do this by creating the [else] external as below., f 56;
-#X obj 108 264 cyclone;
-#X obj 204 324 All_about_cyclone;
-#X text 121 324 see also:;

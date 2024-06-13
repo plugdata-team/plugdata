@@ -216,17 +216,17 @@ include_directories(pd-else/Code_source/Compiled/audio/sfz~/sfizz/library/src)
 source_group(ELSE FILES ${ELSE_SOURCES})
 
 file(GLOB_RECURSE CYCLONE_SOURCES
-    ./cyclone/cyclone_objects/binaries/cyclone_lib.c
-    ./cyclone/cyclone_objects/binaries/audio/*.c
-    ./cyclone/cyclone_objects/binaries/control/*.c
-    ./cyclone/shared/common/*.c
-    ./cyclone/shared/control/*.c
-    ./cyclone/shared/signal/*.c
+    ./pd-cyclone/cyclone_objects/binaries/cyclone_lib.c
+    ./pd-cyclone/cyclone_objects/binaries/audio/*.c
+    ./pd-cyclone/cyclone_objects/binaries/control/*.c
+    ./pd-cyclone/shared/common/*.c
+    ./pd-cyclone/shared/control/*.c
+    ./pd-cyclone/shared/signal/*.c
 )
 
-include_directories(cyclone/)
-include_directories(cyclone/shared/)
-source_group(cyclone FILES ${CYCLONE_SOURCES})
+include_directories(pd-cyclone/)
+include_directories(pd-cyclone/shared/)
+source_group(pd-cyclone FILES ${CYCLONE_SOURCES})
 
 # pdlua sources
 set(PDLUA_PATH "${CMAKE_CURRENT_SOURCE_DIR}/pd-lua")

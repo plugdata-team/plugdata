@@ -41,13 +41,16 @@ Canvas* TabComponent::openPatch(const URL& path)
 {
     auto patchFile = path.getLocalFile();
 
-    for (auto& patch : pd->patches) {
-        if (patch->getCurrentFile() == patchFile) {
-            pd->logError("Patch is already open");
-            for (auto* cnv : canvases) {
-                if (cnv->patch == *patch) {
-                    showTab(cnv);
-                    return cnv;
+    {
+        ScopedLock lock(pd->patches.getLock());
+        for (auto& patch : pd->patches) {
+            if (patch->getCurrentFile() == patchFile) {
+                pd->logError("Patch is already open");
+                for (auto* cnv : canvases) {
+                    if (cnv->patch == *patch) {
+                        showTab(cnv);
+                        return cnv;
+                    }
                 }
             }
         }
@@ -321,9 +324,12 @@ void TabComponent::handleAsyncUpdate()
     // First, remove canvases that no longer exist
     for (int i = canvases.size() - 1; i >= 0; i--) {
         bool exists = false;
-        for (auto& patch : pd->patches) {
-            if (canvases[i]->patch == *patch && canvases[i]->patch.windowIndex == editorIndex) {
-                exists = true;
+        {
+            ScopedLock lock(pd->patches.getLock());
+            for (auto& patch : pd->patches) {
+                if (canvases[i]->patch == *patch && canvases[i]->patch.windowIndex == editorIndex) {
+                    exists = true;
+                }
             }
         }
 
@@ -333,30 +339,31 @@ void TabComponent::handleAsyncUpdate()
     }
 
     // Load all patches from pd patch array
-    pd->patches.getLock().enter();
-    for (auto& patch : pd->patches) {
-        if (patch->windowIndex != editorIndex)
-            continue;
-
-        Canvas* cnv = nullptr;
-        for (auto* canvas : canvases) {
-            if (canvas->patch == *patch) {
-                cnv = canvas;
+    {
+        ScopedLock lock(pd->patches.getLock());
+        for (auto& patch : pd->patches) {
+            if (patch->windowIndex != editorIndex)
+                continue;
+            
+            Canvas* cnv = nullptr;
+            for (auto* canvas : canvases) {
+                if (canvas->patch == *patch) {
+                    cnv = canvas;
+                }
             }
+            
+            if (!cnv) {
+                cnv = canvases.add(new Canvas(editor, patch));
+                resized();
+                cnv->jumpToLastKnownPosition();
+            }
+            
+            // Create tab buttons
+            auto* newTabButton = new TabBarButtonComponent(cnv, this);
+            tabbars[patch->splitViewIndex == 1].add(newTabButton);
+            addAndMakeVisible(newTabButton);
         }
-
-        if (!cnv) {
-            cnv = canvases.add(new Canvas(editor, patch));
-            resized();
-            cnv->jumpToLastKnownPosition();
-        }
-
-        // Create tab buttons
-        auto* newTabButton = new TabBarButtonComponent(cnv, this);
-        tabbars[patch->splitViewIndex == 1].add(newTabButton);
-        addAndMakeVisible(newTabButton);
     }
-    pd->patches.getLock().exit();
 
     closeEmptySplits();
 

@@ -35,7 +35,7 @@
 #include "Sidebar/Sidebar.h"
 
 extern "C" {
-#include "../Libraries/cyclone/shared/common/file.h"
+#include "../Libraries/pd-cyclone/shared/common/file.h"
 EXTERN char* pd_version;
 }
 

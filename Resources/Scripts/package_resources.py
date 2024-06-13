@@ -101,9 +101,10 @@ copyFile("../Patches/playhead-help.pd", "./Documentation/5.reference")
 copyFile("../Patches/daw_storage-help.pd", "./Documentation/5.reference")
 copyFile("../Patches/plugin_latency-help.pd", "./Documentation/5.reference")
 
-globCopy("../../Libraries/cyclone/cyclone_objects/abstractions/*.pd", "./Abstractions/cyclone")
-copyDir("../../Libraries/cyclone/documentation/help_files", "./Documentation/10.cyclone")
-globCopy("../../Libraries/cyclone/documentation/extra_files/*", "./Documentation/10.cyclone/")
+globCopy("../../Libraries/pd-cyclone/cyclone_objects/abstractions/*.pd", "./Abstractions/cyclone")
+copyDir("../../Libraries/pd-cyclone/documentation/help_files", "./Documentation/10.cyclone")
+globCopy("../../Libraries/pd-cyclone/documentation/extra_files/*", "./Documentation/10.cyclone/")
+copyFile("../../Libraries/pd-cyclone/documentation/extra_files/All_about_cyclone.pd", "./Abstractions/cyclone/") # some help files want to find this here
 moveFile("./Documentation/10.cyclone/dsponoff~.pd", "./Abstractions/cyclone/dsponoff~.pd")
 copyDir("../../Libraries/pd-else/Documentation/Live-Electronics-Tutorial/", "./Documentation/12.live-electronics-tutorial")
 

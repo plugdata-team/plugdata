@@ -496,6 +496,8 @@ bool PluginEditor::isInPluginMode() const
 // Retern the patch that belongs to this editor that's in plugin mode
 pd::Patch::Ptr PluginEditor::findPatchInPluginMode()
 {
+    ScopedLock lock(pd->patches.getLock());
+    
     for (auto& patch : pd->patches) {
         if (editorIndex == patch->windowIndex && patch->openInPluginMode) {
             return patch;

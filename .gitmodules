@@ -43,3 +43,6 @@
 [submodule "Libraries/plf_stack"]
 	path = Libraries/plf_stack
 	url = https://github.com/mattreecebentley/plf_stack.git
+[submodule "Libraries/pd-cyclone"]
+	path = Libraries/pd-cyclone
+	url = https://github.com/timothyschoen/pd-cyclone
