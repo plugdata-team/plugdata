@@ -45,12 +45,12 @@ public:
         iemHelper.update();
     }
 
-    bool hideInlets() override
+    bool inletIsSymbol() override
     {
         return iemHelper.hasReceiveSymbol();
     }
 
-    bool hideOutlets() override
+    bool outletIsSymbol() override
     {
         return iemHelper.hasSendSymbol();
     }

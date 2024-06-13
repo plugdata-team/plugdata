@@ -15,6 +15,7 @@
 #include "BouncingViewport.h"
 #include "SearchEditor.h"
 #include "Dialogs/Dialogs.h"
+#include "PluginEditor.h"
 
 class PropertiesPanelProperty : public PropertyComponent {
 
@@ -815,6 +816,14 @@ public:
 
                     if (allowedCharacters.isNotEmpty()) {
                         editor->setInputRestrictions(0, allowedCharacters);
+                    }
+                };
+
+                label->onEditorHide = [this]() {
+                    // synchronise the value to the canvas when updated
+                    if (PluginEditor* pluginEditor = findParentComponentOfClass<PluginEditor>()){
+                        if (auto cnv = pluginEditor->getCurrentCanvas())
+                            cnv->synchronise();
                     }
                 };
             }

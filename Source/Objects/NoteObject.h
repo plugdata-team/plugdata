@@ -108,6 +108,16 @@ public:
         return true;
     }
 
+    bool inletIsSymbol() override
+    {
+        // we want to hide the note inlet regardless if it's symbol or not in locked mode
+        auto receiveSym = receiveSymbol.toString();
+        if (receiveSym.isEmpty() || receiveSym == "empty")
+            return locked;
+
+        return true;
+    }
+
     void render(NVGcontext* nvg) override
     {
         auto scale = getImageScale();
@@ -208,11 +218,6 @@ public:
     void resized() override
     {
         noteEditor.setBounds(getLocalBounds());
-    }
-
-    bool hideInlets() override
-    {
-        return locked;
     }
 
     void paint(Graphics& g) override

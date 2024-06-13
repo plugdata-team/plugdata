@@ -118,12 +118,12 @@ public:
         repaint();
     }
 
-    bool hideInlets() override
+    bool inletIsSymbol() override
     {
         return atomHelper.hasReceiveSymbol();
     }
 
-    bool hideOutlets() override
+    bool outletIsSymbol() override
     {
         return atomHelper.hasSendSymbol();
     }
