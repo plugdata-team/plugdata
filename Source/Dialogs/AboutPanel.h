@@ -40,6 +40,7 @@ class AboutPanel : public Component {
             { "Alex Mitchell", "Development, UI/UX design" },
             { "Joshua A.C. Newman", "Community management, logo and identity design" },
             { "Bas de Bruin", "Logo design" },
+            { "Alexandre Porres", "ELSE and cyclone development" },
             { "dreamer", "Hvcc development" },
             { "tomara-x", "Documentation, testing" }
         };
