@@ -44,14 +44,14 @@
 #    define snprintf _snprintf
 #endif
 
-//#ifdef JUCE_DEBUG // Just to make sure this never accidentally gets in our CI builds
-#define RUN_HELPFILE_TESTS 1
+#ifdef JUCE_DEBUG // Just to make sure this never accidentally gets in our CI builds
+#define RUN_HELPFILE_TESTS 0
 
 #if RUN_HELPFILE_TESTS
 #include "Sidebar/Sidebar.h" // So we can read and clear the console
 #include "Objects/ObjectBase.h" // So we can interact with object GUIs
 #endif
-//#endif
+#endif
 
 class PlugDataApp : public JUCEApplication {
 
@@ -87,6 +87,7 @@ public:
 
     int numProcessed = 0;
     String loggedErrors;
+    
     
     void openHelpfilesRecursively(TabComponent& tabbar, std::vector<File>& helpFiles)
     {
@@ -127,17 +128,33 @@ public:
             }
         }
 #endif
-        /*
         // Click everything
         cnv->locked.setValue(true);
         for(auto* object : cnv->objects)
         {
             auto mms = Desktop::getInstance().getMainMouseSource();
             auto pos = object->gui->getLocalBounds().getCentre().toFloat();
-            auto fakeEvent = MouseEvent (mms, pos, ModifierKeys::noModifiers, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, object->gui.get(), object->gui.get(), Time::getCurrentTime(), pos, Time::getCurrentTime(), 1, false);
+            auto fakeEvent = MouseEvent (mms, pos, ModifierKeys::leftButtonModifier, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, object->gui.get(), object->gui.get(), Time::getCurrentTime(), pos, Time::getCurrentTime(), 1, false);
             
             object->gui->mouseDown(fakeEvent);
             object->gui->mouseUp(fakeEvent);
+        }
+        
+        /*
+        // Go into all the subpatches that were opened by clicking, and click everything again
+        for(auto* subcanvas : tabbar.getCanvases())
+        {
+            if(subcanvas == cnv) continue;
+            subcanvas->locked.setValue(true);
+            for(auto* object : subcanvas->objects)
+            {
+                auto mms = Desktop::getInstance().getMainMouseSource();
+                auto pos = object->gui->getLocalBounds().getCentre().toFloat();
+                auto fakeEvent = MouseEvent (mms, pos, ModifierKeys::leftButtonModifier, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, object->gui.get(), object->gui.get(), Time::getCurrentTime(), pos, Time::getCurrentTime(), 1, false);
+                
+                object->gui->mouseDown(fakeEvent);
+                object->gui->mouseUp(fakeEvent);
+            }
         } */
         
         StringArray errors;
@@ -183,6 +200,9 @@ public:
         }
 
         auto& tabbar = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor())->getTabComponent();
+
+        allHelpfiles.erase(allHelpfiles.end() - 1460, allHelpfiles.end());
+        
         
         openHelpfilesRecursively(tabbar, allHelpfiles);
     }
