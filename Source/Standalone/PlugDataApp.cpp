@@ -44,14 +44,14 @@
 #    define snprintf _snprintf
 #endif
 
-#ifdef JUCE_DEBUG // Just to make sure this never accidentally gets in our CI builds
+//#ifdef JUCE_DEBUG // Just to make sure this never accidentally gets in our CI builds
 #define RUN_HELPFILE_TESTS 0
 
 #if RUN_HELPFILE_TESTS
 #include "Sidebar/Sidebar.h" // So we can read and clear the console
 #include "Objects/ObjectBase.h" // So we can interact with object GUIs
 #endif
-#endif
+//#endif
 
 class PlugDataApp : public JUCEApplication {
 
@@ -128,6 +128,8 @@ public:
             }
         }
 #endif
+        
+        /*
         // Click everything
         cnv->locked.setValue(true);
         for(auto* object : cnv->objects)
@@ -140,7 +142,6 @@ public:
             object->gui->mouseUp(fakeEvent);
         }
         
-        /*
         // Go into all the subpatches that were opened by clicking, and click everything again
         for(auto* subcanvas : tabbar.getCanvases())
         {
@@ -201,8 +202,7 @@ public:
 
         auto& tabbar = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor())->getTabComponent();
 
-        allHelpfiles.erase(allHelpfiles.end() - 1460, allHelpfiles.end());
-        
+       // allHelpfiles.erase(allHelpfiles.end() - 1560, allHelpfiles.end());
         
         openHelpfilesRecursively(tabbar, allHelpfiles);
     }

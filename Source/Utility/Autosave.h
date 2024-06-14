@@ -90,7 +90,7 @@ private:
         if (stl.isLocked()) {
             for (auto& patch : pd->patches) {
                 auto* patchPtr = patch->getPointer().get();
-                if (!patchPtr->gl_dirty)
+                if (!patchPtr || !patchPtr->gl_dirty)
                     continue;
 
                 // Check if patch is a root canvas

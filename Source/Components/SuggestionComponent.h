@@ -947,6 +947,7 @@ private:
         "osc.mc-unit",
         "All_objects",
         "All_about_else",
+        "All_about_cyclone",
         "README.deken",
         "else-meta",
         "resonbank.unit",

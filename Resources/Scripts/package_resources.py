@@ -77,8 +77,9 @@ def replaceTextInFile(file_path, old_string, new_string):
 def replaceTextInFolder(folder_path, old_string, new_string):
     for root, dirs, files in os.walk(folder_path):
         for file_name in files:
-            file_path = os.path.join(root, file_name)
-            replaceTextInFile(file_path, old_string, new_string)
+            if file_name.endswith('.pd'):
+                file_path = os.path.join(root, file_name)
+                replaceTextInFile(file_path, old_string, new_string)
         for dir_name in dirs:
             replaceTextInFolder(os.path.join(root, dir_name), old_string, new_string)
 
@@ -126,7 +127,8 @@ copyFile("../Patches/plugin_latency-help.pd", "./Documentation/5.reference")
 globCopy("../../Libraries/pd-cyclone/cyclone_objects/abstractions/*.pd", "./Abstractions/cyclone")
 copyDir("../../Libraries/pd-cyclone/documentation/help_files", "./Documentation/10.cyclone")
 globCopy("../../Libraries/pd-cyclone/documentation/extra_files/*", "./Documentation/10.cyclone/")
-copyFile("../../Libraries/pd-cyclone/documentation/extra_files/All_about_cyclone.pd", "./Abstractions/cyclone/") # some help files want to find this here
+moveFile("../../Libraries/pd-cyclone/documentation/extra_files/All_about_cyclone.pd", "./Abstractions/cyclone/") # help files want to find this here
+moveFile("../../Libraries/pd-cyclone/documentation/extra_files/All_objects.pd", "./Abstractions/cyclone/All_cyclone_objects.pd") # help files want to find this here
 moveFile("./Documentation/10.cyclone/dsponoff~.pd", "./Abstractions/cyclone/dsponoff~.pd")
 copyDir("../../Libraries/pd-else/Documentation/Live-Electronics-Tutorial/", "./Documentation/12.live-electronics-tutorial")
 
@@ -148,6 +150,7 @@ globCopy("../../Libraries/pure-data/doc/sound/*", "Extra/else")
 # Our folder is called "Documentation" instead of "doc", which makes some file paths in default helpfiles invalid
 replaceTextInFolder("./Documentation/5.reference", "../doc/5.reference/", "../Documentation/5.reference/")
 replaceTextInFolder("./Documentation/5.reference", "../doc/sound/", "../Documentation/sound/")
+replaceTextInFolder("./Abstractions/cyclone", "All_objects", "All_cyclone_objects")
 
 # pd-lua
 makeDir("Extra/pdlua")
