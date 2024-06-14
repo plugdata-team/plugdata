@@ -44,14 +44,14 @@
 #    define snprintf _snprintf
 #endif
 
-//#ifdef JUCE_DEBUG // Just to make sure this never accidentally gets in our CI builds
+#ifdef JUCE_DEBUG // Just to make sure this never accidentally gets in our CI builds
 #define RUN_HELPFILE_TESTS 0
 
 #if RUN_HELPFILE_TESTS
 #include "Sidebar/Sidebar.h" // So we can read and clear the console
 #include "Objects/ObjectBase.h" // So we can interact with object GUIs
 #endif
-//#endif
+#endif
 
 class PlugDataApp : public JUCEApplication {
 
@@ -157,29 +157,29 @@ public:
                 object->gui->mouseUp(fakeEvent);
             }
         } */
+
         
-        StringArray errors;
-        auto messages = pd->getConsoleMessages();
-        for(auto& [ptr, message, type, length, repeats] : messages)
-        {
-            if(type == 1)
+        Timer::callAfterDelay(80, [this, pd, editor, helpFile, &helpFiles, tabbar = &tabbar]() mutable {
+            StringArray errors;
+            auto messages = pd->getConsoleMessages();
+            for(auto& [ptr, message, type, length, repeats] : messages)
             {
-                errors.add(message);
+                if(type == 1)
+                {
+                    errors.add(message);
+                }
             }
-        }
-        
-        if(!errors.isEmpty())
-        {
-            loggedErrors += "\n\n\n" + helpFile.getFullPathName() + "\n--------------------------------------------------------------------------\n";
-            for(auto& error : errors)
+            
+            if(!errors.isEmpty())
             {
-                loggedErrors += error + "\n";
+                loggedErrors += "\n\n\n" + helpFile.getFullPathName() + "\n--------------------------------------------------------------------------\n";
+                for(auto& error : errors)
+                {
+                    loggedErrors += error + "\n";
+                }
             }
-        }
-        
-        editor->sidebar->clearConsole();
-        
-        Timer::callAfterDelay(50, [this, &helpFiles, tabbar = &tabbar]() mutable {
+            editor->sidebar->clearConsole();
+            
             while(auto* cnv = tabbar->getCurrentCanvas()) { // TODO: why is this faster than closeAllTabs?()
                 tabbar->closeTab(cnv);
             }
@@ -202,7 +202,7 @@ public:
 
         auto& tabbar = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor())->getTabComponent();
 
-       // allHelpfiles.erase(allHelpfiles.end() - 1560, allHelpfiles.end());
+        //allHelpfiles.erase(allHelpfiles.end() - 662, allHelpfiles.end());
         
         openHelpfilesRecursively(tabbar, allHelpfiles);
     }
