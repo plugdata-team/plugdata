@@ -5,7 +5,6 @@
  */
 
 #include "Components/PropertiesPanel.h"
-#include "Utility/Spline.h"
 
 extern "C" {
 void garray_arraydialog(t_fake_garray* x, t_symbol* name, t_floatarg fsize, t_floatarg fflags, t_floatarg deleteit);
@@ -66,7 +65,7 @@ public:
         pd->unregisterMessageListener(arr.getRawUnchecked<void>(), this);
     }
 
-    std::vector<float> rescale(std::vector<float> const& v, unsigned const newSize)
+    static std::vector<float> rescale(std::vector<float> const& v, unsigned const newSize)
     {
         if (v.empty()) {
             return {};
@@ -87,91 +86,116 @@ public:
         }
         return result;
     }
+        
+    static Path createArrayPath(std::vector<float> points, DrawType style, std::array<float, 2> scale, float width, float height)
+    {
+        bool invert = false;
+        if (scale[0] >= scale[1]) {
+            invert = true;
+            std::swap(scale[0], scale[1]);
+        }
+        
+        // More than a point per pixel will cause insane loads, and isn't actually helpful
+        // Instead, linearly interpolate the vector to a max size of width in pixels
+        if (points.size() > width) {
+            points = rescale(points, width);
+        }
+        
+        // Need at least 4 points to draw a bezier curve
+        if(points.size() <= 4 && style == Curve) style = Polygon;
+        
+        // Add repeat of last point for Points style
+        if(style == Points) points.push_back(points.back());
+        
+        float const dh = height / (scale[1] - scale[0]);
+        float const dw = width / static_cast<float>(points.size() - 1);
+        float const invh = invert ? 0 : height;
+        float const yscale = invert ? -1.0f : 1.0f;
+        
+        // Convert y values to xy coordinates
+        std::vector<float> xyPoints;
+        for(int x = 0; x < points.size(); x++)
+        {
+            xyPoints.push_back(x * dw);
+            xyPoints.push_back(invh - (std::clamp(points[x], scale[0], scale[1]) - scale[0]) * dh * yscale);
+        }
+        
+        auto const* pointPtr = xyPoints.data();
+        auto numPoints = xyPoints.size() / 2;
+        
+        float control[6];
+        control[4] = pointPtr[0];
+        control[5] = pointPtr[1];
+        pointPtr += 2;
+        
+        Path result;
+        result.startNewSubPath(control[4], control[5]);
+        
+        for (int i = numPoints-2; i > 0; i--, pointPtr += 2) {
+            switch(style)
+            {
+                case Points:
+                {
+                    result.lineTo(pointPtr[0], control[5]);
+                    result.startNewSubPath(pointPtr[0], pointPtr[1]);
+                    
+                    if(i == 1)
+                    {
+                        result.lineTo(pointPtr[2], pointPtr[3]);
+                    }
+                    
+                    control[4] = pointPtr[0];
+                    control[5] = pointPtr[1];
+                    break;
+                }
+                case Polygon:
+                {
+                    result.lineTo(pointPtr[0], pointPtr[1]);
+                    if(i == 1)
+                    {
+                        result.lineTo(pointPtr[2], pointPtr[3]);
+                    }
+                    break;
+                }
+                case Curve:
+                {
+                    // Curve logic taken from tcl/tk source code:
+                    // https://github.com/tcltk/tk/blob/c9fe293db7a52a34954db92d2bdc5454d4de3897/generic/tkTrig.c#L1363
+                    control[0] = 0.333*control[4] + 0.667*pointPtr[0];
+                    control[1] = 0.333*control[5] + 0.667*pointPtr[1];
+                    
+                    // Set up the last two control points. This is done differently for
+                    // the last spline of an open curve than for other cases.
+                    if (i == 1) {
+                        control[4] = pointPtr[2];
+                        control[5] = pointPtr[3];
+                    }
+                    else {
+                        control[4] = 0.5*pointPtr[0] + 0.5*pointPtr[2];
+                        control[5] = 0.5*pointPtr[1] + 0.5*pointPtr[3];
+                    }
+                    
+                    control[2] = 0.333*control[4] + 0.667*pointPtr[0];
+                    control[3] = 0.333*control[5] + 0.667*pointPtr[1];
+                    
+                    result.cubicTo(control[0], control[1], control[2], control[3], control[4], control[5]);
+                    break;
+                }
+            }
+        }
+        
+        return result;
+    }
 
     void paintGraph(Graphics& g)
     {
         auto const h = static_cast<float>(getHeight());
         auto const w = static_cast<float>(getWidth());
-        std::vector<float> points = vec;
 
-        if (!points.empty()) {
-            std::array<float, 2> scale = getScale();
-            bool invert = false;
-
-            if (scale[0] >= scale[1]) {
-                invert = true;
-                std::swap(scale[0], scale[1]);
-            }
-
-            // More than a point per pixel will cause insane loads, and isn't actually helpful
-            // Instead, linearly interpolate the vector to a max size of width in pixels
-            if (vec.size() >= w) {
-                points = rescale(points, w);
-            }
-
-            float const dh = h / (scale[1] - scale[0]);
-            float const dw = w / static_cast<float>(points.size() - 1);
-
-            switch (getDrawType()) {
-            case DrawType::Curve: {
-                Array<Point<double>> splinePoints;
-                for (int i = 0; i < points.size(); i++) {
-                    splinePoints.add(Point<double>(i, points[i]));
-                }
-                Spline spline(splinePoints);
-
-                Path p;
-                p.startNewSubPath(0, h - (std::clamp(points[0], scale[0], scale[1]) - scale[0]) * dh);
-
-                for (int i = 0; i < w; i++) {
-                    auto pos = jmap<float>(i, 0, w, 0, points.size() - 1);
-                    p.lineTo(i, h - (std::clamp<float>(spline[pos], scale[0], scale[1]) - scale[0]) * dh);
-                }
-
-                if (invert)
-                    p.applyTransform(AffineTransform::verticalFlip(getHeight()));
-
-                g.setColour(getContentColour());
-                g.strokePath(p, PathStrokeType(getLineWidth()));
-                break;
-            }
-            case DrawType::Polygon: {
-                int startY = h - (std::clamp(points[0], scale[0], scale[1]) - scale[0]) * dh;
-                Point<float> lastPoint = Point<float>(0, startY);
-                Point<float> newPoint;
-
-                Path p;
-                for (int i = 1; i < static_cast<int>(points.size()); i++) {
-                    float const y = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
-                    newPoint = Point<float>(static_cast<float>(i) * dw, y);
-
-                    p.addLineSegment({ lastPoint, newPoint }, getLineWidth());
-                    lastPoint = newPoint;
-                }
-
-                if (invert)
-                    p.applyTransform(AffineTransform::verticalFlip(getHeight()));
-
-                g.setColour(getContentColour());
-                g.fillPath(p);
-                break;
-            }
-            case DrawType::Points: {
-                g.setColour(getContentColour());
-
-                float const dw_points = w / static_cast<float>(points.size());
-
-                for (size_t i = 0; i < points.size(); i++) {
-                    float y = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
-                    if (invert)
-                        y = getHeight() - y;
-                    g.drawLine(static_cast<float>(i) * dw_points, y, static_cast<float>(i + 1) * dw_points, y, getLineWidth());
-                }
-                break;
-            }
-            default:
-                break;
-            }
+        if (!vec.empty()) {
+            auto p = createArrayPath(vec, getDrawType(), getScale(), w, h);
+            g.setColour(getContentColour());
+            g.strokePath(p, PathStrokeType(getLineWidth()));
         }
     }
 
@@ -179,103 +203,16 @@ public:
     {
         auto const h = static_cast<float>(getHeight());
         auto const w = static_cast<float>(getWidth());
-        std::vector<float> points = vec;
-
-        if (!points.empty()) {
-
-            nvgSave(nvg);
-            auto const arrB = Rectangle<float>(0, 0, w, h).reduced(1);
-            nvgRoundedScissor(nvg, arrB.getX(), arrB.getY(), arrB.getWidth(), arrB.getHeight(), Corners::objectCornerRadius);
-
-            std::array<float, 2> scale = getScale();
-            bool invert = false;
-
-            if (scale[0] >= scale[1]) {
-                invert = true;
-                std::swap(scale[0], scale[1]);
-            }
-
-            // More than a point per pixel will cause insane loads, and isn't actually helpful
-            // Instead, linearly interpolate the vector to a max size of width in pixels
-            if (vec.size() >= w) {
-                points = rescale(points, w);
-            }
-
-            float const dh = h / (scale[1] - scale[0]);
-
-            switch (getDrawType()) {
-            case DrawType::Curve: {
-                Array<Point<double>> splinePoints;
-                for (int i = 0; i < points.size(); i++) {
-                    splinePoints.add(Point<double>(i, points[i]));
-                }
-                Spline spline(splinePoints);
-
-                nvgBeginPath(nvg);
-                nvgMoveTo(nvg, 0, h - (std::clamp(points[0], scale[0], scale[1]) - scale[0]) * dh);
-
-                for (int i = 0; i < w; i++) {
-                    auto pos = jmap<float>(i, 0, w, 0, points.size() - 1);
-                    nvgLineTo(nvg, i, h - (std::clamp<float>(spline[pos], scale[0], scale[1]) - scale[0]) * dh);
-                }
-
-                if (invert) {
-                    nvgScale(nvg, 1.0f, -1.0f);
-                    nvgTranslate(nvg, 0.0f, -getHeight());
-                }
-
-                nvgLineCap(nvg, NVG_ROUND);
-                nvgLineJoin(nvg, NVG_ROUND);
-                nvgStrokeColor(nvg, nvgRGBAf(getContentColour().getFloatRed(), getContentColour().getFloatGreen(), getContentColour().getFloatBlue(), getContentColour().getFloatAlpha()));
-                nvgStrokeWidth(nvg, getLineWidth());
-                nvgStroke(nvg);
-
-                break;
-            }
-            case DrawType::Polygon: {
-                nvgBeginPath(nvg);
-                int startY = h - (std::clamp(points[0], scale[0], scale[1]) - scale[0]) * dh;
-                nvgMoveTo(nvg, 0, startY);
-                float const dw = w / (static_cast<float>(points.size()) - 1);
-
-                for (int i = 1; i < static_cast<int>(points.size()); i++) {
-                    float const y = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
-                    nvgLineTo(nvg, static_cast<float>(i) * dw, y);
-                }
-
-                if (invert) {
-                    nvgScale(nvg, 1.0f, -1.0f);
-                    nvgTranslate(nvg, 0.0f, -getHeight());
-                }
-
-                nvgStrokeColor(nvg, nvgRGBAf(getContentColour().getFloatRed(), getContentColour().getFloatGreen(), getContentColour().getFloatBlue(), getContentColour().getFloatAlpha()));
-                nvgStroke(nvg);
-
-                break;
-            }
-            case DrawType::Points: {
-                nvgStrokeColor(nvg, nvgRGBAf(getContentColour().getFloatRed(), getContentColour().getFloatGreen(), getContentColour().getFloatBlue(), getContentColour().getFloatAlpha()));
-                nvgStrokeWidth(nvg, getLineWidth());
-
-                float const dw_points = w / static_cast<float>(points.size());
-
-                for (size_t i = 0; i < points.size(); i++) {
-                    float y = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
-                    if (invert) {
-                        y = getHeight() - y;
-                    }
-                    nvgBeginPath(nvg);
-                    nvgMoveTo(nvg, static_cast<float>(i) * dw_points, y);
-                    nvgLineTo(nvg, static_cast<float>(i + 1) * dw_points, y);
-                    nvgStroke(nvg);
-                }
-
-                break;
-            }
-            default:
-                break;
-            }
-            nvgRestore(nvg);
+        auto const arrB = Rectangle<float>(0, 0, w, h).reduced(1);
+        nvgRoundedScissor(nvg, arrB.getX(), arrB.getY(), arrB.getWidth(), arrB.getHeight(), Corners::objectCornerRadius);
+        
+        if (!vec.empty()) {
+            auto p = createArrayPath(vec, getDrawType(), getScale(), w, h);
+            setJUCEPath(nvg, p);
+            
+            nvgStrokeColor(nvg, nvgRGBAf(getContentColour().getFloatRed(), getContentColour().getFloatGreen(), getContentColour().getFloatBlue(), getContentColour().getFloatAlpha()));
+            nvgStrokeWidth(nvg, getLineWidth());
+            nvgStroke(nvg);
         }
     }
 

@@ -155,7 +155,6 @@ public:
         while (i.next()) {
             switch (i.elementType) {
             case Path::Iterator::startNewSubPath:
-                nvgBeginPath(nvg);
                 nvgMoveTo(nvg, i.x1, i.y1);
                 break;
             case Path::Iterator::lineTo:
