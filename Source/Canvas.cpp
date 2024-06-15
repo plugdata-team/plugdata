@@ -782,7 +782,7 @@ void Canvas::save(std::function<void()> const& nestedCallback)
         }
     }
 
-    if (patch.getCurrentFile().existsAsFile()) {
+    if (canvasToSave->patch.getCurrentFile().existsAsFile()) {
         canvasToSave->updatePatchSnapshot();
         canvasToSave->patch.savePatch();
         SettingsFile::getInstance()->addToRecentlyOpened(canvasToSave->patch.getCurrentFile());
