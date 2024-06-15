@@ -1213,7 +1213,6 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             int windowHeight = xmlState->getIntAttribute("Height", 650);
             lastUIWidth = windowWidth;
             lastUIHeight = windowHeight;
-            // TODO: make multi-window friendly
             if (auto* editor = getActiveEditor()) {
                 MessageManager::callAsync([editor = Component::SafePointer(editor), windowWidth, windowHeight]() {
                     if (!editor)
