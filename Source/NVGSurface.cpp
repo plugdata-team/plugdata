@@ -97,8 +97,6 @@ NVGSurface::NVGSurface(PluginEditor* e)
     // kind of a hack, but works well enough
     MessageManager::callAsync([_this = SafePointer(this)]() {
         if (_this) {
-            _this->initialise();
-
             // Render on vblank
             _this->vBlankAttachment = std::make_unique<VBlankAttachment>(_this.getComponent(), [_this]() {
                 if (_this) {
@@ -290,6 +288,10 @@ void NVGSurface::render()
 #endif
 
     auto startTime = Time::getMillisecondCounter();
+    
+    if(!getPeer()) {
+        return;
+    }
     
     if (!nvg) {
         initialise();
