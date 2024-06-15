@@ -15,8 +15,7 @@ void openHelpfilesRecursively(TabComponent& tabbar, std::vector<File>& helpFiles
     if(helpFiles.empty())
     {
         std::cout << "TEST COMPLETED SUCCESFULLY" << std::endl;
-
-        File("~/Projecten/plugdata/testdata.md").replaceWithText(loggedErrors);
+        ProjectInfo::appDataDir.getChildFile("console-errors.md").replaceWithText(loggedErrors);
         return;
     }
 
