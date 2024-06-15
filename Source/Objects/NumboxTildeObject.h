@@ -301,7 +301,7 @@ public:
     float getMinimum()
     {
         if (auto nbx = ptr.get<t_fake_numbox>()) {
-            return nbx->x_min;
+            return nbx->x_lower;
         }
 
         return 0.0f;
@@ -310,7 +310,7 @@ public:
     float getMaximum()
     {
         if (auto nbx = ptr.get<t_fake_numbox>()) {
-            return nbx->x_max;
+            return nbx->x_upper;
         }
 
         return 0.0f;
@@ -319,7 +319,7 @@ public:
     void setMinimum(float minValue)
     {
         if (auto nbx = ptr.get<t_fake_numbox>()) {
-            nbx->x_min = minValue;
+            nbx->x_lower = minValue;
         }
 
         input.setMinimum(minValue);
@@ -328,7 +328,7 @@ public:
     void setMaximum(float maxValue)
     {
         if (auto nbx = ptr.get<t_fake_numbox>()) {
-            nbx->x_max = maxValue;
+            nbx->x_upper = maxValue;
         }
 
         input.setMaximum(maxValue);
