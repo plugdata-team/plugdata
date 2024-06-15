@@ -162,7 +162,9 @@ public:
         // When starting with any sysargs, assume we don't want the last patch to open
         // Prevents a possible crash and generally kinda makes sense
         if (arguments.isEmpty() && hasReloadStateProperty && static_cast<bool>(settingsTree.getProperty("reload_last_state"))) {
-            pluginHolder->reloadPluginState();
+            // TODO: probably remove this option, because it's kind of risky, easy to get in a crash loop this way
+            // For now we'll just disable it to see if anyone misses it
+            //pluginHolder->reloadPluginState();
         }
 
         auto args = StringArray::fromTokens(arguments, true);
