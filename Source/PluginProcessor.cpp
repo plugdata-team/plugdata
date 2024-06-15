@@ -902,7 +902,6 @@ void PluginProcessor::sendPlayhead()
         }
 
         if (infos->getPpqPosition().hasValue()) {
-
             atoms_playhead[0] = static_cast<float>(*infos->getPpqPosition());
         } else {
             atoms_playhead[0] = 0.0f;
