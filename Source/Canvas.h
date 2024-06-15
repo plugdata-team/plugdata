@@ -50,6 +50,9 @@ struct ObjectDragState {
     Component::SafePointer<Object> componentBeingDragged;
     Component::SafePointer<Object> objectSnappingInbetween;
     Component::SafePointer<Connection> connectionToSnapInbetween;
+    
+    Point<int> duplicateOffset = {0, 0};
+    Point<int> lastDuplicateOffset = {0, 0};
 };
 
 class Canvas : public Component

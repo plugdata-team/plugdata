@@ -1014,8 +1014,9 @@ void Canvas::mouseDown(MouseEvent const& e)
     // Left-click
     if (!e.mods.isRightButtonDown()) {
 
-        if (source == this /*|| source == graphArea */) {
-
+        if (source == this) {
+            dragState.duplicateOffset = {0, 0};
+            dragState.lastDuplicateOffset = {0, 0};
             cancelConnectionCreation();
 
             if (e.mods.isCommandDown()) {
@@ -1494,7 +1495,6 @@ void Canvas::pasteSelection()
 
 void Canvas::duplicateSelection()
 {
-    Array<Connection*> conInlets, conOutlets;
     auto selection = getSelectionOfType<Object>();
 
     patch.startUndoSequence("Duplicate object/s");
@@ -1503,21 +1503,16 @@ void Canvas::duplicateSelection()
     for (auto* object : selection) {
         if (auto* ptr = object->getPointer()) {
             objectsToDuplicate.push_back(ptr);
-
-            if (!dragState.wasDragDuplicated && editor->autoconnect.getValue()) {
-                // Store connections for auto patching
-                for (auto* connection : connections) {
-                    if (connection->inlet == object->iolets[0]) {
-                        conInlets.add(connection);
-                    }
-                    if (connection->outlet == object->iolets[object->numInputs]) {
-                        conOutlets.add(connection);
-                    }
-                }
-            }
         }
     }
+    
+    if(dragState.lastDuplicateOffset != dragState.duplicateOffset)
+    {
+        dragState.duplicateOffset += dragState.lastDuplicateOffset;
+    }
 
+    dragState.lastDuplicateOffset = dragState.duplicateOffset;
+    
     // Tell pd to duplicate
     patch.duplicate(objectsToDuplicate);
 
@@ -1529,7 +1524,7 @@ void Canvas::duplicateSelection()
     auto* patchPtr = patch.getPointer().get();
     if (!patchPtr)
         return;
-
+    
     // Store the duplicated objects for later selection
     Array<Object*> duplicated;
     for (auto* object : objects) {
@@ -1538,57 +1533,23 @@ void Canvas::duplicateSelection()
             duplicated.add(object);
         }
     }
-
-    // Auto patching
-    if (!dragState.wasDragDuplicated && editor->autoconnect.getValue()) {
-        std::vector<t_gobj*> moveObjects;
-        for (auto* object : objects) {
-            int iolet = 1;
-            for (auto* objIolet : object->iolets) {
-                if (duplicated.size() == 1) {
-                    for (auto* dup : duplicated) {
-                        for (auto* conIn : conInlets) {
-                            if ((conIn->outlet == objIolet) && object->iolets[iolet] && !dup->iolets.contains(conIn->outlet)) {
-                                connections.add(new Connection(this, dup->iolets[0], object->iolets[iolet], nullptr));
-                            }
-                        }
-                        for (auto* conOut : conOutlets) {
-                            if ((conOut->inlet == objIolet) && (iolet < object->numInputs)) {
-                                connections.add(new Connection(this, dup->iolets[dup->numInputs], object->iolets[iolet], nullptr));
-                            }
-                        }
-                    }
-                    iolet = iolet + 1;
-                }
-            }
-        }
-
-        // Move duplicated objects if they overlap exisisting objects
-        for (auto* dup : duplicated) {
-            moveObjects.emplace_back(dup->getPointer());
-        }
-        bool overlap = true;
-        int moveDistance = 0;
-        while (overlap && moveDistance < 300) {
-            overlap = false;
-            for (auto* object : objects) {
-                if (!duplicated.isEmpty() && !duplicated.contains(object) && duplicated[0]->getBounds().translated(moveDistance, 0).intersects(object->getBounds())) {
-                    overlap = true;
-                    moveDistance += object->getWidth() - 10;
-                    duplicated[0]->updateBounds();
-                }
-            }
-        }
-
-        patch.moveObjects(moveObjects, moveDistance - 10, -10);
-        moveObjects.clear();
+    
+    // Move duplicated objects if they overlap exisisting objects
+    std::vector<t_gobj*> moveObjects;
+    for (auto* dup : duplicated) {
+        moveObjects.emplace_back(dup->getPointer());
     }
 
+    patch.moveObjects(moveObjects, dragState.duplicateOffset.x, dragState.duplicateOffset.y);
+    for (auto* object : objects) {
+        object->updateBounds();
+    }
+    
     // Select the newly duplicated objects
     for (auto* obj : duplicated) {
         setSelected(obj, true);
     }
-
+    
     patch.endUndoSequence("Duplicate object/s");
     patch.deselectAll();
 }
