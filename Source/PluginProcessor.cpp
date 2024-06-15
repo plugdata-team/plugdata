@@ -1418,10 +1418,14 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
             auto directory = list[1].toString();
             auto editors = getEditors();
 
-            auto patch = File(directory).getChildFile(filename);
-            loadPatch(URL(patch));
-            if (!editors.isEmpty())
-                editors[0]->getTabComponent().triggerAsyncUpdate();
+            auto patch = URL(File(directory).getChildFile(filename));
+            
+            if (!editors.isEmpty()) {
+                editors[0]->getTabComponent().openPatch(patch);
+            }
+            else {
+                loadPatch(patch);
+            }
         }
         break;
     }
