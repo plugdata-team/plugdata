@@ -34,6 +34,10 @@
 #include "PluginMode.h"
 #include "Components/TouchSelectionHelper.h"
 
+#if ENABLE_TESTING
+void runTests(PluginEditor* editor);
+#endif
+
 #include <juce_opengl/juce_opengl.h>
 using namespace juce::gl;
 
@@ -265,6 +269,13 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 #if JUCE_IOS
     addAndMakeVisible(touchSelectionHelper.get());
     touchSelectionHelper->setAlwaysOnTop(true);
+#endif
+    
+#if ENABLE_TESTING
+        // Call after window is ready
+        ::Timer::callAfterDelay(200, [this](){
+            runTests(this);
+        });
 #endif
 }
 

@@ -178,6 +178,13 @@ file(GLOB plugdata_sources
     ${SOURCES_DIRECTORY}/Heavy/*.h
 )
 
+
+# Set up testing
+if(ENABLE_TESTING)
+    list(APPEND plugdata_sources ${CMAKE_CURRENT_SOURCE_DIR}/Tests/Tests.cpp)
+
+endif()
+
 if(APPLE)
   list(APPEND plugdata_sources ${SOURCES_DIRECTORY}/Utility/FileSystemWatcher.mm ${SOURCES_DIRECTORY}/Utility/OSUtils.mm)
 else()
@@ -230,6 +237,7 @@ set(PLUGDATA_COMPILE_DEFINITIONS
     PLUGDATA_VERSION="${PLUGDATA_VERSION}"
     PLUGDATA_GIT_HASH="${GIT_HASH}"
     PD=1
+    ENABLE_TESTING=${ENABLE_TESTING}
 )
 if(ENABLE_SFIZZ)
   list(APPEND PLUGDATA_COMPILE_DEFINITIONS ENABLE_SFIZZ=1)
@@ -549,45 +557,6 @@ set_target_properties(plugdata_fx PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA
 if(APPLE)
 set_target_properties(plugdata_midi PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
 set_target_properties(plugdata_midi PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
-endif()
-
-# Set up testing framework
-if(ENABLE_TESTING)
-
-enable_testing()
-if(APPLE)
-file(GLOB_RECURSE TestFiles CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.mm")
-else()
-file(GLOB_RECURSE TestFiles CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.cpp")
-endif()
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/Tests PREFIX "" FILES ${TestFiles})
-
-# Include Catch2
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/Libraries/Catch2)
-set(Catch2_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/Catch2)
-
-add_executable(Tests ${TestFiles})
-set_target_properties(Tests PROPERTIES CXX_STANDARD 20)
-
-target_link_libraries(Tests PRIVATE Catch2::Catch2WithMain plugdata ${libs})
-
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/Tests PREFIX "" FILES ${TestFiles})
-include(${Catch2_SOURCE_DIR}/extras/Catch.cmake)
-catch_discover_tests(Tests)
-
-target_compile_definitions(Tests PUBLIC TESTING=1)
-
-target_include_directories(Tests PUBLIC PLUGDATA_INCLUDE_DIRECTORY)
-target_include_directories(Tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Tests/)
-target_include_directories(Tests PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
-
-set_target_properties(Tests PROPERTIES PREFIX "")
-set_target_properties(Tests PROPERTIES CMAKE_CXX_VISIBILITY_PRESET hidden)
-set_target_properties(Tests PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
-set_target_properties(Tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
-set_property(TARGET Tests PROPERTY CXX_VISIBILITY_PRESET hidden)
-set_property(TARGET Tests PROPERTY VISIBILITY_INLINES_HIDDEN ON)
-
 endif()
 
 if(APPLE)
