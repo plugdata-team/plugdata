@@ -1017,6 +1017,7 @@ void Canvas::mouseDown(MouseEvent const& e)
         if (source == this) {
             dragState.duplicateOffset = {0, 0};
             dragState.lastDuplicateOffset = {0, 0};
+            dragState.wasDuplicated = false;
             cancelConnectionCreation();
 
             if (e.mods.isCommandDown()) {
@@ -1549,6 +1550,8 @@ void Canvas::duplicateSelection()
     for (auto* obj : duplicated) {
         setSelected(obj, true);
     }
+    
+    dragState.wasDuplicated = true;
     
     patch.endUndoSequence("Duplicate object/s");
     patch.deselectAll();

@@ -780,10 +780,12 @@ void Object::mouseDown(MouseEvent const& e)
         ds.wasSelectedOnMouseDown = selectedFlag;
         ds.duplicateOffset = {0, 0};
         ds.lastDuplicateOffset = {0, 0};
+        ds.wasDuplicated = false;
     } else if (!selectedFlag) {
         cnv->deselectAll();
         ds.duplicateOffset = {0, 0};
         ds.lastDuplicateOffset = {0, 0};
+        ds.wasDuplicated = false;
     }
 
     cnv->setSelected(this, true);
@@ -991,7 +993,7 @@ void Object::mouseDrag(MouseEvent const& e)
 
         if (ds.componentBeingDragged) {
             dragDistance = cnv->objectGrid.performMove(this, dragDistance);
-            ds.duplicateOffset = dragDistance;
+            ds.duplicateOffset = ds.wasDuplicated ? dragDistance : Point<int>(0, 0);
         }
 
         // alt+drag will duplicate selection
