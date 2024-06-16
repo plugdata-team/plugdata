@@ -158,8 +158,8 @@ void Sidebar::resized()
     auto panelTitleBarBounds = bounds.removeFromTop(30).withTrimmedRight(-30);
 
     if (extraSettingsButton)
-        extraSettingsButton->setBounds(panelTitleBarBounds.removeFromRight(30));
-    panelPinButton.setBounds(panelTitleBarBounds.removeFromLeft(30));
+        extraSettingsButton->setBounds(panelTitleBarBounds.removeFromLeft(30));
+    panelPinButton.setBounds(panelTitleBarBounds.removeFromRight(30));
 
     browser->setBounds(bounds);
     console->setBounds(bounds);

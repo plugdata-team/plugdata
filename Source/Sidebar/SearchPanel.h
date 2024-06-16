@@ -177,13 +177,10 @@ public:
         auto* settingsCalloutButton = new SmallIconButton(Icons::More);
         settingsCalloutButton->setTooltip("Show search settings");
         settingsCalloutButton->setConnectedEdges(12);
-        settingsCalloutButton->onClick = [this, settingsCalloutButton]() {
-            auto* editor = findParentComponentOfClass<PluginEditor>();
-            auto* sidebar = getParentComponent();
-            auto bounds = editor->getLocalArea(sidebar, settingsCalloutButton->getBounds());
-
+        settingsCalloutButton->onClick = [settingsCalloutButton]() {
+            auto bounds = settingsCalloutButton->getScreenBounds();
             auto docsSettings = std::make_unique<SearchPanelSettings>();
-            CallOutBox::launchAsynchronously(std::move(docsSettings), bounds, editor);
+            CallOutBox::launchAsynchronously(std::move(docsSettings), bounds, nullptr);
         };
 
         return std::unique_ptr<TextButton>(settingsCalloutButton);

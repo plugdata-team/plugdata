@@ -422,10 +422,9 @@ public:
         settingsCalloutButton->setTooltip("Show console settings");
         settingsCalloutButton->setConnectedEdges(12);
         settingsCalloutButton->onClick = [this, settingsCalloutButton]() {
-            auto* editor = findParentComponentOfClass<PluginEditor>();
             auto consoleSettings = std::make_unique<ConsoleSettings>(settingsValues);
-            auto bounds = editor->callOutSafeArea.getLocalArea(nullptr, settingsCalloutButton->getScreenBounds());
-            CallOutBox::launchAsynchronously(std::move(consoleSettings), bounds, &editor->callOutSafeArea);
+            auto bounds = settingsCalloutButton->getScreenBounds();
+            CallOutBox::launchAsynchronously(std::move(consoleSettings), bounds, nullptr);
         };
 
         return std::unique_ptr<TextButton>(settingsCalloutButton);

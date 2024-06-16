@@ -414,8 +414,7 @@ public:
         settingsCalloutButton->setConnectedEdges(12);
         settingsCalloutButton->onClick = [this, settingsCalloutButton]() {
             auto* editor = findParentComponentOfClass<PluginEditor>();
-            auto* sidebar = getParentComponent();
-            auto bounds = editor->getLocalArea(sidebar, settingsCalloutButton->getBounds());
+            auto bounds = settingsCalloutButton->getScreenBounds();
             auto openFolderCallback = [this, editor]() {
                 Dialogs::showOpenDialog([this](URL result) {
                     if (result.getLocalFile().isDirectory()) {
@@ -431,7 +430,7 @@ public:
             };
 
             auto docsSettings = std::make_unique<DocumentBrowserSettings>(openFolderCallback, resetFolderCallback);
-            CallOutBox::launchAsynchronously(std::move(docsSettings), bounds, editor);
+            CallOutBox::launchAsynchronously(std::move(docsSettings), bounds, nullptr);
         };
 
         return std::unique_ptr<TextButton>(settingsCalloutButton);
