@@ -129,7 +129,7 @@ public:
     int windowIndex = 0;
 
     Point<int> lastViewportPosition = { 1, 1 };
-    float lastViewportScale = 1.0f;
+    float lastViewportScale;
 
     String lastUndoSequence;
     String lastRedoSequence;

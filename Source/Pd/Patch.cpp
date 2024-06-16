@@ -31,6 +31,7 @@ namespace pd {
 Patch::Patch(pd::WeakReference patchPtr, Instance* parentInstance, bool ownsPatch, File patchFile)
     : instance(parentInstance)
     , closePatchOnDelete(ownsPatch)
+    , lastViewportScale(SettingsFile::getInstance()->getProperty<float>("default_zoom") / 100.0f)
     , currentFile(std::move(patchFile))
     , ptr(patchPtr)
 {
