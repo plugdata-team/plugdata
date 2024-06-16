@@ -682,8 +682,9 @@ private:
 
         auto* editor = findParentComponentOfClass<PluginEditor>();
         if (auto* cnv = editor->getCurrentCanvas()) {
-            cnv->zoomScale.setValue(1.0f);
-            cnv->setTransform(AffineTransform().scaled(1.0f));
+            auto defaultZoom = SettingsFile::getInstance()->getProperty<float>("default_zoom") / 100.0f;
+            cnv->zoomScale.setValue(defaultZoom);
+            cnv->setTransform(AffineTransform().scaled(defaultZoom));
             if (cnv->viewport)
                 cnv->viewport->resized();
         }
