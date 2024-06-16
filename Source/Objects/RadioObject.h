@@ -226,7 +226,7 @@ public:
             }
         }
 
-        auto bgColour = brightenOrDarken(::getValue<Colour>(iemHelper.secondaryColour));
+        auto bgColour = getHoverBackgroundColour(::getValue<Colour>(iemHelper.secondaryColour));
 
         if (mouseHover) {
             nvgBeginPath(nvg);

@@ -462,7 +462,7 @@ public:
         auto bgColour = Colour::fromString(secondaryColour.toString());
 
         if (getProperties()["hover"])
-            bgColour = brightenOrDarken(bgColour);
+            bgColour = getHoverBackgroundColour(bgColour);
 
         if (::getValue<bool>(outline)) {
             bool selected = object->isSelected() && !cnv->isGraph;

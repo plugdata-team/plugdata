@@ -75,7 +75,7 @@ public:
 
         auto bgColour = ::getValue<Colour>(iemHelper.secondaryColour);
         if (mouseHover)
-            bgColour = brightenOrDarken(bgColour);
+            bgColour = getHoverBackgroundColour(bgColour);
 
         auto backgroundColour = convertColour(bgColour);
         auto toggledColour = convertColour(::getValue<Colour>(iemHelper.primaryColour)); // TODO: don't access audio thread variables in render loop

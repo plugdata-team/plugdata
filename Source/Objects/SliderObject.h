@@ -334,7 +334,7 @@ public:
         auto bgColour = getLookAndFeel().findColour(Slider::backgroundColourId);
 
         if (getProperties()["hover"])
-            bgColour = brightenOrDarken(bgColour);
+            bgColour = getHoverBackgroundColour(bgColour);
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(bgColour), convertColour(outlineColour), Corners::objectCornerRadius);
 

@@ -270,7 +270,7 @@ public:
     void resized() override
     {
         creditsViewport.setBounds(getLocalBounds());
-        creditsComponent.setSize(getWidth(), 1132);
+        creditsComponent.setSize(getWidth(), 1172);
         licenseComponent.setBounds(getLocalBounds());
 
         auto bounds = getLocalBounds().withTrimmedTop(190).reduced(16, 10);

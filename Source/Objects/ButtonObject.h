@@ -211,7 +211,7 @@ public:
         auto foregroundColour = convertColour(Colour::fromString(primaryColour.toString()));
         auto bgColour = Colour::fromString(secondaryColour.toString());
         if (mouseHover)
-            bgColour = brightenOrDarken(bgColour);
+            bgColour = getHoverBackgroundColour(bgColour);
 
         auto backgroundColour = convertColour(bgColour);
         auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));

@@ -177,7 +177,7 @@ ObjectBase::~ObjectBase()
     delete lnf;
 }
 
-Colour ObjectBase::brightenOrDarken(Colour const& colour)
+Colour ObjectBase::getHoverBackgroundColour(Colour const& colour)
 {
     auto brightness = colour.getBrightness();
     float const threshold = 0.5f;
@@ -384,7 +384,8 @@ void ObjectBase::openSubpatch()
             return;
         }
     }
-
+    
+    cnv->editor->getTabComponent().setActiveSplit(cnv);
     subpatch->splitViewIndex = cnv->patch.splitViewIndex;
     cnv->editor->getTabComponent().openPatch(subpatch);
 

@@ -125,7 +125,7 @@ public:
         auto bgColour = getValue<Colour>(iemHelper.secondaryColour);
 
         if (mouseHover)
-            bgColour = brightenOrDarken(bgColour);
+            bgColour = getHoverBackgroundColour(bgColour);
 
         auto backgroundColour = convertColour(bgColour);
         auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));

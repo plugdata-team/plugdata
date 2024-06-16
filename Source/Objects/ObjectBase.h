@@ -216,7 +216,7 @@ public:
 
     ~ObjectBase() override;
 
-    Colour brightenOrDarken(Colour const& colour);
+    Colour getHoverBackgroundColour(Colour const& colour);
 
     void initialise();
 
