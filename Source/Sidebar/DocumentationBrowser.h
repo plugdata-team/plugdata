@@ -251,6 +251,9 @@ public:
             } else if (file.isDirectory()) {
                 file.revealToUser();
             }
+            else if(file.existsAsFile()) {
+                file.startAsProcess();
+            }
         };
 
         fileList.onDragStart = [this](ValueTree& tree) {
