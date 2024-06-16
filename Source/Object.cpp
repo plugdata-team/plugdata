@@ -64,12 +64,39 @@ Object::Object(pd::WeakReference object, Canvas* parent)
     initialise();
 
     setType("", object);
+
+    if (auto obj = object.get<t_object>()) {
+        String objectName = obj.ptr->te_g.g_pd->c_name->s_name;
+        updateObjectActivityPolicy(objectName);
+    }
 }
 
 Object::~Object()
 {
     hideEditor(); // Make sure the editor is not still open, that could lead to issues with listeners attached to the editor (i.e. suggestioncomponent)
     cnv->selectedComponents.removeChangeListener(this);
+}
+
+void Object::updateObjectActivityPolicy(String objectName)
+{
+    switch(hash(objectName)){
+        case hash("r"):
+        case hash("receive"):
+        case hash("s"):
+        case hash("send"):
+            // Symbol objects trigger their own activity and recursively activate within GOPs
+            objectActivityPolicy = ObjectActivityPolicy::Recursive;
+            break;
+        case hash("inlet"):
+        case hash("outlet"):
+            // Iolets trigger activity of themselves and parent GOP only
+            objectActivityPolicy = ObjectActivityPolicy::Parent;
+            break;
+        default:
+            // All other objects trigger their own activity only
+            objectActivityPolicy = ObjectActivityPolicy::Self;
+            break;
+    }
 }
 
 Rectangle<int> Object::getObjectBounds()
@@ -370,6 +397,8 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
     // Change object type
     String type = newType.upToFirstOccurrenceOf(" ", false, false);
 
+    updateObjectActivityPolicy(type);
+
     pd::WeakReference objectPtr = nullptr;
     // "exists" indicates that this object already exists in pd
     // When setting exists to true, the gui needs to be assigned already
@@ -487,15 +516,25 @@ String Object::getType(bool withOriginPrefix) const
     return String();
 }
 
-void Object::triggerOverlayActiveState()
+void Object::triggerOverlayActiveState(bool recursive)
 {
     if (rateReducer.tooFast())
         return;
 
-    // propagate the activity overlay upwards if object is inside GOP
-    if (auto parentObject = findParentComponentOfClass<Object>())
-        parentObject->triggerOverlayActiveState();
+    // If object was triggered by a recursive object, trigger all parent canvases activity
+    if (recursive) {
+        if (auto parentObject = findParentComponentOfClass<Object>())
+            parentObject->triggerOverlayActiveState(true);
+    }
 
+    // Check this objects activity policy type, if it's not self activity trigger,
+    // then trigger parent GOP if it has one, call with recursive argument if
+    // this object is set to recursive triggering (for symbol objects only)
+    else if (objectActivityPolicy != ObjectActivityPolicy::Self) {
+        if (auto parentObject = findParentComponentOfClass<Object>()) {
+            parentObject->triggerOverlayActiveState(objectActivityPolicy == ObjectActivityPolicy::Recursive);
+        }
+    }
     if (!cnv->shouldShowObjectActivity())
         return;
 
