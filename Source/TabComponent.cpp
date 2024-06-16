@@ -231,7 +231,7 @@ void TabComponent::nextTab()
     }
 
     auto newTabIndex = oldTabIndex + 1;
-    showTab(newTabIndex < tabbar.size() ? tabbar[newTabIndex]->cnv : tabbar[0]->cnv);
+    showTab(newTabIndex < tabbar.size() ? tabbar[newTabIndex]->cnv : tabbar[0]->cnv, splitIndex);
 }
 
 void TabComponent::previousTab()
@@ -246,7 +246,7 @@ void TabComponent::previousTab()
     }
 
     auto newTabIndex = oldTabIndex - 1;
-    showTab(newTabIndex >= 0 ? tabbar[newTabIndex]->cnv : tabbar[tabbar.size() - 1]->cnv);
+    showTab(newTabIndex >= 0 ? tabbar[newTabIndex]->cnv : tabbar[tabbar.size() - 1]->cnv, splitIndex);
 }
 
 void TabComponent::createNewWindow(Component* draggedTab)
