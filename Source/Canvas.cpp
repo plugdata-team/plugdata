@@ -1507,6 +1507,8 @@ void Canvas::duplicateSelection()
         }
     }
     
+    // If we previously duplicated and dragged before, and then drag again, the new offset should be relative
+    // to the offset we already applied with the previous drag
     if(dragState.lastDuplicateOffset != dragState.duplicateOffset)
     {
         dragState.duplicateOffset += dragState.lastDuplicateOffset;

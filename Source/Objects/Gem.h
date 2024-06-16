@@ -223,9 +223,6 @@ int createGemWindow(WindowInfo& info, WindowHints& hints)
     gemJUCEWindow[window->instance].reset(window);
     info.window[window->instance] = window;
 
-    /*
-     TODO: correctly initialise openGL on the right thread, using the new threading system
-     */
 
     window->openGLContext.makeActive();
 

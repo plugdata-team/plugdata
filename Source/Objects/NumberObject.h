@@ -323,7 +323,7 @@ public:
     {
         if(auto numbox = ptr.get<t_my_numbox>())
         {
-            return numbox->x_min;
+            return numbox->x_max;
         }
         return std::numeric_limits<float>::infinity();
     }
