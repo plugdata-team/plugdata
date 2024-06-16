@@ -380,11 +380,12 @@ void ObjectBase::openSubpatch()
     // Check if subpatch is already opened
     for (auto* cnv : cnv->editor->getCanvases()) {
         if (cnv->patch == *subpatch) {
-            cnv->editor->getTabComponent().showTab(cnv);
+            cnv->editor->getTabComponent().showTab(cnv, cnv->patch.splitViewIndex);
             return;
         }
     }
 
+    subpatch->splitViewIndex = cnv->patch.splitViewIndex;
     cnv->editor->getTabComponent().openPatch(subpatch);
 
     if (path.getFullPathName().isNotEmpty()) {
