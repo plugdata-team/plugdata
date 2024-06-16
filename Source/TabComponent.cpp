@@ -682,15 +682,15 @@ void TabComponent::closeTab(Canvas* cnv)
         return static_cast<TabBarButtonComponent*>(nullptr);
     }();
 
+    cnv->setCachedComponentImage(nullptr); // Clear nanovg invalidation listener, just to be sure
+    canvases.removeObject(cnv);
+    
     if (splits[0] == cnv && tabbars[0].indexOf(tab) >= 1) {
         showTab(tabbars[0][tabbars[0].indexOf(tab) - 1]->cnv, 0);
     }
     if (splits[1] == cnv && tabbars[1].indexOf(tab) >= 1) {
         showTab(tabbars[1][tabbars[1].indexOf(tab) - 1]->cnv, 1);
     }
-
-    cnv->setCachedComponentImage(nullptr); // Clear nanovg invalidation listener, just to be sure
-    canvases.removeObject(cnv);
 
     pd->patches.removeFirstMatchingValue(patch);
     pd->updateObjectImplementations();
