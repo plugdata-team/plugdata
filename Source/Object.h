@@ -98,7 +98,7 @@ public:
 
     bool hitTest(int x, int y) override;
 
-    void triggerOverlayActiveState();
+    void triggerOverlayActiveState(bool recursive = false);
 
     bool validResizeZone = false;
 
@@ -134,10 +134,37 @@ public:
 
     std::function<bool(int x, int y)> transparentHitTest = nullptr;
 
+/**
+ * @enum ObjectActivityPolicy
+ * @brief Controls the way object activity propagates upwards inside GOPs.
+ *
+ * This enum defines the different ways in which an object's activity can propagate
+ * through its parent hierarchy. It specifies whether to limit the activity to the object
+ * itself, its direct parent, or all parents recursively.
+ *
+ * @var ObjectActivityPolicy::Self
+ * Trigger object's own activity only.
+ *
+ * @var ObjectActivityPolicy::Parent
+ * Trigger activity of object itself, and direct parent GOP only.
+ *
+ * @var ObjectActivityPolicy::Recursive
+ * Trigger activity of object itself, and all parent GOPs recursively.
+ */
+    enum ObjectActivityPolicy {
+        Self,
+        Parent,
+        Recursive
+    };
+
+    ObjectActivityPolicy objectActivityPolicy = ObjectActivityPolicy::Self;
+
 private:
     void initialise();
 
     void updateTooltips();
+
+    void updateObjectActivityPolicy(String objectName);
 
     void openNewObjectEditor();
 
