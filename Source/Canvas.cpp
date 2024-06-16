@@ -105,7 +105,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
         canvasViewport->setScrollBarsShown(true, true, true, true);
 
         viewport.reset(canvasViewport); // Owned by the tabbar, but doesn't exist for graph!
-        jumpToLastKnownPosition();
+        restoreViewportState();
     }
 
     commandLocked.referTo(pd->commandLocked);
@@ -174,7 +174,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
 
 Canvas::~Canvas()
 {
-    saveViewportPosition();
+    saveViewportState();
     zoomScale.removeListener(this);
     editor->removeModifierKeyListener(this);
     pd->unregisterMessageListener(patch.getUncheckedPointer(), this);
@@ -693,7 +693,7 @@ void Canvas::jumpToOrigin()
         viewport->setViewPosition((canvasOrigin + Point<int>(1, 1)).transformedBy(getTransform()));
 }
 
-void Canvas::jumpToLastKnownPosition()
+void Canvas::restoreViewportState()
 {
     if (viewport) {
         viewport->setViewPosition((patch.lastViewportPosition + canvasOrigin).transformedBy(getTransform()));
@@ -702,7 +702,7 @@ void Canvas::jumpToLastKnownPosition()
     }
 }
 
-void Canvas::saveViewportPosition()
+void Canvas::saveViewportState()
 {
     if (viewport) {
         patch.lastViewportPosition = viewport->getViewPosition().transformedBy(getTransform().inverted()) - canvasOrigin;

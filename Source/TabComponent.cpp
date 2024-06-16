@@ -90,7 +90,7 @@ Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch)
     existingPatch->windowIndex = editor->editorIndex;
 
     showTab(cnv, activeSplitIndex);
-    cnv->jumpToLastKnownPosition();
+    cnv->restoreViewportState();
 
     triggerAsyncUpdate();
 
@@ -113,7 +113,7 @@ void TabComponent::moveToLeftSplit(TabBarButtonComponent* tab)
             tabbars[0].add(new TabBarButtonComponent(cnv, this));
             showTab(cnv, 0);
 
-            cnv->jumpToLastKnownPosition();
+            cnv->restoreViewportState();
             triggerAsyncUpdate();
             oldTabbar->triggerAsyncUpdate();
         } else if (tab->parent->tabbars[1].contains(tab)) {
@@ -128,7 +128,7 @@ void TabComponent::moveToLeftSplit(TabBarButtonComponent* tab)
             tabbars[0].add(new TabBarButtonComponent(cnv, this));
             showTab(cnv, 0);
 
-            cnv->jumpToLastKnownPosition();
+            cnv->restoreViewportState();
             triggerAsyncUpdate();
             oldTabbar->triggerAsyncUpdate();
         }
@@ -172,7 +172,7 @@ void TabComponent::moveToRightSplit(TabBarButtonComponent* tab)
             oldTabbar->tabbars[0].removeObject(tab);
 
             auto* cnv = canvases.add(new Canvas(editor, patch));
-            cnv->jumpToLastKnownPosition();
+            cnv->restoreViewportState();
             tabbars[1].add(new TabBarButtonComponent(cnv, this));
             showTab(cnv, 1);
 
@@ -187,7 +187,7 @@ void TabComponent::moveToRightSplit(TabBarButtonComponent* tab)
             oldTabbar->tabbars[1].removeObject(tab);
 
             auto* cnv = canvases.add(new Canvas(editor, patch));
-            cnv->jumpToLastKnownPosition();
+            cnv->restoreViewportState();
             tabbars[1].add(new TabBarButtonComponent(cnv, this));
             showTab(cnv, 1);
 
@@ -271,7 +271,7 @@ void TabComponent::createNewWindow(Component* draggedTab)
     patch->windowIndex = newEditor->editorIndex;
 
     auto* newCanvas = newEditor->getTabComponent().openPatch(patch);
-    newCanvas->jumpToLastKnownPosition();
+    newCanvas->restoreViewportState();
 
     newWindow->setTopLeftPosition(Desktop::getInstance().getMousePosition() - Point<int>(500, 60));
     newWindow->toFront(true);
@@ -299,6 +299,10 @@ void TabComponent::handleAsyncUpdate()
     if (getCurrentCanvas())
         lastActiveCanvas = getCurrentCanvas()->patch.getUncheckedPointer();
 
+    for (auto* cnv : getCanvases()) {
+        cnv->saveViewportState();
+    }
+    
     tabbars[0].clear();
     tabbars[1].clear();
 
@@ -355,7 +359,7 @@ void TabComponent::handleAsyncUpdate()
             if (!cnv) {
                 cnv = canvases.add(new Canvas(editor, patch));
                 resized();
-                cnv->jumpToLastKnownPosition();
+                cnv->restoreViewportState();
             }
             
             // Create tab buttons
@@ -381,7 +385,7 @@ void TabComponent::handleAsyncUpdate()
     resized(); // Update tab and canvas layout
 
     for (auto* cnv : getCanvases()) {
-        cnv->jumpToLastKnownPosition();
+        cnv->restoreViewportState();
     }
 
     // Show plugin mode tab after closing pluginmode
@@ -449,7 +453,7 @@ void TabComponent::showTab(Canvas* cnv, int splitIndex)
     }
 
     if (splits[splitIndex]) {
-        splits[splitIndex]->saveViewportPosition();
+        splits[splitIndex]->saveViewportState();
         removeChildComponent(splits[splitIndex]->viewport.get());
     }
 

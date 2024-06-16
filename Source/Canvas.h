@@ -142,8 +142,8 @@ public:
     void redo();
 
     void jumpToOrigin();
-    void jumpToLastKnownPosition();
-    void saveViewportPosition();
+    void restoreViewportState();
+    void saveViewportState();
 
     void zoomToFitAll();
 
