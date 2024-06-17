@@ -108,7 +108,7 @@ private:
         { "internal_synth", var(0) },
         { "grid_enabled", var(1) },
         { "grid_type", var(6) },
-        { "grid_size", var(20) },
+        { "grid_size", var(25) },
         { "default_font", var("Inter") },
         { "native_window", var(false) },
         { "reload_last_state", var(false) },
