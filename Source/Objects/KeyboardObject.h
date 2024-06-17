@@ -5,22 +5,21 @@
  */
 
 // Inherit to customise drawing
-class MIDIKeyboard : public MidiKeyboardComponent {
-
-    Object* object;
-
+class MIDIKeyboard : public MidiKeyboardState
+    , public MidiKeyboardComponent {
     bool toggleMode = false;
     int lastKey = -1;
 
 public:
+    int clickedKey = -1;
+
     std::set<int> heldKeys;
     std::set<int> toggledKeys;
     std::function<void(int, int)> noteOn;
     std::function<void(int)> noteOff;
 
-    MIDIKeyboard(Object* parent, MidiKeyboardState& stateToUse, Orientation orientationToUse)
-        : MidiKeyboardComponent(stateToUse, orientationToUse)
-        , object(parent)
+    MIDIKeyboard()
+        : MidiKeyboardComponent(*this, MidiKeyboardComponent::horizontalKeyboard)
     {
         // Make sure nothing is drawn outside of our custom draw functions
         setColour(MidiKeyboardComponent::whiteNoteColourId, Colours::transparentBlack);
@@ -55,6 +54,8 @@ public:
 
     bool mouseDownOnKey(int midiNoteNumber, MouseEvent const& e) override
     {
+        clickedKey = midiNoteNumber;
+
         if (e.mods.isShiftDown()) {
             if (toggledKeys.count(midiNoteNumber)) {
                 toggledKeys.erase(midiNoteNumber);
@@ -84,6 +85,8 @@ public:
 
     bool mouseDraggedToKey(int midiNoteNumber, MouseEvent const& e) override
     {
+        clickedKey = midiNoteNumber;
+
         if (!toggleMode && !e.mods.isShiftDown() && !heldKeys.count(midiNoteNumber)) {
             for (auto& note : heldKeys) {
                 noteOff(note);
@@ -110,6 +113,8 @@ public:
     // So we completely replace mouseUpOnKey functionality here, mouseUp() will stop mouseUpOnKey() being called.
     void mouseUp(MouseEvent const& e) override
     {
+        clickedKey = -1;
+
         if (!toggleMode && !e.mods.isShiftDown()) {
             heldKeys.erase(lastKey);
             noteOff(lastKey);
@@ -130,7 +135,7 @@ public:
         if (isOver)
             c = Colour(235, 235, 235);
         if (isDown)
-            c = object->findColour(PlugDataColour::dataColourId);
+            c = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::dataColourId);
 
         area = area.reduced(0.0f, 0.5f);
 
@@ -153,9 +158,14 @@ public:
 
         // don't draw the first separator line to fix object look
         if (midiNoteNumber != getRangeStart()) {
-            g.setColour(object->findColour(PlugDataColour::outlineColourId));
+            g.setColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::outlineColourId));
             g.fillRect(area.withWidth(1.0f));
         }
+
+        // FIXME: have a unified way to detect when mode changes outside of render callback
+        auto cnv =  findParentComponentOfClass<Canvas>();
+        if (cnv->locked.getValue() || cnv->editor->isInPluginMode())
+            return;
 
         // draw C octave numbers
         if (!(midiNoteNumber % 12)) {
@@ -194,7 +204,7 @@ public:
         if (isOver)
             c = Colour(101, 101, 101);
         if (isDown)
-            c = object->findColour(PlugDataColour::dataColourId).darker(0.5f);
+            c = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::dataColourId).darker(0.5f);
 
         g.setColour(c);
         g.fillRect(area);
@@ -206,21 +216,21 @@ class KeyboardObject final : public ObjectBase
 
     Value lowC = SynchronousValue();
     Value octaves = SynchronousValue();
-    int numWhiteKeys = 0;
+    int numWhiteKeys = 8;
 
     Value sendSymbol = SynchronousValue();
     Value receiveSymbol = SynchronousValue();
     Value toggleMode = SynchronousValue();
     Value sizeProperty = SynchronousValue();
 
-    MidiKeyboardState state;
     MIDIKeyboard keyboard;
     int keyRatio = 5;
+
+    std::unique_ptr<NanoVGGraphicsContext> nvgCtx = nullptr;
 
 public:
     KeyboardObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
-        , keyboard(object, state, MidiKeyboardComponent::horizontalKeyboard)
     {
         keyboard.setMidiChannel(1);
         keyboard.setScrollButtonsVisible(false);
@@ -260,7 +270,7 @@ public:
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
         objectParameters.addParamSendSymbol(&sendSymbol);
 
-        startTimer(150);
+        startTimer(50);
     }
 
     void update() override
@@ -277,12 +287,25 @@ public:
             sendSymbol = sndSym != "empty" ? sndSym : "";
             receiveSymbol = rcvSym != "empty" ? rcvSym : "";
 
-            MessageManager::callAsync([this] {
-                updateAspectRatio();
-
-                // Call async to make sure pd obj has updated
-                object->updateBounds();
+            MessageManager::callAsync([_this = SafePointer(this)] {
+                if (_this) {
+                    _this->updateAspectRatio();
+                    // Call async to make sure pd obj has updated
+                    _this->object->updateBounds();
+                }
             });
+        }
+
+        keyboard.setToggleMode(getValue<bool>(toggleMode));
+    }
+
+    void render(NVGcontext* nvg) override
+    {
+        if (!nvgCtx || nvgCtx->getContext() != nvg)
+            nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
+        Graphics g(*nvgCtx);
+        {
+            paintEntireComponent(g, true);
         }
     }
 
@@ -392,15 +415,19 @@ public:
 
     void updateValue()
     {
+        int notes[256];
         if (auto obj = ptr.get<t_fake_keyboard>()) {
+            memcpy(notes, obj->x_tgl_notes, 256 * sizeof(int));
+        }
 
-            for (int i = keyboard.getRangeStart(); i < keyboard.getRangeEnd(); i++) {
-                if (obj->x_tgl_notes[i] && !(state.isNoteOn(2, i) && state.isNoteOn(1, i))) {
-                    state.noteOn(2, i, 1.0f);
-                }
-                if (!obj->x_tgl_notes[i] && !(state.isNoteOn(2, i) && state.isNoteOn(1, i))) {
-                    state.noteOff(2, i, 1.0f);
-                }
+        for (int i = keyboard.getRangeStart(); i <= keyboard.getRangeEnd(); i++) {
+            if (notes[i] && !keyboard.heldKeys.contains(i)) {
+                keyboard.heldKeys.insert(i);
+                repaint();
+            }
+            if (!notes[i] && keyboard.heldKeys.contains(i) && keyboard.clickedKey != i && !getValue<bool>(toggleMode)) {
+                keyboard.heldKeys.erase(i);
+                repaint();
             }
         }
     }
@@ -432,7 +459,8 @@ public:
 
         switch (symbol) {
         case hash("float"): {
-            noteOn(atoms[0].getFloat(), elseKeyboard->x_vel_in > 0);
+            auto note = std::clamp<int>(atoms[0].getFloat(), 0, 128);
+            noteOn(atoms[0].getFloat(), elseKeyboard->x_tgl_notes[note]);
             break;
         }
         case hash("list"): {
@@ -487,6 +515,18 @@ public:
         }
     }
 
+    bool inletIsSymbol() override
+    {
+        auto rSymbol = receiveSymbol.toString();
+        return rSymbol.isNotEmpty() && (rSymbol != "empty");
+    }
+
+    bool outletIsSymbol() override
+    {
+        auto sSymbol = sendSymbol.toString();
+        return sSymbol.isNotEmpty() && (sSymbol != "empty");
+    }
+
     void timerCallback() override
     {
         updateValue();
@@ -495,7 +535,7 @@ public:
     void paintOverChildren(Graphics& g) override
     {
         bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
+        auto outlineColour = LookAndFeel::getDefaultLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);

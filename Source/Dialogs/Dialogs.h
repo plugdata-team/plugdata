@@ -13,47 +13,16 @@
 
 class Canvas;
 
-class Dialog : public Component {
+class Dialog : public Component
+    , public ComponentListener {
 
 public:
-    Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWidth, int childHeight, bool showCloseButton, int margin = 0)
-        : height(childHeight)
-        , width(childWidth)
-        , parentComponent(editor)
-        , owner(ownerPtr)
-        , backgroundMargin(margin)
+    Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWidth, int childHeight, bool showCloseButton, int margin = 0);
+
+    ~Dialog() override
     {
-        parentComponent->addAndMakeVisible(this);
-        setBounds(0, 0, parentComponent->getWidth(), parentComponent->getHeight());
+        parentComponent->removeComponentListener(this);
 
-        setAlwaysOnTop(true);
-        setWantsKeyboardFocus(true);
-
-        if (showCloseButton) {
-            closeButton.reset(getLookAndFeel().createDocumentWindowButton(-1));
-            addAndMakeVisible(closeButton.get());
-            closeButton->onClick = [this]() {
-                closeDialog();
-            };
-            closeButton->setAlwaysOnTop(true);
-        }
-
-        // Make sure titlebar buttons are greyed out when a dialog is showing
-        if (auto* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent())) {
-            if (ProjectInfo::isStandalone) {
-                if (auto* closeButton = window->getCloseButton())
-                    closeButton->setEnabled(false);
-                if (auto* minimiseButton = window->getMinimiseButton())
-                    minimiseButton->setEnabled(false);
-                if (auto* maximiseButton = window->getMaximiseButton())
-                    maximiseButton->setEnabled(false);
-            }
-            window->repaint();
-        }
-    }
-
-    ~Dialog()
-    {
         if (auto* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent())) {
             if (ProjectInfo::isStandalone) {
                 if (auto* closeButton = window->getCloseButton())
@@ -66,6 +35,11 @@ public:
         }
     }
 
+    void componentMovedOrResized(Component& comp, bool wasMoved, bool wasResized) override
+    {
+        setBounds(parentComponent->getScreenX(), parentComponent->getScreenY(), parentComponent->getWidth(), parentComponent->getHeight());
+    }
+
     void setViewedComponent(Component* child)
     {
         viewedComponent.reset(child);
@@ -74,16 +48,15 @@ public:
         resized();
     }
 
-    Component* getViewedComponent() const
-    {
-        return viewedComponent.get();
-    }
-
     bool wantsRoundedCorners() const;
 
     void paint(Graphics& g) override
     {
-        g.setColour(Colours::black.withAlpha(0.5f));
+        if (!ProjectInfo::canUseSemiTransparentWindows()) {
+            g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+        } else {
+            g.setColour(Colours::black.withAlpha(0.5f));
+        }
 
         auto bounds = getLocalBounds().toFloat().reduced(backgroundMargin);
 
@@ -116,7 +89,7 @@ public:
             viewedComponent->setBounds(0, 0, getWidth(), getHeight());
 #else
             viewedComponent->setSize(width, height);
-            viewedComponent->setCentrePosition({ getBounds().getCentreX(), getBounds().getCentreY() });
+            viewedComponent->setCentrePosition({ getLocalBounds().getCentreX(), getLocalBounds().getCentreY() });
 #endif
         }
 
@@ -129,26 +102,32 @@ public:
 #if !JUCE_IOS
     void mouseDown(MouseEvent const& e) override
     {
+        if (!hasKeyboardFocus(false)) {
+            parentComponent->toFront(false);
+            toFront(true);
+        }
+
         if (isPositiveAndBelow(e.getEventRelativeTo(viewedComponent.get()).getMouseDownY(), 40) && ProjectInfo::isStandalone) {
             dragger.startDraggingWindow(parentComponent->getTopLevelComponent(), e);
             dragging = true;
-        } else if (!viewedComponent->getBounds().contains(e.getPosition())) {
+        } else if (!viewedComponent->getBounds().contains(e.getPosition()) && !blockCloseAction) {
+            parentComponent->toFront(true);
             closeDialog();
         }
     }
 
-    void mouseDrag(MouseEvent const& e) override
-    {
-        if (dragging) {
-            dragger.dragWindow(parentComponent->getTopLevelComponent(), e, nullptr);
-        }
-    }
+    void mouseDrag(MouseEvent const& e) override;
 
     void mouseUp(MouseEvent const& e) override
     {
         dragging = false;
     }
 #endif
+
+    void setBlockFromClosing(bool block)
+    {
+        blockCloseAction = block;
+    }
 
     bool keyPressed(KeyPress const& key) override
     {
@@ -174,6 +153,7 @@ public:
     std::unique_ptr<Button> closeButton = nullptr;
     std::unique_ptr<Dialog>* owner;
 
+    bool blockCloseAction = false;
     bool dragging = false;
     int backgroundMargin = 0;
 };
@@ -188,7 +168,7 @@ struct Dialogs {
 
     static void showMainMenu(PluginEditor* editor, Component* centre);
 
-    static void showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> const& callback, StringArray options = { "Okay", "Cancel " }, bool swapButtons = false);
+    static void showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> const& callback, StringArray const& options = { "Okay", "Cancel " });
 
     static void showHeavyExportDialog(std::unique_ptr<Dialog>* target, Component* parent);
 
@@ -200,13 +180,12 @@ struct Dialogs {
     static void showObjectMenu(PluginEditor* parent, Component* target);
 
     static void showDeken(PluginEditor* editor);
-    static void showPatchStorage(PluginEditor* editor);
 
-    static PopupMenu createObjectMenu(PluginEditor* parent);
+    static void dismissFileDialog();
 
-    static void showOpenDialog(std::function<void(File&)> callback, bool canSelectFiles, bool canSelectDirectories, String const& lastFileId, String const& extension);
+    static void showOpenDialog(std::function<void(URL)> const& callback, bool canSelectFiles, bool canSelectDirectories, String const& lastFileId, String const& extension, Component* parentComponent);
 
-    static void showSaveDialog(std::function<void(File&)> callback, String const& extension, String const& lastFileId, bool directoryMode = false);
+    static void showSaveDialog(std::function<void(URL)> const& callback, String const& extension, String const& lastFileId, Component* parentComponent = nullptr, bool directoryMode = false);
 
     static inline std::unique_ptr<FileChooser> fileChooser = nullptr;
 };

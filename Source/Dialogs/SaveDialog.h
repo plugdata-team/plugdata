@@ -6,7 +6,7 @@
 
 class SaveDialogButton : public TextButton {
 public:
-    SaveDialogButton(String buttonText)
+    explicit SaveDialogButton(String const& buttonText)
         : TextButton(buttonText)
     {
     }
@@ -26,7 +26,7 @@ private:
         }
 
         g.setColour(backgroundColour);
-        PlugDataLook::fillSmoothedRectangle(g, bounds, Corners::defaultCornerRadius);
+        g.fillRoundedRectangle(bounds, Corners::defaultCornerRadius);
 
         g.setFont(Fonts::getDefaultFont().withHeight(15));
         g.setColour(findColour(PlugDataColour::panelTextColourId));
@@ -35,7 +35,7 @@ private:
 
         if (hasKeyboardFocus(false)) {
             g.setColour(activeColour);
-            PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), bounds, Corners::defaultCornerRadius);
+            g.drawRoundedRectangle(bounds, Corners::defaultCornerRadius, 1.0f);
         }
     }
 };

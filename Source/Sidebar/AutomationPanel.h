@@ -36,7 +36,8 @@ class AutomationItem : public ObjectDragAndDrop
 
 public:
     AutomationItem(PlugDataParameter* parameter, Component* parentComponent, PluginProcessor* processor)
-        : pd(processor)
+        : ObjectDragAndDrop(parentComponent->findParentComponentOfClass<PluginEditor>())
+        , pd(processor)
         , rangeProperty("Range", range, false)
         , modeProperty("Mode", mode, { "Float", "Integer", "Logarithmic", "Exponential" })
         , param(parameter)
@@ -49,7 +50,6 @@ public:
         range.addListener(this);
         mode.addListener(this);
 
-        deleteButton.setButtonText(Icons::Clear);
         deleteButton.onClick = [this]() mutable {
             onDelete(this);
         };
@@ -271,6 +271,18 @@ public:
         bool isEditable = PlugDataParameter::canDynamicallyAdjustParameters();
         bool isOverNameLable = nameLabel.getBounds().contains(e.getEventRelativeTo(&nameLabel).getPosition());
 
+        if (e.mods.isRightButtonDown() && !ProjectInfo::isStandalone) {
+            auto* pluginEditor = findParentComponentOfClass<PluginEditor>();
+            if (auto* hostContext = pluginEditor->getHostContext()) {
+                hostContextMenu = hostContext->getContextMenuForParameter(param);
+                if (hostContextMenu) {
+                    auto menuPosition = pluginEditor->getMouseXYRelative();
+                    hostContextMenu->showNativeMenu(menuPosition);
+                }
+            }
+            return;
+        }
+
         if (isEditable && isOverNameLable && !e.mouseWasDraggedSinceMouseDown() && e.getNumberOfClicks() >= 2) {
             nameLabel.showEditor();
         }
@@ -296,7 +308,7 @@ public:
 
     String getPatchStringName() override
     {
-        return String("param object");
+        return "param object";
     }
 
     void valueChanged(Value& v) override
@@ -321,7 +333,7 @@ public:
         }
     }
 
-    bool isEnabled()
+    bool isEnabled() const
     {
         return param->isEnabled();
     }
@@ -365,12 +377,13 @@ public:
         valueLabel.setColour(Label::textColourId, findColour(PlugDataColour::sidebarTextColourId));
 
         g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-        PlugDataLook::fillSmoothedRectangle(g, getLocalBounds().toFloat().reduced(6.0f, 3.0f), Corners::defaultCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(6.0f, 3.0f), Corners::defaultCornerRadius);
     }
 
     std::function<void(AutomationItem*)> onDelete = [](AutomationItem*) {};
+    std::unique_ptr<HostProvidedContextMenu> hostContextMenu;
 
-    SmallIconButton deleteButton;
+    SmallIconButton deleteButton = SmallIconButton(Icons::Clear);
     ExpandButton settingsButton;
 
     Value range = Value(var(Array<var> { var(0.0f), var(127.0f) }));
@@ -398,7 +411,7 @@ public:
 
 class AlphaAnimator : public Timer {
 public:
-    AlphaAnimator() { }
+    AlphaAnimator() = default;
 
     void fadeIn(Component* component, double duration)
     {
@@ -414,7 +427,6 @@ private:
     void animate(Component* component, double duration, float startAlpha, float endAlpha)
     {
         componentToAnimate = component;
-        animationDuration = duration;
         animationSteps = static_cast<int>(duration / timerInterval);
         currentStep = 0;
         startAlphaValue = startAlpha;
@@ -437,7 +449,6 @@ private:
     }
 
     Component* componentToAnimate = nullptr;
-    double animationDuration = 0.0;
     int animationSteps = 0;
     int currentStep = 0;
     float startAlphaValue = 0.0f;
@@ -515,9 +526,7 @@ class AutomationComponent : public Component {
             auto colour = findColour(PlugDataColour::sidebarTextColourId);
             if (mouseIsOver) {
                 g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-                PlugDataLook::fillSmoothedRectangle(g, bounds.toFloat(), Corners::defaultCornerRadius);
-
-                colour = findColour(PlugDataColour::sidebarActiveTextColourId);
+                g.fillRoundedRectangle(bounds.toFloat(), Corners::defaultCornerRadius);
             }
 
             Fonts::drawIcon(g, Icons::Add, iconBounds, colour, 12);
@@ -773,7 +782,8 @@ public:
 };
 
 class AutomationPanel : public Component
-    , public ScrollBar::Listener {
+    , public ScrollBar::Listener
+    , public AsyncUpdater {
 
 public:
     explicit AutomationPanel(PluginProcessor* processor)
@@ -809,20 +819,21 @@ public:
         sliders.setSize(getWidth(), std::max(sliders.getTotalHeight(), viewport.getMaximumVisibleHeight()));
     }
 
-    void updateParameters()
+    void updateParameterValue(PlugDataParameter* changedParameter)
     {
-        if (ProjectInfo::isStandalone) {
-
-            sliders.updateSliders();
-
-            for (int p = 0; p < sliders.rows.size(); p++) {
-                auto* param = dynamic_cast<PlugDataParameter*>(pd->getParameters()[p + 1]);
-                sliders.rows[p]->slider.setValue(param->getUnscaledValue());
+        for (int p = 0; p < sliders.rows.size(); p++) {
+            auto* param = sliders.rows[p]->param;
+            auto& slider = sliders.rows[p]->slider;
+            if (changedParameter == param && slider.getThumbBeingDragged() == -1) {
+                slider.setValue(param->getUnscaledValue());
+                break;
             }
-
-        } else {
-            sliders.updateSliders();
         }
+    }
+
+    void handleAsyncUpdate() override
+    {
+        sliders.updateSliders();
     }
     BouncingViewport viewport;
     AutomationComponent sliders;

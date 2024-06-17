@@ -53,13 +53,14 @@ struct Icons {
     inline static String const Documentation = "N";
     inline static String const AddCircled = "O";
     inline static String const Console = "P";
-    inline static String const GitHub = "Q";
+    inline static String const OpenLink = "Q";
     inline static String const Wrench = "R";
     inline static String const Back = "S";
     inline static String const Forward = "T";
     inline static String const Library = "U";
     inline static String const Menu = "V";
     inline static String const Info = "W";
+    inline static String const Warning = "\"";
     inline static String const History = "X";
     inline static String const Protection = "Y";
     inline static String const DevTools = "{";
@@ -74,13 +75,13 @@ struct Icons {
     inline static String const Eye = "|";
     inline static String const Magnet = "%";
     inline static String const SnapEdges = "#";
-    inline static String const SnapCorners = "\"";
     inline static String const SnapCenters = "$";
     inline static String const ExportState = "^";
     inline static String const Trash = "~";
-    inline static String const Fullscreen = "&";
+    inline static String const CanvasSettings = "&";
     inline static String const Eyedropper = "@";
-    inline static String const Debug = "?";
+    inline static String const HeartFilled = "?";
+    inline static String const HeartStroked = ">";
 
     inline static String const Reset = "'";
     inline static String const More = ".";
@@ -104,11 +105,11 @@ struct Icons {
 
     inline static String const AlignLeft = "4";
     inline static String const AlignRight = "5";
-    inline static String const AlignVCentre = "6";
+    inline static String const AlignHCentre = "6";
     inline static String const AlignHDistribute = "/";
     inline static String const AlignTop = "7";
     inline static String const AlignBottom = "8";
-    inline static String const AlignHCentre = "9";
+    inline static String const AlignVCentre = "9";
     inline static String const AlignVDistribute = "*";
 
     // ================== OBJECT ICONS ==================
@@ -245,15 +246,13 @@ enum PlugDataColour {
     toolbarActiveColourId,
     toolbarHoverColourId,
     toolbarOutlineColourId,
-
-    tabBackgroundColourId,
-    tabTextColourId,
     activeTabBackgroundColourId,
-    activeTabTextColourId,
 
     canvasBackgroundColourId,
     canvasTextColourId,
     canvasDotsColourId,
+
+    presentationBackgroundColourId,
 
     guiObjectBackgroundColourId,
     guiObjectInternalOutlineColour,
@@ -270,13 +269,13 @@ enum PlugDataColour {
     dataColourId,
     connectionColourId,
     signalColourId,
+    gemColourId,
 
     dialogBackgroundColourId,
 
     sidebarBackgroundColourId,
     sidebarTextColourId,
     sidebarActiveBackgroundColourId,
-    sidebarActiveTextColourId,
 
     levelMeterActiveColourId,
     levelMeterBackgroundColourId,
@@ -286,16 +285,13 @@ enum PlugDataColour {
     panelForegroundColourId,
     panelTextColourId,
     panelActiveBackgroundColourId,
-    panelActiveTextColourId,
 
     popupMenuBackgroundColourId,
     popupMenuActiveBackgroundColourId,
     popupMenuTextColourId,
-    popupMenuActiveTextColourId,
 
-    sliderThumbColourId,
     scrollbarThumbColourId,
-    resizeableCornerColourId,
+    graphAreaColourId,
     gridLineColourId,
     caretColourId,
 
@@ -315,6 +311,7 @@ enum CommandIDs {
     Lock,
     ConnectionStyle,
     ConnectionPathfind,
+    PanDragKey,
     ZoomIn,
     ZoomOut,
     ZoomNormal,
@@ -326,6 +323,7 @@ enum CommandIDs {
     Delete,
     Duplicate,
     Encapsulate,
+    Triggerize,
     CreateConnection,
     RemoveConnections,
     SelectAll,
@@ -341,6 +339,7 @@ enum CommandIDs {
     ShowReference,
     ShowHelp,
     OpenObjectBrowser,
+    ToggleDSP,
     NumItems
 };
 
@@ -395,31 +394,24 @@ struct Corners {
 
 enum Overlay {
     None = 0,
-    Origin = 1,
-    Border = 2,
-    Index = 4,
-    Coordinate = 8,
-    ActivationState = 16,
-    Order = 32,
-    Direction = 64
-};
-
-enum OverlayItem {
-    OverlayOrigin = 0,
-    OverlayBorder,
-    OverlayIndex,
-    OverlayActivationState,
-    OverlayDirection,
-    OverlayOrder
+    Origin = 1 << 0,
+    Border = 1 << 1,
+    Index = 1 << 2,
+    Coordinate = 1 << 3,
+    ActivationState = 1 << 4,
+    ConnectionActivity = 1 << 5,
+    Order = 1 << 6,
+    Direction = 1 << 7,
+    Behind = 1 << 8
 };
 
 enum Align {
     Left = 0,
     Right,
-    HCenter,
+    HCentre,
     HDistribute,
     Top,
     Bottom,
-    VCenter,
+    VCentre,
     VDistribute
 };

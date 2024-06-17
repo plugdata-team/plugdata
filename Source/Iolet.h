@@ -1,24 +1,22 @@
-/*
- // Copyright (c) 2021-2022 Timothy Schoen
- // For information on usage and redistribution, and for a DISCLAIMER OF ALL
- // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
-*/
+// Copyright (c) 2021-2022 Timothy Schoen
+// For information on usage and redistribution, and for a DISCLAIMER OF ALL
+// WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 
 #pragma once
 
 class Connection;
 class Object;
 class Canvas;
+struct NVGcontext;
 
 class Iolet : public Component
     , public SettableTooltipClient
-    , public Value::Listener {
+    , public Value::Listener
+    , public NVGComponent {
 public:
     Object* object;
 
     Iolet(Object* parent, bool isInlet);
-
-    void paint(Graphics&) override;
 
     void mouseDrag(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
@@ -28,6 +26,8 @@ public:
 
     bool hitTest(int x, int y) override;
 
+    void render(NVGcontext* nvg) override;
+
     void valueChanged(Value& v) override;
 
     static Iolet* findNearestIolet(Canvas* cnv, Point<int> position, bool inlet, Object* boxToExclude = nullptr);
@@ -36,7 +36,6 @@ public:
 
     void setHidden(bool hidden);
 
-    void clearConnections();
     Array<Connection*> getConnections();
 
     Rectangle<int> getCanvasBounds();
@@ -44,6 +43,7 @@ public:
     int ioletIdx;
     bool isInlet;
     bool isSignal;
+    bool isGemState;
 
     bool isTargeted = false;
 
@@ -51,7 +51,7 @@ public:
 
 private:
     bool const insideGraph;
-    bool hideIolet = false;
+    bool isSymbolIolet = false;
 
     Value locked;
     Value commandLocked;

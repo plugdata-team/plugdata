@@ -29,6 +29,10 @@ class AtomHelper {
 
     pd::WeakReference ptr;
 
+    int lastFontHeight = 10;
+    hash32 lastLabelTextHash = 0;
+    int lastLabelLength = 0;
+
 public:
     Value labelColour = SynchronousValue();
     Value labelPosition = SynchronousValue(0.0f);
@@ -69,8 +73,8 @@ public:
         sendSymbol = getSendSymbol();
         receiveSymbol = getReceiveSymbol();
 
-        gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(Label::textWhenEditingColourId));
-        gui->getLookAndFeel().setColour(Label::textColourId, object->findColour(Label::textColourId));
+        gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, LookAndFeel::getDefaultLookAndFeel().findColour(Label::textWhenEditingColourId));
+        gui->getLookAndFeel().setColour(Label::textColourId, LookAndFeel::getDefaultLookAndFeel().findColour(Label::textColourId));
     }
 
     int getWidthInChars()
@@ -267,36 +271,36 @@ public:
         }
     }
 
-    void updateLabel(std::unique_ptr<ObjectLabel>& label)
+    void updateLabel(std::unique_ptr<ObjectLabels>& labels)
     {
         int idx = std::clamp<int>(fontSize.getValue(), 1, 7);
 
         setFontHeight(atomSizes[idx - 1]);
 
-        int fontHeight = getAtomHeight() - 6;
+        int fontHeight = getAtomHeight() - 5;
         String const text = getExpandedLabelText();
 
         if (text.isNotEmpty()) {
-            if (!label) {
-                label = std::make_unique<ObjectLabel>();
+            if (!labels) {
+                labels = std::make_unique<ObjectLabels>();
             }
 
             auto bounds = getLabelBounds();
 
-            label->setBounds(bounds);
-            label->setFont(Font(fontHeight));
-            label->setText(text, dontSendNotification);
+            labels->setLabelBounds(bounds);
+            labels->getObjectLabel()->setFont(Font(fontHeight));
+            labels->getObjectLabel()->setText(text, dontSendNotification);
 
-            auto textColour = object->findColour(PlugDataColour::canvasTextColourId);
-            if (std::abs(textColour.getBrightness() - object->findColour(PlugDataColour::canvasBackgroundColourId).getBrightness()) < 0.3f) {
-                textColour = object->findColour(PlugDataColour::canvasBackgroundColourId).contrasting();
+            auto textColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
+            if (std::abs(textColour.getBrightness() - LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId).getBrightness()) < 0.3f) {
+                textColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId).contrasting();
             }
 
-            label->setColour(Label::textColourId, textColour);
+            labels->setColour(textColour);
 
-            object->cnv->addAndMakeVisible(label.get());
+            object->cnv->addAndMakeVisible(labels.get());
         } else {
-            label.reset(nullptr);
+            labels.reset(nullptr);
         }
     }
 
@@ -316,30 +320,46 @@ public:
         }
     }
 
-    Rectangle<int> getLabelBounds() const
+    Rectangle<int> getLabelBounds()
     {
         auto objectBounds = object->getBounds().reduced(Object::margin);
-        int fontHeight = getAtomHeight() - 6;
+        int fontHeight = getAtomHeight() - 5;
+        int fontWidth = sys_fontwidth(fontHeight);
+        int labelSpace = fontWidth * (getExpandedLabelText().length() + 1);
 
-        int labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());
+        auto currentHash = hash(getExpandedLabelText());
+        int labelLength = lastLabelLength;
+
+        if (lastFontHeight != fontHeight || lastLabelTextHash != currentHash) {
+            labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());
+            lastFontHeight = fontHeight;
+            lastLabelTextHash = currentHash;
+            lastLabelLength = labelLength;
+        }
 
         int labelPosition = 0;
         if (auto atom = ptr.get<t_fake_gatom>()) {
             labelPosition = atom->a_wherelabel;
         }
         auto labelBounds = objectBounds.withSizeKeepingCentre(labelLength, fontHeight);
+        int lengthDifference = labelLength - labelSpace; // difference between width in pd-vanilla and plugdata
 
         if (labelPosition == 0) { // left
-            return labelBounds.withRightX(objectBounds.getX() - 4);
-        }
-        if (labelPosition == 1) { // right
-            return labelBounds.withX(objectBounds.getRight() + 4);
-        }
-        if (labelPosition == 2) { // top
-            return labelBounds.withX(objectBounds.getX()).withBottomY(objectBounds.getY());
+            labelBounds.removeFromLeft(lengthDifference);
+            return labelBounds.withRightX(objectBounds.getX() - lengthDifference - 2);
         }
 
-        return labelBounds.withX(objectBounds.getX()).withY(objectBounds.getBottom());
+        labelBounds.removeFromRight(lengthDifference);
+
+        if (labelPosition == 1) { // right
+            return labelBounds.withX(objectBounds.getRight() + 2);
+        }
+
+        if (labelPosition == 2) { // top
+            return labelBounds.withX(objectBounds.getX()).withBottomY(objectBounds.getY() - 2);
+        }
+
+        return labelBounds.withX(objectBounds.getX()).withY(objectBounds.getBottom() + 2);
     }
 
     String getExpandedLabelText() const
@@ -441,36 +461,5 @@ public:
             if (*atom->a_symfrom->s_name)
                 pd_bind(&atom->a_text.te_pd, canvas_realizedollar(atom->a_glist, atom->a_symfrom));
         }
-    }
-
-    /* prepend "-" as necessary to avoid empty strings, so we can
-     use them in Pd messages. */
-    t_symbol* gatom_escapit(t_symbol* s)
-    {
-        if (!*s->s_name)
-            return (pd->generateSymbol("-"));
-        else if (*s->s_name == '-') {
-            char shmo[100];
-            shmo[0] = '-';
-            strncpy(shmo + 1, s->s_name, 99);
-            shmo[99] = 0;
-            return (pd->generateSymbol(shmo));
-        } else
-            return (s);
-    }
-
-    /* undo previous operation: strip leading "-" if found.  This is used
-     both to restore send, etc., names when loading from a file, and to
-     set them from the properties dialog.  In the former case, since before
-     version 0.52 '$" was aliases to "#", we also bash any "#" characters
-     to "$".  This is unnecessary when reading files saved from 0.52 or later,
-     and really we should test for that and only bash when necessary, just
-     in case someone wants to have a "#" in a name. */
-    t_symbol* gatom_unescapit(t_symbol* s)
-    {
-        if (*s->s_name == '-')
-            return (pd->generateSymbol(String::fromUTF8(s->s_name + 1)));
-        else
-            return (iemgui_raute2dollar(s));
     }
 };

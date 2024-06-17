@@ -4,19 +4,22 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class ReversibleSlider : public Slider {
+class ReversibleSlider : public Slider
+    , public NVGComponent {
 
-    bool isInverted;
-    bool isVertical;
+    bool isInverted = false;
+    bool isVertical = false;
 
 public:
     ReversibleSlider()
+        : NVGComponent(this)
     {
         setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
         setTextBoxStyle(Slider::NoTextBox, 0, 0, 0);
         setScrollWheelEnabled(false);
         getProperties().set("Style", "SliderObject");
         setVelocityModeParameters(1.0f, 1, 0.0f, false);
+        setRepaintsOnMouseActivity(false);
     }
 
     ~ReversibleSlider() override { }
@@ -42,6 +45,18 @@ public:
     {
         setMouseDragSensitivity(std::max<int>(1, isVertical ? getHeight() : getWidth()));
         Slider::resized();
+    }
+
+    void mouseEnter(MouseEvent const& e) override
+    {
+        getParentComponent()->getProperties().set("hover", true);
+        getParentComponent()->repaint();
+    }
+
+    void mouseExit(MouseEvent const& e) override
+    {
+        getParentComponent()->getProperties().set("hover", false);
+        getParentComponent()->repaint();
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -87,6 +102,33 @@ public:
         else
             return Slider::valueToProportionOfLength(value);
     }
+
+    void render(NVGcontext* nvg) override
+    {
+        auto b = getLocalBounds().toFloat().reduced(1.0f);
+
+        constexpr auto thumbSize = 4.0f;
+        auto cornerSize = Corners::objectCornerRadius / 2.0f;
+
+        if (isHorizontal()) {
+            auto sliderPos = jmap<float>(valueToProportionOfLength(getValue()), 0.0f, 1.0f, b.getX(), b.getWidth() - thumbSize);
+            auto bounds = Rectangle<float>(sliderPos, b.getY(), thumbSize, b.getHeight());
+
+            nvgFillColor(nvg, convertColour(getLookAndFeel().findColour(Slider::trackColourId)));
+            nvgBeginPath(nvg);
+            nvgRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), cornerSize);
+            nvgFill(nvg);
+        } else {
+
+            auto sliderPos = jmap<float>(valueToProportionOfLength(getValue()), 1.0f, 0.0f, b.getY(), b.getHeight() - thumbSize);
+            auto bounds = Rectangle<float>(b.getWidth(), thumbSize).translated(b.getX(), sliderPos);
+
+            nvgFillColor(nvg, convertColour(getLookAndFeel().findColour(Slider::trackColourId)));
+            nvgBeginPath(nvg);
+            nvgRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), cornerSize);
+            nvgFill(nvg);
+        }
+    }
 };
 
 class SliderObject : public ObjectBase {
@@ -127,8 +169,8 @@ public:
         };
 
         onConstrainerCreate = [this]() {
-            auto minLongSide = this->object->minimumSize * 2;
-            auto minShortSide = this->object->minimumSize;
+            auto minLongSide = 8;
+            auto minShortSide = 8;
             if (isVertical) {
                 constrainer->setMinimumSize(minShortSide, minLongSide);
             } else {
@@ -174,29 +216,38 @@ public:
         getLookAndFeel().setColour(Slider::trackColourId, Colour::fromString(iemHelper.primaryColour.toString()));
     }
 
-    bool hideInlets() override
+    bool inletIsSymbol() override
     {
         return iemHelper.hasReceiveSymbol();
     }
 
-    bool hideOutlets() override
+    bool outletIsSymbol() override
     {
         return iemHelper.hasSendSymbol();
     }
 
     void updateLabel() override
     {
-        iemHelper.updateLabel(label);
+        iemHelper.updateLabel(labels, isVertical ? Point<int>(0, 2) : Point<int>(2, 0));
     }
 
     Rectangle<int> getPdBounds() override
     {
-        return iemHelper.getPdBounds().expanded(2, 0).withTrimmedLeft(-1);
+        if (isVertical) {
+            return iemHelper.getPdBounds().expanded(0, 2).withTrimmedBottom(-1);
+        } else {
+            return iemHelper.getPdBounds().expanded(2, 0).withTrimmedLeft(-1);
+        }
     }
 
     void setPdBounds(Rectangle<int> b) override
     {
-        iemHelper.setPdBounds(b.reduced(2, 0).withTrimmedLeft(1));
+        // Hsl/vsl lies to us in slider_getrect: the x/y coordintates it returns are 2 or 3 px offset from what text_xpix/text_ypix reports
+        if (isVertical) {
+            iemHelper.setPdBounds(b.reduced(0, 2).withTrimmedBottom(1).translated(0, -2));
+        } else {
+            iemHelper.setPdBounds(b.reduced(2, 0).withTrimmedLeft(1).translated(-3, 0));
+        }
     }
 
     void updateRange()
@@ -260,38 +311,34 @@ public:
             }
             break;
         }
+        case hash("color"): {
+            iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
+            getLookAndFeel().setColour(Slider::backgroundColourId, Colour::fromString(iemHelper.secondaryColour.toString()));
+            getLookAndFeel().setColour(Slider::trackColourId, Colour::fromString(iemHelper.primaryColour.toString()));
+            object->repaint();
+            break;
+        }
         default: {
             iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
             break;
         }
         }
-
-        // Update the colours of the actual slider
-        if (symbol == hash("color")) {
-            getLookAndFeel().setColour(Slider::backgroundColourId, Colour::fromString(iemHelper.secondaryColour.toString()));
-            getLookAndFeel().setColour(Slider::trackColourId, Colour::fromString(iemHelper.primaryColour.toString()));
-        }
     }
 
-    void paint(Graphics& g) override
+    void render(NVGcontext* nvg) override
     {
-        g.setColour(iemHelper.getBackgroundColour());
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
-
+        auto b = getLocalBounds().toFloat().reduced(0.5f);
         bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+        auto outlineColour = LookAndFeel::getDefaultLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-    }
+        auto bgColour = getLookAndFeel().findColour(Slider::backgroundColourId);
 
-    void paintOverChildren(Graphics& g) override
-    {
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+        if (getProperties()["hover"])
+            bgColour = getHoverBackgroundColour(bgColour);
 
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(bgColour), convertColour(outlineColour), Corners::objectCornerRadius);
+
+        slider.render(nvg);
     }
 
     void resized() override
@@ -301,9 +348,15 @@ public:
 
     void updateSizeProperty() override
     {
-        setPdBounds(object->getObjectBounds());
-
         if (auto iem = ptr.get<t_iemgui>()) {
+            if (isVertical) {
+                iem->x_w = object->getObjectBounds().getWidth() - 1;
+                iem->x_h = object->getObjectBounds().getHeight() - 6;
+            } else {
+                iem->x_w = object->getObjectBounds().getWidth() - 6;
+                iem->x_h = object->getObjectBounds().getHeight() - 1;
+            }
+
             setParameterExcludingListener(sizeProperty, Array<var> { var(iem->x_w), var(iem->x_h) });
         }
     }
@@ -312,16 +365,11 @@ public:
     {
         if (auto slider = ptr.get<t_slider>()) {
             t_float fval;
-            int rounded_val = (slider->x_gui.x_fsf.x_finemoved) ? slider->x_val : (slider->x_val / 100) * 100;
-
-            /* if rcv==snd, don't round the value to prevent bad dragging when zoomed-in */
-            if (slider->x_gui.x_fsf.x_snd_able && (slider->x_gui.x_snd == slider->x_gui.x_rcv))
-                rounded_val = slider->x_val;
 
             if (slider->x_lin0_log1)
-                fval = slider->x_min * exp(slider->x_k * (double)(rounded_val) * 0.01);
+                fval = slider->x_min * exp(slider->x_k * (double)(slider->x_val) * 0.01);
             else
-                fval = (double)(rounded_val) * 0.01 * slider->x_k + slider->x_min;
+                fval = (double)(slider->x_val) * 0.01 * slider->x_k + slider->x_min;
             if ((fval < 1.0e-10) && (fval > -1.0e-10))
                 fval = 0.0;
 
@@ -353,7 +401,7 @@ public:
     {
         float min = 0.0f, max = 127.0f;
         if (auto slider = ptr.get<t_slider>()) {
-            ptr.get<t_slider>()->x_min = value;
+            slider->x_min = value;
             min = slider->x_min;
             max = slider->x_max;
         }
@@ -365,7 +413,7 @@ public:
     {
         float min = 0.0f, max = 127.0f;
         if (auto slider = ptr.get<t_slider>()) {
-            ptr.get<t_slider>()->x_max = value;
+            slider->x_max = value;
             min = slider->x_min;
             max = slider->x_max;
         }
@@ -459,7 +507,7 @@ public:
     template<typename FloatType>
     static inline NormalisableRange<FloatType> makeLogarithmicRange(FloatType min, FloatType max)
     {
-        min = std::max<float>(min, max / 100.0f);
+        min = std::max<FloatType>(min, max / 100000.0f);
 
         return NormalisableRange<FloatType>(
             min, max,

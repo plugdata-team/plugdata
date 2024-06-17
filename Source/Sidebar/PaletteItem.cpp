@@ -4,7 +4,8 @@
 #include "Utility/StackShadow.h"
 
 PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTree tree)
-    : itemTree(tree)
+    : ObjectDragAndDrop(e)
+    , itemTree(tree)
     , editor(e)
     , paletteComp(parent)
 {
@@ -38,7 +39,6 @@ PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTre
 
     addChildComponent(reorderButton.get());
 
-    deleteButton.setButtonText(Icons::Clear);
     deleteButton.setTooltip("Delete item");
     deleteButton.setSize(25, 25);
     deleteButton.onClick = [this]() {
@@ -54,12 +54,19 @@ PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTre
         inlets = iolets.first;
         outlets = iolets.second;
     }
+
+    lookAndFeelChanged();
 }
 
 PaletteItem::~PaletteItem()
 {
     if (paletteComp)
         removeMouseListener(paletteComp);
+}
+
+void PaletteItem::lookAndFeelChanged()
+{
+    nameLabel.setFont(Fonts::getCurrentFont());
 }
 
 bool PaletteItem::hitTest(int x, int y)
@@ -268,9 +275,11 @@ void PaletteItem::deleteItem()
     MessageManager::callAsync([this, parentTree, itemTree = this->itemTree, _paletteComp = SafePointer(paletteComp)]() mutable {
         parentTree.removeChild(itemTree, nullptr);
         auto paletteComponent = findParentComponentOfClass<PaletteComponent>();
-        _paletteComp->items.removeObject(this);
-        paletteComponent->resized();
-        _paletteComp->resized();
+        if (_paletteComp) {
+            _paletteComp->items.removeObject(this);
+            paletteComponent->resized();
+            _paletteComp->resized();
+        }
     });
 }
 

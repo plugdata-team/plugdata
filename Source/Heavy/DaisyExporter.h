@@ -28,9 +28,7 @@ public:
         : ExporterBase(editor, exportingView)
     {
         Array<PropertiesPanelProperty*> properties;
-        properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, {
-            "Pod", "Petal", "Patch", "Patch.Init()", "Field", "Versio", "Terrarium", "Simple", "Custom JSON..."
-            }));
+        properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "Pod", "Petal", "Patch", "Patch.Init()", "Field", "Versio", "Terrarium", "Simple", "Custom JSON..." }));
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary", "Flash" }));
         usbMidiProperty = new PropertiesPanel::BoolComponent("USB MIDI", usbMidiValue, { "No", "Yes" });
         properties.add(usbMidiProperty);
@@ -137,12 +135,8 @@ public:
         int patchSize = getValue<int>(patchSizeValue);
         appTypeProperty->setEnabled(patchSize == 4);
 
-        if (patchSize == 1) {
-            appTypeValue.setValue(0);
-        } else if (patchSize == 2) {
-            appTypeValue.setValue(1);
-        } else if (patchSize == 3) {
-            appTypeValue.setValue(2);
+        if (patchSize <= 3) {
+            appTypeValue.setValue(patchSize - 1);
         }
 
         if (v.refersToSameSourceAs(targetBoardValue)) {
@@ -150,14 +144,15 @@ public:
 
             // Custom board option
             if (idx == 9 && !dontOpenFileChooser) {
-                Dialogs::showOpenDialog([this](File& result) {
+                Dialogs::showOpenDialog([this](URL url) {
+                    auto result = url.getLocalFile();
                     if (result.existsAsFile()) {
                         customBoardDefinition = result;
                     } else {
                         customBoardDefinition = File();
                     }
                 },
-                    true, false, "*.json", "DaisyCustomBoard");
+                    true, false, "*.json", "DaisyCustomBoard", nullptr);
             }
         }
 
@@ -166,14 +161,15 @@ public:
 
             // Custom linker option
             if (idx == 4 && !dontOpenFileChooser) {
-                Dialogs::showOpenDialog([this](File& result) {
+                Dialogs::showOpenDialog([this](URL url) {
+                    auto result = url.getLocalFile();
                     if (result.existsAsFile()) {
                         customLinker = result;
                     } else {
                         customLinker = File();
                     }
                 },
-                    true, false, "*.lds", "DaisyCustomLinker");
+                    true, false, "*.lds", "DaisyCustomLinker", nullptr);
             }
         }
     }
@@ -385,10 +381,6 @@ public:
                         exportingView->flushConsole();
 
                         Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 900);
-
-                        // We need to enable DFU mode again after flashing the bootloader
-                        // This will show DFU mode dialog synchonously
-                        // exportingView->waitForUserInput("Please put your Daisy in DFU mode again");
 
                     } else {
                         exportingView->logToConsole("Bootloader found...\n");

@@ -4,22 +4,32 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include <juce_gui_extra/juce_gui_extra.h>
 #include "PluginEditor.h"
 #include "PluginProcessor.h" // TODO: We shouldn't need this!
 #include "Objects/ObjectBase.h"
 #include "Heavy/CompatibleObjects.h"
+#include "Utility/NanoVGGraphicsContext.h"
+#include "Components/BouncingViewport.h"
+
+extern "C" {
+int is_gem_object(char const* sym);
+}
 
 // Component that sits on top of a TextEditor and will draw auto-complete suggestions over it
 class AutoCompleteComponent
     : public Component
+    , public NVGComponent
     , public ComponentListener {
     String suggestion;
     Canvas* cnv;
     Component::SafePointer<TextEditor> editor;
+    std::unique_ptr<NanoVGGraphicsContext> nvgCtx;
 
 public:
     AutoCompleteComponent(TextEditor* e, Canvas* c)
-        : cnv(c)
+        : NVGComponent(this)
+        , cnv(c)
         , editor(e)
     {
         setAlwaysOnTop(true);
@@ -98,6 +108,19 @@ public:
         repaint();
     }
 
+    void render(NVGcontext* nvg) override
+    {
+        nvgSave(nvg);
+        nvgTranslate(nvg, getX(), getY());
+        if (!nvgCtx || nvgCtx->getContext() != nvg)
+            nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
+        Graphics g(*nvgCtx);
+        {
+            paintEntireComponent(g, true);
+        }
+        nvgRestore(nvg);
+    }
+
 private:
     bool shouldAutocomplete = true;
     String stashedText;
@@ -125,18 +148,24 @@ private:
         auto editorTextWidth = editor->getFont().getStringWidthFloat(editorText);
         auto completionBounds = getLocalBounds().toFloat().withTrimmedLeft(editorTextWidth + 7.5f);
 
-        auto colour = findColour(PlugDataColour::canvasTextColourId).withAlpha(0.65f);
-        Fonts::drawText(g, suggestion, completionBounds, colour);
+        auto colour = findColour(PlugDataColour::canvasTextColourId).withAlpha(0.5f);
+        Fonts::drawText(g, suggestion, completionBounds.translated(-1.25f, -1.25f), colour);
     }
 };
 // Suggestions component that shows up when objects are edited
 class SuggestionComponent : public Component
     , public KeyListener
-    , public TextEditor::Listener
     , public ComponentListener {
 
     class Suggestion : public TextButton {
-        int type = -1;
+
+        enum ObjectType {
+            Data = 0,
+            Signal = 1,
+            Gem = 2
+        };
+
+        ObjectType type;
 
         String objectDescription;
 
@@ -156,7 +185,11 @@ class SuggestionComponent : public Component
         {
             objectDescription = description;
             setButtonText(name);
-            type = name.contains("~") ? 1 : 0;
+            type = name.contains("~") ? Signal : Data;
+
+            if (!type && is_gem_object(name.toRawUTF8())) {
+                type = Gem;
+            }
 
             // Argument suggestions don't have icons!
             drawIcon = icon;
@@ -179,10 +212,9 @@ class SuggestionComponent : public Component
             auto buttonArea = getLocalBounds().withTrimmedRight((parent->canBeTransparent() ? 42 : 2) + scrollbarIndent).toFloat().reduced(4, 1);
 
             g.setColour(backgroundColour);
-            PlugDataLook::fillSmoothedRectangle(g, buttonArea, Corners::defaultCornerRadius);
+            g.fillRoundedRectangle(buttonArea, Corners::defaultCornerRadius);
 
-            auto colour = getToggleState() ? findColour(PlugDataColour::popupMenuActiveTextColourId) : findColour(PlugDataColour::popupMenuTextColourId);
-
+            auto colour = findColour(PlugDataColour::popupMenuTextColourId);
             auto yIndent = jmin(4, proportionOfHeight(0.3f));
             auto leftIndent = drawIcon ? 32 : 11;
             auto rightIndent = 14;
@@ -201,19 +233,27 @@ class SuggestionComponent : public Component
                 Fonts::drawText(g, String::fromUTF8("  \xe2\x80\x93  ") + objectDescription, Rectangle<int>(leftIndent, yIndent, textWidth, getHeight() - yIndent * 2), colour, 13);
             }
 
-            if (type == -1)
-                return;
-
             if (drawIcon) {
-                auto dataColour = findColour(PlugDataColour::dataColourId);
-                auto signalColour = findColour(PlugDataColour::signalColourId);
-                g.setColour(type ? signalColour : dataColour);
+                Colour iconColour;
+                String iconText;
+                if (type == Data) {
+                    iconColour = findColour(PlugDataColour::dataColourId);
+                    iconText = "pd";
+                } else if (type == Signal) {
+                    iconColour = findColour(PlugDataColour::signalColourId);
+                    iconText = "~";
+                } else if (type == Gem) {
+                    iconColour = findColour(PlugDataColour::gemColourId);
+                    iconText = "g";
+                }
+                g.setColour(iconColour);
+
                 auto iconbound = getLocalBounds().reduced(4);
                 iconbound.setWidth(getHeight() - 8);
                 iconbound.translate(4, 0);
-                PlugDataLook::fillSmoothedRectangle(g, iconbound.toFloat(), Corners::defaultCornerRadius);
+                g.fillRoundedRectangle(iconbound.toFloat(), Corners::defaultCornerRadius);
 
-                Fonts::drawFittedText(g, type ? "~" : "pd", iconbound.reduced(1), Colours::white, 1, 1.0f, type ? 12 : 10, Justification::centred);
+                Fonts::drawFittedText(g, iconText, iconbound.reduced(1), Colours::white, 1, 1.0f, type ? 12 : 10, Justification::centred);
             }
         }
 
@@ -252,6 +292,7 @@ public:
         constrainer.setSizeLimits(150, 120, 500, 400);
         setSize(310 + (2 * windowMargin), 140 + (2 * windowMargin));
 
+        // resizer.setAllowHostManagedResize(false);
         addAndMakeVisible(resizer);
 
         setInterceptsMouseClicks(true, true);
@@ -264,15 +305,20 @@ public:
         buttons.clear();
     }
 
+    void renderAutocompletion(NVGcontext* nvg)
+    {
+        if (autoCompleteComponent)
+            autoCompleteComponent->render(nvg);
+    }
+
     void createCalloutBox(Object* object, TextEditor* editor)
     {
         currentObject = object;
         openedEditor = editor;
 
-        setTransform(object->cnv->editor->getTransform());
+        setTransform(object->editor->getTransform());
 
         editor->addComponentListener(this);
-        editor->addListener(this);
         editor->addKeyListener(this);
 
         autoCompleteComponent = std::make_unique<AutoCompleteComponent>(editor, object->cnv);
@@ -336,7 +382,6 @@ public:
 
         autoCompleteComponent.reset(nullptr);
         if (openedEditor) {
-            openedEditor->removeListener(this);
             openedEditor->removeComponentListener(this);
             openedEditor->removeKeyListener(this);
         }
@@ -377,6 +422,7 @@ public:
             autoCompleteComponent->setSuggestion(newText);
             autoCompleteComponent->enableAutocomplete(true);
             currentObject->updateBounds();
+            resized();
         }
 
         // Auto-scroll item into viewport bounds
@@ -416,105 +462,11 @@ public:
 
         return {};
     }
-
-private:
-    void mouseDown(MouseEvent const& e) override
-    {
-        if (openedEditor)
-            openedEditor->grabKeyboardFocus();
-    }
-
-    bool hitTest(int x, int y) override
-    {
-        return getLocalBounds().reduced(windowMargin).contains(x, y);
-    }
-
-    static bool canBeTransparent()
-    {
-        return ProjectInfo::canUseSemiTransparentWindows();
-    }
-
-    void paint(Graphics& g) override
-    {
-        auto b = getLocalBounds().reduced(windowMargin);
-
-        if (!canBeTransparent()) {
-            g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
-        } else {
-            Path localPath;
-            localPath.addRoundedRectangle(b.toFloat().reduced(6.0f), Corners::defaultCornerRadius);
-            StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), 13, { 0, 1 });
-        }
-
-        g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
-        PlugDataLook::fillSmoothedRectangle(g, port->getBounds().reduced(1).toFloat(), Corners::defaultCornerRadius);
-    }
-
-    void paintOverChildren(Graphics& g) override
-    {
-        g.setColour(findColour(PlugDataColour::outlineColourId).darker(0.1f));
-        PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), port->getBounds().reduced(1).toFloat(), Corners::defaultCornerRadius);
-    }
-
-    bool keyPressed(KeyPress const& key, Component* originatingComponent) override
-    {
-        if (!currentObject) {
-            return false;
-        }
-
-        if (key == KeyPress::rightKey && !openedEditor->getHighlightedRegion().isEmpty()) {
-            openedEditor->setCaretPosition(openedEditor->getHighlightedRegion().getEnd());
-            return true;
-        }
-        if (key == KeyPress::rightKey && autoCompleteComponent && openedEditor->getCaretPosition() == openedEditor->getText().length()) {
-            autoCompleteComponent->autocomplete();
-            currentidx = 0;
-            if (buttons.size())
-                buttons[0]->setToggleState(true, dontSendNotification);
-            return true;
-        }
-        if (key == KeyPress::leftKey && !openedEditor->getHighlightedRegion().isEmpty()) {
-            openedEditor->setCaretPosition(openedEditor->getHighlightedRegion().getStart());
-            return true;
-        }
-        if (key == KeyPress::tabKey && autoCompleteComponent->isAutocompleting() && openedEditor->getText() != autoCompleteComponent->getSuggestion() && numOptions != 0) {
-            autoCompleteComponent->autocomplete();
-            currentidx = 0;
-            if (buttons.size())
-                buttons[0]->setToggleState(true, dontSendNotification);
-            return true;
-        }
-        if (key == KeyPress::returnKey) {
-            if (autoCompleteComponent->isAutocompleting() && openedEditor->getText() != autoCompleteComponent->getSuggestion() && numOptions != 0) {
-                autoCompleteComponent->autocomplete();
-                currentidx = 0;
-                if (buttons.size())
-                    buttons[0]->setToggleState(true, dontSendNotification);
-                return true;
-            } else {
-                // if there is no autocomplete action going on, we want to close upon error
-                // By ignoring the keypress we'll trigger the return callback on text editor which will close it
-                return false;
-            }
-        }
-        if (state != ShowingObjects || !isVisible())
-            return false;
-
-        if (key == KeyPress::upKey || key == KeyPress::downKey) {
-            move(key == KeyPress::downKey ? 1 : -1);
-            return true;
-        }
-        return false;
-    }
-
-    void textEditorTextChanged(TextEditor& e) override
+    void updateSuggestions(String const& currentText)
     {
         if (!currentObject)
             return;
-
-        String currentText = e.getText();
-        resized();
-
+        
         auto& library = currentObject->cnv->pd->objectLibrary;
 
         class ObjectSorter {
@@ -524,7 +476,7 @@ private:
             {
             }
 
-            int compareElements(String const& a, String const& b)
+            int compareElements(String const& a, String const& b) const
             {
                 // Check if suggestion exacly matches query
                 if (a == query) {
@@ -575,7 +527,7 @@ private:
             return suggestions;
         };
 
-        if (currentObject->gui && currentObject->gui->getType() == "message") {
+        if (currentObject->gui && currentObject->getType(false) == "message") {
             auto nearbyMethods = findNearbyMethods(currentText);
 
             numOptions = std::min<int>(buttons.size(), nearbyMethods.size());
@@ -601,7 +553,6 @@ private:
                 state = Hidden;
                 if (autoCompleteComponent)
                     autoCompleteComponent->enableAutocomplete(false);
-                currentObject->updateBounds();
                 setVisible(false);
                 return;
             }
@@ -611,7 +562,6 @@ private:
 
             if (autoCompleteComponent) {
                 autoCompleteComponent->setSuggestion("");
-                currentObject->updateBounds();
             }
 
             resized();
@@ -623,47 +573,46 @@ private:
             state = ShowingArguments;
             auto name = currentText.upToFirstOccurrenceOf(" ", false, false);
             auto objectInfo = library->getObjectInfo(name);
-            auto found = objectInfo.getChildWithName("arguments").createCopy();
-            for (auto flag : objectInfo.getChildWithName("flags")) {
-                auto flagCopy = flag.createCopy();
-                auto name = flagCopy.getProperty("name").toString().trim();
+            if (objectInfo.isValid()) {
+                auto found = objectInfo.getChildWithName("arguments").createCopy();
+                for (auto flag : objectInfo.getChildWithName("flags")) {
+                    auto flagCopy = flag.createCopy();
+                    auto name = flagCopy.getProperty("name").toString().trim();
 
-                if (!name.startsWith("-"))
-                    name = "-" + name;
+                    if (!name.startsWith("-"))
+                        name = "-" + name;
 
-                flagCopy.setProperty("type", name, nullptr);
-                found.appendChild(flagCopy, nullptr);
+                    flagCopy.setProperty("type", name, nullptr);
+                    found.appendChild(flagCopy, nullptr);
+                }
+
+                numOptions = std::min<int>(buttons.size(), found.getNumChildren());
+                for (int i = 0; i < numOptions; i++) {
+                    auto type = found.getChild(i).getProperty("type").toString();
+                    auto description = found.getChild(i).getProperty("description").toString();
+                    auto def = found.getChild(i).getProperty("default").toString();
+
+                    if (def.isNotEmpty())
+                        description += " (default: " + def + ")";
+
+                    buttons[i]->setText(type, description, false);
+                    buttons[i]->setInterceptsMouseClicks(false, false);
+                    buttons[i]->setToggleState(false, dontSendNotification);
+                }
+
+                for (int i = numOptions; i < buttons.size(); i++) {
+                    buttons[i]->setText("", "", false);
+                    buttons[i]->setToggleState(false, dontSendNotification);
+                }
+
+                setVisible(numOptions);
+
+                if (autoCompleteComponent) {
+                    autoCompleteComponent->enableAutocomplete(false);
+                }
+
+                return;
             }
-
-            numOptions = std::min<int>(buttons.size(), found.getNumChildren());
-            for (int i = 0; i < numOptions; i++) {
-                auto type = found.getChild(i).getProperty("type").toString();
-                auto description = found.getChild(i).getProperty("description").toString();
-                auto def = found.getChild(i).getProperty("default").toString();
-
-                if (def.isNotEmpty())
-                    description += " (default: " + def + ")";
-
-                buttons[i]->setText(type, description, false);
-                buttons[i]->setInterceptsMouseClicks(false, false);
-                buttons[i]->setToggleState(false, dontSendNotification);
-            }
-
-            for (int i = numOptions; i < buttons.size(); i++) {
-                buttons[i]->setText("", "", false);
-                buttons[i]->setToggleState(false, dontSendNotification);
-            }
-
-            setVisible(numOptions);
-
-            if (autoCompleteComponent) {
-                autoCompleteComponent->enableAutocomplete(false);
-                currentObject->updateBounds();
-            }
-
-            resized();
-
-            return;
         }
 
         if (isPositiveAndBelow(currentidx, buttons.size())) {
@@ -675,7 +624,7 @@ private:
                 return;
 
             // When hvcc mode is enabled, show only hvcc compatible objects
-            if (getValue<bool>(_this->currentObject->cnv->editor->hvccMode)) {
+            if (getValue<bool>(_this->currentObject->editor->hvccMode)) {
 
                 StringArray hvccObjectsFound;
                 for (auto& object : toFilter) {
@@ -710,7 +659,7 @@ private:
             currentidx = -1;
         } else {
             found = sortSuggestions(currentText, found);
-            currentidx = 0;
+            //currentidx = 0;
             autoCompleteComponent->enableAutocomplete(true);
         }
 
@@ -721,7 +670,11 @@ private:
             for (int i = 0; i < std::min<int>(buttons.size(), numOptions); i++) {
                 auto& name = suggestions[i];
 
-                auto description = library->getObjectInfo(name).getProperty("description").toString();
+                auto info = library->getObjectInfo(name);
+                if (!info.isValid())
+                    continue;
+
+                auto description = info.getProperty("description").toString();
                 buttons[i]->setText(name, description, true);
 
                 buttons[i]->setInterceptsMouseClicks(true, false);
@@ -739,16 +692,12 @@ private:
                 state = Hidden;
                 if (autoCompleteComponent)
                     autoCompleteComponent->enableAutocomplete(false);
-                currentObject->updateBounds();
                 setVisible(false);
                 return;
             }
 
             // Limit it to minimum of the number of buttons and the number of suggestions
             int numButtons = std::min(20, numOptions);
-
-            // duplicate call to updateBounds :( do we need this?t
-            currentObject->updateBounds();
 
             setVisible(true);
 
@@ -773,7 +722,10 @@ private:
             applySuggestionsToButtons(found, currentText);
         }
 
-        library->getExtraSuggestions(found.size(), currentText, [this, filterObjects, applySuggestionsToButtons, found, currentText](StringArray s) mutable {
+        library->getExtraSuggestions(found.size(), currentText, [_this = SafePointer(this), this, filterObjects, applySuggestionsToButtons, found, currentText](StringArray s) mutable {
+            if (!_this)
+                return;
+
             filterObjects(s);
 
             // This means the extra suggestions have returned too late to still be relevant
@@ -787,6 +739,87 @@ private:
         });
     }
 
+private:
+    void mouseDown(MouseEvent const& e) override
+    {
+        if (openedEditor)
+            openedEditor->grabKeyboardFocus();
+    }
+
+    bool hitTest(int x, int y) override
+    {
+        return getLocalBounds().reduced(windowMargin).contains(x, y);
+    }
+
+    static bool canBeTransparent()
+    {
+        return ProjectInfo::canUseSemiTransparentWindows();
+    }
+
+    void paint(Graphics& g) override
+    {
+        auto b = getLocalBounds().reduced(windowMargin);
+
+        if (!canBeTransparent()) {
+            g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
+        } else {
+            Path localPath;
+            localPath.addRoundedRectangle(b.toFloat().reduced(6.0f), Corners::defaultCornerRadius);
+            StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), 13, { 0, 1 });
+        }
+
+        g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
+        g.fillRoundedRectangle(port->getBounds().reduced(1).toFloat(), Corners::defaultCornerRadius);
+    }
+
+    void paintOverChildren(Graphics& g) override
+    {
+        g.setColour(findColour(PlugDataColour::outlineColourId).darker(0.1f));
+        g.drawRoundedRectangle(port->getBounds().reduced(1).toFloat(), Corners::defaultCornerRadius, 1.0f);
+    }
+
+    bool keyPressed(KeyPress const& key, Component* originatingComponent) override
+    {
+        if (!currentObject) {
+            return false;
+        }
+        if (openedEditor->getHighlightedRegion().isEmpty() && key == KeyPress::rightKey && autoCompleteComponent && openedEditor->getCaretPosition() == openedEditor->getText().length()) {
+            autoCompleteComponent->autocomplete();
+            currentidx = 0;
+            if (buttons.size())
+                buttons[0]->setToggleState(true, dontSendNotification);
+            return true;
+        }
+        if (key == KeyPress::tabKey && autoCompleteComponent->isAutocompleting() && openedEditor->getText() != autoCompleteComponent->getSuggestion() && numOptions != 0) {
+            autoCompleteComponent->autocomplete();
+            currentidx = 0;
+            if (buttons.size())
+                buttons[0]->setToggleState(true, dontSendNotification);
+            return true;
+        }
+        if (key == KeyPress::returnKey) {
+            if (autoCompleteComponent->isAutocompleting() && openedEditor->getText() != autoCompleteComponent->getSuggestion() && numOptions != 0) {
+                autoCompleteComponent->autocomplete();
+                currentidx = 0;
+                if (buttons.size())
+                    buttons[0]->setToggleState(true, dontSendNotification);
+                return true;
+            } else {
+                // if there is no autocomplete action going on, we want to close upon error
+                // By ignoring the keypress we'll trigger the return callback on text editor which will close it
+                return false;
+            }
+        }
+        if (state != ShowingObjects || !isVisible())
+            return false;
+
+        if (key == KeyPress::upKey || key == KeyPress::downKey) {
+            move(key == KeyPress::downKey ? 1 : -1);
+            return true;
+        }
+        return false;
+    }
+
     Array<std::tuple<String, String, String>> findNearbyMethods(String const& toSearch)
     {
         Array<std::tuple<String, ValueTree, int>> objects;
@@ -796,7 +829,7 @@ private:
             if (!obj->getPointer() || obj == currentObject || distance > 300)
                 continue;
 
-            auto objectName = obj->gui->getType();
+            auto objectName = obj->getType();
             auto alreadyExists = std::find_if(objects.begin(), objects.end(), [objectName](auto const& toCompare) {
                 return std::get<0>(toCompare) == objectName;
             }) != objects.end();
@@ -805,8 +838,10 @@ private:
                 continue;
 
             auto info = cnv->pd->objectLibrary->getObjectInfo(objectName);
-            auto methods = info.getChildWithName("methods");
-            objects.add({ objectName, methods, distance });
+            if (info.isValid()) {
+                auto methods = info.getChildWithName("methods");
+                objects.add({ objectName, methods, distance });
+            }
         }
 
         // Sort by distance
@@ -912,6 +947,7 @@ private:
         "osc.mc-unit",
         "All_objects",
         "All_about_else",
+        "All_about_cyclone",
         "README.deken",
         "else-meta",
         "resonbank.unit",

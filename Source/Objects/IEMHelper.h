@@ -4,6 +4,8 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#pragma once
+
 static int srl_is_valid(t_symbol const* s)
 {
     return (s != nullptr && s != gensym(""));
@@ -31,7 +33,7 @@ public:
         secondaryColour = Colour(getBackgroundColour()).toString();
         labelColour = Colour(getLabelColour()).toString();
 
-        gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(Label::textWhenEditingColourId));
+        gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, LookAndFeel::getDefaultLookAndFeel().findColour(Label::textWhenEditingColourId));
         gui->getLookAndFeel().setColour(Label::textColourId, Colour::fromString(primaryColour.toString()));
 
         gui->getLookAndFeel().setColour(TextButton::buttonOnColourId, Colour::fromString(primaryColour.toString()));
@@ -108,7 +110,6 @@ public:
                 auto colour = "#FF" + atom.toString().fromFirstOccurrenceOf("#", false, false);
                 gui->setParameterExcludingListener(targetValue, colour);
             } else {
-
                 int iemcolor = atom.getFloat();
 
                 if (iemcolor >= 0) {
@@ -143,8 +144,13 @@ public:
                 setColour(primaryColour, atoms[1]);
             if (numAtoms > 2)
                 setColour(labelColour, atoms[2]);
+
+            if (auto* label = gui->getLabel()) {
+                label->setColour(getLabelColour());
+            }
+
             gui->repaint();
-            gui->updateLabel();
+
             return true;
         }
         case hash("label"): {
@@ -226,6 +232,7 @@ public:
             setLabelPosition({ getValue<int>(labelX), getValue<int>(labelY) });
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelHeight)) {
+            gui->limitValueMin(labelHeight, 0.f);
             setFontHeight(getValue<int>(labelHeight));
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelText)) {
@@ -264,56 +271,62 @@ public:
     void setPdBounds(Rectangle<int> const b)
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
-            iemgui->x_obj.te_xpix = b.getX();
-            iemgui->x_obj.te_ypix = b.getY();
+            pd::Interface::moveObject(iemgui->x_glist, &iemgui->x_obj.te_g, b.getX(), b.getY());
 
             iemgui->x_w = b.getWidth() - 1;
             iemgui->x_h = b.getHeight() - 1;
         }
     }
 
-    void updateLabel(std::unique_ptr<ObjectLabel>& label)
+    void updateLabel(std::unique_ptr<ObjectLabels>& labels, Point<int> offset = { 0, 0 })
     {
         String const text = labelText.toString();
 
-        if (text.isNotEmpty()) {
-            if (!label) {
-                label = std::make_unique<ObjectLabel>();
-                object->cnv->addChildComponent(label.get());
+        if (text.isNotEmpty() || (gui->showVU())) {
+            if (!labels) {
+                labels = std::make_unique<ObjectLabels>();
+                object->cnv->addChildComponent(labels.get());
+                if (gui->showVU())
+                    labels->setObjectToTrack(object);
             }
 
-            auto bounds = getLabelBounds();
+            if (text.isNotEmpty()) {
+                auto bounds = getLabelBounds();
 
-            bounds.translate(0, bounds.getHeight() / -2.0f);
+                bounds.translate(0, bounds.getHeight() / -2.0f);
 
-            label->setFont(Font(bounds.getHeight()));
-            label->setBounds(bounds);
-            label->setText(text, dontSendNotification);
-
-            label->setColour(Label::textColourId, getLabelColour());
-
-            label->setVisible(true);
+                labels->getObjectLabel()->setFont(Font(bounds.getHeight()));
+                labels->setLabelBounds(bounds + offset);
+                labels->getObjectLabel()->setText(text, dontSendNotification);
+            } else {
+                // updating side VU label only, by sending empty rectangle
+                labels->setLabelBounds(Rectangle<int>());
+            }
+            labels->setColour(getLabelColour());
+            labels->setVisible(true);
         } else {
-            if (label)
-                label->setVisible(false);
-            label.reset(nullptr);
+            if (labels)
+                labels->setVisible(false);
+            labels.reset(nullptr);
         }
     }
 
-    Rectangle<int> getLabelBounds() const
+    Rectangle<int> getLabelBounds()
     {
-        auto objectBounds = object->getBounds().reduced(Object::margin);
+        auto const objectBounds = object->getBounds().reduced(Object::margin);
 
         if (auto iemgui = ptr.get<t_iemgui>()) {
-            t_symbol const* sym = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab);
-            if (sym) {
-                int fontHeight = getFontHeight();
-                int labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());
-
-                int const posx = objectBounds.getX() + iemgui->x_ldx + 4;
-                int const posy = objectBounds.getY() + iemgui->x_ldy;
-
-                return { posx, posy, labelLength, fontHeight };
+            if(iemgui->x_lab) {
+                t_symbol const* sym = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab);
+                if (sym) {
+                    auto const labelText = getExpandedLabelText();
+                    int const fontHeight = getFontHeight();
+                    int const fontWidth = sys_fontwidth(fontHeight);
+                    int const posx = objectBounds.getX() + iemgui->x_ldx;
+                    int const posy = objectBounds.getY() + iemgui->x_ldy;
+                    int const textWidth = fontHeight > 55 ? Font(fontHeight).getStringWidth(labelText) : fontWidth * (labelText.length() + 1);
+                    return { posx, posy, textWidth, fontHeight + 2 };
+                }
             }
         }
 
@@ -447,21 +460,6 @@ public:
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
             t_symbol const* sym = iemgui->x_lab;
-            if (sym) {
-                auto text = String::fromUTF8(sym->s_name);
-                if (text.isNotEmpty() && text != "empty") {
-                    return text;
-                }
-            }
-        }
-
-        return "";
-    }
-
-    String getLabelText() const
-    {
-        if (auto iemgui = ptr.get<t_iemgui>()) {
-            t_symbol const* sym = iemgui->x_lab_unexpanded;
             if (sym) {
                 auto text = String::fromUTF8(sym->s_name);
                 if (text.isNotEmpty() && text != "empty") {

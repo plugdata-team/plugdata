@@ -13,13 +13,17 @@
 #include "LookAndFeel.h"
 #include "Connection.h"
 #include "PluginEditor.h"
-#include "CanvasViewport.h"
+#include "Object.h"
 
 class ConnectionMessageDisplay
     : public Component
     , public MultiTimer {
+
+    PluginEditor* editor;
+
 public:
-    ConnectionMessageDisplay()
+    ConnectionMessageDisplay(PluginEditor* parentEditor)
+        : editor(parentEditor)
     {
         setSize(36, 36);
         setVisible(false);
@@ -43,7 +47,7 @@ public:
 
         auto clearSignalDisplayBuffer = [this]() {
             SignalBlock sample;
-            while (sampleQueue.try_dequeue(sample)) { };
+            while (sampleQueue.try_dequeue(sample)) { }
             for (int ch = 0; ch < 8; ch++) {
                 std::fill(lastSamples[ch], lastSamples[ch] + signalBlockSize, 0.0f);
                 cycleLength[ch] = 0.0f;
@@ -55,7 +59,7 @@ public:
         if (activeConnection.getComponent()) {
             mousePosition = screenPosition;
             isSignalDisplay = activeConnection->outlet->isSignal;
-            lastNumChannels = activeConnection->numSignalChannels;
+            lastNumChannels = std::min(activeConnection->numSignalChannels, 7);
             startTimer(MouseHoverDelay, mouseDelay);
             stopTimer(MouseHoverExitDelay);
             if (isSignalDisplay) {
@@ -101,7 +105,7 @@ private:
             textString = StringArray("no message yet");
         }
 
-        auto halfEditorWidth = getParentComponent()->getWidth() / 2;
+        auto halfEditorWidth = editor->getWidth() / 2;
         auto fontStyle = haveMessage ? FontStyle::Semibold : FontStyle::Regular;
         auto textFont = Font(haveMessage ? Fonts::getSemiBoldFont() : Fonts::getDefaultFont());
         textFont.setSizeAndStyle(14, FontStyle::Regular, 1.0f, 0.0f);
@@ -113,13 +117,16 @@ private:
             auto firstOrLast = (i == 0 || i == textString.size() - 1);
             stringItem = textString[i];
             stringItem += firstOrLast ? "" : ",";
+
             // first item uses system font
-            stringWidth = textFont.getStringWidth(stringItem);
+            // use cached width calculation for performance
+            stringWidth = CachedFontStringWidth::get()->calculateSingleLineWidth(textFont, stringItem);
 
             if ((totalStringWidth + stringWidth) > halfEditorWidth) {
                 auto elideText = String("(" + String(textString.size() - i) + String(")..."));
                 auto elideFont = Font(Fonts::getSemiBoldFont());
-                auto elideWidth = elideFont.getStringWidth(elideText);
+
+                auto elideWidth = CachedFontStringWidth::get()->calculateSingleLineWidth(elideFont, elideText);
                 messageItemsWithFormat.add(TextStringWithMetrics(elideText, FontStyle::Semibold, elideWidth));
                 totalStringWidth += elideWidth + 4;
                 break;
@@ -141,14 +148,19 @@ private:
         if (totalStringWidth > getWidth() || isHoverEntered) {
             updateBoundsFromProposed(Rectangle<int>().withSize(totalStringWidth, 36));
         }
-        repaint();
+
+        // Check if changed
+        if (lastTextString != textString) {
+            lastTextString = textString;
+            repaint();
+        }
     }
 
     void updateBoundsFromProposed(Rectangle<int> proposedPosition)
     {
         // make sure the proposed position is inside the editor area
-        proposedPosition.setCentre(getParentComponent()->getLocalPoint(nullptr, mousePosition).translated(0, -(getHeight() * 0.5)));
-        constrainedBounds = proposedPosition.constrainedWithin(getParentComponent()->getLocalBounds());
+        proposedPosition.setCentre(mousePosition.translated(0, -(getHeight() * 0.5)));
+        constrainedBounds = proposedPosition.constrainedWithin(editor->getScreenBounds());
         if (getBounds() != constrainedBounds)
             setBounds(constrainedBounds);
     }
@@ -160,8 +172,8 @@ private:
             SignalBlock block;
             while (sampleQueue.try_dequeue(block)) {
                 if (i < numBlocks) {
-                    lastNumChannels = block.numChannels;
-                    for (int ch = 0; ch < block.numChannels; ch++) {
+                    lastNumChannels = std::min(block.numChannels, 7);
+                    for (int ch = 0; ch < lastNumChannels; ch++) {
                         std::copy(block.samples + ch * DEFDACBLKSIZE, block.samples + ch * DEFDACBLKSIZE + DEFDACBLKSIZE, lastSamples[ch] + (i * DEFDACBLKSIZE));
                     }
                 }
@@ -235,17 +247,6 @@ private:
         g.setColour(findColour(PlugDataColour::dialogBackgroundColourId));
         g.fillRoundedRectangle(internalBounds, Corners::defaultCornerRadius);
 
-        // indicator - TODO
-        // if(activeConnection.getComponent()) {
-        //    Path indicatorPath;
-        //    indicatorPath.addPieSegment(circlePosition.x - circleRadius,
-        //                          circlePosition.y - circleRadius,
-        //                          circleRadius * 2.0f,
-        //                          circleRadius * 2.0f, 0, (activeConnection->messageActivity * (1.0f / 12.0f)) * MathConstants<float>::twoPi, 0.5f);
-        //    g.setColour(findColour(PlugDataColour::panelTextColourId));
-        //    g.fillPath(indicatorPath);
-        //}
-
         if (isSignalDisplay) {
             auto totalHeight = internalBounds.getHeight();
             auto textColour = findColour(PlugDataColour::canvasTextColourId);
@@ -305,7 +306,7 @@ private:
                 for (int x = channelBounds.getX() + 1; x < channelBounds.getRight(); x++) {
                     auto index = jmap<float>(x, channelBounds.getX(), channelBounds.getRight(), 0, samplesPerCycle);
 
-                    // linearl interpolation, especially needed for high-frequency signals
+                    // linear interpolation, especially needed for high-frequency signals
                     auto roundedIndex = static_cast<int>(index);
                     auto currentSample = lastSamples[ch][roundedIndex];
                     auto nextSample = roundedIndex == 1023 ? lastSamples[ch][roundedIndex] : lastSamples[ch][roundedIndex + 1];
@@ -325,7 +326,7 @@ private:
                 // Calculate text length
                 auto numbersFont = Fonts::getTabularNumbersFont().withHeight(11.f);
                 auto text = String(lastSamples[ch][rand() % 512], 3);
-                auto textWidth = numbersFont.getStringWidth(text);
+                auto textWidth = CachedFontStringWidth::get()->calculateSingleLineWidth(numbersFont, text);
                 auto textBounds = channelBounds.expanded(5).removeFromBottom(18).removeFromRight(textWidth + 8);
 
                 // Draw text background
@@ -338,15 +339,12 @@ private:
                 g.drawText(text, textBounds.toNearestInt(), Justification::centred);
             }
         } else {
-            int startPostionX = 8 + 4;
+            int startPositionX = 8 + 4;
             for (auto const& item : messageItemsWithFormat) {
-                Fonts::drawStyledText(g, item.text, startPostionX, 0, item.width, getHeight(), findColour(PlugDataColour::panelTextColourId), item.fontStyle, 14, Justification::centredLeft);
-                startPostionX += item.width + 4;
+                Fonts::drawStyledText(g, item.text, startPositionX, 0, item.width, getHeight(), findColour(PlugDataColour::panelTextColourId), item.fontStyle, 14, Justification::centredLeft);
+                startPositionX += item.width + 4;
             }
         }
-
-        // used for cached background shadow
-        previousBounds = getBounds();
     }
 
     static inline bool isShowing = false;
@@ -368,14 +366,11 @@ private:
     Component::SafePointer<Connection> activeConnection;
     int mouseDelay = 500;
     Point<int> mousePosition;
+    StringArray lastTextString;
     enum TimerID { RepaintTimer,
         MouseHoverDelay,
         MouseHoverExitDelay };
     Rectangle<int> constrainedBounds = { 0, 0, 0, 0 };
-
-    Point<float> circlePosition = { 8.0f + 4.0f, 36.0f / 2.0f };
-
-    Rectangle<int> previousBounds;
 
     struct SignalBlock {
         SignalBlock()
@@ -383,19 +378,19 @@ private:
         {
         }
 
-        SignalBlock(float* input, int channels)
+        SignalBlock(float const* input, int channels)
             : numChannels(channels)
         {
             std::copy(input, input + (numChannels * DEFDACBLKSIZE), samples);
         }
 
-        SignalBlock(SignalBlock&& toMove)
+        SignalBlock(SignalBlock&& toMove) noexcept
         {
             numChannels = toMove.numChannels;
             std::copy(toMove.samples, toMove.samples + (numChannels * DEFDACBLKSIZE), samples);
         }
 
-        SignalBlock& operator=(SignalBlock&& toMove)
+        SignalBlock& operator=(SignalBlock&& toMove) noexcept
         {
             if (&toMove != this) {
                 numChannels = toMove.numChannels;

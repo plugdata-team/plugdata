@@ -1,11 +1,20 @@
 #pragma once
 
 #include <juce_data_structures/juce_data_structures.h>
+#include <juce_graphics/juce_graphics.h>
 
 using namespace juce;
 
-#include "Utility/HashUtils.h"
+#include "Utility/Hash.h"
 #include "Utility/SynchronousValue.h"
+
+#ifndef ENABLE_OBJECT_FB_DEBUGGING
+#    define ENABLE_OBJECT_FB_DEBUGGING 0
+#endif
+
+#ifndef ENABLE_FB_DEBUGGING
+#    define ENABLE_FB_DEBUGGING 0
+#endif
 
 namespace juce {
 class AudioDeviceManager;
@@ -36,9 +45,13 @@ struct ProjectInfo {
     static bool isMidiEffect() noexcept;
     static bool canUseSemiTransparentWindows();
 
+#if JUCE_WINDOWS
+    // Regular documents directory might be synced to OneDrive
+    static inline File const appDataDir = File::getSpecialLocation(File::SpecialLocationType::commonDocumentsDirectory).getChildFile("plugdata");
+#else
     static inline File const appDataDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata");
-
-    static inline String const versionSuffix = "-3";
+#endif
+    static inline String const versionSuffix = "-test8";
     static inline File const versionDataDir = appDataDir.getChildFile("Versions").getChildFile(ProjectInfo::versionString + versionSuffix);
 };
 
@@ -47,6 +60,8 @@ inline T getValue(Value const& v)
 {
     if constexpr (std::is_same_v<T, String>) {
         return v.toString();
+    } else if constexpr (std::is_same_v<T, Colour>) {
+        return Colour::fromString(v.toString());
     } else {
         return static_cast<T>(v.getValue());
     }
@@ -72,15 +87,20 @@ static inline String convertURLtoUTF8(String const& input)
     String output;
 
     for (int i = 0; i < tokens.size(); ++i) {
-        String token = tokens[i];
+        String const& token = tokens[i];
 
         if (token.startsWithChar('#')) {
             // Extract the hex value and convert it to a character
-            auto hexString = token.substring(1);
-            int hexValue;
-            sscanf(hexString.toRawUTF8(), "%x", &hexValue);
-            output += String::charToString(static_cast<wchar_t>(hexValue));
-            output += token.substring(3);
+            auto hexString = token.substring(1) + "\0";
+            char* endptr;
+            int hexValue = strtoul(hexString.toRawUTF8(), &endptr, 16);
+            if (*endptr == '\0') {
+                output += String::charToString(static_cast<wchar_t>(hexValue));
+                output += token.substring(3);
+            } else {
+                jassertfalse;
+                output += token;
+            }
         } else {
             output += token;
         }

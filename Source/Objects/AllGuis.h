@@ -93,69 +93,6 @@ struct t_fake_colors {
     char x_color[MAXPDSTRING];
 };
 
-// [cyclone/comment]
-struct t_fake_comment {
-    t_object x_obj;
-    void* x_proxy;
-    t_glist* x_glist;
-    t_canvas* x_cv;
-    t_binbuf* x_binbuf;
-    char* x_buf;   // text buf
-    int x_bufsize; // text buf size
-    int x_keynum;
-    int x_init;
-    int x_resized;
-    int x_changed;
-    int x_edit;
-    int x_max_pixwidth;
-    int x_text_width;
-    int x_width;
-    int x_height;
-    int x_bbset;
-    int x_bbpending;
-    int x_x1;
-    int x_y1;
-    int x_x2;
-    int x_y2;
-    int x_newx2;
-    int x_dragon;
-    int x_select;
-    int x_fontsize;
-    int x_shift;
-    int x_selstart;
-    int x_start_ndx;
-    int x_end_ndx;
-    int x_selend;
-    int x_active;
-    unsigned char x_red;
-    unsigned char x_green;
-    unsigned char x_blue;
-    unsigned char x_bg[3]; // background color
-    char x_color[8];
-    char x_bgcolor[8];
-    t_symbol* x_keysym;
-    t_symbol* x_bindsym;
-    t_symbol* x_fontname;
-    t_symbol* x_receive;
-    t_symbol* x_rcv_raw;
-    int x_rcv_set;
-    int x_flag;
-    int x_r_flag;
-    int x_old;
-    int x_text_flag;
-    int x_text_n;
-    int x_text_size;
-    int x_zoom;
-    int x_fontface;
-    int x_bold;
-    int x_italic;
-    int x_underline;
-    int x_bg_flag;
-    int x_textjust; // 0: left, 1: center, 2: right
-    int x_outline;
-    t_pd* x_handle;
-};
-
 // [else/function]
 struct t_fake_function {
     t_object x_obj;
@@ -233,6 +170,7 @@ struct t_fake_knob {
     t_object x_obj;
     void* x_proxy;
     t_glist* x_glist;
+    int x_ctrl;
     int x_size;
     double x_pos; // 0-1 normalized position
     t_float x_exp;
@@ -398,30 +336,37 @@ struct t_fake_note {
 
 // [else/numbox~]
 struct t_fake_numbox {
-    t_object x_obj;
-    t_clock* x_clock_update;
-    t_symbol* x_fg;
-    t_symbol* x_bg;
-    t_glist* x_glist;
-    t_float x_display;
-    t_float x_in_val;
-    t_float x_out_val;
-    t_float x_set_val;
-    t_float x_max;
-    t_float x_min;
-    t_float x_sr_khz;
-    t_float x_inc;
-    t_float x_ramp_step;
-    t_float x_ramp_val;
-    int x_ramp_ms;
-    int x_rate;
-    int x_numwidth;
-    int x_fontsize;
-    int x_clicked;
-    int x_width, x_height;
-    int x_zoom;
-    int x_outmode;
-    char x_buf[MAX_NUMBOX_LEN]; // number buffer
+    t_object  x_obj;
+    t_clock  *x_clock_update;
+    t_symbol *x_fg;
+    t_symbol *x_bg;
+    t_glist  *x_glist;
+    t_canvas *x_cv;
+    t_float   x_display;
+    t_float   x_in_val;
+    t_float   x_out_val;
+    t_float   x_set_val;
+    t_float   x_lower;
+    t_float   x_upper;
+    t_float   x_sr_khz;
+    t_float   x_inc;
+    t_float   x_ramp_step;
+    t_float   x_ramp_val;
+    int       x_ramp_ms;
+    int       x_rate;
+    int       x_numwidth;
+    int       x_fontsize;
+    t_symbol *x_font;
+    int       x_clicked;
+    int       x_width, x_height;
+    int       x_zoom;
+    int       x_outmode;
+    char      x_buf[MAX_NUMBOX_LEN]; // number buffer
+    char      x_tag_number[128];
+    char      x_tag_out[128];
+    char      x_tag_in[128];
+    char      x_tag_base[128];
+    char      x_tag_all[128];
 };
 
 // [else/canvas.mouse]
@@ -488,6 +433,8 @@ struct t_fake_pic {
     int x_flag;
     int x_size;
     int x_latch;
+    int x_offset_x;
+    int x_offset_y;
     t_symbol* x_fullname;
     t_symbol* x_filename;
     t_symbol* x_x;
@@ -558,44 +505,7 @@ struct t_fake_plot {
 
 #define SCOPE_MAXBUFSIZE 256
 
-// [else/oscope~]
-struct t_fake_oscope {
-    t_object x_obj;
-    t_inlet* x_rightinlet;
-    t_glist* x_glist;
-    t_canvas* x_cv;
-    void* x_proxy;
-    unsigned char x_bg[3], x_fg[3], x_gg[3];
-    float x_xbuffer[SCOPE_MAXBUFSIZE * 4];
-    float x_ybuffer[SCOPE_MAXBUFSIZE * 4];
-    float x_xbuflast[SCOPE_MAXBUFSIZE * 4];
-    float x_ybuflast[SCOPE_MAXBUFSIZE * 4];
-    float x_min, x_max;
-    float x_trigx, x_triglevel;
-    float x_ksr;
-    float x_currx, x_curry;
-    int x_select;
-    int x_width, x_height;
-    int x_delay;
-    int x_trigmode;
-    int x_bufsize, x_lastbufsize;
-    int x_period;
-    int x_bufphase, x_precount, x_phase;
-    int x_xymode, x_frozen, x_retrigger;
-    int x_zoom;
-    int x_edit;
-    t_float* x_signalscalar;
-    int x_rcv_set;
-    int x_flag;
-    int x_r_flag;
-    t_symbol* x_receive;
-    t_symbol* x_rcv_raw;
-    t_symbol* x_bindsym;
-    t_clock* x_clock;
-    t_pd* x_handle;
-};
-
-// [cyclone/scope~]
+// [else/scope~]
 struct t_fake_scope {
     t_object x_obj;
     t_inlet* x_rightinlet;
@@ -613,7 +523,6 @@ struct t_fake_scope {
     float x_currx, x_curry;
     int x_select;
     int x_width, x_height;
-    int x_drawstyle;
     int x_delay;
     int x_trigmode;
     int x_bufsize, x_lastbufsize;

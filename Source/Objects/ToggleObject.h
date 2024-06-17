@@ -5,12 +5,14 @@
  */
 
 class ToggleObject final : public ObjectBase {
-    bool toggleState = false;
+    std::atomic<bool> toggleState = false;
     bool alreadyToggled = false;
     Value nonZero = SynchronousValue();
     Value sizeProperty = SynchronousValue();
 
     float value = 0.0f;
+
+    bool mouseHover = false;
 
     IEMHelper iemHelper;
 
@@ -29,19 +31,19 @@ public:
         iemHelper.addIemParameters(objectParameters, true, true, 17, 7);
     }
 
-    bool hideInlets() override
+    bool inletIsSymbol() override
     {
         return iemHelper.hasReceiveSymbol();
     }
 
-    bool hideOutlets() override
+    bool outletIsSymbol() override
     {
         return iemHelper.hasSendSymbol();
     }
 
     void updateLabel() override
     {
-        iemHelper.updateLabel(label);
+        iemHelper.updateLabel(labels);
     }
 
     Rectangle<int> getPdBounds() override
@@ -67,32 +69,37 @@ public:
         setToggleStateFromFloat(value);
     }
 
-    void paint(Graphics& g) override
+    void render(NVGcontext* nvg) override
     {
-        g.setColour(iemHelper.getBackgroundColour());
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
+        auto b = getLocalBounds().toFloat().reduced(0.5f);
 
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+        auto bgColour = ::getValue<Colour>(iemHelper.secondaryColour);
+        if (mouseHover)
+            bgColour = getHoverBackgroundColour(bgColour);
 
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        auto backgroundColour = convertColour(bgColour);
+        auto toggledColour = convertColour(::getValue<Colour>(iemHelper.primaryColour)); // TODO: don't access audio thread variables in render loop
+        auto untoggledColour = convertColour(::getValue<Colour>(iemHelper.primaryColour).interpolatedWith(::getValue<Colour>(iemHelper.secondaryColour), 0.8f));
+        auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 
-        auto toggledColour = iemHelper.getForegroundColour();
-        auto untoggledColour = toggledColour.interpolatedWith(iemHelper.getBackgroundColour(), 0.8f);
-        g.setColour(toggleState ? toggledColour : untoggledColour);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
-        auto crossBounds = getLocalBounds().toFloat().reduced((getWidth() * 0.08f) + 4.5f);
-
-        if (getWidth() < 18) {
-            crossBounds = getLocalBounds().toFloat().reduced(3.5f);
-        }
+        auto const sizeReduction = std::min(1.0f, getWidth() / 20.0f);
+        float margin = (getWidth() * 0.08f + 4.5f) * sizeReduction;
+        auto crossBounds = getLocalBounds().toFloat().reduced(margin);
 
         auto const max = std::max(crossBounds.getWidth(), crossBounds.getHeight());
-        auto const strokeWidth = std::max(max * 0.15f, 2.0f);
+        auto strokeWidth = std::max(max * 0.15f, 2.0f) * sizeReduction;
 
-        g.drawLine({ crossBounds.getTopLeft(), crossBounds.getBottomRight() }, strokeWidth);
-        g.drawLine({ crossBounds.getBottomLeft(), crossBounds.getTopRight() }, strokeWidth);
+        nvgBeginPath(nvg);
+        nvgMoveTo(nvg, crossBounds.getX(), crossBounds.getY());
+        nvgLineTo(nvg, crossBounds.getRight(), crossBounds.getBottom());
+        nvgMoveTo(nvg, crossBounds.getRight(), crossBounds.getY());
+        nvgLineTo(nvg, crossBounds.getX(), crossBounds.getBottom());
+        nvgStrokeColor(nvg, toggleState ? toggledColour : untoggledColour);
+        nvgStrokeWidth(nvg, strokeWidth);
+        nvgStroke(nvg);
     }
 
     void toggleObject(Point<int> position) override
@@ -141,6 +148,18 @@ public:
 
         // Make sure we don't re-toggle with an accidental drag
         alreadyToggled = true;
+    }
+
+    void mouseEnter(MouseEvent const& e) override
+    {
+        mouseHover = true;
+        repaint();
+    }
+
+    void mouseExit(MouseEvent const& e) override
+    {
+        mouseHover = false;
+        repaint();
     }
 
     void setToggleStateFromFloat(float newValue)

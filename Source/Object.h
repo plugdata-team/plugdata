@@ -10,9 +10,19 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "Utility/SettingsFile.h"
 #include "Utility/RateReducer.h"
+#include "NVGSurface.h"
 #include "Pd/WeakReference.h"
 
-#define ACTIVITY_UPDATE_RATE 15
+#include <nanovg.h>
+#if NANOVG_GL_IMPLEMENTATION
+#    include <juce_opengl/juce_opengl.h>
+using namespace juce::gl;
+#    undef NANOVG_GL_IMPLEMENTATION
+#    include <nanovg_gl_utils.h>
+#    define NANOVG_GL_IMPLEMENTATION 1
+#endif
+
+#define ACTIVITY_UPDATE_RATE 30
 
 struct ObjectDragState;
 class ObjectBase;
@@ -25,9 +35,11 @@ class Object : public Component
     , public Value::Listener
     , public ChangeListener
     , public Timer
+    , public KeyListener
+    , public NVGComponent
     , private TextEditor::Listener {
 public:
-    Object(Canvas* parent, String const& name = "", Point<int> position = { 100, 100 });
+    explicit Object(Canvas* parent, String const& name = "", Point<int> position = { 100, 100 });
 
     Object(pd::WeakReference object, Canvas* parent);
 
@@ -38,9 +50,9 @@ public:
     void changeListenerCallback(ChangeBroadcaster* source) override;
     void timerCallback() override;
 
-    void paint(Graphics&) override;
-    void paintOverChildren(Graphics&) override;
     void resized() override;
+
+    bool keyPressed(KeyPress const& key, Component* component) override;
 
     void updateIolets();
 
@@ -51,6 +63,8 @@ public:
     void showEditor();
     void hideEditor();
     bool isInitialEditorShown();
+
+    String getType(bool withOriginPrefix = true) const;
 
     Rectangle<int> getSelectableBounds();
     Rectangle<int> getObjectBounds();
@@ -66,19 +80,25 @@ public:
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
 
+    void updateFramebuffer(NVGcontext* nvg);
+    void render(NVGcontext* nvg) override;
+    void performRender(NVGcontext* nvg);
+    void renderIolets(NVGcontext* nvg);
+    void renderLabel(NVGcontext* nvg);
+
     void mouseMove(MouseEvent const& e) override;
     void mouseDown(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
     void mouseDrag(MouseEvent const& e) override;
 
-    void updateOverlays(int overlay);
+    void lookAndFeelChanged() override;
 
     void textEditorReturnKeyPressed(TextEditor& ed) override;
     void textEditorTextChanged(TextEditor& ed) override;
 
     bool hitTest(int x, int y) override;
 
-    void triggerOverlayActiveState();
+    void triggerOverlayActiveState(bool recursive = false);
 
     bool validResizeZone = false;
 
@@ -93,47 +113,82 @@ public:
     Value hvccMode = Value(var(false));
 
     Canvas* cnv;
+    PluginEditor* editor;
 
     std::unique_ptr<ObjectBase> gui;
 
     OwnedArray<Iolet> iolets;
     ResizableBorderComponent::Zone resizeZone;
+    bool drawIoletExpanded = false;
 
-    static inline constexpr int margin = 8;
+    static inline constexpr int margin = 6;
+
     static inline constexpr int doubleMargin = margin * 2;
-    static inline constexpr int height = 37;
+    static inline constexpr int height = 32;
 
     Rectangle<int> originalBounds;
 
-    static inline int const minimumSize = 12;
+    static inline int const minimumSize = 9;
 
     bool isSelected() const;
+
+    std::function<bool(int x, int y)> transparentHitTest = nullptr;
+
+/**
+ * @enum ObjectActivityPolicy
+ * @brief Controls the way object activity propagates upwards inside GOPs.
+ *
+ * This enum defines the different ways in which an object's activity can propagate
+ * through its parent hierarchy. It specifies whether to limit the activity to the object
+ * itself, its direct parent, or all parents recursively.
+ *
+ * @var ObjectActivityPolicy::Self
+ * Trigger object's own activity only.
+ *
+ * @var ObjectActivityPolicy::Parent
+ * Trigger activity of object itself, and direct parent GOP only.
+ *
+ * @var ObjectActivityPolicy::Recursive
+ * Trigger activity of object itself, and all parent GOPs recursively.
+ */
+    enum ObjectActivityPolicy {
+        Self,
+        Parent,
+        Recursive
+    };
+
+    ObjectActivityPolicy objectActivityPolicy = ObjectActivityPolicy::Self;
 
 private:
     void initialise();
 
     void updateTooltips();
 
+    void updateObjectActivityPolicy(String objectName);
+
     void openNewObjectEditor();
 
-    bool checkIfHvccCompatible();
+    bool checkIfHvccCompatible() const;
 
     void setSelected(bool shouldBeSelected);
     bool selectedFlag = false;
     bool selectionStateChanged = false;
 
-    bool createEditorOnMouseDown = false;
     bool wasLockedOnMouseDown = false;
-    bool indexShown = false;
     bool isHvccCompatible = true;
+    bool isGemObject = false;
 
-    bool showActiveState = false;
     float activeStateAlpha = 0.0f;
+
+    NVGImage activityOverlayImage;
+    bool activityOverlayDirty = false;
+
+    NVGFramebuffer scrollBuffer;
 
     bool isObjectMouseActive = false;
     bool isInsideUndoSequence = false;
 
-    Image activityOverlayImage;
+    NVGImage textEditorRenderer;
 
     ObjectDragState& ds;
 
@@ -141,6 +196,7 @@ private:
 
     std::unique_ptr<TextEditor> newObjectEditor;
 
+    friend class InvalidationListener;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Object)
     JUCE_DECLARE_WEAK_REFERENCEABLE(Object)
 };

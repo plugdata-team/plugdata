@@ -4,20 +4,20 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include <Utility/MarkupDisplay.h>
+#include "Components/MarkupDisplay.h"
+#include "Components/BouncingViewport.h"
 
-class HelpDialog : public Component
+class HelpDialog : public TopLevelWindow
     , public MarkupDisplay::FileSource {
-    ResizableBorderComponent resizer;
     std::unique_ptr<Button> closeButton;
     ComponentDragger windowDragger;
-    ComponentBoundsConstrainer constrainer;
+    std::unique_ptr<MouseRateReducedComponent<ResizableBorderComponent>> resizer;
 
     static inline File const manualPath = ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Manual");
 
     class IndexComponent : public Component {
     public:
-        IndexComponent(std::function<void(File const&)> loadFile)
+        explicit IndexComponent(std::function<void(File const&)> loadFile)
         {
             for (auto const& file : OSUtils::iterateDirectory(manualPath, false, true)) {
                 if (file.hasFileExtension(".md")) {
@@ -72,27 +72,33 @@ class HelpDialog : public Component
         OwnedArray<TextButton> buttons;
     };
 
-    //IndexComponent index;
+    // IndexComponent index;
 
 public:
     std::function<void()> onClose;
     PluginProcessor* pd;
     MarkupDisplay::MarkupDisplayComponent markupDisplay;
+    ComponentBoundsConstrainer constrainer;
+    int margin;
 
-    HelpDialog(PluginProcessor* instance)
-        : resizer(this, &constrainer)
-        //, index([this](File const& file) { markupDisplay.setMarkdownString(file.loadFileAsString()); })
+    explicit HelpDialog(PluginProcessor* instance)
+        : TopLevelWindow("Help", true)
         , pd(instance)
+        , margin(ProjectInfo::canUseSemiTransparentWindows() ? 15 : 0)
+    //, index([this](File const& file) { markupDisplay.setMarkdownString(file.loadFileAsString()); })
     {
         markupDisplay.setFileSource(this);
         markupDisplay.setFont(Fonts::getVariableFont());
         markupDisplay.setMarkdownString(manualPath.getChildFile("CompilingPatches.md").loadFileAsString());
-        addAndMakeVisible(markupDisplay);
+        addAndMakeVisible(&markupDisplay);
 
         closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(-1));
         addAndMakeVisible(closeButton.get());
 
-        constrainer.setMinimumSize(500, 300);
+        setVisible(true);
+        setOpaque(false);
+        setUsingNativeTitleBar(false);
+        setDropShadowEnabled(false);
 
         closeButton->onClick = [this]() {
             MessageManager::callAsync([this]() {
@@ -100,14 +106,19 @@ public:
             });
         };
 
-        addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowHasDropShadow);
         setVisible(true);
 
-        // Position in centre of screen
-        setBounds(Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea.withSizeKeepingCentre(700, 500));
+        setTopLeftPosition(Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea.getCentre() - Point<int>(350, 250));
+        constrainer.setSizeLimits(500, 300, 1400, 1000);
+        constrainer.setFixedAspectRatio(0.0f);
 
-        addAndMakeVisible(resizer);
-        //addAndMakeVisible(index);
+        resizer = std::make_unique<MouseRateReducedComponent<ResizableBorderComponent>>(this, &constrainer);
+        // resizer->setAllowHostManagedResize(false);
+        resizer->setAlwaysOnTop(true);
+        addAndMakeVisible(resizer.get());
+
+        setSize(700, 500);
+        // addAndMakeVisible(index);
     }
 
     Image getImageForFilename(String filename) override
@@ -117,55 +128,81 @@ public:
 
     void resized() override
     {
-        auto bounds = getLocalBounds();
-        resizer.setBounds(bounds);
+        auto bounds = getLocalBounds().reduced(margin);
+        resizer->setBounds(bounds);
         bounds.removeFromTop(40);
 
-        auto closeButtonBounds = getLocalBounds().removeFromTop(30).removeFromRight(30).translated(-5, 5);
+        auto closeButtonBounds = getLocalBounds().reduced(margin).removeFromTop(30).removeFromRight(30).translated(-5, 5);
         closeButton->setBounds(closeButtonBounds);
 
-        //index.setBounds(bounds.removeFromLeft(200));
-        markupDisplay.setBounds(bounds);
+        // index.setBounds(bounds.removeFromLeft(200));
+        markupDisplay.setBounds(bounds.reduced(2, 0));
+    }
+
+    int getDesktopWindowStyleFlags() const override
+    {
+        int styleFlags = TopLevelWindow::getDesktopWindowStyleFlags();
+        styleFlags |= ComponentPeer::windowIsResizable;
+        return styleFlags;
     }
 
     void mouseDown(MouseEvent const& e) override
     {
-        windowDragger.startDraggingComponent(this, e);
+        auto dragHitBox = getLocalBounds().reduced(margin).removeFromTop(38).reduced(4);
+        if (dragHitBox.contains(e.x, e.y)) {
+            windowDragger.startDraggingComponent(this, e);
+        }
     }
 
     void mouseDrag(MouseEvent const& e) override
     {
-        windowDragger.dragComponent(this, e, nullptr);
+        auto dragHitBox = getLocalBounds().reduced(margin).removeFromTop(38).reduced(4);
+        if (dragHitBox.contains(e.getMouseDownX(), e.getMouseDownY())) {
+            windowDragger.dragComponent(this, e, nullptr);
+        }
     }
 
     void paint(Graphics& g) override
     {
         auto toolbarHeight = 38;
-        auto b = getLocalBounds();
+        auto totalBounds = getLocalBounds().reduced(margin);
+        auto b = totalBounds;
         auto titlebarBounds = b.removeFromTop(toolbarHeight).toFloat();
         auto bgBounds = b.toFloat();
-        //auto sidebarBounds = b.removeFromLeft(200);
+        // auto sidebarBounds = b.removeFromLeft(200);
+
+        if (ProjectInfo::canUseSemiTransparentWindows()) {
+            auto shadowPath = Path();
+            shadowPath.addRoundedRectangle(getLocalBounds().reduced(20), Corners::windowCornerRadius);
+            StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 13.0f);
+        }
+
+        float cornerRadius = ProjectInfo::canUseSemiTransparentWindows() ? Corners::windowCornerRadius : 0.0f;
 
         Path toolbarPath;
-        toolbarPath.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);
+        toolbarPath.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), cornerRadius, cornerRadius, true, true, false, false);
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.fillPath(toolbarPath);
 
         Path backgroundPath;
-        backgroundPath.addRoundedRectangle(bgBounds.getX(), bgBounds.getY(), bgBounds.getWidth(), bgBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, false, false, true, true);
+        backgroundPath.addRoundedRectangle(bgBounds.getX(), bgBounds.getY(), bgBounds.getWidth(), bgBounds.getHeight(), cornerRadius, cornerRadius, false, false, true, true);
         g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
         g.fillPath(backgroundPath);
-        
+
         /*
         Path sidebarPath;
-        backgroundPath.addRoundedRectangle(sidebarBounds.getX(), sidebarBounds.getY(), sidebarBounds.getWidth(), sidebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, false, false, true, false);
+        backgroundPath.addRoundedRectangle(sidebarBounds.getX(), sidebarBounds.getY(), sidebarBounds.getWidth(), sidebarBounds.getHeight(), cornerRadius, cornerRadius, false, false, true, false);
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId)); */
         g.fillPath(backgroundPath);
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawHorizontalLine(toolbarHeight, 0, getWidth());
-        g.drawVerticalLine(200, 40, getHeight());
+        g.drawHorizontalLine(b.getY() + toolbarHeight, b.getX(), b.getWidth());
 
-        Fonts::drawStyledText(g, "Help", Rectangle<float>(0.0f, 4.0f, getWidth(), 32.0f), findColour(PlugDataColour::panelTextColourId), Semibold, 15, Justification::centred);
+        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.drawRoundedRectangle(totalBounds.toFloat().reduced(0.5f), cornerRadius, 1.f);
+
+        // g.drawVerticalLine(b.getX() + 200, b.getY() + 40, g.getHeight());
+
+        Fonts::drawStyledText(g, "Help", Rectangle<float>(totalBounds.getX(), totalBounds.getY() + 4.0f, b.getWidth(), 32.0f), findColour(PlugDataColour::panelTextColourId), Semibold, 15, Justification::centred);
     }
 };

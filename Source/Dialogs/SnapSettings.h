@@ -5,6 +5,7 @@
 #include <utility>
 #include "Constants.h"
 #include "LookAndFeel.h"
+#include "PluginEditor.h"
 
 class SnapSettings : public Component {
 public:
@@ -59,6 +60,17 @@ public:
         CentersBit = 4
     };
 
+    static void show(PluginEditor* editor, Rectangle<int> bounds)
+    {
+        if (isShowing)
+            return;
+
+        isShowing = true;
+
+        auto snapSettings = std::make_unique<SnapSettings>();
+        editor->showCalloutBox(std::move(snapSettings), bounds);
+    }
+
     class SnapSelector : public Component
         , public Value::Listener
         , public SettableTooltipClient {
@@ -76,8 +88,6 @@ public:
 
         bool dragToggledInteraction = false;
 
-        bool buttonHover = false;
-
     public:
         SnapSelector(SnapSettings* parent, String const& iconText, String nameOfGroup, SnapBitMask snapBitValue)
             : snapBit(snapBitValue)
@@ -88,15 +98,13 @@ public:
             snapValue.referTo(SettingsFile::getInstance()->getPropertyAsValue(property));
             snapValue.addListener(this);
             valueChanged(snapValue);
-
-            setSize(110, 30);
         }
 
         void paint(Graphics& g) override
         {
             if (dragToggledInteraction) {
                 g.setColour(findColour(PlugDataColour::toolbarHoverColourId));
-                PlugDataLook::fillSmoothedRectangle(g, getLocalBounds().toFloat().reduced(1.0f), Corners::defaultCornerRadius);
+                g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), Corners::defaultCornerRadius);
             }
 
             auto iconColour = getToggleState() ? findColour(PlugDataColour::toolbarActiveColourId) : findColour(PlugDataColour::toolbarTextColourId);
@@ -131,20 +139,6 @@ public:
             repaint();
         }
 
-        void mouseEnter(MouseEvent const& e) override
-        {
-            if (!dragToggledInteraction) {
-                buttonHover = true;
-                repaint();
-            }
-        }
-
-        void mouseExit(MouseEvent const& e) override
-        {
-            buttonHover = false;
-            repaint();
-        }
-
         void mouseDown(MouseEvent const& e) override
         {
             auto newState = !getToggleState();
@@ -162,6 +156,14 @@ public:
 
     SnapSettings()
     {
+        snapLabel.setText("Snap", dontSendNotification);
+        snapLabel.setFont(Fonts::getSemiBoldFont().withHeight(14));
+        addAndMakeVisible(snapLabel);
+
+        gridSizeLabel.setText("Grid Size", dontSendNotification);
+        gridSizeLabel.setFont(Fonts::getSemiBoldFont().withHeight(14));
+        addAndMakeVisible(gridSizeLabel);
+
         for (auto* group : buttonGroups) {
             addAndMakeVisible(group);
             group->addMouseListener(this, true);
@@ -172,25 +174,30 @@ public:
         buttonGroups[SnapItem::Centers]->setTooltip("Snap to centers of objects");
 
         addAndMakeVisible(gridSlider.get());
+        setSize(140, 182);
+    }
 
-        setSize(110, 500);
+    ~SnapSettings()
+    {
+        isShowing = false;
     }
 
     void resized() override
     {
-        auto bounds = getLocalBounds();
+        auto bounds = getLocalBounds().withTrimmedTop(24);
+        snapLabel.setBounds(bounds.removeFromTop(24));
         buttonGroups[SnapItem::Edges]->setBounds(bounds.removeFromTop(26));
         buttonGroups[SnapItem::Centers]->setBounds(bounds.removeFromTop(26));
         buttonGroups[SnapItem::Grid]->setBounds(bounds.removeFromTop(26));
+
+        gridSizeLabel.setBounds(bounds.removeFromTop(24));
         gridSlider->setBounds(bounds.removeFromTop(34));
-        setSize(110, bounds.getY());
     }
 
     void mouseUp(MouseEvent const& e) override
     {
         for (auto* group : buttonGroups) {
             group->dragToggledInteraction = false;
-            // button.button.setState(Button::ButtonState::buttonNormal);
             group->repaint();
         }
     }
@@ -205,20 +212,14 @@ public:
         }
     }
 
-    static void show(Component* editor, Rectangle<int> bounds)
+    void paint(Graphics& g) override
     {
-        if (isShowing)
-            return;
+        g.setColour(findColour(PlugDataColour::popupMenuTextColourId));
+        g.setFont(Fonts::getBoldFont().withHeight(15));
+        g.drawText("Grid", 0, 0, getWidth(), 24, Justification::centred);
 
-        isShowing = true;
-
-        auto snapSettings = std::make_unique<SnapSettings>();
-        CallOutBox::launchAsynchronously(std::move(snapSettings), bounds, editor);
-    }
-
-    ~SnapSettings() override
-    {
-        isShowing = false;
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.drawLine(4, 24, getWidth() - 8, 24);
     }
 
     enum MouseInteraction {
@@ -226,11 +227,11 @@ public:
         ToggledButtonOn = 1
     };
 
-    MouseInteraction mouseInteraction;
+    MouseInteraction mouseInteraction = ToggledButtonOff;
 
 private:
     static inline bool isShowing = false;
-
+    Label snapLabel, gridSizeLabel;
     std::unique_ptr<GridSizeSlider> gridSlider = std::make_unique<GridSizeSlider>();
 
     OwnedArray<SnapSettings::SnapSelector> buttonGroups = {

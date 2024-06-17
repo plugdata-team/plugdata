@@ -4,9 +4,9 @@ if [[ $1 == "x64" ]]; then
   X64BitMode="x64"
 fi
 
-VERSION=0.8.3
+VERSION=0.9.0
 
-rm -f ./plugdata.wxs 
+rm -f ./plugdata.wxs
 cat > ./plugdata.wxs <<-EOL
 <?xml version="1.0"?>
 <?define ProductVersion = "$VERSION" ?>
@@ -25,7 +25,7 @@ cat > ./plugdata.wxs <<-EOL
 <?endif ?>
 <Wix
 	xmlns="http://schemas.microsoft.com/wix/2006/wi">
-	<Product Id="*" UpgradeCode="\$(var.ProductUpgradeCode)" 
+	<Product Id="*" UpgradeCode="\$(var.ProductUpgradeCode)"
             Name="plugdata" Version="\$(var.ProductVersion)" Manufacturer="Timothy Schoen" Language="1033">
 		<Package InstallerVersion="200" Compressed="yes" Comments="Windows Installer Package"/>
 		<Media Id="1" Cabinet="product.cab" EmbedCab="yes"/>
@@ -52,9 +52,9 @@ cat > ./plugdata.wxs <<-EOL
 			<Directory Id="ProgramMenuFolder">
 				<Directory Id="ProgramMenuSubfolder" Name="plugdata">
 					<Component Id="STANDALONE_SHORTCUTS" Guid="8f2ac8c2-b3bc-4d3c-8097-b62b5eed28ae">
-						<Shortcut Id="ApplicationShortcut1" Name="plugdata" Description="plugdata" 
+						<Shortcut Id="ApplicationShortcut1" Name="plugdata" Description="plugdata"
                             Target="[INSTALLDIR]plugdata.exe" WorkingDirectory="INSTALLDIR"/>
-						<RegistryValue Root="HKCU" Key="Software\plugdata\plugdata" 
+						<RegistryValue Root="HKCU" Key="Software\plugdata\plugdata"
                             Name="installed" Type="integer" Value="1" KeyPath="yes"/>
 						<RemoveFolder Id="ProgramMenuSubfolder" On="uninstall"/>
 					</Component>
@@ -170,12 +170,12 @@ EOL
 
 
 if [[ $X64BitMode == "x64" ]]; then
-"C:/Program Files (x86)/WiX Toolset v3.11/bin/candle" -arch x64 plugdata.wxs
-"C:/Program Files (x86)/WiX Toolset v3.11/bin/light" plugdata.wixobj -out plugdata-Installer.msi -ext WixUIExtension
+"C:/Program Files (x86)/WiX Toolset v3.14/bin/candle" -arch x64 plugdata.wxs
+"C:/Program Files (x86)/WiX Toolset v3.14/bin/light" plugdata.wixobj -out plugdata-Installer.msi -ext WixUIExtension
 cp ".\plugdata-Installer.msi" ".\plugdata-Win64.msi"
 else
-"C:/Program Files (x86)/WiX Toolset v3.11/bin/candle" plugdata.wxs
-"C:/Program Files (x86)/WiX Toolset v3.11/bin/light" plugdata.wixobj -out plugdata-Installer.msi -ext WixUIExtension
+"C:/Program Files (x86)/WiX Toolset v3.14/bin/candle" plugdata.wxs
+"C:/Program Files (x86)/WiX Toolset v3.14/bin/light" plugdata.wixobj -out plugdata-Installer.msi -ext WixUIExtension
 cp ".\plugdata-Installer.msi" ".\plugdata-Win32.msi"
 fi
 

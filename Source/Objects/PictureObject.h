@@ -17,6 +17,8 @@ class PictureObject final : public ObjectBase {
 
     File imageFile;
     Image img;
+    std::vector<std::pair<std::unique_ptr<NVGImage>, Rectangle<int>>> imageBuffers;
+    bool imageNeedsReload = false;
 
 public:
     PictureObject(pd::WeakReference ptr, Object* object)
@@ -43,7 +45,11 @@ public:
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
         objectParameters.addParamSendSymbol(&sendSymbol);
     }
-    
+
+    ~PictureObject()
+    {
+    }
+
     bool isTransparent() override
     {
         return true;
@@ -100,11 +106,14 @@ public:
 
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-
         switch (symbol) {
         case hash("latch"): {
             if (auto pic = ptr.get<t_fake_pic>())
                 latch = pic->x_latch;
+            break;
+        }
+        case hash("offset"): {
+            repaint();
             break;
         }
         case hash("outline"): {
@@ -120,21 +129,83 @@ public:
         }
     }
 
-    void paint(Graphics& g) override
+    void updateImage(NVGcontext* nvg)
     {
-        if (imageFile.existsAsFile()) {
-            g.drawImageAt(img, 0, 0);
+        imageBuffers.clear();
+
+        int imageWidth = img.getWidth();
+        int imageHeight = img.getHeight();
+        int x = 0;
+        while (x < imageWidth) {
+            int y = 0;
+            int width = std::min(8192, imageWidth - x);
+            while (y < imageHeight) {
+                int height = std::min(8192, imageHeight - y);
+                auto bounds = Rectangle<int>(x, y, width, height);
+                auto clip = img.getClippedImage(bounds);
+
+                auto partialImage = std::make_unique<NVGImage>(nvg, width, height, [&clip](Graphics& g) {
+                    g.drawImageAt(clip, 0, 0);
+                });
+
+                partialImage->onImageInvalidate = [this]() {
+                    imageNeedsReload = true;
+                    repaint();
+                };
+
+                imageBuffers.emplace_back(std::move(partialImage), bounds);
+                y += 8192;
+            }
+            x += 8192;
+        }
+
+        imageNeedsReload = false;
+    }
+
+    void render(NVGcontext* nvg) override
+    {
+        if (imageNeedsReload)
+            updateImage(nvg);
+
+        auto b = getLocalBounds().toFloat();
+
+        nvgSave(nvg);
+        nvgIntersectScissor(nvg, 0, 0, getWidth(), getHeight());
+        if (imageBuffers.empty()) {
+            nvgFontSize(nvg, 20);
+            nvgFontFace(nvg, "Inter-Regular");
+            nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+            nvgFillColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId)));
+            nvgText(nvg, b.getCentreX(), b.getCentreY(), "?", 0);
         } else {
-            Fonts::drawText(g, "?", getLocalBounds(), object->findColour(PlugDataColour::canvasTextColourId), 30, Justification::centred);
+
+            int offsetX = 0, offsetY = 0;
+            if (auto pic = ptr.get<t_fake_pic>()) {
+                offsetX = pic->x_offset_x;
+                offsetY = pic->x_offset_y;
+            }
+
+            nvgSave(nvg);
+            nvgTranslate(nvg, offsetX, offsetY);
+            for (auto& [image, bounds] : imageBuffers) {
+                nvgFillPaint(nvg, nvgImagePattern(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), 0, image->getImageId(), 1.0f));
+                nvgFillRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+            }
+            nvgRestore(nvg);
         }
 
         bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+        auto outlineColour = LookAndFeel::getDefaultLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         if (getValue<bool>(outline)) {
-            g.setColour(outlineColour);
-            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+            nvgBeginPath(nvg);
+            nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+            nvgStrokeWidth(nvg, 1.0f);
+            nvgStrokeColor(nvg, convertColour(outlineColour));
+            nvgStroke(nvg);
         }
+
+        nvgRestore(nvg);
     }
 
     void valueChanged(Value& value) override
@@ -160,7 +231,7 @@ public:
                 pic->x_latch = getValue<int>(latch);
         } else if (value.refersToSameSourceAs(outline)) {
             if (auto pic = ptr.get<t_fake_pic>())
-                pic->x_outline = getValue<int>(latch);
+                pic->x_outline = getValue<int>(outline);
         } else if (value.refersToSameSourceAs(reportSize)) {
             if (auto pic = ptr.get<t_fake_pic>())
                 pic->x_size = getValue<int>(reportSize);
@@ -234,6 +305,7 @@ public:
             // Get pd's search paths
             char* paths[1024];
             int numItems;
+            pd->setThis();
             pd::Interface::getSearchPaths(paths, &numItems);
 
             for (int i = 0; i < numItems; i++) {
@@ -255,7 +327,8 @@ public:
         auto* rawFileName = fileNameString.toRawUTF8();
         auto* rawPath = pathString.toRawUTF8();
 
-        img = ImageFileFormat::loadFrom(imageFile);
+        img = ImageFileFormat::loadFrom(imageFile).convertedToFormat(Image::ARGB);
+        imageNeedsReload = true;
 
         if (auto pic = ptr.get<t_fake_pic>()) {
             pic->x_filename = pd->generateSymbol(rawFileName);

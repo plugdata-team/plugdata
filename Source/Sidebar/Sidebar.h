@@ -9,6 +9,7 @@
 #include "Components/Buttons.h"
 #include "Objects/ObjectParameters.h"
 #include "Utility/SettingsFile.h"
+#include "NVGSurface.h"
 
 class Console;
 class Inspector;
@@ -23,19 +24,19 @@ class Instance;
 
 class SidebarSelectorButton : public TextButton {
 public:
-    SidebarSelectorButton(String const& icon)
+    explicit SidebarSelectorButton(String const& icon)
         : TextButton(icon)
     {
     }
 
-    void mouseDown(MouseEvent const& e)
+    void mouseDown(MouseEvent const& e) override
     {
         numNotifications = 0;
         hasWarning = false;
         TextButton::mouseDown(e);
     }
 
-    void paint(Graphics& g)
+    void paint(Graphics& g) override
     {
         bool active = isMouseOver() || isMouseButtonDown() || getToggleState();
 
@@ -45,7 +46,7 @@ public:
         auto bounds = getLocalBounds().toFloat().reduced(3.0f, 4.0f);
 
         g.setColour(backgroundColour);
-        PlugDataLook::fillSmoothedRectangle(g, bounds, cornerSize);
+        g.fillRoundedRectangle(bounds, cornerSize);
 
         auto font = Fonts::getIconFont().withHeight(13);
         g.setFont(font);
@@ -77,6 +78,7 @@ public:
 };
 
 class PluginEditor;
+class PlugDataParameter;
 class Sidebar : public Component
     , public SettingsFileListener {
 
@@ -96,7 +98,6 @@ public:
     void mouseExit(MouseEvent const& e) override;
 
     void showParameters(String const& name, Array<ObjectParameters>& params);
-    void showParameters();
     void hideParameters();
 
     bool isShowingBrowser();
@@ -105,7 +106,6 @@ public:
 
     void showPanel(int panelToShow);
 
-    bool isShowingConsole() const;
     void showSidebar(bool show);
 
     void pinSidebar(bool pin);
@@ -118,6 +118,7 @@ public:
 
     void clearSearchOutliner();
 
+    void updateAutomationParameterValue(PlugDataParameter* param);
     void updateAutomationParameters();
 
     static constexpr int dragbarWidth = 6;

@@ -11,15 +11,12 @@ class CommentObject final : public ObjectBase
     bool locked;
 
     Value sizeProperty = SynchronousValue();
-        
-    TextLayout textLayout;
-    hash32 layoutTextHash = 0;
-    int lastTextWidth = 0;
-    int32 lastColourARGB = 0;
-        
+
     std::unique_ptr<TextEditor> editor;
-    BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
+    BorderSize<int> border = BorderSize<int>(1, 3, 0, 0);
     String objectText;
+
+    CachedTextRender textRenderer;
 
 public:
     CommentObject(pd::WeakReference obj, Object* object)
@@ -27,7 +24,7 @@ public:
     {
         objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
         locked = getValue<bool>(object->locked);
-        
+
         updateTextLayout();
     }
 
@@ -43,17 +40,17 @@ public:
         if (auto obj = ptr.get<t_text>()) {
             sizeProperty = TextObjectHelper::getWidthInChars(obj.get());
         }
-        
+
         updateTextLayout();
     }
 
-    void paint(Graphics& g) override
+    void render(NVGcontext* nvg) override
     {
-        updateTextLayout();
-        
         if (!editor) {
             auto textArea = border.subtractedFrom(getLocalBounds());
-            textLayout.draw(g, textArea.toFloat());
+            textRenderer.renderText(nvg, textArea, getImageScale());
+        } else {
+            imageRenderer.renderJUCEComponent(nvg, *editor, getImageScale());
         }
     }
 
@@ -61,7 +58,7 @@ public:
     {
         auto selected = object->isSelected();
         if (!locked && (object->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
-            g.setColour(object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId));
+            g.setColour(LookAndFeel::getDefaultLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId));
 
             g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
         }
@@ -89,14 +86,12 @@ public:
 
             if (objectText != newText) {
                 objectText = newText;
+                object->updateBounds(); // Recalculate bounds
+                setPdBounds(object->getObjectBounds());
+                setSymbol(objectText);
+                cnv->synchronise();
             }
-
             outgoingEditor.reset();
-
-            object->updateBounds(); // Recalculate bounds
-            setPdBounds(object->getObjectBounds());
-
-            setSymbol(objectText);
             repaint();
         }
     }
@@ -111,92 +106,92 @@ public:
         if (editor == nullptr) {
             editor.reset(TextObjectHelper::createTextEditor(object, 15));
 
-            editor->setBorder(border);
+            editor->setBorder(border.addedTo(BorderSize<int>(1, 0, 0, 0)));
             editor->setBounds(getLocalBounds());
             editor->setText(objectText, false);
             editor->addListener(this);
             editor->addKeyListener(this);
             editor->selectAll();
+            editor->setJustification(Justification::topLeft);
 
             addAndMakeVisible(editor.get());
             editor->grabKeyboardFocus();
 
-            editor->setColour(TextEditor::textColourId, object->findColour(PlugDataColour::commentTextColourId));
+            editor->setColour(TextEditor::textColourId, LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::commentTextColourId));
 
             editor->onFocusLost = [this]() {
                 hideEditor();
             };
 
-            resized();
+            object->updateBounds();
             repaint();
         }
     }
 
-        Rectangle<int> getPdBounds() override
-        {
-            updateTextLayout(); // make sure layout height is updated
+    Rectangle<int> getPdBounds() override
+    {
+        updateTextLayout(); // make sure layout height is updated
 
-            int x = 0, y = 0, w, h;
-            if (auto obj = ptr.get<t_gobj>()) {
-                auto* cnvPtr = cnv->patch.getPointer().get();
-                if (!cnvPtr) return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 6, 21)};
+        auto textBounds = getTextSize();
+
+        int x = 0, y = 0, w, h;
+        if (auto obj = ptr.get<t_gobj>()) {
+            auto* cnvPtr = cnv->patch.getPointer().get();
+            if (!cnvPtr)
+                return { x, y, textBounds.getWidth(), std::max<int>(textBounds.getHeight() + 4, 19) };
+
+            pd::Interface::getObjectBounds(cnvPtr, obj.get(), &x, &y, &w, &h);
+        }
+
+        return { x, y, textBounds.getWidth(), std::max<int>(textBounds.getHeight() + 4, 19) };
+    }
+
+    Rectangle<int> getTextSize()
+    {
+        auto objText = editor ? editor->getText() : objectText;
         
-                pd::Interface::getObjectBounds(cnvPtr, obj.get(), &x, &y, &w, &h);
-            }
+        int fontWidth = 7;
+        int charWidth = 0;
+        if (auto obj = ptr.get<void>()) {
+            charWidth = TextObjectHelper::getWidthInChars(obj.get());
+            fontWidth = glist_fontwidth(cnv->patch.getPointer().get());
+        }
 
-            return {x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 6, 21)};
-        }
-            
-        int getTextObjectWidth()
-        {
-            auto objText = editor ? editor->getText() : objectText;
+        auto textSize = textRenderer.getTextBounds();
 
-            int fontWidth = 7;
-            int charWidth = 0;
-            if (auto obj = ptr.get<void>()) {
-                charWidth = TextObjectHelper::getWidthInChars(obj.get());
-                fontWidth = glist_fontwidth(cnv->patch.getPointer().get());
-            }
-            
-            // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
-            int idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 12;
-            
-            // We want to adjust the width so ideal text with aligns with fontWidth
-            int offset = idealWidth % fontWidth;
-            
-            int textWidth;
-            if (objText.isEmpty()) { // If text is empty, set to minimum width
-                textWidth = std::max(charWidth, TextObjectHelper::minWidth) * fontWidth;
-            } else if (charWidth == 0) { // If width is set to automatic, calculate based on text width
-                textWidth = std::clamp(idealWidth, TextObjectHelper::minWidth * fontWidth, fontWidth * 60);
-            } else { // If width was set manually, calculate what the width is
-                textWidth = std::max(charWidth, TextObjectHelper::minWidth) * fontWidth + offset;
-            }
-            
-            return textWidth;
+        // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
+        int idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 8;
+
+        // We want to adjust the width so ideal text with aligns with fontWidth
+        int offset = idealWidth % fontWidth;
+
+        int textWidth;
+        if (objText.isEmpty()) { // If text is empty, set to minimum width
+            textWidth = std::max(charWidth, 6) * fontWidth;
+        } else if (charWidth == 0) { // If width is set to automatic, calculate based on text width
+            textWidth = std::clamp(idealWidth, TextObjectHelper::minWidth * fontWidth, fontWidth * 60);
+        } else { // If width was set manually, calculate what the width is
+            textWidth = std::max(charWidth, TextObjectHelper::minWidth) * fontWidth + offset;
         }
-        
-        void updateTextLayout()
-        {
-            auto objText = editor ? editor->getText() : objectText;
-            
-            int textWidth = getTextObjectWidth() - 12; // Reserve a bit of extra space for the text margin
-            auto currentLayoutHash = hash(objText);
-            auto colour = object->findColour(PlugDataColour::canvasTextColourId);
-            if(layoutTextHash != currentLayoutHash || colour.getARGB() != lastColourARGB || textWidth != lastTextWidth)
-            {
-                auto attributedText = AttributedString(objText);
-                attributedText.setColour(colour);
-                attributedText.setJustification(Justification::centredLeft);
-                attributedText.setFont(Font(15));
-                
-                textLayout = TextLayout();
-                textLayout.createLayout(attributedText, textWidth);
-                layoutTextHash = currentLayoutHash;
-                lastColourARGB = colour.getARGB();
-                lastTextWidth = textWidth;
-            }
+
+        return { textWidth, textSize.getHeight() };
+    }
+
+    void lookAndFeelChanged() override
+    {
+        updateTextLayout();
+    }
+
+    void updateTextLayout()
+    {
+        auto objText = editor ? editor->getText() : objectText;
+
+        auto colour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::commentTextColourId);
+        int textWidth = getTextSize().getWidth() - 8;
+        if (textRenderer.prepareLayout(objText, Fonts::getDefaultFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty))) {
+            repaint();
         }
+    }
 
     std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
     {
@@ -273,14 +268,6 @@ public:
 
     bool keyPressed(KeyPress const& key, Component*) override
     {
-        if (key == KeyPress::rightKey && editor && !editor->getHighlightedRegion().isEmpty()) {
-            editor->setCaretPosition(editor->getHighlightedRegion().getEnd());
-            return true;
-        }
-        if (key == KeyPress::leftKey && editor && !editor->getHighlightedRegion().isEmpty()) {
-            editor->setCaretPosition(editor->getHighlightedRegion().getStart());
-            return true;
-        }
         if (key.getKeyCode() == KeyPress::returnKey && editor && key.getModifiers().isShiftDown()) {
             int caretPosition = editor->getCaretPosition();
             auto text = editor->getText();
@@ -305,11 +292,11 @@ public:
 
     void resized() override
     {
+        updateTextLayout();
+
         if (editor) {
             editor->setBounds(getLocalBounds());
         }
-        
-        updateTextLayout();
     }
 
     void textEditorReturnKeyPressed(TextEditor&) override
@@ -320,7 +307,6 @@ public:
     // For resize-while-typing behaviour
     void textEditorTextChanged(TextEditor&) override
     {
-        updateTextLayout();
         object->updateBounds();
     }
 };

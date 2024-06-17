@@ -124,61 +124,68 @@ public:
 
     void lookAndFeelChanged() override
     {
-        input.setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));
-        input.setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
-        input.setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
+        input.setColour(Label::textWhenEditingColourId, LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
+        input.setColour(Label::textColourId, LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
+        input.setColour(TextEditor::textColourId, LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
         repaint();
     }
 
-    void paint(Graphics& g) override
+    void render(NVGcontext* nvg) override
     {
-        g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
-    }
+        auto b = getLocalBounds().toFloat().reduced(0.5f);
+        auto backgroundColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
+        auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
+        bool highlighed = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
 
-    void paintOverChildren(Graphics& g) override
-    {
-        g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
-        Path triangle;
-        triangle.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, (object->isSelected() || highlighed) ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
-        auto reducedBounds = getLocalBounds().toFloat().reduced(0.5f);
+        nvgSave(nvg);
+        nvgIntersectRoundedScissor(nvg, b.getX() + 0.25f, b.getY() + 0.25f, b.getWidth() - 0.5f, b.getHeight() - 0.5f, Corners::objectCornerRadius);
 
-        Path roundEdgeClipping;
-        roundEdgeClipping.addRoundedRectangle(reducedBounds, Corners::objectCornerRadius);
+        nvgBeginPath(nvg);
+        nvgFillColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour)));
+        nvgMoveTo(nvg, b.getRight() - 8, b.getY());
+        nvgLineTo(nvg, b.getRight(), b.getY());
+        nvgLineTo(nvg, b.getRight(), b.getY() + 8);
+        nvgClosePath(nvg);
+        nvgFill(nvg);
 
-        g.saveState();
-        g.reduceClipRegion(roundEdgeClipping);
-        g.fillPath(triangle);
-        g.restoreState();
+        nvgRestore(nvg);
 
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+        imageRenderer.renderJUCEComponent(nvg, input, getImageScale());
 
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-
-        bool highlighed = hasKeyboardFocus(true) && getValue<bool>(object->locked);
+        if (object->isSelected()) // If object is selected, draw outline over top too, so the flag doesn't poke into the selected outline
+        {
+            nvgBeginPath(nvg);
+            nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+            nvgStrokeColor(nvg, selectedOutlineColour);
+            nvgStrokeWidth(nvg, 1.0f);
+            nvgStroke(nvg);
+        }
 
         if (highlighed) {
-            g.setColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
-            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), Corners::objectCornerRadius, 2.0f);
+            nvgStrokeColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId)));
+            nvgStrokeWidth(nvg, 2.0f);
+            nvgBeginPath(nvg);
+            nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+            nvgStroke(nvg);
         }
     }
 
-    bool hideInlets() override
+    bool inletIsSymbol() override
     {
         return atomHelper.hasReceiveSymbol();
     }
 
-    bool hideOutlets() override
+    bool outletIsSymbol() override
     {
         return atomHelper.hasSendSymbol();
     }
 
     void updateLabel() override
     {
-        atomHelper.updateLabel(label);
+        atomHelper.updateLabel(labels);
     }
 
     void valueChanged(Value& v) override

@@ -7,10 +7,10 @@
 class KeyMappingComponent : public SettingsDialogPanel
     , public ChangeListener {
 public:
-    explicit KeyMappingComponent(KeyPressMappingSet& mappingSet)
+    explicit KeyMappingComponent(KeyPressMappingSet* mappingSet)
         : mappings(mappingSet)
     {
-        mappingSet.addChangeListener(this);
+        mappings->addChangeListener(this);
 
         addAndMakeVisible(propertiesPanel);
         propertiesPanel.setTitle("Key Mappings");
@@ -27,7 +27,7 @@ public:
     /** Destructor. */
     ~KeyMappingComponent() override
     {
-        mappings.removeChangeListener(this);
+        if(mappings) mappings->removeChangeListener(this);
     }
 
     void updateMappings()
@@ -37,13 +37,13 @@ public:
         propertiesPanel.clear();
 
         auto resetMaxDefaults = [this] {
-            Dialogs::showOkayCancelDialog(&confirmationDialog, getParentComponent(), "Are you sure you want to reset all the key-mappings?",
+            Dialogs::showOkayCancelDialog(&confirmationDialog, findParentComponentOfClass<Dialog>(), "Are you sure you want to reset all the key-mappings?",
                 [this](int result) {
                     resetKeyMappingsToMaxCallback(result, this);
                 });
         };
         auto resetPdDefaults = [this]() {
-            Dialogs::showOkayCancelDialog(&confirmationDialog, getParentComponent(), "Are you sure you want to reset all the key-mappings?",
+            Dialogs::showOkayCancelDialog(&confirmationDialog, findParentComponentOfClass<Dialog>(), "Are you sure you want to reset all the key-mappings?",
                 [this](int result) {
                     resetKeyMappingsToPdCallback(result, this);
                 });
@@ -54,10 +54,10 @@ public:
 
         propertiesPanel.addSection("Reset shortcuts", { resetMaxButton, resetPdButton });
 
-        for (auto const& category : mappings.getCommandManager().getCommandCategories()) {
+        for (auto const& category : mappings->getCommandManager().getCommandCategories()) {
             Array<PropertiesPanelProperty*> properties;
-            for (auto command : mappings.getCommandManager().getCommandsInCategory(category)) {
-                properties.add(new KeyMappingProperty(*this, mappings.getCommandManager().getNameOfCommand(command), command));
+            for (auto command : mappings->getCommandManager().getCommandsInCategory(category)) {
+                properties.add(new KeyMappingProperty(*this, mappings->getCommandManager().getNameOfCommand(command), command));
             }
 
             propertiesPanel.addSection(category, properties);
@@ -70,7 +70,7 @@ public:
     {
         auto keyMapTree = SettingsFile::getInstance()->getKeyMapTree();
 
-        auto newTree = mappings.createXml(true)->toString();
+        auto newTree = mappings->createXml(true)->toString();
         keyMapTree.setProperty("keyxml", newTree, nullptr);
 
         updateMappings();
@@ -111,10 +111,10 @@ public:
     }
 
     /** Returns the KeyPressMappingSet that this component is acting upon. */
-    KeyPressMappingSet& getMappings() const noexcept { return mappings; }
+    KeyPressMappingSet& getMappings() const noexcept { return *mappings; }
 
     /** Returns the ApplicationCommandManager that this component is connected to. */
-    ApplicationCommandManager& getCommandManager() const noexcept { return mappings.getCommandManager(); }
+    ApplicationCommandManager& getCommandManager() const noexcept { return mappings->getCommandManager(); }
 
     /** This can be overridden to let you change the format of the string used
      to describe a keypress.
@@ -135,7 +135,7 @@ public:
     }
 
 private:
-    KeyPressMappingSet& mappings;
+    WeakReference<KeyPressMappingSet> mappings;
     PropertiesPanel propertiesPanel;
 
     std::unique_ptr<Dialog> confirmationDialog;
@@ -211,14 +211,12 @@ private:
             {
                 addButton("OK", 1);
                 addButton("Cancel", 0);
-                
 
                 // (avoid return + escape keys getting processed by the buttons..)
                 for (auto* child : getChildren())
                     child->setWantsKeyboardFocus(false);
-                
-                for (int i = 0; i < getNumButtons(); i++)
-                {
+
+                for (int i = 0; i < getNumButtons(); i++) {
                     auto& button = *getButton(i);
                     auto backgroundColour = findColour(PlugDataColour::dialogBackgroundColourId);
                     button.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
@@ -228,6 +226,7 @@ private:
 
                 setWantsKeyboardFocus(true);
                 grabKeyboardFocus();
+                setOpaque(false);
             }
 
             bool keyPressed(KeyPress const& key) override

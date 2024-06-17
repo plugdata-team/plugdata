@@ -1,7 +1,5 @@
 #pragma once
 
-#include <juce_gui_basics/juce_gui_basics.h>
-
 #include <set>
 #include <functional>
 #include <mutex>
@@ -25,22 +23,24 @@ public:
 
   bool isKeyDown(int keyCode);
   void allKeysUp();
-  
+
   std::function<void(int)> onKeyDownFn;
   std::function<void(int)> onKeyUpFn;
 
 protected:
-  static std::set<Keyboard*> thisses;
+  static std::set<juce::WeakReference<Keyboard>> thisses;
 
   static juce::ComponentPeer* getFocusedPeer();
-  
+
   void addPressedKey(int keyCode);
   void removePressedKey(int keyCode);
 
 private:
   std::recursive_mutex pressedKeysMutex;
+  static std::recursive_mutex instanceMutex;
   juce::Component* parent;
   juce::Component* auxParent = nullptr;
   std::set<int> pressedKeys;
-  
+
+  JUCE_DECLARE_WEAK_REFERENCEABLE(Keyboard);
 };

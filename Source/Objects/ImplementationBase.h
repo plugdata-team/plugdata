@@ -25,11 +25,10 @@ public:
 
     virtual void update() { }
 
-    void openSubpatch(pd::Patch* subpatch);
+    void openSubpatch(pd::Patch::Ptr subpatch);
     void closeOpenedSubpatchers();
 
     Canvas* getMainCanvas(t_canvas* patchPtr, bool alsoSearchRoot = false) const;
-    Array<PluginEditor*> getEditors() const;
 
     PluginProcessor* pd;
     pd::WeakReference ptr;
@@ -45,7 +44,7 @@ public:
     void updateObjectImplementations();
     void clearObjectImplementationsForPatch(t_canvas* patch);
 
-    void handleAsyncUpdate();
+    void handleAsyncUpdate() override;
 
 private:
     Array<t_gobj*> getImplementationsForPatch(t_canvas* patch);

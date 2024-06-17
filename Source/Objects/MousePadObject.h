@@ -85,17 +85,17 @@ public:
 
     ~MousePadObject() override = default;
 
-    void paint(Graphics& g) override
+    void render(NVGcontext* nvg) override
     {
-        auto* x = ptr.getRaw<t_fake_pad>();
-        auto fillColour = Colour(x->x_color[0], x->x_color[1], x->x_color[2]);
-        g.setColour(fillColour);
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
+        auto b = getLocalBounds().toFloat().reduced(0.5f);
+        Colour fillColour, outlineColour;
+        if(auto x = ptr.get<t_fake_pad>()) {
+            fillColour = Colour(x->x_color[0], x->x_color[1], x->x_color[2]);
+            outlineColour = LookAndFeel::getDefaultLookAndFeel().findColour(object->isSelected() && !cnv->isGraph ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::outlineColourId);
+        }
+            
 
-        auto outlineColour = object->findColour(object->isSelected() && !cnv->isGraph ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::outlineColourId);
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(fillColour), convertColour(outlineColour), Corners::objectCornerRadius);
     }
 
     void setPdBounds(Rectangle<int> b) override
@@ -171,7 +171,7 @@ public:
             topLevel = nextCanvas;
         }
 
-        return static_cast<bool>(topLevel->locked.getValue() || topLevel->commandLocked.getValue());
+        return static_cast<bool>(topLevel->locked.getValue() || topLevel->commandLocked.getValue()) || topLevel->isGraph;
     }
 
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override

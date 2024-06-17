@@ -4,35 +4,35 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_dsp/juce_dsp.h>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
 
 #include "ObjectGrid.h"
 #include "Object.h"
 #include "Canvas.h"
+#include "PluginEditor.h"
 #include "Connection.h"
 
 ObjectGrid::ObjectGrid(Canvas* cnv)
+    : cnv(cnv)
 {
 
     gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
     gridType = SettingsFile::getInstance()->getProperty<int>("grid_type");
     gridSize = SettingsFile::getInstance()->getProperty<int>("grid_size");
-
-    cnv->addAndMakeVisible(gridLines[0]);
-    cnv->addAndMakeVisible(gridLines[1]);
-
-    gridLines[0].setAlwaysOnTop(true);
-    gridLines[1].setAlwaysOnTop(true);
 }
 
 Array<Object*> ObjectGrid::getSnappableObjects(Object* draggedObject)
 {
     auto& cnv = draggedObject->cnv;
+    if (!cnv->viewport)
+        return {};
+
     Array<Object*> snappable;
 
     auto scaleFactor = std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
-    auto viewBounds = cnv->viewport.get()->getViewArea() / scaleFactor;
+    auto viewBounds = cnv->viewport->getViewArea() / scaleFactor;
 
     for (auto* object : cnv->objects) {
         if (draggedObject == object || object->isSelected() || !viewBounds.intersects(object->getBounds()))
@@ -47,7 +47,7 @@ Array<Object*> ObjectGrid::getSnappableObjects(Object* draggedObject)
         auto distA = a->getBounds().getCentre().getDistanceFrom(centre);
         auto distB = b->getBounds().getCentre().getDistanceFrom(centre);
 
-        return distA < distB;
+        return distA > distB;
     });
 
     return snappable;
@@ -215,16 +215,17 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
     auto isDraggingLeft = resizeZone.isDraggingLeftEdge();
     auto isDraggingRight = resizeZone.isDraggingRightEdge();
 
-    if(auto* constrainer = toDrag->getConstrainer())
-    {
+    if (auto* constrainer = toDrag->getConstrainer()) {
         // Not great that we need to do this, but otherwise we don't really know the object bounds for sure
         constrainer->checkBounds(newResizeBounds, toDrag->originalBounds, limits,
             isDraggingTop, isDraggingLeft, isDraggingBottom, isDraggingRight);
     }
 
-
     // Returns non-zero if the object has a fixed ratio
-    auto ratio = toDrag->getConstrainer()->getFixedAspectRatio();
+    auto ratio = 0.0;
+    if (auto* constrainer = toDrag->getConstrainer()) {
+        ratio = constrainer->getFixedAspectRatio();
+    }
 
     auto desiredBounds = newResizeBounds.reduced(Object::margin);
     auto actualBounds = toDrag->getBounds().reduced(Object::margin);
@@ -335,6 +336,16 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
 // Calculates the path of the grid lines
 Line<int> ObjectGrid::getObjectIndicatorLine(Side side, Rectangle<int> b1, Rectangle<int> b2)
 {
+    // When snapping from both sides, we need to shorten the lines to prevent artifacts (because the line will follow mouse position on the opposite axis)
+    if(side == Top || side == Bottom || side == VerticalCentre)
+    {
+        b2 = b2.reduced(2, 0);
+    }
+    else {
+        b2 = b2.reduced(0, 2);
+    }
+
+    
     switch (side) {
     case Left:
         if (b1.getY() > b2.getY()) {
@@ -380,30 +391,88 @@ Line<int> ObjectGrid::getObjectIndicatorLine(Side side, Rectangle<int> b1, Recta
 
 void ObjectGrid::clearIndicators(bool fast)
 {
-    gridLineAnimator.fadeOut(&gridLines[0], fast ? 20 : 125);
-    gridLineAnimator.fadeOut(&gridLines[1], fast ? 20 : 125);
+    float lineFadeMs = fast ? 50 : 250;
 
-    gridLines[0].setPath(Path());
-    gridLines[1].setPath(Path());
+    lineAlphaMultiplier[0] = dsp::FastMathApproximations::exp((-MathConstants<float>::twoPi * 1000.0f / 60.0f) / lineFadeMs);
+    lineAlphaMultiplier[1] = lineAlphaMultiplier[0];
+    if (lineTargetAlpha[0] != 0.0f || lineTargetAlpha[1] != 0.0f) {
+        lineTargetAlpha[0] = 0.0f;
+        lineTargetAlpha[1] = 0.0f;
+        startTimerHz(60);
+    }
 }
 
 void ObjectGrid::setIndicator(int idx, Line<int> line, float scale)
 {
     auto lineIsEmpty = line.getLength() == 0;
-    if (gridLines[idx].isVisible() && lineIsEmpty) {
-        gridLineAnimator.fadeOut(&gridLines[idx], 20);
+    if (lineIsEmpty) {
+        cnv->editor->nvgSurface.invalidateAll();
+    } else {
+        auto lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[idx].getStart(), lines[idx].getEnd()).expanded(2));
+        cnv->editor->nvgSurface.invalidateArea(lineArea);
     }
 
-    auto& lnf = LookAndFeel::getDefaultLookAndFeel();
-    gridLines[idx].setStrokeFill(FillType(lnf.findColour(PlugDataColour::gridLineColourId)));
-    gridLines[idx].setStrokeThickness(scale);
-    gridLines[idx].toFront(false);
+    lines[idx] = line;
 
-    Path toDraw;
-    toDraw.addLineSegment(line.toFloat(), scale);
-    gridLines[idx].setPath(toDraw);
+    if (!lineIsEmpty) {
+        lineAlphaMultiplier[idx] = dsp::FastMathApproximations::exp((-MathConstants<float>::twoPi * 1000.0f / 60.0f) / 50.0f);
+        if (lineTargetAlpha[idx] != 1.0f) {
+            lineTargetAlpha[idx] = 1.0f;
+            startTimerHz(60);
+        }
+    } else {
+        auto lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[idx].getStart(), lines[idx].getEnd()).expanded(2));
+        cnv->editor->nvgSurface.invalidateArea(lineArea);
+    }
+}
 
-    if (!gridLines[idx].isVisible() && !lineIsEmpty) {
-        gridLineAnimator.fadeIn(&gridLines[idx], 25);
+void ObjectGrid::timerCallback()
+{
+    if (lines[0].getLength() != 0 && lineAlpha[0] != 0.0f) {
+        auto lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[0].getStart(), lines[0].getEnd()).expanded(2));
+        cnv->editor->nvgSurface.invalidateArea(lineArea);
+    }
+    if (lines[1].getLength() != 0 && lineAlpha[1] != 0.0f) {
+        auto lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[1].getStart(), lines[1].getEnd()).expanded(2));
+        cnv->editor->nvgSurface.invalidateArea(lineArea);
+    }
+
+    bool done = true; // TODO: use multi-timer?
+    for (int i = 0; i < 2; i++) {
+        lineAlpha[i] = jmap<float>(lineAlphaMultiplier[i], lineTargetAlpha[i], lineAlpha[i]);
+        if (std::abs(lineAlpha[i] - lineTargetAlpha[i]) < 1e-5) {
+            lineAlpha[i] = lineTargetAlpha[i];
+        } else {
+            done = false;
+        }
+    }
+
+    if (done) {
+        stopTimer();
+    }
+}
+
+void ObjectGrid::render(NVGcontext* nvg)
+{
+    if (lines[0].getLength() != 0) {
+        auto& lnf = LookAndFeel::getDefaultLookAndFeel();
+        nvgStrokeColor(nvg, NVGComponent::convertColour(lnf.findColour(PlugDataColour::gridLineColourId).withAlpha(lineAlpha[0])));
+        nvgStrokeWidth(nvg, 1.0f);
+
+        nvgBeginPath(nvg);
+        nvgMoveTo(nvg, lines[0].getStartX(), lines[0].getStartY());
+        nvgLineTo(nvg, lines[0].getEndX(), lines[0].getEndY());
+        nvgStroke(nvg);
+    }
+
+    if (lines[1].getLength() != 0) {
+        auto& lnf = LookAndFeel::getDefaultLookAndFeel();
+        nvgStrokeColor(nvg, NVGComponent::convertColour(lnf.findColour(PlugDataColour::gridLineColourId).withAlpha(lineAlpha[1])));
+        nvgStrokeWidth(nvg, 1.0f);
+
+        nvgBeginPath(nvg);
+        nvgMoveTo(nvg, lines[1].getStartX(), lines[1].getStartY());
+        nvgLineTo(nvg, lines[1].getEndX(), lines[1].getEndY());
+        nvgStroke(nvg);
     }
 }

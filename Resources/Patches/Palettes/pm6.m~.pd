@@ -808,7 +808,7 @@
 #X connect 220 0 102 0;
 #X connect 221 0 103 0;
 #X restore 1111 204 pd GUI;
-#X obj 540 100 inlet~ pitch;
+#X obj 583 100 inlet~ pitch;
 #X obj 633 100 inlet~ L1;
 #X obj 684 100 inlet~ L2;
 #X obj 735 100 inlet~ L3;
@@ -845,4 +845,4 @@
 #X connect 32 0 20 0;
 #X connect 33 0 18 0;
 #X connect 34 0 14 0;
-#X coords 0 -1 1 1 426 276 2 60 80;
+#X coords 0 -1 1 1 427 277 2 59 79;

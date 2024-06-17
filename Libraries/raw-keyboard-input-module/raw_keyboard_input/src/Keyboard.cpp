@@ -1,16 +1,22 @@
 #include "Keyboard.h"
 
-std::set<Keyboard*> Keyboard::thisses;
+std::set<juce::WeakReference<Keyboard>> Keyboard::thisses;
+
+std::recursive_mutex Keyboard::instanceMutex;
 
 Keyboard::Keyboard(juce::Component* initialParent) : parent(initialParent)
 {
-  thisses.emplace(this);
+  instanceMutex.lock();
+  thisses.emplace(juce::WeakReference(this));
+  instanceMutex.unlock();
   startTimer(1);
 }
 
 Keyboard::~Keyboard()
 {
+  instanceMutex.lock();
   thisses.erase(this);
+  instanceMutex.unlock();
 }
 
 bool Keyboard::processKeyEvent(int keyCode, bool isKeyDown)
@@ -20,14 +26,18 @@ bool Keyboard::processKeyEvent(int keyCode, bool isKeyDown)
   if (focusedPeer == nullptr)
     return false;
 
+  instanceMutex.lock();
   for (auto t : thisses) {
-    if (t->peer == focusedPeer || (t->auxPeer != nullptr && t->auxPeer == focusedPeer)) {
-      if (isKeyDown)
-        t->addPressedKey(keyCode);
-      else
-        t->removePressedKey(keyCode);
-    }
+      if(t) {
+        if (t->peer == focusedPeer || (t->auxPeer != nullptr && t->auxPeer == focusedPeer)) {
+        if (isKeyDown)
+            t->addPressedKey(keyCode);
+        else
+            t->removePressedKey(keyCode);
+        }
+      }
   }
+  instanceMutex.unlock();
 
   return true;
 }

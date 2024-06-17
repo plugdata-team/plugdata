@@ -7,6 +7,7 @@
 #pragma once
 
 #include <string>
+#include "Hash.h"
 
 struct OSUtils {
     enum KeyboardLayout {
@@ -21,6 +22,7 @@ struct OSUtils {
     static void createJunction(std::string from, std::string to);
     static void createHardLink(std::string from, std::string to);
     static bool runAsAdmin(std::string file, std::string lpParameters, void* hWnd);
+    static void useWindowsNativeDecorations(void* windowHandle, bool rounded);
 #elif defined(__unix__) && !defined(__APPLE__)
     static void maximiseX11Window(void* handle, bool shouldBeMaximised);
     static bool isX11WindowMaximised(void* handle);
@@ -31,9 +33,16 @@ struct OSUtils {
 #endif
 
     static juce::Array<juce::File> iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles, int maximum = -1);
+    static bool isDirectoryFast(juce::String const& path);
+    static hash32 getUniqueFileHash(juce::String const& path);
 
     static KeyboardLayout getKeyboardLayout();
 
+#if JUCE_MAC || JUCE_IOS
+    static float MTLGetPixelScale(void* view);
+    static void* MTLCreateView(void* parent, int x, int y, int width, int height);
+    static void MTLDeleteView(void* view);
+#endif
 #if JUCE_MAC
     class ScrollTracker {
     public:
@@ -52,7 +61,7 @@ struct OSUtils {
         }
 
     private:
-        bool scrolling;
+        bool scrolling = false;
         void* observer;
         static inline ScrollTracker* instance = create();
     };

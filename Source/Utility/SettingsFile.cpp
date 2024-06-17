@@ -25,7 +25,6 @@ SettingsFileListener::~SettingsFileListener()
 
 JUCE_IMPLEMENT_SINGLETON(SettingsFile)
 
-
 SettingsFile::~SettingsFile()
 {
     // Save current settings before quitting
@@ -69,7 +68,9 @@ SettingsFile* SettingsFile::initialise()
     initialiseOverlayTree();
 
 #if JUCE_IOS
-    if (OSUtils::isIPad()) {
+    if (!ProjectInfo::isStandalone) {
+        Desktop::getInstance().setGlobalScaleFactor(1.0f); // scaling inside AUv3 is a bad idea
+    } else if (OSUtils::isIPad()) {
         Desktop::getInstance().setGlobalScaleFactor(1.125f);
     } else {
         Desktop::getInstance().setGlobalScaleFactor(0.825f);
@@ -81,10 +82,13 @@ SettingsFile* SettingsFile::initialise()
     saveSettings();
 
     settingsTree.addListener(this);
+    return this;
+}
+
+void SettingsFile::startChangeListener()
+{
     settingsFileWatcher.addFolder(settingsFile.getParentDirectory());
     settingsFileWatcher.addListener(this);
-
-    return this;
 }
 
 ValueTree SettingsFile::getKeyMapTree()
@@ -163,6 +167,14 @@ void SettingsFile::initialisePathsTree()
             pathTree.appendChild(pathSubTree, nullptr);
         }
     }
+
+    // TODO: remove this later. this is to fix a mistake during v0.8.4 development
+    for (auto child : pathTree) {
+        if (child.getProperty("Path").toString().contains("Abstractions/Gem")) {
+            pathTree.removeChild(child, nullptr);
+            break;
+        }
+    }
 }
 
 void SettingsFile::addToRecentlyOpened(File const& path)
@@ -193,8 +205,10 @@ void SettingsFile::addToRecentlyOpened(File const& path)
 
         // Find oldest entry
         for (int i = 0; i < recentlyOpened.getNumChildren(); i++) {
-            auto time = static_cast<int64>(recentlyOpened.getChild(i).getProperty("Time"));
-            if (time < minTime) {
+            auto child = recentlyOpened.getChild(i);
+            auto pinned = child.hasProperty("Pinned") && static_cast<bool>(child.getProperty("Pinned"));
+            auto time = static_cast<int64>(child.getProperty("Time"));
+            if (time < minTime && !pinned) {
                 minIdx = i;
                 minTime = time;
             }
@@ -263,9 +277,6 @@ void SettingsFile::initialiseThemesTree()
                 continue;
             }
 
-            if (!themeTree.hasProperty("dashed_signal_connections")) {
-                themeTree.setProperty("dashed_signal_connections", true, nullptr);
-            }
             if (!themeTree.hasProperty("straight_connections")) {
                 themeTree.setProperty("straight_connections", false, nullptr);
             }
@@ -346,7 +357,7 @@ void SettingsFile::reloadSettings()
 
 void SettingsFile::fileChanged(File const file, FileSystemWatcher::FileSystemEvent fileEvent)
 {
-    if(file == settingsFile) {
+    if (file == settingsFile) {
         reloadSettings();
     }
 }

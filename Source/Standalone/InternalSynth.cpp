@@ -43,7 +43,6 @@ void InternalSynth::extractSoundfont()
 #ifdef PLUGDATA_STANDALONE
     // Unpack soundfont
     if (!soundFont.existsAsFile()) {
-        soundFont.getParentDirectory().createDirectory();
         FileOutputStream ostream(soundFont);
         ostream.write(StandaloneBinaryData::GeneralUser_GS_sf3, StandaloneBinaryData::GeneralUser_GS_sf3Size);
         ostream.flush();
@@ -143,6 +142,8 @@ void InternalSynth::process(AudioBuffer<float>& buffer, MidiBuffer& midiMessages
         return;
     }
 
+    unprepareLock.lock();
+
     // Pass MIDI messages to fluidsynth
     for (auto const& event : midiMessages) {
         auto const message = event.getMessage();
@@ -175,12 +176,16 @@ void InternalSynth::process(AudioBuffer<float>& buffer, MidiBuffer& midiMessages
         }
     }
 
+    internalBuffer.clear();
+
     // Run audio through fluidsynth
-    fluid_synth_process(synth, buffer.getNumSamples(), internalBuffer.getNumChannels(), const_cast<float**>(internalBuffer.getArrayOfReadPointers()), internalBuffer.getNumChannels(), const_cast<float**>(internalBuffer.getArrayOfWritePointers()));
+    fluid_synth_process(synth, buffer.getNumSamples(), std::max(2, buffer.getNumChannels()), const_cast<float**>(internalBuffer.getArrayOfReadPointers()), std::max(2, buffer.getNumChannels()), const_cast<float**>(internalBuffer.getArrayOfWritePointers()));
 
     for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
         buffer.addFrom(ch, 0, internalBuffer, ch, 0, buffer.getNumSamples());
     }
+
+    unprepareLock.unlock();
 
 #endif
 }

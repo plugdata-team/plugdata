@@ -5,6 +5,7 @@
  */
 
 #include "PluginEditor.h"
+#include "PluginProcessor.h"
 #include "Pd/Patch.h"
 
 struct ExporterBase : public Component
@@ -13,9 +14,11 @@ struct ExporterBase : public Component
     , public ThreadPool {
     TextButton exportButton = TextButton("Export");
 
-    Value inputPatchValue;
+    Value inputPatchValue = SynchronousValue();
     Value projectNameValue;
     Value projectCopyrightValue;
+
+    bool blockDialog = false;
 
 #if JUCE_WINDOWS
     inline static String const exeSuffix = ".exe";
@@ -35,13 +38,12 @@ struct ExporterBase : public Component
 
     ExportingProgressView* exportingView;
 
-    int labelWidth = 180;
     bool shouldQuit = false;
 
     PluginEditor* editor;
 
     ExporterBase(PluginEditor* pluginEditor, ExportingProgressView* exportView)
-        : ThreadPool(1)
+        : ThreadPool(1, Thread::osDefaultStackSize, Thread::Priority::highest)
         , exportingView(exportView)
         , editor(pluginEditor)
     {
@@ -97,12 +99,13 @@ struct ExporterBase : public Component
         }
 
         exportButton.onClick = [this]() {
-            Dialogs::showSaveDialog([this](File& result) {
+            Dialogs::showSaveDialog([this](URL url) {
+                auto result = url.getLocalFile();
                 if (result.getParentDirectory().exists()) {
                     startExport(result);
                 }
             },
-                "", "HeavyExport", true);
+                "", "HeavyExport", nullptr, true);
         };
     }
 
@@ -128,8 +131,7 @@ struct ExporterBase : public Component
         auto projectTitle = projectNameValue.toString();
         auto projectCopyright = projectCopyrightValue.toString();
 
-        if (!projectTitle.unquoted().containsNonWhitespaceChars())
-        {
+        if (!projectTitle.unquoted().containsNonWhitespaceChars()) {
             if (!realPatchFile.getFileNameWithoutExtension().isEmpty())
                 projectTitle = realPatchFile.getFileNameWithoutExtension();
             else
@@ -138,6 +140,8 @@ struct ExporterBase : public Component
 
         // Add file location to search paths
         auto searchPaths = StringArray { patchFile.getParentDirectory().getFullPathName() };
+
+        editor->pd->setThis();
 
         // Get pd's search paths
         char* paths[1024];
@@ -183,8 +187,9 @@ struct ExporterBase : public Component
             if (idx == 1) {
                 patchFile = openedPatchFile;
                 validPatchSelected = true;
-            } else if (idx == 2) {
-                Dialogs::showOpenDialog([this](File& result) {
+            } else if (idx == 2 && !blockDialog) {
+                Dialogs::showOpenDialog([this](URL url) {
+                    auto result = url.getLocalFile();
                     if (result.existsAsFile()) {
                         patchFile = result;
                         validPatchSelected = true;
@@ -194,7 +199,7 @@ struct ExporterBase : public Component
                         validPatchSelected = false;
                     }
                 },
-                    true, false, "*.pd", "HeavyPatchLocation");
+                    true, false, "*.pd", "HeavyPatchLocation", nullptr);
             }
         }
 

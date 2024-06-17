@@ -15,7 +15,7 @@ public:
     Value clapEnableValue = Value(var(1));
     Value jackEnableValue = Value(var(0));
 
-    Value exportTypeValue = Value(var(2));
+    Value exportTypeValue = Value(var(1));
     Value pluginTypeValue = Value(var(1));
 
     PropertiesPanelProperty* midiinProperty;
@@ -25,7 +25,7 @@ public:
         : ExporterBase(editor, exportingView)
     {
         Array<PropertiesPanelProperty*> properties;
-        properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary" }));
+        properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Binary", "Source code", "Source + GUI code" }));
         properties.add(new PropertiesPanel::ComboComponent("Plugin type", pluginTypeValue, { "Effect", "Instrument", "Custom" }));
 
         midiinProperty = new PropertiesPanel::BoolComponent("Midi Input", midiinEnableValue, { "No", "yes" });
@@ -128,6 +128,7 @@ public:
             args.add("\"" + copyright + "\"");
         }
 
+        int exportType = getValue<int>(exportTypeValue);
         int midiin = getValue<int>(midiinEnableValue);
         int midiout = getValue<int>(midioutEnableValue);
 
@@ -158,13 +159,17 @@ public:
         DynamicObject::Ptr metaJson(new DynamicObject());
 
         var metaDPF(new DynamicObject());
-        metaDPF.getDynamicObject()->setProperty("project", "true");
+        metaDPF.getDynamicObject()->setProperty("project", true);
         metaDPF.getDynamicObject()->setProperty("description", "Rename Me");
         metaDPF.getDynamicObject()->setProperty("maker", "Wasted Audio");
         metaDPF.getDynamicObject()->setProperty("license", "ISC");
         metaDPF.getDynamicObject()->setProperty("midi_input", midiin);
         metaDPF.getDynamicObject()->setProperty("midi_output", midiout);
         metaDPF.getDynamicObject()->setProperty("plugin_formats", formats);
+
+        if (exportType == 3) {
+            metaDPF.getDynamicObject()->setProperty("enable_ui", true);
+        }
 
         metaJson->setProperty("dpf", metaDPF);
 
@@ -204,7 +209,7 @@ public:
 
         bool generationExitCode = getExitCode();
         // Check if we need to compile
-        if (!generationExitCode && getValue<int>(exportTypeValue) == 2) {
+        if (!generationExitCode && exportType == 1) {
             auto workingDir = File::getCurrentWorkingDirectory();
 
             outputFile.setAsCurrentWorkingDirectory();

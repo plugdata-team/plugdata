@@ -31,15 +31,18 @@ flags:
 
 inlets:
   1st:
-  - type: float/signals
-    description: non-0 starts recording, 0 stops it
+  - type: signal
+    description: signal to record into an array channel 0
   - type: rec
     description: (re)starts recording
   - type: stop
     description: stops recording
+  nth:
+  - type: signal
+    description: signal to record into an array channel $nth
   2nd:
   - type: signal
-    description: signal to record into an array channel 'n'
+    description: non-0 starts recording at that index, 0 stops it
 
 outlets:
   1st:

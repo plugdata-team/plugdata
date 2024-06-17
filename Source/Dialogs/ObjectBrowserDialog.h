@@ -54,9 +54,7 @@ public:
             g.fillRoundedRectangle({ 4.0f, 1.0f, width - 8.0f, height - 2.0f }, Corners::defaultCornerRadius);
         }
 
-        auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
-
-        Fonts::drawText(g, categories[rowNumber], 12, 0, width - 9, height, colour, 15);
+        Fonts::drawText(g, categories[rowNumber], 12, 0, width - 9, height, findColour(PlugDataColour::panelTextColourId), 15);
     }
 
     void initialise(StringArray newCategories)
@@ -76,12 +74,13 @@ class ObjectsListBox : public ListBox
 
     class ObjectListBoxItem : public ObjectDragAndDrop {
     public:
-        ObjectListBoxItem(ListBox* parent, String const& name, String const& description, bool isSelected, std::function<void(bool shouldFade)> dismissDialog)
-            : objectName(name)
+        ObjectListBoxItem(ListBox* parent, PluginEditor* editor, String const& name, String const& description, bool isSelected, std::function<void(bool shouldFade)> dismissDialog)
+            : ObjectDragAndDrop(editor)
+            , objectName(name)
             , objectDescription(description)
             , rowIsSelected(isSelected)
             , objectsListBox(parent)
-            , dismissMenu(dismissDialog)
+            , dismissMenu(std::move(dismissDialog))
         {
         }
 
@@ -96,7 +95,7 @@ class ObjectsListBox : public ListBox
                 g.fillRoundedRectangle(getLocalBounds().reduced(4, 2).toFloat(), Corners::defaultCornerRadius);
             }
 
-            auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
+            auto colour = findColour(PlugDataColour::panelTextColourId);
 
             auto textBounds = Rectangle<int>(0, 0, getWidth(), getHeight()).reduced(18, 6);
 
@@ -149,17 +148,12 @@ class ObjectsListBox : public ListBox
 
         String getObjectString() override
         {
-            return PluginEditor::getObjectManager()->getCompleteFormat(objectName);
+            return ObjectThemeManager::get()->getCompleteFormat(objectName);
         }
 
         String getPatchStringName() override
         {
             return objectName + String(" object");
-        }
-
-        String getItemName() const
-        {
-            return objectName;
         }
 
         void refresh(String name, String description, int rowNumber, bool isSelected)
@@ -172,7 +166,7 @@ class ObjectsListBox : public ListBox
         }
 
     private:
-        int row;
+        int row = 0;
         String objectName;
         String objectDescription;
         bool rowIsSelected = false;
@@ -187,9 +181,10 @@ class ObjectsListBox : public ListBox
     std::function<void(bool shouldFade)> dismiss;
 
 public:
-    explicit ObjectsListBox(pd::Library& library, std::function<void(bool shouldFade)> dismissMenu)
+    explicit ObjectsListBox(PluginEditor* editor, pd::Library& library, std::function<void(bool shouldFade)> dismissMenu)
         : bouncer(getViewport())
         , dismiss(dismissMenu)
+        , editor(editor)
     {
         setOutlineThickness(0);
         setRowHeight(45);
@@ -201,7 +196,7 @@ public:
 
         for (auto const& object : library.getAllObjects()) {
             auto info = library.getObjectInfo(object);
-            if (info.hasProperty("name") && info.hasProperty("description")) {
+            if (info.isValid() && info.hasProperty("name") && info.hasProperty("description")) {
                 descriptions[info.getProperty("name").toString()] = info.getProperty("description").toString();
             }
         }
@@ -217,7 +212,7 @@ public:
         changeCallback(objects[row]);
     }
 
-    virtual void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
+    void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
     {
     }
 
@@ -225,21 +220,35 @@ public:
     {
         if (existingComponentToUpdate == nullptr) {
             auto name = objects[rowNumber];
-            auto description = descriptions[name];
-            return new ObjectListBoxItem(this, name, description, isRowSelected, dismiss);
+            auto description = descriptions[name.fromLastOccurrenceOf("/", false, false)];
+            return new ObjectListBoxItem(this, editor, name, description, isRowSelected, dismiss);
         } else {
             auto* itemComponent = dynamic_cast<ObjectListBoxItem*>(existingComponentToUpdate);
             if (itemComponent != nullptr) {
                 auto name = objects[rowNumber];
-                auto description = descriptions[name];
+                auto description = descriptions[name.fromLastOccurrenceOf("/", false, false)];
                 itemComponent->refresh(name, description, rowNumber, isRowSelected);
             }
             return itemComponent;
         }
     }
 
+    void removeAliasedDuplicates(StringArray& objectsToShow)
+    {
+        StringArray gemObjects;
+        for (auto& object : objectsToShow) {
+            if (object.startsWith("Gem")) {
+                gemObjects.add(object.fromLastOccurrenceOf("/", false, false));
+            }
+        }
+        for (auto& gemObject : gemObjects) {
+            objectsToShow.removeString(gemObject);
+        }
+    }
+
     void showObjects(StringArray objectsToShow)
     {
+        removeAliasedDuplicates(objectsToShow);
         objects = std::move(objectsToShow);
         updateContent();
         repaint();
@@ -247,6 +256,7 @@ public:
         selectRow(0, true, true);
     }
 
+    PluginEditor* editor;
     std::unordered_map<String, String> descriptions;
     StringArray objects;
     std::function<void(String const&)> changeCallback;
@@ -254,13 +264,14 @@ public:
 
 class ObjectViewerDragArea : public ObjectDragAndDrop {
 public:
-    ObjectViewerDragArea(std::function<void(bool shouldFade)> dismissMenu)
-        : dismissMenu(dismissMenu)
+    ObjectViewerDragArea(PluginEditor* editor, std::function<void(bool shouldFade)> dismissMenu)
+        : ObjectDragAndDrop(editor)
+        , dismissMenu(dismissMenu)
     {
         setBufferedToImage(true);
     }
 
-    ~ObjectViewerDragArea() { }
+    ~ObjectViewerDragArea() override { }
 
     void setObjectName(String name)
     {
@@ -269,7 +280,7 @@ public:
 
     String getObjectString() override
     {
-        return PluginEditor::getObjectManager()->getCompleteFormat(objectName);
+        return ObjectThemeManager::get()->getCompleteFormat(objectName);
     }
 
     String getPatchStringName() override
@@ -323,7 +334,7 @@ class ObjectViewer : public Component {
 
 public:
     ObjectViewer(PluginEditor* editor, ObjectReferenceDialog& objectReference, std::function<void(bool shouldFade)> dismissMenu)
-        : objectDragArea(dismissMenu)
+        : objectDragArea(editor, std::move(dismissMenu))
         , library(*editor->pd->objectLibrary)
         , reference(objectReference)
     {
@@ -480,7 +491,9 @@ public:
 
     void showObject(String const& name)
     {
-        bool valid = name.isNotEmpty();
+        auto objectInfo = library.getObjectInfo(name);
+        bool valid = name.isNotEmpty() && objectInfo.isValid();
+
         // openHelp.setVisible(valid);
         openReference.setVisible(valid);
         objectDragArea.setVisible(valid);
@@ -499,7 +512,6 @@ public:
         bool hasUnknownInletLayout = false;
         bool hasUnknownOutletLayout = false;
 
-        auto objectInfo = library.getObjectInfo(name);
         auto ioletDescriptions = objectInfo.getChildWithName("iolets");
         for (auto iolet : ioletDescriptions) {
             auto variable = iolet.getProperty("variable").toString() == "1";
@@ -571,8 +583,6 @@ public:
 
     pd::Library& library;
     ObjectReferenceDialog& reference;
-
-    bool isHovering = false;
 };
 
 class ObjectSearchComponent : public Component
@@ -671,11 +681,10 @@ public:
             g.fillRoundedRectangle(4, 2, w - 8, h - 4, Corners::defaultCornerRadius);
         }
 
-        g.setColour(rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(ComboBox::textColourId));
+        g.setColour(findColour(ComboBox::textColourId));
         String const item = searchResult[rowNumber];
 
-        auto colour = rowIsSelected ? findColour(PlugDataColour::popupMenuActiveTextColourId) : findColour(PlugDataColour::popupMenuTextColourId);
-
+        auto colour = findColour(PlugDataColour::popupMenuTextColourId);
         auto yIndent = jmin<float>(4, h * 0.3f);
         auto leftIndent = 34;
         auto rightIndent = 11;
@@ -758,15 +767,6 @@ public:
         selectedRowsChanged(listBox.getSelectedRow());
     }
 
-    bool hasSelection()
-    {
-        return listBox.isVisible() && isPositiveAndBelow(listBox.getSelectedRow(), searchResult.size());
-    }
-    bool isSearching()
-    {
-        return listBox.isVisible();
-    }
-
     void resized() override
     {
         auto tableBounds = getLocalBounds();
@@ -796,7 +796,7 @@ class ObjectBrowserDialog : public Component {
 public:
     ObjectBrowserDialog(Component* pluginEditor, Dialog* parent)
         : editor(dynamic_cast<PluginEditor*>(pluginEditor))
-        , objectsList(*editor->pd->objectLibrary, [this](bool shouldFade) { dismiss(shouldFade); })
+        , objectsList(editor, *editor->pd->objectLibrary, [this](bool shouldFade) { dismiss(shouldFade); })
         , objectReference(editor, true)
         , objectViewer(editor, objectReference, [this](bool shouldFade) { dismiss(shouldFade); })
         , objectSearch(*editor->pd->objectLibrary)
@@ -804,7 +804,11 @@ public:
         auto& library = *editor->pd->objectLibrary;
 
         for (auto& object : library.getAllObjects()) {
-            auto categoriesTree = library.getObjectInfo(object).getChildWithName("categories");
+            auto info = library.getObjectInfo(object);
+            if (!info.isValid())
+                continue;
+
+            auto categoriesTree = info.getChildWithName("categories");
 
             for (auto category : categoriesTree) {
                 auto cat = category.getProperty("name").toString();

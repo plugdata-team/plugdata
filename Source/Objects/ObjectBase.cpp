@@ -33,12 +33,13 @@ void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg ypos, t_floatarg shif
 #include "Object.h"
 #include "Iolet.h"
 #include "Canvas.h"
-#include "Tabbar/Tabbar.h"
 #include "Components/SuggestionComponent.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
+#include "TabComponent.h"
 #include "Pd/Patch.h"
 #include "Sidebar/Sidebar.h"
+#include "Utility/CachedTextRender.h"
 
 #include "IEMHelper.h"
 #include "AtomHelper.h"
@@ -65,7 +66,6 @@ void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg ypos, t_floatarg shif
 #include "SubpatchObject.h"
 #include "CloneObject.h"
 #include "CommentObject.h"
-#include "CycloneCommentObject.h"
 #include "FloatAtomObject.h"
 #include "SymbolAtomObject.h"
 #include "ScalarObject.h"
@@ -134,7 +134,8 @@ void ObjectBase::PropertyUndoListener::valueChanged(Value& v)
 }
 
 ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
-    : ptr(obj)
+    : NVGComponent(this)
+    , ptr(obj)
     , object(parent)
     , cnv(parent->cnv)
     , pd(parent->cnv->pd)
@@ -176,6 +177,16 @@ ObjectBase::~ObjectBase()
     delete lnf;
 }
 
+Colour ObjectBase::getHoverBackgroundColour(Colour const& colour)
+{
+    auto brightness = colour.getBrightness();
+    float const threshold = 0.5f;
+    if (brightness < threshold)
+        return colour.brighter(0.05f);
+    else
+        return colour.darker(0.03f);
+}
+
 void ObjectBase::initialise()
 {
     update();
@@ -185,7 +196,7 @@ void ObjectBase::initialise()
 
     pd->registerMessageListener(ptr.getRawUnchecked<void>(), this);
 
-    for (auto& [name, type, cat, value, list, valueDefault, customComponent] : objectParameters.getParameters()) {
+    for (auto& [name, type, cat, value, list, valueDefault, customComponent, onInteractionFn] : objectParameters.getParameters()) {
         if (value) {
             value->addListener(this);
             value->addListener(&propertyUndoListener);
@@ -228,6 +239,24 @@ String ObjectBase::getText()
     return "";
 }
 
+String ObjectBase::getTypeWithOriginPrefix() const
+{
+    if (auto obj = ptr.get<t_gobj>()) {
+        auto type = getType();
+        if (type.contains("/"))
+            return type;
+
+        auto origin = pd::Library::getObjectOrigin(obj.get());
+
+        if (origin.isEmpty())
+            return type;
+
+        return origin + "/" + type;
+    }
+
+    return {};
+}
+
 String ObjectBase::getType() const
 {
     if (auto obj = ptr.get<t_pd>()) {
@@ -251,20 +280,20 @@ String ObjectBase::getType() const
         // Deal with different text objects
         switch (hash(className)) {
         case hash("text"):
-            if (ptr.get<t_text>()->te_type == T_OBJECT)
+            if (obj.cast<t_text>()->te_type == T_OBJECT)
                 return "invalid";
-            if (ptr.get<t_text>()->te_type == T_TEXT)
+            if (obj.cast<t_text>()->te_type == T_TEXT)
                 return "comment";
-            if (ptr.get<t_text>()->te_type == T_MESSAGE)
+            if (obj.cast<t_text>()->te_type == T_MESSAGE)
                 return "message";
             break;
         // Deal with atoms
         case hash("gatom"):
-            if (ptr.get<t_fake_gatom>()->a_flavor == A_FLOAT)
+            if (obj.cast<t_fake_gatom>()->a_flavor == A_FLOAT)
                 return "floatbox";
-            if (ptr.get<t_fake_gatom>()->a_flavor == A_SYMBOL)
+            if (obj.cast<t_fake_gatom>()->a_flavor == A_SYMBOL)
                 return "symbolbox";
-            if (ptr.get<t_fake_gatom>()->a_flavor == A_NULL)
+            if (obj.cast<t_fake_gatom>()->a_flavor == A_NULL)
                 return "listbox";
             break;
         default:
@@ -293,13 +322,13 @@ Rectangle<int> ObjectBase::getSelectableBounds()
 // Makes sure that any tabs refering to the now deleted patch will be closed
 void ObjectBase::closeOpenedSubpatchers()
 {
-    auto* editor = object->cnv->editor;
+    auto* editor = object->editor;
 
-    for (auto* canvas : editor->canvases) {
+    for (auto* canvas : editor->getCanvases()) {
         auto* patch = getPatch().get();
         if (patch && canvas && canvas->patch == *patch) {
 
-            canvas->editor->closeTab(canvas);
+            canvas->editor->getTabComponent().closeTab(canvas);
             break;
         }
     }
@@ -349,21 +378,20 @@ void ObjectBase::openSubpatch()
     }
 
     // Check if subpatch is already opened
-    for (auto* cnv : cnv->editor->canvases) {
+    for (auto* cnv : cnv->editor->getCanvases()) {
         if (cnv->patch == *subpatch) {
-            auto* tabbar = cnv->getTabbar();
-            tabbar->setCurrentTabIndex(cnv->getTabIndex());
+            cnv->editor->getTabComponent().showTab(cnv, cnv->patch.splitViewIndex);
             return;
         }
     }
+    
+    cnv->editor->getTabComponent().setActiveSplit(cnv);
+    subpatch->splitViewIndex = cnv->patch.splitViewIndex;
+    cnv->editor->getTabComponent().openPatch(subpatch);
 
-    cnv->editor->pd->patches.add(subpatch);
-    auto newPatch = cnv->editor->pd->patches.getLast();
-    auto* newCanvas = cnv->editor->canvases.add(new Canvas(cnv->editor, *newPatch, nullptr));
-
-    newPatch->setCurrentFile(path);
-
-    cnv->editor->addTab(newCanvas);
+    if (path.getFullPathName().isNotEmpty()) {
+        subpatch->setCurrentFile(URL(path));
+    }
 }
 
 void ObjectBase::moveToFront()
@@ -410,16 +438,30 @@ void ObjectBase::moveToBack()
     }
 }
 
+void ObjectBase::render(NVGcontext* nvg)
+{
+    imageRenderer.renderJUCEComponent(nvg, *this, getImageScale());
+}
+
 void ObjectBase::paint(Graphics& g)
 {
-    g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
+    g.setColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
     g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
     bool selected = object->isSelected() && !cnv->isGraph;
-    auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+    auto outlineColour = LookAndFeel::getDefaultLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
     g.setColour(outlineColour);
     g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+}
+
+float ObjectBase::getImageScale()
+{
+    Canvas* topLevel = cnv;
+    while (auto* nextCnv = topLevel->findParentComponentOfClass<Canvas>()) {
+        topLevel = nextCnv;
+    }
+    return topLevel->isScrolling ? topLevel->getRenderScale() * 2.0f : topLevel->getRenderScale() * std::max(1.0f, getValue<float>(topLevel->zoomScale));
 }
 
 ObjectParameters ObjectBase::getParameters()
@@ -438,7 +480,9 @@ void ObjectBase::startEdition()
         return;
 
     edited = true;
-    pd->sendMessage("gui", "mouse", { 1.f });
+    if (auto lockedPtr = ptr.get<void>()) {
+        pd->sendMessage("gui", "mouse", { 1.f });
+    }
 }
 
 void ObjectBase::stopEdition()
@@ -447,7 +491,9 @@ void ObjectBase::stopEdition()
         return;
 
     edited = false;
-    pd->sendMessage("gui", "mouse", { 0.f });
+    if (auto lockedPtr = ptr.get<void>()) {
+        pd->sendMessage("gui", "mouse", { 0.f });
+    }
 }
 
 void ObjectBase::sendFloatValue(float newValue)
@@ -464,17 +510,15 @@ void ObjectBase::sendFloatValue(float newValue)
 ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
 {
     parent->cnv->pd->setThis();
-    
+
     // This will ensure the object is still valid at this point, and also locks the audio thread to make sure it will remain valid
-    if (auto checked = ptr.get<t_gobj>()) {        
+    if (auto checked = ptr.get<t_gobj>()) {
         auto const name = hash(pd::Interface::getObjectClassName(checked.cast<t_pd>()));
 
-        if(parent->cnv->pd->isLuaClass(name))
-        {
+        if (parent->cnv->pd->isLuaClass(name)) {
             if (checked.cast<t_pdlua>()->has_gui) {
                 return new LuaObject(ptr, parent);
-            }
-            else {
+            } else {
                 return new LuaTextObject(ptr, parent);
             }
         }
@@ -511,9 +555,7 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
                     return new CommentObject(ptr, parent);
                 }
             }
-            case hash("comment"):
-                return new CycloneCommentObject(ptr, parent);
-                // Check if message type text object to prevent confusing it with else/message
+            // Check if message type text object to prevent confusing it with else/message
             case hash("message"): {
                 if (pd::Interface::isTextObject(checked.get()) && checked.cast<t_text>()->te_type == T_MESSAGE) {
                     return new MessageObject(ptr, parent);
@@ -575,8 +617,6 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
             }
             case hash("colors"):
                 return new ColourPickerObject(ptr, parent);
-            case hash("oscope~"):
-                return new OscopeObject(ptr, parent);
             case hash("scope~"):
                 return new ScopeObject(ptr, parent);
             case hash("function"):
@@ -724,7 +764,7 @@ void ObjectBase::setParameterExcludingListener(Value& parameter, var const& valu
 {
     parameter.removeListener(&propertyUndoListener);
     parameter.removeListener(otherListener);
-    
+
     setValueExcludingListener(parameter, value, this);
 
     parameter.addListener(otherListener);
@@ -733,8 +773,11 @@ void ObjectBase::setParameterExcludingListener(Value& parameter, var const& valu
 
 ObjectLabel* ObjectBase::getLabel()
 {
-    return label.get();
+    if (labels)
+        return labels->getObjectLabel();
+    return nullptr;
 }
+
 bool ObjectBase::isBeingEdited()
 {
     return edited;

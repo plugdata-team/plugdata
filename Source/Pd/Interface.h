@@ -50,10 +50,9 @@ struct Interface {
 
     static t_canvas* createCanvas(char const* name, char const* path)
     {
-        t_canvas* cnv = (t_canvas*)libpd_openfile(name, path);
+        auto* cnv = static_cast<t_canvas*>(libpd_openfile(name, path));
         if (cnv) {
             canvas_vis(cnv, 1.f);
-            canvas_rename(cnv, gensym(name), gensym(path));
         }
         return cnv;
     }
@@ -90,24 +89,7 @@ struct Interface {
 
     static void getSearchPaths(char** paths, int* numItems)
     {
-
-        t_namelist* pathList = STUFF->st_searchpath;
-        int i = 0;
-        while (pathList) {
-            i++;
-            pathList = pathList->nl_next;
-        }
-
-        *numItems = i;
-
-        pathList = STUFF->st_searchpath;
-        i = 0;
-        while (pathList) {
-            paths[i] = pathList->nl_string;
-            i++;
-
-            pathList = pathList->nl_next;
-        }
+        libpd_get_search_paths(paths, numItems);
     }
 
     static t_object* checkObject(t_pd* obj)
@@ -133,13 +115,12 @@ struct Interface {
             glist_select(cnv, obj);
         }
 
-        EDITOR->canvas_undo_already_set_move = 0;
-
-        int resortin = 0, resortout = 0;
         if (!EDITOR->canvas_undo_already_set_move) {
             canvas_undo_add(cnv, UNDO_MOTION, "motion", canvas_undo_set_move(cnv, 1));
-            // EDITOR->canvas_undo_already_set_move = 1;
+            EDITOR->canvas_undo_already_set_move = 1;
         }
+
+        int resortin = 0, resortout = 0;
         for (auto* obj : objects) {
             gobj_displace(obj, cnv, dx, dy);
 
@@ -153,14 +134,13 @@ struct Interface {
             canvas_resortinlets(cnv);
         if (resortout)
             canvas_resortoutlets(cnv);
-        sys_vgui("pdtk_canvas_getscroll .x%lx.c\n", cnv);
 
         if (cnv->gl_editor->e_selection)
             canvas_dirty(cnv, 1);
 
         glist_noselect(cnv);
 
-        libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
+        EDITOR->canvas_undo_already_set_move = 0;
     }
 
     static t_gobj* getNewest(t_canvas* cnv)
@@ -254,6 +234,21 @@ struct Interface {
         return gensym(arraybuf);
     }
 
+    static void triggerize(t_canvas* cnv, std::vector<t_gobj*> const& objects)
+    {
+        glist_noselect(cnv);
+
+        for (auto* obj : objects) {
+            glist_select(cnv, obj);
+        }
+
+        canvas_setcurrent(cnv);
+        pd_typedmess((t_pd*)cnv, gensym("triggerize"), 0, nullptr);
+        canvas_unsetcurrent(cnv);
+
+        glist_noselect(cnv);
+    }
+
     static void paste(t_canvas* cnv, char const* buf)
     {
         size_t len = strlen(buf);
@@ -276,7 +271,7 @@ struct Interface {
     static void redo(t_canvas* cnv)
     {
         // Temporary fix... might cause us to miss a loadbang when recreating a canvas
-        libpd_this_instance()->pd_newest = 0;
+        libpd_this_instance()->pd_newest = nullptr;
         if (!cnv->gl_editor)
             return;
 
@@ -315,7 +310,7 @@ struct Interface {
         }
 
         canvas_setcurrent(cnv);
-        pd_typedmess((t_pd*)cnv, gensym("duplicate"), 0, NULL);
+        pd_typedmess((t_pd*)cnv, gensym("duplicate"), 0, nullptr);
         canvas_unsetcurrent(cnv);
     }
 
@@ -348,6 +343,8 @@ struct Interface {
         canvas_setcurrent(cnv);
         pd_typedmess((t_pd*)cnv, s, argc, argv);
 
+        canvas_undo_add(cnv, UNDO_SEQUENCE_START, "create", nullptr);
+
         canvas_undo_add(cnv, UNDO_CREATE, "create",
             (void*)canvas_undo_set_create(cnv));
 
@@ -358,7 +355,15 @@ struct Interface {
                 canvas_loadbang(reinterpret_cast<t_canvas*>(new_object));
             else if (zgetfn(&new_object->g_pd, gensym("loadbang")))
                 vmess(&new_object->g_pd, gensym("loadbang"), "f", LB_LOAD);
+
+            // This is needed since object creation happens in 2 undo steps in pd-vanilla, but is only 1 undo step in plugdata
+            int pos = glist_getindex(cnv, new_object);
+            canvas_undo_add(glist_getcanvas(cnv), UNDO_RECREATE, "recreate",
+                (void*)canvas_undo_set_recreate(cnv,
+                    new_object, pos));
         }
+
+        canvas_undo_add(cnv, UNDO_SEQUENCE_END, "create", nullptr);
 
         canvas_unsetcurrent(cnv);
 
@@ -367,15 +372,14 @@ struct Interface {
 
         return new_object;
     }
-    
+
     // Can recreate any object of type t_text
     static void recreateTextObject(t_canvas* cnv, t_gobj* obj)
     {
-        if(auto* textObject = checkObject(obj))
-        {
+        if (auto* textObject = checkObject(obj)) {
             char* text = nullptr;
             int len = 0;
-            
+
             getObjectText(textObject, &text, &len);
             renameObject(cnv, obj, text, len);
         }
@@ -417,7 +421,7 @@ struct Interface {
 
         glist_deselect(cnv, obj);
 
-        cnv->gl_editor->e_textedfor = 0;
+        cnv->gl_editor->e_textedfor = nullptr;
         cnv->gl_editor->e_textdirty = 0;
 
         canvas_editmode(cnv, wasEditMode);
@@ -430,7 +434,7 @@ struct Interface {
         auto* undo = canvas_undo_get(cnv)->u_queue;
 
         int count = 0;
-        while(undo) {
+        while (undo) {
             count++;
             undo = undo->next;
         }
@@ -468,14 +472,19 @@ struct Interface {
 
     static void moveObject(t_canvas* cnv, t_gobj* obj, int x, int y)
     {
-        if (obj->g_pd->c_wb && obj->g_pd->c_wb->w_getrectfn && obj->g_pd->c_wb && obj->g_pd->c_wb->w_displacefn) {
+        if (!EDITOR->canvas_undo_already_set_move) {
+            canvas_undo_add(cnv, UNDO_MOTION, "motion", canvas_undo_set_move(cnv, 0));
+            EDITOR->canvas_undo_already_set_move = 1;
+        }
 
+        if (obj->g_pd->c_wb && obj->g_pd->c_wb->w_getrectfn && obj->g_pd->c_wb && obj->g_pd->c_wb->w_displacefn) {
             int x1, y1, x2, y2;
 
             (*obj->g_pd->c_wb->w_getrectfn)(obj, cnv, &x1, &y1, &x2, &y2);
-
             (*obj->g_pd->c_wb->w_displacefn)(obj, cnv, x - x1, y - y1);
         }
+
+        EDITOR->canvas_undo_already_set_move = 0;
     }
 
     static bool canConnect(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin)
@@ -642,7 +651,7 @@ private:
         }
 
         // If there is an object after ours
-        t_gobj* oldy_next = obj->g_next ? obj->g_next : NULL;
+        t_gobj* oldy_next = obj->g_next ? obj->g_next : nullptr;
 
         if (to_front) {
 
@@ -789,7 +798,7 @@ private:
          the glist to reselect. */
         if (cnv->gl_editor->e_textedfor) {
             // t_gobj *selwas = x->gl_editor->e_selection->sel_what;
-            libpd_this_instance()->pd_newest = 0;
+            libpd_this_instance()->pd_newest = nullptr;
             glist_noselect(cnv);
             if (libpd_this_instance()->pd_newest) {
                 for (y = cnv->gl_list; y; y = y->g_next)

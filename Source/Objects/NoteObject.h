@@ -26,6 +26,7 @@ class NoteObject final : public ObjectBase {
 
     bool locked;
     bool wasSelectedOnMouseDown = false;
+    bool needsRepaint = false;
 
 public:
     NoteObject(pd::WeakReference obj, Object* object)
@@ -43,11 +44,11 @@ public:
 
         addAndMakeVisible(noteEditor);
 
-        noteEditor.setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
+        noteEditor.setColour(TextEditor::textColourId, LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
         noteEditor.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         noteEditor.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
         noteEditor.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
-        noteEditor.setColour(ScrollBar::thumbColourId, object->findColour(PlugDataColour::scrollbarThumbColourId));
+        noteEditor.setColour(ScrollBar::thumbColourId, LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::scrollbarThumbColourId));
 
         noteEditor.setAlwaysOnTop(true);
         noteEditor.setMultiLine(true);
@@ -73,6 +74,10 @@ public:
                 atoms.emplace_back();
                 SETSYMBOL(&atoms.back(), pd->generateSymbol(word));
             }
+            if (noteEditor.getText().endsWith(" ")) {
+                atoms.emplace_back();
+                SETSYMBOL(&atoms.back(), pd->generateSymbol(" "));
+            }
 
             if (auto note = ptr.get<t_fake_note>()) {
                 binbuf_clear(note->x_binbuf);
@@ -81,6 +86,7 @@ public:
             }
 
             object->updateBounds();
+            needsRepaint = true;
         };
 
         objectParameters.addParamInt("Width", cDimensions, &width);
@@ -96,14 +102,38 @@ public:
         objectParameters.addParamCombo("Justification", cAppearance, &justification, { "Left", "Centered", "Right" }, 1);
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
     }
-    
+
     bool isTransparent() override
     {
         return true;
     }
 
+    bool inletIsSymbol() override
+    {
+        // we want to hide the note inlet regardless if it's symbol or not in locked mode
+        auto receiveSym = receiveSymbol.toString();
+        if (receiveSym.isEmpty() || receiveSym == "empty")
+            return locked;
+
+        return true;
+    }
+
+    void render(NVGcontext* nvg) override
+    {
+        auto scale = getImageScale();
+
+        if (needsRepaint || noteEditor.isVisible() || imageRenderer.needsUpdate(std::ceil(getWidth() * scale), std::ceil(getHeight() * scale))) {
+            imageRenderer.renderJUCEComponent(nvg, *this, scale);
+            needsRepaint = false;
+        } else {
+            imageRenderer.render(nvg, getLocalBounds());
+        }
+    }
+
     void update() override
     {
+        auto oldFont = getFont();
+
         if (auto note = ptr.get<t_fake_note>()) {
             textColour = Colour(note->x_red, note->x_green, note->x_blue);
             noteEditor.setText(getNote());
@@ -130,6 +160,8 @@ public:
             receiveSymbol = receiveSym == "empty" ? "" : note->x_rcv_raw->s_name;
         }
 
+        auto newFont = getFont();
+
         auto justificationType = getValue<int>(justification);
         if (justificationType == 1) {
             noteEditor.setJustification(Justification::topLeft);
@@ -141,11 +173,12 @@ public:
 
         noteEditor.setColour(TextEditor::textColourId, Colour::fromString(primaryColour.toString()));
 
-        repaint();
-        updateFont();
+        if (oldFont != newFont) {
+            updateFont();
+        }
 
-        getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(Label::textWhenEditingColourId));
-        getLookAndFeel().setColour(Label::textColourId, object->findColour(Label::textColourId));
+        getLookAndFeel().setColour(Label::textWhenEditingColourId, LookAndFeel::getDefaultLookAndFeel().findColour(Label::textWhenEditingColourId));
+        getLookAndFeel().setColour(Label::textColourId, LookAndFeel::getDefaultLookAndFeel().findColour(Label::textColourId));
     }
 
     void updateSizeProperty() override
@@ -176,7 +209,7 @@ public:
     void lock(bool isLocked) override
     {
         locked = isLocked;
-        repaint();
+        needsRepaint = true;
 
         noteEditor.setInterceptsMouseClicks(!isLocked, !isLocked);
         object->updateIolets(); // TODO: why?
@@ -185,11 +218,6 @@ public:
     void resized() override
     {
         noteEditor.setBounds(getLocalBounds());
-    }
-
-    bool hideInlets() override
-    {
-        return locked;
     }
 
     void paint(Graphics& g) override
@@ -206,7 +234,7 @@ public:
     {
         if (getValue<bool>(outline)) {
             bool selected = object->isSelected() && !cnv->isGraph;
-            auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
+            auto outlineColour = LookAndFeel::getDefaultLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
 
             g.setColour(outlineColour);
             g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
@@ -215,11 +243,13 @@ public:
 
     void mouseEnter(MouseEvent const& e) override
     {
+        needsRepaint = true;
         repaint();
     }
 
     void mouseExit(MouseEvent const& e) override
     {
+        needsRepaint = true;
         repaint();
     }
 
@@ -243,7 +273,7 @@ public:
         auto height = noteEditor.getTextHeight();
 
         if (auto note = ptr.get<t_fake_note>()) {
-            int width = note->x_resized ? note->x_max_pixwidth : StringUtils::getPreciseStringWidth(getNote(), getFont()) + 12;
+            int width = note->x_resized ? note->x_max_pixwidth : CachedFontStringWidth::get()->calculateStringWidth(getFont(), getNote()) + 12;
 
             return { note->x_obj.te_xpix, note->x_obj.te_ypix, width, height + 4 };
         }
@@ -333,11 +363,13 @@ public:
             auto colour = Colour::fromString(primaryColour.toString());
             noteEditor.applyColourToAllText(colour);
             if (auto note = ptr.get<t_fake_note>())
-                colourToHexArray(colour, &note->x_red); // this should be illegal, but it works
+                colourToHexArray(colour, &note->x_red);
+            needsRepaint = true;
             repaint();
         } else if (v.refersToSameSourceAs(secondaryColour)) {
             if (auto note = ptr.get<t_fake_note>())
                 colourToHexArray(Colour::fromString(secondaryColour.toString()), note->x_bg);
+            needsRepaint = true;
             repaint();
         } else if (v.refersToSameSourceAs(fontSize)) {
             if (auto note = ptr.get<t_fake_note>())
@@ -364,6 +396,7 @@ public:
         } else if (v.refersToSameSourceAs(fillBackground)) {
             if (auto note = ptr.get<t_fake_note>())
                 note->x_bg_flag = getValue<int>(fillBackground);
+            needsRepaint = true;
             repaint();
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
             auto receive = receiveSymbol.toString();
@@ -384,6 +417,7 @@ public:
         } else if (v.refersToSameSourceAs(outline)) {
             if (auto note = ptr.get<t_fake_note>())
                 note->x_outline = getValue<int>(outline);
+            needsRepaint = true;
             repaint();
         } else if (v.refersToSameSourceAs(font)) {
             auto fontName = font.toString();
@@ -414,6 +448,8 @@ public:
     {
         noteEditor.applyFontToAllText(getFont());
         object->updateBounds();
+        needsRepaint = true;
+        repaint();
     }
 
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
@@ -460,6 +496,7 @@ public:
         case hash("set"): {
             noteEditor.setText(getNote());
             object->updateBounds();
+            needsRepaint = true;
             break;
         }
         case hash("color"): {

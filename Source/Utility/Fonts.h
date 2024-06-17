@@ -1,6 +1,8 @@
 #pragma once
 #include <BinaryData.h>
-#include <JuceHeader.h>
+#include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_gui_extra/juce_gui_extra.h>
+#include "Utility/Config.h"
 
 enum FontStyle {
     Regular,
@@ -134,24 +136,6 @@ struct Fonts {
     {
         drawStyledTextSetup(g, colour, style, fontHeight);
         g.drawText(textToDraw, Rectangle<int>(x, y, w, h), justification);
-    }
-
-    // For drawing regular text
-    static void drawTextWithTabularNumbers(Graphics& g, String const& textToDraw, Rectangle<float> bounds, Colour colour, int fontHeight = 15, Justification justification = Justification::centredLeft)
-    {
-        g.setFont(Fonts::getTabularNumbersFont().withHeight(fontHeight));
-        g.setColour(colour);
-        g.drawText(textToDraw, bounds, justification);
-    }
-
-    static void drawTextWithTabularNumbers(Graphics& g, String const& textToDraw, Rectangle<int> bounds, Colour colour, int fontHeight = 15, Justification justification = Justification::centredLeft)
-    {
-        drawTextWithTabularNumbers(g, textToDraw, bounds.toFloat(), colour, fontHeight, justification);
-    }
-
-    static void drawTextWithTabularNumbers(Graphics& g, String const& textToDraw, int x, int y, int w, int h, Colour colour, int fontHeight = 15, Justification justification = Justification::centredLeft)
-    {
-        drawTextWithTabularNumbers(g, textToDraw, Rectangle<float>(x, y, w, h), colour, fontHeight, justification);
     }
 
     // For drawing regular text

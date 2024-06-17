@@ -8,7 +8,7 @@ class CanvasObject final : public ObjectBase {
 
     bool locked;
     Value sizeProperty = SynchronousValue();
-        
+
     IEMHelper iemHelper;
 
 public:
@@ -18,7 +18,7 @@ public:
     {
         object->setColour(PlugDataColour::outlineColourId, Colours::transparentBlack);
         locked = getValue<bool>(object->locked);
-        
+
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamColour("Canvas color", cGeneral, &iemHelper.secondaryColour, PlugDataColour::guiObjectInternalOutlineColour);
         iemHelper.addIemParameters(objectParameters, false, true, 20, 12, 14);
@@ -33,19 +33,19 @@ public:
         }
     }
 
-    bool hideInlets() override
+    bool inletIsSymbol() override
     {
         return iemHelper.hasReceiveSymbol();
     }
 
-    bool hideOutlets() override
+    bool outletIsSymbol() override
     {
         return iemHelper.hasSendSymbol();
     }
 
     void updateLabel() override
     {
-        iemHelper.updateLabel(label);
+        iemHelper.updateLabel(labels);
     }
 
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
@@ -95,6 +95,11 @@ public:
         }
     }
 
+    static Rectangle<int> getPDSize(t_my_canvas* cnvObj)
+    {
+        return Rectangle<int>(0, 0, cnvObj->x_vis_w + 1, cnvObj->x_vis_h + 1);
+    }
+
     Rectangle<int> getPdBounds() override
     {
         if (auto canvas = ptr.get<t_my_canvas>()) {
@@ -104,31 +109,37 @@ public:
 
             int x = 0, y = 0, w = 0, h = 0;
             pd::Interface::getObjectBounds(patch, canvas.cast<t_gobj>(), &x, &y, &w, &h);
+            auto const pdSize = getPDSize(ptr.get<t_my_canvas>().get());
 
-            return Rectangle<int>(x, y, ptr.get<t_my_canvas>()->x_vis_w + 1, ptr.get<t_my_canvas>()->x_vis_h + 1);
+            return Rectangle<int>(x, y, pdSize.getWidth(), pdSize.getHeight());
         }
 
         return {};
     }
 
-    void paint(Graphics& g) override
+    void render(NVGcontext* nvg) override
     {
-        auto bgcolour = Colour::fromString(iemHelper.secondaryColour.toString());
+        Colour bgcolour = Colour::fromString(iemHelper.secondaryColour.toString());
+        auto b = getLocalBounds().toFloat();
 
-        g.setColour(bgcolour);
-        g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::objectCornerRadius);
+        nvgFillColor(nvg, convertColour(bgcolour));
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+        nvgFill(nvg);
 
         if (!locked) {
-
             Rectangle<float> draggableRect;
             if (auto iemgui = ptr.get<t_iemgui>()) {
-                draggableRect = Rectangle<float>(ptr.get<t_iemgui>()->x_w, ptr.get<t_iemgui>()->x_h);
+                draggableRect = Rectangle<float>(iemgui->x_w, iemgui->x_h);
             } else {
                 return;
             }
-            
-            g.setColour(object->isSelected() ? object->findColour(PlugDataColour::objectSelectedOutlineColourId) : bgcolour.contrasting(0.75f));
-            g.drawRoundedRectangle(draggableRect.reduced(1.0f), Corners::objectCornerRadius, 1.0f);
+
+            nvgStrokeColor(nvg, convertColour(object->isSelected() ? LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId) : bgcolour.contrasting(0.75f)));
+            nvgStrokeWidth(nvg, 1.0f);
+            nvgBeginPath(nvg);
+            nvgRoundedRect(nvg, draggableRect.getX() + 1.0f, draggableRect.getY() + 1.0f, draggableRect.getWidth() - 2.0f, draggableRect.getHeight() - 2.0f, Corners::objectCornerRadius);
+            nvgStroke(nvg);
         }
     }
 
@@ -148,8 +159,7 @@ public:
             }
 
             object->updateBounds();
-        }
-        else {
+        } else {
             iemHelper.valueChanged(v);
         }
     }

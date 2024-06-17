@@ -17,119 +17,156 @@
 #include "Canvas.h"
 #include "Connection.h"
 
+#include "Sidebar/Sidebar.h"
+#include "Sidebar/Palettes.h"
+
 #include "Dialogs/OverlayDisplaySettings.h"
 #include "Dialogs/SnapSettings.h"
+#include "Dialogs/AudioOutputSettings.h"
 #include "Dialogs/AlignmentTools.h"
 
 #include "Components/ArrowPopupMenu.h"
 
-class OversampleSelector : public TextButton {
+class LatencyDisplayButton : public Component
+    , public MultiTimer
+    , public SettableTooltipClient {
+    Label latencyValue;
+    Label icon;
+    bool isHover = false;
+    Colour bgColour;
+    int currentLatencyValue = 0;
 
-    class OversampleSettingsPopup : public Component {
-    public:
-        std::function<void(int)> onChange = [](int) {};
-        std::function<void()> onClose = []() {};
-
-        OversampleSettingsPopup(int currentSelection)
-        {
-            title.setText("Oversampling factor", dontSendNotification);
-            title.setFont(Fonts::getBoldFont().withHeight(14.0f));
-            title.setJustificationType(Justification::centred);
-            addAndMakeVisible(title);
-
-            one.setConnectedEdges(ConnectedOnRight);
-            two.setConnectedEdges(ConnectedOnLeft | ConnectedOnRight);
-            four.setConnectedEdges(ConnectedOnLeft | ConnectedOnRight);
-            eight.setConnectedEdges(ConnectedOnLeft);
-
-            auto buttons = Array<TextButton*> { &one, &two, &four, &eight };
-
-            int i = 0;
-            for (auto* button : buttons) {
-                button->setRadioGroupId(hash("oversampling_selector"));
-                button->setClickingTogglesState(true);
-                button->onClick = [this, i]() {
-                    onChange(i);
-                };
-
-                button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
-                button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuActiveTextColourId));
-                button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.04f));
-                button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.075f));
-                button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-
-                addAndMakeVisible(button);
-                i++;
-            }
-
-            buttons[currentSelection]->setToggleState(true, dontSendNotification);
-
-            setSize(180, 50);
-        }
-
-        ~OversampleSettingsPopup()
-        {
-            onClose();
-        }
-
-    private:
-        void resized() override
-        {
-            auto b = getLocalBounds().reduced(4, 4);
-            auto titleBounds = b.removeFromTop(22);
-
-            title.setBounds(titleBounds.translated(0, -2));
-
-            auto buttonWidth = b.getWidth() / 4;
-
-            one.setBounds(b.removeFromLeft(buttonWidth));
-            two.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
-            four.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
-            eight.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
-        }
-
-        Label title;
-        TextButton one = TextButton("1x");
-        TextButton two = TextButton("2x");
-        TextButton four = TextButton("4x");
-        TextButton eight = TextButton("8x");
-    };
+    enum TimerRoutine { Timeout,
+        Animate };
+    float alpha = 1.0f;
+    bool fading = false;
 
 public:
-    OversampleSelector(PluginProcessor* pd)
+    std::function<void()> onClick = []() {};
+    LatencyDisplayButton()
     {
-        onClick = [this, pd]() {
-            auto selection = log2(getButtonText().upToLastOccurrenceOf("x", false, false).getIntValue());
-            auto* editor = findParentComponentOfClass<PluginEditor>();
+        icon.setFont(Fonts::getIconFont());
+        icon.setText(Icons::GlyphDelay, dontSendNotification);
 
-            auto oversampleSettings = std::make_unique<OversampleSettingsPopup>(selection);
-            auto bounds = editor->getLocalArea(this, getLocalBounds());
+        icon.setJustificationType(Justification::centredLeft);
+        latencyValue.setJustificationType(Justification::centredRight);
 
-            oversampleSettings->onChange = [this, pd](int result) {
-                setButtonText(String(1 << result) + "x");
-                pd->setOversampling(result);
-            };
-            oversampleSettings->onClose = [this]() {
-                repaint();
-            };
+        setInterceptsMouseClicks(true, false);
+        addMouseListener(this, true);
 
-            CallOutBox::launchAsynchronously(std::move(oversampleSettings), bounds, editor);
-        };
+        // we need to specifically turn off mouse intercept for child components for tooltip of parent to work
+        // setting child components intercept to false in parent is not enough
+        latencyValue.setInterceptsMouseClicks(false, false);
+        icon.setInterceptsMouseClicks(false, false);
+
+        setTooltip("Plugin latency, click to reset to 64 samples");
+
+        addAndMakeVisible(latencyValue);
+        addAndMakeVisible(icon);
+
+        buttonStateChanged();
+    };
+
+    void lookAndFeelChanged() override
+    {
+        buttonStateChanged();
     }
 
-private:
+    void timerCallback(int ID) override
+    {
+        switch (ID) {
+        case Timeout:
+            startTimer(Animate, 1000 / 30.0f);
+            break;
+        case Animate:
+            alpha = pow(alpha, 1.0f / 2.2f);
+            alpha -= 0.02f;
+            alpha = pow(alpha, 2.2f);
+            alpha = std::clamp(alpha, 0.0f, 1.0f);
+            alpha = std::isfinite(alpha) ? alpha : 0.0f;
+            fading = true;
+            if (alpha <= 0.01f) {
+                alpha = 0.0f;
+                stopTimer(Animate);
+                setVisible(false);
+            }
+            buttonStateChanged();
+            break;
+        default:
+            break;
+        }
+    }
+
     void paint(Graphics& g) override
     {
-        auto buttonText = getButtonText();
-        if (buttonText == "1x") {
-            g.setColour(isMouseOverOrDragging() ? findColour(PlugDataColour::toolbarTextColourId).brighter(0.8f) : findColour(PlugDataColour::toolbarTextColourId));
-        } else {
-            g.setColour(isMouseOverOrDragging() ? findColour(PlugDataColour::toolbarActiveColourId).brighter(0.8f) : findColour(PlugDataColour::toolbarActiveColourId));
-        }
-
-        g.setFont(14.0f);
-        g.drawText(buttonText, getLocalBounds(), Justification::centred);
+        auto b = getLocalBounds().reduced(1, 6).toFloat();
+        g.setColour(bgColour);
+        g.fillRoundedRectangle(b, Corners::defaultCornerRadius);
     }
+
+    void setLatencyValue(int const value)
+    {
+        currentLatencyValue = value;
+        updateValue();
+        if (value == 0) {
+            startTimer(Timeout, 1000 / 3.0f);
+        } else {
+            stopTimer(Timeout);
+            stopTimer(Animate);
+            fading = false;
+            setVisible(true);
+            alpha = 1.0f;
+            buttonStateChanged();
+        }
+    }
+
+    void updateValue()
+    {
+        if (isHover && !fading) {
+            latencyValue.setJustificationType(Justification::centredLeft);
+            latencyValue.setText("Reset", dontSendNotification);
+        } else {
+            latencyValue.setJustificationType(Justification::centredRight);
+            latencyValue.setText(String(currentLatencyValue) + " smpl", dontSendNotification);
+        }
+    }
+
+    void mouseDown(MouseEvent const& e) override
+    {
+        onClick();
+    }
+
+    void buttonStateChanged()
+    {
+        bgColour = getLookAndFeel().findColour(isHover ? PlugDataColour::toolbarHoverColourId : PlugDataColour::toolbarActiveColourId).withAlpha(alpha);
+        auto textColour = bgColour.contrasting().withAlpha(alpha);
+        icon.setColour(Label::textColourId, textColour);
+        latencyValue.setColour(Label::textColourId, textColour);
+
+        updateValue();
+
+        repaint();
+    }
+
+    void mouseEnter(MouseEvent const& e) override
+    {
+        isHover = true;
+        buttonStateChanged();
+    }
+
+    void mouseExit(MouseEvent const& e) override
+    {
+        isHover = false;
+        buttonStateChanged();
+    }
+
+    void resized() override
+    {
+        icon.setBounds(0, 0, getHeight(), getHeight());
+        latencyValue.setBounds(getHeight(), 0, getWidth() - getHeight(), getHeight());
+    }
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LatencyDisplayButton);
 };
 
 class VolumeSlider : public Slider {
@@ -173,7 +210,7 @@ public:
         auto thumb = Rectangle<float>(thumbSize, thumbSize).withCentre(position);
         thumb = thumb.withSizeKeepingCentre(thumb.getWidth() - 12, thumb.getHeight());
         g.setColour(backgroundColour.darker(thumb.contains(getMouseXYRelative().toFloat()) ? 0.3f : 0.0f).withAlpha(0.8f));
-        PlugDataLook::fillSmoothedRectangle(g, thumb, Corners::defaultCornerRadius * 0.5f);
+        g.fillRoundedRectangle(thumb, Corners::defaultCornerRadius * 0.5f);
     }
 
 private:
@@ -250,7 +287,7 @@ public:
         auto width = getWidth() - 12.0f;
         auto x = 6.0f;
 
-        auto outerBorderWidth = 2.0f;
+        auto outerBorderWidth = 2.5f;
         auto doubleOuterBorderWidth = 2.0f * outerBorderWidth;
         auto bgHeight = getHeight() - doubleOuterBorderWidth;
         auto bgWidth = width - doubleOuterBorderWidth;
@@ -440,7 +477,7 @@ public:
                 cpuGraphLongHistory->updateMapping(i);
             };
             button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
-            button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuActiveTextColourId));
+            button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuTextColourId));
             button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.04f));
             button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.075f));
             button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
@@ -455,7 +492,7 @@ public:
         setSize(212, 177);
     }
 
-    ~CPUMeterPopup()
+    ~CPUMeterPopup() override
     {
         onClose();
     }
@@ -566,8 +603,6 @@ public:
             auto cpuHistory = std::make_unique<CPUMeterPopup>(cpuUsage, cpuUsageLongHistory);
             updateCPUGraph = cpuHistory->getUpdateFunc();
             updateCPUGraphLong = cpuHistory->getUpdateFuncLongHistory();
-            auto editor = findParentComponentOfClass<PluginEditor>();
-            auto bounds = editor->getLocalArea(this, getLocalBounds());
 
             cpuHistory->onClose = [this]() {
                 updateCPUGraph = []() { return; };
@@ -575,7 +610,8 @@ public:
                 repaint();
             };
 
-            currentCalloutBox = &CallOutBox::launchAsynchronously(std::move(cpuHistory), bounds, editor);
+            auto* editor = findParentComponentOfClass<PluginEditor>();
+            currentCalloutBox = &editor->showCalloutBox(std::move(cpuHistory), getScreenBounds());
             isCallOutBoxActive = true;
         } else {
             isCallOutBoxActive = false;
@@ -613,6 +649,50 @@ public:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CPUMeter);
 };
 
+class ZoomLabel : public Component {
+public:
+    ZoomLabel(Statusbar* parent)
+        : statusbar(parent)
+    {
+        setRepaintsOnMouseActivity(true);
+    }
+
+private:
+    void paint(Graphics& g) override
+    {
+        // We can use a tabular numbers font here, but I'm not sure it really looks better that way
+        // g.setFont(Fonts::getTabularNumbersFont().withHeight(14));
+        if (isEnabled()) {
+            g.setColour(findColour(PlugDataColour::toolbarTextColourId).contrasting(isMouseOver() ? 0.35f : 0.0f));
+        } else {
+            g.setColour(findColour(PlugDataColour::toolbarTextColourId).withAlpha(0.65f));
+        }
+        g.drawText(String(int(statusbar->currentZoomLevel)) + "%", 0, 0, 44, getHeight(), Justification::centredLeft);
+    }
+
+    void enablementChanged() override
+    {
+        repaint();
+    }
+
+    void mouseDown(MouseEvent const& e) override
+    {
+        if (!isEnabled())
+            return;
+
+        auto* editor = findParentComponentOfClass<PluginEditor>();
+        if (auto* cnv = editor->getCurrentCanvas()) {
+            auto defaultZoom = SettingsFile::getInstance()->getProperty<float>("default_zoom") / 100.0f;
+            cnv->zoomScale.setValue(defaultZoom);
+            cnv->setTransform(AffineTransform().scaled(defaultZoom));
+            if (cnv->viewport)
+                cnv->viewport->resized();
+        }
+    }
+
+    Statusbar* statusbar;
+};
+
 Statusbar::Statusbar(PluginProcessor* processor)
     : pd(processor)
 {
@@ -620,39 +700,21 @@ Statusbar::Statusbar(PluginProcessor* processor)
     cpuMeter = std::make_unique<CPUMeter>();
     midiBlinker = std::make_unique<MIDIBlinker>();
     volumeSlider = std::make_unique<VolumeSlider>();
-    oversampleSelector = std::make_unique<OversampleSelector>(processor);
+    zoomLabel = std::make_unique<ZoomLabel>(this);
 
     pd->statusbarSource->addListener(levelMeter.get());
     pd->statusbarSource->addListener(midiBlinker.get());
     pd->statusbarSource->addListener(cpuMeter.get());
     pd->statusbarSource->addListener(this);
 
-    setWantsKeyboardFocus(true);
-
-    oversampleSelector->setTooltip("Set oversampling");
-    oversampleSelector->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-
-    oversampleSelector->setButtonText(String(1 << pd->oversampling) + "x");
-    addAndMakeVisible(*oversampleSelector);
+    latencyDisplayButton = std::make_unique<LatencyDisplayButton>();
+    addChildComponent(latencyDisplayButton.get());
+    latencyDisplayButton->onClick = [this]() {
+        pd->performLatencyCompensationChange(0);
+    };
 
     powerButton.setButtonText(Icons::Power);
-    protectButton.setButtonText(Icons::Protection);
     centreButton.setButtonText(Icons::Centre);
-    fitAllButton.setButtonText(Icons::FitAll);
-    debugButton.setButtonText(Icons::Debug);
-
-    debugButton.setTooltip("Enable/disable debugging tooltips");
-    debugButton.setClickingTogglesState(true);
-    debugButton.getToggleStateValue().referTo(SettingsFile::getInstance()->getPropertyAsValue("debug_connections"));
-    debugButton.onClick = [this]() {
-        set_plugdata_debugging_enabled(debugButton.getToggleState());
-        // Recreate the DSP graph with the new optimisations
-        pd->lockAudioThread();
-        canvas_update_dsp();
-        pd->unlockAudioThread();
-    };
-    set_plugdata_debugging_enabled(debugButton.getToggleState());
-    addAndMakeVisible(debugButton);
 
     powerButton.setTooltip("Enable/disable DSP");
     powerButton.setClickingTogglesState(true);
@@ -672,26 +734,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     addAndMakeVisible(centreButton);
 
-    fitAllButton.setTooltip("Zoom to fit all");
-    fitAllButton.onClick = [this]() {
-        auto* editor = findParentComponentOfClass<PluginEditor>();
-        if (auto* cnv = editor->getCurrentCanvas()) {
-            cnv->zoomToFitAll();
-        }
-    };
-
-    addAndMakeVisible(fitAllButton);
-
-    protectButton.setTooltip("Clip output signal and filter non-finite values");
-    protectButton.setClickingTogglesState(true);
-    protectButton.setToggleState(SettingsFile::getInstance()->getProperty<int>("protected"), dontSendNotification);
-    protectButton.onClick = [this]() {
-        int state = protectButton.getToggleState();
-        pd->setProtectedMode(state);
-        SettingsFile::getInstance()->setProperty("protected", state);
-    };
-    addAndMakeVisible(protectButton);
-
     volumeSlider->setRange(0.0f, 1.0f);
     volumeSlider->setValue(0.8f);
     volumeSlider->setDoubleClickReturnValue(true, 0.8f);
@@ -708,63 +750,99 @@ Statusbar::Statusbar(PluginProcessor* processor)
     addAndMakeVisible(*levelMeter);
     addAndMakeVisible(*midiBlinker);
     addAndMakeVisible(*cpuMeter);
+    addAndMakeVisible(*zoomLabel);
 
     levelMeter->toBehind(volumeSlider.get());
 
-    overlayButton.setButtonText(Icons::Eye);
-    overlaySettingsButton.setButtonText(Icons::ThinDown);
+    zoomComboButton.setButtonText(Icons::ThinDown);
 
-    overlaySettingsButton.onClick = [this]() {
-        auto* editor = findParentComponentOfClass<PluginEditor>();
-        OverlayDisplaySettings::show(editor, editor->getLocalArea(this, overlaySettingsButton.getBounds()));
+    zoomComboButton.onClick = [this]() {
+        PopupMenu zoomMenu;
+        auto zoomOptions = StringArray { "25%", "50%", "75%", "100%", "125%", "150%", "175%", "200%", "250%", "300%" };
+        for (auto zoomOption : zoomOptions) {
+            auto scale = zoomOption.upToFirstOccurrenceOf("%", false, false).getIntValue() / 100.0f;
+            zoomMenu.addItem(zoomOption, [this, scale]() {
+                auto* editor = findParentComponentOfClass<PluginEditor>();
+                if (auto* cnv = editor->getCurrentCanvas()) {
+                    cnv->zoomScale.setValue(scale);
+                    cnv->setTransform(AffineTransform().scaled(scale));
+                    if (cnv->viewport)
+                        cnv->viewport->resized();
+                }
+            });
+        }
+
+        zoomMenu.addSeparator();
+        zoomMenu.addItem("Zoom to fit content", [this]() {
+            auto* editor = findParentComponentOfClass<PluginEditor>();
+            if (auto* cnv = editor->getCurrentCanvas()) {
+                cnv->zoomToFitAll();
+            }
+        });
+        zoomMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withTargetComponent(&zoomComboButton));
     };
 
     snapEnableButton.setButtonText(Icons::Magnet);
     snapSettingsButton.setButtonText(Icons::ThinDown);
 
+    audioSettingsButton.setButtonText(Icons::ThinDown);
+    audioSettingsButton.onClick = [this]() {
+        auto* editor = findParentComponentOfClass<PluginEditor>();
+        AudioOutputSettings::show(editor, audioSettingsButton.getScreenBounds());
+    };
+
     snapEnableButton.getToggleStateValue().referTo(SettingsFile::getInstance()->getPropertyAsValue("grid_enabled"));
+    snapEnableButton.setClickingTogglesState(true);
+    addAndMakeVisible(snapEnableButton);
 
     snapSettingsButton.onClick = [this]() {
         auto* editor = findParentComponentOfClass<PluginEditor>();
-        SnapSettings::show(editor, editor->getLocalArea(this, snapSettingsButton.getBounds()));
+        SnapSettings::show(editor, snapSettingsButton.getScreenBounds());
     };
+    addAndMakeVisible(snapSettingsButton);
 
-    alignmentButton.setButtonText(Icons::AlignLeft);
-    alignmentButton.onClick = [this]() {
-        auto* editor = findParentComponentOfClass<PluginEditor>();
-        AlignmentTools::show(editor, editor->getLocalArea(this, alignmentButton.getBounds()));
-    };
-
-    overlayButton.setClickingTogglesState(true);
-    overlaySettingsButton.setClickingTogglesState(false);
-
-    addAndMakeVisible(overlayButton);
-    addAndMakeVisible(overlaySettingsButton);
-
-    overlayButton.setConnectedEdges(Button::ConnectedOnRight);
-    overlaySettingsButton.setConnectedEdges(Button::ConnectedOnLeft);
+    addAndMakeVisible(zoomComboButton);
 
     overlayButton.getToggleStateValue().referTo(SettingsFile::getInstance()->getValueTree().getChildWithName("Overlays").getPropertyAsValue("alt_mode", nullptr));
     overlayButton.setTooltip(String("Show overlays"));
-    overlaySettingsButton.setTooltip(String("Overlay settings"));
+    overlayButton.setButtonText(Icons::Eye);
+    overlayButton.setClickingTogglesState(true);
+    overlaySettingsButton.setButtonText(Icons::ThinDown);
+    addAndMakeVisible(overlayButton);
 
-    snapEnableButton.setClickingTogglesState(true);
-    snapSettingsButton.setClickingTogglesState(false);
+    overlaySettingsButton.onClick = [this]() {
+        auto* editor = findParentComponentOfClass<PluginEditor>();
+        OverlayDisplaySettings::show(editor, overlaySettingsButton.getScreenBounds());
+    };
+    addAndMakeVisible(overlaySettingsButton);
 
-    addAndMakeVisible(snapEnableButton);
-    addAndMakeVisible(snapSettingsButton);
+    limiterButton.getProperties().set("bold_text", true);
+    limiterButton.setClickingTogglesState(true);
+    limiterButton.setToggleState(SettingsFile::getInstance()->getProperty<bool>("protected"), dontSendNotification);
 
-    snapEnableButton.setConnectedEdges(Button::ConnectedOnRight);
-    snapSettingsButton.setConnectedEdges(Button::ConnectedOnLeft);
+    limiterButton.onStateChange = [this]() {
+        limiterButton.setTooltip(limiterButton.getToggleState() ? "Turn off limiter" : "Turn on limiter");
+    };
 
-    snapEnableButton.setTooltip(String("Enable snapping"));
+    limiterButton.onClick = [this]() {
+        auto state = limiterButton.getToggleState();
+        pd->setProtectedMode(state);
+        SettingsFile::getInstance()->setProperty("protected", state);
+    };
+    addAndMakeVisible(limiterButton);
+
+    zoomComboButton.setTooltip(String("Select zoom"));
+
+    addAndMakeVisible(audioSettingsButton);
+
+    audioSettingsButton.setTooltip(String("Audio settings"));
     snapSettingsButton.setTooltip(String("Snap settings"));
 
-    addAndMakeVisible(alignmentButton);
-
-    alignmentButton.setTooltip(String("Alignment tools"));
+    setLatencyDisplay(pd->getLatencySamples() - pd::Instance::getBlockSize());
 
     setSize(getWidth(), statusbarHeight);
+
+    lookAndFeelChanged();
 }
 
 Statusbar::~Statusbar()
@@ -775,17 +853,28 @@ Statusbar::~Statusbar()
     pd->statusbarSource->removeListener(this);
 }
 
+void Statusbar::updateZoomLevel()
+{
+    auto* editor = findParentComponentOfClass<PluginEditor>();
+    if (auto* cnv = editor->getCurrentCanvas()) {
+        currentZoomLevel = getValue<float>(cnv->zoomScale) * 100;
+    } else {
+        currentZoomLevel = 100.0f;
+    }
+    repaint();
+}
+
 void Statusbar::paint(Graphics& g)
 {
     g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-    g.drawLine(29.f, 0.5f, static_cast<float>(getWidth() - 29.5f), 0.5f);
+
+    auto* editor = findParentComponentOfClass<PluginEditor>();
+    auto start = !editor->palettes->isExpanded() ? 29.0f : 0.0f;
+    auto end = editor->sidebar->isHidden() ? 29.0f : 0.0f;
+    g.drawLine(start, 0.5f, static_cast<float>(getWidth()) - end, 0.5f);
 
     g.drawLine(firstSeparatorPosition, 6.0f, firstSeparatorPosition, getHeight() - 6.0f);
     g.drawLine(secondSeparatorPosition, 6.0f, secondSeparatorPosition, getHeight() - 6.0f);
-    g.drawLine(thirdSeparatorPosition, 6.0f, thirdSeparatorPosition, getHeight() - 6.0f);
-    if (getWidth() > 500) {
-        g.drawLine(fourthSeparatorPosition, 6.0f, fourthSeparatorPosition, getHeight() - 6.0f);
-    }
 }
 
 void Statusbar::resized()
@@ -797,28 +886,27 @@ void Statusbar::resized()
         return inverse ? getWidth() - pos : result;
     };
 
-    auto spacing = getHeight() + 4;
+    auto spacing = getHeight();
 
     // Some newer iPhone models have a very large corner radius
 #if JUCE_IOS
     position(22);
 #endif
 
+    zoomLabel->setBounds(position(34), 0, 34, getHeight());
+    zoomComboButton.setBounds(position(8) - 11, 0, getHeight(), getHeight());
+
+    firstSeparatorPosition = position(4) + 3.5f; // fifth seperator
+
     centreButton.setBounds(position(spacing), 0, getHeight(), getHeight());
-    fitAllButton.setBounds(position(spacing), 0, getHeight(), getHeight());
 
-    firstSeparatorPosition = position(7) + 3.5f; // Second seperator
+    secondSeparatorPosition = position(4) + 1.f; // Second seperator
 
-    overlayButton.setBounds(position(spacing), 0, getHeight(), getHeight());
-    overlaySettingsButton.setBounds(overlayButton.getBounds().translated(getHeight() - 3, 0).withTrimmedRight(8));
-    position(10);
+    snapEnableButton.setBounds(position(14), 0, getHeight(), getHeight());
+    snapSettingsButton.setBounds(position(spacing - 4), 0, getHeight(), getHeight());
 
-    snapEnableButton.setBounds(position(spacing), 0, getHeight(), getHeight());
-    snapSettingsButton.setBounds(snapEnableButton.getBounds().translated(getHeight() - 3, 0).withTrimmedRight(8));
-    position(10);
-
-    alignmentButton.setBounds(position(spacing), 0, getHeight(), getHeight());
-    debugButton.setBounds(position(spacing), 0, getHeight(), getHeight());
+    overlayButton.setBounds(position(14), 0, getHeight(), getHeight());
+    overlaySettingsButton.setBounds(position(spacing - 4), 0, getHeight(), getHeight());
 
     pos = 4; // reset position for elements on the right
 
@@ -826,29 +914,43 @@ void Statusbar::resized()
     position(22, true);
 #endif
 
-    protectButton.setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
+    audioSettingsButton.setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
+    powerButton.setBounds(position(getHeight() - 16, true), 0, getHeight(), getHeight());
 
-    powerButton.setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
+    limiterButton.setBounds(position(44, true), 4, 44, getHeight() - 8);
 
     // TODO: combine these both into one
-    int levelMeterPosition = position(110, true);
+    int levelMeterPosition = position(112, true);
     levelMeter->setBounds(levelMeterPosition, 2, 120, getHeight() - 4);
     volumeSlider->setBounds(levelMeterPosition, 2, 120, getHeight() - 4);
-
-    secondSeparatorPosition = position(5, true) + 5.0f; // Third seperator
-
-    // Offset to make text look centred
-    oversampleSelector->setBounds(position(spacing - 8, true), 1, getHeight() - 2, getHeight() - 2);
-
-    thirdSeparatorPosition = position(5, true) + 2.5f; // Fourth seperator
 
     // Hide these if there isn't enough space
     midiBlinker->setVisible(getWidth() > 500);
     cpuMeter->setVisible(getWidth() > 500);
 
-    midiBlinker->setBounds(position(40, true) - 8, 0, 55, getHeight());
-    fourthSeparatorPosition = position(10, true);
-    cpuMeter->setBounds(position(48, true), 0, 50, getHeight());
+    midiBlinker->setBounds(position(55, true) + 10, 0, 55, getHeight());
+    cpuMeter->setBounds(position(50, true), 0, 50, getHeight());
+    latencyDisplayButton->setBounds(position(100, true), 0, 100, getHeight());
+}
+
+void Statusbar::setLatencyDisplay(int value)
+{
+    if (!ProjectInfo::isStandalone) {
+        currentLatency = value;
+        latencyDisplayButton->setLatencyValue(value);
+    }
+}
+
+void Statusbar::showDSPState(bool dspState)
+{
+    powerButton.setToggleState(dspState, dontSendNotification);
+}
+
+void Statusbar::setHasActiveCanvas(bool hasActiveCanvas)
+{
+    centreButton.setEnabled(hasActiveCanvas);
+    zoomComboButton.setEnabled(hasActiveCanvas);
+    zoomLabel->setEnabled(hasActiveCanvas);
 }
 
 void Statusbar::audioProcessedChanged(bool audioProcessed)
@@ -856,6 +958,31 @@ void Statusbar::audioProcessedChanged(bool audioProcessed)
     auto colour = findColour(audioProcessed ? PlugDataColour::levelMeterActiveColourId : PlugDataColour::signalColourId);
 
     powerButton.setColour(TextButton::textColourOnId, colour);
+}
+
+void Statusbar::lookAndFeelChanged()
+{
+    limiterButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+    limiterButton.setColour(TextButton::buttonColourId, findColour(PlugDataColour::levelMeterBackgroundColourId));
+    auto limiterButtonActiveColour = findColour(PlugDataColour::toolbarActiveColourId).withAlpha(0.3f);
+    limiterButton.setColour(TextButton::buttonOnColourId, limiterButtonActiveColour);
+
+    auto blendColours = [](juce::Colour const& bottomColour, juce::Colour const& topColour) -> Colour {
+        float alpha = topColour.getFloatAlpha();
+
+        float r = alpha * topColour.getFloatRed() + (1 - alpha) * bottomColour.getFloatRed();
+        float g = alpha * topColour.getFloatGreen() + (1 - alpha) * bottomColour.getFloatGreen();
+        float b = alpha * topColour.getFloatBlue() + (1 - alpha) * bottomColour.getFloatBlue();
+
+        return Colour::fromFloatRGBA(r, g, b, 1.0f);
+    };
+
+    // Blend the button colour & toolbar background colour to make sure that the button's 'on' text is visible
+    // as we are using the active colour with alpha to reduce how distracting the limiter button active state is.
+    auto blendedButtonColour = blendColours(findColour(PlugDataColour::toolbarBackgroundColourId), limiterButtonActiveColour);
+
+    limiterButton.setColour(TextButton::textColourOffId, findColour(PlugDataColour::panelTextColourId));
+    limiterButton.setColour(TextButton::textColourOnId, blendedButtonColour.contrasting());
 }
 
 StatusbarSource::StatusbarSource()
@@ -883,7 +1010,7 @@ void StatusbarSource::process(bool hasMidiInput, bool hasMidiOutput, int channel
         level[1] = 0;
     }
 
-    auto nowInMs = Time::getCurrentTime().getMillisecondCounter();
+    auto nowInMs = Time::getMillisecondCounter();
 
     lastAudioProcessedTime = nowInMs;
 
@@ -901,7 +1028,7 @@ void StatusbarSource::prepareToPlay(int nChannels)
 
 void StatusbarSource::timerCallback()
 {
-    auto currentTime = Time::getCurrentTime().getMillisecondCounter();
+    auto currentTime = Time::getMillisecondCounter();
 
     auto hasReceivedMidi = currentTime - lastMidiReceivedTime < 700;
     auto hasSentMidi = currentTime - lastMidiSentTime < 700;

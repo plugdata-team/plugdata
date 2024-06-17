@@ -27,6 +27,7 @@ int clone_get_n(t_gobj*);
 
 #include "ImplementationBase.h"
 #include "ObjectImplementations.h"
+#include "Gem.h"
 
 ImplementationBase::ImplementationBase(t_gobj* obj, t_canvas* parent, PluginProcessor* processor)
     : pd(processor)
@@ -43,7 +44,7 @@ Canvas* ImplementationBase::getMainCanvas(t_canvas* patchPtr, bool alsoSearchRoo
     auto editors = pd->getEditors();
 
     for (auto* editor : editors) {
-        for (auto* cnv : editor->canvases) {
+        for (auto* cnv : editor->getCanvases()) {
             auto glist = cnv->patch.getPointer();
             if (glist && glist.get() == patchPtr) {
                 return cnv;
@@ -54,7 +55,7 @@ Canvas* ImplementationBase::getMainCanvas(t_canvas* patchPtr, bool alsoSearchRoo
     if (alsoSearchRoot) {
         patchPtr = glist_getcanvas(patchPtr);
         for (auto* editor : editors) {
-            for (auto* cnv : editor->canvases) {
+            for (auto* cnv : editor->getCanvases()) {
                 auto glist = cnv->patch.getPointer();
                 if (glist && glist.get() == patchPtr) {
                     return cnv;
@@ -121,7 +122,7 @@ ImplementationBase* ImplementationBase::createImplementation(String const& type,
     return nullptr;
 }
 
-void ImplementationBase::openSubpatch(pd::Patch* subpatch)
+void ImplementationBase::openSubpatch(pd::Patch::Ptr subpatch)
 {
     if (auto glist = ptr.get<t_glist>()) {
         if (!subpatch) {
@@ -130,9 +131,8 @@ void ImplementationBase::openSubpatch(pd::Patch* subpatch)
 
         if (canvas_isabstraction(glist.get())) {
             auto path = File(String::fromUTF8(canvas_getdir(glist.get())->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
-            subpatch->setCurrentFile(path);
+            subpatch->setCurrentFile(URL(path));
         }
-        pd->patches.add(subpatch);
     } else {
         return;
     }
@@ -141,17 +141,8 @@ void ImplementationBase::openSubpatch(pd::Patch* subpatch)
         if (!editor->isActiveWindow())
             continue;
 
-        // Check if subpatch is already opened
-        for (auto* cnv : editor->canvases) {
-            if (cnv->patch == *subpatch) {
-                auto* tabbar = cnv->getTabbar();
-                tabbar->setCurrentTabIndex(cnv->getTabIndex());
-                return;
-            }
-        }
-
-        auto* newCanvas = editor->canvases.add(new Canvas(editor, subpatch, nullptr));
-        editor->addTab(newCanvas);
+        editor->getTabComponent().openPatch(subpatch);
+        break;
     }
 }
 
@@ -162,10 +153,10 @@ void ImplementationBase::closeOpenedSubpatchers()
         return;
 
     for (auto* editor : pd->getEditors()) {
-        for (auto* canvas : editor->canvases) {
+        for (auto* canvas : editor->getCanvases()) {
             auto canvasPtr = canvas->patch.getPointer();
             if (canvasPtr && canvasPtr.get() == glist.get()) {
-                canvas->editor->closeTab(canvas);
+                canvas->editor->getTabComponent().closeTab(canvas);
                 break;
             }
         }

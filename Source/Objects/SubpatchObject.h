@@ -39,20 +39,24 @@ public:
         object->hvccMode.removeListener(this);
         closeOpenedSubpatchers();
     }
+    void render(NVGcontext* nvg) override
+    {
+        TextBase::render(nvg);
+
+        nvgBeginPath(nvg);
+        nvgCircle(nvg, 4, getHeight() * 0.5, 2);
+        nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour)));
+        nvgFill(nvg);
+    }
 
     void update() override
     {
-        isGraphChild = static_cast<bool>(subpatch->getPointer()->gl_isgraph);
-
         // Change from subpatch to graph
-        bool graph;
         if (auto canvas = ptr.get<t_canvas>()) {
-            graph = canvas->gl_isgraph;
+            isGraphChild = static_cast<bool>(canvas->gl_isgraph);
         } else {
             return;
         }
-
-        isGraphChild = graph;
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -85,13 +89,12 @@ public:
         return subpatch;
     }
 
-    void checkGraphState()
-    {
-    }
-
     void valueChanged(Value& v) override
     {
-        if (v.refersToSameSourceAs(isGraphChild)) {
+        if (v.refersToSameSourceAs(sizeProperty)) {
+            // forward the value change to the text object
+            TextBase::valueChanged(v);
+        } else if (v.refersToSameSourceAs(isGraphChild)) {
             int isGraph = getValue<bool>(isGraphChild);
             if (auto glist = ptr.get<t_glist>()) {
                 canvas_setgraph(glist.get(), isGraph + 2 * glist->gl_hidetext, 0);
@@ -103,7 +106,7 @@ public:
                         return;
 
                     _this->cnv->setSelected(object, false);
-                    _this->object->cnv->editor->sidebar->hideParameters();
+                    _this->object->editor->sidebar->hideParameters();
                     _this->object->setType(_this->getText(), ptr);
                 });
             }
@@ -143,7 +146,7 @@ public:
 
     bool showParametersWhenSelected() override
     {
-        return true;
+        return cnv->isGraph;
     }
 
     static void checkHvccCompatibility(String const& objectText, pd::Patch::Ptr patch, String const& prefix = "")

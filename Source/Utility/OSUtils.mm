@@ -3,12 +3,15 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "OSUtils.h"
 
+#import <Metal/Metal.h>
+
 #if JUCE_MAC
 #import <Foundation/Foundation.h>
 #import <Cocoa/Cocoa.h>
 #include <Carbon/Carbon.h>
 #import <string>
 #include <raw_keyboard_input/raw_keyboard_input.mm>
+
 
 int getStyleMask(bool nativeTitlebar) {
     
@@ -27,7 +30,7 @@ int getStyleMask(bool nativeTitlebar) {
 
 void OSUtils::enableInsetTitlebarButtons(void* nativeHandle, bool enable) {
     
-    NSView* view = static_cast<NSView*>(nativeHandle);
+    auto* view = static_cast<NSView*>(nativeHandle);
     
     if(!view) return;
     
@@ -49,7 +52,7 @@ void OSUtils::enableInsetTitlebarButtons(void* nativeHandle, bool enable) {
 
 void OSUtils::HideTitlebarButtons(void* view, bool hideMinimiseButton, bool hideMaximiseButton, bool hideCloseButton)
 {
-    NSView* nsView = (NSView*)view;
+    auto* nsView = (NSView*)view;
     NSWindow* nsWindow = [nsView window];
     NSButton *minimizeButton = [nsWindow standardWindowButton:NSWindowMiniaturizeButton];
     NSButton *maximizeButton = [nsWindow standardWindowButton:NSWindowZoomButton];
@@ -66,7 +69,7 @@ void OSUtils::HideTitlebarButtons(void* view, bool hideMinimiseButton, bool hide
 OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 {
     TISInputSourceRef source = TISCopyCurrentKeyboardInputSource();
-    NSString *s = (__bridge NSString *)(TISGetInputSourceProperty(source, kTISPropertyInputSourceID));
+    auto *s = (__bridge NSString *)(TISGetInputSourceProperty(source, kTISPropertyInputSourceID));
     auto const* locale = [[s substringWithRange:NSMakeRange(20, [s length]-20)] UTF8String];
     
     if(!strcmp(locale, "Belgian") || !strcmp(locale, "French") || !strcmp(locale, "ABC-AZERTY")) {
@@ -122,6 +125,44 @@ OSUtils::ScrollTracker::~ScrollTracker()
     
     [[NSNotificationCenter defaultCenter] removeObserver:static_cast<ScrollEventObserver*>(observer)];
 }
+
+float OSUtils::MTLGetPixelScale(void* view) {
+    auto* nsView = reinterpret_cast<NSView*>(view);
+    
+    CGFloat scale = 1.0;
+        if ([nsView respondsToSelector:@selector(convertRectToBacking:)]) {
+            NSRect backingRect = [nsView convertRectToBacking:[nsView bounds]];
+            scale = backingRect.size.width / [nsView bounds].size.width;
+        } else {
+            // Fallback for macOS versions that do not support backing scale
+            NSWindow *window = [nsView window];
+            if (window) {
+                scale = [window backingScaleFactor];
+            }
+        }
+        return scale;
+}
+
+void* OSUtils::MTLCreateView(void* parent, int x, int y, int width, int height)
+{
+    // Create child view
+    NSView *childView = [[NSView alloc] initWithFrame:NSMakeRect(x, y, width, height)];
+    auto* parentView = reinterpret_cast<NSView*>(parent);
+    
+    // Add child view as a subview of parent view
+    [parentView addSubview:childView];
+    
+    return childView;
+}
+
+void OSUtils::MTLDeleteView(void* view)
+{
+    auto* viewToRemove = reinterpret_cast<NSView*>(view);
+    [viewToRemove removeFromSuperview];
+    [viewToRemove release];
+}
+
+
 #endif
 
 #if JUCE_IOS
@@ -154,20 +195,14 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
     lastScale = 1.0;
 
     UIPinchGestureRecognizer* pinchGesture = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinchEventOccurred:)];
-    //[pinchGesture setCancelsTouchesInView: true];
-    //[pinchGesture setDelaysTouchesBegan: true];
     [view addGestureRecognizer:pinchGesture];
     
     UILongPressGestureRecognizer* longPressGesture = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(longPressEventOccurred:)];
-    //[longPressGesture setCancelsTouchesInView: true];
-    //[longPressGesture setDelaysTouchesBegan: true];
     [view addGestureRecognizer:longPressGesture];
     
     UIPanGestureRecognizer* panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(scrollEventOccurred:)];
     [panGesture setMaximumNumberOfTouches: 2];
     [panGesture setMinimumNumberOfTouches: 2];
-    //[panGesture setCancelsTouchesInView: true];
-    //[panGesture setDelaysTouchesBegan: true];
     [view addGestureRecognizer:panGesture];
     
     return self;
@@ -512,5 +547,70 @@ void OSUtils::showMobileCanvasMenu(juce::ComponentPeer* peer, std::function<void
     }
 }
 
+@interface NVGMetalView : UIView
+
+@property (nonatomic, strong) CAMetalLayer *metalLayer;
+
+@end
+
+@implementation NVGMetalView
+
++ (Class)layerClass {
+    return [CAMetalLayer class];
+}
+
+- (instancetype)initWithFrame:(CGRect)frame {
+    self = [super initWithFrame:frame];
+    if (self) {
+        [self commonInit];
+    }
+    return self;
+}
+
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
+    self = [super initWithCoder:aDecoder];
+    if (self) {
+        [self commonInit];
+    }
+    return self;
+}
+
+// Always return NO to pass through touch events
+- (BOOL)pointInside:(CGPoint)point withEvent:(UIEvent *)event {
+    return NO;
+}
+
+- (void)commonInit {
+    self.metalLayer = (CAMetalLayer *)self.layer;
+}
+
+@end
+
+float OSUtils::MTLGetPixelScale(void* view) {
+    return reinterpret_cast<UIView*>(view).window.screen.scale;
+}
+
+void* OSUtils::MTLCreateView(void* parent, int x, int y, int width, int height)
+{
+    // Create child view
+    NVGMetalView *childView = [[NVGMetalView alloc] initWithFrame:CGRectMake(x, y, width, height)];
+    UIView *parentView = reinterpret_cast<UIView*>(parent);
+    
+    // Add child view as a subview of parent view
+    [parentView addSubview:childView];
+
+    return childView;
+}
+
+void OSUtils::MTLDeleteView(void* view)
+{
+    UIView *viewToRemove = reinterpret_cast<UIView*>(view);
+    [viewToRemove removeFromSuperview];
+    [viewToRemove release];
+}
+
 
 #endif
+
+
+

@@ -15,12 +15,6 @@
 #include "Components/PropertiesPanel.h"
 #include "Utility/OSUtils.h"
 
-#if JUCE_LINUX
-#    include <unistd.h>
-#    include <sys/types.h>
-#    include <sys/wait.h>
-#endif
-
 #include "Toolchain.h"
 #include "ExportingProgressView.h"
 #include "ExporterBase.h"
@@ -66,12 +60,12 @@ public:
         restoreState();
     }
 
-    ~ExporterSettingsPanel()
+    ~ExporterSettingsPanel() override
     {
         saveState();
     }
 
-    ValueTree getState()
+    ValueTree getState() const
     {
         ValueTree stateTree("HeavySelect");
         stateTree.setProperty("listBox", listBox.getSelectedRow(), nullptr);
@@ -90,10 +84,11 @@ public:
         auto heavyState = settingsTree.getChildWithName("HeavyState");
         if (heavyState.isValid()) {
             this->setState(heavyState);
-            views[0]->setState(heavyState);
-            views[1]->setState(heavyState);
-            views[2]->setState(heavyState);
-            views[3]->setState(heavyState);
+            for (int i = 0; i < 4; i++) {
+                views[i]->blockDialog = true;
+                views[i]->setState(heavyState);
+                views[i]->blockDialog = false;
+            }
         }
     }
 
@@ -144,7 +139,10 @@ public:
                 views[lastRowSelected]->patchFile = view->patchFile;
                 views[lastRowSelected]->projectNameValue = view->projectNameValue.getValue();
                 views[lastRowSelected]->projectCopyrightValue = view->projectCopyrightValue.getValue();
+
+                views[lastRowSelected]->blockDialog = true;
                 views[lastRowSelected]->inputPatchValue = view->inputPatchValue.getValue();
+                views[lastRowSelected]->blockDialog = false;
             }
             view->setVisible(false);
         }
@@ -167,31 +165,18 @@ public:
         return items.size();
     }
 
-    StringArray getExports() const
-    {
-        return items;
-    }
-
     void paintListBoxItem(int row, Graphics& g, int width, int height, bool rowIsSelected) override
     {
         if (isPositiveAndBelow(row, items.size())) {
             if (rowIsSelected) {
                 g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-                PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(3, 3, width - 6, height - 6), Corners::defaultCornerRadius);
+                g.fillRoundedRectangle(Rectangle<float>(3, 3, width - 6, height - 6), Corners::defaultCornerRadius);
             }
 
-            auto const textColour = findColour(rowIsSelected ? PlugDataColour::sidebarActiveTextColourId : PlugDataColour::sidebarTextColourId);
+            auto const textColour = findColour(PlugDataColour::sidebarTextColourId);
 
             Fonts::drawText(g, items[row], Rectangle<int>(15, 0, width - 30, height), textColour, 15);
         }
-    }
-
-    int getBestHeight(int preferredHeight)
-    {
-        auto extra = listBox.getOutlineThickness() * 2;
-        return jmax(listBox.getRowHeight() * 2 + extra,
-            jmin(listBox.getRowHeight() * getNumRows() + extra,
-                preferredHeight));
     }
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ExporterSettingsPanel)
@@ -199,7 +184,7 @@ public:
 
 HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
     : exportingView(new ExportingProgressView())
-    , installer(new ToolchainInstaller(dynamic_cast<PluginEditor*>(dialog->parentComponent)))
+    , installer(new ToolchainInstaller(dynamic_cast<PluginEditor*>(dialog->parentComponent), dialog))
     , exporterPanel(new ExporterSettingsPanel(dynamic_cast<PluginEditor*>(dialog->parentComponent), exportingView.get()))
     , infoButton(new MainToolbarButton(Icons::Help))
 {
@@ -261,6 +246,8 @@ HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
 
 HeavyExportDialog::~HeavyExportDialog()
 {
+    Dialogs::dismissFileDialog();
+
     // Clean up temp files
     Toolchain::deleteTempFiles();
 }

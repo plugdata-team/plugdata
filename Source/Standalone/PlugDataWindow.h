@@ -35,6 +35,8 @@
 #include "Utility/RateReducer.h"
 #include "Utility/MidiDeviceManager.h"
 #include "../PluginEditor.h"
+#include "../CanvasViewport.h"
+#include "Dialogs/Dialogs.h"
 
 // For each OS, we have a different approach to rendering the window shadow
 // macOS:
@@ -72,7 +74,8 @@ public:
     MidiDeviceManager midiDeviceManager;
 };
 
-class StandalonePluginHolder : private AudioIODeviceCallback {
+class StandalonePluginHolder : private AudioIODeviceCallback
+    , public Component {
 public:
     /** Structure used for the number of inputs and outputs. */
     struct PluginInOuts {
@@ -156,14 +159,6 @@ public:
         return (channelConfiguration.size() > 0 ? channelConfiguration[0].numOuts : processor->getMainBusNumOutputChannels());
     }
 
-    static String getFilePatterns(String const& fileSuffix)
-    {
-        if (fileSuffix.isEmpty())
-            return {};
-
-        return (fileSuffix.startsWithChar('.') ? "*" : "*.") + fileSuffix;
-    }
-
     void startPlaying()
     {
         player.setProcessor(processor.get());
@@ -218,11 +213,13 @@ public:
     {
         if (settings != nullptr) {
             // Async to give the app a chance to start up before loading the patch
-            MessageManager::callAsync([this]() {
-                MemoryOutputStream data;
-                Base64::convertFromBase64(data, settings->getValue("filterState"));
-                if (data.getDataSize() > 0)
-                    processor->setStateInformation(data.getData(), static_cast<int>(data.getDataSize()));
+            MessageManager::callAsync([this, _this = SafePointer(this)]() {
+                if (_this) {
+                    MemoryOutputStream data;
+                    Base64::convertFromBase64(data, settings->getValue("filterState"));
+                    if (data.getDataSize() > 0)
+                        processor->setStateInformation(data.getData(), static_cast<int>(data.getDataSize()));
+                }
             });
         }
     }
@@ -412,6 +409,9 @@ class PlugDataWindow : public DocumentWindow
 public:
     typedef StandalonePluginHolder::PluginInOuts PluginInOuts;
 
+    bool movedFromDialog = false;
+    SafePointer<Dialog> dialog;
+
     /** Creates a window with a given title and colour.
      The settings object can be a PropertySet that the class should use to
      store its settings (it can also be null). If takeOwnershipOfSettings is
@@ -439,6 +439,16 @@ public:
         propertyChanged("native_window", settingsTree.getProperty("native_window"));
     }
 
+#if JUCE_WINDOWS
+    void parentHierarchyChanged() override
+    {
+        DocumentWindow::parentHierarchyChanged();
+
+        if (auto peer = getPeer())
+            OSUtils::useWindowsNativeDecorations(peer->getNativeHandle(), !isFullScreen());
+    }
+#endif
+
     void propertyChanged(String const& name, var const& value) override
     {
         if (name == "native_window") {
@@ -446,14 +456,19 @@ public:
 #if JUCE_IOS
             nativeWindow = true;
 #endif
-
             auto* editor = mainComponent->getEditor();
             auto* pdEditor = dynamic_cast<PluginEditor*>(editor);
 
             setUsingNativeTitleBar(nativeWindow);
 
+            pdEditor->nvgSurface.detachContext();
+
             if (!nativeWindow) {
+#if JUCE_WINDOWS
+                setOpaque(true);
+#else
                 setOpaque(false);
+#endif
                 setResizable(false, false);
                 // we also need to set the constrainer of THIS window so it's set for the peer
                 setConstrainer(&pdEditor->constrainer);
@@ -463,8 +478,6 @@ public:
                     setDropShadowEnabled(true);
 #elif JUCE_WINDOWS
                     setDropShadowEnabled(false);
-                    dropShadower = std::make_unique<StackDropShadower>(DropShadow(Colour(0, 0, 0).withAlpha(0.8f), 23, { 0, 2 }));
-                    dropShadower->setOwner(this);
 #endif
                 } else {
                     setDropShadowEnabled(false);
@@ -589,26 +602,26 @@ public:
     }
 #endif
 
-#if JUCE_WINDOWS
-    void paintOverChildren(Graphics& g) override
-    {
-        g.setColour(findColour(PlugDataColour::outlineColourId));
-        if (isUsingNativeTitleBar() || isMaximised()) {
-            g.drawRect(getLocalBounds().toFloat(), 1.0f);
-        } else {
-            g.drawRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
-        }
-    }
-#endif
-
     void activeWindowStatusChanged() override
     {
-        repaint();
-
 #if JUCE_WINDOWS
-        if (drawWindowShadow && !isUsingNativeTitleBar() && dropShadower)
-            dropShadower->repaint();
+        // Windows looses the opengl buffers when minimised,
+        // regenerate here when restored from minimised
+        if (isActiveWindow()) {
+            if (auto* pluginEditor = dynamic_cast<PluginEditor*>(editor))
+                pluginEditor->nvgSurface.invalidateAll();
+        }
 #endif
+        repaint();
+    }
+
+    void moved() override
+    {
+        if (movedFromDialog) {
+            movedFromDialog = false;
+        } else if (dialog) {
+            dialog.getComponent()->closeDialog();
+        }
     }
 
     void resized() override
@@ -626,11 +639,12 @@ public:
 
         getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
 
+
         if (auto* content = getContentComponent()) {
             content->resized();
             content->repaint();
-            MessageManager::callAsync([content] {
-                if (content->isShowing())
+            MessageManager::callAsync([content = SafePointer(content)] {
+                if (content && content->isShowing())
                     content->grabKeyboardFocus();
             });
         }
@@ -736,24 +750,24 @@ private:
                 editor->removeComponentListener(this);
             }
         }
-            
+
 #if JUCE_IOS
-            void paint(Graphics& g) override
-            {
-                g.fillAll(findColour(PlugDataColour::toolbarBackgroundColourId));
-            }
+        void paint(Graphics& g) override
+        {
+            g.fillAll(findColour(PlugDataColour::toolbarBackgroundColourId));
+        }
 #endif
 
         void resized() override
         {
             auto r = getLocalBounds().reduced(getMargin());
-            
+
 #if JUCE_IOS
-            if(auto* peer = getPeer()) {
+            if (auto* peer = getPeer()) {
                 r = OSUtils::getSafeAreaInsets().subtractedFrom(r);
             }
 #endif
-            
+
             if (editor != nullptr) {
                 auto const newPos = r.getTopLeft().toFloat().transformedBy(editor->getTransform().inverted());
 
@@ -769,8 +783,6 @@ private:
         }
 
     public:
-        Rectangle<int> oldBounds;
-
         void componentMovedOrResized(Component&, bool, bool) override
         {
             ScopedValueSetter<bool> const scope(preventResizingEditor, true);

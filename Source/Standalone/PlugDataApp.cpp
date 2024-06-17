@@ -44,6 +44,7 @@
 #    define snprintf _snprintf
 #endif
 
+
 class PlugDataApp : public JUCEApplication {
 
     Image logo = ImageFileFormat::loadFrom(BinaryData::plugdata_logo_png, BinaryData::plugdata_logo_pngSize);
@@ -67,6 +68,7 @@ public:
         appProperties.setStorageParameters(options);
     }
 
+    
     String const getApplicationName() override
     {
         return "plugdata";
@@ -90,11 +92,18 @@ public:
             auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
             if (pd && editor && file.existsAsFile()) {
                 auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
-                pd->loadPatch(file, editor);
+                editor->getTabComponent().openPatch(URL(file));
                 SettingsFile::getInstance()->addToRecentlyOpened(file);
             }
         }
     }
+
+    // Open file callback on iOS
+    /*
+    bool urlOpened(URL& url) override {
+        anotherInstanceStarted(url.toString(false));
+        return true;
+    } */
 
     void initialise(String const& arguments) override
     {
@@ -153,7 +162,9 @@ public:
         // When starting with any sysargs, assume we don't want the last patch to open
         // Prevents a possible crash and generally kinda makes sense
         if (arguments.isEmpty() && hasReloadStateProperty && static_cast<bool>(settingsTree.getProperty("reload_last_state"))) {
-            pluginHolder->reloadPluginState();
+            // TODO: probably remove this option, because it's kind of risky, easy to get in a crash loop this way
+            // For now we'll just disable it to see if anyone misses it
+            //pluginHolder->reloadPluginState();
         }
 
         auto args = StringArray::fromTokens(arguments, true);
@@ -177,11 +188,9 @@ public:
             if (toOpen.existsAsFile() && toOpen.hasFileExtension("pd")) {
 
                 auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
-                if (auto* pd = dynamic_cast<PluginProcessor*>(pluginHolder->processor.get())) {
-                    pd->loadPatch(toOpen, editor);
-                    SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
-                    openedPatches.add(toOpen.getFullPathName());
-                }
+                editor->getTabComponent().openPatch(URL(toOpen));
+                SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
+                openedPatches.add(toOpen.getFullPathName());
             }
         }
 
@@ -196,9 +205,8 @@ public:
 #    endif
             auto toOpen = File(arg);
             if (toOpen.existsAsFile() && toOpen.hasFileExtension("pd") && !openedPatches.contains(toOpen.getFullPathName())) {
-                auto* pd = dynamic_cast<PluginProcessor*>(pluginHolder->processor.get());
                 auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
-                pd->loadPatch(toOpen, editor);
+                editor->getTabComponent().openPatch(URL(toOpen));
                 SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
             }
         }
@@ -255,12 +263,14 @@ void PlugDataWindow::closeAllPatches()
         }
 
         if (openedEditors.size() == 1) {
-            editor->closeAllTabs(true, nullptr, [this, editor, &openedEditors]() {
+            editor->getTabComponent().closeAllTabs(true, nullptr, [this, editor, &openedEditors]() {
+                editor->nvgSurface.detachContext();
                 removeFromDesktop();
                 openedEditors.removeObject(editor);
             });
         } else {
-            editor->closeAllTabs(false, nullptr, [this, editor, &openedEditors]() {
+            editor->getTabComponent().closeAllTabs(false, nullptr, [this, editor, &openedEditors]() {
+                editor->nvgSurface.detachContext();
                 removeFromDesktop();
                 openedEditors.removeObject(editor);
             });

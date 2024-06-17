@@ -5,7 +5,7 @@ description: select channel with crossfade
 
 categories:
  - object
- 
+
 pdcategory: ELSE, Mixing and Routing
 
 arguments:
@@ -13,17 +13,23 @@ arguments:
   description: number of channels (min 2, max 500)
   default: 2
 - type: float
-  description: <1> — indexed mode,  <0> — non-indexed
+  description: spread
   default: 1
-  
+
+flags:
+- name: index
+  description: sets to indexed mode
+- name: circular
+  description: sets to circular mode
+
 inlets:
   1st:
   - type: signal
     description: selected channel with crossfade
   nth:
   - type: signal
-    description: secondary inputs are the channels to select from
-    
+    description: inlets alternate between input position and spread parameter for each channel
+
 outlets:
   1st:
   - type: signal
@@ -31,7 +37,9 @@ outlets:
 
 methods:
   - type: index <float>
-    description: <1> - indexed mode, <0> - non-indexed (default)
+    description: 1 sets to indexed mode, 0 to non-indexed mode
+  - type: circular <float>
+    description: 1 sets to circular mode
 
 draft: false
 ---

@@ -91,7 +91,7 @@ public:
         categoriesHolder.setVisible(true);
     }
 
-    void showObject(ValueTree objectInfo)
+    void showObject(ValueTree const& objectInfo)
     {
         categories.clear();
 
@@ -377,6 +377,9 @@ public:
         bool hasUnknownOutletLayout = false;
 
         auto objectInfo = library.getObjectInfo(name);
+        if (!objectInfo.isValid())
+            return;
+
         auto ioletDescriptions = objectInfo.getChildWithName("iolets");
         for (auto iolet : ioletDescriptions) {
             auto variable = iolet.getProperty("variable").toString() == "1";

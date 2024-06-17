@@ -4,13 +4,21 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-option(RUN_CLANG_TIDY "" OFF)
 option(ENABLE_TESTING "" OFF)
 option(ENABLE_SFIZZ "" ON)
+option(ENABLE_GEM "" ON)
 option(ENABLE_ASAN "" OFF)
+option(MACOS_LEGACY "" OFF)
 option(VERBOSE "" OFF)
 
-set (CMAKE_CXX_STANDARD 20)
+if(APPLE)
+option(NANOVG_METAL_IMPLEMENTATION "" ON)
+else()
+option(NANOVG_METAL_IMPLEMENTATION "" OFF)
+endif()
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Visiblity needs to be hidden for all plugin targets, otherwise loading both plugdata and plugdata-fx will cause problems. We later undo this for the standalone build, so that externals can load
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
@@ -24,20 +32,18 @@ endfunction()
 
 if(APPLE)
   set(CMAKE_XCODE_BUILD_SYSTEM "12" CACHE STRING "" FORCE)
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum OS X deployment version")
-  if(RUN_CLANG_TIDY)
-  set(CMAKE_OSX_ARCHITECTURES "arm64;" CACHE STRING "" FORCE)
+  if(MACOS_LEGACY)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "Minimum OS X deployment version")
+    set(CMAKE_OSX_ARCHITECTURES "x86_64;" CACHE STRING "" FORCE)
   else()
-  set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version")
+    set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
   endif()
-endif()
 
-if(RUN_CLANG_TIDY)
-  set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES})
 endif()
 
 if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Release" CACHE STRING 
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING
     "Default build type: Release" FORCE)
 endif()
 
@@ -47,12 +53,19 @@ set(HARDENED_RUNTIME_OPTIONS "com.apple.security.device.audio-input")
 set(JUCE_ENABLE_MODULE_SOURCE_GROUPS ON CACHE BOOL "" FORCE)
 set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
-project(plugdata VERSION 0.8.3 LANGUAGES C CXX)
+project(plugdata VERSION 0.9.0 LANGUAGES C CXX)
 
 if(("${CMAKE_SYSTEM_NAME}" MATCHES "Linux" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
   OR ("${CMAKE_SYSTEM_NAME}" MATCHES "iOS"))
   message(STATUS "Disabled sfizz")
   set(ENABLE_SFIZZ OFF)
+endif()
+
+if(BSD)
+message(STATUS "Disabled sfizz")
+message(STATUS "Disabled Gem")
+set(ENABLE_GEM OFF)
+set(ENABLE_SFIZZ OFF)
 endif()
 
 add_subdirectory(Libraries/ EXCLUDE_FROM_ALL)
@@ -79,19 +92,29 @@ else()
 endif()
 
 message(STATUS "Preparing documentation")
-execute_process(COMMAND python3 parse_documentation.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts)
+execute_process(COMMAND python3 parse_documentation.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts RESULT_VARIABLE PREPARE_DOCUMENTATION_RESULT)
+
+if(NOT PREPARE_DOCUMENTATION_RESULT EQUAL 0)
+    message(FATAL_ERROR "Preparing documentation failed with error code ${PREPARE_DOCUMENTATION_RESULT}")
+endif()
 
 message(STATUS "Packaging resources")
-execute_process(COMMAND python3 package_resources.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts)
+execute_process(COMMAND python3 package_resources.py ${ENABLE_GEM} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts RESULT_VARIABLE PACKAGE_RESOURCES_RESULT)
 
+if(NOT PACKAGE_RESOURCES_RESULT EQUAL 0)
+    message(FATAL_ERROR "Resource packaging failed with error code ${PACKAGE_RESOURCES_RESULT}")
+endif()
 
-set(PLUGDATA_VERSION                    "0.8.3")
+set(PLUGDATA_VERSION                    "0.9.0")
 set(PLUGDATA_COMPANY_NAME               "plugdata")
 set(PLUGDATA_COMPANY_COPYRIGHT          "plugdata by Timothy Schoen")
 set(PLUGDATA_COMPANY_WEBSITE            "github.com/plugdata-team/plugdata")
 
 if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
 set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo_ios.png")
+file(GLOB IOS_LAUNCHSCREEN "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_launchscreen_ios.png")
+set_source_files_properties(${IOS_LAUNCHSCREEN} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+
 elseif(APPLE)
 set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo_mac.png")
 else()
@@ -111,12 +134,14 @@ file(GLOB plugdata_resources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterSemiBold.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterThin.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterVariable.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterRegular.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/RobotoMono-Regular.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_large_logo.png
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo.png
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Filesystem_*.zip
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Documentation.bin
     )
+
 
 file(GLOB StandaloneBinarySources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Extra/GeneralUser_GS.sf3
@@ -125,9 +150,9 @@ file(GLOB StandaloneBinarySources
 juce_add_binary_data(PlugDataBinaryData SOURCES ${plugdata_resources})
 set_target_properties(PlugDataBinaryData PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+
 juce_add_binary_data(StandaloneBinaryData HEADER_NAME "StandaloneBinaryData.h" NAMESPACE StandaloneBinaryData SOURCES ${StandaloneBinarySources} )
 set_target_properties(StandaloneBinaryData PROPERTIES POSITION_INDEPENDENT_CODE ON)
-
 
 file(GLOB plugdata_global_sources
     ${CMAKE_CACHEFILE_DIR}/plugdata_artefacts/JuceLibraryCode/JuceHeader.h)
@@ -152,6 +177,13 @@ file(GLOB plugdata_sources
     ${SOURCES_DIRECTORY}/Heavy/*.cpp
     ${SOURCES_DIRECTORY}/Heavy/*.h
 )
+
+
+# Set up testing
+if(ENABLE_TESTING)
+    list(APPEND plugdata_sources ${CMAKE_CURRENT_SOURCE_DIR}/Tests/Tests.cpp)
+
+endif()
 
 if(APPLE)
   list(APPEND plugdata_sources ${SOURCES_DIRECTORY}/Utility/FileSystemWatcher.mm ${SOURCES_DIRECTORY}/Utility/OSUtils.mm)
@@ -186,53 +218,86 @@ set(JUCE_COMPILE_DEFINITIONS
     JUCE_REPORT_APP_USAGE=0
     JUCE_LOG_ASSERTIONS=1
     JUCE_STRICT_REFCOUNTEDPOINTER=1
-    JUCE_WEB_BROWSER=0 
+    JUCE_WEB_BROWSER=0
     JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1
     JUCE_USE_COREIMAGE_LOADER=0
     JUCE_SILENCE_XCODE_15_LINKER_WARNING=1
     JUCE_USE_XRENDER=1
-    JUCE_ALSA=1
     JUCE_COREGRAPHICS_RENDER_WITH_MULTIPLE_PAINT_CALLS=1
-    #JUCE_JACK=1
-    #JUCE_JACK_CLIENT_NAME="plugdata"
 )
+
+if(LINUX)
+ list(APPEND JUCE_COMPILE_DEFINITIONS JUCE_ALSA=1 JUCE_JACK=1 JUCE_JACK_CLIENT_NAME="plugdata")
+elseif(UNIX AND NOT APPLE) # BSD
+  list(APPEND JUCE_COMPILE_DEFINITIONS JUCE_JACK=1 JUCE_JACK_CLIENT_NAME="plugdata")
+endif()
 
 set(PLUGDATA_COMPILE_DEFINITIONS
     PLUGDATA=1
     PLUGDATA_VERSION="${PLUGDATA_VERSION}"
     PLUGDATA_GIT_HASH="${GIT_HASH}"
     PD=1
+    ENABLE_TESTING=${ENABLE_TESTING}
 )
 if(ENABLE_SFIZZ)
   list(APPEND PLUGDATA_COMPILE_DEFINITIONS ENABLE_SFIZZ=1)
 endif()
 
+if(ENABLE_GEM)
+  list(APPEND PLUGDATA_COMPILE_DEFINITIONS ENABLE_GEM=1)
+endif()
+
 add_library(juce STATIC)
-target_compile_definitions(juce 
-    PUBLIC 
-        ${JUCE_COMPILE_DEFINITIONS} 
+target_compile_definitions(juce
+    PUBLIC
+        ${JUCE_COMPILE_DEFINITIONS}
     INTERFACE
         $<TARGET_PROPERTY:juce,COMPILE_DEFINITIONS>
     )
 
+if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
 target_link_libraries(juce
     PRIVATE
         juce::juce_audio_utils
         juce::juce_audio_plugin_client
         juce::juce_dsp
         juce::juce_cryptography
-    PUBLIC
-        juce::juce_recommended_lto_flags
-        #juce::juce_recommended_warning_flags
+        juce::juce_opengl
+        melatonin_blur
         )
+else()
+target_link_libraries(juce
+    PRIVATE
+        juce::juce_audio_utils
+        juce::juce_audio_plugin_client
+        juce::juce_dsp
+        juce::juce_cryptography
+        melatonin_blur
+        )
+endif()
+
+target_compile_options(juce PUBLIC $<$<CONFIG:Release>:${JUCE_LTO_FLAGS}>)
+
+if(NANOVG_METAL_IMPLEMENTATION)
+add_compile_definitions(NANOVG_METAL_IMPLEMENTATION=1)
+else()
+add_compile_definitions(NANOVG_GL3_IMPLEMENTATION=1)
+endif()
 
 set(libs
   juce
   PlugDataBinaryData
+  nanovg
 )
 
 if(UNIX AND NOT APPLE)
     list(APPEND libs curl X11)
+endif()
+
+# Fixes BSD compilation
+if(BSD)
+include_directories(/usr/local/include)
+link_directories(/usr/local/lib)
 endif()
 
 list(APPEND PLUGDATA_COMPILE_DEFINITIONS JUCE_MODAL_LOOPS_PERMITTED=1)
@@ -250,6 +315,7 @@ target_compile_definitions(plugdata_core PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
 target_include_directories(plugdata_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Tests ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/raw-keyboard-input-module ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src ${CMAKE_CURRENT_SOURCE_DIR}/Source ${CMAKE_CURRENT_SOURCE_DIR}/Libraries)
 target_link_libraries(plugdata_core PUBLIC ${libs})
 target_include_directories(plugdata_core PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
+include_directories(./Libraries/nanovg/src/)
 
 source_group("Source" FILES ${plugdata_global_sources})
 
@@ -446,10 +512,14 @@ set_target_properties(plugdata_standalone PROPERTIES
   RESOURCE "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/pd-file.icns")
 endif()
 
-if(UNIX AND NOT APPLE)
+if(LINUX)
     target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd-src externals StandaloneBinaryData "-Wl,-export-dynamic")
     target_link_libraries(plugdata PRIVATE plugdata_core pd-src-multi externals-multi)
     target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-src-multi externals-multi)
+elseif(UNIX AND NOT APPLE) # BSD
+    target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd-src externals lua fluidlite StandaloneBinaryData "-Wl,-export-dynamic")
+    target_link_libraries(plugdata PRIVATE plugdata_core pd-src-multi externals-multi lua fluidlite)
+    target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-src-multi externals-multi lua fluidlite)
 elseif(APPLE)
   if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 15.0)
     set(MACOS_COMPAT_LINKER_FLAGS "-Wl,-ld_classic")
@@ -489,65 +559,14 @@ set_target_properties(plugdata_midi PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDA
 set_target_properties(plugdata_midi PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
 endif()
 
-if(RUN_CLANG_TIDY)
-  find_program( CLANG_TIDY_EXE NAMES "clang-tidy" DOC "Path to clang-tidy executable" )
-  if(NOT CLANG_TIDY_EXE)
-    message(STATUS "clang-tidy not found.")
-  else()
-    message(STATUS "clang-tidy found: ${CLANG_TIDY_EXE}")
-    set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-checks=clang-diagnostic-*,clang-diagnostic-unused-value,clang-analyzer-*,bugprone-*,performance-*,readability-*,-readability-magic-numbers,-readability-braces-around-statements,-readability-inconsistent-declaration-parameter-name,-readability-named-parameter  --header-filter='.*'")
-  endif()
-  set_target_properties(plugdata_standalone PROPERTIES CXX_CLANG_TIDY "${DO_CLANG_TIDY}")
-endif()
-
-# Set up testing framework
-if(ENABLE_TESTING)
-
-enable_testing()
 if(APPLE)
-file(GLOB_RECURSE TestFiles CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.mm")
-else()
-file(GLOB_RECURSE TestFiles CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.cpp")
-endif()
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/Tests PREFIX "" FILES ${TestFiles})
-
-# Include Catch2
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/Libraries/Catch2)
-set(Catch2_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/Catch2)
-
-add_executable(Tests ${TestFiles})
-set_target_properties(Tests PROPERTIES CXX_STANDARD 20)
-
-target_link_libraries(Tests PRIVATE Catch2::Catch2WithMain plugdata ${libs})
-
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/Tests PREFIX "" FILES ${TestFiles})
-include(${Catch2_SOURCE_DIR}/extras/Catch.cmake)
-catch_discover_tests(Tests)
-
-target_compile_definitions(Tests PUBLIC TESTING=1)
-
-target_include_directories(Tests PUBLIC PLUGDATA_INCLUDE_DIRECTORY)
-target_include_directories(Tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Tests/)
-target_include_directories(Tests PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
-
-set_target_properties(Tests PROPERTIES PREFIX "")
-set_target_properties(Tests PROPERTIES CMAKE_CXX_VISIBILITY_PRESET hidden)
-set_target_properties(Tests PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
-set_target_properties(Tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
-set_property(TARGET Tests PROPERTY CXX_VISIBILITY_PRESET hidden)
-set_property(TARGET Tests PROPERTY VISIBILITY_INLINES_HIDDEN ON)
-
+# 2x speedup for standalone debug builds in xcode
+SET_TARGET_PROPERTIES(plugdata_standalone PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH[variant=Debug] "YES")
 endif()
 
 if(MSVC)
 set_target_properties(pthreadVC3 pthreadVSE3 pthreadVCE3 PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
 endif()
-
-set(CMAKE_INSTALL_DEFAULT_DIRECTORY_PERMISSIONS
-  WORLD_READ
-  WORLD_WRITE
-  WORLD_EXECUTE
-)
 
 if(APPLE)
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata.vst3 DESTINATION "/Library/Audio/Plug-ins/VST3")

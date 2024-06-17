@@ -185,18 +185,19 @@ public:
 
         _topLevelComponent = topLevelComponent;
 
+        /*
         Component* parent = nullptr;
         if (!ProjectInfo::canUseSemiTransparentWindows()) {
             parent = topLevelComponent;
             bounds = topLevelComponent->getLocalArea(nullptr, bounds);
-        }
+        } */
 
         setCurrentColour(currentColour);
 
         // we need to put the selector into a holder, as launchAsynchronously will delete the component when its done
         auto selectorHolder = std::make_unique<SelectorHolder>(this);
 
-        CallOutBox::launchAsynchronously(std::move(selectorHolder), bounds, parent);
+        CallOutBox::launchAsynchronously(std::move(selectorHolder), bounds, nullptr);
     }
 
     ColourPicker()
@@ -650,10 +651,10 @@ private:
             auto radius = jmin(Corners::defaultCornerRadius, bounds.getWidth() / 2.0f);
 
             g.setGradientFill(ColourGradient(colour, 0.0f, 0.0f, Colours::black, bounds.getHeight() / 2, bounds.getHeight() / 2, false));
-            PlugDataLook::fillSmoothedRectangle(g, bounds, radius);
+            g.fillRoundedRectangle(bounds, radius);
 
             g.setColour(findColour(PlugDataColour::outlineColourId));
-            PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), bounds, radius);
+            g.drawRoundedRectangle(bounds, radius, 1.0f);
         }
 
         void resized() override

@@ -15,6 +15,7 @@
 #include "BouncingViewport.h"
 #include "SearchEditor.h"
 #include "Dialogs/Dialogs.h"
+#include "PluginEditor.h"
 
 class PropertiesPanelProperty : public PropertyComponent {
 
@@ -191,12 +192,6 @@ private:
             return y + (title.isNotEmpty() ? 16 : 0);
         }
 
-        void refreshAll() const
-        {
-            for (auto* propertyComponent : propertyComponents)
-                propertyComponent->refresh();
-        }
-
         void mouseUp(MouseEvent const& e) override
         {
             if (e.getMouseDownX() < parent.titleHeight
@@ -229,12 +224,6 @@ private:
 
             setSize(width, std::max(viewHeight, y));
             repaint();
-        }
-
-        void refreshAll() const
-        {
-            for (auto* section : sections)
-                section->refreshAll();
         }
 
         void insertSection(int indexToInsertAt, SectionComponent* newSection)
@@ -331,12 +320,21 @@ public:
                 fontValue.setValue(options[comboBox.getSelectedItemIndex()]);
             };
 
+            setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
+
             addAndMakeVisible(comboBox);
+
+            lookAndFeelChanged();
         }
 
         PropertiesPanelProperty* createCopy() override
         {
             return new FontComponent(getName(), fontValue);
+        }
+
+        void lookAndFeelChanged() override
+        {
+            comboBox.setColour(ComboBox::textColourId, findColour(PlugDataColour::panelTextColourId));
         }
 
         void setFont(String const& fontName)
@@ -370,6 +368,8 @@ public:
                 property->setHideLabel(true);
                 addAndMakeVisible(property);
             }
+
+            setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
         }
 
         MultiPropertyComponent(String const& propertyName, Array<Value*> values, StringArray options)
@@ -390,6 +390,13 @@ public:
                 return new MultiPropertyComponent<T>(getName(), propertyValues, propertyOptions);
             } else {
                 return new MultiPropertyComponent<T>(getName(), propertyValues);
+            }
+        }
+
+        void lookAndFeelChanged() override
+        {
+            for (auto& property : properties) {
+                property->setColour(ComboBox::textColourId, findColour(PlugDataColour::panelTextColourId));
             }
         }
 
@@ -428,7 +435,7 @@ public:
             , textOptions(std::move(options))
             , toggleStateValue(value)
         {
-            toggleStateValue.addListener(this);
+            init();
         }
 
         // Also allow creating it without passing in a Value, makes it easier to derive from this class for custom bool components
@@ -436,7 +443,7 @@ public:
             : PropertiesPanelProperty(propertyName)
             , textOptions(std::move(options))
         {
-            toggleStateValue.addListener(this);
+            init();
         }
 
         // Allow creation without an attached juce::Value, but with an initial value
@@ -446,12 +453,24 @@ public:
             , textOptions(std::move(options))
         {
             toggleStateValue = initialValue;
+            init();
+        }
+
+        void init()
+        {
             toggleStateValue.addListener(this);
+            setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
+            lookAndFeelChanged();
         }
 
         ~BoolComponent()
         {
             toggleStateValue.removeListener(this);
+        }
+
+        void lookAndFeelChanged() override
+        {
+            repaint();
         }
 
         PropertiesPanelProperty* createCopy() override
@@ -484,7 +503,7 @@ public:
                 g.fillPath(p);
             }
 
-            auto textColour = isDown ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
+            auto textColour = findColour(PlugDataColour::panelTextColourId);
 
             if (!isEnabled()) {
                 textColour = findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f);
@@ -571,6 +590,7 @@ public:
             : PropertiesPanelProperty(propertyName)
             , swatchComponent(value)
         {
+
             currentColour.referTo(value);
             setWantsKeyboardFocus(true);
 
@@ -583,18 +603,35 @@ public:
             hexValueEditor.setColour(outlineColourId, Colour());
             hexValueEditor.setJustification(Justification::centred);
 
+            hexValueEditor.onReturnKey = [this]() {
+                grabKeyboardFocus();
+            };
+
             hexValueEditor.onTextChange = [this]() {
-                currentColour = String("ff") + hexValueEditor.getText().substring(1).toLowerCase();
+                colour = String("ff") + hexValueEditor.getText().substring(1).toLowerCase();
+            };
+
+            hexValueEditor.onFocusLost = [this]() {
+                currentColour.setValue(colour);
             };
 
             addAndMakeVisible(swatchComponent);
             updateHexValue();
+
+            setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
+
             repaint();
         }
 
         ~ColourComponent() override
         {
             currentColour.removeListener(this);
+        }
+
+        void lookAndFeelChanged() override
+        {
+            // TextEditor is special, setColour() will only change newly typed text colour
+            hexValueEditor.applyColourToAllText(findColour(PlugDataColour::panelTextColourId));
         }
 
         PropertiesPanelProperty* createCopy() override
@@ -627,6 +664,7 @@ public:
     private:
         SwatchComponent swatchComponent;
         Value currentColour;
+        Value colour;
         TextEditor hexValueEditor;
     };
 
@@ -734,7 +772,7 @@ public:
         Value property;
         String allowedCharacters = "";
 
-        EditableComponent(String propertyName, Value& value, double minimum = 0.0, double maximum = 0.0)
+        EditableComponent(String propertyName, Value& value, double minimum = 0.0, double maximum = 0.0, std::function<void(bool)> onInteractionFn = nullptr)
             : PropertiesPanelProperty(propertyName)
             , property(value)
         {
@@ -747,7 +785,13 @@ public:
                 draggableNumber->getTextValue().referTo(property);
                 draggableNumber->setFont(draggableNumber->getFont().withHeight(14));
                 draggableNumber->setEditableOnClick(true);
-                draggableNumber->setMinMax(minimum, maximum);
+                if (minimum != 0.0f)
+                    draggableNumber->setMinimum(minimum);
+                if (maximum != 0.0f)
+                    draggableNumber->setMaximum(maximum);
+
+                if (onInteractionFn)
+                    draggableNumber->onInteraction = onInteractionFn;
 
                 draggableNumber->onEditorShow = [draggableNumber]() {
                     auto* editor = draggableNumber->getCurrentTextEditor();
@@ -772,6 +816,14 @@ public:
 
                     if (allowedCharacters.isNotEmpty()) {
                         editor->setInputRestrictions(0, allowedCharacters);
+                    }
+                };
+
+                label->onEditorHide = [this]() {
+                    // synchronise the value to the canvas when updated
+                    if (PluginEditor* pluginEditor = findParentComponentOfClass<PluginEditor>()){
+                        if (auto cnv = pluginEditor->getCurrentCanvas())
+                            cnv->synchronise();
                     }
                 };
             }
@@ -834,12 +886,13 @@ public:
             addAndMakeVisible(browseButton);
 
             browseButton.onClick = [this]() {
-                Dialogs::showSaveDialog([this](File& result) {
+                Dialogs::showSaveDialog([this](URL url) {
+                    auto result = url.getLocalFile();
                     if (result.getParentDirectory().exists()) {
                         label.setText(result.getFullPathName(), sendNotification);
                     }
                 },
-                    "", "");
+                    "", "", getTopLevelComponent());
             };
         }
 
@@ -898,8 +951,6 @@ public:
                 Path p;
                 p.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, roundTop, roundTop, roundBottom, roundBottom);
                 g.fillPath(p);
-
-                colour = findColour(PlugDataColour::panelActiveTextColourId);
             }
 
             Fonts::drawIcon(g, icon, iconBounds, colour, 12);

@@ -14,7 +14,8 @@ class ObjectItem : public ObjectDragAndDrop
     , public SettableTooltipClient {
 public:
     ObjectItem(PluginEditor* e, String const& text, String const& icon, String const& tooltip, String const& patch, ObjectIDs objectID, std::function<void(bool)> dismissCalloutBox)
-        : titleText(text)
+        : ObjectDragAndDrop(e)
+        , titleText(text)
         , iconText(icon)
         , objectPatch(patch)
         , dismissMenu(dismissCalloutBox)
@@ -47,7 +48,7 @@ public:
 
         if (isHovering) {
             g.setColour(highlight);
-            PlugDataLook::fillSmoothedRectangle(g, iconBounds.toFloat(), Corners::defaultCornerRadius);
+            g.fillRoundedRectangle(iconBounds.toFloat(), Corners::defaultCornerRadius);
         }
 
         Fonts::drawText(g, titleText, textBounds, findColour(PlugDataColour::popupMenuTextColourId), 13.0f, Justification::centred);
@@ -99,11 +100,6 @@ public:
         }
     }
 
-    String getTitleText()
-    {
-        return titleText;
-    }
-
 private:
     String titleText;
     String iconText;
@@ -132,8 +128,7 @@ public:
         int maxColumns = width / itemSize;
         int offset = 0;
 
-        for (int i = 0; i < objectButtons.size(); i++) {
-            auto* button = objectButtons[i];
+        for (auto button : objectButtons) {
             button->setBounds(column * itemSize, offset, itemSize, itemSize);
             column++;
             if (column >= maxColumns) {
@@ -159,7 +154,7 @@ public:
                 if (objectPatch.isEmpty())
                     objectPatch = "#X obj 0 0 " + name;
                 else if (!objectPatch.startsWith("#")) {
-                    objectPatch = editor->getObjectManager()->getCompleteFormat(objectPatch);
+                    objectPatch = ObjectThemeManager::get()->getCompleteFormat(objectPatch);
                 }
                 auto* button = objectButtons.add(new ObjectItem(editor, name, icon, tooltip, objectPatch, objectID, dismissMenu));
                 addAndMakeVisible(button);
@@ -169,7 +164,7 @@ public:
         resized();
     }
 
-    void printAllObjects()
+    static void printAllObjects()
     {
         static bool hasRun = false;
         if (hasRun)
@@ -192,8 +187,7 @@ public:
 
     OwnedArray<ObjectItem> objectButtons;
 
-
-    static inline const std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> defaultObjectList = {
+    static inline std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> const defaultObjectList = {
         { "Default",
             {
                 { Icons::GlyphEmptyObject, "#X obj 0 0", "(@keypress) Empty object", "Object", NewObject },
@@ -207,7 +201,7 @@ public:
             } },
         { "UI",
             {
-                // GUI object default settings are in OjbectManager.h
+                // GUI object default settings are in ObjectManager.h
                 { Icons::GlyphBang, "bng", "(@keypress) Bang", "Bang", NewBang },
                 { Icons::GlyphToggle, "tgl", "(@keypress) Toggle", "Toggle", NewToggle },
                 { Icons::GlyphButton, "button", "Button", "Button", OtherObject },
@@ -219,7 +213,7 @@ public:
                 { Icons::GlyphNumber, "nbx", "(@keypress) Number box", "Number", NewNumbox },
                 { Icons::GlyphCanvas, "cnv", "(@keypress) Canvas", "Canvas", NewCanvas },
                 { Icons::GlyphFunction, "function", "Function", "Function", OtherObject },
-                { Icons::GlyphOscilloscope, "oscope~", "Oscilloscope", "Scope", OtherObject },
+                { Icons::GlyphOscilloscope, "scope~", "Oscilloscope", "Scope", OtherObject },
                 { Icons::GlyphKeyboard, "#X obj 0 0 keyboard 16 80 4 2 0 0 empty empty", "Piano keyboard", "Keyboard", OtherObject },
                 { Icons::GlyphMessbox, "messbox", "ELSE Message box", "Messbox", OtherObject },
                 { Icons::GlyphBicoeff, "#X obj 0 0 bicoeff 450 150 peaking", "Bicoeff generator", "Bicoeff", OtherObject },
@@ -356,7 +350,7 @@ public:
             } },
     };
 
-    static inline const std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> heavyObjectList = {
+    static inline std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> const heavyObjectList = {
         { "Default",
             {
                 { Icons::GlyphEmptyObject, "#X obj 0 0", "(@keypress) Empty object", "Object", NewObject },
@@ -514,7 +508,7 @@ public:
             button->setClickingTogglesState(true);
             button->setRadioGroupId(hash("add_menu_category"));
             button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
-            button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuActiveTextColourId));
+            button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuTextColourId));
             button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.035f));
             button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.075f));
             button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
@@ -556,7 +550,7 @@ public:
     bool clickingTogglesState = false;
     std::function<void(void)> onClick = []() {};
 
-    AddObjectMenuButton(String iconStr, String textStr = String())
+    explicit AddObjectMenuButton(String const& iconStr, String const& textStr = String())
         : icon(iconStr)
         , text(textStr)
     {
@@ -572,8 +566,7 @@ public:
 
         if (isMouseOver()) {
             g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
-            PlugDataLook::fillSmoothedRectangle(g, b.toFloat(), Corners::defaultCornerRadius);
-            colour = findColour(PlugDataColour::popupMenuActiveTextColourId);
+            g.fillRoundedRectangle(b.toFloat(), Corners::defaultCornerRadius);
         }
 
         if (toggleState) {
@@ -617,7 +610,7 @@ public:
 class AddObjectMenu : public Component {
 
 public:
-    AddObjectMenu(PluginEditor* e)
+    explicit AddObjectMenu(PluginEditor* e)
         : objectBrowserButton(Icons::Object, "Show Object Browser")
         , pinButton(Icons::Pin)
         , editor(e)
@@ -668,7 +661,7 @@ public:
             if (pinButton.toggleState) {
                 animator.animateComponent(currentCalloutBox, currentCalloutBox->getBounds(), shouldHide ? 0.1f : 1.0f, 300, false, 0.0f, 0.0f);
             }
-            // Otherwise, fade the panel on drag start: calling dismiss or setVisible will lead the the drag event getting lost, so we just set alpha instead
+            // Otherwise, fade the panel on drag start: calling dismiss or setVisible will lead to the drag event getting lost, so we just set alpha instead
             // Ditto for calling animator.fadeOut because that will also call setVisible(false)
             else if (shouldHide) {
                 animator.animateComponent(currentCalloutBox, currentCalloutBox->getBounds(), 0.0f, 300, false, 0.0f, 0.0f);
@@ -683,8 +676,7 @@ public:
     static void show(PluginEditor* editor, Rectangle<int> bounds)
     {
         auto addObjectMenu = std::make_unique<AddObjectMenu>(editor);
-        currentCalloutBox = &CallOutBox::launchAsynchronously(std::move(addObjectMenu), bounds, editor);
-        currentCalloutBox->setColour(PlugDataColour::popupMenuBackgroundColourId, currentCalloutBox->findColour(PlugDataColour::popupMenuBackgroundColourId));
+        currentCalloutBox = &editor->showCalloutBox(std::move(addObjectMenu), bounds);
     }
 
 private:

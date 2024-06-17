@@ -24,7 +24,6 @@ public:
         if (ProjectInfo::isStandalone) {
             nativeTitlebar.referTo(settingsFile->getPropertyAsValue("native_window"));
             macTitlebarButtons.referTo(settingsFile->getPropertyAsValue("macos_buttons"));
-            reloadPatch.referTo(settingsFile->getPropertyAsValue("reload_last_state"));
 
             macTitlebarButtons.addListener(this);
             nativeTitlebar.addListener(this);
@@ -35,8 +34,6 @@ public:
             windowProperties.add(new PropertiesPanel::BoolComponent("Use macOS style window buttons", macTitlebarButtons, { "No", "Yes" }));
 
             propertiesPanel.addSection("Window", windowProperties);
-
-            otherProperties.add(new PropertiesPanel::BoolComponent("Reload last opened patch on startup", reloadPatch, { "No", "Yes" }));
         } else {
 
             if (!settingsTree.hasProperty("NativeDialog")) {
@@ -178,7 +175,6 @@ public:
 
     Value nativeTitlebar;
     Value macTitlebarButtons;
-    Value reloadPatch;
     Value scaleValue;
     Value defaultZoom;
     Value centreResized;

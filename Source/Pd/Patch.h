@@ -6,7 +6,7 @@
 #pragma once
 
 extern "C" {
-#include "Pd/Interface.h" //  TODO: we only need t_object
+#include "Pd/Interface.h"
 }
 
 #include "WeakReference.h"
@@ -51,7 +51,6 @@ public:
     void deselectAll();
 
     bool isSubpatch();
-    bool isAbstraction();
 
     void setVisible(bool shouldVis);
 
@@ -80,18 +79,17 @@ public:
     bool canUndo() const;
     bool canRedo() const;
 
-    void savePatch(File const& location);
+    void savePatch(URL const& location);
     void savePatch();
 
     File getCurrentFile() const;
     File getPatchFile() const;
 
-    void setCurrentFile(File newFile);
+    void setCurrentFile(URL const& newFile);
 
     void updateUndoRedoState();
 
     bool objectWasDeleted(t_gobj* ptr) const;
-    bool connectionWasDeleted(t_outconnect* ptr) const;
 
     bool hasConnection(t_object* src, int nout, t_object* sink, int nin);
     bool canConnect(t_object* src, int nout, t_object* sink, int nin);
@@ -106,6 +104,11 @@ public:
     {
         return ptr.get<t_canvas>();
     }
+    
+    t_canvas* getUncheckedPointer() const
+    {
+        return ptr.getRawUnchecked<t_canvas>();
+    }
 
     // Gets the objects of the patch.
     std::vector<pd::WeakReference> getObjects();
@@ -116,11 +119,17 @@ public:
 
     String getTitle() const;
     void setTitle(String const& title);
+    void setUntitled();
 
     Instance* instance = nullptr;
     bool closePatchOnDelete;
+
     bool openInPluginMode = false;
     int splitViewIndex = 0;
+    int windowIndex = 0;
+
+    Point<int> lastViewportPosition = { 1, 1 };
+    float lastViewportScale;
 
     String lastUndoSequence;
     String lastRedoSequence;
@@ -133,13 +142,13 @@ private:
     std::atomic<bool> canPatchUndo;
     std::atomic<bool> canPatchRedo;
     std::atomic<bool> isPatchDirty;
-    
+
     File currentFile;
+    URL currentURL; // We hold a URL to the patch as well, which is needed for file IO on iOS
 
     WeakReference ptr;
 
     friend class Instance;
-    friend class Gui;
     friend class Object;
 
     int undoQueueSize = 0;

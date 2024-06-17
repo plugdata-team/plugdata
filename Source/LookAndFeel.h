@@ -16,60 +16,50 @@ inline std::map<PlugDataColour, std::tuple<String, String, String>> const PlugDa
     { toolbarTextColourId, { "Toolbar text", "toolbar_text", "Toolbar" } },
     { toolbarHoverColourId, { "Toolbar hover", "toolbar_hover", "Toolbar" } },
     { toolbarActiveColourId, { "Toolbar active text", "toolbar_active", "Toolbar" } },
-
-    { tabBackgroundColourId, { "Tab background", "tabbar_background", "Tabbar" } },
-
-    { tabTextColourId, { "Tab text", "tab_text", "Tabbar" } },
-    { activeTabBackgroundColourId, { "Selected tab background", "selected_tab_background", "Tabbar" } },
-    { activeTabTextColourId, { "Selected tab text", "selected_tab_text", "Tabbar" } },
+    { activeTabBackgroundColourId, { "Selected tab background", "selected_tab_background", "Toolbar" } },
 
     { canvasBackgroundColourId, { "Canvas background", "canvas_background", "Canvas" } },
     { canvasTextColourId, { "Canvas text", "canvas_text", "Canvas" } },
     { canvasDotsColourId, { "Canvas dots colour", "canvas_dots", "Canvas" } },
+    { presentationBackgroundColourId, { "Presentation background", "presentation_background", "Canvas" } },
+    { dataColourId, { "Data colour", "data_colour", "Canvas" } },
+    { connectionColourId, { "Connection", "connection_colour", "Canvas" } },
+    { signalColourId, { "Signal", "signal_colour", "Canvas" } },
+    { gemColourId, { "Gem", "gem_colour", "Canvas" } },
+    { graphAreaColourId, { "Graph resizer", "graph_area", "Canvas" } },
+    { gridLineColourId, { "Grid line", "grid_colour", "Canvas" } },
 
     { guiObjectBackgroundColourId, { "GUI object background", "default_object_background", "Object" } },
-    { guiObjectInternalOutlineColour, { "GUI Object internal outline colour", "gui_internal_outline_colour", "Object" } },
+    { guiObjectInternalOutlineColour, { "GUI object internal outline colour", "gui_internal_outline_colour", "Object" } },
     { textObjectBackgroundColourId, { "Object background", "text_object_background", "Object" } },
     { commentTextColourId, { "Comment text", "comment_text_colour", "Object" } },
     { objectOutlineColourId, { "Object outline", "object_outline_colour", "Object" } },
     { objectSelectedOutlineColourId, { "Selected object outline", "selected_object_outline_colour", "Object" } },
-
-    { ioletAreaColourId, { "Inlet/Outlet area", "iolet_area_colour", "Inlet/Outlet" } },
-    { ioletOutlineColourId, { "Inlet/Outlet outline", "iolet_outline_colour", "Inlet/Outlet" } },
-
-    { dataColourId, { "Data colour", "data_colour", "Canvas" } },
-    { connectionColourId, { "Connection", "connection_colour", "Canvas" } },
-    { signalColourId, { "Signal", "signal_colour", "Canvas" } },
-    { resizeableCornerColourId, { "Graph resizer", "graph_resizer", "Canvas" } },
-    { gridLineColourId, { "Grid line", "grid_colour", "Canvas" } },
+    { ioletAreaColourId, { "Inlet/Outlet area", "iolet_area_colour", "Object" } },
+    { ioletOutlineColourId, { "Inlet/Outlet outline", "iolet_outline_colour", "Object" } },
 
     { popupMenuBackgroundColourId, { "Popup menu background", "popup_background", "Popup Menu" } },
     { popupMenuActiveBackgroundColourId, { "Popup menu background active", "popup_background_active", "Popup Menu" } },
     { popupMenuTextColourId, { "Popup menu text", "popup_text", "Popup Menu" } },
-    { popupMenuActiveTextColourId, { "Popup menu active text", "popup_active_text", "Popup Menu" } },
     { outlineColourId, { "Popup menu outline", "outline_colour", "Popup Menu" } },
 
     { dialogBackgroundColourId, { "Dialog background", "dialog_background", "Other" } },
     { caretColourId, { "Text editor caret", "caret_colour", "Other" } },
     { toolbarOutlineColourId, { "Outline", "toolbar_outline_colour", "Other" } },
+    { scrollbarThumbColourId, { "Scrollbar thumb", "scrollbar_thumb", "Other" } },
 
     { levelMeterActiveColourId, { "Level meter active", "levelmeter_active", "Level Meter" } },
     { levelMeterBackgroundColourId, { "Level meter track", "levelmeter_background", "Level Meter" } },
     { levelMeterThumbColourId, { "Level meter thumb", "levelmeter_thumb", "Level Meter" } },
 
-    { sliderThumbColourId, { "Slider thumb", "slider_thumb", "Other" } },
-    { scrollbarThumbColourId, { "Scrollbar thumb", "scrollbar_thumb", "Other" } },
-
-    { panelBackgroundColourId, { "Panel background", "panel_background", "Panel" } },
-    { panelForegroundColourId, { "Panel foreground", "panel_foreground", "Panel" } },
-    { panelTextColourId, { "Panel text", "panel_text", "Panel" } },
-    { panelActiveBackgroundColourId, { "Panel background active", "panel_background_active", "Panel" } },
-    { panelActiveTextColourId, { "Panel active text", "panel_active_text", "Panel" } },
+    { panelBackgroundColourId, { "Panel background", "panel_background", "Properties Panel" } },
+    { panelForegroundColourId, { "Panel foreground", "panel_foreground", "Properties Panel" } },
+    { panelTextColourId, { "Panel text", "panel_text", "Properties Panel" } },
+    { panelActiveBackgroundColourId, { "Panel background active", "panel_background_active", "Properties Panel" } },
 
     { sidebarBackgroundColourId, { "Sidebar background", "sidebar_colour", "Sidebar" } },
     { sidebarTextColourId, { "Sidebar text", "sidebar_text", "Sidebar" } },
     { sidebarActiveBackgroundColourId, { "Sidebar background active", "sidebar_background_active", "Sidebar" } },
-    { sidebarActiveTextColourId, { "Sidebar active text", "sidebar_active_text", "Sidebar" } },
 };
 
 struct PlugDataLook : public LookAndFeel_V4 {
@@ -82,10 +72,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
     void fillResizableWindowBackground(Graphics& g, int w, int h, BorderSize<int> const& border, ResizableWindow& window) override;
 
     void drawResizableWindowBorder(Graphics&, int w, int h, BorderSize<int> const& border, ResizableWindow&) override { }
-
-    void drawTextButtonBackground(Graphics& g, Button& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown);
-
-    void drawToolbarButtonBackground(Graphics& g, Button& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown);
 
     void drawCallOutBoxBackground(CallOutBox& box, Graphics& g, Path const& path, Image& cachedImage) override;
 
@@ -105,22 +91,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
         Button* maximiseButton,
         Button* closeButton,
         bool positionTitleBarButtonsOnLeft) override;
-
-    Rectangle<int> getTabButtonExtraComponentBounds(TabBarButton const& button, Rectangle<int>& textArea, Component& comp) override;
-
-    int getTabButtonBestWidth(TabBarButton& button, int tabDepth) override;
-
-    int getTabButtonOverlap(int tabDepth) override;
-
-    void drawTabButton(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override;
-
-    void drawTabButton(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown, bool isForceDrawn);
-
-    void drawTabButtonText(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override;
-
-    void drawTabAreaBehindFrontButton(TabbedButtonBar& bar, Graphics& g, int const w, int const h) override { }
-
-    Button* createTabBarExtrasButton() override;
 
     Font getTabButtonFont(TabBarButton&, float height) override;
 
@@ -163,19 +133,13 @@ struct PlugDataLook : public LookAndFeel_V4 {
     void drawCornerResizer(Graphics& g, int w, int h, bool isMouseOver, bool isMouseDragging) override;
 
     void drawLasso(Graphics& g, Component& lassoComp) override;
-    
-    void drawAlertBox (Graphics& g, AlertWindow& alert,
-                       const Rectangle<int>& textArea, TextLayout& textLayout) override;
+
+    void drawAlertBox(Graphics& g, AlertWindow& alert,
+        Rectangle<int> const& textArea, TextLayout& textLayout) override;
 
     void drawTooltip(Graphics& g, String const& text, int width, int height) override;
 
     void drawLabel(Graphics& g, Label& label) override;
-
-    static Path getSquircle(Rectangle<float> const& bounds, float cornerRadius, bool const curveTopLeft = true, bool const curveTopRight = true, bool const curveBottomLeft = true, bool const curveBottomRight = true);
-
-    static void fillSmoothedRectangle(Graphics& g, Rectangle<float> const& bounds, float cornerRadius, bool const curveTopLeft = true, bool const curveTopRight = true, bool const curveBottomLeft = true, bool const curveBottomRight = true);
-
-    static void drawSmoothedRectangle(Graphics& g, PathStrokeType strokeType, Rectangle<float> const& bounds, float cornerRadius, bool const curveTopLeft = true, bool const curveTopRight = true, bool const curveBottomLeft = true, bool const curveBottomRight = true);
 
     void drawPropertyComponentLabel(Graphics& g, int width, int height, PropertyComponent& component) override;
 
@@ -187,7 +151,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     void setColours(std::map<PlugDataColour, Colour> colours);
 
-    static void setDefaultFont(String fontName);
+    static void setDefaultFont(String const& fontName);
 
     static String const defaultThemesXml;
 
@@ -199,12 +163,10 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     static StringArray getAllThemes();
 
-    static bool getUseDashedConnections();
     static bool getUseStraightConnections();
     static bool getUseThinConnections();
     static bool getUseSquareIolets();
 
-    static inline bool useDashedConnections = true;
     static inline bool useStraightConnections = false;
     static inline bool useThinConnections = false;
     static inline bool useSquareIolets = false;

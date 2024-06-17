@@ -28,24 +28,31 @@ struct PlugDataLook;
 class PluginEditor;
 class ConnectionMessageDisplay;
 class PluginProcessor : public AudioProcessor
-    , public pd::Instance, public SettingsFileListener {
+    , public pd::Instance
+    , public SettingsFileListener {
 public:
     PluginProcessor();
 
-    ~PluginProcessor();
+    ~PluginProcessor() override;
 
     static AudioProcessor::BusesProperties buildBusesProperties();
 
     void setOversampling(int amount);
+    void setLimiterThreshold(int amount);
     void setProtectedMode(bool enabled);
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
+    void numChannelsChanged() override;
     void releaseResources() override;
+
+    void updateAllEditorsLNF();
 
 #ifndef JucePlugin_PreferredChannelConfigurations
     bool isBusesLayoutSupported(BusesLayout const& layouts) const override;
 #endif
 
     void processBlock(AudioBuffer<float>&, MidiBuffer&) override;
+        
+    void processBlockBypassed(AudioBuffer<float>& buffer, MidiBuffer&) override;
 
     AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
@@ -66,7 +73,7 @@ public:
     void getStateInformation(MemoryBlock& destData) override;
     void setStateInformation(void const* data, int sizeInBytes) override;
 
-    void receiveNoteOn(int channel, int pitch, int const velocity) override;
+    void receiveNoteOn(int channel, int pitch, int velocity) override;
     void receiveControlChange(int channel, int controller, int value) override;
     void receiveProgramChange(int channel, int value) override;
     void receivePitchBend(int channel, int value) override;
@@ -96,9 +103,8 @@ public:
         return nbus > 0;
     }
 
-    void savePatchTabPositions();
     void updatePatchUndoRedoState();
-        
+
     void settingsFileReloaded() override;
 
     void initialiseFilesystem();
@@ -108,31 +114,26 @@ public:
     void sendPlayhead();
     void sendParameters();
 
-    bool isInPluginMode();
-
     Array<PluginEditor*> getEditors() const;
 
     void performParameterChange(int type, String const& name, float value) override;
+    void enableAudioParameter(String const& name) override;
+    void setParameterRange(String const& name, float min, float max) override;
+    void setParameterMode(String const& name, int mode) override;
 
-    // Jyg added this
+    void performLatencyCompensationChange(float value) override;
+    void sendParameterInfoChangeMessage();
+
     void fillDataBuffer(std::vector<pd::Atom> const& list) override;
     void parseDataBuffer(XmlElement const& xml) override;
     std::unique_ptr<XmlElement> extraData;
 
-    pd::Patch::Ptr loadPatch(String patch, PluginEditor* editor, int splitIndex = 0);
-    pd::Patch::Ptr loadPatch(File const& patch, PluginEditor* editor, int splitIndex = 0);
+    pd::Patch::Ptr loadPatch(String patch);
+    pd::Patch::Ptr loadPatch(URL const& patchURL);
 
     void titleChanged() override;
 
     void setTheme(String themeToUse, bool force = false);
-
-    Colour getForegroundColour() override;
-    Colour getBackgroundColour() override;
-    Colour getTextColour() override;
-    Colour getOutlineColour() override;
-        
-    // All opened patches
-    Array<pd::Patch::Ptr, CriticalSection> patches;
 
     int lastUIWidth = 1000, lastUIHeight = 650;
 
@@ -162,8 +163,6 @@ public:
 
     // Zero means no oversampling
     std::atomic<int> oversampling = 0;
-    int lastLeftTab = -1;
-    int lastRightTab = -1;
 
     std::unique_ptr<InternalSynth> internalSynth;
     std::atomic<bool> enableInternalSynth = false;
@@ -172,6 +171,8 @@ public:
     Component::SafePointer<ConnectionMessageDisplay> connectionListener;
 
 private:
+    int customLatencySamples = 0;
+
     SmoothedValue<float, ValueSmoothingTypes::Linear> smoothedGain;
 
     int audioAdvancement = 0;
@@ -179,6 +180,7 @@ private:
     bool variableBlockSize = false;
     AudioBuffer<float> audioBufferIn;
     AudioBuffer<float> audioBufferOut;
+    AudioBuffer<float> bypassBuffer;
 
     std::vector<float> audioVectorIn;
     std::vector<float> audioVectorOut;
@@ -205,11 +207,31 @@ private:
 
     std::map<unsigned long, std::unique_ptr<Component>> textEditorDialogs;
 
-    static inline String const else_version = "ELSE v1.0-rc10";
-    static inline String const cyclone_version = "cyclone v0.8-0";
+    static inline String const else_version = "ELSE v1.0-rc11";
+    static inline String const cyclone_version = "cyclone v0.9-0";
     static inline String const heavylib_version = "heavylib v0.3.1";
+    static inline String const gem_version = "Gem v0.94";
     // this gets updated with live version data later
     static String pdlua_version;
+
+    class HostInfoUpdater : public AsyncUpdater {
+    public:
+        HostInfoUpdater(PluginProcessor* parentProcessor)
+            : processor(*parentProcessor) {};
+
+        void handleAsyncUpdate() override
+        {
+            if (ProjectInfo::isStandalone)
+                return;
+
+            auto const details = AudioProcessorListener::ChangeDetails {}.withParameterInfoChanged(true);
+            processor.updateHostDisplay(details);
+        }
+
+        PluginProcessor& processor;
+    };
+
+    HostInfoUpdater hostInfoUpdater;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)
 };

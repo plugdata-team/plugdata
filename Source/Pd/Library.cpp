@@ -84,7 +84,6 @@ void Library::updateLibrary()
     // These can't be created by name in Pd, but plugdata allows it
     allObjects.add("graph");
     allObjects.add("garray");
-    
 
     // These aren't in there but should be
     allObjects.add("float");
@@ -99,32 +98,32 @@ Library::Library(pd::Instance* instance)
     MemoryInputStream instream(BinaryData::Documentation_bin, BinaryData::Documentation_binSize, false);
     documentationTree = ValueTree::readFromStream(instream);
 
-    for (auto object : documentationTree) {
-        auto categories = object.getChildWithName("categories");
-        if (!categories.isValid())
-            continue;
+    for (auto child : documentationTree) {
+        auto categoriesTree = child.getChildWithName("categories");
 
-        for (auto category : categories) {
-            allCategories.addIfNotAlreadyThere(category.getProperty("name").toString());
+        String origin;
+        for (auto category : categoriesTree) {
+            auto cat = category.getProperty("name").toString();
+            if (objectOrigins.contains(cat)) {
+                origin = cat;
+            }
+        }
+
+        auto name = child.getProperty("name").toString();
+        if (origin.isEmpty()) {
+            documentationIndex[hash(name)] = child;
+        } else if (origin == "Gem") {
+            documentationIndex[hash(origin + "/" + name)] = child;
+        } else if (documentationIndex.count(hash(name))) {
+            documentationIndex[hash(origin + "/" + name)] = child;
+        } else {
+            documentationIndex[hash(name)] = child;
+            documentationIndex[hash(origin + "/" + name)] = child;
         }
     }
 
     watcher.addFolder(ProjectInfo::appDataDir);
     watcher.addListener(this);
-
-    // Paths to search
-    // First, only search vanilla, then search all documentation
-    // Lastly, check the deken folder
-    helpPaths = {
-        ProjectInfo::appDataDir.getChildFile("Documentation"),
-        ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("5.reference"),
-        ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("9.else"),
-        ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("10.cyclone"),
-        ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("11.heavylib"),
-        ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("13.pdlua"),
-        ProjectInfo::appDataDir.getChildFile("Extra"),
-        ProjectInfo::appDataDir.getChildFile("Externals")
-    };
 
     // This is unfortunately necessary to make Windows LV2 turtle dump work
     // Let's hope its not harmful
@@ -173,8 +172,11 @@ void Library::getExtraSuggestions(int currentNumSuggestions, String const& query
         StringArray result;
         StringArray matches;
 
+        // TODO: why not iterate the documentation tree directly??
         for (const auto& object : getAllObjects()) {
             auto info = getObjectInfo(object);
+            if (!info.isValid())
+                continue;
 
             auto description = info.getProperty("description").toString();
 
@@ -212,7 +214,7 @@ void Library::getExtraSuggestions(int currentNumSuggestions, String const& query
 
 ValueTree Library::getObjectInfo(String const& name)
 {
-    return documentationTree.getChildWithProperty("name", name);
+    return documentationIndex[hash(name)];
 }
 
 std::array<StringArray, 2> Library::parseIoletTooltips(ValueTree const& iolets, String const& name, int numIn, int numOut)
@@ -273,17 +275,38 @@ StringArray Library::getAllObjects()
     return allObjects;
 }
 
-StringArray Library::getAllCategories()
-{
-    return allCategories;
-}
-
 void Library::filesystemChanged()
 {
     updateLibrary();
 }
 
-File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile) const
+String Library::getObjectOrigin(t_gobj* obj)
+{
+    auto* pdclass = pd_class(reinterpret_cast<t_pd*>(obj));
+
+    if (pdclass == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
+        auto* cnv = reinterpret_cast<t_canvas*>(obj);
+        auto parentPath = String::fromUTF8(canvas_getenv(cnv)->ce_dir->s_name);
+        for (auto& origin : objectOrigins) {
+            if (parentPath.containsIgnoreCase("/" + origin)) {
+                return origin;
+            }
+        }
+    }
+
+    if (pdclass->c_externdir) {
+        auto externDir = String::fromUTF8(pdclass->c_externdir->s_name);
+        for (auto& origin : objectOrigins) {
+            if (externDir.containsIgnoreCase(origin)) {
+                return origin;
+            }
+        }
+    }
+
+    return {};
+}
+
+File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile)
 {
     String helpName;
     String helpDir;
@@ -299,7 +322,7 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile) const
             return {};
 
         atom_string(av, namebuf, MAXPDSTRING);
-        helpName = String::fromUTF8(namebuf); //.fromLastOccurrenceOf("/", false, false);
+        helpName = String::fromUTF8(namebuf);
     } else {
         helpDir = class_gethelpdir(pdclass);
         helpName = class_gethelpname(pdclass);
@@ -309,7 +332,7 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile) const
     auto patchHelpPaths = Array<File>();
 
     // Add abstraction dir to search paths
-    if (pd_class(reinterpret_cast<t_pd*>(obj)) == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
+    if (pdclass == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
         auto* cnv = reinterpret_cast<t_canvas*>(obj);
         patchHelpPaths.add(File(String::fromUTF8(canvas_getenv(cnv)->ce_dir->s_name)));
         if (helpDir.isNotEmpty()) {
@@ -335,6 +358,11 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile) const
     auto findHelpPatch = [&firstName, &secondName](File const& searchDir) -> File {
         for (const auto& file : OSUtils::iterateDirectory(searchDir, false, true)) {
             auto pathName = file.getFullPathName().replace("\\", "/").trimCharactersAtEnd("/");
+            // Hack to make it find else/cyclone/Gem helpfiles...
+            pathName = pathName.replace("/9.else", "/else");
+            pathName = pathName.replace("/10.cyclone", "/cyclone");
+            pathName = pathName.replace("/14.gem", "/Gem");
+
             if (pathName.endsWith("/" + firstName) || pathName.endsWith("/" + secondName)) {
                 return file;
             }

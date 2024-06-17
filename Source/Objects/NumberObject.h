@@ -5,6 +5,8 @@
  */
 
 #include "Components/DraggableNumber.h"
+#include "ObjectBase.h"
+#include "IEMHelper.h"
 
 class NumberObject final : public ObjectBase {
 
@@ -34,18 +36,20 @@ public:
             startEdition();
 
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
-            editor->setBorder({ 0, 11, 3, 0 });
+            editor->setBorder({ 0, 8, 4, 1 });
 
             if (editor != nullptr) {
                 editor->setInputRestrictions(0, "e.-0123456789");
             }
         };
 
+        input.setFont(Fonts::getTabularNumbersFont().withHeight(15.5f));
+
         input.onEditorHide = [this]() {
             stopEdition();
         };
 
-        input.setBorderSize({ 1, 15, 1, 1 });
+        input.setBorderSize({ 1, 12, 2, 2 });
 
         addAndMakeVisible(input);
 
@@ -95,19 +99,19 @@ public:
         iemHelper.update();
     }
 
-    bool hideInlets() override
+    bool inletIsSymbol() override
     {
         return iemHelper.hasReceiveSymbol();
     }
 
-    bool hideOutlets() override
+    bool outletIsSymbol() override
     {
         return iemHelper.hasSendSymbol();
     }
 
     void updateLabel() override
     {
-        iemHelper.updateLabel(label);
+        iemHelper.updateLabel(labels);
     }
 
     Rectangle<int> getPdBounds() override
@@ -265,72 +269,79 @@ public:
         }
     }
 
-    void paint(Graphics& g) override
+    void render(NVGcontext* nvg) override
     {
-        g.setColour(iemHelper.getBackgroundColour());
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
+        auto b = getLocalBounds().toFloat().reduced(0.5f);
 
         bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+        auto backgroundColour = convertColour(iemHelper.getBackgroundColour());
+        auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-    }
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, selected ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
-    void paintOverChildren(Graphics& g) override
-    {
         int const indent = 9;
+        Rectangle<float> iconBounds = { static_cast<float>(b.getX() + 4), static_cast<float>(b.getY() + 4), static_cast<float>(indent - 4), static_cast<float>(b.getHeight() - 8) };
 
-        Rectangle<int> const iconBounds = getLocalBounds().withWidth(indent - 4).withHeight(getHeight() - 8).translated(4, 4);
+        auto centreY = iconBounds.getCentreY();
+        auto leftX = iconBounds.getX();
+        nvgBeginPath(nvg);
+        nvgMoveTo(nvg, leftX, centreY + 5.0f);
+        nvgLineTo(nvg, iconBounds.getRight(), centreY);
+        nvgLineTo(nvg, leftX, centreY - 5.0f);
+        nvgClosePath(nvg);
 
-        Path triangle;
-        //    a
-        //    |\
-        //    | \
-        //    |  b
-        //    | /
-        //    |/
-        //    c
-
-        auto centre_y = iconBounds.getCentreY();
-        auto left_x = iconBounds.getTopLeft().getX();
-        Point<float> point_a(left_x, centre_y + 5.0);
-        Point<float> point_b(iconBounds.getRight(), centre_y);
-        Point<float> point_c(left_x, centre_y - 5.0);
-        triangle.addTriangle(point_a, point_b, point_c);
-
-        auto normalColour = object->findColour(PlugDataColour::guiObjectInternalOutlineColour);
-        auto highlightColour = object->findColour(PlugDataColour::objectSelectedOutlineColourId);
+        auto normalColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour);
+        auto highlightColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId);
         bool highlighed = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
 
-        g.setColour(highlighed ? highlightColour : normalColour);
-        g.fillPath(triangle);
+        nvgFillColor(nvg, convertColour(highlighed ? highlightColour : normalColour));
+        nvgFill(nvg);
+
+        input.render(nvg);
     }
 
     float getValue()
     {
-        return (ptr.get<t_my_numbox>())->x_val;
+        if(auto numbox = ptr.get<t_my_numbox>())
+        {
+            return numbox->x_val;
+        }
+        return 0.0f;
     }
 
     float getMinimum()
     {
-        return (ptr.get<t_my_numbox>())->x_min;
+        if(auto numbox = ptr.get<t_my_numbox>())
+        {
+            return numbox->x_min;
+        }
+        return -std::numeric_limits<float>::infinity();
     }
 
     float getMaximum()
     {
-        return (ptr.get<t_my_numbox>())->x_max;
+        if(auto numbox = ptr.get<t_my_numbox>())
+        {
+            return numbox->x_max;
+        }
+        return std::numeric_limits<float>::infinity();
     }
 
     void setMinimum(float value)
     {
         input.setMinimum(value);
-        ptr.get<t_my_numbox>()->x_min = value;
+        if(auto numbox = ptr.get<t_my_numbox>()) {
+            numbox->x_min = value;
+        }
     }
 
     void setMaximum(float value)
     {
         input.setMaximum(value);
-        ptr.get<t_my_numbox>()->x_max = value;
+        if(auto numbox = ptr.get<t_my_numbox>()) {
+            numbox->x_max = value;
+        }
+        
     }
 };

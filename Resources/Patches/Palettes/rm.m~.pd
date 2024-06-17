@@ -1,4 +1,4 @@
-#N canvas 379 67 495 561 12;
+#N canvas 379 67 422 522 12;
 #X declare -path else;
 #N canvas 243 43 499 411 preset 0;
 #X obj 125 121 else/sender 1 \\\$0-presets;
@@ -55,7 +55,7 @@
 #X connect 0 0 2 0;
 #X connect 1 0 0 0;
 #X restore 217 399 pd GUI;
-#X text 200 125 IN;
+#X text 206 121 IN;
 #N canvas 227 82 394 451 (subpatch) 0;
 #X obj 112 112 cnv 15 85 165 empty empty empty 20 12 0 14 #dbdbdb #373737 0;
 #X obj 121 120 note 62 18 Inter empty 5 54 54 54 0 187 187 187 1 1 RING MOD;
@@ -66,9 +66,13 @@
 #X restore 206 147 graph;
 #X obj 69 301 rm~, f 5;
 #X obj 101 266 r \$0-hz;
-#X obj 69 35 inlet~ signal in;
+#X obj 218 83 s \$0-hz-rate;
+#X obj 218 59 route hz;
+#X obj 38 25 inlet~ signal for input \, float for hz;
 #X obj 69 463 outlet~ signal out;
-#X connect 5 0 8 0;
+#X connect 5 0 10 0;
 #X connect 6 0 5 1;
-#X connect 7 0 5 0;
+#X connect 8 0 7 0;
+#X connect 9 0 5 0;
+#X connect 9 1 8 0;
 #X coords 0 1 100 -1 86 166 2 207 148;

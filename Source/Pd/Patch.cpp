@@ -31,6 +31,7 @@ namespace pd {
 Patch::Patch(pd::WeakReference patchPtr, Instance* parentInstance, bool ownsPatch, File patchFile)
     : instance(parentInstance)
     , closePatchOnDelete(ownsPatch)
+    , lastViewportScale(SettingsFile::getInstance()->getProperty<float>("default_zoom") / 100.0f)
     , currentFile(std::move(patchFile))
     , ptr(patchPtr)
 {
@@ -86,11 +87,11 @@ bool Patch::canRedo() const
     return canPatchRedo.load();
 }
 
-void Patch::savePatch(File const& location)
+void Patch::savePatch(URL const& locationURL)
 {
-
+    auto location = locationURL.getLocalFile();
     String fullPathname = location.getParentDirectory().getFullPathName();
-    String filename = location.withFileExtension(".pd").getFileName();
+    String filename = location.hasFileExtension("pd") ? location.getFileName() : location.getFileName() + ".pd";
 
     auto* dir = instance->generateSymbol(fullPathname.replace("\\", "/"));
     auto* file = instance->generateSymbol(filename);
@@ -100,12 +101,25 @@ void Patch::savePatch(File const& location)
         untitledPatchNum = 0;
         canvas_dirty(patch.get(), 0);
 
-        pd::Interface::saveToFile(patch.get(), file, dir);
+#if JUCE_IOS
+        auto patchText = getCanvasContent();
+        auto outputStream = locationURL.createOutputStream();
 
+        // on iOS, saving with pd's normal method doesn't work
+        // we need to use an outputstream on a URL
+        outputStream->write(patchText.toRawUTF8(), patchText.getNumBytesAsUTF8());
+        outputStream->flush();
+
+        instance->logMessage("saved to: " + location.getFullPathName());
+        canvas_rename(patch.get(), file, dir);
+#else
+        pd::Interface::saveToFile(patch.get(), file, dir);
+#endif
+
+        currentFile = location;
+        currentURL = locationURL;
         instance->reloadAbstractions(location, patch.get());
     }
-
-    currentFile = location;
 }
 
 t_glist* Patch::getRoot()
@@ -126,15 +140,6 @@ bool Patch::isSubpatch()
     return false;
 }
 
-bool Patch::isAbstraction()
-{
-    if (auto patch = ptr.get<t_canvas>()) {
-        return canvas_isabstraction(patch.get());
-    }
-
-    return false;
-}
-
 void Patch::updateUndoRedoState()
 {
     if (auto patch = ptr.get<t_glist>()) {
@@ -147,14 +152,13 @@ void Patch::updateUndoRedoState()
             undoQueueSize = undoSize;
             updateUndoRedoString();
         }
-
     }
 }
 
 void Patch::savePatch()
 {
     String fullPathname = currentFile.getParentDirectory().getFullPathName();
-    String filename = currentFile.withFileExtension(".pd").getFileName();
+    String filename = currentFile.hasFileExtension("pd") ? currentFile.getFileName() : currentFile.getFileName() + ".pd";
 
     auto* dir = instance->generateSymbol(fullPathname.replace("\\", "/"));
     auto* file = instance->generateSymbol(filename);
@@ -167,10 +171,12 @@ void Patch::savePatch()
         pd::Interface::saveToFile(patch.get(), file, dir);
     }
 
-    MessageManager::callAsync([this, patch = ptr.getRaw<t_glist>()]() {
-        sys_lock();
-        instance->reloadAbstractions(currentFile, patch);
-        sys_unlock();
+    MessageManager::callAsync([instance = juce::WeakReference(this->instance), file = this->currentFile, ptr = this->ptr]() {
+        if (instance) {
+            if(auto patch = ptr.get<t_glist>()) {
+                instance->reloadAbstractions(file, patch.get());
+            }
+        }
     });
 }
 
@@ -227,9 +233,9 @@ t_gobj* Patch::createObject(int x, int y, String const& name)
 {
 
     StringArray tokens;
-    tokens.addTokens(name, false);
+    tokens.addTokens(name.replace("\\ ", "__%SPACE%__"), true); // Prevent "/ " from being tokenised
 
-    PluginEditor::getObjectManager()->formatObject(tokens);
+    ObjectThemeManager::get()->formatObject(tokens);
 
     if (tokens[0] == "garray") {
         if (auto patch = ptr.get<t_glist>()) {
@@ -288,18 +294,20 @@ t_gobj* Patch::createObject(int x, int y, String const& name)
 
     for (int i = 0; i < tokens.size(); i++) {
         // check if string is a valid number
-        auto charptr = tokens[i].getCharPointer();
+        auto token = tokens[i].replace("__%SPACE%__", "\\ ");
+        auto charptr = token.getCharPointer();
         auto ptr = charptr;
         CharacterFunctions::readDoubleValue(ptr); // This will read the number and increment the pointer to be past the number
-        if (ptr - charptr == tokens[i].getNumBytesAsUTF8()) {
-            SETFLOAT(argv.data() + i + 2, tokens[i].getFloatValue());
+        if (ptr - charptr == token.getNumBytesAsUTF8()) {
+            SETFLOAT(argv.data() + i + 2, token.getFloatValue());
         } else {
-            SETSYMBOL(argv.data() + i + 2, instance->generateSymbol(tokens[i]));
+            SETSYMBOL(argv.data() + i + 2, instance->generateSymbol(token));
         }
     }
 
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
+        EDITOR->canvas_undo_already_set_move = 1;
         return pd::Interface::createObject(patch.get(), typesymbol, argc, argv.data());
     }
 
@@ -311,7 +319,7 @@ t_gobj* Patch::renameObject(t_object* obj, String const& name)
     StringArray tokens;
     tokens.addTokens(name, false);
 
-    PluginEditor::getObjectManager()->formatObject(tokens);
+    ObjectThemeManager::get()->formatObject(tokens);
     String newName = tokens.joinIntoString(" ");
 
     if (auto patch = ptr.get<t_glist>()) {
@@ -430,8 +438,7 @@ void Patch::paste(Point<int> position)
 {
     auto text = SystemClipboard::getTextFromClipboard();
 
-    // for some reason when we paste into PD, we need to apply a translation?
-    auto translatedObjects = translatePatchAsString(text, position.translated(1540, 1540));
+    auto translatedObjects = translatePatchAsString(text, position);
 
     if (auto patch = ptr.get<t_glist>()) {
         pd::Interface::paste(patch.get(), translatedObjects.toRawUTF8());
@@ -450,7 +457,6 @@ void Patch::deselectAll()
 {
     if (auto patch = ptr.get<t_glist>()) {
         glist_noselect(patch.get());
-        libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
     }
 }
 
@@ -520,7 +526,9 @@ void Patch::moveObjects(std::vector<t_gobj*> const& objects, int dx, int dy)
 void Patch::moveObjectTo(t_gobj* object, int x, int y)
 {
     if (auto patch = ptr.get<t_glist>()) {
-        pd::Interface::moveObject(patch.get(), object, x + 1544, y + 1544); // FIXME: why do we have to offset by 1544?
+        // Originally this was +1544, but caused issues with alignment tools being off-by xy +2px.
+        // FIXME: why do we have to do this at all?
+        pd::Interface::moveObject(patch.get(), object, x + 1542, y + 1542);
     }
 }
 
@@ -562,9 +570,9 @@ void Patch::undo()
         setCurrent();
         auto x = patch.get();
         glist_noselect(x);
-        libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
 
         pd::Interface::undo(patch.get());
+        EDITOR->canvas_undo_already_set_move = 1;
 
         updateUndoRedoString();
     }
@@ -576,9 +584,9 @@ void Patch::redo()
         setCurrent();
         auto x = patch.get();
         glist_noselect(x);
-        libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
 
         pd::Interface::redo(patch.get());
+        EDITOR->canvas_undo_already_set_move = 1;
 
         updateUndoRedoString();
     }
@@ -596,7 +604,7 @@ void Patch::updateUndoRedoString()
         auto undoDbg = undo;
         auto redoDbg = redo;
 #endif
-        
+
         lastUndoSequence = "";
         lastRedoSequence = "";
 
@@ -624,7 +632,7 @@ void Patch::updateUndoRedoString()
             }
             redo = redo->next;
         }
-//#define DEBUG_UNDO_QUEUE
+// #define DEBUG_UNDO_QUEUE
 #ifdef DEBUG_UNDO_QUEUE
         std::cout << "<<<<<< undo list:" << std::endl;
         while (undoDbg) {
@@ -689,6 +697,19 @@ void Patch::setTitle(String const& title)
     });
 }
 
+void Patch::setUntitled()
+{
+    // find the lowest `Untitled-N` number, for the new patch title
+    int lowestNumber = 0;
+    for (auto patch : instance->patches) {
+        lowestNumber = std::max(lowestNumber, patch->untitledPatchNum);
+    }
+    lowestNumber += 1;
+
+    untitledPatchNum = lowestNumber;
+    setTitle("Untitled-" + String(lowestNumber));
+}
+
 File Patch::getCurrentFile() const
 {
     return currentFile;
@@ -707,9 +728,10 @@ File Patch::getPatchFile() const
     return File();
 }
 
-void Patch::setCurrentFile(File newFile)
+void Patch::setCurrentFile(URL const& newURL)
 {
-    currentFile = std::move(newFile);
+    currentFile = newURL.getLocalFile();
+    currentURL = newURL;
 }
 
 String Patch::getCanvasContent()
@@ -744,26 +766,6 @@ bool Patch::objectWasDeleted(t_gobj* objectPtr) const
             if (y == objectPtr)
                 return false;
         }
-    }
-
-    return true;
-}
-bool Patch::connectionWasDeleted(t_outconnect* connectionPtr) const
-{
-    t_outconnect* oc;
-    t_linetraverser t;
-
-    if (auto patch = ptr.get<t_glist>()) {
-        // Get connections from pd
-        linetraverser_start(&t, patch.get());
-
-        while ((oc = linetraverser_next(&t))) {
-            if (oc == connectionPtr) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     return true;

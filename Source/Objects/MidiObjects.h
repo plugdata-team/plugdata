@@ -57,7 +57,7 @@ public:
 
                 if (midiInput) {
                     int port = 1;
-                    for (auto input : midiDeviceManager->getInputDevices()) {
+                    for (auto const& input : midiDeviceManager->getInputDevices()) {
                         PopupMenu subMenu;
                         for (int ch = 1; ch < 17; ch++) {
                             int portNumber = ch + (port << 4);
@@ -75,7 +75,7 @@ public:
                     }
                 } else {
                     int port = 1;
-                    for (auto output : midiDeviceManager->getOutputDevices()) {
+                    for (auto const& output : midiDeviceManager->getOutputDevices()) {
                         PopupMenu subMenu;
                         for (int ch = 1; ch < 17; ch++) {
                             int portNumber = ch + (port << 4);
@@ -117,9 +117,7 @@ public:
                 }
             }
 
-            auto* parent = ProjectInfo::canUseSemiTransparentWindows() ? nullptr : cnv->editor;
-
-            popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(80).withMaximumNumColumns(1).withParentComponent(parent).withTargetComponent(this), ModalCallbackFunction::create([this](int itemID) {
+            popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(80).withMaximumNumColumns(1).withTargetComponent(this), ModalCallbackFunction::create([this](int itemID) {
                 if (itemID == 0)
                     return;
 

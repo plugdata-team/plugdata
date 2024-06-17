@@ -55,24 +55,25 @@ public:
     class Listener : public AsyncUpdater {
     public:
         virtual ~Listener() = default;
-        
+
         // group changes together
         void handleAsyncUpdate() override
         {
             filesystemChanged();
         }
-        
+
         /* Called for each file that has changed and how it has changed. Use this callback
            if you need to reload a file when it's contents change */
         virtual void fileChanged(File const f, FileSystemEvent)
         {
             // By default, don't respond to hidden files (which would be .settings and .autosave)
             // If you want that to respond to hidden file changes, override this
-            if(f.isHidden() || f.getFileName().startsWith(".")) return;
-            
+            if (f.isHidden() || f.getFileName().startsWith("."))
+                return;
+
             triggerAsyncUpdate();
         }
-        
+
         virtual void filesystemChanged() {};
     };
 

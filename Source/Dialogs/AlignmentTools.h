@@ -112,7 +112,7 @@ public:
         alignButtons[AlignButton::VCentre]->onClick = [this]() {
             auto cnv = pluginEditor->getCurrentCanvas();
             if (cnv)
-                cnv->alignObjects(Align::VCenter);
+                cnv->alignObjects(Align::VCentre);
         };
 
         alignButtons[AlignButton::Top]->onClick = [this]() {
@@ -130,7 +130,7 @@ public:
         alignButtons[AlignButton::HCentre]->onClick = [this]() {
             auto cnv = pluginEditor->getCurrentCanvas();
             if (cnv)
-                cnv->alignObjects(Align::HCenter);
+                cnv->alignObjects(Align::HCentre);
         };
 
         alignButtons[AlignButton::HDistribute]->onClick = [this]() {
@@ -175,8 +175,9 @@ public:
         isShowing = true;
 
         auto alignmentTools = std::make_unique<AlignmentTools>();
-        alignmentTools->pluginEditor = static_cast<PluginEditor*>(editor);
-        CallOutBox::launchAsynchronously(std::move(alignmentTools), bounds, editor);
+        auto* pluginEditor = dynamic_cast<PluginEditor*>(editor);
+        alignmentTools->pluginEditor = pluginEditor;
+        pluginEditor->showCalloutBox(std::move(alignmentTools), bounds);
     }
 
     ~AlignmentTools() override
@@ -185,7 +186,7 @@ public:
     }
 
 private:
-    PluginEditor* pluginEditor;
+    PluginEditor* pluginEditor = nullptr;
 
     static inline bool isShowing = false;
 

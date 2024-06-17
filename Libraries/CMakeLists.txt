@@ -17,6 +17,8 @@ cmake_policy(SET CMP0091 NEW)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 add_subdirectory(JUCE)
+add_subdirectory(nanovg)
+
 juce_add_module(melatonin_blur)
 
 if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.21")
@@ -24,6 +26,8 @@ if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.21")
   add_subdirectory(clap-juce-extensions EXCLUDE_FROM_ALL)
   unset(MESSAGE_QUIET)
 endif()
+
+set(PD_DIR "pure-data/")
 
 # ------------------------------------------------------------------------------#
 set(CMAKE_MACOSX_RPATH ON)
@@ -39,7 +43,8 @@ set(LIBPD_OUTPUT_DIRECTORY "./..")
 option(PD_UTILS "Compile libpd utilities" OFF)
 option(PD_EXTRA "Compile extras" ON)
 option(PD_LOCALE "Set the LC_NUMERIC number format to the default C locale" ON)
-        
+
+
 # ------------------------------------------------------------------------------#
 # SOURCES
 # ------------------------------------------------------------------------------#
@@ -211,21 +216,21 @@ include_directories(pd-else/Code_source/Compiled/audio/sfz~/sfizz/library/src)
 source_group(ELSE FILES ${ELSE_SOURCES})
 
 file(GLOB_RECURSE CYCLONE_SOURCES
-    ./cyclone/cyclone_objects/binaries/cyclone_lib.c
-    ./cyclone/cyclone_objects/binaries/audio/*.c
-    ./cyclone/cyclone_objects/binaries/control/*.c
-    ./cyclone/shared/common/*.c
-    ./cyclone/shared/control/*.c
-    ./cyclone/shared/signal/*.c
+    ./pd-cyclone/cyclone_objects/binaries/cyclone_lib.c
+    ./pd-cyclone/cyclone_objects/binaries/audio/*.c
+    ./pd-cyclone/cyclone_objects/binaries/control/*.c
+    ./pd-cyclone/shared/common/*.c
+    ./pd-cyclone/shared/control/*.c
+    ./pd-cyclone/shared/signal/*.c
 )
 
-include_directories(cyclone/)
-include_directories(cyclone/shared/)
-source_group(cyclone FILES ${CYCLONE_SOURCES})
+include_directories(pd-cyclone/)
+include_directories(pd-cyclone/shared/)
+source_group(pd-cyclone FILES ${CYCLONE_SOURCES})
 
 # pdlua sources
 set(PDLUA_PATH "${CMAKE_CURRENT_SOURCE_DIR}/pd-lua")
-set(PDLUA_SOURCES ${PDLUA_PATH}/pdlua.c ${PDLUA_PATH}/pdlua_multi_instance.cpp)
+set(PDLUA_SOURCES ${PDLUA_PATH}/pdlua.c)
 
 set(LUA_PATH "${PDLUA_PATH}/lua")
 set(LUA_INCLUDE_DIR ${LUA_PATH})
@@ -253,11 +258,17 @@ source_group(pdlua FILES ${PDLUA_SOURCES})
 # ------------------------------------------------------------------------------#
 set(LIBPD_COMPILE_DEFINITIONS PD=1 USEAPI_DUMMY=1 PD_INTERNAL=1)
 
+if(ENABLE_GEM)
+add_subdirectory(Gem)
+set(GEM_LIBS Gem ftgl glew_s freetype)
+set(GEM_LIBS_MULTI Gem-multi ftgl glew_s freetype)
+endif()
 
 if(ENABLE_SFIZZ)
 list(APPEND LIBPD_COMPILE_DEFINITIONS ENABLE_SFIZZ=1)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/sfz~)
 endif()
+
 
 # COMPILE DEFINITIONS OPTIONS
 # ------------------------------------------------------------------------------#
@@ -282,9 +293,10 @@ if(WIN32)
         list(APPEND LIBPD_COMPILE_DEFINITIONS HAVE_STRUCT_TIMESPEC=1 _CRT_SECURE_NO_WARNINGS=1 HAVE_ALLOCA=1 DONT_USE_ALLOCA=0)
     endif()
 elseif(UNIX)
-    list(APPEND LIBPD_COMPILE_DEFINITIONS HAVE_LIBDL=1 HAVE_UNISTD_H=1 HAVE_ALLOCA_H=1 HAVE_ALLOCA=1 DONT_USE_ALLOCA=0)
-    if(NOT APPLE)
-        list(APPEND LIBPD_COMPILE_DEFINITIONS HAVE_ENDIAN_H=1)
+    if(LINUX OR APPLE)
+        list(APPEND LIBPD_COMPILE_DEFINITIONS HAVE_LIBDL=1 HAVE_UNISTD_H=1 HAVE_ALLOCA_H=1 HAVE_ALLOCA=1 DONT_USE_ALLOCA=0)
+    else() # BSD
+        list(APPEND LIBPD_COMPILE_DEFINITIONS HAVE_LIBDL=1 HAVE_UNISTD_H=1 HAVE_ALLOCA=1 DONT_USE_ALLOCA=0 HAVE_ENDIAN_H=0)
     endif()
 endif()
 
@@ -298,11 +310,11 @@ if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
     # These are the warning flags I need to get pd to compile withoout warnings
     # Would be nice if these warnings were solved instead
     add_compile_options(-Wno-format -Wno-format-security -Wno-conversion -Wno-unused-variable -Wno-int-to-pointer-cast -Wno-parentheses -Wno-unused-value -Wno-unknown-pragmas)
-    
+
     if(CMAKE_C_COMPILER_ID MATCHES "Clang")
         add_compile_options(-Wno-compare-distinct-pointer-types -Wno-implicit-int-conversion)
     endif()
- 
+
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-int-conversion -Wno-pointer-sign -Wno-pointer-to-int-cast -Wno-incompatible-pointer-types")
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -fno-finite-math-only -ffast-math -funroll-loops -fomit-frame-pointer -O3")
     set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -g -O0")
@@ -333,7 +345,11 @@ list(APPEND SFONT_SOURCES
     ${FLUIDLITE_DIR}/src/fluid_sys.c
     ${FLUIDLITE_DIR}/src/fluid_tuning.c
     ${FLUIDLITE_DIR}/src/fluid_voice.c
+)
 
+if(MSVC)
+
+list(APPEND SFONT_SOURCES
     ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/vorbisenc.c
     ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/info.c
     ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/analysis.c
@@ -360,6 +376,7 @@ list(APPEND SFONT_SOURCES
     ${FLUIDLITE_DIR}/libogg-1.3.2/src/bitwise.c
     ${FLUIDLITE_DIR}/libogg-1.3.2/src/framing.c
 )
+endif()
 
 list(APPEND SFONT_INCLUDES
     ${FLUIDLITE_DIR}/libvorbis-1.3.5/include
@@ -378,13 +395,11 @@ list(APPEND ELSE_SOURCES
     ${SFONT_DIR}/sfont~.c
 )
 
-file(GLOB OFELIA_SOURCES ./plugdata-ofelia/Source/Objects/*.cpp ./plugdata-ofelia/Source/Objects/*.h ./plugdata-ofelia/Source/Shared/*.cpp ./plugdata-ofelia/Source/Shared/*.h)
-source_group(ofelia FILES ${OFELIA_SOURCES})
 # ------------------------------------------------------------------------------#
 # TARGETS
 # ------------------------------------------------------------------------------#
-add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES} ${OFELIA_SOURCES})
-add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES} ${OFELIA_SOURCES})
+add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES})
+add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES})
 
 # ag: pdlua needs PLUGDATA symbol at compile time for PlugData integration.
 target_compile_definitions(externals PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PLUGDATA=1)
@@ -395,6 +410,7 @@ target_compile_definitions(pd-src PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
 
 if(UNIX)
     target_compile_options(pd-src PRIVATE -fvisibility=default)
+    target_compile_options(externals PRIVATE -fvisibility=default)
 endif()
 
 add_library(pd-src-multi STATIC ${SOURCE_FILES})
@@ -404,6 +420,7 @@ if(MSVC)
     target_compile_definitions(pd-src-multi PRIVATE PTW32_STATIC_LIB=1 "EXTERN= ")
 endif()
 
+set_target_properties(externals-multi PROPERTIES CXX_VISIBILITY_PRESET hidden)
 set_target_properties(pd-src-multi PROPERTIES CXX_VISIBILITY_PRESET hidden)
 
 set_target_properties(pd-src PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -429,22 +446,22 @@ if("${CMAKE_SYSTEM}" MATCHES "Linux")
     add_library(pd INTERFACE)
     add_library(pd-multi INTERFACE)
     find_library(MATH_LIB m)
-    target_link_libraries(externals ${externals_libs})
-    target_link_libraries(externals-multi ${externals_libs})
+    target_link_libraries(externals ${externals_libs} ${GEM_LIBS})
+    target_link_libraries(externals-multi ${externals_libs} ${GEM_LIBS_MULTI})
 elseif(MSVC)
     add_library(pd SHARED $<TARGET_OBJECTS:externals> $<TARGET_OBJECTS:pd-src>)
     add_library(pd-multi STATIC $<TARGET_OBJECTS:externals-multi> $<TARGET_OBJECTS:pd-src-multi>)
 
-    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 ${externals_libs})
-    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 ${externals_libs})
+    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS})
+    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS_MULTI})
 
     add_custom_command(TARGET pd POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
         "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/pd.dll"
         ${CMAKE_SOURCE_DIR}/Plugins/Standalone/pd.dll)
 elseif(APPLE)
-    target_link_libraries(externals ${externals_libs})
-    target_link_libraries(externals-multi ${externals_libs})
+    target_link_libraries(externals ${externals_libs} ${GEM_LIBS})
+    target_link_libraries(externals-multi ${externals_libs} ${GEM_LIBS_MULTI})
 endif()
 
 # PTHREAD

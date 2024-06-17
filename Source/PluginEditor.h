@@ -7,26 +7,57 @@
 #pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
+#include <juce_opengl/juce_opengl.h>
+
+#include <map>
 
 #include "Utility/Fonts.h"
-#include "Utility/RateReducer.h" // TODO: move to impl
 #include "Utility/ModifierKeyListener.h"
 #include "Components/CheckedTooltip.h"
-#include "Utility/StackShadow.h" // TODO: move to impl
-#include "Components/ZoomableDragAndDropContainer.h"
+#include "Utility/ZoomableDragAndDropContainer.h"
 #include "Utility/OfflineObjectRenderer.h"
 #include "Utility/WindowDragger.h"
-
-#include "Tabbar/SplitView.h" // TODO: move to impl
-#include "Dialogs/OverlayDisplaySettings.h"
-#include "Dialogs/SnapSettings.h"
+#include "Canvas.h"
+#include "Components/Buttons.h"
+#include "TabComponent.h"
 
 #include "Utility/ObjectThemeManager.h"
+#include "NVGSurface.h"
+
+class CalloutArea : public Component, public Timer {
+public:
+    explicit CalloutArea(Component* parent)
+        : target(parent)
+        , tooltipWindow(this)
+    {
+        setVisible(true);
+        setAlwaysOnTop(true);
+        setInterceptsMouseClicks(false, true);
+        startTimerHz(3);
+    }
+
+    ~CalloutArea() = default;
+
+    void timerCallback() override
+    {
+        setBounds(target->getScreenBounds());
+    }
+
+    void paint(Graphics& g) override
+    {
+        if (!ProjectInfo::canUseSemiTransparentWindows()) {
+            g.fillAll(findColour(PlugDataColour::popupMenuBackgroundColourId));
+        }
+    }
+
+private:
+    WeakReference<Component> target;
+    TooltipWindow tooltipWindow;
+};
 
 class ConnectionMessageDisplay;
 class Sidebar;
 class Statusbar;
-class ZoomLabel;
 class Dialog;
 class Canvas;
 class TabComponent;
@@ -35,6 +66,7 @@ class Palettes;
 class Autosave;
 class PluginMode;
 class TouchSelectionHelper;
+class WelcomePanel;
 class PluginEditor : public AudioProcessorEditor
     , public Value::Listener
     , public ApplicationCommandTarget
@@ -42,8 +74,7 @@ class PluginEditor : public AudioProcessorEditor
     , public ModifierKeyBroadcaster
     , public ModifierKeyListener
     , public ZoomableDragAndDropContainer
-    , public AsyncUpdater
-{
+    , public AsyncUpdater {
 public:
     explicit PluginEditor(PluginProcessor&);
 
@@ -52,33 +83,25 @@ public:
     void paint(Graphics& g) override;
     void paintOverChildren(Graphics& g) override;
 
+    void renderArea(NVGcontext* nvg, Rectangle<int> area);
+
     bool isActiveWindow() override;
 
     void resized() override;
     void parentSizeChanged() override;
+    void parentHierarchyChanged() override;
+    void broughtToFront() override;
+
+    void lookAndFeelChanged() override;
 
     // For dragging parent window
     void mouseDrag(MouseEvent const& e) override;
     void mouseDown(MouseEvent const& e) override;
 
-    void newProject();
-    void openProject();
-    void saveProject(std::function<void()> const& nestedCallback = []() {});
-    void saveProjectAs(std::function<void()> const& nestedCallback = []() {});
-
-    void addTab(Canvas* cnv, int splitIdx = -1);
-    void closeTab(Canvas* cnv);
-    void closeAllTabs(
-        bool quitAfterComplete = false, Canvas* patchToExclude = nullptr, std::function<void()> afterComplete = []() {});
-
     void quit(bool askToSave);
 
+    Array<Canvas*> getCanvases();
     Canvas* getCurrentCanvas();
-
-    // Part of the ZoomableDragAndDropContainer, we give it the splitview
-    // so it can check if the drag image is over the entire splitview
-    // otherwise some objects inside the splitview will trigger a zoom
-    SplitView* getSplitView() override;
 
     void modifierKeysChanged(ModifierKeys const& modifiers) override;
 
@@ -93,7 +116,7 @@ public:
     void fileDragMove(StringArray const& files, int x, int y) override;
     void fileDragExit(StringArray const&) override;
 
-    void createNewWindow(TabBarButtonComponent* tabButton) override;
+    TabComponent& getTabComponent() override;
 
     DragAndDropTarget* findNextDragAndDropTarget(Point<int> screenPos) override;
 
@@ -106,43 +129,34 @@ public:
 
     bool keyPressed(KeyPress const& key) override;
 
-    void enablePluginMode(Canvas* cnv);
+    CallOutBox& showCalloutBox(std::unique_ptr<Component> content, Rectangle<int> screenBounds);
 
     void commandKeyChanged(bool isHeld) override;
-    void setZoomLabelLevel(float value);
     void setUseBorderResizer(bool shouldUse);
     void showTouchSelectionHelper(bool shouldBeShown);
-    
+
     bool highlightSearchTarget(void* target, bool openNewTabIfNeeded);
 
-
-    TabComponent* getActiveTabbar();
+    Array<pd::WeakReference> openTextEditors;
 
     PluginProcessor* pd;
 
     std::unique_ptr<ConnectionMessageDisplay> connectionMessageDisplay;
 
-    OwnedArray<Canvas, CriticalSection> canvases;
     std::unique_ptr<Sidebar> sidebar;
     std::unique_ptr<Statusbar> statusbar;
 
     std::unique_ptr<Dialog> openedDialog;
-
-    std::unique_ptr<PluginMode> pluginMode;
 
     Value theme;
 
     Value hvccMode;
     Value autoconnect;
 
-    SplitView splitView;
-    DrawableRectangle selectedSplitRect;
-
     std::unique_ptr<Palettes> palettes;
 
-    std::unique_ptr<ZoomLabel> zoomLabel;
-
     OfflineObjectRenderer offlineRenderer;
+    NVGSurface nvgSurface;
 
     // used to display callOutBoxes only in a safe area between top & bottom toolbars
     Component callOutSafeArea;
@@ -152,24 +166,34 @@ public:
 
     std::unique_ptr<Autosave> autosave;
     ApplicationCommandManager commandManager;
-    
-    inline static ObjectThemeManager objectManager;
-    static ObjectThemeManager* getObjectManager() { return &objectManager; };
+
+    std::unique_ptr<CalloutArea> calloutArea;
+    std::unique_ptr<WelcomePanel> welcomePanel;
+
+    CheckedTooltip tooltipWindow;
+
+    int editorIndex;
+
+    pd::Patch::Ptr findPatchInPluginMode();
+
+    bool isInPluginMode() const;
 
 private:
-    
+    TabComponent tabComponent;
+
+public:
+    std::unique_ptr<PluginMode> pluginMode;
+
+private:
     std::unique_ptr<TouchSelectionHelper> touchSelectionHelper;
 
     // Used by standalone to handle dragging the window
     WindowDragger windowDragger;
 
-    int const toolbarHeight = ProjectInfo::isStandalone ? 40 : 35;
+    int const toolbarHeight = 34;
 
     MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pluginModeButton;
     ToolbarRadioButton editButton, runButton, presentButton;
-
-    CheckedTooltip tooltipWindow;
-
     TextButton seperators[8];
 
 #if JUCE_MAC
@@ -178,6 +202,8 @@ private:
 
     bool isMaximised = false;
     bool isDraggingFile = false;
+
+    static inline int numEditors = 0;
 
     // Used in plugin
     std::unique_ptr<MouseRateReducedComponent<ResizableCornerComponent>> cornerResizer;

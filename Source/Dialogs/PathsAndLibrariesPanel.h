@@ -8,7 +8,7 @@
 
 #pragma once
 
-// Draws a trigger button in the style of the PropertiesPanel, though it's meant to be used outside of the PropertiesPanel itself
+// Draws a trigger button in the style of the PropertiesPanel, though it's meant to be used outside PropertiesPanel itself
 class ActionButton : public Component {
 
     bool mouseIsOver = false;
@@ -37,8 +37,6 @@ public:
             Path p;
             p.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, roundTop, roundTop, true, true);
             g.fillPath(p);
-
-            colour = findColour(PlugDataColour::panelActiveTextColourId);
         }
 
         Fonts::drawIcon(g, icon, iconBounds, colour, 12);
@@ -120,7 +118,7 @@ public:
 
         addAndMakeVisible(resetButton);
         resetButton.onClick = [this]() {
-            Dialogs::showOkayCancelDialog(&confirmationDialog, getParentComponent(), "Are you sure you want to reset all the search paths?",
+            Dialogs::showOkayCancelDialog(&confirmationDialog, findParentComponentOfClass<Dialog>(), "Are you sure you want to reset all the search paths?",
                 [this](int result) {
                     if (result == 0)
                         return;
@@ -204,9 +202,7 @@ public:
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId).withAlpha(0.5f));
         g.drawHorizontalLine(height - 1.0f, x, x + newWidth);
 
-        auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
-
-        Fonts::drawText(g, paths[rowNumber], x + 12, 0, width - 9, height, colour, 15);
+        Fonts::drawText(g, paths[rowNumber], x + 12, 0, width - 9, height, findColour(PlugDataColour::panelTextColourId), 15);
     }
 
     void deleteKeyPressed(int row) override
@@ -328,7 +324,7 @@ private:
             selectionBounds = selectionBounds.reduced(0, 2);
             auto buttonHeight = selectionBounds.getHeight();
 
-            selectionBounds.removeFromRight(38);
+            selectionBounds.removeFromRight(50);
 
             removeButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
             changeButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
@@ -353,13 +349,14 @@ private:
         if (start == File())
             start = File::getCurrentWorkingDirectory();
 
-        Dialogs::showOpenDialog([this](File& result) {
+        Dialogs::showOpenDialog([this](URL url) {
+            auto result = url.getLocalFile();
             if (result.exists()) {
                 paths.addIfNotAlreadyThere(result.getFullPathName(), listBox.getSelectedRow());
                 internalChange();
             }
         },
-            false, true, "", "PathBrowser");
+            false, true, "", "PathBrowser", getTopLevelComponent());
     }
 
     void deleteSelected()
@@ -375,14 +372,15 @@ private:
 
         auto row = listBox.getSelectedRow();
 
-        Dialogs::showOpenDialog([this, row](File& result) {
+        Dialogs::showOpenDialog([this, row](URL url) {
+            auto result = url.getLocalFile();
             if (result.exists()) {
                 paths.remove(row);
                 paths.addIfNotAlreadyThere(result.getFullPathName(), row);
                 internalChange();
             }
         },
-            false, true, "", "PathBrowser");
+            false, true, "", "PathBrowser", getTopLevelComponent());
 
         internalChange();
     }
@@ -489,17 +487,6 @@ public:
         externalChange();
     }
 
-    void updateLibraries()
-    {
-        librariesToLoad.clear();
-
-        for (auto child : tree) {
-            librariesToLoad.add(child.getProperty("Name").toString());
-        }
-
-        internalChange();
-    }
-
     int getNumRows() override
     {
         return librariesToLoad.size();
@@ -549,9 +536,7 @@ public:
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId).withAlpha(0.5f));
         g.drawHorizontalLine(height - 1.0f, x, x + newWidth);
 
-        auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
-
-        Fonts::drawText(g, librariesToLoad[rowNumber], x + 12, 0, width - 9, height, colour, 15);
+        Fonts::drawText(g, librariesToLoad[rowNumber], x + 12, 0, width - 9, height, findColour(PlugDataColour::panelTextColourId), 15);
     }
 
     void deleteKeyPressed(int row) override
@@ -620,10 +605,12 @@ public:
         auto librariesTree = SettingsFile::getInstance()->getLibrariesTree();
         librariesTree.removeAllChildren(nullptr);
 
-        for (auto const& i : librariesToLoad) {
-            auto newLibrary = ValueTree("Library");
-            newLibrary.setProperty("Name", i, nullptr);
-            librariesTree.appendChild(newLibrary, nullptr);
+        for (auto const& name : librariesToLoad) {
+            if (name.isNotEmpty()) {
+                auto newLibrary = ValueTree("Library");
+                newLibrary.setProperty("Name", name, nullptr);
+                librariesTree.appendChild(newLibrary, nullptr);
+            }
         }
 
         listBox.updateContent();
@@ -644,7 +631,7 @@ public:
             selectionBounds = selectionBounds.reduced(0, 2);
             auto buttonHeight = selectionBounds.getHeight();
 
-            selectionBounds.removeFromRight(38);
+            selectionBounds.removeFromRight(50);
 
             removeButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
             changeButton.setBounds(selectionBounds.removeFromRight(buttonHeight));

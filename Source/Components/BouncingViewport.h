@@ -10,7 +10,7 @@
 class BouncingViewportAttachment : public MouseListener
     , public Timer {
 public:
-    BouncingViewportAttachment(Viewport* vp)
+    explicit BouncingViewportAttachment(Viewport* vp)
         : viewport(vp)
     {
         viewport->setScrollOnDragMode(Viewport::ScrollOnDragMode::never);

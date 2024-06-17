@@ -151,8 +151,7 @@ public:
             g.fillPath(buttonShape);
         }
 
-        auto textColour = isDown ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
-        Fonts::drawText(g, textOptions[isDown], buttonBounds, textColour, 14.0f, Justification::centred);
+        Fonts::drawText(g, textOptions[isDown], buttonBounds, findColour(PlugDataColour::panelTextColourId), 14.0f, Justification::centred);
 
         // Paint label
         PropertiesPanelProperty::paint(g);
@@ -240,9 +239,7 @@ private:
             StringArray sampleRateStrings;
             for (auto& rate : sampleRates) {
                 auto rateAsString = String(rate);
-                if (::getValue<bool>(showAllAudioDeviceValues)) {
-                    sampleRateStrings.add(rateAsString);
-                } else if (standardSampleRates.contains(rateAsString)) {
+                if (::getValue<bool>(showAllAudioDeviceValues) || standardSampleRates.contains(rateAsString)) {
                     sampleRateStrings.add(rateAsString);
                 }
             }
@@ -265,9 +262,7 @@ private:
             StringArray bufferSizeStrings;
             for (auto& size : bufferSizes) {
                 auto sizeAsString = String(size);
-                if (::getValue<bool>(showAllAudioDeviceValues)) {
-                    bufferSizeStrings.add(sizeAsString);
-                } else if (standardBufferSizes.contains(sizeAsString)) {
+                if (::getValue<bool>(showAllAudioDeviceValues) || standardBufferSizes.contains(sizeAsString)) {
                     bufferSizeStrings.add(sizeAsString);
                 }
             }
@@ -460,7 +455,7 @@ class DAWAudioSettings : public SettingsDialogPanel
     , public Value::Listener {
 
 public:
-    explicit DAWAudioSettings(AudioProcessor* p)
+    explicit DAWAudioSettings(PluginProcessor* p)
         : processor(p)
     {
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
@@ -470,7 +465,7 @@ public:
 
         latencyValue.addListener(this);
 
-        latencyValue = proc->getLatencySamples();
+        latencyValue = proc->getLatencySamples() - pd::Instance::getBlockSize();
 
         latencyNumberBox = new PropertiesPanel::EditableComponent<int>("Latency (samples)", latencyValue);
         tailLengthNumberBox = new PropertiesPanel::EditableComponent<float>("Tail length (seconds)", tailLengthValue);
@@ -495,11 +490,11 @@ public:
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(latencyValue)) {
-            processor->setLatencySamples(getValue<int>(latencyValue));
+            processor->performLatencyCompensationChange(getValue<int>(latencyValue));
         }
     }
 
-    AudioProcessor* processor;
+    PluginProcessor* processor;
 
     Value latencyValue;
     Value tailLengthValue;

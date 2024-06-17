@@ -756,7 +756,7 @@ void GutterComponent::paint(Graphics& g)
     }
 
     for (auto const& r : rowData) {
-        g.setColour(getParentComponent()->findColour(r.isRowSelected ? PlugDataColour::panelActiveTextColourId : PlugDataColour::panelTextColourId));
+        g.setColour(getParentComponent()->findColour(PlugDataColour::panelTextColourId));
         memoizedGlyphArrangements(r.rowNumber).draw(g, verticalTransform);
     }
 }
@@ -2069,15 +2069,18 @@ struct TextEditorDialog : public Component {
     std::function<void(String, bool)> onClose;
 
     String title;
+    int margin;
 
     explicit TextEditorDialog(String name)
         : resizer(this, &constrainer)
         , title(std::move(name))
+        , margin(ProjectInfo::canUseSemiTransparentWindows() ? 15 : 0)
     {
         closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(-1));
         addAndMakeVisible(closeButton.get());
 
         constrainer.setMinimumSize(500, 200);
+        constrainer.setFixedAspectRatio(0.0f);
 
         closeButton->onClick = [this]() {
             // Call asynchronously because this function may distroy the dialog
@@ -2086,7 +2089,7 @@ struct TextEditorDialog : public Component {
             });
         };
 
-        addToDesktop(ComponentPeer::windowIsTemporary);
+        addToDesktop(0);
         setVisible(true);
 
         // Position in centre of screen
@@ -2094,13 +2097,15 @@ struct TextEditorDialog : public Component {
 
         addAndMakeVisible(editor);
         addAndMakeVisible(resizer);
+        resizer.setAlwaysOnTop(true);
+        // resizer.setAllowHostManagedResize(false);
 
         editor.grabKeyboardFocus();
     }
 
     void resized() override
     {
-        auto b = getLocalBounds().reduced(15);
+        auto b = getLocalBounds().reduced(margin);
 
         resizer.setBounds(b);
 
@@ -2122,20 +2127,26 @@ struct TextEditorDialog : public Component {
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawRoundedRectangle(getLocalBounds().reduced(15).toFloat(), Corners::windowCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().reduced(margin).toFloat(), ProjectInfo::canUseSemiTransparentWindows() ? Corners::windowCornerRadius : 0.0f, 1.0f);
     }
 
     void paint(Graphics& g) override
     {
-        auto shadowPath = Path();
-        shadowPath.addRoundedRectangle(getLocalBounds().reduced(20), Corners::windowCornerRadius);
+        if (ProjectInfo::canUseSemiTransparentWindows()) {
+            auto shadowPath = Path();
+            shadowPath.addRoundedRectangle(getLocalBounds().reduced(20), Corners::windowCornerRadius);
+            StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 13.0f);
+        }
 
-        StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 13.0f);
+        auto radius = ProjectInfo::canUseSemiTransparentWindows() ? Corners::windowCornerRadius : 0.0f;
 
-        auto b = getLocalBounds().reduced(15);
+        auto b = getLocalBounds().reduced(margin);
 
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRoundedRectangle(b.toFloat(), Corners::windowCornerRadius);
+        g.fillRoundedRectangle(b.toFloat(), radius);
+
+        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.drawRoundedRectangle(b.toFloat().reduced(0.5f), radius, 1.0f);
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         // g.drawHorizontalLine(b.getX() + 39, b.getY() + 48, b.getWidth());

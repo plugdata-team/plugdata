@@ -102,36 +102,45 @@ public:
         return realPoints;
     }
 
-    void paint(Graphics& g) override
+    void render(NVGcontext* nvg) override
     {
-        g.setColour(Colour::fromString(secondaryColour.toString()));
-        g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::objectCornerRadius);
-
         bool selected = object->isSelected() && !cnv->isGraph;
         bool editing = cnv->locked == var(true) || cnv->presentationMode == var(true) || ModifierKeys::getCurrentModifiers().isCtrlDown();
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        auto b = getLocalBounds().toFloat().reduced(0.5f);
+        auto backgroundColour = convertColour(Colour::fromString(secondaryColour.toString()));
+        auto foregroundColour = convertColour(Colour::fromString(primaryColour.toString()));
+        auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 
-        g.setColour(Colour::fromString(primaryColour.toString()));
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, selected ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+
+        nvgStrokeColor(nvg, foregroundColour);
 
         auto realPoints = getRealPoints();
         auto lastPoint = realPoints[0];
         for (int i = 1; i < realPoints.size(); i++) {
             auto newPoint = realPoints[i];
-            g.drawLine({ lastPoint, newPoint });
+            nvgBeginPath(nvg);
+            nvgMoveTo(nvg, lastPoint.getX(), lastPoint.getY());
+            nvgLineTo(nvg, newPoint.getX(), newPoint.getY());
+            nvgStroke(nvg);
             lastPoint = newPoint;
         }
 
         for (int i = 0; i < realPoints.size(); i++) {
             auto point = realPoints[i];
             // Make sure line isn't visible through the hole
-            g.setColour(Colour::fromString(secondaryColour.toString()));
-            g.fillEllipse(Rectangle<float>().withCentre(point).withSizeKeepingCentre(5, 5));
+            nvgBeginPath(nvg);
+            nvgFillColor(nvg, backgroundColour);
+            nvgCircle(nvg, point.getX(), point.getY(), 2.5f);
+            nvgFill(nvg);
 
-            g.setColour(Colour::fromString(hoverIdx == i && editing ? outlineColour.toString() : primaryColour.toString()));
-            g.drawEllipse(Rectangle<float>().withCentre(point).withSizeKeepingCentre(5, 5), 1.5f);
+            nvgStrokeColor(nvg, hoverIdx == i && editing ? outlineColour : foregroundColour);
+            nvgBeginPath(nvg);
+            nvgCircle(nvg, point.getX(), point.getY(), 2.5f);
+            nvgStrokeWidth(nvg, 1.5f);
+            nvgStroke(nvg);
         }
     }
 
@@ -404,6 +413,18 @@ public:
     static Colour colourFromHexArray(unsigned char* hex)
     {
         return { hex[0], hex[1], hex[2] };
+    }
+
+    bool inletIsSymbol() override
+    {
+        auto rSymbol = receiveSymbol.toString();
+        return rSymbol.isNotEmpty() && (rSymbol != "empty");
+    }
+
+    bool outletIsSymbol() override
+    {
+        auto sSymbol = sendSymbol.toString();
+        return sSymbol.isNotEmpty() && (sSymbol != "empty");
     }
 
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override

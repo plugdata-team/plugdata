@@ -11,10 +11,11 @@ class BangObject final : public ObjectBase {
     Value bangHold = SynchronousValue(40.0f);
     Value sizeProperty = SynchronousValue();
 
-    bool bangState = false;
+    std::atomic<bool> bangState = false;
     bool alreadyBanged = false;
 
     IEMHelper iemHelper;
+    bool mouseHover = false;
 
 public:
     BangObject(pd::WeakReference obj, Object* parent)
@@ -43,19 +44,19 @@ public:
         iemHelper.update();
     }
 
-    bool hideInlets() override
+    bool inletIsSymbol() override
     {
         return iemHelper.hasReceiveSymbol();
     }
 
-    bool hideOutlets() override
+    bool outletIsSymbol() override
     {
         return iemHelper.hasSendSymbol();
     }
 
     void updateLabel() override
     {
-        iemHelper.updateLabel(label);
+        iemHelper.updateLabel(labels);
     }
 
     Rectangle<int> getPdBounds() override
@@ -92,40 +93,72 @@ public:
         if (!e.mods.isLeftButtonDown())
             return;
 
-        //startEdition();
-        pd->enqueueFunctionAsync<t_pd>(ptr, [](t_pd* bng){
+        // startEdition();
+        pd->enqueueFunctionAsync<t_pd>(ptr, [](t_pd* bng) {
             pd_bang(bng);
         });
-        //stopEdition();
+        // stopEdition();
 
         // Make sure we don't re-click with an accidental drag
         alreadyBanged = true;
         trigger();
     }
 
-    void paint(Graphics& g) override
+    void mouseEnter(MouseEvent const& e) override
     {
-        g.setColour(iemHelper.getBackgroundColour());
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
+        mouseHover = true;
+        repaint();
+    }
 
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+    void mouseExit(MouseEvent const& e) override
+    {
+        mouseHover = false;
+        repaint();
+    }
 
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+    void render(NVGcontext* nvg) override
+    {
+        auto b = getLocalBounds().toFloat().reduced(0.5f);
 
-        auto const bounds = getLocalBounds().reduced(1).toFloat();
-        auto const width = std::max(bounds.getWidth(), bounds.getHeight());
+        auto foregroundColour = convertColour(getValue<Colour>(iemHelper.primaryColour)); // TODO: this is some bad threading practice!
+
+        auto bgColour = getValue<Colour>(iemHelper.secondaryColour);
+
+        if (mouseHover)
+            bgColour = getHoverBackgroundColour(bgColour);
+
+        auto backgroundColour = convertColour(bgColour);
+        auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
+        auto internalLineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour));
+
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+
+        b = b.reduced(1);
+        auto const width = std::max(b.getWidth(), b.getHeight());
+
+        auto const sizeReduction = std::min(1.0f, getWidth() / 20.0f);
 
         float const circleOuter = 80.f * (width * 0.01f);
-        float const circleThickness = std::max(width * 0.06f, 1.5f);
+        float const circleThickness = std::max(width * 0.06f, 1.5f) * sizeReduction;
 
-        g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
-        g.drawEllipse(bounds.reduced(width - circleOuter), circleThickness);
+        auto outerCircleBounds = b.reduced((width - circleOuter) * sizeReduction);
 
+        nvgBeginPath(nvg);
+        nvgCircle(nvg, b.getCentreX(), b.getCentreY(),
+            outerCircleBounds.getWidth() / 2.0f);
+        nvgStrokeColor(nvg, internalLineColour);
+        nvgStrokeWidth(nvg, circleThickness);
+        nvgStroke(nvg);
+
+        // Fill ellipse if bangState is true
         if (bangState) {
-            g.setColour(iemHelper.getForegroundColour());
-            g.fillEllipse(bounds.reduced(width - circleOuter + circleThickness));
+            auto innerCircleBounds = b.reduced((width - circleOuter + circleThickness) * sizeReduction);
+            nvgBeginPath(nvg);
+            nvgCircle(nvg, b.getCentreX(), b.getCentreY(),
+                innerCircleBounds.getWidth() / 2.0f);
+            nvgFillColor(nvg, foregroundColour);
+            nvgFill(nvg);
         }
     }
 
@@ -137,7 +170,7 @@ public:
         bangState = true;
         repaint();
 
-        auto currentTime = Time::getCurrentTime().getMillisecondCounter();
+        auto currentTime = Time::getMillisecondCounter();
         auto timeSinceLast = currentTime - lastBang;
 
         int holdTime = bangHold.getValue();
@@ -151,16 +184,15 @@ public:
 
         lastBang = currentTime;
 
-        auto deletionChecker = SafePointer(this);
         Timer::callAfterDelay(holdTime,
-            [deletionChecker, this]() mutable {
+            [_this = SafePointer(this)]() mutable {
                 // First check if this object still exists
-                if (!deletionChecker)
+                if (!_this)
                     return;
 
-                if (bangState) {
-                    bangState = false;
-                    repaint();
+                if (_this->bangState) {
+                    _this->bangState = false;
+                    _this->repaint();
                 }
             });
     }

@@ -1,0 +1,7 @@
+#N canvas 595 188 375 332 12;
+#X obj 125 262 outlet~;
+#X obj 125 54 inlet~;
+#X obj 125 166 else/gendyn~;
+#X connect 1 0 2 0;
+#X connect 1 1 2 0;
+#X connect 2 0 0 0;

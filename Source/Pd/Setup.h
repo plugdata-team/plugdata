@@ -32,9 +32,11 @@ struct Setup {
 
     void parseArguments(char const** args, size_t argc, t_namelist** sys_openlist, t_namelist** sys_messagelist);
 
-    static void initialisePdLua(char const* datadir, char* vers, int vers_len, void(*register_class_callback)(const char*));
+    static void initialisePdLua(char const* datadir, char* vers, int vers_len, void (*register_class_callback)(char const*));
+    static void initialisePdLuaInstance();
     static void initialiseELSE();
     static void initialiseCyclone();
+    static void initialiseGem(std::string const& gemPluginPath);
 
     static void* createMIDIHook(void* ptr,
         t_plugdata_noteonhook hook_noteon,

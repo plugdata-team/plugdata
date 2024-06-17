@@ -19,8 +19,9 @@
 #include "PluginEditor.h"
 #include "Sidebar/PaletteItem.h"
 #include "Utility/OfflineObjectRenderer.h"
-#include "Components/ZoomableDragAndDropContainer.h"
+#include "Utility/ZoomableDragAndDropContainer.h"
 #include "Components/Buttons.h"
+#include "Components/ArrowPopupMenu.h"
 
 class AddItemButton : public Component {
 
@@ -39,8 +40,6 @@ public:
         if (mouseIsOver) {
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
             g.fillRoundedRectangle(bounds.toFloat(), Corners::defaultCornerRadius);
-
-            colour = findColour(PlugDataColour::sidebarActiveTextColourId);
         }
 
         Fonts::drawIcon(g, Icons::Add, iconBounds, colour, 12);
@@ -237,8 +236,6 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-        isPaletteShowingMenu = false;
-
         if (draggedItem) {
             isDragging = false;
             draggedItem->deleteButton.setVisible(true);
@@ -269,7 +266,6 @@ public:
     Point<int> mouseDownPos;
     bool isDragging = false;
     bool isItemShowingMenu = false;
-    bool isPaletteShowingMenu = false;
 
     bool shouldAnimate = false;
 
@@ -309,11 +305,17 @@ public:
         };
 
         addAndMakeVisible(nameLabel);
+        lookAndFeelChanged();
     }
 
     ~PaletteComponent()
     {
         delete paletteDraggableList;
+    }
+
+    void lookAndFeelChanged() override
+    {
+        nameLabel.setFont(Fonts::getBoldFont());
     }
 
     void showAndGrabEditorFocus()
@@ -388,25 +390,17 @@ public:
         setButtonText(text);
     }
 
+    void lookAndFeelChanged() override
+    {
+        repaint();
+    }
+
     void paint(Graphics& g) override
     {
-        auto backgroundColour = findColour(PlugDataColour::toolbarBackgroundColourId);
-        auto* editor = findParentComponentOfClass<PluginEditor>();
-        if (ProjectInfo::isStandalone && editor && !editor->isActiveWindow()) {
-            backgroundColour = backgroundColour.brighter(backgroundColour.getBrightness() / 2.5f);
-        }
-
-        g.setColour(backgroundColour);
-        g.fillRect(getLocalBounds().toFloat().withTrimmedTop(0.5f));
-
-        if (getToggleState()) {
-            g.setColour(findColour(PlugDataColour::toolbarActiveColourId).brighter(isMouseOver() ? 0.3f : 0.0f));
-            g.fillRect(getLocalBounds().toFloat().withTrimmedTop(0.5f).removeFromRight(4));
-        } else if (isMouseOver()) {
+        if (getToggleState() || isMouseOver()) {
             g.setColour(findColour(PlugDataColour::toolbarHoverColourId));
-            g.fillRect(getLocalBounds().toFloat().withTrimmedTop(0.5f).removeFromRight(4));
+            g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(4.0f, 4.0f), Corners::defaultCornerRadius);
         }
-
         g.saveState();
 
         auto midX = static_cast<float>(getWidth()) * 0.5f;
@@ -415,9 +409,8 @@ public:
         auto transform = AffineTransform::rotation(-MathConstants<float>::halfPi, midX, midY);
         g.addTransform(transform);
 
-        Font font(getWidth() / 2.0f);
+        g.setFont(Fonts::getCurrentFont().withHeight(getWidth() * 0.5f));
 
-        g.setFont(font);
         auto colour = findColour(getToggleState() ? TextButton::textColourOnId
                                                   : TextButton::textColourOffId)
                           .withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
@@ -449,32 +442,37 @@ public:
     {
         if (!palettesFile.exists()) {
             palettesFile.create();
-
-            palettesTree = ValueTree("Palettes");
-
-            for (auto [name, palette] : defaultPalettes) {
-
-                ValueTree categoryTree = ValueTree("Category");
-                categoryTree.setProperty("Name", name, nullptr);
-
-                for (auto& [paletteName, patch] : palette) {
-                    ValueTree paletteTree("Item");
-                    paletteTree.setProperty("Name", paletteName, nullptr);
-                    paletteTree.setProperty("Patch", patch, nullptr);
-                    categoryTree.appendChild(paletteTree, nullptr);
-                }
-
-                palettesTree.appendChild(categoryTree, nullptr);
-            }
+            initialisePalettesFile();
         } else {
-            palettesTree = ValueTree::fromXml(palettesFile.loadFileAsString());
+            auto paletteFileContent = palettesFile.loadFileAsString();
+            if (paletteFileContent.isEmpty()) {
+                initialisePalettesFile();
+            } else {
+                palettesTree = ValueTree::fromXml(paletteFileContent);
+
+                for (auto paletteCategory : palettesTree) {
+                    for (auto [name, palette] : defaultPalettes) {
+                        if (name != static_cast<String>(paletteCategory.getProperty("Name").toString()))
+                            continue;
+
+                        for (auto& [paletteName, patch] : palette) {
+                            if (!paletteCategory.getChildWithProperty("Name", paletteName).isValid()) {
+                                ValueTree paletteTree("Item");
+                                paletteTree.setProperty("Name", paletteName, nullptr);
+                                paletteTree.setProperty("Patch", patch, nullptr);
+                                paletteCategory.appendChild(paletteTree, nullptr);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         palettesTree.addListener(this);
 
         addButton.onClick = [this]() {
-            PopupMenu menu;
-            menu.addItem(1, "New palette");
+            auto menu = new PopupMenu();
+            menu->addItem(1, "New palette");
 
             PopupMenu defaultPalettesMenu;
 
@@ -500,15 +498,27 @@ public:
                 });
             }
 
-            menu.addSubMenu("Add default palette", defaultPalettesMenu);
+            menu->addSubMenu("Add default palette", defaultPalettesMenu);
 
-            menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(editor).withTargetComponent(&addButton), ModalCallbackFunction::create([this](int result) {
+            auto* parent = ProjectInfo::canUseSemiTransparentWindows() ? editor->calloutArea.get() : nullptr;
+
+            
+            ArrowPopupMenu::showMenuAsync(menu, PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(&addButton).withParentComponent(parent), [this, menu](int result) {
                 if (result > 0) {
                     auto newUntitledPalette = ValueTree("Palette");
                     newUntitledPalette.setProperty("Name", var("Untitled palette"), nullptr);
                     newPalette(newUntitledPalette);
                 }
-            }));
+
+                MessageManager::callAsync([menu, this]() {
+                    editor->calloutArea->removeFromDesktop();
+                    delete menu;
+                });
+            }, ArrowPopupMenu::ArrowDirection::LeftRight);
+
+            if (ProjectInfo::canUseSemiTransparentWindows()) {
+                editor->calloutArea->addToDesktop(ComponentPeer::windowIsTemporary);
+            }
         };
 
         paletteBar.setVisible(true);
@@ -545,6 +555,28 @@ public:
         return (view.get() && view->isVisible());
     }
 
+    void initialisePalettesFile()
+    {
+        palettesTree = ValueTree("Palettes");
+
+        for (auto [name, palette] : defaultPalettes) {
+
+            ValueTree categoryTree = ValueTree("Category");
+            categoryTree.setProperty("Name", name, nullptr);
+
+            for (auto& [paletteName, patch] : palette) {
+                ValueTree paletteTree("Item");
+                paletteTree.setProperty("Name", paletteName, nullptr);
+                paletteTree.setProperty("Patch", patch, nullptr);
+                categoryTree.appendChild(paletteTree, nullptr);
+            }
+
+            palettesTree.appendChild(categoryTree, nullptr);
+        }
+
+        savePalettes();
+    }
+
 private:
     void propertyChanged(String const& name, var const& value) override
     {
@@ -565,11 +597,21 @@ private:
         return true;
     }
 
+    void lookAndFeelChanged() override
+    {
+        updateGeometry();
+    }
+
     void resized() override
+    {
+        updateGeometry();
+    }
+
+    void updateGeometry()
     {
         int totalHeight = 0;
         for (auto* button : paletteSelectors) {
-            totalHeight += Font(14).getStringWidth(button->getButtonText()) + 30;
+            totalHeight += Fonts::getCurrentFont().withHeight(14).getStringWidth(button->getButtonText()) + 30;
         }
 
         totalHeight += 46;
@@ -593,7 +635,7 @@ private:
 
         for (auto* button : paletteSelectors) {
             String buttonText = button->getButtonText();
-            int height = Font(14).getStringWidth(buttonText) + 30;
+            int height = Fonts::getCurrentFont().withHeight(14).getStringWidth(buttonText) + 30;
 
             if (button != draggedTab) {
                 auto bounds = Rectangle<int>(offset, totalHeight, 30, height);
@@ -697,30 +739,33 @@ private:
     {
         if (view) {
             g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
-            g.fillRect(getLocalBounds().toFloat().withTrimmedTop(0.5f));
+            g.fillRect(getLocalBounds().toFloat().withTrimmedTop(29.5f));
+            g.fillRect(getLocalBounds().toFloat().removeFromLeft(30).withTrimmedTop(29.5f));
         }
-
-        auto backgroundColour = findColour(PlugDataColour::toolbarBackgroundColourId);
-        if (ProjectInfo::isStandalone && !editor->isActiveWindow()) {
-            backgroundColour = backgroundColour.brighter(backgroundColour.getBrightness() / 2.5f);
-        }
-        g.setColour(backgroundColour);
-        g.fillRect(getLocalBounds().toFloat().removeFromLeft(30).withTrimmedTop(0.5f));
     }
 
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawLine(29.5f, 0.0f, 29.5f, getHeight());
-
         if (view) {
-            g.drawLine(getWidth() - 0.5f, 0.0f, getWidth() - 0.5f, getHeight());
+            auto hasTabbar = editor->getCurrentCanvas() != nullptr;
+            auto lineHeight = hasTabbar ? 30.f : 0.0f;
+            g.drawLine(0, lineHeight, getWidth(), lineHeight);
+            g.drawLine(getWidth() - 0.5f, 29.5f, getWidth() - 0.5f, getHeight());
+
+            g.setColour(findColour(PlugDataColour::toolbarOutlineColourId).withAlpha(0.5f));
+            g.drawLine(29.5f, 29.5f, 29.5f, getHeight());
+        } else {
+            g.drawLine(29.5f, 29.5f, 29.5f, getHeight());
         }
     }
 
     void savePalettes()
     {
-        palettesFile.replaceWithText(palettesTree.toXmlString());
+        auto paletteContent = palettesTree.toXmlString();
+        if (paletteContent.isNotEmpty()) {
+            palettesFile.replaceWithText(paletteContent);
+        }
     }
 
     void generatePalettes()
@@ -822,7 +867,7 @@ private:
     Viewport paletteViewport;
     Component paletteBar;
 
-    SmallIconButton addButton = SmallIconButton(Icons::Add);
+    MainToolbarButton addButton = MainToolbarButton(Icons::Add);
 
     OwnedArray<PaletteSelector> paletteSelectors;
 
@@ -837,6 +882,7 @@ private:
                 { "6 operator FM", "#X obj 0 0 palette/pm6.m~" },
                 { "signal generator", "#X obj 0 0 palette/sig.m~" },
                 { "noise osc", "#X obj 0 0 palette/noiseosc.m~" },
+                { "gendyn osc", "#X obj 0 0 palette/gendyn.m~" },
             } },
         { "Filters",
             {
@@ -878,6 +924,7 @@ private:
                 { "organ", "#X obj 0 0 palette/organ.m~" },
                 { "vca", "#X obj 0 0 palette/vca.m~" },
                 { "pluck", "#X obj 0 0 palette/pluck.m~" },
+                { "brane", "#X obj 0 0 palette/brane.m~" },
             } },
     };
 

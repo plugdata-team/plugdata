@@ -126,11 +126,10 @@ struct ThemeSelectorProperty : public PropertiesPanelProperty {
             callback(comboBox.getText());
         };
 
-        comboBox.setColour(ComboBox::backgroundColourId, Colours::transparentBlack);
-        comboBox.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-        comboBox.setColour(ComboBox::textColourId, findColour(PlugDataColour::panelTextColourId));
-
         addAndMakeVisible(comboBox);
+
+        setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
+        lookAndFeelChanged();
     }
 
     PropertiesPanelProperty* createCopy() override
@@ -139,6 +138,13 @@ struct ThemeSelectorProperty : public PropertiesPanelProperty {
         themeSelector->setOptions(items);
         themeSelector->setSelectedItem(comboBox.getSelectedItemIndex());
         return themeSelector;
+    }
+
+    void lookAndFeelChanged() override
+    {
+        comboBox.setColour(ComboBox::backgroundColourId, Colours::transparentBlack);
+        comboBox.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+        comboBox.setColour(ComboBox::textColourId, findColour(PlugDataColour::panelTextColourId));
     }
 
     String getText() const
@@ -175,8 +181,6 @@ class ThemePanel : public SettingsDialogPanel
     Value fontValue;
 
     std::map<String, std::map<String, Value>> swatches;
-
-    bool updatingTheme = false;
 
     PropertiesPanel::ActionComponent* newButton = nullptr;
     PropertiesPanel::ActionComponent* loadButton = nullptr;
@@ -222,20 +226,14 @@ public:
         }
     }
 
-    void settingsFileReloaded() override
+    void updateSwatches()
     {
-        updateSwatches();
-    }
+        auto scrollPosition = panel.getViewport().getViewPositionY();
 
-    void updateSwatches(bool forceUpdate = false)
-    {
         panel.clear();
         allPanels.clear();
 
         std::map<String, Array<PropertiesPanelProperty*>> panels;
-
-        if (!forceUpdate)
-            updatingTheme = true;
 
         // Loop over colours
         for (auto const& [colour, colourNames] : PlugDataColourNames) {
@@ -290,7 +288,7 @@ public:
         };
 
         auto* resetButton = new PropertiesPanel::ActionComponent([this]() {
-            Dialogs::showOkayCancelDialog(&dialog, getParentComponent(), "Are you sure you want to reset to default theme settings?",
+            Dialogs::showOkayCancelDialog(&dialog, findParentComponentOfClass<Dialog>(), "Are you sure you want to reset to default theme settings?",
                 [this](bool result) {
                     if (result) {
                         resetDefaults();
@@ -321,7 +319,8 @@ public:
             Icons::New, "New theme...");
 
         loadButton = new PropertiesPanel::ActionComponent([this]() {
-            Dialogs::showOpenDialog([this](File& result) {
+            Dialogs::showOpenDialog([this](URL url) {
+                auto result = url.getLocalFile();
                 if (!result.exists())
                     return;
 
@@ -346,7 +345,7 @@ public:
                 SettingsFile::getInstance()->getColourThemesTree().appendChild(themeTree, nullptr);
                 updateSwatches();
             },
-                true, false, "*.plugdatatheme", "ThemeLocation");
+                true, false, "*.plugdatatheme", "ThemeLocation", getTopLevelComponent());
         },
             Icons::Open, "Import theme...");
 
@@ -359,7 +358,7 @@ public:
                 menu.addItem(i + 1, allThemes[i]);
             }
 
-            menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(saveButton).withParentComponent(this), [allThemes](int result) {
+            menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(saveButton).withParentComponent(this), [this, allThemes](int result) {
                 if (result < 1)
                     return;
 
@@ -369,12 +368,13 @@ public:
 
                 auto themeXml = themeTree.toXmlString();
 
-                Dialogs::showSaveDialog([themeXml](File& result) {
+                Dialogs::showSaveDialog([themeXml](URL url) {
+                    auto result = url.getLocalFile();
                     if (result.getParentDirectory().exists()) {
                         result.replaceWithText(themeXml);
                     }
                 },
-                    "*.plugdatatheme", "ThemeLocation");
+                    "*.plugdatatheme", "ThemeLocation", getTopLevelComponent());
             });
         },
             Icons::Save, "Export theme...");
@@ -426,10 +426,18 @@ public:
         });
 
         auto allThemes = PlugDataLook::getAllThemes();
-        primaryThemeSelector->setOptions(allThemes);
-        secondaryThemeSelector->setOptions(allThemes);
-        primaryThemeSelector->setSelectedItem(allThemes.indexOf(PlugDataLook::selectedThemes[0]));
-        secondaryThemeSelector->setSelectedItem(allThemes.indexOf(PlugDataLook::selectedThemes[1]));
+        auto firstThemes = allThemes;
+        auto secondThemes = allThemes;
+
+        // Remove theme selected in other combobox (so you can't pick the same theme twice)
+        firstThemes.removeString(PlugDataLook::selectedThemes[1]);
+        secondThemes.removeString(PlugDataLook::selectedThemes[0]);
+
+        primaryThemeSelector->setOptions(firstThemes);
+        secondaryThemeSelector->setOptions(secondThemes);
+
+        primaryThemeSelector->setSelectedItem(firstThemes.indexOf(PlugDataLook::selectedThemes[0]));
+        secondaryThemeSelector->setSelectedItem(secondThemes.indexOf(PlugDataLook::selectedThemes[1]));
 
         allPanels.add(fontPanel);
         allPanels.add(primaryThemeSelector);
@@ -441,26 +449,23 @@ public:
 
         panel.addSection("Active Themes", { primaryThemeSelector, secondaryThemeSelector });
 
-        Array<Value*> dashedConnectionValues, straightConnectionValues, squareIoletsValues, squareObjectCornersValues, thinConnectionValues;
+        Array<Value*> straightConnectionValues, squareIoletsValues, squareObjectCornersValues, thinConnectionValues;
 
         for (int i = 0; i < 2; i++) {
             auto const& themeName = PlugDataLook::selectedThemes[i];
             auto& swatch = swatches[themeName];
             auto themeTree = SettingsFile::getInstance()->getTheme(themeName);
 
-            swatch["dashed_signal_connections"].referTo(themeTree.getPropertyAsValue("dashed_signal_connections", nullptr));
             swatch["straight_connections"].referTo(themeTree.getPropertyAsValue("straight_connections", nullptr));
             swatch["square_iolets"].referTo(themeTree.getPropertyAsValue("square_iolets", nullptr));
             swatch["square_object_corners"].referTo(themeTree.getPropertyAsValue("square_object_corners", nullptr));
             swatch["thin_connections"].referTo(themeTree.getPropertyAsValue("thin_connections", nullptr));
 
-            swatch["dashed_signal_connections"].addListener(this);
             swatch["straight_connections"].addListener(this);
             swatch["square_iolets"].addListener(this);
             swatch["square_object_corners"].addListener(this);
             swatch["thin_connections"].addListener(this);
 
-            dashedConnectionValues.add(&swatch["dashed_signal_connections"]);
             straightConnectionValues.add(&swatch["straight_connections"]);
             squareIoletsValues.add(&swatch["square_iolets"]);
             squareObjectCornersValues.add(&swatch["square_object_corners"]);
@@ -471,15 +476,11 @@ public:
         allPanels.add(useStraightConnections);
         addAndMakeVisible(*useStraightConnections);
 
-        auto* useDashedSignalConnection = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Display signal connections dashed", dashedConnectionValues, { "No", "Yes" });
-        allPanels.add(useDashedSignalConnection);
-        addAndMakeVisible(*useDashedSignalConnection);
-
         auto* useThinConnection = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Use thin connection style", thinConnectionValues, { "No", "Yes" });
         allPanels.add(useThinConnection);
         addAndMakeVisible(*useThinConnection);
 
-        panel.addSection("Connection Look", { useStraightConnections, useDashedSignalConnection, useThinConnection });
+        panel.addSection("Connection Look", { useStraightConnections, useThinConnection });
 
         auto* useSquareObjectCorners = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Use squared object corners", squareObjectCornersValues, { "No", "Yes" });
         allPanels.add(useSquareObjectCorners);
@@ -505,40 +506,41 @@ public:
 
         updateThemeNames(primaryThemeSelector->getText(), secondaryThemeSelector->getText());
 
-        if (!forceUpdate)
-            updatingTheme = false;
-
         panel.repaint();
+        panel.getViewport().setViewPosition(0, scrollPosition);
     }
 
     void valueChanged(Value& v) override
     {
-        // when the theme is updated from theme pannel, each swatch update also triggers a value changed
-        // bypass so as not to spam theme changes
-        if (updatingTheme)
-            return;
-
         if (v.refersToSameSourceAs(fontValue)) {
             PlugDataLook::setDefaultFont(fontValue.toString());
             SettingsFile::getInstance()->setProperty("default_font", fontValue.getValue());
-            getTopLevelComponent()->repaint();
-            for (auto* panel : allPanels)
-                panel->repaint();
-
+            pd->updateAllEditorsLNF();
             return;
         }
 
-        if (v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["dashed_signal_connections"])
-            || v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["straight_connections"])
+        auto themeTree = SettingsFile::getInstance()->getColourThemesTree();
+        if (v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["straight_connections"])
             || v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["square_iolets"])
             || v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["square_object_corners"])
             || v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["thin_connections"])) {
+            for (auto theme : themeTree) {
+                auto themeName = theme.getProperty("theme").toString();
+                if (v.refersToSameSourceAs(swatches[themeName]["straight_connections"])) {
+                    theme.setProperty("straight_connections", v.toString(), nullptr);
+                } else if (v.refersToSameSourceAs(swatches[themeName]["square_iolets"])) {
+                    theme.setProperty("square_iolets", v.toString(), nullptr);
+                } else if (v.refersToSameSourceAs(swatches[themeName]["square_object_corners"])) {
+                    theme.setProperty("square_object_corners", v.toString(), nullptr);
+                } else if (v.refersToSameSourceAs(swatches[themeName]["thin_connections"])) {
+                    theme.setProperty("thin_connections", v.toString(), nullptr);
+                }
+            }
 
             pd->setTheme(PlugDataLook::currentTheme, true);
             return;
         }
 
-        auto themeTree = SettingsFile::getInstance()->getColourThemesTree();
         for (auto theme : themeTree) {
             auto themeName = theme.getProperty("theme").toString();
 
@@ -548,6 +550,7 @@ public:
                 if (v.refersToSameSourceAs(swatches[themeName][colourName])) {
                     theme.setProperty(colourName, v.toString(), nullptr);
                     pd->setTheme(PlugDataLook::currentTheme, true);
+                    sendLookAndFeelChange();
                     return;
                 }
             }
@@ -559,19 +562,6 @@ public:
             themeSelectors[i].setColour(ComboBox::outlineColourId, Colours::transparentBlack);
             themeSelectors[i].setColour(ComboBox::textColourId, findColour(PlugDataColour::panelTextColourId));
         }*/
-    }
-
-    void paint(Graphics& g) override
-    {
-        /*
-        auto bounds = getLocalBounds().removeFromLeft(getWidth() / 2).withTrimmedLeft(6);
-
-        auto themeRow = bounds.removeFromTop(23);
-        Fonts::drawText(g, "theme", themeRow, findColour(PlugDataColour::panelTextColourId));
-
-        auto fullThemeRow = getLocalBounds().removeFromTop(23);
-        g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawLine(Line<int>(fullThemeRow.getBottomLeft(), fullThemeRow.getBottomRight()).toFloat(), -1.0f); */
     }
 
     void resized() override
@@ -592,7 +582,22 @@ public:
         PlugDataLook::setDefaultFont(fontValue.toString());
         SettingsFile::getInstance()->setProperty("default_font", fontValue.getValue());
 
-        pd->setTheme(PlugDataLook::currentTheme);
-        updateSwatches(true);
+        auto allThemes = PlugDataLook::getAllThemes();
+        auto firstThemes = allThemes;
+        auto secondThemes = allThemes;
+
+        firstThemes.removeString(PlugDataLook::selectedThemes[1]);
+        secondThemes.removeString(PlugDataLook::selectedThemes[0]);
+
+        primaryThemeSelector->setSelectedItem(firstThemes.indexOf(PlugDataLook::selectedThemes[0]));
+        secondaryThemeSelector->setSelectedItem(secondThemes.indexOf(PlugDataLook::selectedThemes[1]));
+
+        SettingsFile::getInstance()->getSelectedThemesTree().setProperty("first", "light", nullptr);
+        SettingsFile::getInstance()->getSelectedThemesTree().setProperty("second", "dark", nullptr);
+        SettingsFile::getInstance()->setProperty("theme", "light");
+
+        updateSwatches();
+        pd->setTheme(PlugDataLook::selectedThemes[0], true);
+        sendLookAndFeelChange();
     }
 };

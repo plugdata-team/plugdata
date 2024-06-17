@@ -16,7 +16,7 @@ public:
         baseValue.addListener(this);
     }
 
-    ~PropertyRedirector()
+    ~PropertyRedirector() override
     {
         baseValue.removeListener(this);
     }
@@ -35,7 +35,6 @@ public:
 class Inspector : public Component {
 
     PropertiesPanel panel;
-    String title;
     TextButton resetButton;
     Array<ObjectParameters> properties;
     OwnedArray<PropertyRedirector> redirectors;
@@ -69,17 +68,7 @@ public:
         panel.setContentWidth(getWidth() - 16);
     }
 
-    void setTitle(String const& name)
-    {
-        title = name;
-    }
-
-    String getTitle()
-    {
-        return title;
-    }
-
-    static PropertiesPanelProperty* createPanel(int type, String const& name, Value* value, StringArray& options)
+    static PropertiesPanelProperty* createPanel(int type, String const& name, Value* value, StringArray& options, std::function<void(bool)> onInteractionFn = nullptr)
     {
         switch (type) {
         case tString:
@@ -87,7 +76,7 @@ public:
         case tFloat:
             return new PropertiesPanel::EditableComponent<float>(name, *value);
         case tInt:
-            return new PropertiesPanel::EditableComponent<int>(name, *value);
+            return new PropertiesPanel::EditableComponent<int>(name, *value, 0.0f, 0.0f, onInteractionFn);
         case tColour:
             return new PropertiesPanel::ColourComponent(name, *value);
         case tBool:
@@ -119,7 +108,7 @@ public:
         panel.clear();
 
         auto parameterIsInAllObjects = [&objectParameters](ObjectParameter& param, Array<Value*>& values) {
-            auto& [name1, type1, category1, value1, options1, defaultVal1, customComponent1] = param;
+            auto& [name1, type1, category1, value1, options1, defaultVal1, customComponent1, onInteractionFn1] = param;
 
             if (objectParameters.size() > 1 && (name1 == "Size" || name1 == "Position" || name1 == "Height")) {
                 return false;
@@ -128,7 +117,7 @@ public:
             bool isInAllObjects = true;
             for (auto& parameters : objectParameters) {
                 bool hasParameter = false;
-                for (auto& [name2, type2, category2, value2, options2, defaultVal2, customComponent2] : parameters.getParameters()) {
+                for (auto& [name2, type2, category2, value2, options2, defaultVal2, customComponent2, onInteractionFn2] : parameters.getParameters()) {
                     if (name1 == name2 && type1 == type2 && category1 == category2) {
                         values.add(value2);
                         hasParameter = true;
@@ -147,7 +136,7 @@ public:
         for (int i = 0; i < 4; i++) {
             Array<PropertiesPanelProperty*> panels;
             for (auto& parameter : objectParameters[0].getParameters()) {
-                auto& [name, type, category, value, options, defaultVal, customComponentFn] = parameter;
+                auto& [name, type, category, value, options, defaultVal, customComponentFn, onInteractionFn] = parameter;
 
                 if (customComponentFn && objectParameters.size() == 1 && static_cast<int>(category) == i) {
                     if (auto* customComponent = customComponentFn()) {
@@ -164,7 +153,7 @@ public:
                         continue;
 
                     else if (objectParameters.size() == 1) {
-                        auto newPanel = createPanel(type, name, value, options);
+                        auto newPanel = createPanel(type, name, value, options, onInteractionFn);
                         newPanel->setPreferredHeight(26);
                         panels.add(newPanel);
                     } else {

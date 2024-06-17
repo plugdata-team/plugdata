@@ -1,3 +1,9 @@
+/*
+ // Copyright (c) 2023 Timothy Schoen and Alex Mitchell
+ // For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
+*/
+
 #pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
@@ -6,19 +12,29 @@
  * This is a static class that handles all theming & formatting for UI objects placed onto the canvas
  */
 
-class ObjectThemeManager : public Component {
+class ObjectThemeManager {
 public:
-    ObjectThemeManager() { }
+    static inline ObjectThemeManager* instance = nullptr;
 
-    void lookAndFeelChanged() override
+    static ObjectThemeManager* get()
     {
-        bg = findColour(PlugDataColour::guiObjectBackgroundColourId);
-        fg = findColour(PlugDataColour::canvasTextColourId);
-        lbl = findColour(PlugDataColour::toolbarTextColourId);
-        ln = findColour(PlugDataColour::guiObjectInternalOutlineColour);
+        if (!instance) {
+            instance = new ObjectThemeManager();
+        }
+
+        return instance;
     }
 
-    static String getCompleteFormat(String& name)
+    void updateTheme()
+    {
+        auto& lnf = LookAndFeel::getDefaultLookAndFeel();
+        bg = lnf.findColour(PlugDataColour::guiObjectBackgroundColourId);
+        fg = lnf.findColour(PlugDataColour::canvasTextColourId);
+        lbl = lnf.findColour(PlugDataColour::toolbarTextColourId);
+        ln = lnf.findColour(PlugDataColour::guiObjectInternalOutlineColour);
+    }
+
+    String getCompleteFormat(String& name)
     {
         StringArray token;
         token.add(name);
@@ -26,7 +42,7 @@ public:
         return String("#X obj 0 0 " + token.joinIntoString(" "));
     }
 
-    static void formatObject(StringArray& tokens)
+    void formatObject(StringArray& tokens)
     {
         // See if we have preset parameters for this object
         // These parameters are designed to make the experience in plugdata better
@@ -58,10 +74,10 @@ public:
     }
 
 private:
-    inline static Colour bg = Colour();
-    inline static Colour fg = Colour();
-    inline static Colour lbl = Colour();
-    inline static Colour ln = Colour();
+    Colour bg = Colour();
+    Colour fg = Colour();
+    Colour lbl = Colour();
+    Colour ln = Colour();
 
     // Initialisation parameters for GUI objects
     // Taken from pd save files, this will make sure that it directly initialises objects with the right parameters
@@ -80,7 +96,6 @@ private:
         { "nbx", "4 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 @bgColour @lblColour @lblColour 0 256" },
         { "cnv", "15 100 60 empty empty empty 20 12 0 14 @lnColour @lblColour" },
         { "function", "200 100 empty empty 0 1 @bgColour_rgb @lblColour_rgb 0 0 0 0 0 1000 0" },
-        { "oscope~", "130 130 256 3 128 -1 1 0 0 0 0 @fgColour_rgb @bgColour_rgb @lnColour_rgb 0 empty" },
         { "scope~", "130 130 256 3 128 -1 1 0 0 0 0 @fgColour_rgb @bgColour_rgb @lnColour_rgb 0 empty" },
         { "messbox", "180 60 @bgColour_rgb @lblColour_rgb 0 12" },
         { "vu", "20 120 empty empty -1 -8 0 10 @bgColour @lblColour 1 0" },
