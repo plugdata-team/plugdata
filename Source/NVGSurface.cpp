@@ -295,7 +295,6 @@ void NVGSurface::render()
     
     if (!nvg) {
         initialise();
-        return; // Render on next frame
     }
 
     if (!makeContextActive())
