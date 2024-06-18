@@ -269,11 +269,11 @@ jobs:
             - name: Debian-x64
               os: debian
               pacman: apt
-            - name: Fedora-37-x64
-              os: fedora:37
+            - name: Fedora-39-x64
+              os: fedora:39
               pacman: dnf
-            - name: Fedora-38-x64
-              os: fedora:38
+            - name: Fedora-40-x64
+              os: fedora:40
               pacman: dnf
             #- name: OpenSUSE-Leap-x64
             #  os: opensuse/leap:15.5
