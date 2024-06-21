@@ -178,6 +178,10 @@ Canvas::~Canvas()
     zoomScale.removeListener(this);
     editor->removeModifierKeyListener(this);
     pd->unregisterMessageListener(patch.getUncheckedPointer(), this);
+    // remove all registered objects from the object ptr lookup
+    for (auto* obj : objects) {
+        pd->unregisterObject(obj);
+    }
 }
 
 bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, int maxUpdateTimeMs)
@@ -858,6 +862,7 @@ void Canvas::performSynchronise()
         // If the object is showing it's initial editor, meaning no object was assigned yet, allow it to exist without pointing to an object
         if ((!object->getPointer() || patch.objectWasDeleted(object->getPointer())) && !object->isInitialEditorShown()) {
             setSelected(object, false, false);
+            pd->unregisterObject(objects[n]);
             objects.remove(n);
         }
     }
@@ -878,6 +883,7 @@ void Canvas::performSynchronise()
 
         if (it == objects.end()) {
             auto* newBox = objects.add(new Object(object, this));
+            pd->registerObject(newBox);
             newBox->toFront(false);
 
             if (newBox->gui && newBox->gui->getLabel())
@@ -1167,7 +1173,9 @@ void Canvas::mouseUp(MouseEvent const& e)
 
     // Double-click canvas to create new object
     if (e.mods.isLeftButtonDown() && (e.getNumberOfClicks() == 2) && (e.originalComponent == this) && !isGraph && !getValue<bool>(locked)) {
-        objects.add(new Object(this, "", e.getPosition()));
+        auto newObject = new Object(this, "", e.getPosition());
+        objects.add(newObject);
+        pd->registerObject(newObject);
         deselectAll();
         setSelected(objects[objects.size() - 1], true); // Select newly created object
     }
