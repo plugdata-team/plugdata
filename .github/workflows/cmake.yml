@@ -275,9 +275,9 @@ jobs:
             - name: Fedora-40-x64
               os: fedora:40
               pacman: dnf
-            #- name: OpenSUSE-Leap-x64
-            #  os: opensuse/leap:15.5
-            #  pacman: zypper
+            - name: OpenSUSE-Tumbleweed-x64
+              os: opensuse/tumbleweed
+              pacman: zypper
             - name: Arch-x64
               os: archlinux
               pacman: pacman
