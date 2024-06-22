@@ -593,8 +593,8 @@ elseif(UNIX AND NOT APPLE) # Linux or BSD
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata-fx.vst3 DESTINATION "$ENV{HOME}/.vst3")
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata.lv2 DESTINATION "$ENV{HOME}/.lv2")
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata-fx.lv2 DESTINATION "$ENV{HOME}/.lv2")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/CLAP/plugdata.clap DESTINATION "$ENV{HOME}/.clap")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/CLAP/plugdata-fx.clap DESTINATION "$ENV{HOME}/.clap")
+  install(FILES ${PLUGDATA_PLUGINS_LOCATION}/CLAP/plugdata.clap DESTINATION "$ENV{HOME}/.clap")
+  install(FILES ${PLUGDATA_PLUGINS_LOCATION}/CLAP/plugdata-fx.clap DESTINATION "$ENV{HOME}/.clap")
 
   install(FILES ${CMAKE_SOURCE_DIR}/Resources/Icons/plugdata_logo_linux.png DESTINATION share/icons/hicolor/512x512/apps)
   install(FILES ${CMAKE_SOURCE_DIR}/Resources/Installer/plugdata.desktop DESTINATION share/applications)
