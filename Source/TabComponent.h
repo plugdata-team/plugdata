@@ -313,7 +313,7 @@ private:
     std::array<OwnedArray<TabBarButtonComponent>, 2> tabbars;
     std::array<SafePointer<Canvas>, 2> splits = { nullptr, nullptr };
 
-    std::array<pd::Patch::Ptr, 2> lastSplitPatches { nullptr, nullptr };
+    std::array<pd::Patch*, 2> lastSplitPatches { nullptr, nullptr };
     t_glist* lastActiveCanvas = nullptr;
 
     bool draggingOverTabbar = false;

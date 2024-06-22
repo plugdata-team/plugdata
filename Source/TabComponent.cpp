@@ -293,7 +293,7 @@ void TabComponent::handleAsyncUpdate()
     // save the patch from the canvases that were the two splits
     for (int i = 0; i < splits.size(); i++) {
         if (splits[i]) {
-            lastSplitPatches[i] = splits[i]->patch;
+            lastSplitPatches[i] = &splits[i]->patch;
         }
     }
     if (getCurrentCanvas())
