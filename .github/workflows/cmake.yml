@@ -275,9 +275,9 @@ jobs:
             - name: Fedora-40-x64
               os: fedora:40
               pacman: dnf
-            #- name: OpenSUSE-Leap-x64
-            #  os: opensuse/leap:15.5
-            #  pacman: zypper
+            - name: OpenSUSE-Tumbleweed-x64
+              os: opensuse/tumbleweed
+              pacman: zypper
             - name: Arch-x64
               os: archlinux
               pacman: pacman
@@ -293,7 +293,7 @@ jobs:
 
         - name: Install Dependencies (zypper)
           if: ${{ matrix.pacman == 'zypper' }}
-          run: zypper refresh && zypper install -y git rsync wget bzip2 xz tar gzip cmake alsa-lib-devel libXinerama-devel libXi-devel freetype-devel libcurl-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel freetype2-devel gcc gcc-c++ curl ccache python python3-pip
+          run: zypper refresh && zypper install -y git rsync wget bzip2 xz tar gzip cmake alsa-lib-devel libXinerama-devel libXi-devel freetype-devel libcurl-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel freetype2-devel gcc gcc-c++ curl ccache python python3-pip libjack-devel
 
         - name: Install Dependencies (pacman)
           if: ${{ matrix.pacman == 'pacman' }}
