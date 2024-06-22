@@ -128,7 +128,6 @@ globCopy("../../Libraries/pd-cyclone/cyclone_objects/abstractions/*.pd", "./Abst
 copyDir("../../Libraries/pd-cyclone/documentation/help_files", "./Documentation/10.cyclone")
 globCopy("../../Libraries/pd-cyclone/documentation/extra_files/*", "./Documentation/10.cyclone/")
 moveFile("../../Libraries/pd-cyclone/documentation/extra_files/All_about_cyclone.pd", "./Abstractions/cyclone/") # help files want to find this here
-moveFile("../../Libraries/pd-cyclone/documentation/extra_files/All_objects.pd", "./Abstractions/cyclone/All_cyclone_objects.pd") # help files want to find this here
 moveFile("./Documentation/10.cyclone/dsponoff~.pd", "./Abstractions/cyclone/dsponoff~.pd")
 copyDir("../../Libraries/pd-else/Documentation/Live-Electronics-Tutorial/", "./Documentation/12.live-electronics-tutorial")
 
