@@ -275,10 +275,15 @@ public:
 
                 auto* tile = tiles.add(new WelcomePanelTile(patchFile.getFileName(), timeDescription, silhoutteSvg, snapshotColour, 1.0f, favourited));
                 tile->onClick = [this, patchFile]() mutable {
-                    editor->autosave->checkForMoreRecentAutosave(patchFile, editor, [this, patchFile]() {
-                        editor->getTabComponent().openPatch(URL(patchFile));
-                        SettingsFile::getInstance()->addToRecentlyOpened(patchFile);
-                    });
+                    if(patchFile.existsAsFile()) {
+                        editor->autosave->checkForMoreRecentAutosave(patchFile, editor, [this, patchFile]() {
+                            editor->getTabComponent().openPatch(URL(patchFile));
+                            SettingsFile::getInstance()->addToRecentlyOpened(patchFile);
+                        });
+                    }
+                    else {
+                        editor->pd->logError("Patch not found");
+                    }
                 };
                 tile->onFavourite = [this, path = subTree.getProperty("Path")](bool shouldBeFavourite) mutable {
                     auto settingsTree = SettingsFile::getInstance()->getValueTree();
