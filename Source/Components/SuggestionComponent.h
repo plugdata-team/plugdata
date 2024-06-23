@@ -486,6 +486,16 @@ public:
                 if (b == query) {
                     return 1;
                 }
+                
+                if(a.startsWith(query) && !b.startsWith(query))
+                {
+                    return -1;
+                }
+                
+                if(b.startsWith(query) && !a.startsWith(query))
+                {
+                    return 1;
+                }
 
                 // Check if suggestion is equal to query with "~" appended
                 if (a == (query + "~") && b != query && b != (query + "~")) {
@@ -653,7 +663,7 @@ public:
 
         filterObjects(found);
 
-        if (found.isEmpty()) {
+        if (found.isEmpty() || !found[0].startsWith(currentText)) {
             autoCompleteComponent->enableAutocomplete(false);
             deselectAll();
             currentidx = -1;
@@ -662,13 +672,13 @@ public:
             //currentidx = 0;
             autoCompleteComponent->enableAutocomplete(true);
         }
-
-        auto applySuggestionsToButtons = [this, &library](StringArray& suggestions, String originalQuery) {
-            numOptions = static_cast<int>(suggestions.size());
+        
+        if (openedEditor) {            
+            numOptions = static_cast<int>(found.size());
 
             // Apply object name and descriptions to buttons
             for (int i = 0; i < std::min<int>(buttons.size(), numOptions); i++) {
-                auto& name = suggestions[i];
+                auto& name = found[i];
 
                 auto info = library->getObjectInfo(name);
                 if (!info.isValid())
@@ -688,7 +698,7 @@ public:
             // Get length of user-typed text
             int textlen = openedEditor->getText().length();
 
-            if (suggestions.isEmpty() || textlen == 0) {
+            if (found.isEmpty() || textlen == 0) {
                 state = Hidden;
                 if (autoCompleteComponent)
                     autoCompleteComponent->enableAutocomplete(false);
@@ -709,34 +719,14 @@ public:
             currentidx = (currentidx + numButtons) % numButtons;
 
             // Retrieve best suggestion
-            auto const& fullName = suggestions[currentidx];
+            auto const& fullName = found[currentidx];
 
             if (fullName.length() > textlen && autoCompleteComponent) {
                 autoCompleteComponent->setSuggestion(fullName);
             } else if (autoCompleteComponent) {
                 autoCompleteComponent->setSuggestion("");
             }
-        };
-
-        if (openedEditor) {
-            applySuggestionsToButtons(found, currentText);
         }
-
-        library->getExtraSuggestions(found.size(), currentText, [_this = SafePointer(this), this, filterObjects, applySuggestionsToButtons, found, currentText](StringArray s) mutable {
-            if (!_this)
-                return;
-
-            filterObjects(s);
-
-            // This means the extra suggestions have returned too late to still be relevant
-            if (!openedEditor || currentText != openedEditor->getText())
-                return;
-
-            found.addArray(s);
-            found.removeDuplicates(false);
-
-            applySuggestionsToButtons(found, currentText);
-        });
     }
 
 private:

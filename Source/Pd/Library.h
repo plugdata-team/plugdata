@@ -10,6 +10,8 @@
 #include "Utility/FileSystemWatcher.h"
 #include "Utility/Config.h"
 
+#include <fuzzysearchdatabase/src/FuzzySearchDatabase.hpp>
+
 namespace pd {
 
 class Instance;
@@ -21,13 +23,12 @@ public:
     ~Library() override
     {
         appDirChanged = nullptr;
-        objectSearchThread.removeAllJobs(true, -1);
     }
 
     void updateLibrary();
 
     StringArray autocomplete(String const& query, File const& patchDirectory) const;
-    void getExtraSuggestions(int currentNumSuggestions, String const& query, std::function<void(StringArray)> const& callback);
+    StringArray searchObjectDocumentation(String const& query);
 
     static std::array<StringArray, 2> parseIoletTooltips(ValueTree const& iolets, String const& name, int numIn, int numOut);
 
@@ -75,9 +76,10 @@ private:
     StringArray allObjects;
 
     std::recursive_mutex libraryLock;
+    
+    fuzzysearch::Database<ValueTree> searchDatabase;
 
     FileSystemWatcher watcher;
-    ThreadPool objectSearchThread = ThreadPool(1);
 
     ValueTree documentationTree;
     std::unordered_map<hash32, ValueTree> documentationIndex;

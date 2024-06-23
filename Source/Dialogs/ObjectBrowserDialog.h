@@ -592,7 +592,7 @@ class ObjectSearchComponent : public Component
 
 public:
     explicit ObjectSearchComponent(pd::Library& library)
-        : bouncer(listBox.getViewport())
+        : library(library), bouncer(listBox.getViewport())
     {
         listBox.setModel(this);
         listBox.setRowHeight(28);
@@ -746,18 +746,9 @@ public:
 
         if (query.isEmpty())
             return;
-
-        for (auto& item : objectDescriptions) {
-            // Insert in front if the query matches a whole word
-            if (item.first.containsWholeWord(query) || item.second.containsWholeWord(query)) {
-                searchResult.insert(0, item.first);
-            }
-            // Insert in back if it contains the query
-            else if (item.first.containsIgnoreCase(query) || item.second.containsIgnoreCase(query)) {
-                searchResult.add(item.first);
-            }
-        }
-
+        
+        searchResult = library.searchObjectDocumentation(query);
+        
         listBox.updateContent();
         listBox.repaint();
 
@@ -782,10 +773,11 @@ public:
     std::function<void(String const&)> changeCallback;
 
 private:
+    pd::Library& library;
     ListBox listBox;
     BouncingViewportAttachment bouncer;
 
-    Array<String> searchResult;
+    StringArray searchResult;
     SearchEditor input;
 
     std::unordered_map<String, String> objectDescriptions;

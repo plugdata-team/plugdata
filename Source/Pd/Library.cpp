@@ -98,9 +98,38 @@ Library::Library(pd::Instance* instance)
     MemoryInputStream instream(BinaryData::Documentation_bin, BinaryData::Documentation_binSize, false);
     documentationTree = ValueTree::readFromStream(instream);
 
-    for (auto child : documentationTree) {
-        auto categoriesTree = child.getChildWithName("categories");
+    auto weights = std::vector<float>(2);
+    weights[0] = 4; // More weight for name
+    weights[1] = 2; // More weight for description
+    searchDatabase.setWeights(weights);
+    
+    for (auto objectEntry : documentationTree) {
+        auto categoriesTree = objectEntry.getChildWithName("categories");
 
+        std::vector<std::string> fields;
+        int numProperties = objectEntry.getNumProperties();
+        for(int i = 0; i < numProperties; i++) // Name and description
+        {
+            auto property = objectEntry.getProperty(objectEntry.getPropertyName(i)).toString();
+            fields.push_back(property.toStdString());
+        }
+        for(auto subtree : objectEntry) // Parent tree for arguments, inlets, outlets
+        {
+            for(auto child : subtree) // tree for individual arguments, inlets, outlets, etc.
+            {
+                for(int i = 0; i < child.getNumProperties(); i++)
+                {
+                    auto property = child.getProperty(child.getPropertyName(i)).toString();
+                    if(!property.containsOnly("0123456789.,-")) {
+                        fields.push_back(property.toStdString());
+                    }
+                }
+            }
+        }
+
+        searchDatabase.addEntry(objectEntry, fields);
+        searchDatabase.setThreshold(0.7f);
+        
         String origin;
         for (auto category : categoriesTree) {
             auto cat = category.getProperty("name").toString();
@@ -108,17 +137,17 @@ Library::Library(pd::Instance* instance)
                 origin = cat;
             }
         }
-
-        auto name = child.getProperty("name").toString();
+        
+        auto name = objectEntry.getProperty("name").toString();
         if (origin.isEmpty()) {
-            documentationIndex[hash(name)] = child;
+            documentationIndex[hash(name)] = objectEntry;
         } else if (origin == "Gem") {
-            documentationIndex[hash(origin + "/" + name)] = child;
+            documentationIndex[hash(origin + "/" + name)] = objectEntry;
         } else if (documentationIndex.count(hash(name))) {
-            documentationIndex[hash(origin + "/" + name)] = child;
+            documentationIndex[hash(origin + "/" + name)] = objectEntry;
         } else {
-            documentationIndex[hash(name)] = child;
-            documentationIndex[hash(origin + "/" + name)] = child;
+            documentationIndex[hash(name)] = objectEntry;
+            documentationIndex[hash(origin + "/" + name)] = objectEntry;
         }
     }
 
@@ -157,59 +186,38 @@ StringArray Library::autocomplete(String const& query, File const& patchDirector
             result.addIfNotAlreadyThere(str);
         }
     }
+    
+    auto fuzzyResults = searchDatabase.search(query.toStdString());
+    for(auto& fuzzyMatch : fuzzyResults)
+    {
+        if (result.size() >= 20) break;
+        
+        auto name = fuzzyMatch.key.getProperty("name").toString();
+        if(name.isNotEmpty()) {
+            result.addIfNotAlreadyThere(name);
+        }
+    }
 
     return result;
 }
 
-void Library::getExtraSuggestions(int currentNumSuggestions, String const& query, std::function<void(StringArray)> const& callback)
+StringArray Library::searchObjectDocumentation(String const& query)
 {
-
-    int const maxSuggestions = 20;
-    if (currentNumSuggestions > maxSuggestions)
-        return;
-
-    objectSearchThread.addJob([this, callback, query]() mutable {
-        StringArray result;
-        StringArray matches;
-
-        // TODO: why not iterate the documentation tree directly??
-        for (const auto& object : getAllObjects()) {
-            auto info = getObjectInfo(object);
-            if (!info.isValid())
-                continue;
-
-            auto description = info.getProperty("description").toString();
-
-            auto iolets = info.getChildWithName("iolets");
-            auto arguments = info.getChildWithName("arguments");
-
-            if (description.contains(query) || object.contains(query)) {
-                matches.addIfNotAlreadyThere(object);
-            }
-
-            for (auto arg : arguments) {
-                auto argDescription = arg.getProperty("description").toString();
-                if (argDescription.contains(query)) {
-                    matches.addIfNotAlreadyThere(object);
-                }
-            }
-
-            for (auto iolet : iolets) {
-                auto ioletDescription = iolet.getProperty("description").toString();
-                if (description.contains(query)) {
-                    matches.addIfNotAlreadyThere(object);
-                }
-            }
+    StringArray result;
+    auto fuzzyResults = searchDatabase.search(query.toStdString());
+    result.ensureStorageAllocated(fuzzyResults.size());
+    
+    for(auto& fuzzyMatch : fuzzyResults)
+    {
+        if (result.size() >= 20) break;
+        
+        auto name = fuzzyMatch.key.getProperty("name").toString();
+        if(name.isNotEmpty()) {
+            result.addIfNotAlreadyThere(name);
         }
+    }
 
-        matches.sort(true);
-        result.addArray(matches);
-        matches.clear();
-
-        MessageManager::callAsync([callback, result]() {
-            callback(result);
-        });
-    });
+    return result;
 }
 
 ValueTree Library::getObjectInfo(String const& name)
