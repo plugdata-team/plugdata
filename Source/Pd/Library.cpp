@@ -100,7 +100,7 @@ Library::Library(pd::Instance* instance)
 
     auto weights = std::vector<float>(2);
     weights[0] = 6.0f; // More weight for name
-    weights[1] = 2.0f; // More weight for description
+    weights[1] = 3.0f; // More weight for description
     searchDatabase.setWeights(weights);
     
     for (auto objectEntry : documentationTree) {
@@ -207,13 +207,19 @@ StringArray Library::autocomplete(String const& query, File const& patchDirector
 StringArray Library::searchObjectDocumentation(String const& query)
 {
     StringArray result;
+    result.ensureStorageAllocated(20);
+    
+    for (auto const& str : allObjects) {
+        if (str.startsWith(query)) {
+            result.addIfNotAlreadyThere(str);
+        }
+    }
+    
     auto fuzzyResults = searchDatabase.search(query.toStdString());
-    result.ensureStorageAllocated(fuzzyResults.size());
+    result.ensureStorageAllocated(result.size() + fuzzyResults.size());
     
     for(auto& fuzzyMatch : fuzzyResults)
     {
-        if (result.size() >= 20) break;
-        
         auto name = fuzzyMatch.key.getProperty("name").toString();
         if(name.isNotEmpty()) {
             result.addIfNotAlreadyThere(name);
