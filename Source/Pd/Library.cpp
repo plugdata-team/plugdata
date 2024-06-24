@@ -99,8 +99,8 @@ Library::Library(pd::Instance* instance)
     documentationTree = ValueTree::readFromStream(instream);
 
     auto weights = std::vector<float>(2);
-    weights[0] = 4; // More weight for name
-    weights[1] = 2; // More weight for description
+    weights[0] = 6.0f; // More weight for name
+    weights[1] = 2.0f; // More weight for description
     searchDatabase.setWeights(weights);
     
     for (auto objectEntry : documentationTree) {
@@ -169,6 +169,7 @@ StringArray Library::autocomplete(String const& query, File const& patchDirector
     StringArray result;
     result.ensureStorageAllocated(20);
 
+    // First, look for non-help patches in the current patch directory
     if (patchDirectory.isDirectory()) {
         for (auto const& file : OSUtils::iterateDirectory(patchDirectory, false, true, 20)) {
             auto filename = file.getFileNameWithoutExtension();
@@ -178,6 +179,7 @@ StringArray Library::autocomplete(String const& query, File const& patchDirector
         }
     }
 
+    // Then, go over all regular objects for direct autocompletion
     for (auto const& str : allObjects) {
         if (result.size() >= 20)
             break;
@@ -187,6 +189,7 @@ StringArray Library::autocomplete(String const& query, File const& patchDirector
         }
     }
     
+    // Finally, do a fuzzy search of all object documentation
     auto fuzzyResults = searchDatabase.search(query.toStdString());
     for(auto& fuzzyMatch : fuzzyResults)
     {

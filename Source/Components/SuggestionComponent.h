@@ -771,7 +771,7 @@ private:
         if (!currentObject) {
             return false;
         }
-        if (openedEditor->getHighlightedRegion().isEmpty() && key == KeyPress::rightKey && autoCompleteComponent && openedEditor->getCaretPosition() == openedEditor->getText().length()) {
+        if (openedEditor->getHighlightedRegion().isEmpty() && key == KeyPress::rightKey && autoCompleteComponent && autoCompleteComponent->isAutocompleting() && openedEditor->getCaretPosition() == openedEditor->getText().length()) {
             autoCompleteComponent->autocomplete();
             currentidx = 0;
             if (buttons.size())
