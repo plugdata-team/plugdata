@@ -128,7 +128,7 @@ Library::Library(pd::Instance* instance)
         }
 
         searchDatabase.addEntry(objectEntry, fields);
-        searchDatabase.setThreshold(0.7f);
+        searchDatabase.setThreshold(0.4f);
         
         String origin;
         for (auto category : categoriesTree) {

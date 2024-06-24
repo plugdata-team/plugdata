@@ -177,6 +177,7 @@ class SuggestionComponent : public Component
             setWantsKeyboardFocus(false);
             setConnectedEdges(12);
             setClickingTogglesState(true);
+            setTriggeredOnMouseDown(true);
             setRadioGroupId(hash("suggestion_component"));
             setColour(TextButton::buttonOnColourId, findColour(ScrollBar::thumbColourId));
         }
@@ -195,12 +196,6 @@ class SuggestionComponent : public Component
             drawIcon = icon;
 
             repaint();
-        }
-
-        // TODO: why is this necessary?
-        void mouseDown(MouseEvent const& e) override
-        {
-            onClick();
         }
 
         void paint(Graphics& g) override
@@ -327,14 +322,15 @@ public:
             auto* but = buttons[i];
             but->setAlwaysOnTop(true);
 
-            but->onClick = [this, i, but, editor]() mutable {
+            but->onClick = [this, i, editor]() mutable {
                 // If the button is already selected, perform autocomplete
-                if (but->getToggleState() && autoCompleteComponent) {
+                if (i == currentidx && autoCompleteComponent) {
                     autoCompleteComponent->autocomplete();
-                    return;
+                }
+                else {
+                    move(0, i);
                 }
 
-                move(0, i);
                 if (!editor->isVisible())
                     editor->setVisible(true);
                 editor->grabKeyboardFocus();
@@ -416,11 +412,19 @@ public:
         auto* but = buttons[currentidx];
 
         but->setToggleState(true, dontSendNotification);
-
-        if (autoCompleteComponent) {
-            String newText = buttons[currentidx]->getButtonText();
-            autoCompleteComponent->setSuggestion(newText);
+        auto buttonText = but->getButtonText();
+        
+        if (autoCompleteComponent && buttonText.startsWith(openedEditor->getText())) {
+            autoCompleteComponent->setSuggestion(buttonText);
             autoCompleteComponent->enableAutocomplete(true);
+            currentObject->updateBounds();
+            resized();
+        }
+        else
+        {
+            openedEditor->setText(buttonText, dontSendNotification);
+            openedEditor->moveCaretToEnd(false);
+            autoCompleteComponent->enableAutocomplete(false);
             currentObject->updateBounds();
             resized();
         }
@@ -464,8 +468,10 @@ public:
     }
     void updateSuggestions(String const& currentText)
     {
-        if (!currentObject)
+        if (!currentObject || lastText == currentText || (currentidx >= 0 && buttons[currentidx]->getButtonText() == currentText))
             return;
+        
+        lastText = currentText;
         
         auto& library = currentObject->cnv->pd->objectLibrary;
 
@@ -487,16 +493,6 @@ public:
                     return 1;
                 }
                 
-                if(a.startsWith(query) && !b.startsWith(query))
-                {
-                    return -1;
-                }
-                
-                if(b.startsWith(query) && !a.startsWith(query))
-                {
-                    return 1;
-                }
-
                 // Check if suggestion is equal to query with "~" appended
                 if (a == (query + "~") && b != query && b != (query + "~")) {
                     return -1;
@@ -514,16 +510,18 @@ public:
                 if (b.startsWith(query + ".") && a != query && a != (query + "~") && !a.startsWith(query + ".")) {
                     return 1;
                 }
-
-                if (a.length() < b.length()) {
+                
+                if(a.startsWith(query) && !b.startsWith(query))
+                {
                     return -1;
                 }
-
-                if (b.length() < a.length()) {
+                
+                if(b.startsWith(query) && !a.startsWith(query))
+                {
                     return 1;
                 }
-
-                return a.compareNatural(b);
+                
+                return 0;
             }
             String const query;
         };
@@ -533,7 +531,7 @@ public:
                 return suggestions;
 
             auto sorter = ObjectSorter(query);
-            suggestions.strings.sort(sorter);
+            suggestions.strings.sort(sorter, true);
             return suggestions;
         };
 
@@ -673,7 +671,7 @@ public:
             autoCompleteComponent->enableAutocomplete(true);
         }
         
-        if (openedEditor) {            
+        if (openedEditor) {
             numOptions = static_cast<int>(found.size());
 
             // Apply object name and descriptions to buttons
@@ -917,6 +915,7 @@ private:
 
     SafePointer<TextEditor> openedEditor = nullptr;
     SafePointer<Object> currentObject = nullptr;
+    String lastText;
 
     StringArray excludeList = {
         "number~", // appears before numbox~ alphabetically, but is worse in every way
