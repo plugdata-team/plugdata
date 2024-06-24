@@ -424,6 +424,7 @@ public:
         {
             openedEditor->setText(buttonText, dontSendNotification);
             openedEditor->moveCaretToEnd(false);
+            autoCompleteComponent->setSuggestion("");
             autoCompleteComponent->enableAutocomplete(false);
             currentObject->updateBounds();
             resized();
