@@ -105,7 +105,8 @@ public:
     {
         if (editor == nullptr) {
             editor.reset(TextObjectHelper::createTextEditor(object, 15));
-
+            editor->setColour(TextEditor::textColourId, LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::commentTextColourId));
+            
             editor->setBorder(border.addedTo(BorderSize<int>(1, 0, 0, 0)));
             editor->setBounds(getLocalBounds());
             editor->setText(objectText, false);
@@ -113,11 +114,10 @@ public:
             editor->addKeyListener(this);
             editor->selectAll();
             editor->setJustification(Justification::topLeft);
-
+            
+  
             addAndMakeVisible(editor.get());
             editor->grabKeyboardFocus();
-
-            editor->setColour(TextEditor::textColourId, LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::commentTextColourId));
 
             editor->onFocusLost = [this]() {
                 hideEditor();
