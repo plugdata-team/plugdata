@@ -93,6 +93,8 @@ public:
     void broughtToFront() override;
 
     void lookAndFeelChanged() override;
+        
+    void visibilityChanged() override;
 
     // For dragging parent window
     void mouseDrag(MouseEvent const& e) override;
