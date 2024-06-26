@@ -370,6 +370,7 @@ public:
 
     void removeCalloutBox()
     {
+        currentidx = 0;
         setVisible(false);
 
         if (isOnDesktop()) {
@@ -469,8 +470,14 @@ public:
     }
     void updateSuggestions(String const& currentText)
     {
-        if (!currentObject || lastText == currentText || (currentidx >= 0 && buttons[currentidx]->getButtonText() == currentText))
+        if (!currentObject || lastText == currentText) {
             return;
+        }
+        
+        if(currentidx >= 0 && buttons[currentidx]->getButtonText() == currentText)
+        {
+            if(autoCompleteComponent) autoCompleteComponent->setSuggestion("");
+        }
         
         lastText = currentText;
         
