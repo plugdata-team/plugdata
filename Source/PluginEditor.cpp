@@ -1561,13 +1561,6 @@ void PluginEditor::quit(bool askToSave)
     }
 }
 
-void PluginEditor::visibilityChanged()
-{
-    if(!isVisible()) {
-        nvgSurface.detachContext();
-    }
-}
-
 void PluginEditor::showTouchSelectionHelper(bool shouldBeShown)
 {
     touchSelectionHelper->show();
