@@ -973,7 +973,7 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
     case CommandIDs::Triggerize: {
         result.setInfo("Triggerize", "Triggerize objects", "Edit", 0);
         result.addDefaultKeypress(84, ModifierKeys::commandModifier);
-        result.setActive(hasCanvas && !isDragging && !locked && hasSelection);
+        result.setActive(hasCanvas && !isDragging && !locked && hasConnectionSelection);
         break;
     }
     case CommandIDs::Duplicate: {
@@ -1460,7 +1460,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
         auto ID = static_cast<ObjectIDs>(info.commandID);
 
         if (objectNames.count(ID)) {
-            if (cnv->getSelectionOfType<Object>().size() == 1) {
+            if (cnv->getSelectionOfType<Object>().size() == 1 && getValue<bool>(autoconnect)) {
                 // if 1 object is selected, create new object beneath selected
                 auto obj = cnv->getSelectionOfType<Object>()[0];
                 obj->hideEditor(); // If it's still open, it might overwrite lastSelectedObject
@@ -1472,7 +1472,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
                             obj->getX() + Object::margin,
                             obj->getY() + obj->getHeight())));
                 }
-            } else if ((cnv->getSelectionOfType<Object>().size() == 0) && (cnv->getSelectionOfType<Connection>().size() == 1)) {
+            } else if ((cnv->getSelectionOfType<Object>().size() == 0) && (cnv->getSelectionOfType<Connection>().size() == 1)) { // Autopatching: insert object in connection. Should document this better!
                 // if 1 connection is selected, create new object in the middle of connection
                 cnv->patch.startUndoSequence("ObjectInConnection");
                 cnv->lastSelectedConnection = cnv->getSelectionOfType<Connection>().getFirst();
