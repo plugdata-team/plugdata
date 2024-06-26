@@ -976,7 +976,7 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
 
         result.setInfo("Duplicate", "Duplicate selection", "Edit", 0);
         result.addDefaultKeypress(68, ModifierKeys::commandModifier);
-        result.setActive(hasCanvas && !isDragging && !locked && hasObjectSelection);
+        result.setActive(hasCanvas && !isDragging && !locked && hasSelection);
         break;
     }
     case CommandIDs::CreateConnection: {

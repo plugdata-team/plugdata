@@ -1260,7 +1260,7 @@ void ConnectionPathUpdater::timerCallback()
             
             while (auto* oc = linetraverser_next(&t)) {
                 
-                if (oc && oc == connection->ptr.getRaw<t_outconnect>()) {
+                if (oc == connection->ptr.getRaw<t_outconnect>()) {
                     
                     outObj = t.tr_ob;
                     outIdx = t.tr_outno;

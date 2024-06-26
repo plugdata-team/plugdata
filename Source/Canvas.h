@@ -80,6 +80,7 @@ public:
     Point<int> getLastMousePosition();
 
     void commandKeyChanged(bool isHeld) override;
+    void shiftKeyChanged(bool isHeld) override;
     void middleMouseChanged(bool isHeld) override;
     void altKeyChanged(bool isHeld) override;
 

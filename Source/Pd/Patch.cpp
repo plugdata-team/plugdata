@@ -445,11 +445,11 @@ void Patch::paste(Point<int> position)
     }
 }
 
-void Patch::duplicate(std::vector<t_gobj*> const& objects)
+void Patch::duplicate(std::vector<t_gobj*> const& objects, t_outconnect* connection)
 {
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        pd::Interface::duplicateSelection(patch.get(), objects);
+        pd::Interface::duplicateSelection(patch.get(), objects, connection);
     }
 }
 

@@ -60,7 +60,7 @@ public:
 
     void copy(std::vector<t_gobj*> const& objects);
     void paste(Point<int> position);
-    void duplicate(std::vector<t_gobj*> const& objects);
+    void duplicate(std::vector<t_gobj*> const& objects, t_outconnect* connection);
 
     void startUndoSequence(String const& name);
     void endUndoSequence(String const& name);

@@ -170,6 +170,8 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     parameters.addParamInt("Height", cDimensions, &patchHeight, 327, onInteractionFn);
 
     updatePatchSnapshot();
+    
+    patch.setVisible(true);
 }
 
 Canvas::~Canvas()
@@ -987,6 +989,59 @@ void Canvas::updateDrawables()
     }
 }
 
+void Canvas::shiftKeyChanged(bool isHeld)
+{
+    if(!isHeld) return;
+    
+    if(connectionsBeingCreated.size() == 1) {
+        Iolet* connectingOutlet = connectionsBeingCreated[0]->getIolet();
+        Iolet* targetInlet = nullptr;
+        for(auto& object : objects)
+        {
+            for(auto* iolet : object->iolets)
+            {
+                if(iolet->isTargeted && iolet != connectingOutlet)
+                {
+                    targetInlet = iolet;
+                    break;
+                }
+            }
+        }
+ 
+        if(targetInlet) {
+            if(connectingOutlet->isInlet)
+            {
+                std::swap(connectingOutlet, targetInlet);
+            }
+            
+            if(auto x = patch.getPointer()) {
+                auto* outObj = connectingOutlet->object->getPointer();
+                auto* inObj = targetInlet->object->getPointer();
+                auto outletIndex = connectingOutlet->ioletIdx;
+                auto inletIndex = targetInlet->ioletIdx;
+
+                std::vector<t_gobj*> selectedObjects;
+                for (auto* object : getSelectionOfType<Object>()) {
+                    if (auto* ptr = object->getPointer()) {
+                        selectedObjects.push_back(ptr);
+                    }
+                }
+                
+                t_outconnect* connection = nullptr;
+                auto selectedConnections = getSelectionOfType<Connection>();
+                if(selectedConnections.size() == 1)
+                {
+                    connection = selectedConnections[0]->getPointer();
+                }
+                
+                pd::Interface::shiftAutopatch(x.get(), inObj, inletIndex, outObj, outletIndex, selectedObjects, connection);
+            }
+        }
+    }
+    
+    synchronise();
+}
+
 void Canvas::commandKeyChanged(bool isHeld)
 {
     commandLocked = isHeld;
@@ -1516,8 +1571,17 @@ void Canvas::duplicateSelection()
 
     dragState.lastDuplicateOffset = dragState.duplicateOffset;
     
+    t_outconnect* connection = nullptr;
+    auto selectedConnections = getSelectionOfType<Connection>();
+    SafePointer<Connection> connectionSelectedOriginally = nullptr;
+    if(selectedConnections.size() == 1)
+    {
+        connectionSelectedOriginally = selectedConnections[0];
+        connection = selectedConnections[0]->getPointer();
+    }
+    
     // Tell pd to duplicate
-    patch.duplicate(objectsToDuplicate);
+    patch.duplicate(objectsToDuplicate, connection);
 
     deselectAll();
 
@@ -1536,7 +1600,7 @@ void Canvas::duplicateSelection()
             duplicated.add(object);
         }
     }
-    
+        
     // Move duplicated objects if they overlap exisisting objects
     std::vector<t_gobj*> moveObjects;
     for (auto* dup : duplicated) {
@@ -1557,6 +1621,12 @@ void Canvas::duplicateSelection()
     
     patch.endUndoSequence("Duplicate object/s");
     patch.deselectAll();
+    
+    if(connectionSelectedOriginally)
+    {
+        setSelected(connectionSelectedOriginally.getComponent(), true);
+    }
+    
 }
 
 void Canvas::removeSelection()
@@ -1635,20 +1705,37 @@ void Canvas::removeSelectedConnections()
 
 void Canvas::triggerizeSelection()
 {
-    auto selectedBoxes = getSelectionOfType<Object>();
-
-    std::vector<t_gobj*> objects;
+    std::vector<t_gobj*> selectedObjects;
     for (auto* object : getSelectionOfType<Object>()) {
         if (auto* ptr = object->getPointer()) {
-            objects.push_back(ptr);
+            selectedObjects.push_back(ptr);
         }
     }
-
-    if (auto patchPtr = patch.getPointer()) {
-        pd::Interface::triggerize(patchPtr.get(), objects);
+    
+    t_outconnect* connection = nullptr;
+    auto selectedConnections = getSelectionOfType<Connection>();
+    if(selectedConnections.size() == 1)
+    {
+        connection = selectedConnections[0]->getPointer();
     }
 
-    synchronise();
+    t_gobj* triggerizedObject = nullptr;
+    if (auto patchPtr = patch.getPointer()) {
+        triggerizedObject = pd::Interface::triggerize(patchPtr.get(), selectedObjects, connection);
+    }
+
+    performSynchronise();
+    
+    if(triggerizedObject) {
+        for(auto* object : objects)
+        {
+            if(object->getPointer() == triggerizedObject) {
+                setSelected(object, true);
+                object->showEditor();
+                hideSuggestions();
+            }
+        }
+    }
 }
 
 void Canvas::encapsulateSelection()

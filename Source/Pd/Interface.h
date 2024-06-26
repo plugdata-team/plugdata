@@ -40,8 +40,11 @@ extern int glist_getindex(t_glist* cnv, t_gobj* y);
 extern void canvas_savedeclarationsto(t_canvas* x, t_binbuf* b);
 extern void canvas_savetemplatesto(t_canvas* x, t_binbuf* b, int wholething);
 extern void canvas_saveto(t_canvas* x, t_binbuf* b);
+extern void canvas_doclick(t_canvas *x, int xpos, int ypos, int which, int mod, int doit);
+extern void canvas_doconnect(t_canvas *x, int xpos, int ypos, int mod, int doit);
 extern void set_class_prefix(t_symbol*);
 extern void clear_class_loadsym();
+
 }
 
 namespace pd {
@@ -233,20 +236,42 @@ struct Interface {
 
         return gensym(arraybuf);
     }
+    
+    static void selectConnection(t_canvas* cnv, t_outconnect* connection)
+    {
+        auto* ed = cnv->gl_editor;
+        t_linetraverser t;
+        linetraverser_start(&t, cnv);
+        
+        while (auto* oc = linetraverser_next(&t)) {
+            if (oc == connection) {
+                ed->e_selectedline = 1;
+                ed->e_selectline_index1 = canvas_getindex(cnv, &t.tr_ob->ob_g);
+                ed->e_selectline_outno = t.tr_outno;
+                ed->e_selectline_index2 = canvas_getindex(cnv, &t.tr_ob2->ob_g);
+                ed->e_selectline_inno = t.tr_inno;
+            }
+        }
+    }
 
-    static void triggerize(t_canvas* cnv, std::vector<t_gobj*> const& objects)
+    static t_gobj* triggerize(t_canvas* cnv, std::vector<t_gobj*> const& objects, t_outconnect* connection)
     {
         glist_noselect(cnv);
 
         for (auto* obj : objects) {
             glist_select(cnv, obj);
         }
+        
+        selectConnection(cnv, connection);
 
         canvas_setcurrent(cnv);
         pd_typedmess((t_pd*)cnv, gensym("triggerize"), 0, nullptr);
         canvas_unsetcurrent(cnv);
 
+        auto* selection = cnv->gl_editor->e_selection ? cnv->gl_editor->e_selection->sel_what : nullptr;
         glist_noselect(cnv);
+        
+        return selection;
     }
 
     static void paste(t_canvas* cnv, char const* buf)
@@ -301,17 +326,63 @@ struct Interface {
         arrangeObject(cnv, obj, 0);
     }
 
-    static void duplicateSelection(t_canvas* cnv, std::vector<t_gobj*> const& objects)
+    static void duplicateSelection(t_canvas* cnv, std::vector<t_gobj*> const& objects, t_outconnect* connection)
     {
         glist_noselect(cnv);
 
         for (auto* obj : objects) {
             glist_select(cnv, obj);
         }
+        
+        selectConnection(cnv, connection);
 
         canvas_setcurrent(cnv);
         pd_typedmess((t_pd*)cnv, gensym("duplicate"), 0, nullptr);
         canvas_unsetcurrent(cnv);
+    }
+    
+    static void shiftAutopatch(t_canvas* cnv, t_gobj* inObj, int inletIndex, t_gobj* outObj, int outletIndex, std::vector<t_gobj*> selectedObjects, t_outconnect* connection)
+    {
+        auto getRawObjectBounds = [](t_canvas* cnv, t_object* obj) -> Rectangle<int>
+        {
+            int x1, y1, x2, y2;
+            gobj_getrect(&obj->te_g, cnv, &x1, &y1, &x2, &y2);
+            return Rectangle<int>(x1, y1, x2 - x1, y2 - y1);
+        };
+        
+        auto* checkedOutObj = pd::Interface::checkObject(outObj);
+        auto* checkedInObj = pd::Interface::checkObject(inObj);
+        
+        if(!checkedOutObj || !checkedInObj) return;
+        
+        auto outObjBounds = getRawObjectBounds(cnv, checkedOutObj);
+        auto inObjBounds = getRawObjectBounds(cnv, checkedInObj);
+        
+        float numOutlets = obj_noutlets(checkedOutObj);
+        float numInlets = obj_ninlets(checkedInObj);
+        numOutlets = numOutlets == 1 ? 1 : numOutlets-1;
+        numInlets = numInlets == 1 ? 1 : numInlets-1;
+        
+        // Reconstruct pd-vanilla iolet positions, so we can just let pure-data take care of autopatching
+        auto outletPosX = outObjBounds.getX() + (outObjBounds.getWidth() - IOWIDTH) * outletIndex / numOutlets;
+        auto inletPosX = inObjBounds.getX() + (inObjBounds.getWidth() - IOWIDTH) * inletIndex / numInlets;
+
+        auto editWas = cnv->gl_edit;
+        cnv->gl_edit = 1;
+        
+        glist_noselect(cnv);
+
+        for (auto* obj : selectedObjects) {
+            glist_select(cnv, obj);
+        }
+        
+        selectConnection(cnv, connection);
+        
+        canvas_doclick(cnv, outletPosX, checkedOutObj->te_ypix, 0, 0, 1);
+        canvas_doconnect(cnv, inletPosX, checkedInObj->te_ypix, 1, 1);
+        glist_noselect(cnv);
+        cnv->gl_edit = editWas;
+        
     }
 
     /* save a "root" canvas to a file; cf. canvas_saveto() which saves the
