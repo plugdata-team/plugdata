@@ -250,10 +250,45 @@ struct Interface {
                 ed->e_selectline_outno = t.tr_outno;
                 ed->e_selectline_index2 = canvas_getindex(cnv, &t.tr_ob2->ob_g);
                 ed->e_selectline_inno = t.tr_inno;
+                return;
             }
         }
+        
+        ed->e_selectedline = 0;
+    }
+    
+    static void connectSelection(t_canvas* cnv, std::vector<t_gobj*> const& objects, t_outconnect* connection)
+    {
+        glist_noselect(cnv);
+
+        for (auto* obj : objects) {
+            glist_select(cnv, obj);
+        }
+        
+        selectConnection(cnv, connection);
+
+        canvas_setcurrent(cnv);
+        pd_typedmess((t_pd*)cnv, gensym("connect_selection"), 0, nullptr);
+        canvas_unsetcurrent(cnv);
+        
+        glist_noselect(cnv);
     }
 
+    static void tidy(t_canvas* cnv, std::vector<t_gobj*> const& objects)
+    {
+        glist_noselect(cnv);
+
+        for (auto* obj : objects) {
+            glist_select(cnv, obj);
+        }
+        
+        canvas_setcurrent(cnv);
+        pd_typedmess((t_pd*)cnv, gensym("tidy"), 0, nullptr);
+        canvas_unsetcurrent(cnv);
+
+        glist_noselect(cnv);
+    }
+    
     static t_gobj* triggerize(t_canvas* cnv, std::vector<t_gobj*> const& objects, t_outconnect* connection)
     {
         glist_noselect(cnv);
@@ -343,33 +378,30 @@ struct Interface {
     
     static void shiftAutopatch(t_canvas* cnv, t_gobj* inObj, int inletIndex, t_gobj* outObj, int outletIndex, std::vector<t_gobj*> selectedObjects, t_outconnect* connection)
     {
-        auto getRawObjectBounds = [](t_canvas* cnv, t_object* obj) -> Rectangle<int>
+        auto getRawObjectBounds = [](t_canvas* cnv, t_gobj* obj) -> Rectangle<int>
         {
             int x1, y1, x2, y2;
-            gobj_getrect(&obj->te_g, cnv, &x1, &y1, &x2, &y2);
+            gobj_getrect(obj, cnv, &x1, &y1, &x2, &y2);
             return Rectangle<int>(x1, y1, x2 - x1, y2 - y1);
         };
         
-        auto* checkedOutObj = pd::Interface::checkObject(outObj);
-        auto* checkedInObj = pd::Interface::checkObject(inObj);
+        auto outObjBounds = getRawObjectBounds(cnv, outObj);
+        auto inObjBounds = getRawObjectBounds(cnv, inObj);
         
-        if(!checkedOutObj || !checkedInObj) return;
-        
-        auto outObjBounds = getRawObjectBounds(cnv, checkedOutObj);
-        auto inObjBounds = getRawObjectBounds(cnv, checkedInObj);
-        
-        float numOutlets = obj_noutlets(checkedOutObj);
-        float numInlets = obj_ninlets(checkedInObj);
-        numOutlets = numOutlets == 1 ? 1 : numOutlets-1;
-        numInlets = numInlets == 1 ? 1 : numInlets-1;
+        auto numOutlets = obj_noutlets(pd::Interface::checkObject(outObj));
+        auto numInlets = obj_ninlets(pd::Interface::checkObject(inObj));
         
         // Reconstruct pd-vanilla iolet positions, so we can just let pure-data take care of autopatching
-        auto outletPosX = outObjBounds.getX() + (outObjBounds.getWidth() - IOWIDTH) * outletIndex / numOutlets;
-        auto inletPosX = inObjBounds.getX() + (inObjBounds.getWidth() - IOWIDTH) * inletIndex / numInlets;
+        auto outletPosX = outObjBounds.getX() + (outObjBounds.getWidth() - IOWIDTH) * outletIndex / (numOutlets == 1 ? 1 : numOutlets-1);
+        auto inletPosX = inObjBounds.getX() + (inObjBounds.getWidth() - IOWIDTH) * inletIndex / (numInlets == 1 ? 1 : numInlets-1);
 
         auto editWas = cnv->gl_edit;
         cnv->gl_edit = 1;
         
+        // Simulate click on inlet
+        canvas_doclick(cnv, outletPosX, outObjBounds.getY(), 0, 0, 1);
+        
+        // Set selection
         glist_noselect(cnv);
 
         for (auto* obj : selectedObjects) {
@@ -378,10 +410,13 @@ struct Interface {
         
         selectConnection(cnv, connection);
         
-        canvas_doclick(cnv, outletPosX, checkedOutObj->te_ypix, 0, 0, 1);
-        canvas_doconnect(cnv, inletPosX, checkedInObj->te_ypix, 1, 1);
+        // Create connection with shift key down
+        canvas_doconnect(cnv, inletPosX, inObjBounds.getY(), 1, 1);
+        
+        // Deselect all
         glist_noselect(cnv);
         cnv->gl_edit = editWas;
+        cnv->gl_editor->e_onmotion = MA_NONE;
         
     }
 

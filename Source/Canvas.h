@@ -131,10 +131,10 @@ public:
 
     void encapsulateSelection();
     void triggerizeSelection();
-
-    bool canConnectSelectedObjects();
-    bool connectSelectedObjects();
-
+    void cycleSelection();
+    void connectSelection();
+    void tidySelection();
+        
     void cancelConnectionCreation();
 
     void alignObjects(Align alignment);

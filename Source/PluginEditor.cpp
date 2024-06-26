@@ -817,7 +817,6 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
     bool isDragging = false;
     bool hasCanvas = false;
     bool locked = true;
-    bool canConnect = false;
     bool canUndo = false;
     bool canRedo = false;
 
@@ -836,7 +835,6 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         canRedo = cnv->patch.canRedo() && !isDragging;
 
         locked = getValue<bool>(cnv->locked);
-        canConnect = cnv->canConnectSelectedObjects();
     }
 
     switch (commandID) {
@@ -966,6 +964,12 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         result.setActive(hasCanvas && !isDragging && !locked && hasSelection);
         break;
     }
+    case CommandIDs::Tidy: {
+        result.setInfo("Tidy", "Tidy objects", "Edit", 0);
+        result.addDefaultKeypress(82, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+        result.setActive(hasCanvas && !isDragging && !locked && hasSelection);
+        break;
+    }
     case CommandIDs::Triggerize: {
         result.setInfo("Triggerize", "Triggerize objects", "Edit", 0);
         result.addDefaultKeypress(84, ModifierKeys::commandModifier);
@@ -973,7 +977,6 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         break;
     }
     case CommandIDs::Duplicate: {
-
         result.setInfo("Duplicate", "Duplicate selection", "Edit", 0);
         result.addDefaultKeypress(68, ModifierKeys::commandModifier);
         result.setActive(hasCanvas && !isDragging && !locked && hasSelection);
@@ -982,7 +985,7 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
     case CommandIDs::CreateConnection: {
         result.setInfo("Create connection", "Create a connection between selected objects", "Edit", 0);
         result.addDefaultKeypress(75, ModifierKeys::commandModifier);
-        result.setActive(canConnect);
+        result.setActive(hasCanvas && !isDragging && !locked && hasSelection);
         break;
     }
     case CommandIDs::RemoveConnections: {
@@ -1292,6 +1295,12 @@ bool PluginEditor::perform(InvocationInfo const& info)
         cnv->encapsulateSelection();
         return true;
     }
+    case CommandIDs::Tidy:
+    {
+        cnv = getCurrentCanvas();
+        cnv->tidySelection();
+        return true;
+    }
     case CommandIDs::Triggerize: {
         cnv = getCurrentCanvas();
         cnv->triggerizeSelection();
@@ -1299,7 +1308,8 @@ bool PluginEditor::perform(InvocationInfo const& info)
     }
     case CommandIDs::CreateConnection: {
         cnv = getCurrentCanvas();
-        return cnv->connectSelectedObjects();
+        cnv->connectSelection();
+        return true;
     }
     case CommandIDs::RemoveConnections: {
         cnv = getCurrentCanvas();

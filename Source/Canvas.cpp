@@ -1009,11 +1009,9 @@ void Canvas::shiftKeyChanged(bool isHeld)
         }
  
         if(targetInlet) {
-            if(connectingOutlet->isInlet)
-            {
-                std::swap(connectingOutlet, targetInlet);
-            }
-            
+            bool inverted = connectingOutlet->isInlet;
+            if(inverted) std::swap(connectingOutlet, targetInlet);
+
             if(auto x = patch.getPointer()) {
                 auto* outObj = connectingOutlet->object->getPointer();
                 auto* inObj = targetInlet->object->getPointer();
@@ -1026,6 +1024,9 @@ void Canvas::shiftKeyChanged(bool isHeld)
                         selectedObjects.push_back(ptr);
                     }
                 }
+                
+                // If we autopatch from inlet to outlet with multiple selection, pure-data can't handle it
+                if(inverted && selectedObjects.size() > 1) return;
                 
                 t_outconnect* connection = nullptr;
                 auto selectedConnections = getSelectionOfType<Connection>();
@@ -1375,6 +1376,10 @@ bool Canvas::keyPressed(KeyPress const& key)
         moveSelection(0, moveDistance);
         return false;
     }
+    if (keycode == KeyPress::tabKey) {
+        cycleSelection();
+        return false;
+    }
 
     return false;
 }
@@ -1703,6 +1708,55 @@ void Canvas::removeSelectedConnections()
     synchroniseSplitCanvas();
 }
 
+void Canvas::cycleSelection()
+{
+    // Get the selected objects
+        auto selectedObjects = getSelectionOfType<Object>();
+        
+        if(!selectedObjects.isEmpty())
+        {
+            // Find the index of the currently selected object
+            auto currentIdx = objects.indexOf(selectedObjects[0]);
+            setSelected(selectedObjects[0], false);
+            
+            // Calculate the next index (wrap around if at the end)
+            auto nextIdx = (currentIdx + 1) % objects.size();
+            setSelected(objects[nextIdx], true);
+            
+            return;
+        }
+        
+        // Get the selected connections if no objects are selected
+        auto selectedConnections = getSelectionOfType<Connection>();
+        
+        if(!selectedConnections.isEmpty())
+        {
+            // Find the index of the currently selected connection
+            auto currentIdx = connections.indexOf(selectedConnections[0]);
+            setSelected(selectedConnections[0], false);
+            
+            // Calculate the next index (wrap around if at the end)
+            auto nextIdx = (currentIdx + 1) % connections.size();
+            setSelected(connections[nextIdx], true);
+        }
+}
+
+void Canvas::tidySelection()
+{
+    std::vector<t_gobj*> selectedObjects;
+    for (auto* object : getSelectionOfType<Object>()) {
+        if (auto* ptr = object->getPointer()) {
+            selectedObjects.push_back(ptr);
+        }
+    }
+    
+    if (auto patchPtr = patch.getPointer()) {
+        pd::Interface::tidy(patchPtr.get(), selectedObjects);
+    }
+    
+    synchronise();
+}
+
 void Canvas::triggerizeSelection()
 {
     std::vector<t_gobj*> selectedObjects;
@@ -1880,44 +1934,27 @@ void Canvas::encapsulateSelection()
     patch.deselectAll();
 }
 
-bool Canvas::canConnectSelectedObjects()
+void Canvas::connectSelection()
 {
-    auto selection = getSelectionOfType<Object>();
-    bool rightSize = selection.size() == 2;
-
-    if (!rightSize)
-        return false;
-
-    Object* topObject = selection[0]->getY() > selection[1]->getY() ? selection[1] : selection[0];
-    Object* bottomObject = selection[0] == topObject ? selection[1] : selection[0];
-
-    bool hasInlet = bottomObject->numInputs > 0;
-    bool hasOutlet = topObject->numOutputs > 0;
-
-    return hasInlet && hasOutlet;
-}
-
-bool Canvas::connectSelectedObjects()
-{
-    auto selection = getSelectionOfType<Object>();
-    bool rightSize = selection.size() == 2;
-
-    if (!rightSize)
-        return false;
-
-    auto* topObject = selection[0]->getY() > selection[1]->getY() ? selection[1]->getPointer() : selection[0]->getPointer();
-    auto* bottomObject = selection[0]->getPointer() == topObject ? selection[1]->getPointer() : selection[0]->getPointer();
-
-    auto* checkedTopObject = pd::Interface::checkObject(topObject);
-    auto* checkedBottomObject = pd::Interface::checkObject(bottomObject);
-
-    if (checkedTopObject && checkedBottomObject) {
-        patch.createConnection(checkedTopObject, 0, checkedBottomObject, 0);
+    std::vector<t_gobj*> selectedObjects;
+    for (auto* object : getSelectionOfType<Object>()) {
+        if (auto* ptr = object->getPointer()) {
+            selectedObjects.push_back(ptr);
+        }
     }
-
+    
+    t_outconnect* connection = nullptr;
+    auto selectedConnections = getSelectionOfType<Connection>();
+    if(selectedConnections.size() == 1)
+    {
+        connection = selectedConnections[0]->getPointer();
+    }
+    
+    if(auto patchPtr = patch.getPointer()) {
+        pd::Interface::connectSelection(patchPtr.get(), selectedObjects, connection);
+    }
+    
     synchronise();
-
-    return true;
 }
 
 void Canvas::cancelConnectionCreation()
