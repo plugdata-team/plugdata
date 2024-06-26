@@ -1460,7 +1460,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
         auto ID = static_cast<ObjectIDs>(info.commandID);
 
         if (objectNames.count(ID)) {
-            if (cnv->getSelectionOfType<Object>().size() == 1 && getValue<bool>(autoconnect)) {
+            if (cnv->getSelectionOfType<Object>().size() == 1) {
                 // if 1 object is selected, create new object beneath selected
                 auto obj = cnv->getSelectionOfType<Object>()[0];
                 obj->hideEditor(); // If it's still open, it might overwrite lastSelectedObject
