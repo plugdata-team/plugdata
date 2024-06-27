@@ -1,0 +1,23 @@
+# Design is How It Works
+## how we have design discussions about plugdata</em>
+
+plugdata is first and foremost a design project. That means that we use a design process to make decisions, implement them, test them, and iterate.
+
+###These are the principles we use to discuss any design decision
+These principles will continue to evolve — after all, the people using these principles are designers, and we can’t stop refining — but also, these are our current best practices, and any feature requests, pull requests, and critical discussions will have to follow these principles.
+1. We start with an observation. Say what you see. Don’t give your opinion about it. Nothing is ”good” or ”bad”. It is not ”interesting” or ”boring”. Those might be your personal feelings about a particular element, but other designers can’t address your feelings. They can affect the causes of those feelings, so express your experience. What were you doing? What happened?
+2. Ask questions. If it’s about a capability you want, ask if others share your experience. If it’s about a feature that already exist, ask what the intentions of the feature are. Sometimes, what you thought was going on is different than what’s really going on — doubly so if you’re talking about something that other creators have put work into. This includes other pieces of software, particularly Open Source software. If you wind up insulting someone else’s work, it grinds the conversation to an abrupt, painful, destructive halt because you’ve just gone from a design discussion to an attack on someone else’s dignity.
+3. Endeavor to be understood. Endeavor to understand. You might not agree, but the objective is to make a better piece of software according to its design principles. Paraphrase back to people what you think they’re saying as a question (see 2., above) and read other people with the intention that, even if some of what they’re saying is wrong, they’re thinking about it deliberately and you might be able to gain a good idea from what they’re saying.
+4. Discuss intended and unintended consequences. This can go on forever. This is to give yourselves a weather prediction, not a precise map. Move on to trying it as soon as it starts seeming workable.
+5. Mock up your solution, or at least carefully discuss it with someone who can. In the process, you’ll probably perceive things that were different than you expected. 
+6. Try it out with at least one person who hasn’t tried it before. Listen to their experiences, telling them as little of what you expect as you can. Set them up to try just this thing, and tell them the part that you care about. Then, really, listen to their experience. There’s a good chance they’ll have suggestions, but they’re usually not very good because they haven’t had the time to think about it.
+7. Don’t answer. The answer is in the next release that contains your change. plugdata vn.n+1 is the answer.
+
+## The quality of the design is the objective.
+### We will reach that objective by supporting each other in our shared objectives.
+
+
+## We recognize a few Red Flags:
+1. "I like it the way it is" is an indication that some element is so hard to learn, the person saying it doesn't want to feel like they've lost all the hard work they've put in to developing the macros in their mind that make it work, when the proposal with in some new way that doesn't require mental gymnastics. Giving the impression that you like it because it’s how you’re used to it will spur the designers to look deeply into why it was so hard to learn and figure out how to improve it.
+2. "RTFM" means that some operation's function or use is obscure and requires the user to already understand it in order to know what question to ask.
+3. "What if it was different" is a seductively fun game to play. But design processes necessarily go through the cycle above. Start with making observations and asking questions.
