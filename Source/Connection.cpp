@@ -141,6 +141,11 @@ void Connection::lookAndFeelChanged()
 
     textColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting());
 
+    if (useThinConnection != PlugDataLook::getUseThinConnections()){
+        useThinConnection = PlugDataLook::getUseThinConnections();
+        cachedIsValid = false;
+    }
+
     updatePath();
     repaint();
 }
@@ -163,8 +168,6 @@ void Connection::render(NVGcontext* nvg)
         connectionColour.g *= 1.2f;
         connectionColour.b *= 1.2f;
     }
-
-    bool useThinConnection = PlugDataLook::getUseThinConnections();
 
     nvgSave(nvg);
     nvgTranslate(nvg, getX(), getY());
