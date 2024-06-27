@@ -122,6 +122,8 @@ private:
     bool segmented = false;
     bool isHovering = false;
 
+    bool useThinConnection = false;
+
     PathPlan currentPlan;
 
     Value locked;
