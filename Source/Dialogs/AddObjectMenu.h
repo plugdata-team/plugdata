@@ -439,6 +439,8 @@ public:
                 { Icons::GlyphGeneric, "#X obj 0 0 hv.filter~ bandpass1", "Bandpass Filter", "Bp Filter", OtherObject },
                 { Icons::GlyphGeneric, "#X obj 0 0 hv.filter~ highpass", "Highpass Filter", "Hp Filter", OtherObject },
                 { Icons::GlyphGeneric, "#X obj 0 0 hv.filter~ allpass", "Allpass Filter", "Ap Filter", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 hv.hip~", "One-pole Highpass", "Hp Filter", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 hv.lop~", "One-pole Lowpass", "Lp Filter", OtherObject },
                 { Icons::GlyphGeneric, "#X obj 0 0 hv.freqshift~", "Frequency Shifter", "Freq Shift", OtherObject },
             } },
         { "Math",
