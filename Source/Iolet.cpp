@@ -47,6 +47,9 @@ Iolet::Iolet(Object* parent, bool inlet)
     setVisible(!isPresenting && !insideGraph);
 
     cnv = findParentComponentOfClass<Canvas>();
+
+    // replicate behaviour of PD-Vanilla downwards only patching - optional
+    patchDownwardsOnly.referTo(SettingsFile::getInstance()->getPropertyAsValue("patch_downwards_only"));
 }
 
 Rectangle<int> Iolet::getCanvasBounds()
@@ -80,7 +83,7 @@ void Iolet::render(NVGcontext* nvg)
 
     nvgSave(nvg);
 
-    if (isLocked || !(overObject || isHovering )) {
+    if (isLocked || !(overObject || isHovering ) || (getValue<bool>(patchDownwardsOnly) && isInlet)) {
         auto clipBounds = getLocalArea(object, object->getLocalBounds().reduced(Object::margin));
         nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
     }
@@ -98,6 +101,9 @@ bool Iolet::hitTest(int x, int y)
 {
     // If locked, don't intercept mouse clicks
     if ((getValue<bool>(locked) || getValue<bool>(commandLocked)))
+        return false;
+
+    if (getValue<bool>(patchDownwardsOnly) && isInlet && !cnv->connectingWithDrag)
         return false;
 
     Path smallBounds;
@@ -121,7 +127,7 @@ bool Iolet::hitTest(int x, int y)
 void Iolet::mouseDrag(MouseEvent const& e)
 {
     // Ignore when locked or if middlemouseclick?
-    if (getValue<bool>(locked) || e.mods.isMiddleButtonDown())
+    if (getValue<bool>(locked) || e.mods.isMiddleButtonDown() || (getValue<bool>(patchDownwardsOnly) && isInlet))
         return;
 
     if (!cnv->connectionCancelled && cnv->connectionsBeingCreated.isEmpty() && e.getLengthOfMousePress() > 100) {
