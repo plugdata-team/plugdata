@@ -1710,10 +1710,15 @@ void Canvas::removeSelectedConnections()
 
 void Canvas::cycleSelection()
 {
-    // Get the selected objects
+        if(connectionsBeingCreated.size() == 1)
+        {
+            connectionsBeingCreated[0]->toNextIolet();
+            return;
+        }
+        // Get the selected objects
         auto selectedObjects = getSelectionOfType<Object>();
         
-        if(!selectedObjects.isEmpty())
+        if(selectedObjects.size() == 1)
         {
             // Find the index of the currently selected object
             auto currentIdx = objects.indexOf(selectedObjects[0]);
@@ -1729,7 +1734,7 @@ void Canvas::cycleSelection()
         // Get the selected connections if no objects are selected
         auto selectedConnections = getSelectionOfType<Connection>();
         
-        if(!selectedConnections.isEmpty())
+        if(selectedConnections.size() == 1)
         {
             // Find the index of the currently selected connection
             auto currentIdx = connections.indexOf(selectedConnections[0]);

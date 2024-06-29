@@ -623,6 +623,18 @@ void Connection::mouseExit(MouseEvent const& e)
 
 void Connection::mouseDown(MouseEvent const& e)
 {
+    if(e.mods.isShiftDown() && e.getNumberOfClicks() == 2 && cnv->getSelectionOfType<Connection>().size() == 2)
+    {
+        if (auto oc = ptr.get<t_outconnect>()) {
+            auto* patch = cnv->patch.getPointer().get();
+            auto* other = cnv->getSelectionOfType<Connection>()[0]->getPointer();
+            if(patch && other) {
+                pd::Interface::swapConnections(patch, oc.get(), other);
+            }
+        }
+        cnv->synchronise();
+        return;
+    }
     cnv->editor->connectionMessageDisplay->setConnection(nullptr);
 
     // Deselect all other connection if shift or command is not down

@@ -104,7 +104,6 @@ public:
             suggestion = suggestionText;
         }
 
-        std::cout << "set!" << std::endl;
         suggestion = suggestion.upToFirstOccurrenceOf(" ", false, false);
         repaint();
     }
@@ -417,7 +416,6 @@ public:
         auto buttonText = but->getButtonText();
         
         if (autoCompleteComponent && buttonText.startsWith(openedEditor->getText())) {
-            std::cout << "set b" << std::endl;
             autoCompleteComponent->setSuggestion(buttonText);
             autoCompleteComponent->enableAutocomplete(true);
             currentObject->updateBounds();
@@ -472,21 +470,15 @@ public:
     }
     void updateSuggestions(String const& currentText)
     {
-        std::cout << "update 1" << std::endl;
-        
         if (!currentObject || lastText == currentText) {
-            std::cout << "ret 1" << std::endl;
             return;
         }
         
         if(currentidx >= 0 && buttons[currentidx]->getButtonText() == currentText)
         {
-            std::cout << "ret 2" << std::endl;
             if(autoCompleteComponent) autoCompleteComponent->setSuggestion("");
             return;
         }
-        
-        std::cout << "update 2" << std::endl;
         
         lastText = currentText;
         
@@ -737,7 +729,6 @@ public:
             auto const& fullName = found[currentidx];
 
             if (fullName.length() > textlen && autoCompleteComponent) {
-                std::cout << "set a" << std::endl;
                 autoCompleteComponent->setSuggestion(fullName);
             } else if (autoCompleteComponent) {
                 autoCompleteComponent->setSuggestion("");

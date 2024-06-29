@@ -289,6 +289,58 @@ struct Interface {
         glist_noselect(cnv);
     }
     
+    static void swapConnections(t_canvas* cnv, t_outconnect* clicked, t_outconnect* selected)
+    {
+        int in1, in1_idx, in2, in2_idx;
+        int out1, out1_idx, out2, out2_idx;
+        
+        t_linetraverser t;
+        linetraverser_start(&t, cnv);
+        
+        int numFound = 0;
+        while (auto* oc = linetraverser_next(&t)) {
+            if (oc == clicked) {
+                out1 = canvas_getindex(cnv, &t.tr_ob->ob_g);
+                out1_idx = t.tr_outno;
+                in1 = canvas_getindex(cnv, &t.tr_ob2->ob_g);
+                in1_idx = t.tr_inno;
+                numFound++;
+            }
+            else if(oc == selected)
+            {
+                out2 = canvas_getindex(cnv, &t.tr_ob->ob_g);
+                out2_idx = t.tr_outno;
+                in2 = canvas_getindex(cnv, &t.tr_ob2->ob_g);
+                in2_idx = t.tr_inno;
+                numFound++;
+            }
+        }
+        if(numFound != 2) return;
+        
+        auto disconnectWithUndo = [](t_canvas *x, t_float index1, t_float outno, t_float index2, t_float inno, t_symbol* connection_path)
+        {
+             canvas_disconnect(x, index1, outno, index2, inno);
+             canvas_undo_add(x, UNDO_DISCONNECT, "disconnect", canvas_undo_set_disconnect(x,
+                 index1, outno, index2, inno, connection_path));
+        };
+        
+        auto connectWithUndo = [](t_canvas *x, t_float index1, t_float outno, t_float index2, t_float inno)
+        {
+            canvas_connect_expandargs(x, index1, outno, index2, inno, gensym("empty"));
+            canvas_undo_add(x, UNDO_CONNECT, "connect", canvas_undo_set_connect(x,
+                index1, outno, index2, inno, gensym("empty")));
+        };
+        
+        canvas_undo_add(cnv, UNDO_SEQUENCE_START, "reconnect", 0);
+        disconnectWithUndo(cnv, out2, out2_idx, in2, in2_idx, gensym("empty"));
+        disconnectWithUndo(cnv, out1, out1_idx, in1,  in1_idx, gensym("empty"));
+        connectWithUndo(cnv, out1, out1_idx, in2, in2_idx);
+        connectWithUndo(cnv, out2, out2_idx, in1, in1_idx);
+        canvas_undo_add(cnv, UNDO_SEQUENCE_END, "reconnect", 0);
+        
+        glist_noselect(cnv);
+    }
+    
     static t_gobj* triggerize(t_canvas* cnv, std::vector<t_gobj*> const& objects, t_outconnect* connection)
     {
         glist_noselect(cnv);

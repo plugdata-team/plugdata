@@ -200,22 +200,30 @@ public:
     {
         cnv->getProperties().remove("SHOW_SYMBOL_IOLETS");
         cnv->removeMouseListener(this);
-        iolet->removeMouseListener(this);
+        if(iolet) iolet->removeMouseListener(this);
     }
 
     void mouseDrag(MouseEvent const& e) override
     {
-        mouseMove(e);
+        if (rateReducer.tooFast())
+            return;
+        
+        updatePosition(e.getEventRelativeTo(cnv).position);
     }
 
     void mouseMove(MouseEvent const& e) override
     {
         if (rateReducer.tooFast())
             return;
-
+        
+        updatePosition(e.getEventRelativeTo(cnv).position);
+    }
+        
+    void updatePosition(Point<float> cursorPoint)
+    {
+        if(!iolet) return;
+        
         auto ioletPoint = cnv->getLocalPoint((Component*)iolet->object, iolet->getBounds().toFloat().getCentre());
-        auto cursorPoint = e.getEventRelativeTo(cnv).position;
-
         auto& startPoint = iolet->isInlet ? cursorPoint : ioletPoint;
         auto& endPoint = iolet->isInlet ? ioletPoint : cursorPoint;
 
@@ -237,6 +245,16 @@ public:
         nvgStrokeWidth(nvg, 4.0f);
         nvgStroke(nvg);
         nvgRestore(nvg);
+    }
+        
+    void toNextIolet()
+    {
+        if(!iolet) return;
+        
+        iolet->removeMouseListener(this);
+        iolet = iolet->getNextIolet();
+        iolet->addMouseListener(this, false);
+        updatePosition(cnv->getMouseXYRelative().toFloat()  );
     }
 
     Iolet* getIolet()

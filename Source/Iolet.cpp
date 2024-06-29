@@ -238,6 +238,23 @@ void Iolet::mouseExit(MouseEvent const& e)
         iolet->repaint();
 }
 
+Iolet* Iolet::getNextIolet()
+{
+    int oldIdx = object->iolets.indexOf(this);
+    int ioletCount = object->iolets.size();
+    
+    for(int offset = 1; offset < ioletCount; offset++)
+    {
+        int nextIdx = (oldIdx + offset) % ioletCount;
+        if(object->iolets[nextIdx]->isInlet == isInlet)
+        {
+            return object->iolets[nextIdx];
+        }
+    }
+    
+    return this;
+}
+
 void Iolet::createConnection()
 {
     auto* cnv = object->cnv;
