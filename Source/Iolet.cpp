@@ -126,8 +126,10 @@ void Iolet::mouseDrag(MouseEvent const& e)
 
     if (!cnv->connectionCancelled && cnv->connectionsBeingCreated.isEmpty() && e.getLengthOfMousePress() > 100) {
         MessageManager::callAsync([_this = SafePointer(this)]() {
-            _this->createConnection();
-            _this->object->cnv->connectingWithDrag = true;
+            if(_this) {
+                _this->createConnection();
+                _this->object->cnv->connectingWithDrag = true;
+            }
         });
     }
     if (cnv->connectingWithDrag && !cnv->connectionsBeingCreated.isEmpty()) {
@@ -305,7 +307,23 @@ void Iolet::createConnection()
     }
     // otherwise set this iolet as start of a connection
     else {
-        object->cnv->connectionsBeingCreated.add(new ConnectionBeingCreated(this, object->cnv));
+        if(Desktop::getInstance().getMainMouseSource().getCurrentModifiers().isShiftDown()) {
+            // Auto patching - if shift is down at mouseDown
+            // create connections from selected objects
+            cnv->setSelected(object, true);
+            
+            int position = object->iolets.indexOf(this);
+            position = isInlet ? position : position - object->numInputs;
+            for (auto* selectedBox : object->cnv->getSelectionOfType<Object>()) {
+                if (isInlet && position < selectedBox->numInputs) {
+                    object->cnv->connectionsBeingCreated.add(new ConnectionBeingCreated(selectedBox->iolets[position], selectedBox->cnv));
+                } else if (!isInlet && position < selectedBox->numOutputs) {
+                    object->cnv->connectionsBeingCreated.add(new ConnectionBeingCreated(selectedBox->iolets[selectedBox->numInputs + position], selectedBox->cnv));
+                }
+            }
+        } else {
+            object->cnv->connectionsBeingCreated.add(new ConnectionBeingCreated(this, object->cnv));
+        }
     }
 }
 
