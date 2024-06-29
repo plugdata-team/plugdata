@@ -252,8 +252,14 @@ public:
         if(!iolet) return;
         
         iolet->removeMouseListener(this);
+        iolet->isTargeted = false;
+        iolet->repaint();
+        
         iolet = iolet->getNextIolet();
         iolet->addMouseListener(this, false);
+        iolet->isTargeted = true;
+        iolet->repaint();
+        
         updatePosition(cnv->getMouseXYRelative().toFloat()  );
     }
 
