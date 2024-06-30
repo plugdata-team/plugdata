@@ -973,7 +973,7 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
     case CommandIDs::Triggerize: {
         result.setInfo("Triggerize", "Triggerize objects", "Edit", 0);
         result.addDefaultKeypress(84, ModifierKeys::commandModifier);
-        result.setActive(hasCanvas && !isDragging && !locked && hasConnectionSelection);
+        result.setActive(hasCanvas && !isDragging && !locked && hasSelection);
         break;
     }
     case CommandIDs::Duplicate: {
