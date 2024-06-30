@@ -40,12 +40,7 @@ public:
         , pd(instance)
     {
         vec.reserve(8192);
-        temp.reserve(8192);
-        try {
-            read(vec);
-        } catch (...) {
-            error = true;
-        }
+        read(vec);
 
         updateParameters();
 
@@ -407,25 +402,11 @@ public:
 
     void update()
     {
-        // Check if size has changed
-        int currentSize = getArraySize();
-        if (vec.size() != currentSize) {
-            vec.resize(currentSize);
-        }
-
-        size = currentSize;
+        size = getArraySize();
 
         if (!edited) {
-            error = false;
-            try {
-                read(temp);
-            } catch (...) {
-                error = true;
-            }
-            if (temp != vec) {
-                vec.swap(temp);
-                repaint();
-            }
+            bool changed = read(vec);
+            if(changed) repaint();
         }
     }
 
@@ -624,16 +605,21 @@ public:
     }
 
     // Gets the values from the array.
-    void read(std::vector<float>& output) const
+    bool read(std::vector<float>& output) const
     {
+        bool changed = false;
         if (auto ptr = arr.get<t_garray>()) {
             int const size = garray_getarray(ptr.get())->a_n;
             output.resize(static_cast<size_t>(size));
 
             t_word* vec = ((t_word*)garray_vec(ptr.get()));
-            for (int i = 0; i < size; i++)
+            for (int i = 0; i < size; i++) {
+                changed = changed || output[i] != vec[i].w_float;
                 output[i] = vec[i].w_float;
+            }
         }
+        
+        return changed;
     }
 
     // Writes a value to the array.
@@ -648,7 +634,6 @@ public:
     pd::WeakReference arr;
 
     std::vector<float> vec;
-    std::vector<float> temp;
     std::atomic<bool> edited;
     bool error = false;
     String const stringArray = "array";
