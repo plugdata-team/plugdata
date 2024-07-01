@@ -199,6 +199,8 @@ struct HeavyCompatibleObjects {
         "hv.freqshift~",
         "hv.gt~",
         "hv.gte~",
+        "hv.hip~",
+        "hv.lop~",
         "hv.log~",
         "hv.lt~",
         "hv.lfo",
