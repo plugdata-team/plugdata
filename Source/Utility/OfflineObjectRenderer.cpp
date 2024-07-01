@@ -32,10 +32,8 @@ OfflineObjectRenderer::OfflineObjectRenderer(pd::Instance* instance)
     String filename = patchFile.getFileName();
     auto const* file = filename.toRawUTF8();
 
-    sys_lock();
     offlineCnv = static_cast<t_canvas*>(pd::Interface::createCanvas(file, dir));
     canvas_create_editor(offlineCnv);
-    sys_unlock();
 }
 
 OfflineObjectRenderer::~OfflineObjectRenderer() = default;
