@@ -164,11 +164,14 @@ struct PlugDataLook : public LookAndFeel_V4 {
     static StringArray getAllThemes();
 
     static bool getUseStraightConnections();
-    static bool getUseThinConnections();
+
+    enum ConnectionStyle { Default = 1, Vanilla = 2, Thin = 3 };
+    static inline ConnectionStyle useConnectionStyle = Default;
+    static ConnectionStyle getConnectionStyle();
+
     static bool getUseSquareIolets();
 
     static inline bool useStraightConnections = false;
-    static inline bool useThinConnections = false;
     static inline bool useSquareIolets = false;
 
     static inline String currentTheme = "light";

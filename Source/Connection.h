@@ -17,6 +17,7 @@
 #include "Utility/RateReducer.h"
 #include "Utility/ModifierKeyListener.h"
 #include "NVGSurface.h"
+#include "LookAndFeel.h"
 
 using PathPlan = std::vector<Point<float>>;
 
@@ -122,7 +123,7 @@ private:
     bool segmented = false;
     bool isHovering = false;
 
-    bool useThinConnection = false;
+    PlugDataLook::ConnectionStyle connectionStyle = PlugDataLook::ConnectionStyle::Default;
 
     PathPlan currentPlan;
 
