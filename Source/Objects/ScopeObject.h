@@ -22,6 +22,8 @@ class ScopeObject : public ObjectBase
     Value receiveSymbol = SynchronousValue();
     Value sizeProperty = SynchronousValue();
 
+    bool freezeScope = false;
+
 public:
     ScopeObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
@@ -160,6 +162,9 @@ public:
 
     void timerCallback() override
     {
+        if (freezeScope)
+            return;
+
         int bufsize = 0, mode = 0;
         float min = 0.0f, max = 1.0f;
 
@@ -216,6 +221,16 @@ public:
         }
 
         repaint();
+    }
+
+    void mouseDown(const MouseEvent& e) override
+    {
+        freezeScope = true;
+    }
+
+    void mouseUp(const MouseEvent& e) override
+    {
+        freezeScope = false;
     }
 
     void valueChanged(Value& v) override
