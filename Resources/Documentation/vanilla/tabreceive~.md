@@ -1,6 +1,6 @@
 ---
 title: tabreceive~
-description: read a block of a signal from an array continuously
+description: read a block of a signal from arrays continuously
 categories:
 - object
 see_also:
@@ -13,15 +13,15 @@ pdcategory: vanilla, Mixing and Routing, Arrays and Tables
 last_update: '0.43'
 inlets:
   1st:
-  - type: set <name>
-    description: set table name
+  - type: set <list>
+    description: set table names
 outlets:
   1st:
   - type: signal
-    description: outputs signal from a matching tabsend~ object
+    description: outputs 1 or more channels from matching arrays
 arguments:
-  - type: symbol
-    description: receive name symbol 
+  - type: list
+    description: table names
     default: empty symbol
 draft: false
 ---

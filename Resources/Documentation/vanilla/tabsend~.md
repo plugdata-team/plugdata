@@ -1,6 +1,6 @@
 ---
 title: tabsend~
-description: write a block of a signal to an array continuously
+description: write a block of a signal to arrays continuously
 categories:
 - object
 see_also:
@@ -14,14 +14,14 @@ last_update: '0.43'
 inlets:
   1st:
   - type: signal
-    description: signal to send to matching tabreceive~ object(s)
+    description:  1 or more channels to write to corresponding arrays
 arguments:
-  - type: symbol
-    description: send symbol name 
+  - type: list
+    description: set table names
     default: empty symbol
 methods:
-  - type: set <name>
-    description: set table name
+  - type: set <list>
+    description: set table names
 draft: false
 ---
 By default a block is 64 samples but this can be changed with the block~ object.
