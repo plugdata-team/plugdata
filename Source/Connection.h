@@ -54,7 +54,7 @@ public:
 
     void updatePath();
 
-    void forceUpdate();
+    void forceUpdate(bool updateCacheOnly = false);
 
     void lookAndFeelChanged() override;
 
@@ -157,7 +157,7 @@ private:
     float mouseDownPosition = 0;
 
     int cacheId = -1;
-    bool cachedIsValid;
+    bool cachedIsValid = false;
 
     pd::WeakReference ptr;
 

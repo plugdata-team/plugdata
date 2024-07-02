@@ -496,9 +496,14 @@ bool Connection::intersects(Rectangle<float> toCheck, int accuracy) const
     return false;
 }
 
-void Connection::forceUpdate()
+void Connection::forceUpdate(bool updateCacheOnly)
 {
-    updatePath();
+    if (updateCacheOnly) {
+        cachedIsValid = false;
+    } else {
+        updatePath();
+    }
+
     repaint();
 }
 
