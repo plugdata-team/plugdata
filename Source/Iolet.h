@@ -55,6 +55,8 @@ private:
     bool const insideGraph;
     bool isSymbolIolet = false;
 
+    Value patchDownwardsOnly;
+
     Value locked;
     Value commandLocked;
     Value presentationMode;

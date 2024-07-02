@@ -130,6 +130,7 @@ private:
         { "add_object_menu_pinned", var(false) },
         { "autosave_interautosave_interval", var(120) },
         { "autosave_enabled", var(1) },
+        { "patch_downwards_only", var(false) }, // Option to replicate PD-Vanilla patching downwards only
         { "macos_buttons",
 #if JUCE_MAC
             var(true)
