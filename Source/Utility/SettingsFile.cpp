@@ -280,8 +280,8 @@ void SettingsFile::initialiseThemesTree()
             if (!themeTree.hasProperty("straight_connections")) {
                 themeTree.setProperty("straight_connections", false, nullptr);
             }
-            if (!themeTree.hasProperty("thin_connections")) {
-                themeTree.setProperty("thin_connections", false, nullptr);
+            if (!themeTree.hasProperty("connection_style")) {
+                themeTree.setProperty("connection_style", String(1), nullptr);
             }
             if (!themeTree.hasProperty("square_iolets")) {
                 themeTree.setProperty("square_iolets", false, nullptr);
