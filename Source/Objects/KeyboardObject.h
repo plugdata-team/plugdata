@@ -83,6 +83,15 @@ public:
         return false;
     }
 
+    void resetToggledKeys()
+    {
+        for (auto key : toggledKeys){
+            noteOff(key);
+        }
+        toggledKeys.clear();
+        repaint();
+    }
+
     bool mouseDraggedToKey(int midiNoteNumber, MouseEvent const& e) override
     {
         clickedKey = midiNoteNumber;
@@ -509,6 +518,12 @@ public:
         case hash("toggle"): {
             setParameterExcludingListener(toggleMode, atoms[0].getFloat());
             keyboard.setToggleMode(static_cast<bool>(atoms[0].getFloat()));
+        }
+        case hash("flush"): {
+            // It's not clear if flush should only clear active toggled notes, or all notes off also?
+            // Let's do both to be safe
+            keyboard.allNotesOff(0);
+            keyboard.resetToggledKeys();
         }
         default:
             break;

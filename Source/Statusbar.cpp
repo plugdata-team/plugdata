@@ -915,7 +915,7 @@ void Statusbar::resized()
 #endif
 
     audioSettingsButton.setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
-    powerButton.setBounds(position(getHeight() - 16, true), 0, getHeight(), getHeight());
+    powerButton.setBounds(position(getHeight() - 6, true), 0, getHeight(), getHeight());
 
     limiterButton.setBounds(position(44, true), 4, 44, getHeight() - 8);
 
