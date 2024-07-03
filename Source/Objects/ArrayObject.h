@@ -196,10 +196,10 @@ public:
 
     void paintGraph(NVGcontext* nvg)
     {
+        nvgSave(nvg);
         auto const h = static_cast<float>(getHeight());
         auto const w = static_cast<float>(getWidth());
         auto const arrB = Rectangle<float>(0, 0, w, h).reduced(1);
-
         nvgIntersectRoundedScissor(nvg, arrB.getX(), arrB.getY(), arrB.getWidth(), arrB.getHeight(), Corners::objectCornerRadius);
         
         if (!vec.empty()) {
@@ -210,6 +210,8 @@ public:
             nvgStrokeWidth(nvg, getLineWidth());
             nvgStroke(nvg);
         }
+        
+        nvgRestore(nvg);
     }
 
     void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms) override
