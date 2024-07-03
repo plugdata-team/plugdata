@@ -199,7 +199,8 @@ public:
         auto const h = static_cast<float>(getHeight());
         auto const w = static_cast<float>(getWidth());
         auto const arrB = Rectangle<float>(0, 0, w, h).reduced(1);
-        nvgRoundedScissor(nvg, arrB.getX(), arrB.getY(), arrB.getWidth(), arrB.getHeight(), Corners::objectCornerRadius);
+
+        nvgIntersectRoundedScissor(nvg, arrB.getX(), arrB.getY(), arrB.getWidth(), arrB.getHeight(), Corners::objectCornerRadius);
         
         if (!vec.empty()) {
             auto p = createArrayPath(vec, getDrawType(), getScale(), w, h);
