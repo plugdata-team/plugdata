@@ -111,14 +111,10 @@ public:
 
         auto audioInputRequired = (inChannels > 0);
 
-#if TESTING
-        // init(audioInputRequired, preferredDefaultDeviceName);
-#else
         if (audioInputRequired && RuntimePermissions::isRequired(RuntimePermissions::recordAudio) && !RuntimePermissions::isGranted(RuntimePermissions::recordAudio))
             RuntimePermissions::request(RuntimePermissions::recordAudio, [this, preferredDefaultDeviceName](bool granted) { init(granted, preferredDefaultDeviceName); });
         else
             init(audioInputRequired, preferredDefaultDeviceName);
-#endif
     }
 
     void init(bool enableAudioInput, String const& preferredDefaultDeviceName)
@@ -667,10 +663,7 @@ private:
                 // Menubar, only for standalone on mac
                 // Doesn't add any new features, but was easy to implement because we already have a command manager
                 setApplicationCommandManagerToWatch(commandManager);
-#if JUCE_MAC && !TESTING
-                MenuBarModel::setMacMainMenu(this);
-#endif
-
+                
                 editor->addComponentListener(this);
                 componentMovedOrResized(*editor, false, true);
 
@@ -743,9 +736,6 @@ private:
         ~MainContentComponent() override
         {
             setApplicationCommandManagerToWatch(nullptr);
-#if JUCE_MAC && !TESTING
-            MenuBarModel::setMacMainMenu(nullptr);
-#endif
             if (editor != nullptr) {
                 editor->removeComponentListener(this);
             }
