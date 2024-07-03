@@ -42,11 +42,6 @@ public:
     void render(NVGcontext* nvg) override
     {
         TextBase::render(nvg);
-
-        nvgBeginPath(nvg);
-        nvgCircle(nvg, 4, getHeight() * 0.5, 2);
-        nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour)));
-        nvgFill(nvg);
     }
 
     void update() override
