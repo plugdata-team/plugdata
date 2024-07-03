@@ -213,7 +213,7 @@ public:
             finalOutlineColour = convertColour(object->isSelected() ? Colours::red.brighter(1.5f) : Colours::red);
             finalBackgroundColour = nvgRGBAf(outlineColour.r, outlineColour.g, outlineColour.b, 0.2f);
         }
-        else if(getPatch() && isMouseOver() && locked)
+        else if(getPatch() && isMouseOver() && isLocked)
         {
             finalBackgroundColour = convertColour(getHoverBackgroundColour(backgroundColour));
         }
