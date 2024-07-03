@@ -1567,6 +1567,12 @@ void Canvas::duplicateSelection()
         }
     }
     
+    // If absolute grid is enabled, snap duplication to grid
+    if(dragState.duplicateOffset.isOrigin() && SettingsFile::getInstance()->getProperty<bool>("grid_enabled") && (SettingsFile::getInstance()->getProperty<int>("grid_type") & 1))
+    {
+        dragState.duplicateOffset = {objectGrid.gridSize - 10, objectGrid.gridSize - 10};
+    }
+    
     // If we previously duplicated and dragged before, and then drag again, the new offset should be relative
     // to the offset we already applied with the previous drag
     if(dragState.lastDuplicateOffset != dragState.duplicateOffset)
@@ -1611,15 +1617,43 @@ void Canvas::duplicateSelection()
     for (auto* dup : duplicated) {
         moveObjects.emplace_back(dup->getPointer());
     }
-
+    
     patch.moveObjects(moveObjects, dragState.duplicateOffset.x, dragState.duplicateOffset.y);
+    
     for (auto* object : objects) {
         object->updateBounds();
     }
     
-    // Select the newly duplicated objects
+    // Select the newly duplicated objects, and calculate new viewport position
+    Rectangle<int> selectionBounds;
     for (auto* obj : duplicated) {
         setSelected(obj, true);
+        selectionBounds = selectionBounds.getUnion(obj->getBounds());
+    }
+    
+    selectionBounds = selectionBounds.transformedBy(getTransform());
+
+    // Adjust the viewport position to ensure the duplicated objects are visible
+    auto viewportPos = viewport->getViewPosition();
+    auto viewWidth = viewport->getWidth();
+    auto viewHeight = viewport->getHeight();
+    if (!selectionBounds.isEmpty()) {
+        int deltaX = 0, deltaY = 0;
+        
+        if (selectionBounds.getRight() > viewportPos.getX() + viewWidth) {
+            deltaX = selectionBounds.getRight() - (viewportPos.getX() + viewWidth);
+        } else if (selectionBounds.getX() < viewportPos.getX()) {
+            deltaX = selectionBounds.getX() - viewportPos.getX();
+        }
+
+        if (selectionBounds.getBottom() > viewportPos.getY() + viewHeight) {
+            deltaY = selectionBounds.getBottom() - (viewportPos.getY() + viewHeight);
+        } else if (selectionBounds.getY() < viewportPos.getY()) {
+            deltaY = selectionBounds.getY() - viewportPos.getY();
+        }
+
+        // Set the new viewport position
+        viewport->setViewPosition(viewportPos + Point<int>(deltaX, deltaY));
     }
     
     dragState.wasDuplicated = true;
