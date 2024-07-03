@@ -32,6 +32,8 @@ public:
                 _this->valueChanged(_this->isGraphChild);
             }
         });
+        
+        setRepaintsOnMouseActivity(true);
     }
 
     ~SubpatchObject() override

@@ -163,7 +163,7 @@ protected:
     bool isValid = true;
     bool isLocked;
 
-    NVGcolor backgroundColour;
+    Colour backgroundColour;
     NVGcolor selectedOutlineColour;
     NVGcolor outlineColour;
     NVGcolor ioletAreaColour;
@@ -193,7 +193,7 @@ public:
 
     void lookAndFeelChanged() override
     {
-        backgroundColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::textObjectBackgroundColourId));
+        backgroundColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::textObjectBackgroundColourId);
         selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
         outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
         ioletAreaColour = convertColour(object->findColour(PlugDataColour::ioletAreaColourId));
@@ -206,14 +206,18 @@ public:
         auto b = getLocalBounds();
 
         auto finalOutlineColour = outlineColour;
-        auto finalBackgroundColour = backgroundColour;
+        auto finalBackgroundColour = convertColour(backgroundColour);
 
         // render invalid text objects with red outline & semi-transparent background
         if (!isValid) {
             finalOutlineColour = convertColour(object->isSelected() ? Colours::red.brighter(1.5f) : Colours::red);
             finalBackgroundColour = nvgRGBAf(outlineColour.r, outlineColour.g, outlineColour.b, 0.2f);
         }
-
+        else if(getPatch() && isMouseOver())
+        {
+            finalBackgroundColour = convertColour(getHoverBackgroundColour(backgroundColour));
+        }
+        
         nvgDrawRoundedRect(nvg, b.getX() + 0.5f, b.getY() + 0.5f, b.getWidth() - 1.0f, b.getHeight() - 1.0f, finalBackgroundColour, object->isSelected() ? selectedOutlineColour : finalOutlineColour, Corners::objectCornerRadius);
 
         // if the object is valid & iolet area colour is differnet from background colour
@@ -229,7 +233,12 @@ public:
         //   │┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼│
         //   └──────────────────┘
 
-        if (isValid && (ioletAreaColour.r != backgroundColour.r || ioletAreaColour.g != backgroundColour.g || ioletAreaColour.b != backgroundColour.b || ioletAreaColour.a != backgroundColour.a)) {
+        bool hasIoletArea = static_cast<int>(ioletAreaColour.r * 255) != backgroundColour.getRed()  ||
+                            static_cast<int>(ioletAreaColour.g * 255) != backgroundColour.getGreen()||
+                            static_cast<int>(ioletAreaColour.b * 255) != backgroundColour.getBlue() ||
+                            static_cast<int>(ioletAreaColour.a * 255) != backgroundColour.getAlpha();
+        
+        if (isValid && hasIoletArea) {
             nvgSave(nvg);
             float const padding = 1.3f;
             float const padding2x = padding * 2;
