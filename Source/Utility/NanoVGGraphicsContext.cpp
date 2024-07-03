@@ -5,18 +5,6 @@
 #include "NanoVGGraphicsContext.h"
 #include <BinaryData.h>
 
-//==============================================================================
-
-static auto const allPrintableAsciiCharacters = []() -> juce::String {
-    juce::String str;
-
-    // Only map printable characters
-    for (juce::juce_wchar c = 32; c < 127; ++c)
-        str += juce::String::charToString(c);
-
-    return str;
-}();
-
 static int const maxImageCacheSize = 256;
 
 static NVGcolor nvgColour(juce::Colour const& c)
@@ -315,6 +303,126 @@ void NanoVGGraphicsContext::setPath(juce::Path const& path, juce::AffineTransfor
     }
 }
 
+// not used now, but may be useful to draw text or other JUCE things in the future
+// This tries to convert a non-zero wound path to nanovg. It currently has some issues with antialiasing
+void NanoVGGraphicsContext::setPathWithIntersections(juce::Path const& path, juce::AffineTransform const& transform)
+{
+    if (path.isEmpty()) return;
+    
+    juce::Path p(path);
+    p.applyTransform(transform);
+
+    auto areaSigned = [](std::vector<double>& vertices)
+    {
+        double area = 0;
+        int const nverts = vertices.size() / 2;
+ 
+        // compute area
+        for (int v = 0; v < nverts; v++)
+        {
+            int const i = v * 2;
+            int const j = ((v + 1) % nverts) * 2;
+ 
+            area += (vertices[j] - vertices[i]) * (vertices[j + 1] + vertices[i + 1]);
+        }
+ 
+        return area / 2;
+    };
+    
+    // Vertex/op storage
+    std::vector<double> vert;
+    std::vector<int> op;
+
+    // Path iterator
+    juce::Path::Iterator pi(p);
+
+    // Start path here
+    nvgBeginPath(nvg);
+    nvgPathWinding(nvg, NVG_HOLE);
+
+    // Scan the shape and accumulate points
+    while (pi.next())
+    {
+        // Always add segtype
+        op.push_back(pi.elementType);
+
+        switch (pi.elementType)
+        {
+            case juce::Path::Iterator::PathElementType::startNewSubPath:
+                vert.push_back(pi.x1);
+                vert.push_back(pi.y1);
+                break;
+
+            case juce::Path::Iterator::PathElementType::lineTo:
+                vert.push_back(pi.x1);
+                vert.push_back(pi.y1);
+                break;
+
+            case juce::Path::Iterator::PathElementType::quadraticTo:
+                vert.push_back(pi.x1);
+                vert.push_back(pi.y1);
+                vert.push_back(pi.x2);
+                vert.push_back(pi.y2);
+                break;
+
+            case juce::Path::Iterator::PathElementType::cubicTo:
+                vert.push_back(pi.x1);
+                vert.push_back(pi.y1);
+                vert.push_back(pi.x2);
+                vert.push_back(pi.y2);
+                vert.push_back(pi.x3);
+                vert.push_back(pi.y3);
+                break;
+
+            case juce::Path::Iterator::PathElementType::closePath:
+            {
+                // The path is closed: we transform the vertex storage into a NanoVG path
+
+                // Compute the winding
+                int winding = areaSigned(vert) > 0 ? NVG_SOLID : NVG_HOLE;
+
+                // Add the path elements to NanoVG
+                int id = 0;
+                for (int segType : op)
+                {
+                    switch (segType)
+                    {
+                        case juce::Path::Iterator::PathElementType::startNewSubPath:
+                            nvgMoveTo(nvg, vert[id], vert[id + 1]);
+                            id += 2;
+                            break;
+
+                        case juce::Path::Iterator::PathElementType::lineTo:
+                            nvgLineTo(nvg, vert[id], vert[id + 1]);
+                            id += 2;
+                            break;
+
+                        case juce::Path::Iterator::PathElementType::quadraticTo:
+                            nvgQuadTo(nvg, vert[id], vert[id + 1], vert[id + 2], vert[id + 3]);
+                            id += 4;
+                            break;
+
+                        case juce::Path::Iterator::PathElementType::cubicTo:
+                            nvgBezierTo(nvg, vert[id], vert[id + 1], vert[id + 2], vert[id + 3], vert[id + 4], vert[id + 5]);
+                            id += 6;
+                            break;
+
+                        case juce::Path::Iterator::PathElementType::closePath:
+                            nvgClosePath(nvg);
+                            nvgPathWinding(nvg, winding);
+                            break;
+                    }
+                }
+
+                // Done with this path section
+                vert.clear();
+                op.clear();
+            }
+            break;
+        }
+    }
+}
+
 void NanoVGGraphicsContext::fillPath(juce::Path const& path, juce::AffineTransform const& transform)
 {
     setPath(path, transform);
@@ -396,9 +504,9 @@ void NanoVGGraphicsContext::setFont(juce::Font const& f)
         typefaceName += "-" + font.getTypefaceStyle();
 
     if (!loadedFonts.count(typefaceName)) {
-        loadedFonts[typefaceName] = getGlyphToCharMapForFont(f);
+        loadedFonts[typefaceName] = {};
     }
-
+    
     currentGlyphToCharMap = &loadedFonts[typefaceName];
 
     nvgFontFace(nvg, typefaceName.toUTF8());
@@ -411,12 +519,43 @@ juce::Font const& NanoVGGraphicsContext::getFont()
     return font;
 }
 
+juce::juce_wchar NanoVGGraphicsContext::getCharForGlyph(int glyphIndex)
+{
+    // Check cache first
+    if (currentGlyphToCharMap->find(glyphIndex) != currentGlyphToCharMap->end())
+    {
+        return currentGlyphToCharMap->at(glyphIndex);
+    }
+    
+    // Dynamic lookup
+    if (auto tf = getFont().getTypefacePtr())
+    {
+        for (juce::juce_wchar wc = 0; wc < 0x10FFFF; ++wc) // Iterate over possible Unicode values
+        {
+            juce::Array<int> glyphs;
+            juce::Array<float> xOffsets;
+            tf->getGlyphPositions(juce::String::charToString(wc), glyphs, xOffsets);
+            
+            if (glyphs[0] == glyphIndex)
+            {
+                (*currentGlyphToCharMap)[glyphIndex] = wc; // Cache result
+                return wc;
+            }
+        }
+    }
+    
+    return '?'; // Fallback character
+}
+
 void NanoVGGraphicsContext::drawGlyph(int glyphNumber, juce::AffineTransform const& transform)
 {
-    char txt[2] = { '?', 0 };
+    char txt[8] = { '?', 0, 0, 0, 0, 0, 0, 0 };
 
-    if (currentGlyphToCharMap->find(glyphNumber) != currentGlyphToCharMap->end())
-        txt[0] = (char)currentGlyphToCharMap->at(glyphNumber);
+    juce::juce_wchar wc = getCharForGlyph(glyphNumber);
+    
+    juce::CharPointer_UTF8 utf8(txt);
+    utf8.write(wc);
+    utf8.writeNull();
 
     nvgSave(nvg);
     setFont(getFont());
@@ -588,26 +727,4 @@ void NanoVGGraphicsContext::reduceImageCache()
             ++it;
         }
     }
-}
-
-NanoVGGraphicsContext::GlyphToCharMap NanoVGGraphicsContext::getGlyphToCharMapForFont(juce::Font const& f)
-{
-    NanoVGGraphicsContext::GlyphToCharMap map;
-
-    if (auto tf = f.getTypefacePtr()) {
-        juce::Array<int> glyphs;
-        juce::Array<float> offsets;
-        tf->getGlyphPositions(allPrintableAsciiCharacters, glyphs, offsets);
-
-        // Make sure we get all the glyphs for the printable characters
-        // jassert (glyphs.size() >= allPrintableAsciiCharacters.length());
-
-        auto const* wstr = allPrintableAsciiCharacters.toWideCharPointer();
-
-        for (int i = 0; i < allPrintableAsciiCharacters.length(); ++i) {
-            map[glyphs[i]] = wstr[i];
-        }
-    }
-
-    return map;
 }

@@ -49,7 +49,8 @@ public:
     void fillRectList(juce::RectangleList<float> const&) override;
 
     void setPath(juce::Path const& path, juce::AffineTransform const& transform);
-
+    void setPathWithIntersections(juce::Path const& path, juce::AffineTransform const& transform);
+    
     void strokePath(juce::Path const&, juce::PathStrokeType const&, juce::AffineTransform const&);
     void fillPath(juce::Path const&, juce::AffineTransform const&) override;
     void drawImage(juce::Image const&, juce::AffineTransform const&) override;
@@ -70,8 +71,10 @@ public:
     static int const imageCacheSize;
 
 private:
+    
+    juce::juce_wchar getCharForGlyph(int glyphIndex);
     bool loadFontFromResources(juce::String const& typefaceName);
-
+    
     int getNvgImageId(juce::Image const& image);
     void reduceImageCache();
 
@@ -84,11 +87,9 @@ private:
     // Mapping glyph number to a character
     using GlyphToCharMap = std::unordered_map<int, wchar_t>;
 
-    GlyphToCharMap getGlyphToCharMapForFont(juce::Font const& f);
-
     // Mapping font names to glyph-to-character tables
     std::unordered_map<juce::String, GlyphToCharMap> loadedFonts;
-    GlyphToCharMap const* currentGlyphToCharMap;
+    GlyphToCharMap* currentGlyphToCharMap;
 
     // Tracking images mapped tomtextures.
     struct NvgImage {
