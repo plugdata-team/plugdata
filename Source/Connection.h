@@ -17,6 +17,7 @@
 #include "Utility/RateReducer.h"
 #include "Utility/ModifierKeyListener.h"
 #include "NVGSurface.h"
+#include "LookAndFeel.h"
 
 using PathPlan = std::vector<Point<float>>;
 
@@ -53,7 +54,7 @@ public:
 
     void updatePath();
 
-    void forceUpdate();
+    void forceUpdate(bool updateCacheOnly = false);
 
     void lookAndFeelChanged() override;
 
@@ -122,7 +123,7 @@ private:
     bool segmented = false;
     bool isHovering = false;
 
-    bool useThinConnection = false;
+    PlugDataLook::ConnectionStyle connectionStyle = PlugDataLook::ConnectionStyleDefault;
 
     PathPlan currentPlan;
 
@@ -156,7 +157,7 @@ private:
     float mouseDownPosition = 0;
 
     int cacheId = -1;
-    bool cachedIsValid;
+    bool cachedIsValid = false;
 
     pd::WeakReference ptr;
 

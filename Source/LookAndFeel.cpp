@@ -1095,7 +1095,7 @@ const String PlugDataLook::defaultThemesXml = "<ColourThemes> "
 "           caret_colour=\"ff72aedf\" iolet_area_colour=\"ff808080\" iolet_outline_colour=\"ff696969\"\n"
 "           text_object_background=\"ff333333\" comment_text_colour=\"ff111111\"\n"
 "           straight_connections=\"0\"\n"
-"           thin_connections=\"0\" square_iolets=\"0\" square_object_corners=\"1\"/>\n"
+"           connection_style=\"1\" object_style=\"4\"/>\n"
 "    <Theme theme=\"classic\" toolbar_background=\"ffffffff\" toolbar_text=\"ff000000\"\n"
 "           toolbar_active=\"ff787878\" toolbar_hover=\"ffededed\" tabbar_background=\"ffffffff\"\n"
 "           tab_text=\"ff000000\" selected_tab_background=\"ffededed\" selected_tab_text=\"ff000000\"\n"
@@ -1114,8 +1114,8 @@ const String PlugDataLook::defaultThemesXml = "<ColourThemes> "
 "           popup_text=\"ff000000\"\n"
 "           scrollbar_thumb=\"ffa9a9a9\" graph_area=\"ffff0000\" grid_colour=\"ff000000\"\n"
 "           caret_colour=\"ff000000\" comment_text_colour=\"ff000000\"\n"
-"           straight_connections=\"1\" thin_connections=\"1\"\n"
-"           square_iolets=\"1\" square_object_corners=\"1\"/>\n"
+"           straight_connections=\"1\" connection_style=\"2\"\n"
+"           object_style=\"5\"/>\n"
 "    <Theme theme=\"classic_dark\" toolbar_background=\"ff000000\" toolbar_text=\"ffffffff\"\n"
 "           toolbar_active=\"ff787878\" toolbar_hover=\"ff888888\" tabbar_background=\"ff000000\"\n"
 "           tab_text=\"ffffffff\" selected_tab_background=\"ff808080\" selected_tab_text=\"ffffffff\"\n"
@@ -1134,7 +1134,7 @@ const String PlugDataLook::defaultThemesXml = "<ColourThemes> "
 "           caret_colour=\"ffffffff\" iolet_area_colour=\"ff000000\" iolet_outline_colour=\"ffffffff\"\n"
 "           text_object_background=\"ff000000\" comment_text_colour=\"ffffffff\"\n"
 "           straight_connections=\"1\"\n"
-"           thin_connections=\"1\" square_iolets=\"1\" square_object_corners=\"1\"/>\n"
+"           connection_style=\"2\" object_style=\"5\"/>\n"
 "    <Theme theme=\"dark\" toolbar_background=\"ff191919\" toolbar_text=\"ffe1e1e1\"\n"
 "           toolbar_active=\"ff42a2c8\" toolbar_hover=\"ff282828\" tabbar_background=\"ff191919\"\n"
 "           tab_text=\"ffe1e1e1\" selected_tab_background=\"ff2e2e2e\" selected_tab_text=\"ffe1e1e1\"\n"
@@ -1153,7 +1153,7 @@ const String PlugDataLook::defaultThemesXml = "<ColourThemes> "
 "           caret_colour=\"ff42a2c8\" text_object_background=\"ff232323\" iolet_area_colour=\"ff232323\"\n"
 "           iolet_outline_colour=\"ff696969\" comment_text_colour=\"ffe1e1e1\"\n"
 "           straight_connections=\"0\"\n"
-"           thin_connections=\"0\" square_iolets=\"0\" square_object_corners=\"0\"/>\n"
+"           connection_style=\"1\" object_style=\"1\"/>\n"
 "    <Theme theme=\"light\" toolbar_background=\"ffebebeb\" toolbar_text=\"ff373737\"\n"
 "           toolbar_active=\"ff007aff\" toolbar_hover=\"ffe0e0e0\" tabbar_background=\"ffebebeb\"\n"
 "           tab_text=\"ff373737\" selected_tab_background=\"ffe0e0e0\" selected_tab_text=\"ff373737\"\n"
@@ -1172,7 +1172,7 @@ const String PlugDataLook::defaultThemesXml = "<ColourThemes> "
 "           caret_colour=\"ff007aff\" square_object_corners=\"0\" text_object_background=\"fffafafa\"\n"
 "           iolet_area_colour=\"fffafafa\" iolet_outline_colour=\"ffc2c2c2\"\n"
 "           comment_text_colour=\"ff373737\"\n"
-"           straight_connections=\"0\" thin_connections=\"0\" square_iolets=\"0\"/>"
+"           straight_connections=\"0\" connection_style=\"1\" object_style=\"1\"/>\n"
 "    <Theme theme=\"warm\" toolbar_background=\"ffd2cdc4\" toolbar_text=\"ff5a5a5a\"\n"
 "           toolbar_active=\"ff5da0c4\" toolbar_hover=\"ffc0bbb2\" tabbar_background=\"ffd2cdc4\"\n"
 "           tab_text=\"ff5a5a5a\" selected_tab_background=\"ffc0bbb2\" selected_tab_text=\"ff5a5a5a\"\n"
@@ -1191,7 +1191,7 @@ const String PlugDataLook::defaultThemesXml = "<ColourThemes> "
 "           caret_colour=\"ff5da0c4\" iolet_area_colour=\"ffe3dfd9\" iolet_outline_colour=\"ff968e82\"\n"
 "           text_object_background=\"ffe3dfd9\" comment_text_colour=\"ff5a5a5a\"\n"
 "           straight_connections=\"0\"\n"
-"           thin_connections=\"0\" square_iolets=\"0\" square_object_corners=\"0\"/>\n"
+"           connection_style=\"1\" object_style=\"1\"/>\n"
 "    <Theme theme=\"fangs\" toolbar_background=\"ff232323\" toolbar_text=\"ffffffff\"\n"
 "           toolbar_active=\"ff5bcefa\" toolbar_hover=\"ff383838\" tabbar_background=\"ff232323\"\n"
 "           tab_text=\"ffffffff\" selected_tab_background=\"ff3a3a3a\" selected_tab_text=\"ffffffff\"\n"
@@ -1210,7 +1210,7 @@ const String PlugDataLook::defaultThemesXml = "<ColourThemes> "
 "           text_object_background=\"ff232323\" iolet_area_colour=\"ff232323\"\n"
 "           iolet_outline_colour=\"ff696969\" comment_text_colour=\"ffffffff\"\n"
 "           straight_connections=\"0\"\n"
-"           thin_connections=\"1\" square_iolets=\"1\" square_object_corners=\"0\"/>\n"
+"           connection_style=\"3\" object_style=\"3\"/>\n"
 "  </ColourThemes>";
 
 // clang-format on
@@ -1252,10 +1252,23 @@ void PlugDataLook::setTheme(ValueTree themeTree)
     setColours(colours);
     currentTheme = themeTree.getProperty("theme").toString();
 
-    Corners::objectCornerRadius = themeTree.getProperty("square_object_corners") ? 0.0f : 2.75f;
     useStraightConnections = themeTree.getProperty("straight_connections");
-    useThinConnections = themeTree.getProperty("thin_connections");
-    useSquareIolets = themeTree.getProperty("square_iolets");
+
+    // update the connectionstyle
+    useConnectionStyle = static_cast<ConnectionStyle>(themeTree.getProperty("connection_style").toString().getIntValue());
+
+    useObjectStyle = static_cast<ObjectStyle>(themeTree.getProperty("object_style").toString().getIntValue());
+
+    switch(useObjectStyle){
+        case ObjectStyleMax:
+        case ObjectStyleSquare:
+        case ObjectStyleVanilla:
+            Corners::objectCornerRadius = 0.0;
+            break;
+        default:
+            Corners::objectCornerRadius = 2.75f;
+            break;
+    }
 }
 
 StringArray PlugDataLook::getAllThemes()
@@ -1273,11 +1286,25 @@ bool PlugDataLook::getUseStraightConnections()
 {
     return useStraightConnections;
 }
-bool PlugDataLook::getUseThinConnections()
+
+PlugDataLook::ConnectionStyle PlugDataLook::getConnectionStyle()
 {
-    return useThinConnections;
+    return useConnectionStyle;
 }
+
+bool PlugDataLook::getIsVanillaStyle()
+{
+    return useObjectStyle == ObjectStyleVanilla;
+}
+
 bool PlugDataLook::getUseSquareIolets()
 {
-    return useSquareIolets;
+    switch(useObjectStyle){
+        case ObjectStyleFangs:
+        case ObjectStyleSquare:
+        case ObjectStyleVanilla:
+            return true;
+        default:
+            return false;
+    }
 }
