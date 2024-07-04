@@ -547,8 +547,7 @@ void Object::triggerOverlayActiveState(bool recursive)
     repaint();
 }
 
-void Object::lookAndFeelChanged()
-{
+void Object::lookAndFeelChanged() {
     activityOverlayDirty = true;
     if (gui)
         gui->updateLabel();
@@ -569,6 +568,11 @@ void Object::resized()
         newObjectEditor->setBounds(getLocalBounds().reduced(margin));
     }
 
+    updateIoletGeometry();
+}
+
+void Object::updateIoletGeometry()
+{
 #if JUCE_IOS
     int ioletSize = 15;
 #else
@@ -583,35 +587,68 @@ void Object::resized()
     ioletSize = std::max(std::min({ ioletSize, maxIoletWidth, maxIoletHeight }), 10);
     int borderWidth = jmap<float>(ioletSize, 10, 13, 7, 12);
 
-    auto inletBounds = getLocalBounds();
-    if (auto spaceToRemove = jlimit<int>(0, borderWidth, inletBounds.getWidth() - (ioletHitBox * numInputs) - borderWidth)) {
-        inletBounds.removeFromLeft(spaceToRemove);
-        inletBounds.removeFromRight(spaceToRemove);
-    }
+    // IOLET layout for vanilla style (iolets in corners of objects)
+    if (PlugDataLook::getIsVanillaStyle()) {
+        auto vanillaIoletBounds = getLocalBounds();
+        vanillaIoletBounds.removeFromLeft(margin);
+        vanillaIoletBounds.removeFromRight(margin);
+        auto objectWdith = vanillaIoletBounds.getWidth() + 0.5f; //FIXME: the right most iolet looks not right otherwise
 
-    auto outletBounds = getLocalBounds();
-    if (auto spaceToRemove = jlimit<int>(0, borderWidth, outletBounds.getWidth() - (ioletHitBox * numOutputs) - borderWidth)) {
-        outletBounds.removeFromLeft(spaceToRemove);
-        outletBounds.removeFromRight(spaceToRemove);
-    }
+        int inletIndex = 0;
+        int outletIndex = 0;
+        for (auto &iolet: iolets) {
+            bool const isInlet = iolet->isInlet;
+            int const total = isInlet ? numInputs : numOutputs;
+            float const yPosition = (isInlet ? (margin + 1) : getHeight() - margin) - ioletSize / 2.0f;
 
-    int index = 0;
-    for (auto& iolet : iolets) {
-        bool const isInlet = iolet->isInlet;
-        int const position = index < numInputs ? index : index - numInputs;
-        int const total = isInlet ? numInputs : numOutputs;
-        float const yPosition = (isInlet ? (margin + 1) : getHeight() - margin) - ioletSize / 2.0f;
+            auto distributeIolets = [this, objectWdith, vanillaIoletBounds, ioletSize, yPosition](Iolet* iolet, int ioletIndex, int totalIolets) {
+                auto allOutLetWidth = totalIolets * ioletSize;
+                auto spacing = ioletIndex != 0 ? (objectWdith - allOutLetWidth) / static_cast<float>(totalIolets - 1) : 0;
+                auto ioletOffset = ioletIndex != 0 ? ioletSize * ioletIndex : 0;
+                iolet->setBounds(vanillaIoletBounds.getX() + (spacing * ioletIndex) + ioletOffset, yPosition, ioletSize, ioletSize);
+            };
 
-        auto const bounds = isInlet ? inletBounds : outletBounds;
-
-        if (total == 1 && position == 0) {
-            iolet->setBounds(getWidth() < 38 ? getLocalBounds().getCentreX() - ioletSize / 2.0f : bounds.getX(), yPosition, ioletSize, ioletSize);
-        } else if (total > 1) {
-            float const ratio = (bounds.getWidth() - ioletSize) / static_cast<float>(total - 1);
-            iolet->setBounds(bounds.getX() + ratio * position, yPosition, ioletSize, ioletSize);
+            if (isInlet) {
+                distributeIolets(iolet, inletIndex, numInputs);
+                inletIndex++;
+            } else {
+                distributeIolets(iolet, outletIndex, numOutputs);
+                outletIndex++;
+            }
+        }
+    // DEFAULT iolet position style
+    } else {
+        auto inletBounds = getLocalBounds();
+        if (auto spaceToRemove = jlimit<int>(0, borderWidth, inletBounds.getWidth() - (ioletHitBox * numInputs) - borderWidth)) {
+            inletBounds.removeFromLeft(spaceToRemove);
+            inletBounds.removeFromRight(spaceToRemove);
         }
 
-        index++;
+        auto outletBounds = getLocalBounds();
+        if (auto spaceToRemove = jlimit<int>(0, borderWidth, outletBounds.getWidth() - (ioletHitBox * numOutputs) - borderWidth)) {
+            outletBounds.removeFromLeft(spaceToRemove);
+            outletBounds.removeFromRight(spaceToRemove);
+        }
+
+        int index = 0;
+        for (auto &iolet: iolets) {
+            bool const isInlet = iolet->isInlet;
+            int const position = index < numInputs ? index : index - numInputs;
+            int const total = isInlet ? numInputs : numOutputs;
+            float const yPosition = (isInlet ? (margin + 1) : getHeight() - margin) - ioletSize / 2.0f;
+
+            auto const bounds = isInlet ? inletBounds : outletBounds;
+
+            if (total == 1 && position == 0) {
+                iolet->setBounds(getWidth() < 38 ? getLocalBounds().getCentreX() - ioletSize / 2.0f : bounds.getX(),
+                                 yPosition, ioletSize, ioletSize);
+            } else if (total > 1) {
+                float const ratio = (bounds.getWidth() - ioletSize) / static_cast<float>(total - 1);
+                iolet->setBounds(bounds.getX() + ratio * position, yPosition, ioletSize, ioletSize);
+            }
+
+            index++;
+        }
     }
 }
 

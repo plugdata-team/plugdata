@@ -46,6 +46,8 @@ public:
 
     void updateAllEditorsLNF();
 
+    void updateIoletGeometryForAllObjects();
+
 #ifndef JucePlugin_PreferredChannelConfigurations
     bool isBusesLayoutSupported(BusesLayout const& layouts) const override;
 #endif

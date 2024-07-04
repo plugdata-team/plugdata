@@ -174,7 +174,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
             ObjectStyleSquare,
             ObjectStyleFangs,
             ObjectStyleMax,
-            ObjectStyleVanilla //TODO: Needs correct vanilla spacing for iolets (not in style selector yet)
+            ObjectStyleVanilla
         };
     static inline ObjectStyle useObjectStyle = ObjectStyleDefault;
     static bool getIsVanillaStyle();

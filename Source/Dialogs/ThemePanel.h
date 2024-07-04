@@ -477,7 +477,7 @@ public:
         allPanels.add(useConnectionStyle);
         addAndMakeVisible(*useConnectionStyle);
 
-        auto* useObjectStyle = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::ComboComponent>("Object style", objectStyle, { "Default", /*Vanilla,*/ "Square", "Fangs", "Max" });
+        auto* useObjectStyle = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::ComboComponent>("Object style", objectStyle, { "Default", "Square", "Fangs", "Max", "Vanilla" });
         allPanels.add(useObjectStyle);
         addAndMakeVisible(*useObjectStyle);
 
@@ -512,10 +512,15 @@ public:
 
         auto themeTree = SettingsFile::getInstance()->getColourThemesTree();
         bool isInTheme = false;
+        bool ioletGeometryNeedsUpdate = false;
         for (auto theme : PlugDataLook::selectedThemes){
             if  (v.refersToSameSourceAs(swatches[theme]["straight_connections"])
                  || v.refersToSameSourceAs(swatches[theme]["connection_style"])
-                 || v.refersToSameSourceAs(swatches[theme]["object_style"])) {
+                 || v.refersToSameSourceAs(swatches[theme]["object_style"]))
+                 {
+                if(v.refersToSameSourceAs(swatches[theme]["object_style"]))
+                    ioletGeometryNeedsUpdate = true;
+
                 isInTheme = true;
                 break;
             }
@@ -534,6 +539,10 @@ public:
             }
 
             pd->setTheme(PlugDataLook::currentTheme, true);
+
+            if (ioletGeometryNeedsUpdate)
+                pd->updateIoletGeometryForAllObjects();
+
             return;
         }
 
