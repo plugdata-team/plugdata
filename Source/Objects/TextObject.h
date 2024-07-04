@@ -56,24 +56,24 @@ struct TextObjectHelper {
 
                 auto maxIolets = std::max({ 1, object->numInputs, object->numOutputs });
                 auto minimumWidth = std::max(TextObjectHelper::minWidth, (maxIolets * 18) / fontWidth);
-
-                // Calculate the width in text characters for both
-                auto oldCharWidth = oldBounds.getWidth() / fontWidth;
-                auto newCharWidth = std::max(minimumWidth, newBounds.getWidth() / fontWidth);
-
-                // If we're resizing the left edge, move the object left
-                if (isStretchingLeft) {
-                    auto widthDiff = (newCharWidth - oldCharWidth) * fontWidth;
-                    auto x = oldBounds.getX() - widthDiff;
-                    auto y = oldBounds.getY(); // don't allow y resize
-
-                    pd::Interface::moveObject(static_cast<t_glist*>(patch), static_cast<t_gobj*>(object->getPointer()), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
-                }
-
+                
                 // Set new width
-                TextObjectHelper::setWidthInChars(object->getPointer(), newCharWidth);
+                TextObjectHelper::setWidthInChars(object->getPointer(), std::max(minimumWidth, newBounds.getWidth() / fontWidth));
 
                 bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
+                
+                // If we're resizing the left edge, move the object left
+                if (isStretchingLeft) {
+                    auto x = oldBounds.getRight() - (bounds.getWidth() - Object::doubleMargin);
+                    auto y = oldBounds.getY(); // don't allow y resize
+                    
+                    if(auto ptr = object->gui->ptr.get<t_gobj>())
+                    {
+                        pd::Interface::moveObject(static_cast<t_glist*>(patch), ptr.get(), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
+                    }
+
+                    bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
+                }
             }
         };
 

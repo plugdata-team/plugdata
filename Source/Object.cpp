@@ -598,10 +598,9 @@ void Object::updateIoletGeometry()
         int outletIndex = 0;
         for (auto &iolet: iolets) {
             bool const isInlet = iolet->isInlet;
-            int const total = isInlet ? numInputs : numOutputs;
             float const yPosition = (isInlet ? (margin + 1) : getHeight() - margin) - ioletSize / 2.0f;
 
-            auto distributeIolets = [this, objectWdith, vanillaIoletBounds, ioletSize, yPosition](Iolet* iolet, int ioletIndex, int totalIolets) {
+            auto distributeIolets = [objectWdith, vanillaIoletBounds, ioletSize, yPosition](Iolet* iolet, int ioletIndex, int totalIolets) {
                 auto allOutLetWidth = totalIolets * ioletSize;
                 auto spacing = ioletIndex != 0 ? (objectWdith - allOutLetWidth) / static_cast<float>(totalIolets - 1) : 0;
                 auto ioletOffset = ioletIndex != 0 ? ioletSize * ioletIndex : 0;

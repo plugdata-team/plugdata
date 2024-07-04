@@ -172,32 +172,31 @@ public:
                 auto fontWidth = glist_fontwidth(patch);
 
                 // Calculate the width in text characters for both
-                auto oldCharWidth = (oldBounds.getWidth() - 3) / fontWidth;
                 auto newCharWidth = (newBounds.getWidth() - 3) / fontWidth;
-
-                // If we're resizing the left edge, move the object left
-                if (isStretchingLeft) {
-                    auto widthDiff = (newCharWidth - oldCharWidth) * fontWidth;
-                    auto x = oldBounds.getX() - widthDiff;
-                    auto y = oldBounds.getY();
-
-                    if (auto atom = helper->ptr.get<t_gobj>()) {
-                        pd::Interface::moveObject(static_cast<t_glist*>(patch), atom.get(), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
-                    }
-                }
-
+                
                 // Set new width
                 if (auto atom = helper->ptr.get<t_fake_gatom>()) {
                     atom->a_text.te_width = newCharWidth;
                 }
-
+                
+                bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
+                
+                // If we're resizing the left edge, move the object left
+                if (isStretchingLeft) {
+                    auto x = oldBounds.getRight() - (bounds.getWidth() - Object::doubleMargin);
+                    auto y = oldBounds.getY(); // don't allow y resize
+                    
+                    if (auto atom = helper->ptr.get<t_gobj>()) {
+                        pd::Interface::moveObject(static_cast<t_glist*>(patch), atom.get(), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
+                    }
+                    bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
+                }
+                
                 auto newHeight = newBounds.getHeight();
                 auto heightIdx = std::clamp<int>(std::lower_bound(atomSizes, atomSizes + 7, newHeight) - atomSizes, 2, 7) - 1;
 
                 helper->setFontHeight(atomSizes[heightIdx]);
                 object->gui->setParameterExcludingListener(helper->fontSize, heightIdx + 1);
-
-                bounds = helper->getPdBounds(0).expanded(Object::margin) + object->cnv->canvasOrigin;
             }
         };
 
