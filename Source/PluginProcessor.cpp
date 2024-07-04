@@ -1322,6 +1322,26 @@ void PluginProcessor::updateAllEditorsLNF()
         editor->sendLookAndFeelChange();
 }
 
+void PluginProcessor::updateIoletGeometryForAllObjects()
+{
+    // update all object's iolet position
+    for (auto& editor : getEditors()){
+        for (auto& cnv : editor->getCanvases()){
+            for (auto& obj : cnv->objects){
+                obj->updateIoletGeometry();
+            }
+        }
+    }
+    // update all connections to make sure they attach to the correct iolet positions
+    for (auto& editor : getEditors()){
+        for (auto& cnv : editor->getCanvases()){
+            for (auto& con : cnv->connections){
+                con->forceUpdate();
+            }
+        }
+    }
+}
+
 void PluginProcessor::receiveNoteOn(int const channel, int const pitch, int const velocity)
 {
     auto device = (channel - 1) >> 4;

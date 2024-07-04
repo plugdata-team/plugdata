@@ -52,6 +52,8 @@ public:
 
     void resized() override;
 
+    void updateIoletGeometry();
+
     bool keyPressed(KeyPress const& key, Component* component) override;
 
     void updateIolets();
