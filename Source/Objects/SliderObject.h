@@ -329,7 +329,7 @@ public:
     {
         auto b = getLocalBounds().toFloat().reduced(0.5f);
         bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = LookAndFeel::getDefaultLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+        auto outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         auto bgColour = getLookAndFeel().findColour(Slider::backgroundColourId);
 

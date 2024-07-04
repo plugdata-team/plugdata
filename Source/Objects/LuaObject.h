@@ -434,7 +434,7 @@ public:
         }
         case hash("lua_fill_all"): {
             auto bounds = getLocalBounds().toFloat().reduced(0.5f);
-            auto outlineColour = LookAndFeel::getDefaultLookAndFeel().findColour(isSelected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+            auto outlineColour = cnv->editor->getLookAndFeel().findColour(isSelected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
             nvgBeginPath(nvg);
             nvgRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::objectCornerRadius);

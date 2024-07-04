@@ -138,7 +138,8 @@ public:
     int lastUIWidth = 1000, lastUIHeight = 650;
 
     std::atomic<float>* volume;
-
+    ValueTree pluginModeTheme;
+        
     SettingsFile* settingsFile;
 
     std::unique_ptr<pd::Library> objectLibrary;

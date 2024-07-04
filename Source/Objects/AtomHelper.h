@@ -73,8 +73,8 @@ public:
         sendSymbol = getSendSymbol();
         receiveSymbol = getReceiveSymbol();
 
-        gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, LookAndFeel::getDefaultLookAndFeel().findColour(Label::textWhenEditingColourId));
-        gui->getLookAndFeel().setColour(Label::textColourId, LookAndFeel::getDefaultLookAndFeel().findColour(Label::textColourId));
+        gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, cnv->editor->getLookAndFeel().findColour(Label::textWhenEditingColourId));
+        gui->getLookAndFeel().setColour(Label::textColourId, cnv->editor->getLookAndFeel().findColour(Label::textColourId));
     }
 
     int getWidthInChars()
@@ -106,7 +106,7 @@ public:
             if (atom->a_text.te_width == 0) {
                 w = textLength + 10;
             } else {
-                w = (atom->a_text.te_width * glist_fontwidth(patchPtr)) + 3;
+                w = (atom->a_text.te_width * sys_fontwidth(getFontHeight())) + 3;
             }
 
             return { x, y, w, getAtomHeight() };
@@ -123,8 +123,8 @@ public:
                 return;
 
             pd::Interface::moveObject(patchPtr, atom.cast<t_gobj>(), b.getX(), b.getY());
-
-            auto fontWidth = glist_fontwidth(patchPtr);
+            
+            auto fontWidth = sys_fontwidth(getFontHeight());
             if (atom->a_text.te_width != 0) {
                 atom->a_text.te_width = (b.getWidth() - 3) / fontWidth;
             }
@@ -291,9 +291,9 @@ public:
             labels->getObjectLabel()->setFont(Font(fontHeight));
             labels->getObjectLabel()->setText(text, dontSendNotification);
 
-            auto textColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
-            if (std::abs(textColour.getBrightness() - LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId).getBrightness()) < 0.3f) {
-                textColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId).contrasting();
+            auto textColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
+            if (std::abs(textColour.getBrightness() - cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId).getBrightness()) < 0.3f) {
+                textColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId).contrasting();
             }
 
             labels->setColour(textColour);

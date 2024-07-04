@@ -1454,6 +1454,26 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
         if (!editors.isEmpty()) {
             auto* editor = editors[0];
             if (auto* cnv = editor->getCurrentCanvas()) {
+                if(list.size())
+                {
+                    auto pluginModeThemeOrPath = list[0].toString();
+                    if(pluginModeThemeOrPath.endsWith(".plugdatatheme"))
+                    {
+                        auto themeFile = cnv->patch.getPatchFile().getParentDirectory().getChildFile(pluginModeThemeOrPath);
+                        if(themeFile.existsAsFile())
+                        {
+                            pluginModeTheme = ValueTree::fromXml(themeFile.loadFileAsString());
+                        }
+                    }
+                    else {
+                        auto themesTree = SettingsFile::getInstance()->getValueTree().getChildWithName("ColourThemes");
+                        auto theme = themesTree.getChildWithProperty("theme", pluginModeThemeOrPath);
+                        if(theme.isValid()) {
+                            pluginModeTheme = theme;
+                        }
+                    }
+                }
+                
                 editor->getTabComponent().openInPluginMode(cnv->patch);
             }
         } else {

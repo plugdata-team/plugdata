@@ -91,7 +91,7 @@ public:
         Colour fillColour, outlineColour;
         if(auto x = ptr.get<t_fake_pad>()) {
             fillColour = Colour(x->x_color[0], x->x_color[1], x->x_color[2]);
-            outlineColour = LookAndFeel::getDefaultLookAndFeel().findColour(object->isSelected() && !cnv->isGraph ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::outlineColourId);
+            outlineColour = cnv->editor->getLookAndFeel().findColour(object->isSelected() && !cnv->isGraph ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::outlineColourId);
         }
             
 

@@ -310,7 +310,7 @@ public:
             nvgFontSize(nvg, 11);
             nvgFontFace(nvg, "Inter-Regular");
             nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-            nvgFillColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId)));
+            nvgFillColor(nvg, convertColour(object->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId)));
             nvgText(nvg, position.x, position.y, errorText.toRawUTF8(), nullptr);
             error = false;
         } else if (visible) {
@@ -322,7 +322,7 @@ public:
     {
         if (error) {
             // TODO: error colour
-            Fonts::drawText(g, "array " + getUnexpandedName() + " is invalid", 0, 0, getWidth(), getHeight(), LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred);
+            Fonts::drawText(g, "array " + getUnexpandedName() + " is invalid", 0, 0, getWidth(), getHeight(), object->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred);
             error = false;
         } else if (visible) {
             paintGraph(g);
@@ -510,7 +510,7 @@ public:
             int colour = template_getfloat(templ, gensym("color"), scalar->sc_vec, 1);
 
             if (colour <= 0) {
-                return LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour);
+                return object->cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour);
             }
 
             auto rangecolor = [](int n) /* 0 to 9 in 5 steps */
@@ -529,7 +529,7 @@ public:
             return Colour(red, green, blue);
         }
 
-        return LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour);
+        return object->cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour);
     }
 
     void valueChanged(Value& value) override
@@ -1125,8 +1125,8 @@ public:
     {
         auto b = getLocalBounds().toFloat().reduced(0.5f);
         auto backgroundColour = nvgRGBA(0, 0, 0, 0);
-        auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
+        auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
@@ -1175,7 +1175,7 @@ public:
             labels->setLabelBounds(bounds);
             labels->getObjectLabel()->setText(title, dontSendNotification);
 
-            labels->setColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
+            labels->setColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
 
             object->cnv->addAndMakeVisible(labels.get());
         } else {

@@ -58,7 +58,7 @@ public:
     {
         auto selected = object->isSelected();
         if (!locked && (object->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
-            g.setColour(LookAndFeel::getDefaultLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId));
+            g.setColour(cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId));
 
             g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
         }
@@ -105,7 +105,7 @@ public:
     {
         if (editor == nullptr) {
             editor.reset(TextObjectHelper::createTextEditor(object, 15));
-            editor->setColour(TextEditor::textColourId, LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::commentTextColourId));
+            editor->setColour(TextEditor::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::commentTextColourId));
             
             editor->setBorder(border.addedTo(BorderSize<int>(1, 0, 0, 0)));
             editor->setBounds(getLocalBounds());
@@ -186,7 +186,7 @@ public:
     {
         auto objText = editor ? editor->getText() : objectText;
 
-        auto colour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::commentTextColourId);
+        auto colour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::commentTextColourId);
         int textWidth = getTextSize().getWidth() - 8;
         if (textRenderer.prepareLayout(objText, Fonts::getDefaultFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty))) {
             repaint();

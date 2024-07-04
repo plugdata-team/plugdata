@@ -55,6 +55,7 @@ public:
         if (frontBuffer->empty())
             return false;
 
+        // no need for mutex because this is called from the same thread as swapBuffers()
         result = frontBuffer->top();
         frontBuffer->pop();
         return true;
