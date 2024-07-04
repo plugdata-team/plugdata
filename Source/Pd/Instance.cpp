@@ -138,6 +138,8 @@ Instance::Instance(String const& symbol)
 
 Instance::~Instance()
 {
+    objectImplementations.reset(nullptr); // Make sure it gets deallocated before pd instance gets deleted
+    
     pd_free(static_cast<t_pd*>(messageReceiver));
     pd_free(static_cast<t_pd*>(midiReceiver));
     pd_free(static_cast<t_pd*>(printReceiver));

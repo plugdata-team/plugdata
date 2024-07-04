@@ -312,7 +312,7 @@ private:
 protected:
     struct internal;
 
-    std::unique_ptr<ObjectImplementationManager> objectImplementations; // must be after messageDispatcher (!)
+    std::unique_ptr<ObjectImplementationManager> objectImplementations;
 
     struct ConsoleHandler : public AsyncUpdater {
         Instance* instance;
