@@ -477,7 +477,7 @@ public:
         allPanels.add(useConnectionStyle);
         addAndMakeVisible(*useConnectionStyle);
 
-        auto* useObjectStyle = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::ComboComponent>("Object style", objectStyle, { "Default", "Square", "Fangs", "Max", "Vanilla" });
+        auto* useObjectStyle = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::ComboComponent>("Object & Iolet style", objectStyle, { "Default", "All square", "Round with square iolet", "Max", "Vanilla" });
         allPanels.add(useObjectStyle);
         addAndMakeVisible(*useObjectStyle);
 
