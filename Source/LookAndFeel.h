@@ -165,14 +165,22 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     static bool getUseStraightConnections();
 
-    enum ConnectionStyle { Default = 1, Vanilla = 2, Thin = 3 };
-    static inline ConnectionStyle useConnectionStyle = Default;
+    enum ConnectionStyle { ConnectionStyleDefault = 1, ConnectionStyleVanilla, ConnectionStyleThin };
+    static inline ConnectionStyle useConnectionStyle = ConnectionStyleDefault;
     static ConnectionStyle getConnectionStyle();
 
+    enum ObjectStyle {
+            ObjectStyleDefault = 1,
+            ObjectStyleSquare,
+            ObjectStyleFangs,
+            ObjectStyleMax,
+            ObjectStyleVanilla //TODO: Needs correct vanilla spacing for iolets (not in style selector yet)
+        };
+    static inline ObjectStyle useObjectStyle = ObjectStyleDefault;
+    static bool getIsVanillaStyle();
     static bool getUseSquareIolets();
 
     static inline bool useStraightConnections = false;
-    static inline bool useSquareIolets = false;
 
     static inline String currentTheme = "light";
     static inline StringArray selectedThemes = { "light", "dark" };

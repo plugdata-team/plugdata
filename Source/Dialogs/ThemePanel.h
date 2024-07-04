@@ -449,7 +449,7 @@ public:
 
         panel.addSection("Active Themes", { primaryThemeSelector, secondaryThemeSelector });
 
-        Array<Value*> straightConnectionValues, squareIoletsValues, squareObjectCornersValues, connectionStyle;
+        Array<Value*> straightConnectionValues, connectionStyle, objectStyle;
 
         for (int i = 0; i < 2; i++) {
             auto const& themeName = PlugDataLook::selectedThemes[i];
@@ -457,19 +457,16 @@ public:
             auto themeTree = SettingsFile::getInstance()->getTheme(themeName);
 
             swatch["straight_connections"].referTo(themeTree.getPropertyAsValue("straight_connections", nullptr));
-            swatch["square_iolets"].referTo(themeTree.getPropertyAsValue("square_iolets", nullptr));
-            swatch["square_object_corners"].referTo(themeTree.getPropertyAsValue("square_object_corners", nullptr));
             swatch["connection_style"].referTo(themeTree.getPropertyAsValue("connection_style", nullptr));
+            swatch["object_style"].referTo(themeTree.getPropertyAsValue("object_style", nullptr));
 
             swatch["straight_connections"].addListener(this);
-            swatch["square_iolets"].addListener(this);
-            swatch["square_object_corners"].addListener(this);
             swatch["connection_style"].addListener(this);
+            swatch["object_style"].addListener(this);
 
             straightConnectionValues.add(&swatch["straight_connections"]);
-            squareIoletsValues.add(&swatch["square_iolets"]);
-            squareObjectCornersValues.add(&swatch["square_object_corners"]);
             connectionStyle.add(&swatch["connection_style"]);
+            objectStyle.add(&swatch["object_style"]);
         }
 
         auto* useStraightConnections = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Use straight line for connections", straightConnectionValues, { "No", "Yes" });
@@ -480,17 +477,11 @@ public:
         allPanels.add(useConnectionStyle);
         addAndMakeVisible(*useConnectionStyle);
 
-        panel.addSection("Connection Look", { useStraightConnections, useConnectionStyle });
+        auto* useObjectStyle = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::ComboComponent>("Object style", objectStyle, { "Default", /*Vanilla,*/ "Square", "Fangs", "Max" });
+        allPanels.add(useObjectStyle);
+        addAndMakeVisible(*useObjectStyle);
 
-        auto* useSquareObjectCorners = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Use squared object corners", squareObjectCornersValues, { "No", "Yes" });
-        allPanels.add(useSquareObjectCorners);
-        addAndMakeVisible(*useSquareObjectCorners);
-
-        auto* useSquareIolets = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Use square iolets", squareIoletsValues, { "No", "Yes" });
-        allPanels.add(useSquareIolets);
-        addAndMakeVisible(*useSquareIolets);
-
-        panel.addSection("Object Look", { useSquareObjectCorners, useSquareIolets });
+        panel.addSection("Object & Connection Look", { useStraightConnections, useConnectionStyle, useObjectStyle });
 
         // Create the panels by category
         for (auto const& [sectionName, sectionColours] : panels) {
@@ -523,9 +514,8 @@ public:
         bool isInTheme = false;
         for (auto theme : PlugDataLook::selectedThemes){
             if  (v.refersToSameSourceAs(swatches[theme]["straight_connections"])
-                 || v.refersToSameSourceAs(swatches[theme]["square_iolets"])
-                 || v.refersToSameSourceAs(swatches[theme]["square_object_corners"])
-                 || v.refersToSameSourceAs(swatches[theme]["connection_style"])) {
+                 || v.refersToSameSourceAs(swatches[theme]["connection_style"])
+                 || v.refersToSameSourceAs(swatches[theme]["object_style"])) {
                 isInTheme = true;
                 break;
             }
@@ -536,12 +526,10 @@ public:
                 auto themeName = theme.getProperty("theme").toString();
                 if (v.refersToSameSourceAs(swatches[themeName]["straight_connections"])) {
                     theme.setProperty("straight_connections", v.toString(), nullptr);
-                } else if (v.refersToSameSourceAs(swatches[themeName]["square_iolets"])) {
-                    theme.setProperty("square_iolets", v.toString(), nullptr);
-                } else if (v.refersToSameSourceAs(swatches[themeName]["square_object_corners"])) {
-                    theme.setProperty("square_object_corners", v.toString(), nullptr);
                 } else if (v.refersToSameSourceAs(swatches[themeName]["connection_style"])) {
-                    theme.setProperty("connection_style",  v.toString().getIntValue(), nullptr);
+                    theme.setProperty("connection_style", v.toString().getIntValue(), nullptr);
+                } else if (v.refersToSameSourceAs(swatches[themeName]["object_style"])) {
+                    theme.setProperty("object_style",  v.toString().getIntValue(), nullptr);
                 }
             }
 

@@ -123,7 +123,7 @@ private:
     bool segmented = false;
     bool isHovering = false;
 
-    PlugDataLook::ConnectionStyle connectionStyle = PlugDataLook::ConnectionStyle::Default;
+    PlugDataLook::ConnectionStyle connectionStyle = PlugDataLook::ConnectionStyleDefault;
 
     PathPlan currentPlan;
 

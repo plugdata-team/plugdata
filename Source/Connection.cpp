@@ -183,7 +183,7 @@ void Connection::render(NVGcontext* nvg)
         nvgLineStyle(nvg, NVG_LINE_DASHED);
         nvgDashLength(nvg, 5.0f);
         nvgDashPhaseOffset(nvg, offset);
-        nvgStrokeWidth(nvg, connectionStyle != PlugDataLook::Default ? 3.0f : 5.0f);
+        nvgStrokeWidth(nvg, connectionStyle != PlugDataLook::ConnectionStyleDefault ? 3.0f : 5.0f);
 
         auto pathFromOrigin = getPath();
         pathFromOrigin.applyTransform(AffineTransform::translation(-getX(), -getY()));
@@ -195,9 +195,9 @@ void Connection::render(NVGcontext* nvg)
 
     float cableThickness;
     switch (connectionStyle){
-        case PlugDataLook::Vanilla: cableThickness = cableType == SignalCable ? 4.0f : 2.0f;    break;
-        case PlugDataLook::Thin:    cableThickness = 2.5f;                                      break;
-        default:                    cableThickness = 4.0f;                                      break;
+        case PlugDataLook::ConnectionStyleVanilla:  cableThickness = cableType == SignalCable ? 4.0f : 2.0f;    break;
+        case PlugDataLook::ConnectionStyleThin:     cableThickness = 2.5f;                                      break;
+        default:                                    cableThickness = 4.0f;                                      break;
     }
     nvgStrokeWidth(nvg, cableThickness);
 
@@ -215,7 +215,7 @@ void Connection::render(NVGcontext* nvg)
     }
 
     // draw internal signal dashed cable for themes that support this
-    if (cableType == SignalCable && connectionStyle != PlugDataLook::Vanilla) {
+    if (cableType == SignalCable && connectionStyle != PlugDataLook::ConnectionStyleVanilla) {
         auto dashColor = shadowColour;
         dashColor.a = 1.0f;
         dashColor.r *= 0.4f;
@@ -225,7 +225,7 @@ void Connection::render(NVGcontext* nvg)
         nvgStrokeColor(nvg, dashColor);
         nvgLineStyle(nvg, NVG_LINE_DASHED);
         nvgDashLength(nvg, numSignalChannels <= 1 ? 5.0f : 3.5f);
-        nvgStrokeWidth(nvg, connectionStyle == PlugDataLook::Thin ? 1.5 : 2.0f);
+        nvgStrokeWidth(nvg, connectionStyle == PlugDataLook::ConnectionStyleThin ? 1.5 : 2.0f);
 
         if (!cachedIsValid)
             nvgDeletePath(nvg, std::numeric_limits<int32_t>::max() - cacheId);
