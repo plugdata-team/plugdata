@@ -1471,33 +1471,35 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
     case hash("pluginmode"): {
         // TODO: it would be nicer if we could specifically target the correct editor here, instead of picking the first one and praying
         auto editors = getEditors();
-        if (!editors.isEmpty()) {
-            auto* editor = editors[0];
-            if (auto* cnv = editor->getCurrentCanvas()) {
-                if(list.size())
+        if(!patches.isEmpty()) {
+            if(list.size())
+            {
+                auto pluginModeThemeOrPath = list[0].toString();
+                if(pluginModeThemeOrPath.endsWith(".plugdatatheme"))
                 {
-                    auto pluginModeThemeOrPath = list[0].toString();
-                    if(pluginModeThemeOrPath.endsWith(".plugdatatheme"))
+                    auto themeFile = patches[0]->getPatchFile().getParentDirectory().getChildFile(pluginModeThemeOrPath);
+                    if(themeFile.existsAsFile())
                     {
-                        auto themeFile = cnv->patch.getPatchFile().getParentDirectory().getChildFile(pluginModeThemeOrPath);
-                        if(themeFile.existsAsFile())
-                        {
-                            pluginModeTheme = ValueTree::fromXml(themeFile.loadFileAsString());
-                        }
-                    }
-                    else {
-                        auto themesTree = SettingsFile::getInstance()->getValueTree().getChildWithName("ColourThemes");
-                        auto theme = themesTree.getChildWithProperty("theme", pluginModeThemeOrPath);
-                        if(theme.isValid()) {
-                            pluginModeTheme = theme;
-                        }
+                        pluginModeTheme = ValueTree::fromXml(themeFile.loadFileAsString());
                     }
                 }
-                
-                editor->getTabComponent().openInPluginMode(cnv->patch);
+                else {
+                    auto themesTree = SettingsFile::getInstance()->getValueTree().getChildWithName("ColourThemes");
+                    auto theme = themesTree.getChildWithProperty("theme", pluginModeThemeOrPath);
+                    if(theme.isValid()) {
+                        pluginModeTheme = theme;
+                    }
+                }
             }
-        } else {
-            patches[0]->openInPluginMode = true;
+            
+            if (!editors.isEmpty()) {
+                auto* editor = editors[0];
+                if (auto* cnv = editor->getCurrentCanvas()) {
+                    editor->getTabComponent().openInPluginMode(cnv->patch);
+                }
+            } else {
+                patches[0]->openInPluginMode = true;
+            }
         }
         break;
     }
