@@ -279,13 +279,15 @@ String ObjectBase::getType() const
 
         // Deal with different text objects
         switch (hash(className)) {
+        case hash("message"):
+            return "msg";
         case hash("text"):
             if (obj.cast<t_text>()->te_type == T_OBJECT)
                 return "invalid";
             if (obj.cast<t_text>()->te_type == T_TEXT)
                 return "comment";
             if (obj.cast<t_text>()->te_type == T_MESSAGE)
-                return "message";
+                return "msg";
             break;
         // Deal with atoms
         case hash("gatom"):
