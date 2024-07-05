@@ -969,7 +969,9 @@ private:
         "out.mc.hip~",
         "pvoc~",
         "gran~",
-        "convpartition"
+        "convpartition",
+        "else",
+        "cyclone"
     };
 
     int windowMargin;
