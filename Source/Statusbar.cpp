@@ -667,7 +667,7 @@ private:
         } else {
             g.setColour(findColour(PlugDataColour::toolbarTextColourId).withAlpha(0.65f));
         }
-        g.drawText(String(int(statusbar->currentZoomLevel)) + "%", 0, 0, getWidth() - 2, getHeight(), Justification::centredRight);
+        g.drawFittedText(String(int(statusbar->currentZoomLevel)) + "%", 0, 0, getWidth() - 2, getHeight(), Justification::centredRight, 1, 0.95f);
     }
 
     void enablementChanged() override
@@ -879,7 +879,7 @@ void Statusbar::paint(Graphics& g)
 
 void Statusbar::resized()
 {
-    int pos = 1;
+    int pos = 0;
     auto position = [this, &pos](int width, bool inverse = false) -> int {
         int result = 8 + pos;
         pos += width + 3;
@@ -893,7 +893,7 @@ void Statusbar::resized()
     position(22);
 #endif
 
-    zoomLabel->setBounds(position(32), 0, 32, getHeight());
+    zoomLabel->setBounds(position(34), 0, 34, getHeight());
     zoomComboButton.setBounds(position(8) - 12, 0, getHeight(), getHeight());
 
     firstSeparatorPosition = position(4) + 3.f; // First seperator
