@@ -122,8 +122,7 @@ private:
     std::unique_ptr<ButtonParameterAttachment> enableAttachment;
     std::unique_ptr<SliderParameterAttachment> volumeAttachment;
 
-    int firstSeparatorPosition;
-    int secondSeparatorPosition;
+    float firstSeparatorPosition, secondSeparatorPosition;
 
     friend class ZoomLabel;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Statusbar)
