@@ -189,6 +189,8 @@ StringArray Library::autocomplete(String const& query, File const& patchDirector
         }
     }
     
+    result.sort(true);
+    
     // Finally, do a fuzzy search of all object documentation
     auto fuzzyResults = searchDatabase.search(query.toStdString());
     for(auto& fuzzyMatch : fuzzyResults)
