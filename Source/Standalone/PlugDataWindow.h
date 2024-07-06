@@ -42,12 +42,9 @@
 // macOS:
 // - Use the native shadow, it works fine
 // Windows:
-//  - Native shadows don't work with rounded corners
-//  - Putting a transparent margin around the window makes everything very slow
-//  - We use a modified dropshadower class instead
+//  - We instruct Windows 11 to make the window rounded. On Windows 10, the window will not be rounded, which follows the default OS window style anyway
 // Linux:
 // - Native shadow is inconsistent across window managers and distros (sometimes there is no shadow, even though other windows have it...)
-// - Dropshadower is slow and glitchy
 // - We use a transparent margin around the window to draw the shadow in
 
 static bool drawWindowShadow = true;
@@ -398,7 +395,6 @@ class PlugDataWindow : public DocumentWindow
     , public SettingsFileListener {
 
     Image shadowImage;
-    std::unique_ptr<StackDropShadower> dropShadower;
     AudioProcessorEditor* editor;
     StandalonePluginHolder* pluginHolder;
 
@@ -440,8 +436,10 @@ public:
     {
         DocumentWindow::parentHierarchyChanged();
 
-        if (auto peer = getPeer())
-            OSUtils::useWindowsNativeDecorations(peer->getNativeHandle(), !isFullScreen());
+        if(SystemStats::getOperatingSystemName() == "Windows 11") {
+            if (auto peer = getPeer())
+                OSUtils::useWindowsNativeDecorations(peer->getNativeHandle(), !isFullScreen());
+        }
     }
 #endif
 
@@ -473,14 +471,18 @@ public:
 #if JUCE_MAC
                     setDropShadowEnabled(true);
 #elif JUCE_WINDOWS
-                    setDropShadowEnabled(false);
+                    if(SystemStats::getOperatingSystemName() == "Windows 11") {
+                        setDropShadowEnabled(false); // On Windows 11, we handle window decorations manually
+                    }
+                    else {
+                        setDropShadowEnabled(true);
+                    }
 #endif
                 } else {
                     setDropShadowEnabled(false);
                 }
             } else {
                 setOpaque(true);
-                dropShadower.reset(nullptr);
                 setDropShadowEnabled(true);
                 setConstrainer(nullptr);
                 setResizable(true, false);
