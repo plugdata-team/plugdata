@@ -92,14 +92,15 @@ else()
 endif()
 
 message(STATUS "Preparing documentation")
-execute_process(COMMAND python3 parse_documentation.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts RESULT_VARIABLE PREPARE_DOCUMENTATION_RESULT)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Resources)
+execute_process(COMMAND python3 parse_documentation.py ${CMAKE_CURRENT_BINARY_DIR}/Resources WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts RESULT_VARIABLE PREPARE_DOCUMENTATION_RESULT)
 
 if(NOT PREPARE_DOCUMENTATION_RESULT EQUAL 0)
     message(FATAL_ERROR "Preparing documentation failed with error code ${PREPARE_DOCUMENTATION_RESULT}")
 endif()
 
 message(STATUS "Packaging resources")
-execute_process(COMMAND python3 package_resources.py ${ENABLE_GEM} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts RESULT_VARIABLE PACKAGE_RESOURCES_RESULT)
+execute_process(COMMAND python3 package_resources.py ${ENABLE_GEM} ${CMAKE_CURRENT_BINARY_DIR}/Resources WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts RESULT_VARIABLE PACKAGE_RESOURCES_RESULT)
 
 if(NOT PACKAGE_RESOURCES_RESULT EQUAL 0)
     message(FATAL_ERROR "Resource packaging failed with error code ${PACKAGE_RESOURCES_RESULT}")
@@ -128,7 +129,6 @@ set(SOURCES_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Source)
 
 file(GLOB plugdata_resources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/IconFont.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterUnicode_*.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterTabular.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterBold.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterSemiBold.ttf
@@ -138,8 +138,10 @@ file(GLOB plugdata_resources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/RobotoMono-Regular.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_large_logo.png
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo.png
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Filesystem_*.zip
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Documentation.bin
+    # Generated resources
+    ${CMAKE_CURRENT_BINARY_DIR}/Resources/Documentation.bin
+    ${CMAKE_CURRENT_BINARY_DIR}/Resources/InterUnicode_*.ttf
+    ${CMAKE_CURRENT_BINARY_DIR}/Resources/Filesystem_*.zip
     )
 
 

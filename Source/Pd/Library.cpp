@@ -155,7 +155,6 @@ Library::Library(pd::Instance* instance)
     watcher.addListener(this);
 
     // This is unfortunately necessary to make Windows LV2 turtle dump work
-    // Let's hope its not harmful
     MessageManager::callAsync([this, instance = juce::WeakReference(instance)]() {
         if (instance.get()) {
             instance->setThis();
