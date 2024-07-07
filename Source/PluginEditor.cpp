@@ -544,7 +544,7 @@ void PluginEditor::parentSizeChanged()
             OSUtils::HideTitlebarButtons(peer->getNativeHandle(), false, false, false);
     }
 #else
-    if (!standalone->useNativeTitleBar()) {
+    if (!standalone->useNativeTitlebar()) {
         // Hide/Show TitleBar Buttons in Plugin Mode
         standalone->getCloseButton()->setVisible(visible);
         standalone->getMinimiseButton()->setVisible(visible);
