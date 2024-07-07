@@ -15,7 +15,7 @@
 namespace pd {
 
 class Instance;
-class Library : public FileSystemWatcher::Listener {
+class Library : public FileSystemWatcher::Listener, public Thread {
 
 public:
     explicit Library(pd::Instance* instance);
@@ -24,6 +24,10 @@ public:
     {
         appDirChanged = nullptr;
     }
+    
+    void run() override;
+    
+    void waitForInitialisationToFinish();
 
     void updateLibrary();
 
@@ -80,8 +84,9 @@ private:
     fuzzysearch::Database<ValueTree> searchDatabase;
 
     FileSystemWatcher watcher;
+    WaitableEvent initWait;
+    pd::Instance* pd;
 
-    ValueTree documentationTree;
     std::unordered_map<hash32, ValueTree> documentationIndex;
 };
 

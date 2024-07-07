@@ -179,6 +179,8 @@ void Iolet::mouseUp(MouseEvent const& e)
     if (!cnv)
         return;
 
+    cnv->editor->tooltipWindow.hideTip();
+    
     if (!wasDragged && cnv->connectionsBeingCreated.isEmpty()) {
         createConnection();
 

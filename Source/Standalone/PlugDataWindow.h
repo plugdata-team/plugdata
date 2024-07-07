@@ -421,59 +421,59 @@ public:
 
         mainComponent = new MainContentComponent(*this, editor);
 
-        auto settingsTree = SettingsFile::getInstance()->getValueTree();
-
         setContentOwned(mainComponent, true);
-
-        // Make sure it gets updated on init
-        propertyChanged("native_window", settingsTree.getProperty("native_window"));
+        parentHierarchyChanged();
     }
 
-
-#if JUCE_WINDOWS
     void parentHierarchyChanged() override
     {
         DocumentWindow::parentHierarchyChanged();
+
+        auto nativeWindow = SettingsFile::getInstance()->getProperty<bool>("native_window");
+#if JUCE_IOS
+        nativeWindow = true;
+#endif
+        if(!mainComponent) return;
+        
+        auto* editor = mainComponent->getEditor();
+        auto* pdEditor = dynamic_cast<PluginEditor*>(editor);
+        
+        pdEditor->nvgSurface.detachContext();
+
+        if (!nativeWindow) {
+#if JUCE_WINDOWS
+            setOpaque(true);
+#else
+            setOpaque(false);
+#endif
+            setResizable(false, false);
+            // we also need to set the constrainer of THIS window so it's set for the peer
+            setConstrainer(&pdEditor->constrainer);
+            pdEditor->setUseBorderResizer(true);
+        } else {
+            setOpaque(true);
+            setConstrainer(nullptr);
+            setResizable(true, false);
+            setResizeLimits(850, 650, 99000, 99000);
+            pdEditor->setUseBorderResizer(false);
+        }
+        
+#if JUCE_WINDOWS
         if (auto peer = getPeer())
             OSUtils::useWindowsNativeDecorations(peer->getNativeHandle(), !isFullScreen());
-    }
 #endif
+        
+        editor->resized();
+        resized();
+        repaint();
+    }
+
 
     void propertyChanged(String const& name, var const& value) override
     {
         if (name == "native_window") {
-            auto nativeWindow = static_cast<bool>(value);
-#if JUCE_IOS
-            nativeWindow = true;
-#endif
-            auto* editor = mainComponent->getEditor();
-            auto* pdEditor = dynamic_cast<PluginEditor*>(editor);
-   
-            pdEditor->nvgSurface.detachContext();
-
-            removeFromDesktop();
+            if(isOnDesktop()) removeFromDesktop();
             addToDesktop();
-            if (!nativeWindow) {
-#if JUCE_WINDOWS
-                setOpaque(true);
-#else
-                setOpaque(false);
-#endif
-                setResizable(false, false);
-                // we also need to set the constrainer of THIS window so it's set for the peer
-                setConstrainer(&pdEditor->constrainer);
-                pdEditor->setUseBorderResizer(true);
-            } else {
-                setOpaque(true);
-                setConstrainer(nullptr);
-                setResizable(true, false);
-                setResizeLimits(850, 650, 99000, 99000);
-                pdEditor->setUseBorderResizer(false);
-            }
-
-            editor->resized();
-            resized();
-            repaint();
         }
         if (name == "macos_buttons") {
             bool isEnabled = true;

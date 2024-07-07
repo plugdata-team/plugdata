@@ -37,6 +37,23 @@ struct _canvasenvironment {
 
 namespace pd {
 
+Library::Library(pd::Instance* instance) : Thread("Library Index Thread"), pd(instance)
+{
+    watcher.addFolder(ProjectInfo::appDataDir);
+    watcher.addListener(this);
+
+    // Needs to be async, otherwise LV2 validation fails
+    MessageManager::callAsync([this, pd = juce::WeakReference(pd)]() {
+        if (pd.get()) {
+            pd->setThis();
+            updateLibrary();
+        }
+    });
+    
+    startThread();
+}
+
+
 void Library::updateLibrary()
 {
     auto settingsTree = ValueTree::fromXml(ProjectInfo::appDataDir.getChildFile(".settings").loadFileAsString());
@@ -93,10 +110,11 @@ void Library::updateLibrary()
     sys_unlock();
 }
 
-Library::Library(pd::Instance* instance)
+
+void Library::run()
 {
     MemoryInputStream instream(BinaryData::Documentation_bin, BinaryData::Documentation_binSize, false);
-    documentationTree = ValueTree::readFromStream(instream);
+    ValueTree documentationTree = ValueTree::readFromStream(instream);
 
     auto weights = std::vector<float>(2);
     weights[0] = 6.0f; // More weight for name
@@ -150,17 +168,13 @@ Library::Library(pd::Instance* instance)
             documentationIndex[hash(origin + "/" + name)] = objectEntry;
         }
     }
+    
+    initWait.signal();
+}
 
-    watcher.addFolder(ProjectInfo::appDataDir);
-    watcher.addListener(this);
-
-    // This is unfortunately necessary to make Windows LV2 turtle dump work
-    MessageManager::callAsync([this, instance = juce::WeakReference(instance)]() {
-        if (instance.get()) {
-            instance->setThis();
-            updateLibrary();
-        }
-    });
+void Library::waitForInitialisationToFinish()
+{
+    initWait.wait();
 }
 
 StringArray Library::autocomplete(String const& query, File const& patchDirectory) const

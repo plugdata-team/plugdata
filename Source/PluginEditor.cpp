@@ -277,6 +277,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
             runTests(this);
         });
 #endif
+    
+    pd->objectLibrary->waitForInitialisationToFinish();
 }
 
 PluginEditor::~PluginEditor()
