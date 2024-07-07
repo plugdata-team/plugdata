@@ -503,7 +503,7 @@ public:
 
     int getDesktopWindowStyleFlags() const override
     {
-        auto flags = ComponentPeer::windowHasMinimiseButton | ComponentPeer::windowHasMaximiseButton | ComponentPeer::windowHasCloseButton | ComponentPeer::windowAppearsOnTaskbar | ComponentPeer::windowIsSemiTransparent;
+        auto flags = ComponentPeer::windowHasMinimiseButton | ComponentPeer::windowHasMaximiseButton | ComponentPeer::windowHasCloseButton | ComponentPeer::windowAppearsOnTaskbar | ComponentPeer::windowIsSemiTransparent | ComponentPeer::windowIsResizable;
         if (SettingsFile::getInstance()->getProperty<bool>("native_window"))
         {
             flags |= ComponentPeer::windowHasTitleBar;
