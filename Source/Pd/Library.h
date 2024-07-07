@@ -20,10 +20,7 @@ class Library : public FileSystemWatcher::Listener, public Thread {
 public:
     explicit Library(pd::Instance* instance);
 
-    ~Library() override
-    {
-        appDirChanged = nullptr;
-    }
+    ~Library() override;
     
     void run() override;
     

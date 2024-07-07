@@ -49,10 +49,15 @@ Library::Library(pd::Instance* instance) : Thread("Library Index Thread"), pd(in
             updateLibrary();
         }
     });
-    
+
     startThread();
 }
 
+Library::~Library()
+{
+    appDirChanged = nullptr;
+    waitForThreadToExit(-1);
+}
 
 void Library::updateLibrary()
 {
@@ -174,7 +179,7 @@ void Library::run()
 
 void Library::waitForInitialisationToFinish()
 {
-    initWait.wait();
+    //initWait.wait();
 }
 
 StringArray Library::autocomplete(String const& query, File const& patchDirectory) const
