@@ -15,19 +15,21 @@ class WelcomePanel : public Component
     , public AsyncUpdater {
 
     class WelcomePanelTile : public Component {
+        WelcomePanel& parent;
         float snapshotScale;
         bool isHovered = false;
         String tileName, tileSubtitle;
         std::unique_ptr<Drawable> snapshot = nullptr;
         NVGImage titleImage, subtitleImage;
-
+        
     public:
         bool isFavourited;
         std::function<void()> onClick = []() {};
         std::function<void(bool)> onFavourite = nullptr;
 
-        WelcomePanelTile(String name, String subtitle, String svgImage, Colour iconColour, float scale, bool favourited)
-            : snapshotScale(scale)
+        WelcomePanelTile(WelcomePanel& welcomePanel, String name, String subtitle, String svgImage, Colour iconColour, float scale, bool favourited)
+            : parent(welcomePanel)
+            , snapshotScale(scale)
             , tileName(name)
             , tileSubtitle(subtitle)
             , isFavourited(favourited)
@@ -44,10 +46,11 @@ class WelcomePanel : public Component
         {
             auto bounds = getLocalBounds().reduced(12);
 
+            auto* nvg = dynamic_cast<NanoVGGraphicsContext&>(g.getInternalContext()).getContext();
+            parent.drawShadow(nvg, getWidth(), getHeight());
+            
             Path tilePath;
             tilePath.addRoundedRectangle(bounds.getX() + 1, bounds.getY() + 1, bounds.getWidth() - 2, bounds.getHeight() - 2, Corners::largeCornerRadius);
-
-            StackShadow::renderDropShadow(g, tilePath, Colour(0, 0, 0).withAlpha(0.08f), 6, { 0, 1 });
             g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
             g.fillPath(tilePath);
 
@@ -65,7 +68,7 @@ class WelcomePanel : public Component
             g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
             g.strokePath(tilePath, PathStrokeType(1.0f));
 
-            auto* nvg = dynamic_cast<NanoVGGraphicsContext&>(g.getInternalContext()).getContext();
+
 
             auto textWidth = bounds.getWidth() - 8;
             if (titleImage.needsUpdate(textWidth * 2, 24 * 2) || subtitleImage.needsUpdate(textWidth * 2, 16 * 2)) {
@@ -156,7 +159,21 @@ public:
         setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this));
         triggerAsyncUpdate();
     }
+        
+    void drawShadow(NVGcontext* nvg, int width, int height)
+    {
+        if(shadowImage.needsUpdate(width, height)) {
+            shadowImage = NVGImage(nvg, width, height, [width, height](Graphics& g){
+                Path tilePath;
+                tilePath.addRoundedRectangle(12.5f, 12.5f, width - 25.0f, height - 25.0f, Corners::largeCornerRadius);
+                StackShadow::renderDropShadow(g, tilePath, Colour(0, 0, 0).withAlpha(0.08f), 6, { 0, 1 });
 
+            });
+        }
+        
+        shadowImage.render(nvg, Rectangle<int>(width, height));
+    }
+    
     void resized() override
     {
         auto bounds = getLocalBounds().reduced(24).withTrimmedTop(36);
@@ -214,8 +231,8 @@ public:
 
     void handleAsyncUpdate() override
     {
-        newPatchTile = std::make_unique<WelcomePanelTile>("New Patch", "Create a new empty patch", newIcon, findColour(PlugDataColour::panelTextColourId), 0.33f, false);
-        openPatchTile = std::make_unique<WelcomePanelTile>("Open Patch", "Browse for a patch to open", openIcon, findColour(PlugDataColour::panelTextColourId), 0.33f, false);
+        newPatchTile = std::make_unique<WelcomePanelTile>(*this, "New Patch", "Create a new empty patch", newIcon, findColour(PlugDataColour::panelTextColourId), 0.33f, false);
+        openPatchTile = std::make_unique<WelcomePanelTile>(*this, "Open Patch", "Browse for a patch to open", openIcon, findColour(PlugDataColour::panelTextColourId), 0.33f, false);
 
         newPatchTile->onClick = [this]() { editor->getTabComponent().newPatch(); };
         openPatchTile->onClick = [this]() { editor->getTabComponent().openPatch(); };
@@ -273,7 +290,7 @@ public:
                 String time = openTime.toString(false, true, false, true);
                 String timeDescription = date + ", " + time;
 
-                auto* tile = tiles.add(new WelcomePanelTile(patchFile.getFileName(), timeDescription, silhoutteSvg, snapshotColour, 1.0f, favourited));
+                auto* tile = tiles.add(new WelcomePanelTile(*this, patchFile.getFileName(), timeDescription, silhoutteSvg, snapshotColour, 1.0f, favourited));
                 tile->onClick = [this, patchFile]() mutable {
                     if(patchFile.existsAsFile()) {
                         editor->autosave->checkForMoreRecentAutosave(patchFile, editor, [this, patchFile]() {
@@ -371,6 +388,7 @@ public:
 
     std::unique_ptr<NanoVGGraphicsContext> nvgContext = nullptr;
 
+    NVGImage shadowImage;
     OwnedArray<WelcomePanelTile> tiles;
     PluginEditor* editor;
 };
