@@ -516,6 +516,8 @@ public:
             if (SystemStats::getOperatingSystemType() != SystemStats::Windows11) {
                 flags |= ComponentPeer::windowHasDropShadow;
             }
+#else
+            flags |= ComponentPeer::windowHasDropShadow;
 #endif
         }
 
