@@ -417,8 +417,6 @@ public:
         pluginHolder = ProjectInfo::getStandalonePluginHolder();
 
         drawWindowShadow = Desktop::canUseSemiTransparentWindows();
-
-        setTitleBarButtonsRequired(DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton, false);
         setOpaque(false);
 
         mainComponent = new MainContentComponent(*this, editor);
@@ -431,15 +429,13 @@ public:
         propertyChanged("native_window", settingsTree.getProperty("native_window"));
     }
 
+
 #if JUCE_WINDOWS
     void parentHierarchyChanged() override
     {
         DocumentWindow::parentHierarchyChanged();
-
-        if(SystemStats::getOperatingSystemName() == "Windows 11") {
-            if (auto peer = getPeer())
-                OSUtils::useWindowsNativeDecorations(peer->getNativeHandle(), !isFullScreen());
-        }
+        if (auto peer = getPeer())
+            OSUtils::useWindowsNativeDecorations(peer->getNativeHandle(), !isFullScreen());
     }
 #endif
 
@@ -452,11 +448,11 @@ public:
 #endif
             auto* editor = mainComponent->getEditor();
             auto* pdEditor = dynamic_cast<PluginEditor*>(editor);
-
-            setUsingNativeTitleBar(nativeWindow);
-
+   
             pdEditor->nvgSurface.detachContext();
 
+            removeFromDesktop();
+            addToDesktop();
             if (!nativeWindow) {
 #if JUCE_WINDOWS
                 setOpaque(true);
@@ -467,23 +463,8 @@ public:
                 // we also need to set the constrainer of THIS window so it's set for the peer
                 setConstrainer(&pdEditor->constrainer);
                 pdEditor->setUseBorderResizer(true);
-                if (drawWindowShadow) {
-#if JUCE_MAC
-                    setDropShadowEnabled(true);
-#elif JUCE_WINDOWS
-                    if(SystemStats::getOperatingSystemName() == "Windows 11") {
-                        setDropShadowEnabled(false); // On Windows 11, we handle window decorations manually
-                    }
-                    else {
-                        setDropShadowEnabled(true);
-                    }
-#endif
-                } else {
-                    setDropShadowEnabled(false);
-                }
             } else {
                 setOpaque(true);
-                setDropShadowEnabled(true);
                 setConstrainer(nullptr);
                 setResizable(true, false);
                 setResizeLimits(850, 650, 99000, 99000);
@@ -518,6 +499,27 @@ public:
     BorderSize<int> getBorderThickness() override
     {
         return BorderSize<int>(0);
+    }
+
+    int getDesktopWindowStyleFlags() const override
+    {
+        auto flags = ComponentPeer::windowHasMinimiseButton | ComponentPeer::windowHasMaximiseButton | ComponentPeer::windowHasCloseButton | ComponentPeer::windowAppearsOnTaskbar;
+        if (SettingsFile::getInstance()->getProperty<bool>("native_window")) 
+        {
+            flags |= ComponentPeer::windowHasTitleBar;
+            flags |= ComponentPeer::windowHasDropShadow;
+        } else {
+#if JUCE_MAC
+            flags |= ComponentPeer::windowHasDropShadow;
+#elif JUCE_WINDOWS
+            // On Windows 11 we handle dropshadow differently
+            if (SystemStats::getOperatingSystemType() != SystemStats::Windows11) {
+                flags |= ComponentPeer::windowHasDropShadow;
+            }
+#endif
+        }
+
+        return flags;
     }
 
     /** Deletes and re-creates the plugin, resetting it to its default state. */
@@ -596,6 +598,15 @@ public:
 
             int radius = isActiveWindow() ? 22 : 17;
             StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), radius, { 0, 2 });
+        }
+    }
+#elif JUCE_WINDOWS
+    void paintOverChildren(Graphics& g) override
+    {
+        if (SystemStats::getOperatingSystemType() != SystemStats::Windows11)
+        {
+            g.setColour(findColour(PlugDataColour::outlineColourId));
+            g.drawRect(0, 0, getWidth(), getHeight());
         }
     }
 #endif
