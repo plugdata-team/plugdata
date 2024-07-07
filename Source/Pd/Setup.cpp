@@ -1308,6 +1308,7 @@ int Setup::initialisePd()
 
         socket_init();
 
+        sys_getrealtime(); // Init realtime
         sys_unlock();
 
         initialized = 1;
