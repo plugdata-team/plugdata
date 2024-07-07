@@ -162,12 +162,13 @@ public:
         
     void drawShadow(NVGcontext* nvg, int width, int height)
     {
-        if(shadowImage.needsUpdate(width, height)) {
-            shadowImage = NVGImage(nvg, width, height, [width, height](Graphics& g){
+        // We only need one shadow image, because all tiles have the same size
+        if(shadowImage.needsUpdate(width * 2.0f, height * 2.0f)) {
+            shadowImage = NVGImage(nvg, width * 2.0f, height * 2.0f, [width, height](Graphics& g){
+                g.addTransform(AffineTransform::scale(2.0f, 2.0f));
                 Path tilePath;
                 tilePath.addRoundedRectangle(12.5f, 12.5f, width - 25.0f, height - 25.0f, Corners::largeCornerRadius);
                 StackShadow::renderDropShadow(g, tilePath, Colour(0, 0, 0).withAlpha(0.08f), 6, { 0, 1 });
-
             });
         }
         

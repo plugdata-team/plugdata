@@ -19,7 +19,7 @@ public:
         mouseListener.globalMouseDown = [this](MouseEvent const& e) {
             auto relativeEvent = e.getEventRelativeTo(this);
 
-            if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isLocked() || !cnv->isShowing() || isPressed)
+            if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isInsideGraphBounds(e) || !isLocked() || !cnv->isShowing() || isPressed)
                 return;
 
             t_atom at[3];
@@ -35,7 +35,7 @@ public:
             isPressed = true;
         };
         mouseListener.globalMouseUp = [this](MouseEvent const& e) {
-            if (!getScreenBounds().contains(e.getMouseDownScreenPosition()) || !isPressed || !isLocked() || !cnv->isShowing())
+            if (!getScreenBounds().contains(e.getMouseDownScreenPosition()) || !isInsideGraphBounds(e) || !isPressed || !isLocked() || !cnv->isShowing())
                 return;
 
             if (auto pad = this->ptr.get<t_fake_pad>()) {
@@ -48,7 +48,7 @@ public:
         };
 
         mouseListener.globalMouseMove = [this](MouseEvent const& e) {
-            if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed) || !isLocked() || !cnv->isShowing())
+            if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed) || !isInsideGraphBounds(e) || !isLocked() || !cnv->isShowing())
                 return;
 
             auto relativeEvent = e.getEventRelativeTo(this);
@@ -84,6 +84,23 @@ public:
     }
 
     ~MousePadObject() override = default;
+    
+    bool isInsideGraphBounds(const MouseEvent& e)
+    {
+        auto* graph = findParentComponentOfClass<GraphOnParent>();
+        while(graph)
+        {
+            auto pos = e.getEventRelativeTo(graph).getPosition();
+            if(!graph->getLocalBounds().contains(pos))
+            {
+                return false;
+            }
+            
+            graph = graph->findParentComponentOfClass<GraphOnParent>();
+        }
+        
+        return true;
+    }
 
     void render(NVGcontext* nvg) override
     {
