@@ -465,15 +465,14 @@ public:
         
         editor->resized();
         resized();
-        repaint();
+        lookAndFeelChanged();
     }
 
 
     void propertyChanged(String const& name, var const& value) override
     {
         if (name == "native_window") {
-            if(isOnDesktop()) removeFromDesktop();
-            addToDesktop();
+            setUsingNativeTitleBar(value);
         }
         if (name == "macos_buttons") {
             bool isEnabled = true;
