@@ -524,11 +524,11 @@ void PluginEditor::parentSizeChanged()
     if (!ProjectInfo::isStandalone)
         return;
 
-    auto* standalone = dynamic_cast<DocumentWindow*>(getTopLevelComponent());
+    auto* standalone = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
     // Hide TitleBar Buttons in Plugin Mode
     bool visible = !isInPluginMode();
 #if JUCE_MAC
-    if (!standalone->isUsingNativeTitleBar()) {
+    if (!standalone->useNativeTitlebar()) {
         // & hide TitleBar buttons when fullscreen on MacOS
         visible = visible && !standalone->isFullScreen();
         standalone->getCloseButton()->setVisible(visible);
@@ -544,7 +544,7 @@ void PluginEditor::parentSizeChanged()
             OSUtils::HideTitlebarButtons(peer->getNativeHandle(), false, false, false);
     }
 #else
-    if (!standalone->isUsingNativeTitleBar()) {
+    if (!standalone->useNativeTitleBar()) {
         // Hide/Show TitleBar Buttons in Plugin Mode
         standalone->getCloseButton()->setVisible(visible);
         standalone->getMinimiseButton()->setVisible(visible);
@@ -581,8 +581,8 @@ void PluginEditor::mouseDown(MouseEvent const& e)
     }
 
     if (e.getPosition().getY() < toolbarHeight) {
-        if (auto* window = findParentComponentOfClass<DocumentWindow>()) {
-            if (!window->isUsingNativeTitleBar())
+        if (auto* window = findParentComponentOfClass<PlugDataWindow>()) {
+            if (!window->useNativeTitlebar())
                 windowDragger.startDraggingWindow(window, e.getEventRelativeTo(window));
         }
     }
@@ -594,8 +594,8 @@ void PluginEditor::mouseDrag(MouseEvent const& e)
         return;
 
     if (!isMaximised) {
-        if (auto* window = findParentComponentOfClass<DocumentWindow>()) {
-            if (!window->isUsingNativeTitleBar())
+        if (auto* window = findParentComponentOfClass<PlugDataWindow>()) {
+            if (!window->useNativeTitlebar())
                 windowDragger.dragWindow(window, e.getEventRelativeTo(window), nullptr);
         }
     }
@@ -1508,7 +1508,7 @@ bool PluginEditor::wantsRoundedCorners()
     // Since this is called in a paint routine, use reinterpret_cast instead of dynamic_cast for efficiency
     // For the standalone, the top-level component should always be DocumentWindow derived!
     if (auto* window = reinterpret_cast<PlugDataWindow*>(getTopLevelComponent())) {
-        return !window->isUsingNativeTitleBar() && !window->isMaximised() && ProjectInfo::canUseSemiTransparentWindows();
+        return !window->useNativeTitlebar() && !window->isMaximised() && ProjectInfo::canUseSemiTransparentWindows();
     } else {
         return true;
     }

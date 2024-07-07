@@ -368,7 +368,7 @@ void PlugDataLook::positionDocumentWindowButtons(DocumentWindow& window,
     Button* closeButton,
     bool positionTitleBarButtonsOnLeft)
 {
-    if (window.isUsingNativeTitleBar())
+    if (SettingsFile::getInstance()->getProperty<bool>("native_window"))
         return;
 
     auto areButtonsLeft = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");

@@ -438,8 +438,6 @@ public:
         auto* editor = mainComponent->getEditor();
         auto* pdEditor = dynamic_cast<PluginEditor*>(editor);
         
-        pdEditor->nvgSurface.detachContext();
-
         if (!nativeWindow) {
 #if JUCE_WINDOWS
             setOpaque(true);
@@ -472,7 +470,10 @@ public:
     void propertyChanged(String const& name, var const& value) override
     {
         if (name == "native_window") {
-            setUsingNativeTitleBar(value);
+            auto* editor = mainComponent->getEditor();
+            auto* pdEditor = dynamic_cast<PluginEditor*>(editor);
+            pdEditor->nvgSurface.detachContext();
+            recreateDesktopWindow();
         }
         if (name == "macos_buttons") {
             bool isEnabled = true;
@@ -502,8 +503,8 @@ public:
 
     int getDesktopWindowStyleFlags() const override
     {
-        auto flags = ComponentPeer::windowHasMinimiseButton | ComponentPeer::windowHasMaximiseButton | ComponentPeer::windowHasCloseButton | ComponentPeer::windowAppearsOnTaskbar;
-        if (SettingsFile::getInstance()->getProperty<bool>("native_window")) 
+        auto flags = ComponentPeer::windowHasMinimiseButton | ComponentPeer::windowHasMaximiseButton | ComponentPeer::windowHasCloseButton | ComponentPeer::windowAppearsOnTaskbar | ComponentPeer::windowIsSemiTransparent;
+        if (SettingsFile::getInstance()->getProperty<bool>("native_window"))
         {
             flags |= ComponentPeer::windowHasTitleBar;
             flags |= ComponentPeer::windowHasDropShadow;
@@ -565,6 +566,11 @@ public:
         return isFullScreen();
 #endif
     }
+        
+    bool useNativeTitlebar()
+    {
+        return SettingsFile::getInstance()->getProperty<bool>("native_window");
+    }
 
     void maximiseButtonPressed() override
     {
@@ -574,7 +580,7 @@ public:
                 bool shouldBeMaximised = OSUtils::isX11WindowMaximised(peer->getNativeHandle());
                 b->setToggleState(!shouldBeMaximised, dontSendNotification);
 
-                if (!isUsingNativeTitleBar()) {
+                if (!useNativeTitlebar()) {
                     OSUtils::maximiseX11Window(peer->getNativeHandle(), !shouldBeMaximised);
                 }
             } else {
@@ -590,7 +596,7 @@ public:
 #if JUCE_LINUX || JUCE_BSD
     void paint(Graphics& g) override
     {
-        if (drawWindowShadow && !isUsingNativeTitleBar() && !isFullScreen()) {
+        if (drawWindowShadow && !useNativeTitlebar() && !isFullScreen()) {
             auto b = getLocalBounds();
             Path localPath;
             localPath.addRoundedRectangle(b.toFloat().reduced(22.0f), Corners::windowCornerRadius);
@@ -639,7 +645,7 @@ public:
         Rectangle<int> titleBarArea(0, 7, getWidth() - 6, 23);
 
 #if JUCE_LINUX || JUCE_BSD
-        if (!isFullScreen() && !isUsingNativeTitleBar() && drawWindowShadow) {
+        if (!isFullScreen() && !useNativeTitlebar() && drawWindowShadow) {
             auto margin = mainComponent ? mainComponent->getMargin() : 18;
             titleBarArea = Rectangle<int>(0, 7 + margin, getWidth() - (6 + margin), 23);
         }
@@ -696,7 +702,7 @@ private:
 
         int getMargin() const
         {
-            if (owner.isUsingNativeTitleBar() || owner.isFullScreen()) {
+            if (owner.useNativeTitlebar() || owner.isFullScreen()) {
                 return 0;
             }
 
