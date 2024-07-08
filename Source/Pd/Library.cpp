@@ -149,9 +149,6 @@ void Library::run()
                 }
             }
         }
-
-        searchDatabase.addEntry(objectEntry, fields);
-        searchDatabase.setThreshold(0.4f);
         
         String origin;
         for (auto category : categoriesTree) {
@@ -161,6 +158,13 @@ void Library::run()
             }
         }
         
+#if !ENABLE_GEM
+        if(origin == "Gem") continue;
+#endif
+        
+        searchDatabase.addEntry(objectEntry, fields);
+        searchDatabase.setThreshold(0.4f);
+
         auto name = objectEntry.getProperty("name").toString();
         if (origin.isEmpty()) {
             documentationIndex[hash(name)] = objectEntry;

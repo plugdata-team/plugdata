@@ -688,10 +688,7 @@ public:
                 auto& name = found[i];
 
                 auto info = library->getObjectInfo(name);
-                if (!info.isValid())
-                    continue;
-
-                auto description = info.getProperty("description").toString();
+                auto description = info.isValid() ? info.getProperty("description").toString() : "";
                 buttons[i]->setText(name, description, true);
 
                 buttons[i]->setInterceptsMouseClicks(true, false);
