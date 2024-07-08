@@ -219,7 +219,7 @@ struct HeavyCompatibleObjects {
         "comment",
         "floatbox",
         "symbolbox",
-        "message",
+        "msg",
         "invalid"
     };
 

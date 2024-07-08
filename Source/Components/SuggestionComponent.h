@@ -544,7 +544,7 @@ public:
             return suggestions;
         };
 
-        if (currentObject->gui && currentObject->getType(false) == "message") {
+        if (currentObject->gui && currentObject->getType(false) == "msg") {
             auto nearbyMethods = findNearbyMethods(currentText);
 
             numOptions = std::min<int>(buttons.size(), nearbyMethods.size());

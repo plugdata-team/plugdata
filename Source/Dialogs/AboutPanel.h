@@ -59,6 +59,7 @@ class AboutPanel : public Component {
             "bla9kdog",
             "EwanBristow1400",
             "JoshuaACNewman",
+            "vasilymilovidov",
             "LuigiCosi",
             "notagoodidea",
             "o-g-sus",
@@ -78,7 +79,6 @@ class AboutPanel : public Component {
             "olbotta",
             "KPY7030P",
             "duddex",
-            "vasilymilovidov"
         };
 
     public:
