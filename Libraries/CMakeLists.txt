@@ -12,7 +12,6 @@ if(MSVC)
     include_directories(pthread-win32)
 endif()
 
-
 cmake_policy(SET CMP0091 NEW)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
@@ -176,7 +175,7 @@ endif()
 file(GLOB ELSE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/control/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/ffplay~/*.c
+#    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/play.file~/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/extra_source/Aliases/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/shared/*.c
 )
@@ -192,7 +191,7 @@ file(GLOB_RECURSE PLAITS_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/plaits~/*.cc
 )
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/ffplay~)
+#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/play.file~)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/circuit~/Libraries)
 
