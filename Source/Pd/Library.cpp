@@ -96,7 +96,7 @@ void Library::updateLibrary()
         for (auto const& file : OSUtils::iterateDirectory(file, false, true)) {
             if (file.hasFileExtension("pd")) {
                 auto filename = file.getFileNameWithoutExtension();
-                if (!filename.startsWith("help-") || filename.endsWith("-help")) {
+                if (!filename.startsWith("help-") && !filename.endsWith("-help")) {
                     allObjects.add(filename);
                 }
             }

@@ -176,6 +176,7 @@ endif()
 file(GLOB ELSE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/control/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/ffplay~/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/extra_source/Aliases/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/shared/*.c
 )
@@ -190,6 +191,8 @@ file(GLOB_RECURSE PLAITS_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/plaits~/plaits~.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/plaits~/*.cc
 )
+
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/ffplay~)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/circuit~/Libraries)
 
@@ -209,6 +212,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(pd-else/Code_source/Compiled/control/)
 include_directories(pd-else/Code_source/Compiled/audio/)
 include_directories(pd-else/Code_source/shared/)
+include_directories(pd-else/Code_source/shared/libsamplerate)
 include_directories(pd-else/Code_source/shared/aubio/src)
 include_directories(pd-else/Code_source/Compiled/audio/plaits~)
 include_directories(pd-else/Code_source/Compiled/audio/sfz~/sfizz/library/src)
@@ -437,7 +441,7 @@ target_include_directories(externals-multi PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_IN
 # LINK
 # ------------------------------------------------------------------------------#
 
-set(externals_libs fluidlite lua)
+set(externals_libs fluidlite lua ffmpeg_static)
 if(ENABLE_SFIZZ)
 list(APPEND externals_libs sfizz)
 endif()
