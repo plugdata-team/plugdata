@@ -80,7 +80,6 @@ NVGSurface::NVGSurface(PluginEditor* e)
 #ifdef NANOVG_GL_IMPLEMENTATION
     glContext = std::make_unique<OpenGLContext>();
     glContext->setOpenGLVersionRequired(OpenGLContext::OpenGLVersion::openGL3_2);
-    glContext->setMultisamplingEnabled(false);
     glContext->setSwapInterval(0);
 #endif
 
@@ -129,6 +128,7 @@ void NVGSurface::initialise()
     resized();
 #else
     setVisible(true);
+
     glContext->attachTo(*this);
     glContext->initialiseOnThread();
     glContext->makeActive();
