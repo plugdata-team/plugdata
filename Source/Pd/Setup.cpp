@@ -1254,6 +1254,7 @@ void fm_tilde_setup();
 void vcf2_tilde_setup();
 void setup_mpe0x2ein();
 void setup_play0x2efile_tilde();
+void sfload_setup();
 
 #ifdef ENABLE_SFIZZ
 void sfz_tilde_setup();
@@ -1734,6 +1735,7 @@ void Setup::initialiseELSE()
     vcf2_tilde_setup();
     setup_mpe0x2ein();
     setup_play0x2efile_tilde();
+    sfload_setup();
 }
 
 void Setup::initialiseGem(std::string const& gemPluginPath)
