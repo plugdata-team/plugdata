@@ -440,7 +440,7 @@ target_include_directories(externals-multi PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_IN
 # LINK
 # ------------------------------------------------------------------------------#
 
-set(externals_libs fluidlite lua ffmpeg_static)
+set(externals_libs fluidlite lua)
 if(ENABLE_SFIZZ)
 list(APPEND externals_libs sfizz)
 endif()

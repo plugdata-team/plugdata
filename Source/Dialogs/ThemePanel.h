@@ -481,14 +481,6 @@ public:
 
         }
 
-        auto* useStraightConnections = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Use straight line for connections", straightConnectionValues, { "No", "Yes" });
-        allPanels.add(useStraightConnections);
-        addAndMakeVisible(*useStraightConnections);
-
-        auto* useConnectionStyle = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::ComboComponent>("Connection style", connectionStyle, { "Default", "Vanilla", "Thin" });
-        allPanels.add(useConnectionStyle);
-        addAndMakeVisible(*useConnectionStyle);
-
         auto* useObjectCorners = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Object corners", squareObjectCorners, { "Round", "Square" });
         allPanels.add(useObjectCorners);
         addAndMakeVisible(*useObjectCorners);
@@ -500,6 +492,14 @@ public:
         auto* useIoletSpacingEdge = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Iolet spacing", ioletSpacingEdge, { "Centre", "Edge" });
         allPanels.add(useIoletSpacingEdge);
         addAndMakeVisible(*useIoletSpacingEdge);
+
+        auto* useStraightConnections = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Connection path", straightConnectionValues, { "Curved", "Line" });
+        allPanels.add(useStraightConnections);
+        addAndMakeVisible(*useStraightConnections);
+
+        auto* useConnectionStyle = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::ComboComponent>("Connection style", connectionStyle, { "Default", "Vanilla", "Thin" });
+        allPanels.add(useConnectionStyle);
+        addAndMakeVisible(*useConnectionStyle);
 
         panel.addSection("Object & Connection Look", {useObjectCorners, useIoletCorners, useIoletSpacingEdge, useStraightConnections, useConnectionStyle });
 
