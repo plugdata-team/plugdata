@@ -573,22 +573,18 @@ void Object::resized()
 
 void Object::updateIoletGeometry()
 {
-#if JUCE_IOS
-    int ioletSize = 15;
-#else
-    int ioletSize = 13;
-#endif
-
     int ioletHitBox = 6;
 
     int maxIoletWidth = std::min(((getWidth() - doubleMargin) / std::max(numInputs, 1)) - 4, ((getWidth() - doubleMargin) / std::max(numOutputs, 1)) - 4);
     int maxIoletHeight = (getHeight() / 2.0f) - 3;
 
+    int ioletSize = PlugDataLook::ioletSize;
+
     ioletSize = std::max(std::min({ ioletSize, maxIoletWidth, maxIoletHeight }), 10);
     int borderWidth = jmap<float>(ioletSize, 10, 13, 7, 12);
 
     // IOLET layout for vanilla style (iolets in corners of objects)
-    if (PlugDataLook::getIsVanillaStyle()) {
+    if (PlugDataLook::getUseIoletSpacingEdge()) {
         auto vanillaIoletBounds = getLocalBounds();
         vanillaIoletBounds.removeFromLeft(margin);
         vanillaIoletBounds.removeFromRight(margin);
@@ -598,9 +594,9 @@ void Object::updateIoletGeometry()
         int outletIndex = 0;
         for (auto &iolet: iolets) {
             bool const isInlet = iolet->isInlet;
-            float const yPosition = (isInlet ? (margin + 1) : getHeight() - margin) - ioletSize / 2.0f;
+            float const yPosition = (isInlet ? margin + 1 : getHeight() - margin) - (ioletSize / 2.0f);
 
-            auto distributeIolets = [objectWdith, vanillaIoletBounds, ioletSize, yPosition](Iolet* iolet, int ioletIndex, int totalIolets) {
+            auto distributeIolets = [ioletSize, objectWdith, vanillaIoletBounds, yPosition](Iolet* iolet, int ioletIndex, int totalIolets) {
                 auto allOutLetWidth = totalIolets * ioletSize;
                 auto spacing = ioletIndex != 0 ? (objectWdith - allOutLetWidth) / static_cast<float>(totalIolets - 1) : 0;
                 auto ioletOffset = ioletIndex != 0 ? ioletSize * ioletIndex : 0;

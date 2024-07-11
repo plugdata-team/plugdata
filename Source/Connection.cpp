@@ -863,12 +863,22 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
 
 Point<float> Connection::getStartPoint() const
 {
-    return outlet->getCanvasBounds().toFloat().getCentre();
+    auto outletBounds = outlet->getCanvasBounds().toFloat();
+
+    if (PlugDataLook::isFixedIoletPosition()) {
+        return Point<float>(outletBounds.getX() + PlugDataLook::ioletSize * 0.5f, outletBounds.getCentreY());
+    }
+
+    return outletBounds.getCentre();
 }
 
 Point<float> Connection::getEndPoint() const
 {
-    return inlet->getCanvasBounds().toFloat().getCentre();
+    auto inletBounds = inlet->getCanvasBounds().toFloat();
+    if (PlugDataLook::isFixedIoletPosition()) {
+        return Point<float>(inletBounds.getX() + PlugDataLook::ioletSize * 0.5f, inletBounds.getCentreY());
+    }
+    return inletBounds.getCentre();
 }
 
 Path Connection::getNonSegmentedPath(Point<float> start, Point<float> end)
