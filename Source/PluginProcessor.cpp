@@ -1314,6 +1314,18 @@ void PluginProcessor::setTheme(String themeToUse, bool force)
     lnf->setTheme(themeTree);
 
     updateAllEditorsLNF();
+
+    // Only update iolet geometry if we need to
+    // This is based on if the previous or current differ
+    auto previousIoletGeom = oldThemeTree.getProperty("iolet_spacing_edge");
+    auto currentIoletGeom = themeTree.getProperty("iolet_spacing_edge");
+    // if both previous and current have iolet property, propertyState = 0;
+    // if one does, propertyState =  1;
+    // if previous and current both don't have iolet spacing property, propertyState = 2
+    int propertyState = previousIoletGeom.isVoid() + currentIoletGeom.isVoid();
+    if ((propertyState == 1) || (propertyState == 0 ? static_cast<int>(previousIoletGeom) != static_cast<int>(currentIoletGeom) : 0)) {
+        updateIoletGeometryForAllObjects();
+    }
 }
 
 void PluginProcessor::updateAllEditorsLNF()
