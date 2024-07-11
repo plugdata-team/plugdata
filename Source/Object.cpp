@@ -844,56 +844,6 @@ void Object::mouseDown(MouseEvent const& e)
         return;
     }
 
-    // alt+drag will duplicate selection
-    if (e.mods.isAltDown()) {
-        auto selection = cnv->getSelectionOfType<Object>();
-        Array<Point<int>> mouseDownObjectPositions; // Stores object positions for alt + drag
-
-        // Single for undo for duplicate + move
-        cnv->patch.startUndoSequence("Duplicate");
-
-        // Sort selection indexes to match pd indexes
-        std::sort(selection.begin(), selection.end(),
-            [this](auto* a, auto* b) -> bool {
-                return cnv->objects.indexOf(a) < cnv->objects.indexOf(b);
-            });
-
-        int draggedIdx = selection.indexOf(ds.componentBeingDragged.getComponent());
-
-        // Store origin object positions
-        for (auto object : selection) {
-            auto gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
-            auto gridType = SettingsFile::getInstance()->getProperty<int>("grid_type");
-            auto gridSize = gridEnabled && (gridType & 1) ? cnv->objectGrid.gridSize : 10;
-
-            mouseDownObjectPositions.add(object->getPosition().translated(gridSize, gridSize));
-        }
-
-        // Duplicate once
-        ds.wasDragDuplicated = true;
-        cnv->duplicateSelection();
-        cnv->cancelConnectionCreation();
-
-        selection = cnv->getSelectionOfType<Object>();
-
-        // Sort selection indexes to match pd indexes
-        std::sort(selection.begin(), selection.end(),
-            [this](auto* a, auto* b) -> bool {
-                return cnv->objects.indexOf(a) < cnv->objects.indexOf(b);
-            });
-
-        int i = 0;
-        for (auto* selected : selection) {
-            selected->originalBounds = selected->getBounds().withPosition(mouseDownObjectPositions[i]);
-            selected->isObjectMouseActive = true;
-            i++;
-        }
-
-        if (isPositiveAndBelow(draggedIdx, selection.size())) {
-            ds.componentBeingDragged = selection[draggedIdx];
-        }
-    }
-    
     wasLockedOnMouseDown = false;
 
     if (e.mods.isShiftDown()) {
@@ -1006,7 +956,12 @@ void Object::mouseUp(MouseEvent const& e)
 
             cnv->synchronise();
         }
-        
+
+        if (ds.wasDragDuplicated) {
+            cnv->patch.endUndoSequence("Duplicate");
+            ds.wasDragDuplicated = false;
+        }
+
         for (auto* object : cnv->getSelectionOfType<Object>()) {
             object->repaint();
         }
@@ -1110,6 +1065,56 @@ void Object::mouseDrag(MouseEvent const& e)
         if (ds.componentBeingDragged) {
             dragDistance = cnv->objectGrid.performMove(this, dragDistance);
             ds.duplicateOffset = ds.wasDuplicated ? dragDistance : Point<int>(0, 0);
+        }
+
+        // alt+drag will duplicate selection
+        if (!ds.wasDragDuplicated && e.mods.isAltDown()) {
+
+            Array<Point<int>> mouseDownObjectPositions; // Stores object positions for alt + drag
+
+            // Single for undo for duplicate + move
+            cnv->patch.startUndoSequence("Duplicate");
+
+            // Sort selection indexes to match pd indexes
+            std::sort(selection.begin(), selection.end(),
+                [this](auto* a, auto* b) -> bool {
+                    return cnv->objects.indexOf(a) < cnv->objects.indexOf(b);
+                });
+
+            int draggedIdx = selection.indexOf(ds.componentBeingDragged.getComponent());
+
+            // Store origin object positions
+            for (auto object : selection) {
+                auto gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
+                auto gridType = SettingsFile::getInstance()->getProperty<int>("grid_type");
+                auto gridSize = gridEnabled && (gridType & 1) ? cnv->objectGrid.gridSize : 10;
+
+                mouseDownObjectPositions.add(object->getPosition().translated(gridSize, gridSize));
+            }
+
+            // Duplicate once
+            ds.wasDragDuplicated = true;
+            cnv->duplicateSelection();
+            cnv->cancelConnectionCreation();
+
+            selection = cnv->getSelectionOfType<Object>();
+
+            // Sort selection indexes to match pd indexes
+            std::sort(selection.begin(), selection.end(),
+                [this](auto* a, auto* b) -> bool {
+                    return cnv->objects.indexOf(a) < cnv->objects.indexOf(b);
+                });
+
+            int i = 0;
+            for (auto* selected : selection) {
+                selected->originalBounds = selected->getBounds().withPosition(mouseDownObjectPositions[i]);
+                selected->isObjectMouseActive = true;
+                i++;
+            }
+
+            if (isPositiveAndBelow(draggedIdx, selection.size())) {
+                ds.componentBeingDragged = selection[draggedIdx];
+            }
         }
 
         // FIXME: stop the mousedrag event from blocking the objects from redrawing, we shouldn't need to do this? JUCE bug?
