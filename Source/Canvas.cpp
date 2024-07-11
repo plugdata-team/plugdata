@@ -176,6 +176,11 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
 
 Canvas::~Canvas()
 {
+    for(auto* object : objects)
+    {
+        object->hideEditor();
+    }
+    
     saveViewportState();
     zoomScale.removeListener(this);
     editor->removeModifierKeyListener(this);
