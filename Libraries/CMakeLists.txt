@@ -192,8 +192,6 @@ file(GLOB_RECURSE PLAITS_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/plaits~/*.cc
 )
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/play.file~)
-
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/circuit~/Libraries)
 
 list(APPEND ELSE_SOURCES ${CIRCUIT_SOURCES})
@@ -268,8 +266,11 @@ set(GEM_LIBS Gem ftgl glew_s freetype)
 set(GEM_LIBS_MULTI Gem-multi ftgl glew_s freetype)
 endif()
 
+if(ENABLE_FFMPEG)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/play.file~)
+endif()
+
 if(ENABLE_SFIZZ)
-list(APPEND LIBPD_COMPILE_DEFINITIONS ENABLE_SFIZZ=1)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/sfz~)
 endif()
 
