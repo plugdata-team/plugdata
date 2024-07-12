@@ -181,6 +181,27 @@ PluginProcessor::~PluginProcessor()
     patches.clear();
 }
 
+void PluginProcessor::flushMessageQueue()
+{
+    doMessageQueueFlush();
+
+    // Reset timer to clear the message queue
+    // If the V-Blank does not call flushMessageQueue() within 30 frames then timer becomes self running
+    // This is needed when plugdata is inside DAW's that turn off v-blank when plugin window is hidden (FLstudio, Reaper, Bitwig)
+    startTimerHz(2);
+}
+
+void PluginProcessor::doMessageQueueFlush()
+{
+    setThis();
+    messageDispatcher->dequeueMessages();
+}
+
+void PluginProcessor::timerCallback()
+{
+    doMessageQueueFlush();
+}
+
 void PluginProcessor::initialiseFilesystem()
 {
     auto const& homeDir = ProjectInfo::appDataDir;

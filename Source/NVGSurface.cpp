@@ -99,8 +99,7 @@ NVGSurface::NVGSurface(PluginEditor* e)
             // Render on vblank
             _this->vBlankAttachment = std::make_unique<VBlankAttachment>(_this.getComponent(), [_this]() {
                 if (_this) {
-                    _this->editor->pd->setThis();
-                    _this->editor->pd->messageDispatcher->dequeueMessages();
+                    _this->editor->pd->flushMessageQueue();
                     _this->render();
                 }
             });
