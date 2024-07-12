@@ -10,6 +10,9 @@ class ReversibleSlider : public Slider
     bool isInverted = false;
     bool isVertical = false;
 
+    bool isZeroRange = false;
+    float zeroRangeValue = 0.0f;
+
 public:
     ReversibleSlider()
         : NVGComponent(this)
@@ -23,6 +26,38 @@ public:
     }
 
     ~ReversibleSlider() override { }
+
+    float getCurrentValue()
+    {
+        if (isZeroRange)
+            return zeroRangeValue;
+
+        return getValue();
+    }
+
+    void setCurrentValue(float value)
+    {
+        if (isZeroRange) {
+            return;
+        } else {
+            setValue(value, dontSendNotification);
+        }
+    }
+
+    void updateRange(float min, float max)
+    {
+        if (approximatelyEqual(min, max)) {
+            setRange(0.0, 1.0, std::numeric_limits<float>::epsilon());
+            isZeroRange = true;
+            zeroRangeValue = min;
+            setValue(0.0f);
+            return;
+        }
+
+        isZeroRange = false;
+
+        setRange(min, max, std::numeric_limits<float>::epsilon());
+    }
 
     void setRangeFlipped(bool invert)
     {
@@ -110,24 +145,18 @@ public:
         constexpr auto thumbSize = 4.0f;
         auto cornerSize = Corners::objectCornerRadius / 2.0f;
 
+        Rectangle<float> bounds;
         if (isHorizontal()) {
             auto sliderPos = jmap<float>(valueToProportionOfLength(getValue()), 0.0f, 1.0f, b.getX(), b.getWidth() - thumbSize);
-            auto bounds = Rectangle<float>(sliderPos, b.getY(), thumbSize, b.getHeight());
-
-            nvgFillColor(nvg, convertColour(getLookAndFeel().findColour(Slider::trackColourId)));
-            nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), cornerSize);
-            nvgFill(nvg);
+            bounds = Rectangle<float>(sliderPos, b.getY(), thumbSize, b.getHeight());
         } else {
-
             auto sliderPos = jmap<float>(valueToProportionOfLength(getValue()), 1.0f, 0.0f, b.getY(), b.getHeight() - thumbSize);
-            auto bounds = Rectangle<float>(b.getWidth(), thumbSize).translated(b.getX(), sliderPos);
-
-            nvgFillColor(nvg, convertColour(getLookAndFeel().findColour(Slider::trackColourId)));
-            nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), cornerSize);
-            nvgFill(nvg);
+            bounds = Rectangle<float>(b.getWidth(), thumbSize).translated(b.getX(), sliderPos);
         }
+        nvgFillColor(nvg, convertColour(getLookAndFeel().findColour(Slider::trackColourId)));
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), cornerSize);
+        nvgFill(nvg);
     }
 };
 
@@ -155,13 +184,13 @@ public:
 
         slider.onDragStart = [this]() {
             startEdition();
-            const float val = slider.getValue();
-            setValue(val);
+            const float val = slider.getCurrentValue();
+            sendFloatValue(val);
         };
 
         slider.onValueChange = [this]() {
-            const float val = slider.getValue();
-            setValue(val);
+            const float val = slider.getCurrentValue();
+            sendFloatValue(val);
         };
 
         slider.onDragEnd = [this]() {
@@ -194,7 +223,9 @@ public:
 
         if (auto obj = ptr.get<t_slider>()) {
             isVertical = obj->x_orientation;
-            slider.setRangeFlipped(obj->x_min > obj->x_max);
+            auto min = obj->x_min;
+            auto max = obj->x_max;
+            slider.setRangeFlipped(approximatelyEqual(min, max) ? false : min > max);
             sizeProperty = Array<var> { var(obj->x_gui.x_w), var(obj->x_gui.x_h) };
         }
 
@@ -205,7 +236,7 @@ public:
 
         auto currentValue = getValue();
         value = currentValue;
-        slider.setValue(currentValue, dontSendNotification);
+        slider.setCurrentValue(currentValue);
         slider.setOrientation(isVertical);
 
         isLogarithmic = isLogScale();
@@ -252,16 +283,18 @@ public:
 
     void updateRange()
     {
+        auto max = getMaximum();
+        auto min = getMinimum();
         if (isLogScale()) {
             if (slider.isRangeFlipped())
-                slider.setNormalisableRange(makeLogarithmicRange<double>(getMaximum(), getMinimum()));
+                slider.setNormalisableRange(makeLogarithmicRange<double>(max, min));
             else
-                slider.setNormalisableRange(makeLogarithmicRange<double>(getMinimum(), getMaximum()));
+                slider.setNormalisableRange(makeLogarithmicRange<double>(min, max));
         } else {
             if (slider.isRangeFlipped())
-                slider.setRange(getMaximum(), getMinimum(), std::numeric_limits<float>::epsilon());
+                slider.updateRange(max, min);
             else
-                slider.setRange(getMinimum(), getMaximum(), std::numeric_limits<float>::epsilon());
+                slider.updateRange(min, max);
         }
     }
 
@@ -272,7 +305,7 @@ public:
         case hash("list"):
         case hash("set"): {
             value = atoms[0].getFloat();
-            slider.setValue(value, dontSendNotification);
+            slider.setCurrentValue(value);
             break;
         }
         case hash("lin"): {
@@ -397,28 +430,24 @@ public:
         return 127.0f;
     }
 
-    void setMinimum(float value)
+    void setMinimum(float minValue)
     {
         float min = 0.0f, max = 127.0f;
         if (auto slider = ptr.get<t_slider>()) {
-            slider->x_min = value;
-            min = slider->x_min;
+            slider->x_min = minValue;
             max = slider->x_max;
         }
-
-        slider.setRangeFlipped(min > max);
+        slider.setRangeFlipped(approximatelyEqual(minValue, max) ? false : minValue > max);
     }
 
-    void setMaximum(float value)
+    void setMaximum(float maxValue)
     {
         float min = 0.0f, max = 127.0f;
         if (auto slider = ptr.get<t_slider>()) {
-            slider->x_max = value;
+            slider->x_max = maxValue;
             min = slider->x_min;
-            max = slider->x_max;
         }
-
-        slider.setRangeFlipped(min > max);
+        slider.setRangeFlipped(approximatelyEqual(min, maxValue) ? false : min > maxValue);
     }
 
     void setSteadyOnClick(bool steady) const
@@ -497,11 +526,6 @@ public:
         }
 
         update();
-    }
-
-    void setValue(float v)
-    {
-        sendFloatValue(v);
     }
 
     template<typename FloatType>
