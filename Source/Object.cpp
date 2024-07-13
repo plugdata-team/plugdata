@@ -956,12 +956,7 @@ void Object::mouseUp(MouseEvent const& e)
 
             cnv->synchronise();
         }
-
-        if (ds.wasDragDuplicated) {
-            cnv->patch.endUndoSequence("Duplicate");
-            ds.wasDragDuplicated = false;
-        }
-
+        
         for (auto* object : cnv->getSelectionOfType<Object>()) {
             object->repaint();
         }
@@ -976,7 +971,7 @@ void Object::mouseUp(MouseEvent const& e)
         ds.wasDragDuplicated = false;
     }
 
-    if (gui && selectedFlag && !selectionStateChanged && !e.mouseWasDraggedSinceMouseDown() && !e.mods.isRightButtonDown()) {
+    if (gui && selectedFlag && !selectionStateChanged && !e.mouseWasDraggedSinceMouseDown() && !e.mods.isRightButtonDown()  && !e.mods.isAnyModifierKeyDown()) {
         gui->showEditor();
     }
 
