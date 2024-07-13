@@ -29,7 +29,8 @@ class PluginEditor;
 class ConnectionMessageDisplay;
 class PluginProcessor : public AudioProcessor
     , public pd::Instance
-    , public SettingsFileListener {
+    , public SettingsFileListener
+    , public Timer {
 public:
     PluginProcessor();
 
@@ -45,6 +46,8 @@ public:
     void releaseResources() override;
 
     void updateAllEditorsLNF();
+
+    void flushMessageQueue();
 
     void updateIoletGeometryForAllObjects();
 
@@ -174,6 +177,9 @@ public:
     Component::SafePointer<ConnectionMessageDisplay> connectionListener;
 
 private:
+    void doMessageQueueFlush();
+    void timerCallback() override;
+
     int customLatencySamples = 0;
 
     SmoothedValue<float, ValueSmoothingTypes::Linear> smoothedGain;
