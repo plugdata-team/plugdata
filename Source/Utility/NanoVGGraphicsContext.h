@@ -73,7 +73,6 @@ public:
 private:
     
     juce::juce_wchar getCharForGlyph(int glyphIndex);
-    bool loadFontFromResources(juce::String const& typefaceName);
     
     int getNvgImageId(juce::Image const& image);
     void reduceImageCache();
@@ -88,7 +87,7 @@ private:
     using GlyphToCharMap = std::unordered_map<int, wchar_t>;
 
     // Mapping font names to glyph-to-character tables
-    std::unordered_map<juce::String, GlyphToCharMap> loadedFonts;
+    static inline std::unordered_map<juce::String, GlyphToCharMap> loadedFonts = std::unordered_map<juce::String, GlyphToCharMap>();
     GlyphToCharMap* currentGlyphToCharMap;
 
     // Tracking images mapped tomtextures.

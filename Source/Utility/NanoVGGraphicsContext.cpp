@@ -508,6 +508,28 @@ void NanoVGGraphicsContext::setFont(juce::Font const& f)
     }
     
     currentGlyphToCharMap = &loadedFonts[typefaceName];
+    
+    if(currentGlyphToCharMap->empty()) {
+        if (auto tf = f.getTypefacePtr())
+        {
+            const static auto allPrintableAsciiCharacters = []() -> juce::String {
+                juce::String str;
+                for (juce::juce_wchar c = 32; c < 127; ++c) // Only map printable characters
+                    str += juce::String::charToString (c);
+                str += juce::String::charToString(juce::juce_wchar(41952)); // for some reason we need this char?
+                return str;
+            }();
+            
+            juce::Array<int> glyphs;
+            juce::Array<float> offsets;
+            tf->getGlyphPositions (allPrintableAsciiCharacters, glyphs, offsets);
+            
+            const auto* wstr = allPrintableAsciiCharacters.toWideCharPointer();
+            for (int i = 0; i < allPrintableAsciiCharacters.length(); ++i) {
+                currentGlyphToCharMap->insert({glyphs[i], wstr[i]});
+            }
+        }
+    }
 
     nvgFontFace(nvg, typefaceName.toUTF8());
     nvgFontSize(nvg, font.getHeight() * 0.862f);
@@ -538,7 +560,7 @@ juce::juce_wchar NanoVGGraphicsContext::getCharForGlyph(int glyphIndex)
             
             if (glyphs[0] == glyphIndex)
             {
-                (*currentGlyphToCharMap)[glyphIndex] = wc; // Cache result
+                currentGlyphToCharMap->insert({glyphIndex, wc});
                 return wc;
             }
         }
@@ -645,22 +667,6 @@ bool NanoVGGraphicsContext::loadFont(juce::String const& name, char const* ptr, 
     }
 
     return false;
-}
-
-bool NanoVGGraphicsContext::loadFontFromResources(juce::String const& typefaceName)
-{
-    auto it = loadedFonts.find(typefaceName);
-
-    if (it != loadedFonts.end()) {
-        currentGlyphToCharMap = &it->second;
-        return true;
-    }
-
-    int size;
-    juce::String resName { typefaceName + "_ttf" };
-    auto const* ptr { getResourceByFileName(resName, size) };
-
-    return loadFont(typefaceName, ptr, size);
 }
 
 int NanoVGGraphicsContext::getNvgImageId(juce::Image const& image)
