@@ -18,16 +18,6 @@ static uint64_t getImageHash(juce::Image const& image)
     return (uint64_t)src.data;
 }
 
-static char const* getResourceByFileName(juce::String const& fileName, int& size)
-{
-    for (int i = 0; i < BinaryData::namedResourceListSize; ++i) {
-        if (juce::String(BinaryData::originalFilenames[i]) == fileName)
-            return BinaryData::getNamedResource(BinaryData::namedResourceList[i], size);
-    }
-
-    return nullptr;
-}
-
 //==============================================================================
 
 int const NanoVGGraphicsContext::imageCacheSize = 256;

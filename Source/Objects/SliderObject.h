@@ -9,7 +9,7 @@ class ReversibleSlider : public Slider
 
     bool isInverted = false;
     bool isVertical = false;
-    bool shiftWasDown = false;
+    bool shiftIsDown = false;
 
 public:
     ReversibleSlider()
@@ -65,38 +65,38 @@ public:
         if (!e.mods.isLeftButtonDown())
             return;
 
+        auto normalSensitivity = std::max<int>(1, isVertical ? getHeight() : getWidth());
+        auto highSensitivity = normalSensitivity * 10;
+        if (ModifierKeys::getCurrentModifiersRealtime().isShiftDown()) {
+            setMouseDragSensitivity(highSensitivity);
+            shiftIsDown = true;
+        } else {
+            setMouseDragSensitivity(normalSensitivity);
+        }
+        
         Slider::mouseDown(e);
+        
+        auto snaps = getSliderSnapsToMousePosition();
+        if(snaps && shiftIsDown)  {
+            setSliderSnapsToMousePosition(false); // hack to make jump-on-click work the same with high-accuracy mode as in Pd
+            Slider::mouseDown(e);
+            setSliderSnapsToMousePosition(true);
+        }
     }
 
     void mouseDrag(MouseEvent const& e) override
     {
-        auto normalSensitivity = std::max<int>(1, isVertical ? getHeight() : getWidth());
-        auto highSensitivity = normalSensitivity * 10;
-
-        
-        if (ModifierKeys::getCurrentModifiersRealtime().isShiftDown()) {
-            setMouseDragSensitivity(highSensitivity);
-            if(!shiftWasDown)
-            {
-                Slider::mouseDown(e);
-                shiftWasDown = true;
-            }
-        } else {
-            setMouseDragSensitivity(normalSensitivity);
-            if(shiftWasDown)
-            {
-                Slider::mouseDown(e);
-                shiftWasDown = false;
-            }
-        }
-
+        auto snaps = getSliderSnapsToMousePosition();
+        if(snaps && shiftIsDown) setSliderSnapsToMousePosition(false); // We disable this temporarily, otherwise it breaks high accuracy mode
         Slider::mouseDrag(e);
+        if(snaps && shiftIsDown) setSliderSnapsToMousePosition(true);
     }
+        
     void mouseUp(MouseEvent const& e) override
     {
         setMouseDragSensitivity(std::max<int>(1, isVertical ? getHeight() : getWidth()));
         Slider::mouseUp(e);
-        shiftWasDown = false;
+        shiftIsDown = false;
     }
 
     bool isRangeFlipped()
