@@ -687,7 +687,6 @@ void TabComponent::closeTab(Canvas* cnv)
     }();
 
     cnv->setCachedComponentImage(nullptr); // Clear nanovg invalidation listener, just to be sure
-    canvases.removeObject(cnv);
     
     if (splits[0] == cnv && tabbars[0].indexOf(tab) >= 1) {
         showTab(tabbars[0][tabbars[0].indexOf(tab) - 1]->cnv, 0);
@@ -696,6 +695,7 @@ void TabComponent::closeTab(Canvas* cnv)
         showTab(tabbars[1][tabbars[1].indexOf(tab) - 1]->cnv, 1);
     }
 
+    canvases.removeObject(cnv);
     pd->patches.removeFirstMatchingValue(patch);
     pd->updateObjectImplementations();
 
