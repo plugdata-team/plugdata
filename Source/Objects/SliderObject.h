@@ -9,6 +9,7 @@ class ReversibleSlider : public Slider
 
     bool isInverted = false;
     bool isVertical = false;
+    bool shiftWasDown = false;
 
 public:
     ReversibleSlider()
@@ -64,22 +65,38 @@ public:
         if (!e.mods.isLeftButtonDown())
             return;
 
-        auto normalSensitivity = std::max<int>(1, isVertical ? getHeight() : getWidth());
-        auto highSensitivity = normalSensitivity * 10;
-
-        if (ModifierKeys::getCurrentModifiersRealtime().isShiftDown()) {
-            setMouseDragSensitivity(highSensitivity);
-        } else {
-            setMouseDragSensitivity(normalSensitivity);
-        }
-
         Slider::mouseDown(e);
     }
 
+    void mouseDrag(MouseEvent const& e) override
+    {
+        auto normalSensitivity = std::max<int>(1, isVertical ? getHeight() : getWidth());
+        auto highSensitivity = normalSensitivity * 10;
+
+        
+        if (ModifierKeys::getCurrentModifiersRealtime().isShiftDown()) {
+            setMouseDragSensitivity(highSensitivity);
+            if(!shiftWasDown)
+            {
+                Slider::mouseDown(e);
+                shiftWasDown = true;
+            }
+        } else {
+            setMouseDragSensitivity(normalSensitivity);
+            if(shiftWasDown)
+            {
+                Slider::mouseDown(e);
+                shiftWasDown = false;
+            }
+        }
+
+        Slider::mouseDrag(e);
+    }
     void mouseUp(MouseEvent const& e) override
     {
         setMouseDragSensitivity(std::max<int>(1, isVertical ? getHeight() : getWidth()));
         Slider::mouseUp(e);
+        shiftWasDown = false;
     }
 
     bool isRangeFlipped()
