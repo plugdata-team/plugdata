@@ -555,8 +555,7 @@ void Object::lookAndFeelChanged() {
 
 void Object::resized()
 {
-    scrollBuffer.setDirty();
-    activityOverlayDirty = true;
+    activityOverlayDirty = activityOverlayDirty || activityOverlayImage.needsUpdate(getWidth(), getHeight());;
 
     setVisible(!((cnv->isGraph || cnv->presentationMode == var(true)) && gui && gui->hideInGraph()));
 
