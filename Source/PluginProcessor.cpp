@@ -189,6 +189,8 @@ PluginProcessor::~PluginProcessor()
 void PluginProcessor::flushMessageQueue()
 {
     doMessageQueueFlush();
+    
+    startTimerHz(2); // postpone timer callback
 }
 
 void PluginProcessor::doMessageQueueFlush()
