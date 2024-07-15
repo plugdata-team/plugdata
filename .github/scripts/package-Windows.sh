@@ -143,9 +143,6 @@ cat > ./plugdata.wxs <<-EOL
 		<UI>
 			<UIRef Id="WixUI_FeatureTree" />
 		</UI>
-		<InstallExecuteSequence>
-			<RemoveExistingProducts After="InstallValidate"/>
-		</InstallExecuteSequence>
 		<Feature Id="DefaultFeature" Level="1" Title="Standalone App">
 			<ComponentRef Id="STANDALONE_FILES"/>
 			<ComponentRef Id="STANDALONE_SHORTCUTS"/>
@@ -164,6 +161,14 @@ cat > ./plugdata.wxs <<-EOL
 			<ComponentRef Id="CLAP_FILES"/>
 			<ComponentRef Id="CLAP_FX_FILES"/>
 		</Feature>
+		<!-- define powershell script as base64 that will remove registry entries for old plugdata versions -->
+		<Property Id="reg_clean">powershell.exe -ExecutionPolicy Bypass -NoProfile -WindowStyle Hidden -e JABkAGkAcwBwAGwAYQB5AE4AYQBtAGUAIAA9ACAAIgBwAGwAdQBnAGQAYQB0AGEAIgAKACQAcgBlAGcAaQBzAHQAcgB5AFAAYQB0AGgAIAA9ACAAIgBIAEsATABNADoAXABTAE8ARgBUAFcAQQBSAEUAXABNAGkAYwByAG8AcwBvAGYAdABcAFcAaQBuAGQAbwB3AHMAXABDAHUAcgByAGUAbgB0AFYAZQByAHMAaQBvAG4AXABVAG4AaQBuAHMAdABhAGwAbAAiAAoAJABzAHUAYgBLAGUAeQBzACAAPQAgAEcAZQB0AC0AQwBoAGkAbABkAEkAdABlAG0AIAAtAFAAYQB0AGgAIAAkAHIAZQBnAGkAcwB0AHIAeQBQAGEAdABoAAoAZgBvAHIAZQBhAGMAaAAgACgAJABzAHUAYgBLAGUAeQAgAGkAbgAgACQAcwB1AGIASwBlAHkAcwApACAAewAKACAAIAAgACAAJABjAHUAcgByAGUAbgB0AEsAZQB5ACAAPQAgAEcAZQB0AC0ASQB0AGUAbQBQAHIAbwBwAGUAcgB0AHkAIAAtAFAAYQB0AGgAIAAkAHMAdQBiAEsAZQB5AC4AUABTAFAAYQB0AGgACgAgACAAIAAgAGkAZgAgACgAJABjAHUAcgByAGUAbgB0AEsAZQB5AC4ARABpAHMAcABsAGEAeQBOAGEAbQBlACAALQBlAHEAIAAkAGQAaQBzAHAAbABhAHkATgBhAG0AZQApACAAewAKACAAIAAgACAAIAAgACAAIABSAGUAbQBvAHYAZQAtAEkAdABlAG0AIAAtAFAAYQB0AGgAIAAkAHMAdQBiAEsAZQB5AC4AUABTAFAAYQB0AGgAIAAtAFIAZQBjAHUAcgBzAGUAIAAtAEYAbwByAGMAZQAKACAAIAAgACAAIAAgACAAIABXAHIAaQB0AGUALQBIAG8AcwB0ACAAIgBSAGUAZwBpAHMAdAByAHkAIABlAG4AdAByAHkAIAByAGUAbQBvAHYAZQBkADoAIAAkACgAJABzAHUAYgBLAGUAeQAuAFAAUwBQAGEAdABoACkAIgAKACAAIAAgACAAfQAKAH0ACgA=
+    	</Property>
+		<CustomAction Id="CleanRegistry" Execute="deferred" Directory="TARGETDIR" ExeCommand='[reg_clean]' Return="ignore" Impersonate="no"/>
+		<InstallExecuteSequence>
+      		<Custom Action="CleanRegistry" After="InstallInitialize"></Custom>
+			<RemoveExistingProducts After="InstallValidate"/>
+    	</InstallExecuteSequence>
 	</Product>
 </Wix>
 EOL
