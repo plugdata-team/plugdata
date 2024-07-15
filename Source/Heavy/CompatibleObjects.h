@@ -220,6 +220,7 @@ struct HeavyCompatibleObjects {
         "floatbox",
         "symbolbox",
         "msg",
+        "message",
         "invalid"
     };
 
