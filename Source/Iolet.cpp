@@ -89,7 +89,7 @@ void Iolet::render(NVGcontext* nvg)
     }
 
     auto scale = getWidth() / 13.0f;
-    auto offset = isInlet ? 0.0f : -0.5f;
+    auto offset = isInlet ? 0.5f : 0.0f;
     nvgScale(nvg, scale, scale); // If the iolet is shrunk because there is little space, we scale it down
     nvgFillPaint(nvg, nvgImagePattern(nvg, isHovering * -16 - 1.5f, type * -16 - offset, 16 * 4, 16 * 4, 0, fb.getImage(), 1));
 
