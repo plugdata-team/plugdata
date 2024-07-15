@@ -1158,10 +1158,10 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             auto patchPtr = loadPatch(content);
             patchPtr->splitViewIndex = splitIndex;
             patchPtr->openInPluginMode = pluginMode;
-            if(locationIsValid) patchPtr->setCurrentFile(URL(location));
             if (!locationIsValid || location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) {
                 patchPtr->setUntitled();
             } else {
+                patchPtr->setCurrentFile(URL(location));
                 patchPtr->setTitle(location.getFileName());
             }
         } else {
