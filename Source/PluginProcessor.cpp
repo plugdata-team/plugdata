@@ -1152,7 +1152,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             // Force pd to use this path for the next opened patch
             // This makes sure the patch can find abstractions/resources, even though it's loading patch from state
             if(locationIsValid) {
-                glob_forcefilename(generateSymbol(location.getFileName().toRawUTF8()), generateSymbol(location.getParentDirectory().getFullPathName().toRawUTF8()));
+                glob_forcefilename(generateSymbol(location.getFileName().toRawUTF8()), generateSymbol(location.getParentDirectory().getFullPathName().replaceCharacter('\\', '/').toRawUTF8()));
             }
 
             auto patchPtr = loadPatch(content);
