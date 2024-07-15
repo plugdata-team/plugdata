@@ -449,7 +449,7 @@ public:
 
     void setMinimum(float minValue)
     {
-        float min = 0.0f, max = 127.0f;
+        float max = 127.0f;
         if (auto slider = ptr.get<t_slider>()) {
             slider->x_min = minValue;
             max = slider->x_max;
@@ -459,7 +459,7 @@ public:
 
     void setMaximum(float maxValue)
     {
-        float min = 0.0f, max = 127.0f;
+        float min = 0.0f;
         if (auto slider = ptr.get<t_slider>()) {
             slider->x_max = maxValue;
             min = slider->x_min;
