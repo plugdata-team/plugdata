@@ -576,7 +576,7 @@ void Object::updateIoletGeometry()
     int ioletHitBox = 6;
 
     int maxIoletWidth = std::min(((getWidth() - doubleMargin) / std::max(numInputs, 1)) - 4, ((getWidth() - doubleMargin) / std::max(numOutputs, 1)) - 4);
-    int maxIoletHeight = (getHeight() / 2.0f) - 3;
+    int maxIoletHeight = (getHeight() / 2.0f) - 2;
 
     int ioletSize = PlugDataLook::ioletSize;
 
