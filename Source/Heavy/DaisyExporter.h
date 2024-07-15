@@ -200,13 +200,15 @@ public:
         auto boards = StringArray { "pod", "petal", "patch", "patch_init", "field", "versio", "terrarium", "simple", "custom" };
         auto const& board = boards[target];
 
+        auto extra_boards = StringArray { "versio", "terrarium", "simple" };
+
         DynamicObject::Ptr metaJson(new DynamicObject());
         var metaDaisy(new DynamicObject());
 
         if (board == "custom") {
             metaDaisy.getDynamicObject()->setProperty("board_file", customBoardDefinition.getFullPathName());
-        } else if (board == "simple") {
-            metaDaisy.getDynamicObject()->setProperty("board_file", Toolchain::dir.getChildFile("etc").getChildFile("simple.json").getFullPathName());
+        } else if (std::find(std::begin(extra_boards), std::end(extra_boards), board) != std::end(extra_boards)) {
+            metaDaisy.getDynamicObject()->setProperty("board_file", Toolchain::dir.getChildFile("etc").getChildFile("%s.json", board).getFullPathName());
         } else {
             metaDaisy.getDynamicObject()->setProperty("board", board);
         }
