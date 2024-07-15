@@ -7,7 +7,7 @@
 // ELSE pic
 class PictureObject final : public ObjectBase {
 
-    Value path = SynchronousValue();
+    Value filename = SynchronousValue();
     Value latch = SynchronousValue();
     Value outline = SynchronousValue();
     Value reportSize = SynchronousValue();
@@ -38,7 +38,7 @@ public:
         }
 
         objectParameters.addParamSize(&sizeProperty);
-        objectParameters.addParamString("File", cGeneral, &path, "");
+        objectParameters.addParamString("File", cGeneral, &filename, "");
         objectParameters.addParamBool("Latch", cGeneral, &latch, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Outline", cAppearance, &outline, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Report Size", cAppearance, &reportSize, { "No", "Yes" }, 0);
@@ -84,8 +84,8 @@ public:
     {
         if (auto pic = ptr.get<t_fake_pic>()) {
 
-            if (pic->x_fullname) {
-                path = String::fromUTF8(pic->x_fullname->s_name);
+            if (pic->x_filename) {
+                filename = String::fromUTF8(pic->x_filename->s_name);
             }
 
             latch = pic->x_latch;
@@ -222,10 +222,10 @@ public:
                 pic->x_width = width;
                 pic->x_height = height;
             }
-
+            
             object->updateBounds();
-        } else if (value.refersToSameSourceAs(path)) {
-            openFile(path.toString());
+        } else if (value.refersToSameSourceAs(filename)) {
+            openFile(filename.toString());
         } else if (value.refersToSameSourceAs(latch)) {
             if (auto pic = ptr.get<t_fake_pic>())
                 pic->x_latch = getValue<int>(latch);
@@ -290,32 +290,19 @@ public:
             return;
 
         auto findFile = [this](String const& name) {
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return File();
-
-            if ((name.startsWith("/") || name.startsWith("./") || name.startsWith("../")) && File(name).existsAsFile()) {
-                return File(name);
-            }
-
-            if (File(String::fromUTF8(canvas_getdir(patch)->s_name)).getChildFile(name).existsAsFile()) {
-                return File(String::fromUTF8(canvas_getdir(patch)->s_name)).getChildFile(name);
-            }
-
-            // Get pd's search paths
-            char* paths[1024];
-            int numItems;
-            pd->setThis();
-            pd::Interface::getSearchPaths(paths, &numItems);
-
-            for (int i = 0; i < numItems; i++) {
-                auto file = File(String::fromUTF8(paths[i])).getChildFile(name);
-
-                if (file.existsAsFile()) {
-                    return file;
+            if(auto patch = cnv->patch.getPointer()) {
+                if ((name.startsWith("/") || name.startsWith("./") || name.startsWith("../")) && File(name).existsAsFile()) {
+                    return File(name);
+                }
+                
+                char dir[MAXPDSTRING];
+                char* file;
+                
+                int fd = canvas_open(patch.get(), name.toRawUTF8(), "", dir, &file, MAXPDSTRING, 0);
+                if(fd >= 0){
+                    return File(dir).getChildFile(file);
                 }
             }
-
             return File(name);
         };
 
