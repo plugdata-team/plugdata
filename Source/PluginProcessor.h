@@ -30,7 +30,7 @@ class ConnectionMessageDisplay;
 class PluginProcessor : public AudioProcessor
     , public pd::Instance
     , public SettingsFileListener
-    , public Timer {
+{
 public:
     PluginProcessor();
 
@@ -177,8 +177,6 @@ public:
     Component::SafePointer<ConnectionMessageDisplay> connectionListener;
 
 private:
-    void doMessageQueueFlush();
-    void timerCallback() override;
 
     int customLatencySamples = 0;
 

@@ -278,6 +278,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         });
 #endif
     
+    pd->messageDispatcher->setBlockMessages(false);
     pd->objectLibrary->waitForInitialisationToFinish();
 }
 
@@ -287,6 +288,12 @@ PluginEditor::~PluginEditor()
 
     if (auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent())) {
         ProjectInfo::closeWindow(window); // Make sure plugdatawindow gets cleaned up
+    }
+
+    if(!ProjectInfo::isStandalone)
+    {
+        // Block incoming gui messages from pd if there is no active editor
+        pd->messageDispatcher->setBlockMessages(true);
     }
 }
 
