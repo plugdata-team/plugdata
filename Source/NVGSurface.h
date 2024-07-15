@@ -207,7 +207,8 @@ public:
             imageId = other.imageId;
             imageWidth = other.imageWidth;
             imageHeight = other.imageHeight;
-
+            onImageInvalidate = other.onImageInvalidate;
+            
             other.imageId = 0;
             allImages.insert(this);
         }
@@ -217,11 +218,21 @@ public:
     {
         // Check for self-assignment
         if (this != &other) {
+            // Delete current image
+            if(imageId && nvg)
+            {
+                if (auto* surface = NVGSurface::getSurfaceForContext(nvg)) {
+                    surface->makeContextActive();
+                }
+                nvgDeleteImage(nvg, imageId);
+            }
+            
             nvg = other.nvg;
             imageId = other.imageId;
             imageWidth = other.imageWidth;
             imageHeight = other.imageHeight;
-
+            onImageInvalidate = other.onImageInvalidate;
+            
             other.imageId = 0; // Important, makes sure the old buffer can't delete this buffer
             allImages.insert(this);
         }
