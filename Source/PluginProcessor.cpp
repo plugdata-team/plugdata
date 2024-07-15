@@ -1148,15 +1148,18 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
         // We now prefer loading the patch content over the patch file, if possible
         // This generally makes it work more like the users expects, but before we couldn't get it to load abstractions (this is now fixed)
         if (content.isNotEmpty()) {
+            auto locationIsValid = location.getParentDirectory().exists() && location.getFullPathName().isNotEmpty();
             // Force pd to use this path for the next opened patch
             // This makes sure the patch can find abstractions/resources, even though it's loading patch from state
-            glob_forcefilename(generateSymbol(location.getFileName().toRawUTF8()), generateSymbol(location.getParentDirectory().getFullPathName().toRawUTF8()));
+            if(locationIsValid) {
+                glob_forcefilename(generateSymbol(location.getFileName().toRawUTF8()), generateSymbol(location.getParentDirectory().getFullPathName().toRawUTF8()));
+            }
 
             auto patchPtr = loadPatch(content);
             patchPtr->splitViewIndex = splitIndex;
             patchPtr->openInPluginMode = pluginMode;
-            patchPtr->setCurrentFile(URL(location));
-            if (!location.exists() || (location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory))) {
+            if(locationIsValid) patchPtr->setCurrentFile(URL(location));
+            if (!locationIsValid || location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) {
                 patchPtr->setUntitled();
             } else {
                 patchPtr->setTitle(location.getFileName());

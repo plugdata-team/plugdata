@@ -1251,7 +1251,7 @@ void Object::updateFramebuffer(NVGcontext* nvg)
 {
     // For very large objects, buffering is just gonna take up GPU memory, with minimal performance benefits
     // Also, Metal has a limitation on image size, so this will also prevent crashing
-    if (getWidth() * 3 * cnv->getRenderScale() > 8192 || getHeight() * 3 * cnv->getRenderScale() > 8192)
+    if (getWidth() * 3 * cnv->getRenderScale() >= 8192 || getHeight() * 3 * cnv->getRenderScale() >= 8192)
         return;
 
     auto b = getLocalBounds();
@@ -1282,7 +1282,8 @@ void Object::updateFramebuffer(NVGcontext* nvg)
 
 void Object::render(NVGcontext* nvg)
 {
-    if (cnv->shouldShowObjectActivity() && (!activityOverlayImage.isValid() || activityOverlayDirty)) {
+    if (cnv->shouldShowObjectActivity() && (!activityOverlayImage.isValid() || activityOverlayDirty) &&
+        getWidth() * 3 * cnv->getRenderScale() < 8192 || getHeight() * 3 * cnv->getRenderScale() < 8192) {
         Path objectShadow;
         objectShadow.addRoundedRectangle(getLocalBounds().reduced(Object::margin - 1), Corners::objectCornerRadius);
         activityOverlayImage = StackShadow::createActivityDropShadowImage(nvg, getLocalBounds(), objectShadow, getLookAndFeel().findColour(PlugDataColour::dataColourId), 5.5f, { 0, 0 }, 0, gui && (gui->getCanvas() || gui->isTransparent()));
