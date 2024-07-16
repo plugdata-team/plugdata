@@ -208,7 +208,8 @@ public:
         if (board == "custom") {
             metaDaisy.getDynamicObject()->setProperty("board_file", customBoardDefinition.getFullPathName());
         } else if (std::find(std::begin(extra_boards), std::end(extra_boards), board) != std::end(extra_boards)) {
-            metaDaisy.getDynamicObject()->setProperty("board_file", Toolchain::dir.getChildFile("etc").getChildFile("%s.json", board).getFullPathName());
+            // if board in extra_boards, then set board_file
+            metaDaisy.getDynamicObject()->setProperty("board_file", Toolchain::dir.getChildFile("etc").getChildFile(board + ".json").getFullPathName());
         } else {
             metaDaisy.getDynamicObject()->setProperty("board", board);
         }
