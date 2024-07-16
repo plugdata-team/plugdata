@@ -28,6 +28,8 @@ public:
 
     void updateLibrary();
 
+    bool isGemObject(String const& query) const;
+    
     StringArray autocomplete(String const& query, File const& patchDirectory) const;
     StringArray searchObjectDocumentation(String const& query);
 
@@ -75,7 +77,8 @@ public:
 
 private:
     StringArray allObjects;
-
+    StringArray gemObjects;
+    
     std::recursive_mutex libraryLock;
     
     fuzzysearch::Database<ValueTree> searchDatabase;

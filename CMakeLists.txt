@@ -6,7 +6,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(ENABLE_TESTING "" OFF)
 option(ENABLE_SFIZZ "" ON)
-option(ENABLE_GEM "" ON)
+option(ENABLE_GEM "" OFF)
 option(ENABLE_ASAN "" OFF)
 option(MACOS_LEGACY "" OFF)
 option(VERBOSE "" OFF)

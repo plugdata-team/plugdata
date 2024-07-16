@@ -14,6 +14,7 @@
 
 extern "C" {
 int is_gem_object(char const* sym);
+int is_gem_object_name(char const* sym);
 }
 
 // Component that sits on top of a TextEditor and will draw auto-complete suggestions over it
@@ -636,7 +637,7 @@ public:
             buttons[currentidx]->setToggleState(true, dontSendNotification);
         }
 
-        auto filterObjects = [_this = SafePointer(this)](StringArray& toFilter) {
+        auto filterObjects = [_this = SafePointer(this), &library](StringArray& toFilter) {
             if (!_this || !_this->currentObject)
                 return;
             
@@ -644,8 +645,7 @@ public:
             {
                 StringArray noGemObjects;
                 for (auto& object : toFilter) {
-                    
-                    if(!is_gem_object(object.toRawUTF8()) || object.startsWith("Gem/")) // Don't suggest Gem objects without "Gem/" prefix unless gem library is loaded
+                    if(object.startsWith("Gem/") || !library->isGemObject(object)) // Don't suggest Gem objects without "Gem/" prefix unless gem library is loaded
                     {
                         noGemObjects.add(object);
                     }

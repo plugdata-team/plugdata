@@ -158,14 +158,19 @@ void Library::run()
             }
         }
         
+        auto name = objectEntry.getProperty("name").toString();
+        
+        if(origin == "Gem") {
 #if !ENABLE_GEM
-        if(origin == "Gem") continue;
+            continue;
+#else
+            gemObjects.add(name);
 #endif
+        }
         
         searchDatabase.addEntry(objectEntry, fields);
         searchDatabase.setThreshold(0.4f);
-
-        auto name = objectEntry.getProperty("name").toString();
+        
         if (origin.isEmpty()) {
             documentationIndex[hash(name)] = objectEntry;
         } else if (origin == "Gem") {
@@ -183,7 +188,12 @@ void Library::run()
 
 void Library::waitForInitialisationToFinish()
 {
-    //initWait.wait();
+    initWait.wait();
+}
+
+bool Library::isGemObject(String const& query) const
+{
+    return gemObjects.contains(query);
 }
 
 StringArray Library::autocomplete(String const& query, File const& patchDirectory) const
