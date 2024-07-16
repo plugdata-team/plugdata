@@ -639,6 +639,20 @@ public:
         auto filterObjects = [_this = SafePointer(this)](StringArray& toFilter) {
             if (!_this || !_this->currentObject)
                 return;
+            
+            if(!SettingsFile::getInstance()->getLibrariesTree().getChildWithProperty("Name", "Gem").isValid())
+            {
+                StringArray noGemObjects;
+                for (auto& object : toFilter) {
+                    
+                    if(!is_gem_object(object.toRawUTF8()) || object.startsWith("Gem/")) // Don't suggest Gem objects without "Gem/" prefix unless gem library is loaded
+                    {
+                        noGemObjects.add(object);
+                    }
+                }
+                
+                toFilter = noGemObjects;
+            }
 
             // When hvcc mode is enabled, show only hvcc compatible objects
             if (getValue<bool>(_this->currentObject->editor->hvccMode)) {
@@ -650,7 +664,6 @@ public:
                         hvccObjectsFound.add(object);
                     }
                 }
-
                 toFilter = hvccObjectsFound;
             }
 

@@ -305,7 +305,7 @@ void PluginProcessor::initialiseFilesystem()
     versionDataDir.getChildFile("Documentation").createSymbolicLink(homeDir.getChildFile("Documentation"), true);
     versionDataDir.getChildFile("Extra").createSymbolicLink(homeDir.getChildFile("Extra"), true);
 #endif
-
+    
     initMutex.deleteFile();
 }
 
@@ -1146,23 +1146,26 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     auto openPatch = [this](String const& content, File const& location, bool pluginMode = false, int splitIndex = 0) {
         // CHANGED IN v0.9.0:
         // We now prefer loading the patch content over the patch file, if possible
-        // This generally makes it work more like the users expects, but before we couldn't get it to load abstractions (this is now fixed)
+        // This generally makes it work more like the users expect, but before we couldn't get it to load abstractions (this is now fixed)
         if (content.isNotEmpty()) {
             auto locationIsValid = location.getParentDirectory().exists() && location.getFullPathName().isNotEmpty();
             // Force pd to use this path for the next opened patch
-            // This makes sure the patch can find abstractions/resources, even though it's loading patch from state
+            // This makes sure the patch can find abstractions/resources, even though it's loading a patch from state
             if(locationIsValid) {
                 glob_forcefilename(generateSymbol(location.getFileName().toRawUTF8()), generateSymbol(location.getParentDirectory().getFullPathName().replaceCharacter('\\', '/').toRawUTF8()));
             }
-
+            
+            logMessage("Location: " + location.getFullPathName());
             auto patchPtr = loadPatch(content);
             patchPtr->splitViewIndex = splitIndex;
             patchPtr->openInPluginMode = pluginMode;
             if (!locationIsValid || location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) {
                 patchPtr->setUntitled();
+                logMessage("Untitled set");
             } else {
                 patchPtr->setCurrentFile(URL(location));
                 patchPtr->setTitle(location.getFileName());
+                logMessage("Title set: " + location.getFileName());
             }
         } else {
             auto patchPtr = loadPatch(URL(location));
