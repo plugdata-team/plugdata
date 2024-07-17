@@ -1155,17 +1155,14 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
                 glob_forcefilename(generateSymbol(location.getFileName().toRawUTF8()), generateSymbol(location.getParentDirectory().getFullPathName().replaceCharacter('\\', '/').toRawUTF8()));
             }
             
-            logMessage("Location: " + location.getFullPathName());
             auto patchPtr = loadPatch(content);
             patchPtr->splitViewIndex = splitIndex;
             patchPtr->openInPluginMode = pluginMode;
             if (!locationIsValid || location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) {
                 patchPtr->setUntitled();
-                logMessage("Untitled set");
             } else {
                 patchPtr->setCurrentFile(URL(location));
                 patchPtr->setTitle(location.getFileName());
-                logMessage("Title set: " + location.getFileName());
             }
         } else {
             auto patchPtr = loadPatch(URL(location));

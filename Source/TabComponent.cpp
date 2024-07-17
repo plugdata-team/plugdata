@@ -829,8 +829,9 @@ void TabComponent::itemDragEnter(SourceDetails const& dragSourceDetails)
 
 void TabComponent::itemDragExit(SourceDetails const& dragSourceDetails)
 {
-    auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get());
-    tab->setVisible(false);
+    if(auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
+        tab->setVisible(false);
+    }
     splitDropBounds = Rectangle<int>();
     draggingOverTabbar = false;
     editor->nvgSurface.invalidateAll();

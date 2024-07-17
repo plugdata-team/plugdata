@@ -41,7 +41,9 @@ public:
     {
         std::lock_guard<std::mutex> lock(swapLock);
         backBuffer = std::exchange(frontBuffer, backBuffer);
-        backBuffer->clear();
+#if JUCE_DEBUG
+        jassert(backBuffer->empty());
+#endif
     }
 
     void push(T const& value)

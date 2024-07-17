@@ -427,7 +427,7 @@ CallOutBox& PluginEditor::showCalloutBox(std::unique_ptr<Component> content, Rec
 
 DragAndDropTarget* PluginEditor::findNextDragAndDropTarget(Point<int> screenPos)
 {
-    return &tabComponent;
+    return tabComponent.getScreenBounds().contains(screenPos) ? &tabComponent : nullptr;
 }
 
 void PluginEditor::resized()
