@@ -495,11 +495,11 @@ public:
             int compareElements(String const& a, String const& b) const
             {
                 // Check if suggestion exacly matches query
-                if (a == query) {
+                if (a == query && b != query) {
                     return -1;
                 }
 
-                if (b == query) {
+                if (b == query && a != query) {
                     return 1;
                 }
                 
