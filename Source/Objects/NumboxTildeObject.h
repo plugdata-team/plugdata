@@ -253,7 +253,7 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat().reduced(0.5f);
+        auto b = getLocalBounds().toFloat();
         auto backgroundColour = Colour::fromString(secondaryColour.toString());
         bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);

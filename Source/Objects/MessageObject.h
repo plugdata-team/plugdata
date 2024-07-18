@@ -18,11 +18,19 @@ class MessageObject final : public ObjectBase
     bool isDown = false;
     bool isLocked = false;
 
+    NVGcolor backgroundColour;
+    NVGcolor selectedOutlineColour;
+    NVGcolor outlineColour;
+    NVGcolor guiOutlinetColour;
+    NVGcolor flagColour;
+
 public:
     MessageObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
     {
         objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
+
+        lookAndFeelChanged();
     }
 
     void update() override
@@ -140,17 +148,17 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat().reduced(0.5f);
-
-        auto backgroundColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
-        auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
-        auto flagColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour));
-
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        auto b = getLocalBounds().toFloat();
+        auto sb = b.reduced(0.5f); // reduce size of background to stop AA edges from showing through
 
         nvgSave(nvg);
-        nvgIntersectRoundedScissor(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+        nvgRoundedScissor(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(), Corners::objectCornerRadius);
+
+        // Background
+        nvgBeginPath(nvg);
+        nvgRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight());
+        nvgFillColor(nvg, backgroundColour);
+        nvgFill(nvg);
 
         float bRight = b.getRight(); // offset to make it go completely under outline
         float bY = b.getY();
@@ -163,31 +171,25 @@ public:
             nvgRect(nvg, b.getRight() - d, b.getY(), d, b.getHeight());
             nvgRect(nvg, b.getX(), b.getBottom() - d, b.getWidth(), d);
             nvgRect(nvg, b.getX(), b.getY(), d, b.getHeight());
-            nvgFillColor(nvg, convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::outlineColourId)));
+            nvgFillColor(nvg, guiOutlinetColour);
             nvgFill(nvg);
         }
 
-        // Create flag path
+        auto isObjectHighlighted = (object->isSelected() || (isDown && getValue<bool>(object->locked)));
+
+        // draw flag
         nvgBeginPath(nvg);
         nvgMoveTo(nvg, bRight, bY);
         nvgLineTo(nvg, bRight - d, bY + d);
         nvgLineTo(nvg, bRight - d, bBottom - d);
         nvgLineTo(nvg, bRight, bBottom);
         nvgClosePath(nvg);
-
-        nvgFillColor(nvg, flagColour);
+        nvgFillColor(nvg, isDown && ::getValue<bool>(object->locked) ? selectedOutlineColour : flagColour);
         nvgFill(nvg);
 
         nvgRestore(nvg);
 
-        if (object->isSelected()) // If object is selected, draw outline over top too, so the flag doesn't poke into the selected outline
-        {
-            nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
-            nvgStrokeColor(nvg, selectedOutlineColour);
-            nvgStrokeWidth(nvg, 1.0f);
-            nvgStroke(nvg);
-        }
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBAf(0, 0, 0, 0), isObjectHighlighted ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
         if (editor) {
             imageRenderer.renderJUCEComponent(nvg, *editor, getImageScale());
@@ -221,6 +223,12 @@ public:
 
     void lookAndFeelChanged() override
     {
+        backgroundColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
+        selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
+        flagColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour));
+        guiOutlinetColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::outlineColourId));
+
         updateTextLayout();
     }
 
@@ -393,11 +401,6 @@ public:
         }
 
         return false;
-    }
-
-    bool hideInGraph() override
-    {
-        return true;
     }
 
     std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override

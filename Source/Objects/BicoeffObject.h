@@ -192,7 +192,7 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().reduced(0.5f);
+        auto b = getLocalBounds();
         auto backgroundColour = convertColour(object->cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
         auto selectedOutlineColour = convertColour(object->cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
         auto outlineColour = convertColour(object->cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
