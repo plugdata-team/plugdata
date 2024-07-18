@@ -17,6 +17,11 @@ class SymbolAtomObject final : public ObjectBase
 
     Label input;
 
+    NVGcolor backgroundColour;
+    NVGcolor selectedOutlineColour;
+    NVGcolor outlineColour;
+    NVGcolor flagColour;
+
 public:
     SymbolAtomObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
@@ -46,6 +51,7 @@ public:
                     object->updateBounds();
                 }
             };
+            repaint();
         };
 
         input.setMinimumHorizontalScale(0.9f);
@@ -127,24 +133,36 @@ public:
         input.setColour(Label::textWhenEditingColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
         input.setColour(Label::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
         input.setColour(TextEditor::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
+
+        backgroundColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
+        selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
+        flagColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour));
+
         repaint();
     }
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat().reduced(0.5f);
-        auto backgroundColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
-        auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
-        bool highlighed = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
+        auto b = getLocalBounds().toFloat();
+        auto sb = b.reduced(0.5f); // reduce size of background to stop AA edges from showing through
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, (object->isSelected() || highlighed) ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        bool highlighted = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
 
         nvgSave(nvg);
-        nvgIntersectRoundedScissor(nvg, b.getX() + 0.25f, b.getY() + 0.25f, b.getWidth() - 0.5f, b.getHeight() - 0.5f, Corners::objectCornerRadius);
+        nvgRoundedScissor(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(), Corners::objectCornerRadius);
 
+        // Background
         nvgBeginPath(nvg);
-        nvgFillColor(nvg, convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour)));
+        nvgRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight());
+        nvgFillColor(nvg, backgroundColour);
+        nvgFill(nvg);
+
+        imageRenderer.renderJUCEComponent(nvg, input, getImageScale());
+
+        // draw flag
+        nvgBeginPath(nvg);
+        nvgFillColor(nvg, highlighted ? selectedOutlineColour : flagColour);
         nvgMoveTo(nvg, b.getRight() - 8, b.getY());
         nvgLineTo(nvg, b.getRight(), b.getY());
         nvgLineTo(nvg, b.getRight(), b.getY() + 8);
@@ -153,24 +171,7 @@ public:
 
         nvgRestore(nvg);
 
-        imageRenderer.renderJUCEComponent(nvg, input, getImageScale());
-
-        if (object->isSelected()) // If object is selected, draw outline over top too, so the flag doesn't poke into the selected outline
-        {
-            nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
-            nvgStrokeColor(nvg, selectedOutlineColour);
-            nvgStrokeWidth(nvg, 1.0f);
-            nvgStroke(nvg);
-        }
-
-        if (highlighed) {
-            nvgStrokeColor(nvg, convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId)));
-            nvgStrokeWidth(nvg, 2.0f);
-            nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
-            nvgStroke(nvg);
-        }
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBAf(0, 0, 0, 0), (object->isSelected() || highlighted) ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
     }
 
     bool inletIsSymbol() override

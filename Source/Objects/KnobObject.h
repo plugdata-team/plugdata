@@ -458,7 +458,7 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat().reduced(0.5f);
+        auto b = getLocalBounds().toFloat();
         auto bgColour = Colour::fromString(secondaryColour.toString());
 
         if (getProperties()["hover"])

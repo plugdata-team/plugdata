@@ -271,7 +271,7 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat().reduced(0.5f);
+        auto b = getLocalBounds().toFloat();
 
         bool selected = object->isSelected() && !cnv->isGraph;
         auto backgroundColour = convertColour(iemHelper.getBackgroundColour());
