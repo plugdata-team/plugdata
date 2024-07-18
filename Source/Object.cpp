@@ -247,6 +247,10 @@ bool Object::hitTest(int x, int y)
     if (cnv->panningModifierDown())
         return false;
 
+    if (gui && !gui->canReceiveMouseEvent(x, y)) {
+        return false;
+    }
+    
     // Knob object is able to reduce its bounds when transparent.
     // Use the objects hit-test if it is populated (currently only for knob)
     if (transparentHitTest && (presentationMode.getValue() || locked.getValue() || commandLocked.getValue())) {
@@ -277,10 +281,6 @@ bool Object::hitTest(int x, int y)
         }
 
         return getLocalBounds().reduced(margin).contains(x, y);
-    }
-
-    if (gui && !gui->canReceiveMouseEvent(x, y)) {
-        return false;
     }
 
     return false;
