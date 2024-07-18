@@ -98,6 +98,8 @@ public:
     ObjectClickAndDrop(ObjectDragAndDrop* target)
         : editor(target->editor)
     {
+        setWantsKeyboardFocus(true);
+
         objectString = target->getObjectString();
         objectName = target->getPatchStringName();
 
@@ -129,6 +131,17 @@ public:
         setOpaque(false);
     }
 
+    bool keyPressed(const KeyPress& key) override
+    {
+        if (key == KeyPress::escapeKey) {
+            setVisible(false);
+            instance.reset(nullptr);
+            return true;
+        }
+
+        return false;
+    }
+
     MouseCursor getMouseCursor() override
     {
         return MouseCursor::StandardCursorType::DraggingHandCursor;
@@ -137,15 +150,14 @@ public:
     static void attachToMouse(ObjectDragAndDrop* parent)
     {
         instance = std::make_unique<ObjectClickAndDrop>(parent);
+        instance->grabKeyboardFocus();
     }
 
     void timerCallback() override
     {
         auto screenPos = Desktop::getMousePosition();
-        auto mousePosition = Point<int>();
         Component* underMouse;
 
-        mousePosition = screenPos;
         underMouse = editor->getComponentAt(editor->getLocalPoint(nullptr, screenPos));
 
         Canvas* foundCanvas = nullptr;
@@ -185,7 +197,7 @@ public:
             animator.animateComponent(&imageComponent, animatedBounds, 1.0f, 150, false, 3.0f, 0.0f);
         }
 
-        setCentrePosition(mousePosition);
+        setCentrePosition(screenPos);
     }
 
     void mouseUp(MouseEvent const& e) override
