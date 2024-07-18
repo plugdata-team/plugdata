@@ -402,6 +402,11 @@ public:
 
         return false;
     }
+    
+    bool hideInGraph() override
+    {
+        return true;
+    }
 
     std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
     {
