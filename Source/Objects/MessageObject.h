@@ -175,8 +175,6 @@ public:
             nvgFill(nvg);
         }
 
-        auto isObjectHighlighted = (object->isSelected() || (isDown && getValue<bool>(object->locked)));
-
         // draw flag
         nvgBeginPath(nvg);
         nvgMoveTo(nvg, bRight, bY);
@@ -189,7 +187,7 @@ public:
 
         nvgRestore(nvg);
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBAf(0, 0, 0, 0), isObjectHighlighted ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBAf(0, 0, 0, 0), outlineColour, Corners::objectCornerRadius);
 
         if (editor) {
             imageRenderer.renderJUCEComponent(nvg, *editor, getImageScale());
