@@ -188,7 +188,10 @@ void Library::run()
 
 void Library::waitForInitialisationToFinish()
 {
-    initWait.wait();
+    if(!isInitialised) {
+        initWait.wait();
+        isInitialised = true;
+    }
 }
 
 bool Library::isGemObject(String const& query) const

@@ -88,6 +88,7 @@ private:
     pd::Instance* pd;
 
     std::unordered_map<hash32, ValueTree> documentationIndex;
+    bool isInitialised = false;
 };
 
 } // namespace pd
