@@ -293,7 +293,7 @@ void TabComponent::handleAsyncUpdate()
     // save the patch from the canvases that were the two splits
     for (int i = 0; i < splits.size(); i++) {
         if (splits[i]) {
-            lastSplitPatches[i] = splits[i]->patch;
+            lastSplitPatches[i] = &splits[i]->patch;
         }
     }
     if (getCurrentCanvas())
@@ -687,7 +687,6 @@ void TabComponent::closeTab(Canvas* cnv)
     }();
 
     cnv->setCachedComponentImage(nullptr); // Clear nanovg invalidation listener, just to be sure
-    canvases.removeObject(cnv);
     
     if (splits[0] == cnv && tabbars[0].indexOf(tab) >= 1) {
         showTab(tabbars[0][tabbars[0].indexOf(tab) - 1]->cnv, 0);
@@ -696,6 +695,7 @@ void TabComponent::closeTab(Canvas* cnv)
         showTab(tabbars[1][tabbars[1].indexOf(tab) - 1]->cnv, 1);
     }
 
+    canvases.removeObject(cnv);
     pd->patches.removeFirstMatchingValue(patch);
     pd->updateObjectImplementations();
 
@@ -829,8 +829,9 @@ void TabComponent::itemDragEnter(SourceDetails const& dragSourceDetails)
 
 void TabComponent::itemDragExit(SourceDetails const& dragSourceDetails)
 {
-    auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get());
-    tab->setVisible(false);
+    if(auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
+        tab->setVisible(false);
+    }
     splitDropBounds = Rectangle<int>();
     draggingOverTabbar = false;
     editor->nvgSurface.invalidateAll();

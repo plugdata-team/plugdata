@@ -4,6 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_gui_extra/juce_gui_extra.h>
 
 #include "LookAndFeel.h"
@@ -11,6 +12,7 @@
 #include "Utility/SettingsFile.h"
 #include "Constants.h"
 #include "Utility/Fonts.h"
+#include "PluginProcessor.h"
 
 class PlugData_DocumentWindowButton_macOS : public Button
     , public FocusChangeListener {
@@ -368,7 +370,7 @@ void PlugDataLook::positionDocumentWindowButtons(DocumentWindow& window,
     Button* closeButton,
     bool positionTitleBarButtonsOnLeft)
 {
-    if (window.isUsingNativeTitleBar())
+    if (SettingsFile::getInstance()->getProperty<bool>("native_window"))
         return;
 
     auto areButtonsLeft = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");
@@ -1076,142 +1078,145 @@ void PlugDataLook::setDefaultFont(String const& fontName)
 }
 
 // clang-format off
-const String PlugDataLook::defaultThemesXml = "<ColourThemes> "
-"   <Theme theme=\"max\" toolbar_background=\"ff333333\" toolbar_text=\"ffe4e4e4\"\n"
-"           toolbar_active=\"ff72aedf\" toolbar_hover=\"ff424242\" tabbar_background=\"ff333333\"\n"
-"           tab_text=\"ffe4e4e4\" selected_tab_background=\"ff494949\" selected_tab_text=\"ff72aedf\"\n"
-"           canvas_background=\"ffe5e5e5\" canvas_text=\"ffeeeeee\" canvas_dots=\"ff7f7f7f\" presentation_background=\"ff72aedf\"\n"
-"           default_object_background=\"ff333333\" object_outline_colour=\"ff696969\"\n"
-"           selected_object_outline_colour=\"ff72aedf\" gui_internal_outline_colour=\"ff696969\"\n"
-"           toolbar_outline_colour=\"ff393939\" outline_colour=\"ff393939\" data_colour=\"ff72aedf\"\n"
-"           connection_colour=\"ffb3b3b3\" signal_colour=\"ffe1ef00\" gem_colour=\"ff01be00\" dialog_background=\"ff3b3b3b\"\n"
-"           sidebar_colour=\"ff3e3e3e\" sidebar_text=\"ffe4e4e4\" sidebar_background_active=\"ff4f4f4f\"\n"
-"           levelmeter_active=\"ff72aedf\" levelmeter_background=\"ff494949\"\n"
-"           levelmeter_thumb=\"ffe4e4e4\" panel_background=\"ff4f4f4f\" panel_foreground=\"ff3f3f3f\"\n"
-"           panel_text=\"ffe4e4e4\" panel_background_active=\"ff525252\"\n"
-"           popup_background=\"ff333333\" popup_background_active=\"ff72aedf\"\n"
-"           popup_text=\"ffe4e4e4\"\n"
-"           scrollbar_thumb=\"ffa9a9a9\" graph_area=\"ffff0000\" grid_colour=\"ff72aedf\"\n"
-"           caret_colour=\"ff72aedf\" iolet_area_colour=\"ff808080\" iolet_outline_colour=\"ff696969\"\n"
-"           text_object_background=\"ff333333\" comment_text_colour=\"ff111111\"\n"
-"           straight_connections=\"0\"\n"
-"           thin_connections=\"0\" square_iolets=\"0\" square_object_corners=\"1\"/>\n"
-"    <Theme theme=\"classic\" toolbar_background=\"ffffffff\" toolbar_text=\"ff000000\"\n"
-"           toolbar_active=\"ff787878\" toolbar_hover=\"ffededed\" tabbar_background=\"ffffffff\"\n"
-"           tab_text=\"ff000000\" selected_tab_background=\"ffededed\" selected_tab_text=\"ff000000\"\n"
-"           canvas_background=\"ffffffff\" canvas_text=\"ff000000\" canvas_dots=\"ffffffff\" presentation_background=\"ffededed\"\n"
-"           default_object_background=\"ffffffff\" text_object_background=\"ffffffff\"\n"
-"           object_outline_colour=\"ff000000\" selected_object_outline_colour=\"ff000000\"\n"
-"           gui_internal_outline_colour=\"ff000000\" toolbar_outline_colour=\"ff000000\"\n"
-"           outline_colour=\"ff000000\" iolet_area_colour=\"ffffffff\" iolet_outline_colour=\"ff000000\"\n"
-"           data_colour=\"ff000000\" connection_colour=\"ff000000\" signal_colour=\"ff000000\" gem_colour=\"ff000000\"\n"
-"           dialog_background=\"ffffffff\" sidebar_colour=\"ffefefef\" sidebar_text=\"ff000000\"\n"
-"           sidebar_background_active=\"ffa0a0a0\"\n"
-"           levelmeter_active=\"ff000000\" levelmeter_background=\"ffededed\"\n"
-"           levelmeter_thumb=\"ff000000\" panel_background=\"ffffffff\" panel_foreground=\"ffffffff\"\n"
-"           panel_text=\"ff000000\" panel_background_active=\"ff000000\"\n"
-"           popup_background=\"ffffffff\" popup_background_active=\"ff000000\"\n"
-"           popup_text=\"ff000000\"\n"
-"           scrollbar_thumb=\"ffa9a9a9\" graph_area=\"ffff0000\" grid_colour=\"ff000000\"\n"
-"           caret_colour=\"ff000000\" comment_text_colour=\"ff000000\"\n"
-"           straight_connections=\"1\" thin_connections=\"1\"\n"
-"           square_iolets=\"1\" square_object_corners=\"1\"/>\n"
-"    <Theme theme=\"classic_dark\" toolbar_background=\"ff000000\" toolbar_text=\"ffffffff\"\n"
-"           toolbar_active=\"ff787878\" toolbar_hover=\"ff888888\" tabbar_background=\"ff000000\"\n"
-"           tab_text=\"ffffffff\" selected_tab_background=\"ff808080\" selected_tab_text=\"ffffffff\"\n"
-"           canvas_background=\"ff000000\" canvas_text=\"ffffffff\" canvas_dots=\"ff000000\" presentation_background=\"ff808080\"\n"
-"           default_object_background=\"ff000000\" object_outline_colour=\"ffffffff\"\n"
-"           selected_object_outline_colour=\"ffffffff\" gui_internal_outline_colour=\"ffffffff\"\n"
-"           toolbar_outline_colour=\"ffffffff\" outline_colour=\"ffffffff\" data_colour=\"ffffffff\"\n"
-"           connection_colour=\"ffffffff\" signal_colour=\"ffffffff\" gem_colour=\"ffffffff\" dialog_background=\"ff000000\"\n"
-"           sidebar_colour=\"ff000000\" sidebar_text=\"ffffffff\" sidebar_background_active=\"ffa0a0a0\"\n"
-"           levelmeter_active=\"ffffffff\" levelmeter_background=\"ff808080\"\n"
-"           levelmeter_thumb=\"ffffffff\" panel_background=\"ff0e0e0e\" panel_foreground=\"ff000000\"\n"
-"           panel_text=\"ffffffff\" panel_background_active=\"ffffffff\"\n"
-"           popup_background=\"ff000000\" popup_background_active=\"ffffffff\"\n"
-"           popup_text=\"ffffffff\"\n"
-"           scrollbar_thumb=\"ff7f7f7f\" graph_area=\"ffff0000\" grid_colour=\"ffffffff\"\n"
-"           caret_colour=\"ffffffff\" iolet_area_colour=\"ff000000\" iolet_outline_colour=\"ffffffff\"\n"
-"           text_object_background=\"ff000000\" comment_text_colour=\"ffffffff\"\n"
-"           straight_connections=\"1\"\n"
-"           thin_connections=\"1\" square_iolets=\"1\" square_object_corners=\"1\"/>\n"
-"    <Theme theme=\"dark\" toolbar_background=\"ff191919\" toolbar_text=\"ffe1e1e1\"\n"
-"           toolbar_active=\"ff42a2c8\" toolbar_hover=\"ff282828\" tabbar_background=\"ff191919\"\n"
-"           tab_text=\"ffe1e1e1\" selected_tab_background=\"ff2e2e2e\" selected_tab_text=\"ffe1e1e1\"\n"
-"           canvas_background=\"ff232323\" canvas_text=\"ffe1e1e1\" canvas_dots=\"ff7f7f7f\" presentation_background=\"ff2e2e2e\"\n"
-"           default_object_background=\"ff191919\" object_outline_colour=\"ff555555\"\n"
-"           selected_object_outline_colour=\"ff42a2c8\" gui_internal_outline_colour=\"ff696969\"\n"
-"           toolbar_outline_colour=\"ff2f2f2f\" outline_colour=\"ff393939\" data_colour=\"ff42a2c8\"\n"
-"           connection_colour=\"ffe1e1e1\" signal_colour=\"ffff8500\" gem_colour=\"ff01be00\" dialog_background=\"ff191919\"\n"
-"           sidebar_colour=\"ff191919\" sidebar_text=\"ffe1e1e1\" sidebar_background_active=\"ff282828\"\n"
-"           levelmeter_active=\"ff42a2c8\" levelmeter_background=\"ff2e2e2e\"\n"
-"           levelmeter_thumb=\"ffe3e3e3\" panel_background=\"ff2c2c2c\" panel_foreground=\"ff1f1f1f\"\n"
-"           panel_text=\"ffe1e1e1\" panel_background_active=\"ff373737\"\n"
-"           popup_background=\"ff191919\" popup_background_active=\"ff282828\"\n"
-"           popup_text=\"ffe1e1e1\"\n"
-"           scrollbar_thumb=\"ff7f7f7f\" graph_area=\"ffff0000\" grid_colour=\"ff42a2c8\"\n"
-"           caret_colour=\"ff42a2c8\" text_object_background=\"ff232323\" iolet_area_colour=\"ff232323\"\n"
-"           iolet_outline_colour=\"ff696969\" comment_text_colour=\"ffe1e1e1\"\n"
-"           straight_connections=\"0\"\n"
-"           thin_connections=\"0\" square_iolets=\"0\" square_object_corners=\"0\"/>\n"
-"    <Theme theme=\"light\" toolbar_background=\"ffebebeb\" toolbar_text=\"ff373737\"\n"
-"           toolbar_active=\"ff007aff\" toolbar_hover=\"ffe0e0e0\" tabbar_background=\"ffebebeb\"\n"
-"           tab_text=\"ff373737\" selected_tab_background=\"ffe0e0e0\" selected_tab_text=\"ff373737\"\n"
-"           canvas_background=\"fffafafa\" canvas_text=\"ff4d4d4d\" canvas_dots=\"ff909090\" presentation_background=\"ffe1e1e1\"\n"
-"           default_object_background=\"ffe4e4e4\" object_outline_colour=\"ffb7b7b7\"\n"
-"           selected_object_outline_colour=\"ff007aff\" gui_internal_outline_colour=\"ffb7b7b7\"\n"
-"           toolbar_outline_colour=\"ffdfdfdf\" outline_colour=\"ffd0d0d0\" data_colour=\"ff007aff\"\n"
-"           connection_colour=\"ffb3b3b3\" signal_colour=\"ffff8500\" gem_colour=\"ff01de00\" dialog_background=\"ffebebeb\"\n"
-"           sidebar_colour=\"ffefefef\" sidebar_text=\"ff373737\" sidebar_background_active=\"ffe4e4e4\"\n"
-"           levelmeter_active=\"ff007aff\" levelmeter_background=\"ffe1e1e1\"\n"
-"           levelmeter_thumb=\"ff9a9a9a\" panel_background=\"fff7f7f7\" panel_foreground=\"fffdfdfd\"\n"
-"           panel_text=\"ff373737\" panel_background_active=\"ffececec\"\n"
-"           popup_background=\"ffe8e8e8\" popup_background_active=\"ffdcdcdc\"\n"
-"           popup_text=\"ff373737\"\n"
-"           scrollbar_thumb=\"ffa9a9a9\" graph_area=\"ffff0000\" grid_colour=\"ff007aff\"\n"
-"           caret_colour=\"ff007aff\" square_object_corners=\"0\" text_object_background=\"fffafafa\"\n"
-"           iolet_area_colour=\"fffafafa\" iolet_outline_colour=\"ffc2c2c2\"\n"
-"           comment_text_colour=\"ff373737\"\n"
-"           straight_connections=\"0\" thin_connections=\"0\" square_iolets=\"0\"/>"
-"    <Theme theme=\"warm\" toolbar_background=\"ffd2cdc4\" toolbar_text=\"ff5a5a5a\"\n"
-"           toolbar_active=\"ff5da0c4\" toolbar_hover=\"ffc0bbb2\" tabbar_background=\"ffd2cdc4\"\n"
-"           tab_text=\"ff5a5a5a\" selected_tab_background=\"ffc0bbb2\" selected_tab_text=\"ff5a5a5a\"\n"
-"           canvas_background=\"ffe3dfd9\" canvas_text=\"ff5a5a5a\" canvas_dots=\"ff909090\" presentation_background=\"ffc0bbb2\"\n"
-"           default_object_background=\"ffe3dfd9\" object_outline_colour=\"ff968e82\"\n"
-"           selected_object_outline_colour=\"ff5da0c4\" gui_internal_outline_colour=\"ff968e82\"\n"
-"           toolbar_outline_colour=\"ffbdb3a4\" outline_colour=\"ff968e82\" data_colour=\"ff5da0c4\"\n"
-"           connection_colour=\"ffb3b3b3\" signal_colour=\"ffff8502\" gem_colour=\"ff01be00\" dialog_background=\"ffd2cdc4\"\n"
-"           sidebar_colour=\"ffdedad3\" sidebar_text=\"ff5a5a5a\" sidebar_background_active=\"ffefefef\"\n"
-"           levelmeter_active=\"ff5da0c4\" levelmeter_background=\"ffc0bbb2\"\n"
-"           levelmeter_thumb=\"ff7a7a7a\" panel_background=\"ffd2cdc4\" panel_foreground=\"ffe7e2d8\"\n"
-"           panel_text=\"ff5a5a5a\" panel_background_active=\"ffebebeb\"\n"
-"           popup_background=\"ffd2cdc4\" popup_background_active=\"ffc0bbb2\"\n"
-"           popup_text=\"ff5a5a5a\"\n"
-"           scrollbar_thumb=\"ffa9a9a9\" graph_area=\"ffff0000\" grid_colour=\"ff5da0c4\"\n"
-"           caret_colour=\"ff5da0c4\" iolet_area_colour=\"ffe3dfd9\" iolet_outline_colour=\"ff968e82\"\n"
-"           text_object_background=\"ffe3dfd9\" comment_text_colour=\"ff5a5a5a\"\n"
-"           straight_connections=\"0\"\n"
-"           thin_connections=\"0\" square_iolets=\"0\" square_object_corners=\"0\"/>\n"
-"    <Theme theme=\"fangs\" toolbar_background=\"ff232323\" toolbar_text=\"ffffffff\"\n"
-"           toolbar_active=\"ff5bcefa\" toolbar_hover=\"ff383838\" tabbar_background=\"ff232323\"\n"
-"           tab_text=\"ffffffff\" selected_tab_background=\"ff3a3a3a\" selected_tab_text=\"ffffffff\"\n"
-"           canvas_background=\"ff383838\" canvas_text=\"ffffffff\" canvas_dots=\"ffa0a0a0\" presentation_background=\"ff3a3a3a\"\n"
-"           default_object_background=\"ff191919\" object_outline_colour=\"ff383838\"\n"
-"           selected_object_outline_colour=\"ffffacab\" gui_internal_outline_colour=\"ff626262\"\n"
-"           toolbar_outline_colour=\"ff343434\" outline_colour=\"ff383838\" data_colour=\"ff5bcefa\"\n"
-"           connection_colour=\"ffa0a0a0\" signal_colour=\"ffffacab\" gem_colour=\"ff01de00\" dialog_background=\"ff191919\"\n"
-"           sidebar_colour=\"ff232323\" sidebar_text=\"ffffffff\" sidebar_background_active=\"ff383838\"\n"
-"           levelmeter_active=\"ff5bcefa\" levelmeter_background=\"ff3a3a3a\"\n"
-"           levelmeter_thumb=\"fff5f5f5\" panel_background=\"ff2c2c2c\" panel_foreground=\"ff1f1f1f\"\n"
-"           panel_text=\"ffffffff\" panel_background_active=\"ff232323\"\n"
-"           popup_background=\"ff232323\" popup_background_active=\"ff383838\"\n"
-"           popup_text=\"ffffffff\" scrollbar_thumb=\"ff8e8e8e\"\n"
-"           graph_area=\"ff5bcefa\" grid_colour=\"ffff0000\" caret_colour=\"ffffacab\"\n"
-"           text_object_background=\"ff232323\" iolet_area_colour=\"ff232323\"\n"
-"           iolet_outline_colour=\"ff696969\" comment_text_colour=\"ffffffff\"\n"
-"           straight_connections=\"0\"\n"
-"           thin_connections=\"1\" square_iolets=\"1\" square_object_corners=\"0\"/>\n"
-"  </ColourThemes>";
+const String PlugDataLook::defaultThemesXml = R"(
+<ColourThemes>
+    <Theme theme="max" toolbar_background="ff333333" toolbar_text="ffe4e4e4"
+        toolbar_active="ff72aedf" toolbar_hover="ff424242" tabbar_background="ff333333"
+        tab_text="ffe4e4e4" selected_tab_background="ff494949" selected_tab_text="ff72aedf"
+        canvas_background="ffe5e5e5" canvas_text="ffeeeeee" canvas_dots="ff7f7f7f" presentation_background="ff72aedf"
+        default_object_background="ff333333" object_outline_colour="ff696969"
+        selected_object_outline_colour="ff72aedf" gui_internal_outline_colour="ff696969"
+        toolbar_outline_colour="ff393939" outline_colour="ff393939" data_colour="ff72aedf"
+        connection_colour="ffb3b3b3" signal_colour="ffe1ef00" gem_colour="ff01be00" dialog_background="ff3b3b3b"
+        sidebar_colour="ff3e3e3e" sidebar_text="ffe4e4e4" sidebar_background_active="ff4f4f4f"
+        levelmeter_active="ff72aedf" levelmeter_background="ff494949"
+        levelmeter_thumb="ffe4e4e4" panel_background="ff4f4f4f" panel_foreground="ff3f3f3f"
+        panel_text="ffe4e4e4" panel_background_active="ff525252"
+        popup_background="ff333333" popup_background_active="ff72aedf"
+        popup_text="ffe4e4e4"
+        scrollbar_thumb="ffa9a9a9" graph_area="ffff0000" grid_colour="ff72aedf"
+        caret_colour="ff72aedf" iolet_area_colour="ff808080" iolet_outline_colour="ff696969"
+        text_object_background="ff333333" comment_text_colour="ff111111"
+        straight_connections="0" connection_style="1"
+        square_iolets="0" square_object_corners="1" iolet_spacing_edge="0" />
+    <Theme theme="classic" toolbar_background="ffffffff" toolbar_text="ff000000"
+        toolbar_active="ff787878" toolbar_hover="ffededed" tabbar_background="ffffffff"
+        tab_text="ff000000" selected_tab_background="ffededed" selected_tab_text="ff000000"
+        canvas_background="ffffffff" canvas_text="ff000000" canvas_dots="ffffffff" presentation_background="ffededed"
+        default_object_background="ffffffff" text_object_background="ffffffff"
+        object_outline_colour="ff000000" selected_object_outline_colour="ff000000"
+        gui_internal_outline_colour="ff000000" toolbar_outline_colour="ff000000"
+        outline_colour="ff000000" iolet_area_colour="ffffffff" iolet_outline_colour="ff000000"
+        data_colour="ff000000" connection_colour="ff000000" signal_colour="ff000000" gem_colour="ff000000"
+        dialog_background="ffffffff" sidebar_colour="ffefefef" sidebar_text="ff000000"
+        sidebar_background_active="ffa0a0a0"
+        levelmeter_active="ff000000" levelmeter_background="ffededed"
+        levelmeter_thumb="ff000000" panel_background="ffffffff" panel_foreground="ffffffff"
+        panel_text="ff000000" panel_background_active="ffededed"
+        popup_background="ffffffff" popup_background_active="ffededed"
+        popup_text="ff000000"
+        scrollbar_thumb="ffa9a9a9" graph_area="ffff0000" grid_colour="ff000000"
+        caret_colour="ff000000" comment_text_colour="ff000000"
+        straight_connections="1" connection_style="2"
+        square_iolets="1" square_object_corners="1" iolet_spacing_edge="1" />
+    <Theme theme="classic_dark" toolbar_background="ff000000" toolbar_text="ffffffff"
+        toolbar_active="ff787878" toolbar_hover="ff888888" tabbar_background="ff000000"
+        tab_text="ffffffff" selected_tab_background="ff808080" selected_tab_text="ffffffff"
+        canvas_background="ff000000" canvas_text="ffffffff" canvas_dots="ff000000" presentation_background="ff808080"
+        default_object_background="ff000000" object_outline_colour="ffffffff"
+        selected_object_outline_colour="ffffffff" gui_internal_outline_colour="ffffffff"
+        toolbar_outline_colour="ffffffff" outline_colour="ffffffff" data_colour="ffffffff"
+        connection_colour="ffffffff" signal_colour="ffffffff" gem_colour="ffffffff" dialog_background="ff000000"
+        sidebar_colour="ff000000" sidebar_text="ffffffff" sidebar_background_active="ffa0a0a0"
+        levelmeter_active="ffffffff" levelmeter_background="ff808080"
+        levelmeter_thumb="ffffffff" panel_background="ff0e0e0e" panel_foreground="ff000000"
+        panel_text="ffffffff" panel_background_active="ff808080"
+        popup_background="ff000000" popup_background_active="ff808080"
+        popup_text="ffffffff"
+        scrollbar_thumb="ff7f7f7f" graph_area="ffff0000" grid_colour="ffffffff"
+        caret_colour="ffffffff" iolet_area_colour="ff000000" iolet_outline_colour="ffffffff"
+        text_object_background="ff000000" comment_text_colour="ffffffff"
+        straight_connections="1" connection_style="2"
+        square_iolets="1" square_object_corners="1" iolet_spacing_edge="1" />
+    <Theme theme="dark" toolbar_background="ff191919" toolbar_text="ffe1e1e1"
+        toolbar_active="ff42a2c8" toolbar_hover="ff282828" tabbar_background="ff191919"
+        tab_text="ffe1e1e1" selected_tab_background="ff2e2e2e" selected_tab_text="ffe1e1e1"
+        canvas_background="ff232323" canvas_text="ffe1e1e1" canvas_dots="ff7f7f7f" presentation_background="ff2e2e2e"
+        default_object_background="ff191919" object_outline_colour="ff555555"
+        selected_object_outline_colour="ff42a2c8" gui_internal_outline_colour="ff696969"
+        toolbar_outline_colour="ff2f2f2f" outline_colour="ff393939" data_colour="ff42a2c8"
+        connection_colour="ffe1e1e1" signal_colour="ffff8500" gem_colour="ff01be00" dialog_background="ff191919"
+        sidebar_colour="ff191919" sidebar_text="ffe1e1e1" sidebar_background_active="ff282828"
+        levelmeter_active="ff42a2c8" levelmeter_background="ff2e2e2e"
+        levelmeter_thumb="ffe3e3e3" panel_background="ff2c2c2c" panel_foreground="ff1f1f1f"
+        panel_text="ffe1e1e1" panel_background_active="ff373737"
+        popup_background="ff191919" popup_background_active="ff282828"
+        popup_text="ffe1e1e1"
+        scrollbar_thumb="ff7f7f7f" graph_area="ffff0000" grid_colour="ff42a2c8"
+        caret_colour="ff42a2c8" text_object_background="ff232323" iolet_area_colour="ff232323"
+        iolet_outline_colour="ff696969" comment_text_colour="ffe1e1e1"
+        straight_connections="0" connection_style="1"
+        square_iolets="0" square_object_corners="0" iolet_spacing_edge="0" />
+    <Theme theme="light" toolbar_background="ffebebeb" toolbar_text="ff373737"
+        toolbar_active="ff007aff" toolbar_hover="ffe0e0e0" tabbar_background="ffebebeb"
+        tab_text="ff373737" selected_tab_background="ffe0e0e0" selected_tab_text="ff373737"
+        canvas_background="fffafafa" canvas_text="ff4d4d4d" canvas_dots="ff909090" presentation_background="ffe1e1e1"
+        default_object_background="ffe4e4e4" object_outline_colour="ffb7b7b7"
+        selected_object_outline_colour="ff007aff" gui_internal_outline_colour="ffb7b7b7"
+        toolbar_outline_colour="ffdfdfdf" outline_colour="ffd0d0d0" data_colour="ff007aff"
+        connection_colour="ffb3b3b3" signal_colour="ffff8500" gem_colour="ff01de00" dialog_background="ffebebeb"
+        sidebar_colour="ffefefef" sidebar_text="ff373737" sidebar_background_active="ffe4e4e4"
+        levelmeter_active="ff007aff" levelmeter_background="ffe1e1e1"
+        levelmeter_thumb="ff9a9a9a" panel_background="fff7f7f7" panel_foreground="fffdfdfd"
+        panel_text="ff373737" panel_background_active="ffececec"
+        popup_background="ffe8e8e8" popup_background_active="ffdcdcdc"
+        popup_text="ff373737"
+        scrollbar_thumb="ffa9a9a9" graph_area="ffff0000" grid_colour="ff007aff"
+        caret_colour="ff007aff" square_object_corners="0" text_object_background="fffafafa"
+        iolet_area_colour="fffafafa" iolet_outline_colour="ffc2c2c2"
+        comment_text_colour="ff373737"
+        straight_connections="0" connection_style="1"
+        square_iolets="0" square_object_corners="0" iolet_spacing_edge="0" />
+    <Theme theme="warm" toolbar_background="ffd2cdc4" toolbar_text="ff5a5a5a"
+        toolbar_active="ff5da0c4" toolbar_hover="ffc0bbb2" tabbar_background="ffd2cdc4"
+        tab_text="ff5a5a5a" selected_tab_background="ffc0bbb2" selected_tab_text="ff5a5a5a"
+        canvas_background="ffe3dfd9" canvas_text="ff5a5a5a" canvas_dots="ff909090" presentation_background="ffc0bbb2"
+        default_object_background="ffe3dfd9" object_outline_colour="ff968e82"
+        selected_object_outline_colour="ff5da0c4" gui_internal_outline_colour="ff968e82"
+        toolbar_outline_colour="ffbdb3a4" outline_colour="ff968e82" data_colour="ff5da0c4"
+        connection_colour="ffb3b3b3" signal_colour="ffff8502" gem_colour="ff01be00" dialog_background="ffd2cdc4"
+        sidebar_colour="ffdedad3" sidebar_text="ff5a5a5a" sidebar_background_active="ffefefef"
+        levelmeter_active="ff5da0c4" levelmeter_background="ffc0bbb2"
+        levelmeter_thumb="ff7a7a7a" panel_background="ffd2cdc4" panel_foreground="ffe7e2d8"
+        panel_text="ff5a5a5a" panel_background_active="ffebebeb"
+        popup_background="ffd2cdc4" popup_background_active="ffc0bbb2"
+        popup_text="ff5a5a5a"
+        scrollbar_thumb="ffa9a9a9" graph_area="ffff0000" grid_colour="ff5da0c4"
+        caret_colour="ff5da0c4" iolet_area_colour="ffe3dfd9" iolet_outline_colour="ff968e82"
+        text_object_background="ffe3dfd9" comment_text_colour="ff5a5a5a"
+        straight_connections="0" connection_style="1"
+        square_iolets="0" square_object_corners="0" iolet_spacing_edge="0" />
+    <Theme theme="fangs" toolbar_background="ff232323" toolbar_text="ffffffff"
+        toolbar_active="ff5bcefa" toolbar_hover="ff383838" tabbar_background="ff232323"
+        tab_text="ffffffff" selected_tab_background="ff3a3a3a" selected_tab_text="ffffffff"
+        canvas_background="ff383838" canvas_text="ffffffff" canvas_dots="ffa0a0a0" presentation_background="ff3a3a3a"
+        default_object_background="ff191919" object_outline_colour="ff383838"
+        selected_object_outline_colour="ffffacab" gui_internal_outline_colour="ff626262"
+        toolbar_outline_colour="ff343434" outline_colour="ff383838" data_colour="ff5bcefa"
+        connection_colour="ffa0a0a0" signal_colour="ffffacab" gem_colour="ff01de00" dialog_background="ff191919"
+        sidebar_colour="ff232323" sidebar_text="ffffffff" sidebar_background_active="ff383838"
+        levelmeter_active="ff5bcefa" levelmeter_background="ff3a3a3a"
+        levelmeter_thumb="fff5f5f5" panel_background="ff2c2c2c" panel_foreground="ff1f1f1f"
+        panel_text="ffffffff" panel_background_active="ff232323"
+        popup_background="ff232323" popup_background_active="ff383838"
+        popup_text="ffffffff" scrollbar_thumb="ff8e8e8e"
+        graph_area="ff5bcefa" grid_colour="ffff0000" caret_colour="ffffacab"
+        text_object_background="ff232323" iolet_area_colour="ff232323"
+        iolet_outline_colour="ff696969" comment_text_colour="ffffffff"
+        straight_connections="0" connection_style="3"
+        square_iolets="0" square_object_corners="0" iolet_spacing_edge="0" />
+</ColourThemes>
+)";
 
 // clang-format on
 
@@ -1254,8 +1259,13 @@ void PlugDataLook::setTheme(ValueTree themeTree)
 
     Corners::objectCornerRadius = themeTree.getProperty("square_object_corners") ? 0.0f : 2.75f;
     useStraightConnections = themeTree.getProperty("straight_connections");
-    useThinConnections = themeTree.getProperty("thin_connections");
-    useSquareIolets = themeTree.getProperty("square_iolets");
+
+    // update the connectionstyle
+    useConnectionStyle = static_cast<ConnectionStyle>(themeTree.getProperty("connection_style").toString().getIntValue());
+
+    useIoletSpacingEdge = static_cast<bool>(themeTree.getProperty("iolet_spacing_edge").toString().getIntValue());
+
+    useSquareIolets = static_cast<bool>(themeTree.getProperty("square_iolets").toString().getIntValue());
 }
 
 StringArray PlugDataLook::getAllThemes()
@@ -1273,11 +1283,25 @@ bool PlugDataLook::getUseStraightConnections()
 {
     return useStraightConnections;
 }
-bool PlugDataLook::getUseThinConnections()
+
+PlugDataLook::ConnectionStyle PlugDataLook::getConnectionStyle()
 {
-    return useThinConnections;
+    return useConnectionStyle;
 }
+
+bool PlugDataLook::getUseIoletSpacingEdge()
+{
+    return useIoletSpacingEdge;
+}
+
 bool PlugDataLook::getUseSquareIolets()
 {
     return useSquareIolets;
+}
+
+bool PlugDataLook::isFixedIoletPosition()
+{
+    // Fixed position for vanilla iolet spacing when it's both edge spaced, and square
+    // Otherwise round iolets look bad when the connection doesn't start/end from the centre of the iolet
+    return useSquareIolets && useIoletSpacingEdge;
 }

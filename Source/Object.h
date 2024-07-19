@@ -52,6 +52,8 @@ public:
 
     void resized() override;
 
+    void updateIoletGeometry();
+
     bool keyPressed(KeyPress const& key, Component* component) override;
 
     void updateIolets();
@@ -131,8 +133,6 @@ public:
     static inline int const minimumSize = 9;
 
     bool isSelected() const;
-
-    std::function<bool(int x, int y)> transparentHitTest = nullptr;
 
 /**
  * @enum ObjectActivityPolicy

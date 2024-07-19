@@ -91,8 +91,6 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-        previousTarget = nullptr;
-
         if (e.originalComponent != this && isOriginalInputSource(e.source)) {
             if (mouseDragSource != nullptr)
                 mouseDragSource->removeMouseListener(this);
@@ -135,13 +133,15 @@ public:
             Component* target = nullptr;
             auto* newTarget = findTarget(currentScreenPos, sourceDetails.localPosition, target);
 
-            if (target != previousTarget)
+            auto wasInvalid = static_cast<bool>(zoomImageComponent.getProperties()["invalid"]);
+            if ((wasInvalid && target) || (!wasInvalid && !target)) {
+                zoomImageComponent.getProperties().set("invalid", target == nullptr);
                 zoomImageComponent.setImage(target ? image.getImage() : invalidImage.getImage());
+            }
 
             if (isZoomable) {
                 if (target == nullptr) {
                     updateScale(1.0f, true);
-                    previousTarget = nullptr;
                     return;
                 }
             }
@@ -292,8 +292,6 @@ private:
     ScaledImage invalidImage;
 
     bool isZoomable = false;
-
-    Component* previousTarget = nullptr;
     float previousScale = 1.0f;
 
     ImageComponent zoomImageComponent;
@@ -375,7 +373,6 @@ private:
         // if the source DnD is from the Add Object Menu, deal with it differently
         if (isObjectItem) {
             auto* nextTarget = owner.findNextDragAndDropTarget(screenPos);
-
             if (auto* component = dynamic_cast<Component*>(nextTarget)) {
                 relativePos = component->getLocalPoint(nullptr, screenPos);
                 resultComponent = component; // oof

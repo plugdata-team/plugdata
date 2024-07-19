@@ -181,6 +181,12 @@ PluginProcessor::~PluginProcessor()
     patches.clear();
 }
 
+void PluginProcessor::flushMessageQueue()
+{
+    setThis();
+    messageDispatcher->dequeueMessages();
+}
+
 void PluginProcessor::initialiseFilesystem()
 {
     auto const& homeDir = ProjectInfo::appDataDir;
@@ -299,7 +305,7 @@ void PluginProcessor::initialiseFilesystem()
     versionDataDir.getChildFile("Documentation").createSymbolicLink(homeDir.getChildFile("Documentation"), true);
     versionDataDir.getChildFile("Extra").createSymbolicLink(homeDir.getChildFile("Extra"), true);
 #endif
-
+    
     initMutex.deleteFile();
 }
 
@@ -1140,19 +1146,22 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     auto openPatch = [this](String const& content, File const& location, bool pluginMode = false, int splitIndex = 0) {
         // CHANGED IN v0.9.0:
         // We now prefer loading the patch content over the patch file, if possible
-        // This generally makes it work more like the users expects, but before we couldn't get it to load abstractions (this is now fixed)
+        // This generally makes it work more like the users expect, but before we couldn't get it to load abstractions (this is now fixed)
         if (content.isNotEmpty()) {
+            auto locationIsValid = location.getParentDirectory().exists() && location.getFullPathName().isNotEmpty();
             // Force pd to use this path for the next opened patch
-            // This makes sure the patch can find abstractions/resources, even though it's loading patch from state
-            glob_forcefilename(generateSymbol(location.getFileName().toRawUTF8()), generateSymbol(location.getParentDirectory().getFullPathName().toRawUTF8()));
-
+            // This makes sure the patch can find abstractions/resources, even though it's loading a patch from state
+            if(locationIsValid) {
+                glob_forcefilename(generateSymbol(location.getFileName().toRawUTF8()), generateSymbol(location.getParentDirectory().getFullPathName().replaceCharacter('\\', '/').toRawUTF8()));
+            }
+            
             auto patchPtr = loadPatch(content);
             patchPtr->splitViewIndex = splitIndex;
             patchPtr->openInPluginMode = pluginMode;
-            patchPtr->setCurrentFile(URL(location));
-            if (!location.exists() || (location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory))) {
+            if (!locationIsValid || location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) {
                 patchPtr->setUntitled();
             } else {
+                patchPtr->setCurrentFile(URL(location));
                 patchPtr->setTitle(location.getFileName());
             }
         } else {
@@ -1314,12 +1323,44 @@ void PluginProcessor::setTheme(String themeToUse, bool force)
     lnf->setTheme(themeTree);
 
     updateAllEditorsLNF();
+
+    // Only update iolet geometry if we need to
+    // This is based on if the previous or current differ
+    auto previousIoletGeom = oldThemeTree.getProperty("iolet_spacing_edge");
+    auto currentIoletGeom = themeTree.getProperty("iolet_spacing_edge");
+    // if both previous and current have iolet property, propertyState = 0;
+    // if one does, propertyState =  1;
+    // if previous and current both don't have iolet spacing property, propertyState = 2
+    int propertyState = previousIoletGeom.isVoid() + currentIoletGeom.isVoid();
+    if ((propertyState == 1) || (propertyState == 0 ? static_cast<int>(previousIoletGeom) != static_cast<int>(currentIoletGeom) : 0)) {
+        updateIoletGeometryForAllObjects();
+    }
 }
 
 void PluginProcessor::updateAllEditorsLNF()
 {
     for (auto& editor : getEditors())
         editor->sendLookAndFeelChange();
+}
+
+void PluginProcessor::updateIoletGeometryForAllObjects()
+{
+    // update all object's iolet position
+    for (auto& editor : getEditors()){
+        for (auto& cnv : editor->getCanvases()){
+            for (auto& obj : cnv->objects){
+                obj->updateIoletGeometry();
+            }
+        }
+    }
+    // update all connections to make sure they attach to the correct iolet positions
+    for (auto& editor : getEditors()){
+        for (auto& cnv : editor->getCanvases()){
+            for (auto& con : cnv->connections){
+                con->forceUpdate();
+            }
+        }
+    }
 }
 
 void PluginProcessor::receiveNoteOn(int const channel, int const pitch, int const velocity)
@@ -1451,13 +1492,35 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
     case hash("pluginmode"): {
         // TODO: it would be nicer if we could specifically target the correct editor here, instead of picking the first one and praying
         auto editors = getEditors();
-        if (!editors.isEmpty()) {
-            auto* editor = editors[0];
-            if (auto* cnv = editor->getCurrentCanvas()) {
-                editor->getTabComponent().openInPluginMode(cnv->patch);
+        if(!patches.isEmpty()) {
+            if(list.size())
+            {
+                auto pluginModeThemeOrPath = list[0].toString();
+                if(pluginModeThemeOrPath.endsWith(".plugdatatheme"))
+                {
+                    auto themeFile = patches[0]->getPatchFile().getParentDirectory().getChildFile(pluginModeThemeOrPath);
+                    if(themeFile.existsAsFile())
+                    {
+                        pluginModeTheme = ValueTree::fromXml(themeFile.loadFileAsString());
+                    }
+                }
+                else {
+                    auto themesTree = SettingsFile::getInstance()->getValueTree().getChildWithName("ColourThemes");
+                    auto theme = themesTree.getChildWithProperty("theme", pluginModeThemeOrPath);
+                    if(theme.isValid()) {
+                        pluginModeTheme = theme;
+                    }
+                }
             }
-        } else {
-            patches[0]->openInPluginMode = true;
+            
+            if (!editors.isEmpty()) {
+                auto* editor = editors[0];
+                if (auto* cnv = editor->getCurrentCanvas()) {
+                    editor->getTabComponent().openInPluginMode(cnv->patch);
+                }
+            } else {
+                patches[0]->openInPluginMode = true;
+            }
         }
         break;
     }

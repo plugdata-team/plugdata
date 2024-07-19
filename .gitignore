@@ -1,11 +1,13 @@
 *build
+build-ios
+Xcode
+XCode
+cmake-build-debug
+cmake-build-release
 *Plugins
 .DS_Store
 
 .vscode/
 .cache/
 
-Resources/Fonts/InterUnicode_*.ttf
-Resources/Filesystem_*.zip
-Resources/Documentation.bin
 *.swp

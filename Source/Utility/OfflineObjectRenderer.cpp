@@ -33,6 +33,7 @@ OfflineObjectRenderer::OfflineObjectRenderer(pd::Instance* instance)
     auto const* file = filename.toRawUTF8();
 
     offlineCnv = static_cast<t_canvas*>(pd::Interface::createCanvas(file, dir));
+    canvas_create_editor(offlineCnv);
 }
 
 OfflineObjectRenderer::~OfflineObjectRenderer() = default;

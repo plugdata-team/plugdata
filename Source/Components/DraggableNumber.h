@@ -318,11 +318,13 @@ public:
 
             // If show ellipses is false, only show ">" when integers are too large to fit
             if (!showEllipses && numDecimals == 0) {
-                while (numberTextLength > textArea.getWidth() + 3) {
+                int i = 0;
+                while (numberTextLength > textArea.getWidth() + 3 && i < 5) {
                     numberText = numberText.trimCharactersAtEnd(".>");
                     numberText = numberText.dropLastCharacters(1);
                     numberText += ">";
                     numberTextLength = CachedFontStringWidth::get()->calculateSingleLineWidth(font, numberText);
+                    i++;
                 }
             }
 

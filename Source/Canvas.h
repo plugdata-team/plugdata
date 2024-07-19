@@ -80,6 +80,7 @@ public:
     Point<int> getLastMousePosition();
 
     void commandKeyChanged(bool isHeld) override;
+    void shiftKeyChanged(bool isHeld) override;
     void middleMouseChanged(bool isHeld) override;
     void altKeyChanged(bool isHeld) override;
 
@@ -130,10 +131,10 @@ public:
 
     void encapsulateSelection();
     void triggerizeSelection();
-
-    bool canConnectSelectedObjects();
-    bool connectSelectedObjects();
-
+    void cycleSelection();
+    void connectSelection();
+    void tidySelection();
+        
     void cancelConnectionCreation();
 
     void alignObjects(Align alignment);

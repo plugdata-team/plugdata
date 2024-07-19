@@ -246,43 +246,33 @@ bool Object::hitTest(int x, int y)
 
     if (cnv->panningModifierDown())
         return false;
-
-    // Knob object is able to reduce its bounds when transparent.
-    // Use the objects hit-test if it is populated (currently only for knob)
-    if (transparentHitTest && (presentationMode.getValue() || locked.getValue() || commandLocked.getValue())) {
-        return transparentHitTest(x, y);
-    }
-
-    // Mouse over object
-    if (getLocalBounds().reduced(margin).contains(x, y)) {
-        return true;
-    }
-
+    
     // If the hit-test get's to here, and any of these are still true
     // return! Otherwise it will test non-existent iolets and return true!
-    if ((presentationMode.getValue() || locked.getValue() || commandLocked.getValue()))
-        return false;
-
+    bool blockIolets = presentationMode.getValue() || locked.getValue() || commandLocked.getValue();
     // Mouse over iolets
     for (auto* iolet : iolets) {
-        if (iolet->getBounds().contains(x, y))
+        if (!blockIolets && iolet->getBounds().contains(x, y))
             return true;
     }
-
+    
     if (selectedFlag) {
-
         for (auto& corner : getCorners()) {
             if (corner.contains(x, y))
                 return true;
         }
-
         return getLocalBounds().reduced(margin).contains(x, y);
     }
 
     if (gui && !gui->canReceiveMouseEvent(x, y)) {
         return false;
     }
-
+    
+    // Mouse over object
+    if (getLocalBounds().reduced(margin).contains(x, y)) {
+        return true;
+    }
+    
     return false;
 }
 
@@ -547,8 +537,7 @@ void Object::triggerOverlayActiveState(bool recursive)
     repaint();
 }
 
-void Object::lookAndFeelChanged()
-{
+void Object::lookAndFeelChanged() {
     activityOverlayDirty = true;
     if (gui)
         gui->updateLabel();
@@ -556,8 +545,7 @@ void Object::lookAndFeelChanged()
 
 void Object::resized()
 {
-    scrollBuffer.setDirty();
-    activityOverlayDirty = true;
+    activityOverlayDirty = activityOverlayDirty || activityOverlayImage.needsUpdate(getWidth(), getHeight());;
 
     setVisible(!((cnv->isGraph || cnv->presentationMode == var(true)) && gui && gui->hideInGraph()));
 
@@ -569,49 +557,82 @@ void Object::resized()
         newObjectEditor->setBounds(getLocalBounds().reduced(margin));
     }
 
-#if JUCE_IOS
-    int ioletSize = 15;
-#else
-    int ioletSize = 13;
-#endif
+    updateIoletGeometry();
+}
 
+void Object::updateIoletGeometry()
+{
     int ioletHitBox = 6;
 
     int maxIoletWidth = std::min(((getWidth() - doubleMargin) / std::max(numInputs, 1)) - 4, ((getWidth() - doubleMargin) / std::max(numOutputs, 1)) - 4);
-    int maxIoletHeight = (getHeight() / 2.0f) - 3;
+    int maxIoletHeight = (getHeight() / 2.0f) - 2;
+
+    int ioletSize = PlugDataLook::ioletSize;
 
     ioletSize = std::max(std::min({ ioletSize, maxIoletWidth, maxIoletHeight }), 10);
     int borderWidth = jmap<float>(ioletSize, 10, 13, 7, 12);
 
-    auto inletBounds = getLocalBounds();
-    if (auto spaceToRemove = jlimit<int>(0, borderWidth, inletBounds.getWidth() - (ioletHitBox * numInputs) - borderWidth)) {
-        inletBounds.removeFromLeft(spaceToRemove);
-        inletBounds.removeFromRight(spaceToRemove);
-    }
+    // IOLET layout for vanilla style (iolets in corners of objects)
+    if (PlugDataLook::getUseIoletSpacingEdge()) {
+        auto vanillaIoletBounds = getLocalBounds();
+        vanillaIoletBounds.removeFromLeft(margin);
+        vanillaIoletBounds.removeFromRight(margin);
+        auto objectWdith = vanillaIoletBounds.getWidth() + 0.5f; //FIXME: the right most iolet looks not right otherwise
 
-    auto outletBounds = getLocalBounds();
-    if (auto spaceToRemove = jlimit<int>(0, borderWidth, outletBounds.getWidth() - (ioletHitBox * numOutputs) - borderWidth)) {
-        outletBounds.removeFromLeft(spaceToRemove);
-        outletBounds.removeFromRight(spaceToRemove);
-    }
+        int inletIndex = 0;
+        int outletIndex = 0;
+        for (auto &iolet: iolets) {
+            bool const isInlet = iolet->isInlet;
+            float const yPosition = (isInlet ? margin + 1 : getHeight() - margin) - (ioletSize / 2.0f);
 
-    int index = 0;
-    for (auto& iolet : iolets) {
-        bool const isInlet = iolet->isInlet;
-        int const position = index < numInputs ? index : index - numInputs;
-        int const total = isInlet ? numInputs : numOutputs;
-        float const yPosition = (isInlet ? (margin + 1) : getHeight() - margin) - ioletSize / 2.0f;
+            auto distributeIolets = [ioletSize, objectWdith, vanillaIoletBounds, yPosition](Iolet* iolet, int ioletIndex, int totalIolets) {
+                auto allOutLetWidth = totalIolets * ioletSize;
+                auto spacing = ioletIndex != 0 ? (objectWdith - allOutLetWidth) / static_cast<float>(totalIolets - 1) : 0;
+                auto ioletOffset = ioletIndex != 0 ? ioletSize * ioletIndex : 0;
+                iolet->setBounds(vanillaIoletBounds.getX() + (spacing * ioletIndex) + ioletOffset, yPosition, ioletSize, ioletSize);
+            };
 
-        auto const bounds = isInlet ? inletBounds : outletBounds;
-
-        if (total == 1 && position == 0) {
-            iolet->setBounds(getWidth() < 38 ? getLocalBounds().getCentreX() - ioletSize / 2.0f : bounds.getX(), yPosition, ioletSize, ioletSize);
-        } else if (total > 1) {
-            float const ratio = (bounds.getWidth() - ioletSize) / static_cast<float>(total - 1);
-            iolet->setBounds(bounds.getX() + ratio * position, yPosition, ioletSize, ioletSize);
+            if (isInlet) {
+                distributeIolets(iolet, inletIndex, numInputs);
+                inletIndex++;
+            } else {
+                distributeIolets(iolet, outletIndex, numOutputs);
+                outletIndex++;
+            }
+        }
+    // DEFAULT iolet position style
+    } else {
+        auto inletBounds = getLocalBounds();
+        if (auto spaceToRemove = jlimit<int>(0, borderWidth, inletBounds.getWidth() - (ioletHitBox * numInputs) - borderWidth)) {
+            inletBounds.removeFromLeft(spaceToRemove);
+            inletBounds.removeFromRight(spaceToRemove);
         }
 
-        index++;
+        auto outletBounds = getLocalBounds();
+        if (auto spaceToRemove = jlimit<int>(0, borderWidth, outletBounds.getWidth() - (ioletHitBox * numOutputs) - borderWidth)) {
+            outletBounds.removeFromLeft(spaceToRemove);
+            outletBounds.removeFromRight(spaceToRemove);
+        }
+
+        int index = 0;
+        for (auto &iolet: iolets) {
+            bool const isInlet = iolet->isInlet;
+            int const position = index < numInputs ? index : index - numInputs;
+            int const total = isInlet ? numInputs : numOutputs;
+            float const yPosition = (isInlet ? (margin + 1) : getHeight() - margin) - ioletSize / 2.0f;
+
+            auto const bounds = isInlet ? inletBounds : outletBounds;
+
+            if (total == 1 && position == 0) {
+                iolet->setBounds(getWidth() < 38 ? getLocalBounds().getCentreX() - ioletSize / 2.0f : bounds.getX(),
+                                 yPosition, ioletSize, ioletSize);
+            } else if (total > 1) {
+                float const ratio = (bounds.getWidth() - ioletSize) / static_cast<float>(total - 1);
+                iolet->setBounds(bounds.getX() + ratio * position, yPosition, ioletSize, ioletSize);
+            }
+
+            index++;
+        }
     }
 }
 
@@ -924,12 +945,7 @@ void Object::mouseUp(MouseEvent const& e)
 
             cnv->synchronise();
         }
-
-        if (ds.wasDragDuplicated) {
-            cnv->patch.endUndoSequence("Duplicate");
-            ds.wasDragDuplicated = false;
-        }
-
+        
         for (auto* object : cnv->getSelectionOfType<Object>()) {
             object->repaint();
         }
@@ -944,7 +960,7 @@ void Object::mouseUp(MouseEvent const& e)
         ds.wasDragDuplicated = false;
     }
 
-    if (gui && selectedFlag && !selectionStateChanged && !e.mouseWasDraggedSinceMouseDown() && !e.mods.isRightButtonDown()) {
+    if (gui && selectedFlag && !selectionStateChanged && !e.mouseWasDraggedSinceMouseDown() && !e.mods.isRightButtonDown()  && !e.mods.isAnyModifierKeyDown()) {
         gui->showEditor();
     }
 
@@ -1225,7 +1241,7 @@ void Object::updateFramebuffer(NVGcontext* nvg)
 {
     // For very large objects, buffering is just gonna take up GPU memory, with minimal performance benefits
     // Also, Metal has a limitation on image size, so this will also prevent crashing
-    if (getWidth() * 3 * cnv->getRenderScale() > 8192 || getHeight() * 3 * cnv->getRenderScale() > 8192)
+    if (getWidth() * 3 * cnv->getRenderScale() >= 8192 || getHeight() * 3 * cnv->getRenderScale() >= 8192)
         return;
 
     auto b = getLocalBounds();
@@ -1256,7 +1272,8 @@ void Object::updateFramebuffer(NVGcontext* nvg)
 
 void Object::render(NVGcontext* nvg)
 {
-    if (cnv->shouldShowObjectActivity() && (!activityOverlayImage.isValid() || activityOverlayDirty)) {
+    if (cnv->shouldShowObjectActivity() && (!activityOverlayImage.isValid() || activityOverlayDirty) &&
+        getWidth() * 3 * cnv->getRenderScale() < 8192 && getHeight() * 3 * cnv->getRenderScale() < 8192) {
         Path objectShadow;
         objectShadow.addRoundedRectangle(getLocalBounds().reduced(Object::margin - 1), Corners::objectCornerRadius);
         activityOverlayImage = StackShadow::createActivityDropShadowImage(nvg, getLocalBounds(), objectShadow, getLookAndFeel().findColour(PlugDataColour::dataColourId), 5.5f, { 0, 0 }, 0, gui && (gui->getCanvas() || gui->isTransparent()));
@@ -1320,7 +1337,7 @@ void Object::performRender(NVGcontext* nvg)
         auto backgroundColour = convertColour(getLookAndFeel().findColour(PlugDataColour::textObjectBackgroundColourId));
         auto outlineColour = convertColour(getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 
-        nvgDrawRoundedRect(nvg, b.getX() + 0.5f, b.getY() + 0.5f, b.getWidth() - 1.0f, b.getHeight() - 1.0f, backgroundColour, isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
         
         nvgTranslate(nvg, margin, margin);
         textEditorRenderer.renderJUCEComponent(nvg, *newObjectEditor, getValue<float>(cnv->zoomScale) * cnv->getRenderScale());

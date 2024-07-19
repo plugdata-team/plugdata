@@ -271,12 +271,12 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat().reduced(0.5f);
+        auto b = getLocalBounds().toFloat();
 
         bool selected = object->isSelected() && !cnv->isGraph;
         auto backgroundColour = convertColour(iemHelper.getBackgroundColour());
-        auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
+        auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, selected ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
@@ -291,8 +291,8 @@ public:
         nvgLineTo(nvg, leftX, centreY - 5.0f);
         nvgClosePath(nvg);
 
-        auto normalColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour);
-        auto highlightColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId);
+        auto normalColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour);
+        auto highlightColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId);
         bool highlighed = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
 
         nvgFillColor(nvg, convertColour(highlighed ? highlightColour : normalColour));

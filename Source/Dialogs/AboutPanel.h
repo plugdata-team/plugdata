@@ -47,25 +47,38 @@ class AboutPanel : public Component {
 
         StringArray const sponsors = {
             "Deskew Technologies",
-            "Nasko",
-            "PowerUser64",
-            "DSBHproject",
-            "CFDAF",
-            "cotik1",
-            "alfonso73",
-            "spamfunnel",
-            "ooroor",
-            "bla9kdog",
-            "KPY7030P",
-            "chee",
-            "duddex",
-            "rubenlorenzo",
-            "mungbean",
-            "jamescorrea",
-            "Soundworlds-JO",
-            "vasilymilovidov",
+            "Naskomusic",
+            "epsil0ndelta",
             "polarity",
-            "ludnny"
+            "chee",
+            "ghjameslo",
+            "ludnny",
+            "merspir",
+            "phevosccp",
+            "Radialarray",
+            "bla9kdog",
+            "EwanBristow1400",
+            "JoshuaACNewman",
+            "vasilymilovidov",
+            "LuigiCosi",
+            "notagoodidea",
+            "o-g-sus",
+            "pyrodogg",
+            "alexandrotrevino",
+            "angelfaraldo",
+            "bruzketta",
+            "brylie",
+            "cotik1",
+            "DavidWahlund",
+            "Enkerli",
+            "grabanton",
+            "jamescorrea",
+            "motekulo",
+            "nawarajkhatri",
+            "NothanUmber",
+            "olbotta",
+            "KPY7030P",
+            "duddex",
         };
 
     public:
@@ -128,6 +141,11 @@ class AboutPanel : public Component {
 
                 jassert(!bounds.isEmpty());
             }
+        }
+        
+        int getDesiredHeight()
+        {
+            return sponsors.size() * 36;
         }
     };
 
@@ -270,9 +288,9 @@ public:
     void resized() override
     {
         creditsViewport.setBounds(getLocalBounds());
-        creditsComponent.setSize(getWidth(), 1172);
+        creditsComponent.setSize(getWidth(), creditsComponent.getDesiredHeight() + 450);
         licenseComponent.setBounds(getLocalBounds());
-
+        
         auto bounds = getLocalBounds().withTrimmedTop(190).reduced(16, 10);
 
         viewWebsite.setBounds(bounds.removeFromTop(44).reduced(4));

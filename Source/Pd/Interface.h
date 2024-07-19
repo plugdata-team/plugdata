@@ -40,8 +40,11 @@ extern int glist_getindex(t_glist* cnv, t_gobj* y);
 extern void canvas_savedeclarationsto(t_canvas* x, t_binbuf* b);
 extern void canvas_savetemplatesto(t_canvas* x, t_binbuf* b, int wholething);
 extern void canvas_saveto(t_canvas* x, t_binbuf* b);
+extern void canvas_doclick(t_canvas *x, int xpos, int ypos, int which, int mod, int doit);
+extern void canvas_doconnect(t_canvas *x, int xpos, int ypos, int mod, int doit);
 extern void set_class_prefix(t_symbol*);
 extern void clear_class_loadsym();
+
 }
 
 namespace pd {
@@ -233,20 +236,129 @@ struct Interface {
 
         return gensym(arraybuf);
     }
-
-    static void triggerize(t_canvas* cnv, std::vector<t_gobj*> const& objects)
+    
+    static void selectConnection(t_canvas* cnv, t_outconnect* connection)
+    {
+        auto* ed = cnv->gl_editor;
+        t_linetraverser t;
+        linetraverser_start(&t, cnv);
+        
+        while (auto* oc = linetraverser_next(&t)) {
+            if (oc == connection) {
+                ed->e_selectedline = 1;
+                ed->e_selectline_index1 = canvas_getindex(cnv, &t.tr_ob->ob_g);
+                ed->e_selectline_outno = t.tr_outno;
+                ed->e_selectline_index2 = canvas_getindex(cnv, &t.tr_ob2->ob_g);
+                ed->e_selectline_inno = t.tr_inno;
+                return;
+            }
+        }
+        
+        ed->e_selectedline = 0;
+    }
+    
+    static void connectSelection(t_canvas* cnv, std::vector<t_gobj*> const& objects, t_outconnect* connection)
     {
         glist_noselect(cnv);
 
         for (auto* obj : objects) {
             glist_select(cnv, obj);
         }
+        
+        selectConnection(cnv, connection);
+
+        canvas_setcurrent(cnv);
+        pd_typedmess((t_pd*)cnv, gensym("connect_selection"), 0, nullptr);
+        canvas_unsetcurrent(cnv);
+        
+        glist_noselect(cnv);
+    }
+
+    static void tidy(t_canvas* cnv, std::vector<t_gobj*> const& objects)
+    {
+        glist_noselect(cnv);
+
+        for (auto* obj : objects) {
+            glist_select(cnv, obj);
+        }
+        
+        canvas_setcurrent(cnv);
+        pd_typedmess((t_pd*)cnv, gensym("tidy"), 0, nullptr);
+        canvas_unsetcurrent(cnv);
+
+        glist_noselect(cnv);
+    }
+    
+    static void swapConnections(t_canvas* cnv, t_outconnect* clicked, t_outconnect* selected)
+    {
+        int in1, in1_idx, in2, in2_idx;
+        int out1, out1_idx, out2, out2_idx;
+        
+        t_linetraverser t;
+        linetraverser_start(&t, cnv);
+        
+        int numFound = 0;
+        while (auto* oc = linetraverser_next(&t)) {
+            if (oc == clicked) {
+                out1 = canvas_getindex(cnv, &t.tr_ob->ob_g);
+                out1_idx = t.tr_outno;
+                in1 = canvas_getindex(cnv, &t.tr_ob2->ob_g);
+                in1_idx = t.tr_inno;
+                numFound++;
+            }
+            else if(oc == selected)
+            {
+                out2 = canvas_getindex(cnv, &t.tr_ob->ob_g);
+                out2_idx = t.tr_outno;
+                in2 = canvas_getindex(cnv, &t.tr_ob2->ob_g);
+                in2_idx = t.tr_inno;
+                numFound++;
+            }
+        }
+        if(numFound != 2) return;
+        
+        auto disconnectWithUndo = [](t_canvas *x, t_float index1, t_float outno, t_float index2, t_float inno, t_symbol* connection_path)
+        {
+             canvas_disconnect(x, index1, outno, index2, inno);
+             canvas_undo_add(x, UNDO_DISCONNECT, "disconnect", canvas_undo_set_disconnect(x,
+                 index1, outno, index2, inno, connection_path));
+        };
+        
+        auto connectWithUndo = [](t_canvas *x, t_float index1, t_float outno, t_float index2, t_float inno)
+        {
+            canvas_connect_expandargs(x, index1, outno, index2, inno, gensym("empty"));
+            canvas_undo_add(x, UNDO_CONNECT, "connect", canvas_undo_set_connect(x,
+                index1, outno, index2, inno, gensym("empty")));
+        };
+        
+        canvas_undo_add(cnv, UNDO_SEQUENCE_START, "reconnect", 0);
+        disconnectWithUndo(cnv, out2, out2_idx, in2, in2_idx, gensym("empty"));
+        disconnectWithUndo(cnv, out1, out1_idx, in1,  in1_idx, gensym("empty"));
+        connectWithUndo(cnv, out1, out1_idx, in2, in2_idx);
+        connectWithUndo(cnv, out2, out2_idx, in1, in1_idx);
+        canvas_undo_add(cnv, UNDO_SEQUENCE_END, "reconnect", 0);
+        
+        glist_noselect(cnv);
+    }
+    
+    static t_gobj* triggerize(t_canvas* cnv, std::vector<t_gobj*> const& objects, t_outconnect* connection)
+    {
+        glist_noselect(cnv);
+
+        for (auto* obj : objects) {
+            glist_select(cnv, obj);
+        }
+        
+        selectConnection(cnv, connection);
 
         canvas_setcurrent(cnv);
         pd_typedmess((t_pd*)cnv, gensym("triggerize"), 0, nullptr);
         canvas_unsetcurrent(cnv);
 
+        auto* selection = cnv->gl_editor->e_selection ? cnv->gl_editor->e_selection->sel_what : nullptr;
         glist_noselect(cnv);
+        
+        return selection;
     }
 
     static void paste(t_canvas* cnv, char const* buf)
@@ -301,17 +413,63 @@ struct Interface {
         arrangeObject(cnv, obj, 0);
     }
 
-    static void duplicateSelection(t_canvas* cnv, std::vector<t_gobj*> const& objects)
+    static void duplicateSelection(t_canvas* cnv, std::vector<t_gobj*> const& objects, t_outconnect* connection)
     {
         glist_noselect(cnv);
 
         for (auto* obj : objects) {
             glist_select(cnv, obj);
         }
+        
+        selectConnection(cnv, connection);
 
         canvas_setcurrent(cnv);
         pd_typedmess((t_pd*)cnv, gensym("duplicate"), 0, nullptr);
         canvas_unsetcurrent(cnv);
+    }
+    
+    static void shiftAutopatch(t_canvas* cnv, t_gobj* inObj, int inletIndex, t_gobj* outObj, int outletIndex, std::vector<t_gobj*> selectedObjects, t_outconnect* connection)
+    {
+        auto getRawObjectBounds = [](t_canvas* cnv, t_gobj* obj) -> Rectangle<int>
+        {
+            int x1, y1, x2, y2;
+            gobj_getrect(obj, cnv, &x1, &y1, &x2, &y2);
+            return Rectangle<int>(x1, y1, x2 - x1, y2 - y1);
+        };
+        
+        auto outObjBounds = getRawObjectBounds(cnv, outObj);
+        auto inObjBounds = getRawObjectBounds(cnv, inObj);
+        
+        auto numOutlets = obj_noutlets(pd::Interface::checkObject(outObj));
+        auto numInlets = obj_ninlets(pd::Interface::checkObject(inObj));
+        
+        // Reconstruct pd-vanilla iolet positions, so we can just let pure-data take care of autopatching
+        auto outletPosX = outObjBounds.getX() + (outObjBounds.getWidth() - IOWIDTH) * outletIndex / (numOutlets == 1 ? 1 : numOutlets-1);
+        auto inletPosX = inObjBounds.getX() + (inObjBounds.getWidth() - IOWIDTH) * inletIndex / (numInlets == 1 ? 1 : numInlets-1);
+
+        auto editWas = cnv->gl_edit;
+        cnv->gl_edit = 1;
+        
+        // Simulate click on inlet
+        canvas_doclick(cnv, outletPosX, outObjBounds.getY(), 0, 0, 1);
+        
+        // Set selection
+        glist_noselect(cnv);
+
+        for (auto* obj : selectedObjects) {
+            glist_select(cnv, obj);
+        }
+        
+        selectConnection(cnv, connection);
+        
+        // Create connection with shift key down
+        canvas_doconnect(cnv, inletPosX, inObjBounds.getY(), 1, 1);
+        
+        // Deselect all
+        glist_noselect(cnv);
+        cnv->gl_edit = editWas;
+        cnv->gl_editor->e_onmotion = MA_NONE;
+        
     }
 
     /* save a "root" canvas to a file; cf. canvas_saveto() which saves the

@@ -19,7 +19,6 @@ using namespace juce::gl;
 #include "Object.h"
 #include "PluginProcessor.h"
 #include "PluginEditor.h" // might not need this?
-#include "LookAndFeel.h"
 #include "Pd/Patch.h"
 #include "Dialogs/ConnectionMessageDisplay.h"
 
@@ -141,6 +140,11 @@ void Connection::lookAndFeelChanged()
 
     textColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting());
 
+    if (connectionStyle != PlugDataLook::getConnectionStyle()){
+        connectionStyle = PlugDataLook::getConnectionStyle();
+        cachedIsValid = false;
+    }
+
     updatePath();
     repaint();
 }
@@ -164,8 +168,6 @@ void Connection::render(NVGcontext* nvg)
         connectionColour.b *= 1.2f;
     }
 
-    bool useThinConnection = PlugDataLook::getUseThinConnections();
-
     nvgSave(nvg);
     nvgTranslate(nvg, getX(), getY());
 
@@ -181,7 +183,7 @@ void Connection::render(NVGcontext* nvg)
         nvgLineStyle(nvg, NVG_LINE_DASHED);
         nvgDashLength(nvg, 5.0f);
         nvgDashPhaseOffset(nvg, offset);
-        nvgStrokeWidth(nvg, useThinConnection ? 3.0f : 5.0f);
+        nvgStrokeWidth(nvg, connectionStyle != PlugDataLook::ConnectionStyleDefault ? 3.0f : 5.0f);
 
         auto pathFromOrigin = getPath();
         pathFromOrigin.applyTransform(AffineTransform::translation(-getX(), -getY()));
@@ -190,7 +192,14 @@ void Connection::render(NVGcontext* nvg)
     }
 
     nvgStrokePaint(nvg, nvgDoubleStroke(nvg, connectionColour, shadowColour));
-    nvgStrokeWidth(nvg, useThinConnection ? 2.5f : 4.0f);
+
+    float cableThickness;
+    switch (connectionStyle){
+        case PlugDataLook::ConnectionStyleVanilla:  cableThickness = cableType == SignalCable ? 4.0f : 2.0f;    break;
+        case PlugDataLook::ConnectionStyleThin:     cableThickness = 2.5f;                                      break;
+        default:                                    cableThickness = 4.0f;                                      break;
+    }
+    nvgStrokeWidth(nvg, cableThickness);
 
     if (!cachedIsValid)
         nvgDeletePath(nvg, cacheId);
@@ -205,7 +214,8 @@ void Connection::render(NVGcontext* nvg)
         cacheId = nvgSavePath(nvg, cacheId);
     }
 
-    if (cableType == SignalCable) {
+    // draw internal signal dashed cable for themes that support this
+    if (cableType == SignalCable && connectionStyle != PlugDataLook::ConnectionStyleVanilla) {
         auto dashColor = shadowColour;
         dashColor.a = 1.0f;
         dashColor.r *= 0.4f;
@@ -215,7 +225,7 @@ void Connection::render(NVGcontext* nvg)
         nvgStrokeColor(nvg, dashColor);
         nvgLineStyle(nvg, NVG_LINE_DASHED);
         nvgDashLength(nvg, numSignalChannels <= 1 ? 5.0f : 3.5f);
-        nvgStrokeWidth(nvg, useThinConnection ? 1.5f : 2.0f);
+        nvgStrokeWidth(nvg, connectionStyle == PlugDataLook::ConnectionStyleThin ? 1.5 : 2.0f);
 
         if (!cachedIsValid)
             nvgDeletePath(nvg, std::numeric_limits<int32_t>::max() - cacheId);
@@ -486,9 +496,14 @@ bool Connection::intersects(Rectangle<float> toCheck, int accuracy) const
     return false;
 }
 
-void Connection::forceUpdate()
+void Connection::forceUpdate(bool updateCacheOnly)
 {
-    updatePath();
+    if (updateCacheOnly) {
+        cachedIsValid = false;
+    } else {
+        updatePath();
+    }
+
     repaint();
 }
 
@@ -620,6 +635,18 @@ void Connection::mouseExit(MouseEvent const& e)
 
 void Connection::mouseDown(MouseEvent const& e)
 {
+    if(e.mods.isShiftDown() && e.getNumberOfClicks() == 2 && cnv->getSelectionOfType<Connection>().size() == 2)
+    {
+        if (auto oc = ptr.get<t_outconnect>()) {
+            auto* patch = cnv->patch.getPointer().get();
+            auto* other = cnv->getSelectionOfType<Connection>()[0]->getPointer();
+            if(patch && other) {
+                pd::Interface::swapConnections(patch, oc.get(), other);
+            }
+        }
+        cnv->synchronise();
+        return;
+    }
     cnv->editor->connectionMessageDisplay->setConnection(nullptr);
 
     // Deselect all other connection if shift or command is not down
@@ -836,12 +863,22 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
 
 Point<float> Connection::getStartPoint() const
 {
-    return outlet->getCanvasBounds().toFloat().getCentre();
+    auto outletBounds = outlet->getCanvasBounds().toFloat();
+
+    if (PlugDataLook::isFixedIoletPosition()) {
+        return Point<float>(outletBounds.getX() + PlugDataLook::ioletSize * 0.5f, outletBounds.getCentreY());
+    }
+
+    return outletBounds.getCentre();
 }
 
 Point<float> Connection::getEndPoint() const
 {
-    return inlet->getCanvasBounds().toFloat().getCentre();
+    auto inletBounds = inlet->getCanvasBounds().toFloat();
+    if (PlugDataLook::isFixedIoletPosition()) {
+        return Point<float>(inletBounds.getX() + PlugDataLook::ioletSize * 0.5f, inletBounds.getCentreY());
+    }
+    return inletBounds.getCentre();
 }
 
 Path Connection::getNonSegmentedPath(Point<float> start, Point<float> end)
@@ -1260,7 +1297,7 @@ void ConnectionPathUpdater::timerCallback()
             
             while (auto* oc = linetraverser_next(&t)) {
                 
-                if (oc && oc == connection->ptr.getRaw<t_outconnect>()) {
+                if (oc == connection->ptr.getRaw<t_outconnect>()) {
                     
                     outObj = t.tr_ob;
                     outIdx = t.tr_outno;

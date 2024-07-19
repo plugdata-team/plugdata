@@ -13,6 +13,14 @@ class ListObject final : public ObjectBase {
     Value max = SynchronousValue(0.0f);
     Value sizeProperty = SynchronousValue();
 
+    NVGcolor backgroundColour;
+    NVGcolor selectedOutlineColour;
+    NVGcolor outlineColour;
+    NVGcolor flagColour;
+
+    bool editorActive = false;
+
+
 public:
     ListObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
@@ -27,6 +35,7 @@ public:
 
         listLabel.onEditorHide = [this]() {
             stopEdition();
+            editorActive = false;
         };
 
         listLabel.onTextChange = [this]() {
@@ -41,16 +50,19 @@ public:
             auto* editor = listLabel.getCurrentTextEditor();
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
             editor->setBorder({ 0, 1, 3, 0 });
+            editorActive = true;
         };
 
         listLabel.dragStart = [this]() {
             startEdition();
+            editorActive = true;
         };
 
         listLabel.onValueChange = [this](float) { updateFromGui(); };
 
         listLabel.dragEnd = [this]() {
             stopEdition();
+            editorActive = false;
         };
 
         listLabel.addMouseListener(this, false);
@@ -162,19 +174,25 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat().reduced(0.5f);
-        auto backgroundColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
-        auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
+        auto b = getLocalBounds().toFloat();
+        auto sb = b.reduced(0.5f);
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        bool highlighed = editorActive && getValue<bool>(object->locked);
+
+        nvgSave(nvg);
+        nvgIntersectRoundedScissor(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(), Corners::objectCornerRadius);
+
+        nvgBeginPath(nvg);
+        nvgFillColor(nvg, backgroundColour);
+        nvgRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight());
+        nvgFill(nvg);
 
         imageRenderer.renderJUCEComponent(nvg, listLabel, getImageScale());
 
-        nvgSave(nvg);
-        nvgIntersectRoundedScissor(nvg, b.getX() + 0.25f, b.getY() + 0.25f, b.getWidth() - 0.5f, b.getHeight() - 0.5f, Corners::objectCornerRadius);
+        nvgIntersectRoundedScissor(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
 
-        nvgFillColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour)));
+        // draw flag
+        nvgFillColor(nvg, highlighed ? selectedOutlineColour : flagColour);
         nvgBeginPath(nvg);
         nvgMoveTo(nvg, b.getRight() - 8, b.getY());
         nvgLineTo(nvg, b.getRight(), b.getY());
@@ -191,31 +209,20 @@ public:
 
         nvgRestore(nvg);
 
-        if (object->isSelected()) // If object is selected, draw outline over top too, so the flag doesn't poke into the selected outline
-        {
-            nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
-            nvgStrokeColor(nvg, selectedOutlineColour);
-            nvgStrokeWidth(nvg, 1.0f);
-            nvgStroke(nvg);
-        }
-
-        bool highlighed = hasKeyboardFocus(true) && getValue<bool>(object->locked);
-
-        if (highlighed) {
-            nvgStrokeColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId)));
-            nvgStrokeWidth(nvg, 2.0f);
-            nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
-            nvgStroke(nvg);
-        }
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBAf(0, 0, 0, 0), (object->isSelected() || highlighed) ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
     }
 
     void lookAndFeelChanged() override
     {
-        listLabel.setColour(Label::textWhenEditingColourId, LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
-        listLabel.setColour(Label::textColourId, LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
-        listLabel.setColour(TextEditor::textColourId, LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
+        listLabel.setColour(Label::textWhenEditingColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
+        listLabel.setColour(Label::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
+        listLabel.setColour(TextEditor::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
+
+        backgroundColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
+        selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
+        flagColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour));
+
         repaint();
     }
 

@@ -32,8 +32,8 @@ cat > ./plugdata.wxs <<-EOL
 		<Icon Id="ProductIcon" SourceFile="Resources\Icons\icon.ico"/>
 		<Property Id="ARPPRODUCTICON" Value="ProductIcon"/>
 		<WixVariable Id="WixUILicenseRtf" Value="Resources\Installer\LICENSE.rtf" />
-		<Property Id="ARPHELPLINK" Value="http://www.github.com/timothyschoen/plugdata"/>
-		<Property Id="ARPURLINFOABOUT" Value="http://www.github.com/timothyschoen/plugdata"/>
+		<Property Id="ARPHELPLINK" Value="http://www.github.com/plugdata-team/plugdata"/>
+		<Property Id="ARPURLINFOABOUT" Value="http://www.github.com/plugdata-team/plugdata"/>
 		<Property Id="ARPNOREPAIR" Value="1"/>
 <Directory Id="TARGETDIR" Name="SourceDir">
 			<!-- Copy Standalone to Program Files -->
@@ -143,9 +143,6 @@ cat > ./plugdata.wxs <<-EOL
 		<UI>
 			<UIRef Id="WixUI_FeatureTree" />
 		</UI>
-		<InstallExecuteSequence>
-			<RemoveExistingProducts After="InstallValidate"/>
-		</InstallExecuteSequence>
 		<Feature Id="DefaultFeature" Level="1" Title="Standalone App">
 			<ComponentRef Id="STANDALONE_FILES"/>
 			<ComponentRef Id="STANDALONE_SHORTCUTS"/>
@@ -164,6 +161,14 @@ cat > ./plugdata.wxs <<-EOL
 			<ComponentRef Id="CLAP_FILES"/>
 			<ComponentRef Id="CLAP_FX_FILES"/>
 		</Feature>
+		<!-- define powershell script as base64 that will remove registry entries for old plugdata versions -->
+		<Property Id="reg_clean">powershell.exe -ExecutionPolicy Bypass -NoProfile -WindowStyle Hidden -e JABkAGkAcwBwAGwAYQB5AE4AYQBtAGUAIAA9ACAAIgBwAGwAdQBnAGQAYQB0AGEAIgAKACQAcAB1AGIAbABpAHMAaABlAHIAIAA9ACAAIgBUAGkAbQBvAHQAaAB5ACAAUwBjAGgAbwBlAG4AIgAKACQAcgBlAGcAaQBzAHQAcgB5AFAAYQB0AGgAIAA9ACAAIgBIAEsATABNADoAXABTAE8ARgBUAFcAQQBSAEUAXABNAGkAYwByAG8AcwBvAGYAdABcAFcAaQBuAGQAbwB3AHMAXABDAHUAcgByAGUAbgB0AFYAZQByAHMAaQBvAG4AXABVAG4AaQBuAHMAdABhAGwAbAAiAAoAJABzAHUAYgBLAGUAeQBzACAAPQAgAEcAZQB0AC0AQwBoAGkAbABkAEkAdABlAG0AIAAtAFAAYQB0AGgAIAAkAHIAZQBnAGkAcwB0AHIAeQBQAGEAdABoAAoACgBmAG8AcgBlAGEAYwBoACAAKAAkAHMAdQBiAEsAZQB5ACAAaQBuACAAJABzAHUAYgBLAGUAeQBzACkAIAB7AAoAIAAgACAAIAAkAGMAdQByAHIAZQBuAHQASwBlAHkAIAA9ACAARwBlAHQALQBJAHQAZQBtAFAAcgBvAHAAZQByAHQAeQAgAC0AUABhAHQAaAAgACQAcwB1AGIASwBlAHkALgBQAFMAUABhAHQAaAAKACAAIAAgACAAaQBmACAAKAAkAGMAdQByAHIAZQBuAHQASwBlAHkALgBEAGkAcwBwAGwAYQB5AE4AYQBtAGUAIAAtAGUAcQAgACQAZABpAHMAcABsAGEAeQBOAGEAbQBlACAALQBhAG4AZAAgACQAYwB1AHIAcgBlAG4AdABLAGUAeQAuAFAAdQBiAGwAaQBzAGgAZQByACAALQBlAHEAIAAkAHAAdQBiAGwAaQBzAGgAZQByACkAIAB7AAoAIAAgACAAIAAgACAAIAAgAFIAZQBtAG8AdgBlAC0ASQB0AGUAbQAgAC0AUABhAHQAaAAgACQAcwB1AGIASwBlAHkALgBQAFMAUABhAHQAaAAgAC0AUgBlAGMAdQByAHMAZQAgAC0ARgBvAHIAYwBlAAoAIAAgACAAIAAgACAAIAAgAFcAcgBpAHQAZQAtAEgAbwBzAHQAIAAiAFIAZQBnAGkAcwB0AHIAeQAgAGUAbgB0AHIAeQAgAHIAZQBtAG8AdgBlAGQAOgAgACQAKAAkAHMAdQBiAEsAZQB5AC4AUABTAFAAYQB0AGgAKQAiAAoAIAAgACAAIAB9AAoAfQA=
+    	</Property>
+		<CustomAction Id="CleanRegistry" Execute="deferred" Directory="TARGETDIR" ExeCommand='[reg_clean]' Return="ignore" Impersonate="no"/>
+		<InstallExecuteSequence>
+      		<Custom Action="CleanRegistry" After="InstallInitialize"></Custom>
+			<RemoveExistingProducts After="InstallValidate"/>
+    	</InstallExecuteSequence>
 	</Product>
 </Wix>
 EOL

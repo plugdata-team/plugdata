@@ -83,6 +83,15 @@ public:
         return false;
     }
 
+    void resetToggledKeys()
+    {
+        for (auto key : toggledKeys){
+            noteOff(key);
+        }
+        toggledKeys.clear();
+        repaint();
+    }
+
     bool mouseDraggedToKey(int midiNoteNumber, MouseEvent const& e) override
     {
         clickedKey = midiNoteNumber;
@@ -135,8 +144,8 @@ public:
         if (isOver)
             c = Colour(235, 235, 235);
         if (isDown)
-            c = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::dataColourId);
-
+            c = findParentComponentOfClass<PluginEditor>()->getLookAndFeel().findColour(PlugDataColour::dataColourId);
+        
         area = area.reduced(0.0f, 0.5f);
 
         g.setColour(c);
@@ -158,7 +167,7 @@ public:
 
         // don't draw the first separator line to fix object look
         if (midiNoteNumber != getRangeStart()) {
-            g.setColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::outlineColourId));
+            g.setColour(findParentComponentOfClass<PluginEditor>()->getLookAndFeel().findColour(PlugDataColour::outlineColourId));
             g.fillRect(area.withWidth(1.0f));
         }
 
@@ -204,7 +213,7 @@ public:
         if (isOver)
             c = Colour(101, 101, 101);
         if (isDown)
-            c = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::dataColourId).darker(0.5f);
+            c = findParentComponentOfClass<PluginEditor>()->getLookAndFeel().findColour(PlugDataColour::dataColourId).darker(0.5f);
 
         g.setColour(c);
         g.fillRect(area);
@@ -510,6 +519,12 @@ public:
             setParameterExcludingListener(toggleMode, atoms[0].getFloat());
             keyboard.setToggleMode(static_cast<bool>(atoms[0].getFloat()));
         }
+        case hash("flush"): {
+            // It's not clear if flush should only clear active toggled notes, or all notes off also?
+            // Let's do both to be safe
+            keyboard.allNotesOff(0);
+            keyboard.resetToggledKeys();
+        }
         default:
             break;
         }
@@ -535,7 +550,7 @@ public:
     void paintOverChildren(Graphics& g) override
     {
         bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = LookAndFeel::getDefaultLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
+        auto outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);

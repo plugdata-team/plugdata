@@ -42,12 +42,9 @@
 // macOS:
 // - Use the native shadow, it works fine
 // Windows:
-//  - Native shadows don't work with rounded corners
-//  - Putting a transparent margin around the window makes everything very slow
-//  - We use a modified dropshadower class instead
+//  - We instruct Windows 11 to make the window rounded. On Windows 10, the window will not be rounded, which follows the default OS window style anyway
 // Linux:
 // - Native shadow is inconsistent across window managers and distros (sometimes there is no shadow, even though other windows have it...)
-// - Dropshadower is slow and glitchy
 // - We use a transparent margin around the window to draw the shadow in
 
 static bool drawWindowShadow = true;
@@ -111,14 +108,10 @@ public:
 
         auto audioInputRequired = (inChannels > 0);
 
-#if TESTING
-        // init(audioInputRequired, preferredDefaultDeviceName);
-#else
         if (audioInputRequired && RuntimePermissions::isRequired(RuntimePermissions::recordAudio) && !RuntimePermissions::isGranted(RuntimePermissions::recordAudio))
             RuntimePermissions::request(RuntimePermissions::recordAudio, [this, preferredDefaultDeviceName](bool granted) { init(granted, preferredDefaultDeviceName); });
         else
             init(audioInputRequired, preferredDefaultDeviceName);
-#endif
     }
 
     void init(bool enableAudioInput, String const& preferredDefaultDeviceName)
@@ -402,7 +395,6 @@ class PlugDataWindow : public DocumentWindow
     , public SettingsFileListener {
 
     Image shadowImage;
-    std::unique_ptr<StackDropShadower> dropShadower;
     AudioProcessorEditor* editor;
     StandalonePluginHolder* pluginHolder;
 
@@ -425,76 +417,63 @@ public:
         pluginHolder = ProjectInfo::getStandalonePluginHolder();
 
         drawWindowShadow = Desktop::canUseSemiTransparentWindows();
-
-        setTitleBarButtonsRequired(DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton, false);
         setOpaque(false);
 
         mainComponent = new MainContentComponent(*this, editor);
 
-        auto settingsTree = SettingsFile::getInstance()->getValueTree();
-
         setContentOwned(mainComponent, true);
-
-        // Make sure it gets updated on init
-        propertyChanged("native_window", settingsTree.getProperty("native_window"));
+        parentHierarchyChanged();
     }
 
-#if JUCE_WINDOWS
     void parentHierarchyChanged() override
     {
         DocumentWindow::parentHierarchyChanged();
 
+        auto nativeWindow = SettingsFile::getInstance()->getProperty<bool>("native_window");
+#if JUCE_IOS
+        nativeWindow = true;
+#endif
+        if(!mainComponent) return;
+        
+        auto* editor = mainComponent->getEditor();
+        auto* pdEditor = dynamic_cast<PluginEditor*>(editor);
+        
+        if (!nativeWindow) {
+#if JUCE_WINDOWS
+            setOpaque(true);
+#else
+            setOpaque(false);
+#endif
+            setResizable(false, false);
+            // we also need to set the constrainer of THIS window so it's set for the peer
+            setConstrainer(&pdEditor->constrainer);
+            pdEditor->setUseBorderResizer(true);
+        } else {
+            setOpaque(true);
+            setConstrainer(nullptr);
+            setResizable(true, false);
+            setResizeLimits(850, 650, 99000, 99000);
+            pdEditor->setUseBorderResizer(false);
+        }
+        
+#if JUCE_WINDOWS
         if (auto peer = getPeer())
             OSUtils::useWindowsNativeDecorations(peer->getNativeHandle(), !isFullScreen());
-    }
 #endif
+        
+        editor->resized();
+        resized();
+        lookAndFeelChanged();
+    }
+
 
     void propertyChanged(String const& name, var const& value) override
     {
         if (name == "native_window") {
-            auto nativeWindow = static_cast<bool>(value);
-#if JUCE_IOS
-            nativeWindow = true;
-#endif
             auto* editor = mainComponent->getEditor();
             auto* pdEditor = dynamic_cast<PluginEditor*>(editor);
-
-            setUsingNativeTitleBar(nativeWindow);
-
             pdEditor->nvgSurface.detachContext();
-
-            if (!nativeWindow) {
-#if JUCE_WINDOWS
-                setOpaque(true);
-#else
-                setOpaque(false);
-#endif
-                setResizable(false, false);
-                // we also need to set the constrainer of THIS window so it's set for the peer
-                setConstrainer(&pdEditor->constrainer);
-                pdEditor->setUseBorderResizer(true);
-                if (drawWindowShadow) {
-#if JUCE_MAC
-                    setDropShadowEnabled(true);
-#elif JUCE_WINDOWS
-                    setDropShadowEnabled(false);
-#endif
-                } else {
-                    setDropShadowEnabled(false);
-                }
-            } else {
-                setOpaque(true);
-                dropShadower.reset(nullptr);
-                setDropShadowEnabled(true);
-                setConstrainer(nullptr);
-                setResizable(true, false);
-                setResizeLimits(850, 650, 99000, 99000);
-                pdEditor->setUseBorderResizer(false);
-            }
-
-            editor->resized();
-            resized();
-            repaint();
+            recreateDesktopWindow();
         }
         if (name == "macos_buttons") {
             bool isEnabled = true;
@@ -520,6 +499,29 @@ public:
     BorderSize<int> getBorderThickness() override
     {
         return BorderSize<int>(0);
+    }
+
+    int getDesktopWindowStyleFlags() const override
+    {
+        auto flags = ComponentPeer::windowHasMinimiseButton | ComponentPeer::windowHasMaximiseButton | ComponentPeer::windowHasCloseButton | ComponentPeer::windowAppearsOnTaskbar | ComponentPeer::windowIsSemiTransparent | ComponentPeer::windowIsResizable;
+        if (SettingsFile::getInstance()->getProperty<bool>("native_window"))
+        {
+            flags |= ComponentPeer::windowHasTitleBar;
+            flags |= ComponentPeer::windowHasDropShadow;
+        } else {
+#if JUCE_MAC
+            flags |= ComponentPeer::windowHasDropShadow;
+#elif JUCE_WINDOWS
+            // On Windows 11 we handle dropshadow differently
+            if (SystemStats::getOperatingSystemType() != SystemStats::Windows11) {
+                flags |= ComponentPeer::windowHasDropShadow;
+            }
+#else
+            flags |= ComponentPeer::windowHasDropShadow;
+#endif
+        }
+
+        return flags;
     }
 
     /** Deletes and re-creates the plugin, resetting it to its default state. */
@@ -566,6 +568,11 @@ public:
         return isFullScreen();
 #endif
     }
+        
+    bool useNativeTitlebar()
+    {
+        return SettingsFile::getInstance()->getProperty<bool>("native_window");
+    }
 
     void maximiseButtonPressed() override
     {
@@ -575,7 +582,7 @@ public:
                 bool shouldBeMaximised = OSUtils::isX11WindowMaximised(peer->getNativeHandle());
                 b->setToggleState(!shouldBeMaximised, dontSendNotification);
 
-                if (!isUsingNativeTitleBar()) {
+                if (!useNativeTitlebar()) {
                     OSUtils::maximiseX11Window(peer->getNativeHandle(), !shouldBeMaximised);
                 }
             } else {
@@ -591,13 +598,22 @@ public:
 #if JUCE_LINUX || JUCE_BSD
     void paint(Graphics& g) override
     {
-        if (drawWindowShadow && !isUsingNativeTitleBar() && !isFullScreen()) {
+        if (drawWindowShadow && !useNativeTitlebar() && !isFullScreen()) {
             auto b = getLocalBounds();
             Path localPath;
             localPath.addRoundedRectangle(b.toFloat().reduced(22.0f), Corners::windowCornerRadius);
 
             int radius = isActiveWindow() ? 22 : 17;
             StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), radius, { 0, 2 });
+        }
+    }
+#elif JUCE_WINDOWS
+    void paintOverChildren(Graphics& g) override
+    {
+        if (SystemStats::getOperatingSystemType() != SystemStats::Windows11)
+        {
+            g.setColour(findColour(PlugDataColour::outlineColourId));
+            g.drawRect(0, 0, getWidth(), getHeight());
         }
     }
 #endif
@@ -631,7 +647,7 @@ public:
         Rectangle<int> titleBarArea(0, 7, getWidth() - 6, 23);
 
 #if JUCE_LINUX || JUCE_BSD
-        if (!isFullScreen() && !isUsingNativeTitleBar() && drawWindowShadow) {
+        if (!isFullScreen() && !useNativeTitlebar() && drawWindowShadow) {
             auto margin = mainComponent ? mainComponent->getMargin() : 18;
             titleBarArea = Rectangle<int>(0, 7 + margin, getWidth() - (6 + margin), 23);
         }
@@ -667,10 +683,7 @@ private:
                 // Menubar, only for standalone on mac
                 // Doesn't add any new features, but was easy to implement because we already have a command manager
                 setApplicationCommandManagerToWatch(commandManager);
-#if JUCE_MAC && !TESTING
-                MenuBarModel::setMacMainMenu(this);
-#endif
-
+                
                 editor->addComponentListener(this);
                 componentMovedOrResized(*editor, false, true);
 
@@ -691,7 +704,7 @@ private:
 
         int getMargin() const
         {
-            if (owner.isUsingNativeTitleBar() || owner.isFullScreen()) {
+            if (owner.useNativeTitlebar() || owner.isFullScreen()) {
                 return 0;
             }
 
@@ -743,9 +756,6 @@ private:
         ~MainContentComponent() override
         {
             setApplicationCommandManagerToWatch(nullptr);
-#if JUCE_MAC && !TESTING
-            MenuBarModel::setMacMainMenu(nullptr);
-#endif
             if (editor != nullptr) {
                 editor->removeComponentListener(this);
             }

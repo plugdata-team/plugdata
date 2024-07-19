@@ -253,10 +253,10 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat().reduced(0.5f);
+        auto b = getLocalBounds().toFloat();
         auto backgroundColour = Colour::fromString(secondaryColour.toString());
         bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = LookAndFeel::getDefaultLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
+        auto outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(backgroundColour), convertColour(outlineColour), Corners::objectCornerRadius);
 
@@ -269,7 +269,7 @@ public:
         auto iconBounds = Rectangle<int>(7, 3, getHeight(), getHeight());
         nvgFontFace(nvg, "icon_font-Regular");
         nvgFontSize(nvg, 12.0f);
-        nvgFillColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::dataColourId)));
+        nvgFillColor(nvg, convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::dataColourId)));
         nvgTextAlign(nvg, NVG_ALIGN_TOP | NVG_ALIGN_LEFT);
         nvgText(nvg, iconBounds.getX(), iconBounds.getY(), icon.toRawUTF8(), nullptr);
     }

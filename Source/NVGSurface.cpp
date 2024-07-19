@@ -80,7 +80,6 @@ NVGSurface::NVGSurface(PluginEditor* e)
 #ifdef NANOVG_GL_IMPLEMENTATION
     glContext = std::make_unique<OpenGLContext>();
     glContext->setOpenGLVersionRequired(OpenGLContext::OpenGLVersion::openGL3_2);
-    glContext->setMultisamplingEnabled(false);
     glContext->setSwapInterval(0);
 #endif
 
@@ -100,8 +99,7 @@ NVGSurface::NVGSurface(PluginEditor* e)
             // Render on vblank
             _this->vBlankAttachment = std::make_unique<VBlankAttachment>(_this.getComponent(), [_this]() {
                 if (_this) {
-                    _this->editor->pd->setThis();
-                    _this->editor->pd->messageDispatcher->dequeueMessages();
+                    _this->editor->pd->flushMessageQueue();
                     _this->render();
                 }
             });
@@ -129,6 +127,7 @@ void NVGSurface::initialise()
     resized();
 #else
     setVisible(true);
+
     glContext->attachTo(*this);
     glContext->initialiseOnThread();
     glContext->makeActive();

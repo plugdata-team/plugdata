@@ -73,8 +73,8 @@ public:
         sendSymbol = getSendSymbol();
         receiveSymbol = getReceiveSymbol();
 
-        gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, LookAndFeel::getDefaultLookAndFeel().findColour(Label::textWhenEditingColourId));
-        gui->getLookAndFeel().setColour(Label::textColourId, LookAndFeel::getDefaultLookAndFeel().findColour(Label::textColourId));
+        gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, cnv->editor->getLookAndFeel().findColour(Label::textWhenEditingColourId));
+        gui->getLookAndFeel().setColour(Label::textColourId, cnv->editor->getLookAndFeel().findColour(Label::textColourId));
     }
 
     int getWidthInChars()
@@ -106,7 +106,7 @@ public:
             if (atom->a_text.te_width == 0) {
                 w = textLength + 10;
             } else {
-                w = (atom->a_text.te_width * glist_fontwidth(patchPtr)) + 3;
+                w = (atom->a_text.te_width * sys_fontwidth(getFontHeight())) + 3;
             }
 
             return { x, y, w, getAtomHeight() };
@@ -123,8 +123,8 @@ public:
                 return;
 
             pd::Interface::moveObject(patchPtr, atom.cast<t_gobj>(), b.getX(), b.getY());
-
-            auto fontWidth = glist_fontwidth(patchPtr);
+            
+            auto fontWidth = sys_fontwidth(getFontHeight());
             if (atom->a_text.te_width != 0) {
                 atom->a_text.te_width = (b.getWidth() - 3) / fontWidth;
             }
@@ -172,32 +172,31 @@ public:
                 auto fontWidth = glist_fontwidth(patch);
 
                 // Calculate the width in text characters for both
-                auto oldCharWidth = (oldBounds.getWidth() - 3) / fontWidth;
                 auto newCharWidth = (newBounds.getWidth() - 3) / fontWidth;
-
-                // If we're resizing the left edge, move the object left
-                if (isStretchingLeft) {
-                    auto widthDiff = (newCharWidth - oldCharWidth) * fontWidth;
-                    auto x = oldBounds.getX() - widthDiff;
-                    auto y = oldBounds.getY();
-
-                    if (auto atom = helper->ptr.get<t_gobj>()) {
-                        pd::Interface::moveObject(static_cast<t_glist*>(patch), atom.get(), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
-                    }
-                }
-
+                
                 // Set new width
                 if (auto atom = helper->ptr.get<t_fake_gatom>()) {
                     atom->a_text.te_width = newCharWidth;
                 }
-
+                
+                bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
+                
+                // If we're resizing the left edge, move the object left
+                if (isStretchingLeft) {
+                    auto x = oldBounds.getRight() - (bounds.getWidth() - Object::doubleMargin);
+                    auto y = oldBounds.getY(); // don't allow y resize
+                    
+                    if (auto atom = helper->ptr.get<t_gobj>()) {
+                        pd::Interface::moveObject(static_cast<t_glist*>(patch), atom.get(), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
+                    }
+                    bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
+                }
+                
                 auto newHeight = newBounds.getHeight();
                 auto heightIdx = std::clamp<int>(std::lower_bound(atomSizes, atomSizes + 7, newHeight) - atomSizes, 2, 7) - 1;
 
                 helper->setFontHeight(atomSizes[heightIdx]);
                 object->gui->setParameterExcludingListener(helper->fontSize, heightIdx + 1);
-
-                bounds = helper->getPdBounds(0).expanded(Object::margin) + object->cnv->canvasOrigin;
             }
         };
 
@@ -291,9 +290,9 @@ public:
             labels->getObjectLabel()->setFont(Font(fontHeight));
             labels->getObjectLabel()->setText(text, dontSendNotification);
 
-            auto textColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
-            if (std::abs(textColour.getBrightness() - LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId).getBrightness()) < 0.3f) {
-                textColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId).contrasting();
+            auto textColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
+            if (std::abs(textColour.getBrightness() - cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId).getBrightness()) < 0.3f) {
+                textColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId).contrasting();
             }
 
             labels->setColour(textColour);

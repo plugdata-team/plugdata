@@ -56,24 +56,24 @@ struct TextObjectHelper {
 
                 auto maxIolets = std::max({ 1, object->numInputs, object->numOutputs });
                 auto minimumWidth = std::max(TextObjectHelper::minWidth, (maxIolets * 18) / fontWidth);
-
-                // Calculate the width in text characters for both
-                auto oldCharWidth = oldBounds.getWidth() / fontWidth;
-                auto newCharWidth = std::max(minimumWidth, newBounds.getWidth() / fontWidth);
-
-                // If we're resizing the left edge, move the object left
-                if (isStretchingLeft) {
-                    auto widthDiff = (newCharWidth - oldCharWidth) * fontWidth;
-                    auto x = oldBounds.getX() - widthDiff;
-                    auto y = oldBounds.getY(); // don't allow y resize
-
-                    pd::Interface::moveObject(static_cast<t_glist*>(patch), static_cast<t_gobj*>(object->getPointer()), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
-                }
-
+                
                 // Set new width
-                TextObjectHelper::setWidthInChars(object->getPointer(), newCharWidth);
+                TextObjectHelper::setWidthInChars(object->getPointer(), std::max(minimumWidth, newBounds.getWidth() / fontWidth));
 
                 bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
+                
+                // If we're resizing the left edge, move the object left
+                if (isStretchingLeft) {
+                    auto x = oldBounds.getRight() - (bounds.getWidth() - Object::doubleMargin);
+                    auto y = oldBounds.getY(); // don't allow y resize
+                    
+                    if(auto ptr = object->gui->ptr.get<t_gobj>())
+                    {
+                        pd::Interface::moveObject(static_cast<t_glist*>(patch), ptr.get(), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
+                    }
+
+                    bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
+                }
             }
         };
 
@@ -131,7 +131,7 @@ struct TextObjectHelper {
         editor->applyFontToAllText(Font(fontHeight));
 
         object->copyAllExplicitColoursTo(*editor);
-        editor->setColour(TextEditor::textColourId, LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
+        editor->setColour(TextEditor::textColourId, object->cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
         editor->setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
 
@@ -163,7 +163,7 @@ protected:
     bool isValid = true;
     bool isLocked;
 
-    NVGcolor backgroundColour;
+    Colour backgroundColour;
     NVGcolor selectedOutlineColour;
     NVGcolor outlineColour;
     NVGcolor ioletAreaColour;
@@ -193,9 +193,9 @@ public:
 
     void lookAndFeelChanged() override
     {
-        backgroundColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::textObjectBackgroundColourId));
-        selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
+        backgroundColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::textObjectBackgroundColourId);
+        selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
         ioletAreaColour = convertColour(object->findColour(PlugDataColour::ioletAreaColourId));
 
         updateTextLayout();
@@ -206,15 +206,19 @@ public:
         auto b = getLocalBounds();
 
         auto finalOutlineColour = outlineColour;
-        auto finalBackgroundColour = backgroundColour;
+        auto finalBackgroundColour = convertColour(backgroundColour);
 
         // render invalid text objects with red outline & semi-transparent background
         if (!isValid) {
             finalOutlineColour = convertColour(object->isSelected() ? Colours::red.brighter(1.5f) : Colours::red);
             finalBackgroundColour = nvgRGBAf(outlineColour.r, outlineColour.g, outlineColour.b, 0.2f);
         }
-
-        nvgDrawRoundedRect(nvg, b.getX() + 0.5f, b.getY() + 0.5f, b.getWidth() - 1.0f, b.getHeight() - 1.0f, finalBackgroundColour, object->isSelected() ? selectedOutlineColour : finalOutlineColour, Corners::objectCornerRadius);
+        else if(getPatch() && isMouseOver() && getValue<bool>(cnv->locked))
+        {
+            finalBackgroundColour = convertColour(getHoverBackgroundColour(backgroundColour));
+        }
+        
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), finalBackgroundColour, object->isSelected() ? selectedOutlineColour : finalOutlineColour, Corners::objectCornerRadius);
 
         // if the object is valid & iolet area colour is differnet from background colour
         // draw two non-rounded rectangles at top / bottom
@@ -229,7 +233,12 @@ public:
         //   │┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼│
         //   └──────────────────┘
 
-        if (isValid && (ioletAreaColour.r != backgroundColour.r || ioletAreaColour.g != backgroundColour.g || ioletAreaColour.b != backgroundColour.b || ioletAreaColour.a != backgroundColour.a)) {
+        bool hasIoletArea = static_cast<int>(ioletAreaColour.r * 255) != backgroundColour.getRed()  ||
+                            static_cast<int>(ioletAreaColour.g * 255) != backgroundColour.getGreen()||
+                            static_cast<int>(ioletAreaColour.b * 255) != backgroundColour.getBlue() ||
+                            static_cast<int>(ioletAreaColour.a * 255) != backgroundColour.getAlpha();
+        
+        if (isValid && hasIoletArea) {
             nvgSave(nvg);
             float const padding = 1.3f;
             float const padding2x = padding * 2;
@@ -344,7 +353,7 @@ public:
             objText = cnv->suggestor->getText();
         }
 
-        auto colour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
+        auto colour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
         int textWidth = getTextSize().getWidth() - 11;
         if (cachedTextRender.prepareLayout(objText, Fonts::getDefaultFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty))) {
             repaint();

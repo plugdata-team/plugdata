@@ -17,6 +17,7 @@
 #include "Utility/RateReducer.h"
 #include "Utility/ModifierKeyListener.h"
 #include "NVGSurface.h"
+#include "LookAndFeel.h"
 
 using PathPlan = std::vector<Point<float>>;
 
@@ -53,7 +54,7 @@ public:
 
     void updatePath();
 
-    void forceUpdate();
+    void forceUpdate(bool updateCacheOnly = false);
 
     void lookAndFeelChanged() override;
 
@@ -122,6 +123,8 @@ private:
     bool segmented = false;
     bool isHovering = false;
 
+    PlugDataLook::ConnectionStyle connectionStyle = PlugDataLook::ConnectionStyleDefault;
+
     PathPlan currentPlan;
 
     Value locked;
@@ -154,7 +157,7 @@ private:
     float mouseDownPosition = 0;
 
     int cacheId = -1;
-    bool cachedIsValid;
+    bool cachedIsValid = false;
 
     pd::WeakReference ptr;
 
@@ -198,22 +201,30 @@ public:
     {
         cnv->getProperties().remove("SHOW_SYMBOL_IOLETS");
         cnv->removeMouseListener(this);
-        iolet->removeMouseListener(this);
+        if(iolet) iolet->removeMouseListener(this);
     }
 
     void mouseDrag(MouseEvent const& e) override
     {
-        mouseMove(e);
+        if (rateReducer.tooFast())
+            return;
+        
+        updatePosition(e.getEventRelativeTo(cnv).position);
     }
 
     void mouseMove(MouseEvent const& e) override
     {
         if (rateReducer.tooFast())
             return;
-
+        
+        updatePosition(e.getEventRelativeTo(cnv).position);
+    }
+        
+    void updatePosition(Point<float> cursorPoint)
+    {
+        if(!iolet) return;
+        
         auto ioletPoint = cnv->getLocalPoint((Component*)iolet->object, iolet->getBounds().toFloat().getCentre());
-        auto cursorPoint = e.getEventRelativeTo(cnv).position;
-
         auto& startPoint = iolet->isInlet ? cursorPoint : ioletPoint;
         auto& endPoint = iolet->isInlet ? ioletPoint : cursorPoint;
 
@@ -235,6 +246,22 @@ public:
         nvgStrokeWidth(nvg, 4.0f);
         nvgStroke(nvg);
         nvgRestore(nvg);
+    }
+        
+    void toNextIolet()
+    {
+        if(!iolet) return;
+        
+        iolet->removeMouseListener(this);
+        iolet->isTargeted = false;
+        iolet->repaint();
+        
+        iolet = iolet->getNextIolet();
+        iolet->addMouseListener(this, false);
+        iolet->isTargeted = true;
+        iolet->repaint();
+        
+        updatePosition(cnv->getMouseXYRelative().toFloat()  );
     }
 
     Iolet* getIolet()

@@ -92,14 +92,14 @@ public:
 
     void resized() override
     {
-        textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId), getWidth(), getWidth());
+        textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId), getWidth(), getWidth());
         updateCanvas();
         updateDrawables();
     }
 
     void lookAndFeelChanged() override
     {
-        textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId), getWidth(), getWidth());
+        textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId), getWidth(), getWidth());
     }
 
     // Called by object to make sure clicks on empty parts of the graph are passed on
@@ -249,23 +249,19 @@ public:
             nvgRestore(nvg);
         }
 
-        auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
+        auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 
-        nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth() - 0.5f, b.getHeight() - 0.5f, Corners::objectCornerRadius);
-        nvgStrokeColor(nvg, object->isSelected() ? selectedOutlineColour : outlineColour);
-        nvgStrokeWidth(nvg, 1.0f);
-        nvgStroke(nvg);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBAf(0, 0, 0, 0), object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
         if (isOpenedInSplitView) {
-            nvgFillColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId)));
+            nvgFillColor(nvg, convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId)));
             nvgFill(nvg);
 
             nvgBeginPath(nvg);
             nvgFontFace(nvg, "Inter-Regular");
             nvgFontSize(nvg, 12.0f);
-            nvgFillColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::commentTextColourId))); // why comment colour?
+            nvgFillColor(nvg, convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::commentTextColourId))); // why comment colour?
             nvgTextAlign(nvg, NVG_ALIGN_TOP | NVG_ALIGN_CENTER);
             nvgText(nvg, b.getCentreX(), b.getCentreY(), "Graph opened in split view", nullptr);
         }

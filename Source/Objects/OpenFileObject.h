@@ -91,11 +91,11 @@ public:
 
         int textWidth = getTextObjectWidth() - 14; // Reserve a bit of extra space for the text margin
         auto currentLayoutHash = hash(objText);
-        auto colour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
+        auto colour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
 
         if (layoutTextHash != currentLayoutHash || colour.getARGB() != lastColourARGB || textWidth != lastTextWidth || mouseIsOver != mouseWasOver) {
             bool locked = getValue<bool>(object->locked) || getValue<bool>(object->commandLocked);
-            auto colour = LookAndFeel::getDefaultLookAndFeel().findColour((locked && mouseIsOver) ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::canvasTextColourId);
+            auto colour = cnv->editor->getLookAndFeel().findColour((locked && mouseIsOver) ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::canvasTextColourId);
 
             auto attributedText = AttributedString(objText);
             attributedText.setColour(colour);
@@ -168,12 +168,12 @@ public:
     {
         updateTextLayout();
 
-        auto backgroundColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::textObjectBackgroundColourId);
+        auto backgroundColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::textObjectBackgroundColourId);
 
         g.setColour(backgroundColour);
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
-        auto ioletAreaColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::ioletAreaColourId);
+        auto ioletAreaColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::ioletAreaColourId);
 
         if (ioletAreaColour != backgroundColour) {
             g.setColour(ioletAreaColour);

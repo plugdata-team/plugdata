@@ -279,13 +279,15 @@ String ObjectBase::getType() const
 
         // Deal with different text objects
         switch (hash(className)) {
+        case hash("message"):
+            return "msg";
         case hash("text"):
             if (obj.cast<t_text>()->te_type == T_OBJECT)
                 return "invalid";
             if (obj.cast<t_text>()->te_type == T_TEXT)
                 return "comment";
             if (obj.cast<t_text>()->te_type == T_MESSAGE)
-                return "message";
+                return "msg";
             break;
         // Deal with atoms
         case hash("gatom"):
@@ -445,11 +447,11 @@ void ObjectBase::render(NVGcontext* nvg)
 
 void ObjectBase::paint(Graphics& g)
 {
-    g.setColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
+    g.setColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
     g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
     bool selected = object->isSelected() && !cnv->isGraph;
-    auto outlineColour = LookAndFeel::getDefaultLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+    auto outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
     g.setColour(outlineColour);
     g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);

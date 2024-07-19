@@ -277,6 +277,9 @@ PluginEditor::PluginEditor(PluginProcessor& p)
             runTests(this);
         });
 #endif
+    
+    pd->messageDispatcher->setBlockMessages(false);
+    pd->objectLibrary->waitForInitialisationToFinish();
 }
 
 PluginEditor::~PluginEditor()
@@ -285,6 +288,12 @@ PluginEditor::~PluginEditor()
 
     if (auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent())) {
         ProjectInfo::closeWindow(window); // Make sure plugdatawindow gets cleaned up
+    }
+
+    if(!ProjectInfo::isStandalone)
+    {
+        // Block incoming gui messages from pd if there is no active editor
+        pd->messageDispatcher->setBlockMessages(true);
     }
 }
 
@@ -418,7 +427,7 @@ CallOutBox& PluginEditor::showCalloutBox(std::unique_ptr<Component> content, Rec
 
 DragAndDropTarget* PluginEditor::findNextDragAndDropTarget(Point<int> screenPos)
 {
-    return &tabComponent;
+    return tabComponent.getScreenBounds().contains(screenPos) ? &tabComponent : nullptr;
 }
 
 void PluginEditor::resized()
@@ -522,11 +531,11 @@ void PluginEditor::parentSizeChanged()
     if (!ProjectInfo::isStandalone)
         return;
 
-    auto* standalone = dynamic_cast<DocumentWindow*>(getTopLevelComponent());
+    auto* standalone = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
     // Hide TitleBar Buttons in Plugin Mode
     bool visible = !isInPluginMode();
 #if JUCE_MAC
-    if (!standalone->isUsingNativeTitleBar()) {
+    if (!standalone->useNativeTitlebar()) {
         // & hide TitleBar buttons when fullscreen on MacOS
         visible = visible && !standalone->isFullScreen();
         standalone->getCloseButton()->setVisible(visible);
@@ -542,7 +551,7 @@ void PluginEditor::parentSizeChanged()
             OSUtils::HideTitlebarButtons(peer->getNativeHandle(), false, false, false);
     }
 #else
-    if (!standalone->isUsingNativeTitleBar()) {
+    if (!standalone->useNativeTitlebar()) {
         // Hide/Show TitleBar Buttons in Plugin Mode
         standalone->getCloseButton()->setVisible(visible);
         standalone->getMinimiseButton()->setVisible(visible);
@@ -579,8 +588,8 @@ void PluginEditor::mouseDown(MouseEvent const& e)
     }
 
     if (e.getPosition().getY() < toolbarHeight) {
-        if (auto* window = findParentComponentOfClass<DocumentWindow>()) {
-            if (!window->isUsingNativeTitleBar())
+        if (auto* window = findParentComponentOfClass<PlugDataWindow>()) {
+            if (!window->useNativeTitlebar())
                 windowDragger.startDraggingWindow(window, e.getEventRelativeTo(window));
         }
     }
@@ -592,8 +601,8 @@ void PluginEditor::mouseDrag(MouseEvent const& e)
         return;
 
     if (!isMaximised) {
-        if (auto* window = findParentComponentOfClass<DocumentWindow>()) {
-            if (!window->isUsingNativeTitleBar())
+        if (auto* window = findParentComponentOfClass<PlugDataWindow>()) {
+            if (!window->useNativeTitlebar())
                 windowDragger.dragWindow(window, e.getEventRelativeTo(window), nullptr);
         }
     }
@@ -817,7 +826,6 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
     bool isDragging = false;
     bool hasCanvas = false;
     bool locked = true;
-    bool canConnect = false;
     bool canUndo = false;
     bool canRedo = false;
 
@@ -836,7 +844,6 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         canRedo = cnv->patch.canRedo() && !isDragging;
 
         locked = getValue<bool>(cnv->locked);
-        canConnect = cnv->canConnectSelectedObjects();
     }
 
     switch (commandID) {
@@ -966,6 +973,12 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         result.setActive(hasCanvas && !isDragging && !locked && hasSelection);
         break;
     }
+    case CommandIDs::Tidy: {
+        result.setInfo("Tidy", "Tidy objects", "Edit", 0);
+        result.addDefaultKeypress(82, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+        result.setActive(hasCanvas && !isDragging && !locked && hasSelection);
+        break;
+    }
     case CommandIDs::Triggerize: {
         result.setInfo("Triggerize", "Triggerize objects", "Edit", 0);
         result.addDefaultKeypress(84, ModifierKeys::commandModifier);
@@ -973,16 +986,15 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         break;
     }
     case CommandIDs::Duplicate: {
-
         result.setInfo("Duplicate", "Duplicate selection", "Edit", 0);
         result.addDefaultKeypress(68, ModifierKeys::commandModifier);
-        result.setActive(hasCanvas && !isDragging && !locked && hasObjectSelection);
+        result.setActive(hasCanvas && !isDragging && !locked && hasSelection);
         break;
     }
     case CommandIDs::CreateConnection: {
         result.setInfo("Create connection", "Create a connection between selected objects", "Edit", 0);
         result.addDefaultKeypress(75, ModifierKeys::commandModifier);
-        result.setActive(canConnect);
+        result.setActive(hasCanvas && !isDragging && !locked && hasSelection);
         break;
     }
     case CommandIDs::RemoveConnections: {
@@ -1292,6 +1304,12 @@ bool PluginEditor::perform(InvocationInfo const& info)
         cnv->encapsulateSelection();
         return true;
     }
+    case CommandIDs::Tidy:
+    {
+        cnv = getCurrentCanvas();
+        cnv->tidySelection();
+        return true;
+    }
     case CommandIDs::Triggerize: {
         cnv = getCurrentCanvas();
         cnv->triggerizeSelection();
@@ -1299,7 +1317,8 @@ bool PluginEditor::perform(InvocationInfo const& info)
     }
     case CommandIDs::CreateConnection: {
         cnv = getCurrentCanvas();
-        return cnv->connectSelectedObjects();
+        cnv->connectSelection();
+        return true;
     }
     case CommandIDs::RemoveConnections: {
         cnv = getCurrentCanvas();
@@ -1462,7 +1481,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
                             obj->getX() + Object::margin,
                             obj->getY() + obj->getHeight())));
                 }
-            } else if ((cnv->getSelectionOfType<Object>().size() == 0) && (cnv->getSelectionOfType<Connection>().size() == 1)) {
+            } else if ((cnv->getSelectionOfType<Object>().size() == 0) && (cnv->getSelectionOfType<Connection>().size() == 1)) { // Autopatching: insert object in connection. Should document this better!
                 // if 1 connection is selected, create new object in the middle of connection
                 cnv->patch.startUndoSequence("ObjectInConnection");
                 cnv->lastSelectedConnection = cnv->getSelectionOfType<Connection>().getFirst();
@@ -1496,7 +1515,7 @@ bool PluginEditor::wantsRoundedCorners()
     // Since this is called in a paint routine, use reinterpret_cast instead of dynamic_cast for efficiency
     // For the standalone, the top-level component should always be DocumentWindow derived!
     if (auto* window = reinterpret_cast<PlugDataWindow*>(getTopLevelComponent())) {
-        return !window->isUsingNativeTitleBar() && !window->isMaximised() && ProjectInfo::canUseSemiTransparentWindows();
+        return !window->useNativeTitlebar() && !window->isMaximised() && ProjectInfo::canUseSemiTransparentWindows();
     } else {
         return true;
     }

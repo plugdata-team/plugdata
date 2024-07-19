@@ -596,6 +596,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
     popupMenu.addSeparator();
     addCommandItem(popupMenu, CommandIDs::Encapsulate);
+    addCommandItem(popupMenu, CommandIDs::Triggerize);
     popupMenu.addSeparator();
 
     PopupMenu orderMenu;
@@ -653,6 +654,8 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     };
 
     PopupMenu alignMenu;
+    addCommandItem(alignMenu, CommandIDs::Tidy);
+    alignMenu.addSeparator();
     alignMenu.addCustomItem(AlignLeft, std::make_unique<AlignmentMenuItem>(Icons::AlignLeft, "Align left"), nullptr, "Align left");
     alignMenu.addCustomItem(AlignHCentre, std::make_unique<AlignmentMenuItem>(Icons::AlignVCentre, "Align centre"), nullptr, "Align centre");
     alignMenu.addCustomItem(AlignRight, std::make_unique<AlignmentMenuItem>(Icons::AlignRight, "Align right"), nullptr, "Align right");

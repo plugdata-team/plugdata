@@ -170,10 +170,17 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     parameters.addParamInt("Height", cDimensions, &patchHeight, 327, onInteractionFn);
 
     updatePatchSnapshot();
+    
+    patch.setVisible(true);
 }
 
 Canvas::~Canvas()
 {
+    for(auto* object : objects)
+    {
+        object->hideEditor();
+    }
+    
     saveViewportState();
     zoomScale.removeListener(this);
     editor->removeModifierKeyListener(this);
@@ -314,26 +321,27 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         nvgBeginPath(nvg);
         nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
 
+        auto gridSize = objectGrid.gridSize ? objectGrid.gridSize : 25;
         auto feather = getRenderScale() > 1.0f ? 0.25f : 0.75f;
         if (getValue<float>(zoomScale) >= 1.0f) {
             nvgSave(nvg);
-            nvgTranslate(nvg, canvasOrigin.x % objectGrid.gridSize, canvasOrigin.y % objectGrid.gridSize); // Make sure grid aligns with origin
+            nvgTranslate(nvg, canvasOrigin.x % gridSize, canvasOrigin.y % gridSize); // Make sure grid aligns with origin
             NVGpaint dots = nvgDotPattern(nvg, dotsColour, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize, 1.0f, feather);
             nvgFillPaint(nvg, dots);
             nvgFill(nvg);
             nvgRestore(nvg);
         } else {
             nvgSave(nvg);
-            nvgTranslate(nvg, canvasOrigin.x % (objectGrid.gridSize * 4), canvasOrigin.y % (objectGrid.gridSize * 4)); // Make sure grid aligns with origin
+            nvgTranslate(nvg, canvasOrigin.x % (gridSize * 4), canvasOrigin.y % (gridSize * 4)); // Make sure grid aligns with origin
             auto darkDotColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId).contrasting());
             auto scaledDotSize = jmap(zoom, 1.0f, 0.25f, 1.0f, 4.0f);
             if (zoom < 0.3f && getRenderScale() <= 1.0f)
                 scaledDotSize = jmap(zoom, 0.3f, 0.25f, 4.0f, 8.0f);
 
             for (int i = 0; i < 4; i++) {
-                nvgTranslate(nvg, objectGrid.gridSize, 0);
+                nvgTranslate(nvg, gridSize, 0);
 
-                NVGpaint dots = nvgDotPattern(nvg, i == 3 ? darkDotColour : dotsColour, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize * 4, scaledDotSize, feather + 0.2f);
+                NVGpaint dots = nvgDotPattern(nvg, i == 3 ? darkDotColour : dotsColour, nvgRGBA(0, 0, 0, 0), gridSize * 4, scaledDotSize, feather + 0.2f);
                 nvgFillPaint(nvg, dots);
                 nvgFill(nvg);
             }
@@ -341,8 +349,8 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             nvgSave(nvg);
 
             for (int i = 0; i < 4; i++) {
-                nvgTranslate(nvg, 0, objectGrid.gridSize);
-                NVGpaint dots = nvgDotPattern(nvg, i == 3 ? darkDotColour : dotsColour, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize * 4, scaledDotSize, feather + 0.2f);
+                nvgTranslate(nvg, 0, gridSize);
+                NVGpaint dots = nvgDotPattern(nvg, i == 3 ? darkDotColour : dotsColour, nvgRGBA(0, 0, 0, 0), gridSize * 4, scaledDotSize, feather + 0.2f);
                 nvgFillPaint(nvg, dots);
                 nvgFill(nvg);
             }
@@ -987,6 +995,60 @@ void Canvas::updateDrawables()
     }
 }
 
+void Canvas::shiftKeyChanged(bool isHeld)
+{
+    if(!isHeld) return;
+    
+    if(connectionsBeingCreated.size() == 1) {
+        Iolet* connectingOutlet = connectionsBeingCreated[0]->getIolet();
+        Iolet* targetInlet = nullptr;
+        for(auto& object : objects)
+        {
+            for(auto* iolet : object->iolets)
+            {
+                if(iolet->isTargeted && iolet != connectingOutlet)
+                {
+                    targetInlet = iolet;
+                    break;
+                }
+            }
+        }
+ 
+        if(targetInlet) {
+            bool inverted = connectingOutlet->isInlet;
+            if(inverted) std::swap(connectingOutlet, targetInlet);
+
+            if(auto x = patch.getPointer()) {
+                auto* outObj = connectingOutlet->object->getPointer();
+                auto* inObj = targetInlet->object->getPointer();
+                auto outletIndex = connectingOutlet->ioletIdx;
+                auto inletIndex = targetInlet->ioletIdx;
+
+                std::vector<t_gobj*> selectedObjects;
+                for (auto* object : getSelectionOfType<Object>()) {
+                    if (auto* ptr = object->getPointer()) {
+                        selectedObjects.push_back(ptr);
+                    }
+                }
+                
+                // If we autopatch from inlet to outlet with multiple selection, pure-data can't handle it
+                if(inverted && selectedObjects.size() > 1) return;
+                
+                t_outconnect* connection = nullptr;
+                auto selectedConnections = getSelectionOfType<Connection>();
+                if(selectedConnections.size() == 1)
+                {
+                    connection = selectedConnections[0]->getPointer();
+                }
+                
+                pd::Interface::shiftAutopatch(x.get(), inObj, inletIndex, outObj, outletIndex, selectedObjects, connection);
+            }
+        }
+    }
+    
+    synchronise();
+}
+
 void Canvas::commandKeyChanged(bool isHeld)
 {
     commandLocked = isHeld;
@@ -1320,6 +1382,10 @@ bool Canvas::keyPressed(KeyPress const& key)
         moveSelection(0, moveDistance);
         return false;
     }
+    if (keycode == KeyPress::tabKey) {
+        cycleSelection();
+        return false;
+    }
 
     return false;
 }
@@ -1507,6 +1573,12 @@ void Canvas::duplicateSelection()
         }
     }
     
+    // If absolute grid is enabled, snap duplication to grid
+    if(dragState.duplicateOffset.isOrigin() && SettingsFile::getInstance()->getProperty<bool>("grid_enabled") && (SettingsFile::getInstance()->getProperty<int>("grid_type") & 1))
+    {
+        dragState.duplicateOffset = {objectGrid.gridSize - 10, objectGrid.gridSize - 10};
+    }
+    
     // If we previously duplicated and dragged before, and then drag again, the new offset should be relative
     // to the offset we already applied with the previous drag
     if(dragState.lastDuplicateOffset != dragState.duplicateOffset)
@@ -1516,8 +1588,17 @@ void Canvas::duplicateSelection()
 
     dragState.lastDuplicateOffset = dragState.duplicateOffset;
     
+    t_outconnect* connection = nullptr;
+    auto selectedConnections = getSelectionOfType<Connection>();
+    SafePointer<Connection> connectionSelectedOriginally = nullptr;
+    if(selectedConnections.size() == 1)
+    {
+        connectionSelectedOriginally = selectedConnections[0];
+        connection = selectedConnections[0]->getPointer();
+    }
+    
     // Tell pd to duplicate
-    patch.duplicate(objectsToDuplicate);
+    patch.duplicate(objectsToDuplicate, connection);
 
     deselectAll();
 
@@ -1536,27 +1617,61 @@ void Canvas::duplicateSelection()
             duplicated.add(object);
         }
     }
-    
+        
     // Move duplicated objects if they overlap exisisting objects
     std::vector<t_gobj*> moveObjects;
     for (auto* dup : duplicated) {
         moveObjects.emplace_back(dup->getPointer());
     }
-
+    
     patch.moveObjects(moveObjects, dragState.duplicateOffset.x, dragState.duplicateOffset.y);
+    
     for (auto* object : objects) {
         object->updateBounds();
     }
     
-    // Select the newly duplicated objects
+    // Select the newly duplicated objects, and calculate new viewport position
+    Rectangle<int> selectionBounds;
     for (auto* obj : duplicated) {
         setSelected(obj, true);
+        selectionBounds = selectionBounds.getUnion(obj->getBounds());
+    }
+    
+    selectionBounds = selectionBounds.transformedBy(getTransform());
+
+    // Adjust the viewport position to ensure the duplicated objects are visible
+    auto viewportPos = viewport->getViewPosition();
+    auto viewWidth = viewport->getWidth();
+    auto viewHeight = viewport->getHeight();
+    if (!selectionBounds.isEmpty()) {
+        int deltaX = 0, deltaY = 0;
+        
+        if (selectionBounds.getRight() > viewportPos.getX() + viewWidth) {
+            deltaX = selectionBounds.getRight() - (viewportPos.getX() + viewWidth);
+        } else if (selectionBounds.getX() < viewportPos.getX()) {
+            deltaX = selectionBounds.getX() - viewportPos.getX();
+        }
+
+        if (selectionBounds.getBottom() > viewportPos.getY() + viewHeight) {
+            deltaY = selectionBounds.getBottom() - (viewportPos.getY() + viewHeight);
+        } else if (selectionBounds.getY() < viewportPos.getY()) {
+            deltaY = selectionBounds.getY() - viewportPos.getY();
+        }
+
+        // Set the new viewport position
+        viewport->setViewPosition(viewportPos + Point<int>(deltaX, deltaY));
     }
     
     dragState.wasDuplicated = true;
     
     patch.endUndoSequence("Duplicate object/s");
     patch.deselectAll();
+    
+    if(connectionSelectedOriginally)
+    {
+        setSelected(connectionSelectedOriginally.getComponent(), true);
+    }
+    
 }
 
 void Canvas::removeSelection()
@@ -1633,22 +1748,93 @@ void Canvas::removeSelectedConnections()
     synchroniseSplitCanvas();
 }
 
-void Canvas::triggerizeSelection()
+void Canvas::cycleSelection()
 {
-    auto selectedBoxes = getSelectionOfType<Object>();
+        if(connectionsBeingCreated.size() == 1)
+        {
+            connectionsBeingCreated[0]->toNextIolet();
+            return;
+        }
+        // Get the selected objects
+        auto selectedObjects = getSelectionOfType<Object>();
+        
+        if(selectedObjects.size() == 1)
+        {
+            // Find the index of the currently selected object
+            auto currentIdx = objects.indexOf(selectedObjects[0]);
+            setSelected(selectedObjects[0], false);
+            
+            // Calculate the next index (wrap around if at the end)
+            auto nextIdx = (currentIdx + 1) % objects.size();
+            setSelected(objects[nextIdx], true);
+            
+            return;
+        }
+        
+        // Get the selected connections if no objects are selected
+        auto selectedConnections = getSelectionOfType<Connection>();
+        
+        if(selectedConnections.size() == 1)
+        {
+            // Find the index of the currently selected connection
+            auto currentIdx = connections.indexOf(selectedConnections[0]);
+            setSelected(selectedConnections[0], false);
+            
+            // Calculate the next index (wrap around if at the end)
+            auto nextIdx = (currentIdx + 1) % connections.size();
+            setSelected(connections[nextIdx], true);
+        }
+}
 
-    std::vector<t_gobj*> objects;
+void Canvas::tidySelection()
+{
+    std::vector<t_gobj*> selectedObjects;
     for (auto* object : getSelectionOfType<Object>()) {
         if (auto* ptr = object->getPointer()) {
-            objects.push_back(ptr);
+            selectedObjects.push_back(ptr);
         }
     }
-
+    
     if (auto patchPtr = patch.getPointer()) {
-        pd::Interface::triggerize(patchPtr.get(), objects);
+        pd::Interface::tidy(patchPtr.get(), selectedObjects);
+    }
+    
+    synchronise();
+}
+
+void Canvas::triggerizeSelection()
+{
+    std::vector<t_gobj*> selectedObjects;
+    for (auto* object : getSelectionOfType<Object>()) {
+        if (auto* ptr = object->getPointer()) {
+            selectedObjects.push_back(ptr);
+        }
+    }
+    
+    t_outconnect* connection = nullptr;
+    auto selectedConnections = getSelectionOfType<Connection>();
+    if(selectedConnections.size() == 1)
+    {
+        connection = selectedConnections[0]->getPointer();
     }
 
-    synchronise();
+    t_gobj* triggerizedObject = nullptr;
+    if (auto patchPtr = patch.getPointer()) {
+        triggerizedObject = pd::Interface::triggerize(patchPtr.get(), selectedObjects, connection);
+    }
+
+    performSynchronise();
+    
+    if(triggerizedObject) {
+        for(auto* object : objects)
+        {
+            if(object->getPointer() == triggerizedObject) {
+                setSelected(object, true);
+                object->showEditor();
+                hideSuggestions();
+            }
+        }
+    }
 }
 
 void Canvas::encapsulateSelection()
@@ -1793,44 +1979,27 @@ void Canvas::encapsulateSelection()
     patch.deselectAll();
 }
 
-bool Canvas::canConnectSelectedObjects()
+void Canvas::connectSelection()
 {
-    auto selection = getSelectionOfType<Object>();
-    bool rightSize = selection.size() == 2;
-
-    if (!rightSize)
-        return false;
-
-    Object* topObject = selection[0]->getY() > selection[1]->getY() ? selection[1] : selection[0];
-    Object* bottomObject = selection[0] == topObject ? selection[1] : selection[0];
-
-    bool hasInlet = bottomObject->numInputs > 0;
-    bool hasOutlet = topObject->numOutputs > 0;
-
-    return hasInlet && hasOutlet;
-}
-
-bool Canvas::connectSelectedObjects()
-{
-    auto selection = getSelectionOfType<Object>();
-    bool rightSize = selection.size() == 2;
-
-    if (!rightSize)
-        return false;
-
-    auto* topObject = selection[0]->getY() > selection[1]->getY() ? selection[1]->getPointer() : selection[0]->getPointer();
-    auto* bottomObject = selection[0]->getPointer() == topObject ? selection[1]->getPointer() : selection[0]->getPointer();
-
-    auto* checkedTopObject = pd::Interface::checkObject(topObject);
-    auto* checkedBottomObject = pd::Interface::checkObject(bottomObject);
-
-    if (checkedTopObject && checkedBottomObject) {
-        patch.createConnection(checkedTopObject, 0, checkedBottomObject, 0);
+    std::vector<t_gobj*> selectedObjects;
+    for (auto* object : getSelectionOfType<Object>()) {
+        if (auto* ptr = object->getPointer()) {
+            selectedObjects.push_back(ptr);
+        }
     }
-
+    
+    t_outconnect* connection = nullptr;
+    auto selectedConnections = getSelectionOfType<Connection>();
+    if(selectedConnections.size() == 1)
+    {
+        connection = selectedConnections[0]->getPointer();
+    }
+    
+    if(auto patchPtr = patch.getPointer()) {
+        pd::Interface::connectSelection(patchPtr.get(), selectedObjects, connection);
+    }
+    
     synchronise();
-
-    return true;
 }
 
 void Canvas::cancelConnectionCreation()
@@ -2037,6 +2206,15 @@ void Canvas::valueChanged(Value& v)
     // Update zoom
     if (v.refersToSameSourceAs(zoomScale)) {
         editor->statusbar->updateZoomLevel();
+        auto newScale = getValue<float>(zoomScale);
+
+        // FIXME: cached geometry can look thicker/thinner at different zoom scales (possibly a bug with nanovg)
+        // So we update all cached connections here
+        // float comparison should be ok, as lastViewportScale is always set via zoomScale
+        if (patch.lastViewportScale != newScale) {
+            for (auto connection : connections)
+                connection->forceUpdate(true);
+        }
         patch.lastViewportScale = getValue<float>(zoomScale);
         hideSuggestions();
     } else if (v.refersToSameSourceAs(patchWidth)) {

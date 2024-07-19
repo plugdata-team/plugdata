@@ -6,7 +6,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(ENABLE_TESTING "" OFF)
 option(ENABLE_SFIZZ "" ON)
-option(ENABLE_GEM "" ON)
+option(ENABLE_GEM "" OFF)
 option(ENABLE_ASAN "" OFF)
 option(MACOS_LEGACY "" OFF)
 option(VERBOSE "" OFF)
@@ -85,6 +85,7 @@ endif()
 
 if(MSVC)
   add_compile_options(/MP /wd4244 /wd4311 /wd4003 /wd4047 /wd4477 /wd4068 /wd4133 /wd4311)
+  add_compile_options("$<$<CONFIG:Debug>:/bigobj>")
   add_link_options(/IGNORE:4286 /IGNORE:4217)
 else()
   add_compile_options(-Wall -Wstrict-aliasing -Wuninitialized -Wno-conversion -Wno-overloaded-virtual -Wno-sign-compare -Wno-comment -Wno-unknown-pragmas -Wno-unused-result)
@@ -92,14 +93,15 @@ else()
 endif()
 
 message(STATUS "Preparing documentation")
-execute_process(COMMAND python3 parse_documentation.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts RESULT_VARIABLE PREPARE_DOCUMENTATION_RESULT)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Resources)
+execute_process(COMMAND python3 parse_documentation.py ${CMAKE_CURRENT_BINARY_DIR}/Resources WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts RESULT_VARIABLE PREPARE_DOCUMENTATION_RESULT)
 
 if(NOT PREPARE_DOCUMENTATION_RESULT EQUAL 0)
     message(FATAL_ERROR "Preparing documentation failed with error code ${PREPARE_DOCUMENTATION_RESULT}")
 endif()
 
 message(STATUS "Packaging resources")
-execute_process(COMMAND python3 package_resources.py ${ENABLE_GEM} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts RESULT_VARIABLE PACKAGE_RESOURCES_RESULT)
+execute_process(COMMAND python3 package_resources.py ${ENABLE_GEM} ${CMAKE_CURRENT_BINARY_DIR}/Resources WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts RESULT_VARIABLE PACKAGE_RESOURCES_RESULT)
 
 if(NOT PACKAGE_RESOURCES_RESULT EQUAL 0)
     message(FATAL_ERROR "Resource packaging failed with error code ${PACKAGE_RESOURCES_RESULT}")
@@ -128,7 +130,6 @@ set(SOURCES_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Source)
 
 file(GLOB plugdata_resources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/IconFont.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterUnicode_*.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterTabular.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterBold.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterSemiBold.ttf
@@ -138,8 +139,10 @@ file(GLOB plugdata_resources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/RobotoMono-Regular.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_large_logo.png
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo.png
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Filesystem_*.zip
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Documentation.bin
+    # Generated resources
+    ${CMAKE_CURRENT_BINARY_DIR}/Resources/Documentation.bin
+    ${CMAKE_CURRENT_BINARY_DIR}/Resources/InterUnicode_*.ttf
+    ${CMAKE_CURRENT_BINARY_DIR}/Resources/Filesystem_*.zip
     )
 
 
@@ -565,7 +568,7 @@ SET_TARGET_PROPERTIES(plugdata_standalone PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE
 endif()
 
 if(MSVC)
-set_target_properties(pthreadVC3 pthreadVSE3 pthreadVCE3 PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
+set_target_properties(pthreadVSE3 pthreadVCE3 PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
 endif()
 
 if(APPLE)
@@ -573,6 +576,8 @@ if(APPLE)
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata-fx.vst3 DESTINATION "/Library/Audio/Plug-ins/VST3")
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata.lv2 DESTINATION "/Library/Audio/Plug-ins/LV2")
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata-fx.lv2 DESTINATION "/Library/Audio/Plug-ins/LV2")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/CLAP/plugdata.clap DESTINATION "/Library/Audio/Plug-ins/CLAP")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/CLAP/plugdata-fx.clap DESTINATION "/Library/Audio/Plug-ins/CLAP")
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AU/plugdata.component DESTINATION "/Library/Audio/Plug-ins/Components")
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AU/plugdata-fx.component DESTINATION "/Library/Audio/Plug-ins/Components")
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AU/plugdata-midi.component DESTINATION "/Library/Audio/Plug-ins/Components")
@@ -582,14 +587,33 @@ elseif(WIN32)
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata-fx.vst3 DESTINATION "$ENV{PROGRAMFILES}/Common Files/VST3")
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata.lv2 DESTINATION "$ENV{PROGRAMFILES}/Common Files/LV2")
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata-fx.lv2 DESTINATION "$ENV{PROGRAMFILES}/Common Files/LV2")
+  install(FILES ${PLUGDATA_PLUGINS_LOCATION}/CLAP/plugdata.clap DESTINATION "$ENV{PROGRAMFILES}/Common Files/CLAP")
+  install(FILES ${PLUGDATA_PLUGINS_LOCATION}/CLAP/plugdata-fx.clap DESTINATION "$ENV{PROGRAMFILES}/Common Files/CLAP")
   install(PROGRAMS ${PLUGDATA_PLUGINS_LOCATION}/Standalone/plugdata.exe DESTINATION "$ENV{PROGRAMFILES}/plugdata/")
-  install(PROGRAMS ${PLUGDATA_PLUGINS_LOCATION}/LV2/pd.dll DESTINATION "$ENV{PROGRAMFILES}/plugdata/")
+  install(PROGRAMS ${PLUGDATA_PLUGINS_LOCATION}/Standalone/pd.dll DESTINATION "$ENV{PROGRAMFILES}/plugdata/")
 elseif(UNIX AND NOT APPLE) # Linux or BSD
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata.vst3 DESTINATION "$ENV{HOME}/.vst3")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata-fx.vst3 DESTINATION "$ENV{HOME}/.vst3")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata.lv2 DESTINATION "$ENV{HOME}/.lv2")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata-fx.lv2 DESTINATION "$ENV{HOME}/.lv2")
-  #TODO: install standalone and Kott's .desktop file
+    if(FLATPAK_PLUGIN)
+      install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata.vst3 DESTINATION extensions/Plugins/vst3)
+      install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata-fx.vst3 DESTINATION extensions/Plugins/vst3)
+      install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata.lv2 DESTINATION extensions/Plugins/lv2)
+      install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata-fx.lv2 DESTINATION extensions/Plugins/lv2)
+      install(FILES ${PLUGDATA_PLUGINS_LOCATION}/CLAP/plugdata.clap DESTINATION extensions/Plugins/clap)
+      install(FILES ${PLUGDATA_PLUGINS_LOCATION}/CLAP/plugdata-fx.clap DESTINATION extensions/Plugins/clap)
+    elseif(FLATPAK_STANDALONE)
+      install(FILES ${CMAKE_SOURCE_DIR}/Resources/Icons/plugdata_logo_linux.png DESTINATION share/icons/hicolor/512x512/apps RENAME plugdata.png)
+      install(FILES ${CMAKE_SOURCE_DIR}/Resources/Installer/plugdata.desktop DESTINATION share/applications)
+      install(PROGRAMS ${PLUGDATA_PLUGINS_LOCATION}/Standalone/plugdata DESTINATION bin)
+    else()
+      install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata.vst3 DESTINATION "$ENV{HOME}/.vst3")
+      install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata-fx.vst3 DESTINATION "$ENV{HOME}/.vst3")
+      install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata.lv2 DESTINATION "$ENV{HOME}/.lv2")
+      install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata-fx.lv2 DESTINATION "$ENV{HOME}/.lv2")
+      install(FILES ${PLUGDATA_PLUGINS_LOCATION}/CLAP/plugdata.clap DESTINATION "$ENV{HOME}/.clap")
+      install(FILES ${PLUGDATA_PLUGINS_LOCATION}/CLAP/plugdata-fx.clap DESTINATION "$ENV{HOME}/.clap")
+      install(FILES ${CMAKE_SOURCE_DIR}/Resources/Icons/plugdata_logo_linux.png DESTINATION share/icons/hicolor/512x512/apps RENAME plugdata.png)
+      install(FILES ${CMAKE_SOURCE_DIR}/Resources/Installer/plugdata.desktop DESTINATION share/applications)
+      install(PROGRAMS ${PLUGDATA_PLUGINS_LOCATION}/Standalone/plugdata DESTINATION bin)
+    endif()
 endif()
 
 #add_custom_target(plugdata_standalone ALL)

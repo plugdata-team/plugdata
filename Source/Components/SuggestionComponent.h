@@ -14,6 +14,7 @@
 
 extern "C" {
 int is_gem_object(char const* sym);
+int is_gem_object_name(char const* sym);
 }
 
 // Component that sits on top of a TextEditor and will draw auto-complete suggestions over it
@@ -177,6 +178,7 @@ class SuggestionComponent : public Component
             setWantsKeyboardFocus(false);
             setConnectedEdges(12);
             setClickingTogglesState(true);
+            setTriggeredOnMouseDown(true);
             setRadioGroupId(hash("suggestion_component"));
             setColour(TextButton::buttonOnColourId, findColour(ScrollBar::thumbColourId));
         }
@@ -195,12 +197,6 @@ class SuggestionComponent : public Component
             drawIcon = icon;
 
             repaint();
-        }
-
-        // TODO: why is this necessary?
-        void mouseDown(MouseEvent const& e) override
-        {
-            onClick();
         }
 
         void paint(Graphics& g) override
@@ -327,14 +323,15 @@ public:
             auto* but = buttons[i];
             but->setAlwaysOnTop(true);
 
-            but->onClick = [this, i, but, editor]() mutable {
+            but->onClick = [this, i, editor]() mutable {
                 // If the button is already selected, perform autocomplete
-                if (but->getToggleState() && autoCompleteComponent) {
+                if (i == currentidx && autoCompleteComponent) {
                     autoCompleteComponent->autocomplete();
-                    return;
+                }
+                else {
+                    move(0, i);
                 }
 
-                move(0, i);
                 if (!editor->isVisible())
                     editor->setVisible(true);
                 editor->grabKeyboardFocus();
@@ -374,6 +371,7 @@ public:
 
     void removeCalloutBox()
     {
+        currentidx = 0;
         setVisible(false);
 
         if (isOnDesktop()) {
@@ -416,11 +414,20 @@ public:
         auto* but = buttons[currentidx];
 
         but->setToggleState(true, dontSendNotification);
-
-        if (autoCompleteComponent) {
-            String newText = buttons[currentidx]->getButtonText();
-            autoCompleteComponent->setSuggestion(newText);
+        auto buttonText = but->getButtonText();
+        
+        if (autoCompleteComponent && buttonText.startsWith(openedEditor->getText())) {
+            autoCompleteComponent->setSuggestion(buttonText);
             autoCompleteComponent->enableAutocomplete(true);
+            currentObject->updateBounds();
+            resized();
+        }
+        else
+        {
+            openedEditor->setText(buttonText, dontSendNotification);
+            openedEditor->moveCaretToEnd(false);
+            autoCompleteComponent->setSuggestion("");
+            autoCompleteComponent->enableAutocomplete(false);
             currentObject->updateBounds();
             resized();
         }
@@ -464,8 +471,17 @@ public:
     }
     void updateSuggestions(String const& currentText)
     {
-        if (!currentObject)
+        if (!currentObject || lastText == currentText) {
             return;
+        }
+        
+        if(currentidx >= 0 && buttons[currentidx]->getButtonText() == currentText)
+        {
+            if(autoCompleteComponent) autoCompleteComponent->setSuggestion("");
+            return;
+        }
+        
+        lastText = currentText;
         
         auto& library = currentObject->cnv->pd->objectLibrary;
 
@@ -479,14 +495,14 @@ public:
             int compareElements(String const& a, String const& b) const
             {
                 // Check if suggestion exacly matches query
-                if (a == query) {
+                if (a == query && b != query) {
                     return -1;
                 }
 
-                if (b == query) {
+                if (b == query && a != query) {
                     return 1;
                 }
-
+                
                 // Check if suggestion is equal to query with "~" appended
                 if (a == (query + "~") && b != query && b != (query + "~")) {
                     return -1;
@@ -504,16 +520,18 @@ public:
                 if (b.startsWith(query + ".") && a != query && a != (query + "~") && !a.startsWith(query + ".")) {
                     return 1;
                 }
-
-                if (a.length() < b.length()) {
+                
+                if(a.startsWith(query) && !b.startsWith(query))
+                {
                     return -1;
                 }
-
-                if (b.length() < a.length()) {
+                
+                if(b.startsWith(query) && !a.startsWith(query))
+                {
                     return 1;
                 }
-
-                return a.compareNatural(b);
+                
+                return 0;
             }
             String const query;
         };
@@ -523,11 +541,11 @@ public:
                 return suggestions;
 
             auto sorter = ObjectSorter(query);
-            suggestions.strings.sort(sorter);
+            suggestions.strings.sort(sorter, true);
             return suggestions;
         };
 
-        if (currentObject->gui && currentObject->getType(false) == "message") {
+        if (currentObject->gui && currentObject->getType(false) == "msg") {
             auto nearbyMethods = findNearbyMethods(currentText);
 
             numOptions = std::min<int>(buttons.size(), nearbyMethods.size());
@@ -619,9 +637,22 @@ public:
             buttons[currentidx]->setToggleState(true, dontSendNotification);
         }
 
-        auto filterObjects = [_this = SafePointer(this)](StringArray& toFilter) {
+        auto filterObjects = [_this = SafePointer(this), &library](StringArray& toFilter) {
             if (!_this || !_this->currentObject)
                 return;
+            
+            if(!SettingsFile::getInstance()->getLibrariesTree().getChildWithProperty("Name", "Gem").isValid())
+            {
+                StringArray noGemObjects;
+                for (auto& object : toFilter) {
+                    if(object.startsWith("Gem/") || !library->isGemObject(object)) // Don't suggest Gem objects without "Gem/" prefix unless gem library is loaded
+                    {
+                        noGemObjects.add(object);
+                    }
+                }
+                
+                toFilter = noGemObjects;
+            }
 
             // When hvcc mode is enabled, show only hvcc compatible objects
             if (getValue<bool>(_this->currentObject->editor->hvccMode)) {
@@ -633,7 +664,6 @@ public:
                         hvccObjectsFound.add(object);
                     }
                 }
-
                 toFilter = hvccObjectsFound;
             }
 
@@ -653,28 +683,25 @@ public:
 
         filterObjects(found);
 
-        if (found.isEmpty()) {
+        if (found.isEmpty() || !found[0].startsWith(currentText)) {
             autoCompleteComponent->enableAutocomplete(false);
             deselectAll();
             currentidx = -1;
         } else {
             found = sortSuggestions(currentText, found);
-            //currentidx = 0;
+            currentidx = 0;
             autoCompleteComponent->enableAutocomplete(true);
         }
-
-        auto applySuggestionsToButtons = [this, &library](StringArray& suggestions, String originalQuery) {
-            numOptions = static_cast<int>(suggestions.size());
+        
+        if (openedEditor) {
+            numOptions = static_cast<int>(found.size());
 
             // Apply object name and descriptions to buttons
             for (int i = 0; i < std::min<int>(buttons.size(), numOptions); i++) {
-                auto& name = suggestions[i];
+                auto& name = found[i];
 
                 auto info = library->getObjectInfo(name);
-                if (!info.isValid())
-                    continue;
-
-                auto description = info.getProperty("description").toString();
+                auto description = info.isValid() ? info.getProperty("description").toString() : "";
                 buttons[i]->setText(name, description, true);
 
                 buttons[i]->setInterceptsMouseClicks(true, false);
@@ -688,7 +715,7 @@ public:
             // Get length of user-typed text
             int textlen = openedEditor->getText().length();
 
-            if (suggestions.isEmpty() || textlen == 0) {
+            if (found.isEmpty() || textlen == 0) {
                 state = Hidden;
                 if (autoCompleteComponent)
                     autoCompleteComponent->enableAutocomplete(false);
@@ -709,34 +736,14 @@ public:
             currentidx = (currentidx + numButtons) % numButtons;
 
             // Retrieve best suggestion
-            auto const& fullName = suggestions[currentidx];
+            auto const& fullName = found[currentidx];
 
             if (fullName.length() > textlen && autoCompleteComponent) {
                 autoCompleteComponent->setSuggestion(fullName);
             } else if (autoCompleteComponent) {
                 autoCompleteComponent->setSuggestion("");
             }
-        };
-
-        if (openedEditor) {
-            applySuggestionsToButtons(found, currentText);
         }
-
-        library->getExtraSuggestions(found.size(), currentText, [_this = SafePointer(this), this, filterObjects, applySuggestionsToButtons, found, currentText](StringArray s) mutable {
-            if (!_this)
-                return;
-
-            filterObjects(s);
-
-            // This means the extra suggestions have returned too late to still be relevant
-            if (!openedEditor || currentText != openedEditor->getText())
-                return;
-
-            found.addArray(s);
-            found.removeDuplicates(false);
-
-            applySuggestionsToButtons(found, currentText);
-        });
     }
 
 private:
@@ -783,7 +790,7 @@ private:
         if (!currentObject) {
             return false;
         }
-        if (openedEditor->getHighlightedRegion().isEmpty() && key == KeyPress::rightKey && autoCompleteComponent && openedEditor->getCaretPosition() == openedEditor->getText().length()) {
+        if (openedEditor->getHighlightedRegion().isEmpty() && key == KeyPress::rightKey && autoCompleteComponent && autoCompleteComponent->isAutocompleting() && openedEditor->getCaretPosition() == openedEditor->getText().length()) {
             autoCompleteComponent->autocomplete();
             currentidx = 0;
             if (buttons.size())
@@ -927,6 +934,7 @@ private:
 
     SafePointer<TextEditor> openedEditor = nullptr;
     SafePointer<Object> currentObject = nullptr;
+    String lastText;
 
     StringArray excludeList = {
         "number~", // appears before numbox~ alphabetically, but is worse in every way
@@ -971,7 +979,9 @@ private:
         "out.mc.hip~",
         "pvoc~",
         "gran~",
-        "convpartition"
+        "convpartition",
+        "else",
+        "cyclone"
     };
 
     int windowMargin;

@@ -260,10 +260,6 @@ public:
             DragAndDropContainer::performExternalDragDropOfFiles({ tree.getProperty("Path") }, false, this, nullptr);
         };
 
-        fileTree = updater->getCurrentTree();
-        if (fileTree.isValid()) {
-            fileList.setValueTree(fileTree);
-        }
         addAndMakeVisible(fileList);
     }
 
