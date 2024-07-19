@@ -317,6 +317,8 @@ void PluginProcessor::updateSearchPaths()
     setThis();
 
     lockAudioThread();
+    
+    libpd_clear_search_path();
 
     // Get pd's search paths
     char* p[1024];
