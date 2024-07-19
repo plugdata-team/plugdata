@@ -208,8 +208,9 @@ public:
 
             object->updateBounds();
         } if (v.refersToSameSourceAs(hitAreaSize)) {
+            auto size = getValue<int>(hitAreaSize);
+            hitAreaSize = size = jmax(4, size);
             if (auto iemgui = ptr.get<t_iemgui>()) {
-                auto size = getValue<float>(hitAreaSize);
                 iemgui->x_w = size;
                 iemgui->x_h = size;
             }
