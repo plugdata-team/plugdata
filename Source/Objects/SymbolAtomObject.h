@@ -150,7 +150,7 @@ public:
         bool highlighted = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
 
         nvgSave(nvg);
-        nvgRoundedScissor(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(), Corners::objectCornerRadius);
+        nvgIntersectRoundedScissor(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(), Corners::objectCornerRadius);
 
         // Background
         nvgBeginPath(nvg);

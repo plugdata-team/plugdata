@@ -252,11 +252,7 @@ public:
         auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
         auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 
-        nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth() - 0.5f, b.getHeight() - 0.5f, Corners::objectCornerRadius);
-        nvgStrokeColor(nvg, object->isSelected() ? selectedOutlineColour : outlineColour);
-        nvgStrokeWidth(nvg, 1.0f);
-        nvgStroke(nvg);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBAf(0, 0, 0, 0), object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
         if (isOpenedInSplitView) {
             nvgFillColor(nvg, convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId)));
