@@ -843,6 +843,9 @@ void Object::mouseDown(MouseEvent const& e)
         return;
     }
 
+    if (gui->getProperties()["canvas_hovering"].equals(var(true)))
+        geometryLocked = false;
+
     wasLockedOnMouseDown = false;
 
     if (e.mods.isShiftDown()) {

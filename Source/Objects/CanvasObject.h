@@ -6,7 +6,6 @@
 
 class CanvasObject final : public ObjectBase {
 
-    bool locked;
     Value sizeProperty = SynchronousValue();
 
     IEMHelper iemHelper;
@@ -17,11 +16,12 @@ public:
         , iemHelper(ptr, object, this)
     {
         object->setColour(PlugDataColour::outlineColourId, Colours::transparentBlack);
-        locked = getValue<bool>(object->locked);
 
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamColour("Canvas color", cGeneral, &iemHelper.secondaryColour, PlugDataColour::guiObjectInternalOutlineColour);
         iemHelper.addIemParameters(objectParameters, false, true, 20, 12, 14);
+
+        getProperties().set("canvas_hovering", false);
     }
 
     void updateSizeProperty() override
@@ -71,18 +71,35 @@ public:
         return {};
     }
 
+    void setIsHovering(bool isHover)
+    {
+        // We use a property as otherwise we will have cyclical dependency between the base class and this
+        if (!getProperties()["canvas_hovering"].equals(var(isHover))) {
+            getProperties().set("canvas_hovering", isHover);
+            repaint();
+        }
+    }
+
     bool canReceiveMouseEvent(int x, int y) override
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
-            return !locked && Rectangle<int>(iemgui->x_w, iemgui->x_h).contains(x - Object::margin, y - Object::margin);
+            if (Rectangle<int>(iemgui->x_w, iemgui->x_h).contains(x - Object::margin, y - Object::margin)) {
+                setIsHovering(true);
+                return true;
+            };
         }
+
+        setIsHovering(false);
+
+        if (!object->geometryLocked)
+            return true;
 
         return false;
     }
 
-    void lock(bool isLocked) override
+    void geometryLock(bool isLocked) override
     {
-        locked = isLocked;
+        object->geometryLocked = isLocked;
     }
 
     void setPdBounds(Rectangle<int> b) override
@@ -122,12 +139,10 @@ public:
         Colour bgcolour = Colour::fromString(iemHelper.secondaryColour.toString());
         auto b = getLocalBounds().toFloat();
 
-        nvgFillColor(nvg, convertColour(bgcolour));
-        nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
-        nvgFill(nvg);
+        auto nvgBgColour = convertColour(bgcolour);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgBgColour, nvgBgColour, Corners::objectCornerRadius);
 
-        if (!locked) {
+        if (!getValue<bool>(object->locked)) {
             Rectangle<float> draggableRect;
             if (auto iemgui = ptr.get<t_iemgui>()) {
                 draggableRect = Rectangle<float>(iemgui->x_w, iemgui->x_h);
@@ -135,11 +150,8 @@ public:
                 return;
             }
 
-            nvgStrokeColor(nvg, convertColour(object->isSelected() ? cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId) : bgcolour.contrasting(0.75f)));
-            nvgStrokeWidth(nvg, 1.0f);
-            nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, draggableRect.getX() + 1.0f, draggableRect.getY() + 1.0f, draggableRect.getWidth() - 2.0f, draggableRect.getHeight() - 2.0f, Corners::objectCornerRadius);
-            nvgStroke(nvg);
+            auto selectionRectColour = convertColour((object->isSelected() || (getProperties()["canvas_hovering"].equals(var(true)))) ? cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId) : bgcolour.contrasting(0.75f));
+            nvgDrawRoundedRect(nvg, draggableRect.getX() + 1, draggableRect.getY() + 1, draggableRect.getWidth(), draggableRect.getHeight(), nvgRGBAf(0, 0, 0, 0), selectionRectColour, Corners::objectCornerRadius - 1);
         }
     }
 
