@@ -7,6 +7,8 @@
 class CanvasObject final : public ObjectBase {
 
     Value sizeProperty = SynchronousValue();
+    Rectangle<float> hitArea;
+    bool hideHitArea = false;
 
     IEMHelper iemHelper;
 
@@ -21,6 +23,7 @@ public:
         objectParameters.addParamColour("Canvas color", cGeneral, &iemHelper.secondaryColour, PlugDataColour::guiObjectInternalOutlineColour);
         iemHelper.addIemParameters(objectParameters, false, true, 20, 12, 14);
 
+        // We use a property as otherwise we will have cyclical dependency between the base class and this
         getProperties().set("canvas_hovering", false);
     }
 
@@ -48,9 +51,34 @@ public:
         iemHelper.updateLabel(labels);
     }
 
+    void updateHitArea()
+    {
+        // resize the hit area if the size of the canvas is smaller than the hit area
+        if (auto iemgui = ptr.get<t_iemgui>()) {
+            hitArea = Rectangle<float>(iemgui->x_w, iemgui->x_h).withPosition(1, 1);
+        }
+        if ((hitArea.getWidth() > (getWidth() - 2)) || (hitArea.getHeight() > (getHeight() - 2))) {
+            auto shortestLength = jmin(getWidth(), getHeight()) - 2;
+            hitArea = Rectangle<float>(1, 1, shortestLength, shortestLength);
+        }
+        if (getWidth() < 4 || getHeight() < 4) {
+            hitArea = getLocalBounds().toFloat();
+            hideHitArea = true;
+        } else {
+            hideHitArea = false;
+        }
+
+        repaint();
+    }
+
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
+        switch (symbol) {
+            case hash("size"):
+                updateHitArea();
+            default:
+                iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
+        }
     }
 
     void update() override
@@ -71,9 +99,15 @@ public:
         return {};
     }
 
+    void resized() override
+    {
+        updateHitArea();
+
+        ObjectBase::resized();
+    }
+
     void setIsHovering(bool isHover)
     {
-        // We use a property as otherwise we will have cyclical dependency between the base class and this
         if (!getProperties()["canvas_hovering"].equals(var(isHover))) {
             getProperties().set("canvas_hovering", isHover);
             repaint();
@@ -83,7 +117,7 @@ public:
     bool canReceiveMouseEvent(int x, int y) override
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
-            if (Rectangle<int>(iemgui->x_w, iemgui->x_h).contains(x - Object::margin, y - Object::margin)) {
+            if (hitArea.contains(x - Object::margin, y - Object::margin)) {
                 setIsHovering(true);
                 return true;
             };
@@ -140,18 +174,14 @@ public:
         auto b = getLocalBounds().toFloat();
 
         auto nvgBgColour = convertColour(bgcolour);
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgBgColour, nvgBgColour, Corners::objectCornerRadius);
+        // FIXME: This should be exactly 0.5f of shortest edge, but nanovg doesn't do really small rounded corner radius correctly yet?
+        auto cornerRadius = jmin(Corners::objectCornerRadius, jmin(getWidth(), getHeight()) * 0.55f);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgBgColour, nvgBgColour, cornerRadius);
 
-        if (!getValue<bool>(object->locked)) {
-            Rectangle<float> draggableRect;
-            if (auto iemgui = ptr.get<t_iemgui>()) {
-                draggableRect = Rectangle<float>(iemgui->x_w, iemgui->x_h);
-            } else {
-                return;
-            }
-
+        if (!getValue<bool>(object->locked) && !hideHitArea) {
+            auto cornerRadius = jmin(Corners::objectCornerRadius, hitArea.getWidth() * 0.5f);
             auto selectionRectColour = convertColour((object->isSelected() || (getProperties()["canvas_hovering"].equals(var(true)))) ? cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId) : bgcolour.contrasting(0.75f));
-            nvgDrawRoundedRect(nvg, draggableRect.getX() + 1, draggableRect.getY() + 1, draggableRect.getWidth(), draggableRect.getHeight(), nvgRGBAf(0, 0, 0, 0), selectionRectColour, Corners::objectCornerRadius - 1);
+            nvgDrawRoundedRect(nvg, hitArea.getX(), hitArea.getY(), hitArea.getWidth(), hitArea.getHeight(), nvgRGBAf(0, 0, 0, 0), selectionRectColour, cornerRadius);
         }
     }
 
