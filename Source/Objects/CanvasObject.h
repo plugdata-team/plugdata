@@ -7,6 +7,7 @@
 class CanvasObject final : public ObjectBase {
 
     Value sizeProperty = SynchronousValue();
+    Value hitAreaSize = SynchronousValue();
     Rectangle<float> hitArea;
     bool hideHitArea = false;
 
@@ -20,6 +21,7 @@ public:
         object->setColour(PlugDataColour::outlineColourId, Colours::transparentBlack);
 
         objectParameters.addParamSize(&sizeProperty);
+        objectParameters.addParamInt("Active area size", ParameterCategory::cDimensions, &hitAreaSize, 15);
         objectParameters.addParamColour("Canvas color", cGeneral, &iemHelper.secondaryColour, PlugDataColour::guiObjectInternalOutlineColour);
         iemHelper.addIemParameters(objectParameters, false, true, 20, 12, 14);
 
@@ -85,6 +87,10 @@ public:
     {
         if (auto cnvObj = ptr.get<t_my_canvas>()) {
             sizeProperty = Array<var> { var(cnvObj->x_vis_w), var(cnvObj->x_vis_h) };
+        }
+
+        if (auto iemgui = ptr.get<t_iemgui>()) {
+            hitAreaSize = iemgui->x_w;
         }
 
         iemHelper.update();
@@ -201,6 +207,13 @@ public:
             }
 
             object->updateBounds();
+        } if (v.refersToSameSourceAs(hitAreaSize)) {
+            if (auto iemgui = ptr.get<t_iemgui>()) {
+                auto size = getValue<float>(hitAreaSize);
+                iemgui->x_w = size;
+                iemgui->x_h = size;
+            }
+            updateHitArea();
         } else {
             iemHelper.valueChanged(v);
         }
