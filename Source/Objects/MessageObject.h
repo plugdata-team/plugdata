@@ -187,7 +187,7 @@ public:
 
         nvgRestore(nvg);
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBAf(0, 0, 0, 0), outlineColour, Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBAf(0, 0, 0, 0), object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
         if (editor) {
             imageRenderer.renderJUCEComponent(nvg, *editor, getImageScale());
