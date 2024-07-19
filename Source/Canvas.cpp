@@ -1392,13 +1392,6 @@ bool Canvas::keyPressed(KeyPress const& key)
 
 void Canvas::deselectAll()
 {
-    for (auto obj : selectedComponents){
-        if (auto* object = dynamic_cast<Object*>(obj.get())){
-            if (auto& objectGui = object->gui) {
-                objectGui->geometryLock(true);
-            }
-        }
-    }
     selectedComponents.deselectAll();
 
     editor->sidebar->hideParameters();
@@ -2359,18 +2352,8 @@ void Canvas::setSelected(Component* component, bool shouldNowBeSelected, bool up
 {
     if (!shouldNowBeSelected) {
         selectedComponents.deselect(component);
-        if (auto* object = dynamic_cast<Object*>(component)){
-            if (auto& objectGui = object->gui) {
-                objectGui->geometryLock(true);
-            }
-        }
     } else {
         selectedComponents.addToSelection(component);
-        if (auto* object = dynamic_cast<Object*>(component)){
-            if (auto& objectGui = object->gui) {
-                objectGui->geometryLock(false);
-            }
-        }
     }
 
     if (updateCommandStatus) {
@@ -2419,7 +2402,6 @@ void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, R
     for (auto* object : objects) {
         if (lassoArea.intersects(object->getSelectableBounds())) {
             itemsFound.add(object);
-            object->geometryLocked = false;
         } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
             setSelected(object, false, false);
         }

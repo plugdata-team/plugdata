@@ -246,43 +246,33 @@ bool Object::hitTest(int x, int y)
 
     if (cnv->panningModifierDown())
         return false;
+    
+    // If the hit-test get's to here, and any of these are still true
+    // return! Otherwise it will test non-existent iolets and return true!
+    bool blockIolets = presentationMode.getValue() || locked.getValue() || commandLocked.getValue();
+    // Mouse over iolets
+    for (auto* iolet : iolets) {
+        if (!blockIolets && iolet->getBounds().contains(x, y))
+            return true;
+    }
+    
+    if (selectedFlag) {
+        for (auto& corner : getCorners()) {
+            if (corner.contains(x, y))
+                return true;
+        }
+        return getLocalBounds().reduced(margin).contains(x, y);
+    }
 
     if (gui && !gui->canReceiveMouseEvent(x, y)) {
         return false;
     }
     
-    // Knob object is able to reduce its bounds when transparent.
-    // Use the objects hit-test if it is populated (currently only for knob)
-    if (transparentHitTest && (presentationMode.getValue() || locked.getValue() || commandLocked.getValue())) {
-        return transparentHitTest(x, y);
-    }
-
     // Mouse over object
     if (getLocalBounds().reduced(margin).contains(x, y)) {
         return true;
     }
-
-    // If the hit-test get's to here, and any of these are still true
-    // return! Otherwise it will test non-existent iolets and return true!
-    if ((presentationMode.getValue() || locked.getValue() || commandLocked.getValue()))
-        return false;
-
-    // Mouse over iolets
-    for (auto* iolet : iolets) {
-        if (iolet->getBounds().contains(x, y))
-            return true;
-    }
-
-    if (selectedFlag) {
-
-        for (auto& corner : getCorners()) {
-            if (corner.contains(x, y))
-                return true;
-        }
-
-        return getLocalBounds().reduced(margin).contains(x, y);
-    }
-
+    
     return false;
 }
 
@@ -842,9 +832,6 @@ void Object::mouseDown(MouseEvent const& e)
         wasLockedOnMouseDown = true;
         return;
     }
-
-    if (gui->getProperties()["canvas_hovering"].equals(var(true)))
-        geometryLocked = false;
 
     wasLockedOnMouseDown = false;
 

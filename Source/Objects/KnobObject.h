@@ -200,22 +200,6 @@ public:
             stopEdition();
         };
 
-        object->transparentHitTest = [this, object](int x, int y) -> bool {
-            if (outline.getValue())
-                return true;
-
-            // If knob is circular limit hit test to circle, and expand more if there are ticks around the knob
-            auto hitPoint = getLocalPoint(object, Point<float>(x, y));
-            auto centre = getLocalBounds().toFloat().getCentre();
-            auto knobRadius = getWidth() * 0.33f;
-            auto knobRadiusWithTicks = knobRadius + (getWidth() * 0.06f);
-            if (centre.getDistanceFrom(hitPoint) < (ticks.getValue() ? knobRadiusWithTicks : knobRadius)) {
-                return true;
-            }
-
-            return false;
-        };
-
         onConstrainerCreate = [this]() {
             constrainer->setFixedAspectRatio(1.0f);
             constrainer->setMinimumSize(this->object->minimumSize, this->object->minimumSize);
@@ -244,6 +228,23 @@ public:
         objectParameters.addParamColour("Arc color", cAppearance, &arcColour, PlugDataColour::guiObjectInternalOutlineColour);
         objectParameters.addParamBool("Fill background", cAppearance, &outline, { "No", "Yes" }, 1);
         objectParameters.addParamBool("Show arc", cAppearance, &showArc, { "No", "Yes" }, 1);
+    }
+    
+    bool canReceiveMouseEvent(int x, int y) override
+    {
+        if (outline.getValue() || !locked)
+            return true;
+
+        // If knob is circular limit hit test to circle, and expand more if there are ticks around the knob
+        auto hitPoint = getLocalPoint(object, Point<float>(x, y));
+        auto centre = getLocalBounds().toFloat().getCentre();
+        auto knobRadius = getWidth() * 0.33f;
+        auto knobRadiusWithTicks = knobRadius + (getWidth() * 0.06f);
+        if (centre.getDistanceFrom(hitPoint) < (ticks.getValue() ? knobRadiusWithTicks : knobRadius)) {
+            return true;
+        }
+
+        return false;
     }
 
     bool isTransparent() override

@@ -114,8 +114,6 @@ public:
     Value presentationMode;
     Value hvccMode = Value(var(false));
 
-    bool geometryLocked = false;
-
     Canvas* cnv;
     PluginEditor* editor;
 
@@ -135,8 +133,6 @@ public:
     static inline int const minimumSize = 9;
 
     bool isSelected() const;
-
-    std::function<bool(int x, int y)> transparentHitTest = nullptr;
 
 /**
  * @enum ObjectActivityPolicy

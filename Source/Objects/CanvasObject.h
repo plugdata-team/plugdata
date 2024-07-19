@@ -10,7 +10,6 @@ class CanvasObject final : public ObjectBase {
     Value hitAreaSize = SynchronousValue();
     Rectangle<float> hitArea;
     bool hideHitArea = false;
-
     IEMHelper iemHelper;
 
 public:
@@ -24,9 +23,7 @@ public:
         objectParameters.addParamInt("Active area size", ParameterCategory::cDimensions, &hitAreaSize, 15);
         objectParameters.addParamColour("Canvas color", cGeneral, &iemHelper.secondaryColour, PlugDataColour::guiObjectInternalOutlineColour);
         iemHelper.addIemParameters(objectParameters, false, true, 20, 12, 14);
-
-        // We use a property as otherwise we will have cyclical dependency between the base class and this
-        getProperties().set("canvas_hovering", false);
+        setRepaintsOnMouseActivity(true);
     }
 
     void updateSizeProperty() override
@@ -111,35 +108,24 @@ public:
 
         ObjectBase::resized();
     }
-
-    void setIsHovering(bool isHover)
+    
+    // So we get mouseEnter/Exit notifications for the hitArea
+    bool hitTest(int x, int y) override
     {
-        if (!getProperties()["canvas_hovering"].equals(var(isHover))) {
-            getProperties().set("canvas_hovering", isHover);
-            repaint();
-        }
-    }
-
-    bool canReceiveMouseEvent(int x, int y) override
-    {
-        if (auto iemgui = ptr.get<t_iemgui>()) {
-            if (hitArea.contains(x - Object::margin, y - Object::margin)) {
-                setIsHovering(true);
-                return true;
-            };
-        }
-
-        setIsHovering(false);
-
-        if (!object->geometryLocked)
+        if (hitArea.contains(x, y)) {
             return true;
-
+        }
+        
         return false;
     }
-
-    void geometryLock(bool isLocked) override
+    
+    bool canReceiveMouseEvent(int x, int y) override
     {
-        object->geometryLocked = isLocked;
+        if (hitArea.contains(x - Object::margin, y - Object::margin)) {
+            return true;
+        };
+        
+        return false;
     }
 
     void setPdBounds(Rectangle<int> b) override
@@ -186,7 +172,7 @@ public:
 
         if (!getValue<bool>(object->locked) && !hideHitArea) {
             auto cornerRadius = jmin(Corners::objectCornerRadius, hitArea.getWidth() * 0.5f);
-            auto selectionRectColour = convertColour((object->isSelected() || (getProperties()["canvas_hovering"].equals(var(true)))) ? cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId) : bgcolour.contrasting(0.75f));
+            auto selectionRectColour = convertColour((object->isSelected() || isMouseOver()) ? cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId) : bgcolour.contrasting(0.75f));
             nvgDrawRoundedRect(nvg, hitArea.getX(), hitArea.getY(), hitArea.getWidth(), hitArea.getHeight(), nvgRGBAf(0, 0, 0, 0), selectionRectColour, cornerRadius);
         }
     }

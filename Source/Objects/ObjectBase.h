@@ -265,8 +265,6 @@ public:
     // Objects can override this to do custom locking behaviour
     virtual void lock(bool isLocked);
 
-    virtual void geometryLock(bool isLocked) {};
-
     // Returns the Pd class name of the object
     String getType() const;
 
