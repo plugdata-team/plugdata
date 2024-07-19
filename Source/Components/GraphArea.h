@@ -45,11 +45,7 @@ public:
         auto lineBounds = getLocalBounds().toFloat().reduced(4.0f);
         auto graphAreaColour = convertColour(findColour(PlugDataColour::graphAreaColourId));
 
-        nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, lineBounds.getX(), lineBounds.getY(), lineBounds.getWidth(), lineBounds.getHeight(), Corners::objectCornerRadius);
-        nvgStrokeColor(nvg, graphAreaColour);
-        nvgStrokeWidth(nvg, 1.0f);
-        nvgStroke(nvg);
+        nvgDrawRoundedRect(nvg, lineBounds.getX(), lineBounds.getY(), lineBounds.getWidth(), lineBounds.getHeight(), nvgRGBAf(0, 0, 0, 0), graphAreaColour, Corners::objectCornerRadius);
 
         auto drawCorner = [](NVGcontext* nvg, int x, int y, int angle) {
             nvgSave(nvg);
@@ -124,8 +120,8 @@ public:
     void applyBounds()
     {
         if (auto cnv = canvas->patch.getPointer()) {
-            cnv->gl_pixwidth = getWidth() - 8;
-            cnv->gl_pixheight = getHeight() - 8;
+            cnv->gl_pixwidth = getWidth() - 8 - 1;
+            cnv->gl_pixheight = getHeight() - 8 - 1;
 
             cnv->gl_xmargin = getX() - canvas->canvasOrigin.x + 4;
             cnv->gl_ymargin = getY() - canvas->canvasOrigin.y + 4;
@@ -136,6 +132,9 @@ public:
 
     void updateBounds()
     {
-        setBounds(canvas->patch.getBounds().expanded(4).translated(canvas->canvasOrigin.x, canvas->canvasOrigin.y));
+        auto patchBounds = canvas->patch.getBounds().expanded(4.0f);
+        auto width = patchBounds.getWidth() + 1;
+        auto height = patchBounds.getHeight() + 1;
+        setBounds(patchBounds.translated(canvas->canvasOrigin.x, canvas->canvasOrigin.y).withWidth(width).withHeight(height));
     }
 };
