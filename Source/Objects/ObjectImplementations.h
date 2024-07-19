@@ -6,23 +6,78 @@
 
 #include "Utility/GlobalMouseListener.h"
 #include <raw_keyboard_input/raw_keyboard_input.h>
+#include <Objects/ImplementationBase.h>
 
-class SubpatchImpl : public ImplementationBase
+class ActivityListener : public ImplementationBase
     , public pd::MessageListener {
 public:
     WeakReference<pd::Instance> pdWeakRef;
+    Array<Component::SafePointer<Object>> objectsToTrigger;
 
-    SubpatchImpl(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd)
+    enum ActivityTriggerPolicy {Self, Parent, Recursive};
+    ActivityTriggerPolicy policy = Self;
+
+    ActivityListener(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd, ActivityTriggerPolicy policy = Self)
         : ImplementationBase(ptr, parent, pd)
         , pdWeakRef(pd)
+        , policy(policy)
     {
         pd->registerMessageListener(this->ptr.getRawUnchecked<void>(), this);
     }
 
-    ~SubpatchImpl() override
+    ~ActivityListener()
     {
         if (pdWeakRef)
             pdWeakRef->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
+    }
+
+    void update(const Array<t_canvas *>& parents) override
+    {
+        objectsToTrigger.clear();
+
+        auto editors = pd->getEditors();
+
+        if (auto obj = pd->getObjectFromPtr(ptr.getRawUnchecked<_gobj>()))
+            objectsToTrigger.add(obj);
+
+        if(policy == Self)
+            return;
+
+        // Find the objects that match the parent canvases
+        auto parentSize = parents.size() - 1;
+        auto triggerDepth = policy == Recursive ? 0 : parentSize;
+        // We reverse the parent object list as the last is the first
+        // So we can deal with triggering only the parent here
+        // By limiting the depth of what we iterate over
+        for (int i = parentSize; i >= triggerDepth; --i) {
+            if (auto* obj = pd->getObjectFromPtr((_gobj*)parents[i]))
+                objectsToTrigger.add(obj);
+        }
+    }
+
+    void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms) override
+    {
+        if (pd->isPerformingGlobalSync)
+            return;
+
+        for (auto object : objectsToTrigger) {
+            if (object) {
+                object->triggerOverlayActiveState();
+            }
+        }
+    }
+};
+
+class SubpatchImpl : public ActivityListener {
+public:
+
+    SubpatchImpl(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd)
+        : ActivityListener(ptr, parent, pd)
+    {
+    }
+
+    ~SubpatchImpl()
+    {
         closeOpenedSubpatchers();
     }
 
@@ -30,6 +85,8 @@ public:
     {
         if (pd->isPerformingGlobalSync)
             return;
+
+        ActivityListener::receiveMessage(symbol, atoms, numAtoms);
 
         bool isVisMessage = hash(symbol->s_name) == hash("vis");
         if (isVisMessage && atoms[0].getFloat()) {
@@ -45,7 +102,7 @@ public:
 };
 
 // Wrapper for Pd's key, keyup and keyname objects
-class KeyObject final : public ImplementationBase
+class KeyObject final : public ActivityListener
     , public KeyListener
     , public ModifierKeyListener {
 
@@ -67,7 +124,7 @@ public:
     Component::SafePointer<PluginEditor> attachedEditor = nullptr;
 
     KeyObject(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd, KeyObjectType keyObjectType)
-        : ImplementationBase(ptr, parent, pd)
+        : ActivityListener(ptr, parent, pd)
         , type(keyObjectType)
     {
     }
@@ -80,7 +137,7 @@ public:
         }
     }
 
-    void update() override
+    void update(const Array<t_canvas *>& parents) override
     {
         auto* canvas = getMainCanvas(cnv, true);
         if (canvas) {
@@ -88,6 +145,8 @@ public:
             attachedEditor->addModifierKeyListener(this);
             attachedEditor->addKeyListener(this);
         }
+
+        ActivityListener::update(parents);
     }
 
     bool keyPressed(KeyPress const& key, Component* originatingComponent) override
@@ -318,9 +377,8 @@ public:
     }
 };
 
-class CanvasMouseObject final : public ImplementationBase
-    , public MouseListener
-    , public pd::MessageListener {
+class CanvasMouseObject final : public ActivityListener
+    , public MouseListener {
 
     std::atomic<bool> zero = false;
     Point<int> lastPosition;
@@ -330,21 +388,19 @@ class CanvasMouseObject final : public ImplementationBase
 
 public:
     CanvasMouseObject(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd)
-        : ImplementationBase(ptr, parent, pd)
+        : ActivityListener(ptr, parent, pd)
     {
-        pd->registerMessageListener(this->ptr.getRawUnchecked<void>(), this);
     }
 
-    ~CanvasMouseObject() override
+    ~CanvasMouseObject()
     {
-        pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
         if (!cnv)
             return;
 
         cnv->removeMouseListener(this);
     }
 
-    void update() override
+    void update(const Array<t_canvas *>& parents) override
     {
         if (pd->isPerformingGlobalSync)
             return;
@@ -467,13 +523,15 @@ public:
         if (!cnv || pd->isPerformingGlobalSync)
             return;
 
+        ActivityListener::receiveMessage(symbol, atoms, numAtoms);
+
         if (hash(symbol->s_name) == hash("zero")) {
             zero = true;
         }
     }
 };
 
-class CanvasVisibleObject final : public ImplementationBase
+class CanvasVisibleObject final : public ActivityListener
     , public ComponentListener
     , public Timer {
 
@@ -481,7 +539,7 @@ class CanvasVisibleObject final : public ImplementationBase
     Component::SafePointer<Canvas> cnv;
 
 public:
-    using ImplementationBase::ImplementationBase;
+    using ActivityListener::ActivityListener;
 
     ~CanvasVisibleObject() override
     {
@@ -491,7 +549,7 @@ public:
         cnv->removeComponentListener(this);
     }
 
-    void update() override
+    void update(const Array<t_canvas *>& parents) override
     {
         if(auto canvas_vis = ptr.get<t_fake_canvas_vis>())
         {
@@ -542,7 +600,7 @@ public:
     }
 };
 
-class CanvasZoomObject final : public ImplementationBase
+class CanvasZoomObject final : public ActivityListener
     , public Value::Listener {
 
     float lastScale;
@@ -551,9 +609,9 @@ class CanvasZoomObject final : public ImplementationBase
     Component::SafePointer<Canvas> cnv;
 
 public:
-    using ImplementationBase::ImplementationBase;
+    using ActivityListener::ActivityListener;
 
-    void update() override
+    void update(const Array<t_canvas *>& parents) override
     {
         if (pd->isPerformingGlobalSync)
             return;
@@ -591,12 +649,12 @@ public:
 };
 
 // Else "mouse" component
-class MouseObject final : public ImplementationBase
+class MouseObject final : public ActivityListener
     , public Timer {
 
 public:
     MouseObject(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd)
-        : ImplementationBase(ptr, parent, pd)
+        : ActivityListener(ptr, parent, pd)
         , mouseSource(Desktop::getInstance().getMainMouseSource())
     {
         lastPosition = mouseSource.getScreenPosition();
@@ -655,9 +713,8 @@ public:
     t_glist* canvas;
 };
 
-class MouseStateObject final : public ImplementationBase
-    , public MouseListener
-    , public pd::MessageListener {
+class MouseStateObject final : public ActivityListener
+    , public MouseListener {
 
     Point<int> lastPosition;
     Point<int> currentPosition;
@@ -666,7 +723,7 @@ class MouseStateObject final : public ImplementationBase
 
 public:
     MouseStateObject(t_gobj* object, t_canvas* parent, PluginProcessor* pd)
-        : ImplementationBase(object, parent, pd)
+        : ActivityListener(object, parent, pd)
     {
         pd->registerMessageListener(ptr.getRawUnchecked<void>(), this);
 
@@ -692,6 +749,8 @@ public:
         if (pd->isPerformingGlobalSync)
             return;
 
+        ActivityListener::receiveMessage(symbol, atoms, numAtoms);
+
         if (hash(symbol->s_name) == hash("bang")) {
             auto currentPosition = Desktop::getMousePosition();
 
@@ -707,7 +766,7 @@ public:
     }
 };
 
-class KeycodeObject final : public ImplementationBase
+class KeycodeObject final : public ActivityListener
     , public ModifierKeyListener {
 
 public:
@@ -715,7 +774,7 @@ public:
     Component::SafePointer<PluginEditor> attachedEditor = nullptr;
 
     KeycodeObject(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd)
-        : ImplementationBase(ptr, parent, pd)
+        : ActivityListener(ptr, parent, pd)
     {
     }
 
@@ -727,7 +786,7 @@ public:
         }
     }
 #if !JUCE_IOS
-    void update() override
+    void update(const Array<t_canvas *>& parents) override
     {
         auto* canvas = getMainCanvas(cnv, true);
         if (canvas) {
@@ -759,7 +818,7 @@ public:
 #endif
 };
 
-class MouseFilterObject final : public ImplementationBase
+class MouseFilterObject final : public ActivityListener
     , public GlobalMouseListener {
 
     class MouseFilterProxy {
@@ -792,7 +851,7 @@ class MouseFilterObject final : public ImplementationBase
 
 public:
     MouseFilterObject(t_gobj* object, t_canvas* parent, PluginProcessor* pd)
-        : ImplementationBase(object, parent, pd)
+        : ActivityListener(object, parent, pd)
     {
         if (!proxy.count(pd)) {
             proxy[pd] = MouseFilterProxy(pd);
