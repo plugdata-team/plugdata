@@ -114,6 +114,8 @@ public:
     Value presentationMode;
     Value hvccMode = Value(var(false));
 
+    bool geometryLocked = false;
+
     Canvas* cnv;
     PluginEditor* editor;
 
