@@ -267,6 +267,7 @@ public:
 
     NVGFramebuffer ioletBuffer;
     NVGImage resizeHandleImage;
+    NVGImage resizeGOPHandleImage;
     NVGImage presentationShadowImage;
 
     Array<juce::WeakReference<NVGComponent>> drawables;

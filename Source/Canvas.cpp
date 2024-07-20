@@ -250,29 +250,32 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
     int const resizerLogicalSize = 9;
     int const resizerBufferSize = resizerLogicalSize * pixelScale * zoom;
 
-    if (resizeHandleImage.needsUpdate(resizerBufferSize, resizerBufferSize)) {
-        resizeHandleImage = NVGImage(nvg, resizerBufferSize, resizerBufferSize, [this, pixelScale, zoom](Graphics& g) {
-            g.addTransform(AffineTransform::scale(pixelScale * zoom, pixelScale * zoom));
+    auto updateResizeHandleIfNeeded = [this, resizerBufferSize, pixelScale, zoom, nvg](NVGImage& handleImage, Colour colour) {
+        if (handleImage.needsUpdate(resizerBufferSize, resizerBufferSize)) {
+            handleImage = NVGImage(nvg, resizerBufferSize, resizerBufferSize, [pixelScale, zoom, colour](Graphics &g) {
+                g.addTransform(AffineTransform::scale(pixelScale * zoom, pixelScale * zoom));
+                auto b = Rectangle<int>(0, 0, 9, 9);
+                // use the path with a hole in it to exclude the inner rounded rect from painting
+                Path outerArea;
+                outerArea.addRectangle(b);
+                outerArea.setUsingNonZeroWinding(false);
 
-            auto b = Rectangle<int>(0, 0, 9, 9);
-            // use the path with a hole in it to exclude the inner rounded rect from painting
-            Path outerArea;
-            outerArea.addRectangle(b);
-            outerArea.setUsingNonZeroWinding(false);
+                Path innerArea;
 
-            Path innerArea;
+                auto innerRect = b.translated(Object::margin / 2, Object::margin / 2);
+                innerArea.addRoundedRectangle(innerRect, Corners::objectCornerRadius);
+                outerArea.addPath(innerArea);
+                g.reduceClipRegion(outerArea);
 
-            auto innerRect = b.translated(Object::margin / 2, Object::margin / 2);
-            innerArea.addRoundedRectangle(innerRect, Corners::objectCornerRadius);
-            outerArea.addPath(innerArea);
-            g.reduceClipRegion(outerArea);
+                g.setColour(colour);
+                g.fillRoundedRectangle(0.0f, 0.0f, 9.0f, 9.0f, Corners::resizeHanleCornerRadius);
+            });
+            editor->nvgSurface.invalidateAll();
+        }
+    };
 
-            g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
-            g.fillRoundedRectangle(0.0f, 0.0f, 9.0f, 9.0f, Corners::objectCornerRadius);
-        });
-
-        editor->nvgSurface.invalidateAll();
-    }
+    updateResizeHandleIfNeeded(resizeHandleImage, findColour(PlugDataColour::objectSelectedOutlineColourId));
+    updateResizeHandleIfNeeded(resizeGOPHandleImage, Colours::red);
 
     // Then, check if object framebuffers need to be updated
     if (isScrolling) {
@@ -464,7 +467,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
                     StackShadow::renderDropShadow(g, shadowPath, Colours::black, shadowSize, Point<int>(0, 2));
                 });
             }
-            auto shadowImage = nvgImagePattern(nvg, pos.getX() - shadowSize, pos.getY() - shadowSize, borderArea.getWidth(), borderArea.getHeight(), 0, presentationShadowImage.getImageId(), 0.16f);
+            auto shadowImage = nvgImagePattern(nvg, pos.getX() - shadowSize, pos.getY() - shadowSize, borderArea.getWidth(), borderArea.getHeight(), 0, presentationShadowImage.getImageId(), 0.12f);
 
             nvgStrokeColor(nvg, windowOutlineColour);
             nvgStrokeWidth(nvg, 0.5f / scale);
