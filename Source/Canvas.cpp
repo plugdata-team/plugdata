@@ -268,7 +268,7 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
             g.reduceClipRegion(outerArea);
 
             g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
-            g.fillRoundedRectangle(0.0f, 0.0f, 9.0f, 9.0f, Corners::objectCornerRadius);
+            g.fillRoundedRectangle(0.0f, 0.0f, 9.0f, 9.0f, Corners::resizeHandleCornerRadius);
         });
 
         editor->nvgSurface.invalidateAll();

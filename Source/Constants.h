@@ -393,6 +393,7 @@ struct Corners {
     inline static float const largeCornerRadius = 8.0f;
     inline static float const defaultCornerRadius = 5.0f;
     inline static float objectCornerRadius = 2.75f;
+    inline static float const resizeHandleCornerRadius = 2.75f;
 };
 
 enum Overlay {
