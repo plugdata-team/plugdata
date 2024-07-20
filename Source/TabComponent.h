@@ -44,6 +44,8 @@ public:
 private:
     void handleAsyncUpdate() override;
 
+    void sendTabUpdateToVisibleCanvases();
+
     void resized() override;
 
     void moveToLeftSplit(TabComponent::TabBarButtonComponent* tab);
