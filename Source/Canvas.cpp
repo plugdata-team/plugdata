@@ -275,7 +275,7 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
     };
 
     updateResizeHandleIfNeeded(resizeHandleImage, findColour(PlugDataColour::objectSelectedOutlineColourId));
-    updateResizeHandleIfNeeded(resizeGOPHandleImage, Colours::red);
+    updateResizeHandleIfNeeded(resizeGOPHandleImage, findColour(PlugDataColour::graphAreaColourId));
 
     // Then, check if object framebuffers need to be updated
     if (isScrolling) {
