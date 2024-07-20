@@ -836,6 +836,15 @@ void Canvas::synchronise()
     triggerAsyncUpdate();
 }
 
+void Canvas::synchroniseAllCanvases()
+{
+    for (auto* editorWindow : pd->getEditors()){
+        for (auto* canvas : editorWindow->getTabComponent().getVisibleCanvases()) {
+            canvas->synchronise();
+        }
+    }
+}
+
 void Canvas::synchroniseSplitCanvas()
 {
     for (auto* canvas : editor->getTabComponent().getVisibleCanvases()) {

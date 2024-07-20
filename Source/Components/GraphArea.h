@@ -116,6 +116,10 @@ public:
 
         resizer.setBounds(getLocalBounds());
         repaint();
+
+        // Update parent canvas directly (needed if open in splitview)
+        applyBounds();
+        canvas->synchroniseAllCanvases();
     }
 
     void applyBounds()

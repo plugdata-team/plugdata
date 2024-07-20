@@ -108,6 +108,7 @@ public:
     void save(std::function<void()> const& nestedCallback = []() {});
     void saveAs(std::function<void()> const& nestedCallback = []() {});
 
+    void synchroniseAllCanvases();
     void synchroniseSplitCanvas();
     void synchronise();
     void performSynchronise();
