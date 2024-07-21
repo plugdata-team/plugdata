@@ -9,8 +9,6 @@ class SubpatchObject final : public TextBase {
     pd::Patch::Ptr subpatch;
     Value isGraphChild = SynchronousValue(var(false));
 
-    bool locked = false;
-
 public:
     SubpatchObject(pd::WeakReference obj, Object* object)
         : TextBase(obj, object)
@@ -61,24 +59,17 @@ public:
         if (!e.mods.isLeftButtonDown())
             return;
 
-        if (locked && click(e.getPosition(), e.mods.isShiftDown(), e.mods.isAltDown())) {
+        if (isLocked && click(e.getPosition(), e.mods.isShiftDown(), e.mods.isAltDown())) {
             return;
         }
 
         //  If locked and it's a left click
-        if (locked && !e.mods.isRightButtonDown()) {
+        if (isLocked && !e.mods.isRightButtonDown()) {
             openSubpatch();
             return;
         } else {
             TextBase::mouseDown(e);
         }
-    }
-
-    // Most objects ignore mouseclicks when locked
-    // Objects can override this to do custom locking behaviour
-    void lock(bool isLocked) override
-    {
-        locked = isLocked;
     }
 
     pd::Patch::Ptr getPatch() override
