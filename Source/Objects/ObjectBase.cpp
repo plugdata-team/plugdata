@@ -250,7 +250,7 @@ String ObjectBase::getTypeWithOriginPrefix() const
 
         if (origin.isEmpty())
             return type;
-
+        
         return origin + "/" + type;
     }
 
