@@ -885,11 +885,11 @@ void Canvas::performSynchronise()
             continue;
 
         if (it == objects.end()) {
-            auto* newBox = objects.add(new Object(object, this));
-            newBox->toFront(false);
+            auto* newObject = objects.add(new Object(object, this));
+            newObject->toFront(false);
 
-            if (newBox->gui && newBox->gui->getLabel())
-                newBox->gui->getLabel()->toFront(false);
+            if (newObject->gui && newObject->gui->getLabel())
+                newObject->gui->getLabel()->toFront(false);
         } else {
             auto* object = *it;
 
@@ -1257,7 +1257,7 @@ void Canvas::mouseUp(MouseEvent const& e)
         for (auto* obj : objects) {
             for (auto* iolet : obj->iolets) {
                 auto relativeEvent = e.getEventRelativeTo(this);
-                if (iolet->getCanvasBounds().expanded(50).contains(relativeEvent.getPosition())) {
+                if (iolet->getCanvasBounds().expanded(20).contains(relativeEvent.getPosition())) {
                     iolet->mouseUp(relativeEvent);
                 }
             }
@@ -1839,41 +1839,41 @@ void Canvas::triggerizeSelection()
 
 void Canvas::encapsulateSelection()
 {
-    auto selectedBoxes = getSelectionOfType<Object>();
+    auto selectedObjects = getSelectionOfType<Object>();
 
     // Sort by index in pd patch
-    std::sort(selectedBoxes.begin(), selectedBoxes.end(),
+    std::sort(selectedObjects.begin(), selectedObjects.end(),
         [this](auto* a, auto* b) -> bool {
             return objects.indexOf(a) < objects.indexOf(b);
         });
 
     // If two connections have the same target inlet/outlet, we only need 1 [inlet/outlet] object
-    auto usedEdges = Array<Iolet*>();
-    auto targetEdges = std::map<Iolet*, Array<Iolet*>>();
+    auto usedIolets = Array<Iolet*>();
+    auto targetIolets = std::map<Iolet*, Array<Iolet*>>();
 
     auto newInternalConnections = String();
     auto newExternalConnections = std::map<int, Array<Iolet*>>();
 
     // First, find all the incoming and outgoing connections
     for (auto* connection : connections) {
-        if (selectedBoxes.contains(connection->inobj.get()) && !selectedBoxes.contains(connection->outobj.get())) {
+        if (selectedObjects.contains(connection->inobj.get()) && !selectedObjects.contains(connection->outobj.get())) {
             auto* inlet = connection->inlet.get();
-            targetEdges[inlet].add(connection->outlet.get());
-            usedEdges.addIfNotAlreadyThere(inlet);
+            targetIolets[inlet].add(connection->outlet.get());
+            usedIolets.addIfNotAlreadyThere(inlet);
         }
     }
     for (auto* connection : connections) {
-        if (selectedBoxes.contains(connection->outobj.get()) && !selectedBoxes.contains(connection->inobj.get())) {
+        if (selectedObjects.contains(connection->outobj.get()) && !selectedObjects.contains(connection->inobj.get())) {
             auto* outlet = connection->outlet.get();
-            targetEdges[outlet].add(connection->inlet.get());
-            usedEdges.addIfNotAlreadyThere(outlet);
+            targetIolets[outlet].add(connection->inlet.get());
+            usedIolets.addIfNotAlreadyThere(outlet);
         }
     }
 
     auto newEdgeObjects = String();
 
     // Sort by position
-    std::sort(usedEdges.begin(), usedEdges.end(),
+    std::sort(usedIolets.begin(), usedIolets.end(),
         [](auto* a, auto* b) -> bool {
             // Inlets before outlets
             if (a->isInlet != b->isInlet)
@@ -1891,14 +1891,14 @@ void Canvas::encapsulateSelection()
 
     int i = 0;
     int numIn = 0;
-    for (auto* iolet : usedEdges) {
+    for (auto* iolet : usedIolets) {
         auto type = String(iolet->isInlet ? "inlet" : "outlet") + String(iolet->isSignal ? "~" : "");
-        auto* targetEdge = targetEdges[iolet][0];
+        auto* targetEdge = targetIolets[iolet][0];
         auto pos = targetEdge->object->getObjectBounds().getPosition();
         newEdgeObjects += "#X obj " + String(pos.x) + " " + String(pos.y) + " " + type + ";\n";
 
-        int objIdx = selectedBoxes.indexOf(iolet->object);
-        int ioletObjectIdx = selectedBoxes.size() + i;
+        int objIdx = selectedObjects.indexOf(iolet->object);
+        int ioletObjectIdx = selectedObjects.size() + i;
         if (iolet->isInlet) {
             newInternalConnections += "#X connect " + String(ioletObjectIdx) + " 0 " + String(objIdx) + " " + String(iolet->ioletIdx) + ";\n";
             numIn++;
@@ -1906,7 +1906,7 @@ void Canvas::encapsulateSelection()
             newInternalConnections += "#X connect " + String(objIdx) + " " + String(iolet->ioletIdx) + " " + String(ioletObjectIdx) + " 0;\n";
         }
 
-        for (auto* target : targetEdges[iolet]) {
+        for (auto* target : targetIolets[iolet]) {
             newExternalConnections[i].add(target);
         }
 
@@ -1917,7 +1917,7 @@ void Canvas::encapsulateSelection()
 
     auto bounds = Rectangle<int>();
     std::vector<t_gobj*> objects;
-    for (auto* object : selectedBoxes) {
+    for (auto* object : selectedObjects) {
         if (auto* ptr = object->getPointer()) {
             bounds = bounds.getUnion(object->getBounds());
             objects.push_back(ptr);
