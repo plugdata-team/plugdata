@@ -32,6 +32,11 @@ TabComponent::TabComponent(PluginEditor* editor)
     triggerAsyncUpdate();
 }
 
+TabComponent::~TabComponent()
+{
+    clearCanvases();
+}
+
 Canvas* TabComponent::newPatch()
 {
     return openPatch(pd::Instance::defaultPatch);
@@ -57,6 +62,9 @@ Canvas* TabComponent::openPatch(const URL& path)
     }
 
     auto patch = pd->loadPatch(path);
+
+    sendTabUpdateToVisibleCanvases();
+
     return openPatch(patch);
 }
 
@@ -64,6 +72,9 @@ Canvas* TabComponent::openPatch(String const& patchContent)
 {
     auto patch = pd->loadPatch(patchContent);
     patch->setUntitled();
+
+    sendTabUpdateToVisibleCanvases();
+
     return openPatch(patch);
 }
 
@@ -93,6 +104,8 @@ Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch)
     cnv->restoreViewportState();
 
     triggerAsyncUpdate();
+
+    sendTabUpdateToVisibleCanvases();
 
     return cnv;
 }
@@ -284,6 +297,23 @@ void TabComponent::openInPluginMode(pd::Patch::Ptr patch)
     triggerAsyncUpdate();
 }
 
+// Deleting a canvas can lead to subpatches of that canvas being deleted as well
+// This means that clearing all elements from the canvases array by calling 'clear()' is unsafe
+// instead, we must check if they still exist before deleting
+void TabComponent::clearCanvases()
+{
+    Array<SafePointer<Canvas>> safeCanvases;
+    for(int i = canvases.size() - 1; i >= 0; i--)
+    {
+        safeCanvases.add(canvases[i]);
+    }
+    
+    for(auto safeCnv : safeCanvases)
+    {
+        if(safeCnv) canvases.removeObject(safeCnv.getComponent());
+    }
+}
+
 void TabComponent::handleAsyncUpdate()
 {
     pd->setThis();
@@ -311,7 +341,7 @@ void TabComponent::handleAsyncUpdate()
     if (auto patchInPluginMode = editor->findPatchInPluginMode()) {
         if (patchInPluginMode->windowIndex == editorIndex) {
             // Initialise plugin mode
-            canvases.clear();
+            clearCanvases();
             if (!editor->isInPluginMode() || editor->pluginMode->getPatch()->getPointer().get() != patchInPluginMode->getUncheckedPointer()) {
                 editor->pluginMode = std::make_unique<PluginMode>(editor, patchInPluginMode);
                 editor->resized();
@@ -700,6 +730,17 @@ void TabComponent::closeTab(Canvas* cnv)
     pd->updateObjectImplementations();
 
     triggerAsyncUpdate();
+
+    sendTabUpdateToVisibleCanvases();
+}
+
+void TabComponent::sendTabUpdateToVisibleCanvases()
+{
+    for (auto* editorWindow : pd->getEditors()) {
+        for (auto* cnv: editorWindow->getTabComponent().getVisibleCanvases()) {
+            cnv->tabChanged();
+        }
+    }
 }
 
 void TabComponent::closeAllTabs(bool quitAfterComplete, Canvas* patchToExclude, std::function<void()> afterComplete)

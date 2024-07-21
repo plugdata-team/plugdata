@@ -12,6 +12,8 @@ class TabComponent : public Component
 public:
     explicit TabComponent(PluginEditor* editor);
 
+    ~TabComponent();
+    
     Canvas* newPatch();
 
     Canvas* openPatch(const URL& path);
@@ -42,7 +44,10 @@ public:
     Array<Canvas*> getVisibleCanvases();
 
 private:
+    void clearCanvases();
     void handleAsyncUpdate() override;
+
+    void sendTabUpdateToVisibleCanvases();
 
     void resized() override;
 

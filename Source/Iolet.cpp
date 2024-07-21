@@ -348,23 +348,21 @@ Array<Connection*> Iolet::getConnections()
     return result;
 }
 
-Iolet* Iolet::findNearestIolet(Canvas* cnv, Point<int> position, bool inlet, Object* boxToExclude)
+Iolet* Iolet::findNearestIolet(Canvas* cnv, Point<int> position, bool inlet, Object* objectToExclude)
 {
     // Find all potential iolets
-    Array<Iolet*> allEdges;
-
+    Array<Iolet*> allIolets;
     for (auto* object : cnv->objects) {
         for (auto* iolet : object->iolets) {
-            if (iolet->isInlet == inlet && iolet->object != boxToExclude) {
-                allEdges.add(iolet);
+            if (iolet->isInlet == inlet && iolet->object != objectToExclude) {
+                allIolets.add(iolet);
             }
         }
     }
 
     Iolet* nearestIolet = nullptr;
-
-    for (auto& iolet : allEdges) {
-        auto bounds = iolet->getCanvasBounds().expanded(30);
+    for (auto& iolet : allIolets) {
+        auto bounds = iolet->getCanvasBounds().expanded(20);
         if (bounds.contains(position)) {
             if (!nearestIolet)
                 nearestIolet = iolet;
