@@ -14,7 +14,6 @@
 
 extern "C" {
 int is_gem_object(char const* sym);
-int is_gem_object_name(char const* sym);
 }
 
 // Component that sits on top of a TextEditor and will draw auto-complete suggestions over it
