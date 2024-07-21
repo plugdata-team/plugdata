@@ -155,10 +155,8 @@ public:
         nvgRoundedScissor(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(), Corners::objectCornerRadius);
 
         // Background
-        nvgBeginPath(nvg);
-        nvgRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight());
         nvgFillColor(nvg, backgroundColour);
-        nvgFill(nvg);
+        nvgFillRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight());
 
         float bRight = b.getRight(); // offset to make it go completely under outline
         float bY = b.getY();

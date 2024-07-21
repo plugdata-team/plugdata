@@ -57,6 +57,9 @@ Canvas* TabComponent::openPatch(const URL& path)
     }
 
     auto patch = pd->loadPatch(path);
+
+    sendTabUpdateToVisibleCanvases();
+
     return openPatch(patch);
 }
 
@@ -64,6 +67,9 @@ Canvas* TabComponent::openPatch(String const& patchContent)
 {
     auto patch = pd->loadPatch(patchContent);
     patch->setUntitled();
+
+    sendTabUpdateToVisibleCanvases();
+
     return openPatch(patch);
 }
 
@@ -93,6 +99,8 @@ Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch)
     cnv->restoreViewportState();
 
     triggerAsyncUpdate();
+
+    sendTabUpdateToVisibleCanvases();
 
     return cnv;
 }
@@ -700,6 +708,17 @@ void TabComponent::closeTab(Canvas* cnv)
     pd->updateObjectImplementations();
 
     triggerAsyncUpdate();
+
+    sendTabUpdateToVisibleCanvases();
+}
+
+void TabComponent::sendTabUpdateToVisibleCanvases()
+{
+    for (auto* editorWindow : pd->getEditors()) {
+        for (auto* cnv: editorWindow->getTabComponent().getVisibleCanvases()) {
+            cnv->tabChanged();
+        }
+    }
 }
 
 void TabComponent::closeAllTabs(bool quitAfterComplete, Canvas* patchToExclude, std::function<void()> afterComplete)
