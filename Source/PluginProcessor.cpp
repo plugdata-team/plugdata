@@ -320,12 +320,6 @@ void PluginProcessor::updateSearchPaths()
     
     libpd_clear_search_path();
 
-    // Get pd's search paths
-    char* p[1024];
-    int numItems;
-    pd::Interface::getSearchPaths(p, &numItems);
-    auto currentPaths = StringArray(p, numItems);
-
     auto paths = pd::Library::defaultPaths;
 
     for (auto child : pathTree) {
@@ -334,14 +328,10 @@ void PluginProcessor::updateSearchPaths()
     }
 
     for (auto const& path : paths) {
-        if (currentPaths.contains(path.getFullPathName()))
-            continue;
         libpd_add_to_search_path(path.getFullPathName().toRawUTF8());
     }
 
     for (auto const& path : DekenInterface::getExternalPaths()) {
-        if (currentPaths.contains(path))
-            continue;
         libpd_add_to_search_path(path.replace("\\", "/").toRawUTF8());
     }
 

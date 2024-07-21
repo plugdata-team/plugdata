@@ -477,7 +477,7 @@ void TabComponent::showTab(Canvas* cnv, int splitIndex)
         return;
     }
 
-    if (splits[splitIndex]) {
+    if (splits[splitIndex] && splits[splitIndex] != splits[!splitIndex]) {
         splits[splitIndex]->saveViewportState();
         removeChildComponent(splits[splitIndex]->viewport.get());
     }
