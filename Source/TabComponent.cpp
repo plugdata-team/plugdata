@@ -62,9 +62,6 @@ Canvas* TabComponent::openPatch(const URL& path)
     }
 
     auto patch = pd->loadPatch(path);
-
-    sendTabUpdateToVisibleCanvases();
-
     return openPatch(patch);
 }
 
@@ -72,9 +69,6 @@ Canvas* TabComponent::openPatch(String const& patchContent)
 {
     auto patch = pd->loadPatch(patchContent);
     patch->setUntitled();
-
-    sendTabUpdateToVisibleCanvases();
-
     return openPatch(patch);
 }
 
@@ -437,6 +431,7 @@ void TabComponent::handleAsyncUpdate()
     }
     
     editor->updateCommandStatus();
+    sendTabUpdateToVisibleCanvases();
 }
 
 void TabComponent::closeEmptySplits()
@@ -478,7 +473,7 @@ void TabComponent::closeEmptySplits()
 
 void TabComponent::showTab(Canvas* cnv, int splitIndex)
 {
-    if (cnv == splits[splitIndex]) {
+    if (cnv == splits[splitIndex] && cnv->getParentComponent()) {
         return;
     }
 
@@ -724,14 +719,12 @@ void TabComponent::closeTab(Canvas* cnv)
     if (splits[1] == cnv && tabbars[1].indexOf(tab) >= 1) {
         showTab(tabbars[1][tabbars[1].indexOf(tab) - 1]->cnv, 1);
     }
-
+    
     canvases.removeObject(cnv);
     pd->patches.removeFirstMatchingValue(patch);
     pd->updateObjectImplementations();
 
     triggerAsyncUpdate();
-
-    sendTabUpdateToVisibleCanvases();
 }
 
 void TabComponent::sendTabUpdateToVisibleCanvases()
