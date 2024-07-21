@@ -276,9 +276,9 @@ private:
                     continue;
                 }
 
-                if (peakAmplitude == valleyAmplitude) {
-                    peakAmplitude += 0.01f;
-                    valleyAmplitude -= 0.01f;
+                while(approximatelyEqual(peakAmplitude, valleyAmplitude)) {
+                    peakAmplitude += peakAmplitude * 0.001f;
+                    valleyAmplitude -= valleyAmplitude * 0.001f;
                 }
 
                 // Apply FFT to get the peak frequency, we use this to decide the amount of samples we display
@@ -314,9 +314,11 @@ private:
 
                     auto y = jmap<float>(interpolatedSample, valleyAmplitude, peakAmplitude, channelBounds.getY(), channelBounds.getBottom());
                     auto newPoint = Point<float>(x, y);
-                    auto segment = Line(lastPoint, newPoint);
-                    oscopePath.addLineSegment(segment, 0.75f);
-                    lastPoint = newPoint;
+                    if(newPoint.isFinite()) {
+                        auto segment = Line(lastPoint, newPoint);
+                        oscopePath.addLineSegment(segment, 0.75f);
+                        lastPoint = newPoint;
+                    }
                 }
 
                 // Draw oscope path

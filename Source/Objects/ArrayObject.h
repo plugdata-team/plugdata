@@ -124,17 +124,21 @@ public:
         pointPtr += 2;
         
         Path result;
-        result.startNewSubPath(control[4], control[5]);
+        if(Point<float>(control[4], control[5]).isFinite()) {
+            result.startNewSubPath(control[4], control[5]);
+        }
         
         for (int i = numPoints-2; i > 0; i--, pointPtr += 2) {
             switch(style)
             {
                 case Points:
                 {
-                    result.lineTo(pointPtr[0], control[5]);
-                    result.startNewSubPath(pointPtr[0], pointPtr[1]);
+                    if(Point<float>(pointPtr[0], control[5]).isFinite() && Point<float>(pointPtr[0], pointPtr[1]).isFinite()) {
+                        result.lineTo(pointPtr[0], control[5]);
+                        result.startNewSubPath(pointPtr[0], pointPtr[1]);
+                    }
                     
-                    if(i == 1)
+                    if(i == 1 && Point<float>(pointPtr[2], pointPtr[3]).isFinite())
                     {
                         result.lineTo(pointPtr[2], pointPtr[3]);
                     }
@@ -145,8 +149,11 @@ public:
                 }
                 case Polygon:
                 {
-                    result.lineTo(pointPtr[0], pointPtr[1]);
-                    if(i == 1)
+                    if(Point<float>(pointPtr[0], pointPtr[1]).isFinite()) {
+                        result.lineTo(pointPtr[0], pointPtr[1]);
+                    }
+                    
+                    if(i == 1 && Point<float>(pointPtr[2], pointPtr[3]).isFinite())
                     {
                         result.lineTo(pointPtr[2], pointPtr[3]);
                     }
@@ -173,7 +180,13 @@ public:
                     control[2] = 0.333*control[4] + 0.667*pointPtr[0];
                     control[3] = 0.333*control[5] + 0.667*pointPtr[1];
                     
-                    result.cubicTo(control[0], control[1], control[2], control[3], control[4], control[5]);
+                    auto start = Point<float>(control[0], control[1]);
+                    auto c1 = Point<float>(control[2], control[3]);
+                    auto end = Point<float>(control[4], control[5]);
+                    
+                    if(start.isFinite() && c1.isFinite() && end.isFinite()) {
+                        result.cubicTo(start, c1, end);
+                    }
                     break;
                 }
             }
