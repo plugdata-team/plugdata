@@ -274,7 +274,12 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
         }
     };
 
-    updateResizeHandleIfNeeded(resizeHandleImage, findColour(PlugDataColour::objectSelectedOutlineColourId));
+    auto resizeHandleActiveColour = findColour(PlugDataColour::objectSelectedOutlineColourId);
+    auto resizeHandleColour = resizeHandleActiveColour.interpolatedWith(findColour(PlugDataColour::canvasBackgroundColourId), 0.5f);
+
+    updateResizeHandleIfNeeded(resizeHandleImage, resizeHandleColour);
+    updateResizeHandleIfNeeded(resizeHandleActiveImage, resizeHandleActiveColour);
+
     updateResizeHandleIfNeeded(resizeGOPHandleImage, findColour(PlugDataColour::graphAreaColourId));
 
     // Then, check if object framebuffers need to be updated

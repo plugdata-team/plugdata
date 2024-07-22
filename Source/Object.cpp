@@ -258,7 +258,7 @@ bool Object::hitTest(int x, int y)
     
     if (selectedFlag) {
         for (auto& corner : getCorners()) {
-            if (corner.contains(x, y))
+            if (corner.reduced(1).contains(x, y))
                 return true;
         }
         return getLocalBounds().reduced(margin).contains(x, y);
@@ -279,7 +279,13 @@ bool Object::hitTest(int x, int y)
 // To make iolets show/hide
 void Object::mouseEnter(MouseEvent const& e)
 {
-    drawIoletExpanded = true;
+    if (!selectedFlag || locked == var(true) || commandLocked == var(true)) {
+        setMouseCursor(MouseCursor::NormalCursor);
+        updateMouseCursor();
+        return;
+    }
+
+    updateResizeZones(e);
     repaint();
 }
 
@@ -301,6 +307,11 @@ void Object::mouseMove(MouseEvent const& e)
         return;
     }
 
+    updateResizeZones(e);
+}
+
+void Object::updateResizeZones(MouseEvent const& e)
+{
     int zone = 0;
     auto b = getLocalBounds().toFloat().reduced(margin - 2);
     if (b.contains(e.position)
@@ -325,6 +336,14 @@ void Object::mouseMove(MouseEvent const& e)
 
     setMouseCursor(validResizeZone ? resizeZone.getMouseCursor() : MouseCursor::NormalCursor);
     updateMouseCursor();
+
+    if (validResizeZone) {
+        drawIoletExpanded = false;
+    }
+    else {
+        drawIoletExpanded = true;
+    }
+    repaint();
 }
 
 void Object::applyBounds()
@@ -874,6 +893,8 @@ void Object::mouseUp(MouseEvent const& e)
     if (wasLockedOnMouseDown || (gui && gui->isEditorShown()))
         return;
 
+    repaint();
+
     if (!ds.didStartDragging && !getValue<bool>(locked) && e.mods.isAltDown()) {
         // Show help file on alt+mouseup if object were not draged
         openHelpPatch();
@@ -1296,18 +1317,94 @@ void Object::performRender(NVGcontext* nvg)
     auto selectedOutlineColour = convertColour(getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
 
     if (selectedFlag) {
-        auto& resizeHandleImage = cnv->resizeHandleImage;
         int angle = 360;
+        int index = 0;
+        auto isAspectRatioLocked = getConstrainer() ? getConstrainer()->getFixedAspectRatio() != 0.0f : false;
+
+        /* Corner resizer handles are indexed CCW
+        ┌──┐     ┌──┐
+        │0┌┴─────┴┐3│
+        └─┤       ├─┘
+        ┌─┤       ├─┐
+        │1└┬─────┬┘2│
+        └──┘     └──┘
+        */
         for (auto& corner : getCorners()) {
+            bool isHit = false;
+            if (isMouseButtonDown(false)) {
+                switch (resizeZone.getZoneFlags()) {
+                    case ResizableBorderComponent::Zone::Zones::top + ResizableBorderComponent::Zone::Zones::left:
+                        if (index == 0)
+                            isHit = true;
+                        break;
+                    case ResizableBorderComponent::Zone::Zones::bottom + ResizableBorderComponent::Zone::Zones::left:
+                        if (index == 1)
+                            isHit = true;
+                        break;
+                    case ResizableBorderComponent::Zone::Zones::bottom + ResizableBorderComponent::Zone::Zones::right:
+                        if (index == 2)
+                            isHit = true;
+                        break;
+                    case ResizableBorderComponent::Zone::Zones::top + ResizableBorderComponent::Zone::Zones::right:
+                        if (index == 3)
+                            isHit = true;
+                        break;
+                    // Only highlight the active corner when object is aspect ratio locked
+                    // Otherwise highlight both corners that are on the edge that is resizing
+                    case ResizableBorderComponent::Zone::Zones::right:
+                        if (isAspectRatioLocked){
+                            if (index == 2) {
+                                isHit = true;
+                            }
+                        } else if (index == 2 || index == 3) {
+                            isHit = true;
+                        }
+                        break;
+                    case ResizableBorderComponent::Zone::Zones::left:
+                        if (isAspectRatioLocked){
+                            if (index == 1) {
+                                isHit = true;
+                            }
+                        } else if (index == 0 || index == 1)
+                            isHit = true;
+                        break;
+                    case ResizableBorderComponent::Zone::Zones::top:
+                        if (isAspectRatioLocked) {
+                            if (index == 3) {
+                                isHit = true;
+                            }
+                        } else if (index == 0 || index == 3)
+                            isHit = true;
+                        break;
+                    case ResizableBorderComponent::Zone::Zones::bottom:
+                        if (isAspectRatioLocked) {
+                            if (index == 2) {
+                                isHit = true;
+                            }
+                        } else if (index == 1 || index == 2)
+                            isHit = true;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            index++;
+
             nvgSave(nvg);
             // Rotate around centre
             nvgTranslate(nvg, corner.getCentreX(), corner.getCentreY());
             nvgRotate(nvg, degreesToRadians<float>(angle));
-            nvgTranslate(nvg, -4.5f, -4.5f);
+            nvgTranslate(nvg, -4.0f, -4.0f);
 
             nvgBeginPath(nvg);
             nvgRect(nvg, 0, 0, 9, 9);
-            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage.getImageId(), 1));
+
+#define ALPHA_HANDLES
+#ifdef ALPHA_HANDLES
+            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, 9, 9, 0, cnv->resizeHandleActiveImage.getImageId(), isHit ? 1.0f : 0.5f));
+#else
+            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, 9, 9, 0, isHit ? cnv->resizeHandleActiveImage.getImageId() : cnv->resizeHandleImage.getImageId(), 1.0f));
+#endif
             nvgFill(nvg);
             nvgRestore(nvg);
             angle -= 90;
