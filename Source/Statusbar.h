@@ -21,7 +21,7 @@ class PluginProcessor;
 class VolumeSlider;
 class LatencyDisplayButton;
 
-class StatusbarSource : public Timer {
+class StatusbarSource : public Timer{
 
 public:
     struct Listener {
@@ -44,7 +44,7 @@ public:
     void prepareToPlay(int numChannels);
 
     void timerCallback() override;
-
+    
     void addListener(Listener* l);
     void removeListener(Listener* l);
 
@@ -73,6 +73,7 @@ private:
 class VolumeSlider;
 class ZoomLabel;
 class Statusbar : public Component
+    , public AsyncUpdater
     , public StatusbarSource::Listener
     , public ModifierKeyListener {
     PluginProcessor* pd;
@@ -98,6 +99,9 @@ public:
     static constexpr int statusbarHeight = 30;
 
 private:
+        
+    void handleAsyncUpdate() override;
+        
     std::unique_ptr<LevelMeter> levelMeter;
     std::unique_ptr<VolumeSlider> volumeSlider;
     std::unique_ptr<MIDIBlinker> midiBlinker;

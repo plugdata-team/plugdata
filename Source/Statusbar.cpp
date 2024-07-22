@@ -853,7 +853,7 @@ Statusbar::~Statusbar()
     pd->statusbarSource->removeListener(this);
 }
 
-void Statusbar::updateZoomLevel()
+void Statusbar::handleAsyncUpdate()
 {
     auto* editor = findParentComponentOfClass<PluginEditor>();
     if (auto* cnv = editor->getCurrentCanvas()) {
@@ -862,6 +862,11 @@ void Statusbar::updateZoomLevel()
         currentZoomLevel = 100.0f;
     }
     repaint();
+}
+
+void Statusbar::updateZoomLevel()
+{
+    triggerAsyncUpdate();
 }
 
 void Statusbar::paint(Graphics& g)
