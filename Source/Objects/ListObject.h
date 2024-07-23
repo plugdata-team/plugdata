@@ -187,7 +187,7 @@ public:
 
         // draw flag
         bool highlighted = editorActive && getValue<bool>(object->locked);
-        drawTriangleFlag(nvg, highlighted, selectedOutlineCol, flagColour, true);
+        drawTriangleFlag(nvg, highlighted, true);
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBAf(0, 0, 0, 0), (object->isSelected() || highlighted) ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
     }

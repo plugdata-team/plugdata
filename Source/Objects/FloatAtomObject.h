@@ -190,7 +190,7 @@ public:
 
         // draw flag
         bool active = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
-        drawTriangleFlag(nvg, active, selCol, flagColour);
+        drawTriangleFlag(nvg, active);
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBAf(0, 0, 0, 0), (active || object->isSelected()) ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
     }

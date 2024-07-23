@@ -277,6 +277,39 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
     updateResizeHandleIfNeeded(resizeHandleImage, findColour(PlugDataColour::objectSelectedOutlineColourId));
     updateResizeHandleIfNeeded(resizeGOPHandleImage, findColour(PlugDataColour::graphAreaColourId));
 
+    auto updateObjectFlagIfNeeded = [this, nvg](NVGImage& flagImage, Colour colour) {
+        const float flagSize = 9;
+
+        const auto pixelScale = getRenderScale();
+        const auto zoom = isScrolling ? 2.0f : getValue<float>(zoomScale);
+
+        int const flagArea = flagSize * pixelScale * zoom;
+
+        if (flagImage.needsUpdate(flagArea, flagArea)) {
+            flagImage = NVGImage(nvg, flagArea, flagArea, [pixelScale, zoom, colour, flagSize](Graphics &g) {
+                g.addTransform(AffineTransform::scale(pixelScale * zoom, pixelScale * zoom));
+                Path outerArea;
+                outerArea.addRoundedRectangle(0, 0, flagSize, flagSize, Corners::objectCornerRadius, Corners::objectCornerRadius, 0, 1, 0, 0);
+                outerArea.applyTransform(AffineTransform::translation(-0.5f, 0.5f));
+
+                g.reduceClipRegion(outerArea);
+
+                Path flagA;
+                flagA.startNewSubPath(0, 0);
+                flagA.lineTo(flagSize, 0);
+                flagA.lineTo(flagSize, flagSize);
+                flagA.closeSubPath();
+
+                g.setColour(colour);
+                g.fillPath(flagA);
+            });
+            editor->nvgSurface.invalidateAll();
+        }
+    };
+
+    updateObjectFlagIfNeeded(objectFlag, findColour(PlugDataColour::guiObjectInternalOutlineColour));
+    updateObjectFlagIfNeeded(objectFlagSelected, findColour(PlugDataColour::objectSelectedOutlineColourId));
+
     // Then, check if object framebuffers need to be updated
     if (isScrolling) {
         if (viewport)
