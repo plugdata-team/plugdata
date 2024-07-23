@@ -154,7 +154,13 @@ public:
         recentlyOpenedViewport.setViewedComponent(&recentlyOpenedComponent, false);
         recentlyOpenedViewport.setScrollBarsShown(true, false, false, false);
         recentlyOpenedComponent.setVisible(true);
-        addAndMakeVisible(recentlyOpenedViewport);
+#if JUCE_IOS
+        recentlyOpenedViewport.setVisible(OSUtils::isIPad());
+#else
+        recentlyOpenedViewport.setVisible(true);
+#endif
+
+        addChildComponent(recentlyOpenedViewport);
 
         setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this));
         triggerAsyncUpdate();
@@ -356,9 +362,11 @@ public:
         nvgFontFace(nvg, "Inter-Bold");
         nvgText(nvg, 35, 38, "Welcome to plugdata", nullptr);
 
-        nvgBeginPath(nvg);
-        nvgFontSize(nvg, 24);
-        nvgText(nvg, 35, 244, "Recently Opened", nullptr);
+        if(recentlyOpenedViewport.isVisible()) {
+            nvgBeginPath(nvg);
+            nvgFontSize(nvg, 24);
+            nvgText(nvg, 35, 244, "Recently Opened", nullptr);
+        }
     }
 
     void lookAndFeelChanged() override

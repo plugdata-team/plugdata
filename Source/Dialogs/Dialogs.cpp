@@ -166,12 +166,12 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
             break;
         }
         case 2: {
-            editor->openProject();
+            editor->getTabComponent().openPatch();
             break;
         }
         case 3: {
             if (auto* cnv = editor->getCurrentCanvas())
-                cnv->saveProject();
+                cnv->save();
             break;
         }
         case 4: {

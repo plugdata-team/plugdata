@@ -484,7 +484,13 @@ void PluginEditor::resized()
     addObjectMenuButton.setBounds((3 * buttonDistance) + offset, 0, buttonSize, buttonSize);
 
     auto startX = (getWidth() / 2.0f) - (toolbarHeight * 1.5);
-
+    
+#if JUCE_IOS
+    if(OSUtils::isIPad())
+    {
+        startX -= sidebar->getWidth() / 2.0f;
+    }
+#endif
     editButton.setBounds(startX, 1, buttonSize, buttonSize - 2);
     runButton.setBounds(startX + buttonSize - 1, 1, buttonSize, buttonSize - 2);
     presentButton.setBounds(startX + (2 * buttonSize) - 2, 1, buttonSize, buttonSize - 2);
