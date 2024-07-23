@@ -4,7 +4,9 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class ListObject final : public ObjectBase {
+#include "ObjectBaseWithFlag.h"
+
+class ListObject final : public ObjectBaseWithFlag {
 
     AtomHelper atomHelper;
     DraggableListNumber listLabel;
@@ -15,15 +17,17 @@ class ListObject final : public ObjectBase {
 
     NVGcolor backgroundColour;
     NVGcolor selectedOutlineColour;
+    Colour selectedOutlineCol;
     NVGcolor outlineColour;
-    NVGcolor flagColour;
+    Colour flagColour;
 
     bool editorActive = false;
 
+    bool wasHighLighted = false;
 
 public:
     ListObject(pd::WeakReference obj, Object* parent)
-        : ObjectBase(obj, parent)
+        : ObjectBaseWithFlag(obj, parent)
         , atomHelper(obj, parent, this)
     {
         listLabel.setBounds(2, 0, getWidth() - 2, getHeight() - 1);
@@ -177,39 +181,15 @@ public:
         auto b = getLocalBounds().toFloat();
         auto sb = b.reduced(0.5f);
 
-        bool highlighed = editorActive && getValue<bool>(object->locked);
-
-        nvgSave(nvg);
-        nvgIntersectRoundedScissor(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(), Corners::objectCornerRadius);
-
-        nvgBeginPath(nvg);
-        nvgFillColor(nvg, backgroundColour);
-        nvgRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight());
-        nvgFill(nvg);
+        nvgDrawRoundedRect(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(), backgroundColour, backgroundColour, Corners::objectCornerRadius);
 
         imageRenderer.renderJUCEComponent(nvg, listLabel, getImageScale());
 
-        nvgIntersectRoundedScissor(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
-
         // draw flag
-        nvgFillColor(nvg, highlighed ? selectedOutlineColour : flagColour);
-        nvgBeginPath(nvg);
-        nvgMoveTo(nvg, b.getRight() - 8, b.getY());
-        nvgLineTo(nvg, b.getRight(), b.getY());
-        nvgLineTo(nvg, b.getRight(), b.getY() + 8);
-        nvgClosePath(nvg);
-        nvgFill(nvg);
+        bool highlighted = editorActive && getValue<bool>(object->locked);
+        drawTriangleFlag(nvg, highlighted, selectedOutlineCol, flagColour, true);
 
-        nvgBeginPath(nvg);
-        nvgMoveTo(nvg, b.getRight() - 8, b.getBottom());
-        nvgLineTo(nvg, b.getRight(), b.getBottom());
-        nvgLineTo(nvg, b.getRight(), b.getBottom() - 8);
-        nvgClosePath(nvg);
-        nvgFill(nvg);
-
-        nvgRestore(nvg);
-
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBAf(0, 0, 0, 0), (object->isSelected() || highlighed) ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBAf(0, 0, 0, 0), (object->isSelected() || highlighted) ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
     }
 
     void lookAndFeelChanged() override
@@ -219,9 +199,11 @@ public:
         listLabel.setColour(TextEditor::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
 
         backgroundColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
-        selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        selectedOutlineCol = cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId);
+        selectedOutlineColour = convertColour(selectedOutlineCol);
         outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
-        flagColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour));
+
+        flagColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour);
 
         repaint();
     }

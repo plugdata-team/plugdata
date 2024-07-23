@@ -6,7 +6,7 @@
 
 #include "Components/DraggableNumber.h"
 
-class FloatAtomObject final : public ObjectBase {
+class FloatAtomObject final : public ObjectBaseWithFlag {
 
     AtomHelper atomHelper;
     DraggableNumber input;
@@ -19,12 +19,13 @@ class FloatAtomObject final : public ObjectBase {
 
     NVGcolor backgroundColour;
     NVGcolor selectedOutlineColour;
+    Colour selCol;
     NVGcolor outlineColour;
-    NVGcolor flagColour;
+    Colour flagColour;
 
 public:
     FloatAtomObject(pd::WeakReference obj, Object* parent)
-        : ObjectBase(obj, parent)
+        : ObjectBaseWithFlag(obj, parent)
         , atomHelper(obj, parent, this)
         , input(false)
     {
@@ -140,9 +141,10 @@ public:
         input.setColour(TextEditor::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
 
         backgroundColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
-        selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        selCol = cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId);
+        selectedOutlineColour = convertColour(selCol);
         outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
-        flagColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour));
+        flagColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour);
 
         repaint();
     }
@@ -182,28 +184,13 @@ public:
         auto b = getLocalBounds().toFloat();
         auto sb = b.reduced(0.5f);
 
-        bool active = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
-
-        nvgSave(nvg);
-        nvgIntersectRoundedScissor(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(), Corners::objectCornerRadius);
-
-        nvgBeginPath(nvg);
-        nvgFillColor(nvg, backgroundColour);
-        nvgRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight());
-        nvgFill(nvg);
+        nvgDrawRoundedRect(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(), backgroundColour, backgroundColour, Corners::objectCornerRadius);
 
         input.render(nvg);
 
         // draw flag
-        nvgFillColor(nvg, active ? selectedOutlineColour : flagColour);
-        nvgBeginPath(nvg);
-        nvgMoveTo(nvg, b.getRight() - 8, b.getY());
-        nvgLineTo(nvg, b.getRight(), b.getY());
-        nvgLineTo(nvg, b.getRight(), b.getY() + 8);
-        nvgClosePath(nvg);
-        nvgFill(nvg);
-
-        nvgRestore(nvg);
+        bool active = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
+        drawTriangleFlag(nvg, active, selCol, flagColour);
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBAf(0, 0, 0, 0), (active || object->isSelected()) ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
     }
