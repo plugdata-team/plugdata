@@ -276,24 +276,6 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
 
     updateResizeHandleIfNeeded(resizeHandleImage, findColour(PlugDataColour::objectSelectedOutlineColourId));
     updateResizeHandleIfNeeded(resizeGOPHandleImage, findColour(PlugDataColour::graphAreaColourId));
-
-    // Then, check if object framebuffers need to be updated
-    if (isScrolling) {
-        if (viewport)
-            invalidRegion = (invalidRegion + viewport->getViewPosition()) / zoom;
-        for (auto* obj : objects) {
-            auto b = obj->getBounds();
-            if (b.intersects(invalidRegion)) {
-                obj->updateFramebuffer(nvg);
-
-                auto elapsed = Time::getMillisecondCounter() - start;
-                if (elapsed > maxUpdateTimeMs) {
-                    return false;
-                }
-            }
-        }
-    }
-
     return true;
 }
 

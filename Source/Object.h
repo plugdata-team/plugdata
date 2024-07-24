@@ -82,9 +82,8 @@ public:
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
 
-    void updateFramebuffer(NVGcontext* nvg);
     void render(NVGcontext* nvg) override;
-    void performRender(NVGcontext* nvg);
+
     void renderIolets(NVGcontext* nvg);
     void renderLabel(NVGcontext* nvg);
 

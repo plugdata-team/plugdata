@@ -118,34 +118,6 @@ void Object::setObjectBounds(Rectangle<int> bounds)
     setBounds(bounds.expanded(margin) + cnv->canvasOrigin);
 }
 
-// CachedComponentImage that will block repaint messages to parent when scrolling/zooming, and keeps track of invaldation while scrolling/zooming
-class InvalidationListener : public CachedComponentImage {
-public:
-    InvalidationListener(Object* parent)
-        : object(parent)
-    {
-    }
-
-private:
-    void paint(Graphics& g) override { }
-
-    bool invalidate(Rectangle<int> const& rect) override
-    {
-        object->scrollBuffer.setDirty();
-        return true;
-    }
-
-    bool invalidateAll() override
-    {
-        object->scrollBuffer.setDirty();
-        return true;
-    }
-
-    void releaseResources() override { }
-
-    Object* object;
-};
-
 void Object::initialise()
 {
     cnv->objectLayer.addAndMakeVisible(this);
@@ -167,8 +139,6 @@ void Object::initialise()
     originalBounds.setBounds(0, 0, 0, 0);
 
     setAccessible(false); // TODO: implement accessibility. We disable default, since it makes stuff slow on macOS
-
-    setCachedComponentImage(new InvalidationListener(this));
 }
 
 void Object::timerCallback()
@@ -1237,39 +1207,6 @@ void Object::mouseDrag(MouseEvent const& e)
     }
 }
 
-void Object::updateFramebuffer(NVGcontext* nvg)
-{
-    // For very large objects, buffering is just gonna take up GPU memory, with minimal performance benefits
-    // Also, Metal has a limitation on image size, so this will also prevent crashing
-    if (getWidth() * 3 * cnv->getRenderScale() >= 8192 || getHeight() * 3 * cnv->getRenderScale() >= 8192)
-        return;
-
-    auto b = getLocalBounds();
-    auto maxScale = 3.0f;
-    int scaledWidth = b.getWidth() * maxScale * cnv->getRenderScale();
-    int scaledHeight = b.getHeight() * maxScale * cnv->getRenderScale();
-
-    if (scrollBuffer.needsUpdate(scaledWidth, scaledHeight)) {
-        scrollBuffer.renderToFramebuffer(nvg, scaledWidth, scaledHeight, [this, scaledWidth, scaledHeight, maxScale, b](NVGcontext* nvg) {
-            nvgViewport(0, 0, scaledWidth, scaledHeight);
-            nvgClear(nvg);
-
-            nvgBeginFrame(nvg, b.getWidth() * maxScale, b.getHeight() * maxScale, cnv->getRenderScale());
-            nvgScale(nvg, maxScale, maxScale);
-            nvgScissor(nvg, 0, 0, b.getWidth(), b.getHeight());
-
-            performRender(nvg);
-
-#if ENABLE_OBJECT_FB_DEBUGGING
-            static Random rng;
-            nvgFillColor(nvg, nvgRGBA(rng.nextInt(255), rng.nextInt(255), rng.nextInt(255), 0x50));
-            nvgFillRect(nvg, 0, 0, b.getWidth(), b.getHeight());
-#endif
-            nvgEndFrame(nvg);
-        });
-    }
-}
-
 void Object::render(NVGcontext* nvg)
 {
     if (cnv->shouldShowObjectActivity() && (!activityOverlayImage.isValid() || activityOverlayDirty) &&
@@ -1280,17 +1217,6 @@ void Object::render(NVGcontext* nvg)
         activityOverlayDirty = false;
     }
 
-    if (cnv->isScrolling && scrollBuffer.needsUpdate(getWidth() * 3.0f * cnv->getRenderScale(), getHeight() * 3.0f * cnv->getRenderScale())) {
-        performRender(nvg);
-    } else if (cnv->isScrolling && scrollBuffer.isValid()) {
-        scrollBuffer.render(nvg, Rectangle<int>(0, 0, getWidth(), getHeight()));
-    } else {
-        performRender(nvg);
-    }
-}
-
-void Object::performRender(NVGcontext* nvg)
-{
     auto lb = getLocalBounds();
     auto b = lb.reduced(margin);
     auto selectedOutlineColour = convertColour(getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
@@ -1386,6 +1312,7 @@ void Object::performRender(NVGcontext* nvg)
 
     renderIolets(nvg);
 }
+
 
 void Object::renderIolets(NVGcontext* nvg)
 {
