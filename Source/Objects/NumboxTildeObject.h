@@ -68,6 +68,9 @@ public:
 
     void update() override
     {
+        if (input.isShowing())
+            return;
+
         input.setText(input.formatNumber(getValue()), dontSendNotification);
 
         min = getMinimum();

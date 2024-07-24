@@ -87,6 +87,9 @@ public:
 
     void update() override
     {
+        if (input.isShowing())
+            return;
+
         value = getValue();
 
         min = atomHelper.getMinimum();
