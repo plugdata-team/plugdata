@@ -171,7 +171,10 @@ private:
 
     std::unordered_map<void*, std::set<juce::WeakReference<MessageListener>>> messageListeners;
     CriticalSection messageListenerLock;
-    std::atomic<bool> block = false;
+
+    // Block messages unless an editor has been constructed
+    // Otherwise the message queue will not be cleared by the editors v-blank
+    std::atomic<bool> block = true;
 };
 
 }

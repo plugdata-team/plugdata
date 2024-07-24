@@ -81,6 +81,9 @@ public:
 
     void update() override
     {
+        if (input.isShowing())
+            return;
+                
         value = getValue();
         input.setText(input.formatNumber(value), dontSendNotification);
 
