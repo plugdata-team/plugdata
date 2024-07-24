@@ -325,7 +325,7 @@ public:
 
     bool needsUpdate(int width, int height)
     {
-        return imageId == 0 || width != imageWidth || height != imageHeight;
+        return imageId == 0 || width != imageWidth || height != imageHeight || isDirty;
     }
 
     int getImageId()
@@ -333,9 +333,15 @@ public:
         return imageId;
     }
 
+    void setDirty()
+    {
+        isDirty = true;
+    }
+
     NVGcontext* nvg = nullptr;
     int imageId = 0;
     int imageWidth = 0, imageHeight = 0;
+    bool isDirty = false;
 
     std::function<void()> onImageInvalidate = nullptr;
 

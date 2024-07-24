@@ -85,7 +85,7 @@ void Iolet::render(NVGcontext* nvg)
 
     if (isLocked || !(overObject || isHovering) || (getValue<bool>(patchDownwardsOnly) && isInlet)) {
         auto clipBounds = getLocalArea(object, object->getLocalBounds().toFloat().reduced(Object::margin));
-        nvgIntersectRoundedScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight(), Corners::objectCornerRadius);
+        nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
     }
 
     auto scale = getWidth() / 13.0f;
