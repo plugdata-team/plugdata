@@ -6,7 +6,7 @@
 
 #include "Components/DraggableNumber.h"
 
-class FloatAtomObject final : public ObjectBaseWithFlag {
+class FloatAtomObject final : public ObjectBase {
 
     AtomHelper atomHelper;
     DraggableNumber input;
@@ -21,11 +21,10 @@ class FloatAtomObject final : public ObjectBaseWithFlag {
     NVGcolor selectedOutlineColour;
     Colour selCol;
     NVGcolor outlineColour;
-    Colour flagColour;
 
 public:
     FloatAtomObject(pd::WeakReference obj, Object* parent)
-        : ObjectBaseWithFlag(obj, parent)
+        : ObjectBase(obj, parent)
         , atomHelper(obj, parent, this)
         , input(false)
     {
@@ -147,7 +146,6 @@ public:
         selCol = cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId);
         selectedOutlineColour = convertColour(selCol);
         outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
-        flagColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour);
 
         repaint();
     }
@@ -193,7 +191,7 @@ public:
 
         // draw flag
         bool active = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
-        drawTriangleFlag(nvg, active);
+        atomHelper.drawTriangleFlag(nvg, active);
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBAf(0, 0, 0, 0), (active || object->isSelected()) ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
     }

@@ -127,8 +127,6 @@ public:
     static inline constexpr int doubleMargin = margin * 2;
     static inline constexpr int height = 32;
 
-    static inline constexpr int flagSize = 9;
-
     Rectangle<int> originalBounds;
 
     static inline int const minimumSize = 9;

@@ -132,6 +132,11 @@ public:
     void updateImage(NVGcontext* nvg)
     {
         imageBuffers.clear();
+        
+        if(!img.isValid() && File(imageFile).existsAsFile())
+        {
+            img = ImageFileFormat::loadFrom(imageFile).convertedToFormat(Image::ARGB);
+        }
 
         int imageWidth = img.getWidth();
         int imageHeight = img.getHeight();
@@ -158,6 +163,8 @@ public:
             }
             x += 8192;
         }
+        
+        img = Image(); // Clear image from CPU memory after upload
 
         imageNeedsReload = false;
     }

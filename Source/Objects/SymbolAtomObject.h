@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class SymbolAtomObject final : public ObjectBaseWithFlag
+class SymbolAtomObject final : public ObjectBase
     , public KeyListener {
 
     bool isDown = false;
@@ -21,11 +21,10 @@ class SymbolAtomObject final : public ObjectBaseWithFlag
     NVGcolor selectedOutlineColour;
     Colour selCol;
     NVGcolor outlineColour;
-    Colour flagColour;
 
 public:
     SymbolAtomObject(pd::WeakReference obj, Object* parent)
-        : ObjectBaseWithFlag(obj, parent)
+        : ObjectBase(obj, parent)
         , atomHelper(obj, parent, this)
     {
         addAndMakeVisible(input);
@@ -139,8 +138,7 @@ public:
         selCol = cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId);
         selectedOutlineColour = convertColour(selCol);
         outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
-        flagColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour);
-
+        
         repaint();
     }
 
@@ -156,7 +154,7 @@ public:
 
         // draw flag
         bool highlighted = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
-        drawTriangleFlag(nvg, highlighted);
+        atomHelper.drawTriangleFlag(nvg, highlighted);
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBAf(0, 0, 0, 0), (object->isSelected() || highlighted) ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
     }

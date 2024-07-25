@@ -4,9 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "ObjectBaseWithFlag.h"
-
-class ListObject final : public ObjectBaseWithFlag {
+class ListObject final : public ObjectBase {
 
     AtomHelper atomHelper;
     DraggableListNumber listLabel;
@@ -19,15 +17,12 @@ class ListObject final : public ObjectBaseWithFlag {
     NVGcolor selectedOutlineColour;
     Colour selectedOutlineCol;
     NVGcolor outlineColour;
-    Colour flagColour;
 
     bool editorActive = false;
 
-    bool wasHighLighted = false;
-
 public:
     ListObject(pd::WeakReference obj, Object* parent)
-        : ObjectBaseWithFlag(obj, parent)
+        : ObjectBase(obj, parent)
         , atomHelper(obj, parent, this)
     {
         listLabel.setBounds(2, 0, getWidth() - 2, getHeight() - 1);
@@ -187,7 +182,7 @@ public:
 
         // draw flag
         bool highlighted = editorActive && getValue<bool>(object->locked);
-        drawTriangleFlag(nvg, highlighted, true);
+        atomHelper.drawTriangleFlag(nvg, highlighted, true);
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBAf(0, 0, 0, 0), (object->isSelected() || highlighted) ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
     }
@@ -202,8 +197,6 @@ public:
         selectedOutlineCol = cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId);
         selectedOutlineColour = convertColour(selectedOutlineCol);
         outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
-
-        flagColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour);
 
         repaint();
     }
