@@ -270,14 +270,14 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(touchSelectionHelper.get());
     touchSelectionHelper->setAlwaysOnTop(true);
 #endif
-    
+
 #if ENABLE_TESTING
         // Call after window is ready
         ::Timer::callAfterDelay(200, [this](){
             runTests(this);
         });
 #endif
-    
+
     pd->messageDispatcher->setBlockMessages(false);
     pd->objectLibrary->waitForInitialisationToFinish();
 }
@@ -484,11 +484,11 @@ void PluginEditor::resized()
     addObjectMenuButton.setBounds((3 * buttonDistance) + offset, 0, buttonSize, buttonSize);
 
     auto startX = (getWidth() / 2.0f) - (toolbarHeight * 1.5);
-    
+
 #if JUCE_IOS
     if(OSUtils::isIPad())
     {
-        startX -= sidebar->getWidth() / 2.0f;
+        startX -= 150.0f; // Otherwise it gets in the way of multitasking controls
     }
 #endif
     editButton.setBounds(startX, 1, buttonSize, buttonSize - 2);
@@ -523,7 +523,7 @@ bool PluginEditor::isInPluginMode() const
 pd::Patch::Ptr PluginEditor::findPatchInPluginMode()
 {
     ScopedLock lock(pd->patches.getLock());
-    
+
     for (auto& patch : pd->patches) {
         if (editorIndex == patch->windowIndex && patch->openInPluginMode) {
             return patch;
