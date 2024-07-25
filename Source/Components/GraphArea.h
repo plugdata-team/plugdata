@@ -70,7 +70,7 @@ public:
             // Rotate around centre
             nvgTranslate(nvg, getVert(i).x, getVert(i).y);
             nvgRotate(nvg, degreesToRadians<float>(angle));
-            nvgTranslate(nvg, -3.0f, -3.0f);
+            nvgTranslate(nvg, -2.0f, -2.0f);
 
             nvgBeginPath(nvg);
             nvgRect(nvg, 0, 0, 9, 9);

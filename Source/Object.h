@@ -169,6 +169,8 @@ private:
 
     bool checkIfHvccCompatible() const;
 
+    void updateResizeZones(MouseEvent const& e);
+
     void setSelected(bool shouldBeSelected);
     bool selectedFlag = false;
     bool selectionStateChanged = false;

@@ -268,6 +268,7 @@ public:
 
     NVGFramebuffer ioletBuffer;
     NVGImage resizeHandleImage;
+    NVGImage resizeHandleActiveImage;
     NVGImage resizeGOPHandleImage;
     NVGImage presentationShadowImage;
 
