@@ -67,9 +67,7 @@ class WelcomePanel : public Component
 
             g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
             g.strokePath(tilePath, PathStrokeType(1.0f));
-
-
-
+            
             auto textWidth = bounds.getWidth() - 8;
             if (titleImage.needsUpdate(textWidth * 2, 24 * 2) || subtitleImage.needsUpdate(textWidth * 2, 16 * 2)) {
                 auto textColour = findColour(PlugDataColour::panelTextColourId);

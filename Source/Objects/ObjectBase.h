@@ -48,7 +48,7 @@ public:
     void renderLabel(NVGcontext* nvg, float scale)
     {
         auto textHash = hash(getText());
-        if (image.needsUpdate(getWidth() * scale, getHeight() * scale) || updateColour || lastTextHash != textHash || lastScale != scale) {
+        if (image.needsUpdate(roundToInt(getWidth() * scale), roundToInt(getHeight() * scale)) || updateColour || lastTextHash != textHash || lastScale != scale) {
             updateImage(nvg, scale);
             lastTextHash = textHash;
             lastScale = scale;

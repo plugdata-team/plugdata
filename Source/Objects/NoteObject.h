@@ -121,8 +121,7 @@ public:
     void render(NVGcontext* nvg) override
     {
         auto scale = getImageScale();
-
-        if (needsRepaint || noteEditor.isVisible() || imageRenderer.needsUpdate(std::ceil(getWidth() * scale), std::ceil(getHeight() * scale))) {
+        if (needsRepaint || isEditorShown() || imageRenderer.needsUpdate(roundToInt(getWidth() * scale), roundToInt(getHeight() * scale))) {
             imageRenderer.renderJUCEComponent(nvg, *this, scale);
             needsRepaint = false;
         } else {

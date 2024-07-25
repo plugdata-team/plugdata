@@ -249,9 +249,7 @@ public:
         if (canvas) {
             auto invalidArea = cnv->editor->nvgSurface.getInvalidArea();
 
-            if (topLevel->isScrolling)
-                invalidArea = canvas->getLocalBounds();
-            else if (!invalidArea.isEmpty())
+            if (!invalidArea.isEmpty())
                 invalidArea = canvas->getLocalArea(&cnv->editor->nvgSurface, invalidArea).expanded(1);
             else
                 return;
