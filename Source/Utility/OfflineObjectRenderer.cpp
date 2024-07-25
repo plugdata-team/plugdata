@@ -385,37 +385,48 @@ std::pair<std::vector<bool>, std::vector<bool>> OfflineObjectRenderer::countIole
         return patchIoletCache[patchSHA256];
     }
     
-    bool onlyOneObject = StringArray::fromLines(patch.trim()).size() == 1;
+    auto trimmedPatch = patch.trim();
+    bool onlyOneObject = StringArray::fromLines(trimmedPatch).size() == 1;
 
     std::vector<bool> inlets, outlets;
     
     if(onlyOneObject)
     {
-        auto objectText = StringArray::fromTokens(patch.trim(), true).getReference(4);
-        auto patchFile = pd::Library::findPatch(objectText.upToFirstOccurrenceOf(" ", false, false));
-        if(!patchFile.existsAsFile()) return {{0}, {0}};
-        
-        auto patchAsString = patchFile.loadFileAsString();
-        parsePatch(patchAsString, [&inlets, &outlets](PatchItemType type, int depth, const String& text){
-            if(type == Object && depth == 0)
-            {
-                auto name = StringArray::fromTokens(text, false).getReference(4);
-                if(name.startsWith("inlet~")) inlets.push_back(true);
-                else if(name.startsWith("inlet")) inlets.push_back(false);
-                else if(name.startsWith("outlet~")) outlets.push_back(true);
-                else if(name.startsWith("outlet")) outlets.push_back(false);
-            }
-        });
+        auto tokens = StringArray::fromTokens(trimmedPatch, true);
+        if(tokens.size() >= 5) {
+            auto& objectText = tokens.getReference(4);
+            auto patchFile = pd::Library::findPatch(objectText);
+            if(!patchFile.existsAsFile()) return {{0}, {0}};
+            
+            auto patchAsString = patchFile.loadFileAsString();
+            parsePatch(patchAsString, [&inlets, &outlets](PatchItemType type, int depth, const String& text){
+                if(type == Object && depth == 0)
+                {
+                    auto tokens = StringArray::fromTokens(text.trim(), true);
+                    if(tokens.size() >= 5) {
+                        auto& name = tokens.getReference(4);
+                        if(name.startsWith("inlet~")) inlets.push_back(true);
+                        else if(name.startsWith("inlet")) inlets.push_back(false);
+                        else if(name.startsWith("outlet~")) outlets.push_back(true);
+                        else if(name.startsWith("outlet")) outlets.push_back(false);
+                    }
+                   
+                }
+            });
+        }
     }
     else {
-        parsePatch(patch, [&inlets, &outlets](PatchItemType type, int depth, String const& text) {
+        parsePatch(trimmedPatch, [&inlets, &outlets](PatchItemType type, int depth, String const& text) {
             if(type == Object && depth == 1)
             {
-                auto name = StringArray::fromTokens(text, false).getReference(4);
-                if(name.startsWith("inlet~")) inlets.push_back(true);
-                else if(name.startsWith("inlet")) inlets.push_back(false);
-                else if(name.startsWith("outlet~")) outlets.push_back(true);
-                else if(name.startsWith("outlet")) outlets.push_back(false);
+                auto tokens = StringArray::fromTokens(text.trim(), true);
+                if(tokens.size() >= 5) {
+                    auto& objectText = tokens.getReference(4);
+                    if(objectText.startsWith("inlet~")) inlets.push_back(true);
+                    else if(objectText.startsWith("inlet")) inlets.push_back(false);
+                    else if(objectText.startsWith("outlet~")) outlets.push_back(true);
+                    else if(objectText.startsWith("outlet")) outlets.push_back(false);
+                }
             }
         });
     }
