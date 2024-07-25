@@ -487,7 +487,7 @@ void PluginEditor::resized()
 #if JUCE_IOS
     if(OSUtils::isIPad())
     {
-        startX -= 80.0f; // Otherwise it gets in the way of multitasking controls
+        startX += 80.0f; // Otherwise it gets in the way of multitasking controls
     }
 #endif
     editButton.setBounds(startX, 1, buttonSize, buttonSize - 2);
