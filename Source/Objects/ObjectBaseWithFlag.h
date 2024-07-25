@@ -20,7 +20,20 @@ public:
     {
         auto flagSize = Object::flagSize;
 
-        auto objectFlagId = isHighlighted ? cnv->objectFlagSelected.getImageId() : cnv->objectFlag.getImageId();
+        // If this object is inside a subpatch then it's canvas won't update framebuffers
+        // We need to find the base canvas it's in (which will have the same zoom) and use
+        // that canvases triangle image
+        auto getRootCanvas = [this]() -> Canvas* {
+            Canvas* parentCanvas = findParentComponentOfClass<Canvas>();
+            while (Canvas* parent = parentCanvas->findParentComponentOfClass<Canvas>()) {
+                parentCanvas = parent;
+            }
+            return parentCanvas;
+        };
+
+        auto* rootCnv = getRootCanvas();
+        auto objectFlagId = isHighlighted ? rootCnv->objectFlagSelected.getImageId() : rootCnv->objectFlag.getImageId();
+
         // draw triangle top right
         nvgFillPaint(nvg, nvgImagePattern(nvg, getWidth() - flagSize, 0, flagSize, flagSize, 0, objectFlagId, 1));
         nvgFillRect(nvg, getWidth() - flagSize, 0, flagSize, flagSize);
