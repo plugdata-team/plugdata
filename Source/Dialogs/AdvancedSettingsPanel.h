@@ -118,7 +118,6 @@ public:
         defaultZoom = settingsFile->getProperty<float>("default_zoom");
         defaultZoom.addListener(this);
         interfaceProperties.add(new PropertiesPanel::EditableComponent<float>("Default zoom %", defaultZoom));
-
         centreResized = settingsFile->getPropertyAsValue("centre_resized_canvas");
         centreResized.addListener(this);
         interfaceProperties.add(new PropertiesPanel::BoolComponent("Centre canvas when resized", centreResized, { "No", "Yes" }));

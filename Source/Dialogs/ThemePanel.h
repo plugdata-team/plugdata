@@ -197,6 +197,8 @@ class ThemePanel : public SettingsDialogPanel
 
     PluginProcessor* pd;
 
+    Array<Value*> vignetteAlpha, vignetteIntensity, vignetteSize;
+
 public:
     explicit ThemePanel(PluginProcessor* processor)
         : pd(processor)
@@ -228,6 +230,7 @@ public:
 
     void updateSwatches()
     {
+        std::cout << "updating swatches" << std::endl;
         auto scrollPosition = panel.getViewport().getViewPositionY();
 
         panel.clear();
@@ -451,6 +454,10 @@ public:
 
         Array<Value*> straightConnectionValues, connectionStyle, ioletSpacingEdge, squareIolets, squareObjectCorners;
 
+        vignetteAlpha.clear();
+        vignetteIntensity.clear();
+        vignetteSize.clear();
+
         for (int i = 0; i < 2; i++) {
             auto const& themeName = PlugDataLook::selectedThemes[i];
             auto& swatch = swatches[themeName];
@@ -465,6 +472,10 @@ public:
             swatch["square_iolets"].referTo(themeTree.getPropertyAsValue("square_iolets", nullptr));
             swatch["square_object_corners"].referTo(themeTree.getPropertyAsValue("square_object_corners", nullptr));
 
+            swatch["vignette_alpha"].referTo(themeTree.getPropertyAsValue("vignette_alpha", nullptr));
+            swatch["vignette_intensity"].referTo(themeTree.getPropertyAsValue("vignette_intensity", nullptr));
+            swatch["vignette_size"].referTo(themeTree.getPropertyAsValue("vignette_size", nullptr));
+
             swatch["straight_connections"].addListener(this);
             swatch["connection_style"].addListener(this);
 
@@ -472,12 +483,20 @@ public:
             swatch["square_iolets"].addListener(this);
             swatch["square_object_corners"].addListener(this);
 
+            swatch["vignette_alpha"].addListener(this);
+            swatch["vignette_intensity"].addListener(this);
+            swatch["vignette_size"].addListener(this);
+
             straightConnectionValues.add(&swatch["straight_connections"]);
             connectionStyle.add(&swatch["connection_style"]);
 
             ioletSpacingEdge.add(&swatch["iolet_spacing_edge"]);
             squareIolets.add(&swatch["square_iolets"]);
             squareObjectCorners.add(&swatch["square_object_corners"]);
+
+            vignetteAlpha.add(&swatch["vignette_alpha"]);
+            vignetteIntensity.add(&swatch["vignette_intensity"]);
+            vignetteSize.add(&swatch["vignette_size"]);
 
         }
 
@@ -502,6 +521,20 @@ public:
         addAndMakeVisible(*useConnectionStyle);
 
         panel.addSection("Object & Connection Look", {useObjectCorners, useIoletCorners, useIoletSpacingEdge, useStraightConnections, useConnectionStyle });
+
+        auto* useVignetteAlpha = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::EditableComponent<float>>("Vignette alpha", vignetteAlpha);
+        allPanels.add(useVignetteAlpha);
+        addAndMakeVisible(*useVignetteAlpha);
+
+        auto* useVignetteIntensity = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::EditableComponent<float>>("Vignette intesity", vignetteIntensity);
+        allPanels.add(useVignetteIntensity);
+        addAndMakeVisible(*useVignetteIntensity);
+
+        auto* useVignetteSize = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::EditableComponent<float>>("Vignette size", vignetteSize);
+        allPanels.add(useVignetteSize);
+        addAndMakeVisible(*useVignetteSize);
+
+        panel.addSection("Canvas vignette", { useVignetteAlpha, useVignetteIntensity, useVignetteSize });
 
         // Create the panels by category
         for (auto const& [sectionName, sectionColours] : panels) {
@@ -532,13 +565,17 @@ public:
 
         auto themeTree = SettingsFile::getInstance()->getColourThemesTree();
         bool isInTheme = false;
+        int themeIndex = 0;
         bool ioletGeometryNeedsUpdate = false;
         for (auto theme : PlugDataLook::selectedThemes){
             if  (v.refersToSameSourceAs(swatches[theme]["straight_connections"])
                  || v.refersToSameSourceAs(swatches[theme]["connection_style"])
                  || v.refersToSameSourceAs(swatches[theme]["iolet_spacing_edge"])
                  || v.refersToSameSourceAs(swatches[theme]["square_iolets"])
-                 || v.refersToSameSourceAs(swatches[theme]["square_object_corners"]) )
+                 || v.refersToSameSourceAs(swatches[theme]["square_object_corners"])
+                 || v.refersToSameSourceAs(swatches[theme]["vignette_intensity"])
+                 || v.refersToSameSourceAs(swatches[theme]["vignette_size"])
+                 || v.refersToSameSourceAs(swatches[theme]["vignette_alpha"]) )
                  {
                 if(v.refersToSameSourceAs(swatches[theme]["iolet_spacing_edge"]))
                     ioletGeometryNeedsUpdate = true;
@@ -546,6 +583,7 @@ public:
                 isInTheme = true;
                 break;
             }
+            themeIndex++;
         }
 
         if (isInTheme) {
@@ -558,9 +596,30 @@ public:
                 } else if (v.refersToSameSourceAs(swatches[themeName]["iolet_spacing_edge"])) {
                     theme.setProperty("iolet_spacing_edge",  v.toString().getIntValue(), nullptr);
                 } else if (v.refersToSameSourceAs(swatches[themeName]["square_iolets"])) {
-                    theme.setProperty("square_iolets",  v.toString().getIntValue(), nullptr);
+                    theme.setProperty("square_iolets", v.toString().getIntValue(), nullptr);
                 } else if (v.refersToSameSourceAs(swatches[themeName]["square_object_corners"])) {
-                    theme.setProperty("square_object_corners",  v.toString().getIntValue(), nullptr);
+                    theme.setProperty("square_object_corners", v.toString().getIntValue(), nullptr);
+                } else if (v.refersToSameSourceAs(swatches[themeName]["vignette_intensity"]))
+                {
+                    auto intensity = std::clamp(getValue<float>(v), 0.0f, 100.0f);
+                    theme.setProperty("vignette_intensity", var(intensity), nullptr);
+                    if (auto vInten = vignetteIntensity[themeIndex])
+                        vInten->setValue(intensity);
+                }
+                else if (v.refersToSameSourceAs(swatches[themeName]["vignette_size"]))
+                {
+                    auto size = std::clamp(getValue<float>(v), 0.0f, 10.0f);
+                    theme.setProperty("vignette_size", var(size), nullptr);
+                    if (auto vSize = vignetteSize[themeIndex])
+                        vSize->setValue(size);
+                }
+                else if (v.refersToSameSourceAs(swatches[themeName]["vignette_alpha"]))
+                {
+                    // TODO: should alpha be in percent?
+                    auto alpha = std::clamp(getValue<float>(v), 0.0f, 1.0f);
+                    theme.setProperty("vignette_alpha", var(alpha), nullptr);
+                    if (auto vAlpha = vignetteAlpha[themeIndex])
+                        vAlpha->setValue(alpha);
                 }
             }
 

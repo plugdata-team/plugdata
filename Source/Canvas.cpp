@@ -183,6 +183,7 @@ Canvas::~Canvas()
     
     saveViewportState();
     zoomScale.removeListener(this);
+
     editor->removeModifierKeyListener(this);
     pd->unregisterMessageListener(patch.getUncheckedPointer(), this);
 }
@@ -192,6 +193,22 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
     auto start = Time::getMillisecondCounter();
     auto pixelScale = getRenderScale();
     auto zoom = isScrolling ? 2.0f : getValue<float>(zoomScale);
+
+    auto vb = viewport->getBounds();
+    auto vbWidth = vb.getWidth() * pixelScale;
+    auto vbHeight = vb.getHeight() * pixelScale;
+    if (vignetteBuffer.needsUpdate(vbWidth, vbHeight)) {
+        vignetteBuffer.renderToFramebuffer(nvg, vbWidth, vbHeight, [pixelScale, vbWidth, vbHeight](NVGcontext* nvg) {
+            nvgViewport(0, 0, vbWidth, vbHeight);
+            nvgClear(nvg);
+
+            nvgBeginFrame(nvg, vbWidth, vbHeight, pixelScale);
+            nvgDrawVignette(nvg, 0, 0, vbWidth, vbHeight, nvgRGBAf(0., 0., 0., 0.), nvgRGBAf(0., 0., 0., PlugDataLook::getVignetteAlpha()), PlugDataLook::getVignetteSize(), PlugDataLook::getVignetteIntensity());
+
+            nvgEndFrame(nvg);
+        });
+        editor->nvgSurface.invalidateAll();
+    }
 
     int const logicalIoletsSize = 16 * 4;
     int const ioletBufferSize = logicalIoletsSize * pixelScale * zoom;
@@ -560,8 +577,21 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
 
     nvgRestore(nvg);
 
-    // Draw scrollbars
+    // Draw scrollbars and vignette
     if (viewport) {
+        auto vb = viewport->getBounds();
+        // Check if the vignette framebuffer is valid, otherwise changing the vignette value will flicker
+        // while the framebuffer is constructed
+        if (PlugDataLook::getVignetteAlpha() != 0.0f) {
+            if (vignetteBuffer.isValid()) {
+                vignetteBuffer.render(nvg, Rectangle<int>(0, 0, vb.getWidth(), vb.getHeight()));
+            } else {
+                nvgDrawVignette(nvg, 0, 0, vb.getWidth(), vb.getHeight(), nvgRGBAf(0., 0., 0., 0.),
+                                nvgRGBAf(0., 0., 0., PlugDataLook::getVignetteAlpha()), PlugDataLook::getVignetteSize(),
+                                PlugDataLook::getVignetteIntensity());
+            }
+        }
+
         reinterpret_cast<CanvasViewport*>(viewport.get())->render(nvg);
     }
 }

@@ -274,6 +274,8 @@ public:
     NVGImage objectFlag;
     NVGImage objectFlagSelected;
 
+    NVGFramebuffer vignetteBuffer;
+
     Array<juce::WeakReference<NVGComponent>> drawables;
 
 private:

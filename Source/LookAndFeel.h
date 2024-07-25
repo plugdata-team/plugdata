@@ -180,6 +180,14 @@ struct PlugDataLook : public LookAndFeel_V4 {
     static bool getUseIoletSpacingEdge();
     static bool getUseSquareIolets();
 
+    static inline float vignetteIntensity;
+    static inline float vignetteSize;
+    static inline float vignetteAlpha;
+
+    static float getVignetteIntensity();
+    static float getVignetteSize();
+    static float getVignetteAlpha();
+
     static bool isFixedIoletPosition();
 
     static inline bool useStraightConnections = false;

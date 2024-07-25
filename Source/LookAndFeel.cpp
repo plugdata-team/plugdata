@@ -1098,7 +1098,8 @@ const String PlugDataLook::defaultThemesXml = R"(
         caret_colour="ff72aedf" iolet_area_colour="ff808080" iolet_outline_colour="ff696969"
         text_object_background="ff333333" comment_text_colour="ff111111"
         straight_connections="0" connection_style="1"
-        square_iolets="0" square_object_corners="1" iolet_spacing_edge="0" />
+        square_iolets="0" square_object_corners="1" iolet_spacing_edge="0"
+        vignette_alpha="0.13" vignette_intensity="62" vignette_size="0.2" />
     <Theme theme="classic" toolbar_background="ffffffff" toolbar_text="ff000000"
         toolbar_active="ff787878" toolbar_hover="ffededed" tabbar_background="ffffffff"
         tab_text="ff000000" selected_tab_background="ffededed" selected_tab_text="ff000000"
@@ -1118,7 +1119,8 @@ const String PlugDataLook::defaultThemesXml = R"(
         scrollbar_thumb="ffa9a9a9" graph_area="ffff0000" grid_colour="ff000000"
         caret_colour="ff000000" comment_text_colour="ff000000"
         straight_connections="1" connection_style="2"
-        square_iolets="1" square_object_corners="1" iolet_spacing_edge="1" />
+        square_iolets="1" square_object_corners="1" iolet_spacing_edge="1"
+        vignette_alpha="0" vignette_intensity="0" vignette_size="0" />
     <Theme theme="classic_dark" toolbar_background="ff000000" toolbar_text="ffffffff"
         toolbar_active="ff787878" toolbar_hover="ff888888" tabbar_background="ff000000"
         tab_text="ffffffff" selected_tab_background="ff808080" selected_tab_text="ffffffff"
@@ -1137,7 +1139,8 @@ const String PlugDataLook::defaultThemesXml = R"(
         caret_colour="ffffffff" iolet_area_colour="ff000000" iolet_outline_colour="ffffffff"
         text_object_background="ff000000" comment_text_colour="ffffffff"
         straight_connections="1" connection_style="2"
-        square_iolets="1" square_object_corners="1" iolet_spacing_edge="1" />
+        square_iolets="1" square_object_corners="1" iolet_spacing_edge="1"
+        vignette_alpha="0" vignette_intensity="0" vignette_size="0" />
     <Theme theme="dark" toolbar_background="ff191919" toolbar_text="ffe1e1e1"
         toolbar_active="ff42a2c8" toolbar_hover="ff282828" tabbar_background="ff191919"
         tab_text="ffe1e1e1" selected_tab_background="ff2e2e2e" selected_tab_text="ffe1e1e1"
@@ -1156,7 +1159,8 @@ const String PlugDataLook::defaultThemesXml = R"(
         caret_colour="ff42a2c8" text_object_background="ff232323" iolet_area_colour="ff232323"
         iolet_outline_colour="ff696969" comment_text_colour="ffe1e1e1"
         straight_connections="0" connection_style="1"
-        square_iolets="0" square_object_corners="0" iolet_spacing_edge="0" />
+        square_iolets="0" square_object_corners="0" iolet_spacing_edge="0"
+        vignette_alpha="0.3" vignette_intensity="16" vignette_size="0.24" />
     <Theme theme="light" toolbar_background="ffebebeb" toolbar_text="ff373737"
         toolbar_active="ff007aff" toolbar_hover="ffe0e0e0" tabbar_background="ffebebeb"
         tab_text="ff373737" selected_tab_background="ffe0e0e0" selected_tab_text="ff373737"
@@ -1176,7 +1180,8 @@ const String PlugDataLook::defaultThemesXml = R"(
         iolet_area_colour="fffafafa" iolet_outline_colour="ffc2c2c2"
         comment_text_colour="ff373737"
         straight_connections="0" connection_style="1"
-        square_iolets="0" square_object_corners="0" iolet_spacing_edge="0" />
+        square_iolets="0" square_object_corners="0" iolet_spacing_edge="0"
+        vignette_alpha="0.1" vignette_intensity="62" vignette_size="0.2" />
     <Theme theme="warm" toolbar_background="ffd2cdc4" toolbar_text="ff5a5a5a"
         toolbar_active="ff5da0c4" toolbar_hover="ffc0bbb2" tabbar_background="ffd2cdc4"
         tab_text="ff5a5a5a" selected_tab_background="ffc0bbb2" selected_tab_text="ff5a5a5a"
@@ -1195,7 +1200,8 @@ const String PlugDataLook::defaultThemesXml = R"(
         caret_colour="ff5da0c4" iolet_area_colour="ffe3dfd9" iolet_outline_colour="ff968e82"
         text_object_background="ffe3dfd9" comment_text_colour="ff5a5a5a"
         straight_connections="0" connection_style="1"
-        square_iolets="0" square_object_corners="0" iolet_spacing_edge="0" />
+        square_iolets="0" square_object_corners="0" iolet_spacing_edge="0"
+        vignette_alpha="0.13" vignette_intensity="62" vignette_size="0.2" />
     <Theme theme="fangs" toolbar_background="ff232323" toolbar_text="ffffffff"
         toolbar_active="ff5bcefa" toolbar_hover="ff383838" tabbar_background="ff232323"
         tab_text="ffffffff" selected_tab_background="ff3a3a3a" selected_tab_text="ffffffff"
@@ -1214,7 +1220,8 @@ const String PlugDataLook::defaultThemesXml = R"(
         text_object_background="ff232323" iolet_area_colour="ff232323"
         iolet_outline_colour="ff696969" comment_text_colour="ffffffff"
         straight_connections="0" connection_style="3"
-        square_iolets="0" square_object_corners="0" iolet_spacing_edge="0" />
+        square_iolets="0" square_object_corners="0" iolet_spacing_edge="0"
+        vignette_alpha="0.3" vignette_intensity="16" vignette_size="0.24" />
 </ColourThemes>
 )";
 
@@ -1266,6 +1273,12 @@ void PlugDataLook::setTheme(ValueTree themeTree)
     useIoletSpacingEdge = static_cast<bool>(themeTree.getProperty("iolet_spacing_edge").toString().getIntValue());
 
     useSquareIolets = static_cast<bool>(themeTree.getProperty("square_iolets").toString().getIntValue());
+
+    vignetteIntensity = static_cast<float>(themeTree.getProperty("vignette_intensity").toString().getFloatValue());
+
+    vignetteSize = static_cast<float>(themeTree.getProperty("vignette_size").toString().getFloatValue());
+
+    vignetteAlpha = static_cast<float>(themeTree.getProperty("vignette_alpha").toString().getFloatValue());
 }
 
 StringArray PlugDataLook::getAllThemes()
@@ -1297,6 +1310,21 @@ bool PlugDataLook::getUseIoletSpacingEdge()
 bool PlugDataLook::getUseSquareIolets()
 {
     return useSquareIolets;
+}
+
+float PlugDataLook::getVignetteIntensity()
+{
+    return vignetteIntensity;
+}
+
+float PlugDataLook::getVignetteSize()
+{
+    return vignetteSize;
+}
+
+float PlugDataLook::getVignetteAlpha()
+{
+    return vignetteAlpha;
 }
 
 bool PlugDataLook::isFixedIoletPosition()
