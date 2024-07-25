@@ -13,6 +13,7 @@
 #include <BinaryData.h>
 
 #include "Utility/OSUtils.h"
+#include "Utility/SettingsFile.h"
 
 extern "C" {
 #include <m_pd.h>
@@ -332,6 +333,21 @@ StringArray Library::getAllObjects()
 void Library::filesystemChanged()
 {
     updateLibrary();
+}
+
+File Library::findPatch(String const& patchToFind)
+{
+    auto pathTree = SettingsFile::getInstance()->getValueTree().getChildWithName("Paths");
+    for (auto path : pathTree) {
+        auto searchPath = File(path.getProperty("Path").toString());
+        if (!searchPath.exists() || !searchPath.isDirectory())
+            continue;
+        
+        auto childFile = searchPath.getChildFile(patchToFind + ".pd");
+        if(childFile.existsAsFile()) return childFile;
+    }
+    
+    return {};
 }
 
 String Library::getObjectOrigin(t_gobj* obj)

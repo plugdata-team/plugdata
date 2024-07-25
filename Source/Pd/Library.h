@@ -32,6 +32,8 @@ public:
     
     StringArray autocomplete(String const& query, File const& patchDirectory) const;
     StringArray searchObjectDocumentation(String const& query);
+    
+    static File findPatch(String const& patchToFind);
 
     static std::array<StringArray, 2> parseIoletTooltips(ValueTree const& iolets, String const& name, int numIn, int numOut);
 

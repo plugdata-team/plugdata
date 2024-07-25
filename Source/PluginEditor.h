@@ -155,7 +155,6 @@ public:
 
     std::unique_ptr<Palettes> palettes;
 
-    OfflineObjectRenderer offlineRenderer;
     NVGSurface nvgSurface;
 
     // used to display callOutBoxes only in a safe area between top & bottom toolbars

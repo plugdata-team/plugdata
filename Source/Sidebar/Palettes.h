@@ -87,8 +87,7 @@ public:
 
         pasteButton.onClick = [this]() {
             auto clipboardText = SystemClipboard::getTextFromClipboard();
-            auto offlineCnv = OfflineObjectRenderer::findParentOfflineObjectRendererFor(this);
-            if (!offlineCnv->checkIfPatchIsValid(clipboardText)) {
+            if (!OfflineObjectRenderer::checkIfPatchIsValid(clipboardText)) {
                 /*
                 // TODO: should we put an alert here? Needs to be themed however
                 juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::NoIcon,

@@ -79,7 +79,7 @@ AudioProcessor::BusesProperties PluginProcessor::buildBusesProperties()
 
 // ag: Note that this is just a fallback, we update this with live version
 // data from the external if we have it.
-String PluginProcessor::pdlua_version = "pdlua 0.11.0 (lua 5.4)";
+String PluginProcessor::pdlua_version = "pdlua 0.12.0 (lua 5.4)";
 
 PluginProcessor::PluginProcessor()
     : AudioProcessor(buildBusesProperties())
