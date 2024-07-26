@@ -210,5 +210,7 @@ private:
     // Used in standalone
     std::unique_ptr<MouseRateReducedComponent<ResizableBorderComponent>> borderResizer;
 
+    OSUtils::KeyboardLayout keyboardLayout;
+        
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginEditor)
 };

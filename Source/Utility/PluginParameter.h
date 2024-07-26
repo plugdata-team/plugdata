@@ -339,8 +339,5 @@ private:
     NormalisableRange<float> normalisableRange;
 
     Mode mode;
-
-    moodycamel::ConcurrentQueue<std::function<void(void)>> parameterChangeQueue;
-
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataParameter)
 };

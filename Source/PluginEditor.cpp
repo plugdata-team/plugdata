@@ -63,6 +63,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , pluginMode(nullptr)
     , touchSelectionHelper(std::make_unique<TouchSelectionHelper>(this))
 {
+    keyboardLayout = OSUtils::getKeyboardLayout();
+    
 #if JUCE_IOS
     // constrainer.setMinimumSize(100, 100);
     // pluginConstrainer.setMinimumSize(100, 100);
@@ -1118,58 +1120,58 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         break;
     }
 
-    static auto const cmdMod = ModifierKeys::commandModifier;
-    static auto const shiftMod = ModifierKeys::shiftModifier;
-
-    std::map<ObjectIDs, std::pair<int, int>> defaultShortcuts;
-
-    switch (OSUtils::getKeyboardLayout()) {
-    case OSUtils::KeyboardLayout::QWERTY:
-        defaultShortcuts = {
-            { NewObject, { 49, cmdMod } },
-            { NewComment, { 53, cmdMod } },
-            { NewBang, { 66, cmdMod | shiftMod } },
-            { NewMessage, { 50, cmdMod } },
-            { NewToggle, { 84, cmdMod | shiftMod } },
-            { NewNumbox, { 78, cmdMod | shiftMod } },
-            { NewVerticalSlider, { 86, cmdMod | shiftMod } },
-            { NewHorizontalSlider, { 74, cmdMod | shiftMod } },
-            { NewVerticalRadio, { 68, cmdMod | shiftMod } },
-            { NewHorizontalRadio, { 73, cmdMod | shiftMod } },
-            { NewFloatAtom, { 51, cmdMod } },
-            { NewListAtom, { 52, cmdMod } },
-            { NewArray, { 65, cmdMod | shiftMod } },
-            { NewGraphOnParent, { 71, cmdMod | shiftMod } },
-            { NewCanvas, { 67, cmdMod | shiftMod } },
-            { NewVUMeter, { 85, cmdMod | shiftMod } }
-        };
-        break;
-    case OSUtils::KeyboardLayout::AZERTY:
-        defaultShortcuts = {
-            { NewObject, { 38, cmdMod } },
-            { NewComment, { 40, cmdMod } },
-            { NewBang, { 66, cmdMod | shiftMod } },
-            { NewMessage, { 233, cmdMod } },
-            { NewToggle, { 84, cmdMod | shiftMod } },
-            { NewNumbox, { 73, cmdMod | shiftMod } },
-            { NewVerticalSlider, { 86, cmdMod | shiftMod } },
-            { NewHorizontalSlider, { 74, cmdMod | shiftMod } },
-            { NewVerticalRadio, { 68, cmdMod | shiftMod } },
-            { NewHorizontalRadio, { 73, cmdMod | shiftMod } },
-            { NewFloatAtom, { 34, cmdMod } },
-            { NewListAtom, { 39, cmdMod } },
-            { NewArray, { 65, cmdMod | shiftMod } },
-            { NewGraphOnParent, { 71, cmdMod | shiftMod } },
-            { NewCanvas, { 67, cmdMod | shiftMod } },
-            { NewVUMeter, { 85, cmdMod | shiftMod } }
-        };
-        break;
-
-    default:
-        break;
-    }
-
     if (commandID >= ObjectIDs::NewObject) {
+        static auto const cmdMod = ModifierKeys::commandModifier;
+        static auto const shiftMod = ModifierKeys::shiftModifier;
+
+        std::map<ObjectIDs, std::pair<int, int>> defaultShortcuts;
+
+        switch (keyboardLayout) {
+        case OSUtils::KeyboardLayout::QWERTY:
+            defaultShortcuts = {
+                { NewObject, { 49, cmdMod } },
+                { NewComment, { 53, cmdMod } },
+                { NewBang, { 66, cmdMod | shiftMod } },
+                { NewMessage, { 50, cmdMod } },
+                { NewToggle, { 84, cmdMod | shiftMod } },
+                { NewNumbox, { 78, cmdMod | shiftMod } },
+                { NewVerticalSlider, { 86, cmdMod | shiftMod } },
+                { NewHorizontalSlider, { 74, cmdMod | shiftMod } },
+                { NewVerticalRadio, { 68, cmdMod | shiftMod } },
+                { NewHorizontalRadio, { 73, cmdMod | shiftMod } },
+                { NewFloatAtom, { 51, cmdMod } },
+                { NewListAtom, { 52, cmdMod } },
+                { NewArray, { 65, cmdMod | shiftMod } },
+                { NewGraphOnParent, { 71, cmdMod | shiftMod } },
+                { NewCanvas, { 67, cmdMod | shiftMod } },
+                { NewVUMeter, { 85, cmdMod | shiftMod } }
+            };
+            break;
+        case OSUtils::KeyboardLayout::AZERTY:
+            defaultShortcuts = {
+                { NewObject, { 38, cmdMod } },
+                { NewComment, { 40, cmdMod } },
+                { NewBang, { 66, cmdMod | shiftMod } },
+                { NewMessage, { 233, cmdMod } },
+                { NewToggle, { 84, cmdMod | shiftMod } },
+                { NewNumbox, { 73, cmdMod | shiftMod } },
+                { NewVerticalSlider, { 86, cmdMod | shiftMod } },
+                { NewHorizontalSlider, { 74, cmdMod | shiftMod } },
+                { NewVerticalRadio, { 68, cmdMod | shiftMod } },
+                { NewHorizontalRadio, { 73, cmdMod | shiftMod } },
+                { NewFloatAtom, { 34, cmdMod } },
+                { NewListAtom, { 39, cmdMod } },
+                { NewArray, { 65, cmdMod | shiftMod } },
+                { NewGraphOnParent, { 71, cmdMod | shiftMod } },
+                { NewCanvas, { 67, cmdMod | shiftMod } },
+                { NewVUMeter, { 85, cmdMod | shiftMod } }
+            };
+            break;
+
+        default:
+            break;
+        }
+        
         auto name = objectNames.at(static_cast<ObjectIDs>(commandID));
 
         if (name.isEmpty())
