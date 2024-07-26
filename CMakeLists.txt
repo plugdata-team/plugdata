@@ -355,10 +355,6 @@ juce_add_gui_app(plugdata_standalone
     HARDENED_RUNTIME_OPTIONS    ${HARDENED_RUNTIME_OPTIONS}
     DOCUMENT_EXTENSIONS          pd
     )
-
-    file(GLOB IOS_LAUNCHSCREEN "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_launchscreen_ios.png")
-    set_source_files_properties(${IOS_LAUNCHSCREEN} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-    target_sources(plugdata_standalone PUBLIC ${IOS_LAUNCHSCREEN})
 else()
 
 juce_add_plugin(plugdata_standalone
@@ -394,9 +390,17 @@ juce_add_plugin(plugdata_standalone
                                     <dict>
                                         <key>CFBundleIdentifier</key>
                                         <string>com.plugdata.plugdata</string>
+                                        <key>UIBackgroundModes</key>
+                                        <array>
+                                            <string>audio</string>
+                                        </array>
                                     </dict>
                                 </plist>]]
     )
+
+    file(GLOB IOS_LAUNCHSCREEN "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_launchscreen_ios.png")
+    set_source_files_properties(${IOS_LAUNCHSCREEN} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+    target_sources(plugdata_standalone_Standalone PUBLIC ${IOS_LAUNCHSCREEN})
 endif()
 
 juce_add_plugin(plugdata
