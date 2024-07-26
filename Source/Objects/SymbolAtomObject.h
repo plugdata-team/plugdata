@@ -35,7 +35,7 @@ public:
 
         input.onTextChange = [this]() {
             startEdition();
-            setSymbol(input.getText().toStdString());
+            setSymbol(input.getText(true).toStdString());
             stopEdition();
         };
 
@@ -60,19 +60,7 @@ public:
         atomHelper.addAtomParameters(objectParameters);
         lookAndFeelChanged();
     }
-        
-    bool keyPressed(KeyPress const& key) override
-    {
-        if(key.getKeyCode() == KeyPress::returnKey)
-        {
-            setSymbol(input.getText().toStdString());
-            cnv->grabKeyboardFocus();
-            return true;
-        }
-        
-        return false;
-    }
-        
+           
     void focusGained(FocusChangeType cause) override
     {
         repaint();
@@ -220,10 +208,19 @@ public:
     {
         if (key == KeyPress::rightKey) {
             if (auto* editor = input.getCurrentTextEditor()) {
-                editor->setCaretPosition(editor->getHighlightedRegion().getEnd());
-                return true;
+                if(editor->getHighlightedRegion().getLength()) {
+                    editor->setCaretPosition(editor->getHighlightedRegion().getEnd());
+                    return true;
+                }
             }
         }
+        else if(key.getKeyCode() == KeyPress::returnKey)
+        {
+            setSymbol(input.getText(true).toStdString());
+            cnv->grabKeyboardFocus();
+            return true;
+        }
+        
         return false;
     }
 

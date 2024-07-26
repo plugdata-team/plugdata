@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class ListObject final : public ObjectBase {
+class ListObject final : public ObjectBase, public KeyListener{
 
     AtomHelper atomHelper;
     DraggableListNumber listLabel;
@@ -47,6 +47,7 @@ public:
         listLabel.onEditorShow = [this]() {
             startEdition();
             auto* editor = listLabel.getCurrentTextEditor();
+            editor->addKeyListener(this);
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
             editor->setBorder({ 0, 1, 3, 0 });
             editorActive = true;
@@ -113,7 +114,7 @@ public:
         }
     }
 
-    void updateFromGui()
+    void updateFromGui(bool force = false)
     {
         auto array = StringArray();
         array.addTokens(listLabel.getText(), true);
@@ -130,7 +131,7 @@ public:
                 list.emplace_back(pd->generateSymbol(elem));
             }
         }
-        if (list != getList()) {
+        if (force || list != getList()) {
             setList(list);
         }
     }
@@ -201,11 +202,11 @@ public:
         repaint();
     }
     
-    bool keyPressed(KeyPress const& key) override
+    bool keyPressed(KeyPress const& key, Component*) override
     {
         if(key.getKeyCode() == KeyPress::returnKey)
         {
-            updateFromGui();
+            updateFromGui(true);
             cnv->grabKeyboardFocus();
             return true;
         }
