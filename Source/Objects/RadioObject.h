@@ -229,23 +229,19 @@ public:
         auto bgColour = getHoverBackgroundColour(::getValue<Colour>(iemHelper.secondaryColour));
 
         if (mouseHover) {
-            nvgBeginPath(nvg);
             float hoverX = isVertical ? 0 : hoverIdx * size;
             float hoverY = isVertical ? hoverIdx * size : 0;
             auto hoverBounds = Rectangle<float>(hoverX, hoverY, size, size).reduced(jmin<int>(size * 0.25f, 5));
             nvgFillColor(nvg, convertColour(bgColour));
-            nvgRoundedRect(nvg, hoverBounds.getX(), hoverBounds.getY(), hoverBounds.getWidth(), hoverBounds.getHeight(), Corners::objectCornerRadius / 2.0f);
-            nvgFill(nvg);
+            nvgFillRoundedRect(nvg, hoverBounds.getX(), hoverBounds.getY(), hoverBounds.getWidth(), hoverBounds.getHeight(), Corners::objectCornerRadius / 2.0f);
         }
 
         float selectionX = isVertical ? 0 : selected * size;
         float selectionY = isVertical ? selected * size : 0;
         auto selectionBounds = Rectangle<float>(selectionX, selectionY, size, size).reduced(jmin<int>(size * 0.25f, 5));
 
-        nvgBeginPath(nvg);
         nvgFillColor(nvg, convertColour(::getValue<Colour>(iemHelper.primaryColour)));
-        nvgRoundedRect(nvg, selectionBounds.getX(), selectionBounds.getY(), selectionBounds.getWidth(), selectionBounds.getHeight(), Corners::objectCornerRadius / 2.0f);
-        nvgFill(nvg);
+        nvgFillRoundedRect(nvg, selectionBounds.getX(), selectionBounds.getY(), selectionBounds.getWidth(), selectionBounds.getHeight(), Corners::objectCornerRadius / 2.0f);
     }
 
     void updateAspectRatio()

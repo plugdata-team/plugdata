@@ -285,11 +285,9 @@ public:
                 g.addTransform(rotate.inverted());
                 });
             }
-            nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
             auto imagePaint = nvgImagePattern(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), 0.0f, openInGopBackground.getImageId(), 1.0f);
             nvgFillPaint(nvg, imagePaint);
-            nvgFill(nvg);
+            nvgFillRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
 
             Font fontMetrics;
             fontMetrics = Fonts::getDefaultFont().withHeight(12.0f);

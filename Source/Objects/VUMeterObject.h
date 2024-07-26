@@ -153,10 +153,7 @@ public:
                 gradient = (i < totalBlocks * 0.75f) ? verticalGradient1 : verticalGradient2;
                 nvgFillPaint(nvg, gradient);
             }
-
-            nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, outerBorderWidth, outerBorderWidth + ((totalBlocks - i) * blockHeight) + blockRectSpacing, blockWidth, blockRectHeight, blockCornerSize);
-            nvgFill(nvg);
+            nvgFillRoundedRect(nvg, outerBorderWidth, outerBorderWidth + ((totalBlocks - i) * blockHeight) + blockRectSpacing, blockWidth, blockRectHeight, blockCornerSize);
         }
 
         float peak = Decibels::decibelsToGain(values[0] - 12.0f);
@@ -164,9 +161,7 @@ public:
         auto numBlocks2 = roundToInt(totalBlocks * lvl2);
 
         nvgFillColor(nvg, nvgRGBAf(1, 1, 1, 1)); // White for the peak block
-        nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, outerBorderWidth, outerBorderWidth + ((totalBlocks - numBlocks2) * blockHeight) + blockRectSpacing, blockWidth, blockRectHeight / 2.0f, blockCornerSize);
-        nvgFill(nvg);
+        nvgFillRoundedRect(nvg, outerBorderWidth, outerBorderWidth + ((totalBlocks - numBlocks2) * blockHeight) + blockRectSpacing, blockWidth, blockRectHeight / 2.0f, blockCornerSize);
     }
 
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override

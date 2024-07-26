@@ -171,9 +171,7 @@ public:
             bounds = Rectangle<float>(b.getWidth(), thumbSize).translated(b.getX(), sliderPos);
         }
         nvgFillColor(nvg, convertColour(getLookAndFeel().findColour(Slider::trackColourId)));
-        nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), cornerSize);
-        nvgFill(nvg);
+        nvgFillRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), cornerSize);
     }
 };
 

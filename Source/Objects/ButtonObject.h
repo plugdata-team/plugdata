@@ -238,10 +238,8 @@ public:
         // Fill ellipse if bangState is true
         if (state) {
             auto innerBounds = b.reduced((width - lineOuter + lineThickness) * sizeReduction);
-            nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, innerBounds.getX(), innerBounds.getY(), innerBounds.getWidth(), innerBounds.getHeight(), (Corners::objectCornerRadius - 1) * sizeReduction);
             nvgFillColor(nvg, foregroundColour);
-            nvgFill(nvg);
+            nvgFillRoundedRect(nvg, innerBounds.getX(), innerBounds.getY(), innerBounds.getWidth(), innerBounds.getHeight(), (Corners::objectCornerRadius - 1) * sizeReduction);
         }
     }
 
