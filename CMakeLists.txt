@@ -120,8 +120,6 @@ set(PLUGDATA_COMPANY_WEBSITE            "github.com/plugdata-team/plugdata")
 
 if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
     set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo_ios.png")
-    file(GLOB IOS_LAUNCHSCREEN "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_launchscreen_ios.png")
-    set_source_files_properties(${IOS_LAUNCHSCREEN} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 elseif(APPLE)
     set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo_mac.png")
 else()
@@ -358,6 +356,8 @@ juce_add_gui_app(plugdata_standalone
     DOCUMENT_EXTENSIONS          pd
     )
 
+    file(GLOB IOS_LAUNCHSCREEN "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_launchscreen_ios.png")
+    set_source_files_properties(${IOS_LAUNCHSCREEN} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
     target_sources(plugdata_standalone PUBLIC ${IOS_LAUNCHSCREEN})
 else()
 
@@ -419,7 +419,7 @@ juce_add_plugin(plugdata
     PLUGIN_CODE                 PdIn
     FORMATS                     AU AUv3 VST3 LV2 CLAP
     LV2URI                      https://github.com/timothyschoen/plugdata
-    PRODUCT_NAME                "plugdata"
+    PRODUCT_NAME                "plugdata-instrument"
     BUNDLE_ID                   com.plugdata.plugdata.instrument
     PLIST_TO_MERGE              [[<plist>
                                     <dict>
