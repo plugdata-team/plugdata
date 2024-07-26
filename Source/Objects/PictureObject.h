@@ -205,11 +205,7 @@ public:
         auto outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         if (getValue<bool>(outline)) {
-            nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
-            nvgStrokeWidth(nvg, 1.0f);
-            nvgStrokeColor(nvg, convertColour(outlineColour));
-            nvgStroke(nvg);
+            nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), convertColour(outlineColour), Corners::objectCornerRadius);
         }
 
         nvgRestore(nvg);
