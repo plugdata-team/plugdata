@@ -152,7 +152,6 @@ Array<Rectangle<int>> OfflineObjectRenderer::getObjectBoundsForPatch(String cons
         }
 
         if (tokens[1] == "text") {
-            auto fontMetrics = Fonts::getCurrentFont().withHeight(15);
             StringArray textString;
             textString.addArray(tokens, 4, tokens.size() - 2 - 4);
 
@@ -167,7 +166,7 @@ Array<Rectangle<int>> OfflineObjectRenderer::getObjectBoundsForPatch(String cons
             } else {
                 int autoWidth = 0;
                 for (auto text : textString) {
-                    autoWidth += fontMetrics.getStringWidth(text + " ");
+                    autoWidth += CachedStringWidth<15>::calculateStringWidth(text + " ");
                 }
                 textAreaWidth = jmin(92 * 8, autoWidth);
             }
@@ -176,7 +175,7 @@ Array<Rectangle<int>> OfflineObjectRenderer::getObjectBoundsForPatch(String cons
             int lineWidth = 0;
             int wordIdx = 0;
             while (wordIdx < textString.size()) {
-                lineWidth += fontMetrics.getStringWidth(textString[wordIdx] + " ");
+                lineWidth += CachedStringWidth<15>::calculateStringWidth(textString[wordIdx] + " ");
                 if (lineWidth > textAreaWidth) {
                     if (wordsInLine == 1) {
                         break;
@@ -263,7 +262,7 @@ Array<Rectangle<int>> OfflineObjectRenderer::getObjectBoundsForPatch(String cons
             if (tokens.size() < 4)
                 break;
             
-            auto bounds = Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), 0, 24);
+            auto bounds = Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), 0, 23);
             
             tokens.removeRange(0, 4);
             auto text = tokens.joinIntoString(" ");
@@ -273,10 +272,10 @@ Array<Rectangle<int>> OfflineObjectRenderer::getObjectBoundsForPatch(String cons
             {
                 if(text.contains(", f"))
                 {
-                    bounds = bounds.withWidth(text.fromFirstOccurrenceOf("f", false, false).getIntValue() * 8 + 24);
+                    bounds = bounds.withWidth(text.fromFirstOccurrenceOf("f", false, false).getIntValue() * 8 + 11);
                 }
                 else {
-                    bounds = bounds.withWidth(CachedStringWidth<14>::calculateStringWidth(text) + 24);
+                    bounds = bounds.withWidth(CachedStringWidth<15>::calculateStringWidth(text) + 11);
                 }
             }
             
