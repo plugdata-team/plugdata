@@ -189,7 +189,7 @@ void Iolet::mouseUp(MouseEvent const& e)
         // Releasing a connect-by-click action
         if (!wasDragged) {
             createConnection();
-            cnv->cancelConnectionCreation();
+            if(!e.mods.isShiftDown()) cnv->cancelConnectionCreation();
 
         } else if (cnv->connectingWithDrag && cnv->nearestIolet) {
             // Releasing a connect-by-drag action
@@ -199,7 +199,7 @@ void Iolet::mouseUp(MouseEvent const& e)
             // CreateConnection will automatically create connections for all connections that are being created!
             cnv->nearestIolet->createConnection();
 
-            cnv->cancelConnectionCreation();
+            if(!e.mods.isShiftDown()) cnv->cancelConnectionCreation();
             cnv->nearestIolet = nullptr;
             cnv->connectingWithDrag = false;
 
