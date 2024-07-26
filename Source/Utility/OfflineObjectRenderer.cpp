@@ -93,7 +93,6 @@ void OfflineObjectRenderer::parsePatch(String const& patch, std::function<void(P
         return tokens[0] == "#X" && tokens[1] == "coords" && tokens.size() >= 7 && tokens[5].containsOnly("-0123456789") && tokens[6].containsOnly("-0123456789");
     };
 
-    StringArray objects;
     Rectangle<int> nextGraphCoords;
     String canvasName;
     bool hasGraphCoords = false;
@@ -120,24 +119,21 @@ void OfflineObjectRenderer::parsePatch(String const& patch, std::function<void(P
         
         if (isGraphCoords(tokens)) {
             callback(GraphCoords, canvasDepth, "");
-            nextGraphCoords = Rectangle<int>(tokens[5].getIntValue(), tokens[6].getIntValue());
+            nextGraphCoords = Rectangle<int>(tokens[6].getIntValue(), tokens[7].getIntValue());
             hasGraphCoords = true;
         }
 
         if (isEndingCanvas(tokens)) {
             callback(CanvasEnd, canvasDepth, "");
-            if (canvasDepth == 1) {
-                if (hasGraphCoords) {
-                    objects.add(line + " " + String(nextGraphCoords.getWidth()) + " " + String(nextGraphCoords.getHeight()));
-                    hasGraphCoords = false;
-                } else {
-                    objects.add(line + " " + String(canvasName.length() * 12) + " 24");
-                }
+            if (hasGraphCoords) {
+                callback(Object, canvasDepth, line + " " + String(nextGraphCoords.getWidth()) + " " + String(nextGraphCoords.getHeight()));
+                hasGraphCoords = false;
+            } else {
+                callback(Object, canvasDepth, line + " " + String(canvasName.length() * 12) + " 24");
             }
             canvasDepth--;
         }
     }
-
 }
 
 Array<Rectangle<int>> OfflineObjectRenderer::getObjectBoundsForPatch(String const& patch)
@@ -150,7 +146,8 @@ Array<Rectangle<int>> OfflineObjectRenderer::getObjectBoundsForPatch(String cons
         auto tokens = StringArray::fromTokens(text, true);
 
         if ((tokens[1] == "floatatom" || tokens[1] == "symbolatom" || tokens[1] == "listatom") && tokens.size() > 11) {
-            objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[4].getIntValue() * 8, tokens[11].getIntValue()));
+            auto height = tokens[11].getIntValue();
+            objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), (tokens[4].getIntValue() * sys_fontwidth(height)) + 3, (height == 0 ? 12 : height) + 7));
             return;
         }
 
@@ -226,6 +223,7 @@ Array<Rectangle<int>> OfflineObjectRenderer::getObjectBoundsForPatch(String cons
             objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[6].getIntValue(), tokens[7].getIntValue()));
             break;
         }
+        case hash("graph"):
         case hash("vu"):
         case hash("hsl"):
         case hash("vsl"):
@@ -244,7 +242,7 @@ Array<Rectangle<int>> OfflineObjectRenderer::getObjectBoundsForPatch(String cons
         case hash("nbx"): {
             if (tokens.size() < 7)
                 break;
-            objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[5].getIntValue() * 8, tokens[6].getIntValue()));
+            objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[5].getIntValue() * 12, tokens[6].getIntValue()));
             break;
         }
         case hash("keyboard"):
@@ -255,11 +253,10 @@ Array<Rectangle<int>> OfflineObjectRenderer::getObjectBoundsForPatch(String cons
             objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[5].getIntValue() * (tokens[7].getIntValue() * 7), tokens[6].getIntValue()));
             break;
         }
-        // TODO: implement these!
         case hash("pic"):
         case hash("note"):
         {
-            // TODO!
+            // TODO: implement these
             break;
         }
         default: {
