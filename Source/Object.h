@@ -133,27 +133,11 @@ public:
 
     bool isSelected() const;
 
-/**
- * @enum ObjectActivityPolicy
- * @brief Controls the way object activity propagates upwards inside GOPs.
- *
- * This enum defines the different ways in which an object's activity can propagate
- * through its parent hierarchy. It specifies whether to limit the activity to the object
- * itself, its direct parent, or all parents recursively.
- *
- * @var ObjectActivityPolicy::Self
- * Trigger object's own activity only.
- *
- * @var ObjectActivityPolicy::Parent
- * Trigger activity of object itself, and direct parent GOP only.
- *
- * @var ObjectActivityPolicy::Recursive
- * Trigger activity of object itself, and all parent GOPs recursively.
- */
+    // Controls the way object activity propagates upwards inside GOPs.
     enum ObjectActivityPolicy {
-        Self,
-        Parent,
-        Recursive
+        Self, //Trigger object's own activity only.
+        Parent, // Trigger activity of object itself, and direct parent GOP only.
+        Recursive // Trigger activity of object itself, and all parent GOPs recursively.
     };
 
     ObjectActivityPolicy objectActivityPolicy = ObjectActivityPolicy::Self;
@@ -178,11 +162,6 @@ private:
     bool isGemObject = false;
 
     float activeStateAlpha = 0.0f;
-
-    NVGImage activityOverlayImage;
-    bool activityOverlayDirty = false;
-
-    NVGFramebuffer scrollBuffer;
 
     bool isObjectMouseActive = false;
     bool isInsideUndoSequence = false;

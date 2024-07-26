@@ -508,15 +508,12 @@ void Object::triggerOverlayActiveState(bool recursive)
 }
 
 void Object::lookAndFeelChanged() {
-    activityOverlayDirty = true;
     if (gui)
         gui->updateLabel();
 }
 
 void Object::resized()
 {
-    activityOverlayDirty = activityOverlayDirty || activityOverlayImage.needsUpdate(getWidth(), getHeight());;
-
     setVisible(!((cnv->isGraph || cnv->presentationMode == var(true)) && gui && gui->hideInGraph()));
 
     if (gui) {
@@ -1209,14 +1206,6 @@ void Object::mouseDrag(MouseEvent const& e)
 
 void Object::render(NVGcontext* nvg)
 {
-    if (cnv->shouldShowObjectActivity() && (!activityOverlayImage.isValid() || activityOverlayDirty) &&
-        getWidth() * 3 * cnv->getRenderScale() < 8192 && getHeight() * 3 * cnv->getRenderScale() < 8192) {
-        Path objectShadow;
-        objectShadow.addRoundedRectangle(getLocalBounds().reduced(Object::margin - 1), Corners::objectCornerRadius);
-        activityOverlayImage = StackShadow::createActivityDropShadowImage(nvg, getLocalBounds(), objectShadow, getLookAndFeel().findColour(PlugDataColour::dataColourId), 5.5f, { 0, 0 }, 0, gui && (gui->getCanvas() || gui->isTransparent()));
-        activityOverlayDirty = false;
-    }
-
     auto lb = getLocalBounds();
     auto b = lb.reduced(margin);
     auto selectedOutlineColour = convertColour(getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
@@ -1240,9 +1229,9 @@ void Object::render(NVGcontext* nvg)
         }
     }
 
-    if (cnv->shouldShowObjectActivity() && !approximatelyEqual(activeStateAlpha, 0.0f) && activityOverlayImage.isValid()) {
-        nvgFillPaint(nvg, nvgImagePattern(nvg, lb.getX(), lb.getY(), lb.getWidth(), lb.getHeight(), 0, activityOverlayImage.getImageId(), activeStateAlpha));
-        nvgFillRect(nvg, lb.getX(), lb.getY(), lb.getWidth(), lb.getHeight());
+    if (cnv->shouldShowObjectActivity() && !approximatelyEqual(activeStateAlpha, 0.0f)) {
+        auto glowColour = convertColour(getLookAndFeel().findColour(PlugDataColour::dataColourId).withAlpha(activeStateAlpha));
+        nvgSmoothGlow(nvg, lb.getX(), lb.getY(), lb.getWidth(), lb.getHeight(), glowColour, nvgRGBA(0, 0, 0, 0), Corners::objectCornerRadius * 3.0f, 9.0f);
     }
 
     if (gui && gui->isTransparent() && !getValue<bool>(locked) && !cnv->isGraph) {
