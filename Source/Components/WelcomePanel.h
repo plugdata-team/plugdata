@@ -263,9 +263,9 @@ public:
                 auto favourited = subTree.hasProperty("Pinned") && static_cast<bool>(subTree.getProperty("Pinned"));
                 auto snapshotColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f);
 
-                String silhoutteSvg = OfflineObjectRenderer::patchToSVG(patchFile.loadFileAsString());
+                String silhoutteSvg;
                 if (patchImage.isEmpty() && patchFile.existsAsFile()) {
-                    
+                    silhoutteSvg = OfflineObjectRenderer::patchToSVG(patchFile.loadFileAsString());
                 } else {
                     MemoryOutputStream ostream;
                     Base64::convertFromBase64(ostream, patchImage);
