@@ -423,7 +423,7 @@ juce_add_plugin(plugdata
     PLUGIN_CODE                 PdIn
     FORMATS                     AU AUv3 VST3 LV2 CLAP
     LV2URI                      https://github.com/timothyschoen/plugdata
-    PRODUCT_NAME                "plugdata-instrument"
+    PRODUCT_NAME                "plugdata"
     BUNDLE_ID                   com.plugdata.plugdata.instrument
     PLIST_TO_MERGE              [[<plist>
                                     <dict>
