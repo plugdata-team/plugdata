@@ -60,7 +60,34 @@ public:
         atomHelper.addAtomParameters(objectParameters);
         lookAndFeelChanged();
     }
+        
+    bool keyPressed(KeyPress const& key) override
+    {
+        if(key.getKeyCode() == KeyPress::returnKey)
+        {
+            setSymbol(input.getText().toStdString());
+            cnv->grabKeyboardFocus();
+            return true;
+        }
+        
+        return false;
+    }
+        
+    void focusGained(FocusChangeType cause) override
+    {
+        repaint();
+    }
 
+    void focusLost(FocusChangeType cause) override
+    {
+        repaint();
+    }
+
+    void focusOfChildComponentChanged(FocusChangeType cause) override
+    {
+        repaint();
+    }
+    
     void update() override
     {
         sizeProperty = atomHelper.getWidthInChars();

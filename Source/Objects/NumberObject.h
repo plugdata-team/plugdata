@@ -170,6 +170,20 @@ public:
         preFocusValue = value;
         repaint();
     }
+    
+    bool keyPressed(KeyPress const& key) override
+    {
+        if(key.getKeyCode() == KeyPress::returnKey)
+        {
+            auto inputValue = input.getText().getFloatValue();
+            preFocusValue = value;
+            sendFloatValue(inputValue);
+            cnv->grabKeyboardFocus();
+            return true;
+        }
+        
+        return false;
+    }
 
     void focusLost(FocusChangeType cause) override
     {

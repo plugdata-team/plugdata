@@ -110,6 +110,19 @@ public:
         setPdBounds(object->getObjectBounds());
         setParameterExcludingListener(sizeProperty, atomHelper.getWidthInChars());
     }
+    
+    bool keyPressed(KeyPress const& key) override
+    {
+        if(key.getKeyCode() == KeyPress::returnKey)
+        {
+            auto inputValue = input.getText().getFloatValue();
+            sendFloatValue(inputValue);
+            cnv->grabKeyboardFocus();
+            return true;
+        }
+        
+        return false;
+    }
 
     void focusGained(FocusChangeType cause) override
     {

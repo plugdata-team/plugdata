@@ -200,7 +200,34 @@ public:
 
         repaint();
     }
+    
+    bool keyPressed(KeyPress const& key) override
+    {
+        if(key.getKeyCode() == KeyPress::returnKey)
+        {
+            updateFromGui();
+            cnv->grabKeyboardFocus();
+            return true;
+        }
+        
+        return false;
+    }
 
+    void focusGained(FocusChangeType cause) override
+    {
+        repaint();
+    }
+
+    void focusLost(FocusChangeType cause) override
+    {
+        repaint();
+    }
+
+    void focusOfChildComponentChanged(FocusChangeType cause) override
+    {
+        repaint();
+    }
+    
     void updateValue()
     {
         if (!listLabel.isBeingEdited()) {
