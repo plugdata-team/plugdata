@@ -937,7 +937,7 @@ void Statusbar::resized()
 
     midiBlinker->setBounds(position(55, true) + 10, 0, 55, getHeight());
     cpuMeter->setBounds(position(45, true), 0, 50, getHeight());
-    latencyDisplayButton->setBounds(position(100, true), 0, 100, getHeight());
+    latencyDisplayButton->setBounds(position(104, true), 0, 100, getHeight());
 }
 
 void Statusbar::setLatencyDisplay(int value)
