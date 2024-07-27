@@ -440,11 +440,13 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             }
         }
     };
-
+    
+    nvgSave(nvg);
     if (!dimensionsAreBeingEdited)
         drawBorder(true, true);
     else
         drawBorder(true, false);
+    nvgRestore(nvg);
 
     // Render objects like [drawcurve], [fillcurve] etc. at the back
     for (auto drawable : drawables) {
