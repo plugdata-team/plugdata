@@ -71,8 +71,9 @@ void Iolet::render(NVGcontext* nvg)
     bool isLocked = getValue<bool>(locked) || getValue<bool>(commandLocked);
     bool overObject = object->drawIoletExpanded;
     bool isHovering = isTargeted && !isLocked;
-
-    if (!(cnv->getProperties().contains("SHOW_SYMBOL_IOLETS") && (static_cast<bool>(*cnv->getProperties().getVarPointer("SHOW_SYMBOL_IOLETS")) != isInlet))) {
+    
+    // If a connection is being created, don't hide iolets with a symbol defined
+    if (!cnv->connectionsBeingCreated.isEmpty() && !cnv->connectionsBeingCreated[0]->getIolet()->isInlet != isInlet) {
         if ((isLocked && isSymbolIolet) || (isSymbolIolet && !isHovering && !overObject && !object->isSelected()))
             return;
     }

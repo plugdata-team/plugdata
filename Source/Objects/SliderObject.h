@@ -10,7 +10,8 @@ class ReversibleSlider : public Slider
     bool isInverted = false;
     bool isVertical = false;
     bool shiftIsDown = false;
-
+    bool mouseHover = false;
+        
     bool isZeroRange = false;
     float zeroRangeValue = 0.0f;
 
@@ -85,14 +86,19 @@ public:
 
     void mouseEnter(MouseEvent const& e) override
     {
-        getParentComponent()->getProperties().set("hover", true);
+        mouseHover = true;
         getParentComponent()->repaint();
     }
 
     void mouseExit(MouseEvent const& e) override
     {
-        getParentComponent()->getProperties().set("hover", false);
+        mouseHover = false;
         getParentComponent()->repaint();
+    }
+        
+    bool isHovered() const
+    {
+        return mouseHover;
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -381,7 +387,7 @@ public:
 
         auto bgColour = getLookAndFeel().findColour(Slider::backgroundColourId);
 
-        if (getProperties()["hover"])
+        if (slider.isHovered())
             bgColour = getHoverBackgroundColour(bgColour);
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(bgColour), convertColour(outlineColour), Corners::objectCornerRadius);

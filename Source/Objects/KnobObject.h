@@ -18,7 +18,7 @@ class Knob : public Slider
     Colour arcColour;
 
     bool drawArc = true;
-
+    bool mouseHover = false;
     int numberOfTicks = 0;
     float arcStart = 63.5f;
 
@@ -58,12 +58,13 @@ public:
 
     void mouseEnter(MouseEvent const& e) override
     {
-        getParentComponent()->getProperties().set("hover", true);
+        mouseHover = true;
+        getParentComponent()->repaint();
     }
 
     void mouseExit(MouseEvent const& e) override
     {
-        getParentComponent()->getProperties().set("hover", false);
+        mouseHover = false;
     }
 
     void showArc(bool show)
@@ -75,6 +76,11 @@ public:
     void setArcStart(float newArcStart)
     {
         arcStart = newArcStart;
+    }
+        
+    bool isHovered() const
+    {
+        return mouseHover;
     }
 
     void render(NVGcontext* nvg) override
@@ -462,7 +468,7 @@ public:
         auto b = getLocalBounds().toFloat();
         auto bgColour = Colour::fromString(secondaryColour.toString());
 
-        if (getProperties()["hover"])
+        if (knob.isHovered())
             bgColour = getHoverBackgroundColour(bgColour);
 
         if (::getValue<bool>(outline)) {

@@ -64,7 +64,7 @@ public:
 
 private:
     NVGImage image;
-    hash32 lastTextHash;
+    hash32 lastTextHash = 0;
     float lastScale = 1.0f;
     Colour lastColour;
     int lastWidth = 0;
