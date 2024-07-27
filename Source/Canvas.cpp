@@ -428,6 +428,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             }
             if(showBorder && fg)
             {
+                nvgStrokeWidth(nvg, scaledStrokeSize);
                 nvgLineStyle(nvg, NVG_LINE_DASHED);
                 nvgBeginPath(nvg);
                 nvgMoveTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
