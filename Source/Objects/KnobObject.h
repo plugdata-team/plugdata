@@ -105,16 +105,16 @@ public:
             auto arcWidth = (arcRadius - lineThickness) / arcRadius;
 
             nvgBeginPath(nvg);
-            nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, startAngle, endAngle, NVG_CW);
+            nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, startAngle, endAngle, NVG_HOLE);
             nvgStrokeWidth(nvg, arcWidth * lineThickness);
             nvgStrokeColor(nvg, nvgRGBAf(arcColour.getFloatRed(), arcColour.getFloatGreen(), arcColour.getFloatBlue(), arcColour.getFloatAlpha()));
             nvgStroke(nvg);
 
             nvgBeginPath(nvg);
             if (centre < angle) {
-                nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, centre, angle, NVG_CW);
+                nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, centre, angle, NVG_HOLE);
             } else {
-                nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, angle, centre, NVG_CW);
+                nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, angle, centre, NVG_HOLE);
             }
             nvgStrokeColor(nvg, nvgRGBAf(fgColour.getFloatRed(), fgColour.getFloatGreen(), fgColour.getFloatBlue(), fgColour.getFloatAlpha()));
             nvgStrokeWidth(nvg, arcWidth * lineThickness);
