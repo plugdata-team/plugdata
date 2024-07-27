@@ -168,7 +168,7 @@ public:
         auto const flagArea = Point<int>(width * pixelScale * zoom, height * pixelScale * zoom);
 
         if (flagImage.needsUpdate(flagArea.x, flagArea.y)) {
-            flagImage = NVGImage(nvg, flagArea.x, flagArea.y, [this, pixelScale, zoom, flagArea, bounds, sb, width, height](Graphics &g) {
+            flagImage = NVGImage(nvg, flagArea.x, flagArea.y, [this, pixelScale, zoom, sb, width, height](Graphics &g) {
 
                 int d = 6;
                 g.addTransform(AffineTransform::scale(pixelScale * zoom, pixelScale * zoom));

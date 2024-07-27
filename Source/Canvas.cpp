@@ -189,7 +189,6 @@ Canvas::~Canvas()
 
 bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, int maxUpdateTimeMs)
 {
-    auto start = Time::getMillisecondCounter();
     auto pixelScale = getRenderScale();
     auto zoom = isScrolling ? 2.0f : getValue<float>(zoomScale);
 
@@ -385,37 +384,37 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             const auto borderHeight = getValue<float>(patchHeight);
             const auto pos = Point<int>(halfSize, halfSize);
 
-            // Origin line paths. Draw both from {0, 0} so the strokes touch at the origin
-            nvgMoveTo(nvg, pos.x, pos.y);
-            nvgLineTo(nvg, pos.x, pos.y + (showOrigin ? halfSize : borderHeight));
-            nvgMoveTo(nvg, pos.x, pos.y);
-            nvgLineTo(nvg, pos.x + (showOrigin ? halfSize : borderWidth), pos.y);
-
-            if (showBorder) {
-                nvgMoveTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
-                nvgLineTo(nvg, pos.x + borderWidth, pos.y);
-                nvgMoveTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
-                nvgLineTo(nvg, pos.x, pos.y + borderHeight);
-            }
-
-            if (bg) {
-                // place solid line behind (to fake removeing grid points for now)
+            auto scaledStrokeSize = zoom < 1.0f ? jmap(zoom, 1.0f, 0.25f, 1.5f, 4.0f) : 1.5f;
+            if (zoom < 0.3f && getRenderScale() <= 1.0f)
+                scaledStrokeSize = jmap(zoom, 0.3f, 0.25f, 4.0f, 8.0f);
+            
+            if(bg)
+            {
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, pos.x, pos.y);
+                nvgLineTo(nvg, pos.x, pos.y + (showOrigin ? halfSize : borderHeight));
+                nvgMoveTo(nvg, pos.x, pos.y);
+                nvgLineTo(nvg, pos.x + (showOrigin ? halfSize : borderWidth), pos.y);
                 nvgLineStyle(nvg, NVG_LINE_SOLID);
                 nvgStrokeColor(nvg, backgroundColour);
                 nvgStrokeWidth(nvg, 6.0f);
                 nvgStroke(nvg);
             }
-            if (fg) {
-                auto scaledStrokeSize = zoom < 1.0f ? jmap(zoom, 1.0f, 0.25f, 1.5f, 4.0f) : 1.5f;
-                if (zoom < 0.3f && getRenderScale() <= 1.0f)
-                    scaledStrokeSize = jmap(zoom, 0.3f, 0.25f, 4.0f, 8.0f);
-
-                // draw 0,0 point lines
-                nvgLineStyle(nvg, NVG_LINE_DASHED);
-
-                nvgStrokeColor(nvg, dotsColour);
-                nvgStrokeWidth(nvg, scaledStrokeSize);
-                nvgDashLength(nvg, 8.0f);
+            
+            nvgStrokeColor(nvg, dotsColour);
+            nvgStrokeWidth(nvg, scaledStrokeSize);
+            nvgDashLength(nvg, 8.0f);
+            nvgLineStyle(nvg, NVG_LINE_DASHED);
+            
+            if(fg)
+            {
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, pos.x, pos.y);
+                nvgLineTo(nvg, pos.x, pos.y + (showOrigin ? halfSize : borderHeight));
+                nvgStroke(nvg);
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, pos.x, pos.y);
+                nvgLineTo(nvg, pos.x + (showOrigin ? halfSize : borderWidth), pos.y);
                 nvgStroke(nvg);
 
                 // Connect origin lines at {0, 0}
@@ -425,6 +424,18 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
                 nvgLineTo(nvg, pos.x, pos.y + 2.0f);
                 nvgLineStyle(nvg, NVG_LINE_SOLID);
                 nvgStrokeWidth(nvg, 1.25f);
+                nvgStroke(nvg);
+            }
+            if(showBorder && fg)
+            {
+                nvgLineStyle(nvg, NVG_LINE_DASHED);
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
+                nvgLineTo(nvg, pos.x + borderWidth, pos.y);
+                nvgStroke(nvg);
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
+                nvgLineTo(nvg, pos.x, pos.y + borderHeight);
                 nvgStroke(nvg);
             }
         }

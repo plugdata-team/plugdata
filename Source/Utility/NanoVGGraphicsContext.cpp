@@ -28,7 +28,6 @@ NanoVGGraphicsContext::NanoVGGraphicsContext(NVGcontext* nativeHandle)
     : nvg(nativeHandle)
 {
     jassert(nvg);
-    nvgGlobalCompositeOperation(nvg, NVG_SOURCE_OVER);
 }
 
 NanoVGGraphicsContext::~NanoVGGraphicsContext()
