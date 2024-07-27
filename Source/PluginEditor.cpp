@@ -118,13 +118,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     }
 
     autoconnect.referTo(settingsFile->getPropertyAsValue("autoconnect"));
-
     theme.referTo(settingsFile->getPropertyAsValue("theme"));
     theme.addListener(this);
-
-    if (!settingsFile->hasProperty("hvcc_mode"))
-        settingsFile->setProperty("hvcc_mode", false);
-    hvccMode.referTo(settingsFile->getPropertyAsValue("hvcc_mode"));
 
     palettes = std::make_unique<Palettes>(this);
 

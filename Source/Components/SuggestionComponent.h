@@ -654,7 +654,7 @@ public:
             }
 
             // When hvcc mode is enabled, show only hvcc compatible objects
-            if (getValue<bool>(_this->currentObject->editor->hvccMode)) {
+            if (_this->currentObject->hvccMode.get()) {
 
                 StringArray hvccObjectsFound;
                 for (auto& object : toFilter) {

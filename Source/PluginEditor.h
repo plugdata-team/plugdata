@@ -149,8 +149,6 @@ public:
     std::unique_ptr<Dialog> openedDialog;
 
     Value theme;
-
-    Value hvccMode;
     Value autoconnect;
 
     std::unique_ptr<Palettes> palettes;

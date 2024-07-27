@@ -155,7 +155,7 @@ public:
     }
 };
 
-class KnobObject : public ObjectBase {
+class KnobObject final : public ObjectBase {
 
     Knob knob;
 

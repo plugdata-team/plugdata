@@ -215,8 +215,6 @@ public:
     Value locked = SynchronousValue();
     Value commandLocked;
     Value presentationMode;
-    Value showDirection;
-    Value altMode;
 
     bool showOrigin = false;
     bool showBorder = false;

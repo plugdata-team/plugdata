@@ -171,6 +171,7 @@ public:
         repaint();
     }
     
+    
     bool keyPressed(KeyPress const& key) override
     {
         if(key.getKeyCode() == KeyPress::returnKey)

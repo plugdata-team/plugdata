@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class ScopeObject : public ObjectBase
+class ScopeObject final : public ObjectBase
     , public Timer {
 
     std::vector<float> x_buffer;

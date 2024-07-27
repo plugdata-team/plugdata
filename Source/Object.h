@@ -37,6 +37,7 @@ class Object : public Component
     , public Timer
     , public KeyListener
     , public NVGComponent
+    , public SettingsFileListener
     , private TextEditor::Listener {
 public:
     explicit Object(Canvas* parent, String const& name = "", Point<int> position = { 100, 100 });
@@ -45,6 +46,7 @@ public:
 
     ~Object() override;
 
+    void propertyChanged(String const& name, var const& value);
     void valueChanged(Value& v) override;
 
     void changeListenerCallback(ChangeBroadcaster* source) override;
@@ -111,7 +113,7 @@ public:
     Value locked;
     Value commandLocked;
     Value presentationMode;
-    Value hvccMode = Value(var(false));
+    CachedValue<bool> hvccMode;
 
     Canvas* cnv;
     PluginEditor* editor;

@@ -18,7 +18,7 @@ void pdlua_gfx_mouse_drag(t_pdlua* o, int x, int y);
 void pdlua_gfx_repaint(t_pdlua* o, int firsttime);
 }
 
-class LuaObject : public ObjectBase
+class LuaObject final : public ObjectBase
     , public Timer {
 
     Colour currentColour;

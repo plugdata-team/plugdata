@@ -439,7 +439,7 @@ Value SettingsFile::getPropertyAsValue(String const& name)
     return settingsTree.getPropertyAsValue(name, nullptr);
 }
 
-ValueTree SettingsFile::getValueTree()
+ValueTree& SettingsFile::getValueTree()
 {
     jassert(isInitialised);
     return settingsTree;

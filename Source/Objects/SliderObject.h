@@ -181,7 +181,7 @@ public:
     }
 };
 
-class SliderObject : public ObjectBase {
+class SliderObject final : public ObjectBase {
     bool isVertical;
     Value isLogarithmic = SynchronousValue(var(false));
 

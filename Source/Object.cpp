@@ -129,12 +129,11 @@ void Object::initialise()
     commandLocked.referTo(cnv->pd->commandLocked);
     presentationMode.referTo(cnv->presentationMode);
 
-    hvccMode.referTo(editor->hvccMode);
+    hvccMode.referTo(SettingsFile::getInstance()->getValueTree(), Identifier("hvcc_mode"), nullptr, false);
 
     presentationMode.addListener(this);
     locked.addListener(this);
     commandLocked.addListener(this);
-    hvccMode.addListener(this);
 
     originalBounds.setBounds(0, 0, 0, 0);
 
@@ -170,18 +169,20 @@ bool Object::isSelected() const
     return selectedFlag;
 }
 
-void Object::valueChanged(Value& v)
-{
-    if (v.refersToSameSourceAs(hvccMode)) {
-
+void Object::propertyChanged(String const& name, var const& value) {
+    if(name == "hvcc_mode")
+    {
         isHvccCompatible = checkIfHvccCompatible();
-
         if (gui && !isHvccCompatible) {
             cnv->pd->logWarning(String("Warning: object \"" + gui->getType() + "\" is not supported in Compiled Mode").toRawUTF8());
         }
-
         repaint();
-    } else if (v.refersToSameSourceAs(cnv->presentationMode)) {
+    }
+}
+
+void Object::valueChanged(Value& v)
+{
+    if (v.refersToSameSourceAs(cnv->presentationMode)) {
         // else it was a lock/unlock/presentation mode action
         // Hide certain objects in GOP
         setVisible(!((cnv->isGraph || cnv->presentationMode == var(true)) && gui && gui->hideInGraph()));
@@ -190,8 +191,6 @@ void Object::valueChanged(Value& v)
             gui->lock(cnv->isGraph || locked == var(true) || commandLocked == var(true));
         }
     }
-    // FIXME: any value change triggers a repaint!
-    // repaint();
 }
 
 bool Object::checkIfHvccCompatible() const
@@ -201,7 +200,7 @@ bool Object::checkIfHvccCompatible() const
         // Check hvcc compatibility
         bool isSubpatch = gui->getPatch() != nullptr;
 
-        return !getValue<bool>(hvccMode) || isSubpatch || HeavyCompatibleObjects::getAllCompatibleObjects().contains(typeName);
+        return !hvccMode.get() || isSubpatch || HeavyCompatibleObjects::getAllCompatibleObjects().contains(typeName);
     }
 
     return true;
@@ -1257,7 +1256,7 @@ void Object::render(NVGcontext* nvg)
     }
 
     // If autoconnect is about to happen, draw a fake inlet with a dotted outline
-    if (getValue<bool>(editor->autoconnect) && isInitialEditorShown() && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs) {
+    if (isInitialEditorShown() && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs && getValue<bool>(editor->autoconnect)) {
         auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
         float fakeInletBounds[4] = { 16.0f, 4.0f, 8.0f, 8.0f };
         nvgBeginPath(nvg);

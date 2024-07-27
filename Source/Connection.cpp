@@ -80,8 +80,6 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     // Listen to changes at iolets
     outobj->addComponentListener(this);
     inobj->addComponentListener(this);
-    // outlet->addComponentListener(this);
-    // inlet->addComponentListener(this);
 
     setInterceptsMouseClicks(true, true);
 

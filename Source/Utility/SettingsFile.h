@@ -82,7 +82,7 @@ public:
 
     Value getPropertyAsValue(String const& name);
 
-    ValueTree getValueTree();
+    ValueTree& getValueTree();
 
     void setGlobalScale(float newScale);
 
