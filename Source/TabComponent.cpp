@@ -29,6 +29,11 @@ TabComponent::TabComponent(PluginEditor* editor)
     }
 
     addMouseListener(this, true);
+    
+    // Dequeue messages to "pd" symbol to make sure the "pluginmode" message always arrives earlier than the tab update.
+    // Without this, FL Studio (and possibly others) will fail to init the pluginmode theme!
+    editor->pd->triggerAsyncUpdate();
+    
     triggerAsyncUpdate();
 }
 
