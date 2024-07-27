@@ -364,6 +364,7 @@ public:
         magnify(std::clamp(getValue<float>(cnv->zoomScale) * scrollFactor, 0.25f, 3.0f));
 
         lastZoomTime = e.eventTime;
+        scaleChanged = true;
     }
 
     void magnify(float newScaleFactor)
@@ -437,6 +438,14 @@ public:
     {
         stopTimer();
         cnv->isScrolling = false;
+        
+        // Cached geometry can look thicker/thinner at different zoom scales, so we update all cached connections when zooming is done
+        if (scaleChanged) {
+            for (auto* connection : cnv->connections)
+                connection->forceUpdate(true);
+        }
+        
+        scaleChanged = false;
         editor->nvgSurface.invalidateAll();
     }
 
@@ -492,4 +501,5 @@ private:
     MousePanner panner = MousePanner(this);
     ViewportScrollBar vbar = ViewportScrollBar(true, this);
     ViewportScrollBar hbar = ViewportScrollBar(false, this);
+    bool scaleChanged = false;
 };

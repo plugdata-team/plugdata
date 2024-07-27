@@ -2255,15 +2255,6 @@ void Canvas::valueChanged(Value& v)
     // Update zoom
     if (v.refersToSameSourceAs(zoomScale)) {
         editor->statusbar->updateZoomLevel();
-        auto newScale = getValue<float>(zoomScale);
-
-        // FIXME: cached geometry can look thicker/thinner at different zoom scales (possibly a bug with nanovg)
-        // So we update all cached connections here
-        // float comparison should be ok, as lastViewportScale is always set via zoomScale
-        if (patch.lastViewportScale != newScale) {
-            for (auto connection : connections)
-                connection->forceUpdate(true);
-        }
         patch.lastViewportScale = getValue<float>(zoomScale);
         hideSuggestions();
     } else if (v.refersToSameSourceAs(patchWidth)) {
