@@ -1214,7 +1214,7 @@ const String PlugDataLook::defaultThemesXml = R"(
         text_object_background="ff232323" iolet_area_colour="ff232323"
         iolet_outline_colour="ff696969" comment_text_colour="ffffffff"
         straight_connections="0" connection_style="3"
-        square_iolets="0" square_object_corners="0" iolet_spacing_edge="0" />
+        square_iolets="1" square_object_corners="0" iolet_spacing_edge="0" />
 </ColourThemes>
 )";
 
