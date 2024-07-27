@@ -395,6 +395,13 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
                 nvgLineTo(nvg, pos.x, pos.y + (showOrigin ? halfSize : borderHeight));
                 nvgMoveTo(nvg, pos.x, pos.y);
                 nvgLineTo(nvg, pos.x + (showOrigin ? halfSize : borderWidth), pos.y);
+                
+                if(showBorder)
+                {
+                    nvgMoveTo(nvg, pos.x + borderWidth, pos.y);
+                    nvgLineTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
+                    nvgLineTo(nvg, pos.x, pos.y + borderHeight);
+                }
                 nvgLineStyle(nvg, NVG_LINE_SOLID);
                 nvgStrokeColor(nvg, backgroundColour);
                 nvgStrokeWidth(nvg, 6.0f);
