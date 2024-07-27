@@ -63,10 +63,12 @@ public:
         if (getValue<bool>(latch)) {
             if (auto pic = ptr.get<t_fake_pic>()) {
                 outlet_float(pic->x_outlet, 1.0f);
+                if(pic->x_send != &s_ && pic->x_send->s_thing) pd_float(pic->x_send->s_thing, 1.0f);
             }
         } else {
             if (auto pic = ptr.get<t_fake_pic>()) {
                 outlet_bang(pic->x_outlet);
+                if(pic->x_send != &s_ && pic->x_send->s_thing) pd_bang(pic->x_send->s_thing);
             }
         }
     }
@@ -76,6 +78,7 @@ public:
         if (getValue<bool>(latch)) {
             if (auto pic = ptr.get<t_fake_pic>()) {
                 outlet_float(pic->x_outlet, 0.0f);
+                if(pic->x_send != &s_ && pic->x_send->s_thing) pd_float(pic->x_send->s_thing, 0.0f);
             }
         }
     }
