@@ -315,8 +315,6 @@ void NVGSurface::render()
     updateBufferSize();
 
     if (!invalidArea.isEmpty()) {
-        auto invalidated = invalidArea.expanded(1);
-
         // First, draw only the invalidated region to a separate framebuffer
         // I've found that nvgScissor doesn't always clip everything, meaning that there will be graphical glitches if we don't do this
         nvgBindFramebuffer(invalidFBO);
@@ -324,19 +322,19 @@ void NVGSurface::render()
         nvgClear(nvg);
 
         nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
-        nvgScissor(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
+        nvgScissor(nvg, invalidArea.getX(), invalidArea.getY(), invalidArea.getWidth(), invalidArea.getHeight());
 
-        editor->renderArea(nvg, invalidated);
+        editor->renderArea(nvg, invalidArea);
         nvgEndFrame(nvg);
 
         nvgBindFramebuffer(mainFBO);
         nvgViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
         nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
         nvgBeginPath(nvg);
-        nvgScissor(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
+        nvgScissor(nvg, invalidArea.getX(), invalidArea.getY(), invalidArea.getWidth(), invalidArea.getHeight());
 
         nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, invalidFBO->image, 1));
-        nvgFillRect(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
+        nvgFillRect(nvg, invalidArea.getX(), invalidArea.getY(), invalidArea.getWidth(), invalidArea.getHeight());
 
 #if ENABLE_FB_DEBUGGING
         static Random rng;

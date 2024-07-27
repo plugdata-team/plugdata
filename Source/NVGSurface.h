@@ -73,7 +73,7 @@ public:
         {
             if (originComponent->isVisible()) {
                 // Translate from canvas coords to viewport coords as float to prevent rounding errors
-                auto invalidatedBounds = surface.getLocalArea(originComponent, rect.toFloat()).getSmallestIntegerContainer();
+                auto invalidatedBounds = surface.getLocalArea(originComponent, rect.expanded(2).toFloat()).getSmallestIntegerContainer();
                 surface.invalidateArea(invalidatedBounds);
             }
             return passEvents;
