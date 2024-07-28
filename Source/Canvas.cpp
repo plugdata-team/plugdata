@@ -315,11 +315,12 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
 // Callback from canvasViewport to perform actual rendering
 void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
 {
-    auto backgroundColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId));
-    auto dotsColour = convertColour(findColour(PlugDataColour::canvasDotsColourId));
-
     auto const halfSize = infiniteCanvasSize / 2;
     auto const zoom = getValue<float>(zoomScale);
+
+    auto backgroundColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId));
+    auto borderLinesColour = convertColour(findColour(PlugDataColour::canvasDotsColourId).withAlpha(0.5f));
+    auto dotsColour = convertColour(findColour(PlugDataColour::canvasDotsColourId).withAlpha(jmin(1.0f, 1.0f / zoom)));
 
     // apply translation to the canvas nvg objects
     nvgSave(nvg);
@@ -340,35 +341,57 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
 
         auto gridSize = objectGrid.gridSize ? objectGrid.gridSize : 25;
-        auto feather = getRenderScale() > 1.0f ? 0.25f : 0.75f;
+
         if (getValue<float>(zoomScale) >= 1.0f) {
             nvgSave(nvg);
             nvgTranslate(nvg, canvasOrigin.x % gridSize, canvasOrigin.y % gridSize); // Make sure grid aligns with origin
-            NVGpaint dots = nvgDotPattern(nvg, dotsColour, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize, 1.0f, feather);
+            NVGpaint dots = nvgDotPattern(nvg, dotsColour, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize, 1.5f, 0.0f);
             nvgFillPaint(nvg, dots);
             nvgFill(nvg);
             nvgRestore(nvg);
         } else {
             nvgSave(nvg);
-            nvgTranslate(nvg, canvasOrigin.x % (gridSize * 4), canvasOrigin.y % (gridSize * 4)); // Make sure grid aligns with origin
-            auto darkDotColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId).contrasting());
-            auto scaledDotSize = jmap(zoom, 1.0f, 0.25f, 1.0f, 4.0f);
-            if (zoom < 0.3f && getRenderScale() <= 1.0f)
-                scaledDotSize = jmap(zoom, 0.3f, 0.25f, 4.0f, 8.0f);
 
-            for (int i = 0; i < 4; i++) {
+            int devision = 0;
+            switch(gridSize){
+                case 5:
+                    devision = 8;
+                    break;
+                case 15:
+                    devision = 3;
+                    break;
+                case 30:
+                    devision = 5;
+                    break;
+                default:
+                    devision = 4;
+            }
+
+            auto gridDivTotal = gridSize * devision;
+            auto offset = Point<int>((canvasOrigin.x % gridDivTotal), (canvasOrigin.y % gridDivTotal));
+
+            auto lineDotColour = nvgRGBAf(dotsColour.r, dotsColour.g, dotsColour.b, zoom * 0.5f);
+            auto intersectionDotColour = nvgRGBAf(dotsColour.r, dotsColour.g, dotsColour.b, zoom);
+            auto scaledDotSize = 1.0f / zoom;
+            auto feather = 1.0f - zoom;
+
+            // Horizontal Dots
+            nvgSave(nvg);
+            nvgTranslate(nvg, offset.x, offset.y); // Adjust alignment to origin
+            for (int i = 0; i < devision; i++) {
                 nvgTranslate(nvg, gridSize, 0);
-
-                NVGpaint dots = nvgDotPattern(nvg, i == 3 ? darkDotColour : dotsColour, nvgRGBA(0, 0, 0, 0), gridSize * 4, scaledDotSize, feather + 0.2f);
+                NVGpaint dots = nvgDotPattern(nvg, i == (devision - 1) ? intersectionDotColour : lineDotColour, nvgRGBA(0, 0, 0, 0), gridDivTotal, scaledDotSize, feather);
                 nvgFillPaint(nvg, dots);
                 nvgFill(nvg);
             }
             nvgRestore(nvg);
-            nvgSave(nvg);
 
-            for (int i = 0; i < 4; i++) {
+            // Vertical Dots
+            nvgSave(nvg);
+            nvgTranslate(nvg, offset.x, offset.y); // Adjust alignment to origin
+            for (int i = 0; i < devision; i++) {
                 nvgTranslate(nvg, 0, gridSize);
-                NVGpaint dots = nvgDotPattern(nvg, i == 3 ? darkDotColour : dotsColour, nvgRGBA(0, 0, 0, 0), gridSize * 4, scaledDotSize, feather + 0.2f);
+                NVGpaint dots = nvgDotPattern(nvg, i == (devision - 1) ? intersectionDotColour : lineDotColour, nvgRGBA(0, 0, 0, 0), gridDivTotal, scaledDotSize, feather);
                 nvgFillPaint(nvg, dots);
                 nvgFill(nvg);
             }
@@ -376,7 +399,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             nvgRestore(nvg);
         }
     }
-    auto drawBorder = [this, nvg, backgroundColour, zoom, dotsColour](bool bg, bool fg) {
+    auto drawBorder = [this, nvg, backgroundColour, zoom, borderLinesColour](bool bg, bool fg) {
         if (viewport && (showOrigin || showBorder) && !::getValue<bool>(presentationMode)) {
             nvgBeginPath(nvg);
 
@@ -404,11 +427,11 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
                 }
                 nvgLineStyle(nvg, NVG_LINE_SOLID);
                 nvgStrokeColor(nvg, backgroundColour);
-                nvgStrokeWidth(nvg, 6.0f);
+                nvgStrokeWidth(nvg, 3.0f);
                 nvgStroke(nvg);
             }
             
-            nvgStrokeColor(nvg, dotsColour);
+            nvgStrokeColor(nvg, borderLinesColour);
             nvgStrokeWidth(nvg, scaledStrokeSize);
             nvgDashLength(nvg, 8.0f);
             nvgLineStyle(nvg, NVG_LINE_DASHED);
