@@ -936,9 +936,11 @@ void TabComponent::itemDragMove(SourceDetails const& dragSourceDetails)
         splitDropBounds = Rectangle<int>();
         tab->setVisible(true);
 
+#if !JUCE_IOS
         if (tab->parent != this) {
             editor->getTabComponent().createNewWindow(tab->cnv);
         }
+#endif
 
         auto centreX = tab->getBounds().getCentreX();
         auto tabBarWidth = splits[1] ? getWidth() / 2 : getWidth();

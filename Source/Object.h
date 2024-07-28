@@ -46,7 +46,7 @@ public:
 
     ~Object() override;
 
-    void propertyChanged(String const& name, var const& value);
+    void propertyChanged(String const& name, var const& value) override;
     void valueChanged(Value& v) override;
 
     void changeListenerCallback(ChangeBroadcaster* source) override;

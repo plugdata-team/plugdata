@@ -53,9 +53,10 @@ Dialog::Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWi
 #endif
     setVisible(true);
 
-    setBounds(parentComponent->getScreenX(), parentComponent->getScreenY(), parentComponent->getWidth(), parentComponent->getHeight());
-    parentComponent->addComponentListener(this);
-
+#if JUCE_IOS
+    setAlwaysOnTop(true);
+    toFront(false);
+#else
     if (ProjectInfo::isStandalone) {
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(parentComponent->getTopLevelComponent()))
             mainWindow->dialog = SafePointer(this);
@@ -63,6 +64,11 @@ Dialog::Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWi
     } else {
         setAlwaysOnTop(true);
     }
+#endif
+    
+    setBounds(parentComponent->getScreenX(), parentComponent->getScreenY(), parentComponent->getWidth(), parentComponent->getHeight());
+    parentComponent->addComponentListener(this);
+    
     setWantsKeyboardFocus(true);
 
     if (showCloseButton) {
@@ -142,7 +148,9 @@ void Dialogs::showAskToSaveDialog(std::unique_ptr<Dialog>* target, Component* ce
     dialog->setViewedComponent(saveDialog);
     target->reset(dialog);
 
+#if !JUCE_IOS
     centre->getTopLevelComponent()->toFront(true);
+#endif
 }
 
 void Dialogs::showSettingsDialog(PluginEditor* editor)
