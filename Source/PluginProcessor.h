@@ -226,11 +226,19 @@ private:
         HostInfoUpdater(PluginProcessor* parentProcessor)
             : processor(*parentProcessor) {};
 
-        void handleAsyncUpdate() override
+        void update()
         {
             if (ProjectInfo::isStandalone)
                 return;
-
+#if JUCE_IOS
+            handleAsyncUpdate(); // iOS doesn't like it if we do this asynchronously
+#else
+            triggerAsyncUpdate();
+#endif
+        }
+    private:
+        void handleAsyncUpdate() override
+        {
             auto const details = AudioProcessorListener::ChangeDetails {}.withParameterInfoChanged(true);
             processor.updateHostDisplay(details);
         }

@@ -137,19 +137,20 @@ void NVGSurface::initialise()
     glContext->makeActive();
     nvg = nvgCreateContext(NVG_ANTIALIAS);
 #endif
-
-    surfaces[nvg] = this;
-
-    invalidateAll();
-
-    if (!nvg)
+    if (!nvg) {
         std::cerr << "could not initialise nvg" << std::endl;
+        return;
+    }
+    
+    surfaces[nvg] = this;
     nvgCreateFontMem(nvg, "Inter", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);
     nvgCreateFontMem(nvg, "Inter-Regular", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);
     nvgCreateFontMem(nvg, "Inter-Bold", (unsigned char*)BinaryData::InterBold_ttf, BinaryData::InterBold_ttfSize, 0);
     nvgCreateFontMem(nvg, "Inter-SemiBold", (unsigned char*)BinaryData::InterSemiBold_ttf, BinaryData::InterSemiBold_ttfSize, 0);
     nvgCreateFontMem(nvg, "Inter-Tabular", (unsigned char*)BinaryData::InterTabular_ttf, BinaryData::InterTabular_ttfSize, 0);
     nvgCreateFontMem(nvg, "icon_font-Regular", (unsigned char*)BinaryData::IconFont_ttf, BinaryData::IconFont_ttfSize, 0);
+    
+    invalidateAll();
 }
 
 void NVGSurface::detachContext()
@@ -229,7 +230,7 @@ bool NVGSurface::makeContextActive()
 {
 #ifdef NANOVG_METAL_IMPLEMENTATION
     // No need to make context active with Metal, so just check if we have initialised and return that
-    return getView() != nullptr && nvg != nullptr;
+    return getView() != nullptr && nvg != nullptr && mnvgDevice(nvg) != nullptr;
 #else
     if (glContext)
         return glContext->makeActive();
@@ -299,7 +300,7 @@ void NVGSurface::render()
     if (!nvg) {
         initialise();
     }
-
+    
     if (!makeContextActive())
         return;
 
@@ -309,6 +310,10 @@ void NVGSurface::render()
     {
         detachContext();
         return; // Render on next frame
+    }
+    if(pixelScale == 0) // This happens sometimes when an AUv3 plugin is hidden behind the parameter control view
+    {
+        return;
     }
 #endif
     

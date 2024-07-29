@@ -345,6 +345,7 @@ file(GLOB plugdata_standalone_sources
 source_group("Source\\Standalone" FILES ${plugdata_standalone_sources})
 
 if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
+set(INSTRUMENT_NAME "plugdata")
 juce_add_gui_app(plugdata_standalone
     PRODUCT_NAME                "plugdata"
     VERSION                     ${PLUGDATA_VERSION}
@@ -356,7 +357,7 @@ juce_add_gui_app(plugdata_standalone
     DOCUMENT_EXTENSIONS          pd
     )
 else()
-
+set(INSTRUMENT_NAME "plugdata-instrument")
 juce_add_plugin(plugdata_standalone
     VERSION                     ${PLUGDATA_VERSION}
     COMPANY_NAME                ${PLUGDATA_COMPANY_NAME}
@@ -423,7 +424,7 @@ juce_add_plugin(plugdata
     PLUGIN_CODE                 PdIn
     FORMATS                     AU AUv3 VST3 LV2 CLAP
     LV2URI                      https://github.com/timothyschoen/plugdata
-    PRODUCT_NAME                "plugdata"
+    PRODUCT_NAME                ${INSTRUMENT_NAME}
     BUNDLE_ID                   com.plugdata.plugdata.instrument
     PLIST_TO_MERGE              [[<plist>
                                     <dict>

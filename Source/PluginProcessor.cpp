@@ -898,26 +898,17 @@ void PluginProcessor::sendPlayhead()
             atoms_playhead.emplace_back(static_cast<float>(infos->getTimeSignature()->denominator));
             sendMessage("_playhead", "timesig", atoms_playhead);
         }
-
-        if (infos->getPpqPosition().hasValue()) {
-            atoms_playhead[0] = static_cast<float>(*infos->getPpqPosition());
-        } else {
-            atoms_playhead[0] = 0.0f;
+        
+        auto ppq = infos->getPpqPosition();
+        auto samplesTime = infos->getTimeInSamples();
+        auto secondsTime = infos->getTimeInSeconds();
+        if (ppq.hasValue() || samplesTime.hasValue() || secondsTime.hasValue()) {
+            atoms_playhead.resize(3);
+            atoms_playhead[0] = ppq.hasValue() ? static_cast<float>(*ppq) : 0.0f;
+            atoms_playhead[1] = samplesTime.hasValue() ? static_cast<float>(*samplesTime) : 0.0f;
+            atoms_playhead[2] = secondsTime.hasValue() ? static_cast<float>(*secondsTime) : 0.0f;
+            sendMessage("_playhead", "position", atoms_playhead);
         }
-
-        if (infos->getTimeInSamples().hasValue()) {
-            atoms_playhead[1] = static_cast<float>(*infos->getTimeInSamples());
-        } else {
-            atoms_playhead[1] = 0.0f;
-        }
-
-        if (infos->getTimeInSeconds().hasValue()) {
-            atoms_playhead.emplace_back(static_cast<float>(*infos->getTimeInSeconds()));
-        } else {
-            atoms_playhead.emplace_back(0.0f);
-        }
-
-        sendMessage("_playhead", "position", atoms_playhead);
         atoms_playhead.resize(1);
     }
     unlockAudioThread();
@@ -1230,16 +1221,17 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     }
 
     unlockAudioThread();
-
+    
     delete[] xmlData;
 
+    
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         editor->getTabComponent().triggerAsyncUpdate();
         editor->sidebar->updateAutomationParameters();  // After loading a state, we need to update all the parameters
     }
 
     // Let host know our parameter layout (likely) changed
-    hostInfoUpdater.triggerAsyncUpdate();
+    hostInfoUpdater.update();
 }
 
 pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL)

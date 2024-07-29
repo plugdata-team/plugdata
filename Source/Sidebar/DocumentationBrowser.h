@@ -202,10 +202,17 @@ private:
 
     void run() override
     {
-        fileTreeLock.enter();
-        fileTree = generateDirectoryValueTree(File(SettingsFile::getInstance()->getProperty<String>("browser_path")));
-        fileTreeLock.exit();
-        sendChangeMessage();
+        try
+        {
+            fileTreeLock.enter();
+            fileTree = generateDirectoryValueTree(File(SettingsFile::getInstance()->getProperty<String>("browser_path")));
+            fileTreeLock.exit();
+            sendChangeMessage();
+        }
+        catch(...)
+        {
+            std::cerr << "Failed to update documentation browser" << std::endl;
+        }
     }
 
     void filesystemChanged() override
