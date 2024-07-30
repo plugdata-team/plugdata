@@ -189,14 +189,26 @@ void Connection::render(NVGcontext* nvg)
         nvgStroke(nvg);
     }
 
-    nvgStrokePaint(nvg, nvgDoubleStroke(nvg, connectionColour, shadowColour));
+    bool isSignalCable = cableType == SignalCable && connectionStyle != PlugDataLook::ConnectionStyleVanilla;
+    auto dashColor = shadowColour;
+    if (isSignalCable){
+        dashColor.a = 1.0f;
+        dashColor.r *= 0.4f;
+        dashColor.g *= 0.4f;
+        dashColor.b *= 0.4f;
+    }
+    float dashSize = isSignalCable ? (numSignalChannels <= 1) ? 3.0f : 1.5f : 0.0f;
+    //FIXME we need to scale the size of the dash size, this is very wrong currently and stutters when it zooms, and changes the dash count!
+    float scaledDashSize = dashSize ;//+ (getValue<float>(cnv->zoomScale) * 0.5f);
+    nvgStrokePaint(nvg, nvgDoubleStroke(nvg, connectionColour, shadowColour, dashColor, (dashSize != 0.0f) ? scaledDashSize : 0.0f));
 
     float cableThickness;
     switch (connectionStyle){
-        case PlugDataLook::ConnectionStyleVanilla:  cableThickness = cableType == SignalCable ? 4.0f : 2.0f;    break;
-        case PlugDataLook::ConnectionStyleThin:     cableThickness = 2.5f;                                      break;
-        default:                                    cableThickness = 4.0f;                                      break;
+        case PlugDataLook::ConnectionStyleVanilla:  cableThickness = cableType == SignalCable ? 4.5f : 2.5f;    break;
+        case PlugDataLook::ConnectionStyleThin:     cableThickness = 3.0f;                                      break;
+        default:                                    cableThickness = 4.5f;                                      break;
     }
+
     nvgStrokeWidth(nvg, cableThickness);
 
     if (!cachedIsValid)
@@ -213,6 +225,7 @@ void Connection::render(NVGcontext* nvg)
     }
 
     // draw internal signal dashed cable for themes that support this
+    /*
     if (cableType == SignalCable && connectionStyle != PlugDataLook::ConnectionStyleVanilla) {
         auto dashColor = shadowColour;
         dashColor.a = 1.0f;
@@ -221,7 +234,8 @@ void Connection::render(NVGcontext* nvg)
         dashColor.b *= 0.4f;
 
         nvgStrokeColor(nvg, dashColor);
-        nvgLineStyle(nvg, NVG_LINE_DASHED);
+        auto featherVal = abs(1.0 - (3.0f / getValue<float>(cnv->zoomScale))) * 0.25f;
+        nvgLineStyle(nvg, NVG_LINE_DASHED, featherVal);
         nvgDashLength(nvg, numSignalChannels <= 1 ? 5.0f : 3.5f);
         nvgStrokeWidth(nvg, connectionStyle == PlugDataLook::ConnectionStyleThin ? 1.5 : 2.0f);
 
@@ -237,6 +251,7 @@ void Connection::render(NVGcontext* nvg)
             nvgSavePath(nvg, std::numeric_limits<int32_t>::max() - cacheId);
         }
     }
+     */
 
     nvgRestore(nvg);
     cachedIsValid = true;
