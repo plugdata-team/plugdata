@@ -240,7 +240,7 @@ public:
 
         nvgSave(nvg);
         setJUCEPath(nvg, getPath());
-        nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(lineColour), convertColour(shadowColour)));
+        nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(lineColour), convertColour(shadowColour), convertColour(Colours::transparentBlack), 0.0f));
         nvgStrokeWidth(nvg, 4.0f);
         nvgStroke(nvg);
         nvgRestore(nvg);
