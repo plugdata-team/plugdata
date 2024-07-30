@@ -236,7 +236,10 @@ public:
     {
         updater = DocumentationBrowserUpdateThread::getInstance();
         updater->addChangeListener(this);
-
+#if JUCE_IOS // Needed to AUv3
+        updater->update();
+#endif
+        
         searchInput.setBackgroundColour(PlugDataColour::sidebarActiveBackgroundColourId);
         searchInput.addKeyListener(this);
         searchInput.onTextChange = [this]() {

@@ -7,6 +7,7 @@ using namespace juce;
 
 #include "Utility/Hash.h"
 #include "Utility/SynchronousValue.h"
+#include "Utility/OSUtils.h"
 
 #ifndef ENABLE_FB_DEBUGGING
 #    define ENABLE_FB_DEBUGGING 0
@@ -44,6 +45,8 @@ struct ProjectInfo {
 #if JUCE_WINDOWS
     // Regular documents directory might be synced to OneDrive
     static inline File const appDataDir = File::getSpecialLocation(File::SpecialLocationType::commonDocumentsDirectory).getChildFile("plugdata");
+#elif JUCE_IOS
+    static inline File const appDataDir = OSUtils::getSharedAppFolder();
 #else
     static inline File const appDataDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata");
 #endif

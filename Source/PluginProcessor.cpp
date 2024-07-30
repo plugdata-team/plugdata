@@ -1250,7 +1250,9 @@ pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL)
     auto dirname = patchFile.getParentDirectory().getFullPathName().replace("\\", "/");
     auto filename = patchFile.getFileName();
 
-    glob_forcefilename(generateSymbol(filename), generateSymbol(dirname));
+    if(!glob_hasforcedfilename()) {
+        glob_forcefilename(generateSymbol(filename), generateSymbol(dirname));
+    }
     auto newPatch = openPatch(tempFile);
     if (newPatch) {
         if (auto patch = newPatch->getPointer()) {
