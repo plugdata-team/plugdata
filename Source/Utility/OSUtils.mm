@@ -610,7 +610,7 @@ void OSUtils::MTLDeleteView(void* view)
 }
 
 
-juce::File OSUtils::getSharedAppFolder()
+juce::File OSUtils::getSharedAppFolder() // Currently not used, but might be useful later
 {
     NSFileManager* fm = [NSFileManager defaultManager];
     NSURL *containerURL = [fm containerURLForSecurityApplicationGroupIdentifier:@"group.com.plugdata.plugdata"];

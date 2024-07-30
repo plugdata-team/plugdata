@@ -387,8 +387,8 @@ juce_add_plugin(plugdata_standalone
     DOCUMENT_EXTENSIONS         pd
     DOCUMENT_BROWSER_ENABLED    TRUE
     BUNDLE_ID                   com.plugdata.plugdata
-    APP_GROUPS_ENABLED          TRUE
-    APP_GROUP_IDS               group.com.plugdata.plugdata
+    #APP_GROUPS_ENABLED          TRUE
+    #APP_GROUP_IDS               group.com.plugdata.plugdata
     PLIST_TO_MERGE              [[<plist>
                                     <dict>
                                         <key>CFBundleIdentifier</key>
@@ -434,8 +434,8 @@ juce_add_plugin(plugdata
                                         <string>com.plugdata.plugdata.instrument</string>
                                     </dict>
                                 </plist>]]
-    APP_GROUPS_ENABLED          TRUE
-    APP_GROUP_IDS               group.com.plugdata.plugdata
+    #APP_GROUPS_ENABLED          TRUE
+    #APP_GROUP_IDS               group.com.plugdata.plugdata
     AU_MAIN_TYPE                kAudioUnitType_MusicDevice
     VST3_CATEGORIES             Instrument
     VST2_CATEGORY               kPlugCategSynth)
@@ -467,8 +467,8 @@ juce_add_plugin(plugdata_fx
                                         <string>com.plugdata.plugdata.fx</string>
                                     </dict>
                                 </plist>]]
-    APP_GROUPS_ENABLED          TRUE
-    APP_GROUP_IDS               group.com.plugdata.plugdata
+    #APP_GROUPS_ENABLED          TRUE
+    #APP_GROUP_IDS               group.com.plugdata.plugdata
     AU_MAIN_TYPE                kAudioUnitType_Effect
     VST3_CATEGORIES             Fx
     VST2_CATEGORY               kPlugCategEffect)

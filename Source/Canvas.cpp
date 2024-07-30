@@ -1334,7 +1334,7 @@ void Canvas::mouseUp(MouseEvent const& e)
 }
 
 void Canvas::updateSidebarSelection()
-{
+{ 
 #if JUCE_IOS
     editor->showTouchSelectionHelper(selectedComponents.getNumSelected());
 #endif

@@ -45,8 +45,6 @@ struct ProjectInfo {
 #if JUCE_WINDOWS
     // Regular documents directory might be synced to OneDrive
     static inline File const appDataDir = File::getSpecialLocation(File::SpecialLocationType::commonDocumentsDirectory).getChildFile("plugdata");
-#elif JUCE_IOS
-    static inline File const appDataDir = OSUtils::getSharedAppFolder();
 #else
     static inline File const appDataDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata");
 #endif

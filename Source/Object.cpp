@@ -879,13 +879,13 @@ void Object::mouseUp(MouseEvent const& e)
             cnv->setSelected(this, true);
         }
 
-        cnv->updateSidebarSelection();
-
         if (ds.didStartDragging) {
             cnv->objectGrid.clearIndicators(false);
             applyBounds();
             ds.didStartDragging = false;
         }
+
+        cnv->updateSidebarSelection();
 
         if (ds.objectSnappingInbetween) {
             auto* c = ds.connectionToSnapInbetween.getComponent();
