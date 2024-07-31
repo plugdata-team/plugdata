@@ -42,6 +42,8 @@ private:
     enum PatchItemType
     {
         Object,
+        Comment,
+        Message,
         Connection,
         CanvasStart,
         CanvasEnd,

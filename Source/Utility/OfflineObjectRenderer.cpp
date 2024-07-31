@@ -73,6 +73,12 @@ void OfflineObjectRenderer::parsePatch(String const& patch, std::function<void(P
 {
     int canvasDepth = patch.startsWith("#N canvas") ? -1 : 0;
     
+    auto isComment = [](StringArray& tokens) {
+        return tokens[0] == "#X" && tokens[1] == "text" && tokens.size() >= 4 && tokens[1] != "f" && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789");
+    };
+    auto isMessage = [](StringArray& tokens) {
+        return tokens[0] == "#X" && tokens[1] == "msg" && tokens.size() >= 4 && tokens[1] != "f" && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789");
+    };
     auto isObject = [](StringArray& tokens) {
         return tokens[0] == "#X" && tokens[1] != "connect" && tokens.size() >= 4 && tokens[1] != "f" && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789");
     };
@@ -109,8 +115,14 @@ void OfflineObjectRenderer::parsePatch(String const& patch, std::function<void(P
             callback(CanvasStart, canvasDepth, "");
             canvasDepth++;
         }
-
-        if (isObject(tokens)) {
+        
+        if(isComment(tokens)) {
+            callback(Comment, canvasDepth, line);
+        }
+        else if(isMessage(tokens)) {
+            callback(Message, canvasDepth, line);
+        }
+        else if (isObject(tokens)) {
             callback(Object, canvasDepth, line);
         }
         else if (isConnection(tokens)) {
@@ -406,7 +418,6 @@ std::pair<std::vector<bool>, std::vector<bool>> OfflineObjectRenderer::countIole
                         else if(name.startsWith("outlet~")) outlets.push_back(true);
                         else if(name.startsWith("outlet")) outlets.push_back(false);
                     }
-                   
                 }
             });
         }
