@@ -259,8 +259,6 @@ public:
                 auto patchFile = File(subTree.getProperty("Path").toString());
                 auto patchImage = subTree.getProperty("PatchImage").toString();
 
-                subTree.setProperty("Snapshot", "", nullptr); // TODO: this is cleanup for v0.9.0 transition period, remove later
-
                 auto favourited = subTree.hasProperty("Pinned") && static_cast<bool>(subTree.getProperty("Pinned"));
                 auto snapshotColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f);
 
