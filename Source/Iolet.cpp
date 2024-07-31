@@ -73,7 +73,7 @@ void Iolet::render(NVGcontext* nvg)
     bool isHovering = isTargeted && !isLocked;
     
     // If a connection is being created, don't hide iolets with a symbol defined
-    if (!cnv->connectionsBeingCreated.isEmpty() && !cnv->connectionsBeingCreated[0]->getIolet()->isInlet != isInlet) {
+    if (cnv->connectionsBeingCreated.isEmpty() || cnv->connectionsBeingCreated[0]->getIolet()->isInlet == isInlet) {
         if ((isLocked && isSymbolIolet) || (isSymbolIolet && !isHovering && !overObject && !object->isSelected()))
             return;
     }
