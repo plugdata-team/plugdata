@@ -323,8 +323,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     auto borderLinesColour = convertColour(findColour(PlugDataColour::canvasDotsColourId).interpolatedWith(background, 0.2f));
     auto& dotsColour = borderLinesColour;
 
-    // apply translation to the canvas nvg objects
-    NVGScopedState scopedState(nvg);
+    nvgSave(nvg);
 
     if (viewport) {
         nvgTranslate(nvg, -viewport->getViewPositionX(), -viewport->getViewPositionY());
@@ -579,6 +578,8 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     if (dimensionsAreBeingEdited)
         drawBorder(false, true);
 
+    nvgRestore(nvg);
+    
     // Draw scrollbars
     if (viewport) {
         reinterpret_cast<CanvasViewport*>(viewport.get())->render(nvg);
