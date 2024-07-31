@@ -427,7 +427,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
                 nvgStroke(nvg);
                 
                 nvgFillColor(nvg, backgroundColour);
-                nvgFillRect(nvg, -1.0f, -1.0f, 2, 2);
+                nvgFillRect(nvg, pos.x - 1.0f, pos.y - 1.0f, 2, 2);
             }
             
             nvgStrokeColor(nvg, borderLinesColour);
@@ -447,13 +447,14 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
                 nvgStroke(nvg);
 
                 // Connect origin lines at {0, 0}
+                /*
                 nvgBeginPath(nvg);
                 nvgMoveTo(nvg, pos.x + 4.0f, pos.y);
                 nvgLineTo(nvg, pos.x, pos.y);
                 nvgLineTo(nvg, pos.x, pos.y + 4.0f);
                 nvgLineStyle(nvg, NVG_LINE_SOLID);
                 nvgStrokeWidth(nvg, 1.25f);
-                nvgStroke(nvg);
+                nvgStroke(nvg); */
             }
             if(showBorder && fg)
             {
