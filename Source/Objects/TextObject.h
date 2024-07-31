@@ -239,7 +239,7 @@ public:
                             static_cast<int>(ioletAreaColour.a * 255) != backgroundColour.getAlpha();
         
         if (isValid && hasIoletArea) {
-            nvgSave(nvg);
+            NVGScopedState scopedState(nvg);
             float const padding = 1.3f;
             float const padding2x = padding * 2;
             nvgRoundedScissor(nvg, padding, padding, getWidth() - padding2x, getHeight() - padding2x, jmax(0.0f, Corners::objectCornerRadius - 0.7f));
@@ -249,8 +249,6 @@ public:
             nvgRect(nvg, 0, 0, getWidth(), 3.5f);
             nvgRect(nvg, 0, getHeight() - 3.5f, getWidth(), 3.5f);
             nvgFill(nvg);
-
-            nvgRestore(nvg);
         }
 
         if (editor && editor->isVisible()) {

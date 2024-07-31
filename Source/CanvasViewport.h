@@ -310,15 +310,17 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        nvgSave(nvg);
-        nvgTranslate(nvg, vbar.getX(), vbar.getY());
-        vbar.render(nvg);
-        nvgRestore(nvg);
+        {
+            NVGScopedState scopedState(nvg);
+            nvgTranslate(nvg, vbar.getX(), vbar.getY());
+            vbar.render(nvg);
+        }
 
-        nvgSave(nvg);
-        nvgTranslate(nvg, hbar.getX(), hbar.getY());
-        hbar.render(nvg);
-        nvgRestore(nvg);
+        {
+            NVGScopedState scopedState(nvg);
+            nvgTranslate(nvg, hbar.getX(), hbar.getY());
+            hbar.render(nvg);
+        }
     }
 
     void lookAndFeelChanged() override

@@ -83,7 +83,7 @@ public:
 
         if (topAndBottom) {
             // draw same triangle flipped bottom right
-            nvgSave(nvg);
+            NVGScopedState scopedState(nvg);
             // Rotate around centre
             auto halfFlagSize = flagSize * 0.5f;
             nvgTranslate(nvg, width - halfFlagSize, height - halfFlagSize);
@@ -94,7 +94,6 @@ public:
             nvgRect(nvg, 0, 0, flagSize, flagSize);
             nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, flagSize, flagSize, 0, objectFlagId, 1));
             nvgFill(nvg);
-            nvgRestore(nvg);
         }
     }
     

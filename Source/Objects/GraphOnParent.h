@@ -254,11 +254,10 @@ public:
             else
                 return;
 
-            nvgSave(nvg);
+            NVGScopedState scopedState(nvg);
             nvgIntersectRoundedScissor(nvg, b.getX() + 0.75f, b.getY() + 0.75f, b.getWidth() - 1.5f, b.getHeight() - 1.5f, Corners::objectCornerRadius);
             nvgTranslate(nvg, canvas->getX(), canvas->getY());
             canvas->performRender(nvg, invalidArea);
-            nvgRestore(nvg);
         }
 
         auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));

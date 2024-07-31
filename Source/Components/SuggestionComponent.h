@@ -110,7 +110,7 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        nvgSave(nvg);
+        NVGScopedState scopedState(nvg);
         nvgTranslate(nvg, getX(), getY());
         if (!nvgCtx || nvgCtx->getContext() != nvg)
             nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
@@ -118,7 +118,6 @@ public:
         {
             paintEntireComponent(g, true);
         }
-        nvgRestore(nvg);
     }
 
 private:

@@ -318,12 +318,13 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     auto const halfSize = infiniteCanvasSize / 2;
     auto const zoom = getValue<float>(zoomScale);
 
-    auto backgroundColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId));
-    auto borderLinesColour = convertColour(findColour(PlugDataColour::canvasDotsColourId).withAlpha(0.8f));
-    auto dotsColour = convertColour(findColour(PlugDataColour::canvasDotsColourId).withAlpha(0.8f));
+    auto background = findColour(PlugDataColour::canvasBackgroundColourId);
+    auto backgroundColour = convertColour(background);
+    auto borderLinesColour = convertColour(findColour(PlugDataColour::canvasDotsColourId).interpolatedWith(background, 0.2f));
+    auto& dotsColour = borderLinesColour;
 
     // apply translation to the canvas nvg objects
-    nvgSave(nvg);
+    NVGScopedState scopedState(nvg);
 
     if (viewport) {
         nvgTranslate(nvg, -viewport->getViewPositionX(), -viewport->getViewPositionY());
@@ -343,14 +344,13 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         auto gridSize = objectGrid.gridSize ? objectGrid.gridSize : 25;
 
         if (getValue<float>(zoomScale) >= 1.0f) {
-            nvgSave(nvg);
+            NVGScopedState scopedState(nvg);
             nvgTranslate(nvg, canvasOrigin.x % gridSize, canvasOrigin.y % gridSize); // Make sure grid aligns with origin
             NVGpaint dots = nvgDotPattern(nvg, dotsColour, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize, 0.8f, 0.0f);
             nvgFillPaint(nvg, dots);
             nvgFill(nvg);
-            nvgRestore(nvg);
         } else {
-            nvgSave(nvg);
+            NVGScopedState scopedState(nvg);
 
             int devision = 0;
             switch(gridSize){
@@ -376,14 +376,15 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
 
             // Horizontal Dots
             nvgTranslate(nvg, offset.x, offset.y); // Adjust alignment to origin
-            nvgSave(nvg);
-            for (int i = 0; i < devision; i++) {
-                nvgTranslate(nvg, gridSize, 0);
-                NVGpaint dots = nvgDotPattern(nvg, i == (devision - 1) ? majorDotColour : minorDotColour, nvgRGBA(0, 0, 0, 0), gridDivTotal, scaledDotSize, 0.0f);
-                nvgFillPaint(nvg, dots);
-                nvgFill(nvg);
+            {
+                NVGScopedState scopedState(nvg);
+                for (int i = 0; i < devision; i++) {
+                    nvgTranslate(nvg, gridSize, 0);
+                    NVGpaint dots = nvgDotPattern(nvg, i == (devision - 1) ? majorDotColour : minorDotColour, nvgRGBA(0, 0, 0, 0), gridDivTotal, scaledDotSize, 0.0f);
+                    nvgFillPaint(nvg, dots);
+                    nvgFill(nvg);
+                }
             }
-            nvgRestore(nvg);
             // Vertical Dots
             for (int i = 0; i < devision; i++) {
                 nvgTranslate(nvg, 0, gridSize);
@@ -391,12 +392,11 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
                 nvgFillPaint(nvg, dots);
                 nvgFill(nvg);
             }
-
-            nvgRestore(nvg);
         }
     }
     auto drawBorder = [this, nvg, backgroundColour, zoom, borderLinesColour](bool bg, bool fg) {
         if (viewport && (showOrigin || showBorder) && !::getValue<bool>(presentationMode)) {
+            NVGScopedState scopedState(nvg);
             nvgBeginPath(nvg);
 
             const auto borderWidth = getValue<float>(patchWidth);
@@ -425,6 +425,9 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
                 nvgStrokeColor(nvg, backgroundColour);
                 nvgStrokeWidth(nvg, 8.0f);
                 nvgStroke(nvg);
+                
+                nvgFillColor(nvg, backgroundColour);
+                nvgFillRect(nvg, -1.0f, -1.0f, 2, 2);
             }
             
             nvgStrokeColor(nvg, borderLinesColour);
@@ -445,9 +448,9 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
 
                 // Connect origin lines at {0, 0}
                 nvgBeginPath(nvg);
-                nvgMoveTo(nvg, pos.x + 2.0f, pos.y);
+                nvgMoveTo(nvg, pos.x + 4.0f, pos.y);
                 nvgLineTo(nvg, pos.x, pos.y);
-                nvgLineTo(nvg, pos.x, pos.y + 2.0f);
+                nvgLineTo(nvg, pos.x, pos.y + 4.0f);
                 nvgLineStyle(nvg, NVG_LINE_SOLID);
                 nvgStrokeWidth(nvg, 1.25f);
                 nvgStroke(nvg);
@@ -468,12 +471,10 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         }
     };
     
-    nvgSave(nvg);
     if (!dimensionsAreBeingEdited)
         drawBorder(true, true);
     else
         drawBorder(true, false);
-    nvgRestore(nvg);
 
     // Render objects like [drawcurve], [fillcurve] etc. at the back
     for (auto drawable : drawables) {
@@ -498,7 +499,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             auto const bgColour = convertColour(findColour(PlugDataColour::presentationBackgroundColourId));
             auto const windowOutlineColour = convertColour(findColour(PlugDataColour::presentationBackgroundColourId).contrasting(0.3f));
 
-            nvgSave(nvg);
+            NVGScopedState scopedState(nvg);
 
             // background colour to crop outside of border area
             nvgBeginPath(nvg);
@@ -530,8 +531,6 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             nvgFillPaint(nvg, shadowImage);
             nvgFill(nvg);
             nvgStroke(nvg);
-
-            nvgRestore(nvg);
         }
     }
     // render connections infront or behind objects depending on lock mode or overlay setting
@@ -546,16 +545,14 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     }
 
     for (auto* connection : connectionsBeingCreated) {
-        nvgSave(nvg);
+        NVGScopedState scopedState(nvg);
         connection->render(nvg);
-        nvgRestore(nvg);
     }
 
     if (graphArea) {
-        nvgSave(nvg);
+        NVGScopedState scopedState(nvg);
         nvgTranslate(nvg, graphArea->getX(), graphArea->getY());
         graphArea->render(nvg);
-        nvgRestore(nvg);
     }
 
     objectGrid.render(nvg);
@@ -580,8 +577,6 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
 
     if (dimensionsAreBeingEdited)
         drawBorder(false, true);
-
-    nvgRestore(nvg);
 
     // Draw scrollbars
     if (viewport) {
@@ -635,13 +630,14 @@ void Canvas::renderAllObjects(NVGcontext* nvg, Rectangle<int> area)
     for (auto* obj : objects) {
         auto b = obj->getBounds();
 
-        nvgSave(nvg);
-        nvgTranslate(nvg, b.getX(), b.getY());
-        if (b.intersects(area) && obj->isVisible()) {
-            obj->render(nvg);
+        {
+            NVGScopedState scopedState(nvg);
+            nvgTranslate(nvg, b.getX(), b.getY());
+            if (b.intersects(area) && obj->isVisible()) {
+                obj->render(nvg);
+            }
         }
-        nvgRestore(nvg);
-
+        
         // Draw label in canvas coordinates
         obj->renderLabel(nvg);
     }
@@ -654,19 +650,17 @@ void Canvas::renderAllConnections(NVGcontext* nvg, Rectangle<int> area)
     Array<Connection*> connectionsToDraw;
 
     for (auto* connection : connections) {
-        nvgSave(nvg);
+        NVGScopedState scopedState(nvg);
         if ((isScrolling || connection->intersectsRectangle(area)) && connection->isVisible()) {
             connection->render(nvg);
             if (showConnectionOrder)
                 connectionsToDraw.add(connection);
         }
-        nvgRestore(nvg);
     }
     if (!connectionsToDraw.isEmpty()) {
         for (auto* connection : connectionsToDraw) {
-            nvgSave(nvg);
+            NVGScopedState scopedState(nvg);
             connection->renderConnectionOrder(nvg);
-            nvgRestore(nvg);
         }
     }
 }

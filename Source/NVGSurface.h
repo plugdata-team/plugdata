@@ -444,3 +444,18 @@ private:
     int fbWidth, fbHeight;
     bool fbDirty = false;
 };
+
+struct NVGScopedState
+{
+    NVGScopedState(NVGcontext* nvg) : nvg(nvg)
+    {
+        nvgSave(nvg);
+    }
+    
+    ~NVGScopedState()
+    {
+        nvgRestore(nvg);
+    }
+    
+    NVGcontext* nvg;
+};

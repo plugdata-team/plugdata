@@ -86,12 +86,13 @@ class WelcomePanel : public Component
                 });
             }
 
-            nvgSave(nvg);
-            nvgTranslate(nvg, 22, bounds.getHeight() - 30);
-            titleImage.render(nvg, Rectangle<int>(0, 0, bounds.getWidth() - 8, 24));
-            nvgTranslate(nvg, 0, 20);
-            subtitleImage.render(nvg, Rectangle<int>(0, 0, bounds.getWidth() - 8, 16));
-            nvgRestore(nvg);
+            {
+                NVGScopedState scopedState(nvg);
+                nvgTranslate(nvg, 22, bounds.getHeight() - 30);
+                titleImage.render(nvg, Rectangle<int>(0, 0, bounds.getWidth() - 8, 24));
+                nvgTranslate(nvg, 0, 20);
+                subtitleImage.render(nvg, Rectangle<int>(0, 0, bounds.getWidth() - 8, 16));
+            }
 
             if (onFavourite) {
                 auto favouriteIconBounds = getHeartIconBounds();

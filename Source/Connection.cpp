@@ -224,35 +224,6 @@ void Connection::render(NVGcontext* nvg)
         cacheId = nvgSavePath(nvg, cacheId);
     }
 
-    // draw internal signal dashed cable for themes that support this
-    /*
-    if (cableType == SignalCable && connectionStyle != PlugDataLook::ConnectionStyleVanilla) {
-        auto dashColor = shadowColour;
-        dashColor.a = 1.0f;
-        dashColor.r *= 0.4f;
-        dashColor.g *= 0.4f;
-        dashColor.b *= 0.4f;
-
-        nvgStrokeColor(nvg, dashColor);
-        auto featherVal = abs(1.0 - (3.0f / getValue<float>(cnv->zoomScale))) * 0.25f;
-        nvgLineStyle(nvg, NVG_LINE_DASHED, featherVal);
-        nvgDashLength(nvg, numSignalChannels <= 1 ? 5.0f : 3.5f);
-        nvgStrokeWidth(nvg, connectionStyle == PlugDataLook::ConnectionStyleThin ? 1.5 : 2.0f);
-
-        if (!cachedIsValid)
-            nvgDeletePath(nvg, std::numeric_limits<int32_t>::max() - cacheId);
-        if (nvgLoadPath(nvg, std::numeric_limits<int32_t>::max() - cacheId)) {
-            nvgStroke(nvg);
-        } else {
-            auto pathFromOrigin = getPath();
-            pathFromOrigin.applyTransform(AffineTransform::translation(-getX(), -getY()));
-            setJUCEPath(nvg, pathFromOrigin);
-            nvgStroke(nvg);
-            nvgSavePath(nvg, std::numeric_limits<int32_t>::max() - cacheId);
-        }
-    }
-     */
-
     nvgRestore(nvg);
     cachedIsValid = true;
 
@@ -634,7 +605,9 @@ void Connection::mouseEnter(MouseEvent const& e)
 {
     isHovering = true;
     if (plugdata_debugging_enabled()) {
-        cnv->editor->connectionMessageDisplay->setConnection(this, e.getScreenPosition());
+        Point<float> nearest;
+        getPath().getNearestPoint(cnv->getLocalPoint(this, e.position), nearest);
+        cnv->editor->connectionMessageDisplay->setConnection(this, cnv->localPointToGlobal(nearest).roundToInt().translated(60, 15));
     }
     repaint();
 }

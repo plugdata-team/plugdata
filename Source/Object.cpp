@@ -1213,7 +1213,7 @@ void Object::render(NVGcontext* nvg)
         auto& resizeHandleImage = cnv->resizeHandleImage;
         int angle = 360;
         for (auto& corner : getCorners()) {
-            nvgSave(nvg);
+            NVGScopedState scopedState(nvg);
             // Rotate around centre
             nvgTranslate(nvg, corner.getCentreX(), corner.getCentreY());
             nvgRotate(nvg, degreesToRadians<float>(angle));
@@ -1223,7 +1223,6 @@ void Object::render(NVGcontext* nvg)
             nvgRect(nvg, 0, 0, 9, 9);
             nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage.getImageId(), 1));
             nvgFill(nvg);
-            nvgRestore(nvg);
             angle -= 90;
         }
     }
@@ -1239,10 +1238,9 @@ void Object::render(NVGcontext* nvg)
     }
 
     if (gui) {
-        nvgSave(nvg);
+        NVGScopedState scopedState(nvg);
         nvgTranslate(nvg, margin, margin);
         gui->render(nvg);
-        nvgRestore(nvg);
     }
 
     if (newObjectEditor) {
@@ -1270,15 +1268,12 @@ void Object::render(NVGcontext* nvg)
     }
 
     if (!isHvccCompatible) {
-        nvgSave(nvg);
-
+        NVGScopedState scopedState(nvg);
         nvgBeginPath(nvg);
         nvgStrokeColor(nvg, nvgRGBAf(1.0f, 0.5f, 0.0f, 1.0f)); // orange
         nvgStrokeWidth(nvg, 1.0f);
         nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
         nvgStroke(nvg);
-
-        nvgRestore(nvg);
     } else if (cnv->shouldShowIndex()) {
         int halfHeight = 5;
 
@@ -1306,10 +1301,9 @@ void Object::renderIolets(NVGcontext* nvg)
         return;
 
     for (auto* iolet : iolets) {
-        nvgSave(nvg);
+        NVGScopedState scopedState(nvg);
         nvgTranslate(nvg, iolet->getX(), iolet->getY());
         iolet->render(nvg);
-        nvgRestore(nvg);
     }
 }
 
@@ -1317,19 +1311,17 @@ void Object::renderLabel(NVGcontext* nvg)
 {
     if (gui) {
         if (auto* label = gui->getLabel()) {
-            nvgSave(nvg);
+            NVGScopedState scopedState(nvg);
             auto posOnCanvas = cnv->getLocalPoint(gui->labels.get(), label->getPosition());
             nvgTranslate(nvg, posOnCanvas.getX(), posOnCanvas.getY());
             label->renderLabel(nvg, cnv->getRenderScale() * 2.0f);
-            nvgRestore(nvg);
         }
         if (auto* vu = gui->getVU()) {
             if (vu->isVisible()) {
-                nvgSave(nvg);
+                NVGScopedState scopedState(nvg);
                 auto posOnCanvas = cnv->getLocalPoint(gui->labels.get(), vu->getPosition());
                 nvgTranslate(nvg, posOnCanvas.getX(), posOnCanvas.getY());
                 vu->render(nvg);
-                nvgRestore(nvg);
             }
         }
     }

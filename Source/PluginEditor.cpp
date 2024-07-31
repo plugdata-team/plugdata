@@ -375,17 +375,15 @@ void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> area)
         pluginMode->render(nvg);
     } else {
         if (welcomePanel->isVisible()) {
-            nvgSave(nvg);
+            NVGScopedState scopedState(nvg);
             welcomePanel->render(nvg);
-            nvgRestore(nvg);
         } else {
             tabComponent.renderArea(nvg, area);
 
             if (touchSelectionHelper && touchSelectionHelper->isVisible() && area.intersects(touchSelectionHelper->getBounds() - nvgSurface.getPosition())) {
-                nvgSave(nvg);
+                NVGScopedState scopedState(nvg);
                 nvgTranslate(nvg, touchSelectionHelper->getX() - nvgSurface.getX(), touchSelectionHelper->getY() - nvgSurface.getY());
                 touchSelectionHelper->render(nvg);
-                nvgRestore(nvg);
             }
         }
     }

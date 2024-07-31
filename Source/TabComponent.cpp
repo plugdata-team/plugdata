@@ -533,18 +533,15 @@ void TabComponent::renderArea(NVGcontext* nvg, Rectangle<int> area)
     nvgFillRect(nvg, 0, 0, area.getWidth(), area.getHeight());
 
     if (splits[0]) {
-        nvgSave(nvg);
+        NVGScopedState scopedState(nvg);
         nvgScissor(nvg, 0, 0, splits[1] ? (splitSize - 3) : getWidth(), getHeight());
         splits[0]->performRender(nvg, area);
-        nvgRestore(nvg);
     }
     if (splits[1]) {
-        nvgSave(nvg);
+        NVGScopedState scopedState(nvg);
         nvgTranslate(nvg, splitSize + 3, 0);
         nvgScissor(nvg, 0, 0, getWidth() - (splitSize + 3), getHeight());
-
         splits[1]->performRender(nvg, area.translated(-(splitSize + 3), 0));
-        nvgRestore(nvg);
     }
 
     if (!splitDropBounds.isEmpty()) {

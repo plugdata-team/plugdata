@@ -369,7 +369,6 @@ bool PluginProcessor::acceptsMidi() const
 #if JUCE_IOS
     return !ProjectInfo::isFx;
 #endif
-
     return true;
 }
 

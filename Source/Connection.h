@@ -201,6 +201,14 @@ public:
         cnv->removeMouseListener(this);
         if(iolet) iolet->removeMouseListener(this);
     }
+        
+    void pathChanged() override
+    {
+        strokePath.clear();
+        strokePath = path;
+        setBoundsToEnclose (getDrawableBounds().expanded(3));
+        repaint();
+    }
 
     void mouseDrag(MouseEvent const& e) override
     {
@@ -238,12 +246,11 @@ public:
         auto lineColour = cnv->findColour(PlugDataColour::dataColourId).brighter(0.6f);
         auto shadowColour = findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.06f).withAlpha(0.24f);
 
-        nvgSave(nvg);
+        NVGScopedState scopedState(nvg);
         setJUCEPath(nvg, getPath());
         nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(lineColour), convertColour(shadowColour), convertColour(Colours::transparentBlack), 0.0f));
         nvgStrokeWidth(nvg, 4.0f);
         nvgStroke(nvg);
-        nvgRestore(nvg);
     }
         
     void toNextIolet()

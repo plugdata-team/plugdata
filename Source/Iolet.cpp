@@ -82,7 +82,7 @@ void Iolet::render(NVGcontext* nvg)
     if (isLocked)
         type = 3;
 
-    nvgSave(nvg);
+    NVGScopedState scopedState(nvg);
 
     if (isLocked || !(overObject || isHovering) || (getValue<bool>(patchDownwardsOnly) && isInlet)) {
         auto clipBounds = getLocalArea(object, object->getLocalBounds().toFloat().reduced(Object::margin));
@@ -95,8 +95,6 @@ void Iolet::render(NVGcontext* nvg)
     nvgFillPaint(nvg, nvgImagePattern(nvg, isHovering * -16 - 1.5f, type * -16 - offset, 16 * 4, 16 * 4, 0, fb.getImage(), 1));
 
     nvgFillRect(nvg, 0, 0, 13, 13);
-
-    nvgRestore(nvg);
 }
 
 bool Iolet::hitTest(int x, int y)

@@ -179,7 +179,7 @@ public:
 
         auto b = getLocalBounds().toFloat();
 
-        nvgSave(nvg);
+        NVGScopedState scopedState(nvg);
         nvgIntersectScissor(nvg, 0, 0, getWidth(), getHeight());
         if (imageBuffers.empty()) {
             nvgFontSize(nvg, 20);
@@ -195,13 +195,12 @@ public:
                 offsetY = pic->x_offset_y;
             }
 
-            nvgSave(nvg);
+            NVGScopedState scopedState(nvg);
             nvgTranslate(nvg, offsetX, offsetY);
             for (auto& [image, bounds] : imageBuffers) {
                 nvgFillPaint(nvg, nvgImagePattern(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), 0, image->getImageId(), 1.0f));
                 nvgFillRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
             }
-            nvgRestore(nvg);
         }
 
         bool selected = object->isSelected() && !cnv->isGraph;
@@ -210,8 +209,6 @@ public:
         if (getValue<bool>(outline)) {
             nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), convertColour(outlineColour), Corners::objectCornerRadius);
         }
-
-        nvgRestore(nvg);
     }
 
     void valueChanged(Value& value) override

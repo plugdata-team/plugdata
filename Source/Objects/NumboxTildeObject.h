@@ -263,10 +263,12 @@ public:
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(backgroundColour), convertColour(outlineColour), Corners::objectCornerRadius);
 
-        nvgSave(nvg);
-        nvgTranslate(nvg, input.getX(), input.getY());
-        input.render(nvg);
-        nvgRestore(nvg);
+        {
+            NVGScopedState scopedState(nvg);
+            nvgTranslate(nvg, input.getX(), input.getY());
+            input.render(nvg);
+        }
+
 
         auto icon = mode ? Icons::ThinDown : Icons::Sine;
         auto iconBounds = Rectangle<int>(7, 3, getHeight(), getHeight());

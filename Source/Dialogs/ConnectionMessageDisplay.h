@@ -35,9 +35,9 @@ public:
     ~ConnectionMessageDisplay()
         override
         = default;
+        
 
-    /** Activate the current connection info display overlay, to hide give it a nullptr
-     */
+    // Activate the current connection info display overlay, to hide give it a nullptr
     void setConnection(Connection* connection, Point<int> screenPosition = { 0, 0 })
     {
         // multiple events can hide the display, so we don't need to do anything
@@ -235,7 +235,6 @@ private:
 
     void paint(Graphics& g) override
     {
-
         Path messageDisplay;
         auto internalBounds = getLocalBounds().reduced(8).toFloat();
         messageDisplay.addRoundedRectangle(internalBounds, Corners::defaultCornerRadius);
