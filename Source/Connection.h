@@ -247,7 +247,18 @@ public:
 
         NVGScopedState scopedState(nvg);
         setJUCEPath(nvg, getPath());
-        if(iolet && iolet->isSignal && PlugDataLook::getConnectionStyle() != PlugDataLook::ConnectionStyleVanilla)
+        
+        auto connectionStyle = PlugDataLook::getConnectionStyle();
+        float cableThickness;
+        switch (connectionStyle){
+            case PlugDataLook::ConnectionStyleVanilla:  cableThickness = iolet->isSignal ? 4.5f : 2.5f;             break;
+            case PlugDataLook::ConnectionStyleThin:     cableThickness = 3.0f;                                      break;
+            default:                                    cableThickness = 4.5f;                                      break;
+        }
+
+        nvgStrokeWidth(nvg, cableThickness);
+        
+        if(iolet && iolet->isSignal && connectionStyle != PlugDataLook::ConnectionStyleVanilla)
         {
             auto lineColour = cnv->findColour(PlugDataColour::signalColourId).brighter(0.6f);
             auto dashColor = convertColour(shadowColour);
@@ -256,13 +267,11 @@ public:
             dashColor.g *= 0.4f;
             dashColor.b *= 0.4f;
             nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(lineColour), convertColour(shadowColour), dashColor, 2.5f));
-            nvgStrokeWidth(nvg, 4.0f);
             nvgStroke(nvg);
         }
         else {
             auto lineColour = cnv->findColour(PlugDataColour::dataColourId).brighter(0.6f);
             nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(lineColour), convertColour(shadowColour), convertColour(Colours::transparentBlack), 0.0f));
-            nvgStrokeWidth(nvg, 4.0f);
             nvgStroke(nvg);
         }
     }
