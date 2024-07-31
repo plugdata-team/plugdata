@@ -198,9 +198,7 @@ void Connection::render(NVGcontext* nvg)
         dashColor.b *= 0.4f;
     }
     float dashSize = isSignalCable ? (numSignalChannels <= 1) ? 2.5f : 1.5f : 0.0f;
-    //FIXME we need to scale the size of the dash size, this is very wrong currently and stutters when it zooms, and changes the dash count!
-    float scaledDashSize = dashSize ;//+ (getValue<float>(cnv->zoomScale) * 0.5f);
-    nvgStrokePaint(nvg, nvgDoubleStroke(nvg, connectionColour, shadowColour, dashColor, (dashSize != 0.0f) ? scaledDashSize : 0.0f));
+    nvgStrokePaint(nvg, nvgDoubleStroke(nvg, connectionColour, shadowColour, dashColor, dashSize));
 
     float cableThickness;
     switch (connectionStyle){

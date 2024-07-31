@@ -243,14 +243,28 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto lineColour = cnv->findColour(PlugDataColour::dataColourId).brighter(0.6f);
         auto shadowColour = findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.06f).withAlpha(0.24f);
 
         NVGScopedState scopedState(nvg);
         setJUCEPath(nvg, getPath());
-        nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(lineColour), convertColour(shadowColour), convertColour(Colours::transparentBlack), 0.0f));
-        nvgStrokeWidth(nvg, 4.0f);
-        nvgStroke(nvg);
+        if(iolet && iolet->isSignal && PlugDataLook::getConnectionStyle() != PlugDataLook::ConnectionStyleVanilla)
+        {
+            auto lineColour = cnv->findColour(PlugDataColour::signalColourId).brighter(0.6f);
+            auto dashColor = convertColour(shadowColour);
+            dashColor.a = 1.0f;
+            dashColor.r *= 0.4f;
+            dashColor.g *= 0.4f;
+            dashColor.b *= 0.4f;
+            nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(lineColour), convertColour(shadowColour), dashColor, 2.5f));
+            nvgStrokeWidth(nvg, 4.0f);
+            nvgStroke(nvg);
+        }
+        else {
+            auto lineColour = cnv->findColour(PlugDataColour::dataColourId).brighter(0.6f);
+            nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(lineColour), convertColour(shadowColour), convertColour(Colours::transparentBlack), 0.0f));
+            nvgStrokeWidth(nvg, 4.0f);
+            nvgStroke(nvg);
+        }
     }
         
     void toNextIolet()
