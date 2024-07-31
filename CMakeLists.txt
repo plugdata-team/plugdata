@@ -346,6 +346,7 @@ source_group("Source\\Standalone" FILES ${plugdata_standalone_sources})
 
 if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
 set(INSTRUMENT_NAME "plugdata")
+set(AU_EFFECT_TYPE kAudioUnitType_MusicEffect)
 juce_add_gui_app(plugdata_standalone
     PRODUCT_NAME                "plugdata"
     VERSION                     ${PLUGDATA_VERSION}
@@ -359,6 +360,8 @@ juce_add_gui_app(plugdata_standalone
     )
 else()
 set(INSTRUMENT_NAME "plugdata-instrument")
+set(AU_EFFECT_TYPE kAudioUnitType_Effect)
+
 juce_add_plugin(plugdata_standalone
     VERSION                     ${PLUGDATA_VERSION}
     COMPANY_NAME                ${PLUGDATA_COMPANY_NAME}
@@ -470,7 +473,7 @@ juce_add_plugin(plugdata_fx
                                 </plist>]]
     #APP_GROUPS_ENABLED          TRUE
     #APP_GROUP_IDS               group.com.plugdata.plugdata
-    AU_MAIN_TYPE                kAudioUnitType_Effect
+    AU_MAIN_TYPE                ${AU_EFFECT_TYPE}
     VST3_CATEGORIES             Fx
     VST2_CATEGORY               kPlugCategEffect)
 
