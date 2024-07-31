@@ -355,6 +355,7 @@ juce_add_gui_app(plugdata_standalone
     HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
     HARDENED_RUNTIME_OPTIONS    ${HARDENED_RUNTIME_OPTIONS}
     DOCUMENT_EXTENSIONS          pd
+    BUNDLE_ID                   com.plugdata.plugdata
     )
 else()
 set(INSTRUMENT_NAME "plugdata-instrument")
