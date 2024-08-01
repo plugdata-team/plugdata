@@ -449,7 +449,7 @@ public:
 
         panel.addSection("Active Themes", { primaryThemeSelector, secondaryThemeSelector });
 
-        Array<Value*> straightConnectionValues, connectionStyle, ioletSpacingEdge, squareIolets, squareObjectCorners;
+        Array<Value*> straightConnectionValues, connectionStyle, connectionLook, ioletSpacingEdge, squareIolets, squareObjectCorners;
 
         for (int i = 0; i < 2; i++) {
             auto const& themeName = PlugDataLook::selectedThemes[i];
@@ -459,6 +459,7 @@ public:
             // settings for connections
             swatch["straight_connections"].referTo(themeTree.getPropertyAsValue("straight_connections", nullptr));
             swatch["connection_style"].referTo(themeTree.getPropertyAsValue("connection_style", nullptr));
+            swatch["connection_look"].referTo(themeTree.getPropertyAsValue("connection_look", nullptr));
 
             // settings for object & iolets
             swatch["iolet_spacing_edge"].referTo(themeTree.getPropertyAsValue("iolet_spacing_edge", nullptr));
@@ -467,6 +468,7 @@ public:
 
             swatch["straight_connections"].addListener(this);
             swatch["connection_style"].addListener(this);
+            swatch["connection_look"].addListener(this);
 
             swatch["iolet_spacing_edge"].addListener(this);
             swatch["square_iolets"].addListener(this);
@@ -474,6 +476,7 @@ public:
 
             straightConnectionValues.add(&swatch["straight_connections"]);
             connectionStyle.add(&swatch["connection_style"]);
+            connectionLook.add(&swatch["connection_look"]);
 
             ioletSpacingEdge.add(&swatch["iolet_spacing_edge"]);
             squareIolets.add(&swatch["square_iolets"]);
@@ -497,11 +500,15 @@ public:
         allPanels.add(useStraightConnections);
         addAndMakeVisible(*useStraightConnections);
 
+        auto* useConnectionLook = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Connection look", connectionLook, { "Filled", "Gradient" });
+        allPanels.add(useConnectionLook);
+        addAndMakeVisible(*useConnectionLook);
+
         auto* useConnectionStyle = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::ComboComponent>("Connection style", connectionStyle, { "Default", "Vanilla", "Thin" });
         allPanels.add(useConnectionStyle);
         addAndMakeVisible(*useConnectionStyle);
 
-        panel.addSection("Object & Connection Look", {useObjectCorners, useIoletCorners, useIoletSpacingEdge, useStraightConnections, useConnectionStyle });
+        panel.addSection("Object & Connection Look", {useObjectCorners, useIoletCorners, useIoletSpacingEdge, useStraightConnections, useConnectionLook, useConnectionStyle });
 
         // Create the panels by category
         for (auto const& [sectionName, sectionColours] : panels) {
@@ -535,10 +542,11 @@ public:
         bool ioletGeometryNeedsUpdate = false;
         for (auto theme : PlugDataLook::selectedThemes){
             if  (v.refersToSameSourceAs(swatches[theme]["straight_connections"])
-                 || v.refersToSameSourceAs(swatches[theme]["connection_style"])
                  || v.refersToSameSourceAs(swatches[theme]["iolet_spacing_edge"])
                  || v.refersToSameSourceAs(swatches[theme]["square_iolets"])
-                 || v.refersToSameSourceAs(swatches[theme]["square_object_corners"]) )
+                 || v.refersToSameSourceAs(swatches[theme]["square_object_corners"])
+                 || v.refersToSameSourceAs(swatches[theme]["connection_look"])
+                 || v.refersToSameSourceAs(swatches[theme]["connection_style"]) )
                  {
                 if(v.refersToSameSourceAs(swatches[theme]["iolet_spacing_edge"]))
                     ioletGeometryNeedsUpdate = true;
@@ -555,6 +563,8 @@ public:
                     theme.setProperty("straight_connections", v.toString(), nullptr);
                 } else if (v.refersToSameSourceAs(swatches[themeName]["connection_style"])) {
                     theme.setProperty("connection_style", v.toString().getIntValue(), nullptr);
+                } else if (v.refersToSameSourceAs(swatches[themeName]["connection_look"])) {
+                    theme.setProperty("connection_look", v.toString(), nullptr);
                 } else if (v.refersToSameSourceAs(swatches[themeName]["iolet_spacing_edge"])) {
                     theme.setProperty("iolet_spacing_edge",  v.toString().getIntValue(), nullptr);
                 } else if (v.refersToSameSourceAs(swatches[themeName]["square_iolets"])) {

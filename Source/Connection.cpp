@@ -198,7 +198,8 @@ void Connection::render(NVGcontext* nvg)
         dashColor.b *= 0.4f;
     }
     float dashSize = isSignalCable ? (numSignalChannels <= 1) ? 2.5f : 1.5f : 0.0f;
-    nvgStrokePaint(nvg, nvgDoubleStroke(nvg, connectionColour, shadowColour, dashColor, dashSize));
+    auto useGradientLook = PlugDataLook::getUseGradientConnectionLook() && !(isSelected() || isHovering);
+    nvgStrokePaint(nvg, nvgDoubleStroke(nvg, connectionColour, shadowColour, dashColor, dashSize, useGradientLook));
 
     float cableThickness;
     switch (connectionStyle){
@@ -506,13 +507,17 @@ bool Connection::intersects(Rectangle<float> toCheck, int accuracy) const
         auto point1 = Point<float>(i.x1, i.y1);
 
         // Skip points to reduce accuracy a bit for better performance
-        for (int n = 0; n < accuracy; n++) {
-            auto next = i.next();
-            if (!next)
-                break;
-        }
+        // We can only skip points if there are many points!
+        if (!PlugDataLook::getUseStraightConnections()) {
+            for (int n = 0; n < accuracy; n++) {
+                auto next = i.next();
+                if (!next)
+                    break;
+            }
+         }
 
         auto point2 = Point<float>(i.x2, i.y2);
+
         auto currentLine = Line<float>(point1, point2);
 
         if (toCheck.intersects(currentLine)) {
@@ -1053,15 +1058,10 @@ void Connection::updatePath()
 
         Path connectionPath;
         connectionPath.startNewSubPath(pstart);
-
         // Add points in between if we've found a path
         for (int n = 1; n < currentPlan.size() - 1; n++) {
-            if (connectionPath.contains(currentPlan[n].toFloat()))
-                continue; // ??
-
             connectionPath.lineTo(currentPlan[n].toFloat());
         }
-
         connectionPath.lineTo(pend);
         toDraw = connectionPath.createPathWithRoundedCorners(PlugDataLook::getUseStraightConnections() ? 0.0f : 8.0f);
     }
@@ -1069,7 +1069,7 @@ void Connection::updatePath()
     if(getPath() == toDraw) {
         return;
     }
-    
+
     setPath(toDraw);
     previousPStart = pstart;
 
