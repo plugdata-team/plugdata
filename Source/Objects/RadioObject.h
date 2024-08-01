@@ -37,19 +37,15 @@ public:
 
     void update() override
     {
-        selected = getValue();
+        numItems = getMaximum();
+        max = numItems;
 
-        if (selected > ::getValue<int>(max)) {
-            selected = std::min<int>(::getValue<int>(max) - 1, selected);
-        }
+        selected = jlimit(0, numItems - 1, static_cast<int>(getValue()));
 
         if (auto radio = ptr.get<t_radio>()) {
             isVertical = radio->x_orientation;
             sizeProperty = isVertical ? radio->x_gui.x_w : radio->x_gui.x_h;
         }
-
-        numItems = getMaximum();
-        max = numItems;
 
         iemHelper.update();
 
