@@ -168,6 +168,7 @@ private:
     float offset = 0.0f;
 
     friend class ConnectionPathUpdater;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
 };
 

@@ -198,13 +198,33 @@ void Connection::render(NVGcontext* nvg)
         dashColor.b *= 0.4f;
     }
     float dashSize = isSignalCable ? (numSignalChannels <= 1) ? 2.5f : 1.5f : 0.0f;
-    nvgStrokePaint(nvg, nvgDoubleStroke(nvg, connectionColour, shadowColour, dashColor, dashSize));
+    auto useGradientLook = PlugDataLook::getUseGradientConnectionLook() && !(isSelected() || isHovering);
+    nvgStrokePaint(nvg, nvgDoubleStroke(nvg, connectionColour, shadowColour, dashColor, dashSize, useGradientLook));
 
     float cableThickness;
     switch (connectionStyle){
         case PlugDataLook::ConnectionStyleVanilla:  cableThickness = cableType == SignalCable ? 4.5f : 2.5f;    break;
         case PlugDataLook::ConnectionStyleThin:     cableThickness = 3.0f;                                      break;
         default:                                    cableThickness = 4.5f;                                      break;
+    }
+
+    // Draw a fake path dot if the path is less than 1pt in length.
+    // Paths don't draw currently if they have length of zero points
+    if (getPath().getLength() < 1.0f) {
+        auto pathFromOrigin = getPath();
+        pathFromOrigin.applyTransform(AffineTransform::translation(-getX(), -getY()));
+        auto startPoint = pathFromOrigin.getPointAlongPath(0.0);
+
+        nvgBeginPath(nvg);
+        nvgFillColor(nvg, shadowColour);
+        nvgCircle(nvg, startPoint.x, startPoint.y, cableThickness * 0.5f); // cableThickness is diameter, while circle is radius
+        nvgFill(nvg);
+
+        nvgBeginPath(nvg);
+        nvgFillColor(nvg, connectionColour);
+        nvgCircle(nvg, startPoint.x, startPoint.y, cableThickness * 0.25f);
+        nvgFill(nvg);
+        return;
     }
 
     nvgStrokeWidth(nvg, cableThickness);
@@ -308,6 +328,32 @@ void Connection::render(NVGcontext* nvg)
             }
         }
     }
+
+//#define BEZIER_DEBUG
+#ifdef BEZIER_DEBUG
+    auto getCubicBezierControlPoints = [this]() -> Array<Point<float>> {
+        juce::Path::Iterator it(getPath());
+
+        Array<Point<float>> points;
+
+        while (it.next())
+        {
+            if (it.elementType == juce::Path::Iterator::cubicTo)
+            {
+                points.add( { it.x1, it.y1 } );
+                points.add( { it.x2, it.y2 } );
+            }
+        }
+        return points;
+    };
+
+    for (auto point : getCubicBezierControlPoints()) {
+        nvgBeginPath(nvg);
+        nvgCircle(nvg, point.x, point.y, 0.5f);
+        nvgFillColor(nvg, nvgRGBAf(1,0,0,1));
+        nvgFill(nvg);
+    }
+#endif
 }
 
 void Connection::renderConnectionOrder(NVGcontext* nvg)
@@ -461,13 +507,17 @@ bool Connection::intersects(Rectangle<float> toCheck, int accuracy) const
         auto point1 = Point<float>(i.x1, i.y1);
 
         // Skip points to reduce accuracy a bit for better performance
-        for (int n = 0; n < accuracy; n++) {
-            auto next = i.next();
-            if (!next)
-                break;
-        }
+        // We can only skip points if there are many points!
+        if (!PlugDataLook::getUseStraightConnections()) {
+            for (int n = 0; n < accuracy; n++) {
+                auto next = i.next();
+                if (!next)
+                    break;
+            }
+         }
 
         auto point2 = Point<float>(i.x2, i.y2);
+
         auto currentLine = Line<float>(point1, point2);
 
         if (toCheck.intersects(currentLine)) {
@@ -873,24 +923,51 @@ Path Connection::getNonSegmentedPath(Point<float> start, Point<float> end)
         float const width = std::max(start.x, end.x) - std::min(start.x, end.x);
         float const height = std::max(start.y, end.y) - std::min(start.y, end.y);
 
+        // Hack for now to hide really poor control point maths
+        // So we draw a straight line
+        if (end.getDistanceFrom(start) < 4.0f) {
+            connectionPath.lineTo(end);
+            goto returnPath;
+        }
+
         float const min = std::min<float>(width, height);
         float const max = std::max<float>(width, height);
 
         float const maxShiftY = 20.f;
         float const maxShiftX = 20.f;
 
-        float const shiftY = std::min<float>(maxShiftY, max * 0.5);
+        float shiftY = std::min<float>(maxShiftY, max * 0.5);
+        float shiftX = ((start.y >= end.y) ? std::min<float>(maxShiftX, min * 0.5) : 0.f) * ((start.x < end.x) ? -1. : 1.);
 
-        float const shiftX = ((start.y >= end.y) ? std::min<float>(maxShiftX, min * 0.5) : 0.f) * ((start.x < end.x) ? -1. : 1.);
+        // Adjust control points if they are pointing away from the path
+        auto xPointOffset = std::abs(start.x - end.x);
+        auto yPointOffset = start.y - end.y;
+        auto pathInverted = start.y > end.y;
 
-        Point<float> const ctrlPoint1 { start.x - shiftX, start.y + shiftY };
-        Point<float> const ctrlPoint2 { end.x + shiftX, end.y - shiftY };
+        if (xPointOffset <= 40.0f && pathInverted) {
+            float xFactor = pow(1.0f - (xPointOffset / 40.0f), 0.9f);
+            float yFactor = pow((jmin(1.0f, yPointOffset / 20.0f)), 0.9f);
+            shiftY = shiftY - xFactor * yFactor * jmax(maxShiftY, yPointOffset * 0.5f);
 
-        connectionPath.cubicTo(ctrlPoint1, ctrlPoint2, end);
+            if ((xPointOffset <= 1.0f && yPointOffset <= 1.0f) || xPointOffset <= 1.0f || shiftY <= (end.y - start.y) * 0.5f) {
+                connectionPath.lineTo(end);
+                goto returnPath;
+            }
+            Point<float> const ctrlPoint1{start.x - shiftX, start.y + shiftY};
+            Point<float> const ctrlPoint2{end.x + shiftX, end.y - shiftY};
+
+            connectionPath.cubicTo(ctrlPoint1, ctrlPoint2, end);
+        } else {
+            Point<float> const ctrlPoint1{start.x - shiftX, start.y + shiftY};
+            Point<float> const ctrlPoint2{end.x + shiftX, end.y - shiftY};
+
+            connectionPath.cubicTo(ctrlPoint1, ctrlPoint2, end);
+        }
     } else {
         connectionPath.lineTo(end);
     }
 
+    returnPath:
     return connectionPath;
 }
 
@@ -981,15 +1058,10 @@ void Connection::updatePath()
 
         Path connectionPath;
         connectionPath.startNewSubPath(pstart);
-
         // Add points in between if we've found a path
         for (int n = 1; n < currentPlan.size() - 1; n++) {
-            if (connectionPath.contains(currentPlan[n].toFloat()))
-                continue; // ??
-
             connectionPath.lineTo(currentPlan[n].toFloat());
         }
-
         connectionPath.lineTo(pend);
         toDraw = connectionPath.createPathWithRoundedCorners(PlugDataLook::getUseStraightConnections() ? 0.0f : 8.0f);
     }
@@ -997,7 +1069,7 @@ void Connection::updatePath()
     if(getPath() == toDraw) {
         return;
     }
-    
+
     setPath(toDraw);
     previousPStart = pstart;
 

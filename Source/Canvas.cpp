@@ -558,19 +558,14 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     objectGrid.render(nvg);
 
     if (viewport && lasso.isVisible() && !lasso.getBounds().isEmpty()) {
-        auto lassoBounds = lasso.getBounds().toFloat().reduced(1.0f);
+        auto lassoBounds = lasso.getBounds();
+        lassoBounds = lassoBounds.withSize(jmax(lasso.getWidth(), 2), jmax(lasso.getHeight(), 2));
         auto smallestSide = lassoBounds.getWidth() < lassoBounds.getHeight() ? lassoBounds.getWidth() : lassoBounds.getHeight();
 
         auto fillColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.075f));
         auto outlineColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId).interpolatedWith(findColour(PlugDataColour::objectSelectedOutlineColourId), 0.65f));
 
-        nvgBeginPath(nvg);
-        nvgFillColor(nvg, fillColour);
-        nvgRect(nvg, lassoBounds.getX(), lassoBounds.getY(), lassoBounds.getWidth(), lassoBounds.getHeight());
-        nvgFill(nvg);
-        nvgStrokeColor(nvg, outlineColour);
-        nvgStrokeWidth(nvg, smallestSide < 1.0f ? 0.5f : 1.0f); // if one of the sides is smaller than 1px, we need to adjust the stroke width to prevent drawing out of bounds
-        nvgStroke(nvg);
+        nvgDrawRoundedRect(nvg, lassoBounds.getX(), lassoBounds.getY(), lassoBounds.getWidth(), lassoBounds.getHeight(), fillColour, outlineColour, 0.0f);
     }
 
     suggestor->renderAutocompletion(nvg);
@@ -649,16 +644,32 @@ void Canvas::renderAllConnections(NVGcontext* nvg, Rectangle<int> area)
     if (!connectionLayer.isVisible())
         return;
 
+    //TODO: Can we clean this up? We will want to have selected connections in-front,
+    // and take precedence over non-selected for resize handles
+
     Array<Connection*> connectionsToDraw;
+    Array<Connection*> connectionsToDrawSelected;
 
     for (auto* connection : connections) {
         NVGScopedState scopedState(nvg);
         if ((isScrolling || connection->intersectsRectangle(area)) && connection->isVisible()) {
-            connection->render(nvg);
-            if (showConnectionOrder)
+            if (!connection->isSelected())
+                connection->render(nvg);
+            else
+                connectionsToDrawSelected.add(connection);
+            if (showConnectionOrder) {
                 connectionsToDraw.add(connection);
+            }
         }
     }
+    // Draw all selected connections in front
+    if (!connectionsToDrawSelected.isEmpty()) {
+        for (auto* connection : connectionsToDrawSelected) {
+            NVGScopedState scopedState(nvg);
+            connection->render(nvg);
+        }
+    }
+
     if (!connectionsToDraw.isEmpty()) {
         for (auto* connection : connectionsToDraw) {
             NVGScopedState scopedState(nvg);
@@ -1245,6 +1256,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
     // Drag lasso
     if (!(e.source.isTouch() && e.source.getIndex() != 0)) {
         lasso.dragLasso(e);
+        lasso.setBounds(lasso.getBounds().withWidth(jmax(2, lasso.getWidth())).withHeight(jmax(2, lasso.getHeight())));
     }
 }
 
@@ -2452,10 +2464,10 @@ bool Canvas::isPointOutsidePluginArea(Point<int> point)
 
 void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, Rectangle<int> const& area)
 {
-    auto const lassoArea = area.withSize(jmax(area.getWidth(), 1), jmax(area.getHeight(), 1));
+    auto const lassoBounds = area.withWidth(jmax(2, area.getWidth())).withHeight(jmax(2, area.getHeight()));
 
     for (auto* object : objects) {
-        if (lassoArea.intersects(object->getSelectableBounds())) {
+        if (lassoBounds.intersects(object->getSelectableBounds())) {
             itemsFound.add(object);
         } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
             setSelected(object, false, false);
@@ -2465,13 +2477,13 @@ void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, R
     for (auto& connection : connections) {
         // If total bounds don't intersect, there can't be an intersection with the line
         // This is cheaper than checking the path intersection, so do this first
-        if (!connection->getBounds().intersects(lassoArea)) {
+        if (!connection->getBounds().intersects(lassoBounds)) {
             setSelected(connection, false, false);
             continue;
         }
 
         // Check if path intersects with lasso
-        if (connection->intersects(lassoArea.toFloat())) {
+        if (connection->intersects(lassoBounds.toFloat())) {
             itemsFound.add(connection);
         } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
             setSelected(connection, false, false);
