@@ -653,7 +653,7 @@ void Canvas::renderAllConnections(NVGcontext* nvg, Rectangle<int> area)
     for (auto* connection : connections) {
         NVGScopedState scopedState(nvg);
         if ((isScrolling || connection->intersectsRectangle(area)) && connection->isVisible()) {
-            if (!connection->isSelected())
+            if (!connection->isHoveringOrSelected())
                 connection->render(nvg);
             else
                 connectionsToDrawSelected.add(connection);

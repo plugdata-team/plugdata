@@ -99,6 +99,8 @@ public:
 
     bool isSelected() const;
 
+    bool isHoveringOrSelected() const { return selectedFlag || isHovering; };
+
     StringArray getMessageFormated();
     int getSignalData(t_float* output, int maxChannels);
 
