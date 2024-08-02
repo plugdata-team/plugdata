@@ -45,10 +45,12 @@ struct ProjectInfo {
 #if JUCE_WINDOWS
     // Regular documents directory might be synced to OneDrive
     static inline File const appDataDir = File::getSpecialLocation(File::SpecialLocationType::commonDocumentsDirectory).getChildFile("plugdata");
+#elif JUCE_IOS
+    static inline File const appDataDir = OSUtils::getSharedAppFolder().getChildFile("plugdata");
 #else
     static inline File const appDataDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata");
 #endif
-    static inline String const versionSuffix = "";
+    static inline String const versionSuffix = "-1";
     static inline File const versionDataDir = appDataDir.getChildFile("Versions").getChildFile(ProjectInfo::versionString + versionSuffix);
 };
 

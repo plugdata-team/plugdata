@@ -153,7 +153,7 @@ Array<Rectangle<int>> OfflineObjectRenderer::getObjectBoundsForPatch(String cons
     Array<Rectangle<int>> objectBounds;
     
     parsePatch(patch, [&objectBounds](PatchItemType type, int depth, String const& text){
-        if(type != PatchItemType::Object || depth != 0) return;
+        if((type != PatchItemType::Object &&  type != PatchItemType::Message && type != PatchItemType::Comment) || depth != 0) return;
         
         auto tokens = StringArray::fromTokens(text, true);
 

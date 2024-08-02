@@ -100,8 +100,8 @@ public:
         // We need to get the actual zoom from the top level canvas, not of the graph this happens to be inside of
         auto* topLevelCanvas = cnv;
 
-        while (topLevelCanvas && topLevelCanvas->isGraph) {
-            topLevelCanvas = topLevelCanvas->findParentComponentOfClass<Canvas>();
+        while (auto* nextCnv = topLevelCanvas->findParentComponentOfClass<Canvas>()) {
+            topLevelCanvas = nextCnv;
         }
         if (topLevelCanvas) {
             zoomScale.referTo(topLevelCanvas->zoomScale);

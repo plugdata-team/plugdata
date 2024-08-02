@@ -247,10 +247,12 @@ void PluginProcessor::initialiseFilesystem()
     if (!deken.exists()) {
         deken.createDirectory();
     }
+#if !JUCE_IOS
     if (!patches.exists()) {
         patches.createDirectory();
     }
-
+#endif
+    
     auto testTonePatch = homeDir.getChildFile("testtone.pd");
     auto cpuTestPatch = homeDir.getChildFile("load-meter.pd");
 
@@ -296,10 +298,14 @@ void PluginProcessor::initialiseFilesystem()
     ProjectInfo::appDataDir.createShortcut("plugdata", shortcut);
 
 #elif JUCE_IOS
-    // This is not ideal but on iOS, it seems to be the only way to make it work...
-    versionDataDir.getChildFile("Abstractions").copyDirectoryTo(homeDir.getChildFile("Abstractions"));
-    versionDataDir.getChildFile("Documentation").copyDirectoryTo(homeDir.getChildFile("Documentation"));
-    versionDataDir.getChildFile("Extra").copyDirectoryTo(homeDir.getChildFile("Extra"));
+    versionDataDir.getChildFile("Abstractions").createSymbolicLink(homeDir.getChildFile("Abstractions"), true);
+    versionDataDir.getChildFile("Documentation").createSymbolicLink(homeDir.getChildFile("Documentation"), true);
+    versionDataDir.getChildFile("Extra").createSymbolicLink(homeDir.getChildFile("Extra"), true);
+    
+    File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata").deleteFile();
+    // So that you can see the shared app folder from file browser app!
+    File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata").getChildFile("Patches").createDirectory();
+    patches.createSymbolicLink(File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata").getChildFile("Patches"), true);
 #else
     versionDataDir.getChildFile("Abstractions").createSymbolicLink(homeDir.getChildFile("Abstractions"), true);
     versionDataDir.getChildFile("Documentation").createSymbolicLink(homeDir.getChildFile("Documentation"), true);
