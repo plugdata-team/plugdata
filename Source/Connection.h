@@ -124,6 +124,8 @@ private:
     bool selectedFlag = false;
     bool segmented = false;
     bool isHovering = false;
+    bool isInStartReconnectHandle = false;
+    bool isInEndReconnectHandle = false;
 
     PlugDataLook::ConnectionStyle connectionStyle = PlugDataLook::ConnectionStyleDefault;
 

@@ -226,11 +226,9 @@ void Connection::render(NVGcontext* nvg)
     nvgRestore(nvg);
     cachedIsValid = true;
 
-    auto mousePos = cnv->getLastMousePosition();
-
     if (isSelected() && isHovering) {
-        auto expandedStartHandle = startReconnectHandle.contains(mousePos.toFloat()) ? startReconnectHandle.expanded(3.0f) : startReconnectHandle;
-        auto expandedEndHandle = endReconnectHandle.contains(mousePos.toFloat()) ? endReconnectHandle.expanded(3.0f) : endReconnectHandle;
+        auto expandedStartHandle = isInStartReconnectHandle ? startReconnectHandle.expanded(3.0f) : startReconnectHandle;
+        auto expandedEndHandle = isInEndReconnectHandle ? endReconnectHandle.expanded(3.0f) : endReconnectHandle;
 
         nvgFillColor(nvg, handleColour);
 
@@ -551,6 +549,28 @@ bool Connection::isSelected() const
 
 void Connection::mouseMove(MouseEvent const& e)
 {
+    auto setReconnectFlag = [this](bool start, bool end){
+        if (isInStartReconnectHandle != start || isInEndReconnectHandle != end) {
+            isInStartReconnectHandle = start;
+            isInEndReconnectHandle = end;
+            repaint();
+        }
+    };
+
+    if (startReconnectHandle.contains(e.getPosition().toFloat().translated(getX(), getY()))) {
+        setReconnectFlag(true, false);
+    }
+    else if (endReconnectHandle.contains(e.getPosition().toFloat().translated(getX(), getY()))) {
+        setReconnectFlag(false, true);
+    } else {
+        setReconnectFlag(false, false);
+    }
+
+    if (isInStartReconnectHandle || isInEndReconnectHandle) {
+        setMouseCursor(MouseCursor::NormalCursor);
+        return;
+    }
+
     int n = getClosestLineIdx(e.getPosition().toFloat(), currentPlan);
 
     if (isSegmented() && currentPlan.size() > 2 && n > 0) {
@@ -695,13 +715,21 @@ void Connection::mouseDrag(MouseEvent const& e)
 {
     cnv->editor->connectionMessageDisplay->setConnection(nullptr);
 
-    if (selectedFlag && startReconnectHandle.contains(e.getMouseDownPosition().toFloat().translated(getX(), getY())) && e.getDistanceFromDragStart() > 6) {
-        cnv->connectingWithDrag = true;
-        reconnect(inlet);
+    bool isDragging = e.getDistanceFromDragStart() > 6;
+
+    if (selectedFlag && isInStartReconnectHandle) {
+        if (isDragging) {
+            cnv->connectingWithDrag = true;
+            reconnect(inlet);
+        }
+        return;
     }
-    if (selectedFlag && endReconnectHandle.contains(e.getMouseDownPosition().toFloat().translated(getX(), getY())) && e.getDistanceFromDragStart() > 6) {
-        cnv->connectingWithDrag = true;
-        reconnect(outlet);
+    if (selectedFlag && isInEndReconnectHandle) {
+        if (isDragging) {
+            cnv->connectingWithDrag = true;
+            reconnect(outlet);
+        }
+        return;
     }
 
     if (currentPlan.empty())
