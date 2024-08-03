@@ -537,6 +537,9 @@ void Connection::setSelected(bool shouldBeSelected)
 {
     if (selectedFlag != shouldBeSelected) {
         selectedFlag = shouldBeSelected;
+        // Make the connection rise to the top of the connection layer
+        // This is so resize handles can easily be hit when the connection is selected
+        setAlwaysOnTop(shouldBeSelected);
         repaint();
     }
 }

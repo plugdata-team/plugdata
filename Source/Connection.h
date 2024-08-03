@@ -99,7 +99,7 @@ public:
 
     bool isSelected() const;
 
-    bool isHoveringOrSelected() const { return selectedFlag || isHovering; };
+    bool isMouseHovering() const { return isHovering; };
 
     StringArray getMessageFormated();
     int getSignalData(t_float* output, int maxChannels);
