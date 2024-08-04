@@ -8,7 +8,6 @@ class ButtonObject final : public ObjectBase {
 
     bool state = false;
     bool alreadyTriggered = false;
-    bool mouseHover = false;
 
     Value primaryColour = SynchronousValue();
     Value secondaryColour = SynchronousValue();
@@ -192,27 +191,13 @@ public:
         repaint();
     }
 
-    void mouseEnter(MouseEvent const& e) override
-    {
-        mouseHover = true;
-        repaint();
-    }
-
-    void mouseExit(MouseEvent const& e) override
-    {
-        mouseHover = false;
-        repaint();
-    }
-
     void render(NVGcontext* nvg) override
     {
         auto b = getLocalBounds().toFloat();
 
         auto foregroundColour = convertColour(Colour::fromString(primaryColour.toString()));
         auto bgColour = Colour::fromString(secondaryColour.toString());
-        if (mouseHover)
-            bgColour = getHoverBackgroundColour(bgColour);
-
+        
         auto backgroundColour = convertColour(bgColour);
         auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
         auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));

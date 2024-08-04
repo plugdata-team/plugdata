@@ -148,18 +148,6 @@ public:
         alreadyToggled = false;
     }
 
-    void mouseEnter(MouseEvent const& e) override
-    {
-        mouseHover = true;
-        repaint();
-    }
-
-    void mouseExit(MouseEvent const& e) override
-    {
-        mouseHover = false;
-        repaint();
-    }
-
     void mouseMove(MouseEvent const& e) override
     {
         float pos = isVertical ? e.y : e.x;
@@ -222,7 +210,7 @@ public:
             }
         }
 
-        auto bgColour = getHoverBackgroundColour(::getValue<Colour>(iemHelper.secondaryColour));
+        auto bgColour = getHoverBackgroundColour(::getValue<Colour>(iemHelper.secondaryColour).contrasting(0.04f));
 
         if (mouseHover) {
             float hoverX = isVertical ? 0 : hoverIdx * size;

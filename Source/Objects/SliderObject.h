@@ -10,7 +10,6 @@ class ReversibleSlider : public Slider
     bool isInverted = false;
     bool isVertical = false;
     bool shiftIsDown = false;
-    bool mouseHover = false;
         
     bool isZeroRange = false;
     float zeroRangeValue = 0.0f;
@@ -82,23 +81,6 @@ public:
     {
         setMouseDragSensitivity(std::max<int>(1, isVertical ? getHeight() : getWidth()));
         Slider::resized();
-    }
-
-    void mouseEnter(MouseEvent const& e) override
-    {
-        mouseHover = true;
-        getParentComponent()->repaint();
-    }
-
-    void mouseExit(MouseEvent const& e) override
-    {
-        mouseHover = false;
-        getParentComponent()->repaint();
-    }
-        
-    bool isHovered() const
-    {
-        return mouseHover;
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -386,9 +368,6 @@ public:
         auto outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         auto bgColour = getLookAndFeel().findColour(Slider::backgroundColourId);
-
-        if (slider.isHovered())
-            bgColour = getHoverBackgroundColour(bgColour);
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(bgColour), convertColour(outlineColour), Corners::objectCornerRadius);
 

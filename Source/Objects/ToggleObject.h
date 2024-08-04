@@ -12,8 +12,6 @@ class ToggleObject final : public ObjectBase {
 
     float value = 0.0f;
 
-    bool mouseHover = false;
-
     IEMHelper iemHelper;
 
 public:
@@ -74,8 +72,6 @@ public:
         auto b = getLocalBounds().toFloat();
 
         auto bgColour = ::getValue<Colour>(iemHelper.secondaryColour);
-        if (mouseHover)
-            bgColour = getHoverBackgroundColour(bgColour);
 
         auto backgroundColour = convertColour(bgColour);
         auto toggledColour = convertColour(::getValue<Colour>(iemHelper.primaryColour)); // TODO: don't access audio thread variables in render loop
@@ -148,18 +144,6 @@ public:
 
         // Make sure we don't re-toggle with an accidental drag
         alreadyToggled = true;
-    }
-
-    void mouseEnter(MouseEvent const& e) override
-    {
-        mouseHover = true;
-        repaint();
-    }
-
-    void mouseExit(MouseEvent const& e) override
-    {
-        mouseHover = false;
-        repaint();
     }
 
     void setToggleStateFromFloat(float newValue)
