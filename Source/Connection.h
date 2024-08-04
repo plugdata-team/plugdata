@@ -170,6 +170,7 @@ private:
     t_symbol* lastSelector = nullptr;
 
     float offset = 0.0f;
+    float pathLength = 0.0f;
 
     friend class ConnectionPathUpdater;
 

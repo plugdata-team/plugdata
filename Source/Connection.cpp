@@ -191,7 +191,7 @@ void Connection::render(NVGcontext* nvg)
 
     // Draw a fake path dot if the path is less than 1pt in length.
     // Paths don't draw currently if they have length of zero points
-    if (getPath().getLength() < 1.0f) {
+    if (pathLength < 1.0f) {
         auto pathFromOrigin = getPath();
         pathFromOrigin.applyTransform(AffineTransform::translation(-getX(), -getY()));
         auto startPoint = pathFromOrigin.getPointAlongPath(0.0);
@@ -300,10 +300,8 @@ void Connection::render(NVGcontext* nvg)
         } else {
             auto connectionPath = getPath();
             connectionPath.applyTransform(AffineTransform::translation(-getX(), -getY()));
-            auto const connectionLength = connectionPath.getLength();
-
-            if (connectionLength > arrowLength * 2) {
-                renderArrow(connectionPath, connectionLength);
+            if (pathLength > arrowLength * 2) {
+                renderArrow(connectionPath, pathLength);
             }
         }
     }
@@ -340,7 +338,7 @@ void Connection::renderConnectionOrder(NVGcontext* nvg)
     if ((cableType == DataCable) && (getNumberOfConnections() > 1)) {
         auto connectionPath = getPath();
         connectionPath.applyTransform(AffineTransform::translation(-getX(), -getY()));
-        auto pos = cnv->getLocalPoint(this, connectionPath.getPointAlongPath(jmax(connectionPath.getLength() - 8.5f * 3, 9.5f)));
+        auto pos = cnv->getLocalPoint(this, connectionPath.getPointAlongPath(jmax(pathLength - 8.5f * 3, 9.5f)));
         // circle background
         nvgBeginPath(nvg);
         nvgStrokeColor(nvg, outlineColour);
@@ -1084,6 +1082,7 @@ void Connection::updatePath()
 
     setPath(toDraw);
     previousPStart = pstart;
+    pathLength = toDraw.getLength();
 
     clipRegion = RectangleList<int>();
     auto pathIter = PathFlatteningIterator(toDraw, AffineTransform(), 12.0f);
@@ -1094,7 +1093,7 @@ void Connection::updatePath()
     }
 
     startReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(8.5f));
-    endReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(jmax(toDraw.getLength() - 8.5f, 9.5f)));
+    endReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(jmax(pathLength - 8.5f, 9.5f)));
 
     clipRegion.add(startReconnectHandle.toNearestIntEdges().expanded(4));
     clipRegion.add(endReconnectHandle.toNearestIntEdges().expanded(4));
