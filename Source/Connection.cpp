@@ -169,26 +169,6 @@ void Connection::render(NVGcontext* nvg)
     nvgSave(nvg);
     nvgTranslate(nvg, getX(), getY());
 
-    if (cableType == DataCable && cnv->shouldShowConnectionActivity()) {
-        auto dashColor = connectionColour;
-        dashColor.a = 1.0f;
-        dashColor.r *= 0.8f;
-        dashColor.g *= 0.8f;
-        dashColor.b *= 0.8f;
-
-        nvgBeginPath(nvg);
-        nvgStrokeColor(nvg, dashColor);
-        nvgLineStyle(nvg, NVG_LINE_DASHED);
-        nvgDashLength(nvg, 5.0f);
-        nvgDashPhaseOffset(nvg, offset);
-        nvgStrokeWidth(nvg, connectionStyle != PlugDataLook::ConnectionStyleDefault ? 3.0f : 5.0f);
-
-        auto pathFromOrigin = getPath();
-        pathFromOrigin.applyTransform(AffineTransform::translation(-getX(), -getY()));
-        setJUCEPath(nvg, pathFromOrigin);
-        nvgStroke(nvg);
-    }
-
     bool isSignalCable = cableType == SignalCable && connectionStyle != PlugDataLook::ConnectionStyleVanilla;
     auto dashColor = shadowColour;
     if (isSignalCable){
@@ -199,7 +179,8 @@ void Connection::render(NVGcontext* nvg)
     }
     float dashSize = isSignalCable ? (numSignalChannels <= 1) ? 2.5f : 1.5f : 0.0f;
     auto useGradientLook = PlugDataLook::getUseGradientConnectionLook() && !(isSelected() || isHovering);
-    nvgStrokePaint(nvg, nvgDoubleStroke(nvg, connectionColour, shadowColour, dashColor, dashSize, useGradientLook));
+    auto showActivity = cableType == DataCable && cnv->shouldShowConnectionActivity();
+    nvgStrokePaint(nvg, nvgDoubleStroke(nvg, connectionColour, shadowColour, dashColor, dashSize, useGradientLook, showActivity, offset));
 
     float cableThickness;
     switch (connectionStyle){
@@ -245,11 +226,9 @@ void Connection::render(NVGcontext* nvg)
     nvgRestore(nvg);
     cachedIsValid = true;
 
-    auto mousePos = cnv->getLastMousePosition();
-
     if (isSelected() && isHovering) {
-        auto expandedStartHandle = startReconnectHandle.contains(mousePos.toFloat()) ? startReconnectHandle.expanded(3.0f) : startReconnectHandle;
-        auto expandedEndHandle = endReconnectHandle.contains(mousePos.toFloat()) ? endReconnectHandle.expanded(3.0f) : endReconnectHandle;
+        auto expandedStartHandle = isInStartReconnectHandle ? startReconnectHandle.expanded(3.0f) : startReconnectHandle;
+        auto expandedEndHandle = isInEndReconnectHandle ? endReconnectHandle.expanded(3.0f) : endReconnectHandle;
 
         nvgFillColor(nvg, handleColour);
 
@@ -556,6 +535,9 @@ void Connection::setSelected(bool shouldBeSelected)
 {
     if (selectedFlag != shouldBeSelected) {
         selectedFlag = shouldBeSelected;
+        // Make the connection rise to the top of the connection layer
+        // This is so resize handles can easily be hit when the connection is selected
+        setAlwaysOnTop(shouldBeSelected);
         repaint();
     }
 }
@@ -567,6 +549,28 @@ bool Connection::isSelected() const
 
 void Connection::mouseMove(MouseEvent const& e)
 {
+    auto setReconnectFlag = [this](bool start, bool end){
+        if (isInStartReconnectHandle != start || isInEndReconnectHandle != end) {
+            isInStartReconnectHandle = start;
+            isInEndReconnectHandle = end;
+            repaint();
+        }
+    };
+
+    if (startReconnectHandle.contains(e.getPosition().toFloat().translated(getX(), getY()))) {
+        setReconnectFlag(true, false);
+    }
+    else if (endReconnectHandle.contains(e.getPosition().toFloat().translated(getX(), getY()))) {
+        setReconnectFlag(false, true);
+    } else {
+        setReconnectFlag(false, false);
+    }
+
+    if (isInStartReconnectHandle || isInEndReconnectHandle) {
+        setMouseCursor(MouseCursor::NormalCursor);
+        return;
+    }
+
     int n = getClosestLineIdx(e.getPosition().toFloat(), currentPlan);
 
     if (isSegmented() && currentPlan.size() > 2 && n > 0) {
@@ -711,13 +715,21 @@ void Connection::mouseDrag(MouseEvent const& e)
 {
     cnv->editor->connectionMessageDisplay->setConnection(nullptr);
 
-    if (selectedFlag && startReconnectHandle.contains(e.getMouseDownPosition().toFloat().translated(getX(), getY())) && e.getDistanceFromDragStart() > 6) {
-        cnv->connectingWithDrag = true;
-        reconnect(inlet);
+    bool isDragging = e.getDistanceFromDragStart() > 6;
+
+    if (selectedFlag && isInStartReconnectHandle) {
+        if (isDragging) {
+            cnv->connectingWithDrag = true;
+            reconnect(inlet);
+        }
+        return;
     }
-    if (selectedFlag && endReconnectHandle.contains(e.getMouseDownPosition().toFloat().translated(getX(), getY())) && e.getDistanceFromDragStart() > 6) {
-        cnv->connectingWithDrag = true;
-        reconnect(outlet);
+    if (selectedFlag && isInEndReconnectHandle) {
+        if (isDragging) {
+            cnv->connectingWithDrag = true;
+            reconnect(outlet);
+        }
+        return;
     }
 
     if (currentPlan.empty())

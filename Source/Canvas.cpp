@@ -649,11 +649,14 @@ void Canvas::renderAllConnections(NVGcontext* nvg, Rectangle<int> area)
 
     Array<Connection*> connectionsToDraw;
     Array<Connection*> connectionsToDrawSelected;
+    Connection* hovered = nullptr;
 
     for (auto* connection : connections) {
         NVGScopedState scopedState(nvg);
         if ((isScrolling || connection->intersectsRectangle(area)) && connection->isVisible()) {
-            if (!connection->isSelected())
+            if (connection->isMouseHovering())
+                hovered = connection;
+            else if (!connection->isSelected())
                 connection->render(nvg);
             else
                 connectionsToDrawSelected.add(connection);
@@ -668,6 +671,11 @@ void Canvas::renderAllConnections(NVGcontext* nvg, Rectangle<int> area)
             NVGScopedState scopedState(nvg);
             connection->render(nvg);
         }
+    }
+
+    if (hovered) {
+        NVGScopedState scopedState(nvg);
+        hovered->render(nvg);
     }
 
     if (!connectionsToDraw.isEmpty()) {
