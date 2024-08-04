@@ -177,16 +177,6 @@ ObjectBase::~ObjectBase()
     delete lnf;
 }
 
-Colour ObjectBase::getHoverBackgroundColour(Colour const& colour)
-{
-    auto brightness = colour.getBrightness();
-    float const threshold = 0.5f;
-    if (brightness < threshold)
-        return colour.brighter(0.05f);
-    else
-        return colour.darker(0.03f);
-}
-
 void ObjectBase::initialise()
 {
     update();

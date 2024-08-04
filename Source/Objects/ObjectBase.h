@@ -216,8 +216,6 @@ public:
 
     ~ObjectBase() override;
 
-    Colour getHoverBackgroundColour(Colour const& colour);
-
     void initialise();
 
     void paint(Graphics& g) override;

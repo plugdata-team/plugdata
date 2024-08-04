@@ -99,6 +99,8 @@ public:
 
     bool isSelected() const;
 
+    bool isMouseHovering() const { return isHovering; };
+
     StringArray getMessageFormated();
     int getSignalData(t_float* output, int maxChannels);
 
@@ -122,6 +124,8 @@ private:
     bool selectedFlag = false;
     bool segmented = false;
     bool isHovering = false;
+    bool isInStartReconnectHandle = false;
+    bool isInEndReconnectHandle = false;
 
     PlugDataLook::ConnectionStyle connectionStyle = PlugDataLook::ConnectionStyleDefault;
 

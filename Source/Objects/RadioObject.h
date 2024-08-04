@@ -174,6 +174,18 @@ public:
 
         repaint();
     }
+    
+    void mouseEnter(MouseEvent const& e) override
+    {
+        mouseHover = true;
+        repaint();
+    }
+
+    void mouseExit(MouseEvent const& e) override
+    {
+        mouseHover = false;
+        repaint();
+    }
 
     float getValue()
     {
@@ -210,13 +222,14 @@ public:
             }
         }
 
-        auto bgColour = getHoverBackgroundColour(::getValue<Colour>(iemHelper.secondaryColour).contrasting(0.04f));
+        auto bgColour = ::getValue<Colour>(iemHelper.secondaryColour);
 
         if (mouseHover) {
+            auto hoverColour = bgColour.contrasting(bgColour.getBrightness() > 0.5f ? 0.03f : 0.05f);
             float hoverX = isVertical ? 0 : hoverIdx * size;
             float hoverY = isVertical ? hoverIdx * size : 0;
             auto hoverBounds = Rectangle<float>(hoverX, hoverY, size, size).reduced(jmin<int>(size * 0.25f, 5));
-            nvgFillColor(nvg, convertColour(bgColour));
+            nvgFillColor(nvg, convertColour(hoverColour));
             nvgFillRoundedRect(nvg, hoverBounds.getX(), hoverBounds.getY(), hoverBounds.getWidth(), hoverBounds.getHeight(), Corners::objectCornerRadius / 2.0f);
         }
 

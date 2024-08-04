@@ -215,7 +215,7 @@ public:
         }
         else if(getPatch() && isMouseOver() && getValue<bool>(cnv->locked))
         {
-            finalBackgroundColour = convertColour(backgroundColour.contrasting(0.04f));
+            finalBackgroundColour = convertColour(backgroundColour.contrasting(backgroundColour.getBrightness() > 0.5f ? 0.03f : 0.05f));
         }
         
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), finalBackgroundColour, object->isSelected() ? selectedOutlineColour : finalOutlineColour, Corners::objectCornerRadius);
