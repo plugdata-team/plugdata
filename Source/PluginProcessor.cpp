@@ -303,9 +303,13 @@ void PluginProcessor::initialiseFilesystem()
     versionDataDir.getChildFile("Extra").createSymbolicLink(homeDir.getChildFile("Extra"), true);
     
     File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata").deleteFile();
-    // So that you can see the shared app folder from file browser app!
-    File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata").getChildFile("Patches").createDirectory();
-    patches.createSymbolicLink(File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata").getChildFile("Patches"), true);
+    
+    auto docsPatchesDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("Patches");
+    docsPatchesDir.createDirectory();
+    if(!patches.isSymbolicLink()) {
+        patches.deleteRecursively();
+        docsPatchesDir.createSymbolicLink(patches, true);
+    }
 #else
     versionDataDir.getChildFile("Abstractions").createSymbolicLink(homeDir.getChildFile("Abstractions"), true);
     versionDataDir.getChildFile("Documentation").createSymbolicLink(homeDir.getChildFile("Documentation"), true);

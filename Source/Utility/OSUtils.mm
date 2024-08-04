@@ -609,15 +609,6 @@ void OSUtils::MTLDeleteView(void* view)
     [viewToRemove release];
 }
 
-
-juce::File OSUtils::getSharedAppFolder() // Currently not used, but might be useful later
-{
-    NSFileManager* fm = [NSFileManager defaultManager];
-    NSURL *containerURL = [fm containerURLForSecurityApplicationGroupIdentifier:@"group.com.plugdata.plugdata"];
-    juce::String tmp = ([containerURL.relativeString UTF8String]);
-    return juce::File(tmp.substring(6));
-}
-
 #endif
 
 
