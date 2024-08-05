@@ -866,6 +866,8 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
         offsetPath.applyTransform(translation);
         setPath(offsetPath);
 
+        updateReconnectHandle();
+
         clipRegion.transformAll(translation);
 
         return;
@@ -1036,6 +1038,12 @@ int Connection::getNumSignalChannels()
     return 0;
 }
 
+void Connection::updateReconnectHandle()
+{
+    startReconnectHandle = Rectangle<float>(5, 5).withCentre(path.getPointAlongPath(8.5f));
+    endReconnectHandle = Rectangle<float>(5, 5).withCentre(path.getPointAlongPath(jmax(pathLength - 8.5f, 9.5f)));
+}
+
 void Connection::updatePath()
 {
     if (!outlet || !inlet)
@@ -1092,8 +1100,7 @@ void Connection::updatePath()
         clipRegion.add(bounds.expanded(3));
     }
 
-    startReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(8.5f));
-    endReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(jmax(pathLength - 8.5f, 9.5f)));
+    updateReconnectHandle();
 
     clipRegion.add(startReconnectHandle.toNearestIntEdges().expanded(4));
     clipRegion.add(endReconnectHandle.toNearestIntEdges().expanded(4));
