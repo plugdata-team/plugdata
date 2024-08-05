@@ -121,8 +121,6 @@ private:
     int currentLatency = 0;
     float currentZoomLevel = 100.f;
 
-    Value showDirection;
-
     std::unique_ptr<ButtonParameterAttachment> enableAttachment;
     std::unique_ptr<SliderParameterAttachment> volumeAttachment;
 

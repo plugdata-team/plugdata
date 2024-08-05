@@ -296,7 +296,7 @@ void PluginProcessor::initialiseFilesystem()
 
     auto shortcut = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata.LNK");
     ProjectInfo::appDataDir.createShortcut("plugdata", shortcut);
-
+/*
 #elif JUCE_IOS
     versionDataDir.getChildFile("Abstractions").createSymbolicLink(homeDir.getChildFile("Abstractions"), true);
     versionDataDir.getChildFile("Documentation").createSymbolicLink(homeDir.getChildFile("Documentation"), true);
@@ -309,7 +309,7 @@ void PluginProcessor::initialiseFilesystem()
     if(!patches.isSymbolicLink()) {
         patches.deleteRecursively();
         docsPatchesDir.createSymbolicLink(patches, true);
-    }
+    } */
 #else
     versionDataDir.getChildFile("Abstractions").createSymbolicLink(homeDir.getChildFile("Abstractions"), true);
     versionDataDir.getChildFile("Documentation").createSymbolicLink(homeDir.getChildFile("Documentation"), true);

@@ -2360,7 +2360,6 @@ void Canvas::valueChanged(Value& v)
 
         hideNameAndArgs = hideText;
     } else if (v.refersToSameSourceAs(isGraphChild)) {
-
         if (!patch.getPointer())
             return;
 
