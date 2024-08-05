@@ -54,6 +54,8 @@ public:
 
     void updatePath();
 
+    void updateReconnectHandle();
+
     void forceUpdate(bool updateCacheOnly = false);
 
     void lookAndFeelChanged() override;
