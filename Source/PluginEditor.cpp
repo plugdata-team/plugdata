@@ -350,7 +350,7 @@ void PluginEditor::paintOverChildren(Graphics& g)
     // Never want to be drawing over a dialog window
     if (openedDialog)
         return;
-
+    
     if (isDraggingFile) {
         g.setColour(findColour(PlugDataColour::dataColourId));
         g.drawRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius, 2.0f);
@@ -366,6 +366,12 @@ void PluginEditor::paintOverChildren(Graphics& g)
         auto toolbarDepth = welcomePanelVisible ? toolbarHeight + 6 : toolbarHeight;
         g.drawLine(palettes->isExpanded() ? palettes->getRight() : 29.5f, toolbarDepth, palettes->isExpanded() ? palettes->getRight() : 29.5f, toolbarDepth + 30);
         g.drawLine(sidebar->getX() + 0.5f, toolbarDepth, sidebar->getX() + 0.5f, toolbarHeight + 30);
+    }
+    
+    if(pluginMode)
+    {
+        g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
+        g.fillRect(getLocalBounds().withTrimmedTop(40));
     }
 }
 
