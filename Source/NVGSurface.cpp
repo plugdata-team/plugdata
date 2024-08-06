@@ -18,7 +18,6 @@ using namespace juce::gl;
 
 #include "PluginEditor.h"
 #include "PluginProcessor.h"
-#include "Components/WelcomePanel.h"
 
 #define ENABLE_FPS_COUNT 0
 

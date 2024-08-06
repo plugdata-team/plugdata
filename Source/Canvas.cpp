@@ -190,7 +190,7 @@ Canvas::~Canvas()
 bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, int maxUpdateTimeMs)
 {
     auto pixelScale = getRenderScale();
-    auto zoom = isScrolling ? 2.0f : getValue<float>(zoomScale);
+    auto zoom = getValue<float>(zoomScale);
 
     int const logicalIoletsSize = 16 * 4;
     int const ioletBufferSize = logicalIoletsSize * pixelScale * zoom;

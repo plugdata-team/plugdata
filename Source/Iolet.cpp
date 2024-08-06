@@ -81,17 +81,15 @@ void Iolet::render(NVGcontext* nvg)
     int type = isSignal + (isGemState * 2);
     if (isLocked)
         type = 3;
-
-    NVGScopedState scopedState(nvg);
-
+    
     if (isLocked || !(overObject || isHovering) || (getValue<bool>(patchDownwardsOnly) && isInlet)) {
-        auto clipBounds = getLocalArea(object, object->getLocalBounds().toFloat().reduced(Object::margin));
+        auto clipBounds = object->getLocalBounds().reduced(Object::margin) - getPosition();
         nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
     }
 
     auto scale = getWidth() / 13.0f;
     auto offset = isInlet ? 0.5f : 0.0f;
-    nvgScale(nvg, scale, scale); // If the iolet is shrunk because there is little space, we scale it down
+    if(scale != 1.0f) nvgScale(nvg, scale, scale); // If the iolet is shrunk because there is little space, we scale it down
     nvgFillPaint(nvg, nvgImagePattern(nvg, isHovering * -16 - 1.5f, type * -16 - offset, 16 * 4, 16 * 4, 0, fb.getImage(), 1));
 
     nvgFillRect(nvg, 0, 0, 13, 13);
