@@ -79,6 +79,8 @@ Canvas* TabComponent::openPatch(String const& patchContent)
 
 Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch)
 {
+    if(!existingPatch) return nullptr;
+    
     // Check if subpatch is already opened
     for (auto* cnv : canvases) {
         if (cnv->patch == *existingPatch) {
