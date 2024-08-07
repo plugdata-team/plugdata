@@ -212,9 +212,9 @@ void Connection::render(NVGcontext* nvg)
 
     if (!cachedIsValid)
         nvgDeletePath(nvg, cacheId);
-    if (nvgLoadPath(nvg, cacheId)) {
-        nvgStroke(nvg);
-    } else {
+    
+    bool cacheHit = nvgStrokeCachedPath(nvg, cacheId);
+    if (!cacheHit) {
         auto pathFromOrigin = getPath();
         pathFromOrigin.applyTransform(AffineTransform::translation(-getX(), -getY()));
 
@@ -222,7 +222,7 @@ void Connection::render(NVGcontext* nvg)
         nvgStroke(nvg);
         cacheId = nvgSavePath(nvg, cacheId);
     }
-
+    
     nvgRestore(nvg);
     cachedIsValid = true;
 
@@ -794,6 +794,14 @@ int Connection::getClosestLineIdx(Point<float> const& position, PathPlan const& 
     }
 
     return -1;
+}
+
+void Connection::pathChanged()
+{
+    strokePath.clear();
+    strokeType.createStrokedPath (strokePath, path, AffineTransform(), 1.0f);
+    setBoundsToEnclose (getDrawableBounds());
+    repaint();
 }
 
 void Connection::reconnect(Iolet* target)

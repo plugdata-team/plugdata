@@ -119,17 +119,11 @@ private:
     int getNumberOfConnections();
 
     void setSelected(bool shouldBeSelected);
+        
+    void pathChanged() override;
 
     Array<SafePointer<Connection>> reconnecting;
     Rectangle<float> startReconnectHandle, endReconnectHandle;
-
-    bool selectedFlag = false;
-    bool segmented = false;
-    bool isHovering = false;
-    bool isInStartReconnectHandle = false;
-    bool isInEndReconnectHandle = false;
-
-    PlugDataLook::ConnectionStyle connectionStyle = PlugDataLook::ConnectionStyleDefault;
 
     PathPlan currentPlan;
 
@@ -163,8 +157,6 @@ private:
     float mouseDownPosition = 0;
 
     int cacheId = -1;
-    bool cachedIsValid = false;
-
     pd::WeakReference ptr;
 
     pd::Atom lastValue[8];
@@ -174,6 +166,15 @@ private:
     float offset = 0.0f;
     float pathLength = 0.0f;
 
+    PlugDataLook::ConnectionStyle connectionStyle = PlugDataLook::ConnectionStyleDefault;
+    bool selectedFlag:1 = false;
+    bool segmented:1 = false;
+    bool isHovering:1 = false;
+    bool isInStartReconnectHandle:1 = false;
+    bool isInEndReconnectHandle:1 = false;
+    bool cachedIsValid:1 = false;
+    
+        
     friend class ConnectionPathUpdater;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
