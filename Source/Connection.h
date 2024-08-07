@@ -122,6 +122,8 @@ private:
         
     void pathChanged() override;
 
+    const float getPathWidth();
+
     Array<SafePointer<Connection>> reconnecting;
     Rectangle<float> startReconnectHandle, endReconnectHandle;
 
