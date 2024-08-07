@@ -178,12 +178,7 @@ void Connection::render(NVGcontext* nvg)
         dashColor.b *= 0.4f;
     }
 
-    float cableThickness;
-    switch (connectionStyle){
-        case PlugDataLook::ConnectionStyleVanilla:  cableThickness = cableType == SignalCable ? 4.5f : 2.5f;    break;
-        case PlugDataLook::ConnectionStyleThin:     cableThickness = 3.0f;                                      break;
-        default:                                    cableThickness = 4.5f;                                      break;
-    }
+    float cableThickness = getPathWidth();
 
     // Draw a fake path dot if the path is less than 1pt in length.
     // Paths don't draw currently if they have length of zero points
@@ -804,6 +799,20 @@ void Connection::pathChanged()
     repaint();
 }
 
+float const Connection::getPathWidth() {
+    switch (connectionStyle) {
+        case PlugDataLook::ConnectionStyleVanilla:
+            return (cableType == SignalCable) ? 4.5f : 2.5f;
+            break;
+        case PlugDataLook::ConnectionStyleThin:
+            return 3.0f;
+            break;
+        default:
+            return 4.5f;
+            break;
+    }
+}
+
 void Connection::reconnect(Iolet* target)
 {
     if (!reconnecting.isEmpty() || !target)
@@ -1089,7 +1098,9 @@ void Connection::updatePath()
             connectionPath.lineTo(currentPlan[n].toFloat());
         }
         connectionPath.lineTo(pend);
-        toDraw = connectionPath.createPathWithRoundedCorners(PlugDataLook::getUseStraightConnections() ? 0.0f : 8.0f);
+        // If theme is straight connections, make the rounded as small as the path width
+        // Otherwise the path generation will draw the path on-top of the curve (as path flattening happens from centre out)
+        toDraw = connectionPath.createPathWithRoundedCorners(PlugDataLook::getUseStraightConnections() ? getPathWidth() : 8.0f);
     }
     
     if(getPath() == toDraw) {
