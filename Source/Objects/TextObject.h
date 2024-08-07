@@ -254,13 +254,7 @@ public:
         if (editor && editor->isVisible()) {
             imageRenderer.renderJUCEComponent(nvg, *editor, getImageScale());
         } else {
-            auto text = getText();
-
-            auto textArea = border.subtractedFrom(b);
-
-            // we could render at the actual scale, but that makes the transition to scolling/zooming pretty rough
-            // Instead, rendering at 2x scale gives us pretty good sharpness overall
-            cachedTextRender.renderText(nvg, textArea, getImageScale());
+            cachedTextRender.renderText(nvg, border.subtractedFrom(b), getImageScale());
         }
     }
 

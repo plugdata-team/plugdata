@@ -49,7 +49,7 @@ Iolet::Iolet(Object* parent, bool inlet)
     cnv = findParentComponentOfClass<Canvas>();
 
     // replicate behaviour of PD-Vanilla downwards only patching - optional
-    patchDownwardsOnly.referTo(SettingsFile::getInstance()->getPropertyAsValue("patch_downwards_only"));
+    patchDownwardsOnly.referTo(SettingsFile::getInstance()->getValueTree(), "patch_downwards_only", nullptr);
 }
 
 Rectangle<int> Iolet::getCanvasBounds()
@@ -82,7 +82,7 @@ void Iolet::render(NVGcontext* nvg)
     if (isLocked)
         type = 3;
     
-    if (isLocked || !(overObject || isHovering) || (getValue<bool>(patchDownwardsOnly) && isInlet)) {
+    if (isLocked || !(overObject || isHovering) || (patchDownwardsOnly.get() && isInlet)) {
         auto clipBounds = object->getLocalBounds().reduced(Object::margin) - getPosition();
         nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
     }
@@ -101,7 +101,7 @@ bool Iolet::hitTest(int x, int y)
     if ((getValue<bool>(locked) || getValue<bool>(commandLocked)))
         return false;
 
-    if (getValue<bool>(patchDownwardsOnly) && isInlet && !cnv->connectingWithDrag)
+    if (patchDownwardsOnly.get() && isInlet && !cnv->connectingWithDrag)
         return false;
 
     Path smallBounds;
@@ -125,7 +125,7 @@ bool Iolet::hitTest(int x, int y)
 void Iolet::mouseDrag(MouseEvent const& e)
 {
     // Ignore when locked or if middlemouseclick?
-    if (getValue<bool>(locked) || e.mods.isMiddleButtonDown() || (getValue<bool>(patchDownwardsOnly) && isInlet))
+    if (getValue<bool>(locked) || e.mods.isMiddleButtonDown() || (patchDownwardsOnly.get() && isInlet))
         return;
 
     if (!cnv->connectionCancelled && cnv->connectionsBeingCreated.isEmpty() && e.getLengthOfMousePress() > 100) {

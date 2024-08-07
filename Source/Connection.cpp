@@ -177,10 +177,6 @@ void Connection::render(NVGcontext* nvg)
         dashColor.g *= 0.4f;
         dashColor.b *= 0.4f;
     }
-    float dashSize = isSignalCable ? (numSignalChannels <= 1) ? 2.5f : 1.5f : 0.0f;
-    auto useGradientLook = PlugDataLook::getUseGradientConnectionLook() && !(isSelected() || isHovering);
-    auto showActivity = cableType == DataCable && cnv->shouldShowConnectionActivity();
-    nvgStrokePaint(nvg, nvgDoubleStroke(nvg, connectionColour, shadowColour, dashColor, dashSize, useGradientLook, showActivity, offset));
 
     float cableThickness;
     switch (connectionStyle){
@@ -208,6 +204,10 @@ void Connection::render(NVGcontext* nvg)
         return;
     }
 
+    float dashSize = isSignalCable ? (numSignalChannels <= 1) ? 2.5f : 1.5f : 0.0f;
+    auto useGradientLook = PlugDataLook::getUseGradientConnectionLook() && !(isSelected() || isHovering);
+    auto showActivity = cableType == DataCable && cnv->shouldShowConnectionActivity();
+    nvgStrokePaint(nvg, nvgDoubleStroke(nvg, connectionColour, shadowColour, dashColor, dashSize, useGradientLook, showActivity, offset));
     nvgStrokeWidth(nvg, cableThickness);
 
     if (!cachedIsValid)

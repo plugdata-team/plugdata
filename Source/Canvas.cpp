@@ -624,7 +624,6 @@ void Canvas::renderAllObjects(NVGcontext* nvg, Rectangle<int> area)
 {
     for (auto* obj : objects) {
         auto b = obj->getBounds();
-
         {
             NVGScopedState scopedState(nvg);
             nvgTranslate(nvg, b.getX(), b.getY());
@@ -651,7 +650,7 @@ void Canvas::renderAllConnections(NVGcontext* nvg, Rectangle<int> area)
 
     for (auto* connection : connections) {
         NVGScopedState scopedState(nvg);
-        if ((isScrolling || connection->intersectsRectangle(area)) && connection->isVisible()) {
+        if (connection->intersectsRectangle(area) && connection->isVisible()) {
             if (connection->isMouseHovering())
                 hovered = connection;
             else if (!connection->isSelected())

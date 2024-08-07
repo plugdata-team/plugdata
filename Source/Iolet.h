@@ -55,7 +55,7 @@ private:
     bool const insideGraph;
     bool isSymbolIolet = false;
 
-    Value patchDownwardsOnly;
+    CachedValue<bool> patchDownwardsOnly;
 
     Value locked;
     Value commandLocked;
