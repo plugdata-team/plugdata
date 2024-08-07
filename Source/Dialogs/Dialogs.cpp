@@ -550,7 +550,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     bool canBeOpened = object && object->gui && object->gui->canOpenFromMenu();
 
     enum MenuOptions {
-        Extra = 1,
+        Extra = 200,
         Open,
         Help,
         Reference,
