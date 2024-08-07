@@ -486,6 +486,9 @@ void PluginEditor::resized()
     auto startX = (getWidth() / 2.0f) - (toolbarHeight * 1.5);
 
 #if JUCE_IOS
+    auto touchHelperBounds = getLocalBounds().removeFromBottom(48).withSizeKeepingCentre(192, 48).translated(0, -54);
+    if(touchSelectionHelper) touchSelectionHelper->setBounds(touchHelperBounds);
+    
     if(OSUtils::isIPad())
     {
         startX += 80.0f; // Otherwise it gets in the way of multitasking controls
@@ -769,8 +772,16 @@ void PluginEditor::handleAsyncUpdate()
 
         statusbar->setHasActiveCanvas(true);
         addObjectMenuButton.setEnabled(true);
+#if JUCE_IOS
+        if(!locked)
+        {
+            touchSelectionHelper->show();
+        }
+        else {
+            touchSelectionHelper->setVisible(false);
+        }
+#endif
     } else {
-
         pluginModeButton.setEnabled(false);
 
         editButton.setEnabled(false);
@@ -782,7 +793,13 @@ void PluginEditor::handleAsyncUpdate()
         undoButton.setEnabled(false);
         redoButton.setEnabled(false);
         addObjectMenuButton.setEnabled(false);
+#if JUCE_IOS
+        touchSelectionHelper->setVisible(false);
+#endif
     }
+#if JUCE_IOS
+    nvgSurface.invalidateAll(); // Make sure touch selection helper is repainted
+#endif
 }
 
 void PluginEditor::updateCommandStatus()
@@ -1583,15 +1600,6 @@ void PluginEditor::quit(bool askToSave)
     } else {
         nvgSurface.detachContext();
         JUCEApplication::quit();
-    }
-}
-
-void PluginEditor::showTouchSelectionHelper(bool shouldBeShown)
-{
-    touchSelectionHelper->show();
-    if (shouldBeShown) {
-        auto touchHelperBounds = getLocalBounds().removeFromBottom(48).withSizeKeepingCentre(192, 48).translated(0, -54);
-        touchSelectionHelper->setBounds(touchHelperBounds);
     }
 }
 

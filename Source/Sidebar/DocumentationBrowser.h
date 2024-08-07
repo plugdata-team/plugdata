@@ -131,8 +131,9 @@ private:
     {
         static File versionDataDir = ProjectInfo::appDataDir.getChildFile("Versions");
         static File toolchainDir = ProjectInfo::appDataDir.getChildFile("Toolchain");
-
-        if (threadShouldExit() || directory == versionDataDir || directory == toolchainDir) {
+        static File libraryDir = ProjectInfo::appDataDir.getChildFile("Library");
+        
+        if (threadShouldExit() || directory == versionDataDir || directory == toolchainDir || directory == libraryDir) {
             return {};
         }
 
@@ -162,6 +163,7 @@ private:
             if (file.getFileName().startsWith("."))
                 continue;
 
+            
             ValueTree childNode(fileIdentifier);
             childNode.setProperty(nameIdentifier, file.getFileName(), nullptr);
             childNode.setProperty(pathIdentifier, file.getFullPathName(), nullptr);

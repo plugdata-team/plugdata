@@ -1347,11 +1347,7 @@ void Canvas::mouseUp(MouseEvent const& e)
 }
 
 void Canvas::updateSidebarSelection()
-{ 
-#if JUCE_IOS
-    editor->showTouchSelectionHelper(selectedComponents.getNumSelected());
-#endif
-
+{
     auto lassoSelection = getSelectionOfType<Object>();
 
     if (lassoSelection.size() > 0) {
@@ -1760,7 +1756,6 @@ void Canvas::removeSelection()
     patch.startUndoSequence("Remove object/s");
     // Make sure object isn't selected and stop updating gui
     editor->sidebar->hideParameters();
-    editor->showTouchSelectionHelper(false);
 
     // Find selected objects and make them selected in pd
     std::vector<t_gobj*> objects;
