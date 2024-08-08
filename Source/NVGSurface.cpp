@@ -354,7 +354,6 @@ void NVGSurface::render()
     }
 
     if (needsBufferSwap) {
-        float pixelScale = getRenderScale();
         nvgViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
 
         nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);

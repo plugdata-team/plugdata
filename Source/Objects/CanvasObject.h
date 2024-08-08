@@ -123,7 +123,7 @@ public:
     {
         if (hitArea.contains(x - Object::margin, y - Object::margin)) {
             return true;
-        };
+        }
         
         return false;
     }

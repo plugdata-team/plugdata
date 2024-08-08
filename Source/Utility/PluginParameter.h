@@ -40,12 +40,6 @@ public:
         return (static_cast<int>((range.end - range.start) / 0.000001f) + 1);
     }
 
-    void setInterval(float interval)
-    {
-        ScopedLock lock(rangeLock);
-        normalisableRange.interval = interval;
-    }
-
     void setRange(float min, float max)
     {
         ScopedLock lock(rangeLock);
@@ -330,7 +324,6 @@ private:
     std::atomic<int> index;
     std::atomic<float> value;
     std::atomic<bool> enabled = false;
-    std::atomic<bool> needsHostUpdate = false;
 
     CriticalSection nameLock;
     String parameterName;

@@ -77,8 +77,6 @@ public:
     void mouseUp(MouseEvent const& e) override;
     bool hitTest(int x, int y) override;
 
-    Point<int> getLastMousePosition();
-
     void commandKeyChanged(bool isHeld) override;
     void shiftKeyChanged(bool isHeld) override;
     void middleMouseChanged(bool isHeld) override;

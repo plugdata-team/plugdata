@@ -34,8 +34,6 @@ private:
     
     static Array<Rectangle<int>> getObjectBoundsForPatch(String const& patch);
     static bool parseGraphSize(String const& objectText, Rectangle<int>& bounds);
-    
-    static String stripConnections(String const& patch);
 
     static ImageWithOffset patchToTempImage(String const& patch, float scale);
     

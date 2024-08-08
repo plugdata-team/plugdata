@@ -387,11 +387,6 @@ public:
         return subpatch;
     }
 
-    Canvas* getCanvas() override
-    {
-        return canvas.get();
-    }
-
     void valueChanged(Value& v) override
     {
 

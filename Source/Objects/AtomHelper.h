@@ -35,9 +35,9 @@ class AtomHelper {
 
 public:
     Value labelColour = SynchronousValue();
-    Value labelPosition = SynchronousValue(0.0f);
     Value fontSize = SynchronousValue(5.0f);
     Value labelText = SynchronousValue();
+    Value labelPosition = SynchronousValue(0.0f);
     Value sendSymbol = SynchronousValue();
     Value receiveSymbol = SynchronousValue();
 
@@ -104,7 +104,6 @@ public:
         if (auto atom = ptr.get<t_fake_gatom>()) {
             labelPosition = static_cast<int>(atom->a_wherelabel + 1);
         }
-
         int h = getFontHeight();
 
         int idx = static_cast<int>(std::find(atomSizes, atomSizes + 7, h) - atomSizes);

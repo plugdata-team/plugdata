@@ -480,7 +480,7 @@ void TabComponent::closeEmptySplits()
 
 void TabComponent::showTab(Canvas* cnv, int splitIndex)
 {
-    if (cnv == splits[splitIndex] && cnv->getParentComponent()) {
+    if (cnv == splits[splitIndex] && cnv && cnv->getParentComponent()) {
         return;
     }
 

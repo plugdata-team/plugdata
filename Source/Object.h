@@ -29,7 +29,6 @@ class ObjectBase;
 class Iolet;
 class Canvas;
 class Connection;
-class ObjectBoundsConstrainer;
 
 class Object : public Component
     , public Value::Listener
@@ -176,7 +175,6 @@ private:
 
     std::unique_ptr<TextEditor> newObjectEditor;
 
-    friend class InvalidationListener;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Object)
     JUCE_DECLARE_WEAK_REFERENCEABLE(Object)
 };

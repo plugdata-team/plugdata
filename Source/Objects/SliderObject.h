@@ -228,7 +228,7 @@ public:
             isVertical = obj->x_orientation;
             auto min = obj->x_min;
             auto max = obj->x_max;
-            slider.setRangeFlipped(approximatelyEqual(min, max) ? false : min > max);
+            slider.setRangeFlipped(!approximatelyEqual(min, max) && min > max);
             sizeProperty = Array<var> { var(obj->x_gui.x_w), var(obj->x_gui.x_h) };
         }
 
@@ -437,7 +437,7 @@ public:
             slider->x_min = minValue;
             max = slider->x_max;
         }
-        slider.setRangeFlipped(approximatelyEqual(minValue, max) ? false : minValue > max);
+        slider.setRangeFlipped(!approximatelyEqual(minValue, max) && minValue > max);
     }
 
     void setMaximum(float maxValue)

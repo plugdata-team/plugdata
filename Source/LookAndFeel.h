@@ -175,7 +175,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     static inline bool useSquareIolets;
     static inline bool useIoletSpacingEdge;
-    static inline bool lastIoletSpacingValue;
     static inline bool useGradientConnectionLook;
 
     static bool getUseIoletSpacingEdge();

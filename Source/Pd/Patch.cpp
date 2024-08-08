@@ -307,7 +307,7 @@ t_gobj* Patch::createObject(int x, int y, String const& name)
 
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        EDITOR->canvas_undo_already_set_move = 1;
+        pd::Interface::getInstanceEditor()->canvas_undo_already_set_move = 1;
         return pd::Interface::createObject(patch.get(), typesymbol, argc, argv.data());
     }
 
@@ -572,7 +572,7 @@ void Patch::undo()
         glist_noselect(x);
 
         pd::Interface::undo(patch.get());
-        EDITOR->canvas_undo_already_set_move = 1;
+        pd::Interface::getInstanceEditor()->canvas_undo_already_set_move = 1;
 
         updateUndoRedoString();
     }
@@ -586,7 +586,7 @@ void Patch::redo()
         glist_noselect(x);
 
         pd::Interface::redo(patch.get());
-        EDITOR->canvas_undo_already_set_move = 1;
+        pd::Interface::getInstanceEditor()->canvas_undo_already_set_move = 1;
 
         updateUndoRedoString();
     }

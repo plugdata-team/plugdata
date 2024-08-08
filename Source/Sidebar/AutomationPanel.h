@@ -333,6 +333,7 @@ public:
         }
     }
 
+    // TOOD: hides non-virtual function!
     bool isEnabled() const
     {
         return param->isEnabled();

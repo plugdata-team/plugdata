@@ -118,7 +118,6 @@ private:
 
     std::unique_ptr<ZoomLabel> zoomLabel;
 
-    int currentLatency = 0;
     float currentZoomLevel = 100.f;
 
     std::unique_ptr<ButtonParameterAttachment> enableAttachment;

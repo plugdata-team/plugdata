@@ -702,11 +702,6 @@ String ObjectBase::getBinbufSymbol(int argIndex)
     return {};
 }
 
-Canvas* ObjectBase::getCanvas()
-{
-    return nullptr;
-}
-
 pd::Patch::Ptr ObjectBase::getPatch()
 {
     return nullptr;

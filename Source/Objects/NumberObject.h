@@ -37,10 +37,7 @@ public:
 
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
             editor->setBorder({ 0, 8, 4, 1 });
-
-            if (editor != nullptr) {
-                editor->setInputRestrictions(0, "e.-0123456789");
-            }
+            editor->setInputRestrictions(0, "e.-0123456789");
         };
 
         input.setFont(Fonts::getTabularNumbersFont().withHeight(15.5f));

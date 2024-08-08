@@ -133,7 +133,6 @@ public:
 
     void commandKeyChanged(bool isHeld) override;
     void setUseBorderResizer(bool shouldUse);
-    void showTouchSelectionHelper(bool shouldBeShown);
 
     bool highlightSearchTarget(void* target, bool openNewTabIfNeeded);
 

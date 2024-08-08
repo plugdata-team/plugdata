@@ -709,28 +709,17 @@ t_symbol* Instance::generateSymbol(String const& symbol) const
 
 void Instance::logMessage(String const& message)
 {
-    if (consoleMute)
-        return;
     consoleHandler.logMessage(nullptr, message);
 }
 
 void Instance::logError(String const& error)
 {
-    if (consoleMute)
-        return;
     consoleHandler.logError(nullptr, error);
 }
 
 void Instance::logWarning(String const& warning)
 {
-    if (consoleMute)
-        return;
     consoleHandler.logWarning(nullptr, warning);
-}
-
-void Instance::muteConsole(bool shouldMute)
-{
-    consoleMute = shouldMute;
 }
 
 std::deque<std::tuple<void*, String, int, int, int>>& Instance::getConsoleMessages()

@@ -14,27 +14,6 @@ extern "C" {
 #include <s_stuff.h>
 #include <z_libpd.h>
 
-struct _instanceeditor {
-    t_binbuf* copy_binbuf;
-    char* canvas_textcopybuf;
-    int canvas_textcopybufsize;
-    t_undofn canvas_undo_fn;      /* current undo function if any */
-    int canvas_undo_whatnext;     /* whether we can now UNDO or REDO */
-    void* canvas_undo_buf;        /* data private to the undo function */
-    t_canvas* canvas_undo_canvas; /* which canvas we can undo on */
-    char const* canvas_undo_name;
-    int canvas_undo_already_set_move;
-    double canvas_upclicktime;
-    int canvas_upx, canvas_upy;
-    int canvas_find_index, canvas_find_wholeword;
-    t_binbuf* canvas_findbuf;
-    int paste_onset;
-    t_canvas* paste_canvas;
-    t_glist* canvas_last_glist;
-    int canvas_last_glist_x, canvas_last_glist_y;
-    t_canvas* canvas_cursorcanvaswas;
-    unsigned int canvas_cursorwas;
-};
 
 extern int glist_getindex(t_glist* cnv, t_gobj* y);
 extern void canvas_savedeclarationsto(t_canvas* x, t_binbuf* b);
@@ -65,6 +44,33 @@ struct Interface {
         return class_getname(pd_class(ptr));
     }
 
+    static auto* getInstanceEditor()
+    {
+        struct _instanceeditor {
+            t_binbuf* copy_binbuf;
+            char* canvas_textcopybuf;
+            int canvas_textcopybufsize;
+            t_undofn canvas_undo_fn;      /* current undo function if any */
+            int canvas_undo_whatnext;     /* whether we can now UNDO or REDO */
+            void* canvas_undo_buf;        /* data private to the undo function */
+            t_canvas* canvas_undo_canvas; /* which canvas we can undo on */
+            char const* canvas_undo_name;
+            int canvas_undo_already_set_move;
+            double canvas_upclicktime;
+            int canvas_upx, canvas_upy;
+            int canvas_find_index, canvas_find_wholeword;
+            t_binbuf* canvas_findbuf;
+            int paste_onset;
+            t_canvas* paste_canvas;
+            t_glist* canvas_last_glist;
+            int canvas_last_glist_x, canvas_last_glist_y;
+            t_canvas* canvas_cursorcanvaswas;
+            unsigned int canvas_cursorwas;
+        };
+        
+        return reinterpret_cast<_instanceeditor*>(libpd_this_instance()->pd_gui->i_editor);
+    }
+    
     static void getObjectText(t_object* ptr, char** text, int* size)
     {
         *text = nullptr;
@@ -118,9 +124,10 @@ struct Interface {
             glist_select(cnv, obj);
         }
 
-        if (!EDITOR->canvas_undo_already_set_move) {
+        auto* instanceEditor = getInstanceEditor();
+        if (!instanceEditor->canvas_undo_already_set_move) {
             canvas_undo_add(cnv, UNDO_MOTION, "motion", canvas_undo_set_move(cnv, 1));
-            EDITOR->canvas_undo_already_set_move = 1;
+            instanceEditor->canvas_undo_already_set_move = 1;
         }
 
         int resortin = 0, resortout = 0;
@@ -143,7 +150,7 @@ struct Interface {
 
         glist_noselect(cnv);
 
-        EDITOR->canvas_undo_already_set_move = 0;
+        instanceEditor->canvas_undo_already_set_move = 0;
     }
 
     static t_gobj* getNewest(t_canvas* cnv)
@@ -214,7 +221,7 @@ struct Interface {
 
         char* text;
         int len;
-        binbuf_gettext(libpd_this_instance()->pd_gui->i_editor->copy_binbuf, &text, &len);
+        binbuf_gettext(getInstanceEditor()->copy_binbuf, &text, &len);
         *size = len;
 
         glist_noselect(cnv);
@@ -291,8 +298,8 @@ struct Interface {
     
     static void swapConnections(t_canvas* cnv, t_outconnect* clicked, t_outconnect* selected)
     {
-        int in1, in1_idx, in2, in2_idx;
-        int out1, out1_idx, out2, out2_idx;
+        int in1 = -1, in1_idx, in2 = -1, in2_idx;
+        int out1 = -1, out1_idx, out2 = -1, out2_idx;
         
         t_linetraverser t;
         linetraverser_start(&t, cnv);
@@ -331,12 +338,14 @@ struct Interface {
                 index1, outno, index2, inno, gensym("empty")));
         };
         
-        canvas_undo_add(cnv, UNDO_SEQUENCE_START, "reconnect", 0);
-        disconnectWithUndo(cnv, out2, out2_idx, in2, in2_idx, gensym("empty"));
-        disconnectWithUndo(cnv, out1, out1_idx, in1,  in1_idx, gensym("empty"));
-        connectWithUndo(cnv, out1, out1_idx, in2, in2_idx);
-        connectWithUndo(cnv, out2, out2_idx, in1, in1_idx);
-        canvas_undo_add(cnv, UNDO_SEQUENCE_END, "reconnect", 0);
+        if(out1 != -1 && out2 != -1 && in1 != -1 && in2 != -1) {
+            canvas_undo_add(cnv, UNDO_SEQUENCE_START, "reconnect", 0);
+            disconnectWithUndo(cnv, out2, out2_idx, in2, in2_idx, gensym("empty"));
+            disconnectWithUndo(cnv, out1, out1_idx, in1,  in1_idx, gensym("empty"));
+            connectWithUndo(cnv, out1, out1_idx, in2, in2_idx);
+            connectWithUndo(cnv, out2, out2_idx, in1, in1_idx);
+            canvas_undo_add(cnv, UNDO_SEQUENCE_END, "reconnect", 0);
+        }
         
         glist_noselect(cnv);
     }
@@ -365,7 +374,7 @@ struct Interface {
     {
         size_t len = strlen(buf);
 
-        binbuf_text(libpd_this_instance()->pd_gui->i_editor->copy_binbuf, buf, len);
+        binbuf_text(getInstanceEditor()->copy_binbuf, buf, len);
 
         canvas_setcurrent(cnv);
         pd_typedmess((t_pd*)cnv, gensym("paste"), 0, nullptr);
@@ -630,19 +639,20 @@ struct Interface {
 
     static void moveObject(t_canvas* cnv, t_gobj* obj, int x, int y)
     {
-        if (!EDITOR->canvas_undo_already_set_move) {
+        auto* instanceEditor = getInstanceEditor();
+        if (!instanceEditor->canvas_undo_already_set_move) {
             canvas_undo_add(cnv, UNDO_MOTION, "motion", canvas_undo_set_move(cnv, 0));
-            EDITOR->canvas_undo_already_set_move = 1;
+            instanceEditor->canvas_undo_already_set_move = 1;
         }
 
-        if (obj->g_pd->c_wb && obj->g_pd->c_wb->w_getrectfn && obj->g_pd->c_wb && obj->g_pd->c_wb->w_displacefn) {
+        if (obj->g_pd->c_wb && obj->g_pd->c_wb->w_getrectfn && obj->g_pd->c_wb->w_displacefn) {
             int x1, y1, x2, y2;
 
             (*obj->g_pd->c_wb->w_getrectfn)(obj, cnv, &x1, &y1, &x2, &y2);
             (*obj->g_pd->c_wb->w_displacefn)(obj, cnv, x - x1, y - y1);
         }
 
-        EDITOR->canvas_undo_already_set_move = 0;
+        instanceEditor->canvas_undo_already_set_move = 0;
     }
 
     static bool canConnect(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin)

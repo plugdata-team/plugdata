@@ -365,25 +365,6 @@ bool OfflineObjectRenderer::checkIfPatchIsValid(String const& patch)
     return true;
 }
 
-// Remove all connections from the PD patch, so that it can't activate loadbangs etc
-String OfflineObjectRenderer::stripConnections(String const& patch)
-{
-    StringArray lines;
-    lines.addTokens(patch, "\n", StringRef());
-    for (int i = lines.size() - 1; i >= 0; --i) {
-        if (lines[i].startsWith("#X connect"))
-            lines.remove(i);
-    }
-
-    String strippedPatch;
-
-    for (auto const& line : lines) {
-        strippedPatch += line + "\n";
-    }
-
-    return strippedPatch;
-}
-
 std::pair<std::vector<bool>, std::vector<bool>> OfflineObjectRenderer::countIolets(String const& patch)
 {
     static std::unordered_map<String, std::pair<std::vector<bool>, std::vector<bool>>> patchIoletCache;

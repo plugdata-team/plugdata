@@ -22,7 +22,6 @@ class MessageObject final : public ObjectBase
     NVGcolor selectedOutlineColour;
     Colour selectedColour;
     NVGcolor outlineColour;
-    NVGcolor guiOutlinetColour;
     Colour guiOutlineCol;
     Colour flagCol;
 
@@ -247,7 +246,6 @@ public:
         outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
         flagCol = cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour);
         guiOutlineCol = cnv->editor->getLookAndFeel().findColour(PlugDataColour::outlineColourId);
-        guiOutlinetColour = convertColour(guiOutlineCol);
 
         updateTextLayout();
     }

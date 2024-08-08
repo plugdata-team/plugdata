@@ -255,7 +255,6 @@ public:
     void logMessage(String const& message);
     void logError(String const& message);
     void logWarning(String const& message);
-    void muteConsole(bool shouldMute);
 
     std::deque<std::tuple<void*, String, int, int, int>>& getConsoleMessages();
     std::deque<std::tuple<void*, String, int, int, int>>& getConsoleHistory();

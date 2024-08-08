@@ -1296,11 +1296,6 @@ bool Canvas::autoscroll(MouseEvent const& e)
     return false;
 }
 
-Point<int> Canvas::getLastMousePosition()
-{
-    return { lastMouseX, lastMouseY };
-}
-
 void Canvas::mouseUp(MouseEvent const& e)
 {
     setPanDragMode(false);

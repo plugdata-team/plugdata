@@ -489,8 +489,6 @@ public:
         }
     }
 
-    int parseSystemArguments(String const& arguments);
-
     ~PlugDataWindow() override
     {
         clearContentComponent();

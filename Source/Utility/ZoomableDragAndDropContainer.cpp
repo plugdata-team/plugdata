@@ -233,13 +233,6 @@ public:
         }
     }
 
-    void updateImage(ScaledImage const& newImage)
-    {
-        image = newImage;
-        updateSize();
-        repaint();
-    }
-
     void timerCallback() override
     {
         forceMouseCursorUpdate();
