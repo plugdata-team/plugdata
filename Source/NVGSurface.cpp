@@ -123,7 +123,7 @@ void NVGSurface::initialise()
     setView(view);
     setVisible(true);
 
-    auto renderScale = getRenderScale();
+    auto renderScale = calculateRenderScale();
     
     lastRenderScale = renderScale;
     nvg = nvgCreateContext(view, NVG_ANTIALIAS | NVG_TRIPLE_BUFFER, getWidth() * renderScale, getHeight() * renderScale);
@@ -237,14 +237,18 @@ bool NVGSurface::makeContextActive()
 #endif
 }
 
-float NVGSurface::getRenderScale() const
+float NVGSurface::calculateRenderScale() const
 {
 #ifdef NANOVG_METAL_IMPLEMENTATION
-    auto desktopScale = Desktop::getInstance().getGlobalScaleFactor();
-    return OSUtils::MTLGetPixelScale(getView()) * desktopScale;
+    return OSUtils::MTLGetPixelScale(getView()) * Desktop::getInstance().getGlobalScaleFactor();
 #else
     return glContext->getRenderingScale();
 #endif
+}
+
+float NVGSurface::getRenderScale() const
+{
+    return lastRenderScale;
 }
 
 void NVGSurface::updateBounds(Rectangle<int> bounds)
@@ -302,8 +306,8 @@ void NVGSurface::render()
     
     if (!makeContextActive())
         return;
-
-    auto pixelScale = getRenderScale();
+    
+    auto pixelScale = calculateRenderScale();
 #if NANOVG_METAL_IMPLEMENTATION
     if(lastRenderScale != pixelScale)
     {

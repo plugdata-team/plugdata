@@ -102,6 +102,9 @@ public:
     static NVGSurface* getSurfaceForContext(NVGcontext*);
 
 private:
+    
+    float calculateRenderScale() const;
+    
     void resized() override;
 
     PluginEditor* editor;
