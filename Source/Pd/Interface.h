@@ -881,7 +881,7 @@ private:
         int current_idx = glist_getindex(cnv, obj);
 
         // Find the previous object
-        t_gobj* prev_obj = nullptr;
+        t_gobj* prev_obj;
         int indx = 0;
         for (prev_obj = y_begin; prev_obj; prev_obj = prev_obj->g_next, indx++) {
             if (indx == current_idx - 1) {

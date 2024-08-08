@@ -450,8 +450,10 @@ void ObjectBase::paint(Graphics& g)
 float ObjectBase::getImageScale()
 {
     Canvas* topLevel = cnv;
-    while (auto* nextCnv = topLevel->findParentComponentOfClass<Canvas>()) {
-        topLevel = nextCnv;
+    if(!hideInGraph()) { // No need to do this if we can't be visible in a graph anyway!
+        while (auto* nextCnv = topLevel->findParentComponentOfClass<Canvas>()) {
+            topLevel = nextCnv;
+        }
     }
     return topLevel->isScrolling ? topLevel->getRenderScale() * 2.0f : topLevel->getRenderScale() * std::max(1.0f, getValue<float>(topLevel->zoomScale));
 }

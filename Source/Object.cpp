@@ -1450,7 +1450,7 @@ void Object::textEditorReturnKeyPressed(TextEditor& ed)
 bool Object::keyPressed(KeyPress const& key, Component* component)
 {
     if (auto* editor = newObjectEditor.get()) {
-        if (key.getKeyCode() == KeyPress::returnKey && editor && key.getModifiers().isShiftDown()) {
+        if (key.getKeyCode() == KeyPress::returnKey && key.getModifiers().isShiftDown()) {
             int caretPosition = editor->getCaretPosition();
             auto text = editor->getText();
 

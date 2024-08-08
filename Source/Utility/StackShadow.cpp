@@ -19,6 +19,7 @@ void StackShadow::renderDropShadow(juce::Graphics& g, juce::Path const& path, ju
     dropShadow->setColor(color);
     dropShadow->setOffset(offset);
     dropShadow->setRadius(radius);
+    dropShadow->setSpread(spread);
     dropShadow->render(g, path);
 }
 

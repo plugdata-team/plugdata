@@ -169,7 +169,7 @@ class SuggestionComponent : public Component
         String objectDescription;
 
     public:
-        Suggestion(SuggestionComponent* parentComponent, int i)
+        Suggestion(SuggestionComponent* parentComponent)
             : parent(parentComponent)
         {
             setText("", "", false);
@@ -265,7 +265,7 @@ public:
         buttonholder = std::make_unique<Component>();
 
         for (int i = 0; i < 20; i++) {
-            Suggestion* but = buttons.add(new Suggestion(this, i));
+            Suggestion* but = buttons.add(new Suggestion(this));
             buttonholder->addAndMakeVisible(buttons[i]);
 
             but->setClickingTogglesState(true);

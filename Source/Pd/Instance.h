@@ -158,7 +158,7 @@ class Instance : public AsyncUpdater {
     };
 
 public:
-    explicit Instance(String const& symbol);
+    explicit Instance();
     Instance(Instance const& other) = delete;
     virtual ~Instance();
 

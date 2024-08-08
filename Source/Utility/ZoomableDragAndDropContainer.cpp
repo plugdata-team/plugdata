@@ -98,12 +98,10 @@ public:
             // (note: use a local copy of this in case the callback runs
             // a modal loop and deletes this object before the method completes)
             auto details = sourceDetails;
-            DragAndDropTarget* finalTarget = nullptr;
-
             auto wasVisible = isVisible();
             setVisible(false);
             Component* unused;
-            finalTarget = findTarget(currentScreenPos, details.localPosition, unused);
+            DragAndDropTarget* finalTarget = findTarget(currentScreenPos, details.localPosition, unused);
 
             if (wasVisible) // fade the component and remove it - it'll be deleted later by the timer callback
                 dismissWithAnimation(finalTarget == nullptr);

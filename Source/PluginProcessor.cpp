@@ -83,7 +83,6 @@ String PluginProcessor::pdlua_version = "pdlua 0.12.0 (lua 5.4)";
 
 PluginProcessor::PluginProcessor()
     : AudioProcessor(buildBusesProperties())
-    , pd::Instance("plugdata")
     , internalSynth(std::make_unique<InternalSynth>())
     , hostInfoUpdater(this)
 {

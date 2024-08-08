@@ -992,7 +992,6 @@ void Statusbar::lookAndFeelChanged()
 }
 
 StatusbarSource::StatusbarSource()
-    : numChannels(0)
 {
     startTimerHz(30);
 }
@@ -1028,7 +1027,6 @@ void StatusbarSource::process(bool hasMidiInput, bool hasMidiOutput, int channel
 
 void StatusbarSource::prepareToPlay(int nChannels)
 {
-    numChannels = nChannels;
     peakBuffer.reset(sampleRate, bufferSize, nChannels);
 }
 
