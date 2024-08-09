@@ -250,7 +250,7 @@ struct Interface {
         t_linetraverser t;
         linetraverser_start(&t, cnv);
         
-        while (auto* oc = linetraverser_next(&t)) {
+        while (auto* oc = linetraverser_next_nosize(&t)) {
             if (oc == connection) {
                 ed->e_selectedline = 1;
                 ed->e_selectline_index1 = canvas_getindex(cnv, &t.tr_ob->ob_g);
@@ -305,7 +305,7 @@ struct Interface {
         linetraverser_start(&t, cnv);
         
         int numFound = 0;
-        while (auto* oc = linetraverser_next(&t)) {
+        while (auto* oc = linetraverser_next_nosize(&t)) {
             if (oc == clicked) {
                 out1 = canvas_getindex(cnv, &t.tr_ob->ob_g);
                 out1_idx = t.tr_outno;
@@ -735,7 +735,7 @@ struct Interface {
             gobj_save(y, b);
 
         linetraverser_start(&t, cnv);
-        while ((oc = linetraverser_next(&t))) {
+        while ((oc = linetraverser_next_nosize(&t))) {
             int srcno = canvas_getindex(cnv, &t.tr_ob->ob_g);
             int sinkno = canvas_getindex(cnv, &t.tr_ob2->ob_g);
             if (t.outconnect_path_info == gensym("empty")) {

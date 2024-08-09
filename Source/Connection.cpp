@@ -1388,7 +1388,7 @@ void ConnectionPathUpdater::timerCallback()
             // Get connections from pd
             linetraverser_start(&t, patch.get());
             
-            while (auto* oc = linetraverser_next(&t)) {
+            while (auto* oc = linetraverser_next_nosize(&t)) {
                 
                 if (oc == connection->ptr.getRaw<t_outconnect>()) {
                     

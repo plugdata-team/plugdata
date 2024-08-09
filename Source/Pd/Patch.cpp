@@ -207,7 +207,7 @@ Connections Patch::getConnections() const
         // Get connections from pd
         linetraverser_start(&t, patch.get());
 
-        while ((oc = linetraverser_next(&t))) {
+        while ((oc = linetraverser_next_nosize(&t))) {
             connections.emplace_back(oc, t.tr_inno, t.tr_ob2, t.tr_outno, t.tr_ob);
         }
     }
