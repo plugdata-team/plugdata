@@ -122,18 +122,16 @@ void NVGSurface::initialise()
     auto* view = OSUtils::MTLCreateView(peer, 0, 0, getWidth(), getHeight());
     setView(view);
     setVisible(true);
-
-    auto renderScale = calculateRenderScale();
     
-    lastRenderScale = renderScale;
-    nvg = nvgCreateContext(view, NVG_ANTIALIAS | NVG_TRIPLE_BUFFER, getWidth() * renderScale, getHeight() * renderScale);
+    lastRenderScale = calculateRenderScale();
+    nvg = nvgCreateContext(view, NVG_ANTIALIAS | NVG_TRIPLE_BUFFER, getWidth() * lastRenderScale, getHeight() * lastRenderScale);
     resized();
 #else
     setVisible(true);
-
     glContext->attachTo(*this);
     glContext->initialiseOnThread();
     glContext->makeActive();
+    lastRenderScale = calculateRenderScale();
     nvg = nvgCreateContext(NVG_ANTIALIAS);
 #endif
     if (!nvg) {
@@ -254,6 +252,13 @@ float NVGSurface::getRenderScale() const
 void NVGSurface::updateBounds(Rectangle<int> bounds)
 {
 #ifdef NANOVG_GL_IMPLEMENTATION
+    if(!makeContextActive())
+    {
+        newBounds = bounds;
+        setBounds(newBounds);
+        return;
+    }
+    
     newBounds = bounds;
     if (hresize)
         setBounds(bounds.withHeight(getHeight()));
@@ -280,7 +285,7 @@ void NVGSurface::resized()
 
 void NVGSurface::invalidateAll()
 {
-    invalidArea = getLocalBounds();
+    invalidArea = invalidArea.getUnion(getLocalBounds());
 }
 
 void NVGSurface::invalidateArea(Rectangle<int> area)
@@ -308,16 +313,22 @@ void NVGSurface::render()
         return;
     
     auto pixelScale = calculateRenderScale();
-#if NANOVG_METAL_IMPLEMENTATION
-    if(lastRenderScale != pixelScale)
+    if(std::abs(lastRenderScale - pixelScale) > 0.1f)
     {
         detachContext();
         return; // Render on next frame
     }
+    
+#if NANOVG_METAL_IMPLEMENTATION
     if(pixelScale == 0) // This happens sometimes when an AUv3 plugin is hidden behind the parameter control view
     {
         return;
     }
+    auto viewWidth = 0; // Not relevant for Metal
+    auto viewHeight = 0;
+#else
+    auto viewWidth = getWidth() * pixelScale;
+    auto viewHeight = getHeight() * pixelScale;
 #endif
     
     updateBufferSize();
@@ -326,7 +337,7 @@ void NVGSurface::render()
         // First, draw only the invalidated region to a separate framebuffer
         // I've found that nvgScissor doesn't always clip everything, meaning that there will be graphical glitches if we don't do this
         nvgBindFramebuffer(invalidFBO);
-        nvgViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
+        nvgViewport(0, 0, viewWidth, viewHeight);
         nvgClear(nvg);
 
         nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
@@ -336,7 +347,7 @@ void NVGSurface::render()
         nvgEndFrame(nvg);
 
         nvgBindFramebuffer(mainFBO);
-        nvgViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
+        nvgViewport(0, 0, viewWidth, viewHeight);
         nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
         nvgBeginPath(nvg);
         nvgScissor(nvg, invalidArea.getX(), invalidArea.getY(), invalidArea.getWidth(), invalidArea.getHeight());
@@ -358,8 +369,21 @@ void NVGSurface::render()
     }
 
     if (needsBufferSwap) {
-        nvgViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
-
+#if NANOVG_GL_IMPLEMENTATION
+        // Fix black borders when applying global scale factor for openGL
+        // We need to do it like this to both retain sharpness and get rid of borders
+        if(!approximatelyEqual(fmod(pixelScale, 1.0f), 0.0f))
+        {
+            nvgViewport(0, 0, viewWidth + 2, viewHeight + 2);
+            nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
+            auto backgroundColour = editor->pd->lnf->findColour(PlugDataColour::canvasBackgroundColourId);
+            nvgFillColor(nvg, nvgRGB(backgroundColour.getRed(), backgroundColour.getGreen(), backgroundColour.getBlue()));
+            nvgFillRect(nvg, 0, 0, getWidth() + 10, getHeight() + 10);
+            nvgEndFrame(nvg);
+        }
+#endif
+        
+        nvgViewport(0, 0, viewWidth, viewHeight);
         nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
 
         nvgSave(nvg);
