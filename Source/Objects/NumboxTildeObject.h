@@ -12,7 +12,7 @@ class NumboxTildeObject final : public ObjectBase
     DraggableNumber input;
 
     int nextInterval = 100;
-    std::atomic<int> mode = 0;
+    int mode = 0;
 
     Value interval = SynchronousValue();
     Value ramp = SynchronousValue();

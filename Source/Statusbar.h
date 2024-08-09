@@ -56,7 +56,6 @@ private:
     std::atomic<int> lastMidiReceivedTime = 0;
     std::atomic<int> lastMidiSentTime = 0;
     std::atomic<int> lastAudioProcessedTime = 0;
-    std::atomic<float> level[2] = { 0 };
     std::atomic<float> cpuUsage;
 
     int numChannels;

@@ -320,6 +320,7 @@ private:
     float lastValue = 0.0f;
     float const defaultValue;
 
+    // TODO: do they all need to be atomic?
     std::atomic<float> gestureState = 0.0f;
     std::atomic<int> index;
     std::atomic<float> value;

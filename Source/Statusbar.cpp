@@ -1008,21 +1008,22 @@ void StatusbarSource::setBufferSize(int bufferSize)
 
 void StatusbarSource::process(bool hasMidiInput, bool hasMidiOutput, int channels)
 {
+    /*
     if (channels == 1) {
-        level[1] = 0;
+        level[1].store(0, std::memory_order_relaxed) = 0;
     } else if (channels == 0) {
-        level[0] = 0;
-        level[1] = 0;
-    }
+        level[0].store(0, std::memory_order_relaxed);
+        level[1].store(0, std::memory_order_relaxed);
+    } */
 
     auto nowInMs = Time::getMillisecondCounter();
 
-    lastAudioProcessedTime = nowInMs;
+    lastAudioProcessedTime.store(nowInMs, std::memory_order_relaxed);
 
     if (hasMidiOutput)
-        lastMidiSentTime = nowInMs;
+        lastMidiSentTime.store(nowInMs, std::memory_order_relaxed);
     if (hasMidiInput)
-        lastMidiReceivedTime = nowInMs;
+        lastMidiReceivedTime.store(nowInMs, std::memory_order_relaxed);
 }
 
 void StatusbarSource::prepareToPlay(int nChannels)
@@ -1034,9 +1035,9 @@ void StatusbarSource::timerCallback()
 {
     auto currentTime = Time::getMillisecondCounter();
 
-    auto hasReceivedMidi = currentTime - lastMidiReceivedTime < 700;
-    auto hasSentMidi = currentTime - lastMidiSentTime < 700;
-    auto hasProcessedAudio = currentTime - lastAudioProcessedTime < 700;
+    auto hasReceivedMidi = currentTime - lastMidiReceivedTime.load(std::memory_order_relaxed) < 700;
+    auto hasSentMidi = currentTime - lastMidiSentTime.load(std::memory_order_relaxed) < 700;
+    auto hasProcessedAudio = currentTime - lastAudioProcessedTime.load(std::memory_order_relaxed) < 700;
 
     if (hasReceivedMidi != midiReceivedState) {
         midiReceivedState = hasReceivedMidi;
@@ -1058,7 +1059,7 @@ void StatusbarSource::timerCallback()
 
     for (auto* listener : listeners) {
         listener->audioLevelChanged(peak);
-        listener->cpuUsageChanged(cpuUsage);
+        listener->cpuUsageChanged(cpuUsage.load(std::memory_order_relaxed));
     }
 }
 
@@ -1074,5 +1075,5 @@ void StatusbarSource::removeListener(Listener* l)
 
 void StatusbarSource::setCPUUsage(float cpu)
 {
-    cpuUsage = cpu;
+    cpuUsage.store(cpu, std::memory_order_relaxed);
 }
