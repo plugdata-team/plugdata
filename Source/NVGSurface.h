@@ -123,10 +123,10 @@ private:
     bool resizing = false;
     Rectangle<int> newBounds;
 
+    float lastRenderScale = 0.0f;
+    
 #if NANOVG_GL_IMPLEMENTATION
     std::unique_ptr<OpenGLContext> glContext;
-#else
-    float lastRenderScale = 0.0f;
 #endif
 
     std::unique_ptr<FrameTimer> frameTimer;
