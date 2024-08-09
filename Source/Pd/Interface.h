@@ -184,7 +184,28 @@ struct Interface {
         canvas_undo_add(cnv, UNDO_CUT, "clear",
             canvas_undo_set_cut(cnv, 2));
 
-        doRemoveSelection(cnv);
+        int dspstate = canvas_suspend_dsp();
+
+        /* if text is selected, deselecting it might remake the
+         object. So we deselect it and hunt for a "new" object on
+         the glist to reselect. */
+        if (cnv->gl_editor->e_textedfor) {
+            // t_gobj *selwas = x->gl_editor->e_selection->sel_what;
+            libpd_this_instance()->pd_newest = nullptr;
+            glist_noselect(cnv);
+            if (libpd_this_instance()->pd_newest) {
+                for (auto* y = cnv->gl_list; y; y = y->g_next)
+                    if (&y->g_pd == libpd_this_instance()->pd_newest)
+                        glist_select(cnv, y);
+            }
+        }
+        
+        for (auto* obj : objects) {
+            glist_delete(cnv, obj);
+        }
+        
+        canvas_resume_dsp(dspstate);
+        canvas_dirty(cnv, 1);
     }
 
     static t_outconnect* setConnectionPath(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin, t_symbol* old_connection_path, t_symbol* new_connection_path)
@@ -952,43 +973,6 @@ private:
             }
         }
         return nullptr;
-    }
-
-    static void doRemoveSelection(t_canvas* cnv)
-    {
-        t_gobj *y, *y2;
-        int dspstate;
-
-        dspstate = canvas_suspend_dsp();
-
-        /* if text is selected, deselecting it might remake the
-         object. So we deselect it and hunt for a "new" object on
-         the glist to reselect. */
-        if (cnv->gl_editor->e_textedfor) {
-            // t_gobj *selwas = x->gl_editor->e_selection->sel_what;
-            libpd_this_instance()->pd_newest = nullptr;
-            glist_noselect(cnv);
-            if (libpd_this_instance()->pd_newest) {
-                for (y = cnv->gl_list; y; y = y->g_next)
-                    if (&y->g_pd == libpd_this_instance()->pd_newest)
-                        glist_select(cnv, y);
-            }
-        }
-        while (1) /* this is pretty weird...  should rewrite it */
-        {
-            for (y = cnv->gl_list; y; y = y2) {
-                y2 = y->g_next;
-                if (glist_isselected(cnv, y)) {
-                    glist_delete(cnv, y);
-                    goto next;
-                }
-            }
-            goto restore;
-        next:;
-        }
-    restore:
-        canvas_resume_dsp(dspstate);
-        canvas_dirty(cnv, 1);
     }
 };
 
