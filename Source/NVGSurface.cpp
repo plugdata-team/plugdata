@@ -350,8 +350,13 @@ void NVGSurface::render()
         nvgEndFrame(nvg);
 
         nvgBindFramebuffer(mainFBO);
+#if NANOVG_GL_IMPLEMENTATION
         nvgViewport(0, 0, viewWidth, viewHeight);
         nvgBeginFrame(nvg, getWidth(), getHeight(), devicePixelScale);
+#else
+        nvgBeginFrame(nvg, getWidth() * desktopScale, getHeight() * desktopScale, devicePixelScale);
+        nvgScale(nvg, desktopScale, desktopScale);
+#endif
         nvgBeginPath(nvg);
         nvgScissor(nvg, invalidArea.getX(), invalidArea.getY(), invalidArea.getWidth(), invalidArea.getHeight());
 
@@ -385,9 +390,13 @@ void NVGSurface::render()
             nvgFillRect(nvg, -10, -10, getWidth() + 10, getHeight() + 10);
             nvgEndFrame(nvg);
         }
-#endif
+
         nvgViewport(0, 0, viewWidth, viewHeight);
-        nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
+        nvgBeginFrame(nvg, getWidth(), getHeight(), devicePixelScale);
+#else
+        nvgBeginFrame(nvg, getWidth() * desktopScale, getHeight() * desktopScale, devicePixelScale);
+        nvgScale(nvg, desktopScale, desktopScale);
+#endif
 
         nvgScissor(nvg, 0, 0, getWidth(), getHeight());
         nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, mainFBO->image, 1));
