@@ -280,7 +280,7 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
         const float flagSize = 9;
 
         const auto pixelScale = getRenderScale();
-        const auto zoom = isScrolling ? 2.0f : getValue<float>(zoomScale);
+        const auto zoom = isZooming ? 2.0f : getValue<float>(zoomScale);
 
         int const flagArea = flagSize * pixelScale * zoom;
 

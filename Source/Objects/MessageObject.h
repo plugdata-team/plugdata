@@ -162,7 +162,7 @@ public:
         auto height = getHeight();
 
         auto pixelScale = cnv->getRenderScale();
-        auto zoom = cnv->isScrolling ? 2.0f : getValue<float>(cnv->zoomScale);
+        auto zoom = cnv->isZooming ? 2.0f : getValue<float>(cnv->zoomScale);
 
         auto const flagArea = Point<int>(width * pixelScale * zoom, height * pixelScale * zoom);
 

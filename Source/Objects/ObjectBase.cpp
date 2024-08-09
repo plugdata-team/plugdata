@@ -455,7 +455,7 @@ float ObjectBase::getImageScale()
             topLevel = nextCnv;
         }
     }
-    return topLevel->isScrolling ? topLevel->getRenderScale() * 2.0f : topLevel->getRenderScale() * std::max(1.0f, getValue<float>(topLevel->zoomScale));
+    return topLevel->isZooming ? topLevel->getRenderScale() * 2.0f : topLevel->getRenderScale() * std::max(1.0f, getValue<float>(topLevel->zoomScale));
 }
 
 ObjectParameters ObjectBase::getParameters()

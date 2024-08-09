@@ -224,7 +224,7 @@ public:
     bool showConnectionDirection = false;
     bool showConnectionActivity = false;
 
-    bool isScrolling = false;
+    bool isZooming = false;
 
     bool isGraph = false;
     bool isDraggingLasso = false;

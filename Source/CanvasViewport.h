@@ -364,9 +364,7 @@ public:
 
         // Apply and limit zoom
         magnify(std::clamp(getValue<float>(cnv->zoomScale) * scrollFactor, 0.25f, 3.0f));
-
         lastZoomTime = e.eventTime;
-        scaleChanged = true;
     }
 
     void magnify(float newScaleFactor)
@@ -374,6 +372,8 @@ public:
         if (approximatelyEqual(newScaleFactor, 0.0f)) {
             newScaleFactor = 1.0f;
         }
+        
+        scaleChanged = true;
 
         // Get floating point mouse position relative to screen
         auto mousePosition = Desktop::getInstance().getMainMouseSource().getScreenPosition();
@@ -429,8 +429,10 @@ public:
 
     void visibleAreaChanged(Rectangle<int> const& r) override
     {
-        cnv->isScrolling = true;
-        startTimer(150);
+        if(scaleChanged) {
+            cnv->isZooming = true;
+            startTimer(150);
+        }
         onScroll();
         adjustScrollbarBounds();
         editor->nvgSurface.invalidateAll();
@@ -439,7 +441,7 @@ public:
     void timerCallback() override
     {
         stopTimer();
-        cnv->isScrolling = false;
+        cnv->isZooming = false;
         
         // Cached geometry can look thicker/thinner at different zoom scales, so we update all cached connections when zooming is done
         if (scaleChanged) {

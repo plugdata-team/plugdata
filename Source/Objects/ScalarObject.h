@@ -373,7 +373,7 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto scale = canvas->isScrolling ? canvas->getRenderScale() * 2.0f : canvas->getRenderScale() * std::max(1.0f, getValue<float>(canvas->zoomScale));
+        auto scale = canvas->isZooming ? canvas->getRenderScale() * 2.0f : canvas->getRenderScale() * std::max(1.0f, getValue<float>(canvas->zoomScale));
         auto bounds = getBoundingBox().getBoundingBox().toNearestInt();
         NVGScopedState scopedState(nvg);
         nvgTranslate(nvg, bounds.getX(), bounds.getY());
