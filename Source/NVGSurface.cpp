@@ -313,6 +313,9 @@ void NVGSurface::render()
         return;
     
     auto pixelScale = calculateRenderScale();
+    auto desktopScale = Desktop::getInstance().getGlobalScaleFactor();
+    auto devicePixelScale = pixelScale / desktopScale;
+    
     if(std::abs(lastRenderScale - pixelScale) > 0.1f)
     {
         detachContext();
@@ -332,7 +335,7 @@ void NVGSurface::render()
 #endif
     
     updateBufferSize();
-
+    
     if (!invalidArea.isEmpty()) {
         // First, draw only the invalidated region to a separate framebuffer
         // I've found that nvgScissor doesn't always clip everything, meaning that there will be graphical glitches if we don't do this
@@ -340,15 +343,16 @@ void NVGSurface::render()
         nvgViewport(0, 0, viewWidth, viewHeight);
         nvgClear(nvg);
 
-        nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
+        nvgBeginFrame(nvg, getWidth() * desktopScale, getHeight() * desktopScale, devicePixelScale);
+        nvgScale(nvg, desktopScale, desktopScale);
         nvgScissor(nvg, invalidArea.getX(), invalidArea.getY(), invalidArea.getWidth(), invalidArea.getHeight());
-
         editor->renderArea(nvg, invalidArea);
         nvgEndFrame(nvg);
 
         nvgBindFramebuffer(mainFBO);
         nvgViewport(0, 0, viewWidth, viewHeight);
-        nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
+        nvgBeginFrame(nvg, getWidth() * desktopScale, getHeight() * desktopScale, devicePixelScale);
+        nvgScale(nvg, desktopScale, desktopScale);
         nvgBeginPath(nvg);
         nvgScissor(nvg, invalidArea.getX(), invalidArea.getY(), invalidArea.getWidth(), invalidArea.getHeight());
 
@@ -375,16 +379,17 @@ void NVGSurface::render()
         if(!approximatelyEqual(fmod(pixelScale, 1.0f), 0.0f))
         {
             nvgViewport(0, 0, viewWidth + 2, viewHeight + 2);
-            nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
+            nvgBeginFrame(nvg, getWidth() * desktopScale, getHeight() * desktopScale, devicePixelScale);
+            nvgScale(nvg, desktopScale, desktopScale);
             auto backgroundColour = editor->pd->lnf->findColour(PlugDataColour::canvasBackgroundColourId);
             nvgFillColor(nvg, nvgRGB(backgroundColour.getRed(), backgroundColour.getGreen(), backgroundColour.getBlue()));
             nvgFillRect(nvg, 0, 0, getWidth() + 10, getHeight() + 10);
             nvgEndFrame(nvg);
         }
 #endif
-        
         nvgViewport(0, 0, viewWidth, viewHeight);
-        nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
+        nvgBeginFrame(nvg, getWidth() * desktopScale, getHeight() * desktopScale, pixelScale);
+        nvgScale(nvg, desktopScale, desktopScale);
 
         nvgSave(nvg);
         nvgScissor(nvg, 0, 0, getWidth(), getHeight());
