@@ -141,7 +141,12 @@ ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
     , pd(parent->cnv->pd)
     , objectSizeListener(parent)
 {
-    object->addComponentListener(&objectSizeListener);
+    // Perform async, so that we don't get a size change callback for initial creation
+    MessageManager::callAsync([_this = SafePointer(this)](){
+        if(!_this) return;
+        _this->object->addComponentListener(&_this->objectSizeListener);
+    });
+    
 
     setWantsKeyboardFocus(true);
 

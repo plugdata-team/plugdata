@@ -351,8 +351,7 @@ void NVGSurface::render()
 
         nvgBindFramebuffer(mainFBO);
         nvgViewport(0, 0, viewWidth, viewHeight);
-        nvgBeginFrame(nvg, getWidth() * desktopScale, getHeight() * desktopScale, devicePixelScale);
-        nvgScale(nvg, desktopScale, desktopScale);
+        nvgBeginFrame(nvg, getWidth(), getHeight(), devicePixelScale);
         nvgBeginPath(nvg);
         nvgScissor(nvg, invalidArea.getX(), invalidArea.getY(), invalidArea.getWidth(), invalidArea.getHeight());
 
@@ -383,19 +382,16 @@ void NVGSurface::render()
             nvgScale(nvg, desktopScale, desktopScale);
             auto backgroundColour = editor->pd->lnf->findColour(PlugDataColour::canvasBackgroundColourId);
             nvgFillColor(nvg, nvgRGB(backgroundColour.getRed(), backgroundColour.getGreen(), backgroundColour.getBlue()));
-            nvgFillRect(nvg, 0, 0, getWidth() + 10, getHeight() + 10);
+            nvgFillRect(nvg, -10, -10, getWidth() + 10, getHeight() + 10);
             nvgEndFrame(nvg);
         }
 #endif
         nvgViewport(0, 0, viewWidth, viewHeight);
-        nvgBeginFrame(nvg, getWidth() * desktopScale, getHeight() * desktopScale, pixelScale);
-        nvgScale(nvg, desktopScale, desktopScale);
+        nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
 
-        nvgSave(nvg);
         nvgScissor(nvg, 0, 0, getWidth(), getHeight());
         nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, mainFBO->image, 1));
         nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
-        nvgRestore(nvg);
 
 #if ENABLE_FPS_COUNT
         nvgSave(nvg);
