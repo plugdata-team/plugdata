@@ -99,6 +99,7 @@ public:
 
     ~DocumentationBrowserUpdateThread()
     {
+        
         instance = nullptr;
         stopThread(-1);
     }
@@ -202,20 +203,33 @@ private:
         }
     }
 
-    void run() override
-    {
-        try
+        void run() override
         {
-            fileTreeLock.enter();
-            fileTree = generateDirectoryValueTree(File(SettingsFile::getInstance()->getProperty<String>("browser_path")));
-            fileTreeLock.exit();
-            sendChangeMessage();
+            try
+            {
+                int const maxRetries = 50;
+                int retries = 0;
+
+                while (retries < maxRetries) {
+                    if (threadShouldExit())
+                        break;
+                    if (fileTreeLock.tryEnter()) {
+                        fileTree = generateDirectoryValueTree(File(SettingsFile::getInstance()->getProperty<String>("browser_path")));
+                        fileTreeLock.exit();
+                        break;
+                    }
+                    retries++;
+                    Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 100);
+                }
+                
+
+                sendChangeMessage();
+            }
+            catch(...)
+            {
+                std::cerr << "Failed to update documentation browser" << std::endl;
+            }
         }
-        catch(...)
-        {
-            std::cerr << "Failed to update documentation browser" << std::endl;
-        }
-    }
 
     void filesystemChanged() override
     {
