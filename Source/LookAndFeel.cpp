@@ -735,7 +735,12 @@ void PlugDataLook::drawCornerResizer(Graphics& g, int w, int h, bool isMouseOver
 
 void PlugDataLook::drawTooltip(Graphics& g, String const& text, int width, int height)
 {
-    auto bounds = Rectangle<float>(0, 0, width, height).reduced(ProjectInfo::canUseSemiTransparentWindows() ? 6 : 0);
+#if JUCE_WINDOWS
+    auto expandTooltip = false;
+#else
+    auto expandTooltip = ProjectInfo::canUseSemiTransparentWindows();
+#endif
+    auto bounds = Rectangle<float>(0, 0, width, height).reduced(expandTooltip ? 6 : 0);
     auto shadowBounds = bounds.reduced(2);
     auto const cornerSize = ProjectInfo::canUseSemiTransparentWindows() ? Corners::defaultCornerRadius : 0;
 
@@ -769,7 +774,7 @@ void PlugDataLook::drawTooltip(Graphics& g, String const& text, int width, int h
         }
     }
 
-    auto textOffset = ProjectInfo::canUseSemiTransparentWindows() ? 10 : 0;
+    auto textOffset = expandTooltip ? 10 : 0;
     TextLayout tl;
     tl.createLayoutWithBalancedLineLengths(s, (float)maxToolTipWidth);
     tl.draw(g, bounds.withSizeKeepingCentre(width - (20 + textOffset), height - (2 + textOffset)));
@@ -851,6 +856,12 @@ void PlugDataLook::drawPropertyPanelSectionHeader(Graphics& g, String const& nam
 
 Rectangle<int> PlugDataLook::getTooltipBounds(String const& tipText, Point<int> screenPos, Rectangle<int> parentArea)
 {
+#if JUCE_WINDOWS
+    auto expandTooltip = false;
+#else
+    auto expandTooltip = ProjectInfo::canUseSemiTransparentWindows();
+#endif
+    
     float const tooltipFontSize = 14.0f;
     int const maxToolTipWidth = 1000;
 
@@ -882,7 +893,7 @@ Rectangle<int> PlugDataLook::getTooltipBounds(String const& tipText, Point<int> 
 
     return Rectangle<int>(screenPos.x > parentArea.getCentreX() ? screenPos.x - (w + 12) : screenPos.x + 24,
         screenPos.y > parentArea.getCentreY() ? screenPos.y - (h + 6) : screenPos.y + 6,
-                          w, h).expanded(ProjectInfo::canUseSemiTransparentWindows() ? 6 : 0)
+                          w, h).expanded(expandTooltip ? 6 : 0)
         .constrainedWithin(parentArea);
 }
 
