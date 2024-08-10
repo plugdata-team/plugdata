@@ -145,9 +145,9 @@ ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
     MessageManager::callAsync([_this = SafePointer(this)](){
         if(!_this) return;
         _this->object->addComponentListener(&_this->objectSizeListener);
+        _this->updateLabel();
     });
     
-
     setWantsKeyboardFocus(true);
 
     setLookAndFeel(new PlugDataLook());
@@ -185,7 +185,6 @@ ObjectBase::~ObjectBase()
 void ObjectBase::initialise()
 {
     update();
-    updateLabel();
     constrainer = createConstrainer();
     onConstrainerCreate();
 
