@@ -12,7 +12,7 @@ class NumboxTildeObject final : public ObjectBase
     DraggableNumber input;
 
     int nextInterval = 100;
-    std::atomic<int> mode = 0;
+    int mode = 0;
 
     Value interval = SynchronousValue();
     Value ramp = SynchronousValue();
@@ -68,6 +68,9 @@ public:
 
     void update() override
     {
+        if (input.isShowing())
+            return;
+
         input.setText(input.formatNumber(getValue()), dontSendNotification);
 
         min = getMinimum();
@@ -260,10 +263,12 @@ public:
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(backgroundColour), convertColour(outlineColour), Corners::objectCornerRadius);
 
-        nvgSave(nvg);
-        nvgTranslate(nvg, input.getX(), input.getY());
-        input.render(nvg);
-        nvgRestore(nvg);
+        {
+            NVGScopedState scopedState(nvg);
+            nvgTranslate(nvg, input.getX(), input.getY());
+            input.render(nvg);
+        }
+
 
         auto icon = mode ? Icons::ThinDown : Icons::Sine;
         auto iconBounds = Rectangle<int>(7, 3, getHeight(), getHeight());

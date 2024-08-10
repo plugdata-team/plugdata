@@ -87,8 +87,7 @@ public:
 
         pasteButton.onClick = [this]() {
             auto clipboardText = SystemClipboard::getTextFromClipboard();
-            auto offlineCnv = OfflineObjectRenderer::findParentOfflineObjectRendererFor(this);
-            if (!offlineCnv->checkIfPatchIsValid(clipboardText)) {
+            if (!OfflineObjectRenderer::checkIfPatchIsValid(clipboardText)) {
                 /*
                 // TODO: should we put an alert here? Needs to be themed however
                 juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::NoIcon,
@@ -611,7 +610,7 @@ private:
     {
         int totalHeight = 0;
         for (auto* button : paletteSelectors) {
-            totalHeight += Fonts::getCurrentFont().withHeight(14).getStringWidth(button->getButtonText()) + 30;
+            totalHeight += CachedStringWidth<14>::calculateStringWidth(button->getButtonText()) + 30;
         }
 
         totalHeight += 46;

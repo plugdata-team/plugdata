@@ -215,7 +215,7 @@ public:
         }
         else if(getPatch() && isMouseOver() && getValue<bool>(cnv->locked))
         {
-            finalBackgroundColour = convertColour(getHoverBackgroundColour(backgroundColour));
+            finalBackgroundColour = convertColour(backgroundColour.contrasting(backgroundColour.getBrightness() > 0.5f ? 0.03f : 0.05f));
         }
         
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), finalBackgroundColour, object->isSelected() ? selectedOutlineColour : finalOutlineColour, Corners::objectCornerRadius);
@@ -239,7 +239,7 @@ public:
                             static_cast<int>(ioletAreaColour.a * 255) != backgroundColour.getAlpha();
         
         if (isValid && hasIoletArea) {
-            nvgSave(nvg);
+            NVGScopedState scopedState(nvg);
             float const padding = 1.3f;
             float const padding2x = padding * 2;
             nvgRoundedScissor(nvg, padding, padding, getWidth() - padding2x, getHeight() - padding2x, jmax(0.0f, Corners::objectCornerRadius - 0.7f));
@@ -249,20 +249,12 @@ public:
             nvgRect(nvg, 0, 0, getWidth(), 3.5f);
             nvgRect(nvg, 0, getHeight() - 3.5f, getWidth(), 3.5f);
             nvgFill(nvg);
-
-            nvgRestore(nvg);
         }
 
         if (editor && editor->isVisible()) {
             imageRenderer.renderJUCEComponent(nvg, *editor, getImageScale());
         } else {
-            auto text = getText();
-
-            auto textArea = border.subtractedFrom(b);
-
-            // we could render at the actual scale, but that makes the transition to scolling/zooming pretty rough
-            // Instead, rendering at 2x scale gives us pretty good sharpness overall
-            cachedTextRender.renderText(nvg, textArea, getImageScale());
+            cachedTextRender.renderText(nvg, border.subtractedFrom(b), getImageScale());
         }
     }
 

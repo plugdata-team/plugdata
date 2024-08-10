@@ -21,7 +21,7 @@ class PluginProcessor;
 class VolumeSlider;
 class LatencyDisplayButton;
 
-class StatusbarSource : public Timer {
+class StatusbarSource : public Timer{
 
 public:
     struct Listener {
@@ -44,7 +44,7 @@ public:
     void prepareToPlay(int numChannels);
 
     void timerCallback() override;
-
+    
     void addListener(Listener* l);
     void removeListener(Listener* l);
 
@@ -56,7 +56,6 @@ private:
     std::atomic<int> lastMidiReceivedTime = 0;
     std::atomic<int> lastMidiSentTime = 0;
     std::atomic<int> lastAudioProcessedTime = 0;
-    std::atomic<float> level[2] = { 0 };
     std::atomic<float> cpuUsage;
 
     int numChannels;
@@ -73,6 +72,7 @@ private:
 class VolumeSlider;
 class ZoomLabel;
 class Statusbar : public Component
+    , public AsyncUpdater
     , public StatusbarSource::Listener
     , public ModifierKeyListener {
     PluginProcessor* pd;
@@ -98,6 +98,9 @@ public:
     static constexpr int statusbarHeight = 30;
 
 private:
+        
+    void handleAsyncUpdate() override;
+        
     std::unique_ptr<LevelMeter> levelMeter;
     std::unique_ptr<VolumeSlider> volumeSlider;
     std::unique_ptr<MIDIBlinker> midiBlinker;
@@ -114,10 +117,7 @@ private:
 
     std::unique_ptr<ZoomLabel> zoomLabel;
 
-    int currentLatency = 0;
     float currentZoomLevel = 100.f;
-
-    Value showDirection;
 
     std::unique_ptr<ButtonParameterAttachment> enableAttachment;
     std::unique_ptr<SliderParameterAttachment> volumeAttachment;

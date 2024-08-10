@@ -489,8 +489,6 @@ public:
         }
     }
 
-    int parseSystemArguments(String const& arguments);
-
     ~PlugDataWindow() override
     {
         clearContentComponent();
@@ -504,11 +502,17 @@ public:
     int getDesktopWindowStyleFlags() const override
     {
         auto flags = ComponentPeer::windowHasMinimiseButton | ComponentPeer::windowHasMaximiseButton | ComponentPeer::windowHasCloseButton | ComponentPeer::windowAppearsOnTaskbar | ComponentPeer::windowIsSemiTransparent | ComponentPeer::windowIsResizable;
+
+#if !JUCE_IOS
         if (SettingsFile::getInstance()->getProperty<bool>("native_window"))
         {
             flags |= ComponentPeer::windowHasTitleBar;
             flags |= ComponentPeer::windowHasDropShadow;
-        } else {
+        } else
+#endif
+        {
+
+            
 #if JUCE_MAC
             flags |= ComponentPeer::windowHasDropShadow;
 #elif JUCE_WINDOWS
@@ -653,8 +657,9 @@ public:
         }
 #endif
 
+#if !JUCE_IOS
         getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
-
+#endif
 
         if (auto* content = getContentComponent()) {
             content->resized();

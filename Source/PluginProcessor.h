@@ -214,7 +214,7 @@ private:
 
     std::map<unsigned long, std::unique_ptr<Component>> textEditorDialogs;
 
-    static inline String const else_version = "ELSE v1.0-rc11";
+    static inline String const else_version = "ELSE v1.0-rc12";
     static inline String const cyclone_version = "cyclone v0.9-0";
     static inline String const heavylib_version = "heavylib v0.4";
     static inline String const gem_version = "Gem v0.94";
@@ -226,11 +226,19 @@ private:
         HostInfoUpdater(PluginProcessor* parentProcessor)
             : processor(*parentProcessor) {};
 
-        void handleAsyncUpdate() override
+        void update()
         {
             if (ProjectInfo::isStandalone)
                 return;
-
+#if JUCE_IOS
+            handleAsyncUpdate(); // iOS doesn't like it if we do this asynchronously
+#else
+            triggerAsyncUpdate();
+#endif
+        }
+    private:
+        void handleAsyncUpdate() override
+        {
             auto const details = AudioProcessorListener::ChangeDetails {}.withParameterInfoChanged(true);
             processor.updateHostDisplay(details);
         }

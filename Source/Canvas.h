@@ -77,8 +77,6 @@ public:
     void mouseUp(MouseEvent const& e) override;
     bool hitTest(int x, int y) override;
 
-    Point<int> getLastMousePosition();
-
     void commandKeyChanged(bool isHeld) override;
     void shiftKeyChanged(bool isHeld) override;
     void middleMouseChanged(bool isHeld) override;
@@ -215,8 +213,6 @@ public:
     Value locked = SynchronousValue();
     Value commandLocked;
     Value presentationMode;
-    Value showDirection;
-    Value altMode;
 
     bool showOrigin = false;
     bool showBorder = false;
@@ -228,7 +224,7 @@ public:
     bool showConnectionDirection = false;
     bool showConnectionActivity = false;
 
-    bool isScrolling = false;
+    bool isZooming = false;
 
     bool isGraph = false;
     bool isDraggingLasso = false;
@@ -270,6 +266,9 @@ public:
     NVGImage resizeHandleImage;
     NVGImage resizeGOPHandleImage;
     NVGImage presentationShadowImage;
+
+    NVGImage objectFlag;
+    NVGImage objectFlagSelected;
 
     Array<juce::WeakReference<NVGComponent>> drawables;
 

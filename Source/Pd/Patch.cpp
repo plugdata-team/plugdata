@@ -207,7 +207,7 @@ Connections Patch::getConnections() const
         // Get connections from pd
         linetraverser_start(&t, patch.get());
 
-        while ((oc = linetraverser_next(&t))) {
+        while ((oc = linetraverser_next_nosize(&t))) {
             connections.emplace_back(oc, t.tr_inno, t.tr_ob2, t.tr_outno, t.tr_ob);
         }
     }
@@ -307,7 +307,7 @@ t_gobj* Patch::createObject(int x, int y, String const& name)
 
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        EDITOR->canvas_undo_already_set_move = 1;
+        pd::Interface::getInstanceEditor()->canvas_undo_already_set_move = 1;
         return pd::Interface::createObject(patch.get(), typesymbol, argc, argv.data());
     }
 
@@ -572,7 +572,7 @@ void Patch::undo()
         glist_noselect(x);
 
         pd::Interface::undo(patch.get());
-        EDITOR->canvas_undo_already_set_move = 1;
+        pd::Interface::getInstanceEditor()->canvas_undo_already_set_move = 1;
 
         updateUndoRedoString();
     }
@@ -586,7 +586,7 @@ void Patch::redo()
         glist_noselect(x);
 
         pd::Interface::redo(patch.get());
-        EDITOR->canvas_undo_already_set_move = 1;
+        pd::Interface::getInstanceEditor()->canvas_undo_already_set_move = 1;
 
         updateUndoRedoString();
     }

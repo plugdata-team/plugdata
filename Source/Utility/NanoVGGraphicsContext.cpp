@@ -28,7 +28,6 @@ NanoVGGraphicsContext::NanoVGGraphicsContext(NVGcontext* nativeHandle)
     : nvg(nativeHandle)
 {
     jassert(nvg);
-    nvgGlobalCompositeOperation(nvg, NVG_SOURCE_OVER);
 }
 
 NanoVGGraphicsContext::~NanoVGGraphicsContext()
@@ -250,7 +249,7 @@ void NanoVGGraphicsContext::strokePath(juce::Path const& path, juce::PathStrokeT
     }
 
     nvgStrokeWidth(nvg, strokeType.getStrokeThickness());
-    nvgPathWinding(nvg, NVG_CCW);
+    nvgPathWinding(nvg, NVG_SOLID);
     setPath(path, transform);
     nvgStroke(nvg);
 }
@@ -369,7 +368,7 @@ void NanoVGGraphicsContext::setPathWithIntersections(juce::Path const& path, juc
                 // The path is closed: we transform the vertex storage into a NanoVG path
 
                 // Compute the winding
-                int winding = areaSigned(vert) > 0 ? NVG_SOLID : NVG_HOLE;
+                NVGwinding winding = areaSigned(vert) > 0 ? NVG_SOLID : NVG_HOLE;
 
                 // Add the path elements to NanoVG
                 int id = 0;

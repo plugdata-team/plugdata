@@ -29,7 +29,6 @@ class ObjectBase;
 class Iolet;
 class Canvas;
 class Connection;
-class ObjectBoundsConstrainer;
 
 class Object : public Component
     , public Value::Listener
@@ -37,6 +36,7 @@ class Object : public Component
     , public Timer
     , public KeyListener
     , public NVGComponent
+    , public SettingsFileListener
     , private TextEditor::Listener {
 public:
     explicit Object(Canvas* parent, String const& name = "", Point<int> position = { 100, 100 });
@@ -45,6 +45,7 @@ public:
 
     ~Object() override;
 
+    void propertyChanged(String const& name, var const& value) override;
     void valueChanged(Value& v) override;
 
     void changeListenerCallback(ChangeBroadcaster* source) override;
@@ -82,9 +83,8 @@ public:
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
 
-    void updateFramebuffer(NVGcontext* nvg);
     void render(NVGcontext* nvg) override;
-    void performRender(NVGcontext* nvg);
+
     void renderIolets(NVGcontext* nvg);
     void renderLabel(NVGcontext* nvg);
 
@@ -112,7 +112,7 @@ public:
     Value locked;
     Value commandLocked;
     Value presentationMode;
-    Value hvccMode = Value(var(false));
+    CachedValue<bool> hvccMode;
 
     Canvas* cnv;
     PluginEditor* editor;
@@ -134,27 +134,11 @@ public:
 
     bool isSelected() const;
 
-/**
- * @enum ObjectActivityPolicy
- * @brief Controls the way object activity propagates upwards inside GOPs.
- *
- * This enum defines the different ways in which an object's activity can propagate
- * through its parent hierarchy. It specifies whether to limit the activity to the object
- * itself, its direct parent, or all parents recursively.
- *
- * @var ObjectActivityPolicy::Self
- * Trigger object's own activity only.
- *
- * @var ObjectActivityPolicy::Parent
- * Trigger activity of object itself, and direct parent GOP only.
- *
- * @var ObjectActivityPolicy::Recursive
- * Trigger activity of object itself, and all parent GOPs recursively.
- */
+    // Controls the way object activity propagates upwards inside GOPs.
     enum ObjectActivityPolicy {
-        Self,
-        Parent,
-        Recursive
+        Self, //Trigger object's own activity only.
+        Parent, // Trigger activity of object itself, and direct parent GOP only.
+        Recursive // Trigger activity of object itself, and all parent GOPs recursively.
     };
 
     ObjectActivityPolicy objectActivityPolicy = ObjectActivityPolicy::Self;
@@ -180,11 +164,6 @@ private:
 
     float activeStateAlpha = 0.0f;
 
-    NVGImage activityOverlayImage;
-    bool activityOverlayDirty = false;
-
-    NVGFramebuffer scrollBuffer;
-
     bool isObjectMouseActive = false;
     bool isInsideUndoSequence = false;
 
@@ -196,7 +175,6 @@ private:
 
     std::unique_ptr<TextEditor> newObjectEditor;
 
-    friend class InvalidationListener;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Object)
     JUCE_DECLARE_WEAK_REFERENCEABLE(Object)
 };

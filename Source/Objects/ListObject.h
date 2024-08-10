@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class ListObject final : public ObjectBase {
+class ListObject final : public ObjectBase, public KeyListener{
 
     AtomHelper atomHelper;
     DraggableListNumber listLabel;
@@ -15,11 +15,10 @@ class ListObject final : public ObjectBase {
 
     NVGcolor backgroundColour;
     NVGcolor selectedOutlineColour;
+    Colour selectedOutlineCol;
     NVGcolor outlineColour;
-    NVGcolor flagColour;
 
     bool editorActive = false;
-
 
 public:
     ListObject(pd::WeakReference obj, Object* parent)
@@ -48,6 +47,7 @@ public:
         listLabel.onEditorShow = [this]() {
             startEdition();
             auto* editor = listLabel.getCurrentTextEditor();
+            editor->addKeyListener(this);
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
             editor->setBorder({ 0, 1, 3, 0 });
             editorActive = true;
@@ -114,7 +114,7 @@ public:
         }
     }
 
-    void updateFromGui()
+    void updateFromGui(bool force = false)
     {
         auto array = StringArray();
         array.addTokens(listLabel.getText(), true);
@@ -131,7 +131,7 @@ public:
                 list.emplace_back(pd->generateSymbol(elem));
             }
         }
-        if (list != getList()) {
+        if (force || list != getList()) {
             setList(list);
         }
     }
@@ -177,39 +177,15 @@ public:
         auto b = getLocalBounds().toFloat();
         auto sb = b.reduced(0.5f);
 
-        bool highlighed = editorActive && getValue<bool>(object->locked);
-
-        nvgSave(nvg);
-        nvgIntersectRoundedScissor(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(), Corners::objectCornerRadius);
-
-        nvgBeginPath(nvg);
-        nvgFillColor(nvg, backgroundColour);
-        nvgRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight());
-        nvgFill(nvg);
+        nvgDrawRoundedRect(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(), backgroundColour, backgroundColour, Corners::objectCornerRadius);
 
         imageRenderer.renderJUCEComponent(nvg, listLabel, getImageScale());
 
-        nvgIntersectRoundedScissor(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
-
         // draw flag
-        nvgFillColor(nvg, highlighed ? selectedOutlineColour : flagColour);
-        nvgBeginPath(nvg);
-        nvgMoveTo(nvg, b.getRight() - 8, b.getY());
-        nvgLineTo(nvg, b.getRight(), b.getY());
-        nvgLineTo(nvg, b.getRight(), b.getY() + 8);
-        nvgClosePath(nvg);
-        nvgFill(nvg);
+        bool highlighted = editorActive && getValue<bool>(object->locked);
+        atomHelper.drawTriangleFlag(nvg, highlighted, true);
 
-        nvgBeginPath(nvg);
-        nvgMoveTo(nvg, b.getRight() - 8, b.getBottom());
-        nvgLineTo(nvg, b.getRight(), b.getBottom());
-        nvgLineTo(nvg, b.getRight(), b.getBottom() - 8);
-        nvgClosePath(nvg);
-        nvgFill(nvg);
-
-        nvgRestore(nvg);
-
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBAf(0, 0, 0, 0), (object->isSelected() || highlighed) ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBAf(0, 0, 0, 0), (object->isSelected() || highlighted) ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
     }
 
     void lookAndFeelChanged() override
@@ -219,13 +195,40 @@ public:
         listLabel.setColour(TextEditor::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
 
         backgroundColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
-        selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        selectedOutlineCol = cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId);
+        selectedOutlineColour = convertColour(selectedOutlineCol);
         outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
-        flagColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour));
 
         repaint();
     }
+    
+    bool keyPressed(KeyPress const& key, Component*) override
+    {
+        if(key.getKeyCode() == KeyPress::returnKey)
+        {
+            updateFromGui(true);
+            cnv->grabKeyboardFocus();
+            return true;
+        }
+        
+        return false;
+    }
 
+    void focusGained(FocusChangeType cause) override
+    {
+        repaint();
+    }
+
+    void focusLost(FocusChangeType cause) override
+    {
+        repaint();
+    }
+
+    void focusOfChildComponentChanged(FocusChangeType cause) override
+    {
+        repaint();
+    }
+    
     void updateValue()
     {
         if (!listLabel.isBeingEdited()) {

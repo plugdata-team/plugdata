@@ -15,7 +15,7 @@
 #include "PluginProcessor.h"
 
 #include "Pd/Patch.h"
-
+ 
 #include "LookAndFeel.h"
 #include "Sidebar/Palettes.h"
 #include "Utility/Autosave.h"
@@ -49,7 +49,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , sidebar(std::make_unique<Sidebar>(&p, this))
     , statusbar(std::make_unique<Statusbar>(&p))
     , openedDialog(nullptr)
-    , offlineRenderer(&p)
     , nvgSurface(this)
     , pluginConstrainer(*getConstrainer())
     , autosave(std::make_unique<Autosave>(pd))
@@ -64,6 +63,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , pluginMode(nullptr)
     , touchSelectionHelper(std::make_unique<TouchSelectionHelper>(this))
 {
+    keyboardLayout = OSUtils::getKeyboardLayout();
+    
 #if JUCE_IOS
     // constrainer.setMinimumSize(100, 100);
     // pluginConstrainer.setMinimumSize(100, 100);
@@ -117,13 +118,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     }
 
     autoconnect.referTo(settingsFile->getPropertyAsValue("autoconnect"));
-
     theme.referTo(settingsFile->getPropertyAsValue("theme"));
     theme.addListener(this);
-
-    if (!settingsFile->hasProperty("hvcc_mode"))
-        settingsFile->setProperty("hvcc_mode", false);
-    hvccMode.referTo(settingsFile->getPropertyAsValue("hvcc_mode"));
 
     palettes = std::make_unique<Palettes>(this);
 
@@ -270,14 +266,14 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(touchSelectionHelper.get());
     touchSelectionHelper->setAlwaysOnTop(true);
 #endif
-    
+
 #if ENABLE_TESTING
         // Call after window is ready
         ::Timer::callAfterDelay(200, [this](){
             runTests(this);
         });
 #endif
-    
+
     pd->messageDispatcher->setBlockMessages(false);
     pd->objectLibrary->waitForInitialisationToFinish();
 }
@@ -354,7 +350,7 @@ void PluginEditor::paintOverChildren(Graphics& g)
     // Never want to be drawing over a dialog window
     if (openedDialog)
         return;
-
+    
     if (isDraggingFile) {
         g.setColour(findColour(PlugDataColour::dataColourId));
         g.drawRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius, 2.0f);
@@ -371,6 +367,12 @@ void PluginEditor::paintOverChildren(Graphics& g)
         g.drawLine(palettes->isExpanded() ? palettes->getRight() : 29.5f, toolbarDepth, palettes->isExpanded() ? palettes->getRight() : 29.5f, toolbarDepth + 30);
         g.drawLine(sidebar->getX() + 0.5f, toolbarDepth, sidebar->getX() + 0.5f, toolbarHeight + 30);
     }
+    
+    if(pluginMode)
+    {
+        g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
+        g.fillRect(getLocalBounds().withTrimmedTop(40));
+    }
 }
 
 void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> area)
@@ -379,17 +381,15 @@ void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> area)
         pluginMode->render(nvg);
     } else {
         if (welcomePanel->isVisible()) {
-            nvgSave(nvg);
+            NVGScopedState scopedState(nvg);
             welcomePanel->render(nvg);
-            nvgRestore(nvg);
         } else {
             tabComponent.renderArea(nvg, area);
 
             if (touchSelectionHelper && touchSelectionHelper->isVisible() && area.intersects(touchSelectionHelper->getBounds() - nvgSurface.getPosition())) {
-                nvgSave(nvg);
+                NVGScopedState scopedState(nvg);
                 nvgTranslate(nvg, touchSelectionHelper->getX() - nvgSurface.getX(), touchSelectionHelper->getY() - nvgSurface.getY());
                 touchSelectionHelper->render(nvg);
-                nvgRestore(nvg);
             }
         }
     }
@@ -485,6 +485,15 @@ void PluginEditor::resized()
 
     auto startX = (getWidth() / 2.0f) - (toolbarHeight * 1.5);
 
+#if JUCE_IOS
+    auto touchHelperBounds = getLocalBounds().removeFromBottom(48).withSizeKeepingCentre(192, 48).translated(0, -54);
+    if(touchSelectionHelper) touchSelectionHelper->setBounds(touchHelperBounds);
+    
+    if(OSUtils::isIPad())
+    {
+        startX += 80.0f; // Otherwise it gets in the way of multitasking controls
+    }
+#endif
     editButton.setBounds(startX, 1, buttonSize, buttonSize - 2);
     runButton.setBounds(startX + buttonSize - 1, 1, buttonSize, buttonSize - 2);
     presentButton.setBounds(startX + (2 * buttonSize) - 2, 1, buttonSize, buttonSize - 2);
@@ -517,7 +526,7 @@ bool PluginEditor::isInPluginMode() const
 pd::Patch::Ptr PluginEditor::findPatchInPluginMode()
 {
     ScopedLock lock(pd->patches.getLock());
-    
+
     for (auto& patch : pd->patches) {
         if (editorIndex == patch->windowIndex && patch->openInPluginMode) {
             return patch;
@@ -763,8 +772,16 @@ void PluginEditor::handleAsyncUpdate()
 
         statusbar->setHasActiveCanvas(true);
         addObjectMenuButton.setEnabled(true);
+#if JUCE_IOS
+        if(!locked)
+        {
+            touchSelectionHelper->show();
+        }
+        else {
+            touchSelectionHelper->setVisible(false);
+        }
+#endif
     } else {
-
         pluginModeButton.setEnabled(false);
 
         editButton.setEnabled(false);
@@ -776,7 +793,13 @@ void PluginEditor::handleAsyncUpdate()
         undoButton.setEnabled(false);
         redoButton.setEnabled(false);
         addObjectMenuButton.setEnabled(false);
+#if JUCE_IOS
+        touchSelectionHelper->setVisible(false);
+#endif
     }
+#if JUCE_IOS
+    nvgSurface.invalidateAll(); // Make sure touch selection helper is repainted
+#endif
 }
 
 void PluginEditor::updateCommandStatus()
@@ -1113,58 +1136,58 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         break;
     }
 
-    static auto const cmdMod = ModifierKeys::commandModifier;
-    static auto const shiftMod = ModifierKeys::shiftModifier;
-
-    std::map<ObjectIDs, std::pair<int, int>> defaultShortcuts;
-
-    switch (OSUtils::getKeyboardLayout()) {
-    case OSUtils::KeyboardLayout::QWERTY:
-        defaultShortcuts = {
-            { NewObject, { 49, cmdMod } },
-            { NewComment, { 53, cmdMod } },
-            { NewBang, { 66, cmdMod | shiftMod } },
-            { NewMessage, { 50, cmdMod } },
-            { NewToggle, { 84, cmdMod | shiftMod } },
-            { NewNumbox, { 78, cmdMod | shiftMod } },
-            { NewVerticalSlider, { 86, cmdMod | shiftMod } },
-            { NewHorizontalSlider, { 74, cmdMod | shiftMod } },
-            { NewVerticalRadio, { 68, cmdMod | shiftMod } },
-            { NewHorizontalRadio, { 73, cmdMod | shiftMod } },
-            { NewFloatAtom, { 51, cmdMod } },
-            { NewListAtom, { 52, cmdMod } },
-            { NewArray, { 65, cmdMod | shiftMod } },
-            { NewGraphOnParent, { 71, cmdMod | shiftMod } },
-            { NewCanvas, { 67, cmdMod | shiftMod } },
-            { NewVUMeter, { 85, cmdMod | shiftMod } }
-        };
-        break;
-    case OSUtils::KeyboardLayout::AZERTY:
-        defaultShortcuts = {
-            { NewObject, { 38, cmdMod } },
-            { NewComment, { 40, cmdMod } },
-            { NewBang, { 66, cmdMod | shiftMod } },
-            { NewMessage, { 233, cmdMod } },
-            { NewToggle, { 84, cmdMod | shiftMod } },
-            { NewNumbox, { 73, cmdMod | shiftMod } },
-            { NewVerticalSlider, { 86, cmdMod | shiftMod } },
-            { NewHorizontalSlider, { 74, cmdMod | shiftMod } },
-            { NewVerticalRadio, { 68, cmdMod | shiftMod } },
-            { NewHorizontalRadio, { 73, cmdMod | shiftMod } },
-            { NewFloatAtom, { 34, cmdMod } },
-            { NewListAtom, { 39, cmdMod } },
-            { NewArray, { 65, cmdMod | shiftMod } },
-            { NewGraphOnParent, { 71, cmdMod | shiftMod } },
-            { NewCanvas, { 67, cmdMod | shiftMod } },
-            { NewVUMeter, { 85, cmdMod | shiftMod } }
-        };
-        break;
-
-    default:
-        break;
-    }
-
     if (commandID >= ObjectIDs::NewObject) {
+        static auto const cmdMod = ModifierKeys::commandModifier;
+        static auto const shiftMod = ModifierKeys::shiftModifier;
+
+        std::map<ObjectIDs, std::pair<int, int>> defaultShortcuts;
+
+        switch (keyboardLayout) {
+        case OSUtils::KeyboardLayout::QWERTY:
+            defaultShortcuts = {
+                { NewObject, { 49, cmdMod } },
+                { NewComment, { 53, cmdMod } },
+                { NewBang, { 66, cmdMod | shiftMod } },
+                { NewMessage, { 50, cmdMod } },
+                { NewToggle, { 84, cmdMod | shiftMod } },
+                { NewNumbox, { 78, cmdMod | shiftMod } },
+                { NewVerticalSlider, { 86, cmdMod | shiftMod } },
+                { NewHorizontalSlider, { 74, cmdMod | shiftMod } },
+                { NewVerticalRadio, { 68, cmdMod | shiftMod } },
+                { NewHorizontalRadio, { 73, cmdMod | shiftMod } },
+                { NewFloatAtom, { 51, cmdMod } },
+                { NewListAtom, { 52, cmdMod } },
+                { NewArray, { 65, cmdMod | shiftMod } },
+                { NewGraphOnParent, { 71, cmdMod | shiftMod } },
+                { NewCanvas, { 67, cmdMod | shiftMod } },
+                { NewVUMeter, { 85, cmdMod | shiftMod } }
+            };
+            break;
+        case OSUtils::KeyboardLayout::AZERTY:
+            defaultShortcuts = {
+                { NewObject, { 38, cmdMod } },
+                { NewComment, { 40, cmdMod } },
+                { NewBang, { 66, cmdMod | shiftMod } },
+                { NewMessage, { 233, cmdMod } },
+                { NewToggle, { 84, cmdMod | shiftMod } },
+                { NewNumbox, { 73, cmdMod | shiftMod } },
+                { NewVerticalSlider, { 86, cmdMod | shiftMod } },
+                { NewHorizontalSlider, { 74, cmdMod | shiftMod } },
+                { NewVerticalRadio, { 68, cmdMod | shiftMod } },
+                { NewHorizontalRadio, { 73, cmdMod | shiftMod } },
+                { NewFloatAtom, { 34, cmdMod } },
+                { NewListAtom, { 39, cmdMod } },
+                { NewArray, { 65, cmdMod | shiftMod } },
+                { NewGraphOnParent, { 71, cmdMod | shiftMod } },
+                { NewCanvas, { 67, cmdMod | shiftMod } },
+                { NewVUMeter, { 85, cmdMod | shiftMod } }
+            };
+            break;
+
+        default:
+            break;
+        }
+        
         auto name = objectNames.at(static_cast<ObjectIDs>(commandID));
 
         if (name.isEmpty())
@@ -1577,15 +1600,6 @@ void PluginEditor::quit(bool askToSave)
     } else {
         nvgSurface.detachContext();
         JUCEApplication::quit();
-    }
-}
-
-void PluginEditor::showTouchSelectionHelper(bool shouldBeShown)
-{
-    touchSelectionHelper->show();
-    if (shouldBeShown) {
-        auto touchHelperBounds = getLocalBounds().removeFromBottom(48).withSizeKeepingCentre(192, 48).translated(0, -54);
-        touchSelectionHelper->setBounds(touchHelperBounds);
     }
 }
 

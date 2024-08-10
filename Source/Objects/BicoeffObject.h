@@ -512,7 +512,7 @@ public:
     }
 };
 
-class BicoeffObject : public ObjectBase {
+class BicoeffObject final : public ObjectBase {
 
     BicoeffGraph graph;
     Value sizeProperty = SynchronousValue();

@@ -63,10 +63,12 @@ public:
         if (getValue<bool>(latch)) {
             if (auto pic = ptr.get<t_fake_pic>()) {
                 outlet_float(pic->x_outlet, 1.0f);
+                if(pic->x_send != gensym("") && pic->x_send->s_thing) pd_float(pic->x_send->s_thing, 1.0f);
             }
         } else {
             if (auto pic = ptr.get<t_fake_pic>()) {
                 outlet_bang(pic->x_outlet);
+                if(pic->x_send != gensym("") && pic->x_send->s_thing) pd_bang(pic->x_send->s_thing);
             }
         }
     }
@@ -76,6 +78,7 @@ public:
         if (getValue<bool>(latch)) {
             if (auto pic = ptr.get<t_fake_pic>()) {
                 outlet_float(pic->x_outlet, 0.0f);
+                if(pic->x_send != gensym("") && pic->x_send->s_thing) pd_float(pic->x_send->s_thing, 0.0f);
             }
         }
     }
@@ -132,6 +135,11 @@ public:
     void updateImage(NVGcontext* nvg)
     {
         imageBuffers.clear();
+        
+        if(!img.isValid() && File(imageFile).existsAsFile())
+        {
+            img = ImageFileFormat::loadFrom(imageFile).convertedToFormat(Image::ARGB);
+        }
 
         int imageWidth = img.getWidth();
         int imageHeight = img.getHeight();
@@ -158,6 +166,8 @@ public:
             }
             x += 8192;
         }
+        
+        img = Image(); // Clear image from CPU memory after upload
 
         imageNeedsReload = false;
     }
@@ -169,7 +179,7 @@ public:
 
         auto b = getLocalBounds().toFloat();
 
-        nvgSave(nvg);
+        NVGScopedState scopedState(nvg);
         nvgIntersectScissor(nvg, 0, 0, getWidth(), getHeight());
         if (imageBuffers.empty()) {
             nvgFontSize(nvg, 20);
@@ -185,27 +195,20 @@ public:
                 offsetY = pic->x_offset_y;
             }
 
-            nvgSave(nvg);
+            NVGScopedState scopedState(nvg);
             nvgTranslate(nvg, offsetX, offsetY);
             for (auto& [image, bounds] : imageBuffers) {
                 nvgFillPaint(nvg, nvgImagePattern(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), 0, image->getImageId(), 1.0f));
                 nvgFillRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
             }
-            nvgRestore(nvg);
         }
 
         bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         if (getValue<bool>(outline)) {
-            nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
-            nvgStrokeWidth(nvg, 1.0f);
-            nvgStrokeColor(nvg, convertColour(outlineColour));
-            nvgStroke(nvg);
+            nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), convertColour(outlineColour), Corners::objectCornerRadius);
         }
-
-        nvgRestore(nvg);
     }
 
     void valueChanged(Value& value) override

@@ -189,9 +189,8 @@ Canvas::~Canvas()
 
 bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, int maxUpdateTimeMs)
 {
-    auto start = Time::getMillisecondCounter();
     auto pixelScale = getRenderScale();
-    auto zoom = isScrolling ? 2.0f : getValue<float>(zoomScale);
+    auto zoom = getValue<float>(zoomScale);
 
     int const logicalIoletsSize = 16 * 4;
     int const ioletBufferSize = logicalIoletsSize * pixelScale * zoom;
@@ -277,22 +276,38 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
     updateResizeHandleIfNeeded(resizeHandleImage, findColour(PlugDataColour::objectSelectedOutlineColourId));
     updateResizeHandleIfNeeded(resizeGOPHandleImage, findColour(PlugDataColour::graphAreaColourId));
 
-    // Then, check if object framebuffers need to be updated
-    if (isScrolling) {
-        if (viewport)
-            invalidRegion = (invalidRegion + viewport->getViewPosition()) / zoom;
-        for (auto* obj : objects) {
-            auto b = obj->getBounds();
-            if (b.intersects(invalidRegion)) {
-                obj->updateFramebuffer(nvg);
+    auto updateObjectFlagIfNeeded = [this, nvg](NVGImage& flagImage, Colour colour) {
+        const float flagSize = 9;
 
-                auto elapsed = Time::getMillisecondCounter() - start;
-                if (elapsed > maxUpdateTimeMs) {
-                    return false;
-                }
-            }
+        const auto pixelScale = getRenderScale();
+        const auto zoom = isZooming ? 2.0f : getValue<float>(zoomScale);
+
+        int const flagArea = flagSize * pixelScale * zoom;
+
+        if (flagImage.needsUpdate(flagArea, flagArea)) {
+            flagImage = NVGImage(nvg, flagArea, flagArea, [pixelScale, zoom, colour, flagSize](Graphics &g) {
+                g.addTransform(AffineTransform::scale(pixelScale * zoom, pixelScale * zoom));
+                Path outerArea;
+                outerArea.addRoundedRectangle(0, 0, flagSize, flagSize, Corners::objectCornerRadius, Corners::objectCornerRadius, 0, 1, 0, 0);
+                outerArea.applyTransform(AffineTransform::translation(-0.5f, 0.5f));
+
+                g.reduceClipRegion(outerArea);
+
+                Path flagA;
+                flagA.startNewSubPath(0, 0);
+                flagA.lineTo(flagSize, 0);
+                flagA.lineTo(flagSize, flagSize);
+                flagA.closeSubPath();
+
+                g.setColour(colour);
+                g.fillPath(flagA);
+            });
+            editor->nvgSurface.invalidateAll();
         }
-    }
+    };
+
+    updateObjectFlagIfNeeded(objectFlag, findColour(PlugDataColour::guiObjectInternalOutlineColour));
+    updateObjectFlagIfNeeded(objectFlagSelected, findColour(PlugDataColour::objectSelectedOutlineColourId));
 
     return true;
 }
@@ -300,13 +315,14 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
 // Callback from canvasViewport to perform actual rendering
 void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
 {
-    auto backgroundColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId));
-    auto dotsColour = convertColour(findColour(PlugDataColour::canvasDotsColourId));
-
     auto const halfSize = infiniteCanvasSize / 2;
     auto const zoom = getValue<float>(zoomScale);
 
-    // apply translation to the canvas nvg objects
+    auto background = findColour(PlugDataColour::canvasBackgroundColourId);
+    auto backgroundColour = convertColour(background);
+    auto borderLinesColour = convertColour(findColour(PlugDataColour::canvasDotsColourId).interpolatedWith(background, 0.2f));
+    auto& dotsColour = borderLinesColour;
+
     nvgSave(nvg);
 
     if (viewport) {
@@ -325,95 +341,136 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
 
         auto gridSize = objectGrid.gridSize ? objectGrid.gridSize : 25;
-        auto feather = getRenderScale() > 1.0f ? 0.25f : 0.75f;
+
         if (getValue<float>(zoomScale) >= 1.0f) {
-            nvgSave(nvg);
+            NVGScopedState scopedState(nvg);
             nvgTranslate(nvg, canvasOrigin.x % gridSize, canvasOrigin.y % gridSize); // Make sure grid aligns with origin
-            NVGpaint dots = nvgDotPattern(nvg, dotsColour, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize, 1.0f, feather);
+            NVGpaint dots = nvgDotPattern(nvg, dotsColour, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize, 0.8f, 0.0f);
             nvgFillPaint(nvg, dots);
             nvgFill(nvg);
-            nvgRestore(nvg);
         } else {
-            nvgSave(nvg);
-            nvgTranslate(nvg, canvasOrigin.x % (gridSize * 4), canvasOrigin.y % (gridSize * 4)); // Make sure grid aligns with origin
-            auto darkDotColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId).contrasting());
-            auto scaledDotSize = jmap(zoom, 1.0f, 0.25f, 1.0f, 4.0f);
-            if (zoom < 0.3f && getRenderScale() <= 1.0f)
-                scaledDotSize = jmap(zoom, 0.3f, 0.25f, 4.0f, 8.0f);
+            NVGScopedState scopedState(nvg);
 
-            for (int i = 0; i < 4; i++) {
-                nvgTranslate(nvg, gridSize, 0);
-
-                NVGpaint dots = nvgDotPattern(nvg, i == 3 ? darkDotColour : dotsColour, nvgRGBA(0, 0, 0, 0), gridSize * 4, scaledDotSize, feather + 0.2f);
-                nvgFillPaint(nvg, dots);
-                nvgFill(nvg);
+            int devision = 0;
+            switch(gridSize){
+                case 5:
+                    devision = 8;
+                    break;
+                case 15:
+                    devision = 3;
+                    break;
+                case 30:
+                    devision = 5;
+                    break;
+                default:
+                    devision = 4;
             }
-            nvgRestore(nvg);
-            nvgSave(nvg);
 
-            for (int i = 0; i < 4; i++) {
+            auto gridDivTotal = gridSize * devision;
+            auto offset = Point<int>((canvasOrigin.x % gridDivTotal), (canvasOrigin.y % gridDivTotal));
+
+            auto minorDotColour = nvgRGBAf(dotsColour.r, dotsColour.g, dotsColour.b, zoom * 0.5f);
+            auto majorDotColour = nvgRGBAf(dotsColour.r, dotsColour.g, dotsColour.b, zoom * 0.8f);
+            auto scaledDotSize = 0.8f / zoom;
+
+            // Horizontal Dots
+            nvgTranslate(nvg, offset.x, offset.y); // Adjust alignment to origin
+            {
+                NVGScopedState scopedState(nvg);
+                for (int i = 0; i < devision; i++) {
+                    nvgTranslate(nvg, gridSize, 0);
+                    NVGpaint dots = nvgDotPattern(nvg, i == (devision - 1) ? majorDotColour : minorDotColour, nvgRGBA(0, 0, 0, 0), gridDivTotal, scaledDotSize, 0.0f);
+                    nvgFillPaint(nvg, dots);
+                    nvgFill(nvg);
+                }
+            }
+            // Vertical Dots
+            for (int i = 0; i < devision; i++) {
                 nvgTranslate(nvg, 0, gridSize);
-                NVGpaint dots = nvgDotPattern(nvg, i == 3 ? darkDotColour : dotsColour, nvgRGBA(0, 0, 0, 0), gridSize * 4, scaledDotSize, feather + 0.2f);
+                NVGpaint dots = nvgDotPattern(nvg, i == (devision - 1) ? majorDotColour : minorDotColour, nvgRGBA(0, 0, 0, 0), gridDivTotal, scaledDotSize, 0.0f);
                 nvgFillPaint(nvg, dots);
                 nvgFill(nvg);
             }
-
-            nvgRestore(nvg);
         }
     }
-    auto drawBorder = [this, nvg, backgroundColour, zoom, dotsColour](bool bg, bool fg) {
+    auto drawBorder = [this, nvg, backgroundColour, zoom, borderLinesColour](bool bg, bool fg) {
         if (viewport && (showOrigin || showBorder) && !::getValue<bool>(presentationMode)) {
+            NVGScopedState scopedState(nvg);
             nvgBeginPath(nvg);
 
             const auto borderWidth = getValue<float>(patchWidth);
             const auto borderHeight = getValue<float>(patchHeight);
             const auto pos = Point<int>(halfSize, halfSize);
 
-            // Origin line paths. Draw both from {0, 0} so the strokes touch at the origin
-            nvgMoveTo(nvg, pos.x, pos.y);
-            nvgLineTo(nvg, pos.x, pos.y + (showOrigin ? halfSize : borderHeight));
-            nvgMoveTo(nvg, pos.x, pos.y);
-            nvgLineTo(nvg, pos.x + (showOrigin ? halfSize : borderWidth), pos.y);
-
-            if (showBorder) {
-                nvgMoveTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
-                nvgLineTo(nvg, pos.x + borderWidth, pos.y);
-                nvgMoveTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
-                nvgLineTo(nvg, pos.x, pos.y + borderHeight);
-            }
-
-            if (bg) {
-                // place solid line behind (to fake removeing grid points for now)
+            auto scaledStrokeSize = zoom < 1.0f ? jmap(zoom, 1.0f, 0.25f, 1.5f, 4.0f) : 1.5f;
+            if (zoom < 0.3f && getRenderScale() <= 1.0f)
+                scaledStrokeSize = jmap(zoom, 0.3f, 0.25f, 4.0f, 8.0f);
+            
+            if(bg)
+            {
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, pos.x, pos.y);
+                nvgLineTo(nvg, pos.x, pos.y + (showOrigin ? halfSize : borderHeight));
+                nvgMoveTo(nvg, pos.x, pos.y);
+                nvgLineTo(nvg, pos.x + (showOrigin ? halfSize : borderWidth), pos.y);
+                
+                if(showBorder)
+                {
+                    nvgMoveTo(nvg, pos.x + borderWidth, pos.y);
+                    nvgLineTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
+                    nvgLineTo(nvg, pos.x, pos.y + borderHeight);
+                }
                 nvgLineStyle(nvg, NVG_LINE_SOLID);
                 nvgStrokeColor(nvg, backgroundColour);
-                nvgStrokeWidth(nvg, 6.0f);
+                nvgStrokeWidth(nvg, 8.0f);
                 nvgStroke(nvg);
+                
+                nvgFillColor(nvg, backgroundColour);
+                nvgFillRect(nvg, pos.x - 1.0f, pos.y - 1.0f, 2, 2);
             }
-            if (fg) {
-                auto scaledStrokeSize = zoom < 1.0f ? jmap(zoom, 1.0f, 0.25f, 1.5f, 4.0f) : 1.5f;
-                if (zoom < 0.3f && getRenderScale() <= 1.0f)
-                    scaledStrokeSize = jmap(zoom, 0.3f, 0.25f, 4.0f, 8.0f);
-
-                // draw 0,0 point lines
-                nvgLineStyle(nvg, NVG_LINE_DASHED);
-
-                nvgStrokeColor(nvg, dotsColour);
-                nvgStrokeWidth(nvg, scaledStrokeSize);
-                nvgDashLength(nvg, 8.0f);
+            
+            nvgStrokeColor(nvg, borderLinesColour);
+            nvgStrokeWidth(nvg, scaledStrokeSize);
+            nvgDashLength(nvg, 8.0f);
+            nvgLineStyle(nvg, NVG_LINE_DASHED);
+            
+            if(fg)
+            {
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, pos.x, pos.y);
+                nvgLineTo(nvg, pos.x, pos.y + (showOrigin ? halfSize : borderHeight));
+                nvgStroke(nvg);
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, pos.x, pos.y);
+                nvgLineTo(nvg, pos.x + (showOrigin ? halfSize : borderWidth), pos.y);
                 nvgStroke(nvg);
 
                 // Connect origin lines at {0, 0}
+                /*
                 nvgBeginPath(nvg);
-                nvgMoveTo(nvg, pos.x + 2.0f, pos.y);
+                nvgMoveTo(nvg, pos.x + 4.0f, pos.y);
                 nvgLineTo(nvg, pos.x, pos.y);
-                nvgLineTo(nvg, pos.x, pos.y + 2.0f);
+                nvgLineTo(nvg, pos.x, pos.y + 4.0f);
                 nvgLineStyle(nvg, NVG_LINE_SOLID);
                 nvgStrokeWidth(nvg, 1.25f);
+                nvgStroke(nvg); */
+            }
+            if(showBorder && fg)
+            {
+                nvgStrokeWidth(nvg, scaledStrokeSize);
+                nvgLineStyle(nvg, NVG_LINE_DASHED);
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
+                nvgLineTo(nvg, pos.x + borderWidth, pos.y);
+                nvgStroke(nvg);
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
+                nvgLineTo(nvg, pos.x, pos.y + borderHeight);
                 nvgStroke(nvg);
             }
         }
     };
-
+    
     if (!dimensionsAreBeingEdited)
         drawBorder(true, true);
     else
@@ -442,7 +499,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             auto const bgColour = convertColour(findColour(PlugDataColour::presentationBackgroundColourId));
             auto const windowOutlineColour = convertColour(findColour(PlugDataColour::presentationBackgroundColourId).contrasting(0.3f));
 
-            nvgSave(nvg);
+            NVGScopedState scopedState(nvg);
 
             // background colour to crop outside of border area
             nvgBeginPath(nvg);
@@ -474,8 +531,6 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             nvgFillPaint(nvg, shadowImage);
             nvgFill(nvg);
             nvgStroke(nvg);
-
-            nvgRestore(nvg);
         }
     }
     // render connections infront or behind objects depending on lock mode or overlay setting
@@ -490,34 +545,25 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     }
 
     for (auto* connection : connectionsBeingCreated) {
-        nvgSave(nvg);
+        NVGScopedState scopedState(nvg);
         connection->render(nvg);
-        nvgRestore(nvg);
     }
 
     if (graphArea) {
-        nvgSave(nvg);
+        NVGScopedState scopedState(nvg);
         nvgTranslate(nvg, graphArea->getX(), graphArea->getY());
         graphArea->render(nvg);
-        nvgRestore(nvg);
     }
 
     objectGrid.render(nvg);
 
     if (viewport && lasso.isVisible() && !lasso.getBounds().isEmpty()) {
-        auto lassoBounds = lasso.getBounds().toFloat().reduced(1.0f);
-        auto smallestSide = lassoBounds.getWidth() < lassoBounds.getHeight() ? lassoBounds.getWidth() : lassoBounds.getHeight();
-
+        auto lassoBounds = lasso.getBounds();
+        lassoBounds = lassoBounds.withSize(jmax(lasso.getWidth(), 2), jmax(lasso.getHeight(), 2));
         auto fillColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.075f));
         auto outlineColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId).interpolatedWith(findColour(PlugDataColour::objectSelectedOutlineColourId), 0.65f));
 
-        nvgBeginPath(nvg);
-        nvgFillColor(nvg, fillColour);
-        nvgRect(nvg, lassoBounds.getX(), lassoBounds.getY(), lassoBounds.getWidth(), lassoBounds.getHeight());
-        nvgFill(nvg);
-        nvgStrokeColor(nvg, outlineColour);
-        nvgStrokeWidth(nvg, smallestSide < 1.0f ? 0.5f : 1.0f); // if one of the sides is smaller than 1px, we need to adjust the stroke width to prevent drawing out of bounds
-        nvgStroke(nvg);
+        nvgDrawRoundedRect(nvg, lassoBounds.getX(), lassoBounds.getY(), lassoBounds.getWidth(), lassoBounds.getHeight(), fillColour, outlineColour, 0.0f);
     }
 
     suggestor->renderAutocompletion(nvg);
@@ -526,7 +572,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         drawBorder(false, true);
 
     nvgRestore(nvg);
-
+    
     // Draw scrollbars
     if (viewport) {
         reinterpret_cast<CanvasViewport*>(viewport.get())->render(nvg);
@@ -578,14 +624,14 @@ void Canvas::renderAllObjects(NVGcontext* nvg, Rectangle<int> area)
 {
     for (auto* obj : objects) {
         auto b = obj->getBounds();
-
-        nvgSave(nvg);
-        nvgTranslate(nvg, b.getX(), b.getY());
-        if (b.intersects(area) && obj->isVisible()) {
-            obj->render(nvg);
+        {
+            NVGScopedState scopedState(nvg);
+            nvgTranslate(nvg, b.getX(), b.getY());
+            if (b.intersects(area) && obj->isVisible()) {
+                obj->render(nvg);
+            }
         }
-        nvgRestore(nvg);
-
+        
         // Draw label in canvas coordinates
         obj->renderLabel(nvg);
     }
@@ -595,22 +641,44 @@ void Canvas::renderAllConnections(NVGcontext* nvg, Rectangle<int> area)
     if (!connectionLayer.isVisible())
         return;
 
+    //TODO: Can we clean this up? We will want to have selected connections in-front,
+    // and take precedence over non-selected for resize handles
+
     Array<Connection*> connectionsToDraw;
+    Array<Connection*> connectionsToDrawSelected;
+    Connection* hovered = nullptr;
 
     for (auto* connection : connections) {
-        nvgSave(nvg);
+        NVGScopedState scopedState(nvg);
         if (connection->intersectsRectangle(area) && connection->isVisible()) {
-            connection->render(nvg);
-            if (showConnectionOrder)
+            if (connection->isMouseHovering())
+                hovered = connection;
+            else if (!connection->isSelected())
+                connection->render(nvg);
+            else
+                connectionsToDrawSelected.add(connection);
+            if (showConnectionOrder) {
                 connectionsToDraw.add(connection);
+            }
         }
-        nvgRestore(nvg);
     }
+    // Draw all selected connections in front
+    if (!connectionsToDrawSelected.isEmpty()) {
+        for (auto* connection : connectionsToDrawSelected) {
+            NVGScopedState scopedState(nvg);
+            connection->render(nvg);
+        }
+    }
+
+    if (hovered) {
+        NVGScopedState scopedState(nvg);
+        hovered->render(nvg);
+    }
+
     if (!connectionsToDraw.isEmpty()) {
         for (auto* connection : connectionsToDraw) {
-            nvgSave(nvg);
+            NVGScopedState scopedState(nvg);
             connection->renderConnectionOrder(nvg);
-            nvgRestore(nvg);
         }
     }
 }
@@ -1193,6 +1261,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
     // Drag lasso
     if (!(e.source.isTouch() && e.source.getIndex() != 0)) {
         lasso.dragLasso(e);
+        lasso.setBounds(lasso.getBounds().withWidth(jmax(2, lasso.getWidth())).withHeight(jmax(2, lasso.getHeight())));
     }
 }
 
@@ -1225,11 +1294,6 @@ bool Canvas::autoscroll(MouseEvent const& e)
     }
 
     return false;
-}
-
-Point<int> Canvas::getLastMousePosition()
-{
-    return { lastMouseX, lastMouseY };
 }
 
 void Canvas::mouseUp(MouseEvent const& e)
@@ -1279,10 +1343,6 @@ void Canvas::mouseUp(MouseEvent const& e)
 
 void Canvas::updateSidebarSelection()
 {
-#if JUCE_IOS
-    editor->showTouchSelectionHelper(selectedComponents.getNumSelected());
-#endif
-
     auto lassoSelection = getSelectionOfType<Object>();
 
     if (lassoSelection.size() > 0) {
@@ -1691,7 +1751,6 @@ void Canvas::removeSelection()
     patch.startUndoSequence("Remove object/s");
     // Make sure object isn't selected and stop updating gui
     editor->sidebar->hideParameters();
-    editor->showTouchSelectionHelper(false);
 
     // Find selected objects and make them selected in pd
     std::vector<t_gobj*> objects;
@@ -2218,15 +2277,6 @@ void Canvas::valueChanged(Value& v)
     // Update zoom
     if (v.refersToSameSourceAs(zoomScale)) {
         editor->statusbar->updateZoomLevel();
-        auto newScale = getValue<float>(zoomScale);
-
-        // FIXME: cached geometry can look thicker/thinner at different zoom scales (possibly a bug with nanovg)
-        // So we update all cached connections here
-        // float comparison should be ok, as lastViewportScale is always set via zoomScale
-        if (patch.lastViewportScale != newScale) {
-            for (auto connection : connections)
-                connection->forceUpdate(true);
-        }
         patch.lastViewportScale = getValue<float>(zoomScale);
         hideSuggestions();
     } else if (v.refersToSameSourceAs(patchWidth)) {
@@ -2299,7 +2349,6 @@ void Canvas::valueChanged(Value& v)
 
         hideNameAndArgs = hideText;
     } else if (v.refersToSameSourceAs(isGraphChild)) {
-
         if (!patch.getPointer())
             return;
 
@@ -2409,10 +2458,10 @@ bool Canvas::isPointOutsidePluginArea(Point<int> point)
 
 void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, Rectangle<int> const& area)
 {
-    auto const lassoArea = area.withSize(jmax(area.getWidth(), 1), jmax(area.getHeight(), 1));
+    auto const lassoBounds = area.withWidth(jmax(2, area.getWidth())).withHeight(jmax(2, area.getHeight()));
 
     for (auto* object : objects) {
-        if (lassoArea.intersects(object->getSelectableBounds())) {
+        if (lassoBounds.intersects(object->getSelectableBounds())) {
             itemsFound.add(object);
         } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
             setSelected(object, false, false);
@@ -2422,13 +2471,13 @@ void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, R
     for (auto& connection : connections) {
         // If total bounds don't intersect, there can't be an intersection with the line
         // This is cheaper than checking the path intersection, so do this first
-        if (!connection->getBounds().intersects(lassoArea)) {
+        if (!connection->getBounds().intersects(lassoBounds)) {
             setSelected(connection, false, false);
             continue;
         }
 
         // Check if path intersects with lasso
-        if (connection->intersects(lassoArea.toFloat())) {
+        if (connection->intersects(lassoBounds.toFloat())) {
             itemsFound.add(connection);
         } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
             setSelected(connection, false, false);

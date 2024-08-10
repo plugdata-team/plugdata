@@ -29,6 +29,11 @@ TabComponent::TabComponent(PluginEditor* editor)
     }
 
     addMouseListener(this, true);
+    
+    // Dequeue messages to "pd" symbol to make sure the "pluginmode" message always arrives earlier than the tab update.
+    // Without this, FL Studio (and possibly others) will fail to init the pluginmode theme!
+    editor->pd->triggerAsyncUpdate();
+    
     triggerAsyncUpdate();
 }
 
@@ -74,6 +79,8 @@ Canvas* TabComponent::openPatch(String const& patchContent)
 
 Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch)
 {
+    if(!existingPatch) return nullptr;
+    
     // Check if subpatch is already opened
     for (auto* cnv : canvases) {
         if (cnv->patch == *existingPatch) {
@@ -473,7 +480,7 @@ void TabComponent::closeEmptySplits()
 
 void TabComponent::showTab(Canvas* cnv, int splitIndex)
 {
-    if (cnv == splits[splitIndex] && cnv->getParentComponent()) {
+    if (cnv == splits[splitIndex] && cnv && cnv->getParentComponent()) {
         return;
     }
 
@@ -528,18 +535,15 @@ void TabComponent::renderArea(NVGcontext* nvg, Rectangle<int> area)
     nvgFillRect(nvg, 0, 0, area.getWidth(), area.getHeight());
 
     if (splits[0]) {
-        nvgSave(nvg);
+        NVGScopedState scopedState(nvg);
         nvgScissor(nvg, 0, 0, splits[1] ? (splitSize - 3) : getWidth(), getHeight());
         splits[0]->performRender(nvg, area);
-        nvgRestore(nvg);
     }
     if (splits[1]) {
-        nvgSave(nvg);
+        NVGScopedState scopedState(nvg);
         nvgTranslate(nvg, splitSize + 3, 0);
         nvgScissor(nvg, 0, 0, getWidth() - (splitSize + 3), getHeight());
-
         splits[1]->performRender(nvg, area.translated(-(splitSize + 3), 0));
-        nvgRestore(nvg);
     }
 
     if (!splitDropBounds.isEmpty()) {
@@ -931,9 +935,11 @@ void TabComponent::itemDragMove(SourceDetails const& dragSourceDetails)
         splitDropBounds = Rectangle<int>();
         tab->setVisible(true);
 
+#if !JUCE_IOS
         if (tab->parent != this) {
             editor->getTabComponent().createNewWindow(tab->cnv);
         }
+#endif
 
         auto centreX = tab->getBounds().getCentreX();
         auto tabBarWidth = splits[1] ? getWidth() / 2 : getWidth();

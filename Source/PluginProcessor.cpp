@@ -79,11 +79,10 @@ AudioProcessor::BusesProperties PluginProcessor::buildBusesProperties()
 
 // ag: Note that this is just a fallback, we update this with live version
 // data from the external if we have it.
-String PluginProcessor::pdlua_version = "pdlua 0.11.0 (lua 5.4)";
+String PluginProcessor::pdlua_version = "pdlua 0.12.0 (lua 5.4)";
 
 PluginProcessor::PluginProcessor()
     : AudioProcessor(buildBusesProperties())
-    , pd::Instance("plugdata")
     , internalSynth(std::make_unique<InternalSynth>())
     , hostInfoUpdater(this)
 {
@@ -194,7 +193,13 @@ void PluginProcessor::initialiseFilesystem()
     auto deken = homeDir.getChildFile("Externals");
     auto patches = homeDir.getChildFile("Patches");
 
-#if !JUCE_WINDOWS
+#if JUCE_IOS
+    // TODO: remove this later. This is for iOS version transition
+    auto oldDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata");
+    if(oldDir.isDirectory() && oldDir.getChildFile("Abstractions").isDirectory()) {
+        oldDir.deleteRecursively();
+    }
+#elif !JUCE_WINDOWS
     if (!homeDir.exists())
         homeDir.createDirectory();
 #endif
@@ -247,10 +252,12 @@ void PluginProcessor::initialiseFilesystem()
     if (!deken.exists()) {
         deken.createDirectory();
     }
+#if !JUCE_IOS
     if (!patches.exists()) {
         patches.createDirectory();
     }
-
+#endif
+    
     auto testTonePatch = homeDir.getChildFile("testtone.pd");
     auto cpuTestPatch = homeDir.getChildFile("load-meter.pd");
 
@@ -294,12 +301,20 @@ void PluginProcessor::initialiseFilesystem()
 
     auto shortcut = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata.LNK");
     ProjectInfo::appDataDir.createShortcut("plugdata", shortcut);
-
 #elif JUCE_IOS
-    // This is not ideal but on iOS, it seems to be the only way to make it work...
-    versionDataDir.getChildFile("Abstractions").copyDirectoryTo(homeDir.getChildFile("Abstractions"));
-    versionDataDir.getChildFile("Documentation").copyDirectoryTo(homeDir.getChildFile("Documentation"));
-    versionDataDir.getChildFile("Extra").copyDirectoryTo(homeDir.getChildFile("Extra"));
+    versionDataDir.getChildFile("Abstractions").createSymbolicLink(homeDir.getChildFile("Abstractions"), true);
+    versionDataDir.getChildFile("Documentation").createSymbolicLink(homeDir.getChildFile("Documentation"), true);
+    versionDataDir.getChildFile("Extra").createSymbolicLink(homeDir.getChildFile("Extra"), true);
+
+    auto docsPatchesDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("Patches");
+    docsPatchesDir.createDirectory();
+    if(!patches.isSymbolicLink()) {
+        patches.deleteRecursively();
+    }
+    else {
+        patches.deleteFile();
+    }
+    docsPatchesDir.createSymbolicLink(patches, true);
 #else
     versionDataDir.getChildFile("Abstractions").createSymbolicLink(homeDir.getChildFile("Abstractions"), true);
     versionDataDir.getChildFile("Documentation").createSymbolicLink(homeDir.getChildFile("Documentation"), true);
@@ -369,7 +384,6 @@ bool PluginProcessor::acceptsMidi() const
 #if JUCE_IOS
     return !ProjectInfo::isFx;
 #endif
-
     return true;
 }
 
@@ -898,26 +912,17 @@ void PluginProcessor::sendPlayhead()
             atoms_playhead.emplace_back(static_cast<float>(infos->getTimeSignature()->denominator));
             sendMessage("_playhead", "timesig", atoms_playhead);
         }
-
-        if (infos->getPpqPosition().hasValue()) {
-            atoms_playhead[0] = static_cast<float>(*infos->getPpqPosition());
-        } else {
-            atoms_playhead[0] = 0.0f;
+        
+        auto ppq = infos->getPpqPosition();
+        auto samplesTime = infos->getTimeInSamples();
+        auto secondsTime = infos->getTimeInSeconds();
+        if (ppq.hasValue() || samplesTime.hasValue() || secondsTime.hasValue()) {
+            atoms_playhead.resize(3);
+            atoms_playhead[0] = ppq.hasValue() ? static_cast<float>(*ppq) : 0.0f;
+            atoms_playhead[1] = samplesTime.hasValue() ? static_cast<float>(*samplesTime) : 0.0f;
+            atoms_playhead[2] = secondsTime.hasValue() ? static_cast<float>(*secondsTime) : 0.0f;
+            sendMessage("_playhead", "position", atoms_playhead);
         }
-
-        if (infos->getTimeInSamples().hasValue()) {
-            atoms_playhead[1] = static_cast<float>(*infos->getTimeInSamples());
-        } else {
-            atoms_playhead[1] = 0.0f;
-        }
-
-        if (infos->getTimeInSeconds().hasValue()) {
-            atoms_playhead.emplace_back(static_cast<float>(*infos->getTimeInSeconds()));
-        } else {
-            atoms_playhead.emplace_back(0.0f);
-        }
-
-        sendMessage("_playhead", "position", atoms_playhead);
         atoms_playhead.resize(1);
     }
     unlockAudioThread();
@@ -1230,16 +1235,17 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     }
 
     unlockAudioThread();
-
+    
     delete[] xmlData;
 
+    
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         editor->getTabComponent().triggerAsyncUpdate();
         editor->sidebar->updateAutomationParameters();  // After loading a state, we need to update all the parameters
     }
 
     // Let host know our parameter layout (likely) changed
-    hostInfoUpdater.triggerAsyncUpdate();
+    hostInfoUpdater.update();
 }
 
 pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL)
@@ -1258,7 +1264,9 @@ pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL)
     auto dirname = patchFile.getParentDirectory().getFullPathName().replace("\\", "/");
     auto filename = patchFile.getFileName();
 
-    glob_forcefilename(generateSymbol(filename), generateSymbol(dirname));
+    if(!glob_hasforcedfilename()) {
+        glob_forcefilename(generateSymbol(filename), generateSymbol(dirname));
+    }
     auto newPatch = openPatch(tempFile);
     if (newPatch) {
         if (auto patch = newPatch->getPointer()) {

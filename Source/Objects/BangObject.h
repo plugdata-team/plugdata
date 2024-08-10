@@ -11,11 +11,10 @@ class BangObject final : public ObjectBase {
     Value bangHold = SynchronousValue(40.0f);
     Value sizeProperty = SynchronousValue();
 
-    std::atomic<bool> bangState = false;
+    bool bangState = false;
     bool alreadyBanged = false;
 
     IEMHelper iemHelper;
-    bool mouseHover = false;
 
 public:
     BangObject(pd::WeakReference obj, Object* parent)
@@ -104,18 +103,6 @@ public:
         trigger();
     }
 
-    void mouseEnter(MouseEvent const& e) override
-    {
-        mouseHover = true;
-        repaint();
-    }
-
-    void mouseExit(MouseEvent const& e) override
-    {
-        mouseHover = false;
-        repaint();
-    }
-
     void render(NVGcontext* nvg) override
     {
         auto b = getLocalBounds().toFloat();
@@ -123,9 +110,6 @@ public:
         auto foregroundColour = convertColour(getValue<Colour>(iemHelper.primaryColour)); // TODO: this is some bad threading practice!
 
         auto bgColour = getValue<Colour>(iemHelper.secondaryColour);
-
-        if (mouseHover)
-            bgColour = getHoverBackgroundColour(bgColour);
 
         auto backgroundColour = convertColour(bgColour);
         auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));

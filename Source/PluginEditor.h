@@ -133,7 +133,6 @@ public:
 
     void commandKeyChanged(bool isHeld) override;
     void setUseBorderResizer(bool shouldUse);
-    void showTouchSelectionHelper(bool shouldBeShown);
 
     bool highlightSearchTarget(void* target, bool openNewTabIfNeeded);
 
@@ -149,13 +148,10 @@ public:
     std::unique_ptr<Dialog> openedDialog;
 
     Value theme;
-
-    Value hvccMode;
     Value autoconnect;
 
     std::unique_ptr<Palettes> palettes;
 
-    OfflineObjectRenderer offlineRenderer;
     NVGSurface nvgSurface;
 
     // used to display callOutBoxes only in a safe area between top & bottom toolbars
@@ -211,5 +207,7 @@ private:
     // Used in standalone
     std::unique_ptr<MouseRateReducedComponent<ResizableBorderComponent>> borderResizer;
 
+    OSUtils::KeyboardLayout keyboardLayout;
+        
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginEditor)
 };

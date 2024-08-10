@@ -35,9 +35,9 @@ class AtomHelper {
 
 public:
     Value labelColour = SynchronousValue();
-    Value labelPosition = SynchronousValue(0.0f);
     Value fontSize = SynchronousValue(5.0f);
     Value labelText = SynchronousValue();
+    Value labelPosition = SynchronousValue(0.0f);
     Value sendSymbol = SynchronousValue();
     Value receiveSymbol = SynchronousValue();
 
@@ -57,6 +57,46 @@ public:
         objectParameters.addParamCombo("Label Position", cLabel, &labelPosition, { "left", "right", "top", "bottom" });
     }
 
+    void drawTriangleFlag(NVGcontext* nvg, bool isHighlighted, bool topAndBottom = false)
+    {
+        auto const flagSize = 9;
+        auto width = gui->getWidth();
+        auto height = gui->getHeight();
+        
+        // If this object is inside a subpatch then it's canvas won't update framebuffers
+        // We need to find the base canvas it's in (which will have the same zoom) and use
+        // that canvases triangle image
+        auto getRootCanvas = [this]() -> Canvas* {
+            Canvas* parentCanvas = cnv;
+            while (Canvas* parent = parentCanvas->findParentComponentOfClass<Canvas>()) {
+                parentCanvas = parent;
+            }
+            return parentCanvas;
+        };
+
+        auto* rootCnv = getRootCanvas();
+        auto objectFlagId = isHighlighted ? rootCnv->objectFlagSelected.getImageId() : rootCnv->objectFlag.getImageId();
+
+        // draw triangle top right
+        nvgFillPaint(nvg, nvgImagePattern(nvg, width - flagSize, 0, flagSize, flagSize, 0, objectFlagId, 1));
+        nvgFillRect(nvg, width - flagSize, 0, flagSize, flagSize);
+
+        if (topAndBottom) {
+            // draw same triangle flipped bottom right
+            NVGScopedState scopedState(nvg);
+            // Rotate around centre
+            auto halfFlagSize = flagSize * 0.5f;
+            nvgTranslate(nvg, width - halfFlagSize, height - halfFlagSize);
+            nvgRotate(nvg, degreesToRadians<float>(90));
+            nvgTranslate(nvg, -halfFlagSize, -halfFlagSize);
+
+            nvgBeginPath(nvg);
+            nvgRect(nvg, 0, 0, flagSize, flagSize);
+            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, flagSize, flagSize, 0, objectFlagId, 1));
+            nvgFill(nvg);
+        }
+    }
+    
     void update()
     {
         labelText = getLabelText();
@@ -64,7 +104,6 @@ public:
         if (auto atom = ptr.get<t_fake_gatom>()) {
             labelPosition = static_cast<int>(atom->a_wherelabel + 1);
         }
-
         int h = getFontHeight();
 
         int idx = static_cast<int>(std::find(atomSizes, atomSizes + 7, h) - atomSizes);

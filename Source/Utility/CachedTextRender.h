@@ -13,11 +13,10 @@ public:
             updateImage = false;
         }
 
-        nvgSave(nvg);
+        NVGScopedState scopedState(nvg);
         nvgIntersectScissor(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
         nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, bounds.getWidth() + 3, bounds.getHeight(), 0, image.getImageId(), 1.0f));
         nvgFillRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth() + 3, bounds.getHeight());
-        nvgRestore(nvg);
     }
 
     // If you want to use this for text measuring as well, you might want the measuring to be ready before
@@ -64,7 +63,7 @@ public:
 
 private:
     NVGImage image;
-    hash32 lastTextHash;
+    hash32 lastTextHash = 0;
     float lastScale = 1.0f;
     Colour lastColour;
     int lastWidth = 0;

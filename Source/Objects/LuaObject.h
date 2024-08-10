@@ -18,7 +18,7 @@ void pdlua_gfx_mouse_drag(t_pdlua* o, int x, int y);
 void pdlua_gfx_repaint(t_pdlua* o, int firsttime);
 }
 
-class LuaObject : public ObjectBase
+class LuaObject final : public ObjectBase
     , public Timer {
 
     Colour currentColour;
@@ -100,8 +100,8 @@ public:
         // We need to get the actual zoom from the top level canvas, not of the graph this happens to be inside of
         auto* topLevelCanvas = cnv;
 
-        while (topLevelCanvas && topLevelCanvas->isGraph) {
-            topLevelCanvas = topLevelCanvas->findParentComponentOfClass<Canvas>();
+        while (auto* nextCnv = topLevelCanvas->findParentComponentOfClass<Canvas>()) {
+            topLevelCanvas = nextCnv;
         }
         if (topLevelCanvas) {
             zoomScale.referTo(topLevelCanvas->zoomScale);
@@ -350,9 +350,7 @@ public:
                 float h = atom_getfloat(argv + 3);
                 float cornerRadius = atom_getfloat(argv + 4);
 
-                nvgBeginPath(nvg);
-                nvgRoundedRect(nvg, x, y, w, h, cornerRadius);
-                nvgFill(nvg);
+                nvgFillRoundedRect(nvg, x, y, w, h, cornerRadius);
             }
             break;
         }
@@ -434,7 +432,7 @@ public:
         }
         case hash("lua_fill_all"): {
             auto bounds = getLocalBounds().toFloat().reduced(0.5f);
-            auto outlineColour = cnv->editor->getLookAndFeel().findColour(isSelected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+            auto outlineColour = cnv->editor->getLookAndFeel().findColour(isSelected ? PlugDataColour::objectSelectedOutlineColourId :  objectOutlineColourId);
 
             nvgBeginPath(nvg);
             nvgRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::objectCornerRadius);
@@ -445,7 +443,6 @@ public:
             nvgStroke(nvg);
 
             nvgStrokeColor(nvg, convertColour(currentColour));
-
             break;
         }
 

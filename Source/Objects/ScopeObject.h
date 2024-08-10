@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class ScopeObject : public ObjectBase
+class ScopeObject final : public ObjectBase
     , public Timer {
 
     std::vector<float> x_buffer;
@@ -144,7 +144,7 @@ public:
         }
         nvgStroke(nvg);
 
-        nvgSave(nvg);
+        NVGScopedState scopedState(nvg);
         nvgIntersectScissor(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight());
         if (!(y_buffer.empty() || x_buffer.empty())) {
             nvgBeginPath(nvg);
@@ -160,7 +160,6 @@ public:
             }
             nvgStroke(nvg);
         }
-        nvgRestore(nvg);
     }
 
     void timerCallback() override

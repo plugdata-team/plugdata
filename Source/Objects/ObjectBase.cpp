@@ -141,8 +141,13 @@ ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
     , pd(parent->cnv->pd)
     , objectSizeListener(parent)
 {
-    object->addComponentListener(&objectSizeListener);
-
+    // Perform async, so that we don't get a size change callback for initial creation
+    MessageManager::callAsync([_this = SafePointer(this)](){
+        if(!_this) return;
+        _this->object->addComponentListener(&_this->objectSizeListener);
+        _this->updateLabel();
+    });
+    
     setWantsKeyboardFocus(true);
 
     setLookAndFeel(new PlugDataLook());
@@ -177,20 +182,9 @@ ObjectBase::~ObjectBase()
     delete lnf;
 }
 
-Colour ObjectBase::getHoverBackgroundColour(Colour const& colour)
-{
-    auto brightness = colour.getBrightness();
-    float const threshold = 0.5f;
-    if (brightness < threshold)
-        return colour.brighter(0.05f);
-    else
-        return colour.darker(0.03f);
-}
-
 void ObjectBase::initialise()
 {
     update();
-    updateLabel();
     constrainer = createConstrainer();
     onConstrainerCreate();
 
@@ -460,10 +454,12 @@ void ObjectBase::paint(Graphics& g)
 float ObjectBase::getImageScale()
 {
     Canvas* topLevel = cnv;
-    while (auto* nextCnv = topLevel->findParentComponentOfClass<Canvas>()) {
-        topLevel = nextCnv;
+    if(!hideInGraph()) { // No need to do this if we can't be visible in a graph anyway!
+        while (auto* nextCnv = topLevel->findParentComponentOfClass<Canvas>()) {
+            topLevel = nextCnv;
+        }
     }
-    return topLevel->isScrolling ? topLevel->getRenderScale() * 2.0f : topLevel->getRenderScale() * std::max(1.0f, getValue<float>(topLevel->zoomScale));
+    return topLevel->isZooming ? topLevel->getRenderScale() * 2.0f : topLevel->getRenderScale() * std::max(1.0f, getValue<float>(topLevel->zoomScale));
 }
 
 ObjectParameters ObjectBase::getParameters()
@@ -710,11 +706,6 @@ String ObjectBase::getBinbufSymbol(int argIndex)
     }
 
     return {};
-}
-
-Canvas* ObjectBase::getCanvas()
-{
-    return nullptr;
 }
 
 pd::Patch::Ptr ObjectBase::getPatch()

@@ -66,7 +66,7 @@ public:
         };
 
         for (int i = 0; i < 4; i++) {
-            nvgSave(nvg);
+            NVGScopedState scopedState(nvg);
             // Rotate around centre
             nvgTranslate(nvg, getVert(i).x, getVert(i).y);
             nvgRotate(nvg, degreesToRadians<float>(angle));
@@ -76,7 +76,6 @@ public:
             nvgRect(nvg, 0, 0, 9, 9);
             nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage.getImageId(), 1));
             nvgFill(nvg);
-            nvgRestore(nvg);
             angle -= 90;
         }
     }

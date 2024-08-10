@@ -123,7 +123,7 @@ public:
     {
         if (hitArea.contains(x - Object::margin, y - Object::margin)) {
             return true;
-        };
+        }
         
         return false;
     }
@@ -170,7 +170,7 @@ public:
         auto cornerRadius = jmin(Corners::objectCornerRadius, jmin(getWidth(), getHeight()) * 0.55f);
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgBgColour, nvgBgColour, cornerRadius);
 
-        if (!getValue<bool>(object->locked) && !getValue<bool>(object->commandLocked) && !hideHitArea) {
+        if (!cnv->isGraph && !getValue<bool>(object->locked) && !getValue<bool>(object->commandLocked) && !hideHitArea) {
             auto cornerRadius = jmin(Corners::objectCornerRadius, hitArea.getWidth() * 0.5f);
             auto selectionRectColour = convertColour((object->isSelected() || (isMouseOver())) ? cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId) : bgcolour.contrasting(0.75f));
             nvgDrawRoundedRect(nvg, hitArea.getX(), hitArea.getY(), hitArea.getWidth(), hitArea.getHeight(), nvgRGBAf(0, 0, 0, 0), selectionRectColour, cornerRadius);

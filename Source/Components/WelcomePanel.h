@@ -67,9 +67,7 @@ class WelcomePanel : public Component
 
             g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
             g.strokePath(tilePath, PathStrokeType(1.0f));
-
-
-
+            
             auto textWidth = bounds.getWidth() - 8;
             if (titleImage.needsUpdate(textWidth * 2, 24 * 2) || subtitleImage.needsUpdate(textWidth * 2, 16 * 2)) {
                 auto textColour = findColour(PlugDataColour::panelTextColourId);
@@ -88,12 +86,13 @@ class WelcomePanel : public Component
                 });
             }
 
-            nvgSave(nvg);
-            nvgTranslate(nvg, 22, bounds.getHeight() - 30);
-            titleImage.render(nvg, Rectangle<int>(0, 0, bounds.getWidth() - 8, 24));
-            nvgTranslate(nvg, 0, 20);
-            subtitleImage.render(nvg, Rectangle<int>(0, 0, bounds.getWidth() - 8, 16));
-            nvgRestore(nvg);
+            {
+                NVGScopedState scopedState(nvg);
+                nvgTranslate(nvg, 22, bounds.getHeight() - 30);
+                titleImage.render(nvg, Rectangle<int>(0, 0, bounds.getWidth() - 8, 24));
+                nvgTranslate(nvg, 0, 20);
+                subtitleImage.render(nvg, Rectangle<int>(0, 0, bounds.getWidth() - 8, 16));
+            }
 
             if (onFavourite) {
                 auto favouriteIconBounds = getHeartIconBounds();
@@ -154,7 +153,13 @@ public:
         recentlyOpenedViewport.setViewedComponent(&recentlyOpenedComponent, false);
         recentlyOpenedViewport.setScrollBarsShown(true, false, false, false);
         recentlyOpenedComponent.setVisible(true);
-        addAndMakeVisible(recentlyOpenedViewport);
+#if JUCE_IOS
+        recentlyOpenedViewport.setVisible(OSUtils::isIPad());
+#else
+        recentlyOpenedViewport.setVisible(true);
+#endif
+
+        addChildComponent(recentlyOpenedViewport);
 
         setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this));
         triggerAsyncUpdate();
@@ -254,14 +259,12 @@ public:
                 auto patchFile = File(subTree.getProperty("Path").toString());
                 auto patchImage = subTree.getProperty("PatchImage").toString();
 
-                subTree.setProperty("Snapshot", "", nullptr); // TODO: this is cleanup for v0.9.0 transition period, remove later
-
                 auto favourited = subTree.hasProperty("Pinned") && static_cast<bool>(subTree.getProperty("Pinned"));
                 auto snapshotColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f);
 
                 String silhoutteSvg;
                 if (patchImage.isEmpty() && patchFile.existsAsFile()) {
-                    silhoutteSvg = OfflineObjectRenderer::patchToSVGFast(patchFile.loadFileAsString());
+                    silhoutteSvg = OfflineObjectRenderer::patchToSVG(patchFile.loadFileAsString());
                 } else {
                     MemoryOutputStream ostream;
                     Base64::convertFromBase64(ostream, patchImage);
@@ -356,9 +359,11 @@ public:
         nvgFontFace(nvg, "Inter-Bold");
         nvgText(nvg, 35, 38, "Welcome to plugdata", nullptr);
 
-        nvgBeginPath(nvg);
-        nvgFontSize(nvg, 24);
-        nvgText(nvg, 35, 244, "Recently Opened", nullptr);
+        if(recentlyOpenedViewport.isVisible()) {
+            nvgBeginPath(nvg);
+            nvgFontSize(nvg, 24);
+            nvgText(nvg, 35, 244, "Recently Opened", nullptr);
+        }
     }
 
     void lookAndFeelChanged() override

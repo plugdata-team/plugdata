@@ -37,10 +37,7 @@ public:
 
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
             editor->setBorder({ 0, 8, 4, 1 });
-
-            if (editor != nullptr) {
-                editor->setInputRestrictions(0, "e.-0123456789");
-            }
+            editor->setInputRestrictions(0, "e.-0123456789");
         };
 
         input.setFont(Fonts::getTabularNumbersFont().withHeight(15.5f));
@@ -81,6 +78,9 @@ public:
 
     void update() override
     {
+        if (input.isShowing())
+            return;
+                
         value = getValue();
         input.setText(input.formatNumber(value), dontSendNotification);
 
@@ -166,6 +166,21 @@ public:
     {
         preFocusValue = value;
         repaint();
+    }
+    
+    
+    bool keyPressed(KeyPress const& key) override
+    {
+        if(key.getKeyCode() == KeyPress::returnKey)
+        {
+            auto inputValue = input.getText().getFloatValue();
+            preFocusValue = value;
+            sendFloatValue(inputValue);
+            cnv->grabKeyboardFocus();
+            return true;
+        }
+        
+        return false;
     }
 
     void focusLost(FocusChangeType cause) override

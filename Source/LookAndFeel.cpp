@@ -735,9 +735,14 @@ void PlugDataLook::drawCornerResizer(Graphics& g, int w, int h, bool isMouseOver
 
 void PlugDataLook::drawTooltip(Graphics& g, String const& text, int width, int height)
 {
-    auto bounds = Rectangle<float>(0, 0, width, height);
-    auto cornerSize = Corners::defaultCornerRadius;
+    auto bounds = Rectangle<float>(0, 0, width, height).reduced(ProjectInfo::canUseSemiTransparentWindows() ? 6 : 0);
+    auto shadowBounds = bounds.reduced(2);
+    auto const cornerSize = ProjectInfo::canUseSemiTransparentWindows() ? Corners::defaultCornerRadius : 0;
 
+    Path shadowPath;
+    shadowPath.addRoundedRectangle(shadowBounds.getX(), shadowBounds.getY(), shadowBounds.getWidth(), shadowBounds.getHeight(), cornerSize);
+    StackShadow::renderDropShadow(g, shadowPath, Colours::black.withAlpha(0.44f), 8, {0, 0}, 0);
+    
     g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
     g.fillRoundedRectangle(bounds.toFloat(), cornerSize);
 
@@ -764,9 +769,10 @@ void PlugDataLook::drawTooltip(Graphics& g, String const& text, int width, int h
         }
     }
 
+    auto textOffset = ProjectInfo::canUseSemiTransparentWindows() ? 10 : 0;
     TextLayout tl;
     tl.createLayoutWithBalancedLineLengths(s, (float)maxToolTipWidth);
-    tl.draw(g, bounds.withSizeKeepingCentre(width - 20, height - 2));
+    tl.draw(g, bounds.withSizeKeepingCentre(width - (20 + textOffset), height - (2 + textOffset)));
 }
 
 Font PlugDataLook::getComboBoxFont(ComboBox& box)
@@ -868,7 +874,7 @@ Rectangle<int> PlugDataLook::getTooltipBounds(String const& tipText, Point<int> 
     TextLayout tl;
     tl.createLayoutWithBalancedLineLengths(s, (float)maxToolTipWidth);
 
-    int marginX = 22.0f;
+    int marginX = 17.0f;
     int marginY = 10.0f;
 
     auto w = (int)(tl.getWidth() + marginX);
@@ -876,7 +882,7 @@ Rectangle<int> PlugDataLook::getTooltipBounds(String const& tipText, Point<int> 
 
     return Rectangle<int>(screenPos.x > parentArea.getCentreX() ? screenPos.x - (w + 12) : screenPos.x + 24,
         screenPos.y > parentArea.getCentreY() ? screenPos.y - (h + 6) : screenPos.y + 6,
-        w, h)
+                          w, h).expanded(ProjectInfo::canUseSemiTransparentWindows() ? 6 : 0)
         .constrainedWithin(parentArea);
 }
 
@@ -1097,7 +1103,7 @@ const String PlugDataLook::defaultThemesXml = R"(
         scrollbar_thumb="ffa9a9a9" graph_area="ffff0000" grid_colour="ff72aedf"
         caret_colour="ff72aedf" iolet_area_colour="ff808080" iolet_outline_colour="ff696969"
         text_object_background="ff333333" comment_text_colour="ff111111"
-        straight_connections="0" connection_style="1"
+        straight_connections="0" connection_style="1" connection_look="0"
         square_iolets="0" square_object_corners="1" iolet_spacing_edge="0" />
     <Theme theme="classic" toolbar_background="ffffffff" toolbar_text="ff000000"
         toolbar_active="ff787878" toolbar_hover="ffededed" tabbar_background="ffffffff"
@@ -1117,7 +1123,7 @@ const String PlugDataLook::defaultThemesXml = R"(
         popup_text="ff000000"
         scrollbar_thumb="ffa9a9a9" graph_area="ffff0000" grid_colour="ff000000"
         caret_colour="ff000000" comment_text_colour="ff000000"
-        straight_connections="1" connection_style="2"
+        straight_connections="1" connection_style="2" connection_look="0"
         square_iolets="1" square_object_corners="1" iolet_spacing_edge="1" />
     <Theme theme="classic_dark" toolbar_background="ff000000" toolbar_text="ffffffff"
         toolbar_active="ff787878" toolbar_hover="ff888888" tabbar_background="ff000000"
@@ -1136,7 +1142,7 @@ const String PlugDataLook::defaultThemesXml = R"(
         scrollbar_thumb="ff7f7f7f" graph_area="ffff0000" grid_colour="ffffffff"
         caret_colour="ffffffff" iolet_area_colour="ff000000" iolet_outline_colour="ffffffff"
         text_object_background="ff000000" comment_text_colour="ffffffff"
-        straight_connections="1" connection_style="2"
+        straight_connections="1" connection_style="2" connection_look="0"
         square_iolets="1" square_object_corners="1" iolet_spacing_edge="1" />
     <Theme theme="dark" toolbar_background="ff191919" toolbar_text="ffe1e1e1"
         toolbar_active="ff42a2c8" toolbar_hover="ff282828" tabbar_background="ff191919"
@@ -1155,7 +1161,7 @@ const String PlugDataLook::defaultThemesXml = R"(
         scrollbar_thumb="ff7f7f7f" graph_area="ffff0000" grid_colour="ff42a2c8"
         caret_colour="ff42a2c8" text_object_background="ff232323" iolet_area_colour="ff232323"
         iolet_outline_colour="ff696969" comment_text_colour="ffe1e1e1"
-        straight_connections="0" connection_style="1"
+        straight_connections="0" connection_style="1" connection_look="0"
         square_iolets="0" square_object_corners="0" iolet_spacing_edge="0" />
     <Theme theme="light" toolbar_background="ffebebeb" toolbar_text="ff373737"
         toolbar_active="ff007aff" toolbar_hover="ffe0e0e0" tabbar_background="ffebebeb"
@@ -1175,7 +1181,7 @@ const String PlugDataLook::defaultThemesXml = R"(
         caret_colour="ff007aff" square_object_corners="0" text_object_background="fffafafa"
         iolet_area_colour="fffafafa" iolet_outline_colour="ffc2c2c2"
         comment_text_colour="ff373737"
-        straight_connections="0" connection_style="1"
+        straight_connections="0" connection_style="1" connection_look="0"
         square_iolets="0" square_object_corners="0" iolet_spacing_edge="0" />
     <Theme theme="warm" toolbar_background="ffd2cdc4" toolbar_text="ff5a5a5a"
         toolbar_active="ff5da0c4" toolbar_hover="ffc0bbb2" tabbar_background="ffd2cdc4"
@@ -1194,7 +1200,7 @@ const String PlugDataLook::defaultThemesXml = R"(
         scrollbar_thumb="ffa9a9a9" graph_area="ffff0000" grid_colour="ff5da0c4"
         caret_colour="ff5da0c4" iolet_area_colour="ffe3dfd9" iolet_outline_colour="ff968e82"
         text_object_background="ffe3dfd9" comment_text_colour="ff5a5a5a"
-        straight_connections="0" connection_style="1"
+        straight_connections="0" connection_style="1" connection_look="0"
         square_iolets="0" square_object_corners="0" iolet_spacing_edge="0" />
     <Theme theme="fangs" toolbar_background="ff232323" toolbar_text="ffffffff"
         toolbar_active="ff5bcefa" toolbar_hover="ff383838" tabbar_background="ff232323"
@@ -1213,8 +1219,8 @@ const String PlugDataLook::defaultThemesXml = R"(
         graph_area="ff5bcefa" grid_colour="ffff0000" caret_colour="ffffacab"
         text_object_background="ff232323" iolet_area_colour="ff232323"
         iolet_outline_colour="ff696969" comment_text_colour="ffffffff"
-        straight_connections="0" connection_style="3"
-        square_iolets="0" square_object_corners="0" iolet_spacing_edge="0" />
+        straight_connections="0" connection_style="3" connection_look="0"
+        square_iolets="1" square_object_corners="0" iolet_spacing_edge="0" />
 </ColourThemes>
 )";
 
@@ -1266,6 +1272,8 @@ void PlugDataLook::setTheme(ValueTree themeTree)
     useIoletSpacingEdge = static_cast<bool>(themeTree.getProperty("iolet_spacing_edge").toString().getIntValue());
 
     useSquareIolets = static_cast<bool>(themeTree.getProperty("square_iolets").toString().getIntValue());
+
+    useGradientConnectionLook = static_cast<bool>(themeTree.getProperty("connection_look").toString().getIntValue());
 }
 
 StringArray PlugDataLook::getAllThemes()
@@ -1297,6 +1305,11 @@ bool PlugDataLook::getUseIoletSpacingEdge()
 bool PlugDataLook::getUseSquareIolets()
 {
     return useSquareIolets;
+}
+
+bool PlugDataLook::getUseGradientConnectionLook()
+{
+    return useGradientConnectionLook;
 }
 
 bool PlugDataLook::isFixedIoletPosition()

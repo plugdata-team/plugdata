@@ -853,7 +853,7 @@ Statusbar::~Statusbar()
     pd->statusbarSource->removeListener(this);
 }
 
-void Statusbar::updateZoomLevel()
+void Statusbar::handleAsyncUpdate()
 {
     auto* editor = findParentComponentOfClass<PluginEditor>();
     if (auto* cnv = editor->getCurrentCanvas()) {
@@ -862,6 +862,11 @@ void Statusbar::updateZoomLevel()
         currentZoomLevel = 100.0f;
     }
     repaint();
+}
+
+void Statusbar::updateZoomLevel()
+{
+    triggerAsyncUpdate();
 }
 
 void Statusbar::paint(Graphics& g)
@@ -932,13 +937,12 @@ void Statusbar::resized()
 
     midiBlinker->setBounds(position(55, true) + 10, 0, 55, getHeight());
     cpuMeter->setBounds(position(45, true), 0, 50, getHeight());
-    latencyDisplayButton->setBounds(position(100, true), 0, 100, getHeight());
+    latencyDisplayButton->setBounds(position(104, true), 0, 100, getHeight());
 }
 
 void Statusbar::setLatencyDisplay(int value)
 {
     if (!ProjectInfo::isStandalone) {
-        currentLatency = value;
         latencyDisplayButton->setLatencyValue(value);
     }
 }
@@ -988,7 +992,6 @@ void Statusbar::lookAndFeelChanged()
 }
 
 StatusbarSource::StatusbarSource()
-    : numChannels(0)
 {
     startTimerHz(30);
 }
@@ -1005,26 +1008,26 @@ void StatusbarSource::setBufferSize(int bufferSize)
 
 void StatusbarSource::process(bool hasMidiInput, bool hasMidiOutput, int channels)
 {
+    /*
     if (channels == 1) {
-        level[1] = 0;
+        level[1].store(0, std::memory_order_relaxed) = 0;
     } else if (channels == 0) {
-        level[0] = 0;
-        level[1] = 0;
-    }
+        level[0].store(0, std::memory_order_relaxed);
+        level[1].store(0, std::memory_order_relaxed);
+    } */
 
     auto nowInMs = Time::getMillisecondCounter();
 
-    lastAudioProcessedTime = nowInMs;
+    lastAudioProcessedTime.store(nowInMs, std::memory_order_relaxed);
 
     if (hasMidiOutput)
-        lastMidiSentTime = nowInMs;
+        lastMidiSentTime.store(nowInMs, std::memory_order_relaxed);
     if (hasMidiInput)
-        lastMidiReceivedTime = nowInMs;
+        lastMidiReceivedTime.store(nowInMs, std::memory_order_relaxed);
 }
 
 void StatusbarSource::prepareToPlay(int nChannels)
 {
-    numChannels = nChannels;
     peakBuffer.reset(sampleRate, bufferSize, nChannels);
 }
 
@@ -1032,9 +1035,9 @@ void StatusbarSource::timerCallback()
 {
     auto currentTime = Time::getMillisecondCounter();
 
-    auto hasReceivedMidi = currentTime - lastMidiReceivedTime < 700;
-    auto hasSentMidi = currentTime - lastMidiSentTime < 700;
-    auto hasProcessedAudio = currentTime - lastAudioProcessedTime < 700;
+    auto hasReceivedMidi = currentTime - lastMidiReceivedTime.load(std::memory_order_relaxed) < 700;
+    auto hasSentMidi = currentTime - lastMidiSentTime.load(std::memory_order_relaxed) < 700;
+    auto hasProcessedAudio = currentTime - lastAudioProcessedTime.load(std::memory_order_relaxed) < 700;
 
     if (hasReceivedMidi != midiReceivedState) {
         midiReceivedState = hasReceivedMidi;
@@ -1056,7 +1059,7 @@ void StatusbarSource::timerCallback()
 
     for (auto* listener : listeners) {
         listener->audioLevelChanged(peak);
-        listener->cpuUsageChanged(cpuUsage);
+        listener->cpuUsageChanged(cpuUsage.load(std::memory_order_relaxed));
     }
 }
 
@@ -1072,5 +1075,5 @@ void StatusbarSource::removeListener(Listener* l)
 
 void StatusbarSource::setCPUUsage(float cpu)
 {
-    cpuUsage = cpu;
+    cpuUsage.store(cpu, std::memory_order_relaxed);
 }

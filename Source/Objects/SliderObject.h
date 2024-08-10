@@ -10,7 +10,7 @@ class ReversibleSlider : public Slider
     bool isInverted = false;
     bool isVertical = false;
     bool shiftIsDown = false;
-
+        
     bool isZeroRange = false;
     float zeroRangeValue = 0.0f;
 
@@ -81,18 +81,6 @@ public:
     {
         setMouseDragSensitivity(std::max<int>(1, isVertical ? getHeight() : getWidth()));
         Slider::resized();
-    }
-
-    void mouseEnter(MouseEvent const& e) override
-    {
-        getParentComponent()->getProperties().set("hover", true);
-        getParentComponent()->repaint();
-    }
-
-    void mouseExit(MouseEvent const& e) override
-    {
-        getParentComponent()->getProperties().set("hover", false);
-        getParentComponent()->repaint();
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -171,13 +159,11 @@ public:
             bounds = Rectangle<float>(b.getWidth(), thumbSize).translated(b.getX(), sliderPos);
         }
         nvgFillColor(nvg, convertColour(getLookAndFeel().findColour(Slider::trackColourId)));
-        nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), cornerSize);
-        nvgFill(nvg);
+        nvgFillRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), cornerSize);
     }
 };
 
-class SliderObject : public ObjectBase {
+class SliderObject final : public ObjectBase {
     bool isVertical;
     Value isLogarithmic = SynchronousValue(var(false));
 
@@ -242,7 +228,7 @@ public:
             isVertical = obj->x_orientation;
             auto min = obj->x_min;
             auto max = obj->x_max;
-            slider.setRangeFlipped(approximatelyEqual(min, max) ? false : min > max);
+            slider.setRangeFlipped(!approximatelyEqual(min, max) && min > max);
             sizeProperty = Array<var> { var(obj->x_gui.x_w), var(obj->x_gui.x_h) };
         }
 
@@ -383,9 +369,6 @@ public:
 
         auto bgColour = getLookAndFeel().findColour(Slider::backgroundColourId);
 
-        if (getProperties()["hover"])
-            bgColour = getHoverBackgroundColour(bgColour);
-
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(bgColour), convertColour(outlineColour), Corners::objectCornerRadius);
 
         slider.render(nvg);
@@ -454,7 +437,7 @@ public:
             slider->x_min = minValue;
             max = slider->x_max;
         }
-        slider.setRangeFlipped(approximatelyEqual(minValue, max) ? false : minValue > max);
+        slider.setRangeFlipped(!approximatelyEqual(minValue, max) && minValue > max);
     }
 
     void setMaximum(float maxValue)

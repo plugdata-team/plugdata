@@ -22,8 +22,7 @@ enum ParameterCategory {
     cDimensions,
     cGeneral,
     cAppearance,
-    cLabel,
-    cExtra,
+    cLabel
 };
 
 class PropertiesPanelProperty;

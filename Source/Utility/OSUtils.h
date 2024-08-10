@@ -9,6 +9,11 @@
 #include <string>
 #include "Hash.h"
 
+namespace juce
+{
+class ComponentPeer;
+}
+
 struct OSUtils {
     enum KeyboardLayout {
         QWERTY,

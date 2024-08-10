@@ -175,10 +175,12 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     static inline bool useSquareIolets;
     static inline bool useIoletSpacingEdge;
-    static inline bool lastIoletSpacingValue;
+    static inline bool useGradientConnectionLook;
 
     static bool getUseIoletSpacingEdge();
     static bool getUseSquareIolets();
+
+    static bool getUseGradientConnectionLook();
 
     static bool isFixedIoletPosition();
 
@@ -188,8 +190,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
     static inline StringArray selectedThemes = { "light", "dark" };
 
 #if JUCE_IOS
-    static const int ioletSize = 15;
+    static constexpr int ioletSize = 15;
 #else
-    static const int ioletSize = 13;
+    static constexpr int ioletSize = 13;
 #endif
 };

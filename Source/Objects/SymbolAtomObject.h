@@ -19,8 +19,8 @@ class SymbolAtomObject final : public ObjectBase
 
     NVGcolor backgroundColour;
     NVGcolor selectedOutlineColour;
+    Colour selCol;
     NVGcolor outlineColour;
-    NVGcolor flagColour;
 
 public:
     SymbolAtomObject(pd::WeakReference obj, Object* parent)
@@ -35,7 +35,7 @@ public:
 
         input.onTextChange = [this]() {
             startEdition();
-            setSymbol(input.getText().toStdString());
+            setSymbol(input.getText(true).toStdString());
             stopEdition();
         };
 
@@ -60,7 +60,22 @@ public:
         atomHelper.addAtomParameters(objectParameters);
         lookAndFeelChanged();
     }
+           
+    void focusGained(FocusChangeType cause) override
+    {
+        repaint();
+    }
 
+    void focusLost(FocusChangeType cause) override
+    {
+        repaint();
+    }
+
+    void focusOfChildComponentChanged(FocusChangeType cause) override
+    {
+        repaint();
+    }
+    
     void update() override
     {
         sizeProperty = atomHelper.getWidthInChars();
@@ -135,10 +150,10 @@ public:
         input.setColour(TextEditor::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
 
         backgroundColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
-        selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        selCol = cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId);
+        selectedOutlineColour = convertColour(selCol);
         outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
-        flagColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour));
-
+        
         repaint();
     }
 
@@ -147,29 +162,14 @@ public:
         auto b = getLocalBounds().toFloat();
         auto sb = b.reduced(0.5f); // reduce size of background to stop AA edges from showing through
 
-        bool highlighted = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
-
-        nvgSave(nvg);
-        nvgIntersectRoundedScissor(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(), Corners::objectCornerRadius);
-
         // Background
-        nvgBeginPath(nvg);
-        nvgRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight());
-        nvgFillColor(nvg, backgroundColour);
-        nvgFill(nvg);
+        nvgDrawRoundedRect(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(), backgroundColour, backgroundColour, Corners::objectCornerRadius);
 
         imageRenderer.renderJUCEComponent(nvg, input, getImageScale());
 
         // draw flag
-        nvgBeginPath(nvg);
-        nvgFillColor(nvg, highlighted ? selectedOutlineColour : flagColour);
-        nvgMoveTo(nvg, b.getRight() - 8, b.getY());
-        nvgLineTo(nvg, b.getRight(), b.getY());
-        nvgLineTo(nvg, b.getRight(), b.getY() + 8);
-        nvgClosePath(nvg);
-        nvgFill(nvg);
-
-        nvgRestore(nvg);
+        bool highlighted = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
+        atomHelper.drawTriangleFlag(nvg, highlighted);
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBAf(0, 0, 0, 0), (object->isSelected() || highlighted) ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
     }
@@ -208,10 +208,19 @@ public:
     {
         if (key == KeyPress::rightKey) {
             if (auto* editor = input.getCurrentTextEditor()) {
-                editor->setCaretPosition(editor->getHighlightedRegion().getEnd());
-                return true;
+                if(editor->getHighlightedRegion().getLength()) {
+                    editor->setCaretPosition(editor->getHighlightedRegion().getEnd());
+                    return true;
+                }
             }
         }
+        else if(key.getKeyCode() == KeyPress::returnKey)
+        {
+            setSymbol(input.getText(true).toStdString());
+            cnv->grabKeyboardFocus();
+            return true;
+        }
+        
         return false;
     }
 

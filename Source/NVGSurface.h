@@ -73,7 +73,7 @@ public:
         {
             if (originComponent->isVisible()) {
                 // Translate from canvas coords to viewport coords as float to prevent rounding errors
-                auto invalidatedBounds = surface.getLocalArea(originComponent, rect.toFloat()).getSmallestIntegerContainer();
+                auto invalidatedBounds = surface.getLocalArea(originComponent, rect.expanded(2).toFloat()).getSmallestIntegerContainer();
                 surface.invalidateArea(invalidatedBounds);
             }
             return passEvents;
@@ -102,6 +102,9 @@ public:
     static NVGSurface* getSurfaceForContext(NVGcontext*);
 
 private:
+    
+    float calculateRenderScale() const;
+    
     void resized() override;
 
     PluginEditor* editor;
@@ -120,10 +123,10 @@ private:
     bool resizing = false;
     Rectangle<int> newBounds;
 
+    float lastRenderScale = 0.0f;
+    
 #if NANOVG_GL_IMPLEMENTATION
     std::unique_ptr<OpenGLContext> glContext;
-#else
-    float lastRenderScale = 0.0f;
 #endif
 
     std::unique_ptr<FrameTimer> frameTimer;
@@ -325,7 +328,7 @@ public:
 
     bool needsUpdate(int width, int height)
     {
-        return imageId == 0 || width != imageWidth || height != imageHeight;
+        return imageId == 0 || width != imageWidth || height != imageHeight || isDirty;
     }
 
     int getImageId()
@@ -333,9 +336,15 @@ public:
         return imageId;
     }
 
+    void setDirty()
+    {
+        isDirty = true;
+    }
+
     NVGcontext* nvg = nullptr;
     int imageId = 0;
     int imageWidth = 0, imageHeight = 0;
+    bool isDirty = false;
 
     std::function<void()> onImageInvalidate = nullptr;
 
@@ -437,4 +446,19 @@ private:
     NVGframebuffer* fb = nullptr;
     int fbWidth, fbHeight;
     bool fbDirty = false;
+};
+
+struct NVGScopedState
+{
+    NVGScopedState(NVGcontext* nvg) : nvg(nvg)
+    {
+        nvgSave(nvg);
+    }
+    
+    ~NVGScopedState()
+    {
+        nvgRestore(nvg);
+    }
+    
+    NVGcontext* nvg;
 };

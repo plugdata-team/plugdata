@@ -249,18 +249,15 @@ public:
         if (canvas) {
             auto invalidArea = cnv->editor->nvgSurface.getInvalidArea();
 
-            if (topLevel->isScrolling)
-                invalidArea = canvas->getLocalBounds();
-            else if (!invalidArea.isEmpty())
+            if (!invalidArea.isEmpty())
                 invalidArea = canvas->getLocalArea(&cnv->editor->nvgSurface, invalidArea).expanded(1);
             else
                 return;
 
-            nvgSave(nvg);
+            NVGScopedState scopedState(nvg);
             nvgIntersectRoundedScissor(nvg, b.getX() + 0.75f, b.getY() + 0.75f, b.getWidth() - 1.5f, b.getHeight() - 1.5f, Corners::objectCornerRadius);
             nvgTranslate(nvg, canvas->getX(), canvas->getY());
             canvas->performRender(nvg, invalidArea);
-            nvgRestore(nvg);
         }
 
         auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
@@ -287,11 +284,9 @@ public:
                 g.addTransform(rotate.inverted());
                 });
             }
-            nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
             auto imagePaint = nvgImagePattern(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), 0.0f, openInGopBackground.getImageId(), 1.0f);
             nvgFillPaint(nvg, imagePaint);
-            nvgFill(nvg);
+            nvgFillRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
 
             Font fontMetrics;
             fontMetrics = Fonts::getDefaultFont().withHeight(12.0f);
@@ -390,11 +385,6 @@ public:
     pd::Patch::Ptr getPatch() override
     {
         return subpatch;
-    }
-
-    Canvas* getCanvas() override
-    {
-        return canvas.get();
     }
 
     void valueChanged(Value& v) override

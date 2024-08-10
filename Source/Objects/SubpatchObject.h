@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class SubpatchObject final : public TextBase {
+class SubpatchObject final : public TextBase, public SettingsFileListener {
 
     pd::Patch::Ptr subpatch;
     Value isGraphChild = SynchronousValue(var(false));
@@ -14,12 +14,6 @@ public:
         : TextBase(obj, object)
         , subpatch(new pd::Patch(obj, cnv->pd, false))
     {
-        object->hvccMode.addListener(this);
-
-        if (getValue<bool>(object->hvccMode)) {
-            checkHvccCompatibility(getText(), subpatch.get());
-        }
-
         objectParameters.addParamBool("Is graph", cGeneral, &isGraphChild, { "No", "Yes" });
 
         // There is a possibility that a donecanvasdialog message is sent inbetween the initialisation in pd and the initialisation of the plugdata object, making it possible to miss this message. This especially tends to happen if the messagebox is connected to a loadbang.
@@ -36,9 +30,19 @@ public:
 
     ~SubpatchObject() override
     {
-        object->hvccMode.removeListener(this);
         closeOpenedSubpatchers();
     }
+    
+    void propertyChanged(String const& name, var const& value) override
+    {
+        if(name == "hvcc_mode")
+        {
+            if (value) {
+                checkHvccCompatibility(getText(), subpatch.get());
+            }
+        }
+    }
+    
     void render(NVGcontext* nvg) override
     {
         TextBase::render(nvg);
@@ -99,10 +103,6 @@ public:
                 });
             }
 
-        } else if (v.refersToSameSourceAs(object->hvccMode)) {
-            if (getValue<bool>(v)) {
-                checkHvccCompatibility(getText(), subpatch.get());
-            }
         }
     }
 

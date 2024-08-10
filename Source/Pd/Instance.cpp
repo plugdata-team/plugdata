@@ -128,7 +128,7 @@ struct pd::Instance::internal {
 
 namespace pd {
 
-Instance::Instance(String const& symbol)
+Instance::Instance()
     : messageDispatcher(std::make_unique<MessageDispatcher>())
     , consoleHandler(this)
 {
@@ -676,8 +676,6 @@ void Instance::sendMessagesFromQueue()
 
 Patch::Ptr Instance::openPatch(File const& toOpen)
 {
-    t_canvas* cnv = nullptr;
-
     String dirname = toOpen.getParentDirectory().getFullPathName().replace("\\", "/");
     auto const* dir = dirname.toRawUTF8();
 
@@ -686,7 +684,7 @@ Patch::Ptr Instance::openPatch(File const& toOpen)
 
     setThis();
 
-    cnv = static_cast<t_canvas*>(pd::Interface::createCanvas(file, dir));
+    auto* cnv = static_cast<t_canvas*>(pd::Interface::createCanvas(file, dir));
 
     return new Patch(pd::WeakReference(cnv, this), this, true, toOpen);
 }
@@ -709,28 +707,17 @@ t_symbol* Instance::generateSymbol(String const& symbol) const
 
 void Instance::logMessage(String const& message)
 {
-    if (consoleMute)
-        return;
     consoleHandler.logMessage(nullptr, message);
 }
 
 void Instance::logError(String const& error)
 {
-    if (consoleMute)
-        return;
     consoleHandler.logError(nullptr, error);
 }
 
 void Instance::logWarning(String const& warning)
 {
-    if (consoleMute)
-        return;
     consoleHandler.logWarning(nullptr, warning);
-}
-
-void Instance::muteConsole(bool shouldMute)
-{
-    consoleMute = shouldMute;
 }
 
 std::deque<std::tuple<void*, String, int, int, int>>& Instance::getConsoleMessages()

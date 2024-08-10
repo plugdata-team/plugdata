@@ -110,7 +110,7 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        nvgSave(nvg);
+        NVGScopedState scopedState(nvg);
         nvgTranslate(nvg, getX(), getY());
         if (!nvgCtx || nvgCtx->getContext() != nvg)
             nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
@@ -118,7 +118,6 @@ public:
         {
             paintEntireComponent(g, true);
         }
-        nvgRestore(nvg);
     }
 
 private:
@@ -170,7 +169,7 @@ class SuggestionComponent : public Component
         String objectDescription;
 
     public:
-        Suggestion(SuggestionComponent* parentComponent, int i)
+        Suggestion(SuggestionComponent* parentComponent)
             : parent(parentComponent)
         {
             setText("", "", false);
@@ -266,7 +265,7 @@ public:
         buttonholder = std::make_unique<Component>();
 
         for (int i = 0; i < 20; i++) {
-            Suggestion* but = buttons.add(new Suggestion(this, i));
+            Suggestion* but = buttons.add(new Suggestion(this));
             buttonholder->addAndMakeVisible(buttons[i]);
 
             but->setClickingTogglesState(true);
@@ -654,7 +653,7 @@ public:
             }
 
             // When hvcc mode is enabled, show only hvcc compatible objects
-            if (getValue<bool>(_this->currentObject->editor->hvccMode)) {
+            if (_this->currentObject->hvccMode.get()) {
 
                 StringArray hvccObjectsFound;
                 for (auto& object : toFilter) {

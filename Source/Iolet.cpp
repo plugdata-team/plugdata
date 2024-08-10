@@ -49,7 +49,7 @@ Iolet::Iolet(Object* parent, bool inlet)
     cnv = findParentComponentOfClass<Canvas>();
 
     // replicate behaviour of PD-Vanilla downwards only patching - optional
-    patchDownwardsOnly.referTo(SettingsFile::getInstance()->getPropertyAsValue("patch_downwards_only"));
+    patchDownwardsOnly.referTo(SettingsFile::getInstance()->getValueTree(), "patch_downwards_only", nullptr);
 }
 
 Rectangle<int> Iolet::getCanvasBounds()
@@ -71,8 +71,9 @@ void Iolet::render(NVGcontext* nvg)
     bool isLocked = getValue<bool>(locked) || getValue<bool>(commandLocked);
     bool overObject = object->drawIoletExpanded;
     bool isHovering = isTargeted && !isLocked;
-
-    if (!(cnv->getProperties().contains("SHOW_SYMBOL_IOLETS") && (static_cast<bool>(*cnv->getProperties().getVarPointer("SHOW_SYMBOL_IOLETS")) != isInlet))) {
+    
+    // If a connection is being created, don't hide iolets with a symbol defined
+    if (cnv->connectionsBeingCreated.isEmpty() || cnv->connectionsBeingCreated[0]->getIolet()->isInlet == isInlet) {
         if ((isLocked && isSymbolIolet) || (isSymbolIolet && !isHovering && !overObject && !object->isSelected()))
             return;
     }
@@ -80,22 +81,18 @@ void Iolet::render(NVGcontext* nvg)
     int type = isSignal + (isGemState * 2);
     if (isLocked)
         type = 3;
-
-    nvgSave(nvg);
-
-    if (isLocked || !(overObject || isHovering) || (getValue<bool>(patchDownwardsOnly) && isInlet)) {
-        auto clipBounds = getLocalArea(object, object->getLocalBounds().toFloat().reduced(Object::margin));
-        nvgIntersectRoundedScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight(), Corners::objectCornerRadius);
+    
+    if (isLocked || !(overObject || isHovering) || (patchDownwardsOnly.get() && isInlet)) {
+        auto clipBounds = object->getLocalBounds().reduced(Object::margin) - getPosition();
+        nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
     }
 
     auto scale = getWidth() / 13.0f;
     auto offset = isInlet ? 0.5f : 0.0f;
-    nvgScale(nvg, scale, scale); // If the iolet is shrunk because there is little space, we scale it down
+    if(scale != 1.0f) nvgScale(nvg, scale, scale); // If the iolet is shrunk because there is little space, we scale it down
     nvgFillPaint(nvg, nvgImagePattern(nvg, isHovering * -16 - 1.5f, type * -16 - offset, 16 * 4, 16 * 4, 0, fb.getImage(), 1));
 
     nvgFillRect(nvg, 0, 0, 13, 13);
-
-    nvgRestore(nvg);
 }
 
 bool Iolet::hitTest(int x, int y)
@@ -104,7 +101,7 @@ bool Iolet::hitTest(int x, int y)
     if ((getValue<bool>(locked) || getValue<bool>(commandLocked)))
         return false;
 
-    if (getValue<bool>(patchDownwardsOnly) && isInlet && !cnv->connectingWithDrag)
+    if (patchDownwardsOnly.get() && isInlet && !cnv->connectingWithDrag)
         return false;
 
     Path smallBounds;
@@ -128,7 +125,7 @@ bool Iolet::hitTest(int x, int y)
 void Iolet::mouseDrag(MouseEvent const& e)
 {
     // Ignore when locked or if middlemouseclick?
-    if (getValue<bool>(locked) || e.mods.isMiddleButtonDown() || (getValue<bool>(patchDownwardsOnly) && isInlet))
+    if (getValue<bool>(locked) || e.mods.isMiddleButtonDown() || (patchDownwardsOnly.get() && isInlet))
         return;
 
     if (!cnv->connectionCancelled && cnv->connectionsBeingCreated.isEmpty() && e.getLengthOfMousePress() > 100) {
@@ -189,7 +186,7 @@ void Iolet::mouseUp(MouseEvent const& e)
         // Releasing a connect-by-click action
         if (!wasDragged) {
             createConnection();
-            cnv->cancelConnectionCreation();
+            if(!e.mods.isShiftDown()) cnv->cancelConnectionCreation();
 
         } else if (cnv->connectingWithDrag && cnv->nearestIolet) {
             // Releasing a connect-by-drag action
@@ -199,7 +196,7 @@ void Iolet::mouseUp(MouseEvent const& e)
             // CreateConnection will automatically create connections for all connections that are being created!
             cnv->nearestIolet->createConnection();
 
-            cnv->cancelConnectionCreation();
+            if(!e.mods.isShiftDown()) cnv->cancelConnectionCreation();
             cnv->nearestIolet = nullptr;
             cnv->connectingWithDrag = false;
 

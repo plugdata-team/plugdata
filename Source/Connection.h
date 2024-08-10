@@ -54,6 +54,8 @@ public:
 
     void updatePath();
 
+    void updateReconnectHandle();
+
     void forceUpdate(bool updateCacheOnly = false);
 
     void lookAndFeelChanged() override;
@@ -99,6 +101,8 @@ public:
 
     bool isSelected() const;
 
+    bool isMouseHovering() const { return isHovering; };
+
     StringArray getMessageFormated();
     int getSignalData(t_float* output, int maxChannels);
 
@@ -115,15 +119,13 @@ private:
     int getNumberOfConnections();
 
     void setSelected(bool shouldBeSelected);
+        
+    void pathChanged() override;
+
+    const float getPathWidth();
 
     Array<SafePointer<Connection>> reconnecting;
     Rectangle<float> startReconnectHandle, endReconnectHandle;
-
-    bool selectedFlag = false;
-    bool segmented = false;
-    bool isHovering = false;
-
-    PlugDataLook::ConnectionStyle connectionStyle = PlugDataLook::ConnectionStyleDefault;
 
     PathPlan currentPlan;
 
@@ -157,8 +159,6 @@ private:
     float mouseDownPosition = 0;
 
     int cacheId = -1;
-    bool cachedIsValid = false;
-
     pd::WeakReference ptr;
 
     pd::Atom lastValue[8];
@@ -166,8 +166,19 @@ private:
     t_symbol* lastSelector = nullptr;
 
     float offset = 0.0f;
+    float pathLength = 0.0f;
 
+    PlugDataLook::ConnectionStyle connectionStyle = PlugDataLook::ConnectionStyleDefault;
+    bool selectedFlag:1 = false;
+    bool segmented:1 = false;
+    bool isHovering:1 = false;
+    bool isInStartReconnectHandle:1 = false;
+    bool isInEndReconnectHandle:1 = false;
+    bool cachedIsValid:1 = false;
+    
+        
     friend class ConnectionPathUpdater;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
 };
 
@@ -190,7 +201,6 @@ public:
         iolet->addMouseListener(this, false);
 
         cnv->addAndMakeVisible(this);
-        cnv->getProperties().set("SHOW_SYMBOL_IOLETS", var(target->isInlet));
         cnv->repaint();
 
         setAlwaysOnTop(true);
@@ -199,9 +209,16 @@ public:
 
     ~ConnectionBeingCreated() override
     {
-        cnv->getProperties().remove("SHOW_SYMBOL_IOLETS");
         cnv->removeMouseListener(this);
         if(iolet) iolet->removeMouseListener(this);
+    }
+        
+    void pathChanged() override
+    {
+        strokePath.clear();
+        strokePath = path;
+        setBoundsToEnclose (getDrawableBounds().expanded(3));
+        repaint();
     }
 
     void mouseDrag(MouseEvent const& e) override
@@ -237,15 +254,37 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto lineColour = cnv->findColour(PlugDataColour::dataColourId).brighter(0.6f);
         auto shadowColour = findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.06f).withAlpha(0.24f);
 
-        nvgSave(nvg);
+        NVGScopedState scopedState(nvg);
         setJUCEPath(nvg, getPath());
-        nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(lineColour), convertColour(shadowColour)));
-        nvgStrokeWidth(nvg, 4.0f);
-        nvgStroke(nvg);
-        nvgRestore(nvg);
+        
+        auto connectionStyle = PlugDataLook::getConnectionStyle();
+        float cableThickness;
+        switch (connectionStyle){
+            case PlugDataLook::ConnectionStyleVanilla:  cableThickness = iolet->isSignal ? 4.5f : 2.5f;             break;
+            case PlugDataLook::ConnectionStyleThin:     cableThickness = 3.0f;                                      break;
+            default:                                    cableThickness = 4.5f;                                      break;
+        }
+
+        nvgStrokeWidth(nvg, cableThickness);
+        
+        if(iolet && iolet->isSignal && connectionStyle != PlugDataLook::ConnectionStyleVanilla)
+        {
+            auto lineColour = cnv->findColour(PlugDataColour::signalColourId).brighter(0.6f);
+            auto dashColor = convertColour(shadowColour);
+            dashColor.a = 1.0f;
+            dashColor.r *= 0.4f;
+            dashColor.g *= 0.4f;
+            dashColor.b *= 0.4f;
+            nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(lineColour), convertColour(shadowColour), dashColor, 2.5f, false, false, 0.0f));
+            nvgStroke(nvg);
+        }
+        else {
+            auto lineColour = cnv->findColour(PlugDataColour::dataColourId).brighter(0.6f);
+            nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(lineColour), convertColour(shadowColour), convertColour(Colours::transparentBlack), 0.0f, false, false, 0.0f));
+            nvgStroke(nvg);
+        }
     }
         
     void toNextIolet()
