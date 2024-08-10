@@ -18,10 +18,8 @@ public:
         Component* target, std::function<bool(Component*)> checkTooltip = [](Component*) { return true; }, int timeout = 500)
         : TooltipWindow(target, timeout)
         , checker(std::move(checkTooltip))
-        , tooltipShadow(DropShadow(Colour(0, 0, 0).withAlpha(0.2f), 5, { 0, 0 }), Corners::defaultCornerRadius)
     {
         setOpaque(false);
-        tooltipShadow.setOwner(this);
     }
 
     float getDesktopScaleFactor() const override
@@ -40,5 +38,4 @@ private:
     }
 
     std::function<bool(Component*)> checker;
-    StackDropShadower tooltipShadow;
 };

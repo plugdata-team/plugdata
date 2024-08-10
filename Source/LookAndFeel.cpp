@@ -735,9 +735,14 @@ void PlugDataLook::drawCornerResizer(Graphics& g, int w, int h, bool isMouseOver
 
 void PlugDataLook::drawTooltip(Graphics& g, String const& text, int width, int height)
 {
-    auto bounds = Rectangle<float>(0, 0, width, height);
-    auto cornerSize = Corners::defaultCornerRadius;
+    auto bounds = Rectangle<float>(0, 0, width, height).reduced(ProjectInfo::canUseSemiTransparentWindows() ? 6 : 0);
+    auto shadowBounds = bounds.reduced(2);
+    auto const cornerSize = ProjectInfo::canUseSemiTransparentWindows() ? Corners::defaultCornerRadius : 0;
 
+    Path shadowPath;
+    shadowPath.addRoundedRectangle(shadowBounds.getX(), shadowBounds.getY(), shadowBounds.getWidth(), shadowBounds.getHeight(), cornerSize);
+    StackShadow::renderDropShadow(g, shadowPath, Colours::black.withAlpha(0.44f), 8, {0, 0}, 0);
+    
     g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
     g.fillRoundedRectangle(bounds.toFloat(), cornerSize);
 
@@ -766,7 +771,7 @@ void PlugDataLook::drawTooltip(Graphics& g, String const& text, int width, int h
 
     TextLayout tl;
     tl.createLayoutWithBalancedLineLengths(s, (float)maxToolTipWidth);
-    tl.draw(g, bounds.withSizeKeepingCentre(width - 20, height - 2));
+    tl.draw(g, bounds.withSizeKeepingCentre(width - 28, height - 14));
 }
 
 Font PlugDataLook::getComboBoxFont(ComboBox& box)
@@ -868,7 +873,7 @@ Rectangle<int> PlugDataLook::getTooltipBounds(String const& tipText, Point<int> 
     TextLayout tl;
     tl.createLayoutWithBalancedLineLengths(s, (float)maxToolTipWidth);
 
-    int marginX = 22.0f;
+    int marginX = 17.0f;
     int marginY = 10.0f;
 
     auto w = (int)(tl.getWidth() + marginX);
@@ -876,7 +881,7 @@ Rectangle<int> PlugDataLook::getTooltipBounds(String const& tipText, Point<int> 
 
     return Rectangle<int>(screenPos.x > parentArea.getCentreX() ? screenPos.x - (w + 12) : screenPos.x + 24,
         screenPos.y > parentArea.getCentreY() ? screenPos.y - (h + 6) : screenPos.y + 6,
-        w, h)
+                          w, h).expanded(ProjectInfo::canUseSemiTransparentWindows() ? 6 : 0)
         .constrainedWithin(parentArea);
 }
 
