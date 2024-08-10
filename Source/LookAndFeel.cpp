@@ -769,9 +769,10 @@ void PlugDataLook::drawTooltip(Graphics& g, String const& text, int width, int h
         }
     }
 
+    auto textOffset = ProjectInfo::canUseSemiTransparentWindows() ? 10 : 0;
     TextLayout tl;
     tl.createLayoutWithBalancedLineLengths(s, (float)maxToolTipWidth);
-    tl.draw(g, bounds.withSizeKeepingCentre(width - 28, height - 14));
+    tl.draw(g, bounds.withSizeKeepingCentre(width - (20 + textOffset), height - (2 + textOffset)));
 }
 
 Font PlugDataLook::getComboBoxFont(ComboBox& box)
