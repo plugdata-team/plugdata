@@ -190,8 +190,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
     static inline StringArray selectedThemes = { "light", "dark" };
 
 #if JUCE_IOS
-    static const int ioletSize = 15;
+    static constexpr int ioletSize = 15;
 #else
-    static const int ioletSize = 13;
+    static constexpr int ioletSize = 13;
 #endif
 };

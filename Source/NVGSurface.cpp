@@ -99,13 +99,7 @@ NVGSurface::NVGSurface(PluginEditor* e)
     // kind of a hack, but works well enough
     MessageManager::callAsync([_this = SafePointer(this)]() {
         if (_this) {
-            // Render on vblank
-            _this->vBlankAttachment = std::make_unique<VBlankAttachment>(_this.getComponent(), [_this]() {
-                if (_this) {
-                    _this->editor->pd->flushMessageQueue();
-                    _this->render();
-                }
-            });
+            _this->vBlankAttachment = std::make_unique<VBlankAttachment>(_this.getComponent(), std::bind(&NVGSurface::render, _this.getComponent()));
         }
     });
 }
@@ -295,6 +289,9 @@ void NVGSurface::invalidateArea(Rectangle<int> area)
 
 void NVGSurface::render()
 {
+    // Flush message queue before rendering, to make sure all GUIs are up-to-date
+    editor->pd->flushMessageQueue();
+    
 #if ENABLE_FPS_COUNT
     frameTimer->addFrameTime();
 #endif
