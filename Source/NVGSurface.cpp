@@ -375,30 +375,21 @@ void NVGSurface::render()
 
     if (needsBufferSwap) {
 #if NANOVG_GL_IMPLEMENTATION
-        // Fix black borders when applying global scale factor for openGL
-        // We need to do it like this to both retain sharpness and get rid of borders
-        if(!approximatelyEqual(fmod(pixelScale, 1.0f), 0.0f))
-        {
-            nvgViewport(0, 0, viewWidth + 2, viewHeight + 2);
-            nvgBeginFrame(nvg, getWidth() * desktopScale, getHeight() * desktopScale, devicePixelScale);
-            nvgScale(nvg, desktopScale, desktopScale);
-            auto backgroundColour = editor->pd->lnf->findColour(PlugDataColour::canvasBackgroundColourId);
-            nvgFillColor(nvg, nvgRGB(backgroundColour.getRed(), backgroundColour.getGreen(), backgroundColour.getBlue()));
-            nvgFillRect(nvg, -10, -10, getWidth() + 10, getHeight() + 10);
-            nvgEndFrame(nvg);
-        }
-
         nvgViewport(0, 0, viewWidth, viewHeight);
         nvgBeginFrame(nvg, getWidth(), getHeight(), devicePixelScale);
 #else
         nvgBeginFrame(nvg, getWidth() * desktopScale, getHeight() * desktopScale, devicePixelScale);
         nvgScale(nvg, desktopScale, desktopScale);
 #endif
+        // TODO: temporary fix to make sure you can never see through the image...
+        // fixes bug on Windows currently
+        auto backgroundColour = editor->pd->lnf->findColour(PlugDataColour::canvasBackgroundColourId);
+        nvgFillColor(nvg, nvgRGB(backgroundColour.getRed(), backgroundColour.getGreen(), backgroundColour.getBlue()));
+        nvgFillRect(nvg, -10, -10, getWidth() + 10, getHeight() + 10);
 
-        nvgScissor(nvg, 0, 0, getWidth(), getHeight());
         nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, mainFBO->image, 1));
         nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
-
+        
 #if ENABLE_FPS_COUNT
         nvgSave(nvg);
         frameTimer->render(nvg);
