@@ -18,7 +18,6 @@ using namespace juce::gl;
 
 #include "PluginEditor.h"
 #include "PluginProcessor.h"
-#include "Components/WelcomePanel.h"
 
 #define ENABLE_FPS_COUNT 0
 
@@ -79,8 +78,11 @@ NVGSurface::NVGSurface(PluginEditor* e)
 {
 #ifdef NANOVG_GL_IMPLEMENTATION
     glContext = std::make_unique<OpenGLContext>();
+    auto pixelFormat = OpenGLPixelFormat(8, 8, 16, 8);
+    //pixelFormat.multisamplingLevel = 1;
+    //glContext->setMultisamplingEnabled(true);
+    glContext->setPixelFormat(pixelFormat);
     glContext->setOpenGLVersionRequired(OpenGLContext::OpenGLVersion::openGL3_2);
-    glContext->setMultisamplingEnabled(false);
     glContext->setSwapInterval(0);
 #endif
 
@@ -97,14 +99,7 @@ NVGSurface::NVGSurface(PluginEditor* e)
     // kind of a hack, but works well enough
     MessageManager::callAsync([_this = SafePointer(this)]() {
         if (_this) {
-            // Render on vblank
-            _this->vBlankAttachment = std::make_unique<VBlankAttachment>(_this.getComponent(), [_this]() {
-                if (_this) {
-                    _this->editor->pd->setThis();
-                    _this->editor->pd->messageDispatcher->dequeueMessages();
-                    _this->render();
-                }
-            });
+            _this->vBlankAttachment = std::make_unique<VBlankAttachment>(_this.getComponent(), std::bind(&NVGSurface::render, _this.getComponent()));
         }
     });
 }
@@ -121,32 +116,32 @@ void NVGSurface::initialise()
     auto* view = OSUtils::MTLCreateView(peer, 0, 0, getWidth(), getHeight());
     setView(view);
     setVisible(true);
-
-    auto renderScale = getRenderScale();
     
-    lastRenderScale = renderScale;
-    nvg = nvgCreateContext(view, NVG_ANTIALIAS | NVG_TRIPLE_BUFFER, getWidth() * renderScale, getHeight() * renderScale);
+    lastRenderScale = calculateRenderScale();
+    nvg = nvgCreateContext(view, NVG_ANTIALIAS | NVG_TRIPLE_BUFFER, getWidth() * lastRenderScale, getHeight() * lastRenderScale);
     resized();
 #else
     setVisible(true);
     glContext->attachTo(*this);
     glContext->initialiseOnThread();
     glContext->makeActive();
+    lastRenderScale = calculateRenderScale();
     nvg = nvgCreateContext(NVG_ANTIALIAS);
 #endif
-
-    surfaces[nvg] = this;
-
-    invalidateAll();
-
-    if (!nvg)
+    if (!nvg) {
         std::cerr << "could not initialise nvg" << std::endl;
+        return;
+    }
+    
+    surfaces[nvg] = this;
     nvgCreateFontMem(nvg, "Inter", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);
     nvgCreateFontMem(nvg, "Inter-Regular", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);
     nvgCreateFontMem(nvg, "Inter-Bold", (unsigned char*)BinaryData::InterBold_ttf, BinaryData::InterBold_ttfSize, 0);
     nvgCreateFontMem(nvg, "Inter-SemiBold", (unsigned char*)BinaryData::InterSemiBold_ttf, BinaryData::InterSemiBold_ttfSize, 0);
     nvgCreateFontMem(nvg, "Inter-Tabular", (unsigned char*)BinaryData::InterTabular_ttf, BinaryData::InterTabular_ttfSize, 0);
     nvgCreateFontMem(nvg, "icon_font-Regular", (unsigned char*)BinaryData::IconFont_ttf, BinaryData::IconFont_ttfSize, 0);
+    
+    invalidateAll();
 }
 
 void NVGSurface::detachContext()
@@ -226,7 +221,7 @@ bool NVGSurface::makeContextActive()
 {
 #ifdef NANOVG_METAL_IMPLEMENTATION
     // No need to make context active with Metal, so just check if we have initialised and return that
-    return getView() != nullptr && nvg != nullptr;
+    return getView() != nullptr && nvg != nullptr && mnvgDevice(nvg) != nullptr;
 #else
     if (glContext)
         return glContext->makeActive();
@@ -234,19 +229,30 @@ bool NVGSurface::makeContextActive()
 #endif
 }
 
-float NVGSurface::getRenderScale() const
+float NVGSurface::calculateRenderScale() const
 {
 #ifdef NANOVG_METAL_IMPLEMENTATION
-    auto desktopScale = Desktop::getInstance().getGlobalScaleFactor();
-    return OSUtils::MTLGetPixelScale(getView()) * desktopScale;
+    return OSUtils::MTLGetPixelScale(getView()) * Desktop::getInstance().getGlobalScaleFactor();
 #else
     return glContext->getRenderingScale();
 #endif
 }
 
+float NVGSurface::getRenderScale() const
+{
+    return lastRenderScale;
+}
+
 void NVGSurface::updateBounds(Rectangle<int> bounds)
 {
 #ifdef NANOVG_GL_IMPLEMENTATION
+    if(!makeContextActive())
+    {
+        newBounds = bounds;
+        setBounds(newBounds);
+        return;
+    }
+    
     newBounds = bounds;
     if (hresize)
         setBounds(bounds.withHeight(getHeight()));
@@ -273,7 +279,7 @@ void NVGSurface::resized()
 
 void NVGSurface::invalidateAll()
 {
-    invalidArea = getLocalBounds();
+    invalidArea = invalidArea.getUnion(getLocalBounds());
 }
 
 void NVGSurface::invalidateArea(Rectangle<int> area)
@@ -283,6 +289,9 @@ void NVGSurface::invalidateArea(Rectangle<int> area)
 
 void NVGSurface::render()
 {
+    // Flush message queue before rendering, to make sure all GUIs are up-to-date
+    editor->pd->flushMessageQueue();
+    
 #if ENABLE_FPS_COUNT
     frameTimer->addFrameTime();
 #endif
@@ -295,46 +304,61 @@ void NVGSurface::render()
     
     if (!nvg) {
         initialise();
-        return; // Render on next frame
     }
-
+    
     if (!makeContextActive())
         return;
-
-    auto pixelScale = getRenderScale();
-#if NANOVG_METAL_IMPLEMENTATION
-    if(lastRenderScale != pixelScale)
+    
+    auto pixelScale = calculateRenderScale();
+    auto desktopScale = Desktop::getInstance().getGlobalScaleFactor();
+    auto devicePixelScale = pixelScale / desktopScale;
+    
+    if(std::abs(lastRenderScale - pixelScale) > 0.1f)
     {
         detachContext();
         return; // Render on next frame
     }
+    
+#if NANOVG_METAL_IMPLEMENTATION
+    if(pixelScale == 0) // This happens sometimes when an AUv3 plugin is hidden behind the parameter control view
+    {
+        return;
+    }
+    auto viewWidth = 0; // Not relevant for Metal
+    auto viewHeight = 0;
+#else
+    auto viewWidth = getWidth() * pixelScale;
+    auto viewHeight = getHeight() * pixelScale;
 #endif
     
     updateBufferSize();
-
+    
     if (!invalidArea.isEmpty()) {
-        auto invalidated = invalidArea.expanded(1);
-
         // First, draw only the invalidated region to a separate framebuffer
         // I've found that nvgScissor doesn't always clip everything, meaning that there will be graphical glitches if we don't do this
         nvgBindFramebuffer(invalidFBO);
-        nvgViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
+        nvgViewport(0, 0, viewWidth, viewHeight);
         nvgClear(nvg);
 
-        nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
-        nvgScissor(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
-
-        editor->renderArea(nvg, invalidated);
+        nvgBeginFrame(nvg, getWidth() * desktopScale, getHeight() * desktopScale, devicePixelScale);
+        nvgScale(nvg, desktopScale, desktopScale);
+        nvgScissor(nvg, invalidArea.getX(), invalidArea.getY(), invalidArea.getWidth(), invalidArea.getHeight());
+        editor->renderArea(nvg, invalidArea);
         nvgEndFrame(nvg);
 
         nvgBindFramebuffer(mainFBO);
-        nvgViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
-        nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
+#if NANOVG_GL_IMPLEMENTATION
+        nvgViewport(0, 0, viewWidth, viewHeight);
+        nvgBeginFrame(nvg, getWidth(), getHeight(), devicePixelScale);
+#else
+        nvgBeginFrame(nvg, getWidth() * desktopScale, getHeight() * desktopScale, devicePixelScale);
+        nvgScale(nvg, desktopScale, desktopScale);
+#endif
         nvgBeginPath(nvg);
-        nvgScissor(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
+        nvgScissor(nvg, invalidArea.getX(), invalidArea.getY(), invalidArea.getWidth(), invalidArea.getHeight());
 
         nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, invalidFBO->image, 1));
-        nvgFillRect(nvg, invalidated.getX(), invalidated.getY(), invalidated.getWidth(), invalidated.getHeight());
+        nvgFillRect(nvg, invalidArea.getX(), invalidArea.getY(), invalidArea.getWidth(), invalidArea.getHeight());
 
 #if ENABLE_FB_DEBUGGING
         static Random rng;
@@ -350,17 +374,22 @@ void NVGSurface::render()
     }
 
     if (needsBufferSwap) {
-        float pixelScale = getRenderScale();
-        nvgViewport(0, 0, getWidth() * pixelScale, getHeight() * pixelScale);
+#if NANOVG_GL_IMPLEMENTATION
+        nvgViewport(0, 0, viewWidth, viewHeight);
+        nvgBeginFrame(nvg, getWidth(), getHeight(), devicePixelScale);
+#else
+        nvgBeginFrame(nvg, getWidth() * desktopScale, getHeight() * desktopScale, devicePixelScale);
+        nvgScale(nvg, desktopScale, desktopScale);
+#endif
+        // TODO: temporary fix to make sure you can never see through the image...
+        // fixes bug on Windows currently
+        auto backgroundColour = editor->pd->lnf->findColour(PlugDataColour::canvasBackgroundColourId);
+        nvgFillColor(nvg, nvgRGB(backgroundColour.getRed(), backgroundColour.getGreen(), backgroundColour.getBlue()));
+        nvgFillRect(nvg, -10, -10, getWidth() + 10, getHeight() + 10);
 
-        nvgBeginFrame(nvg, getWidth(), getHeight(), pixelScale);
-
-        nvgSave(nvg);
-        nvgScissor(nvg, 0, 0, getWidth(), getHeight());
         nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, mainFBO->image, 1));
         nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
-        nvgRestore(nvg);
-
+        
 #if ENABLE_FPS_COUNT
         nvgSave(nvg);
         frameTimer->render(nvg);

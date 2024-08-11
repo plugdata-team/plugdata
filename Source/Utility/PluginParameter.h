@@ -40,12 +40,6 @@ public:
         return (static_cast<int>((range.end - range.start) / 0.000001f) + 1);
     }
 
-    void setInterval(float interval)
-    {
-        ScopedLock lock(rangeLock);
-        normalisableRange.interval = interval;
-    }
-
     void setRange(float min, float max)
     {
         ScopedLock lock(rangeLock);
@@ -326,11 +320,11 @@ private:
     float lastValue = 0.0f;
     float const defaultValue;
 
+    // TODO: do they all need to be atomic?
     std::atomic<float> gestureState = 0.0f;
     std::atomic<int> index;
     std::atomic<float> value;
     std::atomic<bool> enabled = false;
-    std::atomic<bool> needsHostUpdate = false;
 
     CriticalSection nameLock;
     String parameterName;
@@ -339,8 +333,5 @@ private:
     NormalisableRange<float> normalisableRange;
 
     Mode mode;
-
-    moodycamel::ConcurrentQueue<std::function<void(void)>> parameterChangeQueue;
-
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataParameter)
 };

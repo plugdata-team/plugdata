@@ -29,7 +29,17 @@ TabComponent::TabComponent(PluginEditor* editor)
     }
 
     addMouseListener(this, true);
+    
+    // Dequeue messages to "pd" symbol to make sure the "pluginmode" message always arrives earlier than the tab update.
+    // Without this, FL Studio (and possibly others) will fail to init the pluginmode theme!
+    editor->pd->triggerAsyncUpdate();
+    
     triggerAsyncUpdate();
+}
+
+TabComponent::~TabComponent()
+{
+    clearCanvases();
 }
 
 Canvas* TabComponent::newPatch()
@@ -69,6 +79,8 @@ Canvas* TabComponent::openPatch(String const& patchContent)
 
 Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch)
 {
+    if(!existingPatch) return nullptr;
+    
     // Check if subpatch is already opened
     for (auto* cnv : canvases) {
         if (cnv->patch == *existingPatch) {
@@ -93,6 +105,8 @@ Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch)
     cnv->restoreViewportState();
 
     triggerAsyncUpdate();
+
+    sendTabUpdateToVisibleCanvases();
 
     return cnv;
 }
@@ -284,6 +298,23 @@ void TabComponent::openInPluginMode(pd::Patch::Ptr patch)
     triggerAsyncUpdate();
 }
 
+// Deleting a canvas can lead to subpatches of that canvas being deleted as well
+// This means that clearing all elements from the canvases array by calling 'clear()' is unsafe
+// instead, we must check if they still exist before deleting
+void TabComponent::clearCanvases()
+{
+    Array<SafePointer<Canvas>> safeCanvases;
+    for(int i = canvases.size() - 1; i >= 0; i--)
+    {
+        safeCanvases.add(canvases[i]);
+    }
+    
+    for(auto safeCnv : safeCanvases)
+    {
+        if(safeCnv) canvases.removeObject(safeCnv.getComponent());
+    }
+}
+
 void TabComponent::handleAsyncUpdate()
 {
     pd->setThis();
@@ -293,7 +324,7 @@ void TabComponent::handleAsyncUpdate()
     // save the patch from the canvases that were the two splits
     for (int i = 0; i < splits.size(); i++) {
         if (splits[i]) {
-            lastSplitPatches[i] = splits[i]->patch;
+            lastSplitPatches[i] = &splits[i]->patch;
         }
     }
     if (getCurrentCanvas())
@@ -311,7 +342,7 @@ void TabComponent::handleAsyncUpdate()
     if (auto patchInPluginMode = editor->findPatchInPluginMode()) {
         if (patchInPluginMode->windowIndex == editorIndex) {
             // Initialise plugin mode
-            canvases.clear();
+            clearCanvases();
             if (!editor->isInPluginMode() || editor->pluginMode->getPatch()->getPointer().get() != patchInPluginMode->getUncheckedPointer()) {
                 editor->pluginMode = std::make_unique<PluginMode>(editor, patchInPluginMode);
                 editor->resized();
@@ -407,6 +438,7 @@ void TabComponent::handleAsyncUpdate()
     }
     
     editor->updateCommandStatus();
+    sendTabUpdateToVisibleCanvases();
 }
 
 void TabComponent::closeEmptySplits()
@@ -448,11 +480,11 @@ void TabComponent::closeEmptySplits()
 
 void TabComponent::showTab(Canvas* cnv, int splitIndex)
 {
-    if (cnv == splits[splitIndex]) {
+    if (cnv == splits[splitIndex] && cnv && cnv->getParentComponent()) {
         return;
     }
 
-    if (splits[splitIndex]) {
+    if (splits[splitIndex] && splits[splitIndex] != splits[!splitIndex]) {
         splits[splitIndex]->saveViewportState();
         removeChildComponent(splits[splitIndex]->viewport.get());
     }
@@ -503,18 +535,15 @@ void TabComponent::renderArea(NVGcontext* nvg, Rectangle<int> area)
     nvgFillRect(nvg, 0, 0, area.getWidth(), area.getHeight());
 
     if (splits[0]) {
-        nvgSave(nvg);
+        NVGScopedState scopedState(nvg);
         nvgScissor(nvg, 0, 0, splits[1] ? (splitSize - 3) : getWidth(), getHeight());
         splits[0]->performRender(nvg, area);
-        nvgRestore(nvg);
     }
     if (splits[1]) {
-        nvgSave(nvg);
+        NVGScopedState scopedState(nvg);
         nvgTranslate(nvg, splitSize + 3, 0);
         nvgScissor(nvg, 0, 0, getWidth() - (splitSize + 3), getHeight());
-
         splits[1]->performRender(nvg, area.translated(-(splitSize + 3), 0));
-        nvgRestore(nvg);
     }
 
     if (!splitDropBounds.isEmpty()) {
@@ -687,7 +716,6 @@ void TabComponent::closeTab(Canvas* cnv)
     }();
 
     cnv->setCachedComponentImage(nullptr); // Clear nanovg invalidation listener, just to be sure
-    canvases.removeObject(cnv);
     
     if (splits[0] == cnv && tabbars[0].indexOf(tab) >= 1) {
         showTab(tabbars[0][tabbars[0].indexOf(tab) - 1]->cnv, 0);
@@ -695,11 +723,21 @@ void TabComponent::closeTab(Canvas* cnv)
     if (splits[1] == cnv && tabbars[1].indexOf(tab) >= 1) {
         showTab(tabbars[1][tabbars[1].indexOf(tab) - 1]->cnv, 1);
     }
-
+    
+    canvases.removeObject(cnv);
     pd->patches.removeFirstMatchingValue(patch);
     pd->updateObjectImplementations();
 
     triggerAsyncUpdate();
+}
+
+void TabComponent::sendTabUpdateToVisibleCanvases()
+{
+    for (auto* editorWindow : pd->getEditors()) {
+        for (auto* cnv: editorWindow->getTabComponent().getVisibleCanvases()) {
+            cnv->tabChanged();
+        }
+    }
 }
 
 void TabComponent::closeAllTabs(bool quitAfterComplete, Canvas* patchToExclude, std::function<void()> afterComplete)
@@ -829,8 +867,9 @@ void TabComponent::itemDragEnter(SourceDetails const& dragSourceDetails)
 
 void TabComponent::itemDragExit(SourceDetails const& dragSourceDetails)
 {
-    auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get());
-    tab->setVisible(false);
+    if(auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
+        tab->setVisible(false);
+    }
     splitDropBounds = Rectangle<int>();
     draggingOverTabbar = false;
     editor->nvgSurface.invalidateAll();
@@ -896,9 +935,11 @@ void TabComponent::itemDragMove(SourceDetails const& dragSourceDetails)
         splitDropBounds = Rectangle<int>();
         tab->setVisible(true);
 
+#if !JUCE_IOS
         if (tab->parent != this) {
             editor->getTabComponent().createNewWindow(tab->cnv);
         }
+#endif
 
         auto centreX = tab->getBounds().getCentreX();
         auto tabBarWidth = splits[1] ? getWidth() / 2 : getWidth();

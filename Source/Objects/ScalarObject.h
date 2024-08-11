@@ -373,13 +373,12 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto scale = canvas->isScrolling ? canvas->getRenderScale() * 2.0f : canvas->getRenderScale() * std::max(1.0f, getValue<float>(canvas->zoomScale));
+        auto scale = canvas->isZooming ? canvas->getRenderScale() * 2.0f : canvas->getRenderScale() * std::max(1.0f, getValue<float>(canvas->zoomScale));
         auto bounds = getBoundingBox().getBoundingBox().toNearestInt();
-        nvgSave(nvg);
+        NVGScopedState scopedState(nvg);
         nvgTranslate(nvg, bounds.getX(), bounds.getY());
         textRenderer.prepareLayout(getText(), getFont(), getColour(), getWidth(), getWidth());
         textRenderer.renderText(nvg, bounds.withZeroOrigin(), scale);
-        nvgRestore(nvg);
     }
 
     void handleMouseDown(MouseEvent const& e)

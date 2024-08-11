@@ -126,6 +126,9 @@ public:
         centreSidepanelButtons = settingsFile->getPropertyAsValue("centre_sidepanel_buttons");
         interfaceProperties.add(new PropertiesPanel::BoolComponent("Centre canvas sidepanel selectors", centreSidepanelButtons, { "No", "Yes" }));
 
+        patchDownwardsOnly = settingsFile->getPropertyAsValue("patch_downwards_only");
+        otherProperties.add(new PropertiesPanel::BoolComponent("Patch downwards only", patchDownwardsOnly, { "No", "Yes" }));
+
         propertiesPanel.addSection("Interface", interfaceProperties);
         propertiesPanel.addSection("Autosave", autosaveProperties);
         propertiesPanel.addSection("Other", otherProperties);
@@ -186,6 +189,8 @@ public:
     Value nativeDialogValue;
     Value autosaveInterval;
     Value autosaveEnabled;
+
+    Value patchDownwardsOnly;
 
     PropertiesPanel propertiesPanel;
 

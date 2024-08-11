@@ -35,9 +35,9 @@ class AtomHelper {
 
 public:
     Value labelColour = SynchronousValue();
-    Value labelPosition = SynchronousValue(0.0f);
     Value fontSize = SynchronousValue(5.0f);
     Value labelText = SynchronousValue();
+    Value labelPosition = SynchronousValue(0.0f);
     Value sendSymbol = SynchronousValue();
     Value receiveSymbol = SynchronousValue();
 
@@ -57,6 +57,46 @@ public:
         objectParameters.addParamCombo("Label Position", cLabel, &labelPosition, { "left", "right", "top", "bottom" });
     }
 
+    void drawTriangleFlag(NVGcontext* nvg, bool isHighlighted, bool topAndBottom = false)
+    {
+        auto const flagSize = 9;
+        auto width = gui->getWidth();
+        auto height = gui->getHeight();
+        
+        // If this object is inside a subpatch then it's canvas won't update framebuffers
+        // We need to find the base canvas it's in (which will have the same zoom) and use
+        // that canvases triangle image
+        auto getRootCanvas = [this]() -> Canvas* {
+            Canvas* parentCanvas = cnv;
+            while (Canvas* parent = parentCanvas->findParentComponentOfClass<Canvas>()) {
+                parentCanvas = parent;
+            }
+            return parentCanvas;
+        };
+
+        auto* rootCnv = getRootCanvas();
+        auto objectFlagId = isHighlighted ? rootCnv->objectFlagSelected.getImageId() : rootCnv->objectFlag.getImageId();
+
+        // draw triangle top right
+        nvgFillPaint(nvg, nvgImagePattern(nvg, width - flagSize, 0, flagSize, flagSize, 0, objectFlagId, 1));
+        nvgFillRect(nvg, width - flagSize, 0, flagSize, flagSize);
+
+        if (topAndBottom) {
+            // draw same triangle flipped bottom right
+            NVGScopedState scopedState(nvg);
+            // Rotate around centre
+            auto halfFlagSize = flagSize * 0.5f;
+            nvgTranslate(nvg, width - halfFlagSize, height - halfFlagSize);
+            nvgRotate(nvg, degreesToRadians<float>(90));
+            nvgTranslate(nvg, -halfFlagSize, -halfFlagSize);
+
+            nvgBeginPath(nvg);
+            nvgRect(nvg, 0, 0, flagSize, flagSize);
+            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, flagSize, flagSize, 0, objectFlagId, 1));
+            nvgFill(nvg);
+        }
+    }
+    
     void update()
     {
         labelText = getLabelText();
@@ -64,7 +104,6 @@ public:
         if (auto atom = ptr.get<t_fake_gatom>()) {
             labelPosition = static_cast<int>(atom->a_wherelabel + 1);
         }
-
         int h = getFontHeight();
 
         int idx = static_cast<int>(std::find(atomSizes, atomSizes + 7, h) - atomSizes);
@@ -73,8 +112,8 @@ public:
         sendSymbol = getSendSymbol();
         receiveSymbol = getReceiveSymbol();
 
-        gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, LookAndFeel::getDefaultLookAndFeel().findColour(Label::textWhenEditingColourId));
-        gui->getLookAndFeel().setColour(Label::textColourId, LookAndFeel::getDefaultLookAndFeel().findColour(Label::textColourId));
+        gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, cnv->editor->getLookAndFeel().findColour(Label::textWhenEditingColourId));
+        gui->getLookAndFeel().setColour(Label::textColourId, cnv->editor->getLookAndFeel().findColour(Label::textColourId));
     }
 
     int getWidthInChars()
@@ -106,7 +145,7 @@ public:
             if (atom->a_text.te_width == 0) {
                 w = textLength + 10;
             } else {
-                w = (atom->a_text.te_width * glist_fontwidth(patchPtr)) + 3;
+                w = (atom->a_text.te_width * sys_fontwidth(getFontHeight())) + 3;
             }
 
             return { x, y, w, getAtomHeight() };
@@ -123,8 +162,8 @@ public:
                 return;
 
             pd::Interface::moveObject(patchPtr, atom.cast<t_gobj>(), b.getX(), b.getY());
-
-            auto fontWidth = glist_fontwidth(patchPtr);
+            
+            auto fontWidth = sys_fontwidth(getFontHeight());
             if (atom->a_text.te_width != 0) {
                 atom->a_text.te_width = (b.getWidth() - 3) / fontWidth;
             }
@@ -172,32 +211,31 @@ public:
                 auto fontWidth = glist_fontwidth(patch);
 
                 // Calculate the width in text characters for both
-                auto oldCharWidth = (oldBounds.getWidth() - 3) / fontWidth;
                 auto newCharWidth = (newBounds.getWidth() - 3) / fontWidth;
-
-                // If we're resizing the left edge, move the object left
-                if (isStretchingLeft) {
-                    auto widthDiff = (newCharWidth - oldCharWidth) * fontWidth;
-                    auto x = oldBounds.getX() - widthDiff;
-                    auto y = oldBounds.getY();
-
-                    if (auto atom = helper->ptr.get<t_gobj>()) {
-                        pd::Interface::moveObject(static_cast<t_glist*>(patch), atom.get(), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
-                    }
-                }
-
+                
                 // Set new width
                 if (auto atom = helper->ptr.get<t_fake_gatom>()) {
                     atom->a_text.te_width = newCharWidth;
                 }
-
+                
+                bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
+                
+                // If we're resizing the left edge, move the object left
+                if (isStretchingLeft) {
+                    auto x = oldBounds.getRight() - (bounds.getWidth() - Object::doubleMargin);
+                    auto y = oldBounds.getY(); // don't allow y resize
+                    
+                    if (auto atom = helper->ptr.get<t_gobj>()) {
+                        pd::Interface::moveObject(static_cast<t_glist*>(patch), atom.get(), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
+                    }
+                    bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
+                }
+                
                 auto newHeight = newBounds.getHeight();
                 auto heightIdx = std::clamp<int>(std::lower_bound(atomSizes, atomSizes + 7, newHeight) - atomSizes, 2, 7) - 1;
 
                 helper->setFontHeight(atomSizes[heightIdx]);
                 object->gui->setParameterExcludingListener(helper->fontSize, heightIdx + 1);
-
-                bounds = helper->getPdBounds(0).expanded(Object::margin) + object->cnv->canvasOrigin;
             }
         };
 
@@ -291,9 +329,9 @@ public:
             labels->getObjectLabel()->setFont(Font(fontHeight));
             labels->getObjectLabel()->setText(text, dontSendNotification);
 
-            auto textColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
-            if (std::abs(textColour.getBrightness() - LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId).getBrightness()) < 0.3f) {
-                textColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId).contrasting();
+            auto textColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
+            if (std::abs(textColour.getBrightness() - cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId).getBrightness()) < 0.3f) {
+                textColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId).contrasting();
             }
 
             labels->setColour(textColour);

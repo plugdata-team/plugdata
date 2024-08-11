@@ -4,24 +4,16 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class SubpatchObject final : public TextBase {
+class SubpatchObject final : public TextBase, public SettingsFileListener {
 
     pd::Patch::Ptr subpatch;
     Value isGraphChild = SynchronousValue(var(false));
-
-    bool locked = false;
 
 public:
     SubpatchObject(pd::WeakReference obj, Object* object)
         : TextBase(obj, object)
         , subpatch(new pd::Patch(obj, cnv->pd, false))
     {
-        object->hvccMode.addListener(this);
-
-        if (getValue<bool>(object->hvccMode)) {
-            checkHvccCompatibility(getText(), subpatch.get());
-        }
-
         objectParameters.addParamBool("Is graph", cGeneral, &isGraphChild, { "No", "Yes" });
 
         // There is a possibility that a donecanvasdialog message is sent inbetween the initialisation in pd and the initialisation of the plugdata object, making it possible to miss this message. This especially tends to happen if the messagebox is connected to a loadbang.
@@ -32,21 +24,28 @@ public:
                 _this->valueChanged(_this->isGraphChild);
             }
         });
+        
+        setRepaintsOnMouseActivity(true);
     }
 
     ~SubpatchObject() override
     {
-        object->hvccMode.removeListener(this);
         closeOpenedSubpatchers();
     }
+    
+    void propertyChanged(String const& name, var const& value) override
+    {
+        if(name == "hvcc_mode")
+        {
+            if (value) {
+                checkHvccCompatibility(getText(), subpatch.get());
+            }
+        }
+    }
+    
     void render(NVGcontext* nvg) override
     {
         TextBase::render(nvg);
-
-        nvgBeginPath(nvg);
-        nvgCircle(nvg, 4, getHeight() * 0.5, 2);
-        nvgFillColor(nvg, convertColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour)));
-        nvgFill(nvg);
     }
 
     void update() override
@@ -64,24 +63,17 @@ public:
         if (!e.mods.isLeftButtonDown())
             return;
 
-        if (locked && click(e.getPosition(), e.mods.isShiftDown(), e.mods.isAltDown())) {
+        if (isLocked && click(e.getPosition(), e.mods.isShiftDown(), e.mods.isAltDown())) {
             return;
         }
 
         //  If locked and it's a left click
-        if (locked && !e.mods.isRightButtonDown()) {
+        if (isLocked && !e.mods.isRightButtonDown()) {
             openSubpatch();
             return;
         } else {
             TextBase::mouseDown(e);
         }
-    }
-
-    // Most objects ignore mouseclicks when locked
-    // Objects can override this to do custom locking behaviour
-    void lock(bool isLocked) override
-    {
-        locked = isLocked;
     }
 
     pd::Patch::Ptr getPatch() override
@@ -111,10 +103,6 @@ public:
                 });
             }
 
-        } else if (v.refersToSameSourceAs(object->hvccMode)) {
-            if (getValue<bool>(v)) {
-                checkHvccCompatibility(getText(), subpatch.get());
-            }
         }
     }
 

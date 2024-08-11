@@ -110,7 +110,7 @@ public:
         if (isPositiveAndBelow(e.getEventRelativeTo(viewedComponent.get()).getMouseDownY(), 40) && ProjectInfo::isStandalone) {
             dragger.startDraggingWindow(parentComponent->getTopLevelComponent(), e);
             dragging = true;
-        } else if (!viewedComponent->getBounds().contains(e.getPosition()) && !blockCloseAction) {
+        } else if (!viewedComponent->getBounds().contains(e.getEventRelativeTo(this).getPosition()) && !blockCloseAction) {
             parentComponent->toFront(true);
             closeDialog();
         }

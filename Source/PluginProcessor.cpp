@@ -81,11 +81,10 @@ AudioProcessor::BusesProperties PluginProcessor::buildBusesProperties()
 
 // ag: Note that this is just a fallback, we update this with live version
 // data from the external if we have it.
-String PluginProcessor::pdlua_version = "pdlua 0.11.0 (lua 5.4)";
+String PluginProcessor::pdlua_version = "pdlua 0.12.0 (lua 5.4)";
 
 PluginProcessor::PluginProcessor()
     : AudioProcessor(buildBusesProperties())
-    , pd::Instance("plugdata")
     , internalSynth(std::make_unique<InternalSynth>())
     , hostInfoUpdater(this)
 {
@@ -183,6 +182,12 @@ PluginProcessor::~PluginProcessor()
     patches.clear();
 }
 
+void PluginProcessor::flushMessageQueue()
+{
+    setThis();
+    messageDispatcher->dequeueMessages();
+}
+
 void PluginProcessor::initialiseFilesystem()
 {
     auto const& homeDir = ProjectInfo::appDataDir;
@@ -190,7 +195,13 @@ void PluginProcessor::initialiseFilesystem()
     auto deken = homeDir.getChildFile("Externals");
     auto patches = homeDir.getChildFile("Patches");
 
-#if !JUCE_WINDOWS
+#if JUCE_IOS
+    // TODO: remove this later. This is for iOS version transition
+    auto oldDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata");
+    if(oldDir.isDirectory() && oldDir.getChildFile("Abstractions").isDirectory()) {
+        oldDir.deleteRecursively();
+    }
+#elif !JUCE_WINDOWS
     if (!homeDir.exists())
         homeDir.createDirectory();
 #endif
@@ -243,10 +254,12 @@ void PluginProcessor::initialiseFilesystem()
     if (!deken.exists()) {
         deken.createDirectory();
     }
+#if !JUCE_IOS
     if (!patches.exists()) {
         patches.createDirectory();
     }
-
+#endif
+    
     auto testTonePatch = homeDir.getChildFile("testtone.pd");
     auto cpuTestPatch = homeDir.getChildFile("load-meter.pd");
 
@@ -290,18 +303,26 @@ void PluginProcessor::initialiseFilesystem()
 
     auto shortcut = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata.LNK");
     ProjectInfo::appDataDir.createShortcut("plugdata", shortcut);
-
 #elif JUCE_IOS
-    // This is not ideal but on iOS, it seems to be the only way to make it work...
-    versionDataDir.getChildFile("Abstractions").copyDirectoryTo(homeDir.getChildFile("Abstractions"));
-    versionDataDir.getChildFile("Documentation").copyDirectoryTo(homeDir.getChildFile("Documentation"));
-    versionDataDir.getChildFile("Extra").copyDirectoryTo(homeDir.getChildFile("Extra"));
+    versionDataDir.getChildFile("Abstractions").createSymbolicLink(homeDir.getChildFile("Abstractions"), true);
+    versionDataDir.getChildFile("Documentation").createSymbolicLink(homeDir.getChildFile("Documentation"), true);
+    versionDataDir.getChildFile("Extra").createSymbolicLink(homeDir.getChildFile("Extra"), true);
+
+    auto docsPatchesDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("Patches");
+    docsPatchesDir.createDirectory();
+    if(!patches.isSymbolicLink()) {
+        patches.deleteRecursively();
+    }
+    else {
+        patches.deleteFile();
+    }
+    docsPatchesDir.createSymbolicLink(patches, true);
 #else
     versionDataDir.getChildFile("Abstractions").createSymbolicLink(homeDir.getChildFile("Abstractions"), true);
     versionDataDir.getChildFile("Documentation").createSymbolicLink(homeDir.getChildFile("Documentation"), true);
     versionDataDir.getChildFile("Extra").createSymbolicLink(homeDir.getChildFile("Extra"), true);
 #endif
-
+    
     initMutex.deleteFile();
 }
 
@@ -313,12 +334,8 @@ void PluginProcessor::updateSearchPaths()
     setThis();
 
     lockAudioThread();
-
-    // Get pd's search paths
-    char* p[1024];
-    int numItems;
-    pd::Interface::getSearchPaths(p, &numItems);
-    auto currentPaths = StringArray(p, numItems);
+    
+    libpd_clear_search_path();
 
     auto paths = pd::Library::defaultPaths;
 
@@ -328,14 +345,10 @@ void PluginProcessor::updateSearchPaths()
     }
 
     for (auto const& path : paths) {
-        if (currentPaths.contains(path.getFullPathName()))
-            continue;
         libpd_add_to_search_path(path.getFullPathName().toRawUTF8());
     }
 
     for (auto const& path : DekenInterface::getExternalPaths()) {
-        if (currentPaths.contains(path))
-            continue;
         libpd_add_to_search_path(path.replace("\\", "/").toRawUTF8());
     }
 
@@ -373,7 +386,6 @@ bool PluginProcessor::acceptsMidi() const
 #if JUCE_IOS
     return !ProjectInfo::isFx;
 #endif
-
     return true;
 }
 
@@ -902,26 +914,17 @@ void PluginProcessor::sendPlayhead()
             atoms_playhead.emplace_back(static_cast<float>(infos->getTimeSignature()->denominator));
             sendMessage("_playhead", "timesig", atoms_playhead);
         }
-
-        if (infos->getPpqPosition().hasValue()) {
-            atoms_playhead[0] = static_cast<float>(*infos->getPpqPosition());
-        } else {
-            atoms_playhead[0] = 0.0f;
+        
+        auto ppq = infos->getPpqPosition();
+        auto samplesTime = infos->getTimeInSamples();
+        auto secondsTime = infos->getTimeInSeconds();
+        if (ppq.hasValue() || samplesTime.hasValue() || secondsTime.hasValue()) {
+            atoms_playhead.resize(3);
+            atoms_playhead[0] = ppq.hasValue() ? static_cast<float>(*ppq) : 0.0f;
+            atoms_playhead[1] = samplesTime.hasValue() ? static_cast<float>(*samplesTime) : 0.0f;
+            atoms_playhead[2] = secondsTime.hasValue() ? static_cast<float>(*secondsTime) : 0.0f;
+            sendMessage("_playhead", "position", atoms_playhead);
         }
-
-        if (infos->getTimeInSamples().hasValue()) {
-            atoms_playhead[1] = static_cast<float>(*infos->getTimeInSamples());
-        } else {
-            atoms_playhead[1] = 0.0f;
-        }
-
-        if (infos->getTimeInSeconds().hasValue()) {
-            atoms_playhead.emplace_back(static_cast<float>(*infos->getTimeInSeconds()));
-        } else {
-            atoms_playhead.emplace_back(0.0f);
-        }
-
-        sendMessage("_playhead", "position", atoms_playhead);
         atoms_playhead.resize(1);
     }
     unlockAudioThread();
@@ -1142,19 +1145,22 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     auto openPatch = [this](String const& content, File const& location, bool pluginMode = false, int splitIndex = 0) {
         // CHANGED IN v0.9.0:
         // We now prefer loading the patch content over the patch file, if possible
-        // This generally makes it work more like the users expects, but before we couldn't get it to load abstractions (this is now fixed)
+        // This generally makes it work more like the users expect, but before we couldn't get it to load abstractions (this is now fixed)
         if (content.isNotEmpty()) {
+            auto locationIsValid = location.getParentDirectory().exists() && location.getFullPathName().isNotEmpty();
             // Force pd to use this path for the next opened patch
-            // This makes sure the patch can find abstractions/resources, even though it's loading patch from state
-            glob_forcefilename(generateSymbol(location.getFileName().toRawUTF8()), generateSymbol(location.getParentDirectory().getFullPathName().toRawUTF8()));
-
+            // This makes sure the patch can find abstractions/resources, even though it's loading a patch from state
+            if(locationIsValid) {
+                glob_forcefilename(generateSymbol(location.getFileName().toRawUTF8()), generateSymbol(location.getParentDirectory().getFullPathName().replaceCharacter('\\', '/').toRawUTF8()));
+            }
+            
             auto patchPtr = loadPatch(content);
             patchPtr->splitViewIndex = splitIndex;
             patchPtr->openInPluginMode = pluginMode;
-            patchPtr->setCurrentFile(URL(location));
-            if (!location.exists() || (location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory))) {
+            if (!locationIsValid || location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) {
                 patchPtr->setUntitled();
             } else {
+                patchPtr->setCurrentFile(URL(location));
                 patchPtr->setTitle(location.getFileName());
             }
         } else {
@@ -1231,16 +1237,17 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     }
 
     unlockAudioThread();
-
+    
     delete[] xmlData;
 
+    
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         editor->getTabComponent().triggerAsyncUpdate();
         editor->sidebar->updateAutomationParameters();  // After loading a state, we need to update all the parameters
     }
 
     // Let host know our parameter layout (likely) changed
-    hostInfoUpdater.triggerAsyncUpdate();
+    hostInfoUpdater.update();
 }
 
 pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL)
@@ -1259,7 +1266,9 @@ pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL)
     auto dirname = patchFile.getParentDirectory().getFullPathName().replace("\\", "/");
     auto filename = patchFile.getFileName();
 
-    glob_forcefilename(generateSymbol(filename), generateSymbol(dirname));
+    if(!glob_hasforcedfilename()) {
+        glob_forcefilename(generateSymbol(filename), generateSymbol(dirname));
+    }
     auto newPatch = openPatch(tempFile);
     if (newPatch) {
         if (auto patch = newPatch->getPointer()) {
@@ -1316,12 +1325,44 @@ void PluginProcessor::setTheme(String themeToUse, bool force)
     lnf->setTheme(themeTree);
 
     updateAllEditorsLNF();
+
+    // Only update iolet geometry if we need to
+    // This is based on if the previous or current differ
+    auto previousIoletGeom = oldThemeTree.getProperty("iolet_spacing_edge");
+    auto currentIoletGeom = themeTree.getProperty("iolet_spacing_edge");
+    // if both previous and current have iolet property, propertyState = 0;
+    // if one does, propertyState =  1;
+    // if previous and current both don't have iolet spacing property, propertyState = 2
+    int propertyState = previousIoletGeom.isVoid() + currentIoletGeom.isVoid();
+    if ((propertyState == 1) || (propertyState == 0 ? static_cast<int>(previousIoletGeom) != static_cast<int>(currentIoletGeom) : 0)) {
+        updateIoletGeometryForAllObjects();
+    }
 }
 
 void PluginProcessor::updateAllEditorsLNF()
 {
     for (auto& editor : getEditors())
         editor->sendLookAndFeelChange();
+}
+
+void PluginProcessor::updateIoletGeometryForAllObjects()
+{
+    // update all object's iolet position
+    for (auto& editor : getEditors()){
+        for (auto& cnv : editor->getCanvases()){
+            for (auto& obj : cnv->objects){
+                obj->updateIoletGeometry();
+            }
+        }
+    }
+    // update all connections to make sure they attach to the correct iolet positions
+    for (auto& editor : getEditors()){
+        for (auto& cnv : editor->getCanvases()){
+            for (auto& con : cnv->connections){
+                con->forceUpdate();
+            }
+        }
+    }
 }
 
 void PluginProcessor::receiveNoteOn(int const channel, int const pitch, int const velocity)
@@ -1453,13 +1494,35 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
     case hash("pluginmode"): {
         // TODO: it would be nicer if we could specifically target the correct editor here, instead of picking the first one and praying
         auto editors = getEditors();
-        if (!editors.isEmpty()) {
-            auto* editor = editors[0];
-            if (auto* cnv = editor->getCurrentCanvas()) {
-                editor->getTabComponent().openInPluginMode(cnv->patch);
+        if(!patches.isEmpty()) {
+            if(list.size())
+            {
+                auto pluginModeThemeOrPath = list[0].toString();
+                if(pluginModeThemeOrPath.endsWith(".plugdatatheme"))
+                {
+                    auto themeFile = patches[0]->getPatchFile().getParentDirectory().getChildFile(pluginModeThemeOrPath);
+                    if(themeFile.existsAsFile())
+                    {
+                        pluginModeTheme = ValueTree::fromXml(themeFile.loadFileAsString());
+                    }
+                }
+                else {
+                    auto themesTree = SettingsFile::getInstance()->getValueTree().getChildWithName("ColourThemes");
+                    auto theme = themesTree.getChildWithProperty("theme", pluginModeThemeOrPath);
+                    if(theme.isValid()) {
+                        pluginModeTheme = theme;
+                    }
+                }
             }
-        } else {
-            patches[0]->openInPluginMode = true;
+            
+            if (!editors.isEmpty()) {
+                auto* editor = editors[0];
+                if (auto* cnv = editor->getCurrentCanvas()) {
+                    editor->getTabComponent().openInPluginMode(cnv->patch);
+                }
+            } else {
+                patches[0]->openInPluginMode = true;
+            }
         }
         break;
     }

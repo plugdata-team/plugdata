@@ -12,6 +12,8 @@ class TabComponent : public Component
 public:
     explicit TabComponent(PluginEditor* editor);
 
+    ~TabComponent();
+    
     Canvas* newPatch();
 
     Canvas* openPatch(const URL& path);
@@ -42,7 +44,10 @@ public:
     Array<Canvas*> getVisibleCanvases();
 
 private:
+    void clearCanvases();
     void handleAsyncUpdate() override;
+
+    void sendTabUpdateToVisibleCanvases();
 
     void resized() override;
 
@@ -313,7 +318,7 @@ private:
     std::array<OwnedArray<TabBarButtonComponent>, 2> tabbars;
     std::array<SafePointer<Canvas>, 2> splits = { nullptr, nullptr };
 
-    std::array<pd::Patch::Ptr, 2> lastSplitPatches { nullptr, nullptr };
+    std::array<pd::Patch*, 2> lastSplitPatches { nullptr, nullptr };
     t_glist* lastActiveCanvas = nullptr;
 
     bool draggingOverTabbar = false;

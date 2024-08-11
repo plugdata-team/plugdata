@@ -37,19 +37,15 @@ public:
 
     void update() override
     {
-        selected = getValue();
+        numItems = getMaximum();
+        max = numItems;
 
-        if (selected > ::getValue<int>(max)) {
-            selected = std::min<int>(::getValue<int>(max) - 1, selected);
-        }
+        selected = jlimit(0, numItems - 1, static_cast<int>(getValue()));
 
         if (auto radio = ptr.get<t_radio>()) {
             isVertical = radio->x_orientation;
             sizeProperty = isVertical ? radio->x_gui.x_w : radio->x_gui.x_h;
         }
-
-        numItems = getMaximum();
-        max = numItems;
 
         iemHelper.update();
 
@@ -152,18 +148,6 @@ public:
         alreadyToggled = false;
     }
 
-    void mouseEnter(MouseEvent const& e) override
-    {
-        mouseHover = true;
-        repaint();
-    }
-
-    void mouseExit(MouseEvent const& e) override
-    {
-        mouseHover = false;
-        repaint();
-    }
-
     void mouseMove(MouseEvent const& e) override
     {
         float pos = isVertical ? e.y : e.x;
@@ -190,6 +174,18 @@ public:
 
         repaint();
     }
+    
+    void mouseEnter(MouseEvent const& e) override
+    {
+        mouseHover = true;
+        repaint();
+    }
+
+    void mouseExit(MouseEvent const& e) override
+    {
+        mouseHover = false;
+        repaint();
+    }
 
     float getValue()
     {
@@ -200,16 +196,16 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat().reduced(0.5f);
+        auto b = getLocalBounds().toFloat();
         bool isSelected = object->isSelected() && !cnv->isGraph;
-        auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
+        auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(iemHelper.getBackgroundColour()), isSelected ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
         float size = (isVertical ? static_cast<float>(getHeight()) / numItems : static_cast<float>(getWidth()) / numItems);
 
-        nvgStrokeColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour)));
+        nvgStrokeColor(nvg, convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour)));
         nvgStrokeWidth(nvg, 1.0f);
 
         for (int i = 1; i < numItems; i++) {
@@ -226,26 +222,23 @@ public:
             }
         }
 
-        auto bgColour = getHoverBackgroundColour(::getValue<Colour>(iemHelper.secondaryColour));
+        auto bgColour = ::getValue<Colour>(iemHelper.secondaryColour);
 
         if (mouseHover) {
-            nvgBeginPath(nvg);
+            auto hoverColour = bgColour.contrasting(bgColour.getBrightness() > 0.5f ? 0.03f : 0.05f);
             float hoverX = isVertical ? 0 : hoverIdx * size;
             float hoverY = isVertical ? hoverIdx * size : 0;
             auto hoverBounds = Rectangle<float>(hoverX, hoverY, size, size).reduced(jmin<int>(size * 0.25f, 5));
-            nvgFillColor(nvg, convertColour(bgColour));
-            nvgRoundedRect(nvg, hoverBounds.getX(), hoverBounds.getY(), hoverBounds.getWidth(), hoverBounds.getHeight(), Corners::objectCornerRadius / 2.0f);
-            nvgFill(nvg);
+            nvgFillColor(nvg, convertColour(hoverColour));
+            nvgFillRoundedRect(nvg, hoverBounds.getX(), hoverBounds.getY(), hoverBounds.getWidth(), hoverBounds.getHeight(), Corners::objectCornerRadius / 2.0f);
         }
 
         float selectionX = isVertical ? 0 : selected * size;
         float selectionY = isVertical ? selected * size : 0;
         auto selectionBounds = Rectangle<float>(selectionX, selectionY, size, size).reduced(jmin<int>(size * 0.25f, 5));
 
-        nvgBeginPath(nvg);
         nvgFillColor(nvg, convertColour(::getValue<Colour>(iemHelper.primaryColour)));
-        nvgRoundedRect(nvg, selectionBounds.getX(), selectionBounds.getY(), selectionBounds.getWidth(), selectionBounds.getHeight(), Corners::objectCornerRadius / 2.0f);
-        nvgFill(nvg);
+        nvgFillRoundedRect(nvg, selectionBounds.getX(), selectionBounds.getY(), selectionBounds.getWidth(), selectionBounds.getHeight(), Corners::objectCornerRadius / 2.0f);
     }
 
     void updateAspectRatio()

@@ -99,6 +99,7 @@ public:
 
     ~DocumentationBrowserUpdateThread()
     {
+        
         instance = nullptr;
         stopThread(-1);
     }
@@ -131,8 +132,9 @@ private:
     {
         static File versionDataDir = ProjectInfo::appDataDir.getChildFile("Versions");
         static File toolchainDir = ProjectInfo::appDataDir.getChildFile("Toolchain");
-
-        if (threadShouldExit() || directory == versionDataDir || directory == toolchainDir) {
+        static File libraryDir = ProjectInfo::appDataDir.getChildFile("Library");
+        
+        if (threadShouldExit() || directory == versionDataDir || directory == toolchainDir || directory == libraryDir) {
             return {};
         }
 
@@ -162,6 +164,7 @@ private:
             if (file.getFileName().startsWith("."))
                 continue;
 
+            
             ValueTree childNode(fileIdentifier);
             childNode.setProperty(nameIdentifier, file.getFileName(), nullptr);
             childNode.setProperty(pathIdentifier, file.getFullPathName(), nullptr);
@@ -200,13 +203,33 @@ private:
         }
     }
 
-    void run() override
-    {
-        fileTreeLock.enter();
-        fileTree = generateDirectoryValueTree(File(SettingsFile::getInstance()->getProperty<String>("browser_path")));
-        fileTreeLock.exit();
-        sendChangeMessage();
-    }
+        void run() override
+        {
+            try
+            {
+                int const maxRetries = 50;
+                int retries = 0;
+
+                while (retries < maxRetries) {
+                    if (threadShouldExit())
+                        break;
+                    if (fileTreeLock.tryEnter()) {
+                        fileTree = generateDirectoryValueTree(File(SettingsFile::getInstance()->getProperty<String>("browser_path")));
+                        fileTreeLock.exit();
+                        break;
+                    }
+                    retries++;
+                    Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 100);
+                }
+                
+
+                sendChangeMessage();
+            }
+            catch(...)
+            {
+                std::cerr << "Failed to update documentation browser" << std::endl;
+            }
+        }
 
     void filesystemChanged() override
     {
@@ -229,7 +252,10 @@ public:
     {
         updater = DocumentationBrowserUpdateThread::getInstance();
         updater->addChangeListener(this);
-
+#if JUCE_IOS // Needed to AUv3
+        updater->update();
+#endif
+        
         searchInput.setBackgroundColour(PlugDataColour::sidebarActiveBackgroundColourId);
         searchInput.addKeyListener(this);
         searchInput.onTextChange = [this]() {
@@ -260,10 +286,6 @@ public:
             DragAndDropContainer::performExternalDragDropOfFiles({ tree.getProperty("Path") }, false, this, nullptr);
         };
 
-        fileTree = updater->getCurrentTree();
-        if (fileTree.isValid()) {
-            fileList.setValueTree(fileTree);
-        }
         addAndMakeVisible(fileList);
     }
 

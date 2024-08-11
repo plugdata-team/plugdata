@@ -44,11 +44,11 @@ public:
 
         addAndMakeVisible(noteEditor);
 
-        noteEditor.setColour(TextEditor::textColourId, LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
+        noteEditor.setColour(TextEditor::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
         noteEditor.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         noteEditor.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
         noteEditor.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
-        noteEditor.setColour(ScrollBar::thumbColourId, LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::scrollbarThumbColourId));
+        noteEditor.setColour(ScrollBar::thumbColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::scrollbarThumbColourId));
 
         noteEditor.setAlwaysOnTop(true);
         noteEditor.setMultiLine(true);
@@ -121,8 +121,7 @@ public:
     void render(NVGcontext* nvg) override
     {
         auto scale = getImageScale();
-
-        if (needsRepaint || noteEditor.isVisible() || imageRenderer.needsUpdate(std::ceil(getWidth() * scale), std::ceil(getHeight() * scale))) {
+        if (needsRepaint || isEditorShown() || imageRenderer.needsUpdate(roundToInt(getWidth() * scale), roundToInt(getHeight() * scale))) {
             imageRenderer.renderJUCEComponent(nvg, *this, scale);
             needsRepaint = false;
         } else {
@@ -177,8 +176,8 @@ public:
             updateFont();
         }
 
-        getLookAndFeel().setColour(Label::textWhenEditingColourId, LookAndFeel::getDefaultLookAndFeel().findColour(Label::textWhenEditingColourId));
-        getLookAndFeel().setColour(Label::textColourId, LookAndFeel::getDefaultLookAndFeel().findColour(Label::textColourId));
+        getLookAndFeel().setColour(Label::textWhenEditingColourId, cnv->editor->getLookAndFeel().findColour(Label::textWhenEditingColourId));
+        getLookAndFeel().setColour(Label::textColourId, cnv->editor->getLookAndFeel().findColour(Label::textColourId));
     }
 
     void updateSizeProperty() override
@@ -234,7 +233,7 @@ public:
     {
         if (getValue<bool>(outline)) {
             bool selected = object->isSelected() && !cnv->isGraph;
-            auto outlineColour = LookAndFeel::getDefaultLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
+            auto outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
 
             g.setColour(outlineColour);
             g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);

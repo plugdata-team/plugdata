@@ -326,7 +326,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        Fonts::drawIcon(g, Icons::MIDI, getLocalBounds().removeFromLeft(20).withTrimmedTop(1), findColour(ComboBox::textColourId), 13);
+        Fonts::drawIcon(g, Icons::MIDI, getLocalBounds().removeFromLeft(16).withTrimmedTop(1), findColour(ComboBox::textColourId), 13);
 
         auto midiInRect = Rectangle<float>(27.5f, 9.5f, 15.0f, 3.0f);
         auto midiOutRect = Rectangle<float>(27.5f, 18.5f, 15.0f, 3.0f);
@@ -570,8 +570,8 @@ public:
         else
             textColour = findColour(PlugDataColour::toolbarTextColourId);
 
-        Fonts::drawIcon(g, Icons::CPU, getLocalBounds().removeFromLeft(20), textColour, 14);
-        Fonts::drawText(g, String(cpuUsageToDraw) + "%", getLocalBounds().withTrimmedLeft(26).withTrimmedTop(1), textColour, 13.5, Justification::centredLeft);
+        Fonts::drawIcon(g, Icons::CPU, getLocalBounds().removeFromLeft(16), textColour, 14);
+        Fonts::drawFittedText(g, String(cpuUsageToDraw) + "%", getLocalBounds().withTrimmedLeft(22).withTrimmedTop(1), textColour, 1, 0.9f, 13.5, Justification::centredLeft);
     }
 
     void timerCallback() override
@@ -667,7 +667,7 @@ private:
         } else {
             g.setColour(findColour(PlugDataColour::toolbarTextColourId).withAlpha(0.65f));
         }
-        g.drawText(String(int(statusbar->currentZoomLevel)) + "%", 0, 0, 44, getHeight(), Justification::centredLeft);
+        g.drawFittedText(String(int(statusbar->currentZoomLevel)) + "%", 0, 0, getWidth() - 2, getHeight(), Justification::centredRight, 1, 0.95f);
     }
 
     void enablementChanged() override
@@ -853,7 +853,7 @@ Statusbar::~Statusbar()
     pd->statusbarSource->removeListener(this);
 }
 
-void Statusbar::updateZoomLevel()
+void Statusbar::handleAsyncUpdate()
 {
     auto* editor = findParentComponentOfClass<PluginEditor>();
     if (auto* cnv = editor->getCurrentCanvas()) {
@@ -862,6 +862,11 @@ void Statusbar::updateZoomLevel()
         currentZoomLevel = 100.0f;
     }
     repaint();
+}
+
+void Statusbar::updateZoomLevel()
+{
+    triggerAsyncUpdate();
 }
 
 void Statusbar::paint(Graphics& g)
@@ -879,7 +884,7 @@ void Statusbar::paint(Graphics& g)
 
 void Statusbar::resized()
 {
-    int pos = 1;
+    int pos = 0;
     auto position = [this, &pos](int width, bool inverse = false) -> int {
         int result = 8 + pos;
         pos += width + 3;
@@ -894,18 +899,20 @@ void Statusbar::resized()
 #endif
 
     zoomLabel->setBounds(position(34), 0, 34, getHeight());
-    zoomComboButton.setBounds(position(8) - 11, 0, getHeight(), getHeight());
+    zoomComboButton.setBounds(position(8) - 12, 0, getHeight(), getHeight());
 
-    firstSeparatorPosition = position(4) + 3.5f; // fifth seperator
+    firstSeparatorPosition = position(4) + 3.f; // First seperator
 
     centreButton.setBounds(position(spacing), 0, getHeight(), getHeight());
 
-    secondSeparatorPosition = position(4) + 1.f; // Second seperator
+    secondSeparatorPosition = position(4) + 0.5f; // Second seperator
 
-    snapEnableButton.setBounds(position(14), 0, getHeight(), getHeight());
+    pos -= 3;
+    
+    snapEnableButton.setBounds(position(12), 0, getHeight(), getHeight());
     snapSettingsButton.setBounds(position(spacing - 4), 0, getHeight(), getHeight());
 
-    overlayButton.setBounds(position(14), 0, getHeight(), getHeight());
+    overlayButton.setBounds(position(12), 0, getHeight(), getHeight());
     overlaySettingsButton.setBounds(position(spacing - 4), 0, getHeight(), getHeight());
 
     pos = 4; // reset position for elements on the right
@@ -915,7 +922,7 @@ void Statusbar::resized()
 #endif
 
     audioSettingsButton.setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
-    powerButton.setBounds(position(getHeight() - 16, true), 0, getHeight(), getHeight());
+    powerButton.setBounds(position(getHeight() - 6, true), 0, getHeight(), getHeight());
 
     limiterButton.setBounds(position(44, true), 4, 44, getHeight() - 8);
 
@@ -929,14 +936,13 @@ void Statusbar::resized()
     cpuMeter->setVisible(getWidth() > 500);
 
     midiBlinker->setBounds(position(55, true) + 10, 0, 55, getHeight());
-    cpuMeter->setBounds(position(50, true), 0, 50, getHeight());
-    latencyDisplayButton->setBounds(position(100, true), 0, 100, getHeight());
+    cpuMeter->setBounds(position(45, true), 0, 50, getHeight());
+    latencyDisplayButton->setBounds(position(104, true), 0, 100, getHeight());
 }
 
 void Statusbar::setLatencyDisplay(int value)
 {
     if (!ProjectInfo::isStandalone) {
-        currentLatency = value;
         latencyDisplayButton->setLatencyValue(value);
     }
 }
@@ -986,7 +992,6 @@ void Statusbar::lookAndFeelChanged()
 }
 
 StatusbarSource::StatusbarSource()
-    : numChannels(0)
 {
     startTimerHz(30);
 }
@@ -1003,26 +1008,26 @@ void StatusbarSource::setBufferSize(int bufferSize)
 
 void StatusbarSource::process(bool hasMidiInput, bool hasMidiOutput, int channels)
 {
+    /*
     if (channels == 1) {
-        level[1] = 0;
+        level[1].store(0, std::memory_order_relaxed) = 0;
     } else if (channels == 0) {
-        level[0] = 0;
-        level[1] = 0;
-    }
+        level[0].store(0, std::memory_order_relaxed);
+        level[1].store(0, std::memory_order_relaxed);
+    } */
 
     auto nowInMs = Time::getMillisecondCounter();
 
-    lastAudioProcessedTime = nowInMs;
+    lastAudioProcessedTime.store(nowInMs, std::memory_order_relaxed);
 
     if (hasMidiOutput)
-        lastMidiSentTime = nowInMs;
+        lastMidiSentTime.store(nowInMs, std::memory_order_relaxed);
     if (hasMidiInput)
-        lastMidiReceivedTime = nowInMs;
+        lastMidiReceivedTime.store(nowInMs, std::memory_order_relaxed);
 }
 
 void StatusbarSource::prepareToPlay(int nChannels)
 {
-    numChannels = nChannels;
     peakBuffer.reset(sampleRate, bufferSize, nChannels);
 }
 
@@ -1030,9 +1035,9 @@ void StatusbarSource::timerCallback()
 {
     auto currentTime = Time::getMillisecondCounter();
 
-    auto hasReceivedMidi = currentTime - lastMidiReceivedTime < 700;
-    auto hasSentMidi = currentTime - lastMidiSentTime < 700;
-    auto hasProcessedAudio = currentTime - lastAudioProcessedTime < 700;
+    auto hasReceivedMidi = currentTime - lastMidiReceivedTime.load(std::memory_order_relaxed) < 700;
+    auto hasSentMidi = currentTime - lastMidiSentTime.load(std::memory_order_relaxed) < 700;
+    auto hasProcessedAudio = currentTime - lastAudioProcessedTime.load(std::memory_order_relaxed) < 700;
 
     if (hasReceivedMidi != midiReceivedState) {
         midiReceivedState = hasReceivedMidi;
@@ -1054,7 +1059,7 @@ void StatusbarSource::timerCallback()
 
     for (auto* listener : listeners) {
         listener->audioLevelChanged(peak);
-        listener->cpuUsageChanged(cpuUsage);
+        listener->cpuUsageChanged(cpuUsage.load(std::memory_order_relaxed));
     }
 }
 
@@ -1070,5 +1075,5 @@ void StatusbarSource::removeListener(Listener* l)
 
 void StatusbarSource::setCPUUsage(float cpu)
 {
-    cpuUsage = cpu;
+    cpuUsage.store(cpu, std::memory_order_relaxed);
 }

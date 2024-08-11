@@ -18,7 +18,6 @@ class Knob : public Slider
     Colour arcColour;
 
     bool drawArc = true;
-
     int numberOfTicks = 0;
     float arcStart = 63.5f;
 
@@ -56,16 +55,6 @@ public:
         }
     }
 
-    void mouseEnter(MouseEvent const& e) override
-    {
-        getParentComponent()->getProperties().set("hover", true);
-    }
-
-    void mouseExit(MouseEvent const& e) override
-    {
-        getParentComponent()->getProperties().set("hover", false);
-    }
-
     void showArc(bool show)
     {
         drawArc = show;
@@ -99,16 +88,16 @@ public:
             auto arcWidth = (arcRadius - lineThickness) / arcRadius;
 
             nvgBeginPath(nvg);
-            nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, startAngle, endAngle, NVG_CW);
+            nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, startAngle, endAngle, NVG_HOLE);
             nvgStrokeWidth(nvg, arcWidth * lineThickness);
             nvgStrokeColor(nvg, nvgRGBAf(arcColour.getFloatRed(), arcColour.getFloatGreen(), arcColour.getFloatBlue(), arcColour.getFloatAlpha()));
             nvgStroke(nvg);
 
             nvgBeginPath(nvg);
             if (centre < angle) {
-                nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, centre, angle, NVG_CW);
+                nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, centre, angle, NVG_HOLE);
             } else {
-                nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, angle, centre, NVG_CW);
+                nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, angle, centre, NVG_HOLE);
             }
             nvgStrokeColor(nvg, nvgRGBAf(fgColour.getFloatRed(), fgColour.getFloatGreen(), fgColour.getFloatBlue(), fgColour.getFloatAlpha()));
             nvgStrokeWidth(nvg, arcWidth * lineThickness);
@@ -149,7 +138,7 @@ public:
     }
 };
 
-class KnobObject : public ObjectBase {
+class KnobObject final : public ObjectBase {
 
     Knob knob;
 
@@ -200,22 +189,6 @@ public:
             stopEdition();
         };
 
-        object->transparentHitTest = [this, object](int x, int y) -> bool {
-            if (outline.getValue())
-                return true;
-
-            // If knob is circular limit hit test to circle, and expand more if there are ticks around the knob
-            auto hitPoint = getLocalPoint(object, Point<float>(x, y));
-            auto centre = getLocalBounds().toFloat().getCentre();
-            auto knobRadius = getWidth() * 0.33f;
-            auto knobRadiusWithTicks = knobRadius + (getWidth() * 0.06f);
-            if (centre.getDistanceFrom(hitPoint) < (ticks.getValue() ? knobRadiusWithTicks : knobRadius)) {
-                return true;
-            }
-
-            return false;
-        };
-
         onConstrainerCreate = [this]() {
             constrainer->setFixedAspectRatio(1.0f);
             constrainer->setMinimumSize(this->object->minimumSize, this->object->minimumSize);
@@ -244,6 +217,23 @@ public:
         objectParameters.addParamColour("Arc color", cAppearance, &arcColour, PlugDataColour::guiObjectInternalOutlineColour);
         objectParameters.addParamBool("Fill background", cAppearance, &outline, { "No", "Yes" }, 1);
         objectParameters.addParamBool("Show arc", cAppearance, &showArc, { "No", "Yes" }, 1);
+    }
+    
+    bool canReceiveMouseEvent(int x, int y) override
+    {
+        if (outline.getValue() || !locked)
+            return true;
+
+        // If knob is circular limit hit test to circle, and expand more if there are ticks around the knob
+        auto hitPoint = getLocalPoint(object, Point<float>(x, y));
+        auto centre = getLocalBounds().toFloat().getCentre();
+        auto knobRadius = getWidth() * 0.33f;
+        auto knobRadiusWithTicks = knobRadius + (getWidth() * 0.06f);
+        if (centre.getDistanceFrom(hitPoint) < (ticks.getValue() ? knobRadiusWithTicks : knobRadius)) {
+            return true;
+        }
+
+        return false;
     }
 
     bool isTransparent() override
@@ -458,15 +448,12 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat().reduced(0.5f);
+        auto b = getLocalBounds().toFloat();
         auto bgColour = Colour::fromString(secondaryColour.toString());
-
-        if (getProperties()["hover"])
-            bgColour = getHoverBackgroundColour(bgColour);
 
         if (::getValue<bool>(outline)) {
             bool selected = object->isSelected() && !cnv->isGraph;
-            auto outlineColour = LookAndFeel::getDefaultLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+            auto outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
             nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(bgColour), convertColour(outlineColour), Corners::objectCornerRadius);
         } else {
@@ -479,7 +466,7 @@ public:
             nvgCircle(nvg, circleBounds.getCentreX(), circleBounds.getCentreY(), circleBounds.getWidth() / 2.0f);
             nvgFill(nvg);
 
-            nvgStrokeColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(objectOutlineColourId)));
+            nvgStrokeColor(nvg, convertColour(cnv->editor->getLookAndFeel().findColour(objectOutlineColourId)));
             nvgStrokeWidth(nvg, 1.0f);
             nvgStroke(nvg);
         }

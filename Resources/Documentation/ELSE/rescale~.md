@@ -23,11 +23,11 @@ inlets:
   1st:
   - type: signal
     description: value to perform the scaling function on
-    
+
   2nd:
   - type: signal
     description: minimum output value
-      
+
   3rd:
   - type: signal
     description: maximum output value
@@ -40,13 +40,13 @@ outlets:
 flags:
 - name: -noclip
   description: sets clipping off
-- name: -in <float, float> 
+- name: -in <float, float>
   description: sets min/max input values
-- name: -exp <float> 
+- name: -exp <float>
   description: sets exponential factor
-- name: -noclip
+- name: -log
   description: sets to log mode
-    
+
 methods:
 - type: exp <float>
   description: sets the exponential factor, -1, 0 or 1 sets to linear

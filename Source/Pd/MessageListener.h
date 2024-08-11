@@ -73,7 +73,24 @@ public:
 
     void enqueueMessage(void* target, t_symbol* symbol, int argc, t_atom* argv)
     {
+        if(block) return;
+        
         messageStack.push({ target, symbol, argc, argv });
+    }
+    
+    // used when no plugineditor is active, so we can just ignore messages
+    void setBlockMessages(bool blockMessages)
+    {
+        block = blockMessages;
+        
+        // If we're blocking messages from now on, also clear out the queue
+        if(blockMessages)
+        {
+            Message message;
+            while (messageStack.pop(message)) {}
+            messageStack.swapBuffers();
+            while (messageStack.pop(message)) {}
+        }
     }
 
     void addMessageListener(void* object, pd::MessageListener* messageListener)
@@ -154,6 +171,10 @@ private:
 
     std::unordered_map<void*, std::set<juce::WeakReference<MessageListener>>> messageListeners;
     CriticalSection messageListenerLock;
+
+    // Block messages unless an editor has been constructed
+    // Otherwise the message queue will not be cleared by the editors v-blank
+    std::atomic<bool> block = true;
 };
 
 }

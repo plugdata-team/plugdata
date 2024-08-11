@@ -73,7 +73,7 @@ public:
         {
             if (originComponent->isVisible()) {
                 // Translate from canvas coords to viewport coords as float to prevent rounding errors
-                auto invalidatedBounds = surface.getLocalArea(originComponent, rect.toFloat()).getSmallestIntegerContainer();
+                auto invalidatedBounds = surface.getLocalArea(originComponent, rect.expanded(2).toFloat()).getSmallestIntegerContainer();
                 surface.invalidateArea(invalidatedBounds);
             }
             return passEvents;
@@ -102,6 +102,9 @@ public:
     static NVGSurface* getSurfaceForContext(NVGcontext*);
 
 private:
+    
+    float calculateRenderScale() const;
+    
     void resized() override;
 
     PluginEditor* editor;
@@ -120,10 +123,10 @@ private:
     bool resizing = false;
     Rectangle<int> newBounds;
 
+    float lastRenderScale = 0.0f;
+    
 #if NANOVG_GL_IMPLEMENTATION
     std::unique_ptr<OpenGLContext> glContext;
-#else
-    float lastRenderScale = 0.0f;
 #endif
 
     std::unique_ptr<FrameTimer> frameTimer;
@@ -207,7 +210,8 @@ public:
             imageId = other.imageId;
             imageWidth = other.imageWidth;
             imageHeight = other.imageHeight;
-
+            onImageInvalidate = other.onImageInvalidate;
+            
             other.imageId = 0;
             allImages.insert(this);
         }
@@ -217,11 +221,21 @@ public:
     {
         // Check for self-assignment
         if (this != &other) {
+            // Delete current image
+            if(imageId && nvg)
+            {
+                if (auto* surface = NVGSurface::getSurfaceForContext(nvg)) {
+                    surface->makeContextActive();
+                }
+                nvgDeleteImage(nvg, imageId);
+            }
+            
             nvg = other.nvg;
             imageId = other.imageId;
             imageWidth = other.imageWidth;
             imageHeight = other.imageHeight;
-
+            onImageInvalidate = other.onImageInvalidate;
+            
             other.imageId = 0; // Important, makes sure the old buffer can't delete this buffer
             allImages.insert(this);
         }
@@ -314,7 +328,7 @@ public:
 
     bool needsUpdate(int width, int height)
     {
-        return imageId == 0 || width != imageWidth || height != imageHeight;
+        return imageId == 0 || width != imageWidth || height != imageHeight || isDirty;
     }
 
     int getImageId()
@@ -322,9 +336,15 @@ public:
         return imageId;
     }
 
+    void setDirty()
+    {
+        isDirty = true;
+    }
+
     NVGcontext* nvg = nullptr;
     int imageId = 0;
     int imageWidth = 0, imageHeight = 0;
+    bool isDirty = false;
 
     std::function<void()> onImageInvalidate = nullptr;
 
@@ -426,4 +446,19 @@ private:
     NVGframebuffer* fb = nullptr;
     int fbWidth, fbHeight;
     bool fbDirty = false;
+};
+
+struct NVGScopedState
+{
+    NVGScopedState(NVGcontext* nvg) : nvg(nvg)
+    {
+        nvgSave(nvg);
+    }
+    
+    ~NVGScopedState()
+    {
+        nvgRestore(nvg);
+    }
+    
+    NVGcontext* nvg;
 };

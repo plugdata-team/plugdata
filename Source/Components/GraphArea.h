@@ -45,43 +45,39 @@ public:
         auto lineBounds = getLocalBounds().toFloat().reduced(4.0f);
         auto graphAreaColour = convertColour(findColour(PlugDataColour::graphAreaColourId));
 
-        nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, lineBounds.getX(), lineBounds.getY(), lineBounds.getWidth(), lineBounds.getHeight(), Corners::objectCornerRadius);
-        nvgStrokeColor(nvg, graphAreaColour);
-        nvgStrokeWidth(nvg, 1.0f);
-        nvgStroke(nvg);
+        nvgDrawRoundedRect(nvg, lineBounds.getX(), lineBounds.getY(), lineBounds.getWidth(), lineBounds.getHeight(), nvgRGBAf(0, 0, 0, 0), graphAreaColour, Corners::objectCornerRadius);
 
-        auto drawCorner = [](NVGcontext* nvg, int x, int y, int angle) {
-            nvgSave(nvg);
+        auto &resizeHandleImage = canvas->resizeGOPHandleImage;
+        int angle = 360;
 
-            nvgTranslate(nvg, x, y);
-            nvgRotate(nvg, degreesToRadians<float>(angle));
-
-            // (Calculated from svg)
-            nvgBeginPath(nvg);
-            nvgMoveTo(nvg, 3.51f, 9.004f);
-            nvgLineTo(nvg, 2.251f, 9.004f);
-            nvgBezierTo(nvg, 0.0f, 9.004f, 0.0f, 7.996f, 0.0f, 2.251f);
-
-            nvgBezierTo(nvg, 0.0f, 1.009f, 1.008f, 0.0f, 2.251f, 0.0f);
-
-            nvgLineTo(nvg, 6.753f, 0.0f);
-            nvgBezierTo(nvg, 7.995f, 0.0f, 9.004f, 1.009f, 9.004f, 2.251f);
-
-            nvgLineTo(nvg, 9.004f, 3.511f);
-            nvgLineTo(nvg, 6.239f, 3.511f);
-            nvgBezierTo(nvg, 4.733f, 3.511f, 3.51f, 4.734f, 3.51f, 6.24f);
-            nvgClosePath(nvg);
-
-            nvgFill(nvg);
-            nvgRestore(nvg);
+        auto getVert = [lineBounds](int index) -> Point<float> {
+            switch(index){
+                case 0:
+                    return lineBounds.getTopLeft();
+                case 1:
+                    return lineBounds.getBottomLeft();
+                case 2:
+                    return lineBounds.getBottomRight();
+                case 3:
+                    return lineBounds.getTopRight();
+                default:
+                    return { };
+            }
         };
 
-        nvgFillColor(nvg, graphAreaColour);
-        drawCorner(nvg, 1, 1, 0);
-        drawCorner(nvg, getWidth() - 1, 1, 90);
-        drawCorner(nvg, getWidth() - 1, getHeight() - 1, 180);
-        drawCorner(nvg, 1, getHeight() - 1, 270);
+        for (int i = 0; i < 4; i++) {
+            NVGScopedState scopedState(nvg);
+            // Rotate around centre
+            nvgTranslate(nvg, getVert(i).x, getVert(i).y);
+            nvgRotate(nvg, degreesToRadians<float>(angle));
+            nvgTranslate(nvg, -3.0f, -3.0f);
+
+            nvgBeginPath(nvg);
+            nvgRect(nvg, 0, 0, 9, 9);
+            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage.getImageId(), 1));
+            nvgFill(nvg);
+            angle -= 90;
+        }
     }
 
     bool hitTest(int x, int y) override
@@ -119,13 +115,17 @@ public:
 
         resizer.setBounds(getLocalBounds());
         repaint();
+
+        // Update parent canvas directly (needed if open in splitview)
+        applyBounds();
+        canvas->synchroniseAllCanvases();
     }
 
     void applyBounds()
     {
         if (auto cnv = canvas->patch.getPointer()) {
-            cnv->gl_pixwidth = getWidth() - 8;
-            cnv->gl_pixheight = getHeight() - 8;
+            cnv->gl_pixwidth = getWidth() - 8 - 1;
+            cnv->gl_pixheight = getHeight() - 8 - 1;
 
             cnv->gl_xmargin = getX() - canvas->canvasOrigin.x + 4;
             cnv->gl_ymargin = getY() - canvas->canvasOrigin.y + 4;
@@ -136,6 +136,9 @@ public:
 
     void updateBounds()
     {
-        setBounds(canvas->patch.getBounds().expanded(4).translated(canvas->canvasOrigin.x, canvas->canvasOrigin.y));
+        auto patchBounds = canvas->patch.getBounds().expanded(4.0f);
+        auto width = patchBounds.getWidth() + 1;
+        auto height = patchBounds.getHeight() + 1;
+        setBounds(patchBounds.translated(canvas->canvasOrigin.x, canvas->canvasOrigin.y).withWidth(width).withHeight(height));
     }
 };

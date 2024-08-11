@@ -609,7 +609,6 @@ void OSUtils::MTLDeleteView(void* view)
     [viewToRemove release];
 }
 
-
 #endif
 
 

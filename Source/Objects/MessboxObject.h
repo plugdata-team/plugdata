@@ -16,16 +16,18 @@ class MessboxObject final : public ObjectBase
     Value fontSize = SynchronousValue();
     Value bold = SynchronousValue();
     Value sizeProperty = SynchronousValue();
+        
+    bool needsRepaint = true;
 
 public:
     MessboxObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
     {
-        editor.setColour(TextEditor::textColourId, LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
+        editor.setColour(TextEditor::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
         editor.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         editor.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
         editor.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
-        editor.setColour(ScrollBar::thumbColourId, LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::scrollbarThumbColourId));
+        editor.setColour(ScrollBar::thumbColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::scrollbarThumbColourId));
 
         editor.setAlwaysOnTop(true);
         editor.setMultiLine(true);
@@ -110,6 +112,7 @@ public:
 
     void lock(bool locked) override
     {
+        needsRepaint = true;
         setInterceptsMouseClicks(locked, locked);
         editor.setReadOnly(!locked);
     }
@@ -121,11 +124,22 @@ public:
         g.setColour(Colour::fromString(secondaryColour.toString()));
         g.fillRoundedRectangle(bounds.toFloat().reduced(0.5f), Corners::objectCornerRadius);
     }
+        
+    void render(NVGcontext* nvg) override
+    {
+        auto scale = getImageScale();
+        if (needsRepaint || isEditorShown() || imageRenderer.needsUpdate(roundToInt(getWidth() * scale), roundToInt(getHeight() * scale))) {
+            imageRenderer.renderJUCEComponent(nvg, *this, scale);
+            needsRepaint = false;
+        } else {
+            imageRenderer.render(nvg, getLocalBounds());
+        }
+    }
 
     void paintOverChildren(Graphics& g) override
     {
         bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = LookAndFeel::getDefaultLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
+        auto outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
@@ -249,6 +263,7 @@ public:
         editor.setText(newText.trimEnd());
 
         repaint();
+        needsRepaint = true;
     }
 
     bool keyPressed(KeyPress const& key, Component* component) override
@@ -290,27 +305,31 @@ public:
 
             object->updateBounds();
         } else if (value.refersToSameSourceAs(primaryColour)) {
-
+            needsRepaint = true;
             auto col = Colour::fromString(primaryColour.toString());
             editor.applyColourToAllText(col);
 
             if (auto messbox = ptr.get<t_fake_messbox>())
                 colourToHexArray(col, messbox->x_fg);
+
             repaint();
         }
         if (value.refersToSameSourceAs(secondaryColour)) {
+            needsRepaint = true;
             auto col = Colour::fromString(secondaryColour.toString());
             if (auto messbox = ptr.get<t_fake_messbox>())
                 colourToHexArray(col, messbox->x_bg);
             repaint();
         }
         if (value.refersToSameSourceAs(fontSize)) {
+            needsRepaint = true;
             auto size = getValue<int>(fontSize);
             editor.applyFontToAllText(editor.getFont().withHeight(size));
             if (auto messbox = ptr.get<t_fake_messbox>())
                 messbox->x_font_size = size;
         }
         if (value.refersToSameSourceAs(bold)) {
+            needsRepaint = true;
             auto size = getValue<int>(fontSize);
             if (getValue<bool>(bold)) {
                 auto boldFont = Fonts::getBoldFont();
@@ -323,6 +342,7 @@ public:
                 if (auto messbox = ptr.get<t_fake_messbox>())
                     messbox->x_font_weight = pd->generateSymbol("bold");
             }
+
         }
     }
 

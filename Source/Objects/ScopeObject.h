@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class ScopeObject : public ObjectBase
+class ScopeObject final : public ObjectBase
     , public Timer {
 
     std::vector<float> x_buffer;
@@ -21,6 +21,8 @@ class ScopeObject : public ObjectBase
     Value secondaryColour = SynchronousValue();
     Value receiveSymbol = SynchronousValue();
     Value sizeProperty = SynchronousValue();
+
+    bool freezeScope = false;
 
 public:
     ScopeObject(pd::WeakReference ptr, Object* object)
@@ -114,9 +116,12 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat().reduced(0.5f);
+        auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(Colour::fromString(secondaryColour.toString())), convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId)), Corners::objectCornerRadius);
+        auto b = getLocalBounds().toFloat();
+
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(Colour::fromString(secondaryColour.toString())), object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
         auto dx = getWidth() * 0.125f;
         auto dy = getHeight() * 0.25f;
@@ -126,20 +131,20 @@ public:
         nvgStrokeWidth(nvg, 1.0f);
         auto xx = dx;
         for (int i = 0; i < 7; i++) {
-            nvgMoveTo(nvg, xx, 0.0f);
-            nvgLineTo(nvg, xx, static_cast<float>(getHeight()));
+            nvgMoveTo(nvg, xx, 1.0f);
+            nvgLineTo(nvg, xx, static_cast<float>(getHeight() - 1.0f));
             xx += dx;
         }
 
         auto yy = dy;
         for (int i = 0; i < 3; i++) {
-            nvgMoveTo(nvg, 0.0f, yy);
-            nvgLineTo(nvg, static_cast<float>(getWidth()), yy);
+            nvgMoveTo(nvg, 1.0f, yy);
+            nvgLineTo(nvg, static_cast<float>(getWidth() - 1.0f), yy);
             yy += dy;
         }
         nvgStroke(nvg);
 
-        nvgSave(nvg);
+        NVGScopedState scopedState(nvg);
         nvgIntersectScissor(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight());
         if (!(y_buffer.empty() || x_buffer.empty())) {
             nvgBeginPath(nvg);
@@ -155,11 +160,13 @@ public:
             }
             nvgStroke(nvg);
         }
-        nvgRestore(nvg);
     }
 
     void timerCallback() override
     {
+        if (freezeScope)
+            return;
+
         int bufsize = 0, mode = 0;
         float min = 0.0f, max = 1.0f;
 
@@ -216,6 +223,16 @@ public:
         }
 
         repaint();
+    }
+
+    void mouseDown(const MouseEvent& e) override
+    {
+        freezeScope = true;
+    }
+
+    void mouseUp(const MouseEvent& e) override
+    {
+        freezeScope = false;
     }
 
     void valueChanged(Value& v) override

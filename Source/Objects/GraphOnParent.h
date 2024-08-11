@@ -20,6 +20,8 @@ class GraphOnParent final : public ObjectBase {
 
     CachedTextRender textRenderer;
 
+    NVGImage openInGopBackground;
+
 public:
     // Graph On Parent
     GraphOnParent(pd::WeakReference obj, Object* object)
@@ -92,14 +94,17 @@ public:
 
     void resized() override
     {
-        textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId), getWidth(), getWidth());
+        textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId), getWidth(), getWidth());
         updateCanvas();
         updateDrawables();
+
+        // Update parent canvas directly (needed if open in splitview)
+        canvas->synchroniseAllCanvases();
     }
 
     void lookAndFeelChanged() override
     {
-        textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId), getWidth(), getWidth());
+        textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId), getWidth(), getWidth());
     }
 
     // Called by object to make sure clicks on empty parts of the graph are passed on
@@ -172,11 +177,20 @@ public:
 
     void tabChanged() override
     {
-        isOpenedInSplitView = false;
-        for (auto* visibleCanvas : cnv->editor->getTabComponent().getVisibleCanvases()) {
-            if (visibleCanvas->patch == *getPatch()) {
-                isOpenedInSplitView = true;
-                break;
+        auto setIsOpenedInSplitView = [this](bool shouldBeOpen){
+            if (isOpenedInSplitView != shouldBeOpen) {
+                isOpenedInSplitView = shouldBeOpen;
+                repaint();
+            }
+        };
+
+        setIsOpenedInSplitView(false);
+        for (auto* editor : cnv->pd->getEditors()) {
+            for (auto *visibleCanvas: editor->getTabComponent().getVisibleCanvases()) {
+                if (visibleCanvas->patch == *getPatch()) {
+                    setIsOpenedInSplitView(true);
+                    break;
+                }
             }
         }
 
@@ -235,40 +249,62 @@ public:
         if (canvas) {
             auto invalidArea = cnv->editor->nvgSurface.getInvalidArea();
 
-            if (topLevel->isScrolling)
-                invalidArea = canvas->getLocalBounds();
-            else if (!invalidArea.isEmpty())
+            if (!invalidArea.isEmpty())
                 invalidArea = canvas->getLocalArea(&cnv->editor->nvgSurface, invalidArea).expanded(1);
             else
                 return;
 
-            nvgSave(nvg);
+            NVGScopedState scopedState(nvg);
             nvgIntersectRoundedScissor(nvg, b.getX() + 0.75f, b.getY() + 0.75f, b.getWidth() - 1.5f, b.getHeight() - 1.5f, Corners::objectCornerRadius);
             nvgTranslate(nvg, canvas->getX(), canvas->getY());
             canvas->performRender(nvg, invalidArea);
-            nvgRestore(nvg);
         }
 
-        auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
-
-        nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth() - 0.5f, b.getHeight() - 0.5f, Corners::objectCornerRadius);
-        nvgStrokeColor(nvg, object->isSelected() ? selectedOutlineColour : outlineColour);
-        nvgStrokeWidth(nvg, 1.0f);
-        nvgStroke(nvg);
+        auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 
         if (isOpenedInSplitView) {
-            nvgFillColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId)));
-            nvgFill(nvg);
+            auto bgColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId);
 
-            nvgBeginPath(nvg);
-            nvgFontFace(nvg, "Inter-Regular");
-            nvgFontSize(nvg, 12.0f);
-            nvgFillColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::commentTextColourId))); // why comment colour?
-            nvgTextAlign(nvg, NVG_ALIGN_TOP | NVG_ALIGN_CENTER);
-            nvgText(nvg, b.getCentreX(), b.getCentreY(), "Graph opened in split view", nullptr);
+            auto width = getWidth();
+            auto height = getHeight();
+
+            if (openInGopBackground.needsUpdate(width, height)) {
+                openInGopBackground = NVGImage(nvg, width, height, [width, height, bgColour](Graphics &g) {
+                    AffineTransform rotate;
+                    rotate = rotate.rotated(MathConstants<float>::pi / 4.0f);
+                    g.fillAll(bgColour);
+                    g.addTransform(rotate);
+                    float diagonalLength = std::sqrt(width * width + height * height);
+                    g.setColour(bgColour.contrasting(0.5f).withAlpha(0.12f));
+                    auto stripeWidth = 20.0f;
+                    for (float x = -diagonalLength; x < diagonalLength; x += (stripeWidth * 2)) {
+                        g.fillRect(x, -diagonalLength, stripeWidth, diagonalLength * 2);
+                    }
+                g.addTransform(rotate.inverted());
+                });
+            }
+            auto imagePaint = nvgImagePattern(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), 0.0f, openInGopBackground.getImageId(), 1.0f);
+            nvgFillPaint(nvg, imagePaint);
+            nvgFillRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+
+            Font fontMetrics;
+            fontMetrics = Fonts::getDefaultFont().withHeight(12.0f);
+
+            auto errorText = String("Graph open in split view");
+
+            auto stringLength = fontMetrics.getStringWidth(errorText);
+            if (stringLength < (getWidth() - Object::doubleMargin - 20 /* 20 is a hack for now */) && getHeight() > 12) {
+                nvgBeginPath(nvg);
+                nvgFontFace(nvg, "Inter-Regular");
+                nvgFontSize(nvg, 12.0f);
+                nvgFillColor(nvg, convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::commentTextColourId))); // why comment colour?
+                nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_CENTER);
+                nvgText(nvg, b.getCentreX(), b.getCentreY(), errorText.toRawUTF8(), nullptr);
+            }
         }
+
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBAf(0, 0, 0, 0), object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
         if (auto graph = ptr.get<t_glist>()) {
             drawTicksForGraph(nvg, graph.get(), this);
@@ -349,11 +385,6 @@ public:
     pd::Patch::Ptr getPatch() override
     {
         return subpatch;
-    }
-
-    Canvas* getCanvas() override
-    {
-        return canvas.get();
     }
 
     void valueChanged(Value& v) override

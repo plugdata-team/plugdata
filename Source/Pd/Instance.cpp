@@ -128,7 +128,7 @@ struct pd::Instance::internal {
 
 namespace pd {
 
-Instance::Instance(String const& symbol)
+Instance::Instance()
     : messageDispatcher(std::make_unique<MessageDispatcher>())
     , consoleHandler(this)
 {
@@ -138,6 +138,8 @@ Instance::Instance(String const& symbol)
 
 Instance::~Instance()
 {
+    objectImplementations.reset(nullptr); // Make sure it gets deallocated before pd instance gets deleted
+    
     pd_free(static_cast<t_pd*>(messageReceiver));
     pd_free(static_cast<t_pd*>(midiReceiver));
     pd_free(static_cast<t_pd*>(printReceiver));
@@ -674,8 +676,6 @@ void Instance::sendMessagesFromQueue()
 
 Patch::Ptr Instance::openPatch(File const& toOpen)
 {
-    t_canvas* cnv = nullptr;
-
     String dirname = toOpen.getParentDirectory().getFullPathName().replace("\\", "/");
     auto const* dir = dirname.toRawUTF8();
 
@@ -684,7 +684,7 @@ Patch::Ptr Instance::openPatch(File const& toOpen)
 
     setThis();
 
-    cnv = static_cast<t_canvas*>(pd::Interface::createCanvas(file, dir));
+    auto* cnv = static_cast<t_canvas*>(pd::Interface::createCanvas(file, dir));
 
     return new Patch(pd::WeakReference(cnv, this), this, true, toOpen);
 }
@@ -707,28 +707,17 @@ t_symbol* Instance::generateSymbol(String const& symbol) const
 
 void Instance::logMessage(String const& message)
 {
-    if (consoleMute)
-        return;
     consoleHandler.logMessage(nullptr, message);
 }
 
 void Instance::logError(String const& error)
 {
-    if (consoleMute)
-        return;
     consoleHandler.logError(nullptr, error);
 }
 
 void Instance::logWarning(String const& warning)
 {
-    if (consoleMute)
-        return;
     consoleHandler.logWarning(nullptr, warning);
-}
-
-void Instance::muteConsole(bool shouldMute)
-{
-    consoleMute = shouldMute;
 }
 
 std::deque<std::tuple<void*, String, int, int, int>>& Instance::getConsoleMessages()
@@ -806,7 +795,7 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
 #endif
 
                 Dialogs::showSaveDialog([this, obj, callback](URL result) {
-                    auto pathName = result.toString(false);
+                    auto pathName = result.getLocalFile().getFullPathName();
                     const auto* path = pathName.toRawUTF8();
 
                     t_atom argv[1];

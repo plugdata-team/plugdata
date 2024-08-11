@@ -10,24 +10,30 @@
 #include "Utility/FileSystemWatcher.h"
 #include "Utility/Config.h"
 
+#include <fuzzysearchdatabase/src/FuzzySearchDatabase.hpp>
+
 namespace pd {
 
 class Instance;
-class Library : public FileSystemWatcher::Listener {
+class Library : public FileSystemWatcher::Listener, public Thread {
 
 public:
     explicit Library(pd::Instance* instance);
 
-    ~Library() override
-    {
-        appDirChanged = nullptr;
-        objectSearchThread.removeAllJobs(true, -1);
-    }
+    ~Library() override;
+    
+    void run() override;
+    
+    void waitForInitialisationToFinish();
 
     void updateLibrary();
 
+    bool isGemObject(String const& query) const;
+    
     StringArray autocomplete(String const& query, File const& patchDirectory) const;
-    void getExtraSuggestions(int currentNumSuggestions, String const& query, std::function<void(StringArray)> const& callback);
+    StringArray searchObjectDocumentation(String const& query);
+    
+    static File findPatch(String const& patchToFind);
 
     static std::array<StringArray, 2> parseIoletTooltips(ValueTree const& iolets, String const& name, int numIn, int numOut);
 
@@ -73,14 +79,18 @@ public:
 
 private:
     StringArray allObjects;
-
+    StringArray gemObjects;
+    
     std::recursive_mutex libraryLock;
+    
+    fuzzysearch::Database<ValueTree> searchDatabase;
 
     FileSystemWatcher watcher;
-    ThreadPool objectSearchThread = ThreadPool(1);
+    WaitableEvent initWait;
+    pd::Instance* pd;
 
-    ValueTree documentationTree;
     std::unordered_map<hash32, ValueTree> documentationIndex;
+    bool isInitialised = false;
 };
 
 } // namespace pd

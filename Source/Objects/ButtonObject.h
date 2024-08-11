@@ -4,11 +4,10 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class ButtonObject : public ObjectBase {
+class ButtonObject final : public ObjectBase {
 
     bool state = false;
     bool alreadyTriggered = false;
-    bool mouseHover = false;
 
     Value primaryColour = SynchronousValue();
     Value secondaryColour = SynchronousValue();
@@ -192,31 +191,17 @@ public:
         repaint();
     }
 
-    void mouseEnter(MouseEvent const& e) override
-    {
-        mouseHover = true;
-        repaint();
-    }
-
-    void mouseExit(MouseEvent const& e) override
-    {
-        mouseHover = false;
-        repaint();
-    }
-
     void render(NVGcontext* nvg) override
     {
         auto b = getLocalBounds().toFloat();
 
         auto foregroundColour = convertColour(Colour::fromString(primaryColour.toString()));
         auto bgColour = Colour::fromString(secondaryColour.toString());
-        if (mouseHover)
-            bgColour = getHoverBackgroundColour(bgColour);
-
+        
         auto backgroundColour = convertColour(bgColour);
-        auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
-        auto internalLineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour));
+        auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
+        auto internalLineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour));
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
@@ -238,10 +223,8 @@ public:
         // Fill ellipse if bangState is true
         if (state) {
             auto innerBounds = b.reduced((width - lineOuter + lineThickness) * sizeReduction);
-            nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, innerBounds.getX(), innerBounds.getY(), innerBounds.getWidth(), innerBounds.getHeight(), (Corners::objectCornerRadius - 1) * sizeReduction);
             nvgFillColor(nvg, foregroundColour);
-            nvgFill(nvg);
+            nvgFillRoundedRect(nvg, innerBounds.getX(), innerBounds.getY(), innerBounds.getWidth(), innerBounds.getHeight(), (Corners::objectCornerRadius - 1) * sizeReduction);
         }
     }
 

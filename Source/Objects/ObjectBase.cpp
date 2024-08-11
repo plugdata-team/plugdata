@@ -141,8 +141,13 @@ ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
     , pd(parent->cnv->pd)
     , objectSizeListener(parent)
 {
-    object->addComponentListener(&objectSizeListener);
-
+    // Perform async, so that we don't get a size change callback for initial creation
+    MessageManager::callAsync([_this = SafePointer(this)](){
+        if(!_this) return;
+        _this->object->addComponentListener(&_this->objectSizeListener);
+        _this->updateLabel();
+    });
+    
     setWantsKeyboardFocus(true);
 
     setLookAndFeel(new PlugDataLook());
@@ -177,20 +182,9 @@ ObjectBase::~ObjectBase()
     delete lnf;
 }
 
-Colour ObjectBase::getHoverBackgroundColour(Colour const& colour)
-{
-    auto brightness = colour.getBrightness();
-    float const threshold = 0.5f;
-    if (brightness < threshold)
-        return colour.brighter(0.05f);
-    else
-        return colour.darker(0.03f);
-}
-
 void ObjectBase::initialise()
 {
     update();
-    updateLabel();
     constrainer = createConstrainer();
     onConstrainerCreate();
 
@@ -250,7 +244,7 @@ String ObjectBase::getTypeWithOriginPrefix() const
 
         if (origin.isEmpty())
             return type;
-
+        
         return origin + "/" + type;
     }
 
@@ -279,13 +273,15 @@ String ObjectBase::getType() const
 
         // Deal with different text objects
         switch (hash(className)) {
+        case hash("message"):
+            return "msg";
         case hash("text"):
             if (obj.cast<t_text>()->te_type == T_OBJECT)
                 return "invalid";
             if (obj.cast<t_text>()->te_type == T_TEXT)
                 return "comment";
             if (obj.cast<t_text>()->te_type == T_MESSAGE)
-                return "message";
+                return "msg";
             break;
         // Deal with atoms
         case hash("gatom"):
@@ -445,11 +441,11 @@ void ObjectBase::render(NVGcontext* nvg)
 
 void ObjectBase::paint(Graphics& g)
 {
-    g.setColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
+    g.setColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
     g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
     bool selected = object->isSelected() && !cnv->isGraph;
-    auto outlineColour = LookAndFeel::getDefaultLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+    auto outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
     g.setColour(outlineColour);
     g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
@@ -458,10 +454,12 @@ void ObjectBase::paint(Graphics& g)
 float ObjectBase::getImageScale()
 {
     Canvas* topLevel = cnv;
-    while (auto* nextCnv = topLevel->findParentComponentOfClass<Canvas>()) {
-        topLevel = nextCnv;
+    if(!hideInGraph()) { // No need to do this if we can't be visible in a graph anyway!
+        while (auto* nextCnv = topLevel->findParentComponentOfClass<Canvas>()) {
+            topLevel = nextCnv;
+        }
     }
-    return topLevel->isScrolling ? topLevel->getRenderScale() * 2.0f : topLevel->getRenderScale() * std::max(1.0f, getValue<float>(topLevel->zoomScale));
+    return topLevel->isZooming ? topLevel->getRenderScale() * 2.0f : topLevel->getRenderScale() * std::max(1.0f, getValue<float>(topLevel->zoomScale));
 }
 
 ObjectParameters ObjectBase::getParameters()
@@ -708,11 +706,6 @@ String ObjectBase::getBinbufSymbol(int argIndex)
     }
 
     return {};
-}
-
-Canvas* ObjectBase::getCanvas()
-{
-    return nullptr;
 }
 
 pd::Patch::Ptr ObjectBase::getPatch()

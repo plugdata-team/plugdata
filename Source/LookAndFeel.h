@@ -164,13 +164,34 @@ struct PlugDataLook : public LookAndFeel_V4 {
     static StringArray getAllThemes();
 
     static bool getUseStraightConnections();
-    static bool getUseThinConnections();
+
+    enum ConnectionStyle {
+        ConnectionStyleDefault = 1,
+        ConnectionStyleVanilla,
+        ConnectionStyleThin
+    };
+    static inline ConnectionStyle useConnectionStyle = ConnectionStyleDefault;
+    static ConnectionStyle getConnectionStyle();
+
+    static inline bool useSquareIolets;
+    static inline bool useIoletSpacingEdge;
+    static inline bool useGradientConnectionLook;
+
+    static bool getUseIoletSpacingEdge();
     static bool getUseSquareIolets();
 
+    static bool getUseGradientConnectionLook();
+
+    static bool isFixedIoletPosition();
+
     static inline bool useStraightConnections = false;
-    static inline bool useThinConnections = false;
-    static inline bool useSquareIolets = false;
 
     static inline String currentTheme = "light";
     static inline StringArray selectedThemes = { "light", "dark" };
+
+#if JUCE_IOS
+    static constexpr int ioletSize = 15;
+#else
+    static constexpr int ioletSize = 13;
+#endif
 };

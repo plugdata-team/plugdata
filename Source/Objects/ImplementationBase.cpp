@@ -24,6 +24,7 @@ int clone_get_n(t_gobj*);
 #include "Object.h"
 #include "Sidebar/Palettes.h"
 #include "ObjectBase.h"
+#include "PluginMode.h"
 
 #include "ImplementationBase.h"
 #include "ObjectImplementations.h"
@@ -44,6 +45,13 @@ Canvas* ImplementationBase::getMainCanvas(t_canvas* patchPtr, bool alsoSearchRoo
     auto editors = pd->getEditors();
 
     for (auto* editor : editors) {
+        if(editor->pluginMode)
+        {
+            if(auto* cnv = editor->pluginMode->getCanvas())
+            {
+                return cnv;
+            }
+        }
         for (auto* cnv : editor->getCanvases()) {
             auto glist = cnv->patch.getPointer();
             if (glist && glist.get() == patchPtr) {

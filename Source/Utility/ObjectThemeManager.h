@@ -96,7 +96,7 @@ private:
         { "nbx", "4 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 @bgColour @lblColour @lblColour 0 256" },
         { "cnv", "15 100 60 empty empty empty 20 12 0 14 @lnColour @lblColour" },
         { "function", "200 100 empty empty 0 1 @bgColour_rgb @lblColour_rgb 0 0 0 0 0 1000 0" },
-        { "scope~", "130 130 256 3 128 -1 1 0 0 0 0 @fgColour_rgb @bgColour_rgb @lnColour_rgb 0 empty" },
+        { "scope~", "200 100 256 3 128 -1 1 0 0 0 0 @fgColour_rgb @bgColour_rgb @lnColour_rgb 0 empty" },
         { "messbox", "180 60 @bgColour_rgb @lblColour_rgb 0 12" },
         { "vu", "20 120 empty empty -1 -8 0 10 @bgColour @lblColour 1 0" },
 

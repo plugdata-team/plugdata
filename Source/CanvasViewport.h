@@ -238,15 +238,11 @@ class CanvasViewport : public Viewport
             // FIXME: We shouldn't need to map this, we should be able to use growingBounds.getWidth() * 0.5f Possibly something is wrong with the SDF RoundedRect Shader?
             auto scaledTCR = jmap(thumbCornerRadius, 3.0f, 7.0f, 1.8f, 3.5f);
 
-            nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, fullBounds.getX(), fullBounds.getY(), fullBounds.getWidth(), fullBounds.getHeight(), scaledTCR);
             nvgFillColor(nvg, convertColour(fadeColour));
-            nvgFill(nvg);
+            nvgFillRoundedRect(nvg, fullBounds.getX(), fullBounds.getY(), fullBounds.getWidth(), fullBounds.getHeight(), scaledTCR);
 
-            nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, growingBounds.getX(), growingBounds.getY(), growingBounds.getWidth(), growingBounds.getHeight(), scaledTCR);
             nvgFillColor(nvg, isMouseDragging ? convertColour(activeScrollbarColour) : convertColour(scrollbarColour));
-            nvgFill(nvg);
+            nvgFillRoundedRect(nvg, growingBounds.getX(), growingBounds.getY(), growingBounds.getWidth(), growingBounds.getHeight(), scaledTCR);
         }
 
     private:
@@ -314,15 +310,17 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        nvgSave(nvg);
-        nvgTranslate(nvg, vbar.getX(), vbar.getY());
-        vbar.render(nvg);
-        nvgRestore(nvg);
+        {
+            NVGScopedState scopedState(nvg);
+            nvgTranslate(nvg, vbar.getX(), vbar.getY());
+            vbar.render(nvg);
+        }
 
-        nvgSave(nvg);
-        nvgTranslate(nvg, hbar.getX(), hbar.getY());
-        hbar.render(nvg);
-        nvgRestore(nvg);
+        {
+            NVGScopedState scopedState(nvg);
+            nvgTranslate(nvg, hbar.getX(), hbar.getY());
+            hbar.render(nvg);
+        }
     }
 
     void lookAndFeelChanged() override
@@ -366,7 +364,6 @@ public:
 
         // Apply and limit zoom
         magnify(std::clamp(getValue<float>(cnv->zoomScale) * scrollFactor, 0.25f, 3.0f));
-
         lastZoomTime = e.eventTime;
     }
 
@@ -375,6 +372,8 @@ public:
         if (approximatelyEqual(newScaleFactor, 0.0f)) {
             newScaleFactor = 1.0f;
         }
+        
+        scaleChanged = true;
 
         // Get floating point mouse position relative to screen
         auto mousePosition = Desktop::getInstance().getMainMouseSource().getScreenPosition();
@@ -430,8 +429,10 @@ public:
 
     void visibleAreaChanged(Rectangle<int> const& r) override
     {
-        cnv->isScrolling = true;
-        startTimer(150);
+        if(scaleChanged) {
+            cnv->isZooming = true;
+            startTimer(150);
+        }
         onScroll();
         adjustScrollbarBounds();
         editor->nvgSurface.invalidateAll();
@@ -440,7 +441,15 @@ public:
     void timerCallback() override
     {
         stopTimer();
-        cnv->isScrolling = false;
+        cnv->isZooming = false;
+        
+        // Cached geometry can look thicker/thinner at different zoom scales, so we update all cached connections when zooming is done
+        if (scaleChanged) {
+            for (auto* connection : cnv->connections)
+                connection->forceUpdate(true);
+        }
+        
+        scaleChanged = false;
         editor->nvgSurface.invalidateAll();
     }
 
@@ -496,4 +505,5 @@ private:
     MousePanner panner = MousePanner(this);
     ViewportScrollBar vbar = ViewportScrollBar(true, this);
     ViewportScrollBar hbar = ViewportScrollBar(false, this);
+    bool scaleChanged = false;
 };

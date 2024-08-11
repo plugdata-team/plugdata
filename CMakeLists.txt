@@ -4,9 +4,10 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+option(QUICK_BUILD "" OFF)
 option(ENABLE_TESTING "" OFF)
 option(ENABLE_SFIZZ "" ON)
-option(ENABLE_GEM "" ON)
+option(ENABLE_GEM "" OFF)
 option(ENABLE_ASAN "" OFF)
 option(MACOS_LEGACY "" OFF)
 option(VERBOSE "" OFF)
@@ -55,6 +56,11 @@ set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
 project(plugdata VERSION 0.9.0 LANGUAGES C CXX)
 
+if(QUICK_BUILD)
+    set(ENABLE_SFIZZ OFF)
+    set(ENABLE_GEM OFF)
+endif()
+
 if(("${CMAKE_SYSTEM_NAME}" MATCHES "Linux" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
   OR ("${CMAKE_SYSTEM_NAME}" MATCHES "iOS"))
   message(STATUS "Disabled sfizz")
@@ -93,33 +99,31 @@ else()
 endif()
 
 message(STATUS "Preparing documentation")
-execute_process(COMMAND python3 parse_documentation.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts RESULT_VARIABLE PREPARE_DOCUMENTATION_RESULT)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Resources)
+execute_process(COMMAND python3 parse_documentation.py ${CMAKE_CURRENT_BINARY_DIR}/Resources WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts RESULT_VARIABLE PREPARE_DOCUMENTATION_RESULT)
 
 if(NOT PREPARE_DOCUMENTATION_RESULT EQUAL 0)
     message(FATAL_ERROR "Preparing documentation failed with error code ${PREPARE_DOCUMENTATION_RESULT}")
 endif()
 
 message(STATUS "Packaging resources")
-execute_process(COMMAND python3 package_resources.py ${ENABLE_GEM} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts RESULT_VARIABLE PACKAGE_RESOURCES_RESULT)
+execute_process(COMMAND python3 package_resources.py ${ENABLE_GEM} ${CMAKE_CURRENT_BINARY_DIR}/Resources WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts RESULT_VARIABLE PACKAGE_RESOURCES_RESULT)
 
 if(NOT PACKAGE_RESOURCES_RESULT EQUAL 0)
     message(FATAL_ERROR "Resource packaging failed with error code ${PACKAGE_RESOURCES_RESULT}")
 endif()
 
-set(PLUGDATA_VERSION                    "0.9.0")
+set(PLUGDATA_VERSION                    "0.9.1")
 set(PLUGDATA_COMPANY_NAME               "plugdata")
 set(PLUGDATA_COMPANY_COPYRIGHT          "plugdata by Timothy Schoen")
 set(PLUGDATA_COMPANY_WEBSITE            "github.com/plugdata-team/plugdata")
 
 if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
-set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo_ios.png")
-file(GLOB IOS_LAUNCHSCREEN "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_launchscreen_ios.png")
-set_source_files_properties(${IOS_LAUNCHSCREEN} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-
+    set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo_ios.png")
 elseif(APPLE)
-set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo_mac.png")
+    set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo_mac.png")
 else()
-set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo.png")
+    set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo.png")
 endif()
 
 set(PLUGDATA_PLUGINS_LOCATION           "${CMAKE_CURRENT_SOURCE_DIR}/Plugins")
@@ -129,7 +133,6 @@ set(SOURCES_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Source)
 
 file(GLOB plugdata_resources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/IconFont.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterUnicode_*.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterTabular.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterBold.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterSemiBold.ttf
@@ -139,8 +142,10 @@ file(GLOB plugdata_resources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/RobotoMono-Regular.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_large_logo.png
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo.png
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Filesystem_*.zip
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Documentation.bin
+    # Generated resources
+    ${CMAKE_CURRENT_BINARY_DIR}/Resources/Documentation.bin
+    ${CMAKE_CURRENT_BINARY_DIR}/Resources/InterUnicode_*.ttf
+    ${CMAKE_CURRENT_BINARY_DIR}/Resources/Filesystem_*.zip
     )
 
 
@@ -340,6 +345,8 @@ file(GLOB plugdata_standalone_sources
 source_group("Source\\Standalone" FILES ${plugdata_standalone_sources})
 
 if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
+set(INSTRUMENT_NAME "plugdata")
+set(AU_EFFECT_TYPE kAudioUnitType_MusicEffect)
 juce_add_gui_app(plugdata_standalone
     PRODUCT_NAME                "plugdata"
     VERSION                     ${PLUGDATA_VERSION}
@@ -349,9 +356,11 @@ juce_add_gui_app(plugdata_standalone
     HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
     HARDENED_RUNTIME_OPTIONS    ${HARDENED_RUNTIME_OPTIONS}
     DOCUMENT_EXTENSIONS          pd
-    BUNDLE_ID                    com.plugdata.plugdata
+    BUNDLE_ID                   com.plugdata.plugdata
     )
 else()
+set(INSTRUMENT_NAME "plugdata-instrument")
+set(AU_EFFECT_TYPE kAudioUnitType_Effect)
 
 juce_add_plugin(plugdata_standalone
     VERSION                     ${PLUGDATA_VERSION}
@@ -362,6 +371,7 @@ juce_add_plugin(plugdata_standalone
     ICON_BIG                    ${PLUGDATA_ICON_BIG}
     LAUNCH_STORYBOARD_FILE      ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/LaunchScreen.storyboard
     IPHONE_SCREEN_ORIENTATIONS  UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
+    IPAD_SCREEN_ORIENTATIONS    UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
     STATUS_BAR_HIDDEN           TRUE
     MICROPHONE_PERMISSION_ENABLED TRUE
     HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
@@ -377,11 +387,27 @@ juce_add_plugin(plugdata_standalone
     FORMATS                     Standalone
     LV2URI                      https://github.com/timothyschoen/plugdata
     PRODUCT_NAME                "plugdata"
-    BUNDLE_ID                   com.plugdata.plugdata
     AU_MAIN_TYPE                kAudioUnitType_MusicDevice
     DOCUMENT_EXTENSIONS         pd
     DOCUMENT_BROWSER_ENABLED    TRUE
+    BUNDLE_ID                   com.plugdata.plugdata
+    APP_GROUPS_ENABLED          TRUE
+    APP_GROUP_IDS               group.com.plugdata.plugdata
+    PLIST_TO_MERGE              [[<plist>
+                                    <dict>
+                                        <key>CFBundleIdentifier</key>
+                                        <string>com.plugdata.plugdata</string>
+                                        <key>UIBackgroundModes</key>
+                                        <array>
+                                            <string>audio</string>
+                                        </array>
+                                    </dict>
+                                </plist>]]
     )
+
+    file(GLOB IOS_LAUNCHSCREEN "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_launchscreen_ios.png")
+    set_source_files_properties(${IOS_LAUNCHSCREEN} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+    target_sources(plugdata_standalone_Standalone PUBLIC ${IOS_LAUNCHSCREEN})
 endif()
 
 juce_add_plugin(plugdata
@@ -404,8 +430,16 @@ juce_add_plugin(plugdata
     PLUGIN_CODE                 PdIn
     FORMATS                     AU AUv3 VST3 LV2 CLAP
     LV2URI                      https://github.com/timothyschoen/plugdata
-    PRODUCT_NAME                "plugdata"
+    PRODUCT_NAME                ${INSTRUMENT_NAME}
     BUNDLE_ID                   com.plugdata.plugdata.instrument
+    PLIST_TO_MERGE              [[<plist>
+                                    <dict>
+                                        <key>CFBundleIdentifier</key>
+                                        <string>com.plugdata.plugdata.instrument</string>
+                                    </dict>
+                                </plist>]]
+    APP_GROUPS_ENABLED          TRUE
+    APP_GROUP_IDS               group.com.plugdata.plugdata
     AU_MAIN_TYPE                kAudioUnitType_MusicDevice
     VST3_CATEGORIES             Instrument
     VST2_CATEGORY               kPlugCategSynth)
@@ -431,7 +465,15 @@ juce_add_plugin(plugdata_fx
     LV2URI                      https://github.com/timothyschoen/plugdata-fx
     PRODUCT_NAME                "plugdata-fx"
     BUNDLE_ID                   com.plugdata.plugdata.fx
-    AU_MAIN_TYPE                kAudioUnitType_Effect
+    PLIST_TO_MERGE              [[<plist>
+                                    <dict>
+                                        <key>CFBundleIdentifier</key>
+                                        <string>com.plugdata.plugdata.fx</string>
+                                    </dict>
+                                </plist>]]
+    APP_GROUPS_ENABLED          TRUE
+    APP_GROUP_IDS               group.com.plugdata.plugdata
+    AU_MAIN_TYPE                ${AU_EFFECT_TYPE}
     VST3_CATEGORIES             Fx
     VST2_CATEGORY               kPlugCategEffect)
 
@@ -513,6 +555,19 @@ set_target_properties(plugdata_standalone PROPERTIES
   RESOURCE "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/pd-file.icns")
 endif()
 
+if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
+    set_property(TARGET plugdata_standalone_Standalone PROPERTY XCODE_EMBED_APP_EXTENSIONS plugdata_AUv3 plugdata_fx_AUv3)
+    # iOS requires that the app extensions bundle IDs start the same as the app, but with a suffix appended
+    set_target_properties(plugdata_AUv3 PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "com.plugdata.plugdata.instrument")
+    set_target_properties(plugdata_fx_AUv3 PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "com.plugdata.plugdata.fx")
+    set_target_properties(plugdata_standalone_Standalone PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "com.plugdata.plugdata")
+    set_target_properties(plugdata_standalone_Standalone PROPERTIES OUTPUT_NAME "plugdata_standalone_app")
+    set_target_properties(plugdata_standalone_Standalone PROPERTIES
+        XCODE_EMBED_APP_EXTENSIONS_REMOVE_HEADERS_ON_COPY "YES"
+        XCODE_EMBED_APP_EXTENSIONS_CODE_SIGN_ON_COPY "YES"
+)
+endif()
+
 if(LINUX)
     target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd-src externals StandaloneBinaryData "-Wl,-export-dynamic")
     target_link_libraries(plugdata PRIVATE plugdata_core pd-src-multi externals-multi)
@@ -520,7 +575,7 @@ if(LINUX)
 elseif(UNIX AND NOT APPLE) # BSD
     target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd-src externals lua fluidlite StandaloneBinaryData "-Wl,-export-dynamic")
     target_link_libraries(plugdata PRIVATE plugdata_core pd-src-multi externals-multi lua fluidlite)
-    target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-src-multi externals-mult lua fluidlite)
+    target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-src-multi externals-multi lua fluidlite)
 elseif(APPLE)
   if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 15.0)
     set(MACOS_COMPAT_LINKER_FLAGS "-Wl,-ld_classic")
@@ -548,6 +603,12 @@ set_target_properties(plugdata_standalone PROPERTIES LIBRARY_OUTPUT_DIRECTORY_DE
 set_target_properties(plugdata_standalone PROPERTIES BUNDLE_OUTPUT_DIRECTORY_RELEASE ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
 set_target_properties(plugdata_standalone PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
 set_target_properties(plugdata_standalone PROPERTIES LIBRARY_OUTPUT_DIRECTORY_RELEASE ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
+set_target_properties(plugdata_standalone PROPERTIES BUNDLE_OUTPUT_DIRECTORY_MIN_SIZE_REL ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
+set_target_properties(plugdata_standalone PROPERTIES RUNTIME_OUTPUT_DIRECTORY_MIN_SIZE_REL ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
+set_target_properties(plugdata_standalone PROPERTIES LIBRARY_OUTPUT_DIRECTORY_MIN_SIZE_REL ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
+set_target_properties(plugdata_standalone PROPERTIES BUNDLE_OUTPUT_DIRECTORY_REL_WITH_DEB_INFO ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
+set_target_properties(plugdata_standalone PROPERTIES BUNDLE_OUTPUT_DIRECTORY_REL_WITH_DEB_INFO ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
+set_target_properties(plugdata_standalone PROPERTIES BUNDLE_OUTPUT_DIRECTORY_REL_WITH_DEB_INFO ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
 
 set_target_properties(plugdata PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
 set_target_properties(plugdata PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
@@ -562,11 +623,11 @@ endif()
 
 if(APPLE)
 # 2x speedup for standalone debug builds in xcode
-SET_TARGET_PROPERTIES(plugdata_standalone PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH[variant=Debug] "YES")
+set_target_properties(plugdata_standalone PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH[variant=Debug] "YES")
 endif()
 
 if(MSVC)
-set_target_properties(pthreadVC3 pthreadVSE3 pthreadVCE3 PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
+set_target_properties(pthreadVSE3 pthreadVCE3 PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
 endif()
 
 if(APPLE)
@@ -574,6 +635,8 @@ if(APPLE)
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata-fx.vst3 DESTINATION "/Library/Audio/Plug-ins/VST3")
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata.lv2 DESTINATION "/Library/Audio/Plug-ins/LV2")
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata-fx.lv2 DESTINATION "/Library/Audio/Plug-ins/LV2")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/CLAP/plugdata.clap DESTINATION "/Library/Audio/Plug-ins/CLAP")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/CLAP/plugdata-fx.clap DESTINATION "/Library/Audio/Plug-ins/CLAP")
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AU/plugdata.component DESTINATION "/Library/Audio/Plug-ins/Components")
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AU/plugdata-fx.component DESTINATION "/Library/Audio/Plug-ins/Components")
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AU/plugdata-midi.component DESTINATION "/Library/Audio/Plug-ins/Components")
@@ -583,14 +646,31 @@ elseif(WIN32)
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata-fx.vst3 DESTINATION "$ENV{PROGRAMFILES}/Common Files/VST3")
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata.lv2 DESTINATION "$ENV{PROGRAMFILES}/Common Files/LV2")
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata-fx.lv2 DESTINATION "$ENV{PROGRAMFILES}/Common Files/LV2")
+  install(FILES ${PLUGDATA_PLUGINS_LOCATION}/CLAP/plugdata.clap DESTINATION "$ENV{PROGRAMFILES}/Common Files/CLAP")
+  install(FILES ${PLUGDATA_PLUGINS_LOCATION}/CLAP/plugdata-fx.clap DESTINATION "$ENV{PROGRAMFILES}/Common Files/CLAP")
   install(PROGRAMS ${PLUGDATA_PLUGINS_LOCATION}/Standalone/plugdata.exe DESTINATION "$ENV{PROGRAMFILES}/plugdata/")
-  install(PROGRAMS ${PLUGDATA_PLUGINS_LOCATION}/LV2/pd.dll DESTINATION "$ENV{PROGRAMFILES}/plugdata/")
+  install(PROGRAMS ${PLUGDATA_PLUGINS_LOCATION}/Standalone/pd.dll DESTINATION "$ENV{PROGRAMFILES}/plugdata/")
 elseif(UNIX AND NOT APPLE) # Linux or BSD
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata.vst3 DESTINATION "$ENV{HOME}/.vst3")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata-fx.vst3 DESTINATION "$ENV{HOME}/.vst3")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata.lv2 DESTINATION "$ENV{HOME}/.lv2")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata-fx.lv2 DESTINATION "$ENV{HOME}/.lv2")
-  #TODO: install standalone and Kott's .desktop file
+    if(FLATPAK_PLUGIN)
+      install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata.vst3 DESTINATION extensions/Plugins/vst3)
+      install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata-fx.vst3 DESTINATION extensions/Plugins/vst3)
+      install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata.lv2 DESTINATION extensions/Plugins/lv2)
+      install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata-fx.lv2 DESTINATION extensions/Plugins/lv2)
+      install(FILES ${PLUGDATA_PLUGINS_LOCATION}/CLAP/plugdata.clap DESTINATION extensions/Plugins/clap)
+      install(FILES ${PLUGDATA_PLUGINS_LOCATION}/CLAP/plugdata-fx.clap DESTINATION extensions/Plugins/clap)
+    elseif(FLATPAK_STANDALONE)
+      install(FILES ${CMAKE_SOURCE_DIR}/Resources/Icons/plugdata_logo_linux.png DESTINATION share/icons/hicolor/512x512/apps RENAME plugdata.png)
+      install(FILES ${CMAKE_SOURCE_DIR}/Resources/Installer/plugdata.desktop DESTINATION share/applications)
+      install(PROGRAMS ${PLUGDATA_PLUGINS_LOCATION}/Standalone/plugdata DESTINATION bin)
+    else()
+      install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata.vst3 DESTINATION "$ENV{HOME}/.vst3")
+      install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata-fx.vst3 DESTINATION "$ENV{HOME}/.vst3")
+      install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata.lv2 DESTINATION "$ENV{HOME}/.lv2")
+      install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata-fx.lv2 DESTINATION "$ENV{HOME}/.lv2")
+      install(FILES ${PLUGDATA_PLUGINS_LOCATION}/CLAP/plugdata.clap DESTINATION "$ENV{HOME}/.clap")
+      install(FILES ${PLUGDATA_PLUGINS_LOCATION}/CLAP/plugdata-fx.clap DESTINATION "$ENV{HOME}/.clap")
+      install(FILES ${CMAKE_SOURCE_DIR}/Resources/Icons/plugdata_logo_linux.png DESTINATION share/icons/hicolor/512x512/apps RENAME plugdata.png)
+      install(FILES ${CMAKE_SOURCE_DIR}/Resources/Installer/plugdata.desktop DESTINATION share/applications)
+      install(PROGRAMS ${PLUGDATA_PLUGINS_LOCATION}/Standalone/plugdata DESTINATION bin)
+    endif()
 endif()
-
-#add_custom_target(plugdata_standalone ALL)

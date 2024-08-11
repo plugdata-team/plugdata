@@ -35,9 +35,9 @@ public:
     ~ConnectionMessageDisplay()
         override
         = default;
+        
 
-    /** Activate the current connection info display overlay, to hide give it a nullptr
-     */
+    // Activate the current connection info display overlay, to hide give it a nullptr
     void setConnection(Connection* connection, Point<int> screenPosition = { 0, 0 })
     {
         // multiple events can hide the display, so we don't need to do anything
@@ -235,7 +235,6 @@ private:
 
     void paint(Graphics& g) override
     {
-
         Path messageDisplay;
         auto internalBounds = getLocalBounds().reduced(8).toFloat();
         messageDisplay.addRoundedRectangle(internalBounds, Corners::defaultCornerRadius);
@@ -276,9 +275,9 @@ private:
                     continue;
                 }
 
-                if (peakAmplitude == valleyAmplitude) {
-                    peakAmplitude += 0.01f;
-                    valleyAmplitude -= 0.01f;
+                while(approximatelyEqual(peakAmplitude, valleyAmplitude)) {
+                    peakAmplitude += peakAmplitude * 0.001f;
+                    valleyAmplitude -= valleyAmplitude * 0.001f;
                 }
 
                 // Apply FFT to get the peak frequency, we use this to decide the amount of samples we display
@@ -314,9 +313,11 @@ private:
 
                     auto y = jmap<float>(interpolatedSample, valleyAmplitude, peakAmplitude, channelBounds.getY(), channelBounds.getBottom());
                     auto newPoint = Point<float>(x, y);
-                    auto segment = Line(lastPoint, newPoint);
-                    oscopePath.addLineSegment(segment, 0.75f);
-                    lastPoint = newPoint;
+                    if(newPoint.isFinite()) {
+                        auto segment = Line(lastPoint, newPoint);
+                        oscopePath.addLineSegment(segment, 0.75f);
+                        lastPoint = newPoint;
+                    }
                 }
 
                 // Draw oscope path

@@ -44,6 +44,16 @@ public:
             mainWindow->setOpaque(false);
 #endif
         }
+        
+        auto& pluginModeTheme = editor->pd->pluginModeTheme;
+        if(pluginModeTheme.isValid())
+        {
+            pluginModeLnf = std::make_unique<PlugDataLook>();
+            pluginModeLnf->setTheme(pluginModeTheme);
+            editor->setLookAndFeel(pluginModeLnf.get());
+            editor->getTopLevelComponent()->sendLookAndFeelChange();
+        }
+        
         editor->nvgSurface.detachContext();
 
         desktopWindow = editor->getPeer();
@@ -117,7 +127,14 @@ public:
         cnv->connectionLayer.setVisible(false);
     }
 
-    ~PluginMode() override = default;
+    ~PluginMode() override
+    {
+        if(pluginModeLnf)
+        {
+            editor->setLookAndFeel(editor->pd->lnf);
+            editor->getTopLevelComponent()->sendLookAndFeelChange();
+        }
+    }
 
     void setWidthAndHeight(float scale)
     {
@@ -155,7 +172,7 @@ public:
         nvgFillColor(nvg, findNVGColour(PlugDataColour::canvasBackgroundColourId));
         nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
 
-        nvgSave(nvg);
+        NVGScopedState scopedState(nvg);
         nvgScale(nvg, pluginModeScale, pluginModeScale);
         nvgTranslate(nvg, cnv->getX(), cnv->getY() - ((isWindowFullscreen() ? 0 : 40) / pluginModeScale));
 
@@ -164,8 +181,6 @@ public:
         bounds = bounds.translated(cnv->canvasOrigin.x, cnv->canvasOrigin.y);
 
         cnv->performRender(nvg, bounds);
-
-        nvgRestore(nvg);
     }
 
     void closePluginMode()
@@ -427,6 +442,8 @@ private:
     float const height = float(cnv->patchHeight.getValue()) + 1.0f;
     float pluginModeScale = 1.0f;
     int pluginPreviousScale = 100;
+        
+    std::unique_ptr<PlugDataLook> pluginModeLnf;
 
     static inline std::map<t_canvas*, int> pluginModeScaleMap;
 

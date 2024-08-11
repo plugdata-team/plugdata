@@ -158,6 +158,8 @@ struct Icons {
     inline static String const GlyphPrint = CharPointer_UTF8("\xc3\xac");
     inline static String const GlyphNetsend = CharPointer_UTF8("\xc3\xae");
     inline static String const GlyphNetreceive = CharPointer_UTF8("\xc3\xad");
+    inline static String const GlyphOSCsend = CharPointer_UTF8("\xc4\xb5");
+    inline static String const GlyphOSCreceive = CharPointer_UTF8("\xc4\xb4");
     inline static String const GlyphTimer = CharPointer_UTF8("\xc3\xb6");
     inline static String const GlyphDelay = CharPointer_UTF8("\xc3\xb7");
     inline static String const GlyphTrigger = CharPointer_UTF8("\xc3\xb1");
@@ -324,6 +326,7 @@ enum CommandIDs {
     Duplicate,
     Encapsulate,
     Triggerize,
+    Tidy,
     CreateConnection,
     RemoveConnections,
     SelectAll,
@@ -389,6 +392,7 @@ struct Corners {
     inline static float const windowCornerRadius = 12.0f;
     inline static float const largeCornerRadius = 8.0f;
     inline static float const defaultCornerRadius = 5.0f;
+    inline static float const resizeHanleCornerRadius = 2.75f;
     inline static float objectCornerRadius = 2.75f;
 };
 

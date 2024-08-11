@@ -15,19 +15,21 @@ class WelcomePanel : public Component
     , public AsyncUpdater {
 
     class WelcomePanelTile : public Component {
+        WelcomePanel& parent;
         float snapshotScale;
         bool isHovered = false;
         String tileName, tileSubtitle;
         std::unique_ptr<Drawable> snapshot = nullptr;
         NVGImage titleImage, subtitleImage;
-
+        
     public:
         bool isFavourited;
         std::function<void()> onClick = []() {};
         std::function<void(bool)> onFavourite = nullptr;
 
-        WelcomePanelTile(String name, String subtitle, String svgImage, Colour iconColour, float scale, bool favourited)
-            : snapshotScale(scale)
+        WelcomePanelTile(WelcomePanel& welcomePanel, String name, String subtitle, String svgImage, Colour iconColour, float scale, bool favourited)
+            : parent(welcomePanel)
+            , snapshotScale(scale)
             , tileName(name)
             , tileSubtitle(subtitle)
             , isFavourited(favourited)
@@ -44,10 +46,11 @@ class WelcomePanel : public Component
         {
             auto bounds = getLocalBounds().reduced(12);
 
+            auto* nvg = dynamic_cast<NanoVGGraphicsContext&>(g.getInternalContext()).getContext();
+            parent.drawShadow(nvg, getWidth(), getHeight());
+            
             Path tilePath;
             tilePath.addRoundedRectangle(bounds.getX() + 1, bounds.getY() + 1, bounds.getWidth() - 2, bounds.getHeight() - 2, Corners::largeCornerRadius);
-
-            StackShadow::renderDropShadow(g, tilePath, Colour(0, 0, 0).withAlpha(0.08f), 6, { 0, 1 });
             g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
             g.fillPath(tilePath);
 
@@ -64,9 +67,7 @@ class WelcomePanel : public Component
 
             g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
             g.strokePath(tilePath, PathStrokeType(1.0f));
-
-            auto* nvg = dynamic_cast<NanoVGGraphicsContext&>(g.getInternalContext()).getContext();
-
+            
             auto textWidth = bounds.getWidth() - 8;
             if (titleImage.needsUpdate(textWidth * 2, 24 * 2) || subtitleImage.needsUpdate(textWidth * 2, 16 * 2)) {
                 auto textColour = findColour(PlugDataColour::panelTextColourId);
@@ -85,12 +86,13 @@ class WelcomePanel : public Component
                 });
             }
 
-            nvgSave(nvg);
-            nvgTranslate(nvg, 22, bounds.getHeight() - 30);
-            titleImage.render(nvg, Rectangle<int>(0, 0, bounds.getWidth() - 8, 24));
-            nvgTranslate(nvg, 0, 20);
-            subtitleImage.render(nvg, Rectangle<int>(0, 0, bounds.getWidth() - 8, 16));
-            nvgRestore(nvg);
+            {
+                NVGScopedState scopedState(nvg);
+                nvgTranslate(nvg, 22, bounds.getHeight() - 30);
+                titleImage.render(nvg, Rectangle<int>(0, 0, bounds.getWidth() - 8, 24));
+                nvgTranslate(nvg, 0, 20);
+                subtitleImage.render(nvg, Rectangle<int>(0, 0, bounds.getWidth() - 8, 16));
+            }
 
             if (onFavourite) {
                 auto favouriteIconBounds = getHeartIconBounds();
@@ -151,12 +153,33 @@ public:
         recentlyOpenedViewport.setViewedComponent(&recentlyOpenedComponent, false);
         recentlyOpenedViewport.setScrollBarsShown(true, false, false, false);
         recentlyOpenedComponent.setVisible(true);
-        addAndMakeVisible(recentlyOpenedViewport);
+#if JUCE_IOS
+        recentlyOpenedViewport.setVisible(OSUtils::isIPad());
+#else
+        recentlyOpenedViewport.setVisible(true);
+#endif
+
+        addChildComponent(recentlyOpenedViewport);
 
         setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this));
         triggerAsyncUpdate();
     }
-
+        
+    void drawShadow(NVGcontext* nvg, int width, int height)
+    {
+        // We only need one shadow image, because all tiles have the same size
+        if(shadowImage.needsUpdate(width * 2.0f, height * 2.0f)) {
+            shadowImage = NVGImage(nvg, width * 2.0f, height * 2.0f, [width, height](Graphics& g){
+                g.addTransform(AffineTransform::scale(2.0f, 2.0f));
+                Path tilePath;
+                tilePath.addRoundedRectangle(12.5f, 12.5f, width - 25.0f, height - 25.0f, Corners::largeCornerRadius);
+                StackShadow::renderDropShadow(g, tilePath, Colour(0, 0, 0).withAlpha(0.08f), 6, { 0, 1 });
+            });
+        }
+        
+        shadowImage.render(nvg, Rectangle<int>(width, height));
+    }
+    
     void resized() override
     {
         auto bounds = getLocalBounds().reduced(24).withTrimmedTop(36);
@@ -214,8 +237,8 @@ public:
 
     void handleAsyncUpdate() override
     {
-        newPatchTile = std::make_unique<WelcomePanelTile>("New Patch", "Create a new empty patch", newIcon, findColour(PlugDataColour::panelTextColourId), 0.33f, false);
-        openPatchTile = std::make_unique<WelcomePanelTile>("Open Patch", "Browse for a patch to open", openIcon, findColour(PlugDataColour::panelTextColourId), 0.33f, false);
+        newPatchTile = std::make_unique<WelcomePanelTile>(*this, "New Patch", "Create a new empty patch", newIcon, findColour(PlugDataColour::panelTextColourId), 0.33f, false);
+        openPatchTile = std::make_unique<WelcomePanelTile>(*this, "Open Patch", "Browse for a patch to open", openIcon, findColour(PlugDataColour::panelTextColourId), 0.33f, false);
 
         newPatchTile->onClick = [this]() { editor->getTabComponent().newPatch(); };
         openPatchTile->onClick = [this]() { editor->getTabComponent().openPatch(); };
@@ -236,14 +259,12 @@ public:
                 auto patchFile = File(subTree.getProperty("Path").toString());
                 auto patchImage = subTree.getProperty("PatchImage").toString();
 
-                subTree.setProperty("Snapshot", "", nullptr); // TODO: this is cleanup for v0.9.0 transition period, remove later
-
                 auto favourited = subTree.hasProperty("Pinned") && static_cast<bool>(subTree.getProperty("Pinned"));
                 auto snapshotColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f);
 
                 String silhoutteSvg;
                 if (patchImage.isEmpty() && patchFile.existsAsFile()) {
-                    silhoutteSvg = OfflineObjectRenderer::patchToSVGFast(patchFile.loadFileAsString());
+                    silhoutteSvg = OfflineObjectRenderer::patchToSVG(patchFile.loadFileAsString());
                 } else {
                     MemoryOutputStream ostream;
                     Base64::convertFromBase64(ostream, patchImage);
@@ -273,12 +294,17 @@ public:
                 String time = openTime.toString(false, true, false, true);
                 String timeDescription = date + ", " + time;
 
-                auto* tile = tiles.add(new WelcomePanelTile(patchFile.getFileName(), timeDescription, silhoutteSvg, snapshotColour, 1.0f, favourited));
+                auto* tile = tiles.add(new WelcomePanelTile(*this, patchFile.getFileName(), timeDescription, silhoutteSvg, snapshotColour, 1.0f, favourited));
                 tile->onClick = [this, patchFile]() mutable {
-                    editor->autosave->checkForMoreRecentAutosave(patchFile, editor, [this, patchFile]() {
-                        editor->getTabComponent().openPatch(URL(patchFile));
-                        SettingsFile::getInstance()->addToRecentlyOpened(patchFile);
-                    });
+                    if(patchFile.existsAsFile()) {
+                        editor->autosave->checkForMoreRecentAutosave(patchFile, editor, [this, patchFile]() {
+                            editor->getTabComponent().openPatch(URL(patchFile));
+                            SettingsFile::getInstance()->addToRecentlyOpened(patchFile);
+                        });
+                    }
+                    else {
+                        editor->pd->logError("Patch not found");
+                    }
                 };
                 tile->onFavourite = [this, path = subTree.getProperty("Path")](bool shouldBeFavourite) mutable {
                     auto settingsTree = SettingsFile::getInstance()->getValueTree();
@@ -333,9 +359,11 @@ public:
         nvgFontFace(nvg, "Inter-Bold");
         nvgText(nvg, 35, 38, "Welcome to plugdata", nullptr);
 
-        nvgBeginPath(nvg);
-        nvgFontSize(nvg, 24);
-        nvgText(nvg, 35, 244, "Recently Opened", nullptr);
+        if(recentlyOpenedViewport.isVisible()) {
+            nvgBeginPath(nvg);
+            nvgFontSize(nvg, 24);
+            nvgText(nvg, 35, 244, "Recently Opened", nullptr);
+        }
     }
 
     void lookAndFeelChanged() override
@@ -366,6 +394,7 @@ public:
 
     std::unique_ptr<NanoVGGraphicsContext> nvgContext = nullptr;
 
+    NVGImage shadowImage;
     OwnedArray<WelcomePanelTile> tiles;
     PluginEditor* editor;
 };

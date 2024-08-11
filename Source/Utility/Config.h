@@ -7,10 +7,7 @@ using namespace juce;
 
 #include "Utility/Hash.h"
 #include "Utility/SynchronousValue.h"
-
-#ifndef ENABLE_OBJECT_FB_DEBUGGING
-#    define ENABLE_OBJECT_FB_DEBUGGING 0
-#endif
+#include "Utility/OSUtils.h"
 
 #ifndef ENABLE_FB_DEBUGGING
 #    define ENABLE_FB_DEBUGGING 0
@@ -32,7 +29,6 @@ struct ProjectInfo {
 
     static inline char const* companyName = "plugdata";
     static inline char const* versionString = PLUGDATA_VERSION;
-    static inline int const versionNumber = 0x800;
 
     static MidiDeviceManager* getMidiDeviceManager();
     static AudioDeviceManager* getDeviceManager();
@@ -48,10 +44,12 @@ struct ProjectInfo {
 #if JUCE_WINDOWS
     // Regular documents directory might be synced to OneDrive
     static inline File const appDataDir = File::getSpecialLocation(File::SpecialLocationType::commonDocumentsDirectory).getChildFile("plugdata");
+#elif JUCE_IOS
+    static inline File const appDataDir = File::getContainerForSecurityApplicationGroupIdentifier("group.com.plugdata.plugdata");
 #else
     static inline File const appDataDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata");
 #endif
-    static inline String const versionSuffix = "-test8";
+    static inline String const versionSuffix = "-1";
     static inline File const versionDataDir = appDataDir.getChildFile("Versions").getChildFile(ProjectInfo::versionString + versionSuffix);
 };
 

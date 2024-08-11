@@ -43,3 +43,6 @@
 [submodule "Libraries/pd-cyclone"]
 	path = Libraries/pd-cyclone
 	url = https://github.com/timothyschoen/pd-cyclone
+[submodule "Libraries/fuzzysearchdatabase"]
+	path = Libraries/fuzzysearchdatabase
+	url = https://timschoen@bitbucket.org/j_norberg/fuzzysearchdatabase.git

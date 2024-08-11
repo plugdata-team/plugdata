@@ -48,7 +48,7 @@ private:
     static constexpr int connectionTolerance = 9;
 
     Line<int> lines[2];
-    std::atomic<float> lineAlpha[2] = {};
+    float lineAlpha[2] = {};
     float lineTargetAlpha[2] = {};
     float lineAlphaMultiplier[2] = {};
     Canvas* cnv;

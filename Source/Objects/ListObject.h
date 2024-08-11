@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class ListObject final : public ObjectBase {
+class ListObject final : public ObjectBase, public KeyListener{
 
     AtomHelper atomHelper;
     DraggableListNumber listLabel;
@@ -12,6 +12,13 @@ class ListObject final : public ObjectBase {
     Value min = SynchronousValue(0.0f);
     Value max = SynchronousValue(0.0f);
     Value sizeProperty = SynchronousValue();
+
+    NVGcolor backgroundColour;
+    NVGcolor selectedOutlineColour;
+    Colour selectedOutlineCol;
+    NVGcolor outlineColour;
+
+    bool editorActive = false;
 
 public:
     ListObject(pd::WeakReference obj, Object* parent)
@@ -27,6 +34,7 @@ public:
 
         listLabel.onEditorHide = [this]() {
             stopEdition();
+            editorActive = false;
         };
 
         listLabel.onTextChange = [this]() {
@@ -39,18 +47,22 @@ public:
         listLabel.onEditorShow = [this]() {
             startEdition();
             auto* editor = listLabel.getCurrentTextEditor();
+            editor->addKeyListener(this);
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
             editor->setBorder({ 0, 1, 3, 0 });
+            editorActive = true;
         };
 
         listLabel.dragStart = [this]() {
             startEdition();
+            editorActive = true;
         };
 
         listLabel.onValueChange = [this](float) { updateFromGui(); };
 
         listLabel.dragEnd = [this]() {
             stopEdition();
+            editorActive = false;
         };
 
         listLabel.addMouseListener(this, false);
@@ -102,7 +114,7 @@ public:
         }
     }
 
-    void updateFromGui()
+    void updateFromGui(bool force = false)
     {
         auto array = StringArray();
         array.addTokens(listLabel.getText(), true);
@@ -119,7 +131,7 @@ public:
                 list.emplace_back(pd->generateSymbol(elem));
             }
         }
-        if (list != getList()) {
+        if (force || list != getList()) {
             setList(list);
         }
     }
@@ -162,63 +174,61 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat().reduced(0.5f);
-        auto backgroundColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
-        auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
+        auto b = getLocalBounds().toFloat();
+        auto sb = b.reduced(0.5f);
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(), backgroundColour, backgroundColour, Corners::objectCornerRadius);
 
         imageRenderer.renderJUCEComponent(nvg, listLabel, getImageScale());
 
-        nvgSave(nvg);
-        nvgIntersectRoundedScissor(nvg, b.getX() + 0.25f, b.getY() + 0.25f, b.getWidth() - 0.5f, b.getHeight() - 0.5f, Corners::objectCornerRadius);
+        // draw flag
+        bool highlighted = editorActive && getValue<bool>(object->locked);
+        atomHelper.drawTriangleFlag(nvg, highlighted, true);
 
-        nvgFillColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour)));
-        nvgBeginPath(nvg);
-        nvgMoveTo(nvg, b.getRight() - 8, b.getY());
-        nvgLineTo(nvg, b.getRight(), b.getY());
-        nvgLineTo(nvg, b.getRight(), b.getY() + 8);
-        nvgClosePath(nvg);
-        nvgFill(nvg);
-
-        nvgBeginPath(nvg);
-        nvgMoveTo(nvg, b.getRight() - 8, b.getBottom());
-        nvgLineTo(nvg, b.getRight(), b.getBottom());
-        nvgLineTo(nvg, b.getRight(), b.getBottom() - 8);
-        nvgClosePath(nvg);
-        nvgFill(nvg);
-
-        nvgRestore(nvg);
-
-        if (object->isSelected()) // If object is selected, draw outline over top too, so the flag doesn't poke into the selected outline
-        {
-            nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
-            nvgStrokeColor(nvg, selectedOutlineColour);
-            nvgStrokeWidth(nvg, 1.0f);
-            nvgStroke(nvg);
-        }
-
-        bool highlighed = hasKeyboardFocus(true) && getValue<bool>(object->locked);
-
-        if (highlighed) {
-            nvgStrokeColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId)));
-            nvgStrokeWidth(nvg, 2.0f);
-            nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
-            nvgStroke(nvg);
-        }
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBAf(0, 0, 0, 0), (object->isSelected() || highlighted) ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
     }
 
     void lookAndFeelChanged() override
     {
-        listLabel.setColour(Label::textWhenEditingColourId, LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
-        listLabel.setColour(Label::textColourId, LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
-        listLabel.setColour(TextEditor::textColourId, LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
+        listLabel.setColour(Label::textWhenEditingColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
+        listLabel.setColour(Label::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
+        listLabel.setColour(TextEditor::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
+
+        backgroundColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
+        selectedOutlineCol = cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId);
+        selectedOutlineColour = convertColour(selectedOutlineCol);
+        outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
+
+        repaint();
+    }
+    
+    bool keyPressed(KeyPress const& key, Component*) override
+    {
+        if(key.getKeyCode() == KeyPress::returnKey)
+        {
+            updateFromGui(true);
+            cnv->grabKeyboardFocus();
+            return true;
+        }
+        
+        return false;
+    }
+
+    void focusGained(FocusChangeType cause) override
+    {
         repaint();
     }
 
+    void focusLost(FocusChangeType cause) override
+    {
+        repaint();
+    }
+
+    void focusOfChildComponentChanged(FocusChangeType cause) override
+    {
+        repaint();
+    }
+    
     void updateValue()
     {
         if (!listLabel.isBeingEdited()) {

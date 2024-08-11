@@ -48,7 +48,7 @@ public:
     void renderLabel(NVGcontext* nvg, float scale)
     {
         auto textHash = hash(getText());
-        if (image.needsUpdate(getWidth() * scale, getHeight() * scale) || updateColour || lastTextHash != textHash || lastScale != scale) {
+        if (image.needsUpdate(roundToInt(getWidth() * scale), roundToInt(getHeight() * scale)) || updateColour || lastTextHash != textHash || lastScale != scale) {
             updateImage(nvg, scale);
             lastTextHash = textHash;
             lastScale = scale;
@@ -216,8 +216,6 @@ public:
 
     ~ObjectBase() override;
 
-    Colour getHoverBackgroundColour(Colour const& colour);
-
     void initialise();
 
     void paint(Graphics& g) override;
@@ -276,7 +274,6 @@ public:
     void moveBackward();
     void moveToBack();
 
-    virtual Canvas* getCanvas();
     virtual pd::Patch::Ptr getPatch();
 
     // Override if you want a part of your object to ignore mouse clicks

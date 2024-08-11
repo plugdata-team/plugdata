@@ -53,9 +53,8 @@ public:
 
         auto scale = 3.0f;
         if (dragImage.image.isNull() || errorImage.image.isNull()) {
-            auto* offlineObjectRenderer = &editor->offlineRenderer;
-            dragImage = offlineObjectRenderer->patchToMaskedImage(getObjectString(), scale);
-            errorImage = offlineObjectRenderer->patchToMaskedImage(getObjectString(), scale, true);
+            dragImage = OfflineObjectRenderer::patchToMaskedImage(getObjectString(), scale);
+            errorImage = OfflineObjectRenderer::patchToMaskedImage(getObjectString(), scale, true);
         }
 
         dismiss(true);
@@ -98,6 +97,8 @@ public:
     ObjectClickAndDrop(ObjectDragAndDrop* target)
         : editor(target->editor)
     {
+        setWantsKeyboardFocus(true);
+
         objectString = target->getObjectString();
         objectName = target->getPatchStringName();
 
@@ -105,10 +106,9 @@ public:
 
         setAlwaysOnTop(true);
 
-        auto* offlineObjectRenderer = &target->editor->offlineRenderer;
         // FIXME: we should only ask a new mask image when the theme has changed so it's the correct colour
-        dragImage = offlineObjectRenderer->patchToMaskedImage(target->getObjectString(), 3.0f).image;
-        dragInvalidImage = offlineObjectRenderer->patchToMaskedImage(target->getObjectString(), 3.0f, true).image;
+        dragImage = OfflineObjectRenderer::patchToMaskedImage(target->getObjectString(), 3.0f).image;
+        dragInvalidImage = OfflineObjectRenderer::patchToMaskedImage(target->getObjectString(), 3.0f, true).image;
 
         // we set the size of this component / window 3x larger to match the max zoom of canavs (300%)
         setSize(dragImage.getWidth(), dragImage.getHeight());
@@ -129,6 +129,17 @@ public:
         setOpaque(false);
     }
 
+    bool keyPressed(const KeyPress& key) override
+    {
+        if (key == KeyPress::escapeKey) {
+            setVisible(false);
+            instance.reset(nullptr);
+            return true;
+        }
+
+        return false;
+    }
+
     MouseCursor getMouseCursor() override
     {
         return MouseCursor::StandardCursorType::DraggingHandCursor;
@@ -137,15 +148,14 @@ public:
     static void attachToMouse(ObjectDragAndDrop* parent)
     {
         instance = std::make_unique<ObjectClickAndDrop>(parent);
+        instance->grabKeyboardFocus();
     }
 
     void timerCallback() override
     {
         auto screenPos = Desktop::getMousePosition();
-        auto mousePosition = Point<int>();
         Component* underMouse;
 
-        mousePosition = screenPos;
         underMouse = editor->getComponentAt(editor->getLocalPoint(nullptr, screenPos));
 
         Canvas* foundCanvas = nullptr;
@@ -185,7 +195,7 @@ public:
             animator.animateComponent(&imageComponent, animatedBounds, 1.0f, 150, false, 3.0f, 0.0f);
         }
 
-        setCentrePosition(mousePosition);
+        setCentrePosition(screenPos);
     }
 
     void mouseUp(MouseEvent const& e) override

@@ -40,12 +40,7 @@ public:
         , pd(instance)
     {
         vec.reserve(8192);
-        temp.reserve(8192);
-        try {
-            read(vec);
-        } catch (...) {
-            error = true;
-        }
+        read(vec);
 
         updateParameters();
 
@@ -129,17 +124,21 @@ public:
         pointPtr += 2;
         
         Path result;
-        result.startNewSubPath(control[4], control[5]);
+        if(Point<float>(control[4], control[5]).isFinite()) {
+            result.startNewSubPath(control[4], control[5]);
+        }
         
         for (int i = numPoints-2; i > 0; i--, pointPtr += 2) {
             switch(style)
             {
                 case Points:
                 {
-                    result.lineTo(pointPtr[0], control[5]);
-                    result.startNewSubPath(pointPtr[0], pointPtr[1]);
+                    if(Point<float>(pointPtr[0], control[5]).isFinite() && Point<float>(pointPtr[0], pointPtr[1]).isFinite()) {
+                        result.lineTo(pointPtr[0], control[5]);
+                        result.startNewSubPath(pointPtr[0], pointPtr[1]);
+                    }
                     
-                    if(i == 1)
+                    if(i == 1 && Point<float>(pointPtr[2], pointPtr[3]).isFinite())
                     {
                         result.lineTo(pointPtr[2], pointPtr[3]);
                     }
@@ -150,8 +149,11 @@ public:
                 }
                 case Polygon:
                 {
-                    result.lineTo(pointPtr[0], pointPtr[1]);
-                    if(i == 1)
+                    if(Point<float>(pointPtr[0], pointPtr[1]).isFinite()) {
+                        result.lineTo(pointPtr[0], pointPtr[1]);
+                    }
+                    
+                    if(i == 1 && Point<float>(pointPtr[2], pointPtr[3]).isFinite())
                     {
                         result.lineTo(pointPtr[2], pointPtr[3]);
                     }
@@ -178,7 +180,13 @@ public:
                     control[2] = 0.333*control[4] + 0.667*pointPtr[0];
                     control[3] = 0.333*control[5] + 0.667*pointPtr[1];
                     
-                    result.cubicTo(control[0], control[1], control[2], control[3], control[4], control[5]);
+                    auto start = Point<float>(control[0], control[1]);
+                    auto c1 = Point<float>(control[2], control[3]);
+                    auto end = Point<float>(control[4], control[5]);
+                    
+                    if(start.isFinite() && c1.isFinite() && end.isFinite()) {
+                        result.cubicTo(start, c1, end);
+                    }
                     break;
                 }
             }
@@ -201,10 +209,11 @@ public:
 
     void paintGraph(NVGcontext* nvg)
     {
+        NVGScopedState scopedState(nvg);
         auto const h = static_cast<float>(getHeight());
         auto const w = static_cast<float>(getWidth());
         auto const arrB = Rectangle<float>(0, 0, w, h).reduced(1);
-        nvgRoundedScissor(nvg, arrB.getX(), arrB.getY(), arrB.getWidth(), arrB.getHeight(), Corners::objectCornerRadius);
+        nvgIntersectRoundedScissor(nvg, arrB.getX(), arrB.getY(), arrB.getWidth(), arrB.getHeight(), Corners::objectCornerRadius);
         
         if (!vec.empty()) {
             auto p = createArrayPath(vec, getDrawType(), getScale(), w, h);
@@ -312,7 +321,7 @@ public:
             nvgFontSize(nvg, 11);
             nvgFontFace(nvg, "Inter-Regular");
             nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-            nvgFillColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId)));
+            nvgFillColor(nvg, convertColour(object->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId)));
             nvgText(nvg, position.x, position.y, errorText.toRawUTF8(), nullptr);
             error = false;
         } else if (visible) {
@@ -324,7 +333,7 @@ public:
     {
         if (error) {
             // TODO: error colour
-            Fonts::drawText(g, "array " + getUnexpandedName() + " is invalid", 0, 0, getWidth(), getHeight(), LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred);
+            Fonts::drawText(g, "array " + getUnexpandedName() + " is invalid", 0, 0, getWidth(), getHeight(), object->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred);
             error = false;
         } else if (visible) {
             paintGraph(g);
@@ -407,25 +416,11 @@ public:
 
     void update()
     {
-        // Check if size has changed
-        int currentSize = getArraySize();
-        if (vec.size() != currentSize) {
-            vec.resize(currentSize);
-        }
-
-        size = currentSize;
+        size = getArraySize();
 
         if (!edited) {
-            error = false;
-            try {
-                read(temp);
-            } catch (...) {
-                error = true;
-            }
-            if (temp != vec) {
-                vec.swap(temp);
-                repaint();
-            }
+            bool changed = read(vec);
+            if(changed) repaint();
         }
     }
 
@@ -526,7 +521,7 @@ public:
             int colour = template_getfloat(templ, gensym("color"), scalar->sc_vec, 1);
 
             if (colour <= 0) {
-                return LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour);
+                return object->cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour);
             }
 
             auto rangecolor = [](int n) /* 0 to 9 in 5 steps */
@@ -545,7 +540,7 @@ public:
             return Colour(red, green, blue);
         }
 
-        return LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour);
+        return object->cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour);
     }
 
     void valueChanged(Value& value) override
@@ -624,16 +619,21 @@ public:
     }
 
     // Gets the values from the array.
-    void read(std::vector<float>& output) const
+    bool read(std::vector<float>& output) const
     {
+        bool changed = false;
         if (auto ptr = arr.get<t_garray>()) {
             int const size = garray_getarray(ptr.get())->a_n;
             output.resize(static_cast<size_t>(size));
 
             t_word* vec = ((t_word*)garray_vec(ptr.get()));
-            for (int i = 0; i < size; i++)
+            for (int i = 0; i < size; i++) {
+                changed = changed || output[i] != vec[i].w_float;
                 output[i] = vec[i].w_float;
+            }
         }
+        
+        return changed;
     }
 
     // Writes a value to the array.
@@ -648,7 +648,6 @@ public:
     pd::WeakReference arr;
 
     std::vector<float> vec;
-    std::vector<float> temp;
     std::atomic<bool> edited;
     bool error = false;
     String const stringArray = "array";
@@ -1135,10 +1134,10 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat().reduced(0.5f);
+        auto b = getLocalBounds().toFloat();
         auto backgroundColour = nvgRGBA(0, 0, 0, 0);
-        auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
+        auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
@@ -1187,7 +1186,7 @@ public:
             labels->setLabelBounds(bounds);
             labels->getObjectLabel()->setText(title, dontSendNotification);
 
-            labels->setColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
+            labels->setColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
 
             object->cnv->addAndMakeVisible(labels.get());
         } else {

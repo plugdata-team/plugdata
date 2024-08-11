@@ -53,9 +53,10 @@ Dialog::Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWi
 #endif
     setVisible(true);
 
-    setBounds(parentComponent->getScreenX(), parentComponent->getScreenY(), parentComponent->getWidth(), parentComponent->getHeight());
-    parentComponent->addComponentListener(this);
-
+#if JUCE_IOS
+    setAlwaysOnTop(true);
+    toFront(false);
+#else
     if (ProjectInfo::isStandalone) {
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(parentComponent->getTopLevelComponent()))
             mainWindow->dialog = SafePointer(this);
@@ -63,6 +64,11 @@ Dialog::Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWi
     } else {
         setAlwaysOnTop(true);
     }
+#endif
+    
+    setBounds(parentComponent->getScreenX(), parentComponent->getScreenY(), parentComponent->getWidth(), parentComponent->getHeight());
+    parentComponent->addComponentListener(this);
+    
     setWantsKeyboardFocus(true);
 
     if (showCloseButton) {
@@ -142,7 +148,9 @@ void Dialogs::showAskToSaveDialog(std::unique_ptr<Dialog>* target, Component* ce
     dialog->setViewedComponent(saveDialog);
     target->reset(dialog);
 
+#if !JUCE_IOS
     centre->getTopLevelComponent()->toFront(true);
+#endif
 }
 
 void Dialogs::showSettingsDialog(PluginEditor* editor)
@@ -166,12 +174,12 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
             break;
         }
         case 2: {
-            editor->openProject();
+            editor->getTabComponent().openPatch();
             break;
         }
         case 3: {
             if (auto* cnv = editor->getCurrentCanvas())
-                cnv->saveProject();
+                cnv->save();
             break;
         }
         case 4: {
@@ -542,7 +550,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     bool canBeOpened = object && object->gui && object->gui->canOpenFromMenu();
 
     enum MenuOptions {
-        Extra = 1,
+        Extra = 200,
         Open,
         Help,
         Reference,
@@ -596,6 +604,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
     popupMenu.addSeparator();
     addCommandItem(popupMenu, CommandIDs::Encapsulate);
+    addCommandItem(popupMenu, CommandIDs::Triggerize);
     popupMenu.addSeparator();
 
     PopupMenu orderMenu;
@@ -653,6 +662,8 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     };
 
     PopupMenu alignMenu;
+    addCommandItem(alignMenu, CommandIDs::Tidy);
+    alignMenu.addSeparator();
     alignMenu.addCustomItem(AlignLeft, std::make_unique<AlignmentMenuItem>(Icons::AlignLeft, "Align left"), nullptr, "Align left");
     alignMenu.addCustomItem(AlignHCentre, std::make_unique<AlignmentMenuItem>(Icons::AlignVCentre, "Align centre"), nullptr, "Align centre");
     alignMenu.addCustomItem(AlignRight, std::make_unique<AlignmentMenuItem>(Icons::AlignRight, "Align right"), nullptr, "Align right");

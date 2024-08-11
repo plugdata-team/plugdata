@@ -18,11 +18,22 @@ class MessageObject final : public ObjectBase
     bool isDown = false;
     bool isLocked = false;
 
+    NVGcolor backgroundColour;
+    NVGcolor selectedOutlineColour;
+    Colour selectedColour;
+    NVGcolor outlineColour;
+    Colour guiOutlineCol;
+    Colour flagCol;
+
+    NVGImage flagImage;
+
 public:
     MessageObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
     {
         objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
+
+        lookAndFeelChanged();
     }
 
     void update() override
@@ -102,7 +113,7 @@ public:
             objText = cnv->suggestor->getText();
         }
 
-        auto colour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
+        auto colour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
         int textWidth = getTextSize().getWidth() - 14;
         if (textRenderer.prepareLayout(objText, Fonts::getDefaultFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty))) {
             repaint();
@@ -140,54 +151,62 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat().reduced(0.5f);
+        auto bounds = getLocalBounds();
+        auto b = bounds.toFloat();
+        auto sb = b.reduced(0.5f); // reduce size of background to stop AA edges from showing through
 
-        auto backgroundColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
-        auto selectedOutlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
-        auto flagColour = convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour));
+        // Background
+        nvgDrawRoundedRect(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(), backgroundColour, backgroundColour, Corners::objectCornerRadius);
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        auto width = getWidth();
+        auto height = getHeight();
 
-        nvgSave(nvg);
-        nvgIntersectRoundedScissor(nvg, b.getX() + 0.25f, b.getY() + 0.25f, b.getWidth() - 0.5f, b.getHeight() - 0.5f, Corners::objectCornerRadius);
+        auto pixelScale = cnv->getRenderScale();
+        auto zoom = cnv->isZooming ? 2.0f : getValue<float>(cnv->zoomScale);
 
-        float bRight = b.getRight(); // offset to make it go completely under outline
-        float bY = b.getY();
-        float bBottom = b.getBottom();
-        float d = 6.0f;
+        auto const flagArea = Point<int>(width * pixelScale * zoom, height * pixelScale * zoom);
 
-        if (isDown) {
-            nvgBeginPath(nvg);
-            nvgRect(nvg, b.getX(), b.getY(), b.getWidth(), d);
-            nvgRect(nvg, b.getRight() - d, b.getY(), d, b.getHeight());
-            nvgRect(nvg, b.getX(), b.getBottom() - d, b.getWidth(), d);
-            nvgRect(nvg, b.getX(), b.getY(), d, b.getHeight());
-            nvgFillColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::outlineColourId)));
-            nvgFill(nvg);
+        if (flagImage.needsUpdate(flagArea.x, flagArea.y)) {
+            flagImage = NVGImage(nvg, flagArea.x, flagArea.y, [this, pixelScale, zoom, sb, width, height](Graphics &g) {
+
+                int d = 6;
+                g.addTransform(AffineTransform::scale(pixelScale * zoom, pixelScale * zoom));
+                auto b = Rectangle<int>(0, 0, width, height);
+                // use the path with a hole in it to exclude the inner rounded rect from painting
+                Path outerArea;
+                outerArea.addRoundedRectangle(sb, Corners::objectCornerRadius);
+
+                float bRight = b.getRight(); // offset to make it go completely under outline
+                float bY = b.getY();
+                float bBottom = b.getBottom();
+
+                g.reduceClipRegion(outerArea);
+
+                // draw rectangle when mouse down
+                if (isDown) {
+                    g.setColour(guiOutlineCol);
+                    g.fillRect(b.getX(), b.getY(), b.getWidth(), d);
+                    g.fillRect(b.getRight() - d, b.getY(), d, b.getHeight());
+                    g.fillRect(b.getX(), b.getBottom() - d, b.getWidth(), d);
+                    g.fillRect(b.getX(), b.getY(), d, b.getHeight());
+                }
+
+                // draw flag
+                Path flag;
+                flag.startNewSubPath(bRight, bY);
+                flag.lineTo(bRight - d, bY + d);
+                flag.lineTo(bRight - d, bBottom - d);
+                flag.lineTo(bRight, bBottom);
+                flag.closeSubPath();
+
+                g.setColour(isDown && ::getValue<bool>(object->locked) ? selectedColour : flagCol);
+                g.fillPath(flag);
+            });
         }
 
-        // Create flag path
-        nvgBeginPath(nvg);
-        nvgMoveTo(nvg, bRight, bY);
-        nvgLineTo(nvg, bRight - d, bY + d);
-        nvgLineTo(nvg, bRight - d, bBottom - d);
-        nvgLineTo(nvg, bRight, bBottom);
-        nvgClosePath(nvg);
+        flagImage.render(nvg, getLocalBounds());
 
-        nvgFillColor(nvg, flagColour);
-        nvgFill(nvg);
-
-        nvgRestore(nvg);
-
-        if (object->isSelected()) // If object is selected, draw outline over top too, so the flag doesn't poke into the selected outline
-        {
-            nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
-            nvgStrokeColor(nvg, selectedOutlineColour);
-            nvgStrokeWidth(nvg, 1.0f);
-            nvgStroke(nvg);
-        }
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBAf(0, 0, 0, 0), object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
         if (editor) {
             imageRenderer.renderJUCEComponent(nvg, *editor, getImageScale());
@@ -221,6 +240,13 @@ public:
 
     void lookAndFeelChanged() override
     {
+        backgroundColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
+        selectedColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId);
+        selectedOutlineColour = convertColour(selectedColour);
+        outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
+        flagCol = cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour);
+        guiOutlineCol = cnv->editor->getLookAndFeel().findColour(PlugDataColour::outlineColourId);
+
         updateTextLayout();
     }
 
@@ -293,6 +319,7 @@ public:
 
         if (isLocked) {
             isDown = true;
+            flagImage.setDirty();
             repaint();
 
             // startEdition();
@@ -311,6 +338,7 @@ public:
     void mouseUp(MouseEvent const& e) override
     {
         isDown = false;
+        flagImage.setDirty();
         repaint();
     }
 
@@ -394,7 +422,7 @@ public:
 
         return false;
     }
-
+    
     bool hideInGraph() override
     {
         return true;

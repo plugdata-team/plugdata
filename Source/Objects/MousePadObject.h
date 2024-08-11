@@ -19,7 +19,7 @@ public:
         mouseListener.globalMouseDown = [this](MouseEvent const& e) {
             auto relativeEvent = e.getEventRelativeTo(this);
 
-            if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isLocked() || !cnv->isShowing() || isPressed)
+            if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isInsideGraphBounds(e) || !isLocked() || !cnv->isShowing() || isPressed)
                 return;
 
             t_atom at[3];
@@ -35,7 +35,7 @@ public:
             isPressed = true;
         };
         mouseListener.globalMouseUp = [this](MouseEvent const& e) {
-            if (!getScreenBounds().contains(e.getMouseDownScreenPosition()) || !isPressed || !isLocked() || !cnv->isShowing())
+            if (!getScreenBounds().contains(e.getMouseDownScreenPosition()) || !isInsideGraphBounds(e) || !isPressed || !isLocked() || !cnv->isShowing())
                 return;
 
             if (auto pad = this->ptr.get<t_fake_pad>()) {
@@ -48,7 +48,7 @@ public:
         };
 
         mouseListener.globalMouseMove = [this](MouseEvent const& e) {
-            if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed) || !isLocked() || !cnv->isShowing())
+            if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed) || !isInsideGraphBounds(e) || !isLocked() || !cnv->isShowing())
                 return;
 
             auto relativeEvent = e.getEventRelativeTo(this);
@@ -84,14 +84,31 @@ public:
     }
 
     ~MousePadObject() override = default;
+    
+    bool isInsideGraphBounds(const MouseEvent& e)
+    {
+        auto* graph = findParentComponentOfClass<GraphOnParent>();
+        while(graph)
+        {
+            auto pos = e.getEventRelativeTo(graph).getPosition();
+            if(!graph->getLocalBounds().contains(pos))
+            {
+                return false;
+            }
+            
+            graph = graph->findParentComponentOfClass<GraphOnParent>();
+        }
+        
+        return true;
+    }
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat().reduced(0.5f);
+        auto b = getLocalBounds().toFloat();
         Colour fillColour, outlineColour;
         if(auto x = ptr.get<t_fake_pad>()) {
             fillColour = Colour(x->x_color[0], x->x_color[1], x->x_color[2]);
-            outlineColour = LookAndFeel::getDefaultLookAndFeel().findColour(object->isSelected() && !cnv->isGraph ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::outlineColourId);
+            outlineColour = cnv->editor->getLookAndFeel().findColour(object->isSelected() && !cnv->isGraph ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::outlineColourId);
         }
             
 

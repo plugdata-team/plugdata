@@ -12,7 +12,6 @@ if(MSVC)
     include_directories(pthread-win32)
 endif()
 
-
 cmake_policy(SET CMP0091 NEW)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
@@ -176,8 +175,10 @@ endif()
 file(GLOB ELSE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/control/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/*.c
+#    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/play.file~/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/extra_source/Aliases/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/shared/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/shared/libsamplerate/*.c
 )
 
 file(GLOB_RECURSE CIRCUIT_SOURCES
@@ -190,6 +191,8 @@ file(GLOB_RECURSE PLAITS_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/plaits~/plaits~.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/plaits~/*.cc
 )
+
+#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/play.file~)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/circuit~/Libraries)
 
@@ -209,6 +212,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(pd-else/Code_source/Compiled/control/)
 include_directories(pd-else/Code_source/Compiled/audio/)
 include_directories(pd-else/Code_source/shared/)
+include_directories(pd-else/Code_source/shared/libsamplerate)
 include_directories(pd-else/Code_source/shared/aubio/src)
 include_directories(pd-else/Code_source/Compiled/audio/plaits~)
 include_directories(pd-else/Code_source/Compiled/audio/sfz~/sfizz/library/src)
@@ -241,7 +245,11 @@ target_compile_definitions(lua PRIVATE MAKE_LIB=1 LUA_USE_LINUX=1)
 elseif(MSVC)
 target_compile_definitions(lua PRIVATE MAKE_LIB=1 LUA_USE_WINDOWS=1)
 elseif(APPLE)
-target_compile_definitions(lua PRIVATE MAKE_LIB=1 LUA_USE_MACOSX=1)
+    if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
+        target_compile_definitions(lua PRIVATE LUA_USE_IOS=1 PRIVATE MAKE_LIB=1)
+    else()
+        target_compile_definitions(lua PRIVATE MAKE_LIB=1 LUA_USE_MACOSX=1)
+    endif()
 else()
 target_compile_definitions(lua PRIVATE MAKE_LIB=1)
 endif()

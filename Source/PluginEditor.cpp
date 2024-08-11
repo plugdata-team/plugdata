@@ -15,7 +15,7 @@
 #include "PluginProcessor.h"
 
 #include "Pd/Patch.h"
-
+ 
 #include "LookAndFeel.h"
 #include "Sidebar/Palettes.h"
 #include "Utility/Autosave.h"
@@ -49,7 +49,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , sidebar(std::make_unique<Sidebar>(&p, this))
     , statusbar(std::make_unique<Statusbar>(&p))
     , openedDialog(nullptr)
-    , offlineRenderer(&p)
     , nvgSurface(this)
     , pluginConstrainer(*getConstrainer())
     , autosave(std::make_unique<Autosave>(pd))
@@ -64,6 +63,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , pluginMode(nullptr)
     , touchSelectionHelper(std::make_unique<TouchSelectionHelper>(this))
 {
+    keyboardLayout = OSUtils::getKeyboardLayout();
+    
 #if JUCE_IOS
     // constrainer.setMinimumSize(100, 100);
     // pluginConstrainer.setMinimumSize(100, 100);
@@ -117,13 +118,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     }
 
     autoconnect.referTo(settingsFile->getPropertyAsValue("autoconnect"));
-
     theme.referTo(settingsFile->getPropertyAsValue("theme"));
     theme.addListener(this);
-
-    if (!settingsFile->hasProperty("hvcc_mode"))
-        settingsFile->setProperty("hvcc_mode", false);
-    hvccMode.referTo(settingsFile->getPropertyAsValue("hvcc_mode"));
 
     palettes = std::make_unique<Palettes>(this);
 
@@ -270,13 +266,16 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(touchSelectionHelper.get());
     touchSelectionHelper->setAlwaysOnTop(true);
 #endif
-    
+
 #if ENABLE_TESTING
         // Call after window is ready
         ::Timer::callAfterDelay(200, [this](){
             runTests(this);
         });
 #endif
+
+    pd->messageDispatcher->setBlockMessages(false);
+    pd->objectLibrary->waitForInitialisationToFinish();
 }
 
 PluginEditor::~PluginEditor()
@@ -285,6 +284,12 @@ PluginEditor::~PluginEditor()
 
     if (auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent())) {
         ProjectInfo::closeWindow(window); // Make sure plugdatawindow gets cleaned up
+    }
+
+    if(!ProjectInfo::isStandalone)
+    {
+        // Block incoming gui messages from pd if there is no active editor
+        pd->messageDispatcher->setBlockMessages(true);
     }
 }
 
@@ -345,7 +350,7 @@ void PluginEditor::paintOverChildren(Graphics& g)
     // Never want to be drawing over a dialog window
     if (openedDialog)
         return;
-
+    
     if (isDraggingFile) {
         g.setColour(findColour(PlugDataColour::dataColourId));
         g.drawRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius, 2.0f);
@@ -362,6 +367,12 @@ void PluginEditor::paintOverChildren(Graphics& g)
         g.drawLine(palettes->isExpanded() ? palettes->getRight() : 29.5f, toolbarDepth, palettes->isExpanded() ? palettes->getRight() : 29.5f, toolbarDepth + 30);
         g.drawLine(sidebar->getX() + 0.5f, toolbarDepth, sidebar->getX() + 0.5f, toolbarHeight + 30);
     }
+    
+    if(pluginMode)
+    {
+        g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
+        g.fillRect(getLocalBounds().withTrimmedTop(40));
+    }
 }
 
 void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> area)
@@ -370,17 +381,15 @@ void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> area)
         pluginMode->render(nvg);
     } else {
         if (welcomePanel->isVisible()) {
-            nvgSave(nvg);
+            NVGScopedState scopedState(nvg);
             welcomePanel->render(nvg);
-            nvgRestore(nvg);
         } else {
             tabComponent.renderArea(nvg, area);
 
             if (touchSelectionHelper && touchSelectionHelper->isVisible() && area.intersects(touchSelectionHelper->getBounds() - nvgSurface.getPosition())) {
-                nvgSave(nvg);
+                NVGScopedState scopedState(nvg);
                 nvgTranslate(nvg, touchSelectionHelper->getX() - nvgSurface.getX(), touchSelectionHelper->getY() - nvgSurface.getY());
                 touchSelectionHelper->render(nvg);
-                nvgRestore(nvg);
             }
         }
     }
@@ -418,7 +427,7 @@ CallOutBox& PluginEditor::showCalloutBox(std::unique_ptr<Component> content, Rec
 
 DragAndDropTarget* PluginEditor::findNextDragAndDropTarget(Point<int> screenPos)
 {
-    return &tabComponent;
+    return tabComponent.getScreenBounds().contains(screenPos) ? &tabComponent : nullptr;
 }
 
 void PluginEditor::resized()
@@ -476,6 +485,15 @@ void PluginEditor::resized()
 
     auto startX = (getWidth() / 2.0f) - (toolbarHeight * 1.5);
 
+#if JUCE_IOS
+    auto touchHelperBounds = getLocalBounds().removeFromBottom(48).withSizeKeepingCentre(192, 48).translated(0, -54);
+    if(touchSelectionHelper) touchSelectionHelper->setBounds(touchHelperBounds);
+    
+    if(OSUtils::isIPad())
+    {
+        startX += 80.0f; // Otherwise it gets in the way of multitasking controls
+    }
+#endif
     editButton.setBounds(startX, 1, buttonSize, buttonSize - 2);
     runButton.setBounds(startX + buttonSize - 1, 1, buttonSize, buttonSize - 2);
     presentButton.setBounds(startX + (2 * buttonSize) - 2, 1, buttonSize, buttonSize - 2);
@@ -508,7 +526,7 @@ bool PluginEditor::isInPluginMode() const
 pd::Patch::Ptr PluginEditor::findPatchInPluginMode()
 {
     ScopedLock lock(pd->patches.getLock());
-    
+
     for (auto& patch : pd->patches) {
         if (editorIndex == patch->windowIndex && patch->openInPluginMode) {
             return patch;
@@ -522,11 +540,11 @@ void PluginEditor::parentSizeChanged()
     if (!ProjectInfo::isStandalone)
         return;
 
-    auto* standalone = dynamic_cast<DocumentWindow*>(getTopLevelComponent());
+    auto* standalone = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
     // Hide TitleBar Buttons in Plugin Mode
     bool visible = !isInPluginMode();
 #if JUCE_MAC
-    if (!standalone->isUsingNativeTitleBar()) {
+    if (!standalone->useNativeTitlebar()) {
         // & hide TitleBar buttons when fullscreen on MacOS
         visible = visible && !standalone->isFullScreen();
         standalone->getCloseButton()->setVisible(visible);
@@ -542,7 +560,7 @@ void PluginEditor::parentSizeChanged()
             OSUtils::HideTitlebarButtons(peer->getNativeHandle(), false, false, false);
     }
 #else
-    if (!standalone->isUsingNativeTitleBar()) {
+    if (!standalone->useNativeTitlebar()) {
         // Hide/Show TitleBar Buttons in Plugin Mode
         standalone->getCloseButton()->setVisible(visible);
         standalone->getMinimiseButton()->setVisible(visible);
@@ -579,8 +597,8 @@ void PluginEditor::mouseDown(MouseEvent const& e)
     }
 
     if (e.getPosition().getY() < toolbarHeight) {
-        if (auto* window = findParentComponentOfClass<DocumentWindow>()) {
-            if (!window->isUsingNativeTitleBar())
+        if (auto* window = findParentComponentOfClass<PlugDataWindow>()) {
+            if (!window->useNativeTitlebar())
                 windowDragger.startDraggingWindow(window, e.getEventRelativeTo(window));
         }
     }
@@ -592,8 +610,8 @@ void PluginEditor::mouseDrag(MouseEvent const& e)
         return;
 
     if (!isMaximised) {
-        if (auto* window = findParentComponentOfClass<DocumentWindow>()) {
-            if (!window->isUsingNativeTitleBar())
+        if (auto* window = findParentComponentOfClass<PlugDataWindow>()) {
+            if (!window->useNativeTitlebar())
                 windowDragger.dragWindow(window, e.getEventRelativeTo(window), nullptr);
         }
     }
@@ -755,8 +773,16 @@ void PluginEditor::handleAsyncUpdate()
 
         statusbar->setHasActiveCanvas(true);
         addObjectMenuButton.setEnabled(true);
+#if JUCE_IOS
+        if(!locked)
+        {
+            touchSelectionHelper->show();
+        }
+        else {
+            touchSelectionHelper->setVisible(false);
+        }
+#endif
     } else {
-
         pluginModeButton.setEnabled(false);
 
         editButton.setEnabled(false);
@@ -768,7 +794,13 @@ void PluginEditor::handleAsyncUpdate()
         undoButton.setEnabled(false);
         redoButton.setEnabled(false);
         addObjectMenuButton.setEnabled(false);
+#if JUCE_IOS
+        touchSelectionHelper->setVisible(false);
+#endif
     }
+#if JUCE_IOS
+    nvgSurface.invalidateAll(); // Make sure touch selection helper is repainted
+#endif
 }
 
 void PluginEditor::updateCommandStatus()
@@ -818,7 +850,6 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
     bool isDragging = false;
     bool hasCanvas = false;
     bool locked = true;
-    bool canConnect = false;
     bool canUndo = false;
     bool canRedo = false;
 
@@ -837,7 +868,6 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         canRedo = cnv->patch.canRedo() && !isDragging;
 
         locked = getValue<bool>(cnv->locked);
-        canConnect = cnv->canConnectSelectedObjects();
     }
 
     switch (commandID) {
@@ -967,6 +997,12 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         result.setActive(hasCanvas && !isDragging && !locked && hasSelection);
         break;
     }
+    case CommandIDs::Tidy: {
+        result.setInfo("Tidy", "Tidy objects", "Edit", 0);
+        result.addDefaultKeypress(82, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+        result.setActive(hasCanvas && !isDragging && !locked && hasSelection);
+        break;
+    }
     case CommandIDs::Triggerize: {
         result.setInfo("Triggerize", "Triggerize objects", "Edit", 0);
         result.addDefaultKeypress(84, ModifierKeys::commandModifier);
@@ -974,16 +1010,15 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         break;
     }
     case CommandIDs::Duplicate: {
-
         result.setInfo("Duplicate", "Duplicate selection", "Edit", 0);
         result.addDefaultKeypress(68, ModifierKeys::commandModifier);
-        result.setActive(hasCanvas && !isDragging && !locked && hasObjectSelection);
+        result.setActive(hasCanvas && !isDragging && !locked && hasSelection);
         break;
     }
     case CommandIDs::CreateConnection: {
         result.setInfo("Create connection", "Create a connection between selected objects", "Edit", 0);
         result.addDefaultKeypress(75, ModifierKeys::commandModifier);
-        result.setActive(canConnect);
+        result.setActive(hasCanvas && !isDragging && !locked && hasSelection);
         break;
     }
     case CommandIDs::RemoveConnections: {
@@ -1102,58 +1137,58 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         break;
     }
 
-    static auto const cmdMod = ModifierKeys::commandModifier;
-    static auto const shiftMod = ModifierKeys::shiftModifier;
-
-    std::map<ObjectIDs, std::pair<int, int>> defaultShortcuts;
-
-    switch (OSUtils::getKeyboardLayout()) {
-    case OSUtils::KeyboardLayout::QWERTY:
-        defaultShortcuts = {
-            { NewObject, { 49, cmdMod } },
-            { NewComment, { 53, cmdMod } },
-            { NewBang, { 66, cmdMod | shiftMod } },
-            { NewMessage, { 50, cmdMod } },
-            { NewToggle, { 84, cmdMod | shiftMod } },
-            { NewNumbox, { 78, cmdMod | shiftMod } },
-            { NewVerticalSlider, { 86, cmdMod | shiftMod } },
-            { NewHorizontalSlider, { 74, cmdMod | shiftMod } },
-            { NewVerticalRadio, { 68, cmdMod | shiftMod } },
-            { NewHorizontalRadio, { 73, cmdMod | shiftMod } },
-            { NewFloatAtom, { 51, cmdMod } },
-            { NewListAtom, { 52, cmdMod } },
-            { NewArray, { 65, cmdMod | shiftMod } },
-            { NewGraphOnParent, { 71, cmdMod | shiftMod } },
-            { NewCanvas, { 67, cmdMod | shiftMod } },
-            { NewVUMeter, { 85, cmdMod | shiftMod } }
-        };
-        break;
-    case OSUtils::KeyboardLayout::AZERTY:
-        defaultShortcuts = {
-            { NewObject, { 38, cmdMod } },
-            { NewComment, { 40, cmdMod } },
-            { NewBang, { 66, cmdMod | shiftMod } },
-            { NewMessage, { 233, cmdMod } },
-            { NewToggle, { 84, cmdMod | shiftMod } },
-            { NewNumbox, { 73, cmdMod | shiftMod } },
-            { NewVerticalSlider, { 86, cmdMod | shiftMod } },
-            { NewHorizontalSlider, { 74, cmdMod | shiftMod } },
-            { NewVerticalRadio, { 68, cmdMod | shiftMod } },
-            { NewHorizontalRadio, { 73, cmdMod | shiftMod } },
-            { NewFloatAtom, { 34, cmdMod } },
-            { NewListAtom, { 39, cmdMod } },
-            { NewArray, { 65, cmdMod | shiftMod } },
-            { NewGraphOnParent, { 71, cmdMod | shiftMod } },
-            { NewCanvas, { 67, cmdMod | shiftMod } },
-            { NewVUMeter, { 85, cmdMod | shiftMod } }
-        };
-        break;
-
-    default:
-        break;
-    }
-
     if (commandID >= ObjectIDs::NewObject) {
+        static auto const cmdMod = ModifierKeys::commandModifier;
+        static auto const shiftMod = ModifierKeys::shiftModifier;
+
+        std::map<ObjectIDs, std::pair<int, int>> defaultShortcuts;
+
+        switch (keyboardLayout) {
+        case OSUtils::KeyboardLayout::QWERTY:
+            defaultShortcuts = {
+                { NewObject, { 49, cmdMod } },
+                { NewComment, { 53, cmdMod } },
+                { NewBang, { 66, cmdMod | shiftMod } },
+                { NewMessage, { 50, cmdMod } },
+                { NewToggle, { 84, cmdMod | shiftMod } },
+                { NewNumbox, { 78, cmdMod | shiftMod } },
+                { NewVerticalSlider, { 86, cmdMod | shiftMod } },
+                { NewHorizontalSlider, { 74, cmdMod | shiftMod } },
+                { NewVerticalRadio, { 68, cmdMod | shiftMod } },
+                { NewHorizontalRadio, { 73, cmdMod | shiftMod } },
+                { NewFloatAtom, { 51, cmdMod } },
+                { NewListAtom, { 52, cmdMod } },
+                { NewArray, { 65, cmdMod | shiftMod } },
+                { NewGraphOnParent, { 71, cmdMod | shiftMod } },
+                { NewCanvas, { 67, cmdMod | shiftMod } },
+                { NewVUMeter, { 85, cmdMod | shiftMod } }
+            };
+            break;
+        case OSUtils::KeyboardLayout::AZERTY:
+            defaultShortcuts = {
+                { NewObject, { 38, cmdMod } },
+                { NewComment, { 40, cmdMod } },
+                { NewBang, { 66, cmdMod | shiftMod } },
+                { NewMessage, { 233, cmdMod } },
+                { NewToggle, { 84, cmdMod | shiftMod } },
+                { NewNumbox, { 73, cmdMod | shiftMod } },
+                { NewVerticalSlider, { 86, cmdMod | shiftMod } },
+                { NewHorizontalSlider, { 74, cmdMod | shiftMod } },
+                { NewVerticalRadio, { 68, cmdMod | shiftMod } },
+                { NewHorizontalRadio, { 73, cmdMod | shiftMod } },
+                { NewFloatAtom, { 34, cmdMod } },
+                { NewListAtom, { 39, cmdMod } },
+                { NewArray, { 65, cmdMod | shiftMod } },
+                { NewGraphOnParent, { 71, cmdMod | shiftMod } },
+                { NewCanvas, { 67, cmdMod | shiftMod } },
+                { NewVUMeter, { 85, cmdMod | shiftMod } }
+            };
+            break;
+
+        default:
+            break;
+        }
+        
         auto name = objectNames.at(static_cast<ObjectIDs>(commandID));
 
         if (name.isEmpty())
@@ -1293,6 +1328,12 @@ bool PluginEditor::perform(InvocationInfo const& info)
         cnv->encapsulateSelection();
         return true;
     }
+    case CommandIDs::Tidy:
+    {
+        cnv = getCurrentCanvas();
+        cnv->tidySelection();
+        return true;
+    }
     case CommandIDs::Triggerize: {
         cnv = getCurrentCanvas();
         cnv->triggerizeSelection();
@@ -1300,7 +1341,8 @@ bool PluginEditor::perform(InvocationInfo const& info)
     }
     case CommandIDs::CreateConnection: {
         cnv = getCurrentCanvas();
-        return cnv->connectSelectedObjects();
+        cnv->connectSelection();
+        return true;
     }
     case CommandIDs::RemoveConnections: {
         cnv = getCurrentCanvas();
@@ -1465,7 +1507,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
                     cnv->objects.add(newObj);
                     pd->registerObject(newObj);
                 }
-            } else if ((cnv->getSelectionOfType<Object>().size() == 0) && (cnv->getSelectionOfType<Connection>().size() == 1)) {
+            } else if ((cnv->getSelectionOfType<Object>().size() == 0) && (cnv->getSelectionOfType<Connection>().size() == 1)) { // Autopatching: insert object in connection. Should document this better!
                 // if 1 connection is selected, create new object in the middle of connection
                 cnv->patch.startUndoSequence("ObjectInConnection");
                 cnv->lastSelectedConnection = cnv->getSelectionOfType<Connection>().getFirst();
@@ -1503,7 +1545,7 @@ bool PluginEditor::wantsRoundedCorners()
     // Since this is called in a paint routine, use reinterpret_cast instead of dynamic_cast for efficiency
     // For the standalone, the top-level component should always be DocumentWindow derived!
     if (auto* window = reinterpret_cast<PlugDataWindow*>(getTopLevelComponent())) {
-        return !window->isUsingNativeTitleBar() && !window->isMaximised() && ProjectInfo::canUseSemiTransparentWindows();
+        return !window->useNativeTitlebar() && !window->isMaximised() && ProjectInfo::canUseSemiTransparentWindows();
     } else {
         return true;
     }
@@ -1565,15 +1607,6 @@ void PluginEditor::quit(bool askToSave)
     } else {
         nvgSurface.detachContext();
         JUCEApplication::quit();
-    }
-}
-
-void PluginEditor::showTouchSelectionHelper(bool shouldBeShown)
-{
-    touchSelectionHelper->show();
-    if (shouldBeShown) {
-        auto touchHelperBounds = getLocalBounds().removeFromBottom(48).withSizeKeepingCentre(192, 48).translated(0, -54);
-        touchSelectionHelper->setBounds(touchHelperBounds);
     }
 }
 

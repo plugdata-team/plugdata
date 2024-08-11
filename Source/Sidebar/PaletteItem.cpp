@@ -339,8 +339,7 @@ std::pair<std::vector<bool>, std::vector<bool>> PaletteItem::countIolets(String 
 
     // In case the patch contains a single object, we need to use a different method to find the number and kind inlets and outlets
     if (lines.size() == 1) {
-        auto offlineObjectRenderer = editor->offlineRenderer;
-        return offlineObjectRenderer.countIolets(lines[0]);
+        return OfflineObjectRenderer::countIolets(lines[0]);
     }
 
     for (auto& line : lines) {

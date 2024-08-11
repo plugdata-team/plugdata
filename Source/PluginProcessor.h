@@ -30,7 +30,8 @@ class ConnectionMessageDisplay;
 class Object;
 class PluginProcessor : public AudioProcessor
     , public pd::Instance
-    , public SettingsFileListener {
+    , public SettingsFileListener
+{
 public:
     PluginProcessor();
 
@@ -47,12 +48,16 @@ public:
 
     void updateAllEditorsLNF();
 
+    void flushMessageQueue();
+
+    void updateIoletGeometryForAllObjects();
+
 #ifndef JucePlugin_PreferredChannelConfigurations
     bool isBusesLayoutSupported(BusesLayout const& layouts) const override;
 #endif
 
     void processBlock(AudioBuffer<float>&, MidiBuffer&) override;
-        
+
     void processBlockBypassed(AudioBuffer<float>& buffer, MidiBuffer&) override;
 
     AudioProcessorEditor* createEditor() override;
@@ -143,7 +148,8 @@ public:
     int lastUIWidth = 1000, lastUIHeight = 650;
 
     std::atomic<float>* volume;
-
+    ValueTree pluginModeTheme;
+        
     SettingsFile* settingsFile;
 
     std::unique_ptr<pd::Library> objectLibrary;
@@ -176,6 +182,7 @@ public:
     Component::SafePointer<ConnectionMessageDisplay> connectionListener;
 
 private:
+
     int customLatencySamples = 0;
 
     SmoothedValue<float, ValueSmoothingTypes::Linear> smoothedGain;
@@ -212,9 +219,9 @@ private:
 
     std::map<unsigned long, std::unique_ptr<Component>> textEditorDialogs;
 
-    static inline String const else_version = "ELSE v1.0-rc11";
+    static inline String const else_version = "ELSE v1.0-rc12";
     static inline String const cyclone_version = "cyclone v0.9-0";
-    static inline String const heavylib_version = "heavylib v0.3.1";
+    static inline String const heavylib_version = "heavylib v0.4";
     static inline String const gem_version = "Gem v0.94";
     // this gets updated with live version data later
     static String pdlua_version;
@@ -224,11 +231,19 @@ private:
         HostInfoUpdater(PluginProcessor* parentProcessor)
             : processor(*parentProcessor) {};
 
-        void handleAsyncUpdate() override
+        void update()
         {
             if (ProjectInfo::isStandalone)
                 return;
-
+#if JUCE_IOS
+            handleAsyncUpdate(); // iOS doesn't like it if we do this asynchronously
+#else
+            triggerAsyncUpdate();
+#endif
+        }
+    private:
+        void handleAsyncUpdate() override
+        {
             auto const details = AudioProcessorListener::ChangeDetails {}.withParameterInfoChanged(true);
             processor.updateHostDisplay(details);
         }

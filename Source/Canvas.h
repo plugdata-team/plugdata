@@ -77,9 +77,8 @@ public:
     void mouseUp(MouseEvent const& e) override;
     bool hitTest(int x, int y) override;
 
-    Point<int> getLastMousePosition();
-
     void commandKeyChanged(bool isHeld) override;
+    void shiftKeyChanged(bool isHeld) override;
     void middleMouseChanged(bool isHeld) override;
     void altKeyChanged(bool isHeld) override;
 
@@ -107,6 +106,7 @@ public:
     void save(std::function<void()> const& nestedCallback = []() {});
     void saveAs(std::function<void()> const& nestedCallback = []() {});
 
+    void synchroniseAllCanvases();
     void synchroniseSplitCanvas();
     void synchronise();
     void performSynchronise();
@@ -130,10 +130,10 @@ public:
 
     void encapsulateSelection();
     void triggerizeSelection();
-
-    bool canConnectSelectedObjects();
-    bool connectSelectedObjects();
-
+    void cycleSelection();
+    void connectSelection();
+    void tidySelection();
+        
     void cancelConnectionCreation();
 
     void alignObjects(Align alignment);
@@ -213,8 +213,6 @@ public:
     Value locked = SynchronousValue();
     Value commandLocked;
     Value presentationMode;
-    Value showDirection;
-    Value altMode;
 
     bool showOrigin = false;
     bool showBorder = false;
@@ -226,7 +224,7 @@ public:
     bool showConnectionDirection = false;
     bool showConnectionActivity = false;
 
-    bool isScrolling = false;
+    bool isZooming = false;
 
     bool isGraph = false;
     bool isDraggingLasso = false;
@@ -266,7 +264,11 @@ public:
 
     NVGFramebuffer ioletBuffer;
     NVGImage resizeHandleImage;
+    NVGImage resizeGOPHandleImage;
     NVGImage presentationShadowImage;
+
+    NVGImage objectFlag;
+    NVGImage objectFlagSelected;
 
     Array<juce::WeakReference<NVGComponent>> drawables;
 

@@ -158,7 +158,7 @@ class Instance : public AsyncUpdater {
     };
 
 public:
-    explicit Instance(String const& symbol);
+    explicit Instance();
     Instance(Instance const& other) = delete;
     virtual ~Instance();
 
@@ -255,7 +255,6 @@ public:
     void logMessage(String const& message);
     void logError(String const& message);
     void logWarning(String const& message);
-    void muteConsole(bool shouldMute);
 
     std::deque<std::tuple<void*, String, int, int, int>>& getConsoleMessages();
     std::deque<std::tuple<void*, String, int, int, int>>& getConsoleHistory();
@@ -306,13 +305,12 @@ private:
     moodycamel::ConcurrentQueue<Message> guiMessageQueue = moodycamel::ConcurrentQueue<Message>(64);
 
     std::unique_ptr<FileChooser> openChooser;
-    std::atomic<bool> consoleMute;
     static inline std::set<hash32> luaClasses = std::set<hash32>(); // Keep track of class names that correspond to pdlua objects
 
 protected:
     struct internal;
 
-    std::unique_ptr<ObjectImplementationManager> objectImplementations; // must be after messageDispatcher (!)
+    std::unique_ptr<ObjectImplementationManager> objectImplementations;
 
     struct ConsoleHandler : public AsyncUpdater {
         Instance* instance;

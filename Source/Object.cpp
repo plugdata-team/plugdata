@@ -91,34 +91,6 @@ void Object::setObjectBounds(Rectangle<int> bounds)
     setBounds(bounds.expanded(margin) + cnv->canvasOrigin);
 }
 
-// CachedComponentImage that will block repaint messages to parent when scrolling/zooming, and keeps track of invaldation while scrolling/zooming
-class InvalidationListener : public CachedComponentImage {
-public:
-    InvalidationListener(Object* parent)
-        : object(parent)
-    {
-    }
-
-private:
-    void paint(Graphics& g) override { }
-
-    bool invalidate(Rectangle<int> const& rect) override
-    {
-        object->scrollBuffer.setDirty();
-        return true;
-    }
-
-    bool invalidateAll() override
-    {
-        object->scrollBuffer.setDirty();
-        return true;
-    }
-
-    void releaseResources() override { }
-
-    Object* object;
-};
-
 void Object::initialise()
 {
     cnv->objectLayer.addAndMakeVisible(this);
@@ -130,18 +102,15 @@ void Object::initialise()
     commandLocked.referTo(cnv->pd->commandLocked);
     presentationMode.referTo(cnv->presentationMode);
 
-    hvccMode.referTo(editor->hvccMode);
+    hvccMode.referTo(SettingsFile::getInstance()->getValueTree(), Identifier("hvcc_mode"), nullptr, false);
 
     presentationMode.addListener(this);
     locked.addListener(this);
     commandLocked.addListener(this);
-    hvccMode.addListener(this);
 
     originalBounds.setBounds(0, 0, 0, 0);
 
     setAccessible(false); // TODO: implement accessibility. We disable default, since it makes stuff slow on macOS
-
-    setCachedComponentImage(new InvalidationListener(this));
 }
 
 void Object::timerCallback()
@@ -173,18 +142,20 @@ bool Object::isSelected() const
     return selectedFlag;
 }
 
-void Object::valueChanged(Value& v)
-{
-    if (v.refersToSameSourceAs(hvccMode)) {
-
+void Object::propertyChanged(String const& name, var const& value) {
+    if(name == "hvcc_mode")
+    {
         isHvccCompatible = checkIfHvccCompatible();
-
         if (gui && !isHvccCompatible) {
             cnv->pd->logWarning(String("Warning: object \"" + gui->getType() + "\" is not supported in Compiled Mode").toRawUTF8());
         }
-
         repaint();
-    } else if (v.refersToSameSourceAs(cnv->presentationMode)) {
+    }
+}
+
+void Object::valueChanged(Value& v)
+{
+    if (v.refersToSameSourceAs(cnv->presentationMode)) {
         // else it was a lock/unlock/presentation mode action
         // Hide certain objects in GOP
         setVisible(!((cnv->isGraph || cnv->presentationMode == var(true)) && gui && gui->hideInGraph()));
@@ -193,8 +164,6 @@ void Object::valueChanged(Value& v)
             gui->lock(cnv->isGraph || locked == var(true) || commandLocked == var(true));
         }
     }
-    // FIXME: any value change triggers a repaint!
-    // repaint();
 }
 
 bool Object::checkIfHvccCompatible() const
@@ -204,7 +173,7 @@ bool Object::checkIfHvccCompatible() const
         // Check hvcc compatibility
         bool isSubpatch = gui->getPatch() != nullptr;
 
-        return !getValue<bool>(hvccMode) || isSubpatch || HeavyCompatibleObjects::getAllCompatibleObjects().contains(typeName);
+        return !hvccMode.get() || isSubpatch || HeavyCompatibleObjects::getAllCompatibleObjects().contains(typeName);
     }
 
     return true;
@@ -219,43 +188,33 @@ bool Object::hitTest(int x, int y)
 
     if (cnv->panningModifierDown())
         return false;
-
-    // Knob object is able to reduce its bounds when transparent.
-    // Use the objects hit-test if it is populated (currently only for knob)
-    if (transparentHitTest && (presentationMode.getValue() || locked.getValue() || commandLocked.getValue())) {
-        return transparentHitTest(x, y);
-    }
-
-    // Mouse over object
-    if (getLocalBounds().reduced(margin).contains(x, y)) {
-        return true;
-    }
-
+    
     // If the hit-test get's to here, and any of these are still true
     // return! Otherwise it will test non-existent iolets and return true!
-    if ((presentationMode.getValue() || locked.getValue() || commandLocked.getValue()))
-        return false;
-
+    bool blockIolets = presentationMode.getValue() || locked.getValue() || commandLocked.getValue();
     // Mouse over iolets
     for (auto* iolet : iolets) {
-        if (iolet->getBounds().contains(x, y))
+        if (!blockIolets && iolet->getBounds().contains(x, y))
             return true;
     }
-
+    
     if (selectedFlag) {
-
         for (auto& corner : getCorners()) {
             if (corner.contains(x, y))
                 return true;
         }
-
         return getLocalBounds().reduced(margin).contains(x, y);
     }
 
     if (gui && !gui->canReceiveMouseEvent(x, y)) {
         return false;
     }
-
+    
+    // Mouse over object
+    if (getLocalBounds().reduced(margin).contains(x, y)) {
+        return true;
+    }
+    
     return false;
 }
 
@@ -508,18 +467,13 @@ void Object::triggerOverlayActiveState(bool recursive)
     repaint();
 }
 
-void Object::lookAndFeelChanged()
-{
-    activityOverlayDirty = true;
+void Object::lookAndFeelChanged() {
     if (gui)
         gui->updateLabel();
 }
 
 void Object::resized()
 {
-    scrollBuffer.setDirty();
-    activityOverlayDirty = true;
-
     setVisible(!((cnv->isGraph || cnv->presentationMode == var(true)) && gui && gui->hideInGraph()));
 
     if (gui) {
@@ -530,49 +484,82 @@ void Object::resized()
         newObjectEditor->setBounds(getLocalBounds().reduced(margin));
     }
 
-#if JUCE_IOS
-    int ioletSize = 15;
-#else
-    int ioletSize = 13;
-#endif
+    updateIoletGeometry();
+}
 
+void Object::updateIoletGeometry()
+{
     int ioletHitBox = 6;
 
     int maxIoletWidth = std::min(((getWidth() - doubleMargin) / std::max(numInputs, 1)) - 4, ((getWidth() - doubleMargin) / std::max(numOutputs, 1)) - 4);
-    int maxIoletHeight = (getHeight() / 2.0f) - 3;
+    int maxIoletHeight = (getHeight() / 2.0f) - 2;
+
+    int ioletSize = PlugDataLook::ioletSize;
 
     ioletSize = std::max(std::min({ ioletSize, maxIoletWidth, maxIoletHeight }), 10);
     int borderWidth = jmap<float>(ioletSize, 10, 13, 7, 12);
 
-    auto inletBounds = getLocalBounds();
-    if (auto spaceToRemove = jlimit<int>(0, borderWidth, inletBounds.getWidth() - (ioletHitBox * numInputs) - borderWidth)) {
-        inletBounds.removeFromLeft(spaceToRemove);
-        inletBounds.removeFromRight(spaceToRemove);
-    }
+    // IOLET layout for vanilla style (iolets in corners of objects)
+    if (PlugDataLook::getUseIoletSpacingEdge()) {
+        auto vanillaIoletBounds = getLocalBounds();
+        vanillaIoletBounds.removeFromLeft(margin);
+        vanillaIoletBounds.removeFromRight(margin);
+        auto objectWdith = vanillaIoletBounds.getWidth() + 0.5f; //FIXME: the right most iolet looks not right otherwise
 
-    auto outletBounds = getLocalBounds();
-    if (auto spaceToRemove = jlimit<int>(0, borderWidth, outletBounds.getWidth() - (ioletHitBox * numOutputs) - borderWidth)) {
-        outletBounds.removeFromLeft(spaceToRemove);
-        outletBounds.removeFromRight(spaceToRemove);
-    }
+        int inletIndex = 0;
+        int outletIndex = 0;
+        for (auto &iolet: iolets) {
+            bool const isInlet = iolet->isInlet;
+            float const yPosition = (isInlet ? margin + 1 : getHeight() - margin) - (ioletSize / 2.0f);
 
-    int index = 0;
-    for (auto& iolet : iolets) {
-        bool const isInlet = iolet->isInlet;
-        int const position = index < numInputs ? index : index - numInputs;
-        int const total = isInlet ? numInputs : numOutputs;
-        float const yPosition = (isInlet ? (margin + 1) : getHeight() - margin) - ioletSize / 2.0f;
+            auto distributeIolets = [ioletSize, objectWdith, vanillaIoletBounds, yPosition](Iolet* iolet, int ioletIndex, int totalIolets) {
+                auto allOutLetWidth = totalIolets * ioletSize;
+                auto spacing = ioletIndex != 0 ? (objectWdith - allOutLetWidth) / static_cast<float>(totalIolets - 1) : 0;
+                auto ioletOffset = ioletIndex != 0 ? ioletSize * ioletIndex : 0;
+                iolet->setBounds(vanillaIoletBounds.getX() + (spacing * ioletIndex) + ioletOffset, yPosition, ioletSize, ioletSize);
+            };
 
-        auto const bounds = isInlet ? inletBounds : outletBounds;
-
-        if (total == 1 && position == 0) {
-            iolet->setBounds(getWidth() < 38 ? getLocalBounds().getCentreX() - ioletSize / 2.0f : bounds.getX(), yPosition, ioletSize, ioletSize);
-        } else if (total > 1) {
-            float const ratio = (bounds.getWidth() - ioletSize) / static_cast<float>(total - 1);
-            iolet->setBounds(bounds.getX() + ratio * position, yPosition, ioletSize, ioletSize);
+            if (isInlet) {
+                distributeIolets(iolet, inletIndex, numInputs);
+                inletIndex++;
+            } else {
+                distributeIolets(iolet, outletIndex, numOutputs);
+                outletIndex++;
+            }
+        }
+    // DEFAULT iolet position style
+    } else {
+        auto inletBounds = getLocalBounds();
+        if (auto spaceToRemove = jlimit<int>(0, borderWidth, inletBounds.getWidth() - (ioletHitBox * numInputs) - borderWidth)) {
+            inletBounds.removeFromLeft(spaceToRemove);
+            inletBounds.removeFromRight(spaceToRemove);
         }
 
-        index++;
+        auto outletBounds = getLocalBounds();
+        if (auto spaceToRemove = jlimit<int>(0, borderWidth, outletBounds.getWidth() - (ioletHitBox * numOutputs) - borderWidth)) {
+            outletBounds.removeFromLeft(spaceToRemove);
+            outletBounds.removeFromRight(spaceToRemove);
+        }
+
+        int index = 0;
+        for (auto &iolet: iolets) {
+            bool const isInlet = iolet->isInlet;
+            int const position = index < numInputs ? index : index - numInputs;
+            int const total = isInlet ? numInputs : numOutputs;
+            float const yPosition = (isInlet ? (margin + 1) : getHeight() - margin) - ioletSize / 2.0f;
+
+            auto const bounds = isInlet ? inletBounds : outletBounds;
+
+            if (total == 1 && position == 0) {
+                iolet->setBounds(getWidth() < (25 + ioletSize) ? getLocalBounds().getCentreX() - ioletSize / 2.0f : bounds.getX(),
+                                 yPosition, ioletSize, ioletSize);
+            } else if (total > 1) {
+                float const ratio = (bounds.getWidth() - ioletSize) / static_cast<float>(total - 1);
+                iolet->setBounds(bounds.getX() + ratio * position, yPosition, ioletSize, ioletSize);
+            }
+
+            index++;
+        }
     }
 }
 
@@ -853,13 +840,13 @@ void Object::mouseUp(MouseEvent const& e)
             cnv->setSelected(this, true);
         }
 
-        cnv->updateSidebarSelection();
-
         if (ds.didStartDragging) {
             cnv->objectGrid.clearIndicators(false);
             applyBounds();
             ds.didStartDragging = false;
         }
+
+        cnv->updateSidebarSelection();
 
         if (ds.objectSnappingInbetween) {
             auto* c = ds.connectionToSnapInbetween.getComponent();
@@ -885,12 +872,7 @@ void Object::mouseUp(MouseEvent const& e)
 
             cnv->synchronise();
         }
-
-        if (ds.wasDragDuplicated) {
-            cnv->patch.endUndoSequence("Duplicate");
-            ds.wasDragDuplicated = false;
-        }
-
+        
         for (auto* object : cnv->getSelectionOfType<Object>()) {
             object->repaint();
         }
@@ -905,7 +887,7 @@ void Object::mouseUp(MouseEvent const& e)
         ds.wasDragDuplicated = false;
     }
 
-    if (gui && selectedFlag && !selectionStateChanged && !e.mouseWasDraggedSinceMouseDown() && !e.mods.isRightButtonDown()) {
+    if (gui && selectedFlag && !selectionStateChanged && !e.mouseWasDraggedSinceMouseDown() && !e.mods.isRightButtonDown()  && !e.mods.isAnyModifierKeyDown()) {
         gui->showEditor();
     }
 
@@ -1182,58 +1164,7 @@ void Object::mouseDrag(MouseEvent const& e)
     }
 }
 
-void Object::updateFramebuffer(NVGcontext* nvg)
-{
-    // For very large objects, buffering is just gonna take up GPU memory, with minimal performance benefits
-    // Also, Metal has a limitation on image size, so this will also prevent crashing
-    if (getWidth() * 3 * cnv->getRenderScale() > 8192 || getHeight() * 3 * cnv->getRenderScale() > 8192)
-        return;
-
-    auto b = getLocalBounds();
-    auto maxScale = 3.0f;
-    int scaledWidth = b.getWidth() * maxScale * cnv->getRenderScale();
-    int scaledHeight = b.getHeight() * maxScale * cnv->getRenderScale();
-
-    if (scrollBuffer.needsUpdate(scaledWidth, scaledHeight)) {
-        scrollBuffer.renderToFramebuffer(nvg, scaledWidth, scaledHeight, [this, scaledWidth, scaledHeight, maxScale, b](NVGcontext* nvg) {
-            nvgViewport(0, 0, scaledWidth, scaledHeight);
-            nvgClear(nvg);
-
-            nvgBeginFrame(nvg, b.getWidth() * maxScale, b.getHeight() * maxScale, cnv->getRenderScale());
-            nvgScale(nvg, maxScale, maxScale);
-            nvgScissor(nvg, 0, 0, b.getWidth(), b.getHeight());
-
-            performRender(nvg);
-
-#if ENABLE_OBJECT_FB_DEBUGGING
-            static Random rng;
-            nvgFillColor(nvg, nvgRGBA(rng.nextInt(255), rng.nextInt(255), rng.nextInt(255), 0x50));
-            nvgFillRect(nvg, 0, 0, b.getWidth(), b.getHeight());
-#endif
-            nvgEndFrame(nvg);
-        });
-    }
-}
-
 void Object::render(NVGcontext* nvg)
-{
-    if (cnv->shouldShowObjectActivity() && (!activityOverlayImage.isValid() || activityOverlayDirty)) {
-        Path objectShadow;
-        objectShadow.addRoundedRectangle(getLocalBounds().reduced(Object::margin - 1), Corners::objectCornerRadius);
-        activityOverlayImage = StackShadow::createActivityDropShadowImage(nvg, getLocalBounds(), objectShadow, getLookAndFeel().findColour(PlugDataColour::dataColourId), 5.5f, { 0, 0 }, 0, gui && (gui->getCanvas() || gui->isTransparent()));
-        activityOverlayDirty = false;
-    }
-
-    if (cnv->isScrolling && scrollBuffer.needsUpdate(getWidth() * 3.0f * cnv->getRenderScale(), getHeight() * 3.0f * cnv->getRenderScale())) {
-        performRender(nvg);
-    } else if (cnv->isScrolling && scrollBuffer.isValid()) {
-        scrollBuffer.render(nvg, Rectangle<int>(0, 0, getWidth(), getHeight()));
-    } else {
-        performRender(nvg);
-    }
-}
-
-void Object::performRender(NVGcontext* nvg)
 {
     auto lb = getLocalBounds();
     auto b = lb.reduced(margin);
@@ -1243,7 +1174,7 @@ void Object::performRender(NVGcontext* nvg)
         auto& resizeHandleImage = cnv->resizeHandleImage;
         int angle = 360;
         for (auto& corner : getCorners()) {
-            nvgSave(nvg);
+            NVGScopedState scopedState(nvg);
             // Rotate around centre
             nvgTranslate(nvg, corner.getCentreX(), corner.getCentreY());
             nvgRotate(nvg, degreesToRadians<float>(angle));
@@ -1253,42 +1184,38 @@ void Object::performRender(NVGcontext* nvg)
             nvgRect(nvg, 0, 0, 9, 9);
             nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage.getImageId(), 1));
             nvgFill(nvg);
-            nvgRestore(nvg);
             angle -= 90;
         }
     }
 
-    if (cnv->shouldShowObjectActivity() && !approximatelyEqual(activeStateAlpha, 0.0f) && activityOverlayImage.isValid()) {
-        nvgFillPaint(nvg, nvgImagePattern(nvg, lb.getX(), lb.getY(), lb.getWidth(), lb.getHeight(), 0, activityOverlayImage.getImageId(), activeStateAlpha));
-        nvgFillRect(nvg, lb.getX(), lb.getY(), lb.getWidth(), lb.getHeight());
+    if (cnv->shouldShowObjectActivity() && !approximatelyEqual(activeStateAlpha, 0.0f)) {
+        auto glowColour = convertColour(getLookAndFeel().findColour(PlugDataColour::dataColourId).withAlpha(activeStateAlpha));
+        nvgSmoothGlow(nvg, lb.getX(), lb.getY(), lb.getWidth(), lb.getHeight(), glowColour, nvgRGBA(0, 0, 0, 0), Corners::objectCornerRadius, 1.1f);
     }
 
     if (gui && gui->isTransparent() && !getValue<bool>(locked) && !cnv->isGraph) {
-        nvgBeginPath(nvg);
         nvgFillColor(nvg, convertColour(getLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.35f).withAlpha(0.1f)));
-        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
-        nvgFill(nvg);
+        nvgFillRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
     }
 
     if (gui) {
-        nvgSave(nvg);
+        NVGScopedState scopedState(nvg);
         nvgTranslate(nvg, margin, margin);
         gui->render(nvg);
-        nvgRestore(nvg);
     }
 
     if (newObjectEditor) {
         auto backgroundColour = convertColour(getLookAndFeel().findColour(PlugDataColour::textObjectBackgroundColourId));
         auto outlineColour = convertColour(getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 
-        nvgDrawRoundedRect(nvg, b.getX() + 0.5f, b.getY() + 0.5f, b.getWidth() - 1.0f, b.getHeight() - 1.0f, backgroundColour, isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
         
         nvgTranslate(nvg, margin, margin);
         textEditorRenderer.renderJUCEComponent(nvg, *newObjectEditor, getValue<float>(cnv->zoomScale) * cnv->getRenderScale());
     }
 
     // If autoconnect is about to happen, draw a fake inlet with a dotted outline
-    if (getValue<bool>(editor->autoconnect) && isInitialEditorShown() && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs) {
+    if (isInitialEditorShown() && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs && getValue<bool>(editor->autoconnect)) {
         auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
         float fakeInletBounds[4] = { 16.0f, 4.0f, 8.0f, 8.0f };
         nvgBeginPath(nvg);
@@ -1302,15 +1229,12 @@ void Object::performRender(NVGcontext* nvg)
     }
 
     if (!isHvccCompatible) {
-        nvgSave(nvg);
-
+        NVGScopedState scopedState(nvg);
         nvgBeginPath(nvg);
         nvgStrokeColor(nvg, nvgRGBAf(1.0f, 0.5f, 0.0f, 1.0f)); // orange
         nvgStrokeWidth(nvg, 1.0f);
         nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
         nvgStroke(nvg);
-
-        nvgRestore(nvg);
     } else if (cnv->shouldShowIndex()) {
         int halfHeight = 5;
 
@@ -1331,16 +1255,16 @@ void Object::performRender(NVGcontext* nvg)
     renderIolets(nvg);
 }
 
+
 void Object::renderIolets(NVGcontext* nvg)
 {
     if (cnv->isGraph)
         return;
 
     for (auto* iolet : iolets) {
-        nvgSave(nvg);
+        NVGScopedState scopedState(nvg);
         nvgTranslate(nvg, iolet->getX(), iolet->getY());
         iolet->render(nvg);
-        nvgRestore(nvg);
     }
 }
 
@@ -1348,19 +1272,17 @@ void Object::renderLabel(NVGcontext* nvg)
 {
     if (gui) {
         if (auto* label = gui->getLabel()) {
-            nvgSave(nvg);
+            NVGScopedState scopedState(nvg);
             auto posOnCanvas = cnv->getLocalPoint(gui->labels.get(), label->getPosition());
             nvgTranslate(nvg, posOnCanvas.getX(), posOnCanvas.getY());
             label->renderLabel(nvg, cnv->getRenderScale() * 2.0f);
-            nvgRestore(nvg);
         }
         if (auto* vu = gui->getVU()) {
             if (vu->isVisible()) {
-                nvgSave(nvg);
+                NVGScopedState scopedState(nvg);
                 auto posOnCanvas = cnv->getLocalPoint(gui->labels.get(), vu->getPosition());
                 nvgTranslate(nvg, posOnCanvas.getX(), posOnCanvas.getY());
                 vu->render(nvg);
-                nvgRestore(nvg);
             }
         }
     }
@@ -1490,7 +1412,7 @@ void Object::textEditorReturnKeyPressed(TextEditor& ed)
 bool Object::keyPressed(KeyPress const& key, Component* component)
 {
     if (auto* editor = newObjectEditor.get()) {
-        if (key.getKeyCode() == KeyPress::returnKey && editor && key.getModifiers().isShiftDown()) {
+        if (key.getKeyCode() == KeyPress::returnKey && key.getModifiers().isShiftDown()) {
             int caretPosition = editor->getCaretPosition();
             auto text = editor->getText();
 

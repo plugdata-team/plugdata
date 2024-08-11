@@ -7,7 +7,7 @@
 // ELSE pic
 class PictureObject final : public ObjectBase {
 
-    Value path = SynchronousValue();
+    Value filename = SynchronousValue();
     Value latch = SynchronousValue();
     Value outline = SynchronousValue();
     Value reportSize = SynchronousValue();
@@ -38,7 +38,7 @@ public:
         }
 
         objectParameters.addParamSize(&sizeProperty);
-        objectParameters.addParamString("File", cGeneral, &path, "");
+        objectParameters.addParamString("File", cGeneral, &filename, "");
         objectParameters.addParamBool("Latch", cGeneral, &latch, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Outline", cAppearance, &outline, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Report Size", cAppearance, &reportSize, { "No", "Yes" }, 0);
@@ -63,10 +63,12 @@ public:
         if (getValue<bool>(latch)) {
             if (auto pic = ptr.get<t_fake_pic>()) {
                 outlet_float(pic->x_outlet, 1.0f);
+                if(pic->x_send != gensym("") && pic->x_send->s_thing) pd_float(pic->x_send->s_thing, 1.0f);
             }
         } else {
             if (auto pic = ptr.get<t_fake_pic>()) {
                 outlet_bang(pic->x_outlet);
+                if(pic->x_send != gensym("") && pic->x_send->s_thing) pd_bang(pic->x_send->s_thing);
             }
         }
     }
@@ -76,6 +78,7 @@ public:
         if (getValue<bool>(latch)) {
             if (auto pic = ptr.get<t_fake_pic>()) {
                 outlet_float(pic->x_outlet, 0.0f);
+                if(pic->x_send != gensym("") && pic->x_send->s_thing) pd_float(pic->x_send->s_thing, 0.0f);
             }
         }
     }
@@ -84,8 +87,8 @@ public:
     {
         if (auto pic = ptr.get<t_fake_pic>()) {
 
-            if (pic->x_fullname) {
-                path = String::fromUTF8(pic->x_fullname->s_name);
+            if (pic->x_filename) {
+                filename = String::fromUTF8(pic->x_filename->s_name);
             }
 
             latch = pic->x_latch;
@@ -132,6 +135,11 @@ public:
     void updateImage(NVGcontext* nvg)
     {
         imageBuffers.clear();
+        
+        if(!img.isValid() && File(imageFile).existsAsFile())
+        {
+            img = ImageFileFormat::loadFrom(imageFile).convertedToFormat(Image::ARGB);
+        }
 
         int imageWidth = img.getWidth();
         int imageHeight = img.getHeight();
@@ -158,6 +166,8 @@ public:
             }
             x += 8192;
         }
+        
+        img = Image(); // Clear image from CPU memory after upload
 
         imageNeedsReload = false;
     }
@@ -169,13 +179,13 @@ public:
 
         auto b = getLocalBounds().toFloat();
 
-        nvgSave(nvg);
+        NVGScopedState scopedState(nvg);
         nvgIntersectScissor(nvg, 0, 0, getWidth(), getHeight());
         if (imageBuffers.empty()) {
             nvgFontSize(nvg, 20);
             nvgFontFace(nvg, "Inter-Regular");
             nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-            nvgFillColor(nvg, convertColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::canvasTextColourId)));
+            nvgFillColor(nvg, convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId)));
             nvgText(nvg, b.getCentreX(), b.getCentreY(), "?", 0);
         } else {
 
@@ -185,27 +195,20 @@ public:
                 offsetY = pic->x_offset_y;
             }
 
-            nvgSave(nvg);
+            NVGScopedState scopedState(nvg);
             nvgTranslate(nvg, offsetX, offsetY);
             for (auto& [image, bounds] : imageBuffers) {
                 nvgFillPaint(nvg, nvgImagePattern(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), 0, image->getImageId(), 1.0f));
                 nvgFillRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
             }
-            nvgRestore(nvg);
         }
 
         bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = LookAndFeel::getDefaultLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+        auto outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         if (getValue<bool>(outline)) {
-            nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
-            nvgStrokeWidth(nvg, 1.0f);
-            nvgStrokeColor(nvg, convertColour(outlineColour));
-            nvgStroke(nvg);
+            nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), convertColour(outlineColour), Corners::objectCornerRadius);
         }
-
-        nvgRestore(nvg);
     }
 
     void valueChanged(Value& value) override
@@ -222,10 +225,10 @@ public:
                 pic->x_width = width;
                 pic->x_height = height;
             }
-
+            
             object->updateBounds();
-        } else if (value.refersToSameSourceAs(path)) {
-            openFile(path.toString());
+        } else if (value.refersToSameSourceAs(filename)) {
+            openFile(filename.toString());
         } else if (value.refersToSameSourceAs(latch)) {
             if (auto pic = ptr.get<t_fake_pic>())
                 pic->x_latch = getValue<int>(latch);
@@ -290,32 +293,19 @@ public:
             return;
 
         auto findFile = [this](String const& name) {
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return File();
-
-            if ((name.startsWith("/") || name.startsWith("./") || name.startsWith("../")) && File(name).existsAsFile()) {
-                return File(name);
-            }
-
-            if (File(String::fromUTF8(canvas_getdir(patch)->s_name)).getChildFile(name).existsAsFile()) {
-                return File(String::fromUTF8(canvas_getdir(patch)->s_name)).getChildFile(name);
-            }
-
-            // Get pd's search paths
-            char* paths[1024];
-            int numItems;
-            pd->setThis();
-            pd::Interface::getSearchPaths(paths, &numItems);
-
-            for (int i = 0; i < numItems; i++) {
-                auto file = File(String::fromUTF8(paths[i])).getChildFile(name);
-
-                if (file.existsAsFile()) {
-                    return file;
+            if(auto patch = cnv->patch.getPointer()) {
+                if ((name.startsWith("/") || name.startsWith("./") || name.startsWith("../")) && File(name).existsAsFile()) {
+                    return File(name);
+                }
+                
+                char dir[MAXPDSTRING];
+                char* file;
+                
+                int fd = canvas_open(patch.get(), name.toRawUTF8(), "", dir, &file, MAXPDSTRING, 0);
+                if(fd >= 0){
+                    return File(dir).getChildFile(file);
                 }
             }
-
             return File(name);
         };
 
