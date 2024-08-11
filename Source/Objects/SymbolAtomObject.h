@@ -136,7 +136,7 @@ public:
         isDown = false;
 
         // Edit messages when unlocked, edit atoms when locked
-        if (isLocked) {
+        if (isLocked && isShowing()) {
             input.showEditor();
         }
 

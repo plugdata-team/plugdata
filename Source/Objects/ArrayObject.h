@@ -947,8 +947,10 @@ public:
         constrainer.setMinimumSize(500, 300);
 
         closeButton->onClick = [this]() {
-            MessageManager::callAsync([this]() {
-                onClose();
+            MessageManager::callAsync([_this = SafePointer(this)]() {
+                if(_this) {
+                    _this->onClose();
+                }
             });
         };
 
@@ -1175,7 +1177,7 @@ public:
 
         if (title.isNotEmpty()) {
             if (!labels) {
-                labels = std::make_unique<ObjectLabels>();
+                labels = std::make_unique<ObjectLabels>(nullptr);
             }
 
             auto bounds = object->getBounds().reduced(Object::margin).removeFromTop(fontHeight + 2).withWidth(Font(fontHeight).getStringWidth(title));

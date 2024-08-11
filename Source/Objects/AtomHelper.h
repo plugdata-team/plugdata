@@ -320,7 +320,7 @@ public:
 
         if (text.isNotEmpty()) {
             if (!labels) {
-                labels = std::make_unique<ObjectLabels>();
+                labels = std::make_unique<ObjectLabels>(nullptr);
             }
 
             auto bounds = getLabelBounds();

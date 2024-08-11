@@ -1277,12 +1277,15 @@ void Object::renderLabel(NVGcontext* nvg)
             nvgTranslate(nvg, posOnCanvas.getX(), posOnCanvas.getY());
             label->renderLabel(nvg, cnv->getRenderScale() * 2.0f);
         }
-        if (auto* vu = gui->getVU()) {
-            if (vu->isVisible()) {
+        if (auto* extraLabel = gui->getExtraLabel()) { // Used for VU meter
+            if (extraLabel->isVisible()) {
                 NVGScopedState scopedState(nvg);
-                auto posOnCanvas = cnv->getLocalPoint(gui->labels.get(), vu->getPosition());
+                auto posOnCanvas = cnv->getLocalPoint(gui->labels.get(), extraLabel->getPosition());
                 nvgTranslate(nvg, posOnCanvas.getX(), posOnCanvas.getY());
-                vu->render(nvg);
+                if(auto* nvgComponent = dynamic_cast<NVGComponent*>(extraLabel))
+                {
+                    nvgComponent->render(nvg);
+                }
             }
         }
     }

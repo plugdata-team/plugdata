@@ -264,7 +264,7 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-        if (getValue<bool>(object->locked) && !e.mouseWasDraggedSinceMouseDown()) {
+        if (getValue<bool>(object->locked) && !e.mouseWasDraggedSinceMouseDown() && isShowing()) {
 
             listLabel.showEditor();
         }
