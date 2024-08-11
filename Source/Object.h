@@ -148,8 +148,6 @@ private:
 
     void updateTooltips();
 
-    void updateObjectActivityPolicy(String objectName);
-
     void openNewObjectEditor();
 
     bool checkIfHvccCompatible() const;

@@ -720,8 +720,6 @@ bool ObjectBase::canReceiveMouseEvent(int x, int y)
 
 void ObjectBase::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms)
 {
-    object->triggerOverlayActiveState();
-
     auto symHash = hash(symbol->s_name);
 
     switch (symHash) {

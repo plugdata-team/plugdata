@@ -23,7 +23,7 @@ public:
     static ImplementationBase* createImplementation(String const& type, t_gobj* ptr, t_canvas* cnv, PluginProcessor* pd);
     static bool hasImplementation(char const* type);
 
-    virtual void update() { }
+    virtual void update(const Array<t_canvas *> &parents = Array<t_canvas *>()) {}
 
     void openSubpatch(pd::Patch::Ptr subpatch);
     void closeOpenedSubpatchers();
@@ -46,8 +46,15 @@ public:
 
     void handleAsyncUpdate() override;
 
+    struct ObjectCanvas {
+        t_gobj* obj;
+        Array<t_canvas*> parentPatches;
+    };
+
 private:
-    Array<t_gobj*> getImplementationsForPatch(t_canvas* patch);
+    Array<ObjectCanvas> getImplementationsForPatch(Array<t_canvas*>& parentPatches);
+
+    std::unordered_set<t_canvas*> visitedCanvases;
 
     PluginProcessor* pd;
 

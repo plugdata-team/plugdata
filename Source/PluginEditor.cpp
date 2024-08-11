@@ -683,6 +683,7 @@ void PluginEditor::filesDropped(StringArray const& files, int x, int y)
                 auto filePath = file.getFullPathName().replaceCharacter('\\', '/').replace(" ", "\\ ");
 
                 auto* object = cnv->objects.add(new Object(cnv, "msg " + filePath, position));
+                pd->registerObject(object);
                 object->hideEditor();
             }
         }
@@ -1498,26 +1499,32 @@ bool PluginEditor::perform(InvocationInfo const& info)
                 obj->hideEditor(); // If it's still open, it might overwrite lastSelectedObject
                 cnv->lastSelectedObject = obj;
                 if (obj) {
-                    cnv->objects.add(new Object(cnv, objectNames.at(ID),
+                    auto newObj = new Object(cnv, objectNames.at(ID),
                         Point<int>(
                             // place beneath object + Object::margin
                             obj->getX() + Object::margin,
-                            obj->getY() + obj->getHeight())));
+                            obj->getY() + obj->getHeight()));
+                    cnv->objects.add(newObj);
+                    pd->registerObject(newObj);
                 }
             } else if ((cnv->getSelectionOfType<Object>().size() == 0) && (cnv->getSelectionOfType<Connection>().size() == 1)) { // Autopatching: insert object in connection. Should document this better!
                 // if 1 connection is selected, create new object in the middle of connection
                 cnv->patch.startUndoSequence("ObjectInConnection");
                 cnv->lastSelectedConnection = cnv->getSelectionOfType<Connection>().getFirst();
                 auto outobj = cnv->getSelectionOfType<Connection>().getFirst()->outobj;
-                cnv->objects.add(new Object(cnv, objectNames.at(ID),
+                auto newObj = new Object(cnv, objectNames.at(ID),
                     Point<int>(
                         // place beneath outlet object + Object::margin
                         cnv->lastSelectedConnection->getX() + (cnv->lastSelectedConnection->getWidth() / 2) - 12,
-                        cnv->lastSelectedConnection->getY() + (cnv->lastSelectedConnection->getHeight() / 2) - 12)));
+                        cnv->lastSelectedConnection->getY() + (cnv->lastSelectedConnection->getHeight() / 2) - 12));
+                cnv->objects.add(newObj);
+                pd->registerObject(newObj);
                 cnv->patch.endUndoSequence("ObjectInConnection");
             } else {
                 // if 0 or several objects are selected, create new object at mouse position
-                cnv->objects.add(new Object(cnv, objectNames.at(ID), lastPosition));
+                auto newObj = new Object(cnv, objectNames.at(ID), lastPosition);
+                cnv->objects.add(newObj);
+                pd->registerObject(newObj);
             }
             cnv->deselectAll();
             if (auto obj = cnv->objects.getLast())
