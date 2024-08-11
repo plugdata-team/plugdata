@@ -5,8 +5,8 @@
  */
 
 // Inherit to customise drawing
-class MIDIKeyboard : public MidiKeyboardState
-    , public MidiKeyboardComponent {
+class MIDIKeyboard : public MidiKeyboardState, public MidiKeyboardComponent
+{
     bool toggleMode = false;
     int lastKey = -1;
 
@@ -17,9 +17,14 @@ public:
     std::set<int> toggledKeys;
     std::function<void(int, int)> noteOn;
     std::function<void(int)> noteOff;
+    
+    Canvas* cnv;
+    PluginEditor* editor;
 
-    MIDIKeyboard()
+    MIDIKeyboard(Canvas* cnv)
         : MidiKeyboardComponent(*this, MidiKeyboardComponent::horizontalKeyboard)
+        , cnv(cnv)
+        , editor(cnv->editor)
     {
         // Make sure nothing is drawn outside of our custom draw functions
         setColour(MidiKeyboardComponent::whiteNoteColourId, Colours::transparentBlack);
@@ -136,43 +141,45 @@ public:
         toggleMode = enableToggleMode;
     }
 
-    void drawWhiteNote(int midiNoteNumber, Graphics& g, Rectangle<float> area, bool isDown, bool isOver, Colour lineColour, Colour textColour) override
+    void drawWhiteNote(int midiNoteNumber, Graphics& g, Rectangle<float> area, bool isDown, bool isOver) override
     {
         isDown = heldKeys.count(midiNoteNumber) || toggledKeys.count(midiNoteNumber);
 
+        auto& lnf = editor->getLookAndFeel();
         auto c = Colour(225, 225, 225);
         if (isOver)
             c = Colour(235, 235, 235);
         if (isDown)
-            c = findParentComponentOfClass<PluginEditor>()->getLookAndFeel().findColour(PlugDataColour::dataColourId);
+            c = lnf.findColour(PlugDataColour::dataColourId);
         
         area = area.reduced(0.0f, 0.5f);
-
-        g.setColour(c);
-
+        
+        
         // Rounded first and last keys to fix objects
+        auto* nvg = editor->nvgSurface.getRawContext();
+        if(!nvg) return;
+        nvgFillColor(nvg, NVGComponent::convertColour(c));
         if (midiNoteNumber == getRangeStart()) {
-            Path keyPath;
-            keyPath.addRoundedRectangle(area.getX(), area.getY(), area.getWidth(), area.getHeight(), Corners::objectCornerRadius, Corners::objectCornerRadius, true, false, true, false);
-
-            g.fillPath(keyPath);
+            nvgBeginPath(nvg);
+            nvgRoundedRectVarying(nvg, area.getX(), area.getY(), area.getWidth(), area.getHeight(), Corners::objectCornerRadius, 0, 0, Corners::objectCornerRadius);
+            nvgFill(nvg);
         } else if (midiNoteNumber == getRangeEnd()) {
-            Path keyPath;
-            keyPath.addRoundedRectangle(area.getX(), area.getY(), area.getWidth(), area.getHeight(), Corners::objectCornerRadius, Corners::objectCornerRadius, false, true, false, true);
-
-            g.fillPath(keyPath);
+            nvgBeginPath(nvg);
+            nvgRoundedRectVarying(nvg, area.getX(), area.getY(), area.getWidth(), area.getHeight(), 0, Corners::objectCornerRadius, Corners::objectCornerRadius, 0);
+            nvgFill(nvg);
         } else {
-            g.fillRect(area);
+            nvgFillRect(nvg, area.getX(), area.getY(), area.getWidth(), area.getHeight());
         }
+        
 
         // don't draw the first separator line to fix object look
         if (midiNoteNumber != getRangeStart()) {
-            g.setColour(findParentComponentOfClass<PluginEditor>()->getLookAndFeel().findColour(PlugDataColour::outlineColourId));
-            g.fillRect(area.withWidth(1.0f));
+            auto const outlineColour = lnf.findColour(PlugDataColour::outlineColourId);
+            nvgFillColor(nvg, NVGComponent::convertColour(outlineColour));
+            nvgFillRect(nvg, area.getX(), area.getY(), 1, area.getHeight());
         }
 
         // FIXME: have a unified way to detect when mode changes outside of render callback
-        auto cnv =  findParentComponentOfClass<Canvas>();
         if (cnv->locked.getValue() || cnv->editor->isInPluginMode())
             return;
 
@@ -180,7 +187,7 @@ public:
         if (!(midiNoteNumber % 12)) {
             Array<int> glyphs;
             Array<float> offsets;
-            auto font = Fonts::getCurrentFont();
+            auto const font = Fonts::getCurrentFont();
             Path p;
             Path outline;
             font.getGlyphPositions(String(floor(midiNoteNumber / 12) - 1), glyphs, offsets);
@@ -204,8 +211,12 @@ public:
         }
     }
 
-    void drawBlackNote(int midiNoteNumber, Graphics& g, Rectangle<float> area, bool isDown, bool isOver, Colour noteFillColour) override
+    void drawBlackNote(int midiNoteNumber, Graphics& g, Rectangle<float> area, bool isDown, bool isOver) override
     {
+        auto& lnf = editor->getLookAndFeel();
+        auto* nvg = editor->nvgSurface.getRawContext();
+        if(!nvg) return;
+        
         auto c = Colour(90, 90, 90);
 
         isDown = heldKeys.count(midiNoteNumber) || toggledKeys.count(midiNoteNumber);
@@ -213,10 +224,10 @@ public:
         if (isOver)
             c = Colour(101, 101, 101);
         if (isDown)
-            c = findParentComponentOfClass<PluginEditor>()->getLookAndFeel().findColour(PlugDataColour::dataColourId).darker(0.5f);
+            c = lnf.findColour(PlugDataColour::dataColourId).darker(0.5f);
 
-        g.setColour(c);
-        g.fillRect(area);
+        nvgFillColor(nvg, NVGComponent::convertColour(c));
+        nvgFillRect(nvg, area.getX(), area.getY(), area.getWidth(), area.getHeight());
     }
 };
 // ELSE keyboard
@@ -239,7 +250,7 @@ class KeyboardObject final : public ObjectBase
 
 public:
     KeyboardObject(pd::WeakReference ptr, Object* object)
-        : ObjectBase(ptr, object)
+        : ObjectBase(ptr, object), keyboard(object->cnv)
     {
         keyboard.setMidiChannel(1);
         keyboard.setScrollButtonsVisible(false);
@@ -312,10 +323,17 @@ public:
     {
         if (!nvgCtx || nvgCtx->getContext() != nvg)
             nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
+        
+        auto b = getLocalBounds();
         Graphics g(*nvgCtx);
         {
+            NVGScopedState scopedState(nvg);
             paintEntireComponent(g, true);
         }
+        
+        bool selected = object->isSelected() && !cnv->isGraph;
+        auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId));
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(Colours::transparentBlack), outlineColour, Corners::objectCornerRadius);
     }
 
     void updateSizeProperty() override
@@ -545,14 +563,5 @@ public:
     void timerCallback() override
     {
         updateValue();
-    }
-
-    void paintOverChildren(Graphics& g) override
-    {
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 };
