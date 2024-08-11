@@ -146,7 +146,7 @@ public:
                 setColour(labelColour, atoms[2]);
 
             if (auto* label = gui->getLabel()) {
-                label->setColour(getLabelColour());
+                label->setColour(Label::textColourId, getLabelColour());
             }
 
             gui->repaint();
@@ -282,12 +282,10 @@ public:
     {
         String const text = labelText.toString();
 
-        if (text.isNotEmpty() || (gui->showVU())) {
+        if (text.isNotEmpty()) {
             if (!labels) {
-                labels = std::make_unique<ObjectLabels>();
+                labels = std::make_unique<ObjectLabels>(nullptr);
                 object->cnv->addChildComponent(labels.get());
-                if (gui->showVU())
-                    labels->setObjectToTrack(object);
             }
 
             if (text.isNotEmpty()) {

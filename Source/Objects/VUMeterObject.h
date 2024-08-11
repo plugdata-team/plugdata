@@ -4,6 +4,84 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+
+class VUScale : public Component
+    , public NVGComponent, public AsyncUpdater {
+    StringArray scale = { "+12", "+6", "+2", "-0dB", "-2", "-6", "-12", "-20", "-30", "-50", "-99" };
+    StringArray scaleDecim = { "+12", "", "", "-0dB", "", "", "-12", "", "", "", "-99" };
+    NVGFramebuffer scalebuffer;
+public:
+    VUScale()
+        : NVGComponent(this)
+    {
+    }
+
+    ~VUScale()
+    {
+    }
+        
+    void performRender(NVGcontext* nvg)
+    {
+        nvgFontSize(nvg, 8);
+        nvgFontFace(nvg, "Inter-Regular");
+        nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
+        nvgFillColor(nvg, convertColour(findColour(Label::textColourId)));
+        auto scaleToUse = getHeight() < 80 ? scaleDecim : scale;
+        for (int i = 0; i < scale.size(); i++) {
+            auto posY = ((getHeight() - 20) * (i / 10.0f)) + 10;
+            // align the "-" and "+" text element centre
+            nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+            nvgText(nvg, 2, posY, scaleToUse[i].substring(0, 1).toRawUTF8(), nullptr);
+            // align the number text element left
+            nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
+            nvgText(nvg, 5, posY, scaleToUse[i].substring(1).toRawUTF8(), nullptr);
+        }
+    }
+    
+    float getImageScale(Canvas* cnv)
+    {
+        Canvas* topLevel = cnv;
+        while (auto* nextCnv = topLevel->findParentComponentOfClass<Canvas>()) {
+            topLevel = nextCnv;
+        }
+        return topLevel->isZooming ? topLevel->getRenderScale() * 2.0f : topLevel->getRenderScale() * std::max(1.0f, getValue<float>(topLevel->zoomScale));
+    }
+    
+    void handleAsyncUpdate() override
+    {
+        if(auto* cnv = findParentComponentOfClass<Canvas>()) {
+            auto renderScale = getImageScale(cnv);
+            auto w = roundToInt(getWidth() * renderScale);
+            auto h = roundToInt(getHeight() * renderScale);
+            if(auto* nvg = cnv->editor->nvgSurface.getRawContext()) {
+                scalebuffer.renderToFramebuffer(nvg, w, h, [this, w, h, renderScale](NVGcontext* nvg) {
+                    nvgBeginFrame(nvg, w, h, 1.0f);
+                    nvgScale(nvg, renderScale, renderScale);
+                    performRender(nvg);
+                    nvgEndFrame(nvg);
+                });
+            }
+        }
+    }
+
+    void render(NVGcontext* nvg) override
+    {
+        if(auto* cnv = findParentComponentOfClass<Canvas>()) {
+            auto renderScale = getImageScale(cnv);
+            auto w = roundToInt(getWidth() * renderScale);
+            auto h = roundToInt(getHeight() * renderScale);
+            if (scalebuffer.needsUpdate(w, h)) {
+                if(!cnv->isZooming) triggerAsyncUpdate();
+                performRender(nvg);
+            }
+            else {
+                scalebuffer.render(nvg, Rectangle<int>(getWidth() + 1, getHeight()));
+            }
+        }
+    }
+};
+
+
 class VUMeterObject final : public ObjectBase {
 
     IEMHelper iemHelper;
@@ -52,19 +130,37 @@ public:
 
     void updateLabel() override
     {
-        iemHelper.updateLabel(labels);
+        String const text = iemHelper.labelText.toString();
+
+        if (!labels) {
+            auto vuLabel = std::make_unique<VUScale>();
+            labels = std::make_unique<ObjectLabels>(std::move(vuLabel));
+            object->cnv->addChildComponent(labels.get());
+            labels->setObjectToTrack(object);
+        }
+
+        if (text.isNotEmpty()) {
+            auto bounds = iemHelper.getLabelBounds();
+
+            bounds.translate(0, bounds.getHeight() / -2.0f);
+
+            labels->getObjectLabel()->setFont(Font(bounds.getHeight()));
+            labels->setLabelBounds(bounds);
+            labels->getObjectLabel()->setText(text, dontSendNotification);
+        } else {
+            // updating side VU label only, by sending empty rectangle
+            labels->setLabelBounds(Rectangle<int>());
+        }
+        labels->setColour(iemHelper.getLabelColour());
+        labels->setVisible(true);
     }
 
-    VUScale* getVU() override
+    Component* getExtraLabel() override
     {
         if (labels)
-            return labels->getVUObject();
+            return labels->getExtraLabel();
+        
         return nullptr;
-    }
-
-    bool showVU() override
-    {
-        return true;
     }
 
     void valueChanged(Value& v) override
@@ -87,7 +183,7 @@ public:
             if (auto vu = ptr.get<t_vu>()) {
                 auto showVU = getValue<bool>(showScale);
                 vu->x_scale = showVU;
-                getVU()->setVisible(showVU);
+                if(auto* vuScale = getExtraLabel()) vuScale->setVisible(showVU);
             }
         } else {
             iemHelper.valueChanged(v);

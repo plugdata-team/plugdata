@@ -58,14 +58,11 @@ public:
         nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth() + 1, getHeight(), 0, image.getImageId(), 1.0f));
         nvgFillRect(nvg, 0, 0, getWidth() + 1, getHeight());
     }
-
-    void setColour(Colour const& colour)
+        
+    void colourChanged() override
     {
-        if (colour != lastColour) {
-            Label::setColour(Label::textColourId, colour);
-            lastColour = colour;
-            updateColour = true;
-        }
+        lastColour = findColour(Label::textColourId);
+        updateColour = true;
     }
 
     void updateImage(NVGcontext* nvg, float scale)
@@ -76,53 +73,12 @@ public:
 private:
 };
 
-class VUScale : public Component
-    , public NVGComponent {
-    Colour textColour;
-    StringArray scale = { "+12", "+6", "+2", "-0dB", "-2", "-6", "-12", "-20", "-30", "-50", "-99" };
-    StringArray scaleDecim = { "+12", "", "", "-0dB", "", "", "-12", "", "", "", "-99" };
-
-public:
-    VUScale()
-        : NVGComponent(this)
-    {
-    }
-
-    ~VUScale()
-    {
-    }
-
-    void setColour(Colour const& colour)
-    {
-        textColour = colour;
-        repaint();
-    }
-
-    void render(NVGcontext* nvg) override
-    {
-        nvgFontSize(nvg, 8);
-        nvgFontFace(nvg, "Inter-Regular");
-        nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
-        nvgFillColor(nvg, convertColour(textColour));
-        auto scaleToUse = getHeight() < 80 ? scaleDecim : scale;
-        for (int i = 0; i < scale.size(); i++) {
-            auto posY = ((getHeight() - 20) * (i / 10.0f)) + 10;
-            // align the "-" and "+" text element centre
-            nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-            nvgText(nvg, 2, posY, scaleToUse[i].substring(0, 1).toRawUTF8(), nullptr);
-            // align the number text element left
-            nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
-            nvgText(nvg, 5, posY, scaleToUse[i].substring(1).toRawUTF8(), nullptr);
-        }
-    }
-};
-
 class ObjectLabels : public Component {
 public:
-    ObjectLabels()
+    ObjectLabels(std::unique_ptr<Component> extraLabelComponent) : extraLabel(std::move(extraLabelComponent))
     {
         addAndMakeVisible(objectLabel);
-        addAndMakeVisible(vuScale);
+        if(extraLabel) addAndMakeVisible(extraLabel.get());
 
         setInterceptsMouseClicks(false, false);
     }
@@ -136,15 +92,15 @@ public:
         return &objectLabel;
     }
 
-    VUScale* getVUObject()
+    Component* getExtraLabel()
     {
-        return &vuScale;
+        return extraLabel.get();
     }
 
     void setColour(Colour const& colour)
     {
-        objectLabel.setColour(colour);
-        vuScale.setColour(colour);
+        objectLabel.setColour(Label::textColourId, colour);
+        if(extraLabel) extraLabel->setColour(Label::textColourId, colour);
     }
 
     void setObjectToTrack(Object* object)
@@ -155,9 +111,9 @@ public:
     void setLabelBounds(Rectangle<int> bounds)
     {
         labelBounds = bounds;
-        if (obj)
-            vuScaleBounds = Rectangle<int>(obj->getBounds().getTopRight().x - 3, obj->getBounds().getTopRight().y, 20, obj->getBounds().getHeight());
-        auto allBounds = bounds.getUnion(vuScaleBounds);
+        if (obj && extraLabel)
+            extraLabelBounds = Rectangle<int>(obj->getBounds().getTopRight().x - 3, obj->getBounds().getTopRight().y, 20, obj->getBounds().getHeight());
+        auto allBounds = bounds.getUnion(extraLabelBounds);
         setBounds(allBounds);
         // force resize to run, so position updates even when union size doesn't change
         resized();
@@ -165,11 +121,11 @@ public:
 
     void resized() override
     {
-        if (obj) {
+        if (obj && extraLabel) {
             auto lb = getLocalArea(obj->cnv, labelBounds);
-            auto vb = getLocalArea(obj->cnv, vuScaleBounds);
+            auto eb = getLocalArea(obj->cnv, extraLabelBounds);
             objectLabel.setBounds(lb);
-            vuScale.setBounds(vb);
+            extraLabel->setBounds(eb);
         } else {
             objectLabel.setBounds(getLocalBounds());
         }
@@ -179,9 +135,9 @@ private:
     Object* obj = nullptr;
 
     Rectangle<int> labelBounds;
-    Rectangle<int> vuScaleBounds;
+    Rectangle<int> extraLabelBounds;
     ObjectLabel objectLabel;
-    VUScale vuScale;
+    std::unique_ptr<Component> extraLabel;
 };
 
 class ObjectBase : public Component
@@ -307,9 +263,7 @@ public:
     virtual void untoggleObject() { }
 
     virtual ObjectLabel* getLabel();
-
-    virtual VUScale* getVU() { return nullptr; };
-    virtual bool showVU() { return false; };
+    virtual Component* getExtraLabel() { return nullptr; }; // Used by VUMeter
 
     // Should return current object text if applicable
     // Currently only used to subsitute arguments in tooltips
