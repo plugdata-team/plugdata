@@ -105,7 +105,7 @@ changeWorkingDir(output_dir + "/plugdata_version")
 
 if 'FLATPAK_SANDBOX_DIR' in os.environ:
     app_root = os.environ['FLATPAK_SANDBOX_DIR']
-else
+else:
     app_root = ""
 
 project_root = app_root + os.path.dirname(os.path.realpath("../../"))
