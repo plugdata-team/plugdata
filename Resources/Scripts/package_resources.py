@@ -100,9 +100,9 @@ if existsAsFile("../Filesystem.zip"):
 if existsAsDir(output_dir + "/plugdata_version"):
     removeDir(output_dir + "/plugdata_version")
 
+project_root = os.path.dirname(os.path.realpath(os.getcwd() + "/.."))
 makeDir(output_dir + "/plugdata_version")
 changeWorkingDir(output_dir + "/plugdata_version")
-project_root = os.path.dirname(os.path.realpath("../../"))
 
 makeDir("Abstractions")
 makeDir("Abstractions/else")
