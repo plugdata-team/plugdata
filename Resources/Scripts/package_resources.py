@@ -102,7 +102,13 @@ if existsAsDir(output_dir + "/plugdata_version"):
 
 makeDir(output_dir + "/plugdata_version")
 changeWorkingDir(output_dir + "/plugdata_version")
-project_root = os.path.dirname(os.path.realpath("../../"))
+
+if 'FLATPAK_SANDBOX_DIR' in os.environ:
+    app_root = os.environ['FLATPAK_SANDBOX_DIR']
+else
+    app_root = ""
+
+project_root = app_root + os.path.dirname(os.path.realpath("../../"))
 
 makeDir("Abstractions")
 makeDir("Abstractions/else")
