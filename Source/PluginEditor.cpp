@@ -33,6 +33,7 @@
 #include "Object.h"
 #include "PluginMode.h"
 #include "Components/TouchSelectionHelper.h"
+#include "NVGSurface.h"
 
 #if ENABLE_TESTING
 void runTests(PluginEditor* editor);
@@ -276,6 +277,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     pd->messageDispatcher->setBlockMessages(false);
     pd->objectLibrary->waitForInitialisationToFinish();
+
+    lookAndFeelChanged();
 }
 
 PluginEditor::~PluginEditor()

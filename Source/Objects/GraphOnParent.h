@@ -260,16 +260,13 @@ public:
             canvas->performRender(nvg, invalidArea);
         }
 
-        auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
-
         if (isOpenedInSplitView) {
-            auto bgColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId);
-
             auto width = getWidth();
             auto height = getHeight();
 
             if (openInGopBackground.needsUpdate(width, height)) {
+                auto bgColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId);
+
                 openInGopBackground = NVGImage(nvg, width, height, [width, height, bgColour](Graphics &g) {
                     AffineTransform rotate;
                     rotate = rotate.rotated(MathConstants<float>::pi / 4.0f);
@@ -285,8 +282,10 @@ public:
                 });
             }
             auto imagePaint = nvgImagePattern(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), 0.0f, openInGopBackground.getImageId(), 1.0f);
+            nvgBeginPath(nvg);
+            nvgRoundedRect(nvg,  b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
             nvgFillPaint(nvg, imagePaint);
-            nvgFillRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+            nvgFill(nvg);
 
             Font fontMetrics;
             fontMetrics = Fonts::getDefaultFont().withHeight(12.0f);
@@ -298,13 +297,13 @@ public:
                 nvgBeginPath(nvg);
                 nvgFontFace(nvg, "Inter-Regular");
                 nvgFontSize(nvg, 12.0f);
-                nvgFillColor(nvg, convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::commentTextColourId))); // why comment colour?
+                nvgFillColor(nvg, cnv->commentTextCol); // why comment colour?
                 nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_CENTER);
                 nvgText(nvg, b.getCentreX(), b.getCentreY(), errorText.toRawUTF8(), nullptr);
             }
         }
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBAf(0, 0, 0, 0), object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBAf(0, 0, 0, 0), object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
 
         if (auto graph = ptr.get<t_glist>()) {
             drawTicksForGraph(nvg, graph.get(), this);
@@ -316,7 +315,7 @@ public:
         auto b = parent->getLocalBounds();
         t_float y1 = b.getY(), y2 = b.getBottom(), x1 = b.getX(), x2 = b.getRight();
 
-        nvgStrokeColor(nvg, convertColour(parent->cnv->findColour(PlugDataColour::guiObjectInternalOutlineColour)));
+        nvgStrokeColor(nvg, parent->cnv->guiObjectInternalOutlineCol);
         if (x->gl_xtick.k_lperb) {
             t_float f = x->gl_xtick.k_point;
             for (int i = 0; f < 0.99f * x->gl_x2 + 0.01f * x->gl_x1; i++, f += x->gl_xtick.k_inc) {

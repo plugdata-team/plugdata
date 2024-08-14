@@ -172,6 +172,8 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     updatePatchSnapshot();
     
     patch.setVisible(true);
+
+    lookAndFeelChanged();
 }
 
 Canvas::~Canvas()
@@ -191,64 +193,61 @@ Canvas::~Canvas()
     }
 }
 
+void Canvas::lookAndFeelChanged()
+{
+    // Canvas colours
+    auto canvasBackgroundColJuce = getLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId);
+    canvasBackgroundCol = convertColour(canvasBackgroundColJuce);
+    canvasMarkingsCol = convertColour(findColour(PlugDataColour::canvasDotsColourId).interpolatedWith(canvasBackgroundColJuce, 0.2f));
+
+    // Object colours
+    objectOutlineCol = convertColour(getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
+    textObjectBackgroundCol = convertColour(getLookAndFeel().findColour(PlugDataColour::textObjectBackgroundColourId));
+    ioletLockedCol = convertColour(canvasBackgroundColJuce.contrasting(0.5f));
+
+    commentTextCol = convertColour(getLookAndFeel().findColour(PlugDataColour::commentTextColourId));
+
+    guiObjectInternalOutlineCol = convertColour(getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour));
+
+    auto selectedColJuce = getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId);
+    selectedOutlineCol = convertColour(selectedColJuce);
+    transparentObjectBackgroundCol = convertColour(canvasBackgroundColJuce.contrasting(0.35f).withAlpha(0.1f));
+    indexTextCol = convertColour(selectedColJuce.contrasting());
+
+    // Lasso colours
+    lassoCol = convertColour(selectedColJuce.withAlpha(0.075f));
+    lassoOutlineCol = convertColour(canvasBackgroundColJuce.interpolatedWith(selectedColJuce, 0.65f));
+
+    // Presentation mode colors
+    auto presentationBackgroundColJuce = findColour(PlugDataColour::presentationBackgroundColourId);
+    presentationBackgroundCol = convertColour(presentationBackgroundColJuce);
+    presentationWindowOutlineCol = convertColour(presentationBackgroundColJuce.contrasting(0.3f));
+
+    // Connection / Iolet colours
+    auto dataColJuce = getLookAndFeel().findColour(PlugDataColour::dataColourId);
+    dataCol = convertColour(dataColJuce);
+    auto sigColJuce = getLookAndFeel().findColour(PlugDataColour::signalColourId);
+    sigCol = convertColour(sigColJuce);
+    gemCol = convertColour(getLookAndFeel().findColour(PlugDataColour::gemColourId));
+
+    dataColBrighter = convertColour(dataColJuce.brighter());
+    sigColBrighter = convertColour(sigColJuce.brighter());
+}
+
+void Canvas::parentHierarchyChanged()
+{
+    // If the canvas has been added back into the editor, update the look and feel
+    // We need to do this because canvases are removed from the parent hierarchy when not visible
+    // TODO: consider setting a flag when look and feel actually changes, and read that here
+    if (getParentComponent()) {
+        lookAndFeelChanged();
+    }
+}
+
 bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, int maxUpdateTimeMs)
 {
     auto pixelScale = getRenderScale();
     auto zoom = getValue<float>(zoomScale);
-
-    int const logicalIoletsSize = 16 * 4;
-    int const ioletBufferSize = logicalIoletsSize * pixelScale * zoom;
-
-    // First, check if we need to update our iolet buffer
-    if (ioletBuffer.needsUpdate(ioletBufferSize, ioletBufferSize)) {
-        ioletBuffer.renderToFramebuffer(nvg, ioletBufferSize, ioletBufferSize, [this, zoom, ioletBufferSize, pixelScale](NVGcontext* nvg) {
-            nvgViewport(0, 0, ioletBufferSize, ioletBufferSize);
-            nvgClear(nvg);
-
-            nvgBeginFrame(nvg, logicalIoletsSize * zoom, logicalIoletsSize * zoom, pixelScale);
-            nvgScale(nvg, zoom, zoom);
-
-            auto renderIolet = [](NVGcontext* nvg, Rectangle<float> bounds, NVGcolor background, NVGcolor outline) {
-                if (PlugDataLook::getUseSquareIolets()) {
-                    nvgBeginPath(nvg);
-                    nvgRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
-
-                    nvgFillColor(nvg, background);
-                    nvgFill(nvg);
-
-                    nvgStrokeColor(nvg, outline);
-                    nvgStroke(nvg);
-                } else {
-                    nvgBeginPath(nvg);
-                    nvgFillColor(nvg, background);
-                    nvgCircle(nvg, bounds.getCentreX(), bounds.getCentreY(), bounds.getWidth() / 2.0f);
-                    nvgFill(nvg);
-
-                    nvgStrokeColor(nvg, outline);
-                    nvgStroke(nvg);
-                }
-            };
-
-            auto ioletColours = std::vector<Colour> {
-                findColour(PlugDataColour::dataColourId),
-                findColour(PlugDataColour::signalColourId),
-                findColour(PlugDataColour::gemColourId),
-                findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.5f)
-            };
-
-            auto outlineColour = findNVGColour(PlugDataColour::objectOutlineColourId);
-            for (int i = 0; i < 4; i++) {
-                auto backgroundColour = convertColour(ioletColours[i]);
-                auto ioletRow = Rectangle<float>(0, i * 16 + 0.5f, logicalIoletsSize, 12.5f);
-                renderIolet(nvg, ioletRow.removeFromLeft(16).reduced(4.0f), backgroundColour, outlineColour); // normal
-                renderIolet(nvg, ioletRow.removeFromLeft(16).reduced(2.5f), backgroundColour, outlineColour); // hovered
-            }
-
-            nvgEndFrame(nvg);
-        });
-
-        editor->nvgSurface.invalidateAll();
-    }
 
     int const resizerLogicalSize = 9;
     int const resizerBufferSize = resizerLogicalSize * pixelScale * zoom;
@@ -322,11 +321,6 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     auto const halfSize = infiniteCanvasSize / 2;
     auto const zoom = getValue<float>(zoomScale);
 
-    auto background = findColour(PlugDataColour::canvasBackgroundColourId);
-    auto backgroundColour = convertColour(background);
-    auto borderLinesColour = convertColour(findColour(PlugDataColour::canvasDotsColourId).interpolatedWith(background, 0.2f));
-    auto& dotsColour = borderLinesColour;
-
     nvgSave(nvg);
 
     if (viewport) {
@@ -336,7 +330,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         invalidRegion = invalidRegion.translated(viewport->getViewPositionX(), viewport->getViewPositionY());
         invalidRegion /= zoom;
 
-        nvgFillColor(nvg, backgroundColour);
+        nvgFillColor(nvg, canvasBackgroundCol);
         nvgFillRect(nvg, invalidRegion.getX(), invalidRegion.getY(), invalidRegion.getWidth(), invalidRegion.getHeight());
     }
 
@@ -349,7 +343,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         if (getValue<float>(zoomScale) >= 1.0f) {
             NVGScopedState scopedState(nvg);
             nvgTranslate(nvg, canvasOrigin.x % gridSize, canvasOrigin.y % gridSize); // Make sure grid aligns with origin
-            NVGpaint dots = nvgDotPattern(nvg, dotsColour, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize, 0.8f, 0.0f);
+            NVGpaint dots = nvgDotPattern(nvg, canvasMarkingsCol, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize, 0.8f, 0.0f);
             nvgFillPaint(nvg, dots);
             nvgFill(nvg);
         } else {
@@ -373,8 +367,8 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             auto gridDivTotal = gridSize * devision;
             auto offset = Point<int>((canvasOrigin.x % gridDivTotal), (canvasOrigin.y % gridDivTotal));
 
-            auto minorDotColour = nvgRGBAf(dotsColour.r, dotsColour.g, dotsColour.b, zoom * 0.5f);
-            auto majorDotColour = nvgRGBAf(dotsColour.r, dotsColour.g, dotsColour.b, zoom * 0.8f);
+            auto minorDotColour = nvgRGBAf(canvasMarkingsCol.r, canvasMarkingsCol.g, canvasMarkingsCol.b, zoom * 0.5f);
+            auto majorDotColour = nvgRGBAf(canvasMarkingsCol.r, canvasMarkingsCol.g, canvasMarkingsCol.b, zoom * 0.8f);
             auto scaledDotSize = 0.8f / zoom;
 
             // Horizontal Dots
@@ -397,7 +391,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             }
         }
     }
-    auto drawBorder = [this, nvg, backgroundColour, zoom, borderLinesColour](bool bg, bool fg) {
+    auto drawBorder = [this, nvg, zoom](bool bg, bool fg) {
         if (viewport && (showOrigin || showBorder) && !::getValue<bool>(presentationMode)) {
             NVGScopedState scopedState(nvg);
             nvgBeginPath(nvg);
@@ -425,15 +419,15 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
                     nvgLineTo(nvg, pos.x, pos.y + borderHeight);
                 }
                 nvgLineStyle(nvg, NVG_LINE_SOLID);
-                nvgStrokeColor(nvg, backgroundColour);
+                nvgStrokeColor(nvg, canvasBackgroundCol);
                 nvgStrokeWidth(nvg, 8.0f);
                 nvgStroke(nvg);
                 
-                nvgFillColor(nvg, backgroundColour);
+                nvgFillColor(nvg, canvasBackgroundCol);
                 nvgFillRect(nvg, pos.x - 1.0f, pos.y - 1.0f, 2, 2);
             }
             
-            nvgStrokeColor(nvg, borderLinesColour);
+            nvgStrokeColor(nvg, canvasMarkingsCol);
             nvgStrokeWidth(nvg, scaledStrokeSize);
             nvgDashLength(nvg, 8.0f);
             nvgLineStyle(nvg, NVG_LINE_DASHED);
@@ -500,9 +494,6 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             auto const scale = getValue<float>(zoomScale);
             auto const windowCorner = Corners::windowCornerRadius / scale;
 
-            auto const bgColour = convertColour(findColour(PlugDataColour::presentationBackgroundColourId));
-            auto const windowOutlineColour = convertColour(findColour(PlugDataColour::presentationBackgroundColourId).contrasting(0.3f));
-
             NVGScopedState scopedState(nvg);
 
             // background colour to crop outside of border area
@@ -510,7 +501,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
             nvgPathWinding(nvg, NVG_HOLE);
             nvgRoundedRect(nvg, pos.getX(), pos.getY(), borderWidth, borderHeight, windowCorner);
-            nvgFillColor(nvg, bgColour);
+            nvgFillColor(nvg, presentationBackgroundCol);
             nvgFill(nvg);
 
             // background drop shadow to simulate a virtual plugin
@@ -530,7 +521,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             }
             auto shadowImage = nvgImagePattern(nvg, pos.getX() - shadowSize, pos.getY() - shadowSize, borderArea.getWidth(), borderArea.getHeight(), 0, presentationShadowImage.getImageId(), 0.12f);
 
-            nvgStrokeColor(nvg, windowOutlineColour);
+            nvgStrokeColor(nvg, presentationWindowOutlineCol);
             nvgStrokeWidth(nvg, 0.5f / scale);
             nvgFillPaint(nvg, shadowImage);
             nvgFill(nvg);
@@ -564,10 +555,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     if (viewport && lasso.isVisible() && !lasso.getBounds().isEmpty()) {
         auto lassoBounds = lasso.getBounds();
         lassoBounds = lassoBounds.withSize(jmax(lasso.getWidth(), 2), jmax(lasso.getHeight(), 2));
-        auto fillColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.075f));
-        auto outlineColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId).interpolatedWith(findColour(PlugDataColour::objectSelectedOutlineColourId), 0.65f));
-
-        nvgDrawRoundedRect(nvg, lassoBounds.getX(), lassoBounds.getY(), lassoBounds.getWidth(), lassoBounds.getHeight(), fillColour, outlineColour, 0.0f);
+        nvgDrawRoundedRect(nvg, lassoBounds.getX(), lassoBounds.getY(), lassoBounds.getWidth(), lassoBounds.getHeight(), lassoCol, lassoOutlineCol, 0.0f);
     }
 
     suggestor->renderAutocompletion(nvg);
