@@ -279,11 +279,18 @@ public:
     NVGcolor lassoCol;
     NVGcolor lassoOutlineCol;
 
+    // objectOutlineColourId
     NVGcolor objectOutlineCol;
+
     NVGcolor commentTextCol;
+
+    // guiObjectInternalOutlineColour
     NVGcolor guiObjectInternalOutlineCol;
+
     NVGcolor textObjectBackgroundCol;
     NVGcolor transparentObjectBackgroundCol;
+
+    // objectSelectedOutlineColourId
     NVGcolor selectedOutlineCol;
     NVGcolor indexTextCol;
     NVGcolor ioletLockedCol;
