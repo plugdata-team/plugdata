@@ -240,7 +240,7 @@ void Canvas::parentHierarchyChanged()
     // We need to do this because canvases are removed from the parent hierarchy when not visible
     // TODO: consider setting a flag when look and feel actually changes, and read that here
     if (getParentComponent()) {
-        lookAndFeelChanged();
+        sendLookAndFeelChange();
     }
 }
 
