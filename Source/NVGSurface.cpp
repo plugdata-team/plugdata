@@ -475,6 +475,10 @@ void NVGSurface::setRenderThroughImage(bool shouldRenderThroughImage)
     invalidateAll();
     detachContext();
     initialise();
+    
+#if NANOVG_GL_IMPLEMENTATION
+    glContext->setVisible(!shouldRenderThroughImage);
+#endif
 }
 
 NVGSurface* NVGSurface::getSurfaceForContext(NVGcontext* nvg)
