@@ -36,7 +36,6 @@
 #include "Canvas.h"
 #include "Connection.h"
 #include "Deken.h"
-
 #include "Standalone/PlugDataWindow.h"
 
 Dialog::Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWidth, int childHeight, bool showCloseButton, int margin)
@@ -46,29 +45,9 @@ Dialog::Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWi
     , owner(ownerPtr)
     , backgroundMargin(margin)
 {
-#if JUCE_LINUX || JUCE_BSD
-    addToDesktop(0);
-#else
-    addToDesktop(ComponentPeer::windowIsTemporary);
-#endif
-    setVisible(true);
-
-#if JUCE_IOS
+    parentComponent->addAndMakeVisible(this);
+    setBounds(0, 0, parentComponent->getWidth(), parentComponent->getHeight());
     setAlwaysOnTop(true);
-    toFront(false);
-#else
-    if (ProjectInfo::isStandalone) {
-        if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(parentComponent->getTopLevelComponent()))
-            mainWindow->dialog = SafePointer(this);
-        toFront(true);
-    } else {
-        setAlwaysOnTop(true);
-    }
-#endif
-    
-    setBounds(parentComponent->getScreenX(), parentComponent->getScreenY(), parentComponent->getWidth(), parentComponent->getHeight());
-    parentComponent->addComponentListener(this);
-    
     setWantsKeyboardFocus(true);
 
     if (showCloseButton) {
@@ -93,20 +72,12 @@ Dialog::Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWi
         }
         window->repaint();
     }
-}
-
-#if !JUCE_IOS
-void Dialog::mouseDrag(MouseEvent const& e)
-{
-    if (dragging) {
-        if (auto mainWindow = dynamic_cast<PlugDataWindow*>(parentComponent->getTopLevelComponent())) {
-            mainWindow->movedFromDialog = true;
-        }
-        dragger.dragWindow(parentComponent->getTopLevelComponent(), e, nullptr);
-        dragger.dragWindow(this, e, nullptr);
+    
+    if(auto* pluginEditor = dynamic_cast<PluginEditor*>(editor))
+    {
+        pluginEditor->nvgSurface.setRenderThroughImage(true);
     }
 }
-#endif
 
 bool Dialog::wantsRoundedCorners() const
 {

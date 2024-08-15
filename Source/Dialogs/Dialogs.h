@@ -13,16 +13,18 @@
 
 class Canvas;
 
-class Dialog : public Component
-    , public ComponentListener {
+class Dialog : public Component {
 
 public:
     Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWidth, int childHeight, bool showCloseButton, int margin = 0);
 
     ~Dialog() override
     {
-        parentComponent->removeComponentListener(this);
-
+        if(auto* editor = dynamic_cast<PluginEditor*>(parentComponent))
+        {
+            editor->nvgSurface.setRenderThroughImage(false);
+        }
+        
         if (auto* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent())) {
             if (ProjectInfo::isStandalone) {
                 if (auto* closeButton = window->getCloseButton())
@@ -33,11 +35,6 @@ public:
                     maximiseButton->setEnabled(true);
             }
         }
-    }
-
-    void componentMovedOrResized(Component& comp, bool wasMoved, bool wasResized) override
-    {
-        setBounds(parentComponent->getScreenX(), parentComponent->getScreenY(), parentComponent->getWidth(), parentComponent->getHeight());
     }
 
     void setViewedComponent(Component* child)
@@ -102,21 +99,20 @@ public:
 #if !JUCE_IOS
     void mouseDown(MouseEvent const& e) override
     {
-        if (!hasKeyboardFocus(false)) {
-            parentComponent->toFront(false);
-            toFront(true);
-        }
-
         if (isPositiveAndBelow(e.getEventRelativeTo(viewedComponent.get()).getMouseDownY(), 40) && ProjectInfo::isStandalone) {
             dragger.startDraggingWindow(parentComponent->getTopLevelComponent(), e);
             dragging = true;
-        } else if (!viewedComponent->getBounds().contains(e.getEventRelativeTo(this).getPosition()) && !blockCloseAction) {
-            parentComponent->toFront(true);
+        } else if (!viewedComponent->getBounds().contains(e.getPosition())) {
             closeDialog();
         }
     }
 
-    void mouseDrag(MouseEvent const& e) override;
+    void mouseDrag(MouseEvent const& e) override
+    {
+        if (dragging) {
+            dragger.dragWindow(parentComponent->getTopLevelComponent(), e, nullptr);
+        }
+    }
 
     void mouseUp(MouseEvent const& e) override
     {

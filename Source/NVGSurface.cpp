@@ -94,6 +94,8 @@ NVGSurface::NVGSurface(PluginEditor* e)
     setWantsKeyboardFocus(false);
 
     setSize(1, 1);
+    
+    editor->addChildComponent(backupImageComponent);
 
     // Start rendering asynchronously, so we are sure the window has been added to the desktop
     // kind of a hack, but works well enough
@@ -275,6 +277,7 @@ void NVGSurface::resized()
         mnvgSetViewBounds(view, bounds.getWidth(), bounds.getHeight());
     }
 #endif
+    backupImageComponent.setBounds(editor->getLocalArea(this, getLocalBounds()));
 }
 
 void NVGSurface::invalidateAll()
@@ -346,34 +349,80 @@ void NVGSurface::render()
         editor->renderArea(nvg, invalidArea);
         nvgEndFrame(nvg);
 
-        nvgBindFramebuffer(mainFBO);
+        if(backupImageComponent.isVisible())
+        {
+            auto bufferSize = fbHeight * fbWidth;
+            if(bufferSize != backupPixelData.size()) backupPixelData.resize(bufferSize);
+            nvgReadPixels(nvg, invalidFBO->image, 0, 0, fbWidth, fbHeight, backupPixelData.data()); // TODO: would be nice to read only a part of the image, but that gets tricky with openGL
+            
+            if(!backupRenderImage.isValid() || backupRenderImage.getWidth() != fbWidth || backupRenderImage.getHeight() != fbHeight)
+            {
+                backupRenderImage = Image(Image::PixelFormat::ARGB, fbWidth, fbHeight, true);
+            }
+            Image::BitmapData imageData(backupRenderImage, Image::BitmapData::readOnly);
+
+            int width = imageData.width;
+            int height = imageData.height;
+
+            auto region = invalidArea.getIntersection(getLocalBounds()) * pixelScale;
+            for (int y = 0; y < height; ++y) {
+                if(y < region.getY() || y > region.getBottom()) continue;
+                auto* scanLine = (uint32*)imageData.getLinePointer(y);
+                for (int x = 0; x < width; ++x) {
+                    if(x < region.getX() || x > region.getRight()) continue;
 #if NANOVG_GL_IMPLEMENTATION
-        nvgViewport(0, 0, viewWidth, viewHeight);
-        nvgBeginFrame(nvg, getWidth(), getHeight(), devicePixelScale);
+                    // OpenGL images are upside down
+                    uint32 argb = backupPixelData[(height - (y + 1)) * width + x];
 #else
-        nvgBeginFrame(nvg, getWidth() * desktopScale, getHeight() * desktopScale, devicePixelScale);
-        nvgScale(nvg, desktopScale, desktopScale);
+                    uint32 argb = backupPixelData[y * width + x];
 #endif
-        nvgBeginPath(nvg);
-        nvgScissor(nvg, invalidArea.getX(), invalidArea.getY(), invalidArea.getWidth(), invalidArea.getHeight());
+                    uint8 a = argb >> 24;
+                    uint8 r = argb >> 16;
+                    uint8 g = argb >> 8;
+                    uint8 b = argb;
+                    
+                    // order bytes as abgr
+                    scanLine[x] = (a << 24) | (b << 16) | (g << 8) | r;
+                }
+            }
+        }
+        else {
+            nvgBindFramebuffer(mainFBO);
+    #if NANOVG_GL_IMPLEMENTATION
+            nvgViewport(0, 0, viewWidth, viewHeight);
+            nvgBeginFrame(nvg, getWidth(), getHeight(), devicePixelScale);
+    #else
+            nvgBeginFrame(nvg, getWidth() * desktopScale, getHeight() * desktopScale, devicePixelScale);
+            nvgScale(nvg, desktopScale, desktopScale);
+    #endif
+            nvgBeginPath(nvg);
+            nvgScissor(nvg, invalidArea.getX(), invalidArea.getY(), invalidArea.getWidth(), invalidArea.getHeight());
 
-        nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, invalidFBO->image, 1));
-        nvgFillRect(nvg, invalidArea.getX(), invalidArea.getY(), invalidArea.getWidth(), invalidArea.getHeight());
+            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, invalidFBO->image, 1));
+            nvgFillRect(nvg, invalidArea.getX(), invalidArea.getY(), invalidArea.getWidth(), invalidArea.getHeight());
 
-#if ENABLE_FB_DEBUGGING
-        static Random rng;
-        nvgFillColor(nvg, nvgRGBA(rng.nextInt(255), rng.nextInt(255), rng.nextInt(255), 0x50));
-        nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
-#endif
+    #if ENABLE_FB_DEBUGGING
+            static Random rng;
+            nvgFillColor(nvg, nvgRGBA(rng.nextInt(255), rng.nextInt(255), rng.nextInt(255), 0x50));
+            nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
+    #endif
 
-        nvgEndFrame(nvg);
+            nvgEndFrame(nvg);
 
-        nvgBindFramebuffer(nullptr);
+            nvgBindFramebuffer(nullptr);
+        }
+        
         needsBufferSwap = true;
         invalidArea = Rectangle<int>(0, 0, 0, 0);
     }
-
-    if (needsBufferSwap) {
+    
+    if(backupImageComponent.isVisible() && needsBufferSwap)
+    {
+        backupImageComponent.setImage(backupRenderImage);
+        backupImageComponent.repaint();
+        needsBufferSwap = false;
+    }
+    else if (needsBufferSwap) {
 #if NANOVG_GL_IMPLEMENTATION
         nvgViewport(0, 0, viewWidth, viewHeight);
         nvgBeginFrame(nvg, getWidth(), getHeight(), devicePixelScale);
@@ -417,6 +466,15 @@ void NVGSurface::render()
             cnv->updateFramebuffers(nvg, cnv->getLocalBounds(), 14 - elapsed);
         }
     }
+}
+
+void NVGSurface::setRenderThroughImage(bool shouldRenderThroughImage)
+{
+    backupImageComponent.setVisible(shouldRenderThroughImage);
+    
+    invalidateAll();
+    detachContext();
+    initialise();
 }
 
 NVGSurface* NVGSurface::getSurfaceForContext(NVGcontext* nvg)

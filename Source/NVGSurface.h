@@ -96,7 +96,9 @@ public:
 
     void invalidateArea(Rectangle<int> area);
     void invalidateAll();
-
+    
+    void setRenderThroughImage(bool renderThroughImage);
+    
     NVGcontext* getRawContext() { return nvg; }
 
     static NVGSurface* getSurfaceForContext(NVGcontext*);
@@ -122,6 +124,10 @@ private:
     bool hresize = false;
     bool resizing = false;
     Rectangle<int> newBounds;
+    
+    juce::Image backupRenderImage;
+    ImageComponent backupImageComponent;
+    std::vector<uint32> backupPixelData;
 
     float lastRenderScale = 0.0f;
     
@@ -348,7 +354,7 @@ public:
 
     std::function<void()> onImageInvalidate = nullptr;
 
-    static inline std::set<NVGImage*> allImages;
+    static inline std::set<NVGImage*> allImages = std::set<NVGImage*>();
 };
 
 class NVGFramebuffer {

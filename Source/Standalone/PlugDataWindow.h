@@ -401,7 +401,6 @@ class PlugDataWindow : public DocumentWindow
 public:
     typedef StandalonePluginHolder::PluginInOuts PluginInOuts;
 
-    bool movedFromDialog = false;
     SafePointer<Dialog> dialog;
 
     /** Creates a window with a given title and colour.
@@ -633,15 +632,6 @@ public:
         }
 #endif
         repaint();
-    }
-
-    void moved() override
-    {
-        if (movedFromDialog) {
-            movedFromDialog = false;
-        } else if (dialog) {
-            dialog.getComponent()->closeDialog();
-        }
     }
 
     void resized() override
