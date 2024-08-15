@@ -18,6 +18,7 @@ class Knob : public Slider
     Colour arcColour;
 
     bool drawArc = true;
+    bool shiftIsDown = false;
     int numberOfTicks = 0;
     float arcStart = 63.5f;
 
@@ -54,6 +55,45 @@ public:
             nvgFill(nvg);
         }
     }
+    
+        void mouseDown(MouseEvent const& e) override
+        {
+            if (!e.mods.isLeftButtonDown())
+                return;
+
+            auto const normalSensitivity = 250;
+            auto const highSensitivity = normalSensitivity * 10;
+            if (ModifierKeys::getCurrentModifiersRealtime().isShiftDown()) {
+                setMouseDragSensitivity(highSensitivity);
+                shiftIsDown = true;
+            } else {
+                setMouseDragSensitivity(normalSensitivity);
+            }
+            
+            Slider::mouseDown(e);
+            
+            auto snaps = getSliderSnapsToMousePosition();
+            if(snaps && shiftIsDown)  {
+                setSliderSnapsToMousePosition(false); // hack to make jump-on-click work the same with high-accuracy mode as in Pd
+                Slider::mouseDown(e);
+                setSliderSnapsToMousePosition(true);
+            }
+        }
+
+        void mouseDrag(MouseEvent const& e) override
+        {
+            auto snaps = getSliderSnapsToMousePosition();
+            if(snaps && shiftIsDown) setSliderSnapsToMousePosition(false); // We disable this temporarily, otherwise it breaks high accuracy mode
+            Slider::mouseDrag(e);
+            if(snaps && shiftIsDown) setSliderSnapsToMousePosition(true);
+        }
+            
+        void mouseUp(MouseEvent const& e) override
+        {
+            setMouseDragSensitivity(250);
+            Slider::mouseUp(e);
+            shiftIsDown = false;
+        }
 
     void showArc(bool show)
     {
@@ -239,6 +279,38 @@ public:
     bool isTransparent() override
     {
         return !::getValue<bool>(outline);
+    }
+    
+    bool keyPressed(KeyPress const& key) override
+    {
+        if(key.getKeyCode() == KeyPress::returnKey)
+        {
+            if (auto obj = ptr.get<t_fake_knob>()) {
+                setValue(getValue());
+            }
+            return true;
+        }
+        else if(key.getKeyCode() == KeyPress::upKey || key.getKeyCode() == KeyPress::rightKey)
+        {
+            if (auto knob = ptr.get<t_fake_knob>()) {
+                knob->x_clicked = 1;
+                pd->sendDirectMessage(knob.cast<void>(), "list", { pd::Atom(1.0f), pd::Atom(gensym("Up"))});
+                knob->x_clicked = 0;
+            }
+            return true;
+        }
+        else if(key.getKeyCode() == KeyPress::downKey || key.getKeyCode() == KeyPress::leftKey)
+        {
+            if (auto knob = ptr.get<t_fake_knob>()) {
+                knob->x_clicked = 1;
+                pd->sendDirectMessage(knob.cast<void>(), "list", { pd::Atom(1.0f), pd::Atom(gensym("Down"))});
+                knob->x_clicked = 0;
+            }
+            return true;
+        }
+
+        
+        return false;
     }
 
     void updateDoubleClickValue()
