@@ -42,11 +42,11 @@ class ConnectionBeingCreated;
 class TabComponent;
 
 struct ObjectDragState {
-    bool wasDragDuplicated = false;
-    bool didStartDragging = false;
-    bool wasSelectedOnMouseDown = false;
-    bool wasResized = false;
-    bool wasDuplicated = false;
+    bool wasDragDuplicated : 1 = false;
+    bool didStartDragging : 1 = false;
+    bool wasSelectedOnMouseDown : 1 = false;
+    bool wasResized : 1 = false;
+    bool wasDuplicated : 1 = false;
     Point<int> canvasDragStartPosition = { 0, 0 };
     Component::SafePointer<Object> componentBeingDragged;
     Component::SafePointer<Object> objectSnappingInbetween;
@@ -214,22 +214,19 @@ public:
     Value commandLocked;
     Value presentationMode;
 
-    bool showOrigin = false;
-    bool showBorder = false;
-    bool showConnectionOrder = false;
-    bool connectionsBehind = true;
-    bool showObjectActivity = false;
-    bool showIndex = false;
+    bool showOrigin : 1 = false;
+    bool showBorder : 1 = false;
+    bool showConnectionOrder : 1 = false;
+    bool connectionsBehind : 1 = true;
+    bool showObjectActivity : 1 = false;
+    bool showIndex : 1 = false;
+    bool showConnectionDirection : 1 = false;
+    bool showConnectionActivity : 1 = false;
 
-    bool showConnectionDirection = false;
-    bool showConnectionActivity = false;
-
-    bool isZooming = false;
-
-    bool isGraph = false;
-    bool isDraggingLasso = false;
-
-    bool needsSearchUpdate = false;
+    bool isZooming : 1 = false;
+    bool isGraph : 1 = false;
+    bool isDraggingLasso : 1 = false;
+    bool needsSearchUpdate : 1 = false;
 
     Value isGraphChild = SynchronousValue(var(false));
     Value hideNameAndArgs = SynchronousValue(var(false));
