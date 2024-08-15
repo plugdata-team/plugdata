@@ -1176,23 +1176,26 @@ public:
         }
 
         if (title.isNotEmpty()) {
-            if (!labels) {
-                labels = std::make_unique<ObjectLabels>(nullptr);
+            ObjectLabel* label;
+            if (labels.isEmpty()) {
+                label = labels.add(new ObjectLabel());
+            }
+            else {
+                label = labels[0];
             }
 
             auto bounds = object->getBounds().reduced(Object::margin).removeFromTop(fontHeight + 2).withWidth(Font(fontHeight).getStringWidth(title));
 
             bounds.translate(2, -(fontHeight + 2));
 
-            labels->getObjectLabel()->setFont(Font(fontHeight));
-            labels->setLabelBounds(bounds);
-            labels->getObjectLabel()->setText(title, dontSendNotification);
+            label->setFont(Font(fontHeight));
+            label->setBounds(bounds);
+            label->setText(title, dontSendNotification);
+            label->setColour(Label::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
 
-            labels->setColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
-
-            object->cnv->addAndMakeVisible(labels.get());
+            object->cnv->addAndMakeVisible(label);
         } else {
-            labels.reset(nullptr);
+            labels.clear();
         }
     }
 

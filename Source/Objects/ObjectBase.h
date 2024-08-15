@@ -45,7 +45,7 @@ public:
         setInterceptsMouseClicks(false, false);
     }
 
-    void renderLabel(NVGcontext* nvg, float scale)
+    virtual void renderLabel(NVGcontext* nvg, float scale)
     {
         auto textHash = hash(getText());
         if (image.needsUpdate(roundToInt(getWidth() * scale), roundToInt(getHeight() * scale)) || updateColour || lastTextHash != textHash || lastScale != scale) {
@@ -73,6 +73,7 @@ public:
 private:
 };
 
+/*
 class ObjectLabels : public Component {
 public:
     ObjectLabels(std::unique_ptr<Component> extraLabelComponent) : extraLabel(std::move(extraLabelComponent))
@@ -138,7 +139,7 @@ private:
     Rectangle<int> extraLabelBounds;
     ObjectLabel objectLabel;
     std::unique_ptr<Component> extraLabel;
-};
+}; */
 
 class ObjectBase : public Component
     , public pd::MessageListener
@@ -262,8 +263,7 @@ public:
     virtual void toggleObject(Point<int> position) { }
     virtual void untoggleObject() { }
 
-    virtual ObjectLabel* getLabel();
-    virtual Component* getExtraLabel() { return nullptr; }; // Used by VUMeter
+    virtual ObjectLabel* getLabel(int idx = 0);
 
     // Should return current object text if applicable
     // Currently only used to subsitute arguments in tooltips
@@ -337,7 +337,7 @@ public:
     Canvas* cnv;
     PluginProcessor* pd;
 
-    std::unique_ptr<ObjectLabels> labels;
+    OwnedArray<ObjectLabel> labels;
 
 protected:
     PropertyUndoListener propertyUndoListener;

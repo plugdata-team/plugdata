@@ -762,10 +762,10 @@ void ObjectBase::setParameterExcludingListener(Value& parameter, var const& valu
     parameter.addListener(&propertyUndoListener);
 }
 
-ObjectLabel* ObjectBase::getLabel()
+ObjectLabel* ObjectBase::getLabel(int index)
 {
-    if (labels)
-        return labels->getObjectLabel();
+    if (index < labels.size())
+        return labels[index];
     return nullptr;
 }
 

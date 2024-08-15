@@ -294,14 +294,18 @@ public:
         }
     }
 
-    void updateLabel(std::unique_ptr<ObjectLabels>& labels, Point<int> offset = { 0, 0 })
+    void updateLabel(OwnedArray<ObjectLabel>& labels, Point<int> offset = { 0, 0 })
     {
         String const text = labelText.toString();
 
         if (text.isNotEmpty()) {
-            if (!labels) {
-                labels = std::make_unique<ObjectLabels>(nullptr);
-                object->cnv->addChildComponent(labels.get());
+            ObjectLabel* label;
+            if (labels.isEmpty()) {
+                label = labels.add(new ObjectLabel());
+                object->cnv->addChildComponent(label);
+            }
+            else {
+                label = labels[0];
             }
 
             if (text.isNotEmpty()) {
@@ -309,19 +313,14 @@ public:
 
                 bounds.translate(0, bounds.getHeight() / -2.0f);
 
-                labels->getObjectLabel()->setFont(Font(bounds.getHeight()));
-                labels->setLabelBounds(bounds + offset);
-                labels->getObjectLabel()->setText(text, dontSendNotification);
-            } else {
-                // updating side VU label only, by sending empty rectangle
-                labels->setLabelBounds(Rectangle<int>());
+                label->setFont(Font(bounds.getHeight()));
+                label->setBounds(bounds + offset);
+                label->setText(text, dontSendNotification);
+                label->setVisible(true);
+                label->setColour(Label::textColourId, getLabelColour());
             }
-            labels->setColour(getLabelColour());
-            labels->setVisible(true);
         } else {
-            if (labels)
-                labels->setVisible(false);
-            labels.reset(nullptr);
+            labels.clear();
         }
     }
 

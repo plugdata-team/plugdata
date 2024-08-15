@@ -1268,22 +1268,10 @@ void Object::renderIolets(NVGcontext* nvg)
 void Object::renderLabel(NVGcontext* nvg)
 {
     if (gui) {
-        if (auto* label = gui->getLabel()) {
+        for (auto* label : gui->labels) {
             NVGScopedState scopedState(nvg);
-            auto posOnCanvas = cnv->getLocalPoint(gui->labels.get(), label->getPosition());
-            nvgTranslate(nvg, posOnCanvas.getX(), posOnCanvas.getY());
+            nvgTranslate(nvg, label->getX(), label->getY());
             label->renderLabel(nvg, cnv->getRenderScale() * 2.0f);
-        }
-        if (auto* extraLabel = gui->getExtraLabel()) { // Used for VU meter
-            if (extraLabel->isVisible()) {
-                NVGScopedState scopedState(nvg);
-                auto posOnCanvas = cnv->getLocalPoint(gui->labels.get(), extraLabel->getPosition());
-                nvgTranslate(nvg, posOnCanvas.getX(), posOnCanvas.getY());
-                if(auto* nvgComponent = dynamic_cast<NVGComponent*>(extraLabel))
-                {
-                    nvgComponent->render(nvg);
-                }
-            }
         }
     }
 }
