@@ -63,11 +63,6 @@ void Iolet::render(NVGcontext* nvg)
     if (!isVisible())
         return;
 
-    auto& fb = cnv->ioletBuffer;
-
-    if (!fb.isValid())
-        return;
-
     bool isLocked = getValue<bool>(locked) || getValue<bool>(commandLocked);
     bool overObject = object->drawIoletExpanded;
     bool isHovering = isTargeted && !isLocked;
@@ -77,22 +72,18 @@ void Iolet::render(NVGcontext* nvg)
         if ((isLocked && isSymbolIolet) || (isSymbolIolet && !isHovering && !overObject && !object->isSelected()))
             return;
     }
-
-    int type = isSignal + (isGemState * 2);
-    if (isLocked)
-        type = 3;
     
     if (isLocked || !(overObject || isHovering) || (patchDownwardsOnly.get() && isInlet)) {
         auto clipBounds = object->getLocalBounds().reduced(Object::margin) - getPosition();
         nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
     }
 
-    auto scale = getWidth() / 13.0f;
-    auto offset = isInlet ? 0.5f : 0.0f;
-    if(scale != 1.0f) nvgScale(nvg, scale, scale); // If the iolet is shrunk because there is little space, we scale it down
-    nvgFillPaint(nvg, nvgImagePattern(nvg, isHovering * -16 - 1.5f, type * -16 - offset, 16 * 4, 16 * 4, 0, fb.getImage(), 1));
+    auto innerCol = isLocked ? cnv->ioletLockedCol : isSignal ? cnv->sigCol : isGemState ? cnv->gemCol : cnv->dataCol;
+    auto iB = PlugDataLook::useSquareIolets ? getLocalBounds().toFloat().reduced(2.0f, 3.33f) : getLocalBounds().toFloat().reduced(2.0f);
+    if (isHovering)
+        iB.expand(1.0f, 1.0f);
 
-    nvgFillRect(nvg, 0, 0, 13, 13);
+    nvgDrawRoundedRect(nvg, iB.getX(), iB.getY(), iB.getWidth(), iB.getHeight(), innerCol, cnv->objectOutlineCol, PlugDataLook::useSquareIolets ? 0.0f : iB.getWidth() * 0.5f);
 }
 
 bool Iolet::hitTest(int x, int y)

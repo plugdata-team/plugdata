@@ -29,9 +29,17 @@ public:
 
     void update()
     {
-        primaryColour = Colour(getForegroundColour()).toString();
-        secondaryColour = Colour(getBackgroundColour()).toString();
-        labelColour = Colour(getLabelColour()).toString();
+        bool colourHasChanged = false;
+        if (const auto col = getForegroundColour().toString(); col != primaryColour) {
+            primaryColour = col;
+            colourHasChanged = true;
+        }
+        if (const auto col = getBackgroundColour().toString(); col != secondaryColour) {
+            secondaryColour = col;
+            colourHasChanged = true;
+        }
+        // we only need the callback that colourHasChanged will trigger for the object ATM.
+        labelColour = getLabelColour().toString();
 
         gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, cnv->editor->getLookAndFeel().findColour(Label::textWhenEditingColourId));
         gui->getLookAndFeel().setColour(Label::textColourId, Colour::fromString(primaryColour.toString()));
@@ -59,6 +67,10 @@ public:
         receiveSymbol = getReceiveSymbol();
 
         initialise = getInit();
+
+        // Let the object know the colour has changed, nbx & background (secondary) colour currently
+        if (colourHasChanged)
+            iemColourChangedCallback();
 
         gui->repaint();
     }
@@ -214,6 +226,8 @@ public:
             gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, colour);
             gui->getLookAndFeel().setColour(TextEditor::textColourId, colour);
 
+            iemColourChangedCallback();
+
             gui->repaint();
         } else if (v.refersToSameSourceAs(secondaryColour)) {
             auto colour = Colour::fromString(secondaryColour.toString());
@@ -223,6 +237,8 @@ public:
             gui->getLookAndFeel().setColour(TextButton::buttonColourId, colour);
 
             gui->getLookAndFeel().setColour(Slider::backgroundColourId, colour);
+
+            iemColourChangedCallback();
 
             gui->repaint();
         } else if (v.refersToSameSourceAs(labelColour)) {
@@ -503,6 +519,8 @@ public:
             iemgui->x_ldy = position.y;
         }
     }
+
+    std::function<void()> iemColourChangedCallback = [](){};
 
     int iemgui_color_hex[30] = {
         16579836, 10526880, 4210752, 16572640, 16572608,
