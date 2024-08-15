@@ -225,10 +225,8 @@ class CanvasViewport : public Viewport
             auto thumbCornerRadius = growingBounds.getHeight();
             auto fullBounds = growingBounds.withX(2).withWidth(getWidth() - 4);
 
-            auto canvasColour = findColour(PlugDataColour::canvasBackgroundColourId);
-            auto scrollbarColour = findColour(ScrollBar::ColourIds::thumbColourId);
-            auto activeScrollbarColour = scrollbarColour.interpolatedWith(canvasColour.contrasting(0.6f), 0.7f);
-            auto fadeColour = scrollbarColour.interpolatedWith(canvasColour, 0.7f).withAlpha(std::clamp(1.0f - growAnimation, 0.0f, 1.0f));
+            auto scrollbarBgFade = nvgRGBAf(scrollbarBgCol.r, scrollbarBgCol.g, scrollbarBgCol.b, (std::clamp((1.0f - growAnimation), 0.0f, 1.0f)));
+
             if (isVertical) {
                 growingBounds = thumbBounds.reduced(1).withLeft(thumbBounds.getX() + growPosition);
                 thumbCornerRadius = growingBounds.getWidth();
@@ -238,12 +236,16 @@ class CanvasViewport : public Viewport
             // FIXME: We shouldn't need to map this, we should be able to use growingBounds.getWidth() * 0.5f Possibly something is wrong with the SDF RoundedRect Shader?
             auto scaledTCR = jmap(thumbCornerRadius, 3.0f, 7.0f, 1.8f, 3.5f);
 
-            nvgFillColor(nvg, convertColour(fadeColour));
+            nvgFillColor(nvg, scrollbarBgFade);
             nvgFillRoundedRect(nvg, fullBounds.getX(), fullBounds.getY(), fullBounds.getWidth(), fullBounds.getHeight(), scaledTCR);
 
-            nvgFillColor(nvg, isMouseDragging ? convertColour(activeScrollbarColour) : convertColour(scrollbarColour));
+            nvgFillColor(nvg, isMouseDragging ? activeScrollbarCol : scrollbarCol);
             nvgFillRoundedRect(nvg, growingBounds.getX(), growingBounds.getY(), growingBounds.getWidth(), growingBounds.getHeight(), scaledTCR);
         }
+
+        NVGcolor scrollbarCol;
+        NVGcolor activeScrollbarCol;
+        NVGcolor scrollbarBgCol;
 
     private:
         bool isVertical = false;
@@ -302,6 +304,8 @@ public:
 
         cnv->setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, cnv));
         setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this));
+
+        lookAndFeelChanged();
     }
 
     ~CanvasViewport()
@@ -325,6 +329,19 @@ public:
 
     void lookAndFeelChanged() override
     {
+        auto scrollbarColour = hbar.findColour(ScrollBar::ColourIds::thumbColourId);
+        auto scrollbarCol = convertColour(scrollbarColour);
+        auto canvasBgColour = findColour(PlugDataColour::canvasBackgroundColourId);
+        auto activeScrollbarCol = convertColour(scrollbarColour.interpolatedWith(canvasBgColour.contrasting(0.6f), 0.7f));
+        auto scrollbarBgCol = convertColour(scrollbarColour.interpolatedWith(canvasBgColour, 0.7f));
+
+        hbar.scrollbarCol = scrollbarCol;
+        vbar.scrollbarCol = scrollbarCol;
+        hbar.activeScrollbarCol = activeScrollbarCol;
+        vbar.activeScrollbarCol = activeScrollbarCol;
+        hbar.scrollbarBgCol = scrollbarBgCol;
+        vbar.scrollbarBgCol = scrollbarBgCol;
+
         hbar.repaint();
         vbar.repaint();
     }

@@ -24,6 +24,8 @@ class NumberObject final : public ObjectBase {
 
     float value = 0.0f;
 
+    NVGcolor backgroundCol;
+
 public:
     NumberObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
@@ -31,6 +33,10 @@ public:
         , iemHelper(ptr, object, this)
 
     {
+        iemHelper.iemColourChangedCallback = [this](){
+            backgroundCol = convertColour(iemHelper.getBackgroundColour());
+        };
+
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
             startEdition();
@@ -289,11 +295,8 @@ public:
         auto b = getLocalBounds().toFloat();
 
         bool selected = object->isSelected() && !cnv->isGraph;
-        auto backgroundColour = convertColour(iemHelper.getBackgroundColour());
-        auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, selected ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundCol, selected ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
 
         int const indent = 9;
         Rectangle<float> iconBounds = { static_cast<float>(b.getX() + 4), static_cast<float>(b.getY() + 4), static_cast<float>(indent - 4), static_cast<float>(b.getHeight() - 8) };
@@ -306,11 +309,9 @@ public:
         nvgLineTo(nvg, leftX, centreY - 5.0f);
         nvgClosePath(nvg);
 
-        auto normalColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour);
-        auto highlightColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId);
         bool highlighed = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
 
-        nvgFillColor(nvg, convertColour(highlighed ? highlightColour : normalColour));
+        nvgFillColor(nvg, highlighed ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol);
         nvgFill(nvg);
 
         input.render(nvg);

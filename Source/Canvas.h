@@ -259,7 +259,6 @@ public:
     Component objectLayer;
     Component connectionLayer;
 
-    NVGFramebuffer ioletBuffer;
     NVGImage resizeHandleImage;
     NVGImage resizeGOPHandleImage;
     NVGImage presentationShadowImage;
@@ -269,7 +268,42 @@ public:
 
     Array<juce::WeakReference<NVGComponent>> drawables;
 
+    NVGcolor canvasBackgroundCol;
+    NVGcolor canvasMarkingsCol;
+    NVGcolor presentationBackgroundCol;
+    NVGcolor presentationWindowOutlineCol;
+
+    NVGcolor lassoCol;
+    NVGcolor lassoOutlineCol;
+
+    // objectOutlineColourId
+    NVGcolor objectOutlineCol;
+
+    NVGcolor commentTextCol;
+
+    // guiObjectInternalOutlineColour
+    NVGcolor guiObjectInternalOutlineCol;
+
+    NVGcolor textObjectBackgroundCol;
+    NVGcolor transparentObjectBackgroundCol;
+
+    // objectSelectedOutlineColourId
+    NVGcolor selectedOutlineCol;
+    NVGcolor indexTextCol;
+    NVGcolor ioletLockedCol;
+
+    NVGcolor dataCol;
+    NVGcolor sigCol;
+    NVGcolor gemCol;
+
+    NVGcolor dataColBrighter;
+    NVGcolor sigColBrighter;
+
 private:
+    void lookAndFeelChanged() override;
+
+    void parentHierarchyChanged() override;
+
     GlobalMouseListener globalMouseListener;
 
     bool dimensionsAreBeingEdited = false;

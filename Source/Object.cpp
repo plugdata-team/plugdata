@@ -1168,7 +1168,6 @@ void Object::render(NVGcontext* nvg)
 {
     auto lb = getLocalBounds();
     auto b = lb.reduced(margin);
-    auto selectedOutlineColour = convertColour(getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
 
     if (selectedFlag) {
         auto& resizeHandleImage = cnv->resizeHandleImage;
@@ -1189,12 +1188,13 @@ void Object::render(NVGcontext* nvg)
     }
 
     if (cnv->shouldShowObjectActivity() && !approximatelyEqual(activeStateAlpha, 0.0f)) {
-        auto glowColour = convertColour(getLookAndFeel().findColour(PlugDataColour::dataColourId).withAlpha(activeStateAlpha));
+        auto glowColour = cnv->dataCol;
+        glowColour.a = activeStateAlpha;
         nvgSmoothGlow(nvg, lb.getX(), lb.getY(), lb.getWidth(), lb.getHeight(), glowColour, nvgRGBA(0, 0, 0, 0), Corners::objectCornerRadius, 1.1f);
     }
 
     if (gui && gui->isTransparent() && !getValue<bool>(locked) && !cnv->isGraph) {
-        nvgFillColor(nvg, convertColour(getLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.35f).withAlpha(0.1f)));
+        nvgFillColor(nvg, cnv->transparentObjectBackgroundCol);
         nvgFillRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
     }
 
@@ -1205,10 +1205,7 @@ void Object::render(NVGcontext* nvg)
     }
 
     if (newObjectEditor) {
-        auto backgroundColour = convertColour(getLookAndFeel().findColour(PlugDataColour::textObjectBackgroundColourId));
-        auto outlineColour = convertColour(getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
-
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), cnv->textObjectBackgroundCol, isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
         
         nvgTranslate(nvg, margin, margin);
         textEditorRenderer.renderJUCEComponent(nvg, *newObjectEditor, getValue<float>(cnv->zoomScale) * cnv->getRenderScale());
@@ -1219,11 +1216,11 @@ void Object::render(NVGcontext* nvg)
         auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
         float fakeInletBounds[4] = { 16.0f, 4.0f, 8.0f, 8.0f };
         nvgBeginPath(nvg);
-        nvgFillColor(nvg, convertColour(getLookAndFeel().findColour(outlet->isSignal ? PlugDataColour::signalColourId : PlugDataColour::dataColourId).brighter()));
+        nvgFillColor(nvg, outlet->isSignal ? cnv->sigColBrighter : cnv->dataColBrighter);
         nvgEllipse(nvg, fakeInletBounds[0] + fakeInletBounds[2] * 0.5f, fakeInletBounds[1] + fakeInletBounds[3] * 0.5f, fakeInletBounds[2] * 0.5f, fakeInletBounds[3] * 0.5f);
         nvgFill(nvg);
 
-        nvgStrokeColor(nvg, convertColour(getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId)));
+        nvgStrokeColor(nvg, cnv->objectOutlineCol);
         nvgStrokeWidth(nvg, 1.0f);
         nvgStroke(nvg);
     }
@@ -1242,13 +1239,13 @@ void Object::render(NVGcontext* nvg)
         int textWidth = 6 + text.length() * 4;
         auto indexBounds = b.withSizeKeepingCentre(b.getWidth() + doubleMargin, halfHeight * 2).removeFromRight(textWidth);
 
-        auto fillColour = convertColour(getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto fillColour = cnv->selectedOutlineCol;
         nvgDrawRoundedRect(nvg, indexBounds.getX(), indexBounds.getY(), indexBounds.getWidth(), indexBounds.getHeight(), fillColour, fillColour, 2.0f);
 
         nvgFontSize(nvg, 8.0f);
         nvgFontFace(nvg, "Inter");
         nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_CENTER);
-        nvgFillColor(nvg, convertColour(getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting()));
+        nvgFillColor(nvg, cnv->indexTextCol);
         nvgText(nvg, indexBounds.getCentreX(), indexBounds.getCentreY(), text.c_str(), nullptr);
     }
 
