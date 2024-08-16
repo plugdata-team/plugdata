@@ -385,6 +385,8 @@ void NVGSurface::render()
                     scanLine[x] = (a << 24) | (b << 16) | (g << 8) | r;
                 }
             }
+            backupImageComponent.setImage(backupRenderImage);
+            backupImageComponent.repaint(invalidArea);
         }
         else {
             nvgBindFramebuffer(mainFBO);
@@ -416,13 +418,7 @@ void NVGSurface::render()
         invalidArea = Rectangle<int>(0, 0, 0, 0);
     }
     
-    if(backupImageComponent.isVisible() && needsBufferSwap)
-    {
-        backupImageComponent.setImage(backupRenderImage);
-        backupImageComponent.repaint();
-        needsBufferSwap = false;
-    }
-    else if (needsBufferSwap) {
+    if (needsBufferSwap && !backupImageComponent.isVisible()) {
 #if NANOVG_GL_IMPLEMENTATION
         nvgViewport(0, 0, viewWidth, viewHeight);
         nvgBeginFrame(nvg, getWidth(), getHeight(), devicePixelScale);
