@@ -170,7 +170,6 @@ public:
         } else {
             nvgFillRect(nvg, area.getX(), area.getY(), area.getWidth(), area.getHeight());
         }
-        
 
         // don't draw the first separator line to fix object look
         if (midiNoteNumber != getRangeStart()) {
@@ -185,29 +184,12 @@ public:
 
         // draw C octave numbers
         if (!(midiNoteNumber % 12)) {
-            Array<int> glyphs;
-            Array<float> offsets;
-            auto const font = Fonts::getCurrentFont();
-            Path p;
-            Path outline;
-            font.getGlyphPositions(String(floor(midiNoteNumber / 12) - 1), glyphs, offsets);
-
+            auto text = String(floor(midiNoteNumber / 12) - 1);
             auto rectangle = area.withTrimmedTop(area.proportionOfHeight(0.8f)).reduced(area.getWidth() / 6.0f);
-
-            int prev_size = 0;
-            AffineTransform transform;
-            for (auto glyph : glyphs) {
-                font.getTypefacePtr()->getOutlineForGlyph(glyph, p);
-                if (glyphs.size() > 1) {
-                    prev_size = outline.getBounds().getWidth();
-                }
-                transform = AffineTransform::scale(20).followedBy(AffineTransform::translation(prev_size, 0.0));
-                outline.addPath(p, transform);
-                p.clear();
-            }
-
-            g.setColour(Colour(90, 90, 90));
-            g.fillPath(outline, outline.getTransformToScaleToFit(rectangle, true));
+            nvgFillColor(nvg, nvgRGB(90, 90, 90));
+            nvgTextAlign(nvg, NVG_ALIGN_CENTER);
+            nvgFontSize(nvg, 13);
+            nvgText(nvg, rectangle.getCentreX(), rectangle.getCentreY() + 4, text.toRawUTF8(), nullptr);
         }
     }
 
