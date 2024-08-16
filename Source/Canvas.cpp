@@ -28,6 +28,45 @@ extern "C" {
 void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 }
 
+class BorderResizer : public Component, public NVGComponent
+{
+    ComponentDragger dragger;
+    Canvas* cnv;
+public:
+    std::function<void()> onDrag = [](){};
+    
+    BorderResizer(Canvas* parentCanvas) : NVGComponent(this), cnv(parentCanvas)
+    {
+        setSize(8, 8);
+        setRepaintsOnMouseActivity(true);
+    }
+    
+    void mouseDown(const MouseEvent& e) override
+    {
+        if(cnv->showBorder) {
+            dragger.startDraggingComponent(this, e);
+        }
+    }
+    
+    void mouseDrag(const MouseEvent& e) override
+    {
+        if(cnv->showBorder) {
+            dragger.dragComponent(this, e, nullptr);
+            onDrag();
+        }
+    }
+    
+    void render(NVGcontext* nvg) override
+    {
+        NVGScopedState state(nvg);
+        nvgSave(nvg);
+        nvgTranslate(nvg, getX(), getY());
+        auto bounds = getLocalBounds().reduced(isMouseOver() ? 0 : 2);
+        nvgDrawRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), findNVGColour(PlugDataColour::canvasDotsColourId), findNVGColour(PlugDataColour::canvasDotsColourId), bounds.getWidth() / 2.0f);
+        nvgRestore(nvg);
+    }
+};
+
 Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     : NVGComponent(this)
     , editor(parent)
@@ -78,7 +117,15 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     };
 
     suggestor = std::make_unique<SuggestionComponent>();
+    canvasBorderResizer = std::make_unique<BorderResizer>(this);
+    canvasBorderResizer->onDrag = [this](){
+        patchWidth = canvasBorderResizer->getBounds().getCentreX() - canvasOrigin.x;
+        patchHeight = canvasBorderResizer->getBounds().getCentreY() - canvasOrigin.y;
+    };
 
+    canvasBorderResizer->setCentrePosition(canvasOrigin.x + patchBounds.getWidth(), canvasOrigin.y + patchBounds.getHeight());
+    addAndMakeVisible(canvasBorderResizer.get());
+    
     // Check if canvas belongs to a graph
     if (parentGraph) {
         setLookAndFeel(&editor->getLookAndFeel());
@@ -465,6 +512,8 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
                 nvgMoveTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
                 nvgLineTo(nvg, pos.x, pos.y + borderHeight);
                 nvgStroke(nvg);
+                
+                canvasBorderResizer->render(nvg);
             }
         }
     };

@@ -40,6 +40,7 @@ class PluginProcessor;
 class ConnectionPathUpdater;
 class ConnectionBeingCreated;
 class TabComponent;
+class BorderResizer;
 
 struct ObjectDragState {
     bool wasDragDuplicated : 1 = false;
@@ -315,6 +316,8 @@ private:
 
     // Properties that can be shown in the inspector by right-clicking on canvas
     ObjectParameters parameters;
+        
+    std::unique_ptr<BorderResizer> canvasBorderResizer;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Canvas)
 };
