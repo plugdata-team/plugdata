@@ -130,7 +130,7 @@ public:
             nvgBeginPath(nvg);
             nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, startAngle, endAngle, NVG_HOLE);
             nvgStrokeWidth(nvg, arcWidth * lineThickness);
-            nvgStrokeColor(nvg, nvgRGBAf(arcColour.getFloatRed(), arcColour.getFloatGreen(), arcColour.getFloatBlue(), arcColour.getFloatAlpha()));
+            nvgStrokeColor(nvg, nvgRGBA(arcColour.getRed(), arcColour.getGreen(), arcColour.getBlue(), arcColour.getAlpha()));
             nvgStroke(nvg);
 
             nvgBeginPath(nvg);
@@ -139,7 +139,7 @@ public:
             } else {
                 nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, angle, centre, NVG_HOLE);
             }
-            nvgStrokeColor(nvg, nvgRGBAf(fgColour.getFloatRed(), fgColour.getFloatGreen(), fgColour.getFloatBlue(), fgColour.getFloatAlpha()));
+            nvgStrokeColor(nvg, nvgRGBA(fgColour.getRed(), fgColour.getGreen(), fgColour.getBlue(), fgColour.getAlpha()));
             nvgStrokeWidth(nvg, arcWidth * lineThickness);
             nvgStroke(nvg);
         }
@@ -152,7 +152,7 @@ public:
         nvgMoveTo(nvg, bounds.getCentreX(), bounds.getCentreY()); // Adjust parameters as needed
         nvgLineTo(nvg, wiperX, wiperY);                           // Adjust parameters as needed
         nvgStrokeWidth(nvg, lineThickness);
-        nvgStrokeColor(nvg, nvgRGBAf(fgColour.getFloatRed(), fgColour.getFloatGreen(), fgColour.getFloatBlue(), fgColour.getFloatAlpha()));
+        nvgStrokeColor(nvg, nvgRGBA(fgColour.getRed(), fgColour.getGreen(), fgColour.getBlue(), fgColour.getAlpha()));
         nvgLineCap(nvg, NVG_ROUND);
         nvgStroke(nvg);
 

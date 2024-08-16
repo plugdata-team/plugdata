@@ -41,6 +41,10 @@ public:
     {
         viewedComponent.reset(child);
         viewedComponent->addMouseListener(this, false);
+        
+        // a moving patch behind this can lead to repainting the whole panel
+        // buffering to image mitigates the worst overhead. Make sure you don't repaint very frequently though
+        viewedComponent->setBufferedToImage(true);
         addAndMakeVisible(child);
         resized();
     }

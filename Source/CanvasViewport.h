@@ -225,7 +225,7 @@ class CanvasViewport : public Viewport
             auto thumbCornerRadius = growingBounds.getHeight();
             auto fullBounds = growingBounds.withX(2).withWidth(getWidth() - 4);
 
-            auto scrollbarBgFade = nvgRGBAf(scrollbarBgCol.r, scrollbarBgCol.g, scrollbarBgCol.b, (std::clamp((1.0f - growAnimation), 0.0f, 1.0f)));
+            auto scrollbarBgFade = nvgRGBA(scrollbarBgCol.r, scrollbarBgCol.g, scrollbarBgCol.b, (std::clamp((1.0f - growAnimation), 0.0f, 1.0f)));
 
             if (isVertical) {
                 growingBounds = thumbBounds.reduced(1).withLeft(thumbBounds.getX() + growPosition);

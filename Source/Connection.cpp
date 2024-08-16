@@ -322,7 +322,7 @@ void Connection::render(NVGcontext* nvg)
     for (auto point : getCubicBezierControlPoints()) {
         nvgBeginPath(nvg);
         nvgCircle(nvg, point.x, point.y, 0.5f);
-        nvgFillColor(nvg, nvgRGBAf(1,0,0,1));
+        nvgFillColor(nvg, nvgRGBA(255,0,0,255));
         nvgFill(nvg);
     }
 #endif

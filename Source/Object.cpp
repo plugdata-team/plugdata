@@ -1228,7 +1228,7 @@ void Object::render(NVGcontext* nvg)
     if (!isHvccCompatible) {
         NVGScopedState scopedState(nvg);
         nvgBeginPath(nvg);
-        nvgStrokeColor(nvg, nvgRGBAf(1.0f, 0.5f, 0.0f, 1.0f)); // orange
+        nvgStrokeColor(nvg, nvgRGBA(255, 127, 0.0f, 255)); // orange
         nvgStrokeWidth(nvg, 1.0f);
         nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
         nvgStroke(nvg);

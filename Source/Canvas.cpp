@@ -375,8 +375,8 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             auto gridDivTotal = gridSize * devision;
             auto offset = Point<int>((canvasOrigin.x % gridDivTotal), (canvasOrigin.y % gridDivTotal));
 
-            auto minorDotColour = nvgRGBAf(canvasMarkingsCol.r, canvasMarkingsCol.g, canvasMarkingsCol.b, zoom * 0.5f);
-            auto majorDotColour = nvgRGBAf(canvasMarkingsCol.r, canvasMarkingsCol.g, canvasMarkingsCol.b, zoom * 0.8f);
+            auto minorDotColour = nvgRGBA(canvasMarkingsCol.r, canvasMarkingsCol.g, canvasMarkingsCol.b, zoom * 0.5f);
+            auto majorDotColour = nvgRGBA(canvasMarkingsCol.r, canvasMarkingsCol.g, canvasMarkingsCol.b, zoom * 0.8f);
             auto scaledDotSize = 0.8f / zoom;
 
             // Horizontal Dots

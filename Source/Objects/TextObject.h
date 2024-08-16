@@ -211,7 +211,7 @@ public:
         // render invalid text objects with red outline & semi-transparent background
         if (!isValid) {
             finalOutlineColour = convertColour(object->isSelected() ? Colours::red.brighter(1.5f) : Colours::red);
-            finalBackgroundColour = nvgRGBAf(outlineColour.r, outlineColour.g, outlineColour.b, 0.2f);
+            finalBackgroundColour = nvgRGBA(outlineColour.r, outlineColour.g, outlineColour.b, 0.2f);
         }
         else if(getPatch() && isMouseOver() && getValue<bool>(cnv->locked))
         {
@@ -233,10 +233,10 @@ public:
         //   │┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼│
         //   └──────────────────┘
 
-        bool hasIoletArea = static_cast<int>(ioletAreaColour.r * 255) != backgroundColour.getRed()  ||
-                            static_cast<int>(ioletAreaColour.g * 255) != backgroundColour.getGreen()||
-                            static_cast<int>(ioletAreaColour.b * 255) != backgroundColour.getBlue() ||
-                            static_cast<int>(ioletAreaColour.a * 255) != backgroundColour.getAlpha();
+        bool hasIoletArea = ioletAreaColour.r != backgroundColour.getRed()  ||
+                            ioletAreaColour.g != backgroundColour.getGreen()||
+                            ioletAreaColour.b != backgroundColour.getBlue() ||
+                            ioletAreaColour.a != backgroundColour.getAlpha();
         
         if (isValid && hasIoletArea) {
             NVGScopedState scopedState(nvg);

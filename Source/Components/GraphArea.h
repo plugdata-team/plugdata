@@ -54,7 +54,7 @@ public:
         auto lineBounds = getLocalBounds().toFloat().reduced(4.0f);
         auto graphAreaColour = convertColour(findColour(PlugDataColour::graphAreaColourId));
 
-        nvgDrawRoundedRect(nvg, lineBounds.getX(), lineBounds.getY(), lineBounds.getWidth(), lineBounds.getHeight(), nvgRGBAf(0, 0, 0, 0), graphAreaColour, Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, lineBounds.getX(), lineBounds.getY(), lineBounds.getWidth(), lineBounds.getHeight(), nvgRGBA(0, 0, 0, 0), graphAreaColour, Corners::objectCornerRadius);
 
         auto &resizeHandleImage = canvas->resizeGOPHandleImage;
         int angle = 360;

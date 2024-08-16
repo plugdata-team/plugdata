@@ -233,13 +233,13 @@ public:
         float lvl = (float)std::exp(std::log(rms) / 3.0) * (rms > 0.002);
         auto numBlocks = roundToInt(totalBlocks * lvl);
 
-        auto verticalGradient1 = nvgLinearGradient(nvg, 0, getHeight() * 0.25f, 0, getHeight() * 0.5f, nvgRGBAf(1, 0.5f, 0, 1), nvgRGBAf(0.26f, 0.64f, 0.78f, 1.0f));
-        auto verticalGradient2 = nvgLinearGradient(nvg, 0, 0, 0, getHeight() * 0.25f, nvgRGBAf(1, 0, 0, 1), nvgRGBAf(1, 0.5f, 0, 1));
+        auto verticalGradient1 = nvgLinearGradient(nvg, 0, getHeight() * 0.25f, 0, getHeight() * 0.5f, nvgRGBA(255, 127, 0, 1), nvgRGBAf(0.26f, 0.64f, 0.78f, 1.0f));
+        auto verticalGradient2 = nvgLinearGradient(nvg, 0, 0, 0, getHeight() * 0.25f, nvgRGBA(255, 0, 0, 255), nvgRGBA(255, 127, 0, 255));
 
         for (auto i = 1; i < totalBlocks; ++i) {
             NVGpaint gradient;
             if (i >= numBlocks) {
-                nvgFillColor(nvg, nvgRGBAf(0.3f, 0.3f, 0.3f, 1.0f)); // Dark grey for inactive blocks
+                nvgFillColor(nvg, nvgRGBA(0.3f, 0.3f, 0.3f, 1.0f)); // Dark grey for inactive blocks
             } else {
                 gradient = (i < totalBlocks * 0.75f) ? verticalGradient1 : verticalGradient2;
                 nvgFillPaint(nvg, gradient);
@@ -251,7 +251,7 @@ public:
         float lvl2 = (float)std::exp(std::log(peak) / 3.0) * (peak > 0.002);
         auto numBlocks2 = roundToInt(totalBlocks * lvl2);
 
-        nvgFillColor(nvg, nvgRGBAf(1, 1, 1, 1)); // White for the peak block
+        nvgFillColor(nvg, nvgRGBA(255, 255, 255, 255)); // White for the peak block
         nvgFillRoundedRect(nvg, outerBorderWidth, outerBorderWidth + ((totalBlocks - numBlocks2) * blockHeight) + blockRectSpacing, blockWidth, blockRectHeight / 2.0f, blockCornerSize);
     }
 

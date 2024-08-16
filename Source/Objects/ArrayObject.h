@@ -219,7 +219,7 @@ public:
             auto p = createArrayPath(vec, getDrawType(), getScale(), w, h);
             setJUCEPath(nvg, p);
             
-            nvgStrokeColor(nvg, nvgRGBAf(getContentColour().getFloatRed(), getContentColour().getFloatGreen(), getContentColour().getFloatBlue(), getContentColour().getFloatAlpha()));
+            nvgStrokeColor(nvg, nvgRGBA(getContentColour().getRed(), getContentColour().getGreen(), getContentColour().getBlue(), getContentColour().getAlpha()));
             nvgStrokeWidth(nvg, getLineWidth());
             nvgStroke(nvg);
         }
