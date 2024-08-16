@@ -233,7 +233,7 @@ public:
         float lvl = (float)std::exp(std::log(rms) / 3.0) * (rms > 0.002);
         auto numBlocks = roundToInt(totalBlocks * lvl);
 
-        auto verticalGradient1 = nvgLinearGradient(nvg, 0, getHeight() * 0.25f, 0, getHeight() * 0.5f, nvgRGBA(255, 127, 0, 1), nvgRGBAf(0.26f, 0.64f, 0.78f, 1.0f));
+        auto verticalGradient1 = nvgLinearGradient(nvg, 0, getHeight() * 0.25f, 0, getHeight() * 0.5f, nvgRGBA(255, 127, 0, 1), nvgRGBA(66, 163, 198, 255));
         auto verticalGradient2 = nvgLinearGradient(nvg, 0, 0, 0, getHeight() * 0.25f, nvgRGBA(255, 0, 0, 255), nvgRGBA(255, 127, 0, 255));
 
         for (auto i = 1; i < totalBlocks; ++i) {

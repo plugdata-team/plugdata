@@ -236,10 +236,15 @@ void Canvas::lookAndFeelChanged()
     dataCol = convertColour(dataColJuce);
     auto sigColJuce = getLookAndFeel().findColour(PlugDataColour::signalColourId);
     sigCol = convertColour(sigColJuce);
-    gemCol = convertColour(getLookAndFeel().findColour(PlugDataColour::gemColourId));
+    auto gemColJuce = getLookAndFeel().findColour(PlugDataColour::gemColourId);
+    gemCol = convertColour(gemColJuce);
+    auto baseColJuce = findColour(PlugDataColour::connectionColourId);
+    baseCol = convertColour(baseColJuce);
 
     dataColBrighter = convertColour(dataColJuce.brighter());
     sigColBrighter = convertColour(sigColJuce.brighter());
+    gemColBrigher = convertColour(gemColJuce.brighter());
+    baseColBrigher = convertColour(baseColJuce.brighter());
 }
 
 void Canvas::parentHierarchyChanged()
@@ -375,8 +380,8 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             auto gridDivTotal = gridSize * devision;
             auto offset = Point<int>((canvasOrigin.x % gridDivTotal), (canvasOrigin.y % gridDivTotal));
 
-            auto minorDotColour = nvgRGBA(canvasMarkingsCol.r, canvasMarkingsCol.g, canvasMarkingsCol.b, zoom * 0.5f);
-            auto majorDotColour = nvgRGBA(canvasMarkingsCol.r, canvasMarkingsCol.g, canvasMarkingsCol.b, zoom * 0.8f);
+            auto minorDotColour = nvgRGBA(canvasMarkingsCol.r, canvasMarkingsCol.g, canvasMarkingsCol.b, zoom * 0.5f * 255);
+            auto majorDotColour = nvgRGBA(canvasMarkingsCol.r, canvasMarkingsCol.g, canvasMarkingsCol.b, zoom * 0.8f * 255);
             auto scaledDotSize = 0.8f / zoom;
 
             // Horizontal Dots

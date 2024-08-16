@@ -118,6 +118,8 @@ private:
     int getNumSignalChannels();
     int getNumberOfConnections();
 
+    NVGcolor getConnectionColour();
+
     void setSelected(bool shouldBeSelected);
         
     void pathChanged() override;
@@ -132,14 +134,9 @@ private:
     Value locked;
     Value presentationMode;
 
-    NVGcolor baseColour;
-    NVGcolor dataColour;
-    NVGcolor signalColour;
     NVGcolor handleColour;
     NVGcolor shadowColour;
     NVGcolor outlineColour;
-    NVGcolor gemColour;
-    NVGcolor connectionColour;
 
     NVGcolor textColour;
 
@@ -273,7 +270,7 @@ public:
         {
             auto lineColour = cnv->findColour(PlugDataColour::signalColourId).brighter(0.6f);
             auto dashColor = convertColour(shadowColour);
-            dashColor.a = 1.0f;
+            dashColor.a = 255;
             dashColor.r *= 0.4f;
             dashColor.g *= 0.4f;
             dashColor.b *= 0.4f;
