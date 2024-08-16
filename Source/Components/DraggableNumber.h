@@ -35,6 +35,7 @@ protected:
     double valueToResetTo = 0.0;
     double valueToRevertTo = 0.0;
     bool showEllipses = true;
+    Colour outlineColour, textColour;
 
     std::unique_ptr<NanoVGGraphicsContext> nvgCtx;
 
@@ -51,6 +52,18 @@ public:
         setWantsKeyboardFocus(true);
         addListener(this);
         setFont(Fonts::getTabularNumbersFont().withHeight(14.0f));
+        lookAndFeelChanged();
+    }
+        
+    void colourChanged() override
+    {
+        lookAndFeelChanged();
+    }
+        
+    void lookAndFeelChanged() override
+    {
+        outlineColour = findColour(ComboBox::outlineColourId);
+        textColour = findColour(Label::textColourId);
     }
 
     void labelTextChanged(Label* labelThatHasChanged) override { }
@@ -286,22 +299,67 @@ public:
         return draggedDecimal;
     }
 
-    void render(NVGcontext* nvg)
+    virtual void render(NVGcontext* nvg)
     {
-        if (!nvgCtx || nvgCtx->getContext() != nvg)
-            nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
-        nvgCtx->setPhysicalPixelScaleFactor(2.0f);
-        Graphics g(*nvgCtx);
+        if(isBeingEdited())
         {
-            paintEntireComponent(g, true);
+            if (!nvgCtx || nvgCtx->getContext() != nvg)
+                nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
+            nvgCtx->setPhysicalPixelScaleFactor(2.0f);
+            Graphics g(*nvgCtx);
+            {
+                paintEntireComponent(g, true);
+            }
+            return;
+        }
+        
+        if (hoveredDecimal >= 0) {
+            // TODO: make this colour Id configurable
+            auto highlightColour = outlineColour.withAlpha(isMouseButtonDown() ? 0.5f : 0.3f);
+            nvgFillColor(nvg, NVGComponent::convertColour(highlightColour));
+            nvgFillRoundedRect(nvg, hoveredDecimalPosition.getX(), hoveredDecimalPosition.getY(), hoveredDecimalPosition.getWidth(), hoveredDecimalPosition.getHeight(), 2.5f);
+        }
+
+        auto font = getFont();
+        auto textArea = getBorderSize().subtractedFrom(getLocalBounds()).toFloat();
+        auto numberText = formatNumber(getText().getDoubleValue(), decimalDrag);
+        auto extraNumberText = String();
+        auto numDecimals = numberText.fromFirstOccurrenceOf(".", false, false).length();
+        auto numberTextLength = CachedFontStringWidth::get()->calculateSingleLineWidth(font, numberText);
+
+        for (int i = 0; i < std::min(hoveredDecimal - numDecimals, 7 - numDecimals); ++i)
+            extraNumberText += "0";
+
+        // If show ellipses is false, only show ">" when integers are too large to fit
+        if (!showEllipses && numDecimals == 0) {
+            int i = 0;
+            while (numberTextLength > textArea.getWidth() + 3 && i < 5) {
+                numberText = numberText.trimCharactersAtEnd(".>");
+                numberText = numberText.dropLastCharacters(1);
+                numberText += ">";
+                numberTextLength = CachedFontStringWidth::get()->calculateSingleLineWidth(font, numberText);
+                i++;
+            }
+        }
+
+        nvgFontFace(nvg, "Inter-Tabular");
+        nvgFontSize(nvg, font.getHeight() * 0.862f);
+        nvgTextLetterSpacing(nvg, 0.275f);
+        nvgTextAlign(nvg, NVG_ALIGN_TOP | NVG_ALIGN_LEFT);
+        nvgFillColor(nvg, NVGComponent::convertColour(textColour));
+        nvgText(nvg, textArea.getX(), textArea.getY() + 4, numberText.toRawUTF8(), nullptr);
+
+        if (dragMode == Regular) {
+            textArea = textArea.withTrimmedLeft(numberTextLength);
+            nvgFillColor(nvg, NVGComponent::convertColour(textColour.withAlpha(0.4f)));
+            nvgText(nvg, textArea.getX(), textArea.getY() + 4, extraNumberText.toRawUTF8(), nullptr);
         }
     }
 
     void paint(Graphics& g) override
     {
         if (hoveredDecimal >= 0) {
-            // TODO: make this colour Id configurable?
-            g.setColour(findColour(ComboBox::outlineColourId).withAlpha(isMouseButtonDown() ? 0.5f : 0.3f));
+            g.setColour(outlineColour.withAlpha(isMouseButtonDown() ? 0.5f : 0.3f));
             g.fillRoundedRectangle(hoveredDecimalPosition, 2.5f);
         }
 
@@ -313,7 +371,7 @@ public:
             auto numDecimals = numberText.fromFirstOccurrenceOf(".", false, false).length();
             auto numberTextLength = CachedFontStringWidth::get()->calculateSingleLineWidth(font, numberText);
 
-            for (int i = 0; i < std::min(hoveredDecimal - decimalDrag, 7 - numDecimals); ++i)
+            for (int i = 0; i < std::min(hoveredDecimal - numDecimals, 7 - numDecimals); ++i)
                 extraNumberText += "0";
 
             // If show ellipses is false, only show ">" when integers are too large to fit
@@ -329,11 +387,11 @@ public:
             }
 
             g.setFont(font);
-            g.setColour(findColour(Label::textColourId));
+            g.setColour(textColour);
             g.drawText(numberText, textArea, Justification::centredLeft, showEllipses);
 
             if (dragMode == Regular) {
-                g.setColour(findColour(Label::textColourId).withAlpha(0.4f));
+                g.setColour(textColour.withAlpha(0.4f));
                 g.drawText(extraNumberText, textArea.withTrimmedLeft(numberTextLength), Justification::centredLeft, false);
             }
         }
@@ -552,17 +610,49 @@ struct DraggableListNumber : public DraggableNumber {
     {
         if (hoveredDecimal >= 0) {
             // TODO: make this colour Id configurable?
-            g.setColour(findColour(ComboBox::outlineColourId).withAlpha(isMouseButtonDown() ? 0.5f : 0.3f));
+            g.setColour(outlineColour.withAlpha(isMouseButtonDown() ? 0.5f : 0.3f));
             g.fillRoundedRectangle(hoveredDecimalPosition, 2.5f);
         }
 
         if (!isBeingEdited()) {
-            g.setColour(findColour(Label::textColourId));
+            g.setColour(textColour);
             g.setFont(getFont());
 
             auto textArea = getBorderSize().subtractedFrom(getLocalBounds());
             g.drawText(getText(), textArea, Justification::centredLeft, false);
         }
+    }
+    
+    void render(NVGcontext* nvg) override
+    {
+        if(isBeingEdited())
+        {
+            if (!nvgCtx || nvgCtx->getContext() != nvg)
+                nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
+            nvgCtx->setPhysicalPixelScaleFactor(2.0f);
+            Graphics g(*nvgCtx);
+            {
+                paintEntireComponent(g, true);
+            }
+            return;
+        }
+        
+        if (hoveredDecimal >= 0) {
+            // TODO: make this colour Id configurable
+            auto const highlightColour = outlineColour.withAlpha(isMouseButtonDown() ? 0.5f : 0.3f);
+            nvgFillColor(nvg, NVGComponent::convertColour(highlightColour));
+            nvgFillRoundedRect(nvg, hoveredDecimalPosition.getX(), hoveredDecimalPosition.getY() - 1, hoveredDecimalPosition.getWidth(), hoveredDecimalPosition.getHeight(), 2.5f);
+        }
+        
+        nvgFontFace(nvg, "Inter-Tabular");
+        nvgFontSize(nvg, getFont().getHeight() * 0.862f);
+        nvgTextLetterSpacing(nvg, 0.15f);
+        nvgTextAlign(nvg, NVG_ALIGN_TOP | NVG_ALIGN_LEFT);
+        nvgFillColor(nvg, NVGComponent::convertColour(textColour));
+        
+        auto listText = getText();
+        auto const textArea = getBorderSize().subtractedFrom(getBounds());
+        nvgText(nvg, textArea.getX(), textArea.getY() + 4, listText.toRawUTF8(), nullptr);
     }
 
     void editorHidden(Label* l, TextEditor& editor) override
