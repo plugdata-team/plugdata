@@ -239,7 +239,7 @@ public:
         for (auto i = 1; i < totalBlocks; ++i) {
             NVGpaint gradient;
             if (i >= numBlocks) {
-                nvgFillColor(nvg, nvgRGBA(0.3f, 0.3f, 0.3f, 1.0f)); // Dark grey for inactive blocks
+                nvgFillColor(nvg, nvgRGBA(76, 76, 76, 255)); // Dark grey for inactive blocks
             } else {
                 gradient = (i < totalBlocks * 0.75f) ? verticalGradient1 : verticalGradient2;
                 nvgFillPaint(nvg, gradient);
