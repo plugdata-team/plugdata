@@ -208,51 +208,40 @@ public:
     {
         if(!ptr.isValid()) return;
         
-        auto values = std::vector<float> { ptr.get<t_vu>()->x_fp, ptr.get<t_vu>()->x_fr };
         auto backgroundColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
         auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
         auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 
-        int height = getHeight();
-        int width = getWidth();
+        float values[2] = { ptr.get<t_vu>()->x_fp, ptr.get<t_vu>()->x_fr };
+        
+        auto b = getLocalBounds();
+        nvgFillColor(nvg, backgroundColour);
+        nvgFillRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
 
-        nvgDrawRoundedRect(nvg, 0, 0, width, height, backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
-
-        auto outerBorderWidth = 2.0f;
-        auto totalBlocks = 30;
-        auto spacingFraction = 0.05f;
-        auto doubleOuterBorderWidth = 2.0f * outerBorderWidth;
-
-        auto blockHeight = (height - doubleOuterBorderWidth) / static_cast<float>(totalBlocks);
-        auto blockWidth = width - doubleOuterBorderWidth;
-        auto blockRectHeight = (1.0f - 2.0f * spacingFraction) * blockHeight;
-        auto blockRectSpacing = spacingFraction * blockHeight;
-        auto blockCornerSize = 0.1f * blockHeight;
-
-        float rms = Decibels::decibelsToGain(values[1] - 12.0f);
-        float lvl = (float)std::exp(std::log(rms) / 3.0) * (rms > 0.002);
-        auto numBlocks = roundToInt(totalBlocks * lvl);
-
-        auto verticalGradient1 = nvgLinearGradient(nvg, 0, getHeight() * 0.25f, 0, getHeight() * 0.5f, nvgRGBA(255, 127, 0, 1), nvgRGBA(66, 163, 198, 255));
-        auto verticalGradient2 = nvgLinearGradient(nvg, 0, 0, 0, getHeight() * 0.25f, nvgRGBA(255, 0, 0, 255), nvgRGBA(255, 127, 0, 255));
-
-        for (auto i = 1; i < totalBlocks; ++i) {
-            NVGpaint gradient;
-            if (i >= numBlocks) {
-                nvgFillColor(nvg, nvgRGBA(76, 76, 76, 255)); // Dark grey for inactive blocks
-            } else {
-                gradient = (i < totalBlocks * 0.75f) ? verticalGradient1 : verticalGradient2;
-                nvgFillPaint(nvg, gradient);
-            }
-            nvgFillRoundedRect(nvg, outerBorderWidth, outerBorderWidth + ((totalBlocks - i) * blockHeight) + blockRectSpacing, blockWidth, blockRectHeight, blockCornerSize);
+        auto rms = Decibels::decibelsToGain(values[1] - 10.0f);
+        auto peak = Decibels::decibelsToGain(values[0] - 10.0f);
+        auto barLength = jmin(std::exp(std::log(rms) / 3.0f) * (rms > 0.002f), 1.0f) * b.getHeight();
+        auto peakPosition = jmin(std::exp(std::log(peak) / 3.0f) * (peak > 0.002f), 1.0f) * (b.getHeight() - 2);
+        
+        NVGcolor barColour;
+        if(values[1] < -12)
+        {
+            barColour = nvgRGBA(66, 163, 198, 255);
         }
-
-        float peak = Decibels::decibelsToGain(values[0] - 12.0f);
-        float lvl2 = (float)std::exp(std::log(peak) / 3.0) * (peak > 0.002);
-        auto numBlocks2 = roundToInt(totalBlocks * lvl2);
-
-        nvgFillColor(nvg, nvgRGBA(255, 255, 255, 255)); // White for the peak block
-        nvgFillRoundedRect(nvg, outerBorderWidth, outerBorderWidth + ((totalBlocks - numBlocks2) * blockHeight) + blockRectSpacing, blockWidth, blockRectHeight / 2.0f, blockCornerSize);
+        else if(values[1] > 0)
+        {
+            barColour = nvgRGBA(255, 0, 0, 255);
+        }
+        else {
+            barColour = nvgRGBA(255, 127, 0, 255);
+        }
+        nvgFillColor(nvg, barColour);
+        nvgFillRoundedRect(nvg, 1, getHeight() - barLength, getWidth() - 2, barLength, Corners::objectCornerRadius);
+        
+        nvgFillColor(nvg, outlineColour);
+        nvgFillRect(nvg, 1, getHeight() - peakPosition - 2.5f, getWidth() - 2, 5.0f);
+        
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
     }
 
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
