@@ -7,12 +7,14 @@
 // Graph bounds component
 class GraphArea : public Component
     , public NVGComponent
-    , public Value::Listener {
+    , public Value::Listener
+    , public ModifierKeyListener {
     ComponentBoundsConstrainer constrainer;
     ResizableBorderComponent resizer;
     Canvas* canvas;
+    ComponentDragger dragger;
     Rectangle<float> topLeftCorner, topRightCorner, bottomLeftCorner, bottomRightCorner;
-
+    bool shiftDown = false;
 public:
     explicit GraphArea(Canvas* parent)
         : NVGComponent(this)
@@ -28,11 +30,18 @@ public:
         resizer.addMouseListener(this, false);
         canvas->locked.addListener(this);
         valueChanged(canvas->locked);
+        canvas->editor->addModifierKeyListener(this);
     }
 
     ~GraphArea() override
     {
         canvas->locked.removeListener(this);
+    }
+        
+    void shiftKeyChanged(bool isHeld) override {
+        resizer.setVisible(!isHeld);
+        setMouseCursor(isHeld ? MouseCursor::UpDownLeftRightResizeCursor : MouseCursor::NormalCursor);
+        shiftDown = isHeld;
     }
 
     void valueChanged(Value& v) override
@@ -84,6 +93,22 @@ public:
     {
         return (topLeftCorner.contains(x, y) || topRightCorner.contains(x, y) || bottomLeftCorner.contains(x, y) || bottomRightCorner.contains(x, y)) && !getLocalBounds().reduced(4).contains(x, y);
     }
+        
+    void mouseDown(MouseEvent const& e) override
+    {
+        if(shiftDown)
+        {
+            dragger.startDraggingComponent(this, e);
+        }
+    }
+        
+    void mouseDrag(MouseEvent const& e) override
+    {
+        if(shiftDown)
+        {
+            dragger.dragComponent(this, e, nullptr);
+        }
+    }
 
     void mouseEnter(MouseEvent const& e) override
     {
@@ -117,6 +142,12 @@ public:
         repaint();
 
         // Update parent canvas directly (needed if open in splitview)
+        applyBounds();
+        canvas->synchroniseAllCanvases();
+    }
+        
+    void moved() override
+    {
         applyBounds();
         canvas->synchroniseAllCanvases();
     }
