@@ -1189,7 +1189,7 @@ void Object::render(NVGcontext* nvg)
 
     if (cnv->shouldShowObjectActivity() && !approximatelyEqual(activeStateAlpha, 0.0f)) {
         auto glowColour = cnv->dataCol;
-        glowColour.a = activeStateAlpha;
+        glowColour.a = static_cast<uint8_t>(activeStateAlpha * 255);
         nvgSmoothGlow(nvg, lb.getX(), lb.getY(), lb.getWidth(), lb.getHeight(), glowColour, nvgRGBA(0, 0, 0, 0), Corners::objectCornerRadius, 1.1f);
     }
 

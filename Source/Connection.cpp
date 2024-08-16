@@ -128,13 +128,9 @@ void Connection::changeListenerCallback(ChangeBroadcaster* source)
 
 void Connection::lookAndFeelChanged()
 {
-    baseColour = convertColour(findColour(PlugDataColour::connectionColourId));
-    dataColour = convertColour(findColour(PlugDataColour::dataColourId));
-    signalColour = convertColour(findColour(PlugDataColour::signalColourId));
-    handleColour = outlet->isSignal ? dataColour : signalColour;
+    handleColour = outlet->isSignal ? cnv->dataCol : cnv->sigCol;
     shadowColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.06f).withAlpha(0.24f));
     outlineColour = convertColour(findColour(PlugDataColour::objectOutlineColourId));
-    gemColour = convertColour(findColour(PlugDataColour::gemColourId));
 
     textColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting());
 
@@ -147,32 +143,30 @@ void Connection::lookAndFeelChanged()
     repaint();
 }
 
-void Connection::render(NVGcontext* nvg)
+NVGcolor Connection::getConnectionColour()
 {
-    connectionColour = baseColour;
     if (isSelected() || isHovering) {
         if (outlet->isSignal) {
-            connectionColour = signalColour;
+            return isHovering ? cnv->sigColBrighter : cnv->sigCol;
         } else if (outlet->isGemState) {
-            connectionColour = gemColour;
+            return isHovering ? cnv->gemColBrigher : cnv->gemCol;
         } else {
-            connectionColour = dataColour;
+            return isHovering ? cnv->dataColBrighter : cnv->dataCol;
         }
     }
+    return cnv->baseCol;
+}
 
-    if (isHovering) {
-        connectionColour.r *= 1.2f;
-        connectionColour.g *= 1.2f;
-        connectionColour.b *= 1.2f;
-    }
-
+void Connection::render(NVGcontext* nvg)
+{
+    auto connectionColour = getConnectionColour();
     nvgSave(nvg);
     nvgTranslate(nvg, getX(), getY());
 
     bool isSignalCable = cableType == SignalCable && connectionStyle != PlugDataLook::ConnectionStyleVanilla;
     auto dashColor = shadowColour;
     if (isSignalCable){
-        dashColor.a = 1.0f;
+        dashColor.a = 255;
         dashColor.r *= 0.4f;
         dashColor.g *= 0.4f;
         dashColor.b *= 0.4f;
@@ -252,7 +246,7 @@ void Connection::render(NVGcontext* nvg)
     float const arrowWidth = 8.0f;
     float const arrowLength = 12.0f;
 
-    auto renderArrow = [this, nvg, arrowLength, arrowWidth](Path& path, float connectionLength) {
+    auto renderArrow = [this, nvg, arrowLength, arrowWidth, connectionColour](Path& path, float connectionLength) {
         // get the center point of the connection path
 
         const auto arrowCenter = connectionLength * 0.5f;
@@ -337,7 +331,7 @@ void Connection::renderConnectionOrder(NVGcontext* nvg)
         // circle background
         nvgBeginPath(nvg);
         nvgStrokeColor(nvg, outlineColour);
-        nvgFillColor(nvg, connectionColour);
+        nvgFillColor(nvg, getConnectionColour());
         auto const radius = 7.0f;
         auto const diameter = radius * 2.0f;
         auto const circleTopLeft = pos - Point<float>(radius, radius);

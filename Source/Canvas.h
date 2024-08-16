@@ -293,12 +293,15 @@ public:
     NVGcolor indexTextCol;
     NVGcolor ioletLockedCol;
 
+    NVGcolor baseCol;
     NVGcolor dataCol;
     NVGcolor sigCol;
     NVGcolor gemCol;
 
     NVGcolor dataColBrighter;
     NVGcolor sigColBrighter;
+    NVGcolor gemColBrigher;
+    NVGcolor baseColBrigher;
 
 private:
     void lookAndFeelChanged() override;

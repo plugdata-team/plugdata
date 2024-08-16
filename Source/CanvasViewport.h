@@ -225,7 +225,7 @@ class CanvasViewport : public Viewport
             auto thumbCornerRadius = growingBounds.getHeight();
             auto fullBounds = growingBounds.withX(2).withWidth(getWidth() - 4);
 
-            auto scrollbarBgFade = nvgRGBAf(scrollbarBgCol.r, scrollbarBgCol.g, scrollbarBgCol.b, (std::clamp((1.0f - growAnimation), 0.0f, 1.0f)));
+            scrollbarBgCol.a = std::clamp((1.0f - growAnimation), 0.0f, 1.0f) * 255;
 
             if (isVertical) {
                 growingBounds = thumbBounds.reduced(1).withLeft(thumbBounds.getX() + growPosition);
@@ -233,14 +233,10 @@ class CanvasViewport : public Viewport
                 fullBounds = growingBounds.withY(2).withHeight(getHeight() - 4);
             }
 
-            // FIXME: We shouldn't need to map this, we should be able to use growingBounds.getWidth() * 0.5f Possibly something is wrong with the SDF RoundedRect Shader?
-            auto scaledTCR = jmap(thumbCornerRadius, 3.0f, 7.0f, 1.8f, 3.5f);
+            nvgDrawRoundedRect(nvg, fullBounds.getX(), fullBounds.getY(), fullBounds.getWidth(), fullBounds.getHeight(), scrollbarBgCol, scrollbarBgCol, thumbCornerRadius);
 
-            nvgFillColor(nvg, scrollbarBgFade);
-            nvgFillRoundedRect(nvg, fullBounds.getX(), fullBounds.getY(), fullBounds.getWidth(), fullBounds.getHeight(), scaledTCR);
-
-            nvgFillColor(nvg, isMouseDragging ? activeScrollbarCol : scrollbarCol);
-            nvgFillRoundedRect(nvg, growingBounds.getX(), growingBounds.getY(), growingBounds.getWidth(), growingBounds.getHeight(), scaledTCR);
+            auto scrollBarThumbCol = isMouseDragging ? activeScrollbarCol : scrollbarCol;
+            nvgDrawRoundedRect(nvg, growingBounds.getX(), growingBounds.getY(), growingBounds.getWidth(), growingBounds.getHeight(), scrollBarThumbCol, scrollBarThumbCol, thumbCornerRadius);
         }
 
         NVGcolor scrollbarCol;
