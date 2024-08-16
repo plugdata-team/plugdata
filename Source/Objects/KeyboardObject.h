@@ -196,16 +196,16 @@ public:
         auto* nvg = editor->nvgSurface.getRawContext();
         if(!nvg) return;
         
-        auto c = Colour(90, 90, 90);
+        NVGcolor c = nvgRGB(90, 90, 90);
 
         isDown = heldKeys.count(midiNoteNumber) || toggledKeys.count(midiNoteNumber);
 
         if (isOver)
-            c = Colour(101, 101, 101);
+            c = nvgRGB(101, 101, 101);
         if (isDown)
-            c = lnf.findColour(PlugDataColour::dataColourId).darker(0.5f);
+            c = NVGComponent::convertColour(lnf.findColour(PlugDataColour::dataColourId).darker(0.5f));
 
-        nvgFillColor(nvg, NVGComponent::convertColour(c));
+        nvgFillColor(nvg, c);
         nvgFillRect(nvg, area.getX(), area.getY() + 1.0f, area.getWidth(), area.getHeight() - 1.0f);
     }
 };

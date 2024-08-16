@@ -179,7 +179,7 @@ public:
 
         nvgDrawRoundedRect(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(), backgroundColour, backgroundColour, Corners::objectCornerRadius);
 
-        imageRenderer.renderJUCEComponent(nvg, listLabel, getImageScale());
+        listLabel.render(nvg);
 
         // draw flag
         bool highlighted = editorActive && getValue<bool>(object->locked);
