@@ -147,7 +147,7 @@ public:
 
     static NVGcolor convertColour(Colour c)
     {
-        return nvgRGBAf(c.getFloatRed(), c.getFloatGreen(), c.getFloatBlue(), c.getFloatAlpha());
+        return nvgRGBA(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
     }
 
     NVGcolor findNVGColour(int colourId)

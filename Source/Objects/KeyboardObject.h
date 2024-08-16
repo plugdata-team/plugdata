@@ -146,29 +146,26 @@ public:
         isDown = heldKeys.count(midiNoteNumber) || toggledKeys.count(midiNoteNumber);
 
         auto& lnf = editor->getLookAndFeel();
-        auto c = Colour(225, 225, 225);
-        if (isOver)
-            c = Colour(235, 235, 235);
-        if (isDown)
-            c = lnf.findColour(PlugDataColour::dataColourId);
-        
-        area = area.reduced(0.0f, 0.5f);
-        
-        
+        area = area.reduced(0.0f, 1.0f);
+
         // Rounded first and last keys to fix objects
         auto* nvg = editor->nvgSurface.getRawContext();
         if(!nvg) return;
-        nvgFillColor(nvg, NVGComponent::convertColour(c));
-        if (midiNoteNumber == getRangeStart()) {
-            nvgBeginPath(nvg);
-            nvgRoundedRectVarying(nvg, area.getX(), area.getY(), area.getWidth(), area.getHeight(), Corners::objectCornerRadius, 0, 0, Corners::objectCornerRadius);
-            nvgFill(nvg);
-        } else if (midiNoteNumber == getRangeEnd()) {
-            nvgBeginPath(nvg);
-            nvgRoundedRectVarying(nvg, area.getX(), area.getY(), area.getWidth(), area.getHeight(), 0, Corners::objectCornerRadius, Corners::objectCornerRadius, 0);
-            nvgFill(nvg);
-        } else {
-            nvgFillRect(nvg, area.getX(), area.getY(), area.getWidth(), area.getHeight());
+        
+        if (isOver || isDown) {
+            auto c = isDown ? lnf.findColour(PlugDataColour::dataColourId) : Colour(235, 235, 235);
+            nvgFillColor(nvg, NVGComponent::convertColour(c));
+            if (midiNoteNumber == getRangeStart()) {
+                nvgBeginPath(nvg);
+                nvgRoundedRectVarying(nvg, area.getX(), area.getY(), area.getWidth(), area.getHeight(), Corners::objectCornerRadius, 0, 0, Corners::objectCornerRadius);
+                nvgFill(nvg);
+            } else if (midiNoteNumber == getRangeEnd()) {
+                nvgBeginPath(nvg);
+                nvgRoundedRectVarying(nvg, area.getX(), area.getY(), area.getWidth(), area.getHeight(), 0, Corners::objectCornerRadius, Corners::objectCornerRadius, 0);
+                nvgFill(nvg);
+            } else {
+                nvgFillRect(nvg, area.getX(), area.getY(), area.getWidth(), area.getHeight());
+            }
         }
 
         // don't draw the first separator line to fix object look
@@ -209,7 +206,7 @@ public:
             c = lnf.findColour(PlugDataColour::dataColourId).darker(0.5f);
 
         nvgFillColor(nvg, NVGComponent::convertColour(c));
-        nvgFillRect(nvg, area.getX(), area.getY(), area.getWidth(), area.getHeight());
+        nvgFillRect(nvg, area.getX(), area.getY() + 1.0f, area.getWidth(), area.getHeight() - 1.0f);
     }
 };
 // ELSE keyboard
@@ -307,15 +304,19 @@ public:
             nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
         
         auto b = getLocalBounds();
+        
+        bool selected = object->isSelected() && !cnv->isGraph;
+        auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId));
+        
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(225, 225, 225, 255), outlineColour, Corners::objectCornerRadius);
+        
         Graphics g(*nvgCtx);
         {
             NVGScopedState scopedState(nvg);
             paintEntireComponent(g, true);
         }
         
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId));
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(Colours::transparentBlack), outlineColour, Corners::objectCornerRadius);
+        //nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(Colours::transparentBlack), outlineColour, Corners::objectCornerRadius);
     }
 
     void updateSizeProperty() override
