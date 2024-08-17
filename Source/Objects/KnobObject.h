@@ -130,7 +130,7 @@ public:
             nvgBeginPath(nvg);
             nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, startAngle, endAngle, NVG_HOLE);
             nvgStrokeWidth(nvg, arcWidth * lineThickness);
-            nvgStrokeColor(nvg, nvgRGBA(arcColour.getRed(), arcColour.getGreen(), arcColour.getBlue(), arcColour.getAlpha()));
+            nvgStrokeColor(nvg, convertColour(arcColour));
             nvgStroke(nvg);
 
             nvgBeginPath(nvg);
@@ -139,7 +139,7 @@ public:
             } else {
                 nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, angle, centre, NVG_HOLE);
             }
-            nvgStrokeColor(nvg, nvgRGBA(fgColour.getRed(), fgColour.getGreen(), fgColour.getBlue(), fgColour.getAlpha()));
+            nvgStrokeColor(nvg, convertColour(fgColour));
             nvgStrokeWidth(nvg, arcWidth * lineThickness);
             nvgStroke(nvg);
         }
@@ -152,7 +152,7 @@ public:
         nvgMoveTo(nvg, bounds.getCentreX(), bounds.getCentreY()); // Adjust parameters as needed
         nvgLineTo(nvg, wiperX, wiperY);                           // Adjust parameters as needed
         nvgStrokeWidth(nvg, lineThickness);
-        nvgStrokeColor(nvg, nvgRGBA(fgColour.getRed(), fgColour.getGreen(), fgColour.getBlue(), fgColour.getAlpha()));
+        nvgStrokeColor(nvg, convertColour(fgColour));
         nvgLineCap(nvg, NVG_ROUND);
         nvgStroke(nvg);
 
@@ -202,6 +202,8 @@ class KnobObject final : public ObjectBase {
     Value arcStart = SynchronousValue();
 
     Value sizeProperty = SynchronousValue();
+
+    NVGcolor bgCol;
 
     bool locked;
     float value = 0.0f;
@@ -359,6 +361,8 @@ public:
         updateDoubleClickValue();
         knob.setSliderStyle(::getValue<bool>(circular) ? Slider::Rotary : Slider::RotaryHorizontalVerticalDrag);
         knob.showArc(::getValue<bool>(showArc));
+
+        updateColours();
     }
 
     bool inletIsSymbol() override
@@ -521,19 +525,18 @@ public:
     void render(NVGcontext* nvg) override
     {
         auto b = getLocalBounds().toFloat();
-        auto bgColour = Colour::fromString(secondaryColour.toString());
 
         if (::getValue<bool>(outline)) {
             bool selected = object->isSelected() && !cnv->isGraph;
-            auto outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+            auto outlineColour = selected ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
 
-            nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(bgColour), convertColour(outlineColour), Corners::objectCornerRadius);
+            nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), bgCol, outlineColour, Corners::objectCornerRadius);
         } else {
             auto circleBounds = getLocalBounds().toFloat().reduced(getWidth() * 0.13f);
             auto const lineThickness = std::max(circleBounds.getWidth() * 0.07f, 1.5f);
             circleBounds = circleBounds.reduced(lineThickness - 0.5f);
 
-            nvgFillColor(nvg, convertColour(bgColour));
+            nvgFillColor(nvg, bgCol);
             nvgBeginPath(nvg);
             nvgCircle(nvg, circleBounds.getCentreX(), circleBounds.getCentreY(), circleBounds.getWidth() / 2.0f);
             nvgFill(nvg);
@@ -750,6 +753,12 @@ public:
         knob.setValue(newValNormalised);
     }
 
+    void updateColours()
+    {
+        bgCol = convertColour(Colour::fromString(secondaryColour.toString()));
+        repaint();
+    }
+
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
@@ -851,12 +860,12 @@ public:
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_fg = pd->generateSymbol(colour);
             knob.setFgColour(Colour::fromString(primaryColour.toString()));
-            repaint();
+            updateColours();
         } else if (value.refersToSameSourceAs(secondaryColour)) {
             auto colour = "#" + secondaryColour.toString().substring(2);
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_bg = pd->generateSymbol(colour);
-            repaint();
+            updateColours();
         } else if (value.refersToSameSourceAs(arcStart)) {
             auto arcStartLimited = limitValueRange(arcStart, ::getValue<float>(min), ::getValue<float>(max));
             if (auto knb = ptr.get<t_fake_knob>())
