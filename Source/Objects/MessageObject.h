@@ -18,15 +18,6 @@ class MessageObject final : public ObjectBase
     bool isDown = false;
     bool isLocked = false;
 
-    NVGcolor backgroundColour;
-    NVGcolor selectedOutlineColour;
-    Colour selectedColour;
-    NVGcolor outlineColour;
-    Colour guiOutlineCol;
-    Colour flagCol;
-
-    NVGImage flagImage;
-
 public:
     MessageObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
@@ -162,17 +153,17 @@ public:
                               bgCol, bgCol, bgCol,
                               Corners::objectCornerRadius, ObjectFlagType::FlagMessage, PlugDataLook::getUseFlagOutline());
 
-        auto flagCol = isDown && isLocked ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol;
+        auto flagCol = isDown && ::getValue<bool>(object->locked) ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol;
         auto outlineCol = object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
 
         // Draw highlight around inner area when box is clicked
         // We do this by drawing an inner area that is bright, while changing the background colour darker
         if (isDown) {
-            auto dB = bounds.reduced(7);
+            auto dB = bounds.reduced(5 );
             nvgDrawRoundedRect(nvg, dB.getX(), dB.getY(), dB.getWidth(), dB.getHeight(), cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, 0);
         }
 
-        // Fill the internal of the shape with transparent colour, draw outline & flag with shader
+        // Draw outline & flag with shader
         nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
                               nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
                               Corners::objectCornerRadius, ObjectFlagType::FlagMessage, PlugDataLook::getUseFlagOutline());
@@ -281,7 +272,6 @@ public:
 
         if (isLocked) {
             isDown = true;
-            flagImage.setDirty();
             repaint();
 
             // startEdition();
@@ -300,7 +290,6 @@ public:
     void mouseUp(MouseEvent const& e) override
     {
         isDown = false;
-        flagImage.setDirty();
         repaint();
     }
 
