@@ -210,6 +210,7 @@ void Canvas::lookAndFeelChanged()
 
     // Object colours
     objectOutlineCol = convertColour(getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
+    outlineCol = convertColour(getLookAndFeel().findColour(PlugDataColour::outlineColourId));
     textObjectBackgroundCol = convertColour(getLookAndFeel().findColour(PlugDataColour::textObjectBackgroundColourId));
     ioletLockedCol = convertColour(canvasBackgroundColJuce.contrasting(0.5f));
 

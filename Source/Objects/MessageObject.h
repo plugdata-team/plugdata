@@ -155,14 +155,14 @@ public:
         auto b = bounds.toFloat();
         auto sb = b.reduced(0.5f); // reduce size of background to stop AA edges from showing through
 
-        auto bgCol = isDown ? cnv->objectOutlineCol : cnv->guiObjectBackgroundCol;
+        auto bgCol = isDown ? cnv->outlineCol : cnv->guiObjectBackgroundCol;
 
         // Draw background
         nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
                               bgCol, bgCol, bgCol,
                               Corners::objectCornerRadius, ObjectFlagType::FlagMessage, PlugDataLook::getUseFlagOutline());
 
-        auto flagCol = isDown ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol;
+        auto flagCol = isDown && isLocked ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol;
         auto outlineCol = object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
 
         // Draw highlight around inner area when box is clicked

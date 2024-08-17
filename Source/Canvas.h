@@ -276,6 +276,7 @@ public:
 
     // objectOutlineColourId
     NVGcolor objectOutlineCol;
+    NVGcolor outlineCol;
 
     NVGcolor commentTextCol;
 
