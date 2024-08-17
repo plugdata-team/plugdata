@@ -12,12 +12,22 @@ class CanvasObject final : public ObjectBase {
     bool hideHitArea = false;
     IEMHelper iemHelper;
 
+    Colour bgColour;
+    NVGcolor bgCol;
+    NVGcolor selectionAreaCol;
+
 public:
     CanvasObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {
         object->setColour(PlugDataColour::outlineColourId, Colours::transparentBlack);
+
+        iemHelper.iemColourChangedCallback = [this](){
+            bgColour = Colour::fromString(iemHelper.secondaryColour.toString());
+            bgCol = convertColour(bgColour);
+            selectionAreaCol = convertColour(bgColour.contrasting(0.75f));
+        };
 
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamInt("Active area size", ParameterCategory::cDimensions, &hitAreaSize, 15);
@@ -162,18 +172,12 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        Colour bgcolour = Colour::fromString(iemHelper.secondaryColour.toString());
         auto b = getLocalBounds().toFloat();
-
-        auto nvgBgColour = convertColour(bgcolour);
-        // FIXME: This should be exactly 0.5f of shortest edge, but nanovg doesn't do really small rounded corner radius correctly yet?
-        auto cornerRadius = jmin(Corners::objectCornerRadius, jmin(getWidth(), getHeight()) * 0.55f);
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgBgColour, nvgBgColour, cornerRadius);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), bgCol, bgCol, Corners::objectCornerRadius);
 
         if (!cnv->isGraph && !getValue<bool>(object->locked) && !getValue<bool>(object->commandLocked) && !hideHitArea) {
-            auto cornerRadius = jmin(Corners::objectCornerRadius, hitArea.getWidth() * 0.5f);
-            auto selectionRectColour = convertColour((object->isSelected() || (isMouseOver())) ? cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId) : bgcolour.contrasting(0.75f));
-            nvgDrawRoundedRect(nvg, hitArea.getX(), hitArea.getY(), hitArea.getWidth(), hitArea.getHeight(), nvgRGBA(0, 0, 0, 0), selectionRectColour, cornerRadius);
+            auto selectionRectColour = (object->isSelected() || (isMouseOver())) ? cnv->selectedOutlineCol: selectionAreaCol;
+            nvgDrawRoundedRect(nvg, hitArea.getX(), hitArea.getY(), hitArea.getWidth(), hitArea.getHeight(), nvgRGBA(0, 0, 0, 0), selectionRectColour, Corners::objectCornerRadius);
         }
     }
 
