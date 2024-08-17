@@ -162,16 +162,28 @@ public:
         auto b = getLocalBounds().toFloat();
         auto sb = b.reduced(0.5f); // reduce size of background to stop AA edges from showing through
 
-        // Background
-        nvgDrawRoundedRect(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(), backgroundColour, backgroundColour, Corners::objectCornerRadius);
+        // Draw background
+        nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
+                              cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol,
+                              Corners::objectCornerRadius, ObjectFlagType::FlagTop, PlugDataLook::getUseFlagOutline());
 
         imageRenderer.renderJUCEComponent(nvg, input, getImageScale());
 
+        bool highlighted = hasKeyboardFocus(true) && getValue<bool>(object->locked);
+        auto flagCol = highlighted ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol;
+        auto outlineCol = object->isSelected() || hasKeyboardFocus(true) ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
+
+        // Fill the internal of the shape with transparent colour, draw outline & flag with shader
+        nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
+                              nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
+                              Corners::objectCornerRadius, ObjectFlagType::FlagTop, PlugDataLook::getUseFlagOutline());
+/*
         // draw flag
         bool highlighted = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
-        atomHelper.drawTriangleFlag(nvg, highlighted);
+        //atomHelper.drawTriangleFlag(nvg, highlighted);
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), (object->isSelected() || highlighted) ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+*/
     }
 
     bool inletIsSymbol() override

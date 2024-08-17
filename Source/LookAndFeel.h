@@ -165,6 +165,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     static bool getUseStraightConnections();
 
+    static bool getUseFlagOutline();
+
     enum ConnectionStyle {
         ConnectionStyleDefault = 1,
         ConnectionStyleVanilla,
@@ -176,6 +178,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     static inline bool useSquareIolets;
     static inline bool useIoletSpacingEdge;
     static inline bool useGradientConnectionLook;
+    static inline bool useFlagOutline;
 
     static bool getUseIoletSpacingEdge();
     static bool getUseSquareIolets();

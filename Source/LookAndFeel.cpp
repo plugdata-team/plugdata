@@ -1282,6 +1282,8 @@ void PlugDataLook::setTheme(ValueTree themeTree)
 
     useIoletSpacingEdge = static_cast<bool>(themeTree.getProperty("iolet_spacing_edge").toString().getIntValue());
 
+    useFlagOutline = static_cast<bool>(themeTree.getProperty("object_flag_outlined").toString().getIntValue());
+
     useSquareIolets = static_cast<bool>(themeTree.getProperty("square_iolets").toString().getIntValue());
 
     useGradientConnectionLook = static_cast<bool>(themeTree.getProperty("connection_look").toString().getIntValue());
@@ -1301,6 +1303,11 @@ StringArray PlugDataLook::getAllThemes()
 bool PlugDataLook::getUseStraightConnections()
 {
     return useStraightConnections;
+}
+
+bool PlugDataLook::getUseFlagOutline()
+{
+    return useFlagOutline;
 }
 
 PlugDataLook::ConnectionStyle PlugDataLook::getConnectionStyle()

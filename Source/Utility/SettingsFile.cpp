@@ -289,6 +289,9 @@ void SettingsFile::initialiseThemesTree()
             if (!themeTree.hasProperty("square_object_corners")) {
                 themeTree.setProperty("square_object_corners", false, nullptr);
             }
+            if (!themeTree.hasProperty("object_flag_outlined")) {
+                themeTree.setProperty("object_flag_outlined", false, nullptr);
+            }
             if (!themeTree.hasProperty("iolet_spacing_edge")) {
                 themeTree.setProperty("iolet_spacing_edge", false, nullptr);
             }
