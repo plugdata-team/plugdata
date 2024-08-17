@@ -216,6 +216,7 @@ void Canvas::lookAndFeelChanged()
     commentTextCol = convertColour(getLookAndFeel().findColour(PlugDataColour::commentTextColourId));
 
     guiObjectInternalOutlineCol = convertColour(getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour));
+    guiObjectBackgroundCol = convertColour(getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
 
     auto selectedColJuce = getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId);
     selectedOutlineCol = convertColour(selectedColJuce);

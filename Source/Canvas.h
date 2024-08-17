@@ -284,6 +284,7 @@ public:
 
     // guiObjectInternalOutlineColour
     NVGcolor guiObjectInternalOutlineCol;
+    NVGcolor guiObjectBackgroundCol;
 
     NVGcolor textObjectBackgroundCol;
     NVGcolor transparentObjectBackgroundCol;
