@@ -13,6 +13,9 @@ class ButtonObject final : public ObjectBase {
     Value secondaryColour = SynchronousValue();
     Value sizeProperty = SynchronousValue();
 
+    NVGcolor fgCol;
+    NVGcolor bgCol;
+
     enum Mode {
         Latch,
         Toggle,
@@ -32,6 +35,15 @@ public:
         objectParameters.addParamSize(&sizeProperty, true);
         objectParameters.addParamColourFG(&primaryColour);
         objectParameters.addParamColourBG(&secondaryColour);
+
+        updateColours();
+    }
+
+    void updateColours()
+    {
+        bgCol = convertColour(Colour::fromString(secondaryColour.toString()));
+        fgCol = convertColour(Colour::fromString(primaryColour.toString()));
+        repaint();
     }
 
     void update() override
@@ -49,7 +61,7 @@ public:
             }
         }
 
-        repaint();
+        updateColours();
     }
 
     void toggleObject(Point<int> position) override
@@ -195,15 +207,7 @@ public:
     {
         auto b = getLocalBounds().toFloat();
 
-        auto foregroundColour = convertColour(Colour::fromString(primaryColour.toString()));
-        auto bgColour = Colour::fromString(secondaryColour.toString());
-        
-        auto backgroundColour = convertColour(bgColour);
-        auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
-        auto internalLineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour));
-
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), bgCol, object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
 
         b = b.reduced(1);
         auto const width = std::max(b.getWidth(), b.getHeight());
@@ -216,14 +220,14 @@ public:
 
         nvgBeginPath(nvg);
         nvgRoundedRect(nvg, outerBounds.getX(), outerBounds.getY(), outerBounds.getWidth(), outerBounds.getHeight(), Corners::objectCornerRadius * sizeReduction);
-        nvgStrokeColor(nvg, internalLineColour);
+        nvgStrokeColor(nvg, cnv->guiObjectInternalOutlineCol);
         nvgStrokeWidth(nvg, lineThickness);
         nvgStroke(nvg);
 
         // Fill ellipse if bangState is true
         if (state) {
             auto innerBounds = b.reduced((width - lineOuter + lineThickness) * sizeReduction);
-            nvgFillColor(nvg, foregroundColour);
+            nvgFillColor(nvg, fgCol);
             nvgFillRoundedRect(nvg, innerBounds.getX(), innerBounds.getY(), innerBounds.getWidth(), innerBounds.getHeight(), (Corners::objectCornerRadius - 1) * sizeReduction);
         }
     }
@@ -247,7 +251,7 @@ public:
                 button->x_fgcolor[1] = col.getGreen();
                 button->x_fgcolor[2] = col.getBlue();
             }
-            repaint();
+            updateColours();
         } else if (value.refersToSameSourceAs(secondaryColour)) {
             auto col = Colour::fromString(secondaryColour.toString());
             if (auto button = ptr.get<t_fake_button>()) {
@@ -255,7 +259,7 @@ public:
                 button->x_bgcolor[1] = col.getGreen();
                 button->x_bgcolor[2] = col.getBlue();
             }
-            repaint();
+            updateColours();
         }
     }
 
@@ -264,12 +268,12 @@ public:
         switch (symbol) {
         case hash("bgcolor"): {
             setParameterExcludingListener(secondaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
-            repaint();
+            updateColours();
             break;
         }
         case hash("fgcolor"): {
             setParameterExcludingListener(primaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
-            repaint();
+            updateColours();
             break;
         }
         case hash("float"): {
