@@ -264,9 +264,6 @@ public:
     NVGImage resizeGOPHandleImage;
     NVGImage presentationShadowImage;
 
-    NVGImage objectFlag;
-    NVGImage objectFlagSelected;
-
     Array<juce::WeakReference<NVGComponent>> drawables;
 
     NVGcolor canvasBackgroundCol;
@@ -279,11 +276,13 @@ public:
 
     // objectOutlineColourId
     NVGcolor objectOutlineCol;
+    NVGcolor outlineCol;
 
     NVGcolor commentTextCol;
 
     // guiObjectInternalOutlineColour
     NVGcolor guiObjectInternalOutlineCol;
+    NVGcolor guiObjectBackgroundCol;
 
     NVGcolor textObjectBackgroundCol;
     NVGcolor transparentObjectBackgroundCol;

@@ -449,7 +449,7 @@ public:
 
         panel.addSection("Active Themes", { primaryThemeSelector, secondaryThemeSelector });
 
-        Array<Value*> straightConnectionValues, connectionStyle, connectionLook, ioletSpacingEdge, squareIolets, squareObjectCorners;
+        Array<Value*> straightConnectionValues, connectionStyle, connectionLook, ioletSpacingEdge, squareIolets, squareObjectCorners, objectFlagOutlined;
 
         for (int i = 0; i < 2; i++) {
             auto const& themeName = PlugDataLook::selectedThemes[i];
@@ -465,6 +465,7 @@ public:
             swatch["iolet_spacing_edge"].referTo(themeTree.getPropertyAsValue("iolet_spacing_edge", nullptr));
             swatch["square_iolets"].referTo(themeTree.getPropertyAsValue("square_iolets", nullptr));
             swatch["square_object_corners"].referTo(themeTree.getPropertyAsValue("square_object_corners", nullptr));
+            swatch["object_flag_outlined"].referTo(themeTree.getPropertyAsValue("object_flag_outlined", nullptr));
 
             swatch["straight_connections"].addListener(this);
             swatch["connection_style"].addListener(this);
@@ -473,6 +474,7 @@ public:
             swatch["iolet_spacing_edge"].addListener(this);
             swatch["square_iolets"].addListener(this);
             swatch["square_object_corners"].addListener(this);
+            swatch["object_flag_outlined"].addListener(this);
 
             straightConnectionValues.add(&swatch["straight_connections"]);
             connectionStyle.add(&swatch["connection_style"]);
@@ -481,12 +483,17 @@ public:
             ioletSpacingEdge.add(&swatch["iolet_spacing_edge"]);
             squareIolets.add(&swatch["square_iolets"]);
             squareObjectCorners.add(&swatch["square_object_corners"]);
+            objectFlagOutlined.add(&swatch["object_flag_outlined"]);
 
         }
 
         auto* useObjectCorners = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Object corners", squareObjectCorners, { "Round", "Square" });
         allPanels.add(useObjectCorners);
         addAndMakeVisible(*useObjectCorners);
+
+        auto* useObjectFlagOutlined = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Object flag style", objectFlagOutlined, { "Filled", "Outlined" });
+        allPanels.add(useObjectFlagOutlined);
+        addAndMakeVisible(*useObjectFlagOutlined);
 
         auto* useIoletCorners = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Iolet corners", squareIolets, { "Round", "Square" });
         allPanels.add(useIoletCorners);
@@ -508,7 +515,7 @@ public:
         allPanels.add(useConnectionStyle);
         addAndMakeVisible(*useConnectionStyle);
 
-        panel.addSection("Object & Connection Look", {useObjectCorners, useIoletCorners, useIoletSpacingEdge, useStraightConnections, useConnectionLook, useConnectionStyle });
+        panel.addSection("Object & Connection Look", {useObjectCorners, useObjectFlagOutlined, useIoletCorners, useIoletSpacingEdge, useStraightConnections, useConnectionLook, useConnectionStyle });
 
         // Create the panels by category
         for (auto const& [sectionName, sectionColours] : panels) {
@@ -546,7 +553,8 @@ public:
                  || v.refersToSameSourceAs(swatches[theme]["square_iolets"])
                  || v.refersToSameSourceAs(swatches[theme]["square_object_corners"])
                  || v.refersToSameSourceAs(swatches[theme]["connection_look"])
-                 || v.refersToSameSourceAs(swatches[theme]["connection_style"]) )
+                 || v.refersToSameSourceAs(swatches[theme]["connection_style"])
+                 || v.refersToSameSourceAs(swatches[theme]["object_flag_outlined"]) )
                  {
                 if(v.refersToSameSourceAs(swatches[theme]["iolet_spacing_edge"]))
                     ioletGeometryNeedsUpdate = true;
@@ -571,6 +579,8 @@ public:
                     theme.setProperty("square_iolets",  v.toString().getIntValue(), nullptr);
                 } else if (v.refersToSameSourceAs(swatches[themeName]["square_object_corners"])) {
                     theme.setProperty("square_object_corners",  v.toString().getIntValue(), nullptr);
+                } else if (v.refersToSameSourceAs(swatches[themeName]["object_flag_outlined"])) {
+                    theme.setProperty("object_flag_outlined",  v.toString().getIntValue(), nullptr);
                 }
             }
 

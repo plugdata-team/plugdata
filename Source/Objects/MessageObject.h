@@ -18,15 +18,6 @@ class MessageObject final : public ObjectBase
     bool isDown = false;
     bool isLocked = false;
 
-    NVGcolor backgroundColour;
-    NVGcolor selectedOutlineColour;
-    Colour selectedColour;
-    NVGcolor outlineColour;
-    Colour guiOutlineCol;
-    Colour flagCol;
-
-    NVGImage flagImage;
-
 public:
     MessageObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
@@ -155,58 +146,27 @@ public:
         auto b = bounds.toFloat();
         auto sb = b.reduced(0.5f); // reduce size of background to stop AA edges from showing through
 
-        // Background
-        nvgDrawRoundedRect(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(), backgroundColour, backgroundColour, Corners::objectCornerRadius);
+        auto bgCol = isDown ? cnv->outlineCol : cnv->guiObjectBackgroundCol;
 
-        auto width = getWidth();
-        auto height = getHeight();
+        // Draw background
+        nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
+                              bgCol, bgCol, bgCol,
+                              Corners::objectCornerRadius, ObjectFlagType::FlagMessage, PlugDataLook::getUseFlagOutline());
 
-        auto pixelScale = cnv->getRenderScale();
-        auto zoom = cnv->isZooming ? 2.0f : getValue<float>(cnv->zoomScale);
+        auto flagCol = isDown && ::getValue<bool>(object->locked) ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol;
+        auto outlineCol = object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
 
-        auto const flagArea = Point<int>(width * pixelScale * zoom, height * pixelScale * zoom);
-
-        if (flagImage.needsUpdate(flagArea.x, flagArea.y)) {
-            flagImage = NVGImage(nvg, flagArea.x, flagArea.y, [this, pixelScale, zoom, sb, width, height](Graphics &g) {
-
-                int d = 6;
-                g.addTransform(AffineTransform::scale(pixelScale * zoom, pixelScale * zoom));
-                auto b = Rectangle<int>(0, 0, width, height);
-                // use the path with a hole in it to exclude the inner rounded rect from painting
-                Path outerArea;
-                outerArea.addRoundedRectangle(sb, Corners::objectCornerRadius);
-
-                float bRight = b.getRight(); // offset to make it go completely under outline
-                float bY = b.getY();
-                float bBottom = b.getBottom();
-
-                g.reduceClipRegion(outerArea);
-
-                // draw rectangle when mouse down
-                if (isDown) {
-                    g.setColour(guiOutlineCol);
-                    g.fillRect(b.getX(), b.getY(), b.getWidth(), d);
-                    g.fillRect(b.getRight() - d, b.getY(), d, b.getHeight());
-                    g.fillRect(b.getX(), b.getBottom() - d, b.getWidth(), d);
-                    g.fillRect(b.getX(), b.getY(), d, b.getHeight());
-                }
-
-                // draw flag
-                Path flag;
-                flag.startNewSubPath(bRight, bY);
-                flag.lineTo(bRight - d, bY + d);
-                flag.lineTo(bRight - d, bBottom - d);
-                flag.lineTo(bRight, bBottom);
-                flag.closeSubPath();
-
-                g.setColour(isDown && ::getValue<bool>(object->locked) ? selectedColour : flagCol);
-                g.fillPath(flag);
-            });
+        // Draw highlight around inner area when box is clicked
+        // We do this by drawing an inner area that is bright, while changing the background colour darker
+        if (isDown) {
+            auto dB = bounds.reduced(5 );
+            nvgDrawRoundedRect(nvg, dB.getX(), dB.getY(), dB.getWidth(), dB.getHeight(), cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, 0);
         }
 
-        flagImage.render(nvg, getLocalBounds());
-
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        // Draw outline & flag with shader
+        nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
+                              nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
+                              Corners::objectCornerRadius, ObjectFlagType::FlagMessage, PlugDataLook::getUseFlagOutline());
 
         if (editor) {
             imageRenderer.renderJUCEComponent(nvg, *editor, getImageScale());
@@ -240,13 +200,6 @@ public:
 
     void lookAndFeelChanged() override
     {
-        backgroundColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
-        selectedColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId);
-        selectedOutlineColour = convertColour(selectedColour);
-        outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
-        flagCol = cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour);
-        guiOutlineCol = cnv->editor->getLookAndFeel().findColour(PlugDataColour::outlineColourId);
-
         updateTextLayout();
     }
 
@@ -319,7 +272,6 @@ public:
 
         if (isLocked) {
             isDown = true;
-            flagImage.setDirty();
             repaint();
 
             // startEdition();
@@ -338,7 +290,6 @@ public:
     void mouseUp(MouseEvent const& e) override
     {
         isDown = false;
-        flagImage.setDirty();
         repaint();
     }
 

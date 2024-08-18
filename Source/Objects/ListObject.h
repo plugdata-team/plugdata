@@ -13,11 +13,6 @@ class ListObject final : public ObjectBase, public KeyListener{
     Value max = SynchronousValue(0.0f);
     Value sizeProperty = SynchronousValue();
 
-    NVGcolor backgroundColour;
-    NVGcolor selectedOutlineColour;
-    Colour selectedOutlineCol;
-    NVGcolor outlineColour;
-
     bool editorActive = false;
 
 public:
@@ -177,15 +172,22 @@ public:
         auto b = getLocalBounds().toFloat();
         auto sb = b.reduced(0.5f);
 
-        nvgDrawRoundedRect(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(), backgroundColour, backgroundColour, Corners::objectCornerRadius);
+        // Draw background
+        nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
+                                cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol,
+                                Corners::objectCornerRadius, ObjectFlagType::FlagTopBottom, PlugDataLook::getUseFlagOutline());
 
         listLabel.render(nvg);
 
-        // draw flag
+        // Draw outline & flag
         bool highlighted = editorActive && getValue<bool>(object->locked);
-        atomHelper.drawTriangleFlag(nvg, highlighted, true);
+        auto flagCol = highlighted ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol;
+        auto outlineCol = object->isSelected() || editorActive ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), (object->isSelected() || highlighted) ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        // Fill the internal of the shape with transparent colour, draw outline & flag with shader
+        nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
+                                nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
+                                Corners::objectCornerRadius, ObjectFlagType::FlagTopBottom, PlugDataLook::getUseFlagOutline());
     }
 
     void lookAndFeelChanged() override
@@ -193,11 +195,6 @@ public:
         listLabel.setColour(Label::textWhenEditingColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
         listLabel.setColour(Label::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
         listLabel.setColour(TextEditor::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
-
-        backgroundColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
-        selectedOutlineCol = cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId);
-        selectedOutlineColour = convertColour(selectedOutlineCol);
-        outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 
         repaint();
     }
