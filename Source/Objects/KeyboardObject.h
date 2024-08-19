@@ -4,7 +4,6 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-
 // ELSE keyboard
 class KeyboardObject final : public ObjectBase
     , public Timer {
@@ -357,10 +356,8 @@ public:
                 setParameterExcludingListener(toggleMode, atoms[0].getFloat());
         }
         case hash("flush"): {
-            // It's not clear if flush should only clear active toggled notes, or all notes off also?
-            // Let's do both to be safe
-            //keyboard.allNotesOff(0);
-            //keyboard.resetToggledKeys();
+            
+            resetToggledKeys();
         }
         default:
             break;
