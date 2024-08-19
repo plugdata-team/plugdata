@@ -502,9 +502,10 @@ void Object::updateIoletGeometry()
     // IOLET layout for vanilla style (iolets in corners of objects)
     if (PlugDataLook::getUseIoletSpacingEdge()) {
         auto vanillaIoletBounds = getLocalBounds();
-        vanillaIoletBounds.removeFromLeft(margin);
-        vanillaIoletBounds.removeFromRight(margin);
-        auto objectWdith = vanillaIoletBounds.getWidth() + 0.5f; //FIXME: the right most iolet looks not right otherwise
+        auto marginOffset = Corners::objectCornerRadius == 0.0f;
+        vanillaIoletBounds.removeFromLeft(margin - marginOffset);
+        vanillaIoletBounds.removeFromRight(margin - marginOffset);
+        auto objectWidth = vanillaIoletBounds.getWidth() + 0.5f; //FIXME: the right most iolet looks not right otherwise
 
         int inletIndex = 0;
         int outletIndex = 0;
@@ -512,9 +513,9 @@ void Object::updateIoletGeometry()
             bool const isInlet = iolet->isInlet;
             float const yPosition = (isInlet ? margin + 1 : getHeight() - margin) - (ioletSize / 2.0f);
 
-            auto distributeIolets = [ioletSize, objectWdith, vanillaIoletBounds, yPosition](Iolet* iolet, int ioletIndex, int totalIolets) {
+            auto distributeIolets = [ioletSize, objectWidth, vanillaIoletBounds, yPosition](Iolet* iolet, int ioletIndex, int totalIolets) {
                 auto allOutLetWidth = totalIolets * ioletSize;
-                auto spacing = ioletIndex != 0 ? (objectWdith - allOutLetWidth) / static_cast<float>(totalIolets - 1) : 0;
+                auto spacing = ioletIndex != 0 ? (objectWidth - allOutLetWidth) / static_cast<float>(totalIolets - 1) : 0;
                 auto ioletOffset = ioletIndex != 0 ? ioletSize * ioletIndex : 0;
                 iolet->setBounds(vanillaIoletBounds.getX() + (spacing * ioletIndex) + ioletOffset, yPosition, ioletSize, ioletSize);
             };
