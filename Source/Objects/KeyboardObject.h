@@ -200,9 +200,11 @@ public:
     {
         auto numWhiteKeys = getNumWhiteKeys();
         auto newKeyWidth = static_cast<int>(getWidth() / numWhiteKeys);
-        keyWidth.setValue(newKeyWidth);
         
-        object->setSize(static_cast<int>(numWhiteKeys * getWhiteKeyWidth()) + Object::doubleMargin, object->getHeight());
+        if(newKeyWidth > 7) {
+            keyWidth.setValue(newKeyWidth);
+            object->setSize(static_cast<int>(numWhiteKeys * getWhiteKeyWidth()) + Object::doubleMargin, object->getHeight());
+        }
     }
 
     void valueChanged(Value& value) override
