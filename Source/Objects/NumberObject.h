@@ -80,6 +80,7 @@ public:
         iemHelper.addIemParameters(objectParameters);
 
         input.setResetValue(0.0f);
+        lookAndFeelChanged();
     }
 
     void update() override
@@ -103,6 +104,13 @@ public:
         }
 
         iemHelper.update();
+    }
+    
+    void lookAndFeelChanged() override
+    {
+        input.setColour(Label::textWhenEditingColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
+        input.setColour(Label::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
+        input.setColour(TextEditor::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
     }
 
     bool inletIsSymbol() override
