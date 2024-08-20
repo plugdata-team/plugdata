@@ -39,7 +39,7 @@ public:
         objectParameters.addParamSendSymbol(&sendSymbol);
 
         onConstrainerCreate = [this, object]() {
-            constrainer->setMinimumSize((object->minimumSize / 5.0f) * getNumWhiteKeys(), object->minimumSize);
+            updateMinimumSize();
         };
         
         startTimer(50);
@@ -232,6 +232,7 @@ public:
             octaves = std::clamp<int>(getValue<int>(octaves), 1, 11);
             if (auto obj = ptr.get<t_fake_keyboard>())
                 obj->x_octaves = getValue<int>(octaves);
+            updateMinimumSize();
             object->updateBounds();
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             auto symbol = sendSymbol.toString();
@@ -363,6 +364,14 @@ public:
         }
         default:
             break;
+        }
+    }
+        
+    void updateMinimumSize()
+    {
+        if(auto* constrainer = getConstrainer())
+        {
+            constrainer->setMinimumSize(8 * getNumWhiteKeys(), 10);
         }
     }
 
