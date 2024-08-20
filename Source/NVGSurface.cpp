@@ -475,7 +475,11 @@ void NVGSurface::setRenderThroughImage(bool shouldRenderThroughImage)
     backupImageComponent.setVisible(shouldRenderThroughImage);
     
     invalidateAll();
+    
+#if JUCE_LINUX
     detachContext();
+    initialise();
+#endif
     
 #if NANOVG_GL_IMPLEMENTATION
     glContext->setVisible(!shouldRenderThroughImage);
