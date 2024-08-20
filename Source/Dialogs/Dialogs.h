@@ -53,11 +53,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        if (!ProjectInfo::canUseSemiTransparentWindows()) {
-            g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-        } else {
-            g.setColour(Colours::black.withAlpha(0.5f));
-        }
+        g.setColour(Colours::black.withAlpha(0.5f));
 
         auto bounds = getLocalBounds().toFloat().reduced(backgroundMargin);
 
