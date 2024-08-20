@@ -111,13 +111,6 @@ Connection::~Connection()
     if (inobj) {
         inobj->removeComponentListener(this);
     }
-
-    auto* nvg = cnv->editor->nvgSurface.getRawContext();
-    if (nvg && cacheId >= 0)
-        nvgDeletePath(nvg, cacheId);
-    if (nvg && cacheId >= 0 && cableType == SignalCable) {
-        nvgDeletePath(nvg, std::numeric_limits<int32_t>::max() - cacheId);
-    }
 }
 
 void Connection::changeListenerCallback(ChangeBroadcaster* source)
@@ -136,7 +129,7 @@ void Connection::lookAndFeelChanged()
 
     if (connectionStyle != PlugDataLook::getConnectionStyle()){
         connectionStyle = PlugDataLook::getConnectionStyle();
-        cachedIsValid = false;
+        cachedPath.clear();
     }
 
     updatePath();
@@ -198,22 +191,18 @@ void Connection::render(NVGcontext* nvg)
     auto showActivity = cableType == DataCable && cnv->shouldShowConnectionActivity();
     nvgStrokePaint(nvg, nvgDoubleStroke(nvg, connectionColour, shadowColour, dashColor, dashSize, useGradientLook, showActivity, offset));
     nvgStrokeWidth(nvg, cableThickness);
-
-    if (!cachedIsValid)
-        nvgDeletePath(nvg, cacheId);
     
-    bool cacheHit = nvgStrokeCachedPath(nvg, cacheId);
+    bool cacheHit = cachedPath.stroke();
     if (!cacheHit) {
         auto pathFromOrigin = getPath();
         pathFromOrigin.applyTransform(AffineTransform::translation(-getX(), -getY()));
 
         setJUCEPath(nvg, pathFromOrigin);
         nvgStroke(nvg);
-        cacheId = nvgSavePath(nvg, cacheId);
+        cachedPath.save(nvg);
     }
     
     nvgRestore(nvg);
-    cachedIsValid = true;
 
     if (isSelected() && isHovering) {
         auto expandedStartHandle = isInStartReconnectHandle ? startReconnectHandle.expanded(3.0f) : startReconnectHandle;
@@ -497,7 +486,7 @@ bool Connection::intersects(Rectangle<float> toCheck, int accuracy) const
 void Connection::forceUpdate(bool updateCacheOnly)
 {
     if (updateCacheOnly) {
-        cachedIsValid = false;
+        cachedPath.clear();
     } else {
         updatePath();
     }
@@ -885,7 +874,7 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     }
 
     previousPStart = pstart;
-    cachedIsValid = false;
+    cachedPath.clear();
 
     if (currentPlan.size() <= 2) {
         updatePath();
@@ -1118,7 +1107,7 @@ void Connection::updatePath()
     clipRegion.add(startReconnectHandle.toNearestIntEdges().expanded(4));
     clipRegion.add(endReconnectHandle.toNearestIntEdges().expanded(4));
 
-    cachedIsValid = false;
+    cachedPath.clear();
 }
 
 bool Connection::intersectsRectangle(Rectangle<int> rectToIntersect)

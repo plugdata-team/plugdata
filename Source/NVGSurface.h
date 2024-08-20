@@ -455,6 +455,70 @@ private:
     bool fbDirty = false;
 };
 
+class NVGCachedPath {
+public:
+    NVGCachedPath()
+    {
+        allCachedPaths.insert(this);
+    }
+
+    ~NVGCachedPath()
+    {
+        if (cacheId != -1) {
+            nvgDeletePath(nvg, cacheId);
+            cacheId = -1;
+        }
+        allCachedPaths.erase(this);
+    }
+
+    static void clearAll(NVGcontext* nvg)
+    {
+        for (auto* buffer : allCachedPaths) {
+            if (buffer->nvg == nvg) {
+                buffer->clear();
+            }
+        }
+    }
+    
+    void clear()
+    {
+        if(cacheId != -1) {
+            nvgDeletePath(nvg, cacheId);
+            cacheId = -1;
+            nvg = nullptr;
+        }
+    }
+
+    bool isValid()
+    {
+        return cacheId != -1;
+    }
+    
+    void save(NVGcontext* ctx)
+    {
+        if(nvg == ctx && cacheId != -1) nvgDeletePath(nvg, cacheId);
+        nvg = ctx;
+        cacheId = nvgSavePath(nvg, cacheId);
+    }
+    
+    bool stroke()
+    {
+        if(!nvg || cacheId == -1) return false;
+        return nvgStrokeCachedPath(nvg, cacheId);
+    }
+    
+    bool fill()
+    {
+        if(!nvg || cacheId == -1) return false;
+        return nvgFillCachedPath(nvg, cacheId);
+    }
+
+private:
+    static inline std::set<NVGCachedPath*> allCachedPaths;
+    NVGcontext* nvg = nullptr;
+    int cacheId = -1;
+};
+
 struct NVGScopedState
 {
     NVGScopedState(NVGcontext* nvg) : nvg(nvg)

@@ -155,7 +155,7 @@ private:
 
     float mouseDownPosition = 0;
 
-    int cacheId = -1;
+    NVGCachedPath cachedPath;
     pd::WeakReference ptr;
 
     pd::Atom lastValue[8];
