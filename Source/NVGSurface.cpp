@@ -300,6 +300,11 @@ void NVGSurface::render()
 #endif
 
     auto startTime = Time::getMillisecondCounter();
+    if(backupImageComponent.isVisible() && (startTime - lastRenderTime) < 32)
+    {
+        return; // When rendering through juce::image, limit framerate to 30 fps
+    }
+    lastRenderTime = startTime;
     
     if(!getPeer()) {
         return;
@@ -469,8 +474,6 @@ void NVGSurface::setRenderThroughImage(bool shouldRenderThroughImage)
     backupImageComponent.setVisible(shouldRenderThroughImage);
     
     invalidateAll();
-    detachContext();
-    initialise();
     
 #if NANOVG_GL_IMPLEMENTATION
     glContext->setVisible(!shouldRenderThroughImage);
