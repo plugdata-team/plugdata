@@ -162,6 +162,12 @@ void OSUtils::MTLDeleteView(void* view)
     [viewToRemove release];
 }
 
+void OSUtils::MTLSetVisible(void* view, bool shouldBeVisible)
+{
+    auto* viewToShow = reinterpret_cast<NSView*>(view);
+    [viewToShow setHidden:!shouldBeVisible];
+}
+
 
 #endif
 

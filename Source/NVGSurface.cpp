@@ -341,6 +341,8 @@ void NVGSurface::render()
     
     updateBufferSize();
     
+    invalidArea = getLocalBounds();
+    
     if (!invalidArea.isEmpty()) {
         // First, draw only the invalidated region to a separate framebuffer
         // I've found that nvgScissor doesn't always clip everything, meaning that there will be graphical glitches if we don't do this
@@ -477,6 +479,8 @@ void NVGSurface::setRenderThroughImage(bool shouldRenderThroughImage)
     
 #if NANOVG_GL_IMPLEMENTATION
     glContext->setVisible(!shouldRenderThroughImage);
+#else
+    OSUtils::MTLSetVisible(getView(), !shouldRenderThroughImage);
 #endif
 }
 
