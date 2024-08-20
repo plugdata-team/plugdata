@@ -1215,10 +1215,15 @@ void Object::render(NVGcontext* nvg)
     // If autoconnect is about to happen, draw a fake inlet with a dotted outline
     if (isInitialEditorShown() && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs && getValue<bool>(editor->autoconnect)) {
         auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
-        float fakeInletBounds[4] = { 8.5f, -3.5f, 8.0f, 8.0f };
+        std::array<float, 4> fakeInletBounds = PlugDataLook::getUseIoletSpacingEdge() ? std::array<float, 4>{-8.0f, -3.0f, 18.0f, 7.0f} : std::array<float, 4>{ 8.5f, -3.5f, 8.0f, 8.0f };
         nvgBeginPath(nvg);
+        if(PlugDataLook::getUseSquareIolets()) {
+            nvgRect(nvg, fakeInletBounds[0] + fakeInletBounds[2] * 0.5f, fakeInletBounds[1] + fakeInletBounds[3] * 0.5f, fakeInletBounds[2] * 0.5f, fakeInletBounds[3] * 0.5f);
+        } else {
+            nvgEllipse(nvg, fakeInletBounds[0] + fakeInletBounds[2] * 0.5f, fakeInletBounds[1] + fakeInletBounds[3] * 0.5f, fakeInletBounds[2] * 0.5f, fakeInletBounds[3] * 0.5f);
+        }
+        
         nvgFillColor(nvg, outlet->isSignal ? cnv->sigColBrighter : cnv->dataColBrighter);
-        nvgEllipse(nvg, fakeInletBounds[0] + fakeInletBounds[2] * 0.5f, fakeInletBounds[1] + fakeInletBounds[3] * 0.5f, fakeInletBounds[2] * 0.5f, fakeInletBounds[3] * 0.5f);
         nvgFill(nvg);
 
         nvgStrokeColor(nvg, cnv->objectOutlineCol);
