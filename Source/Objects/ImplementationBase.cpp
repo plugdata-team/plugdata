@@ -178,8 +178,8 @@ void ObjectImplementationManager::handleAsyncUpdate()
     for (auto it = objectImplementations.cbegin(); it != objectImplementations.cend();) {
         auto& [ptr, implementation] = *it;
 
-        auto found = std::find_if(allImplementations.begin(), allImplementations.end(), [ptr](ObjectCanvas const& toCompare) {
-            return toCompare.obj == ptr;
+        auto found = std::find_if(allImplementations.begin(), allImplementations.end(), [p = ptr](ObjectCanvas const& toCompare) {
+            return toCompare.obj == p;
         });
 
         if (found == allImplementations.end()) {
