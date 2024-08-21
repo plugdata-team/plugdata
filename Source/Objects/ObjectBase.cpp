@@ -146,17 +146,17 @@ ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
         if(!_this) return;
         _this->object->addComponentListener(&_this->objectSizeListener);
         _this->updateLabel();
+        
+        auto objectBounds = _this->object->getObjectBounds();
+        _this->positionParameter = Array<var> { var(objectBounds.getX()), var(objectBounds.getY()) };
+        _this->positionParameter.addListener(&_this->objectSizeListener);
     });
     
     setWantsKeyboardFocus(true);
 
     setLookAndFeel(new PlugDataLook());
 
-    auto objectBounds = object->getObjectBounds();
-    positionParameter = Array<var> { var(objectBounds.getX()), var(objectBounds.getY()) };
-
     objectParameters.addParamPosition(&positionParameter);
-    positionParameter.addListener(&objectSizeListener);
 
     propertyUndoListener.onChange = [_this = SafePointer(this)]() {
         if (!_this)
