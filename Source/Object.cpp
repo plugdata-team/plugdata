@@ -1264,10 +1264,11 @@ void Object::renderIolets(NVGcontext* nvg)
     if (cnv->isGraph)
         return;
 
+    auto lastPosition = Point<int>();
     for (auto* iolet : iolets) {
-        NVGScopedState scopedState(nvg);
-        nvgTranslate(nvg, iolet->getX(), iolet->getY());
+        nvgTranslate(nvg, iolet->getX() - lastPosition.x, iolet->getY() - lastPosition.y);
         iolet->render(nvg);
+        lastPosition = iolet->getPosition();
     }
 }
 
