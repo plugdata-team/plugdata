@@ -301,6 +301,9 @@ public:
 
     virtual void render(NVGcontext* nvg)
     {
+        NVGScopedState scopedState(nvg);
+        nvgIntersectScissor(nvg, 0, 0, getWidth(), getHeight());
+        
         if(isBeingEdited())
         {
             if (!nvgCtx || nvgCtx->getContext() != nvg)
@@ -625,6 +628,9 @@ struct DraggableListNumber : public DraggableNumber {
     
     void render(NVGcontext* nvg) override
     {
+        NVGScopedState scopedState(nvg);
+        nvgIntersectScissor(nvg, 0, 0, getWidth(), getHeight());
+        
         if(isBeingEdited())
         {
             if (!nvgCtx || nvgCtx->getContext() != nvg)
