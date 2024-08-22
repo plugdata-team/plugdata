@@ -240,6 +240,10 @@ public:
 
     ObjectGrid objectGrid = ObjectGrid(this);
 
+    int lastObjectGridSize = -1;
+
+    NVGImage dotsLargeImage;
+
     Point<int> const canvasOrigin;
 
     std::unique_ptr<GraphArea> graphArea;
@@ -268,6 +272,7 @@ public:
 
     NVGcolor canvasBackgroundCol;
     NVGcolor canvasMarkingsCol;
+    Colour canvasMarkingsColJuce;
     NVGcolor presentationBackgroundCol;
     NVGcolor presentationWindowOutlineCol;
 

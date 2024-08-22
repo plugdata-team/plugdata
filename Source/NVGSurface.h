@@ -195,12 +195,12 @@ private:
 
 class NVGImage {
 public:
-    NVGImage(NVGcontext* nvg, int width, int height, std::function<void(Graphics&)> renderCall)
+    NVGImage(NVGcontext* nvg, int width, int height, std::function<void(Graphics&)> renderCall, bool repeatImage = false)
     {
         Image image = Image(Image::ARGB, width, height, true);
         Graphics g(image); // Render resize handles with JUCE, since rounded rect exclusion is hard with nanovg
         renderCall(g);
-        loadJUCEImage(nvg, image);
+        loadJUCEImage(nvg, image, repeatImage);
         allImages.insert(this);
     }
 
@@ -291,7 +291,7 @@ public:
         nvgFillRect(nvg, 0, 0, component.getWidth(), component.getHeight());
     }
 
-    void loadJUCEImage(NVGcontext* context, Image& image)
+    void loadJUCEImage(NVGcontext* context, Image& image, int repeatImage = false)
     {
         Image::BitmapData imageData(image, Image::BitmapData::readOnly);
 
@@ -302,7 +302,8 @@ public:
             nvgUpdateImage(nvg, imageId, imageData.data);
         } else {
             nvg = context;
-            imageId = nvgCreateImageARGB(nvg, width, height, NVG_IMAGE_PREMULTIPLIED, imageData.data);
+            auto flags = NVG_IMAGE_PREMULTIPLIED | (repeatImage ? NVG_IMAGE_REPEATX | NVG_IMAGE_REPEATY : 0);
+            imageId = nvgCreateImageARGB(nvg, width, height, flags, imageData.data);
             imageWidth = width;
             imageHeight = height;
         }
