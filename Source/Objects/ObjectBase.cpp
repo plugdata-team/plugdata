@@ -149,8 +149,8 @@ ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
         
         auto objectBounds = _this->object->getObjectBounds();
         _this->positionParameter = Array<var> { var(objectBounds.getX()), var(objectBounds.getY()) };
-        _this->positionParameter.addListener(&_this->objectSizeListener);
         _this->objectParameters.addParamPosition(&_this->positionParameter);
+        _this->positionParameter.addListener(&_this->objectSizeListener);
     });
     
     setWantsKeyboardFocus(true);

@@ -44,6 +44,8 @@ public:
         // if this object has already been set to null
         if (activeConnection == nullptr && connection == nullptr)
             return;
+        
+        if(editor->pluginMode || (connection && connection->inobj && getValue<bool>(connection->inobj->cnv->presentationMode))) return;
 
         auto clearSignalDisplayBuffer = [this]() {
             SignalBlock sample;

@@ -629,7 +629,7 @@ struct DraggableListNumber : public DraggableNumber {
     void render(NVGcontext* nvg) override
     {
         NVGScopedState scopedState(nvg);
-        nvgIntersectScissor(nvg, 0, 0, getWidth(), getHeight());
+        nvgIntersectScissor(nvg, 0.5f, 0.5f, getWidth() - 1, getHeight() - 1);
         
         if(isBeingEdited())
         {
