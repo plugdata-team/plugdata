@@ -195,12 +195,12 @@ private:
 
 class NVGImage {
 public:
-    NVGImage(NVGcontext* nvg, int width, int height, std::function<void(Graphics&)> renderCall)
+    NVGImage(NVGcontext* nvg, int width, int height, std::function<void(Graphics&)> renderCall, bool repeatImage = false)
     {
         Image image = Image(Image::ARGB, width, height, true);
         Graphics g(image); // Render resize handles with JUCE, since rounded rect exclusion is hard with nanovg
         renderCall(g);
-        loadJUCEImage(nvg, image);
+        loadJUCEImage(nvg, image, repeatImage);
         allImages.insert(this);
     }
 
@@ -291,35 +291,19 @@ public:
         nvgFillRect(nvg, 0, 0, component.getWidth(), component.getHeight());
     }
 
-    void loadJUCEImage(NVGcontext* context, Image& image)
+    void loadJUCEImage(NVGcontext* context, Image& image, int repeatImage = false)
     {
         Image::BitmapData imageData(image, Image::BitmapData::readOnly);
 
         int width = imageData.width;
         int height = imageData.height;
-        uint8* pixelData = imageData.data;
-
-        for (int y = 0; y < height; ++y) {
-            auto* scanLine = (uint32*)imageData.getLinePointer(y);
-
-            for (int x = 0; x < width; ++x) {
-                uint32 argb = scanLine[x];
-
-                uint8 a = argb >> 24;
-                uint8 r = argb >> 16;
-                uint8 g = argb >> 8;
-                uint8 b = argb;
-
-                // order bytes as abgr
-                scanLine[x] = (a << 24) | (b << 16) | (g << 8) | r;
-            }
-        }
 
         if (imageId && imageWidth == width && imageHeight == height && nvg == context) {
-            nvgUpdateImage(nvg, imageId, pixelData);
+            nvgUpdateImage(nvg, imageId, imageData.data);
         } else {
             nvg = context;
-            imageId = nvgCreateImageRGBA(nvg, width, height, NVG_IMAGE_PREMULTIPLIED, pixelData);
+            auto flags = NVG_IMAGE_PREMULTIPLIED | (repeatImage ? NVG_IMAGE_REPEATX | NVG_IMAGE_REPEATY : 0);
+            imageId = nvgCreateImageARGB(nvg, width, height, flags, imageData.data);
             imageWidth = width;
             imageHeight = height;
         }

@@ -207,7 +207,8 @@ void Canvas::lookAndFeelChanged()
     auto& lnf = editor->getLookAndFeel();
     auto canvasBackgroundColJuce = lnf.findColour(PlugDataColour::canvasBackgroundColourId);
     canvasBackgroundCol = convertColour(canvasBackgroundColJuce);
-    canvasMarkingsCol = convertColour(findColour(PlugDataColour::canvasDotsColourId).interpolatedWith(canvasBackgroundColJuce, 0.2f));
+    canvasMarkingsColJuce = findColour(PlugDataColour::canvasDotsColourId).interpolatedWith(canvasBackgroundColJuce, 0.2f);
+    canvasMarkingsCol = convertColour(canvasMarkingsColJuce);
 
     // Object colours
     objectOutlineCol = convertColour(lnf.findColour(PlugDataColour::objectOutlineColourId));
@@ -266,12 +267,13 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
     auto zoom = getValue<float>(zoomScale);
 
     int const resizerLogicalSize = 9;
-    int const resizerBufferSize = resizerLogicalSize * pixelScale * zoom;
+    float const viewScale = pixelScale * zoom;
+    int const resizerBufferSize = resizerLogicalSize * viewScale;
 
-    auto updateResizeHandleIfNeeded = [this, resizerBufferSize, pixelScale, zoom, nvg](NVGImage& handleImage, Colour colour) {
+    auto updateResizeHandleIfNeeded = [this, resizerBufferSize, viewScale, zoom, nvg](NVGImage& handleImage, Colour colour) {
         if (handleImage.needsUpdate(resizerBufferSize, resizerBufferSize)) {
-            handleImage = NVGImage(nvg, resizerBufferSize, resizerBufferSize, [pixelScale, zoom, colour](Graphics &g) {
-                g.addTransform(AffineTransform::scale(pixelScale * zoom, pixelScale * zoom));
+            handleImage = NVGImage(nvg, resizerBufferSize, resizerBufferSize, [viewScale, zoom, colour](Graphics &g) {
+                g.addTransform(AffineTransform::scale(viewScale, viewScale));
                 auto b = Rectangle<int>(0, 0, 9, 9);
                 // use the path with a hole in it to exclude the inner rounded rect from painting
                 Path outerArea;
@@ -294,6 +296,70 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
 
     updateResizeHandleIfNeeded(resizeHandleImage, findColour(PlugDataColour::objectSelectedOutlineColourId));
     updateResizeHandleIfNeeded(resizeGOPHandleImage, findColour(PlugDataColour::graphAreaColourId));
+
+    auto gridLogicalSize = objectGrid.gridSize ? objectGrid.gridSize : 25;
+    auto gridSizeCommon = 300;
+    auto gridBufferSize = gridSizeCommon * pixelScale * zoom;
+
+    if (dotsLargeImage.needsUpdate(gridBufferSize, gridBufferSize) || lastObjectGridSize != gridLogicalSize){
+        lastObjectGridSize = gridLogicalSize;
+
+        dotsLargeImage = NVGImage(nvg, gridBufferSize, gridBufferSize, [this, zoom, viewScale, gridLogicalSize, gridSizeCommon](Graphics& g){
+            g.addTransform(AffineTransform::scale(viewScale, viewScale));
+
+            const int gridWidth = gridLogicalSize;
+            const int gridHeight = gridLogicalSize;
+            const float ellipseRadius = zoom < 1.0f ? jmap(zoom, 0.25f, 1.0f, 3.0f, 1.0f) : 1.0f;
+
+//#define DEBUG_DOTS
+#ifdef DEBUG_DOTS
+            g.fillAll((Colours::red).withAlpha(0.1f));
+#endif
+            int decim = 0;
+            switch (gridLogicalSize) {
+                case 10:
+                    if (zoom < 1.0f) decim = 4;
+                    if (zoom < 0.5f) decim = 6;
+                    break;
+                case 5:
+                    if (zoom < 1.0f) decim = 4;
+                    if (zoom < 0.5f) decim = 6;
+                    break;
+                case 15:
+                    if (zoom < 1.0f) decim = 4;
+                    if (zoom < 0.5f) decim = 8;
+                default:
+                    if (zoom < 1.0f) decim = 3;
+                    if (zoom < 0.5f) decim = 6;
+                    break;
+            }
+
+            auto minorDotColour = canvasMarkingsColJuce.withAlpha(zoom * 0.5f);
+            auto majorDotColour = canvasMarkingsColJuce.withAlpha(zoom * 0.8f);
+
+            g.setColour(majorDotColour);
+            // Draw ellipses on the grid
+            for (int x = 0; x <= gridSizeCommon; x += gridLogicalSize)
+            {
+                for (int y = 0; y <= gridSizeCommon; y += gridLogicalSize)
+                {
+                    if (decim != 0) {
+                        if (x % decim && y % decim)
+                            continue;
+                        g.setColour(majorDotColour);
+                        if (x % decim == 0 && y % decim == 0)
+                            g.setColour(canvasMarkingsColJuce);
+                    }
+                    // Add half smallest dot offset so the dot isn't at the edge of the texture
+                    // We remove this when we position the texture on the canvas
+                    float centerX = static_cast<float>(x) + 2.5f;
+                    float centerY = static_cast<float>(y) + 2.5f;
+                    g.fillEllipse(centerX - ellipseRadius, centerY - ellipseRadius, ellipseRadius * 2.0f, ellipseRadius * 2.0f);
+                }
+            }
+        }, true);
+        editor->nvgSurface.invalidateAll();
+    }
 
     return true;
 }
@@ -321,57 +387,23 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         nvgBeginPath(nvg);
         nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
 
-        auto gridSize = objectGrid.gridSize ? objectGrid.gridSize : 25;
-
-        if (getValue<float>(zoomScale) >= 1.0f) {
+        // Use least common multiple of grid sizes: 5,10,15,20,25,30 for texture size for now
+        // We repeat the texture on GPU, this is so the texture does not become too small for GPU processing
+        // There will be a best fit depending on CPU/GPU calcuations.
+        // But currently 300 works well on GPU.
+        auto gridSizeCommon = 300;
+        {
             NVGScopedState scopedState(nvg);
-            nvgTranslate(nvg, canvasOrigin.x % gridSize, canvasOrigin.y % gridSize); // Make sure grid aligns with origin
-            NVGpaint dots = nvgDotPattern(nvg, canvasMarkingsCol, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize, 0.8f, 0.0f);
-            nvgFillPaint(nvg, dots);
+            // offset image texture by 2.5f so no dots are on the edge of the texture
+            nvgTranslate(nvg, canvasOrigin.x - 2.5f, canvasOrigin.x - 2.5f);
+
+#ifdef DEBUG_DOTS
+            dotsLargeImage.render(nvg, Rectangle<int>(0, 0, gridSize, gridSize));
+#else
+            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, gridSizeCommon, gridSizeCommon, 0, dotsLargeImage.imageId, 1));
             nvgFill(nvg);
-        } else {
-            NVGScopedState scopedState(nvg);
+#endif
 
-            int devision = 0;
-            switch(gridSize){
-                case 5:
-                    devision = 8;
-                    break;
-                case 15:
-                    devision = 3;
-                    break;
-                case 30:
-                    devision = 5;
-                    break;
-                default:
-                    devision = 4;
-            }
-
-            auto gridDivTotal = gridSize * devision;
-            auto offset = Point<int>((canvasOrigin.x % gridDivTotal), (canvasOrigin.y % gridDivTotal));
-
-            auto minorDotColour = nvgRGBA(canvasMarkingsCol.r, canvasMarkingsCol.g, canvasMarkingsCol.b, zoom * 0.5f * 255);
-            auto majorDotColour = nvgRGBA(canvasMarkingsCol.r, canvasMarkingsCol.g, canvasMarkingsCol.b, zoom * 0.8f * 255);
-            auto scaledDotSize = 0.8f / zoom;
-
-            // Horizontal Dots
-            nvgTranslate(nvg, offset.x, offset.y); // Adjust alignment to origin
-            {
-                NVGScopedState scopedState(nvg);
-                for (int i = 0; i < devision; i++) {
-                    nvgTranslate(nvg, gridSize, 0);
-                    NVGpaint dots = nvgDotPattern(nvg, i == (devision - 1) ? majorDotColour : minorDotColour, nvgRGBA(0, 0, 0, 0), gridDivTotal, scaledDotSize, 0.0f);
-                    nvgFillPaint(nvg, dots);
-                    nvgFill(nvg);
-                }
-            }
-            // Vertical Dots
-            for (int i = 0; i < devision; i++) {
-                nvgTranslate(nvg, 0, gridSize);
-                NVGpaint dots = nvgDotPattern(nvg, i == (devision - 1) ? majorDotColour : minorDotColour, nvgRGBA(0, 0, 0, 0), gridDivTotal, scaledDotSize, 0.0f);
-                nvgFillPaint(nvg, dots);
-                nvgFill(nvg);
-            }
         }
     }
     auto drawBorder = [this, nvg, zoom](bool bg, bool fg) {
