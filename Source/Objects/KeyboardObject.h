@@ -38,7 +38,7 @@ public:
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
         objectParameters.addParamSendSymbol(&sendSymbol);
 
-        onConstrainerCreate = [this, object]() {
+        onConstrainerCreate = [this]() {
             updateMinimumSize();
         };
         

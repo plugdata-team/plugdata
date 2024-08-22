@@ -75,7 +75,7 @@ void Iolet::render(NVGcontext* nvg)
     
     if (isLocked || !(overObject || isHovering) || (patchDownwardsOnly.get() && isInlet)) {
         auto clipBounds = object->getLocalBounds().reduced(Object::margin) - getPosition();
-        nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
+        nvgScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
     }
 
     auto innerCol = isLocked ? cnv->ioletLockedCol : isSignal ? cnv->sigCol : isGemState ? cnv->gemCol : cnv->dataCol;
