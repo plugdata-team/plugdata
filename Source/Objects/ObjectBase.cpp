@@ -459,6 +459,11 @@ float ObjectBase::getImageScale()
             topLevel = nextCnv;
         }
     }
+    if(topLevel->editor->pluginMode)
+    {
+        auto scale = std::sqrt (std::abs (topLevel->getTransform().getDeterminant()));
+        return topLevel->getRenderScale() * std::max(1.0f, scale);
+    }
     return topLevel->isZooming ? topLevel->getRenderScale() * 2.0f : topLevel->getRenderScale() * std::max(1.0f, getValue<float>(topLevel->zoomScale));
 }
 
