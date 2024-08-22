@@ -271,6 +271,7 @@ public:
     Array<juce::WeakReference<NVGComponent>> drawables;
 
     NVGcolor canvasBackgroundCol;
+    Colour canvasBackgroundColJuce;
     NVGcolor canvasMarkingsCol;
     Colour canvasMarkingsColJuce;
     NVGcolor presentationBackgroundCol;

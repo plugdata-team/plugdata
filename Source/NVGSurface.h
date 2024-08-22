@@ -195,12 +195,17 @@ private:
 
 class NVGImage {
 public:
-    NVGImage(NVGcontext* nvg, int width, int height, std::function<void(Graphics&)> renderCall, bool repeatImage = false)
+    enum NVGImageFlags {
+        RepeatImage = 1 << 0,
+        DontClear = 1 << 1
+    };
+
+    NVGImage(NVGcontext* nvg, int width, int height, std::function<void(Graphics&)> renderCall, int imageFlags = 0)
     {
-        Image image = Image(Image::ARGB, width, height, true);
+        Image image = Image(Image::ARGB, width, height, !(imageFlags & NVGImageFlags::DontClear));
         Graphics g(image); // Render resize handles with JUCE, since rounded rect exclusion is hard with nanovg
         renderCall(g);
-        loadJUCEImage(nvg, image, repeatImage);
+        loadJUCEImage(nvg, image, imageFlags & NVGImageFlags::RepeatImage);
         allImages.insert(this);
     }
 
