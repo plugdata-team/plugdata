@@ -272,7 +272,7 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
 
     auto updateResizeHandleIfNeeded = [this, resizerBufferSize, viewScale, zoom, nvg](NVGImage& handleImage, Colour colour) {
         if (handleImage.needsUpdate(resizerBufferSize, resizerBufferSize)) {
-            handleImage = NVGImage(nvg, resizerBufferSize, resizerBufferSize, [viewScale, zoom, colour](Graphics &g) {
+            handleImage = NVGImage(nvg, resizerBufferSize, resizerBufferSize, [viewScale, colour](Graphics &g) {
                 g.addTransform(AffineTransform::scale(viewScale, viewScale));
                 auto b = Rectangle<int>(0, 0, 9, 9);
                 // use the path with a hole in it to exclude the inner rounded rect from painting
@@ -294,8 +294,8 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
         }
     };
 
-    updateResizeHandleIfNeeded(resizeHandleImage, findColour(PlugDataColour::objectSelectedOutlineColourId));
-    updateResizeHandleIfNeeded(resizeGOPHandleImage, findColour(PlugDataColour::graphAreaColourId));
+    updateResizeHandleIfNeeded(resizeHandleImage, editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+    updateResizeHandleIfNeeded(resizeGOPHandleImage, editor->getLookAndFeel().findColour(PlugDataColour::graphAreaColourId));
 
     auto gridLogicalSize = objectGrid.gridSize ? objectGrid.gridSize : 25;
     auto gridSizeCommon = 300;
@@ -306,9 +306,6 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
 
         dotsLargeImage = NVGImage(nvg, gridBufferSize, gridBufferSize, [this, zoom, viewScale, gridLogicalSize, gridSizeCommon](Graphics& g){
             g.addTransform(AffineTransform::scale(viewScale, viewScale));
-
-            const int gridWidth = gridLogicalSize;
-            const int gridHeight = gridLogicalSize;
             const float ellipseRadius = zoom < 1.0f ? jmap(zoom, 0.25f, 1.0f, 3.0f, 1.0f) : 1.0f;
 
 //#define DEBUG_DOTS
@@ -317,25 +314,28 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, i
 #endif
             int decim = 0;
             switch (gridLogicalSize) {
-                case 10:
-                    if (zoom < 1.0f) decim = 4;
-                    if (zoom < 0.5f) decim = 6;
-                    break;
                 case 5:
+                case 10:
                     if (zoom < 1.0f) decim = 4;
                     if (zoom < 0.5f) decim = 6;
                     break;
                 case 15:
                     if (zoom < 1.0f) decim = 4;
                     if (zoom < 0.5f) decim = 8;
-                default:
+                    break;
+                case 20:
+                case 25:
                     if (zoom < 1.0f) decim = 3;
                     if (zoom < 0.5f) decim = 6;
                     break;
+                case 30:
+                    if (zoom < 1.0f) decim = 12;
+                    if (zoom < 0.5f) decim = 12;
+                    break;
             }
 
-            auto minorDotColour = canvasMarkingsColJuce.withAlpha(zoom * 0.5f);
-            auto majorDotColour = canvasMarkingsColJuce.withAlpha(zoom * 0.8f);
+            auto minorDotColour = canvasMarkingsColJuce.withAlpha(std::min(zoom * 0.8f, 1.0f));
+            auto majorDotColour = canvasMarkingsColJuce.withAlpha(std::min(zoom * 0.8f, 1.0f));
 
             g.setColour(majorDotColour);
             // Draw ellipses on the grid
