@@ -297,29 +297,12 @@ public:
 
         int width = imageData.width;
         int height = imageData.height;
-        uint8* pixelData = imageData.data;
-
-        for (int y = 0; y < height; ++y) {
-            auto* scanLine = (uint32*)imageData.getLinePointer(y);
-
-            for (int x = 0; x < width; ++x) {
-                uint32 argb = scanLine[x];
-
-                uint8 a = argb >> 24;
-                uint8 r = argb >> 16;
-                uint8 g = argb >> 8;
-                uint8 b = argb;
-
-                // order bytes as abgr
-                scanLine[x] = (a << 24) | (b << 16) | (g << 8) | r;
-            }
-        }
 
         if (imageId && imageWidth == width && imageHeight == height && nvg == context) {
-            nvgUpdateImage(nvg, imageId, pixelData);
+            nvgUpdateImage(nvg, imageId, imageData.data);
         } else {
             nvg = context;
-            imageId = nvgCreateImageRGBA(nvg, width, height, NVG_IMAGE_PREMULTIPLIED, pixelData);
+            imageId = nvgCreateImageARGB(nvg, width, height, NVG_IMAGE_PREMULTIPLIED, imageData.data);
             imageWidth = width;
             imageHeight = height;
         }
