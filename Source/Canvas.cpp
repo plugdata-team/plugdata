@@ -204,22 +204,23 @@ Canvas::~Canvas()
 void Canvas::lookAndFeelChanged()
 {
     // Canvas colours
-    auto canvasBackgroundColJuce = getLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId);
+    auto& lnf = editor->getLookAndFeel();
+    auto canvasBackgroundColJuce = lnf.findColour(PlugDataColour::canvasBackgroundColourId);
     canvasBackgroundCol = convertColour(canvasBackgroundColJuce);
     canvasMarkingsCol = convertColour(findColour(PlugDataColour::canvasDotsColourId).interpolatedWith(canvasBackgroundColJuce, 0.2f));
 
     // Object colours
-    objectOutlineCol = convertColour(getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
-    outlineCol = convertColour(getLookAndFeel().findColour(PlugDataColour::outlineColourId));
-    textObjectBackgroundCol = convertColour(getLookAndFeel().findColour(PlugDataColour::textObjectBackgroundColourId));
+    objectOutlineCol = convertColour(lnf.findColour(PlugDataColour::objectOutlineColourId));
+    outlineCol = convertColour(lnf.findColour(PlugDataColour::outlineColourId));
+    textObjectBackgroundCol = convertColour(lnf.findColour(PlugDataColour::textObjectBackgroundColourId));
     ioletLockedCol = convertColour(canvasBackgroundColJuce.contrasting(0.5f));
 
-    commentTextCol = convertColour(getLookAndFeel().findColour(PlugDataColour::commentTextColourId));
+    commentTextCol = convertColour(lnf.findColour(PlugDataColour::commentTextColourId));
 
-    guiObjectInternalOutlineCol = convertColour(getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour));
-    guiObjectBackgroundCol = convertColour(getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
+    guiObjectInternalOutlineCol = convertColour(lnf.findColour(PlugDataColour::guiObjectInternalOutlineColour));
+    guiObjectBackgroundCol = convertColour(lnf.findColour(PlugDataColour::guiObjectBackgroundColourId));
 
-    auto selectedColJuce = getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId);
+    auto selectedColJuce = lnf.findColour(PlugDataColour::objectSelectedOutlineColourId);
     selectedOutlineCol = convertColour(selectedColJuce);
     transparentObjectBackgroundCol = convertColour(canvasBackgroundColJuce.contrasting(0.35f).withAlpha(0.1f));
     indexTextCol = convertColour(selectedColJuce.contrasting());
@@ -229,18 +230,18 @@ void Canvas::lookAndFeelChanged()
     lassoOutlineCol = convertColour(canvasBackgroundColJuce.interpolatedWith(selectedColJuce, 0.65f));
 
     // Presentation mode colors
-    auto presentationBackgroundColJuce = findColour(PlugDataColour::presentationBackgroundColourId);
+    auto presentationBackgroundColJuce = lnf.findColour(PlugDataColour::presentationBackgroundColourId);
     presentationBackgroundCol = convertColour(presentationBackgroundColJuce);
     presentationWindowOutlineCol = convertColour(presentationBackgroundColJuce.contrasting(0.3f));
 
     // Connection / Iolet colours
-    auto dataColJuce = getLookAndFeel().findColour(PlugDataColour::dataColourId);
+    auto dataColJuce = lnf.findColour(PlugDataColour::dataColourId);
     dataCol = convertColour(dataColJuce);
-    auto sigColJuce = getLookAndFeel().findColour(PlugDataColour::signalColourId);
+    auto sigColJuce = lnf.findColour(PlugDataColour::signalColourId);
     sigCol = convertColour(sigColJuce);
-    auto gemColJuce = getLookAndFeel().findColour(PlugDataColour::gemColourId);
+    auto gemColJuce = lnf.findColour(PlugDataColour::gemColourId);
     gemCol = convertColour(gemColJuce);
-    auto baseColJuce = findColour(PlugDataColour::connectionColourId);
+    auto baseColJuce = lnf.findColour(PlugDataColour::connectionColourId);
     baseCol = convertColour(baseColJuce);
 
     dataColBrighter = convertColour(dataColJuce.brighter());
