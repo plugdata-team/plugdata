@@ -103,7 +103,8 @@ void Object::initialise()
     presentationMode.referTo(cnv->presentationMode);
 
     hvccMode.referTo(SettingsFile::getInstance()->getValueTree(), Identifier("hvcc_mode"), nullptr, false);
-
+    patchDownwardsOnly.referTo(SettingsFile::getInstance()->getValueTree(), Identifier("patch_downwards_only"), nullptr);
+    
     presentationMode.addListener(this);
     locked.addListener(this);
     commandLocked.addListener(this);
@@ -1199,16 +1200,14 @@ void Object::render(NVGcontext* nvg)
         nvgFillRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
     }
 
+    nvgTranslate(nvg, margin, margin);
+    
     if (gui) {
-        NVGScopedState scopedState(nvg);
-        nvgTranslate(nvg, margin, margin);
         gui->render(nvg);
     }
 
     if (newObjectEditor) {
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), cnv->textObjectBackgroundCol, isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
-        
-        nvgTranslate(nvg, margin, margin);
+        nvgDrawRoundedRect(nvg, 0, 0, b.getWidth(), b.getHeight(), cnv->textObjectBackgroundCol, isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
         textEditorRenderer.renderJUCEComponent(nvg, *newObjectEditor, getValue<float>(cnv->zoomScale) * cnv->getRenderScale());
     }
 
@@ -1230,6 +1229,8 @@ void Object::render(NVGcontext* nvg)
         nvgStrokeWidth(nvg, 1.0f);
         nvgStroke(nvg);
     }
+    
+    nvgTranslate(nvg, -margin, -margin);
 
     if (!isHvccCompatible) {
         NVGScopedState scopedState(nvg);
@@ -1263,6 +1264,16 @@ void Object::renderIolets(NVGcontext* nvg)
 {
     if (cnv->isGraph)
         return;
+    
+    if (getValue<bool>(locked) || !drawIoletExpanded) {
+        auto clipBounds = getLocalBounds().reduced(Object::margin);
+        nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
+    }
+    else if(patchDownwardsOnly)
+    {
+        auto clipBounds = getLocalBounds().reduced(Object::margin);
+        nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight() + Object::doubleMargin);
+    }
 
     auto lastPosition = Point<int>();
     for (auto* iolet : iolets) {
