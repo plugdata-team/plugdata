@@ -75,7 +75,13 @@ void Iolet::render(NVGcontext* nvg)
     
     if (isLocked || !(overObject || isHovering) || (patchDownwardsOnly.get() && isInlet)) {
         auto clipBounds = object->getLocalBounds().reduced(Object::margin) - getPosition();
-        nvgScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
+        // Doing regular scissor is cheaper, so we prefer that unless we need it for splitview
+        if(cnv->editor->getTabComponent().getVisibleCanvases().size() == 1) {
+            nvgScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
+        }
+        else {
+            nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
+        }
     }
 
     auto innerCol = isLocked ? cnv->ioletLockedCol : isSignal ? cnv->sigCol : isGemState ? cnv->gemCol : cnv->dataCol;
