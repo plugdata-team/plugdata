@@ -161,7 +161,7 @@ public:
 
         Path p;
         p.addRoundedRectangle(resetButtonBounds.reduced(3.0f), Corners::largeCornerRadius);
-        StackShadow::renderDropShadow(hash("search_panel_reset_button") g, p, Colour(0, 0, 0).withAlpha(0.4f), 7);
+        StackShadow::renderDropShadow(hash("search_panel_reset_button"), g, p, Colour(0, 0, 0).withAlpha(0.4f), 7);
 
         g.setColour(findColour(PlugDataColour::panelForegroundColourId));
         g.fillRoundedRectangle(resetButtonBounds, Corners::largeCornerRadius);
