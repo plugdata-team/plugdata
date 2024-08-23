@@ -53,10 +53,10 @@ public:
             lastTextHash = textHash;
             lastScale = scale;
             updateColour = false;
+        } else {
+            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, image.getImageId(), 1.0f));
+            nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
         }
-
-        nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth() + 1, getHeight(), 0, image.getImageId(), 1.0f));
-        nvgFillRect(nvg, 0, 0, getWidth() + 1, getHeight());
     }
         
     void colourChanged() override
