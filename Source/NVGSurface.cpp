@@ -19,7 +19,7 @@ using namespace juce::gl;
 #include "PluginEditor.h"
 #include "PluginProcessor.h"
 
-#define ENABLE_FPS_COUNT 1
+#define ENABLE_FPS_COUNT 0
 
 class FrameTimer {
 public:
@@ -29,9 +29,9 @@ public:
         prevTime = startTime;
     }
 
-    void render(NVGcontext* nvg, float scale)
+    void render(NVGcontext* nvg, int width, int height, float scale)
     {
-        nvgBeginFrame(nvg, 40, 22, scale);
+        nvgBeginFrame(nvg, width, height, scale);
         
         nvgFillColor(nvg, nvgRGBA(40, 40, 40, 255));
         nvgFillRect(nvg, 0, 0, 40, 22);
@@ -357,7 +357,7 @@ void NVGSurface::render()
         nvgEndFrame(nvg);
         
 #if ENABLE_FPS_COUNT
-        frameTimer->render(nvg, pixelScale);
+        frameTimer->render(nvg, getWidth(), getHeight(), pixelScale);
 #endif
 
         if(renderThroughImage)
