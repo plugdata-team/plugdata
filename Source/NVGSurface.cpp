@@ -29,8 +29,10 @@ public:
         prevTime = startTime;
     }
 
-    void render(NVGcontext* nvg)
+    void render(NVGcontext* nvg, float scale)
     {
+        nvgBeginFrame(nvg, 40, 22, scale);
+        
         nvgFillColor(nvg, nvgRGBA(40, 40, 40, 255));
         nvgFillRect(nvg, 0, 0, 40, 22);
 
@@ -40,6 +42,9 @@ public:
         char fpsBuf[16];
         snprintf(fpsBuf, 16, "%d", static_cast<int>(round(1.0f / getAverageFrameTime())));
         nvgText(nvg, 7, 2, fpsBuf, nullptr);
+        
+        nvgGlobalScissor(nvg, 0, 0, 40 * scale, 22 * scale);
+        nvgEndFrame(nvg);
     }
     void addFrameTime()
     {
@@ -335,11 +340,11 @@ void NVGSurface::render()
     
     updateBufferSize();
     
+    invalidArea = getLocalBounds();
     invalidArea = invalidArea.getIntersection(getLocalBounds());
     
     if (!invalidArea.isEmpty()) {
-        // First, draw only the invalidated region to a separate framebuffer
-        // I've found that nvgScissor doesn't always clip everything, meaning that there will be graphical glitches if we don't do this
+        // Draw only the invalidated region on top of framebuffer
         nvgBindFramebuffer(invalidFBO);
         nvgViewport(0, 0, viewWidth, viewHeight);
 #if NANOVG_GL_IMPLEMENTATION
@@ -350,6 +355,10 @@ void NVGSurface::render()
         editor->renderArea(nvg, invalidArea);
         nvgGlobalScissor(nvg, invalidArea.getX() * pixelScale, invalidArea.getY() * pixelScale, invalidArea.getWidth() * pixelScale, invalidArea.getHeight() * pixelScale);
         nvgEndFrame(nvg);
+        
+#if ENABLE_FPS_COUNT
+        frameTimer->render(nvg, pixelScale);
+#endif
 
         if(renderThroughImage)
         {
@@ -364,7 +373,7 @@ void NVGSurface::render()
     if (needsBufferSwap) {
         nvgBindFramebuffer(nullptr);
         nvgBlitFramebuffer(nvg, invalidFBO, 0, 0, viewWidth, viewHeight);
-
+        
 #ifdef NANOVG_GL_IMPLEMENTATION
         glContext->swapBuffers();
         if (resizing) {
@@ -377,12 +386,7 @@ void NVGSurface::render()
         needsBufferSwap = false;
     }
     
-    /*
-#if ENABLE_FPS_COUNT
-    nvgSave(nvg);
-    frameTimer->render(nvg);
-    nvgRestore(nvg);
-#endif */
+
     
     auto elapsed = Time::getMillisecondCounter() - startTime;
     // We update frambuffers after we call swapBuffers to make sure the frame is on time
