@@ -19,7 +19,7 @@ using namespace juce::gl;
 #include "PluginEditor.h"
 #include "PluginProcessor.h"
 
-#define ENABLE_FPS_COUNT 0
+#define ENABLE_FPS_COUNT 1
 
 class FrameTimer {
 public:
@@ -294,10 +294,6 @@ void NVGSurface::render()
     // Flush message queue before rendering, to make sure all GUIs are up-to-date
     editor->pd->flushMessageQueue();
     
-#if ENABLE_FPS_COUNT
-    frameTimer->addFrameTime();
-#endif
-
     auto startTime = Time::getMillisecondCounter();
     if(renderThroughImage && (startTime - lastRenderTime) < 32)
     {
@@ -316,6 +312,7 @@ void NVGSurface::render()
     if (!makeContextActive())
         return;
     
+
     auto pixelScale = calculateRenderScale();
     auto desktopScale = Desktop::getInstance().getGlobalScaleFactor();
     auto devicePixelScale = pixelScale / desktopScale;
@@ -338,9 +335,12 @@ void NVGSurface::render()
     auto viewHeight = getHeight() * pixelScale;
 #endif
     
+#if ENABLE_FPS_COUNT
+    frameTimer->addFrameTime();
+#endif
+    
     updateBufferSize();
     
-    invalidArea = getLocalBounds();
     invalidArea = invalidArea.getIntersection(getLocalBounds());
     
     if (!invalidArea.isEmpty()) {
