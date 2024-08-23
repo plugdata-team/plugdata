@@ -515,7 +515,7 @@ if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.21")
 
   clap_juce_extensions_plugin(TARGET plugdata_fx
       CLAP_ID "com.timothyschoen.plugdata-fx"
-      CLAP_FEATURES "effect")
+      CLAP_FEATURES "audio-effect")
 
   if(VERBOSE)
   else()
