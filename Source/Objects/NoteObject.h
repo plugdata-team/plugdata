@@ -44,12 +44,11 @@ public:
 
         addAndMakeVisible(noteEditor);
 
+        noteEditor.getProperties().set("NoBackground", true);
+        noteEditor.getProperties().set("NoOutline", true);
         noteEditor.setColour(TextEditor::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
-        noteEditor.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
-        noteEditor.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
-        noteEditor.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
         noteEditor.setColour(ScrollBar::thumbColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::scrollbarThumbColourId));
-
+        
         noteEditor.setAlwaysOnTop(true);
         noteEditor.setMultiLine(true);
         noteEditor.setReturnKeyStartsNewLine(true);
@@ -120,14 +119,27 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        if (getValue<bool>(fillBackground) || getValue<bool>(outline)) {
+            auto fillColour = getValue<bool>(fillBackground) ? convertColour(Colour::fromString(secondaryColour.toString())) : nvgRGBA(0, 0, 0, 0);
+            auto outlineColour = nvgRGBA(0, 0, 0, 0);
+            if(getValue<bool>(outline))
+            {
+                bool selected = object->isSelected() && !cnv->isGraph;
+                outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId));
+            }
+            nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), fillColour, outlineColour, Corners::objectCornerRadius);
+        }
+
         auto scale = getImageScale();
         if (needsRepaint || isEditorShown() || imageRenderer.needsUpdate(roundToInt(getWidth() * scale), roundToInt(getHeight() * scale))) {
-            imageRenderer.renderJUCEComponent(nvg, *this, scale);
+            imageRenderer.renderJUCEComponent(nvg, noteEditor, scale);
             needsRepaint = false;
         } else {
             imageRenderer.render(nvg, getLocalBounds());
         }
     }
+    
+    void paint(Graphics& g) override {};
 
     void update() override
     {
@@ -217,27 +229,6 @@ public:
     void resized() override
     {
         noteEditor.setBounds(getLocalBounds());
-    }
-
-    void paint(Graphics& g) override
-    {
-        if (getValue<bool>(fillBackground)) {
-            auto bounds = getLocalBounds();
-            // Draw background
-            g.setColour(Colour::fromString(secondaryColour.toString()));
-            g.fillRoundedRectangle(bounds.toFloat().reduced(0.5f), Corners::objectCornerRadius);
-        }
-    }
-
-    void paintOverChildren(Graphics& g) override
-    {
-        if (getValue<bool>(outline)) {
-            bool selected = object->isSelected() && !cnv->isGraph;
-            auto outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
-
-            g.setColour(outlineColour);
-            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-        }
     }
 
     void mouseEnter(MouseEvent const& e) override
