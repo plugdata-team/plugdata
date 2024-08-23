@@ -261,7 +261,7 @@ void Canvas::parentHierarchyChanged()
     }
 }
 
-bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, int maxUpdateTimeMs)
+bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion)
 {
     auto pixelScale = getRenderScale();
     auto zoom = getValue<float>(zoomScale);

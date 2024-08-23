@@ -294,12 +294,15 @@ void NVGSurface::render()
     // Flush message queue before rendering, to make sure all GUIs are up-to-date
     editor->pd->flushMessageQueue();
     
-    auto startTime = Time::getMillisecondCounter();
-    if(renderThroughImage && (startTime - lastRenderTime) < 32)
+    if(renderThroughImage)
     {
-        return; // When rendering through juce::image, limit framerate to 30 fps
+      auto startTime = Time::getMillisecondCounter();
+      if(startTime - lastRenderTime < 32)
+      {
+          return; // When rendering through juce::image, limit framerate to 30 fps
+      }
+      lastRenderTime = startTime;
     }
-    lastRenderTime = startTime;
     
     if(!getPeer()) {
         return;
@@ -343,6 +346,10 @@ void NVGSurface::render()
     
     invalidArea = invalidArea.getIntersection(getLocalBounds());
     
+    for (auto* cnv : editor->getTabComponent().getVisibleCanvases()) {
+        cnv->updateFramebuffers(nvg, cnv->getLocalBounds());
+    }
+        
     if (!invalidArea.isEmpty()) {
         // Draw only the invalidated region on top of framebuffer
         nvgBindFramebuffer(invalidFBO);
@@ -384,16 +391,6 @@ void NVGSurface::render()
             startTimerHz(60);
 #endif
         needsBufferSwap = false;
-    }
-    
-
-    
-    auto elapsed = Time::getMillisecondCounter() - startTime;
-    // We update frambuffers after we call swapBuffers to make sure the frame is on time
-    if (elapsed < 14) {
-        for (auto* cnv : editor->getTabComponent().getVisibleCanvases()) {
-            cnv->updateFramebuffers(nvg, cnv->getLocalBounds(), 14 - elapsed);
-        }
     }
 }
 

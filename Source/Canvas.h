@@ -88,7 +88,7 @@ public:
     void focusGained(FocusChangeType cause) override;
     void focusLost(FocusChangeType cause) override;
 
-    bool updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, int maxUpdateTimeMs);
+    bool updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion);
     void performRender(NVGcontext* nvg, Rectangle<int> invalidRegion);
 
     void resized() override;
