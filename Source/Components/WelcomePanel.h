@@ -52,7 +52,8 @@ class WelcomePanel : public Component
             nvgDrawRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), convertColour(findColour(PlugDataColour::canvasBackgroundColourId)), convertColour(findColour(PlugDataColour::toolbarOutlineColourId)), Corners::largeCornerRadius);
 
             if (snapshot && !snapshotImage.isValid()) {
-                snapshotImage =  NVGImage(nvg, bounds.getWidth(), bounds.getHeight() - 32, [this](Graphics &g) {
+                snapshotImage =  NVGImage(nvg, bounds.getWidth() * 2, (bounds.getHeight() - 32) * 2, [this](Graphics &g) {
+                    g.addTransform(AffineTransform::scale(2.0f));
                     snapshot->drawAt(g, 0, 0, 1.0f);
                 });
             }
