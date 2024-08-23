@@ -105,6 +105,8 @@ public:
 
 private:
     
+    void renderFrameToImage(NVGframebuffer* fb, Rectangle<int> area);
+    
     float calculateRenderScale() const;
     
     void resized() override;
@@ -115,17 +117,13 @@ private:
     std::unique_ptr<VBlankAttachment> vBlankAttachment;
 
     Rectangle<int> invalidArea;
-    NVGframebuffer* mainFBO = nullptr;
     NVGframebuffer* invalidFBO = nullptr;
     int fbWidth = 0, fbHeight = 0;
 
     static inline std::map<NVGcontext*, NVGSurface*> surfaces;
-
-    bool hresize = false;
-    bool resizing = false;
-    Rectangle<int> newBounds;
     
     juce::Image backupRenderImage;
+    bool renderThroughImage = false;
     ImageComponent backupImageComponent;
     std::vector<uint32> backupPixelData;
 
@@ -133,6 +131,9 @@ private:
     uint32 lastRenderTime;
     
 #if NANOVG_GL_IMPLEMENTATION
+    bool hresize = false;
+    bool resizing = false;
+    Rectangle<int> newBounds;
     std::unique_ptr<OpenGLContext> glContext;
 #endif
 
