@@ -4,18 +4,19 @@
 
 StackShadow::StackShadow()
 {
-    dropShadow = new melatonin::DropShadow();
 }
 
 StackShadow::~StackShadow()
 {
-    delete dropShadow;
     clearSingletonInstance();
 }
 
-void StackShadow::renderDropShadow(juce::Graphics& g, juce::Path const& path, juce::Colour color, int const radius, juce::Point<int> const offset, int spread)
+void StackShadow::renderDropShadow(hash32 id, juce::Graphics& g, juce::Path const& path, juce::Colour color, int const radius, juce::Point<int> const offset, int spread)
 {
-    auto dropShadow = StackShadow::getInstance()->dropShadow;
+    if(!StackShadow::getInstance()->dropShadows.contains(id))
+        StackShadow::getInstance()->dropShadows.emplace_back(id, std::make_unique<melatonin::DropShadow>());
+        
+    auto* dropShadow = StackShadow::getInstance()->dropShadows[id];
     dropShadow->setColor(color);
     dropShadow->setOffset(offset);
     dropShadow->setRadius(radius);

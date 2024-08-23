@@ -7,6 +7,7 @@
 #pragma once
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_data_structures/juce_data_structures.h>
+#include <melatonin_blur/melatonin_blur.h>
 
 #include <utility>
 
@@ -62,9 +63,10 @@ public:
         AlignWithSection,
         AlignWithPropertyName,
     };
-
+    
 private:
     struct SectionComponent : public Component {
+
         SectionComponent(PropertiesPanel& propertiesPanel, String const& sectionTitle,
             Array<PropertiesPanelProperty*> const& newProperties, int extraPadding)
             : Component(sectionTitle)
@@ -86,6 +88,13 @@ private:
             } else if (propertyComponents.size() > 1) {
                 propertyComponents.getFirst()->setRoundedCorners(true, false);
                 propertyComponents.getLast()->setRoundedCorners(false, true);
+            }
+            
+            if(parent.drawShadowAndOutline) {
+                dropShadow = std::make_unique<melatonin::DropShadow>();
+                dropShadow->setColor(Colour(0, 0, 0).withAlpha(0.4f));
+                dropShadow->setRadius(7);
+                dropShadow->setSpread(0);
             }
         }
 
@@ -116,7 +125,7 @@ private:
             if (parent.drawShadowAndOutline) {
                 Path p;
                 p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
-                StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 7);
+                dropShadow->render(g, p);
             }
 
             g.setColour(findColour(parent.panelColour));
@@ -204,7 +213,7 @@ private:
         OwnedArray<PropertiesPanelProperty> propertyComponents;
         StringArray extraHeaderNames;
         int padding;
-
+        std::unique_ptr<melatonin::DropShadow> dropShadow;
         JUCE_DECLARE_NON_COPYABLE(SectionComponent)
     };
 

@@ -128,7 +128,7 @@ public:
             if (direction == ArrowDirection::LeftRight)
                 shadowOffset = Point<int>(1,0);
 
-            StackShadow::renderDropShadow(g, arrow, Colour(0, 0, 0).withAlpha(0.3f), 8, shadowOffset);
+            StackShadow::renderDropShadow(hash("arrow_popup_menu"), g, arrow, Colour(0, 0, 0).withAlpha(0.3f), 8, shadowOffset);
 
             g.restoreState();
         }

@@ -189,7 +189,7 @@ private:
             g.addTransform(AffineTransform::scale(scale));
             Path path;
             path.addRoundedRectangle(bounds.reduced(10), 5.0f);
-            StackShadow::renderDropShadow(g, path, Colour(0, 0, 0).withAlpha(0.2f), 6, { 0, 1 }, scale);
+            StackShadow::renderDropShadow(0, g, path, Colour(0, 0, 0).withAlpha(0.2f), 6, { 0, 1 }, scale);
             g.setOpacity(1.0f);
 
             g.setColour(findColour(PlugDataColour::activeTabBackgroundColourId));

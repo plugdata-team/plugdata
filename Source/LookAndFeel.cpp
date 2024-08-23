@@ -287,7 +287,7 @@ void PlugDataLook::drawCallOutBoxBackground(CallOutBox& box, Graphics& g, Path c
         cachedImage = { Image::ARGB, box.getWidth(), box.getHeight(), true };
         Graphics g2(cachedImage);
 
-        StackShadow::renderDropShadow(g2, path, Colour(0, 0, 0).withAlpha(0.3f), 8, { 0, 1 });
+        StackShadow::renderDropShadow(hash("callout_box_background"), g2, path, Colour(0, 0, 0).withAlpha(0.3f), 8, { 0, 1 });
     }
 
     g.setColour(Colours::black);
@@ -480,7 +480,7 @@ void PlugDataLook::drawPopupMenuBackgroundWithOptions(Graphics& g, int width, in
     if (Desktop::canUseSemiTransparentWindows()) {
         Path shadowPath;
         shadowPath.addRoundedRectangle(Rectangle<float>(0.0f, 0.0f, width, height).reduced(10.0f), Corners::defaultCornerRadius);
-        StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 11, { 0, 1 });
+        StackShadow::renderDropShadow(hash("popup_menu_background"), g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 11, { 0, 1 });
 
         g.setColour(background);
 
@@ -746,7 +746,7 @@ void PlugDataLook::drawTooltip(Graphics& g, String const& text, int width, int h
 
     Path shadowPath;
     shadowPath.addRoundedRectangle(shadowBounds.getX(), shadowBounds.getY(), shadowBounds.getWidth(), shadowBounds.getHeight(), cornerSize);
-    StackShadow::renderDropShadow(g, shadowPath, Colours::black.withAlpha(0.44f), 8, {0, 0}, 0);
+    StackShadow::renderDropShadow(hash("tooltip"), g, shadowPath, Colours::black.withAlpha(0.44f), 8, {0, 0}, 0);
     
     g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
     g.fillRoundedRectangle(bounds.toFloat(), cornerSize);

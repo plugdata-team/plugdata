@@ -241,7 +241,7 @@ private:
         auto internalBounds = getLocalBounds().reduced(8).toFloat();
         messageDisplay.addRoundedRectangle(internalBounds, Corners::defaultCornerRadius);
 
-        StackShadow::renderDropShadow(g, messageDisplay, Colour(0, 0, 0).withAlpha(0.3f), 7);
+        StackShadow::renderDropShadow(hash("connection_message_display"), g, messageDisplay, Colour(0, 0, 0).withAlpha(0.3f), 7);
 
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.fillRoundedRectangle(internalBounds.expanded(1), Corners::defaultCornerRadius);

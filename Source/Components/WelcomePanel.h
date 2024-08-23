@@ -174,7 +174,7 @@ public:
                 g.addTransform(AffineTransform::scale(2.0f, 2.0f));
                 Path tilePath;
                 tilePath.addRoundedRectangle(12.5f, 12.5f, width - 25.0f, height - 25.0f, Corners::largeCornerRadius);
-                StackShadow::renderDropShadow(g, tilePath, Colour(0, 0, 0).withAlpha(0.08f), 6, { 0, 1 });
+                StackShadow::renderDropShadow(0, g, tilePath, Colour(0, 0, 0).withAlpha(0.08f), 6, { 0, 1 });
             });
         }
         
