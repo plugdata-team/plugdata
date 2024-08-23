@@ -218,20 +218,20 @@ public:
             }
             object->updateBounds();
         } else if (value.refersToSameSourceAs(lowC)) {
-            lowC = std::clamp<int>(getValue<int>(lowC), -1, 9);
+            auto lowest = limitValueRange(lowC, -1, 9);
             if (auto obj = ptr.get<t_fake_keyboard>())
-                obj->x_low_c = getValue<int>(lowC);
+                obj->x_low_c = lowest;
             repaint();
         } else if (value.refersToSameSourceAs(keyWidth)) {
-            keyWidth = std::clamp<int>(getValue<int>(keyWidth), 7, 100);
+            auto width = limitValueRange(keyWidth, 7, 100);
             if (auto obj = ptr.get<t_fake_keyboard>())
-                obj->x_space = getValue<int>(keyWidth);
+                obj->x_space = width;
             object->updateBounds();
         }
         else if (value.refersToSameSourceAs(octaves)) {
-            octaves = std::clamp<int>(getValue<int>(octaves), 1, 11);
+            auto oct = limitValueRange(octaves, 1, 11);
             if (auto obj = ptr.get<t_fake_keyboard>())
-                obj->x_octaves = getValue<int>(octaves);
+                obj->x_octaves = oct;
             updateMinimumSize();
             object->updateBounds();
         } else if (value.refersToSameSourceAs(sendSymbol)) {
