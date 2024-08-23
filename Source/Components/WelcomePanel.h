@@ -20,7 +20,7 @@ class WelcomePanel : public Component
         bool isHovered = false;
         String tileName, tileSubtitle;
         std::unique_ptr<Drawable> snapshot = nullptr;
-        NVGImage titleImage, subtitleImage;
+        NVGImage titleImage, subtitleImage, snapshotImage;
         
     public:
         bool isFavourited;
@@ -49,25 +49,25 @@ class WelcomePanel : public Component
             auto* nvg = dynamic_cast<NanoVGGraphicsContext&>(g.getInternalContext()).getContext();
             parent.drawShadow(nvg, getWidth(), getHeight());
             
-            Path tilePath;
-            tilePath.addRoundedRectangle(bounds.getX() + 1, bounds.getY() + 1, bounds.getWidth() - 2, bounds.getHeight() - 2, Corners::largeCornerRadius);
-            g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
-            g.fillPath(tilePath);
+            nvgDrawRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), convertColour(findColour(PlugDataColour::canvasBackgroundColourId)), convertColour(findColour(PlugDataColour::toolbarOutlineColourId)), Corners::largeCornerRadius);
 
-            if (snapshot) {
-                snapshot->drawAt(g, 0, 0, 1.0f);
+            if (snapshot && !snapshotImage.isValid()) {
+                snapshotImage =  NVGImage(nvg, bounds.getWidth(), bounds.getHeight() - 32, [this](Graphics &g) {
+                    snapshot->drawAt(g, 0, 0, 1.0f);
+                });
             }
-
-            Path textAreaPath;
-            textAreaPath.addRoundedRectangle(bounds.getX(), bounds.getHeight() - 32, bounds.getWidth(), 44, Corners::largeCornerRadius, Corners::largeCornerRadius, false, false, true, true);
+            
+            snapshotImage.render(nvg, bounds.withTrimmedBottom(32));
 
             auto hoverColour = findColour(PlugDataColour::toolbarHoverColourId).interpolatedWith(findColour(PlugDataColour::toolbarBackgroundColourId), 0.5f);
-            g.setColour(isHovered ? hoverColour : findColour(PlugDataColour::toolbarBackgroundColourId));
-            g.fillPath(textAreaPath);
-
-            g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-            g.strokePath(tilePath, PathStrokeType(1.0f));
             
+            nvgBeginPath(nvg);
+            nvgRoundedRectVarying(nvg, bounds.getX(), bounds.getHeight() - 32, bounds.getWidth(), 44, 0.0f, 0.0f, Corners::largeCornerRadius, Corners::largeCornerRadius);
+            nvgFillColor(nvg, convertColour(isHovered ? hoverColour : findColour(PlugDataColour::toolbarBackgroundColourId)));
+            nvgFill(nvg);
+            nvgStrokeColor(nvg, convertColour(findColour(PlugDataColour::toolbarOutlineColourId)));
+            nvgStroke(nvg);
+
             auto textWidth = bounds.getWidth() - 8;
             if (titleImage.needsUpdate(textWidth * 2, 24 * 2) || subtitleImage.needsUpdate(textWidth * 2, 16 * 2)) {
                 auto textColour = findColour(PlugDataColour::panelTextColourId);
