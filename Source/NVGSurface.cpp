@@ -335,7 +335,6 @@ void NVGSurface::render()
     
     updateBufferSize();
     
-    invalidArea = getLocalBounds();
     invalidArea = invalidArea.getIntersection(getLocalBounds());
     
     if (!invalidArea.isEmpty()) {
