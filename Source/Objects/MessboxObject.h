@@ -178,7 +178,7 @@ public:
         
     bool isEditorShown() override
     {
-        return !editor.isReadOnly();
+        return !editor.isReadOnly() && editor.hasKeyboardFocus(false);
     }
 
     void mouseDown(MouseEvent const& e) override
