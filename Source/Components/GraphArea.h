@@ -52,11 +52,10 @@ public:
     void render(NVGcontext* nvg) override
     {
         auto lineBounds = getLocalBounds().toFloat().reduced(4.0f);
-        auto graphAreaColour = convertColour(findColour(PlugDataColour::graphAreaColourId));
 
-        nvgDrawRoundedRect(nvg, lineBounds.getX(), lineBounds.getY(), lineBounds.getWidth(), lineBounds.getHeight(), nvgRGBA(0, 0, 0, 0), graphAreaColour, Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, lineBounds.getX(), lineBounds.getY(), lineBounds.getWidth(), lineBounds.getHeight(), nvgRGBA(0, 0, 0, 0), canvas->graphAreaCol, Corners::objectCornerRadius);
 
-        auto &resizeHandleImage = canvas->resizeGOPHandleImage;
+        auto &resizeHandleImage = canvas->resizeHandleImage;
         int angle = 360;
 
         auto getVert = [lineBounds](int index) -> Point<float> {
@@ -83,7 +82,7 @@ public:
 
             nvgBeginPath(nvg);
             nvgRect(nvg, 0, 0, 9, 9);
-            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage.getImageId(), 1));
+            nvgFillPaint(nvg, nvgImageAlphaPattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage.getImageId(), canvas->graphAreaCol));
             nvgFill(nvg);
             angle -= 90;
         }

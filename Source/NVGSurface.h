@@ -198,15 +198,23 @@ class NVGImage {
 public:
     enum NVGImageFlags {
         RepeatImage = 1 << 0,
-        DontClear = 1 << 1
+        DontClear = 1 << 1,
+        AlphaImage = 1 << 2
     };
 
     NVGImage(NVGcontext* nvg, int width, int height, std::function<void(Graphics&)> renderCall, int imageFlags = 0)
     {
-        Image image = Image(Image::ARGB, width, height, !(imageFlags & NVGImageFlags::DontClear));
+        bool clearImage = !(imageFlags & NVGImageFlags::DontClear);
+        bool repeatImage = imageFlags & NVGImageFlags::RepeatImage;
+
+        // When JUCE image format is SingleChannel the graphics context will render only the alpha component
+        // into the image data, it is not a greyscale image of the graphics context.
+        auto imageFormat = imageFlags & NVGImageFlags::AlphaImage ? Image::SingleChannel : Image::ARGB;
+
+        Image image = Image(imageFormat, width, height, clearImage);
         Graphics g(image); // Render resize handles with JUCE, since rounded rect exclusion is hard with nanovg
         renderCall(g);
-        loadJUCEImage(nvg, image, imageFlags & NVGImageFlags::RepeatImage);
+        loadJUCEImage(nvg, image, repeatImage);
         allImages.insert(this);
     }
 
@@ -308,8 +316,13 @@ public:
             nvgUpdateImage(nvg, imageId, imageData.data);
         } else {
             nvg = context;
-            auto flags = NVG_IMAGE_PREMULTIPLIED | (repeatImage ? NVG_IMAGE_REPEATX | NVG_IMAGE_REPEATY : 0);
-            imageId = nvgCreateImageARGB(nvg, width, height, flags, imageData.data);
+            auto flags = repeatImage ? NVG_IMAGE_REPEATX | NVG_IMAGE_REPEATY : 0;
+
+            if (image.isARGB())
+                imageId = nvgCreateImageARGB(nvg, width, height, flags | NVG_IMAGE_PREMULTIPLIED, imageData.data);
+            else if (image.isSingleChannel())
+                imageId = nvgCreateImageAlpha(nvg, width, height, flags, imageData.data);
+
             imageWidth = width;
             imageHeight = height;
         }

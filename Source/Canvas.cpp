@@ -226,6 +226,8 @@ void Canvas::lookAndFeelChanged()
     transparentObjectBackgroundCol = convertColour(canvasBackgroundColJuce.contrasting(0.35f).withAlpha(0.1f));
     indexTextCol = convertColour(selectedColJuce.contrasting());
 
+    graphAreaCol = convertColour(lnf.findColour(PlugDataColour::graphAreaColourId));
+
     // Lasso colours
     lassoCol = convertColour(selectedColJuce.withAlpha(0.075f));
     lassoOutlineCol = convertColour(canvasBackgroundColJuce.interpolatedWith(selectedColJuce, 0.65f));
@@ -270,32 +272,27 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion)
     float const viewScale = pixelScale * zoom;
     int const resizerBufferSize = resizerLogicalSize * viewScale;
 
-    auto updateResizeHandleIfNeeded = [this, resizerBufferSize, viewScale, zoom, nvg](NVGImage& handleImage, Colour colour) {
-        if (handleImage.needsUpdate(resizerBufferSize, resizerBufferSize)) {
-            handleImage = NVGImage(nvg, resizerBufferSize, resizerBufferSize, [viewScale, colour](Graphics &g) {
-                g.addTransform(AffineTransform::scale(viewScale, viewScale));
-                auto b = Rectangle<int>(0, 0, 9, 9);
-                // use the path with a hole in it to exclude the inner rounded rect from painting
-                Path outerArea;
-                outerArea.addRectangle(b);
-                outerArea.setUsingNonZeroWinding(false);
+    if (resizeHandleImage.needsUpdate(resizerBufferSize, resizerBufferSize)) {
+        resizeHandleImage = NVGImage(nvg, resizerBufferSize, resizerBufferSize, [viewScale](Graphics &g) {
+            g.addTransform(AffineTransform::scale(viewScale, viewScale));
+            auto b = Rectangle<int>(0, 0, 9, 9);
+            // use the path with a hole in it to exclude the inner rounded rect from painting
+            Path outerArea;
+            outerArea.addRectangle(b);
+            outerArea.setUsingNonZeroWinding(false);
 
-                Path innerArea;
+            Path innerArea;
 
-                auto innerRect = b.translated(Object::margin / 2, Object::margin / 2);
-                innerArea.addRoundedRectangle(innerRect, Corners::objectCornerRadius);
-                outerArea.addPath(innerArea);
-                g.reduceClipRegion(outerArea);
+            auto innerRect = b.translated(Object::margin / 2, Object::margin / 2);
+            innerArea.addRoundedRectangle(innerRect, Corners::objectCornerRadius);
+            outerArea.addPath(innerArea);
+            g.reduceClipRegion(outerArea);
 
-                g.setColour(colour);
-                g.fillRoundedRectangle(0.0f, 0.0f, 9.0f, 9.0f, Corners::resizeHanleCornerRadius);
-            });
-            editor->nvgSurface.invalidateAll();
-        }
-    };
-
-    updateResizeHandleIfNeeded(resizeHandleImage, editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-    updateResizeHandleIfNeeded(resizeGOPHandleImage, editor->getLookAndFeel().findColour(PlugDataColour::graphAreaColourId));
+            g.setColour(Colours::white); // For alpha image colour isn't important
+            g.fillRoundedRectangle(0.0f, 0.0f, 9.0f, 9.0f, Corners::resizeHanleCornerRadius);
+        }, NVGImage::NVGImageFlags::AlphaImage);
+        editor->nvgSurface.invalidateAll();
+    }
 
     auto gridLogicalSize = objectGrid.gridSize ? objectGrid.gridSize : 25;
     auto gridSizeCommon = 300;
@@ -312,10 +309,6 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion)
             // So fill it here with background colour
             g.fillAll(canvasBackgroundColJuce);
 
-//#define DEBUG_DOTS
-#ifdef DEBUG_DOTS
-            g.fillAll((Colours::red).withAlpha(0.1f));
-#endif
             int decim = 0;
             switch (gridLogicalSize) {
                 case 5:
@@ -403,13 +396,8 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             // offset image texture by 2.5f so no dots are on the edge of the texture
             nvgTranslate(nvg, canvasOrigin.x - 2.5f, canvasOrigin.x - 2.5f);
 
-#ifdef DEBUG_DOTS
-            dotsLargeImage.render(nvg, Rectangle<int>(0, 0, gridSize, gridSize));
-#else
             nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, gridSizeCommon, gridSizeCommon, 0, dotsLargeImage.imageId, 1));
             nvgFill(nvg);
-#endif
-
         }
     }
     auto drawBorder = [this, nvg, zoom](bool bg, bool fg) {

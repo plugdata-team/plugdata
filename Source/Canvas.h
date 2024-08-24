@@ -265,7 +265,6 @@ public:
     Component connectionLayer;
 
     NVGImage resizeHandleImage;
-    NVGImage resizeGOPHandleImage;
     NVGImage presentationShadowImage;
 
     Array<juce::WeakReference<NVGComponent>> drawables;
@@ -283,6 +282,8 @@ public:
     // objectOutlineColourId
     NVGcolor objectOutlineCol;
     NVGcolor outlineCol;
+
+    NVGcolor graphAreaCol;
 
     NVGcolor commentTextCol;
 
