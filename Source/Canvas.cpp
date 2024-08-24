@@ -290,7 +290,7 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion)
 
             g.setColour(Colours::white); // For alpha image colour isn't important
             g.fillRoundedRectangle(0.0f, 0.0f, 9.0f, 9.0f, Corners::resizeHanleCornerRadius);
-        }, NVGImage::NVGImageFlags::AlphaImage);
+        }, NVGImage::AlphaImage);
         editor->nvgSurface.invalidateAll();
     }
 
