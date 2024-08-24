@@ -123,7 +123,7 @@ public:
         nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), convertColour(Colour::fromString(secondaryColour.toString())), convertColour(outlineColour), Corners::objectCornerRadius);
         
         auto scale = getImageScale();
-        if (needsRepaint || isEditorShown() || imageRenderer.needsUpdate(roundToInt(getWidth() * scale), roundToInt(getHeight() * scale))) {
+        if (needsRepaint || isEditorShown() || imageRenderer.needsUpdate(roundToInt(editor.getWidth() * scale), roundToInt(editor.getHeight() * scale))) {
             imageRenderer.renderJUCEComponent(nvg, editor, scale);
             needsRepaint = false;
         } else {
