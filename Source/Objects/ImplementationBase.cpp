@@ -61,7 +61,8 @@ Canvas* ImplementationBase::getMainCanvas(t_canvas* patchPtr, bool alsoSearchRoo
     }
 
     if (alsoSearchRoot) {
-        patchPtr = glist_getcanvas(patchPtr);
+        
+        while (patchPtr->gl_owner) patchPtr = patchPtr->gl_owner;
         for (auto* editor : editors) {
             for (auto* cnv : editor->getCanvases()) {
                 auto glist = cnv->patch.getPointer();
