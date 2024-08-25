@@ -735,11 +735,7 @@ void PlugDataLook::drawCornerResizer(Graphics& g, int w, int h, bool isMouseOver
 
 void PlugDataLook::drawTooltip(Graphics& g, String const& text, int width, int height)
 {
-#if JUCE_WINDOWS
-    auto expandTooltip = false;
-#else
     auto expandTooltip = ProjectInfo::canUseSemiTransparentWindows();
-#endif
     auto bounds = Rectangle<float>(0, 0, width, height).reduced(expandTooltip ? 6 : 0);
     auto shadowBounds = bounds.reduced(2);
     auto const cornerSize = ProjectInfo::canUseSemiTransparentWindows() ? Corners::defaultCornerRadius : 0;
@@ -856,11 +852,7 @@ void PlugDataLook::drawPropertyPanelSectionHeader(Graphics& g, String const& nam
 
 Rectangle<int> PlugDataLook::getTooltipBounds(String const& tipText, Point<int> screenPos, Rectangle<int> parentArea)
 {
-#if JUCE_WINDOWS
-    auto expandTooltip = false;
-#else
     auto expandTooltip = ProjectInfo::canUseSemiTransparentWindows();
-#endif
     
     float const tooltipFontSize = 14.0f;
     int const maxToolTipWidth = 1000;
