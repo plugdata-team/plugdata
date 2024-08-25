@@ -122,8 +122,9 @@ OSUtils::ScrollTracker::ScrollTracker()
 OSUtils::ScrollTracker::~ScrollTracker()
 {
     // Remove the observer when no longer needed
-    
-    [[NSNotificationCenter defaultCenter] removeObserver:static_cast<ScrollEventObserver*>(observer)];
+    auto* ob = static_cast<ScrollEventObserver*>(observer);
+    [[NSNotificationCenter defaultCenter] removeObserver:ob];
+    [ob dealloc];
 }
 
 float OSUtils::MTLGetPixelScale(void* view) {
@@ -299,7 +300,9 @@ OSUtils::ScrollTracker::ScrollTracker(juce::ComponentPeer* peer)
 
 OSUtils::ScrollTracker::~ScrollTracker()
 {
-    // TODO: clean up!
+    auto* ob = static_cast<ScrollEventObserver*>(observer);
+    [[NSNotificationCenter defaultCenter] removeObserver:ob];
+    [ob dealloc];
 }
 
 

@@ -624,7 +624,6 @@ public:
     void resetDefaults()
     {
         auto colourThemesTree = SettingsFile::getInstance()->getColourThemesTree();
-
         auto currentIoletSpacing = getValue<bool>(swatches[PlugDataLook::currentTheme]["iolet_spacing_edge"]);
 
         PlugDataLook::resetColours(colourThemesTree);
