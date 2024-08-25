@@ -220,7 +220,7 @@ public:
 
             framebuffer.bind(nvg, imageWidth, imageHeight);
 
-            nvgViewport(0, 0, getWidth() * scale, getHeight() * scale);
+            nvgViewport(0, 0, imageWidth, imageHeight);
             nvgClear(nvg);
             nvgBeginFrame(nvg, getWidth(), getHeight(), scale);
             nvgSave(nvg);
@@ -229,7 +229,8 @@ public:
         case hash("lua_end_paint"): {
             if (!framebuffer.isValid())
                 return;
-
+            auto scale = getValue<float>(zoomScale) * 2.0f; // Multiply by 2 for hi-dpi screens
+            nvgGlobalScissor(nvg, 0, 0, getWidth() * scale, getHeight() * scale);
             nvgEndFrame(nvg);
             framebuffer.unbind();
             repaint();
