@@ -408,8 +408,6 @@ public:
         int numButtons = std::min(20, numOptions);
         currentidx = (currentidx + numButtons) % numButtons;
 
-        std::cout << "idx:" << currentidx << std::endl;
-        
         auto* but = buttons[currentidx];
 
         but->setToggleState(true, dontSendNotification);
