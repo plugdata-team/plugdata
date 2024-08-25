@@ -216,8 +216,11 @@ void SettingsFile::addToRecentlyOpened(File const& path)
 
         recentlyOpened.removeChild(minIdx, nullptr);
     }
-
-    RecentlyOpenedFilesList::registerRecentFileNatively(path);
+    
+    // If we do this inside a plugin, it will add to the DAW's recently opened list!
+    if(ProjectInfo::isStandalone) {
+        RecentlyOpenedFilesList::registerRecentFileNatively(path);
+    }
 }
 
 bool SettingsFile::wantsNativeDialog()
