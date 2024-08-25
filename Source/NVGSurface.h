@@ -129,6 +129,9 @@ private:
 
     float lastRenderScale = 0.0f;
     uint32 lastRenderTime;
+
+    Colour cnvColJuce;
+    NVGcolor cnvCol;
     
 #if NANOVG_GL_IMPLEMENTATION
     bool hresize = false;

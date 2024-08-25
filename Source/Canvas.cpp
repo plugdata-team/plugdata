@@ -305,10 +305,6 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion)
             g.addTransform(AffineTransform::scale(viewScale, viewScale));
             const float ellipseRadius = zoom < 1.0f ? jmap(zoom, 0.25f, 1.0f, 3.0f, 1.0f) : 1.0f;
 
-            // We don't clear this image texture
-            // So fill it here with background colour
-            g.fillAll(canvasBackgroundColJuce);
-
             int decim = 0;
             switch (gridLogicalSize) {
                 case 5:
@@ -354,7 +350,7 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion)
                     g.fillEllipse(centerX - ellipseRadius, centerY - ellipseRadius, ellipseRadius * 2.0f, ellipseRadius * 2.0f);
                 }
             }
-        }, NVGImage::RepeatImage | NVGImage::DontClear );
+        }, NVGImage::RepeatImage );
         editor->nvgSurface.invalidateAll();
     }
 
@@ -375,11 +371,6 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         nvgScale(nvg, zoom, zoom);
         invalidRegion = invalidRegion.translated(viewport->getViewPositionX(), viewport->getViewPositionY());
         invalidRegion /= zoom;
-    }
-
-    if (viewport && getValue<bool>(locked)){
-        nvgFillColor(nvg, canvasBackgroundCol);
-        nvgFillRect(nvg, invalidRegion.getX(), invalidRegion.getY(), invalidRegion.getWidth(), invalidRegion.getHeight());
     }
 
     if (viewport && !getValue<bool>(locked)) {

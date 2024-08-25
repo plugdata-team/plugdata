@@ -147,7 +147,7 @@ void NVGSurface::initialise()
     nvgCreateFontMem(nvg, "Inter-SemiBold", (unsigned char*)BinaryData::InterSemiBold_ttf, BinaryData::InterSemiBold_ttfSize, 0);
     nvgCreateFontMem(nvg, "Inter-Tabular", (unsigned char*)BinaryData::InterTabular_ttf, BinaryData::InterTabular_ttfSize, 0);
     nvgCreateFontMem(nvg, "icon_font-Regular", (unsigned char*)BinaryData::IconFont_ttf, BinaryData::IconFont_ttfSize, 0);
-    
+
     invalidateAll();
 }
 
@@ -206,6 +206,10 @@ void NVGSurface::timerCallback()
 
 void NVGSurface::lookAndFeelChanged()
 {
+    auto& lnf = editor->getLookAndFeel();
+    cnvColJuce = lnf.findColour(PlugDataColour::canvasBackgroundColourId);
+    cnvCol = NVGComponent::convertColour(cnvColJuce);
+
     if (makeContextActive()) {
         NVGFramebuffer::clearAll(nvg);
         NVGImage::clearAll(nvg);
@@ -343,7 +347,7 @@ void NVGSurface::render()
 #endif
     
     updateBufferSize();
-    
+
     invalidArea = invalidArea.getIntersection(getLocalBounds());
     
     for (auto* cnv : editor->getTabComponent().getVisibleCanvases()) {
@@ -354,11 +358,40 @@ void NVGSurface::render()
         // Draw only the invalidated region on top of framebuffer
         nvgBindFramebuffer(invalidFBO);
         nvgViewport(0, 0, viewWidth, viewHeight);
+
 #if NANOVG_GL_IMPLEMENTATION
+        // Turn off scissor test when we clear
+        glDisable(GL_SCISSOR_TEST);
+        glDisable(GL_STENCIL_TEST);
         glClear(GL_STENCIL_BUFFER_BIT);
-#endif
+
+        if (getLocalBounds() == invalidArea){
+            // Use GPU clear to draw canvas background colour when a full redraw happens (zooming, panning, and init)
+            // openGL clear costs us nothing, while filling a large area can take a long time on less powerful GPU's
+            glClearColor(cnvColJuce.getFloatRed(), cnvColJuce.getFloatGreen(), cnvColJuce.getFloatBlue(), 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+        }
+
+        glEnable(GL_SCISSOR_TEST);
+        glEnable(GL_STENCIL_TEST);
+
         nvgBeginFrame(nvg, getWidth() * desktopScale, getHeight() * desktopScale, devicePixelScale);
         nvgScale(nvg, desktopScale, desktopScale);
+
+        if (getLocalBounds() != invalidArea) {
+            //std::cout << "slow clear" << std::endl;
+            nvgFillColor(nvg, cnvCol);
+            nvgFillRect(nvg, invalidArea.getX() * pixelScale, invalidArea.getY() * pixelScale, invalidArea.getWidth() * pixelScale, invalidArea.getHeight() * pixelScale);
+        }
+
+#else
+        nvgBeginFrame(nvg, getWidth() * desktopScale, getHeight() * desktopScale, devicePixelScale);
+        nvgScale(nvg, desktopScale, desktopScale);
+
+        // AFAIK glClear() does not exist for Metal, so we simply fill with a solid rect
+        nvgFillColor(nvg, cnvCol);
+        nvgFillRect(nvg, invalidArea.getX() * pixelScale, invalidArea.getY() * pixelScale, invalidArea.getWidth() * pixelScale, invalidArea.getHeight() * pixelScale);
+#endif
         editor->renderArea(nvg, invalidArea);
         nvgGlobalScissor(nvg, invalidArea.getX() * pixelScale, invalidArea.getY() * pixelScale, invalidArea.getWidth() * pixelScale, invalidArea.getHeight() * pixelScale);
         nvgEndFrame(nvg);

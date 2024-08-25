@@ -169,9 +169,6 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        nvgFillColor(nvg, findNVGColour(PlugDataColour::canvasBackgroundColourId));
-        nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
-
         NVGScopedState scopedState(nvg);
         nvgScale(nvg, pluginModeScale, pluginModeScale);
         nvgTranslate(nvg, cnv->getX(), cnv->getY() - ((isWindowFullscreen() ? 0 : 40) / pluginModeScale));

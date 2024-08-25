@@ -531,9 +531,6 @@ Array<Canvas*> TabComponent::getCanvases()
 
 void TabComponent::renderArea(NVGcontext* nvg, Rectangle<int> area)
 {
-    nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::canvasBackgroundColourId)));
-    nvgFillRect(nvg, 0, 0, area.getWidth(), area.getHeight());
-
     if (splits[0]) {
         NVGScopedState scopedState(nvg);
         nvgScissor(nvg, 0, 0, splits[1] ? (splitSize - 3) : getWidth(), getHeight());

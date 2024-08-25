@@ -1586,6 +1586,9 @@ void PluginEditor::broughtToFront()
 
 void PluginEditor::lookAndFeelChanged()
 {
+    // Makes sure the canvas background colour gets updated
+    nvgSurface.lookAndFeelChanged();
+
     ObjectThemeManager::get()->updateTheme();
 }
 
