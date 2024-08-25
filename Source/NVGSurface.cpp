@@ -360,26 +360,18 @@ void NVGSurface::render()
         nvgViewport(0, 0, viewWidth, viewHeight);
 
 #if NANOVG_GL_IMPLEMENTATION
-        // Turn off scissor test when we clear
-        glDisable(GL_SCISSOR_TEST);
-        glDisable(GL_STENCIL_TEST);
         glClear(GL_STENCIL_BUFFER_BIT);
 
         if (getLocalBounds() == invalidArea){
             // Use GPU clear to draw canvas background colour when a full redraw happens (zooming, panning, and init)
             // openGL clear costs us nothing, while filling a large area can take a long time on less powerful GPU's
-            glClearColor(cnvColJuce.getFloatRed(), cnvColJuce.getFloatGreen(), cnvColJuce.getFloatBlue(), 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT);
+            nvgClearColor(nvg, cnvCol);
         }
-
-        glEnable(GL_SCISSOR_TEST);
-        glEnable(GL_STENCIL_TEST);
 
         nvgBeginFrame(nvg, getWidth() * desktopScale, getHeight() * desktopScale, devicePixelScale);
         nvgScale(nvg, desktopScale, desktopScale);
 
         if (getLocalBounds() != invalidArea) {
-            //std::cout << "slow clear" << std::endl;
             nvgFillColor(nvg, cnvCol);
             nvgFillRect(nvg, invalidArea.getX() * pixelScale, invalidArea.getY() * pixelScale, invalidArea.getWidth() * pixelScale, invalidArea.getHeight() * pixelScale);
         }
