@@ -1381,8 +1381,8 @@ void Object::openNewObjectEditor()
                     return;
                 auto* cnv = _this->cnv; // Copy pointer because _this will get deleted
                 cnv->hideSuggestions();
-                cnv->objects.removeObject(_this.getComponent());
                 cnv->pd->unregisterObject(_this.getComponent());
+                cnv->objects.removeObject(_this.getComponent());
                 cnv->lastSelectedObject = nullptr;
 
                 cnv->lastSelectedConnection = nullptr;
