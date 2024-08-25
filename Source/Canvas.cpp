@@ -282,7 +282,6 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion)
             outerArea.setUsingNonZeroWinding(false);
 
             Path innerArea;
-
             auto innerRect = b.translated(Object::margin / 2, Object::margin / 2);
             innerArea.addRoundedRectangle(innerRect, Corners::objectCornerRadius);
             outerArea.addPath(innerArea);
@@ -526,10 +525,10 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
                 presentationShadowImage = NVGImage(nvg, borderArea.getWidth(), borderArea.getHeight(), [borderArea, shadowSize, windowCorner](Graphics& g) {
                     auto shadowPath = Path();
                     shadowPath.addRoundedRectangle(borderArea.reduced(shadowSize).withPosition(shadowSize, shadowSize), windowCorner);
-                    StackShadow::renderDropShadow(hash("presentation_rect"), g, shadowPath, Colours::black, shadowSize, Point<int>(0, 2));
-                });
+                    StackShadow::renderDropShadow(0, g, shadowPath, Colours::white.withAlpha(0.3f), shadowSize, Point<int>(0, 2));
+                }, NVGImage::AlphaImage);
             }
-            auto shadowImage = nvgImagePattern(nvg, pos.getX() - shadowSize, pos.getY() - shadowSize, borderArea.getWidth(), borderArea.getHeight(), 0, presentationShadowImage.getImageId(), 0.12f);
+            auto shadowImage = nvgImageAlphaPattern(nvg, pos.getX() - shadowSize, pos.getY() - shadowSize, borderArea.getWidth(), borderArea.getHeight(), 0, presentationShadowImage.getImageId(), convertColour(Colours::black));
 
             nvgStrokeColor(nvg, presentationWindowOutlineCol);
             nvgStrokeWidth(nvg, 0.5f / scale);
