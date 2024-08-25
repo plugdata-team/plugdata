@@ -6,7 +6,6 @@
 
 #include <juce_gui_extra/juce_gui_extra.h>
 #include "PluginEditor.h"
-#include "PluginProcessor.h" // TODO: We shouldn't need this!
 #include "Objects/ObjectBase.h"
 #include "Heavy/CompatibleObjects.h"
 #include "Utility/NanoVGGraphicsContext.h"
@@ -404,11 +403,13 @@ public:
 
         if (numOptions == 0)
             return;
-
+        
         // Limit it to minimum of the number of buttons and the number of suggestions
         int numButtons = std::min(20, numOptions);
         currentidx = (currentidx + numButtons) % numButtons;
 
+        std::cout << "idx:" << currentidx << std::endl;
+        
         auto* but = buttons[currentidx];
 
         but->setToggleState(true, dontSendNotification);
@@ -687,7 +688,6 @@ public:
             currentidx = -1;
         } else {
             found = sortSuggestions(currentText, found);
-            currentidx = 0;
             autoCompleteComponent->enableAutocomplete(true);
         }
         
