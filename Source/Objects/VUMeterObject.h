@@ -56,6 +56,7 @@ public:
                     nvgBeginFrame(nvg, w, h, 1.0f);
                     nvgScale(nvg, renderScale, renderScale);
                     performRender(nvg);
+                    nvgGlobalScissor(nvg, 0, 0, w, h);
                     nvgEndFrame(nvg);
                 });
             }
