@@ -61,8 +61,9 @@ Canvas* ImplementationBase::getMainCanvas(t_canvas* patchPtr, bool alsoSearchRoo
     }
 
     if (alsoSearchRoot) {
-        
+        pd->lockAudioThread();
         while (patchPtr->gl_owner) patchPtr = patchPtr->gl_owner;
+        pd->unlockAudioThread();
         for (auto* editor : editors) {
             for (auto* cnv : editor->getCanvases()) {
                 auto glist = cnv->patch.getPointer();
