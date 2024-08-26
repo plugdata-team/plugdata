@@ -177,13 +177,6 @@ public:
         nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
                               nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
                               Corners::objectCornerRadius, ObjectFlagType::FlagTop, PlugDataLook::getUseFlagOutline());
-/*
-        // draw flag
-        bool highlighted = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
-        //atomHelper.drawTriangleFlag(nvg, highlighted);
-
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), (object->isSelected() || highlighted) ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
-*/
     }
 
     bool inletIsSymbol() override

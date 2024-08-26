@@ -1278,8 +1278,19 @@ void Object::renderIolets(NVGcontext* nvg)
     auto lastPosition = Point<int>();
     for (auto* iolet : iolets) {
         nvgTranslate(nvg, iolet->getX() - lastPosition.x, iolet->getY() - lastPosition.y);
+        
+        if(iolet->isTargeted)
+        {
+            nvgSave(nvg);
+            nvgResetScissor(nvg);
+        }
+        
         iolet->render(nvg);
         lastPosition = iolet->getPosition();
+        
+        if(iolet->isTargeted) {
+            nvgRestore(nvg);
+        }
     }
 }
 
