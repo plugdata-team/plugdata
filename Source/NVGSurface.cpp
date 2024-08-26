@@ -361,11 +361,11 @@ void NVGSurface::render()
 
 #if NANOVG_GL_IMPLEMENTATION
         glClear(GL_STENCIL_BUFFER_BIT);
-
+#endif
         if (getLocalBounds() == invalidArea){
             // Use GPU clear to draw canvas background colour when a full redraw happens (zooming, panning, and init)
-            // openGL clear costs us nothing, while filling a large area can take a long time on less powerful GPU's
-            nvgClearColor(nvg, cnvCol);
+            // Clear with color costs us nothing, while filling a large area with shader can take a long time on less powerful GPU's
+            nvgClearWithColor(nvg, cnvCol);
         }
 
         nvgBeginFrame(nvg, getWidth() * desktopScale, getHeight() * desktopScale, devicePixelScale);
@@ -376,14 +376,6 @@ void NVGSurface::render()
             nvgFillRect(nvg, invalidArea.getX() * pixelScale, invalidArea.getY() * pixelScale, invalidArea.getWidth() * pixelScale, invalidArea.getHeight() * pixelScale);
         }
 
-#else
-        nvgBeginFrame(nvg, getWidth() * desktopScale, getHeight() * desktopScale, devicePixelScale);
-        nvgScale(nvg, desktopScale, desktopScale);
-
-        // AFAIK glClear() does not exist for Metal, so we simply fill with a solid rect
-        nvgFillColor(nvg, cnvCol);
-        nvgFillRect(nvg, invalidArea.getX() * pixelScale, invalidArea.getY() * pixelScale, invalidArea.getWidth() * pixelScale, invalidArea.getHeight() * pixelScale);
-#endif
         editor->renderArea(nvg, invalidArea);
         nvgGlobalScissor(nvg, invalidArea.getX() * pixelScale, invalidArea.getY() * pixelScale, invalidArea.getWidth() * pixelScale, invalidArea.getHeight() * pixelScale);
         nvgEndFrame(nvg);
