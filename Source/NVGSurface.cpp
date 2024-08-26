@@ -373,7 +373,7 @@ void NVGSurface::render()
 
         if (getLocalBounds() != invalidArea) {
             nvgFillColor(nvg, cnvCol);
-            nvgFillRect(nvg, invalidArea.getX() * pixelScale, invalidArea.getY() * pixelScale, invalidArea.getWidth() * pixelScale, invalidArea.getHeight() * pixelScale);
+            nvgFillRect(nvg, invalidArea.getX(), invalidArea.getY(), invalidArea.getWidth(), invalidArea.getHeight());
         }
 
         editor->renderArea(nvg, invalidArea);
