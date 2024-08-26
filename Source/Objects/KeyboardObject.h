@@ -86,21 +86,13 @@ public:
         nvgStrokeColor(nvg, strokeColour);
         
         auto const whiteNoteWidth = getWhiteKeyWidth();
-        auto blackNoteWidth = whiteNoteWidth * 0.7f;
-        auto numWhiteNotes = getNumWhiteKeys();
-        auto numBlackNotes = getNumBlackKeys();
-        auto startOctave = getValue<int>(lowC);
-        auto lowest = startOctave * 12;
-        auto highest = lowest + (getValue<int>(octaves) * 12);
-        
-        // Draw outlines for white notes
-        nvgBeginPath(nvg);
-        for(int i = 1; i < numWhiteNotes; i++)
-        {
-            nvgMoveTo(nvg, i * whiteNoteWidth, 0);
-            nvgLineTo(nvg, i * whiteNoteWidth, getHeight());
-        }
-        nvgStroke(nvg);
+        auto const blackNoteWidth = whiteNoteWidth * 0.7f;
+        auto const blackKeyHeight = (getHeight() - 2) * 0.66f;
+        auto const numWhiteNotes = getNumWhiteKeys();
+        auto const numBlackNotes = getNumBlackKeys();
+        auto const startOctave = getValue<int>(lowC);
+        auto const lowest = startOctave * 12;
+        auto const highest = lowest + (getValue<int>(octaves) * 12);
 
         // Fill held white notes
         if(!heldKeys.empty()) {
@@ -111,12 +103,21 @@ public:
                 auto pos = getKeyPosition(key - lowest, true);
                 if(!MidiMessage::isMidiNoteBlack(key))
                 {
-                    nvgRect(nvg, pos.getStart(), 0, whiteNoteWidth, getHeight());
+                    nvgRect(nvg, pos.getStart(), 1.0f, whiteNoteWidth, getHeight() - 2.0f);
                 }
             }
             nvgFillColor(nvg, convertColour(activeKeyColour));
             nvgFill(nvg);
         }
+
+        // Draw outlines for white notes
+        nvgBeginPath(nvg);
+        for(int i = 1; i < numWhiteNotes; i++)
+        {
+            nvgMoveTo(nvg, i * whiteNoteWidth, 1.0f);
+            nvgLineTo(nvg, i * whiteNoteWidth, getHeight() - 1.0f);
+        }
+        nvgStroke(nvg);
                 
         // Fill black notes
         nvgBeginPath(nvg);
@@ -124,7 +125,7 @@ public:
         {
             auto octave = (i / 5) * 12;
             auto pos = getKeyPosition(blackNotes[i % 5] + octave, true);
-            nvgRect(nvg, pos.getStart(), 1.0f, blackNoteWidth, getHeight() * 0.7f);
+            nvgRect(nvg, pos.getStart(), 1.0f, blackNoteWidth, blackKeyHeight);
         }
         
         nvgFillColor(nvg, blackKeyColour);
@@ -139,7 +140,7 @@ public:
                 auto pos = getKeyPosition(key - lowest, true);
                 if(MidiMessage::isMidiNoteBlack(key))
                 {
-                    nvgRect(nvg, pos.getStart(), 1.0f, blackNoteWidth, getHeight() * 0.7f);
+                    nvgRect(nvg, pos.getStart(), 1.0f, blackNoteWidth, blackKeyHeight);
                 }
             }
             nvgFillColor(nvg, convertColour(activeKeyColour.darker(0.5f)));
@@ -149,14 +150,16 @@ public:
         // Draw octave numbers
         if (!cnv->locked.getValue() && !cnv->editor->isInPluginMode()) {
             nvgFillColor(nvg, nvgRGB(90, 90, 90));
-            nvgTextAlign(nvg, NVG_ALIGN_CENTER);
-            nvgFontSize(nvg, 13);
-            for(int i = 0; i < getValue<int>(octaves); i++)
-            {
+            nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+            auto const fontSizeScaled = (b.getHeight() - 2 ) < 60 ? 13.0f * (b.getHeight() - 2) / 60.0f :  13;
+            nvgFontSize(nvg, jmax(4.0f, fontSizeScaled));
+            auto const octaveNumHeight = whiteNoteWidth * 1.2f;
+            auto const scaledHeight =  jmin(13.0f, (b.getHeight() - 2) < 60 ? octaveNumHeight * (b.getHeight() - 2.0f) / 60.0f : octaveNumHeight);
+            for (int i = 0; i < getValue<int>(octaves); i++) {
                 auto position = i * 7 * whiteNoteWidth;
                 auto text = String(i + startOctave);
-                auto rectangle = Rectangle<int>(position, b.getHeight() * 0.8f, whiteNoteWidth, b.getHeight() * 0.2f);
-                nvgText(nvg, rectangle.getCentreX(), rectangle.getCentreY() + 4, text.toRawUTF8(), nullptr);
+                auto rectangle = Rectangle<int>(position, b.getHeight() - scaledHeight, whiteNoteWidth, scaledHeight);
+                nvgText(nvg, rectangle.getCentreX(), rectangle.getCentreY(), text.toRawUTF8(), nullptr);
             }
         }
     }
@@ -223,7 +226,7 @@ public:
                 obj->x_low_c = lowest;
             repaint();
         } else if (value.refersToSameSourceAs(keyWidth)) {
-            auto width = limitValueRange(keyWidth, 7, 100);
+            auto width = limitValueMin(keyWidth, 7);
             if (auto obj = ptr.get<t_fake_keyboard>())
                 obj->x_space = width;
             object->updateBounds();
