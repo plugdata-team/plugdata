@@ -270,6 +270,8 @@ public:
     // TODO: does that even work?
     virtual String getText();
 
+    virtual bool canEdgeOverrideAspectRatio() { return false; };
+
     // Global flag to find out if any GUI object is currently being interacted with
     static bool isBeingEdited();
 
