@@ -25,6 +25,9 @@ class NumberObject final : public ObjectBase {
     float value = 0.0f;
 
     NVGcolor backgroundCol;
+    NVGcolor foregroundCol;
+    Colour backgroundColJuce;
+    Colour foregroundColJuce;
 
 public:
     NumberObject(pd::WeakReference ptr, Object* object)
@@ -34,7 +37,16 @@ public:
 
     {
         iemHelper.iemColourChangedCallback = [this](){
+            // We use this callback to be informed when the IEM colour has changed.
+            // As getBackgroundColour() will lock audio thread!
+            backgroundColJuce = iemHelper.getBackgroundColour();
             backgroundCol = convertColour(iemHelper.getBackgroundColour());
+
+            foregroundColJuce = iemHelper.getForegroundColour();
+            foregroundCol = convertColour(iemHelper.getForegroundColour());
+
+            input.setColour(Label::textColourId, foregroundColJuce);
+            input.setColour(Label::textWhenEditingColourId, backgroundColJuce.contrasting());
         };
 
         input.onEditorShow = [this]() {
@@ -44,6 +56,13 @@ public:
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
             editor->setBorder({ 0, 8, 4, 1 });
             editor->setInputRestrictions(0, "e.-0123456789");
+        };
+
+        input.onInteraction = [this](bool isFocused) {
+            if (isFocused)
+                input.setColour(Label::textColourId, backgroundColJuce.contrasting());
+            else
+                input.setColour(Label::textColourId, foregroundColJuce);
         };
 
         input.setFont(Fonts::getTabularNumbersFont().withHeight(15.5f));
@@ -80,7 +99,6 @@ public:
         iemHelper.addIemParameters(objectParameters);
 
         input.setResetValue(0.0f);
-        lookAndFeelChanged();
     }
 
     void update() override
@@ -104,13 +122,6 @@ public:
         }
 
         iemHelper.update();
-    }
-    
-    void lookAndFeelChanged() override
-    {
-        input.setColour(Label::textWhenEditingColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
-        input.setColour(Label::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
-        input.setColour(TextEditor::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
     }
 
     bool inletIsSymbol() override
@@ -317,9 +328,7 @@ public:
         nvgLineTo(nvg, leftX, centreY - 5.0f);
         nvgClosePath(nvg);
 
-        bool highlighed = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
-
-        nvgFillColor(nvg, highlighed ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol);
+        nvgFillColor(nvg, object->isSelected() ? cnv->selectedOutlineCol : foregroundCol);
         nvgFill(nvg);
 
         input.render(nvg);

@@ -161,6 +161,8 @@ public:
                 label->setColour(Label::textColourId, getLabelColour());
             }
 
+            iemColourChangedCallback();
+
             gui->repaint();
 
             return true;
