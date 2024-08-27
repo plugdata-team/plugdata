@@ -87,6 +87,18 @@ public:
         dragEnd();
     }
 
+    void focusGained(FocusChangeType cause) override
+    {
+        juce::Label::focusGained(cause);
+        onInteraction(true);
+    }
+
+    void focusLost(FocusChangeType cause) override
+    {
+        juce::Label::focusLost(cause);
+        onInteraction(false);
+    }
+
     void setEditableOnClick(bool editable)
     {
         setEditable(editable, editable);
