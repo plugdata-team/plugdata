@@ -63,10 +63,14 @@ public:
     {
         lastColour = findColour(Label::textColourId);
         updateColour = true;
+
+        // Flag this component as dirty
+        repaint();
     }
 
     void updateImage(NVGcontext* nvg, float scale)
     {
+        // TODO: use single channel image texture
         image.renderJUCEComponent(nvg, *this, scale);
     }
 
