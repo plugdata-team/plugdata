@@ -4,11 +4,14 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include "NVGSurface.h"
 
-class VUScale : public ObjectLabel, public AsyncUpdater {
-    StringArray scale = { "+12", "+6", "+2", "-0dB", "-2", "-6", "-12", "-20", "-30", "-50", "-99" };
-    StringArray scaleDecim = { "+12", "", "", "-0dB", "", "", "-12", "", "", "", "-99" };
-    NVGFramebuffer scalebuffer;
+class VUScale : public ObjectLabel {
+    StringArray scaleText = { "+12", "+6", "+2", "-0dB", "-2", "-6", "-12", "-20", "-30", "-50", "-99" };
+    bool scaleDecim[11] = { 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1 };
+
+    NVGcolor labelColor;
+
 public:
     VUScale()
     {
@@ -17,66 +20,49 @@ public:
     ~VUScale()
     {
     }
-        
-    void performRender(NVGcontext* nvg)
+
+    void setLabelColour(const Colour& colour)
     {
-        nvgFontSize(nvg, 8);
-        nvgFontFace(nvg, "Inter-Regular");
-        nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
-        nvgFillColor(nvg, convertColour(findColour(Label::textColourId)));
-        auto scaleToUse = getHeight() < 80 ? scaleDecim : scale;
-        for (int i = 0; i < scale.size(); i++) {
-            auto posY = ((getHeight() - 20) * (i / 10.0f)) + 10;
-            // align the "-" and "+" text element centre
-            nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-            nvgText(nvg, 2, posY, scaleToUse[i].substring(0, 1).toRawUTF8(), nullptr);
-            // align the number text element left
-            nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
-            nvgText(nvg, 5, posY, scaleToUse[i].substring(1).toRawUTF8(), nullptr);
-        }
-    }
-    
-    float getImageScale(Canvas* cnv)
-    {
-        Canvas* topLevel = cnv;
-        while (auto* nextCnv = topLevel->findParentComponentOfClass<Canvas>()) {
-            topLevel = nextCnv;
-        }
-        return topLevel->isZooming ? topLevel->getRenderScale() * 2.0f : topLevel->getRenderScale() * std::max(1.0f, getValue<float>(topLevel->zoomScale));
-    }
-    
-    void handleAsyncUpdate() override
-    {
-        if(auto* cnv = findParentComponentOfClass<Canvas>()) {
-            auto renderScale = getImageScale(cnv);
-            auto w = roundToInt(getWidth() * renderScale);
-            auto h = roundToInt(getHeight() * renderScale);
-            if(auto* nvg = cnv->editor->nvgSurface.getRawContext()) {
-                scalebuffer.renderToFramebuffer(nvg, w, h, [this, w, h, renderScale](NVGcontext* nvg) {
-                    nvgBeginFrame(nvg, w, h, 1.0f);
-                    nvgScale(nvg, renderScale, renderScale);
-                    performRender(nvg);
-                    nvgGlobalScissor(nvg, 0, 0, w, h);
-                    nvgEndFrame(nvg);
-                });
-            }
-        }
+        labelColor = convertColour(colour);
+        repaint();
     }
 
     virtual void renderLabel(NVGcontext* nvg, float scale) override
     {
-        auto w = roundToInt(getWidth() * scale);
-        auto h = roundToInt(getHeight() * scale);
-        if (scalebuffer.needsUpdate(w, h)) {
-            triggerAsyncUpdate();
-            performRender(nvg);
+        // TODO: Hack to hold all images for each context, consider moving somewhere central
+        static std::unordered_map<NVGcontext*, std::array<NVGImage, 11>> scales;
+
+        // We calculate the largest size the text will ever be (canvas zoom * UI scale * desktop scale)
+        auto const maxUIScale = 3 * 2 * 2;
+        auto const maxScaledWidth = getWidth() * maxUIScale;
+        auto const maxScaledHeight = 20 * maxUIScale;
+
+        auto& scaleImages = scales[nvg];
+
+        if (!scaleImages[0].isValid()) {
+            for (int i = 0; i < 11; i++) {
+                // generate scale images that are max size of canvas * UI scale
+                scaleImages[i] = NVGImage(nvg, maxScaledWidth, maxScaledHeight, [this, i](Graphics& g){
+                    g.addTransform(AffineTransform::scale(maxUIScale));
+                    g.setFont(Fonts::getCurrentFont().withHeight(10));
+                    g.setColour(Colours::black);
+                    g.drawText(scaleText.getReference(i).substring(0, 1), getLocalBounds().withHeight(20), Justification::centredLeft, false);
+                    g.drawText(scaleText.getReference(i).substring(1), getLocalBounds().withHeight(20).withLeft(5), Justification::centredLeft, false);
+                }, NVGImage::AlphaImage | NVGImage::MipMap);
+            }
         }
-        else {
-            scalebuffer.render(nvg, Rectangle<int>(getWidth(), getHeight()));
+
+        const bool decimScaleText = getHeight() < 90;
+
+        for (int i = 0; i < 11; i++){
+            if (decimScaleText && !scaleDecim[i])
+                continue;
+            const float scaleTextYPos = static_cast<float>(i) * (getHeight() - 20) / 10.0f;
+            nvgFillPaint(nvg, nvgImageAlphaPattern(nvg, 0, scaleTextYPos, getWidth(), 20, 0, scaleImages[i].getImageId(), labelColor));
+            nvgFillRect(nvg, 0, scaleTextYPos, getWidth(), 20);
         }
     }
 };
-
 
 class VUMeterObject final : public ObjectBase {
 
@@ -155,7 +141,7 @@ public:
             auto vuScaleBounds = Rectangle<int>(object->getBounds().getTopRight().x - 3, object->getBounds().getTopRight().y, 20, object->getBounds().getHeight());
             vuScale->setBounds(vuScaleBounds);
             vuScale->setVisible(true);
-            vuScale->setColour(Label::textColourId, iemHelper.getLabelColour());
+            vuScale->setLabelColour(iemHelper.getLabelColour());
         }
     }
     
