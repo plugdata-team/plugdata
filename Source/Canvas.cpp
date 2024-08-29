@@ -304,10 +304,6 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion)
             g.addTransform(AffineTransform::scale(viewScale, viewScale));
             const float ellipseRadius = zoom < 1.0f ? jmap(zoom, 0.25f, 1.0f, 3.0f, 1.0f) : 1.0f;
 
-            // We don't clear this image texture
-            // So fill it here with background colour
-            g.fillAll(canvasBackgroundColJuce);
-
             int decim = 0;
             switch (gridLogicalSize) {
                 case 5:
@@ -352,7 +348,7 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion)
                     g.fillEllipse(centerX - ellipseRadius, centerY - ellipseRadius, ellipseRadius * 2.0f, ellipseRadius * 2.0f);
                 }
             }
-        }, NVGImage::RepeatImage | NVGImage::DontClear );
+        }, NVGImage::RepeatImage, canvasBackgroundColJuce);
         editor->nvgSurface.invalidateAll();
     }
 
@@ -364,7 +360,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
 {
     auto const halfSize = infiniteCanvasSize / 2;
     auto const zoom = getValue<float>(zoomScale);
-
+    bool isLocked = getValue<bool>(locked);
     nvgSave(nvg);
 
     // TODO: viewport is tested for almost all functions here, refactor it out so we don't test for it each time
@@ -375,12 +371,11 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         invalidRegion /= zoom;
     }
 
-    if (viewport && getValue<bool>(locked)){
+    if (viewport && isLocked){
         nvgFillColor(nvg, canvasBackgroundCol);
         nvgFillRect(nvg, invalidRegion.getX(), invalidRegion.getY(), invalidRegion.getWidth(), invalidRegion.getHeight());
     }
-
-    if (viewport && !getValue<bool>(locked)) {
+    if (viewport && !isLocked) {
         nvgBeginPath(nvg);
         nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
 
@@ -398,6 +393,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             nvgFill(nvg);
         }
     }
+
     auto drawBorder = [this, nvg, zoom](bool bg, bool fg) {
         if (viewport && (showOrigin || showBorder) && !::getValue<bool>(presentationMode)) {
             NVGScopedState scopedState(nvg);
