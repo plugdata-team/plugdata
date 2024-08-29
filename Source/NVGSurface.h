@@ -199,13 +199,15 @@ public:
     enum NVGImageFlags {
         RepeatImage = 1 << 0,
         DontClear = 1 << 1,
-        AlphaImage = 1 << 2
+        AlphaImage = 1 << 2,
+        MipMap = 1 << 3
     };
 
     NVGImage(NVGcontext* nvg, int width, int height, std::function<void(Graphics&)> renderCall, int imageFlags = 0)
     {
         bool clearImage = !(imageFlags & NVGImageFlags::DontClear);
         bool repeatImage = imageFlags & NVGImageFlags::RepeatImage;
+        bool withMipmaps = imageFlags & NVGImageFlags::MipMap;
 
         // When JUCE image format is SingleChannel the graphics context will render only the alpha component
         // into the image data, it is not a greyscale image of the graphics context.
@@ -214,7 +216,7 @@ public:
         Image image = Image(imageFormat, width, height, clearImage);
         Graphics g(image); // Render resize handles with JUCE, since rounded rect exclusion is hard with nanovg
         renderCall(g);
-        loadJUCEImage(nvg, image, repeatImage);
+        loadJUCEImage(nvg, image, repeatImage, withMipmaps);
         allImages.insert(this);
     }
 
@@ -305,7 +307,7 @@ public:
         nvgFillRect(nvg, 0, 0, component.getWidth(), component.getHeight());
     }
 
-    void loadJUCEImage(NVGcontext* context, Image& image, int repeatImage = false)
+    void loadJUCEImage(NVGcontext* context, Image& image, int repeatImage = false, int withMipmaps = false)
     {
         Image::BitmapData imageData(image, Image::BitmapData::readOnly);
 
@@ -317,6 +319,7 @@ public:
         } else {
             nvg = context;
             auto flags = repeatImage ? NVG_IMAGE_REPEATX | NVG_IMAGE_REPEATY : 0;
+            flags |= withMipmaps ? NVG_IMAGE_GENERATE_MIPMAPS : 0;
 
             if (image.isARGB())
                 imageId = nvgCreateImageARGB(nvg, width, height, flags | NVG_IMAGE_PREMULTIPLIED, imageData.data);
