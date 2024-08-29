@@ -312,9 +312,9 @@ void NVGSurface::render()
         initialise();
     }
     
-    if (!makeContextActive())
+    if (!makeContextActive()) {
         return;
-    
+    }
 
     auto pixelScale = calculateRenderScale();
     auto desktopScale = Desktop::getInstance().getGlobalScaleFactor();

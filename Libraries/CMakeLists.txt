@@ -179,6 +179,11 @@ file(GLOB ELSE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/extra_source/Aliases/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/shared/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/shared/libsamplerate/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/compiled/control/pd.link/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/compiled/control/pd.link/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/compiled/control/pd.link/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/compiled/control/pd.link/udp/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/compiled/control/pd.link/udp/*.hpp
 )
 
 file(GLOB_RECURSE CIRCUIT_SOURCES
@@ -209,13 +214,6 @@ file(GLOB_RECURSE AUBIO_SOURCES
 )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(pd-else/Code_source/Compiled/control/)
-include_directories(pd-else/Code_source/Compiled/audio/)
-include_directories(pd-else/Code_source/shared/)
-include_directories(pd-else/Code_source/shared/libsamplerate)
-include_directories(pd-else/Code_source/shared/aubio/src)
-include_directories(pd-else/Code_source/Compiled/audio/plaits~)
-include_directories(pd-else/Code_source/Compiled/audio/sfz~/sfizz/library/src)
 
 source_group(ELSE FILES ${ELSE_SOURCES})
 
@@ -399,6 +397,11 @@ if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
 target_compile_options(fluidlite PRIVATE -Wno-compound-token-split-by-macro)
 endif()
 
+set(MESSAGE_QUIET ON)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/compiled/control/pd.link/opus)
+target_compile_definitions(opus PRIVATE FLOAT_APPROX=1)
+unset(MESSAGE_QUIET)
+
 list(APPEND ELSE_SOURCES
     ${SFONT_DIR}/sfont~.c
 )
@@ -409,7 +412,22 @@ list(APPEND ELSE_SOURCES
 add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES})
 add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES})
 
-# ag: pdlua needs PLUGDATA symbol at compile time for PlugData integration.
+list(APPEND ELSE_INCLUDES
+    pd-else/Code_source/Compiled/control/
+    pd-else/Code_source/Compiled/audio/
+    pd-else/Code_source/shared/
+    pd-else/Code_source/shared/libsamplerate
+    pd-else/Code_source/shared/aubio/src
+    pd-else/Code_source/Compiled/audio/plaits~
+    pd-else/Code_source/Compiled/audio/sfz~/sfizz/library/src
+)
+
+target_include_directories(externals PRIVATE ${ELSE_INCLUDES})
+target_include_directories(externals-multi PRIVATE ${ELSE_INCLUDES})
+
+
+
+# ag: pdlua needs PLUGDATA symbol at compile time for plugdata integration.
 target_compile_definitions(externals PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PLUGDATA=1)
 target_compile_definitions(externals-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1 PLUGDATA=1)
 
@@ -445,7 +463,7 @@ target_include_directories(externals-multi PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_IN
 # LINK
 # ------------------------------------------------------------------------------#
 
-set(externals_libs fluidlite lua)
+set(externals_libs fluidlite lua opus)
 if(ENABLE_SFIZZ)
 list(APPEND externals_libs sfizz)
 endif()

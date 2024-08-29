@@ -1259,6 +1259,8 @@ void setup_mpe0x2ein();
 void sfz_tilde_setup();
 #endif
 void knob_setup();
+void setup_pd0x2elink();
+void setup_pd0x2elink_tilde();
 
 void pdlua_setup(char const* datadir, char* vers, int vers_len, void (*register_class_callback)(char const*));
 void pdlua_instance_setup();
@@ -1416,6 +1418,9 @@ void Setup::parseArguments(char const** argv, size_t argc, t_namelist** sys_open
 
 void Setup::initialiseELSE()
 {
+    setup_pd0x2elink();
+    setup_pd0x2elink_tilde();
+    
     knob_setup();
     above_tilde_setup();
     add_tilde_setup();

@@ -175,6 +175,13 @@ void OSUtils::MTLSetVisible(void* view, bool shouldBeVisible)
 #if JUCE_IOS
 #import <UIKit/UIKit.h>
 
+void OSUtils::MTLSetVisible(void* view, bool shouldBeVisible)
+{
+    auto* viewToShow = reinterpret_cast<UIView*>(view);
+    [viewToShow setHidden:!shouldBeVisible];
+}
+
+
 OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 {
     // This is only for keyboard shortcuts, so it doens't really matter much on iOS
@@ -591,6 +598,8 @@ void OSUtils::showMobileCanvasMenu(juce::ComponentPeer* peer, std::function<void
 
 - (void)commonInit {
     self.metalLayer = (CAMetalLayer *)self.layer;
+    [self.metalLayer setPresentsWithTransaction:TRUE];
+    [self.metalLayer setFramebufferOnly:FALSE];
 }
 
 @end
