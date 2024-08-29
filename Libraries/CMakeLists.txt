@@ -179,11 +179,11 @@ file(GLOB ELSE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/extra_source/Aliases/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/shared/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/shared/libsamplerate/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/compiled/control/pd.link/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/compiled/control/pd.link/*.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/compiled/control/pd.link/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/compiled/control/pd.link/udp/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/compiled/control/pd.link/udp/*.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/control/pd.link/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/control/pd.link/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/control/pd.link/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/control/pd.link/udp/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/control/pd.link/udp/*.hpp
 )
 
 file(GLOB_RECURSE CIRCUIT_SOURCES
