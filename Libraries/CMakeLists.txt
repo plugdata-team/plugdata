@@ -420,6 +420,7 @@ list(APPEND ELSE_INCLUDES
     pd-else/Code_source/shared/aubio/src
     pd-else/Code_source/Compiled/audio/plaits~
     pd-else/Code_source/Compiled/audio/sfz~/sfizz/library/src
+    pd-else/Code_source/Compiled/control/pd.link/opus/include
 )
 
 target_include_directories(externals PRIVATE ${ELSE_INCLUDES})
