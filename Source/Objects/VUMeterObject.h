@@ -44,9 +44,12 @@ public:
                 // generate scale images that are max size of canvas * UI scale
                 scaleImages[i] = NVGImage(nvg, maxScaledWidth, maxScaledHeight, [this, i](Graphics& g){
                     g.addTransform(AffineTransform::scale(maxUIScale));
-                    g.setFont(Fonts::getCurrentFont().withHeight(10));
                     g.setColour(Colours::black);
+                    // Draw + or -
+                    g.setFont(Fonts::getMonospaceFont().withHeight(9));
                     g.drawText(scaleText.getReference(i).substring(0, 1), getLocalBounds().withHeight(20), Justification::centredLeft, false);
+                    // Draw dB value
+                    g.setFont(Fonts::getDefaultFont().withHeight(9));
                     g.drawText(scaleText.getReference(i).substring(1), getLocalBounds().withHeight(20).withLeft(5), Justification::centredLeft, false);
                 }, NVGImage::AlphaImage | NVGImage::MipMap);
             }
@@ -198,7 +201,7 @@ public:
         float values[2] = { ptr.get<t_vu>()->x_fp, ptr.get<t_vu>()->x_fr };
 
         auto b =  getLocalBounds();
-        auto bS = b.reduced(1.0f);
+        auto bS = b.reduced(0.5f);
         // Object background
         nvgDrawRoundedRect(nvg, bS.getX(), bS.getY(), bS.getWidth(), bS.getHeight(), cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, Corners::objectCornerRadius);
 
