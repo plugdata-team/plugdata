@@ -8,7 +8,7 @@
 
 class VUScale : public ObjectLabel {
     StringArray scaleText = { "+12", "+6", "+2", "-0dB", "-2", "-6", "-12", "-20", "-30", "-50", "-99" };
-    bool scaleDecim[11] = { 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1 };
+    unsigned scaleDecim = 0b10001001001; // reverse bitwise for disseminating what text shows when too small
 
     NVGcolor labelColor;
 
@@ -55,7 +55,7 @@ public:
         const bool decimScaleText = getHeight() < 90;
 
         for (int i = 0; i < 11; i++){
-            if (decimScaleText && !scaleDecim[i])
+            if (decimScaleText && !(scaleDecim & (1 << i)))
                 continue;
             const float scaleTextYPos = static_cast<float>(i) * (getHeight() - 20) / 10.0f;
             nvgFillPaint(nvg, nvgImageAlphaPattern(nvg, 0, scaleTextYPos, getWidth(), 20, 0, scaleImages[i].getImageId(), labelColor));
@@ -194,21 +194,18 @@ public:
     void render(NVGcontext* nvg) override
     {
         if(!ptr.isValid()) return;
-        
-        auto backgroundColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
-        auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 
         float values[2] = { ptr.get<t_vu>()->x_fp, ptr.get<t_vu>()->x_fr };
-        
-        auto b = getLocalBounds();
-        nvgFillColor(nvg, backgroundColour);
-        nvgFillRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+
+        auto b =  getLocalBounds();
+        auto bS = b.reduced(1.0f);
+        // Object background
+        nvgDrawRoundedRect(nvg, bS.getX(), bS.getY(), bS.getWidth(), bS.getHeight(), cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, Corners::objectCornerRadius);
 
         auto rms = Decibels::decibelsToGain(values[1] - 10.0f);
         auto peak = Decibels::decibelsToGain(values[0] - 10.0f);
         auto barLength = jmin(std::exp(std::log(rms) / 3.0f) * (rms > 0.002f), 1.0f) * b.getHeight();
-        auto peakPosition = jmin(std::exp(std::log(peak) / 3.0f) * (peak > 0.002f), 1.0f) * (b.getHeight() - 2);
+        auto peakPosition = jmin(std::exp(std::log(peak) / 3.0f) * (peak > 0.002f), 1.0f) * (b.getHeight() - 5.0f);
         
         NVGcolor barColour;
         if(values[1] < -12)
@@ -222,13 +219,14 @@ public:
         else {
             barColour = nvgRGBA(255, 127, 0, 255);
         }
-        nvgFillColor(nvg, barColour);
-        nvgFillRoundedRect(nvg, 1, getHeight() - barLength, getWidth() - 2, barLength, Corners::objectCornerRadius);
-        
-        nvgFillColor(nvg, outlineColour);
-        nvgFillRect(nvg, 1, getHeight() - peakPosition - 2.5f, getWidth() - 2, 5.0f);
-        
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        // VU Bar
+        nvgDrawRoundedRect(nvg, 1, getHeight() - barLength, getWidth() - 2, barLength, barColour, barColour, Corners::objectCornerRadius);
+
+        // Peak
+        nvgDrawRoundedRect(nvg, 1, getHeight() - peakPosition - 5.0f, getWidth() - 2, 5.0f, cnv->objectOutlineCol, cnv->objectOutlineCol, Corners::objectCornerRadius);
+
+        // Object outline
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
     }
 
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
