@@ -432,18 +432,10 @@ public:
             break;
         }
         case hash("lua_fill_all"): {
-            auto bounds = getLocalBounds().toFloat().reduced(0.5f);
-            auto outlineColour = cnv->editor->getLookAndFeel().findColour(isSelected ? PlugDataColour::objectSelectedOutlineColourId :  objectOutlineColourId);
+            auto bounds = getLocalBounds();
+            auto outlineColour = isSelected ? cnv->selectedOutlineCol :  cnv->objectOutlineCol;
 
-            nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::objectCornerRadius);
-            nvgFill(nvg);
-
-            nvgStrokeWidth(nvg, 1.0f);
-            nvgStrokeColor(nvg, convertColour(outlineColour));
-            nvgStroke(nvg);
-
-            nvgStrokeColor(nvg, convertColour(currentColour));
+            nvgDrawRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), convertColour(currentColour), outlineColour, Corners::objectCornerRadius);
             break;
         }
 
