@@ -207,8 +207,9 @@ void Canvas::lookAndFeelChanged()
     auto& lnf = editor->getLookAndFeel();
     canvasBackgroundColJuce = lnf.findColour(PlugDataColour::canvasBackgroundColourId);
     canvasBackgroundCol = convertColour(canvasBackgroundColJuce);
-    canvasMarkingsColJuce = findColour(PlugDataColour::canvasDotsColourId).interpolatedWith(canvasBackgroundColJuce, 0.2f);
+    canvasMarkingsColJuce = lnf.findColour(PlugDataColour::canvasDotsColourId).interpolatedWith(canvasBackgroundColJuce, 0.2f);
     canvasMarkingsCol = convertColour(canvasMarkingsColJuce);
+    canvasTextColJuce = lnf.findColour(PlugDataColour::canvasTextColourId);
 
     // Object colours
     objectOutlineCol = convertColour(lnf.findColour(PlugDataColour::objectOutlineColourId));
@@ -218,8 +219,10 @@ void Canvas::lookAndFeelChanged()
 
     commentTextCol = convertColour(lnf.findColour(PlugDataColour::commentTextColourId));
 
-    guiObjectInternalOutlineCol = convertColour(lnf.findColour(PlugDataColour::guiObjectInternalOutlineColour));
-    guiObjectBackgroundCol = convertColour(lnf.findColour(PlugDataColour::guiObjectBackgroundColourId));
+    guiObjectInternalOutlineColJuce = lnf.findColour(PlugDataColour::guiObjectInternalOutlineColour);
+    guiObjectInternalOutlineCol = convertColour(guiObjectInternalOutlineColJuce);
+    guiObjectBackgroundColJuce = lnf.findColour(PlugDataColour::guiObjectBackgroundColourId);
+    guiObjectBackgroundCol = convertColour(guiObjectBackgroundColJuce);
 
     auto selectedColJuce = lnf.findColour(PlugDataColour::objectSelectedOutlineColourId);
     selectedOutlineCol = convertColour(selectedColJuce);

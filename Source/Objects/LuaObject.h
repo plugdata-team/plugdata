@@ -259,8 +259,7 @@ public:
             if (argc == 1) {
                 int colourID = atom_getfloat(argv);
 
-                auto& lnf = LookAndFeel::getDefaultLookAndFeel();
-                currentColour = Array<Colour> { lnf.findColour(PlugDataColour::guiObjectBackgroundColourId), lnf.findColour(PlugDataColour::canvasTextColourId), lnf.findColour(PlugDataColour::guiObjectInternalOutlineColour) }[colourID];
+                currentColour = Array<Colour> { cnv->guiObjectBackgroundColJuce, cnv->canvasTextColJuce, cnv->guiObjectInternalOutlineColJuce }[colourID];
                 nvgFillColor(nvg, convertColour(currentColour));
                 nvgStrokeColor(nvg, convertColour(currentColour));
             }

@@ -273,6 +273,8 @@ public:
     Colour canvasBackgroundColJuce;
     NVGcolor canvasMarkingsCol;
     Colour canvasMarkingsColJuce;
+
+    Colour canvasTextColJuce;
     NVGcolor presentationBackgroundCol;
     NVGcolor presentationWindowOutlineCol;
 
@@ -288,8 +290,10 @@ public:
     NVGcolor commentTextCol;
 
     // guiObjectInternalOutlineColour
+    Colour guiObjectInternalOutlineColJuce;
     NVGcolor guiObjectInternalOutlineCol;
     NVGcolor guiObjectBackgroundCol;
+    Colour guiObjectBackgroundColJuce;
 
     NVGcolor textObjectBackgroundCol;
     NVGcolor transparentObjectBackgroundCol;
