@@ -80,7 +80,7 @@ public:
 
     void editorHidden(Label*, TextEditor& editor) override
     {
-        onInteraction(false);
+        onInteraction(hasKeyboardFocus(false));
         auto newValue = editor.getText().getDoubleValue();
         setValue(newValue, dontSendNotification);
         decimalDrag = 0;
@@ -499,7 +499,7 @@ public:
         if (isBeingEdited())
             return;
 
-        onInteraction(false);
+        onInteraction(hasKeyboardFocus(false));
 
         repaint();
 
