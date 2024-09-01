@@ -8,7 +8,7 @@
 
 class VUScale : public ObjectLabel {
     StringArray scaleText = { "+12", "+6", "+2", "-0dB", "-2", "-6", "-12", "-20", "-30", "-50", "-99" };
-    unsigned scaleDecim = 0b10001001001; // reverse bitwise for disseminating what text shows when too small
+    unsigned scaleDecim = 0b10001001001; // reverse bitwise for controlling which scale text shows when too small to display all
 
     NVGcolor labelColor;
 
