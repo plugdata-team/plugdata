@@ -19,7 +19,7 @@ class AutomationItem : public ObjectDragAndDrop
     class RenameAllOccurancesCallout : public Component {
         TextButton confirmButton = TextButton("Yes");
         TextButton dismissButton = TextButton("No");
-        Label textLabel = Label("RenameLabel", "Update patch param names?");
+        Label textLabel = Label("RenameLabel", "Update param in open patches?");
 
     public:
         std::function<void()> onYes = [](){};
@@ -42,7 +42,7 @@ class AutomationItem : public ObjectDragAndDrop
         void resized() override
         {
             // Set the bounds for textLabel
-            textLabel.setBounds(5, 5, getWidth() - 10, 20);
+            textLabel.setBounds(4, 4, getWidth() - 8, 16);
 
             // Calculate the width of the buttons
             int buttonWidth = 40;
