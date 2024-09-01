@@ -4,6 +4,9 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include <algorithm>
+#include <execution>
+
 class ScopeObject final : public ObjectBase
     , public Timer {
 
@@ -116,12 +119,11 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
-
         auto b = getLocalBounds().toFloat();
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(Colour::fromString(secondaryColour.toString())), object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        auto outlineColour = object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
+
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(Colour::fromString(secondaryColour.toString())), outlineColour, Corners::objectCornerRadius);
 
         auto dx = getWidth() * 0.125f;
         auto dy = getHeight() * 0.25f;
@@ -194,32 +196,53 @@ public:
             min = temp;
         }
 
-        float oldx = 0, oldy = 0;
         float dx = (getWidth() - 2) / (float)bufsize;
         float dy = (getHeight() - 2) / (float)bufsize;
 
         float waveAreaHeight = getHeight() - 2;
         float waveAreaWidth = getWidth() - 2;
 
-        for (int n = 0; n < bufsize; n++) {
-            switch (mode) {
-            case 1:
-                y_buffer[n] = jmap<float>(x_buffer[n], min, max, waveAreaHeight, 2.f);
-                x_buffer[n] = oldx;
-                oldx += dx;
-                break;
-            case 2:
-                x_buffer[n] = jmap<float>(y_buffer[n], min, max, 2.f, waveAreaWidth);
-                y_buffer[n] = oldy;
-                oldy += dy;
-                break;
-            case 3:
-                x_buffer[n] = jmap<float>(x_buffer[n], min, max, 2.f, waveAreaWidth);
-                y_buffer[n] = jmap<float>(y_buffer[n], min, max, waveAreaHeight, 2.f);
-                break;
-            default:
-                break;
+        switch (mode) {
+            case 1: {
+                // Precompute values outside the loop
+                float range = max - min;
+                float scale = (waveAreaHeight - 2.0f) / range;
+                float offset = waveAreaHeight - max * scale;
+
+                for (int n = 0; n < bufsize; n++) {
+                    y_buffer[n] = x_buffer[n] * scale + offset + 1.0f;
+                    x_buffer[n] = (dx * n) + 1.0f;
+                }
             }
+            break;
+            case 2: {
+                float range = max - min;
+                float scale = (waveAreaWidth - 2.0f) / range;
+                float offset = 2.0f - min * scale;
+
+                for (int n = 0; n < bufsize; n++) {
+                    x_buffer[n] = y_buffer[n] * scale + offset + 1.0f;
+                    y_buffer[n] = (dy * n) + 1.0f;
+                }
+            }
+            break;
+            case 3: {
+                float rangeX = max - min;
+                float scaleX = (waveAreaWidth - 2.0f) / rangeX;
+                float offsetX = 2.0f - min * scaleX;
+
+                float rangeY = max - min;
+                float scaleY = (waveAreaHeight - 2.0f) / rangeY;
+                float offsetY = waveAreaHeight - min * scaleY;
+
+                for (int n = 0; n < bufsize; n++) {
+                    x_buffer[n] = x_buffer[n] * scaleX + offsetX + 1.0f;
+                    y_buffer[n] = y_buffer[n] * scaleY + offsetY + 1.0f;
+                }
+            }
+            break;
+            default:
+            break;
         }
 
         repaint();
