@@ -288,7 +288,7 @@ private:
                 signalDisplayFFT.performRealOnlyForwardTransform(fftBlock);
 
                 float maxMagnitude = 0.0f;
-                int peakFreqIndex = 0;
+                int peakFreqIndex = 1;
                 for (int i = 0; i < signalBlockSize; i++) {
                     auto binMagnitude = std::hypot(fftBlock[i * 2], fftBlock[i * 2 + 1]);
                     if (binMagnitude > maxMagnitude) {
