@@ -128,7 +128,7 @@ private:
         { "centre_sidepanel_buttons", var(true) },
         { "show_all_audio_device_rates", var(false) },
         { "add_object_menu_pinned", var(false) },
-        { "autosave_interautosave_interval", var(120) },
+        { "autosave_interval", var(5) },
         { "autosave_enabled", var(1) },
         { "patch_downwards_only", var(false) }, // Option to replicate PD-Vanilla patching downwards only
         { "macos_buttons",

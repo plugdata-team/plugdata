@@ -57,7 +57,7 @@ public:
         otherProperties.add(new PropertiesPanel::BoolComponent("Enable auto patching", autoPatchingValue, { "No", "Yes" }));
 
         autosaveInterval.referTo(settingsFile->getPropertyAsValue("autosave_interval"));
-        autosaveProperties.add(new PropertiesPanel::EditableComponent<int>("Autosave interval (seconds)", autosaveInterval, 15, 900));
+        autosaveProperties.add(new PropertiesPanel::EditableComponent<int>("Auto-save interval (minutes)", autosaveInterval, 1, 60));
 
         autosaveEnabled.referTo(settingsFile->getPropertyAsValue("autosave_enabled"));
         autosaveProperties.add(new PropertiesPanel::BoolComponent("Enable autosave", autosaveEnabled, { "No", "Yes" }));
@@ -172,6 +172,11 @@ public:
             auto zoom = std::clamp(getValue<float>(defaultZoom), 20.0f, 300.0f);
             SettingsFile::getInstance()->setProperty("default_zoom", zoom);
             defaultZoom = zoom;
+        }
+        if (v.refersToSameSourceAs(autosaveInterval)) {
+            auto asi = jlimit(1, 60, getValue<int>(autosaveInterval));
+            SettingsFile::getInstance()->setProperty("autosave_interval", asi);
+            autosaveInterval = asi;
         }
     }
     Component* editor;

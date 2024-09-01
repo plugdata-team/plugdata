@@ -34,7 +34,7 @@ public:
         // autosave timer trigger
         autosaveInterval.referTo(SettingsFile::getInstance()->getPropertyAsValue("autosave_interval"));
         autosaveInterval.addListener(this);
-        startTimer(1000 * std::max(getValue<int>(autosaveInterval), 15));
+        updateAutosaveTimer();
     }
 
     // Call this whenever we load a file
@@ -65,11 +65,17 @@ public:
     }
 
 private:
+    void updateAutosaveTimer()
+    {
+        auto interval = jlimit(1, 60, getValue<int>(autosaveInterval));
+        // autosave interval is in minutes (1000ms * 60 = 1 min)
+        startTimer(1000 * 60 * interval);
+    }
+
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(autosaveInterval)) {
-            auto interval = getValue<int>(autosaveInterval);
-            startTimer(1000 * interval);
+            updateAutosaveTimer();
         }
     }
 
