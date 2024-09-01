@@ -29,6 +29,9 @@ public:
 
     virtual void renderLabel(NVGcontext* nvg, float scale) override
     {
+        if (!isVisible())
+            return;
+
         // TODO: Hack to hold all images for each context, consider moving somewhere central
         static std::unordered_map<NVGcontext*, std::array<NVGImage, 11>> scales;
 
@@ -143,7 +146,7 @@ public:
         if (vuScale) {
             auto vuScaleBounds = Rectangle<int>(object->getBounds().getTopRight().x - 3, object->getBounds().getTopRight().y, 20, object->getBounds().getHeight());
             vuScale->setBounds(vuScaleBounds);
-            vuScale->setVisible(true);
+            vuScale->setVisible(getValue<bool>(showScale));
             vuScale->setLabelColour(iemHelper.getLabelColour());
         }
     }
@@ -168,8 +171,8 @@ public:
             if (auto vu = ptr.get<t_vu>()) {
                 auto showVU = getValue<bool>(showScale);
                 vu->x_scale = showVU;
-                //if(auto* vuScale = getExtraLabel()) vuScale->setVisible(showVU);
             }
+            updateLabel();
         } else {
             iemHelper.valueChanged(v);
         }
