@@ -44,7 +44,7 @@ public:
             mainWindow->setOpaque(false);
 #endif
         }
-        
+
         auto& pluginModeTheme = editor->pd->pluginModeTheme;
         if(pluginModeTheme.isValid())
         {
@@ -134,6 +134,7 @@ public:
             editor->setLookAndFeel(editor->pd->lnf);
             editor->getTopLevelComponent()->sendLookAndFeelChange();
         }
+        editor->leavingPluginMode();
     }
 
     void setWidthAndHeight(float scale)

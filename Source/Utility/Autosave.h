@@ -64,6 +64,11 @@ public:
         }
     }
 
+    void resetTimer()
+    {
+        updateAutosaveTimer();
+    }
+
 private:
     void updateAutosaveTimer()
     {
@@ -106,7 +111,10 @@ private:
                         auto patchFile = patch->getPatchFile();
 
                         // Simple way to filter out plugdata default patches which we don't want to save.
-                        if (!isInternalPatch(patchFile)) {
+                        // We don't want to auto-save patches that are currently in plugin mode
+                        // auto-saving can cause glitches in audio, and nothing will need autosaving when patch is locked
+                        // TODO: consider triggering an autosave when entering plugin mode?
+                        if (!isInternalPatch(patchFile) && !patch->openInPluginMode) {
                             autoSaveQueue.enqueue({ patchFile.getFullPathName(), patch->getCanvasContent() });
                         }
 

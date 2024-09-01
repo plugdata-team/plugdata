@@ -44,6 +44,8 @@ using namespace juce::gl;
 
 #include <nanovg.h>
 
+std::unique_ptr<Autosave> PluginEditor::autosave = nullptr;
+
 PluginEditor::PluginEditor(PluginProcessor& p)
     : AudioProcessorEditor(&p)
     , pd(&p)
@@ -52,7 +54,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , openedDialog(nullptr)
     , nvgSurface(this)
     , pluginConstrainer(*getConstrainer())
-    , autosave(std::make_unique<Autosave>(pd))
     , tooltipWindow(nullptr, [](Component* c) {
         if (auto* cnv = c->findParentComponentOfClass<Canvas>()) {
             return !getValue<bool>(cnv->locked);
@@ -64,6 +65,11 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , pluginMode(nullptr)
     , touchSelectionHelper(std::make_unique<TouchSelectionHelper>(this))
 {
+    // We only need one auto-save for all editors - as auto-saving will iterate over all loaded patches, in all editors!
+    // TODO: move this into PluginProcessor?
+    if (!autosave)
+        autosave = std::make_unique<Autosave>(pd);
+
     keyboardLayout = OSUtils::getKeyboardLayout();
     
 #if JUCE_IOS
@@ -523,6 +529,11 @@ void PluginEditor::resized()
 bool PluginEditor::isInPluginMode() const
 {
     return static_cast<bool>(pluginMode);
+}
+
+void PluginEditor::leavingPluginMode()
+{
+    autosave->resetTimer();
 }
 
 // Retern the patch that belongs to this editor that's in plugin mode

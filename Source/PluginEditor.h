@@ -160,7 +160,7 @@ public:
     ComponentBoundsConstrainer constrainer;
     ComponentBoundsConstrainer& pluginConstrainer;
 
-    std::unique_ptr<Autosave> autosave;
+    static std::unique_ptr<Autosave> autosave;
     ApplicationCommandManager commandManager;
 
     std::unique_ptr<CalloutArea> calloutArea;
@@ -173,6 +173,8 @@ public:
     pd::Patch::Ptr findPatchInPluginMode();
 
     bool isInPluginMode() const;
+
+    void leavingPluginMode();
 
 private:
     TabComponent tabComponent;
