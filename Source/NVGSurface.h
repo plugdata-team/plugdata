@@ -486,6 +486,13 @@ public:
             }
         }
     }
+
+    static void resetAll()
+    {
+        for (auto* buffer : allCachedPaths) {
+            buffer->clear();
+        }
+    }
     
     void clear()
     {
