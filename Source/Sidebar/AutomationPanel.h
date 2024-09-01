@@ -13,8 +13,47 @@
 #include "Components/ObjectDragAndDrop.h"
 #include "Objects/ObjectBase.h"
 
+
+
 class AutomationItem : public ObjectDragAndDrop
     , public Value::Listener {
+
+    class ParamNameErrorCallout : public Component {
+        Label textLabel;
+        Label textLabel2;
+
+        std::function<void()> onDismiss = [](){};
+
+    public:
+        ParamNameErrorCallout(const String& text, std::function<void()> onDismiss)
+            : textLabel("error title", text)
+            , textLabel2("info", "(Click outside to dismiss)")
+            , onDismiss(onDismiss)
+        {
+            addAndMakeVisible(&textLabel);
+            addAndMakeVisible(&textLabel2);
+
+            textLabel.setJustificationType(Justification::centred);
+            textLabel2.setJustificationType(Justification::centred);
+
+            auto bestWidthText = textLabel.getFont().getStringWidth(textLabel.getText());
+            auto bestWidthErrorNameText = textLabel2.getFont().getStringWidth(textLabel2.getText());
+
+            auto bestWidth = jmin(jmax(bestWidthText, bestWidthErrorNameText), 200);
+            setSize(bestWidth + 8, 2 * 24);
+        }
+
+        ~ParamNameErrorCallout()
+        {
+            onDismiss();
+        }
+
+        void resized() override
+        {
+            textLabel.setBounds(4, 4, getWidth() - 8, 16);
+            textLabel2.setBounds(4, 28, getWidth() - 8, 16);
+        }
+    };
 
     class RenameAllOccurancesCallout : public Component {
         TextButton confirmButton = TextButton("Yes");
@@ -229,11 +268,16 @@ public:
 
             auto character = newName[0];
 
+            bool correctCharacters = (character == '_' || character == '-'
+                                      || (character >= 'a' && character <= 'z')
+                                      || (character >= 'A' && character <= 'Z'))
+                                     && newName.containsOnly("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_-");
+
+            bool uniqueName = !allNames.contains(newName);
+            bool notEmptyName = newName.isNotEmpty();
+
             // Check if name is valid
-            if ((character == '_' || character == '-'
-                    || (character >= 'a' && character <= 'z')
-                    || (character >= 'A' && character <= 'Z'))
-                && newName.containsOnly("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_-") && !allNames.contains(newName) && newName.isNotEmpty()) {
+            if (correctCharacters && uniqueName && notEmptyName) {
                 param->setName(newName);
 
                 auto findParamsWithLastName = [this, newName](){
@@ -279,7 +323,7 @@ public:
                 auto* rawDialogPointer = paramRenameDialog.get();
                 auto& callOutBox = CallOutBox::launchAsynchronously(std::move(paramRenameDialog), nameLabel.getScreenBounds(), nullptr);
 
-                juce::Component::SafePointer<CallOutBox> callOutBoxSafePtr(&callOutBox);
+                SafePointer<CallOutBox> callOutBoxSafePtr(&callOutBox);
                 rawDialogPointer->onNo = [callOutBoxSafePtr]() {
                     if (callOutBoxSafePtr)
                         callOutBoxSafePtr->dismiss();
@@ -295,7 +339,21 @@ public:
 
                 param->notifyDAW();
             } else {
-                nameLabel.setText(lastName, dontSendNotification);
+                String errorText;
+                if (!notEmptyName)
+                    errorText = "Name can't be empty";
+                else if (!uniqueName) {
+                    errorText = "Name is not unique";
+                } else if (!correctCharacters) {
+                    errorText = "Name can't start with number";
+                }
+
+                auto onDismiss = [this](){
+                    nameLabel.setText(lastName, dontSendNotification);
+                };
+
+                auto paramError = std::make_unique<ParamNameErrorCallout>(errorText, onDismiss);
+                CallOutBox::launchAsynchronously(std::move(paramError), nameLabel.getScreenBounds(), nullptr);
             }
         };
 
