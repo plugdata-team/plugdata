@@ -116,12 +116,11 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
-
         auto b = getLocalBounds().toFloat();
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(Colour::fromString(secondaryColour.toString())), object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        auto outlineColour = object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
+
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(Colour::fromString(secondaryColour.toString())), outlineColour, Corners::objectCornerRadius);
 
         auto dx = getWidth() * 0.125f;
         auto dy = getHeight() * 0.25f;
@@ -201,25 +200,29 @@ public:
         float waveAreaHeight = getHeight() - 2;
         float waveAreaWidth = getWidth() - 2;
 
-        for (int n = 0; n < bufsize; n++) {
-            switch (mode) {
+        switch (mode) {
             case 1:
-                y_buffer[n] = jmap<float>(x_buffer[n], min, max, waveAreaHeight, 2.f);
-                x_buffer[n] = oldx;
-                oldx += dx;
+                for (int n = 0; n < bufsize; n++) {
+                    y_buffer[n] = jmap<float>(x_buffer[n], min, max, waveAreaHeight, 2.f) + 1;
+                    x_buffer[n] = oldx + 1;
+                    oldx += dx;
+                }
                 break;
             case 2:
-                x_buffer[n] = jmap<float>(y_buffer[n], min, max, 2.f, waveAreaWidth);
-                y_buffer[n] = oldy;
-                oldy += dy;
+                for (int n = 0; n < bufsize; n++) {
+                    x_buffer[n] = jmap<float>(y_buffer[n], min, max, 2.f, waveAreaWidth) + 1;
+                    y_buffer[n] = oldy + 1;
+                    oldy += dy;
+                }
                 break;
             case 3:
-                x_buffer[n] = jmap<float>(x_buffer[n], min, max, 2.f, waveAreaWidth);
-                y_buffer[n] = jmap<float>(y_buffer[n], min, max, waveAreaHeight, 2.f);
+                for (int n = 0; n < bufsize; n++) {
+                    x_buffer[n] = jmap<float>(x_buffer[n], min, max, 2.f, waveAreaWidth) + 1;
+                    y_buffer[n] = jmap<float>(y_buffer[n], min, max, waveAreaHeight, 2.f) + 1;
+                }
                 break;
             default:
                 break;
-            }
         }
 
         repaint();
