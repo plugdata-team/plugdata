@@ -39,7 +39,7 @@ class AutomationItem : public ObjectDragAndDrop
             auto bestWidthText = textLabel.getFont().getStringWidth(textLabel.getText());
             auto bestWidthErrorNameText = textLabel2.getFont().getStringWidth(textLabel2.getText());
 
-            auto bestWidth = jmin(jmax(bestWidthText, bestWidthErrorNameText), 200);
+            auto bestWidth = jmax(bestWidthText, bestWidthErrorNameText);
             setSize(bestWidth + 8, 2 * 24);
         }
 
@@ -246,7 +246,6 @@ public:
                 editor->setColour(TextEditor::outlineColourId, Colours::transparentBlack);
                 editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
                 editor->setJustification(Justification::centred);
-                editor->setInputRestrictions(32, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_-");
             }
             lastName = nameLabel.getText(false);
         };
@@ -268,16 +267,17 @@ public:
 
             auto character = newName[0];
 
-            bool correctCharacters = (character == '_' || character == '-'
+            bool startsWithCorrectChar = (character == '_' || character == '-'
                                       || (character >= 'a' && character <= 'z')
-                                      || (character >= 'A' && character <= 'Z'))
-                                     && newName.containsOnly("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_-");
+                                      || (character >= 'A' && character <= 'Z'));
+
+            bool correctCharacters = newName.containsOnly("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_-");
 
             bool uniqueName = !allNames.contains(newName);
             bool notEmptyName = newName.isNotEmpty();
 
             // Check if name is valid
-            if (correctCharacters && uniqueName && notEmptyName) {
+            if (startsWithCorrectChar && correctCharacters && uniqueName && notEmptyName) {
                 param->setName(newName);
 
                 auto findParamsWithLastName = [this, newName](){
@@ -342,11 +342,12 @@ public:
                 String errorText;
                 if (!notEmptyName)
                     errorText = "Name can't be empty";
-                else if (!uniqueName) {
+                else if (!uniqueName)
                     errorText = "Name is not unique";
-                } else if (!correctCharacters) {
-                    errorText = "Name can't start with number";
-                }
+                else if (!startsWithCorrectChar)
+                    errorText = "Name can't start with spaces, numbers or symbols";
+                else if (!correctCharacters)
+                    errorText = "Name can't contain spaces or symbols";
 
                 auto onDismiss = [this](){
                     nameLabel.setText(lastName, dontSendNotification);
