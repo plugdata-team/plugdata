@@ -689,7 +689,6 @@ public:
             currentidx = 0;
             autoCompleteComponent->enableAutocomplete(true);
         }
-        std::cout << lastText << " " << currentText << std::endl;
         
         if (openedEditor) {
             numOptions = static_cast<int>(found.size());
