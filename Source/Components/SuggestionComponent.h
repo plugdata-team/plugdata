@@ -684,10 +684,12 @@ public:
             autoCompleteComponent->enableAutocomplete(false);
             deselectAll();
             currentidx = -1;
-        } else {
+        } else if(lastText.isNotEmpty() && (lastText == currentText || !currentText.startsWith(lastText))){
             found = sortSuggestions(currentText, found);
+            currentidx = 0;
             autoCompleteComponent->enableAutocomplete(true);
         }
+        std::cout << lastText << " " << currentText << std::endl;
         
         if (openedEditor) {
             numOptions = static_cast<int>(found.size());
