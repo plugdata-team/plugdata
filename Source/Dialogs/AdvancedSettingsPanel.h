@@ -57,7 +57,7 @@ public:
         otherProperties.add(new PropertiesPanel::BoolComponent("Enable auto patching", autoPatchingValue, { "No", "Yes" }));
 
         autosaveInterval.referTo(settingsFile->getPropertyAsValue("autosave_interval"));
-        autosaveProperties.add(new PropertiesPanel::EditableComponent<int>("Autosave interval (seconds)", autosaveInterval, 15, 900));
+        autosaveProperties.add(new PropertiesPanel::EditableComponent<int>("Auto-save interval (minutes)", autosaveInterval, 1, 60));
 
         autosaveEnabled.referTo(settingsFile->getPropertyAsValue("autosave_enabled"));
         autosaveProperties.add(new PropertiesPanel::BoolComponent("Enable autosave", autosaveEnabled, { "No", "Yes" }));

@@ -34,7 +34,7 @@ public:
         // autosave timer trigger
         autosaveInterval.referTo(SettingsFile::getInstance()->getPropertyAsValue("autosave_interval"));
         autosaveInterval.addListener(this);
-        startTimer(1000 * std::max(getValue<int>(autosaveInterval), 15));
+        startTimer(1000 * 60 * std::max(getValue<int>(autosaveInterval), 15));
     }
 
     // Call this whenever we load a file
@@ -100,7 +100,7 @@ private:
                         auto patchFile = patch->getPatchFile();
 
                         // Simple way to filter out plugdata default patches which we don't want to save.
-                        if (!isInternalPatch(patchFile)) {
+                        if (!isInternalPatch(patchFile) && !patch->openInPluginMode) {
                             autoSaveQueue.enqueue({ patchFile.getFullPathName(), patch->getCanvasContent() });
                         }
 

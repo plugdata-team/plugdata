@@ -31,7 +31,7 @@ public:
                 auto path = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
                 recentlyOpened->addItem(path.getFileName(), [path, editor]() mutable {
                     if(path.existsAsFile()) {
-                        editor->autosave->checkForMoreRecentAutosave(path, editor, [editor, path]() {
+                        editor->pd->autosave->checkForMoreRecentAutosave(path, editor, [editor, path]() {
                             editor->getTabComponent().openPatch(URL(path));
                             SettingsFile::getInstance()->addToRecentlyOpened(path);
                         });

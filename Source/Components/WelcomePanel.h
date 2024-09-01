@@ -299,7 +299,7 @@ public:
                 auto* tile = tiles.add(new WelcomePanelTile(*this, patchFile.getFileName(), timeDescription, silhoutteSvg, snapshotColour, 1.0f, favourited));
                 tile->onClick = [this, patchFile]() mutable {
                     if(patchFile.existsAsFile()) {
-                        editor->autosave->checkForMoreRecentAutosave(patchFile, editor, [this, patchFile]() {
+                        editor->pd->autosave->checkForMoreRecentAutosave(patchFile, editor, [this, patchFile]() {
                             editor->getTabComponent().openPatch(URL(patchFile));
                             SettingsFile::getInstance()->addToRecentlyOpened(patchFile);
                         });

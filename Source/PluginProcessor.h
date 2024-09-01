@@ -21,6 +21,7 @@ namespace pd {
 class Library;
 }
 
+class Autosave;
 class InternalSynth;
 class SettingsFile;
 class StatusbarSource;
@@ -180,7 +181,8 @@ public:
 
     OwnedArray<PluginEditor> openedEditors;
     Component::SafePointer<ConnectionMessageDisplay> connectionListener;
-
+    std::unique_ptr<Autosave> autosave;
+    
 private:
 
     int customLatencySamples = 0;

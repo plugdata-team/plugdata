@@ -20,6 +20,7 @@
 #include "Utility/OSUtils.h"
 #include "Utility/AudioSampleRingBuffer.h"
 #include "Utility/MidiDeviceManager.h"
+#include "Utility/Autosave.h"
 
 #include "Utility/Presets.h"
 #include "Canvas.h"
@@ -87,6 +88,7 @@ PluginProcessor::PluginProcessor()
     : AudioProcessor(buildBusesProperties())
     , internalSynth(std::make_unique<InternalSynth>())
     , hostInfoUpdater(this)
+    , autosave(std::make_unique<Autosave>(this))
 {
     // Make sure to use dots for decimal numbers, pd requires that
     std::setlocale(LC_ALL, "C");

@@ -52,7 +52,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , openedDialog(nullptr)
     , nvgSurface(this)
     , pluginConstrainer(*getConstrainer())
-    , autosave(std::make_unique<Autosave>(pd))
     , tooltipWindow(nullptr, [](Component* c) {
         if (auto* cnv = c->findParentComponentOfClass<Canvas>()) {
             return !getValue<bool>(cnv->locked);
@@ -671,7 +670,7 @@ void PluginEditor::filesDropped(StringArray const& files, int x, int y)
         auto file = File(path);
         if (file.exists() && file.hasFileExtension("pd")) {
             openedPdFiles = true;
-            autosave->checkForMoreRecentAutosave(file, this, [this, file]() {
+            pd->autosave->checkForMoreRecentAutosave(file, this, [this, file]() {
                 tabComponent.openPatch(URL(file));
                 SettingsFile::getInstance()->addToRecentlyOpened(file);
             });

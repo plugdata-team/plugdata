@@ -160,7 +160,6 @@ public:
     ComponentBoundsConstrainer constrainer;
     ComponentBoundsConstrainer& pluginConstrainer;
 
-    std::unique_ptr<Autosave> autosave;
     ApplicationCommandManager commandManager;
 
     std::unique_ptr<CalloutArea> calloutArea;
