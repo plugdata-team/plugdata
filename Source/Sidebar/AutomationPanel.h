@@ -11,9 +11,93 @@
 #include "Components/Buttons.h"
 #include "Components/PropertiesPanel.h"
 #include "Components/ObjectDragAndDrop.h"
+#include "Objects/ObjectBase.h"
+
+
 
 class AutomationItem : public ObjectDragAndDrop
     , public Value::Listener {
+
+    class ParamNameErrorCallout : public Component {
+        Label textLabel;
+        Label textLabel2;
+
+        std::function<void()> onDismiss = [](){};
+
+    public:
+        ParamNameErrorCallout(const String& text, std::function<void()> onDismiss)
+            : textLabel("error title", text)
+            , textLabel2("info", "(Click outside to dismiss)")
+            , onDismiss(onDismiss)
+        {
+            addAndMakeVisible(&textLabel);
+            addAndMakeVisible(&textLabel2);
+
+            textLabel.setJustificationType(Justification::centred);
+            textLabel2.setJustificationType(Justification::centred);
+
+            auto bestWidthText = textLabel.getFont().getStringWidth(textLabel.getText());
+            auto bestWidthErrorNameText = textLabel2.getFont().getStringWidth(textLabel2.getText());
+
+            auto bestWidth = jmax(bestWidthText, bestWidthErrorNameText);
+            setSize(bestWidth + 8, 2 * 24);
+        }
+
+        ~ParamNameErrorCallout()
+        {
+            onDismiss();
+        }
+
+        void resized() override
+        {
+            textLabel.setBounds(4, 4, getWidth() - 8, 16);
+            textLabel2.setBounds(4, 28, getWidth() - 8, 16);
+        }
+    };
+
+    class RenameAllOccurancesCallout : public Component {
+        TextButton confirmButton = TextButton("Yes");
+        TextButton dismissButton = TextButton("No");
+        Label textLabel = Label("RenameLabel", "Update param in open patches?");
+
+    public:
+        std::function<void()> onYes = [](){};
+        std::function<void()> onNo = [](){};
+
+        RenameAllOccurancesCallout()
+        {
+            setSize(190,60);
+
+            addAndMakeVisible(&confirmButton);
+            addAndMakeVisible(&dismissButton);
+            addAndMakeVisible(&textLabel);
+
+            textLabel.setJustificationType(Justification::centred);
+
+            confirmButton.onClick = [this]() { onYes(); };
+            dismissButton.onClick = [this]() { onNo(); };
+        }
+
+        void resized() override
+        {
+            // Set the bounds for textLabel
+            textLabel.setBounds(4, 4, getWidth() - 8, 16);
+
+            // Calculate the width of the buttons
+            int buttonWidth = 40;
+            int buttonHeight = 20;
+
+            // Calculate the horizontal spacing between the buttons
+            int totalButtonWidth = buttonWidth * 2 + 10; // 10 pixels gap between buttons
+
+            // Center position for the buttons
+            int centerX = (getWidth() - totalButtonWidth) / 2;
+
+            // Set bounds for the buttons
+            dismissButton.setBounds(centerX, 35, buttonWidth, buttonHeight);
+            confirmButton.setBounds(centerX + buttonWidth + 10, 35, buttonWidth, buttonHeight);
+        }
+    };
 
     class ExpandButton : public TextButton {
         void paint(Graphics& g) override
@@ -162,7 +246,6 @@ public:
                 editor->setColour(TextEditor::outlineColourId, Colours::transparentBlack);
                 editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
                 editor->setJustification(Justification::centred);
-                editor->setInputRestrictions(32, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_-");
             }
             lastName = nameLabel.getText(false);
         };
@@ -172,23 +255,106 @@ public:
         };
 
         nameLabel.onEditorHide = [this]() {
+            // If name hasn't been changed do nothing
+            auto const newName = nameLabel.getText(true);
+            if (lastName == newName)
+                return;
+
             StringArray allNames;
             for (auto* param : pd->getParameters()) {
                 allNames.add(dynamic_cast<PlugDataParameter*>(param)->getTitle());
             }
 
-            auto newName = nameLabel.getText(true);
             auto character = newName[0];
 
+            bool startsWithCorrectChar = (character == '_' || character == '-'
+                                      || (character >= 'a' && character <= 'z')
+                                      || (character >= 'A' && character <= 'Z'));
+
+            bool correctCharacters = newName.containsOnly("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_-");
+
+            bool uniqueName = !allNames.contains(newName);
+            bool notEmptyName = newName.isNotEmpty();
+
             // Check if name is valid
-            if ((character == '_' || character == '-'
-                    || (character >= 'a' && character <= 'z')
-                    || (character >= 'A' && character <= 'Z'))
-                && newName.containsOnly("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_-") && !allNames.contains(newName) && newName.isNotEmpty()) {
-                param->setName(nameLabel.getText(true));
+            if (startsWithCorrectChar && correctCharacters && uniqueName && notEmptyName) {
+                param->setName(newName);
+
+                auto findParamsWithLastName = [this, newName](){
+                    Array<Object*> paramObjectsToChange;
+
+                    pd->lockAudioThread();
+                    // Find [param] object, and update it's param name to new name
+                    for (auto* cnv = pd_getcanvaslist(); cnv; cnv = cnv->gl_next) {
+                        std::function<void(t_glist*)> searchInsideCanvas = [&](t_glist* cnv) -> void {
+                            for (t_gobj* y = cnv->gl_list; y; y = y->g_next) {
+                                if (pd_class(&y->g_pd) == canvas_class) {
+                                    auto canvas = reinterpret_cast<t_canvas*>(y);
+                                    if (String(canvas->gl_name->s_name) == "param.pd") {
+                                        auto binName = canvas->gl_obj.te_binbuf;
+                                        t_atom* atoms;
+                                        int argc = binbuf_getnatom(binName);
+                                        if (argc > 1) {
+                                            atoms = binbuf_getvec(binName);
+                                            if (atoms[1].a_type == A_SYMBOL) {
+                                                if (String(atom_getsymbol(&atoms[1])->s_name) == lastName) {
+                                                    paramObjectsToChange.add(pd->getObjectFromPtr((t_gobj*)canvas));
+                                                }
+                                            }
+                                        }
+                                    }
+                                    // Yes, also search inside the param.pd - in case someone put a param inside that!
+                                    searchInsideCanvas(canvas);
+                                }
+                            }
+                        };
+                        searchInsideCanvas(cnv);
+                    }
+                    pd->unlockAudioThread();
+
+                    return paramObjectsToChange;
+                };
+
+                if (findParamsWithLastName().size() == 0)
+                    return;
+
+                // Launch a dialog to ask if the user wishes to rename all occurrences in patch
+                auto paramRenameDialog = std::make_unique<RenameAllOccurancesCallout>();
+                auto* rawDialogPointer = paramRenameDialog.get();
+                auto& callOutBox = CallOutBox::launchAsynchronously(std::move(paramRenameDialog), nameLabel.getScreenBounds(), nullptr);
+
+                SafePointer<CallOutBox> callOutBoxSafePtr(&callOutBox);
+                rawDialogPointer->onNo = [callOutBoxSafePtr]() {
+                    if (callOutBoxSafePtr)
+                        callOutBoxSafePtr->dismiss();
+                };
+
+                rawDialogPointer->onYes = [findParamsWithLastName, newName, callOutBoxSafePtr]() {
+                    for (auto& obj : findParamsWithLastName())
+                        obj->setType("param " + newName);
+
+                    if (callOutBoxSafePtr)
+                        callOutBoxSafePtr->dismiss();
+                };
+
                 param->notifyDAW();
             } else {
-                nameLabel.setText(lastName, dontSendNotification);
+                String errorText;
+                if (!notEmptyName)
+                    errorText = "Name can't be empty";
+                else if (!uniqueName)
+                    errorText = "Name is not unique";
+                else if (!startsWithCorrectChar)
+                    errorText = "Name can't start with spaces, numbers or symbols";
+                else if (!correctCharacters)
+                    errorText = "Name can't contain spaces or symbols";
+
+                auto onDismiss = [this](){
+                    nameLabel.setText(lastName, dontSendNotification);
+                };
+
+                auto paramError = std::make_unique<ParamNameErrorCallout>(errorText, onDismiss);
+                CallOutBox::launchAsynchronously(std::move(paramError), nameLabel.getScreenBounds(), nullptr);
             }
         };
 
