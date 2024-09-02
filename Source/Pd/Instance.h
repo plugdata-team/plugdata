@@ -30,6 +30,19 @@ public:
     {
     }
 
+    static std::vector<pd::Atom> atomsFromString(String const& str)
+    {
+        auto* binbuf = binbuf_new();
+        binbuf_text(binbuf, str.toRawUTF8(), str.getNumBytesAsUTF8());
+        auto* argv = binbuf_getvec(binbuf);
+        auto argc = binbuf_getnatom(binbuf);
+        
+        auto atoms = fromAtoms(argc, argv);
+        binbuf_free(binbuf);
+        
+        return atoms;
+    }
+    
     static std::vector<pd::Atom> fromAtoms(int ac, t_atom* av)
     {
         auto array = std::vector<pd::Atom>();
