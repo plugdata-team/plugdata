@@ -319,7 +319,6 @@ public:
         for (int i = 0; i < buttons.size(); i++) {
             auto* but = buttons[i];
             but->setAlwaysOnTop(true);
-
             but->onClick = [this, i, editor]() mutable {
                 // If the button is already selected, perform autocomplete
                 if (i == currentidx && autoCompleteComponent) {
@@ -413,7 +412,7 @@ public:
         but->setToggleState(true, dontSendNotification);
         auto buttonText = but->getButtonText();
         
-        if (autoCompleteComponent && buttonText.startsWith(openedEditor->getText())) {
+        if (openedEditor && autoCompleteComponent && buttonText.startsWith(openedEditor->getText())) {
             autoCompleteComponent->setSuggestion(buttonText);
             autoCompleteComponent->enableAutocomplete(true);
             currentObject->updateBounds();
@@ -684,9 +683,10 @@ public:
             autoCompleteComponent->enableAutocomplete(false);
             deselectAll();
             currentidx = -1;
-        } else if(lastText.isNotEmpty() && (lastText == currentText || !currentText.startsWith(lastText))){
+        } else if(currentidx == -1 || !found[currentidx].startsWith(currentText)) {
             found = sortSuggestions(currentText, found);
             currentidx = 0;
+            buttons[currentidx]->setToggleState(true, dontSendNotification);
             autoCompleteComponent->enableAutocomplete(true);
         }
         
