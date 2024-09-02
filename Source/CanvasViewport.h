@@ -330,9 +330,6 @@ public:
         if (scaleChanged) {
             // Cached geometry can look thicker/thinner at different zoom scales, so we reset all cached connections when zooming is done
             NVGCachedPath::resetAll();
-            
-            for (auto* connection : cnv->connections)
-                connection->forceUpdate(true);
         }
 
         scaleChanged = false;

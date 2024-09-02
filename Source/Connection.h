@@ -56,7 +56,7 @@ public:
 
     void updateReconnectHandle();
 
-    void forceUpdate(bool updateCacheOnly = false);
+    void forceUpdate();
 
     void lookAndFeelChanged() override;
 
