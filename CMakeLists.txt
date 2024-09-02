@@ -19,6 +19,7 @@ option(NANOVG_METAL_IMPLEMENTATION "" OFF)
 endif()
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_C_STANDARD C11)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Visiblity needs to be hidden for all plugin targets, otherwise loading both plugdata and plugdata-fx will cause problems. We later undo this for the standalone build, so that externals can load
