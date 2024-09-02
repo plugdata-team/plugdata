@@ -7,8 +7,6 @@
 #pragma once
 
 #include <utility>
-
-#include "Utility/StackDropShadower.h"
 #include "Constants.h"
 
 class CheckedTooltip : public TooltipWindow {

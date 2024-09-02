@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Utility/ZoomableDragAndDropContainer.h"
+#include "Utility/StackDropShadower.h"
 #include "PluginProcessor.h"
 
 class PluginMode;
