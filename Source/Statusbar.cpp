@@ -674,6 +674,16 @@ private:
     {
         repaint();
     }
+    
+    void mouseWheelMove (const MouseEvent& e, const MouseWheelDetails& wheel) override
+    {
+        auto* editor = findParentComponentOfClass<PluginEditor>();
+        if (auto* cnv = editor->getCurrentCanvas()) {
+            float newScale = std::clamp(getValue<float>(cnv->zoomScale) + wheel.deltaY, 0.25f, 3.0f);
+            cnv->zoomScale.setValue(newScale);
+            cnv->setTransform(AffineTransform().scaled(newScale));
+        }
+    }
 
     void mouseDown(MouseEvent const& e) override
     {

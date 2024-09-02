@@ -683,9 +683,12 @@ public:
             autoCompleteComponent->enableAutocomplete(false);
             deselectAll();
             currentidx = -1;
-        } else if(currentidx == -1 || !found[currentidx].startsWith(currentText)) {
+        } else {
             found = sortSuggestions(currentText, found);
-            currentidx = 0;
+            if(currentText.isEmpty() || currentidx == -1 || !found[currentidx].startsWith(currentText)) {
+                currentidx = 0;
+                autoCompleteComponent->setSuggestion(found[0]);
+            }
             buttons[currentidx]->setToggleState(true, dontSendNotification);
             autoCompleteComponent->enableAutocomplete(true);
         }
