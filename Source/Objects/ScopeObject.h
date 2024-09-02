@@ -4,9 +4,6 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include <algorithm>
-#include <execution>
-
 class ScopeObject final : public ObjectBase
     , public Timer {
 
@@ -26,6 +23,8 @@ class ScopeObject final : public ObjectBase
     Value sizeProperty = SynchronousValue();
 
     bool freezeScope = false;
+
+    NVGCachedPath grid;
 
 public:
     ScopeObject(pd::WeakReference ptr, Object* object)
@@ -115,6 +114,8 @@ public:
 
     void resized() override
     {
+        grid.clear();
+        repaint();
     }
 
     void render(NVGcontext* nvg) override
@@ -131,6 +132,7 @@ public:
         nvgBeginPath(nvg);
         nvgStrokeColor(nvg, convertColour(Colour::fromString(gridColour.toString())));
         nvgStrokeWidth(nvg, 1.0f);
+
         auto xx = dx;
         for (int i = 0; i < 7; i++) {
             nvgMoveTo(nvg, xx, 1.0f);
@@ -144,6 +146,7 @@ public:
             nvgLineTo(nvg, static_cast<float>(getWidth() - 1.0f), yy);
             yy += dy;
         }
+
         nvgStroke(nvg);
 
         NVGScopedState scopedState(nvg);
@@ -155,10 +158,15 @@ public:
             nvgLineJoin(nvg, NVG_ROUND);
             nvgLineCap(nvg, NVG_ROUND);
 
-            nvgMoveTo(nvg, x_buffer[1], y_buffer[1]);
+            float offset = 2.0f;
 
-            for (size_t i = 2; i < y_buffer.size(); i++) {
-                nvgLineTo(nvg, x_buffer[i], y_buffer[i]);
+            float const w = getWidth() - 4;
+            float const h = getHeight() - 4;
+
+            nvgMoveTo(nvg, x_buffer[0] * w + offset, y_buffer[0] * h + offset);
+
+            for (size_t i = 1; i < y_buffer.size(); i++) {
+                nvgLineTo(nvg, x_buffer[i] * w + offset, y_buffer[i] * h + offset);
             }
             nvgStroke(nvg);
         }
@@ -169,8 +177,10 @@ public:
         if (freezeScope)
             return;
 
-        int bufsize = 0, mode = 0;
-        float min = 0.0f, max = 1.0f;
+        int mode = 0;
+        int bufsize = 0;
+        float min = 0.0f;
+        float max = 1.0f;
 
         if (object->iolets.size() == 3)
             object->iolets[2]->setVisible(false);
@@ -190,54 +200,35 @@ public:
             std::copy(scope->x_ybuflast, scope->x_ybuflast + bufsize, y_buffer.data());
         }
 
+        // Normalise the buffers
         if (min > max) {
-            auto temp = max;
-            max = min;
-            min = temp;
+            std::swap(min, max);
         }
 
-        float dx = (getWidth() - 2) / (float)bufsize;
-        float dy = (getHeight() - 2) / (float)bufsize;
+        float dx = 1.0f / static_cast<float>(bufsize); // Normalized step size
 
-        float waveAreaHeight = getHeight() - 2;
-        float waveAreaWidth = getWidth() - 2;
+        float range = max - min;
+        float scale = 1.0f / range;
 
         switch (mode) {
             case 1: {
-                // Precompute values outside the loop
-                float range = max - min;
-                float scale = (waveAreaHeight - 2.0f) / range;
-                float offset = waveAreaHeight - max * scale;
-
                 for (int n = 0; n < bufsize; n++) {
-                    y_buffer[n] = x_buffer[n] * scale + offset + 1.0f;
-                    x_buffer[n] = (dx * n) + 1.0f;
+                    y_buffer[n] = 1.0f - (x_buffer[n] - min) * scale;
+                    x_buffer[n] = dx * n;
                 }
             }
             break;
             case 2: {
-                float range = max - min;
-                float scale = (waveAreaWidth - 2.0f) / range;
-                float offset = 2.0f - min * scale;
-
                 for (int n = 0; n < bufsize; n++) {
-                    x_buffer[n] = y_buffer[n] * scale + offset + 1.0f;
-                    y_buffer[n] = (dy * n) + 1.0f;
+                    x_buffer[n] = (y_buffer[n] - min) * scale;
+                    y_buffer[n] = 1.0f - dx * n;
                 }
             }
             break;
             case 3: {
-                float rangeX = max - min;
-                float scaleX = (waveAreaWidth - 2.0f) / rangeX;
-                float offsetX = 2.0f - min * scaleX;
-
-                float rangeY = max - min;
-                float scaleY = (waveAreaHeight - 2.0f) / rangeY;
-                float offsetY = waveAreaHeight - min * scaleY;
-
                 for (int n = 0; n < bufsize; n++) {
-                    x_buffer[n] = x_buffer[n] * scaleX + offsetX + 1.0f;
-                    y_buffer[n] = y_buffer[n] * scaleY + offsetY + 1.0f;
+                    x_buffer[n] = (x_buffer[n] - min) * scale;
+                    y_buffer[n] = 1.0f - (y_buffer[n] - min) * scale;
                 }
             }
             break;
