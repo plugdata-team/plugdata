@@ -24,7 +24,6 @@ using namespace gl;
 
 // Special viewport that shows scrollbars on top of content instead of next to it
 class CanvasViewport : public Viewport
-    , public Timer
     , public NVGComponent {
     class MousePanner : public MouseListener {
     public:
@@ -384,6 +383,11 @@ public:
         if (approximatelyEqual(newScaleFactor, 0.0f)) {
             newScaleFactor = 1.0f;
         }
+
+        if (newScaleFactor == lastScaleFactor) // float comparison ok here as it's set by the same value
+            return;
+
+        lastScaleFactor = newScaleFactor;
         
         scaleChanged = true;
 
@@ -442,26 +446,11 @@ public:
     void visibleAreaChanged(Rectangle<int> const& r) override
     {
         if(scaleChanged) {
-            cnv->isZooming = true;
-            startTimer(150);
+            // Cached geometry can look thicker/thinner at different zoom scales, so we reset all cached connections when zooming is done
+            NVGCachedPath::resetAll();
         }
         onScroll();
         adjustScrollbarBounds();
-        editor->nvgSurface.invalidateAll();
-    }
-
-    void timerCallback() override
-    {
-        stopTimer();
-        cnv->isZooming = false;
-        
-        // Cached geometry can look thicker/thinner at different zoom scales, so we update all cached connections when zooming is done
-        if (scaleChanged) {
-            for (auto* connection : cnv->connections)
-                connection->forceUpdate(true);
-        }
-        
-        scaleChanged = false;
         editor->nvgSurface.invalidateAll();
     }
 
@@ -511,6 +500,7 @@ public:
 private:
     Time lastScrollTime;
     Time lastZoomTime;
+    float lastScaleFactor = -1.0f;
     PluginEditor* editor;
     Canvas* cnv;
     Rectangle<int> previousBounds;
