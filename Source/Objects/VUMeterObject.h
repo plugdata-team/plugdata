@@ -225,11 +225,16 @@ public:
         else {
             barColour = nvgRGBA(255, 127, 0, 255);
         }
+        
         // VU Bar
-        nvgDrawRoundedRect(nvg, 1, getHeight() - barLength, getWidth() - 2, barLength, barColour, barColour, Corners::objectCornerRadius);
+        nvgFillColor(nvg, barColour);
+        nvgBeginPath(nvg);
+        nvgRoundedRectVarying(nvg, 0, getHeight() - barLength, getWidth(), barLength, 0.0f, 0.0f, Corners::objectCornerRadius, Corners::objectCornerRadius);
+        nvgFill(nvg);
 
         // Peak
-        nvgDrawRoundedRect(nvg, 1, getHeight() - peakPosition - 5.0f, getWidth() - 2, 5.0f, cnv->objectOutlineCol, cnv->objectOutlineCol, Corners::objectCornerRadius);
+        nvgFillColor(nvg, cnv->objectOutlineCol);
+        nvgFillRect(nvg, 0, getHeight() - peakPosition - 5.0f, getWidth(), 5.0f);
 
         // Object outline
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);

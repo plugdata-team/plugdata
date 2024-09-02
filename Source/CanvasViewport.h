@@ -24,7 +24,7 @@ using namespace gl;
 
 // Special viewport that shows scrollbars on top of content instead of next to it
 class CanvasViewport : public Viewport
-    , public NVGComponent {
+    , public NVGComponent, public Timer {
     class MousePanner : public MouseListener {
     public:
         explicit MousePanner(CanvasViewport* vp)
@@ -321,6 +321,24 @@ public:
         }
     }
 
+    void timerCallback() override
+    {
+        stopTimer();
+        cnv->isZooming = false;
+
+        // Cached geometry can look thicker/thinner at different zoom scales, so we update all cached connections when zooming is done
+        if (scaleChanged) {
+            // Cached geometry can look thicker/thinner at different zoom scales, so we reset all cached connections when zooming is done
+            NVGCachedPath::resetAll();
+            
+            for (auto* connection : cnv->connections)
+                connection->forceUpdate(true);
+        }
+
+        scaleChanged = false;
+        editor->nvgSurface.invalidateAll();
+    }
+
     void lookAndFeelChanged() override
     {
         auto scrollbarColour = hbar.findColour(ScrollBar::ColourIds::thumbColourId);
@@ -446,9 +464,10 @@ public:
     void visibleAreaChanged(Rectangle<int> const& r) override
     {
         if(scaleChanged) {
-            // Cached geometry can look thicker/thinner at different zoom scales, so we reset all cached connections when zooming is done
-            NVGCachedPath::resetAll();
+            cnv->isZooming = true;
+            startTimer(150);
         }
+        
         onScroll();
         adjustScrollbarBounds();
         editor->nvgSurface.invalidateAll();
