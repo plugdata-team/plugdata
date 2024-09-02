@@ -24,8 +24,6 @@ class ScopeObject final : public ObjectBase
 
     bool freezeScope = false;
 
-    NVGCachedPath grid;
-
 public:
     ScopeObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
@@ -110,12 +108,6 @@ public:
             scope->x_width = getWidth() - 1;
             scope->x_height = getHeight() - 1;
         }
-    }
-
-    void resized() override
-    {
-        grid.clear();
-        repaint();
     }
 
     void render(NVGcontext* nvg) override
