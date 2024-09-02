@@ -47,7 +47,7 @@ public:
                 // generate scale images that are max size of canvas * UI scale
                 scaleImages[i] = NVGImage(nvg, maxScaledWidth, maxScaledHeight, [this, i](Graphics& g){
                     g.addTransform(AffineTransform::scale(maxUIScale));
-                    g.setColour(Colours::black);
+                    g.setColour(Colours::white);
                     // Draw + or -
                     g.setFont(Fonts::getMonospaceFont().withHeight(9));
                     g.drawText(scaleText.getReference(i).substring(0, 1), getLocalBounds().withHeight(20), Justification::centredLeft, false);
