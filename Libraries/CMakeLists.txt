@@ -10,6 +10,7 @@ if(MSVC)
     option(BUILD_SHARED_LIBS "" FALSE)
     add_subdirectory(pthread-win32)
     include_directories(pthread-win32)
+    add_compile_options(/experimental:c11atomics)
 endif()
 
 cmake_policy(SET CMP0091 NEW)
