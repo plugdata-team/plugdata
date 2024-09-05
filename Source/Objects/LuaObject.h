@@ -29,8 +29,6 @@ class LuaObject final : public ObjectBase
     std::unique_ptr<Component> textEditor;
     std::unique_ptr<Dialog> saveDialog;
 
-    NVGFramebuffer framebuffer;
-
     struct LuaGuiMessage {
         t_symbol* symbol;
         std::vector<t_atom> data;
@@ -66,7 +64,10 @@ class LuaObject final : public ObjectBase
     };
 
     std::vector<LuaGuiMessage> guiCommandBuffer;
+    std::vector<LuaGuiMessage> guiCommandBufferCache;
     moodycamel::ReaderWriterQueue<LuaGuiMessage> guiMessageQueue;
+
+    float currentTransform[6] = {0.0f};
 
     static inline std::map<t_pdlua*, std::vector<LuaObject*>> allDrawTargets = std::map<t_pdlua*, std::vector<LuaObject*>>();
 
@@ -183,21 +184,35 @@ public:
     void resized() override
     {
         sendRepaintMessage();
+        repaint();
     }
 
     void lookAndFeelChanged() override
     {
         sendRepaintMessage();
+        repaint();
     }
 
     void render(NVGcontext* nvg) override
     {
-        framebuffer.render(nvg, Rectangle<int>(getWidth() + 1, getHeight()));
+        if (isSelected != object->isSelected()) {
+            isSelected = object->isSelected();
+            sendRepaintMessage();
+        }
+
+        for (auto& message : guiCommandBufferCache)
+            handleGuiMessage(message.symbol, message.size, message.data.data());
     }
 
     void valueChanged(Value& v) override
     {
         sendRepaintMessage();
+    }
+
+    void timerCallback() override
+    {
+        if (flushLuaGui())
+            repaint();
     }
 
     void handleGuiMessage(t_symbol* sym, int argc, t_atom* argv)
@@ -218,22 +233,15 @@ public:
             if (!imageWidth || !imageHeight)
                 return;
 
-            framebuffer.bind(nvg, imageWidth, imageHeight);
-
-            nvgViewport(0, 0, imageWidth, imageHeight);
-            nvgClear(nvg);
-            nvgBeginFrame(nvg, getWidth(), getHeight(), scale);
             nvgSave(nvg);
+            nvgCurrentTransform(nvg, currentTransform);
+            nvgIntersectScissor(nvg, 0, 0, getWidth(), getHeight());
             return;
         }
         case hash("lua_end_paint"): {
-            if (!framebuffer.isValid())
-                return;
             auto scale = getValue<float>(zoomScale) * 2.0f; // Multiply by 2 for hi-dpi screens
-            nvgGlobalScissor(nvg, 0, 0, getWidth() * scale, getHeight() * scale);
-            nvgEndFrame(nvg);
-            framebuffer.unbind();
-            repaint();
+            //nvgGlobalScissor(nvg, 0, 0, getWidth() * scale, getHeight() * scale);
+            nvgRestore(nvg);
             return;
         }
         case hash("lua_resized"): {
@@ -250,9 +258,6 @@ public:
             return;
         }
         }
-
-        if (!framebuffer.isValid())
-            return; // If there is no active framebuffer at this point, return
 
         switch (hashsym) {
         case hash("lua_set_color"): {
@@ -455,8 +460,8 @@ public:
             break;
         }
         case hash("lua_reset_transform"): {
-            nvgRestore(nvg);
-            nvgSave(nvg);
+            nvgResetTransform(nvg);
+            nvgTransform(nvg, currentTransform[0], currentTransform[1], currentTransform[2], currentTransform[3], currentTransform[4], currentTransform[5]);
             break;
         }
         default:
@@ -464,7 +469,7 @@ public:
         }
     }
 
-    void timerCallback() override
+    bool flushLuaGui()
     {
         LuaGuiMessage guiMessage;
         while (guiMessageQueue.try_dequeue(guiMessage)) {
@@ -490,17 +495,16 @@ public:
 
         if (updateScene) {
             if (endIdx > startIdx) {
+                guiCommandBufferCache.clear();
                 for (int i = startIdx; i < endIdx; i++) {
                     handleGuiMessage(guiCommandBuffer[i].symbol, guiCommandBuffer[i].size, guiCommandBuffer[i].data.data());
+                    guiCommandBufferCache.push_back(LuaGuiMessage(guiCommandBuffer[i].symbol, guiCommandBuffer[i].size, guiCommandBuffer[i].data.data()));
                 }
             }
             guiCommandBuffer.erase(guiCommandBuffer.begin(), guiCommandBuffer.begin() + endIdx);
         }
 
-        if (isSelected != object->isSelected() || !framebuffer.isValid()) {
-            isSelected = object->isSelected();
-            sendRepaintMessage();
-        }
+        return updateScene;
     }
 
     static void drawCallback(void* target, t_symbol* sym, int argc, t_atom* argv)
