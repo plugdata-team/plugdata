@@ -266,6 +266,11 @@ void Canvas::parentHierarchyChanged()
     }
 }
 
+void Canvas::registerObjectFB(Object* obj, std::function<bool(NVGcontext*)>& fb)
+{
+    objectFrameBuffers[obj] = fb;
+}
+
 bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion)
 {
     auto pixelScale = getRenderScale();
@@ -274,6 +279,17 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion)
     int const resizerLogicalSize = 9;
     float const viewScale = pixelScale * zoom;
     int const resizerBufferSize = resizerLogicalSize * viewScale;
+
+    for (auto it = objectFrameBuffers.begin(); it != objectFrameBuffers.end(); /* no increment here */) {
+        // Call the frameBuffer callback function (which is the second)
+        // The framebuffer render function will check itself if it's object is null, and return false if so
+        // Then we remove it from the map
+        if (!(it->second(nvg))) {
+            it = objectFrameBuffers.erase(it); // erase returns the next iterator
+        } else {
+            ++it; // increment iterator only if not erased
+        }
+    }
 
     if (resizeHandleImage.needsUpdate(resizerBufferSize, resizerBufferSize)) {
         resizeHandleImage = NVGImage(nvg, resizerBufferSize, resizerBufferSize, [viewScale](Graphics &g) {

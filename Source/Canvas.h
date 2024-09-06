@@ -55,6 +55,7 @@ struct ObjectDragState {
     
     Point<int> duplicateOffset = {0, 0};
     Point<int> lastDuplicateOffset = {0, 0};
+
 };
 
 class Canvas : public Component
@@ -177,6 +178,8 @@ public:
     bool panningModifierDown();
 
     ObjectParameters& getInspectorParameters();
+
+    void registerObjectFB(Object*, std::function<bool(NVGcontext*)>& fb);
 
     void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms) override;
 
@@ -331,6 +334,8 @@ private:
     ObjectParameters parameters;
         
     std::unique_ptr<BorderResizer> canvasBorderResizer;
+
+    std::map<Object*, std::function<bool(NVGcontext*)>> objectFrameBuffers;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Canvas)
 };
