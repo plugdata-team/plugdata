@@ -110,6 +110,10 @@ public:
     void updateCommandStatus();
     void handleAsyncUpdate() override;
 
+    void updateFramebuffers(NVGcontext* nvg);
+
+    void registerObjectFB(Object* obj, std::function<bool(NVGcontext*)>& fb);
+
     bool isInterestedInFileDrag(StringArray const& files) override;
     void filesDropped(StringArray const& files, int x, int y) override;
     void fileDragEnter(StringArray const&, int, int) override;
@@ -190,6 +194,8 @@ private:
     MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pluginModeButton;
     ToolbarRadioButton editButton, runButton, presentButton;
     TextButton seperators[8];
+
+    std::map<Object*, std::function<bool(NVGcontext*)>> objectFrameBuffers;
 
 #if JUCE_MAC
     Rectangle<int> unmaximisedSize;

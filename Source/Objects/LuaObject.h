@@ -100,7 +100,7 @@ public:
 
             return true;
         };
-        cnv->registerObjectFB(object, callback);
+        cnv->editor->registerObjectFB(object, callback);
 
         startTimerHz(60);
     }

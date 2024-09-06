@@ -349,6 +349,8 @@ void NVGSurface::render()
     for (auto* cnv : editor->getTabComponent().getVisibleCanvases()) {
         cnv->updateFramebuffers(nvg, cnv->getLocalBounds());
     }
+
+    editor->updateFramebuffers(nvg);
         
     if (!invalidArea.isEmpty()) {
         // Draw only the invalidated region on top of framebuffer

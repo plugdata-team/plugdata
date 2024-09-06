@@ -335,7 +335,5 @@ private:
         
     std::unique_ptr<BorderResizer> canvasBorderResizer;
 
-    std::map<Object*, std::function<bool(NVGcontext*)>> objectFrameBuffers;
-
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Canvas)
 };

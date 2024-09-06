@@ -814,6 +814,25 @@ void PluginEditor::updateCommandStatus()
     AsyncUpdater::triggerAsyncUpdate();
 }
 
+void PluginEditor::updateFramebuffers(NVGcontext* nvg)
+{
+    for (auto it = objectFrameBuffers.begin(); it != objectFrameBuffers.end(); /* no increment here */) {
+        // Call the frameBuffer callback function (which is the second)
+        // The framebuffer render function will check itself if it's object is null, and return false if so
+        // Then we remove it from the map
+        if (!(it->second(nvg))) {
+            it = objectFrameBuffers.erase(it); // erase returns the next iterator
+        } else {
+            ++it; // increment iterator only if not erased
+        }
+    }
+}
+
+void PluginEditor::registerObjectFB(Object* obj, std::function<bool(NVGcontext*)>& fb)
+{
+    objectFrameBuffers[obj] = fb;
+}
+
 ApplicationCommandTarget* PluginEditor::getNextCommandTarget()
 {
     return nullptr;
