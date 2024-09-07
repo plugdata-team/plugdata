@@ -105,7 +105,7 @@ class WelcomePanel : public Component
 
                             // Calculate offsets to center the image
                             offsetX = (componentWidth - drawWidth) / 2;
-                            offsetY = (componentHeight - drawHeight - 16) / 2;
+                            offsetY = (componentHeight - drawHeight - 32) / 2;
 
                             g.drawImage(thumbnailImageData, offsetX, offsetY, drawWidth, drawHeight, 0, 0, imageWidth, imageHeight);
                         }
@@ -123,20 +123,22 @@ class WelcomePanel : public Component
             nvgSave(nvg);
             auto sB = bounds.toFloat().reduced(0.2f);
             nvgRoundedScissor(nvg, sB.getX(), sB.getY(), sB.getWidth(), sB.getHeight(), Corners::largeCornerRadius);
+
+            auto lB = bounds.toFloat().expanded(0.5f);
+            // Draw background even for images incase there is a transparent PNG
+            nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), convertColour(findColour(PlugDataColour::canvasBackgroundColourId)), convertColour(findColour(PlugDataColour::toolbarOutlineColourId)), Corners::largeCornerRadius);
             if (thumbnailImageData.isValid()) {
                 // Render the thumbnail image file that is in the root dir of the pd patch
                 auto sB = bounds.toFloat().reduced(0.2f);
-                nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight() - 32 - 12, 0, snapshotImage.getImageId(), 1));
+                nvgFillPaint(nvg, nvgImagePattern(nvg, sB.getX(), sB.getY(), sB.getWidth(), sB.getHeight() - 32, 0, snapshotImage.getImageId(), 1));
                 nvgFillRect(nvg, sB.getX(), sB.getY(), sB.getWidth(), sB.getHeight() - 32);
             } else {
                 // Otherwise render the generated snapshot
-                auto lB = bounds.toFloat().expanded(0.5f);
-                nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), convertColour(findColour(PlugDataColour::canvasBackgroundColourId)), convertColour(findColour(PlugDataColour::toolbarOutlineColourId)), Corners::largeCornerRadius);
                 snapshotImage.render(nvg, bounds.withTrimmedBottom(32));
             }
             nvgRestore(nvg);
 
-            auto lB = bounds.toFloat().expanded(0.5f);
+            // Draw border around
             nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), nvgRGBA(0,0,0,0), convertColour(findColour(PlugDataColour::toolbarOutlineColourId)), Corners::largeCornerRadius);
 
             auto hoverColour = findColour(PlugDataColour::toolbarHoverColourId).interpolatedWith(findColour(PlugDataColour::toolbarBackgroundColourId), 0.5f);
