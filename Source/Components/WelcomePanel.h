@@ -105,7 +105,7 @@ class WelcomePanel : public Component
 
                             // Calculate offsets to center the image
                             offsetX = (componentWidth - drawWidth) / 2;
-                            offsetY = (componentHeight - drawHeight) / 2;
+                            offsetY = (componentHeight - drawHeight - 16) / 2;
 
                             g.drawImage(thumbnailImageData, offsetX, offsetY, drawWidth, drawHeight, 0, 0, imageWidth, imageHeight);
                         }
