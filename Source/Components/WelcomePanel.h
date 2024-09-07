@@ -36,7 +36,6 @@ class WelcomePanel : public Component
         float snapshotScale;
         bool isHovered = false;
         String tileName, tileSubtitle;
-        File thumbnailImage;
         std::unique_ptr<Drawable> snapshot = nullptr;
         NVGImage titleImage, subtitleImage, snapshotImage;
 
@@ -50,18 +49,15 @@ class WelcomePanel : public Component
         std::function<void()> onClick = []() {};
         std::function<void(bool)> onFavourite = nullptr;
 
-        WelcomePanelTile(WelcomePanel& welcomePanel, String name, String subtitle, String svgImage, Colour iconColour, float scale, bool favourited, File thumbImage = File())
+        WelcomePanelTile(WelcomePanel& welcomePanel, String name, String subtitle, String svgImage, Colour iconColour, float scale, bool favourited, const Image& thumbImage = Image())
             : parent(welcomePanel)
             , snapshotScale(scale)
             , tileName(name)
             , tileSubtitle(subtitle)
             , isFavourited(favourited)
-            , thumbnailImage(thumbImage)
+            , thumbnailImageData(thumbImage)
         {
-            if (thumbImage.existsAsFile()){
-                std::unique_ptr<InputStream> inputStream(File(thumbImage).createInputStream());
-                thumbnailImageData = ImageFileFormat::loadFrom(*inputStream);
-            } else {
+            if (!thumbImage.isValid()){
                 snapshot = Drawable::createFromImageData(svgImage.toRawUTF8(), svgImage.getNumBytesAsUTF8());
                 if (snapshot) {
                     snapshot->replaceColour(Colours::black, iconColour);
@@ -352,14 +348,27 @@ public:
                 auto subTree = recentlyOpenedTree.getChild(i);
                 auto patchFile = File(subTree.getProperty("Path").toString());
                 auto patchImage = subTree.getProperty("PatchImage").toString();
-                auto patchThumbnail = File(patchFile.getParentDirectory().getFullPathName() + "\\" + patchFile.getFileNameWithoutExtension() + "_thumbnail.png");
+                auto patchThumbnailBase = File(patchFile.getParentDirectory().getFullPathName() + "\\" + patchFile.getFileNameWithoutExtension() + "_thumb");
 
                 auto favourited = subTree.hasProperty("Pinned") && static_cast<bool>(subTree.getProperty("Pinned"));
                 auto snapshotColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f);
 
                 String silhoutteSvg;
-                if (patchThumbnail.existsAsFile()){
-                } else {
+                Image thumbImage;
+
+                StringArray possibleExtensions { ".png", ".jpg", ".jpeg", ".gif" };
+
+                for (auto& ext : possibleExtensions) {
+                    auto patchThumbnail = patchThumbnailBase.withFileExtension(ext);
+                    if (patchThumbnail.existsAsFile()) {
+                        FileInputStream fileStream(patchThumbnail);
+                        if (fileStream.openedOk()) {
+                            thumbImage = ImageFileFormat::loadFrom(fileStream).convertedToFormat(Image::ARGB);
+                            break;
+                        }
+                    }
+                }
+                if (thumbImage.isNull()) {
                     if (patchImage.isEmpty() && patchFile.existsAsFile()) {
                         silhoutteSvg = OfflineObjectRenderer::patchToSVG(patchFile.loadFileAsString());
                     } else {
@@ -392,7 +401,7 @@ public:
                 String time = openTime.toString(false, true, false, true);
                 String timeDescription = date + ", " + time;
 
-                auto* tile = tiles.add(new WelcomePanelTile(*this, patchFile.getFileName(), timeDescription, silhoutteSvg, snapshotColour, 1.0f, favourited, patchThumbnail));
+                auto* tile = tiles.add(new WelcomePanelTile(*this, patchFile.getFileName(), timeDescription, silhoutteSvg, snapshotColour, 1.0f, favourited, thumbImage));
                 tile->onClick = [this, patchFile]() mutable {
                     if(patchFile.existsAsFile()) {
                         editor->pd->autosave->checkForMoreRecentAutosave(patchFile, editor, [this, patchFile]() {
