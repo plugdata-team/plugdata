@@ -199,7 +199,7 @@ void SettingsFile::addToRecentlyOpened(File const& path)
         recentlyOpened.addChild(subTree, 0, nullptr);
     }
 
-    while (recentlyOpened.getNumChildren() > 10) {
+    while (recentlyOpened.getNumChildren() > 20) {
         auto minTime = Time::getCurrentTime().toMilliseconds();
         int minIdx = -1;
 
