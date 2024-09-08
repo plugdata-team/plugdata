@@ -29,7 +29,8 @@ class LuaObject final : public ObjectBase
     std::unique_ptr<Component> textEditor;
     std::unique_ptr<Dialog> saveDialog;
 
-    NVGFramebuffer framebuffer;
+    std::map<int, NVGFramebuffer> framebuffers;
+    int activeLayer = -1;
 
     struct LuaGuiMessage {
         t_symbol* symbol;
@@ -192,7 +193,10 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        framebuffer.render(nvg, Rectangle<int>(getWidth() + 1, getHeight()));
+        for(auto& [layer, fb] : framebuffers)
+        {
+            fb.render(nvg, Rectangle<int>(getWidth() + 1, getHeight()));
+        }
     }
 
     void valueChanged(Value& v) override
@@ -210,15 +214,17 @@ public:
         // First check functions that don't need an active graphics context, of modify the active graphics context
         switch (hashsym) {
         case hash("lua_start_paint"): {
-            if (getLocalBounds().isEmpty())
+            if (getLocalBounds().isEmpty() || !argc)
                 break;
             auto scale = getValue<float>(zoomScale) * 2.0f; // Multiply by 2 for hi-dpi screens
             int imageWidth = std::ceil(getWidth() * scale);
             int imageHeight = std::ceil(getHeight() * scale);
+            int layer = atom_getfloat(argv);
             if (!imageWidth || !imageHeight)
                 return;
 
-            framebuffer.bind(nvg, imageWidth, imageHeight);
+            activeLayer = layer;
+            framebuffers[layer].bind(nvg, imageWidth, imageHeight);
 
             nvgViewport(0, 0, imageWidth, imageHeight);
             nvgClear(nvg);
@@ -227,12 +233,17 @@ public:
             return;
         }
         case hash("lua_end_paint"): {
-            if (!framebuffer.isValid())
-                return;
+            if(!argc) return;
+            int layer = atom_getfloat(argv);
+            
+            if (!framebuffers[layer].isValid()) return;
+            
+            activeLayer = -1;
+            
             auto scale = getValue<float>(zoomScale) * 2.0f; // Multiply by 2 for hi-dpi screens
             nvgGlobalScissor(nvg, 0, 0, getWidth() * scale, getHeight() * scale);
             nvgEndFrame(nvg);
-            framebuffer.unbind();
+            framebuffers[layer].unbind();
             repaint();
             return;
         }
@@ -251,7 +262,7 @@ public:
         }
         }
 
-        if (!framebuffer.isValid())
+        if (activeLayer < 0 || !framebuffers[activeLayer].isValid())
             return; // If there is no active framebuffer at this point, return
 
         switch (hashsym) {
@@ -473,31 +484,40 @@ public:
 
         auto* startMesage = pd->generateSymbol("lua_start_paint");
         auto* endMessage = pd->generateSymbol("lua_end_paint");
-
-        int startIdx = -1, endIdx = -1;
-        bool updateScene = false;
-        for (int i = guiCommandBuffer.size() - 1; i >= 0; i--) {
-            if (guiCommandBuffer[i].symbol == startMesage)
-                startIdx = i;
-            if (guiCommandBuffer[i].symbol == endMessage)
-                endIdx = i + 1;
-
-            if (startIdx != -1 && endIdx != -1) {
-                updateScene = true;
-                break;
-            }
-        }
-
-        if (updateScene) {
-            if (endIdx > startIdx) {
-                for (int i = startIdx; i < endIdx; i++) {
-                    handleGuiMessage(guiCommandBuffer[i].symbol, guiCommandBuffer[i].size, guiCommandBuffer[i].data.data());
+        
+        // TODO: this can be optimised more
+        int numLayers = framebuffers.size() + 2;
+        for(int layer = 1; layer < numLayers; layer++) {
+            int startIdx = -1, endIdx = -1;
+            int currentLayer = -1;
+            bool updateScene = false;
+            for (int i = guiCommandBuffer.size() - 1; i >= 0; i--) {
+                if (guiCommandBuffer[i].symbol == startMesage) {
+                    currentLayer = atom_getfloat(&guiCommandBuffer[i].data[0]);
+                    if(currentLayer != layer) continue;
+                    startIdx = i;
+                }
+                if (guiCommandBuffer[i].symbol == endMessage) {
+                    endIdx = i + 1;
+                }
+                if (startIdx != -1 && endIdx != -1) {
+                    updateScene = true;
+                    break;
                 }
             }
-            guiCommandBuffer.erase(guiCommandBuffer.begin(), guiCommandBuffer.begin() + endIdx);
+            
+            if (updateScene) {
+                if (endIdx > startIdx) {
+                    for (int i = startIdx; i < endIdx; i++) {
+                        handleGuiMessage(guiCommandBuffer[i].symbol, guiCommandBuffer[i].size, guiCommandBuffer[i].data.data());
+                    }
+                }
+            }
+            guiCommandBuffer.erase(guiCommandBuffer.begin() + startIdx, guiCommandBuffer.begin() + endIdx);
         }
-
-        if (isSelected != object->isSelected() || !framebuffer.isValid()) {
+        
+        auto needsFramebufferUpdate = framebuffers.size() == 0 || !framebuffers[0].isValid();
+        if (isSelected != object->isSelected() || needsFramebufferUpdate) {
             isSelected = object->isSelected();
             sendRepaintMessage();
         }

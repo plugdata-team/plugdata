@@ -173,46 +173,35 @@ endif()
 
 # ELSE SOURCES
 # ------------------------------------------------------------------------------#
-file(GLOB ELSE_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/control/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/*.c
-#    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/play.file~/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/extra_source/Aliases/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/shared/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/shared/libsamplerate/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/control/pd.link/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/control/pd.link/*.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/control/pd.link/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/control/pd.link/udp/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/control/pd.link/udp/*.hpp
-)
-
-file(GLOB_RECURSE CIRCUIT_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/circuit~/Source/circuit~.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/circuit~/Source/Simulator.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/circuit~/Libraries/**/*.c
-)
-
 file(GLOB_RECURSE PLAITS_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/plaits~/plaits~.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/plaits~/*.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Audio/plaits~/plaits~.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Audio/plaits~/*.cc
 )
 
-#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/play.file~)
+file(GLOB ELSE_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Control/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Audio/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Audio/sfont~/sfont~.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Audio/circuit~/Source/circuit~.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Audio/circuit~/Source/Simulator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Audio/circuit~/Libraries/**/*.c
+    ${PLAITS_SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/libsamplerate/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/link/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/link/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/link/udp/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/link/udp/*.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/aubio/src/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/aubio/src/*/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Extra/Aliases/*.c
+)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/circuit~/Libraries)
-
-list(APPEND ELSE_SOURCES ${CIRCUIT_SOURCES})
-list(APPEND ELSE_SOURCES ${PLAITS_SOURCES})
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/ffmpeg)
 
 if(ENABLE_SFIZZ)
-list(APPEND ELSE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/sfz~/sfz~.c)
+list(APPEND ELSE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Audio/sfz~/sfz~.c)
 endif()
-
-file(GLOB_RECURSE AUBIO_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/shared/aubio/src/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/shared/aubio/src/*/*.c
-)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -273,7 +262,7 @@ endif()
 
 if(ENABLE_SFIZZ)
 list(APPEND LIBPD_COMPILE_DEFINITIONS ENABLE_SFIZZ=1)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/sfz~)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Audio/sfz~)
 endif()
 
 
@@ -331,9 +320,7 @@ if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
 # SFONT~
 # ------------------------------------------------------------------------------#
 
-set(SFONT_DIR pd-else/Code_source/Compiled/audio/sfont~)
-set(FLUIDLITE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/FluidLite)
-
+set(FLUIDLITE_DIR pd-else/Source/audio/sfont~/FluidLite)
 list(APPEND SFONT_SOURCES
     ${FLUIDLITE_DIR}/src/fluid_init.c
     ${FLUIDLITE_DIR}/src/fluid_chan.c
@@ -399,35 +386,32 @@ target_compile_options(fluidlite PRIVATE -Wno-compound-token-split-by-macro)
 endif()
 
 set(MESSAGE_QUIET ON)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/control/pd.link/opus)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/opus)
 target_compile_definitions(opus PRIVATE FLOAT_APPROX=1)
 unset(MESSAGE_QUIET)
-
-list(APPEND ELSE_SOURCES
-    ${SFONT_DIR}/sfont~.c
-)
 
 # ------------------------------------------------------------------------------#
 # TARGETS
 # ------------------------------------------------------------------------------#
-add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES})
-add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES})
+add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES})
+add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${})
 
 list(APPEND ELSE_INCLUDES
-    pd-else/Code_source/Compiled/control/
-    pd-else/Code_source/Compiled/audio/
-    pd-else/Code_source/shared/
-    pd-else/Code_source/shared/libsamplerate
-    pd-else/Code_source/shared/aubio/src
-    pd-else/Code_source/Compiled/audio/plaits~
-    pd-else/Code_source/Compiled/audio/sfz~/sfizz/library/src
-    pd-else/Code_source/Compiled/control/pd.link/opus/include
+    pd-else/Source/Control/
+    pd-else/Source/Audio/
+    pd-else/Source/Shared/
+    pd-else/Source/Shared/libsamplerate
+    pd-else/Source/Shared/aubio/src
+    pd-else/Source/Audio/plaits~
+    pd-else/Source/Audio/circuit~/Libraries
+    pd-else/Source/Audio/sfz~/sfizz/library/src
+    pd-else/Source/Shared/opus/include
+    pd-else/Source/Shared/link
+    ${CMAKE_CURRENT_BINARY_DIR}/pd-else/Source/Shared/ffmpeg/ffmpeg-7.0.1
 )
 
 target_include_directories(externals PRIVATE ${ELSE_INCLUDES})
 target_include_directories(externals-multi PRIVATE ${ELSE_INCLUDES})
-
-
 
 # ag: pdlua needs PLUGDATA symbol at compile time for plugdata integration.
 target_compile_definitions(externals PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PLUGDATA=1)
@@ -465,7 +449,7 @@ target_include_directories(externals-multi PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_IN
 # LINK
 # ------------------------------------------------------------------------------#
 
-set(externals_libs fluidlite lua opus)
+set(externals_libs fluidlite lua opus ffmpeg)
 if(ENABLE_SFIZZ)
 list(APPEND externals_libs sfizz)
 endif()
