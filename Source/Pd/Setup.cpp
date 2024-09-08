@@ -1253,14 +1253,15 @@ void conv_tilde_setup();
 void fm_tilde_setup();
 void vcf2_tilde_setup();
 void setup_mpe0x2ein();
-//void setup_play0x2efile_tilde();
+void setup_play0x2efile_tilde();
+void sfload_setup();
 
 #ifdef ENABLE_SFIZZ
 void sfz_tilde_setup();
 #endif
 void knob_setup();
-void setup_pd0x2elink();
-void setup_pd0x2elink_tilde();
+void pdlink_setup();
+void pdlink_tilde_setup();
 
 void pdlua_setup(char const* datadir, char* vers, int vers_len, void (*register_class_callback)(char const*));
 void pdlua_instance_setup();
@@ -1418,8 +1419,8 @@ void Setup::parseArguments(char const** argv, size_t argc, t_namelist** sys_open
 
 void Setup::initialiseELSE()
 {
-    setup_pd0x2elink();
-    setup_pd0x2elink_tilde();
+    pdlink_setup();
+    pdlink_tilde_setup();
     
     knob_setup();
     above_tilde_setup();
@@ -1738,7 +1739,8 @@ void Setup::initialiseELSE()
     fm_tilde_setup();
     vcf2_tilde_setup();
     setup_mpe0x2ein();
-    //setup_play0x2efile_tilde();
+    setup_play0x2efile_tilde();
+    sfload_setup();
 }
 
 void Setup::initialiseGem(std::string const& gemPluginPath)

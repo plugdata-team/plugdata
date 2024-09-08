@@ -455,11 +455,18 @@ public:
                             continue;
 
                         for (auto& [paletteName, patch] : palette) {
-                            if (!paletteCategory.getChildWithProperty("Name", paletteName).isValid()) {
+                            auto exitingChildWithName = paletteCategory.getChildWithProperty("Name", paletteName);
+                            if (!exitingChildWithName.isValid()) {
                                 ValueTree paletteTree("Item");
                                 paletteTree.setProperty("Name", paletteName, nullptr);
                                 paletteTree.setProperty("Patch", patch, nullptr);
                                 paletteCategory.appendChild(paletteTree, nullptr);
+                            }
+                            else {
+                                // TODO: temporary for version transition. Remove after v1 release
+                                auto p = exitingChildWithName.getProperty("Patch").toString();
+                                p = p.replace("palette/", "else/");
+                                exitingChildWithName.setProperty("Patch", p, nullptr);
                             }
                         }
                     }
@@ -875,55 +882,55 @@ private:
     std::map<String, std::map<String, String>> defaultPalettes = {
         { "Oscillators",
             {
-                { "vco", "#X obj 0 0 palette/vco.m~" },
-                { "lfo", "#X obj 0 0 palette/lfo.m~" },
-                { "plaits", "#X obj 0 0 palette/plaits.m~" },
-                { "6 operator FM", "#X obj 0 0 palette/pm6.m~" },
-                { "signal generator", "#X obj 0 0 palette/sig.m~" },
-                { "noise osc", "#X obj 0 0 palette/noiseosc.m~" },
-                { "gendyn osc", "#X obj 0 0 palette/gendyn.m~" },
+                { "vco", "#X obj 0 0 else/vco.m~" },
+                { "lfo", "#X obj 0 0 else/lfo.m~" },
+                { "plaits", "#X obj 0 0 else/plaits.m~" },
+                { "6 operator FM", "#X obj 0 0 else/pm6.m~" },
+                { "signal generator", "#X obj 0 0 else/sig.m~" },
+                { "noise osc", "#X obj 0 0 else/noiseosc.m~" },
+                { "gendyn osc", "#X obj 0 0 else/gendyn.m~" },
             } },
         { "Filters",
             {
-                { "vcf", "#X obj 0 0 palette/vcf.m~" },
-                { "svf", "#X obj 0 0 palette/svf.m~" },
-                { "EQ", "#X obj 0 0 palette/eq.m~" },
+                { "vcf", "#X obj 0 0 else/vcf.m~" },
+                { "svf", "#X obj 0 0 else/svf.m~" },
+                { "EQ", "#X obj 0 0 else/eq.m~" },
             } },
         { "Effects",
             {
-                { "delay", "#X obj 0 0 palette/delay.m~" },
-                { "chorus", "#X obj 0 0 palette/chorus.m~" },
-                { "phaser", "#X obj 0 0 palette/phaser.m~" },
-                { "flanger", "#X obj 0 0 palette/flanger.m~" },
-                { "drive", "#X obj 0 0 palette/drive.m~" },
-                { "bitcrusher", "#X obj 0 0 palette/bitcrusher.m~" },
-                { "reverb", "#X obj 0 0 palette/plate.rev.m~" },
-                { "gain", "#X obj 0 0 palette/gain.m~" },
-                { "ringmod", "#X obj 0 0 palette/rm.m~" },
-                { "drive", "#X obj 0 0 palette/drive.m~" },
+                { "delay", "#X obj 0 0 else/delay.m~" },
+                { "chorus", "#X obj 0 0 else/chorus.m~" },
+                { "phaser", "#X obj 0 0 else/phaser.m~" },
+                { "flanger", "#X obj 0 0 else/flanger.m~" },
+                { "drive", "#X obj 0 0 else/drive.m~" },
+                { "bitcrusher", "#X obj 0 0 else/bitcrusher.m~" },
+                { "reverb", "#X obj 0 0 else/plate.rev.m~" },
+                { "gain", "#X obj 0 0 else/gain.m~" },
+                { "ringmod", "#X obj 0 0 else/rm.m~" },
+                { "drive", "#X obj 0 0 else/drive.m~" },
             } },
         { "Sequencers",
             {
-                { "bpm metronome", "#X obj 0 0 palette/metronome.m~" },
-                { "adsr", "#X obj 0 0 palette/adsr.m~" },
-                { "drum sequencer", "#X obj 0 0 palette/drumseq.m~" },
-                { "note sequencer", "#X obj 0 0 palette/noteseq.m~" },
-                { "8-step sequencer", "#X obj 0 0 palette/seq8.m~" },
-                { "presets", "#X obj 0 0 palette/presets.m" },
+                { "bpm metronome", "#X obj 0 0 else/metronome.m~" },
+                { "adsr", "#X obj 0 0 else/adsr.m~" },
+                { "drum sequencer", "#X obj 0 0 else/drumseq.m~" },
+                { "note sequencer", "#X obj 0 0 else/noteseq.m~" },
+                { "8-step sequencer", "#X obj 0 0 else/seq8.m~" },
+                { "presets", "#X obj 0 0 else/presets.m" },
             } },
         { "Instruments",
             {
-                { "drums", "#X obj 0 0 palette/drums.m~" },
-                { "piano", "#X obj 0 0 palette/piano.m~" },
-                { "e-piano", "#X obj 0 0 palette/epiano.m~" },
-                { "bass", "#X obj 0 0 palette/bass.m~" },
-                { "guitar", "#X obj 0 0 palette/guitar.m~" },
-                { "strings", "#X obj 0 0 palette/strings.m~" },
-                { "brass", "#X obj 0 0 palette/brass.m~" },
-                { "organ", "#X obj 0 0 palette/organ.m~" },
-                { "vca", "#X obj 0 0 palette/vca.m~" },
-                { "pluck", "#X obj 0 0 palette/pluck.m~" },
-                { "brane", "#X obj 0 0 palette/brane.m~" },
+                { "drums", "#X obj 0 0 else/drums.m~" },
+                { "piano", "#X obj 0 0 else/piano.m~" },
+                { "e-piano", "#X obj 0 0 else/epiano.m~" },
+                { "bass", "#X obj 0 0 else/bass.m~" },
+                { "guitar", "#X obj 0 0 else/guitar.m~" },
+                { "strings", "#X obj 0 0 else/strings.m~" },
+                { "brass", "#X obj 0 0 else/brass.m~" },
+                { "organ", "#X obj 0 0 else/organ.m~" },
+                { "vca", "#X obj 0 0 else/vca.m~" },
+                { "pluck", "#X obj 0 0 else/pluck.m~" },
+                { "brane", "#X obj 0 0 else/brane.m~" },
             } },
     };
 

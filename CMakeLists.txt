@@ -114,7 +114,7 @@ if(NOT PACKAGE_RESOURCES_RESULT EQUAL 0)
     message(FATAL_ERROR "Resource packaging failed with error code ${PACKAGE_RESOURCES_RESULT}")
 endif()
 
-set(PLUGDATA_VERSION                    "0.9.1")
+set(PLUGDATA_VERSION                    "0.9.2")
 set(PLUGDATA_COMPANY_NAME               "plugdata")
 set(PLUGDATA_COMPANY_COPYRIGHT          "plugdata by Timothy Schoen")
 set(PLUGDATA_COMPANY_WEBSITE            "github.com/plugdata-team/plugdata")
