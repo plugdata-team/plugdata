@@ -12,7 +12,7 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
@@ -82,7 +82,7 @@ jobs:
     runs-on: macos-12
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
@@ -151,7 +151,7 @@ jobs:
   windows-64-build:
     runs-on: windows-2022
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
@@ -201,7 +201,7 @@ jobs:
     runs-on: windows-2022
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
@@ -299,7 +299,7 @@ jobs:
         if: ${{ matrix.pacman == 'pacman' }}
         run: pacman -Sy && pacman -S --noconfirm cmake wget bzip2 git alsa-lib freetype2 libx11 libxcursor libxi libxext libxinerama libxrandr libxrender webkit2gtk cmake make gcc pkgconf python python-pip curl ccache freeglut mesa glfw-x11 glew jack2 openssl && pacman --noconfirm -Syu
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
