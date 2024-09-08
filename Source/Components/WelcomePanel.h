@@ -14,6 +14,23 @@ class WelcomePanel : public Component
     , public NVGComponent
     , public AsyncUpdater {
 
+    class TopFillAllRect : public Component {
+        Colour bgCol;
+    public:
+        TopFillAllRect(){};
+
+        void setBGColour(const Colour& col)
+        {
+            bgCol = col;
+            repaint();
+        }
+
+        void paint(Graphics& g) override
+        {
+            g.fillAll(bgCol);
+        }
+    };
+
     class WelcomePanelTile : public Component {
         WelcomePanel& parent;
         float snapshotScale;
@@ -21,22 +38,30 @@ class WelcomePanel : public Component
         String tileName, tileSubtitle;
         std::unique_ptr<Drawable> snapshot = nullptr;
         NVGImage titleImage, subtitleImage, snapshotImage;
+
+        Image thumbnailImageData;
+
+        int lastWidth = -1;
+        int lastHeight = -1;
         
     public:
         bool isFavourited;
         std::function<void()> onClick = []() {};
         std::function<void(bool)> onFavourite = nullptr;
 
-        WelcomePanelTile(WelcomePanel& welcomePanel, String name, String subtitle, String svgImage, Colour iconColour, float scale, bool favourited)
+        WelcomePanelTile(WelcomePanel& welcomePanel, String name, String subtitle, String svgImage, Colour iconColour, float scale, bool favourited, const Image& thumbImage = Image())
             : parent(welcomePanel)
             , snapshotScale(scale)
             , tileName(name)
             , tileSubtitle(subtitle)
             , isFavourited(favourited)
+            , thumbnailImageData(thumbImage)
         {
-            snapshot = Drawable::createFromImageData(svgImage.toRawUTF8(), svgImage.getNumBytesAsUTF8());
-            if (snapshot) {
-                snapshot->replaceColour(Colours::black, iconColour);
+            if (!thumbImage.isValid()){
+                snapshot = Drawable::createFromImageData(svgImage.toRawUTF8(), svgImage.getNumBytesAsUTF8());
+                if (snapshot) {
+                    snapshot->replaceColour(Colours::black, iconColour);
+                }
             }
 
             resized();
@@ -48,17 +73,73 @@ class WelcomePanel : public Component
 
             auto* nvg = dynamic_cast<NanoVGGraphicsContext&>(g.getInternalContext()).getContext();
             parent.drawShadow(nvg, getWidth(), getHeight());
-            
-            nvgDrawRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), convertColour(findColour(PlugDataColour::canvasBackgroundColourId)), convertColour(findColour(PlugDataColour::toolbarOutlineColourId)), Corners::largeCornerRadius);
 
-            if (snapshot && !snapshotImage.isValid()) {
-                snapshotImage =  NVGImage(nvg, bounds.getWidth() * 2, (bounds.getHeight() - 32) * 2, [this](Graphics &g) {
-                    g.addTransform(AffineTransform::scale(2.0f));
-                    snapshot->drawAt(g, 0, 0, 1.0f);
-                });
+            if (thumbnailImageData.isValid()) {
+                if (!snapshotImage.isValid() || lastWidth != bounds.getWidth() || lastHeight != bounds.getHeight()) {
+                    lastWidth = bounds.getWidth();
+                    lastHeight = bounds.getHeight();
+
+                    snapshotImage =  NVGImage(nvg, bounds.getWidth() * 2, (bounds.getHeight() - 32) * 2, [this, bounds](Graphics &g) {
+                        g.addTransform(AffineTransform::scale(2.0f));
+                        if (thumbnailImageData.isValid()) {
+                            auto imageWidth = thumbnailImageData.getWidth();
+                            auto imageHeight = thumbnailImageData.getHeight();
+                            auto componentWidth = bounds.getWidth();
+                            auto componentHeight = bounds.getHeight();
+
+                            float imageAspect = static_cast<float>(imageWidth) / imageHeight;
+                            float componentAspect = static_cast<float>(componentWidth) / componentHeight;
+
+                            int drawWidth, drawHeight;
+                            int offsetX = 0, offsetY = 0;
+
+                            if (componentAspect < imageAspect) {
+                                // Component is wider than the image aspect ratio, scale based on height
+                                drawHeight = componentHeight;
+                                drawWidth = static_cast<int>(drawHeight * imageAspect);
+                            } else {
+                                // Component is taller than the image aspect ratio, scale based on width
+                                drawWidth = componentWidth;
+                                drawHeight = static_cast<int>(drawWidth / imageAspect);
+                            }
+
+                            // Calculate offsets to center the image
+                            offsetX = (componentWidth - drawWidth) / 2;
+                            offsetY = (componentHeight - drawHeight - 32) / 2;
+
+                            g.drawImage(thumbnailImageData, offsetX, offsetY, drawWidth, drawHeight, 0, 0, imageWidth, imageHeight);
+                        }
+                    });
+                }
+            } else {
+                if (snapshot && !snapshotImage.isValid()) {
+                    snapshotImage =  NVGImage(nvg, bounds.getWidth() * 2, (bounds.getHeight() - 32) * 2, [this](Graphics &g) {
+                        g.addTransform(AffineTransform::scale(2.0f));
+                        snapshot->drawAt(g, 0, 0, 1.0f);
+                    });
+                }
             }
-            
-            snapshotImage.render(nvg, bounds.withTrimmedBottom(32));
+
+            nvgSave(nvg);
+            auto sB = bounds.toFloat().reduced(0.2f);
+            nvgRoundedScissor(nvg, sB.getX(), sB.getY(), sB.getWidth(), sB.getHeight(), Corners::largeCornerRadius);
+
+            auto lB = bounds.toFloat().expanded(0.5f);
+            // Draw background even for images incase there is a transparent PNG
+            nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), convertColour(findColour(PlugDataColour::canvasBackgroundColourId)), convertColour(findColour(PlugDataColour::toolbarOutlineColourId)), Corners::largeCornerRadius);
+            if (thumbnailImageData.isValid()) {
+                // Render the thumbnail image file that is in the root dir of the pd patch
+                auto sB = bounds.toFloat().reduced(0.2f);
+                nvgFillPaint(nvg, nvgImagePattern(nvg, sB.getX(), sB.getY(), sB.getWidth(), sB.getHeight() - 32, 0, snapshotImage.getImageId(), 1));
+                nvgFillRect(nvg, sB.getX(), sB.getY(), sB.getWidth(), sB.getHeight() - 32);
+            } else {
+                // Otherwise render the generated snapshot
+                snapshotImage.render(nvg, bounds.withTrimmedBottom(32));
+            }
+            nvgRestore(nvg);
+
+            // Draw border around
+            nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), nvgRGBA(0,0,0,0), convertColour(findColour(PlugDataColour::toolbarOutlineColourId)), Corners::largeCornerRadius);
 
             auto hoverColour = findColour(PlugDataColour::toolbarHoverColourId).interpolatedWith(findColour(PlugDataColour::toolbarBackgroundColourId), 0.5f);
             
@@ -162,6 +243,9 @@ public:
 
         addChildComponent(recentlyOpenedViewport);
 
+        // A top rectangle component that hides anything behind (we use this instead of scissoring)
+        topFillAllRect.setBGColour(findColour(PlugDataColour::panelBackgroundColourId));
+
         setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this));
         triggerAsyncUpdate();
     }
@@ -195,6 +279,9 @@ public:
         int numColumns = std::max(1, totalWidth / (desiredTileWidth + tileSpacing));
         // Adjust the tile width to fit within the available width
         int actualTileWidth = (totalWidth - (numColumns - 1) * tileSpacing) / numColumns;
+
+        // Place a rectangle directly behind the newTile & openTile so to hide any content that draws behind it.
+        topFillAllRect.setBounds(0, 0, getWidth(), recentlyOpenedViewport.getY());
 
         if (newPatchTile)
             newPatchTile->setBounds(rowBounds.removeFromLeft(actualTileWidth));
@@ -245,6 +332,9 @@ public:
         newPatchTile->onClick = [this]() { editor->getTabComponent().newPatch(); };
         openPatchTile->onClick = [this]() { editor->getTabComponent().openPatch(); };
 
+        topFillAllRect.setBGColour(findColour(PlugDataColour::panelBackgroundColourId));
+        addAndMakeVisible(topFillAllRect);
+
         addAndMakeVisible(*newPatchTile);
         addAndMakeVisible(*openPatchTile);
 
@@ -260,28 +350,45 @@ public:
                 auto subTree = recentlyOpenedTree.getChild(i);
                 auto patchFile = File(subTree.getProperty("Path").toString());
                 auto patchImage = subTree.getProperty("PatchImage").toString();
+                auto patchThumbnailBase = File(patchFile.getParentDirectory().getFullPathName() + "\\" + patchFile.getFileNameWithoutExtension() + "_thumb");
 
                 auto favourited = subTree.hasProperty("Pinned") && static_cast<bool>(subTree.getProperty("Pinned"));
                 auto snapshotColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f);
 
                 String silhoutteSvg;
-                if (patchImage.isEmpty() && patchFile.existsAsFile()) {
-                    silhoutteSvg = OfflineObjectRenderer::patchToSVG(patchFile.loadFileAsString());
-                } else {
-                    MemoryOutputStream ostream;
-                    Base64::convertFromBase64(ostream, patchImage);
-                    MemoryInputStream istream(ostream.getMemoryBlock());
+                Image thumbImage;
 
-                    while (!istream.isExhausted()) {
-                        int const x = istream.readCompressedInt();
-                        int const y = istream.readCompressedInt();
-                        int const w = istream.readCompressedInt();
-                        int const h = istream.readCompressedInt();
-                        float const rad = Corners::objectCornerRadius;
+                StringArray possibleExtensions { ".png", ".jpg", ".jpeg", ".gif" };
 
-                        silhoutteSvg += String::formatted("<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" rx=\"%.1f\" ry=\"%.1f\" />\n", x, y, w, h, rad, rad);
+                for (auto& ext : possibleExtensions) {
+                    auto patchThumbnail = patchThumbnailBase.withFileExtension(ext);
+                    if (patchThumbnail.existsAsFile()) {
+                        FileInputStream fileStream(patchThumbnail);
+                        if (fileStream.openedOk()) {
+                            thumbImage = ImageFileFormat::loadFrom(fileStream).convertedToFormat(Image::ARGB);
+                            break;
+                        }
                     }
-                    silhoutteSvg = "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">\n" + silhoutteSvg + "</svg>";
+                }
+                if (thumbImage.isNull()) {
+                    if (patchImage.isEmpty() && patchFile.existsAsFile()) {
+                        silhoutteSvg = OfflineObjectRenderer::patchToSVG(patchFile.loadFileAsString());
+                    } else {
+                        MemoryOutputStream ostream;
+                        Base64::convertFromBase64(ostream, patchImage);
+                        MemoryInputStream istream(ostream.getMemoryBlock());
+
+                        while (!istream.isExhausted()) {
+                            int const x = istream.readCompressedInt();
+                            int const y = istream.readCompressedInt();
+                            int const w = istream.readCompressedInt();
+                            int const h = istream.readCompressedInt();
+                            float const rad = Corners::objectCornerRadius;
+
+                            silhoutteSvg += String::formatted("<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" rx=\"%.1f\" ry=\"%.1f\" />\n", x, y, w, h, rad, rad);
+                        }
+                        silhoutteSvg = "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">\n" + silhoutteSvg + "</svg>";
+                    }
                 }
 
                 auto openTime = Time(static_cast<int64>(subTree.getProperty("Time")));
@@ -296,7 +403,7 @@ public:
                 String time = openTime.toString(false, true, false, true);
                 String timeDescription = date + ", " + time;
 
-                auto* tile = tiles.add(new WelcomePanelTile(*this, patchFile.getFileName(), timeDescription, silhoutteSvg, snapshotColour, 1.0f, favourited));
+                auto* tile = tiles.add(new WelcomePanelTile(*this, patchFile.getFileName(), timeDescription, silhoutteSvg, snapshotColour, 1.0f, favourited, thumbImage));
                 tile->onClick = [this, patchFile]() mutable {
                     if(patchFile.existsAsFile()) {
                         editor->pd->autosave->checkForMoreRecentAutosave(patchFile, editor, [this, patchFile]() {
@@ -393,6 +500,8 @@ public:
 
     Component recentlyOpenedComponent;
     BouncingViewport recentlyOpenedViewport;
+
+    TopFillAllRect topFillAllRect;
 
     std::unique_ptr<NanoVGGraphicsContext> nvgContext = nullptr;
 
