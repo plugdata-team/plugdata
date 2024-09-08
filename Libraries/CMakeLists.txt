@@ -320,7 +320,7 @@ if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
 # SFONT~
 # ------------------------------------------------------------------------------#
 
-set(FLUIDLITE_DIR pd-else/Source/audio/sfont~/FluidLite)
+set(FLUIDLITE_DIR pd-else/Source/Audio/sfont~/FluidLite)
 list(APPEND SFONT_SOURCES
     ${FLUIDLITE_DIR}/src/fluid_init.c
     ${FLUIDLITE_DIR}/src/fluid_chan.c
