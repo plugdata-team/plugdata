@@ -513,8 +513,10 @@ public:
                     }
                 }
             }
-            guiCommandBuffer.erase(guiCommandBuffer.begin() + startIdx, guiCommandBuffer.begin() + endIdx);
+            //guiCommandBuffer.erase(guiCommandBuffer.begin() + startIdx, guiCommandBuffer.begin() + endIdx);
         }
+        
+        guiCommandBuffer.clear();
         
         auto needsFramebufferUpdate = framebuffers.size() == 0 || !framebuffers[0].isValid();
         if (isSelected != object->isSelected() || needsFramebufferUpdate) {
