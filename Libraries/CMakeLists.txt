@@ -197,7 +197,11 @@ file(GLOB ELSE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Extra/Aliases/*.c
 )
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/ffmpeg)
+if(NOT ENABLE_FFMPEG)
+list(REMOVE_ITEM ELSE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Audio/play.file~.c)
+list(REMOVE_ITEM ELSE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Control/sfload.c)
+endif()
+
 
 if(ENABLE_SFIZZ)
 list(APPEND ELSE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Audio/sfz~/sfz~.c)
@@ -261,10 +265,12 @@ set(GEM_LIBS_MULTI Gem-multi ftgl glew_s freetype)
 endif()
 
 if(ENABLE_SFIZZ)
-list(APPEND LIBPD_COMPILE_DEFINITIONS ENABLE_SFIZZ=1)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Audio/sfz~)
 endif()
 
+if(ENABLE_FFMPEG)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/ffmpeg)
+endif()
 
 # COMPILE DEFINITIONS OPTIONS
 # ------------------------------------------------------------------------------#
@@ -449,9 +455,13 @@ target_include_directories(externals-multi PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_IN
 # LINK
 # ------------------------------------------------------------------------------#
 
-set(externals_libs fluidlite lua opus ffmpeg)
+set(externals_libs fluidlite lua opus)
 if(ENABLE_SFIZZ)
 list(APPEND externals_libs sfizz)
+endif()
+
+if(ENABLE_FFMPEG)
+list(APPEND externals_libs ffmpeg)
 endif()
 
 if("${CMAKE_SYSTEM}" MATCHES "Linux")
