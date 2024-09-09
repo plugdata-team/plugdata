@@ -392,6 +392,7 @@ target_compile_options(fluidlite PRIVATE -Wno-compound-token-split-by-macro)
 endif()
 
 set(MESSAGE_QUIET ON)
+set(OPUS_STATIC_RUNTIME ON)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/opus)
 target_compile_definitions(opus PRIVATE FLOAT_APPROX=1)
 unset(MESSAGE_QUIET)
