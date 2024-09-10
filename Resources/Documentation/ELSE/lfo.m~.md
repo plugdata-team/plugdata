@@ -1,6 +1,6 @@
 ---
 title: lfo.m~
-description:
+description: low frequency oscillator module
 
 categories:
  - object

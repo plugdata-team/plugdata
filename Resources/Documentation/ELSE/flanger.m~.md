@@ -10,6 +10,7 @@ pdcategory: MERDA, Effects
 arguments:
 
 inlets:
+  1st:
   - type: signal
     description: audio in
 

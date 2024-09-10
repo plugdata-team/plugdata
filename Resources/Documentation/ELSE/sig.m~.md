@@ -10,6 +10,7 @@ pdcategory: MERDA, Signal Generators
 arguments:
 
 inlets:
+  1st:
   - type: float
     description: signal value
 

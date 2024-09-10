@@ -1,6 +1,6 @@
 ---
 title: vcf.m~
-description:
+description: voltage controlled filter module
 
 categories:
  - object
