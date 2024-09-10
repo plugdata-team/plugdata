@@ -826,7 +826,7 @@ void Dialogs::showOpenDialog(std::function<void(URL)> const& callback, bool canS
 #if JUCE_IOS
     fileChooser = std::make_unique<FileChooser>("Choose file to open...", initialFile, "*", nativeDialog, false, parentComponent);
 #else
-    fileChooser = std::make_unique<FileChooser>("Choose file to open...", initialFile, extension, nativeDialog, false, parentComponent);
+    fileChooser = std::make_unique<FileChooser>("Choose file to open...", initialFile, extension, nativeDialog, false, nullptr);
 #endif
     auto openChooserFlags = FileBrowserComponent::openMode;
 
