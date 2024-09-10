@@ -27,8 +27,6 @@ public:
     {
         setSize(36, 36);
         setVisible(false);
-        // needed to stop the component from gaining mouse focus
-        setInterceptsMouseClicks(false, false);
         setBufferedToImage(true);
     }
 
@@ -36,6 +34,10 @@ public:
         override
         = default;
         
+    bool hitTest (int x, int y) override
+    {
+        return false;
+    }
 
     // Activate the current connection info display overlay, to hide give it a nullptr
     void setConnection(Connection* connection, Point<int> screenPosition = { 0, 0 })
@@ -161,7 +163,7 @@ private:
     void updateBoundsFromProposed(Rectangle<int> proposedPosition)
     {
         // make sure the proposed position is inside the editor area
-        proposedPosition.setCentre(mousePosition.translated(0, -(getHeight() * 0.5)));
+        proposedPosition.setPosition(mousePosition.translated(0, -getHeight()));
         constrainedBounds = proposedPosition.constrainedWithin(editor->getScreenBounds());
         if (getBounds() != constrainedBounds)
             setBounds(constrainedBounds);

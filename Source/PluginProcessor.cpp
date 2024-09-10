@@ -31,7 +31,7 @@
 #include "Statusbar.h"
 
 #include "Dialogs/Dialogs.h"
-#include "Dialogs/ConnectionMessageDisplay.h"
+#include "Components/ConnectionMessageDisplay.h"
 
 #include "Sidebar/Sidebar.h"
 

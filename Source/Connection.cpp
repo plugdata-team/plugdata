@@ -20,7 +20,7 @@ using namespace juce::gl;
 #include "PluginProcessor.h"
 #include "PluginEditor.h" // might not need this?
 #include "Pd/Patch.h"
-#include "Dialogs/ConnectionMessageDisplay.h"
+#include "Components/ConnectionMessageDisplay.h"
 
 Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     : NVGComponent(this)
@@ -630,7 +630,7 @@ void Connection::mouseEnter(MouseEvent const& e)
     if (plugdata_debugging_enabled()) {
         Point<float> nearest;
         getPath().getNearestPoint(cnv->getLocalPoint(this, e.position), nearest);
-        cnv->editor->connectionMessageDisplay->setConnection(this, cnv->localPointToGlobal(nearest).roundToInt().translated(60, 15));
+        cnv->editor->connectionMessageDisplay->setConnection(this, cnv->localPointToGlobal(nearest).roundToInt().translated(20, 15));
     }
     repaint();
 }

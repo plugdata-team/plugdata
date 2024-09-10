@@ -25,7 +25,7 @@
 
 #include "Canvas.h"
 #include "Connection.h"
-#include "Dialogs/ConnectionMessageDisplay.h"
+#include "Components/ConnectionMessageDisplay.h"
 #include "Dialogs/Dialogs.h"
 #include "Statusbar.h"
 #include "Components/WelcomePanel.h"
@@ -234,7 +234,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     connectionMessageDisplay = std::make_unique<ConnectionMessageDisplay>(this);
     connectionMessageDisplay->addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses | ComponentPeer::windowIgnoresMouseClicks);
     if (!ProjectInfo::isStandalone) {
-        connectionMessageDisplay->setAlwaysOnTop(true);
+        
     }
 
     // This cannot be done in MidiDeviceManager's constructor because SettingsFile is not yet initialised at that time
