@@ -90,9 +90,11 @@ public:
         if (!activeConnection)
             return;
 
-        float output[DEFDACBLKSIZE * 8];
-        if (auto numChannels = activeConnection->getSignalData(output, 8)) {
-            sampleQueue.try_enqueue(SignalBlock(output, numChannels));
+        if(activeConnection) {
+            float output[DEFDACBLKSIZE * 8];
+            if (auto numChannels = activeConnection->getSignalData(output, 8)) {
+                sampleQueue.try_enqueue(SignalBlock(output, numChannels));
+            }
         }
     }
 
