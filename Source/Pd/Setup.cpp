@@ -1253,6 +1253,7 @@ void conv_tilde_setup();
 void fm_tilde_setup();
 void vcf2_tilde_setup();
 void setup_mpe0x2ein();
+void velvet_tilde_setup();
 
 #ifdef ENABLE_FFMPEG
 void setup_play0x2efile_tilde();
@@ -1736,6 +1737,7 @@ void Setup::initialiseELSE()
     pm2_tilde_setup();
     pm4_tilde_setup();
     pm6_tilde_setup();
+    velvet_tilde_setup();
 
     var_setup();
     conv_tilde_setup();
