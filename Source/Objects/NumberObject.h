@@ -10,7 +10,8 @@
 
 class NumberObject final : public ObjectBase {
 
-    Value sizeProperty = SynchronousValue();
+    Value widthProperty = SynchronousValue();
+    Value heightProperty = SynchronousValue();
 
     DraggableNumber input;
     IEMHelper iemHelper;
@@ -26,6 +27,7 @@ class NumberObject final : public ObjectBase {
 
     NVGcolor backgroundCol;
     NVGcolor foregroundCol;
+    NVGcolor flagCol;
     Colour backgroundColJuce;
     Colour foregroundColJuce;
 
@@ -44,6 +46,7 @@ public:
 
             foregroundColJuce = iemHelper.getForegroundColour();
             foregroundCol = convertColour(iemHelper.getForegroundColour());
+            flagCol = convertColour(iemHelper.getForegroundColour());
 
             input.setColour(Label::textColourId, foregroundColJuce);
             input.setColour(Label::textWhenEditingColourId, backgroundColJuce.contrasting());
@@ -64,8 +67,6 @@ public:
             else
                 input.setColour(Label::textColourId, foregroundColJuce);
         };
-
-        input.setFont(Fonts::getTabularNumbersFont().withHeight(15.5f));
 
         input.onEditorHide = [this]() {
             stopEdition();
@@ -89,14 +90,22 @@ public:
             stopEdition();
         };
 
-        objectParameters.addParamSize(&sizeProperty);
-
+        objectParameters.addParamInt("Width (chars)", cDimensions, &widthProperty);
+        objectParameters.addParamInt("Height", cDimensions, &heightProperty);
+        objectParameters.addParamInt("Text/Label Height", cDimensions, &iemHelper.labelHeight, 10);
         objectParameters.addParamFloat("Minimum", cGeneral, &min, -9.999999933815813e36);
         objectParameters.addParamFloat("Maximum", cGeneral, &max, 9.999999933815813e36);
         objectParameters.addParamBool("Logarithmic mode", cGeneral, &logMode, { "Off", "On" }, var(false));
         objectParameters.addParamInt("Logarithmic height", cGeneral, &logHeight, var(256));
-
-        iemHelper.addIemParameters(objectParameters);
+        objectParameters.addParamColourFG(&iemHelper.primaryColour);
+        objectParameters.addParamColourBG(&iemHelper.secondaryColour);
+        objectParameters.addParamReceiveSymbol(&iemHelper.receiveSymbol);
+        objectParameters.addParamSendSymbol(&iemHelper.sendSymbol);
+        objectParameters.addParamString("Label", cLabel, &iemHelper.labelText, "");
+        objectParameters.addParamColourLabel(&iemHelper.labelColour);
+        objectParameters.addParamInt("Label X", cLabel, &iemHelper.labelX, 0);
+        objectParameters.addParamInt("Label Y", cLabel, &iemHelper.labelY, -8);
+        objectParameters.addParamBool("Initialise", cGeneral, &iemHelper.initialise, { "No", "Yes" }, 0);
 
         input.setResetValue(0.0f);
     }
@@ -116,12 +125,16 @@ public:
         input.setMaximum(::getValue<float>(max));
 
         if (auto nbx = ptr.get<t_my_numbox>()) {
-            sizeProperty = Array<var> { var(nbx->x_gui.x_w), var(nbx->x_gui.x_h) };
+            widthProperty = var(nbx->x_numwidth);
+            heightProperty = var(nbx->x_gui.x_h);
             logMode = nbx->x_lin0_log1;
             logHeight = nbx->x_log_height;
         }
 
         iemHelper.update();
+        
+        auto fontHeight = ::getValue<int>(iemHelper.labelHeight) + 3.0f;
+        input.setFont(Fonts::getTabularNumbersFont().withHeight(fontHeight));
     }
 
     bool inletIsSymbol() override
@@ -138,37 +151,43 @@ public:
     {
         iemHelper.updateLabel(labels);
     }
-
+    
     Rectangle<int> getPdBounds() override
     {
-        if (auto gobj = ptr.get<t_gobj>()) {
-
+        if (auto nbx = ptr.get<t_my_numbox>()) {
             auto* patch = cnv->patch.getPointer().get();
             if (!patch)
                 return {};
 
             int x = 0, y = 0, w = 0, h = 0;
-            pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
-            return { x, y, w + 1, h + 1 };
+            pd::Interface::getObjectBounds(patch, nbx.cast<t_gobj>(), &x, &y, &w, &h);
+            
+            return { x, y, calcFontWidth(std::max(nbx->x_numwidth, 1)) + 1, h + 1 };
         }
 
         return {};
+    }
+    
+    int getFontWidth()
+    {
+        if (auto nbx = ptr.get<t_my_numbox>()) {
+            return nbx->x_gui.x_fontsize;
+        }
+        return 10;
     }
 
     void setPdBounds(Rectangle<int> b) override
     {
         if (auto nbx = ptr.get<t_my_numbox>()) {
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
+            auto* patchPtr = cnv->patch.getPointer().get();
+            if (!patchPtr)
                 return;
 
+            pd::Interface::moveObject(patchPtr, nbx.cast<t_gobj>(), b.getX(), b.getY());
+            
+            nbx->x_numwidth = calcNumWidth(b.getWidth() - 1);
             nbx->x_gui.x_w = b.getWidth() - 1;
             nbx->x_gui.x_h = b.getHeight() - 1;
-
-            auto fontsize = nbx->x_gui.x_fontsize * 31;
-            nbx->x_numwidth = (((nbx->x_gui.x_w - 4.0 - (nbx->x_gui.x_h / 2.0)) * 36.0) / fontsize) + 0.5;
-
-            pd::Interface::moveObject(patch, nbx.cast<t_gobj>(), b.getX(), b.getY());
         }
     }
 
@@ -176,15 +195,15 @@ public:
     {
         setPdBounds(object->getObjectBounds());
 
-        if (auto iem = ptr.get<t_iemgui>()) {
-            setParameterExcludingListener(sizeProperty, Array<var> { var(iem->x_w), var(iem->x_h) });
+        if (auto nbx = ptr.get<t_my_numbox>()) {
+            setParameterExcludingListener(widthProperty, var(nbx->x_numwidth));
+            setParameterExcludingListener(heightProperty, var(nbx->x_gui.x_h));
         }
     }
 
     void resized() override
     {
         input.setBounds(getLocalBounds());
-        input.setFont(input.getFont().withHeight(getHeight() - 6));
     }
 
     void focusGained(FocusChangeType cause) override
@@ -270,22 +289,60 @@ public:
         }
     }
 
+    int calcFontWidth(int numWidth) const
+    {
+        if(auto nbx = ptr.get<t_my_numbox>()) {
+            int w, f = 31;
+            
+            if(nbx->x_gui.x_fsf.x_font_style == 1)
+                f = 27;
+            else if(nbx->x_gui.x_fsf.x_font_style == 2)
+                f = 25;
+            
+            w = nbx->x_gui.x_fontsize * f * numWidth;
+            w /= 36;
+            return (w + (nbx->x_gui.x_h/2) + 4);
+        }
+        return 14;
+    }
+    
+    int calcNumWidth(int width) const
+    {
+        if(auto nbx = ptr.get<t_my_numbox>()) {
+            int f = 31;
+            if(nbx->x_gui.x_fsf.x_font_style == 1)
+                f = 27;
+            else if(nbx->x_gui.x_fsf.x_font_style == 2)
+                f = 25;
+            
+            return -(18.0f * (8.0f + nbx->x_gui.x_h - 2 * width)) / (nbx->x_gui.x_fontsize * f) + 1;
+        }
+        return 1;
+    }
+    
     void valueChanged(Value& value) override
     {
 
-        if (value.refersToSameSourceAs(sizeProperty)) {
-            auto& arr = *sizeProperty.getValue().getArray();
+        if (value.refersToSameSourceAs(widthProperty)) {
             auto* constrainer = getConstrainer();
-            auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
-            auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
-
-            setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+            auto numWidth = std::max(::getValue<int>(widthProperty), 1);
+            
+            auto width = calcFontWidth(numWidth) + 1;
+            
+            setParameterExcludingListener(widthProperty, var(numWidth));
 
             if (auto nbx = ptr.get<t_my_numbox>()) {
+                nbx->x_numwidth = numWidth;
                 nbx->x_gui.x_w = width;
-                nbx->x_gui.x_h = height;
             }
 
+            object->updateBounds();
+        } else if (value.refersToSameSourceAs(heightProperty)) {
+            auto height = std::max(::getValue<int>(heightProperty), constrainer->getMinimumHeight());
+            setParameterExcludingListener(heightProperty, var(height));
+            if (auto nbx = ptr.get<t_my_numbox>()) {
+                nbx->x_gui.x_h = height;
+            }
             object->updateBounds();
         } else if (value.refersToSameSourceAs(min)) {
             setMinimum(::getValue<float>(min));
@@ -304,7 +361,16 @@ public:
                 nbx->x_lin0_log1 = logarithmicDrag;
             }
             input.setDragMode(logarithmicDrag ? DraggableNumber::Logarithmic : DraggableNumber::Regular);
-        } else {
+        } else if (value.refersToSameSourceAs(iemHelper.labelHeight)) {
+            limitValueMin(iemHelper.labelHeight, 4.f);
+            iemHelper.setFontHeight(::getValue<int>(iemHelper.labelHeight));
+            updateLabel();
+            
+            auto fontHeight = ::getValue<int>(iemHelper.labelHeight) + 3.0f;
+            input.setFont(Fonts::getTabularNumbersFont().withHeight(fontHeight));
+            object->updateBounds();
+        }
+        else {
             iemHelper.valueChanged(value);
         }
     }
@@ -328,7 +394,10 @@ public:
         nvgLineTo(nvg, leftX, centreY - 5.0f);
         nvgClosePath(nvg);
 
-        nvgFillColor(nvg, object->isSelected() ? cnv->selectedOutlineCol : foregroundCol);
+        bool highlighted = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
+        auto flagCol = highlighted ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol;
+        
+        nvgFillColor(nvg, flagCol);
         nvgFill(nvg);
 
         input.render(nvg);
@@ -375,6 +444,61 @@ public:
         if(auto numbox = ptr.get<t_my_numbox>()) {
             numbox->x_max = value;
         }
-        
+    }
+    
+    std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
+    {
+        class NumboxBoundsConstrainer : public ComponentBoundsConstrainer {
+        public:
+            Object* object;
+            NumberObject* numbox;
+
+            NumboxBoundsConstrainer(Object* parent, NumberObject* nbx)
+                : object(parent), numbox(nbx)
+            {
+            }
+
+            void checkBounds(Rectangle<int>& bounds,
+                Rectangle<int> const& old,
+                Rectangle<int> const& limits,
+                bool isStretchingTop,
+                bool isStretchingLeft,
+                bool isStretchingBottom,
+                bool isStretchingRight) override
+            {
+                auto oldBounds = old.reduced(Object::margin);
+                auto newBounds = bounds.reduced(Object::margin);
+
+                auto* nbx = reinterpret_cast<t_my_numbox*>(object->getPointer());
+                auto* patch = object->cnv->patch.getPointer().get();
+
+                if (!nbx || !patch)
+                    return;
+
+                // Calculate the width in text characters for both
+                auto newCharWidth = numbox->calcNumWidth(newBounds.getWidth() - 1);
+                
+                // Set new width
+                if (auto nbx = numbox->ptr.get<t_my_numbox>()) {
+                    nbx->x_numwidth = newCharWidth;
+                    nbx->x_gui.x_h = std::max(newBounds.getHeight(), 8);
+                }
+                
+                bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
+                
+                // If we're resizing the left edge, move the object left
+                if (isStretchingLeft) {
+                    auto x = oldBounds.getRight() - (bounds.getWidth() - Object::doubleMargin);
+                    auto y = oldBounds.getY(); // don't allow y resize
+                    
+                    if (auto nbx = numbox->ptr.get<t_my_numbox>()) {
+                        pd::Interface::moveObject(static_cast<t_glist*>(patch), nbx.cast<t_gobj>(), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
+                    }
+                    bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
+                }
+            }
+        };
+
+        return std::make_unique<NumboxBoundsConstrainer>(object, this);
     }
 };

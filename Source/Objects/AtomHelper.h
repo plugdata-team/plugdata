@@ -168,7 +168,7 @@ public:
                 if (!atom || !patch)
                     return;
 
-                auto fontWidth = glist_fontwidth(patch);
+                auto fontWidth = sys_fontwidth(helper->getFontHeight());
 
                 // Calculate the width in text characters for both
                 auto newCharWidth = (newBounds.getWidth() - 3) / fontWidth;
@@ -190,6 +190,7 @@ public:
                     }
                     bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
                 }
+                
                 
                 auto newHeight = newBounds.getHeight();
                 auto heightIdx = std::clamp<int>(std::lower_bound(atomSizes, atomSizes + 7, newHeight) - atomSizes, 2, 7) - 1;

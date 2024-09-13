@@ -76,6 +76,7 @@ public:
             if (onTextChange)
                 onTextChange();
         };
+        editor.setJustification(Justification::centredLeft);
     }
 
     void editorHidden(Label*, TextEditor& editor) override
@@ -360,14 +361,14 @@ public:
         nvgFontFace(nvg, "Inter-Tabular");
         nvgFontSize(nvg, font.getHeight() * 0.862f);
         nvgTextLetterSpacing(nvg, 0.275f);
-        nvgTextAlign(nvg, NVG_ALIGN_TOP | NVG_ALIGN_LEFT);
+        nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
         nvgFillColor(nvg, NVGComponent::convertColour(textColour));
-        nvgText(nvg, textArea.getX(), textArea.getY() + 4, numberText.toRawUTF8(), nullptr);
+        nvgText(nvg, textArea.getX(), textArea.getCentreY() + 1.5f, numberText.toRawUTF8(), nullptr);
 
         if (dragMode == Regular) {
             textArea = textArea.withTrimmedLeft(numberTextLength);
             nvgFillColor(nvg, NVGComponent::convertColour(textColour.withAlpha(0.4f)));
-            nvgText(nvg, textArea.getX(), textArea.getY() + 4, extraNumberText.toRawUTF8(), nullptr);
+            nvgText(nvg, textArea.getX(), textArea.getCentreY() + 1.5f, extraNumberText.toRawUTF8(), nullptr);
         }
     }
 
@@ -665,12 +666,12 @@ struct DraggableListNumber : public DraggableNumber {
         nvgFontFace(nvg, "Inter-Tabular");
         nvgFontSize(nvg, getFont().getHeight() * 0.862f);
         nvgTextLetterSpacing(nvg, 0.15f);
-        nvgTextAlign(nvg, NVG_ALIGN_TOP | NVG_ALIGN_LEFT);
+        nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
         nvgFillColor(nvg, NVGComponent::convertColour(textColour));
         
         auto listText = getText();
         auto const textArea = getBorderSize().subtractedFrom(getBounds());
-        nvgText(nvg, textArea.getX(), textArea.getY() + 4, listText.toRawUTF8(), nullptr);
+        nvgText(nvg, textArea.getX(), textArea.getCentreY() + 1.5f, listText.toRawUTF8(), nullptr);
     }
 
     void editorHidden(Label* l, TextEditor& editor) override

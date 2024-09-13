@@ -250,7 +250,7 @@ public:
             setLabelPosition({ getValue<int>(labelX), getValue<int>(labelY) });
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelHeight)) {
-            gui->limitValueMin(labelHeight, 0.f);
+            gui->limitValueMin(labelHeight, 4.f);
             setFontHeight(getValue<int>(labelHeight));
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelText)) {
