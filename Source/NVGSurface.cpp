@@ -428,7 +428,11 @@ void NVGSurface::renderFrameToImage(NVGframebuffer* fb, Rectangle<int> area)
             uint8 b = argb;
             
             // order bytes as abgr
+#if NANOVG_GL_IMPLEMENTATION
             scanLine[x] = (a << 24) | (b << 16) | (g << 8) | r;
+#else
+            scanLine[x] = (a << 24) | (r << 16) | (g << 8) | b;
+#endif
         }
     }
     
