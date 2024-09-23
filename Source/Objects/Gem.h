@@ -180,7 +180,7 @@ public:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GemJUCEWindow)
 };
 
-__attribute__((visibility("default"))) void GemCallOnMessageThread(std::function<void()> callback)
+void GemCallOnMessageThread(std::function<void()> callback)
 {
     MessageManager::getInstance()->callFunctionOnMessageThread([](void* callback) -> void* {
         auto& fn = *reinterpret_cast<std::function<void()>*>(callback);
@@ -193,7 +193,7 @@ __attribute__((visibility("default"))) void GemCallOnMessageThread(std::function
 
 std::map<t_pdinstance*, std::unique_ptr<GemJUCEWindow>> gemJUCEWindow;
 
-__attribute__((visibility("default"))) bool gemWinSetCurrent()
+bool gemWinSetCurrent()
 {
     if (!gemJUCEWindow.contains(libpd_this_instance()))
         return false;
@@ -206,19 +206,19 @@ __attribute__((visibility("default"))) bool gemWinSetCurrent()
     return false;
 }
 
-__attribute__((visibility("default"))) void gemWinUnsetCurrent()
+void gemWinUnsetCurrent()
 {
     OpenGLContext::deactivateCurrentContext();
 }
 
 // window/context creation&destruction
 
-__attribute__((visibility("default"))) bool initGemWin()
+bool initGemWin()
 {
     return true;
 }
 
-__attribute__((visibility("default"))) int createGemWindow(WindowInfo& info, WindowHints& hints)
+int createGemWindow(WindowInfo& info, WindowHints& hints)
 {
     auto* window = new GemJUCEWindow({ hints.x_offset, hints.y_offset, hints.width, hints.height }, hints.border);
     gemJUCEWindow[window->instance].reset(window);
@@ -249,7 +249,7 @@ __attribute__((visibility("default"))) int createGemWindow(WindowInfo& info, Win
 
     return 1;
 }
-__attribute__((visibility("default"))) void destroyGemWindow(WindowInfo& info)
+void destroyGemWindow(WindowInfo& info)
 {
     if (auto* window = info.getWindow()) {
         GemCallOnMessageThread([window, &info]() {
@@ -262,7 +262,7 @@ __attribute__((visibility("default"))) void destroyGemWindow(WindowInfo& info)
     }
 }
 
-__attribute__((visibility("default"))) void initWin_sharedContext(WindowInfo& info, WindowHints& hints)
+void initWin_sharedContext(WindowInfo& info, WindowHints& hints)
 {
     if (auto* window = info.getWindow()) {
         window->openGLContext.makeActive();
@@ -270,7 +270,7 @@ __attribute__((visibility("default"))) void initWin_sharedContext(WindowInfo& in
 }
 
 // Rendering
-__attribute__((visibility("default"))) void gemWinSwapBuffers(WindowInfo& info)
+void gemWinSwapBuffers(WindowInfo& info)
 {
     if (auto* context = info.getContext()) {
         context->makeActive();
@@ -278,7 +278,7 @@ __attribute__((visibility("default"))) void gemWinSwapBuffers(WindowInfo& info)
         initGemWindow(); // If we don't put this here, the background doens't get filled, but there must be a better way?
     }
 }
-__attribute__((visibility("default"))) void gemWinMakeCurrent(WindowInfo& info)
+void gemWinMakeCurrent(WindowInfo& info)
 {
     if (auto* context = info.getContext()) {
         context->initialiseOnThread();
@@ -286,7 +286,7 @@ __attribute__((visibility("default"))) void gemWinMakeCurrent(WindowInfo& info)
     }
 }
 
-__attribute__((visibility("default"))) void gemWinResize(WindowInfo& info, int width, int height)
+void gemWinResize(WindowInfo& info, int width, int height)
 {
     if (auto* windowPtr = info.getWindow()) {
         MessageManager::callAsync([window = Component::SafePointer(windowPtr), width, height]() {
@@ -298,7 +298,7 @@ __attribute__((visibility("default"))) void gemWinResize(WindowInfo& info, int w
 }
 
 // Window behaviour
-__attribute__((visibility("default"))) int cursorGemWindow(WindowInfo& info, int state)
+int cursorGemWindow(WindowInfo& info, int state)
 {
     if (auto* window = info.getWindow()) {
         window->setMouseCursor(state ? MouseCursor::NormalCursor : MouseCursor::NoCursor);
@@ -307,7 +307,7 @@ __attribute__((visibility("default"))) int cursorGemWindow(WindowInfo& info, int
     return state;
 }
 
-__attribute__((visibility("default"))) int topmostGemWindow(WindowInfo& info, int state)
+int topmostGemWindow(WindowInfo& info, int state)
 {
     if (info.getWindow() && state)
         info.getWindow()->toFront(true);
