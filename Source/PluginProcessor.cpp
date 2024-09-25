@@ -1492,9 +1492,13 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
     case hash("pluginmode"): {
         // TODO: it would be nicer if we could specifically target the correct editor here, instead of picking the first one and praying
         auto editors = getEditors();
+       
         if(!patches.isEmpty()) {
+            float pluginModeFloatArgument = 1.0;
             if(list.size())
             {
+                pluginModeFloatArgument = list[0].getFloat();
+                   
                 auto pluginModeThemeOrPath = list[0].toString();
                 if(pluginModeThemeOrPath.endsWith(".plugdatatheme"))
                 {
@@ -1513,14 +1517,21 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
                 }
             }
             
-            if (!editors.isEmpty()) {
+            if  (!editors.isEmpty()) {
                 auto* editor = editors[0];
                 if (auto* cnv = editor->getCurrentCanvas()) {
-                    editor->getTabComponent().openInPluginMode(cnv->patch);
+                    if(pluginModeFloatArgument)
+                        editor->getTabComponent().openInPluginMode(cnv->patch);
+                    else
+                        if (editor->isInPluginMode())
+                            editor->pluginMode->closePluginMode();
                 }
             } else {
-                patches[0]->openInPluginMode = true;
-            }
+                if(pluginModeFloatArgument)
+                    patches[0]->openInPluginMode = true;
+                else
+                    patches[0]->openInPluginMode = false;
+            }               
         }
         break;
     }
