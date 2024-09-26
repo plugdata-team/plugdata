@@ -84,10 +84,8 @@ public:
 
     ~LuaObject()
     {
-        if (auto pdlua = ptr.get<t_pdlua>()) {
-            auto& listeners = allDrawTargets[pdlua.get()];
-            listeners.erase(std::remove(listeners.begin(), listeners.end(), this), listeners.end());
-        }
+        auto& listeners = allDrawTargets[ptr.getRawUnchecked<t_pdlua>()];
+        listeners.erase(std::remove(listeners.begin(), listeners.end(), this), listeners.end());
 
         zoomScale.removeListener(this);
     }
