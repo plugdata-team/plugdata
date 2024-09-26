@@ -19,7 +19,7 @@ void pdlua_gfx_repaint(t_pdlua* o, int firsttime);
 }
 
 class LuaObject final : public ObjectBase
-    , public Timer {
+{
 
     Colour currentColour;
 
@@ -30,7 +30,6 @@ class LuaObject final : public ObjectBase
     std::unique_ptr<Dialog> saveDialog;
 
     std::map<int, NVGFramebuffer> framebuffers;
-    int activeLayer = -1;
 
     struct LuaGuiMessage {
         t_symbol* symbol;
@@ -66,8 +65,8 @@ class LuaObject final : public ObjectBase
         }
     };
 
-    std::vector<LuaGuiMessage> guiCommandBuffer;
-    moodycamel::ReaderWriterQueue<LuaGuiMessage> guiMessageQueue;
+    std::map<int, std::vector<LuaGuiMessage>> guiCommandBuffer;
+    std::map<int, moodycamel::ReaderWriterQueue<LuaGuiMessage>> guiMessageQueue;
 
     static inline std::map<t_pdlua*, std::vector<LuaObject*>> allDrawTargets = std::map<t_pdlua*, std::vector<LuaObject*>>();
 
@@ -81,7 +80,6 @@ public:
         }
 
         parentHierarchyChanged();
-        startTimerHz(60);
     }
 
     ~LuaObject()
@@ -204,7 +202,7 @@ public:
         sendRepaintMessage();
     }
 
-    void handleGuiMessage(t_symbol* sym, int argc, t_atom* argv)
+    void handleGuiMessage(int layer, t_symbol* sym, int argc, t_atom* argv)
     {
         NVGcontext* nvg = cnv->editor->nvgSurface.getRawContext();
         if (!nvg)
@@ -214,18 +212,16 @@ public:
         // First check functions that don't need an active graphics context, of modify the active graphics context
         switch (hashsym) {
         case hash("lua_start_paint"): {
-            if (getLocalBounds().isEmpty() || !argc)
+            if (getLocalBounds().isEmpty())
                 break;
             auto scale = getValue<float>(zoomScale) * 2.0f; // Multiply by 2 for hi-dpi screens
             int imageWidth = std::ceil(getWidth() * scale);
             int imageHeight = std::ceil(getHeight() * scale);
-            int layer = atom_getfloat(argv);
             if (!imageWidth || !imageHeight)
                 return;
 
-            activeLayer = layer;
             framebuffers[layer].bind(nvg, imageWidth, imageHeight);
-
+            
             nvgViewport(0, 0, imageWidth, imageHeight);
             nvgClear(nvg);
             nvgBeginFrame(nvg, getWidth(), getHeight(), scale);
@@ -233,13 +229,8 @@ public:
             return;
         }
         case hash("lua_end_paint"): {
-            if(!argc) return;
-            int layer = atom_getfloat(argv);
-            
             if (!framebuffers[layer].isValid()) return;
-            
-            activeLayer = -1;
-            
+                        
             auto scale = getValue<float>(zoomScale) * 2.0f; // Multiply by 2 for hi-dpi screens
             nvgGlobalScissor(nvg, 0, 0, getWidth() * scale, getHeight() * scale);
             nvgEndFrame(nvg);
@@ -261,10 +252,7 @@ public:
             return;
         }
         }
-
-        if (activeLayer < 0 || !framebuffers[activeLayer].isValid())
-            return; // If there is no active framebuffer at this point, return
-
+        
         switch (hashsym) {
         case hash("lua_set_color"): {
             if (argc == 1) {
@@ -475,31 +463,28 @@ public:
         }
     }
 
-    void timerCallback() override
+    // We need to update the framebuffer in a place where the current graphics context is active (for multi-window support, thanks to Alex for figuring that out)
+    // but we also need to be outside of calls to beginFrame/endFrame
+    // So we have this separate callback function that occurs after activating the GPU context, but before starting the frame
+    void updateFramebuffers() override
     {
         LuaGuiMessage guiMessage;
-        while (guiMessageQueue.try_dequeue(guiMessage)) {
-            guiCommandBuffer.push_back(guiMessage);
-        }
-
-        auto* startMesage = pd->generateSymbol("lua_start_paint");
-        auto* endMessage = pd->generateSymbol("lua_end_paint");
-        
-        // TODO: this can be optimised more
-        int numLayers = framebuffers.size() + 2;
-        for(int layer = 1; layer < numLayers; layer++) {
+        for(auto& [layer, layerQueue] : guiMessageQueue) {
+            while (layerQueue.try_dequeue(guiMessage)) {
+                guiCommandBuffer[layer].push_back(guiMessage);
+            }
+            
+            auto* startMesage = pd->generateSymbol("lua_start_paint");
+            auto* endMessage = pd->generateSymbol("lua_end_paint");
+            
             int startIdx = -1, endIdx = -1;
-            int currentLayer = -1;
             bool updateScene = false;
-            for (int i = guiCommandBuffer.size() - 1; i >= 0; i--) {
-                if (guiCommandBuffer[i].symbol == startMesage) {
-                    currentLayer = atom_getfloat(&guiCommandBuffer[i].data[0]);
-                    if(currentLayer != layer) continue;
+            for (int i = guiCommandBuffer[layer].size() - 1; i >= 0; i--) {
+                if (guiCommandBuffer[layer][i].symbol == startMesage)
                     startIdx = i;
-                }
-                if (guiCommandBuffer[i].symbol == endMessage) {
+                if (guiCommandBuffer[layer][i].symbol == endMessage)
                     endIdx = i + 1;
-                }
+                
                 if (startIdx != -1 && endIdx != -1) {
                     updateScene = true;
                     break;
@@ -509,26 +494,23 @@ public:
             if (updateScene) {
                 if (endIdx > startIdx) {
                     for (int i = startIdx; i < endIdx; i++) {
-                        handleGuiMessage(guiCommandBuffer[i].symbol, guiCommandBuffer[i].size, guiCommandBuffer[i].data.data());
+                        handleGuiMessage(layer, guiCommandBuffer[layer][i].symbol, guiCommandBuffer[layer][i].size, guiCommandBuffer[layer][i].data.data());
                     }
                 }
+                guiCommandBuffer[layer].erase(guiCommandBuffer[layer].begin(), guiCommandBuffer[layer].begin() + endIdx);
             }
-            //guiCommandBuffer.erase(guiCommandBuffer.begin() + startIdx, guiCommandBuffer.begin() + endIdx);
-        }
-        
-        guiCommandBuffer.clear();
-        
-        auto needsFramebufferUpdate = framebuffers.size() == 0 || !framebuffers[0].isValid();
-        if (isSelected != object->isSelected() || needsFramebufferUpdate) {
-            isSelected = object->isSelected();
-            sendRepaintMessage();
+            
+            if (isSelected != object->isSelected() || !framebuffers[layer].isValid()) {
+                isSelected = object->isSelected();
+                sendRepaintMessage();
+            }
         }
     }
 
-    static void drawCallback(void* target, t_symbol* sym, int argc, t_atom* argv)
+    static void drawCallback(void* target, int layer, t_symbol* sym, int argc, t_atom* argv)
     {
         for (auto* object : allDrawTargets[static_cast<t_pdlua*>(target)]) {
-            object->guiMessageQueue.enqueue({ sym, argc, argv });
+            object->guiMessageQueue[layer].enqueue({ sym, argc, argv });
         }
     }
 

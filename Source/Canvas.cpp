@@ -268,6 +268,14 @@ void Canvas::parentHierarchyChanged()
 
 bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion)
 {
+    for(auto& object : objects)
+    {
+        if(object->gui)
+        {
+            object->gui->updateFramebuffers();
+        }
+    }
+    
     auto pixelScale = getRenderScale();
     auto zoom = getValue<float>(zoomScale);
 

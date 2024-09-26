@@ -309,6 +309,17 @@ public:
             drawTicksForGraph(nvg, graph.get(), this);
         }
     }
+    
+    void updateFramebuffers() override
+    {
+        if(canvas)
+        {
+            for(auto& object : canvas->objects)
+            {
+                if(object->gui) object->gui->updateFramebuffers();
+            }
+        }
+    }
 
     static void drawTicksForGraph(NVGcontext* nvg, t_glist* x, ObjectBase* parent)
     {
