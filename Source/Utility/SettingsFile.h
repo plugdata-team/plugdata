@@ -87,6 +87,9 @@ public:
     void setGlobalScale(float newScale);
 
 private:
+
+    void deleteAndReset();
+
     bool isInitialised = false;
 
     FileSystemWatcher settingsFileWatcher;

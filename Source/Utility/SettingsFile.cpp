@@ -33,6 +33,29 @@ SettingsFile::~SettingsFile()
     clearSingletonInstance();
 }
 
+void SettingsFile::deleteAndReset()
+{
+    // Backup previous corrupt settings file, so users can fix if they want to
+    auto corruptSettings = getInstance()->settingsFile;
+
+    auto saved = corruptSettings.getParentDirectory().getFullPathName() + "/" + ".settings_damaged";
+    int counter = 1;
+
+    while (File(saved).existsAsFile()) {
+        saved = corruptSettings.getParentDirectory().getFullPathName() + "/" + ".settings_damaged_" + String(counter);
+        counter++;
+    }
+
+    corruptSettings.moveFileTo(saved);
+
+    // Let user know that the previous settings were corrupt, and where they can be found
+    AlertWindow::showMessageBoxAsync(AlertWindow::NoIcon,
+                                                "Corrupt settings detected",
+                                                "plugdata will use default settings. Previous settings backed up to: " + saved,
+                                                "OK",
+                                                nullptr);
+}
+
 SettingsFile* SettingsFile::initialise()
 {
 
@@ -45,8 +68,16 @@ SettingsFile* SettingsFile::initialise()
     if (!settingsFile.existsAsFile()) {
         settingsFile.create();
     } else {
-        // Or load the settings when they exist already
-        settingsTree = ValueTree::fromXml(settingsFile.loadFileAsString());
+        std::unique_ptr<XmlElement> xmlElement(XmlDocument::parse(settingsFile.loadFileAsString()));
+
+        // First check if settings XML is valid
+        if (xmlElement != nullptr) {
+            settingsTree = ValueTree::fromXml(*xmlElement);
+        } else {
+            // Settings are invalid! Backup old file as .settings_damaged
+            deleteAndReset();
+            settingsFile.create();
+        }
     }
 
     // Make sure all the properties exist
@@ -82,6 +113,7 @@ SettingsFile* SettingsFile::initialise()
     saveSettings();
 
     settingsTree.addListener(this);
+
     return this;
 }
 
