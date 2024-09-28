@@ -345,11 +345,15 @@ void NVGSurface::render()
     updateBufferSize();
     
     invalidArea = invalidArea.getIntersection(getLocalBounds());
-    
-    for (auto* cnv : editor->getTabComponent().getVisibleCanvases()) {
+
+    if (auto* cnv = editor->getPluginModeCanvas()) {
         cnv->updateFramebuffers(nvg, cnv->getLocalBounds());
+    } else {
+        for (auto* cnv : editor->getTabComponent().getVisibleCanvases()) {
+            cnv->updateFramebuffers(nvg, cnv->getLocalBounds());
+        }
     }
-        
+
     if (!invalidArea.isEmpty()) {
         // Draw only the invalidated region on top of framebuffer
         nvgBindFramebuffer(invalidFBO);

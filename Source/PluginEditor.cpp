@@ -522,7 +522,16 @@ bool PluginEditor::isInPluginMode() const
     return static_cast<bool>(pluginMode);
 }
 
-// Retern the patch that belongs to this editor that's in plugin mode
+Canvas* PluginEditor::getPluginModeCanvas()
+{
+    if (isInPluginMode())
+        return pluginMode->getCanvas();
+
+    return nullptr;
+}
+
+// Return the patch that belongs to this editor that will be in plugin mode
+// At this point the editor is NOT in plugin mode yet
 pd::Patch::Ptr PluginEditor::findPatchInPluginMode()
 {
     ScopedLock lock(pd->patches.getLock());

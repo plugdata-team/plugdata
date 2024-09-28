@@ -230,7 +230,7 @@ class CanvasViewport : public Viewport
                 fullBounds = growingBounds.withY(2).withHeight(getHeight() - 4);
             }
             
-            scrollbarBgCol.a = (1.0f - growAnimation) * 255;
+            scrollbarBgCol.a = (1.0f - growAnimation) * 150; // 0-150 opacity, not full opacity when active
             nvgDrawRoundedRect(nvg, fullBounds.getX(), fullBounds.getY(), fullBounds.getWidth(), fullBounds.getHeight(), scrollbarBgCol, scrollbarBgCol, thumbCornerRadius);
 
             auto scrollBarThumbCol = isMouseDragging ? activeScrollbarCol : scrollbarCol;
