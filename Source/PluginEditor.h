@@ -173,6 +173,9 @@ public:
 
     bool isInPluginMode() const;
 
+    // Return the canvas currently in plugin mode, otherwise return nullptr
+    Canvas* getPluginModeCanvas();
+
 private:
     TabComponent tabComponent;
 
