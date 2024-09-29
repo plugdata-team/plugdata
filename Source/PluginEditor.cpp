@@ -47,8 +47,7 @@ using namespace juce::gl;
 class CorruptSettingsAllert : public Component
 {
     Label errorMessage;
-    Label errorSubA;
-    Label errorSubB;
+    Label errorSub;
 
     TextEditor errorInfo;
 
@@ -64,13 +63,9 @@ public:
         errorMessage.setFont(Fonts::getBoldFont().withHeight(20));
         errorMessage.setJustificationType(Justification::centred);
 
-        errorSubA.setText("plugdata will use default settings.", dontSendNotification);
-        errorSubA.setFont(Fonts::getDefaultFont().withHeight(14));
-        errorSubA.setJustificationType(Justification::centred);
-
-        errorSubB.setText("Previous settings backed up to:", dontSendNotification);
-        errorSubB.setFont(Fonts::getDefaultFont().withHeight(14));
-        errorSubB.setJustificationType(Justification::centred);
+        errorSub.setText("plugdata will use default settings. Previous settings backed up to:", dontSendNotification);
+        errorSub.setFont(Fonts::getDefaultFont().withHeight(14));
+        errorSub.setJustificationType(Justification::centred);
 
         errorInfo.setText(backupSettingLocation, dontSendNotification);
         errorInfo.setMultiLine(true);
@@ -99,8 +94,7 @@ public:
         };
 
         addAndMakeVisible(errorMessage);
-        addAndMakeVisible(errorSubA);
-        addAndMakeVisible(errorSubB);
+        addAndMakeVisible(errorSub);
         addAndMakeVisible(errorInfo);
         addAndMakeVisible(dismissButton);
         addAndMakeVisible(revealFileButton);
@@ -111,10 +105,9 @@ public:
         auto w = getWidth() - 10;
 
         errorMessage.setBounds(Rectangle<int>(5, 5, w, 22));
-        errorSubA.setBounds(Rectangle<int>(5, errorMessage.getBottom() + 3, w, 16));
-        errorSubB.setBounds(Rectangle<int>(5, errorSubA.getBottom(), w, 16));
+        errorSub.setBounds(Rectangle<int>(5, errorMessage.getBottom() + 3, w, 16));
 
-        errorInfo.setBounds(Rectangle<int>(5, errorSubB.getBottom() + 3, w, 40));
+        errorInfo.setBounds(Rectangle<int>(5, errorSub.getBottom() + 3, w, 40));
 
         const int buttonHeight = 25;
         const int dismissButtonWidth = 70;
