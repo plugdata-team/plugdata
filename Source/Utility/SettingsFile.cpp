@@ -33,6 +33,34 @@ SettingsFile::~SettingsFile()
     clearSingletonInstance();
 }
 
+void SettingsFile::deleteAndReset()
+{
+    // Backup previous corrupt settings file, so users can fix if they want to
+    auto corruptSettings = getInstance()->settingsFile;
+
+    auto backupLocation = corruptSettings.getParentDirectory().getFullPathName() + "\\" + ".settings_damaged";
+    int counter = 1;
+
+    // Increment backup settings file name if previous exists
+    while (File(backupLocation).existsAsFile()) {
+        backupLocation = corruptSettings.getParentDirectory().getFullPathName() + "\\" + ".settings_damaged_" + String(counter);
+        counter++;
+    }
+
+    backupSettingsLocation = backupLocation;
+    corruptSettings.moveFileTo(backupLocation);
+}
+
+String SettingsFile::getBackupSettingsLocation()
+{
+    return backupSettingsLocation;
+}
+
+bool SettingsFile::wasSettingsCorrupt()
+{
+    return backupSettingsLocation.isNotEmpty();
+}
+
 SettingsFile* SettingsFile::initialise()
 {
 
@@ -41,12 +69,25 @@ SettingsFile* SettingsFile::initialise()
 
     isInitialised = true;
 
+//#define DEBUG_CORRUPT_SETTINGS_DIALOG
+#ifdef DEBUG_CORRUPT_SETTINGS_DIALOG
+    backupSettingsLocation = String("C:\\Users\\Public\\Documents\\plugdata\\.settings_damaged");
+#endif
+
     // Check if settings file exists, if not, create the default
     if (!settingsFile.existsAsFile()) {
         settingsFile.create();
     } else {
-        // Or load the settings when they exist already
-        settingsTree = ValueTree::fromXml(settingsFile.loadFileAsString());
+        std::unique_ptr<XmlElement> xmlElement(XmlDocument::parse(settingsFile.loadFileAsString()));
+
+        // First check if settings XML is valid
+        if (xmlElement != nullptr) {
+            settingsTree = ValueTree::fromXml(*xmlElement);
+        } else {
+            // Settings are invalid! Backup old file as .settings_damaged
+            deleteAndReset();
+            settingsFile.create();
+        }
     }
 
     // Make sure all the properties exist
@@ -82,6 +123,7 @@ SettingsFile* SettingsFile::initialise()
     saveSettings();
 
     settingsTree.addListener(this);
+
     return this;
 }
 
