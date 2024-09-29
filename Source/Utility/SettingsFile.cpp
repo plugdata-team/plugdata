@@ -38,22 +38,27 @@ void SettingsFile::deleteAndReset()
     // Backup previous corrupt settings file, so users can fix if they want to
     auto corruptSettings = getInstance()->settingsFile;
 
-    auto saved = corruptSettings.getParentDirectory().getFullPathName() + "/" + ".settings_damaged";
+    auto backupLocation = corruptSettings.getParentDirectory().getFullPathName() + "\\" + ".settings_damaged";
     int counter = 1;
 
-    while (File(saved).existsAsFile()) {
-        saved = corruptSettings.getParentDirectory().getFullPathName() + "/" + ".settings_damaged_" + String(counter);
+    // Increment backup settings file name if previous exists
+    while (File(backupLocation).existsAsFile()) {
+        backupLocation = corruptSettings.getParentDirectory().getFullPathName() + "\\" + ".settings_damaged_" + String(counter);
         counter++;
     }
 
-    corruptSettings.moveFileTo(saved);
+    backupSettingsLocation = backupLocation;
+    corruptSettings.moveFileTo(backupLocation);
+}
 
-    // Let user know that the previous settings were corrupt, and where they can be found
-    AlertWindow::showMessageBoxAsync(AlertWindow::NoIcon,
-                                                "Corrupt settings detected",
-                                                "plugdata will use default settings. Previous settings backed up to: " + saved,
-                                                "OK",
-                                                nullptr);
+String SettingsFile::getBackupSettingsLocation()
+{
+    return backupSettingsLocation;
+}
+
+bool SettingsFile::wasSettingsCorrupt()
+{
+    return backupSettingsLocation.isNotEmpty();
 }
 
 SettingsFile* SettingsFile::initialise()
@@ -63,6 +68,11 @@ SettingsFile* SettingsFile::initialise()
         return getInstance();
 
     isInitialised = true;
+
+//#define DEBUG_CORRUPT_SETTINGS_DIALOG
+#ifdef DEBUG_CORRUPT_SETTINGS_DIALOG
+    backupSettingsLocation = String("C:\\Users\\Public\\Documents\\plugdata\\.settings_damaged");
+#endif
 
     // Check if settings file exists, if not, create the default
     if (!settingsFile.existsAsFile()) {

@@ -44,6 +44,90 @@ using namespace juce::gl;
 
 #include <nanovg.h>
 
+class CorruptSettingsAllert : public Component
+{
+    Label errorMessage;
+    Label errorSubA;
+    Label errorSubB;
+
+    TextEditor errorInfo;
+
+    TextButton dismissButton;
+    TextButton revealFileButton;
+
+public:
+    CorruptSettingsAllert(const String& backupSettingLocation, std::function<void()> dismissFn)
+    {
+        setVisible(false);
+
+        errorMessage.setText("Corrupt settings detected", dontSendNotification);
+        errorMessage.setFont(Fonts::getBoldFont().withHeight(20));
+        errorMessage.setJustificationType(Justification::centred);
+
+        errorSubA.setText("plugdata will use default settings.", dontSendNotification);
+        errorSubA.setFont(Fonts::getDefaultFont().withHeight(14));
+        errorSubA.setJustificationType(Justification::centred);
+
+        errorSubB.setText("Previous settings backed up to:", dontSendNotification);
+        errorSubB.setFont(Fonts::getDefaultFont().withHeight(14));
+        errorSubB.setJustificationType(Justification::centred);
+
+        errorInfo.setText(backupSettingLocation, dontSendNotification);
+        errorInfo.setMultiLine(true);
+        errorInfo.setReadOnly(true);
+        errorInfo.setJustification(Justification::centred);
+        errorInfo.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
+        errorInfo.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
+
+        dismissButton.setButtonText("Dismiss");
+        dismissButton.onClick = dismissFn;
+
+#if JUCE_MAC
+        String revealTip = "Reveal in Finder";
+#elif JUCE_WINDOWS
+        String revealTip = "Reveal in Explorer";
+#else
+        String revealTip = "Reveal in file browser";
+#endif
+
+        revealFileButton.setButtonText(revealTip);
+        revealFileButton.onClick = [backupSettingLocation, dismissFn](){
+             auto backupLoc = File(backupSettingLocation);
+             if (backupLoc.existsAsFile())
+                backupLoc.revealToUser();
+             dismissFn();
+        };
+
+        addAndMakeVisible(errorMessage);
+        addAndMakeVisible(errorSubA);
+        addAndMakeVisible(errorSubB);
+        addAndMakeVisible(errorInfo);
+        addAndMakeVisible(dismissButton);
+        addAndMakeVisible(revealFileButton);
+    };
+
+    void resized() override
+    {
+        auto w = getWidth() - 10;
+
+        errorMessage.setBounds(Rectangle<int>(5, 5, w, 22));
+        errorSubA.setBounds(Rectangle<int>(5, errorMessage.getBottom() + 3, w, 16));
+        errorSubB.setBounds(Rectangle<int>(5, errorSubA.getBottom(), w, 16));
+
+        errorInfo.setBounds(Rectangle<int>(5, errorSubB.getBottom() + 3, w, 40));
+
+        const int buttonHeight = 25;
+        const int dismissButtonWidth = 70;
+        const int revealButtonWidth = 130;
+        const int totalButtonWidth = dismissButtonWidth + revealButtonWidth + 10;
+        const int startX = (getWidth() - totalButtonWidth) / 2;
+        const int buttonY = getHeight() - 35;
+
+        dismissButton.setBounds(startX, buttonY, dismissButtonWidth, buttonHeight);
+        revealFileButton.setBounds(startX + dismissButtonWidth + 10, buttonY, revealButtonWidth, buttonHeight);
+    }
+};
+
 PluginEditor::PluginEditor(PluginProcessor& p)
     : AudioProcessorEditor(&p)
     , pd(&p)
@@ -276,6 +360,20 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     pd->objectLibrary->waitForInitialisationToFinish();
 
     lookAndFeelChanged();
+
+    if (settingsFile->wasSettingsCorrupt()) {
+        ::Timer::callAfterDelay(100, [this, settingsFile](){
+            auto* dialog = new Dialog(&openedDialog, this, 450, 150, false);
+
+            auto dismissDialog = [this](){
+                openedDialog.reset(nullptr);
+            };
+
+            auto* corruptAllert = new CorruptSettingsAllert(settingsFile->getBackupSettingsLocation(), dismissDialog);
+            dialog->setViewedComponent(corruptAllert);
+            openedDialog.reset(dialog);
+        });
+    }
 }
 
 PluginEditor::~PluginEditor()

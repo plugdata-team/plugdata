@@ -86,9 +86,14 @@ public:
 
     void setGlobalScale(float newScale);
 
+    bool wasSettingsCorrupt();
+
+    String getBackupSettingsLocation();
+
 private:
 
     void deleteAndReset();
+    String backupSettingsLocation;
 
     bool isInitialised = false;
 
