@@ -44,7 +44,7 @@ using namespace juce::gl;
 
 #include <nanovg.h>
 
-class CorruptSettingsAllert : public Component
+class CorruptSettingsAlert : public Component
 {
     Label errorMessage;
     Label errorSub;
@@ -55,7 +55,7 @@ class CorruptSettingsAllert : public Component
     TextButton revealFileButton;
 
 public:
-    CorruptSettingsAllert(const String& backupSettingLocation, std::function<void()> dismissFn)
+    CorruptSettingsAlert(const String& backupSettingLocation, std::function<void()> dismissFn)
     {
         setVisible(false);
 
@@ -362,8 +362,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
                 openedDialog.reset(nullptr);
             };
 
-            auto* corruptAllert = new CorruptSettingsAllert(settingsFile->getBackupSettingsLocation(), dismissDialog);
-            dialog->setViewedComponent(corruptAllert);
+            auto* corruptAlert = new CorruptSettingsAlert(settingsFile->getBackupSettingsLocation(), dismissDialog);
+            dialog->setViewedComponent(corruptAlert);
             openedDialog.reset(dialog);
         });
     }

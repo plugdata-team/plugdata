@@ -8,6 +8,7 @@ class FunctionObject final : public ObjectBase {
 
     int hoverIdx = -1;
     int dragIdx = -1;
+    int selectedIdx = -1;
 
     Value initialise = SynchronousValue();
     Value range = SynchronousValue();
@@ -109,6 +110,7 @@ public:
 
         auto b = getLocalBounds().toFloat();
         auto backgroundColour = convertColour(Colour::fromString(secondaryColour.toString()));
+        
         auto foregroundColour = convertColour(Colour::fromString(primaryColour.toString()));
         auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
         auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
@@ -136,9 +138,13 @@ public:
             nvgCircle(nvg, point.getX(), point.getY(), 2.5f);
             nvgFill(nvg);
 
+            nvgFillColor(nvg, foregroundColour);
             nvgStrokeColor(nvg, hoverIdx == i && editing ? outlineColour : foregroundColour);
             nvgBeginPath(nvg);
             nvgCircle(nvg, point.getX(), point.getY(), 2.5f);
+            if(selectedIdx == i) {
+                nvgFill(nvg);
+            }
             nvgStrokeWidth(nvg, 1.5f);
             nvgStroke(nvg);
         }
@@ -161,6 +167,18 @@ public:
         }
 
         repaint();
+    }
+    
+    bool keyPressed(const KeyPress& key) override  {
+        
+        if(getValue<bool>(cnv->locked) && key.getKeyCode() == KeyPress::deleteKey && selectedIdx >= 0)
+        {
+            removePoint(selectedIdx);
+            selectedIdx = -1;
+            return true;
+        }
+        
+        return false;
     }
 
     static int compareElements(Point<float> a, Point<float> b)
@@ -206,24 +224,17 @@ public:
     {
         if (e.mods.isRightButtonDown())
             return;
+        
+        selectedIdx = -1;
 
         auto realPoints = getRealPoints();
         for (int i = 0; i < realPoints.size(); i++) {
             auto clickBounds = Rectangle<float>().withCentre(realPoints[i]).withSizeKeepingCentre(7, 7);
             if (clickBounds.contains(e.x, e.y)) {
                 dragIdx = i;
+                selectedIdx = i;
                 if (e.getNumberOfClicks() == 2) {
-                    dragIdx = -1;
-                    if (i == 0 || i == realPoints.size() - 1) {
-                        points.getReference(i).y = 0.0f;
-                        resetHoverIdx();
-                        triggerOutput();
-                        return;
-                    }
-                    points.remove(i);
-                    resetHoverIdx();
-                    triggerOutput();
-                    return;
+                    removePoint(i);
                 }
                 return;
             }
@@ -234,6 +245,19 @@ public:
 
         dragIdx = points.addSorted(*this, { newX, newY });
 
+        triggerOutput();
+    }
+    
+    void removePoint(int idx)
+    {
+        if (idx == 0 || idx == points.size() - 1) {
+            points.getReference(idx).y = 0.0f;
+        }
+        else {
+            points.remove(idx);
+        }
+        selectedIdx = -1;
+        resetHoverIdx();
         triggerOutput();
     }
 

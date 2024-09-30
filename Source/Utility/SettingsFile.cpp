@@ -71,7 +71,7 @@ SettingsFile* SettingsFile::initialise()
 
 //#define DEBUG_CORRUPT_SETTINGS_DIALOG
 #ifdef DEBUG_CORRUPT_SETTINGS_DIALOG
-    backupSettingsLocation = String("C:\\Users\\Public\\Documents\\plugdata\\.settings_damaged");
+    backupSettingsLocation = ProjectInfo::appDataDir.getChildFile(".settings_damaged").getFullPathName();
 #endif
 
     // Check if settings file exists, if not, create the default

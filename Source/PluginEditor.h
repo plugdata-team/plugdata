@@ -183,7 +183,6 @@ public:
     std::unique_ptr<PluginMode> pluginMode;
 
 private:
-    void openCorruptSettingsAllert();
 
     std::unique_ptr<TouchSelectionHelper> touchSelectionHelper;
 
