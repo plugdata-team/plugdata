@@ -1156,6 +1156,8 @@ void Canvas::altKeyChanged(bool isHeld)
 
 void Canvas::mouseDown(MouseEvent const& e)
 {
+    if(isGraph) return;
+    
     PopupMenu::dismissAllActiveMenus();
 
     if (checkPanDragMode())
