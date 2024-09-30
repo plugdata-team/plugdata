@@ -33,7 +33,7 @@ SettingsFile::~SettingsFile()
     clearSingletonInstance();
 }
 
-void SettingsFile::deleteAndReset()
+void SettingsFile::backupCorruptSettings()
 {
     // Backup previous corrupt settings file, so users can fix if they want to
     auto corruptSettings = getInstance()->settingsFile;
@@ -51,14 +51,9 @@ void SettingsFile::deleteAndReset()
     corruptSettings.moveFileTo(backupLocation);
 }
 
-String SettingsFile::getBackupSettingsLocation()
+String SettingsFile::getCorruptBackupSettingsLocation()
 {
     return backupSettingsLocation;
-}
-
-bool SettingsFile::wasSettingsCorrupt()
-{
-    return backupSettingsLocation.isNotEmpty();
 }
 
 SettingsFile* SettingsFile::initialise()
@@ -75,24 +70,47 @@ SettingsFile* SettingsFile::initialise()
 #endif
 
     // Check if settings file exists, if not, create the default
+    // This is expected behaviour for first run / deleting plugdata folder
+    // No need to alert the user to this
     if (!settingsFile.existsAsFile()) {
         settingsFile.create();
     } else {
         std::unique_ptr<XmlElement> xmlElement(XmlDocument::parse(settingsFile.loadFileAsString()));
 
         // First check if settings XML is valid
-        if (xmlElement != nullptr) {
+        if (verify(xmlElement.get())) {
+            // Use user .settings file
             settingsTree = ValueTree::fromXml(*xmlElement);
+            // Overwrite previous settings_bak with current good settings (don't touch it after this)
+            settingsFile.copyFileTo(settingsFile.getFullPathName() + "_bak");
         } else {
             // Settings are invalid! Backup old file as .settings_damaged
-            deleteAndReset();
-            settingsFile.create();
+            backupCorruptSettings();
+
+            // See if there is a .settings_bak backup settings file from last run
+            auto backupSettings = File(settingsFile.getFullPathName() + "_bak");
+            if (backupSettings.existsAsFile()) {
+                std::unique_ptr<XmlElement> xmlSettingsBackup(XmlDocument::parse(backupSettings.loadFileAsString()));
+                if (verify(xmlSettingsBackup.get())) {
+                    // If backup settings are good, use them
+                    settingsTree = ValueTree::fromXml(*xmlSettingsBackup);
+                    settingsState = BackupSettings;
+                } else {
+                    // Use default plugdata settings (worst case scenario)
+                    settingsFile.create();
+                    settingsState = DefaultSettings;
+                }
+            } else {
+                // Use default plugdata settings (worst case scenario)
+                settingsFile.create();
+                settingsState = DefaultSettings;
+            }
         }
     }
 
     // Make sure all the properties exist
     for (auto& [propertyName, propertyValue] : defaultSettings) {
-        // If it doesn't exists, set it to the default value
+        // If it doesn't exist, set it to the default value
         if (!settingsTree.hasProperty(propertyName) || settingsTree.getProperty(propertyName).toString() == "") {
             settingsTree.setProperty(propertyName, propertyValue, nullptr);
         }
@@ -125,6 +143,49 @@ SettingsFile* SettingsFile::initialise()
     settingsTree.addListener(this);
 
     return this;
+}
+
+bool SettingsFile::verify(const XmlElement* xml)
+{
+    // Basic settings file verification
+    // Verify if the xml is valid, and tags match correct name / order
+    // Adjust tags here if future layout changes
+
+    if (xml == nullptr || xml->getTagName() != "SettingsTree")
+        return false;
+
+    const StringArray expectedOrder = {
+        "Paths",
+        "KeyMap",
+        "ColourThemes",
+        "SelectedThemes",
+        "RecentlyOpened",
+        "Libraries",
+        "EnabledMidiOutputPorts",
+        "LastBrowserPaths",
+        "Overlays"
+    };
+
+    // Check if all expected elements are present and in the correct order
+    int expectedIndex = 0;
+    for (auto* child = xml->getFirstChildElement(); child != nullptr; child = child->getNextElement()) {
+        if (expectedIndex < expectedOrder.size()) {
+            if (child->getTagName() != expectedOrder[expectedIndex]) {
+                return false; // Order mismatch
+            }
+            expectedIndex++;
+        } else {
+            return false; // Extra unexpected element found
+        }
+    }
+
+    // Check if all expected elements were found
+    return expectedIndex == expectedOrder.size();
+}
+
+SettingsFile::SettingsState SettingsFile::getSettingsState()
+{
+    return settingsState;
 }
 
 void SettingsFile::startChangeListener()

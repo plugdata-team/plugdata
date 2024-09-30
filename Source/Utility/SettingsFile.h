@@ -86,14 +86,19 @@ public:
 
     void setGlobalScale(float newScale);
 
-    bool wasSettingsCorrupt();
+    String getCorruptBackupSettingsLocation();
 
-    String getBackupSettingsLocation();
+    enum SettingsState { UserSettings, BackupSettings, DefaultSettings };
+    SettingsState getSettingsState();
 
 private:
 
-    void deleteAndReset();
+    static bool verify(const XmlElement* settings);
+
+    void backupCorruptSettings();
     String backupSettingsLocation;
+
+    SettingsState settingsState = UserSettings;
 
     bool isInitialised = false;
 
