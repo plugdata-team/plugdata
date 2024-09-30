@@ -275,31 +275,50 @@ void Object::applyBounds()
     std::map<SafePointer<Object>, Rectangle<int>> newObjectSizes;
     for (auto* obj : cnv->getSelectionOfType<Object>())
         newObjectSizes[obj] = obj->getObjectBounds();
-
+    
+    auto positionOffset = gui ? (getBounds().reduced(margin).getPosition() - cnv->canvasOrigin) - gui->getPdBounds().getPosition() : Point<int>(0, 0);
     auto* patch = &cnv->patch;
 
     auto* patchPtr = cnv->patch.getPointer().get();
     if (!patchPtr)
         return;
-
+    
     cnv->pd->lockAudioThread();
-    patch->startUndoSequence("Resize");
+    if(ds.wasResized)
+    {
+        patch->startUndoSequence("Resize");
 
-    for (auto& [object, bounds] : newObjectSizes) {
-        if (object->gui)
-            object->gui->setPdBounds(bounds);
+        for (auto& [object, bounds] : newObjectSizes) {
+            if (object->gui)
+                object->gui->setPdBounds(bounds);
+        }
+
+        canvas_dirty(patchPtr, 1);
+
+        patch->endUndoSequence("Resize");
     }
+    else if(ds.didStartDragging)
+    {
+        patch->startUndoSequence("Move");
+        std::vector<t_gobj*> objects;
+        for (auto* obj : cnv->getSelectionOfType<Object>())
+        {
+            if(auto* ptr = obj->getPointer())
+            {
+                objects.push_back(ptr);
+            }
+        }
+        
+        cnv->patch.moveObjects(objects, positionOffset.x, positionOffset.y);
+        patch->endUndoSequence("Move");
+    }
+    cnv->pd->unlockAudioThread();
 
-    canvas_dirty(patchPtr, 1);
-
-    patch->endUndoSequence("Resize");
-
+    
     MessageManager::callAsync([editor = SafePointer(this->editor)] {
         if (editor)
             editor->updateCommandStatus();
     });
-
-    cnv->pd->unlockAudioThread();
 }
 void Object::updateBounds()
 {
@@ -989,9 +1008,7 @@ void Object::mouseDrag(MouseEvent const& e)
         }
 
         auto canvasMoveOffset = ds.canvasDragStartPosition - cnv->getPosition();
-
         auto selection = cnv->getSelectionOfType<Object>();
-
         auto dragDistance = e.getOffsetFromDragStart() + canvasMoveOffset;
 
         if (ds.componentBeingDragged) {
@@ -1001,7 +1018,6 @@ void Object::mouseDrag(MouseEvent const& e)
 
         // alt+drag will duplicate selection
         if (!ds.wasDragDuplicated && e.mods.isAltDown()) {
-
             Array<Point<int>> mouseDownObjectPositions; // Stores object positions for alt + drag
 
             // Single for undo for duplicate + move

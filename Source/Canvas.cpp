@@ -2258,6 +2258,23 @@ void Canvas::alignObjects(Align alignment)
 
 void Canvas::undo()
 {
+    // If there is an object with an active editor, we interpret undo as wanting to undo the creation of that object editor
+    // This is because the initial object editor is not communicated with Pd, so we can't rely on patch undo to do that
+    // If we don't do this, it will undo the old last action before creating this editor, which would be confusing
+    for(auto object : objects)
+    {
+        if(object->isInitialEditorShown())
+        {
+            object->hideEditor();
+            objects.removeObject(object);
+            synchronise();
+            patch.deselectAll();
+            synchroniseSplitCanvas();
+            updateSidebarSelection();
+            return;
+        }
+    }
+    
     // Tell pd to undo the last action
     patch.undo();
 
