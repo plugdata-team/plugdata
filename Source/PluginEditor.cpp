@@ -55,19 +55,34 @@ class CorruptSettingsAlert : public Component
     TextButton revealFileButton;
 
 public:
-    CorruptSettingsAlert(const String& backupSettingLocation, std::function<void()> dismissFn)
+    CorruptSettingsAlert(SettingsFile* settingsFile, std::function<void()> dismissFn)
     {
         setVisible(false);
 
-        errorMessage.setText("Corrupt settings detected", dontSendNotification);
+        errorMessage.setText("Corrupt settings detected and fixed", dontSendNotification);
         errorMessage.setFont(Fonts::getBoldFont().withHeight(20));
         errorMessage.setJustificationType(Justification::centred);
 
-        errorSub.setText("plugdata will use default settings. Previous settings backed up to:", dontSendNotification);
+        String errorText;
+
+        switch(settingsFile->getSettingsState()){
+            case SettingsFile::SettingsState::DefaultSettings:
+                errorText = "plugdata will use default settings.";
+            break;
+            case SettingsFile::SettingsState::BackupSettings:
+                errorText = "plugdata will use last good settings.";
+                break;
+            default:
+            break;
+        }
+
+        errorSub.setText(errorText + " Previous settings backed up to:", dontSendNotification);
         errorSub.setFont(Fonts::getDefaultFont().withHeight(14));
         errorSub.setJustificationType(Justification::centred);
 
-        errorInfo.setText(backupSettingLocation, dontSendNotification);
+        auto corruptSettingsLoc = settingsFile->getCorruptBackupSettingsLocation();
+
+        errorInfo.setText(corruptSettingsLoc, dontSendNotification);
         errorInfo.setMultiLine(true);
         errorInfo.setReadOnly(true);
         errorInfo.setJustification(Justification::centred);
@@ -86,8 +101,8 @@ public:
 #endif
 
         revealFileButton.setButtonText(revealTip);
-        revealFileButton.onClick = [backupSettingLocation, dismissFn](){
-             auto backupLoc = File(backupSettingLocation);
+        revealFileButton.onClick = [corruptSettingsLoc, dismissFn](){
+             auto backupLoc = File(corruptSettingsLoc);
              if (backupLoc.existsAsFile())
                 backupLoc.revealToUser();
              dismissFn();
@@ -354,19 +369,19 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     lookAndFeelChanged();
 
-    if (settingsFile->wasSettingsCorrupt()) {
-        ::Timer::callAfterDelay(100, [this, settingsFile](){
+    ::Timer::callAfterDelay(100, [this, settingsFile](){
+        if (settingsFile->getSettingsState() != SettingsFile::SettingsState::UserSettings) {
             auto* dialog = new Dialog(&openedDialog, this, 450, 150, false);
 
             auto dismissDialog = [this](){
                 openedDialog.reset(nullptr);
             };
 
-            auto* corruptAlert = new CorruptSettingsAlert(settingsFile->getBackupSettingsLocation(), dismissDialog);
+            auto* corruptAlert = new CorruptSettingsAlert(settingsFile, dismissDialog);
             dialog->setViewedComponent(corruptAlert);
             openedDialog.reset(dialog);
-        });
-    }
+        }
+    });
 }
 
 PluginEditor::~PluginEditor()
