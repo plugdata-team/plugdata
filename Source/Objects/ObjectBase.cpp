@@ -119,16 +119,23 @@ void ObjectBase::ObjectSizeListener::valueChanged(Value& v)
     }
 }
 
+
+
 ObjectBase::PropertyUndoListener::PropertyUndoListener(ObjectBase* p)
 {
     lastChange = Time::getMillisecondCounter();
     parent = p;
 }
 
+void ObjectBase::PropertyUndoListener::setNoUndo(bool noUndo)
+{
+    skipUndo = noUndo;
+}
+
 void ObjectBase::PropertyUndoListener::valueChanged(Value& v)
 {
     // TODO: this works a lot better if you change one property at a time, but it's not perfect when changing multiple at a time
-    if(!v.refersToSameSourceAs(lastValue) || Time::getMillisecondCounter() - lastChange > 10000)
+    if(!skipUndo && (!v.refersToSameSourceAs(lastValue) || Time::getMillisecondCounter() - lastChange > 6000))
     {
         onChange();
         lastValue.referTo(v);
@@ -753,22 +760,22 @@ void ObjectBase::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int n
 
 void ObjectBase::setParameterExcludingListener(Value& parameter, var const& value)
 {
-    parameter.removeListener(&propertyUndoListener);
+    propertyUndoListener.setNoUndo(true);
 
     setValueExcludingListener(parameter, value, this);
-
-    parameter.addListener(&propertyUndoListener);
+    
+    propertyUndoListener.setNoUndo(false);
 }
 
 void ObjectBase::setParameterExcludingListener(Value& parameter, var const& value, Value::Listener* otherListener)
 {
-    parameter.removeListener(&propertyUndoListener);
+    propertyUndoListener.setNoUndo(true);
     parameter.removeListener(otherListener);
 
     setValueExcludingListener(parameter, value, this);
 
     parameter.addListener(otherListener);
-    parameter.addListener(&propertyUndoListener);
+    propertyUndoListener.setNoUndo(false);
 }
 
 ObjectLabel* ObjectBase::getLabel(int index)
