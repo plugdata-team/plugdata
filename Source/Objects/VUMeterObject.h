@@ -75,6 +75,7 @@ class VUMeterObject final : public ObjectBase {
     IEMHelper iemHelper;
     Value sizeProperty = SynchronousValue();
     Value showScale = SynchronousValue();
+    NVGcolor bgCol;
 
 public:
     VUMeterObject(pd::WeakReference ptr, Object* object)
@@ -90,11 +91,16 @@ public:
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamReceiveSymbol(&iemHelper.receiveSymbol);
         objectParameters.addParamBool("Show scale", ParameterCategory::cAppearance, &showScale, { "No", "Yes" }, 1);
+        objectParameters.addParamColour("Background color", ParameterCategory::cAppearance, &iemHelper.secondaryColour);
         iemHelper.addIemParameters(objectParameters, false, false, -1);
 
         updateLabel();
         if(auto vu = ptr.get<t_vu>()) showScale = vu->x_scale;
         valueChanged(showScale);
+        
+        iemHelper.iemColourChangedCallback = [this](){
+            bgCol = convertColour(Colour::fromString(iemHelper.secondaryColour.toString()));
+        };
     }
 
     void updateSizeProperty() override
@@ -206,34 +212,52 @@ public:
         auto b =  getLocalBounds();
         auto bS = b.reduced(0.5f);
         // Object background
-        nvgDrawRoundedRect(nvg, bS.getX(), bS.getY(), bS.getWidth(), bS.getHeight(), cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, bS.getX(), bS.getY(), bS.getWidth(), bS.getHeight(), bgCol, bgCol, Corners::objectCornerRadius);
 
         auto rms = Decibels::decibelsToGain(values[1] - 10.0f);
         auto peak = Decibels::decibelsToGain(values[0] - 10.0f);
         auto barLength = jmin(std::exp(std::log(rms) / 3.0f) * (rms > 0.002f), 1.0f) * b.getHeight();
         auto peakPosition = jmin(std::exp(std::log(peak) / 3.0f) * (peak > 0.002f), 1.0f) * (b.getHeight() - 5.0f);
         
-        NVGcolor barColour;
-        if(values[1] < -12)
+        
+        auto getColourForLevel = [](float level)
         {
-            barColour = nvgRGBA(66, 163, 198, 255);
-        }
-        else if(values[1] > 0)
-        {
-            barColour = nvgRGBA(255, 0, 0, 255);
-        }
-        else {
-            barColour = nvgRGBA(255, 127, 0, 255);
-        }
+            if(level < -12)
+            {
+                return nvgRGBA(66, 163, 198, 255);
+            }
+            else if(level > 0)
+            {
+                return nvgRGBA(255, 0, 0, 255);
+            }
+            else {
+                return nvgRGBA(255, 127, 0, 255);
+            }
+        };
+        
+        NVGcolor peakColour = getColourForLevel(values[0]);
+        NVGcolor barColour = getColourForLevel(values[1]);
         
         // VU Bar
         nvgFillColor(nvg, barColour);
         nvgBeginPath(nvg);
-        nvgRoundedRectVarying(nvg, 0, getHeight() - barLength, getWidth(), barLength, 0.0f, 0.0f, Corners::objectCornerRadius, Corners::objectCornerRadius);
+        nvgRoundedRectVarying(nvg, 4, getHeight() - barLength, getWidth() - 8, barLength, 0.0f, 0.0f, Corners::objectCornerRadius, Corners::objectCornerRadius);
         nvgFill(nvg);
 
+        nvgBeginPath(nvg);
+        int increment = getHeight() / 30;
+        for(int i = 0; i < 30; i++)
+        {
+            
+            nvgMoveTo(nvg, 0, i * increment + 3);
+            nvgLineTo(nvg, getWidth(), i * increment + 3);
+        }
+        nvgStrokeWidth(nvg, 1.0f);
+        nvgStrokeColor(nvg, bgCol);
+        nvgStroke(nvg);
+        
         // Peak
-        nvgFillColor(nvg, cnv->objectOutlineCol);
+        nvgFillColor(nvg, peakColour);
         nvgFillRect(nvg, 0, getHeight() - peakPosition - 5.0f, getWidth(), 5.0f);
 
         // Object outline
