@@ -119,18 +119,23 @@ void ObjectBase::ObjectSizeListener::valueChanged(Value& v)
     }
 }
 
-ObjectBase::PropertyUndoListener::PropertyUndoListener()
+ObjectBase::PropertyUndoListener::PropertyUndoListener(ObjectBase* p)
 {
     lastChange = Time::getMillisecondCounter();
+    parent = p;
 }
 
 void ObjectBase::PropertyUndoListener::valueChanged(Value& v)
 {
-    if (Time::getMillisecondCounter() - lastChange > 400) {
+    // TODO: this works a lot better if you change one property at a time, but it's not perfect when changing multiple at a time
+    if(!v.refersToSameSourceAs(lastValue) || Time::getMillisecondCounter() - lastChange > 10000)
+    {
         onChange();
+        lastValue.referTo(v);
+        lastChange = Time::getMillisecondCounter();
     }
-
-    lastChange = Time::getMillisecondCounter();
+    
+    parent->valueChanged(v);
 }
 
 ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
@@ -139,6 +144,7 @@ ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
     , object(parent)
     , cnv(parent->cnv)
     , pd(parent->cnv->pd)
+    , propertyUndoListener(this)
     , objectSizeListener(parent)
 {
     // Perform async, so that we don't get a size change callback for initial creation
@@ -191,7 +197,6 @@ void ObjectBase::initialise()
 
     for (auto& [name, type, cat, value, list, valueDefault, customComponent, onInteractionFn] : objectParameters.getParameters()) {
         if (value) {
-            value->addListener(this);
             value->addListener(&propertyUndoListener);
         }
     }

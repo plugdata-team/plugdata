@@ -770,15 +770,8 @@ private:
 
     void paint(Graphics& g) override
     {
-        auto b = getLocalBounds();
-
         if (!canBeTransparent()) {
             g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
-        } else {
-            /*
-            Path localPath;
-            localPath.addRoundedRectangle(b.toFloat().reduced(6.0f), Corners::defaultCornerRadius);
-            StackShadow::renderDropShadow(hash("suggestion_component"), g, localPath, Colour(0, 0, 0).withAlpha(0.6f), 13, { 0, 1 }); */
         }
 
         g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));

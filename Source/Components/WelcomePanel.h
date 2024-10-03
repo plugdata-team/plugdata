@@ -54,8 +54,8 @@ class WelcomePanel : public Component
             , snapshotScale(scale)
             , tileName(name)
             , tileSubtitle(subtitle)
-            , isFavourited(favourited)
             , thumbnailImageData(thumbImage)
+            , isFavourited(favourited)
         {
             if (!thumbImage.isValid()){
                 snapshot = Drawable::createFromImageData(svgImage.toRawUTF8(), svgImage.getNumBytesAsUTF8());

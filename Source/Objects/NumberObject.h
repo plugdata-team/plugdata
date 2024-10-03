@@ -324,7 +324,6 @@ public:
     {
 
         if (value.refersToSameSourceAs(widthProperty)) {
-            auto* constrainer = getConstrainer();
             auto numWidth = std::max(::getValue<int>(widthProperty), 1);
             
             auto width = calcFontWidth(numWidth) + 1;

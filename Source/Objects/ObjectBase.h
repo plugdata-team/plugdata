@@ -164,11 +164,13 @@ class ObjectBase : public Component
     };
 
     struct PropertyUndoListener : public Value::Listener {
-        PropertyUndoListener();
+        PropertyUndoListener(ObjectBase* parent);
 
         void valueChanged(Value& v) override;
 
+        Value lastValue;
         uint32 lastChange;
+        ObjectBase* parent;
         std::function<void()> onChange = []() {};
     };
 
