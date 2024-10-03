@@ -205,7 +205,7 @@ public:
     {
         auto b = getLocalBounds();
 
-        auto finalOutlineColour = outlineColour;
+        auto finalOutlineColour = object->isSelected() ? selectedOutlineColour : outlineColour;
         auto finalBackgroundColour = convertColour(backgroundColour);
         auto outlineCol = object->isSelected() ? selectedOutlineColour : finalOutlineColour;
 
@@ -218,7 +218,7 @@ public:
         {
             finalBackgroundColour = convertColour(backgroundColour.contrasting(backgroundColour.getBrightness() > 0.5f ? 0.03f : 0.05f));
         }
-        
+
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), finalBackgroundColour, finalOutlineColour, Corners::objectCornerRadius);
 
         // if the object is valid & iolet area colour is differnet from background colour
