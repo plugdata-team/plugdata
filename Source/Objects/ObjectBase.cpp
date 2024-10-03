@@ -252,6 +252,11 @@ String ObjectBase::getTypeWithOriginPrefix() const
             return type;
 
         auto origin = pd::Library::getObjectOrigin(obj.get());
+        
+        if(origin == "ELSE" && type == "msg")
+        {
+            return "ELSE/message";
+        }
 
         if (origin.isEmpty())
             return type;
