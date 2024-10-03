@@ -212,14 +212,14 @@ public:
         // render invalid text objects with red outline & semi-transparent background
         if (!isValid) {
             finalOutlineColour = convertColour(object->isSelected() ? Colours::red.brighter(1.5f) : Colours::red);
-            finalBackgroundColour = nvgRGBA(outlineColour.r, outlineColour.g, outlineColour.b, 0.2f);
+            finalBackgroundColour = nvgRGBA(outlineColour.r, outlineColour.g, outlineColour.b, 0.2f * 255);
         }
         else if(getPatch() && isMouseOver() && getValue<bool>(cnv->locked))
         {
             finalBackgroundColour = convertColour(backgroundColour.contrasting(backgroundColour.getBrightness() > 0.5f ? 0.03f : 0.05f));
         }
         
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), finalBackgroundColour, outlineCol, Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), finalBackgroundColour, finalOutlineColour, Corners::objectCornerRadius);
 
         // if the object is valid & iolet area colour is differnet from background colour
         // draw two non-rounded rectangles at top / bottom
