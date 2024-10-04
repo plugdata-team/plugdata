@@ -29,7 +29,7 @@ struct PlugDataLook;
 class PluginEditor;
 class ConnectionMessageDisplay;
 class Object;
-class PluginProcessor : public AudioProcessor
+class PluginProcessor final : public AudioProcessor
     , public pd::Instance
     , public SettingsFileListener
 {
@@ -90,8 +90,9 @@ public:
     void receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list) override;
 
     void addTextToTextEditor(unsigned long ptr, String text) override;
-    void showTextEditor(unsigned long ptr, Rectangle<int> bounds, String title) override;
-
+    void showTextEditorDialog(unsigned long ptr, Rectangle<int> bounds, String title) override;
+    bool isTextEditorDialogShown(unsigned long ptr) override;
+    
     void updateConsole(int numMessages, bool newWarning) override;
 
     void reloadAbstractions(File changedPatch, t_glist* except) override;

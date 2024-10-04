@@ -67,7 +67,7 @@ class Autosave;
 class PluginMode;
 class TouchSelectionHelper;
 class WelcomePanel;
-class PluginEditor : public AudioProcessorEditor
+class PluginEditor final : public AudioProcessorEditor
     , public Value::Listener
     , public ApplicationCommandTarget
     , public FileDragAndDropTarget

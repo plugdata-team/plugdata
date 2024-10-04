@@ -265,7 +265,7 @@ void Instance::initialisePd(String& pdlua_version)
                 title = String::fromUTF8(atom_getsymbol(argv + 3)->s_name);
             }
 
-            static_cast<Instance*>(instance)->showTextEditor(ptr, Rectangle<int>(width, height), title);
+            static_cast<Instance*>(instance)->showTextEditorDialog(ptr, Rectangle<int>(width, height), title);
 
             break;
         }
@@ -275,6 +275,17 @@ void Instance::initialisePd(String& pdlua_version)
 
             static_cast<Instance*>(instance)->addTextToTextEditor(ptr, text);
             break;
+        }
+        case hash("coll_check_open"): {
+            auto ptr = (unsigned long)argv->a_w.w_gpointer;
+            bool open = (unsigned long)atom_getfloat(argv + 1);
+            bool wasOpen = static_cast<Instance*>(instance)->isTextEditorDialogShown(ptr);
+            
+            t_atom atoms[2];
+            SETFLOAT(atoms, wasOpen);
+            SETFLOAT(atoms + 1, open);
+            
+            pd_typedmess((t_pd*)ptr, gensym("_is_opened"), 2, atoms);
         }
         }
     };

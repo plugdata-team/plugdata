@@ -1560,7 +1560,12 @@ void PluginProcessor::addTextToTextEditor(unsigned long ptr, String text)
     Dialogs::appendTextToTextEditorDialog(textEditorDialogs[ptr].get(), text);
 }
 
-void PluginProcessor::showTextEditor(unsigned long ptr, Rectangle<int> bounds, String title)
+bool PluginProcessor::isTextEditorDialogShown(unsigned long ptr)
+{
+    return textEditorDialogs.count(ptr) && textEditorDialogs[ptr]->isVisible();
+}
+
+void PluginProcessor::showTextEditorDialog(unsigned long ptr, Rectangle<int> bounds, String title)
 {
     static std::unique_ptr<Dialog> saveDialog = nullptr;
 
