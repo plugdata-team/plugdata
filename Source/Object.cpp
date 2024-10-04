@@ -284,7 +284,7 @@ void Object::applyBounds()
         return;
     
     cnv->pd->lockAudioThread();
-    if(ds.wasResized)
+    if(ds.wasResized || ds.wasDragDuplicated)
     {
         patch->startUndoSequence("Resize");
 
