@@ -64,8 +64,8 @@ void Library::updateLibrary()
 {
     auto settingsTree = ValueTree::fromXml(ProjectInfo::appDataDir.getChildFile(".settings").loadFileAsString());
     auto pathTree = settingsTree.getChildWithName("Paths");
-
-    sys_lock();
+    
+    pd->lockAudioThread();
 
     // Get available objects directly from pd
     t_class* o = pd_objectmaker;
@@ -113,7 +113,7 @@ void Library::updateLibrary()
     allObjects.add("symbol");
     allObjects.add("list");
 
-    sys_unlock();
+    pd->unlockAudioThread();
 }
 
 
