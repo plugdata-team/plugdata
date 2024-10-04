@@ -168,7 +168,7 @@ replaceTextInFolder("Abstractions/cyclone", "All_objects", "All_cyclone_objects"
 makeDir("Extra/pdlua")
 
 pdlua_srcdir = project_root + "/Libraries/pd-lua/"
-for src in ["pd.lua", "COPYING", "README"]:
+for src in ["pd.lua", "COPYING", "README", "pdlua/tutorial/examples/pdx.lua"]:
     copyFile(pdlua_srcdir+src, "./Extra/pdlua")
 # These are developer docs, we don't need them.
 #copyDir(pdlua_srcdir+"doc", "./Extra/pdlua/doc")

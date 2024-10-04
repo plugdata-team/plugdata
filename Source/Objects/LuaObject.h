@@ -542,9 +542,7 @@ public:
                         if (result == 2) {
                             fileToOpen.replaceWithText(newText);
                             if (auto pdlua = ptr.get<t_pd>()) {
-                                // Reload the lua script
-                                pd_typedmess(pdlua.get(), pd->generateSymbol("_reload"), 0, nullptr);
-
+                                pd->sendMessage("pdluax", "reload", {});
                                 // Recreate this object
                                 if(auto patch = cnv->patch.getPointer()) {
                                     pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
@@ -618,8 +616,8 @@ public:
                             fileToOpen.replaceWithText(newText);
                             if (auto pdlua = ptr.get<t_pd>()) {
                                 // Reload the lua script
-                                pd_typedmess(pdlua.get(), pd->generateSymbol("_reload"), 0, nullptr);
-
+                                pd->sendMessage("pdluax", "reload", {});
+                                
                                 // Recreate this object
                                 if(auto patch = cnv->patch.getPointer()) {
                                     pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
