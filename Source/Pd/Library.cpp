@@ -66,6 +66,7 @@ void Library::updateLibrary()
     auto pathTree = settingsTree.getChildWithName("Paths");
     
     pd->lockAudioThread();
+    pd->setThis();
 
     // Get available objects directly from pd
     t_class* o = pd_objectmaker;
