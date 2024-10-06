@@ -245,7 +245,7 @@ public:
         input.setResetEnabled(::getValue<bool>(cnv->locked));
     }
 
-    void valueChanged(Value& value) override
+    void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
             auto width = ::getValue<int>(sizeProperty);

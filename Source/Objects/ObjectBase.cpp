@@ -119,30 +119,29 @@ void ObjectBase::ObjectSizeListener::valueChanged(Value& v)
     }
 }
 
-
-
-ObjectBase::PropertyUndoListener::PropertyUndoListener(ObjectBase* p)
+ObjectBase::PropertyListener::PropertyListener(ObjectBase* p)
 {
     lastChange = Time::getMillisecondCounter();
     parent = p;
 }
 
-void ObjectBase::PropertyUndoListener::setNoUndo(bool noUndo)
+void ObjectBase::PropertyListener::setNoCallback(bool skipCallback)
 {
-    skipUndo = noUndo;
+    noCallback = skipCallback;
 }
 
-void ObjectBase::PropertyUndoListener::valueChanged(Value& v)
+void ObjectBase::PropertyListener::valueChanged(Value& v)
 {
+    if(noCallback) return;
     // TODO: this works a lot better if you change one property at a time, but it's not perfect when changing multiple at a time
-    if(!skipUndo && (!v.refersToSameSourceAs(lastValue) || Time::getMillisecondCounter() - lastChange > 6000))
+    if(!v.refersToSameSourceAs(lastValue) || Time::getMillisecondCounter() - lastChange > 6000)
     {
         onChange();
         lastValue.referTo(v);
         lastChange = Time::getMillisecondCounter();
     }
     
-    parent->valueChanged(v);
+    parent->propertyChanged(v);
 }
 
 ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
@@ -151,7 +150,7 @@ ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
     , object(parent)
     , cnv(parent->cnv)
     , pd(parent->cnv->pd)
-    , propertyUndoListener(this)
+    , propertyListener(this)
     , objectSizeListener(parent)
 {
     // Perform async, so that we don't get a size change callback for initial creation
@@ -170,7 +169,7 @@ ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
 
     setLookAndFeel(new PlugDataLook());
 
-    propertyUndoListener.onChange = [_this = SafePointer(this)]() {
+    propertyListener.onChange = [_this = SafePointer(this)]() {
         if (!_this)
             return;
 
@@ -204,7 +203,7 @@ void ObjectBase::initialise()
 
     for (auto& [name, type, cat, value, list, valueDefault, customComponent, onInteractionFn] : objectParameters.getParameters()) {
         if (value) {
-            value->addListener(&propertyUndoListener);
+            value->addListener(&propertyListener);
         }
     }
 }
@@ -765,22 +764,24 @@ void ObjectBase::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int n
 
 void ObjectBase::setParameterExcludingListener(Value& parameter, var const& value)
 {
-    propertyUndoListener.setNoUndo(true);
-
-    setValueExcludingListener(parameter, value, this);
+    propertyListener.setNoCallback(true);
     
-    propertyUndoListener.setNoUndo(false);
+    auto oldValue = parameter.getValue();
+    parameter.setValue(value);
+    
+    propertyListener.setNoCallback(false);
 }
 
 void ObjectBase::setParameterExcludingListener(Value& parameter, var const& value, Value::Listener* otherListener)
 {
-    propertyUndoListener.setNoUndo(true);
+    propertyListener.setNoCallback(true);
     parameter.removeListener(otherListener);
 
-    setValueExcludingListener(parameter, value, this);
-
+    auto oldValue = parameter.getValue();
+    parameter.setValue(value);
+    
     parameter.addListener(otherListener);
-    propertyUndoListener.setNoUndo(false);
+    propertyListener.setNoCallback(false);
 }
 
 ObjectLabel* ObjectBase::getLabel(int index)

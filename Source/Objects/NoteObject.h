@@ -335,7 +335,7 @@ public:
         return {};
     }
 
-    void valueChanged(Value& v) override
+    void propertyChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(width)) {
             auto* constrainer = getConstrainer();

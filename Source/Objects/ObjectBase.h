@@ -147,7 +147,6 @@ private:
 
 class ObjectBase : public Component
     , public pd::MessageListener
-    , public Value::Listener
     , public SettableTooltipClient
     , public NVGComponent {
 
@@ -163,17 +162,17 @@ class ObjectBase : public Component
         Object* object;
     };
 
-    struct PropertyUndoListener : public Value::Listener {
-        PropertyUndoListener(ObjectBase* parent);
+    struct PropertyListener : public Value::Listener {
+        PropertyListener(ObjectBase* parent);
 
-        void setNoUndo(bool noUndo);
+        void setNoCallback(bool skipCallback);
         
         void valueChanged(Value& v) override;
 
         Value lastValue;
         uint32 lastChange;
         ObjectBase* parent;
-        bool skipUndo;
+        bool noCallback;
         std::function<void()> onChange = []() {};
     };
 
@@ -301,10 +300,9 @@ protected:
     void stopEdition();
 
     String getBinbufSymbol(int argIndex);
-
-    // Called whenever one of the inspector parameters changes
-    void valueChanged(Value& value) override { }
-
+        
+    virtual void propertyChanged(Value& v) {};
+        
     // Send a float value to Pd
     void sendFloatValue(float value);
 
@@ -354,7 +352,7 @@ public:
     OwnedArray<ObjectLabel> labels;
 
 protected:
-    PropertyUndoListener propertyUndoListener;
+    PropertyListener propertyListener;
 
     NVGImage imageRenderer;
 

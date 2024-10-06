@@ -395,7 +395,7 @@ public:
         }
     }
 
-    void valueChanged(Value& v) override
+    void propertyChanged(Value& v) override
     {
         if (auto function = ptr.get<t_fake_function>()) {
             if (v.refersToSameSourceAs(sizeProperty)) {

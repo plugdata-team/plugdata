@@ -96,7 +96,7 @@ public:
 
         updateLabel();
         if(auto vu = ptr.get<t_vu>()) showScale = vu->x_scale;
-        valueChanged(showScale);
+        propertyChanged(showScale);
         
         iemHelper.iemColourChangedCallback = [this](){
             bgCol = convertColour(Colour::fromString(iemHelper.secondaryColour.toString()));
@@ -157,7 +157,7 @@ public:
         }
     }
     
-    void valueChanged(Value& v) override
+    void propertyChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(sizeProperty)) {
             auto& arr = *sizeProperty.getValue().getArray();

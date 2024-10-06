@@ -241,7 +241,7 @@ public:
         freezeScope = false;
     }
 
-    void valueChanged(Value& v) override
+    void propertyChanged(Value& v) override
     {
 
         if (v.refersToSameSourceAs(sizeProperty)) {

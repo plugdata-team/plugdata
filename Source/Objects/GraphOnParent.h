@@ -41,7 +41,7 @@ public:
         MessageManager::callAsync([_this = SafePointer(this)]() {
             if (_this) {
                 _this->update();
-                _this->valueChanged(_this->isGraphChild);
+                _this->propertyChanged(_this->isGraphChild);
             }
         });
     }
@@ -397,7 +397,7 @@ public:
         return subpatch;
     }
 
-    void valueChanged(Value& v) override
+    void propertyChanged(Value& v) override
     {
 
         if (v.refersToSameSourceAs(sizeProperty)) {

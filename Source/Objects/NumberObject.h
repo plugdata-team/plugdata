@@ -320,7 +320,7 @@ public:
         return 1;
     }
     
-    void valueChanged(Value& value) override
+    void propertyChanged(Value& value) override
     {
 
         if (value.refersToSameSourceAs(widthProperty)) {
