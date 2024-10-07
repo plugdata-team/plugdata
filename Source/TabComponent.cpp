@@ -263,12 +263,16 @@ void TabComponent::previousTab()
     showTab(newTabIndex >= 0 ? tabbar[newTabIndex]->cnv : tabbar[tabbar.size() - 1]->cnv, splitIndex);
 }
 
-void TabComponent::createNewWindow(Component* draggedTab)
+void TabComponent::createNewWindowFromTab(Component* draggedTab)
 {
     auto* tab = dynamic_cast<TabBarButtonComponent*>(draggedTab);
+    if(!tab) return;
+    createNewWindow(tab->cnv);
+}
 
-    if (!tab || !ProjectInfo::isStandalone)
-        return;
+void TabComponent::createNewWindow(Canvas* cnv)
+{
+    if (!ProjectInfo::isStandalone) return;
 
     auto* newEditor = new PluginEditor(*pd);
     auto* newWindow = ProjectInfo::createNewWindow(newEditor);
@@ -279,8 +283,8 @@ void TabComponent::createNewWindow(Component* draggedTab)
     newWindow->addToDesktop(window->getDesktopWindowStyleFlags());
     newWindow->setVisible(true);
 
-    auto patch = tab->cnv->refCountedPatch;
-    closeTab(tab->cnv);
+    auto patch = cnv->refCountedPatch;
+    closeTab(cnv);
 
     patch->windowIndex = newEditor->editorIndex;
 

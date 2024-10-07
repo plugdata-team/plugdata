@@ -153,6 +153,7 @@ private:
         },
         // DEFAULT SETTINGS FOR TOGGLES
         { "search_order", var(true) },
+        { "open_patches_in_window", var(false) },
     };
 
     StringArray childTrees {

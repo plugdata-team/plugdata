@@ -399,10 +399,14 @@ void ObjectBase::openSubpatch()
     
     cnv->editor->getTabComponent().setActiveSplit(cnv);
     subpatch->splitViewIndex = cnv->patch.splitViewIndex;
-    cnv->editor->getTabComponent().openPatch(subpatch);
+    auto* newCanvas = cnv->editor->getTabComponent().openPatch(subpatch);
 
     if (path.getFullPathName().isNotEmpty()) {
         subpatch->setCurrentFile(URL(path));
+    }
+    
+    if(SettingsFile::getInstance()->getProperty<bool>("open_patches_in_window")) {
+        cnv->editor->getTabComponent().createNewWindow(newCanvas);
     }
 }
 

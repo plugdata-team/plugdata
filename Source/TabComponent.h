@@ -36,7 +36,8 @@ public:
 
     void closeAllTabs(
         bool quitAfterComplete = false, Canvas* patchToExclude = nullptr, std::function<void()> afterComplete = []() {});
-    void createNewWindow(Component* draggedTab);
+    void createNewWindow(Canvas* cnv);
+    void createNewWindowFromTab(Component* tab);
 
     Canvas* getCurrentCanvas();
     Canvas* getCanvasAtScreenPosition(Point<int> screenPosition);

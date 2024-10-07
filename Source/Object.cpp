@@ -1537,6 +1537,9 @@ void Object::openHelpPatch() const
                 patch->gl_edit = 0;
             }
         }
+        if(SettingsFile::getInstance()->getProperty<bool>("open_patches_in_window")) {
+            editor->getTabComponent().createNewWindow(helpCanvas);
+        }
         return;
     }
 
