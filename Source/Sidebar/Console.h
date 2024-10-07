@@ -187,6 +187,21 @@ public:
                     });
                     menu.showMenuAsync(PopupMenu::Options());
                 }
+                
+                if(e.mods.isShiftDown())
+                {
+                    int startIdx = console.messages.size();
+                    int endIdx = idx;
+                    
+                    for(auto& item : console.selectedItems)
+                    {
+                        startIdx = std::min(item->idx, startIdx);
+                    }
+                    for(int i = std::min(startIdx, endIdx); i < std::max(startIdx, endIdx); i++)
+                    {
+                        console.selectedItems.addIfNotAlreadyThere(SafePointer(console.messages[i].get()));
+                    }
+                }
 
                 console.selectedItems.addIfNotAlreadyThere(SafePointer(this));
                 console.repaint();
@@ -310,6 +325,14 @@ public:
             // Copy from console
             if (key == KeyPress('c', ModifierKeys::commandModifier, 0)) {
                 copySelectionToClipboard();
+                return true;
+            }
+            if (key == KeyPress('a', ModifierKeys::commandModifier, 0)) {
+                for(auto& message : messages)
+                {
+                    selectedItems.addIfNotAlreadyThere(SafePointer(message.get()));
+                    repaint();
+                }
                 return true;
             }
 
