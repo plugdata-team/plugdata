@@ -148,8 +148,6 @@ public:
 
     void zoomToFitAll();
 
-    void updatePatchSnapshot();
-
     float getRenderScale() const;
 
     bool autoscroll(MouseEvent const& e);

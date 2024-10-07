@@ -177,8 +177,6 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     parameters.addParamInt("Width", cDimensions, &patchWidth, 527, onInteractionFn);
     parameters.addParamInt("Height", cDimensions, &patchHeight, 327, onInteractionFn);
 
-    updatePatchSnapshot();
-    
     patch.setVisible(true);
 
     lookAndFeelChanged();
@@ -592,42 +590,6 @@ float Canvas::getRenderScale() const
     return editor->nvgSurface.getRenderScale();
 }
 
-void Canvas::updatePatchSnapshot()
-{
-    auto patchFile = patch.getCurrentFile();
-
-    if (patchFile.existsAsFile()) {
-        auto recentlyOpenedTree = SettingsFile::getInstance()->getValueTree().getChildWithName("RecentlyOpened");
-        for (int i = 0; i < recentlyOpenedTree.getNumChildren(); i++) {
-            auto recentlyOpenedFile = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
-
-            // Check if patch is in the recently opened list
-            if (File(recentlyOpenedFile) == patchFile) {
-                // If so, generate an svg sihouette that we can show on the welcome page
-                String svgSilhouette;
-
-                auto regionOfInterest = Rectangle<int>();
-                for (auto* object : objects) {
-                    regionOfInterest = regionOfInterest.getUnion(object->getBounds().reduced(Object::margin));
-                }
-
-                MemoryOutputStream objectBoundsStream;
-
-                for (auto* object : objects) {
-                    auto rect = object->getBounds().reduced(Object::margin) - regionOfInterest.getPosition();
-                    objectBoundsStream.writeCompressedInt(rect.getX());
-                    objectBoundsStream.writeCompressedInt(rect.getY());
-                    objectBoundsStream.writeCompressedInt(rect.getWidth());
-                    objectBoundsStream.writeCompressedInt(rect.getHeight());
-                }
-
-                recentlyOpenedTree.getChild(i).setProperty("PatchImage", Base64::toBase64(objectBoundsStream.getData(), objectBoundsStream.getDataSize()), nullptr);
-                break;
-            }
-        }
-    }
-}
-
 void Canvas::renderAllObjects(NVGcontext* nvg, Rectangle<int> area)
 {
     for (auto* obj : objects) {
@@ -870,7 +832,6 @@ void Canvas::save(std::function<void()> const& nestedCallback)
     }
 
     if (canvasToSave->patch.getCurrentFile().existsAsFile()) {
-        canvasToSave->updatePatchSnapshot();
         canvasToSave->patch.savePatch();
         SettingsFile::getInstance()->addToRecentlyOpened(canvasToSave->patch.getCurrentFile());
         nestedCallback();
@@ -891,7 +852,6 @@ void Canvas::saveAs(std::function<void()> const& nestedCallback)
             if (!result.hasFileExtension("pd"))
                 result = result.getFullPathName() + ".pd";
 
-            updatePatchSnapshot();
             patch.savePatch(resultURL);
             SettingsFile::getInstance()->addToRecentlyOpened(result);
             pd->titleChanged();

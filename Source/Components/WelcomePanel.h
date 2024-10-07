@@ -351,7 +351,6 @@ public:
 
                 auto subTree = recentlyOpenedTree.getChild(i);
                 auto patchFile = File(subTree.getProperty("Path").toString());
-                auto patchImage = subTree.getProperty("PatchImage").toString();
                 auto patchThumbnailBase = File(patchFile.getParentDirectory().getFullPathName() + "\\" + patchFile.getFileNameWithoutExtension() + "_thumb");
 
                 auto favourited = subTree.hasProperty("Pinned") && static_cast<bool>(subTree.getProperty("Pinned"));
@@ -373,23 +372,8 @@ public:
                     }
                 }
                 if (thumbImage.isNull()) {
-                    if (patchImage.isEmpty() && patchFile.existsAsFile()) {
+                    if (patchFile.existsAsFile()) {
                         silhoutteSvg = OfflineObjectRenderer::patchToSVG(patchFile.loadFileAsString());
-                    } else {
-                        MemoryOutputStream ostream;
-                        Base64::convertFromBase64(ostream, patchImage);
-                        MemoryInputStream istream(ostream.getMemoryBlock());
-
-                        while (!istream.isExhausted()) {
-                            int const x = istream.readCompressedInt();
-                            int const y = istream.readCompressedInt();
-                            int const w = istream.readCompressedInt();
-                            int const h = istream.readCompressedInt();
-                            float const rad = Corners::objectCornerRadius;
-
-                            silhoutteSvg += String::formatted("<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" rx=\"%.1f\" ry=\"%.1f\" />\n", x, y, w, h, rad, rad);
-                        }
-                        silhoutteSvg = "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">\n" + silhoutteSvg + "</svg>";
                     }
                 }
 
