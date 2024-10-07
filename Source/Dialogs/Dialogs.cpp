@@ -855,8 +855,11 @@ void Dialogs::showSaveDialog(std::function<void(URL)> const& callback, String co
     if (!initialFile.exists())
         initialFile = ProjectInfo::appDataDir;
 
+#if JUCE_IOS
     fileChooser = std::make_unique<FileChooser>("Choose save location...", initialFile, extension, nativeDialog, false, parentComponent);
-
+#else
+    fileChooser = std::make_unique<FileChooser>("Choose save location...", initialFile, extension, nativeDialog, false, nullptr);
+#endif
     auto saveChooserFlags = FileBrowserComponent::saveMode;
 
     if (directoryMode) {
