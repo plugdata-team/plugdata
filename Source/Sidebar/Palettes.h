@@ -246,7 +246,7 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (isItemShowingMenu)
+        if (isItemShowingMenu || !e.mods.isLeftButtonDown())
             return;
 
         auto viewport = findParentComponentOfClass<BouncingViewport>();
@@ -946,6 +946,7 @@ private:
     private:
         void mouseDown(MouseEvent const& e) override
         {
+            if(!e.mods.isLeftButtonDown()) return;
             dragStartWidth = target->getWidth();
         }
 

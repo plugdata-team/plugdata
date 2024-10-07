@@ -170,6 +170,8 @@ public:
 
             void mouseDown(MouseEvent const& e) override
             {
+                if(!e.mods.isLeftButtonDown()) return;
+                
                 if (!e.mods.isShiftDown() && !e.mods.isCommandDown()) {
                     console.selectedItems.clear();
                 }
@@ -383,6 +385,8 @@ public:
 
         void mouseDown(MouseEvent const& e) override
         {
+            if(!e.mods.isLeftButtonDown()) return;
+            
             selectedItems.clear();
             repaint();
         }

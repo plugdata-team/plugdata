@@ -561,7 +561,7 @@ void TabComponent::renderArea(NVGcontext* nvg, Rectangle<int> area)
 }
 
 void TabComponent::mouseDown(MouseEvent const& e)
-{
+{    
     auto localPos = e.getEventRelativeTo(this).getPosition();
     if (localPos.x > splitSize - 3 && localPos.x < splitSize + 3) {
         draggingSplitResizer = true;
@@ -1008,6 +1008,8 @@ void TabComponent::showHiddenTabsMenu(int splitIndex)
 
         void mouseDown(MouseEvent const& e) override
         {
+            if(!e.mods.isLeftButtonDown()) return;
+            
             if (e.originalComponent == &closeTabButton)
                 return;
 

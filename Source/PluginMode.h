@@ -330,7 +330,8 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (scaleComboBox.contains(e.getEventRelativeTo(&scaleComboBox).getPosition()))
+        
+        if (scaleComboBox.contains(e.getEventRelativeTo(&scaleComboBox).getPosition()) || !e.mods.isLeftButtonDown())
             return;
 
         // Offset the start of the drag when dragging the window by Titlebar

@@ -231,12 +231,12 @@ public:
         repaint();
     }
 
-    void mouseDown(const MouseEvent& e) override
+    void mouseDown(MouseEvent const& e) override
     {
         freezeScope = true;
     }
 
-    void mouseUp(const MouseEvent& e) override
+    void mouseUp(MouseEvent const& e) override
     {
         freezeScope = false;
     }

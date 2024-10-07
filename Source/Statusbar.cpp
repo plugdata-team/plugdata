@@ -133,6 +133,7 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if(!e.mods.isLeftButtonDown()) return;
         onClick();
     }
 
@@ -196,6 +197,7 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if(!e.mods.isLeftButtonDown()) return;
         repaint();
         Slider::mouseDown(e);
     }
@@ -591,6 +593,7 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if(!e.mods.isLeftButtonDown()) return;
         // check if the callout is active, otherwise mouse down / up will trigger callout box again
         if (isCallOutBoxActive) {
             isCallOutBoxActive = false;
@@ -687,7 +690,7 @@ private:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (!isEnabled())
+        if (!isEnabled() || !e.mods.isLeftButtonDown()) return;
             return;
 
         auto* editor = findParentComponentOfClass<PluginEditor>();

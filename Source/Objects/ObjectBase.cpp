@@ -388,6 +388,7 @@ void ObjectBase::openSubpatch()
         path = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
     }
 
+    // TODO: check all editors!
     // Check if subpatch is already opened
     for (auto* cnv : cnv->editor->getCanvases()) {
         if (cnv->patch == *subpatch) {

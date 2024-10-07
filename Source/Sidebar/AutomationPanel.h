@@ -426,6 +426,8 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if(!e.mods.isLeftButtonDown()) return;
+        
         if (&reorderButton == e.originalComponent)
             setIsReordering(true);
         else
@@ -755,6 +757,8 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if(!e.mods.isLeftButtonDown()) return;
+        
         accumulatedOffsetY = { 0, 0 };
 
         if (auto* reorderButton = dynamic_cast<ReorderButton*>(e.originalComponent)) {

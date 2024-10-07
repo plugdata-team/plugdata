@@ -209,6 +209,8 @@ class WelcomePanel : public Component
 
         void mouseUp(MouseEvent const& e) override
         {
+            if(!e.mods.isLeftButtonDown()) return;
+            
             if (onFavourite && getHeartIconBounds().contains(e.x, e.y)) {
                 isFavourited = !isFavourited;
                 onFavourite(isFavourited);

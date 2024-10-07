@@ -17,7 +17,7 @@ public:
         setRepaintsOnMouseActivity(true);
     }
     
-    void mouseDown(const MouseEvent& e) override
+    void mouseDown(MouseEvent const& e) override
     {
         if(cnv->showBorder) {
             dragger.startDraggingComponent(this, e);

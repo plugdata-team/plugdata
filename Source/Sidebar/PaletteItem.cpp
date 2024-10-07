@@ -226,6 +226,8 @@ void PaletteItem::paint(Graphics& g)
 
 void PaletteItem::mouseDown(MouseEvent const& e)
 {
+    if(!e.mods.isLeftButtonDown()) return;
+    
     if (reorderButton.get() == e.originalComponent)
         setIsReordering(true);
     else

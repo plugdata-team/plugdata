@@ -689,7 +689,7 @@ void PluginEditor::parentSizeChanged()
 void PluginEditor::mouseDown(MouseEvent const& e)
 {
     // no window dragging by toolbar in plugin!
-    if (!ProjectInfo::isStandalone)
+    if (!ProjectInfo::isStandalone || !e.mods.isLeftButtonDown())
         return;
 
     if (e.getNumberOfClicks() >= 2) {
