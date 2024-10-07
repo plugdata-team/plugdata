@@ -53,7 +53,7 @@ Patch::~Patch()
     }
 }
 
-Rectangle<int> Patch::getBounds() const
+Rectangle<int> Patch::getGraphBounds() const
 {
     if (auto cnv = ptr.get<t_canvas>()) {
 
@@ -62,12 +62,18 @@ Rectangle<int> Patch::getBounds() const
             cnv->gl_pixheight = std::max(15, cnv->gl_pixheight);
 
             return { cnv->gl_xmargin, cnv->gl_ymargin, cnv->gl_pixwidth, cnv->gl_pixheight };
-        } else {
-            auto width = cnv->gl_screenx2 - cnv->gl_screenx1;
-            auto height = cnv->gl_screeny2 - cnv->gl_screeny1;
-
-            return { cnv->gl_screenx1, cnv->gl_screeny1, width, height };
         }
+    }
+    return { 0, 0, 0, 0 };
+}
+
+Rectangle<int> Patch::getBounds() const
+{
+    if (auto cnv = ptr.get<t_canvas>()) {
+        auto width = cnv->gl_screenx2 - cnv->gl_screenx1;
+        auto height = cnv->gl_screeny2 - cnv->gl_screeny1;
+
+        return { cnv->gl_screenx1, cnv->gl_screeny1, width, height };
     }
     return { 0, 0, 0, 0 };
 }

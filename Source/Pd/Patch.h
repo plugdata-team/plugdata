@@ -37,6 +37,7 @@ public:
 
     // Gets the bounds of the patch.
     Rectangle<int> getBounds() const;
+    Rectangle<int> getGraphBounds() const;
 
     t_gobj* createObject(int x, int y, String const& name);
     t_gobj* renameObject(t_object* obj, String const& name);

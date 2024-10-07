@@ -166,7 +166,7 @@ public:
 
     void updateBounds()
     {
-        auto patchBounds = canvas->patch.getBounds().expanded(4.0f);
+        auto patchBounds = canvas->patch.getGraphBounds().expanded(4.0f);
         auto width = patchBounds.getWidth() + 1;
         auto height = patchBounds.getHeight() + 1;
         setBounds(patchBounds.translated(canvas->canvasOrigin.x, canvas->canvasOrigin.y).withWidth(width).withHeight(height));
