@@ -192,7 +192,6 @@ public:
                 {
                     int startIdx = console.messages.size();
                     int endIdx = idx;
-                    
                     for(auto& item : console.selectedItems)
                     {
                         startIdx = std::min(item->idx, startIdx);

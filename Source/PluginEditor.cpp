@@ -1245,7 +1245,7 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
     }
     case CommandIDs::ToggleDSP: {
         result.setInfo("Toggle DSP", "Enables or disables audio DSP", "Edit", 0);
-        result.addDefaultKeypress(190, ModifierKeys::commandModifier); // cmd + . to toggle DSP
+        result.addDefaultKeypress(46, ModifierKeys::commandModifier); // cmd + . to toggle DSP
         result.setActive(true);
         break;
     }
