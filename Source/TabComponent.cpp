@@ -742,6 +742,12 @@ void TabComponent::closeTab(Canvas* cnv)
     pd->updateObjectImplementations();
 
     triggerAsyncUpdate();
+    
+    if(canvases.isEmpty() && pd->getEditors().size() > 1)
+    {
+        pd->openedEditors.removeObject(editor);
+        pd->openedEditors.getFirst()->toFront(true);
+    }
 }
 
 void TabComponent::addLastShownTab(Canvas* tab, int split)
