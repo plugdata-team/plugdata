@@ -766,7 +766,7 @@ void Canvas::zoomToFitAll()
 
     auto scale = getValue<float>(zoomScale);
 
-    auto regionOfInterest = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, getValue<float>(patchWidth), getValue<float>(patchHeight));
+    auto regionOfInterest = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, 20, 20);
 
     if (!presentationMode.getValue()) {
         for (auto* object : objects) {
@@ -781,21 +781,18 @@ void Canvas::zoomToFitAll()
 
     auto roiHeight = static_cast<float>(regionOfInterest.getHeight());
     auto roiWidth = static_cast<float>(regionOfInterest.getWidth());
-    auto viewHeight = viewArea.getHeight();
-    auto viewWidth = viewArea.getWidth();
+    
+    auto scaleWidth = viewArea.getWidth() / roiWidth;
+    auto scaleHeight = viewArea.getHeight() / roiHeight;
+    scale = jmin(scaleWidth, scaleHeight);
+    scale = std::clamp(scale, 0.05f, 3.0f);
+    
+    auto transform = getTransform();
+    transform = transform.scaled(scale);
+    setTransform(transform);
 
-    if (roiWidth > viewWidth || roiHeight > viewHeight) {
-        auto scaleWidth = viewWidth / roiWidth;
-        auto scaleHeight = viewHeight / roiHeight;
-        scale = jmin(scaleWidth, scaleHeight);
-
-        auto transform = getTransform();
-        transform = transform.scaled(scale);
-        setTransform(transform);
-
-        scale = std::sqrt(std::abs(transform.getDeterminant()));
-        zoomScale.setValue(scale);
-    }
+    scale = std::sqrt(std::abs(transform.getDeterminant()));
+    zoomScale.setValue(scale);
 
     auto viewportCentre = viewport->getViewArea().withZeroOrigin().getCentre();
     auto newViewPos = regionOfInterest.transformedBy(getTransform()).getCentre() - viewportCentre;
