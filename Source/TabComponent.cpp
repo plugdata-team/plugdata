@@ -744,7 +744,7 @@ void TabComponent::closeTab(Canvas* cnv)
 
 void TabComponent::addLastShownTab(Canvas* tab, int split)
 {
-    if(lastShownTabs[split].contains(tab)) lastShownTabs[split].removeFirstMatchingValue(SafePointer(tab));
+    if(lastShownTabs[split].contains(tab)) lastShownTabs[split].removeFirstMatchingValue(tab);
     lastShownTabs[split].add(tab);
     while(lastShownTabs[split].size() > 15) lastShownTabs[split].remove(0);
 }
@@ -752,8 +752,9 @@ void TabComponent::addLastShownTab(Canvas* tab, int split)
 Canvas* TabComponent::getLastShownTab(Canvas* current, int split)
 {
     Canvas* lastShownTab = nullptr;
-    for (auto it = lastShownTabs[split].end(); it != lastShownTabs[split].begin(); --it)
+    for (auto it = lastShownTabs[split].end(); it != lastShownTabs[split].begin();)
     {
+        --it;
         lastShownTab = *it;
         if(lastShownTab == current) continue;
         lastShownTabs[split].removeFirstMatchingValue(lastShownTab);
