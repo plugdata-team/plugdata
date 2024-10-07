@@ -405,7 +405,7 @@ void ObjectBase::openSubpatch()
         subpatch->setCurrentFile(URL(path));
     }
     
-    if(SettingsFile::getInstance()->getProperty<bool>("open_patches_in_window")) {
+    if(ProjectInfo::isStandalone && SettingsFile::getInstance()->getProperty<bool>("open_patches_in_window")) {
         cnv->editor->getTabComponent().createNewWindow(newCanvas);
     }
 }

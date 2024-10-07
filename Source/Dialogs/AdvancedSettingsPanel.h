@@ -45,9 +45,11 @@ public:
             otherProperties.add(new PropertiesPanel::BoolComponent("Use system file dialogs", nativeDialogValue, StringArray { "No", "Yes" }));
         }
         
-        openPatchesInWindow.referTo(settingsFile->getPropertyAsValue("open_patches_in_window"));
-        openPatchesInWindow.addListener(this);
-        interfaceProperties.add(new PropertiesPanel::BoolComponent("Open help/subpatches in new window", openPatchesInWindow, { "No", "Yes" }));
+        if(ProjectInfo::isStandalone) {
+            openPatchesInWindow.referTo(settingsFile->getPropertyAsValue("open_patches_in_window"));
+            openPatchesInWindow.addListener(this);
+            interfaceProperties.add(new PropertiesPanel::BoolComponent("Open help/subpatches in new window", openPatchesInWindow, { "No", "Yes" }));
+        }
 
         showPalettesValue.referTo(settingsFile->getPropertyAsValue("show_palettes"));
         showPalettesValue.addListener(this);
