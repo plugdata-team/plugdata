@@ -467,6 +467,14 @@ public:
     {
         LuaGuiMessage guiMessage;
         for(auto& [layer, layerQueue] : guiMessageQueue) {
+            if(layer == -1) // non-layer related messages
+            {
+                while (layerQueue.try_dequeue(guiMessage)) {
+                    handleGuiMessage(layer, guiMessage.symbol, guiMessage.size, guiMessage.data.data());
+                }
+                continue;
+            }
+            
             while (layerQueue.try_dequeue(guiMessage)) {
                 guiCommandBuffer[layer].push_back(guiMessage);
             }
