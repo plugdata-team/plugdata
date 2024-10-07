@@ -1061,6 +1061,18 @@ struct ScalarObject final : public ObjectBase {
                 cnv->drawables.move(cnv->drawables.indexOf(dynamic_cast<NVGComponent*>(templates[i])), 0);
             }
         }
+        
+        onConstrainerCreate = [this]() {
+            int w = 0, h = 0;
+            if (auto gobj = ptr.get<t_gobj>()) {
+                auto* patch = cnv->patch.getPointer().get();
+                if (!patch)
+                    return;
+                int x, y;
+                pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
+            }
+            constrainer->setSizeLimits(w + 1, h + 1, w + 1, h + 1);
+        };
 
         updateDrawables();
     }
