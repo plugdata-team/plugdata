@@ -511,6 +511,8 @@ void TabComponent::showTab(Canvas* cnv, int splitIndex)
     editor->sidebar->hideParameters();
     editor->sidebar->clearSearchOutliner();
     editor->updateCommandStatus();
+    
+    addLastShownTab(cnv, splitIndex);
 }
 
 Canvas* TabComponent::getCurrentCanvas()
@@ -715,10 +717,22 @@ void TabComponent::closeTab(Canvas* cnv)
     cnv->setCachedComponentImage(nullptr); // Clear nanovg invalidation listener, just to be sure
     
     if (splits[0] == cnv && tabbars[0].indexOf(tab) >= 1) {
-        showTab(tabbars[0][tabbars[0].indexOf(tab) - 1]->cnv, 0);
+        if(auto* lastCnv = getLastShownTab(cnv, 0))
+        {
+            showTab(lastCnv, 0);
+        }
+        else {
+            showTab(tabbars[0][tabbars[0].indexOf(tab) - 1]->cnv, 0);
+        }
     }
     if (splits[1] == cnv && tabbars[1].indexOf(tab) >= 1) {
-        showTab(tabbars[1][tabbars[1].indexOf(tab) - 1]->cnv, 1);
+       if(auto* lastCnv = getLastShownTab(cnv, 1))
+       {
+           showTab(lastCnv, 1);
+       }
+       else {
+            showTab(tabbars[1][tabbars[1].indexOf(tab) - 1]->cnv, 1);
+       }
     }
     
     canvases.removeObject(cnv);
@@ -726,6 +740,27 @@ void TabComponent::closeTab(Canvas* cnv)
     pd->updateObjectImplementations();
 
     triggerAsyncUpdate();
+}
+
+void TabComponent::addLastShownTab(Canvas* tab, int split)
+{
+    if(lastShownTabs[split].contains(tab)) lastShownTabs[split].removeFirstMatchingValue(SafePointer(tab));
+    lastShownTabs[split].add(tab);
+    while(lastShownTabs[split].size() > 15) lastShownTabs[split].remove(0);
+}
+
+Canvas* TabComponent::getLastShownTab(Canvas* current, int split)
+{
+    Canvas* lastShownTab = nullptr;
+    for (auto it = lastShownTabs[split].end(); it != lastShownTabs[split].begin(); --it)
+    {
+        lastShownTab = *it;
+        if(lastShownTab == current) continue;
+        lastShownTabs[split].removeFirstMatchingValue(lastShownTab);
+        if(lastShownTab) break;
+    }
+    
+    return lastShownTab;
 }
 
 void TabComponent::sendTabUpdateToVisibleCanvases()

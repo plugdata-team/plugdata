@@ -68,6 +68,9 @@ private:
     void mouseUp(MouseEvent const& e) override;
     void mouseDrag(MouseEvent const& e) override;
     void mouseMove(MouseEvent const& e) override;
+    
+    void addLastShownTab(Canvas* tab, int split);
+    Canvas* getLastShownTab(Canvas* current, int split);
 
     void showHiddenTabsMenu(int splitIndex);
 
@@ -318,6 +321,8 @@ private:
 
     std::array<OwnedArray<TabBarButtonComponent>, 2> tabbars;
     std::array<SafePointer<Canvas>, 2> splits = { nullptr, nullptr };
+        
+    std::array<Array<SafePointer<Canvas>>, 2> lastShownTabs;
 
     std::array<pd::Patch*, 2> lastSplitPatches { nullptr, nullptr };
     t_glist* lastActiveCanvas = nullptr;
