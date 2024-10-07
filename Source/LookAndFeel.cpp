@@ -1107,7 +1107,7 @@ const String PlugDataLook::defaultThemesXml = R"(
         caret_colour="ff72aedf" iolet_area_colour="ff808080" iolet_outline_colour="ff696969"
         text_object_background="ff333333" comment_text_colour="ff111111"
         straight_connections="0" connection_style="1" connection_look="0"
-        square_iolets="0" square_object_corners="1" iolet_spacing_edge="0" />
+        square_iolets="0" square_object_corners="1" iolet_spacing_edge="0" object_flag_outlined="0"/>
     <Theme theme="classic" toolbar_background="ffffffff" toolbar_text="ff000000"
         toolbar_active="ff787878" toolbar_hover="ffededed" tabbar_background="ffffffff"
         tab_text="ff000000" selected_tab_background="ffededed" selected_tab_text="ff000000"
@@ -1127,7 +1127,7 @@ const String PlugDataLook::defaultThemesXml = R"(
         scrollbar_thumb="ffa9a9a9" graph_area="ffff0000" grid_colour="ff000000"
         caret_colour="ff000000" comment_text_colour="ff000000"
         straight_connections="1" connection_style="2" connection_look="0"
-        square_iolets="1" square_object_corners="1" iolet_spacing_edge="1" />
+        square_iolets="1" square_object_corners="1" iolet_spacing_edge="1" object_flag_outlined="1" />
     <Theme theme="classic_dark" toolbar_background="ff000000" toolbar_text="ffffffff"
         toolbar_active="ff787878" toolbar_hover="ff888888" tabbar_background="ff000000"
         tab_text="ffffffff" selected_tab_background="ff808080" selected_tab_text="ffffffff"
@@ -1146,7 +1146,7 @@ const String PlugDataLook::defaultThemesXml = R"(
         caret_colour="ffffffff" iolet_area_colour="ff000000" iolet_outline_colour="ffffffff"
         text_object_background="ff000000" comment_text_colour="ffffffff"
         straight_connections="1" connection_style="2" connection_look="0"
-        square_iolets="1" square_object_corners="1" iolet_spacing_edge="1" />
+        square_iolets="1" square_object_corners="1" iolet_spacing_edge="1" object_flag_outlined="1" />
     <Theme theme="dark" toolbar_background="ff191919" toolbar_text="ffe1e1e1"
         toolbar_active="ff42a2c8" toolbar_hover="ff282828" tabbar_background="ff191919"
         tab_text="ffe1e1e1" selected_tab_background="ff2e2e2e" selected_tab_text="ffe1e1e1"
@@ -1165,7 +1165,7 @@ const String PlugDataLook::defaultThemesXml = R"(
         caret_colour="ff42a2c8" text_object_background="ff232323" iolet_area_colour="ff232323"
         iolet_outline_colour="ff696969" comment_text_colour="ffe1e1e1"
         straight_connections="0" connection_style="1" connection_look="0"
-        square_iolets="0" square_object_corners="0" iolet_spacing_edge="0" />
+        square_iolets="0" square_object_corners="0" iolet_spacing_edge="0" object_flag_outlined="0"/>
     <Theme theme="light" toolbar_background="ffebebeb" toolbar_text="ff373737"
         toolbar_active="ff007aff" toolbar_hover="ffe0e0e0" tabbar_background="ffebebeb"
         tab_text="ff373737" selected_tab_background="ffe0e0e0" selected_tab_text="ff373737"
@@ -1185,7 +1185,7 @@ const String PlugDataLook::defaultThemesXml = R"(
         iolet_area_colour="fffafafa" iolet_outline_colour="ffc2c2c2"
         comment_text_colour="ff373737"
         straight_connections="0" connection_style="1" connection_look="0"
-        square_iolets="0" square_object_corners="0" iolet_spacing_edge="0" />
+        square_iolets="0" square_object_corners="0" iolet_spacing_edge="0" object_flag_outlined="0"/>
     <Theme theme="warm" toolbar_background="ffd2cdc4" toolbar_text="ff5a5a5a"
         toolbar_active="ff5da0c4" toolbar_hover="ffc0bbb2" tabbar_background="ffd2cdc4"
         tab_text="ff5a5a5a" selected_tab_background="ffc0bbb2" selected_tab_text="ff5a5a5a"
@@ -1204,7 +1204,7 @@ const String PlugDataLook::defaultThemesXml = R"(
         caret_colour="ff5da0c4" iolet_area_colour="ffe3dfd9" iolet_outline_colour="ff968e82"
         text_object_background="ffe3dfd9" comment_text_colour="ff5a5a5a"
         straight_connections="0" connection_style="1" connection_look="0"
-        square_iolets="0" square_object_corners="0" iolet_spacing_edge="0" />
+        square_iolets="0" square_object_corners="0" iolet_spacing_edge="0" object_flag_outlined="0"/>
     <Theme theme="fangs" toolbar_background="ff232323" toolbar_text="ffffffff"
         toolbar_active="ff5bcefa" toolbar_hover="ff383838" tabbar_background="ff232323"
         tab_text="ffffffff" selected_tab_background="ff3a3a3a" selected_tab_text="ffffffff"
@@ -1223,7 +1223,7 @@ const String PlugDataLook::defaultThemesXml = R"(
         text_object_background="ff232323" iolet_area_colour="ff232323"
         iolet_outline_colour="ff696969" comment_text_colour="ffffffff"
         straight_connections="0" connection_style="3" connection_look="0"
-        square_iolets="1" square_object_corners="0" iolet_spacing_edge="0" />
+        square_iolets="1" square_object_corners="0" iolet_spacing_edge="0" object_flag_outlined="0"/>
 </ColourThemes>
 )";
 
