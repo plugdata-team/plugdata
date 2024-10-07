@@ -39,6 +39,7 @@ TabComponent::TabComponent(PluginEditor* editor)
 
 TabComponent::~TabComponent()
 {
+    sendTabUpdateToVisibleCanvases();
     clearCanvases();
 }
 
@@ -50,7 +51,6 @@ Canvas* TabComponent::newPatch()
 Canvas* TabComponent::openPatch(const URL& path)
 {
     auto patchFile = path.getLocalFile();
-
     {
         ScopedLock lock(pd->patches.getLock());
         for (auto& patch : pd->patches) {
@@ -508,9 +508,7 @@ void TabComponent::showTab(Canvas* cnv, int splitIndex)
 
     editor->nvgSurface.invalidateAll();
 
-    for (auto* tab : getVisibleCanvases()) {
-        tab->tabChanged();
-    }
+    sendTabUpdateToVisibleCanvases();
 
     editor->sidebar->hideParameters();
     editor->sidebar->clearSearchOutliner();

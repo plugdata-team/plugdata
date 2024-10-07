@@ -883,8 +883,11 @@ void Canvas::synchroniseAllCanvases()
 
 void Canvas::synchroniseSplitCanvas()
 {
-    for (auto* canvas : editor->getTabComponent().getVisibleCanvases()) {
-        canvas->synchronise();
+    for(auto* e : pd->getEditors())
+    {
+        for (auto* canvas : e->getTabComponent().getVisibleCanvases()) {
+            canvas->synchronise();
+        }
     }
 }
 
