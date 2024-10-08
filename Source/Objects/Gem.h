@@ -6,8 +6,8 @@
 
 #if ENABLE_GEM
 
-#    include <juce_opengl/juce_opengl.h>
-#    include <Gem/src/Base/GemJUCEContext.h>
+#include <juce_opengl/juce_opengl.h>
+#include <Gem/src/Base/GemJUCEContext.h>
 
 void triggerMotionEvent(int x, int y);
 void triggerButtonEvent(int which, int state, int x, int y);
@@ -224,7 +224,7 @@ int createGemWindow(WindowInfo& info, WindowHints& hints)
     gemJUCEWindow[window->instance].reset(window);
     info.window[window->instance] = window;
 
-
+    //window->openGLContext.initialiseOnThread();
     window->openGLContext.makeActive();
 
     info.context[window->instance] = &window->openGLContext;
@@ -253,8 +253,8 @@ void destroyGemWindow(WindowInfo& info)
 {
     if (auto* window = info.getWindow()) {
         GemCallOnMessageThread([window, &info]() {
-            window->removeFromDesktop();
             window->openGLContext.detach();
+            window->removeFromDesktop();
             info.window.erase(window->instance);
             info.context.erase(window->instance);
             gemJUCEWindow[window->instance].reset(nullptr);
@@ -313,4 +313,7 @@ int topmostGemWindow(WindowInfo& info, int state)
         info.getWindow()->toFront(true);
     return state;
 }
+
 #endif
+
+

@@ -260,8 +260,10 @@ set(LIBPD_COMPILE_DEFINITIONS PD=1 USEAPI_DUMMY=1 PD_INTERNAL=1)
 
 if(ENABLE_GEM)
 add_subdirectory(Gem)
-set(GEM_LIBS Gem ftgl glew_s freetype)
-set(GEM_LIBS_MULTI Gem-multi ftgl glew_s freetype)
+set(GEM_LIBS Gem Gem-plugins ftgl glew_s freetype assimp)
+set(GEM_LIBS_MULTI Gem-multi Gem-plugins ftgl glew_s freetype assimp)
+target_include_directories(Gem PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Gem/plugins/ASSIMP3/assimp/include)
+target_include_directories(Gem-multi PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Gem/plugins/ASSIMP3/assimp/include)
 endif()
 
 if(ENABLE_SFIZZ)

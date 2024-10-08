@@ -194,26 +194,6 @@ if package_gem:
     architecture = platform.architecture()
     machine = platform.machine()
 
-    gem_plugin_path = project_root + "/Libraries/Gem/"
-    gem_plugins_file = ""
-
-    if system == 'linux':
-        if 'aarch64' in machine or 'arm' in machine:
-            gem_plugins_file = 'plugins_linux_arm64'
-        elif '64' in machine:
-            gem_plugins_file = 'plugins_linux_x64'
-    elif system == 'darwin':
-        gem_plugins_file = 'plugins_macos'
-    elif system == 'windows' and '64' in architecture[0]:
-        gem_plugins_file = 'plugins_win64'
-
-    # unpack if architecture is supported
-    if len(gem_plugins_file) != 0:
-        with zipfile.ZipFile(gem_plugin_path + gem_plugins_file + ".zip", 'r') as zip_ref:
-                zip_ref.extractall("../Extra/Gem/")
-                globMove("../Extra/Gem/" + gem_plugins_file + "/*", "Extra/Gem/")
-                removeDir("../Extra/Gem/" + gem_plugins_file)
-
 changeWorkingDir("../")
 
 makeArchive("Filesystem", "./", "./plugdata_version")

@@ -700,6 +700,23 @@ void GEMglViewport_setup();
 void GEMgluLookAt_setup();
 void GEMgluPerspective_setup();
 void GLdefine_setup();
+
+void setup_modelOBJ();
+void setup_modelASSIMP3();
+void setup_imageSTBLoader();
+void setup_imageSTBSaver();
+void setup_recordPNM();
+
+#if __APPLE__
+void setup_videoAVF();
+void setup_filmAVF();
+#elif _MSC_VER
+void setup_videoVFW();
+void setup_filmDS();
+#else
+//void setup_videoV4L2();
+//void setup_recordV4L2();
+#endif
 #endif
 
 // pd-extra objects functions declaration
@@ -2304,6 +2321,22 @@ void Setup::initialiseGem(std::string const& gemPluginPath)
     GEMgluLookAt_setup();
     GEMgluPerspective_setup();
     GLdefine_setup();
+    
+    setup_modelOBJ();
+    setup_modelASSIMP3();
+    setup_imageSTBLoader();
+    setup_imageSTBSaver();
+    setup_recordPNM();
+#if __APPLE__
+    setup_videoAVF();
+    setup_filmAVF();
+#elif _MSC_VER
+    setup_videoVFW();
+    setup_filmDS();
+#else
+    //setup_videoV4L2();
+    //setup_recordV4L2();
+#endif
 #endif
 }
 

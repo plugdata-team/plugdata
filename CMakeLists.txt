@@ -258,6 +258,7 @@ endif()
 
 if(ENABLE_GEM)
   list(APPEND PLUGDATA_COMPILE_DEFINITIONS ENABLE_GEM=1)
+  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Libraries/Gem/src)
 endif()
 
 add_library(juce STATIC)
