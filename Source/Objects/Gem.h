@@ -64,8 +64,6 @@ public:
             sys_unlock();
         };
 
-        setBounds(bounds);
-
         setOpaque(true);
         openGLContext.setSwapInterval(0);
         openGLContext.setMultisamplingEnabled(true);
@@ -82,6 +80,8 @@ public:
         } else {
             addToDesktop(0);
         }
+        
+        setBounds(bounds);
 
         setVisible(true);
 
@@ -288,7 +288,6 @@ void gemWinSwapBuffers(WindowInfo& info)
     if (auto* context = info.getContext()) {
         context->makeActive();
         context->swapBuffers();
-        initGemWindow(); // If we don't put this here, the background doens't get filled, but there must be a better way?
     }
 }
 void gemWinMakeCurrent(WindowInfo& info)
@@ -330,4 +329,3 @@ int topmostGemWindow(WindowInfo& info, int state)
 }
 
 #endif
-
