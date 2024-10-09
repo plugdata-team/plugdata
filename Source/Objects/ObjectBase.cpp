@@ -123,6 +123,7 @@ ObjectBase::PropertyListener::PropertyListener(ObjectBase* p)
 {
     lastChange = Time::getMillisecondCounter();
     parent = p;
+    noCallback = false;
 }
 
 void ObjectBase::PropertyListener::setNoCallback(bool skipCallback)
