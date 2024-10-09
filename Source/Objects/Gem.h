@@ -172,8 +172,20 @@ public:
     {
         libpd_set_instance(instance);
     }
+    
+    void checkThread()
+    {
+      auto currentThread = Thread::getCurrentThreadId();
+      if(activeThread != currentThread)
+      {
+        openGLContext.initialiseOnThread();
+        openGLContext.setSwapInterval(0);
+        activeThread = currentThread;
+      }
+    }
 
     OpenGLContext openGLContext;
+    Thread::ThreadID activeThread;
     t_pdinstance* instance;
     Array<KeyPress> heldKeys;
 
@@ -199,6 +211,7 @@ bool gemWinSetCurrent()
         return false;
 
     if (auto& window = gemJUCEWindow.at(libpd_this_instance())) {
+        window->checkThread();
         window->openGLContext.makeActive();
         return true;
     }
@@ -224,7 +237,7 @@ int createGemWindow(WindowInfo& info, WindowHints& hints)
     gemJUCEWindow[window->instance].reset(window);
     info.window[window->instance] = window;
 
-    //window->openGLContext.initialiseOnThread();
+    window->checkThread();
     window->openGLContext.makeActive();
 
     info.context[window->instance] = &window->openGLContext;
@@ -281,7 +294,9 @@ void gemWinSwapBuffers(WindowInfo& info)
 void gemWinMakeCurrent(WindowInfo& info)
 {
     if (auto* context = info.getContext()) {
-        context->initialiseOnThread();
+        if (auto* window = info.getWindow()) {
+            window->checkThread();
+        }
         context->makeActive();
     }
 }
@@ -315,5 +330,4 @@ int topmostGemWindow(WindowInfo& info, int state)
 }
 
 #endif
-
 
