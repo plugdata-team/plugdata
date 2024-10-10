@@ -97,6 +97,7 @@ public:
 ObjectBase::ObjectSizeListener::ObjectSizeListener(Object* obj)
     : object(obj)
 {
+    lastChange = 0;
 }
 
 void ObjectBase::ObjectSizeListener::componentMovedOrResized(Component& component, bool moved, bool resized)
@@ -114,6 +115,12 @@ void ObjectBase::ObjectSizeListener::valueChanged(Value& v)
         auto x = static_cast<float>(v.getValue().getArray()->getReference(0));
         auto y = static_cast<float>(v.getValue().getArray()->getReference(1));
 
+        if(Time::getMillisecondCounter() - lastChange > 6000) {
+            pd::Interface::undoApply(patch, obj.get());
+        }
+        
+        lastChange = Time::getMillisecondCounter();
+    
         pd::Interface::moveObject(patch, obj.get(), x, y);
         object->updateBounds();
     }
@@ -139,9 +146,9 @@ void ObjectBase::PropertyListener::valueChanged(Value& v)
     {
         onChange();
         lastValue.referTo(v);
-        lastChange = Time::getMillisecondCounter();
     }
     
+    lastChange = Time::getMillisecondCounter();
     parent->propertyChanged(v);
 }
 

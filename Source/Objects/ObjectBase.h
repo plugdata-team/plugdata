@@ -77,74 +77,6 @@ public:
 private:
 };
 
-/*
-class ObjectLabels : public Component {
-public:
-    ObjectLabels(std::unique_ptr<Component> extraLabelComponent) : extraLabel(std::move(extraLabelComponent))
-    {
-        addAndMakeVisible(objectLabel);
-        if(extraLabel) addAndMakeVisible(extraLabel.get());
-
-        setInterceptsMouseClicks(false, false);
-    }
-
-    ~ObjectLabels()
-    {
-    }
-
-    ObjectLabel* getObjectLabel()
-    {
-        return &objectLabel;
-    }
-
-    Component* getExtraLabel()
-    {
-        return extraLabel.get();
-    }
-
-    void setColour(Colour const& colour)
-    {
-        objectLabel.setColour(Label::textColourId, colour);
-        if(extraLabel) extraLabel->setColour(Label::textColourId, colour);
-    }
-
-    void setObjectToTrack(Object* object)
-    {
-        obj = object;
-    }
-
-    void setLabelBounds(Rectangle<int> bounds)
-    {
-        labelBounds = bounds;
-        if (obj && extraLabel)
-            extraLabelBounds = Rectangle<int>(obj->getBounds().getTopRight().x - 3, obj->getBounds().getTopRight().y, 20, obj->getBounds().getHeight());
-        auto allBounds = bounds.getUnion(extraLabelBounds);
-        setBounds(allBounds);
-        // force resize to run, so position updates even when union size doesn't change
-        resized();
-    }
-
-    void resized() override
-    {
-        if (obj && extraLabel) {
-            auto lb = getLocalArea(obj->cnv, labelBounds);
-            auto eb = getLocalArea(obj->cnv, extraLabelBounds);
-            objectLabel.setBounds(lb);
-            extraLabel->setBounds(eb);
-        } else {
-            objectLabel.setBounds(getLocalBounds());
-        }
-    }
-
-private:
-    Object* obj = nullptr;
-
-    Rectangle<int> labelBounds;
-    Rectangle<int> extraLabelBounds;
-    ObjectLabel objectLabel;
-    std::unique_ptr<Component> extraLabel;
-}; */
-
 class ObjectBase : public Component
     , public pd::MessageListener
     , public SettableTooltipClient
@@ -160,6 +92,7 @@ class ObjectBase : public Component
         void valueChanged(Value& v) override;
 
         Object* object;
+        uint32 lastChange;
     };
 
     struct PropertyListener : public Value::Listener {
