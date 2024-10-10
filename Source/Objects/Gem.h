@@ -288,6 +288,7 @@ void gemWinSwapBuffers(WindowInfo& info)
     if (auto* context = info.getContext()) {
         context->makeActive();
         context->swapBuffers();
+        initGemWindow(); // This isn't as bad as it seems, it just resets the openGL state
     }
 }
 void gemWinMakeCurrent(WindowInfo& info)
