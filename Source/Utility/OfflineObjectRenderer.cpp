@@ -50,7 +50,10 @@ ImageWithOffset OfflineObjectRenderer::patchToMaskedImage(String const& patch, f
 
 bool OfflineObjectRenderer::parseGraphSize(String const& objectText, Rectangle<int>& bounds)
 {
-    auto patchFile = pd::Library::findPatch(objectText.upToFirstOccurrenceOf(" ", false, false));
+    auto patchName = objectText.upToFirstOccurrenceOf(" ", false, false).upToFirstOccurrenceOf(";", false, false).upToFirstOccurrenceOf("\\", false, false);
+    if (patchName.isEmpty()) return false;
+    
+    auto patchFile = pd::Library::findPatch(patchName);
     if(!patchFile.existsAsFile()) return false;
     
     auto patchAsString = patchFile.loadFileAsString();

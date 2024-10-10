@@ -76,11 +76,19 @@ public:
         startTimerHz(30);
 
         if (border) {
+#if JUCE_WINDOWS
+            addToDesktop(ComponentPeer::windowHasTitleBar | ComponentPeer::windowHasDropShadow | ComponentPeer::windowIsResizable);
+
+#else
             addToDesktop(ComponentPeer::windowHasTitleBar | ComponentPeer::windowHasDropShadow | ComponentPeer::windowIsResizable | ComponentPeer::windowHasMinimiseButton | ComponentPeer::windowHasMaximiseButton);
+#endif
         } else {
             addToDesktop(0);
         }
-        
+
+#if JUCE_WINDOWS
+        bounds = bounds.translated(10, 30);
+#endif
         setBounds(bounds);
 
         setVisible(true);
@@ -179,7 +187,6 @@ public:
       if(activeThread != currentThread)
       {
         openGLContext.initialiseOnThread();
-        openGLContext.setSwapInterval(0);
         activeThread = currentThread;
       }
     }
