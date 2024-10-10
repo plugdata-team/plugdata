@@ -38,6 +38,14 @@
 #include "Deken.h"
 #include "Standalone/PlugDataWindow.h"
 
+extern "C" {
+#include <pd-lua/lua/lua.h>
+
+#define PLUGDATA 1
+#include <pd-lua/pdlua.h>
+#undef PLUGDATA
+}
+
 Dialog::Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWidth, int childHeight, bool showCloseButton, int margin)
     : height(childHeight)
     , width(childWidth)
@@ -546,7 +554,18 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     popupMenu.addCustomItem(Extra, std::make_unique<QuickActionsBar>(editor), nullptr, "Quick Actions");
     popupMenu.addSeparator();
 
-    popupMenu.addItem(Open, "Open", object && !multiple && canBeOpened); // for opening subpatches
+    auto openOrEdit = "Open";
+
+    if (auto* obj = dynamic_cast<Object*>(originalComponent)) {
+        if (obj->gui){
+            // This is a hack to see if the object is really a pdlua object (only pdlua will have pdlua_class pointer)
+            // FIXME: there must be a better way!
+            if (auto pdLuaObject = obj->gui->ptr.get<t_pdlua>().get()->pdlua_class)
+                openOrEdit = "Open lua editor";
+        }
+    }
+
+    popupMenu.addItem(Open, openOrEdit, object && !multiple && canBeOpened); // for opening subpatches
 
     popupMenu.addSeparator();
     popupMenu.addItem(Help, "Help", hasSelection && !multiple);
