@@ -28,7 +28,7 @@ public:
         : ExporterBase(editor, exportingView)
     {
         Array<PropertiesPanelProperty*> properties;
-        properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "Pod", "Petal", "Patch", "Patch.Init()", "Field", "Versio", "Terrarium", "Simple", "Custom JSON..." }));
+        properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "Pod", "Petal", "Patch", "Patch.Init()", "Field", "Versio", "Terrarium", "Hothouse", "Simple", "Custom JSON..." }));
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary", "Flash" }));
         usbMidiProperty = new PropertiesPanel::BoolComponent("USB MIDI", usbMidiValue, { "No", "Yes" });
         properties.add(usbMidiProperty);
@@ -197,10 +197,10 @@ public:
         }
 
         // set board definition
-        auto boards = StringArray { "pod", "petal", "patch", "patch_init", "field", "versio", "terrarium", "simple", "custom" };
+        auto boards = StringArray { "pod", "petal", "patch", "patch_init", "field", "versio", "terrarium", "hothouse", "simple", "custom" };
         auto const& board = boards[target];
 
-        auto extra_boards = StringArray { "versio", "terrarium", "simple" };
+        auto extra_boards = StringArray { "versio", "terrarium", "hothouse", "simple" };
 
         DynamicObject::Ptr metaJson(new DynamicObject());
         var metaDaisy(new DynamicObject());
