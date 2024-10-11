@@ -1541,6 +1541,10 @@ bool PluginEditor::perform(InvocationInfo const& info)
         cnv->jumpToOrigin();
         return true;
     }
+    case CommandIDs::PanDragKey:
+    {
+        return true;
+    }
     case CommandIDs::Undo: {
         cnv->undo();
         return true;
