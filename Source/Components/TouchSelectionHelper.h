@@ -33,7 +33,7 @@ public:
             auto* cnv = editor->getCurrentCanvas();
             auto selection = cnv->getSelectionOfType<Object>();
             if (selection.size() == 1 && selection[0]->gui) {
-                selection[0]->gui->openFromMenu();
+                selection[0]->gui->openSubpatch();
             }
         };
         actionButtons[1]->onClick = [this]() {

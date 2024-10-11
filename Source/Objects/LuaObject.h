@@ -140,6 +140,33 @@ public:
     void updateSizeProperty() override
     {
     }
+    
+    void getMenuOptions(PopupMenu& menu) override
+    {
+        menu.addItem("Open lua editor", [_this = SafePointer(this)](){
+            if(!_this) return;
+            if (auto obj = _this->ptr.get<t_pd>()) {
+                _this->pd->sendDirectMessage(obj.get(), "menu-open", {});
+            }
+        });
+        menu.addItem("Reload lua object", [_this = SafePointer(this)](){
+            if(!_this) return;
+            if (auto pdlua = _this->ptr.get<t_pd>()) {
+                // Reload the lua script
+                _this->pd->sendMessage("pdluax", "reload", {});
+                
+                // Recreate this object
+                if(auto patch = _this->cnv->patch.getPointer()) {
+                    pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
+                }
+            }
+        });
+    }
+
+    bool hideInGraph() override
+    {
+        return false;
+    }
 
     void mouseDown(MouseEvent const& e) override
     {
@@ -597,6 +624,29 @@ public:
         if (symbol == hash("open_textfile") && numAtoms >= 1) {
             openTextEditor(File(atoms[0].toString()));
         }
+    }
+    
+    void getMenuOptions(PopupMenu& menu) override
+    {
+        menu.addItem("Open lua editor", [_this = SafePointer(this)](){
+            if(!_this) return;
+            if (auto obj = _this->ptr.get<t_pd>()) {
+                _this->pd->sendDirectMessage(obj.get(), "menu-open", {});
+            }
+        });
+        
+        menu.addItem("Reload lua object", [_this = SafePointer(this)](){
+            if(!_this) return;
+            if (auto pdlua = _this->ptr.get<t_pd>()) {
+                // Reload the lua script
+                _this->pd->sendMessage("pdluax", "reload", {});
+                
+                // Recreate this object
+                if(auto patch = _this->cnv->patch.getPointer()) {
+                    pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
+                }
+            }
+        });
     }
 
     void openTextEditor(File fileToOpen)

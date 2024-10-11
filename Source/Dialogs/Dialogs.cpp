@@ -518,11 +518,10 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
     auto* editor = cnv->editor;
     auto params = object && object->gui ? object->gui->getParameters() : ObjectParameters();
-    bool canBeOpened = object && object->gui && object->gui->canOpenFromMenu();
+    //bool canBeOpened = object && object->gui && object->gui->canOpenFromMenu();
 
     enum MenuOptions {
         Extra = 200,
-        Open,
         Help,
         Reference,
         ToFront,
@@ -545,8 +544,14 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
     popupMenu.addCustomItem(Extra, std::make_unique<QuickActionsBar>(editor), nullptr, "Quick Actions");
     popupMenu.addSeparator();
-
-    popupMenu.addItem(Open, "Open", object && !multiple && canBeOpened); // for opening subpatches
+    
+    if(!multiple && object && object->gui)
+    {
+        object->gui->getMenuOptions(popupMenu);
+    }
+    else {
+        popupMenu.addItem(-1, "Open", false);
+    }
 
     popupMenu.addSeparator();
     popupMenu.addItem(Help, "Help", hasSelection && !multiple);
@@ -689,9 +694,6 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             object->repaint();
 
         switch (result) {
-        case Open: // Open subpatch
-            object->gui->openFromMenu();
-            break;
         case ToFront: {
             auto objects = cnv->patch.getObjects();
 

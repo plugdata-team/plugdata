@@ -151,8 +151,7 @@ public:
 
     void render(NVGcontext* nvg) override;
 
-    virtual bool canOpenFromMenu();
-    virtual void openFromMenu();
+    virtual void getMenuOptions(PopupMenu& menu);
 
     // Flag to make object visible or hidden inside a GraphOnParent
     virtual bool hideInGraph();

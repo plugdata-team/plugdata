@@ -143,14 +143,9 @@ public:
         return {};
     }
 
-    bool canOpenFromMenu() override
+    void getMenuOptions(PopupMenu& menu) override
     {
-        return true;
-    }
-
-    void openFromMenu() override
-    {
-        openTextEditor();
+        menu.addItem("Open text editor", [_this = SafePointer(this)](){ if(_this) _this->openTextEditor(); });
     }
 };
 
@@ -302,13 +297,8 @@ public:
         return {};
     }
 
-    bool canOpenFromMenu() override
+    void getMenuOptions(PopupMenu& menu) override
     {
-        return true;
-    }
-
-    void openFromMenu() override
-    {
-        openTextEditor();
+        menu.addItem("Open text editor", [_this = SafePointer(this)](){ if(_this) _this->openTextEditor(); });
     }
 };

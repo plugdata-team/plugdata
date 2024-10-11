@@ -1295,29 +1295,28 @@ public:
         return {};
     }
 
-    bool canOpenFromMenu() override
+    void getMenuOptions(PopupMenu& menu) override
     {
-        return true;
+        menu.addItem("Open array editor", [this, _this = SafePointer(this)](){
+            if(!_this) return;
+            
+            if (dialog) {
+                dialog->toFront(true);
+                return;
+            }
+
+            auto arrays = getArrays();
+            if (arrays.size()) {
+                dialog = std::make_unique<ArrayEditorDialog>(cnv->pd, arrays, object);
+                dialog->onClose = [this]() {
+                    dialog.reset(nullptr);
+                };
+            } else {
+                pd->logWarning("Can't open: contains no arrays");
+            }
+        });
     }
-
-    void openFromMenu() override
-    {
-        if (dialog) {
-            dialog->toFront(true);
-            return;
-        }
-
-        auto arrays = getArrays();
-        if (arrays.size()) {
-            dialog = std::make_unique<ArrayEditorDialog>(cnv->pd, arrays, object);
-            dialog->onClose = [this]() {
-                dialog.reset(nullptr);
-            };
-        } else {
-            pd->logWarning("Can't open: contains no arrays");
-        }
-    }
-
+    
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
         switch (symbol) {
@@ -1362,14 +1361,21 @@ public:
 
         openArrayEditor();
     }
-
-    bool canOpenFromMenu() override
+    
+    void getMenuOptions(PopupMenu& menu) override
     {
-        if (auto c = ptr.get<t_canvas>()) {
-            return c->gl_list != nullptr;
-        }
-
-        return false;
+        bool canOpenMenu = [this](){
+            if (auto c = ptr.get<t_canvas>()) {
+                return c->gl_list != nullptr;
+            }
+            return false;
+        }();
+        
+        menu.addItem("Open array editor", canOpenMenu, false, [_this = SafePointer(this)](){
+            if(!_this) return;
+            
+            _this->openArrayEditor();
+        });
     }
 
     void openArrayEditor()
@@ -1405,10 +1411,5 @@ public:
 
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-    }
-
-    void openFromMenu() override
-    {
-        openArrayEditor();
     }
 };

@@ -52,15 +52,10 @@ public:
 
         return {};
     }
-
-    bool canOpenFromMenu() override
+    
+    void getMenuOptions(PopupMenu& menu) override
     {
-        return true;
-    }
-
-    void openFromMenu() override
-    {
-        openSubpatch();
+        menu.addItem("Open", [_this = SafePointer(this)](){ if(_this) _this->openSubpatch(); });
     }
 
     void openClonePatch(int idx, bool shouldVis)

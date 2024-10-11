@@ -700,19 +700,24 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
     return new TextObject(ptr, parent);
 }
 
-bool ObjectBase::canOpenFromMenu()
+void ObjectBase::getMenuOptions(PopupMenu& menu)
 {
     if (auto obj = ptr.get<t_pd>()) {
-        return zgetfn(obj.get(), pd->generateSymbol("menu-open")) != nullptr;
+        if(zgetfn(obj.get(), pd->generateSymbol("menu-open")) != nullptr)
+        {
+            menu.addItem("Open", [_this = SafePointer(this)](){
+                if(!_this) return;
+                if (auto obj = _this->ptr.get<t_pd>()) {
+                    _this->pd->sendDirectMessage(obj.get(), "menu-open", {});
+                }
+            });
+        }
+        else {
+            menu.addItem(-1, "Open", false);
+        }
     }
-
-    return false;
-}
-
-void ObjectBase::openFromMenu()
-{
-    if (auto obj = ptr.get<t_pd>()) {
-        pd->sendDirectMessage(obj.get(), "menu-open", {});
+    else {
+        menu.addItem(-1, "Open", false);
     }
 }
 
