@@ -164,6 +164,7 @@ public:
         : TextBase(obj, parent, true)
         , textEditor(nullptr)
     {
+        setObjectType(ObjectType::TextDefine);
     }
 
     void lock(bool isLocked) override

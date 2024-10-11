@@ -1061,6 +1061,8 @@ public:
     ArrayObject(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
     {
+        setObjectType(ObjectType::ArrayEditor);
+
         reinitialiseGraphs();
 
         setInterceptsMouseClicks(false, true);

@@ -546,7 +546,26 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     popupMenu.addCustomItem(Extra, std::make_unique<QuickActionsBar>(editor), nullptr, "Quick Actions");
     popupMenu.addSeparator();
 
-    popupMenu.addItem(Open, "Open", object && !multiple && canBeOpened); // for opening subpatches
+    String openText = "Open";
+
+    if (object && object->gui){
+        switch(object->gui->getObjectType()){
+            case ObjectBase::ObjectType::PdLua:
+                openText = "Open lua editor";
+            break;
+            case ObjectBase::ObjectType::TextDefine:
+                openText = "Open text editor";
+            break;
+            case ObjectBase::ObjectType::ArrayEditor:
+                openText = "Open array editor";
+            break;
+            default:
+            break;
+        }
+    }
+
+    // for opening subpatches or editing lua / text define / Array objects
+    popupMenu.addItem(Open, openText, object && !multiple && canBeOpened);
 
     popupMenu.addSeparator();
     popupMenu.addItem(Help, "Help", hasSelection && !multiple);

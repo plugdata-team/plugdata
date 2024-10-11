@@ -118,6 +118,10 @@ public:
 
     void paint(Graphics& g) override;
 
+    enum class ObjectType { Default, PdLua, TextDefine, ArrayEditor};
+
+    ObjectType getObjectType() { return objectType; };
+
     // Functions to show and hide a text editor
     // Used internally, or to trigger a text editor when creating a new object (comment, message, new text object etc.)
     virtual bool isEditorShown() { return false; }
@@ -232,6 +236,8 @@ protected:
     void startEdition();
     void stopEdition();
 
+    void setObjectType(ObjectType type) { objectType = type; };
+
     String getBinbufSymbol(int argIndex);
         
     virtual void propertyChanged(Value& v) {};
@@ -283,6 +289,8 @@ public:
     PluginProcessor* pd;
 
     OwnedArray<ObjectLabel> labels;
+
+    ObjectType objectType = ObjectType::Default;
 
 protected:
     PropertyListener propertyListener;

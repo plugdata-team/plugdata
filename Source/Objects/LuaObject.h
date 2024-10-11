@@ -73,6 +73,8 @@ public:
     LuaObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
     {
+        setObjectType(ObjectType::PdLua);
+
         if (auto pdlua = ptr.get<t_pdlua>()) {
             pdlua->gfx.plugdata_draw_callback = &drawCallback;
             allDrawTargets[pdlua.get()].push_back(this);
@@ -580,6 +582,7 @@ public:
     LuaTextObject(pd::WeakReference ptr, Object* object)
         : TextBase(ptr, object)
     {
+        setObjectType(ObjectType::PdLua);
     }
 
     void mouseDown(MouseEvent const& e) override
