@@ -38,12 +38,12 @@ void SettingsFile::backupCorruptSettings()
     // Backup previous corrupt settings file, so users can fix if they want to
     auto corruptSettings = getInstance()->settingsFile;
 
-    auto backupLocation = corruptSettings.getParentDirectory().getFullPathName() + "\\" + ".settings_damaged";
+    auto backupLocation = corruptSettings.getParentDirectory().getChildFile(".settings_damaged").getFullPathName();
     int counter = 1;
 
     // Increment backup settings file name if previous exists
     while (File(backupLocation).existsAsFile()) {
-        backupLocation = corruptSettings.getParentDirectory().getFullPathName() + "\\" + ".settings_damaged_" + String(counter);
+        backupLocation = corruptSettings.getParentDirectory().getChildFile(".settings_damaged_" + String(counter)).getFullPathName();
         counter++;
     }
 
