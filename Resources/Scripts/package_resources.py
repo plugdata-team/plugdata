@@ -149,11 +149,10 @@ globMove("./Abstractions/heavylib/*-help.pd", "./Documentation/11.heavylib")
 removeFile("Documentation/Makefile.am")
 
 makeDir("Extra")
-makeDir("Extra/GS")
 copyDir(project_root + "/Libraries/pd-else/Documentation/Extra-files", "Extra/else")
 globCopy("Extra/else/audio/*", "Extra/else")
 removeDir("Extra/else/audio")
-# TODO: remove duplicate GeneralUser_GS
+
 copyFile(project_root + "/Libraries/pd-else/Documentation/README.pdf", "Extra/else")
 copyFile(project_root + "/Libraries/pd-else/Abstractions/Merda/Modules/about.MERDA.pd", "./Extra/else")
 copyDir(project_root + "/Libraries/pd-else/Source/Audio/sfz~/sfz", "Extra/else/sfz")

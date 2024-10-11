@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.plugdata.plugdata</id>
+  <name>plugdata</name>
+  <developer_name>Timothy Schoen et al.</developer_name>
+  <summary>A real-time graphical programming environment for live interactive computer music</summary>
+  <metadata_license>FSFAP</metadata_license>
+  <project_license>GPL-3.0</project_license>
+  <description>
+
+  </description>
+  <provides>
+    <binary>plugdata</binary>
+  </provides>
+  <url type="homepage">https://puredata.info/</url>
+  <url type="bugtracker">https://bugs.puredata.info</url>
+  <url type="vcs-browser">https://github.com/pure-data/pure-data</url>
+  <url type="translate">https://hosted.weblate.org/projects/pure-data/pure-data/</url>
+  <launchable type="desktop-id">org.plugdata.plugdata.desktop</launchable>
+  <screenshots>
+  </screenshots>
+  <content_rating type="oars-1.0"/>
+</component>
