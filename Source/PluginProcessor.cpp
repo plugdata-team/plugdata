@@ -250,9 +250,6 @@ void PluginProcessor::initialiseFilesystem()
 
         // Create filesystem for this specific version
         tempVersionDataDir.moveFileTo(versionDataDir);
-
-        if (versionDataDir.isDirectory())
-            internalSynth->extractSoundfont();
     }
     if (!deken.exists()) {
         deken.createDirectory();

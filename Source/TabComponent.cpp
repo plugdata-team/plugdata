@@ -107,7 +107,14 @@ Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch)
     triggerAsyncUpdate();
 
     sendTabUpdateToVisibleCanvases();
-
+    
+    static bool alreadyOpeningInNewWindow = false;
+    if(canvases.size() > 1 && !alreadyOpeningInNewWindow && ProjectInfo::isStandalone && SettingsFile::getInstance()->getProperty<bool>("open_patches_in_window")) {
+        alreadyOpeningInNewWindow = true;
+        createNewWindow(cnv);
+        alreadyOpeningInNewWindow = false;
+    }
+    
     return cnv;
 }
 
