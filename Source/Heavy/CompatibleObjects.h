@@ -215,6 +215,10 @@ struct HeavyCompatibleObjects {
         "hv.vline~"
     };
 
+    static inline StringArray const elseObjects = {
+        "knob"
+    };
+
     static inline StringArray const extra = {
         "comment",
         "floatbox",
@@ -229,6 +233,7 @@ struct HeavyCompatibleObjects {
         StringArray allObjects;
         allObjects.addArray(heavyObjects);
         allObjects.addArray(heavyAbstractions);
+        allObjects.addArray(elseObjects);
         allObjects.addArray(extra);
 
         return allObjects;
