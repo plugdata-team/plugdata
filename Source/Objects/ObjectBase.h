@@ -45,7 +45,7 @@ public:
         setInterceptsMouseClicks(false, false);
     }
 
-    void renderLabel(NVGcontext* nvg, float scale)
+    virtual void renderLabel(NVGcontext* nvg, float scale)
     {
         auto textHash = hash(getText());
         if (image.needsUpdate(roundToInt(getWidth() * scale), roundToInt(getHeight() * scale)) || updateColour || lastTextHash != textHash || lastScale != scale) {
@@ -53,140 +53,32 @@ public:
             lastTextHash = textHash;
             lastScale = scale;
             updateColour = false;
+        } else {
+            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, image.getImageId(), 1.0f));
+            nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
         }
-
-        nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth() + 1, getHeight(), 0, image.getImageId(), 1.0f));
-        nvgFillRect(nvg, 0, 0, getWidth() + 1, getHeight());
     }
-
-    void setColour(Colour const& colour)
+        
+    void colourChanged() override
     {
-        if (colour != lastColour) {
-            Label::setColour(Label::textColourId, colour);
-            lastColour = colour;
-            updateColour = true;
-        }
+        lastColour = findColour(Label::textColourId);
+        updateColour = true;
+
+        // Flag this component as dirty
+        repaint();
     }
 
     void updateImage(NVGcontext* nvg, float scale)
     {
+        // TODO: use single channel image texture
         image.renderJUCEComponent(nvg, *this, scale);
     }
 
 private:
 };
 
-class VUScale : public Component
-    , public NVGComponent {
-    Colour textColour;
-    StringArray scale = { "+12", "+6", "+2", "-0dB", "-2", "-6", "-12", "-20", "-30", "-50", "-99" };
-    StringArray scaleDecim = { "+12", "", "", "-0dB", "", "", "-12", "", "", "", "-99" };
-
-public:
-    VUScale()
-        : NVGComponent(this)
-    {
-    }
-
-    ~VUScale()
-    {
-    }
-
-    void setColour(Colour const& colour)
-    {
-        textColour = colour;
-        repaint();
-    }
-
-    void render(NVGcontext* nvg) override
-    {
-        nvgFontSize(nvg, 8);
-        nvgFontFace(nvg, "Inter-Regular");
-        nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
-        nvgFillColor(nvg, convertColour(textColour));
-        auto scaleToUse = getHeight() < 80 ? scaleDecim : scale;
-        for (int i = 0; i < scale.size(); i++) {
-            auto posY = ((getHeight() - 20) * (i / 10.0f)) + 10;
-            // align the "-" and "+" text element centre
-            nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-            nvgText(nvg, 2, posY, scaleToUse[i].substring(0, 1).toRawUTF8(), nullptr);
-            // align the number text element left
-            nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
-            nvgText(nvg, 5, posY, scaleToUse[i].substring(1).toRawUTF8(), nullptr);
-        }
-    }
-};
-
-class ObjectLabels : public Component {
-public:
-    ObjectLabels()
-    {
-        addAndMakeVisible(objectLabel);
-        addAndMakeVisible(vuScale);
-
-        setInterceptsMouseClicks(false, false);
-    }
-
-    ~ObjectLabels()
-    {
-    }
-
-    ObjectLabel* getObjectLabel()
-    {
-        return &objectLabel;
-    }
-
-    VUScale* getVUObject()
-    {
-        return &vuScale;
-    }
-
-    void setColour(Colour const& colour)
-    {
-        objectLabel.setColour(colour);
-        vuScale.setColour(colour);
-    }
-
-    void setObjectToTrack(Object* object)
-    {
-        obj = object;
-    }
-
-    void setLabelBounds(Rectangle<int> bounds)
-    {
-        labelBounds = bounds;
-        if (obj)
-            vuScaleBounds = Rectangle<int>(obj->getBounds().getTopRight().x - 3, obj->getBounds().getTopRight().y, 20, obj->getBounds().getHeight());
-        auto allBounds = bounds.getUnion(vuScaleBounds);
-        setBounds(allBounds);
-        // force resize to run, so position updates even when union size doesn't change
-        resized();
-    }
-
-    void resized() override
-    {
-        if (obj) {
-            auto lb = getLocalArea(obj->cnv, labelBounds);
-            auto vb = getLocalArea(obj->cnv, vuScaleBounds);
-            objectLabel.setBounds(lb);
-            vuScale.setBounds(vb);
-        } else {
-            objectLabel.setBounds(getLocalBounds());
-        }
-    }
-
-private:
-    Object* obj = nullptr;
-
-    Rectangle<int> labelBounds;
-    Rectangle<int> vuScaleBounds;
-    ObjectLabel objectLabel;
-    VUScale vuScale;
-};
-
 class ObjectBase : public Component
     , public pd::MessageListener
-    , public Value::Listener
     , public SettableTooltipClient
     , public NVGComponent {
 
@@ -200,14 +92,20 @@ class ObjectBase : public Component
         void valueChanged(Value& v) override;
 
         Object* object;
+        uint32 lastChange;
     };
 
-    struct PropertyUndoListener : public Value::Listener {
-        PropertyUndoListener();
+    struct PropertyListener : public Value::Listener {
+        PropertyListener(ObjectBase* parent);
 
+        void setNoCallback(bool skipCallback);
+        
         void valueChanged(Value& v) override;
 
+        Value lastValue;
         uint32 lastChange;
+        ObjectBase* parent;
+        bool noCallback;
         std::function<void()> onChange = []() {};
     };
 
@@ -253,11 +151,13 @@ public:
 
     void render(NVGcontext* nvg) override;
 
-    virtual bool canOpenFromMenu();
-    virtual void openFromMenu();
+    virtual void getMenuOptions(PopupMenu& menu);
 
     // Flag to make object visible or hidden inside a GraphOnParent
     virtual bool hideInGraph();
+    
+    // Override function if you need to update framebuffers outside of the render loop (but with the correct active context)
+    virtual void updateFramebuffers() {};
 
     // Most objects ignore mouseclicks when locked
     // Objects can override this to do custom locking behaviour
@@ -306,15 +206,14 @@ public:
     virtual void toggleObject(Point<int> position) { }
     virtual void untoggleObject() { }
 
-    virtual ObjectLabel* getLabel();
-
-    virtual VUScale* getVU() { return nullptr; };
-    virtual bool showVU() { return false; };
+    virtual ObjectLabel* getLabel(int idx = 0);
 
     // Should return current object text if applicable
     // Currently only used to subsitute arguments in tooltips
     // TODO: does that even work?
     virtual String getText();
+
+    virtual bool canEdgeOverrideAspectRatio() { return false; };
 
     // Global flag to find out if any GUI object is currently being interacted with
     static bool isBeingEdited();
@@ -333,10 +232,9 @@ protected:
     void stopEdition();
 
     String getBinbufSymbol(int argIndex);
-
-    // Called whenever one of the inspector parameters changes
-    void valueChanged(Value& value) override { }
-
+        
+    virtual void propertyChanged(Value& v) {};
+        
     // Send a float value to Pd
     void sendFloatValue(float value);
 
@@ -383,10 +281,10 @@ public:
     Canvas* cnv;
     PluginProcessor* pd;
 
-    std::unique_ptr<ObjectLabels> labels;
+    OwnedArray<ObjectLabel> labels;
 
 protected:
-    PropertyUndoListener propertyUndoListener;
+    PropertyListener propertyListener;
 
     NVGImage imageRenderer;
 

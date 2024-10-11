@@ -97,8 +97,9 @@ private:
         { "cnv", "15 100 60 empty empty empty 20 12 0 14 @lnColour @lblColour" },
         { "function", "200 100 empty empty 0 1 @bgColour_rgb @lblColour_rgb 0 0 0 0 0 1000 0" },
         { "scope~", "200 100 256 3 128 -1 1 0 0 0 0 @fgColour_rgb @bgColour_rgb @lnColour_rgb 0 empty" },
+        { "keyboard", "16 80 4 2 0 0 empty empty" },
         { "messbox", "180 60 @bgColour_rgb @lblColour_rgb 0 12" },
-        { "vu", "20 120 empty empty -1 -8 0 10 @bgColour @lblColour 1 0" },
+        { "vu", "20 120 empty empty -1 -8 0 10 #404040 @lblColour 1 0" },
 
         // ADDITIONAL UI OBJECTS:
         { "floatatom", "5 0 0 0 - - - 12" },

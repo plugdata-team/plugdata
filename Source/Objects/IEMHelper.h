@@ -29,9 +29,17 @@ public:
 
     void update()
     {
-        primaryColour = Colour(getForegroundColour()).toString();
-        secondaryColour = Colour(getBackgroundColour()).toString();
-        labelColour = Colour(getLabelColour()).toString();
+        bool colourHasChanged = false;
+        if (const auto col = getForegroundColour().toString(); col != primaryColour) {
+            primaryColour = col;
+            colourHasChanged = true;
+        }
+        if (const auto col = getBackgroundColour().toString(); col != secondaryColour) {
+            secondaryColour = col;
+            colourHasChanged = true;
+        }
+        // we only need the callback that colourHasChanged will trigger for the object ATM.
+        labelColour = getLabelColour().toString();
 
         gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, cnv->editor->getLookAndFeel().findColour(Label::textWhenEditingColourId));
         gui->getLookAndFeel().setColour(Label::textColourId, Colour::fromString(primaryColour.toString()));
@@ -59,6 +67,10 @@ public:
         receiveSymbol = getReceiveSymbol();
 
         initialise = getInit();
+
+        // Let the object know the colour has changed, nbx & background (secondary) colour currently
+        if (colourHasChanged)
+            iemColourChangedCallback();
 
         gui->repaint();
     }
@@ -146,8 +158,10 @@ public:
                 setColour(labelColour, atoms[2]);
 
             if (auto* label = gui->getLabel()) {
-                label->setColour(getLabelColour());
+                label->setColour(Label::textColourId, getLabelColour());
             }
+
+            iemColourChangedCallback();
 
             gui->repaint();
 
@@ -214,6 +228,8 @@ public:
             gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, colour);
             gui->getLookAndFeel().setColour(TextEditor::textColourId, colour);
 
+            iemColourChangedCallback();
+
             gui->repaint();
         } else if (v.refersToSameSourceAs(secondaryColour)) {
             auto colour = Colour::fromString(secondaryColour.toString());
@@ -224,6 +240,8 @@ public:
 
             gui->getLookAndFeel().setColour(Slider::backgroundColourId, colour);
 
+            iemColourChangedCallback();
+
             gui->repaint();
         } else if (v.refersToSameSourceAs(labelColour)) {
             setLabelColour(Colour::fromString(labelColour.toString()));
@@ -232,7 +250,7 @@ public:
             setLabelPosition({ getValue<int>(labelX), getValue<int>(labelY) });
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelHeight)) {
-            gui->limitValueMin(labelHeight, 0.f);
+            gui->limitValueMin(labelHeight, 4.f);
             setFontHeight(getValue<int>(labelHeight));
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelText)) {
@@ -278,16 +296,18 @@ public:
         }
     }
 
-    void updateLabel(std::unique_ptr<ObjectLabels>& labels, Point<int> offset = { 0, 0 })
+    void updateLabel(OwnedArray<ObjectLabel>& labels, Point<int> offset = { 0, 0 })
     {
         String const text = labelText.toString();
 
-        if (text.isNotEmpty() || (gui->showVU())) {
-            if (!labels) {
-                labels = std::make_unique<ObjectLabels>();
-                object->cnv->addChildComponent(labels.get());
-                if (gui->showVU())
-                    labels->setObjectToTrack(object);
+        if (text.isNotEmpty()) {
+            ObjectLabel* label;
+            if (labels.isEmpty()) {
+                label = labels.add(new ObjectLabel());
+                object->cnv->addChildComponent(label);
+            }
+            else {
+                label = labels[0];
             }
 
             if (text.isNotEmpty()) {
@@ -295,19 +315,14 @@ public:
 
                 bounds.translate(0, bounds.getHeight() / -2.0f);
 
-                labels->getObjectLabel()->setFont(Font(bounds.getHeight()));
-                labels->setLabelBounds(bounds + offset);
-                labels->getObjectLabel()->setText(text, dontSendNotification);
-            } else {
-                // updating side VU label only, by sending empty rectangle
-                labels->setLabelBounds(Rectangle<int>());
+                label->setFont(Font(bounds.getHeight()));
+                label->setBounds(bounds + offset);
+                label->setText(text, dontSendNotification);
+                label->setVisible(true);
+                label->setColour(Label::textColourId, getLabelColour());
             }
-            labels->setColour(getLabelColour());
-            labels->setVisible(true);
         } else {
-            if (labels)
-                labels->setVisible(false);
-            labels.reset(nullptr);
+            labels.clear();
         }
     }
 
@@ -503,6 +518,8 @@ public:
             iemgui->x_ldy = position.y;
         }
     }
+
+    std::function<void()> iemColourChangedCallback = [](){};
 
     int iemgui_color_hex[30] = {
         16579836, 10526880, 4210752, 16572640, 16572608,

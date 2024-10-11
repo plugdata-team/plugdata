@@ -700,6 +700,23 @@ void GEMglViewport_setup();
 void GEMgluLookAt_setup();
 void GEMgluPerspective_setup();
 void GLdefine_setup();
+
+void setup_modelOBJ();
+void setup_modelASSIMP3();
+void setup_imageSTBLoader();
+void setup_imageSTBSaver();
+void setup_recordPNM();
+
+#if __APPLE__
+void setup_videoAVF();
+void setup_filmAVF();
+#elif _MSC_VER
+void setup_videoVFW();
+void setup_filmDS();
+#else
+//void setup_videoV4L2();
+//void setup_recordV4L2();
+#endif
 #endif
 
 // pd-extra objects functions declaration
@@ -1253,12 +1270,19 @@ void conv_tilde_setup();
 void fm_tilde_setup();
 void vcf2_tilde_setup();
 void setup_mpe0x2ein();
-//void setup_play0x2efile_tilde();
+void velvet_tilde_setup();
+
+#ifdef ENABLE_FFMPEG
+void setup_play0x2efile_tilde();
+void sfload_setup();
+#endif
 
 #ifdef ENABLE_SFIZZ
 void sfz_tilde_setup();
 #endif
 void knob_setup();
+void pdlink_setup();
+void pdlink_tilde_setup();
 
 void pdlua_setup(char const* datadir, char* vers, int vers_len, void (*register_class_callback)(char const*));
 void pdlua_instance_setup();
@@ -1416,6 +1440,9 @@ void Setup::parseArguments(char const** argv, size_t argc, t_namelist** sys_open
 
 void Setup::initialiseELSE()
 {
+    pdlink_setup();
+    pdlink_tilde_setup();
+    
     knob_setup();
     above_tilde_setup();
     add_tilde_setup();
@@ -1727,13 +1754,17 @@ void Setup::initialiseELSE()
     pm2_tilde_setup();
     pm4_tilde_setup();
     pm6_tilde_setup();
+    velvet_tilde_setup();
 
     var_setup();
     conv_tilde_setup();
     fm_tilde_setup();
     vcf2_tilde_setup();
     setup_mpe0x2ein();
-    //setup_play0x2efile_tilde();
+#if ENABLE_FFMPEG
+    setup_play0x2efile_tilde();
+    sfload_setup();
+#endif
 }
 
 void Setup::initialiseGem(std::string const& gemPluginPath)
@@ -2290,6 +2321,22 @@ void Setup::initialiseGem(std::string const& gemPluginPath)
     GEMgluLookAt_setup();
     GEMgluPerspective_setup();
     GLdefine_setup();
+    
+    setup_modelOBJ();
+    setup_modelASSIMP3();
+    setup_imageSTBLoader();
+    setup_imageSTBSaver();
+    setup_recordPNM();
+#if __APPLE__
+    setup_videoAVF();
+    setup_filmAVF();
+#elif _MSC_VER
+    setup_videoVFW();
+    setup_filmDS();
+#else
+    //setup_videoV4L2();
+    //setup_recordV4L2();
+#endif
 #endif
 }
 

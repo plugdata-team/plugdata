@@ -22,8 +22,6 @@ public:
 
     ~InternalSynth() override;
 
-    void extractSoundfont();
-
     // Initialise fluidsynth on another thread, because it takes a while
     void run() override;
 
@@ -36,7 +34,7 @@ public:
     bool isReady();
 
 private:
-    File soundFont = ProjectInfo::versionDataDir.getChildFile("Extra").getChildFile("GS").getChildFile("GeneralUser_GS.sf3");
+    File soundFont = ProjectInfo::versionDataDir.getChildFile("Extra").getChildFile("else").getChildFile("sf").getChildFile("GeneralUser_GS.sf3");
 
     // Fluidsynth state
     FluidSynth* synth = nullptr;

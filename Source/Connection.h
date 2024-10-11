@@ -56,7 +56,7 @@ public:
 
     void updateReconnectHandle();
 
-    void forceUpdate(bool updateCacheOnly = false);
+    void forceUpdate();
 
     void lookAndFeelChanged() override;
 
@@ -118,6 +118,8 @@ private:
     int getNumSignalChannels();
     int getNumberOfConnections();
 
+    NVGcolor getConnectionColour();
+
     void setSelected(bool shouldBeSelected);
         
     void pathChanged() override;
@@ -132,14 +134,9 @@ private:
     Value locked;
     Value presentationMode;
 
-    NVGcolor baseColour;
-    NVGcolor dataColour;
-    NVGcolor signalColour;
     NVGcolor handleColour;
     NVGcolor shadowColour;
     NVGcolor outlineColour;
-    NVGcolor gemColour;
-    NVGcolor connectionColour;
 
     NVGcolor textColour;
 
@@ -158,7 +155,7 @@ private:
 
     float mouseDownPosition = 0;
 
-    int cacheId = -1;
+    NVGCachedPath cachedPath;
     pd::WeakReference ptr;
 
     pd::Atom lastValue[8];
@@ -174,9 +171,7 @@ private:
     bool isHovering:1 = false;
     bool isInStartReconnectHandle:1 = false;
     bool isInEndReconnectHandle:1 = false;
-    bool cachedIsValid:1 = false;
     
-        
     friend class ConnectionPathUpdater;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
@@ -273,7 +268,7 @@ public:
         {
             auto lineColour = cnv->findColour(PlugDataColour::signalColourId).brighter(0.6f);
             auto dashColor = convertColour(shadowColour);
-            dashColor.a = 1.0f;
+            dashColor.a = 255;
             dashColor.r *= 0.4f;
             dashColor.g *= 0.4f;
             dashColor.b *= 0.4f;

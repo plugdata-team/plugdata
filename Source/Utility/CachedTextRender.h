@@ -15,7 +15,7 @@ public:
 
         NVGScopedState scopedState(nvg);
         nvgIntersectScissor(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
-        nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, bounds.getWidth() + 3, bounds.getHeight(), 0, image.getImageId(), 1.0f));
+        nvgFillPaint(nvg, nvgImageAlphaPattern(nvg, 0, 0, bounds.getWidth() + 3, bounds.getHeight(), 0, image.getImageId(), NVGComponent::convertColour(lastColour)));
         nvgFillRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth() + 3, bounds.getHeight());
     }
 
@@ -26,7 +26,7 @@ public:
         bool needsUpdate = lastTextHash != textHash || colour != lastColour || cachedWidth != lastWidth;
         if (needsUpdate) {
             auto attributedText = AttributedString(text);
-            attributedText.setColour(colour);
+            attributedText.setColour(Colours::white);
             attributedText.setJustification(Justification::centredLeft);
             attributedText.setFont(font);
 
@@ -53,7 +53,7 @@ public:
             g.addTransform(AffineTransform::scale(scale, scale));
             g.reduceClipRegion(bounds.withTrimmedRight(4)); // If it touches the edges of the image, it'll look bad
             layout.draw(g, bounds.toFloat());
-        });
+        }, NVGImage::AlphaImage);
     }
 
     Rectangle<int> getTextBounds()

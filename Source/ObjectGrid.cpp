@@ -17,7 +17,6 @@
 ObjectGrid::ObjectGrid(Canvas* cnv)
     : cnv(cnv)
 {
-
     gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
     gridType = SettingsFile::getInstance()->getProperty<int>("grid_type");
     gridSize = SettingsFile::getInstance()->getProperty<int>("grid_size");

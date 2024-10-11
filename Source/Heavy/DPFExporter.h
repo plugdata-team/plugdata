@@ -116,7 +116,7 @@ public:
 
     bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
     {
-        exportingView->showState(ExportingProgressView::Busy);
+        exportingView->showState(ExportingProgressView::Exporting);
 
         StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir };
 

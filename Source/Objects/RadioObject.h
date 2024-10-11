@@ -208,19 +208,17 @@ public:
         nvgStrokeColor(nvg, convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour)));
         nvgStrokeWidth(nvg, 1.0f);
 
+        nvgBeginPath(nvg);
         for (int i = 1; i < numItems; i++) {
             if (isVertical) {
-                nvgBeginPath(nvg);
                 nvgMoveTo(nvg, 1, i * size);
                 nvgLineTo(nvg, size - 0.5, i * size);
-                nvgStroke(nvg);
             } else {
-                nvgBeginPath(nvg);
                 nvgMoveTo(nvg, i * size, 1);
                 nvgLineTo(nvg, i * size, size - 0.5);
-                nvgStroke(nvg);
             }
         }
+        nvgStroke(nvg);
 
         auto bgColour = ::getValue<Colour>(iemHelper.secondaryColour);
 
@@ -259,7 +257,7 @@ public:
         constrainer->setFixedAspectRatio(isVertical ? 1.0f / numItems : static_cast<float>(numItems) / 1.0f);
     }
 
-    void valueChanged(Value& value) override
+    void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
             auto* constrainer = getConstrainer();

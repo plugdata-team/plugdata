@@ -1061,6 +1061,18 @@ struct ScalarObject final : public ObjectBase {
                 cnv->drawables.move(cnv->drawables.indexOf(dynamic_cast<NVGComponent*>(templates[i])), 0);
             }
         }
+        
+        onConstrainerCreate = [this]() {
+            int w = 0, h = 0;
+            if (auto gobj = ptr.get<t_gobj>()) {
+                auto* patch = cnv->patch.getPointer().get();
+                if (!patch)
+                    return;
+                int x, y;
+                pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
+            }
+            constrainer->setSizeLimits(w + 1, h + 1, w + 1, h + 1);
+        };
 
         updateDrawables();
     }
@@ -1081,8 +1093,39 @@ struct ScalarObject final : public ObjectBase {
             dynamic_cast<DrawableTemplate*>(drawable)->triggerAsyncUpdate();
         }
     }
+    
+    void render(NVGcontext* nvg) override
+    {
+    }
+    
+    void moved() override
+    {
+        updateDrawables();
+    }
 
-    Rectangle<int> getPdBounds() override { return { 0, 0, 0, 0 }; }
+    void setPdBounds(Rectangle<int> b) override
+    {
+        if (auto scalar = ptr.get<t_scalar>()) {
+            auto* patch = cnv->patch.getPointer().get();
+            if (!patch)
+                return;
 
-    void setPdBounds(Rectangle<int> b) override { }
+            pd::Interface::moveObject(patch, scalar.cast<t_gobj>(), b.getX(), b.getY());
+        }
+    }
+
+    Rectangle<int> getPdBounds() override
+    {
+        if (auto gobj = ptr.get<t_gobj>()) {
+            auto* patch = cnv->patch.getPointer().get();
+            if (!patch)
+                return {};
+
+            int x = 0, y = 0, w = 0, h = 0;
+            pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
+            return { x, y, w + 1, h + 1 };
+        }
+
+        return {};
+    }
 };

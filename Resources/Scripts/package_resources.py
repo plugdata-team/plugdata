@@ -112,12 +112,12 @@ copyDir(project_root + "/Libraries/pure-data/doc", "./Documentation")
 globCopy(project_root + "/Libraries/pure-data/extra/*.pd", "./Abstractions")
 globCopy(project_root + "/Libraries/pure-data/extra/**/*-help.pd", "./Abstractions")
 
-globCopy(project_root + "/Libraries/pd-else/Code_source/Abstractions/control/*.pd", "./Abstractions/else")
-globCopy(project_root + "/Libraries/pd-else/Code_source/Abstractions/audio/*.pd", "./Abstractions/else")
-globCopy(project_root + "/Libraries/pd-else/Code_source/Abstractions/extra_abs/*.pd", "./Abstractions/else")
-globCopy(project_root + "/Libraries/pd-else/Code_source/Compiled/control/*.pd_lua", "./Abstractions/else")
-globCopy(project_root + "/Libraries/pd-else/Code_source/Compiled/audio/*.pd_lua", "./Abstractions/else")
-globCopy(project_root + "/Libraries/pd-else/Code_source/Abstractions/extra_abs/*.pd_lua", "./Abstractions/else")
+globCopy(project_root + "/Libraries/pd-else/Abstractions/Control/*.pd", "./Abstractions/else")
+globCopy(project_root + "/Libraries/pd-else/Abstractions/Audio/*.pd", "./Abstractions/else")
+globCopy(project_root + "/Libraries/pd-else/Abstractions/Extra/*.pd", "./Abstractions/else")
+globCopy(project_root + "/Libraries/pd-else/Source/Control/*.pd_lua", "./Abstractions/else")
+globCopy(project_root + "/Libraries/pd-else/Source/Audio/*.pd_lua", "./Abstractions/else")
+globCopy(project_root + "/Libraries/pd-else/Abstractions/Extra/*.pd_lua", "./Abstractions/else")
 copyFile(project_root + "/Resources/Patches/lua.pd_lua", "./Abstractions/else")
 copyFile(project_root + "/Resources/Patches/playhead.pd", "./Abstractions")
 copyFile(project_root + "/Resources/Patches/param.pd", "./Abstractions")
@@ -127,7 +127,7 @@ copyFile(project_root + "/Resources/Patches/plugin_latency.pd", "./Abstractions"
 
 globMove("Abstractions/*-help.pd", "./Documentation/5.reference")
 copyDir(project_root + "/Libraries/pd-else/Documentation/Help-files/", "./Documentation/9.else")
-copyFile(project_root + "/Libraries/pd-else/Documentation/extra_files/f2s~-help.pd", "./Documentation/9.else")
+copyFile(project_root + "/Libraries/pd-else/Documentation/Extra-files/f2s~-help.pd", "./Documentation/9.else")
 
 #copyFile("../../Patches/beat-help.pd", "./Documentation/5.reference")
 copyFile(project_root + "/Resources/Patches/param-help.pd", "./Documentation/5.reference")
@@ -149,14 +149,16 @@ globMove("./Abstractions/heavylib/*-help.pd", "./Documentation/11.heavylib")
 removeFile("Documentation/Makefile.am")
 
 makeDir("Extra")
-makeDir("Extra/GS")
-copyDir(project_root + "/Libraries/pd-else/Documentation/extra_files", "Extra/else")
+copyDir(project_root + "/Libraries/pd-else/Documentation/Extra-files", "Extra/else")
+globCopy("Extra/else/audio/*", "Extra/else")
+removeDir("Extra/else/audio")
+
 copyFile(project_root + "/Libraries/pd-else/Documentation/README.pdf", "Extra/else")
-copyFile(project_root + "/Libraries/pd-else/Code_source/Merda/Modules/about.MERDA.pd", "./Extra/else")
-copyDir(project_root + "/Libraries/pd-else/Code_source/Compiled/audio/sfont~/sf", "Extra/else/sf")
-copyDir(project_root + "/Libraries/pd-else/Code_source/Compiled/audio/sfz~/sfz", "Extra/else/sfz")
+copyFile(project_root + "/Libraries/pd-else/Abstractions/Merda/Modules/about.MERDA.pd", "./Extra/else")
+copyDir(project_root + "/Libraries/pd-else/Source/Audio/sfz~/sfz", "Extra/else/sfz")
 copyDir(project_root + "/Resources/Patches/Presets", "./Extra/Presets")
-copyDir(project_root + "/Resources/Patches/Palettes", "./Extra/palette")
+globCopy(project_root + "/Libraries/pd-else/Abstractions/Merda/Modules/*.pd", "./Extra/else")
+copyDir(project_root + "/Libraries/pd-else/Abstractions/Merda/Modules/brane-presets", "./Extra/else/brane-presets")
 globCopy(project_root + "/Libraries/pure-data/doc/sound/*", "Extra/else")
 
 # Our folder is called "Documentation" instead of "doc", which makes some file paths in default helpfiles invalid
@@ -168,7 +170,7 @@ replaceTextInFolder("Abstractions/cyclone", "All_objects", "All_cyclone_objects"
 makeDir("Extra/pdlua")
 
 pdlua_srcdir = project_root + "/Libraries/pd-lua/"
-for src in ["pd.lua", "COPYING", "README"]:
+for src in ["pd.lua", "COPYING", "README", "pdlua/tutorial/examples/pdx.lua"]:
     copyFile(pdlua_srcdir+src, "./Extra/pdlua")
 # These are developer docs, we don't need them.
 #copyDir(pdlua_srcdir+"doc", "./Extra/pdlua/doc")
@@ -193,26 +195,6 @@ if package_gem:
     system = platform.system().lower()
     architecture = platform.architecture()
     machine = platform.machine()
-
-    gem_plugin_path = project_root + "/Libraries/Gem/"
-    gem_plugins_file = ""
-
-    if system == 'linux':
-        if 'aarch64' in machine or 'arm' in machine:
-            gem_plugins_file = 'plugins_linux_arm64'
-        elif '64' in machine:
-            gem_plugins_file = 'plugins_linux_x64'
-    elif system == 'darwin':
-        gem_plugins_file = 'plugins_macos'
-    elif system == 'windows' and '64' in architecture[0]:
-        gem_plugins_file = 'plugins_win64'
-
-    # unpack if architecture is supported
-    if len(gem_plugins_file) != 0:
-        with zipfile.ZipFile(gem_plugin_path + gem_plugins_file + ".zip", 'r') as zip_ref:
-                zip_ref.extractall("../Extra/Gem/")
-                globMove("../Extra/Gem/" + gem_plugins_file + "/*", "Extra/Gem/")
-                removeDir("../Extra/Gem/" + gem_plugins_file)
 
 changeWorkingDir("../")
 

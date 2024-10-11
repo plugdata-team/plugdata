@@ -48,21 +48,27 @@ void openHelpfilesRecursively(TabComponent& tabbar, std::vector<File>& helpFiles
         }
     }
 #endif
-
-    /*
+    
+    auto* peer = editor->getTopLevelComponent()->getPeer();
     // Click everything
     cnv->locked.setValue(true);
     for(auto* object : cnv->objects)
     {
-        auto mms = Desktop::getInstance().getMainMouseSource();
-        auto pos = object->gui->getLocalBounds().getCentre().toFloat();
-        auto fakeEvent = MouseEvent (mms, pos, ModifierKeys::leftButtonModifier, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, object->gui.get(), object->gui.get(), Time::getCurrentTime(), pos, Time::getCurrentTime(), 1, false);
+        MessageManager::callAsync([_obj = Component::SafePointer(object), peer](){
+            if(_obj) {
+                auto pos = peer->getComponent().getLocalPoint(_obj.getComponent(), _obj->getLocalBounds().getCentre().toFloat());
+                peer->handleMouseEvent(MouseInputSource::InputSourceType::mouse, pos, ModifierKeys::leftButtonModifier, 0.0f, 0.0f, Time::getMillisecondCounter());
+                peer->handleMouseEvent(MouseInputSource::InputSourceType::mouse, pos, ModifierKeys::noModifiers, 0.0f, 0.0f, Time::getMillisecondCounter());
+            }
+            else {
+                std::cerr << "This shouldn't happen" << std::endl;
+            }
+        });
 
-        object->gui->mouseDown(fakeEvent);
-        object->gui->mouseUp(fakeEvent);
     }
 
     // Go into all the subpatches that were opened by clicking, and click everything again
+    /*
     for(auto* subcanvas : tabbar.getCanvases())
     {
         if(subcanvas == cnv) continue;
@@ -78,7 +84,8 @@ void openHelpfilesRecursively(TabComponent& tabbar, std::vector<File>& helpFiles
         }
     } */
 
-    Timer::callAfterDelay(30, [pd, editor, helpFile, &helpFiles, tabbar = &tabbar]() mutable {
+    Timer::callAfterDelay(100, [pd, editor, helpFile, &helpFiles, tabbar = &tabbar]() mutable {
+        /*
         StringArray errors;
         auto messages = pd->getConsoleMessages();
         for(auto& [ptr, message, type, length, repeats] : messages)
@@ -96,7 +103,7 @@ void openHelpfilesRecursively(TabComponent& tabbar, std::vector<File>& helpFiles
             {
                 loggedErrors += error + "\n";
             }
-        }
+        } */
         editor->sidebar->clearConsole();
 
         while(auto* cnv = tabbar->getCurrentCanvas()) { // TODO: why is this faster than closeAllTabs?()

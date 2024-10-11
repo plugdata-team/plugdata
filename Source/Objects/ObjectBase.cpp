@@ -97,6 +97,7 @@ public:
 ObjectBase::ObjectSizeListener::ObjectSizeListener(Object* obj)
     : object(obj)
 {
+    lastChange = 0;
 }
 
 void ObjectBase::ObjectSizeListener::componentMovedOrResized(Component& component, bool moved, bool resized)
@@ -114,23 +115,41 @@ void ObjectBase::ObjectSizeListener::valueChanged(Value& v)
         auto x = static_cast<float>(v.getValue().getArray()->getReference(0));
         auto y = static_cast<float>(v.getValue().getArray()->getReference(1));
 
+        if(Time::getMillisecondCounter() - lastChange > 6000) {
+            pd::Interface::undoApply(patch, obj.get());
+        }
+        
+        lastChange = Time::getMillisecondCounter();
+    
         pd::Interface::moveObject(patch, obj.get(), x, y);
         object->updateBounds();
     }
 }
 
-ObjectBase::PropertyUndoListener::PropertyUndoListener()
+ObjectBase::PropertyListener::PropertyListener(ObjectBase* p)
 {
     lastChange = Time::getMillisecondCounter();
+    parent = p;
+    noCallback = false;
 }
 
-void ObjectBase::PropertyUndoListener::valueChanged(Value& v)
+void ObjectBase::PropertyListener::setNoCallback(bool skipCallback)
 {
-    if (Time::getMillisecondCounter() - lastChange > 400) {
-        onChange();
-    }
+    noCallback = skipCallback;
+}
 
+void ObjectBase::PropertyListener::valueChanged(Value& v)
+{
+    if(noCallback) return;
+    // TODO: this works a lot better if you change one property at a time, but it's not perfect when changing multiple at a time
+    if(!v.refersToSameSourceAs(lastValue) || Time::getMillisecondCounter() - lastChange > 6000)
+    {
+        onChange();
+        lastValue.referTo(v);
+    }
+    
     lastChange = Time::getMillisecondCounter();
+    parent->propertyChanged(v);
 }
 
 ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
@@ -139,6 +158,7 @@ ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
     , object(parent)
     , cnv(parent->cnv)
     , pd(parent->cnv->pd)
+    , propertyListener(this)
     , objectSizeListener(parent)
 {
     // Perform async, so that we don't get a size change callback for initial creation
@@ -146,19 +166,18 @@ ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
         if(!_this) return;
         _this->object->addComponentListener(&_this->objectSizeListener);
         _this->updateLabel();
+        
+        auto objectBounds = _this->object->getObjectBounds();
+        _this->positionParameter = Array<var> { var(objectBounds.getX()), var(objectBounds.getY()) };
+        _this->objectParameters.addParamPosition(&_this->positionParameter);
+        _this->positionParameter.addListener(&_this->objectSizeListener);
     });
     
     setWantsKeyboardFocus(true);
 
     setLookAndFeel(new PlugDataLook());
 
-    auto objectBounds = object->getObjectBounds();
-    positionParameter = Array<var> { var(objectBounds.getX()), var(objectBounds.getY()) };
-
-    objectParameters.addParamPosition(&positionParameter);
-    positionParameter.addListener(&objectSizeListener);
-
-    propertyUndoListener.onChange = [_this = SafePointer(this)]() {
+    propertyListener.onChange = [_this = SafePointer(this)]() {
         if (!_this)
             return;
 
@@ -192,8 +211,7 @@ void ObjectBase::initialise()
 
     for (auto& [name, type, cat, value, list, valueDefault, customComponent, onInteractionFn] : objectParameters.getParameters()) {
         if (value) {
-            value->addListener(this);
-            value->addListener(&propertyUndoListener);
+            value->addListener(&propertyListener);
         }
     }
 }
@@ -241,6 +259,11 @@ String ObjectBase::getTypeWithOriginPrefix() const
             return type;
 
         auto origin = pd::Library::getObjectOrigin(obj.get());
+        
+        if(origin == "ELSE" && type == "msg")
+        {
+            return "ELSE/message";
+        }
 
         if (origin.isEmpty())
             return type;
@@ -373,6 +396,7 @@ void ObjectBase::openSubpatch()
         path = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
     }
 
+    // TODO: check all editors!
     // Check if subpatch is already opened
     for (auto* cnv : cnv->editor->getCanvases()) {
         if (cnv->patch == *subpatch) {
@@ -383,10 +407,14 @@ void ObjectBase::openSubpatch()
     
     cnv->editor->getTabComponent().setActiveSplit(cnv);
     subpatch->splitViewIndex = cnv->patch.splitViewIndex;
-    cnv->editor->getTabComponent().openPatch(subpatch);
+    auto* newCanvas = cnv->editor->getTabComponent().openPatch(subpatch);
 
     if (path.getFullPathName().isNotEmpty()) {
         subpatch->setCurrentFile(URL(path));
+    }
+    
+    if(ProjectInfo::isStandalone && SettingsFile::getInstance()->getProperty<bool>("open_patches_in_window")) {
+        cnv->editor->getTabComponent().createNewWindow(newCanvas);
     }
 }
 
@@ -458,6 +486,11 @@ float ObjectBase::getImageScale()
         while (auto* nextCnv = topLevel->findParentComponentOfClass<Canvas>()) {
             topLevel = nextCnv;
         }
+    }
+    if(topLevel->editor->pluginMode)
+    {
+        auto scale = std::sqrt (std::abs (topLevel->getTransform().getDeterminant()));
+        return topLevel->getRenderScale() * std::max(1.0f, scale);
     }
     return topLevel->isZooming ? topLevel->getRenderScale() * 2.0f : topLevel->getRenderScale() * std::max(1.0f, getValue<float>(topLevel->zoomScale));
 }
@@ -667,19 +700,24 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
     return new TextObject(ptr, parent);
 }
 
-bool ObjectBase::canOpenFromMenu()
+void ObjectBase::getMenuOptions(PopupMenu& menu)
 {
     if (auto obj = ptr.get<t_pd>()) {
-        return zgetfn(obj.get(), pd->generateSymbol("menu-open")) != nullptr;
+        if(zgetfn(obj.get(), pd->generateSymbol("menu-open")) != nullptr)
+        {
+            menu.addItem("Open", [_this = SafePointer(this)](){
+                if(!_this) return;
+                if (auto obj = _this->ptr.get<t_pd>()) {
+                    _this->pd->sendDirectMessage(obj.get(), "menu-open", {});
+                }
+            });
+        }
+        else {
+            menu.addItem(-1, "Open", false);
+        }
     }
-
-    return false;
-}
-
-void ObjectBase::openFromMenu()
-{
-    if (auto obj = ptr.get<t_pd>()) {
-        pd->sendDirectMessage(obj.get(), "menu-open", {});
+    else {
+        menu.addItem(-1, "Open", false);
     }
 }
 
@@ -720,8 +758,6 @@ bool ObjectBase::canReceiveMouseEvent(int x, int y)
 
 void ObjectBase::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms)
 {
-    object->triggerOverlayActiveState();
-
     auto symHash = hash(symbol->s_name);
 
     switch (symHash) {
@@ -746,28 +782,30 @@ void ObjectBase::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int n
 
 void ObjectBase::setParameterExcludingListener(Value& parameter, var const& value)
 {
-    parameter.removeListener(&propertyUndoListener);
-
-    setValueExcludingListener(parameter, value, this);
-
-    parameter.addListener(&propertyUndoListener);
+    propertyListener.setNoCallback(true);
+    
+    auto oldValue = parameter.getValue();
+    parameter.setValue(value);
+    
+    propertyListener.setNoCallback(false);
 }
 
 void ObjectBase::setParameterExcludingListener(Value& parameter, var const& value, Value::Listener* otherListener)
 {
-    parameter.removeListener(&propertyUndoListener);
+    propertyListener.setNoCallback(true);
     parameter.removeListener(otherListener);
 
-    setValueExcludingListener(parameter, value, this);
-
+    auto oldValue = parameter.getValue();
+    parameter.setValue(value);
+    
     parameter.addListener(otherListener);
-    parameter.addListener(&propertyUndoListener);
+    propertyListener.setNoCallback(false);
 }
 
-ObjectLabel* ObjectBase::getLabel()
+ObjectLabel* ObjectBase::getLabel(int index)
 {
-    if (labels)
-        return labels->getObjectLabel();
+    if (index < labels.size())
+        return labels[index];
     return nullptr;
 }
 

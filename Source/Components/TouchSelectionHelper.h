@@ -33,7 +33,7 @@ public:
             auto* cnv = editor->getCurrentCanvas();
             auto selection = cnv->getSelectionOfType<Object>();
             if (selection.size() == 1 && selection[0]->gui) {
-                selection[0]->gui->openFromMenu();
+                selection[0]->gui->openSubpatch();
             }
         };
         actionButtons[1]->onClick = [this]() {
@@ -124,7 +124,7 @@ private:
 
         Path p;
         p.addRoundedRectangle(b.reduced(3.0f), Corners::largeCornerRadius);
-        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 9, { 0, 1 });
+        StackShadow::renderDropShadow(hash("touch_selection_helper"), g, p, Colour(0, 0, 0).withAlpha(0.4f), 9, { 0, 1 });
 
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.fillRoundedRectangle(b.toFloat(), Corners::largeCornerRadius);

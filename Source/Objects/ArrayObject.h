@@ -219,7 +219,7 @@ public:
             auto p = createArrayPath(vec, getDrawType(), getScale(), w, h);
             setJUCEPath(nvg, p);
             
-            nvgStrokeColor(nvg, nvgRGBAf(getContentColour().getFloatRed(), getContentColour().getFloatGreen(), getContentColour().getFloatBlue(), getContentColour().getFloatAlpha()));
+            nvgStrokeColor(nvg, nvgRGBA(getContentColour().getRed(), getContentColour().getGreen(), getContentColour().getBlue(), getContentColour().getAlpha()));
             nvgStrokeWidth(nvg, getLineWidth());
             nvgStroke(nvg);
         }
@@ -947,8 +947,10 @@ public:
         constrainer.setMinimumSize(500, 300);
 
         closeButton->onClick = [this]() {
-            MessageManager::callAsync([this]() {
-                onClose();
+            MessageManager::callAsync([_this = SafePointer(this)]() {
+                if(_this) {
+                    _this->onClose();
+                }
             });
         };
 
@@ -1174,23 +1176,26 @@ public:
         }
 
         if (title.isNotEmpty()) {
-            if (!labels) {
-                labels = std::make_unique<ObjectLabels>();
+            ObjectLabel* label;
+            if (labels.isEmpty()) {
+                label = labels.add(new ObjectLabel());
+            }
+            else {
+                label = labels[0];
             }
 
             auto bounds = object->getBounds().reduced(Object::margin).removeFromTop(fontHeight + 2).withWidth(Font(fontHeight).getStringWidth(title));
 
             bounds.translate(2, -(fontHeight + 2));
 
-            labels->getObjectLabel()->setFont(Font(fontHeight));
-            labels->setLabelBounds(bounds);
-            labels->getObjectLabel()->setText(title, dontSendNotification);
+            label->setFont(Font(fontHeight));
+            label->setBounds(bounds);
+            label->setText(title, dontSendNotification);
+            label->setColour(Label::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
 
-            labels->setColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
-
-            object->cnv->addAndMakeVisible(labels.get());
+            object->cnv->addAndMakeVisible(label);
         } else {
-            labels.reset(nullptr);
+            labels.clear();
         }
     }
 
@@ -1251,7 +1256,7 @@ public:
         }
     }
 
-    void valueChanged(Value& value) override
+    void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
             auto& arr = *sizeProperty.getValue().getArray();
@@ -1267,8 +1272,6 @@ public:
             }
 
             object->updateBounds();
-        } else {
-            ObjectBase::valueChanged(value);
         }
     }
 
@@ -1292,29 +1295,28 @@ public:
         return {};
     }
 
-    bool canOpenFromMenu() override
+    void getMenuOptions(PopupMenu& menu) override
     {
-        return true;
+        menu.addItem("Open array editor", [this, _this = SafePointer(this)](){
+            if(!_this) return;
+            
+            if (dialog) {
+                dialog->toFront(true);
+                return;
+            }
+
+            auto arrays = getArrays();
+            if (arrays.size()) {
+                dialog = std::make_unique<ArrayEditorDialog>(cnv->pd, arrays, object);
+                dialog->onClose = [this]() {
+                    dialog.reset(nullptr);
+                };
+            } else {
+                pd->logWarning("Can't open: contains no arrays");
+            }
+        });
     }
-
-    void openFromMenu() override
-    {
-        if (dialog) {
-            dialog->toFront(true);
-            return;
-        }
-
-        auto arrays = getArrays();
-        if (arrays.size()) {
-            dialog = std::make_unique<ArrayEditorDialog>(cnv->pd, arrays, object);
-            dialog->onClose = [this]() {
-                dialog.reset(nullptr);
-            };
-        } else {
-            pd->logWarning("Can't open: contains no arrays");
-        }
-    }
-
+    
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
         switch (symbol) {
@@ -1359,14 +1361,21 @@ public:
 
         openArrayEditor();
     }
-
-    bool canOpenFromMenu() override
+    
+    void getMenuOptions(PopupMenu& menu) override
     {
-        if (auto c = ptr.get<t_canvas>()) {
-            return c->gl_list != nullptr;
-        }
-
-        return false;
+        bool canOpenMenu = [this](){
+            if (auto c = ptr.get<t_canvas>()) {
+                return c->gl_list != nullptr;
+            }
+            return false;
+        }();
+        
+        menu.addItem("Open array editor", canOpenMenu, false, [_this = SafePointer(this)](){
+            if(!_this) return;
+            
+            _this->openArrayEditor();
+        });
     }
 
     void openArrayEditor()
@@ -1402,10 +1411,5 @@ public:
 
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-    }
-
-    void openFromMenu() override
-    {
-        openArrayEditor();
     }
 };

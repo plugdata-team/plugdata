@@ -24,8 +24,7 @@ using namespace gl;
 
 // Special viewport that shows scrollbars on top of content instead of next to it
 class CanvasViewport : public Viewport
-    , public Timer
-    , public NVGComponent {
+    , public NVGComponent, public Timer {
     class MousePanner : public MouseListener {
     public:
         explicit MousePanner(CanvasViewport* vp)
@@ -48,6 +47,8 @@ class CanvasViewport : public Viewport
         // thus giving us a chance to attach the mouselistener on the middle-mouse click event
         void mouseDown(MouseEvent const& e) override
         {
+            if(!e.mods.isLeftButtonDown() && !e.mods.isMiddleButtonDown()) return;
+            
             e.originalComponent->setMouseCursor(MouseCursor::DraggingHandCursor);
             downPosition = viewport->getViewPosition();
             downCanvasOrigin = viewport->cnv->canvasOrigin;
@@ -169,6 +170,8 @@ class CanvasViewport : public Viewport
 
         void mouseDown(MouseEvent const& e) override
         {
+            if(!e.mods.isLeftButtonDown()) return;
+            
             isMouseDragging = true;
             viewPosition = viewport->getViewPosition();
             repaint();
@@ -225,25 +228,22 @@ class CanvasViewport : public Viewport
             auto thumbCornerRadius = growingBounds.getHeight();
             auto fullBounds = growingBounds.withX(2).withWidth(getWidth() - 4);
 
-            auto canvasColour = findColour(PlugDataColour::canvasBackgroundColourId);
-            auto scrollbarColour = findColour(ScrollBar::ColourIds::thumbColourId);
-            auto activeScrollbarColour = scrollbarColour.interpolatedWith(canvasColour.contrasting(0.6f), 0.7f);
-            auto fadeColour = scrollbarColour.interpolatedWith(canvasColour, 0.7f).withAlpha(std::clamp(1.0f - growAnimation, 0.0f, 1.0f));
             if (isVertical) {
                 growingBounds = thumbBounds.reduced(1).withLeft(thumbBounds.getX() + growPosition);
                 thumbCornerRadius = growingBounds.getWidth();
                 fullBounds = growingBounds.withY(2).withHeight(getHeight() - 4);
             }
+            
+            scrollbarBgCol.a = (1.0f - growAnimation) * 150; // 0-150 opacity, not full opacity when active
+            nvgDrawRoundedRect(nvg, fullBounds.getX(), fullBounds.getY(), fullBounds.getWidth(), fullBounds.getHeight(), scrollbarBgCol, scrollbarBgCol, thumbCornerRadius);
 
-            // FIXME: We shouldn't need to map this, we should be able to use growingBounds.getWidth() * 0.5f Possibly something is wrong with the SDF RoundedRect Shader?
-            auto scaledTCR = jmap(thumbCornerRadius, 3.0f, 7.0f, 1.8f, 3.5f);
-
-            nvgFillColor(nvg, convertColour(fadeColour));
-            nvgFillRoundedRect(nvg, fullBounds.getX(), fullBounds.getY(), fullBounds.getWidth(), fullBounds.getHeight(), scaledTCR);
-
-            nvgFillColor(nvg, isMouseDragging ? convertColour(activeScrollbarColour) : convertColour(scrollbarColour));
-            nvgFillRoundedRect(nvg, growingBounds.getX(), growingBounds.getY(), growingBounds.getWidth(), growingBounds.getHeight(), scaledTCR);
+            auto scrollBarThumbCol = isMouseDragging ? activeScrollbarCol : scrollbarCol;
+            nvgDrawRoundedRect(nvg, growingBounds.getX(), growingBounds.getY(), growingBounds.getWidth(), growingBounds.getHeight(), scrollBarThumbCol, scrollBarThumbCol, thumbCornerRadius);
         }
+
+        NVGcolor scrollbarCol;
+        NVGcolor activeScrollbarCol;
+        NVGcolor scrollbarBgCol;
 
     private:
         bool isVertical = false;
@@ -302,6 +302,8 @@ public:
 
         cnv->setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, cnv));
         setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this));
+
+        lookAndFeelChanged();
     }
 
     ~CanvasViewport()
@@ -323,8 +325,36 @@ public:
         }
     }
 
+    void timerCallback() override
+    {
+        stopTimer();
+        cnv->isZooming = false;
+
+        // Cached geometry can look thicker/thinner at different zoom scales, so we update all cached connections when zooming is done
+        if (scaleChanged) {
+            // Cached geometry can look thicker/thinner at different zoom scales, so we reset all cached connections when zooming is done
+            NVGCachedPath::resetAll();
+        }
+
+        scaleChanged = false;
+        editor->nvgSurface.invalidateAll();
+    }
+
     void lookAndFeelChanged() override
     {
+        auto scrollbarColour = hbar.findColour(ScrollBar::ColourIds::thumbColourId);
+        auto scrollbarCol = convertColour(scrollbarColour);
+        auto canvasBgColour = findColour(PlugDataColour::canvasBackgroundColourId);
+        auto activeScrollbarCol = convertColour(scrollbarColour.interpolatedWith(canvasBgColour.contrasting(0.6f), 0.7f));
+        auto scrollbarBgCol = convertColour(scrollbarColour.interpolatedWith(canvasBgColour, 0.7f));
+
+        hbar.scrollbarCol = scrollbarCol;
+        vbar.scrollbarCol = scrollbarCol;
+        hbar.activeScrollbarCol = activeScrollbarCol;
+        vbar.activeScrollbarCol = activeScrollbarCol;
+        hbar.scrollbarBgCol = scrollbarBgCol;
+        vbar.scrollbarBgCol = scrollbarBgCol;
+
         hbar.repaint();
         vbar.repaint();
     }
@@ -372,6 +402,11 @@ public:
         if (approximatelyEqual(newScaleFactor, 0.0f)) {
             newScaleFactor = 1.0f;
         }
+
+        if (newScaleFactor == lastScaleFactor) // float comparison ok here as it's set by the same value
+            return;
+
+        lastScaleFactor = newScaleFactor;
         
         scaleChanged = true;
 
@@ -433,23 +468,9 @@ public:
             cnv->isZooming = true;
             startTimer(150);
         }
+        
         onScroll();
         adjustScrollbarBounds();
-        editor->nvgSurface.invalidateAll();
-    }
-
-    void timerCallback() override
-    {
-        stopTimer();
-        cnv->isZooming = false;
-        
-        // Cached geometry can look thicker/thinner at different zoom scales, so we update all cached connections when zooming is done
-        if (scaleChanged) {
-            for (auto* connection : cnv->connections)
-                connection->forceUpdate(true);
-        }
-        
-        scaleChanged = false;
         editor->nvgSurface.invalidateAll();
     }
 
@@ -499,6 +520,7 @@ public:
 private:
     Time lastScrollTime;
     Time lastZoomTime;
+    float lastScaleFactor = -1.0f;
     PluginEditor* editor;
     Canvas* cnv;
     Rectangle<int> previousBounds;

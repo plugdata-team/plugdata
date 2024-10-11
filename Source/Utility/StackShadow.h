@@ -13,9 +13,9 @@ struct StackShadow : public juce::DeletedAtShutdown {
 
     ~StackShadow() override;
 
-    static void renderDropShadow(juce::Graphics& g, juce::Path const& path, juce::Colour color, int radius = 1, juce::Point<int> offset = { 0, 0 }, int spread = 0);
+    static void renderDropShadow(hash32 id, juce::Graphics& g, juce::Path const& path, juce::Colour color, int radius = 1, juce::Point<int> offset = { 0, 0 }, int spread = 0);
 
-    melatonin::DropShadow* dropShadow;
+    std::unordered_map<hash32, std::unique_ptr<melatonin::DropShadow>> dropShadows;
 
     JUCE_DECLARE_SINGLETON(StackShadow, false)
 };

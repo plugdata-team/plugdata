@@ -21,13 +21,15 @@ namespace pd {
 class Library;
 }
 
+class Autosave;
 class InternalSynth;
 class SettingsFile;
 class StatusbarSource;
 struct PlugDataLook;
 class PluginEditor;
 class ConnectionMessageDisplay;
-class PluginProcessor : public AudioProcessor
+class Object;
+class PluginProcessor final : public AudioProcessor
     , public pd::Instance
     , public SettingsFileListener
 {
@@ -88,8 +90,9 @@ public:
     void receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list) override;
 
     void addTextToTextEditor(unsigned long ptr, String text) override;
-    void showTextEditor(unsigned long ptr, Rectangle<int> bounds, String title) override;
-
+    void showTextEditorDialog(unsigned long ptr, Rectangle<int> bounds, String title) override;
+    bool isTextEditorDialogShown(unsigned long ptr) override;
+    
     void updateConsole(int numMessages, bool newWarning) override;
 
     void reloadAbstractions(File changedPatch, t_glist* except) override;
@@ -140,6 +143,10 @@ public:
 
     void setTheme(String themeToUse, bool force = false);
 
+    void registerObject(Object* object);
+    void unregisterObject(Object* object);
+    Object* getObjectFromPtr(_gobj* ptr);
+
     int lastUIWidth = 1000, lastUIHeight = 650;
 
     std::atomic<float>* volume;
@@ -175,7 +182,8 @@ public:
 
     OwnedArray<PluginEditor> openedEditors;
     Component::SafePointer<ConnectionMessageDisplay> connectionListener;
-
+    std::unique_ptr<Autosave> autosave;
+    
 private:
 
     int customLatencySamples = 0;
@@ -247,6 +255,9 @@ private:
     };
 
     HostInfoUpdater hostInfoUpdater;
+
+    // Map of all graphical objects to their PD ptr's
+    std::unordered_map<_gobj*, Component::SafePointer<Object>> objectPtrMap;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)
 };

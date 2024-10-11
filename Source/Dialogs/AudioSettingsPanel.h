@@ -14,7 +14,7 @@ public:
     explicit DeviceManagerLevelMeter(AudioDeviceManager::LevelMeter::Ptr levelMeter)
         : levelGetter(std::move(levelMeter))
     {
-        startTimerHz(20);
+        startTimerHz(15);
     }
 
     void timerCallback() override

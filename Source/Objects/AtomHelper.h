@@ -56,46 +56,6 @@ public:
         objectParameters.addParamString("Label", cLabel, &labelText, "");
         objectParameters.addParamCombo("Label Position", cLabel, &labelPosition, { "left", "right", "top", "bottom" });
     }
-
-    void drawTriangleFlag(NVGcontext* nvg, bool isHighlighted, bool topAndBottom = false)
-    {
-        auto const flagSize = 9;
-        auto width = gui->getWidth();
-        auto height = gui->getHeight();
-        
-        // If this object is inside a subpatch then it's canvas won't update framebuffers
-        // We need to find the base canvas it's in (which will have the same zoom) and use
-        // that canvases triangle image
-        auto getRootCanvas = [this]() -> Canvas* {
-            Canvas* parentCanvas = cnv;
-            while (Canvas* parent = parentCanvas->findParentComponentOfClass<Canvas>()) {
-                parentCanvas = parent;
-            }
-            return parentCanvas;
-        };
-
-        auto* rootCnv = getRootCanvas();
-        auto objectFlagId = isHighlighted ? rootCnv->objectFlagSelected.getImageId() : rootCnv->objectFlag.getImageId();
-
-        // draw triangle top right
-        nvgFillPaint(nvg, nvgImagePattern(nvg, width - flagSize, 0, flagSize, flagSize, 0, objectFlagId, 1));
-        nvgFillRect(nvg, width - flagSize, 0, flagSize, flagSize);
-
-        if (topAndBottom) {
-            // draw same triangle flipped bottom right
-            NVGScopedState scopedState(nvg);
-            // Rotate around centre
-            auto halfFlagSize = flagSize * 0.5f;
-            nvgTranslate(nvg, width - halfFlagSize, height - halfFlagSize);
-            nvgRotate(nvg, degreesToRadians<float>(90));
-            nvgTranslate(nvg, -halfFlagSize, -halfFlagSize);
-
-            nvgBeginPath(nvg);
-            nvgRect(nvg, 0, 0, flagSize, flagSize);
-            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, flagSize, flagSize, 0, objectFlagId, 1));
-            nvgFill(nvg);
-        }
-    }
     
     void update()
     {
@@ -208,7 +168,7 @@ public:
                 if (!atom || !patch)
                     return;
 
-                auto fontWidth = glist_fontwidth(patch);
+                auto fontWidth = sys_fontwidth(helper->getFontHeight());
 
                 // Calculate the width in text characters for both
                 auto newCharWidth = (newBounds.getWidth() - 3) / fontWidth;
@@ -230,6 +190,7 @@ public:
                     }
                     bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
                 }
+                
                 
                 auto newHeight = newBounds.getHeight();
                 auto heightIdx = std::clamp<int>(std::lower_bound(atomSizes, atomSizes + 7, newHeight) - atomSizes, 2, 7) - 1;
@@ -309,7 +270,7 @@ public:
         }
     }
 
-    void updateLabel(std::unique_ptr<ObjectLabels>& labels)
+    void updateLabel(OwnedArray<ObjectLabel>& labels)
     {
         int idx = std::clamp<int>(fontSize.getValue(), 1, 7);
 
@@ -319,26 +280,29 @@ public:
         String const text = getExpandedLabelText();
 
         if (text.isNotEmpty()) {
-            if (!labels) {
-                labels = std::make_unique<ObjectLabels>();
+            ObjectLabel* label;
+            if (labels.isEmpty()) {
+                label = labels.add(new ObjectLabel());
+            }
+            else {
+                label = labels[0];
             }
 
             auto bounds = getLabelBounds();
 
-            labels->setLabelBounds(bounds);
-            labels->getObjectLabel()->setFont(Font(fontHeight));
-            labels->getObjectLabel()->setText(text, dontSendNotification);
+            label->setBounds(bounds);
+            label->setFont(Font(fontHeight));
+            label->setText(text, dontSendNotification);
 
             auto textColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
             if (std::abs(textColour.getBrightness() - cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId).getBrightness()) < 0.3f) {
                 textColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId).contrasting();
             }
 
-            labels->setColour(textColour);
-
-            object->cnv->addAndMakeVisible(labels.get());
+            label->setColour(Label::textColourId, textColour);
+            object->cnv->addAndMakeVisible(label);
         } else {
-            labels.reset(nullptr);
+            labels.clear();
         }
     }
 

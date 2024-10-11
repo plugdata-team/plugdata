@@ -401,7 +401,6 @@ class PlugDataWindow : public DocumentWindow
 public:
     typedef StandalonePluginHolder::PluginInOuts PluginInOuts;
 
-    bool movedFromDialog = false;
     SafePointer<Dialog> dialog;
 
     /** Creates a window with a given title and colour.
@@ -608,7 +607,7 @@ public:
             localPath.addRoundedRectangle(b.toFloat().reduced(22.0f), Corners::windowCornerRadius);
 
             int radius = isActiveWindow() ? 22 : 17;
-            StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), radius, { 0, 2 });
+            StackShadow::renderDropShadow(hash("plugdata_window"), g, localPath, Colour(0, 0, 0).withAlpha(0.6f), radius, { 0, 2 });
         }
     }
 #elif JUCE_WINDOWS
@@ -633,15 +632,6 @@ public:
         }
 #endif
         repaint();
-    }
-
-    void moved() override
-    {
-        if (movedFromDialog) {
-            movedFromDialog = false;
-        } else if (dialog) {
-            dialog.getComponent()->closeDialog();
-        }
     }
 
     void resized() override

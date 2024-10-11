@@ -20,6 +20,7 @@
 #include "Utility/OSUtils.h"
 #include "Utility/AudioSampleRingBuffer.h"
 #include "Utility/MidiDeviceManager.h"
+#include "Utility/Autosave.h"
 
 #include "Utility/Presets.h"
 #include "Canvas.h"
@@ -30,9 +31,11 @@
 #include "Statusbar.h"
 
 #include "Dialogs/Dialogs.h"
-#include "Dialogs/ConnectionMessageDisplay.h"
+#include "Components/ConnectionMessageDisplay.h"
 
 #include "Sidebar/Sidebar.h"
+
+#include "Object.h"
 
 extern "C" {
 #include "../Libraries/pd-cyclone/shared/common/file.h"
@@ -138,6 +141,8 @@ PluginProcessor::PluginProcessor()
 
     atoms_playhead.reserve(3);
     atoms_playhead.resize(1);
+    
+    autosave = std::make_unique<Autosave>(this);
 
     auto themeName = settingsFile->getProperty<String>("theme");
 
@@ -245,9 +250,6 @@ void PluginProcessor::initialiseFilesystem()
 
         // Create filesystem for this specific version
         tempVersionDataDir.moveFileTo(versionDataDir);
-
-        if (versionDataDir.isDirectory())
-            internalSynth->extractSoundfont();
     }
     if (!deken.exists()) {
         deken.createDirectory();
@@ -1555,7 +1557,12 @@ void PluginProcessor::addTextToTextEditor(unsigned long ptr, String text)
     Dialogs::appendTextToTextEditorDialog(textEditorDialogs[ptr].get(), text);
 }
 
-void PluginProcessor::showTextEditor(unsigned long ptr, Rectangle<int> bounds, String title)
+bool PluginProcessor::isTextEditorDialogShown(unsigned long ptr)
+{
+    return textEditorDialogs.count(ptr) && textEditorDialogs[ptr]->isVisible();
+}
+
+void PluginProcessor::showTextEditorDialog(unsigned long ptr, Rectangle<int> bounds, String title)
 {
     static std::unique_ptr<Dialog> saveDialog = nullptr;
 
@@ -1887,6 +1894,27 @@ void PluginProcessor::titleChanged()
     for (auto* editor : getEditors()) {
         editor->getTabComponent().repaint();
     }
+}
+
+// Return the graphical object given the PD object ptr
+// if it exists as a graphical object in plugdata
+// otherwise return nullptr
+Object* PluginProcessor::getObjectFromPtr(_gobj* ptr)
+{
+    if (auto obj = objectPtrMap[ptr])
+        return obj.getComponent();
+    return nullptr;
+}
+
+// Register objects to map PD ptr to plugdata graphical objects
+void PluginProcessor::registerObject(Object* object)
+{
+    objectPtrMap[object->getPointer()] = Component::SafePointer(object);
+}
+
+void PluginProcessor::unregisterObject(Object* object)
+{
+    objectPtrMap.erase(object->getPointer());
 }
 
 // This creates new instances of the plugin..

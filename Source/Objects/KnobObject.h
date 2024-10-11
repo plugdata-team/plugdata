@@ -18,6 +18,7 @@ class Knob : public Slider
     Colour arcColour;
 
     bool drawArc = true;
+    bool shiftIsDown = false;
     int numberOfTicks = 0;
     float arcStart = 63.5f;
 
@@ -54,6 +55,45 @@ public:
             nvgFill(nvg);
         }
     }
+    
+        void mouseDown(MouseEvent const& e) override
+        {
+            if (!e.mods.isLeftButtonDown())
+                return;
+
+            auto const normalSensitivity = 250;
+            auto const highSensitivity = normalSensitivity * 10;
+            if (ModifierKeys::getCurrentModifiersRealtime().isShiftDown()) {
+                setMouseDragSensitivity(highSensitivity);
+                shiftIsDown = true;
+            } else {
+                setMouseDragSensitivity(normalSensitivity);
+            }
+            
+            Slider::mouseDown(e);
+            
+            auto snaps = getSliderSnapsToMousePosition();
+            if(snaps && shiftIsDown)  {
+                setSliderSnapsToMousePosition(false); // hack to make jump-on-click work the same with high-accuracy mode as in Pd
+                Slider::mouseDown(e);
+                setSliderSnapsToMousePosition(true);
+            }
+        }
+
+        void mouseDrag(MouseEvent const& e) override
+        {
+            auto snaps = getSliderSnapsToMousePosition();
+            if(snaps && shiftIsDown) setSliderSnapsToMousePosition(false); // We disable this temporarily, otherwise it breaks high accuracy mode
+            Slider::mouseDrag(e);
+            if(snaps && shiftIsDown) setSliderSnapsToMousePosition(true);
+        }
+            
+        void mouseUp(MouseEvent const& e) override
+        {
+            setMouseDragSensitivity(250);
+            Slider::mouseUp(e);
+            shiftIsDown = false;
+        }
 
     void showArc(bool show)
     {
@@ -90,7 +130,7 @@ public:
             nvgBeginPath(nvg);
             nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, startAngle, endAngle, NVG_HOLE);
             nvgStrokeWidth(nvg, arcWidth * lineThickness);
-            nvgStrokeColor(nvg, nvgRGBAf(arcColour.getFloatRed(), arcColour.getFloatGreen(), arcColour.getFloatBlue(), arcColour.getFloatAlpha()));
+            nvgStrokeColor(nvg, convertColour(arcColour));
             nvgStroke(nvg);
 
             nvgBeginPath(nvg);
@@ -99,7 +139,7 @@ public:
             } else {
                 nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, angle, centre, NVG_HOLE);
             }
-            nvgStrokeColor(nvg, nvgRGBAf(fgColour.getFloatRed(), fgColour.getFloatGreen(), fgColour.getFloatBlue(), fgColour.getFloatAlpha()));
+            nvgStrokeColor(nvg, convertColour(fgColour));
             nvgStrokeWidth(nvg, arcWidth * lineThickness);
             nvgStroke(nvg);
         }
@@ -112,7 +152,7 @@ public:
         nvgMoveTo(nvg, bounds.getCentreX(), bounds.getCentreY()); // Adjust parameters as needed
         nvgLineTo(nvg, wiperX, wiperY);                           // Adjust parameters as needed
         nvgStrokeWidth(nvg, lineThickness);
-        nvgStrokeColor(nvg, nvgRGBAf(fgColour.getFloatRed(), fgColour.getFloatGreen(), fgColour.getFloatBlue(), fgColour.getFloatAlpha()));
+        nvgStrokeColor(nvg, convertColour(fgColour));
         nvgLineCap(nvg, NVG_ROUND);
         nvgStroke(nvg);
 
@@ -162,6 +202,8 @@ class KnobObject final : public ObjectBase {
     Value arcStart = SynchronousValue();
 
     Value sizeProperty = SynchronousValue();
+
+    NVGcolor bgCol;
 
     bool locked;
     float value = 0.0f;
@@ -240,6 +282,38 @@ public:
     {
         return !::getValue<bool>(outline);
     }
+    
+    bool keyPressed(KeyPress const& key) override
+    {
+        if(key.getKeyCode() == KeyPress::returnKey)
+        {
+            if (auto obj = ptr.get<t_fake_knob>()) {
+                setValue(getValue());
+            }
+            return true;
+        }
+        else if(key.getKeyCode() == KeyPress::upKey || key.getKeyCode() == KeyPress::rightKey)
+        {
+            if (auto knob = ptr.get<t_fake_knob>()) {
+                knob->x_clicked = 1;
+                pd->sendDirectMessage(knob.cast<void>(), "list", { pd::Atom(1.0f), pd::Atom(gensym("Up"))});
+                knob->x_clicked = 0;
+            }
+            return true;
+        }
+        else if(key.getKeyCode() == KeyPress::downKey || key.getKeyCode() == KeyPress::leftKey)
+        {
+            if (auto knob = ptr.get<t_fake_knob>()) {
+                knob->x_clicked = 1;
+                pd->sendDirectMessage(knob.cast<void>(), "list", { pd::Atom(1.0f), pd::Atom(gensym("Down"))});
+                knob->x_clicked = 0;
+            }
+            return true;
+        }
+
+        
+        return false;
+    }
 
     void updateDoubleClickValue()
     {
@@ -287,6 +361,8 @@ public:
         updateDoubleClickValue();
         knob.setSliderStyle(::getValue<bool>(circular) ? Slider::Rotary : Slider::RotaryHorizontalVerticalDrag);
         knob.showArc(::getValue<bool>(showArc));
+
+        updateColours();
     }
 
     bool inletIsSymbol() override
@@ -449,19 +525,18 @@ public:
     void render(NVGcontext* nvg) override
     {
         auto b = getLocalBounds().toFloat();
-        auto bgColour = Colour::fromString(secondaryColour.toString());
 
         if (::getValue<bool>(outline)) {
             bool selected = object->isSelected() && !cnv->isGraph;
-            auto outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+            auto outlineColour = selected ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
 
-            nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(bgColour), convertColour(outlineColour), Corners::objectCornerRadius);
+            nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), bgCol, outlineColour, Corners::objectCornerRadius);
         } else {
             auto circleBounds = getLocalBounds().toFloat().reduced(getWidth() * 0.13f);
             auto const lineThickness = std::max(circleBounds.getWidth() * 0.07f, 1.5f);
             circleBounds = circleBounds.reduced(lineThickness - 0.5f);
 
-            nvgFillColor(nvg, convertColour(bgColour));
+            nvgFillColor(nvg, bgCol);
             nvgBeginPath(nvg);
             nvgCircle(nvg, circleBounds.getCentreX(), circleBounds.getCentreY(), circleBounds.getWidth() / 2.0f);
             nvgFill(nvg);
@@ -678,7 +753,13 @@ public:
         knob.setValue(newValNormalised);
     }
 
-    void valueChanged(Value& value) override
+    void updateColours()
+    {
+        bgCol = convertColour(Colour::fromString(secondaryColour.toString()));
+        repaint();
+    }
+
+    void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
             auto* constrainer = getConstrainer();
@@ -779,12 +860,12 @@ public:
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_fg = pd->generateSymbol(colour);
             knob.setFgColour(Colour::fromString(primaryColour.toString()));
-            repaint();
+            updateColours();
         } else if (value.refersToSameSourceAs(secondaryColour)) {
             auto colour = "#" + secondaryColour.toString().substring(2);
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_bg = pd->generateSymbol(colour);
-            repaint();
+            updateColours();
         } else if (value.refersToSameSourceAs(arcStart)) {
             auto arcStartLimited = limitValueRange(arcStart, ::getValue<float>(min), ::getValue<float>(max));
             if (auto knb = ptr.get<t_fake_knob>())

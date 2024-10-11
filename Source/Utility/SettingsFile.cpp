@@ -33,6 +33,29 @@ SettingsFile::~SettingsFile()
     clearSingletonInstance();
 }
 
+void SettingsFile::backupCorruptSettings()
+{
+    // Backup previous corrupt settings file, so users can fix if they want to
+    auto corruptSettings = getInstance()->settingsFile;
+
+    auto backupLocation = corruptSettings.getParentDirectory().getChildFile(".settings_damaged").getFullPathName();
+    int counter = 1;
+
+    // Increment backup settings file name if previous exists
+    while (File(backupLocation).existsAsFile()) {
+        backupLocation = corruptSettings.getParentDirectory().getChildFile(".settings_damaged_" + String(counter)).getFullPathName();
+        counter++;
+    }
+
+    backupSettingsLocation = backupLocation;
+    corruptSettings.moveFileTo(backupLocation);
+}
+
+String SettingsFile::getCorruptBackupSettingsLocation()
+{
+    return backupSettingsLocation;
+}
+
 SettingsFile* SettingsFile::initialise()
 {
 
@@ -41,17 +64,53 @@ SettingsFile* SettingsFile::initialise()
 
     isInitialised = true;
 
+//#define DEBUG_CORRUPT_SETTINGS_DIALOG
+#ifdef DEBUG_CORRUPT_SETTINGS_DIALOG
+    backupSettingsLocation = ProjectInfo::appDataDir.getChildFile(".settings_damaged").getFullPathName();
+#endif
+
     // Check if settings file exists, if not, create the default
+    // This is expected behaviour for first run / deleting plugdata folder
+    // No need to alert the user to this
     if (!settingsFile.existsAsFile()) {
         settingsFile.create();
     } else {
-        // Or load the settings when they exist already
-        settingsTree = ValueTree::fromXml(settingsFile.loadFileAsString());
+        std::unique_ptr<XmlElement> xmlElement(XmlDocument::parse(settingsFile.loadFileAsString()));
+
+        // First check if settings XML is valid
+        if (verify(xmlElement.get())) {
+            // Use user .settings file
+            settingsTree = ValueTree::fromXml(*xmlElement);
+            // Overwrite previous settings_bak with current good settings (don't touch it after this)
+            settingsFile.copyFileTo(settingsFile.getFullPathName() + "_bak");
+        } else {
+            // Settings are invalid! Backup old file as .settings_damaged
+            backupCorruptSettings();
+
+            // See if there is a .settings_bak backup settings file from last run
+            auto backupSettings = File(settingsFile.getFullPathName() + "_bak");
+            if (backupSettings.existsAsFile()) {
+                std::unique_ptr<XmlElement> xmlSettingsBackup(XmlDocument::parse(backupSettings.loadFileAsString()));
+                if (verify(xmlSettingsBackup.get())) {
+                    // If backup settings are good, use them
+                    settingsTree = ValueTree::fromXml(*xmlSettingsBackup);
+                    settingsState = BackupSettings;
+                } else {
+                    // Use default plugdata settings (worst case scenario)
+                    settingsFile.create();
+                    settingsState = DefaultSettings;
+                }
+            } else {
+                // Use default plugdata settings (worst case scenario)
+                settingsFile.create();
+                settingsState = DefaultSettings;
+            }
+        }
     }
 
     // Make sure all the properties exist
     for (auto& [propertyName, propertyValue] : defaultSettings) {
-        // If it doesn't exists, set it to the default value
+        // If it doesn't exist, set it to the default value
         if (!settingsTree.hasProperty(propertyName) || settingsTree.getProperty(propertyName).toString() == "") {
             settingsTree.setProperty(propertyName, propertyValue, nullptr);
         }
@@ -82,7 +141,52 @@ SettingsFile* SettingsFile::initialise()
     saveSettings();
 
     settingsTree.addListener(this);
+
     return this;
+}
+
+bool SettingsFile::verify(const XmlElement* xml)
+{
+    // Basic settings file verification
+    // Verify if the xml is valid, and tags match correct name / order
+    // Adjust tags here if future layout changes
+
+    if (xml == nullptr || xml->getTagName() != "SettingsTree")
+        return false;
+
+    const StringArray expectedOrder = {
+        "Paths",
+        "KeyMap",
+        "ColourThemes",
+        "SelectedThemes",
+        "RecentlyOpened",
+        "Libraries",
+        "EnabledMidiOutputPorts",
+        "LastBrowserPaths",
+        "Overlays",
+        "HeavyState"
+    };
+
+    // Check if all expected elements are present and in the correct order
+    int expectedIndex = 0;
+    for (auto* child = xml->getFirstChildElement(); child != nullptr; child = child->getNextElement()) {
+        if (expectedIndex < expectedOrder.size()) {
+            if (child->getTagName() != expectedOrder[expectedIndex]) {
+                return false; // Order mismatch
+            }
+            expectedIndex++;
+        } else {
+            return false; // Extra unexpected element found
+        }
+    }
+
+    // Check if all expected elements were found
+    return expectedIndex == expectedOrder.size();
+}
+
+SettingsFile::SettingsState SettingsFile::getSettingsState()
+{
+    return settingsState;
 }
 
 void SettingsFile::startChangeListener()
@@ -199,7 +303,7 @@ void SettingsFile::addToRecentlyOpened(File const& path)
         recentlyOpened.addChild(subTree, 0, nullptr);
     }
 
-    while (recentlyOpened.getNumChildren() > 10) {
+    while (recentlyOpened.getNumChildren() > 20) {
         auto minTime = Time::getCurrentTime().toMilliseconds();
         int minIdx = -1;
 
@@ -216,8 +320,11 @@ void SettingsFile::addToRecentlyOpened(File const& path)
 
         recentlyOpened.removeChild(minIdx, nullptr);
     }
-
-    RecentlyOpenedFilesList::registerRecentFileNatively(path);
+    
+    // If we do this inside a plugin, it will add to the DAW's recently opened list!
+    if(ProjectInfo::isStandalone) {
+        RecentlyOpenedFilesList::registerRecentFileNatively(path);
+    }
 }
 
 bool SettingsFile::wantsNativeDialog()
@@ -288,6 +395,9 @@ void SettingsFile::initialiseThemesTree()
             }
             if (!themeTree.hasProperty("square_object_corners")) {
                 themeTree.setProperty("square_object_corners", false, nullptr);
+            }
+            if (!themeTree.hasProperty("object_flag_outlined")) {
+                themeTree.setProperty("object_flag_outlined", false, nullptr);
             }
             if (!themeTree.hasProperty("iolet_spacing_edge")) {
                 themeTree.setProperty("iolet_spacing_edge", false, nullptr);

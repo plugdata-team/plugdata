@@ -13,6 +13,9 @@ class ButtonObject final : public ObjectBase {
     Value secondaryColour = SynchronousValue();
     Value sizeProperty = SynchronousValue();
 
+    NVGcolor fgCol;
+    NVGcolor bgCol;
+
     enum Mode {
         Latch,
         Toggle,
@@ -27,11 +30,22 @@ public:
     {
         onConstrainerCreate = [this]() {
             constrainer->setFixedAspectRatio(1);
+            constrainer->setMinimumHeight(9);
+            constrainer->setMinimumWidth(9);
         };
 
-        objectParameters.addParamSize(&sizeProperty, true);
+        objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamColourFG(&primaryColour);
         objectParameters.addParamColourBG(&secondaryColour);
+
+        updateColours();
+    }
+
+    void updateColours()
+    {
+        bgCol = convertColour(Colour::fromString(secondaryColour.toString()));
+        fgCol = convertColour(Colour::fromString(primaryColour.toString()));
+        repaint();
     }
 
     void update() override
@@ -39,7 +53,7 @@ public:
         if (auto button = ptr.get<t_fake_button>()) {
             primaryColour = Colour(button->x_fgcolor[0], button->x_fgcolor[1], button->x_fgcolor[2]).toString();
             secondaryColour = Colour(button->x_bgcolor[0], button->x_bgcolor[1], button->x_bgcolor[2]).toString();
-            sizeProperty = button->x_w;
+            sizeProperty = Array<var>(button->x_w, button->x_h);
             if (button->x_mode == 0) {
                 mode = Latch;
             } else if (button->x_mode == 1) {
@@ -49,7 +63,7 @@ public:
             }
         }
 
-        repaint();
+        updateColours();
     }
 
     void toggleObject(Point<int> position) override
@@ -135,7 +149,7 @@ public:
         setPdBounds(object->getObjectBounds());
 
         if (auto button = ptr.get<t_fake_button>()) {
-            setParameterExcludingListener(sizeProperty, var(button->x_w));
+            setParameterExcludingListener(sizeProperty, Array<var>(var(button->x_w), var(button->x_h)));
         }
     }
 
@@ -195,49 +209,47 @@ public:
     {
         auto b = getLocalBounds().toFloat();
 
-        auto foregroundColour = convertColour(Colour::fromString(primaryColour.toString()));
-        auto bgColour = Colour::fromString(secondaryColour.toString());
-        
-        auto backgroundColour = convertColour(bgColour);
-        auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
-        auto internalLineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour));
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), bgCol, object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        auto guiBounds = b.reduced(1);
+        auto outerBounds = guiBounds.reduced(5);
+        auto innerRectBounds = outerBounds.reduced(2.5);
+        bool spaceToShowRect = false;
 
-        b = b.reduced(1);
-        auto const width = std::max(b.getWidth(), b.getHeight());
-        auto const sizeReduction = std::min(1.0f, getWidth() / 20.0f);
-
-        float const lineOuter = 80.f * (width * 0.01f);
-        float const lineThickness = std::max(width * 0.06f, 1.5f) * sizeReduction;
-
-        auto outerBounds = b.reduced((width - lineOuter) * sizeReduction);
-
-        nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, outerBounds.getX(), outerBounds.getY(), outerBounds.getWidth(), outerBounds.getHeight(), Corners::objectCornerRadius * sizeReduction);
-        nvgStrokeColor(nvg, internalLineColour);
-        nvgStrokeWidth(nvg, lineThickness);
-        nvgStroke(nvg);
+        if (b.getWidth() >= 25 && b.getHeight() >= 25) {
+            spaceToShowRect = true;
+            nvgDrawRoundedRect(nvg, outerBounds.getX(), outerBounds.getY(), outerBounds.getWidth(), outerBounds.getHeight(), cnv->guiObjectInternalOutlineCol, cnv->guiObjectInternalOutlineCol, Corners::objectCornerRadius);
+            nvgDrawRoundedRect(nvg, innerRectBounds.getX(), innerRectBounds.getY(), innerRectBounds.getWidth(), innerRectBounds.getHeight(), bgCol, bgCol, Corners::objectCornerRadius - 1.0f);
+        }
 
         // Fill ellipse if bangState is true
         if (state) {
-            auto innerBounds = b.reduced((width - lineOuter + lineThickness) * sizeReduction);
-            nvgFillColor(nvg, foregroundColour);
-            nvgFillRoundedRect(nvg, innerBounds.getX(), innerBounds.getY(), innerBounds.getWidth(), innerBounds.getHeight(), (Corners::objectCornerRadius - 1) * sizeReduction);
+            auto innerBounds = spaceToShowRect ? innerRectBounds.reduced(1) : guiBounds;
+            auto cornerRadius = spaceToShowRect ? Corners::objectCornerRadius - 1.5f : Corners::objectCornerRadius - 1;
+            nvgDrawRoundedRect(nvg, innerBounds.getX(), innerBounds.getY(), innerBounds.getWidth(), innerBounds.getHeight(), fgCol, fgCol, cornerRadius);
         }
     }
 
-    void valueChanged(Value& value) override
+    bool canEdgeOverrideAspectRatio() override
     {
+        return true;
+    }
 
+    void propertyChanged(Value& value) override
+    {
         if (value.refersToSameSourceAs(sizeProperty)) {
             auto* constrainer = getConstrainer();
-            auto size = std::max(getValue<int>(sizeProperty), constrainer->getMinimumWidth());
-            setParameterExcludingListener(sizeProperty, size);
+
+            auto& arr = *sizeProperty.getValue().getArray();
+            auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
+            auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+
+            constrainer->setFixedAspectRatio(static_cast<float>(width) / height);
+
+            setParameterExcludingListener(sizeProperty, Array<var>(width, height));
             if (auto button = ptr.get<t_fake_button>()) {
-                button->x_w = size;
-                button->x_h = size;
+                button->x_w = width;
+                button->x_h = height;
             }
             object->updateBounds();
         } else if (value.refersToSameSourceAs(primaryColour)) {
@@ -247,7 +259,7 @@ public:
                 button->x_fgcolor[1] = col.getGreen();
                 button->x_fgcolor[2] = col.getBlue();
             }
-            repaint();
+            updateColours();
         } else if (value.refersToSameSourceAs(secondaryColour)) {
             auto col = Colour::fromString(secondaryColour.toString());
             if (auto button = ptr.get<t_fake_button>()) {
@@ -255,7 +267,7 @@ public:
                 button->x_bgcolor[1] = col.getGreen();
                 button->x_bgcolor[2] = col.getBlue();
             }
-            repaint();
+            updateColours();
         }
     }
 
@@ -264,12 +276,12 @@ public:
         switch (symbol) {
         case hash("bgcolor"): {
             setParameterExcludingListener(secondaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
-            repaint();
+            updateColours();
             break;
         }
         case hash("fgcolor"): {
             setParameterExcludingListener(primaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
-            repaint();
+            updateColours();
             break;
         }
         case hash("float"): {

@@ -25,7 +25,7 @@
 
 #include "Canvas.h"
 #include "Connection.h"
-#include "Dialogs/ConnectionMessageDisplay.h"
+#include "Components/ConnectionMessageDisplay.h"
 #include "Dialogs/Dialogs.h"
 #include "Statusbar.h"
 #include "Components/WelcomePanel.h"
@@ -33,6 +33,7 @@
 #include "Object.h"
 #include "PluginMode.h"
 #include "Components/TouchSelectionHelper.h"
+#include "NVGSurface.h"
 
 #if ENABLE_TESTING
 void runTests(PluginEditor* editor);
@@ -43,6 +44,98 @@ using namespace juce::gl;
 
 #include <nanovg.h>
 
+class CorruptSettingsAlert : public Component
+{
+    Label errorMessage;
+    Label errorSub;
+
+    TextEditor errorInfo;
+
+    TextButton dismissButton;
+    TextButton revealFileButton;
+
+public:
+    CorruptSettingsAlert(SettingsFile* settingsFile, std::function<void()> dismissFn)
+    {
+        setVisible(false);
+
+        errorMessage.setText("Corrupt settings detected and fixed", dontSendNotification);
+        errorMessage.setFont(Fonts::getBoldFont().withHeight(20));
+        errorMessage.setJustificationType(Justification::centred);
+
+        String errorText;
+
+        switch(settingsFile->getSettingsState()){
+            case SettingsFile::SettingsState::DefaultSettings:
+                errorText = "plugdata will use default settings.";
+            break;
+            case SettingsFile::SettingsState::BackupSettings:
+                errorText = "plugdata will use last good settings.";
+                break;
+            default:
+            break;
+        }
+
+        errorSub.setText(errorText + " Previous settings backed up to:", dontSendNotification);
+        errorSub.setFont(Fonts::getDefaultFont().withHeight(14));
+        errorSub.setJustificationType(Justification::centred);
+
+        auto corruptSettingsLoc = settingsFile->getCorruptBackupSettingsLocation();
+
+        errorInfo.setText(corruptSettingsLoc, dontSendNotification);
+        errorInfo.setMultiLine(true);
+        errorInfo.setReadOnly(true);
+        errorInfo.setJustification(Justification::centred);
+        errorInfo.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
+        errorInfo.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
+
+        dismissButton.setButtonText("Dismiss");
+        dismissButton.onClick = dismissFn;
+
+#if JUCE_MAC
+        String revealTip = "Reveal in Finder";
+#elif JUCE_WINDOWS
+        String revealTip = "Reveal in Explorer";
+#else
+        String revealTip = "Reveal in file browser";
+#endif
+
+        revealFileButton.setButtonText(revealTip);
+        revealFileButton.onClick = [corruptSettingsLoc, dismissFn](){
+             auto backupLoc = File(corruptSettingsLoc);
+             if (backupLoc.existsAsFile())
+                backupLoc.revealToUser();
+             dismissFn();
+        };
+
+        addAndMakeVisible(errorMessage);
+        addAndMakeVisible(errorSub);
+        addAndMakeVisible(errorInfo);
+        addAndMakeVisible(dismissButton);
+        addAndMakeVisible(revealFileButton);
+    };
+
+    void resized() override
+    {
+        auto w = getWidth() - 10;
+
+        errorMessage.setBounds(Rectangle<int>(5, 5, w, 22));
+        errorSub.setBounds(Rectangle<int>(5, errorMessage.getBottom() + 3, w, 16));
+
+        errorInfo.setBounds(Rectangle<int>(5, errorSub.getBottom() + 3, w, 40));
+
+        const int buttonHeight = 25;
+        const int dismissButtonWidth = 70;
+        const int revealButtonWidth = 130;
+        const int totalButtonWidth = dismissButtonWidth + revealButtonWidth + 10;
+        const int startX = (getWidth() - totalButtonWidth) / 2;
+        const int buttonY = getHeight() - 35;
+
+        dismissButton.setBounds(startX, buttonY, dismissButtonWidth, buttonHeight);
+        revealFileButton.setBounds(startX + dismissButtonWidth + 10, buttonY, revealButtonWidth, buttonHeight);
+    }
+};
+
 PluginEditor::PluginEditor(PluginProcessor& p)
     : AudioProcessorEditor(&p)
     , pd(&p)
@@ -51,7 +144,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , openedDialog(nullptr)
     , nvgSurface(this)
     , pluginConstrainer(*getConstrainer())
-    , autosave(std::make_unique<Autosave>(pd))
     , tooltipWindow(nullptr, [](Component* c) {
         if (auto* cnv = c->findParentComponentOfClass<Canvas>()) {
             return !getValue<bool>(cnv->locked);
@@ -233,9 +325,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     connectionMessageDisplay = std::make_unique<ConnectionMessageDisplay>(this);
     connectionMessageDisplay->addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses | ComponentPeer::windowIgnoresMouseClicks);
-    if (!ProjectInfo::isStandalone) {
-        connectionMessageDisplay->setAlwaysOnTop(true);
-    }
+    connectionMessageDisplay->setAlwaysOnTop(true);
 
     // This cannot be done in MidiDeviceManager's constructor because SettingsFile is not yet initialised at that time
     if (ProjectInfo::isStandalone) {
@@ -276,12 +366,28 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     pd->messageDispatcher->setBlockMessages(false);
     pd->objectLibrary->waitForInitialisationToFinish();
+
+    lookAndFeelChanged();
+
+    ::Timer::callAfterDelay(100, [this, settingsFile](){
+        if (settingsFile->getSettingsState() != SettingsFile::SettingsState::UserSettings) {
+            auto* dialog = new Dialog(&openedDialog, this, 450, 150, false);
+
+            auto dismissDialog = [this](){
+                openedDialog.reset(nullptr);
+            };
+
+            auto* corruptAlert = new CorruptSettingsAlert(settingsFile, dismissDialog);
+            dialog->setViewedComponent(corruptAlert);
+            openedDialog.reset(dialog);
+        }
+    });
 }
 
 PluginEditor::~PluginEditor()
 {
+    nvgSurface.detachContext();
     theme.removeListener(this);
-
     if (auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent())) {
         ProjectInfo::closeWindow(window); // Make sure plugdatawindow gets cleaned up
     }
@@ -522,7 +628,16 @@ bool PluginEditor::isInPluginMode() const
     return static_cast<bool>(pluginMode);
 }
 
-// Retern the patch that belongs to this editor that's in plugin mode
+Canvas* PluginEditor::getPluginModeCanvas()
+{
+    if (isInPluginMode())
+        return pluginMode->getCanvas();
+
+    return nullptr;
+}
+
+// Return the patch that belongs to this editor that will be in plugin mode
+// At this point the editor is NOT in plugin mode yet
 pd::Patch::Ptr PluginEditor::findPatchInPluginMode()
 {
     ScopedLock lock(pd->patches.getLock());
@@ -574,7 +689,7 @@ void PluginEditor::parentSizeChanged()
 void PluginEditor::mouseDown(MouseEvent const& e)
 {
     // no window dragging by toolbar in plugin!
-    if (!ProjectInfo::isStandalone)
+    if (!ProjectInfo::isStandalone || !e.mods.isLeftButtonDown())
         return;
 
     if (e.getNumberOfClicks() >= 2) {
@@ -668,7 +783,7 @@ void PluginEditor::filesDropped(StringArray const& files, int x, int y)
         auto file = File(path);
         if (file.exists() && file.hasFileExtension("pd")) {
             openedPdFiles = true;
-            autosave->checkForMoreRecentAutosave(file, this, [this, file]() {
+            pd->autosave->checkForMoreRecentAutosave(file, this, [this, file]() {
                 tabComponent.openPatch(URL(file));
                 SettingsFile::getInstance()->addToRecentlyOpened(file);
             });
@@ -683,6 +798,7 @@ void PluginEditor::filesDropped(StringArray const& files, int x, int y)
                 auto filePath = file.getFullPathName().replaceCharacter('\\', '/').replace(" ", "\\ ");
 
                 auto* object = cnv->objects.add(new Object(cnv, "msg " + filePath, position));
+                pd->registerObject(object);
                 object->hideEditor();
             }
         }
@@ -1129,6 +1245,7 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
     }
     case CommandIDs::ToggleDSP: {
         result.setInfo("Toggle DSP", "Enables or disables audio DSP", "Edit", 0);
+        result.addDefaultKeypress(46, ModifierKeys::commandModifier); // cmd + . to toggle DSP
         result.setActive(true);
         break;
     }
@@ -1408,8 +1525,10 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::ZoomNormal: {
-        auto& scale = getCurrentCanvas()->zoomScale;
-        scale = 1.0f;
+        auto* viewport = dynamic_cast<CanvasViewport*>(cnv->viewport.get());
+        if (!viewport)
+            return false;
+        viewport->magnify(1.0f);
         return true;
     }
     case CommandIDs::ZoomToFitAll: {
@@ -1420,6 +1539,10 @@ bool PluginEditor::perform(InvocationInfo const& info)
     case CommandIDs::GoToOrigin: {
         cnv = getCurrentCanvas();
         cnv->jumpToOrigin();
+        return true;
+    }
+    case CommandIDs::PanDragKey:
+    {
         return true;
     }
     case CommandIDs::Undo: {
@@ -1487,7 +1610,9 @@ bool PluginEditor::perform(InvocationInfo const& info)
 
         // Get viewport area, compensate for zooming
         auto viewArea = cnv->viewport->getViewArea() / std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
-        auto lastPosition = viewArea.getConstrainedPoint(cnv->getMouseXYRelative() - Point<int>(Object::margin, Object::margin));
+        auto lastPosition = cnv->getMouseXYRelative() - Point<int>(Object::margin, Object::margin);
+        if (!viewArea.contains(lastPosition))
+            lastPosition = viewArea.getCentre();
 
         auto ID = static_cast<ObjectIDs>(info.commandID);
 
@@ -1498,26 +1623,32 @@ bool PluginEditor::perform(InvocationInfo const& info)
                 obj->hideEditor(); // If it's still open, it might overwrite lastSelectedObject
                 cnv->lastSelectedObject = obj;
                 if (obj) {
-                    cnv->objects.add(new Object(cnv, objectNames.at(ID),
+                    auto newObj = new Object(cnv, objectNames.at(ID),
                         Point<int>(
                             // place beneath object + Object::margin
                             obj->getX() + Object::margin,
-                            obj->getY() + obj->getHeight())));
+                            obj->getY() + obj->getHeight()));
+                    cnv->objects.add(newObj);
+                    pd->registerObject(newObj);
                 }
             } else if ((cnv->getSelectionOfType<Object>().size() == 0) && (cnv->getSelectionOfType<Connection>().size() == 1)) { // Autopatching: insert object in connection. Should document this better!
                 // if 1 connection is selected, create new object in the middle of connection
                 cnv->patch.startUndoSequence("ObjectInConnection");
                 cnv->lastSelectedConnection = cnv->getSelectionOfType<Connection>().getFirst();
                 auto outobj = cnv->getSelectionOfType<Connection>().getFirst()->outobj;
-                cnv->objects.add(new Object(cnv, objectNames.at(ID),
+                auto newObj = new Object(cnv, objectNames.at(ID),
                     Point<int>(
                         // place beneath outlet object + Object::margin
                         cnv->lastSelectedConnection->getX() + (cnv->lastSelectedConnection->getWidth() / 2) - 12,
-                        cnv->lastSelectedConnection->getY() + (cnv->lastSelectedConnection->getHeight() / 2) - 12)));
+                        cnv->lastSelectedConnection->getY() + (cnv->lastSelectedConnection->getHeight() / 2) - 12));
+                cnv->objects.add(newObj);
+                pd->registerObject(newObj);
                 cnv->patch.endUndoSequence("ObjectInConnection");
             } else {
                 // if 0 or several objects are selected, create new object at mouse position
-                cnv->objects.add(new Object(cnv, objectNames.at(ID), lastPosition));
+                auto newObj = new Object(cnv, objectNames.at(ID), lastPosition);
+                cnv->objects.add(newObj);
+                pd->registerObject(newObj);
             }
             cnv->deselectAll();
             if (auto obj = cnv->objects.getLast())

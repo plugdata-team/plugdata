@@ -6,7 +6,6 @@
 
 #include <juce_gui_extra/juce_gui_extra.h>
 #include "PluginEditor.h"
-#include "PluginProcessor.h" // TODO: We shouldn't need this!
 #include "Objects/ObjectBase.h"
 #include "Heavy/CompatibleObjects.h"
 #include "Utility/NanoVGGraphicsContext.h"
@@ -203,7 +202,7 @@ class SuggestionComponent : public Component
 
             auto backgroundColour = findColour(getToggleState() ? PlugDataColour::popupMenuActiveBackgroundColourId : PlugDataColour::popupMenuBackgroundColourId);
 
-            auto buttonArea = getLocalBounds().withTrimmedRight((parent->canBeTransparent() ? 42 : 2) + scrollbarIndent).toFloat().reduced(4, 1);
+            auto buttonArea = getLocalBounds().withTrimmedRight(2 + scrollbarIndent).toFloat().reduced(4, 1);
 
             g.setColour(backgroundColour);
             g.fillRoundedRectangle(buttonArea, Corners::defaultCornerRadius);
@@ -254,12 +253,14 @@ class SuggestionComponent : public Component
         SuggestionComponent* parent;
         bool drawIcon = true;
     };
+        
+    StackDropShadower stackDropShadow;
 
 public:
     SuggestionComponent()
-        : resizer(this, &constrainer)
+        : stackDropShadow(DropShadow(Colour(0, 0, 0).withAlpha(0.2f), 7, { 0, 1 }), Corners::largeCornerRadius)
+        , resizer(this, &constrainer)
         , currentObject(nullptr)
-        , windowMargin(canBeTransparent() ? 22 : 0)
     {
         // Set up the button list that contains our suggestions
         buttonholder = std::make_unique<Component>();
@@ -284,7 +285,7 @@ public:
         addAndMakeVisible(port.get());
 
         constrainer.setSizeLimits(150, 120, 500, 400);
-        setSize(310 + (2 * windowMargin), 140 + (2 * windowMargin));
+        setSize(310, 140);
 
         // resizer.setAllowHostManagedResize(false);
         addAndMakeVisible(resizer);
@@ -320,7 +321,6 @@ public:
         for (int i = 0; i < buttons.size(); i++) {
             auto* but = buttons[i];
             but->setAlwaysOnTop(true);
-
             but->onClick = [this, i, editor]() mutable {
                 // If the button is already selected, perform autocomplete
                 if (i == currentidx && autoCompleteComponent) {
@@ -337,7 +337,10 @@ public:
         }
 
         addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses);
-
+        if(canBeTransparent()) {
+            stackDropShadow.setOwner(this);
+        }
+        
         updateBounds();
 
         setVisible(false);
@@ -359,7 +362,7 @@ public:
 
         auto objectPos = currentObject->getScreenBounds().reduced(Object::margin).getBottomLeft() / scale;
 
-        setTopLeftPosition(objectPos.translated(-windowMargin, -windowMargin + 5));
+        setTopLeftPosition(objectPos.translated(0, 5));
 
         // If box is not contained in canvas bounds, hide suggestions
         if (cnv->viewport) {
@@ -404,7 +407,7 @@ public:
 
         if (numOptions == 0)
             return;
-
+        
         // Limit it to minimum of the number of buttons and the number of suggestions
         int numButtons = std::min(20, numOptions);
         currentidx = (currentidx + numButtons) % numButtons;
@@ -414,7 +417,7 @@ public:
         but->setToggleState(true, dontSendNotification);
         auto buttonText = but->getButtonText();
         
-        if (autoCompleteComponent && buttonText.startsWith(openedEditor->getText())) {
+        if (openedEditor && autoCompleteComponent && buttonText.startsWith(openedEditor->getText())) {
             autoCompleteComponent->setSuggestion(buttonText);
             autoCompleteComponent->enableAutocomplete(true);
             currentObject->updateBounds();
@@ -442,7 +445,7 @@ public:
 
     void resized() override
     {
-        auto b = getLocalBounds().reduced(windowMargin);
+        auto b = getLocalBounds();
 
         int yScroll = port->getViewPositionY();
         port->setBounds(b);
@@ -687,7 +690,11 @@ public:
             currentidx = -1;
         } else {
             found = sortSuggestions(currentText, found);
-            currentidx = 0;
+            if(currentText.isEmpty() || currentidx == -1 || !found[currentidx].startsWith(currentText)) {
+                currentidx = 0;
+                autoCompleteComponent->setSuggestion(found[0]);
+            }
+            buttons[currentidx]->setToggleState(true, dontSendNotification);
             autoCompleteComponent->enableAutocomplete(true);
         }
         
@@ -753,7 +760,7 @@ private:
 
     bool hitTest(int x, int y) override
     {
-        return getLocalBounds().reduced(windowMargin).contains(x, y);
+        return getLocalBounds().contains(x, y);
     }
 
     static bool canBeTransparent()
@@ -763,14 +770,8 @@ private:
 
     void paint(Graphics& g) override
     {
-        auto b = getLocalBounds().reduced(windowMargin);
-
         if (!canBeTransparent()) {
             g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
-        } else {
-            Path localPath;
-            localPath.addRoundedRectangle(b.toFloat().reduced(6.0f), Corners::defaultCornerRadius);
-            StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), 13, { 0, 1 });
         }
 
         g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
@@ -981,6 +982,4 @@ private:
         "else",
         "cyclone"
     };
-
-    int windowMargin;
 };

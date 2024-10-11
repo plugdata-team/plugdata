@@ -214,7 +214,7 @@ public:
                 { Icons::GlyphCanvas, "cnv", "(@keypress) Canvas", "Canvas", NewCanvas },
                 { Icons::GlyphFunction, "function", "Function", "Function", OtherObject },
                 { Icons::GlyphOscilloscope, "scope~", "Oscilloscope", "Scope", OtherObject },
-                { Icons::GlyphKeyboard, "#X obj 0 0 keyboard 16 80 4 2 0 0 empty empty", "Piano keyboard", "Keyboard", OtherObject },
+                { Icons::GlyphKeyboard, "keyboard", "Piano keyboard", "Keyboard", OtherObject },
                 { Icons::GlyphMessbox, "messbox", "ELSE Message box", "Messbox", OtherObject },
                 { Icons::GlyphBicoeff, "#X obj 0 0 bicoeff 450 150 peaking", "Bicoeff generator", "Bicoeff", OtherObject },
                 { Icons::GlyphVUMeter, "vu", "(@keypress) VU meter", "VU Meter", NewVUMeter },
@@ -368,6 +368,7 @@ public:
                 // GUI object default settings are in OjbectManager.h
                 { Icons::GlyphBang, "bng", "(@keypress) Bang", "Bang", NewBang },
                 { Icons::GlyphToggle, "tgl", "(@keypress) Toggle", "Toggle", NewToggle },
+                { Icons::GlyphKnob, "knob", "Knob", "Knob", OtherObject },
                 { Icons::GlyphVSlider, "vsl", "(@keypress) Vertical slider", "V. Slider", NewVerticalSlider },
                 { Icons::GlyphHSlider, "hsl", "(@keypress) Horizontal slider", "H. Slider", NewHorizontalSlider },
                 { Icons::GlyphVRadio, "vradio", "(@keypress) Vertical radio box", "V. Radio", NewVerticalRadio },

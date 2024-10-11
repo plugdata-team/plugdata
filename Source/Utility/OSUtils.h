@@ -47,6 +47,7 @@ struct OSUtils {
     static float MTLGetPixelScale(void* view);
     static void* MTLCreateView(void* parent, int x, int y, int width, int height);
     static void MTLDeleteView(void* view);
+    static void MTLSetVisible(void* view, bool shouldBeVisible);
 #endif
 #if JUCE_MAC
     class ScrollTracker {

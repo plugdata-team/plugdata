@@ -122,8 +122,9 @@ OSUtils::ScrollTracker::ScrollTracker()
 OSUtils::ScrollTracker::~ScrollTracker()
 {
     // Remove the observer when no longer needed
-    
-    [[NSNotificationCenter defaultCenter] removeObserver:static_cast<ScrollEventObserver*>(observer)];
+    auto* ob = static_cast<ScrollEventObserver*>(observer);
+    [[NSNotificationCenter defaultCenter] removeObserver:ob];
+    [ob dealloc];
 }
 
 float OSUtils::MTLGetPixelScale(void* view) {
@@ -162,11 +163,24 @@ void OSUtils::MTLDeleteView(void* view)
     [viewToRemove release];
 }
 
+void OSUtils::MTLSetVisible(void* view, bool shouldBeVisible)
+{
+    auto* viewToShow = reinterpret_cast<NSView*>(view);
+    [viewToShow setHidden:!shouldBeVisible];
+}
+
 
 #endif
 
 #if JUCE_IOS
 #import <UIKit/UIKit.h>
+
+void OSUtils::MTLSetVisible(void* view, bool shouldBeVisible)
+{
+    auto* viewToShow = reinterpret_cast<UIView*>(view);
+    [viewToShow setHidden:!shouldBeVisible];
+}
+
 
 OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 {
@@ -293,7 +307,9 @@ OSUtils::ScrollTracker::ScrollTracker(juce::ComponentPeer* peer)
 
 OSUtils::ScrollTracker::~ScrollTracker()
 {
-    // TODO: clean up!
+    auto* ob = static_cast<ScrollEventObserver*>(observer);
+    [[NSNotificationCenter defaultCenter] removeObserver:ob];
+    [ob dealloc];
 }
 
 
@@ -582,6 +598,8 @@ void OSUtils::showMobileCanvasMenu(juce::ComponentPeer* peer, std::function<void
 
 - (void)commonInit {
     self.metalLayer = (CAMetalLayer *)self.layer;
+    [self.metalLayer setPresentsWithTransaction:TRUE];
+    [self.metalLayer setFramebufferOnly:FALSE];
 }
 
 @end

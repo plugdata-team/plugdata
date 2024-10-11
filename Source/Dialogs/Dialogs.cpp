@@ -36,7 +36,6 @@
 #include "Canvas.h"
 #include "Connection.h"
 #include "Deken.h"
-
 #include "Standalone/PlugDataWindow.h"
 
 Dialog::Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWidth, int childHeight, bool showCloseButton, int margin)
@@ -46,29 +45,9 @@ Dialog::Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWi
     , owner(ownerPtr)
     , backgroundMargin(margin)
 {
-#if JUCE_LINUX || JUCE_BSD
-    addToDesktop(0);
-#else
-    addToDesktop(ComponentPeer::windowIsTemporary);
-#endif
-    setVisible(true);
-
-#if JUCE_IOS
+    parentComponent->addAndMakeVisible(this);
+    setBounds(0, 0, parentComponent->getWidth(), parentComponent->getHeight());
     setAlwaysOnTop(true);
-    toFront(false);
-#else
-    if (ProjectInfo::isStandalone) {
-        if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(parentComponent->getTopLevelComponent()))
-            mainWindow->dialog = SafePointer(this);
-        toFront(true);
-    } else {
-        setAlwaysOnTop(true);
-    }
-#endif
-    
-    setBounds(parentComponent->getScreenX(), parentComponent->getScreenY(), parentComponent->getWidth(), parentComponent->getHeight());
-    parentComponent->addComponentListener(this);
-    
     setWantsKeyboardFocus(true);
 
     if (showCloseButton) {
@@ -93,20 +72,12 @@ Dialog::Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWi
         }
         window->repaint();
     }
-}
-
-#if !JUCE_IOS
-void Dialog::mouseDrag(MouseEvent const& e)
-{
-    if (dragging) {
-        if (auto mainWindow = dynamic_cast<PlugDataWindow*>(parentComponent->getTopLevelComponent())) {
-            mainWindow->movedFromDialog = true;
-        }
-        dragger.dragWindow(parentComponent->getTopLevelComponent(), e, nullptr);
-        dragger.dragWindow(this, e, nullptr);
+    
+    if(auto* pluginEditor = dynamic_cast<PluginEditor*>(editor))
+    {
+        pluginEditor->nvgSurface.setRenderThroughImage(true);
     }
 }
-#endif
 
 bool Dialog::wantsRoundedCorners() const
 {
@@ -547,11 +518,9 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
     auto* editor = cnv->editor;
     auto params = object && object->gui ? object->gui->getParameters() : ObjectParameters();
-    bool canBeOpened = object && object->gui && object->gui->canOpenFromMenu();
 
     enum MenuOptions {
         Extra = 200,
-        Open,
         Help,
         Reference,
         ToFront,
@@ -574,8 +543,14 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
     popupMenu.addCustomItem(Extra, std::make_unique<QuickActionsBar>(editor), nullptr, "Quick Actions");
     popupMenu.addSeparator();
-
-    popupMenu.addItem(Open, "Open", object && !multiple && canBeOpened); // for opening subpatches
+    
+    if(!multiple && object && object->gui)
+    {
+        object->gui->getMenuOptions(popupMenu);
+    }
+    else {
+        popupMenu.addItem(-1, "Open", false);
+    }
 
     popupMenu.addSeparator();
     popupMenu.addItem(Help, "Help", hasSelection && !multiple);
@@ -718,9 +693,6 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             object->repaint();
 
         switch (result) {
-        case Open: // Open subpatch
-            object->gui->openFromMenu();
-            break;
         case ToFront: {
             auto objects = cnv->patch.getObjects();
 
@@ -855,7 +827,7 @@ void Dialogs::showOpenDialog(std::function<void(URL)> const& callback, bool canS
 #if JUCE_IOS
     fileChooser = std::make_unique<FileChooser>("Choose file to open...", initialFile, "*", nativeDialog, false, parentComponent);
 #else
-    fileChooser = std::make_unique<FileChooser>("Choose file to open...", initialFile, extension, nativeDialog, false, parentComponent);
+    fileChooser = std::make_unique<FileChooser>("Choose file to open...", initialFile, extension, nativeDialog, false, nullptr);
 #endif
     auto openChooserFlags = FileBrowserComponent::openMode;
 
@@ -884,8 +856,11 @@ void Dialogs::showSaveDialog(std::function<void(URL)> const& callback, String co
     if (!initialFile.exists())
         initialFile = ProjectInfo::appDataDir;
 
+#if JUCE_IOS
     fileChooser = std::make_unique<FileChooser>("Choose save location...", initialFile, extension, nativeDialog, false, parentComponent);
-
+#else
+    fileChooser = std::make_unique<FileChooser>("Choose save location...", initialFile, extension, nativeDialog, false, nullptr);
+#endif
     auto saveChooserFlags = FileBrowserComponent::saveMode;
 
     if (directoryMode) {

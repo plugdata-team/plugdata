@@ -13,11 +13,6 @@ class ListObject final : public ObjectBase, public KeyListener{
     Value max = SynchronousValue(0.0f);
     Value sizeProperty = SynchronousValue();
 
-    NVGcolor backgroundColour;
-    NVGcolor selectedOutlineColour;
-    Colour selectedOutlineCol;
-    NVGcolor outlineColour;
-
     bool editorActive = false;
 
 public:
@@ -91,7 +86,7 @@ public:
         setParameterExcludingListener(sizeProperty, atomHelper.getWidthInChars());
     }
 
-    void valueChanged(Value& value) override
+    void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
             auto* constrainer = getConstrainer();
@@ -116,22 +111,9 @@ public:
 
     void updateFromGui(bool force = false)
     {
-        auto array = StringArray();
-        array.addTokens(listLabel.getText(), true);
-        std::vector<pd::Atom> list;
-        list.reserve(array.size());
-        for (auto const& elem : array) {
-            auto charptr = elem.getCharPointer();
-            auto numptr = charptr;
-            auto value = CharacterFunctions::readDoubleValue(numptr);
-
-            if (numptr - charptr == elem.getNumBytesAsUTF8()) {
-                list.emplace_back(value);
-            } else {
-                list.emplace_back(pd->generateSymbol(elem));
-            }
-        }
-        if (force || list != getList()) {
+        auto text = listLabel.getText();
+        if (force || text != getListText()) {
+            std::vector<pd::Atom> list = pd::Atom::atomsFromString(text);
             setList(list);
         }
     }
@@ -177,15 +159,22 @@ public:
         auto b = getLocalBounds().toFloat();
         auto sb = b.reduced(0.5f);
 
-        nvgDrawRoundedRect(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(), backgroundColour, backgroundColour, Corners::objectCornerRadius);
+        // Draw background
+        nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
+                                cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol,
+                                Corners::objectCornerRadius, ObjectFlagType::FlagTopBottom, PlugDataLook::getUseFlagOutline());
 
-        imageRenderer.renderJUCEComponent(nvg, listLabel, getImageScale());
+        listLabel.render(nvg);
 
-        // draw flag
+        // Draw outline & flag
         bool highlighted = editorActive && getValue<bool>(object->locked);
-        atomHelper.drawTriangleFlag(nvg, highlighted, true);
+        auto flagCol = highlighted ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol;
+        auto outlineCol = object->isSelected() || editorActive ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBAf(0, 0, 0, 0), (object->isSelected() || highlighted) ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        // Fill the internal of the shape with transparent colour, draw outline & flag with shader
+        nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
+                                nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
+                                Corners::objectCornerRadius, ObjectFlagType::FlagTopBottom, PlugDataLook::getUseFlagOutline());
     }
 
     void lookAndFeelChanged() override
@@ -193,11 +182,6 @@ public:
         listLabel.setColour(Label::textWhenEditingColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
         listLabel.setColour(Label::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
         listLabel.setColour(TextEditor::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
-
-        backgroundColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
-        selectedOutlineCol = cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId);
-        selectedOutlineColour = convertColour(selectedOutlineCol);
-        outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 
         repaint();
     }
@@ -232,25 +216,22 @@ public:
     void updateValue()
     {
         if (!listLabel.isBeingEdited()) {
-            auto const array = getList();
-            String message;
-            for (auto const& atom : array) {
-                if (message.isNotEmpty()) {
-                    message += " ";
-                }
-
-                message += atom.toString();
-            }
-            listLabel.setText(message, NotificationType::dontSendNotification);
+            auto const listText = getListText();
+            listLabel.setText(listText, NotificationType::dontSendNotification);
         }
     }
 
-    std::vector<pd::Atom> getList() const
+    String getListText() const
     {
         if (auto gatom = ptr.get<t_fake_gatom>()) {
-            int ac = binbuf_getnatom(gatom->a_text.te_binbuf);
-            t_atom* av = binbuf_getvec(gatom->a_text.te_binbuf);
-            return pd::Atom::fromAtoms(ac, av);
+            char* text;
+            int size;
+            binbuf_gettext(gatom->a_text.te_binbuf, &text, &size);
+            
+            auto result = String::fromUTF8(text, size);
+            freebytes(text, size);
+            
+            return result;
         }
 
         return {};
@@ -264,7 +245,7 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-        if (getValue<bool>(object->locked) && !e.mouseWasDraggedSinceMouseDown()) {
+        if (getValue<bool>(object->locked) && !e.mouseWasDraggedSinceMouseDown() && isShowing()) {
 
             listLabel.showEditor();
         }

@@ -21,6 +21,7 @@ public:
     File customLinker;
 
     TextButton flashButton = TextButton("Flash");
+    TextButton flashBootloaderButton = TextButton("Bootloader");
     PropertiesPanelProperty* usbMidiProperty;
     PropertiesPanelProperty* appTypeProperty;
 
@@ -29,7 +30,7 @@ public:
     {
         Array<PropertiesPanelProperty*> properties;
         properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "Pod", "Petal", "Patch", "Patch.Init()", "Field", "Versio", "Terrarium", "Hothouse", "Simple", "Custom JSON..." }));
-        properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary", "Flash" }));
+        properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary", "Flash", "Flash Bootloader" }));
         usbMidiProperty = new PropertiesPanel::BoolComponent("USB MIDI", usbMidiValue, { "No", "Yes" });
         properties.add(usbMidiProperty);
         properties.add(new PropertiesPanel::BoolComponent("Debug printing", debugPrintValue, { "No", "Yes" }));
@@ -51,11 +52,16 @@ public:
 
         exportButton.setVisible(false);
         addAndMakeVisible(flashButton);
+        addAndMakeVisible(flashBootloaderButton);
 
         auto backgroundColour = findColour(PlugDataColour::panelBackgroundColourId);
         flashButton.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
         flashButton.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
         flashButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+
+        flashBootloaderButton.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+        flashBootloaderButton.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
+        flashBootloaderButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
 
         exportTypeValue.addListener(this);
         targetBoardValue.addListener(this);
@@ -70,6 +76,27 @@ public:
             auto tempFolder = File::getSpecialLocation(File::tempDirectory).getChildFile("Heavy-" + Uuid().toString().substring(10));
             Toolchain::deleteTempFileLater(tempFolder);
             startExport(tempFolder);
+        };
+
+        flashBootloaderButton.onClick = [this, exportingView]() {
+            addJob([this, exportingView]() mutable {
+                exportingView->monitorProcessOutput(this);
+                exportingView->showState(ExportingProgressView::Flashing);
+
+                auto bin = Toolchain::dir.getChildFile("bin");
+                auto make = bin.getChildFile("make" + exeSuffix);
+                auto const& gccPath = bin.getFullPathName();
+                auto sourceDir = Toolchain::dir.getChildFile("lib").getChildFile("libdaisy").getChildFile("core");
+
+                int result = flashBootloader(bin, sourceDir, make, gccPath);
+                
+                exportingView->showState(result ? ExportingProgressView::BootloaderFlashFailure : ExportingProgressView::BootloaderFlashSuccess);
+                exportingView->stopMonitoring();
+
+                MessageManager::callAsync([this]() {
+                    repaint();
+                });
+            });
         };
     }
 
@@ -116,6 +143,7 @@ public:
     {
         ExporterBase::resized();
         flashButton.setBounds(exportButton.getBounds());
+        flashBootloaderButton.setBounds(exportButton.getBounds());
     }
 
     void valueChanged(Value& v) override
@@ -127,6 +155,10 @@ public:
         bool flash = getValue<int>(exportTypeValue) == 3;
         exportButton.setVisible(!flash);
         flashButton.setVisible(flash);
+
+        bool flashBootloader = getValue<int>(exportTypeValue) == 4;
+        exportButton.setVisible(!flashBootloader);
+        flashBootloaderButton.setVisible(flashBootloader);
 
         bool debugPrint = getValue<int>(debugPrintValue);
         usbMidiProperty->setEnabled(!debugPrint);
@@ -172,6 +204,32 @@ public:
                     true, false, "*.lds", "DaisyCustomLinker", nullptr);
             }
         }
+    }
+
+    int flashBootloader(auto bin, auto sourceDir, auto make, auto gccPath)
+    {
+        exportingView->logToConsole("Flashing bootloader...\n");
+
+#if JUCE_WINDOWS
+        String bootloaderScript = "export PATH=\"" + bin.getFullPathName().replaceCharacter('\\', '/') + ":$PATH\"\n"
+            + "cd " + sourceDir.getFullPathName().replaceCharacter('\\', '/') + "\n"
+            + make.getFullPathName().replaceCharacter('\\', '/') + " program-boot"
+            + " GCC_PATH=" + gccPath.replaceCharacter('\\', '/');
+#else
+        String bootloaderScript = "export PATH=\"" + bin.getFullPathName() + ":$PATH\"\n"
+            + "cd " + sourceDir.getFullPathName() + "\n"
+            + make.getFullPathName() + " program-boot"
+            + " GCC_PATH=" + gccPath;
+#endif
+
+        Toolchain::startShellScript(bootloaderScript, this);
+
+        waitForProcessToFinish(-1);
+        exportingView->flushConsole();
+
+        Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 900);
+        
+        return getExitCode();
     }
 
     bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
@@ -333,6 +391,7 @@ public:
             Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
 
             auto compileExitCode = getExitCode();
+            int bootloaderExitCode = 0;
             if (flash && !compileExitCode) {
 
                 auto dfuUtil = bin.getChildFile("dfu-util" + exeSuffix);
@@ -358,32 +417,9 @@ public:
                     Toolchain runTest;
                     auto output = runTest.startShellScriptWithOutput(testBootloaderScript);
                     bool bootloaderNotFound = output.contains("alt=1");
-
                     if (bootloaderNotFound) {
                         exportingView->logToConsole("Bootloader not found...\n");
-                        exportingView->logToConsole("Flashing bootloader...\n");
-
-#if JUCE_WINDOWS
-                        String bootloaderScript = "export PATH=\"" + bin.getFullPathName().replaceCharacter('\\', '/') + ":$PATH\"\n"
-                            + "cd " + sourceDir.getFullPathName().replaceCharacter('\\', '/') + "\n"
-                            + make.getFullPathName().replaceCharacter('\\', '/') + " program-boot"
-                            + " GCC_PATH=" + gccPath.replaceCharacter('\\', '/')
-                            + " PROJECT_NAME=" + name;
-#else
-                        String bootloaderScript = "export PATH=\"" + bin.getFullPathName() + ":$PATH\"\n"
-                            + "cd " + sourceDir.getFullPathName() + "\n"
-                            + make.getFullPathName() + " program-boot"
-                            + " GCC_PATH=" + gccPath
-                            + " PROJECT_NAME=" + name;
-#endif
-
-                        Toolchain::startShellScript(bootloaderScript, this);
-
-                        waitForProcessToFinish(-1);
-                        exportingView->flushConsole();
-
-                        Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 900);
-
+                        bootloaderExitCode = flashBootloader(bin, sourceDir, make, gccPath);
                     } else {
                         exportingView->logToConsole("Bootloader found...\n");
                     }
@@ -415,7 +451,7 @@ public:
 
                 auto flashExitCode = getExitCode();
 
-                return heavyExitCode && flashExitCode;
+                return heavyExitCode && flashExitCode && bootloaderExitCode;
             } else {
                 auto binLocation = outputFile.getChildFile(name + ".bin");
                 sourceDir.getChildFile("build").getChildFile("HeavyDaisy_" + name + ".bin").moveFileTo(binLocation);

@@ -6,8 +6,8 @@
 
 #if ENABLE_GEM
 
-#    include <juce_opengl/juce_opengl.h>
-#    include <Gem/src/Base/GemJUCEContext.h>
+#include <juce_opengl/juce_opengl.h>
+#include <Gem/src/Base/GemJUCEContext.h>
 
 void triggerMotionEvent(int x, int y);
 void triggerButtonEvent(int which, int state, int x, int y);
@@ -64,8 +64,6 @@ public:
             sys_unlock();
         };
 
-        setBounds(bounds);
-
         setOpaque(true);
         openGLContext.setSwapInterval(0);
         openGLContext.setMultisamplingEnabled(true);
@@ -78,10 +76,20 @@ public:
         startTimerHz(30);
 
         if (border) {
+#if JUCE_WINDOWS
+            addToDesktop(ComponentPeer::windowHasTitleBar | ComponentPeer::windowHasDropShadow | ComponentPeer::windowIsResizable);
+
+#else
             addToDesktop(ComponentPeer::windowHasTitleBar | ComponentPeer::windowHasDropShadow | ComponentPeer::windowIsResizable | ComponentPeer::windowHasMinimiseButton | ComponentPeer::windowHasMaximiseButton);
+#endif
         } else {
             addToDesktop(0);
         }
+
+#if JUCE_WINDOWS
+        bounds = bounds.translated(10, 30);
+#endif
+        setBounds(bounds);
 
         setVisible(true);
 
@@ -172,8 +180,19 @@ public:
     {
         libpd_set_instance(instance);
     }
+    
+    void checkThread()
+    {
+      auto currentThread = Thread::getCurrentThreadId();
+      if(activeThread != currentThread)
+      {
+        openGLContext.initialiseOnThread();
+        activeThread = currentThread;
+      }
+    }
 
     OpenGLContext openGLContext;
+    Thread::ThreadID activeThread;
     t_pdinstance* instance;
     Array<KeyPress> heldKeys;
 
@@ -199,6 +218,7 @@ bool gemWinSetCurrent()
         return false;
 
     if (auto& window = gemJUCEWindow.at(libpd_this_instance())) {
+        window->checkThread();
         window->openGLContext.makeActive();
         return true;
     }
@@ -212,6 +232,7 @@ void gemWinUnsetCurrent()
 }
 
 // window/context creation&destruction
+
 bool initGemWin()
 {
     return true;
@@ -223,7 +244,7 @@ int createGemWindow(WindowInfo& info, WindowHints& hints)
     gemJUCEWindow[window->instance].reset(window);
     info.window[window->instance] = window;
 
-
+    window->checkThread();
     window->openGLContext.makeActive();
 
     info.context[window->instance] = &window->openGLContext;
@@ -252,8 +273,8 @@ void destroyGemWindow(WindowInfo& info)
 {
     if (auto* window = info.getWindow()) {
         GemCallOnMessageThread([window, &info]() {
-            window->removeFromDesktop();
             window->openGLContext.detach();
+            window->removeFromDesktop();
             info.window.erase(window->instance);
             info.context.erase(window->instance);
             gemJUCEWindow[window->instance].reset(nullptr);
@@ -274,13 +295,15 @@ void gemWinSwapBuffers(WindowInfo& info)
     if (auto* context = info.getContext()) {
         context->makeActive();
         context->swapBuffers();
-        initGemWindow(); // If we don't put this here, the background doens't get filled, but there must be a better way?
+        initGemWindow(); // This isn't as bad as it seems, it just resets the openGL state
     }
 }
 void gemWinMakeCurrent(WindowInfo& info)
 {
     if (auto* context = info.getContext()) {
-        context->initialiseOnThread();
+        if (auto* window = info.getWindow()) {
+            window->checkThread();
+        }
         context->makeActive();
     }
 }
@@ -312,4 +335,5 @@ int topmostGemWindow(WindowInfo& info, int state)
         info.getWindow()->toFront(true);
     return state;
 }
+
 #endif

@@ -20,7 +20,7 @@ using namespace juce::gl;
 #include "PluginProcessor.h"
 #include "PluginEditor.h" // might not need this?
 #include "Pd/Patch.h"
-#include "Dialogs/ConnectionMessageDisplay.h"
+#include "Components/ConnectionMessageDisplay.h"
 
 Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     : NVGComponent(this)
@@ -111,13 +111,6 @@ Connection::~Connection()
     if (inobj) {
         inobj->removeComponentListener(this);
     }
-
-    auto* nvg = cnv->editor->nvgSurface.getRawContext();
-    if (nvg && cacheId >= 0)
-        nvgDeletePath(nvg, cacheId);
-    if (nvg && cacheId >= 0 && cableType == SignalCable) {
-        nvgDeletePath(nvg, std::numeric_limits<int32_t>::max() - cacheId);
-    }
 }
 
 void Connection::changeListenerCallback(ChangeBroadcaster* source)
@@ -128,51 +121,45 @@ void Connection::changeListenerCallback(ChangeBroadcaster* source)
 
 void Connection::lookAndFeelChanged()
 {
-    baseColour = convertColour(findColour(PlugDataColour::connectionColourId));
-    dataColour = convertColour(findColour(PlugDataColour::dataColourId));
-    signalColour = convertColour(findColour(PlugDataColour::signalColourId));
-    handleColour = outlet->isSignal ? dataColour : signalColour;
+    handleColour = outlet->isSignal ? cnv->dataCol : cnv->sigCol;
     shadowColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.06f).withAlpha(0.24f));
     outlineColour = convertColour(findColour(PlugDataColour::objectOutlineColourId));
-    gemColour = convertColour(findColour(PlugDataColour::gemColourId));
 
     textColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting());
 
     if (connectionStyle != PlugDataLook::getConnectionStyle()){
         connectionStyle = PlugDataLook::getConnectionStyle();
-        cachedIsValid = false;
+        cachedPath.clear();
     }
 
     updatePath();
     repaint();
 }
 
-void Connection::render(NVGcontext* nvg)
+NVGcolor Connection::getConnectionColour()
 {
-    connectionColour = baseColour;
     if (isSelected() || isHovering) {
         if (outlet->isSignal) {
-            connectionColour = signalColour;
+            return isHovering ? cnv->sigColBrighter : cnv->sigCol;
         } else if (outlet->isGemState) {
-            connectionColour = gemColour;
+            return isHovering ? cnv->gemColBrigher : cnv->gemCol;
         } else {
-            connectionColour = dataColour;
+            return isHovering ? cnv->dataColBrighter : cnv->dataCol;
         }
     }
+    return cnv->baseCol;
+}
 
-    if (isHovering) {
-        connectionColour.r *= 1.2f;
-        connectionColour.g *= 1.2f;
-        connectionColour.b *= 1.2f;
-    }
-
+void Connection::render(NVGcontext* nvg)
+{
+    auto connectionColour = getConnectionColour();
     nvgSave(nvg);
     nvgTranslate(nvg, getX(), getY());
 
     bool isSignalCable = cableType == SignalCable && connectionStyle != PlugDataLook::ConnectionStyleVanilla;
     auto dashColor = shadowColour;
     if (isSignalCable){
-        dashColor.a = 1.0f;
+        dashColor.a = 255;
         dashColor.r *= 0.4f;
         dashColor.g *= 0.4f;
         dashColor.b *= 0.4f;
@@ -204,22 +191,18 @@ void Connection::render(NVGcontext* nvg)
     auto showActivity = cableType == DataCable && cnv->shouldShowConnectionActivity();
     nvgStrokePaint(nvg, nvgDoubleStroke(nvg, connectionColour, shadowColour, dashColor, dashSize, useGradientLook, showActivity, offset));
     nvgStrokeWidth(nvg, cableThickness);
-
-    if (!cachedIsValid)
-        nvgDeletePath(nvg, cacheId);
     
-    bool cacheHit = nvgStrokeCachedPath(nvg, cacheId);
+    bool cacheHit = cachedPath.stroke();
     if (!cacheHit) {
         auto pathFromOrigin = getPath();
         pathFromOrigin.applyTransform(AffineTransform::translation(-getX(), -getY()));
 
         setJUCEPath(nvg, pathFromOrigin);
         nvgStroke(nvg);
-        cacheId = nvgSavePath(nvg, cacheId);
+        cachedPath.save(nvg);
     }
     
     nvgRestore(nvg);
-    cachedIsValid = true;
 
     if (isSelected() && isHovering) {
         auto expandedStartHandle = isInStartReconnectHandle ? startReconnectHandle.expanded(3.0f) : startReconnectHandle;
@@ -252,7 +235,7 @@ void Connection::render(NVGcontext* nvg)
     float const arrowWidth = 8.0f;
     float const arrowLength = 12.0f;
 
-    auto renderArrow = [this, nvg, arrowLength, arrowWidth](Path& path, float connectionLength) {
+    auto renderArrow = [this, nvg, arrowLength, arrowWidth, connectionColour](Path& path, float connectionLength) {
         // get the center point of the connection path
 
         const auto arrowCenter = connectionLength * 0.5f;
@@ -322,7 +305,7 @@ void Connection::render(NVGcontext* nvg)
     for (auto point : getCubicBezierControlPoints()) {
         nvgBeginPath(nvg);
         nvgCircle(nvg, point.x, point.y, 0.5f);
-        nvgFillColor(nvg, nvgRGBAf(1,0,0,1));
+        nvgFillColor(nvg, nvgRGBA(255,0,0,255));
         nvgFill(nvg);
     }
 #endif
@@ -337,7 +320,7 @@ void Connection::renderConnectionOrder(NVGcontext* nvg)
         // circle background
         nvgBeginPath(nvg);
         nvgStrokeColor(nvg, outlineColour);
-        nvgFillColor(nvg, connectionColour);
+        nvgFillColor(nvg, getConnectionColour());
         auto const radius = 7.0f;
         auto const diameter = radius * 2.0f;
         auto const circleTopLeft = pos - Point<float>(radius, radius);
@@ -500,14 +483,9 @@ bool Connection::intersects(Rectangle<float> toCheck, int accuracy) const
     return false;
 }
 
-void Connection::forceUpdate(bool updateCacheOnly)
+void Connection::forceUpdate()
 {
-    if (updateCacheOnly) {
-        cachedIsValid = false;
-    } else {
-        updatePath();
-    }
-
+    updatePath();
     repaint();
 }
 
@@ -652,7 +630,7 @@ void Connection::mouseEnter(MouseEvent const& e)
     if (plugdata_debugging_enabled()) {
         Point<float> nearest;
         getPath().getNearestPoint(cnv->getLocalPoint(this, e.position), nearest);
-        cnv->editor->connectionMessageDisplay->setConnection(this, cnv->localPointToGlobal(nearest).roundToInt().translated(60, 15));
+        cnv->editor->connectionMessageDisplay->setConnection(this, cnv->localPointToGlobal(nearest).roundToInt().translated(20, 15));
     }
     repaint();
 }
@@ -891,7 +869,7 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     }
 
     previousPStart = pstart;
-    cachedIsValid = false;
+    cachedPath.clear();
 
     if (currentPlan.size() <= 2) {
         updatePath();
@@ -1124,7 +1102,7 @@ void Connection::updatePath()
     clipRegion.add(startReconnectHandle.toNearestIntEdges().expanded(4));
     clipRegion.add(endReconnectHandle.toNearestIntEdges().expanded(4));
 
-    cachedIsValid = false;
+    cachedPath.clear();
 }
 
 bool Connection::intersectsRectangle(Rectangle<int> rectToIntersect)

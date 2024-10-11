@@ -94,7 +94,7 @@ class AboutPanel : public Component {
 
             Path firstShadowPath;
             firstShadowPath.addRoundedRectangle(Rectangle<int>(bounds.getX(), bounds.getY(), bounds.getWidth(), contributors.size() * 48).reduced(4), Corners::largeCornerRadius);
-            StackShadow::renderDropShadow(g, firstShadowPath, Colour(0, 0, 0).withAlpha(0.32f), 8);
+            StackShadow::renderDropShadow(hash("credits_panel"), g, firstShadowPath, Colour(0, 0, 0).withAlpha(0.32f), 8);
 
             for (int i = 0; i < contributors.size(); i++) {
                 auto rowBounds = bounds.removeFromTop(48);
@@ -122,7 +122,7 @@ class AboutPanel : public Component {
 
             Path secondShadowPath;
             secondShadowPath.addRoundedRectangle(Rectangle<int>(bounds.getX(), bounds.getY(), bounds.getWidth(), sponsors.size() * 32).reduced(4), Corners::largeCornerRadius);
-            StackShadow::renderDropShadow(g, secondShadowPath, Colour(0, 0, 0).withAlpha(0.32f), 8);
+            StackShadow::renderDropShadow(hash("credits_panel"), g, secondShadowPath, Colour(0, 0, 0).withAlpha(0.32f), 8);
             for (int i = 0; i < sponsors.size(); i++) {
                 auto rowBounds = bounds.removeFromTop(36);
                 auto first = i == 0;
@@ -279,7 +279,7 @@ public:
         for (auto& shadow : std::vector<Rectangle<int>> { viewWebsite.getBounds().getUnion(viewOnGithub.getBounds()), reportIssue.getBounds(), sponsor.getBounds(), showCredits.getBounds().getUnion(showLicense.getBounds()) }) {
             Path shadowPath;
             shadowPath.addRoundedRectangle(shadow.reduced(4), Corners::largeCornerRadius);
-            StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.32f), 8);
+            StackShadow::renderDropShadow(hash("about_panel"), g, shadowPath, Colour(0, 0, 0).withAlpha(0.32f), 8);
         }
 
         backButton.setBounds(2, 0, 40, 40);

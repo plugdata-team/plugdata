@@ -16,6 +16,9 @@ class BangObject final : public ObjectBase {
 
     IEMHelper iemHelper;
 
+    NVGcolor bgCol;
+    NVGcolor fgCol;
+
 public:
     BangObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
@@ -23,6 +26,11 @@ public:
     {
         onConstrainerCreate = [this]() {
             constrainer->setFixedAspectRatio(1);
+        };
+
+        iemHelper.iemColourChangedCallback = [this](){
+            bgCol = convertColour(getValue<Colour>(iemHelper.secondaryColour));
+            fgCol = convertColour(getValue<Colour>(iemHelper.primaryColour));
         };
 
         objectParameters.addParamSize(&sizeProperty, true);
@@ -107,16 +115,7 @@ public:
     {
         auto b = getLocalBounds().toFloat();
 
-        auto foregroundColour = convertColour(getValue<Colour>(iemHelper.primaryColour)); // TODO: this is some bad threading practice!
-
-        auto bgColour = getValue<Colour>(iemHelper.secondaryColour);
-
-        auto backgroundColour = convertColour(bgColour);
-        auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
-        auto internalLineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour));
-
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), bgCol, object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
 
         b = b.reduced(1);
         auto const width = std::max(b.getWidth(), b.getHeight());
@@ -129,20 +128,15 @@ public:
         auto outerCircleBounds = b.reduced((width - circleOuter) * sizeReduction);
 
         nvgBeginPath(nvg);
-        nvgCircle(nvg, b.getCentreX(), b.getCentreY(),
-            outerCircleBounds.getWidth() / 2.0f);
-        nvgStrokeColor(nvg, internalLineColour);
+        nvgCircle(nvg, b.getCentreX(), b.getCentreY(), outerCircleBounds.getWidth() / 2.0f);
+        nvgStrokeColor(nvg, cnv->guiObjectInternalOutlineCol);
         nvgStrokeWidth(nvg, circleThickness);
         nvgStroke(nvg);
 
         // Fill ellipse if bangState is true
         if (bangState) {
-            auto innerCircleBounds = b.reduced((width - circleOuter + circleThickness) * sizeReduction);
-            nvgBeginPath(nvg);
-            nvgCircle(nvg, b.getCentreX(), b.getCentreY(),
-                innerCircleBounds.getWidth() / 2.0f);
-            nvgFillColor(nvg, foregroundColour);
-            nvgFill(nvg);
+            auto iCB = b.reduced((width - circleOuter + circleThickness) * sizeReduction);
+            nvgDrawRoundedRect(nvg, iCB.getX(), iCB.getY(), iCB.getWidth(), iCB.getHeight(), fgCol, fgCol, iCB.getWidth() * 0.5f);
         }
     }
 
@@ -190,7 +184,7 @@ public:
         }
     }
 
-    void valueChanged(Value& value) override
+    void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
             auto* constrainer = getConstrainer();

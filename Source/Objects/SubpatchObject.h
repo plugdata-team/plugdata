@@ -21,7 +21,7 @@ public:
         MessageManager::callAsync([_this = SafePointer(this)]() {
             if (_this) {
                 _this->update();
-                _this->valueChanged(_this->isGraphChild);
+                _this->propertyChanged(_this->isGraphChild);
             }
         });
         
@@ -81,11 +81,11 @@ public:
         return subpatch;
     }
 
-    void valueChanged(Value& v) override
+    void propertyChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(sizeProperty)) {
             // forward the value change to the text object
-            TextBase::valueChanged(v);
+            TextBase::propertyChanged(v);
         } else if (v.refersToSameSourceAs(isGraphChild)) {
             int isGraph = getValue<bool>(isGraphChild);
             if (auto glist = ptr.get<t_glist>()) {
@@ -122,14 +122,9 @@ public:
         }
     }
 
-    bool canOpenFromMenu() override
+    void getMenuOptions(PopupMenu& menu) override
     {
-        return true;
-    }
-
-    void openFromMenu() override
-    {
-        openSubpatch();
+        menu.addItem("Open", [_this = SafePointer(this)](){ if(_this) _this->openSubpatch(); });
     }
 
     bool showParametersWhenSelected() override

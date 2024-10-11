@@ -195,15 +195,22 @@ public:
         auto b = getLocalBounds().toFloat();
         auto sb = b.reduced(0.5f);
 
-        nvgDrawRoundedRect(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(), backgroundColour, backgroundColour, Corners::objectCornerRadius);
+        // Draw background
+        nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
+                              cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol,
+                              Corners::objectCornerRadius, ObjectFlagType::FlagTop, PlugDataLook::getUseFlagOutline());
 
         input.render(nvg);
 
         // draw flag
-        bool active = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
-        atomHelper.drawTriangleFlag(nvg, active);
+        bool highlighted = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
+        auto flagCol = highlighted ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol;
+        auto outlineCol = object->isSelected() || hasKeyboardFocus(true) ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBAf(0, 0, 0, 0), (active || object->isSelected()) ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        // Fill the internal of the shape with transparent colour, draw outline & flag with shader
+        nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
+                              nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
+                              Corners::objectCornerRadius, ObjectFlagType::FlagTop, PlugDataLook::getUseFlagOutline());
     }
 
     void updateLabel() override
@@ -238,7 +245,7 @@ public:
         input.setResetEnabled(::getValue<bool>(cnv->locked));
     }
 
-    void valueChanged(Value& value) override
+    void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
             auto width = ::getValue<int>(sizeProperty);

@@ -64,39 +64,12 @@ Object::Object(pd::WeakReference object, Canvas* parent)
     initialise();
 
     setType("", object);
-
-    if (auto obj = object.get<t_object>()) {
-        String objectName = obj.ptr->te_g.g_pd->c_name->s_name;
-        updateObjectActivityPolicy(objectName);
-    }
 }
 
 Object::~Object()
 {
     hideEditor(); // Make sure the editor is not still open, that could lead to issues with listeners attached to the editor (i.e. suggestioncomponent)
     cnv->selectedComponents.removeChangeListener(this);
-}
-
-void Object::updateObjectActivityPolicy(String objectName)
-{
-    switch(hash(objectName)){
-        case hash("r"):
-        case hash("receive"):
-        case hash("s"):
-        case hash("send"):
-            // Symbol objects trigger their own activity and recursively activate within GOPs
-            objectActivityPolicy = ObjectActivityPolicy::Recursive;
-            break;
-        case hash("inlet"):
-        case hash("outlet"):
-            // Iolets trigger activity of themselves and parent GOP only
-            objectActivityPolicy = ObjectActivityPolicy::Parent;
-            break;
-        default:
-            // All other objects trigger their own activity only
-            objectActivityPolicy = ObjectActivityPolicy::Self;
-            break;
-    }
 }
 
 Rectangle<int> Object::getObjectBounds()
@@ -130,7 +103,8 @@ void Object::initialise()
     presentationMode.referTo(cnv->presentationMode);
 
     hvccMode.referTo(SettingsFile::getInstance()->getValueTree(), Identifier("hvcc_mode"), nullptr, false);
-
+    patchDownwardsOnly.referTo(SettingsFile::getInstance()->getValueTree(), Identifier("patch_downwards_only"), nullptr);
+    
     presentationMode.addListener(this);
     locked.addListener(this);
     commandLocked.addListener(this);
@@ -301,31 +275,50 @@ void Object::applyBounds()
     std::map<SafePointer<Object>, Rectangle<int>> newObjectSizes;
     for (auto* obj : cnv->getSelectionOfType<Object>())
         newObjectSizes[obj] = obj->getObjectBounds();
-
+    
+    auto positionOffset = gui ? (getBounds().reduced(margin).getPosition() - cnv->canvasOrigin) - gui->getPdBounds().getPosition() : Point<int>(0, 0);
     auto* patch = &cnv->patch;
 
     auto* patchPtr = cnv->patch.getPointer().get();
     if (!patchPtr)
         return;
-
+    
     cnv->pd->lockAudioThread();
-    patch->startUndoSequence("Resize");
+    if(ds.wasResized || ds.wasDragDuplicated)
+    {
+        patch->startUndoSequence("Resize");
 
-    for (auto& [object, bounds] : newObjectSizes) {
-        if (object->gui)
-            object->gui->setPdBounds(bounds);
+        for (auto& [object, bounds] : newObjectSizes) {
+            if (object->gui)
+                object->gui->setPdBounds(bounds);
+        }
+
+        canvas_dirty(patchPtr, 1);
+
+        patch->endUndoSequence("Resize");
     }
+    else if(ds.didStartDragging)
+    {
+        patch->startUndoSequence("Move");
+        std::vector<t_gobj*> objects;
+        for (auto* obj : cnv->getSelectionOfType<Object>())
+        {
+            if(auto* ptr = obj->getPointer())
+            {
+                objects.push_back(ptr);
+            }
+        }
+        
+        cnv->patch.moveObjects(objects, positionOffset.x, positionOffset.y);
+        patch->endUndoSequence("Move");
+    }
+    cnv->pd->unlockAudioThread();
 
-    canvas_dirty(patchPtr, 1);
-
-    patch->endUndoSequence("Resize");
-
+    
     MessageManager::callAsync([editor = SafePointer(this->editor)] {
         if (editor)
             editor->updateCommandStatus();
     });
-
-    cnv->pd->unlockAudioThread();
 }
 void Object::updateBounds()
 {
@@ -353,10 +346,10 @@ void Object::updateBounds()
 
 void Object::setType(String const& newType, pd::WeakReference existingObject)
 {
+    // Unregister the PD pointer to this graphical object as the pointer will be changed
+    cnv->pd->unregisterObject(this);
     // Change object type
     String type = newType.upToFirstOccurrenceOf(" ", false, false);
-
-    updateObjectActivityPolicy(type);
 
     pd::WeakReference objectPtr = nullptr;
     // "exists" indicates that this object already exists in pd
@@ -452,6 +445,8 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
     editor->updateCommandStatus();
 
     cnv->synchroniseSplitCanvas();
+    // RE-register the PD pointer to this graphical object now that it has been updated
+    cnv->pd->registerObject(this);
     cnv->pd->updateObjectImplementations();
 }
 
@@ -480,20 +475,6 @@ void Object::triggerOverlayActiveState(bool recursive)
     if (rateReducer.tooFast())
         return;
 
-    // If object was triggered by a recursive object, trigger all parent canvases activity
-    if (recursive) {
-        if (auto parentObject = findParentComponentOfClass<Object>())
-            parentObject->triggerOverlayActiveState(true);
-    }
-
-    // Check this objects activity policy type, if it's not self activity trigger,
-    // then trigger parent GOP if it has one, call with recursive argument if
-    // this object is set to recursive triggering (for symbol objects only)
-    else if (objectActivityPolicy != ObjectActivityPolicy::Self) {
-        if (auto parentObject = findParentComponentOfClass<Object>()) {
-            parentObject->triggerOverlayActiveState(objectActivityPolicy == ObjectActivityPolicy::Recursive);
-        }
-    }
     if (!cnv->shouldShowObjectActivity())
         return;
 
@@ -541,9 +522,10 @@ void Object::updateIoletGeometry()
     // IOLET layout for vanilla style (iolets in corners of objects)
     if (PlugDataLook::getUseIoletSpacingEdge()) {
         auto vanillaIoletBounds = getLocalBounds();
-        vanillaIoletBounds.removeFromLeft(margin);
-        vanillaIoletBounds.removeFromRight(margin);
-        auto objectWdith = vanillaIoletBounds.getWidth() + 0.5f; //FIXME: the right most iolet looks not right otherwise
+        auto marginOffset = Corners::objectCornerRadius == 0.0f;
+        vanillaIoletBounds.removeFromLeft(margin - marginOffset);
+        vanillaIoletBounds.removeFromRight(margin - marginOffset);
+        auto objectWidth = vanillaIoletBounds.getWidth() + 0.5f; //FIXME: the right most iolet looks not right otherwise
 
         int inletIndex = 0;
         int outletIndex = 0;
@@ -551,9 +533,9 @@ void Object::updateIoletGeometry()
             bool const isInlet = iolet->isInlet;
             float const yPosition = (isInlet ? margin + 1 : getHeight() - margin) - (ioletSize / 2.0f);
 
-            auto distributeIolets = [ioletSize, objectWdith, vanillaIoletBounds, yPosition](Iolet* iolet, int ioletIndex, int totalIolets) {
+            auto distributeIolets = [ioletSize, objectWidth, vanillaIoletBounds, yPosition](Iolet* iolet, int ioletIndex, int totalIolets) {
                 auto allOutLetWidth = totalIolets * ioletSize;
-                auto spacing = ioletIndex != 0 ? (objectWdith - allOutLetWidth) / static_cast<float>(totalIolets - 1) : 0;
+                auto spacing = ioletIndex != 0 ? (objectWidth - allOutLetWidth) / static_cast<float>(totalIolets - 1) : 0;
                 auto ioletOffset = ioletIndex != 0 ? ioletSize * ioletIndex : 0;
                 iolet->setBounds(vanillaIoletBounds.getX() + (spacing * ioletIndex) + ioletOffset, yPosition, ioletSize, ioletSize);
             };
@@ -822,6 +804,29 @@ void Object::mouseDown(MouseEvent const& e)
         object->originalBounds = object->getBounds();
     }
 
+    bool overEdgeNotCorner = (resizeZone.isDraggingTopEdge() + resizeZone.isDraggingLeftEdge() + resizeZone.isDraggingBottomEdge() + resizeZone.isDraggingRightEdge() == 1) ? true : false;
+
+    auto toResize = cnv->getSelectionOfType<Object>();
+    for (auto* obj : toResize) {
+        if (!obj->gui)
+            continue;
+
+        bool isDraggingOneEdge = false;
+        if (obj->gui->canEdgeOverrideAspectRatio() && overEdgeNotCorner)
+        {
+            isDraggingOneEdge = true;
+        }
+
+        if (auto *constrainer = obj->getConstrainer()) {
+            if (gui && gui->canEdgeOverrideAspectRatio()) {
+                if (isDraggingOneEdge)
+                    constrainer->setFixedAspectRatio(0);
+                else
+                    constrainer->setFixedAspectRatio(static_cast<float>(obj->getObjectBounds().getWidth()) / obj->getObjectBounds().getHeight());
+            }
+        }
+    }
+
     repaint();
 
     ds.canvasDragStartPosition = cnv->getPosition();
@@ -986,11 +991,7 @@ void Object::mouseDrag(MouseEvent const& e)
             auto const newBounds = resizeZone.resizeRectangleBy(obj->originalBounds, dragDistance);
 
             if (auto* constrainer = obj->getConstrainer()) {
-
-                constrainer->setBoundsForComponent(obj, newBounds, resizeZone.isDraggingTopEdge(),
-                    resizeZone.isDraggingLeftEdge(),
-                    resizeZone.isDraggingBottomEdge(),
-                    resizeZone.isDraggingRightEdge());
+                constrainer->setBoundsForComponent(obj, newBounds, resizeZone.isDraggingTopEdge(), resizeZone.isDraggingLeftEdge(), resizeZone.isDraggingBottomEdge(), resizeZone.isDraggingRightEdge());
             }
         }
 
@@ -1007,9 +1008,7 @@ void Object::mouseDrag(MouseEvent const& e)
         }
 
         auto canvasMoveOffset = ds.canvasDragStartPosition - cnv->getPosition();
-
         auto selection = cnv->getSelectionOfType<Object>();
-
         auto dragDistance = e.getOffsetFromDragStart() + canvasMoveOffset;
 
         if (ds.componentBeingDragged) {
@@ -1019,7 +1018,6 @@ void Object::mouseDrag(MouseEvent const& e)
 
         // alt+drag will duplicate selection
         if (!ds.wasDragDuplicated && e.mods.isAltDown()) {
-
             Array<Point<int>> mouseDownObjectPositions; // Stores object positions for alt + drag
 
             // Single for undo for duplicate + move
@@ -1207,7 +1205,6 @@ void Object::render(NVGcontext* nvg)
 {
     auto lb = getLocalBounds();
     auto b = lb.reduced(margin);
-    auto selectedOutlineColour = convertColour(getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
 
     if (selectedFlag) {
         auto& resizeHandleImage = cnv->resizeHandleImage;
@@ -1221,56 +1218,59 @@ void Object::render(NVGcontext* nvg)
 
             nvgBeginPath(nvg);
             nvgRect(nvg, 0, 0, 9, 9);
-            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage.getImageId(), 1));
+            nvgFillPaint(nvg, nvgImageAlphaPattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage.getImageId(), cnv->selectedOutlineCol));
             nvgFill(nvg);
             angle -= 90;
         }
     }
 
     if (cnv->shouldShowObjectActivity() && !approximatelyEqual(activeStateAlpha, 0.0f)) {
-        auto glowColour = convertColour(getLookAndFeel().findColour(PlugDataColour::dataColourId).withAlpha(activeStateAlpha));
+        auto glowColour = cnv->dataCol;
+        glowColour.a = static_cast<uint8_t>(activeStateAlpha * 255);
         nvgSmoothGlow(nvg, lb.getX(), lb.getY(), lb.getWidth(), lb.getHeight(), glowColour, nvgRGBA(0, 0, 0, 0), Corners::objectCornerRadius, 1.1f);
     }
 
     if (gui && gui->isTransparent() && !getValue<bool>(locked) && !cnv->isGraph) {
-        nvgFillColor(nvg, convertColour(getLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.35f).withAlpha(0.1f)));
+        nvgFillColor(nvg, cnv->transparentObjectBackgroundCol);
         nvgFillRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
     }
 
+    nvgTranslate(nvg, margin, margin);
+    
     if (gui) {
-        NVGScopedState scopedState(nvg);
-        nvgTranslate(nvg, margin, margin);
         gui->render(nvg);
     }
 
     if (newObjectEditor) {
-        auto backgroundColour = convertColour(getLookAndFeel().findColour(PlugDataColour::textObjectBackgroundColourId));
-        auto outlineColour = convertColour(getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
-
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
-        
-        nvgTranslate(nvg, margin, margin);
+        nvgDrawRoundedRect(nvg, 0, 0, b.getWidth(), b.getHeight(), cnv->textObjectBackgroundCol, isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
         textEditorRenderer.renderJUCEComponent(nvg, *newObjectEditor, getValue<float>(cnv->zoomScale) * cnv->getRenderScale());
     }
 
     // If autoconnect is about to happen, draw a fake inlet with a dotted outline
     if (isInitialEditorShown() && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs && getValue<bool>(editor->autoconnect)) {
         auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
-        float fakeInletBounds[4] = { 16.0f, 4.0f, 8.0f, 8.0f };
+        std::array<float, 4> fakeInletBounds = PlugDataLook::getUseIoletSpacingEdge() ? std::array<float, 4>{-8.0f, -3.0f, 18.0f, 7.0f} : std::array<float, 4>{ 8.5f, -3.5f, 8.0f, 8.0f };
         nvgBeginPath(nvg);
-        nvgFillColor(nvg, convertColour(getLookAndFeel().findColour(outlet->isSignal ? PlugDataColour::signalColourId : PlugDataColour::dataColourId).brighter()));
-        nvgEllipse(nvg, fakeInletBounds[0] + fakeInletBounds[2] * 0.5f, fakeInletBounds[1] + fakeInletBounds[3] * 0.5f, fakeInletBounds[2] * 0.5f, fakeInletBounds[3] * 0.5f);
+        if(PlugDataLook::getUseSquareIolets()) {
+            nvgRect(nvg, fakeInletBounds[0] + fakeInletBounds[2] * 0.5f, fakeInletBounds[1] + fakeInletBounds[3] * 0.5f, fakeInletBounds[2] * 0.5f, fakeInletBounds[3] * 0.5f);
+        } else {
+            nvgEllipse(nvg, fakeInletBounds[0] + fakeInletBounds[2] * 0.5f, fakeInletBounds[1] + fakeInletBounds[3] * 0.5f, fakeInletBounds[2] * 0.5f, fakeInletBounds[3] * 0.5f);
+        }
+        
+        nvgFillColor(nvg, outlet->isSignal ? cnv->sigColBrighter : cnv->dataColBrighter);
         nvgFill(nvg);
 
-        nvgStrokeColor(nvg, convertColour(getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId)));
+        nvgStrokeColor(nvg, cnv->objectOutlineCol);
         nvgStrokeWidth(nvg, 1.0f);
         nvgStroke(nvg);
     }
+    
+    nvgTranslate(nvg, -margin, -margin);
 
     if (!isHvccCompatible) {
         NVGScopedState scopedState(nvg);
         nvgBeginPath(nvg);
-        nvgStrokeColor(nvg, nvgRGBAf(1.0f, 0.5f, 0.0f, 1.0f)); // orange
+        nvgStrokeColor(nvg, nvgRGBA(255, 127, 0.0f, 255)); // orange
         nvgStrokeWidth(nvg, 1.0f);
         nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
         nvgStroke(nvg);
@@ -1281,13 +1281,13 @@ void Object::render(NVGcontext* nvg)
         int textWidth = 6 + text.length() * 4;
         auto indexBounds = b.withSizeKeepingCentre(b.getWidth() + doubleMargin, halfHeight * 2).removeFromRight(textWidth);
 
-        auto fillColour = convertColour(getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto fillColour = cnv->selectedOutlineCol;
         nvgDrawRoundedRect(nvg, indexBounds.getX(), indexBounds.getY(), indexBounds.getWidth(), indexBounds.getHeight(), fillColour, fillColour, 2.0f);
 
         nvgFontSize(nvg, 8.0f);
         nvgFontFace(nvg, "Inter");
         nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_CENTER);
-        nvgFillColor(nvg, convertColour(getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting()));
+        nvgFillColor(nvg, cnv->indexTextCol);
         nvgText(nvg, indexBounds.getCentreX(), indexBounds.getCentreY(), text.c_str(), nullptr);
     }
 
@@ -1299,30 +1299,43 @@ void Object::renderIolets(NVGcontext* nvg)
 {
     if (cnv->isGraph)
         return;
+    
+    if (getValue<bool>(locked) || !drawIoletExpanded) {
+        auto clipBounds = getLocalBounds().reduced(Object::margin);
+        nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
+    }
+    else if(patchDownwardsOnly)
+    {
+        auto clipBounds = getLocalBounds().reduced(Object::margin);
+        nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight() + Object::doubleMargin);
+    }
 
+    auto lastPosition = Point<int>();
     for (auto* iolet : iolets) {
-        NVGScopedState scopedState(nvg);
-        nvgTranslate(nvg, iolet->getX(), iolet->getY());
+        nvgTranslate(nvg, iolet->getX() - lastPosition.x, iolet->getY() - lastPosition.y);
+        
+        if(iolet->isTargeted)
+        {
+            nvgSave(nvg);
+            nvgResetScissor(nvg);
+        }
+        
         iolet->render(nvg);
+        lastPosition = iolet->getPosition();
+        
+        if(iolet->isTargeted) {
+            nvgRestore(nvg);
+        }
     }
 }
 
 void Object::renderLabel(NVGcontext* nvg)
 {
     if (gui) {
-        if (auto* label = gui->getLabel()) {
+        for (auto* label : gui->labels) {
             NVGScopedState scopedState(nvg);
-            auto posOnCanvas = cnv->getLocalPoint(gui->labels.get(), label->getPosition());
-            nvgTranslate(nvg, posOnCanvas.getX(), posOnCanvas.getY());
+            nvgTranslate(nvg, label->getX(), label->getY());
             label->renderLabel(nvg, cnv->getRenderScale() * 2.0f);
-        }
-        if (auto* vu = gui->getVU()) {
-            if (vu->isVisible()) {
-                NVGScopedState scopedState(nvg);
-                auto posOnCanvas = cnv->getLocalPoint(gui->labels.get(), vu->getPosition());
-                nvgTranslate(nvg, posOnCanvas.getX(), posOnCanvas.getY());
-                vu->render(nvg);
-            }
         }
     }
 }
@@ -1414,6 +1427,7 @@ void Object::openNewObjectEditor()
                     return;
                 auto* cnv = _this->cnv; // Copy pointer because _this will get deleted
                 cnv->hideSuggestions();
+                cnv->pd->unregisterObject(_this.getComponent());
                 cnv->objects.removeObject(_this.getComponent());
                 cnv->lastSelectedObject = nullptr;
 
@@ -1522,6 +1536,10 @@ void Object::openHelpPatch() const
             if (auto patch = helpCanvas->patch.getPointer()) {
                 patch->gl_edit = 0;
             }
+        }
+
+        if(ProjectInfo::isStandalone && SettingsFile::getInstance()->getProperty<bool>("open_patches_in_window")) {
+            editor->getTabComponent().createNewWindow(helpCanvas);
         }
         return;
     }

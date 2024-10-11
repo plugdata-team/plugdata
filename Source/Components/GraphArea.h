@@ -7,12 +7,14 @@
 // Graph bounds component
 class GraphArea : public Component
     , public NVGComponent
-    , public Value::Listener {
+    , public Value::Listener
+    , public ModifierKeyListener {
     ComponentBoundsConstrainer constrainer;
     ResizableBorderComponent resizer;
     Canvas* canvas;
+    ComponentDragger dragger;
     Rectangle<float> topLeftCorner, topRightCorner, bottomLeftCorner, bottomRightCorner;
-
+    bool shiftDown = false;
 public:
     explicit GraphArea(Canvas* parent)
         : NVGComponent(this)
@@ -28,11 +30,18 @@ public:
         resizer.addMouseListener(this, false);
         canvas->locked.addListener(this);
         valueChanged(canvas->locked);
+        canvas->editor->addModifierKeyListener(this);
     }
 
     ~GraphArea() override
     {
         canvas->locked.removeListener(this);
+    }
+        
+    void shiftKeyChanged(bool isHeld) override {
+        resizer.setVisible(!isHeld);
+        setMouseCursor(isHeld ? MouseCursor::UpDownLeftRightResizeCursor : MouseCursor::NormalCursor);
+        shiftDown = isHeld;
     }
 
     void valueChanged(Value& v) override
@@ -43,11 +52,10 @@ public:
     void render(NVGcontext* nvg) override
     {
         auto lineBounds = getLocalBounds().toFloat().reduced(4.0f);
-        auto graphAreaColour = convertColour(findColour(PlugDataColour::graphAreaColourId));
 
-        nvgDrawRoundedRect(nvg, lineBounds.getX(), lineBounds.getY(), lineBounds.getWidth(), lineBounds.getHeight(), nvgRGBAf(0, 0, 0, 0), graphAreaColour, Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, lineBounds.getX(), lineBounds.getY(), lineBounds.getWidth(), lineBounds.getHeight(), nvgRGBA(0, 0, 0, 0), canvas->graphAreaCol, Corners::objectCornerRadius);
 
-        auto &resizeHandleImage = canvas->resizeGOPHandleImage;
+        auto &resizeHandleImage = canvas->resizeHandleImage;
         int angle = 360;
 
         auto getVert = [lineBounds](int index) -> Point<float> {
@@ -74,7 +82,7 @@ public:
 
             nvgBeginPath(nvg);
             nvgRect(nvg, 0, 0, 9, 9);
-            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage.getImageId(), 1));
+            nvgFillPaint(nvg, nvgImageAlphaPattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage.getImageId(), canvas->graphAreaCol));
             nvgFill(nvg);
             angle -= 90;
         }
@@ -83,6 +91,22 @@ public:
     bool hitTest(int x, int y) override
     {
         return (topLeftCorner.contains(x, y) || topRightCorner.contains(x, y) || bottomLeftCorner.contains(x, y) || bottomRightCorner.contains(x, y)) && !getLocalBounds().reduced(4).contains(x, y);
+    }
+        
+    void mouseDown(MouseEvent const& e) override
+    {
+        if(shiftDown)
+        {
+            dragger.startDraggingComponent(this, e);
+        }
+    }
+        
+    void mouseDrag(MouseEvent const& e) override
+    {
+        if(shiftDown)
+        {
+            dragger.dragComponent(this, e, nullptr);
+        }
     }
 
     void mouseEnter(MouseEvent const& e) override
@@ -120,6 +144,12 @@ public:
         applyBounds();
         canvas->synchroniseAllCanvases();
     }
+        
+    void moved() override
+    {
+        applyBounds();
+        canvas->synchroniseAllCanvases();
+    }
 
     void applyBounds()
     {
@@ -136,7 +166,7 @@ public:
 
     void updateBounds()
     {
-        auto patchBounds = canvas->patch.getBounds().expanded(4.0f);
+        auto patchBounds = canvas->patch.getGraphBounds().expanded(4.0f);
         auto width = patchBounds.getWidth() + 1;
         auto height = patchBounds.getHeight() + 1;
         setBounds(patchBounds.translated(canvas->canvasOrigin.x, canvas->canvasOrigin.y).withWidth(width).withHeight(height));
