@@ -7,7 +7,7 @@
 class DaisyExporter : public ExporterBase {
 public:
     Value targetBoardValue = SynchronousValue(var(1));
-    Value exportTypeValue = SynchronousValue(var(4));
+    Value exportTypeValue = SynchronousValue(var(3));
     Value usbMidiValue = SynchronousValue(var(0));
     Value debugPrintValue = SynchronousValue(var(0));
     Value blocksizeValue = SynchronousValue(48);
@@ -78,13 +78,25 @@ public:
             startExport(tempFolder);
         };
 
-        flashBootloaderButton.onClick = [this]() {
-            auto bin = Toolchain::dir.getChildFile("bin");
-            auto make = bin.getChildFile("make" + exeSuffix);
-            auto const& gccPath = bin.getFullPathName();
-            auto sourceDir = Toolchain::dir.getChildFile("lib").getChildFile("libdaisy").getChildFile("core");
+        flashBootloaderButton.onClick = [this, exportingView]() {
+            addJob([this, exportingView]() mutable {
+                exportingView->monitorProcessOutput(this);
+                exportingView->showState(ExportingProgressView::Flashing);
 
-            flashBootloader(bin, sourceDir, make, gccPath);
+                auto bin = Toolchain::dir.getChildFile("bin");
+                auto make = bin.getChildFile("make" + exeSuffix);
+                auto const& gccPath = bin.getFullPathName();
+                auto sourceDir = Toolchain::dir.getChildFile("lib").getChildFile("libdaisy").getChildFile("core");
+
+                int result = flashBootloader(bin, sourceDir, make, gccPath);
+                
+                exportingView->showState(result ? ExportingProgressView::BootloaderFlashFailure : ExportingProgressView::BootloaderFlashSuccess);
+                exportingView->stopMonitoring();
+
+                MessageManager::callAsync([this]() {
+                    repaint();
+                });
+            });
         };
     }
 
@@ -194,7 +206,7 @@ public:
         }
     }
 
-    void flashBootloader(auto bin, auto sourceDir, auto make, auto gccPath)
+    int flashBootloader(auto bin, auto sourceDir, auto make, auto gccPath)
     {
         exportingView->logToConsole("Flashing bootloader...\n");
 
@@ -216,6 +228,8 @@ public:
         exportingView->flushConsole();
 
         Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 900);
+        
+        return getExitCode();
     }
 
     bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
@@ -377,6 +391,7 @@ public:
             Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
 
             auto compileExitCode = getExitCode();
+            int bootloaderExitCode = 0;
             if (flash && !compileExitCode) {
 
                 auto dfuUtil = bin.getChildFile("dfu-util" + exeSuffix);
@@ -402,11 +417,9 @@ public:
                     Toolchain runTest;
                     auto output = runTest.startShellScriptWithOutput(testBootloaderScript);
                     bool bootloaderNotFound = output.contains("alt=1");
-
                     if (bootloaderNotFound) {
                         exportingView->logToConsole("Bootloader not found...\n");
-
-                        flashBootloader(bin, sourceDir, make, gccPath);
+                        bootloaderExitCode = flashBootloader(bin, sourceDir, make, gccPath);
                     } else {
                         exportingView->logToConsole("Bootloader found...\n");
                     }
@@ -438,7 +451,7 @@ public:
 
                 auto flashExitCode = getExitCode();
 
-                return heavyExitCode && flashExitCode;
+                return heavyExitCode && flashExitCode && bootloaderExitCode;
             } else {
                 auto binLocation = outputFile.getChildFile(name + ".bin");
                 sourceDir.getChildFile("build").getChildFile("HeavyDaisy_" + name + ".bin").moveFileTo(binLocation);
