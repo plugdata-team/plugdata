@@ -368,6 +368,7 @@ public:
                 // GUI object default settings are in OjbectManager.h
                 { Icons::GlyphBang, "bng", "(@keypress) Bang", "Bang", NewBang },
                 { Icons::GlyphToggle, "tgl", "(@keypress) Toggle", "Toggle", NewToggle },
+                { Icons::GlyphKnob, "knob", "Knob", "Knob", OtherObject },
                 { Icons::GlyphVSlider, "vsl", "(@keypress) Vertical slider", "V. Slider", NewVerticalSlider },
                 { Icons::GlyphHSlider, "hsl", "(@keypress) Horizontal slider", "H. Slider", NewHorizontalSlider },
                 { Icons::GlyphVRadio, "vradio", "(@keypress) Vertical radio box", "V. Radio", NewVerticalRadio },
