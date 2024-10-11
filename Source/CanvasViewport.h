@@ -47,7 +47,7 @@ class CanvasViewport : public Viewport
         // thus giving us a chance to attach the mouselistener on the middle-mouse click event
         void mouseDown(MouseEvent const& e) override
         {
-            if(!e.mods.isLeftButtonDown()) return;
+            if(!e.mods.isLeftButtonDown() && !e.mods.isMiddleButtonDown()) return;
             
             e.originalComponent->setMouseCursor(MouseCursor::DraggingHandCursor);
             downPosition = viewport->getViewPosition();
