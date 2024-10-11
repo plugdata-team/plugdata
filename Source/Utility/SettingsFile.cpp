@@ -163,7 +163,8 @@ bool SettingsFile::verify(const XmlElement* xml)
         "Libraries",
         "EnabledMidiOutputPorts",
         "LastBrowserPaths",
-        "Overlays"
+        "Overlays",
+        "HeavyState"
     };
 
     // Check if all expected elements are present and in the correct order
