@@ -574,24 +574,24 @@ public:
             }
 
             Dialogs::showAskToSaveDialog(
-                &saveDialog, textEditor.get(), "", [this, newText, fileToOpen](int result) mutable {
+                &saveDialog, textEditor.get(), "", [_this = SafePointer(this), newText, fileToOpen](int result) mutable {
+                    if(!_this) return;
                     if (result == 2) {
                         fileToOpen.replaceWithText(newText);
-                        if (auto pdlua = ptr.get<t_pd>()) {
-                            pd->sendMessage("pdluax", "reload", {});
+                        if (auto pdlua = _this->ptr.get<t_pd>()) {
+                            _this->pd->sendMessage("pdluax", "reload", {});
                             // Recreate this object
-                            if(auto patch = cnv->patch.getPointer()) {
+                            if(auto patch = _this->cnv->patch.getPointer()) {
                                 pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
                             }
-                            _this->cnv->synchronise();
                         }
-                        cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
-                        textEditor.reset(nullptr);
-                        cnv->performSynchronise();
+                        _this->cnv->editor->openTextEditors.removeAllInstancesOf(_this->ptr);
+                        _this->textEditor.reset(nullptr);
+                        _this->cnv->synchronise();
                     }
                     if (result == 1) {
-                        cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
-                        textEditor.reset(nullptr);
+                        _this->cnv->editor->openTextEditors.removeAllInstancesOf(_this->ptr);
+                        _this->textEditor.reset(nullptr);
                     }
                 },
                 15, false);
@@ -696,7 +696,7 @@ public:
                         }
                         cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
                         textEditor.reset(nullptr);
-                        cnv->performSynchronise();
+                        cnv->synchronise();
                     }
                     if (result == 1) {
                         cnv->editor->openTextEditors.removeAllInstancesOf(ptr);

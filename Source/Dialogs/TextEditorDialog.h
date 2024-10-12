@@ -2068,7 +2068,7 @@ void TextDocument::search(String const& text)
     
     for (int i = 0; i < lines.size(); i++) {
         auto idx = lines[i].indexOf(text);
-        if(idx > 0)
+        if(idx >= 0)
         {
             searchSelections.add(Selection(Point<int>(i, idx), Point<int>(i, idx + text.length())));
         }
