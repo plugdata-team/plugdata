@@ -53,14 +53,13 @@ private:
                     currentPatch = &cnv->patch;
                 }
             }
-            if(!currentPatch) return;
             
             for(auto* property : properties)
             {
                 if(property->baseValue.refersToSameSourceAs(v))
                 {
                     bool isInsideUndoSequence = false;
-                    if(!lastChangedValue.refersToSameSourceAs(v))
+                    if(currentPatch && !lastChangedValue.refersToSameSourceAs(v))
                     {
                         currentPatch->startUndoSequence("properties");
                         lastChangedValue.referTo(v);
