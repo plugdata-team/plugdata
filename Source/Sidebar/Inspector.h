@@ -6,41 +6,92 @@
 
 #include "Components/PropertiesPanel.h"
 
-class PropertyRedirector : public Value::Listener {
-public:
-    PropertyRedirector(Value* controllerValue, Array<Value*> attachedValues)
-        : values(attachedValues)
-    {
-        values.add(controllerValue);
-        baseValue.setValue(controllerValue->getValue());
-        baseValue.addListener(this);
-    }
-
-    ~PropertyRedirector() override
-    {
-        baseValue.removeListener(this);
-    }
-
-    void valueChanged(Value& v) override
-    {
-        for (auto* value : values) {
-            value->setValue(baseValue.getValue());
-        }
-    }
-
-    Value baseValue;
-    Array<Value*> values;
-};
-
 class Inspector : public Component {
+    class PropertyRedirector : public Value::Listener {
+        public:
+        PropertyRedirector(Inspector* parent) : inspector(parent)
+        {
+        }
 
+        Value* addProperty(Value* controllerValue, Array<Value*> attachedValues)
+        {
+            auto* property = properties.add(new Property(this, controllerValue, attachedValues));
+            return &property->baseValue;
+        }
+        
+        void clearProperties()
+        {
+            properties.clear();
+        }
+        
+private:
+        struct Property {
+            Property(PropertyRedirector* parent, Value* controllerValue, Array<Value*> attachedValues)
+                : redirector(parent), values(attachedValues)
+            {
+                values.add(controllerValue);
+                baseValue.setValue(controllerValue->getValue());
+                baseValue.addListener(redirector);
+            }
+
+            ~Property()
+            {
+                baseValue.removeListener(redirector);
+            }
+
+            PropertyRedirector* redirector;
+            Value baseValue;
+            Array<Value*> values;
+        };
+        
+        
+        void valueChanged(Value& v) override
+        {
+            pd::Patch* currentPatch = nullptr;
+            if(auto* editor = inspector->findParentComponentOfClass<PluginEditor>()) {
+                if(auto* cnv = editor->getCurrentCanvas()) {
+                    currentPatch = &cnv->patch;
+                }
+            }
+            if(!currentPatch) return;
+            
+            bool isInsideUndoSequence = false;
+            if(!lastChangedValue.refersToSameSourceAs(v))
+            {
+                currentPatch->startUndoSequence("properties");
+                lastChangedValue.referTo(v);
+                isInsideUndoSequence = true;
+            }
+            
+            
+            for(auto* property : properties)
+            {
+                if(property->baseValue.refersToSameSourceAs(v))
+                {
+                    for (auto* value : property->values) {
+                        value->setValue(v.getValue());
+                    }
+                }
+            }
+            
+            if(isInsideUndoSequence)
+            {
+                currentPatch->endUndoSequence("properties");
+            }
+        }
+        
+        Value lastChangedValue;
+        OwnedArray<Property> properties;
+        Inspector* inspector;
+    };
+    
     PropertiesPanel panel;
     TextButton resetButton;
     Array<ObjectParameters> properties;
-    OwnedArray<PropertyRedirector> redirectors;
+    PropertyRedirector redirector;
 
 public:
-    Inspector()
+    Inspector() : redirector(this)
     {
         panel.setTitleHeight(20);
         panel.setTitleAlignment(PropertiesPanel::AlignWithPropertyName);
@@ -131,7 +182,7 @@ public:
             return isInAllObjects;
         };
 
-        redirectors.clear();
+        redirector.clearProperties();
 
         for (int i = 0; i < 4; i++) {
             Array<PropertiesPanelProperty*> panels;
@@ -157,8 +208,8 @@ public:
                         newPanel->setPreferredHeight(26);
                         panels.add(newPanel);
                     } else {
-                        auto* redirector = redirectors.add(new PropertyRedirector(value, otherValues));
-                        auto newPanel = createPanel(type, name, &redirector->baseValue, options);
+                        auto* redirectedProperty = redirector.addProperty(value, otherValues);
+                        auto newPanel = createPanel(type, name, redirectedProperty, options);
                         newPanel->setPreferredHeight(26);
                         panels.add(newPanel);
                     }
