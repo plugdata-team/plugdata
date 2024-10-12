@@ -2956,8 +2956,8 @@ struct TextEditorDialog : public Component, public ChangeListener {
         
         searchButton.onClick = [this](){
             searchInput.setVisible(searchButton.getToggleState());
+            editor.setSearchText("");
             if(searchButton.getToggleState()) {
-                editor.setSearchText("");
                 searchInput.setText("");
                 searchInput.grabKeyboardFocus();
             }
