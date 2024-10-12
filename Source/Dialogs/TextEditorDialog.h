@@ -1302,7 +1302,7 @@ float Caret::squareWave(float wt)
 
 void Caret::timerCallback()
 {
-    phase += 3.2e-1;g
+    phase += 3.2e-1;
 
     for (auto const& r : getCaretRectangles())
         repaint(r.getSmallestIntegerContainer());

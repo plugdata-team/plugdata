@@ -58,7 +58,6 @@ String SettingsFile::getCorruptBackupSettingsLocation()
 
 SettingsFile* SettingsFile::initialise()
 {
-
     if (isInitialised)
         return getInstance();
 
@@ -164,18 +163,19 @@ bool SettingsFile::verify(const XmlElement* xml)
         "EnabledMidiOutputPorts",
         "LastBrowserPaths",
         "Overlays",
-        "HeavyState"
     };
 
     // Check if all expected elements are present and in the correct order
     int expectedIndex = 0;
     for (auto* child = xml->getFirstChildElement(); child != nullptr; child = child->getNextElement()) {
         if (expectedIndex < expectedOrder.size()) {
-            if (child->getTagName() != expectedOrder[expectedIndex]) {
+            if(child->getTagName() == "HeavyState") continue;
+            else if (child->getTagName() != expectedOrder[expectedIndex]) {
                 return false; // Order mismatch
             }
             expectedIndex++;
         } else {
+            if(child->getTagName() == "HeavyState") continue;
             return false; // Extra unexpected element found
         }
     }
@@ -342,7 +342,6 @@ bool SettingsFile::wantsNativeDialog()
 
 void SettingsFile::initialiseThemesTree()
 {
-
     // Initialise selected themes tree
     auto selectedThemes = getSelectedThemesTree();
 
