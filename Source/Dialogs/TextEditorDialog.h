@@ -1316,7 +1316,6 @@ Array<Rectangle<float>> Caret::getCaretRectangles() const
                            .getGlyphBounds(selection.head)
                            .removeFromLeft(CURSOR_WIDTH)
                            .translated(selection.head.y == 0 ? 0 : -0.5f * CURSOR_WIDTH, 0.f)
-                           .translated(-3, 0) // NOTE: this is only needed if we render with AttributedString
                            .transformedBy(transform)
                            .expanded(0.f, 1.f));
         }
@@ -2783,7 +2782,7 @@ void PlugDataTextEditor::renderTextUsingAttributedString(Graphics& g)
         auto line = document.getLine(r.rowNumber);
         auto T = document.getVerticalPosition(r.rowNumber, TextDocument::Metric::ascent);
         auto B = document.getVerticalPosition(r.rowNumber, TextDocument::Metric::bottom);
-        auto bounds = Rectangle<float>::leftTopRightBottom(0.f, T, 1000.f, B).transformedBy(transform);
+        auto bounds = Rectangle<float>::leftTopRightBottom(0.f, T, 1000.f, B).transformedBy(transform).translated(4, 0);
 
         AttributedString s;
 
