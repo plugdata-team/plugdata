@@ -2238,7 +2238,7 @@ PlugDataTextEditor::PlugDataTextEditor()
     lastTransactionTime = Time::getApproximateMillisecondCounter();
     document.setSelections({ Selection() });
 
-    setFont(Font(Fonts::getCurrentFont().withHeight(15)));
+    setFont(Font(Fonts::getMonospaceFont().withHeight(15)));
 
     translateView(GUTTER_WIDTH, 0);
     setWantsKeyboardFocus(true);
