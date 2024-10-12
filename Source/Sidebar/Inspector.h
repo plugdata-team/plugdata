@@ -55,28 +55,29 @@ private:
             }
             if(!currentPatch) return;
             
-            bool isInsideUndoSequence = false;
-            if(!lastChangedValue.refersToSameSourceAs(v))
-            {
-                currentPatch->startUndoSequence("properties");
-                lastChangedValue.referTo(v);
-                isInsideUndoSequence = true;
-            }
-            
-            
             for(auto* property : properties)
             {
                 if(property->baseValue.refersToSameSourceAs(v))
                 {
+                    bool isInsideUndoSequence = false;
+                    if(!lastChangedValue.refersToSameSourceAs(v))
+                    {
+                        currentPatch->startUndoSequence("properties");
+                        lastChangedValue.referTo(v);
+                        isInsideUndoSequence = true;
+                    }
+                    
                     for (auto* value : property->values) {
                         value->setValue(v.getValue());
                     }
+                    
+                    
+                    if(isInsideUndoSequence)
+                    {
+                        currentPatch->endUndoSequence("properties");
+                    }
+                    break;
                 }
-            }
-            
-            if(isInsideUndoSequence)
-            {
-                currentPatch->endUndoSequence("properties");
             }
         }
         
