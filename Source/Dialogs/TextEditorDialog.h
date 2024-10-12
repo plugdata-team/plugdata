@@ -1167,7 +1167,6 @@ private:
 class PlugDataTextEditor : public Component, public Timer {
 public:
     enum class RenderScheme {
-        usingAttributedStringSingle,
         usingAttributedString,
         usingGlyphArrangement,
     };
@@ -1234,14 +1233,13 @@ private:
     void translateToEnsureCaretIsVisible();
     void translateToEnsureSearchIsVisible(int idx);
 
-    void renderTextUsingAttributedStringSingle(Graphics& g);
     void renderTextUsingAttributedString(Graphics& g);
     void renderTextUsingGlyphArrangement(Graphics& g);
 
     bool enableSyntaxHighlighting = false;
     bool allowCoreGraphics = true;
 
-    RenderScheme renderScheme = RenderScheme::usingGlyphArrangement;
+    RenderScheme renderScheme = RenderScheme::usingAttributedString;
 
     double lastTransactionTime;
     bool tabKeyUsed = true;
@@ -1318,6 +1316,7 @@ Array<Rectangle<float>> Caret::getCaretRectangles() const
                            .getGlyphBounds(selection.head)
                            .removeFromLeft(CURSOR_WIDTH)
                            .translated(selection.head.y == 0 ? 0 : -0.5f * CURSOR_WIDTH, 0.f)
+                           .translated(-3, 0) // NOTE: this is only needed if we render with AttributedString
                            .transformedBy(transform)
                            .expanded(0.f, 1.f));
         }
@@ -2240,7 +2239,7 @@ PlugDataTextEditor::PlugDataTextEditor()
     lastTransactionTime = Time::getApproximateMillisecondCounter();
     document.setSelections({ Selection() });
 
-    setFont(Font(Fonts::getMonospaceFont().withHeight(15)));
+    setFont(Font(Fonts::getMonospaceFont().withHeight(15.5f)));
 
     translateView(GUTTER_WIDTH, 0);
     setWantsKeyboardFocus(true);
@@ -2366,10 +2365,6 @@ void PlugDataTextEditor::paint(Graphics& g)
     String renderSchemeString;
 
     switch (renderScheme) {
-    case RenderScheme::usingAttributedStringSingle:
-        renderTextUsingAttributedStringSingle(g);
-        renderSchemeString = "AttributedStringSingle";
-        break;
     case RenderScheme::usingAttributedString:
         renderTextUsingAttributedString(g);
         renderSchemeString = "attr. str";
@@ -2772,45 +2767,6 @@ void PlugDataTextEditor::searchNext()
     translateToEnsureSearchIsVisible(next);
 }
 
-void PlugDataTextEditor::renderTextUsingAttributedStringSingle(Graphics& g)
-{
-    g.saveState();
-    g.addTransform(transform);
-
-    auto colourScheme = getSyntaxColourScheme();
-    auto font = document.getFont();
-    auto rows = document.getRangeOfRowsIntersecting(g.getClipBounds().toFloat());
-    auto T = document.getVerticalPosition(rows.getStart(), TextDocument::Metric::ascent);
-    auto B = document.getVerticalPosition(rows.getEnd(), TextDocument::Metric::top);
-    auto W = 10000;
-    auto bounds = Rectangle<float>::leftTopRightBottom(TEXT_INDENT, T, W, B);
-    auto content = document.getSelectionContent(Selection(rows.getStart(), 0, rows.getEnd(), 0));
-
-    AttributedString s;
-    s.setLineSpacing((document.getLineSpacing() - 1.f) * font.getHeight());
-
-    LuaTokeniserFunctions::StringIterator si(content);
-    auto previous = si.t;
-
-    while (!si.isEOF()) {
-        auto tokenType = LuaTokeniserFunctions::readNextToken(si);
-        auto colour = enableSyntaxHighlighting ? colourScheme.types[tokenType].colour : findColour(PlugDataColour::panelTextColourId);
-        auto token = String(previous, si.t);
-
-        previous = si.t;
-        s.append(token, font, colour);
-    }
-
-    if (allowCoreGraphics) {
-        s.draw(g, bounds);
-    } else {
-        TextLayout layout;
-        layout.createLayout(s, bounds.getWidth());
-        layout.draw(g, bounds);
-    }
-    g.restoreState();
-}
-
 void PlugDataTextEditor::renderTextUsingAttributedString(Graphics& g)
 {
     /*
@@ -3005,7 +2961,7 @@ struct TextEditorDialog : public Component, public ChangeListener {
         toolbarBounds.removeFromLeft(10);
         toolbarBounds.removeFromTop(2);
 
-        auto closeButtonBounds = toolbarBounds.removeFromRight(30).reduced(0, 4).translated(-5, 1);
+        auto closeButtonBounds = toolbarBounds.removeFromRight(30).reduced(0, 5).translated(-5, 1);
         closeButton->setBounds(closeButtonBounds);
         
         toolbarBounds.removeFromRight(10);
