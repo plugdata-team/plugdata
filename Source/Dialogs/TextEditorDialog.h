@@ -1302,7 +1302,7 @@ float Caret::squareWave(float wt)
 
 void Caret::timerCallback()
 {
-    phase += 3.2e-1;
+    phase += 3.2e-1;g
 
     for (auto const& r : getCaretRectangles())
         repaint(r.getSmallestIntegerContainer());
@@ -1313,12 +1313,14 @@ Array<Rectangle<float>> Caret::getCaretRectangles() const
     Array<Rectangle<float>> rectangles;
 
     for (auto const& selection : document.getSelections()) {
-        rectangles.add(document
+        if(selection.head == selection.tail) {
+            rectangles.add(document
                            .getGlyphBounds(selection.head)
                            .removeFromLeft(CURSOR_WIDTH)
                            .translated(selection.head.y == 0 ? 0 : -0.5f * CURSOR_WIDTH, 0.f)
                            .transformedBy(transform)
                            .expanded(0.f, 1.f));
+        }
     }
     return rectangles;
 }
