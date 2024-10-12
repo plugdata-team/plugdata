@@ -422,7 +422,6 @@ struct LuaTokeniserFunctions
                 return LuaTokeniser::tokenType_operator;
             }
             else {
-                source.skip();
                 auto result = parseNumber (source);
                 
                 if (result == LuaTokeniser::tokenType_error)
