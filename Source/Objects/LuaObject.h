@@ -159,6 +159,7 @@ public:
                 if(auto patch = _this->cnv->patch.getPointer()) {
                     pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
                 }
+                _this->cnv->synchronise();
             }
         });
     }
@@ -582,6 +583,7 @@ public:
                             if(auto patch = cnv->patch.getPointer()) {
                                 pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
                             }
+                            _this->cnv->synchronise();
                         }
                         cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
                         textEditor.reset(nullptr);
