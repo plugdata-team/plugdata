@@ -562,37 +562,51 @@ public:
 
         if (cnv->editor->openTextEditors.contains(ptr))
             return;
+        
+        auto onClose = [_this = SafePointer(this), this, fileToOpen](String const& newText, bool hasChanged) {
+            if(!_this) return;
+            
+            if (!hasChanged) {
+                cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
+                textEditor.reset(nullptr);
+                return;
+            }
 
-        textEditor.reset(
-            Dialogs::showTextEditorDialog(fileToOpen.loadFileAsString(), "lua: " + getText(), [this, fileToOpen](String const& newText, bool hasChanged) {
-                if (!hasChanged) {
-                    cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
-                    textEditor.reset(nullptr);
-                    return;
-                }
-
-                Dialogs::showAskToSaveDialog(
-                    &saveDialog, textEditor.get(), "", [this, newText, fileToOpen](int result) mutable {
-                        if (result == 2) {
-                            fileToOpen.replaceWithText(newText);
-                            if (auto pdlua = ptr.get<t_pd>()) {
-                                pd->sendMessage("pdluax", "reload", {});
-                                // Recreate this object
-                                if(auto patch = cnv->patch.getPointer()) {
-                                    pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
-                                }
+            Dialogs::showAskToSaveDialog(
+                &saveDialog, textEditor.get(), "", [this, newText, fileToOpen](int result) mutable {
+                    if (result == 2) {
+                        fileToOpen.replaceWithText(newText);
+                        if (auto pdlua = ptr.get<t_pd>()) {
+                            pd->sendMessage("pdluax", "reload", {});
+                            // Recreate this object
+                            if(auto patch = cnv->patch.getPointer()) {
+                                pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
                             }
-                            cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
-                            textEditor.reset(nullptr);
-                            cnv->performSynchronise();
                         }
-                        if (result == 1) {
-                            cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
-                            textEditor.reset(nullptr);
-                        }
-                    },
-                    15, false);
-            }));
+                        cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
+                        textEditor.reset(nullptr);
+                        cnv->performSynchronise();
+                    }
+                    if (result == 1) {
+                        cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
+                        textEditor.reset(nullptr);
+                    }
+                },
+                15, false);
+        };
+        
+        auto onSave = [_this = SafePointer(this), this, fileToOpen](String const& newText){
+            if(!_this) return;
+            
+            fileToOpen.replaceWithText(newText);
+            if (auto pdlua = ptr.get<t_pd>()) {
+                pd->sendMessage("pdluax", "reload", {});
+            }
+            sendRepaintMessage();
+        };
+
+        textEditor.reset(Dialogs::showTextEditorDialog(fileToOpen.loadFileAsString(), "lua: " + getText(), onClose, onSave, true));
+
         if (textEditor)
             cnv->editor->openTextEditors.addIfNotAlreadyThere(ptr);
     }
@@ -659,38 +673,47 @@ public:
         if (cnv->editor->openTextEditors.contains(ptr))
             return;
 
-        textEditor.reset(
-            Dialogs::showTextEditorDialog(fileToOpen.loadFileAsString(), "lua: " + getText(), [this, fileToOpen](String const& newText, bool hasChanged) {
-                if (!hasChanged) {
-                    cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
-                    textEditor.reset(nullptr);
-                    return;
-                }
+        auto onClose = [_this = SafePointer(this), this, fileToOpen](String const& newText, bool hasChanged) {
+            if(!_this) return;
+            if (!hasChanged) {
+                cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
+                textEditor.reset(nullptr);
+                return;
+            }
 
-                Dialogs::showAskToSaveDialog(
-                    &saveDialog, textEditor.get(), "", [this, newText, fileToOpen](int result) mutable {
-                        if (result == 2) {
-                            fileToOpen.replaceWithText(newText);
-                            if (auto pdlua = ptr.get<t_pd>()) {
-                                // Reload the lua script
-                                pd->sendMessage("pdluax", "reload", {});
-                                
-                                // Recreate this object
-                                if(auto patch = cnv->patch.getPointer()) {
-                                    pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
-                                }
+            Dialogs::showAskToSaveDialog(
+                &saveDialog, textEditor.get(), "", [this, newText, fileToOpen](int result) mutable {
+                    if (result == 2) {
+                        fileToOpen.replaceWithText(newText);
+                        if (auto pdlua = ptr.get<t_pd>()) {
+                            pd->sendMessage("pdluax", "reload", {});
+                            // Recreate this object
+                            if(auto patch = cnv->patch.getPointer()) {
+                                pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
                             }
-                            cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
-                            textEditor.reset(nullptr);
-                            cnv->performSynchronise();
                         }
-                        if (result == 1) {
-                            cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
-                            textEditor.reset(nullptr);
-                        }
-                    },
-                    15, false);
-            }));
+                        cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
+                        textEditor.reset(nullptr);
+                        cnv->performSynchronise();
+                    }
+                    if (result == 1) {
+                        cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
+                        textEditor.reset(nullptr);
+                    }
+                },
+                15, false);
+        };
+        
+        auto onSave = [_this = SafePointer(this), this, fileToOpen](String const& newText){
+            if(!_this) return;
+            fileToOpen.replaceWithText(newText);
+            if (auto pdlua = ptr.get<t_pd>()) {
+                pd->sendMessage("pdluax", "reload", {});
+            }
+        };
+
+        textEditor.reset(Dialogs::showTextEditorDialog(fileToOpen.loadFileAsString(), "lua: " + getText(), onClose, onSave, true));
+
         if (textEditor)
             cnv->editor->openTextEditors.addIfNotAlreadyThere(ptr);
     }

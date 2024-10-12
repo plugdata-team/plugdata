@@ -1565,80 +1565,83 @@ bool PluginProcessor::isTextEditorDialogShown(unsigned long ptr)
 void PluginProcessor::showTextEditorDialog(unsigned long ptr, Rectangle<int> bounds, String title)
 {
     static std::unique_ptr<Dialog> saveDialog = nullptr;
+    
+    
+    auto setText = [this, title](String text, unsigned long ptr) {
+        lockAudioThread();
+        pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("clear"), 0, nullptr);
+        unlockAudioThread();
 
-    textEditorDialogs[ptr].reset(Dialogs::showTextEditorDialog("", title, [this, title, ptr](String const& lastText, bool hasChanged) {
+        // remove repeating spaces
+        text = text.replace("\r ", "\r");
+        text = text.replace(";\r", ";");
+        text = text.replace("\r;", ";");
+        text = text.replace(" ;", ";");
+        text = text.replace("; ", ";");
+        text = text.replace(",", " , ");
+        text = text.replaceCharacters("\r", " ");
+
+        while (text.contains("  ")) {
+            text = text.replace("  ", " ");
+        }
+        text = text.trimStart();
+        auto lines = StringArray::fromTokens(text, ";", "\"");
+
+        int count = 0;
+        for (auto const& line : lines) {
+            count++;
+            auto words = StringArray::fromTokens(line, " ", "\"");
+
+            auto atoms = std::vector<t_atom>();
+            atoms.reserve(words.size() + 1);
+
+            for (auto const& word : words) {
+                atoms.emplace_back();
+                // check if string is a valid number
+                auto charptr = word.getCharPointer();
+                auto ptr = charptr;
+                CharacterFunctions::readDoubleValue(ptr); // Removes double value from char*
+                if (*charptr == ',') {
+                    SETCOMMA(&atoms.back());
+                } else if (ptr - charptr == word.getNumBytesAsUTF8() && ptr - charptr != 0) {
+                    SETFLOAT(&atoms.back(), word.getFloatValue());
+                } else {
+                    SETSYMBOL(&atoms.back(), generateSymbol(word));
+                }
+            }
+
+            if (count != lines.size()) {
+                atoms.emplace_back();
+                SETSEMI(&atoms.back());
+            }
+
+            lockAudioThread();
+
+            pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("addline"), atoms.size(), atoms.data());
+
+            unlockAudioThread();
+        }
+
+        t_atom fake_path;
+        SETSYMBOL(&fake_path, generateSymbol(title.toRawUTF8()));
+
+        lockAudioThread();
+
+        // pd_typedmess(reinterpret_cast<t_pd*>(ptr), generateSymbol("path"), 1, &fake_path);
+        pd_typedmess(reinterpret_cast<t_pd*>(ptr), generateSymbol("end"), 0, nullptr);
+        unlockAudioThread();
+    };
+    
+    auto onClose = [this, setText, title, ptr](String const& lastText, bool hasChanged) {
         if (!hasChanged) {
             textEditorDialogs[ptr].reset(nullptr);
             return;
         }
 
         Dialogs::showAskToSaveDialog(
-            &saveDialog, textEditorDialogs[ptr].get(), "", [this, ptr, title, text = lastText](int result) mutable {
+            &saveDialog, textEditorDialogs[ptr].get(), "", [this, setText, ptr, title, text = lastText](int result) mutable {
                 if (result == 2) {
-
-                    lockAudioThread();
-                    pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("clear"), 0, nullptr);
-                    unlockAudioThread();
-
-                    // remove repeating spaces
-                    text = text.replace("\r ", "\r");
-                    text = text.replace(";\r", ";");
-                    text = text.replace("\r;", ";");
-                    text = text.replace(" ;", ";");
-                    text = text.replace("; ", ";");
-                    text = text.replace(",", " , ");
-                    text = text.replaceCharacters("\r", " ");
-
-                    while (text.contains("  ")) {
-                        text = text.replace("  ", " ");
-                    }
-                    text = text.trimStart();
-                    auto lines = StringArray::fromTokens(text, ";", "\"");
-
-                    int count = 0;
-                    for (auto const& line : lines) {
-                        count++;
-                        auto words = StringArray::fromTokens(line, " ", "\"");
-
-                        auto atoms = std::vector<t_atom>();
-                        atoms.reserve(words.size() + 1);
-
-                        for (auto const& word : words) {
-                            atoms.emplace_back();
-                            // check if string is a valid number
-                            auto charptr = word.getCharPointer();
-                            auto ptr = charptr;
-                            CharacterFunctions::readDoubleValue(ptr); // Removes double value from char*
-                            if (*charptr == ',') {
-                                SETCOMMA(&atoms.back());
-                            } else if (ptr - charptr == word.getNumBytesAsUTF8() && ptr - charptr != 0) {
-                                SETFLOAT(&atoms.back(), word.getFloatValue());
-                            } else {
-                                SETSYMBOL(&atoms.back(), generateSymbol(word));
-                            }
-                        }
-
-                        if (count != lines.size()) {
-                            atoms.emplace_back();
-                            SETSEMI(&atoms.back());
-                        }
-
-                        lockAudioThread();
-
-                        pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("addline"), atoms.size(), atoms.data());
-
-                        unlockAudioThread();
-                    }
-
-                    t_atom fake_path;
-                    SETSYMBOL(&fake_path, generateSymbol(title.toRawUTF8()));
-
-                    lockAudioThread();
-
-                    // pd_typedmess(reinterpret_cast<t_pd*>(ptr), generateSymbol("path"), 1, &fake_path);
-                    pd_typedmess(reinterpret_cast<t_pd*>(ptr), generateSymbol("end"), 0, nullptr);
-                    unlockAudioThread();
-
+                    setText(text, ptr);
                     textEditorDialogs[ptr].reset(nullptr);
                 }
                 if (result == 1) {
@@ -1646,7 +1649,13 @@ void PluginProcessor::showTextEditorDialog(unsigned long ptr, Rectangle<int> bou
                 }
             },
             15, false);
-    }));
+    };
+    
+    auto onSave = [setText, ptr](String const& lastText){
+        setText(lastText, ptr);
+    };
+
+    textEditorDialogs[ptr].reset(Dialogs::showTextEditorDialog("", title, onClose, onSave));
 }
 
 // set custom plugin latency
