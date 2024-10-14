@@ -219,7 +219,9 @@ public:
             auto p = createArrayPath(vec, getDrawType(), getScale(), w, h);
             setJUCEPath(nvg, p);
             
-            nvgStrokeColor(nvg, nvgRGBA(getContentColour().getRed(), getContentColour().getGreen(), getContentColour().getBlue(), getContentColour().getAlpha()));
+            auto contentColour = getContentColour();
+            
+            nvgStrokeColor(nvg, nvgRGBA(contentColour.getRed(), contentColour.getGreen(), contentColour.getBlue(), contentColour.getAlpha()));
             nvgStrokeWidth(nvg, getLineWidth());
             nvgStroke(nvg);
         }
@@ -521,7 +523,7 @@ public:
             int colour = template_getfloat(templ, gensym("color"), scalar->sc_vec, 1);
 
             if (colour <= 0) {
-                return object->cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour);
+                return object->cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
             }
 
             auto rangecolor = [](int n) /* 0 to 9 in 5 steps */
