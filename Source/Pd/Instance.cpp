@@ -148,6 +148,7 @@ Instance::~Instance()
     pd_free(static_cast<t_pd*>(pluginLatencyReceiver));
     pd_free(static_cast<t_pd*>(parameterChangeReceiver));
     pd_free(static_cast<t_pd*>(parameterCreateReceiver));
+    pd_free(static_cast<t_pd*>(parameterDestroyReceiver));
     pd_free(static_cast<t_pd*>(parameterRangeReceiver));
     pd_free(static_cast<t_pd*>(parameterModeReceiver));
 
@@ -213,6 +214,9 @@ void Instance::initialisePd(String& pdlua_version)
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
     parameterCreateReceiver = pd::Setup::createReceiver(this, "param_create", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
+        reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
+    
+    parameterDestroyReceiver = pd::Setup::createReceiver(this, "param_destroy", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
     parameterRangeReceiver = pd::Setup::createReceiver(this, "param_range", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
@@ -634,6 +638,14 @@ void Instance::handleAsyncUpdate()
                     return;
                 auto name = mess.list[0].toString();
                 enableAudioParameter(name);
+            }
+            break;
+        case hash("param_destroy"):
+            if (mess.list.size() >= 1) {
+                if (!mess.list[0].isSymbol())
+                    return;
+                auto name = mess.list[0].toString();
+                disableAudioParameter(name);
             }
             break;
         case hash("param_range"):

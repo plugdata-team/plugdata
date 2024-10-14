@@ -1735,6 +1735,32 @@ void PluginProcessor::enableAudioParameter(String const& name)
     }
 }
 
+void PluginProcessor::disableAudioParameter(String const& name)
+{
+    for (auto* p : getParameters()) {
+        auto* param = dynamic_cast<PlugDataParameter*>(p);
+        if (!param->isEnabled() && param->getTitle() == name) {
+            return;
+        }
+    }
+
+    for (auto* p : getParameters()) {
+        auto* param = dynamic_cast<PlugDataParameter*>(p);
+        if (param->isEnabled()) {
+            param->setEnabled(false);
+            param->setValue(0.0f);
+            param->setRange(0.0f, 1.0f);
+            param->setMode(PlugDataParameter::Float);
+            param->notifyDAW();
+            break;
+        }
+    }
+
+    for (auto* editor : getEditors()) {
+        editor->sidebar->updateAutomationParameters();
+    }
+}
+
 void PluginProcessor::performParameterChange(int type, String const& name, float value)
 {
     // Type == 1 means it sets the change gesture state

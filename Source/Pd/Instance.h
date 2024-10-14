@@ -257,6 +257,7 @@ public:
 
     virtual void performParameterChange(int type, String const& name, float value) = 0;
     virtual void enableAudioParameter(String const& name) = 0;
+    virtual void disableAudioParameter(String const& name) = 0;
     virtual void setParameterRange(String const& name, float min, float max) = 0;
     virtual void setParameterMode(String const& name, int mode) = 0;
 
@@ -296,6 +297,7 @@ public:
     void* pluginLatencyReceiver = nullptr;
     void* parameterChangeReceiver = nullptr;
     void* parameterCreateReceiver = nullptr;
+    void* parameterDestroyReceiver = nullptr;
     void* parameterRangeReceiver = nullptr;
     void* parameterModeReceiver = nullptr;
     void* midiReceiver = nullptr;

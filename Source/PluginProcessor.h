@@ -126,6 +126,7 @@ public:
 
     void performParameterChange(int type, String const& name, float value) override;
     void enableAudioParameter(String const& name) override;
+    void disableAudioParameter(String const& name) override;
     void setParameterRange(String const& name, float min, float max) override;
     void setParameterMode(String const& name, int mode) override;
 
