@@ -707,6 +707,10 @@ void setup_imageSTBLoader();
 void setup_imageSTBSaver();
 void setup_recordPNM();
 
+#if ENABLE_FFMPEG
+void setup_filmFFMPEG();
+#endif
+
 #if __APPLE__
 void setup_videoAVF();
 void setup_filmAVF();
@@ -2337,6 +2341,10 @@ void Setup::initialiseGem(std::string const& gemPluginPath)
     //setup_videoV4L2();
     //setup_recordV4L2();
 #endif
+#if ENABLE_FFMPEG
+    setup_filmFFMPEG();
+#endif
+
 #endif
 }
 
