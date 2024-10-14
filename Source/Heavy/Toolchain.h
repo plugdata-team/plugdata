@@ -117,7 +117,7 @@ public:
                 latestVersion = compatTable.getDynamicObject()->getProperty(String(ProjectInfo::versionString).upToFirstOccurrenceOf("-", false, false)).toString();
                 if (latestVersion.isEmpty()) {
                     auto& properties = compatTable.getDynamicObject()->getProperties();
-                    latestVersion = properties.getValueAt(properties.size() - 1).upToFirstOccurrenceOf("-", false, false)).toString();
+                    latestVersion = properties.getValueAt(properties.size() - 1).toString().upToFirstOccurrenceOf("-", false, false);
                     
                     if (latestVersion.isEmpty()) {
                         throw 418;
