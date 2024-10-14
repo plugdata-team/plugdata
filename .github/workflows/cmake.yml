@@ -156,6 +156,10 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
+      - name: Install pkg-config
+        run: |
+          C:\msys64\usr\bin\bash -l -c "pacman -Sy --noconfirm pkg-config"
+
       - name: Create Build Environment
         run: cmake -E make_directory ${{github.workspace}}/build
 
@@ -204,6 +208,10 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
+
+      - name: Install pkg-config
+        run: |
+          C:\msys64\usr\bin\bash -l -c "pacman -Sy --noconfirm pkg-config"
 
       - name: Create Build Environment
         run: cmake -E make_directory ${{github.workspace}}/build

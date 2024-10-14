@@ -469,6 +469,9 @@ endif()
 
 if(ENABLE_FFMPEG)
 list(APPEND externals_libs ffmpeg)
+if(ENABLE_GEM)
+    target_link_libraries(Gem-plugins PUBLIC ffmpeg)
+endif()
 endif()
 
 if("${CMAKE_SYSTEM}" MATCHES "Linux")

@@ -2338,6 +2338,8 @@ void Setup::initialiseGem(std::string const& gemPluginPath)
     setup_videoVFW();
     setup_filmDS();
 #else
+    // Unfortunately, these plugins have big problems in plugdata
+    // they render the whole app unusable
     //setup_videoV4L2();
     //setup_recordV4L2();
 #endif
