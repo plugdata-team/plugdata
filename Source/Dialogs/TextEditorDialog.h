@@ -2699,6 +2699,9 @@ bool PlugDataTextEditor::insert(String const& content)
 
 MouseCursor PlugDataTextEditor::getMouseCursor()
 {
+    if (isOverScrollBar)
+        return MouseCursor::NormalCursor;
+
     return getMouseXYRelative().x < GUTTER_WIDTH && getMouseXYRelative().x > (getWidth() - 10) ? MouseCursor::NormalCursor : MouseCursor::IBeamCursor;
 }
 
