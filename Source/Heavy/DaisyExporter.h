@@ -89,7 +89,7 @@ public:
                 auto sourceDir = Toolchain::dir.getChildFile("lib").getChildFile("libdaisy").getChildFile("core");
 
                 int result = flashBootloader(bin, sourceDir, make, gccPath);
-                
+
                 exportingView->showState(result ? ExportingProgressView::BootloaderFlashFailure : ExportingProgressView::BootloaderFlashSuccess);
                 exportingView->stopMonitoring();
 
@@ -175,7 +175,7 @@ public:
             int idx = getValue<int>(targetBoardValue);
 
             // Custom board option
-            if (idx == 9 && !dontOpenFileChooser) {
+            if (idx == 10 && !dontOpenFileChooser) {
                 Dialogs::showOpenDialog([this](URL url) {
                     auto result = url.getLocalFile();
                     if (result.existsAsFile()) {
@@ -228,7 +228,7 @@ public:
         exportingView->flushConsole();
 
         Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 900);
-        
+
         return getExitCode();
     }
 
