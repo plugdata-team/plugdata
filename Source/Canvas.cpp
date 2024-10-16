@@ -177,8 +177,6 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     parameters.addParamInt("Width", cDimensions, &patchWidth, 527, onInteractionFn);
     parameters.addParamInt("Height", cDimensions, &patchHeight, 327, onInteractionFn);
 
-    updatePatchSnapshot();
-    
     patch.setVisible(true);
 
     lookAndFeelChanged();
@@ -204,43 +202,50 @@ Canvas::~Canvas()
 void Canvas::lookAndFeelChanged()
 {
     // Canvas colours
-    auto canvasBackgroundColJuce = getLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId);
+    auto& lnf = editor->getLookAndFeel();
+    canvasBackgroundColJuce = lnf.findColour(PlugDataColour::canvasBackgroundColourId);
     canvasBackgroundCol = convertColour(canvasBackgroundColJuce);
-    canvasMarkingsCol = convertColour(findColour(PlugDataColour::canvasDotsColourId).interpolatedWith(canvasBackgroundColJuce, 0.2f));
+    canvasMarkingsColJuce = lnf.findColour(PlugDataColour::canvasDotsColourId).interpolatedWith(canvasBackgroundColJuce, 0.2f);
+    canvasMarkingsCol = convertColour(canvasMarkingsColJuce);
+    canvasTextColJuce = lnf.findColour(PlugDataColour::canvasTextColourId);
 
     // Object colours
-    objectOutlineCol = convertColour(getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
-    outlineCol = convertColour(getLookAndFeel().findColour(PlugDataColour::outlineColourId));
-    textObjectBackgroundCol = convertColour(getLookAndFeel().findColour(PlugDataColour::textObjectBackgroundColourId));
+    objectOutlineCol = convertColour(lnf.findColour(PlugDataColour::objectOutlineColourId));
+    outlineCol = convertColour(lnf.findColour(PlugDataColour::outlineColourId));
+    textObjectBackgroundCol = convertColour(lnf.findColour(PlugDataColour::textObjectBackgroundColourId));
     ioletLockedCol = convertColour(canvasBackgroundColJuce.contrasting(0.5f));
 
-    commentTextCol = convertColour(getLookAndFeel().findColour(PlugDataColour::commentTextColourId));
+    commentTextCol = convertColour(lnf.findColour(PlugDataColour::commentTextColourId));
 
-    guiObjectInternalOutlineCol = convertColour(getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour));
-    guiObjectBackgroundCol = convertColour(getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
+    guiObjectInternalOutlineColJuce = lnf.findColour(PlugDataColour::guiObjectInternalOutlineColour);
+    guiObjectInternalOutlineCol = convertColour(guiObjectInternalOutlineColJuce);
+    guiObjectBackgroundColJuce = lnf.findColour(PlugDataColour::guiObjectBackgroundColourId);
+    guiObjectBackgroundCol = convertColour(guiObjectBackgroundColJuce);
 
-    auto selectedColJuce = getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId);
+    auto selectedColJuce = lnf.findColour(PlugDataColour::objectSelectedOutlineColourId);
     selectedOutlineCol = convertColour(selectedColJuce);
     transparentObjectBackgroundCol = convertColour(canvasBackgroundColJuce.contrasting(0.35f).withAlpha(0.1f));
     indexTextCol = convertColour(selectedColJuce.contrasting());
+
+    graphAreaCol = convertColour(lnf.findColour(PlugDataColour::graphAreaColourId));
 
     // Lasso colours
     lassoCol = convertColour(selectedColJuce.withAlpha(0.075f));
     lassoOutlineCol = convertColour(canvasBackgroundColJuce.interpolatedWith(selectedColJuce, 0.65f));
 
     // Presentation mode colors
-    auto presentationBackgroundColJuce = findColour(PlugDataColour::presentationBackgroundColourId);
+    auto presentationBackgroundColJuce = lnf.findColour(PlugDataColour::presentationBackgroundColourId);
     presentationBackgroundCol = convertColour(presentationBackgroundColJuce);
     presentationWindowOutlineCol = convertColour(presentationBackgroundColJuce.contrasting(0.3f));
 
     // Connection / Iolet colours
-    auto dataColJuce = getLookAndFeel().findColour(PlugDataColour::dataColourId);
+    auto dataColJuce = lnf.findColour(PlugDataColour::dataColourId);
     dataCol = convertColour(dataColJuce);
-    auto sigColJuce = getLookAndFeel().findColour(PlugDataColour::signalColourId);
+    auto sigColJuce = lnf.findColour(PlugDataColour::signalColourId);
     sigCol = convertColour(sigColJuce);
-    auto gemColJuce = getLookAndFeel().findColour(PlugDataColour::gemColourId);
+    auto gemColJuce = lnf.findColour(PlugDataColour::gemColourId);
     gemCol = convertColour(gemColJuce);
-    auto baseColJuce = findColour(PlugDataColour::connectionColourId);
+    auto baseColJuce = lnf.findColour(PlugDataColour::connectionColourId);
     baseCol = convertColour(baseColJuce);
 
     dataColBrighter = convertColour(dataColJuce.brighter());
@@ -259,40 +264,102 @@ void Canvas::parentHierarchyChanged()
     }
 }
 
-bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, int maxUpdateTimeMs)
+bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion)
 {
+    for(auto& object : objects)
+    {
+        if(object->gui)
+        {
+            object->gui->updateFramebuffers();
+        }
+    }
+    
     auto pixelScale = getRenderScale();
     auto zoom = getValue<float>(zoomScale);
 
     int const resizerLogicalSize = 9;
-    int const resizerBufferSize = resizerLogicalSize * pixelScale * zoom;
+    float const viewScale = pixelScale * zoom;
+    int const resizerBufferSize = resizerLogicalSize * viewScale;
 
-    auto updateResizeHandleIfNeeded = [this, resizerBufferSize, pixelScale, zoom, nvg](NVGImage& handleImage, Colour colour) {
-        if (handleImage.needsUpdate(resizerBufferSize, resizerBufferSize)) {
-            handleImage = NVGImage(nvg, resizerBufferSize, resizerBufferSize, [pixelScale, zoom, colour](Graphics &g) {
-                g.addTransform(AffineTransform::scale(pixelScale * zoom, pixelScale * zoom));
-                auto b = Rectangle<int>(0, 0, 9, 9);
-                // use the path with a hole in it to exclude the inner rounded rect from painting
-                Path outerArea;
-                outerArea.addRectangle(b);
-                outerArea.setUsingNonZeroWinding(false);
+    if (resizeHandleImage.needsUpdate(resizerBufferSize, resizerBufferSize)) {
+        resizeHandleImage = NVGImage(nvg, resizerBufferSize, resizerBufferSize, [viewScale](Graphics &g) {
+            g.addTransform(AffineTransform::scale(viewScale, viewScale));
+            auto b = Rectangle<int>(0, 0, 9, 9);
+            // use the path with a hole in it to exclude the inner rounded rect from painting
+            Path outerArea;
+            outerArea.addRectangle(b);
+            outerArea.setUsingNonZeroWinding(false);
 
-                Path innerArea;
+            Path innerArea;
+            auto innerRect = b.translated(Object::margin / 2, Object::margin / 2);
+            innerArea.addRoundedRectangle(innerRect, Corners::objectCornerRadius);
+            outerArea.addPath(innerArea);
+            g.reduceClipRegion(outerArea);
 
-                auto innerRect = b.translated(Object::margin / 2, Object::margin / 2);
-                innerArea.addRoundedRectangle(innerRect, Corners::objectCornerRadius);
-                outerArea.addPath(innerArea);
-                g.reduceClipRegion(outerArea);
+            g.setColour(Colours::white); // For alpha image colour isn't important
+            g.fillRoundedRectangle(0.0f, 0.0f, 9.0f, 9.0f, Corners::resizeHanleCornerRadius);
+        }, NVGImage::AlphaImage);
+        editor->nvgSurface.invalidateAll();
+    }
 
-                g.setColour(colour);
-                g.fillRoundedRectangle(0.0f, 0.0f, 9.0f, 9.0f, Corners::resizeHanleCornerRadius);
-            });
-            editor->nvgSurface.invalidateAll();
-        }
-    };
+    auto gridLogicalSize = objectGrid.gridSize ? objectGrid.gridSize : 25;
+    auto gridSizeCommon = 300;
+    auto gridBufferSize = gridSizeCommon * pixelScale * zoom;
 
-    updateResizeHandleIfNeeded(resizeHandleImage, findColour(PlugDataColour::objectSelectedOutlineColourId));
-    updateResizeHandleIfNeeded(resizeGOPHandleImage, findColour(PlugDataColour::graphAreaColourId));
+    if (dotsLargeImage.needsUpdate(gridBufferSize, gridBufferSize) || lastObjectGridSize != gridLogicalSize){
+        lastObjectGridSize = gridLogicalSize;
+
+        dotsLargeImage = NVGImage(nvg, gridBufferSize, gridBufferSize, [this, zoom, viewScale, gridLogicalSize, gridSizeCommon](Graphics& g){
+            g.addTransform(AffineTransform::scale(viewScale, viewScale));
+            const float ellipseRadius = zoom < 1.0f ? jmap(zoom, 0.25f, 1.0f, 3.0f, 1.0f) : 1.0f;
+
+            int decim = 0;
+            switch (gridLogicalSize) {
+                case 5:
+                case 10:
+                    if (zoom < 1.0f) decim = 4;
+                    if (zoom < 0.5f) decim = 6;
+                    break;
+                case 15:
+                    if (zoom < 1.0f) decim = 4;
+                    if (zoom < 0.5f) decim = 8;
+                    break;
+                case 20:
+                case 25:
+                    if (zoom < 1.0f) decim = 3;
+                    if (zoom < 0.5f) decim = 6;
+                    break;
+                case 30:
+                    if (zoom < 1.0f) decim = 12;
+                    if (zoom < 0.5f) decim = 12;
+                    break;
+            }
+
+            auto majorDotColour = canvasMarkingsColJuce.withAlpha(std::min(zoom * 0.8f, 1.0f));
+
+            g.setColour(majorDotColour);
+            // Draw ellipses on the grid
+            for (int x = 0; x <= gridSizeCommon; x += gridLogicalSize)
+            {
+                for (int y = 0; y <= gridSizeCommon; y += gridLogicalSize)
+                {
+                    if (decim != 0) {
+                        if (x % decim && y % decim)
+                            continue;
+                        g.setColour(majorDotColour);
+                        if (x % decim == 0 && y % decim == 0)
+                            g.setColour(canvasMarkingsColJuce);
+                    }
+                    // Add half smallest dot offset so the dot isn't at the edge of the texture
+                    // We remove this when we position the texture on the canvas
+                    float centerX = static_cast<float>(x) + 2.5f;
+                    float centerY = static_cast<float>(y) + 2.5f;
+                    g.fillEllipse(centerX - ellipseRadius, centerY - ellipseRadius, ellipseRadius * 2.0f, ellipseRadius * 2.0f);
+                }
+            }
+        }, NVGImage::RepeatImage, canvasBackgroundColJuce);
+        editor->nvgSurface.invalidateAll();
+    }
 
     return true;
 }
@@ -302,77 +369,40 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
 {
     auto const halfSize = infiniteCanvasSize / 2;
     auto const zoom = getValue<float>(zoomScale);
-
+    bool isLocked = getValue<bool>(locked);
     nvgSave(nvg);
 
+    // TODO: viewport is tested for almost all functions here, refactor it out so we don't test for it each time
     if (viewport) {
         nvgTranslate(nvg, -viewport->getViewPositionX(), -viewport->getViewPositionY());
         nvgScale(nvg, zoom, zoom);
-
         invalidRegion = invalidRegion.translated(viewport->getViewPositionX(), viewport->getViewPositionY());
         invalidRegion /= zoom;
+    }
 
+    if (viewport && isLocked){
         nvgFillColor(nvg, canvasBackgroundCol);
         nvgFillRect(nvg, invalidRegion.getX(), invalidRegion.getY(), invalidRegion.getWidth(), invalidRegion.getHeight());
     }
-
-    if (viewport && !getValue<bool>(locked)) {
+    if (viewport && !isLocked) {
         nvgBeginPath(nvg);
         nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
 
-        auto gridSize = objectGrid.gridSize ? objectGrid.gridSize : 25;
-
-        if (getValue<float>(zoomScale) >= 1.0f) {
+        // Use least common multiple of grid sizes: 5,10,15,20,25,30 for texture size for now
+        // We repeat the texture on GPU, this is so the texture does not become too small for GPU processing
+        // There will be a best fit depending on CPU/GPU calcuations.
+        // But currently 300 works well on GPU.
+        auto gridSizeCommon = 300;
+        {
             NVGScopedState scopedState(nvg);
-            nvgTranslate(nvg, canvasOrigin.x % gridSize, canvasOrigin.y % gridSize); // Make sure grid aligns with origin
-            NVGpaint dots = nvgDotPattern(nvg, canvasMarkingsCol, nvgRGBA(0, 0, 0, 0), objectGrid.gridSize, 0.8f, 0.0f);
-            nvgFillPaint(nvg, dots);
+            // offset image texture by 2.5f so no dots are on the edge of the texture
+            nvgTranslate(nvg, canvasOrigin.x - 2.5f, canvasOrigin.x - 2.5f);
+
+            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, gridSizeCommon, gridSizeCommon, 0, dotsLargeImage.imageId, 1));
             nvgFill(nvg);
-        } else {
-            NVGScopedState scopedState(nvg);
-
-            int devision = 0;
-            switch(gridSize){
-                case 5:
-                    devision = 8;
-                    break;
-                case 15:
-                    devision = 3;
-                    break;
-                case 30:
-                    devision = 5;
-                    break;
-                default:
-                    devision = 4;
-            }
-
-            auto gridDivTotal = gridSize * devision;
-            auto offset = Point<int>((canvasOrigin.x % gridDivTotal), (canvasOrigin.y % gridDivTotal));
-
-            auto minorDotColour = nvgRGBA(canvasMarkingsCol.r, canvasMarkingsCol.g, canvasMarkingsCol.b, zoom * 0.5f * 255);
-            auto majorDotColour = nvgRGBA(canvasMarkingsCol.r, canvasMarkingsCol.g, canvasMarkingsCol.b, zoom * 0.8f * 255);
-            auto scaledDotSize = 0.8f / zoom;
-
-            // Horizontal Dots
-            nvgTranslate(nvg, offset.x, offset.y); // Adjust alignment to origin
-            {
-                NVGScopedState scopedState(nvg);
-                for (int i = 0; i < devision; i++) {
-                    nvgTranslate(nvg, gridSize, 0);
-                    NVGpaint dots = nvgDotPattern(nvg, i == (devision - 1) ? majorDotColour : minorDotColour, nvgRGBA(0, 0, 0, 0), gridDivTotal, scaledDotSize, 0.0f);
-                    nvgFillPaint(nvg, dots);
-                    nvgFill(nvg);
-                }
-            }
-            // Vertical Dots
-            for (int i = 0; i < devision; i++) {
-                nvgTranslate(nvg, 0, gridSize);
-                NVGpaint dots = nvgDotPattern(nvg, i == (devision - 1) ? majorDotColour : minorDotColour, nvgRGBA(0, 0, 0, 0), gridDivTotal, scaledDotSize, 0.0f);
-                nvgFillPaint(nvg, dots);
-                nvgFill(nvg);
-            }
         }
     }
+
     auto drawBorder = [this, nvg, zoom](bool bg, bool fg) {
         if (viewport && (showOrigin || showBorder) && !::getValue<bool>(presentationMode)) {
             NVGScopedState scopedState(nvg);
@@ -500,10 +530,10 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
                 presentationShadowImage = NVGImage(nvg, borderArea.getWidth(), borderArea.getHeight(), [borderArea, shadowSize, windowCorner](Graphics& g) {
                     auto shadowPath = Path();
                     shadowPath.addRoundedRectangle(borderArea.reduced(shadowSize).withPosition(shadowSize, shadowSize), windowCorner);
-                    StackShadow::renderDropShadow(g, shadowPath, Colours::black, shadowSize, Point<int>(0, 2));
-                });
+                    StackShadow::renderDropShadow(0, g, shadowPath, Colours::white.withAlpha(0.3f), shadowSize, Point<int>(0, 2));
+                }, NVGImage::AlphaImage);
             }
-            auto shadowImage = nvgImagePattern(nvg, pos.getX() - shadowSize, pos.getY() - shadowSize, borderArea.getWidth(), borderArea.getHeight(), 0, presentationShadowImage.getImageId(), 0.12f);
+            auto shadowImage = nvgImageAlphaPattern(nvg, pos.getX() - shadowSize, pos.getY() - shadowSize, borderArea.getWidth(), borderArea.getHeight(), 0, presentationShadowImage.getImageId(), convertColour(Colours::black));
 
             nvgStrokeColor(nvg, presentationWindowOutlineCol);
             nvgStrokeWidth(nvg, 0.5f / scale);
@@ -558,42 +588,6 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
 float Canvas::getRenderScale() const
 {
     return editor->nvgSurface.getRenderScale();
-}
-
-void Canvas::updatePatchSnapshot()
-{
-    auto patchFile = patch.getCurrentFile();
-
-    if (patchFile.existsAsFile()) {
-        auto recentlyOpenedTree = SettingsFile::getInstance()->getValueTree().getChildWithName("RecentlyOpened");
-        for (int i = 0; i < recentlyOpenedTree.getNumChildren(); i++) {
-            auto recentlyOpenedFile = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
-
-            // Check if patch is in the recently opened list
-            if (File(recentlyOpenedFile) == patchFile) {
-                // If so, generate an svg sihouette that we can show on the welcome page
-                String svgSilhouette;
-
-                auto regionOfInterest = Rectangle<int>();
-                for (auto* object : objects) {
-                    regionOfInterest = regionOfInterest.getUnion(object->getBounds().reduced(Object::margin));
-                }
-
-                MemoryOutputStream objectBoundsStream;
-
-                for (auto* object : objects) {
-                    auto rect = object->getBounds().reduced(Object::margin) - regionOfInterest.getPosition();
-                    objectBoundsStream.writeCompressedInt(rect.getX());
-                    objectBoundsStream.writeCompressedInt(rect.getY());
-                    objectBoundsStream.writeCompressedInt(rect.getWidth());
-                    objectBoundsStream.writeCompressedInt(rect.getHeight());
-                }
-
-                recentlyOpenedTree.getChild(i).setProperty("PatchImage", Base64::toBase64(objectBoundsStream.getData(), objectBoundsStream.getDataSize()), nullptr);
-                break;
-            }
-        }
-    }
 }
 
 void Canvas::renderAllObjects(NVGcontext* nvg, Rectangle<int> area)
@@ -772,7 +766,7 @@ void Canvas::zoomToFitAll()
 
     auto scale = getValue<float>(zoomScale);
 
-    auto regionOfInterest = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, getValue<float>(patchWidth), getValue<float>(patchHeight));
+    auto regionOfInterest = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, 20, 20);
 
     if (!presentationMode.getValue()) {
         for (auto* object : objects) {
@@ -787,21 +781,18 @@ void Canvas::zoomToFitAll()
 
     auto roiHeight = static_cast<float>(regionOfInterest.getHeight());
     auto roiWidth = static_cast<float>(regionOfInterest.getWidth());
-    auto viewHeight = viewArea.getHeight();
-    auto viewWidth = viewArea.getWidth();
+    
+    auto scaleWidth = viewArea.getWidth() / roiWidth;
+    auto scaleHeight = viewArea.getHeight() / roiHeight;
+    scale = jmin(scaleWidth, scaleHeight);
+    scale = std::clamp(scale, 0.05f, 3.0f);
+    
+    auto transform = getTransform();
+    transform = transform.scaled(scale);
+    setTransform(transform);
 
-    if (roiWidth > viewWidth || roiHeight > viewHeight) {
-        auto scaleWidth = viewWidth / roiWidth;
-        auto scaleHeight = viewHeight / roiHeight;
-        scale = jmin(scaleWidth, scaleHeight);
-
-        auto transform = getTransform();
-        transform = transform.scaled(scale);
-        setTransform(transform);
-
-        scale = std::sqrt(std::abs(transform.getDeterminant()));
-        zoomScale.setValue(scale);
-    }
+    scale = std::sqrt(std::abs(transform.getDeterminant()));
+    zoomScale.setValue(scale);
 
     auto viewportCentre = viewport->getViewArea().withZeroOrigin().getCentre();
     auto newViewPos = regionOfInterest.transformedBy(getTransform()).getCentre() - viewportCentre;
@@ -838,7 +829,6 @@ void Canvas::save(std::function<void()> const& nestedCallback)
     }
 
     if (canvasToSave->patch.getCurrentFile().existsAsFile()) {
-        canvasToSave->updatePatchSnapshot();
         canvasToSave->patch.savePatch();
         SettingsFile::getInstance()->addToRecentlyOpened(canvasToSave->patch.getCurrentFile());
         nestedCallback();
@@ -859,7 +849,6 @@ void Canvas::saveAs(std::function<void()> const& nestedCallback)
             if (!result.hasFileExtension("pd"))
                 result = result.getFullPathName() + ".pd";
 
-            updatePatchSnapshot();
             patch.savePatch(resultURL);
             SettingsFile::getInstance()->addToRecentlyOpened(result);
             pd->titleChanged();
@@ -891,8 +880,11 @@ void Canvas::synchroniseAllCanvases()
 
 void Canvas::synchroniseSplitCanvas()
 {
-    for (auto* canvas : editor->getTabComponent().getVisibleCanvases()) {
-        canvas->synchronise();
+    for(auto* e : pd->getEditors())
+    {
+        for (auto* canvas : e->getTabComponent().getVisibleCanvases()) {
+            canvas->synchronise();
+        }
     }
 }
 
@@ -1124,6 +1116,8 @@ void Canvas::altKeyChanged(bool isHeld)
 
 void Canvas::mouseDown(MouseEvent const& e)
 {
+    if(isGraph) return;
+    
     PopupMenu::dismissAllActiveMenus();
 
     if (checkPanDragMode())
@@ -2224,6 +2218,18 @@ void Canvas::alignObjects(Align alignment)
 
 void Canvas::undo()
 {
+    
+    // If there is an object with an active editor, we interpret undo as wanting to undo the creation of that object editor
+    // This is because the initial object editor is not communicated with Pd, so we can't rely on patch undo to do that
+    // If we don't do this, it will undo the old last action before creating this editor, which would be confusing
+    for(auto object : objects)
+    {
+        if(object->isInitialEditorShown())
+        {
+            object->hideEditor();
+        }
+    }
+    
     // Tell pd to undo the last action
     patch.undo();
 

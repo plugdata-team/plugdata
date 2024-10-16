@@ -41,7 +41,7 @@ public:
         MessageManager::callAsync([_this = SafePointer(this)]() {
             if (_this) {
                 _this->update();
-                _this->valueChanged(_this->isGraphChild);
+                _this->propertyChanged(_this->isGraphChild);
             }
         });
     }
@@ -214,7 +214,7 @@ public:
             cnv->editor->updateCommandStatus();
         }
 
-        auto b = getPatch()->getBounds() + canvas->canvasOrigin;
+        auto b = getPatch()->getGraphBounds() + canvas->canvasOrigin;
         canvas->setBounds(-b.getX(), -b.getY(), b.getWidth() + b.getX(), b.getHeight() + b.getY());
         canvas->setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
         canvas->locked.referTo(cnv->locked);
@@ -309,6 +309,17 @@ public:
             drawTicksForGraph(nvg, graph.get(), this);
         }
     }
+    
+    void updateFramebuffers() override
+    {
+        if(canvas)
+        {
+            for(auto& object : canvas->objects)
+            {
+                if(object->gui) object->gui->updateFramebuffers();
+            }
+        }
+    }
 
     static void drawTicksForGraph(NVGcontext* nvg, t_glist* x, ObjectBase* parent)
     {
@@ -386,7 +397,7 @@ public:
         return subpatch;
     }
 
-    void valueChanged(Value& v) override
+    void propertyChanged(Value& v) override
     {
 
         if (v.refersToSameSourceAs(sizeProperty)) {
@@ -445,13 +456,8 @@ public:
         }
     }
 
-    bool canOpenFromMenu() override
+    void getMenuOptions(PopupMenu& menu) override
     {
-        return true;
-    }
-
-    void openFromMenu() override
-    {
-        openSubpatch();
+        menu.addItem("Open", [_this = SafePointer(this)](){ if(_this) _this->openSubpatch(); });
     }
 };

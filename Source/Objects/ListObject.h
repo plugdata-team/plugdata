@@ -86,7 +86,7 @@ public:
         setParameterExcludingListener(sizeProperty, atomHelper.getWidthInChars());
     }
 
-    void valueChanged(Value& value) override
+    void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
             auto* constrainer = getConstrainer();
@@ -111,22 +111,9 @@ public:
 
     void updateFromGui(bool force = false)
     {
-        auto array = StringArray();
-        array.addTokens(listLabel.getText(), true);
-        std::vector<pd::Atom> list;
-        list.reserve(array.size());
-        for (auto const& elem : array) {
-            auto charptr = elem.getCharPointer();
-            auto numptr = charptr;
-            auto value = CharacterFunctions::readDoubleValue(numptr);
-
-            if (numptr - charptr == elem.getNumBytesAsUTF8()) {
-                list.emplace_back(value);
-            } else {
-                list.emplace_back(pd->generateSymbol(elem));
-            }
-        }
-        if (force || list != getList()) {
+        auto text = listLabel.getText();
+        if (force || text != getListText()) {
+            std::vector<pd::Atom> list = pd::Atom::atomsFromString(text);
             setList(list);
         }
     }
@@ -229,25 +216,22 @@ public:
     void updateValue()
     {
         if (!listLabel.isBeingEdited()) {
-            auto const array = getList();
-            String message;
-            for (auto const& atom : array) {
-                if (message.isNotEmpty()) {
-                    message += " ";
-                }
-
-                message += atom.toString();
-            }
-            listLabel.setText(message, NotificationType::dontSendNotification);
+            auto const listText = getListText();
+            listLabel.setText(listText, NotificationType::dontSendNotification);
         }
     }
 
-    std::vector<pd::Atom> getList() const
+    String getListText() const
     {
         if (auto gatom = ptr.get<t_fake_gatom>()) {
-            int ac = binbuf_getnatom(gatom->a_text.te_binbuf);
-            t_atom* av = binbuf_getvec(gatom->a_text.te_binbuf);
-            return pd::Atom::fromAtoms(ac, av);
+            char* text;
+            int size;
+            binbuf_gettext(gatom->a_text.te_binbuf, &text, &size);
+            
+            auto result = String::fromUTF8(text, size);
+            freebytes(text, size);
+            
+            return result;
         }
 
         return {};

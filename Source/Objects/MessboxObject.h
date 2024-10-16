@@ -24,9 +24,8 @@ public:
         : ObjectBase(obj, parent)
     {
         editor.setColour(TextEditor::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
-        editor.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
-        editor.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
-        editor.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
+        editor.getProperties().set("NoBackground", true);
+        editor.getProperties().set("NoOutline", true);
         editor.setColour(ScrollBar::thumbColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::scrollbarThumbColourId));
 
         editor.setAlwaysOnTop(true);
@@ -116,34 +115,23 @@ public:
         setInterceptsMouseClicks(locked, locked);
         editor.setReadOnly(!locked);
     }
-
-    void paint(Graphics& g) override
-    {
-        auto bounds = getLocalBounds();
-        // Draw background
-        g.setColour(Colour::fromString(secondaryColour.toString()));
-        g.fillRoundedRectangle(bounds.toFloat().reduced(0.5f), Corners::objectCornerRadius);
-    }
         
     void render(NVGcontext* nvg) override
     {
-        auto scale = getImageScale();
-        if (needsRepaint || isEditorShown() || imageRenderer.needsUpdate(roundToInt(getWidth() * scale), roundToInt(getHeight() * scale))) {
-            imageRenderer.renderJUCEComponent(nvg, *this, scale);
-            needsRepaint = false;
-        } else {
-            imageRenderer.render(nvg, getLocalBounds());
-        }
-    }
-
-    void paintOverChildren(Graphics& g) override
-    {
         bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), convertColour(Colour::fromString(secondaryColour.toString())), convertColour(outlineColour), Corners::objectCornerRadius);
+        
+        auto scale = getImageScale();
+        if (needsRepaint || isEditorShown() || imageRenderer.needsUpdate(roundToInt(editor.getWidth() * scale), roundToInt(editor.getHeight() * scale))) {
+            imageRenderer.renderJUCEComponent(nvg, editor, scale);
+            needsRepaint = false;
+        } else {
+            imageRenderer.render(nvg, getLocalBounds().withTrimmedRight(5));
+        }
     }
+        
+    void paint(Graphics& g) override {};
 
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
@@ -186,6 +174,11 @@ public:
     {
         editor.setReadOnly(true);
         repaint();
+    }
+        
+    bool isEditorShown() override
+    {
+        return !editor.isReadOnly() && editor.hasKeyboardFocus(false);
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -288,7 +281,7 @@ public:
         return false;
     }
 
-    void valueChanged(Value& value) override
+    void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
             auto& arr = *sizeProperty.getValue().getArray();

@@ -18,9 +18,8 @@ void pdlua_gfx_mouse_drag(t_pdlua* o, int x, int y);
 void pdlua_gfx_repaint(t_pdlua* o, int firsttime);
 }
 
-class LuaObject final : public ObjectBase
-    , public Timer {
-
+class LuaObject final : public ObjectBase, private Value::Listener
+{
     Colour currentColour;
 
     CriticalSection bufferSwapLock;
@@ -29,7 +28,7 @@ class LuaObject final : public ObjectBase
     std::unique_ptr<Component> textEditor;
     std::unique_ptr<Dialog> saveDialog;
 
-    NVGFramebuffer framebuffer;
+    std::map<int, NVGFramebuffer> framebuffers;
 
     struct LuaGuiMessage {
         t_symbol* symbol;
@@ -65,8 +64,8 @@ class LuaObject final : public ObjectBase
         }
     };
 
-    std::vector<LuaGuiMessage> guiCommandBuffer;
-    moodycamel::ReaderWriterQueue<LuaGuiMessage> guiMessageQueue;
+    std::map<int, std::vector<LuaGuiMessage>> guiCommandBuffer;
+    std::map<int, moodycamel::ReaderWriterQueue<LuaGuiMessage>> guiMessageQueue;
 
     static inline std::map<t_pdlua*, std::vector<LuaObject*>> allDrawTargets = std::map<t_pdlua*, std::vector<LuaObject*>>();
 
@@ -80,15 +79,12 @@ public:
         }
 
         parentHierarchyChanged();
-        startTimerHz(60);
     }
 
     ~LuaObject()
     {
-        if (auto pdlua = ptr.get<t_pdlua>()) {
-            auto& listeners = allDrawTargets[pdlua.get()];
-            listeners.erase(std::remove(listeners.begin(), listeners.end(), this), listeners.end());
-        }
+        auto& listeners = allDrawTargets[ptr.getRawUnchecked<t_pdlua>()];
+        listeners.erase(std::remove(listeners.begin(), listeners.end(), this), listeners.end());
 
         zoomScale.removeListener(this);
     }
@@ -144,6 +140,34 @@ public:
     void updateSizeProperty() override
     {
     }
+    
+    void getMenuOptions(PopupMenu& menu) override
+    {
+        menu.addItem("Open lua editor", [_this = SafePointer(this)](){
+            if(!_this) return;
+            if (auto obj = _this->ptr.get<t_pd>()) {
+                _this->pd->sendDirectMessage(obj.get(), "menu-open", {});
+            }
+        });
+        menu.addItem("Reload lua object", [_this = SafePointer(this)](){
+            if(!_this) return;
+            if (auto pdlua = _this->ptr.get<t_pd>()) {
+                // Reload the lua script
+                _this->pd->sendMessage("pdluax", "reload", {});
+                
+                // Recreate this object
+                if(auto patch = _this->cnv->patch.getPointer()) {
+                    pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
+                }
+                _this->cnv->synchronise();
+            }
+        });
+    }
+
+    bool hideInGraph() override
+    {
+        return false;
+    }
 
     void mouseDown(MouseEvent const& e) override
     {
@@ -192,7 +216,10 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        framebuffer.render(nvg, Rectangle<int>(getWidth() + 1, getHeight()));
+        for(auto& [layer, fb] : framebuffers)
+        {
+            fb.render(nvg, Rectangle<int>(getWidth() + 1, getHeight()));
+        }
     }
 
     void valueChanged(Value& v) override
@@ -200,7 +227,7 @@ public:
         sendRepaintMessage();
     }
 
-    void handleGuiMessage(t_symbol* sym, int argc, t_atom* argv)
+    void handleGuiMessage(int layer, t_symbol* sym, int argc, t_atom* argv)
     {
         NVGcontext* nvg = cnv->editor->nvgSurface.getRawContext();
         if (!nvg)
@@ -218,20 +245,21 @@ public:
             if (!imageWidth || !imageHeight)
                 return;
 
-            framebuffer.bind(nvg, imageWidth, imageHeight);
-
-            nvgViewport(0, 0, getWidth() * scale, getHeight() * scale);
+            framebuffers[layer].bind(nvg, imageWidth, imageHeight);
+            
+            nvgViewport(0, 0, imageWidth, imageHeight);
             nvgClear(nvg);
             nvgBeginFrame(nvg, getWidth(), getHeight(), scale);
             nvgSave(nvg);
             return;
         }
         case hash("lua_end_paint"): {
-            if (!framebuffer.isValid())
-                return;
-
+            if (!framebuffers[layer].isValid()) return;
+                        
+            auto scale = getValue<float>(zoomScale) * 2.0f; // Multiply by 2 for hi-dpi screens
+            nvgGlobalScissor(nvg, 0, 0, getWidth() * scale, getHeight() * scale);
             nvgEndFrame(nvg);
-            framebuffer.unbind();
+            framebuffers[layer].unbind();
             repaint();
             return;
         }
@@ -249,17 +277,13 @@ public:
             return;
         }
         }
-
-        if (!framebuffer.isValid())
-            return; // If there is no active framebuffer at this point, return
-
+        
         switch (hashsym) {
         case hash("lua_set_color"): {
             if (argc == 1) {
                 int colourID = atom_getfloat(argv);
 
-                auto& lnf = LookAndFeel::getDefaultLookAndFeel();
-                currentColour = Array<Colour> { lnf.findColour(PlugDataColour::guiObjectBackgroundColourId), lnf.findColour(PlugDataColour::canvasTextColourId), lnf.findColour(PlugDataColour::guiObjectInternalOutlineColour) }[colourID];
+                currentColour = Array<Colour> { cnv->guiObjectBackgroundColJuce, cnv->canvasTextColJuce, cnv->guiObjectInternalOutlineColJuce }[colourID];
                 nvgFillColor(nvg, convertColour(currentColour));
                 nvgStrokeColor(nvg, convertColour(currentColour));
             }
@@ -431,18 +455,10 @@ public:
             break;
         }
         case hash("lua_fill_all"): {
-            auto bounds = getLocalBounds().toFloat().reduced(0.5f);
-            auto outlineColour = cnv->editor->getLookAndFeel().findColour(isSelected ? PlugDataColour::objectSelectedOutlineColourId :  objectOutlineColourId);
+            auto bounds = getLocalBounds();
+            auto outlineColour = isSelected ? cnv->selectedOutlineCol :  cnv->objectOutlineCol;
 
-            nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::objectCornerRadius);
-            nvgFill(nvg);
-
-            nvgStrokeWidth(nvg, 1.0f);
-            nvgStrokeColor(nvg, convertColour(outlineColour));
-            nvgStroke(nvg);
-
-            nvgStrokeColor(nvg, convertColour(currentColour));
+            nvgDrawRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), convertColour(currentColour), outlineColour, Corners::objectCornerRadius);
             break;
         }
 
@@ -472,49 +488,62 @@ public:
         }
     }
 
-    void timerCallback() override
+    // We need to update the framebuffer in a place where the current graphics context is active (for multi-window support, thanks to Alex for figuring that out)
+    // but we also need to be outside of calls to beginFrame/endFrame
+    // So we have this separate callback function that occurs after activating the GPU context, but before starting the frame
+    void updateFramebuffers() override
     {
         LuaGuiMessage guiMessage;
-        while (guiMessageQueue.try_dequeue(guiMessage)) {
-            guiCommandBuffer.push_back(guiMessage);
-        }
-
-        auto* startMesage = pd->generateSymbol("lua_start_paint");
-        auto* endMessage = pd->generateSymbol("lua_end_paint");
-
-        int startIdx = -1, endIdx = -1;
-        bool updateScene = false;
-        for (int i = guiCommandBuffer.size() - 1; i >= 0; i--) {
-            if (guiCommandBuffer[i].symbol == startMesage)
-                startIdx = i;
-            if (guiCommandBuffer[i].symbol == endMessage)
-                endIdx = i + 1;
-
-            if (startIdx != -1 && endIdx != -1) {
-                updateScene = true;
-                break;
+        for(auto& [layer, layerQueue] : guiMessageQueue) {
+            if(layer == -1) // non-layer related messages
+            {
+                while (layerQueue.try_dequeue(guiMessage)) {
+                    handleGuiMessage(layer, guiMessage.symbol, guiMessage.size, guiMessage.data.data());
+                }
+                continue;
             }
-        }
-
-        if (updateScene) {
-            if (endIdx > startIdx) {
-                for (int i = startIdx; i < endIdx; i++) {
-                    handleGuiMessage(guiCommandBuffer[i].symbol, guiCommandBuffer[i].size, guiCommandBuffer[i].data.data());
+            
+            while (layerQueue.try_dequeue(guiMessage)) {
+                guiCommandBuffer[layer].push_back(guiMessage);
+            }
+            
+            auto* startMesage = pd->generateSymbol("lua_start_paint");
+            auto* endMessage = pd->generateSymbol("lua_end_paint");
+            
+            int startIdx = -1, endIdx = -1;
+            bool updateScene = false;
+            for (int i = guiCommandBuffer[layer].size() - 1; i >= 0; i--) {
+                if (guiCommandBuffer[layer][i].symbol == startMesage)
+                    startIdx = i;
+                if (guiCommandBuffer[layer][i].symbol == endMessage)
+                    endIdx = i + 1;
+                
+                if (startIdx != -1 && endIdx != -1) {
+                    updateScene = true;
+                    break;
                 }
             }
-            guiCommandBuffer.erase(guiCommandBuffer.begin(), guiCommandBuffer.begin() + endIdx);
-        }
-
-        if (isSelected != object->isSelected() || !framebuffer.isValid()) {
-            isSelected = object->isSelected();
-            sendRepaintMessage();
+            
+            if (updateScene) {
+                if (endIdx > startIdx) {
+                    for (int i = startIdx; i < endIdx; i++) {
+                        handleGuiMessage(layer, guiCommandBuffer[layer][i].symbol, guiCommandBuffer[layer][i].size, guiCommandBuffer[layer][i].data.data());
+                    }
+                }
+                guiCommandBuffer[layer].erase(guiCommandBuffer[layer].begin(), guiCommandBuffer[layer].begin() + endIdx);
+            }
+            
+            if (isSelected != object->isSelected() || !framebuffers[layer].isValid()) {
+                isSelected = object->isSelected();
+                sendRepaintMessage();
+            }
         }
     }
 
-    static void drawCallback(void* target, t_symbol* sym, int argc, t_atom* argv)
+    static void drawCallback(void* target, int layer, t_symbol* sym, int argc, t_atom* argv)
     {
         for (auto* object : allDrawTargets[static_cast<t_pdlua*>(target)]) {
-            object->guiMessageQueue.enqueue({ sym, argc, argv });
+            object->guiMessageQueue[layer].enqueue({ sym, argc, argv });
         }
     }
 
@@ -534,39 +563,52 @@ public:
 
         if (cnv->editor->openTextEditors.contains(ptr))
             return;
+        
+        auto onClose = [_this = SafePointer(this), this, fileToOpen](String const& newText, bool hasChanged) {
+            if(!_this) return;
+            
+            if (!hasChanged) {
+                cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
+                textEditor.reset(nullptr);
+                return;
+            }
 
-        textEditor.reset(
-            Dialogs::showTextEditorDialog(fileToOpen.loadFileAsString(), "lua: " + getText(), [this, fileToOpen](String const& newText, bool hasChanged) {
-                if (!hasChanged) {
-                    cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
-                    textEditor.reset(nullptr);
-                    return;
-                }
-
-                Dialogs::showAskToSaveDialog(
-                    &saveDialog, textEditor.get(), "", [this, newText, fileToOpen](int result) mutable {
-                        if (result == 2) {
-                            fileToOpen.replaceWithText(newText);
-                            if (auto pdlua = ptr.get<t_pd>()) {
-                                // Reload the lua script
-                                pd_typedmess(pdlua.get(), pd->generateSymbol("_reload"), 0, nullptr);
-
-                                // Recreate this object
-                                if(auto patch = cnv->patch.getPointer()) {
-                                    pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
-                                }
+            Dialogs::showAskToSaveDialog(
+                &saveDialog, textEditor.get(), "", [_this = SafePointer(this), newText, fileToOpen](int result) mutable {
+                    if(!_this) return;
+                    if (result == 2) {
+                        fileToOpen.replaceWithText(newText);
+                        if (auto pdlua = _this->ptr.get<t_pd>()) {
+                            _this->pd->sendMessage("pdluax", "reload", {});
+                            // Recreate this object
+                            if(auto patch = _this->cnv->patch.getPointer()) {
+                                pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
                             }
-                            cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
-                            textEditor.reset(nullptr);
-                            cnv->performSynchronise();
                         }
-                        if (result == 1) {
-                            cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
-                            textEditor.reset(nullptr);
-                        }
-                    },
-                    15, false);
-            }));
+                        _this->cnv->editor->openTextEditors.removeAllInstancesOf(_this->ptr);
+                        _this->textEditor.reset(nullptr);
+                        _this->cnv->synchronise();
+                    }
+                    if (result == 1) {
+                        _this->cnv->editor->openTextEditors.removeAllInstancesOf(_this->ptr);
+                        _this->textEditor.reset(nullptr);
+                    }
+                },
+                15, false);
+        };
+        
+        auto onSave = [_this = SafePointer(this), this, fileToOpen](String const& newText){
+            if(!_this) return;
+            
+            fileToOpen.replaceWithText(newText);
+            if (auto pdlua = ptr.get<t_pd>()) {
+                pd->sendMessage("pdluax", "reload", {});
+            }
+            sendRepaintMessage();
+        };
+
+        textEditor.reset(Dialogs::showTextEditorDialog(fileToOpen.loadFileAsString(), "lua: " + getText(), onClose, onSave, true));
+
         if (textEditor)
             cnv->editor->openTextEditors.addIfNotAlreadyThere(ptr);
     }
@@ -599,6 +641,29 @@ public:
             openTextEditor(File(atoms[0].toString()));
         }
     }
+    
+    void getMenuOptions(PopupMenu& menu) override
+    {
+        menu.addItem("Open lua editor", [_this = SafePointer(this)](){
+            if(!_this) return;
+            if (auto obj = _this->ptr.get<t_pd>()) {
+                _this->pd->sendDirectMessage(obj.get(), "menu-open", {});
+            }
+        });
+        
+        menu.addItem("Reload lua object", [_this = SafePointer(this)](){
+            if(!_this) return;
+            if (auto pdlua = _this->ptr.get<t_pd>()) {
+                // Reload the lua script
+                _this->pd->sendMessage("pdluax", "reload", {});
+                
+                // Recreate this object
+                if(auto patch = _this->cnv->patch.getPointer()) {
+                    pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
+                }
+            }
+        });
+    }
 
     void openTextEditor(File fileToOpen)
     {
@@ -610,38 +675,47 @@ public:
         if (cnv->editor->openTextEditors.contains(ptr))
             return;
 
-        textEditor.reset(
-            Dialogs::showTextEditorDialog(fileToOpen.loadFileAsString(), "lua: " + getText(), [this, fileToOpen](String const& newText, bool hasChanged) {
-                if (!hasChanged) {
-                    cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
-                    textEditor.reset(nullptr);
-                    return;
-                }
+        auto onClose = [_this = SafePointer(this), this, fileToOpen](String const& newText, bool hasChanged) {
+            if(!_this) return;
+            if (!hasChanged) {
+                cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
+                textEditor.reset(nullptr);
+                return;
+            }
 
-                Dialogs::showAskToSaveDialog(
-                    &saveDialog, textEditor.get(), "", [this, newText, fileToOpen](int result) mutable {
-                        if (result == 2) {
-                            fileToOpen.replaceWithText(newText);
-                            if (auto pdlua = ptr.get<t_pd>()) {
-                                // Reload the lua script
-                                pd_typedmess(pdlua.get(), pd->generateSymbol("_reload"), 0, nullptr);
-
-                                // Recreate this object
-                                if(auto patch = cnv->patch.getPointer()) {
-                                    pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
-                                }
+            Dialogs::showAskToSaveDialog(
+                &saveDialog, textEditor.get(), "", [this, newText, fileToOpen](int result) mutable {
+                    if (result == 2) {
+                        fileToOpen.replaceWithText(newText);
+                        if (auto pdlua = ptr.get<t_pd>()) {
+                            pd->sendMessage("pdluax", "reload", {});
+                            // Recreate this object
+                            if(auto patch = cnv->patch.getPointer()) {
+                                pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
                             }
-                            cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
-                            textEditor.reset(nullptr);
-                            cnv->performSynchronise();
                         }
-                        if (result == 1) {
-                            cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
-                            textEditor.reset(nullptr);
-                        }
-                    },
-                    15, false);
-            }));
+                        cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
+                        textEditor.reset(nullptr);
+                        cnv->synchronise();
+                    }
+                    if (result == 1) {
+                        cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
+                        textEditor.reset(nullptr);
+                    }
+                },
+                15, false);
+        };
+        
+        auto onSave = [_this = SafePointer(this), this, fileToOpen](String const& newText){
+            if(!_this) return;
+            fileToOpen.replaceWithText(newText);
+            if (auto pdlua = ptr.get<t_pd>()) {
+                pd->sendMessage("pdluax", "reload", {});
+            }
+        };
+
+        textEditor.reset(Dialogs::showTextEditorDialog(fileToOpen.loadFileAsString(), "lua: " + getText(), onClose, onSave, true));
+
         if (textEditor)
             cnv->editor->openTextEditors.addIfNotAlreadyThere(ptr);
     }

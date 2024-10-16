@@ -607,7 +607,7 @@ public:
             localPath.addRoundedRectangle(b.toFloat().reduced(22.0f), Corners::windowCornerRadius);
 
             int radius = isActiveWindow() ? 22 : 17;
-            StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), radius, { 0, 2 });
+            StackShadow::renderDropShadow(hash("plugdata_window"), g, localPath, Colour(0, 0, 0).withAlpha(0.6f), radius, { 0, 2 });
         }
     }
 #elif JUCE_WINDOWS

@@ -86,7 +86,20 @@ public:
 
     void setGlobalScale(float newScale);
 
+    String getCorruptBackupSettingsLocation();
+
+    enum SettingsState { UserSettings, BackupSettings, DefaultSettings };
+    SettingsState getSettingsState();
+
 private:
+
+    static bool verify(const XmlElement* settings);
+
+    void backupCorruptSettings();
+    String backupSettingsLocation;
+
+    SettingsState settingsState = UserSettings;
+
     bool isInitialised = false;
 
     FileSystemWatcher settingsFileWatcher;
@@ -128,7 +141,7 @@ private:
         { "centre_sidepanel_buttons", var(true) },
         { "show_all_audio_device_rates", var(false) },
         { "add_object_menu_pinned", var(false) },
-        { "autosave_interautosave_interval", var(120) },
+        { "autosave_interval", var(5) },
         { "autosave_enabled", var(1) },
         { "patch_downwards_only", var(false) }, // Option to replicate PD-Vanilla patching downwards only
         { "macos_buttons",
@@ -140,6 +153,7 @@ private:
         },
         // DEFAULT SETTINGS FOR TOGGLES
         { "search_order", var(true) },
+        { "open_patches_in_window", var(false) },
     };
 
     StringArray childTrees {

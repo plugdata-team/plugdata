@@ -205,20 +205,21 @@ public:
     {
         auto b = getLocalBounds();
 
-        auto finalOutlineColour = outlineColour;
+        auto finalOutlineColour = object->isSelected() ? selectedOutlineColour : outlineColour;
         auto finalBackgroundColour = convertColour(backgroundColour);
+        auto outlineCol = object->isSelected() ? selectedOutlineColour : finalOutlineColour;
 
         // render invalid text objects with red outline & semi-transparent background
         if (!isValid) {
             finalOutlineColour = convertColour(object->isSelected() ? Colours::red.brighter(1.5f) : Colours::red);
-            finalBackgroundColour = nvgRGBA(outlineColour.r, outlineColour.g, outlineColour.b, 0.2f);
+            finalBackgroundColour = nvgRGBA(outlineColour.r, outlineColour.g, outlineColour.b, 0.2f * 255);
         }
         else if(getPatch() && isMouseOver() && getValue<bool>(cnv->locked))
         {
             finalBackgroundColour = convertColour(backgroundColour.contrasting(backgroundColour.getBrightness() > 0.5f ? 0.03f : 0.05f));
         }
-        
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), finalBackgroundColour, object->isSelected() ? selectedOutlineColour : finalOutlineColour, Corners::objectCornerRadius);
+
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), finalBackgroundColour, finalOutlineColour, Corners::objectCornerRadius);
 
         // if the object is valid & iolet area colour is differnet from background colour
         // draw two non-rounded rectangles at top / bottom
@@ -240,15 +241,17 @@ public:
         
         if (isValid && hasIoletArea) {
             NVGScopedState scopedState(nvg);
-            float const padding = 1.3f;
+            float const padding = 1.0f;
             float const padding2x = padding * 2;
-            nvgRoundedScissor(nvg, padding, padding, getWidth() - padding2x, getHeight() - padding2x, jmax(0.0f, Corners::objectCornerRadius - 0.7f));
+            nvgRoundedScissor(nvg, padding, padding, getWidth() - padding2x, getHeight() - padding2x, jmax(0.0f, Corners::objectCornerRadius - 1.0f));
 
             nvgFillColor(nvg, ioletAreaColour);
             nvgBeginPath(nvg);
             nvgRect(nvg, 0, 0, getWidth(), 3.5f);
             nvgRect(nvg, 0, getHeight() - 3.5f, getWidth(), 3.5f);
             nvgFill(nvg);
+
+            nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0,0,0,0), outlineCol, Corners::objectCornerRadius);
         }
 
         if (editor && editor->isVisible()) {
@@ -472,7 +475,7 @@ public:
         }
     }
 
-    void valueChanged(Value& v) override
+    void propertyChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(sizeProperty)) {
             auto* constrainer = getConstrainer();

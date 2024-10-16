@@ -29,7 +29,7 @@ public:
         Array<PropertiesPanelProperty*> properties;
         properties.add(new PropertiesPanel::EditableComponent<String>("Maker Name (optional)", makerNameValue));
         properties.add(new PropertiesPanel::EditableComponent<String>("Project License (optional)", projectLicenseValue));
-        properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Binary", "Source code", "Source + GUI code" }));
+        properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Binary", "Binary + GUI", "Source code", "Source + GUI code" }));
         properties.add(new PropertiesPanel::ComboComponent("Plugin type", pluginTypeValue, { "Effect", "Instrument", "Custom" }));
 
         midiinProperty = new PropertiesPanel::BoolComponent("Midi Input", midiinEnableValue, { "No", "yes" });
@@ -124,7 +124,7 @@ public:
 
     bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
     {
-        exportingView->showState(ExportingProgressView::Busy);
+        exportingView->showState(ExportingProgressView::Exporting);
 
         StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir };
 
@@ -152,7 +152,7 @@ public:
         StringArray formats;
 
         if (lv2) {
-            formats.add("lv2_dsp");
+            formats.add("lv2_sep");
         }
         if (vst2) {
             formats.add("vst2");
@@ -186,7 +186,7 @@ public:
         metaDPF.getDynamicObject()->setProperty("midi_output", midiout);
         metaDPF.getDynamicObject()->setProperty("plugin_formats", formats);
 
-        if (exportType == 3) {
+        if (exportType == 2 || exportType == 4) {
             metaDPF.getDynamicObject()->setProperty("enable_ui", true);
         }
 
@@ -223,12 +223,17 @@ public:
         auto DPF = Toolchain::dir.getChildFile("lib").getChildFile("dpf");
         DPF.copyDirectoryTo(outputFile.getChildFile("dpf"));
 
+        if (exportType == 2 || exportType == 4) {
+            auto DPFGui = Toolchain::dir.getChildFile("lib").getChildFile("dpf-widgets");
+            DPFGui.copyDirectoryTo(outputFile.getChildFile("dpf-widgets"));
+        }
+
         // Delay to get correct exit code
         Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
 
         bool generationExitCode = getExitCode();
         // Check if we need to compile
-        if (!generationExitCode && exportType == 1) {
+        if (!generationExitCode && (exportType == 1 || exportType == 2 )) {
             auto workingDir = File::getCurrentWorkingDirectory();
 
             outputFile.setAsCurrentWorkingDirectory();
@@ -293,6 +298,7 @@ public:
             // Clean up if successful
             if (!compilationExitCode) {
                 outputFile.getChildFile("dpf").deleteRecursively();
+                outputFile.getChildFile("dpf-widgets").deleteRecursively();
                 outputFile.getChildFile("build").deleteRecursively();
                 outputFile.getChildFile("plugin").deleteRecursively();
                 outputFile.getChildFile("bin").deleteRecursively();

@@ -53,21 +53,24 @@ Patch::~Patch()
     }
 }
 
-Rectangle<int> Patch::getBounds() const
+Rectangle<int> Patch::getGraphBounds() const
 {
     if (auto cnv = ptr.get<t_canvas>()) {
-
         if (cnv->gl_isgraph) {
             cnv->gl_pixwidth = std::max(15, cnv->gl_pixwidth);
             cnv->gl_pixheight = std::max(15, cnv->gl_pixheight);
-
             return { cnv->gl_xmargin, cnv->gl_ymargin, cnv->gl_pixwidth, cnv->gl_pixheight };
-        } else {
-            auto width = cnv->gl_screenx2 - cnv->gl_screenx1;
-            auto height = cnv->gl_screeny2 - cnv->gl_screeny1;
-
-            return { cnv->gl_screenx1, cnv->gl_screeny1, width, height };
         }
+    }
+    return { 0, 0, 0, 0 };
+}
+
+Rectangle<int> Patch::getBounds() const
+{
+    if (auto cnv = ptr.get<t_canvas>()) {
+        auto width = cnv->gl_screenx2 - cnv->gl_screenx1;
+        auto height = cnv->gl_screeny2 - cnv->gl_screeny1;
+        return { cnv->gl_screenx1, cnv->gl_screeny1, width, height };
     }
     return { 0, 0, 0, 0 };
 }
@@ -307,7 +310,6 @@ t_gobj* Patch::createObject(int x, int y, String const& name)
 
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        pd::Interface::getInstanceEditor()->canvas_undo_already_set_move = 1;
         return pd::Interface::createObject(patch.get(), typesymbol, argc, argv.data());
     }
 
@@ -572,8 +574,6 @@ void Patch::undo()
         glist_noselect(x);
 
         pd::Interface::undo(patch.get());
-        pd::Interface::getInstanceEditor()->canvas_undo_already_set_move = 1;
-
         updateUndoRedoString();
     }
 }
@@ -586,8 +586,6 @@ void Patch::redo()
         glist_noselect(x);
 
         pd::Interface::redo(patch.get());
-        pd::Interface::getInstanceEditor()->canvas_undo_already_set_move = 1;
-
         updateUndoRedoString();
     }
 }

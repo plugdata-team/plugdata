@@ -72,11 +72,6 @@ void Iolet::render(NVGcontext* nvg)
         if ((isLocked && isSymbolIolet) || (isSymbolIolet && !isHovering && !overObject && !object->isSelected()))
             return;
     }
-    
-    if (isLocked || !(overObject || isHovering) || (patchDownwardsOnly.get() && isInlet)) {
-        auto clipBounds = object->getLocalBounds().reduced(Object::margin) - getPosition();
-        nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
-    }
 
     auto innerCol = isLocked ? cnv->ioletLockedCol : isSignal ? cnv->sigCol : isGemState ? cnv->gemCol : cnv->dataCol;
     auto iB = PlugDataLook::useSquareIolets ? getLocalBounds().toFloat().reduced(2.0f, 3.33f) : getLocalBounds().toFloat().reduced(2.0f);

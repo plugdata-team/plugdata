@@ -76,15 +76,28 @@ public:
             if (onTextChange)
                 onTextChange();
         };
+        editor.setJustification(Justification::centredLeft);
     }
 
     void editorHidden(Label*, TextEditor& editor) override
     {
-        onInteraction(false);
+        onInteraction(hasKeyboardFocus(false));
         auto newValue = editor.getText().getDoubleValue();
         setValue(newValue, dontSendNotification);
         decimalDrag = 0;
         dragEnd();
+    }
+
+    void focusGained(FocusChangeType cause) override
+    {
+        juce::Label::focusGained(cause);
+        onInteraction(true);
+    }
+
+    void focusLost(FocusChangeType cause) override
+    {
+        juce::Label::focusLost(cause);
+        onInteraction(false);
     }
 
     void setEditableOnClick(bool editable)
@@ -301,6 +314,9 @@ public:
 
     virtual void render(NVGcontext* nvg)
     {
+        NVGScopedState scopedState(nvg);
+        nvgIntersectScissor(nvg, 0, 0, getWidth(), getHeight());
+        
         if(isBeingEdited())
         {
             if (!nvgCtx || nvgCtx->getContext() != nvg)
@@ -345,14 +361,14 @@ public:
         nvgFontFace(nvg, "Inter-Tabular");
         nvgFontSize(nvg, font.getHeight() * 0.862f);
         nvgTextLetterSpacing(nvg, 0.275f);
-        nvgTextAlign(nvg, NVG_ALIGN_TOP | NVG_ALIGN_LEFT);
+        nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
         nvgFillColor(nvg, NVGComponent::convertColour(textColour));
-        nvgText(nvg, textArea.getX(), textArea.getY() + 4, numberText.toRawUTF8(), nullptr);
+        nvgText(nvg, textArea.getX(), textArea.getCentreY() + 1.5f, numberText.toRawUTF8(), nullptr);
 
         if (dragMode == Regular) {
             textArea = textArea.withTrimmedLeft(numberTextLength);
             nvgFillColor(nvg, NVGComponent::convertColour(textColour.withAlpha(0.4f)));
-            nvgText(nvg, textArea.getX(), textArea.getY() + 4, extraNumberText.toRawUTF8(), nullptr);
+            nvgText(nvg, textArea.getX(), textArea.getCentreY() + 1.5f, extraNumberText.toRawUTF8(), nullptr);
         }
     }
 
@@ -484,7 +500,7 @@ public:
         if (isBeingEdited())
             return;
 
-        onInteraction(false);
+        onInteraction(hasKeyboardFocus(false));
 
         repaint();
 
@@ -625,6 +641,9 @@ struct DraggableListNumber : public DraggableNumber {
     
     void render(NVGcontext* nvg) override
     {
+        NVGScopedState scopedState(nvg);
+        nvgIntersectScissor(nvg, 0.5f, 0.5f, getWidth() - 1, getHeight() - 1);
+        
         if(isBeingEdited())
         {
             if (!nvgCtx || nvgCtx->getContext() != nvg)
@@ -647,12 +666,12 @@ struct DraggableListNumber : public DraggableNumber {
         nvgFontFace(nvg, "Inter-Tabular");
         nvgFontSize(nvg, getFont().getHeight() * 0.862f);
         nvgTextLetterSpacing(nvg, 0.15f);
-        nvgTextAlign(nvg, NVG_ALIGN_TOP | NVG_ALIGN_LEFT);
+        nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
         nvgFillColor(nvg, NVGComponent::convertColour(textColour));
         
         auto listText = getText();
         auto const textArea = getBorderSize().subtractedFrom(getBounds());
-        nvgText(nvg, textArea.getX(), textArea.getY() + 4, listText.toRawUTF8(), nullptr);
+        nvgText(nvg, textArea.getX(), textArea.getCentreY() + 1.5f, listText.toRawUTF8(), nullptr);
     }
 
     void editorHidden(Label* l, TextEditor& editor) override

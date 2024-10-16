@@ -34,7 +34,7 @@ public:
         // autosave timer trigger
         autosaveInterval.referTo(SettingsFile::getInstance()->getPropertyAsValue("autosave_interval"));
         autosaveInterval.addListener(this);
-        startTimer(1000 * std::max(getValue<int>(autosaveInterval), 15));
+        updateAutosaveInterval();
     }
 
     // Call this whenever we load a file
@@ -65,11 +65,16 @@ public:
     }
 
 private:
+    void updateAutosaveInterval()
+    {
+        auto interval = jlimit(1, 60, getValue<int>(autosaveInterval));
+        startTimer(1000 * 60 * interval);
+    }
+
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(autosaveInterval)) {
-            auto interval = getValue<int>(autosaveInterval);
-            startTimer(1000 * interval);
+            updateAutosaveInterval();
         }
     }
 
@@ -100,7 +105,7 @@ private:
                         auto patchFile = patch->getPatchFile();
 
                         // Simple way to filter out plugdata default patches which we don't want to save.
-                        if (!isInternalPatch(patchFile)) {
+                        if (!isInternalPatch(patchFile) && !patch->openInPluginMode) {
                             autoSaveQueue.enqueue({ patchFile.getFullPathName(), patch->getCanvasContent() });
                         }
 
@@ -210,7 +215,7 @@ class AutosaveHistoryComponent : public Component {
 
             Path shadowPath;
             shadowPath.addRoundedRectangle(bounds.reduced(3).toFloat(), Corners::largeCornerRadius);
-            StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.4f), 7, { 0, 1 });
+            StackShadow::renderDropShadow(hash("autosave"), g, shadowPath, Colour(0, 0, 0).withAlpha(0.4f), 7, { 0, 1 });
 
             g.setColour(findColour(PlugDataColour::panelForegroundColourId));
             g.fillRoundedRectangle(bounds.toFloat(), Corners::defaultCornerRadius);

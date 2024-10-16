@@ -67,7 +67,7 @@ class Autosave;
 class PluginMode;
 class TouchSelectionHelper;
 class WelcomePanel;
-class PluginEditor : public AudioProcessorEditor
+class PluginEditor final : public AudioProcessorEditor
     , public Value::Listener
     , public ApplicationCommandTarget
     , public FileDragAndDropTarget
@@ -160,7 +160,6 @@ public:
     ComponentBoundsConstrainer constrainer;
     ComponentBoundsConstrainer& pluginConstrainer;
 
-    std::unique_ptr<Autosave> autosave;
     ApplicationCommandManager commandManager;
 
     std::unique_ptr<CalloutArea> calloutArea;
@@ -174,6 +173,9 @@ public:
 
     bool isInPluginMode() const;
 
+    // Return the canvas currently in plugin mode, otherwise return nullptr
+    Canvas* getPluginModeCanvas();
+
 private:
     TabComponent tabComponent;
 
@@ -181,6 +183,7 @@ public:
     std::unique_ptr<PluginMode> pluginMode;
 
 private:
+
     std::unique_ptr<TouchSelectionHelper> touchSelectionHelper;
 
     // Used by standalone to handle dragging the window

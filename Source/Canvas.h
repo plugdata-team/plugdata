@@ -88,7 +88,7 @@ public:
     void focusGained(FocusChangeType cause) override;
     void focusLost(FocusChangeType cause) override;
 
-    bool updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, int maxUpdateTimeMs);
+    bool updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion);
     void performRender(NVGcontext* nvg, Rectangle<int> invalidRegion);
 
     void resized() override;
@@ -147,8 +147,6 @@ public:
     void saveViewportState();
 
     void zoomToFitAll();
-
-    void updatePatchSnapshot();
 
     float getRenderScale() const;
 
@@ -240,6 +238,10 @@ public:
 
     ObjectGrid objectGrid = ObjectGrid(this);
 
+    int lastObjectGridSize = -1;
+
+    NVGImage dotsLargeImage;
+
     Point<int> const canvasOrigin;
 
     std::unique_ptr<GraphArea> graphArea;
@@ -261,13 +263,16 @@ public:
     Component connectionLayer;
 
     NVGImage resizeHandleImage;
-    NVGImage resizeGOPHandleImage;
     NVGImage presentationShadowImage;
 
     Array<juce::WeakReference<NVGComponent>> drawables;
 
     NVGcolor canvasBackgroundCol;
+    Colour canvasBackgroundColJuce;
     NVGcolor canvasMarkingsCol;
+    Colour canvasMarkingsColJuce;
+
+    Colour canvasTextColJuce;
     NVGcolor presentationBackgroundCol;
     NVGcolor presentationWindowOutlineCol;
 
@@ -278,11 +283,15 @@ public:
     NVGcolor objectOutlineCol;
     NVGcolor outlineCol;
 
+    NVGcolor graphAreaCol;
+
     NVGcolor commentTextCol;
 
     // guiObjectInternalOutlineColour
+    Colour guiObjectInternalOutlineColJuce;
     NVGcolor guiObjectInternalOutlineCol;
     NVGcolor guiObjectBackgroundCol;
+    Colour guiObjectBackgroundColJuce;
 
     NVGcolor textObjectBackgroundCol;
     NVGcolor transparentObjectBackgroundCol;

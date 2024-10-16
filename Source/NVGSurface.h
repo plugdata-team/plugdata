@@ -105,6 +105,8 @@ public:
 
 private:
     
+    void renderFrameToImage(NVGframebuffer* fb, Rectangle<int> area);
+    
     float calculateRenderScale() const;
     
     void resized() override;
@@ -115,17 +117,13 @@ private:
     std::unique_ptr<VBlankAttachment> vBlankAttachment;
 
     Rectangle<int> invalidArea;
-    NVGframebuffer* mainFBO = nullptr;
     NVGframebuffer* invalidFBO = nullptr;
     int fbWidth = 0, fbHeight = 0;
 
     static inline std::map<NVGcontext*, NVGSurface*> surfaces;
-
-    bool hresize = false;
-    bool resizing = false;
-    Rectangle<int> newBounds;
     
     juce::Image backupRenderImage;
+    bool renderThroughImage = false;
     ImageComponent backupImageComponent;
     std::vector<uint32> backupPixelData;
 
@@ -133,6 +131,9 @@ private:
     uint32 lastRenderTime;
     
 #if NANOVG_GL_IMPLEMENTATION
+    bool hresize = false;
+    bool resizing = false;
+    Rectangle<int> newBounds;
     std::unique_ptr<OpenGLContext> glContext;
 #endif
 
@@ -195,12 +196,28 @@ private:
 
 class NVGImage {
 public:
-    NVGImage(NVGcontext* nvg, int width, int height, std::function<void(Graphics&)> renderCall)
+    enum NVGImageFlags {
+        RepeatImage = 1 << 0,
+        DontClear = 1 << 1,
+        AlphaImage = 1 << 2,
+        MipMap = 1 << 3
+    };
+
+    NVGImage(NVGcontext* nvg, int width, int height, std::function<void(Graphics&)> renderCall, int imageFlags = 0, Colour clearColour = Colours::transparentBlack)
     {
-        Image image = Image(Image::ARGB, width, height, true);
+        bool clearImage = !(imageFlags & NVGImageFlags::DontClear);
+        bool repeatImage = imageFlags & NVGImageFlags::RepeatImage;
+        bool withMipmaps = imageFlags & NVGImageFlags::MipMap;
+
+        // When JUCE image format is SingleChannel the graphics context will render only the alpha component
+        // into the image data, it is not a greyscale image of the graphics context.
+        auto imageFormat = imageFlags & NVGImageFlags::AlphaImage ? Image::SingleChannel : Image::ARGB;
+
+        Image image = Image(imageFormat, width, height, false);
+        if(clearImage) image.clear({0, 0, width, height}, clearColour);
         Graphics g(image); // Render resize handles with JUCE, since rounded rect exclusion is hard with nanovg
         renderCall(g);
-        loadJUCEImage(nvg, image);
+        loadJUCEImage(nvg, image, repeatImage, withMipmaps);
         allImages.insert(this);
     }
 
@@ -291,35 +308,25 @@ public:
         nvgFillRect(nvg, 0, 0, component.getWidth(), component.getHeight());
     }
 
-    void loadJUCEImage(NVGcontext* context, Image& image)
+    void loadJUCEImage(NVGcontext* context, Image& image, int repeatImage = false, int withMipmaps = false)
     {
         Image::BitmapData imageData(image, Image::BitmapData::readOnly);
 
         int width = imageData.width;
         int height = imageData.height;
-        uint8* pixelData = imageData.data;
-
-        for (int y = 0; y < height; ++y) {
-            auto* scanLine = (uint32*)imageData.getLinePointer(y);
-
-            for (int x = 0; x < width; ++x) {
-                uint32 argb = scanLine[x];
-
-                uint8 a = argb >> 24;
-                uint8 r = argb >> 16;
-                uint8 g = argb >> 8;
-                uint8 b = argb;
-
-                // order bytes as abgr
-                scanLine[x] = (a << 24) | (b << 16) | (g << 8) | r;
-            }
-        }
 
         if (imageId && imageWidth == width && imageHeight == height && nvg == context) {
-            nvgUpdateImage(nvg, imageId, pixelData);
+            nvgUpdateImage(nvg, imageId, imageData.data);
         } else {
             nvg = context;
-            imageId = nvgCreateImageRGBA(nvg, width, height, NVG_IMAGE_PREMULTIPLIED, pixelData);
+            auto flags = repeatImage ? NVG_IMAGE_REPEATX | NVG_IMAGE_REPEATY : 0;
+            flags |= withMipmaps ? NVG_IMAGE_GENERATE_MIPMAPS : 0;
+
+            if (image.isARGB())
+                imageId = nvgCreateImageARGB(nvg, width, height, flags | NVG_IMAGE_PREMULTIPLIED, imageData.data);
+            else if (image.isSingleChannel())
+                imageId = nvgCreateImageAlpha(nvg, width, height, flags, imageData.data);
+
             imageWidth = width;
             imageHeight = height;
         }
@@ -453,6 +460,77 @@ private:
     NVGframebuffer* fb = nullptr;
     int fbWidth, fbHeight;
     bool fbDirty = false;
+};
+
+class NVGCachedPath {
+public:
+    NVGCachedPath()
+    {
+        allCachedPaths.insert(this);
+    }
+
+    ~NVGCachedPath()
+    {
+        if (cacheId != -1) {
+            nvgDeletePath(nvg, cacheId);
+            cacheId = -1;
+        }
+        allCachedPaths.erase(this);
+    }
+
+    static void clearAll(NVGcontext* nvg)
+    {
+        for (auto* buffer : allCachedPaths) {
+            if (buffer->nvg == nvg) {
+                buffer->clear();
+            }
+        }
+    }
+
+    static void resetAll()
+    {
+        for (auto* buffer : allCachedPaths) {
+            buffer->clear();
+        }
+    }
+    
+    void clear()
+    {
+        if(cacheId != -1) {
+            nvgDeletePath(nvg, cacheId);
+            cacheId = -1;
+            nvg = nullptr;
+        }
+    }
+
+    bool isValid()
+    {
+        return cacheId != -1;
+    }
+    
+    void save(NVGcontext* ctx)
+    {
+        if(nvg == ctx && cacheId != -1) nvgDeletePath(nvg, cacheId);
+        nvg = ctx;
+        cacheId = nvgSavePath(nvg, cacheId);
+    }
+    
+    bool stroke()
+    {
+        if(!nvg || cacheId == -1) return false;
+        return nvgStrokeCachedPath(nvg, cacheId);
+    }
+    
+    bool fill()
+    {
+        if(!nvg || cacheId == -1) return false;
+        return nvgFillCachedPath(nvg, cacheId);
+    }
+
+private:
+    static inline std::set<NVGCachedPath*> allCachedPaths;
+    NVGcontext* nvg = nullptr;
+    int cacheId = -1;
 };
 
 struct NVGScopedState

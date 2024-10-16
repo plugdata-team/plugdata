@@ -133,6 +133,7 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if(!e.mods.isLeftButtonDown()) return;
         onClick();
     }
 
@@ -196,6 +197,7 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if(!e.mods.isLeftButtonDown()) return;
         repaint();
         Slider::mouseDown(e);
     }
@@ -591,6 +593,7 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if(!e.mods.isLeftButtonDown()) return;
         // check if the callout is active, otherwise mouse down / up will trigger callout box again
         if (isCallOutBoxActive) {
             isCallOutBoxActive = false;
@@ -674,10 +677,20 @@ private:
     {
         repaint();
     }
+    
+    void mouseWheelMove (const MouseEvent& e, const MouseWheelDetails& wheel) override
+    {
+        auto* editor = findParentComponentOfClass<PluginEditor>();
+        if (auto* cnv = editor->getCurrentCanvas()) {
+            float newScale = std::clamp(getValue<float>(cnv->zoomScale) + wheel.deltaY, 0.25f, 3.0f);
+            cnv->zoomScale.setValue(newScale);
+            cnv->setTransform(AffineTransform().scaled(newScale));
+        }
+    }
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (!isEnabled())
+        if (!isEnabled() || !e.mods.isLeftButtonDown()) return;
             return;
 
         auto* editor = findParentComponentOfClass<PluginEditor>();

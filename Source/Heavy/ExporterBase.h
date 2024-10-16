@@ -162,7 +162,7 @@ struct ExporterBase : public Component
         addJob([this, patchPath, outPath, projectTitle, projectCopyright, searchPaths]() mutable {
             exportingView->monitorProcessOutput(this);
 
-            exportingView->showState(ExportingProgressView::Busy);
+            exportingView->showState(ExportingProgressView::Exporting);
 
             auto result = performExport(patchPath, outPath, projectTitle, projectCopyright, searchPaths);
 

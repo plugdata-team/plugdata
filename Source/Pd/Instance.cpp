@@ -4,6 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "Utility/Config.h"
@@ -147,6 +148,7 @@ Instance::~Instance()
     pd_free(static_cast<t_pd*>(pluginLatencyReceiver));
     pd_free(static_cast<t_pd*>(parameterChangeReceiver));
     pd_free(static_cast<t_pd*>(parameterCreateReceiver));
+    pd_free(static_cast<t_pd*>(parameterDestroyReceiver));
     pd_free(static_cast<t_pd*>(parameterRangeReceiver));
     pd_free(static_cast<t_pd*>(parameterModeReceiver));
 
@@ -213,6 +215,9 @@ void Instance::initialisePd(String& pdlua_version)
 
     parameterCreateReceiver = pd::Setup::createReceiver(this, "param_create", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
+    
+    parameterDestroyReceiver = pd::Setup::createReceiver(this, "param_destroy", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
+        reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
     parameterRangeReceiver = pd::Setup::createReceiver(this, "param_range", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
@@ -265,7 +270,7 @@ void Instance::initialisePd(String& pdlua_version)
                 title = String::fromUTF8(atom_getsymbol(argv + 3)->s_name);
             }
 
-            static_cast<Instance*>(instance)->showTextEditor(ptr, Rectangle<int>(width, height), title);
+            static_cast<Instance*>(instance)->showTextEditorDialog(ptr, Rectangle<int>(width, height), title);
 
             break;
         }
@@ -275,6 +280,17 @@ void Instance::initialisePd(String& pdlua_version)
 
             static_cast<Instance*>(instance)->addTextToTextEditor(ptr, text);
             break;
+        }
+        case hash("coll_check_open"): {
+            auto ptr = (unsigned long)argv->a_w.w_gpointer;
+            bool open = (unsigned long)atom_getfloat(argv + 1);
+            bool wasOpen = static_cast<Instance*>(instance)->isTextEditorDialogShown(ptr);
+            
+            t_atom atoms[2];
+            SETFLOAT(atoms, wasOpen);
+            SETFLOAT(atoms + 1, open);
+            
+            pd_typedmess((t_pd*)ptr, gensym("_is_opened"), 2, atoms);
         }
         }
     };
@@ -622,6 +638,14 @@ void Instance::handleAsyncUpdate()
                     return;
                 auto name = mess.list[0].toString();
                 enableAudioParameter(name);
+            }
+            break;
+        case hash("param_destroy"):
+            if (mess.list.size() >= 1) {
+                if (!mess.list[0].isSymbol())
+                    return;
+                auto name = mess.list[0].toString();
+                disableAudioParameter(name);
             }
             break;
         case hash("param_range"):

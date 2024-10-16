@@ -7,7 +7,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 option(QUICK_BUILD "" OFF)
 option(ENABLE_TESTING "" OFF)
 option(ENABLE_SFIZZ "" ON)
-option(ENABLE_GEM "" OFF)
+option(ENABLE_FFMPEG "" ON)
+option(ENABLE_GEM "" ON)
 option(ENABLE_ASAN "" OFF)
 option(MACOS_LEGACY "" OFF)
 option(VERBOSE "" OFF)
@@ -19,6 +20,7 @@ option(NANOVG_METAL_IMPLEMENTATION "" OFF)
 endif()
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Visiblity needs to be hidden for all plugin targets, otherwise loading both plugdata and plugdata-fx will cause problems. We later undo this for the standalone build, so that externals can load
@@ -49,7 +51,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 set(HARDENED_RUNTIME_ENABLED YES)
-set(HARDENED_RUNTIME_OPTIONS "com.apple.security.device.audio-input")
+set(HARDENED_RUNTIME_OPTIONS com.apple.security.device.audio-input com.apple.security.device.camera)
 
 set(JUCE_ENABLE_MODULE_SOURCE_GROUPS ON CACHE BOOL "" FORCE)
 set_property(GLOBAL PROPERTY USE_FOLDERS YES)
@@ -59,6 +61,7 @@ project(plugdata VERSION 0.9.0 LANGUAGES C CXX)
 if(QUICK_BUILD)
     set(ENABLE_SFIZZ OFF)
     set(ENABLE_GEM OFF)
+    set(ENABLE_FFMPEG OFF)
 endif()
 
 if(("${CMAKE_SYSTEM_NAME}" MATCHES "Linux" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
@@ -113,7 +116,7 @@ if(NOT PACKAGE_RESOURCES_RESULT EQUAL 0)
     message(FATAL_ERROR "Resource packaging failed with error code ${PACKAGE_RESOURCES_RESULT}")
 endif()
 
-set(PLUGDATA_VERSION                    "0.9.1")
+set(PLUGDATA_VERSION                    "0.9.2")
 set(PLUGDATA_COMPANY_NAME               "plugdata")
 set(PLUGDATA_COMPANY_COPYRIGHT          "plugdata by Timothy Schoen")
 set(PLUGDATA_COMPANY_WEBSITE            "github.com/plugdata-team/plugdata")
@@ -155,10 +158,6 @@ file(GLOB StandaloneBinarySources
 
 juce_add_binary_data(PlugDataBinaryData SOURCES ${plugdata_resources})
 set_target_properties(PlugDataBinaryData PROPERTIES POSITION_INDEPENDENT_CODE ON)
-
-
-juce_add_binary_data(StandaloneBinaryData HEADER_NAME "StandaloneBinaryData.h" NAMESPACE StandaloneBinaryData SOURCES ${StandaloneBinarySources} )
-set_target_properties(StandaloneBinaryData PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 file(GLOB plugdata_global_sources
     ${CMAKE_CACHEFILE_DIR}/plugdata_artefacts/JuceLibraryCode/JuceHeader.h)
@@ -229,7 +228,7 @@ set(JUCE_COMPILE_DEFINITIONS
     JUCE_USE_COREIMAGE_LOADER=0
     JUCE_SILENCE_XCODE_15_LINKER_WARNING=1
     JUCE_USE_XRENDER=1
-    JUCE_COREGRAPHICS_RENDER_WITH_MULTIPLE_PAINT_CALLS=1
+    JUCE_COREGRAPHICS_RENDER_WITH_MULTIPLE_PAINT_CALLS=0
 )
 
 if(LINUX)
@@ -249,8 +248,13 @@ if(ENABLE_SFIZZ)
   list(APPEND PLUGDATA_COMPILE_DEFINITIONS ENABLE_SFIZZ=1)
 endif()
 
+if(ENABLE_FFMPEG)
+  list(APPEND PLUGDATA_COMPILE_DEFINITIONS ENABLE_FFMPEG=1)
+endif()
+
 if(ENABLE_GEM)
   list(APPEND PLUGDATA_COMPILE_DEFINITIONS ENABLE_GEM=1)
+  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Libraries/Gem/src)
 endif()
 
 add_library(juce STATIC)
@@ -515,7 +519,7 @@ if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.21")
 
   clap_juce_extensions_plugin(TARGET plugdata_fx
       CLAP_ID "com.timothyschoen.plugdata-fx"
-      CLAP_FEATURES "effect")
+      CLAP_FEATURES "audio-effect")
 
   if(VERBOSE)
   else()
@@ -569,11 +573,11 @@ if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
 endif()
 
 if(LINUX)
-    target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd-src externals StandaloneBinaryData "-Wl,-export-dynamic")
+    target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd-src externals "-Wl,-export-dynamic")
     target_link_libraries(plugdata PRIVATE plugdata_core pd-src-multi externals-multi)
     target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-src-multi externals-multi)
 elseif(UNIX AND NOT APPLE) # BSD
-    target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd-src externals lua fluidlite StandaloneBinaryData "-Wl,-export-dynamic")
+    target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd-src externals lua fluidlite "-Wl,-export-dynamic")
     target_link_libraries(plugdata PRIVATE plugdata_core pd-src-multi externals-multi lua fluidlite)
     target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-src-multi externals-multi lua fluidlite)
 elseif(APPLE)
@@ -584,14 +588,14 @@ elseif(APPLE)
   if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
     set(LINK_CARBON "-framework Carbon")
   endif()
-  target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd-src externals StandaloneBinaryData ${LINK_CARBON} ${MACOS_COMPAT_LINKER_FLAGS})
+  target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd-src externals ${LINK_CARBON} ${MACOS_COMPAT_LINKER_FLAGS})
   target_link_libraries(plugdata_midi PRIVATE plugdata_core pd-src-multi externals-multi ${LINK_CARBON} ${MACOS_COMPAT_LINKER_FLAGS})
   target_link_libraries(plugdata PRIVATE plugdata_core pd-src-multi externals-multi ${LINK_CARBON} ${MACOS_COMPAT_LINKER_FLAGS})
   target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-src-multi externals-multi ${LINK_CARBON} ${MACOS_COMPAT_LINKER_FLAGS})
 else()
   target_link_libraries(plugdata PRIVATE plugdata_core pd-multi)
   target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-multi)
-  target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd StandaloneBinaryData)
+  target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd)
 endif()
 
 set_target_properties(plugdata_standalone PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/Standalone)

@@ -41,10 +41,6 @@ public:
     {
         viewedComponent.reset(child);
         viewedComponent->addMouseListener(this, false);
-        
-        // a moving patch behind this can lead to repainting the whole panel
-        // buffering to image mitigates the worst overhead. Make sure you don't repaint very frequently though
-        viewedComponent->setBufferedToImage(true);
         addAndMakeVisible(child);
         resized();
     }
@@ -155,7 +151,7 @@ public:
 };
 
 struct Dialogs {
-    static Component* showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> callback);
+    static Component* showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> closeCallback,  std::function<void(String)> saveCallback, bool enableSyntaxHighlighting = false);
     static void appendTextToTextEditorDialog(Component* dialog, String const& text);
 
     static void showAskToSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String const& filename, std::function<void(int)> callback, int margin = 0, bool withLogo = true);

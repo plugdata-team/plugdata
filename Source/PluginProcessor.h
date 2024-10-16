@@ -21,6 +21,7 @@ namespace pd {
 class Library;
 }
 
+class Autosave;
 class InternalSynth;
 class SettingsFile;
 class StatusbarSource;
@@ -28,7 +29,7 @@ struct PlugDataLook;
 class PluginEditor;
 class ConnectionMessageDisplay;
 class Object;
-class PluginProcessor : public AudioProcessor
+class PluginProcessor final : public AudioProcessor
     , public pd::Instance
     , public SettingsFileListener
 {
@@ -89,8 +90,9 @@ public:
     void receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list) override;
 
     void addTextToTextEditor(unsigned long ptr, String text) override;
-    void showTextEditor(unsigned long ptr, Rectangle<int> bounds, String title) override;
-
+    void showTextEditorDialog(unsigned long ptr, Rectangle<int> bounds, String title) override;
+    bool isTextEditorDialogShown(unsigned long ptr) override;
+    
     void updateConsole(int numMessages, bool newWarning) override;
 
     void reloadAbstractions(File changedPatch, t_glist* except) override;
@@ -124,6 +126,7 @@ public:
 
     void performParameterChange(int type, String const& name, float value) override;
     void enableAudioParameter(String const& name) override;
+    void disableAudioParameter(String const& name) override;
     void setParameterRange(String const& name, float min, float max) override;
     void setParameterMode(String const& name, int mode) override;
 
@@ -180,7 +183,8 @@ public:
 
     OwnedArray<PluginEditor> openedEditors;
     Component::SafePointer<ConnectionMessageDisplay> connectionListener;
-
+    std::unique_ptr<Autosave> autosave;
+    
 private:
 
     int customLatencySamples = 0;

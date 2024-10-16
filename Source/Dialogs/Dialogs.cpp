@@ -91,11 +91,10 @@ bool Dialog::wantsRoundedCorners() const
     }
 }
 
-Component* Dialogs::showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> callback)
+Component* Dialogs::showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> closeCallback, std::function<void(String)> saveCallback, bool enableSyntaxHighlighting)
 {
-    auto* editor = new TextEditorDialog(std::move(filename));
+    auto* editor = new TextEditorDialog(std::move(filename), enableSyntaxHighlighting, std::move(closeCallback), std::move(saveCallback));
     editor->editor.setText(text);
-    editor->onClose = std::move(callback);
     return editor;
 }
 
@@ -518,11 +517,9 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
     auto* editor = cnv->editor;
     auto params = object && object->gui ? object->gui->getParameters() : ObjectParameters();
-    bool canBeOpened = object && object->gui && object->gui->canOpenFromMenu();
 
     enum MenuOptions {
         Extra = 200,
-        Open,
         Help,
         Reference,
         ToFront,
@@ -545,8 +542,14 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
     popupMenu.addCustomItem(Extra, std::make_unique<QuickActionsBar>(editor), nullptr, "Quick Actions");
     popupMenu.addSeparator();
-
-    popupMenu.addItem(Open, "Open", object && !multiple && canBeOpened); // for opening subpatches
+    
+    if(!multiple && object && object->gui)
+    {
+        object->gui->getMenuOptions(popupMenu);
+    }
+    else {
+        popupMenu.addItem(-1, "Open", false);
+    }
 
     popupMenu.addSeparator();
     popupMenu.addItem(Help, "Help", hasSelection && !multiple);
@@ -689,9 +692,6 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             object->repaint();
 
         switch (result) {
-        case Open: // Open subpatch
-            object->gui->openFromMenu();
-            break;
         case ToFront: {
             auto objects = cnv->patch.getObjects();
 
@@ -826,7 +826,7 @@ void Dialogs::showOpenDialog(std::function<void(URL)> const& callback, bool canS
 #if JUCE_IOS
     fileChooser = std::make_unique<FileChooser>("Choose file to open...", initialFile, "*", nativeDialog, false, parentComponent);
 #else
-    fileChooser = std::make_unique<FileChooser>("Choose file to open...", initialFile, extension, nativeDialog, false, parentComponent);
+    fileChooser = std::make_unique<FileChooser>("Choose file to open...", initialFile, extension, nativeDialog, false, nullptr);
 #endif
     auto openChooserFlags = FileBrowserComponent::openMode;
 
@@ -855,8 +855,11 @@ void Dialogs::showSaveDialog(std::function<void(URL)> const& callback, String co
     if (!initialFile.exists())
         initialFile = ProjectInfo::appDataDir;
 
+#if JUCE_IOS
     fileChooser = std::make_unique<FileChooser>("Choose save location...", initialFile, extension, nativeDialog, false, parentComponent);
-
+#else
+    fileChooser = std::make_unique<FileChooser>("Choose save location...", initialFile, extension, nativeDialog, false, nullptr);
+#endif
     auto saveChooserFlags = FileBrowserComponent::saveMode;
 
     if (directoryMode) {

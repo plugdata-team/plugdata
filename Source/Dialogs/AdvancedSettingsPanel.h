@@ -44,10 +44,18 @@ public:
 
             otherProperties.add(new PropertiesPanel::BoolComponent("Use system file dialogs", nativeDialogValue, StringArray { "No", "Yes" }));
         }
+        
+        if(ProjectInfo::isStandalone) {
+            openPatchesInWindow.referTo(settingsFile->getPropertyAsValue("open_patches_in_window"));
+            openPatchesInWindow.addListener(this);
+            interfaceProperties.add(new PropertiesPanel::BoolComponent("Open help/subpatches in new window", openPatchesInWindow, { "No", "Yes" }));
+        }
 
         showPalettesValue.referTo(settingsFile->getPropertyAsValue("show_palettes"));
         showPalettesValue.addListener(this);
         interfaceProperties.add(new PropertiesPanel::BoolComponent("Show palette bar", showPalettesValue, { "No", "Yes" }));
+        
+        
 
         showAllAudioDeviceValues.referTo(settingsFile->getPropertyAsValue("show_all_audio_device_rates"));
         showAllAudioDeviceValues.addListener(this);
@@ -57,7 +65,7 @@ public:
         otherProperties.add(new PropertiesPanel::BoolComponent("Enable auto patching", autoPatchingValue, { "No", "Yes" }));
 
         autosaveInterval.referTo(settingsFile->getPropertyAsValue("autosave_interval"));
-        autosaveProperties.add(new PropertiesPanel::EditableComponent<int>("Autosave interval (seconds)", autosaveInterval, 15, 900));
+        autosaveProperties.add(new PropertiesPanel::EditableComponent<int>("Auto-save interval (minutes)", autosaveInterval, 1, 60));
 
         autosaveEnabled.referTo(settingsFile->getPropertyAsValue("autosave_enabled"));
         autosaveProperties.add(new PropertiesPanel::BoolComponent("Enable autosave", autosaveEnabled, { "No", "Yes" }));
@@ -183,6 +191,7 @@ public:
     Value centreResized;
     Value centreSidepanelButtons;
 
+    Value openPatchesInWindow;
     Value showPalettesValue;
     Value autoPatchingValue;
     Value showAllAudioDeviceValues;

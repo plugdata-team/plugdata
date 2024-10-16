@@ -24,8 +24,7 @@ using namespace gl;
 
 // Special viewport that shows scrollbars on top of content instead of next to it
 class CanvasViewport : public Viewport
-    , public Timer
-    , public NVGComponent {
+    , public NVGComponent, public Timer {
     class MousePanner : public MouseListener {
     public:
         explicit MousePanner(CanvasViewport* vp)
@@ -48,6 +47,8 @@ class CanvasViewport : public Viewport
         // thus giving us a chance to attach the mouselistener on the middle-mouse click event
         void mouseDown(MouseEvent const& e) override
         {
+            if(!e.mods.isLeftButtonDown() && !e.mods.isMiddleButtonDown()) return;
+            
             e.originalComponent->setMouseCursor(MouseCursor::DraggingHandCursor);
             downPosition = viewport->getViewPosition();
             downCanvasOrigin = viewport->cnv->canvasOrigin;
@@ -169,6 +170,8 @@ class CanvasViewport : public Viewport
 
         void mouseDown(MouseEvent const& e) override
         {
+            if(!e.mods.isLeftButtonDown()) return;
+            
             isMouseDragging = true;
             viewPosition = viewport->getViewPosition();
             repaint();
@@ -230,7 +233,8 @@ class CanvasViewport : public Viewport
                 thumbCornerRadius = growingBounds.getWidth();
                 fullBounds = growingBounds.withY(2).withHeight(getHeight() - 4);
             }
-
+            
+            scrollbarBgCol.a = (1.0f - growAnimation) * 150; // 0-150 opacity, not full opacity when active
             nvgDrawRoundedRect(nvg, fullBounds.getX(), fullBounds.getY(), fullBounds.getWidth(), fullBounds.getHeight(), scrollbarBgCol, scrollbarBgCol, thumbCornerRadius);
 
             auto scrollBarThumbCol = isMouseDragging ? activeScrollbarCol : scrollbarCol;
@@ -321,6 +325,21 @@ public:
         }
     }
 
+    void timerCallback() override
+    {
+        stopTimer();
+        cnv->isZooming = false;
+
+        // Cached geometry can look thicker/thinner at different zoom scales, so we update all cached connections when zooming is done
+        if (scaleChanged) {
+            // Cached geometry can look thicker/thinner at different zoom scales, so we reset all cached connections when zooming is done
+            NVGCachedPath::resetAll();
+        }
+
+        scaleChanged = false;
+        editor->nvgSurface.invalidateAll();
+    }
+
     void lookAndFeelChanged() override
     {
         auto scrollbarColour = hbar.findColour(ScrollBar::ColourIds::thumbColourId);
@@ -383,6 +402,11 @@ public:
         if (approximatelyEqual(newScaleFactor, 0.0f)) {
             newScaleFactor = 1.0f;
         }
+
+        if (newScaleFactor == lastScaleFactor) // float comparison ok here as it's set by the same value
+            return;
+
+        lastScaleFactor = newScaleFactor;
         
         scaleChanged = true;
 
@@ -444,23 +468,9 @@ public:
             cnv->isZooming = true;
             startTimer(150);
         }
+        
         onScroll();
         adjustScrollbarBounds();
-        editor->nvgSurface.invalidateAll();
-    }
-
-    void timerCallback() override
-    {
-        stopTimer();
-        cnv->isZooming = false;
-        
-        // Cached geometry can look thicker/thinner at different zoom scales, so we update all cached connections when zooming is done
-        if (scaleChanged) {
-            for (auto* connection : cnv->connections)
-                connection->forceUpdate(true);
-        }
-        
-        scaleChanged = false;
         editor->nvgSurface.invalidateAll();
     }
 
@@ -510,6 +520,7 @@ public:
 private:
     Time lastScrollTime;
     Time lastZoomTime;
+    float lastScaleFactor = -1.0f;
     PluginEditor* editor;
     Canvas* cnv;
     Rectangle<int> previousBounds;

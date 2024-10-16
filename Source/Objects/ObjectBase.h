@@ -53,97 +53,32 @@ public:
             lastTextHash = textHash;
             lastScale = scale;
             updateColour = false;
+        } else {
+            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, image.getImageId(), 1.0f));
+            nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
         }
-
-        nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth() + 1, getHeight(), 0, image.getImageId(), 1.0f));
-        nvgFillRect(nvg, 0, 0, getWidth() + 1, getHeight());
     }
         
     void colourChanged() override
     {
         lastColour = findColour(Label::textColourId);
         updateColour = true;
+
+        // Flag this component as dirty
+        repaint();
     }
 
     void updateImage(NVGcontext* nvg, float scale)
     {
+        // TODO: use single channel image texture
         image.renderJUCEComponent(nvg, *this, scale);
     }
 
 private:
 };
 
-/*
-class ObjectLabels : public Component {
-public:
-    ObjectLabels(std::unique_ptr<Component> extraLabelComponent) : extraLabel(std::move(extraLabelComponent))
-    {
-        addAndMakeVisible(objectLabel);
-        if(extraLabel) addAndMakeVisible(extraLabel.get());
-
-        setInterceptsMouseClicks(false, false);
-    }
-
-    ~ObjectLabels()
-    {
-    }
-
-    ObjectLabel* getObjectLabel()
-    {
-        return &objectLabel;
-    }
-
-    Component* getExtraLabel()
-    {
-        return extraLabel.get();
-    }
-
-    void setColour(Colour const& colour)
-    {
-        objectLabel.setColour(Label::textColourId, colour);
-        if(extraLabel) extraLabel->setColour(Label::textColourId, colour);
-    }
-
-    void setObjectToTrack(Object* object)
-    {
-        obj = object;
-    }
-
-    void setLabelBounds(Rectangle<int> bounds)
-    {
-        labelBounds = bounds;
-        if (obj && extraLabel)
-            extraLabelBounds = Rectangle<int>(obj->getBounds().getTopRight().x - 3, obj->getBounds().getTopRight().y, 20, obj->getBounds().getHeight());
-        auto allBounds = bounds.getUnion(extraLabelBounds);
-        setBounds(allBounds);
-        // force resize to run, so position updates even when union size doesn't change
-        resized();
-    }
-
-    void resized() override
-    {
-        if (obj && extraLabel) {
-            auto lb = getLocalArea(obj->cnv, labelBounds);
-            auto eb = getLocalArea(obj->cnv, extraLabelBounds);
-            objectLabel.setBounds(lb);
-            extraLabel->setBounds(eb);
-        } else {
-            objectLabel.setBounds(getLocalBounds());
-        }
-    }
-
-private:
-    Object* obj = nullptr;
-
-    Rectangle<int> labelBounds;
-    Rectangle<int> extraLabelBounds;
-    ObjectLabel objectLabel;
-    std::unique_ptr<Component> extraLabel;
-}; */
-
 class ObjectBase : public Component
     , public pd::MessageListener
-    , public Value::Listener
     , public SettableTooltipClient
     , public NVGComponent {
 
@@ -157,14 +92,20 @@ class ObjectBase : public Component
         void valueChanged(Value& v) override;
 
         Object* object;
+        uint32 lastChange;
     };
 
-    struct PropertyUndoListener : public Value::Listener {
-        PropertyUndoListener();
+    struct PropertyListener : public Value::Listener {
+        PropertyListener(ObjectBase* parent);
 
+        void setNoCallback(bool skipCallback);
+        
         void valueChanged(Value& v) override;
 
+        Value lastValue;
         uint32 lastChange;
+        ObjectBase* parent;
+        bool noCallback;
         std::function<void()> onChange = []() {};
     };
 
@@ -210,11 +151,13 @@ public:
 
     void render(NVGcontext* nvg) override;
 
-    virtual bool canOpenFromMenu();
-    virtual void openFromMenu();
+    virtual void getMenuOptions(PopupMenu& menu);
 
     // Flag to make object visible or hidden inside a GraphOnParent
     virtual bool hideInGraph();
+    
+    // Override function if you need to update framebuffers outside of the render loop (but with the correct active context)
+    virtual void updateFramebuffers() {};
 
     // Most objects ignore mouseclicks when locked
     // Objects can override this to do custom locking behaviour
@@ -270,6 +213,8 @@ public:
     // TODO: does that even work?
     virtual String getText();
 
+    virtual bool canEdgeOverrideAspectRatio() { return false; };
+
     // Global flag to find out if any GUI object is currently being interacted with
     static bool isBeingEdited();
 
@@ -287,10 +232,9 @@ protected:
     void stopEdition();
 
     String getBinbufSymbol(int argIndex);
-
-    // Called whenever one of the inspector parameters changes
-    void valueChanged(Value& value) override { }
-
+        
+    virtual void propertyChanged(Value& v) {};
+        
     // Send a float value to Pd
     void sendFloatValue(float value);
 
@@ -340,7 +284,7 @@ public:
     OwnedArray<ObjectLabel> labels;
 
 protected:
-    PropertyUndoListener propertyUndoListener;
+    PropertyListener propertyListener;
 
     NVGImage imageRenderer;
 

@@ -110,18 +110,13 @@ public:
         }
     }
 
-    void resized() override
-    {
-    }
-
     void render(NVGcontext* nvg) override
     {
-        auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
-
         auto b = getLocalBounds().toFloat();
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(Colour::fromString(secondaryColour.toString())), object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        auto outlineColour = object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
+
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(Colour::fromString(secondaryColour.toString())), outlineColour, Corners::objectCornerRadius);
 
         auto dx = getWidth() * 0.125f;
         auto dy = getHeight() * 0.25f;
@@ -129,6 +124,7 @@ public:
         nvgBeginPath(nvg);
         nvgStrokeColor(nvg, convertColour(Colour::fromString(gridColour.toString())));
         nvgStrokeWidth(nvg, 1.0f);
+
         auto xx = dx;
         for (int i = 0; i < 7; i++) {
             nvgMoveTo(nvg, xx, 1.0f);
@@ -142,6 +138,7 @@ public:
             nvgLineTo(nvg, static_cast<float>(getWidth() - 1.0f), yy);
             yy += dy;
         }
+
         nvgStroke(nvg);
 
         NVGScopedState scopedState(nvg);
@@ -153,10 +150,15 @@ public:
             nvgLineJoin(nvg, NVG_ROUND);
             nvgLineCap(nvg, NVG_ROUND);
 
-            nvgMoveTo(nvg, x_buffer[1], y_buffer[1]);
+            float offset = 2.0f;
 
-            for (size_t i = 2; i < y_buffer.size(); i++) {
-                nvgLineTo(nvg, x_buffer[i], y_buffer[i]);
+            float const w = getWidth() - 4;
+            float const h = getHeight() - 4;
+
+            nvgMoveTo(nvg, x_buffer[0] * w + offset, y_buffer[0] * h + offset);
+
+            for (size_t i = 1; i < y_buffer.size(); i++) {
+                nvgLineTo(nvg, x_buffer[i] * w + offset, y_buffer[i] * h + offset);
             }
             nvgStroke(nvg);
         }
@@ -167,8 +169,10 @@ public:
         if (freezeScope)
             return;
 
-        int bufsize = 0, mode = 0;
-        float min = 0.0f, max = 1.0f;
+        int mode = 0;
+        int bufsize = 0;
+        float min = 0.0f;
+        float max = 1.0f;
 
         if (object->iolets.size() == 3)
             object->iolets[2]->setVisible(false);
@@ -188,54 +192,56 @@ public:
             std::copy(scope->x_ybuflast, scope->x_ybuflast + bufsize, y_buffer.data());
         }
 
+        // Normalise the buffers
         if (min > max) {
-            auto temp = max;
-            max = min;
-            min = temp;
+            std::swap(min, max);
         }
 
-        float oldx = 0, oldy = 0;
-        float dx = (getWidth() - 2) / (float)bufsize;
-        float dy = (getHeight() - 2) / (float)bufsize;
+        float dx = 1.0f / static_cast<float>(bufsize); // Normalized step size
 
-        float waveAreaHeight = getHeight() - 2;
-        float waveAreaWidth = getWidth() - 2;
+        float range = max - min;
+        float scale = 1.0f / range;
 
-        for (int n = 0; n < bufsize; n++) {
-            switch (mode) {
-            case 1:
-                y_buffer[n] = jmap<float>(x_buffer[n], min, max, waveAreaHeight, 2.f);
-                x_buffer[n] = oldx;
-                oldx += dx;
-                break;
-            case 2:
-                x_buffer[n] = jmap<float>(y_buffer[n], min, max, 2.f, waveAreaWidth);
-                y_buffer[n] = oldy;
-                oldy += dy;
-                break;
-            case 3:
-                x_buffer[n] = jmap<float>(x_buffer[n], min, max, 2.f, waveAreaWidth);
-                y_buffer[n] = jmap<float>(y_buffer[n], min, max, waveAreaHeight, 2.f);
-                break;
-            default:
-                break;
+        switch (mode) {
+            case 1: {
+                for (int n = 0; n < bufsize; n++) {
+                    y_buffer[n] = 1.0f - (x_buffer[n] - min) * scale;
+                    x_buffer[n] = dx * n;
+                }
             }
+            break;
+            case 2: {
+                for (int n = 0; n < bufsize; n++) {
+                    x_buffer[n] = (y_buffer[n] - min) * scale;
+                    y_buffer[n] = 1.0f - dx * n;
+                }
+            }
+            break;
+            case 3: {
+                for (int n = 0; n < bufsize; n++) {
+                    x_buffer[n] = (x_buffer[n] - min) * scale;
+                    y_buffer[n] = 1.0f - (y_buffer[n] - min) * scale;
+                }
+            }
+            break;
+            default:
+            break;
         }
 
         repaint();
     }
 
-    void mouseDown(const MouseEvent& e) override
+    void mouseDown(MouseEvent const& e) override
     {
         freezeScope = true;
     }
 
-    void mouseUp(const MouseEvent& e) override
+    void mouseUp(MouseEvent const& e) override
     {
         freezeScope = false;
     }
 
-    void valueChanged(Value& v) override
+    void propertyChanged(Value& v) override
     {
 
         if (v.refersToSameSourceAs(sizeProperty)) {

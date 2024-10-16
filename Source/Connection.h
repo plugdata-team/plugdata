@@ -56,7 +56,7 @@ public:
 
     void updateReconnectHandle();
 
-    void forceUpdate(bool updateCacheOnly = false);
+    void forceUpdate();
 
     void lookAndFeelChanged() override;
 
@@ -155,7 +155,7 @@ private:
 
     float mouseDownPosition = 0;
 
-    int cacheId = -1;
+    NVGCachedPath cachedPath;
     pd::WeakReference ptr;
 
     pd::Atom lastValue[8];
@@ -171,9 +171,7 @@ private:
     bool isHovering:1 = false;
     bool isInStartReconnectHandle:1 = false;
     bool isInEndReconnectHandle:1 = false;
-    bool cachedIsValid:1 = false;
     
-        
     friend class ConnectionPathUpdater;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)

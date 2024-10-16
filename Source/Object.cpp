@@ -103,7 +103,8 @@ void Object::initialise()
     presentationMode.referTo(cnv->presentationMode);
 
     hvccMode.referTo(SettingsFile::getInstance()->getValueTree(), Identifier("hvcc_mode"), nullptr, false);
-
+    patchDownwardsOnly.referTo(SettingsFile::getInstance()->getValueTree(), Identifier("patch_downwards_only"), nullptr);
+    
     presentationMode.addListener(this);
     locked.addListener(this);
     commandLocked.addListener(this);
@@ -274,31 +275,50 @@ void Object::applyBounds()
     std::map<SafePointer<Object>, Rectangle<int>> newObjectSizes;
     for (auto* obj : cnv->getSelectionOfType<Object>())
         newObjectSizes[obj] = obj->getObjectBounds();
-
+    
+    auto positionOffset = gui ? (getBounds().reduced(margin).getPosition() - cnv->canvasOrigin) - gui->getPdBounds().getPosition() : Point<int>(0, 0);
     auto* patch = &cnv->patch;
 
     auto* patchPtr = cnv->patch.getPointer().get();
     if (!patchPtr)
         return;
-
+    
     cnv->pd->lockAudioThread();
-    patch->startUndoSequence("Resize");
+    if(ds.wasResized || ds.wasDragDuplicated)
+    {
+        patch->startUndoSequence("Resize");
 
-    for (auto& [object, bounds] : newObjectSizes) {
-        if (object->gui)
-            object->gui->setPdBounds(bounds);
+        for (auto& [object, bounds] : newObjectSizes) {
+            if (object->gui)
+                object->gui->setPdBounds(bounds);
+        }
+
+        canvas_dirty(patchPtr, 1);
+
+        patch->endUndoSequence("Resize");
     }
+    else if(ds.didStartDragging)
+    {
+        patch->startUndoSequence("Move");
+        std::vector<t_gobj*> objects;
+        for (auto* obj : cnv->getSelectionOfType<Object>())
+        {
+            if(auto* ptr = obj->getPointer())
+            {
+                objects.push_back(ptr);
+            }
+        }
+        
+        cnv->patch.moveObjects(objects, positionOffset.x, positionOffset.y);
+        patch->endUndoSequence("Move");
+    }
+    cnv->pd->unlockAudioThread();
 
-    canvas_dirty(patchPtr, 1);
-
-    patch->endUndoSequence("Resize");
-
+    
     MessageManager::callAsync([editor = SafePointer(this->editor)] {
         if (editor)
             editor->updateCommandStatus();
     });
-
-    cnv->pd->unlockAudioThread();
 }
 void Object::updateBounds()
 {
@@ -784,6 +804,29 @@ void Object::mouseDown(MouseEvent const& e)
         object->originalBounds = object->getBounds();
     }
 
+    bool overEdgeNotCorner = (resizeZone.isDraggingTopEdge() + resizeZone.isDraggingLeftEdge() + resizeZone.isDraggingBottomEdge() + resizeZone.isDraggingRightEdge() == 1) ? true : false;
+
+    auto toResize = cnv->getSelectionOfType<Object>();
+    for (auto* obj : toResize) {
+        if (!obj->gui)
+            continue;
+
+        bool isDraggingOneEdge = false;
+        if (obj->gui->canEdgeOverrideAspectRatio() && overEdgeNotCorner)
+        {
+            isDraggingOneEdge = true;
+        }
+
+        if (auto *constrainer = obj->getConstrainer()) {
+            if (gui && gui->canEdgeOverrideAspectRatio()) {
+                if (isDraggingOneEdge)
+                    constrainer->setFixedAspectRatio(0);
+                else
+                    constrainer->setFixedAspectRatio(static_cast<float>(obj->getObjectBounds().getWidth()) / obj->getObjectBounds().getHeight());
+            }
+        }
+    }
+
     repaint();
 
     ds.canvasDragStartPosition = cnv->getPosition();
@@ -948,11 +991,7 @@ void Object::mouseDrag(MouseEvent const& e)
             auto const newBounds = resizeZone.resizeRectangleBy(obj->originalBounds, dragDistance);
 
             if (auto* constrainer = obj->getConstrainer()) {
-
-                constrainer->setBoundsForComponent(obj, newBounds, resizeZone.isDraggingTopEdge(),
-                    resizeZone.isDraggingLeftEdge(),
-                    resizeZone.isDraggingBottomEdge(),
-                    resizeZone.isDraggingRightEdge());
+                constrainer->setBoundsForComponent(obj, newBounds, resizeZone.isDraggingTopEdge(), resizeZone.isDraggingLeftEdge(), resizeZone.isDraggingBottomEdge(), resizeZone.isDraggingRightEdge());
             }
         }
 
@@ -969,9 +1008,7 @@ void Object::mouseDrag(MouseEvent const& e)
         }
 
         auto canvasMoveOffset = ds.canvasDragStartPosition - cnv->getPosition();
-
         auto selection = cnv->getSelectionOfType<Object>();
-
         auto dragDistance = e.getOffsetFromDragStart() + canvasMoveOffset;
 
         if (ds.componentBeingDragged) {
@@ -981,7 +1018,6 @@ void Object::mouseDrag(MouseEvent const& e)
 
         // alt+drag will duplicate selection
         if (!ds.wasDragDuplicated && e.mods.isAltDown()) {
-
             Array<Point<int>> mouseDownObjectPositions; // Stores object positions for alt + drag
 
             // Single for undo for duplicate + move
@@ -1182,7 +1218,7 @@ void Object::render(NVGcontext* nvg)
 
             nvgBeginPath(nvg);
             nvgRect(nvg, 0, 0, 9, 9);
-            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage.getImageId(), 1));
+            nvgFillPaint(nvg, nvgImageAlphaPattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage.getImageId(), cnv->selectedOutlineCol));
             nvgFill(nvg);
             angle -= 90;
         }
@@ -1199,32 +1235,37 @@ void Object::render(NVGcontext* nvg)
         nvgFillRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
     }
 
+    nvgTranslate(nvg, margin, margin);
+    
     if (gui) {
-        NVGScopedState scopedState(nvg);
-        nvgTranslate(nvg, margin, margin);
         gui->render(nvg);
     }
 
     if (newObjectEditor) {
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), cnv->textObjectBackgroundCol, isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
-        
-        nvgTranslate(nvg, margin, margin);
+        nvgDrawRoundedRect(nvg, 0, 0, b.getWidth(), b.getHeight(), cnv->textObjectBackgroundCol, isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
         textEditorRenderer.renderJUCEComponent(nvg, *newObjectEditor, getValue<float>(cnv->zoomScale) * cnv->getRenderScale());
     }
 
     // If autoconnect is about to happen, draw a fake inlet with a dotted outline
     if (isInitialEditorShown() && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs && getValue<bool>(editor->autoconnect)) {
         auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
-        float fakeInletBounds[4] = { 16.0f, 4.0f, 8.0f, 8.0f };
+        std::array<float, 4> fakeInletBounds = PlugDataLook::getUseIoletSpacingEdge() ? std::array<float, 4>{-8.0f, -3.0f, 18.0f, 7.0f} : std::array<float, 4>{ 8.5f, -3.5f, 8.0f, 8.0f };
         nvgBeginPath(nvg);
+        if(PlugDataLook::getUseSquareIolets()) {
+            nvgRect(nvg, fakeInletBounds[0] + fakeInletBounds[2] * 0.5f, fakeInletBounds[1] + fakeInletBounds[3] * 0.5f, fakeInletBounds[2] * 0.5f, fakeInletBounds[3] * 0.5f);
+        } else {
+            nvgEllipse(nvg, fakeInletBounds[0] + fakeInletBounds[2] * 0.5f, fakeInletBounds[1] + fakeInletBounds[3] * 0.5f, fakeInletBounds[2] * 0.5f, fakeInletBounds[3] * 0.5f);
+        }
+        
         nvgFillColor(nvg, outlet->isSignal ? cnv->sigColBrighter : cnv->dataColBrighter);
-        nvgEllipse(nvg, fakeInletBounds[0] + fakeInletBounds[2] * 0.5f, fakeInletBounds[1] + fakeInletBounds[3] * 0.5f, fakeInletBounds[2] * 0.5f, fakeInletBounds[3] * 0.5f);
         nvgFill(nvg);
 
         nvgStrokeColor(nvg, cnv->objectOutlineCol);
         nvgStrokeWidth(nvg, 1.0f);
         nvgStroke(nvg);
     }
+    
+    nvgTranslate(nvg, -margin, -margin);
 
     if (!isHvccCompatible) {
         NVGScopedState scopedState(nvg);
@@ -1258,11 +1299,33 @@ void Object::renderIolets(NVGcontext* nvg)
 {
     if (cnv->isGraph)
         return;
+    
+    if (getValue<bool>(locked) || !drawIoletExpanded) {
+        auto clipBounds = getLocalBounds().reduced(Object::margin);
+        nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
+    }
+    else if(patchDownwardsOnly)
+    {
+        auto clipBounds = getLocalBounds().reduced(Object::margin);
+        nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight() + Object::doubleMargin);
+    }
 
+    auto lastPosition = Point<int>();
     for (auto* iolet : iolets) {
-        NVGScopedState scopedState(nvg);
-        nvgTranslate(nvg, iolet->getX(), iolet->getY());
+        nvgTranslate(nvg, iolet->getX() - lastPosition.x, iolet->getY() - lastPosition.y);
+        
+        if(iolet->isTargeted)
+        {
+            nvgSave(nvg);
+            nvgResetScissor(nvg);
+        }
+        
         iolet->render(nvg);
+        lastPosition = iolet->getPosition();
+        
+        if(iolet->isTargeted) {
+            nvgRestore(nvg);
+        }
     }
 }
 
@@ -1364,8 +1427,8 @@ void Object::openNewObjectEditor()
                     return;
                 auto* cnv = _this->cnv; // Copy pointer because _this will get deleted
                 cnv->hideSuggestions();
-                cnv->objects.removeObject(_this.getComponent());
                 cnv->pd->unregisterObject(_this.getComponent());
+                cnv->objects.removeObject(_this.getComponent());
                 cnv->lastSelectedObject = nullptr;
 
                 cnv->lastSelectedConnection = nullptr;
@@ -1473,6 +1536,10 @@ void Object::openHelpPatch() const
             if (auto patch = helpCanvas->patch.getPointer()) {
                 patch->gl_edit = 0;
             }
+        }
+
+        if(ProjectInfo::isStandalone && SettingsFile::getInstance()->getProperty<bool>("open_patches_in_window")) {
+            editor->getTabComponent().createNewWindow(helpCanvas);
         }
         return;
     }

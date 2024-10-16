@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Utility/ZoomableDragAndDropContainer.h"
+#include "Utility/StackDropShadower.h"
 #include "PluginProcessor.h"
 
 class PluginMode;
@@ -35,7 +36,8 @@ public:
 
     void closeAllTabs(
         bool quitAfterComplete = false, Canvas* patchToExclude = nullptr, std::function<void()> afterComplete = []() {});
-    void createNewWindow(Component* draggedTab);
+    void createNewWindow(Canvas* cnv);
+    void createNewWindowFromTab(Component* tab);
 
     Canvas* getCurrentCanvas();
     Canvas* getCanvasAtScreenPosition(Point<int> screenPosition);
@@ -67,6 +69,9 @@ private:
     void mouseUp(MouseEvent const& e) override;
     void mouseDrag(MouseEvent const& e) override;
     void mouseMove(MouseEvent const& e) override;
+    
+    void addLastShownTab(Canvas* tab, int split);
+    Canvas* getLastShownTab(Canvas* current, int split);
 
     void showHiddenTabsMenu(int splitIndex);
 
@@ -188,8 +193,8 @@ private:
             auto g = Graphics(image);
             g.addTransform(AffineTransform::scale(scale));
             Path path;
-            path.addRoundedRectangle(bounds.reduced(10), 5.0f);
-            StackShadow::renderDropShadow(g, path, Colour(0, 0, 0).withAlpha(0.2f), 6, { 0, 1 }, scale);
+            path.addRoundedRectangle(bounds.reduced(12), 5.0f);
+            StackShadow::renderDropShadow(0, g, path, Colour(0, 0, 0).withAlpha(0.2f), 6, { 0, 1 }, scale);
             g.setOpacity(1.0f);
 
             g.setColour(findColour(PlugDataColour::activeTabBackgroundColourId));
@@ -317,6 +322,8 @@ private:
 
     std::array<OwnedArray<TabBarButtonComponent>, 2> tabbars;
     std::array<SafePointer<Canvas>, 2> splits = { nullptr, nullptr };
+        
+    std::array<Array<SafePointer<Canvas>>, 2> lastShownTabs;
 
     std::array<pd::Patch*, 2> lastSplitPatches { nullptr, nullptr };
     t_glist* lastActiveCanvas = nullptr;

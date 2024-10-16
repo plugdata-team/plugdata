@@ -662,7 +662,7 @@ struct Interface {
     {
         auto* instanceEditor = getInstanceEditor();
         if (!instanceEditor->canvas_undo_already_set_move) {
-            canvas_undo_add(cnv, UNDO_MOTION, "motion", canvas_undo_set_move(cnv, 0));
+            //canvas_undo_add(cnv, UNDO_MOTION, "motion", canvas_undo_set_move(cnv, 0));
             instanceEditor->canvas_undo_already_set_move = 1;
         }
 

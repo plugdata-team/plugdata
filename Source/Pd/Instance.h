@@ -30,6 +30,19 @@ public:
     {
     }
 
+    static std::vector<pd::Atom> atomsFromString(String const& str)
+    {
+        auto* binbuf = binbuf_new();
+        binbuf_text(binbuf, str.toRawUTF8(), str.getNumBytesAsUTF8());
+        auto* argv = binbuf_getvec(binbuf);
+        auto argc = binbuf_getnatom(binbuf);
+        
+        auto atoms = fromAtoms(argc, argv);
+        binbuf_free(binbuf);
+        
+        return atoms;
+    }
+    
     static std::vector<pd::Atom> fromAtoms(int ac, t_atom* av)
     {
         auto array = std::vector<pd::Atom>();
@@ -198,10 +211,11 @@ public:
     void sendMessage(char const* receiver, char const* msg, std::vector<pd::Atom> const& list) const;
     void sendTypedMessage(void* object, char const* msg, std::vector<Atom> const& list) const;
 
-    virtual void addTextToTextEditor(unsigned long ptr, String text) { }
-    virtual void showTextEditor(unsigned long ptr, Rectangle<int> bounds, String title) { }
-
-    virtual void receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list) {};
+    virtual void addTextToTextEditor(unsigned long ptr, String text) = 0;
+    virtual void showTextEditorDialog(unsigned long ptr, Rectangle<int> bounds, String title) = 0;
+    virtual bool isTextEditorDialogShown(unsigned long ptr) = 0;
+    
+    virtual void receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list) = 0;
 
     void registerMessageListener(void* object, MessageListener* messageListener);
     void unregisterMessageListener(void* object, MessageListener* messageListener);
@@ -243,6 +257,7 @@ public:
 
     virtual void performParameterChange(int type, String const& name, float value) = 0;
     virtual void enableAudioParameter(String const& name) = 0;
+    virtual void disableAudioParameter(String const& name) = 0;
     virtual void setParameterRange(String const& name, float min, float max) = 0;
     virtual void setParameterMode(String const& name, int mode) = 0;
 
@@ -282,6 +297,7 @@ public:
     void* pluginLatencyReceiver = nullptr;
     void* parameterChangeReceiver = nullptr;
     void* parameterCreateReceiver = nullptr;
+    void* parameterDestroyReceiver = nullptr;
     void* parameterRangeReceiver = nullptr;
     void* parameterModeReceiver = nullptr;
     void* midiReceiver = nullptr;

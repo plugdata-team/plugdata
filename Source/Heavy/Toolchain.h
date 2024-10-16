@@ -115,8 +115,14 @@ public:
                     throw 204;
                 // Get latest version
                 latestVersion = compatTable.getDynamicObject()->getProperty(String(ProjectInfo::versionString).upToFirstOccurrenceOf("-", false, false)).toString();
-                if (latestVersion.isEmpty())
-                    throw 418;
+                if (latestVersion.isEmpty()) {
+                    auto& properties = compatTable.getDynamicObject()->getProperties();
+                    latestVersion = properties.getValueAt(properties.size() - 1).toString().upToFirstOccurrenceOf("-", false, false);
+
+                    if (latestVersion.isEmpty()) {
+                        throw 418;
+                    }
+                }
             }
             // Network error, JSON error or empty version string somehow
             catch (int error) {
@@ -338,7 +344,7 @@ public:
 #elif JUCE_MAC
     String downloadSize = "650 MB";
 #else
-    String downloadSize = "1.45 GB";
+    String downloadSize = "992 MB";
 #endif
 
     class ToolchainInstallerButton : public Component {

@@ -113,7 +113,7 @@ public:
                 currentlyOverComp = nullptr;
                 finalTarget->itemDropped(details);
             } else {
-                owner.getTabComponent().createNewWindow(details.sourceComponent.get());
+                owner.getTabComponent().createNewWindowFromTab(details.sourceComponent.get());
             }
             // careful - this object could now be deleted..
         }
