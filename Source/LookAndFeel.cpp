@@ -389,7 +389,7 @@ void PlugDataLook::positionDocumentWindowButtons(DocumentWindow& window,
             leftOffset += 25;
     }
 #else
-    auto leftOffset = areButtonsLeft && ProjectInfo::canUseSemiTransparentWindows() ? titleBarX + 12 : titleBarX;
+    auto leftOffset = areButtonsLeft ? titleBarX + 10 : titleBarX;
 #endif
 
     if (areButtonsLeft) {

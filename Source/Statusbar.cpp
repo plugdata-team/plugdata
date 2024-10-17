@@ -691,7 +691,6 @@ private:
     void mouseDown(MouseEvent const& e) override
     {
         if (!isEnabled() || !e.mods.isLeftButtonDown()) return;
-            return;
 
         auto* editor = findParentComponentOfClass<PluginEditor>();
         if (auto* cnv = editor->getCurrentCanvas()) {

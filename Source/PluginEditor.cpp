@@ -578,7 +578,7 @@ void PluginEditor::resized()
 #endif
     
     auto useNonNativeTitlebar = ProjectInfo::isStandalone && !SettingsFile::getInstance()->getProperty<bool>("native_window");
-    auto offset = useLeftButtons && useNonNativeTitlebar ? 84 : 15;
+    auto offset = useLeftButtons && useNonNativeTitlebar ? 80 : 15;
 #if JUCE_MAC
     if (auto standalone = ProjectInfo::isStandalone ? dynamic_cast<DocumentWindow*>(getTopLevelComponent()) : nullptr)
         offset = standalone->isFullScreen() ? 20 : offset;
