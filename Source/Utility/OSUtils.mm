@@ -9,9 +9,35 @@
 #import <Foundation/Foundation.h>
 #import <Cocoa/Cocoa.h>
 #include <Carbon/Carbon.h>
+#include <objc/runtime.h>
 #import <string>
 #include <raw_keyboard_input/raw_keyboard_input.mm>
 
+
+@interface NSView (FrameViewMethodSwizzling)
+- (NSPoint)FrameView__closeButtonOrigin;
+- (CGFloat)FrameView__titlebarHeight;
+@end
+
+@implementation NSView (FrameViewMethodSwizzling)
+
+- (NSPoint)FrameView__closeButtonOrigin {
+    auto* win = static_cast<NSWindow*>(self.window);
+    auto isFullscreen = win.styleMask & NSWindowStyleMaskFullScreen;
+    auto isPopup = win.level == NSPopUpMenuWindowLevel;
+    if(isPopup || isFullscreen)
+        return [self FrameView__closeButtonOrigin];
+    return {15, self.bounds.size.height - 28};
+}
+- (CGFloat)FrameView__titlebarHeight {
+    auto* win = static_cast<NSWindow*>(self.window);
+    auto isFullscreen = win.styleMask & NSWindowStyleMaskFullScreen;
+    auto isPopup = win.level == NSPopUpMenuWindowLevel;
+    if(isPopup || isFullscreen)
+        return [self FrameView__titlebarHeight];
+    return 34;
+}
+@end
 
 int getStyleMask(bool nativeTitlebar) {
     
@@ -28,13 +54,67 @@ int getStyleMask(bool nativeTitlebar) {
     return style;
 }
 
-void OSUtils::enableInsetTitlebarButtons(void* nativeHandle, bool enable) {
-    
+void OSUtils::setWindowMovable(void* nativeHandle, bool canMove) {
     auto* view = static_cast<NSView*>(nativeHandle);
     
     if(!view) return;
     
     NSWindow* window = view.window;
+    if(window)
+    {
+        [window setMovable: canMove];
+    }
+}
+
+void OSUtils::enableInsetTitlebarButtons(void* nativeHandle, bool enable) {
+    auto* view = static_cast<NSView*>(nativeHandle);
+    
+    if(!view) return;
+    
+    NSWindow* window = view.window;
+    if(!window) return;
+    
+    // Swaps out the implementation of one Obj-c instance method with another
+    auto swizzleMethods = [](Class aClass, SEL orgMethod, SEL posedMethod) {
+        @try {
+            Method original = nil;
+            Method posed = nil;
+
+            original = class_getInstanceMethod(aClass, orgMethod);
+            posed = class_getInstanceMethod(aClass, posedMethod);
+            
+            if (!original || !posed) return;
+
+            method_exchangeImplementations(original, posed);
+        } @catch (NSException * _exn) {
+        }
+    };
+    
+    Class frameViewClass = [[[window contentView] superview] class];
+    if(frameViewClass != nil) {
+        
+        auto oldOriginMethod = enable ? @selector(_closeButtonOrigin) : @selector(FrameView__closeButtonOrigin);
+        auto newOriginMethod = enable ? @selector(FrameView__closeButtonOrigin) : @selector(_closeButtonOrigin);
+        
+        static IMP our_closeButtonOrigin = class_getMethodImplementation([NSView class], newOriginMethod);
+        IMP _closeButtonOrigin = class_getMethodImplementation(frameViewClass, oldOriginMethod);
+        if (_closeButtonOrigin && _closeButtonOrigin != our_closeButtonOrigin) {
+            swizzleMethods(frameViewClass,
+                           oldOriginMethod,
+                           newOriginMethod);
+        }
+        
+        auto oldTitlebarHeightMethod = enable ? @selector(_titlebarHeight) : @selector(FrameView__titlebarHeight);
+        auto newTitlebarHeightMethod = enable ? @selector(FrameView__titlebarHeight) : @selector(_titlebarHeight);
+        
+        static IMP our_titlebarHeight = class_getMethodImplementation([NSView class], newTitlebarHeightMethod);
+        IMP _titlebarHeight = class_getMethodImplementation([view class], oldTitlebarHeightMethod);
+        if (_titlebarHeight && _titlebarHeight != our_titlebarHeight) {
+            swizzleMethods(frameViewClass,
+                           oldTitlebarHeightMethod,
+                           newTitlebarHeightMethod);
+        }
+    }
     
     if(enable) {
         window.titlebarAppearsTransparent = true;
@@ -46,7 +126,15 @@ void OSUtils::enableInsetTitlebarButtons(void* nativeHandle, bool enable) {
         window.titleVisibility = NSWindowTitleVisible;
         window.styleMask = getStyleMask(true);
     }
-
+    
+    // Non-opaque window with a dropshadow has a negative impact on rendering performance
+    window.opaque = TRUE;
+    
+    NSView* frameView = window.contentView.superview;
+    if ([frameView respondsToSelector:@selector(_tileTitlebarAndRedisplay:)]) {
+      [frameView _tileTitlebarAndRedisplay:NO];
+    }
+    
     [window update];
 }
 

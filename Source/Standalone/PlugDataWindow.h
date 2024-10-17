@@ -397,6 +397,7 @@ class PlugDataWindow : public DocumentWindow
     Image shadowImage;
     AudioProcessorEditor* editor;
     StandalonePluginHolder* pluginHolder;
+    bool wasFullscreen = false;
 
 public:
     typedef StandalonePluginHolder::PluginInOuts PluginInOuts;
@@ -416,7 +417,6 @@ public:
         pluginHolder = ProjectInfo::getStandalonePluginHolder();
 
         drawWindowShadow = Desktop::canUseSemiTransparentWindows();
-        setOpaque(false);
 
         mainComponent = new MainContentComponent(*this, editor);
 
@@ -443,6 +443,8 @@ public:
 #else
             setOpaque(false);
 #endif
+            
+
             setResizable(false, false);
             // we also need to set the constrainer of THIS window so it's set for the peer
             setConstrainer(&pdEditor->constrainer);
@@ -460,6 +462,11 @@ public:
             OSUtils::useWindowsNativeDecorations(peer->getNativeHandle(), !isFullScreen());
 #endif
         
+#if JUCE_MAC
+        if (auto peer = getPeer())
+            OSUtils::enableInsetTitlebarButtons(peer->getNativeHandle(), !nativeWindow && !isFullScreen());
+#endif
+        
         editor->resized();
         resized();
         lookAndFeelChanged();
@@ -473,18 +480,6 @@ public:
             auto* pdEditor = dynamic_cast<PluginEditor*>(editor);
             pdEditor->nvgSurface.detachContext();
             recreateDesktopWindow();
-        }
-        if (name == "macos_buttons") {
-            bool isEnabled = true;
-            if (auto* closeButton = getCloseButton())
-                isEnabled = closeButton->isEnabled();
-            lookAndFeelChanged();
-            if (auto* closeButton = getCloseButton())
-                closeButton->setEnabled(isEnabled);
-            if (auto* minimiseButton = getMinimiseButton())
-                minimiseButton->setEnabled(isEnabled);
-            if (auto* maximiseButton = getMaximiseButton())
-                maximiseButton->setEnabled(isEnabled);
         }
     }
 
@@ -594,6 +589,7 @@ public:
         }
 #else
         setFullScreen(!isFullScreen());
+        parentHierarchyChanged();
 #endif
         resized();
     }
@@ -645,7 +641,19 @@ public:
             auto margin = mainComponent ? mainComponent->getMargin() : 18;
             titleBarArea = Rectangle<int>(0, 7 + margin, getWidth() - (6 + margin), 23);
         }
+#elif JUCE_MAC
+        auto fullscreen = isFullScreen();
+        auto nativeWindow = SettingsFile::getInstance()->getProperty<bool>("native_window");
+        if(!nativeWindow && wasFullscreen && !fullscreen) {
+            Timer::callAfterDelay(800, [_this = SafePointer(this)](){
+                if(_this) {
+                    _this->parentHierarchyChanged();
+                }
+            });
+        }
+        wasFullscreen = fullscreen;
 #endif
+        
 
 #if !JUCE_IOS
         getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);

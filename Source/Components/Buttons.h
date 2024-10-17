@@ -34,6 +34,29 @@ public:
 #endif
         attributedIcon.draw(g, bounds);
     }
+    
+    // On macOS, we need to make sure that dragging any of these buttones doesn't drag the whole titlebar
+#if JUCE_MAC
+    void mouseEnter(const MouseEvent& e) override
+    {
+        if(auto* topLevel = getTopLevelComponent()) {
+            if(auto* peer = topLevel->getPeer()) {
+                OSUtils::setWindowMovable(peer->getNativeHandle(), false);
+            }
+        }
+        TextButton::mouseEnter(e);
+    }
+    
+    void mouseExit(const MouseEvent& e) override
+    {
+        if(auto* topLevel = getTopLevelComponent()) {
+            if(auto* peer = topLevel->getPeer()) {
+                OSUtils::setWindowMovable(peer->getNativeHandle(), true);
+            }
+        }
+        TextButton::mouseExit(e);
+    }
+#endif
 };
 
 class ToolbarRadioButton : public TextButton {
@@ -72,6 +95,29 @@ public:
         attributedIcon.setJustification(Justification::centred);
         attributedIcon.draw(g, getLocalBounds().toFloat());
     }
+    
+    // On macOS, we need to make sure that dragging any of these buttones doesn't drag the whole titlebar
+#if JUCE_MAC
+    void mouseEnter(const MouseEvent& e) override
+    {
+        if(auto* topLevel = getTopLevelComponent()) {
+            if(auto* peer = topLevel->getPeer()) {
+                OSUtils::setWindowMovable(peer->getNativeHandle(), false);
+            }
+        }
+        TextButton::mouseEnter(e);
+    }
+    
+    void mouseExit(const MouseEvent& e) override
+    {
+        if(auto* topLevel = getTopLevelComponent()) {
+            if(auto* peer = topLevel->getPeer()) {
+                OSUtils::setWindowMovable(peer->getNativeHandle(), true);
+            }
+        }
+        TextButton::mouseExit(e);
+    }
+#endif
 };
 
 class SmallIconButton : public TextButton {

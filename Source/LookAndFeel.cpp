@@ -354,13 +354,12 @@ Button* PlugDataLook::createDocumentWindowButton(int buttonType)
 {
     if (buttonType == -1)
         return new PlugData_DocumentWindowButton(DocumentWindow::closeButton);
-    else if (SettingsFile::getInstance()->getProperty<bool>("macos_buttons"))
-        return new PlugData_DocumentWindowButton_macOS(buttonType);
-    else
-        return new PlugData_DocumentWindowButton(buttonType);
-
-    jassertfalse;
+    
+#if JUCE_MAC
     return nullptr;
+#endif
+    
+    return new PlugData_DocumentWindowButton(buttonType);
 }
 
 void PlugDataLook::positionDocumentWindowButtons(DocumentWindow& window,
@@ -373,7 +372,11 @@ void PlugDataLook::positionDocumentWindowButtons(DocumentWindow& window,
     if (SettingsFile::getInstance()->getProperty<bool>("native_window"))
         return;
 
-    auto areButtonsLeft = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");
+#if JUCE_MAC
+    auto areButtonsLeft = true;
+#else
+    auto areButtonsLeft = false;
+#endif
 
     // heuristic to offset the buttons when positioned left, as we are drawing larger to provide a shadow
     // we check if the system is drawing with a dropshadow- hence semi transparent will be true
