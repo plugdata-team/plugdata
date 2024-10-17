@@ -111,7 +111,7 @@ Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch)
     static bool alreadyOpeningInNewWindow = false;
     if(canvases.size() > 1 && !alreadyOpeningInNewWindow && ProjectInfo::isStandalone && SettingsFile::getInstance()->getProperty<bool>("open_patches_in_window")) {
         alreadyOpeningInNewWindow = true;
-        createNewWindow(cnv);
+        cnv = createNewWindow(cnv);
         alreadyOpeningInNewWindow = false;
     }
     
@@ -277,9 +277,9 @@ void TabComponent::createNewWindowFromTab(Component* draggedTab)
     createNewWindow(tab->cnv);
 }
 
-void TabComponent::createNewWindow(Canvas* cnv)
+Canvas* TabComponent::createNewWindow(Canvas* cnv)
 {
-    if (!ProjectInfo::isStandalone) return;
+    if (!ProjectInfo::isStandalone) return nullptr;
 
     auto* newEditor = new PluginEditor(*pd);
     auto* newWindow = ProjectInfo::createNewWindow(newEditor);
@@ -301,6 +301,8 @@ void TabComponent::createNewWindow(Canvas* cnv)
     newWindow->setTopLeftPosition(Desktop::getInstance().getMousePosition() - Point<int>(500, 60));
     newWindow->toFront(true);
     newEditor->nvgSurface.detachContext();
+    
+    return newCanvas;
 }
 
 void TabComponent::openInPluginMode(pd::Patch::Ptr patch)

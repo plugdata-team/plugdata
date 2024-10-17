@@ -1538,9 +1538,6 @@ void Object::openHelpPatch() const
             }
         }
 
-        if(ProjectInfo::isStandalone && SettingsFile::getInstance()->getProperty<bool>("open_patches_in_window")) {
-            editor->getTabComponent().createNewWindow(helpCanvas);
-        }
         return;
     }
 
