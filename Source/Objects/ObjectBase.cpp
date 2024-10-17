@@ -412,10 +412,6 @@ void ObjectBase::openSubpatch()
     if (path.getFullPathName().isNotEmpty()) {
         subpatch->setCurrentFile(URL(path));
     }
-    
-    if(ProjectInfo::isStandalone && SettingsFile::getInstance()->getProperty<bool>("open_patches_in_window")) {
-        cnv->editor->getTabComponent().createNewWindow(newCanvas);
-    }
 }
 
 void ObjectBase::moveToFront()
