@@ -175,7 +175,7 @@ public:
         if (makerName.isNotEmpty()){
             metaDPF.getDynamicObject()->setProperty("maker", makerName);
         } else {
-            metaDPF.getDynamicObject()->setProperty("maker", "Wasted Audio");
+            metaDPF.getDynamicObject()->setProperty("maker", "plugdata");
         }
         if (projectLicense.isNotEmpty()){
             metaDPF.getDynamicObject()->setProperty("license", projectLicense);
