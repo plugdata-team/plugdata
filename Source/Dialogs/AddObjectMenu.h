@@ -402,7 +402,7 @@ public:
                 { Icons::GlyphPgmIn, "#X obj 0 0 pgmin", "Program in", "Pgm in", OtherObject },
                 { Icons::GlyphPgmOut, "#X obj 0 0 pgmout", "Program out", "Pgm out", OtherObject },
                 { Icons::GlyphGeneric, "#X obj 0 0 touchin", "Touch in", "Tch in", OtherObject },
-                { Icons::GlyphGeneric, "#X obj 0 0 touchout", "Touch out", "Tch in", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 touchout", "Touch out", "Tch out", OtherObject },
                 { Icons::GlyphGeneric, "#X obj 0 0 polytouchin", "Poly Touch in", "Ptch in", OtherObject },
                 { Icons::GlyphGeneric, "#X obj 0 0 polytouchout", "Poly Touch in", "Ptch out", OtherObject },
                 { Icons::GlyphMtof, "#X obj 0 0 mtof", "MIDI to frequency", "mtof", OtherObject },
