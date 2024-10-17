@@ -299,28 +299,28 @@ public:
         // set linker script and if we want bootloader
         bool bootloader = false;
 
+        if (size > 1) {
+            bootloader = true;
+        }
+
         if (size == 2) {
             metaDaisy.getDynamicObject()->setProperty("linker_script", "../../libdaisy/core/STM32H750IB_sram.lds");
             metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_SRAM");
-            bootloader = true;
         } else if (size == 3) {
             metaDaisy.getDynamicObject()->setProperty(
                 "linker_script",
                 Toolchain::dir.getChildFile("etc").getChildFile("linkers").getChildFile("sram_linker_sdram.lds").getFullPathName()
             );
             metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_SRAM");
-            bootloader = true;
         } else if (size == 4) {
             metaDaisy.getDynamicObject()->setProperty("linker_script", "../../libdaisy/core/STM32H750IB_qspi.lds");
             metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_QSPI");
-            bootloader = true;
         } else if (size == 5) {
             metaDaisy.getDynamicObject()->setProperty(
                 "linker_script",
                 Toolchain::dir.getChildFile("etc").getChildFile("linkers").getChildFile("qspi_linker_sdram.lds").getFullPathName()
             );
             metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_QSPI");
-            bootloader = true;
         } else if (size == 6) {
             metaDaisy.getDynamicObject()->setProperty("linker_script", customLinker.getFullPathName());
             if (appType == 2) {
@@ -328,7 +328,6 @@ public:
             } else if (appType == 3) {
                 metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_QSPI");
             }
-            bootloader = true;
         }
 
         metaJson->setProperty("daisy", metaDaisy);
