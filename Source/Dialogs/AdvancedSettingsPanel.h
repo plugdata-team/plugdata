@@ -23,15 +23,12 @@ public:
 
         if (ProjectInfo::isStandalone) {
             nativeTitlebar.referTo(settingsFile->getPropertyAsValue("native_window"));
-            macTitlebarButtons.referTo(settingsFile->getPropertyAsValue("macos_buttons"));
 
-            macTitlebarButtons.addListener(this);
             nativeTitlebar.addListener(this);
 
             Array<PropertiesPanelProperty*> windowProperties;
 
             windowProperties.add(new PropertiesPanel::BoolComponent("Use system titlebar", nativeTitlebar, { "No", "Yes" }));
-            windowProperties.add(new PropertiesPanel::BoolComponent("Use macOS style window buttons", macTitlebarButtons, { "No", "Yes" }));
 
             propertiesPanel.addSection("Window", windowProperties);
         } else {
@@ -167,9 +164,6 @@ public:
                     maximiseButton->setEnabled(false);
             }
         }
-        if (v.refersToSameSourceAs(macTitlebarButtons)) {
-            editor->resized();
-        }
         if (v.refersToSameSourceAs(showPalettesValue)) {
             editor->resized();
         }
@@ -185,7 +179,6 @@ public:
     Component* editor;
 
     Value nativeTitlebar;
-    Value macTitlebarButtons;
     Value scaleValue;
     Value defaultZoom;
     Value centreResized;

@@ -33,6 +33,7 @@ struct OSUtils {
     static bool isX11WindowMaximised(void* handle);
     static void updateX11Constraints(void* handle);
 #elif JUCE_MAC
+    static void setWindowMovable(void* nativeHandle, bool canMove);
     static void enableInsetTitlebarButtons(void* nativeHandle, bool enabled);
     static void HideTitlebarButtons(void* view, bool hideMinimiseButton, bool hideMaximiseButton, bool hideCloseButton);
 #endif

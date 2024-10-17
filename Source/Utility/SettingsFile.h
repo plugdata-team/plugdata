@@ -144,13 +144,6 @@ private:
         { "autosave_interval", var(5) },
         { "autosave_enabled", var(1) },
         { "patch_downwards_only", var(false) }, // Option to replicate PD-Vanilla patching downwards only
-        { "macos_buttons",
-#if JUCE_MAC
-            var(true)
-#else
-            var(false)
-#endif
-        },
         // DEFAULT SETTINGS FOR TOGGLES
         { "search_order", var(true) },
         { "open_patches_in_window", var(false) },

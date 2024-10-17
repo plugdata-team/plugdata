@@ -571,7 +571,12 @@ void PluginEditor::resized()
 
     sidebar->setBounds(getWidth() - sidebar->getWidth(), toolbarHeight, sidebar->getWidth(), workAreaHeight);
 
-    auto useLeftButtons = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");
+#if JUCE_MAC
+    auto useLeftButtons = true;
+#else
+    auto useLeftButtons = false;
+#endif
+    
     auto useNonNativeTitlebar = ProjectInfo::isStandalone && !SettingsFile::getInstance()->getProperty<bool>("native_window");
     auto offset = useLeftButtons && useNonNativeTitlebar ? 84 : 15;
 #if JUCE_MAC
@@ -659,13 +664,7 @@ void PluginEditor::parentSizeChanged()
     // Hide TitleBar Buttons in Plugin Mode
     bool visible = !isInPluginMode();
 #if JUCE_MAC
-    if (!standalone->useNativeTitlebar()) {
-        // & hide TitleBar buttons when fullscreen on MacOS
-        visible = visible && !standalone->isFullScreen();
-        standalone->getCloseButton()->setVisible(visible);
-        standalone->getMinimiseButton()->setVisible(visible);
-        standalone->getMaximiseButton()->setVisible(visible);
-    } else if (!visible && !standalone->isFullScreen()) {
+    if (!standalone->useNativeTitlebar() && !visible && !standalone->isFullScreen()) {
         // Hide TitleBar Buttons in Plugin Mode if using native title bar
         if (ComponentPeer* peer = standalone->getPeer())
             OSUtils::HideTitlebarButtons(peer->getNativeHandle(), true, true, true);
