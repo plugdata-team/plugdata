@@ -334,6 +334,7 @@ void TabComponent::handleAsyncUpdate()
     {
         pd->openedEditors.removeObject(editor);
         pd->openedEditors.getFirst()->toFront(true);
+        return;
     }
     
     pd->setThis();
