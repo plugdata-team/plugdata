@@ -74,8 +74,6 @@ void OSUtils::enableInsetTitlebarButtons(void* nativeHandle, bool enable) {
     NSWindow* window = view.window;
     if(!window) return;
     
-    if(!window.titlebarAppearsTransparent && !enable) return;
-    
     // Swaps out the implementation of one Obj-c instance method with another
     auto swizzleMethods = [](Class aClass, SEL orgMethod, SEL posedMethod) {
         @try {

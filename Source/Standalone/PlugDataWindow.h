@@ -421,6 +421,10 @@ public:
         mainComponent = new MainContentComponent(*this, editor);
 
         setContentOwned(mainComponent, true);
+        
+        if (auto peer = getPeer())
+            OSUtils::enableInsetTitlebarButtons(peer->getNativeHandle(), true);
+        
         parentHierarchyChanged();
     }
 
