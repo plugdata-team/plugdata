@@ -422,8 +422,10 @@ public:
 
         setContentOwned(mainComponent, true);
         
+#if JUCE_MAC
         if (auto peer = getPeer())
             OSUtils::enableInsetTitlebarButtons(peer->getNativeHandle(), true);
+#endif
         
         parentHierarchyChanged();
     }
