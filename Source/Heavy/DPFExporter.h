@@ -6,6 +6,8 @@
 
 class DPFExporter : public ExporterBase {
 public:
+    Value makerNameValue;
+    Value projectLicenseValue;
     Value midiinEnableValue = Value(var(0));
     Value midioutEnableValue = Value(var(0));
 
@@ -25,6 +27,8 @@ public:
         : ExporterBase(editor, exportingView)
     {
         Array<PropertiesPanelProperty*> properties;
+        properties.add(new PropertiesPanel::EditableComponent<String>("Maker Name (optional)", makerNameValue));
+        properties.add(new PropertiesPanel::EditableComponent<String>("Project License (optional)", projectLicenseValue));
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Binary", "Binary + GUI", "Source code", "Source + GUI code" }));
         properties.add(new PropertiesPanel::ComboComponent("Plugin type", pluginTypeValue, { "Effect", "Instrument", "Custom" }));
 
@@ -68,6 +72,8 @@ public:
         stateTree.setProperty("inputPatchValue", getValue<String>(inputPatchValue), nullptr);
         stateTree.setProperty("projectNameValue", getValue<String>(projectNameValue), nullptr);
         stateTree.setProperty("projectCopyrightValue", getValue<String>(projectCopyrightValue), nullptr);
+        stateTree.setProperty("makerNameValue", getValue<String>(makerNameValue), nullptr);
+        stateTree.setProperty("projectLicenseValue", getValue<String>(projectLicenseValue), nullptr);
         stateTree.setProperty("midiinEnableValue", getValue<int>(midioutEnableValue), nullptr);
         stateTree.setProperty("lv2EnableValue", getValue<int>(lv2EnableValue), nullptr);
         stateTree.setProperty("vst2EnableValue", getValue<int>(vst2EnableValue), nullptr);
@@ -86,6 +92,8 @@ public:
         inputPatchValue = tree.getProperty("inputPatchValue");
         projectNameValue = tree.getProperty("projectNameValue");
         projectCopyrightValue = tree.getProperty("projectCopyrightValue");
+        makerNameValue = tree.getProperty("makerNameValue");
+        projectLicenseValue = tree.getProperty("projectLicenseValue");
         midiinEnableValue = tree.getProperty("midiinEnableValue");
         midioutEnableValue = tree.getProperty("midioutEnableValue");
         lv2EnableValue = tree.getProperty("lv2EnableValue");
@@ -128,6 +136,9 @@ public:
             args.add("\"" + copyright + "\"");
         }
 
+        auto makerName = getValue<String>(makerNameValue);
+        auto projectLicense = getValue<String>(projectLicenseValue);
+
         int exportType = getValue<int>(exportTypeValue);
         int midiin = getValue<int>(midiinEnableValue);
         int midiout = getValue<int>(midioutEnableValue);
@@ -161,8 +172,16 @@ public:
         var metaDPF(new DynamicObject());
         metaDPF.getDynamicObject()->setProperty("project", true);
         metaDPF.getDynamicObject()->setProperty("description", "Rename Me");
-        metaDPF.getDynamicObject()->setProperty("maker", "Wasted Audio");
-        metaDPF.getDynamicObject()->setProperty("license", "ISC");
+        if (makerName.isNotEmpty()){
+            metaDPF.getDynamicObject()->setProperty("maker", makerName);
+        } else {
+            metaDPF.getDynamicObject()->setProperty("maker", "plugdata");
+        }
+        if (projectLicense.isNotEmpty()){
+            metaDPF.getDynamicObject()->setProperty("license", projectLicense);
+        } else {
+            metaDPF.getDynamicObject()->setProperty("license", "ISC");
+        }
         metaDPF.getDynamicObject()->setProperty("midi_input", midiin);
         metaDPF.getDynamicObject()->setProperty("midi_output", midiout);
         metaDPF.getDynamicObject()->setProperty("plugin_formats", formats);
