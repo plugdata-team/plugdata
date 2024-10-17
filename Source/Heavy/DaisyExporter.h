@@ -40,8 +40,8 @@ public:
         blocksizeProperty->editableOnClick(false);
         properties.add(blocksizeProperty);
         properties.add(new PropertiesPanel::ComboComponent("Samplerate", samplerateValue, { "8000", "16000", "32000", "48000", "96000" }));
-        properties.add(new PropertiesPanel::ComboComponent("Patch size", patchSizeValue, { "Small", "Big", "Huge", "Custom Linker..." }));
-        appTypeProperty = new PropertiesPanel::ComboComponent("App type", appTypeValue, { "SRAM", "QSPI" });
+        properties.add(new PropertiesPanel::ComboComponent("Patch size", patchSizeValue, { "Small", "Big", "Big + SDRAM", "Huge", "Huge + SDRAM", "Custom Linker..." }));
+        appTypeProperty = new PropertiesPanel::ComboComponent("App type", appTypeValue, { "NONE", "SRAM", "QSPI" });
         properties.add(appTypeProperty);
 
         for (auto* property : properties) {
@@ -165,10 +165,14 @@ public:
 
         // need to actually hide this property until needed
         int patchSize = getValue<int>(patchSizeValue);
-        appTypeProperty->setEnabled(patchSize == 4);
+        appTypeProperty->setEnabled(patchSize == 6);
 
-        if (patchSize <= 3) {
-            appTypeValue.setValue(patchSize - 1);
+        if (patchSize == 1) {
+            appTypeValue.setValue(1);
+        } else if (patchSize == 2 || patchSize == 3) {
+            appTypeValue.setValue(2);
+        } else if (patchSize == 4 || patchSize == 5) {
+            appTypeValue.setValue(3);
         }
 
         if (v.refersToSameSourceAs(targetBoardValue)) {
@@ -192,7 +196,7 @@ public:
             int idx = getValue<int>(patchSizeValue);
 
             // Custom linker option
-            if (idx == 4 && !dontOpenFileChooser) {
+            if (idx == 6 && !dontOpenFileChooser) {
                 Dialogs::showOpenDialog([this](URL url) {
                     auto result = url.getLocalFile();
                     if (result.existsAsFile()) {
@@ -300,14 +304,28 @@ public:
             metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_SRAM");
             bootloader = true;
         } else if (size == 3) {
+            metaDaisy.getDynamicObject()->setProperty(
+                "linker_script",
+                Toolchain::dir.getChildFile("etc").getChildFile("linkers").getChildFile("sram_linker_sdram.lds").getFullPathName()
+            );
+            metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_SRAM");
+            bootloader = true;
+        } else if (size == 4) {
             metaDaisy.getDynamicObject()->setProperty("linker_script", "../../libdaisy/core/STM32H750IB_qspi.lds");
             metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_QSPI");
             bootloader = true;
-        } else if (size == 4) {
+        } else if (size == 5) {
+            metaDaisy.getDynamicObject()->setProperty(
+                "linker_script",
+                Toolchain::dir.getChildFile("etc").getChildFile("linkers").getChildFile("qspi_linker_sdram.lds").getFullPathName()
+            );
+            metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_QSPI");
+            bootloader = true;
+        } else if (size == 6) {
             metaDaisy.getDynamicObject()->setProperty("linker_script", customLinker.getFullPathName());
-            if (appType == 1) {
+            if (appType == 2) {
                 metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_SRAM");
-            } else if (appType == 2) {
+            } else if (appType == 3) {
                 metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_QSPI");
             }
             bootloader = true;
