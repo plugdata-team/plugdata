@@ -51,17 +51,14 @@ Canvas* TabComponent::newPatch()
 Canvas* TabComponent::openPatch(const URL& path)
 {
     auto patchFile = path.getLocalFile();
-    {
-        ScopedLock lock(pd->patches.getLock());
-        for (auto& patch : pd->patches) {
-            if (patch->getCurrentFile() == patchFile) {
+    
+    for(auto* editor : pd->getEditors()) {
+        for (auto* cnv : editor->getCanvases()) {
+            if (cnv->patch.getCurrentFile() == patchFile) {
                 pd->logError("Patch is already open");
-                for (auto* cnv : canvases) {
-                    if (cnv->patch == *patch) {
-                        showTab(cnv);
-                        return cnv;
-                    }
-                }
+                editor->getTopLevelComponent()->toFront(true);
+                editor->getTabComponent().showTab(cnv);
+                return cnv;
             }
         }
     }
@@ -82,11 +79,14 @@ Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch)
     if(!existingPatch) return nullptr;
     
     // Check if subpatch is already opened
-    for (auto* cnv : canvases) {
-        if (cnv->patch == *existingPatch) {
-            pd->logError("Patch is already open");
-            showTab(cnv);
-            return cnv;
+    for(auto* editor : pd->getEditors()) {
+        for (auto* cnv : editor->getCanvases()) {
+            if (cnv->patch == *existingPatch) {
+                pd->logError("Patch is already open");
+                editor->getTopLevelComponent()->toFront(true);
+                editor->getTabComponent().showTab(cnv);
+                return cnv;
+            }
         }
     }
 
@@ -333,7 +333,8 @@ void TabComponent::handleAsyncUpdate()
     if(canvases.isEmpty() && pd->getEditors().size() > 1)
     {
         pd->openedEditors.removeObject(editor);
-        pd->openedEditors.getFirst()->toFront(true);
+        auto* editor = pd->openedEditors.getFirst();
+        if(auto* topLevel = editor->getTopLevelComponent()) topLevel->toFront(true);
         return;
     }
     

@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class BangObject final : public ObjectBase {
+class BangObject final : public ObjectBase, public Timer {
     uint32_t lastBang = 0;
 
     Value bangInterrupt = SynchronousValue(100.0f);
@@ -161,18 +161,16 @@ public:
         }
 
         lastBang = currentTime;
-
-        Timer::callAfterDelay(holdTime,
-            [_this = SafePointer(this)]() mutable {
-                // First check if this object still exists
-                if (!_this)
-                    return;
-
-                if (_this->bangState) {
-                    _this->bangState = false;
-                    _this->repaint();
-                }
-            });
+        startTimer(holdTime+5); // Delay it slightly more, to compensate for audio->gui delay
+    }
+    
+    void timerCallback() override
+    {
+        if (bangState) {
+            bangState = false;
+            repaint();
+        }
+        stopTimer();
     }
 
     void updateSizeProperty() override
