@@ -25,7 +25,8 @@
     auto* win = static_cast<NSWindow*>(self.window);
     auto isFullscreen = win.styleMask & NSWindowStyleMaskFullScreen;
     auto isPopup = win.level == NSPopUpMenuWindowLevel;
-    if(isPopup || isFullscreen)
+    auto isInset = win.titleVisibility == NSWindowTitleVisible;
+    if(isPopup || isFullscreen || isInset)
         return [self FrameView__closeButtonOrigin];
     return {15, self.bounds.size.height - 28};
 }
@@ -33,7 +34,8 @@
     auto* win = static_cast<NSWindow*>(self.window);
     auto isFullscreen = win.styleMask & NSWindowStyleMaskFullScreen;
     auto isPopup = win.level == NSPopUpMenuWindowLevel;
-    if(isPopup || isFullscreen)
+    auto isInset = win.titleVisibility == NSWindowTitleVisible;
+    if(isPopup || isFullscreen || isInset)
         return [self FrameView__titlebarHeight];
     return 34;
 }
@@ -68,7 +70,6 @@ void OSUtils::setWindowMovable(void* nativeHandle, bool canMove) {
 
 void OSUtils::enableInsetTitlebarButtons(void* nativeHandle, bool enable) {
     auto* view = static_cast<NSView*>(nativeHandle);
-    
     if(!view) return;
     
     NSWindow* window = view.window;
@@ -92,7 +93,6 @@ void OSUtils::enableInsetTitlebarButtons(void* nativeHandle, bool enable) {
     
     Class frameViewClass = [[[window contentView] superview] class];
     if(frameViewClass != nil) {
-        
         auto oldOriginMethod = enable ? @selector(_closeButtonOrigin) : @selector(FrameView__closeButtonOrigin);
         auto newOriginMethod = enable ? @selector(FrameView__closeButtonOrigin) : @selector(_closeButtonOrigin);
         
