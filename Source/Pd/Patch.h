@@ -37,6 +37,7 @@ public:
 
     // Gets the bounds of the patch.
     Rectangle<int> getBounds() const;
+    Rectangle<int> getGraphBounds() const;
 
     t_gobj* createObject(int x, int y, String const& name);
     t_gobj* renameObject(t_object* obj, String const& name);
@@ -60,7 +61,7 @@ public:
 
     void copy(std::vector<t_gobj*> const& objects);
     void paste(Point<int> position);
-    void duplicate(std::vector<t_gobj*> const& objects);
+    void duplicate(std::vector<t_gobj*> const& objects, t_outconnect* connection);
 
     void startUndoSequence(String const& name);
     void endUndoSequence(String const& name);
@@ -104,6 +105,11 @@ public:
     {
         return ptr.get<t_canvas>();
     }
+    
+    t_canvas* getUncheckedPointer() const
+    {
+        return ptr.getRawUnchecked<t_canvas>();
+    }
 
     // Gets the objects of the patch.
     std::vector<pd::WeakReference> getObjects();
@@ -114,11 +120,17 @@ public:
 
     String getTitle() const;
     void setTitle(String const& title);
+    void setUntitled();
 
     Instance* instance = nullptr;
     bool closePatchOnDelete;
+
     bool openInPluginMode = false;
     int splitViewIndex = 0;
+    int windowIndex = 0;
+
+    Point<int> lastViewportPosition = { 1, 1 };
+    float lastViewportScale;
 
     String lastUndoSequence;
     String lastRedoSequence;
@@ -131,7 +143,7 @@ private:
     std::atomic<bool> canPatchUndo;
     std::atomic<bool> canPatchRedo;
     std::atomic<bool> isPatchDirty;
-    
+
     File currentFile;
     URL currentURL; // We hold a URL to the patch as well, which is needed for file IO on iOS
 

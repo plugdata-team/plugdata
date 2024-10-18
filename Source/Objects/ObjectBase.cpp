@@ -33,12 +33,13 @@ void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg ypos, t_floatarg shif
 #include "Object.h"
 #include "Iolet.h"
 #include "Canvas.h"
-#include "Tabbar/Tabbar.h"
 #include "Components/SuggestionComponent.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
+#include "TabComponent.h"
 #include "Pd/Patch.h"
 #include "Sidebar/Sidebar.h"
+#include "Utility/CachedTextRender.h"
 
 #include "IEMHelper.h"
 #include "AtomHelper.h"
@@ -65,7 +66,6 @@ void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg ypos, t_floatarg shif
 #include "SubpatchObject.h"
 #include "CloneObject.h"
 #include "CommentObject.h"
-#include "CycloneCommentObject.h"
 #include "FloatAtomObject.h"
 #include "SymbolAtomObject.h"
 #include "ScalarObject.h"
@@ -97,6 +97,7 @@ public:
 ObjectBase::ObjectSizeListener::ObjectSizeListener(Object* obj)
     : object(obj)
 {
+    lastChange = 0;
 }
 
 void ObjectBase::ObjectSizeListener::componentMovedOrResized(Component& component, bool moved, bool resized)
@@ -114,45 +115,69 @@ void ObjectBase::ObjectSizeListener::valueChanged(Value& v)
         auto x = static_cast<float>(v.getValue().getArray()->getReference(0));
         auto y = static_cast<float>(v.getValue().getArray()->getReference(1));
 
+        if(Time::getMillisecondCounter() - lastChange > 6000) {
+            pd::Interface::undoApply(patch, obj.get());
+        }
+        
+        lastChange = Time::getMillisecondCounter();
+    
         pd::Interface::moveObject(patch, obj.get(), x, y);
         object->updateBounds();
     }
 }
 
-ObjectBase::PropertyUndoListener::PropertyUndoListener()
+ObjectBase::PropertyListener::PropertyListener(ObjectBase* p)
 {
     lastChange = Time::getMillisecondCounter();
+    parent = p;
+    noCallback = false;
 }
 
-void ObjectBase::PropertyUndoListener::valueChanged(Value& v)
+void ObjectBase::PropertyListener::setNoCallback(bool skipCallback)
 {
-    if (Time::getMillisecondCounter() - lastChange > 400) {
-        onChange();
-    }
+    noCallback = skipCallback;
+}
 
+void ObjectBase::PropertyListener::valueChanged(Value& v)
+{
+    if(noCallback) return;
+    // TODO: this works a lot better if you change one property at a time, but it's not perfect when changing multiple at a time
+    if(!v.refersToSameSourceAs(lastValue) || Time::getMillisecondCounter() - lastChange > 6000)
+    {
+        onChange();
+        lastValue.referTo(v);
+    }
+    
     lastChange = Time::getMillisecondCounter();
+    parent->propertyChanged(v);
 }
 
 ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
-    : ptr(obj)
+    : NVGComponent(this)
+    , ptr(obj)
     , object(parent)
     , cnv(parent->cnv)
     , pd(parent->cnv->pd)
+    , propertyListener(this)
     , objectSizeListener(parent)
 {
-    object->addComponentListener(&objectSizeListener);
-
+    // Perform async, so that we don't get a size change callback for initial creation
+    MessageManager::callAsync([_this = SafePointer(this)](){
+        if(!_this) return;
+        _this->object->addComponentListener(&_this->objectSizeListener);
+        _this->updateLabel();
+        
+        auto objectBounds = _this->object->getObjectBounds();
+        _this->positionParameter = Array<var> { var(objectBounds.getX()), var(objectBounds.getY()) };
+        _this->objectParameters.addParamPosition(&_this->positionParameter);
+        _this->positionParameter.addListener(&_this->objectSizeListener);
+    });
+    
     setWantsKeyboardFocus(true);
 
     setLookAndFeel(new PlugDataLook());
 
-    auto objectBounds = object->getObjectBounds();
-    positionParameter = Array<var> { var(objectBounds.getX()), var(objectBounds.getY()) };
-
-    objectParameters.addParamPosition(&positionParameter);
-    positionParameter.addListener(&objectSizeListener);
-
-    propertyUndoListener.onChange = [_this = SafePointer(this)]() {
+    propertyListener.onChange = [_this = SafePointer(this)]() {
         if (!_this)
             return;
 
@@ -179,16 +204,14 @@ ObjectBase::~ObjectBase()
 void ObjectBase::initialise()
 {
     update();
-    updateLabel();
     constrainer = createConstrainer();
     onConstrainerCreate();
 
     pd->registerMessageListener(ptr.getRawUnchecked<void>(), this);
 
-    for (auto& [name, type, cat, value, list, valueDefault, customComponent] : objectParameters.getParameters()) {
+    for (auto& [name, type, cat, value, list, valueDefault, customComponent, onInteractionFn] : objectParameters.getParameters()) {
         if (value) {
-            value->addListener(this);
-            value->addListener(&propertyUndoListener);
+            value->addListener(&propertyListener);
         }
     }
 }
@@ -196,7 +219,7 @@ void ObjectBase::initialise()
 void ObjectBase::objectMovedOrResized(bool resized)
 {
     auto objectBounds = object->getObjectBounds();
-    
+
     setParameterExcludingListener(positionParameter, Array<var> { var(objectBounds.getX()), var(objectBounds.getY()) }, &objectSizeListener);
 
     if (resized)
@@ -228,6 +251,29 @@ String ObjectBase::getText()
     return "";
 }
 
+String ObjectBase::getTypeWithOriginPrefix() const
+{
+    if (auto obj = ptr.get<t_gobj>()) {
+        auto type = getType();
+        if (type.contains("/"))
+            return type;
+
+        auto origin = pd::Library::getObjectOrigin(obj.get());
+        
+        if(origin == "ELSE" && type == "msg")
+        {
+            return "ELSE/message";
+        }
+
+        if (origin.isEmpty())
+            return type;
+        
+        return origin + "/" + type;
+    }
+
+    return {};
+}
+
 String ObjectBase::getType() const
 {
     if (auto obj = ptr.get<t_pd>()) {
@@ -250,21 +296,23 @@ String ObjectBase::getType() const
 
         // Deal with different text objects
         switch (hash(className)) {
+        case hash("message"):
+            return "msg";
         case hash("text"):
-            if (ptr.get<t_text>()->te_type == T_OBJECT)
+            if (obj.cast<t_text>()->te_type == T_OBJECT)
                 return "invalid";
-            if (ptr.get<t_text>()->te_type == T_TEXT)
+            if (obj.cast<t_text>()->te_type == T_TEXT)
                 return "comment";
-            if (ptr.get<t_text>()->te_type == T_MESSAGE)
-                return "message";
+            if (obj.cast<t_text>()->te_type == T_MESSAGE)
+                return "msg";
             break;
         // Deal with atoms
         case hash("gatom"):
-            if (ptr.get<t_fake_gatom>()->a_flavor == A_FLOAT)
+            if (obj.cast<t_fake_gatom>()->a_flavor == A_FLOAT)
                 return "floatbox";
-            if (ptr.get<t_fake_gatom>()->a_flavor == A_SYMBOL)
+            if (obj.cast<t_fake_gatom>()->a_flavor == A_SYMBOL)
                 return "symbolbox";
-            if (ptr.get<t_fake_gatom>()->a_flavor == A_NULL)
+            if (obj.cast<t_fake_gatom>()->a_flavor == A_NULL)
                 return "listbox";
             break;
         default:
@@ -293,13 +341,13 @@ Rectangle<int> ObjectBase::getSelectableBounds()
 // Makes sure that any tabs refering to the now deleted patch will be closed
 void ObjectBase::closeOpenedSubpatchers()
 {
-    auto* editor = object->cnv->editor;
+    auto* editor = object->editor;
 
-    for (auto* canvas : editor->canvases) {
+    for (auto* canvas : editor->getCanvases()) {
         auto* patch = getPatch().get();
         if (patch && canvas && canvas->patch == *patch) {
 
-            canvas->editor->closeTab(canvas);
+            canvas->editor->getTabComponent().closeTab(canvas);
             break;
         }
     }
@@ -348,24 +396,22 @@ void ObjectBase::openSubpatch()
         path = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
     }
 
+    // TODO: check all editors!
     // Check if subpatch is already opened
-    for (auto* cnv : cnv->editor->canvases) {
+    for (auto* cnv : cnv->editor->getCanvases()) {
         if (cnv->patch == *subpatch) {
-            auto* tabbar = cnv->getTabbar();
-            tabbar->setCurrentTabIndex(cnv->getTabIndex());
+            cnv->editor->getTabComponent().showTab(cnv, cnv->patch.splitViewIndex);
             return;
         }
     }
-
-    cnv->editor->pd->patches.add(subpatch);
-    auto newPatch = cnv->editor->pd->patches.getLast();
-    auto* newCanvas = cnv->editor->canvases.add(new Canvas(cnv->editor, *newPatch, nullptr));
     
-    if(path.getFullPathName().isNotEmpty()) {
-        newPatch->setCurrentFile(URL(path));
-    }
+    cnv->editor->getTabComponent().setActiveSplit(cnv);
+    subpatch->splitViewIndex = cnv->patch.splitViewIndex;
+    auto* newCanvas = cnv->editor->getTabComponent().openPatch(subpatch);
 
-    cnv->editor->addTab(newCanvas);
+    if (path.getFullPathName().isNotEmpty()) {
+        subpatch->setCurrentFile(URL(path));
+    }
 }
 
 void ObjectBase::moveToFront()
@@ -412,16 +458,37 @@ void ObjectBase::moveToBack()
     }
 }
 
+void ObjectBase::render(NVGcontext* nvg)
+{
+    imageRenderer.renderJUCEComponent(nvg, *this, getImageScale());
+}
+
 void ObjectBase::paint(Graphics& g)
 {
-    g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
+    g.setColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
     g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
     bool selected = object->isSelected() && !cnv->isGraph;
-    auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+    auto outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
     g.setColour(outlineColour);
     g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+}
+
+float ObjectBase::getImageScale()
+{
+    Canvas* topLevel = cnv;
+    if(!hideInGraph()) { // No need to do this if we can't be visible in a graph anyway!
+        while (auto* nextCnv = topLevel->findParentComponentOfClass<Canvas>()) {
+            topLevel = nextCnv;
+        }
+    }
+    if(topLevel->editor->pluginMode)
+    {
+        auto scale = std::sqrt (std::abs (topLevel->getTransform().getDeterminant()));
+        return topLevel->getRenderScale() * std::max(1.0f, scale);
+    }
+    return topLevel->isZooming ? topLevel->getRenderScale() * 2.0f : topLevel->getRenderScale() * std::max(1.0f, getValue<float>(topLevel->zoomScale));
 }
 
 ObjectParameters ObjectBase::getParameters()
@@ -440,7 +507,9 @@ void ObjectBase::startEdition()
         return;
 
     edited = true;
-    pd->sendMessage("gui", "mouse", { 1.f });
+    if (auto lockedPtr = ptr.get<void>()) {
+        pd->sendMessage("gui", "mouse", { 1.f });
+    }
 }
 
 void ObjectBase::stopEdition()
@@ -449,7 +518,9 @@ void ObjectBase::stopEdition()
         return;
 
     edited = false;
-    pd->sendMessage("gui", "mouse", { 0.f });
+    if (auto lockedPtr = ptr.get<void>()) {
+        pd->sendMessage("gui", "mouse", { 0.f });
+    }
 }
 
 void ObjectBase::sendFloatValue(float newValue)
@@ -466,17 +537,15 @@ void ObjectBase::sendFloatValue(float newValue)
 ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
 {
     parent->cnv->pd->setThis();
-    
+
     // This will ensure the object is still valid at this point, and also locks the audio thread to make sure it will remain valid
-    if (auto checked = ptr.get<t_gobj>()) {        
+    if (auto checked = ptr.get<t_gobj>()) {
         auto const name = hash(pd::Interface::getObjectClassName(checked.cast<t_pd>()));
 
-        if(parent->cnv->pd->isLuaClass(name))
-        {
+        if (parent->cnv->pd->isLuaClass(name)) {
             if (checked.cast<t_pdlua>()->has_gui) {
                 return new LuaObject(ptr, parent);
-            }
-            else {
+            } else {
                 return new LuaTextObject(ptr, parent);
             }
         }
@@ -513,9 +582,7 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
                     return new CommentObject(ptr, parent);
                 }
             }
-            case hash("comment"):
-                return new CycloneCommentObject(ptr, parent);
-                // Check if message type text object to prevent confusing it with else/message
+            // Check if message type text object to prevent confusing it with else/message
             case hash("message"): {
                 if (pd::Interface::isTextObject(checked.get()) && checked.cast<t_text>()->te_type == T_MESSAGE) {
                     return new MessageObject(ptr, parent);
@@ -577,8 +644,6 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
             }
             case hash("colors"):
                 return new ColourPickerObject(ptr, parent);
-            case hash("oscope~"):
-                return new OscopeObject(ptr, parent);
             case hash("scope~"):
                 return new ScopeObject(ptr, parent);
             case hash("function"):
@@ -631,19 +696,24 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
     return new TextObject(ptr, parent);
 }
 
-bool ObjectBase::canOpenFromMenu()
+void ObjectBase::getMenuOptions(PopupMenu& menu)
 {
     if (auto obj = ptr.get<t_pd>()) {
-        return zgetfn(obj.get(), pd->generateSymbol("menu-open")) != nullptr;
+        if(zgetfn(obj.get(), pd->generateSymbol("menu-open")) != nullptr)
+        {
+            menu.addItem("Open", [_this = SafePointer(this)](){
+                if(!_this) return;
+                if (auto obj = _this->ptr.get<t_pd>()) {
+                    _this->pd->sendDirectMessage(obj.get(), "menu-open", {});
+                }
+            });
+        }
+        else {
+            menu.addItem(-1, "Open", false);
+        }
     }
-
-    return false;
-}
-
-void ObjectBase::openFromMenu()
-{
-    if (auto obj = ptr.get<t_pd>()) {
-        pd->sendDirectMessage(obj.get(), "menu-open", {});
+    else {
+        menu.addItem(-1, "Open", false);
     }
 }
 
@@ -672,11 +742,6 @@ String ObjectBase::getBinbufSymbol(int argIndex)
     return {};
 }
 
-Canvas* ObjectBase::getCanvas()
-{
-    return nullptr;
-}
-
 pd::Patch::Ptr ObjectBase::getPatch()
 {
     return nullptr;
@@ -689,8 +754,6 @@ bool ObjectBase::canReceiveMouseEvent(int x, int y)
 
 void ObjectBase::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms)
 {
-    object->triggerOverlayActiveState();
-
     auto symHash = hash(symbol->s_name);
 
     switch (symHash) {
@@ -715,28 +778,33 @@ void ObjectBase::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int n
 
 void ObjectBase::setParameterExcludingListener(Value& parameter, var const& value)
 {
-    parameter.removeListener(&propertyUndoListener);
-
-    setValueExcludingListener(parameter, value, this);
-
-    parameter.addListener(&propertyUndoListener);
+    propertyListener.setNoCallback(true);
+    
+    auto oldValue = parameter.getValue();
+    parameter.setValue(value);
+    
+    propertyListener.setNoCallback(false);
 }
 
 void ObjectBase::setParameterExcludingListener(Value& parameter, var const& value, Value::Listener* otherListener)
 {
-    parameter.removeListener(&propertyUndoListener);
+    propertyListener.setNoCallback(true);
     parameter.removeListener(otherListener);
+
+    auto oldValue = parameter.getValue();
+    parameter.setValue(value);
     
-    setValueExcludingListener(parameter, value, this);
-
     parameter.addListener(otherListener);
-    parameter.addListener(&propertyUndoListener);
+    propertyListener.setNoCallback(false);
 }
 
-ObjectLabel* ObjectBase::getLabel()
+ObjectLabel* ObjectBase::getLabel(int index)
 {
-    return label.get();
+    if (index < labels.size())
+        return labels[index];
+    return nullptr;
 }
+
 bool ObjectBase::isBeingEdited()
 {
     return edited;

@@ -67,6 +67,8 @@ public:
             auto const* sysexData = reinterpret_cast<uint16_t const*>(m.getSysExData());
             auto sysexDataSize = m.getSysExDataSize() / sizeof(uint16_t);
             auto midiMessage = decodeSysExData(std::vector<uint16_t>(sysexData, sysexData + sysexDataSize));
+            if (!sysexData)
+                return m;
 
             device = midiMessage.back();
             midiMessage.pop_back();
@@ -213,7 +215,7 @@ private:
             , isInput(in)
         {
         }
-        int compareElements(MidiDeviceInfo const& dev1, MidiDeviceInfo const& dev2)
+        int compareElements(MidiDeviceInfo const& dev1, MidiDeviceInfo const& dev2) const
         {
             auto id1 = dev1.identifier;
             auto id2 = dev2.identifier;

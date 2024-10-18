@@ -6,6 +6,7 @@
 #pragma once
 
 #include "Instance.h"
+#include "Utility/ThreadSafeStack.h"
 #include <readerwriterqueue.h>
 
 namespace pd {
@@ -20,7 +21,7 @@ public:
 // MessageDispatcher handles the organising of messages from Pd to the plugdata GUI
 // It provides an optimised way to listen to messages within pd from the message thread,
 // without performing and memory allocation on the audio thread, and which groups messages within the same audio block (or multiple audio blocks, depending on how long it takes to get a callback from the message thread) togethter
-class MessageDispatcher : private AsyncUpdater {
+class MessageDispatcher {
     // Wrapper to store 8 atoms in stack memory
     // We never read more than 8 args in the whole source code, so this prevents unnecessary memory copying
     // We also don't want this list to be dynamic since we want to stack allocate it
@@ -64,9 +65,32 @@ class MessageDispatcher : private AsyncUpdater {
     };
 
 public:
+    MessageDispatcher()
+    {
+        usedHashes.reserve(stackSize);
+        nullListeners.reserve(stackSize);
+    }
+
     void enqueueMessage(void* target, t_symbol* symbol, int argc, t_atom* argv)
     {
-        messageQueue.enqueue({ target, symbol, argc, argv });
+        if(block) return;
+        
+        messageStack.push({ target, symbol, argc, argv });
+    }
+    
+    // used when no plugineditor is active, so we can just ignore messages
+    void setBlockMessages(bool blockMessages)
+    {
+        block = blockMessages;
+        
+        // If we're blocking messages from now on, also clear out the queue
+        if(blockMessages)
+        {
+            Message message;
+            while (messageStack.pop(message)) {}
+            messageStack.swapBuffers();
+            while (messageStack.pop(message)) {}
+        }
     }
 
     void addMessageListener(void* object, pd::MessageListener* messageListener)
@@ -92,28 +116,19 @@ public:
             messageListeners.erase(object);
     }
 
-    void dispatch()
+    void dequeueMessages() // Note: make sure correct pd instance is active when calling this
     {
-        if (messageQueue.size_approx() != 0) {
-            triggerAsyncUpdate();
-        }
-    }
+        usedHashes.clear();
+        nullListeners.clear();
 
-private:
-    void handleAsyncUpdate() override
-    {
-        Message incomingMessage;
-        std::map<size_t, Message> uniqueMessages;
-
-        while (messageQueue.try_dequeue(incomingMessage)) {
-            auto hash = reinterpret_cast<size_t>(incomingMessage.target) ^ reinterpret_cast<size_t>(incomingMessage.symbol);
-            uniqueMessages[hash] = std::move(incomingMessage);
-        }
-
-        // Collect MessageListeners that have been deallocated for later removal
-        std::vector<std::pair<void*, std::set<juce::WeakReference<pd::MessageListener>>::iterator>> nullListeners;
-
-        for (auto& [hash, message] : uniqueMessages) {
+        messageStack.swapBuffers();
+        Message message;
+        while (messageStack.pop(message)) {
+            auto hash = reinterpret_cast<intptr_t>(message.target) ^ reinterpret_cast<intptr_t>(message.symbol);
+            if (usedHashes.find(hash) != usedHashes.end()) {
+                continue;
+            }
+            usedHashes.insert(hash);
 
             if (messageListeners.find(message.target) == messageListeners.end())
                 continue;
@@ -128,7 +143,7 @@ private:
                 for (int at = 0; at < message.size; at++) {
                     atoms[at] = pd::Atom(message.data + at);
                 }
-                auto symbol = message.symbol ? message.symbol : gensym(""); // TODO: fix instance issues!
+                auto symbol = message.symbol ? message.symbol : gensym("");
 
                 if (listener)
                     listener->receiveMessage(symbol, atoms, message.size);
@@ -143,9 +158,23 @@ private:
         }
     }
 
-    moodycamel::ReaderWriterQueue<Message> messageQueue = moodycamel::ReaderWriterQueue<Message>(32768);
-    std::map<void*, std::set<juce::WeakReference<MessageListener>>> messageListeners;
+private:
+    static constexpr int stackSize = 65536;
+    using MessageStack = ThreadSafeStack<Message, stackSize>;
+
+    std::vector<std::pair<void*, std::set<juce::WeakReference<pd::MessageListener>>::iterator>> nullListeners;
+    std::unordered_set<intptr_t> usedHashes;
+    MessageStack messageStack;
+
+    // Queue to use in case our fast stack queue is full
+    moodycamel::ConcurrentQueue<Message> backupQueue;
+
+    std::unordered_map<void*, std::set<juce::WeakReference<MessageListener>>> messageListeners;
     CriticalSection messageListenerLock;
+
+    // Block messages unless an editor has been constructed
+    // Otherwise the message queue will not be cleared by the editors v-blank
+    std::atomic<bool> block = true;
 };
 
 }

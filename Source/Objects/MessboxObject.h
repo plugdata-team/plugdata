@@ -16,16 +16,17 @@ class MessboxObject final : public ObjectBase
     Value fontSize = SynchronousValue();
     Value bold = SynchronousValue();
     Value sizeProperty = SynchronousValue();
+        
+    bool needsRepaint = true;
 
 public:
     MessboxObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
     {
-        editor.setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
-        editor.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
-        editor.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
-        editor.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
-        editor.setColour(ScrollBar::thumbColourId, object->findColour(PlugDataColour::scrollbarThumbColourId));
+        editor.setColour(TextEditor::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
+        editor.getProperties().set("NoBackground", true);
+        editor.getProperties().set("NoOutline", true);
+        editor.setColour(ScrollBar::thumbColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::scrollbarThumbColourId));
 
         editor.setAlwaysOnTop(true);
         editor.setMultiLine(true);
@@ -110,26 +111,27 @@ public:
 
     void lock(bool locked) override
     {
+        needsRepaint = true;
         setInterceptsMouseClicks(locked, locked);
         editor.setReadOnly(!locked);
     }
-
-    void paint(Graphics& g) override
-    {
-        auto bounds = getLocalBounds();
-        // Draw background
-        g.setColour(Colour::fromString(secondaryColour.toString()));
-        g.fillRoundedRectangle(bounds.toFloat().reduced(0.5f), Corners::objectCornerRadius);
-    }
-
-    void paintOverChildren(Graphics& g) override
+        
+    void render(NVGcontext* nvg) override
     {
         bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        auto outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
+        nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), convertColour(Colour::fromString(secondaryColour.toString())), convertColour(outlineColour), Corners::objectCornerRadius);
+        
+        auto scale = getImageScale();
+        if (needsRepaint || isEditorShown() || imageRenderer.needsUpdate(roundToInt(editor.getWidth() * scale), roundToInt(editor.getHeight() * scale))) {
+            imageRenderer.renderJUCEComponent(nvg, editor, scale);
+            needsRepaint = false;
+        } else {
+            imageRenderer.render(nvg, getLocalBounds().withTrimmedRight(5));
+        }
     }
+        
+    void paint(Graphics& g) override {};
 
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
@@ -172,6 +174,11 @@ public:
     {
         editor.setReadOnly(true);
         repaint();
+    }
+        
+    bool isEditorShown() override
+    {
+        return !editor.isReadOnly() && editor.hasKeyboardFocus(false);
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -249,6 +256,7 @@ public:
         editor.setText(newText.trimEnd());
 
         repaint();
+        needsRepaint = true;
     }
 
     bool keyPressed(KeyPress const& key, Component* component) override
@@ -273,7 +281,7 @@ public:
         return false;
     }
 
-    void valueChanged(Value& value) override
+    void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
             auto& arr = *sizeProperty.getValue().getArray();
@@ -290,27 +298,31 @@ public:
 
             object->updateBounds();
         } else if (value.refersToSameSourceAs(primaryColour)) {
-
+            needsRepaint = true;
             auto col = Colour::fromString(primaryColour.toString());
             editor.applyColourToAllText(col);
 
             if (auto messbox = ptr.get<t_fake_messbox>())
                 colourToHexArray(col, messbox->x_fg);
+
             repaint();
         }
         if (value.refersToSameSourceAs(secondaryColour)) {
+            needsRepaint = true;
             auto col = Colour::fromString(secondaryColour.toString());
             if (auto messbox = ptr.get<t_fake_messbox>())
                 colourToHexArray(col, messbox->x_bg);
             repaint();
         }
         if (value.refersToSameSourceAs(fontSize)) {
+            needsRepaint = true;
             auto size = getValue<int>(fontSize);
             editor.applyFontToAllText(editor.getFont().withHeight(size));
             if (auto messbox = ptr.get<t_fake_messbox>())
                 messbox->x_font_size = size;
         }
         if (value.refersToSameSourceAs(bold)) {
+            needsRepaint = true;
             auto size = getValue<int>(fontSize);
             if (getValue<bool>(bold)) {
                 auto boldFont = Fonts::getBoldFont();
@@ -323,6 +335,7 @@ public:
                 if (auto messbox = ptr.get<t_fake_messbox>())
                     messbox->x_font_weight = pd->generateSymbol("bold");
             }
+
         }
     }
 

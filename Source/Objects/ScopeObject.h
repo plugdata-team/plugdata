@@ -4,8 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-template<typename S>
-class ScopeBase : public ObjectBase
+class ScopeObject final : public ObjectBase
     , public Timer {
 
     std::vector<float> x_buffer;
@@ -23,8 +22,10 @@ class ScopeBase : public ObjectBase
     Value receiveSymbol = SynchronousValue();
     Value sizeProperty = SynchronousValue();
 
+    bool freezeScope = false;
+
 public:
-    ScopeBase(pd::WeakReference ptr, Object* object)
+    ScopeObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
     {
 
@@ -48,14 +49,14 @@ public:
     {
         setPdBounds(object->getObjectBounds());
 
-        if (auto scope = ptr.get<S>()) {
+        if (auto scope = ptr.get<t_fake_scope>()) {
             setParameterExcludingListener(sizeProperty, Array<var> { var(scope->x_width), var(scope->x_height) });
         }
     }
 
     void update() override
     {
-        if (auto scope = ptr.get<S>()) {
+        if (auto scope = ptr.get<t_fake_scope>()) {
             triggerMode = scope->x_trigmode + 1;
             triggerValue = scope->x_triglevel;
             bufferSize = scope->x_bufsize;
@@ -81,7 +82,7 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        if (auto scope = ptr.get<S>()) {
+        if (auto scope = ptr.get<t_fake_scope>()) {
             auto* patch = cnv->patch.getPointer().get();
             if (!patch)
                 return {};
@@ -97,7 +98,7 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        if (auto scope = ptr.get<S>()) {
+        if (auto scope = ptr.get<t_fake_scope>()) {
             auto* patch = cnv->patch.getPointer().get();
             if (!patch)
                 return;
@@ -109,65 +110,74 @@ public:
         }
     }
 
-    void resized() override
+    void render(NVGcontext* nvg) override
     {
-    }
+        auto b = getLocalBounds().toFloat();
 
-    void paint(Graphics& g) override
-    {
-        g.setColour(Colour::fromString(secondaryColour.toString()));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
+        auto outlineColour = object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
+
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(Colour::fromString(secondaryColour.toString())), outlineColour, Corners::objectCornerRadius);
 
         auto dx = getWidth() * 0.125f;
         auto dy = getHeight() * 0.25f;
 
-        g.setColour(Colour::fromString(gridColour.toString()));
+        nvgBeginPath(nvg);
+        nvgStrokeColor(nvg, convertColour(Colour::fromString(gridColour.toString())));
+        nvgStrokeWidth(nvg, 1.0f);
 
         auto xx = dx;
         for (int i = 0; i < 7; i++) {
-            g.drawLine(xx, 0.0f, xx, static_cast<float>(getHeight()));
+            nvgMoveTo(nvg, xx, 1.0f);
+            nvgLineTo(nvg, xx, static_cast<float>(getHeight() - 1.0f));
             xx += dx;
         }
 
         auto yy = dy;
         for (int i = 0; i < 3; i++) {
-            g.drawLine(0.0f, yy, static_cast<float>(getWidth()), yy);
+            nvgMoveTo(nvg, 1.0f, yy);
+            nvgLineTo(nvg, static_cast<float>(getWidth() - 1.0f), yy);
             yy += dy;
         }
 
-        // skip drawing waveform if buffer is empty
+        nvgStroke(nvg);
+
+        NVGScopedState scopedState(nvg);
+        nvgIntersectScissor(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight());
         if (!(y_buffer.empty() || x_buffer.empty())) {
-            Point<float> lastPoint = Point<float>(x_buffer[0], y_buffer[0]);
-            Point<float> newPoint;
+            nvgBeginPath(nvg);
+            nvgStrokeColor(nvg, convertColour(Colour::fromString(primaryColour.toString())));
+            nvgStrokeWidth(nvg, 2.0f);
+            nvgLineJoin(nvg, NVG_ROUND);
+            nvgLineCap(nvg, NVG_ROUND);
 
-            g.setColour(Colour::fromString(primaryColour.toString()));
+            float offset = 2.0f;
 
-            Path p;
+            float const w = getWidth() - 4;
+            float const h = getHeight() - 4;
+
+            nvgMoveTo(nvg, x_buffer[0] * w + offset, y_buffer[0] * h + offset);
+
             for (size_t i = 1; i < y_buffer.size(); i++) {
-                newPoint = Point<float>(x_buffer[i], y_buffer[i]);
-                Line segment(lastPoint, newPoint);
-                p.addLineSegment(segment, 1.0f);
-                lastPoint = newPoint;
+                nvgLineTo(nvg, x_buffer[i] * w + offset, y_buffer[i] * h + offset);
             }
-            g.fillPath(p);
+            nvgStroke(nvg);
         }
-
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
     void timerCallback() override
     {
-        int bufsize = 0, mode = 0;
-        float min = 0.0f, max = 1.0f;
+        if (freezeScope)
+            return;
+
+        int mode = 0;
+        int bufsize = 0;
+        float min = 0.0f;
+        float max = 1.0f;
 
         if (object->iolets.size() == 3)
             object->iolets[2]->setVisible(false);
 
-        if (auto scope = ptr.get<S>()) {
+        if (auto scope = ptr.get<t_fake_scope>()) {
             bufsize = scope->x_bufsize;
             min = scope->x_min;
             max = scope->x_max;
@@ -182,44 +192,56 @@ public:
             std::copy(scope->x_ybuflast, scope->x_ybuflast + bufsize, y_buffer.data());
         }
 
+        // Normalise the buffers
         if (min > max) {
-            auto temp = max;
-            max = min;
-            min = temp;
+            std::swap(min, max);
         }
 
-        float oldx = 0, oldy = 0;
-        float dx = (getWidth() - 2) / (float)bufsize;
-        float dy = (getHeight() - 2) / (float)bufsize;
+        float dx = 1.0f / static_cast<float>(bufsize); // Normalized step size
 
-        float waveAreaHeight = getHeight() - 2;
-        float waveAreaWidth = getWidth() - 2;
+        float range = max - min;
+        float scale = 1.0f / range;
 
-        for (int n = 0; n < bufsize; n++) {
-            switch (mode) {
-            case 1:
-                y_buffer[n] = jmap<float>(x_buffer[n], min, max, waveAreaHeight, 2.f);
-                x_buffer[n] = oldx;
-                oldx += dx;
-                break;
-            case 2:
-                x_buffer[n] = jmap<float>(y_buffer[n], min, max, 2.f, waveAreaWidth);
-                y_buffer[n] = oldy;
-                oldy += dy;
-                break;
-            case 3:
-                x_buffer[n] = jmap<float>(x_buffer[n], min, max, 2.f, waveAreaWidth);
-                y_buffer[n] = jmap<float>(y_buffer[n], min, max, waveAreaHeight, 2.f);
-                break;
-            default:
-                break;
+        switch (mode) {
+            case 1: {
+                for (int n = 0; n < bufsize; n++) {
+                    y_buffer[n] = 1.0f - (x_buffer[n] - min) * scale;
+                    x_buffer[n] = dx * n;
+                }
             }
+            break;
+            case 2: {
+                for (int n = 0; n < bufsize; n++) {
+                    x_buffer[n] = (y_buffer[n] - min) * scale;
+                    y_buffer[n] = 1.0f - dx * n;
+                }
+            }
+            break;
+            case 3: {
+                for (int n = 0; n < bufsize; n++) {
+                    x_buffer[n] = (x_buffer[n] - min) * scale;
+                    y_buffer[n] = 1.0f - (y_buffer[n] - min) * scale;
+                }
+            }
+            break;
+            default:
+            break;
         }
 
         repaint();
     }
 
-    void valueChanged(Value& v) override
+    void mouseDown(MouseEvent const& e) override
+    {
+        freezeScope = true;
+    }
+
+    void mouseUp(MouseEvent const& e) override
+    {
+        freezeScope = false;
+    }
+
+    void propertyChanged(Value& v) override
     {
 
         if (v.refersToSameSourceAs(sizeProperty)) {
@@ -230,54 +252,60 @@ public:
 
             setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
 
-            if (auto scope = ptr.get<S>()) {
+            if (auto scope = ptr.get<t_fake_scope>()) {
                 scope->x_width = width;
                 scope->x_height = height;
             }
 
             object->updateBounds();
         } else if (v.refersToSameSourceAs(primaryColour)) {
-            if (auto scope = ptr.get<S>())
+            if (auto scope = ptr.get<t_fake_scope>())
                 colourToHexArray(Colour::fromString(primaryColour.toString()), scope->x_fg);
         } else if (v.refersToSameSourceAs(secondaryColour)) {
-            if (auto scope = ptr.get<S>())
+            if (auto scope = ptr.get<t_fake_scope>())
                 colourToHexArray(Colour::fromString(secondaryColour.toString()), scope->x_bg);
         } else if (v.refersToSameSourceAs(gridColour)) {
-            if (auto scope = ptr.get<S>())
+            if (auto scope = ptr.get<t_fake_scope>())
                 colourToHexArray(Colour::fromString(gridColour.toString()), scope->x_gg);
         } else if (v.refersToSameSourceAs(bufferSize)) {
             bufferSize = std::clamp<int>(getValue<int>(bufferSize), 0, SCOPE_MAXBUFSIZE * 4);
 
-            if (auto scope = ptr.get<S>()) {
+            if (auto scope = ptr.get<t_fake_scope>()) {
                 scope->x_bufsize = bufferSize.getValue();
                 scope->x_bufphase = 0;
             }
 
         } else if (v.refersToSameSourceAs(samplesPerPoint)) {
-            if (auto scope = ptr.get<S>()) {
+            if (auto scope = ptr.get<t_fake_scope>()) {
                 scope->x_period = limitValueMin(v, 0);
             }
         } else if (v.refersToSameSourceAs(signalRange)) {
             auto min = static_cast<float>(signalRange.getValue().getArray()->getReference(0));
             auto max = static_cast<float>(signalRange.getValue().getArray()->getReference(1));
-            if (auto scope = ptr.get<S>()) {
+            if (auto scope = ptr.get<t_fake_scope>()) {
                 scope->x_min = min;
                 scope->x_max = max;
             }
         } else if (v.refersToSameSourceAs(delay)) {
-            if (auto scope = ptr.get<S>())
+            if (auto scope = ptr.get<t_fake_scope>())
                 scope->x_delay = getValue<int>(delay);
         } else if (v.refersToSameSourceAs(triggerMode)) {
-            if (auto scope = ptr.get<S>())
+            if (auto scope = ptr.get<t_fake_scope>())
                 scope->x_trigmode = getValue<int>(triggerMode) - 1;
         } else if (v.refersToSameSourceAs(triggerValue)) {
-            if (auto scope = ptr.get<S>())
+            if (auto scope = ptr.get<t_fake_scope>())
                 scope->x_triglevel = getValue<int>(triggerValue);
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
             auto symbol = receiveSymbol.toString();
             if (auto scope = ptr.get<void>())
                 pd->sendDirectMessage(scope.get(), "receive", { pd->generateSymbol(symbol) });
         }
+    }
+
+    bool inletIsSymbol() override
+    {
+        auto rSymbol = receiveSymbol.toString();
+        return rSymbol.isNotEmpty() && (rSymbol != "empty");
     }
 
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
@@ -306,22 +334,5 @@ public:
         default:
             break;
         }
-    }
-};
-
-// Hilarious use of templates to support both cyclone/scope and else/oscope in the same code
-class ScopeObject final : public ScopeBase<t_fake_scope> {
-public:
-    ScopeObject(pd::WeakReference ptr, Object* object)
-        : ScopeBase<t_fake_scope>(ptr, object)
-    {
-    }
-};
-
-class OscopeObject final : public ScopeBase<t_fake_oscope> {
-public:
-    OscopeObject(pd::WeakReference ptr, Object* object)
-        : ScopeBase<t_fake_oscope>(ptr, object)
-    {
     }
 };

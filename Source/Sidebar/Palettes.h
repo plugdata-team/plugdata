@@ -19,8 +19,9 @@
 #include "PluginEditor.h"
 #include "Sidebar/PaletteItem.h"
 #include "Utility/OfflineObjectRenderer.h"
-#include "Components/ZoomableDragAndDropContainer.h"
+#include "Utility/ZoomableDragAndDropContainer.h"
 #include "Components/Buttons.h"
+#include "Components/ArrowPopupMenu.h"
 
 class AddItemButton : public Component {
 
@@ -39,8 +40,6 @@ public:
         if (mouseIsOver) {
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
             g.fillRoundedRectangle(bounds.toFloat(), Corners::defaultCornerRadius);
-
-            colour = findColour(PlugDataColour::sidebarActiveTextColourId);
         }
 
         Fonts::drawIcon(g, Icons::Add, iconBounds, colour, 12);
@@ -88,8 +87,7 @@ public:
 
         pasteButton.onClick = [this]() {
             auto clipboardText = SystemClipboard::getTextFromClipboard();
-            auto offlineCnv = OfflineObjectRenderer::findParentOfflineObjectRendererFor(this);
-            if (!offlineCnv->checkIfPatchIsValid(clipboardText)) {
+            if (!OfflineObjectRenderer::checkIfPatchIsValid(clipboardText)) {
                 /*
                 // TODO: should we put an alert here? Needs to be themed however
                 juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::NoIcon,
@@ -237,8 +235,6 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-        isPaletteShowingMenu = false;
-
         if (draggedItem) {
             isDragging = false;
             draggedItem->deleteButton.setVisible(true);
@@ -250,7 +246,7 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (isItemShowingMenu)
+        if (isItemShowingMenu || !e.mods.isLeftButtonDown())
             return;
 
         auto viewport = findParentComponentOfClass<BouncingViewport>();
@@ -269,7 +265,6 @@ public:
     Point<int> mouseDownPos;
     bool isDragging = false;
     bool isItemShowingMenu = false;
-    bool isPaletteShowingMenu = false;
 
     bool shouldAnimate = false;
 
@@ -309,11 +304,17 @@ public:
         };
 
         addAndMakeVisible(nameLabel);
+        lookAndFeelChanged();
     }
 
     ~PaletteComponent()
     {
         delete paletteDraggableList;
+    }
+
+    void lookAndFeelChanged() override
+    {
+        nameLabel.setFont(Fonts::getBoldFont());
     }
 
     void showAndGrabEditorFocus()
@@ -388,25 +389,17 @@ public:
         setButtonText(text);
     }
 
+    void lookAndFeelChanged() override
+    {
+        repaint();
+    }
+
     void paint(Graphics& g) override
     {
-        auto backgroundColour = findColour(PlugDataColour::toolbarBackgroundColourId);
-        auto* editor = findParentComponentOfClass<PluginEditor>();
-        if (ProjectInfo::isStandalone && editor && !editor->isActiveWindow()) {
-            backgroundColour = backgroundColour.brighter(backgroundColour.getBrightness() / 2.5f);
-        }
-
-        g.setColour(backgroundColour);
-        g.fillRect(getLocalBounds().toFloat().withTrimmedTop(0.5f));
-
-        if (getToggleState()) {
-            g.setColour(findColour(PlugDataColour::toolbarActiveColourId).brighter(isMouseOver() ? 0.3f : 0.0f));
-            g.fillRect(getLocalBounds().toFloat().withTrimmedTop(0.5f).removeFromRight(4));
-        } else if (isMouseOver()) {
+        if (getToggleState() || isMouseOver()) {
             g.setColour(findColour(PlugDataColour::toolbarHoverColourId));
-            g.fillRect(getLocalBounds().toFloat().withTrimmedTop(0.5f).removeFromRight(4));
+            g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(4.0f, 4.0f), Corners::defaultCornerRadius);
         }
-
         g.saveState();
 
         auto midX = static_cast<float>(getWidth()) * 0.5f;
@@ -415,9 +408,8 @@ public:
         auto transform = AffineTransform::rotation(-MathConstants<float>::halfPi, midX, midY);
         g.addTransform(transform);
 
-        Font font(getWidth() / 2.0f);
+        g.setFont(Fonts::getCurrentFont().withHeight(getWidth() * 0.5f));
 
-        g.setFont(font);
         auto colour = findColour(getToggleState() ? TextButton::textColourOnId
                                                   : TextButton::textColourOffId)
                           .withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
@@ -452,26 +444,29 @@ public:
             initialisePalettesFile();
         } else {
             auto paletteFileContent = palettesFile.loadFileAsString();
-            if(paletteFileContent.isEmpty())
-            {
+            if (paletteFileContent.isEmpty()) {
                 initialisePalettesFile();
-            }
-            else 
-            {
+            } else {
                 palettesTree = ValueTree::fromXml(paletteFileContent);
-                
-                for(auto paletteCategory : palettesTree)
-                {
+
+                for (auto paletteCategory : palettesTree) {
                     for (auto [name, palette] : defaultPalettes) {
-                        if(name != static_cast<String>(paletteCategory.getProperty("Name").toString())) continue;
-       
+                        if (name != static_cast<String>(paletteCategory.getProperty("Name").toString()))
+                            continue;
+
                         for (auto& [paletteName, patch] : palette) {
-                            if(!paletteCategory.getChildWithProperty("Name", paletteName).isValid())
-                            {
+                            auto exitingChildWithName = paletteCategory.getChildWithProperty("Name", paletteName);
+                            if (!exitingChildWithName.isValid()) {
                                 ValueTree paletteTree("Item");
                                 paletteTree.setProperty("Name", paletteName, nullptr);
                                 paletteTree.setProperty("Patch", patch, nullptr);
                                 paletteCategory.appendChild(paletteTree, nullptr);
+                            }
+                            else {
+                                // TODO: temporary for version transition. Remove after v1 release
+                                auto p = exitingChildWithName.getProperty("Patch").toString();
+                                p = p.replace("palette/", "else/");
+                                exitingChildWithName.setProperty("Patch", p, nullptr);
                             }
                         }
                     }
@@ -482,8 +477,8 @@ public:
         palettesTree.addListener(this);
 
         addButton.onClick = [this]() {
-            PopupMenu menu;
-            menu.addItem(1, "New palette");
+            auto menu = new PopupMenu();
+            menu->addItem(1, "New palette");
 
             PopupMenu defaultPalettesMenu;
 
@@ -509,15 +504,27 @@ public:
                 });
             }
 
-            menu.addSubMenu("Add default palette", defaultPalettesMenu);
+            menu->addSubMenu("Add default palette", defaultPalettesMenu);
 
-            menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(editor).withTargetComponent(&addButton), ModalCallbackFunction::create([this](int result) {
+            auto* parent = ProjectInfo::canUseSemiTransparentWindows() ? editor->calloutArea.get() : nullptr;
+
+            
+            ArrowPopupMenu::showMenuAsync(menu, PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(&addButton).withParentComponent(parent), [this, menu](int result) {
                 if (result > 0) {
                     auto newUntitledPalette = ValueTree("Palette");
                     newUntitledPalette.setProperty("Name", var("Untitled palette"), nullptr);
                     newPalette(newUntitledPalette);
                 }
-            }));
+
+                MessageManager::callAsync([menu, this]() {
+                    editor->calloutArea->removeFromDesktop();
+                    delete menu;
+                });
+            }, ArrowPopupMenu::ArrowDirection::LeftRight);
+
+            if (ProjectInfo::canUseSemiTransparentWindows()) {
+                editor->calloutArea->addToDesktop(ComponentPeer::windowIsTemporary);
+            }
         };
 
         paletteBar.setVisible(true);
@@ -553,7 +560,7 @@ public:
     {
         return (view.get() && view->isVisible());
     }
-        
+
     void initialisePalettesFile()
     {
         palettesTree = ValueTree("Palettes");
@@ -572,7 +579,7 @@ public:
 
             palettesTree.appendChild(categoryTree, nullptr);
         }
-        
+
         savePalettes();
     }
 
@@ -596,11 +603,21 @@ private:
         return true;
     }
 
+    void lookAndFeelChanged() override
+    {
+        updateGeometry();
+    }
+
     void resized() override
+    {
+        updateGeometry();
+    }
+
+    void updateGeometry()
     {
         int totalHeight = 0;
         for (auto* button : paletteSelectors) {
-            totalHeight += Font(14).getStringWidth(button->getButtonText()) + 30;
+            totalHeight += CachedStringWidth<14>::calculateStringWidth(button->getButtonText()) + 30;
         }
 
         totalHeight += 46;
@@ -624,7 +641,7 @@ private:
 
         for (auto* button : paletteSelectors) {
             String buttonText = button->getButtonText();
-            int height = Font(14).getStringWidth(buttonText) + 30;
+            int height = Fonts::getCurrentFont().withHeight(14).getStringWidth(buttonText) + 30;
 
             if (button != draggedTab) {
                 auto bounds = Rectangle<int>(offset, totalHeight, 30, height);
@@ -728,31 +745,31 @@ private:
     {
         if (view) {
             g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
-            g.fillRect(getLocalBounds().toFloat().withTrimmedTop(0.5f));
+            g.fillRect(getLocalBounds().toFloat().withTrimmedTop(29.5f));
+            g.fillRect(getLocalBounds().toFloat().removeFromLeft(30).withTrimmedTop(29.5f));
         }
-
-        auto backgroundColour = findColour(PlugDataColour::toolbarBackgroundColourId);
-        if (ProjectInfo::isStandalone && !editor->isActiveWindow()) {
-            backgroundColour = backgroundColour.brighter(backgroundColour.getBrightness() / 2.5f);
-        }
-        g.setColour(backgroundColour);
-        g.fillRect(getLocalBounds().toFloat().removeFromLeft(30).withTrimmedTop(0.5f));
     }
 
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawLine(29.5f, 0.0f, 29.5f, getHeight());
-
         if (view) {
-            g.drawLine(getWidth() - 0.5f, 0.0f, getWidth() - 0.5f, getHeight());
+            auto hasTabbar = editor->getCurrentCanvas() != nullptr;
+            auto lineHeight = hasTabbar ? 30.f : 0.0f;
+            g.drawLine(0, lineHeight, getWidth(), lineHeight);
+            g.drawLine(getWidth() - 0.5f, 29.5f, getWidth() - 0.5f, getHeight());
+
+            g.setColour(findColour(PlugDataColour::toolbarOutlineColourId).withAlpha(0.5f));
+            g.drawLine(29.5f, 29.5f, 29.5f, getHeight());
+        } else {
+            g.drawLine(29.5f, 29.5f, 29.5f, getHeight());
         }
     }
 
     void savePalettes()
     {
         auto paletteContent = palettesTree.toXmlString();
-        if(paletteContent.isNotEmpty()) {
+        if (paletteContent.isNotEmpty()) {
             palettesFile.replaceWithText(paletteContent);
         }
     }
@@ -856,7 +873,7 @@ private:
     Viewport paletteViewport;
     Component paletteBar;
 
-    SmallIconButton addButton = SmallIconButton(Icons::Add);
+    MainToolbarButton addButton = MainToolbarButton(Icons::Add);
 
     OwnedArray<PaletteSelector> paletteSelectors;
 
@@ -865,55 +882,55 @@ private:
     std::map<String, std::map<String, String>> defaultPalettes = {
         { "Oscillators",
             {
-                { "vco", "#X obj 0 0 palette/vco.m~" },
-                { "lfo", "#X obj 0 0 palette/lfo.m~" },
-                { "plaits", "#X obj 0 0 palette/plaits.m~" },
-                { "6 operator FM", "#X obj 0 0 palette/pm6.m~" },
-                { "signal generator", "#X obj 0 0 palette/sig.m~" },
-                { "noise osc", "#X obj 0 0 palette/noiseosc.m~" },
-                { "gendyn osc", "#X obj 0 0 palette/gendyn.m~" },
+                { "vco", "#X obj 0 0 else/vco.m~" },
+                { "lfo", "#X obj 0 0 else/lfo.m~" },
+                { "plaits", "#X obj 0 0 else/plaits.m~" },
+                { "6 operator FM", "#X obj 0 0 else/pm6.m~" },
+                { "signal generator", "#X obj 0 0 else/sig.m~" },
+                { "noise osc", "#X obj 0 0 else/noiseosc.m~" },
+                { "gendyn osc", "#X obj 0 0 else/gendyn.m~" },
             } },
         { "Filters",
             {
-                { "vcf", "#X obj 0 0 palette/vcf.m~" },
-                { "svf", "#X obj 0 0 palette/svf.m~" },
-                { "EQ", "#X obj 0 0 palette/eq.m~" },
+                { "vcf", "#X obj 0 0 else/vcf.m~" },
+                { "svf", "#X obj 0 0 else/svf.m~" },
+                { "EQ", "#X obj 0 0 else/eq.m~" },
             } },
         { "Effects",
             {
-                { "delay", "#X obj 0 0 palette/delay.m~" },
-                { "chorus", "#X obj 0 0 palette/chorus.m~" },
-                { "phaser", "#X obj 0 0 palette/phaser.m~" },
-                { "flanger", "#X obj 0 0 palette/flanger.m~" },
-                { "drive", "#X obj 0 0 palette/drive.m~" },
-                { "bitcrusher", "#X obj 0 0 palette/bitcrusher.m~" },
-                { "reverb", "#X obj 0 0 palette/plate.rev.m~" },
-                { "gain", "#X obj 0 0 palette/gain.m~" },
-                { "ringmod", "#X obj 0 0 palette/rm.m~" },
-                { "drive", "#X obj 0 0 palette/drive.m~" },
+                { "delay", "#X obj 0 0 else/delay.m~" },
+                { "chorus", "#X obj 0 0 else/chorus.m~" },
+                { "phaser", "#X obj 0 0 else/phaser.m~" },
+                { "flanger", "#X obj 0 0 else/flanger.m~" },
+                { "drive", "#X obj 0 0 else/drive.m~" },
+                { "bitcrusher", "#X obj 0 0 else/bitcrusher.m~" },
+                { "reverb", "#X obj 0 0 else/plate.rev.m~" },
+                { "gain", "#X obj 0 0 else/gain.m~" },
+                { "ringmod", "#X obj 0 0 else/rm.m~" },
+                { "drive", "#X obj 0 0 else/drive.m~" },
             } },
         { "Sequencers",
             {
-                { "bpm metronome", "#X obj 0 0 palette/metronome.m~" },
-                { "adsr", "#X obj 0 0 palette/adsr.m~" },
-                { "drum sequencer", "#X obj 0 0 palette/drumseq.m~" },
-                { "note sequencer", "#X obj 0 0 palette/noteseq.m~" },
-                { "8-step sequencer", "#X obj 0 0 palette/seq8.m~" },
-                { "presets", "#X obj 0 0 palette/presets.m" },
+                { "bpm metronome", "#X obj 0 0 else/metronome.m~" },
+                { "adsr", "#X obj 0 0 else/adsr.m~" },
+                { "drum sequencer", "#X obj 0 0 else/drumseq.m~" },
+                { "note sequencer", "#X obj 0 0 else/noteseq.m~" },
+                { "8-step sequencer", "#X obj 0 0 else/seq8.m~" },
+                { "presets", "#X obj 0 0 else/presets.m" },
             } },
         { "Instruments",
             {
-                { "drums", "#X obj 0 0 palette/drums.m~" },
-                { "piano", "#X obj 0 0 palette/piano.m~" },
-                { "e-piano", "#X obj 0 0 palette/epiano.m~" },
-                { "bass", "#X obj 0 0 palette/bass.m~" },
-                { "guitar", "#X obj 0 0 palette/guitar.m~" },
-                { "strings", "#X obj 0 0 palette/strings.m~" },
-                { "brass", "#X obj 0 0 palette/brass.m~" },
-                { "organ", "#X obj 0 0 palette/organ.m~" },
-                { "vca", "#X obj 0 0 palette/vca.m~" },
-                { "pluck", "#X obj 0 0 palette/pluck.m~" },
-                { "brane", "#X obj 0 0 palette/brane.m~" },
+                { "drums", "#X obj 0 0 else/drums.m~" },
+                { "piano", "#X obj 0 0 else/piano.m~" },
+                { "e-piano", "#X obj 0 0 else/epiano.m~" },
+                { "bass", "#X obj 0 0 else/bass.m~" },
+                { "guitar", "#X obj 0 0 else/guitar.m~" },
+                { "strings", "#X obj 0 0 else/strings.m~" },
+                { "brass", "#X obj 0 0 else/brass.m~" },
+                { "organ", "#X obj 0 0 else/organ.m~" },
+                { "vca", "#X obj 0 0 else/vca.m~" },
+                { "pluck", "#X obj 0 0 else/pluck.m~" },
+                { "brane", "#X obj 0 0 else/brane.m~" },
             } },
     };
 
@@ -929,6 +946,7 @@ private:
     private:
         void mouseDown(MouseEvent const& e) override
         {
+            if(!e.mods.isLeftButtonDown()) return;
             dragStartWidth = target->getWidth();
         }
 

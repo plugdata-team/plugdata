@@ -16,6 +16,9 @@ class BangObject final : public ObjectBase {
 
     IEMHelper iemHelper;
 
+    NVGcolor bgCol;
+    NVGcolor fgCol;
+
 public:
     BangObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
@@ -23,6 +26,11 @@ public:
     {
         onConstrainerCreate = [this]() {
             constrainer->setFixedAspectRatio(1);
+        };
+
+        iemHelper.iemColourChangedCallback = [this](){
+            bgCol = convertColour(getValue<Colour>(iemHelper.secondaryColour));
+            fgCol = convertColour(getValue<Colour>(iemHelper.primaryColour));
         };
 
         objectParameters.addParamSize(&sizeProperty, true);
@@ -43,19 +51,19 @@ public:
         iemHelper.update();
     }
 
-    bool hideInlets() override
+    bool inletIsSymbol() override
     {
         return iemHelper.hasReceiveSymbol();
     }
 
-    bool hideOutlets() override
+    bool outletIsSymbol() override
     {
         return iemHelper.hasSendSymbol();
     }
 
     void updateLabel() override
     {
-        iemHelper.updateLabel(label);
+        iemHelper.updateLabel(labels);
     }
 
     Rectangle<int> getPdBounds() override
@@ -92,42 +100,43 @@ public:
         if (!e.mods.isLeftButtonDown())
             return;
 
-        //startEdition();
-        pd->enqueueFunctionAsync<t_pd>(ptr, [](t_pd* bng){
+        // startEdition();
+        pd->enqueueFunctionAsync<t_pd>(ptr, [](t_pd* bng) {
             pd_bang(bng);
         });
-        //stopEdition();
+        // stopEdition();
 
         // Make sure we don't re-click with an accidental drag
         alreadyBanged = true;
         trigger();
     }
 
-    void paint(Graphics& g) override
+    void render(NVGcontext* nvg) override
     {
-        g.setColour(iemHelper.getBackgroundColour());
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
+        auto b = getLocalBounds().toFloat();
 
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), bgCol, object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
 
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-
-        auto const bounds = getLocalBounds().reduced(1).toFloat();
-        auto const width = std::max(bounds.getWidth(), bounds.getHeight());
+        b = b.reduced(1);
+        auto const width = std::max(b.getWidth(), b.getHeight());
 
         auto const sizeReduction = std::min(1.0f, getWidth() / 20.0f);
-        
+
         float const circleOuter = 80.f * (width * 0.01f);
         float const circleThickness = std::max(width * 0.06f, 1.5f) * sizeReduction;
 
-        g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
-        g.drawEllipse(bounds.reduced((width - circleOuter) * sizeReduction), circleThickness);
+        auto outerCircleBounds = b.reduced((width - circleOuter) * sizeReduction);
 
+        nvgBeginPath(nvg);
+        nvgCircle(nvg, b.getCentreX(), b.getCentreY(), outerCircleBounds.getWidth() / 2.0f);
+        nvgStrokeColor(nvg, cnv->guiObjectInternalOutlineCol);
+        nvgStrokeWidth(nvg, circleThickness);
+        nvgStroke(nvg);
+
+        // Fill ellipse if bangState is true
         if (bangState) {
-            g.setColour(iemHelper.getForegroundColour());
-            g.fillEllipse(bounds.reduced((width - circleOuter + circleThickness) * sizeReduction));
+            auto iCB = b.reduced((width - circleOuter + circleThickness) * sizeReduction);
+            nvgDrawRoundedRect(nvg, iCB.getX(), iCB.getY(), iCB.getWidth(), iCB.getHeight(), fgCol, fgCol, iCB.getWidth() * 0.5f);
         }
     }
 
@@ -139,7 +148,7 @@ public:
         bangState = true;
         repaint();
 
-        auto currentTime = Time::getCurrentTime().getMillisecondCounter();
+        auto currentTime = Time::getMillisecondCounter();
         auto timeSinceLast = currentTime - lastBang;
 
         int holdTime = bangHold.getValue();
@@ -153,16 +162,15 @@ public:
 
         lastBang = currentTime;
 
-        auto deletionChecker = SafePointer(this);
         Timer::callAfterDelay(holdTime,
-            [deletionChecker, this]() mutable {
+            [_this = SafePointer(this)]() mutable {
                 // First check if this object still exists
-                if (!deletionChecker)
+                if (!_this)
                     return;
 
-                if (bangState) {
-                    bangState = false;
-                    repaint();
+                if (_this->bangState) {
+                    _this->bangState = false;
+                    _this->repaint();
                 }
             });
     }
@@ -176,7 +184,7 @@ public:
         }
     }
 
-    void valueChanged(Value& value) override
+    void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
             auto* constrainer = getConstrainer();

@@ -24,48 +24,48 @@ public:
         , processor(*p)
         , defaultValue(def)
         , index(idx)
-        , range(minimum, maximum, 0.000001f)
-        , name(defaultName)
         , enabled(enabled)
+        , parameterName(defaultName)
+        , normalisableRange(minimum, maximum, 0.000001f)
         , mode(Float)
     {
-        value = range.convertFrom0to1(getDefaultValue());
+        value = normalisableRange.convertFrom0to1(getDefaultValue());
     }
 
     ~PlugDataParameter() override = default;
 
     int getNumSteps() const override
     {
+        auto range = getNormalisableRange();
         return (static_cast<int>((range.end - range.start) / 0.000001f) + 1);
-    }
-
-    void setInterval(float interval)
-    {
-        range.interval = interval;
     }
 
     void setRange(float min, float max)
     {
-        range.start = min;
-        range.end = max;
+        ScopedLock lock(rangeLock);
+        normalisableRange.start = min;
+        normalisableRange.end = max;
     }
 
     void setMode(Mode newMode, bool notify = true)
     {
+        ScopedLock lock(rangeLock);
+
         mode = newMode;
         if (newMode == Logarithmic) {
-            range.skew = 4.0f;
-            setInterval(0.000001f);
+            normalisableRange.skew = 4.0f;
+            normalisableRange.interval = 0.000001f;
         } else if (newMode == Exponential) {
-            range.skew = 0.25f;
-            setInterval(0.000001f);
+            normalisableRange.skew = 0.25f;
+            normalisableRange.interval = 0.000001f;
         } else if (newMode == Float) {
-            range.skew = 1.0f;
-            setInterval(0.000001f);
+            normalisableRange.skew = 1.0f;
+            normalisableRange.interval = 0.000001f;
         } else if (newMode == Integer) {
-            range.skew = 1.0f;
-            setRange(std::floor(range.start), std::floor(range.end));
-            setInterval(1.0f);
+            normalisableRange.skew = 1.0f;
+            normalisableRange.start = std::floor(normalisableRange.start);
+            normalisableRange.end = std::floor(normalisableRange.end);
+            normalisableRange.interval = 1.0f;
             setValue(std::floor(getValue()));
         }
 
@@ -82,11 +82,13 @@ public:
 
     void setName(String const& newName)
     {
-        name = newName;
+        ScopedLock lock(nameLock);
+        parameterName = newName;
     }
 
     String getName(int maximumStringLength) const override
     {
+        auto name = getTitle();
         if (!isEnabled() && canDynamicallyAdjustParameters()) {
             return ("(DISABLED) " + name).substring(0, maximumStringLength - 1);
         }
@@ -94,9 +96,10 @@ public:
         return name.substring(0, maximumStringLength - 1);
     }
 
-    String getTitle()
+    String getTitle() const
     {
-        return name;
+        ScopedLock lock(nameLock);
+        return parameterName;
     }
 
     void setEnabled(bool shouldBeEnabled)
@@ -106,14 +109,14 @@ public:
 
     NormalisableRange<float> const& getNormalisableRange() const override
     {
-        return range;
+        ScopedLock lock(rangeLock);
+        return normalisableRange;
     }
 
     void notifyDAW()
     {
         if (!ProjectInfo::isStandalone) {
-            auto const details = AudioProcessorListener::ChangeDetails {}.withParameterInfoChanged(true);
-            processor.updateHostDisplay(details);
+            processor.sendParameterInfoChangeMessage();
         }
     }
 
@@ -124,17 +127,20 @@ public:
 
     void setUnscaledValueNotifyingHost(float newValue)
     {
+        auto range = getNormalisableRange();
         value = std::clamp(newValue, range.start, range.end);
         sendValueChangedMessageToListeners(getValue());
     }
 
     float getValue() const override
     {
+        auto range = getNormalisableRange();
         return range.convertTo0to1(value);
     }
 
     void setValue(float newValue) override
     {
+        auto range = getNormalisableRange();
         value = range.convertFrom0to1(newValue);
     }
 
@@ -145,6 +151,7 @@ public:
 
     String getText(float value, int maximumStringLength) const override
     {
+        auto range = getNormalisableRange();
         auto const mappedValue = range.convertFrom0to1(value);
 
         return maximumStringLength > 0 ? String(mappedValue).substring(0, maximumStringLength) : String(mappedValue, 6);
@@ -152,6 +159,7 @@ public:
 
     float getValueForText(String const& text) const override
     {
+        auto range = getNormalisableRange();
         return range.convertTo0to1(text.getFloatValue());
     }
 
@@ -201,8 +209,8 @@ public:
             paramXml->setAttribute("id", String("param") + String(i));
 
             paramXml->setAttribute(String("name"), param->getTitle());
-            paramXml->setAttribute(String("min"), param->range.start);
-            paramXml->setAttribute(String("max"), param->range.end);
+            paramXml->setAttribute(String("min"), param->getNormalisableRange().start);
+            paramXml->setAttribute(String("max"), param->getNormalisableRange().end);
             paramXml->setAttribute(String("enabled"), static_cast<int>(param->enabled));
 
             paramXml->setAttribute(String("value"), static_cast<double>(param->getValue()));
@@ -296,10 +304,13 @@ public:
 
     void setGestureState(float v)
     {
-
         if (!ProjectInfo::isStandalone) {
             // Send new value to DAW
-            v ? beginChangeGesture() : endChangeGesture();
+            if (v) {
+                beginChangeGesture();
+            } else {
+                endChangeGesture();
+            }
         }
 
         gestureState = v;
@@ -307,16 +318,20 @@ public:
 
 private:
     float lastValue = 0.0f;
-    float gestureState = 0.0f;
     float const defaultValue;
 
+    // TODO: do they all need to be atomic?
+    std::atomic<float> gestureState = 0.0f;
     std::atomic<int> index;
     std::atomic<float> value;
-    NormalisableRange<float> range;
-    String name;
     std::atomic<bool> enabled = false;
 
-    Mode mode;
+    CriticalSection nameLock;
+    String parameterName;
 
+    CriticalSection rangeLock;
+    NormalisableRange<float> normalisableRange;
+
+    Mode mode;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataParameter)
 };

@@ -14,9 +14,11 @@ struct ExporterBase : public Component
     , public ThreadPool {
     TextButton exportButton = TextButton("Export");
 
-    Value inputPatchValue;
+    Value inputPatchValue = SynchronousValue();
     Value projectNameValue;
     Value projectCopyrightValue;
+
+    bool blockDialog = false;
 
 #if JUCE_WINDOWS
     inline static String const exeSuffix = ".exe";
@@ -41,7 +43,7 @@ struct ExporterBase : public Component
     PluginEditor* editor;
 
     ExporterBase(PluginEditor* pluginEditor, ExportingProgressView* exportView)
-        : ThreadPool(1)
+        : ThreadPool(1, Thread::osDefaultStackSize, Thread::Priority::highest)
         , exportingView(exportView)
         , editor(pluginEditor)
     {
@@ -129,8 +131,7 @@ struct ExporterBase : public Component
         auto projectTitle = projectNameValue.toString();
         auto projectCopyright = projectCopyrightValue.toString();
 
-        if (!projectTitle.unquoted().containsNonWhitespaceChars())
-        {
+        if (!projectTitle.unquoted().containsNonWhitespaceChars()) {
             if (!realPatchFile.getFileNameWithoutExtension().isEmpty())
                 projectTitle = realPatchFile.getFileNameWithoutExtension();
             else
@@ -141,7 +142,7 @@ struct ExporterBase : public Component
         auto searchPaths = StringArray { patchFile.getParentDirectory().getFullPathName() };
 
         editor->pd->setThis();
-        
+
         // Get pd's search paths
         char* paths[1024];
         int numItems;
@@ -161,7 +162,7 @@ struct ExporterBase : public Component
         addJob([this, patchPath, outPath, projectTitle, projectCopyright, searchPaths]() mutable {
             exportingView->monitorProcessOutput(this);
 
-            exportingView->showState(ExportingProgressView::Busy);
+            exportingView->showState(ExportingProgressView::Exporting);
 
             auto result = performExport(patchPath, outPath, projectTitle, projectCopyright, searchPaths);
 
@@ -186,7 +187,7 @@ struct ExporterBase : public Component
             if (idx == 1) {
                 patchFile = openedPatchFile;
                 validPatchSelected = true;
-            } else if (idx == 2) {
+            } else if (idx == 2 && !blockDialog) {
                 Dialogs::showOpenDialog([this](URL url) {
                     auto result = url.getLocalFile();
                     if (result.existsAsFile()) {

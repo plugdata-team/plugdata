@@ -18,13 +18,11 @@ bool ProjectInfo::isStandalone = true;
 bool ProjectInfo::isStandalone = false;
 #endif
 
-
 #if PLUGDATA_FX
 bool ProjectInfo::isFx = true;
 #else
 bool ProjectInfo::isFx = false;
 #endif
-
 
 MidiDeviceManager* ProjectInfo::getMidiDeviceManager()
 {
@@ -72,20 +70,11 @@ void ProjectInfo::closeWindow(PlugDataWindow* window)
 bool ProjectInfo::canUseSemiTransparentWindows()
 {
 #if JUCE_IOS
-    return false;
+    return isStandalone;
 #endif
 #if !JUCE_MAC || PLUGDATA_STANDALONE
     return Desktop::canUseSemiTransparentWindows();
 #else
-
-    // Apple's plugin hosts will show an ugly pink edge below transparent edges
-    // This is a "security feature" and will probably not be removed anytime soon
-
-    auto hostType = PluginHostType();
-    if (hostType.isLogic() || hostType.isGarageBand() || hostType.isMainStage()) {
-        return false;
-    }
-
     return Desktop::canUseSemiTransparentWindows();
 #endif
 }

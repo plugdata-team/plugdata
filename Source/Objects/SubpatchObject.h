@@ -4,24 +4,16 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class SubpatchObject final : public TextBase {
+class SubpatchObject final : public TextBase, public SettingsFileListener {
 
     pd::Patch::Ptr subpatch;
     Value isGraphChild = SynchronousValue(var(false));
-
-    bool locked = false;
 
 public:
     SubpatchObject(pd::WeakReference obj, Object* object)
         : TextBase(obj, object)
         , subpatch(new pd::Patch(obj, cnv->pd, false))
     {
-        object->hvccMode.addListener(this);
-
-        if (getValue<bool>(object->hvccMode)) {
-            checkHvccCompatibility(getText(), subpatch.get());
-        }
-
         objectParameters.addParamBool("Is graph", cGeneral, &isGraphChild, { "No", "Yes" });
 
         // There is a possibility that a donecanvasdialog message is sent inbetween the initialisation in pd and the initialisation of the plugdata object, making it possible to miss this message. This especially tends to happen if the messagebox is connected to a loadbang.
@@ -29,30 +21,41 @@ public:
         MessageManager::callAsync([_this = SafePointer(this)]() {
             if (_this) {
                 _this->update();
-                _this->valueChanged(_this->isGraphChild);
+                _this->propertyChanged(_this->isGraphChild);
             }
         });
+        
+        setRepaintsOnMouseActivity(true);
     }
 
     ~SubpatchObject() override
     {
-        object->hvccMode.removeListener(this);
         closeOpenedSubpatchers();
+    }
+    
+    void propertyChanged(String const& name, var const& value) override
+    {
+        if(name == "hvcc_mode")
+        {
+            if (value) {
+                checkHvccCompatibility(getText(), subpatch.get());
+            }
+        }
+    }
+    
+    void render(NVGcontext* nvg) override
+    {
+        TextBase::render(nvg);
     }
 
     void update() override
     {
-        isGraphChild = static_cast<bool>(subpatch->getPointer()->gl_isgraph);
-
         // Change from subpatch to graph
-        bool graph;
         if (auto canvas = ptr.get<t_canvas>()) {
-            graph = canvas->gl_isgraph;
+            isGraphChild = static_cast<bool>(canvas->gl_isgraph);
         } else {
             return;
         }
-
-        isGraphChild = graph;
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -60,12 +63,12 @@ public:
         if (!e.mods.isLeftButtonDown())
             return;
 
-        if (locked && click(e.getPosition(), e.mods.isShiftDown(), e.mods.isAltDown())) {
+        if (isLocked && click(e.getPosition(), e.mods.isShiftDown(), e.mods.isAltDown())) {
             return;
         }
 
         //  If locked and it's a left click
-        if (locked && !e.mods.isRightButtonDown()) {
+        if (isLocked && !e.mods.isRightButtonDown()) {
             openSubpatch();
             return;
         } else {
@@ -73,21 +76,17 @@ public:
         }
     }
 
-    // Most objects ignore mouseclicks when locked
-    // Objects can override this to do custom locking behaviour
-    void lock(bool isLocked) override
-    {
-        locked = isLocked;
-    }
-
     pd::Patch::Ptr getPatch() override
     {
         return subpatch;
     }
 
-    void valueChanged(Value& v) override
+    void propertyChanged(Value& v) override
     {
-        if (v.refersToSameSourceAs(isGraphChild)) {
+        if (v.refersToSameSourceAs(sizeProperty)) {
+            // forward the value change to the text object
+            TextBase::propertyChanged(v);
+        } else if (v.refersToSameSourceAs(isGraphChild)) {
             int isGraph = getValue<bool>(isGraphChild);
             if (auto glist = ptr.get<t_glist>()) {
                 canvas_setgraph(glist.get(), isGraph + 2 * glist->gl_hidetext, 0);
@@ -99,15 +98,11 @@ public:
                         return;
 
                     _this->cnv->setSelected(object, false);
-                    _this->object->cnv->editor->sidebar->hideParameters();
+                    _this->object->editor->sidebar->hideParameters();
                     _this->object->setType(_this->getText(), ptr);
                 });
             }
 
-        } else if (v.refersToSameSourceAs(object->hvccMode)) {
-            if (getValue<bool>(v)) {
-                checkHvccCompatibility(getText(), subpatch.get());
-            }
         }
     }
 
@@ -127,19 +122,14 @@ public:
         }
     }
 
-    bool canOpenFromMenu() override
+    void getMenuOptions(PopupMenu& menu) override
     {
-        return true;
-    }
-
-    void openFromMenu() override
-    {
-        openSubpatch();
+        menu.addItem("Open", [_this = SafePointer(this)](){ if(_this) _this->openSubpatch(); });
     }
 
     bool showParametersWhenSelected() override
     {
-        return true;
+        return cnv->isGraph;
     }
 
     static void checkHvccCompatibility(String const& objectText, pd::Patch::Ptr patch, String const& prefix = "")

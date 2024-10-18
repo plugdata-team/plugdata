@@ -6,9 +6,13 @@
 
 #pragma once
 
-#include <utility>
+#include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_opengl/juce_opengl.h>
+using namespace gl;
 
-#include "Utility/GlobalMouseListener.h"
+#include <nanovg.h>
+
+#include <utility>
 
 #include "Object.h"
 #include "Connection.h"
@@ -19,12 +23,12 @@
 #include "Utility/SettingsFile.h"
 
 // Special viewport that shows scrollbars on top of content instead of next to it
-class CanvasViewport : public Viewport {
-
+class CanvasViewport : public Viewport
+    , public NVGComponent, public Timer {
     class MousePanner : public MouseListener {
     public:
-        explicit MousePanner(CanvasViewport* v)
-            : viewport(v)
+        explicit MousePanner(CanvasViewport* vp)
+            : viewport(vp)
         {
         }
 
@@ -43,12 +47,11 @@ class CanvasViewport : public Viewport {
         // thus giving us a chance to attach the mouselistener on the middle-mouse click event
         void mouseDown(MouseEvent const& e) override
         {
+            if(!e.mods.isLeftButtonDown() && !e.mods.isMiddleButtonDown()) return;
+            
             e.originalComponent->setMouseCursor(MouseCursor::DraggingHandCursor);
             downPosition = viewport->getViewPosition();
             downCanvasOrigin = viewport->cnv->canvasOrigin;
-
-            for (auto* object : viewport->cnv->objects)
-                object->setBufferedToImage(true);
         }
 
         void mouseDrag(MouseEvent const& e) override
@@ -57,14 +60,6 @@ class CanvasViewport : public Viewport {
 
             auto infiniteCanvasOriginOffset = (viewport->cnv->canvasOrigin - downCanvasOrigin) * scale;
             viewport->setViewPosition(infiniteCanvasOriginOffset + downPosition - (scale * e.getOffsetFromDragStart().toFloat()).roundToInt());
-        }
-
-        void mouseUp(MouseEvent const& e) override
-        {
-            e.originalComponent->setMouseCursor(MouseCursor::NormalCursor);
-            for (auto* object : viewport->cnv->objects) {
-                object->setBufferedToImage(false);
-            }
         }
 
     private:
@@ -175,6 +170,8 @@ class CanvasViewport : public Viewport {
 
         void mouseDown(MouseEvent const& e) override
         {
+            if(!e.mods.isLeftButtonDown()) return;
+            
             isMouseDragging = true;
             viewPosition = viewport->getViewPosition();
             repaint();
@@ -224,30 +221,29 @@ class CanvasViewport : public Viewport {
             repaint();
         }
 
-        void paint(Graphics& g) override
+        void render(NVGcontext* nvg)
         {
             auto growPosition = scrollBarThickness * 0.5f * growAnimation;
-
             auto growingBounds = thumbBounds.reduced(1).withTop(thumbBounds.getY() + growPosition);
-            auto roundedCorner = growingBounds.getHeight() * 0.5f;
+            auto thumbCornerRadius = growingBounds.getHeight();
             auto fullBounds = growingBounds.withX(2).withWidth(getWidth() - 4);
 
             if (isVertical) {
                 growingBounds = thumbBounds.reduced(1).withLeft(thumbBounds.getX() + growPosition);
-                roundedCorner = growingBounds.getWidth() * 0.5f;
+                thumbCornerRadius = growingBounds.getWidth();
                 fullBounds = growingBounds.withY(2).withHeight(getHeight() - 4);
             }
+            
+            scrollbarBgCol.a = (1.0f - growAnimation) * 150; // 0-150 opacity, not full opacity when active
+            nvgDrawRoundedRect(nvg, fullBounds.getX(), fullBounds.getY(), fullBounds.getWidth(), fullBounds.getHeight(), scrollbarBgCol, scrollbarBgCol, thumbCornerRadius);
 
-            auto canvasColour = findColour(PlugDataColour::canvasBackgroundColourId);
-            auto scrollbarColour = findColour(ScrollBar::ColourIds::thumbColourId);
-            auto activeScrollbarColour = scrollbarColour.interpolatedWith(canvasColour.contrasting(0.6f), 0.7f);
-
-            g.setColour(scrollbarColour.interpolatedWith(canvasColour, 0.7f).withAlpha(std::clamp(1.0f - growAnimation, 0.0f, 1.0f)));
-            g.fillRoundedRectangle(fullBounds, roundedCorner);
-
-            g.setColour(isMouseDragging ? activeScrollbarColour : scrollbarColour);
-            g.fillRoundedRectangle(growingBounds, roundedCorner);
+            auto scrollBarThumbCol = isMouseDragging ? activeScrollbarCol : scrollbarCol;
+            nvgDrawRoundedRect(nvg, growingBounds.getX(), growingBounds.getY(), growingBounds.getWidth(), growingBounds.getHeight(), scrollBarThumbCol, scrollBarThumbCol, thumbCornerRadius);
         }
+
+        NVGcolor scrollbarCol;
+        NVGcolor activeScrollbarCol;
+        NVGcolor scrollbarBgCol;
 
     private:
         bool isVertical = false;
@@ -287,7 +283,8 @@ class CanvasViewport : public Viewport {
 
 public:
     CanvasViewport(PluginEditor* parent, Canvas* cnv)
-        : editor(parent)
+        : NVGComponent(this)
+        , editor(parent)
         , cnv(cnv)
     {
         setScrollBarsShown(false, false);
@@ -302,10 +299,62 @@ public:
 
         addAndMakeVisible(vbar);
         addAndMakeVisible(hbar);
+
+        cnv->setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, cnv));
+        setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this));
+
+        lookAndFeelChanged();
+    }
+
+    ~CanvasViewport()
+    {
+    }
+
+    void render(NVGcontext* nvg) override
+    {
+        {
+            NVGScopedState scopedState(nvg);
+            nvgTranslate(nvg, vbar.getX(), vbar.getY());
+            vbar.render(nvg);
+        }
+
+        {
+            NVGScopedState scopedState(nvg);
+            nvgTranslate(nvg, hbar.getX(), hbar.getY());
+            hbar.render(nvg);
+        }
+    }
+
+    void timerCallback() override
+    {
+        stopTimer();
+        cnv->isZooming = false;
+
+        // Cached geometry can look thicker/thinner at different zoom scales, so we update all cached connections when zooming is done
+        if (scaleChanged) {
+            // Cached geometry can look thicker/thinner at different zoom scales, so we reset all cached connections when zooming is done
+            NVGCachedPath::resetAll();
+        }
+
+        scaleChanged = false;
+        editor->nvgSurface.invalidateAll();
     }
 
     void lookAndFeelChanged() override
     {
+        auto scrollbarColour = hbar.findColour(ScrollBar::ColourIds::thumbColourId);
+        auto scrollbarCol = convertColour(scrollbarColour);
+        auto canvasBgColour = findColour(PlugDataColour::canvasBackgroundColourId);
+        auto activeScrollbarCol = convertColour(scrollbarColour.interpolatedWith(canvasBgColour.contrasting(0.6f), 0.7f));
+        auto scrollbarBgCol = convertColour(scrollbarColour.interpolatedWith(canvasBgColour, 0.7f));
+
+        hbar.scrollbarCol = scrollbarCol;
+        vbar.scrollbarCol = scrollbarCol;
+        hbar.activeScrollbarCol = activeScrollbarCol;
+        vbar.activeScrollbarCol = activeScrollbarCol;
+        hbar.scrollbarBgCol = scrollbarBgCol;
+        vbar.scrollbarBgCol = scrollbarBgCol;
+
         hbar.repaint();
         vbar.repaint();
     }
@@ -315,6 +364,12 @@ public:
         panner.enablePanning(enablePanning);
     }
 
+    bool hitTest(int x, int y) override
+    {
+        // needed so that mouseWheel event is registered in presentation mode
+        return true;
+    }
+
     void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel) override
     {
         // Check event time to filter out duplicate events
@@ -322,7 +377,7 @@ public:
         if (e.eventTime == lastScrollTime)
             return;
 
-        if (e.mods.isCommandDown() && !editor->pd->isInPluginMode()) {
+        if (e.mods.isCommandDown()) {
             mouseMagnify(e, 1.0f / (1.0f - wheel.deltaY));
         }
 
@@ -332,17 +387,45 @@ public:
 
     void mouseMagnify(MouseEvent const& e, float scrollFactor) override
     {
-        if (!cnv)
+        // Check event time to filter out duplicate events
+        // This is a workaround for a bug in JUCE that can cause mouse events to be duplicated when an object has a MouseListener on its parent
+        if (e.eventTime == lastZoomTime || !cnv)
             return;
 
-        auto& scale = cnv->zoomScale;
-
-        auto value = getValue<float>(scale);
-
         // Apply and limit zoom
-        value = std::clamp(value * scrollFactor, 0.2f, 3.0f);
+        magnify(std::clamp(getValue<float>(cnv->zoomScale) * scrollFactor, 0.25f, 3.0f));
+        lastZoomTime = e.eventTime;
+    }
 
-        scale = value;
+    void magnify(float newScaleFactor)
+    {
+        if (approximatelyEqual(newScaleFactor, 0.0f)) {
+            newScaleFactor = 1.0f;
+        }
+
+        if (newScaleFactor == lastScaleFactor) // float comparison ok here as it's set by the same value
+            return;
+
+        lastScaleFactor = newScaleFactor;
+        
+        scaleChanged = true;
+
+        // Get floating point mouse position relative to screen
+        auto mousePosition = Desktop::getInstance().getMainMouseSource().getScreenPosition();
+        // Get mouse position relative to canvas
+        auto oldPosition = cnv->getLocalPoint(nullptr, mousePosition);
+        // Apply transform and make sure viewport bounds get updated
+        cnv->setTransform(AffineTransform().scaled(newScaleFactor));
+        // After zooming, get mouse position relative to canvas again
+        auto newPosition = cnv->getLocalPoint(nullptr, mousePosition);
+        // Calculate offset to keep our mouse position the same as before this zoom action
+        auto offset = newPosition - oldPosition;
+        cnv->setTopLeftPosition(cnv->getPosition() + offset.roundToInt());
+
+        // This is needed to make sure the viewport the current canvas bounds to the lastVisibleArea variable
+        // Without this, future calls to getViewPosition() will give wrong results
+        resized();
+        cnv->zoomScale = newScaleFactor;
     }
 
     void adjustScrollbarBounds()
@@ -351,10 +434,10 @@ public:
             return;
 
         auto thickness = getScrollBarThickness();
-        auto localArea = getLocalBounds().reduced(8);
+        auto localArea = getLocalBounds().reduced(2);
 
         vbar.setBounds(localArea.removeFromRight(thickness).withTrimmedBottom(thickness).translated(-1, 0));
-        hbar.setBounds(localArea.removeFromBottom(thickness));
+        hbar.setBounds(localArea.removeFromBottom(thickness).translated(0, -1));
 
         float scale = 1.0f / std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
         auto contentArea = getViewArea() * scale;
@@ -372,7 +455,7 @@ public:
 
     void componentMovedOrResized(Component& c, bool moved, bool resized) override
     {
-        if (cnv->pd->isInPluginMode())
+        if (editor->isInPluginMode())
             return;
 
         Viewport::componentMovedOrResized(c, moved, resized);
@@ -381,8 +464,14 @@ public:
 
     void visibleAreaChanged(Rectangle<int> const& r) override
     {
+        if(scaleChanged) {
+            cnv->isZooming = true;
+            startTimer(150);
+        }
+        
         onScroll();
         adjustScrollbarBounds();
+        editor->nvgSurface.invalidateAll();
     }
 
     void resized() override
@@ -390,7 +479,7 @@ public:
         vbar.setVisible(isVerticalScrollBarShown());
         hbar.setVisible(isHorizontalScrollBarShown());
 
-        if (editor->pd->isInPluginMode())
+        if (editor->isInPluginMode())
             return;
 
         adjustScrollbarBounds();
@@ -430,10 +519,13 @@ public:
 
 private:
     Time lastScrollTime;
+    Time lastZoomTime;
+    float lastScaleFactor = -1.0f;
     PluginEditor* editor;
     Canvas* cnv;
     Rectangle<int> previousBounds;
     MousePanner panner = MousePanner(this);
     ViewportScrollBar vbar = ViewportScrollBar(true, this);
     ViewportScrollBar hbar = ViewportScrollBar(false, this);
+    bool scaleChanged = false;
 };

@@ -126,11 +126,10 @@ struct ThemeSelectorProperty : public PropertiesPanelProperty {
             callback(comboBox.getText());
         };
 
-        comboBox.setColour(ComboBox::backgroundColourId, Colours::transparentBlack);
-        comboBox.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-        comboBox.setColour(ComboBox::textColourId, findColour(PlugDataColour::panelTextColourId));
-
         addAndMakeVisible(comboBox);
+
+        setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
+        lookAndFeelChanged();
     }
 
     PropertiesPanelProperty* createCopy() override
@@ -139,6 +138,13 @@ struct ThemeSelectorProperty : public PropertiesPanelProperty {
         themeSelector->setOptions(items);
         themeSelector->setSelectedItem(comboBox.getSelectedItemIndex());
         return themeSelector;
+    }
+
+    void lookAndFeelChanged() override
+    {
+        comboBox.setColour(ComboBox::backgroundColourId, Colours::transparentBlack);
+        comboBox.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+        comboBox.setColour(ComboBox::textColourId, findColour(PlugDataColour::panelTextColourId));
     }
 
     String getText() const
@@ -223,7 +229,7 @@ public:
     void updateSwatches()
     {
         auto scrollPosition = panel.getViewport().getViewPositionY();
-        
+
         panel.clear();
         allPanels.clear();
 
@@ -422,14 +428,14 @@ public:
         auto allThemes = PlugDataLook::getAllThemes();
         auto firstThemes = allThemes;
         auto secondThemes = allThemes;
-        
+
         // Remove theme selected in other combobox (so you can't pick the same theme twice)
         firstThemes.removeString(PlugDataLook::selectedThemes[1]);
         secondThemes.removeString(PlugDataLook::selectedThemes[0]);
-        
+
         primaryThemeSelector->setOptions(firstThemes);
         secondaryThemeSelector->setOptions(secondThemes);
-        
+
         primaryThemeSelector->setSelectedItem(firstThemes.indexOf(PlugDataLook::selectedThemes[0]));
         secondaryThemeSelector->setSelectedItem(secondThemes.indexOf(PlugDataLook::selectedThemes[1]));
 
@@ -443,55 +449,73 @@ public:
 
         panel.addSection("Active Themes", { primaryThemeSelector, secondaryThemeSelector });
 
-        Array<Value*> dashedConnectionValues, straightConnectionValues, squareIoletsValues, squareObjectCornersValues, thinConnectionValues;
+        Array<Value*> straightConnectionValues, connectionStyle, connectionLook, ioletSpacingEdge, squareIolets, squareObjectCorners, objectFlagOutlined;
 
         for (int i = 0; i < 2; i++) {
             auto const& themeName = PlugDataLook::selectedThemes[i];
             auto& swatch = swatches[themeName];
             auto themeTree = SettingsFile::getInstance()->getTheme(themeName);
 
-            swatch["dashed_signal_connections"].referTo(themeTree.getPropertyAsValue("dashed_signal_connections", nullptr));
+            // settings for connections
             swatch["straight_connections"].referTo(themeTree.getPropertyAsValue("straight_connections", nullptr));
+            swatch["connection_style"].referTo(themeTree.getPropertyAsValue("connection_style", nullptr));
+            swatch["connection_look"].referTo(themeTree.getPropertyAsValue("connection_look", nullptr));
+
+            // settings for object & iolets
+            swatch["iolet_spacing_edge"].referTo(themeTree.getPropertyAsValue("iolet_spacing_edge", nullptr));
             swatch["square_iolets"].referTo(themeTree.getPropertyAsValue("square_iolets", nullptr));
             swatch["square_object_corners"].referTo(themeTree.getPropertyAsValue("square_object_corners", nullptr));
-            swatch["thin_connections"].referTo(themeTree.getPropertyAsValue("thin_connections", nullptr));
+            swatch["object_flag_outlined"].referTo(themeTree.getPropertyAsValue("object_flag_outlined", nullptr));
 
-            swatch["dashed_signal_connections"].addListener(this);
             swatch["straight_connections"].addListener(this);
+            swatch["connection_style"].addListener(this);
+            swatch["connection_look"].addListener(this);
+
+            swatch["iolet_spacing_edge"].addListener(this);
             swatch["square_iolets"].addListener(this);
             swatch["square_object_corners"].addListener(this);
-            swatch["thin_connections"].addListener(this);
+            swatch["object_flag_outlined"].addListener(this);
 
-            dashedConnectionValues.add(&swatch["dashed_signal_connections"]);
             straightConnectionValues.add(&swatch["straight_connections"]);
-            squareIoletsValues.add(&swatch["square_iolets"]);
-            squareObjectCornersValues.add(&swatch["square_object_corners"]);
-            thinConnectionValues.add(&swatch["thin_connections"]);
+            connectionStyle.add(&swatch["connection_style"]);
+            connectionLook.add(&swatch["connection_look"]);
+
+            ioletSpacingEdge.add(&swatch["iolet_spacing_edge"]);
+            squareIolets.add(&swatch["square_iolets"]);
+            squareObjectCorners.add(&swatch["square_object_corners"]);
+            objectFlagOutlined.add(&swatch["object_flag_outlined"]);
+
         }
 
-        auto* useStraightConnections = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Use straight line for connections", straightConnectionValues, { "No", "Yes" });
+        auto* useObjectCorners = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Object corners", squareObjectCorners, { "Round", "Square" });
+        allPanels.add(useObjectCorners);
+        addAndMakeVisible(*useObjectCorners);
+
+        auto* useObjectFlagOutlined = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Object flag style", objectFlagOutlined, { "Filled", "Outlined" });
+        allPanels.add(useObjectFlagOutlined);
+        addAndMakeVisible(*useObjectFlagOutlined);
+
+        auto* useIoletCorners = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Iolet corners", squareIolets, { "Round", "Square" });
+        allPanels.add(useIoletCorners);
+        addAndMakeVisible(*useIoletCorners);
+
+        auto* useIoletSpacingEdge = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Iolet spacing", ioletSpacingEdge, { "Centre", "Edge" });
+        allPanels.add(useIoletSpacingEdge);
+        addAndMakeVisible(*useIoletSpacingEdge);
+
+        auto* useStraightConnections = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Connection path", straightConnectionValues, { "Curved", "Line" });
         allPanels.add(useStraightConnections);
         addAndMakeVisible(*useStraightConnections);
 
-        auto* useDashedSignalConnection = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Display signal connections dashed", dashedConnectionValues, { "No", "Yes" });
-        allPanels.add(useDashedSignalConnection);
-        addAndMakeVisible(*useDashedSignalConnection);
+        auto* useConnectionLook = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Connection look", connectionLook, { "Filled", "Gradient" });
+        allPanels.add(useConnectionLook);
+        addAndMakeVisible(*useConnectionLook);
 
-        auto* useThinConnection = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Use thin connection style", thinConnectionValues, { "No", "Yes" });
-        allPanels.add(useThinConnection);
-        addAndMakeVisible(*useThinConnection);
+        auto* useConnectionStyle = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::ComboComponent>("Connection style", connectionStyle, { "Default", "Vanilla", "Thin" });
+        allPanels.add(useConnectionStyle);
+        addAndMakeVisible(*useConnectionStyle);
 
-        panel.addSection("Connection Look", { useStraightConnections, useDashedSignalConnection, useThinConnection });
-
-        auto* useSquareObjectCorners = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Use squared object corners", squareObjectCornersValues, { "No", "Yes" });
-        allPanels.add(useSquareObjectCorners);
-        addAndMakeVisible(*useSquareObjectCorners);
-
-        auto* useSquareIolets = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Use square iolets", squareIoletsValues, { "No", "Yes" });
-        allPanels.add(useSquareIolets);
-        addAndMakeVisible(*useSquareIolets);
-
-        panel.addSection("Object Look", { useSquareObjectCorners, useSquareIolets });
+        panel.addSection("Object & Connection Look", {useObjectCorners, useObjectFlagOutlined, useIoletCorners, useIoletSpacingEdge, useStraightConnections, useConnectionLook, useConnectionStyle });
 
         // Create the panels by category
         for (auto const& [sectionName, sectionColours] : panels) {
@@ -516,24 +540,58 @@ public:
         if (v.refersToSameSourceAs(fontValue)) {
             PlugDataLook::setDefaultFont(fontValue.toString());
             SettingsFile::getInstance()->setProperty("default_font", fontValue.getValue());
-            getTopLevelComponent()->repaint();
-            for (auto* panel : allPanels)
-                panel->repaint();
-
-            return;
-        }
-
-        if (v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["dashed_signal_connections"])
-            || v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["straight_connections"])
-            || v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["square_iolets"])
-            || v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["square_object_corners"])
-            || v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["thin_connections"])) {
-
-            pd->setTheme(PlugDataLook::currentTheme, true);
+            pd->updateAllEditorsLNF();
             return;
         }
 
         auto themeTree = SettingsFile::getInstance()->getColourThemesTree();
+        bool isInTheme = false;
+        bool ioletGeometryNeedsUpdate = false;
+        for (auto theme : PlugDataLook::selectedThemes){
+            if  (v.refersToSameSourceAs(swatches[theme]["straight_connections"])
+                 || v.refersToSameSourceAs(swatches[theme]["iolet_spacing_edge"])
+                 || v.refersToSameSourceAs(swatches[theme]["square_iolets"])
+                 || v.refersToSameSourceAs(swatches[theme]["square_object_corners"])
+                 || v.refersToSameSourceAs(swatches[theme]["connection_look"])
+                 || v.refersToSameSourceAs(swatches[theme]["connection_style"])
+                 || v.refersToSameSourceAs(swatches[theme]["object_flag_outlined"]) )
+                 {
+                if(v.refersToSameSourceAs(swatches[theme]["iolet_spacing_edge"]))
+                    ioletGeometryNeedsUpdate = true;
+
+                isInTheme = true;
+                break;
+            }
+        }
+
+        if (isInTheme) {
+            for (auto theme : themeTree) {
+                auto themeName = theme.getProperty("theme").toString();
+                if (v.refersToSameSourceAs(swatches[themeName]["straight_connections"])) {
+                    theme.setProperty("straight_connections", v.toString(), nullptr);
+                } else if (v.refersToSameSourceAs(swatches[themeName]["connection_style"])) {
+                    theme.setProperty("connection_style", v.toString().getIntValue(), nullptr);
+                } else if (v.refersToSameSourceAs(swatches[themeName]["connection_look"])) {
+                    theme.setProperty("connection_look", v.toString(), nullptr);
+                } else if (v.refersToSameSourceAs(swatches[themeName]["iolet_spacing_edge"])) {
+                    theme.setProperty("iolet_spacing_edge",  v.toString().getIntValue(), nullptr);
+                } else if (v.refersToSameSourceAs(swatches[themeName]["square_iolets"])) {
+                    theme.setProperty("square_iolets",  v.toString().getIntValue(), nullptr);
+                } else if (v.refersToSameSourceAs(swatches[themeName]["square_object_corners"])) {
+                    theme.setProperty("square_object_corners",  v.toString().getIntValue(), nullptr);
+                } else if (v.refersToSameSourceAs(swatches[themeName]["object_flag_outlined"])) {
+                    theme.setProperty("object_flag_outlined",  v.toString().getIntValue(), nullptr);
+                }
+            }
+
+            pd->setTheme(PlugDataLook::currentTheme, true);
+
+            if (ioletGeometryNeedsUpdate)
+                pd->updateIoletGeometryForAllObjects();
+
+            return;
+        }
+
         for (auto theme : themeTree) {
             auto themeName = theme.getProperty("theme").toString();
 
@@ -543,6 +601,7 @@ public:
                 if (v.refersToSameSourceAs(swatches[themeName][colourName])) {
                     theme.setProperty(colourName, v.toString(), nullptr);
                     pd->setTheme(PlugDataLook::currentTheme, true);
+                    sendLookAndFeelChange();
                     return;
                 }
             }
@@ -565,6 +624,7 @@ public:
     void resetDefaults()
     {
         auto colourThemesTree = SettingsFile::getInstance()->getColourThemesTree();
+        auto currentIoletSpacing = getValue<bool>(swatches[PlugDataLook::currentTheme]["iolet_spacing_edge"]);
 
         PlugDataLook::resetColours(colourThemesTree);
 
@@ -573,22 +633,27 @@ public:
 
         PlugDataLook::setDefaultFont(fontValue.toString());
         SettingsFile::getInstance()->setProperty("default_font", fontValue.getValue());
-        
+
         auto allThemes = PlugDataLook::getAllThemes();
         auto firstThemes = allThemes;
         auto secondThemes = allThemes;
-        
+
         firstThemes.removeString(PlugDataLook::selectedThemes[1]);
         secondThemes.removeString(PlugDataLook::selectedThemes[0]);
-        
+
         primaryThemeSelector->setSelectedItem(firstThemes.indexOf(PlugDataLook::selectedThemes[0]));
         secondaryThemeSelector->setSelectedItem(secondThemes.indexOf(PlugDataLook::selectedThemes[1]));
-        
+
         SettingsFile::getInstance()->getSelectedThemesTree().setProperty("first", "light", nullptr);
         SettingsFile::getInstance()->getSelectedThemesTree().setProperty("second", "dark", nullptr);
         SettingsFile::getInstance()->setProperty("theme", "light");
-        
+
         updateSwatches();
         pd->setTheme(PlugDataLook::selectedThemes[0], true);
+        sendLookAndFeelChange();
+
+        auto newIoletSpacing = getValue<bool>(swatches[PlugDataLook::currentTheme]["iolet_spacing_edge"]);
+        if (currentIoletSpacing != newIoletSpacing)
+            pd->updateIoletGeometryForAllObjects();
     }
 };

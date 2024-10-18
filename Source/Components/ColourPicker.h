@@ -54,7 +54,7 @@ class Eyedropper : public Timer
 
             Path shadowPath;
             shadowPath.addEllipse(bounds.reduced(2));
-            StackShadow::renderDropShadow(g, shadowPath, Colours::black.withAlpha(0.85f), 8, { 0, 1 }, 0);
+            StackShadow::renderDropShadow(hash("eyedropper"), g, shadowPath, Colours::black.withAlpha(0.85f), 8, { 0, 1 }, 0);
 
             g.setColour(colour);
             g.fillEllipse(bounds);
@@ -185,18 +185,19 @@ public:
 
         _topLevelComponent = topLevelComponent;
 
+        /*
         Component* parent = nullptr;
         if (!ProjectInfo::canUseSemiTransparentWindows()) {
             parent = topLevelComponent;
             bounds = topLevelComponent->getLocalArea(nullptr, bounds);
-        }
+        } */
 
         setCurrentColour(currentColour);
 
         // we need to put the selector into a holder, as launchAsynchronously will delete the component when its done
         auto selectorHolder = std::make_unique<SelectorHolder>(this);
 
-        CallOutBox::launchAsynchronously(std::move(selectorHolder), bounds, parent);
+        CallOutBox::launchAsynchronously(std::move(selectorHolder), bounds, nullptr);
     }
 
     ColourPicker()
@@ -595,7 +596,7 @@ private:
 
                 Path shadowPath;
                 shadowPath.addEllipse(bounds);
-                StackShadow::renderDropShadow(g, shadowPath, Colours::black.withAlpha(0.75f), 6, { 0, 0 }, 0);
+                StackShadow::renderDropShadow(hash("colour_space_marker"), g, shadowPath, Colours::black.withAlpha(0.75f), 6, { 0, 0 }, 0);
 
                 auto hs = owner.getHS();
                 auto colour = Colour::fromHSV(hs.first, hs.second, 1.0f, 1.0f);
@@ -650,10 +651,10 @@ private:
             auto radius = jmin(Corners::defaultCornerRadius, bounds.getWidth() / 2.0f);
 
             g.setGradientFill(ColourGradient(colour, 0.0f, 0.0f, Colours::black, bounds.getHeight() / 2, bounds.getHeight() / 2, false));
-            PlugDataLook::fillSmoothedRectangle(g, bounds, radius);
+            g.fillRoundedRectangle(bounds, radius);
 
             g.setColour(findColour(PlugDataColour::outlineColourId));
-            PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), bounds, radius);
+            g.drawRoundedRectangle(bounds, radius, 1.0f);
         }
 
         void resized() override
@@ -700,7 +701,7 @@ private:
 
                 Path shadowPath;
                 shadowPath.addEllipse(bounds.reduced(2));
-                StackShadow::renderDropShadow(g, shadowPath, Colours::black.withAlpha(0.75f), 6, { 0, 1 }, 0);
+                StackShadow::renderDropShadow(hash("colour_picker"), g, shadowPath, Colours::black.withAlpha(0.75f), 6, { 0, 1 }, 0);
 
                 g.setColour(owner.getCurrentColour());
                 g.fillEllipse(bounds);

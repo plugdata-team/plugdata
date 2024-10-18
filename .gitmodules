@@ -4,9 +4,6 @@
 [submodule "Libraries/pure-data"]
 	path = Libraries/pure-data
 	url = https://github.com/plugdata-team/plugdata-pd
-[submodule "Libraries/Catch2"]
-	path = Libraries/Catch2
-	url = https://github.com/catchorg/Catch2.git
 [submodule "Libraries/heavylib"]
 	path = Libraries/heavylib
 	url = https://github.com/Wasted-Audio/heavylib.git
@@ -37,3 +34,15 @@
 [submodule "Libraries/ghc_filesystem"]
 	path = Libraries/ghc_filesystem
 	url = https://github.com/gulrak/filesystem.git
+[submodule "Libraries/nanovg"]
+	path = Libraries/nanovg
+	url = https://github.com/timothyschoen/nanovg.git
+[submodule "Libraries/plf_stack"]
+	path = Libraries/plf_stack
+	url = https://github.com/mattreecebentley/plf_stack.git
+[submodule "Libraries/pd-cyclone"]
+	path = Libraries/pd-cyclone
+	url = https://github.com/timothyschoen/pd-cyclone
+[submodule "Libraries/fuzzysearchdatabase"]
+	path = Libraries/fuzzysearchdatabase
+	url = https://timschoen@bitbucket.org/j_norberg/fuzzysearchdatabase.git

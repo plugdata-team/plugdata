@@ -11,29 +11,14 @@
 
 #include "Pd/Interface.h"
 #include "Pd/Patch.h"
+#include "Objects/AllGuis.h"
+#include <g_all_guis.h>
 
-OfflineObjectRenderer::OfflineObjectRenderer(pd::Instance* instance)
-    : pd(instance)
-{
-    pd->setThis();
+#include "Objects/ObjectBase.h"
+#include "PluginProcessor.h"
+#include "Objects/IEMHelper.h"
+#include "Objects/CanvasObject.h"
 
-    auto patchFile = File::createTempFile(".pd");
-    patchFile.replaceWithText(pd::Instance::defaultPatch);
-    String dirname = patchFile.getParentDirectory().getFullPathName().replace("\\", "/");
-    auto const* dir = dirname.toRawUTF8();
-
-    String filename = patchFile.getFileName();
-    auto const* file = filename.toRawUTF8();
-
-    offlineCnv = static_cast<t_canvas*>(pd::Interface::createCanvas(file, dir));
-}
-
-OfflineObjectRenderer::~OfflineObjectRenderer() = default;
-
-OfflineObjectRenderer* OfflineObjectRenderer::findParentOfflineObjectRendererFor(Component* childComponent)
-{
-    return childComponent != nullptr ? &childComponent->findParentComponentOfClass<PluginEditor>()->offlineRenderer : nullptr;
-}
 
 ImageWithOffset OfflineObjectRenderer::patchToMaskedImage(String const& patch, float scale, bool makeInvalidImage)
 {
@@ -63,6 +48,282 @@ ImageWithOffset OfflineObjectRenderer::patchToMaskedImage(String const& patch, f
     return ImageWithOffset(output, image.offset);
 }
 
+bool OfflineObjectRenderer::parseGraphSize(String const& objectText, Rectangle<int>& bounds)
+{
+    auto patchName = objectText.upToFirstOccurrenceOf(" ", false, false).upToFirstOccurrenceOf(";", false, false).upToFirstOccurrenceOf("\\", false, false);
+    if (patchName.isEmpty()) return false;
+    
+    auto patchFile = pd::Library::findPatch(patchName);
+    if(!patchFile.existsAsFile()) return false;
+    
+    auto patchAsString = patchFile.loadFileAsString();
+    auto lines = StringArray::fromLines(patchAsString.trim());
+    if(lines.size()) {
+        auto graphCoordsLine = lines[lines.size()-1];
+        auto tokens = StringArray::fromTokens(graphCoordsLine, true);
+        
+        if(tokens[0] == "#X" && tokens[1] == "coords" && tokens.size() >= 8 && tokens[6].containsOnly("-0123456789") && tokens[7].containsOnly("-0123456789"))
+        {
+            bounds = bounds.withSize(tokens[6].getIntValue(), tokens[7].getIntValue());
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+void OfflineObjectRenderer::parsePatch(String const& patch, std::function<void(PatchItemType, int, String const&)> callback)
+{
+    int canvasDepth = patch.startsWith("#N canvas") ? -1 : 0;
+    
+    auto isComment = [](StringArray& tokens) {
+        return tokens[0] == "#X" && tokens[1] == "text" && tokens.size() >= 4 && tokens[1] != "f" && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789");
+    };
+    auto isMessage = [](StringArray& tokens) {
+        return tokens[0] == "#X" && tokens[1] == "msg" && tokens.size() >= 4 && tokens[1] != "f" && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789");
+    };
+    auto isObject = [](StringArray& tokens) {
+        return tokens[0] == "#X" && tokens[1] != "connect" && tokens.size() >= 4 && tokens[1] != "f" && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789");
+    };
+
+    auto isConnection = [](StringArray& tokens) {
+        return tokens[0] == "#X" && tokens[1] == "connect" && tokens[2].containsOnly("0123456789") && tokens[3].containsOnly("0123456789") && tokens[4].containsOnly("0123456789") && tokens[5].containsOnly("0123456789");
+    };
+    
+    auto isStartingCanvas = [](StringArray& tokens) {
+        return tokens[0] == "#N" && tokens[1] == "canvas" && tokens.size() >= 6 && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789") && tokens[4].containsOnly("-0123456789") && tokens[5].containsOnly("-0123456789");
+    };
+
+    auto isEndingCanvas = [](StringArray& tokens) {
+        return tokens[0] == "#X" && tokens[1] == "restore" && tokens.size() >= 4 && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789");
+    };
+
+    auto isGraphCoords = [](StringArray& tokens) {
+        return tokens[0] == "#X" && tokens[1] == "coords" && tokens.size() >= 7 && tokens[5].containsOnly("-0123456789") && tokens[6].containsOnly("-0123456789");
+    };
+
+    Rectangle<int> nextGraphCoords;
+    String canvasName;
+    bool hasGraphCoords = false;
+    for (auto& line : StringArray::fromLines(patch)) {
+
+        line = line.upToLastOccurrenceOf(";", false, false);
+
+        auto tokens = StringArray::fromTokens(line, true);
+
+        if (isStartingCanvas(tokens)) {
+            if (tokens.size() > 6)
+                canvasName = tokens[6];
+            
+            callback(CanvasStart, canvasDepth, "");
+            canvasDepth++;
+        }
+        
+        if(isComment(tokens)) {
+            callback(Comment, canvasDepth, line);
+        }
+        else if(isMessage(tokens)) {
+            callback(Message, canvasDepth, line);
+        }
+        else if (isObject(tokens)) {
+            callback(Object, canvasDepth, line);
+        }
+        else if (isConnection(tokens)) {
+            callback(Connection, canvasDepth, line);
+        }
+        
+        if (isGraphCoords(tokens)) {
+            callback(GraphCoords, canvasDepth, "");
+            nextGraphCoords = Rectangle<int>(tokens[6].getIntValue(), tokens[7].getIntValue());
+            hasGraphCoords = true;
+        }
+
+        if (isEndingCanvas(tokens)) {
+            callback(CanvasEnd, canvasDepth, "");
+            if (hasGraphCoords) {
+                callback(Object, canvasDepth, line + " " + String(nextGraphCoords.getWidth()) + " " + String(nextGraphCoords.getHeight()));
+                hasGraphCoords = false;
+            } else {
+                callback(Object, canvasDepth, line + " " + String(canvasName.length() * 12) + " 24");
+            }
+            canvasDepth--;
+        }
+    }
+}
+
+Array<Rectangle<int>> OfflineObjectRenderer::getObjectBoundsForPatch(String const& patch)
+{
+    Array<Rectangle<int>> objectBounds;
+    
+    parsePatch(patch, [&objectBounds](PatchItemType type, int depth, String const& text){
+        if((type != PatchItemType::Object &&  type != PatchItemType::Message && type != PatchItemType::Comment) || depth != 0) return;
+        
+        auto tokens = StringArray::fromTokens(text, true);
+
+        if ((tokens[1] == "floatatom" || tokens[1] == "symbolatom" || tokens[1] == "listatom") && tokens.size() > 11) {
+            auto height = tokens[11].getIntValue();
+            objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), (tokens[4].getIntValue() * sys_fontwidth(height)) + 3, (height == 0 ? 12 : height) + 7));
+            return;
+        }
+
+        if (tokens[1] == "text") {
+            StringArray textString;
+            textString.addArray(tokens, 4, tokens.size() - 2 - 4);
+
+            int textAreaWidth = 0;
+            int lines = 1;
+
+            // calcuate the length of the text string:
+            // if char number is specified, then use that
+            // if it's not, then it's auto sizing, which is max of 92 chars, or min of the text length
+            if (tokens[tokens.size() - 2] == "f") {
+                textAreaWidth = tokens[tokens.size() - 1].getIntValue() * 8;
+            } else {
+                int autoWidth = 0;
+                for (auto text : textString) {
+                    autoWidth += CachedStringWidth<15>::calculateStringWidth(text + " ");
+                }
+                textAreaWidth = jmin(92 * 8, autoWidth);
+            }
+
+            int wordsInLine = 1;
+            int lineWidth = 0;
+            int wordIdx = 0;
+            while (wordIdx < textString.size()) {
+                lineWidth += CachedStringWidth<15>::calculateStringWidth(textString[wordIdx] + " ");
+                if (lineWidth > textAreaWidth) {
+                    if (wordsInLine == 1) {
+                        break;
+                    }
+                    lines++;
+                }
+                wordIdx++;
+                wordsInLine++;
+            }
+            objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), textAreaWidth, lines * 12));
+            return;
+        }
+        switch (hash(tokens[4])) {
+        case hash("restore"): {
+            if (tokens.size() < 6)
+                break;
+            objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[4].getIntValue(), tokens[5].getIntValue()));
+            break;
+        }
+        case hash("bng"):
+        case hash("tgl"):
+        case hash("knob"): {
+            if (tokens.size() < 6)
+                break;
+            objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[5].getIntValue(), tokens[5].getIntValue()));
+            break;
+        }
+        case hash("vradio"): {
+            if (tokens.size() < 9)
+                break;
+            objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[5].getIntValue(), tokens[5].getIntValue() * tokens[8].getIntValue()));
+            break;
+        }
+        case hash("hradio"): {
+            if (tokens.size() < 9)
+                break;
+            objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[5].getIntValue() * tokens[8].getIntValue(), tokens[5].getIntValue()));
+            break;
+        }
+        case hash("numbox~"):
+        case hash("cnv"): {
+            if (tokens.size() < 8)
+                break;
+            objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[6].getIntValue(), tokens[7].getIntValue()));
+            break;
+        }
+        case hash("graph"):
+        case hash("vu"):
+        case hash("hsl"):
+        case hash("vsl"):
+        case hash("scope~"):
+        case hash("function"):
+        case hash("button"):
+        case hash("bicoeff"):
+        case hash("messbox"):
+        case hash("pad"):
+        case hash("slider"): {
+            if (tokens.size() < 7)
+                break;
+            objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[5].getIntValue(), tokens[6].getIntValue()));
+            break;
+        }
+        case hash("nbx"): {
+            if (tokens.size() < 7)
+                break;
+            objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[5].getIntValue() * 12, tokens[6].getIntValue()));
+            break;
+        }
+        case hash("keyboard"):
+        {
+            if (tokens.size() < 8)
+                break;
+
+            objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[5].getIntValue() * (tokens[7].getIntValue() * 7), tokens[6].getIntValue()));
+            break;
+        }
+        case hash("pic"):
+        case hash("note"):
+        {
+            // TODO: implement these
+            break;
+        }
+        default: {
+            if (tokens.size() < 4)
+                break;
+            
+            auto bounds = Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), 0, 23);
+            
+            tokens.removeRange(0, 4);
+            auto text = tokens.joinIntoString(" ");
+            auto wasGraph = parseGraphSize(text, bounds);
+            
+            if(!wasGraph)
+            {
+                if(text.contains(", f"))
+                {
+                    bounds = bounds.withWidth(text.fromFirstOccurrenceOf("f", false, false).getIntValue() * 8 + 11);
+                }
+                else {
+                    bounds = bounds.withWidth(CachedStringWidth<15>::calculateStringWidth(text) + 11);
+                }
+            }
+            
+            objectBounds.add(bounds);
+            break;
+        }
+        }
+    });
+    
+    return objectBounds;
+}
+
+
+String OfflineObjectRenderer::patchToSVG(String const& patch)
+{
+    auto objectRects = getObjectBoundsForPatch(patch);
+    
+    String svgContent;
+    auto regionOfInterest = Rectangle<int>();
+    for (auto& b : objectRects) {
+        regionOfInterest = regionOfInterest.getUnion(b.reduced(Object::margin));
+    }
+
+    for (auto& b : objectRects) {
+        auto rect = b - regionOfInterest.getPosition();
+        svgContent += String::formatted(
+            "<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" rx=\"%.1f\" ry=\"%.1f\" />\n",
+            rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight(), Corners::objectCornerRadius, Corners::objectCornerRadius);
+    }
+
+    return "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">\n" + svgContent + "</svg>";
+}
+
 ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, float scale)
 {
     static std::unordered_map<String, ImageWithOffset> patchImageCache;
@@ -71,45 +332,14 @@ ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, flo
     if (patchImageCache.contains(patchSHA256)) {
         return patchImageCache[patchSHA256];
     }
-
-    pd->setThis();
-
-    sys_lock();
-    pd->muteConsole(true);
-
-    canvas_create_editor(offlineCnv);
-
-    objectRects.clear();
-    totalSize.setBounds(0, 0, 0, 0);
-    int obj_x, obj_y, obj_w, obj_h;
-    auto rect = Rectangle<int>();
-    pd::Interface::paste(offlineCnv, stripConnections(patch).toRawUTF8());
-
-    // traverse the linked list of objects, asking PD the object size each time
-    auto object = offlineCnv->gl_list;
-    while (object) {
-        pd::Interface::getObjectBounds(offlineCnv, object, &obj_x, &obj_y, &obj_w, &obj_h);
-        auto* objectPtr = pd::Interface::checkObject(object);
-        auto maxIolets = jmax<int>(pd::Interface::numOutlets(objectPtr), pd::Interface::numInlets(objectPtr));
-        // ALEX TODO: fix this heuristic, it doesn't work well for everything
-        auto maxSize = jmax<int>(maxIolets * 18, obj_w);
-        rect.setBounds(obj_x, obj_y, maxSize, obj_h);
-
-        // put the object bounds into the rect list, and also calculate the total size of all objects
-        objectRects.add(rect);
-        totalSize = totalSize.getUnion(rect);
-
-        // save the pointer to the next object
-        auto nextObject = object->g_next;
-        // delete the current object from the canvas after we have read its dimensions
-        pd::Interface::removeObjects(offlineCnv, { object });
-        // move to the next object in the linked list
-        object = nextObject;
+    
+    auto objectRects = getObjectBoundsForPatch(patch);
+    Rectangle<int> totalSize;
+    
+    for (auto& rect : objectRects) {
+        totalSize = rect.getUnion(totalSize);
     }
-
-    pd->muteConsole(false);
-    sys_unlock();
-
+    
     // apply the top left offset to all rects
     for (auto& rect : objectRects) {
         rect.translate(-totalSize.getX(), -totalSize.getY());
@@ -120,7 +350,11 @@ ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, flo
     g.addTransform(AffineTransform::scale(scale));
     g.setColour(Colours::white);
     for (auto& rect : objectRects) {
-        g.fillRoundedRectangle(rect.toFloat(), 5.0f);
+        if (ProjectInfo::canUseSemiTransparentWindows()) {
+            g.fillRoundedRectangle(rect.toFloat(), 5.0f);
+        } else {
+            g.fillRect(rect);
+        }
     }
 
     auto output = ImageWithOffset(image, size);
@@ -130,55 +364,8 @@ ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, flo
 
 bool OfflineObjectRenderer::checkIfPatchIsValid(String const& patch)
 {
-    static std::unordered_map<String, bool> patchValidCache;
-
-    auto const patchSHA256 = SHA256(patch.getCharPointer()).toHexString();
-    if (patchValidCache.contains(patchSHA256)) {
-        return patchValidCache[patchSHA256];
-    }
-
-    pd->setThis();
-
-    sys_lock();
-    pd->muteConsole(true);
-
-    bool isValid = false;
-    pd::Interface::paste(offlineCnv, stripConnections(patch).toRawUTF8());
-
-    // if we can create more than 1 valid object, assume the patch is valid
-    auto object = offlineCnv->gl_list;
-    while (object) {
-        isValid = true;
-
-        auto nextObject = object->g_next;
-        pd::Interface::removeObjects(offlineCnv, { object });
-        object = nextObject;
-    }
-
-    pd->muteConsole(false);
-    sys_unlock();
-
-    patchValidCache.emplace(patchSHA256, isValid);
-    return isValid;
-}
-
-// Remove all connections from the PD patch, so that it can't activate loadbangs etc
-String OfflineObjectRenderer::stripConnections(String const& patch)
-{
-    StringArray lines;
-    lines.addTokens(patch, "\n", StringRef());
-    for (int i = lines.size() - 1; i >= 0; --i) {
-        if (lines[i].startsWith("#X connect"))
-            lines.remove(i);
-    }
-
-    String strippedPatch;
-
-    for (auto const& line : lines) {
-        strippedPatch += line + "\n";
-    }
-
-    return strippedPatch;
+    // TODO: fix this!
+    return true;
 }
 
 std::pair<std::vector<bool>, std::vector<bool>> OfflineObjectRenderer::countIolets(String const& patch)
@@ -189,32 +376,54 @@ std::pair<std::vector<bool>, std::vector<bool>> OfflineObjectRenderer::countIole
     if (patchIoletCache.contains(patchSHA256)) {
         return patchIoletCache[patchSHA256];
     }
+    
+    auto trimmedPatch = patch.trim();
+    bool onlyOneObject = StringArray::fromLines(trimmedPatch).size() == 1;
 
-    std::vector<bool> inlets;
-    std::vector<bool> outlets;
-    pd->setThis();
-
-    sys_lock();
-    pd->muteConsole(true);
-    pd::Interface::paste(offlineCnv, stripConnections(patch).toRawUTF8());
-
-    if (auto* object = reinterpret_cast<t_object*>(offlineCnv->gl_list)) {
-        int numIn = pd::Interface::numInlets(object);
-        int numOut = pd::Interface::numOutlets(object);
-        for (int i = 0; i < numIn; i++) {
-            inlets.push_back(pd::Interface::isSignalInlet(object, i));
-        }
-        for (int i = 0; i < numOut; i++) {
-            outlets.push_back(pd::Interface::isSignalOutlet(object, i));
+    std::vector<bool> inlets, outlets;
+    
+    if(onlyOneObject)
+    {
+        auto tokens = StringArray::fromTokens(trimmedPatch, true);
+        if(tokens.size() >= 5) {
+            auto& objectText = tokens.getReference(4);
+            auto patchFile = pd::Library::findPatch(objectText);
+            if(!patchFile.existsAsFile()) return {{0}, {0}};
+            
+            auto patchAsString = patchFile.loadFileAsString();
+            parsePatch(patchAsString, [&inlets, &outlets](PatchItemType type, int depth, const String& text){
+                if(type == Object && depth == 0)
+                {
+                    auto tokens = StringArray::fromTokens(text.trim(), true);
+                    if(tokens.size() >= 5) {
+                        auto& name = tokens.getReference(4);
+                        if(name.startsWith("inlet~")) inlets.push_back(true);
+                        else if(name.startsWith("inlet")) inlets.push_back(false);
+                        else if(name.startsWith("outlet~")) outlets.push_back(true);
+                        else if(name.startsWith("outlet")) outlets.push_back(false);
+                    }
+                }
+            });
         }
     }
-
-    glist_clear(offlineCnv);
-
-    pd->muteConsole(false);
-    sys_unlock();
-
-    auto output = std::make_pair(inlets, outlets);
-    patchIoletCache.emplace(patchSHA256, output);
-    return output;
+    else {
+        parsePatch(trimmedPatch, [&inlets, &outlets](PatchItemType type, int depth, String const& text) {
+            if(type == Object && depth == 1)
+            {
+                auto tokens = StringArray::fromTokens(text.trim(), true);
+                if(tokens.size() >= 5) {
+                    auto& objectText = tokens.getReference(4);
+                    if(objectText.startsWith("inlet~")) inlets.push_back(true);
+                    else if(objectText.startsWith("inlet")) inlets.push_back(false);
+                    else if(objectText.startsWith("outlet~")) outlets.push_back(true);
+                    else if(objectText.startsWith("outlet")) outlets.push_back(false);
+                }
+            }
+        });
+    }
+    
+    auto result = std::pair<std::vector<bool>, std::vector<bool>>{inlets, outlets};
+    patchIoletCache.emplace(patchSHA256, result);
+    
+    return result;
 }

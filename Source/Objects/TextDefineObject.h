@@ -37,26 +37,31 @@ public:
             textEditor->toFront(true);
             return;
         }
+        
+        auto onClose = [this](String const& lastText, bool hasChanged) {
+            if (!hasChanged) {
+                textEditor.reset(nullptr);
+                return;
+            }
 
-        textEditor.reset(
-            Dialogs::showTextEditorDialog(getText(), "qlist", [this](String const& lastText, bool hasChanged) {
-                if (!hasChanged) {
-                    textEditor.reset(nullptr);
-                    return;
-                }
+            Dialogs::showAskToSaveDialog(
+                &saveDialog, textEditor.get(), "", [this, lastText](int result) mutable {
+                    if (result == 2) {
+                        setText(lastText);
+                        textEditor.reset(nullptr);
+                    }
+                    if (result == 1) {
+                        textEditor.reset(nullptr);
+                    }
+                },
+                15, false);
+        };
+        
+        auto onSave = [this](String const& lastText) {
+            setText(lastText);
+        };
 
-                Dialogs::showAskToSaveDialog(
-                    &saveDialog, textEditor.get(), "", [this, lastText](int result) mutable {
-                        if (result == 2) {
-                            setText(lastText);
-                            textEditor.reset(nullptr);
-                        }
-                        if (result == 1) {
-                            textEditor.reset(nullptr);
-                        }
-                    },
-                    15, false);
-            }));
+        textEditor.reset(Dialogs::showTextEditorDialog(getText(), "qlist", onClose, onSave));
     }
 
     void setText(String text)
@@ -143,14 +148,9 @@ public:
         return {};
     }
 
-    bool canOpenFromMenu() override
+    void getMenuOptions(PopupMenu& menu) override
     {
-        return true;
-    }
-
-    void openFromMenu() override
-    {
-        openTextEditor();
+        menu.addItem("Open text editor", [_this = SafePointer(this)](){ if(_this) _this->openTextEditor(); });
     }
 };
 
@@ -192,32 +192,41 @@ public:
         } else {
             return;
         }
+        
+        auto onClose = [this](String const& lastText, bool hasChanged) {
+            if (!hasChanged) {
+                textEditor.reset(nullptr);
+                return;
+            }
 
-        textEditor.reset(
-            Dialogs::showTextEditorDialog(getText(), name, [this](String const& lastText, bool hasChanged) {
-                if (!hasChanged) {
-                    textEditor.reset(nullptr);
-                    return;
-                }
+            Dialogs::showAskToSaveDialog(
+                &saveDialog, textEditor.get(), "", [this, lastText](int result) mutable {
+                    if (result == 2) {
+                        setText(lastText);
+                        textEditor.reset(nullptr);
 
-                Dialogs::showAskToSaveDialog(
-                    &saveDialog, textEditor.get(), "", [this, lastText](int result) mutable {
-                        if (result == 2) {
-                            setText(lastText);
-                            textEditor.reset(nullptr);
-
-                            // enable notification on second outlet //
-                            if (auto textDefine = ptr.get<t_fake_text_define>()) {
-                                const char* target = textDefine->x_bindsym->s_name;
-                                pd->sendMessage(target, "notify", {});
-                            }
+                        // enable notification on second outlet //
+                        if (auto textDefine = ptr.get<t_fake_text_define>()) {
+                            const char* target = textDefine->x_bindsym->s_name;
+                            pd->sendMessage(target, "notify", {});
                         }
-                        if (result == 1) {
-                            textEditor.reset(nullptr);
-                        }
-                    },
-                    15, false);
-            }));
+                    }
+                    if (result == 1) {
+                        textEditor.reset(nullptr);
+                    }
+                },
+                15, false);
+        };
+        
+        auto onSave = [this](String const& lastText) {
+            setText(lastText);
+            if (auto textDefine = ptr.get<t_fake_text_define>()) {
+                const char* target = textDefine->x_bindsym->s_name;
+                pd->sendMessage(target, "notify", {});
+            }
+        };
+
+        textEditor.reset(Dialogs::showTextEditorDialog(getText(), name, onClose, onSave));
     }
 
     void setText(String text)
@@ -302,13 +311,8 @@ public:
         return {};
     }
 
-    bool canOpenFromMenu() override
+    void getMenuOptions(PopupMenu& menu) override
     {
-        return true;
-    }
-
-    void openFromMenu() override
-    {
-        openTextEditor();
+        menu.addItem("Open text editor", [_this = SafePointer(this)](){ if(_this) _this->openTextEditor(); });
     }
 };

@@ -18,6 +18,10 @@ class GraphOnParent final : public ObjectBase {
     pd::Patch::Ptr subpatch;
     std::unique_ptr<Canvas> canvas;
 
+    CachedTextRender textRenderer;
+
+    NVGImage openInGopBackground;
+
 public:
     // Graph On Parent
     GraphOnParent(pd::WeakReference obj, Object* object)
@@ -37,7 +41,7 @@ public:
         MessageManager::callAsync([_this = SafePointer(this)]() {
             if (_this) {
                 _this->update();
-                _this->valueChanged(_this->isGraphChild);
+                _this->propertyChanged(_this->isGraphChild);
             }
         });
     }
@@ -55,7 +59,7 @@ public:
         updateCanvas();
     }
 
-    void receiveObjectMessage(hash32 symbol, const pd::Atom atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
         switch (symbol) {
         case hash("yticks"):
@@ -90,8 +94,17 @@ public:
 
     void resized() override
     {
+        textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId), getWidth(), getWidth());
         updateCanvas();
         updateDrawables();
+
+        // Update parent canvas directly (needed if open in splitview)
+        canvas->synchroniseAllCanvases();
+    }
+
+    void lookAndFeelChanged() override
+    {
+        textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId), getWidth(), getWidth());
     }
 
     // Called by object to make sure clicks on empty parts of the graph are passed on
@@ -164,11 +177,19 @@ public:
 
     void tabChanged() override
     {
-        isOpenedInSplitView = false;
-        for (auto* split : cnv->editor->splitView.splits) {
-            if (auto* cnv = split->getTabComponent()->getCurrentCanvas()) {
-                if (cnv->patch == *getPatch()) {
-                    isOpenedInSplitView = true;
+        auto setIsOpenedInSplitView = [this](bool shouldBeOpen){
+            if (isOpenedInSplitView != shouldBeOpen) {
+                isOpenedInSplitView = shouldBeOpen;
+                repaint();
+            }
+        };
+
+        setIsOpenedInSplitView(false);
+        for (auto* editor : cnv->pd->getEditors()) {
+            for (auto *visibleCanvas: editor->getTabComponent().getVisibleCanvases()) {
+                if (visibleCanvas->patch == *getPatch()) {
+                    setIsOpenedInSplitView(true);
+                    break;
                 }
             }
         }
@@ -193,7 +214,7 @@ public:
             cnv->editor->updateCommandStatus();
         }
 
-        auto b = getPatch()->getBounds() + canvas->canvasOrigin;
+        auto b = getPatch()->getGraphBounds() + canvas->canvasOrigin;
         canvas->setBounds(-b.getX(), -b.getY(), b.getWidth() + b.getX(), b.getHeight() + b.getY());
         canvas->setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
         canvas->locked.referTo(cnv->locked);
@@ -209,88 +230,165 @@ public:
         canvas->updateDrawables();
     }
 
-    // override to make transparent
-    void paint(Graphics& g) override
+    void render(NVGcontext* nvg) override
     {
         // Strangly, the title goes below the graph content in pd
-        if (!getValue<bool>(hideNameAndArgs) && getText() != "graph") {
+        if(!getValue<bool>(hideNameAndArgs)) {
             auto text = getText();
+            if (text != "graph" && text.isNotEmpty()) {
+                textRenderer.renderText(nvg, Rectangle<int>(5, 0, getWidth() - 5, 16), getImageScale());
+            }
+        }
 
-            auto textArea = getLocalBounds().removeFromTop(16).withTrimmedLeft(5);
-            Fonts::drawFittedText(g, text, textArea, object->findColour(PlugDataColour::canvasTextColourId));
+        Canvas* topLevel = cnv;
+        while (auto* nextCnv = topLevel->findParentComponentOfClass<Canvas>()) {
+            topLevel = nextCnv;
+        }
+
+        auto b = getLocalBounds().toFloat();
+        if (canvas) {
+            auto invalidArea = cnv->editor->nvgSurface.getInvalidArea();
+
+            if (!invalidArea.isEmpty())
+                invalidArea = canvas->getLocalArea(&cnv->editor->nvgSurface, invalidArea).expanded(1);
+            else
+                return;
+
+            NVGScopedState scopedState(nvg);
+            nvgIntersectRoundedScissor(nvg, b.getX() + 0.75f, b.getY() + 0.75f, b.getWidth() - 1.5f, b.getHeight() - 1.5f, Corners::objectCornerRadius);
+            nvgTranslate(nvg, canvas->getX(), canvas->getY());
+            canvas->performRender(nvg, invalidArea);
+        }
+
+        if (isOpenedInSplitView) {
+            auto width = getWidth();
+            auto height = getHeight();
+
+            if (openInGopBackground.needsUpdate(width, height)) {
+                auto bgColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId);
+
+                openInGopBackground = NVGImage(nvg, width, height, [width, height, bgColour](Graphics &g) {
+                    AffineTransform rotate;
+                    rotate = rotate.rotated(MathConstants<float>::pi / 4.0f);
+                    g.fillAll(bgColour);
+                    g.addTransform(rotate);
+                    float diagonalLength = std::sqrt(width * width + height * height);
+                    g.setColour(bgColour.contrasting(0.5f).withAlpha(0.12f));
+                    auto stripeWidth = 20.0f;
+                    for (float x = -diagonalLength; x < diagonalLength; x += (stripeWidth * 2)) {
+                        g.fillRect(x, -diagonalLength, stripeWidth, diagonalLength * 2);
+                    }
+                g.addTransform(rotate.inverted());
+                });
+            }
+            auto imagePaint = nvgImagePattern(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), 0.0f, openInGopBackground.getImageId(), 1.0f);
+            nvgBeginPath(nvg);
+            nvgRoundedRect(nvg,  b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+            nvgFillPaint(nvg, imagePaint);
+            nvgFill(nvg);
+
+            Font fontMetrics;
+            fontMetrics = Fonts::getDefaultFont().withHeight(12.0f);
+
+            auto errorText = String("Graph open in split view");
+
+            auto stringLength = fontMetrics.getStringWidth(errorText);
+            if (stringLength < (getWidth() - Object::doubleMargin - 20 /* 20 is a hack for now */) && getHeight() > 12) {
+                nvgBeginPath(nvg);
+                nvgFontFace(nvg, "Inter-Regular");
+                nvgFontSize(nvg, 12.0f);
+                nvgFillColor(nvg, cnv->commentTextCol); // why comment colour?
+                nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_CENTER);
+                nvgText(nvg, b.getCentreX(), b.getCentreY(), errorText.toRawUTF8(), nullptr);
+            }
+        }
+
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
+
+        if (auto graph = ptr.get<t_glist>()) {
+            drawTicksForGraph(nvg, graph.get(), this);
         }
     }
     
-    
-    static void drawTicksForGraph(Graphics& g, t_glist* x, ObjectBase* parent)
+    void updateFramebuffers() override
+    {
+        if(canvas)
+        {
+            for(auto& object : canvas->objects)
+            {
+                if(object->gui) object->gui->updateFramebuffers();
+            }
+        }
+    }
+
+    static void drawTicksForGraph(NVGcontext* nvg, t_glist* x, ObjectBase* parent)
     {
         auto b = parent->getLocalBounds();
         t_float y1 = b.getY(), y2 = b.getBottom(), x1 = b.getX(), x2 = b.getRight();
 
-        g.setColour(parent->cnv->findColour(PlugDataColour::guiObjectInternalOutlineColour));
-        if (x->gl_xtick.k_lperb)
-        {
+        nvgStrokeColor(nvg, parent->cnv->guiObjectInternalOutlineCol);
+        if (x->gl_xtick.k_lperb) {
             t_float f = x->gl_xtick.k_point;
-            for (int i = 0; f < 0.99f * x->gl_x2 + 0.01f * x->gl_x1; i++, f += x->gl_xtick.k_inc)
-            {
+            for (int i = 0; f < 0.99f * x->gl_x2 + 0.01f * x->gl_x1; i++, f += x->gl_xtick.k_inc) {
                 auto xpos = jmap<float>(f, x->gl_x2, x->gl_x1, x1, x2);
                 int tickpix = (i % x->gl_xtick.k_lperb ? 2 : 4);
-                g.drawLine((int)xpos, (int)y2, (int)xpos, (int)y2 - tickpix);
-                g.drawLine((int)xpos, (int)y1, (int)xpos, (int)y1 + tickpix);
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, xpos, y2);
+                nvgLineTo(nvg, xpos, y2 - tickpix);
+                nvgStroke(nvg);
+
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, xpos, y1);
+                nvgLineTo(nvg, xpos, y1 + tickpix);
+                nvgStroke(nvg);
             }
-            
+
             f = x->gl_xtick.k_point - x->gl_xtick.k_inc;
-            for (int i = 1; f > 0.99f * x->gl_x1 + 0.01f * x->gl_x2; i++, f -= x->gl_xtick.k_inc)
-            {
+            for (int i = 1; f > 0.99f * x->gl_x1 + 0.01f * x->gl_x2; i++, f -= x->gl_xtick.k_inc) {
                 auto xpos = jmap<float>(f, x->gl_x2, x->gl_x1, x1, x2);
                 int tickpix = (i % x->gl_xtick.k_lperb ? 2 : 4);
-                g.drawLine(xpos, y2, xpos, y2 - tickpix);
-                g.drawLine(xpos, y1, xpos, y1 + tickpix);
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, xpos, y2);
+                nvgLineTo(nvg, xpos, y2 - tickpix);
+                nvgStroke(nvg);
+
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, xpos, y1);
+                nvgLineTo(nvg, xpos, y1 + tickpix);
+                nvgStroke(nvg);
             }
         }
 
-        if (x->gl_ytick.k_lperb)
-        {
+        if (x->gl_ytick.k_lperb) {
             t_float f = x->gl_ytick.k_point;
-            for (int i = 0; f < 0.99f * x->gl_y1 + 0.01f * x->gl_y2; i++, f += x->gl_ytick.k_inc)
-            {
+            for (int i = 0; f < 0.99f * x->gl_y1 + 0.01f * x->gl_y2; i++, f += x->gl_ytick.k_inc) {
                 auto ypos = jmap<float>(f, x->gl_y2, x->gl_y1, y1, y2);
                 int tickpix = (i % x->gl_ytick.k_lperb ? 2 : 4);
-                g.drawLine(x1, ypos, x1 + tickpix, ypos);
-                g.drawLine(x2, ypos, x2 - tickpix, ypos);
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, x1, ypos);
+                nvgLineTo(nvg, x1 + tickpix, ypos);
+                nvgStroke(nvg);
+
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, x2, ypos);
+                nvgLineTo(nvg, x2 - tickpix, ypos);
+                nvgStroke(nvg);
             }
-            
+
             f = x->gl_ytick.k_point - x->gl_ytick.k_inc;
-            for (int i = 1; f > 0.99f * x->gl_y2 + 0.01f * x->gl_y1; i++, f -= x->gl_ytick.k_inc)
-            {
+            for (int i = 1; f > 0.99f * x->gl_y2 + 0.01f * x->gl_y1; i++, f -= x->gl_ytick.k_inc) {
                 auto ypos = jmap<float>(f, x->gl_y2, x->gl_y1, y1, y2);
                 int tickpix = (i % x->gl_ytick.k_lperb ? 2 : 4);
-                g.drawLine(x1, ypos, x1 + tickpix, ypos);
-                g.drawLine(x2, ypos, x2 - tickpix, ypos);
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, x1, ypos);
+                nvgLineTo(nvg, x1 + tickpix, ypos);
+                nvgStroke(nvg);
+
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, x2, ypos);
+                nvgLineTo(nvg, x2 - tickpix, ypos);
+                nvgStroke(nvg);
             }
-        }
-    }
-
-    void paintOverChildren(Graphics& g) override
-    {
-        if (isOpenedInSplitView) {
-
-            g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-            g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::objectCornerRadius);
-
-            auto colour = object->findColour(PlugDataColour::commentTextColourId);
-            Fonts::drawText(g, "Graph opened in split view", getLocalBounds(), colour, 14, Justification::centred);
-        }
-
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-        
-        if(auto graph = ptr.get<t_glist>())
-        {
-            drawTicksForGraph(g, graph.get(), this);
         }
     }
 
@@ -299,12 +397,7 @@ public:
         return subpatch;
     }
 
-    Canvas* getCanvas() override
-    {
-        return canvas.get();
-    }
-
-    void valueChanged(Value& v) override
+    void propertyChanged(Value& v) override
     {
 
         if (v.refersToSameSourceAs(sizeProperty)) {
@@ -340,7 +433,7 @@ public:
                         return;
 
                     _this->cnv->setSelected(_this->object, false);
-                    _this->object->cnv->editor->sidebar->hideParameters();
+                    _this->object->editor->sidebar->hideParameters();
 
                     _this->object->setType(_this->getText(), _this->ptr);
                 });
@@ -363,13 +456,8 @@ public:
         }
     }
 
-    bool canOpenFromMenu() override
+    void getMenuOptions(PopupMenu& menu) override
     {
-        return true;
-    }
-
-    void openFromMenu() override
-    {
-        openSubpatch();
+        menu.addItem("Open", [_this = SafePointer(this)](){ if(_this) _this->openSubpatch(); });
     }
 };

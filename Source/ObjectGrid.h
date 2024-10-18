@@ -6,11 +6,12 @@
 
 #pragma once
 #include "Utility/SettingsFile.h"
+#include "NVGSurface.h"
 
 class Object;
 class Canvas;
-
-struct ObjectGrid : public SettingsFileListener {
+struct ObjectGrid : public SettingsFileListener
+    , public Timer {
 
     int gridSize = 20;
 
@@ -21,6 +22,8 @@ struct ObjectGrid : public SettingsFileListener {
 
     void clearIndicators(bool fast);
 
+    void render(NVGcontext* nvg);
+
 private:
     enum Side {
         Left,
@@ -30,6 +33,8 @@ private:
         VerticalCentre,
         HorizontalCentre,
     };
+
+    void timerCallback() override;
 
     void propertyChanged(String const& name, var const& value) override;
 
@@ -42,8 +47,11 @@ private:
     static constexpr int objectTolerance = 6;
     static constexpr int connectionTolerance = 9;
 
-    DrawablePath gridLines[2];
-    ComponentAnimator gridLineAnimator;
+    Line<int> lines[2];
+    float lineAlpha[2] = {};
+    float lineTargetAlpha[2] = {};
+    float lineAlphaMultiplier[2] = {};
+    Canvas* cnv;
 
     int gridType;
     bool gridEnabled;

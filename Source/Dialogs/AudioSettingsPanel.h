@@ -14,7 +14,7 @@ public:
     explicit DeviceManagerLevelMeter(AudioDeviceManager::LevelMeter::Ptr levelMeter)
         : levelGetter(std::move(levelMeter))
     {
-        startTimerHz(20);
+        startTimerHz(15);
     }
 
     void timerCallback() override
@@ -151,8 +151,7 @@ public:
             g.fillPath(buttonShape);
         }
 
-        auto textColour = isDown ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
-        Fonts::drawText(g, textOptions[isDown], buttonBounds, textColour, 14.0f, Justification::centred);
+        Fonts::drawText(g, textOptions[isDown], buttonBounds, findColour(PlugDataColour::panelTextColourId), 14.0f, Justification::centred);
 
         // Paint label
         PropertiesPanelProperty::paint(g);
@@ -456,7 +455,7 @@ class DAWAudioSettings : public SettingsDialogPanel
     , public Value::Listener {
 
 public:
-    explicit DAWAudioSettings(AudioProcessor* p)
+    explicit DAWAudioSettings(PluginProcessor* p)
         : processor(p)
     {
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
@@ -466,7 +465,7 @@ public:
 
         latencyValue.addListener(this);
 
-        latencyValue = proc->getLatencySamples();
+        latencyValue = proc->getLatencySamples() - pd::Instance::getBlockSize();
 
         latencyNumberBox = new PropertiesPanel::EditableComponent<int>("Latency (samples)", latencyValue);
         tailLengthNumberBox = new PropertiesPanel::EditableComponent<float>("Tail length (seconds)", tailLengthValue);
@@ -491,11 +490,11 @@ public:
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(latencyValue)) {
-            processor->setLatencySamples(getValue<int>(latencyValue));
+            processor->performLatencyCompensationChange(getValue<int>(latencyValue));
         }
     }
 
-    AudioProcessor* processor;
+    PluginProcessor* processor;
 
     Value latencyValue;
     Value tailLengthValue;

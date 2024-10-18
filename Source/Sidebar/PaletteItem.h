@@ -24,6 +24,8 @@ public:
 
     String getObjectString() override;
 
+    void lookAndFeelChanged() override;
+
     String getPatchStringName() override;
 
     bool hitTest(int x, int y) override;
@@ -37,7 +39,7 @@ public:
     ValueTree itemTree;
 
     Label nameLabel;
-    SmallIconButton deleteButton;
+    SmallIconButton deleteButton = SmallIconButton(Icons::Clear);
 
     std::unique_ptr<ReorderButton> reorderButton;
 

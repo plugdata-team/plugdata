@@ -1,6 +1,7 @@
 #pragma once
 #include <readerwriterqueue.h>
 #include "Dialogs/Dialogs.h"
+#include "Components/BouncingViewport.h"
 
 class Autosave : public Timer
     , public AsyncUpdater
@@ -33,22 +34,18 @@ public:
         // autosave timer trigger
         autosaveInterval.referTo(SettingsFile::getInstance()->getPropertyAsValue("autosave_interval"));
         autosaveInterval.addListener(this);
-        startTimer(1000 * getValue<int>(autosaveInterval));
+        updateAutosaveInterval();
     }
 
     // Call this whenever we load a file
-    void checkForMoreRecentAutosave(File& patchPath, std::function<void()> callback)
+    void checkForMoreRecentAutosave(File& patchPath, PluginEditor* editor, std::function<void()> callback)
     {
-        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
-        if (!editor)
-            return;
-
         auto lastAutoSavedPatch = autoSaveTree.getChildWithProperty("Path", patchPath.getFullPathName());
         auto autoSavedTime = static_cast<int64>(lastAutoSavedPatch.getProperty("LastModified"));
         auto fileChangedTime = patchPath.getLastModificationTime().toMilliseconds();
         if (lastAutoSavedPatch.isValid() && autoSavedTime > fileChangedTime) {
             auto timeDescription = RelativeTime((autoSavedTime - fileChangedTime) / 1000.0f).getApproximateDescription();
-            
+
             Dialogs::showOkayCancelDialog(
                 &editor->openedDialog, editor, "Restore autosave?\n (last autosave is " + timeDescription + " newer)", [lastAutoSavedPatch, patchPath, callback](bool useAutosaved) {
                     if (useAutosaved) {
@@ -68,11 +65,16 @@ public:
     }
 
 private:
+    void updateAutosaveInterval()
+    {
+        auto interval = jlimit(1, 60, getValue<int>(autosaveInterval));
+        startTimer(1000 * 60 * interval);
+    }
+
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(autosaveInterval)) {
-            auto interval = getValue<int>(autosaveInterval);
-            startTimer(1000 * interval);
+            updateAutosaveInterval();
         }
     }
 
@@ -81,43 +83,44 @@ private:
         if (!getValue<bool>(autosaveEnabled))
             return;
 
-        pd->enqueueFunctionAsync([this]() {
-            save();
+        pd->enqueueFunctionAsync([_this = WeakReference(this)]() {
+            if (_this)
+                _this->save();
         });
     }
 
     void save()
     {
-        for (auto& patch : pd->patches) {
-            if (!patch->isDirty())
-                continue;
+        ScopedTryLock const stl(pd->patches.getLock());
+        if (stl.isLocked()) {
+            for (auto& patch : pd->patches) {
+                auto* patchPtr = patch->getPointer().get();
+                if (!patchPtr || !patchPtr->gl_dirty)
+                    continue;
 
-            // Check if patch is a root canvas
-            bool isRootCanvas = false;
-            for (auto* x = pd_getcanvaslist(); x; x = x->gl_next) {
-                if (x == patch->getPointer().get()) {
-                    isRootCanvas = true;
-                    break;
+                // Check if patch is a root canvas
+                for (auto* x = pd_getcanvaslist(); x; x = x->gl_next) {
+                    if (x == patchPtr) {
+
+                        auto patchFile = patch->getPatchFile();
+
+                        // Simple way to filter out plugdata default patches which we don't want to save.
+                        if (!isInternalPatch(patchFile) && !patch->openInPluginMode) {
+                            autoSaveQueue.enqueue({ patchFile.getFullPathName(), patch->getCanvasContent() });
+                        }
+
+                        triggerAsyncUpdate();
+                        break;
+                    }
                 }
             }
-            if (!isRootCanvas)
-                continue;
-
-            auto patchFile = patch->getPatchFile();
-
-            // Simple way to filter out plugdata default patches which we don't want to save.
-            if (!isInternalPatch(patchFile)) {
-                autoSaveQueue.enqueue({ patchFile.getFullPathName(), patch->getCanvasContent() });
-            }
         }
-
-        triggerAsyncUpdate();
     }
 
     bool isInternalPatch(File const& patch)
     {
-        auto const pathName = patch.getFullPathName();
-        return pathName.contains("Documents/plugdata/Abstractions") || pathName.contains("Documents\\plugdata\\Abstractions") || pathName.contains("Documents/plugdata/Documentation") || pathName.contains("Documents\\plugdata\\Documentation") || pathName.contains("Documents/plugdata/Extra") || pathName.contains("Documents\\plugdata\\Extra") || patch.getParentDirectory() == File::getSpecialLocation(File::tempDirectory);
+        auto const pathName = patch.getFullPathName().replace("\\", "/");
+        return pathName.contains("Documents/plugdata/Abstractions") || pathName.contains("Documents/plugdata/Documentation") || pathName.contains("Documents/plugdata/Extra") || patch.getParentDirectory() == File::getSpecialLocation(File::tempDirectory);
     }
 
     void handleAsyncUpdate() override
@@ -169,6 +172,7 @@ private:
     }
 
     friend class AutosaveHistoryComponent;
+    JUCE_DECLARE_WEAK_REFERENCEABLE(Autosave);
 };
 
 class AutosaveHistoryComponent : public Component {
@@ -187,9 +191,10 @@ class AutosaveHistoryComponent : public Component {
             openPatch.onClick = [this, editor]() {
                 MemoryOutputStream ostream;
                 Base64::convertFromBase64(ostream, patch);
-                auto patch = editor->pd->loadPatch(String::fromUTF8(static_cast<const char*>(ostream.getData()), ostream.getDataSize()), editor);
+                auto patch = editor->pd->loadPatch(String::fromUTF8(static_cast<const char*>(ostream.getData()), ostream.getDataSize()));
                 patch->setTitle(patchPath.fromLastOccurrenceOf("/", false, false));
                 patch->setCurrentFile(URL(patchPath));
+                editor->getTabComponent().triggerAsyncUpdate();
 
                 MessageManager::callAsync([editor]() {
                     // Close the whole chain of dialogs
@@ -210,7 +215,7 @@ class AutosaveHistoryComponent : public Component {
 
             Path shadowPath;
             shadowPath.addRoundedRectangle(bounds.reduced(3).toFloat(), Corners::largeCornerRadius);
-            StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.4f), 7, { 0, 1 });
+            StackShadow::renderDropShadow(hash("autosave"), g, shadowPath, Colour(0, 0, 0).withAlpha(0.4f), 7, { 0, 1 });
 
             g.setColour(findColour(PlugDataColour::panelForegroundColourId));
             g.fillRoundedRectangle(bounds.toFloat(), Corners::defaultCornerRadius);

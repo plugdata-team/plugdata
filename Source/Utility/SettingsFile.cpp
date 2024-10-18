@@ -25,7 +25,6 @@ SettingsFileListener::~SettingsFileListener()
 
 JUCE_IMPLEMENT_SINGLETON(SettingsFile)
 
-
 SettingsFile::~SettingsFile()
 {
     // Save current settings before quitting
@@ -34,25 +33,83 @@ SettingsFile::~SettingsFile()
     clearSingletonInstance();
 }
 
+void SettingsFile::backupCorruptSettings()
+{
+    // Backup previous corrupt settings file, so users can fix if they want to
+    auto corruptSettings = getInstance()->settingsFile;
+
+    auto backupLocation = corruptSettings.getParentDirectory().getChildFile(".settings_damaged").getFullPathName();
+    int counter = 1;
+
+    // Increment backup settings file name if previous exists
+    while (File(backupLocation).existsAsFile()) {
+        backupLocation = corruptSettings.getParentDirectory().getChildFile(".settings_damaged_" + String(counter)).getFullPathName();
+        counter++;
+    }
+
+    backupSettingsLocation = backupLocation;
+    corruptSettings.moveFileTo(backupLocation);
+}
+
+String SettingsFile::getCorruptBackupSettingsLocation()
+{
+    return backupSettingsLocation;
+}
+
 SettingsFile* SettingsFile::initialise()
 {
-
     if (isInitialised)
         return getInstance();
 
     isInitialised = true;
 
+//#define DEBUG_CORRUPT_SETTINGS_DIALOG
+#ifdef DEBUG_CORRUPT_SETTINGS_DIALOG
+    backupSettingsLocation = ProjectInfo::appDataDir.getChildFile(".settings_damaged").getFullPathName();
+#endif
+
     // Check if settings file exists, if not, create the default
+    // This is expected behaviour for first run / deleting plugdata folder
+    // No need to alert the user to this
     if (!settingsFile.existsAsFile()) {
         settingsFile.create();
     } else {
-        // Or load the settings when they exist already
-        settingsTree = ValueTree::fromXml(settingsFile.loadFileAsString());
+        std::unique_ptr<XmlElement> xmlElement(XmlDocument::parse(settingsFile.loadFileAsString()));
+
+        // First check if settings XML is valid
+        if (verify(xmlElement.get())) {
+            // Use user .settings file
+            settingsTree = ValueTree::fromXml(*xmlElement);
+            // Overwrite previous settings_bak with current good settings (don't touch it after this)
+            settingsFile.copyFileTo(settingsFile.getFullPathName() + "_bak");
+        } else {
+            // Settings are invalid! Backup old file as .settings_damaged
+            backupCorruptSettings();
+
+            // See if there is a .settings_bak backup settings file from last run
+            auto backupSettings = File(settingsFile.getFullPathName() + "_bak");
+            if (backupSettings.existsAsFile()) {
+                std::unique_ptr<XmlElement> xmlSettingsBackup(XmlDocument::parse(backupSettings.loadFileAsString()));
+                if (verify(xmlSettingsBackup.get())) {
+                    // If backup settings are good, use them
+                    settingsTree = ValueTree::fromXml(*xmlSettingsBackup);
+                    settingsState = BackupSettings;
+                } else {
+                    // Use default plugdata settings (worst case scenario)
+                    settingsFile.create();
+                    settingsState = DefaultSettings;
+                }
+            } else {
+                // Use default plugdata settings (worst case scenario)
+                settingsFile.create();
+                settingsState = DefaultSettings;
+            }
+        }
     }
 
     // Make sure all the properties exist
     for (auto& [propertyName, propertyValue] : defaultSettings) {
-        // If it doesn't exists, set it to the default value
+        // If it doesn't exist, set it to the default value
         if (!settingsTree.hasProperty(propertyName) || settingsTree.getProperty(propertyName).toString() == "") {
             settingsTree.setProperty(propertyName, propertyValue, nullptr);
         }
@@ -69,10 +126,9 @@ SettingsFile* SettingsFile::initialise()
     initialiseOverlayTree();
 
 #if JUCE_IOS
-    if(!ProjectInfo::isStandalone) {
+    if (!ProjectInfo::isStandalone) {
         Desktop::getInstance().setGlobalScaleFactor(1.0f); // scaling inside AUv3 is a bad idea
-    }
-    else if (OSUtils::isIPad()) {
+    } else if (OSUtils::isIPad()) {
         Desktop::getInstance().setGlobalScaleFactor(1.125f);
     } else {
         Desktop::getInstance().setGlobalScaleFactor(0.825f);
@@ -84,10 +140,59 @@ SettingsFile* SettingsFile::initialise()
     saveSettings();
 
     settingsTree.addListener(this);
-    settingsFileWatcher.addFolder(settingsFile.getParentDirectory());
-    settingsFileWatcher.addListener(this);
 
     return this;
+}
+
+bool SettingsFile::verify(const XmlElement* xml)
+{
+    // Basic settings file verification
+    // Verify if the xml is valid, and tags match correct name / order
+    // Adjust tags here if future layout changes
+
+    if (xml == nullptr || xml->getTagName() != "SettingsTree")
+        return false;
+
+    const StringArray expectedOrder = {
+        "Paths",
+        "KeyMap",
+        "ColourThemes",
+        "SelectedThemes",
+        "RecentlyOpened",
+        "Libraries",
+        "EnabledMidiOutputPorts",
+        "LastBrowserPaths",
+        "Overlays",
+    };
+
+    // Check if all expected elements are present and in the correct order
+    int expectedIndex = 0;
+    for (auto* child = xml->getFirstChildElement(); child != nullptr; child = child->getNextElement()) {
+        if (expectedIndex < expectedOrder.size()) {
+            if(child->getTagName() == "HeavyState") continue;
+            else if (child->getTagName() != expectedOrder[expectedIndex]) {
+                return false; // Order mismatch
+            }
+            expectedIndex++;
+        } else {
+            if(child->getTagName() == "HeavyState") continue;
+            return false; // Extra unexpected element found
+        }
+    }
+
+    // Check if all expected elements were found
+    return expectedIndex == expectedOrder.size();
+}
+
+SettingsFile::SettingsState SettingsFile::getSettingsState()
+{
+    return settingsState;
+}
+
+void SettingsFile::startChangeListener()
+{
+    settingsFileWatcher.addFolder(settingsFile.getParentDirectory());
+    settingsFileWatcher.addListener(this);
 }
 
 ValueTree SettingsFile::getKeyMapTree()
@@ -166,19 +271,14 @@ void SettingsFile::initialisePathsTree()
             pathTree.appendChild(pathSubTree, nullptr);
         }
     }
-    
+
     // TODO: remove this later. this is to fix a mistake during v0.8.4 development
     for (auto child : pathTree) {
-        if(child.getProperty("Path").toString().contains("Abstractions/Gem"))
-        {
+        if (child.getProperty("Path").toString().contains("Abstractions/Gem")) {
             pathTree.removeChild(child, nullptr);
             break;
         }
     }
-    
-    
-   
-    
 }
 
 void SettingsFile::addToRecentlyOpened(File const& path)
@@ -203,14 +303,16 @@ void SettingsFile::addToRecentlyOpened(File const& path)
         recentlyOpened.addChild(subTree, 0, nullptr);
     }
 
-    while (recentlyOpened.getNumChildren() > 10) {
+    while (recentlyOpened.getNumChildren() > 20) {
         auto minTime = Time::getCurrentTime().toMilliseconds();
         int minIdx = -1;
 
         // Find oldest entry
         for (int i = 0; i < recentlyOpened.getNumChildren(); i++) {
-            auto time = static_cast<int64>(recentlyOpened.getChild(i).getProperty("Time"));
-            if (time < minTime) {
+            auto child = recentlyOpened.getChild(i);
+            auto pinned = child.hasProperty("Pinned") && static_cast<bool>(child.getProperty("Pinned"));
+            auto time = static_cast<int64>(child.getProperty("Time"));
+            if (time < minTime && !pinned) {
                 minIdx = i;
                 minTime = time;
             }
@@ -218,8 +320,11 @@ void SettingsFile::addToRecentlyOpened(File const& path)
 
         recentlyOpened.removeChild(minIdx, nullptr);
     }
-
-    RecentlyOpenedFilesList::registerRecentFileNatively(path);
+    
+    // If we do this inside a plugin, it will add to the DAW's recently opened list!
+    if(ProjectInfo::isStandalone) {
+        RecentlyOpenedFilesList::registerRecentFileNatively(path);
+    }
 }
 
 bool SettingsFile::wantsNativeDialog()
@@ -237,7 +342,6 @@ bool SettingsFile::wantsNativeDialog()
 
 void SettingsFile::initialiseThemesTree()
 {
-
     // Initialise selected themes tree
     auto selectedThemes = getSelectedThemesTree();
 
@@ -279,20 +383,23 @@ void SettingsFile::initialiseThemesTree()
                 continue;
             }
 
-            if (!themeTree.hasProperty("dashed_signal_connections")) {
-                themeTree.setProperty("dashed_signal_connections", true, nullptr);
-            }
             if (!themeTree.hasProperty("straight_connections")) {
                 themeTree.setProperty("straight_connections", false, nullptr);
             }
-            if (!themeTree.hasProperty("thin_connections")) {
-                themeTree.setProperty("thin_connections", false, nullptr);
+            if (!themeTree.hasProperty("connection_style")) {
+                themeTree.setProperty("connection_style", String(1), nullptr);
             }
             if (!themeTree.hasProperty("square_iolets")) {
                 themeTree.setProperty("square_iolets", false, nullptr);
             }
             if (!themeTree.hasProperty("square_object_corners")) {
                 themeTree.setProperty("square_object_corners", false, nullptr);
+            }
+            if (!themeTree.hasProperty("object_flag_outlined")) {
+                themeTree.setProperty("object_flag_outlined", false, nullptr);
+            }
+            if (!themeTree.hasProperty("iolet_spacing_edge")) {
+                themeTree.setProperty("iolet_spacing_edge", false, nullptr);
             }
 
             if (!defaultColourThemesTree.getChildWithProperty("theme", themeName).isValid()) {
@@ -362,7 +469,7 @@ void SettingsFile::reloadSettings()
 
 void SettingsFile::fileChanged(File const file, FileSystemWatcher::FileSystemEvent fileEvent)
 {
-    if(file == settingsFile) {
+    if (file == settingsFile) {
         reloadSettings();
     }
 }
@@ -441,7 +548,7 @@ Value SettingsFile::getPropertyAsValue(String const& name)
     return settingsTree.getPropertyAsValue(name, nullptr);
 }
 
-ValueTree SettingsFile::getValueTree()
+ValueTree& SettingsFile::getValueTree()
 {
     jassert(isInitialised);
     return settingsTree;

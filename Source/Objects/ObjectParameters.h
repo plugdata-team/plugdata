@@ -22,14 +22,14 @@ enum ParameterCategory {
     cDimensions,
     cGeneral,
     cAppearance,
-    cLabel,
-    cExtra,
+    cLabel
 };
 
 class PropertiesPanelProperty;
 using CustomPanelCreateFn = std::function<PropertiesPanelProperty*(void)>;
+using InteractionFn = std::function<void(bool)>;
 
-using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Value*, StringArray, var, CustomPanelCreateFn>;
+using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Value*, StringArray, var, CustomPanelCreateFn, InteractionFn>;
 
 class ObjectParameters {
 public:
@@ -48,7 +48,7 @@ public:
     void resetAll()
     {
         auto& lnf = LookAndFeel::getDefaultLookAndFeel();
-        for (auto [name, type, category, value, options, defaultVal, customComponent] : objectParameters) {
+        for (auto [name, type, category, value, options, defaultVal, customComponent, onInteractionFn] : objectParameters) {
             if (!defaultVal.isVoid()) {
                 if (type == tColour) {
                     value->setValue(lnf.findColour(defaultVal).toString());
@@ -68,9 +68,9 @@ public:
         objectParameters.add(makeParam(pString, tFloat, pCat, pVal, StringArray(), pDefault));
     }
 
-    void addParamInt(String const& pString, ParameterCategory pCat, Value* pVal, var const& pDefault = var())
+    void addParamInt(String const& pString, ParameterCategory pCat, Value* pVal, var const& pDefault = var(), InteractionFn onInteractionFn = nullptr)
     {
-        objectParameters.add(makeParam(pString, tInt, pCat, pVal, StringArray(), pDefault));
+        objectParameters.add(makeParam(pString, tInt, pCat, pVal, StringArray(), pDefault, nullptr, onInteractionFn));
     }
 
     void addParamBool(String const& pString, ParameterCategory pCat, Value* pVal, StringArray const& pList, var const& pDefault = var())
@@ -146,8 +146,8 @@ public:
 private:
     Array<ObjectParameter> objectParameters;
 
-    static ObjectParameter makeParam(String const& pString, ParameterType pType, ParameterCategory pCat, Value* pVal, StringArray const& pStringList, var const& pDefault, CustomPanelCreateFn customComponentFn = nullptr)
+    static ObjectParameter makeParam(String const& pString, ParameterType pType, ParameterCategory pCat, Value* pVal, StringArray const& pStringList, var const& pDefault, CustomPanelCreateFn customComponentFn = nullptr, InteractionFn onInteractionFn = nullptr)
     {
-        return std::make_tuple(pString, pType, pCat, pVal, pStringList, pDefault, customComponentFn);
+        return std::make_tuple(pString, pType, pCat, pVal, pStringList, pDefault, customComponentFn, onInteractionFn);
     }
 };

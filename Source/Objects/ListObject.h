@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class ListObject final : public ObjectBase {
+class ListObject final : public ObjectBase, public KeyListener{
 
     AtomHelper atomHelper;
     DraggableListNumber listLabel;
@@ -12,6 +12,8 @@ class ListObject final : public ObjectBase {
     Value min = SynchronousValue(0.0f);
     Value max = SynchronousValue(0.0f);
     Value sizeProperty = SynchronousValue();
+
+    bool editorActive = false;
 
 public:
     ListObject(pd::WeakReference obj, Object* parent)
@@ -27,6 +29,7 @@ public:
 
         listLabel.onEditorHide = [this]() {
             stopEdition();
+            editorActive = false;
         };
 
         listLabel.onTextChange = [this]() {
@@ -39,20 +42,22 @@ public:
         listLabel.onEditorShow = [this]() {
             startEdition();
             auto* editor = listLabel.getCurrentTextEditor();
+            editor->addKeyListener(this);
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
-            if (editor != nullptr) {
-                editor->setBorder({ 0, 1, 3, 0 });
-            }
+            editor->setBorder({ 0, 1, 3, 0 });
+            editorActive = true;
         };
 
         listLabel.dragStart = [this]() {
             startEdition();
+            editorActive = true;
         };
 
         listLabel.onValueChange = [this](float) { updateFromGui(); };
 
         listLabel.dragEnd = [this]() {
             stopEdition();
+            editorActive = false;
         };
 
         listLabel.addMouseListener(this, false);
@@ -81,7 +86,7 @@ public:
         setParameterExcludingListener(sizeProperty, atomHelper.getWidthInChars());
     }
 
-    void valueChanged(Value& value) override
+    void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
             auto* constrainer = getConstrainer();
@@ -104,24 +109,11 @@ public:
         }
     }
 
-    void updateFromGui()
+    void updateFromGui(bool force = false)
     {
-        auto array = StringArray();
-        array.addTokens(listLabel.getText(), true);
-        std::vector<pd::Atom> list;
-        list.reserve(array.size());
-        for (auto const& elem : array) {
-            auto charptr = elem.getCharPointer();
-            auto numptr = charptr;
-            auto value = CharacterFunctions::readDoubleValue(numptr);
-
-            if (numptr - charptr == elem.getNumBytesAsUTF8()) {
-                list.emplace_back(value);
-            } else {
-                list.emplace_back(pd->generateSymbol(elem));
-            }
-        }
-        if (list != getList()) {
+        auto text = listLabel.getText();
+        if (force || text != getListText()) {
+            std::vector<pd::Atom> list = pd::Atom::atomsFromString(text);
             setList(list);
         }
     }
@@ -149,86 +141,97 @@ public:
 
     void updateLabel() override
     {
-        atomHelper.updateLabel(label);
+        atomHelper.updateLabel(labels);
     }
 
-    bool hideInlets() override
+    bool inletIsSymbol() override
     {
         return atomHelper.hasReceiveSymbol();
     }
 
-    bool hideOutlets() override
+    bool outletIsSymbol() override
     {
         return atomHelper.hasSendSymbol();
     }
 
-    void paintOverChildren(Graphics& g) override
+    void render(NVGcontext* nvg) override
     {
-        g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
-        Path triangles;
-        triangles.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
-        triangles.addTriangle(Point<float>(getWidth() - 8, getHeight()), Point<float>(getWidth(), getHeight()), Point<float>(getWidth(), getHeight() - 8));
+        auto b = getLocalBounds().toFloat();
+        auto sb = b.reduced(0.5f);
 
-        auto reducedBounds = getLocalBounds().toFloat().reduced(0.5f);
+        // Draw background
+        nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
+                                cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol,
+                                Corners::objectCornerRadius, ObjectFlagType::FlagTopBottom, PlugDataLook::getUseFlagOutline());
 
-        Path roundEdgeClipping;
-        roundEdgeClipping.addRoundedRectangle(reducedBounds, Corners::objectCornerRadius);
+        listLabel.render(nvg);
 
-        g.saveState();
-        g.reduceClipRegion(roundEdgeClipping);
-        g.fillPath(triangles);
-        g.restoreState();
+        // Draw outline & flag
+        bool highlighted = editorActive && getValue<bool>(object->locked);
+        auto flagCol = highlighted ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol;
+        auto outlineCol = object->isSelected() || editorActive ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
 
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(reducedBounds, Corners::objectCornerRadius, 1.0f);
-
-        bool highlighed = hasKeyboardFocus(true) && getValue<bool>(object->locked);
-
-        if (highlighed) {
-            g.setColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
-            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), Corners::objectCornerRadius, 2.0f);
-        }
+        // Fill the internal of the shape with transparent colour, draw outline & flag with shader
+        nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
+                                nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
+                                Corners::objectCornerRadius, ObjectFlagType::FlagTopBottom, PlugDataLook::getUseFlagOutline());
     }
 
     void lookAndFeelChanged() override
     {
-        listLabel.setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));
-        listLabel.setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
-        listLabel.setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
+        listLabel.setColour(Label::textWhenEditingColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
+        listLabel.setColour(Label::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
+        listLabel.setColour(TextEditor::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
+
+        repaint();
+    }
+    
+    bool keyPressed(KeyPress const& key, Component*) override
+    {
+        if(key.getKeyCode() == KeyPress::returnKey)
+        {
+            updateFromGui(true);
+            cnv->grabKeyboardFocus();
+            return true;
+        }
+        
+        return false;
+    }
+
+    void focusGained(FocusChangeType cause) override
+    {
         repaint();
     }
 
-    void paint(Graphics& g) override
+    void focusLost(FocusChangeType cause) override
     {
-        g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
+        repaint();
     }
 
+    void focusOfChildComponentChanged(FocusChangeType cause) override
+    {
+        repaint();
+    }
+    
     void updateValue()
     {
         if (!listLabel.isBeingEdited()) {
-            auto const array = getList();
-            String message;
-            for (auto const& atom : array) {
-                if (message.isNotEmpty()) {
-                    message += " ";
-                }
-
-                message += atom.toString();
-            }
-            listLabel.setText(message, NotificationType::dontSendNotification);
+            auto const listText = getListText();
+            listLabel.setText(listText, NotificationType::dontSendNotification);
         }
     }
 
-    std::vector<pd::Atom> getList() const
+    String getListText() const
     {
         if (auto gatom = ptr.get<t_fake_gatom>()) {
-            int ac = binbuf_getnatom(gatom->a_text.te_binbuf);
-            t_atom* av = binbuf_getvec(gatom->a_text.te_binbuf);
-            return pd::Atom::fromAtoms(ac, av);
+            char* text;
+            int size;
+            binbuf_gettext(gatom->a_text.te_binbuf, &text, &size);
+            
+            auto result = String::fromUTF8(text, size);
+            freebytes(text, size);
+            
+            return result;
         }
 
         return {};
@@ -242,7 +245,7 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-        if (getValue<bool>(object->locked) && !e.mouseWasDraggedSinceMouseDown()) {
+        if (getValue<bool>(object->locked) && !e.mouseWasDraggedSinceMouseDown() && isShowing()) {
 
             listLabel.showEditor();
         }

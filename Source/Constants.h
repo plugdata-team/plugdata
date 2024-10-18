@@ -53,7 +53,7 @@ struct Icons {
     inline static String const Documentation = "N";
     inline static String const AddCircled = "O";
     inline static String const Console = "P";
-    inline static String const GitHub = "Q";
+    inline static String const OpenLink = "Q";
     inline static String const Wrench = "R";
     inline static String const Back = "S";
     inline static String const Forward = "T";
@@ -78,9 +78,10 @@ struct Icons {
     inline static String const SnapCenters = "$";
     inline static String const ExportState = "^";
     inline static String const Trash = "~";
-    inline static String const Fullscreen = "&";
+    inline static String const CanvasSettings = "&";
     inline static String const Eyedropper = "@";
-    inline static String const Debug = "?";
+    inline static String const HeartFilled = "?";
+    inline static String const HeartStroked = ">";
 
     inline static String const Reset = "'";
     inline static String const More = ".";
@@ -104,14 +105,12 @@ struct Icons {
 
     inline static String const AlignLeft = "4";
     inline static String const AlignRight = "5";
-    inline static String const AlignVCentre = "6";
+    inline static String const AlignHCentre = "6";
     inline static String const AlignHDistribute = "/";
     inline static String const AlignTop = "7";
     inline static String const AlignBottom = "8";
-    inline static String const AlignHCentre = "9";
+    inline static String const AlignVCentre = "9";
     inline static String const AlignVDistribute = "*";
-    
-    
 
     // ================== OBJECT ICONS ==================
 
@@ -159,6 +158,8 @@ struct Icons {
     inline static String const GlyphPrint = CharPointer_UTF8("\xc3\xac");
     inline static String const GlyphNetsend = CharPointer_UTF8("\xc3\xae");
     inline static String const GlyphNetreceive = CharPointer_UTF8("\xc3\xad");
+    inline static String const GlyphOSCsend = CharPointer_UTF8("\xc4\xb5");
+    inline static String const GlyphOSCreceive = CharPointer_UTF8("\xc4\xb4");
     inline static String const GlyphTimer = CharPointer_UTF8("\xc3\xb6");
     inline static String const GlyphDelay = CharPointer_UTF8("\xc3\xb7");
     inline static String const GlyphTrigger = CharPointer_UTF8("\xc3\xb1");
@@ -247,15 +248,13 @@ enum PlugDataColour {
     toolbarActiveColourId,
     toolbarHoverColourId,
     toolbarOutlineColourId,
-
-    tabBackgroundColourId,
-    tabTextColourId,
     activeTabBackgroundColourId,
-    activeTabTextColourId,
 
     canvasBackgroundColourId,
     canvasTextColourId,
     canvasDotsColourId,
+
+    presentationBackgroundColourId,
 
     guiObjectBackgroundColourId,
     guiObjectInternalOutlineColour,
@@ -279,7 +278,6 @@ enum PlugDataColour {
     sidebarBackgroundColourId,
     sidebarTextColourId,
     sidebarActiveBackgroundColourId,
-    sidebarActiveTextColourId,
 
     levelMeterActiveColourId,
     levelMeterBackgroundColourId,
@@ -289,14 +287,11 @@ enum PlugDataColour {
     panelForegroundColourId,
     panelTextColourId,
     panelActiveBackgroundColourId,
-    panelActiveTextColourId,
 
     popupMenuBackgroundColourId,
     popupMenuActiveBackgroundColourId,
     popupMenuTextColourId,
-    popupMenuActiveTextColourId,
 
-    sliderThumbColourId,
     scrollbarThumbColourId,
     graphAreaColourId,
     gridLineColourId,
@@ -318,6 +313,7 @@ enum CommandIDs {
     Lock,
     ConnectionStyle,
     ConnectionPathfind,
+    PanDragKey,
     ZoomIn,
     ZoomOut,
     ZoomNormal,
@@ -329,6 +325,8 @@ enum CommandIDs {
     Delete,
     Duplicate,
     Encapsulate,
+    Triggerize,
+    Tidy,
     CreateConnection,
     RemoveConnections,
     SelectAll,
@@ -394,28 +392,30 @@ struct Corners {
     inline static float const windowCornerRadius = 12.0f;
     inline static float const largeCornerRadius = 8.0f;
     inline static float const defaultCornerRadius = 5.0f;
+    inline static float const resizeHanleCornerRadius = 2.75f;
     inline static float objectCornerRadius = 2.75f;
 };
 
 enum Overlay {
     None = 0,
-    Origin = 1,
-    Border = 2,
-    Index = 4,
-    Coordinate = 8,
-    ActivationState = 16,
-    Order = 32,
-    Direction = 64,
-    Behind = 128
+    Origin = 1 << 0,
+    Border = 1 << 1,
+    Index = 1 << 2,
+    Coordinate = 1 << 3,
+    ActivationState = 1 << 4,
+    ConnectionActivity = 1 << 5,
+    Order = 1 << 6,
+    Direction = 1 << 7,
+    Behind = 1 << 8
 };
 
 enum Align {
     Left = 0,
     Right,
-    HCenter,
+    HCentre,
     HDistribute,
     Top,
     Bottom,
-    VCenter,
+    VCentre,
     VDistribute
 };

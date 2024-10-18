@@ -12,6 +12,9 @@ class RadioObject final : public ObjectBase {
 
     int selected;
 
+    int hoverIdx = -1;
+    bool mouseHover = false;
+
     IEMHelper iemHelper;
 
     Value max = SynchronousValue(0.0f);
@@ -25,7 +28,7 @@ public:
         objectParameters.addParamSize(&sizeProperty, true);
         objectParameters.addParamInt("Options", cGeneral, &max, 8);
         iemHelper.addIemParameters(objectParameters);
-        
+
         if (auto radio = ptr.get<t_radio>()) {
             isVertical = radio->x_orientation;
             sizeProperty = isVertical ? radio->x_gui.x_w : radio->x_gui.x_h;
@@ -34,19 +37,15 @@ public:
 
     void update() override
     {
-        selected = getValue();
+        numItems = getMaximum();
+        max = numItems;
 
-        if (selected > ::getValue<int>(max)) {
-            selected = std::min<int>(::getValue<int>(max) - 1, selected);
-        }
+        selected = jlimit(0, numItems - 1, static_cast<int>(getValue()));
 
         if (auto radio = ptr.get<t_radio>()) {
             isVertical = radio->x_orientation;
             sizeProperty = isVertical ? radio->x_gui.x_w : radio->x_gui.x_h;
         }
-
-        numItems = getMaximum();
-        max = numItems;
 
         iemHelper.update();
 
@@ -55,19 +54,19 @@ public:
         };
     }
 
-    bool hideInlets() override
+    bool inletIsSymbol() override
     {
         return iemHelper.hasReceiveSymbol();
     }
 
-    bool hideOutlets() override
+    bool outletIsSymbol() override
     {
         return iemHelper.hasSendSymbol();
     }
 
     void updateLabel() override
     {
-        iemHelper.updateLabel(label);
+        iemHelper.updateLabel(labels);
     }
 
     void setPdBounds(Rectangle<int> b) override
@@ -149,6 +148,15 @@ public:
         alreadyToggled = false;
     }
 
+    void mouseMove(MouseEvent const& e) override
+    {
+        float pos = isVertical ? e.y : e.x;
+        float div = isVertical ? getHeight() : getWidth();
+
+        hoverIdx = (pos / div) * numItems;
+        repaint();
+    }
+
     void mouseDown(MouseEvent const& e) override
     {
         if (!e.mods.isLeftButtonDown())
@@ -166,46 +174,69 @@ public:
 
         repaint();
     }
+    
+    void mouseEnter(MouseEvent const& e) override
+    {
+        mouseHover = true;
+        repaint();
+    }
+
+    void mouseExit(MouseEvent const& e) override
+    {
+        mouseHover = false;
+        repaint();
+    }
 
     float getValue()
     {
-        return ptr.get<t_radio>()->x_on;
+        if(auto radio = ptr.get<t_radio>()) return radio->x_on;
+        
+        return 0.0f;
     }
 
-    void paint(Graphics& g) override
+    void render(NVGcontext* nvg) override
     {
-        g.setColour(iemHelper.getBackgroundColour());
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
+        auto b = getLocalBounds().toFloat();
+        bool isSelected = object->isSelected() && !cnv->isGraph;
+        auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
+
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(iemHelper.getBackgroundColour()), isSelected ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
         float size = (isVertical ? static_cast<float>(getHeight()) / numItems : static_cast<float>(getWidth()) / numItems);
 
-        g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
+        nvgStrokeColor(nvg, convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour)));
+        nvgStrokeWidth(nvg, 1.0f);
 
+        nvgBeginPath(nvg);
         for (int i = 1; i < numItems; i++) {
             if (isVertical) {
-                g.drawLine(0, i * size, size, i * size);
+                nvgMoveTo(nvg, 1, i * size);
+                nvgLineTo(nvg, size - 0.5, i * size);
             } else {
-                g.drawLine(i * size, 0, i * size, size);
+                nvgMoveTo(nvg, i * size, 1);
+                nvgLineTo(nvg, i * size, size - 0.5);
             }
         }
+        nvgStroke(nvg);
 
-        g.setColour(iemHelper.getForegroundColour());
+        auto bgColour = ::getValue<Colour>(iemHelper.secondaryColour);
+
+        if (mouseHover) {
+            auto hoverColour = bgColour.contrasting(bgColour.getBrightness() > 0.5f ? 0.03f : 0.05f);
+            float hoverX = isVertical ? 0 : hoverIdx * size;
+            float hoverY = isVertical ? hoverIdx * size : 0;
+            auto hoverBounds = Rectangle<float>(hoverX, hoverY, size, size).reduced(jmin<int>(size * 0.25f, 5));
+            nvgFillColor(nvg, convertColour(hoverColour));
+            nvgFillRoundedRect(nvg, hoverBounds.getX(), hoverBounds.getY(), hoverBounds.getWidth(), hoverBounds.getHeight(), Corners::objectCornerRadius / 2.0f);
+        }
 
         float selectionX = isVertical ? 0 : selected * size;
         float selectionY = isVertical ? selected * size : 0;
+        auto selectionBounds = Rectangle<float>(selectionX, selectionY, size, size).reduced(jmin<int>(size * 0.25f, 5));
 
-        auto selectionBounds = Rectangle<float>(selectionX, selectionY, size, size);
-        
-        g.fillRoundedRectangle(selectionBounds.reduced(jmin<int>(size * 0.25f, 5)), Corners::objectCornerRadius / 2.0f);
-    }
-
-    void paintOverChildren(Graphics& g) override
-    {
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        nvgFillColor(nvg, convertColour(::getValue<Colour>(iemHelper.primaryColour)));
+        nvgFillRoundedRect(nvg, selectionBounds.getX(), selectionBounds.getY(), selectionBounds.getWidth(), selectionBounds.getHeight(), Corners::objectCornerRadius / 2.0f);
     }
 
     void updateAspectRatio()
@@ -226,7 +257,7 @@ public:
         constrainer->setFixedAspectRatio(isVertical ? 1.0f / numItems : static_cast<float>(numItems) / 1.0f);
     }
 
-    void valueChanged(Value& value) override
+    void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
             auto* constrainer = getConstrainer();
@@ -258,7 +289,12 @@ public:
 
     float getMaximum()
     {
-        return ptr.get<t_radio>()->x_number;
+        if(auto radio = ptr.get<t_radio>())
+        {
+            return radio->x_number;
+        }
+        
+        return 0.0f;
     }
 
     void setMaximum(float maxValue)
@@ -267,7 +303,10 @@ public:
             selected = maxValue - 1;
         }
 
-        ptr.get<t_radio>()->x_number = maxValue;
+        if(auto radio = ptr.get<t_radio>())
+        {
+            radio->x_number = maxValue;
+        }
 
         resized();
     }
@@ -277,10 +316,10 @@ public:
         if (auto radio = ptr.get<t_radio>()) {
             auto size = isVertical ? object->getWidth() : object->getHeight();
             size -= (Object::doubleMargin + 1);
-            
+
             radio->x_gui.x_w = size;
             radio->x_gui.x_h = size;
-            
+
             setParameterExcludingListener(sizeProperty, isVertical ? var(radio->x_gui.x_w) : var(radio->x_gui.x_h));
         }
     }

@@ -13,6 +13,7 @@
 #include <BinaryData.h>
 
 #include "Utility/OSUtils.h"
+#include "Utility/SettingsFile.h"
 
 extern "C" {
 #include <m_pd.h>
@@ -37,12 +38,35 @@ struct _canvasenvironment {
 
 namespace pd {
 
+Library::Library(pd::Instance* instance) : Thread("Library Index Thread"), pd(instance)
+{
+    watcher.addFolder(ProjectInfo::appDataDir);
+    watcher.addListener(this);
+
+    // Needs to be async, otherwise LV2 validation fails
+    MessageManager::callAsync([this, pd = juce::WeakReference(pd)]() {
+        if (pd.get()) {
+            pd->setThis();
+            updateLibrary();
+        }
+    });
+
+    startThread();
+}
+
+Library::~Library()
+{
+    appDirChanged = nullptr;
+    waitForThreadToExit(-1);
+}
+
 void Library::updateLibrary()
 {
     auto settingsTree = ValueTree::fromXml(ProjectInfo::appDataDir.getChildFile(".settings").loadFileAsString());
     auto pathTree = settingsTree.getChildWithName("Paths");
-
-    sys_lock();
+    
+    pd->lockAudioThread();
+    pd->setThis();
 
     // Get available objects directly from pd
     t_class* o = pd_objectmaker;
@@ -74,7 +98,7 @@ void Library::updateLibrary()
         for (auto const& file : OSUtils::iterateDirectory(file, false, true)) {
             if (file.hasFileExtension("pd")) {
                 auto filename = file.getFileNameWithoutExtension();
-                if (!filename.startsWith("help-") || filename.endsWith("-help")) {
+                if (!filename.startsWith("help-") && !filename.endsWith("-help")) {
                     allObjects.add(filename);
                 }
             }
@@ -84,32 +108,97 @@ void Library::updateLibrary()
     // These can't be created by name in Pd, but plugdata allows it
     allObjects.add("graph");
     allObjects.add("garray");
-    
 
     // These aren't in there but should be
     allObjects.add("float");
     allObjects.add("symbol");
     allObjects.add("list");
 
-    sys_unlock();
+    pd->unlockAudioThread();
 }
 
-Library::Library(pd::Instance* instance)
+
+void Library::run()
 {
     MemoryInputStream instream(BinaryData::Documentation_bin, BinaryData::Documentation_binSize, false);
-    documentationTree = ValueTree::readFromStream(instream);
+    ValueTree documentationTree = ValueTree::readFromStream(instream);
 
-    watcher.addFolder(ProjectInfo::appDataDir);
-    watcher.addListener(this);
+    auto weights = std::vector<float>(2);
+    weights[0] = 6.0f; // More weight for name
+    weights[1] = 3.0f; // More weight for description
+    searchDatabase.setWeights(weights);
+    
+    for (auto objectEntry : documentationTree) {
+        auto categoriesTree = objectEntry.getChildWithName("categories");
 
-    // This is unfortunately necessary to make Windows LV2 turtle dump work
-    // Let's hope its not harmful
-    MessageManager::callAsync([this, instance = juce::WeakReference(instance)]() {
-        if (instance.get()) {
-            instance->setThis();
-            updateLibrary();
+        std::vector<std::string> fields;
+        int numProperties = objectEntry.getNumProperties();
+        for(int i = 0; i < numProperties; i++) // Name and description
+        {
+            auto property = objectEntry.getProperty(objectEntry.getPropertyName(i)).toString();
+            fields.push_back(property.toStdString());
         }
-    });
+        for(auto subtree : objectEntry) // Parent tree for arguments, inlets, outlets
+        {
+            for(auto child : subtree) // tree for individual arguments, inlets, outlets, etc.
+            {
+                for(int i = 0; i < child.getNumProperties(); i++)
+                {
+                    auto property = child.getProperty(child.getPropertyName(i)).toString();
+                    if(!property.containsOnly("0123456789.,-")) {
+                        fields.push_back(property.toStdString());
+                    }
+                }
+            }
+        }
+        
+        String origin;
+        for (auto category : categoriesTree) {
+            auto cat = category.getProperty("name").toString();
+            if (objectOrigins.contains(cat)) {
+                origin = cat;
+            }
+        }
+        
+        auto name = objectEntry.getProperty("name").toString();
+        
+        if(origin == "Gem") {
+#if !ENABLE_GEM
+            continue;
+#else
+            gemObjects.add(name);
+#endif
+        }
+        
+        searchDatabase.addEntry(objectEntry, fields);
+        searchDatabase.setThreshold(0.4f);
+        
+        if (origin.isEmpty()) {
+            documentationIndex[hash(name)] = objectEntry;
+        } else if (origin == "Gem") {
+            documentationIndex[hash(origin + "/" + name)] = objectEntry;
+        } else if (documentationIndex.count(hash(name))) {
+            documentationIndex[hash(origin + "/" + name)] = objectEntry;
+        } else {
+            documentationIndex[hash(name)] = objectEntry;
+            documentationIndex[hash(origin + "/" + name)] = objectEntry;
+        }
+    }
+    
+    initWait.signal();
+}
+
+void Library::waitForInitialisationToFinish()
+{
+    if(!isInitialised) {
+        initWait.wait();
+        isInitialised = true;
+    }
+}
+
+bool Library::isGemObject(String const& query) const
+{
+    return gemObjects.contains(query);
 }
 
 StringArray Library::autocomplete(String const& query, File const& patchDirectory) const
@@ -117,6 +206,7 @@ StringArray Library::autocomplete(String const& query, File const& patchDirector
     StringArray result;
     result.ensureStorageAllocated(20);
 
+    // First, look for non-help patches in the current patch directory
     if (patchDirectory.isDirectory()) {
         for (auto const& file : OSUtils::iterateDirectory(patchDirectory, false, true, 20)) {
             auto filename = file.getFileNameWithoutExtension();
@@ -126,6 +216,7 @@ StringArray Library::autocomplete(String const& query, File const& patchDirector
         }
     }
 
+    // Then, go over all regular objects for direct autocompletion
     for (auto const& str : allObjects) {
         if (result.size() >= 20)
             break;
@@ -134,61 +225,52 @@ StringArray Library::autocomplete(String const& query, File const& patchDirector
             result.addIfNotAlreadyThere(str);
         }
     }
+    
+    result.sort(true);
+    
+    // Finally, do a fuzzy search of all object documentation
+    auto fuzzyResults = searchDatabase.search(query.toStdString());
+    for(auto& fuzzyMatch : fuzzyResults)
+    {
+        if (result.size() >= 20) break;
+        
+        auto name = fuzzyMatch.key.getProperty("name").toString();
+        if(name.isNotEmpty()) {
+            result.addIfNotAlreadyThere(name);
+        }
+    }
 
     return result;
 }
 
-void Library::getExtraSuggestions(int currentNumSuggestions, String const& query, std::function<void(StringArray)> const& callback)
+StringArray Library::searchObjectDocumentation(String const& query)
 {
-
-    int const maxSuggestions = 20;
-    if (currentNumSuggestions > maxSuggestions)
-        return;
-
-    objectSearchThread.addJob([this, callback, query]() mutable {
-        StringArray result;
-        StringArray matches;
-
-        for (const auto& object : getAllObjects()) {
-            auto info = getObjectInfo(object);
-
-            auto description = info.getProperty("description").toString();
-
-            auto iolets = info.getChildWithName("iolets");
-            auto arguments = info.getChildWithName("arguments");
-
-            if (description.contains(query) || object.contains(query)) {
-                matches.addIfNotAlreadyThere(object);
-            }
-
-            for (auto arg : arguments) {
-                auto argDescription = arg.getProperty("description").toString();
-                if (argDescription.contains(query)) {
-                    matches.addIfNotAlreadyThere(object);
-                }
-            }
-
-            for (auto iolet : iolets) {
-                auto ioletDescription = iolet.getProperty("description").toString();
-                if (description.contains(query)) {
-                    matches.addIfNotAlreadyThere(object);
-                }
-            }
+    StringArray result;
+    result.ensureStorageAllocated(20);
+    
+    for (auto const& str : allObjects) {
+        if (str.startsWith(query)) {
+            result.addIfNotAlreadyThere(str);
         }
+    }
+    
+    auto fuzzyResults = searchDatabase.search(query.toStdString());
+    result.ensureStorageAllocated(result.size() + fuzzyResults.size());
+    
+    for(auto& fuzzyMatch : fuzzyResults)
+    {
+        auto name = fuzzyMatch.key.getProperty("name").toString();
+        if(name.isNotEmpty()) {
+            result.addIfNotAlreadyThere(name);
+        }
+    }
 
-        matches.sort(true);
-        result.addArray(matches);
-        matches.clear();
-
-        MessageManager::callAsync([callback, result]() {
-            callback(result);
-        });
-    });
+    return result;
 }
 
 ValueTree Library::getObjectInfo(String const& name)
 {
-    return documentationTree.getChildWithProperty("name", name.fromLastOccurrenceOf("/", false, false));
+    return documentationIndex[hash(name)];
 }
 
 std::array<StringArray, 2> Library::parseIoletTooltips(ValueTree const& iolets, String const& name, int numIn, int numOut)
@@ -254,6 +336,47 @@ void Library::filesystemChanged()
     updateLibrary();
 }
 
+File Library::findPatch(String const& patchToFind)
+{
+    auto pathTree = SettingsFile::getInstance()->getValueTree().getChildWithName("Paths");
+    for (auto path : pathTree) {
+        auto searchPath = File(path.getProperty("Path").toString());
+        if (!searchPath.exists() || !searchPath.isDirectory())
+            continue;
+        
+        auto childFile = searchPath.getChildFile(patchToFind + ".pd");
+        if(childFile.existsAsFile()) return childFile;
+    }
+    
+    return {};
+}
+
+String Library::getObjectOrigin(t_gobj* obj)
+{
+    auto* pdclass = pd_class(reinterpret_cast<t_pd*>(obj));
+
+    if (pdclass == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
+        auto* cnv = reinterpret_cast<t_canvas*>(obj);
+        auto parentPath = String::fromUTF8(canvas_getenv(cnv)->ce_dir->s_name);
+        for (auto& origin : objectOrigins) {
+            if (parentPath.containsIgnoreCase("/" + origin)) {
+                return origin;
+            }
+        }
+    }
+
+    if (pdclass->c_externdir) {
+        auto externDir = String::fromUTF8(pdclass->c_externdir->s_name);
+        for (auto& origin : objectOrigins) {
+            if (externDir.containsIgnoreCase(origin)) {
+                return origin;
+            }
+        }
+    }
+
+    return {};
+}
+
 File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile)
 {
     String helpName;
@@ -280,7 +403,7 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile)
     auto patchHelpPaths = Array<File>();
 
     // Add abstraction dir to search paths
-    if (pd_class(reinterpret_cast<t_pd*>(obj)) == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
+    if (pdclass == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
         auto* cnv = reinterpret_cast<t_canvas*>(obj);
         patchHelpPaths.add(File(String::fromUTF8(canvas_getenv(cnv)->ce_dir->s_name)));
         if (helpDir.isNotEmpty()) {
@@ -306,10 +429,11 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile)
     auto findHelpPatch = [&firstName, &secondName](File const& searchDir) -> File {
         for (const auto& file : OSUtils::iterateDirectory(searchDir, false, true)) {
             auto pathName = file.getFullPathName().replace("\\", "/").trimCharactersAtEnd("/");
-            // Hack to make it find else/cyclone helpfiles...
-            pathName = pathName.replace("/else", "/9.else");
-            pathName = pathName.replace("/cyclone", "/10.else");
-            
+            // Hack to make it find else/cyclone/Gem helpfiles...
+            pathName = pathName.replace("/9.else", "/else");
+            pathName = pathName.replace("/10.cyclone", "/cyclone");
+            pathName = pathName.replace("/14.gem", "/Gem");
+
             if (pathName.endsWith("/" + firstName) || pathName.endsWith("/" + secondName)) {
                 return file;
             }

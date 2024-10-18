@@ -9,6 +9,7 @@
 #include "Components/Buttons.h"
 #include "Objects/ObjectParameters.h"
 #include "Utility/SettingsFile.h"
+#include "NVGSurface.h"
 
 class Console;
 class Inspector;
@@ -30,6 +31,8 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if(!e.mods.isLeftButtonDown()) return;
+        
         numNotifications = 0;
         hasWarning = false;
         TextButton::mouseDown(e);
@@ -45,7 +48,7 @@ public:
         auto bounds = getLocalBounds().toFloat().reduced(3.0f, 4.0f);
 
         g.setColour(backgroundColour);
-        PlugDataLook::fillSmoothedRectangle(g, bounds, cornerSize);
+        g.fillRoundedRectangle(bounds, cornerSize);
 
         auto font = Fonts::getIconFont().withHeight(13);
         g.setFont(font);
@@ -77,6 +80,7 @@ public:
 };
 
 class PluginEditor;
+class PlugDataParameter;
 class Sidebar : public Component
     , public SettingsFileListener {
 
@@ -116,6 +120,7 @@ public:
 
     void clearSearchOutliner();
 
+    void updateAutomationParameterValue(PlugDataParameter* param);
     void updateAutomationParameters();
 
     static constexpr int dragbarWidth = 6;

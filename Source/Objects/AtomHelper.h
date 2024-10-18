@@ -28,16 +28,16 @@ class AtomHelper {
     PluginProcessor* pd;
 
     pd::WeakReference ptr;
-    
+
     int lastFontHeight = 10;
     hash32 lastLabelTextHash = 0;
     int lastLabelLength = 0;
 
 public:
     Value labelColour = SynchronousValue();
-    Value labelPosition = SynchronousValue(0.0f);
     Value fontSize = SynchronousValue(5.0f);
     Value labelText = SynchronousValue();
+    Value labelPosition = SynchronousValue(0.0f);
     Value sendSymbol = SynchronousValue();
     Value receiveSymbol = SynchronousValue();
 
@@ -56,7 +56,7 @@ public:
         objectParameters.addParamString("Label", cLabel, &labelText, "");
         objectParameters.addParamCombo("Label Position", cLabel, &labelPosition, { "left", "right", "top", "bottom" });
     }
-
+    
     void update()
     {
         labelText = getLabelText();
@@ -64,7 +64,6 @@ public:
         if (auto atom = ptr.get<t_fake_gatom>()) {
             labelPosition = static_cast<int>(atom->a_wherelabel + 1);
         }
-
         int h = getFontHeight();
 
         int idx = static_cast<int>(std::find(atomSizes, atomSizes + 7, h) - atomSizes);
@@ -73,8 +72,8 @@ public:
         sendSymbol = getSendSymbol();
         receiveSymbol = getReceiveSymbol();
 
-        gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(Label::textWhenEditingColourId));
-        gui->getLookAndFeel().setColour(Label::textColourId, object->findColour(Label::textColourId));
+        gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, cnv->editor->getLookAndFeel().findColour(Label::textWhenEditingColourId));
+        gui->getLookAndFeel().setColour(Label::textColourId, cnv->editor->getLookAndFeel().findColour(Label::textColourId));
     }
 
     int getWidthInChars()
@@ -106,7 +105,7 @@ public:
             if (atom->a_text.te_width == 0) {
                 w = textLength + 10;
             } else {
-                w = (atom->a_text.te_width * glist_fontwidth(patchPtr)) + 3;
+                w = (atom->a_text.te_width * sys_fontwidth(getFontHeight())) + 3;
             }
 
             return { x, y, w, getAtomHeight() };
@@ -123,8 +122,8 @@ public:
                 return;
 
             pd::Interface::moveObject(patchPtr, atom.cast<t_gobj>(), b.getX(), b.getY());
-
-            auto fontWidth = glist_fontwidth(patchPtr);
+            
+            auto fontWidth = sys_fontwidth(getFontHeight());
             if (atom->a_text.te_width != 0) {
                 atom->a_text.te_width = (b.getWidth() - 3) / fontWidth;
             }
@@ -169,35 +168,35 @@ public:
                 if (!atom || !patch)
                     return;
 
-                auto fontWidth = glist_fontwidth(patch);
+                auto fontWidth = sys_fontwidth(helper->getFontHeight());
 
                 // Calculate the width in text characters for both
-                auto oldCharWidth = (oldBounds.getWidth() - 3) / fontWidth;
                 auto newCharWidth = (newBounds.getWidth() - 3) / fontWidth;
-
-                // If we're resizing the left edge, move the object left
-                if (isStretchingLeft) {
-                    auto widthDiff = (newCharWidth - oldCharWidth) * fontWidth;
-                    auto x = oldBounds.getX() - widthDiff;
-                    auto y = oldBounds.getY();
-
-                    if (auto atom = helper->ptr.get<t_gobj>()) {
-                        pd::Interface::moveObject(static_cast<t_glist*>(patch), atom.get(), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
-                    }
-                }
-
+                
                 // Set new width
                 if (auto atom = helper->ptr.get<t_fake_gatom>()) {
                     atom->a_text.te_width = newCharWidth;
                 }
-
+                
+                bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
+                
+                // If we're resizing the left edge, move the object left
+                if (isStretchingLeft) {
+                    auto x = oldBounds.getRight() - (bounds.getWidth() - Object::doubleMargin);
+                    auto y = oldBounds.getY(); // don't allow y resize
+                    
+                    if (auto atom = helper->ptr.get<t_gobj>()) {
+                        pd::Interface::moveObject(static_cast<t_glist*>(patch), atom.get(), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
+                    }
+                    bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
+                }
+                
+                
                 auto newHeight = newBounds.getHeight();
                 auto heightIdx = std::clamp<int>(std::lower_bound(atomSizes, atomSizes + 7, newHeight) - atomSizes, 2, 7) - 1;
 
                 helper->setFontHeight(atomSizes[heightIdx]);
                 object->gui->setParameterExcludingListener(helper->fontSize, heightIdx + 1);
-
-                bounds = helper->getPdBounds(0).expanded(Object::margin) + object->cnv->canvasOrigin;
             }
         };
 
@@ -271,7 +270,7 @@ public:
         }
     }
 
-    void updateLabel(std::unique_ptr<ObjectLabel>& label)
+    void updateLabel(OwnedArray<ObjectLabel>& labels)
     {
         int idx = std::clamp<int>(fontSize.getValue(), 1, 7);
 
@@ -281,8 +280,12 @@ public:
         String const text = getExpandedLabelText();
 
         if (text.isNotEmpty()) {
-            if (!label) {
-                label = std::make_unique<ObjectLabel>();
+            ObjectLabel* label;
+            if (labels.isEmpty()) {
+                label = labels.add(new ObjectLabel());
+            }
+            else {
+                label = labels[0];
             }
 
             auto bounds = getLabelBounds();
@@ -291,16 +294,15 @@ public:
             label->setFont(Font(fontHeight));
             label->setText(text, dontSendNotification);
 
-            auto textColour = object->findColour(PlugDataColour::canvasTextColourId);
-            if (std::abs(textColour.getBrightness() - object->findColour(PlugDataColour::canvasBackgroundColourId).getBrightness()) < 0.3f) {
-                textColour = object->findColour(PlugDataColour::canvasBackgroundColourId).contrasting();
+            auto textColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
+            if (std::abs(textColour.getBrightness() - cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId).getBrightness()) < 0.3f) {
+                textColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId).contrasting();
             }
 
             label->setColour(Label::textColourId, textColour);
-
-            object->cnv->addAndMakeVisible(label.get());
+            object->cnv->addAndMakeVisible(label);
         } else {
-            label.reset(nullptr);
+            labels.clear();
         }
     }
 
@@ -326,36 +328,35 @@ public:
         int fontHeight = getAtomHeight() - 5;
         int fontWidth = sys_fontwidth(fontHeight);
         int labelSpace = fontWidth * (getExpandedLabelText().length() + 1);
-        
+
         auto currentHash = hash(getExpandedLabelText());
         int labelLength = lastLabelLength;
-        
-        if(lastFontHeight != fontHeight || lastLabelTextHash != currentHash)
-        {
+
+        if (lastFontHeight != fontHeight || lastLabelTextHash != currentHash) {
             labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());
             lastFontHeight = fontHeight;
             lastLabelTextHash = currentHash;
             lastLabelLength = labelLength;
         }
-        
+
         int labelPosition = 0;
         if (auto atom = ptr.get<t_fake_gatom>()) {
             labelPosition = atom->a_wherelabel;
         }
         auto labelBounds = objectBounds.withSizeKeepingCentre(labelLength, fontHeight);
         int lengthDifference = labelLength - labelSpace; // difference between width in pd-vanilla and plugdata
-        
+
         if (labelPosition == 0) { // left
             labelBounds.removeFromLeft(lengthDifference);
             return labelBounds.withRightX(objectBounds.getX() - lengthDifference - 2);
         }
-        
+
         labelBounds.removeFromRight(lengthDifference);
-        
+
         if (labelPosition == 1) { // right
             return labelBounds.withX(objectBounds.getRight() + 2);
         }
-        
+
         if (labelPosition == 2) { // top
             return labelBounds.withX(objectBounds.getX()).withBottomY(objectBounds.getY() - 2);
         }

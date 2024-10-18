@@ -87,10 +87,11 @@ public:
         auto heavyState = settingsTree.getChildWithName("HeavyState");
         if (heavyState.isValid()) {
             this->setState(heavyState);
-            views[0]->setState(heavyState);
-            views[1]->setState(heavyState);
-            views[2]->setState(heavyState);
-            views[3]->setState(heavyState);
+            for (int i = 0; i < 4; i++) {
+                views[i]->blockDialog = true;
+                views[i]->setState(heavyState);
+                views[i]->blockDialog = false;
+            }
         }
     }
 
@@ -141,7 +142,10 @@ public:
                 views[lastRowSelected]->patchFile = view->patchFile;
                 views[lastRowSelected]->projectNameValue = view->projectNameValue.getValue();
                 views[lastRowSelected]->projectCopyrightValue = view->projectCopyrightValue.getValue();
+
+                views[lastRowSelected]->blockDialog = true;
                 views[lastRowSelected]->inputPatchValue = view->inputPatchValue.getValue();
+                views[lastRowSelected]->blockDialog = false;
             }
             view->setVisible(false);
         }
@@ -169,10 +173,10 @@ public:
         if (isPositiveAndBelow(row, items.size())) {
             if (rowIsSelected) {
                 g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-                PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(3, 3, width - 6, height - 6), Corners::defaultCornerRadius);
+                g.fillRoundedRectangle(Rectangle<float>(3, 3, width - 6, height - 6), Corners::defaultCornerRadius);
             }
 
-            auto const textColour = findColour(rowIsSelected ? PlugDataColour::sidebarActiveTextColourId : PlugDataColour::sidebarTextColourId);
+            auto const textColour = findColour(PlugDataColour::sidebarTextColourId);
 
             Fonts::drawText(g, items[row], Rectangle<int>(15, 0, width - 30, height), textColour, 15);
         }
@@ -222,11 +226,15 @@ HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
 
     exportingView->setAlwaysOnTop(true);
 
+    /*
     infoButton->onClick = [this]() {
         helpDialog = std::make_unique<HelpDialog>(nullptr);
         helpDialog->onClose = [this]() {
             helpDialog.reset(nullptr);
         };
+    }; */
+    infoButton->onClick = []() {
+        URL("https://wasted-audio.github.io/hvcc/docs/01.introduction.html#what-is-heavy").launchInDefaultBrowser();
     };
     addAndMakeVisible(*infoButton);
 
@@ -245,6 +253,8 @@ HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
 
 HeavyExportDialog::~HeavyExportDialog()
 {
+    Dialogs::dismissFileDialog();
+
     // Clean up temp files
     Toolchain::deleteTempFiles();
 }

@@ -3,12 +3,43 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "OSUtils.h"
 
+#import <Metal/Metal.h>
+
 #if JUCE_MAC
 #import <Foundation/Foundation.h>
 #import <Cocoa/Cocoa.h>
 #include <Carbon/Carbon.h>
+#include <objc/runtime.h>
 #import <string>
 #include <raw_keyboard_input/raw_keyboard_input.mm>
+
+
+@interface NSView (FrameViewMethodSwizzling)
+- (NSPoint)FrameView__closeButtonOrigin;
+- (CGFloat)FrameView__titlebarHeight;
+@end
+
+@implementation NSView (FrameViewMethodSwizzling)
+
+- (NSPoint)FrameView__closeButtonOrigin {
+    auto* win = static_cast<NSWindow*>(self.window);
+    auto isFullscreen = win.styleMask & NSWindowStyleMaskFullScreen;
+    auto isPopup = win.level == NSPopUpMenuWindowLevel;
+    auto isInset = win.titleVisibility == NSWindowTitleVisible;
+    if(isPopup || isFullscreen || isInset)
+        return [self FrameView__closeButtonOrigin];
+    return {15, self.bounds.size.height - 28};
+}
+- (CGFloat)FrameView__titlebarHeight {
+    auto* win = static_cast<NSWindow*>(self.window);
+    auto isFullscreen = win.styleMask & NSWindowStyleMaskFullScreen;
+    auto isPopup = win.level == NSPopUpMenuWindowLevel;
+    auto isInset = win.titleVisibility == NSWindowTitleVisible;
+    if(isPopup || isFullscreen || isInset)
+        return [self FrameView__titlebarHeight];
+    return 34;
+}
+@end
 
 int getStyleMask(bool nativeTitlebar) {
     
@@ -25,13 +56,65 @@ int getStyleMask(bool nativeTitlebar) {
     return style;
 }
 
-void OSUtils::enableInsetTitlebarButtons(void* nativeHandle, bool enable) {
-    
+void OSUtils::setWindowMovable(void* nativeHandle, bool canMove) {
     auto* view = static_cast<NSView*>(nativeHandle);
     
     if(!view) return;
     
     NSWindow* window = view.window;
+    if(window)
+    {
+        [window setMovable: canMove];
+    }
+}
+
+void OSUtils::enableInsetTitlebarButtons(void* nativeHandle, bool enable) {
+    auto* view = static_cast<NSView*>(nativeHandle);
+    if(!view) return;
+    
+    NSWindow* window = view.window;
+    if(!window) return;
+    
+    // Swaps out the implementation of one Obj-c instance method with another
+    auto swizzleMethods = [](Class aClass, SEL orgMethod, SEL posedMethod) {
+        @try {
+            Method original = nil;
+            Method posed = nil;
+
+            original = class_getInstanceMethod(aClass, orgMethod);
+            posed = class_getInstanceMethod(aClass, posedMethod);
+            
+            if (!original || !posed) return;
+
+            method_exchangeImplementations(original, posed);
+        } @catch (NSException * _exn) {
+        }
+    };
+    
+    Class frameViewClass = [[[window contentView] superview] class];
+    if(frameViewClass != nil) {
+        auto oldOriginMethod = enable ? @selector(_closeButtonOrigin) : @selector(FrameView__closeButtonOrigin);
+        auto newOriginMethod = enable ? @selector(FrameView__closeButtonOrigin) : @selector(_closeButtonOrigin);
+        
+        static IMP our_closeButtonOrigin = class_getMethodImplementation([NSView class], newOriginMethod);
+        IMP _closeButtonOrigin = class_getMethodImplementation(frameViewClass, oldOriginMethod);
+        if (_closeButtonOrigin && _closeButtonOrigin != our_closeButtonOrigin) {
+            swizzleMethods(frameViewClass,
+                           oldOriginMethod,
+                           newOriginMethod);
+        }
+        
+        auto oldTitlebarHeightMethod = enable ? @selector(_titlebarHeight) : @selector(FrameView__titlebarHeight);
+        auto newTitlebarHeightMethod = enable ? @selector(FrameView__titlebarHeight) : @selector(_titlebarHeight);
+        
+        static IMP our_titlebarHeight = class_getMethodImplementation([NSView class], newTitlebarHeightMethod);
+        IMP _titlebarHeight = class_getMethodImplementation([view class], oldTitlebarHeightMethod);
+        if (_titlebarHeight && _titlebarHeight != our_titlebarHeight) {
+            swizzleMethods(frameViewClass,
+                           oldTitlebarHeightMethod,
+                           newTitlebarHeightMethod);
+        }
+    }
     
     if(enable) {
         window.titlebarAppearsTransparent = true;
@@ -43,7 +126,15 @@ void OSUtils::enableInsetTitlebarButtons(void* nativeHandle, bool enable) {
         window.titleVisibility = NSWindowTitleVisible;
         window.styleMask = getStyleMask(true);
     }
-
+    
+    // Non-opaque window with a dropshadow has a negative impact on rendering performance
+    window.opaque = TRUE;
+    
+    NSView* frameView = window.contentView.superview;
+    if ([frameView respondsToSelector:@selector(_tileTitlebarAndRedisplay:)]) {
+      [frameView _tileTitlebarAndRedisplay:NO];
+    }
+    
     [window update];
 }
 
@@ -119,13 +210,65 @@ OSUtils::ScrollTracker::ScrollTracker()
 OSUtils::ScrollTracker::~ScrollTracker()
 {
     // Remove the observer when no longer needed
-    
-    [[NSNotificationCenter defaultCenter] removeObserver:static_cast<ScrollEventObserver*>(observer)];
+    auto* ob = static_cast<ScrollEventObserver*>(observer);
+    [[NSNotificationCenter defaultCenter] removeObserver:ob];
+    [ob dealloc];
 }
+
+float OSUtils::MTLGetPixelScale(void* view) {
+    auto* nsView = reinterpret_cast<NSView*>(view);
+    
+    CGFloat scale = 1.0;
+        if ([nsView respondsToSelector:@selector(convertRectToBacking:)]) {
+            NSRect backingRect = [nsView convertRectToBacking:[nsView bounds]];
+            scale = backingRect.size.width / [nsView bounds].size.width;
+        } else {
+            // Fallback for macOS versions that do not support backing scale
+            NSWindow *window = [nsView window];
+            if (window) {
+                scale = [window backingScaleFactor];
+            }
+        }
+        return scale;
+}
+
+void* OSUtils::MTLCreateView(void* parent, int x, int y, int width, int height)
+{
+    // Create child view
+    NSView *childView = [[NSView alloc] initWithFrame:NSMakeRect(x, y, width, height)];
+    auto* parentView = reinterpret_cast<NSView*>(parent);
+    
+    // Add child view as a subview of parent view
+    [parentView addSubview:childView];
+    
+    return childView;
+}
+
+void OSUtils::MTLDeleteView(void* view)
+{
+    auto* viewToRemove = reinterpret_cast<NSView*>(view);
+    [viewToRemove removeFromSuperview];
+    [viewToRemove release];
+}
+
+void OSUtils::MTLSetVisible(void* view, bool shouldBeVisible)
+{
+    auto* viewToShow = reinterpret_cast<NSView*>(view);
+    [viewToShow setHidden:!shouldBeVisible];
+}
+
+
 #endif
 
 #if JUCE_IOS
 #import <UIKit/UIKit.h>
+
+void OSUtils::MTLSetVisible(void* view, bool shouldBeVisible)
+{
+    auto* viewToShow = reinterpret_cast<UIView*>(view);
+    [viewToShow setHidden:!shouldBeVisible];
+}
+
 
 OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 {
@@ -252,7 +395,9 @@ OSUtils::ScrollTracker::ScrollTracker(juce::ComponentPeer* peer)
 
 OSUtils::ScrollTracker::~ScrollTracker()
 {
-    // TODO: clean up!
+    auto* ob = static_cast<ScrollEventObserver*>(observer);
+    [[NSNotificationCenter defaultCenter] removeObserver:ob];
+    [ob dealloc];
 }
 
 
@@ -506,5 +651,71 @@ void OSUtils::showMobileCanvasMenu(juce::ComponentPeer* peer, std::function<void
     }
 }
 
+@interface NVGMetalView : UIView
+
+@property (nonatomic, strong) CAMetalLayer *metalLayer;
+
+@end
+
+@implementation NVGMetalView
+
++ (Class)layerClass {
+    return [CAMetalLayer class];
+}
+
+- (instancetype)initWithFrame:(CGRect)frame {
+    self = [super initWithFrame:frame];
+    if (self) {
+        [self commonInit];
+    }
+    return self;
+}
+
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
+    self = [super initWithCoder:aDecoder];
+    if (self) {
+        [self commonInit];
+    }
+    return self;
+}
+
+// Always return NO to pass through touch events
+- (BOOL)pointInside:(CGPoint)point withEvent:(UIEvent *)event {
+    return NO;
+}
+
+- (void)commonInit {
+    self.metalLayer = (CAMetalLayer *)self.layer;
+    [self.metalLayer setPresentsWithTransaction:TRUE];
+    [self.metalLayer setFramebufferOnly:FALSE];
+}
+
+@end
+
+float OSUtils::MTLGetPixelScale(void* view) {
+    return reinterpret_cast<UIView*>(view).window.screen.scale;
+}
+
+void* OSUtils::MTLCreateView(void* parent, int x, int y, int width, int height)
+{
+    // Create child view
+    NVGMetalView *childView = [[NVGMetalView alloc] initWithFrame:CGRectMake(x, y, width, height)];
+    UIView *parentView = reinterpret_cast<UIView*>(parent);
+    
+    // Add child view as a subview of parent view
+    [parentView addSubview:childView];
+
+    return childView;
+}
+
+void OSUtils::MTLDeleteView(void* view)
+{
+    UIView *viewToRemove = reinterpret_cast<UIView*>(view);
+    [viewToRemove removeFromSuperview];
+    [viewToRemove release];
+}
 
 #endif
+
+
+

@@ -19,9 +19,9 @@ class MIDIBlinker;
 class CPUMeter;
 class PluginProcessor;
 class VolumeSlider;
-class OversampleSelector;
+class LatencyDisplayButton;
 
-class StatusbarSource : public Timer {
+class StatusbarSource : public Timer{
 
 public:
     struct Listener {
@@ -44,7 +44,7 @@ public:
     void prepareToPlay(int numChannels);
 
     void timerCallback() override;
-
+    
     void addListener(Listener* l);
     void removeListener(Listener* l);
 
@@ -56,8 +56,6 @@ private:
     std::atomic<int> lastMidiReceivedTime = 0;
     std::atomic<int> lastMidiSentTime = 0;
     std::atomic<int> lastAudioProcessedTime = 0;
-    std::atomic<float> level[2] = { 0 };
-    std::atomic<float> peakHold[2] = { 0 };
     std::atomic<float> cpuUsage;
 
     int numChannels;
@@ -72,7 +70,9 @@ private:
 };
 
 class VolumeSlider;
+class ZoomLabel;
 class Statusbar : public Component
+    , public AsyncUpdater
     , public StatusbarSource::Listener
     , public ModifierKeyListener {
     PluginProcessor* pd;
@@ -85,38 +85,45 @@ public:
 
     void resized() override;
 
+    void lookAndFeelChanged() override;
+
     void audioProcessedChanged(bool audioProcessed) override;
 
-    bool wasLocked = false; // Make sure it doesn't re-lock after unlocking (because cmd is still down)
+    void setLatencyDisplay(int value);
+    void updateZoomLevel();
 
+    void showDSPState(bool dspState);
+    void setHasActiveCanvas(bool hasActiveCanvas);
+
+    static constexpr int statusbarHeight = 30;
+
+private:
+        
+    void handleAsyncUpdate() override;
+        
     std::unique_ptr<LevelMeter> levelMeter;
     std::unique_ptr<VolumeSlider> volumeSlider;
     std::unique_ptr<MIDIBlinker> midiBlinker;
     std::unique_ptr<CPUMeter> cpuMeter;
 
-    SmallIconButton powerButton, centreButton, fitAllButton, protectButton;
-
+    SmallIconButton zoomComboButton, centreButton;
     SmallIconButton overlayButton, overlaySettingsButton;
-
     SmallIconButton snapEnableButton, snapSettingsButton;
+    SmallIconButton powerButton, audioSettingsButton;
 
-    SmallIconButton alignmentButton, debugButton;
+    TextButton limiterButton = TextButton("Limit");
 
-    std::unique_ptr<OversampleSelector> oversampleSelector;
+    std::unique_ptr<LatencyDisplayButton> latencyDisplayButton;
 
-    Label zoomLabel;
+    std::unique_ptr<ZoomLabel> zoomLabel;
 
-    Value showDirection;
-
-    static constexpr int statusbarHeight = 30;
+    float currentZoomLevel = 100.f;
 
     std::unique_ptr<ButtonParameterAttachment> enableAttachment;
     std::unique_ptr<SliderParameterAttachment> volumeAttachment;
 
-    int firstSeparatorPosition;
-    int secondSeparatorPosition;
-    int thirdSeparatorPosition;
-    int fourthSeparatorPosition;
+    float firstSeparatorPosition, secondSeparatorPosition;
 
+    friend class ZoomLabel;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Statusbar)
 };

@@ -20,8 +20,8 @@
 </p>
 
 <p align="middle">
-<img width="1093" alt="app" src="https://github.com/plugdata-team/plugdata/assets/44585538/78c1018d-9949-4f95-9041-f912597c921d">
-<img width="1093" alt="darkmode" src="https://github.com/plugdata-team/plugdata/assets/44585538/8411f664-563f-449d-91a6-ca0221439307">
+<img width="1093" alt="app" src="https://github.com/user-attachments/assets/19f948b1-cd17-4f84-ae70-baf89707f749">
+<img width="1093" alt="darkmode" src="https://github.com/user-attachments/assets/605a74fc-34bb-48f5-a48e-153ffc287141">
 </p>
 
 plugdata is a plugin wrapper for Pure Data, featuring a new GUI made with JUCE. This is still a WIP, and there are probably still some bugs. By default, it ships with the ELSE collection of externals and abstractions. The aim is to provide a more comfortable patching experience for a large selection of DAWs. It can also be used as a standalone replacement for pure-data.
@@ -69,6 +69,9 @@ cmake --build .
 - Ensure that the git submodules are initialized and updated! You can use the `--recursive` option while cloning or `git submodule update --init --recursive` in the plugdata repository .
 - On Linux, Juce framework requires to install dependencies, please refer to [Linux Dependencies.md](https://github.com/juce-framework/JUCE/blob/master/docs/Linux%20Dependencies.md) and use the full command.
 - The CMake build system has been tested with *Unix Makefiles*, *XCode*, *Visual Studio 17 2022* and *Visual Studio 16 2019*
+- Extra build options:
+  - -DQUICK_BUILD=1 will skip objects that take a long time to compile (All Gem objects, sfz~ and ffmpeg based audio players)
+  - Gem, sfz~ and ffmpeg can also be disabled separately by passing "-DENABLE_GEM=0", "-DENABLE_SFIZZ=0", "-DENABLE_FFMPEG=0"
 
 ## Adding your own externals
 You can use externals inside plugdata's plugin version by recompiling the externals along with plugdata. This can be achieved by making the following modification to plugdata:
@@ -87,7 +90,7 @@ You can use externals inside plugdata's plugin version by recompiling the extern
 </p>
 
 ## Credits
-- Logo by [Bas de Bruin](https://www.bdebruin.nl/), based on concept by [Joshua A.C. Newman](https://glyphpress.com/talk/) 
+- Logo designed by [Joshua A.C. Newman](https://glyphpress.com/talk/), executed by [Bas de Bruin](https://www.bdebruin.nl/)
 - [Camomile](https://github.com/pierreguillot/Camomile) by Pierre Guillot
 - [ELSE](https://github.com/porres/pd-else) by Alexandre Torres Porres
 - [cyclone](https://github.com/porres/pd-cyclone) by Krzysztof Czaja, Hans-Christoph Steiner, Fred Jan Kraan, Alexandre Torres Porres, Derek Kwan, Matt Barber and others (note: Cyclone is included to offer an easy entry point for Max users but ELSE contains several alternatives to objects in Cyclone and Pure Data Vanilla itself also has some alternatives. Not only that, but objects that weren't cloned into Cyclone also have alternatives in ELSE, see: [this](https://github.com/porres/pd-else/wiki/Cyclone-alternatives))

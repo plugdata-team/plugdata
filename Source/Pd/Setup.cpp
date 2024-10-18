@@ -389,7 +389,7 @@ void vertex_combine_setup();
 void vertex_draw_setup();
 void vertex_grid_setup();
 void vertex_info_setup();
-//void vertex_model_setup();
+// void vertex_model_setup();
 void vertex_mul_setup();
 void vertex_offset_setup();
 void vertex_quad_setup();
@@ -700,6 +700,27 @@ void GEMglViewport_setup();
 void GEMgluLookAt_setup();
 void GEMgluPerspective_setup();
 void GLdefine_setup();
+
+void setup_modelOBJ();
+void setup_modelASSIMP3();
+void setup_imageSTBLoader();
+void setup_imageSTBSaver();
+void setup_recordPNM();
+
+#if ENABLE_FFMPEG
+void setup_filmFFMPEG();
+#endif
+
+#if __APPLE__
+void setup_videoAVF();
+void setup_filmAVF();
+#elif _MSC_VER
+void setup_videoVFW();
+void setup_filmDS();
+#else
+//void setup_videoV4L2();
+//void setup_recordV4L2();
+#endif
 #endif
 
 // pd-extra objects functions declaration
@@ -775,6 +796,7 @@ void poltocar_setup();
 void pong_setup();
 void prepend_setup();
 void prob_setup();
+void cyclone_pink_tilde_setup();
 void pv_setup();
 void rdiv_setup();
 void rminus_setup();
@@ -796,6 +818,7 @@ void thresh_setup();
 void togedge_setup();
 void tosymbol_setup();
 void trough_setup();
+void cyclone_trunc_tilde_setup();
 void universal_setup();
 void unjoin_setup();
 void urn_setup();
@@ -863,7 +886,6 @@ void change_tilde_setup();
 void click_tilde_setup();
 void clip_tilde_setup();
 void comb_tilde_setup();
-void comment_setup();
 void cosh_tilde_setup();
 void cosx_tilde_setup();
 void count_tilde_setup();
@@ -911,6 +933,7 @@ void poke_tilde_setup();
 void poltocar_tilde_setup();
 void pong_tilde_setup();
 void pow_tilde_setup();
+void Pow_tilde_setup();
 void rampsmooth_tilde_setup();
 void rand_tilde_setup();
 void rdiv_tilde_setup();
@@ -921,7 +944,6 @@ void round_tilde_setup();
 void sah_tilde_setup();
 void sampstoms_tilde_setup();
 void scale_tilde_setup();
-void scope_tilde_setup();
 void selector_tilde_setup();
 void sinh_tilde_setup();
 void sinx_tilde_setup();
@@ -995,7 +1017,6 @@ void changed_setup();
 void changed_tilde_setup();
 void changed2_tilde_setup();
 void click_setup();
-void cmul_tilde_setup();
 void colors_setup();
 void setup_comb0x2efilt_tilde();
 void setup_comb0x2erev_tilde();
@@ -1095,7 +1116,7 @@ void noteinfo_setup();
 void nyquist_tilde_setup();
 void op_tilde_setup();
 void openfile_setup();
-void oscope_tilde_setup();
+void scope_tilde_setup();
 void pack2_setup();
 void pad_setup();
 void pan2_tilde_setup();
@@ -1241,7 +1262,6 @@ void pan_tilde_setup();
 void setup_pan0x2emc_tilde();
 void setup_xgate20x2emc_tilde();
 void setup_xselect20x2emc_tilde();
-void findfile_setup();
 void setup_autofade0x2emc_tilde();
 void wt2d_tilde_setup();
 
@@ -1252,13 +1272,23 @@ void pm6_tilde_setup();
 void var_setup();
 void conv_tilde_setup();
 void fm_tilde_setup();
+void vcf2_tilde_setup();
+void setup_mpe0x2ein();
+void velvet_tilde_setup();
+
+#ifdef ENABLE_FFMPEG
+void setup_play0x2efile_tilde();
+void sfload_setup();
+#endif
 
 #ifdef ENABLE_SFIZZ
- void sfz_tilde_setup();
+void sfz_tilde_setup();
 #endif
 void knob_setup();
+void pdlink_setup();
+void pdlink_tilde_setup();
 
-void pdlua_setup(char const* datadir, char* vers, int vers_len, void(*register_class_callback)(const char*));
+void pdlua_setup(char const* datadir, char* vers, int vers_len, void (*register_class_callback)(char const*));
 void pdlua_instance_setup();
 }
 
@@ -1274,13 +1304,6 @@ int Setup::initialisePd()
 {
     static int initialized = 0;
     if (!initialized) {
-        libpd_set_noteonhook(plugdata_noteon);
-        libpd_set_controlchangehook(plugdata_controlchange);
-        libpd_set_programchangehook(plugdata_programchange);
-        libpd_set_pitchbendhook(plugdata_pitchbend);
-        libpd_set_aftertouchhook(plugdata_aftertouch);
-        libpd_set_polyaftertouchhook(plugdata_polyaftertouch);
-        libpd_set_midibytehook(plugdata_midibyte);
         libpd_set_printhook(plugdata_print);
 
         // Initialise pd
@@ -1311,9 +1334,10 @@ int Setup::initialisePd()
             SETFLOAT(zz + i + 2, defaultfontshit[i]);
         }
         pd_typedmess(gensym("pd")->s_thing, gensym("init"), 2 + ndefaultfont, zz);
-        
+
         socket_init();
-        
+
+        sys_getrealtime(); // Init realtime
         sys_unlock();
 
         initialized = 1;
@@ -1345,7 +1369,7 @@ void* Setup::createReceiver(void* ptr, char const* s,
     return x;
 }
 
-void Setup::initialisePdLua(char const* datadir, char* vers, int vers_len, void(*register_class_callback)(const char*))
+void Setup::initialisePdLua(char const* datadir, char* vers, int vers_len, void (*register_class_callback)(char const*))
 {
     pdlua_setup(datadir, vers, vers_len, register_class_callback);
 }
@@ -1394,6 +1418,15 @@ void* Setup::createMIDIHook(void* ptr,
         x->x_hook_polyaftertouch = hook_polyaftertouch;
         x->x_hook_midibyte = hook_midibyte;
     }
+
+    libpd_set_noteonhook(plugdata_noteon);
+    libpd_set_controlchangehook(plugdata_controlchange);
+    libpd_set_programchangehook(plugdata_programchange);
+    libpd_set_pitchbendhook(plugdata_pitchbend);
+    libpd_set_aftertouchhook(plugdata_aftertouch);
+    libpd_set_polyaftertouchhook(plugdata_polyaftertouch);
+    libpd_set_midibytehook(plugdata_midibyte);
+
     return x;
 }
 
@@ -1411,6 +1444,9 @@ void Setup::parseArguments(char const** argv, size_t argc, t_namelist** sys_open
 
 void Setup::initialiseELSE()
 {
+    pdlink_setup();
+    pdlink_tilde_setup();
+    
     knob_setup();
     above_tilde_setup();
     add_tilde_setup();
@@ -1467,7 +1503,6 @@ void Setup::initialiseELSE()
     changed2_tilde_setup();
     click_setup();
     white_tilde_setup();
-    cmul_tilde_setup();
     colors_setup();
     setup_comb0x2efilt_tilde();
     setup_comb0x2erev_tilde();
@@ -1567,7 +1602,7 @@ void Setup::initialiseELSE()
     nyquist_tilde_setup();
     op_tilde_setup();
     openfile_setup();
-    oscope_tilde_setup();
+    scope_tilde_setup();
     pack2_setup();
     pad_setup();
     pan2_tilde_setup();
@@ -1709,7 +1744,7 @@ void Setup::initialiseELSE()
     setup_rotate0x2emc_tilde();
     pipe2_setup();
     circuit_tilde_setup();
-    
+
     setup_autofade0x2emc_tilde();
     setup_autofade20x2emc_tilde();
     setup_mtx0x2emc_tilde();
@@ -1717,17 +1752,23 @@ void Setup::initialiseELSE()
     setup_pan0x2emc_tilde();
     setup_xgate20x2emc_tilde();
     setup_xselect20x2emc_tilde();
-    findfile_setup();
     wt2d_tilde_setup();
 
     pm_tilde_setup();
     pm2_tilde_setup();
     pm4_tilde_setup();
     pm6_tilde_setup();
+    velvet_tilde_setup();
 
     var_setup();
     conv_tilde_setup();
     fm_tilde_setup();
+    vcf2_tilde_setup();
+    setup_mpe0x2ein();
+#if ENABLE_FFMPEG
+    setup_play0x2efile_tilde();
+    sfload_setup();
+#endif
 }
 
 void Setup::initialiseGem(std::string const& gemPluginPath)
@@ -1840,8 +1881,7 @@ void Setup::initialiseGem(std::string const& gemPluginPath)
     gemsdl2window_setup();
     gemsdlwindow_setup();
     gemw32window_setup(); */
-    
-    
+
     part_color_setup();
     part_damp_setup();
     part_draw_setup();
@@ -1862,7 +1902,7 @@ void Setup::initialiseGem(std::string const& gemPluginPath)
     part_velocity_setup();
     part_velsphere_setup();
     part_vertex_setup();
-    
+
     pix_2grey_setup();
     pix_a_2grey_setup();
     pix_add_setup();
@@ -1974,7 +2014,7 @@ void Setup::initialiseGem(std::string const& gemPluginPath)
     vertex_draw_setup();
     vertex_grid_setup();
     vertex_info_setup();
-    //vertex_model_setup();
+    // vertex_model_setup();
     vertex_mul_setup();
     vertex_offset_setup();
     vertex_quad_setup();
@@ -2285,6 +2325,28 @@ void Setup::initialiseGem(std::string const& gemPluginPath)
     GEMgluLookAt_setup();
     GEMgluPerspective_setup();
     GLdefine_setup();
+    
+    setup_modelOBJ();
+    setup_modelASSIMP3();
+    setup_imageSTBLoader();
+    setup_imageSTBSaver();
+    setup_recordPNM();
+#if __APPLE__
+    setup_videoAVF();
+    setup_filmAVF();
+#elif _MSC_VER
+    setup_videoVFW();
+    setup_filmDS();
+#else
+    // Unfortunately, these plugins have big problems in plugdata
+    // they render the whole app unusable
+    //setup_videoV4L2();
+    //setup_recordV4L2();
+#endif
+#if ENABLE_FFMPEG
+    setup_filmFFMPEG();
+#endif
+
 #endif
 }
 
@@ -2350,6 +2412,7 @@ void Setup::initialiseCyclone()
     pong_setup();
     prepend_setup();
     prob_setup();
+    cyclone_pink_tilde_setup();
     pv_setup();
     rdiv_setup();
     rminus_setup();
@@ -2371,6 +2434,7 @@ void Setup::initialiseCyclone()
     togedge_setup();
     tosymbol_setup();
     trough_setup();
+    cyclone_trunc_tilde_setup();
     universal_setup();
     unjoin_setup();
     urn_setup();
@@ -2437,7 +2501,6 @@ void Setup::initialiseCyclone()
     click_tilde_setup();
     clip_tilde_setup();
     comb_tilde_setup();
-    comment_setup();
     cosh_tilde_setup();
     cosx_tilde_setup();
     count_tilde_setup();
@@ -2483,6 +2546,7 @@ void Setup::initialiseCyclone()
     poltocar_tilde_setup();
     pong_tilde_setup();
     pow_tilde_setup();
+    Pow_tilde_setup();
     rampsmooth_tilde_setup();
     rand_tilde_setup();
     rdiv_tilde_setup();
@@ -2493,7 +2557,6 @@ void Setup::initialiseCyclone()
     sah_tilde_setup();
     sampstoms_tilde_setup();
     scale_tilde_setup();
-    scope_tilde_setup();
     selector_tilde_setup();
     sinh_tilde_setup();
     sinx_tilde_setup();

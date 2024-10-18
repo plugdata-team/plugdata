@@ -14,7 +14,8 @@ class ObjectItem : public ObjectDragAndDrop
     , public SettableTooltipClient {
 public:
     ObjectItem(PluginEditor* e, String const& text, String const& icon, String const& tooltip, String const& patch, ObjectIDs objectID, std::function<void(bool)> dismissCalloutBox)
-        : titleText(text)
+        : ObjectDragAndDrop(e)
+        , titleText(text)
         , iconText(icon)
         , objectPatch(patch)
         , dismissMenu(dismissCalloutBox)
@@ -47,7 +48,7 @@ public:
 
         if (isHovering) {
             g.setColour(highlight);
-            PlugDataLook::fillSmoothedRectangle(g, iconBounds.toFloat(), Corners::defaultCornerRadius);
+            g.fillRoundedRectangle(iconBounds.toFloat(), Corners::defaultCornerRadius);
         }
 
         Fonts::drawText(g, titleText, textBounds, findColour(PlugDataColour::popupMenuTextColourId), 13.0f, Justification::centred);
@@ -99,11 +100,6 @@ public:
         }
     }
 
-    String getTitleText()
-    {
-        return titleText;
-    }
-
 private:
     String titleText;
     String iconText;
@@ -132,8 +128,7 @@ public:
         int maxColumns = width / itemSize;
         int offset = 0;
 
-        for (int i = 0; i < objectButtons.size(); i++) {
-            auto* button = objectButtons[i];
+        for (auto button : objectButtons) {
             button->setBounds(column * itemSize, offset, itemSize, itemSize);
             column++;
             if (column >= maxColumns) {
@@ -159,7 +154,7 @@ public:
                 if (objectPatch.isEmpty())
                     objectPatch = "#X obj 0 0 " + name;
                 else if (!objectPatch.startsWith("#")) {
-                    objectPatch = editor->getObjectManager()->getCompleteFormat(objectPatch);
+                    objectPatch = ObjectThemeManager::get()->getCompleteFormat(objectPatch);
                 }
                 auto* button = objectButtons.add(new ObjectItem(editor, name, icon, tooltip, objectPatch, objectID, dismissMenu));
                 addAndMakeVisible(button);
@@ -169,7 +164,7 @@ public:
         resized();
     }
 
-    void printAllObjects()
+    static void printAllObjects()
     {
         static bool hasRun = false;
         if (hasRun)
@@ -192,8 +187,7 @@ public:
 
     OwnedArray<ObjectItem> objectButtons;
 
-
-    static inline const std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> defaultObjectList = {
+    static inline std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> const defaultObjectList = {
         { "Default",
             {
                 { Icons::GlyphEmptyObject, "#X obj 0 0", "(@keypress) Empty object", "Object", NewObject },
@@ -219,8 +213,8 @@ public:
                 { Icons::GlyphNumber, "nbx", "(@keypress) Number box", "Number", NewNumbox },
                 { Icons::GlyphCanvas, "cnv", "(@keypress) Canvas", "Canvas", NewCanvas },
                 { Icons::GlyphFunction, "function", "Function", "Function", OtherObject },
-                { Icons::GlyphOscilloscope, "oscope~", "Oscilloscope", "Scope", OtherObject },
-                { Icons::GlyphKeyboard, "#X obj 0 0 keyboard 16 80 4 2 0 0 empty empty", "Piano keyboard", "Keyboard", OtherObject },
+                { Icons::GlyphOscilloscope, "scope~", "Oscilloscope", "Scope", OtherObject },
+                { Icons::GlyphKeyboard, "keyboard", "Piano keyboard", "Keyboard", OtherObject },
                 { Icons::GlyphMessbox, "messbox", "ELSE Message box", "Messbox", OtherObject },
                 { Icons::GlyphBicoeff, "#X obj 0 0 bicoeff 450 150 peaking", "Bicoeff generator", "Bicoeff", OtherObject },
                 { Icons::GlyphVUMeter, "vu", "(@keypress) VU meter", "VU Meter", NewVUMeter },
@@ -269,6 +263,8 @@ public:
                 { Icons::GlyphSetDsp, "#X obj 0 0 setdsp~", "Setdsp", "Setdsp", OtherObject },
                 { Icons::GlyphNetreceive, "#X obj 0 0 netreceive", "Netreceive", "Netreceive", OtherObject },
                 { Icons::GlyphNetsend, "#X obj 0 0 netsend", "Netsend", "Netsend", OtherObject },
+                { Icons::GlyphOSCsend, "#X obj 0 0 osc.send", "OSC send", "OSC send", OtherObject },
+                { Icons::GlyphOSCreceive, "#X obj 0 0 osc.receive", "OSC receive", "OSC receive", OtherObject },
                 { Icons::GlyphSend, "#X obj 0 0 s", "Send", "Send", OtherObject },
                 { Icons::GlyphReceive, "#X obj 0 0 r", "Receive", "Receive", OtherObject },
                 { Icons::GlyphSignalSend, "#X obj 0 0 s~", "Send~", "Send~", OtherObject },
@@ -289,7 +285,7 @@ public:
                 { Icons::GlyphImpBL, "#X obj 0 0 bl.imp~ 100", "Impulse band limited", "Bl. Imp", OtherObject },
                 { Icons::GlyphWavetable, "#X obj 0 0 wavetable~", "Wavetable", "Wavetab", OtherObject },
                 { Icons::GlyphWavetableBL, "#X obj 0 0 bl.wavetable~", "Wavetable band limited", "Bl. Wavetab", OtherObject },
-                { Icons::GlyphPlaits, "#X obj 0 0 plaits~ -model 0 440 0.25 0.5 0.1", "Plaits", "Plaits", OtherObject },
+                { Icons::GlyphPlaits, "#X obj 0 0 plaits~", "Plaits", "Plaits", OtherObject },
             } },
         { "FX~",
             {
@@ -356,7 +352,7 @@ public:
             } },
     };
 
-    static inline const std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> heavyObjectList = {
+    static inline std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> const heavyObjectList = {
         { "Default",
             {
                 { Icons::GlyphEmptyObject, "#X obj 0 0", "(@keypress) Empty object", "Object", NewObject },
@@ -372,6 +368,7 @@ public:
                 // GUI object default settings are in OjbectManager.h
                 { Icons::GlyphBang, "bng", "(@keypress) Bang", "Bang", NewBang },
                 { Icons::GlyphToggle, "tgl", "(@keypress) Toggle", "Toggle", NewToggle },
+                { Icons::GlyphKnob, "knob", "Knob", "Knob", OtherObject },
                 { Icons::GlyphVSlider, "vsl", "(@keypress) Vertical slider", "V. Slider", NewVerticalSlider },
                 { Icons::GlyphHSlider, "hsl", "(@keypress) Horizontal slider", "H. Slider", NewHorizontalSlider },
                 { Icons::GlyphVRadio, "vradio", "(@keypress) Vertical radio box", "V. Radio", NewVerticalRadio },
@@ -405,7 +402,7 @@ public:
                 { Icons::GlyphPgmIn, "#X obj 0 0 pgmin", "Program in", "Pgm in", OtherObject },
                 { Icons::GlyphPgmOut, "#X obj 0 0 pgmout", "Program out", "Pgm out", OtherObject },
                 { Icons::GlyphGeneric, "#X obj 0 0 touchin", "Touch in", "Tch in", OtherObject },
-                { Icons::GlyphGeneric, "#X obj 0 0 touchout", "Touch out", "Tch in", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 touchout", "Touch out", "Tch out", OtherObject },
                 { Icons::GlyphGeneric, "#X obj 0 0 polytouchin", "Poly Touch in", "Ptch in", OtherObject },
                 { Icons::GlyphGeneric, "#X obj 0 0 polytouchout", "Poly Touch in", "Ptch out", OtherObject },
                 { Icons::GlyphMtof, "#X obj 0 0 mtof", "MIDI to frequency", "mtof", OtherObject },
@@ -445,6 +442,8 @@ public:
                 { Icons::GlyphGeneric, "#X obj 0 0 hv.filter~ bandpass1", "Bandpass Filter", "Bp Filter", OtherObject },
                 { Icons::GlyphGeneric, "#X obj 0 0 hv.filter~ highpass", "Highpass Filter", "Hp Filter", OtherObject },
                 { Icons::GlyphGeneric, "#X obj 0 0 hv.filter~ allpass", "Allpass Filter", "Ap Filter", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 hv.hip~", "One-pole Highpass", "Hp Filter", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 hv.lop~", "One-pole Lowpass", "Lp Filter", OtherObject },
                 { Icons::GlyphGeneric, "#X obj 0 0 hv.freqshift~", "Frequency Shifter", "Freq Shift", OtherObject },
             } },
         { "Math",
@@ -514,7 +513,7 @@ public:
             button->setClickingTogglesState(true);
             button->setRadioGroupId(hash("add_menu_category"));
             button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
-            button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuActiveTextColourId));
+            button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuTextColourId));
             button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.035f));
             button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.075f));
             button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
@@ -556,7 +555,7 @@ public:
     bool clickingTogglesState = false;
     std::function<void(void)> onClick = []() {};
 
-    AddObjectMenuButton(String iconStr, String textStr = String())
+    explicit AddObjectMenuButton(String const& iconStr, String const& textStr = String())
         : icon(iconStr)
         , text(textStr)
     {
@@ -572,8 +571,7 @@ public:
 
         if (isMouseOver()) {
             g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
-            PlugDataLook::fillSmoothedRectangle(g, b.toFloat(), Corners::defaultCornerRadius);
-            colour = findColour(PlugDataColour::popupMenuActiveTextColourId);
+            g.fillRoundedRectangle(b.toFloat(), Corners::defaultCornerRadius);
         }
 
         if (toggleState) {
@@ -617,7 +615,7 @@ public:
 class AddObjectMenu : public Component {
 
 public:
-    AddObjectMenu(PluginEditor* e)
+    explicit AddObjectMenu(PluginEditor* e)
         : objectBrowserButton(Icons::Object, "Show Object Browser")
         , pinButton(Icons::Pin)
         , editor(e)
@@ -683,8 +681,7 @@ public:
     static void show(PluginEditor* editor, Rectangle<int> bounds)
     {
         auto addObjectMenu = std::make_unique<AddObjectMenu>(editor);
-        currentCalloutBox = &CallOutBox::launchAsynchronously(std::move(addObjectMenu), bounds, editor);
-        currentCalloutBox->setColour(PlugDataColour::popupMenuBackgroundColourId, currentCalloutBox->findColour(PlugDataColour::popupMenuBackgroundColourId));
+        currentCalloutBox = &editor->showCalloutBox(std::move(addObjectMenu), bounds);
     }
 
 private:

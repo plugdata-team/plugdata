@@ -6,41 +6,92 @@
 
 #include "Components/PropertiesPanel.h"
 
-class PropertyRedirector : public Value::Listener {
-public:
-    PropertyRedirector(Value* controllerValue, Array<Value*> attachedValues)
-        : values(attachedValues)
-    {
-        values.add(controllerValue);
-        baseValue.setValue(controllerValue->getValue());
-        baseValue.addListener(this);
-    }
-
-    ~PropertyRedirector() override
-    {
-        baseValue.removeListener(this);
-    }
-
-    void valueChanged(Value& v) override
-    {
-        for (auto* value : values) {
-            value->setValue(baseValue.getValue());
-        }
-    }
-
-    Value baseValue;
-    Array<Value*> values;
-};
-
 class Inspector : public Component {
+    class PropertyRedirector : public Value::Listener {
+        public:
+        PropertyRedirector(Inspector* parent) : inspector(parent)
+        {
+        }
 
+        Value* addProperty(Value* controllerValue, Array<Value*> attachedValues)
+        {
+            auto* property = properties.add(new Property(this, controllerValue, attachedValues));
+            return &property->baseValue;
+        }
+        
+        void clearProperties()
+        {
+            properties.clear();
+        }
+        
+private:
+        struct Property {
+            Property(PropertyRedirector* parent, Value* controllerValue, Array<Value*> attachedValues)
+                : redirector(parent), values(attachedValues)
+            {
+                values.add(controllerValue);
+                baseValue.setValue(controllerValue->getValue());
+                baseValue.addListener(redirector);
+            }
+
+            ~Property()
+            {
+                baseValue.removeListener(redirector);
+            }
+
+            PropertyRedirector* redirector;
+            Value baseValue;
+            Array<Value*> values;
+        };
+        
+        
+        void valueChanged(Value& v) override
+        {
+            pd::Patch* currentPatch = nullptr;
+            if(auto* editor = inspector->findParentComponentOfClass<PluginEditor>()) {
+                if(auto* cnv = editor->getCurrentCanvas()) {
+                    currentPatch = &cnv->patch;
+                }
+            }
+            
+            for(auto* property : properties)
+            {
+                if(property->baseValue.refersToSameSourceAs(v))
+                {
+                    bool isInsideUndoSequence = false;
+                    if(currentPatch && !lastChangedValue.refersToSameSourceAs(v))
+                    {
+                        currentPatch->startUndoSequence("properties");
+                        lastChangedValue.referTo(v);
+                        isInsideUndoSequence = true;
+                    }
+                    
+                    for (auto* value : property->values) {
+                        value->setValue(v.getValue());
+                    }
+                    
+                    
+                    if(isInsideUndoSequence)
+                    {
+                        currentPatch->endUndoSequence("properties");
+                    }
+                    break;
+                }
+            }
+        }
+        
+        Value lastChangedValue;
+        OwnedArray<Property> properties;
+        Inspector* inspector;
+    };
+    
     PropertiesPanel panel;
     TextButton resetButton;
     Array<ObjectParameters> properties;
-    OwnedArray<PropertyRedirector> redirectors;
+    PropertyRedirector redirector;
 
 public:
-    Inspector()
+    Inspector() : redirector(this)
     {
         panel.setTitleHeight(20);
         panel.setTitleAlignment(PropertiesPanel::AlignWithPropertyName);
@@ -68,7 +119,7 @@ public:
         panel.setContentWidth(getWidth() - 16);
     }
 
-    static PropertiesPanelProperty* createPanel(int type, String const& name, Value* value, StringArray& options)
+    static PropertiesPanelProperty* createPanel(int type, String const& name, Value* value, StringArray& options, std::function<void(bool)> onInteractionFn = nullptr)
     {
         switch (type) {
         case tString:
@@ -76,7 +127,7 @@ public:
         case tFloat:
             return new PropertiesPanel::EditableComponent<float>(name, *value);
         case tInt:
-            return new PropertiesPanel::EditableComponent<int>(name, *value);
+            return new PropertiesPanel::EditableComponent<int>(name, *value, 0.0f, 0.0f, onInteractionFn);
         case tColour:
             return new PropertiesPanel::ColourComponent(name, *value);
         case tBool:
@@ -108,7 +159,7 @@ public:
         panel.clear();
 
         auto parameterIsInAllObjects = [&objectParameters](ObjectParameter& param, Array<Value*>& values) {
-            auto& [name1, type1, category1, value1, options1, defaultVal1, customComponent1] = param;
+            auto& [name1, type1, category1, value1, options1, defaultVal1, customComponent1, onInteractionFn1] = param;
 
             if (objectParameters.size() > 1 && (name1 == "Size" || name1 == "Position" || name1 == "Height")) {
                 return false;
@@ -117,7 +168,7 @@ public:
             bool isInAllObjects = true;
             for (auto& parameters : objectParameters) {
                 bool hasParameter = false;
-                for (auto& [name2, type2, category2, value2, options2, defaultVal2, customComponent2] : parameters.getParameters()) {
+                for (auto& [name2, type2, category2, value2, options2, defaultVal2, customComponent2, onInteractionFn2] : parameters.getParameters()) {
                     if (name1 == name2 && type1 == type2 && category1 == category2) {
                         values.add(value2);
                         hasParameter = true;
@@ -131,12 +182,12 @@ public:
             return isInAllObjects;
         };
 
-        redirectors.clear();
+        redirector.clearProperties();
 
         for (int i = 0; i < 4; i++) {
             Array<PropertiesPanelProperty*> panels;
             for (auto& parameter : objectParameters[0].getParameters()) {
-                auto& [name, type, category, value, options, defaultVal, customComponentFn] = parameter;
+                auto& [name, type, category, value, options, defaultVal, customComponentFn, onInteractionFn] = parameter;
 
                 if (customComponentFn && objectParameters.size() == 1 && static_cast<int>(category) == i) {
                     if (auto* customComponent = customComponentFn()) {
@@ -153,12 +204,12 @@ public:
                         continue;
 
                     else if (objectParameters.size() == 1) {
-                        auto newPanel = createPanel(type, name, value, options);
+                        auto newPanel = createPanel(type, name, value, options, onInteractionFn);
                         newPanel->setPreferredHeight(26);
                         panels.add(newPanel);
                     } else {
-                        auto* redirector = redirectors.add(new PropertyRedirector(value, otherValues));
-                        auto newPanel = createPanel(type, name, &redirector->baseValue, options);
+                        auto* redirectedProperty = redirector.addProperty(value, otherValues);
+                        auto newPanel = createPanel(type, name, redirectedProperty, options);
                         newPanel->setPreferredHeight(26);
                         panels.add(newPanel);
                     }

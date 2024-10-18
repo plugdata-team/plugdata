@@ -4,10 +4,78 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include "NVGSurface.h"
+
+class VUScale : public ObjectLabel {
+    StringArray scaleText = { "+12", "+6", "+2", "-0dB", "-2", "-6", "-12", "-20", "-30", "-50", "-99" };
+    unsigned scaleDecim = 0b10001001001; // reverse bitwise for controlling which scale text shows when too small to display all
+
+    NVGcolor labelColor;
+
+public:
+    VUScale()
+    {
+    }
+
+    ~VUScale()
+    {
+    }
+
+    void setLabelColour(const Colour& colour)
+    {
+        labelColor = convertColour(colour);
+        repaint();
+    }
+
+    virtual void renderLabel(NVGcontext* nvg, float scale) override
+    {
+        if (!isVisible())
+            return;
+
+        // TODO: Hack to hold all images for each context, consider moving somewhere central
+        static std::unordered_map<NVGcontext*, std::array<NVGImage, 11>> scales;
+
+        // We calculate the largest size the text will ever be (canvas zoom * UI scale * desktop scale)
+        auto const maxUIScale = 3 * 2 * 2;
+        auto const maxScaledWidth = getWidth() * maxUIScale;
+        auto const maxScaledHeight = 20 * maxUIScale;
+
+        auto& scaleImages = scales[nvg];
+
+        if (!scaleImages[0].isValid()) {
+            for (int i = 0; i < 11; i++) {
+                // generate scale images that are max size of canvas * UI scale
+                scaleImages[i] = NVGImage(nvg, maxScaledWidth, maxScaledHeight, [this, i](Graphics& g){
+                    g.addTransform(AffineTransform::scale(maxUIScale));
+                    g.setColour(Colours::white);
+                    // Draw + or -
+                    g.setFont(Fonts::getMonospaceFont().withHeight(9));
+                    g.drawText(scaleText.getReference(i).substring(0, 1), getLocalBounds().withHeight(20), Justification::centredLeft, false);
+                    // Draw dB value
+                    g.setFont(Fonts::getDefaultFont().withHeight(9));
+                    g.drawText(scaleText.getReference(i).substring(1), getLocalBounds().withHeight(20).withLeft(5), Justification::centredLeft, false);
+                }, NVGImage::AlphaImage | NVGImage::MipMap);
+            }
+        }
+
+        const bool decimScaleText = getHeight() < 90;
+
+        for (int i = 0; i < 11; i++){
+            if (decimScaleText && !(scaleDecim & (1 << i)))
+                continue;
+            const float scaleTextYPos = static_cast<float>(i) * (getHeight() - 20) / 10.0f;
+            nvgFillPaint(nvg, nvgImageAlphaPattern(nvg, 0, scaleTextYPos, getWidth(), 20, 0, scaleImages[i].getImageId(), labelColor));
+            nvgFillRect(nvg, 0, scaleTextYPos, getWidth(), 20);
+        }
+    }
+};
+
 class VUMeterObject final : public ObjectBase {
 
     IEMHelper iemHelper;
     Value sizeProperty = SynchronousValue();
+    Value showScale = SynchronousValue();
+    NVGcolor bgCol;
 
 public:
     VUMeterObject(pd::WeakReference ptr, Object* object)
@@ -22,8 +90,17 @@ public:
 
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamReceiveSymbol(&iemHelper.receiveSymbol);
-        objectParameters.addParamSendSymbol(&iemHelper.sendSymbol, "nosndno");
+        objectParameters.addParamBool("Show scale", ParameterCategory::cAppearance, &showScale, { "No", "Yes" }, 1);
+        objectParameters.addParamColour("Background color", ParameterCategory::cAppearance, &iemHelper.secondaryColour);
         iemHelper.addIemParameters(objectParameters, false, false, -1);
+
+        updateLabel();
+        if(auto vu = ptr.get<t_vu>()) showScale = vu->x_scale;
+        propertyChanged(showScale);
+        
+        iemHelper.iemColourChangedCallback = [this](){
+            bgCol = convertColour(Colour::fromString(iemHelper.secondaryColour.toString()));
+        };
     }
 
     void updateSizeProperty() override
@@ -35,22 +112,52 @@ public:
         }
     }
 
-    bool hideInlets() override
+    bool inletIsSymbol() override
     {
         return iemHelper.hasReceiveSymbol();
     }
 
-    bool hideOutlets() override
+    bool outletIsSymbol() override
     {
         return iemHelper.hasSendSymbol();
     }
 
     void updateLabel() override
     {
-        iemHelper.updateLabel(label);
-    }
+        String const text = iemHelper.labelText.toString();
 
-    void valueChanged(Value& v) override
+        ObjectLabel* label = nullptr;
+        VUScale* vuScale = nullptr;
+        if (labels.isEmpty()) {
+            label = labels.add(new ObjectLabel());
+            vuScale = reinterpret_cast<VUScale*>(labels.add(new VUScale()));
+            object->cnv->addChildComponent(label);
+            object->cnv->addChildComponent(vuScale);
+        }
+        else {
+            label = labels[0];
+            vuScale = reinterpret_cast<VUScale*>(labels[1]);
+        }
+
+        if (label && text.isNotEmpty()) {
+            auto bounds = iemHelper.getLabelBounds();
+            bounds.translate(0, bounds.getHeight() / -2.0f);
+
+            label->setFont(Font(bounds.getHeight()));
+            label->setBounds(bounds);
+            label->setText(text, dontSendNotification);
+            label->setColour(Label::textColourId, iemHelper.getLabelColour());
+            label->setVisible(true);
+        }
+        if (vuScale) {
+            auto vuScaleBounds = Rectangle<int>(object->getBounds().getTopRight().x - 3, object->getBounds().getTopRight().y, 20, object->getBounds().getHeight());
+            vuScale->setBounds(vuScaleBounds);
+            vuScale->setVisible(getValue<bool>(showScale));
+            vuScale->setLabelColour(iemHelper.getLabelColour());
+        }
+    }
+    
+    void propertyChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(sizeProperty)) {
             auto& arr = *sizeProperty.getValue().getArray();
@@ -66,6 +173,12 @@ public:
             }
 
             object->updateBounds();
+        } else if (v.refersToSameSourceAs(showScale)) {
+            if (auto vu = ptr.get<t_vu>()) {
+                auto showVU = getValue<bool>(showScale);
+                vu->x_scale = showVU;
+            }
+            updateLabel();
         } else {
             iemHelper.valueChanged(v);
         }
@@ -90,71 +203,65 @@ public:
         iemHelper.setPdBounds(b);
     }
 
-    void paint(Graphics& g) override
+    void render(NVGcontext* nvg) override
     {
-        auto values = std::vector<float> { ptr.getRaw<t_vu>()->x_fp, ptr.getRaw<t_vu>()->x_fr };
+        if(!ptr.isValid()) return;
 
-        int height = getHeight();
-        int width = getWidth();
+        float values[2] = { ptr.get<t_vu>()->x_fp, ptr.get<t_vu>()->x_fr };
 
-        g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
+        auto b =  getLocalBounds();
+        auto bS = b.reduced(0.5f);
+        // Object background
+        nvgDrawRoundedRect(nvg, bS.getX(), bS.getY(), bS.getWidth(), bS.getHeight(), bgCol, bgCol, Corners::objectCornerRadius);
 
-        auto outerBorderWidth = 2.0f;
-        auto totalBlocks = 30;
-        auto spacingFraction = 0.05f;
-        auto doubleOuterBorderWidth = 2.0f * outerBorderWidth;
+        auto rms = Decibels::decibelsToGain(values[1] - 10.0f);
+        auto peak = Decibels::decibelsToGain(values[0] - 10.0f);
+        auto barLength = jmin(std::exp(std::log(rms) / 3.0f) * (rms > 0.002f), 1.0f) * b.getHeight();
+        auto peakPosition = jmin(std::exp(std::log(peak) / 3.0f) * (peak > 0.002f), 1.0f) * (b.getHeight() - 5.0f);
+        
+        
+        auto getColourForLevel = [](float level)
+        {
+            if(level < -12)
+            {
+                return nvgRGBA(66, 163, 198, 255);
+            }
+            else if(level > 0)
+            {
+                return nvgRGBA(255, 0, 0, 255);
+            }
+            else {
+                return nvgRGBA(255, 127, 0, 255);
+            }
+        };
+        
+        NVGcolor peakColour = getColourForLevel(values[0]);
+        NVGcolor barColour = getColourForLevel(values[1]);
+        
+        // VU Bar
+        nvgFillColor(nvg, barColour);
+        nvgBeginPath(nvg);
+        nvgRoundedRectVarying(nvg, 4, getHeight() - barLength, getWidth() - 8, barLength, 0.0f, 0.0f, Corners::objectCornerRadius, Corners::objectCornerRadius);
+        nvgFill(nvg);
 
-        auto blockHeight = (height - doubleOuterBorderWidth) / static_cast<float>(totalBlocks);
-        auto blockWidth = width - doubleOuterBorderWidth;
-        auto blockRectHeight = (1.0f - 2.0f * spacingFraction) * blockHeight;
-        auto blockRectSpacing = spacingFraction * blockHeight;
-        auto blockCornerSize = 0.1f * blockHeight;
-        auto c = Colour(0xff42a2c8);
-
-        float rms = Decibels::decibelsToGain(values[1] - 12.0f);
-
-        float lvl = (float)std::exp(std::log(rms) / 3.0) * (rms > 0.002);
-        auto numBlocks = roundToInt(totalBlocks * lvl);
-
-        auto verticalGradient = ColourGradient(c, 0, getHeight(), Colours::red, 0, 0, false);
-        verticalGradient.addColour(0.5f, c);
-        verticalGradient.addColour(0.75f, Colours::orange);
-
-        for (auto i = 0; i < totalBlocks; ++i) {
-            if (i >= numBlocks)
-                g.setColour(Colours::darkgrey);
-            else
-                g.setGradientFill(verticalGradient);
-
-            g.fillRoundedRectangle(outerBorderWidth, outerBorderWidth + ((totalBlocks - i) * blockHeight) + blockRectSpacing, blockWidth, blockRectHeight, blockCornerSize);
+        nvgBeginPath(nvg);
+        int increment = getHeight() / 30;
+        for(int i = 0; i < 30; i++)
+        {
+            
+            nvgMoveTo(nvg, 0, i * increment + 3);
+            nvgLineTo(nvg, getWidth(), i * increment + 3);
         }
+        nvgStrokeWidth(nvg, 1.0f);
+        nvgStrokeColor(nvg, bgCol);
+        nvgStroke(nvg);
+        
+        // Peak
+        nvgFillColor(nvg, peakColour);
+        nvgFillRect(nvg, 0, getHeight() - peakPosition - 5.0f, getWidth(), 5.0f);
 
-        float peak = Decibels::decibelsToGain(values[0] - 12.0f);
-        float lvl2 = (float)std::exp(std::log(peak) / 3.0) * (peak > 0.002);
-        auto numBlocks2 = roundToInt(totalBlocks * lvl2);
-
-        g.setColour(Colours::white);
-        g.fillRoundedRectangle(outerBorderWidth, outerBorderWidth + ((totalBlocks - numBlocks2) * blockHeight) + blockRectSpacing, blockWidth, blockRectHeight / 2.0f, blockCornerSize);
-
-        // Get text value with 2 and 0 decimals
-        // Prevent going past -100 for size reasons
-        String textValue = String(std::max(values[1], -96.0f), 2);
-
-        if (getWidth() > g.getCurrentFont().getStringWidth(textValue + " dB")) {
-            // Check noscale flag, otherwise display next to slider
-            Fonts::drawFittedText(g, textValue + " dB", Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Colours::white, 1, 1.0f, 11, Justification::centred);
-        } else if (getWidth() > g.getCurrentFont().getStringWidth(textValue)) {
-            Fonts::drawFittedText(g, textValue, Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Colours::white, 1, 1.0f, 11, Justification::centred);
-        } else {
-            Fonts::drawFittedText(g, String(std::max(values[1], -96.0f), 0), Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Colours::white, 1, 1.0f, 11, Justification::centred);
-        }
-
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        // Object outline
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
     }
 
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override

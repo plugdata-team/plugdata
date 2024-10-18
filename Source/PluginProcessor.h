@@ -21,14 +21,18 @@ namespace pd {
 class Library;
 }
 
+class Autosave;
 class InternalSynth;
 class SettingsFile;
 class StatusbarSource;
 struct PlugDataLook;
 class PluginEditor;
 class ConnectionMessageDisplay;
-class PluginProcessor : public AudioProcessor
-    , public pd::Instance, public SettingsFileListener {
+class Object;
+class PluginProcessor final : public AudioProcessor
+    , public pd::Instance
+    , public SettingsFileListener
+{
 public:
     PluginProcessor();
 
@@ -37,15 +41,25 @@ public:
     static AudioProcessor::BusesProperties buildBusesProperties();
 
     void setOversampling(int amount);
+    void setLimiterThreshold(int amount);
     void setProtectedMode(bool enabled);
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
+    void numChannelsChanged() override;
     void releaseResources() override;
+
+    void updateAllEditorsLNF();
+
+    void flushMessageQueue();
+
+    void updateIoletGeometryForAllObjects();
 
 #ifndef JucePlugin_PreferredChannelConfigurations
     bool isBusesLayoutSupported(BusesLayout const& layouts) const override;
 #endif
 
     void processBlock(AudioBuffer<float>&, MidiBuffer&) override;
+
+    void processBlockBypassed(AudioBuffer<float>& buffer, MidiBuffer&) override;
 
     AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
@@ -76,8 +90,9 @@ public:
     void receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list) override;
 
     void addTextToTextEditor(unsigned long ptr, String text) override;
-    void showTextEditor(unsigned long ptr, Rectangle<int> bounds, String title) override;
-
+    void showTextEditorDialog(unsigned long ptr, Rectangle<int> bounds, String title) override;
+    bool isTextEditorDialogShown(unsigned long ptr) override;
+    
     void updateConsole(int numMessages, bool newWarning) override;
 
     void reloadAbstractions(File changedPatch, t_glist* except) override;
@@ -96,9 +111,8 @@ public:
         return nbus > 0;
     }
 
-    void savePatchTabPositions();
     void updatePatchUndoRedoState();
-        
+
     void settingsFileReloaded() override;
 
     void initialiseFilesystem();
@@ -108,36 +122,37 @@ public:
     void sendPlayhead();
     void sendParameters();
 
-    bool isInPluginMode();
-
     Array<PluginEditor*> getEditors() const;
 
     void performParameterChange(int type, String const& name, float value) override;
-        
-    // Jyg added this
+    void enableAudioParameter(String const& name) override;
+    void disableAudioParameter(String const& name) override;
+    void setParameterRange(String const& name, float min, float max) override;
+    void setParameterMode(String const& name, int mode) override;
+
+    void performLatencyCompensationChange(float value) override;
+    void sendParameterInfoChangeMessage();
+
     void fillDataBuffer(std::vector<pd::Atom> const& list) override;
     void parseDataBuffer(XmlElement const& xml) override;
     std::unique_ptr<XmlElement> extraData;
 
-    pd::Patch::Ptr loadPatch(String patch, PluginEditor* editor, int splitIndex = 0);
-    pd::Patch::Ptr loadPatch(URL const& patchURL, PluginEditor* editor, int splitIndex = 0);
+    pd::Patch::Ptr loadPatch(String patch);
+    pd::Patch::Ptr loadPatch(URL const& patchURL);
 
     void titleChanged() override;
 
     void setTheme(String themeToUse, bool force = false);
 
-    Colour getForegroundColour() override;
-    Colour getBackgroundColour() override;
-    Colour getTextColour() override;
-    Colour getOutlineColour() override;
-        
-    // All opened patches
-    Array<pd::Patch::Ptr, CriticalSection> patches;
+    void registerObject(Object* object);
+    void unregisterObject(Object* object);
+    Object* getObjectFromPtr(_gobj* ptr);
 
     int lastUIWidth = 1000, lastUIHeight = 650;
 
     std::atomic<float>* volume;
-
+    ValueTree pluginModeTheme;
+        
     SettingsFile* settingsFile;
 
     std::unique_ptr<pd::Library> objectLibrary;
@@ -168,8 +183,12 @@ public:
 
     OwnedArray<PluginEditor> openedEditors;
     Component::SafePointer<ConnectionMessageDisplay> connectionListener;
-
+    std::unique_ptr<Autosave> autosave;
+    
 private:
+
+    int customLatencySamples = 0;
+
     SmoothedValue<float, ValueSmoothingTypes::Linear> smoothedGain;
 
     int audioAdvancement = 0;
@@ -177,6 +196,7 @@ private:
     bool variableBlockSize = false;
     AudioBuffer<float> audioBufferIn;
     AudioBuffer<float> audioBufferOut;
+    AudioBuffer<float> bypassBuffer;
 
     std::vector<float> audioVectorIn;
     std::vector<float> audioVectorOut;
@@ -203,12 +223,42 @@ private:
 
     std::map<unsigned long, std::unique_ptr<Component>> textEditorDialogs;
 
-    static inline String const else_version = "ELSE v1.0-rc11";
-    static inline String const cyclone_version = "cyclone v0.8-1";
-    static inline String const heavylib_version = "heavylib v0.3.1";
+    static inline String const else_version = "ELSE v1.0-rc12";
+    static inline String const cyclone_version = "cyclone v0.9-0";
+    static inline String const heavylib_version = "heavylib v0.4";
     static inline String const gem_version = "Gem v0.94";
     // this gets updated with live version data later
     static String pdlua_version;
+
+    class HostInfoUpdater : public AsyncUpdater {
+    public:
+        HostInfoUpdater(PluginProcessor* parentProcessor)
+            : processor(*parentProcessor) {};
+
+        void update()
+        {
+            if (ProjectInfo::isStandalone)
+                return;
+#if JUCE_IOS
+            handleAsyncUpdate(); // iOS doesn't like it if we do this asynchronously
+#else
+            triggerAsyncUpdate();
+#endif
+        }
+    private:
+        void handleAsyncUpdate() override
+        {
+            auto const details = AudioProcessorListener::ChangeDetails {}.withParameterInfoChanged(true);
+            processor.updateHostDisplay(details);
+        }
+
+        PluginProcessor& processor;
+    };
+
+    HostInfoUpdater hostInfoUpdater;
+
+    // Map of all graphical objects to their PD ptr's
+    std::unordered_map<_gobj*, Component::SafePointer<Object>> objectPtrMap;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)
 };

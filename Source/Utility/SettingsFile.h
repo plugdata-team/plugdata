@@ -28,6 +28,8 @@ public:
 
     SettingsFile* initialise();
 
+    void startChangeListener();
+
     ValueTree getKeyMapTree();
     ValueTree getColourThemesTree();
     ValueTree getPathsTree();
@@ -47,7 +49,7 @@ public:
     void initialiseOverlayTree();
 
     void reloadSettings();
-        
+
     void fileChanged(File const file, FileSystemWatcher::FileSystemEvent fileEvent) override;
 
     void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, Identifier const& property) override;
@@ -80,13 +82,26 @@ public:
 
     Value getPropertyAsValue(String const& name);
 
-    ValueTree getValueTree();
+    ValueTree& getValueTree();
 
     void setGlobalScale(float newScale);
 
+    String getCorruptBackupSettingsLocation();
+
+    enum SettingsState { UserSettings, BackupSettings, DefaultSettings };
+    SettingsState getSettingsState();
+
 private:
+
+    static bool verify(const XmlElement* settings);
+
+    void backupCorruptSettings();
+    String backupSettingsLocation;
+
+    SettingsState settingsState = UserSettings;
+
     bool isInitialised = false;
-        
+
     FileSystemWatcher settingsFileWatcher;
 
     Array<SettingsFileListener*> listeners;
@@ -100,12 +115,13 @@ private:
         { "browser_path", var(ProjectInfo::appDataDir.getFullPathName()) },
         { "theme", var("light") },
         { "oversampling", var(0) },
+        { "limiter_threshold", var(1) },
         { "protected", var(1) },
         { "debug_connections", var(1) },
         { "internal_synth", var(0) },
         { "grid_enabled", var(1) },
         { "grid_type", var(6) },
-        { "grid_size", var(20) },
+        { "grid_size", var(25) },
         { "default_font", var("Inter") },
         { "native_window", var(false) },
         { "reload_last_state", var(false) },
@@ -125,17 +141,12 @@ private:
         { "centre_sidepanel_buttons", var(true) },
         { "show_all_audio_device_rates", var(false) },
         { "add_object_menu_pinned", var(false) },
-        { "autosave_interval", var(120) },
+        { "autosave_interval", var(5) },
         { "autosave_enabled", var(1) },
-        { "macos_buttons",
-#if JUCE_MAC
-            var(true)
-#else
-            var(false)
-#endif
-        },
+        { "patch_downwards_only", var(false) }, // Option to replicate PD-Vanilla patching downwards only
         // DEFAULT SETTINGS FOR TOGGLES
         { "search_order", var(true) },
+        { "open_patches_in_window", var(false) },
     };
 
     StringArray childTrees {

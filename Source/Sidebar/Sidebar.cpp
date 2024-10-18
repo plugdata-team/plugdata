@@ -107,25 +107,14 @@ Sidebar::~Sidebar()
 
 void Sidebar::paint(Graphics& g)
 {
-    // Sidebar
-    g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
-    g.fillRect(0, 30, getWidth(), getHeight());
-
-    auto toolbarColour = findColour(PlugDataColour::toolbarBackgroundColourId);
-    if (ProjectInfo::isStandalone && !editor->isActiveWindow()) {
-        toolbarColour = toolbarColour.brighter(toolbarColour.getBrightness() / 2.5f);
-    }
-
-    // Background for buttons
-    g.setColour(toolbarColour);
-    g.fillRect(getWidth() - 30, 0, 30, getHeight());
-    g.fillRect(0, 0, getWidth() - 30, 30);
-
     if (!sidebarHidden) {
+        g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
+        g.fillRect(0, 30, getWidth(), getHeight());
+
         if (inspector->isVisible()) {
-            Fonts::drawStyledText(g, "Inspector: " + inspector->getTitle(), Rectangle<int>(0, 0, getWidth() - 30, 30), findColour(PlugDataColour::toolbarTextColourId), Semibold, 15, Justification::centred);
+            Fonts::drawStyledText(g, "Inspector: " + inspector->getTitle(), Rectangle<int>(0, 0, getWidth() - 30, 30), findColour(PlugDataColour::toolbarTextColourId), Bold, 15, Justification::centred);
         } else {
-            Fonts::drawStyledText(g, panelNames[currentPanel], Rectangle<int>(0, 0, getWidth() - 30, 30), findColour(PlugDataColour::toolbarTextColourId), Semibold, 15, Justification::centred);
+            Fonts::drawStyledText(g, panelNames[currentPanel], Rectangle<int>(0, 0, getWidth(), 30), findColour(PlugDataColour::toolbarTextColourId), Bold, 15, Justification::centred);
         }
     }
 }
@@ -133,9 +122,13 @@ void Sidebar::paint(Graphics& g)
 void Sidebar::paintOverChildren(Graphics& g)
 {
     g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-    g.drawLine(getWidth() - 30, 0, getWidth() - 30, getHeight());
-    g.drawLine(0.5f, 0, 0.5f, getHeight() + 0.5f);
-    g.drawLine(0, 30, getWidth() - 30, 30);
+    g.drawLine(0.5f, 30, 0.5f, getHeight() + 0.5f);
+    if (!sidebarHidden) {
+        g.drawLine(0, 30, getWidth(), 30);
+
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId).withAlpha(0.5f));
+        g.drawLine(getWidth() - 30, 30, getWidth() - 30, getHeight() + 0.5f);
+    }
 }
 
 void Sidebar::propertyChanged(String const& name, var const& value)
@@ -162,11 +155,11 @@ void Sidebar::resized()
     buttonBarBounds.removeFromTop(8);
     searchButton.setBounds(buttonBarBounds.removeFromTop(30));
 
-    auto panelTitleBarBounds = bounds.removeFromTop(30);
+    auto panelTitleBarBounds = bounds.removeFromTop(30).withTrimmedRight(-30);
 
     if (extraSettingsButton)
-        extraSettingsButton->setBounds(panelTitleBarBounds.removeFromRight(30));
-    panelPinButton.setBounds(panelTitleBarBounds.removeFromLeft(30));
+        extraSettingsButton->setBounds(panelTitleBarBounds.removeFromLeft(30));
+    panelPinButton.setBounds(panelTitleBarBounds.removeFromRight(30));
 
     browser->setBounds(bounds);
     console->setBounds(bounds);
@@ -177,6 +170,8 @@ void Sidebar::resized()
 
 void Sidebar::mouseDown(MouseEvent const& e)
 {
+    if(!e.mods.isLeftButtonDown()) return;
+    
     Rectangle<int> dragBar(0, 0, dragbarWidth, getHeight() - 30);
     if (dragBar.contains(e.getEventRelativeTo(this).getPosition()) && !sidebarHidden) {
         draggingSidebar = true;
@@ -272,13 +267,17 @@ bool Sidebar::isShowingBrowser()
     return browser->isVisible();
 }
 
+void Sidebar::updateAutomationParameterValue(PlugDataParameter* param)
+{
+    if (ProjectInfo::isStandalone && automationPanel) {
+        automationPanel->updateParameterValue(param);
+    }
+}
+
 void Sidebar::updateAutomationParameters()
 {
     if (automationPanel) {
-        // Might be called from audio thread
-        MessageManager::callAsync([this]() {
-            automationPanel->updateParameters();
-        });
+        automationPanel->triggerAsyncUpdate();
     }
 }
 
@@ -290,6 +289,8 @@ void Sidebar::showSidebar(bool show)
         lastWidth = getWidth();
         int newWidth = 30;
         setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
+        if (extraSettingsButton)
+            extraSettingsButton->setVisible(false);
     } else {
         int newWidth = lastWidth;
         setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
@@ -297,6 +298,8 @@ void Sidebar::showSidebar(bool show)
         if (inspector->isVisible()) {
             inspector->showParameters();
         }
+        if (extraSettingsButton)
+            extraSettingsButton->setVisible(true);
     }
 
     editor->resized();
@@ -325,7 +328,7 @@ void Sidebar::showParameters(String const& name, Array<ObjectParameters>& params
 {
     lastParameters = params;
     inspector->loadParameters(params);
-    inspector->setTitle(name.upToFirstOccurrenceOf(" ", false, false));
+    inspector->setTitle(name);
 
     if (!pinned) {
         inspector->setVisible(true);
@@ -350,7 +353,8 @@ void Sidebar::updateExtraSettingsButton()
         return;
     }
 
-    addAndMakeVisible(*extraSettingsButton);
+    addChildComponent(extraSettingsButton.get());
+    extraSettingsButton->setVisible(!isHidden());
     resized();
 }
 

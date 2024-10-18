@@ -11,6 +11,10 @@
 #include "Constants.h"
 #include "ObjectParameters.h"
 #include "Utility/SynchronousValue.h"
+#include "NVGSurface.h"
+#include "Utility/CachedTextRender.h"
+#include "Object.h"
+#include "Canvas.h"
 
 class PluginProcessor;
 class Canvas;
@@ -21,10 +25,18 @@ class Patch;
 
 class Object;
 
-class ObjectLabel : public Label {
+class ObjectLabel : public Label
+    , public NVGComponent {
+
+    hash32 lastTextHash = 0;
+    NVGImage image;
+    float lastScale = 1.0f;
+    bool updateColour = false;
+    Colour lastColour;
 
 public:
     explicit ObjectLabel()
+        : NVGComponent(this)
     {
         setJustificationType(Justification::centredLeft);
         setBorderSize(BorderSize<int>(0, 0, 0, 0));
@@ -33,13 +45,42 @@ public:
         setInterceptsMouseClicks(false, false);
     }
 
+    virtual void renderLabel(NVGcontext* nvg, float scale)
+    {
+        auto textHash = hash(getText());
+        if (image.needsUpdate(roundToInt(getWidth() * scale), roundToInt(getHeight() * scale)) || updateColour || lastTextHash != textHash || lastScale != scale) {
+            updateImage(nvg, scale);
+            lastTextHash = textHash;
+            lastScale = scale;
+            updateColour = false;
+        } else {
+            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, image.getImageId(), 1.0f));
+            nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
+        }
+    }
+        
+    void colourChanged() override
+    {
+        lastColour = findColour(Label::textColourId);
+        updateColour = true;
+
+        // Flag this component as dirty
+        repaint();
+    }
+
+    void updateImage(NVGcontext* nvg, float scale)
+    {
+        // TODO: use single channel image texture
+        image.renderJUCEComponent(nvg, *this, scale);
+    }
+
 private:
 };
 
 class ObjectBase : public Component
     , public pd::MessageListener
-    , public Value::Listener
-    , public SettableTooltipClient {
+    , public SettableTooltipClient
+    , public NVGComponent {
 
     struct ObjectSizeListener : public juce::ComponentListener
         , public Value::Listener {
@@ -51,14 +92,20 @@ class ObjectBase : public Component
         void valueChanged(Value& v) override;
 
         Object* object;
+        uint32 lastChange;
     };
 
-    struct PropertyUndoListener : public Value::Listener {
-        PropertyUndoListener();
+    struct PropertyListener : public Value::Listener {
+        PropertyListener(ObjectBase* parent);
 
+        void setNoCallback(bool skipCallback);
+        
         void valueChanged(Value& v) override;
 
+        Value lastValue;
         uint32 lastChange;
+        ObjectBase* parent;
+        bool noCallback;
         std::function<void()> onChange = []() {};
     };
 
@@ -82,8 +129,8 @@ public:
     bool hitTest(int x, int y) override;
 
     // Some objects need to show/hide iolets when send/receive symbols are set
-    virtual bool hideInlets() { return false; }
-    virtual bool hideOutlets() { return false; }
+    virtual bool inletIsSymbol() { return false; }
+    virtual bool outletIsSymbol() { return false; }
 
     // Gets position from pd and applies it to Object
     virtual Rectangle<int> getPdBounds() = 0;
@@ -102,11 +149,15 @@ public:
 
     virtual void tabChanged() { }
 
-    virtual bool canOpenFromMenu();
-    virtual void openFromMenu();
+    void render(NVGcontext* nvg) override;
+
+    virtual void getMenuOptions(PopupMenu& menu);
 
     // Flag to make object visible or hidden inside a GraphOnParent
     virtual bool hideInGraph();
+    
+    // Override function if you need to update framebuffers outside of the render loop (but with the correct active context)
+    virtual void updateFramebuffers() {};
 
     // Most objects ignore mouseclicks when locked
     // Objects can override this to do custom locking behaviour
@@ -115,12 +166,14 @@ public:
     // Returns the Pd class name of the object
     String getType() const;
 
+    // Returns the Pd class name of the object with the library prefix in front of it, eg "else"
+    String getTypeWithOriginPrefix() const;
+
     void moveToFront();
     void moveForward();
     void moveBackward();
     void moveToBack();
 
-    virtual Canvas* getCanvas();
     virtual pd::Patch::Ptr getPatch();
 
     // Override if you want a part of your object to ignore mouse clicks
@@ -153,12 +206,14 @@ public:
     virtual void toggleObject(Point<int> position) { }
     virtual void untoggleObject() { }
 
-    virtual ObjectLabel* getLabel();
+    virtual ObjectLabel* getLabel(int idx = 0);
 
     // Should return current object text if applicable
     // Currently only used to subsitute arguments in tooltips
     // TODO: does that even work?
     virtual String getText();
+
+    virtual bool canEdgeOverrideAspectRatio() { return false; };
 
     // Global flag to find out if any GUI object is currently being interacted with
     static bool isBeingEdited();
@@ -177,12 +232,14 @@ protected:
     void stopEdition();
 
     String getBinbufSymbol(int argIndex);
-
-    // Called whenever one of the inspector parameters changes
-    void valueChanged(Value& value) override { }
-
+        
+    virtual void propertyChanged(Value& v) {};
+        
     // Send a float value to Pd
     void sendFloatValue(float value);
+
+    // Gets the scale factor we need to use of we want to draw images inside the component
+    float getImageScale();
 
     // Used by various ELSE objects, though sometimes with char*, sometimes with unsigned char*
     template<typename T>
@@ -224,14 +281,17 @@ public:
     Canvas* cnv;
     PluginProcessor* pd;
 
+    OwnedArray<ObjectLabel> labels;
+
 protected:
-    PropertyUndoListener propertyUndoListener;
+    PropertyListener propertyListener;
+
+    NVGImage imageRenderer;
 
     std::function<void()> onConstrainerCreate = []() {};
 
     virtual std::unique_ptr<ComponentBoundsConstrainer> createConstrainer();
 
-    std::unique_ptr<ObjectLabel> label;
     static inline constexpr int maxSize = 1000000;
     static inline std::atomic<bool> edited = false;
     std::unique_ptr<ComponentBoundsConstrainer> constrainer;

@@ -12,24 +12,28 @@
 #include "PluginEditor.h"
 #include "Objects/ObjectBase.h"
 
-class TouchSelectionHelper : public Component {
+class TouchSelectionHelper : public Component
+    , public NVGComponent {
 
     PluginEditor* editor;
 
 public:
     TouchSelectionHelper(PluginEditor* e)
-        : editor(e)
+        : NVGComponent(this)
+        , editor(e)
     {
         addAndMakeVisible(actionButtons.add(new MainToolbarButton(Icons::ExportState))); // This icon doubles as a "open" icon in the mobile app
         addAndMakeVisible(actionButtons.add(new MainToolbarButton(Icons::Help)));
         addAndMakeVisible(actionButtons.add(new MainToolbarButton(Icons::Trash)));
         addAndMakeVisible(actionButtons.add(new MainToolbarButton(Icons::More)));
 
+        setCachedComponentImage(new NVGSurface::InvalidationListener(e->nvgSurface, this));
+
         actionButtons[0]->onClick = [this]() {
             auto* cnv = editor->getCurrentCanvas();
             auto selection = cnv->getSelectionOfType<Object>();
             if (selection.size() == 1 && selection[0]->gui) {
-                selection[0]->gui->openFromMenu();
+                selection[0]->gui->openSubpatch();
             }
         };
         actionButtons[1]->onClick = [this]() {
@@ -95,8 +99,8 @@ public:
     {
         actionButtons[1]->setEnabled(editor->isCommandActive(CommandIDs::ShowHelp));
         actionButtons[2]->setEnabled(editor->isCommandActive(CommandIDs::Delete));
-
         setVisible(true);
+        toFront(false);
     }
 
     void resized() override
@@ -108,6 +112,11 @@ public:
         }
     }
 
+    void render(NVGcontext* nvg) override
+    {
+        componentImage.renderJUCEComponent(nvg, *this, 2.0f);
+    }
+
 private:
     void paint(Graphics& g) override
     {
@@ -115,7 +124,7 @@ private:
 
         Path p;
         p.addRoundedRectangle(b.reduced(3.0f), Corners::largeCornerRadius);
-        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 9, { 0, 1 });
+        StackShadow::renderDropShadow(hash("touch_selection_helper"), g, p, Colour(0, 0, 0).withAlpha(0.4f), 9, { 0, 1 });
 
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.fillRoundedRectangle(b.toFloat(), Corners::largeCornerRadius);
@@ -124,5 +133,6 @@ private:
         g.drawRoundedRectangle(b.toFloat(), Corners::largeCornerRadius, 1.0f);
     }
 
+    NVGImage componentImage;
     OwnedArray<MainToolbarButton> actionButtons;
 };

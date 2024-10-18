@@ -6,8 +6,8 @@
 
 #include "Utility/GlobalMouseListener.h"
 
-#define CLOSED 1      // polygon
-#define BEZ 2         // bezier shape
+#define CLOSED 1 // polygon
+#define BEZ 2    // bezier shape
 #define A_ARRAY 55
 
 #define DRAWNUMBER_BUFSIZE 1024
@@ -18,7 +18,8 @@
 // This prevents that with a separation layer.
 
 class DrawableTemplate : public pd::MessageListener
-    , public AsyncUpdater {
+    , public AsyncUpdater
+    , public NVGComponent {
 
 public:
     pd::Instance* pd;
@@ -31,7 +32,8 @@ public:
     bool mouseWasDown = false;
 
     DrawableTemplate(t_scalar* object, t_word* scalarData, t_template* scalarTemplate, t_template* parentTemplate, Canvas* cnv, t_float x, t_float y)
-        : pd(cnv->pd)
+        : NVGComponent(reinterpret_cast<Component*>(this)) // TODO: clean this up
+        , pd(cnv->pd)
         , canvas(cnv)
         , baseX(x)
         , baseY(y)
@@ -143,7 +145,7 @@ class DrawableCurve final : public DrawableTemplate
 
     t_fake_curve* object;
     GlobalMouseListener globalMouseListener;
-    Point<int> lastMouseDragPosition = { 0, 0 };
+    bool closed;
 
 public:
     DrawableCurve(t_scalar* s, t_gobj* obj, t_word* data, t_template* templ, Canvas* cnv, int x, int y, t_template* parent = nullptr)
@@ -168,7 +170,7 @@ public:
         };
         globalMouseListener.globalMouseUp = [this, cnv](MouseEvent const& e) {
             mouseWasDown = false;
-            
+
             auto localPos = e.getEventRelativeTo(this).getMouseDownPosition();
             if (!getLocalBounds().contains(localPos) || !getValue<bool>(canvas->locked) || !canvas->isShowing())
                 return;
@@ -183,11 +185,12 @@ public:
             }
         };
         globalMouseListener.globalMouseDrag = [this, cnv](MouseEvent const& e) {
-            if(!mouseWasDown || !getValue<bool>(canvas->locked) || !canvas->isShowing()) return;
+            if (!mouseWasDown || !getValue<bool>(canvas->locked) || !canvas->isShowing())
+                return;
             if (auto gobj = scalar.get<t_gobj>()) {
                 auto glist = cnv->patch.getPointer();
                 auto pos = e.getPosition() - cnv->canvasOrigin;
-                
+
                 auto* canvas = glist_getcanvas(glist.get());
                 if (canvas->gl_editor->e_motionfn) {
                     canvas->gl_editor->e_motionfn(&canvas->gl_editor->e_grab->g_pd, pos.x - glist->gl_editor->e_xwas, pos.y - glist->gl_editor->e_ywas, 0);
@@ -210,6 +213,27 @@ public:
                 glist->gl_editor->e_ywas = pos.y;
             }
         };
+    }
+
+    void render(NVGcontext* nvg) override
+    {
+        Path p = getPath();
+        setJUCEPath(nvg, p);
+
+        // TODO: could be more optimised
+        if (closed) {
+            nvgClosePath(nvg);
+
+            nvgFillColor(nvg, convertColour(getFill().colour));
+            nvgFill(nvg);
+            nvgStrokeWidth(nvg, getStrokeType().getStrokeThickness());
+            nvgStrokeColor(nvg, convertColour(getStrokeFill().colour));
+            nvgStroke(nvg);
+        } else {
+            nvgStrokeWidth(nvg, getStrokeType().getStrokeThickness());
+            nvgStrokeColor(nvg, convertColour(getStrokeFill().colour));
+            nvgStroke(nvg);
+        }
     }
 
     void update() override
@@ -237,7 +261,7 @@ public:
 
         if (n > 1) {
             int flags = x->x_flags;
-            int closed = flags & CLOSED;
+            closed = flags & CLOSED;
 
             t_float width = fielddesc_getfloat(&x->x_width, templ, data, 1);
 
@@ -285,17 +309,15 @@ public:
                     float y0 = pix[2 * wrapped1 + 1];
                     float x1 = pix[2 * wrapped2];
                     float y1 = pix[2 * wrapped2 + 1];
-                    
-                    if(!closed && i == n - 1)
-                    {
+
+                    if (!closed && i == n - 1) {
                         x1 = x0;
                         y1 = y0;
                     }
-                    
-                    if(i == 0) {
+
+                    if (i == 0) {
                         toDraw.startNewSubPath(closed ? (x0 + x1) / 2 : x0, closed ? (y0 + y1) / 2 : y0);
-                    }
-                    else {
+                    } else {
                         toDraw.quadraticTo(x0, y0, (x0 + x1) / 2, (y0 + y1) / 2);
                     }
                 }
@@ -308,7 +330,6 @@ public:
                     toDraw.lineTo(pix[0], pix[1]);
                 }
             }
-
 
             auto drawBounds = toDraw.getBounds();
 
@@ -333,6 +354,7 @@ class DrawableSymbol final : public DrawableTemplate
 
     t_fake_drawnumber* object;
     GlobalMouseListener mouseListener;
+    CachedTextRender textRenderer;
 
     float mouseDownValue;
 
@@ -347,6 +369,16 @@ public:
         mouseListener.globalMouseDrag = [this](MouseEvent const& e) {
             handleMouseDrag(e.getEventRelativeTo(this));
         };
+    }
+
+    void render(NVGcontext* nvg) override
+    {
+        auto scale = canvas->isZooming ? canvas->getRenderScale() * 2.0f : canvas->getRenderScale() * std::max(1.0f, getValue<float>(canvas->zoomScale));
+        auto bounds = getBoundingBox().getBoundingBox().toNearestInt();
+        NVGScopedState scopedState(nvg);
+        nvgTranslate(nvg, bounds.getX(), bounds.getY());
+        textRenderer.prepareLayout(getText(), getFont(), getColour(), getWidth(), getWidth());
+        textRenderer.renderText(nvg, bounds.withZeroOrigin(), scale);
     }
 
     void handleMouseDown(MouseEvent const& e)
@@ -457,7 +489,6 @@ public:
 class DrawablePlot final : public DrawableTemplate
     , public DrawablePath {
 
-    Point<int> lastMouseDragPosition = { 0, 0 };
     t_fake_curve* object;
     GlobalMouseListener globalMouseListener;
     OwnedArray<Component> subplots;
@@ -469,12 +500,12 @@ public:
         , globalMouseListener(cnv)
     {
 
-        globalMouseListener.globalMouseDown = [this, cnv](const MouseEvent& e){
+        globalMouseListener.globalMouseDown = [this, cnv](MouseEvent const& e) {
             auto localPos = e.getEventRelativeTo(this).getMouseDownPosition();
             if (!getLocalBounds().contains(localPos) || !getValue<bool>(canvas->locked) || !canvas->isShowing())
                 return;
 
-            if(auto gobj = scalar.get<t_gobj>()) {
+            if (auto gobj = scalar.get<t_gobj>()) {
                 auto glist = cnv->patch.getPointer();
                 auto pos = e.getPosition() - cnv->canvasOrigin;
                 gobj_click(gobj.get(), glist.get(), pos.x, pos.y, e.mods.isShiftDown(), e.mods.isAltDown(), e.getNumberOfClicks() > 1, 1);
@@ -483,14 +514,14 @@ public:
                 mouseWasDown = true;
             }
         };
-        globalMouseListener.globalMouseUp = [this, cnv](const MouseEvent& e){
+        globalMouseListener.globalMouseUp = [this, cnv](MouseEvent const& e) {
             mouseWasDown = false;
-            
+
             auto localPos = e.getEventRelativeTo(this).getMouseDownPosition();
             if (!getLocalBounds().contains(localPos) || !getValue<bool>(canvas->locked) || !canvas->isShowing())
                 return;
 
-            if(auto gobj = scalar.get<t_gobj>()) {
+            if (auto gobj = scalar.get<t_gobj>()) {
                 auto glist = cnv->patch.getPointer();
                 auto pos = e.getPosition() - cnv->canvasOrigin;
                 gobj_click(gobj.get(), glist.get(), pos.x, pos.y, e.mods.isShiftDown(), e.mods.isAltDown(), 0, 0);
@@ -498,12 +529,13 @@ public:
                 glist->gl_editor->e_ywas = pos.y;
             }
         };
-        globalMouseListener.globalMouseDrag = [this, cnv](const MouseEvent& e){
-            if(!mouseWasDown || !getValue<bool>(canvas->locked) || !canvas->isShowing()) return;
+        globalMouseListener.globalMouseDrag = [this, cnv](MouseEvent const& e) {
+            if (!mouseWasDown || !getValue<bool>(canvas->locked) || !canvas->isShowing())
+                return;
             if (auto gobj = scalar.get<t_gobj>()) {
                 auto glist = cnv->patch.getPointer();
                 auto pos = e.getPosition() - cnv->canvasOrigin;
-                
+
                 auto* canvas = glist_getcanvas(glist.get());
                 if (canvas->gl_editor->e_motionfn) {
                     canvas->gl_editor->e_motionfn(&canvas->gl_editor->e_grab->g_pd, pos.x - glist->gl_editor->e_xwas, pos.y - glist->gl_editor->e_ywas, 0);
@@ -526,6 +558,26 @@ public:
                 glist->gl_editor->e_ywas = pos.y;
             }
         };
+    }
+
+    ~DrawablePlot()
+    {
+        for (auto* subplot : subplots) {
+            canvas->drawables.removeFirstMatchingValue(dynamic_cast<NVGComponent*>(subplot));
+            canvas->removeChildComponent(subplot);
+        }
+    }
+
+    void render(NVGcontext* nvg) override
+    {
+        Path p = getPath();
+        setJUCEPath(nvg, p);
+
+        nvgFillColor(nvg, convertColour(getFill().colour));
+        nvgFill(nvg);
+        nvgStrokeWidth(nvg, getStrokeType().getStrokeThickness());
+        nvgStrokeColor(nvg, convertColour(getStrokeFill().colour));
+        nvgStroke(nvg);
     }
 
     static int readOwnerTemplate(t_fake_plot* x,
@@ -581,7 +633,6 @@ public:
         if (!glist)
             return;
 
-
         auto* x = reinterpret_cast<t_fake_plot*>(object);
         int elemsize, yonset, wonset, xonset, i;
         t_canvas* elemtemplatecanvas;
@@ -594,12 +645,12 @@ public:
         int nelem;
         char* elem;
         t_fake_fielddesc *xfielddesc, *yfielddesc, *wfielddesc;
-        
+
         if (!fielddesc_getfloat(&x->x_vis, templ, data, 0)) {
             setPath(Path());
             return;
         }
-        
+
         /* even if the array is "invisible", if its visibility is
          set by an instance variable you have to explicitly erase it,
          because the flag could earlier have been on when we were getting
@@ -869,8 +920,7 @@ public:
         setPath(toDraw);
         updateSubplots();
     }
-        
-        
+
     void updateSubplots()
     {
         auto* s = scalar.getRaw<t_scalar>();
@@ -903,17 +953,14 @@ public:
 
         int nelem = array->a_n;
         auto* elem = (char*)array->a_vec;
-        
+
         Array<Component*> oldDrawables;
         oldDrawables.addArray(subplots);
 
         auto addOrUpdateSubplot = [this, s, elemtemplate, &oldDrawables](t_gobj* y, t_word* subdata, int xloc, int yloc) mutable {
-            for(auto* existingPlot : subplots)
-            {
-                if(auto* plot = dynamic_cast<DrawableTemplate*>(existingPlot))
-                {
-                    if(plot->data == subdata)
-                    {
+            for (auto* existingPlot : subplots) {
+                if (auto* plot = dynamic_cast<DrawableTemplate*>(existingPlot)) {
+                    if (plot->data == subdata) {
                         plot->baseX = xloc;
                         plot->baseY = yloc;
                         plot->update();
@@ -922,20 +969,28 @@ public:
                     }
                 }
             }
-            
+
             auto name = String::fromUTF8(y->g_pd->c_name->s_name);
             if (name == "drawtext" || name == "drawnumber" || name == "drawsymbol") {
-                subplots.add(new DrawableSymbol(s, y, subdata, elemtemplate, canvas, static_cast<int>(xloc), static_cast<int>(yloc), templ));
+                auto* symbol = new DrawableSymbol(s, y, subdata, elemtemplate, canvas, static_cast<int>(xloc), static_cast<int>(yloc), templ);
+                subplots.add(symbol);
                 canvas->addAndMakeVisible(subplots.getLast());
+                canvas->drawables.add(symbol);
             } else if (name == "drawpolygon" || name == "drawcurve" || name == "filledpolygon" || name == "filledcurve") {
-                subplots.add(new DrawableCurve(s, y, subdata, elemtemplate, canvas, static_cast<int>(xloc), static_cast<int>(yloc), templ));
+                auto* curve = new DrawableCurve(s, y, subdata, elemtemplate, canvas, static_cast<int>(xloc), static_cast<int>(yloc), templ);
+                subplots.add(curve);
                 canvas->addAndMakeVisible(subplots.getLast());
+                canvas->drawables.add(curve);
             } else if (name == "plot") {
-                subplots.add(new DrawablePlot(s, y, subdata, elemtemplate, canvas, static_cast<int>(xloc), static_cast<int>(yloc), templ));
+                auto* plot = new DrawablePlot(s, y, subdata, elemtemplate, canvas, static_cast<int>(xloc), static_cast<int>(yloc), templ);
+                subplots.add(plot);
                 canvas->addAndMakeVisible(subplots.getLast());
+                canvas->drawables.add(plot);
             }
         };
-        
+
+        // TODO: do these new subplots need to be re-ordered?
+
         for (xsum = xloc, i = 0; i < nelem; i++) {
             t_float usexloc, useyloc;
 
@@ -949,18 +1004,17 @@ public:
                 yval = 0;
             useyloc = baseY + yloc + fielddesc_cvttocoord((t_fielddesc*)yfielddesc, yval);
             auto* subdata = (t_word*)(elem + elemsize * i);
-            
+
             for (auto* y = elemtemplatecanvas->gl_list; y; y = y->g_next) {
                 t_parentwidgetbehavior const* wb = pd_getparentwidget(&y->g_pd);
                 if (!wb)
                     continue;
-                
+
                 addOrUpdateSubplot(y, subdata, usexloc, useyloc);
             }
         }
-        
-        for(auto* drawable : oldDrawables)
-        {
+
+        for (auto* drawable : oldDrawables) {
             subplots.removeObject(drawable);
         }
     }
@@ -972,9 +1026,7 @@ struct ScalarObject final : public ObjectBase {
     ScalarObject(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
     {
-
-        // Make object invisible
-        object->setVisible(false);
+        setInterceptsMouseClicks(false, false);
 
         if (auto scalar = obj.get<t_scalar>()) {
             auto* templ = template_findbyname(scalar->sc_template);
@@ -990,19 +1042,37 @@ struct ScalarObject final : public ObjectBase {
                 auto name = String::fromUTF8(y->g_pd->c_name->s_name);
 
                 if (name == "drawtext" || name == "drawnumber" || name == "drawsymbol") {
-                    cnv->addAndMakeVisible(templates.add(new DrawableSymbol(scalar.get(), y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY))));
+                    auto* symbol = templates.add(new DrawableSymbol(scalar.get(), y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY)));
+                    cnv->addAndMakeVisible(symbol);
+                    cnv->drawables.add(dynamic_cast<NVGComponent*>(symbol));
                 } else if (name == "drawpolygon" || name == "drawcurve" || name == "filledpolygon" || name == "filledcurve") {
-                    cnv->addAndMakeVisible(templates.add(new DrawableCurve(scalar.get(), y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY))));
+                    auto* curve = templates.add(new DrawableCurve(scalar.get(), y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY)));
+                    cnv->addAndMakeVisible(curve);
+                    cnv->drawables.add(dynamic_cast<NVGComponent*>(curve));
                 } else if (name == "plot") {
                     auto* plot = new DrawablePlot(scalar.get(), y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY));
                     cnv->addAndMakeVisible(templates.add(plot));
+                    cnv->drawables.add(dynamic_cast<NVGComponent*>(plot));
                 }
             }
 
+            // TODO: this is very inefficient!
             for (int i = templates.size() - 1; i >= 0; i--) {
-                templates[i]->toBack();
+                cnv->drawables.move(cnv->drawables.indexOf(dynamic_cast<NVGComponent*>(templates[i])), 0);
             }
         }
+        
+        onConstrainerCreate = [this]() {
+            int w = 0, h = 0;
+            if (auto gobj = ptr.get<t_gobj>()) {
+                auto* patch = cnv->patch.getPointer().get();
+                if (!patch)
+                    return;
+                int x, y;
+                pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
+            }
+            constrainer->setSizeLimits(w + 1, h + 1, w + 1, h + 1);
+        };
 
         updateDrawables();
     }
@@ -1010,6 +1080,7 @@ struct ScalarObject final : public ObjectBase {
     ~ScalarObject() override
     {
         for (auto* drawable : templates) {
+            cnv->drawables.removeFirstMatchingValue(dynamic_cast<NVGComponent*>(drawable));
             cnv->removeChildComponent(drawable);
         }
     }
@@ -1022,8 +1093,39 @@ struct ScalarObject final : public ObjectBase {
             dynamic_cast<DrawableTemplate*>(drawable)->triggerAsyncUpdate();
         }
     }
+    
+    void render(NVGcontext* nvg) override
+    {
+    }
+    
+    void moved() override
+    {
+        updateDrawables();
+    }
 
-    Rectangle<int> getPdBounds() override { return { 0, 0, 0, 0 }; }
+    void setPdBounds(Rectangle<int> b) override
+    {
+        if (auto scalar = ptr.get<t_scalar>()) {
+            auto* patch = cnv->patch.getPointer().get();
+            if (!patch)
+                return;
 
-    void setPdBounds(Rectangle<int> b) override { }
+            pd::Interface::moveObject(patch, scalar.cast<t_gobj>(), b.getX(), b.getY());
+        }
+    }
+
+    Rectangle<int> getPdBounds() override
+    {
+        if (auto gobj = ptr.get<t_gobj>()) {
+            auto* patch = cnv->patch.getPointer().get();
+            if (!patch)
+                return {};
+
+            int x = 0, y = 0, w = 0, h = 0;
+            pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
+            return { x, y, w + 1, h + 1 };
+        }
+
+        return {};
+    }
 };

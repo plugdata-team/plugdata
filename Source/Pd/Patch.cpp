@@ -31,6 +31,7 @@ namespace pd {
 Patch::Patch(pd::WeakReference patchPtr, Instance* parentInstance, bool ownsPatch, File patchFile)
     : instance(parentInstance)
     , closePatchOnDelete(ownsPatch)
+    , lastViewportScale(SettingsFile::getInstance()->getProperty<float>("default_zoom") / 100.0f)
     , currentFile(std::move(patchFile))
     , ptr(patchPtr)
 {
@@ -52,21 +53,24 @@ Patch::~Patch()
     }
 }
 
-Rectangle<int> Patch::getBounds() const
+Rectangle<int> Patch::getGraphBounds() const
 {
     if (auto cnv = ptr.get<t_canvas>()) {
-
         if (cnv->gl_isgraph) {
             cnv->gl_pixwidth = std::max(15, cnv->gl_pixwidth);
             cnv->gl_pixheight = std::max(15, cnv->gl_pixheight);
-
             return { cnv->gl_xmargin, cnv->gl_ymargin, cnv->gl_pixwidth, cnv->gl_pixheight };
-        } else {
-            auto width = cnv->gl_screenx2 - cnv->gl_screenx1;
-            auto height = cnv->gl_screeny2 - cnv->gl_screeny1;
-
-            return { cnv->gl_screenx1, cnv->gl_screeny1, width, height };
         }
+    }
+    return { 0, 0, 0, 0 };
+}
+
+Rectangle<int> Patch::getBounds() const
+{
+    if (auto cnv = ptr.get<t_canvas>()) {
+        auto width = cnv->gl_screenx2 - cnv->gl_screenx1;
+        auto height = cnv->gl_screeny2 - cnv->gl_screeny1;
+        return { cnv->gl_screenx1, cnv->gl_screeny1, width, height };
     }
     return { 0, 0, 0, 0 };
 }
@@ -90,7 +94,7 @@ void Patch::savePatch(URL const& locationURL)
 {
     auto location = locationURL.getLocalFile();
     String fullPathname = location.getParentDirectory().getFullPathName();
-    String filename = location.withFileExtension(".pd").getFileName();
+    String filename = location.hasFileExtension("pd") ? location.getFileName() : location.getFileName() + ".pd";
 
     auto* dir = instance->generateSymbol(fullPathname.replace("\\", "/"));
     auto* file = instance->generateSymbol(filename);
@@ -99,27 +103,26 @@ void Patch::savePatch(URL const& locationURL)
         setTitle(filename);
         untitledPatchNum = 0;
         canvas_dirty(patch.get(), 0);
-        
+
 #if JUCE_IOS
         auto patchText = getCanvasContent();
         auto outputStream = locationURL.createOutputStream();
-        
+
         // on iOS, saving with pd's normal method doesn't work
         // we need to use an outputstream on a URL
         outputStream->write(patchText.toRawUTF8(), patchText.getNumBytesAsUTF8());
         outputStream->flush();
-        
+
         instance->logMessage("saved to: " + location.getFullPathName());
         canvas_rename(patch.get(), file, dir);
 #else
         pd::Interface::saveToFile(patch.get(), file, dir);
 #endif
 
+        currentFile = location;
+        currentURL = locationURL;
         instance->reloadAbstractions(location, patch.get());
     }
-
-    currentFile = location;
-    currentURL = locationURL;
 }
 
 t_glist* Patch::getRoot()
@@ -152,14 +155,13 @@ void Patch::updateUndoRedoState()
             undoQueueSize = undoSize;
             updateUndoRedoString();
         }
-
     }
 }
 
 void Patch::savePatch()
 {
     String fullPathname = currentFile.getParentDirectory().getFullPathName();
-    String filename = currentFile.withFileExtension(".pd").getFileName();
+    String filename = currentFile.hasFileExtension("pd") ? currentFile.getFileName() : currentFile.getFileName() + ".pd";
 
     auto* dir = instance->generateSymbol(fullPathname.replace("\\", "/"));
     auto* file = instance->generateSymbol(filename);
@@ -168,15 +170,15 @@ void Patch::savePatch()
         setTitle(filename);
         untitledPatchNum = 0;
         canvas_dirty(patch.get(), 0);
-        
+
         pd::Interface::saveToFile(patch.get(), file, dir);
     }
 
-    MessageManager::callAsync([instance = juce::WeakReference(this->instance), file = this->currentFile, patch = ptr.getRaw<t_glist>()]() {
-        if(instance) {
-            sys_lock();
-            instance->reloadAbstractions(file, patch);
-            sys_unlock();
+    MessageManager::callAsync([instance = juce::WeakReference(this->instance), file = this->currentFile, ptr = this->ptr]() {
+        if (instance) {
+            if(auto patch = ptr.get<t_glist>()) {
+                instance->reloadAbstractions(file, patch.get());
+            }
         }
     });
 }
@@ -208,7 +210,7 @@ Connections Patch::getConnections() const
         // Get connections from pd
         linetraverser_start(&t, patch.get());
 
-        while ((oc = linetraverser_next(&t))) {
+        while ((oc = linetraverser_next_nosize(&t))) {
             connections.emplace_back(oc, t.tr_inno, t.tr_ob2, t.tr_outno, t.tr_ob);
         }
     }
@@ -236,7 +238,7 @@ t_gobj* Patch::createObject(int x, int y, String const& name)
     StringArray tokens;
     tokens.addTokens(name.replace("\\ ", "__%SPACE%__"), true); // Prevent "/ " from being tokenised
 
-    PluginEditor::getObjectManager()->formatObject(tokens);
+    ObjectThemeManager::get()->formatObject(tokens);
 
     if (tokens[0] == "garray") {
         if (auto patch = ptr.get<t_glist>()) {
@@ -305,10 +307,9 @@ t_gobj* Patch::createObject(int x, int y, String const& name)
             SETSYMBOL(argv.data() + i + 2, instance->generateSymbol(token));
         }
     }
-    
+
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        EDITOR->canvas_undo_already_set_move = 1;
         return pd::Interface::createObject(patch.get(), typesymbol, argc, argv.data());
     }
 
@@ -320,7 +321,7 @@ t_gobj* Patch::renameObject(t_object* obj, String const& name)
     StringArray tokens;
     tokens.addTokens(name, false);
 
-    PluginEditor::getObjectManager()->formatObject(tokens);
+    ObjectThemeManager::get()->formatObject(tokens);
     String newName = tokens.joinIntoString(" ");
 
     if (auto patch = ptr.get<t_glist>()) {
@@ -440,17 +441,17 @@ void Patch::paste(Point<int> position)
     auto text = SystemClipboard::getTextFromClipboard();
 
     auto translatedObjects = translatePatchAsString(text, position);
-    
+
     if (auto patch = ptr.get<t_glist>()) {
         pd::Interface::paste(patch.get(), translatedObjects.toRawUTF8());
     }
 }
 
-void Patch::duplicate(std::vector<t_gobj*> const& objects)
+void Patch::duplicate(std::vector<t_gobj*> const& objects, t_outconnect* connection)
 {
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        pd::Interface::duplicateSelection(patch.get(), objects);
+        pd::Interface::duplicateSelection(patch.get(), objects, connection);
     }
 }
 
@@ -527,7 +528,9 @@ void Patch::moveObjects(std::vector<t_gobj*> const& objects, int dx, int dy)
 void Patch::moveObjectTo(t_gobj* object, int x, int y)
 {
     if (auto patch = ptr.get<t_glist>()) {
-        pd::Interface::moveObject(patch.get(), object, x + 1544, y + 1544); // FIXME: why do we have to offset by 1544?
+        // Originally this was +1544, but caused issues with alignment tools being off-by xy +2px.
+        // FIXME: why do we have to do this at all?
+        pd::Interface::moveObject(patch.get(), object, x + 1542, y + 1542);
     }
 }
 
@@ -569,10 +572,8 @@ void Patch::undo()
         setCurrent();
         auto x = patch.get();
         glist_noselect(x);
-        
+
         pd::Interface::undo(patch.get());
-        EDITOR->canvas_undo_already_set_move = 1;
-        
         updateUndoRedoString();
     }
 }
@@ -583,10 +584,8 @@ void Patch::redo()
         setCurrent();
         auto x = patch.get();
         glist_noselect(x);
-        
-        pd::Interface::redo(patch.get());
-        EDITOR->canvas_undo_already_set_move = 1;
 
+        pd::Interface::redo(patch.get());
         updateUndoRedoString();
     }
 }
@@ -603,7 +602,7 @@ void Patch::updateUndoRedoString()
         auto undoDbg = undo;
         auto redoDbg = redo;
 #endif
-        
+
         lastUndoSequence = "";
         lastRedoSequence = "";
 
@@ -631,7 +630,7 @@ void Patch::updateUndoRedoString()
             }
             redo = redo->next;
         }
-//#define DEBUG_UNDO_QUEUE
+// #define DEBUG_UNDO_QUEUE
 #ifdef DEBUG_UNDO_QUEUE
         std::cout << "<<<<<< undo list:" << std::endl;
         while (undoDbg) {
@@ -694,6 +693,19 @@ void Patch::setTitle(String const& title)
     MessageManager::callAsync([instance = this->instance]() {
         instance->titleChanged();
     });
+}
+
+void Patch::setUntitled()
+{
+    // find the lowest `Untitled-N` number, for the new patch title
+    int lowestNumber = 0;
+    for (auto patch : instance->patches) {
+        lowestNumber = std::max(lowestNumber, patch->untitledPatchNum);
+    }
+    lowestNumber += 1;
+
+    untitledPatchNum = lowestNumber;
+    setTitle("Untitled-" + String(lowestNumber));
 }
 
 File Patch::getCurrentFile() const

@@ -200,6 +200,7 @@ private:
             setVisible(true);
             setAccessible(false);
             setInterceptsMouseClicks(false, false);
+            setWantsKeyboardFocus(false);
 
             if (comp->isOnDesktop()) {
 #if JUCE_WINDOWS
@@ -213,8 +214,7 @@ private:
 #endif
 
                 setSize(1, 1); // to keep the OS happy by not having zero-size windows
-                addToDesktop(ComponentPeer::windowIgnoresMouseClicks
-                    | ComponentPeer::windowIsTemporary
+                addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresMouseClicks
                     | ComponentPeer::windowIgnoresKeyPresses);
             } else if (Component* const parent = comp->getParentComponent()) {
                 parent->addChildComponent(this);
@@ -228,11 +228,11 @@ private:
                 shadowPath.addRoundedRectangle(getLocalArea(c, c->getLocalBounds().reduced(shadow.radius * 0.9f)).toFloat(), windowCornerRadius);
 
                 auto radius = c->isActiveWindow() ? shadow.radius * 2.0f : shadow.radius * 1.5f;
-                StackShadow::renderDropShadow(g, shadowPath, shadow.colour, radius, shadow.offset);
+                StackShadow::renderDropShadow(hash("stack_drop_shadow"), g, shadowPath, shadow.colour, radius, shadow.offset);
             } else {
                 auto shadowPath = Path();
                 shadowPath.addRoundedRectangle(getLocalArea(target, target->getLocalBounds()).toFloat(), shadowCornerRadius);
-                StackShadow::renderDropShadow(g, shadowPath, shadow.colour, shadow.radius, shadow.offset);
+                StackShadow::renderDropShadow(hash("stack_drop_shadow"), g, shadowPath, shadow.colour, shadow.radius, shadow.offset);
             }
         }
 

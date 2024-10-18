@@ -18,20 +18,20 @@ class ExportingProgressView : public Component
 
 public:
     enum ExportState {
-        Busy,
-        WaitingForUserInput,
+        Exporting,
+        Flashing,
         Success,
         Failure,
+        BootloaderFlashSuccess,
+        BootloaderFlashFailure,
         NotExporting
     };
 
     TextButton continueButton = TextButton("Continue");
 
-    ExportState state = NotExporting;
+    std::atomic<ExportState> state = NotExporting;
 
     String userInteractionMessage;
-    WaitableEvent userInteractionWait;
-    TextButton confirmButton = TextButton("Done!");
 
     static constexpr int maxLength = 512;
     char processOutput[maxLength];
@@ -41,16 +41,10 @@ public:
     {
         setVisible(false);
         addChildComponent(continueButton);
-        addChildComponent(confirmButton);
         addAndMakeVisible(console);
 
         continueButton.onClick = [this]() {
             showState(NotExporting);
-        };
-
-        confirmButton.onClick = [this]() {
-            showState(Busy);
-            userInteractionWait.signal();
         };
 
         console.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
@@ -115,9 +109,8 @@ public:
 
         MessageManager::callAsync([this]() {
             setVisible(state < NotExporting);
-            confirmButton.setVisible(state == WaitingForUserInput);
             continueButton.setVisible(state >= Success);
-            if (state == Busy)
+            if (state == Exporting || state == Flashing)
                 console.setText("");
             if (console.isShowing()) {
                 console.grabKeyboardFocus();
@@ -130,7 +123,6 @@ public:
 
     void logToConsole(String const& text)
     {
-
         if (text.isNotEmpty()) {
             MessageManager::callAsync([_this = SafePointer(this), text]() {
                 if (!_this)
@@ -143,47 +135,48 @@ public:
         }
     }
 
-    // Don't call from message thread!
-    void waitForUserInput(String const& message)
-    {
-        MessageManager::callAsync([this, message]() mutable {
-            userInteractionMessage = message;
-            showState(WaitingForUserInput);
-            repaint();
-        });
-
-        userInteractionWait.wait();
-    }
-
     void paint(Graphics& g) override
     {
+        auto b = getLocalBounds();
+
+        Path background;
+        background.addRoundedRectangle(b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, false, false, true, true);
+
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
+        g.fillPath(background);
 
         g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawRoundedRectangle(console.getBounds().expanded(2).toFloat(), Corners::defaultCornerRadius, 1.0f);
+        g.strokePath(background, PathStrokeType(1.0f));
 
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
         g.fillRoundedRectangle(console.getBounds().expanded(2).toFloat(), Corners::defaultCornerRadius);
 
-        if (state == Busy) {
+        if (state == Exporting) {
             Fonts::drawStyledText(g, "Exporting...", 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
 
             getLookAndFeel().drawSpinningWaitAnimation(g, findColour(PlugDataColour::panelTextColourId), getWidth() / 2 - 16, getHeight() / 2 + 135, 32, 32);
-        } else if (state == Success) {
+        }
+        else if (state == Flashing) {
+            Fonts::drawStyledText(g, "Flashing...", 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
+
+            getLookAndFeel().drawSpinningWaitAnimation(g, findColour(PlugDataColour::panelTextColourId), getWidth() / 2 - 16, getHeight() / 2 + 135, 32, 32);
+        }
+        else if (state == Success) {
             Fonts::drawStyledText(g, "Export successful", 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
 
         } else if (state == Failure) {
             Fonts::drawStyledText(g, "Exporting failed", 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
-        } else if (state == WaitingForUserInput) {
-            Fonts::drawStyledText(g, userInteractionMessage, 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
+        }
+        else if (state == BootloaderFlashSuccess) {
+            Fonts::drawStyledText(g, "Bootloader flashed", 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
+        }
+        else if (state == BootloaderFlashFailure) {
+            Fonts::drawStyledText(g, "Bootloader flash failed", 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
         }
     }
-
     void resized() override
     {
         console.setBounds(proportionOfWidth(0.05f), 80, proportionOfWidth(0.9f), getHeight() - 172);
         continueButton.setBounds(proportionOfWidth(0.42f), getHeight() - 60, proportionOfWidth(0.12f), 24);
-        confirmButton.setBounds(proportionOfWidth(0.42f), getHeight() - 60, proportionOfWidth(0.12f), 24);
     }
 };

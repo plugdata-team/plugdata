@@ -10,22 +10,33 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "Utility/SettingsFile.h"
 #include "Utility/RateReducer.h"
+#include "NVGSurface.h"
 #include "Pd/WeakReference.h"
 
-#define ACTIVITY_UPDATE_RATE 15
+#include <nanovg.h>
+#if NANOVG_GL_IMPLEMENTATION
+#    include <juce_opengl/juce_opengl.h>
+using namespace juce::gl;
+#    undef NANOVG_GL_IMPLEMENTATION
+#    include <nanovg_gl_utils.h>
+#    define NANOVG_GL_IMPLEMENTATION 1
+#endif
+
+#define ACTIVITY_UPDATE_RATE 30
 
 struct ObjectDragState;
 class ObjectBase;
 class Iolet;
 class Canvas;
 class Connection;
-class ObjectBoundsConstrainer;
 
 class Object : public Component
     , public Value::Listener
     , public ChangeListener
     , public Timer
     , public KeyListener
+    , public NVGComponent
+    , public SettingsFileListener
     , private TextEditor::Listener {
 public:
     explicit Object(Canvas* parent, String const& name = "", Point<int> position = { 100, 100 });
@@ -34,15 +45,16 @@ public:
 
     ~Object() override;
 
+    void propertyChanged(String const& name, var const& value) override;
     void valueChanged(Value& v) override;
 
     void changeListenerCallback(ChangeBroadcaster* source) override;
     void timerCallback() override;
 
-    void paint(Graphics&) override;
-    void paintOverChildren(Graphics&) override;
     void resized() override;
-        
+
+    void updateIoletGeometry();
+
     bool keyPressed(KeyPress const& key, Component* component) override;
 
     void updateIolets();
@@ -54,8 +66,8 @@ public:
     void showEditor();
     void hideEditor();
     bool isInitialEditorShown();
-        
-    String getType() const;
+
+    String getType(bool withOriginPrefix = true) const;
 
     Rectangle<int> getSelectableBounds();
     Rectangle<int> getObjectBounds();
@@ -71,19 +83,24 @@ public:
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
 
+    void render(NVGcontext* nvg) override;
+
+    void renderIolets(NVGcontext* nvg);
+    void renderLabel(NVGcontext* nvg);
+
     void mouseMove(MouseEvent const& e) override;
     void mouseDown(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
     void mouseDrag(MouseEvent const& e) override;
 
-    void updateOverlays(int overlay);
+    void lookAndFeelChanged() override;
 
     void textEditorReturnKeyPressed(TextEditor& ed) override;
     void textEditorTextChanged(TextEditor& ed) override;
 
     bool hitTest(int x, int y) override;
 
-    void triggerOverlayActiveState();
+    void triggerOverlayActiveState(bool recursive = false);
 
     bool validResizeZone = false;
 
@@ -95,14 +112,17 @@ public:
     Value locked;
     Value commandLocked;
     Value presentationMode;
-    Value hvccMode = Value(var(false));
+    CachedValue<bool> hvccMode;
+    CachedValue<bool> patchDownwardsOnly;
 
     Canvas* cnv;
+    PluginEditor* editor;
 
     std::unique_ptr<ObjectBase> gui;
 
     OwnedArray<Iolet> iolets;
     ResizableBorderComponent::Zone resizeZone;
+    bool drawIoletExpanded = false;
 
     static inline constexpr int margin = 6;
 
@@ -114,6 +134,15 @@ public:
     static inline int const minimumSize = 9;
 
     bool isSelected() const;
+
+    // Controls the way object activity propagates upwards inside GOPs.
+    enum ObjectActivityPolicy {
+        Self, //Trigger object's own activity only.
+        Parent, // Trigger activity of object itself, and direct parent GOP only.
+        Recursive // Trigger activity of object itself, and all parent GOPs recursively.
+    };
+
+    ObjectActivityPolicy objectActivityPolicy = ObjectActivityPolicy::Self;
 
 private:
     void initialise();
@@ -129,17 +158,15 @@ private:
     bool selectionStateChanged = false;
 
     bool wasLockedOnMouseDown = false;
-    bool indexShown = false;
     bool isHvccCompatible = true;
     bool isGemObject = false;
 
-    bool showActiveState = false;
     float activeStateAlpha = 0.0f;
 
     bool isObjectMouseActive = false;
     bool isInsideUndoSequence = false;
 
-    Image activityOverlayImage;
+    NVGImage textEditorRenderer;
 
     ObjectDragState& ds;
 

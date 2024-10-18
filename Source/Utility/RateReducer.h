@@ -12,10 +12,12 @@ struct RateReducer : public Timer {
     explicit RateReducer(int rate)
         : timerHz(rate)
     {
+        ignoreUnused(timerHz);
     }
 
     bool tooFast()
     {
+#if JUCE_LINUX
         if (allowEvent) {
             allowEvent = false;
             startTimerHz(timerHz);
@@ -23,6 +25,9 @@ struct RateReducer : public Timer {
         }
 
         return true;
+#else
+        return false;
+#endif
     }
 
     void timerCallback() override

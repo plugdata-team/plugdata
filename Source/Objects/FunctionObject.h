@@ -8,6 +8,7 @@ class FunctionObject final : public ObjectBase {
 
     int hoverIdx = -1;
     int dragIdx = -1;
+    int selectedIdx = -1;
 
     Value initialise = SynchronousValue();
     Value range = SynchronousValue();
@@ -102,36 +103,50 @@ public:
         return realPoints;
     }
 
-    void paint(Graphics& g) override
+    void render(NVGcontext* nvg) override
     {
-        g.setColour(Colour::fromString(secondaryColour.toString()));
-        g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::objectCornerRadius);
-
         bool selected = object->isSelected() && !cnv->isGraph;
         bool editing = cnv->locked == var(true) || cnv->presentationMode == var(true) || ModifierKeys::getCurrentModifiers().isCtrlDown();
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        auto b = getLocalBounds().toFloat();
+        auto backgroundColour = convertColour(Colour::fromString(secondaryColour.toString()));
+        
+        auto foregroundColour = convertColour(Colour::fromString(primaryColour.toString()));
+        auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 
-        g.setColour(Colour::fromString(primaryColour.toString()));
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, selected ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+
+        nvgStrokeColor(nvg, foregroundColour);
 
         auto realPoints = getRealPoints();
         auto lastPoint = realPoints[0];
         for (int i = 1; i < realPoints.size(); i++) {
             auto newPoint = realPoints[i];
-            g.drawLine({ lastPoint, newPoint });
+            nvgBeginPath(nvg);
+            nvgMoveTo(nvg, lastPoint.getX(), lastPoint.getY());
+            nvgLineTo(nvg, newPoint.getX(), newPoint.getY());
+            nvgStroke(nvg);
             lastPoint = newPoint;
         }
 
         for (int i = 0; i < realPoints.size(); i++) {
             auto point = realPoints[i];
             // Make sure line isn't visible through the hole
-            g.setColour(Colour::fromString(secondaryColour.toString()));
-            g.fillEllipse(Rectangle<float>().withCentre(point).withSizeKeepingCentre(5, 5));
+            nvgBeginPath(nvg);
+            nvgFillColor(nvg, backgroundColour);
+            nvgCircle(nvg, point.getX(), point.getY(), 2.5f);
+            nvgFill(nvg);
 
-            g.setColour(Colour::fromString(hoverIdx == i && editing ? outlineColour.toString() : primaryColour.toString()));
-            g.drawEllipse(Rectangle<float>().withCentre(point).withSizeKeepingCentre(5, 5), 1.5f);
+            nvgFillColor(nvg, foregroundColour);
+            nvgStrokeColor(nvg, hoverIdx == i && editing ? outlineColour : foregroundColour);
+            nvgBeginPath(nvg);
+            nvgCircle(nvg, point.getX(), point.getY(), 2.5f);
+            if(selectedIdx == i) {
+                nvgFill(nvg);
+            }
+            nvgStrokeWidth(nvg, 1.5f);
+            nvgStroke(nvg);
         }
     }
 
@@ -152,6 +167,18 @@ public:
         }
 
         repaint();
+    }
+    
+    bool keyPressed(const KeyPress& key) override  {
+        
+        if(getValue<bool>(cnv->locked) && key.getKeyCode() == KeyPress::deleteKey && selectedIdx >= 0)
+        {
+            removePoint(selectedIdx);
+            selectedIdx = -1;
+            return true;
+        }
+        
+        return false;
     }
 
     static int compareElements(Point<float> a, Point<float> b)
@@ -197,24 +224,17 @@ public:
     {
         if (e.mods.isRightButtonDown())
             return;
+        
+        selectedIdx = -1;
 
         auto realPoints = getRealPoints();
         for (int i = 0; i < realPoints.size(); i++) {
             auto clickBounds = Rectangle<float>().withCentre(realPoints[i]).withSizeKeepingCentre(7, 7);
             if (clickBounds.contains(e.x, e.y)) {
                 dragIdx = i;
+                selectedIdx = i;
                 if (e.getNumberOfClicks() == 2) {
-                    dragIdx = -1;
-                    if (i == 0 || i == realPoints.size() - 1) {
-                        points.getReference(i).y = 0.0f;
-                        resetHoverIdx();
-                        triggerOutput();
-                        return;
-                    }
-                    points.remove(i);
-                    resetHoverIdx();
-                    triggerOutput();
-                    return;
+                    removePoint(i);
                 }
                 return;
             }
@@ -225,6 +245,19 @@ public:
 
         dragIdx = points.addSorted(*this, { newX, newY });
 
+        triggerOutput();
+    }
+    
+    void removePoint(int idx)
+    {
+        if (idx == 0 || idx == points.size() - 1) {
+            points.getReference(idx).y = 0.0f;
+        }
+        else {
+            points.remove(idx);
+        }
+        selectedIdx = -1;
+        resetHoverIdx();
         triggerOutput();
     }
 
@@ -362,7 +395,7 @@ public:
         }
     }
 
-    void valueChanged(Value& v) override
+    void propertyChanged(Value& v) override
     {
         if (auto function = ptr.get<t_fake_function>()) {
             if (v.refersToSameSourceAs(sizeProperty)) {
@@ -404,6 +437,18 @@ public:
     static Colour colourFromHexArray(unsigned char* hex)
     {
         return { hex[0], hex[1], hex[2] };
+    }
+
+    bool inletIsSymbol() override
+    {
+        auto rSymbol = receiveSymbol.toString();
+        return rSymbol.isNotEmpty() && (rSymbol != "empty");
+    }
+
+    bool outletIsSymbol() override
+    {
+        auto sSymbol = sendSymbol.toString();
+        return sSymbol.isNotEmpty() && (sSymbol != "empty");
     }
 
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override

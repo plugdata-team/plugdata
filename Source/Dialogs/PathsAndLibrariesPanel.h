@@ -37,8 +37,6 @@ public:
             Path p;
             p.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, roundTop, roundTop, true, true);
             g.fillPath(p);
-
-            colour = findColour(PlugDataColour::panelActiveTextColourId);
         }
 
         Fonts::drawIcon(g, icon, iconBounds, colour, 12);
@@ -120,7 +118,6 @@ public:
 
         addAndMakeVisible(resetButton);
         resetButton.onClick = [this]() {
-            
             Dialogs::showOkayCancelDialog(&confirmationDialog, findParentComponentOfClass<Dialog>(), "Are you sure you want to reset all the search paths?",
                 [this](int result) {
                     if (result == 0)
@@ -164,7 +161,7 @@ public:
 
         Path p;
         p.addRoundedRectangle(resetButtonBounds.reduced(3.0f), Corners::largeCornerRadius);
-        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 7);
+        StackShadow::renderDropShadow(hash("search_panel_reset_button"), g, p, Colour(0, 0, 0).withAlpha(0.4f), 7);
 
         g.setColour(findColour(PlugDataColour::panelForegroundColourId));
         g.fillRoundedRectangle(resetButtonBounds, Corners::largeCornerRadius);
@@ -177,7 +174,7 @@ public:
 
         p = Path();
         p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
-        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 7);
+        StackShadow::renderDropShadow(hash("search_path_panel"), g, p, Colour(0, 0, 0).withAlpha(0.4f), 7);
 
         g.setColour(findColour(PlugDataColour::panelForegroundColourId));
         g.fillRoundedRectangle(propertyBounds, Corners::largeCornerRadius);
@@ -205,9 +202,7 @@ public:
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId).withAlpha(0.5f));
         g.drawHorizontalLine(height - 1.0f, x, x + newWidth);
 
-        auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
-
-        Fonts::drawText(g, paths[rowNumber], x + 12, 0, width - 9, height, colour, 15);
+        Fonts::drawText(g, paths[rowNumber], x + 12, 0, width - 9, height, findColour(PlugDataColour::panelTextColourId), 15);
     }
 
     void deleteKeyPressed(int row) override
@@ -492,17 +487,6 @@ public:
         externalChange();
     }
 
-    void updateLibraries()
-    {
-        librariesToLoad.clear();
-
-        for (auto child : tree) {
-            librariesToLoad.add(child.getProperty("Name").toString());
-        }
-
-        internalChange();
-    }
-
     int getNumRows() override
     {
         return librariesToLoad.size();
@@ -517,7 +501,7 @@ public:
 
         Path p;
         p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
-        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 7);
+        StackShadow::renderDropShadow(hash("libraries_panel"), g, p, Colour(0, 0, 0).withAlpha(0.4f), 7);
 
         g.setColour(findColour(PlugDataColour::panelForegroundColourId));
         g.fillRoundedRectangle(propertyBounds, Corners::largeCornerRadius);
@@ -552,9 +536,7 @@ public:
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId).withAlpha(0.5f));
         g.drawHorizontalLine(height - 1.0f, x, x + newWidth);
 
-        auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
-
-        Fonts::drawText(g, librariesToLoad[rowNumber], x + 12, 0, width - 9, height, colour, 15);
+        Fonts::drawText(g, librariesToLoad[rowNumber], x + 12, 0, width - 9, height, findColour(PlugDataColour::panelTextColourId), 15);
     }
 
     void deleteKeyPressed(int row) override
@@ -624,7 +606,7 @@ public:
         librariesTree.removeAllChildren(nullptr);
 
         for (auto const& name : librariesToLoad) {
-            if(name.isNotEmpty()) {
+            if (name.isNotEmpty()) {
                 auto newLibrary = ValueTree("Library");
                 newLibrary.setProperty("Name", name, nullptr);
                 librariesTree.appendChild(newLibrary, nullptr);

@@ -12,7 +12,7 @@ class NumboxTildeObject final : public ObjectBase
     DraggableNumber input;
 
     int nextInterval = 100;
-    std::atomic<int> mode = 0;
+    int mode = 0;
 
     Value interval = SynchronousValue();
     Value ramp = SynchronousValue();
@@ -68,6 +68,9 @@ public:
 
     void update() override
     {
+        if (input.isShowing())
+            return;
+
         input.setText(input.formatNumber(getValue()), dontSendNotification);
 
         min = getMinimum();
@@ -185,7 +188,7 @@ public:
         input.setFont(input.getFont().withHeight(getHeight() - 6));
     }
 
-    void valueChanged(Value& value) override
+    void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
             auto& arr = *sizeProperty.getValue().getArray();
@@ -228,7 +231,10 @@ public:
     void setForegroundColour(String const& colour)
     {
         // Remove alpha channel and add #
-        ptr.get<t_fake_numbox>()->x_fg = pd->generateSymbol("#" + colour.substring(2));
+        if(auto numbox = ptr.get<t_fake_numbox>())
+        {
+            numbox->x_fg = pd->generateSymbol("#" + colour.substring(2));
+        }
 
         auto col = Colour::fromString(colour);
         getLookAndFeel().setColour(Label::textColourId, col);
@@ -240,26 +246,37 @@ public:
 
     void setBackgroundColour(String const& colour)
     {
-        ptr.get<t_fake_numbox>()->x_bg = pd->generateSymbol("#" + colour.substring(2));
+        if(auto numbox = ptr.get<t_fake_numbox>())
+        {
+            numbox->x_bg = pd->generateSymbol("#" + colour.substring(2));
+        }
+        
         repaint();
     }
 
-    void paintOverChildren(Graphics& g) override
+    void render(NVGcontext* nvg) override
     {
-        auto iconBounds = Rectangle<int>(2, 0, getHeight(), getHeight());
-        Fonts::drawIcon(g, mode ? Icons::ThinDown : Icons::Sine, iconBounds, object->findColour(PlugDataColour::dataColourId));
-    }
-
-    void paint(Graphics& g) override
-    {
-        g.setColour(Colour::fromString(secondaryColour.toString()));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
-
+        auto b = getLocalBounds().toFloat();
+        auto backgroundColour = Colour::fromString(secondaryColour.toString());
         bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
+        auto outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
 
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(backgroundColour), convertColour(outlineColour), Corners::objectCornerRadius);
+
+        {
+            NVGScopedState scopedState(nvg);
+            nvgTranslate(nvg, input.getX(), input.getY());
+            input.render(nvg);
+        }
+
+
+        auto icon = mode ? Icons::ThinDown : Icons::Sine;
+        auto iconBounds = Rectangle<int>(7, 3, getHeight(), getHeight());
+        nvgFontFace(nvg, "icon_font-Regular");
+        nvgFontSize(nvg, 12.0f);
+        nvgFillColor(nvg, convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::dataColourId)));
+        nvgTextAlign(nvg, NVG_ALIGN_TOP | NVG_ALIGN_LEFT);
+        nvgText(nvg, iconBounds.getX(), iconBounds.getY(), icon.toRawUTF8(), nullptr);
     }
 
     void timerCallback() override
@@ -289,7 +306,7 @@ public:
     float getMinimum()
     {
         if (auto nbx = ptr.get<t_fake_numbox>()) {
-            return nbx->x_min;
+            return nbx->x_lower;
         }
 
         return 0.0f;
@@ -298,7 +315,7 @@ public:
     float getMaximum()
     {
         if (auto nbx = ptr.get<t_fake_numbox>()) {
-            return nbx->x_max;
+            return nbx->x_upper;
         }
 
         return 0.0f;
@@ -307,7 +324,7 @@ public:
     void setMinimum(float minValue)
     {
         if (auto nbx = ptr.get<t_fake_numbox>()) {
-            nbx->x_min = minValue;
+            nbx->x_lower = minValue;
         }
 
         input.setMinimum(minValue);
@@ -316,7 +333,7 @@ public:
     void setMaximum(float maxValue)
     {
         if (auto nbx = ptr.get<t_fake_numbox>()) {
-            nbx->x_max = maxValue;
+            nbx->x_upper = maxValue;
         }
 
         input.setMaximum(maxValue);

@@ -6,10 +6,15 @@
 
 class CanvasObject final : public ObjectBase {
 
-    bool locked;
     Value sizeProperty = SynchronousValue();
-        
+    Value hitAreaSize = SynchronousValue();
+    Rectangle<float> hitArea;
+    bool hideHitArea = false;
     IEMHelper iemHelper;
+
+    Colour bgColour;
+    NVGcolor bgCol;
+    NVGcolor selectionAreaCol;
 
 public:
     CanvasObject(pd::WeakReference ptr, Object* object)
@@ -17,11 +22,18 @@ public:
         , iemHelper(ptr, object, this)
     {
         object->setColour(PlugDataColour::outlineColourId, Colours::transparentBlack);
-        locked = getValue<bool>(object->locked);
-        
+
+        iemHelper.iemColourChangedCallback = [this](){
+            bgColour = Colour::fromString(iemHelper.secondaryColour.toString());
+            bgCol = convertColour(bgColour);
+            selectionAreaCol = convertColour(bgColour.contrasting(0.75f));
+        };
+
         objectParameters.addParamSize(&sizeProperty);
+        objectParameters.addParamInt("Active area size", ParameterCategory::cDimensions, &hitAreaSize, 15);
         objectParameters.addParamColour("Canvas color", cGeneral, &iemHelper.secondaryColour, PlugDataColour::guiObjectInternalOutlineColour);
         iemHelper.addIemParameters(objectParameters, false, true, 20, 12, 14);
+        setRepaintsOnMouseActivity(true);
     }
 
     void updateSizeProperty() override
@@ -33,30 +45,59 @@ public:
         }
     }
 
-    bool hideInlets() override
+    bool inletIsSymbol() override
     {
         return iemHelper.hasReceiveSymbol();
     }
 
-    bool hideOutlets() override
+    bool outletIsSymbol() override
     {
         return iemHelper.hasSendSymbol();
     }
 
     void updateLabel() override
     {
-        iemHelper.updateLabel(label);
+        iemHelper.updateLabel(labels);
+    }
+
+    void updateHitArea()
+    {
+        // resize the hit area if the size of the canvas is smaller than the hit area
+        if (auto iemgui = ptr.get<t_iemgui>()) {
+            hitArea = Rectangle<float>(iemgui->x_w, iemgui->x_h).withPosition(1, 1);
+        }
+        if ((hitArea.getWidth() > (getWidth() - 2)) || (hitArea.getHeight() > (getHeight() - 2))) {
+            auto shortestLength = jmin(getWidth(), getHeight()) - 2;
+            hitArea = Rectangle<float>(1, 1, shortestLength, shortestLength);
+        }
+        if (getWidth() < 4 || getHeight() < 4) {
+            hitArea = getLocalBounds().toFloat();
+            hideHitArea = true;
+        } else {
+            hideHitArea = false;
+        }
+
+        repaint();
     }
 
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
-        iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
+        switch (symbol) {
+            case hash("size"):
+                updateHitArea();
+            default:
+                iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
+        }
     }
 
     void update() override
     {
         if (auto cnvObj = ptr.get<t_my_canvas>()) {
             sizeProperty = Array<var> { var(cnvObj->x_vis_w), var(cnvObj->x_vis_h) };
+        }
+
+        if (auto iemgui = ptr.get<t_iemgui>()) {
+            hitAreaSize = iemgui->x_w;
         }
 
         iemHelper.update();
@@ -71,18 +112,30 @@ public:
         return {};
     }
 
-    bool canReceiveMouseEvent(int x, int y) override
+    void resized() override
     {
-        if (auto iemgui = ptr.get<t_iemgui>()) {
-            return !locked && Rectangle<int>(iemgui->x_w, iemgui->x_h).contains(x - Object::margin, y - Object::margin);
-        }
+        updateHitArea();
 
+        ObjectBase::resized();
+    }
+    
+    // So we get mouseEnter/Exit notifications for the hitArea
+    bool hitTest(int x, int y) override
+    {
+        if (hitArea.contains(x, y)) {
+            return true;
+        }
+        
         return false;
     }
-
-    void lock(bool isLocked) override
+    
+    bool canReceiveMouseEvent(int x, int y) override
     {
-        locked = isLocked;
+        if (hitArea.contains(x - Object::margin, y - Object::margin)) {
+            return true;
+        }
+        
+        return false;
     }
 
     void setPdBounds(Rectangle<int> b) override
@@ -95,6 +148,11 @@ public:
         }
     }
 
+    static Rectangle<int> getPDSize(t_my_canvas* cnvObj)
+    {
+        return Rectangle<int>(0, 0, cnvObj->x_vis_w + 1, cnvObj->x_vis_h + 1);
+    }
+
     Rectangle<int> getPdBounds() override
     {
         if (auto canvas = ptr.get<t_my_canvas>()) {
@@ -104,35 +162,26 @@ public:
 
             int x = 0, y = 0, w = 0, h = 0;
             pd::Interface::getObjectBounds(patch, canvas.cast<t_gobj>(), &x, &y, &w, &h);
+            auto const pdSize = getPDSize(ptr.get<t_my_canvas>().get());
 
-            return Rectangle<int>(x, y, ptr.get<t_my_canvas>()->x_vis_w + 1, ptr.get<t_my_canvas>()->x_vis_h + 1);
+            return Rectangle<int>(x, y, pdSize.getWidth(), pdSize.getHeight());
         }
 
         return {};
     }
 
-    void paint(Graphics& g) override
+    void render(NVGcontext* nvg) override
     {
-        auto bgcolour = Colour::fromString(iemHelper.secondaryColour.toString());
+        auto b = getLocalBounds().toFloat();
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), bgCol, bgCol, Corners::objectCornerRadius);
 
-        g.setColour(bgcolour);
-        g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::objectCornerRadius);
-
-        if (!locked) {
-
-            Rectangle<float> draggableRect;
-            if (auto iemgui = ptr.get<t_iemgui>()) {
-                draggableRect = Rectangle<float>(ptr.get<t_iemgui>()->x_w, ptr.get<t_iemgui>()->x_h);
-            } else {
-                return;
-            }
-            
-            g.setColour(object->isSelected() ? object->findColour(PlugDataColour::objectSelectedOutlineColourId) : bgcolour.contrasting(0.75f));
-            g.drawRoundedRectangle(draggableRect.reduced(1.0f), Corners::objectCornerRadius, 1.0f);
+        if (!cnv->isGraph && !getValue<bool>(object->locked) && !getValue<bool>(object->commandLocked) && !hideHitArea) {
+            auto selectionRectColour = (object->isSelected() || (isMouseOver())) ? cnv->selectedOutlineCol: selectionAreaCol;
+            nvgDrawRoundedRect(nvg, hitArea.getX(), hitArea.getY(), hitArea.getWidth(), hitArea.getHeight(), nvgRGBA(0, 0, 0, 0), selectionRectColour, Corners::objectCornerRadius);
         }
     }
 
-    void valueChanged(Value& v) override
+    void propertyChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(sizeProperty)) {
             auto& arr = *sizeProperty.getValue().getArray();
@@ -148,8 +197,15 @@ public:
             }
 
             object->updateBounds();
-        }
-        else {
+        } if (v.refersToSameSourceAs(hitAreaSize)) {
+            auto size = getValue<int>(hitAreaSize);
+            hitAreaSize = size = jmax(4, size);
+            if (auto iemgui = ptr.get<t_iemgui>()) {
+                iemgui->x_w = size;
+                iemgui->x_h = size;
+            }
+            updateHitArea();
+        } else {
             iemHelper.valueChanged(v);
         }
     }

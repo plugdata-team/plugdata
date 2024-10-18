@@ -4,6 +4,8 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#pragma once
+
 static int srl_is_valid(t_symbol const* s)
 {
     return (s != nullptr && s != gensym(""));
@@ -27,11 +29,19 @@ public:
 
     void update()
     {
-        primaryColour = Colour(getForegroundColour()).toString();
-        secondaryColour = Colour(getBackgroundColour()).toString();
-        labelColour = Colour(getLabelColour()).toString();
+        bool colourHasChanged = false;
+        if (const auto col = getForegroundColour().toString(); col != primaryColour) {
+            primaryColour = col;
+            colourHasChanged = true;
+        }
+        if (const auto col = getBackgroundColour().toString(); col != secondaryColour) {
+            secondaryColour = col;
+            colourHasChanged = true;
+        }
+        // we only need the callback that colourHasChanged will trigger for the object ATM.
+        labelColour = getLabelColour().toString();
 
-        gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(Label::textWhenEditingColourId));
+        gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, cnv->editor->getLookAndFeel().findColour(Label::textWhenEditingColourId));
         gui->getLookAndFeel().setColour(Label::textColourId, Colour::fromString(primaryColour.toString()));
 
         gui->getLookAndFeel().setColour(TextButton::buttonOnColourId, Colour::fromString(primaryColour.toString()));
@@ -57,6 +67,10 @@ public:
         receiveSymbol = getReceiveSymbol();
 
         initialise = getInit();
+
+        // Let the object know the colour has changed, nbx & background (secondary) colour currently
+        if (colourHasChanged)
+            iemColourChangedCallback();
 
         gui->repaint();
     }
@@ -108,7 +122,6 @@ public:
                 auto colour = "#FF" + atom.toString().fromFirstOccurrenceOf("#", false, false);
                 gui->setParameterExcludingListener(targetValue, colour);
             } else {
-
                 int iemcolor = atom.getFloat();
 
                 if (iemcolor >= 0) {
@@ -143,14 +156,15 @@ public:
                 setColour(primaryColour, atoms[1]);
             if (numAtoms > 2)
                 setColour(labelColour, atoms[2]);
-            
-            if(auto* label = gui->getLabel())
-            {
+
+            if (auto* label = gui->getLabel()) {
                 label->setColour(Label::textColourId, getLabelColour());
             }
-            
+
+            iemColourChangedCallback();
+
             gui->repaint();
-            
+
             return true;
         }
         case hash("label"): {
@@ -214,6 +228,8 @@ public:
             gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, colour);
             gui->getLookAndFeel().setColour(TextEditor::textColourId, colour);
 
+            iemColourChangedCallback();
+
             gui->repaint();
         } else if (v.refersToSameSourceAs(secondaryColour)) {
             auto colour = Colour::fromString(secondaryColour.toString());
@@ -224,6 +240,8 @@ public:
 
             gui->getLookAndFeel().setColour(Slider::backgroundColourId, colour);
 
+            iemColourChangedCallback();
+
             gui->repaint();
         } else if (v.refersToSameSourceAs(labelColour)) {
             setLabelColour(Colour::fromString(labelColour.toString()));
@@ -232,6 +250,7 @@ public:
             setLabelPosition({ getValue<int>(labelX), getValue<int>(labelY) });
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelHeight)) {
+            gui->limitValueMin(labelHeight, 4.f);
             setFontHeight(getValue<int>(labelHeight));
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelText)) {
@@ -271,53 +290,58 @@ public:
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
             pd::Interface::moveObject(iemgui->x_glist, &iemgui->x_obj.te_g, b.getX(), b.getY());
-            
+
             iemgui->x_w = b.getWidth() - 1;
             iemgui->x_h = b.getHeight() - 1;
         }
     }
 
-    void updateLabel(std::unique_ptr<ObjectLabel>& label, Point<int> offset = {0, 0})
+    void updateLabel(OwnedArray<ObjectLabel>& labels, Point<int> offset = { 0, 0 })
     {
         String const text = labelText.toString();
 
         if (text.isNotEmpty()) {
-            if (!label) {
-                label = std::make_unique<ObjectLabel>();
-                object->cnv->addChildComponent(label.get());
+            ObjectLabel* label;
+            if (labels.isEmpty()) {
+                label = labels.add(new ObjectLabel());
+                object->cnv->addChildComponent(label);
+            }
+            else {
+                label = labels[0];
             }
 
-            auto bounds = getLabelBounds();
+            if (text.isNotEmpty()) {
+                auto bounds = getLabelBounds();
 
-            bounds.translate(0, bounds.getHeight() / -2.0f);
+                bounds.translate(0, bounds.getHeight() / -2.0f);
 
-            label->setFont(Font(bounds.getHeight()));
-            label->setBounds(bounds + offset);
-            label->setText(text, dontSendNotification);
-
-            label->setColour(Label::textColourId, getLabelColour());
-
-            label->setVisible(true);
+                label->setFont(Font(bounds.getHeight()));
+                label->setBounds(bounds + offset);
+                label->setText(text, dontSendNotification);
+                label->setVisible(true);
+                label->setColour(Label::textColourId, getLabelColour());
+            }
         } else {
-            if (label)
-                label->setVisible(false);
-            label.reset(nullptr);
+            labels.clear();
         }
     }
-        
+
     Rectangle<int> getLabelBounds()
     {
-        auto objectBounds = object->getBounds().reduced(Object::margin);
+        auto const objectBounds = object->getBounds().reduced(Object::margin);
 
         if (auto iemgui = ptr.get<t_iemgui>()) {
-            t_symbol const* sym = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab);
-            if (sym) {
-                int fontHeight = getFontHeight();
-                int fontWidth = sys_fontwidth(fontHeight);
-                int const posx = objectBounds.getX() + iemgui->x_ldx;
-                int const posy = objectBounds.getY() + iemgui->x_ldy;
-                
-                return { posx, posy, fontWidth * (getExpandedLabelText().length() + 1), fontHeight + 2 };
+            if(iemgui->x_lab) {
+                t_symbol const* sym = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab);
+                if (sym) {
+                    auto const labelText = getExpandedLabelText();
+                    int const fontHeight = getFontHeight();
+                    int const fontWidth = sys_fontwidth(fontHeight);
+                    int const posx = objectBounds.getX() + iemgui->x_ldx;
+                    int const posy = objectBounds.getY() + iemgui->x_ldy;
+                    int const textWidth = fontHeight > 55 ? Font(fontHeight).getStringWidth(labelText) : fontWidth * (labelText.length() + 1);
+                    return { posx, posy, textWidth, fontHeight + 2 };
+                }
             }
         }
 
@@ -494,6 +518,8 @@ public:
             iemgui->x_ldy = position.y;
         }
     }
+
+    std::function<void()> iemColourChangedCallback = [](){};
 
     int iemgui_color_hex[30] = {
         16579836, 10526880, 4210752, 16572640, 16572608,

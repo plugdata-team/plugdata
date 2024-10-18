@@ -23,20 +23,14 @@ public:
 
         if (ProjectInfo::isStandalone) {
             nativeTitlebar.referTo(settingsFile->getPropertyAsValue("native_window"));
-            macTitlebarButtons.referTo(settingsFile->getPropertyAsValue("macos_buttons"));
-            reloadPatch.referTo(settingsFile->getPropertyAsValue("reload_last_state"));
 
-            macTitlebarButtons.addListener(this);
             nativeTitlebar.addListener(this);
 
             Array<PropertiesPanelProperty*> windowProperties;
 
             windowProperties.add(new PropertiesPanel::BoolComponent("Use system titlebar", nativeTitlebar, { "No", "Yes" }));
-            windowProperties.add(new PropertiesPanel::BoolComponent("Use macOS style window buttons", macTitlebarButtons, { "No", "Yes" }));
 
             propertiesPanel.addSection("Window", windowProperties);
-
-            otherProperties.add(new PropertiesPanel::BoolComponent("Reload last opened patch on startup", reloadPatch, { "No", "Yes" }));
         } else {
 
             if (!settingsTree.hasProperty("NativeDialog")) {
@@ -47,10 +41,18 @@ public:
 
             otherProperties.add(new PropertiesPanel::BoolComponent("Use system file dialogs", nativeDialogValue, StringArray { "No", "Yes" }));
         }
+        
+        if(ProjectInfo::isStandalone) {
+            openPatchesInWindow.referTo(settingsFile->getPropertyAsValue("open_patches_in_window"));
+            openPatchesInWindow.addListener(this);
+            interfaceProperties.add(new PropertiesPanel::BoolComponent("Open help/subpatches in new window", openPatchesInWindow, { "No", "Yes" }));
+        }
 
         showPalettesValue.referTo(settingsFile->getPropertyAsValue("show_palettes"));
         showPalettesValue.addListener(this);
         interfaceProperties.add(new PropertiesPanel::BoolComponent("Show palette bar", showPalettesValue, { "No", "Yes" }));
+        
+        
 
         showAllAudioDeviceValues.referTo(settingsFile->getPropertyAsValue("show_all_audio_device_rates"));
         showAllAudioDeviceValues.addListener(this);
@@ -60,7 +62,7 @@ public:
         otherProperties.add(new PropertiesPanel::BoolComponent("Enable auto patching", autoPatchingValue, { "No", "Yes" }));
 
         autosaveInterval.referTo(settingsFile->getPropertyAsValue("autosave_interval"));
-        autosaveProperties.add(new PropertiesPanel::EditableComponent<int>("Autosave interval (seconds)", autosaveInterval, 15, 900));
+        autosaveProperties.add(new PropertiesPanel::EditableComponent<int>("Auto-save interval (minutes)", autosaveInterval, 1, 60));
 
         autosaveEnabled.referTo(settingsFile->getPropertyAsValue("autosave_enabled"));
         autosaveProperties.add(new PropertiesPanel::BoolComponent("Enable autosave", autosaveEnabled, { "No", "Yes" }));
@@ -129,6 +131,9 @@ public:
         centreSidepanelButtons = settingsFile->getPropertyAsValue("centre_sidepanel_buttons");
         interfaceProperties.add(new PropertiesPanel::BoolComponent("Centre canvas sidepanel selectors", centreSidepanelButtons, { "No", "Yes" }));
 
+        patchDownwardsOnly = settingsFile->getPropertyAsValue("patch_downwards_only");
+        otherProperties.add(new PropertiesPanel::BoolComponent("Patch downwards only", patchDownwardsOnly, { "No", "Yes" }));
+
         propertiesPanel.addSection("Interface", interfaceProperties);
         propertiesPanel.addSection("Autosave", autosaveProperties);
         propertiesPanel.addSection("Other", otherProperties);
@@ -159,9 +164,6 @@ public:
                     maximiseButton->setEnabled(false);
             }
         }
-        if (v.refersToSameSourceAs(macTitlebarButtons)) {
-            editor->resized();
-        }
         if (v.refersToSameSourceAs(showPalettesValue)) {
             editor->resized();
         }
@@ -177,19 +179,20 @@ public:
     Component* editor;
 
     Value nativeTitlebar;
-    Value macTitlebarButtons;
-    Value reloadPatch;
     Value scaleValue;
     Value defaultZoom;
     Value centreResized;
     Value centreSidepanelButtons;
 
+    Value openPatchesInWindow;
     Value showPalettesValue;
     Value autoPatchingValue;
     Value showAllAudioDeviceValues;
     Value nativeDialogValue;
     Value autosaveInterval;
     Value autosaveEnabled;
+
+    Value patchDownwardsOnly;
 
     PropertiesPanel propertiesPanel;
 

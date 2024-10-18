@@ -4,7 +4,8 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class BicoeffGraph : public Component {
+class BicoeffGraph : public Component
+    , public NVGComponent {
 
     float a1 = 0, a2 = 0, b0 = 1, b1 = 0, b2 = 0;
 
@@ -38,7 +39,8 @@ public:
     FilterType filterType = EQ;
 
     explicit BicoeffGraph(Object* parent)
-        : object(parent)
+        : NVGComponent(this)
+        , object(parent)
     {
         filterWidth = 0.2f;
         filterCentre = 0.5f;
@@ -188,28 +190,36 @@ public:
         update();
     }
 
-    void paint(Graphics& g) override
+    void render(NVGcontext* nvg) override
     {
-        g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
+        auto b = getLocalBounds();
+        auto backgroundColour = convertColour(object->cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
+        auto selectedOutlineColour = convertColour(object->cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto outlineColour = convertColour(object->cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 
-        g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
-        g.drawVerticalLine(filterX1 * getWidth(), 0.0f, getHeight());
-        g.drawVerticalLine(filterX2 * getWidth(), 0.0f, getHeight());
+        nvgStrokeColor(nvg, convertColour(object->cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour)));
+        nvgBeginPath(nvg);
+        nvgMoveTo(nvg, filterX1 * getWidth(), 0.0f);
+        nvgLineTo(nvg, filterX1 * getWidth(), getHeight());
+        nvgStroke(nvg);
 
-        g.drawHorizontalLine(getHeight() / 2.0f, 0.0f, getWidth());
+        nvgBeginPath(nvg);
+        nvgMoveTo(nvg, filterX2 * getWidth(), 0.0f);
+        nvgLineTo(nvg, filterX2 * getWidth(), getHeight());
+        nvgStroke(nvg);
 
-        // g.setColour(Colours::green);
-        // g.strokePath(phasePath, PathStrokeType(1.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::square));
+        nvgBeginPath(nvg);
+        nvgMoveTo(nvg, 0.0f, getHeight() / 2.0f);
+        nvgLineTo(nvg, getWidth(), getHeight() / 2.0f);
+        nvgStroke(nvg);
 
-        g.setColour(object->findColour(PlugDataColour::canvasTextColourId));
-        g.strokePath(magnitudePath, PathStrokeType(1.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::square));
-
-        bool selected = object->isSelected() && !object->cnv->isGraph;
-
-        g.setColour(object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId));
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        nvgStrokeWidth(nvg, 1.0f);
+        nvgLineStyle(nvg, NVG_BUTT);
+        setJUCEPath(nvg, magnitudePath);
+        nvgStrokeColor(nvg, convertColour(object->cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId)));
+        nvgStroke(nvg);
     }
 
     std::pair<float, float> calcMagnitudePhase(float f, float a1, float a2, float b0, float b1, float b2)
@@ -502,7 +512,7 @@ public:
     }
 };
 
-class BicoeffObject : public ObjectBase {
+class BicoeffObject final : public ObjectBase {
 
     BicoeffGraph graph;
     Value sizeProperty = SynchronousValue();
@@ -525,6 +535,11 @@ public:
     void resized() override
     {
         graph.setBounds(getLocalBounds());
+    }
+
+    void render(NVGcontext* nvg) override
+    {
+        graph.render(nvg);
     }
 
     void update() override
@@ -558,7 +573,7 @@ public:
         }
     }
 
-    void valueChanged(Value& v) override
+    void propertyChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(sizeProperty)) {
             auto& arr = *sizeProperty.getValue().getArray();

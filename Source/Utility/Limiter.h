@@ -16,7 +16,9 @@ public:
         secondStageCompressor.process(dsp::ProcessContextReplacing<float>(block));
 
         for (size_t channel = 0; channel < block.getNumChannels(); ++channel) {
-            FloatVectorOperations::clip(block.getChannelPointer(channel), block.getChannelPointer(channel), -1.0f, 1.0f, block.getNumSamples());
+            // Clip if limter goes far out of bounds
+            // We'd rather not do hard clipping, but it's for the better when things get really loud
+            FloatVectorOperations::clip(block.getChannelPointer(channel), block.getChannelPointer(channel), -std::sqrt(2.0f), std::sqrt(2.0f), block.getNumSamples());
         }
     }
 
@@ -40,15 +42,21 @@ public:
         secondStageCompressor.reset();
     }
 
+    void setThreshold(float newThreshold)
+    {
+        thresholddB = newThreshold;
+        update();
+    }
+
 private:
     void update()
     {
-        firstStageCompressor.setThreshold(-8.0f);
+        firstStageCompressor.setThreshold(thresholddB - 2.0f);
         firstStageCompressor.setRatio(4.0f);
         firstStageCompressor.setAttack(2.0f);
         firstStageCompressor.setRelease(200.0f);
 
-        secondStageCompressor.setThreshold(-6.0f);
+        secondStageCompressor.setThreshold(thresholddB);
         secondStageCompressor.setRatio(1000.0f);
         secondStageCompressor.setAttack(0.001f);
         secondStageCompressor.setRelease(releaseTime);
@@ -59,4 +67,5 @@ private:
 
     double sampleRate = 44100.0;
     float releaseTime = 100.0;
+    float thresholddB = -6.0f;
 };

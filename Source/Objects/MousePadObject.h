@@ -19,7 +19,7 @@ public:
         mouseListener.globalMouseDown = [this](MouseEvent const& e) {
             auto relativeEvent = e.getEventRelativeTo(this);
 
-            if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isLocked() || !cnv->isShowing() || isPressed)
+            if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isInsideGraphBounds(e) || !isLocked() || !cnv->isShowing() || isPressed)
                 return;
 
             t_atom at[3];
@@ -35,7 +35,7 @@ public:
             isPressed = true;
         };
         mouseListener.globalMouseUp = [this](MouseEvent const& e) {
-            if (!getScreenBounds().contains(e.getMouseDownScreenPosition()) || !isPressed || !isLocked() || !cnv->isShowing())
+            if (!getScreenBounds().contains(e.getMouseDownScreenPosition()) || !isInsideGraphBounds(e) || !isPressed || !isLocked() || !cnv->isShowing())
                 return;
 
             if (auto pad = this->ptr.get<t_fake_pad>()) {
@@ -48,7 +48,7 @@ public:
         };
 
         mouseListener.globalMouseMove = [this](MouseEvent const& e) {
-            if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed) || !isLocked() || !cnv->isShowing())
+            if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed) || !isInsideGraphBounds(e) || !isLocked() || !cnv->isShowing())
                 return;
 
             auto relativeEvent = e.getEventRelativeTo(this);
@@ -84,18 +84,35 @@ public:
     }
 
     ~MousePadObject() override = default;
-
-    void paint(Graphics& g) override
+    
+    bool isInsideGraphBounds(const MouseEvent& e)
     {
-        auto* x = ptr.getRaw<t_fake_pad>();
-        auto fillColour = Colour(x->x_color[0], x->x_color[1], x->x_color[2]);
-        g.setColour(fillColour);
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
+        auto* graph = findParentComponentOfClass<GraphOnParent>();
+        while(graph)
+        {
+            auto pos = e.getEventRelativeTo(graph).getPosition();
+            if(!graph->getLocalBounds().contains(pos))
+            {
+                return false;
+            }
+            
+            graph = graph->findParentComponentOfClass<GraphOnParent>();
+        }
+        
+        return true;
+    }
 
-        auto outlineColour = object->findColour(object->isSelected() && !cnv->isGraph ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::outlineColourId);
+    void render(NVGcontext* nvg) override
+    {
+        auto b = getLocalBounds().toFloat();
+        Colour fillColour, outlineColour;
+        if(auto x = ptr.get<t_fake_pad>()) {
+            fillColour = Colour(x->x_color[0], x->x_color[1], x->x_color[2]);
+            outlineColour = cnv->editor->getLookAndFeel().findColour(object->isSelected() && !cnv->isGraph ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::outlineColourId);
+        }
+            
 
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(fillColour), convertColour(outlineColour), Corners::objectCornerRadius);
     }
 
     void setPdBounds(Rectangle<int> b) override
@@ -143,7 +160,7 @@ public:
         }
     }
 
-    void valueChanged(Value& value) override
+    void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
             auto& arr = *sizeProperty.getValue().getArray();
@@ -171,7 +188,7 @@ public:
             topLevel = nextCanvas;
         }
 
-        return static_cast<bool>(topLevel->locked.getValue() || topLevel->commandLocked.getValue());
+        return static_cast<bool>(topLevel->locked.getValue() || topLevel->commandLocked.getValue()) || topLevel->isGraph;
     }
 
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override

@@ -5,7 +5,10 @@ For more information visit www.rabiensoftware.com
 
 ==============================================================================*/
 
-#include <JuceHeader.h>
+#include <juce_core/juce_core.h>
+#include <juce_events/juce_events.h>
+
+using namespace juce;
 #include "FileSystemWatcher.h"
 
 #ifdef  _WIN32

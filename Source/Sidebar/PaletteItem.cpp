@@ -4,7 +4,8 @@
 #include "Utility/StackShadow.h"
 
 PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTree tree)
-    : itemTree(tree)
+    : ObjectDragAndDrop(e)
+    , itemTree(tree)
     , editor(e)
     , paletteComp(parent)
 {
@@ -38,7 +39,6 @@ PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTre
 
     addChildComponent(reorderButton.get());
 
-    deleteButton.setButtonText(Icons::Clear);
     deleteButton.setTooltip("Delete item");
     deleteButton.setSize(25, 25);
     deleteButton.onClick = [this]() {
@@ -54,12 +54,19 @@ PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTre
         inlets = iolets.first;
         outlets = iolets.second;
     }
+
+    lookAndFeelChanged();
 }
 
 PaletteItem::~PaletteItem()
 {
     if (paletteComp)
         removeMouseListener(paletteComp);
+}
+
+void PaletteItem::lookAndFeelChanged()
+{
+    nameLabel.setFont(Fonts::getCurrentFont());
 }
 
 bool PaletteItem::hitTest(int x, int y)
@@ -90,7 +97,7 @@ void PaletteItem::paint(Graphics& g)
         Path dropShadowPath;
         dropShadowPath.addRoundedRectangle(bounds.reduced(4.0f), 5.0f);
         auto dropShadowColour = findColour(PlugDataColour::objectSelectedOutlineColourId);
-        StackShadow::renderDropShadow(g, dropShadowPath, dropShadowColour.withAlpha(0.5f), 7);
+        StackShadow::renderDropShadow(hash("palette_item"), g, dropShadowPath, dropShadowColour.withAlpha(0.5f), 7);
     }
     auto outlineColour = isItemDragged ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId;
 
@@ -219,6 +226,8 @@ void PaletteItem::paint(Graphics& g)
 
 void PaletteItem::mouseDown(MouseEvent const& e)
 {
+    if(!e.mods.isLeftButtonDown()) return;
+    
     if (reorderButton.get() == e.originalComponent)
         setIsReordering(true);
     else
@@ -268,9 +277,11 @@ void PaletteItem::deleteItem()
     MessageManager::callAsync([this, parentTree, itemTree = this->itemTree, _paletteComp = SafePointer(paletteComp)]() mutable {
         parentTree.removeChild(itemTree, nullptr);
         auto paletteComponent = findParentComponentOfClass<PaletteComponent>();
-        _paletteComp->items.removeObject(this);
-        paletteComponent->resized();
-        _paletteComp->resized();
+        if (_paletteComp) {
+            _paletteComp->items.removeObject(this);
+            paletteComponent->resized();
+            _paletteComp->resized();
+        }
     });
 }
 
@@ -330,8 +341,7 @@ std::pair<std::vector<bool>, std::vector<bool>> PaletteItem::countIolets(String 
 
     // In case the patch contains a single object, we need to use a different method to find the number and kind inlets and outlets
     if (lines.size() == 1) {
-        auto offlineObjectRenderer = editor->offlineRenderer;
-        return offlineObjectRenderer.countIolets(lines[0]);
+        return OfflineObjectRenderer::countIolets(lines[0]);
     }
 
     for (auto& line : lines) {

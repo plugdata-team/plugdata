@@ -4,12 +4,11 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-
 #define JUCE_GUI_BASICS_INCLUDE_XHEADERS 1
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #if !defined(__APPLE__)
-#undef JUCE_GUI_BASICS_INCLUDE_XHEADERS
+#    undef JUCE_GUI_BASICS_INCLUDE_XHEADERS
 #    include <raw_keyboard_input/raw_keyboard_input.cpp>
 #endif
 
@@ -148,6 +147,28 @@ bool OSUtils::runAsAdmin(std::string command, std::string parameters, void* hWnd
     retval = ShellExecuteEx(&sei);
 
     return (bool)retval;
+}
+
+void OSUtils::useWindowsNativeDecorations(void* windowHandle, bool rounded)
+{
+    if (auto hDwmApi = LoadLibrary("dwmapi.dll"); hDwmApi) {
+        typedef HRESULT(WINAPI * PFNSETWINDOWATTRIBUTE)(HWND hWnd, DWORD dwAttribute, LPCVOID pvAttribute, DWORD cbAttribute);
+
+        if (auto pfnSetWindowAttribute = reinterpret_cast<PFNSETWINDOWATTRIBUTE>(GetProcAddress(hDwmApi, "DwmSetWindowAttribute")); pfnSetWindowAttribute) {
+            enum : DWORD {
+                DWMWA_WINDOW_CORNER_PREFERENCE = 33,
+
+                DWMWCP_DEFAULT = 0,
+                DWMWCP_DONOTROUND,
+                DWMWCP_ROUND,
+            };
+
+            // Set corners to rounded
+            auto preference = rounded ? DWMWCP_ROUND : DWMWCP_DONOTROUND;
+            pfnSetWindowAttribute((HWND)windowHandle, DWMWA_WINDOW_CORNER_PREFERENCE, &preference, sizeof(preference));
+        }
+        FreeLibrary(hDwmApi);
+    }
 }
 
 OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
@@ -296,17 +317,26 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 }
 #endif // Linux/BSD
 
-
-juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles, int maximum)
+bool OSUtils::isDirectoryFast(juce::String const& path)
 {
-    juce::Array<juce::File> result;
+    return fs::is_directory(path.toStdString());
+}
+
+hash32 OSUtils::getUniqueFileHash(juce::String const& path)
+{
+    return hash(fs::canonical(path.toStdString()).c_str());
+}
+
+juce::Array<fs::path> iterateDirectoryPaths(juce::File const& directory, bool recursive, bool onlyFiles, int maximum)
+{
+    juce::Array<fs::path> result;
 
     if (recursive) {
         try {
             for (auto const& dirEntry : fs::recursive_directory_iterator(directory.getFullPathName().toStdString())) {
                 auto isDir = dirEntry.is_directory();
                 if ((isDir && !onlyFiles) || !isDir) {
-                    result.add(juce::File(dirEntry.path().string()));
+                    result.add(dirEntry.path().string());
                 }
 
                 if (maximum > 0 && result.size() >= maximum)
@@ -320,7 +350,7 @@ juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, b
             for (auto const& dirEntry : fs::directory_iterator(directory.getFullPathName().toStdString())) {
                 auto isDir = dirEntry.is_directory();
                 if ((isDir && !onlyFiles) || !isDir) {
-                    result.add(juce::File(dirEntry.path().string()));
+                    result.add(dirEntry.path());
                 }
 
                 if (maximum > 0 && result.size() >= maximum)
@@ -332,6 +362,17 @@ juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, b
     }
 
     return result;
+}
+
+juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles, int maximum)
+{
+    auto paths = iterateDirectoryPaths(directory, recursive, onlyFiles, maximum);
+    auto files = juce::Array<juce::File>();
+    for (auto& path : paths) {
+        files.add(juce::File(path.string()));
+    }
+
+    return files;
 }
 
 // needs to be in OSutils because it needs <windows.h>

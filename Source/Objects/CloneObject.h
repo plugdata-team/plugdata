@@ -52,15 +52,10 @@ public:
 
         return {};
     }
-
-    bool canOpenFromMenu() override
+    
+    void getMenuOptions(PopupMenu& menu) override
     {
-        return true;
-    }
-
-    void openFromMenu() override
-    {
-        openSubpatch();
+        menu.addItem("Open", [_this = SafePointer(this)](){ if(_this) _this->openSubpatch(); });
     }
 
     void openClonePatch(int idx, bool shouldVis)
@@ -82,18 +77,15 @@ public:
             return;
 
         // Check if patch is already opened
-        for (auto* cnv : cnv->editor->canvases) {
+        for (auto* cnv : cnv->editor->getCanvases()) {
             if (cnv->patch == *patch) {
-
-                auto* tabbar = cnv->getTabbar();
-
                 // Close the patch on "vis 0"
                 if (!shouldVis) {
-                    cnv->editor->closeTab(cnv);
+                    cnv->editor->getTabComponent().closeTab(cnv);
                 }
                 // Show the current tab on "vis 1"
                 else {
-                    tabbar->setCurrentTabIndex(cnv->getTabIndex());
+                    cnv->editor->getTabComponent().showTab(cnv);
                 }
 
                 return;
@@ -107,13 +99,8 @@ public:
             path = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
         }
 
-        cnv->editor->pd->patches.add(patch);
-        auto newPatch = cnv->editor->pd->patches.getLast();
-        auto* newCanvas = cnv->editor->canvases.add(new Canvas(cnv->editor, *newPatch, nullptr));
-
-        newPatch->setCurrentFile(URL(path));
-
-        cnv->editor->addTab(newCanvas);
+        auto* newCanvas = cnv->editor->getTabComponent().openPatch(patch);
+        newCanvas->patch.setCurrentFile(URL(path));
     }
 
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override

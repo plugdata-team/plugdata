@@ -1,14 +1,17 @@
 #pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
-#include "ZoomableDragAndDropContainer.h"
+// #include "Utility/ZoomableDragAndDropContainer.h"
 #include "Utility/OfflineObjectRenderer.h"
 #include "../PluginEditor.h"
 #include "Canvas.h"
 
 class ObjectDragAndDrop : public Component {
 public:
-    ObjectDragAndDrop() { }
+    ObjectDragAndDrop(PluginEditor* e)
+        : editor(e)
+    {
+    }
 
     virtual String getObjectString() = 0;
 
@@ -23,7 +26,7 @@ public:
 
     MouseCursor getMouseCursor() override
     {
-        if ((dragContainer != nullptr) && dragContainer->isDragAndDropActive())
+        if (editor && editor->isDragAndDropActive())
             return MouseCursor::DraggingHandCursor;
 
         return MouseCursor::PointingHandCursor;
@@ -45,16 +48,13 @@ public:
         if (reordering || e.getDistanceFromDragStart() < 5)
             return;
 
-        dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
-
-        if (!dragContainer || dragContainer->isDragAndDropActive())
+        if (!editor || editor->isDragAndDropActive())
             return;
 
         auto scale = 3.0f;
         if (dragImage.image.isNull() || errorImage.image.isNull()) {
-            auto offlineObjectRenderer = OfflineObjectRenderer::findParentOfflineObjectRendererFor(this);
-            dragImage = offlineObjectRenderer->patchToMaskedImage(getObjectString(), scale);
-            errorImage = offlineObjectRenderer->patchToMaskedImage(getObjectString(), scale, true);
+            dragImage = OfflineObjectRenderer::patchToMaskedImage(getObjectString(), scale);
+            errorImage = OfflineObjectRenderer::patchToMaskedImage(getObjectString(), scale, true);
         }
 
         dismiss(true);
@@ -64,14 +64,15 @@ public:
         palettePatchWithOffset.add(var(dragImage.offset.getY()));
         palettePatchWithOffset.add(var(getObjectString()));
         palettePatchWithOffset.add(var(getPatchStringName()));
-        dragContainer->startDragging(palettePatchWithOffset, this, ScaledImage(dragImage.image, scale), ScaledImage(errorImage.image, scale), true, nullptr, nullptr, true);
+        editor->startDragging(palettePatchWithOffset, this, ScaledImage(dragImage.image, scale), ScaledImage(errorImage.image, scale), true, nullptr, nullptr, true);
     }
 
 private:
     bool reordering = false;
-    ZoomableDragAndDropContainer* dragContainer = nullptr;
+    PluginEditor* editor;
     ImageWithOffset dragImage;
     ImageWithOffset errorImage;
+    friend class ObjectClickAndDrop;
 };
 
 class ObjectClickAndDrop : public Component
@@ -86,7 +87,6 @@ class ObjectClickAndDrop : public Component
     ImageComponent imageComponent;
 
     static inline std::unique_ptr<ObjectClickAndDrop> instance = nullptr;
-    bool isOnEditor = false;
 
     bool dropState = false;
 
@@ -95,24 +95,20 @@ class ObjectClickAndDrop : public Component
 
 public:
     ObjectClickAndDrop(ObjectDragAndDrop* target)
+        : editor(target->editor)
     {
+        setWantsKeyboardFocus(true);
+
         objectString = target->getObjectString();
         objectName = target->getPatchStringName();
-        editor = target->findParentComponentOfClass<PluginEditor>();
 
-        if (ProjectInfo::canUseSemiTransparentWindows()) {
-            addToDesktop(ComponentPeer::windowIsTemporary);
-        } else {
-            isOnEditor = true;
-            editor->addChildComponent(this);
-        }
+        addToDesktop(ComponentPeer::windowIsTemporary);
 
         setAlwaysOnTop(true);
 
-        auto offlineObjectRenderer = OfflineObjectRenderer::findParentOfflineObjectRendererFor(target);
         // FIXME: we should only ask a new mask image when the theme has changed so it's the correct colour
-        dragImage = offlineObjectRenderer->patchToMaskedImage(target->getObjectString(), 3.0f).image;
-        dragInvalidImage = offlineObjectRenderer->patchToMaskedImage(target->getObjectString(), 3.0f, true).image;
+        dragImage = OfflineObjectRenderer::patchToMaskedImage(target->getObjectString(), 3.0f).image;
+        dragInvalidImage = OfflineObjectRenderer::patchToMaskedImage(target->getObjectString(), 3.0f, true).image;
 
         // we set the size of this component / window 3x larger to match the max zoom of canavs (300%)
         setSize(dragImage.getWidth(), dragImage.getHeight());
@@ -126,11 +122,22 @@ public:
         imageComponent.setAlpha(0.0f);
 
         auto screenPos = Desktop::getMousePosition();
-        setCentrePosition(isOnEditor ? getLocalPoint(nullptr, screenPos) : screenPos);
+        setCentrePosition(screenPos);
         startTimerHz(60);
         setVisible(true);
 
         setOpaque(false);
+    }
+
+    bool keyPressed(const KeyPress& key) override
+    {
+        if (key == KeyPress::escapeKey) {
+            setVisible(false);
+            instance.reset(nullptr);
+            return true;
+        }
+
+        return false;
     }
 
     MouseCursor getMouseCursor() override
@@ -141,21 +148,15 @@ public:
     static void attachToMouse(ObjectDragAndDrop* parent)
     {
         instance = std::make_unique<ObjectClickAndDrop>(parent);
+        instance->grabKeyboardFocus();
     }
 
     void timerCallback() override
     {
         auto screenPos = Desktop::getMousePosition();
-        auto mousePosition = Point<int>();
         Component* underMouse;
 
-        if (isOnEditor) {
-            mousePosition = editor->getLocalPoint(nullptr, screenPos);
-            underMouse = editor->getComponentAt(mousePosition);
-        } else {
-            mousePosition = screenPos;
-            underMouse = editor->getComponentAt(editor->getLocalPoint(nullptr, screenPos));
-        }
+        underMouse = editor->getComponentAt(editor->getLocalPoint(nullptr, screenPos));
 
         Canvas* foundCanvas = nullptr;
 
@@ -167,26 +168,16 @@ public:
         } else if (auto* cnv = underMouse->findParentComponentOfClass<Canvas>()) {
             foundCanvas = cnv;
             scale = getValue<float>(cnv->zoomScale);
-        } else if (auto* split = editor->splitView.getSplitAtScreenPosition(screenPos)) {
-            // if we get here, this object is on the editor (not a window) - so we have to manually find the canvas
-            if (auto* tabComponent = split->getTabComponent()) {
-                foundCanvas = tabComponent->getCurrentCanvas();
-                scale = getValue<float>(foundCanvas->zoomScale);
-            } else {
-                scale = 1.0f;
-            }
+        } else if (auto* cnv = editor->getTabComponent().getCanvasAtScreenPosition(screenPos)) {
+            foundCanvas = cnv;
+            scale = getValue<float>(foundCanvas->zoomScale);
         } else {
             scale = 1.0f;
         }
 
         if (foundCanvas && (foundCanvas != canvas)) {
             canvas = foundCanvas;
-            for (auto* split : editor->splitView.splits) {
-                if (canvas == split->getTabComponent()->getCurrentCanvas()) {
-                    editor->splitView.setFocus(split);
-                    break;
-                }
-            }
+            editor->getTabComponent().setActiveSplit(canvas);
         }
 
         // swap the image to show if the current drop position will result in adding a new object
@@ -204,10 +195,10 @@ public:
             animator.animateComponent(&imageComponent, animatedBounds, 1.0f, 150, false, 3.0f, 0.0f);
         }
 
-        setCentrePosition(mousePosition);
+        setCentrePosition(screenPos);
     }
 
-    void mouseDown(MouseEvent const& e) override
+    void mouseUp(MouseEvent const& e) override
     {
         // This is nicer, but also makes sure that getComponentAt doesn't return this object
         setVisible(false);

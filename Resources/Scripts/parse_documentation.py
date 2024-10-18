@@ -3,6 +3,7 @@
 #     By doing this at compile time, we can save having to parse all the docs on startup
 
 import os
+import sys
 import xml.etree.cElementTree as ET
 
 # Write n bytes from a number
@@ -297,7 +298,8 @@ def parseFilesInDir(dir, generateXml, generateWebsite):
     for child in root:
       prepareDocsForWebpage(child)
 
-  with open("../Documentation.bin", "wb") as binaryFile:
+  output_dir = sys.argv[1]
+  with open(output_dir + "/Documentation.bin", "wb") as binaryFile:
     # Write bytes to file
     binaryFile.write(stream)
 
