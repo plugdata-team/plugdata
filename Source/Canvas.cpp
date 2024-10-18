@@ -2502,6 +2502,7 @@ bool Canvas::panningModifierDown()
 void Canvas::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms)
 {
     switch (hash(symbol->s_name)) {
+    case hash("sync"):
     case hash("obj"):
     case hash("msg"):
     case hash("floatatom"):

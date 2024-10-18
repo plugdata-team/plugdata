@@ -1128,4 +1128,11 @@ struct ScalarObject final : public ObjectBase {
 
         return {};
     }
+    
+    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
+    {
+        if (symbol == hash("redraw")) {
+            updateDrawables();
+        }
+    }
 };
