@@ -161,7 +161,7 @@ public:
         }
 
         lastBang = currentTime;
-        startTimer(holdTime+5); // Delay it slightly more, to compensate for audio->gui delay
+        startTimer(holdTime); // Delay it slightly more, to compensate for audio->gui delay
     }
     
     void timerCallback() override

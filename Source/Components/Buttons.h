@@ -35,7 +35,7 @@ public:
         attributedIcon.draw(g, bounds);
     }
     
-    // On macOS, we need to make sure that dragging any of these buttones doesn't drag the whole titlebar
+    // On macOS, we need to make sure that dragging any of these buttons doesn't drag the whole titlebar
 #if JUCE_MAC
     void mouseEnter(const MouseEvent& e) override
     {
@@ -96,7 +96,7 @@ public:
         attributedIcon.draw(g, getLocalBounds().toFloat());
     }
     
-    // On macOS, we need to make sure that dragging any of these buttones doesn't drag the whole titlebar
+    // On macOS, we need to make sure that dragging any of these buttons doesn't drag the whole titlebar
 #if JUCE_MAC
     void mouseEnter(const MouseEvent& e) override
     {

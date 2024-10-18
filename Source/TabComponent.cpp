@@ -332,8 +332,9 @@ void TabComponent::handleAsyncUpdate()
 {
     if(canvases.isEmpty() && pd->getEditors().size() > 1)
     {
-        pd->openedEditors.removeObject(editor);
-        auto* editor = pd->openedEditors.getFirst();
+        auto* pdInstance = pd; // Copy pd because we might self-destruct
+        pdInstance->openedEditors.removeObject(editor);
+        auto* editor = pdInstance->openedEditors.getFirst();
         if(auto* topLevel = editor->getTopLevelComponent()) topLevel->toFront(true);
         return;
     }
