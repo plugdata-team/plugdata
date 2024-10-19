@@ -138,8 +138,8 @@ struct ExporterBase : public Component
                 projectTitle = "Untitled";
         }
 
-        // Add file location to search paths
-        auto searchPaths = StringArray { patchFile.getParentDirectory().getFullPathName() };
+        // Add original file location to search paths
+        auto searchPaths = StringArray { realPatchFile.getParentDirectory().getFullPathName() };
 
         editor->pd->setThis();
 
