@@ -501,7 +501,10 @@ public:
 
     int getDesktopWindowStyleFlags() const override
     {
-        auto flags = ComponentPeer::windowHasMinimiseButton | ComponentPeer::windowHasMaximiseButton | ComponentPeer::windowHasCloseButton | ComponentPeer::windowAppearsOnTaskbar | ComponentPeer::windowIsSemiTransparent | ComponentPeer::windowIsResizable;
+        auto flags = ComponentPeer::windowHasMinimiseButton | ComponentPeer::windowHasMaximiseButton | ComponentPeer::windowHasCloseButton | ComponentPeer::windowAppearsOnTaskbar | ComponentPeer::windowIsResizable;
+#if !JUCE_MAC
+        flags |= ComponentPeer::windowIsSemiTransparent;
+#endif
 
 #if !JUCE_IOS
         if (SettingsFile::getInstance()->getProperty<bool>("native_window"))
@@ -511,11 +514,7 @@ public:
         } else
 #endif
         {
-
-            
-#if JUCE_MAC
-            flags |= ComponentPeer::windowHasDropShadow;
-#elif JUCE_WINDOWS
+#if JUCE_WINDOWS
             // On Windows 11 we handle dropshadow differently
             if (SystemStats::getOperatingSystemType() != SystemStats::Windows11) {
                 flags |= ComponentPeer::windowHasDropShadow;

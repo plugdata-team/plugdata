@@ -302,6 +302,11 @@ Canvas* TabComponent::createNewWindow(Canvas* cnv)
     newWindow->toFront(true);
     newEditor->nvgSurface.detachContext();
     
+    auto patchBounds = newCanvas->patch.getBounds();
+    auto screenBounds = Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea;
+    auto windowBounds = screenBounds.withSizeKeepingCentre(patchBounds.getWidth() + newEditor->sidebar->getWidth() + 20, patchBounds.getHeight() + 40);
+    newEditor->getTopLevelComponent()->setBounds(windowBounds);
+    
     return newCanvas;
 }
 

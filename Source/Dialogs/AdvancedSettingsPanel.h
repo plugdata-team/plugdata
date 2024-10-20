@@ -45,7 +45,7 @@ public:
         if(ProjectInfo::isStandalone) {
             openPatchesInWindow.referTo(settingsFile->getPropertyAsValue("open_patches_in_window"));
             openPatchesInWindow.addListener(this);
-            interfaceProperties.add(new PropertiesPanel::BoolComponent("Open help/subpatches in new window", openPatchesInWindow, { "No", "Yes" }));
+            interfaceProperties.add(new PropertiesPanel::BoolComponent("Open patches in new window", openPatchesInWindow, { "No", "Yes" }));
         }
 
         showPalettesValue.referTo(settingsFile->getPropertyAsValue("show_palettes"));
