@@ -270,7 +270,7 @@ protected:
     template<typename T>
     T limitValueRange(Value& v, T min, T max)
     {
-        auto clampedValue = std::clamp<T>(getValue<T>(v), min, max);
+        auto clampedValue = min == max ? min : std::clamp<T>(getValue<T>(v), min, max);
         setParameterExcludingListener(v, clampedValue);
         return clampedValue;
     }

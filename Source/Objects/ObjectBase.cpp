@@ -141,7 +141,7 @@ void ObjectBase::PropertyListener::setNoCallback(bool skipCallback)
 void ObjectBase::PropertyListener::valueChanged(Value& v)
 {
     if(noCallback) return;
-    // TODO: this works a lot better if you change one property at a time, but it's not perfect when changing multiple at a time
+    
     if(!v.refersToSameSourceAs(lastValue) || Time::getMillisecondCounter() - lastChange > 6000)
     {
         onChange();
@@ -395,19 +395,10 @@ void ObjectBase::openSubpatch()
     if (abstraction) {
         path = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
     }
-
-    // TODO: check all editors!
-    // Check if subpatch is already opened
-    for (auto* cnv : cnv->editor->getCanvases()) {
-        if (cnv->patch == *subpatch) {
-            cnv->editor->getTabComponent().showTab(cnv, cnv->patch.splitViewIndex);
-            return;
-        }
-    }
     
     cnv->editor->getTabComponent().setActiveSplit(cnv);
     subpatch->splitViewIndex = cnv->patch.splitViewIndex;
-    auto* newCanvas = cnv->editor->getTabComponent().openPatch(subpatch);
+    cnv->editor->getTabComponent().openPatch(subpatch);
 
     if (path.getFullPathName().isNotEmpty()) {
         subpatch->setCurrentFile(URL(path));

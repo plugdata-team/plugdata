@@ -19,6 +19,9 @@ class Knob : public Slider
 
     bool drawArc = true;
     bool shiftIsDown = false;
+    bool isInverted = false;
+    bool isZeroRange = false;
+    float zeroRangeValue = 0.0f;
     int numberOfTicks = 0;
     float arcStart = 63.5f;
 
@@ -32,6 +35,38 @@ public:
     }
 
     ~Knob() = default;
+        
+    float getCurrentValue()
+    {
+        if (isZeroRange)
+            return zeroRangeValue;
+
+        return getValue();
+    }
+
+    void setCurrentValue(float value)
+    {
+        if (isZeroRange) {
+            return;
+        } else {
+            setValue(value, dontSendNotification);
+        }
+    }
+
+    void updateRange(float min, float max, float increment)
+    {
+        if (approximatelyEqual(min, max)) {
+            setRange(0.0f, 1.0f, std::numeric_limits<float>::epsilon());
+            isZeroRange = true;
+            zeroRangeValue = min;
+            setValue(0.0f);
+            return;
+        }
+
+        isZeroRange = false;
+
+        setRange(0.0f, 1.0f, increment);
+    }
 
     void drawTicks(NVGcontext* nvg, Rectangle<float> knobBounds, float startAngle, float endAngle, float tickWidth)
     {
@@ -70,7 +105,9 @@ public:
                 setMouseDragSensitivity(normalSensitivity);
             }
             
-            Slider::mouseDown(e);
+            if(!isZeroRange) {
+                Slider::mouseDown(e);
+            }
             
             auto snaps = getSliderSnapsToMousePosition();
             if(snaps && shiftIsDown)  {
@@ -84,14 +121,18 @@ public:
         {
             auto snaps = getSliderSnapsToMousePosition();
             if(snaps && shiftIsDown) setSliderSnapsToMousePosition(false); // We disable this temporarily, otherwise it breaks high accuracy mode
-            Slider::mouseDrag(e);
+            if(!isZeroRange) {
+                Slider::mouseDrag(e);
+            }
             if(snaps && shiftIsDown) setSliderSnapsToMousePosition(true);
         }
             
         void mouseUp(MouseEvent const& e) override
         {
             setMouseDragSensitivity(250);
-            Slider::mouseUp(e);
+            if(!isZeroRange) {
+                Slider::mouseUp(e);
+            }
             shiftIsDown = false;
         }
 
@@ -104,6 +145,16 @@ public:
     void setArcStart(float newArcStart)
     {
         arcStart = newArcStart;
+    }
+    
+    void setRangeFlipped(bool invert)
+    {
+        isInverted = invert;
+    }
+        
+    bool isRangeFlipped()
+    {
+        return isInverted;
     }
 
     void render(NVGcontext* nvg) override
@@ -218,12 +269,12 @@ public:
 
         knob.onDragStart = [this]() {
             startEdition();
-            const float val = knob.getValue();
+            const float val = knob.getCurrentValue();
             setValue(val);
         };
 
         knob.onValueChange = [this]() {
-            const float val = knob.getValue();
+            const float val = knob.getCurrentValue();
             setValue(val);
         };
 
@@ -310,16 +361,18 @@ public:
             }
             return true;
         }
-
         
         return false;
     }
 
     void updateDoubleClickValue()
     {
-        auto val = jmap<float>(::getValue<float>(initialValue), getMinimum(), getMaximum(), 0.0f, 1.0f);
+        auto min = std::min(getMinimum(), getMaximum());
+        auto max = std::max(getMinimum(), getMaximum());
+        if(min == max) max += 0.001;
+        auto val = jmap<float>(::getValue<float>(initialValue), min, max, 0.0f, 1.0f);
         knob.setDoubleClickReturnValue(true, std::clamp(val, 0.0f, 1.0f));
-        knob.setArcStart(jmap<float>(::getValue<float>(arcStart), getMinimum(), getMaximum(), 0.0f, 1.0f));
+        knob.setArcStart(jmap<float>(::getValue<float>(arcStart), min, max, 0.0f, 1.0f));
         knob.repaint();
     }
 
@@ -327,7 +380,7 @@ public:
     {
         auto currentValue = getValue();
         value = currentValue;
-        knob.setValue(currentValue, dontSendNotification);
+        knob.setCurrentValue(currentValue);
 
         if (auto knb = ptr.get<t_fake_knob>()) {
             initialValue = knb->x_load;
@@ -413,7 +466,8 @@ public:
         auto numTicks = std::max(::getValue<int>(ticks) - 1, 1);
         auto increment = ::getValue<bool>(discrete) ? 1.0 / numTicks : std::numeric_limits<double>::epsilon();
 
-        knob.setRange(0.0, 1.0, increment);
+        knob.updateRange(::getValue<float>(min), ::getValue<float>(max), increment);
+        knob.setRangeFlipped(!approximatelyEqual(min, max) && min > max);
     }
 
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
@@ -422,7 +476,7 @@ public:
         case hash("float"):
         case hash("list"):
         case hash("set"): {
-            knob.setValue(getValue(), dontSendNotification);
+            knob.setCurrentValue(getValue());
             break;
         }
         case hash("range"): {
@@ -432,9 +486,6 @@ public:
                 // we have to use our min/max as by the time we get the "range" message, it has already changed knb->x_min & knb->x_max!
                 auto oldMin = ::getValue<float>(min);
                 auto oldMax = ::getValue<float>(max);
-
-                setParameterExcludingListener(min, std::min(newMin, newMax - 0.0001f));
-                setParameterExcludingListener(max, std::max(newMax, newMin + 0.0001f));
 
                 updateRange();
                 updateDoubleClickValue();
@@ -510,7 +561,7 @@ public:
         case hash("init"): {
             if (auto knb = ptr.get<t_fake_knob>()) {
                 initialValue = knb->x_load;
-                knob.setValue(getValue(), dontSendNotification);
+                knob.setCurrentValue(getValue());
             }
             break;
         }
@@ -722,8 +773,8 @@ public:
     void updateKnobPosFromMinMax(float oldMin, float oldMax, float newMin, float newMax)
     {
         // map current value to new range
-        float knobVal = knob.getValue();
-        float exp;
+        float knobVal = knob.getCurrentValue();
+        float exp = 0.0f;
 
         if (auto knb = ptr.get<t_fake_knob>()) {
             exp = knb->x_exp;
@@ -732,7 +783,7 @@ public:
         }
 
         // if exponential mode, map current position factor into exponential
-        if (exp != 0) {
+        if (exp != 0.0f) {
             if (exp > 0.0f)
                 knobVal = pow(knobVal, exp);
             else
@@ -740,17 +791,17 @@ public:
         }
 
         auto currentVal = jmap(knobVal, 0.0f, 1.0f, oldMin, oldMax);
-        auto newValNormalised = jmap(currentVal, newMin, newMax, 0.0f, 1.0f);
+        auto newValNormalised = newMin == newMax ? newMin : jmap(currentVal, newMin, newMax, 0.0f, 1.0f);
 
         // if exponential mode, remove exponential mapping from position
-        if (exp != 0) {
+        if (exp != 0.0f) {
             if (exp > 0.0f)
                 newValNormalised = pow(newValNormalised, 1 / exp);
             else
                 newValNormalised = 1 - pow(1 - newValNormalised, -1 / exp);
         }
 
-        knob.setValue(newValNormalised);
+        knob.setCurrentValue(std::clamp(newValNormalised, 0.0f, 1.0f));
     }
 
     void updateColours()
@@ -771,11 +822,10 @@ public:
 
             object->updateBounds();
         } else if (value.refersToSameSourceAs(min)) {
-            float oldMinVal, oldMaxVal, newMinVal;
+            float oldMinVal, oldMaxVal, newMinVal = ::getValue<float>(min);
             if (auto knb = ptr.get<t_fake_knob>()) {
                 oldMinVal = static_cast<float>(knb->x_min);
                 oldMaxVal = static_cast<float>(knb->x_max);
-                newMinVal = limitValueMax(min, ::getValue<float>(max) - 0.0001f);
             } else {
                 return;
             }
@@ -785,14 +835,15 @@ public:
             updateRange();
             updateDoubleClickValue();
             updateKnobPosFromMin(oldMinVal, oldMaxVal, newMinVal);
-            if (::getValue<float>(arcStart) < newMinVal)
-                arcStart = newMinVal;
+            
+            if (auto knb = ptr.get<t_fake_knob>())
+                knb->x_start = limitValueRange(arcStart, std::min(newMinVal, oldMaxVal), std::max(newMinVal, oldMaxVal));
+            
         } else if (value.refersToSameSourceAs(max)) {
-            float oldMinVal, oldMaxVal, newMaxVal;
+            float oldMinVal, oldMaxVal, newMaxVal = ::getValue<float>(max);
             if (auto knb = ptr.get<t_fake_knob>()) {
                 oldMinVal = static_cast<float>(knb->x_min);
                 oldMaxVal = static_cast<float>(knb->x_max);
-                newMaxVal = limitValueMin(max, ::getValue<float>(min) + 0.0001f);
             } else {
                 return;
             }
@@ -803,8 +854,9 @@ public:
             updateDoubleClickValue();
 
             updateKnobPosFromMax(oldMinVal, oldMaxVal, newMaxVal);
-            if (::getValue<float>(arcStart) > newMaxVal)
-                arcStart = newMaxVal;
+            limitValueRange(arcStart, std::min(oldMinVal, newMaxVal), std::max(oldMinVal, newMaxVal));
+            if (auto knb = ptr.get<t_fake_knob>())
+                knb->x_start = limitValueRange(arcStart, std::min(oldMinVal, newMaxVal), std::max(oldMinVal, newMaxVal));
         } else if (value.refersToSameSourceAs(initialValue)) {
             updateDoubleClickValue();
             if (auto knb = ptr.get<t_fake_knob>())
