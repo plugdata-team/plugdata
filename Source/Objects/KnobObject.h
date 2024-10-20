@@ -20,8 +20,6 @@ class Knob : public Slider
     bool drawArc = true;
     bool shiftIsDown = false;
     bool isInverted = false;
-    bool isZeroRange = false;
-    float zeroRangeValue = 0.0f;
     int numberOfTicks = 0;
     float arcStart = 63.5f;
 
@@ -35,38 +33,6 @@ public:
     }
 
     ~Knob() = default;
-        
-    float getCurrentValue()
-    {
-        if (isZeroRange)
-            return zeroRangeValue;
-
-        return getValue();
-    }
-
-    void setCurrentValue(float value)
-    {
-        if (isZeroRange) {
-            return;
-        } else {
-            setValue(value, dontSendNotification);
-        }
-    }
-
-    void updateRange(float min, float max, float increment)
-    {
-        if (approximatelyEqual(min, max)) {
-            setRange(0.0f, 1.0f, std::numeric_limits<float>::epsilon());
-            isZeroRange = true;
-            zeroRangeValue = min;
-            setValue(0.0f);
-            return;
-        }
-
-        isZeroRange = false;
-
-        setRange(0.0f, 1.0f, increment);
-    }
 
     void drawTicks(NVGcontext* nvg, Rectangle<float> knobBounds, float startAngle, float endAngle, float tickWidth)
     {
@@ -105,9 +71,7 @@ public:
                 setMouseDragSensitivity(normalSensitivity);
             }
             
-            if(!isZeroRange) {
-                Slider::mouseDown(e);
-            }
+            Slider::mouseDown(e);
             
             auto snaps = getSliderSnapsToMousePosition();
             if(snaps && shiftIsDown)  {
@@ -121,18 +85,16 @@ public:
         {
             auto snaps = getSliderSnapsToMousePosition();
             if(snaps && shiftIsDown) setSliderSnapsToMousePosition(false); // We disable this temporarily, otherwise it breaks high accuracy mode
-            if(!isZeroRange) {
-                Slider::mouseDrag(e);
-            }
+            
+            Slider::mouseDrag(e);
+            
             if(snaps && shiftIsDown) setSliderSnapsToMousePosition(true);
         }
             
         void mouseUp(MouseEvent const& e) override
         {
             setMouseDragSensitivity(250);
-            if(!isZeroRange) {
-                Slider::mouseUp(e);
-            }
+            Slider::mouseUp(e);
             shiftIsDown = false;
         }
 
@@ -269,13 +231,13 @@ public:
 
         knob.onDragStart = [this]() {
             startEdition();
-            const float val = knob.getCurrentValue();
-            setValue(val);
+            const float val = knob.getValue();
+            setValue(val, false);
         };
 
         knob.onValueChange = [this]() {
-            const float val = knob.getCurrentValue();
-            setValue(val);
+            const float val = knob.getValue();
+            setValue(val, true);
         };
 
         knob.onDragEnd = [this]() {
@@ -339,7 +301,7 @@ public:
         if(key.getKeyCode() == KeyPress::returnKey)
         {
             if (auto obj = ptr.get<t_fake_knob>()) {
-                setValue(getValue());
+                setValue(getValue(), true);
             }
             return true;
         }
@@ -380,7 +342,7 @@ public:
     {
         auto currentValue = getValue();
         value = currentValue;
-        knob.setCurrentValue(currentValue);
+        knob.setValue(currentValue);
 
         if (auto knb = ptr.get<t_fake_knob>()) {
             initialValue = knb->x_load;
@@ -465,9 +427,14 @@ public:
     {
         auto numTicks = std::max(::getValue<int>(ticks) - 1, 1);
         auto increment = ::getValue<bool>(discrete) ? 1.0 / numTicks : std::numeric_limits<double>::epsilon();
-
-        knob.updateRange(::getValue<float>(min), ::getValue<float>(max), increment);
+        if(::getValue<float>(min) == ::getValue<float>(max))
+        {
+            max = ::getValue<float>(max) + 0.001f;
+        }
+        
+        knob.setRange(0.0f, 1.0f, increment);
         knob.setRangeFlipped(!approximatelyEqual(min, max) && min > max);
+        setValue(knob.getValue(), false);
     }
 
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
@@ -476,7 +443,7 @@ public:
         case hash("float"):
         case hash("list"):
         case hash("set"): {
-            knob.setCurrentValue(getValue());
+            knob.setValue(getValue());
             break;
         }
         case hash("range"): {
@@ -561,7 +528,7 @@ public:
         case hash("init"): {
             if (auto knb = ptr.get<t_fake_knob>()) {
                 initialValue = knb->x_load;
-                knob.setCurrentValue(getValue());
+                knob.setValue(getValue());
             }
             break;
         }
@@ -773,7 +740,7 @@ public:
     void updateKnobPosFromMinMax(float oldMin, float oldMax, float newMin, float newMax)
     {
         // map current value to new range
-        float knobVal = knob.getCurrentValue();
+        float knobVal = knob.getValue();
         float exp = 0.0f;
 
         if (auto knb = ptr.get<t_fake_knob>()) {
@@ -801,7 +768,7 @@ public:
                 newValNormalised = 1 - pow(1 - newValNormalised, -1 / exp);
         }
 
-        knob.setCurrentValue(std::clamp(newValNormalised, 0.0f, 1.0f));
+        knob.setValue(std::clamp(newValNormalised, 0.0f, 1.0f));
     }
 
     void updateColours()
@@ -940,7 +907,7 @@ public:
         repaint();
     }
 
-    void setValue(float pos)
+    void setValue(float pos, bool sendNotification)
     {
         float exp, min, max;
         int numTicks;
@@ -983,6 +950,13 @@ public:
         if ((fval < 1.0e-10) && (fval > -1.0e-10))
             fval = 0.0;
 
-        sendFloatValue(fval);
+        if(sendNotification) {
+            sendFloatValue(fval);
+        }
+        else {
+            if (auto knb = ptr.get<t_fake_knob>()) {
+                knb->x_pos = pos;
+            }
+        }
     }
 };
