@@ -302,10 +302,12 @@ Canvas* TabComponent::createNewWindow(Canvas* cnv)
     newWindow->toFront(true);
     newEditor->nvgSurface.detachContext();
     
-    auto patchBounds = newCanvas->patch.getBounds();
-    auto screenBounds = Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea;
-    auto windowBounds = screenBounds.withSizeKeepingCentre(patchBounds.getWidth() + newEditor->sidebar->getWidth() + 20, patchBounds.getHeight() + 50);
-    newEditor->getTopLevelComponent()->setBounds(windowBounds);
+    if(SettingsFile::getInstance()->getProperty<bool>("open_patches_in_window")) {
+        auto patchBounds = newCanvas->patch.getBounds() * (SettingsFile::getInstance()->getProperty<float>("default_zoom") / 100.0f);
+        auto screenBounds = Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea;
+        auto windowBounds = screenBounds.withSizeKeepingCentre(patchBounds.getWidth() + newEditor->sidebar->getWidth() + 30, patchBounds.getHeight() + 94);
+        newEditor->getTopLevelComponent()->setBounds(windowBounds);
+    }
     
     return newCanvas;
 }
