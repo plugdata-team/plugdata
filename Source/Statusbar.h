@@ -27,6 +27,8 @@ public:
     struct Listener {
         virtual void midiReceivedChanged(bool midiReceived) { ignoreUnused(midiReceived); }
         virtual void midiSentChanged(bool midiSent) { ignoreUnused(midiSent); }
+        virtual void midiMessagesReceived(MidiBuffer const& buffer) { ignoreUnused(buffer); }
+        virtual void midiMessagesSent(MidiBuffer const& buffer) { ignoreUnused(buffer); }
         virtual void audioProcessedChanged(bool audioProcessed) { ignoreUnused(audioProcessed); }
         virtual void audioLevelChanged(Array<float> peak) { ignoreUnused(peak); }
         virtual void cpuUsageChanged(float newCpuUsage) { ignoreUnused(newCpuUsage); }
@@ -35,7 +37,7 @@ public:
 
     StatusbarSource();
 
-    void process(bool hasMidiInput, bool hasMidiOutput, int outChannels);
+    void process(MidiBuffer const& midiInput, MidiBuffer const& midiOutput, int outChannels);
 
     void setSampleRate(double sampleRate);
 
@@ -57,7 +59,10 @@ private:
     std::atomic<int> lastMidiSentTime = 0;
     std::atomic<int> lastAudioProcessedTime = 0;
     std::atomic<float> cpuUsage;
-
+    
+    MidiBuffer lastMidiSent, lastMidiReceived;
+    CriticalSection midiEventLock;
+    
     int numChannels;
     int bufferSize;
 

@@ -1005,6 +1005,26 @@ void PlugDataLook::setColours(std::map<PlugDataColour, Colour> colours)
     setColour(TreeView::backgroundColourId,
         Colours::transparentBlack);
 }
+void PlugDataLook::drawTableHeaderColumn (Graphics& g, TableHeaderComponent&,
+                                    const String& columnName, int columnId,
+                                    int width, int height,
+                            bool isMouseOver, bool isMouseDown, int columnFlags)
+{
+    Rectangle<int> area(width, height);
+    area.reduce(4, 0);
+
+    g.setColour(findColour(PlugDataColour::panelTextColourId));
+    g.setFont(Fonts::getSemiBoldFont());
+    g.drawFittedText(columnName, area, Justification::centred, 1);
+}
+
+
+void PlugDataLook::drawTableHeaderBackground (Graphics& g, TableHeaderComponent& header)
+{
+    g.setColour (findColour(PlugDataColour::outlineColourId));
+    for (int i = header.getNumColumns (true); --i >= 0;)
+        g.fillRect(header.getColumnPosition (i).removeFromRight (1).reduced(0, 2));
+}
 
 void PlugDataLook::drawAlertBox(Graphics& g, AlertWindow& alert,
     Rectangle<int> const& textArea, TextLayout& textLayout)

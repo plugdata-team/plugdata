@@ -584,16 +584,6 @@ bool PluginProcessor::isBusesLayoutSupported(BusesLayout const& layouts) const
     return ninch <= 32 && noutch <= 32;
 }
 
-static bool hasRealEvents(MidiBuffer& buffer)
-{
-
-    return std::any_of(buffer.begin(), buffer.end(),
-        [](auto const& event) {
-            int dummy;
-            return !MidiDeviceManager::convertFromSysExFormat(event.getMessage(), dummy).isSysEx();
-        });
-}
-
 void PluginProcessor::settingsFileReloaded()
 {
     auto newTheme = settingsFile->getProperty<String>("theme");
@@ -636,7 +626,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     auto targetBlock = dsp::AudioBlock<float>(buffer);
     auto blockOut = oversampling > 0 ? oversampler->processSamplesUp(targetBlock) : targetBlock;
 
-    auto hasMidiInEvents = hasRealEvents(midiMessages);
+    auto midiInputMessages = midiMessages;
 
     midiBufferIn.clear();
     midiBufferOut.clear();
@@ -646,8 +636,6 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     } else {
         processConstant(blockOut, midiMessages);
     }
-
-    auto hasMidiOutEvents = hasRealEvents(midiMessages);
 
     if (oversampling > 0) {
         oversampler->processSamplesDown(targetBlock);
@@ -684,7 +672,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     smoothedGain.setTargetValue(mappedTargetGain);
     smoothedGain.applyGain(buffer, buffer.getNumSamples());
 
-    statusbarSource->process(hasMidiInEvents, hasMidiOutEvents, totalNumOutputChannels);
+    statusbarSource->process(midiInputMessages, midiMessages, totalNumOutputChannels);
     statusbarSource->setCPUUsage(cpuLoadMeasurer.getLoadAsPercentage());
     statusbarSource->peakBuffer.write(buffer);
 
