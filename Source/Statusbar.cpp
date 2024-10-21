@@ -322,13 +322,11 @@ public:
 class MIDIListModel
 {
 public:
-    void addMessages (MidiBuffer const& buffer, bool isInput)
+    void addMessage (MidiMessage const& message, bool isInput)
     {
-        for(auto message : buffer)
-        {
-            int device;
-            messages.push_back({isInput, MidiDeviceManager::convertFromSysExFormat(message.getMessage(), device)});
-        }
+        int device;
+        messages.push_back({isInput, MidiDeviceManager::convertFromSysExFormat(message, device)});
+
         if(messages.size() > 1000)
         {
             messages.erase(messages.begin(), messages.begin() + (messages.size() - 1000));
@@ -525,14 +523,14 @@ public:
         repaint();
     }
     
-    void midiMessagesReceived(MidiBuffer const& midiReceived) override
+    void midiMessageReceived(MidiMessage const& midiReceived) override
     {
-        messages.addMessages(midiReceived, true);
+        messages.addMessage(midiReceived, true);
     }
 
-    void midiMessagesSent(MidiBuffer const& midiSent) override
+    void midiMessageSent(MidiMessage const& midiSent) override
     {
-        messages.addMessages(midiSent, false);
+        messages.addMessage(midiSent, false);
     }
         
     void mouseDown(MouseEvent const& e) override
@@ -548,17 +546,6 @@ public:
     {
         if (!isCallOutBoxActive) {
             auto midiLogger = std::make_unique<MIDIHistory>(messages);
-            //updateCPUGraph = cpuHistory->getUpdateFunc();
-            //updateCPUGraphLong = cpuHistory->getUpdateFuncLongHistory();
-
-            /*
-            cpuHistory->onClose = [this]() {
-                updateCPUGraph = []() { return; };
-                updateCPUGraphLong = []() { return; };
-                repaint();
-            }; */
-
-            
             auto* editor = findParentComponentOfClass<PluginEditor>();
             currentCalloutBox = &editor->showCalloutBox(std::move(midiLogger), getScreenBounds());
             isCallOutBoxActive = true;
@@ -1223,23 +1210,9 @@ void StatusbarSource::setBufferSize(int bufferSize)
 
 void StatusbarSource::process(MidiBuffer const& midiInput, MidiBuffer const& midiOutput, int channels)
 {
-    /*
-    if (channels == 1) {
-        level[1].store(0, std::memory_order_relaxed) = 0;
-    } else if (channels == 0) {
-        level[0].store(0, std::memory_order_relaxed);
-        level[1].store(0, std::memory_order_relaxed);
-    } */
+    for(auto event : midiInput) lastMidiSent.enqueue(event.getMessage());
+    for(auto event : midiOutput) lastMidiReceived.enqueue(event.getMessage());
     
-    midiEventLock.enter();
-    lastMidiSent.addEvents(midiOutput, 0, 4096, -1);
-    lastMidiReceived.addEvents(midiInput, 0, 4096, -1);
-    midiEventLock.exit();
-    /*
-    auto nowInMs = Time::getMillisecondCounter();
-
-    lastAudioProcessedTime.store(nowInMs, std::memory_order_relaxed);
-
     auto hasRealEvents = [](MidiBuffer const& buffer){
         return std::any_of(buffer.begin(), buffer.end(),
                            [](auto const& event) {
@@ -1248,10 +1221,11 @@ void StatusbarSource::process(MidiBuffer const& midiInput, MidiBuffer const& mid
         });
     };
     
+    auto nowInMs = Time::getMillisecondCounter();
     if (hasRealEvents(midiInput))
         lastMidiSentTime.store(nowInMs, std::memory_order_relaxed);
     if (hasRealEvents(midiOutput))
-        lastMidiReceivedTime.store(nowInMs, std::memory_order_relaxed); */
+        lastMidiReceivedTime.store(nowInMs, std::memory_order_relaxed);
 }
 
 void StatusbarSource::prepareToPlay(int nChannels)
@@ -1266,41 +1240,29 @@ void StatusbarSource::timerCallback()
     auto hasReceivedMidi = currentTime - lastMidiReceivedTime.load(std::memory_order_relaxed) < 700;
     auto hasSentMidi = currentTime - lastMidiSentTime.load(std::memory_order_relaxed) < 700;
     auto hasProcessedAudio = currentTime - lastAudioProcessedTime.load(std::memory_order_relaxed) < 700;
-
-    auto hasRealEvents = [](MidiBuffer const& buffer){
-        return std::any_of(buffer.begin(), buffer.end(),
-                           [](auto const& event) {
-            int dummy;
-            return !MidiDeviceManager::convertFromSysExFormat(event.getMessage(), dummy).isSysEx();
-        });
-    };
-
-    midiEventLock.enter();
-    if(hasRealEvents(lastMidiSent))
-    {
-        if (hasSentMidi != midiSentState) {
-            midiSentState = hasSentMidi;
-            for (auto* listener : listeners)
-                listener->midiSentChanged(hasSentMidi);
-        }
+    
+    if (hasReceivedMidi != midiReceivedState) {
+        midiReceivedState = hasReceivedMidi;
         for (auto* listener : listeners)
-            listener->midiMessagesSent(lastMidiSent);
+            listener->midiReceivedChanged(hasReceivedMidi);
+    }
+    if (hasSentMidi != midiSentState) {
+        midiSentState = hasSentMidi;
+        for (auto* listener : listeners)
+            listener->midiSentChanged(hasSentMidi);
     }
     
-    if(hasRealEvents(lastMidiReceived))
+    MidiMessage message;
+    while(lastMidiSent.try_dequeue(message))
     {
-        if (hasReceivedMidi != midiReceivedState) {
-            midiReceivedState = hasReceivedMidi;
-            for (auto* listener : listeners)
-                listener->midiReceivedChanged(hasReceivedMidi);
-        }
         for (auto* listener : listeners)
-            listener->midiMessagesReceived(lastMidiReceived);
+            listener->midiMessageSent(message);
     }
-    
-    lastMidiSent.clear();
-    lastMidiReceived.clear();
-    midiEventLock.exit();
+    while(lastMidiReceived.try_dequeue(message))
+    {
+        for (auto* listener : listeners)
+            listener->midiMessageReceived(message);
+    }
     
     if (hasProcessedAudio != audioProcessedState) {
         audioProcessedState = hasProcessedAudio;

@@ -120,8 +120,6 @@ public:
             editor->setBorder(BorderSize<int>(2, 5, 2, 1));
             editor->setBounds(getLocalBounds().removeFromTop(18));
             editor->setText(getText(), false);
-            //editor->addListener(this);
-            //editor->addKeyListener(this);
             editor->selectAll();
 
             addAndMakeVisible(editor.get());

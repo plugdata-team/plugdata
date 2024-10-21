@@ -6,6 +6,7 @@
 #pragma once
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <readerwriterqueue.h>
 
 #include "LookAndFeel.h"
 #include "Utility/SettingsFile.h"
@@ -27,8 +28,8 @@ public:
     struct Listener {
         virtual void midiReceivedChanged(bool midiReceived) { ignoreUnused(midiReceived); }
         virtual void midiSentChanged(bool midiSent) { ignoreUnused(midiSent); }
-        virtual void midiMessagesReceived(MidiBuffer const& buffer) { ignoreUnused(buffer); }
-        virtual void midiMessagesSent(MidiBuffer const& buffer) { ignoreUnused(buffer); }
+        virtual void midiMessageReceived(MidiMessage const& message) { ignoreUnused(message); }
+        virtual void midiMessageSent(MidiMessage const& message) { ignoreUnused(message); }
         virtual void audioProcessedChanged(bool audioProcessed) { ignoreUnused(audioProcessed); }
         virtual void audioLevelChanged(Array<float> peak) { ignoreUnused(peak); }
         virtual void cpuUsageChanged(float newCpuUsage) { ignoreUnused(newCpuUsage); }
@@ -60,8 +61,8 @@ private:
     std::atomic<int> lastAudioProcessedTime = 0;
     std::atomic<float> cpuUsage;
     
-    MidiBuffer lastMidiSent, lastMidiReceived;
-    CriticalSection midiEventLock;
+    moodycamel::ReaderWriterQueue<MidiMessage> lastMidiSent;
+    moodycamel::ReaderWriterQueue<MidiMessage> lastMidiReceived;
     
     int numChannels;
     int bufferSize;
