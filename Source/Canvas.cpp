@@ -1467,6 +1467,8 @@ void Canvas::copySelection()
 
 void Canvas::focusGained(FocusChangeType cause)
 {
+    pd->openedEditors.move(pd->openedEditors.indexOf(editor), 0);
+    
     pd->enqueueFunctionAsync([_this = SafePointer(this), this, hasFocus = static_cast<float>(hasKeyboardFocus(true))]() {
         if (!_this)
             return;
