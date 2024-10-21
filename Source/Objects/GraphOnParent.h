@@ -21,7 +21,8 @@ class GraphOnParent final : public ObjectBase {
     CachedTextRender textRenderer;
 
     NVGImage openInGopBackground;
-
+    std::unique_ptr<TextEditor> editor;
+    
 public:
     // Graph On Parent
     GraphOnParent(pd::WeakReference obj, Object* object)
@@ -94,6 +95,10 @@ public:
 
     void resized() override
     {
+        if (editor) {
+            editor->setBounds(getLocalBounds().removeFromTop(18));
+        }
+        
         textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId), getWidth(), getWidth());
         updateCanvas();
         updateDrawables();
@@ -107,6 +112,61 @@ public:
         textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId), getWidth(), getWidth());
     }
 
+    void showEditor() override
+    {
+        if (!getValue<bool>(hideNameAndArgs) && editor == nullptr) {
+            editor.reset(TextObjectHelper::createTextEditor(object, 13));
+
+            editor->setBorder(BorderSize<int>(2, 5, 2, 1));
+            editor->setBounds(getLocalBounds().removeFromTop(18));
+            editor->setText(getText(), false);
+            //editor->addListener(this);
+            //editor->addKeyListener(this);
+            editor->selectAll();
+
+            addAndMakeVisible(editor.get());
+            editor->grabKeyboardFocus();
+
+            editor->onReturnKey = [this]() {
+                cnv->grabKeyboardFocus();
+            };
+            editor->onFocusLost = [this]() {
+                if (reinterpret_cast<Component*>(cnv->suggestor.get())->hasKeyboardFocus(true) || Component::getCurrentlyFocusedComponent() == editor.get()) {
+                    editor->grabKeyboardFocus();
+                    return;
+                }
+                hideEditor();
+            };
+
+            cnv->showSuggestions(object, editor.get());
+
+            object->updateBounds();
+            repaint();
+        }
+    }
+    
+    
+    void hideEditor() override
+    {
+        if (editor != nullptr) {
+            std::unique_ptr<TextEditor> outgoingEditor;
+            std::swap(outgoingEditor, editor);
+
+            cnv->hideSuggestions();
+
+            auto oldText = getText();
+            auto newText = outgoingEditor->getText();
+            
+            newText = TextObjectHelper::fixNewlines(newText);
+
+            outgoingEditor.reset();
+            
+            if (oldText != newText) {
+                object->setType(newText);
+            }
+        }
+    }
+    
     // Called by object to make sure clicks on empty parts of the graph are passed on
     bool canReceiveMouseEvent(int x, int y) override
     {
@@ -234,9 +294,13 @@ public:
     {
         // Strangly, the title goes below the graph content in pd
         if(!getValue<bool>(hideNameAndArgs)) {
-            auto text = getText();
-            if (text != "graph" && text.isNotEmpty()) {
-                textRenderer.renderText(nvg, Rectangle<int>(5, 0, getWidth() - 5, 16), getImageScale());
+            if (editor && editor->isVisible()) {
+                imageRenderer.renderJUCEComponent(nvg, *editor, getImageScale());
+            } else {
+                auto text = getText();
+                if (text != "graph" && text.isNotEmpty()) {
+                    textRenderer.renderText(nvg, Rectangle<int>(5, 0, getWidth() - 5, 16), getImageScale());
+                }
             }
         }
 
