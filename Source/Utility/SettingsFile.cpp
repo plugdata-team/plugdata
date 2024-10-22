@@ -424,7 +424,7 @@ void SettingsFile::initialiseOverlayTree()
 {
     std::map<String, int> defaults = {
         { "edit", Origin | ActivationState },
-        { "lock", None },
+        { "lock", Behind },
         { "run", None },
         { "alt", Origin | Border | ActivationState | Index | Coordinate | Order | Direction }
     };
