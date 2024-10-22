@@ -2448,27 +2448,35 @@ void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, R
 {
     auto const lassoBounds = area.withWidth(jmax(2, area.getWidth())).withHeight(jmax(2, area.getHeight()));
 
-    for (auto* object : objects) {
-        if (lassoBounds.intersects(object->getSelectableBounds())) {
-            itemsFound.add(object);
-        } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
-            setSelected(object, false, false);
+    auto hasObjectsSelection = !getSelectionOfType<Object>().isEmpty();
+    auto hasConnectionSelection = !getSelectionOfType<Connection>().isEmpty();
+    auto hasNoSelection = selectedComponents.getNumSelected() == 0;
+    
+    if(hasNoSelection || hasObjectsSelection) {
+        for (auto* object : objects) {
+            if (lassoBounds.intersects(object->getSelectableBounds())) {
+                itemsFound.add(object);
+            } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
+                setSelected(object, false, false);
+            }
         }
     }
 
-    for (auto& connection : connections) {
-        // If total bounds don't intersect, there can't be an intersection with the line
-        // This is cheaper than checking the path intersection, so do this first
-        if (!connection->getBounds().intersects(lassoBounds)) {
-            setSelected(connection, false, false);
-            continue;
-        }
-
-        // Check if path intersects with lasso
-        if (connection->intersects(lassoBounds.toFloat())) {
-            itemsFound.add(connection);
-        } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
-            setSelected(connection, false, false);
+    if(hasNoSelection || hasConnectionSelection) {
+        for (auto& connection : connections) {
+            // If total bounds don't intersect, there can't be an intersection with the line
+            // This is cheaper than checking the path intersection, so do this first
+            if (!connection->getBounds().intersects(lassoBounds)) {
+                setSelected(connection, false, false);
+                continue;
+            }
+            
+            // Check if path intersects with lasso
+            if (connection->intersects(lassoBounds.toFloat())) {
+                itemsFound.add(connection);
+            } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
+                setSelected(connection, false, false);
+            }
         }
     }
 }
