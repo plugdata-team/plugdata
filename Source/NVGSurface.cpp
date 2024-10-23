@@ -87,7 +87,11 @@ NVGSurface::NVGSurface(PluginEditor* e)
     //pixelFormat.multisamplingLevel = 1;
     //glContext->setMultisamplingEnabled(true);
     glContext->setPixelFormat(pixelFormat);
+#ifdef NANOVG_GLES_IMPLEMENTATION
+    glContext->setOpenGLVersionRequired(OpenGLContext::OpenGLVersion::openGL4_1);
+#else
     glContext->setOpenGLVersionRequired(OpenGLContext::OpenGLVersion::openGL3_2);
+#endif
     glContext->setSwapInterval(0);
 #endif
 
