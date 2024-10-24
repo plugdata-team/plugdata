@@ -300,11 +300,13 @@ public:
         case hash("send"): {
             if (numAtoms <= 0)
                 setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].toString());
+            object->updateIolets();
             break;
         }
         case hash("receive"): {
             if (numAtoms <= 0)
                 setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].toString());
+            object->updateIolets();
             break;
         }
         default:

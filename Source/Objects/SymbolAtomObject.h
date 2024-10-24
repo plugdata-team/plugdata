@@ -246,12 +246,14 @@ public:
         case hash("send"): {
             if (numAtoms >= 1)
                 setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].toString());
+            object->updateIolets();
             break;
         }
         case hash("receive"): {
             if (numAtoms >= 1) {
                 setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].toString());
             }
+            object->updateIolets();
             break;
         }
         default:

@@ -350,11 +350,13 @@ public:
         case hash("send"): {
             if (numAtoms >= 1)
                 setParameterExcludingListener(sendSymbol, atoms[0].toString());
+            object->updateIolets();
             break;
         }
         case hash("receive"): {
             if (numAtoms >= 1)
                 setParameterExcludingListener(receiveSymbol, atoms[0].toString());
+            object->updateIolets();
             break;
         }
         case hash("toggle"): {

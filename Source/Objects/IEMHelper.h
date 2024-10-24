@@ -142,11 +142,13 @@ public:
         case hash("send"): {
             if (numAtoms >= 1)
                 gui->setParameterExcludingListener(sendSymbol, atoms[0].toString());
+            object->updateIolets();
             return true;
         }
         case hash("receive"): {
             if (numAtoms >= 1)
                 gui->setParameterExcludingListener(receiveSymbol, atoms[0].toString());
+            object->updateIolets();
             return true;
         }
         case hash("color"): {
