@@ -160,6 +160,7 @@ protected:
 
     Value sizeProperty = SynchronousValue();
     String objectText;
+    bool canBeClicked = false;
     bool isValid = true;
     bool isLocked;
 
@@ -188,6 +189,7 @@ public:
     {
         if (auto obj = ptr.get<t_text>()) {
             sizeProperty = TextObjectHelper::getWidthInChars(obj.get());
+            canBeClicked = zgetfn(&obj->te_g.g_pd, gensym("click")) != nullptr;
         }
     }
 
@@ -208,13 +210,13 @@ public:
         auto finalOutlineColour = object->isSelected() ? selectedOutlineColour : outlineColour;
         auto finalBackgroundColour = convertColour(backgroundColour);
         auto outlineCol = object->isSelected() ? selectedOutlineColour : finalOutlineColour;
-
+        
         // render invalid text objects with red outline & semi-transparent background
         if (!isValid) {
             finalOutlineColour = convertColour(object->isSelected() ? Colours::red.brighter(1.5f) : Colours::red);
             finalBackgroundColour = nvgRGBA(outlineColour.r, outlineColour.g, outlineColour.b, 0.2f * 255);
         }
-        else if(getPatch() && isMouseOver() && getValue<bool>(cnv->locked))
+        else if((canBeClicked || getPatch()) && isMouseOver() && getValue<bool>(cnv->locked))
         {
             finalBackgroundColour = convertColour(backgroundColour.contrasting(backgroundColour.getBrightness() > 0.5f ? 0.03f : 0.05f));
         }
