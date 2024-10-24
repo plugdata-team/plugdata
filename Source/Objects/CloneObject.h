@@ -33,6 +33,7 @@ public:
     {
         closeOpenedSubpatchers();
     }
+    
 
     pd::Patch::Ptr getPatch() override
     {
@@ -52,6 +53,21 @@ public:
 
         return {};
     }
+    
+    void mouseDown(MouseEvent const& e) override
+    {
+        if (!e.mods.isLeftButtonDown())
+            return;
+
+        //  If locked and it's a left click
+        if (isLocked && !e.mods.isRightButtonDown()) {
+            openSubpatch();
+            return;
+        } else {
+            TextBase::mouseDown(e);
+        }
+    }
+
     
     void getMenuOptions(PopupMenu& menu) override
     {
