@@ -103,10 +103,10 @@ public:
 
     static NVGSurface* getSurfaceForContext(NVGcontext*);
 
+    void renderFrameToImage(Image& image, Rectangle<int> area);
+    
 private:
-    
-    void renderFrameToImage(NVGframebuffer* fb, Rectangle<int> area);
-    
+
     float calculateRenderScale() const;
     
     void resized() override;

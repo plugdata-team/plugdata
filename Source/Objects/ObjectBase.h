@@ -284,6 +284,7 @@ public:
     OwnedArray<ObjectLabel> labels;
 
 protected:
+    float lastImageScale = 2.0f;
     PropertyListener propertyListener;
 
     NVGImage imageRenderer;

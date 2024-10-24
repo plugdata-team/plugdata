@@ -479,7 +479,13 @@ float ObjectBase::getImageScale()
         auto scale = std::sqrt (std::abs (topLevel->getTransform().getDeterminant()));
         return topLevel->getRenderScale() * std::max(1.0f, scale);
     }
-    return topLevel->isZooming ? topLevel->getRenderScale() * 2.0f : topLevel->getRenderScale() * std::max(1.0f, getValue<float>(topLevel->zoomScale));
+    
+    auto randval = rand() % 4;
+    auto bestScale = topLevel->getRenderScale() * getValue<float>(topLevel->zoomScale);
+    auto newScale = topLevel->isZooming && randval != 0 && std::abs(bestScale - lastImageScale) < 0.15f ? lastImageScale : bestScale ;
+    lastImageScale = newScale;  // TODO: getters shouldn't have side-effects!
+    
+    return newScale;
 }
 
 ObjectParameters ObjectBase::getParameters()

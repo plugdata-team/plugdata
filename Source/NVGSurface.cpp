@@ -377,7 +377,7 @@ void NVGSurface::render()
 
         if(renderThroughImage)
         {
-            renderFrameToImage(invalidFBO, invalidArea);
+            renderFrameToImage(backupRenderImage, invalidArea);
         }
         else {
             needsBufferSwap = true;
@@ -402,18 +402,18 @@ void NVGSurface::render()
     }
 }
 
-void NVGSurface::renderFrameToImage(NVGframebuffer* fb, Rectangle<int> area)
+void NVGSurface::renderFrameToImage(Image& image, Rectangle<int> area)
 {
     nvgBindFramebuffer(nullptr);
     auto bufferSize = fbHeight * fbWidth;
     if(bufferSize != backupPixelData.size()) backupPixelData.resize(bufferSize);
-    nvgReadPixels(nvg, fb->image, 0, 0, fbWidth, fbHeight, backupPixelData.data()); // TODO: would be nice to read only a part of the image, but that gets tricky with openGL
+    nvgReadPixels(nvg, invalidFBO->image, 0, 0, fbWidth, fbHeight, backupPixelData.data()); // TODO: would be nice to read only a part of the image, but that gets tricky with openGL
     
-    if(!backupRenderImage.isValid() || backupRenderImage.getWidth() != fbWidth || backupRenderImage.getHeight() != fbHeight)
+    if(!image.isValid() || image.getWidth() != fbWidth || image.getHeight() != fbHeight)
     {
-        backupRenderImage = Image(Image::PixelFormat::ARGB, fbWidth, fbHeight, true);
+        image = Image(Image::PixelFormat::ARGB, fbWidth, fbHeight, true);
     }
-    Image::BitmapData imageData(backupRenderImage, Image::BitmapData::readOnly);
+    Image::BitmapData imageData(image, Image::BitmapData::readOnly);
 
     int width = imageData.width;
     int height = imageData.height;
@@ -445,7 +445,7 @@ void NVGSurface::renderFrameToImage(NVGframebuffer* fb, Rectangle<int> area)
     }
     
     backupImageComponent.setVisible(true);
-    backupImageComponent.setImage(backupRenderImage);
+    backupImageComponent.setImage(image);
     backupImageComponent.repaint();
 }
 

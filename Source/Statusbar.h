@@ -64,7 +64,6 @@ private:
     moodycamel::ReaderWriterQueue<MidiMessage> lastMidiSent;
     moodycamel::ReaderWriterQueue<MidiMessage> lastMidiReceived;
     
-    int numChannels;
     int bufferSize;
 
     double sampleRate = 44100;

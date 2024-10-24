@@ -1094,7 +1094,8 @@ public:
     
     int searchNext()
     {
-        currentSearchSelection = (++currentSearchSelection) % searchSelections.size();
+        currentSearchSelection++;
+        currentSearchSelection %= searchSelections.size();
         return currentSearchSelection;
     }
 
