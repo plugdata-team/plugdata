@@ -225,8 +225,7 @@ void Instance::initialisePd(String& pdlua_version)
     parameterModeReceiver = pd::Setup::createReceiver(this, "param_mode", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
-    // Register callback when pd's gui changes
-    // Needs to be done on pd's thread
+    // Register callback for special Pd messages
     auto gui_trigger = [](void* instance, char const* name, int argc, t_atom* argv) {
         switch (hash(name)) {
         case hash("openpanel"): {
@@ -794,18 +793,13 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
 
                     for (int i = 0; i < atoms.size(); i++) {
                         String pathname = files[i].getFullPathName();
-
-                    // Convert slashes to backslashes
-#if JUCE_WINDOWS
-                        pathname = pathname.replaceCharacter('\\', '/');
-#endif
-
                         libpd_set_symbol(atoms.data() + i, pathname.toRawUTF8());
                     }
 
                     pd_typedmess(obj, generateSymbol(callback), atoms.size(), atoms.data());
 
                     unlockAudioThread();
+                    openChooser.reset(nullptr);
                 });
             });
     } else {
@@ -817,6 +811,10 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
 #else
                 Component* dialogParent = nullptr;
 #endif
+                if(defaultFile.exists())
+                {
+                    SettingsFile::getInstance()->setLastBrowserPathForId("savepanel", defaultFile);
+                }
 
                 Dialogs::showSaveDialog([this, obj, callback](URL result) {
                     auto pathName = result.getLocalFile().getFullPathName();
@@ -829,7 +827,7 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
                     pd_typedmess(obj, generateSymbol(callback), 1, argv);
                     unlockAudioThread();
                 },
-                    "", "openpanel", dialogParent);
+                    "", "savepanel", dialogParent);
             });
     }
 }
