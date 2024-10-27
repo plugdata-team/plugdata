@@ -136,6 +136,12 @@ public:
 
     bool isSelected() const;
 
+    void hideHandles(bool shouldHide)
+    {
+        showHandles = !shouldHide;
+        repaint();
+    };
+
     // Controls the way object activity propagates upwards inside GOPs.
     enum ObjectActivityPolicy {
         Self,     // Trigger object's own activity only.
@@ -156,6 +162,7 @@ private:
 
     void setSelected(bool shouldBeSelected);
     bool selectedFlag = false;
+    bool showHandles = true;
     bool selectionStateChanged = false;
 
     bool wasLockedOnMouseDown = false;

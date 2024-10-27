@@ -46,6 +46,8 @@ class CanvasViewport : public Viewport
 
         // warning: this only works because Canvas::mouseDown gets called before the listener's mouse down
         // thus giving us a chance to attach the mouselistener on the middle-mouse click event
+        // Specifically, we use the hitTest in on-canvas objects to check if panning mod is down
+        // Because the hitTest can decided where the mouseEvent goes.
         void mouseDown(MouseEvent const& e) override
         {
             if (!e.mods.isLeftButtonDown() && !e.mods.isMiddleButtonDown())

@@ -42,6 +42,7 @@ class ConnectionBeingCreated;
 class TabComponent;
 class BorderResizer;
 class CanvasSearchHighlight;
+class ObjectsResizer;
 
 struct ObjectDragState {
     bool wasDragDuplicated : 1 = false;
@@ -53,7 +54,7 @@ struct ObjectDragState {
     Component::SafePointer<Object> componentBeingDragged;
     Component::SafePointer<Object> objectSnappingInbetween;
     Component::SafePointer<Connection> connectionToSnapInbetween;
-
+    
     Point<int> duplicateOffset = { 0, 0 };
     Point<int> lastDuplicateOffset = { 0, 0 };
 };
@@ -106,8 +107,8 @@ public:
     bool shouldShowConnectionDirection();
     bool shouldShowConnectionActivity();
 
-    void save(std::function<void()> const& nestedCallback = []() { });
-    void saveAs(std::function<void()> const& nestedCallback = []() { });
+    void save(std::function<void()> const& nestedCallback = []() {});
+    void saveAs(std::function<void()> const& nestedCallback = []() {});
 
     void synchroniseAllCanvases();
     void synchroniseSplitCanvas();
@@ -336,6 +337,8 @@ private:
     ObjectParameters parameters;
 
     std::unique_ptr<BorderResizer> canvasBorderResizer;
+
+    std::unique_ptr<ObjectsResizer> objectsDistributeResizer;
 
     std::unique_ptr<CanvasSearchHighlight> canvasSearchHighlight;
 

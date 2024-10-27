@@ -592,12 +592,13 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
         String menuItemIcon;
         String menuItemText;
 
-    public:
         bool isActive = true;
+    public:
 
-        AlignmentMenuItem(String icon, String text)
+        AlignmentMenuItem(String icon, String text, bool isActive = true)
             : menuItemIcon(std::move(icon))
             , menuItemText(std::move(text))
+            , isActive(isActive)
         {
         }
 
@@ -637,15 +638,19 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     PopupMenu alignMenu;
     addCommandItem(alignMenu, CommandIDs::Tidy);
     alignMenu.addSeparator();
-    alignMenu.addCustomItem(AlignLeft, std::make_unique<AlignmentMenuItem>(Icons::AlignLeft, "Align left"), nullptr, "Align left");
-    alignMenu.addCustomItem(AlignHCentre, std::make_unique<AlignmentMenuItem>(Icons::AlignVCentre, "Align centre"), nullptr, "Align centre");
-    alignMenu.addCustomItem(AlignRight, std::make_unique<AlignmentMenuItem>(Icons::AlignRight, "Align right"), nullptr, "Align right");
-    alignMenu.addCustomItem(AlignHDistribute, std::make_unique<AlignmentMenuItem>(Icons::AlignHDistribute, "Space horizonally"), nullptr, "Space horizonally");
+
+    auto alignIsActive = cnv->getSelectionOfType<Object>().size() > 1;
+    auto distributeIsActive = cnv->getSelectionOfType<Object>().size() > 2;
+
+    alignMenu.addCustomItem(AlignLeft, std::make_unique<AlignmentMenuItem>(Icons::AlignLeft, "Align left", alignIsActive), nullptr, "Align left");
+    alignMenu.addCustomItem(AlignHCentre, std::make_unique<AlignmentMenuItem>(Icons::AlignVCentre, "Align centre", alignIsActive), nullptr, "Align centre");
+    alignMenu.addCustomItem(AlignRight, std::make_unique<AlignmentMenuItem>(Icons::AlignRight, "Align right", alignIsActive), nullptr, "Align right");
+    alignMenu.addCustomItem(AlignHDistribute, std::make_unique<AlignmentMenuItem>(Icons::AlignHDistribute, "Space horizonally", distributeIsActive), nullptr, "Space horizonally");
     alignMenu.addSeparator();
-    alignMenu.addCustomItem(AlignTop, std::make_unique<AlignmentMenuItem>(Icons::AlignTop, "Align top"), nullptr, "Align top");
-    alignMenu.addCustomItem(AlignVCentre, std::make_unique<AlignmentMenuItem>(Icons::AlignHCentre, "Align middle"), nullptr, "Align middle");
-    alignMenu.addCustomItem(AlignBottom, std::make_unique<AlignmentMenuItem>(Icons::AlignBottom, "Align bottom"), nullptr, "Align bottom");
-    alignMenu.addCustomItem(AlignVDistribute, std::make_unique<AlignmentMenuItem>(Icons::AlignVDistribute, "Space vertically"), nullptr, "Space vertically");
+    alignMenu.addCustomItem(AlignTop, std::make_unique<AlignmentMenuItem>(Icons::AlignTop, "Align top", alignIsActive), nullptr, "Align top");
+    alignMenu.addCustomItem(AlignVCentre, std::make_unique<AlignmentMenuItem>(Icons::AlignHCentre, "Align middle", alignIsActive), nullptr, "Align middle");
+    alignMenu.addCustomItem(AlignBottom, std::make_unique<AlignmentMenuItem>(Icons::AlignBottom, "Align bottom", alignIsActive), nullptr, "Align bottom");
+    alignMenu.addCustomItem(AlignVDistribute, std::make_unique<AlignmentMenuItem>(Icons::AlignVDistribute, "Space vertically", distributeIsActive), nullptr, "Space vertically");
     popupMenu.addSubMenu("Align", alignMenu, !locked);
 
     popupMenu.addSeparator();
