@@ -20,6 +20,8 @@ public:
         {
         bool internalSend = false;
         bool hasParentAbstraction = false;
+        
+        pd->lockAudioThread();
         {
             char* text = nullptr;
             int size = 0;
@@ -30,7 +32,6 @@ public:
             }
         }
         
-        pd->lockAudioThread();
         parentPatches.add(cnv);
         while((cnv = cnv->gl_owner))
         {
