@@ -1071,7 +1071,9 @@ struct ScalarObject final : public ObjectBase {
                 int x, y;
                 pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
             }
-            constrainer->setSizeLimits(w + 1, h + 1, w + 1, h + 1);
+            if(w > 0 && h > 0) {
+                constrainer->setSizeLimits(w + 1, h + 1, w + 1, h + 1);
+            }
         };
 
         updateDrawables();

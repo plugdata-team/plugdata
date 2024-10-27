@@ -100,7 +100,7 @@ public:
 
     bool hitTest(int x, int y) override;
 
-    void triggerOverlayActiveState(bool recursive = false);
+    void triggerOverlayActiveState();
 
     bool validResizeZone = false;
 

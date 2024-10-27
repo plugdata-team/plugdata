@@ -11,47 +11,91 @@
 class ActivityListener : public ImplementationBase
     , public pd::MessageListener {
 public:
-    WeakReference<pd::Instance> pdWeakRef;
+    //WeakReference<pd::Instance> pdWeakRef;
     Array<Component::SafePointer<Object>> objectsToTrigger;
+    Array<t_canvas*> parentPatches;
+    bool recursive;
 
-    enum ActivityTriggerPolicy {Self, Parent, Recursive};
-    ActivityTriggerPolicy policy = Self;
-
-    ActivityListener(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd, ActivityTriggerPolicy policy = Self)
+    ActivityListener(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd, bool recurse)
         : ImplementationBase(ptr, parent, pd)
-        , pdWeakRef(pd)
-        , policy(policy)
-    {
+        , recursive(recurse)
+        {
+        pd->lockAudioThread();
+        if(recursive) {
+            parentPatches.add(cnv);
+            while((cnv = cnv->gl_owner))
+            {
+                parentPatches.add(cnv);
+            }
+        }
+        else {
+            parentPatches.add(cnv->gl_owner);
+        }
+        pd->unlockAudioThread();
         pd->registerMessageListener(this->ptr.getRawUnchecked<void>(), this);
     }
 
     ~ActivityListener()
     {
-        if (pdWeakRef)
-            pdWeakRef->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
+        pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
+    }
+    
+    Array<Canvas*> getParentCanvases() const
+    {
+         Array<Canvas*> result;
+         for (auto* editor : pd->getEditors()) {
+             if(editor->pluginMode)
+             {
+                 if(auto* canvas = editor->pluginMode->getCanvas())
+                 {
+                     result.add(canvas);
+                 }
+             }
+             else {
+                 for (auto* canvas : editor->getTabComponent().getVisibleCanvases()) {
+                     if(parentPatches.contains(canvas->patch.getUncheckedPointer()))
+                     {
+                         result.add(canvas);
+                     }
+                 }
+             }
+         }
+        return result;
     }
 
-    void update(const Array<t_canvas *>& parents) override
+
+    void update() override
     {
         objectsToTrigger.clear();
-
-        auto editors = pd->getEditors();
-
-        if (auto obj = pd->getObjectFromPtr(ptr.getRawUnchecked<_gobj>()))
-            objectsToTrigger.add(obj);
-
-        if(policy == Self)
-            return;
-
-        // Find the objects that match the parent canvases
-        auto parentSize = parents.size() - 1;
-        auto triggerDepth = policy == Recursive ? 0 : parentSize;
-        // We reverse the parent object list as the last is the first
-        // So we can deal with triggering only the parent here
-        // By limiting the depth of what we iterate over
-        for (int i = parentSize; i >= triggerDepth; --i) {
-            if (auto* obj = pd->getObjectFromPtr((_gobj*)parents[i]))
-                objectsToTrigger.add(obj);
+        
+        if(recursive) {
+            for (auto* canvas : getParentCanvases()) {
+                auto parentIndex = parentPatches.indexOf(canvas->patch.getUncheckedPointer());
+                if(parentIndex <= 0) break;
+                auto* subpatch = parentPatches[parentIndex - 1];
+                
+                for(auto* obj : canvas->objects)
+                {
+                    auto* objPtr = obj->getPointer();
+                    if(objPtr == &cnv->gl_obj.te_g || (t_glist*)objPtr == subpatch)
+                    {
+                        objectsToTrigger.add(obj);
+                    }
+                }
+            }
+        }
+        else if(!parentPatches.isEmpty()) {
+            auto* canvas = getMainCanvas(parentPatches.getFirst(), false);
+            if(canvas) {
+                for(auto* obj : canvas->objects)
+                {
+                    if(obj->getPointer() == &cnv->gl_obj.te_g)
+                    {
+                        objectsToTrigger.add(obj);
+                        break;
+                    }
+                }
+            }
         }
     }
 
@@ -60,33 +104,72 @@ public:
         if (pd->isPerformingGlobalSync)
             return;
 
-        for (auto object : objectsToTrigger) {
-            if (object) {
-                object->triggerOverlayActiveState();
-            }
+        for (auto obj : objectsToTrigger) {
+            if(obj) obj->triggerOverlayActiveState();
         }
     }
 };
 
-class SubpatchImpl : public ActivityListener {
+class SubpatchImpl : public ImplementationBase, public pd::MessageListener {
 public:
 
     SubpatchImpl(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd)
-        : ActivityListener(ptr, parent, pd)
+        : ImplementationBase(ptr, parent, pd)
     {
+        pd->registerMessageListener(this->ptr.getRawUnchecked<void>(), this);
     }
 
     ~SubpatchImpl()
     {
+        pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
         closeOpenedSubpatchers();
+    }
+    
+    void openSubpatch(pd::Patch::Ptr subpatch)
+    {
+        if (auto glist = ptr.get<t_glist>()) {
+            if (!subpatch) {
+                subpatch = new pd::Patch(ptr, pd, false);
+            }
+
+            if (canvas_isabstraction(glist.get())) {
+                auto path = File(String::fromUTF8(canvas_getdir(glist.get())->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
+                subpatch->setCurrentFile(URL(path));
+            }
+        } else {
+            return;
+        }
+
+        for (auto* editor : pd->getEditors()) {
+            if (!editor->isActiveWindow())
+                continue;
+
+            editor->getTabComponent().openPatch(subpatch);
+            break;
+        }
+    }
+    
+    void closeOpenedSubpatchers()
+    {
+        auto glist = ptr.get<t_glist>();
+        if (!glist)
+            return;
+
+        for (auto* editor : pd->getEditors()) {
+            for (auto* canvas : editor->getCanvases()) {
+                auto canvasPtr = canvas->patch.getPointer();
+                if (canvasPtr && canvasPtr.get() == glist.get()) {
+                    canvas->editor->getTabComponent().closeTab(canvas);
+                    break;
+                }
+            }
+        }
     }
 
     void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms) override
     {
         if (pd->isPerformingGlobalSync)
             return;
-
-        ActivityListener::receiveMessage(symbol, atoms, numAtoms);
 
         bool isVisMessage = hash(symbol->s_name) == hash("vis");
         if (isVisMessage && atoms[0].getFloat()) {
@@ -102,7 +185,7 @@ public:
 };
 
 // Wrapper for Pd's key, keyup and keyname objects
-class KeyObject final : public ActivityListener
+class KeyObject final : public ImplementationBase
     , public KeyListener
     , public ModifierKeyListener {
 
@@ -124,7 +207,7 @@ public:
     Component::SafePointer<PluginEditor> attachedEditor = nullptr;
 
     KeyObject(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd, KeyObjectType keyObjectType)
-        : ActivityListener(ptr, parent, pd)
+        : ImplementationBase(ptr, parent, pd)
         , type(keyObjectType)
     {
     }
@@ -137,7 +220,7 @@ public:
         }
     }
 
-    void update(const Array<t_canvas *>& parents) override
+    void update() override
     {
         auto* canvas = getMainCanvas(cnv, true);
         if (canvas) {
@@ -145,8 +228,6 @@ public:
             attachedEditor->addModifierKeyListener(this);
             attachedEditor->addKeyListener(this);
         }
-
-        ActivityListener::update(parents);
     }
 
     bool keyPressed(KeyPress const& key, Component* originatingComponent) override
@@ -377,7 +458,7 @@ public:
     }
 };
 
-class CanvasMouseObject final : public ActivityListener
+class CanvasMouseObject final : public ImplementationBase, public pd::MessageListener
     , public MouseListener {
 
     std::atomic<bool> zero = false;
@@ -388,19 +469,22 @@ class CanvasMouseObject final : public ActivityListener
 
 public:
     CanvasMouseObject(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd)
-        : ActivityListener(ptr, parent, pd)
+        : ImplementationBase(ptr, parent, pd)
     {
+        pd->registerMessageListener(this->ptr.getRawUnchecked<void>(), this);
     }
 
     ~CanvasMouseObject()
     {
+        pd->unregisterMessageListener(this->ptr.getRawUnchecked<void>(), this);
+        
         if (!cnv)
             return;
 
         cnv->removeMouseListener(this);
     }
 
-    void update(const Array<t_canvas *>& parents) override
+    void update() override
     {
         if (pd->isPerformingGlobalSync)
             return;
@@ -523,15 +607,13 @@ public:
         if (!cnv || pd->isPerformingGlobalSync)
             return;
 
-        ActivityListener::receiveMessage(symbol, atoms, numAtoms);
-
         if (hash(symbol->s_name) == hash("zero")) {
             zero = true;
         }
     }
 };
 
-class CanvasVisibleObject final : public ActivityListener
+class CanvasVisibleObject final : public ImplementationBase
     , public ComponentListener
     , public Timer {
 
@@ -539,7 +621,7 @@ class CanvasVisibleObject final : public ActivityListener
     Component::SafePointer<Canvas> cnv;
 
 public:
-    using ActivityListener::ActivityListener;
+    using ImplementationBase::ImplementationBase;
 
     ~CanvasVisibleObject() override
     {
@@ -549,7 +631,7 @@ public:
         cnv->removeComponentListener(this);
     }
 
-    void update(const Array<t_canvas *>& parents) override
+    void update() override
     {
         if(auto canvas_vis = ptr.get<t_fake_canvas_vis>())
         {
@@ -600,7 +682,7 @@ public:
     }
 };
 
-class CanvasZoomObject final : public ActivityListener
+class CanvasZoomObject final : public ImplementationBase
     , public Value::Listener {
 
     float lastScale;
@@ -609,9 +691,9 @@ class CanvasZoomObject final : public ActivityListener
     Component::SafePointer<Canvas> cnv;
 
 public:
-    using ActivityListener::ActivityListener;
-
-    void update(const Array<t_canvas *>& parents) override
+    using ImplementationBase::ImplementationBase;
+        
+    void update() override
     {
         if (pd->isPerformingGlobalSync)
             return;
@@ -649,12 +731,12 @@ public:
 };
 
 // Else "mouse" component
-class MouseObject final : public ActivityListener
+class MouseObject final : public ImplementationBase
     , public Timer {
 
 public:
     MouseObject(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd)
-        : ActivityListener(ptr, parent, pd)
+        : ImplementationBase(ptr, parent, pd)
         , mouseSource(Desktop::getInstance().getMainMouseSource())
     {
         lastPosition = mouseSource.getScreenPosition();
@@ -713,7 +795,7 @@ public:
     t_glist* canvas;
 };
 
-class MouseStateObject final : public ActivityListener
+class MouseStateObject final : public ImplementationBase, public pd::MessageListener
     , public MouseListener {
 
     Point<int> lastPosition;
@@ -723,7 +805,7 @@ class MouseStateObject final : public ActivityListener
 
 public:
     MouseStateObject(t_gobj* object, t_canvas* parent, PluginProcessor* pd)
-        : ActivityListener(object, parent, pd)
+        : ImplementationBase(object, parent, pd)
     {
         pd->registerMessageListener(ptr.getRawUnchecked<void>(), this);
 
@@ -749,8 +831,6 @@ public:
         if (pd->isPerformingGlobalSync)
             return;
 
-        ActivityListener::receiveMessage(symbol, atoms, numAtoms);
-
         if (hash(symbol->s_name) == hash("bang")) {
             auto currentPosition = Desktop::getMousePosition();
 
@@ -766,7 +846,7 @@ public:
     }
 };
 
-class KeycodeObject final : public ActivityListener
+class KeycodeObject final : public ImplementationBase
     , public ModifierKeyListener {
 
 public:
@@ -774,7 +854,7 @@ public:
     Component::SafePointer<PluginEditor> attachedEditor = nullptr;
 
     KeycodeObject(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd)
-        : ActivityListener(ptr, parent, pd)
+        : ImplementationBase(ptr, parent, pd)
     {
     }
 
@@ -786,7 +866,7 @@ public:
         }
     }
 #if !JUCE_IOS
-    void update(const Array<t_canvas *>& parents) override
+    void update() override
     {
         auto* canvas = getMainCanvas(cnv, true);
         if (canvas) {
@@ -818,7 +898,7 @@ public:
 #endif
 };
 
-class MouseFilterObject final : public ActivityListener
+class MouseFilterObject final : public ImplementationBase
     , public GlobalMouseListener {
 
     class MouseFilterProxy {
@@ -851,7 +931,7 @@ class MouseFilterObject final : public ActivityListener
 
 public:
     MouseFilterObject(t_gobj* object, t_canvas* parent, PluginProcessor* pd)
-        : ActivityListener(object, parent, pd)
+        : ImplementationBase(object, parent, pd)
     {
         if (!proxy.count(pd)) {
             proxy[pd] = MouseFilterProxy(pd);

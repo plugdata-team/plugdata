@@ -103,14 +103,15 @@ public:
     {
         ScopedLock lock(messageListenerLock);
 
-        if (!messageListeners.count(object))
+        auto objectListenerIterator = messageListeners.find(object);
+        if (objectListenerIterator == messageListeners.end())
             return;
 
-        auto& listeners = messageListeners[object];
-        auto it = std::find(listeners.begin(), listeners.end(), messageListener);
-
-        if (it != listeners.end())
-            listeners.erase(it);
+        auto& listeners = objectListenerIterator->second;
+        
+        auto listenerIterator = listeners.find(messageListener);
+        if (listenerIterator != listeners.end())
+            listeners.erase(listenerIterator);
 
         if (listeners.empty())
             messageListeners.erase(object);

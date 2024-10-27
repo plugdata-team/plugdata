@@ -19,6 +19,8 @@ else()
 option(NANOVG_METAL_IMPLEMENTATION "" OFF)
 endif()
 
+option(NANOVG_GLES_IMPLEMENTATION "" OFF)
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -290,6 +292,8 @@ target_compile_options(juce PUBLIC $<$<CONFIG:Release>:${JUCE_LTO_FLAGS}>)
 
 if(NANOVG_METAL_IMPLEMENTATION)
 add_compile_definitions(NANOVG_METAL_IMPLEMENTATION=1)
+elseif(NANOVG_GLES_IMPLEMENTATION)
+add_compile_definitions(NANOVG_GLES3_IMPLEMENTATION=1)
 else()
 add_compile_definitions(NANOVG_GL3_IMPLEMENTATION=1)
 endif()

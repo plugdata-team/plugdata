@@ -1919,27 +1919,6 @@ void PluginProcessor::titleChanged()
     }
 }
 
-// Return the graphical object given the PD object ptr
-// if it exists as a graphical object in plugdata
-// otherwise return nullptr
-Object* PluginProcessor::getObjectFromPtr(_gobj* ptr)
-{
-    if (auto obj = objectPtrMap[ptr])
-        return obj.getComponent();
-    return nullptr;
-}
-
-// Register objects to map PD ptr to plugdata graphical objects
-void PluginProcessor::registerObject(Object* object)
-{
-    objectPtrMap[object->getPointer()] = Component::SafePointer(object);
-}
-
-void PluginProcessor::unregisterObject(Object* object)
-{
-    objectPtrMap.erase(object->getPointer());
-}
-
 // This creates new instances of the plugin..
 AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {

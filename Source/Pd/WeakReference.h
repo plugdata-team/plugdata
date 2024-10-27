@@ -91,7 +91,6 @@ struct WeakReference {
     template<typename T>
     T* getRaw() const
     {
-        setThis();
         return weakRef ? reinterpret_cast<T*>(ptr) : nullptr;
     }
 

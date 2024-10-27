@@ -35,7 +35,6 @@ ImplementationBase::ImplementationBase(t_gobj* obj, t_canvas* parent, PluginProc
     , ptr(obj, processor)
     , cnv(parent)
 {
-    update();
 }
 
 ImplementationBase::~ImplementationBase() = default;
@@ -53,8 +52,7 @@ Canvas* ImplementationBase::getMainCanvas(t_canvas* patchPtr, bool alsoSearchRoo
             }
         }
         for (auto* cnv : editor->getCanvases()) {
-            auto glist = cnv->patch.getPointer();
-            if (glist && glist.get() == patchPtr) {
+            if (cnv->patch.getUncheckedPointer() == patchPtr) {
                 return cnv;
             }
         }
@@ -75,6 +73,31 @@ Canvas* ImplementationBase::getMainCanvas(t_canvas* patchPtr, bool alsoSearchRoo
     }
 
     return nullptr;
+}
+
+bool ImplementationBase::hasImplementation(char const* type)
+{
+    switch (hash(type)) {
+    case hash("canvas"):
+    case hash("graph"):
+    case hash("canvas.mouse"):
+    case hash("canvas.vis"):
+    case hash("canvas.zoom"):
+    case hash("key"):
+    case hash("keyname"):
+    case hash("keyup"):
+    case hash("keycode"):
+    case hash("mouse"):
+    case hash("mousestate"):
+    case hash("mousefilter"):
+    case hash("receive"):
+    case hash("send"):
+    case hash("inlet"):
+    case hash("outlet"):
+        return true;
+    default:
+        return false;
+    }
 }
 
 ImplementationBase* ImplementationBase::createImplementation(String const& type, t_gobj* ptr, t_canvas* cnv, PluginProcessor* pd)
@@ -105,53 +128,12 @@ ImplementationBase* ImplementationBase::createImplementation(String const& type,
         return new MouseFilterObject(ptr, cnv, pd);
     case hash("receive"):
     case hash("send"):
-        return new ActivityListener(ptr, cnv, pd, ActivityListener::Recursive);
+        return new ActivityListener(ptr, cnv, pd, true);
     case hash("inlet"):
     case hash("outlet"):
-        return new ActivityListener(ptr, cnv, pd, ActivityListener::Parent);
+        return new ActivityListener(ptr, cnv, pd, false);
     default:
-        return new ActivityListener(ptr, cnv, pd);
-    }
-}
-
-void ImplementationBase::openSubpatch(pd::Patch::Ptr subpatch)
-{
-    if (auto glist = ptr.get<t_glist>()) {
-        if (!subpatch) {
-            subpatch = new pd::Patch(ptr, pd, false);
-        }
-
-        if (canvas_isabstraction(glist.get())) {
-            auto path = File(String::fromUTF8(canvas_getdir(glist.get())->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
-            subpatch->setCurrentFile(URL(path));
-        }
-    } else {
-        return;
-    }
-
-    for (auto* editor : pd->getEditors()) {
-        if (!editor->isActiveWindow())
-            continue;
-
-        editor->getTabComponent().openPatch(subpatch);
-        break;
-    }
-}
-
-void ImplementationBase::closeOpenedSubpatchers()
-{
-    auto glist = ptr.get<t_glist>();
-    if (!glist)
-        return;
-
-    for (auto* editor : pd->getEditors()) {
-        for (auto* canvas : editor->getCanvases()) {
-            auto canvasPtr = canvas->patch.getPointer();
-            if (canvasPtr && canvasPtr.get() == glist.get()) {
-                canvas->editor->getTabComponent().closeTab(canvas);
-                break;
-            }
-        }
+        return nullptr;
     }
 }
 
@@ -162,44 +144,44 @@ ObjectImplementationManager::ObjectImplementationManager(pd::Instance* processor
 
 void ObjectImplementationManager::handleAsyncUpdate()
 {
-    Array<ObjectImplementationManager::ObjectCanvas> allImplementations;
-    Array<t_canvas*> parentPatches;
+    Array<std::pair<t_canvas*, t_gobj*>> allImplementations;
 
     pd->setThis();
 
-    visitedCanvases.clear();
-
     pd->lockAudioThread();
-    for (auto* cnv = pd_getcanvaslist(); cnv; cnv = cnv->gl_next) {
-        parentPatches.add(cnv);
-        allImplementations.addArray(getImplementationsForPatch(parentPatches));
+    for (auto* topLevelCnv = pd_getcanvaslist(); topLevelCnv; topLevelCnv = topLevelCnv->gl_next) {
+        for (auto& [cnv, object] : getImplementationsForPatch(topLevelCnv)) {
+            allImplementations.add({ cnv, object });
+        }
     }
     pd->unlockAudioThread();
 
-    // Remove unused object implementations
+    std::unordered_set<t_gobj*> allPointers;
+    allPointers.reserve(allImplementations.size());
+    for (const auto& obj : allImplementations) {
+        allPointers.insert(obj.second);
+    }
+
     for (auto it = objectImplementations.cbegin(); it != objectImplementations.cend();) {
         auto& [ptr, implementation] = *it;
 
-        auto found = std::find_if(allImplementations.begin(), allImplementations.end(), [p = ptr](ObjectCanvas const& toCompare) {
-            return toCompare.obj == p;
-        });
-
-        if (found == allImplementations.end()) {
-            objectImplementations.erase(it++);
+        // Use the set for constant-time lookup.
+        if (allPointers.find(ptr) == allPointers.end()) {
+            it = objectImplementations.erase(it);  // Erase and move iterator forward.
         } else {
-            it++;
+            ++it;  // Only increment when no deletion occurs.
         }
     }
+    
+    for (auto& [cnv, obj] : allImplementations) {
+        if (!objectImplementations.count(obj)) {
 
-    for (auto& objCnvParents : allImplementations) {
-        // Ensure the objectImplementation is created if it does not exist
-        if (!objectImplementations.count(objCnvParents.obj)) {
-            auto const name = String::fromUTF8(pd::Interface::getObjectClassName(&objCnvParents.obj->g_pd));
-            objectImplementations[objCnvParents.obj] = std::unique_ptr<ImplementationBase>(ImplementationBase::createImplementation(name, objCnvParents.obj, objCnvParents.parentPatches.getLast(), pd));
+            auto const name = String::fromUTF8(pd::Interface::getObjectClassName(&obj->g_pd));
+
+            objectImplementations[obj] = std::unique_ptr<ImplementationBase>(ImplementationBase::createImplementation(name, obj, cnv, pd));
         }
 
-        objectImplementations[objCnvParents.obj]->update(objCnvParents.parentPatches);
-
+        objectImplementations[obj]->update();
     }
 }
 
@@ -208,34 +190,30 @@ void ObjectImplementationManager::updateObjectImplementations()
     triggerAsyncUpdate();
 }
 
-Array<ObjectImplementationManager::ObjectCanvas> ObjectImplementationManager::getImplementationsForPatch(Array<t_canvas*>& parentPatches)
+Array<std::pair<t_canvas*, t_gobj*>> ObjectImplementationManager::getImplementationsForPatch(t_canvas* patch)
 {
-    Array<ObjectImplementationManager::ObjectCanvas> implementations;
+    Array<std::pair<t_canvas*, t_gobj*>> implementations;
 
-    auto* glist = static_cast<t_glist*>(parentPatches.getLast());
+    auto* glist = static_cast<t_glist*>(patch);
     for (t_gobj* y = glist->gl_list; y; y = y->g_next) {
-
         if (pd_class(&y->g_pd) == canvas_class) {
-            auto canvas = reinterpret_cast<t_canvas *>(y);
-            // make sure we haven't visited this canvas before
-            if (visitedCanvases.find(canvas) == visitedCanvases.end()) {
-                visitedCanvases.insert(canvas);
-                auto canvasPatch = Array<t_canvas *>();
-                canvasPatch.addArray(parentPatches);
-                canvasPatch.add(canvas);
-                implementations.addArray(getImplementationsForPatch(canvasPatch));
-            }
+            implementations.addArray(getImplementationsForPatch(reinterpret_cast<t_canvas*>(y)));
+            implementations.add({glist, y});
         }
-        if (pd_class(&y->g_pd) == clone_class) {
+        else if (pd_class(&y->g_pd) == clone_class) {
             for (int i = 0; i < clone_get_n(y); i++) {
-                auto clone = Array<t_canvas*>();
-                clone.add(clone_get_instance(y, i));
+                auto* clone = clone_get_instance(y, i);
                 implementations.addArray(getImplementationsForPatch(clone));
-                implementations.add({ &clone.getLast()->gl_obj.te_g, parentPatches });
             }
         }
-        implementations.add({ y, parentPatches });
+        else {
+            auto const* name = pd::Interface::getObjectClassName(&y->g_pd);
+            if (ImplementationBase::hasImplementation(name)) {
+                implementations.add({glist, y});
+            }
+        }
     }
+    
 
     return implementations;
 }

@@ -797,7 +797,6 @@ void PluginEditor::filesDropped(StringArray const& files, int x, int y)
                 auto filePath = file.getFullPathName().replaceCharacter('\\', '/').replace(" ", "\\ ");
 
                 auto* object = cnv->objects.add(new Object(cnv, "msg " + filePath, position));
-                pd->registerObject(object);
                 object->hideEditor();
             }
         }
@@ -1628,7 +1627,6 @@ bool PluginEditor::perform(InvocationInfo const& info)
                             obj->getX() + Object::margin,
                             obj->getY() + obj->getHeight()));
                     cnv->objects.add(newObj);
-                    pd->registerObject(newObj);
                 }
             } else if ((cnv->getSelectionOfType<Object>().size() == 0) && (cnv->getSelectionOfType<Connection>().size() == 1)) { // Autopatching: insert object in connection. Should document this better!
                 // if 1 connection is selected, create new object in the middle of connection
@@ -1641,13 +1639,11 @@ bool PluginEditor::perform(InvocationInfo const& info)
                         cnv->lastSelectedConnection->getX() + (cnv->lastSelectedConnection->getWidth() / 2) - 12,
                         cnv->lastSelectedConnection->getY() + (cnv->lastSelectedConnection->getHeight() / 2) - 12));
                 cnv->objects.add(newObj);
-                pd->registerObject(newObj);
                 cnv->patch.endUndoSequence("ObjectInConnection");
             } else {
                 // if 0 or several objects are selected, create new object at mouse position
                 auto newObj = new Object(cnv, objectNames.at(ID), lastPosition);
                 cnv->objects.add(newObj);
-                pd->registerObject(newObj);
             }
             cnv->deselectAll();
             if (auto obj = cnv->objects.getLast())

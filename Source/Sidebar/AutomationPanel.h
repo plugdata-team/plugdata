@@ -281,8 +281,8 @@ public:
                 param->setName(newName);
 
                 auto findParamsWithLastName = [this, newName](){
-                    Array<Object*> paramObjectsToChange;
-
+                    Array<pd::WeakReference> paramObjectsToChange;
+                    
                     pd->lockAudioThread();
                     // Find [param] object, and update it's param name to new name
                     for (auto* cnv = pd_getcanvaslist(); cnv; cnv = cnv->gl_next) {
@@ -298,7 +298,7 @@ public:
                                             atoms = binbuf_getvec(binName);
                                             if (atoms[1].a_type == A_SYMBOL) {
                                                 if (String(atom_getsymbol(&atoms[1])->s_name) == lastName) {
-                                                    paramObjectsToChange.add(pd->getObjectFromPtr((t_gobj*)canvas));
+                                                    paramObjectsToChange.add(pd::WeakReference(canvas, pd));
                                                 }
                                             }
                                         }
@@ -315,7 +315,9 @@ public:
                     return paramObjectsToChange;
                 };
 
-                if (findParamsWithLastName().size() == 0)
+                auto const paramsWithLastName = findParamsWithLastName();
+                
+                if (paramsWithLastName.size() == 0)
                     return;
 
                 // Launch a dialog to ask if the user wishes to rename all occurrences in patch
@@ -329,9 +331,21 @@ public:
                         callOutBoxSafePtr->dismiss();
                 };
 
-                rawDialogPointer->onYes = [findParamsWithLastName, newName, callOutBoxSafePtr]() {
-                    for (auto& obj : findParamsWithLastName())
-                        obj->setType("param " + newName);
+                rawDialogPointer->onYes = [this, paramsWithLastName, newName, callOutBoxSafePtr]() {
+                    auto name = "param " + newName;
+                    for (auto objReference : paramsWithLastName) {
+                        if(auto obj = objReference.get<t_canvas>()) {
+                            pd::Interface::renameObject(obj->gl_owner, &obj->gl_obj.te_g, name.toRawUTF8(), name.getNumBytesAsUTF8());
+                        }
+                    }
+                    
+                    for(auto& editor : pd->getEditors())
+                    {
+                        for(auto canvas : editor->getCanvases())
+                        {
+                            canvas->synchronise();
+                        }
+                    }
 
                     if (callOutBoxSafePtr)
                         callOutBoxSafePtr->dismiss();

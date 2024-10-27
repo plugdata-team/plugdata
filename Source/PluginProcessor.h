@@ -144,10 +144,6 @@ public:
 
     void setTheme(String themeToUse, bool force = false);
 
-    void registerObject(Object* object);
-    void unregisterObject(Object* object);
-    Object* getObjectFromPtr(_gobj* ptr);
-
     int lastUIWidth = 1000, lastUIHeight = 650;
 
     std::atomic<float>* volume;
@@ -256,9 +252,6 @@ private:
     };
 
     HostInfoUpdater hostInfoUpdater;
-
-    // Map of all graphical objects to their PD ptr's
-    std::unordered_map<_gobj*, Component::SafePointer<Object>> objectPtrMap;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)
 };

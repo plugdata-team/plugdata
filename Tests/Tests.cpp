@@ -11,7 +11,7 @@ String loggedErrors;
 void openHelpfilesRecursively(TabComponent& tabbar, std::vector<File>& helpFiles)
 {
     static int numProcessed = 0;
-    
+
     if(helpFiles.empty())
     {
         std::cout << "TEST COMPLETED SUCCESFULLY" << std::endl;
@@ -48,10 +48,11 @@ void openHelpfilesRecursively(TabComponent& tabbar, std::vector<File>& helpFiles
         }
     }
 #endif
-    
+
     auto* peer = editor->getTopLevelComponent()->getPeer();
     // Click everything
     cnv->locked.setValue(true);
+    /*
     for(auto* object : cnv->objects)
     {
         MessageManager::callAsync([_obj = Component::SafePointer(object), peer](){
@@ -65,7 +66,7 @@ void openHelpfilesRecursively(TabComponent& tabbar, std::vector<File>& helpFiles
             }
         });
 
-    }
+    } */
 
     // Go into all the subpatches that were opened by clicking, and click everything again
     /*
@@ -84,7 +85,7 @@ void openHelpfilesRecursively(TabComponent& tabbar, std::vector<File>& helpFiles
         }
     } */
 
-    Timer::callAfterDelay(100, [pd, editor, helpFile, &helpFiles, tabbar = &tabbar]() mutable {
+    Timer::callAfterDelay(100, [pd, editor, helpFile, &helpFiles, tabbar = Component::SafePointer(&tabbar)]() mutable {
         /*
         StringArray errors;
         auto messages = pd->getConsoleMessages();
@@ -104,18 +105,76 @@ void openHelpfilesRecursively(TabComponent& tabbar, std::vector<File>& helpFiles
                 loggedErrors += error + "\n";
             }
         } */
-        editor->sidebar->clearConsole();
+        //editor->sidebar->clearConsole();
 
-        while(auto* cnv = tabbar->getCurrentCanvas()) { // TODO: why is this faster than closeAllTabs?()
-            tabbar->closeTab(cnv);
+        if(tabbar) {
+            while(auto* cnv = tabbar->getCurrentCanvas()) { // TODO: why is this faster than closeAllTabs?()
+                tabbar->closeTab(cnv);
+            }
+            openHelpfilesRecursively(*tabbar, helpFiles);
         }
-        openHelpfilesRecursively(*tabbar, helpFiles);
     });
+}
+
+void helpPatchToImage(TabComponent& tabbar, File file, String lib)
+{
+    auto outputFileDir = ProjectInfo::appDataDir.getChildFile("HelpFileImages");
+    Image helpFileImage;
+
+    auto* cnv = tabbar.openPatch(URL(file));
+    tabbar.handleUpdateNowIfNeeded();
+
+    cnv->jumpToOrigin();
+
+    cnv->editor->nvgSurface.invalidateAll();
+    cnv->editor->nvgSurface.render();
+    cnv->editor->nvgSurface.renderFrameToImage(helpFileImage, cnv->patch.getBounds().withZeroOrigin());
+
+    auto outputDir = outputFileDir.getChildFile(lib);
+    outputDir.createDirectory();
+
+    auto outputFile = outputDir.getChildFile(file.getFileNameWithoutExtension().upToLastOccurrenceOf("-help", false, false) + ".png");
+
+    PNGImageFormat imageFormat;
+    FileOutputStream ostream(outputFile);
+    imageFormat.writeImageToStream(helpFileImage, ostream);
+
+    tabbar.closeTab(cnv);
+}
+
+void exportHelpFileImages(TabComponent& tabbar, File outputFileDir)
+{
+    if(!outputFileDir.isDirectory()) outputFileDir.createDirectory();
+
+    for(auto& file : OSUtils::iterateDirectory(ProjectInfo::appDataDir.getChildFile("Documentation/9.else"), true, true))
+    {
+        if(file.hasFileExtension(".pd"))
+        {
+            helpPatchToImage(tabbar, file, "else");
+        }
+    }
+
+    for(auto& file : OSUtils::iterateDirectory(ProjectInfo::appDataDir.getChildFile("Documentation/10.cyclone"), true, true))
+    {
+        if(file.hasFileExtension(".pd"))
+        {
+            helpPatchToImage(tabbar, file, "cyclone");
+        }
+    }
+
+    for(auto& file : OSUtils::iterateDirectory(ProjectInfo::appDataDir.getChildFile("Documentation/5.reference"), true, true))
+    {
+        if(file.hasFileExtension(".pd"))
+        {
+            helpPatchToImage(tabbar, file, "vanilla");
+        }
+    }
 }
 
 void runTests(PluginEditor* editor)
 {
     static std::vector<File> allHelpfiles = {};
+
     // Open every helpfile, this will make sure it initialises and closes every object at least once (but probasbly a whole bunch of times in different contexts)
     // Run with AddressSanitizer, UBSanitizer or ThreadSanitizer to find all memory, UB and threading problems
     for(auto& file : OSUtils::iterateDirectory(ProjectInfo::appDataDir.getChildFile("Documentation"), true, true))
@@ -128,7 +187,8 @@ void runTests(PluginEditor* editor)
 
     auto& tabbar = editor->getTabComponent();
 
-    //allHelpfiles.erase(allHelpfiles.end() - 662, allHelpfiles.end());
+    //allHelpfiles.erase(allHelpfiles.end() - 1336, allHelpfiles.end());
 
+    //exportHelpFileImages(tabbar, File("/Users/timschoen/Projecten/plugdata/Tests/Help"));
     openHelpfilesRecursively(tabbar, allHelpfiles);
 }

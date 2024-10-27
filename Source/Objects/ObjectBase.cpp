@@ -480,6 +480,9 @@ float ObjectBase::getImageScale()
         return topLevel->getRenderScale() * std::max(1.0f, scale);
     }
     
+    // Use rng to gradually update them all as we zoom
+    // For perfomance, it's not desirable (or necessary) to update them all at once
+    // So we do it randomly, forcing a repaint if the different is larger than 0.15
     auto randval = rand() % 4;
     auto bestScale = topLevel->getRenderScale() * getValue<float>(topLevel->zoomScale);
     auto newScale = topLevel->isZooming && randval != 0 && std::abs(bestScale - lastImageScale) < 0.15f ? lastImageScale : bestScale ;
@@ -770,6 +773,8 @@ void ObjectBase::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int n
         break;
     }
 
+    object->triggerOverlayActiveState(); // TODO: not thread safe!!
+    
     receiveObjectMessage(symHash, atoms, numAtoms);
 }
 

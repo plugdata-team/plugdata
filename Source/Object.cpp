@@ -346,8 +346,6 @@ void Object::updateBounds()
 
 void Object::setType(String const& newType, pd::WeakReference existingObject)
 {
-    // Unregister the PD pointer to this graphical object as the pointer will be changed
-    cnv->pd->unregisterObject(this);
     // Change object type
     String type = newType.upToFirstOccurrenceOf(" ", false, false);
 
@@ -445,8 +443,6 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
     editor->updateCommandStatus();
 
     cnv->synchroniseSplitCanvas();
-    // RE-register the PD pointer to this graphical object now that it has been updated
-    cnv->pd->registerObject(this);
     cnv->pd->updateObjectImplementations();
 }
 
@@ -470,7 +466,7 @@ String Object::getType(bool withOriginPrefix) const
     return String();
 }
 
-void Object::triggerOverlayActiveState(bool recursive)
+void Object::triggerOverlayActiveState()
 {
     if (rateReducer.tooFast())
         return;
@@ -1427,7 +1423,6 @@ void Object::openNewObjectEditor()
                     return;
                 auto* cnv = _this->cnv; // Copy pointer because _this will get deleted
                 cnv->hideSuggestions();
-                cnv->pd->unregisterObject(_this.getComponent());
                 cnv->objects.removeObject(_this.getComponent());
                 cnv->lastSelectedObject = nullptr;
 
