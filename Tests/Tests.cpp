@@ -190,5 +190,5 @@ void runTests(PluginEditor* editor)
     //allHelpfiles.erase(allHelpfiles.end() - 1336, allHelpfiles.end());
 
     //exportHelpFileImages(tabbar, File("/Users/timschoen/Projecten/plugdata/Tests/Help"));
-    openHelpfilesRecursively(tabbar, allHelpfiles);
+    //openHelpfilesRecursively(tabbar, allHelpfiles);
 }

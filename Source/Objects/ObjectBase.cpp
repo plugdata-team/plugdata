@@ -773,7 +773,7 @@ void ObjectBase::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int n
         break;
     }
 
-    object->triggerOverlayActiveState(); // TODO: not thread safe!!
+    object->triggerOverlayActiveState();
     
     receiveObjectMessage(symHash, atoms, numAtoms);
 }

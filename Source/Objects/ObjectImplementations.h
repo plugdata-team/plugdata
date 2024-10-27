@@ -11,28 +11,41 @@
 class ActivityListener : public ImplementationBase
     , public pd::MessageListener {
 public:
-    //WeakReference<pd::Instance> pdWeakRef;
     Array<Component::SafePointer<Object>> objectsToTrigger;
     Array<t_canvas*> parentPatches;
-    bool recursive;
+    bool disabled;
 
-    ActivityListener(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd, bool recurse)
+    ActivityListener(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd)
         : ImplementationBase(ptr, parent, pd)
-        , recursive(recurse)
         {
-        pd->lockAudioThread();
-        if(recursive) {
-            parentPatches.add(cnv);
-            while((cnv = cnv->gl_owner))
+        bool internalSend = false;
+        bool hasParentAbstraction = false;
+        {
+            char* text = nullptr;
+            int size = 0;
+            pd::Interface::getObjectText((t_object*)ptr, &text, &size);
+            if(text && size)
             {
-                parentPatches.add(cnv);
+                internalSend = String::fromUTF8(text, size).containsWholeWord("$0");
             }
         }
-        else {
-            parentPatches.add(cnv->gl_owner);
+        
+        pd->lockAudioThread();
+        parentPatches.add(cnv);
+        while((cnv = cnv->gl_owner))
+        {
+            parentPatches.add(cnv);
+            if(canvas_isabstraction(cnv)) hasParentAbstraction = true;
         }
         pd->unlockAudioThread();
-        pd->registerMessageListener(this->ptr.getRawUnchecked<void>(), this);
+        
+        if(internalSend && hasParentAbstraction) {
+            disabled = true;
+        }
+        else {
+            disabled = false;
+            pd->registerMessageListener(this->ptr.getRawUnchecked<void>(), this);
+        }
     }
 
     ~ActivityListener()
@@ -66,34 +79,21 @@ public:
 
     void update() override
     {
+        if(disabled) return;
+        
         objectsToTrigger.clear();
         
-        if(recursive) {
-            for (auto* canvas : getParentCanvases()) {
-                auto parentIndex = parentPatches.indexOf(canvas->patch.getUncheckedPointer());
-                if(parentIndex <= 0) break;
-                auto* subpatch = parentPatches[parentIndex - 1];
-                
-                for(auto* obj : canvas->objects)
+        for (auto* canvas : getParentCanvases()) {
+            auto parentIndex = parentPatches.indexOf(canvas->patch.getUncheckedPointer());
+            if(parentIndex <= 0) break;
+            auto* subpatch = parentPatches[parentIndex - 1];
+            
+            for(auto* obj : canvas->objects)
+            {
+                auto* objPtr = obj->getPointer();
+                if(objPtr == &cnv->gl_obj.te_g || (t_glist*)objPtr == subpatch)
                 {
-                    auto* objPtr = obj->getPointer();
-                    if(objPtr == &cnv->gl_obj.te_g || (t_glist*)objPtr == subpatch)
-                    {
-                        objectsToTrigger.add(obj);
-                    }
-                }
-            }
-        }
-        else if(!parentPatches.isEmpty()) {
-            auto* canvas = getMainCanvas(parentPatches.getFirst(), false);
-            if(canvas) {
-                for(auto* obj : canvas->objects)
-                {
-                    if(obj->getPointer() == &cnv->gl_obj.te_g)
-                    {
-                        objectsToTrigger.add(obj);
-                        break;
-                    }
+                    objectsToTrigger.add(obj);
                 }
             }
         }

@@ -92,8 +92,6 @@ bool ImplementationBase::hasImplementation(char const* type)
     case hash("mousefilter"):
     case hash("receive"):
     case hash("send"):
-    case hash("inlet"):
-    case hash("outlet"):
         return true;
     default:
         return false;
@@ -128,10 +126,7 @@ ImplementationBase* ImplementationBase::createImplementation(String const& type,
         return new MouseFilterObject(ptr, cnv, pd);
     case hash("receive"):
     case hash("send"):
-        return new ActivityListener(ptr, cnv, pd, true);
-    case hash("inlet"):
-    case hash("outlet"):
-        return new ActivityListener(ptr, cnv, pd, false);
+        return new ActivityListener(ptr, cnv, pd);
     default:
         return nullptr;
     }
