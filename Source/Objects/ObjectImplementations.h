@@ -51,7 +51,7 @@ public:
 
     ~ActivityListener()
     {
-        pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
+        if(!disabled) pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
     }
     
     Array<Canvas*> getParentCanvases() const
