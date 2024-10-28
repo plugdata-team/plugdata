@@ -704,7 +704,7 @@ int Canvas::getOverlays() const
     if (locked.getValue() || commandLocked.getValue()) {
         overlayState = overlaysTree.getProperty("lock");
     }
-    if (presentationMode.getValue()) {
+    if (presentationMode.getValue()) { // TODO: this no longer exists?
         overlayState = overlaysTree.getProperty("run");
     }
     if (altModeEnabled) {
@@ -727,6 +727,7 @@ void Canvas::updateOverlays()
     showConnectionDirection = overlayState & Direction;
     showConnectionActivity = overlayState & ConnectionActivity;
 
+    set_plugdata_activity_enabled(showObjectActivity);
     orderConnections();
 
     repaint();
