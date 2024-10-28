@@ -90,8 +90,6 @@ bool ImplementationBase::hasImplementation(char const* type)
     case hash("mouse"):
     case hash("mousestate"):
     case hash("mousefilter"):
-    case hash("receive"):
-    case hash("send"):
         return true;
     default:
         return false;
@@ -124,9 +122,6 @@ ImplementationBase* ImplementationBase::createImplementation(String const& type,
         return new MouseStateObject(ptr, cnv, pd);
     case hash("mousefilter"):
         return new MouseFilterObject(ptr, cnv, pd);
-    case hash("receive"):
-    case hash("send"):
-        return new ActivityListener(ptr, cnv, pd);
     default:
         return nullptr;
     }
@@ -161,48 +156,30 @@ void ObjectImplementationManager::handleAsyncUpdate()
     }
     pd->unlockAudioThread();
     
-    bool needsUpdate = false;
+    std::unordered_set<t_gobj*> allPointers;
+    allPointers.reserve(allImplementations.size());
     for (const auto& obj : allImplementations) {
-        if(!objectImplementations.count(obj.second)){
-            needsUpdate = true;
-            break;
-        }
-        if(!objectImplementations[obj.second]->ptr.isValid()){
-            needsUpdate = true;
-            break;
+        allPointers.insert(obj.second);
+    }
+    
+    for (auto it = objectImplementations.cbegin(); it != objectImplementations.cend();) {
+        auto& [ptr, implementation] = *it;
+        
+        // Use the set for constant-time lookup.
+        if (allPointers.find(ptr) == allPointers.end()) {
+            it = objectImplementations.erase(it);  // Erase and move iterator forward.
+        } else {
+            ++it;  // Only increment when no deletion occurs.
         }
     }
-    if(needsUpdate) {
-        std::unordered_set<t_gobj*> allPointers;
-        allPointers.reserve(allImplementations.size());
-        for (const auto& obj : allImplementations) {
-            allPointers.insert(obj.second);
+    
+    for (auto& [cnv, obj] : allImplementations) {
+        if (!objectImplementations.count(obj)) {
+            auto const name = String::fromUTF8(pd::Interface::getObjectClassName(&obj->g_pd));
+            objectImplementations[obj] = std::unique_ptr<ImplementationBase>(ImplementationBase::createImplementation(name, obj, cnv, pd));
         }
         
-        for (auto it = objectImplementations.cbegin(); it != objectImplementations.cend();) {
-            auto& [ptr, implementation] = *it;
-            
-            // Use the set for constant-time lookup.
-            if (allPointers.find(ptr) == allPointers.end()) {
-                it = objectImplementations.erase(it);  // Erase and move iterator forward.
-            } else {
-                ++it;  // Only increment when no deletion occurs.
-            }
-        }
-        
-        for (auto& [cnv, obj] : allImplementations) {
-            if (!objectImplementations.count(obj)) {
-                auto const name = String::fromUTF8(pd::Interface::getObjectClassName(&obj->g_pd));
-                objectImplementations[obj] = std::unique_ptr<ImplementationBase>(ImplementationBase::createImplementation(name, obj, cnv, pd));
-            }
-            
-            objectImplementations[obj]->update();
-        }
-    }
-    else {
-        for (auto& [ptr, obj] : objectImplementations) {
-            obj->update();
-        }
+        objectImplementations[obj]->update();
     }
 }
 
