@@ -100,7 +100,7 @@ public:
 
     void quit(bool askToSave);
 
-    Array<Canvas*> getCanvases();
+    SmallVector<Canvas*> getCanvases();
     Canvas* getCurrentCanvas();
 
     void modifierKeysChanged(ModifierKeys const& modifiers) override;

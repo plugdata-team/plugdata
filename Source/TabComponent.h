@@ -2,6 +2,7 @@
 
 #include "Utility/ZoomableDragAndDropContainer.h"
 #include "Utility/StackDropShadower.h"
+#include "Utility/SmallVector.h"
 #include "PluginProcessor.h"
 
 class PluginMode;
@@ -42,8 +43,10 @@ public:
     Canvas* getCurrentCanvas();
     Canvas* getCanvasAtScreenPosition(Point<int> screenPosition);
 
-    Array<Canvas*> getCanvases();
-    Array<Canvas*> getVisibleCanvases();
+    SmallVector<Canvas*> getCanvases();
+    
+    using VisibleCanvasArray = SmallVector<Canvas*, sizeof(Canvas*) * 2>;
+    VisibleCanvasArray getVisibleCanvases();
 
 private:
     void clearCanvases();

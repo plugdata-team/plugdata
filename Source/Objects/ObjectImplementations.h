@@ -12,15 +12,12 @@ class ActivityListener : public ImplementationBase
     , public pd::MessageListener {
 public:
     Array<Component::SafePointer<Object>> objectsToTrigger;
-    Array<t_canvas*> parentPatches;
-    bool disabled;
+    SmallVector<t_canvas*> parentPatches;
 
     ActivityListener(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd)
         : ImplementationBase(ptr, parent, pd)
         {
         bool internalSend = false;
-        bool hasParentAbstraction = false;
-        
         pd->lockAudioThread();
         {
             char* text = nullptr;
@@ -32,45 +29,33 @@ public:
             }
         }
         
-        parentPatches.add(cnv);
+        parentPatches.push_back(cnv);
         while((cnv = cnv->gl_owner))
         {
-            parentPatches.add(cnv);
-            if(canvas_isabstraction(cnv)) hasParentAbstraction = true;
+            parentPatches.push_back(cnv);
+            // If the symbol contained $0, stop as soon as we hit an abstraction
+            if(internalSend && canvas_isabstraction(cnv)) break;
         }
         pd->unlockAudioThread();
         
-        if(internalSend && hasParentAbstraction) {
-            disabled = true;
-        }
-        else {
-            disabled = false;
+        if(parentPatches.not_empty()) {
             pd->registerMessageListener(this->ptr.getRawUnchecked<void>(), this);
         }
     }
 
     ~ActivityListener()
     {
-        if(!disabled) pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
+        if(parentPatches.not_empty()) pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
     }
     
-    Array<Canvas*> getParentCanvases() const
+    SmallVector<Canvas*> getParentCanvases() const
     {
-         Array<Canvas*> result;
+         SmallVector<Canvas*> result;
          for (auto* editor : pd->getEditors()) {
-             if(editor->pluginMode)
-             {
-                 if(auto* canvas = editor->pluginMode->getCanvas())
+             for (auto* canvas : editor->getTabComponent().getVisibleCanvases()) {
+                 if(parentPatches.contains(canvas->patch.getUncheckedPointer()))
                  {
-                     result.add(canvas);
-                 }
-             }
-             else {
-                 for (auto* canvas : editor->getTabComponent().getVisibleCanvases()) {
-                     if(parentPatches.contains(canvas->patch.getUncheckedPointer()))
-                     {
-                         result.add(canvas);
-                     }
+                     result.push_back(canvas);
                  }
              }
          }
@@ -80,12 +65,12 @@ public:
 
     void update() override
     {
-        if(disabled) return;
+        if(parentPatches.empty()) return;
         
         objectsToTrigger.clear();
         
         for (auto* canvas : getParentCanvases()) {
-            auto parentIndex = parentPatches.indexOf(canvas->patch.getUncheckedPointer());
+            auto parentIndex = parentPatches.index_of(canvas->patch.getUncheckedPointer());
             if(parentIndex <= 0) break;
             auto* subpatch = parentPatches[parentIndex - 1];
             

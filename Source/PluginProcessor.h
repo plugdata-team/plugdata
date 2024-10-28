@@ -12,6 +12,7 @@
 #include "Utility/Config.h"
 #include "Utility/Limiter.h"
 #include "Utility/SettingsFile.h"
+#include "Utility/SmallVector.h"
 #include <Utility/AudioMidiFifo.h>
 
 #include "Pd/Instance.h"
@@ -122,7 +123,7 @@ public:
     void sendPlayhead();
     void sendParameters();
 
-    Array<PluginEditor*> getEditors() const;
+    SmallVector<PluginEditor*> getEditors() const;
 
     void performParameterChange(int type, String const& name, float value) override;
     void enableAudioParameter(String const& name) override;

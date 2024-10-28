@@ -1449,7 +1449,7 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
 
             auto patch = URL(File(directory).getChildFile(filename));
             
-            if (!editors.isEmpty()) {
+            if (!editors.empty()) {
                 editors[0]->getTabComponent().openPatch(patch);
             }
             else {
@@ -1467,7 +1467,7 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
             auto patchPtr = loadPatch(defaultPatch);
             patchPtr->setCurrentFile(File(directory).getChildFile(filename).getFullPathName());
             patchPtr->setTitle(filename);
-            if (!editors.isEmpty())
+            if (!editors.empty())
                 editors[0]->getTabComponent().triggerAsyncUpdate();
         }
         break;
@@ -1507,7 +1507,7 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
                 }
             }
             
-            if  (!editors.isEmpty()) {
+            if  (!editors.empty()) {
                 auto* editor = editors[0];
                 if (auto* cnv = editor->getCurrentCanvas()) {
                     if(pluginModeFloatArgument)
@@ -1863,16 +1863,17 @@ void PluginProcessor::updateConsole(int numMessages, bool newWarning)
     }
 }
 
-Array<PluginEditor*> PluginProcessor::getEditors() const
+SmallVector<PluginEditor*> PluginProcessor::getEditors() const
 {
-    Array<PluginEditor*> editors;
+    SmallVector<PluginEditor*> editors;
     if (ProjectInfo::isStandalone) {
+        editors.reserve(editors.size());
         for (auto* editor : openedEditors) {
-            editors.add(editor);
+            editors.push_back(editor);
         }
     } else {
         if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-            editors.add(editor);
+            editors.push_back(editor);
         }
     }
 

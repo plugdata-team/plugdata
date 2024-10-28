@@ -551,11 +551,12 @@ Canvas* TabComponent::getCurrentCanvas()
     return activeSplitIndex && splits[1] ? splits[1] : splits[0];
 }
 
-Array<Canvas*> TabComponent::getCanvases()
+SmallVector<Canvas*> TabComponent::getCanvases()
 {
-    Array<Canvas*> canvas;
-    canvas.addArray(canvases);
-    return canvas;
+    SmallVector<Canvas*> allCanvases;
+    allCanvases.reserve(canvases.size());
+    for(auto& canvas : canvases) allCanvases.push_back(canvas);
+    return allCanvases;
 }
 
 void TabComponent::renderArea(NVGcontext* nvg, Rectangle<int> area)
@@ -865,13 +866,11 @@ Canvas* TabComponent::getCanvasAtScreenPosition(Point<int> screenPosition)
     return split ? splits[0] : splits[1];
 }
 
-Array<Canvas*> TabComponent::getVisibleCanvases()
+TabComponent::VisibleCanvasArray TabComponent::getVisibleCanvases()
 {
-    Array<Canvas*> result;
-    if (splits[0])
-        result.add(splits[0]);
-    if (splits[1])
-        result.add(splits[1]);
+    VisibleCanvasArray result;
+    if (auto* split = splits[0].get()) result.push_back(reinterpret_cast<Canvas*>(split));
+    if (auto* split = splits[1].get()) result.push_back(reinterpret_cast<Canvas*>(split));
     return result;
 }
 

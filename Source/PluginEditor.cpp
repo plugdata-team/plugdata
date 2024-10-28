@@ -828,7 +828,7 @@ bool PluginEditor::isActiveWindow()
     return !ProjectInfo::isStandalone || isDraggingTab || (TopLevelWindow::getActiveTopLevelWindow() == getTopLevelComponent());
 }
 
-Array<Canvas*> PluginEditor::getCanvases()
+SmallVector<Canvas*> PluginEditor::getCanvases()
 {
     return tabComponent.getCanvases();
 }
