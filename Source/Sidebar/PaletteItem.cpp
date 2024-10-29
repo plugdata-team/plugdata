@@ -305,10 +305,10 @@ bool PaletteItem::isSubpatchOrAbstraction(String const& patchAsString)
     return lines.size() == 1 || (lines[0].startsWith("#N canvas") && lines[lines.size() - 1].startsWith("#X restore"));
 }
 
-std::pair<std::vector<bool>, std::vector<bool>> PaletteItem::countIolets(String const& patchAsString)
+std::pair<SmallVector<bool>, SmallVector<bool>> PaletteItem::countIolets(String const& patchAsString)
 {
 
-    std::array<std::vector<std::pair<bool, Point<int>>>, 2> iolets;
+    std::array<SmallVector<std::pair<bool, Point<int>>>, 2> iolets;
     auto& [inlets, outlets] = iolets;
     int canvasDepth = patchAsString.startsWith("#N canvas") ? -1 : 0;
 
@@ -377,7 +377,7 @@ std::pair<std::vector<bool>, std::vector<bool>> PaletteItem::countIolets(String 
     std::sort(inlets.begin(), inlets.end(), ioletSortFunc);
     std::sort(outlets.begin(), outlets.end(), ioletSortFunc);
 
-    auto result = std::pair<std::vector<bool>, std::vector<bool>>();
+    auto result = std::pair<SmallVector<bool>, SmallVector<bool>>();
 
     for (auto& [type, position] : inlets) {
         result.first.push_back(type);

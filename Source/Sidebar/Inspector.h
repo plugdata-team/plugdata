@@ -87,7 +87,7 @@ private:
     
     PropertiesPanel panel;
     TextButton resetButton;
-    Array<ObjectParameters> properties;
+    SmallVector<ObjectParameters> properties;
     PropertyRedirector redirector;
 
 public:
@@ -150,7 +150,7 @@ public:
         loadParameters(properties);
     }
 
-    void loadParameters(Array<ObjectParameters>& objectParameters)
+    void loadParameters(SmallVector<ObjectParameters>& objectParameters)
     {
         properties = objectParameters;
 

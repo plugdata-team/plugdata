@@ -2,6 +2,7 @@
 
 #include <juce_audio_basics/juce_audio_basics.h>
 #include <atomic>
+#include "Utility/SmallVector.h"
 
 /*
                     read                        write
@@ -51,7 +52,7 @@ public:
         useNewPosition = true;
     }
 
-    Array<float> getPeak()
+    SmallVector<float> getPeak()
     {
         ScopedLock lock(audioBufferMutex);
         
@@ -96,9 +97,9 @@ public:
             }
         }
 
-        Array<float> peak;
+        SmallVector<float> peak;
         for (int ch = 0; ch < peakBuffer.getNumChannels(); ch++) {
-            peak.add(pow(peakBuffer.getMagnitude(ch, 0, peakWindowSize), 0.5f));
+            peak.push_back(pow(peakBuffer.getMagnitude(ch, 0, peakWindowSize), 0.5f));
         }
         
         return peak;

@@ -5,10 +5,7 @@
  */
 #pragma once
 
-extern "C" {
 #include "Pd/Interface.h"
-}
-
 #include "WeakReference.h"
 
 namespace pd {
@@ -42,12 +39,12 @@ public:
     t_gobj* createObject(int x, int y, String const& name);
     t_gobj* renameObject(t_object* obj, String const& name);
 
-    void moveObjects(std::vector<t_gobj*> const&, int x, int y);
+    void moveObjects(SmallVector<t_gobj*> const&, int x, int y);
 
     void moveObjectTo(t_gobj* object, int x, int y);
 
     void finishRemove();
-    void removeObjects(std::vector<t_gobj*> const& objects);
+    void removeObjects(SmallVector<t_gobj*> const& objects);
 
     void deselectAll();
 
@@ -59,9 +56,9 @@ public:
 
     t_glist* getRoot();
 
-    void copy(std::vector<t_gobj*> const& objects);
+    void copy(SmallVector<t_gobj*> const& objects);
     void paste(Point<int> position);
-    void duplicate(std::vector<t_gobj*> const& objects, t_outconnect* connection);
+    void duplicate(SmallVector<t_gobj*> const& objects, t_outconnect* connection);
 
     void startUndoSequence(String const& name);
     void endUndoSequence(String const& name);

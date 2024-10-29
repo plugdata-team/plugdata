@@ -1094,7 +1094,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     
     patches.clear();
 
-    std::vector<pd::WeakReference> openedPatches;
+    SmallVector<pd::WeakReference> openedPatches;
     // Close all patches
     for (auto* cnv = pd_getcanvaslist(); cnv; cnv = cnv->gl_next) {
         openedPatches.push_back(pd::WeakReference(cnv, this));
@@ -1108,7 +1108,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     
     int numPatches = istream.readInt();
 
-    Array<std::pair<String, File>> patches;
+    SmallVector<std::pair<String, File>> patches;
 
     for (int i = 0; i < numPatches; i++) {
         auto state = istream.readString();
@@ -1116,7 +1116,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 
         auto presetDir = ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Presets");
         path = path.replace("${PRESET_DIR}", presetDir.getFullPathName());
-        patches.add({ state, File(path) });
+        patches.emplace_back(state, File(path));
     }
 
     auto legacyLatency = istream.readInt();
@@ -1580,7 +1580,7 @@ void PluginProcessor::showTextEditorDialog(unsigned long ptr, Rectangle<int> bou
             count++;
             auto words = StringArray::fromTokens(line, " ", "\"");
 
-            auto atoms = std::vector<t_atom>();
+            auto atoms = SmallVector<t_atom>();
             atoms.reserve(words.size() + 1);
 
             for (auto const& word : words) {
@@ -1894,10 +1894,9 @@ void PluginProcessor::reloadAbstractions(File changedPatch, t_glist* except)
     for (auto* editor : getEditors()) {
 
         // Synchronising can potentially delete some other canvases, so make sure we use a safepointer
-        Array<Component::SafePointer<Canvas>> canvases;
-
+        SmallVector<Component::SafePointer<Canvas>> canvases;
         for (auto* canvas : editor->getCanvases()) {
-            canvases.add(canvas);
+            canvases.push_back(canvas);
         }
 
         for (auto& cnv : canvases) {

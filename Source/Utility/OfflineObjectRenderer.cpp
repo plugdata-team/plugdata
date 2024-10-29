@@ -368,9 +368,9 @@ bool OfflineObjectRenderer::checkIfPatchIsValid(String const& patch)
     return true;
 }
 
-std::pair<std::vector<bool>, std::vector<bool>> OfflineObjectRenderer::countIolets(String const& patch)
+std::pair<SmallVector<bool>, SmallVector<bool>> OfflineObjectRenderer::countIolets(String const& patch)
 {
-    static std::unordered_map<String, std::pair<std::vector<bool>, std::vector<bool>>> patchIoletCache;
+    static std::unordered_map<String, std::pair<SmallVector<bool>, SmallVector<bool>>> patchIoletCache;
 
     auto const patchSHA256 = SHA256(patch.getCharPointer()).toHexString();
     if (patchIoletCache.contains(patchSHA256)) {
@@ -380,7 +380,7 @@ std::pair<std::vector<bool>, std::vector<bool>> OfflineObjectRenderer::countIole
     auto trimmedPatch = patch.trim();
     bool onlyOneObject = StringArray::fromLines(trimmedPatch).size() == 1;
 
-    std::vector<bool> inlets, outlets;
+    SmallVector<bool> inlets, outlets;
     
     if(onlyOneObject)
     {
@@ -422,7 +422,7 @@ std::pair<std::vector<bool>, std::vector<bool>> OfflineObjectRenderer::countIole
         });
     }
     
-    auto result = std::pair<std::vector<bool>, std::vector<bool>>{inlets, outlets};
+    auto result = std::pair<SmallVector<bool>, SmallVector<bool>>{inlets, outlets};
     patchIoletCache.emplace(patchSHA256, result);
     
     return result;

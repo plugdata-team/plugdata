@@ -309,7 +309,7 @@ void Sidebar::pinSidebar(bool pin)
 {
     pinned = pin;
 
-    if (!pinned && lastParameters.isEmpty()) {
+    if (!pinned && lastParameters.empty()) {
         hideParameters();
     }
 }
@@ -324,7 +324,7 @@ bool Sidebar::isHidden() const
     return sidebarHidden;
 }
 
-void Sidebar::showParameters(String const& name, Array<ObjectParameters>& params)
+void Sidebar::showParameters(String const& name, SmallVector<ObjectParameters>& params)
 {
     lastParameters = params;
     inspector->loadParameters(params);
@@ -365,7 +365,7 @@ void Sidebar::hideParameters()
     }
 
     if (pinned) {
-        Array<ObjectParameters> params = {};
+        SmallVector<ObjectParameters> params = {};
         inspector->loadParameters(params);
     }
 

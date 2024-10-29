@@ -157,9 +157,9 @@ public:
         Button::mouseDrag(e);
     }
 
-    std::vector<Button*> getAllButtons()
+    SmallVector<Button*> getAllButtons()
     {
-        std::vector<Button*> allButtons;
+        SmallVector<Button*> allButtons;
 
         if (!owner)
             return allButtons;

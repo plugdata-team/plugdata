@@ -101,6 +101,7 @@ struct TextObjectHelper {
     }
 
     // Used by text objects for estimating best text height for a set width
+    /*
     static int getNumLines(String const& text, int width, int fontSize)
     {
         int numLines = 1;
@@ -123,7 +124,7 @@ struct TextObjectHelper {
         }
 
         return numLines;
-    }
+    } */
 
     static TextEditor* createTextEditor(Object* object, int fontHeight)
     {

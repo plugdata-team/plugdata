@@ -10,6 +10,7 @@ using namespace juce::gl;
 #include <nanovg.h>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
+#include "Utility/SmallVector.h"
 
 #include "NVGSurface.h"
 #include "Iolet.h"
@@ -319,12 +320,12 @@ void Iolet::createConnection()
     }
 }
 
-Array<Connection*> Iolet::getConnections()
+SmallVector<Connection*> Iolet::getConnections()
 {
-    Array<Connection*> result;
+    SmallVector<Connection*> result;
     for (auto* c : object->cnv->connections) {
         if (c->inlet == this || c->outlet == this) {
-            result.add(c);
+            result.push_back(c);
         }
     }
 
@@ -334,11 +335,11 @@ Array<Connection*> Iolet::getConnections()
 Iolet* Iolet::findNearestIolet(Canvas* cnv, Point<int> position, bool inlet, Object* objectToExclude)
 {
     // Find all potential iolets
-    Array<Iolet*> allIolets;
+    SmallVector<Iolet*> allIolets;
     for (auto* object : cnv->objects) {
         for (auto* iolet : object->iolets) {
             if (iolet->isInlet == inlet && iolet->object != objectToExclude) {
-                allIolets.add(iolet);
+                allIolets.push_back(iolet);
             }
         }
     }

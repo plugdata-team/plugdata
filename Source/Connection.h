@@ -16,10 +16,11 @@
 #include "Pd/MessageListener.h"
 #include "Utility/RateReducer.h"
 #include "Utility/ModifierKeyListener.h"
+#include "Utility/SmallVector.h"
 #include "NVGSurface.h"
 #include "LookAndFeel.h"
 
-using PathPlan = std::vector<Point<float>>;
+using PathPlan = SmallVector<Point<float>>;
 
 class Canvas;
 class Connection : public DrawablePath
@@ -95,7 +96,7 @@ public:
 
     void applyBestPath();
 
-    bool straightLineIntersectsObject(Line<float> toCheck, Array<Object*>& objects);
+    bool straightLineIntersectsObject(Line<float> toCheck, SmallVector<Object*>& objects);
 
     void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms) override;
 
@@ -126,7 +127,7 @@ private:
 
     const float getPathWidth();
 
-    Array<SafePointer<Connection>> reconnecting;
+    SmallVector<SafePointer<Connection>> reconnecting;
     Rectangle<float> startReconnectHandle, endReconnectHandle;
 
     PathPlan currentPlan;

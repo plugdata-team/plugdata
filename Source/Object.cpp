@@ -300,7 +300,7 @@ void Object::applyBounds()
     else if(ds.didStartDragging)
     {
         patch->startUndoSequence("Move");
-        std::vector<t_gobj*> objects;
+        SmallVector<t_gobj*> objects;
         for (auto* obj : cnv->getSelectionOfType<Object>())
         {
             if(auto* ptr = obj->getPointer())
@@ -446,12 +446,12 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
     cnv->pd->updateObjectImplementations();
 }
 
-Array<Rectangle<float>> Object::getCorners() const
+SmallVector<Rectangle<float>> Object::getCorners() const
 {
     auto rect = getLocalBounds().reduced(margin);
     float const offset = 2.0f;
 
-    Array<Rectangle<float>> corners = { Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopLeft().toFloat()).translated(offset, offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomLeft().toFloat()).translated(offset, -offset),
+    SmallVector<Rectangle<float>> corners = { Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopLeft().toFloat()).translated(offset, offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomLeft().toFloat()).translated(offset, -offset),
         Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomRight().toFloat()).translated(-offset, -offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopRight().toFloat()).translated(-offset, offset) };
 
     return corners;
@@ -617,8 +617,8 @@ void Object::updateTooltips()
         }
     }
 
-    std::vector<std::pair<int, String>> inletMessages;
-    std::vector<std::pair<int, String>> outletMessages;
+    SmallVector<std::pair<int, String>> inletMessages;
+    SmallVector<std::pair<int, String>> outletMessages;
 
     if (auto subpatch = gui->getPatch()) {
         cnv->pd->lockAudioThread();
@@ -1014,7 +1014,7 @@ void Object::mouseDrag(MouseEvent const& e)
 
         // alt+drag will duplicate selection
         if (!ds.wasDragDuplicated && e.mods.isAltDown()) {
-            Array<Point<int>> mouseDownObjectPositions; // Stores object positions for alt + drag
+            SmallVector<Point<int>> mouseDownObjectPositions; // Stores object positions for alt + drag
 
             // Single for undo for duplicate + move
             cnv->patch.startUndoSequence("Duplicate");
@@ -1033,7 +1033,7 @@ void Object::mouseDrag(MouseEvent const& e)
                 auto gridType = SettingsFile::getInstance()->getProperty<int>("grid_type");
                 auto gridSize = gridEnabled && (gridType & 1) ? cnv->objectGrid.gridSize : 10;
 
-                mouseDownObjectPositions.add(object->getPosition().translated(gridSize, gridSize));
+                mouseDownObjectPositions.push_back(object->getPosition().translated(gridSize, gridSize));
             }
 
             // Duplicate once
@@ -1080,13 +1080,13 @@ void Object::mouseDrag(MouseEvent const& e)
             auto* object = selection.getFirst();
             cnv->patch.startUndoSequence("Snap");
 
-            Array<Connection*> inputs, outputs;
+            SmallVector<Connection*> inputs, outputs;
             for (auto* connection : cnv->connections) {
                 if (connection->inlet == object->iolets[0]) {
-                    inputs.add(connection);
+                    inputs.push_back(connection);
                 }
                 if (connection->outlet == object->iolets[object->numInputs]) {
-                    outputs.add(connection);
+                    outputs.push_back(connection);
                 }
             }
 
@@ -1245,7 +1245,7 @@ void Object::render(NVGcontext* nvg)
     // If autoconnect is about to happen, draw a fake inlet with a dotted outline
     if (isInitialEditorShown() && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs && getValue<bool>(editor->autoconnect)) {
         auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
-        std::array<float, 4> fakeInletBounds = PlugDataLook::getUseIoletSpacingEdge() ? std::array<float, 4>{-8.0f, -3.0f, 18.0f, 7.0f} : std::array<float, 4>{ 8.5f, -3.5f, 8.0f, 8.0f };
+        SmallVector fakeInletBounds = PlugDataLook::getUseIoletSpacingEdge() ? SmallVector{-8.0f, -3.0f, 18.0f, 7.0f} : SmallVector{ 8.5f, -3.5f, 8.0f, 8.0f };
         nvgBeginPath(nvg);
         if(PlugDataLook::getUseSquareIolets()) {
             nvgRect(nvg, fakeInletBounds[0] + fakeInletBounds[2] * 0.5f, fakeInletBounds[1] + fakeInletBounds[3] * 0.5f, fakeInletBounds[2] * 0.5f, fakeInletBounds[3] * 0.5f);
@@ -1374,11 +1374,14 @@ void Object::hideEditor()
     }
 }
 
-Array<Connection*> Object::getConnections() const
+SmallVector<Connection*> Object::getConnections() const
 {
-    Array<Connection*> result;
+    SmallVector<Connection*> result;
     for (auto* iolet : iolets) {
-        result.addArray(iolet->getConnections());
+        for(auto* connection : iolet->getConnections())
+        {
+            result.push_back(connection);
+        }
     }
 
     return result;

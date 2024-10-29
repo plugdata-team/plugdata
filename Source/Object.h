@@ -7,6 +7,7 @@
 #pragma once
 
 #include "Utility/ModifierKeyListener.h"
+#include "Utility/SmallVector.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "Utility/SettingsFile.h"
 #include "Utility/RateReducer.h"
@@ -78,7 +79,7 @@ public:
     void openHelpPatch() const;
     t_gobj* getPointer() const;
 
-    Array<Connection*> getConnections() const;
+    SmallVector<Connection*> getConnections() const;
 
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
@@ -104,7 +105,7 @@ public:
 
     bool validResizeZone = false;
 
-    Array<Rectangle<float>> getCorners() const;
+    SmallVector<Rectangle<float>> getCorners() const;
 
     int numInputs = 0;
     int numOutputs = 0;

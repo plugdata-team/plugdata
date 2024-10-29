@@ -241,7 +241,7 @@ class LevelMeter : public Component
 public:
     LevelMeter() = default;
 
-    void audioLevelChanged(Array<float> peak) override
+    void audioLevelChanged(SmallVector<float> peak) override
     {
         bool needsRepaint = false;
         for (int i = 0; i < 2; i++) {
@@ -672,7 +672,7 @@ public:
         logA.setConnectedEdges(TextButton::ConnectedEdgeFlags::ConnectedOnLeft | TextButton::ConnectedEdgeFlags::ConnectedOnRight);
         logB.setConnectedEdges(TextButton::ConnectedEdgeFlags::ConnectedOnLeft);
 
-        auto buttons = Array<TextButton*> { &linear, &logA, &logB };
+        auto buttons = SmallVector<TextButton*> { &linear, &logA, &logB };
 
         int i = 0;
         for (auto* button : buttons) {
@@ -693,7 +693,7 @@ public:
             i++;
         }
 
-        auto currentMappingMode = SettingsFile::getInstance()->getPropertyAsValue("cpu_meter_mapping_mode").getValue();
+        auto currentMappingMode = SettingsFile::getInstance()->getProperty<int>("cpu_meter_mapping_mode");
         buttons[currentMappingMode]->setToggleState(true, dontSendNotification);
 
         setSize(212, 177);

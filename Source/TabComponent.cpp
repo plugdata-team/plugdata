@@ -323,10 +323,10 @@ void TabComponent::openInPluginMode(pd::Patch::Ptr patch)
 // instead, we must check if they still exist before deleting
 void TabComponent::clearCanvases()
 {
-    Array<SafePointer<Canvas>> safeCanvases;
+    SmallVector<SafePointer<Canvas>> safeCanvases;
     for(int i = canvases.size() - 1; i >= 0; i--)
     {
-        safeCanvases.add(canvases[i]);
+        safeCanvases.push_back(canvases[i]);
     }
     
     for(auto safeCnv : safeCanvases)
@@ -937,7 +937,7 @@ void TabComponent::saveTabPositions()
 {
     auto editors = pd->getEditors();
 
-    Array<std::pair<pd::Patch::Ptr, int>> sortedPatches;
+    SmallVector<std::pair<pd::Patch::Ptr, int>> sortedPatches;
     for (auto* editor : pd->getEditors()) {
         auto& tabbar = editor->getTabComponent();
         for (int i = 0; i < tabbar.tabbars.size(); i++) {
@@ -945,7 +945,7 @@ void TabComponent::saveTabPositions()
                 if (auto* cnv = tabbar.tabbars[i][j]->cnv.getComponent()) {
                     cnv->patch.splitViewIndex = i;
                     cnv->patch.windowIndex = editor->editorIndex;
-                    sortedPatches.add({ cnv->refCountedPatch, j });
+                    sortedPatches.push_back({ cnv->refCountedPatch, j });
                 }
             }
         }

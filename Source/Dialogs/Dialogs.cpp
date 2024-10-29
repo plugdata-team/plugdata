@@ -424,7 +424,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             }
             auto commandIds = Array<CommandID> { CommandIDs::Cut, CommandIDs::Copy, CommandIDs::Paste, CommandIDs::Duplicate, CommandIDs::Delete };
 
-            for (auto* button : Array<QuickActionButton*> { &cut, &copy, &paste, &duplicate, &remove }) {
+            for (auto* button : SmallVector<QuickActionButton*> { &cut, &copy, &paste, &duplicate, &remove }) {
                 addAndMakeVisible(button);
                 auto id = commandIds.removeAndReturn(0);
 
@@ -459,7 +459,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             auto buttonWidth = getWidth() / 5;
             auto bounds = getLocalBounds();
 
-            for (auto* button : Array<TextButton*> { &cut, &copy, &paste, &duplicate, &remove }) {
+            for (auto* button : SmallVector<TextButton*> { &cut, &copy, &paste, &duplicate, &remove }) {
                 button->setBounds(bounds.removeFromLeft(buttonWidth).withHeight(buttonHeight));
             }
         }
@@ -650,7 +650,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     popupMenu.addSubMenu("Align", alignMenu, !locked);
 
     popupMenu.addSeparator();
-    popupMenu.addItem(Properties, "Properties", (originalComponent == cnv || (object && !params.getParameters().isEmpty())) && !locked);
+    popupMenu.addItem(Properties, "Properties", (originalComponent == cnv || (object && params.getParameters().not_empty())) && !locked);
     // showObjectReferenceDialog
     auto callback = [cnv, editor, object, originalComponent, params, selectedBoxes](int result) mutable {
         cnv->grabKeyboardFocus();
@@ -664,7 +664,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
         if (result == Properties) {
             if (originalComponent == cnv) {
-                Array<ObjectParameters> parameters = { cnv->getInspectorParameters() };
+                SmallVector<ObjectParameters> parameters = { cnv->getInspectorParameters() };
                 editor->sidebar->showParameters("canvas", parameters);
             } else if (object && object->gui) {
 
@@ -677,7 +677,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
                     propertiesFn(static_cast<t_gobj*>(object->getPointer()), cnv->patch.getPointer().get());
                 cnv->pd->unlockAudioThread();
 
-                Array<ObjectParameters> parameters = { object->gui->getParameters() };
+                SmallVector<ObjectParameters> parameters = { object->gui->getParameters() };
                 editor->sidebar->showParameters(object->getType(false), parameters);
             }
 

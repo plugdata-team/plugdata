@@ -229,7 +229,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     setOpaque(false);
 
-    for (auto* button : std::vector<MainToolbarButton*> {
+    for (auto* button : SmallVector<MainToolbarButton*> {
              &mainMenuButton,
                  &undoButton,
                  &redoButton,
@@ -266,7 +266,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(addObjectMenuButton);
 
     // Edit, run and presentation mode buttons
-    for (auto* button : std::vector<ToolbarRadioButton*> { &editButton, &runButton, &presentButton }) {
+    for (auto* button : SmallVector<ToolbarRadioButton*> { &editButton, &runButton, &presentButton }) {
         button->onClick = [this]() {
             if (auto* cnv = getCurrentCanvas()) {
                 if (editButton.getToggleState()) {

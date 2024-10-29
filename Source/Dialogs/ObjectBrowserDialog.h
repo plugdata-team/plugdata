@@ -354,7 +354,7 @@ public:
 
         openHelp.setVisible(false);
 
-        Array<TextButton*> buttons = { &openHelp, &openReference };
+        SmallVector<TextButton*> buttons = { &openHelp, &openReference };
 
         for (auto* button : buttons) {
             button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::panelBackgroundColourId));

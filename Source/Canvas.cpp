@@ -610,8 +610,8 @@ void Canvas::renderAllConnections(NVGcontext* nvg, Rectangle<int> area)
     //TODO: Can we clean this up? We will want to have selected connections in-front,
     // and take precedence over non-selected for resize handles
 
-    Array<Connection*> connectionsToDraw;
-    Array<Connection*> connectionsToDrawSelected;
+    SmallVector<Connection*> connectionsToDraw;
+    SmallVector<Connection*> connectionsToDrawSelected;
     Connection* hovered = nullptr;
 
     for (auto* connection : connections) {
@@ -622,14 +622,14 @@ void Canvas::renderAllConnections(NVGcontext* nvg, Rectangle<int> area)
             else if (!connection->isSelected())
                 connection->render(nvg);
             else
-                connectionsToDrawSelected.add(connection);
+                connectionsToDrawSelected.push_back(connection);
             if (showConnectionOrder) {
-                connectionsToDraw.add(connection);
+                connectionsToDraw.push_back(connection);
             }
         }
     }
     // Draw all selected connections in front
-    if (!connectionsToDrawSelected.isEmpty()) {
+    if (connectionsToDrawSelected.not_empty()) {
         for (auto* connection : connectionsToDrawSelected) {
             NVGScopedState scopedState(nvg);
             connection->render(nvg);
@@ -641,7 +641,7 @@ void Canvas::renderAllConnections(NVGcontext* nvg, Rectangle<int> area)
         hovered->render(nvg);
     }
 
-    if (!connectionsToDraw.isEmpty()) {
+    if (connectionsToDraw.not_empty()) {
         for (auto* connection : connectionsToDraw) {
             NVGScopedState scopedState(nvg);
             connection->renderConnectionOrder(nvg);
@@ -1069,7 +1069,7 @@ void Canvas::shiftKeyChanged(bool isHeld)
                 auto outletIndex = connectingOutlet->ioletIdx;
                 auto inletIndex = targetInlet->ioletIdx;
 
-                std::vector<t_gobj*> selectedObjects;
+                SmallVector<t_gobj*> selectedObjects;
                 for (auto* object : getSelectionOfType<Object>()) {
                     if (auto* ptr = object->getPointer()) {
                         selectedObjects.push_back(ptr);
@@ -1314,18 +1314,18 @@ void Canvas::updateSidebarSelection()
     auto lassoSelection = getSelectionOfType<Object>();
 
     if (lassoSelection.size() > 0) {
-        Array<ObjectParameters> allParameters;
+        SmallVector<ObjectParameters> allParameters;
         for (auto* object : lassoSelection) {
             if (!object->gui)
                 continue;
             auto parameters = object->gui ? object->gui->getParameters() : ObjectParameters();
             auto showOnSelect = object->gui && object->gui->showParametersWhenSelected();
             if (showOnSelect) {
-                allParameters.add(parameters);
+                allParameters.push_back(parameters);
             }
         }
 
-        if (!allParameters.isEmpty() || editor->sidebar->isPinned()) {
+        if (allParameters.not_empty() || editor->sidebar->isPinned()) {
             String objectName = "(" + String(lassoSelection.size()) + " selected)";
             if (lassoSelection.size() == 1 && lassoSelection.getFirst()) {
                 objectName = lassoSelection.getFirst()->getType(false);
@@ -1352,8 +1352,7 @@ bool Canvas::keyPressed(KeyPress const& key)
         if (objects.isEmpty())
             return false;
 
-        std::vector<t_gobj*> pdObjects;
-
+        SmallVector<t_gobj*> pdObjects;
         for (auto* object : objects) {
             if (auto* ptr = object->getPointer()) {
                 pdObjects.push_back(ptr);
@@ -1447,7 +1446,7 @@ void Canvas::hideAllActiveEditors()
 void Canvas::copySelection()
 {
     // Tell pd to select all objects that are currently selected
-    std::vector<t_gobj*> objects;
+    SmallVector<t_gobj*> objects;
     for (auto* object : getSelectionOfType<Object>()) {
         if (auto* ptr = object->getPointer()) {
             objects.push_back(ptr);
@@ -1579,7 +1578,7 @@ void Canvas::pasteSelection()
 
     patch.setCurrent();
 
-    std::vector<t_gobj*> pastedObjects;
+    SmallVector<t_gobj*> pastedObjects;
 
     auto* patchPtr = patch.getPointer().get();
     if (!patchPtr)
@@ -1608,7 +1607,7 @@ void Canvas::duplicateSelection()
 
     patch.startUndoSequence("Duplicate object/s");
 
-    std::vector<t_gobj*> objectsToDuplicate;
+    SmallVector<t_gobj*> objectsToDuplicate;
     for (auto* object : selection) {
         if (auto* ptr = object->getPointer()) {
             objectsToDuplicate.push_back(ptr);
@@ -1661,9 +1660,9 @@ void Canvas::duplicateSelection()
     }
         
     // Move duplicated objects if they overlap exisisting objects
-    std::vector<t_gobj*> moveObjects;
+    SmallVector<t_gobj*> moveObjects;
     for (auto* dup : duplicated) {
-        moveObjects.emplace_back(dup->getPointer());
+        moveObjects.push_back(dup->getPointer());
     }
     
     patch.moveObjects(moveObjects, dragState.duplicateOffset.x, dragState.duplicateOffset.y);
@@ -1723,7 +1722,7 @@ void Canvas::removeSelection()
     editor->sidebar->hideParameters();
 
     // Find selected objects and make them selected in pd
-    std::vector<t_gobj*> objects;
+    SmallVector<t_gobj*> objects;
     for (auto* object : getSelectionOfType<Object>()) {
         if (auto* ptr = object->getPointer()) {
             objects.push_back(ptr);
@@ -1829,7 +1828,7 @@ void Canvas::cycleSelection()
 
 void Canvas::tidySelection()
 {
-    std::vector<t_gobj*> selectedObjects;
+    SmallVector<t_gobj*> selectedObjects;
     for (auto* object : getSelectionOfType<Object>()) {
         if (auto* ptr = object->getPointer()) {
             selectedObjects.push_back(ptr);
@@ -1845,7 +1844,7 @@ void Canvas::tidySelection()
 
 void Canvas::triggerizeSelection()
 {
-    std::vector<t_gobj*> selectedObjects;
+    SmallVector<t_gobj*> selectedObjects;
     for (auto* object : getSelectionOfType<Object>()) {
         if (auto* ptr = object->getPointer()) {
             selectedObjects.push_back(ptr);
@@ -1890,23 +1889,23 @@ void Canvas::encapsulateSelection()
 
     // If two connections have the same target inlet/outlet, we only need 1 [inlet/outlet] object
     auto usedIolets = Array<Iolet*>();
-    auto targetIolets = std::map<Iolet*, Array<Iolet*>>();
+    auto targetIolets = std::map<Iolet*, SmallVector<Iolet*>>();
 
     auto newInternalConnections = String();
-    auto newExternalConnections = std::map<int, Array<Iolet*>>();
+    auto newExternalConnections = std::map<int, SmallVector<Iolet*>>();
 
     // First, find all the incoming and outgoing connections
     for (auto* connection : connections) {
         if (selectedObjects.contains(connection->inobj.get()) && !selectedObjects.contains(connection->outobj.get())) {
             auto* inlet = connection->inlet.get();
-            targetIolets[inlet].add(connection->outlet.get());
+            targetIolets[inlet].push_back(connection->outlet.get());
             usedIolets.addIfNotAlreadyThere(inlet);
         }
     }
     for (auto* connection : connections) {
         if (selectedObjects.contains(connection->outobj.get()) && !selectedObjects.contains(connection->inobj.get())) {
             auto* outlet = connection->outlet.get();
-            targetIolets[outlet].add(connection->inlet.get());
+            targetIolets[outlet].push_back(connection->inlet.get());
             usedIolets.addIfNotAlreadyThere(outlet);
         }
     }
@@ -1948,7 +1947,7 @@ void Canvas::encapsulateSelection()
         }
 
         for (auto* target : targetIolets[iolet]) {
-            newExternalConnections[i].add(target);
+            newExternalConnections[i].push_back(target);
         }
 
         i++;
@@ -1957,7 +1956,7 @@ void Canvas::encapsulateSelection()
     patch.deselectAll();
 
     auto bounds = Rectangle<int>();
-    std::vector<t_gobj*> objects;
+    SmallVector<t_gobj*> objects;
     for (auto* object : selectedObjects) {
         if (auto* ptr = object->getPointer()) {
             bounds = bounds.getUnion(object->getBounds());
@@ -2022,7 +2021,7 @@ void Canvas::encapsulateSelection()
 
 void Canvas::connectSelection()
 {
-    std::vector<t_gobj*> selectedObjects;
+    SmallVector<t_gobj*> selectedObjects;
     for (auto* object : getSelectionOfType<Object>()) {
         if (auto* ptr = object->getPointer()) {
             selectedObjects.push_back(ptr);

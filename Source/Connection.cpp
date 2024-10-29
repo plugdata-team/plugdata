@@ -793,19 +793,19 @@ float const Connection::getPathWidth() {
 
 void Connection::reconnect(Iolet* target)
 {
-    if (!reconnecting.isEmpty() || !target)
+    if (!reconnecting.empty() || !target)
         return;
 
     auto& otherEdge = target == inlet ? outlet : inlet;
 
-    Array<Connection*> connections = { this };
+    SmallVector<Connection*> connections = { this };
 
     if (Desktop::getInstance().getMainMouseSource().getCurrentModifiers().isShiftDown()) {
         for (auto* c : otherEdge->object->getConnections()) {
             if (c == this || !c->isSelected())
                 continue;
 
-            connections.add(c);
+            connections.push_back(c);
         }
     }
 
@@ -824,7 +824,7 @@ void Connection::reconnect(Iolet* target)
 
         c->setVisible(false);
 
-        reconnecting.add(SafePointer(c));
+        reconnecting.push_back(SafePointer(c));
 
         // Make sure we're deselected and remove object
         cnv->setSelected(c, false, false);
@@ -1148,12 +1148,12 @@ void Connection::findPath()
     int resolutionX = 6;
     int resolutionY = 6;
 
-    auto obstacles = Array<Rectangle<float>>();
+    auto obstacles = SmallVector<Rectangle<float>>();
     auto searchBounds = Rectangle<float>(pstart, pend);
 
     for (auto* object : cnv->objects) {
         if (object->getBounds().toFloat().intersects(searchBounds)) {
-            obstacles.add(object->getBounds().toFloat());
+            obstacles.push_back(object->getBounds().toFloat());
         }
     }
 
@@ -1226,13 +1226,12 @@ void Connection::findPath()
 
 int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<float> pstart, Point<float> pend, Point<float> increment)
 {
-
-    auto obstacles = Array<Object*>();
+    auto obstacles = SmallVector<Object*>();
     auto searchBounds = Rectangle<float>(pstart, pend);
 
     for (auto* object : cnv->objects) {
         if (object->getBounds().toFloat().intersects(searchBounds)) {
-            obstacles.add(object);
+            obstacles.push_back(object);
         }
     }
 
@@ -1297,7 +1296,7 @@ int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<
     return count;
 }
 
-bool Connection::straightLineIntersectsObject(Line<float> toCheck, Array<Object*>& objects)
+bool Connection::straightLineIntersectsObject(Line<float> toCheck, SmallVector<Object*>& objects)
 {
 
     for (auto const& object : objects) {
