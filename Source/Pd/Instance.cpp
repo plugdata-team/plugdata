@@ -235,7 +235,7 @@ void Instance::initialisePd(String& pdlua_version)
             auto vis = atom_getfloat(argv + 1);
             
             if(vis) {
-                auto* subpatch = new pd::Patch(pd::WeakReference(glist, pd), pd, false);
+                pd::Patch::Ptr subpatch = new pd::Patch(pd::WeakReference(glist, pd), pd, false);
                 if (canvas_isabstraction(glist)) {
                     auto path = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
                     subpatch->setCurrentFile(URL(path));
