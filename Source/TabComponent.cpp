@@ -64,7 +64,7 @@ Canvas* TabComponent::openPatch(const URL& path)
     }
 
     auto patch = pd->loadPatch(path);
-    return openPatch(patch);
+    return openPatch(patch, true);
 }
 
 Canvas* TabComponent::openPatch(String const& patchContent)
@@ -74,7 +74,7 @@ Canvas* TabComponent::openPatch(String const& patchContent)
     return openPatch(patch);
 }
 
-Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch)
+Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch, bool warnIfAlreadyOpen)
 {
     if(!existingPatch) return nullptr;
     
@@ -82,7 +82,7 @@ Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch)
     for(auto* editor : pd->getEditors()) {
         for (auto* cnv : editor->getCanvases()) {
             if (cnv->patch == *existingPatch) {
-                pd->logError("Patch is already open");
+                if(warnIfAlreadyOpen) pd->logError("Patch is already open");
                 editor->getTopLevelComponent()->toFront(true);
                 editor->getTabComponent().showTab(cnv);
                 return cnv;
@@ -116,6 +116,20 @@ Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch)
     }
     
     return cnv;
+}
+
+void TabComponent::openPatch()
+{
+    Dialogs::showOpenDialog([this](URL resultURL) {
+        auto result = resultURL.getLocalFile();
+        if (result.exists() && result.getFileExtension().equalsIgnoreCase(".pd")) {
+            editor->pd->autosave->checkForMoreRecentAutosave(result, editor, [this, result, resultURL]() {
+                openPatch(resultURL);
+                SettingsFile::getInstance()->addToRecentlyOpened(result);
+            });
+        }
+    },
+        true, false, "*.pd", "Patch", this);
 }
 
 void TabComponent::moveToLeftSplit(TabBarButtonComponent* tab)
@@ -224,20 +238,6 @@ void TabComponent::moveToRightSplit(TabBarButtonComponent* tab)
             showTab(tabbars[0][0]->cnv, 0); // Show first tab of left tabbar
         showTab(tab->cnv, 1);               // Show the moved tab on right tabbar
     }
-}
-
-void TabComponent::openPatch()
-{
-    Dialogs::showOpenDialog([this](URL resultURL) {
-        auto result = resultURL.getLocalFile();
-        if (result.exists() && result.getFileExtension().equalsIgnoreCase(".pd")) {
-            editor->pd->autosave->checkForMoreRecentAutosave(result, editor, [this, result, resultURL]() {
-                openPatch(resultURL);
-                SettingsFile::getInstance()->addToRecentlyOpened(result);
-            });
-        }
-    },
-        true, false, "*.pd", "Patch", this);
 }
 
 void TabComponent::nextTab()

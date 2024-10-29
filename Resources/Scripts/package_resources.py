@@ -154,7 +154,6 @@ globCopy("Extra/else/audio/*", "Extra/else")
 removeDir("Extra/else/audio")
 
 copyFile(project_root + "/Libraries/pd-else/Documentation/README.pdf", "Extra/else")
-copyFile(project_root + "/Libraries/pd-else/Abstractions/Merda/Modules/about.MERDA.pd", "./Extra/else")
 copyDir(project_root + "/Libraries/pd-else/Source/Audio/sfz~/sfz", "Extra/else/sfz")
 copyDir(project_root + "/Resources/Patches/Presets", "./Extra/Presets")
 globCopy(project_root + "/Libraries/pd-else/Abstractions/Merda/Modules/*.pd", "./Extra/else")

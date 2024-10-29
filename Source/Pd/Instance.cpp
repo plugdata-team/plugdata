@@ -228,6 +228,42 @@ void Instance::initialisePd(String& pdlua_version)
     // Register callback for special Pd messages
     auto gui_trigger = [](void* instance, char const* name, int argc, t_atom* argv) {
         switch (hash(name)) {
+        case hash("canvas_vis"): {
+            auto* inst = static_cast<Instance*>(instance);
+            auto* pd = static_cast<PluginProcessor*>(inst);
+            t_canvas* glist = (t_canvas*)argv->a_w.w_gpointer;
+            auto vis = atom_getfloat(argv + 1);
+            
+            if(vis) {
+                auto* subpatch = new pd::Patch(pd::WeakReference(glist, pd), pd, false);
+                if (canvas_isabstraction(glist)) {
+                    auto path = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
+                    subpatch->setCurrentFile(URL(path));
+                }
+                
+                MessageManager::callAsync([pd, subpatch](){
+                    for (auto* editor : pd->getEditors()) {
+                        if (!editor->isActiveWindow())
+                            continue;
+                        editor->getTabComponent().openPatch(subpatch);
+                    }
+                });
+            }
+            else {
+                MessageManager::callAsync([pd, glist](){
+                    for (auto* editor : pd->getEditors()) {
+                        for (auto* canvas : editor->getCanvases()) {
+                            auto canvasPtr = canvas->patch.getPointer();
+                            if (canvasPtr && canvasPtr.get() == glist) {
+                                canvas->editor->getTabComponent().closeTab(canvas);
+                                break;
+                            }
+                        }
+                    }
+                });
+            }
+            break;
+        }
         case hash("openpanel"): {
             auto openMode = argc >= 4 ? static_cast<int>(atom_getfloat(argv + 3)) : -1;
             static_cast<Instance*>(instance)->createPanel(atom_getfloat(argv), atom_getsymbol(argv + 1)->s_name, atom_getsymbol(argv + 2)->s_name, "callback", openMode);

@@ -78,8 +78,6 @@ Canvas* ImplementationBase::getMainCanvas(t_canvas* patchPtr, bool alsoSearchRoo
 bool ImplementationBase::hasImplementation(char const* type)
 {
     switch (hash(type)) {
-    case hash("canvas"):
-    case hash("graph"):
     case hash("canvas.mouse"):
     case hash("canvas.vis"):
     case hash("canvas.zoom"):
@@ -99,9 +97,6 @@ bool ImplementationBase::hasImplementation(char const* type)
 ImplementationBase* ImplementationBase::createImplementation(String const& type, t_gobj* ptr, t_canvas* cnv, PluginProcessor* pd)
 {
     switch (hash(type)) {
-    case hash("canvas"):
-    case hash("graph"):
-        return new SubpatchImpl(ptr, cnv, pd);
     case hash("canvas.mouse"):
         return new CanvasMouseObject(ptr, cnv, pd);
     case hash("canvas.vis"):

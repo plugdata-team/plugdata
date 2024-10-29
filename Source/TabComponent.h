@@ -20,7 +20,7 @@ public:
 
     Canvas* openPatch(const URL& path);
     Canvas* openPatch(String const& patchContent);
-    Canvas* openPatch(pd::Patch::Ptr existingPatch);
+    Canvas* openPatch(pd::Patch::Ptr existingPatch, bool warnIfAlreadyOpen = false);
     void openPatch();
 
     void openInPluginMode(pd::Patch::Ptr patch);
