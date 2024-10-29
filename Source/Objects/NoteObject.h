@@ -66,7 +66,7 @@ public:
         };
 
         noteEditor.onTextChange = [this, object]() {
-            std::vector<t_atom> atoms;
+            SmallVector<t_atom> atoms;
 
             auto words = StringArray::fromTokens(noteEditor.getText(), " ", "\"");
             for (const auto& word : words) {

@@ -30,7 +30,7 @@ public:
     {
     }
 
-    static std::vector<pd::Atom> atomsFromString(String const& str)
+    static SmallVector<pd::Atom, 8> atomsFromString(String const& str)
     {
         auto* binbuf = binbuf_new();
         binbuf_text(binbuf, str.toRawUTF8(), str.getNumBytesAsUTF8());
@@ -43,9 +43,9 @@ public:
         return atoms;
     }
     
-    static std::vector<pd::Atom> fromAtoms(int ac, t_atom* av)
+    static SmallVector<pd::Atom, 8> fromAtoms(int ac, t_atom* av)
     {
-        auto array = std::vector<pd::Atom>();
+        auto array = SmallVector<pd::Atom>();
         array.reserve(ac);
 
         for (int i = 0; i < ac; ++i) {
@@ -151,12 +151,12 @@ class Instance : public AsyncUpdater {
     struct Message {
         String selector;
         String destination;
-        std::vector<pd::Atom> list;
+        SmallVector<pd::Atom> list;
     };
 
     struct dmessage {
 
-        dmessage(pd::Instance* instance, void* ref, String dest, String sel, std::vector<pd::Atom> atoms)
+        dmessage(pd::Instance* instance, void* ref, String dest, String sel, SmallVector<pd::Atom> atoms)
             : object(ref, instance)
             , destination(dest)
             , selector(sel)
@@ -167,7 +167,7 @@ class Instance : public AsyncUpdater {
         WeakReference object;
         String destination;
         String selector;
-        std::vector<pd::Atom> list;
+        SmallVector<pd::Atom> list;
     };
 
 public:
@@ -207,15 +207,15 @@ public:
     void sendBang(char const* receiver) const;
     void sendFloat(char const* receiver, float value) const;
     void sendSymbol(char const* receiver, char const* symbol) const;
-    void sendList(char const* receiver, std::vector<pd::Atom> const& list) const;
-    void sendMessage(char const* receiver, char const* msg, std::vector<pd::Atom> const& list) const;
-    void sendTypedMessage(void* object, char const* msg, std::vector<Atom> const& list) const;
+    void sendList(char const* receiver, SmallVector<pd::Atom> const& list) const;
+    void sendMessage(char const* receiver, char const* msg, SmallVector<pd::Atom> const& list) const;
+    void sendTypedMessage(void* object, char const* msg, SmallVector<Atom> const& list) const;
 
     virtual void addTextToTextEditor(unsigned long ptr, String text) = 0;
     virtual void showTextEditorDialog(unsigned long ptr, Rectangle<int> bounds, String title) = 0;
     virtual bool isTextEditorDialogShown(unsigned long ptr) = 0;
     
-    virtual void receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list) = 0;
+    virtual void receiveSysMessage(String const& selector, SmallVector<pd::Atom> const& list) = 0;
 
     void registerMessageListener(void* object, MessageListener* messageListener);
     void unregisterMessageListener(void* object, MessageListener* messageListener);
@@ -247,8 +247,8 @@ public:
         });
     }
 
-    void sendDirectMessage(void* object, String const& msg, std::vector<Atom>&& list);
-    void sendDirectMessage(void* object, std::vector<pd::Atom>&& list);
+    void sendDirectMessage(void* object, String const& msg, SmallVector<Atom>&& list);
+    void sendDirectMessage(void* object, SmallVector<pd::Atom>&& list);
     void sendDirectMessage(void* object, String const& msg);
     void sendDirectMessage(void* object, float msg);
 
@@ -264,7 +264,7 @@ public:
     virtual void performLatencyCompensationChange(float value) = 0;
 
     // JYG added this
-    virtual void fillDataBuffer(std::vector<pd::Atom> const& list) = 0;
+    virtual void fillDataBuffer(SmallVector<pd::Atom> const& list) = 0;
     virtual void parseDataBuffer(XmlElement const& xml) = 0;
 
     void logMessage(String const& message);
@@ -315,7 +315,7 @@ public:
     Array<pd::Patch::Ptr, CriticalSection> patches;
 
 private:
-    std::unordered_map<void*, std::vector<pd_weak_reference*>> pdWeakReferences;
+    std::unordered_map<void*, SmallVector<pd_weak_reference*>> pdWeakReferences;
 
     moodycamel::ConcurrentQueue<std::function<void(void)>> functionQueue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
     moodycamel::ConcurrentQueue<Message> guiMessageQueue = moodycamel::ConcurrentQueue<Message>(64);

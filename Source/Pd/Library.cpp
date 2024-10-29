@@ -276,8 +276,8 @@ ValueTree Library::getObjectInfo(String const& name)
 std::array<StringArray, 2> Library::parseIoletTooltips(ValueTree const& iolets, String const& name, int numIn, int numOut)
 {
     std::array<StringArray, 2> result;
-    Array<std::pair<String, bool>> inlets;
-    Array<std::pair<String, bool>> outlets;
+    SmallVector<std::pair<String, bool>> inlets;
+    SmallVector<std::pair<String, bool>> outlets;
 
     auto args = StringArray::fromTokens(name.fromFirstOccurrenceOf(" ", false, false), true);
 
@@ -400,7 +400,7 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile)
         helpName = helpName.upToLastOccurrenceOf(".pd", false, false);
     }
 
-    auto patchHelpPaths = Array<File>();
+    auto patchHelpPaths = SmallVector<File, 16>();
 
     // Add abstraction dir to search paths
     if (pdclass == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {

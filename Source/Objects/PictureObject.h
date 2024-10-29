@@ -17,7 +17,7 @@ class PictureObject final : public ObjectBase {
 
     File imageFile;
     Image img;
-    std::vector<std::pair<std::unique_ptr<NVGImage>, Rectangle<int>>> imageBuffers;
+    SmallVector<std::pair<std::unique_ptr<NVGImage>, Rectangle<int>>> imageBuffers;
     bool imageNeedsReload = false;
 
 public:

@@ -88,7 +88,7 @@ public:
     void receiveAftertouch(int channel, int value) override;
     void receivePolyAftertouch(int channel, int pitch, int value) override;
     void receiveMidiByte(int port, int byte) override;
-    void receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list) override;
+    void receiveSysMessage(String const& selector, SmallVector<pd::Atom> const& list) override;
 
     void addTextToTextEditor(unsigned long ptr, String text) override;
     void showTextEditorDialog(unsigned long ptr, Rectangle<int> bounds, String title) override;
@@ -134,7 +134,7 @@ public:
     void performLatencyCompensationChange(float value) override;
     void sendParameterInfoChangeMessage();
 
-    void fillDataBuffer(std::vector<pd::Atom> const& list) override;
+    void fillDataBuffer(SmallVector<pd::Atom> const& list) override;
     void parseDataBuffer(XmlElement const& xml) override;
     std::unique_ptr<XmlElement> extraData;
 
@@ -211,7 +211,7 @@ private:
     uint8 midiByteBuffer[512] = { 0 };
     size_t midiByteIndex = 0;
 
-    std::vector<pd::Atom> atoms_playhead;
+    SmallVector<pd::Atom> atoms_playhead;
 
     int lastSetProgram = 0;
 

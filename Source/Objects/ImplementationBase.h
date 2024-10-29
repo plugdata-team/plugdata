@@ -48,8 +48,6 @@ public:
 private:
     void getSubCanvases(t_canvas* patch, SmallVector<t_canvas*>& allCanvases);
     
-    Array<std::pair<t_canvas*, t_gobj*>>  getImplementationsForPatch(t_canvas* patch);
-
     PluginProcessor* pd;
 
     std::unordered_map<t_gobj*, std::unique_ptr<ImplementationBase>> objectImplementations;

@@ -422,11 +422,12 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             if (ProjectInfo::canUseSemiTransparentWindows()) {
                 tooltipWindow = std::make_unique<CheckedTooltip>(this);
             }
-            auto commandIds = Array<CommandID> { CommandIDs::Cut, CommandIDs::Copy, CommandIDs::Paste, CommandIDs::Duplicate, CommandIDs::Delete };
+            auto commandIds = std::array<CommandID, 5> { CommandIDs::Cut, CommandIDs::Copy, CommandIDs::Paste, CommandIDs::Duplicate, CommandIDs::Delete };
 
-            for (auto* button : SmallVector<QuickActionButton*> { &cut, &copy, &paste, &duplicate, &remove }) {
+            int index = 0;
+            for (auto* button : std::array<QuickActionButton*, 5> { &cut, &copy, &paste, &duplicate, &remove }) {
                 addAndMakeVisible(button);
-                auto id = commandIds.removeAndReturn(0);
+                auto id = commandIds[index];
 
                 button->setCommandToTrigger(&editor->commandManager, id, false);
 
@@ -438,6 +439,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
                 } else {
                     button->setEnabled(false);
                 }
+                index++;
             }
 
             cut.setTooltip("Cut");

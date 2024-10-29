@@ -370,7 +370,7 @@ public:
 
             auto scale = function->x_dur[function->x_n_states];
 
-            auto at = std::vector<t_atom>(ac);
+            auto at = SmallVector<t_atom>(ac);
             auto firstPoint = jmap<float>(points[0].y, 0.0f, 1.0f, function->x_min, function->x_max);
             SETFLOAT(at.data(), firstPoint); // get 1st
 

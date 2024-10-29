@@ -136,7 +136,7 @@ public:
 
     bool highlightSearchTarget(void* target, bool openNewTabIfNeeded);
 
-    Array<pd::WeakReference> openTextEditors;
+    SmallVector<pd::WeakReference> openTextEditors;
 
     PluginProcessor* pd;
 

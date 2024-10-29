@@ -1532,7 +1532,7 @@ void Canvas::dragAndDropPaste(String const& patchString, Point<int> mousePos, in
 
     patch.setCurrent();
 
-    std::vector<t_gobj*> pastedObjects;
+    SmallVector<t_gobj*> pastedObjects;
 
     auto* patchPtr = patch.getPointer().get();
     if (!patchPtr)
@@ -1651,7 +1651,7 @@ void Canvas::duplicateSelection()
         return;
     
     // Store the duplicated objects for later selection
-    Array<Object*> duplicated;
+    SmallVector<Object*> duplicated;
     for (auto* object : objects) {
         auto* objectPtr = static_cast<t_gobj*>(object->getPointer());
         if (objectPtr && glist_isselected(patchPtr, objectPtr)) {

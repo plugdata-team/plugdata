@@ -276,7 +276,7 @@ public:
         g.drawImage(logo, logoBounds);
         g.setImageResamplingQuality(Graphics::mediumResamplingQuality);
 
-        for (auto& shadow : std::vector<Rectangle<int>> { viewWebsite.getBounds().getUnion(viewOnGithub.getBounds()), reportIssue.getBounds(), sponsor.getBounds(), showCredits.getBounds().getUnion(showLicense.getBounds()) }) {
+        for (auto& shadow : SmallVector<Rectangle<int>> { viewWebsite.getBounds().getUnion(viewOnGithub.getBounds()), reportIssue.getBounds(), sponsor.getBounds(), showCredits.getBounds().getUnion(showLicense.getBounds()) }) {
             Path shadowPath;
             shadowPath.addRoundedRectangle(shadow.reduced(4), Corners::largeCornerRadius);
             StackShadow::renderDropShadow(hash("about_panel"), g, shadowPath, Colour(0, 0, 0).withAlpha(0.32f), 8);

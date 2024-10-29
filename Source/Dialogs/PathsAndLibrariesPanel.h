@@ -309,8 +309,8 @@ private:
     void updateButtons()
     {
         bool const anythingSelected = listBox.getNumSelectedRows() > 0;
-        bool const readOnlyPath = pd::Library::defaultPaths.contains(paths[listBox.getSelectedRow()]);
-
+        bool const readOnlyPath = std::find(pd::Library::defaultPaths.begin(), pd::Library::defaultPaths.end(), paths[listBox.getSelectedRow()]) != pd::Library::defaultPaths.end();
+        
         removeButton.setVisible(anythingSelected);
         changeButton.setVisible(anythingSelected);
         upButton.setVisible(anythingSelected);

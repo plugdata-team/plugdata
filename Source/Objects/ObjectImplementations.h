@@ -8,101 +8,13 @@
 #include <raw_keyboard_input/raw_keyboard_input.h>
 #include <Objects/ImplementationBase.h>
 
-class ActivityListener : public ImplementationBase
-    , public pd::MessageListener {
-public:
-    Array<Component::SafePointer<Object>> objectsToTrigger;
-    SmallVector<t_canvas*> parentPatches;
-
-    ActivityListener(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd)
-        : ImplementationBase(ptr, parent, pd)
-        {
-        bool internalSend = false;
-        pd->lockAudioThread();
-        {
-            char* text = nullptr;
-            int size = 0;
-            pd::Interface::getObjectText((t_object*)ptr, &text, &size);
-            if(text && size)
-            {
-                internalSend = String::fromUTF8(text, size).containsWholeWord("$0");
-            }
-        }
-        
-        parentPatches.push_back(cnv);
-        while((cnv = cnv->gl_owner))
-        {
-            parentPatches.push_back(cnv);
-            // If the symbol contained $0, stop as soon as we hit an abstraction
-            if(internalSend && canvas_isabstraction(cnv)) break;
-        }
-        pd->unlockAudioThread();
-        
-        if(parentPatches.not_empty()) {
-            pd->registerMessageListener(this->ptr.getRawUnchecked<void>(), this);
-        }
-    }
-
-    ~ActivityListener()
-    {
-        if(parentPatches.not_empty()) pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
-    }
-    
-    SmallVector<Canvas*> getParentCanvases() const
-    {
-         SmallVector<Canvas*> result;
-         for (auto* editor : pd->getEditors()) {
-             for (auto* canvas : editor->getTabComponent().getVisibleCanvases()) {
-                 if(parentPatches.contains(canvas->patch.getUncheckedPointer()))
-                 {
-                     result.push_back(canvas);
-                 }
-             }
-         }
-        return result;
-    }
-
-
-    void update() override
-    {
-        if(parentPatches.empty()) return;
-        
-        objectsToTrigger.clear();
-        
-        for (auto* canvas : getParentCanvases()) {
-            auto parentIndex = parentPatches.index_of(canvas->patch.getUncheckedPointer());
-            if(parentIndex <= 0) break;
-            auto* subpatch = parentPatches[parentIndex - 1];
-            
-            for(auto* obj : canvas->objects)
-            {
-                auto* objPtr = obj->getPointer();
-                if(objPtr == &cnv->gl_obj.te_g || (t_glist*)objPtr == subpatch)
-                {
-                    objectsToTrigger.add(obj);
-                }
-            }
-        }
-    }
-
-    void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms) override
-    {
-        if (pd->isPerformingGlobalSync)
-            return;
-
-        for (auto obj : objectsToTrigger) {
-            if(obj) obj->triggerOverlayActiveState();
-        }
-    }
-};
-
 // Wrapper for Pd's key, keyup and keyname objects
 class KeyObject final : public ImplementationBase
     , public KeyListener
     , public ModifierKeyListener {
 
-    Array<KeyPress> heldKeys;
-    Array<double> keyPressTimes;
+    SmallVector<KeyPress> heldKeys;
+    SmallVector<double> keyPressTimes;
 
     int const shiftKey = -1;
     int const commandKey = -2;
@@ -147,11 +59,11 @@ public:
         if (pd->isPerformingGlobalSync)
             return false;
 
-        auto const keyIdx = heldKeys.indexOf(key);
+        auto const keyIdx = heldKeys.index_of(key);
         auto const alreadyDown = keyIdx >= 0;
         auto const currentTime = Time::getMillisecondCounterHiRes();
         if (alreadyDown && currentTime - keyPressTimes[keyIdx] > 80) {
-            keyPressTimes.set(keyIdx, currentTime);
+            keyPressTimes[keyIdx] = currentTime;
         } else if (!alreadyDown) {
             heldKeys.add(key);
             keyPressTimes.add(currentTime);
@@ -261,8 +173,8 @@ public:
                             pd->sendDirectMessage(obj.get(), { 0.0f, keysym });
                     }
 
-                    keyPressTimes.remove(n);
-                    heldKeys.remove(n);
+                    keyPressTimes.remove_at(n);
+                    heldKeys.remove_at(n);
                 }
             }
         }

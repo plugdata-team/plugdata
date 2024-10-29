@@ -52,7 +52,7 @@ public:
     // Paths to search for helpfiles
     // First, only search vanilla, then search all documentation
     // Lastly, check the deken folder
-    static inline Array<File> const helpPaths = {
+    static inline std::array<File, 9> const helpPaths = {
         ProjectInfo::appDataDir.getChildFile("Documentation"),
         ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("5.reference"),
         ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("9.else"),
@@ -64,7 +64,7 @@ public:
         ProjectInfo::appDataDir.getChildFile("Externals")
     };
 
-    static inline Array<File> const defaultPaths = {
+    static inline std::array<File, 8> const defaultPaths = {
         ProjectInfo::appDataDir.getChildFile("Abstractions").getChildFile("else"),
         ProjectInfo::appDataDir.getChildFile("Abstractions").getChildFile("cyclone"),
         ProjectInfo::appDataDir.getChildFile("Abstractions").getChildFile("heavylib"),

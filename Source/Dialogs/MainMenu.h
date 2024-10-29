@@ -294,7 +294,7 @@ public:
         return item - 1;
     }
 
-    std::vector<IconMenuItem*> menuItems = {
+    std::array<IconMenuItem*, 11> menuItems = {
         new IconMenuItem(Icons::New, "New patch", false, false),
         new IconMenuItem(Icons::Open, "Open patch...", false, false),
         new IconMenuItem(Icons::History, "Recently opened", true, false),

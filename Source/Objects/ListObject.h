@@ -113,7 +113,7 @@ public:
     {
         auto text = listLabel.getText();
         if (force || text != getListText()) {
-            std::vector<pd::Atom> list = pd::Atom::atomsFromString(text);
+            SmallVector<pd::Atom> list = pd::Atom::atomsFromString(text);
             setList(list);
         }
     }
@@ -237,10 +237,10 @@ public:
         return {};
     }
 
-    void setList(std::vector<pd::Atom> value)
+    void setList(SmallVector<pd::Atom> const& value)
     {
         if (auto gatom = ptr.get<t_fake_gatom>())
-            cnv->pd->sendDirectMessage(gatom.get(), std::move(value));
+            cnv->pd->sendDirectMessage(gatom.get(), SmallVector<pd::Atom>(value.begin(), value.end()));
     }
 
     void mouseUp(MouseEvent const& e) override

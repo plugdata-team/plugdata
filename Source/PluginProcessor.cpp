@@ -337,11 +337,11 @@ void PluginProcessor::updateSearchPaths()
     
     libpd_clear_search_path();
 
-    auto paths = pd::Library::defaultPaths;
+    auto paths = SmallVector<File>(pd::Library::defaultPaths.begin(), pd::Library::defaultPaths.end());
 
     for (auto child : pathTree) {
         auto path = child.getProperty("Path").toString().replace("\\", "/");
-        paths.addIfNotAlreadyThere(path);
+        paths.add_unique(path);
     }
 
     for (auto const& path : paths) {
@@ -1438,7 +1438,7 @@ void PluginProcessor::receiveMidiByte(int const port, int const byte)
     }
 }
 
-void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list)
+void PluginProcessor::receiveSysMessage(String const& selector, SmallVector<pd::Atom> const& list)
 {
     switch (hash(selector)) {
     case hash("open"): {
@@ -1783,7 +1783,7 @@ void PluginProcessor::performParameterChange(int type, String const& name, float
     }
 }
 
-void PluginProcessor::fillDataBuffer(std::vector<pd::Atom> const& vec)
+void PluginProcessor::fillDataBuffer(SmallVector<pd::Atom> const& vec)
 {
     if (!vec[0].isSymbol()) {
         logMessage("databuffer accepts only lists beginning with a Symbol atom");
@@ -1827,7 +1827,7 @@ void PluginProcessor::parseDataBuffer(XmlElement const& xml)
     XmlElement const* extra_data = xml.getChildByName(juce::StringRef("ExtraData"));
     if (extra_data) {
         int const nlists = extra_data->getNumChildElements();
-        std::vector<pd::Atom> vec;
+        SmallVector<pd::Atom> vec;
         for (int i = 0; i < nlists; ++i) {
             XmlElement const* list = extra_data->getChildElement(i);
             if (list) {

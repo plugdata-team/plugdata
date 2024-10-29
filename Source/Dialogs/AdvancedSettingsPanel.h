@@ -81,7 +81,7 @@ public:
                 , scaleValue(value)
             {
                 StringArray comboItems = { "50%", "62.5%", "75%", "87.5%", "100%", "112.5%", "125%", "137.5%", "150%", "162.5%", "175%", "187.5%", "200%" };
-                Array<float> scaleValues = { 0.5f, 0.625f, 0.75f, 0.875f, 1.0f, 1.125f, 1.25f, 1.375f, 1.5f, 1.625f, 1.75f, 1.875f, 2.0f };
+                SmallVector<float, 13> scaleValues = { 0.5f, 0.625f, 0.75f, 0.875f, 1.0f, 1.125f, 1.25f, 1.375f, 1.5f, 1.625f, 1.75f, 1.875f, 2.0f };
 
                 comboBox.addItemList(comboItems, 1);
 

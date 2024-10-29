@@ -568,7 +568,7 @@ public:
             // Get length of user-typed text
             int textlen = openedEditor->getText().length();
 
-            if (nearbyMethods.isEmpty() || textlen == 0) {
+            if (nearbyMethods.empty() || textlen == 0) {
                 state = Hidden;
                 if (autoCompleteComponent)
                     autoCompleteComponent->enableAutocomplete(false);
@@ -826,9 +826,9 @@ private:
         return false;
     }
 
-    Array<std::tuple<String, String, String>> findNearbyMethods(String const& toSearch)
+    SmallVector<std::tuple<String, String, String>> findNearbyMethods(String const& toSearch)
     {
-        Array<std::tuple<String, ValueTree, int>> objects;
+        SmallVector<std::tuple<String, ValueTree, int>> objects;
         auto* cnv = currentObject->cnv;
         for (auto* obj : cnv->objects) {
             int distance = currentObject->getPosition().getDistanceFrom(obj->getPosition());
@@ -856,7 +856,7 @@ private:
         });
 
         // Look for object name matches
-        Array<std::tuple<String, String, String>> nearbyMethods;
+        SmallVector<std::tuple<String, String, String>> nearbyMethods;
         for (auto& [objectName, methods, distance] : objects) {
             for (auto method : methods) {
                 if (objectName.contains(toSearch)) {
@@ -891,12 +891,12 @@ private:
 
         // Remove duplicates
         for (int i = nearbyMethods.size() - 1; i >= 0; i--) {
-            auto& [objectName1, method1, distance1] = nearbyMethods.getReference(i);
+            auto& [objectName1, method1, distance1] = nearbyMethods[i];
 
             for (int j = nearbyMethods.size() - 1; j >= 0; j--) {
-                auto& [objectName2, method2, distance2] = nearbyMethods.getReference(j);
+                auto& [objectName2, method2, distance2] = nearbyMethods[j];
                 if (objectName1 == objectName2 && method1 == method2 && i != j) {
-                    nearbyMethods.remove(i);
+                    nearbyMethods.remove_at(i);
                     break;
                 }
             }

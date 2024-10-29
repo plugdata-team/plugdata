@@ -629,7 +629,7 @@ class SmallVectorImpl : public SmallVectorTemplateBase<T> {
         return std::find(this->begin(), this->end(), to_find) != this->end();
     }
     
-    [[nodiscard]] size_t index_of(const T& to_find) const
+    [[nodiscard]] int index_of(const T& to_find) const
     {
         auto it = std::find(this->begin(), this->end(), to_find);
         return (it == this->end()) ? -1 : (size_t)(it - this->begin());

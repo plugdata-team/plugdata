@@ -104,7 +104,7 @@ void PaletteItem::paint(Graphics& g)
     if (!isSubpatch) {
         auto lineBounds = bounds.reduced(2.5f);
 
-        std::vector<float> dashLength = { 5.0f, 5.0f };
+        SmallVector<float> dashLength = { 5.0f, 5.0f };
 
         juce::Path dashedRect;
         dashedRect.addRoundedRectangle(lineBounds, 5.0f);
@@ -139,7 +139,7 @@ void PaletteItem::paint(Graphics& g)
     p.startNewSubPath(x, lineBounds.getY());
 
     auto ioletStroke = PathStrokeType(1.0f);
-    std::vector<std::tuple<Path, Colour>> ioletPaths;
+    SmallVector<std::tuple<Path, Colour>> ioletPaths;
 
     for (int i = 0; i < inlets.size(); i++) {
         Path inletArc;

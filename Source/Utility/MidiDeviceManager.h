@@ -7,6 +7,7 @@
 #pragma once
 #include <juce_audio_utils/juce_audio_utils.h>
 #include "Standalone/InternalSynth.h"
+#include "Utility/SmallVector.h"
 
 class MidiDeviceManager : public ChangeListener
     , public AsyncUpdater {
@@ -15,9 +16,9 @@ public:
     // Helper functions to encode/decode regular MIDI events into a sysex event
     // The reason we do this, is that we want to append extra information to the MIDI event when it comes in from pd or the device, but JUCE won't allow this
     // We still want to be able to use handy JUCE stuff for MIDI timing, so we treat every MIDI event as sysex
-    static std::vector<uint16_t> encodeSysExData(std::vector<uint8_t> const& data)
+    static SmallVector<uint16_t> encodeSysExData(SmallVector<uint8_t> const& data)
     {
-        std::vector<uint16_t> encodedData;
+        SmallVector<uint16_t> encodedData;
         for (auto& value : data) {
             if (value == 0xF0 || value == 0xF7) {
                 // If the value is 0xF0 or 0xF7, encode them in the higher 8 bits. 0xF0 and 0xF8 are already at the top end, so we only need to shift them by 1 position to put it outside of MIDI range. We can't shift by 8, the sysex bytes could still be recognised as sysex bytes!
@@ -30,9 +31,9 @@ public:
         return encodedData;
     }
 
-    static std::vector<uint8_t> decodeSysExData(std::vector<uint16_t> const& encodedData)
+    static SmallVector<uint8_t> decodeSysExData(SmallVector<uint16_t> const& encodedData)
     {
-        std::vector<uint8_t> decodeData;
+        SmallVector<uint8_t> decodeData;
         for (auto& value : encodedData) {
             auto upperByte = value >> 1;
             if (upperByte == 0xF0 || upperByte == 0xF7) {
@@ -50,7 +51,7 @@ public:
         if (ProjectInfo::isStandalone) {
             // We append the device index so we can use it as a selector later
             auto const* data = static_cast<uint8 const*>(m.getRawData());
-            auto message = std::vector<uint8>(data, data + m.getRawDataSize());
+            auto message = SmallVector<uint8>(data, data + m.getRawDataSize());
             message.push_back(device);
             auto encodedMessage = encodeSysExData(message);
 
@@ -66,7 +67,7 @@ public:
         if (ProjectInfo::isStandalone) {
             auto const* sysexData = reinterpret_cast<uint16_t const*>(m.getSysExData());
             auto sysexDataSize = m.getSysExDataSize() / sizeof(uint16_t);
-            auto midiMessage = decodeSysExData(std::vector<uint16_t>(sysexData, sysexData + sysexDataSize));
+            auto midiMessage = decodeSysExData(SmallVector<uint16_t>(sysexData, sysexData + sysexDataSize));
             if (!sysexData)
                 return m;
 

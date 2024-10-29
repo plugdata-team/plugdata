@@ -144,11 +144,11 @@ private:
         rootNode.setProperty(iconIdentifier, Icons::Folder, nullptr);
 
         // visitedDirectories keeps track of dirs we've already processed to prevent infinite loops
-        static Array<hash32> visitedDirectories = {};
+        static SmallVector<hash32> visitedDirectories = {};
 
         auto directoryHash = OSUtils::getUniqueFileHash(directory.getFullPathName());
         if (!visitedDirectories.contains(directoryHash)) {
-            visitedDirectories.add(directoryHash); // Protect against symlink loops!
+            visitedDirectories.push_back(directoryHash); // Protect against symlink loops!
             for (auto const& subDirectory : OSUtils::iterateDirectory(directory, false, false)) {
                 auto pathName = subDirectory.getFullPathName();
                 if (OSUtils::isDirectoryFast(pathName) && subDirectory != directory) {
@@ -157,7 +157,7 @@ private:
                         rootNode.appendChild(childNode, nullptr);
                 }
             }
-            visitedDirectories.removeLast();
+            visitedDirectories.pop_back();
         }
 
         for (auto const& file : OSUtils::iterateDirectory(directory, false, true)) {

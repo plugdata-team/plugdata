@@ -209,7 +209,7 @@ public:
 
     void updateText()
     {
-        std::vector<pd::Atom> atoms;
+        SmallVector<pd::Atom> atoms;
         if (auto messObj = ptr.get<t_fake_messbox>()) {
             auto* av = binbuf_getvec(messObj->x_state);
             auto ac = binbuf_getnatom(messObj->x_state);

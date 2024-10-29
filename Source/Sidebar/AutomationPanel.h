@@ -281,7 +281,7 @@ public:
                 param->setName(newName);
 
                 auto findParamsWithLastName = [this, newName](){
-                    Array<pd::WeakReference> paramObjectsToChange;
+                    SmallVector<pd::WeakReference> paramObjectsToChange;
                     
                     pd->lockAudioThread();
                     // Find [param] object, and update it's param name to new name

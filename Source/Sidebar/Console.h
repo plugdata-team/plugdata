@@ -196,11 +196,11 @@ public:
                     }
                     for(int i = std::min(startIdx, endIdx); i < std::max(startIdx, endIdx); i++)
                     {
-                        console.selectedItems.addIfNotAlreadyThere(SafePointer(console.messages[i].get()));
+                        console.selectedItems.add_unique(SafePointer(console.messages[i].get()));
                     }
                 }
 
-                console.selectedItems.addIfNotAlreadyThere(SafePointer(this));
+                console.selectedItems.add_unique(SafePointer(this));
                 console.repaint();
             }
 
@@ -287,7 +287,7 @@ public:
         pd::Instance* pd; // instance to get console messages from
     public:
         std::deque<std::unique_ptr<ConsoleMessage>> messages;
-        Array<SafePointer<ConsoleMessage>> selectedItems;
+        SmallVector<SafePointer<ConsoleMessage>> selectedItems;
 
         ConsoleComponent(pd::Instance* instance, std::array<Value, 5>& b, Viewport& v)
             : settingsValues(b)
@@ -327,7 +327,7 @@ public:
             if (key == KeyPress('a', ModifierKeys::commandModifier, 0)) {
                 for(auto& message : messages)
                 {
-                    selectedItems.addIfNotAlreadyThere(SafePointer(message.get()));
+                    selectedItems.add_unique(SafePointer(message.get()));
                     repaint();
                 }
                 return true;

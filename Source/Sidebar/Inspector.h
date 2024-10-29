@@ -13,7 +13,7 @@ class Inspector : public Component {
         {
         }
 
-        Value* addProperty(Value* controllerValue, Array<Value*> attachedValues)
+        Value* addProperty(Value* controllerValue, SmallVector<Value*> attachedValues)
         {
             auto* property = properties.add(new Property(this, controllerValue, attachedValues));
             return &property->baseValue;
@@ -26,7 +26,7 @@ class Inspector : public Component {
         
 private:
         struct Property {
-            Property(PropertyRedirector* parent, Value* controllerValue, Array<Value*> attachedValues)
+            Property(PropertyRedirector* parent, Value* controllerValue, SmallVector<Value*> attachedValues)
                 : redirector(parent), values(attachedValues)
             {
                 values.add(controllerValue);
@@ -41,7 +41,7 @@ private:
 
             PropertyRedirector* redirector;
             Value baseValue;
-            Array<Value*> values;
+            SmallVector<Value*> values;
         };
         
         
@@ -158,7 +158,7 @@ public:
 
         panel.clear();
 
-        auto parameterIsInAllObjects = [&objectParameters](ObjectParameter& param, Array<Value*>& values) {
+        auto parameterIsInAllObjects = [&objectParameters](ObjectParameter& param, SmallVector<Value*>& values) {
             auto& [name1, type1, category1, value1, options1, defaultVal1, customComponent1, onInteractionFn1] = param;
 
             if (objectParameters.size() > 1 && (name1 == "Size" || name1 == "Position" || name1 == "Height")) {
@@ -199,7 +199,7 @@ public:
                     continue;
                 } else if (static_cast<int>(category) == i) {
 
-                    Array<Value*> otherValues;
+                    SmallVector<Value*> otherValues;
                     if (!parameterIsInAllObjects(parameter, otherValues))
                         continue;
 

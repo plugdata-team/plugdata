@@ -32,7 +32,7 @@ class LuaObject final : public ObjectBase, private Value::Listener
 
     struct LuaGuiMessage {
         t_symbol* symbol;
-        std::vector<t_atom> data;
+        SmallVector<t_atom> data;
         int size;
 
         LuaGuiMessage() {};
@@ -40,7 +40,7 @@ class LuaObject final : public ObjectBase, private Value::Listener
         LuaGuiMessage(t_symbol* sym, int argc, t_atom* argv)
             : symbol(sym)
         {
-            data = std::vector<t_atom>(argv, argv + argc);
+            data = SmallVector<t_atom>(argv, argv + argc);
             size = argc;
         }
 
@@ -67,7 +67,7 @@ class LuaObject final : public ObjectBase, private Value::Listener
     std::map<int, std::vector<LuaGuiMessage>> guiCommandBuffer;
     std::map<int, moodycamel::ReaderWriterQueue<LuaGuiMessage>> guiMessageQueue;
 
-    static inline std::map<t_pdlua*, std::vector<LuaObject*>> allDrawTargets = std::map<t_pdlua*, std::vector<LuaObject*>>();
+    static inline std::map<t_pdlua*, SmallVector<LuaObject*>> allDrawTargets = std::map<t_pdlua*, SmallVector<LuaObject*>>();
 
 public:
     LuaObject(pd::WeakReference obj, Object* parent)
@@ -568,7 +568,7 @@ public:
             if(!_this) return;
             
             if (!hasChanged) {
-                cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
+                cnv->editor->openTextEditors.remove_all(ptr);
                 textEditor.reset(nullptr);
                 return;
             }
@@ -585,12 +585,12 @@ public:
                                 pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
                             }
                         }
-                        _this->cnv->editor->openTextEditors.removeAllInstancesOf(_this->ptr);
+                        _this->cnv->editor->openTextEditors.remove_all(_this->ptr);
                         _this->textEditor.reset(nullptr);
                         _this->cnv->synchronise();
                     }
                     if (result == 1) {
-                        _this->cnv->editor->openTextEditors.removeAllInstancesOf(_this->ptr);
+                        _this->cnv->editor->openTextEditors.remove_all(_this->ptr);
                         _this->textEditor.reset(nullptr);
                     }
                 },
@@ -610,7 +610,7 @@ public:
         textEditor.reset(Dialogs::showTextEditorDialog(fileToOpen.loadFileAsString(), "lua: " + getText(), onClose, onSave, true));
 
         if (textEditor)
-            cnv->editor->openTextEditors.addIfNotAlreadyThere(ptr);
+            cnv->editor->openTextEditors.add_unique(ptr);
     }
 };
 
@@ -678,7 +678,7 @@ public:
         auto onClose = [_this = SafePointer(this), this, fileToOpen](String const& newText, bool hasChanged) {
             if(!_this) return;
             if (!hasChanged) {
-                cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
+                cnv->editor->openTextEditors.remove_all(ptr);
                 textEditor.reset(nullptr);
                 return;
             }
@@ -694,12 +694,12 @@ public:
                                 pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
                             }
                         }
-                        cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
+                        cnv->editor->openTextEditors.remove_all(ptr);
                         textEditor.reset(nullptr);
                         cnv->synchronise();
                     }
                     if (result == 1) {
-                        cnv->editor->openTextEditors.removeAllInstancesOf(ptr);
+                        cnv->editor->openTextEditors.remove_all(ptr);
                         textEditor.reset(nullptr);
                     }
                 },
@@ -717,6 +717,6 @@ public:
         textEditor.reset(Dialogs::showTextEditorDialog(fileToOpen.loadFileAsString(), "lua: " + getText(), onClose, onSave, true));
 
         if (textEditor)
-            cnv->editor->openTextEditors.addIfNotAlreadyThere(ptr);
+            cnv->editor->openTextEditors.add_unique(ptr);
     }
 };

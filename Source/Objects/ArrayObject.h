@@ -44,7 +44,7 @@ public:
 
         updateParameters();
 
-        for (auto* value : std::vector<Value*> { &name, &size, &drawMode, &saveContents, &range }) {
+        for (auto* value : SmallVector<Value*> { &name, &size, &drawMode, &saveContents, &range }) {
             // TODO: implement undo/redo for these values!
             value->addListener(this);
         }
@@ -900,7 +900,7 @@ public:
     OwnedArray<ArrayListView> lists;
     PluginProcessor* pd;
 
-    ArrayEditorDialog(PluginProcessor* instance, std::vector<void*> const& arrays, Object* parent)
+    ArrayEditorDialog(PluginProcessor* instance, SmallVector<void*> const& arrays, Object* parent)
         : resizer(this, &constrainer)
         , pd(instance)
     {
@@ -1277,10 +1277,10 @@ public:
         }
     }
 
-    std::vector<void*> getArrays() const
+    SmallVector<void*> getArrays() const
     {
         if (auto c = ptr.get<t_canvas>()) {
-            std::vector<void*> arrays;
+            SmallVector<void*> arrays;
 
             t_gobj* x = reinterpret_cast<t_gobj*>(c->gl_list);
             if (x) {
@@ -1388,7 +1388,7 @@ public:
         }
 
         if (auto c = ptr.get<t_canvas>()) {
-            std::vector<void*> arrays;
+            SmallVector<void*> arrays;
 
             t_glist* x = c.get();
             t_gobj* gl = (x->gl_list ? pd_checkglist(&x->gl_list->g_pd)->gl_list : nullptr);
