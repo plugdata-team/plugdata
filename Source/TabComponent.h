@@ -45,7 +45,7 @@ public:
 
     SmallVector<Canvas*> getCanvases();
     
-    using VisibleCanvasArray = SmallVector<Canvas*, sizeof(Canvas*) * 2>;
+    using VisibleCanvasArray = SmallVector<Canvas*, 2>;
     VisibleCanvasArray getVisibleCanvases();
 
 private:
@@ -326,7 +326,7 @@ private:
     std::array<OwnedArray<TabBarButtonComponent>, 2> tabbars;
     std::array<SafePointer<Canvas>, 2> splits = { nullptr, nullptr };
         
-    std::array<Array<SafePointer<Canvas>>, 2> lastShownTabs;
+    std::array<SmallVector<SafePointer<Canvas>>, 2> lastShownTabs;
 
     std::array<pd::Patch*, 2> lastSplitPatches { nullptr, nullptr };
     t_glist* lastActiveCanvas = nullptr;

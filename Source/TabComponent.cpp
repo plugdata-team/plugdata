@@ -772,21 +772,24 @@ void TabComponent::closeTab(Canvas* cnv)
 
 void TabComponent::addLastShownTab(Canvas* tab, int split)
 {
-    if(lastShownTabs[split].contains(tab)) lastShownTabs[split].removeFirstMatchingValue(tab);
-    lastShownTabs[split].add(tab);
-    while(lastShownTabs[split].size() > 15) lastShownTabs[split].remove(0);
+    if(lastShownTabs[split].contains(tab)) lastShownTabs[split].remove_one(tab);
+    lastShownTabs[split].push_back(tab);
+    while(lastShownTabs[split].size() > 15) lastShownTabs[split].remove_at(0);
 }
 
 Canvas* TabComponent::getLastShownTab(Canvas* current, int split)
 {
     Canvas* lastShownTab = nullptr;
-    for (auto it = lastShownTabs[split].end(); it != lastShownTabs[split].begin();)
+    for (auto it = lastShownTabs[split].rbegin(); it != lastShownTabs[split].rend(); ++it)
     {
-        --it;
         lastShownTab = *it;
-        if(lastShownTab == current) continue;
-        lastShownTabs[split].removeRange(lastShownTabs[split].indexOf(*it), lastShownTabs[split].size()-1);
-        if(lastShownTab) break;
+        if (lastShownTab == current) continue;
+
+        auto index = std::distance(it, lastShownTabs[split].rend()) - 1;
+        if (lastShownTab) {
+            lastShownTabs[split].remove_range(index, lastShownTabs[split].size() - 1);
+            break;
+        }
     }
     return lastShownTab;
 }

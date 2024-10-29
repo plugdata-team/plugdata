@@ -635,6 +635,50 @@ class SmallVectorImpl : public SmallVectorTemplateBase<T> {
         return (it == this->end()) ? -1 : (size_t)(it - this->begin());
     }
     
+    bool remove_one(const T& to_find) {
+        auto it = std::find(this->begin(), this->end(), to_find);
+        if (it != this->end()) {
+            this->erase(it);
+            return true;
+        }
+        return false;  // Element not found
+    }
+    
+    bool remove_all(const T& to_find) {
+        auto initial_size = this->size();
+        this->erase(std::remove(this->begin(), this->end(), to_find), this->end());
+        return this->size() < initial_size;  // True if at least one element was removed
+    }
+    
+    bool remove_at(size_t index) {
+        if (index < this->size()) {
+            this->erase(this->begin() + index);
+            return true;
+        }
+        return false;  // Index out of bounds
+    }
+    
+    bool remove_range(size_t start, size_t end) {
+        if (start >= end || start >= this->size() || end > this->size()) {
+            return false;  // Invalid range
+        }
+        this->erase(this->begin() + start, this->begin() + end);
+        return true;
+    }
+    
+    bool add_unique(const T& to_add) {
+        if (std::find(this->begin(), this->end(), to_add) == this->end()) {
+            this->push_back(to_add);
+            return true;
+        }
+        return false;  // Element already exists
+    }
+    
+    void add(const T& to_add)
+    {
+        this->push_back(to_add);
+    }
+    
     void clear() {
         this->destroy_range(this->begin(), this->end());
         this->Size = 0;
