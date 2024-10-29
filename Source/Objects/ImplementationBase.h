@@ -46,8 +46,7 @@ public:
     void handleAsyncUpdate() override;
 
 private:
-    void getSubCanvases(t_canvas* patch, Array<t_canvas*>& allCanvases);
-    void getAllObjects(t_canvas* patch, Array<std::pair<t_canvas*, t_gobj*>>& allObjects);
+    void getSubCanvases(t_canvas* patch, SmallVector<t_canvas*>& allCanvases);
     
     Array<std::pair<t_canvas*, t_gobj*>>  getImplementationsForPatch(t_canvas* patch);
 

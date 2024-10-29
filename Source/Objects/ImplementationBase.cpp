@@ -129,15 +129,15 @@ ObjectImplementationManager::ObjectImplementationManager(pd::Instance* processor
 
 void ObjectImplementationManager::handleAsyncUpdate()
 {
-    Array<std::pair<t_canvas*, t_gobj*>> allImplementations;
+    SmallVector<std::pair<t_canvas*, t_gobj*>> allImplementations;
 
     pd->setThis();
 
     pd->lockAudioThread();
     
-    Array<t_canvas*> allCanvases;
+    SmallVector<t_canvas*> allCanvases;
     for (auto* topLevelCnv = pd_getcanvaslist(); topLevelCnv; topLevelCnv = topLevelCnv->gl_next) {
-        allCanvases.add(topLevelCnv);
+        allCanvases.push_back(topLevelCnv);
         getSubCanvases(topLevelCnv, allCanvases);
     }
     
@@ -145,7 +145,7 @@ void ObjectImplementationManager::handleAsyncUpdate()
         for (t_gobj* y = glist->gl_list; y; y = y->g_next) {
             auto const* name = pd::Interface::getObjectClassName(&y->g_pd);
             if (ImplementationBase::hasImplementation(name)) {
-                allImplementations.add({glist, y});
+                allImplementations.push_back({glist, y});
             }
         }
     }
@@ -183,16 +183,16 @@ void ObjectImplementationManager::updateObjectImplementations()
     triggerAsyncUpdate();
 }
 
-void ObjectImplementationManager::getSubCanvases(t_canvas* canvas, Array<t_canvas*>& allCanvases)
+void ObjectImplementationManager::getSubCanvases(t_canvas* canvas, SmallVector<t_canvas*>& allCanvases)
 {
     for (t_gobj* y = canvas->gl_list; y; y = y->g_next) {
         if (pd_class(&y->g_pd) == canvas_class) {
-            allCanvases.add((t_canvas*)y);
+            allCanvases.push_back((t_canvas*)y);
             getSubCanvases((t_canvas*)y, allCanvases);
         }
         else if (pd_class(&y->g_pd) == clone_class) {
             for (int i = 0; i < clone_get_n(y); i++) {
-                allCanvases.add((t_canvas*)y);
+                allCanvases.push_back((t_canvas*)y);
                 getSubCanvases((t_canvas*)clone_get_instance(y, i), allCanvases);
             }
         }
