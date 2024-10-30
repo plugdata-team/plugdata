@@ -506,22 +506,34 @@ public:
     {
         setTooltip("MIDI activity");
         setRepaintsOnMouseActivity(true);
+
+        lookAndFeelChanged();
+    }
+
+    void lookAndFeelChanged() override
+    {
+        activeColour = findColour(PlugDataColour::levelMeterActiveColourId);
+        bgColour = findColour(PlugDataColour::levelMeterBackgroundColourId);
+        textColour = findColour(PlugDataColour::toolbarTextColourId);
     }
 
     void paint(Graphics& g) override
     {
         auto isHovered = isMouseOver() || currentCalloutBox;
 
-        Fonts::drawIcon(g, Icons::MIDI, getLocalBounds().removeFromLeft(16).withTrimmedTop(1), findColour(PlugDataColour::toolbarTextColourId).brighter(isHovered ? 0.8f : 0.0f), 13);
+        Fonts::drawIcon(g, Icons::MIDI, getLocalBounds().removeFromLeft(16).withTrimmedTop(1), textColour.brighter(isHovered ? 0.8f : 0.0f), 13);
 
-        auto midiInRect = Rectangle<float>(27.5f, 9.5f, 15.0f, 3.0f);
-        auto midiOutRect = Rectangle<float>(27.5f, 18.5f, 15.0f, 3.0f);
+        auto offsetY = getHeight() / 4.0f;
+        const auto offsetX = 20.0f;
 
-        g.setColour(blinkMidiIn ? findColour(PlugDataColour::levelMeterActiveColourId) : findColour(PlugDataColour::levelMeterBackgroundColourId).brighter(isHovered ? 0.2f : 0.0f));
-        g.fillRoundedRectangle(midiInRect, 1.0f);
+        auto midiInPos = Point<float>(offsetX, offsetY);
+        auto midiOutPos = Point<float>(offsetX, offsetY * 2.4f);
 
-        g.setColour(blinkMidiOut ? findColour(PlugDataColour::levelMeterActiveColourId) : findColour(PlugDataColour::levelMeterBackgroundColourId).brighter(isHovered ? 0.2f : 0.0f));
-        g.fillRoundedRectangle(midiOutRect, 1.0f);
+        g.setColour(blinkMidiIn ? activeColour : bgColour.brighter(isHovered ? 0.2f : 0.0f));
+        g.fillEllipse(midiInPos.x, midiInPos.y, 5, 5);
+
+        g.setColour(blinkMidiOut ? activeColour : bgColour.brighter(isHovered ? 0.2f : 0.0f));
+        g.fillEllipse(midiOutPos.x, midiOutPos.y, 5, 5);
     }
 
     void midiReceivedChanged(bool midiReceived) override
@@ -572,6 +584,11 @@ public:
     bool blinkMidiOut = false;
     bool isCallOutBoxActive = false;
     MIDIListModel messages;
+
+    Colour activeColour;
+    Colour bgColour;
+    Colour textColour;
+
     static inline SafePointer<CallOutBox> currentCalloutBox = nullptr;
 };
 
@@ -1154,8 +1171,8 @@ void Statusbar::resized()
     midiBlinker->setVisible(getWidth() > 500);
     cpuMeter->setVisible(getWidth() > 500);
 
-    midiBlinker->setBounds(position(55, true) + 10, 0, 55, getHeight());
-    cpuMeter->setBounds(position(45, true), 0, 50, getHeight());
+    midiBlinker->setBounds(position(33, true) + 10, 0, 33, getHeight());
+    cpuMeter->setBounds(position(40, true), 0, 50, getHeight());
     latencyDisplayButton->setBounds(position(104, true), 0, 100, getHeight());
 }
 
