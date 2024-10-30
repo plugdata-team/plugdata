@@ -57,7 +57,7 @@ struct PackageInfo {
 };
 
 // Array with package info to store the result of a search action in
-using PackageList = Array<PackageInfo>;
+using PackageList = HeapArray<PackageInfo>;
 
 struct PackageSorter {
     static void sort(ValueTree& packageState)
@@ -537,7 +537,7 @@ public:
             Fonts::drawText(g, errorMessage, getLocalBounds().removeFromBottom(28).withTrimmedLeft(8).translated(0, 2), Colours::red);
         }
 
-        if (searchResult.isEmpty()) {
+        if (searchResult.empty()) {
             auto message = installedButton.getToggleState() ? "No externals installed" : "Couldn't find any externals";
             Fonts::drawText(g, message, getLocalBounds().withTrimmedTop(40).removeFromTop(32), findColour(PlugDataColour::panelTextColourId), 14, Justification::centred);
         }
@@ -567,7 +567,7 @@ public:
         if (isPositiveAndBelow(rowNumber, packageManager->downloads.size())) {
             return new DekenRowComponent(*this, packageManager->downloads[rowNumber]->packageInfo, isFirst, isLast);
         } else if (isPositiveAndBelow(rowNumber - packageManager->downloads.size(), searchResult.size())) {
-            return new DekenRowComponent(*this, searchResult.getReference(rowNumber - packageManager->downloads.size()), isFirst, isLast);
+            return new DekenRowComponent(*this, searchResult[rowNumber - packageManager->downloads.size()], isFirst, isLast);
         }
 
         return nullptr;
@@ -598,7 +598,7 @@ public:
 
                 auto info = PackageInfo(name, author, timestamp, url, description, version, objects);
 
-                searchResult.addIfNotAlreadyThere(info);
+                searchResult.add_unique(info);
             }
 
             listBox.updateContent();
@@ -611,28 +611,28 @@ public:
             // First check for name match
             for (auto const& result : allPackages) {
                 if (result.name.contains(query)) {
-                    newResult.addIfNotAlreadyThere(result);
+                    newResult.add_unique(result);
                 }
             }
 
             // Then check for description match
             for (auto const& result : allPackages) {
                 if (result.description.contains(query)) {
-                    newResult.addIfNotAlreadyThere(result);
+                    newResult.add_unique(result);
                 }
             }
 
             // Then check for object match
             for (auto const& result : allPackages) {
                 if (result.objects.contains(query)) {
-                    newResult.addIfNotAlreadyThere(result);
+                    newResult.add_unique(result);
                 }
             }
 
             // Then check for author match
             for (auto const& result : allPackages) {
                 if (result.author.contains(query)) {
-                    newResult.addIfNotAlreadyThere(result);
+                    newResult.add_unique(result);
                 }
             }
 
@@ -640,7 +640,7 @@ public:
             for (auto const& result : allPackages) {
                 for (auto const& obj : result.objects) {
                     if (obj.contains(query)) {
-                        newResult.addIfNotAlreadyThere(result);
+                        newResult.add_unique(result);
                     }
                 }
             }
@@ -649,7 +649,7 @@ public:
         }
 
         // Downloads are already always visible, so filter them out here
-        newResult.removeIf([this](PackageInfo const& package) {
+        newResult.remove_if([this](PackageInfo const& package) {
             for (const auto* download : packageManager->downloads) {
                 if (download->packageInfo == package) {
                     return true;

@@ -24,14 +24,14 @@ public:
     }
 
     // Get the last x elements since the last pushed value
-    std::vector<T> last(size_t x) const
+    SmallArray<T> last(size_t x) const
     {
-        std::vector<T> result;
+        SmallArray<T> result;
 
         int end = static_cast<int>(i) - 1;
         int start = end - static_cast<int>(x);
         for (int j = start; j < end; j++) {
-            result.push_back(data[mask(j)]);
+            result.add(data[mask(j)]);
         }
 
         return result;
@@ -49,7 +49,7 @@ public:
 
 private:
     size_t const size;
-    std::vector<T> data;
+    HeapArray<T> data;
     size_t i;
 
     size_t mask(size_t val) const

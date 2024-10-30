@@ -376,7 +376,7 @@ protected:
 
                         auto& glyph = run->glyphs.getReference(i);
                         auto lineBounds = Rectangle<float>(glyph.width, 14).withPosition((glyph.anchor + line.lineOrigin));
-                        currentLinkBounds = linkBounds.isEmpty() ? lineBounds : currentLinkBounds.getUnion(lineBounds);
+                        currentLinkBounds = linkBounds.empty() ? lineBounds : currentLinkBounds.getUnion(lineBounds);
                     }
 
                     linkBounds.add({ link, currentLinkBounds.translated(0, -11) });
@@ -398,8 +398,8 @@ protected:
     AttributedString attributedString;
 
 private:
-    Array<std::pair<String, Rectangle<float>>> linkBounds;
-    Array<std::tuple<String, int, int>> links;
+    HeapArray<std::pair<String, Rectangle<float>>> linkBounds;
+    HeapArray<std::tuple<String, int, int>> links;
 };
 
 class TextBlock : public Block {
@@ -554,9 +554,9 @@ public:
             OwnedArray<Cell>* row = table.cells[i];
             for (int j = 0; j < row->size(); j++) {
                 if (j < table.columnwidths.size()) {
-                    table.columnwidths.set(j, jmax(table.columnwidths[j], (*row)[j]->width));
+                    table.columnwidths[j] = jmax(table.columnwidths[j], (*row)[j]->width);
                 } else {
-                    table.columnwidths.set(j, (*row)[j]->width);
+                    table.columnwidths[j] = (*row)[j]->width;
                 }
             }
         }
@@ -568,7 +568,7 @@ public:
             for (int j = 0; j < row->size(); j++) {
                 rowheight = jmax(rowheight, (*row)[j]->height);
             }
-            table.rowheights.set(i, rowheight);
+            table.rowheights[i] = rowheight;
         }
         table.setBounds(0, 0, getWidthRequired() + table.leftmargin + table.cellgap, getHeightRequired(0.f));
     }
@@ -682,8 +682,8 @@ private:
         }
 
         OwnedArray<OwnedArray<Cell>> cells;
-        Array<float> columnwidths;
-        Array<float> rowheights;
+        HeapArray<float> columnwidths;
+        HeapArray<float> rowheights;
         Colour bg, bgHeader;
         int cellmargin, cellgap, leftmargin;
     };

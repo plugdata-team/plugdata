@@ -8,7 +8,6 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "Utility/Config.h"
-#include "Utility/SmallVector.h"
 #include "Pd/Instance.h"
 
 class ImageWithOffset {
@@ -28,12 +27,12 @@ public:
     static String patchToSVG(String const& patch);
     static ImageWithOffset patchToMaskedImage(String const& patch, float scale, bool makeInvalidImage = false);
     
-    static std::pair<SmallVector<bool>, SmallVector<bool>> countIolets(String const& patch);
+    static std::pair<SmallArray<bool>, SmallArray<bool>> countIolets(String const& patch);
     static bool checkIfPatchIsValid(String const& patch);
 
 private:
     
-    static Array<Rectangle<int>> getObjectBoundsForPatch(String const& patch);
+    static HeapArray<Rectangle<int>> getObjectBoundsForPatch(String const& patch);
     static bool parseGraphSize(String const& objectText, Rectangle<int>& bounds);
 
     static ImageWithOffset patchToTempImage(String const& patch, float scale);

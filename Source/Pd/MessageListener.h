@@ -149,7 +149,7 @@ public:
                 if (listener)
                     listener->receiveMessage(symbol, atoms, message.size);
                 else
-                    nullListeners.push_back({ message.target, it });
+                    nullListeners.add({ message.target, it });
             }
         }
 
@@ -163,7 +163,7 @@ private:
     static constexpr int stackSize = 65536;
     using MessageStack = ThreadSafeStack<Message, stackSize>;
 
-    SmallVector<std::pair<void*, std::set<juce::WeakReference<pd::MessageListener>>::iterator>, 16> nullListeners;
+    SmallArray<std::pair<void*, std::set<juce::WeakReference<pd::MessageListener>>::iterator>, 16> nullListeners;
     std::unordered_set<intptr_t> usedHashes;
     MessageStack messageStack;
 

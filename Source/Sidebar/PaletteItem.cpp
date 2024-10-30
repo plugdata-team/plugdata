@@ -104,7 +104,7 @@ void PaletteItem::paint(Graphics& g)
     if (!isSubpatch) {
         auto lineBounds = bounds.reduced(2.5f);
 
-        SmallVector<float> dashLength = { 5.0f, 5.0f };
+        SmallArray<float> dashLength = { 5.0f, 5.0f };
 
         juce::Path dashedRect;
         dashedRect.addRoundedRectangle(lineBounds, 5.0f);
@@ -139,7 +139,7 @@ void PaletteItem::paint(Graphics& g)
     p.startNewSubPath(x, lineBounds.getY());
 
     auto ioletStroke = PathStrokeType(1.0f);
-    SmallVector<std::tuple<Path, Colour>> ioletPaths;
+    SmallArray<std::tuple<Path, Colour>> ioletPaths;
 
     for (int i = 0; i < inlets.size(); i++) {
         Path inletArc;
@@ -165,7 +165,7 @@ void PaletteItem::paint(Graphics& g)
         inletArc.addCentredArc(inletBounds.getCentreX(), inletBounds.getCentreY(), inletRadius, inletRadius, 0.0f, fromRadians, toRadians, false);
 
         auto inletColour = inlets[i] ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId);
-        ioletPaths.push_back(std::tuple<Path, Colour>(inletArc, inletColour));
+        ioletPaths.add(std::tuple<Path, Colour>(inletArc, inletColour));
     }
 
     p.lineTo(lineBounds.getTopRight().translated(-cornerRadius, 0));
@@ -200,7 +200,7 @@ void PaletteItem::paint(Graphics& g)
         outletArc.addCentredArc(outletBounds.getCentreX(), lineBounds.getBottom(), outletRadius, outletRadius, 0.0f, fromRadians, toRadians, false);
 
         auto outletColour = outlets[i] ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId);
-        ioletPaths.push_back(std::tuple<Path, Colour>(outletArc, outletColour));
+        ioletPaths.add(std::tuple<Path, Colour>(outletArc, outletColour));
     }
 
     p.lineTo(lineBounds.getBottomLeft().translated(cornerRadius, 0));
@@ -305,11 +305,11 @@ bool PaletteItem::isSubpatchOrAbstraction(String const& patchAsString)
     return lines.size() == 1 || (lines[0].startsWith("#N canvas") && lines[lines.size() - 1].startsWith("#X restore"));
 }
 
-std::pair<SmallVector<bool>, SmallVector<bool>> PaletteItem::countIolets(String const& patchAsString)
+std::pair<SmallArray<bool>, SmallArray<bool>> PaletteItem::countIolets(String const& patchAsString)
 {
 
-    std::array<SmallVector<std::pair<bool, Point<int>>>, 2> iolets;
-    auto& [inlets, outlets] = iolets;
+    StackArray<SmallArray<std::pair<bool, Point<int>>>, 2> iolets;
+    auto& [inlets, outlets] = iolets.data_;
     int canvasDepth = patchAsString.startsWith("#N canvas") ? -1 : 0;
 
     auto isObject = [](StringArray& tokens) {
@@ -328,13 +328,13 @@ std::pair<SmallVector<bool>, SmallVector<bool>> PaletteItem::countIolets(String 
         auto position = Point<int>(tokens[2].getIntValue(), tokens[3].getIntValue());
         auto name = tokens[4];
         if (name == "inlet")
-            inlets.push_back({ false, position });
+            inlets.add({ false, position });
         if (name == "outlet")
-            outlets.push_back({ false, position });
+            outlets.add({ false, position });
         if (name == "inlet~")
-            inlets.push_back({ true, position });
+            inlets.add({ true, position });
         if (name == "outlet~")
-            outlets.push_back({ true, position });
+            outlets.add({ true, position });
     };
 
     auto lines = StringArray::fromLines(patchAsString);
@@ -377,13 +377,13 @@ std::pair<SmallVector<bool>, SmallVector<bool>> PaletteItem::countIolets(String 
     std::sort(inlets.begin(), inlets.end(), ioletSortFunc);
     std::sort(outlets.begin(), outlets.end(), ioletSortFunc);
 
-    auto result = std::pair<SmallVector<bool>, SmallVector<bool>>();
+    auto result = std::pair<SmallArray<bool>, SmallArray<bool>>();
 
     for (auto& [type, position] : inlets) {
-        result.first.push_back(type);
+        result.first.add(type);
     }
     for (auto& [type, position] : outlets) {
-        result.second.push_back(type);
+        result.second.add(type);
     }
 
     return result;

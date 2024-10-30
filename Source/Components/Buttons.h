@@ -25,14 +25,13 @@ public:
 
         auto textColour = findColour(PlugDataColour::toolbarTextColourId).withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
 
-        AttributedString attributedIcon;
-        attributedIcon.append(getButtonText(), Fonts::getIconFont().withHeight(getHeight() / 2.7), textColour);
-        attributedIcon.setJustification(Justification::centred);
-
 #if JUCE_MAC
         bounds = bounds.withTrimmedBottom(2);
 #endif
-        attributedIcon.draw(g, bounds);
+        
+        g.setFont(Fonts::getIconFont().withHeight(getHeight() / 2.7));
+        g.setColour(textColour);
+        g.drawText(getButtonText(), bounds, Justification::centred);
     }
     
     // On macOS, we need to make sure that dragging any of these buttons doesn't drag the whole titlebar
@@ -90,10 +89,9 @@ public:
 
         auto textColour = findColour(PlugDataColour::toolbarTextColourId).withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
 
-        AttributedString attributedIcon;
-        attributedIcon.append(getButtonText(), Fonts::getIconFont().withHeight(getHeight() / 2.8), textColour);
-        attributedIcon.setJustification(Justification::centred);
-        attributedIcon.draw(g, getLocalBounds().toFloat());
+        g.setFont(Fonts::getIconFont().withHeight(getHeight() / 2.8));
+        g.setColour(textColour);
+        g.drawText(getButtonText(), getLocalBounds(), Justification::centred);
     }
     
     // On macOS, we need to make sure that dragging any of these buttons doesn't drag the whole titlebar

@@ -38,17 +38,17 @@ struct pd::Instance::internal {
 
     static void instance_multi_float(pd::Instance* ptr, char const* recv, float f)
     {
-        ptr->enqueueGuiMessage({ String("float"), String::fromUTF8(recv), SmallVector<Atom>(1, { f }) });
+        ptr->enqueueGuiMessage({ String("float"), String::fromUTF8(recv), SmallArray<Atom>(1, { f }) });
     }
 
     static void instance_multi_symbol(pd::Instance* ptr, char const* recv, char const* sym)
     {
-        ptr->enqueueGuiMessage({ String("symbol"), String::fromUTF8(recv), SmallVector<Atom>(1, ptr->generateSymbol(sym)) });
+        ptr->enqueueGuiMessage({ String("symbol"), String::fromUTF8(recv), SmallArray<Atom>(1, ptr->generateSymbol(sym)) });
     }
 
     static void instance_multi_list(pd::Instance* ptr, char const* recv, int argc, t_atom* argv)
     {
-        Message mess { String("list"), String::fromUTF8(recv), SmallVector<Atom>(argc) };
+        Message mess { String("list"), String::fromUTF8(recv), SmallArray<Atom>(argc) };
         for (int i = 0; i < argc; ++i) {
             if (argv[i].a_type == A_FLOAT)
                 mess.list[i] = Atom(atom_getfloat(argv + i));
@@ -61,7 +61,7 @@ struct pd::Instance::internal {
 
     static void instance_multi_message(pd::Instance* ptr, char const* recv, char const* msg, int argc, t_atom* argv)
     {
-        Message mess { msg, String::fromUTF8(recv), SmallVector<Atom>(argc) };
+        Message mess { msg, String::fromUTF8(recv), SmallArray<Atom>(argc) };
         for (int i = 0; i < argc; ++i) {
             if (argv[i].a_type == A_FLOAT)
                 mess.list[i] = Atom(atom_getfloat(argv + i));
@@ -376,6 +376,8 @@ void Instance::initialisePd(String& pdlua_version)
     // ag: need to do this here to suppress noise from chatty externals
     printReceiver = pd::Setup::createPrintHook(this, reinterpret_cast<t_plugdata_printhook>(internal::instance_multi_print));
     libpd_set_verbose(0);
+    
+    set_plugdata_debugging_enabled(SettingsFile::getInstance()->getProperty<bool>("debug_connections"));
 }
 
 int Instance::getBlockSize()
@@ -496,9 +498,9 @@ void Instance::sendSymbol(char const* receiver, char const* symbol) const
     libpd_symbol(receiver, symbol);
 }
 
-void Instance::sendList(char const* receiver, SmallVector<Atom> const& list) const
+void Instance::sendList(char const* receiver, SmallArray<Atom> const& list) const
 {
-    auto argv = SmallVector<t_atom>(list.size());
+    auto argv = SmallArray<t_atom>(list.size());
     libpd_set_instance(static_cast<t_pdinstance*>(instance));
     for (size_t i = 0; i < list.size(); ++i) {
         if (list[i].isFloat())
@@ -509,14 +511,14 @@ void Instance::sendList(char const* receiver, SmallVector<Atom> const& list) con
     libpd_list(receiver, static_cast<int>(list.size()), argv.data());
 }
 
-void Instance::sendTypedMessage(void* object, char const* msg, SmallVector<Atom> const& list) const
+void Instance::sendTypedMessage(void* object, char const* msg, SmallArray<Atom> const& list) const
 {
     if (!object)
         return;
 
     libpd_set_instance(static_cast<t_pdinstance*>(instance));
 
-    auto argv = SmallVector<t_atom>(list.size());
+    auto argv = SmallArray<t_atom>(list.size());
 
     for (size_t i = 0; i < list.size(); ++i) {
         if (list[i].isFloat())
@@ -528,7 +530,7 @@ void Instance::sendTypedMessage(void* object, char const* msg, SmallVector<Atom>
     pd_typedmess(static_cast<t_pd*>(object), generateSymbol(msg), static_cast<int>(list.size()), argv.data());
 }
 
-void Instance::sendMessage(char const* receiver, char const* msg, SmallVector<Atom> const& list) const
+void Instance::sendMessage(char const* receiver, char const* msg, SmallArray<Atom> const& list) const
 {
     sendTypedMessage(generateSymbol(receiver)->s_thing, msg, list);
 }
@@ -537,7 +539,7 @@ void Instance::processSend(dmessage mess)
 {
     if (auto obj = mess.object.get<t_pd>()) {
         if (mess.selector == "list") {
-            auto argv = SmallVector<t_atom>(mess.list.size());
+            auto argv = SmallArray<t_atom>(mess.list.size());
             for (size_t i = 0; i < mess.list.size(); ++i) {
                 if (mess.list[i].isFloat())
                     SETFLOAT(argv.data() + i, mess.list[i].getFloat());
@@ -572,7 +574,7 @@ void Instance::unregisterMessageListener(void* object, MessageListener* messageL
 void Instance::registerWeakReference(void* ptr, pd_weak_reference* ref)
 {
     weakReferenceMutex.lock();
-    pdWeakReferences[ptr].push_back(ref);
+    pdWeakReferences[ptr].add(ref);
     weakReferenceMutex.unlock();
 }
 
@@ -612,14 +614,14 @@ void Instance::enqueueGuiMessage(Message const& message)
     triggerAsyncUpdate();
 }
 
-void Instance::sendDirectMessage(void* object, String const& msg, SmallVector<Atom>&& list)
+void Instance::sendDirectMessage(void* object, String const& msg, SmallArray<Atom>&& list)
 {
     lockAudioThread();
     processSend(dmessage(this, object, String(), msg, std::move(list)));
     unlockAudioThread();
 }
 
-void Instance::sendDirectMessage(void* object, SmallVector<Atom>&& list)
+void Instance::sendDirectMessage(void* object, SmallArray<Atom>&& list)
 {
     lockAudioThread();
     processSend(dmessage(this, object, String(), "list", std::move(list)));
@@ -630,14 +632,14 @@ void Instance::sendDirectMessage(void* object, String const& msg)
 {
 
     lockAudioThread();
-    processSend(dmessage(this, object, String(), "symbol", SmallVector<Atom>(1, generateSymbol(msg))));
+    processSend(dmessage(this, object, String(), "symbol", SmallArray<Atom>(1, generateSymbol(msg))));
     unlockAudioThread();
 }
 
 void Instance::sendDirectMessage(void* object, float const msg)
 {
     lockAudioThread();
-    processSend(dmessage(this, object, String(), "float", SmallVector<Atom>(1, msg)));
+    processSend(dmessage(this, object, String(), "float", SmallArray<Atom>(1, msg)));
     unlockAudioThread();
 }
 
@@ -825,7 +827,7 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
 
                     lockAudioThread();
 
-                    std::vector<t_atom> atoms(files.size());
+                    SmallArray<t_atom> atoms(files.size());
 
                     for (int i = 0; i < atoms.size(); i++) {
                         String pathname = files[i].getFullPathName();

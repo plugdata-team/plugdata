@@ -390,8 +390,8 @@ private:
             }());
 
             auto const withDifference = [](auto const& rangeA, auto const& rangeB, auto&& callback) {
-                std::vector<ComponentWithWeakReference> result;
-                std::set_difference(rangeA.begin(), rangeA.end(), rangeB.begin(), rangeB.end(), std::back_inserter(result));
+                HeapArray<ComponentWithWeakReference> result;
+                std::set_difference(rangeA.begin(), rangeA.end(), rangeB.begin(), rangeB.end(), std::back_inserter(result.vector()));
 
                 for (const auto& item : result)
                     if (auto* c = item.get())

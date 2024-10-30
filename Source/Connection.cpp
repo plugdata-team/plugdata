@@ -283,32 +283,6 @@ void Connection::render(NVGcontext* nvg)
             }
         }
     }
-
-//#define BEZIER_DEBUG
-#ifdef BEZIER_DEBUG
-    auto getCubicBezierControlPoints = [this]() -> Array<Point<float>> {
-        juce::Path::Iterator it(getPath());
-
-        Array<Point<float>> points;
-
-        while (it.next())
-        {
-            if (it.elementType == juce::Path::Iterator::cubicTo)
-            {
-                points.add( { it.x1, it.y1 } );
-                points.add( { it.x2, it.y2 } );
-            }
-        }
-        return points;
-    };
-
-    for (auto point : getCubicBezierControlPoints()) {
-        nvgBeginPath(nvg);
-        nvgCircle(nvg, point.x, point.y, 0.5f);
-        nvgFillColor(nvg, nvgRGBA(255,0,0,255));
-        nvgFill(nvg);
-    }
-#endif
 }
 
 void Connection::renderConnectionOrder(NVGcontext* nvg)
@@ -798,14 +772,14 @@ void Connection::reconnect(Iolet* target)
 
     auto& otherEdge = target == inlet ? outlet : inlet;
 
-    SmallVector<Connection*> connections = { this };
+    SmallArray<Connection*> connections = { this };
 
     if (Desktop::getInstance().getMainMouseSource().getCurrentModifiers().isShiftDown()) {
         for (auto* c : otherEdge->object->getConnections()) {
             if (c == this || !c->isSelected())
                 continue;
 
-            connections.push_back(c);
+            connections.add(c);
         }
     }
 
@@ -824,7 +798,7 @@ void Connection::reconnect(Iolet* target)
 
         c->setVisible(false);
 
-        reconnecting.push_back(SafePointer(c));
+        reconnecting.add(SafePointer(c));
 
         // Make sure we're deselected and remove object
         cnv->setSelected(c, false, false);
@@ -1148,12 +1122,12 @@ void Connection::findPath()
     int resolutionX = 6;
     int resolutionY = 6;
 
-    auto obstacles = SmallVector<Rectangle<float>>();
+    auto obstacles = SmallArray<Rectangle<float>>();
     auto searchBounds = Rectangle<float>(pstart, pend);
 
     for (auto* object : cnv->objects) {
         if (object->getBounds().toFloat().intersects(searchBounds)) {
-            obstacles.push_back(object->getBounds().toFloat());
+            obstacles.add(object->getBounds().toFloat());
         }
     }
 
@@ -1181,40 +1155,40 @@ void Connection::findPath()
 
     bool direction;
     if (!bestPath.empty()) {
-        simplifiedPath.push_back(bestPath.front());
+        simplifiedPath.add(bestPath.front());
 
         direction = approximatelyEqual(bestPath[0].x, bestPath[1].x);
 
         if (!direction)
-            simplifiedPath.push_back(bestPath.front());
+            simplifiedPath.add(bestPath.front());
 
         for (int n = 1; n < bestPath.size(); n++) {
             if ((bestPath[n].x != bestPath[n - 1].x && direction) || (bestPath[n].y != bestPath[n - 1].y && !direction)) {
-                simplifiedPath.push_back(bestPath[n - 1]);
+                simplifiedPath.add(bestPath[n - 1]);
                 direction = !direction;
             }
         }
 
-        simplifiedPath.push_back(bestPath.back());
+        simplifiedPath.add(bestPath.back());
 
         if (!direction)
-            simplifiedPath.push_back(bestPath.back());
+            simplifiedPath.add(bestPath.back());
     } else {
         if (pend.y < pstart.y) {
             int xHalfDistance = (pstart.x - pend.x) / 2;
 
-            simplifiedPath.push_back(pend); // double to make it draggable
-            simplifiedPath.push_back(pend);
+            simplifiedPath.add(pend); // double to make it draggable
+            simplifiedPath.add(pend);
             simplifiedPath.emplace_back(pend.x + xHalfDistance, pend.y);
             simplifiedPath.emplace_back(pend.x + xHalfDistance, pstart.y);
-            simplifiedPath.push_back(pstart);
-            simplifiedPath.push_back(pstart);
+            simplifiedPath.add(pstart);
+            simplifiedPath.add(pstart);
         } else {
             int yHalfDistance = (pstart.y - pend.y) / 2;
-            simplifiedPath.push_back(pend);
+            simplifiedPath.add(pend);
             simplifiedPath.emplace_back(pend.x, pend.y + yHalfDistance);
             simplifiedPath.emplace_back(pstart.x, pend.y + yHalfDistance);
-            simplifiedPath.push_back(pstart);
+            simplifiedPath.add(pstart);
         }
     }
     std::reverse(simplifiedPath.begin(), simplifiedPath.end());
@@ -1226,12 +1200,12 @@ void Connection::findPath()
 
 int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<float> pstart, Point<float> pend, Point<float> increment)
 {
-    auto obstacles = SmallVector<Object*>();
+    auto obstacles = SmallArray<Object*>();
     auto searchBounds = Rectangle<float>(pstart, pend);
 
     for (auto* object : cnv->objects) {
         if (object->getBounds().toFloat().intersects(searchBounds)) {
-            obstacles.push_back(object);
+            obstacles.add(object);
         }
     }
 
@@ -1240,7 +1214,7 @@ int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<
         return 0;
 
     // Add point to path
-    pathStack.push_back(pstart);
+    pathStack.add(pstart);
 
     // Check if it intersects any object
     if (pathStack.size() > 1 && straightLineIntersectsObject(Line<float>(pathStack.back(), *(pathStack.end() - 2)), obstacles)) {
@@ -1296,7 +1270,7 @@ int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<
     return count;
 }
 
-bool Connection::straightLineIntersectsObject(Line<float> toCheck, SmallVector<Object*>& objects)
+bool Connection::straightLineIntersectsObject(Line<float> toCheck, SmallArray<Object*>& objects)
 {
 
     for (auto const& object : objects) {

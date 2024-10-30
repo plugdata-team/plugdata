@@ -123,20 +123,20 @@ void Library::run()
     MemoryInputStream instream(BinaryData::Documentation_bin, BinaryData::Documentation_binSize, false);
     ValueTree documentationTree = ValueTree::readFromStream(instream);
 
-    auto weights = std::vector<float>(2);
+    auto weights = HeapArray<float>(2);
     weights[0] = 6.0f; // More weight for name
     weights[1] = 3.0f; // More weight for description
-    searchDatabase.setWeights(weights);
+    searchDatabase.setWeights(weights.vector());
     
     for (auto objectEntry : documentationTree) {
         auto categoriesTree = objectEntry.getChildWithName("categories");
 
-        std::vector<std::string> fields;
+        HeapArray<std::string> fields;
         int numProperties = objectEntry.getNumProperties();
         for(int i = 0; i < numProperties; i++) // Name and description
         {
             auto property = objectEntry.getProperty(objectEntry.getPropertyName(i)).toString();
-            fields.push_back(property.toStdString());
+            fields.add(property.toStdString());
         }
         for(auto subtree : objectEntry) // Parent tree for arguments, inlets, outlets
         {
@@ -146,7 +146,7 @@ void Library::run()
                 {
                     auto property = child.getProperty(child.getPropertyName(i)).toString();
                     if(!property.containsOnly("0123456789.,-")) {
-                        fields.push_back(property.toStdString());
+                        fields.add(property.toStdString());
                     }
                 }
             }
@@ -170,7 +170,7 @@ void Library::run()
 #endif
         }
         
-        searchDatabase.addEntry(objectEntry, fields);
+        searchDatabase.addEntry(objectEntry, fields.vector());
         searchDatabase.setThreshold(0.4f);
         
         if (origin.isEmpty()) {
@@ -273,11 +273,11 @@ ValueTree Library::getObjectInfo(String const& name)
     return documentationIndex[hash(name)];
 }
 
-std::array<StringArray, 2> Library::parseIoletTooltips(ValueTree const& iolets, String const& name, int numIn, int numOut)
+StackArray<StringArray, 2> Library::parseIoletTooltips(ValueTree const& iolets, String const& name, int numIn, int numOut)
 {
-    std::array<StringArray, 2> result;
-    SmallVector<std::pair<String, bool>> inlets;
-    SmallVector<std::pair<String, bool>> outlets;
+    StackArray<StringArray, 2> result;
+    SmallArray<std::pair<String, bool>> inlets;
+    SmallArray<std::pair<String, bool>> outlets;
 
     auto args = StringArray::fromTokens(name.fromFirstOccurrenceOf(" ", false, false), true);
 
@@ -400,7 +400,7 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile)
         helpName = helpName.upToLastOccurrenceOf(".pd", false, false);
     }
 
-    auto patchHelpPaths = SmallVector<File, 16>();
+    auto patchHelpPaths = SmallArray<File, 16>();
 
     // Add abstraction dir to search paths
     if (pdclass == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {

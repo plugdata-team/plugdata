@@ -240,13 +240,13 @@ public:
 
             auto& [colourName, colourId, colourCategory] = colourNames;
 
-            Array<Value*> swatchesToAdd;
+            SmallArray<Value*> swatchesToAdd;
 
             // Loop over themes
             for (int i = 0; i < 2; i++) {
                 auto const& themeName = PlugDataLook::selectedThemes[i];
                 swatchesToAdd.add(&(swatches[themeName][colourId]));
-                auto* swatch = swatchesToAdd.getLast();
+                auto* swatch = swatchesToAdd.back();
 
                 auto value = SettingsFile::getInstance()->getColourThemesTree().getChildWithProperty("theme", themeName).getPropertyAsValue(colourId, nullptr);
 
@@ -449,7 +449,7 @@ public:
 
         panel.addSection("Active Themes", { primaryThemeSelector, secondaryThemeSelector });
 
-        Array<Value*> straightConnectionValues, connectionStyle, connectionLook, ioletSpacingEdge, squareIolets, squareObjectCorners, objectFlagOutlined;
+        SmallArray<Value*> straightConnectionValues, connectionStyle, connectionLook, ioletSpacingEdge, squareIolets, squareObjectCorners, objectFlagOutlined;
 
         for (int i = 0; i < 2; i++) {
             auto const& themeName = PlugDataLook::selectedThemes[i];

@@ -365,10 +365,10 @@ public:
     struct MultiPropertyComponent : public PropertiesPanelProperty {
 
         OwnedArray<T> properties;
-        Array<Value*> propertyValues;
+        SmallArray<Value*> propertyValues;
         StringArray propertyOptions;
 
-        MultiPropertyComponent(String const& propertyName, Array<Value*> values)
+        MultiPropertyComponent(String const& propertyName, SmallArray<Value*> values)
             : PropertiesPanelProperty(propertyName)
             , propertyValues(values)
         {
@@ -381,7 +381,7 @@ public:
             setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
         }
 
-        MultiPropertyComponent(String const& propertyName, Array<Value*> values, StringArray options)
+        MultiPropertyComponent(String const& propertyName, SmallArray<Value*> values, StringArray options)
             : PropertiesPanelProperty(propertyName)
             , propertyValues(values)
             , propertyOptions(options)

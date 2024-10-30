@@ -422,10 +422,10 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             if (ProjectInfo::canUseSemiTransparentWindows()) {
                 tooltipWindow = std::make_unique<CheckedTooltip>(this);
             }
-            auto commandIds = std::array<CommandID, 5> { CommandIDs::Cut, CommandIDs::Copy, CommandIDs::Paste, CommandIDs::Duplicate, CommandIDs::Delete };
+            auto commandIds = StackArray<CommandID, 5> { CommandIDs::Cut, CommandIDs::Copy, CommandIDs::Paste, CommandIDs::Duplicate, CommandIDs::Delete };
 
             int index = 0;
-            for (auto* button : std::array<QuickActionButton*, 5> { &cut, &copy, &paste, &duplicate, &remove }) {
+            for (auto* button : StackArray<QuickActionButton*, 5> { &cut, &copy, &paste, &duplicate, &remove }) {
                 addAndMakeVisible(button);
                 auto id = commandIds[index];
 
@@ -461,7 +461,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             auto buttonWidth = getWidth() / 5;
             auto bounds = getLocalBounds();
 
-            for (auto* button : SmallVector<TextButton*> { &cut, &copy, &paste, &duplicate, &remove }) {
+            for (auto* button : SmallArray<TextButton*> { &cut, &copy, &paste, &duplicate, &remove }) {
                 button->setBounds(bounds.removeFromLeft(buttonWidth).withHeight(buttonHeight));
             }
         }
@@ -499,16 +499,16 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     if (!originalComponent) {
         return;
     } else if (auto* obj = dynamic_cast<Object*>(originalComponent)) {
-        selectedBoxes.addIfNotAlreadyThere(obj);
+        selectedBoxes.add_unique(obj);
     } else if (auto* parentOfTypeObject = originalComponent->findParentComponentOfClass<Object>()) {
-        selectedBoxes.addIfNotAlreadyThere(parentOfTypeObject);
+        selectedBoxes.add_unique(parentOfTypeObject);
     }
 
-    bool hasSelection = !selectedBoxes.isEmpty();
+    bool hasSelection = selectedBoxes.not_empty();
     bool multiple = selectedBoxes.size() > 1;
     bool locked = getValue<bool>(cnv->locked);
 
-    auto object = Component::SafePointer<Object>(hasSelection ? selectedBoxes.getFirst() : nullptr);
+    auto object = Component::SafePointer<Object>(hasSelection ? selectedBoxes.front() : nullptr);
 
     // Find top-level object, so we never trigger it on an object inside a graph
     if (object && object->findParentComponentOfClass<Object>()) {
@@ -666,7 +666,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
         if (result == Properties) {
             if (originalComponent == cnv) {
-                SmallVector<ObjectParameters> parameters = { cnv->getInspectorParameters() };
+                SmallArray<ObjectParameters> parameters = { cnv->getInspectorParameters() };
                 editor->sidebar->showParameters("canvas", parameters);
             } else if (object && object->gui) {
 
@@ -679,7 +679,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
                     propertiesFn(static_cast<t_gobj*>(object->getPointer()), cnv->patch.getPointer().get());
                 cnv->pd->unlockAudioThread();
 
-                SmallVector<ObjectParameters> parameters = { object->gui->getParameters() };
+                SmallArray<ObjectParameters> parameters = { object->gui->getParameters() };
                 editor->sidebar->showParameters(object->getType(false), parameters);
             }
 

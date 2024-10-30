@@ -78,7 +78,7 @@ public:
         text = text.replaceCharacters("\r", " ");
         text = text.trimStart();
         auto lines = StringArray::fromTokens(text, ";", "\"");
-        auto atoms = SmallVector<t_atom>();
+        auto atoms = SmallArray<t_atom>();
         atoms.reserve(lines.size());
 
         int count = 0;
@@ -244,7 +244,7 @@ public:
         text = text.replaceCharacters("\r", " ");
         text = text.trimStart();
         auto lines = StringArray::fromTokens(text, ";", "\"");
-        auto atoms = SmallVector<t_atom>();
+        auto atoms = SmallArray<t_atom>();
         atoms.reserve(lines.size());
 
         int count = 0;

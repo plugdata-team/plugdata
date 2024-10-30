@@ -20,7 +20,7 @@ SettingsFileListener::SettingsFileListener()
 
 SettingsFileListener::~SettingsFileListener()
 {
-    SettingsFile::getInstance()->listeners.removeFirstMatchingValue(this);
+    SettingsFile::getInstance()->listeners.remove_one(this);
 }
 
 JUCE_IMPLEMENT_SINGLETON(SettingsFile)
@@ -250,8 +250,9 @@ void SettingsFile::initialisePathsTree()
 {
 
     // Make sure all the default paths are in place
-    Array<File> currentPaths;
-
+    HeapArray<File> currentPaths;
+    currentPaths.reserve(10);
+    
     auto pathTree = getPathsTree();
 
     // on iOS, the containerisation of apps leads to problems with custom search paths

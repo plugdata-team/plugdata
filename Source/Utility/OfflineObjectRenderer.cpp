@@ -151,9 +151,9 @@ void OfflineObjectRenderer::parsePatch(String const& patch, std::function<void(P
     }
 }
 
-Array<Rectangle<int>> OfflineObjectRenderer::getObjectBoundsForPatch(String const& patch)
+HeapArray<Rectangle<int>> OfflineObjectRenderer::getObjectBoundsForPatch(String const& patch)
 {
-    Array<Rectangle<int>> objectBounds;
+    HeapArray<Rectangle<int>> objectBounds;
     
     parsePatch(patch, [&objectBounds](PatchItemType type, int depth, String const& text){
         if((type != PatchItemType::Object &&  type != PatchItemType::Message && type != PatchItemType::Comment) || depth != 0) return;
@@ -368,9 +368,9 @@ bool OfflineObjectRenderer::checkIfPatchIsValid(String const& patch)
     return true;
 }
 
-std::pair<SmallVector<bool>, SmallVector<bool>> OfflineObjectRenderer::countIolets(String const& patch)
+std::pair<SmallArray<bool>, SmallArray<bool>> OfflineObjectRenderer::countIolets(String const& patch)
 {
-    static std::unordered_map<String, std::pair<SmallVector<bool>, SmallVector<bool>>> patchIoletCache;
+    static std::unordered_map<String, std::pair<SmallArray<bool>, SmallArray<bool>>> patchIoletCache;
 
     auto const patchSHA256 = SHA256(patch.getCharPointer()).toHexString();
     if (patchIoletCache.contains(patchSHA256)) {
@@ -380,7 +380,7 @@ std::pair<SmallVector<bool>, SmallVector<bool>> OfflineObjectRenderer::countIole
     auto trimmedPatch = patch.trim();
     bool onlyOneObject = StringArray::fromLines(trimmedPatch).size() == 1;
 
-    SmallVector<bool> inlets, outlets;
+    SmallArray<bool> inlets, outlets;
     
     if(onlyOneObject)
     {
@@ -397,10 +397,10 @@ std::pair<SmallVector<bool>, SmallVector<bool>> OfflineObjectRenderer::countIole
                     auto tokens = StringArray::fromTokens(text.trim(), true);
                     if(tokens.size() >= 5) {
                         auto& name = tokens.getReference(4);
-                        if(name.startsWith("inlet~")) inlets.push_back(true);
-                        else if(name.startsWith("inlet")) inlets.push_back(false);
-                        else if(name.startsWith("outlet~")) outlets.push_back(true);
-                        else if(name.startsWith("outlet")) outlets.push_back(false);
+                        if(name.startsWith("inlet~")) inlets.add(true);
+                        else if(name.startsWith("inlet")) inlets.add(false);
+                        else if(name.startsWith("outlet~")) outlets.add(true);
+                        else if(name.startsWith("outlet")) outlets.add(false);
                     }
                 }
             });
@@ -413,16 +413,16 @@ std::pair<SmallVector<bool>, SmallVector<bool>> OfflineObjectRenderer::countIole
                 auto tokens = StringArray::fromTokens(text.trim(), true);
                 if(tokens.size() >= 5) {
                     auto& objectText = tokens.getReference(4);
-                    if(objectText.startsWith("inlet~")) inlets.push_back(true);
-                    else if(objectText.startsWith("inlet")) inlets.push_back(false);
-                    else if(objectText.startsWith("outlet~")) outlets.push_back(true);
-                    else if(objectText.startsWith("outlet")) outlets.push_back(false);
+                    if(objectText.startsWith("inlet~")) inlets.add(true);
+                    else if(objectText.startsWith("inlet")) inlets.add(false);
+                    else if(objectText.startsWith("outlet~")) outlets.add(true);
+                    else if(objectText.startsWith("outlet")) outlets.add(false);
                 }
             }
         });
     }
     
-    auto result = std::pair<SmallVector<bool>, SmallVector<bool>>{inlets, outlets};
+    auto result = std::pair<SmallArray<bool>, SmallArray<bool>>{inlets, outlets};
     patchIoletCache.emplace(patchSHA256, result);
     
     return result;

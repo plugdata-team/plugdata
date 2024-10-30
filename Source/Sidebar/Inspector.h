@@ -13,7 +13,7 @@ class Inspector : public Component {
         {
         }
 
-        Value* addProperty(Value* controllerValue, SmallVector<Value*> attachedValues)
+        Value* addProperty(Value* controllerValue, SmallArray<Value*> attachedValues)
         {
             auto* property = properties.add(new Property(this, controllerValue, attachedValues));
             return &property->baseValue;
@@ -26,7 +26,7 @@ class Inspector : public Component {
         
 private:
         struct Property {
-            Property(PropertyRedirector* parent, Value* controllerValue, SmallVector<Value*> attachedValues)
+            Property(PropertyRedirector* parent, Value* controllerValue, SmallArray<Value*> attachedValues)
                 : redirector(parent), values(attachedValues)
             {
                 values.add(controllerValue);
@@ -41,7 +41,7 @@ private:
 
             PropertyRedirector* redirector;
             Value baseValue;
-            SmallVector<Value*> values;
+            SmallArray<Value*> values;
         };
         
         
@@ -87,7 +87,7 @@ private:
     
     PropertiesPanel panel;
     TextButton resetButton;
-    SmallVector<ObjectParameters> properties;
+    SmallArray<ObjectParameters> properties;
     PropertyRedirector redirector;
 
 public:
@@ -150,7 +150,7 @@ public:
         loadParameters(properties);
     }
 
-    void loadParameters(SmallVector<ObjectParameters>& objectParameters)
+    void loadParameters(SmallArray<ObjectParameters>& objectParameters)
     {
         properties = objectParameters;
 
@@ -158,7 +158,7 @@ public:
 
         panel.clear();
 
-        auto parameterIsInAllObjects = [&objectParameters](ObjectParameter& param, SmallVector<Value*>& values) {
+        auto parameterIsInAllObjects = [&objectParameters](ObjectParameter& param, SmallArray<Value*>& values) {
             auto& [name1, type1, category1, value1, options1, defaultVal1, customComponent1, onInteractionFn1] = param;
 
             if (objectParameters.size() > 1 && (name1 == "Size" || name1 == "Position" || name1 == "Height")) {
@@ -199,7 +199,7 @@ public:
                     continue;
                 } else if (static_cast<int>(category) == i) {
 
-                    SmallVector<Value*> otherValues;
+                    SmallArray<Value*> otherValues;
                     if (!parameterIsInAllObjects(parameter, otherValues))
                         continue;
 

@@ -281,7 +281,7 @@ public:
                 param->setName(newName);
 
                 auto findParamsWithLastName = [this, newName](){
-                    SmallVector<pd::WeakReference> paramObjectsToChange;
+                    SmallArray<pd::WeakReference> paramObjectsToChange;
                     
                     pd->lockAudioThread();
                     // Find [param] object, and update it's param name to new name
@@ -845,13 +845,21 @@ public:
         return newParamName + String(i);
     }
 
-    Array<PlugDataParameter*> getParameters()
+    HeapArray<PlugDataParameter*> getParameters()
     {
-        Array<PlugDataParameter*> params;
-        for (auto* param : pd->getParameters())
+        auto allParameters = pd->getParameters();
+        
+        HeapArray<PlugDataParameter*> params;
+        params.reserve(allParameters.size() - 1);
+    
+        bool first = true;
+        for (auto* param : allParameters) {
+            if(first) {
+                first = false;
+                continue;
+            }
             params.add(dynamic_cast<PlugDataParameter*>(param));
-
-        params.remove(0);
+        }
 
         return params;
     }

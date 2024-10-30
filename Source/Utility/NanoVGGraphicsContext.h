@@ -49,8 +49,7 @@ public:
     void fillRectList(juce::RectangleList<float> const&) override;
 
     void setPath(juce::Path const& path, juce::AffineTransform const& transform);
-    void setPathWithIntersections(juce::Path const& path, juce::AffineTransform const& transform);
-    
+
     void strokePath(juce::Path const&, juce::PathStrokeType const&, juce::AffineTransform const&);
     void fillPath(juce::Path const&, juce::AffineTransform const&) override;
     void drawImage(juce::Image const&, juce::AffineTransform const&) override;

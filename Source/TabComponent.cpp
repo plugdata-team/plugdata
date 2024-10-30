@@ -323,10 +323,10 @@ void TabComponent::openInPluginMode(pd::Patch::Ptr patch)
 // instead, we must check if they still exist before deleting
 void TabComponent::clearCanvases()
 {
-    SmallVector<SafePointer<Canvas>> safeCanvases;
+    SmallArray<SafePointer<Canvas>> safeCanvases;
     for(int i = canvases.size() - 1; i >= 0; i--)
     {
-        safeCanvases.push_back(canvases[i]);
+        safeCanvases.add(canvases[i]);
     }
     
     for(auto safeCnv : safeCanvases)
@@ -551,11 +551,11 @@ Canvas* TabComponent::getCurrentCanvas()
     return activeSplitIndex && splits[1] ? splits[1] : splits[0];
 }
 
-SmallVector<Canvas*> TabComponent::getCanvases()
+SmallArray<Canvas*> TabComponent::getCanvases()
 {
-    SmallVector<Canvas*> allCanvases;
+    SmallArray<Canvas*> allCanvases;
     allCanvases.reserve(canvases.size());
-    for(auto& canvas : canvases) allCanvases.push_back(canvas);
+    for(auto& canvas : canvases) allCanvases.add(canvas);
     return allCanvases;
 }
 
@@ -773,7 +773,7 @@ void TabComponent::closeTab(Canvas* cnv)
 void TabComponent::addLastShownTab(Canvas* tab, int split)
 {
     if(lastShownTabs[split].contains(tab)) lastShownTabs[split].remove_one(tab);
-    lastShownTabs[split].push_back(tab);
+    lastShownTabs[split].add(tab);
     while(lastShownTabs[split].size() > 15) lastShownTabs[split].remove_at(0);
 }
 
@@ -872,8 +872,8 @@ Canvas* TabComponent::getCanvasAtScreenPosition(Point<int> screenPosition)
 TabComponent::VisibleCanvasArray TabComponent::getVisibleCanvases()
 {
     VisibleCanvasArray result;
-    if (auto* split = splits[0].get()) result.push_back(reinterpret_cast<Canvas*>(split));
-    if (auto* split = splits[1].get()) result.push_back(reinterpret_cast<Canvas*>(split));
+    if (auto* split = splits[0].get()) result.add(reinterpret_cast<Canvas*>(split));
+    if (auto* split = splits[1].get()) result.add(reinterpret_cast<Canvas*>(split));
     return result;
 }
 
@@ -940,7 +940,7 @@ void TabComponent::saveTabPositions()
 {
     auto editors = pd->getEditors();
 
-    SmallVector<std::pair<pd::Patch::Ptr, int>> sortedPatches;
+    SmallArray<std::pair<pd::Patch::Ptr, int>> sortedPatches;
     for (auto* editor : pd->getEditors()) {
         auto& tabbar = editor->getTabComponent();
         for (int i = 0; i < tabbar.tabbars.size(); i++) {
@@ -948,7 +948,7 @@ void TabComponent::saveTabPositions()
                 if (auto* cnv = tabbar.tabbars[i][j]->cnv.getComponent()) {
                     cnv->patch.splitViewIndex = i;
                     cnv->patch.windowIndex = editor->editorIndex;
-                    sortedPatches.push_back({ cnv->refCountedPatch, j });
+                    sortedPatches.add({ cnv->refCountedPatch, j });
                 }
             }
         }

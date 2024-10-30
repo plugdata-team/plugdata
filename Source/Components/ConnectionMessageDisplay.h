@@ -368,7 +368,7 @@ private:
         int width;
     };
 
-    SmallVector<TextStringWithMetrics, 8> messageItemsWithFormat;
+    SmallArray<TextStringWithMetrics, 8> messageItemsWithFormat;
 
     Component::SafePointer<Connection> activeConnection;
     int mouseDelay = 500;

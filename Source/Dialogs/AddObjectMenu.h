@@ -187,7 +187,7 @@ public:
 
     OwnedArray<ObjectItem> objectButtons;
 
-    static inline std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> const defaultObjectList = {
+    static inline HeapArray<std::pair<String, HeapArray<std::tuple<String, String, String, String, ObjectIDs>>>> const defaultObjectList = {
         { "Default",
             {
                 { Icons::GlyphEmptyObject, "#X obj 0 0", "(@keypress) Empty object", "Object", NewObject },
@@ -352,7 +352,7 @@ public:
             } },
     };
 
-    static inline std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> const heavyObjectList = {
+    static inline HeapArray<std::pair<String, HeapArray<std::tuple<String, String, String, String, ObjectIDs>>>> const heavyObjectList = {
         { "Default",
             {
                 { Icons::GlyphEmptyObject, "#X obj 0 0", "(@keypress) Empty object", "Object", NewObject },

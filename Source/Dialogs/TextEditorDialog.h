@@ -818,7 +818,7 @@ public:
     void clear() { lines.clear(); }
     void add(String const& string) { lines.add(string); }
     void insert(int index, String const& string) { lines.insert(index, string); }
-    void removeRange(int startIndex, int numberToRemove) { lines.removeRange(startIndex, numberToRemove); }
+    void removeRange(int startIndex, int numberToRemove) { lines.remove_range(startIndex, numberToRemove); }
     String const& operator[](int index) const;
 
     int getToken(int row, int col, int defaultIfOutOfBounds) const;
@@ -847,11 +847,11 @@ private:
         String string;
         GlyphArrangement glyphsWithTrailingSpace;
         GlyphArrangement glyphs;
-        Array<int> tokens;
+        SmallArray<int> tokens;
         bool glyphsAreDirty = true;
         bool tokensAreDirty = true;
     };
-    mutable Array<Entry> lines;
+    mutable SmallArray<Entry> lines;
 };
 
 class TextDocument {
@@ -958,10 +958,10 @@ public:
     void replaceAll(String const& content);
 
     /** Replace the list of selections with a new one. */
-    void setSelections(Array<Selection> const& newSelections) { selections = newSelections; }
+    void setSelections(SmallArray<Selection> const& newSelections) { selections = newSelections; }
 
     /** Replace the selection at the given index. The index must be in range. */
-    void setSelection(int index, Selection newSelection) { selections.setUnchecked(index, newSelection); }
+    void setSelection(int index, Selection newSelection) { selections[index] = newSelection; }
 
     /** Get the number of rows in the document. */
     int getNumRows() const;
@@ -983,7 +983,7 @@ public:
      the clip rectangle is empty, the whole selection is returned.
      Otherwise it gets only the overlapping parts.
      */
-    Array<Rectangle<float>> getSelectionRegion(Selection selection,
+    SmallArray<Rectangle<float>> getSelectionRegion(Selection selection,
         Rectangle<float> clip = {}) const;
 
     /** Return the bounds of the entire document. */
@@ -1019,7 +1019,7 @@ public:
      of a convenience method for calling getBoundsOnRow() over a range,
      but could be faster if horizontal extents are not computed.
      */
-    Array<RowData> findRowsIntersecting(Rectangle<float> area,
+    SmallArray<RowData> findRowsIntersecting(Rectangle<float> area,
         bool computeHorizontalExtent = false) const;
 
     /** Find the row and column index nearest to the given position. */
@@ -1071,10 +1071,10 @@ public:
     Selection const& getSelection(int index) const;
 
     /** Return the current selection state. */
-    Array<Selection> const& getSelections() const;
+    SmallArray<Selection> const& getSelections() const;
     
     /** Return the current selection state. */
-    Array<Selection> const& getSearchSelections() const;
+    SmallArray<Selection> const& getSearchSelections() const;
 
     /** Return the content within the given selection, with newlines if the
      selection spans muliple lines.
@@ -1090,7 +1090,7 @@ public:
     void clearTokens(Range<int> rows);
 
     /** Apply tokens from a set of zones to a range of rows. */
-    void applyTokens(Range<int> rows, Array<Selection> const& zones);
+    void applyTokens(Range<int> rows, SmallArray<Selection> const& zones);
     
     int searchNext()
     {
@@ -1106,8 +1106,8 @@ private:
     mutable Rectangle<float> cachedBounds;
     GlyphArrangementArray lines;
     Font font;
-    Array<Selection> selections;
-    Array<Selection> searchSelections;
+    SmallArray<Selection> selections;
+    SmallArray<Selection> searchSelections;
     int currentSearchSelection = 0;
 };
 
@@ -1123,7 +1123,7 @@ public:
 private:
     static float squareWave(float wt);
     void timerCallback() override;
-    Array<Rectangle<float>> getCaretRectangles() const;
+    SmallArray<Rectangle<float>> getCaretRectangles() const;
 
     float phase = 0.f;
     TextDocument const& document;
@@ -1149,15 +1149,15 @@ private:
 class HighlightComponent : public Component {
 public:
     explicit HighlightComponent(TextDocument const& document);
-    void setViewTransform(AffineTransform const& transformToUse, Array<Selection> const& selections);
-    void updateSelections(Array<Selection> const& selections);
+    void setViewTransform(AffineTransform const& transformToUse, SmallArray<Selection> const& selections);
+    void updateSelections(SmallArray<Selection> const& selections);
     
     void setHighlightColour(Colour c) { highlightColour  = c; }
 
     void paint(Graphics& g) override;
 
 private:
-    static Path getOutlinePath(Array<Rectangle<float>> const& rectangles);
+    static Path getOutlinePath(SmallArray<Rectangle<float>> const& rectangles);
 
     TextDocument const& document;
     AffineTransform transform;
@@ -1307,9 +1307,9 @@ void Caret::timerCallback()
         repaint(r.getSmallestIntegerContainer());
 }
 
-Array<Rectangle<float>> Caret::getCaretRectangles() const
+SmallArray<Rectangle<float>> Caret::getCaretRectangles() const
 {
-    Array<Rectangle<float>> rectangles;
+    SmallArray<Rectangle<float>> rectangles;
 
     for (auto const& selection : document.getSelections()) {
         if(selection.head == selection.tail) {
@@ -1407,7 +1407,7 @@ HighlightComponent::HighlightComponent(TextDocument const& document)
     setInterceptsMouseClicks(false, false);
 }
 
-void HighlightComponent::setViewTransform(AffineTransform const& transformToUse, Array<Selection> const& selections)
+void HighlightComponent::setViewTransform(AffineTransform const& transformToUse, SmallArray<Selection> const& selections)
 {
     transform = transformToUse;
 
@@ -1420,7 +1420,7 @@ void HighlightComponent::setViewTransform(AffineTransform const& transformToUse,
     repaint(outlinePath.getBounds().getSmallestIntegerContainer());
 }
 
-void HighlightComponent::updateSelections(Array<Selection> const& selections)
+void HighlightComponent::updateSelections(SmallArray<Selection> const& selections)
 {
     outlinePath.clear();
     auto clip = getLocalBounds().toFloat().transformedBy(transform.inverted());
@@ -1443,7 +1443,7 @@ void HighlightComponent::paint(Graphics& g)
     g.strokePath(outlinePath, PathStrokeType(1.f));
 }
 
-Path HighlightComponent::getOutlinePath(Array<Rectangle<float>> const& rectangles)
+Path HighlightComponent::getOutlinePath(SmallArray<Rectangle<float>> const& rectangles)
 {
     auto p = Path();
     auto rect = rectangles.begin();
@@ -1617,7 +1617,7 @@ void Selection::push(Point<int>& index) const
 String const& GlyphArrangementArray::operator[](int index) const
 {
     if (isPositiveAndBelow(index, lines.size())) {
-        return lines.getReference(index).string;
+        return lines[index].string;
     }
 
     static String empty;
@@ -1629,7 +1629,7 @@ int GlyphArrangementArray::getToken(int row, int col, int defaultIfOutOfBounds) 
     if (!isPositiveAndBelow(row, lines.size())) {
         return defaultIfOutOfBounds;
     }
-    return lines.getReference(row).tokens[col];
+    return lines[row].tokens[col];
 }
 
 void GlyphArrangementArray::clearTokens(int index)
@@ -1637,12 +1637,12 @@ void GlyphArrangementArray::clearTokens(int index)
     if (!isPositiveAndBelow(index, lines.size()))
         return;
 
-    auto& entry = lines.getReference(index);
+    auto& entry = lines[index];
 
     ensureValid(index);
 
     for (int col = 0; col < entry.tokens.size(); ++col) {
-        entry.tokens.setUnchecked(col, 0);
+        entry.tokens[col] = 0;
     }
 }
 
@@ -1651,13 +1651,13 @@ void GlyphArrangementArray::applyTokens(int index, Selection zone)
     if (!isPositiveAndBelow(index, lines.size()))
         return;
 
-    auto& entry = lines.getReference(index);
+    auto& entry = lines[index];
     auto range = zone.getColumnRangeOnRow(index, entry.tokens.size());
 
     ensureValid(index);
 
     for (int col = range.getStart(); col < range.getEnd(); ++col) {
-        entry.tokens.setUnchecked(col, zone.token);
+        entry.tokens[col] = zone.token;
     }
 }
 
@@ -1676,12 +1676,12 @@ GlyphArrangement GlyphArrangementArray::getGlyphs(int index,
     }
     ensureValid(index);
 
-    auto& entry = lines.getReference(index);
+    auto& entry = lines[index];
     auto glyphSource = withTrailingSpace ? entry.glyphsWithTrailingSpace : entry.glyphs;
     auto glyphs = GlyphArrangement();
 
     for (int n = 0; n < glyphSource.getNumGlyphs(); ++n) {
-        if (token == -1 || entry.tokens.getUnchecked(n) == token) {
+        if (token == -1 || entry.tokens[n] == token) {
             auto glyph = glyphSource.getGlyph(n);
             glyph.moveBy(TEXT_INDENT, baseline);
             glyphs.addGlyph(glyph);
@@ -1695,7 +1695,7 @@ void GlyphArrangementArray::ensureValid(int index) const
     if (!isPositiveAndBelow(index, lines.size()))
         return;
 
-    auto& entry = lines.getReference(index);
+    auto& entry = lines[index];
 
     if (entry.glyphsAreDirty) {
         entry.tokens.resize(entry.string.length());
@@ -1768,9 +1768,9 @@ Point<float> TextDocument::getPosition(Point<int> index, Metric metric) const
     return { getGlyphBounds(index).getX(), getVerticalPosition(index.x, metric) };
 }
 
-Array<Rectangle<float>> TextDocument::getSelectionRegion(Selection selection, Rectangle<float> clip) const
+SmallArray<Rectangle<float>> TextDocument::getSelectionRegion(Selection selection, Rectangle<float> clip) const
 {
-    Array<Rectangle<float>> patches;
+    SmallArray<Rectangle<float>> patches;
     Selection s = selection.oriented();
 
     if (s.head.x == s.tail.x) {
@@ -1838,7 +1838,7 @@ GlyphArrangement TextDocument::getGlyphsForRow(int row, int token, bool withTrai
 GlyphArrangement TextDocument::findGlyphsIntersecting(Rectangle<float> area, int token) const
 {
     auto range = getRangeOfRowsIntersecting(area);
-    auto rows = Array<RowData>();
+    auto rows = SmallArray<RowData>();
     auto glyphs = GlyphArrangement();
 
     for (int n = range.getStart(); n < range.getEnd(); ++n) {
@@ -1855,11 +1855,11 @@ Range<int> TextDocument::getRangeOfRowsIntersecting(Rectangle<float> area) const
     return { row0, row1 + 1 };
 }
 
-Array<TextDocument::RowData> TextDocument::findRowsIntersecting(Rectangle<float> area,
+SmallArray<TextDocument::RowData> TextDocument::findRowsIntersecting(Rectangle<float> area,
     bool computeHorizontalExtent) const
 {
     auto range = getRangeOfRowsIntersecting(area);
-    auto rows = Array<RowData>();
+    auto rows = SmallArray<RowData>();
 
     for (int n = range.getStart(); n < range.getEnd(); ++n) {
         RowData data;
@@ -2090,15 +2090,15 @@ juce_wchar TextDocument::getCharacter(Point<int> index) const
 
 Selection const& TextDocument::getSelection(int index) const
 {
-    return selections.getReference(index);
+    return selections[index];
 }
 
-Array<Selection> const& TextDocument::getSelections() const
+SmallArray<Selection> const& TextDocument::getSelections() const
 {
     return selections;
 }
 
-Array<Selection> const& TextDocument::getSearchSelections() const
+SmallArray<Selection> const& TextDocument::getSearchSelections() const
 {
     return searchSelections;
 }
@@ -2165,7 +2165,7 @@ void TextDocument::clearTokens(Range<int> rows)
     }
 }
 
-void TextDocument::applyTokens(Range<int> rows, Array<Selection> const& zones)
+void TextDocument::applyTokens(Range<int> rows, SmallArray<Selection> const& zones)
 {
     for (int n = rows.getStart(); n < rows.getEnd(); ++n) {
         for (auto const& zone : zones) {
@@ -2323,7 +2323,7 @@ void PlugDataTextEditor::updateSelections()
 
 void PlugDataTextEditor::translateToEnsureCaretIsVisible()
 {
-    auto i = document.getSelections().getLast().head;
+    auto i = document.getSelections().back().head;
     auto t = Point<float>(0.f, document.getVerticalPosition(i.x, TextDocument::Metric::top)).transformedBy(transform);
     auto b = Point<float>(0.f, document.getVerticalPosition(i.x, TextDocument::Metric::bottom)).transformedBy(transform);
 
@@ -2339,7 +2339,7 @@ void PlugDataTextEditor::translateToEnsureSearchIsVisible(int index)
     auto selections = document.getSearchSelections();
     if(index >= selections.size()) return;
     
-    auto i = selections.getReference(index).head;
+    auto i = selections[index].head;
     auto t = Point<float>(0.f, document.getVerticalPosition(i.x, TextDocument::Metric::top)).transformedBy(transform);
     auto b = Point<float>(0.f, document.getVerticalPosition(i.x, TextDocument::Metric::bottom)).transformedBy(transform);
 
@@ -2428,7 +2428,7 @@ void PlugDataTextEditor::mouseDown(MouseEvent const& e)
     
     if (e.mods.isShiftDown() && selections.size())
     {
-        auto& selection = selections.getReference(selections.size() - 1);
+        auto& selection = selections[selections.size() - 1];
         bool wasOriented = selection.isOriented();
         auto orientedSelection = selection.oriented();
         
@@ -2465,7 +2465,7 @@ void PlugDataTextEditor::mouseDrag(MouseEvent const& e)
         return;
     }
     if (e.mouseWasDraggedSinceMouseDown()) {
-        auto selection = document.getSelections().getFirst();
+        auto selection = document.getSelections().front();
         selection.head = document.findIndexNearestPosition(e.position.transformedBy(transform.inverted()));
         document.setSelections({ selection });
         translateToEnsureCaretIsVisible();
@@ -2572,7 +2572,7 @@ bool PlugDataTextEditor::keyPressed(KeyPress const& key)
         return true;
     };
     auto addCaret = [this](Target target, Direction direction) {
-        auto s = document.getSelections().getLast();
+        auto s = document.getSelections().back();
         document.navigate(s.head, target, direction);
         document.addSelection(s);
         translateToEnsureCaretIsVisible();
@@ -2580,7 +2580,7 @@ bool PlugDataTextEditor::keyPressed(KeyPress const& key)
         return true;
     };
     if (key.isKeyCode(KeyPress::escapeKey)) {
-        document.setSelections(document.getSelections().getLast());
+        document.setSelections({document.getSelections().back()});
         updateSelections();
         return true;
     }
@@ -2641,11 +2641,11 @@ bool PlugDataTextEditor::keyPressed(KeyPress const& key)
         return undo.redo();
 
     if (key == KeyPress('x', ModifierKeys::commandModifier, 0)) {
-        SystemClipboard::copyTextToClipboard(document.getSelectionContent(document.getSelections().getFirst()));
+        SystemClipboard::copyTextToClipboard(document.getSelectionContent(document.getSelections().front()));
         return insert("");
     }
     if (key == KeyPress('c', ModifierKeys::commandModifier, 0)) {
-        SystemClipboard::copyTextToClipboard(document.getSelectionContent(document.getSelections().getFirst()));
+        SystemClipboard::copyTextToClipboard(document.getSelectionContent(document.getSelections().front()));
         return true;
     }
 
@@ -2828,7 +2828,7 @@ void PlugDataTextEditor::renderTextUsingGlyphArrangement(Graphics& g)
 
         auto it = TextDocument::Iterator(document, {0, 0});
         auto previous = it.getIndex();
-        auto zones = Array<Selection>();
+        auto zones = SmallArray<Selection>();
 
         while (it.getIndex().x < rows.getEnd() && !it.isEOF()) {
             auto tokenType = LuaTokeniserFunctions::readNextToken(it);

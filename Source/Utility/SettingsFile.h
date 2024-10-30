@@ -104,14 +104,14 @@ private:
 
     FileSystemWatcher settingsFileWatcher;
 
-    Array<SettingsFileListener*> listeners;
+    HeapArray<SettingsFileListener*> listeners;
 
     File settingsFile = ProjectInfo::appDataDir.getChildFile(".settings");
     ValueTree settingsTree = ValueTree("SettingsTree");
     bool settingsChangedInternally = false;
     bool settingsChangedExternally = false;
 
-    std::vector<std::pair<String, var>> defaultSettings {
+    HeapArray<std::pair<String, var>> defaultSettings {
         { "browser_path", var(ProjectInfo::appDataDir.getFullPathName()) },
         { "theme", var("light") },
         { "oversampling", var(0) },

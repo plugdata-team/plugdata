@@ -22,13 +22,13 @@ ObjectGrid::ObjectGrid(Canvas* cnv)
     gridSize = SettingsFile::getInstance()->getProperty<int>("grid_size");
 }
 
-Array<Object*> ObjectGrid::getSnappableObjects(Object* draggedObject)
+SmallArray<Object*> ObjectGrid::getSnappableObjects(Object* draggedObject)
 {
     auto& cnv = draggedObject->cnv;
     if (!cnv->viewport)
         return {};
 
-    Array<Object*> snappable;
+    SmallArray<Object*> snappable;
 
     auto scaleFactor = std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
     auto viewBounds = cnv->viewport->getViewArea() / scaleFactor;

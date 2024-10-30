@@ -210,7 +210,7 @@ public:
             return;
 
         if (auto openfile = ptr.get<void>()) {
-            pd->sendDirectMessage(openfile.get(), "bang", SmallVector<pd::Atom>{});
+            pd->sendDirectMessage(openfile.get(), "bang", SmallArray<pd::Atom>{});
         }
     }
 };

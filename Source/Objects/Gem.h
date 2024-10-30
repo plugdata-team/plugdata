@@ -171,7 +171,7 @@ public:
                 triggerKeyboardEvent(key.getTextDescription().toRawUTF8(), key.getKeyCode(), 0);
                 sys_unlock();
 
-                heldKeys.remove(i);
+                heldKeys.remove_at(i);
             }
         }
     }
@@ -194,7 +194,7 @@ public:
     OpenGLContext openGLContext;
     Thread::ThreadID activeThread;
     t_pdinstance* instance;
-    Array<KeyPress> heldKeys;
+    SmallArray<KeyPress> heldKeys;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GemJUCEWindow)
 };

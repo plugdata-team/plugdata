@@ -229,7 +229,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     setOpaque(false);
 
-    for (auto* button : SmallVector<MainToolbarButton*> {
+    for (auto* button : SmallArray<MainToolbarButton*> {
              &mainMenuButton,
                  &undoButton,
                  &redoButton,
@@ -266,7 +266,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(addObjectMenuButton);
 
     // Edit, run and presentation mode buttons
-    for (auto* button : SmallVector<ToolbarRadioButton*> { &editButton, &runButton, &presentButton }) {
+    for (auto* button : SmallArray<ToolbarRadioButton*> { &editButton, &runButton, &presentButton }) {
         button->onClick = [this]() {
             if (auto* cnv = getCurrentCanvas()) {
                 if (editButton.getToggleState()) {
@@ -828,7 +828,7 @@ bool PluginEditor::isActiveWindow()
     return !ProjectInfo::isStandalone || isDraggingTab || (TopLevelWindow::getActiveTopLevelWindow() == getTopLevelComponent());
 }
 
-SmallVector<Canvas*> PluginEditor::getCanvases()
+SmallArray<Canvas*> PluginEditor::getCanvases()
 {
     return tabComponent.getCanvases();
 }
@@ -970,8 +970,8 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         auto selectedObjects = cnv->getSelectionOfType<Object>();
         auto selectedConnections = cnv->getSelectionOfType<Connection>();
 
-        hasObjectSelection = !selectedObjects.isEmpty();
-        hasConnectionSelection = !selectedConnections.isEmpty();
+        hasObjectSelection = selectedObjects.not_empty();
+        hasConnectionSelection = selectedConnections.not_empty();
 
         hasSelection = hasObjectSelection || hasConnectionSelection;
         isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && cnv->locked == var(false);
@@ -1631,8 +1631,8 @@ bool PluginEditor::perform(InvocationInfo const& info)
             } else if ((cnv->getSelectionOfType<Object>().size() == 0) && (cnv->getSelectionOfType<Connection>().size() == 1)) { // Autopatching: insert object in connection. Should document this better!
                 // if 1 connection is selected, create new object in the middle of connection
                 cnv->patch.startUndoSequence("ObjectInConnection");
-                cnv->lastSelectedConnection = cnv->getSelectionOfType<Connection>().getFirst();
-                auto outobj = cnv->getSelectionOfType<Connection>().getFirst()->outobj;
+                cnv->lastSelectedConnection = cnv->getSelectionOfType<Connection>().front();
+                auto outobj = cnv->getSelectionOfType<Connection>().front()->outobj;
                 auto newObj = new Object(cnv, objectNames.at(ID),
                     Point<int>(
                         // place beneath outlet object + Object::margin

@@ -10,7 +10,7 @@
 
 namespace pd {
 
-using Connections = std::vector<std::tuple<t_outconnect*, int, t_object*, int, t_object*>>;
+using Connections = HeapArray<std::tuple<t_outconnect*, int, t_object*, int, t_object*>>;
 class Instance;
 
 // The Pd patch.
@@ -39,12 +39,12 @@ public:
     t_gobj* createObject(int x, int y, String const& name);
     t_gobj* renameObject(t_object* obj, String const& name);
 
-    void moveObjects(SmallVector<t_gobj*> const&, int x, int y);
+    void moveObjects(SmallArray<t_gobj*> const&, int x, int y);
 
     void moveObjectTo(t_gobj* object, int x, int y);
 
     void finishRemove();
-    void removeObjects(SmallVector<t_gobj*> const& objects);
+    void removeObjects(SmallArray<t_gobj*> const& objects);
 
     void deselectAll();
 
@@ -56,9 +56,9 @@ public:
 
     t_glist* getRoot();
 
-    void copy(SmallVector<t_gobj*> const& objects);
+    void copy(SmallArray<t_gobj*> const& objects);
     void paste(Point<int> position);
-    void duplicate(SmallVector<t_gobj*> const& objects, t_outconnect* connection);
+    void duplicate(SmallArray<t_gobj*> const& objects, t_outconnect* connection);
 
     void startUndoSequence(String const& name);
     void endUndoSequence(String const& name);
@@ -109,7 +109,7 @@ public:
     }
 
     // Gets the objects of the patch.
-    std::vector<pd::WeakReference> getObjects();
+    HeapArray<pd::WeakReference> getObjects();
 
     String getCanvasContent();
 

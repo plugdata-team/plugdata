@@ -300,12 +300,12 @@ void Object::applyBounds()
     else if(ds.didStartDragging)
     {
         patch->startUndoSequence("Move");
-        SmallVector<t_gobj*> objects;
+        SmallArray<t_gobj*> objects;
         for (auto* obj : cnv->getSelectionOfType<Object>())
         {
             if(auto* ptr = obj->getPointer())
             {
-                objects.push_back(ptr);
+                objects.add(ptr);
             }
         }
         
@@ -446,12 +446,12 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
     cnv->pd->updateObjectImplementations();
 }
 
-SmallVector<Rectangle<float>> Object::getCorners() const
+SmallArray<Rectangle<float>> Object::getCorners() const
 {
     auto rect = getLocalBounds().reduced(margin);
     float const offset = 2.0f;
 
-    SmallVector<Rectangle<float>> corners = { Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopLeft().toFloat()).translated(offset, offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomLeft().toFloat()).translated(offset, -offset),
+    SmallArray<Rectangle<float>> corners = { Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopLeft().toFloat()).translated(offset, offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomLeft().toFloat()).translated(offset, -offset),
         Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomRight().toFloat()).translated(-offset, -offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopRight().toFloat()).translated(-offset, offset) };
 
     return corners;
@@ -587,7 +587,7 @@ void Object::updateTooltips()
 
     auto objectInfo = cnv->pd->objectLibrary->getObjectInfo(gui->getTypeWithOriginPrefix());
 
-    std::array<StringArray, 2> ioletTooltips;
+    StackArray<StringArray, 2> ioletTooltips;
 
     if (objectInfo.isValid()) {
         // Set object tooltip
@@ -617,8 +617,8 @@ void Object::updateTooltips()
         }
     }
 
-    SmallVector<std::pair<int, String>> inletMessages;
-    SmallVector<std::pair<int, String>> outletMessages;
+    SmallArray<std::pair<int, String>> inletMessages;
+    SmallArray<std::pair<int, String>> outletMessages;
 
     if (auto subpatch = gui->getPatch()) {
         cnv->pd->lockAudioThread();
@@ -1014,7 +1014,7 @@ void Object::mouseDrag(MouseEvent const& e)
 
         // alt+drag will duplicate selection
         if (!ds.wasDragDuplicated && e.mods.isAltDown()) {
-            SmallVector<Point<int>> mouseDownObjectPositions; // Stores object positions for alt + drag
+            SmallArray<Point<int>> mouseDownObjectPositions; // Stores object positions for alt + drag
 
             // Single for undo for duplicate + move
             cnv->patch.startUndoSequence("Duplicate");
@@ -1025,7 +1025,7 @@ void Object::mouseDrag(MouseEvent const& e)
                     return cnv->objects.indexOf(a) < cnv->objects.indexOf(b);
                 });
 
-            int draggedIdx = selection.indexOf(ds.componentBeingDragged.getComponent());
+            int draggedIdx = selection.index_of(ds.componentBeingDragged.getComponent());
 
             // Store origin object positions
             for (auto object : selection) {
@@ -1033,7 +1033,7 @@ void Object::mouseDrag(MouseEvent const& e)
                 auto gridType = SettingsFile::getInstance()->getProperty<int>("grid_type");
                 auto gridSize = gridEnabled && (gridType & 1) ? cnv->objectGrid.gridSize : 10;
 
-                mouseDownObjectPositions.push_back(object->getPosition().translated(gridSize, gridSize));
+                mouseDownObjectPositions.add(object->getPosition().translated(gridSize, gridSize));
             }
 
             // Duplicate once
@@ -1077,16 +1077,16 @@ void Object::mouseDrag(MouseEvent const& e)
 
         // This handles the "unsnap" action when you shift-drag a connected object
         if (e.mods.isShiftDown() && selection.size() == 1 && e.getDistanceFromDragStart() > 15) {
-            auto* object = selection.getFirst();
+            auto* object = selection.front();
             cnv->patch.startUndoSequence("Snap");
 
-            SmallVector<Connection*> inputs, outputs;
+            SmallArray<Connection*> inputs, outputs;
             for (auto* connection : cnv->connections) {
                 if (connection->inlet == object->iolets[0]) {
-                    inputs.push_back(connection);
+                    inputs.add(connection);
                 }
                 if (connection->outlet == object->iolets[object->numInputs]) {
-                    outputs.push_back(connection);
+                    outputs.add(connection);
                 }
             }
 
@@ -1169,7 +1169,7 @@ void Object::mouseDrag(MouseEvent const& e)
         }
 
         if (e.mods.isShiftDown() && selection.size() == 1) {
-            auto* object = selection.getFirst();
+            auto* object = selection.front();
             if (object->numInputs && object->numOutputs && !object->iolets.isEmpty()) {
                 bool intersected = false;
                 for (auto* connection : cnv->connections) {
@@ -1245,7 +1245,7 @@ void Object::render(NVGcontext* nvg)
     // If autoconnect is about to happen, draw a fake inlet with a dotted outline
     if (isInitialEditorShown() && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs && getValue<bool>(editor->autoconnect)) {
         auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
-        SmallVector fakeInletBounds = PlugDataLook::getUseIoletSpacingEdge() ? SmallVector{-8.0f, -3.0f, 18.0f, 7.0f} : SmallVector{ 8.5f, -3.5f, 8.0f, 8.0f };
+        SmallArray fakeInletBounds = PlugDataLook::getUseIoletSpacingEdge() ? SmallArray{-8.0f, -3.0f, 18.0f, 7.0f} : SmallArray{ 8.5f, -3.5f, 8.0f, 8.0f };
         nvgBeginPath(nvg);
         if(PlugDataLook::getUseSquareIolets()) {
             nvgRect(nvg, fakeInletBounds[0] + fakeInletBounds[2] * 0.5f, fakeInletBounds[1] + fakeInletBounds[3] * 0.5f, fakeInletBounds[2] * 0.5f, fakeInletBounds[3] * 0.5f);
@@ -1374,13 +1374,13 @@ void Object::hideEditor()
     }
 }
 
-SmallVector<Connection*> Object::getConnections() const
+SmallArray<Connection*> Object::getConnections() const
 {
-    SmallVector<Connection*> result;
+    SmallArray<Connection*> result;
     for (auto* iolet : iolets) {
         for(auto* connection : iolet->getConnections())
         {
-            result.push_back(connection);
+            result.add(connection);
         }
     }
 

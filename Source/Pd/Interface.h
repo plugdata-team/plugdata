@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "Utility/SmallVector.h"
+#include "Utility/Containers.h"
 
 extern "C" {
 #include <m_pd.h>
@@ -117,7 +117,7 @@ struct Interface {
     }
 
     /* displace the selection by (dx, dy) pixels */
-    static void moveObjects(t_canvas* cnv, int dx, int dy, SmallVector<t_gobj*> const& objects)
+    static void moveObjects(t_canvas* cnv, int dx, int dy, SmallArray<t_gobj*> const& objects)
     {
         glist_noselect(cnv);
 
@@ -172,7 +172,7 @@ struct Interface {
         glist_noselect(cnv);
     }
 
-    static void removeObjects(t_canvas* cnv, SmallVector<t_gobj*> const& objects)
+    static void removeObjects(t_canvas* cnv, SmallArray<t_gobj*> const& objects)
     {
         canvas_undo_add(cnv, UNDO_SEQUENCE_START, "clear", nullptr);
 
@@ -229,7 +229,7 @@ struct Interface {
         return oc;
     }
 
-    static char const* copy(t_canvas* cnv, int* size, SmallVector<t_gobj*> const& objects)
+    static char const* copy(t_canvas* cnv, int* size, SmallArray<t_gobj*> const& objects)
     {
         glist_noselect(cnv);
 
@@ -286,7 +286,7 @@ struct Interface {
         ed->e_selectedline = 0;
     }
     
-    static void connectSelection(t_canvas* cnv, SmallVector<t_gobj*> const& objects, t_outconnect* connection)
+    static void connectSelection(t_canvas* cnv, SmallArray<t_gobj*> const& objects, t_outconnect* connection)
     {
         glist_noselect(cnv);
 
@@ -303,7 +303,7 @@ struct Interface {
         glist_noselect(cnv);
     }
 
-    static void tidy(t_canvas* cnv, SmallVector<t_gobj*> const& objects)
+    static void tidy(t_canvas* cnv, SmallArray<t_gobj*> const& objects)
     {
         glist_noselect(cnv);
 
@@ -372,7 +372,7 @@ struct Interface {
         glist_noselect(cnv);
     }
     
-    static t_gobj* triggerize(t_canvas* cnv, SmallVector<t_gobj*> const& objects, t_outconnect* connection)
+    static t_gobj* triggerize(t_canvas* cnv, SmallArray<t_gobj*> const& objects, t_outconnect* connection)
     {
         glist_noselect(cnv);
 
@@ -444,7 +444,7 @@ struct Interface {
         arrangeObject(cnv, obj, 0);
     }
 
-    static void duplicateSelection(t_canvas* cnv, SmallVector<t_gobj*> const& objects, t_outconnect* connection)
+    static void duplicateSelection(t_canvas* cnv, SmallArray<t_gobj*> const& objects, t_outconnect* connection)
     {
         glist_noselect(cnv);
 
@@ -459,7 +459,7 @@ struct Interface {
         canvas_unsetcurrent(cnv);
     }
     
-    static void shiftAutopatch(t_canvas* cnv, t_gobj* inObj, int inletIndex, t_gobj* outObj, int outletIndex, SmallVector<t_gobj*> selectedObjects, t_outconnect* connection)
+    static void shiftAutopatch(t_canvas* cnv, t_gobj* inObj, int inletIndex, t_gobj* outObj, int outletIndex, SmallArray<t_gobj*> selectedObjects, t_outconnect* connection)
     {
         auto getRawObjectBounds = [](t_canvas* cnv, t_gobj* obj) -> Rectangle<int>
         {

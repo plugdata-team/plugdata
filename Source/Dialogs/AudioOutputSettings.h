@@ -19,7 +19,7 @@ public:
         four.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
         eight.setConnectedEdges(Button::ConnectedOnLeft);
 
-        auto buttons = SmallVector<TextButton*> { &one, &two, &four, &eight };
+        auto buttons = SmallArray<TextButton*> { &one, &two, &four, &eight };
 
         int i = 0;
         for (auto* button : buttons) {
@@ -73,7 +73,7 @@ public:
         three.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
         four.setConnectedEdges(Button::ConnectedOnLeft);
 
-        auto buttons = SmallVector<TextButton*> { &one, &two, &three, &four };
+        auto buttons = SmallArray<TextButton*> { &one, &two, &three, &four };
 
         int i = 0;
         for (auto* button : buttons) {

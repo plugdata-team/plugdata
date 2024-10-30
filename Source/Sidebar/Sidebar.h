@@ -99,7 +99,7 @@ public:
     void mouseMove(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
 
-    void showParameters(String const& name, SmallVector<ObjectParameters>& params);
+    void showParameters(String const& name, SmallArray<ObjectParameters>& params);
     void hideParameters();
 
     bool isShowingBrowser();
@@ -130,7 +130,7 @@ private:
 
     PluginProcessor* pd;
     PluginEditor* editor;
-    SmallVector<ObjectParameters> lastParameters;
+    SmallArray<ObjectParameters> lastParameters;
 
     SidebarSelectorButton consoleButton = SidebarSelectorButton(Icons::Console);
     SidebarSelectorButton browserButton = SidebarSelectorButton(Icons::Documentation);

@@ -34,7 +34,7 @@ public:
 
     static bool isSubpatchOrAbstraction(String const& patchAsString);
 
-    std::pair<SmallVector<bool>, SmallVector<bool>> countIolets(String const& patchAsString);
+    std::pair<SmallArray<bool>, SmallArray<bool>> countIolets(String const& patchAsString);
 
     ValueTree itemTree;
 
@@ -47,7 +47,7 @@ public:
     PaletteDraggableList* paletteComp;
     String paletteName, palettePatch;
     bool isSubpatch;
-    SmallVector<bool> inlets, outlets;
+    SmallArray<bool> inlets, outlets;
 
 private:
     void setIsItemDragged(bool isActive);

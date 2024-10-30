@@ -241,7 +241,7 @@ class LevelMeter : public Component
 public:
     LevelMeter() = default;
 
-    void audioLevelChanged(SmallVector<float> peak) override
+    void audioLevelChanged(SmallArray<float> peak) override
     {
         bool needsRepaint = false;
         for (int i = 0; i < 2; i++) {
@@ -325,7 +325,7 @@ public:
     void addMessage (MidiMessage const& message, bool isInput)
     {
         int device;
-        messages.push_back({isInput, MidiDeviceManager::convertFromSysExFormat(message, device)});
+        messages.add({isInput, MidiDeviceManager::convertFromSysExFormat(message, device)});
 
         if(messages.size() > 1000)
         {
@@ -350,7 +350,7 @@ public:
 
 private:
     static constexpr auto numToStore = 1000;
-    std::vector<std::pair<bool, MidiMessage>> messages;
+    HeapArray<std::pair<bool, MidiMessage>> messages;
 };
 
 class MIDIHistory final : public Component,
@@ -672,7 +672,7 @@ public:
         logA.setConnectedEdges(TextButton::ConnectedEdgeFlags::ConnectedOnLeft | TextButton::ConnectedEdgeFlags::ConnectedOnRight);
         logB.setConnectedEdges(TextButton::ConnectedEdgeFlags::ConnectedOnLeft);
 
-        auto buttons = SmallVector<TextButton*> { &linear, &logA, &logB };
+        auto buttons = SmallArray<TextButton*> { &linear, &logA, &logB };
 
         int i = 0;
         for (auto* button : buttons) {
@@ -1280,7 +1280,7 @@ void StatusbarSource::timerCallback()
 
 void StatusbarSource::addListener(Listener* l)
 {
-    listeners.push_back(l);
+    listeners.add(l);
 }
 
 void StatusbarSource::removeListener(Listener* l)

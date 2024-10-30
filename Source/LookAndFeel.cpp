@@ -157,21 +157,21 @@ public:
         Button::mouseDrag(e);
     }
 
-    SmallVector<Button*> getAllButtons()
+    SmallArray<Button*> getAllButtons()
     {
-        SmallVector<Button*> allButtons;
+        SmallArray<Button*> allButtons;
 
         if (!owner)
             return allButtons;
 
         if (auto* minButton = owner->getMinimiseButton()) {
-            allButtons.push_back(minButton);
+            allButtons.add(minButton);
         }
         if (auto* maxButton = owner->getMaximiseButton()) {
-            allButtons.push_back(maxButton);
+            allButtons.add(maxButton);
         }
         if (auto* closeButton = owner->getCloseButton()) {
-            allButtons.push_back(closeButton);
+            allButtons.add(closeButton);
         }
 
         return allButtons;

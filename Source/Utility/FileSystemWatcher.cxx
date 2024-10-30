@@ -382,10 +382,11 @@ FileSystemWatcher::~FileSystemWatcher()
 
 void FileSystemWatcher::addFolder (const File& folder)
 {
-    // You can only listen to folders that exist
-    //jassert (folder.isDirectory());
-
-    if ( ! getWatchedFolders().contains (folder))
+    Array<File> allFolders;
+    for (auto w : watched)
+        allFolders.add (w->folder);
+    
+    if ( !allFolders.contains (folder))
         watched.add (new Impl (*this, folder));
 }
 
@@ -423,14 +424,5 @@ void FileSystemWatcher::fileChanged (const File& file, FileSystemEvent fsEvent)
     listeners.call (&FileSystemWatcher::Listener::fileChanged, file, fsEvent);
 }
 
-Array<File> FileSystemWatcher::getWatchedFolders()
-{
-    Array<File> res;
-
-    for (auto w : watched)
-        res.add (w->folder);
-
-    return res;
-}
 
 #endif

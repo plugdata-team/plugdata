@@ -5,13 +5,10 @@
 
 using namespace juce;
 
+#include "Utility/Containers.h"
 #include "Utility/Hash.h"
 #include "Utility/SynchronousValue.h"
 #include "Utility/OSUtils.h"
-
-#ifndef ENABLE_FB_DEBUGGING
-#    define ENABLE_FB_DEBUGGING 0
-#endif
 
 namespace juce {
 class AudioDeviceManager;

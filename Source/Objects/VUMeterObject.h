@@ -33,7 +33,7 @@ public:
             return;
 
         // TODO: Hack to hold all images for each context, consider moving somewhere central
-        static std::unordered_map<NVGcontext*, std::array<NVGImage, 11>> scales;
+        static std::unordered_map<NVGcontext*, StackArray<NVGImage, 11>> scales;
 
         // We calculate the largest size the text will ever be (canvas zoom * UI scale * desktop scale)
         auto const maxUIScale = 3 * 2 * 2;

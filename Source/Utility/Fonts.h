@@ -21,7 +21,7 @@ struct Fonts {
 
         // Our unicode font is too big, the compiler will run out of memory
         // To prevent this, we split the BinaryData into multiple files, and add them back together here
-        std::vector<char> interUnicode;
+        HeapArray<char> interUnicode;
         interUnicode.reserve(17 * 1024 * 1024); // Reserve 17mb to prevent more allocations
         int i = 0;
         while (true) {

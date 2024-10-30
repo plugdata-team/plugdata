@@ -3,7 +3,6 @@
 // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 
 #pragma once
-#include "Utility/SmallVector.h"
 
 class Connection;
 class Object;
@@ -39,7 +38,7 @@ public:
 
     void setHidden(bool hidden);
 
-    SmallVector<Connection*> getConnections();
+    SmallArray<Connection*> getConnections();
 
     Rectangle<int> getCanvasBounds();
 

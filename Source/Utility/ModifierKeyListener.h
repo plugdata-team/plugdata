@@ -37,7 +37,7 @@ public:
 
     void removeModifierKeyListener(ModifierKeyListener* listener)
     {
-        listeners.removeAllInstancesOf(listener);
+        listeners.remove_all(listener);
     }
 
     void setModifierKeys(ModifierKeys const& mods)
@@ -160,5 +160,5 @@ private:
     bool spaceWasDown = false;
     bool middleMouseWasDown = false;
 
-    Array<WeakReference<ModifierKeyListener>> listeners;
+    HeapArray<WeakReference<ModifierKeyListener>> listeners;
 };

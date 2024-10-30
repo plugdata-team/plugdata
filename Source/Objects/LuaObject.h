@@ -32,7 +32,7 @@ class LuaObject final : public ObjectBase, private Value::Listener
 
     struct LuaGuiMessage {
         t_symbol* symbol;
-        SmallVector<t_atom> data;
+        SmallArray<t_atom> data;
         int size;
 
         LuaGuiMessage() {};
@@ -40,7 +40,7 @@ class LuaObject final : public ObjectBase, private Value::Listener
         LuaGuiMessage(t_symbol* sym, int argc, t_atom* argv)
             : symbol(sym)
         {
-            data = SmallVector<t_atom>(argv, argv + argc);
+            data = SmallArray<t_atom>(argv, argv + argc);
             size = argc;
         }
 
@@ -64,10 +64,10 @@ class LuaObject final : public ObjectBase, private Value::Listener
         }
     };
 
-    std::map<int, std::vector<LuaGuiMessage>> guiCommandBuffer;
+    std::map<int, HeapArray<LuaGuiMessage>> guiCommandBuffer;
     std::map<int, moodycamel::ReaderWriterQueue<LuaGuiMessage>> guiMessageQueue;
 
-    static inline std::map<t_pdlua*, SmallVector<LuaObject*>> allDrawTargets = std::map<t_pdlua*, SmallVector<LuaObject*>>();
+    static inline std::map<t_pdlua*, SmallArray<LuaObject*>> allDrawTargets = std::map<t_pdlua*, SmallArray<LuaObject*>>();
 
 public:
     LuaObject(pd::WeakReference obj, Object* parent)
@@ -75,7 +75,7 @@ public:
     {
         if (auto pdlua = ptr.get<t_pdlua>()) {
             pdlua->gfx.plugdata_draw_callback = &drawCallback;
-            allDrawTargets[pdlua.get()].push_back(this);
+            allDrawTargets[pdlua.get()].add(this);
         }
 
         parentHierarchyChanged();
@@ -283,7 +283,7 @@ public:
             if (argc == 1) {
                 int colourID = atom_getfloat(argv);
 
-                currentColour = Array<Colour> { cnv->guiObjectBackgroundColJuce, cnv->canvasTextColJuce, cnv->guiObjectInternalOutlineColJuce }[colourID];
+                currentColour = StackArray<Colour, 3> { cnv->guiObjectBackgroundColJuce, cnv->canvasTextColJuce, cnv->guiObjectInternalOutlineColJuce }[colourID];
                 nvgFillColor(nvg, convertColour(currentColour));
                 nvgStrokeColor(nvg, convertColour(currentColour));
             }
@@ -504,7 +504,7 @@ public:
             }
             
             while (layerQueue.try_dequeue(guiMessage)) {
-                guiCommandBuffer[layer].push_back(guiMessage);
+                guiCommandBuffer[layer].add(guiMessage);
             }
             
             auto* startMesage = pd->generateSymbol("lua_start_paint");

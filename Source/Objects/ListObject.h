@@ -113,7 +113,7 @@ public:
     {
         auto text = listLabel.getText();
         if (force || text != getListText()) {
-            SmallVector<pd::Atom> list = pd::Atom::atomsFromString(text);
+            SmallArray<pd::Atom> list = pd::Atom::atomsFromString(text);
             setList(list);
         }
     }
@@ -237,10 +237,10 @@ public:
         return {};
     }
 
-    void setList(SmallVector<pd::Atom> const& value)
+    void setList(SmallArray<pd::Atom> const& value)
     {
         if (auto gatom = ptr.get<t_fake_gatom>())
-            cnv->pd->sendDirectMessage(gatom.get(), SmallVector<pd::Atom>(value.begin(), value.end()));
+            cnv->pd->sendDirectMessage(gatom.get(), SmallArray<pd::Atom>(value.begin(), value.end()));
     }
 
     void mouseUp(MouseEvent const& e) override

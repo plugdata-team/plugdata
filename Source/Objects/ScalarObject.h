@@ -563,7 +563,7 @@ public:
     ~DrawablePlot()
     {
         for (auto* subplot : subplots) {
-            canvas->drawables.removeFirstMatchingValue(dynamic_cast<NVGComponent*>(subplot));
+            canvas->drawables.remove_one(dynamic_cast<NVGComponent*>(subplot));
             canvas->removeChildComponent(subplot);
         }
     }
@@ -1058,7 +1058,7 @@ struct ScalarObject final : public ObjectBase {
 
             // TODO: this is very inefficient!
             for (int i = templates.size() - 1; i >= 0; i--) {
-                cnv->drawables.move(cnv->drawables.indexOf(dynamic_cast<NVGComponent*>(templates[i])), 0);
+                cnv->drawables.move(cnv->drawables.index_of(dynamic_cast<NVGComponent*>(templates[i])), 0);
             }
         }
         
@@ -1082,7 +1082,7 @@ struct ScalarObject final : public ObjectBase {
     ~ScalarObject() override
     {
         for (auto* drawable : templates) {
-            cnv->drawables.removeFirstMatchingValue(dynamic_cast<NVGComponent*>(drawable));
+            cnv->drawables.remove_one(dynamic_cast<NVGComponent*>(drawable));
             cnv->removeChildComponent(drawable);
         }
     }

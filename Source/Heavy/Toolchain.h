@@ -82,7 +82,7 @@ struct Toolchain {
     }
 
 private:
-    inline static Array<File> tempFilesToDelete;
+    inline static SmallArray<File> tempFilesToDelete;
 };
 
 class ToolchainInstaller : public Component

@@ -44,7 +44,7 @@ public:
 
         updateParameters();
 
-        for (auto* value : SmallVector<Value*> { &name, &size, &drawMode, &saveContents, &range }) {
+        for (auto* value : SmallArray<Value*> { &name, &size, &drawMode, &saveContents, &range }) {
             // TODO: implement undo/redo for these values!
             value->addListener(this);
         }
@@ -60,13 +60,13 @@ public:
         pd->unregisterMessageListener(arr.getRawUnchecked<void>(), this);
     }
 
-    static std::vector<float> rescale(std::vector<float> const& v, unsigned const newSize)
+    static HeapArray<float> rescale(HeapArray<float> const& v, unsigned const newSize)
     {
         if (v.empty()) {
             return {};
         }
 
-        std::vector<float> result(newSize);
+        HeapArray<float> result(newSize);
         std::size_t const oldSize = v.size();
         for (unsigned i = 0; i < newSize; i++) {
             auto const idx = i * (oldSize - 1) / newSize;
@@ -82,7 +82,7 @@ public:
         return result;
     }
         
-    static Path createArrayPath(std::vector<float> points, DrawType style, std::array<float, 2> scale, float width, float height)
+    static Path createArrayPath(HeapArray<float> points, DrawType style, StackArray<float, 2> scale, float width, float height)
     {
         bool invert = false;
         if (scale[0] >= scale[1]) {
@@ -100,7 +100,7 @@ public:
         if(points.size() <= 4 && style == Curve) style = Polygon;
         
         // Add repeat of last point for Points style
-        if(style == Points) points.push_back(points.back());
+        if(style == Points) points.add(points.back());
         
         float const dh = height / (scale[1] - scale[0]);
         float const dw = width / static_cast<float>(points.size() - 1);
@@ -108,11 +108,12 @@ public:
         float const yscale = invert ? -1.0f : 1.0f;
         
         // Convert y values to xy coordinates
-        std::vector<float> xyPoints;
+        HeapArray<float> xyPoints;
+        xyPoints.reserve(points.size() * 2);
         for(int x = 0; x < points.size(); x++)
         {
-            xyPoints.push_back(x * dw);
-            xyPoints.push_back(invh - (std::clamp(points[x], scale[0], scale[1]) - scale[0]) * dh * yscale);
+            xyPoints.add(x * dw);
+            xyPoints.add(invh - (std::clamp(points[x], scale[0], scale[1]) - scale[0]) * dh * yscale);
         }
         
         auto const* pointPtr = xyPoints.data();
@@ -200,7 +201,7 @@ public:
         auto const h = static_cast<float>(getHeight());
         auto const w = static_cast<float>(getWidth());
 
-        if (!vec.empty()) {
+        if (vec.not_empty()) {
             auto p = createArrayPath(vec, getDrawType(), getScale(), w, h);
             g.setColour(getContentColour());
             g.strokePath(p, PathStrokeType(getLineWidth()));
@@ -215,7 +216,7 @@ public:
         auto const arrB = Rectangle<float>(0, 0, w, h).reduced(1);
         nvgIntersectRoundedScissor(nvg, arrB.getX(), arrB.getY(), arrB.getWidth(), arrB.getHeight(), Corners::objectCornerRadius);
         
-        if (!vec.empty()) {
+        if (vec.not_empty()) {
             auto p = createArrayPath(vec, getDrawType(), getScale(), w, h);
             setJUCEPath(nvg, p);
             
@@ -368,7 +369,7 @@ public:
         auto const x = static_cast<float>(e.x);
         auto const y = static_cast<float>(e.y);
 
-        std::array<float, 2> scale = getScale();
+        StackArray<float, 2> scale = getScale();
 
         int const index = static_cast<int>(std::round(std::clamp(x / w, 0.f, 1.f) * s));
 
@@ -387,7 +388,7 @@ public:
         }
 
         // Don't want to touch vec on the other thread, so we copy the vector into the lambda
-        auto changed = std::vector<float>(vec.begin() + interpStart, vec.begin() + interpEnd + 1);
+        auto changed = HeapArray<float>(vec.begin() + interpStart, vec.begin() + interpEnd + 1);
 
         lastIndex = index;
 
@@ -477,7 +478,7 @@ public:
     }
 
     // Gets the scale of the array
-    std::array<float, 2> getScale() const
+    StackArray<float, 2> getScale() const
     {
         if (auto ptr = arr.get<t_fake_garray>()) {
             t_canvas const* cnv = ptr->x_glist;
@@ -607,9 +608,9 @@ public:
         repaint();
     }
 
-    void setScale(std::array<float, 2> scale)
+    void setScale(StackArray<float, 2> scale)
     {
-        auto& [min, max] = scale;
+        auto& [min, max] = scale.data_;
         if (auto ptr = arr.get<t_fake_garray>()) {
             t_canvas* cnv = ptr->x_glist;
             if (cnv) {
@@ -621,7 +622,7 @@ public:
     }
 
     // Gets the values from the array.
-    bool read(std::vector<float>& output) const
+    bool read(HeapArray<float>& output) const
     {
         bool changed = false;
         if (auto ptr = arr.get<t_garray>()) {
@@ -649,7 +650,7 @@ public:
 
     pd::WeakReference arr;
 
-    std::vector<float> vec;
+    HeapArray<float> vec;
     std::atomic<bool> edited;
     bool error = false;
     String const stringArray = "array";
@@ -712,11 +713,11 @@ struct ArrayPropertiesPanel : public PropertiesPanelProperty
     };
 
     OwnedArray<PropertiesPanelProperty> properties;
-    Array<SafePointer<GraphicalArray>> graphs;
+    SmallArray<SafePointer<GraphicalArray>> graphs;
 
     AddArrayButton addButton;
     OwnedArray<SmallIconButton> deleteButtons;
-    Array<Value> nameValues;
+    SmallArray<Value> nameValues;
 
     std::function<void()> syncCanvas = []() {};
 
@@ -730,7 +731,7 @@ struct ArrayPropertiesPanel : public PropertiesPanelProperty
         syncCanvas = syncCanvasFunc;
     }
 
-    void reloadGraphs(Array<SafePointer<GraphicalArray>> const& safeGraphs)
+    void reloadGraphs(SmallArray<SafePointer<GraphicalArray>> const& safeGraphs)
     {
         properties.clear();
         nameValues.clear();
@@ -747,7 +748,7 @@ struct ArrayPropertiesPanel : public PropertiesPanelProperty
 
             // To detect name changes, so we can redraw the array title
             nameValues.add(Value());
-            auto& nameValue = nameValues.getReference(nameValues.size() - 1);
+            auto& nameValue = nameValues[nameValues.size() - 1];
             nameValue.referTo(graph->name);
             nameValue.addListener(this);
             auto* deleteButton = deleteButtons.add(new SmallIconButton(Icons::Clear));
@@ -900,7 +901,7 @@ public:
     OwnedArray<ArrayListView> lists;
     PluginProcessor* pd;
 
-    ArrayEditorDialog(PluginProcessor* instance, SmallVector<void*> const& arrays, Object* parent)
+    ArrayEditorDialog(PluginProcessor* instance, SmallArray<void*> const& arrays, Object* parent)
         : resizer(this, &constrainer)
         , pd(instance)
     {
@@ -1072,7 +1073,7 @@ public:
             if (!_this)
                 return static_cast<ArrayPropertiesPanel*>(nullptr);
 
-            Array<SafePointer<GraphicalArray>> safeGraphs;
+            SmallArray<SafePointer<GraphicalArray>> safeGraphs;
             for (auto* graph : _this->graphs) {
                 safeGraphs.add(graph);
             }
@@ -1117,7 +1118,7 @@ public:
 
         updateGraphs();
 
-        Array<SafePointer<GraphicalArray>> safeGraphs;
+        SmallArray<SafePointer<GraphicalArray>> safeGraphs;
         for (auto* graph : graphs)
             safeGraphs.add(graph);
 
@@ -1277,17 +1278,17 @@ public:
         }
     }
 
-    SmallVector<void*> getArrays() const
+    SmallArray<void*> getArrays() const
     {
         if (auto c = ptr.get<t_canvas>()) {
-            SmallVector<void*> arrays;
+            SmallArray<void*> arrays;
 
             t_gobj* x = reinterpret_cast<t_gobj*>(c->gl_list);
             if (x) {
-                arrays.push_back(x);
+                arrays.add(x);
 
                 while ((x = x->g_next)) {
-                    arrays.push_back(x);
+                    arrays.add(x);
                 }
             }
 
@@ -1388,15 +1389,15 @@ public:
         }
 
         if (auto c = ptr.get<t_canvas>()) {
-            SmallVector<void*> arrays;
+            SmallArray<void*> arrays;
 
             t_glist* x = c.get();
             t_gobj* gl = (x->gl_list ? pd_checkglist(&x->gl_list->g_pd)->gl_list : nullptr);
 
             if (gl) {
-                arrays.push_back(gl);
+                arrays.add(gl);
                 while ((gl = gl->g_next)) {
-                    arrays.push_back(x);
+                    arrays.add(x);
                 }
             }
 

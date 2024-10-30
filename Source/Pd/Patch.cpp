@@ -218,14 +218,14 @@ Connections Patch::getConnections() const
     return connections;
 }
 
-std::vector<pd::WeakReference> Patch::getObjects()
+HeapArray<pd::WeakReference> Patch::getObjects()
 {
     setCurrent();
 
-    std::vector<pd::WeakReference> objects;
+    HeapArray<pd::WeakReference> objects;
     if (auto patch = ptr.get<t_glist>()) {
         for (t_gobj* y = patch->gl_list; y; y = y->g_next) {
-            objects.push_back(pd::WeakReference(y, instance));
+            objects.add(pd::WeakReference(y, instance));
         }
     }
 
@@ -289,7 +289,7 @@ t_gobj* Patch::createObject(int x, int y, String const& name)
 
     int argc = tokens.size() + 2;
 
-    auto argv = SmallVector<t_atom>(argc);
+    auto argv = SmallArray<t_atom>(argc);
 
     // Set position
     SETFLOAT(argv.data(), static_cast<float>(x));
@@ -334,7 +334,7 @@ t_gobj* Patch::renameObject(t_object* obj, String const& name)
     return nullptr;
 }
 
-void Patch::copy(SmallVector<t_gobj*> const& objects)
+void Patch::copy(SmallArray<t_gobj*> const& objects)
 {
     if (auto patch = ptr.get<t_glist>()) {
         int size;
@@ -447,7 +447,7 @@ void Patch::paste(Point<int> position)
     }
 }
 
-void Patch::duplicate(SmallVector<t_gobj*> const& objects, t_outconnect* connection)
+void Patch::duplicate(SmallArray<t_gobj*> const& objects, t_outconnect* connection)
 {
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
@@ -517,7 +517,7 @@ t_outconnect* Patch::setConnctionPath(t_object* src, int nout, t_object* sink, i
     return nullptr;
 }
 
-void Patch::moveObjects(SmallVector<t_gobj*> const& objects, int dx, int dy)
+void Patch::moveObjects(SmallArray<t_gobj*> const& objects, int dx, int dy)
 {
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
@@ -542,7 +542,7 @@ void Patch::finishRemove()
     }
 }
 
-void Patch::removeObjects(SmallVector<t_gobj*> const& objects)
+void Patch::removeObjects(SmallArray<t_gobj*> const& objects)
 {
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();

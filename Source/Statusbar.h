@@ -12,7 +12,6 @@
 #include "Utility/SettingsFile.h"
 #include "Utility/ModifierKeyListener.h"
 #include "Utility/AudioSampleRingBuffer.h"
-#include "Utility/SmallVector.h"
 #include "Components/Buttons.h"
 
 class Canvas;
@@ -32,7 +31,7 @@ public:
         virtual void midiMessageReceived(MidiMessage const& message) { ignoreUnused(message); }
         virtual void midiMessageSent(MidiMessage const& message) { ignoreUnused(message); }
         virtual void audioProcessedChanged(bool audioProcessed) { ignoreUnused(audioProcessed); }
-        virtual void audioLevelChanged(SmallVector<float> peak) { ignoreUnused(peak); }
+        virtual void audioLevelChanged(SmallArray<float> peak) { ignoreUnused(peak); }
         virtual void cpuUsageChanged(float newCpuUsage) { ignoreUnused(newCpuUsage); }
         virtual void timerCallback() { }
     };
@@ -72,7 +71,7 @@ private:
     bool midiReceivedState = false;
     bool midiSentState = false;
     bool audioProcessedState = false;
-    std::vector<Listener*> listeners;
+    HeapArray<Listener*> listeners;
 };
 
 class VolumeSlider;

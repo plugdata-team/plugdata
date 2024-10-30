@@ -226,7 +226,7 @@ void PluginProcessor::initialiseFilesystem()
 
         // Binary data shouldn't be too big, then the compiler will run out of memory
         // To prevent this, we split the binarydata into multiple files, and add them back together here
-        std::vector<char> allData;
+        HeapArray<char> allData;
         int i = 0;
         while (true) {
             int size;
@@ -337,7 +337,7 @@ void PluginProcessor::updateSearchPaths()
     
     libpd_clear_search_path();
 
-    auto paths = SmallVector<File>(pd::Library::defaultPaths.begin(), pd::Library::defaultPaths.end());
+    auto paths = SmallArray<File>(pd::Library::defaultPaths.begin(), pd::Library::defaultPaths.end());
 
     for (auto child : pathTree) {
         auto path = child.getProperty("Path").toString().replace("\\", "/");
@@ -461,7 +461,7 @@ void PluginProcessor::setOversampling(int amount)
 
 void PluginProcessor::setLimiterThreshold(int amount)
 {
-    auto threshold = (std::vector<float> { -12, -6, 0, 3 })[amount];
+    auto threshold = (StackArray<float, 4> { -12, -6, 0, 3 })[amount];
     limiter.setThreshold(threshold);
 
     settingsFile->setProperty("limiter_threshold", var(amount));
@@ -1094,10 +1094,10 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     
     patches.clear();
 
-    SmallVector<pd::WeakReference> openedPatches;
+    SmallArray<pd::WeakReference> openedPatches;
     // Close all patches
     for (auto* cnv = pd_getcanvaslist(); cnv; cnv = cnv->gl_next) {
-        openedPatches.push_back(pd::WeakReference(cnv, this));
+        openedPatches.add(pd::WeakReference(cnv, this));
     }
     for(auto patch : openedPatches)
     {
@@ -1108,7 +1108,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     
     int numPatches = istream.readInt();
 
-    SmallVector<std::pair<String, File>> patches;
+    SmallArray<std::pair<String, File>> patches;
 
     for (int i = 0; i < numPatches; i++) {
         auto state = istream.readString();
@@ -1438,7 +1438,7 @@ void PluginProcessor::receiveMidiByte(int const port, int const byte)
     }
 }
 
-void PluginProcessor::receiveSysMessage(String const& selector, SmallVector<pd::Atom> const& list)
+void PluginProcessor::receiveSysMessage(String const& selector, SmallArray<pd::Atom> const& list)
 {
     switch (hash(selector)) {
     case hash("open"): {
@@ -1580,7 +1580,7 @@ void PluginProcessor::showTextEditorDialog(unsigned long ptr, Rectangle<int> bou
             count++;
             auto words = StringArray::fromTokens(line, " ", "\"");
 
-            auto atoms = SmallVector<t_atom>();
+            auto atoms = SmallArray<t_atom>();
             atoms.reserve(words.size() + 1);
 
             for (auto const& word : words) {
@@ -1783,7 +1783,7 @@ void PluginProcessor::performParameterChange(int type, String const& name, float
     }
 }
 
-void PluginProcessor::fillDataBuffer(SmallVector<pd::Atom> const& vec)
+void PluginProcessor::fillDataBuffer(SmallArray<pd::Atom> const& vec)
 {
     if (!vec[0].isSymbol()) {
         logMessage("databuffer accepts only lists beginning with a Symbol atom");
@@ -1827,7 +1827,7 @@ void PluginProcessor::parseDataBuffer(XmlElement const& xml)
     XmlElement const* extra_data = xml.getChildByName(juce::StringRef("ExtraData"));
     if (extra_data) {
         int const nlists = extra_data->getNumChildElements();
-        SmallVector<pd::Atom> vec;
+        SmallArray<pd::Atom> vec;
         for (int i = 0; i < nlists; ++i) {
             XmlElement const* list = extra_data->getChildElement(i);
             if (list) {
@@ -1863,17 +1863,17 @@ void PluginProcessor::updateConsole(int numMessages, bool newWarning)
     }
 }
 
-SmallVector<PluginEditor*> PluginProcessor::getEditors() const
+SmallArray<PluginEditor*> PluginProcessor::getEditors() const
 {
-    SmallVector<PluginEditor*> editors;
+    SmallArray<PluginEditor*> editors;
     if (ProjectInfo::isStandalone) {
         editors.reserve(editors.size());
         for (auto* editor : openedEditors) {
-            editors.push_back(editor);
+            editors.add(editor);
         }
     } else {
         if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-            editors.push_back(editor);
+            editors.add(editor);
         }
     }
 
@@ -1894,9 +1894,9 @@ void PluginProcessor::reloadAbstractions(File changedPatch, t_glist* except)
     for (auto* editor : getEditors()) {
 
         // Synchronising can potentially delete some other canvases, so make sure we use a safepointer
-        SmallVector<Component::SafePointer<Canvas>> canvases;
+        SmallArray<Component::SafePointer<Canvas>> canvases;
         for (auto* canvas : editor->getCanvases()) {
-            canvases.push_back(canvas);
+            canvases.add(canvas);
         }
 
         for (auto& cnv : canvases) {

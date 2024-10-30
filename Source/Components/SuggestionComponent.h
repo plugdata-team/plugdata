@@ -826,9 +826,9 @@ private:
         return false;
     }
 
-    SmallVector<std::tuple<String, String, String>> findNearbyMethods(String const& toSearch)
+    SmallArray<std::tuple<String, String, String>> findNearbyMethods(String const& toSearch)
     {
-        SmallVector<std::tuple<String, ValueTree, int>> objects;
+        SmallArray<std::tuple<String, ValueTree, int>> objects;
         auto* cnv = currentObject->cnv;
         for (auto* obj : cnv->objects) {
             int distance = currentObject->getPosition().getDistanceFrom(obj->getPosition());
@@ -856,7 +856,7 @@ private:
         });
 
         // Look for object name matches
-        SmallVector<std::tuple<String, String, String>> nearbyMethods;
+        SmallArray<std::tuple<String, String, String>> nearbyMethods;
         for (auto& [objectName, methods, distance] : objects) {
             for (auto method : methods) {
                 if (objectName.contains(toSearch)) {

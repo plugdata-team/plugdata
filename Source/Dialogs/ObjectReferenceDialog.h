@@ -12,7 +12,7 @@
 
 class ObjectInfoPanel : public Component {
     struct CategoryPanel : public Component {
-        CategoryPanel(String const& name, Array<std::pair<String, String>> const& content)
+        CategoryPanel(String const& name, SmallArray<std::pair<String, String>> const& content)
             : categoryName(name)
             , panelContent(content)
         {
@@ -78,8 +78,8 @@ class ObjectInfoPanel : public Component {
         }
 
         String const categoryName;
-        Array<std::pair<String, String>> const panelContent;
-        Array<TextLayout> layouts;
+        SmallArray<std::pair<String, String>> const panelContent;
+        SmallArray<TextLayout> layouts;
     };
 
 public:
@@ -95,8 +95,8 @@ public:
     {
         categories.clear();
 
-        Array<std::pair<String, String>> inletInfo;
-        Array<std::pair<String, String>> outletInfo;
+        SmallArray<std::pair<String, String>> inletInfo;
+        SmallArray<std::pair<String, String>> outletInfo;
 
         auto ioletDescriptions = objectInfo.getChildWithName("iolets");
         for (auto iolet : ioletDescriptions) {
@@ -116,7 +116,7 @@ public:
             categories.add(new CategoryPanel("Outlets", outletInfo));
         }
 
-        Array<std::pair<String, String>> argsInfo;
+        SmallArray<std::pair<String, String>> argsInfo;
 
         auto arguments = objectInfo.getChildWithName("arguments");
         for (auto argument : arguments) {
@@ -135,7 +135,7 @@ public:
             categories.add(new CategoryPanel("Arguments", argsInfo));
         }
 
-        Array<std::pair<String, String>> methodsInfo;
+        SmallArray<std::pair<String, String>> methodsInfo;
 
         auto methods = objectInfo.getChildWithName("methods");
         for (auto method : methods) {
@@ -148,7 +148,7 @@ public:
             categories.add(new CategoryPanel("Methods", methodsInfo));
         }
 
-        Array<std::pair<String, String>> flagsInfo;
+        SmallArray<std::pair<String, String>> flagsInfo;
 
         auto flags = objectInfo.getChildWithName("flags");
 
@@ -388,12 +388,12 @@ public:
                 if (variable)
                     hasUnknownInletLayout = true;
                 auto tooltip = iolet.getProperty("tooltip").toString();
-                inlets.push_back(tooltip.contains("(signal)"));
+                inlets.add(tooltip.contains("(signal)"));
             } else {
                 if (variable)
                     hasUnknownOutletLayout = true;
                 auto tooltip = iolet.getProperty("tooltip").toString();
-                outlets.push_back(tooltip.contains("(signal)"));
+                outlets.add(tooltip.contains("(signal)"));
             }
         }
 
@@ -441,8 +441,8 @@ public:
     bool unknownOutletLayout = false;
 
     String objectName;
-    std::vector<bool> inlets;
-    std::vector<bool> outlets;
+    SmallArray<bool> inlets;
+    SmallArray<bool> outlets;
 
     ObjectInfoPanel objectInfoPanel;
 

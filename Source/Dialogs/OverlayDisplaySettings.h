@@ -145,9 +145,9 @@ public:
         connectionDebugToggle->setTooltip("Enable connection debugging tooltips");
         addAndMakeVisible(*connectionDebugToggle);
 
-        groups.add(&canvas);
-        groups.add(&object);
-        groups.add(&connection);
+        groups[0] = &canvas;
+        groups[1] = &object;
+        groups[2] = &connection;
 
         for (auto& group : groups) {
             for (auto& item : *group) {
@@ -247,7 +247,7 @@ private:
 
     Label canvasLabel, objectLabel, connectionLabel;
 
-    Array<OwnedArray<OverlaySelector>*> groups;
+    StackArray<OwnedArray<OverlaySelector>*, 3> groups;
 
     OwnedArray<OverlaySelector> canvas;
     OwnedArray<OverlaySelector> object;

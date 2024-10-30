@@ -12,7 +12,6 @@
 #include "Utility/Config.h"
 #include "Utility/Limiter.h"
 #include "Utility/SettingsFile.h"
-#include "Utility/SmallVector.h"
 #include <Utility/AudioMidiFifo.h>
 
 #include "Pd/Instance.h"
@@ -88,7 +87,7 @@ public:
     void receiveAftertouch(int channel, int value) override;
     void receivePolyAftertouch(int channel, int pitch, int value) override;
     void receiveMidiByte(int port, int byte) override;
-    void receiveSysMessage(String const& selector, SmallVector<pd::Atom> const& list) override;
+    void receiveSysMessage(String const& selector, SmallArray<pd::Atom> const& list) override;
 
     void addTextToTextEditor(unsigned long ptr, String text) override;
     void showTextEditorDialog(unsigned long ptr, Rectangle<int> bounds, String title) override;
@@ -123,7 +122,7 @@ public:
     void sendPlayhead();
     void sendParameters();
 
-    SmallVector<PluginEditor*> getEditors() const;
+    SmallArray<PluginEditor*> getEditors() const;
 
     void performParameterChange(int type, String const& name, float value) override;
     void enableAudioParameter(String const& name) override;
@@ -134,7 +133,7 @@ public:
     void performLatencyCompensationChange(float value) override;
     void sendParameterInfoChangeMessage();
 
-    void fillDataBuffer(SmallVector<pd::Atom> const& list) override;
+    void fillDataBuffer(SmallArray<pd::Atom> const& list) override;
     void parseDataBuffer(XmlElement const& xml) override;
     std::unique_ptr<XmlElement> extraData;
 
@@ -195,8 +194,8 @@ private:
     AudioBuffer<float> audioBufferOut;
     AudioBuffer<float> bypassBuffer;
 
-    std::vector<float> audioVectorIn;
-    std::vector<float> audioVectorOut;
+    HeapArray<float> audioVectorIn;
+    HeapArray<float> audioVectorOut;
 
     std::unique_ptr<AudioMidiFifo> inputFifo;
     std::unique_ptr<AudioMidiFifo> outputFifo;
@@ -211,7 +210,7 @@ private:
     uint8 midiByteBuffer[512] = { 0 };
     size_t midiByteIndex = 0;
 
-    SmallVector<pd::Atom> atoms_playhead;
+    SmallArray<pd::Atom> atoms_playhead;
 
     int lastSetProgram = 0;
 

@@ -100,7 +100,7 @@ public:
 
     void quit(bool askToSave);
 
-    SmallVector<Canvas*> getCanvases();
+    SmallArray<Canvas*> getCanvases();
     Canvas* getCurrentCanvas();
 
     void modifierKeysChanged(ModifierKeys const& modifiers) override;
@@ -136,7 +136,7 @@ public:
 
     bool highlightSearchTarget(void* target, bool openNewTabIfNeeded);
 
-    SmallVector<pd::WeakReference> openTextEditors;
+    SmallArray<pd::WeakReference> openTextEditors;
 
     PluginProcessor* pd;
 

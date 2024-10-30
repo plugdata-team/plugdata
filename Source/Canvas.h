@@ -179,9 +179,9 @@ public:
     void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms) override;
 
     template<typename T>
-    Array<T*> getSelectionOfType()
+    HeapArray<T*> getSelectionOfType()
     {
-        Array<T*> result;
+        HeapArray<T*> result;
 
         for (auto const& obj : selectedComponents) {
             if (auto* objOfType = dynamic_cast<T*>(obj.get())) {
@@ -265,7 +265,7 @@ public:
     NVGImage resizeHandleImage;
     NVGImage presentationShadowImage;
 
-    Array<juce::WeakReference<NVGComponent>> drawables;
+    HeapArray<juce::WeakReference<NVGComponent>> drawables;
 
     NVGcolor canvasBackgroundCol;
     Colour canvasBackgroundColJuce;

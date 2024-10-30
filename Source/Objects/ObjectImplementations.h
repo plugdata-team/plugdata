@@ -13,8 +13,8 @@ class KeyObject final : public ImplementationBase
     , public KeyListener
     , public ModifierKeyListener {
 
-    SmallVector<KeyPress> heldKeys;
-    SmallVector<double> keyPressTimes;
+    SmallArray<KeyPress> heldKeys;
+    SmallArray<double> keyPressTimes;
 
     int const shiftKey = -1;
     int const commandKey = -2;

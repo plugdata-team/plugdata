@@ -238,7 +238,7 @@ void Sidebar::showPanel(int panelToShow)
     browser->setVisible(showBrowser);
     browser->setInterceptsMouseClicks(showBrowser, showBrowser);
 
-    auto buttons = std::vector<TextButton*> { &consoleButton, &browserButton, &automationButton, &searchButton };
+    auto buttons = StackArray<TextButton*, 4> { &consoleButton, &browserButton, &automationButton, &searchButton };
 
     for (int i = 0; i < buttons.size(); i++) {
         buttons[i]->setToggleState(i == panelToShow, dontSendNotification);
@@ -324,7 +324,7 @@ bool Sidebar::isHidden() const
     return sidebarHidden;
 }
 
-void Sidebar::showParameters(String const& name, SmallVector<ObjectParameters>& params)
+void Sidebar::showParameters(String const& name, SmallArray<ObjectParameters>& params)
 {
     lastParameters = params;
     inspector->loadParameters(params);
@@ -365,7 +365,7 @@ void Sidebar::hideParameters()
     }
 
     if (pinned) {
-        SmallVector<ObjectParameters> params = {};
+        SmallArray<ObjectParameters> params = {};
         inspector->loadParameters(params);
     }
 

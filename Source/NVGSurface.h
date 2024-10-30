@@ -125,7 +125,7 @@ private:
     juce::Image backupRenderImage;
     bool renderThroughImage = false;
     ImageComponent backupImageComponent;
-    std::vector<uint32> backupPixelData;
+    HeapArray<uint32> backupPixelData;
 
     float lastRenderScale = 0.0f;
     uint32 lastRenderTime;

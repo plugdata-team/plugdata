@@ -35,7 +35,7 @@ public:
     
     static File findPatch(String const& patchToFind);
 
-    static std::array<StringArray, 2> parseIoletTooltips(ValueTree const& iolets, String const& name, int numIn, int numOut);
+    static StackArray<StringArray, 2> parseIoletTooltips(ValueTree const& iolets, String const& name, int numIn, int numOut);
 
     void filesystemChanged() override;
 
@@ -52,7 +52,7 @@ public:
     // Paths to search for helpfiles
     // First, only search vanilla, then search all documentation
     // Lastly, check the deken folder
-    static inline std::array<File, 9> const helpPaths = {
+    static inline StackArray<File, 9> const helpPaths = {{
         ProjectInfo::appDataDir.getChildFile("Documentation"),
         ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("5.reference"),
         ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("9.else"),
@@ -62,9 +62,9 @@ public:
         ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("14.gem"),
         ProjectInfo::appDataDir.getChildFile("Extra"),
         ProjectInfo::appDataDir.getChildFile("Externals")
-    };
+    }};
 
-    static inline std::array<File, 8> const defaultPaths = {
+    static inline StackArray<File, 8> const defaultPaths = {{
         ProjectInfo::appDataDir.getChildFile("Abstractions").getChildFile("else"),
         ProjectInfo::appDataDir.getChildFile("Abstractions").getChildFile("cyclone"),
         ProjectInfo::appDataDir.getChildFile("Abstractions").getChildFile("heavylib"),
@@ -73,7 +73,7 @@ public:
         ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("else"),
         ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Gem"),
         ProjectInfo::appDataDir.getChildFile("Extra")
-    };
+    }};
 
     static inline StringArray objectOrigins = { "vanilla", "ELSE", "cyclone", "Gem", "heavylib", "pdlua" };
 

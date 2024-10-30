@@ -38,7 +38,7 @@ private:
 
     void propertyChanged(String const& name, var const& value) override;
 
-    static Array<Object*> getSnappableObjects(Object* draggedObject);
+    static SmallArray<Object*> getSnappableObjects(Object* draggedObject);
 
     void setIndicator(int idx, Line<int> line, float lineScale);
 

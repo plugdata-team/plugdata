@@ -39,7 +39,7 @@ public:
         }
     };
 
-    explicit ConsoleSettings(std::array<Value, 5>& settingsValues)
+    explicit ConsoleSettings(StackArray<Value, 5>& settingsValues)
     {
         for (auto* button : buttons) {
             addAndMakeVisible(*button);
@@ -281,15 +281,15 @@ public:
             }
         };
 
-        std::array<Value, 5>& settingsValues;
+        StackArray<Value, 5>& settingsValues;
         Viewport& viewport;
 
         pd::Instance* pd; // instance to get console messages from
     public:
         std::deque<std::unique_ptr<ConsoleMessage>> messages;
-        SmallVector<SafePointer<ConsoleMessage>> selectedItems;
+        SmallArray<SafePointer<ConsoleMessage>> selectedItems;
 
-        ConsoleComponent(pd::Instance* instance, std::array<Value, 5>& b, Viewport& v)
+        ConsoleComponent(pd::Instance* instance, StackArray<Value, 5>& b, Viewport& v)
             : settingsValues(b)
             , viewport(v)
             , pd(instance)
@@ -478,7 +478,7 @@ public:
     }
 
 private:
-    std::array<Value, 5> settingsValues;
+    StackArray<Value, 5> settingsValues;
     ConsoleComponent* console;
     BouncingViewport viewport;
 };

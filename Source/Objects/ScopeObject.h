@@ -7,8 +7,8 @@
 class ScopeObject final : public ObjectBase
     , public Timer {
 
-    std::vector<float> x_buffer;
-    std::vector<float> y_buffer;
+    HeapArray<float> x_buffer;
+    HeapArray<float> y_buffer;
 
     Value gridColour = SynchronousValue();
     Value triggerMode = SynchronousValue();

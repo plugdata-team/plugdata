@@ -354,7 +354,7 @@ public:
 
         openHelp.setVisible(false);
 
-        SmallVector<TextButton*> buttons = { &openHelp, &openReference };
+        SmallArray<TextButton*> buttons = { &openHelp, &openReference };
 
         for (auto* button : buttons) {
             button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::panelBackgroundColourId));
@@ -519,11 +519,11 @@ public:
             if (iolet.getType() == Identifier("inlet")) {
                 if (variable)
                     hasUnknownInletLayout = true;
-                inlets.push_back(iolet.getProperty("tooltip").toString().contains("(signal)"));
+                inlets.add(iolet.getProperty("tooltip").toString().contains("(signal)"));
             } else {
                 if (variable)
                     hasUnknownOutletLayout = true;
-                outlets.push_back(iolet.getProperty("tooltip").toString().contains("(signal)"));
+                outlets.add(iolet.getProperty("tooltip").toString().contains("(signal)"));
             }
         }
 
@@ -569,8 +569,8 @@ public:
     bool unknownOutletLayout = false;
 
     String objectName;
-    std::vector<bool> inlets;
-    std::vector<bool> outlets;
+    SmallArray<bool> inlets;
+    SmallArray<bool> outlets;
 
     String origin;
     String categories;

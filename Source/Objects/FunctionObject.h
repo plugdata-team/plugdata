@@ -18,7 +18,7 @@ class FunctionObject final : public ObjectBase {
     Value receiveSymbol = SynchronousValue();
     Value sizeProperty = SynchronousValue();
 
-    Array<Point<float>> points;
+    SmallArray<Point<float>> points;
 
 public:
     FunctionObject(pd::WeakReference ptr, Object* object)
@@ -91,9 +91,9 @@ public:
         }
     }
 
-    Array<Point<float>> getRealPoints()
+    SmallArray<Point<float>> getRealPoints()
     {
-        auto realPoints = Array<Point<float>>();
+        auto realPoints = SmallArray<Point<float>>();
         for (auto point : points) {
             point.x = jmap<float>(point.x, 0.0f, 1.0f, 3, getWidth() - 3);
             point.y = jmap<float>(point.y, 0.0f, 1.0f, getHeight() - 3, 3);
@@ -181,14 +181,9 @@ public:
         return false;
     }
 
-    static int compareElements(Point<float> a, Point<float> b)
+    static int compareElements(const Point<float>& a, const Point<float>& b)
     {
-        if (a.x < b.x)
-            return -1;
-        else if (a.x > b.x)
-            return 1;
-        else
-            return 0;
+        return a.x < b.x;
     }
 
     void setHoverIdx(int i)
@@ -243,7 +238,7 @@ public:
         float newX = jmap(static_cast<float>(e.x), 3.0f, getWidth() - 3.0f, 0.0f, 1.0f);
         float newY = jmap(static_cast<float>(e.y), 3.0f, getHeight() - 3.0f, 1.0f, 0.0f);
 
-        dragIdx = points.addSorted(*this, { newX, newY });
+        dragIdx = points.add_sorted(&compareElements, { newX, newY });
 
         triggerOutput();
     }
@@ -251,10 +246,10 @@ public:
     void removePoint(int idx)
     {
         if (idx == 0 || idx == points.size() - 1) {
-            points.getReference(idx).y = 0.0f;
+            points[idx].y = 0.0f;
         }
         else {
-            points.remove(idx);
+            points.remove_at(idx);
         }
         selectedIdx = -1;
         resetHoverIdx();
@@ -316,8 +311,8 @@ public:
         // For first and last point, only adjust y position
         if (dragIdx == 0 || dragIdx == points.size() - 1) {
             float newY = jlimit(0.0f, 1.0f, jmap(static_cast<float>(e.y), 3.0f, getHeight() - 3.0f, 1.0f, 0.0f));
-            if (newY != points.getReference(dragIdx).y) {
-                points.getReference(dragIdx).y = newY;
+            if (newY != points[dragIdx].y) {
+                points[dragIdx].y = newY;
                 changed = true;
             }
         }
@@ -332,7 +327,7 @@ public:
 
             auto newPoint = Point<float>(newX, newY);
             if (points[dragIdx] != newPoint) {
-                points.set(dragIdx, newPoint);
+                points[dragIdx] = newPoint;
                 changed = true;
             }
         }
@@ -344,7 +339,7 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-        points.sort(*this);
+        points.sort(compareElements);
 
         if (auto function = ptr.get<t_fake_function>()) {
             auto scale = function->x_dur[function->x_n_states];
@@ -370,18 +365,19 @@ public:
 
             auto scale = function->x_dur[function->x_n_states];
 
-            auto at = SmallVector<t_atom>(ac);
+            auto at = SmallArray<t_atom>(ac);
             auto firstPoint = jmap<float>(points[0].y, 0.0f, 1.0f, function->x_min, function->x_max);
             SETFLOAT(at.data(), firstPoint); // get 1st
 
             function->x_state = 0;
             for (int i = 1; i < ac; i++) { // get the rest
-
-                auto dur = jmap<float>(points[function->x_state + 1].x - points[function->x_state].x, 0.0f, 1.0f, 0.0f, scale);
+                auto next = std::min<int>(function->x_state + 1, points.size() - 1);
+                auto dur = jmap<float>(points[next].x - points[function->x_state].x, 0.0f, 1.0f, 0.0f, scale);
 
                 SETFLOAT(at.data() + i, dur); // duration
                 i++, function->x_state++;
-                auto point = jmap<float>(points[function->x_state].y, 0.0f, 1.0f, function->x_min, function->x_max);
+                next = std::min<int>(function->x_state, points.size() - 1);
+                auto point = jmap<float>(points[next].y, 0.0f, 1.0f, function->x_min, function->x_max);
                 if (point < function->x_min_point)
                     function->x_min_point = point;
                 if (point > function->x_max_point)

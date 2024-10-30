@@ -100,32 +100,6 @@ struct TextObjectHelper {
         return text;
     }
 
-    // Used by text objects for estimating best text height for a set width
-    /*
-    static int getNumLines(String const& text, int width, int fontSize)
-    {
-        int numLines = 1;
-
-        Array<int> glyphs;
-        Array<float> xOffsets;
-
-        auto font = Font(fontSize);
-        font.getGlyphPositions(text.trimCharactersAtEnd(";\n"), glyphs, xOffsets);
-
-        wchar_t lastChar;
-        for (int i = 0; i < xOffsets.size(); i++) {
-            if ((xOffsets[i] + 11) >= static_cast<float>(width) || (text.getCharPointer()[i] == '\n' && lastChar == ';')) {
-                for (int j = i + 1; j < xOffsets.size(); j++) {
-                    xOffsets.getReference(j) -= xOffsets[i];
-                }
-                numLines++;
-            }
-            lastChar = text.getCharPointer()[i];
-        }
-
-        return numLines;
-    } */
-
     static TextEditor* createTextEditor(Object* object, int fontHeight)
     {
         auto* editor = new TextEditor;

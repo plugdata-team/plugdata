@@ -754,8 +754,9 @@ bool ObjectBase::canReceiveMouseEvent(int x, int y)
 
 void ObjectBase::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms)
 {
+    object->triggerOverlayActiveState();
+    
     auto symHash = hash(symbol->s_name);
-
     switch (symHash) {
     case hash("size"):
     case hash("delta"):
@@ -769,11 +770,11 @@ void ObjectBase::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int n
         });
         break;
     }
+    case hash("_activity"):
+        return;
     default:
         break;
     }
-
-    object->triggerOverlayActiveState();
     
     receiveObjectMessage(symHash, atoms, numAtoms);
 }

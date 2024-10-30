@@ -35,9 +35,6 @@ public:
     /** Removes all folders from being watched */
     void removeAllFolders();
 
-    /** Gets a list of folders being watched */
-    Array<File> getWatchedFolders();
-
     /** A set of events that can happen to a file.
         When a file is renamed it will appear as the
         original filename being deleted and the new
