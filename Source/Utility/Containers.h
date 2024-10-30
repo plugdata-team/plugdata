@@ -34,6 +34,7 @@
 
 #include <cassert>
 #include <algorithm>
+#include <limits>
 
 template<typename T>
 class ArrayRef;

@@ -269,7 +269,7 @@ t_gobj* Patch::createObject(int x, int y, String const& name)
         typesymbol = instance->generateSymbol("text");
         tokens.remove(0);
     }
-    if (tokens[0] == "floatatom") {
+    if (tokens[0] == "floatbox") {
         typesymbol = instance->generateSymbol("floatatom");
         tokens.remove(0);
     }
@@ -277,7 +277,7 @@ t_gobj* Patch::createObject(int x, int y, String const& name)
         typesymbol = instance->generateSymbol("listbox");
         tokens.remove(0);
     }
-    if (tokens[0] == "symbolatom") {
+    if (tokens[0] == "symbolbox") {
         typesymbol = instance->generateSymbol("symbolatom");
         tokens.remove(0);
     }

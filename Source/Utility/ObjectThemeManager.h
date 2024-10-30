@@ -102,8 +102,8 @@ private:
         { "vu", "20 120 empty empty -1 -8 0 10 #404040 @lblColour 1 0" },
 
         // ADDITIONAL UI OBJECTS:
-        { "floatatom", "5 0 0 0 - - - 12" },
-        { "symbolatom", "5 0 0 0 - - - 12" },
+        { "floatbox", "5 0 0 0 - - - 12" },
+        { "symbolbox", "5 0 0 0 - - - 12" },
         { "listbox", "9 0 0 0 - - - 0" },
         { "numbox~", "4 15 100 @bgColour @fgColour 10 0 0 0" },
         { "note", "0 14 Inter empty 0 @lblColour_rgb 0 @bgColour_rgb 0 0 note" }
