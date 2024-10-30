@@ -231,7 +231,7 @@ public:
             auto min = obj->x_min;
             auto max = obj->x_max;
             slider.setRangeFlipped(!approximatelyEqual(min, max) && min > max);
-            sizeProperty = Array<var> { var(obj->x_gui.x_w), var(obj->x_gui.x_h) };
+            sizeProperty = VarArray { var(obj->x_gui.x_w), var(obj->x_gui.x_h) };
         }
 
         min = getMinimum();
@@ -303,7 +303,7 @@ public:
         }
     }
 
-    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
     {
         switch (symbol) {
         case hash("float"):
@@ -392,7 +392,7 @@ public:
                 iem->x_h = object->getObjectBounds().getHeight() - 1;
             }
 
-            setParameterExcludingListener(sizeProperty, Array<var> { var(iem->x_w), var(iem->x_h) });
+            setParameterExcludingListener(sizeProperty, VarArray { var(iem->x_w), var(iem->x_h) });
         }
     }
 
@@ -486,7 +486,7 @@ public:
             auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
             auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
 
-            setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+            setParameterExcludingListener(sizeProperty, VarArray { var(width), var(height) });
 
             if (auto obj = ptr.get<t_slider>()) {
                 obj->x_gui.x_w = width;

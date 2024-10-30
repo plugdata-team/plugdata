@@ -233,7 +233,7 @@ public:
         panel.clear();
         allPanels.clear();
 
-        std::map<String, Array<PropertiesPanelProperty*>> panels;
+        std::map<String, PropertiesArray> panels;
 
         // Loop over colours
         for (auto const& [colour, colourNames] : PlugDataColourNames) {

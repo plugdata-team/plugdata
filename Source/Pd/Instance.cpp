@@ -319,11 +319,11 @@ void Instance::initialisePd(String& pdlua_version)
             bool open = (unsigned long)atom_getfloat(argv + 1);
             bool wasOpen = static_cast<Instance*>(instance)->isTextEditorDialogShown(ptr);
 
-            t_atom atoms[2];
-            SETFLOAT(atoms, wasOpen);
-            SETFLOAT(atoms + 1, open);
+            StackArray<t_atom, 2> atoms;
+            SETFLOAT(&atoms[0], wasOpen);
+            SETFLOAT(&atoms[1], open);
 
-            pd_typedmess((t_pd*)ptr, gensym("_is_opened"), 2, atoms);
+            pd_typedmess((t_pd*)ptr, gensym("_is_opened"), 2, atoms.data());
         }
         }
     };
@@ -361,11 +361,11 @@ void Instance::initialisePd(String& pdlua_version)
 
         // We want to initialise pdlua separately for each instance
         auto extra = ProjectInfo::appDataDir.getChildFile("Extra");
-        char vers[1000];
-        *vers = 0;
-        pd::Setup::initialisePdLua(extra.getFullPathName().getCharPointer(), vers, 1000, &registerLuaClass);
-        if (*vers)
-            pdlua_version = vers;
+        StackArray<char, 1000> vers;
+        vers[0] = 0;
+        pd::Setup::initialisePdLua(extra.getFullPathName().getCharPointer(), vers.data(), 1000, &registerLuaClass);
+        if (vers[0])
+            pdlua_version = vers.data();
     }
 
     setThis();
@@ -585,7 +585,7 @@ void Instance::unregisterWeakReference(void* ptr, pd_weak_reference const* ref)
     auto it = std::find(refs.begin(), refs.end(), ref);
 
     if (it != refs.end()) {
-        pdWeakReferences[ptr].erase(it);
+        refs.erase(it);
     }
 
     weakReferenceMutex.unlock();
@@ -855,11 +855,11 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
                     auto pathName = result.getLocalFile().getFullPathName();
                     auto const* path = pathName.toRawUTF8();
 
-                    t_atom argv[1];
-                    libpd_set_symbol(argv, path);
+                    t_atom argv;
+                    libpd_set_symbol(&argv, path);
 
                     lockAudioThread();
-                    pd_typedmess(obj, generateSymbol(callback), 1, argv);
+                    pd_typedmess(obj, generateSymbol(callback), 1, &argv);
                     unlockAudioThread();
                 },
                     "", "savepanel", dialogParent);

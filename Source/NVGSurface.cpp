@@ -39,9 +39,9 @@ public:
         nvgFontSize(nvg, 20.0f);
         nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
         nvgFillColor(nvg, nvgRGBA(240, 240, 240, 255));
-        char fpsBuf[16];
-        snprintf(fpsBuf, 16, "%d", static_cast<int>(round(1.0f / getAverageFrameTime())));
-        nvgText(nvg, 7, 2, fpsBuf, nullptr);
+        StackArray<char, 16> fpsBuf;
+        snprintf(fpsBuf.data(), 16, "%d", static_cast<int>(round(1.0f / getAverageFrameTime())));
+        nvgText(nvg, 7, 2, fpsBuf.data(), nullptr);
 
         nvgGlobalScissor(nvg, 0, 0, 40 * scale, 22 * scale);
         nvgEndFrame(nvg);

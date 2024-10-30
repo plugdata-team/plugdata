@@ -845,7 +845,7 @@ private:
         }
 
         // Sort by distance
-        std::sort(objects.begin(), objects.end(), [](auto const& a, auto const& b) {
+        objects.sort([](auto const& a, auto const& b) {
             return std::get<2>(a) > std::get<2>(b);
         });
 

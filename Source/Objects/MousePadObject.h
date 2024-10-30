@@ -22,14 +22,14 @@ public:
             if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isInsideGraphBounds(e) || !isLocked() || !cnv->isShowing() || isPressed)
                 return;
 
-            t_atom at[3];
-            SETFLOAT(at, 1.0f);
+            StackArray<t_atom, 3> at;
+            SETFLOAT(&at[0], 1.0f);
 
             if (auto pad = this->ptr.get<t_fake_pad>()) {
                 pad->x_x = relativeEvent.getPosition().x;
                 pad->x_y = getHeight() - relativeEvent.getPosition().y;
 
-                outlet_anything(pad->x_obj.ob_outlet, pd->generateSymbol("click"), 1, at);
+                outlet_anything(pad->x_obj.ob_outlet, pd->generateSymbol("click"), 1, at.data());
             }
 
             isPressed = true;
@@ -39,9 +39,9 @@ public:
                 return;
 
             if (auto pad = this->ptr.get<t_fake_pad>()) {
-                t_atom at[1];
-                SETFLOAT(at, 0);
-                outlet_anything(pad->x_obj.ob_outlet, pd->generateSymbol("click"), 1, at);
+                StackArray<t_atom, 1> at;
+                SETFLOAT(&at[0], 0);
+                outlet_anything(pad->x_obj.ob_outlet, pd->generateSymbol("click"), 1, at.data());
             }
 
             isPressed = false;
@@ -66,11 +66,11 @@ public:
                 pad->x_x = xPos;
                 pad->x_y = yPos;
 
-                t_atom at[3];
-                SETFLOAT(at, xPos);
-                SETFLOAT(at + 1, yPos);
+                StackArray<t_atom, 3> at;
+                SETFLOAT(&at[0], xPos);
+                SETFLOAT(&at[1], yPos);
 
-                outlet_anything(pad->x_obj.ob_outlet, gensym("list"), 2, at);
+                outlet_anything(pad->x_obj.ob_outlet, gensym("list"), 2, at.data());
             }
         };
 
@@ -144,7 +144,7 @@ public:
     void update() override
     {
         if (auto pad = ptr.get<t_fake_pad>()) {
-            sizeProperty = Array<var> { var(pad->x_w), var(pad->x_h) };
+            sizeProperty = VarArray { var(pad->x_w), var(pad->x_h) };
         }
     }
 
@@ -153,7 +153,7 @@ public:
         setPdBounds(object->getObjectBounds());
 
         if (auto pad = ptr.get<t_fake_pad>()) {
-            setParameterExcludingListener(sizeProperty, Array<var> { var(pad->x_w), var(pad->x_h) });
+            setParameterExcludingListener(sizeProperty, VarArray { var(pad->x_w), var(pad->x_h) });
         }
     }
 
@@ -165,7 +165,7 @@ public:
             auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
             auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
 
-            setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+            setParameterExcludingListener(sizeProperty, VarArray { var(width), var(height) });
 
             if (auto pad = ptr.get<t_fake_pad>()) {
                 pad->x_w = width;
@@ -188,7 +188,7 @@ public:
         return static_cast<bool>(topLevel->locked.getValue() || topLevel->commandLocked.getValue()) || topLevel->isGraph;
     }
 
-    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
     {
         switch (symbol) {
         case hash("color"): {

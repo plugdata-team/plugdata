@@ -10,6 +10,7 @@ For more information visit www.rabiensoftware.com
 
 using namespace juce;
 #include "FileSystemWatcher.h"
+#include "Containers.h"
 
 #ifdef  _WIN32
  #include <Windows.h>
@@ -212,7 +213,7 @@ public:
     File folder;
 
     CriticalSection lock;
-    Array<Event> events;
+    SmallArray<Event> events;
 
     int fd;
     int wd;
@@ -347,7 +348,7 @@ public:
     const File folder;
 
     CriticalSection lock;
-    Array<Event> events;
+    SmallArray<Event> events;
 
     HANDLE folderHandle;
 };
@@ -382,7 +383,7 @@ FileSystemWatcher::~FileSystemWatcher()
 
 void FileSystemWatcher::addFolder (const File& folder)
 {
-    Array<File> allFolders;
+    SmallArray<File> allFolders;
     for (auto w : watched)
         allFolders.add (w->folder);
     

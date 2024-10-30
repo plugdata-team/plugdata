@@ -30,7 +30,7 @@ public:
     static bool checkIfPatchIsValid(String const& patch);
 
 private:
-    static HeapArray<Rectangle<int>> getObjectBoundsForPatch(String const& patch);
+    static SmallArray<Rectangle<int>> getObjectBoundsForPatch(String const& patch);
     static bool parseGraphSize(String const& objectText, Rectangle<int>& bounds);
 
     static ImageWithOffset patchToTempImage(String const& patch, float scale);

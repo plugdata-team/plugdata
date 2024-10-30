@@ -212,7 +212,7 @@ private:
 
         auto* currentType = deviceManager.getCurrentDeviceTypeObject();
 
-        Array<PropertiesPanelProperty*> deviceConfigurationProperties;
+        PropertiesArray deviceConfigurationProperties;
 
         // Only show if there are multiple device types
         if (types.size() > 1) {
@@ -292,7 +292,7 @@ private:
         }
 
         // Add output device selector
-        Array<PropertiesPanelProperty*> outputProperties;
+        PropertiesArray outputProperties;
         StringArray const outputDevices(currentType->getDeviceNames(false));
         outputSelectorProperty = new CallbackComboPropertyWithTestButton(
             "Output Device", outputDevices, setup.outputDeviceName, [this](String selectedDevice) {
@@ -303,7 +303,7 @@ private:
         outputProperties.add(outputSelectorProperty);
 
         // Add input device selector
-        Array<PropertiesPanelProperty*> inputProperties;
+        PropertiesArray inputProperties;
         StringArray const inputDevices(currentType->getDeviceNames(true));
         inputSelectorProperty = new CallbackComboProperty("Input Device", inputDevices, setup.inputDeviceName, [this](String selectedDevice) {
             setup.inputDeviceName = std::move(selectedDevice);

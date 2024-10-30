@@ -59,7 +59,7 @@ public:
 
         dismiss(true);
 
-        Array<var> palettePatchWithOffset;
+        VarArray palettePatchWithOffset;
         palettePatchWithOffset.add(var(dragImage.offset.getX()));
         palettePatchWithOffset.add(var(dragImage.offset.getY()));
         palettePatchWithOffset.add(var(getObjectString()));

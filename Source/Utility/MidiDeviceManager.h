@@ -12,6 +12,8 @@
 class MidiDeviceManager : public ChangeListener
     , public AsyncUpdater {
 
+    using MidiDeviceArray = Array<MidiDeviceInfo>;
+
 public:
     // Helper functions to encode/decode regular MIDI events into a sysex event
     // The reason we do this, is that we want to append extra information to the MIDI event when it comes in from pd or the device, but JUCE won't allow this
@@ -191,12 +193,12 @@ public:
         clearOutputFilter();
     }
 
-    Array<MidiDeviceInfo> getInputDevicesUnfiltered()
+    MidiDeviceArray getInputDevicesUnfiltered()
     {
         return lastMidiInputs;
     }
 
-    Array<MidiDeviceInfo> getOutputDevicesUnfiltered()
+    MidiDeviceArray getOutputDevicesUnfiltered()
     {
         return lastMidiOutputs;
     }
@@ -239,7 +241,7 @@ public:
     // available devices, while the following reordered and filtered lists of
     // enabled ports are used in the app for popup menus and to map port
     // numbers used by the Pd engine.
-    Array<MidiDeviceInfo> getInputDevices()
+    MidiDeviceArray getInputDevices()
     {
         if (!ProjectInfo::getDeviceManager()) {
             // just in case we get called during startup when the device
@@ -250,7 +252,7 @@ public:
             // we cache the filtered device list so that we don't have to
             // recompute it each time
             midiDeviceMutex.lock();
-            filteredMidiInputs = new Array<MidiDeviceInfo>(lastMidiInputs);
+            filteredMidiInputs = new MidiDeviceArray(lastMidiInputs);
             midiDeviceMutex.unlock();
             compareDevs cmp(this, true);
             // make sure to do a stable sort here, so that enabled ports stay
@@ -266,14 +268,14 @@ public:
         return *filteredMidiInputs;
     }
 
-    Array<MidiDeviceInfo> getOutputDevices()
+    MidiDeviceArray getOutputDevices()
     {
         if (!ProjectInfo::getDeviceManager()) {
             return lastMidiOutputs;
         }
         if (!filteredMidiOutputs) {
             midiDeviceMutex.lock();
-            filteredMidiOutputs = new Array<MidiDeviceInfo>(lastMidiOutputs);
+            filteredMidiOutputs = new MidiDeviceArray(lastMidiOutputs);
             midiDeviceMutex.unlock();
             compareDevs cmp(this, false);
             filteredMidiOutputs->sort(cmp, true);
@@ -402,9 +404,9 @@ private:
 
     // List of ports in the canonical order
     // This can't be accessed from the audio thread so we need to store it when it changes
-    Array<MidiDeviceInfo> lastMidiInputs;
-    Array<MidiDeviceInfo> lastMidiOutputs;
+    MidiDeviceArray lastMidiInputs;
+    MidiDeviceArray lastMidiOutputs;
 
-    Array<MidiDeviceInfo>* filteredMidiInputs;
-    Array<MidiDeviceInfo>* filteredMidiOutputs;
+    MidiDeviceArray* filteredMidiInputs;
+    MidiDeviceArray* filteredMidiOutputs;
 };

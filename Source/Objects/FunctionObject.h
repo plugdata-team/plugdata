@@ -38,10 +38,10 @@ public:
         if (auto function = ptr.get<t_fake_function>()) {
             secondaryColour = colourFromHexArray(function->x_bgcolor).toString();
             primaryColour = colourFromHexArray(function->x_fgcolor).toString();
-            sizeProperty = Array<var> { var(function->x_width), var(function->x_height) };
+            sizeProperty = VarArray { var(function->x_width), var(function->x_height) };
             initialise = function->x_init;
 
-            Array<var> arr = { function->x_min, function->x_max };
+            VarArray arr = { function->x_min, function->x_max };
             range = var(arr);
 
             auto sndSym = function->x_snd_set ? String::fromUTF8(function->x_snd_raw->s_name) : getBinbufSymbol(3);
@@ -87,7 +87,7 @@ public:
         setPdBounds(object->getObjectBounds());
 
         if (auto function = ptr.get<t_fake_function>()) {
-            setParameterExcludingListener(sizeProperty, Array<var> { var(function->x_width), var(function->x_height) });
+            setParameterExcludingListener(sizeProperty, VarArray { var(function->x_width), var(function->x_height) });
         }
     }
 
@@ -399,7 +399,7 @@ public:
                 auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
                 auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
 
-                setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+                setParameterExcludingListener(sizeProperty, VarArray { var(width), var(height) });
 
                 function->x_width = width;
                 function->x_height = height;
@@ -446,7 +446,7 @@ public:
         return sSymbol.isNotEmpty() && (sSymbol != "empty");
     }
 
-    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
     {
         switch (symbol) {
         case hash("send"): {
@@ -470,7 +470,7 @@ public:
         case hash("min"):
         case hash("max"): {
             if (auto function = ptr.get<t_fake_function>()) {
-                Array<var> arr = { function->x_min, function->x_max };
+                VarArray arr = { function->x_min, function->x_max };
                 setParameterExcludingListener(range, var(arr));
                 getPointsFromFunction(function.get());
             }

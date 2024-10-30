@@ -57,6 +57,8 @@ public:
     void refresh() override { }
 };
 
+using PropertiesArray = Array<PropertiesPanelProperty*>;
+
 class PropertiesPanel : public Component {
 public:
     enum TitleAlignment {
@@ -68,7 +70,7 @@ private:
     struct SectionComponent : public Component {
 
         SectionComponent(PropertiesPanel& propertiesPanel, String const& sectionTitle,
-            Array<PropertiesPanelProperty*> const& newProperties, int extraPadding)
+            PropertiesArray const& newProperties, int extraPadding)
             : Component(sectionTitle)
             , parent(propertiesPanel)
             , padding(extraPadding)
@@ -708,14 +710,14 @@ public:
 
             auto setMinimum = [this](float value) {
                 min = value;
-                Array<var> arr = { min, max };
+                VarArray arr = { min, max };
                 // maxLabel.setMinimum(min + 1e-5f);
                 property = var(arr);
             };
 
             auto setMaximum = [this](float value) {
                 max = value;
-                Array<var> arr = { min, max };
+                VarArray arr = { min, max };
                 // minLabel.setMaximum(max - 1e-5f);
                 property = var(arr);
             };
@@ -1018,7 +1020,7 @@ public:
     }
 
     // Adds a set of properties to the panel
-    void addSection(String const& sectionTitle, Array<PropertiesPanelProperty*> const& newProperties, int indexToInsertAt = -1, int extraPaddingBetweenComponents = 0)
+    void addSection(String const& sectionTitle, PropertiesArray const& newProperties, int indexToInsertAt = -1, int extraPaddingBetweenComponents = 0)
     {
         if (isEmpty())
             repaint();
@@ -1154,7 +1156,7 @@ public:
 class PropertiesSearchPanel : public Component {
 
 public:
-    PropertiesSearchPanel(Array<PropertiesPanel*> searchedPanels)
+    PropertiesSearchPanel(SmallArray<PropertiesPanel*> searchedPanels)
         : panelsToSearch(searchedPanels)
     {
         addAndMakeVisible(resultsPanel);
@@ -1188,7 +1190,7 @@ public:
 
         for (auto* propertiesPanel : panelsToSearch) {
             for (auto* section : propertiesPanel->propertyHolderComponent->sections) {
-                Array<PropertiesPanelProperty*> properties;
+                PropertiesArray properties;
                 auto sectionTitle = section->getName();
 
                 for (auto* property : section->propertyComponents) {
@@ -1236,5 +1238,5 @@ public:
 
     SearchEditor input;
     PropertiesPanel resultsPanel;
-    Array<PropertiesPanel*> panelsToSearch;
+    SmallArray<PropertiesPanel*> panelsToSearch;
 };

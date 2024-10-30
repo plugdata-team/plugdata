@@ -53,7 +53,7 @@ public:
         if (auto button = ptr.get<t_fake_button>()) {
             primaryColour = Colour(button->x_fgcolor[0], button->x_fgcolor[1], button->x_fgcolor[2]).toString();
             secondaryColour = Colour(button->x_bgcolor[0], button->x_bgcolor[1], button->x_bgcolor[2]).toString();
-            sizeProperty = Array<var>(button->x_w, button->x_h);
+            sizeProperty = VarArray(button->x_w, button->x_h);
             if (button->x_mode == 0) {
                 mode = Latch;
             } else if (button->x_mode == 1) {
@@ -149,7 +149,7 @@ public:
         setPdBounds(object->getObjectBounds());
 
         if (auto button = ptr.get<t_fake_button>()) {
-            setParameterExcludingListener(sizeProperty, Array<var>(var(button->x_w), var(button->x_h)));
+            setParameterExcludingListener(sizeProperty, VarArray(var(button->x_w), var(button->x_h)));
         }
     }
 
@@ -246,7 +246,7 @@ public:
 
             constrainer->setFixedAspectRatio(static_cast<float>(width) / height);
 
-            setParameterExcludingListener(sizeProperty, Array<var>(width, height));
+            setParameterExcludingListener(sizeProperty, VarArray(width, height));
             if (auto button = ptr.get<t_fake_button>()) {
                 button->x_w = width;
                 button->x_h = height;
@@ -271,7 +271,7 @@ public:
         }
     }
 
-    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
     {
         switch (symbol) {
         case hash("bgcolor"): {

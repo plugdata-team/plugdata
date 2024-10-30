@@ -51,8 +51,8 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     }
 
     hideNameAndArgs = static_cast<bool>(patch.getPointer()->gl_hidetext);
-    xRange = Array<var> { var(patch.getPointer()->gl_x1), var(patch.getPointer()->gl_x2) };
-    yRange = Array<var> { var(patch.getPointer()->gl_y2), var(patch.getPointer()->gl_y1) };
+    xRange = VarArray { var(patch.getPointer()->gl_x1), var(patch.getPointer()->gl_x2) };
+    yRange = VarArray { var(patch.getPointer()->gl_y2), var(patch.getPointer()->gl_y1) };
 
     pd->registerMessageListener(patch.getUncheckedPointer(), this);
 
@@ -913,7 +913,7 @@ void Canvas::performSynchronise()
     auto pdObjects = patch.getObjects();
 
     for (auto object : pdObjects) {
-        auto* it = std::find_if(objects.begin(), objects.end(), [&object](Object* b) { return b->getPointer() && b->getPointer() == object.getRawUnchecked<void>(); });
+        auto* it = std::find_if(objects.begin(), objects.end(), [&object](Object const* b) { return b->getPointer() && b->getPointer() == object.getRawUnchecked<void>(); });
         if (!object.isValid())
             continue;
 
@@ -941,10 +941,7 @@ void Canvas::performSynchronise()
     // Make sure objects have the same order
     std::sort(objects.begin(), objects.end(),
         [&pdObjects](Object* first, Object* second) mutable {
-            size_t idx1 = std::find(pdObjects.begin(), pdObjects.end(), first->getPointer()) - pdObjects.begin();
-            size_t idx2 = std::find(pdObjects.begin(), pdObjects.end(), second->getPointer()) - pdObjects.begin();
-
-            return idx1 < idx2;
+            return pdObjects.index_of(first->getPointer()) < pdObjects.index_of(second->getPointer());
         });
 
     auto pdConnections = patch.getConnections();
@@ -1302,7 +1299,7 @@ void Canvas::updateSidebarSelection()
     auto lassoSelection = getSelectionOfType<Object>();
 
     if (lassoSelection.size() > 0) {
-        SmallArray<ObjectParameters> allParameters;
+        SmallArray<ObjectParameters, 6> allParameters;
         for (auto* object : lassoSelection) {
             if (!object->gui)
                 continue;
@@ -1715,7 +1712,7 @@ void Canvas::removeSelection()
     }
 
     auto wasDeleted = [&objects](t_gobj* ptr) {
-        return std::find(objects.begin(), objects.end(), ptr) != objects.end();
+        return objects.contains(ptr);
     };
 
     // remove selection
@@ -1862,10 +1859,9 @@ void Canvas::encapsulateSelection()
     auto selectedObjects = getSelectionOfType<Object>();
 
     // Sort by index in pd patch
-    std::sort(selectedObjects.begin(), selectedObjects.end(),
-        [this](auto* a, auto* b) -> bool {
-            return objects.indexOf(a) < objects.indexOf(b);
-        });
+    selectedObjects.sort([this](auto const* a, auto const* b) -> bool {
+        return objects.indexOf(a) < objects.indexOf(b);
+    });
 
     // If two connections have the same target inlet/outlet, we only need 1 [inlet/outlet] object
     auto usedIolets = SmallArray<Iolet*>();
@@ -1892,22 +1888,20 @@ void Canvas::encapsulateSelection()
 
     auto newEdgeObjects = String();
 
-    // Sort by position
-    std::sort(usedIolets.begin(), usedIolets.end(),
-        [](auto* a, auto* b) -> bool {
-            // Inlets before outlets
-            if (a->isInlet != b->isInlet)
-                return a->isInlet;
+    usedIolets.sort([](auto* a, auto* b) -> bool {
+        // Inlets before outlets
+        if (a->isInlet != b->isInlet)
+            return a->isInlet;
 
-            auto apos = a->getCanvasBounds().getPosition();
-            auto bpos = b->getCanvasBounds().getPosition();
+        auto apos = a->getCanvasBounds().getPosition();
+        auto bpos = b->getCanvasBounds().getPosition();
 
-            if (apos.x == bpos.x) {
-                return apos.y < bpos.y;
-            }
+        if (apos.x == bpos.x) {
+            return apos.y < bpos.y;
+        }
 
-            return apos.x < bpos.x;
-        });
+        return apos.x < bpos.x;
+    });
 
     int i = 0;
     int numIn = 0;
@@ -2042,8 +2036,8 @@ void Canvas::alignObjects(Align alignment)
     if (objects.size() < 2)
         return;
 
-    auto sortByXPos = [](HeapArray<Object*>& objects) {
-        std::sort(objects.begin(), objects.end(), [](auto const& a, auto const& b) {
+    auto sortByXPos = [](SmallArray<Object*>& objects) {
+        objects.sort([](auto const& a, auto const& b) {
             auto aX = a->getBounds().getX();
             auto bX = b->getBounds().getX();
             if (aX == bX) {
@@ -2053,8 +2047,8 @@ void Canvas::alignObjects(Align alignment)
         });
     };
 
-    auto sortByYPos = [](HeapArray<Object*>& objects) {
-        std::sort(objects.begin(), objects.end(), [](auto const& a, auto const& b) {
+    auto sortByYPos = [](SmallArray<Object*>& objects) {
+        objects.sort([](auto const& a, auto const& b) {
             auto aY = a->getBounds().getY();
             auto bY = b->getBounds().getY();
             if (aY == bY)
@@ -2064,7 +2058,7 @@ void Canvas::alignObjects(Align alignment)
         });
     };
 
-    auto getBoundingBox = [](HeapArray<Object*>& objects) -> Rectangle<int> {
+    auto getBoundingBox = [](SmallArray<Object*>& objects) -> Rectangle<int> {
         auto totalBounds = Rectangle<int>();
         for (auto* object : objects) {
             if (object->getPointer()) {
@@ -2088,7 +2082,7 @@ void Canvas::alignObjects(Align alignment)
     // get the bounding box of all selected objects
     auto selectedBounds = getBoundingBox(objects);
 
-    auto getSpacerX = [selectedBounds](HeapArray<Object*>& objects) -> float {
+    auto getSpacerX = [selectedBounds](SmallArray<Object*>& objects) -> float {
         auto totalWidths = 0;
         for (auto* object : objects) {
             totalWidths += object->getWidth() - (Object::margin * 2);
@@ -2098,7 +2092,7 @@ void Canvas::alignObjects(Align alignment)
         return spacer;
     };
 
-    auto getSpacerY = [selectedBounds](HeapArray<Object*>& objects) -> float {
+    auto getSpacerY = [selectedBounds](SmallArray<Object*>& objects) -> float {
         auto totalWidths = 0;
         for (int i = 0; i < objects.size(); i++) {
             totalWidths += objects[i]->getHeight() - (Object::margin * 2);
@@ -2474,7 +2468,7 @@ bool Canvas::panningModifierDown()
     return isPanDragKeysActive || ModifierKeys::getCurrentModifiers().isMiddleButtonDown();
 }
 
-void Canvas::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms)
+void Canvas::receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms)
 {
     switch (hash(symbol->s_name)) {
     case hash("sync"):

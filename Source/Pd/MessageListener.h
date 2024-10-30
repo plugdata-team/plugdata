@@ -13,7 +13,7 @@ namespace pd {
 
 class MessageListener {
 public:
-    virtual void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms) = 0;
+    virtual void receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) = 0;
 
     JUCE_DECLARE_WEAK_REFERENCEABLE(MessageListener)
 };
@@ -29,7 +29,7 @@ class MessageDispatcher {
     public:
         void* target;
         t_symbol* symbol;
-        t_atom data[8];
+        StackArray<t_atom, 8> data;
         int size;
 
         Message() = default;
@@ -39,7 +39,7 @@ class MessageDispatcher {
             , symbol(sym)
         {
             size = std::min(argc, 8);
-            std::copy(argv, argv + size, data);
+            std::copy(argv, argv + size, data.data());
         }
 
         Message(Message const& other) noexcept
@@ -47,7 +47,7 @@ class MessageDispatcher {
             target = other.target;
             symbol = other.symbol;
             size = other.size;
-            std::copy(other.data, other.data + other.size, data);
+            data = other.data;
         }
 
         Message& operator=(Message const& other) noexcept
@@ -57,7 +57,7 @@ class MessageDispatcher {
                 target = other.target;
                 symbol = other.symbol;
                 size = other.size;
-                std::copy(other.data, other.data + other.size, data);
+                data = other.data;
             }
 
             return *this;
@@ -140,9 +140,9 @@ public:
 
                 auto listener = it->get();
 
-                pd::Atom atoms[8];
+                StackArray<pd::Atom, 8> atoms;
                 for (int at = 0; at < message.size; at++) {
-                    atoms[at] = pd::Atom(message.data + at);
+                    atoms[at] = pd::Atom(&message.data[at]);
                 }
                 auto symbol = message.symbol ? message.symbol : gensym("");
 

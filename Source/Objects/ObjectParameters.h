@@ -35,7 +35,7 @@ class ObjectParameters {
 public:
     ObjectParameters() = default;
 
-    SmallArray<ObjectParameter> getParameters()
+    SmallArray<ObjectParameter, 16> getParameters()
     {
         return objectParameters;
     }
@@ -118,7 +118,7 @@ public:
         objectParameters.add(makeParam(pString, tCombo, pCat, pVal, pStringList, pDefault));
     }
 
-    void addParamRange(String const& pString, ParameterCategory pCat, Value* pVal, Array<var> const& pDefault = Array<var>())
+    void addParamRange(String const& pString, ParameterCategory pCat, Value* pVal, VarArray const& pDefault = VarArray())
     {
         objectParameters.add(makeParam(pString, tRangeFloat, pCat, pVal, StringArray(), pDefault));
     }
@@ -144,7 +144,7 @@ public:
     }
 
 private:
-    SmallArray<ObjectParameter> objectParameters;
+    SmallArray<ObjectParameter, 16> objectParameters;
 
     static ObjectParameter makeParam(String const& pString, ParameterType pType, ParameterCategory pCat, Value* pVal, StringArray const& pStringList, var const& pDefault, CustomPanelCreateFn customComponentFn = nullptr, InteractionFn onInteractionFn = nullptr)
     {

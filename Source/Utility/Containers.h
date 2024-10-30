@@ -685,15 +685,17 @@ protected:
 public:
     SmallArrayImpl(SmallArrayImpl const&) = delete;
 
-    [[nodiscard]] bool contains(T const& to_find) const
+    template<typename U>
+    [[nodiscard]] bool contains(U const& to_find) const
     {
         return std::find(this->begin(), this->end(), to_find) != this->end();
     }
 
-    [[nodiscard]] int index_of(T const& to_find) const
+    template<typename U>
+    [[nodiscard]] int index_of(U const& to_find) const
     {
         auto it = std::find(this->begin(), this->end(), to_find);
-        return (it == this->end()) ? -1 : (size_t)(it - this->begin());
+        return (it == this->end()) ? -1 : static_cast<int>(it - this->begin());
     }
 
     bool remove_one(T const& to_find)
@@ -745,6 +747,14 @@ public:
         this->push_back(to_add);
     }
 
+    template<typename U>
+    void add_array(U const& array)
+    {
+        this->reserve(this->size() + array.size());
+        for (auto const& elt : array)
+            this->add(elt);
+    }
+
     void pop()
     {
         this->pop_back();
@@ -772,6 +782,25 @@ public:
     void sort(int (*sort_fn)(T const&, T const&))
     {
         std::sort(this->begin(), this->end(), sort_fn);
+    }
+
+    void sort(int (*sort_fn)(T const, T const))
+    {
+        std::sort(this->begin(), this->end(), sort_fn);
+    }
+
+    void sort(std::function<int(T const&, T const&)> sort_fn)
+    {
+        std::sort(this->begin(), this->end(), sort_fn);
+    }
+
+    void move(size_t from_index, size_t to_index)
+    {
+        if (from_index < to_index) {
+            std::rotate(this->begin() + from_index, this->begin() + from_index + 1, this->begin() + to_index + 1);
+        } else {
+            std::rotate(this->begin() + to_index, this->begin() + from_index, this->begin() + from_index + 1);
+        }
     }
 
     void clear()
@@ -1370,7 +1399,7 @@ struct CalculateSmallArrayDefaultInlinedElements {
     // happens on a 32-bit host and then fails due to sizeof(T) *increasing* on a
     // 64-bit host, is expected to be very rare.
     static_assert(
-        sizeof(T) <= 256,
+        sizeof(T) <= 512,
         "You are trying to use a default number of inlined elements for "
         "`SmallArray<T>` but `sizeof(T)` is really big! Please use an "
         "explicit number of inlined elements with `SmallArray<T, N>` to make "
@@ -1804,6 +1833,14 @@ public:
 
     void add(T const& value) { data_.push_back(value); }
 
+    template<typename U>
+    void add_array(U const& array)
+    {
+        reserve(size() + array.size());
+        for (auto const& elt : array)
+            add(elt);
+    }
+
     template<typename... Args>
     void emplace_back(Args&&... args) { data_.emplace_back(std::forward<Args>(args)...); }
 
@@ -1820,15 +1857,17 @@ public:
     void clear() { data_.clear(); }
     T* data() { return data_.data(); }
 
-    bool contains(T const& to_find) const
+    template<typename U>
+    [[nodiscard]] bool contains(U const& to_find) const
     {
         return std::find(data_.begin(), data_.end(), to_find) != end();
     }
 
-    int index_of(T const& to_find) const
+    template<typename U>
+    [[nodiscard]] int index_of(U const& to_find) const
     {
         auto it = std::find(data_.begin(), data_.end(), to_find);
-        return (it == data_.end()) ? -1 : (size_t)(it - data_.begin());
+        return (it == data_.end()) ? -1 : static_cast<int>(it - data_.begin());
     }
 
     auto begin() { return data_.begin(); }
@@ -1868,6 +1907,16 @@ public:
     void sort() { std::sort(data_.begin(), data_.end()); }
 
     void sort(int (*sort_fn)(T const&, T const&))
+    {
+        std::sort(data_.begin(), data_.end(), sort_fn);
+    }
+
+    void sort(int (*sort_fn)(T const, T const))
+    {
+        std::sort(data_.begin(), data_.end(), sort_fn);
+    }
+
+    void sort(std::function<int(T const&, T const&)> sort_fn)
     {
         std::sort(data_.begin(), data_.end(), sort_fn);
     }
@@ -1930,100 +1979,130 @@ private:
 template<typename T, int N>
 class StackArray {
 public:
-    T data_[N];
+    std::array<T, N> data_;
 
     size_t size() const { return N; }
 
     T& operator[](size_t index)
     {
+#if JUCE_DEBUG
         if (index >= N)
             throw std::out_of_range("Index out of bounds");
+#endif
         return data_[index];
     }
 
     T const& operator[](size_t index) const
     {
+#if JUCE_DEBUG
         if (index >= N)
             throw std::out_of_range("Index out of bounds");
+#endif
         return data_[index];
     }
 
     void clear()
     {
-        // Clear doesn't apply to raw arrays, but we can reset all values
         for (int i = 0; i < N; ++i) {
             data_[i] = T(); // Reset to default
         }
     }
 
-    T* data() { return data_; }
+    T* data() { return data_.data(); }
 
-    bool contains(T const& to_find) const
+    template<typename U>
+    [[nodiscard]] bool contains(U const& to_find) const
     {
-        return std::find(data_, data_ + N, to_find) != (data_ + N);
+        return std::find(data_.begin(), data_.end(), to_find) != (data_.end());
     }
 
-    int index_of(T const& to_find) const
+    template<typename U>
+    [[nodiscard]] int index_of(U const& to_find) const
     {
-        auto it = std::find(data_, data_ + N, to_find);
-        return (it == (data_ + N)) ? -1 : (it - data_);
+        auto it = std::find(data_.begin(), data_.end(), to_find);
+        return (it == data_.end()) ? -1 : static_cast<int>(it - data_.begin());
     }
 
-    T* begin() { return data_; }
-    T* end() { return data_ + N; }
-    T const* begin() const { return data_; }
-    T const* end() const { return data_ + N; }
+    T* begin() { return data_.begin(); }
+    T* end() { return data_.end(); }
+    T const* begin() const { return data_.begin(); }
+    T const* end() const { return data_.end(); }
 
     T& front()
     {
+#if JUCE_DEBUG
         if (N == 0)
             throw std::out_of_range("Array is empty");
+#endif
         return data_[0];
     }
 
     T const& front() const
     {
+#if JUCE_DEBUG
         if (N == 0)
             throw std::out_of_range("Array is empty");
+#endif
         return data_[0];
     }
 
     T& back()
     {
+#if JUCE_DEBUG
         if (N == 0)
             throw std::out_of_range("Array is empty");
+#endif
         return data_[N - 1];
     }
 
     T const& back() const
     {
+#if JUCE_DEBUG
         if (N == 0)
             throw std::out_of_range("Array is empty");
+#endif
         return data_[N - 1];
     }
 
     // Move elements in the array
     void move(size_t from_index, size_t to_index)
     {
+#if JUCE_DEBUG
         if (from_index >= N || to_index >= N) {
             throw std::out_of_range("Index out of bounds");
         }
+#endif
 
         if (from_index < to_index) {
-            std::rotate(data_ + from_index, data_ + from_index + 1, data_ + to_index + 1);
+            std::rotate(data_.begin() + from_index, data_.begin() + from_index + 1, data_.begin() + to_index + 1);
         } else {
-            std::rotate(data_ + to_index, data_ + from_index, data_ + from_index + 1);
+            std::rotate(data_.begin() + to_index, data_.begin() + from_index, data_.begin() + from_index + 1);
         }
     }
 
     // Sort methods
     void sort()
     {
-        std::sort(data_, data_ + N);
+        std::sort(data_.begin(), data_.end());
     }
 
     void sort(int (*sort_fn)(T const&, T const&))
     {
-        std::sort(data_, data_ + N, sort_fn);
+        std::sort(data_.begin(), data_.end(), sort_fn);
+    }
+
+    void sort(int (*sort_fn)(T const, T const))
+    {
+        std::sort(data_.begin(), data_.end(), sort_fn);
+    }
+
+    void sort(std::function<int(T const&, T const&)> sort_fn)
+    {
+        std::sort(data_.begin(), data_.end(), sort_fn);
+    }
+
+    void sort(std::function<int(T const, T const)> sort_fn)
+    {
+        std::sort(data_.begin(), data_.end(), sort_fn);
     }
 };

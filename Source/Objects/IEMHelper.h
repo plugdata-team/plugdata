@@ -115,7 +115,7 @@ public:
             objectParams.addParam(param);
     }
 
-    bool receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms)
+    bool receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms)
     {
         auto setColour = [this](Value& targetValue, pd::Atom const& atom) {
             if (atom.isSymbol()) {

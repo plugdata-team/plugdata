@@ -91,7 +91,7 @@ private:
 
     void save()
     {
-        ScopedTryLock const stl(pd->patches.getLock());
+        ScopedTryLock const stl(pd->patchesLock);
         if (stl.isLocked()) {
             for (auto& patch : pd->patches) {
                 auto* patchPtr = patch->getPointer().get();

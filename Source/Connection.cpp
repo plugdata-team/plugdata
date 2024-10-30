@@ -1366,7 +1366,7 @@ void ConnectionPathUpdater::timerCallback()
     canvas->patch.endUndoSequence("SetConnectionPaths");
 }
 
-void Connection::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms)
+void Connection::receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms)
 {
     if (cnv->shouldShowConnectionActivity()) {
         startTimer(StopAnimation, 1000 / 8.0f);
@@ -1377,7 +1377,7 @@ void Connection::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int n
     }
 
     outobj->triggerOverlayActiveState();
-    std::copy(atoms, atoms + numAtoms, lastValue);
+    lastValue = atoms;
     lastNumArgs = numAtoms;
     lastSelector = symbol;
 }

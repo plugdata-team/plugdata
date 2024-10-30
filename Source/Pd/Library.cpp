@@ -275,8 +275,8 @@ ValueTree Library::getObjectInfo(String const& name)
 StackArray<StringArray, 2> Library::parseIoletTooltips(ValueTree const& iolets, String const& name, int numIn, int numOut)
 {
     StackArray<StringArray, 2> result;
-    SmallArray<std::pair<String, bool>> inlets;
-    SmallArray<std::pair<String, bool>> outlets;
+    SmallArray<std::pair<String, bool>, 8> inlets;
+    SmallArray<std::pair<String, bool>, 8> outlets;
 
     auto args = StringArray::fromTokens(name.fromFirstOccurrenceOf(" ", false, false), true);
 

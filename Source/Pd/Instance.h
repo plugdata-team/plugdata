@@ -312,7 +312,8 @@ public:
     std::unique_ptr<pd::MessageDispatcher> messageDispatcher;
 
     // All opened patches
-    Array<pd::Patch::Ptr, CriticalSection> patches;
+    CriticalSection patchesLock;
+    SmallArray<pd::Patch::Ptr, 16> patches;
 
 private:
     std::unordered_map<void*, SmallArray<pd_weak_reference*>> pdWeakReferences;
@@ -429,10 +430,10 @@ protected:
             int len = (int)strlen(message);
             while (length + len >= 2048) {
                 int d = 2048 - 1 - length;
-                strncat(printConcatBuffer, message, d);
+                strncat(printConcatBuffer.data(), message, d);
 
                 // Send concatenated line to plugdata!
-                forwardMessage(String::fromUTF8(printConcatBuffer));
+                forwardMessage(String::fromUTF8(printConcatBuffer.data()));
 
                 message += d;
                 len -= d;
@@ -440,14 +441,14 @@ protected:
                 printConcatBuffer[0] = '\0';
             }
 
-            strncat(printConcatBuffer, message, len);
+            strncat(printConcatBuffer.data(), message, len);
             length += len;
 
             if (length > 0 && printConcatBuffer[length - 1] == '\n') {
                 printConcatBuffer[length - 1] = '\0';
 
                 // Send concatenated line to plugdata!
-                forwardMessage(String::fromUTF8(printConcatBuffer));
+                forwardMessage(String::fromUTF8(printConcatBuffer.data()));
 
                 length = 0;
             }
@@ -456,7 +457,7 @@ protected:
         std::deque<std::tuple<void*, String, int, int, int>> consoleMessages;
         std::deque<std::tuple<void*, String, int, int, int>> consoleHistory;
 
-        char printConcatBuffer[2048];
+        StackArray<char, 2048> printConcatBuffer;
 
         moodycamel::ReaderWriterQueue<std::tuple<void*, String, bool>> pendingMessages;
     };

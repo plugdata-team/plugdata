@@ -62,7 +62,7 @@ public:
             fontSize = messbox->x_font_size;
             primaryColour = Colour(messbox->x_fg[0], messbox->x_fg[1], messbox->x_fg[2]).toString();
             secondaryColour = Colour(messbox->x_bg[0], messbox->x_bg[1], messbox->x_bg[2]).toString();
-            sizeProperty = Array<var> { var(messbox->x_width), var(messbox->x_height) };
+            sizeProperty = VarArray { var(messbox->x_width), var(messbox->x_height) };
         }
 
         editor.applyColourToAllText(Colour::fromString(primaryColour.toString()));
@@ -105,7 +105,7 @@ public:
         setPdBounds(object->getObjectBounds());
 
         if (auto messbox = ptr.get<t_fake_messbox>()) {
-            setParameterExcludingListener(sizeProperty, Array<var> { var(messbox->x_width), var(messbox->x_height) });
+            setParameterExcludingListener(sizeProperty, VarArray { var(messbox->x_width), var(messbox->x_height) });
         }
     }
 
@@ -133,7 +133,7 @@ public:
 
     void paint(Graphics& g) override { };
 
-    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
     {
         switch (symbol) {
         case hash("set"): {
@@ -216,7 +216,7 @@ public:
             atoms = pd::Atom::fromAtoms(ac, av); // TODO: malloc inside lock, not good!
         }
 
-        char buf[40];
+        StackArray<char, 40> buf;
         size_t length;
 
         auto newText = String();
@@ -245,10 +245,10 @@ public:
                 buf[j] = '\0';
                 if (sym[pos - 1] == ';') {
                     // sys_vgui("%s insert end %s\\n\n", x->text_id, buf);
-                    newText += String::fromUTF8(buf) + "\n";
+                    newText += String::fromUTF8(buf.data()) + "\n";
                 } else {
                     // sys_vgui("%s insert end \"%s \"\n", x->text_id, buf);
-                    newText += String::fromUTF8(buf) + " ";
+                    newText += String::fromUTF8(buf.data()) + " ";
                 }
             }
         }
@@ -289,7 +289,7 @@ public:
             auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
             auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
 
-            setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+            setParameterExcludingListener(sizeProperty, VarArray { var(width), var(height) });
 
             if (auto messbox = ptr.get<t_fake_messbox>()) {
                 messbox->x_width = width;

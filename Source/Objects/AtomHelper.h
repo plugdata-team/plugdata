@@ -20,7 +20,7 @@ static t_atom* fake_gatom_getatom(t_fake_gatom* x)
 
 class AtomHelper {
 
-    static inline int const atomSizes[8] = { 0, 8, 10, 12, 16, 24, 36 };
+    static inline StackArray<int, 8> const atomSizes = { 0, 8, 10, 12, 16, 24, 36 };
 
     Object* object;
     ObjectBase* gui;
@@ -64,9 +64,7 @@ public:
         if (auto atom = ptr.get<t_fake_gatom>()) {
             labelPosition = static_cast<int>(atom->a_wherelabel + 1);
         }
-        int h = getFontHeight();
-
-        int idx = static_cast<int>(std::find(atomSizes, atomSizes + 7, h) - atomSizes);
+        int idx = atomSizes.index_of(getFontHeight());
         fontSize = idx + 1;
 
         sendSymbol = getSendSymbol();
@@ -192,7 +190,7 @@ public:
                 }
 
                 auto newHeight = newBounds.getHeight();
-                auto heightIdx = std::clamp<int>(std::lower_bound(atomSizes, atomSizes + 7, newHeight) - atomSizes, 2, 7) - 1;
+                auto heightIdx = std::clamp<int>(std::lower_bound(atomSizes.begin(), atomSizes.end(), newHeight) - atomSizes.begin(), 2, 7) - 1;
 
                 helper->setFontHeight(atomSizes[heightIdx]);
                 object->gui->setParameterExcludingListener(helper->fontSize, heightIdx + 1);
@@ -304,7 +302,7 @@ public:
         }
     }
 
-    float getFontHeight() const
+    int getFontHeight() const
     {
         if (auto atom = ptr.get<t_fake_gatom>()) {
             return atom->a_fontsize;

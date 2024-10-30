@@ -104,13 +104,13 @@ public:
             sendSymbol = sndSym != "empty" ? sndSym : "";
             receiveSymbol = rcvSym != "empty" ? rcvSym : "";
 
-            sizeProperty = Array<var> { var(pic->x_width), var(pic->x_height) };
+            sizeProperty = VarArray { var(pic->x_width), var(pic->x_height) };
         }
 
         repaint();
     }
 
-    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
     {
         switch (symbol) {
         case hash("latch"): {
@@ -221,7 +221,7 @@ public:
             auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
             auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
 
-            setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+            setParameterExcludingListener(sizeProperty, VarArray { var(width), var(height) });
 
             if (auto pic = ptr.get<t_fake_pic>()) {
                 pic->x_width = width;
@@ -285,7 +285,7 @@ public:
         setPdBounds(object->getObjectBounds());
 
         if (auto pic = ptr.get<t_fake_pic>()) {
-            setParameterExcludingListener(sizeProperty, Array<var> { var(pic->x_width), var(pic->x_height) });
+            setParameterExcludingListener(sizeProperty, VarArray { var(pic->x_width), var(pic->x_height) });
         }
     }
 
@@ -329,10 +329,10 @@ public:
             pic->x_height = img.getHeight();
 
             if (getValue<bool>(reportSize)) {
-                t_atom coordinates[2];
-                SETFLOAT(coordinates, img.getWidth());
-                SETFLOAT(coordinates + 1, img.getHeight());
-                outlet_list(pic->x_outlet, pd->generateSymbol("list"), 2, coordinates);
+                StackArray<t_atom, 2> coordinates;
+                SETFLOAT(&coordinates[0], img.getWidth());
+                SETFLOAT(&coordinates[1], img.getHeight());
+                outlet_list(pic->x_outlet, pd->generateSymbol("list"), 2, coordinates.data());
             }
         }
 

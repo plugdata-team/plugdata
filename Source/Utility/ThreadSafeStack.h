@@ -16,7 +16,7 @@ template<typename T, int stackSize>
 class ThreadSafeStack {
 
     using StackBuffer = plf::stack<T>;
-    StackBuffer buffers[2];
+    StackArray<StackBuffer, 2> buffers;
     StackBuffer* frontBuffer;
     StackBuffer* backBuffer;
     std::mutex swapLock;

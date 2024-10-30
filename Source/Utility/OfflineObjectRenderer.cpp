@@ -148,9 +148,9 @@ void OfflineObjectRenderer::parsePatch(String const& patch, std::function<void(P
     }
 }
 
-HeapArray<Rectangle<int>> OfflineObjectRenderer::getObjectBoundsForPatch(String const& patch)
+SmallArray<Rectangle<int>> OfflineObjectRenderer::getObjectBoundsForPatch(String const& patch)
 {
-    HeapArray<Rectangle<int>> objectBounds;
+    SmallArray<Rectangle<int>> objectBounds;
 
     parsePatch(patch, [&objectBounds](PatchItemType type, int depth, String const& text) {
         if ((type != PatchItemType::Object && type != PatchItemType::Message && type != PatchItemType::Comment) || depth != 0)

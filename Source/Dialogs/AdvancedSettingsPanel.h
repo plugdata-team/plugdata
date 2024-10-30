@@ -17,16 +17,16 @@ public:
         auto* settingsFile = SettingsFile::getInstance();
         auto settingsTree = settingsFile->getValueTree();
 
-        Array<PropertiesPanelProperty*> interfaceProperties;
-        Array<PropertiesPanelProperty*> otherProperties;
-        Array<PropertiesPanelProperty*> autosaveProperties;
+        PropertiesArray interfaceProperties;
+        PropertiesArray otherProperties;
+        PropertiesArray autosaveProperties;
 
         if (ProjectInfo::isStandalone) {
             nativeTitlebar.referTo(settingsFile->getPropertyAsValue("native_window"));
 
             nativeTitlebar.addListener(this);
 
-            Array<PropertiesPanelProperty*> windowProperties;
+            PropertiesArray windowProperties;
 
             windowProperties.add(new PropertiesPanel::BoolComponent("Use system titlebar", nativeTitlebar, { "No", "Yes" }));
 

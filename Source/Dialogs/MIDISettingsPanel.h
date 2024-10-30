@@ -91,10 +91,10 @@ private:
         midiProperties.clear();
 
         auto midiInputDevices = ProjectInfo::getMidiDeviceManager()->getInputDevicesUnfiltered();
-        auto midiInputProperties = Array<PropertiesPanelProperty*>();
+        auto midiInputProperties = PropertiesArray();
 
         auto midiOutputDevices = ProjectInfo::getMidiDeviceManager()->getOutputDevicesUnfiltered();
-        auto midiOutputProperties = Array<PropertiesPanelProperty*>();
+        auto midiOutputProperties = PropertiesArray();
 
         for (auto& deviceInfo : midiInputDevices) {
             // The internal plugdata ports should be viewed from our perspective instead of that of an external application

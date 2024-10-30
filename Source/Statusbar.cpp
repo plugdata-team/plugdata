@@ -1301,7 +1301,7 @@ void StatusbarSource::addListener(Listener* l)
 
 void StatusbarSource::removeListener(Listener* l)
 {
-    listeners.erase(std::remove(listeners.begin(), listeners.end(), l), listeners.end());
+    listeners.remove_one(l);
 }
 
 void StatusbarSource::setCPUUsage(float cpu)

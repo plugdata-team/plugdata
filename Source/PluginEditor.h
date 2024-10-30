@@ -193,7 +193,7 @@ private:
 
     MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pluginModeButton;
     ToolbarRadioButton editButton, runButton, presentButton;
-    TextButton seperators[8];
+    StackArray<TextButton, 8> seperators;
 
 #if JUCE_MAC
     Rectangle<int> unmaximisedSize;

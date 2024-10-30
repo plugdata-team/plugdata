@@ -41,7 +41,7 @@ public:
         setPdBounds(object->getObjectBounds());
 
         if (auto canvasObj = ptr.get<t_my_canvas>()) {
-            setParameterExcludingListener(sizeProperty, Array<var> { var(canvasObj->x_vis_w), var(canvasObj->x_vis_h) });
+            setParameterExcludingListener(sizeProperty, VarArray { var(canvasObj->x_vis_w), var(canvasObj->x_vis_h) });
         }
     }
 
@@ -80,7 +80,7 @@ public:
         repaint();
     }
 
-    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
     {
         switch (symbol) {
         case hash("size"):
@@ -93,7 +93,7 @@ public:
     void update() override
     {
         if (auto cnvObj = ptr.get<t_my_canvas>()) {
-            sizeProperty = Array<var> { var(cnvObj->x_vis_w), var(cnvObj->x_vis_h) };
+            sizeProperty = VarArray { var(cnvObj->x_vis_w), var(cnvObj->x_vis_h) };
         }
 
         if (auto iemgui = ptr.get<t_iemgui>()) {
@@ -189,7 +189,7 @@ public:
             auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
             auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
 
-            setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+            setParameterExcludingListener(sizeProperty, VarArray { var(width), var(height) });
 
             if (auto cnvObj = ptr.get<t_my_canvas>()) {
                 cnvObj->x_vis_w = width;

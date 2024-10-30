@@ -83,7 +83,7 @@ class Inspector : public Component {
 
     PropertiesPanel panel;
     TextButton resetButton;
-    SmallArray<ObjectParameters> properties;
+    SmallArray<ObjectParameters, 6> properties;
     PropertyRedirector redirector;
 
 public:
@@ -147,7 +147,7 @@ public:
         loadParameters(properties);
     }
 
-    void loadParameters(SmallArray<ObjectParameters>& objectParameters)
+    void loadParameters(SmallArray<ObjectParameters, 6>& objectParameters)
     {
         properties = objectParameters;
 
@@ -182,7 +182,7 @@ public:
         redirector.clearProperties();
 
         for (int i = 0; i < 4; i++) {
-            Array<PropertiesPanelProperty*> panels;
+            PropertiesArray panels;
             for (auto& parameter : objectParameters[0].getParameters()) {
                 auto& [name, type, category, value, options, defaultVal, customComponentFn, onInteractionFn] = parameter;
 

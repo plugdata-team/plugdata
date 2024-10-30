@@ -51,7 +51,7 @@ public:
         pd->unregisterMessageListener(scalar.getRawUnchecked<void>(), this);
     }
 
-    void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms)
+    void receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms)
     {
         if (hash(symbol->s_name) == hash("redraw")) {
             triggerAsyncUpdate();
@@ -265,7 +265,7 @@ public:
 
             t_float width = fielddesc_getfloat(&x->x_width, templ, data, 1);
 
-            int pix[200];
+            StackArray<int, 200> pix;
             if (n > 100)
                 n = 100;
 
@@ -954,8 +954,8 @@ public:
         int nelem = array->a_n;
         auto* elem = (char*)array->a_vec;
 
-        Array<Component*> oldDrawables;
-        oldDrawables.addArray(subplots);
+        SmallArray<Component*> oldDrawables;
+        oldDrawables.add_array(subplots);
 
         auto addOrUpdateSubplot = [this, s, elemtemplate, &oldDrawables](t_gobj* y, t_word* subdata, int xloc, int yloc) mutable {
             for (auto* existingPlot : subplots) {
@@ -964,7 +964,7 @@ public:
                         plot->baseX = xloc;
                         plot->baseY = yloc;
                         plot->update();
-                        oldDrawables.removeFirstMatchingValue(existingPlot);
+                        oldDrawables.remove_one(existingPlot);
                         return;
                     }
                 }
@@ -1131,7 +1131,7 @@ struct ScalarObject final : public ObjectBase {
         return {};
     }
 
-    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
     {
         if (symbol == hash("redraw")) {
             updateDrawables();

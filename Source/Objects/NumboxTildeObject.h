@@ -83,7 +83,7 @@ public:
             primaryColour = "ff" + String::fromUTF8(object->x_fg->s_name + 1);
             secondaryColour = "ff" + String::fromUTF8(object->x_bg->s_name + 1);
             mode = object->x_outmode;
-            sizeProperty = Array<var> { var(object->x_width), var(object->x_height) };
+            sizeProperty = VarArray { var(object->x_width), var(object->x_height) };
         }
 
         auto fg = Colour::fromString(primaryColour.toString());
@@ -112,7 +112,7 @@ public:
         setPdBounds(object->getObjectBounds());
 
         if (auto nbx = ptr.get<t_fake_numbox>()) {
-            setParameterExcludingListener(sizeProperty, Array<var> { var(nbx->x_width), var(nbx->x_height) });
+            setParameterExcludingListener(sizeProperty, VarArray { var(nbx->x_width), var(nbx->x_height) });
         }
     }
 
@@ -196,7 +196,7 @@ public:
             auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
             auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
 
-            setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+            setParameterExcludingListener(sizeProperty, VarArray { var(width), var(height) });
 
             if (auto nbx = ptr.get<t_fake_numbox>()) {
                 nbx->x_width = width;

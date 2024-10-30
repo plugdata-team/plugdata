@@ -56,7 +56,7 @@ public:
         propertiesPanel.addSection("Reset shortcuts", { resetMaxButton, resetPdButton });
 
         for (auto const& category : mappings->getCommandManager().getCommandCategories()) {
-            Array<PropertiesPanelProperty*> properties;
+            PropertiesArray properties;
             for (auto command : mappings->getCommandManager().getCommandsInCategory(category)) {
                 properties.add(new KeyMappingProperty(*this, mappings->getCommandManager().getNameOfCommand(command), command));
             }

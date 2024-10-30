@@ -612,8 +612,8 @@ void Object::updateTooltips()
         }
     }
 
-    SmallArray<std::pair<int, String>> inletMessages;
-    SmallArray<std::pair<int, String>> outletMessages;
+    SmallArray<std::pair<int, String>, 16> inletMessages;
+    SmallArray<std::pair<int, String>, 16> outletMessages;
 
     if (auto subpatch = gui->getPatch()) {
         cnv->pd->lockAudioThread();
@@ -639,8 +639,7 @@ void Object::updateTooltips()
                 auto const text = String::fromUTF8(str_ptr, size);
                 inletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
                 freebytes(static_cast<void*>(str_ptr), static_cast<size_t>(size) * sizeof(char));
-            }
-            if (name == hash("outlet") || name == hash("outlet~")) {
+            } else if (name == hash("outlet") || name == hash("outlet~")) {
                 int size;
                 char* str_ptr;
                 pd::Interface::getObjectText(checkedObject, &str_ptr, &size);
@@ -650,7 +649,6 @@ void Object::updateTooltips()
 
                 auto const text = String::fromUTF8(str_ptr, size);
                 outletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
-
                 freebytes(static_cast<void*>(str_ptr), static_cast<size_t>(size) * sizeof(char));
             }
         }
@@ -660,12 +658,12 @@ void Object::updateTooltips()
     if (inletMessages.empty() && outletMessages.empty())
         return;
 
-    auto sortFunc = [](std::pair<int, String>& a, std::pair<int, String>& b) {
+    auto sortFunc = [](auto const& a, auto const& b) {
         return a.first < b.first;
     };
 
-    std::sort(inletMessages.begin(), inletMessages.end(), sortFunc);
-    std::sort(outletMessages.begin(), outletMessages.end(), sortFunc);
+    inletMessages.sort(sortFunc);
+    outletMessages.sort(sortFunc);
 
     int numIn = 0;
     int numOut = 0;
@@ -1014,10 +1012,9 @@ void Object::mouseDrag(MouseEvent const& e)
             cnv->patch.startUndoSequence("Duplicate");
 
             // Sort selection indexes to match pd indexes
-            std::sort(selection.begin(), selection.end(),
-                [this](auto* a, auto* b) -> bool {
-                    return cnv->objects.indexOf(a) < cnv->objects.indexOf(b);
-                });
+            selection.sort([this](auto const* a, auto const* b) -> bool {
+                return cnv->objects.indexOf(a) < cnv->objects.indexOf(b);
+            });
 
             int draggedIdx = selection.index_of(ds.componentBeingDragged.getComponent());
 
@@ -1038,10 +1035,9 @@ void Object::mouseDrag(MouseEvent const& e)
             selection = cnv->getSelectionOfType<Object>();
 
             // Sort selection indexes to match pd indexes
-            std::sort(selection.begin(), selection.end(),
-                [this](auto* a, auto* b) -> bool {
-                    return cnv->objects.indexOf(a) < cnv->objects.indexOf(b);
-                });
+            selection.sort([this](auto* a, auto* b) -> bool {
+                return cnv->objects.indexOf(a) < cnv->objects.indexOf(b);
+            });
 
             int i = 0;
             for (auto* selected : selection) {
@@ -1368,9 +1364,7 @@ SmallArray<Connection*> Object::getConnections() const
 {
     SmallArray<Connection*> result;
     for (auto* iolet : iolets) {
-        for (auto* connection : iolet->getConnections()) {
-            result.add(connection);
-        }
+        result.add_array(iolet->getConnections());
     }
 
     return result;

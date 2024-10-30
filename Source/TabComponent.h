@@ -319,15 +319,15 @@ private:
         CloseTabButton closeButton = CloseTabButton(Icons::Clear);
     };
 
-    StackArray<MainToolbarButton, 2> newTabButtons = { { MainToolbarButton(Icons::Add), MainToolbarButton(Icons::Add) } };
-    StackArray<MainToolbarButton, 2> tabOverflowButtons = { { MainToolbarButton(Icons::ThinDown), MainToolbarButton(Icons::ThinDown) } };
+    StackArray<MainToolbarButton, 2> newTabButtons = { MainToolbarButton(Icons::Add), MainToolbarButton(Icons::Add) };
+    StackArray<MainToolbarButton, 2> tabOverflowButtons = { MainToolbarButton(Icons::ThinDown), MainToolbarButton(Icons::ThinDown) };
 
     StackArray<OwnedArray<TabBarButtonComponent>, 2> tabbars;
-    StackArray<SafePointer<Canvas>, 2> splits = { { nullptr, nullptr } };
+    StackArray<SafePointer<Canvas>, 2> splits = { nullptr, nullptr };
 
-    StackArray<SmallArray<SafePointer<Canvas>>, 2> lastShownTabs;
+    StackArray<SmallArray<SafePointer<Canvas>, 12>, 2> lastShownTabs;
 
-    StackArray<pd::Patch*, 2> lastSplitPatches { { nullptr, nullptr } };
+    StackArray<pd::Patch*, 2> lastSplitPatches { nullptr, nullptr };
     t_glist* lastActiveCanvas = nullptr;
 
     bool draggingOverTabbar = false;

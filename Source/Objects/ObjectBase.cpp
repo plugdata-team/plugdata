@@ -169,7 +169,7 @@ ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
         _this->updateLabel();
 
         auto objectBounds = _this->object->getObjectBounds();
-        _this->positionParameter = Array<var> { var(objectBounds.getX()), var(objectBounds.getY()) };
+        _this->positionParameter = VarArray { var(objectBounds.getX()), var(objectBounds.getY()) };
         _this->objectParameters.addParamPosition(&_this->positionParameter);
         _this->positionParameter.addListener(&_this->objectSizeListener);
     });
@@ -221,7 +221,7 @@ void ObjectBase::objectMovedOrResized(bool resized)
 {
     auto objectBounds = object->getObjectBounds();
 
-    setParameterExcludingListener(positionParameter, Array<var> { var(objectBounds.getX()), var(objectBounds.getY()) }, &objectSizeListener);
+    setParameterExcludingListener(positionParameter, VarArray { var(objectBounds.getX()), var(objectBounds.getY()) }, &objectSizeListener);
 
     if (resized)
         updateSizeProperty();
@@ -730,9 +730,9 @@ String ObjectBase::getBinbufSymbol(int argIndex)
         auto* binbuf = obj->te_binbuf;
         int numAtoms = binbuf_getnatom(binbuf);
         if (argIndex < numAtoms) {
-            char buf[80];
-            atom_string(binbuf_getvec(binbuf) + argIndex, buf, 80);
-            return String::fromUTF8(buf);
+            StackArray<char, 80> buf;
+            atom_string(binbuf_getvec(binbuf) + argIndex, buf.data(), 80);
+            return String::fromUTF8(buf.data());
         }
     }
 
@@ -749,7 +749,7 @@ bool ObjectBase::canReceiveMouseEvent(int x, int y)
     return true;
 }
 
-void ObjectBase::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms)
+void ObjectBase::receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms)
 {
     object->triggerOverlayActiveState();
 

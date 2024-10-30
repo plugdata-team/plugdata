@@ -392,7 +392,7 @@ public:
         auto& min = normalisableRange.start;
         auto& max = normalisableRange.end;
 
-        range = Array<var> { min, max };
+        range = VarArray { min, max };
 
         if (normalisableRange.skew == 4.0f) {
             mode = PlugDataParameter::Logarithmic;
@@ -566,7 +566,7 @@ public:
     SmallIconButton deleteButton = SmallIconButton(Icons::Clear);
     ExpandButton settingsButton;
 
-    Value range = Value(var(Array<var> { var(0.0f), var(127.0f) }));
+    Value range = Value(var(VarArray { var(0.0f), var(127.0f) }));
     Value mode = Value(var(PlugDataParameter::Float));
 
     PropertiesPanel::RangeComponent rangeProperty;

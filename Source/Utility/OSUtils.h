@@ -8,6 +8,7 @@
 
 #include <string>
 #include "Hash.h"
+#include "Containers.h"
 
 namespace juce {
 class ComponentPeer;
@@ -37,7 +38,7 @@ struct OSUtils {
     static void HideTitlebarButtons(void* view, bool hideMinimiseButton, bool hideMaximiseButton, bool hideCloseButton);
 #endif
 
-    static juce::Array<juce::File> iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles, int maximum = -1);
+    static SmallArray<juce::File> iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles, int maximum = -1);
     static bool isDirectoryFast(juce::String const& path);
     static hash32 getUniqueFileHash(juce::String const& path);
 

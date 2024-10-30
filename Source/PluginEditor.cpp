@@ -642,7 +642,7 @@ Canvas* PluginEditor::getPluginModeCanvas()
 // At this point the editor is NOT in plugin mode yet
 pd::Patch::Ptr PluginEditor::findPatchInPluginMode()
 {
-    ScopedLock lock(pd->patches.getLock());
+    ScopedLock lock(pd->patchesLock);
 
     for (auto& patch : pd->patches) {
         if (editorIndex == patch->windowIndex && patch->openInPluginMode) {

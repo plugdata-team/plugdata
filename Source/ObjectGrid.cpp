@@ -42,7 +42,7 @@ SmallArray<Object*> ObjectGrid::getSnappableObjects(Object* draggedObject)
 
     auto centre = draggedObject->getBounds().getCentre();
 
-    std::sort(snappable.begin(), snappable.end(), [centre](Object* a, Object* b) {
+    snappable.sort([centre](Object* a, Object* b) {
         auto distA = a->getBounds().getCentre().getDistanceFrom(centre);
         auto distB = b->getBounds().getCentre().getDistanceFrom(centre);
 

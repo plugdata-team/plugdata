@@ -249,9 +249,9 @@ public:
 
     void updateValue()
     {
-        int notes[256];
+        StackArray<int, 256> notes;
         if (auto obj = ptr.get<t_fake_keyboard>()) {
-            memcpy(notes, obj->x_tgl_notes, 256 * sizeof(int));
+            memcpy(notes.data(), obj->x_tgl_notes, 256 * sizeof(int));
         }
 
         auto numOctaves = getValue<int>(octaves) * 12;
@@ -279,7 +279,7 @@ public:
         repaint();
     }
 
-    void receiveNotesOn(pd::Atom const atoms[8], int numAtoms, bool isOn)
+    void receiveNotesOn(StackArray<pd::Atom, 8> const& atoms, int numAtoms, bool isOn)
     {
         for (int at = 0; at < numAtoms; at++) {
             if (isOn)
@@ -290,7 +290,7 @@ public:
         repaint();
     }
 
-    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
     {
         auto elseKeyboard = ptr.get<t_fake_keyboard>();
 
@@ -549,31 +549,29 @@ public:
 
     void sendNoteOn(int note, int velocity)
     {
-        int ac = 2;
-        t_atom at[2];
-        SETFLOAT(at, note);
-        SETFLOAT(at + 1, velocity);
+        StackArray<t_atom, 2> at;
+        SETFLOAT(&at[0], note);
+        SETFLOAT(&at[1], velocity);
 
         if (auto obj = this->ptr.get<t_fake_keyboard>()) {
             obj->x_tgl_notes[note] = 1;
-            outlet_list(obj->x_out, gensym("list"), ac, at);
+            outlet_list(obj->x_out, gensym("list"), 2, at.data());
             if (obj->x_send != gensym("") && obj->x_send->s_thing)
-                pd_list(obj->x_send->s_thing, gensym("list"), ac, at);
+                pd_list(obj->x_send->s_thing, gensym("list"), 2, at.data());
         }
     };
 
     void sendNoteOff(int note)
     {
-        int ac = 2;
-        t_atom at[2];
-        SETFLOAT(at, note);
-        SETFLOAT(at + 1, 0);
+        StackArray<t_atom, 2> at;
+        SETFLOAT(&at[0], note);
+        SETFLOAT(&at[1] + 1, 0);
 
         if (auto obj = this->ptr.get<t_fake_keyboard>()) {
             obj->x_tgl_notes[note] = 0;
-            outlet_list(obj->x_out, gensym("list"), ac, at);
+            outlet_list(obj->x_out, gensym("list"), 2, at.data());
             if (obj->x_send != gensym("") && obj->x_send->s_thing)
-                pd_list(obj->x_send->s_thing, gensym("list"), ac, at);
+                pd_list(obj->x_send->s_thing, gensym("list"), 2, at.data());
         }
     }
 };

@@ -31,3 +31,5 @@ private:
 };
 
 #define SynchronousValue(x) Value(new SynchronousValueSource(x))
+
+using VarArray = Array<var>;

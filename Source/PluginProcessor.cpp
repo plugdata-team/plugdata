@@ -182,7 +182,9 @@ PluginProcessor::PluginProcessor()
 PluginProcessor::~PluginProcessor()
 {
     // Deleting the pd instance in ~PdInstance() will also free all the Pd patches
+    patchesLock.enter();
     patches.clear();
+    patchesLock.exit();
 }
 
 void PluginProcessor::flushMessageQueue()
@@ -195,8 +197,8 @@ void PluginProcessor::initialiseFilesystem()
 {
     auto const& homeDir = ProjectInfo::appDataDir;
     auto const& versionDataDir = ProjectInfo::versionDataDir;
-    auto deken = homeDir.getChildFile("Externals");
-    auto patches = homeDir.getChildFile("Patches");
+    auto dekenDir = homeDir.getChildFile("Externals");
+    auto patchesDir = homeDir.getChildFile("Patches");
 
 #if JUCE_IOS
     // TODO: remove this later. This is for iOS version transition
@@ -251,12 +253,12 @@ void PluginProcessor::initialiseFilesystem()
         // Create filesystem for this specific version
         tempVersionDataDir.moveFileTo(versionDataDir);
     }
-    if (!deken.exists()) {
-        deken.createDirectory();
+    if (!dekenDir.exists()) {
+        dekenDir.createDirectory();
     }
 #if !JUCE_IOS
-    if (!patches.exists()) {
-        patches.createDirectory();
+    if (!patchesDir.exists()) {
+        patchesDir.createDirectory();
     }
 #endif
 
@@ -282,8 +284,8 @@ void PluginProcessor::initialiseFilesystem()
     auto abstractionsPath = versionDataDir.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\");
     auto documentationPath = versionDataDir.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\");
     auto extraPath = versionDataDir.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\");
-    auto dekenPath = deken.getFullPathName();
-    auto patchesPath = patches.getFullPathName();
+    auto dekenPath = dekenDir.getFullPathName();
+    auto patchesPath = patchesDir.getFullPathName();
 
     // Create NTFS directory junctions
     OSUtils::createJunction(homeDir.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\").toStdString(), abstractionsPath.toStdString());
@@ -310,10 +312,10 @@ void PluginProcessor::initialiseFilesystem()
 
     auto docsPatchesDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("Patches");
     docsPatchesDir.createDirectory();
-    if (!patches.isSymbolicLink()) {
-        patches.deleteRecursively();
+    if (!patchesDir.isSymbolicLink()) {
+        patchesDir.deleteRecursively();
     } else {
-        patches.deleteFile();
+        patchesDir.deleteFile();
     }
     docsPatchesDir.createSymbolicLink(patches, true);
 #else
@@ -336,7 +338,7 @@ void PluginProcessor::updateSearchPaths()
 
     libpd_clear_search_path();
 
-    auto paths = SmallArray<File>(pd::Library::defaultPaths.begin(), pd::Library::defaultPaths.end());
+    auto paths = SmallArray<File, 12>(pd::Library::defaultPaths.begin(), pd::Library::defaultPaths.end());
 
     for (auto child : pathTree) {
         auto path = child.getProperty("Path").toString().replace("\\", "/");
@@ -460,7 +462,7 @@ void PluginProcessor::setOversampling(int amount)
 
 void PluginProcessor::setLimiterThreshold(int amount)
 {
-    auto threshold = (StackArray<float, 4> { -12, -6, 0, 3 })[amount];
+    auto threshold = (StackArray<float, 4> { -12.f, -6.f, 0.f, 3.f })[amount];
     limiter.setThreshold(threshold);
 
     settingsFile->setProperty("limiter_threshold", var(amount));
@@ -721,6 +723,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
 void PluginProcessor::updatePatchUndoRedoState()
 {
     if (isSuspended()) {
+        ScopedLock lock(patchesLock);
         for (auto& patch : patches) {
             patch->updateUndoRedoState();
         }
@@ -728,6 +731,7 @@ void PluginProcessor::updatePatchUndoRedoState()
     }
 
     enqueueFunctionAsync([this]() {
+        ScopedLock lock(patchesLock);
         for (auto& patch : patches) {
             patch->updateUndoRedoState();
         }
@@ -1003,7 +1007,9 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     // Store pure-data and parameter state
     MemoryOutputStream ostream(destData, false);
 
+    patchesLock.enter();
     ostream.writeInt(patches.size());
+    patchesLock.exit();
 
     // Save path and content for patch
     lockAudioThread();
@@ -1012,23 +1018,26 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 
     auto patchesTree = new XmlElement("Patches");
 
-    for (auto const& patch : patches) {
+    {
+        ScopedLock lock(patchesLock);
+        for (auto const& patch : patches) {
 
-        auto content = patch->getCanvasContent();
-        auto patchFile = patch->getCurrentFile().getFullPathName();
+            auto content = patch->getCanvasContent();
+            auto patchFile = patch->getCurrentFile().getFullPathName();
 
-        // Write legacy format
-        ostream.writeString(content);
-        ostream.writeString(patchFile);
+            // Write legacy format
+            ostream.writeString(content);
+            ostream.writeString(patchFile);
 
-        auto* patchTree = new XmlElement("Patch");
-        // Write new format
-        patchTree->setAttribute("Content", content);
-        patchTree->setAttribute("Location", patchFile);
-        patchTree->setAttribute("PluginMode", patch->openInPluginMode);
-        patchTree->setAttribute("SplitIndex", patch->splitViewIndex);
+            auto* patchTree = new XmlElement("Patch");
+            // Write new format
+            patchTree->setAttribute("Content", content);
+            patchTree->setAttribute("Location", patchFile);
+            patchTree->setAttribute("PluginMode", patch->openInPluginMode);
+            patchTree->setAttribute("SplitIndex", patch->splitViewIndex);
 
-        patchesTree->addChildElement(patchTree);
+            patchesTree->addChildElement(patchTree);
+        }
     }
     unlockAudioThread();
 
@@ -1091,7 +1100,9 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 
     setThis();
 
+    patchesLock.enter();
     patches.clear();
+    patchesLock.exit();
 
     SmallArray<pd::WeakReference> openedPatches;
     // Close all patches
@@ -1106,7 +1117,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 
     int numPatches = istream.readInt();
 
-    SmallArray<std::pair<String, File>> patches;
+    SmallArray<std::pair<String, File>> newPatches;
 
     for (int i = 0; i < numPatches; i++) {
         auto state = istream.readString();
@@ -1114,7 +1125,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 
         auto presetDir = ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Presets");
         path = path.replace("${PRESET_DIR}", presetDir.getFullPathName());
-        patches.emplace_back(state, File(path));
+        newPatches.emplace_back(state, File(path));
     }
 
     auto legacyLatency = istream.readInt();
@@ -1177,7 +1188,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
         }
         // Otherwise, load from legacy format
         else {
-            for (auto& [content, location] : patches) {
+            for (auto& [content, location] : newPatches) {
                 openPatch(content, location);
             }
         }
@@ -1271,8 +1282,11 @@ pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL)
         return nullptr;
     }
 
+    patchesLock.enter();
     patches.add(newPatch);
-    auto* patch = patches.getLast().get();
+    auto* patch = patches.back().get();
+    patchesLock.exit();
+
     patch->setCurrentFile(URL(patchFile));
 
     return patch;
@@ -1479,39 +1493,42 @@ void PluginProcessor::receiveSysMessage(String const& selector, SmallArray<pd::A
         // TODO: it would be nicer if we could specifically target the correct editor here, instead of picking the first one and praying
         auto editors = getEditors();
 
-        if (!patches.isEmpty()) {
-            float pluginModeFloatArgument = 1.0;
-            if (list.size()) {
-                pluginModeFloatArgument = list[0].getFloat();
+        {
+            ScopedLock lock(patchesLock);
+            if (patches.not_empty()) {
+                float pluginModeFloatArgument = 1.0;
+                if (list.size()) {
+                    pluginModeFloatArgument = list[0].getFloat();
 
-                auto pluginModeThemeOrPath = list[0].toString();
-                if (pluginModeThemeOrPath.endsWith(".plugdatatheme")) {
-                    auto themeFile = patches[0]->getPatchFile().getParentDirectory().getChildFile(pluginModeThemeOrPath);
-                    if (themeFile.existsAsFile()) {
-                        pluginModeTheme = ValueTree::fromXml(themeFile.loadFileAsString());
+                    auto pluginModeThemeOrPath = list[0].toString();
+                    if (pluginModeThemeOrPath.endsWith(".plugdatatheme")) {
+                        auto themeFile = patches[0]->getPatchFile().getParentDirectory().getChildFile(pluginModeThemeOrPath);
+                        if (themeFile.existsAsFile()) {
+                            pluginModeTheme = ValueTree::fromXml(themeFile.loadFileAsString());
+                        }
+                    } else {
+                        auto themesTree = SettingsFile::getInstance()->getValueTree().getChildWithName("ColourThemes");
+                        auto theme = themesTree.getChildWithProperty("theme", pluginModeThemeOrPath);
+                        if (theme.isValid()) {
+                            pluginModeTheme = theme;
+                        }
+                    }
+                }
+
+                if (!editors.empty()) {
+                    auto* editor = editors[0];
+                    if (auto* cnv = editor->getCurrentCanvas()) {
+                        if (pluginModeFloatArgument)
+                            editor->getTabComponent().openInPluginMode(cnv->patch);
+                        else if (editor->isInPluginMode())
+                            editor->pluginMode->closePluginMode();
                     }
                 } else {
-                    auto themesTree = SettingsFile::getInstance()->getValueTree().getChildWithName("ColourThemes");
-                    auto theme = themesTree.getChildWithProperty("theme", pluginModeThemeOrPath);
-                    if (theme.isValid()) {
-                        pluginModeTheme = theme;
-                    }
-                }
-            }
-
-            if (!editors.empty()) {
-                auto* editor = editors[0];
-                if (auto* cnv = editor->getCurrentCanvas()) {
                     if (pluginModeFloatArgument)
-                        editor->getTabComponent().openInPluginMode(cnv->patch);
-                    else if (editor->isInPluginMode())
-                        editor->pluginMode->closePluginMode();
+                        patches[0]->openInPluginMode = true;
+                    else
+                        patches[0]->openInPluginMode = false;
                 }
-            } else {
-                if (pluginModeFloatArgument)
-                    patches[0]->openInPluginMode = true;
-                else
-                    patches[0]->openInPluginMode = false;
             }
         }
         break;

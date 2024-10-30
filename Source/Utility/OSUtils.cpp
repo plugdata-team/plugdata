@@ -327,9 +327,9 @@ hash32 OSUtils::getUniqueFileHash(juce::String const& path)
     return hash(fs::canonical(path.toStdString()).c_str());
 }
 
-juce::Array<fs::path> iterateDirectoryPaths(juce::File const& directory, bool recursive, bool onlyFiles, int maximum)
+SmallArray<fs::path> iterateDirectoryPaths(juce::File const& directory, bool recursive, bool onlyFiles, int maximum)
 {
-    juce::Array<fs::path> result;
+    SmallArray<fs::path> result;
 
     if (recursive) {
         try {
@@ -364,10 +364,10 @@ juce::Array<fs::path> iterateDirectoryPaths(juce::File const& directory, bool re
     return result;
 }
 
-juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles, int maximum)
+SmallArray<juce::File> OSUtils::iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles, int maximum)
 {
     auto paths = iterateDirectoryPaths(directory, recursive, onlyFiles, maximum);
-    auto files = juce::Array<juce::File>();
+    auto files = SmallArray<juce::File>();
     for (auto& path : paths) {
         files.add(juce::File(path.string()));
     }

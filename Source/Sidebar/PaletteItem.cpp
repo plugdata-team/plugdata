@@ -139,7 +139,7 @@ void PaletteItem::paint(Graphics& g)
     p.startNewSubPath(x, lineBounds.getY());
 
     auto ioletStroke = PathStrokeType(1.0f);
-    SmallArray<std::tuple<Path, Colour>> ioletPaths;
+    SmallArray<std::tuple<Path, Colour>, 8> ioletPaths;
 
     for (int i = 0; i < inlets.size(); i++) {
         Path inletArc;
@@ -364,9 +364,9 @@ std::pair<SmallArray<bool>, SmallArray<bool>> PaletteItem::countIolets(String co
         }
     }
 
-    auto ioletSortFunc = [](std::pair<bool, Point<int>>& a, std::pair<bool, Point<int>>& b) {
-        auto& [typeA, positionA] = a;
-        auto& [typeB, positionB] = b;
+    auto ioletSortFunc = [](std::pair<bool, Point<int>> const& a, std::pair<bool, Point<int>> const& b) {
+        auto const& [typeA, positionA] = a;
+        auto const& [typeB, positionB] = b;
 
         if (positionA.x == positionB.x) {
             return positionA.y < positionB.y;
@@ -375,8 +375,8 @@ std::pair<SmallArray<bool>, SmallArray<bool>> PaletteItem::countIolets(String co
         return positionA.x < positionB.x;
     };
 
-    std::sort(inlets.begin(), inlets.end(), ioletSortFunc);
-    std::sort(outlets.begin(), outlets.end(), ioletSortFunc);
+    inlets.sort(ioletSortFunc);
+    outlets.sort(ioletSortFunc);
 
     auto result = std::pair<SmallArray<bool>, SmallArray<bool>>();
 

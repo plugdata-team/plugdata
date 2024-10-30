@@ -120,7 +120,7 @@ public:
         auto const* pointPtr = xyPoints.data();
         auto numPoints = xyPoints.size() / 2;
 
-        float control[6];
+        StackArray<float, 6> control;
         control[4] = pointPtr[0];
         control[5] = pointPtr[1];
         pointPtr += 2;
@@ -222,7 +222,7 @@ public:
         }
     }
 
-    void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms) override
+    void receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
     {
         switch (hash(symbol->s_name)) {
         case hash("edit"): {
@@ -595,7 +595,7 @@ public:
     void updateParameters()
     {
         auto scale = getScale();
-        range = var(Array<var> { var(scale[0]), var(scale[1]) });
+        range = var(VarArray { var(scale[0]), var(scale[1]) });
         size = var(static_cast<int>(getArraySize()));
         saveContents = willSaveContent();
         name = String(getUnexpandedName());
@@ -829,7 +829,7 @@ public:
         clear();
         arrayValues.clear();
 
-        Array<PropertiesPanelProperty*> properties;
+        PropertiesArray properties;
 
         if (auto ptr = array.get<t_fake_garray>()) {
             auto* arr = garray_getarray(ptr.cast<t_garray>());
@@ -1240,7 +1240,7 @@ public:
             graph->updateParameters();
         }
         if (auto glist = ptr.get<t_glist>()) {
-            sizeProperty = Array<var> { var(glist->gl_pixwidth), var(glist->gl_pixheight) };
+            sizeProperty = VarArray { var(glist->gl_pixwidth), var(glist->gl_pixheight) };
         }
     }
 
@@ -1249,7 +1249,7 @@ public:
         setPdBounds(object->getObjectBounds());
 
         if (auto glist = ptr.get<t_glist>()) {
-            setParameterExcludingListener(sizeProperty, Array<var> { var(glist->gl_pixwidth), var(glist->gl_pixheight) });
+            setParameterExcludingListener(sizeProperty, VarArray { var(glist->gl_pixwidth), var(glist->gl_pixheight) });
         }
     }
 
@@ -1261,7 +1261,7 @@ public:
             auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
             auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
 
-            setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+            setParameterExcludingListener(sizeProperty, VarArray { var(width), var(height) });
 
             if (auto glist = ptr.get<t_glist>()) {
                 glist->gl_pixwidth = width;
@@ -1315,7 +1315,7 @@ public:
         });
     }
 
-    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
     {
         switch (symbol) {
         case hash("redraw"): {
@@ -1408,7 +1408,7 @@ public:
         }
     }
 
-    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
     {
     }
 };

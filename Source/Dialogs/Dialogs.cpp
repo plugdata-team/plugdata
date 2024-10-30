@@ -663,7 +663,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
         if (result == Properties) {
             if (originalComponent == cnv) {
-                SmallArray<ObjectParameters> parameters = { cnv->getInspectorParameters() };
+                SmallArray<ObjectParameters, 6> parameters = { cnv->getInspectorParameters() };
                 editor->sidebar->showParameters("canvas", parameters);
             } else if (object && object->gui) {
 
@@ -676,7 +676,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
                     propertiesFn(static_cast<t_gobj*>(object->getPointer()), cnv->patch.getPointer().get());
                 cnv->pd->unlockAudioThread();
 
-                SmallArray<ObjectParameters> parameters = { object->gui->getParameters() };
+                SmallArray<ObjectParameters, 6> parameters = { object->gui->getParameters() };
                 editor->sidebar->showParameters(object->getType(false), parameters);
             }
 

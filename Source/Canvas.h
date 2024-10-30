@@ -176,19 +176,17 @@ public:
 
     ObjectParameters& getInspectorParameters();
 
-    void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms) override;
+    void receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override;
 
     template<typename T>
-    HeapArray<T*> getSelectionOfType()
+    SmallArray<T*> getSelectionOfType()
     {
-        HeapArray<T*> result;
-
+        SmallArray<T*> result;
         for (auto const& obj : selectedComponents) {
             if (auto* objOfType = dynamic_cast<T*>(obj.get())) {
                 result.add(objOfType);
             }
         }
-
         return result;
     }
 
@@ -265,7 +263,7 @@ public:
     NVGImage resizeHandleImage;
     NVGImage presentationShadowImage;
 
-    HeapArray<juce::WeakReference<NVGComponent>> drawables;
+    SmallArray<juce::WeakReference<NVGComponent>> drawables;
 
     NVGcolor canvasBackgroundCol;
     Colour canvasBackgroundColJuce;

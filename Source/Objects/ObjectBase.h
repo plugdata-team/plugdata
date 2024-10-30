@@ -180,7 +180,7 @@ public:
     virtual bool canReceiveMouseEvent(int x, int y);
 
     // Called whenever the object receives a pd message
-    virtual void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) { };
+    virtual void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) { };
 
     // Close any tabs with opened subpatchers
     void closeOpenedSubpatchers();
@@ -189,7 +189,7 @@ public:
     // Attempt to send "click" message to object. Returns false if the object has no such method
     bool click(Point<int> position, bool shift, bool alt);
 
-    void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms) override;
+    void receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override;
 
     static ObjectBase* createGui(pd::WeakReference ptr, Object* parent);
 

@@ -325,7 +325,7 @@ bool Sidebar::isHidden() const
     return sidebarHidden;
 }
 
-void Sidebar::showParameters(String const& name, SmallArray<ObjectParameters>& params)
+void Sidebar::showParameters(String const& name, SmallArray<ObjectParameters, 6>& params)
 {
     lastParameters = params;
     inspector->loadParameters(params);
@@ -366,7 +366,7 @@ void Sidebar::hideParameters()
     }
 
     if (pinned) {
-        SmallArray<ObjectParameters> params = {};
+        SmallArray<ObjectParameters, 6> params = {};
         inspector->loadParameters(params);
     }
 

@@ -95,7 +95,7 @@ public:
         panels.add(new KeyMappingComponent(editor->commandManager.getKeyMappings()));
         panels.add(new AdvancedSettingsPanel(editor));
 
-        Array<PropertiesPanel*> propertiesPanels;
+        SmallArray<PropertiesPanel*> propertiesPanels;
         for (auto* i : panels) {
             addChildComponent(i);
 

@@ -92,7 +92,10 @@ Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch, bool warnIfAlready
         }
     }
 
-    pd->patches.addIfNotAlreadyThere(existingPatch);
+    pd->patchesLock.enter();
+    pd->patches.add_unique(existingPatch);
+    pd->patchesLock.exit();
+
     auto* cnv = canvases.add(new Canvas(editor, existingPatch));
 
     auto patchTitle = existingPatch->getTitle();
@@ -327,7 +330,7 @@ void TabComponent::openInPluginMode(pd::Patch::Ptr patch)
 // instead, we must check if they still exist before deleting
 void TabComponent::clearCanvases()
 {
-    SmallArray<SafePointer<Canvas>> safeCanvases;
+    SmallArray<SafePointer<Canvas>, 16> safeCanvases;
     for (int i = canvases.size() - 1; i >= 0; i--) {
         safeCanvases.add(canvases[i]);
     }
@@ -392,7 +395,7 @@ void TabComponent::handleAsyncUpdate()
     for (int i = canvases.size() - 1; i >= 0; i--) {
         bool exists = false;
         {
-            ScopedLock lock(pd->patches.getLock());
+            ScopedLock lock(pd->patchesLock);
             for (auto& patch : pd->patches) {
                 if (canvases[i]->patch == *patch && canvases[i]->patch.windowIndex == editorIndex) {
                     exists = true;
@@ -407,7 +410,7 @@ void TabComponent::handleAsyncUpdate()
 
     // Load all patches from pd patch array
     {
-        ScopedLock lock(pd->patches.getLock());
+        ScopedLock lock(pd->patchesLock);
         for (auto& patch : pd->patches) {
             if (patch->windowIndex != editorIndex)
                 continue;
@@ -764,7 +767,10 @@ void TabComponent::closeTab(Canvas* cnv)
     }
 
     canvases.removeObject(cnv);
-    pd->patches.removeFirstMatchingValue(patch);
+    pd->patchesLock.enter();
+    pd->patches.remove_one(patch);
+    pd->patchesLock.exit();
+
     pd->updateObjectImplementations();
 
     triggerAsyncUpdate();
@@ -774,9 +780,11 @@ void TabComponent::addLastShownTab(Canvas* tab, int split)
 {
     if (lastShownTabs[split].contains(tab))
         lastShownTabs[split].remove_one(tab);
-    lastShownTabs[split].add(tab);
-    while (lastShownTabs[split].size() > 15)
+
+    while (lastShownTabs[split].size() >= 12)
         lastShownTabs[split].remove_at(0);
+
+    lastShownTabs[split].add(tab);
 }
 
 Canvas* TabComponent::getLastShownTab(Canvas* current, int split)
@@ -897,7 +905,7 @@ void TabComponent::itemDropped(SourceDetails const& dragSourceDetails)
 
         auto mousePos = (cnv->getLocalPoint(this, dragSourceDetails.localPosition) - cnv->canvasOrigin);
 
-        // Extract the array<var> from the var
+        // Extract the VarArray from the var
         auto patchWithSize = *dragSourceDetails.description.getArray();
         auto patchSize = Point<int>(patchWithSize[0], patchWithSize[1]);
         auto patchData = patchWithSize[2].toString();
@@ -958,7 +966,7 @@ void TabComponent::saveTabPositions()
         }
     }
 
-    std::sort(sortedPatches.begin(), sortedPatches.end(), [](auto const& a, auto const& b) {
+    sortedPatches.sort([](auto const& a, auto const& b) {
         if (a.first->windowIndex != b.first->windowIndex)
             return a.first->windowIndex < b.first->windowIndex;
 
@@ -968,17 +976,17 @@ void TabComponent::saveTabPositions()
         return a.second < b.second;
     });
 
-    pd->patches.getLock().enter();
+    pd->patchesLock.enter();
     int i = 0;
     for (auto& [patch, tabIdx] : sortedPatches) {
 
         if (i >= pd->patches.size())
             break;
 
-        pd->patches.set(i, patch);
+        pd->patches[i] = patch;
         i++;
     }
-    pd->patches.getLock().exit();
+    pd->patchesLock.exit();
 }
 
 void TabComponent::itemDragMove(SourceDetails const& dragSourceDetails)

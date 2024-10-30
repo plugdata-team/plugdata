@@ -38,7 +38,7 @@ public:
         objectParameters.addParamInt("Samples per point", cGeneral, &samplesPerPoint, 256);
         objectParameters.addParamInt("Buffer size", cGeneral, &bufferSize, 128);
         objectParameters.addParamInt("Delay", cGeneral, &delay, 0);
-        objectParameters.addParamRange("Signal Range", cGeneral, &signalRange, Array<var> { var(-1.0f), var(1.0f) });
+        objectParameters.addParamRange("Signal Range", cGeneral, &signalRange, VarArray { var(-1.0f), var(1.0f) });
 
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
 
@@ -50,7 +50,7 @@ public:
         setPdBounds(object->getObjectBounds());
 
         if (auto scope = ptr.get<t_fake_scope>()) {
-            setParameterExcludingListener(sizeProperty, Array<var> { var(scope->x_width), var(scope->x_height) });
+            setParameterExcludingListener(sizeProperty, VarArray { var(scope->x_width), var(scope->x_height) });
         }
     }
 
@@ -65,12 +65,12 @@ public:
             secondaryColour = colourFromHexArray(scope->x_bg).toString();
             primaryColour = colourFromHexArray(scope->x_fg).toString();
             gridColour = colourFromHexArray(scope->x_gg).toString();
-            sizeProperty = Array<var> { var(scope->x_width), var(scope->x_height) };
+            sizeProperty = VarArray { var(scope->x_width), var(scope->x_height) };
 
             auto rcvSym = scope->x_rcv_set ? String::fromUTF8(scope->x_rcv_raw->s_name) : getBinbufSymbol(22);
             receiveSymbol = rcvSym != "empty" ? rcvSym : "";
 
-            Array<var> arr = { scope->x_min, scope->x_max };
+            VarArray arr = { scope->x_min, scope->x_max };
             signalRange = var(arr);
         }
     }
@@ -247,7 +247,7 @@ public:
             auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
             auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
 
-            setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+            setParameterExcludingListener(sizeProperty, VarArray { var(width), var(height) });
 
             if (auto scope = ptr.get<t_fake_scope>()) {
                 scope->x_width = width;
@@ -305,7 +305,7 @@ public:
         return rSymbol.isNotEmpty() && (rSymbol != "empty");
     }
 
-    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
     {
         switch (symbol) {
         case hash("receive"): {

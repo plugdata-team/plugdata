@@ -52,15 +52,15 @@ public:
         if (auto glist = ptr.get<t_canvas>()) {
             isGraphChild = static_cast<bool>(glist->gl_isgraph);
             hideNameAndArgs = static_cast<bool>(glist->gl_hidetext);
-            xRange = Array<var> { var(glist->gl_x1), var(glist->gl_x2) };
-            yRange = Array<var> { var(glist->gl_y2), var(glist->gl_y1) };
-            sizeProperty = Array<var> { var(glist->gl_pixwidth), var(glist->gl_pixheight) };
+            xRange = VarArray { var(glist->gl_x1), var(glist->gl_x2) };
+            yRange = VarArray { var(glist->gl_y2), var(glist->gl_y1) };
+            sizeProperty = VarArray { var(glist->gl_pixwidth), var(glist->gl_pixheight) };
         }
 
         updateCanvas();
     }
 
-    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
     {
         switch (symbol) {
         case hash("yticks"):
@@ -223,7 +223,7 @@ public:
         setPdBounds(object->getObjectBounds());
 
         if (auto glist = ptr.get<t_glist>()) {
-            setParameterExcludingListener(sizeProperty, Array<var> { var(glist->gl_pixwidth), var(glist->gl_pixheight) });
+            setParameterExcludingListener(sizeProperty, VarArray { var(glist->gl_pixwidth), var(glist->gl_pixheight) });
         }
     }
 
@@ -466,7 +466,7 @@ public:
             auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
             auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
 
-            setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+            setParameterExcludingListener(sizeProperty, VarArray { var(width), var(height) });
 
             if (auto glist = ptr.get<t_glist>()) {
                 glist->gl_pixwidth = width;

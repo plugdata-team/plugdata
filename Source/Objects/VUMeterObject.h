@@ -108,7 +108,7 @@ public:
         setPdBounds(object->getObjectBounds());
 
         if (auto iem = ptr.get<t_iemgui>()) {
-            setParameterExcludingListener(sizeProperty, Array<var> { var(iem->x_w), var(iem->x_h) });
+            setParameterExcludingListener(sizeProperty, VarArray { var(iem->x_w), var(iem->x_h) });
         }
     }
 
@@ -164,7 +164,7 @@ public:
             auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
             auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
 
-            setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+            setParameterExcludingListener(sizeProperty, VarArray { var(width), var(height) });
 
             if (auto vu = ptr.get<t_vu>()) {
                 vu->x_gui.x_w = width;
@@ -186,7 +186,7 @@ public:
     void update() override
     {
         if (auto vu = ptr.get<t_vu>()) {
-            sizeProperty = Array<var> { var(vu->x_gui.x_w), var(vu->x_gui.x_h) };
+            sizeProperty = VarArray { var(vu->x_gui.x_w), var(vu->x_gui.x_h) };
         }
 
         iemHelper.update();
@@ -257,7 +257,7 @@ public:
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
     }
 
-    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
     {
         switch (symbol) {
         case hash("float"): {

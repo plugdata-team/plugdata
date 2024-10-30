@@ -681,13 +681,13 @@ void Patch::setTitle(String const& title)
 {
     auto* pathSym = instance->generateSymbol(getCurrentFile().getFullPathName());
 
-    t_atom args[2];
-    SETSYMBOL(args, instance->generateSymbol(title));
-    SETSYMBOL(args + 1, pathSym);
+    StackArray<t_atom, 2> args;
+    SETSYMBOL(&args[0], instance->generateSymbol(title));
+    SETSYMBOL(&args[1], pathSym);
 
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        pd_typedmess(patch.cast<t_pd>(), instance->generateSymbol("rename"), 2, args);
+        pd_typedmess(patch.cast<t_pd>(), instance->generateSymbol("rename"), 2, args.data());
     }
 
     MessageManager::callAsync([instance = this->instance]() {
