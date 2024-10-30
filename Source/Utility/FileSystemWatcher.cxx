@@ -112,8 +112,8 @@ public:
     struct Event
     {
         Event () {}
-        Event (Event& other) = default;
-        Event (Event&& other) = default;
+        Event (Event const& other) = default;
+        Event (Event const&& other) = default;
 
         File file;
         FileSystemEvent fsEvent;
@@ -175,7 +175,7 @@ public:
                 else if (iNotifyEvent->mask & IN_DELETE)      e.fsEvent = FileSystemEvent::fileDeleted;
 
                 ScopedLock sl(lock);
-                
+
                 bool duplicateEvent = false;
                 for (auto existing : events)
                 {
@@ -386,7 +386,7 @@ void FileSystemWatcher::addFolder (const File& folder)
     SmallArray<File> allFolders;
     for (auto w : watched)
         allFolders.add (w->folder);
-    
+
     if ( !allFolders.contains (folder))
         watched.add (new Impl (*this, folder));
 }
@@ -421,7 +421,7 @@ void FileSystemWatcher::removeListener (Listener* listener)
 void FileSystemWatcher::fileChanged (const File& file, FileSystemEvent fsEvent)
 {
     if(file.getFileName().endsWith(".autosave")) return;
-    
+
     listeners.call (&FileSystemWatcher::Listener::fileChanged, file, fsEvent);
 }
 

@@ -29,7 +29,7 @@ public:
     // The compare equal operator.
     bool operator==(Patch const& other) const
     {
-        return getPointer().get() == other.getPointer().get();
+        return getUncheckedPointer() == other.getUncheckedPointer();
     }
 
     // Gets the bounds of the patch.

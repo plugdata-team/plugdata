@@ -549,6 +549,8 @@ public:
 
     void sendNoteOn(int note, int velocity)
     {
+        note = std::clamp(note + 12, 0, 255);
+        
         StackArray<t_atom, 2> at;
         SETFLOAT(&at[0], note);
         SETFLOAT(&at[1], velocity);
@@ -563,9 +565,10 @@ public:
 
     void sendNoteOff(int note)
     {
+        note = std::clamp(note + 12, 0, 255);
         StackArray<t_atom, 2> at;
         SETFLOAT(&at[0], note);
-        SETFLOAT(&at[1] + 1, 0);
+        SETFLOAT(&at[1], 0);
 
         if (auto obj = this->ptr.get<t_fake_keyboard>()) {
             obj->x_tgl_notes[note] = 0;
