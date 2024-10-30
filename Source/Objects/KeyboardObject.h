@@ -272,9 +272,9 @@ public:
     void receiveNoteOn(int midiNoteNumber, bool isOn)
     {
         if (isOn)
-            heldKeys.insert(midiNoteNumber);
+            heldKeys.insert(midiNoteNumber - 12);
         else
-            heldKeys.erase(midiNoteNumber);
+            heldKeys.erase(midiNoteNumber - 12);
 
         repaint();
     }
@@ -283,9 +283,9 @@ public:
     {
         for (int at = 0; at < numAtoms; at++) {
             if (isOn)
-                heldKeys.insert(atoms[at].getFloat());
+                heldKeys.insert(atoms[at].getFloat() - 12);
             else
-                heldKeys.erase(atoms[at].getFloat());
+                heldKeys.erase(atoms[at].getFloat() - 12);
         }
         repaint();
     }

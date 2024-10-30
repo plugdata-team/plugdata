@@ -113,7 +113,7 @@ public:
     {
         Event () {}
         Event (Event const& other) = default;
-        Event (Event const&& other) = default;
+        Event (Event&& other) = default;
 
         File file;
         FileSystemEvent fsEvent;
