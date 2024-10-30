@@ -20,11 +20,10 @@ public:
 
     ~Dialog() override
     {
-        if(auto* editor = dynamic_cast<PluginEditor*>(parentComponent))
-        {
+        if (auto* editor = dynamic_cast<PluginEditor*>(parentComponent)) {
             editor->nvgSurface.setRenderThroughImage(false);
         }
-        
+
         if (auto* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent())) {
             if (ProjectInfo::isStandalone) {
                 if (auto* closeButton = window->getCloseButton())
@@ -151,7 +150,7 @@ public:
 };
 
 struct Dialogs {
-    static Component* showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> closeCallback,  std::function<void(String)> saveCallback, bool enableSyntaxHighlighting = false);
+    static Component* showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> closeCallback, std::function<void(String)> saveCallback, bool enableSyntaxHighlighting = false);
     static void appendTextToTextEditorDialog(Component* dialog, String const& text);
 
     static void showAskToSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String const& filename, std::function<void(int)> callback, int margin = 0, bool withLogo = true);

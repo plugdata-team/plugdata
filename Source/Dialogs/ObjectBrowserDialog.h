@@ -592,7 +592,8 @@ class ObjectSearchComponent : public Component
 
 public:
     explicit ObjectSearchComponent(pd::Library& library)
-        : library(library), bouncer(listBox.getViewport())
+        : library(library)
+        , bouncer(listBox.getViewport())
     {
         listBox.setModel(this);
         listBox.setRowHeight(28);
@@ -746,9 +747,9 @@ public:
 
         if (query.isEmpty())
             return;
-        
+
         searchResult = library.searchObjectDocumentation(query);
-        
+
         listBox.updateContent();
         listBox.repaint();
 

@@ -63,12 +63,14 @@ public:
         if (getValue<bool>(latch)) {
             if (auto pic = ptr.get<t_fake_pic>()) {
                 outlet_float(pic->x_outlet, 1.0f);
-                if(pic->x_send != gensym("") && pic->x_send->s_thing) pd_float(pic->x_send->s_thing, 1.0f);
+                if (pic->x_send != gensym("") && pic->x_send->s_thing)
+                    pd_float(pic->x_send->s_thing, 1.0f);
             }
         } else {
             if (auto pic = ptr.get<t_fake_pic>()) {
                 outlet_bang(pic->x_outlet);
-                if(pic->x_send != gensym("") && pic->x_send->s_thing) pd_bang(pic->x_send->s_thing);
+                if (pic->x_send != gensym("") && pic->x_send->s_thing)
+                    pd_bang(pic->x_send->s_thing);
             }
         }
     }
@@ -78,7 +80,8 @@ public:
         if (getValue<bool>(latch)) {
             if (auto pic = ptr.get<t_fake_pic>()) {
                 outlet_float(pic->x_outlet, 0.0f);
-                if(pic->x_send != gensym("") && pic->x_send->s_thing) pd_float(pic->x_send->s_thing, 0.0f);
+                if (pic->x_send != gensym("") && pic->x_send->s_thing)
+                    pd_float(pic->x_send->s_thing, 0.0f);
             }
         }
     }
@@ -135,9 +138,8 @@ public:
     void updateImage(NVGcontext* nvg)
     {
         imageBuffers.clear();
-        
-        if(!img.isValid() && File(imageFile).existsAsFile())
-        {
+
+        if (!img.isValid() && File(imageFile).existsAsFile()) {
             img = ImageFileFormat::loadFrom(imageFile).convertedToFormat(Image::ARGB);
         }
 
@@ -166,7 +168,7 @@ public:
             }
             x += 8192;
         }
-        
+
         img = Image(); // Clear image from CPU memory after upload
 
         imageNeedsReload = false;
@@ -225,7 +227,7 @@ public:
                 pic->x_width = width;
                 pic->x_height = height;
             }
-            
+
             object->updateBounds();
         } else if (value.refersToSameSourceAs(filename)) {
             openFile(filename.toString());
@@ -293,16 +295,16 @@ public:
             return;
 
         auto findFile = [this](String const& name) {
-            if(auto patch = cnv->patch.getPointer()) {
+            if (auto patch = cnv->patch.getPointer()) {
                 if ((name.startsWith("/") || name.startsWith("./") || name.startsWith("../")) && File(name).existsAsFile()) {
                     return File(name);
                 }
-                
+
                 char dir[MAXPDSTRING];
                 char* file;
-                
+
                 int fd = canvas_open(patch.get(), name.toRawUTF8(), "", dir, &file, MAXPDSTRING, 0);
-                if(fd >= 0){
+                if (fd >= 0) {
                     return File(dir).getChildFile(file);
                 }
             }

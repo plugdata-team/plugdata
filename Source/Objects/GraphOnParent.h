@@ -22,7 +22,7 @@ class GraphOnParent final : public ObjectBase {
 
     NVGImage openInGopBackground;
     std::unique_ptr<TextEditor> editor;
-    
+
 public:
     // Graph On Parent
     GraphOnParent(pd::WeakReference obj, Object* object)
@@ -98,7 +98,7 @@ public:
         if (editor) {
             editor->setBounds(getLocalBounds().removeFromTop(18));
         }
-        
+
         textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId), getWidth(), getWidth());
         updateCanvas();
         updateDrawables();
@@ -142,8 +142,7 @@ public:
             repaint();
         }
     }
-    
-    
+
     void hideEditor() override
     {
         if (editor != nullptr) {
@@ -154,17 +153,17 @@ public:
 
             auto oldText = getText();
             auto newText = outgoingEditor->getText();
-            
+
             newText = TextObjectHelper::fixNewlines(newText);
 
             outgoingEditor.reset();
-            
+
             if (oldText != newText) {
                 object->setType(newText);
             }
         }
     }
-    
+
     // Called by object to make sure clicks on empty parts of the graph are passed on
     bool canReceiveMouseEvent(int x, int y) override
     {
@@ -235,7 +234,7 @@ public:
 
     void tabChanged() override
     {
-        auto setIsOpenedInSplitView = [this](bool shouldBeOpen){
+        auto setIsOpenedInSplitView = [this](bool shouldBeOpen) {
             if (isOpenedInSplitView != shouldBeOpen) {
                 isOpenedInSplitView = shouldBeOpen;
                 repaint();
@@ -244,7 +243,7 @@ public:
 
         setIsOpenedInSplitView(false);
         for (auto* editor : cnv->pd->getEditors()) {
-            for (auto *visibleCanvas: editor->getTabComponent().getVisibleCanvases()) {
+            for (auto* visibleCanvas : editor->getTabComponent().getVisibleCanvases()) {
                 if (visibleCanvas->patch == *getPatch()) {
                     setIsOpenedInSplitView(true);
                     break;
@@ -291,7 +290,7 @@ public:
     void render(NVGcontext* nvg) override
     {
         // Strangly, the title goes below the graph content in pd
-        if(!getValue<bool>(hideNameAndArgs)) {
+        if (!getValue<bool>(hideNameAndArgs)) {
             if (editor && editor->isVisible()) {
                 imageRenderer.renderJUCEComponent(nvg, *editor, getImageScale());
             } else {
@@ -329,7 +328,7 @@ public:
             if (openInGopBackground.needsUpdate(width, height)) {
                 auto bgColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId);
 
-                openInGopBackground = NVGImage(nvg, width, height, [width, height, bgColour](Graphics &g) {
+                openInGopBackground = NVGImage(nvg, width, height, [width, height, bgColour](Graphics& g) {
                     AffineTransform rotate;
                     rotate = rotate.rotated(MathConstants<float>::pi / 4.0f);
                     g.fillAll(bgColour);
@@ -340,12 +339,12 @@ public:
                     for (float x = -diagonalLength; x < diagonalLength; x += (stripeWidth * 2)) {
                         g.fillRect(x, -diagonalLength, stripeWidth, diagonalLength * 2);
                     }
-                g.addTransform(rotate.inverted());
+                    g.addTransform(rotate.inverted());
                 });
             }
             auto imagePaint = nvgImagePattern(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), 0.0f, openInGopBackground.getImageId(), 1.0f);
             nvgBeginPath(nvg);
-            nvgRoundedRect(nvg,  b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+            nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
             nvgFillPaint(nvg, imagePaint);
             nvgFill(nvg);
 
@@ -371,14 +370,13 @@ public:
             drawTicksForGraph(nvg, graph.get(), this);
         }
     }
-    
+
     void updateFramebuffers() override
     {
-        if(canvas)
-        {
-            for(auto& object : canvas->objects)
-            {
-                if(object->gui) object->gui->updateFramebuffers();
+        if (canvas) {
+            for (auto& object : canvas->objects) {
+                if (object->gui)
+                    object->gui->updateFramebuffers();
             }
         }
     }
@@ -520,6 +518,6 @@ public:
 
     void getMenuOptions(PopupMenu& menu) override
     {
-        menu.addItem("Open", [_this = SafePointer(this)](){ if(_this) _this->openSubpatch(); });
+        menu.addItem("Open", [_this = SafePointer(this)]() { if(_this) _this->openSubpatch(); });
     }
 };

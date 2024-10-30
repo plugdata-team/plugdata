@@ -354,11 +354,11 @@ Button* PlugDataLook::createDocumentWindowButton(int buttonType)
 {
     if (buttonType == -1)
         return new PlugData_DocumentWindowButton(DocumentWindow::closeButton);
-    
+
 #if JUCE_MAC
     return nullptr;
 #endif
-    
+
     return new PlugData_DocumentWindowButton(buttonType);
 }
 
@@ -745,8 +745,8 @@ void PlugDataLook::drawTooltip(Graphics& g, String const& text, int width, int h
 
     Path shadowPath;
     shadowPath.addRoundedRectangle(shadowBounds.getX(), shadowBounds.getY(), shadowBounds.getWidth(), shadowBounds.getHeight(), cornerSize);
-    StackShadow::renderDropShadow(hash("tooltip"), g, shadowPath, Colours::black.withAlpha(0.44f), 8, {0, 0}, 0);
-    
+    StackShadow::renderDropShadow(hash("tooltip"), g, shadowPath, Colours::black.withAlpha(0.44f), 8, { 0, 0 }, 0);
+
     g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
     g.fillRoundedRectangle(bounds.toFloat(), cornerSize);
 
@@ -856,7 +856,7 @@ void PlugDataLook::drawPropertyPanelSectionHeader(Graphics& g, String const& nam
 Rectangle<int> PlugDataLook::getTooltipBounds(String const& tipText, Point<int> screenPos, Rectangle<int> parentArea)
 {
     auto expandTooltip = ProjectInfo::canUseSemiTransparentWindows();
-    
+
     float const tooltipFontSize = 14.0f;
     int const maxToolTipWidth = 1000;
 
@@ -888,7 +888,8 @@ Rectangle<int> PlugDataLook::getTooltipBounds(String const& tipText, Point<int> 
 
     return Rectangle<int>(screenPos.x > parentArea.getCentreX() ? screenPos.x - (w + 12) : screenPos.x + 24,
         screenPos.y > parentArea.getCentreY() ? screenPos.y - (h + 6) : screenPos.y + 6,
-                          w, h).expanded(expandTooltip ? 6 : 0)
+        w, h)
+        .expanded(expandTooltip ? 6 : 0)
         .constrainedWithin(parentArea);
 }
 
@@ -1005,10 +1006,10 @@ void PlugDataLook::setColours(std::map<PlugDataColour, Colour> colours)
     setColour(TreeView::backgroundColourId,
         Colours::transparentBlack);
 }
-void PlugDataLook::drawTableHeaderColumn (Graphics& g, TableHeaderComponent&,
-                                    const String& columnName, int columnId,
-                                    int width, int height,
-                            bool isMouseOver, bool isMouseDown, int columnFlags)
+void PlugDataLook::drawTableHeaderColumn(Graphics& g, TableHeaderComponent&,
+    String const& columnName, int columnId,
+    int width, int height,
+    bool isMouseOver, bool isMouseDown, int columnFlags)
 {
     Rectangle<int> area(width, height);
     area.reduce(4, 0);
@@ -1018,12 +1019,11 @@ void PlugDataLook::drawTableHeaderColumn (Graphics& g, TableHeaderComponent&,
     g.drawFittedText(columnName, area, Justification::centred, 1);
 }
 
-
-void PlugDataLook::drawTableHeaderBackground (Graphics& g, TableHeaderComponent& header)
+void PlugDataLook::drawTableHeaderBackground(Graphics& g, TableHeaderComponent& header)
 {
-    g.setColour (findColour(PlugDataColour::outlineColourId));
-    for (int i = header.getNumColumns (true); --i >= 0;)
-        g.fillRect(header.getColumnPosition (i).removeFromRight (1).reduced(0, 2));
+    g.setColour(findColour(PlugDataColour::outlineColourId));
+    for (int i = header.getNumColumns(true); --i >= 0;)
+        g.fillRect(header.getColumnPosition(i).removeFromRight(1).reduced(0, 2));
 }
 
 void PlugDataLook::drawAlertBox(Graphics& g, AlertWindow& alert,

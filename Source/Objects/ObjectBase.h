@@ -58,7 +58,7 @@ public:
             nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
         }
     }
-        
+
     void colourChanged() override
     {
         lastColour = findColour(Label::textColourId);
@@ -99,14 +99,14 @@ class ObjectBase : public Component
         PropertyListener(ObjectBase* parent);
 
         void setNoCallback(bool skipCallback);
-        
+
         void valueChanged(Value& v) override;
 
         Value lastValue;
         uint32 lastChange;
         ObjectBase* parent;
         bool noCallback;
-        std::function<void()> onChange = []() {};
+        std::function<void()> onChange = []() { };
     };
 
 public:
@@ -155,9 +155,9 @@ public:
 
     // Flag to make object visible or hidden inside a GraphOnParent
     virtual bool hideInGraph();
-    
+
     // Override function if you need to update framebuffers outside of the render loop (but with the correct active context)
-    virtual void updateFramebuffers() {};
+    virtual void updateFramebuffers() { };
 
     // Most objects ignore mouseclicks when locked
     // Objects can override this to do custom locking behaviour
@@ -180,7 +180,7 @@ public:
     virtual bool canReceiveMouseEvent(int x, int y);
 
     // Called whenever the object receives a pd message
-    virtual void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) {};
+    virtual void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) { };
 
     // Close any tabs with opened subpatchers
     void closeOpenedSubpatchers();
@@ -232,9 +232,9 @@ protected:
     void stopEdition();
 
     String getBinbufSymbol(int argIndex);
-        
-    virtual void propertyChanged(Value& v) {};
-        
+
+    virtual void propertyChanged(Value& v) { };
+
     // Send a float value to Pd
     void sendFloatValue(float value);
 
@@ -289,7 +289,7 @@ protected:
 
     NVGImage imageRenderer;
 
-    std::function<void()> onConstrainerCreate = []() {};
+    std::function<void()> onConstrainerCreate = []() { };
 
     virtual std::unique_ptr<ComponentBoundsConstrainer> createConstrainer();
 

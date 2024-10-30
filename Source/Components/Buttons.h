@@ -28,28 +28,28 @@ public:
 #if JUCE_MAC
         bounds = bounds.withTrimmedBottom(2);
 #endif
-        
+
         g.setFont(Fonts::getIconFont().withHeight(getHeight() / 2.7));
         g.setColour(textColour);
         g.drawText(getButtonText(), bounds, Justification::centred);
     }
-    
+
     // On macOS, we need to make sure that dragging any of these buttons doesn't drag the whole titlebar
 #if JUCE_MAC
     void mouseEnter(const MouseEvent& e) override
     {
-        if(auto* topLevel = getTopLevelComponent()) {
-            if(auto* peer = topLevel->getPeer()) {
+        if (auto* topLevel = getTopLevelComponent()) {
+            if (auto* peer = topLevel->getPeer()) {
                 OSUtils::setWindowMovable(peer->getNativeHandle(), false);
             }
         }
         TextButton::mouseEnter(e);
     }
-    
-    void mouseExit(const MouseEvent& e) override
+
+    void mouseExit(MouseEvent const& e) override
     {
-        if(auto* topLevel = getTopLevelComponent()) {
-            if(auto* peer = topLevel->getPeer()) {
+        if (auto* topLevel = getTopLevelComponent()) {
+            if (auto* peer = topLevel->getPeer()) {
                 OSUtils::setWindowMovable(peer->getNativeHandle(), true);
             }
         }
@@ -93,23 +93,23 @@ public:
         g.setColour(textColour);
         g.drawText(getButtonText(), getLocalBounds(), Justification::centred);
     }
-    
+
     // On macOS, we need to make sure that dragging any of these buttons doesn't drag the whole titlebar
 #if JUCE_MAC
     void mouseEnter(const MouseEvent& e) override
     {
-        if(auto* topLevel = getTopLevelComponent()) {
-            if(auto* peer = topLevel->getPeer()) {
+        if (auto* topLevel = getTopLevelComponent()) {
+            if (auto* peer = topLevel->getPeer()) {
                 OSUtils::setWindowMovable(peer->getNativeHandle(), false);
             }
         }
         TextButton::mouseEnter(e);
     }
-    
-    void mouseExit(const MouseEvent& e) override
+
+    void mouseExit(MouseEvent const& e) override
     {
-        if(auto* topLevel = getTopLevelComponent()) {
-            if(auto* peer = topLevel->getPeer()) {
+        if (auto* topLevel = getTopLevelComponent()) {
+            if (auto* peer = topLevel->getPeer()) {
                 OSUtils::setWindowMovable(peer->getNativeHandle(), true);
             }
         }
@@ -154,7 +154,7 @@ class WidePanelButton : public TextButton {
 public:
     WidePanelButton(String icon, int iconSize = 13)
         : icon(icon)
-        , iconSize(iconSize) {};
+        , iconSize(iconSize) { };
 
     void mouseEnter(MouseEvent const& e) override
     {

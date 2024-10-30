@@ -63,7 +63,7 @@ public:
         AlignWithSection,
         AlignWithPropertyName,
     };
-    
+
 private:
     struct SectionComponent : public Component {
 
@@ -89,8 +89,8 @@ private:
                 propertyComponents.getFirst()->setRoundedCorners(true, false);
                 propertyComponents.getLast()->setRoundedCorners(false, true);
             }
-            
-            if(parent.drawShadowAndOutline) {
+
+            if (parent.drawShadowAndOutline) {
                 dropShadow = std::make_unique<melatonin::DropShadow>();
                 dropShadow->setColor(Colour(0, 0, 0).withAlpha(0.4f));
                 dropShadow->setRadius(7);
@@ -830,7 +830,7 @@ public:
 
                 label->onEditorHide = [this]() {
                     // synchronise the value to the canvas when updated
-                    if (PluginEditor* pluginEditor = findParentComponentOfClass<PluginEditor>()){
+                    if (PluginEditor* pluginEditor = findParentComponentOfClass<PluginEditor>()) {
                         if (auto cnv = pluginEditor->getCurrentCanvas())
                             cnv->synchronise();
                     }
@@ -983,7 +983,7 @@ public:
             onClick();
         }
 
-        std::function<void()> onClick = []() {};
+        std::function<void()> onClick = []() { };
         String icon;
     };
 

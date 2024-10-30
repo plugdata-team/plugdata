@@ -3,10 +3,10 @@ class ValueTreeNodeComponent;
 struct ValueTreeOwnerView : public Component {
     SafePointer<ValueTreeNodeComponent> selectedNode;
 
-    std::function<void()> updateView = []() {};
-    std::function<void(ValueTree&)> onClick = [](ValueTree&) {};
-    std::function<void(ValueTree&)> onSelect = [](ValueTree&) {};
-    std::function<void(ValueTree&)> onDragStart = [](ValueTree&) {};
+    std::function<void()> updateView = []() { };
+    std::function<void(ValueTree&)> onClick = [](ValueTree&) { };
+    std::function<void(ValueTree&)> onSelect = [](ValueTree&) { };
+    std::function<void(ValueTree&)> onDragStart = [](ValueTree&) { };
 };
 
 #include "Fonts.h"
@@ -642,9 +642,9 @@ public:
         resized();
     }
 
-    std::function<void(ValueTree&)> onClick = [](ValueTree&) {};
-    std::function<void(ValueTree&)> onSelect = [](ValueTree&) {};
-    std::function<void(ValueTree&)> onDragStart = [](ValueTree&) {};
+    std::function<void(ValueTree&)> onClick = [](ValueTree&) { };
+    std::function<void(ValueTree&)> onSelect = [](ValueTree&) { };
+    std::function<void(ValueTree&)> onDragStart = [](ValueTree&) { };
 
 private:
     static void linkNodes(OwnedArray<ValueTreeNodeComponent>& nodes, ValueTreeNodeComponent*& previous)

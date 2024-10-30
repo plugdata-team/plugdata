@@ -10,7 +10,7 @@
 
 class OversampleSettings : public Component {
 public:
-    std::function<void(int)> onChange = [](int) {};
+    std::function<void(int)> onChange = [](int) { };
 
     explicit OversampleSettings(int currentSelection)
     {
@@ -64,7 +64,7 @@ private:
 
 class LimiterSettings : public Component {
 public:
-    std::function<void(int)> onChange = [](int) {};
+    std::function<void(int)> onChange = [](int) { };
 
     explicit LimiterSettings(int currentSelection)
     {

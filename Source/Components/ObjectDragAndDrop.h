@@ -129,7 +129,7 @@ public:
         setOpaque(false);
     }
 
-    bool keyPressed(const KeyPress& key) override
+    bool keyPressed(KeyPress const& key) override
     {
         if (key == KeyPress::escapeKey) {
             setVisible(false);

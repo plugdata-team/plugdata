@@ -22,7 +22,7 @@ public:
     {
     }
 
-    std::function<void()> onClick = []() {};
+    std::function<void()> onClick = []() { };
 
     void paint(Graphics& g) override
     {
@@ -71,7 +71,7 @@ class SearchPathPanel : public Component
 public:
     std::unique_ptr<Dialog> confirmationDialog;
 
-    std::function<void()> onChange = []() {};
+    std::function<void()> onChange = []() { };
 
     /** Creates an empty FileSearchPathListObject. */
     SearchPathPanel()
@@ -125,7 +125,7 @@ public:
 
                     paths.clear();
 
-                    for (const auto& dir : pd::Library::defaultPaths) {
+                    for (auto const& dir : pd::Library::defaultPaths) {
                         paths.add(dir.getFullPathName());
                     }
 
@@ -310,7 +310,7 @@ private:
     {
         bool const anythingSelected = listBox.getNumSelectedRows() > 0;
         bool const readOnlyPath = std::find(pd::Library::defaultPaths.begin(), pd::Library::defaultPaths.end(), paths[listBox.getSelectedRow()]) != pd::Library::defaultPaths.end();
-        
+
         removeButton.setVisible(anythingSelected);
         changeButton.setVisible(anythingSelected);
         upButton.setVisible(anythingSelected);
@@ -447,7 +447,7 @@ class LibraryLoadPanel : public Component
 
 public:
     std::unique_ptr<Dialog> confirmationDialog;
-    std::function<void()> onChange = []() {};
+    std::function<void()> onChange = []() { };
 
     LibraryLoadPanel()
     {

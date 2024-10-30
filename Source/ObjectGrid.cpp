@@ -336,15 +336,12 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
 Line<int> ObjectGrid::getObjectIndicatorLine(Side side, Rectangle<int> b1, Rectangle<int> b2)
 {
     // When snapping from both sides, we need to shorten the lines to prevent artifacts (because the line will follow mouse position on the opposite axis)
-    if(side == Top || side == Bottom || side == VerticalCentre)
-    {
+    if (side == Top || side == Bottom || side == VerticalCentre) {
         b2 = b2.reduced(2, 0);
-    }
-    else {
+    } else {
         b2 = b2.reduced(0, 2);
     }
 
-    
     switch (side) {
     case Left:
         if (b1.getY() > b2.getY()) {

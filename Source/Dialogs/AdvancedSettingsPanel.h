@@ -41,8 +41,8 @@ public:
 
             otherProperties.add(new PropertiesPanel::BoolComponent("Use system file dialogs", nativeDialogValue, StringArray { "No", "Yes" }));
         }
-        
-        if(ProjectInfo::isStandalone) {
+
+        if (ProjectInfo::isStandalone) {
             openPatchesInWindow.referTo(settingsFile->getPropertyAsValue("open_patches_in_window"));
             openPatchesInWindow.addListener(this);
             interfaceProperties.add(new PropertiesPanel::BoolComponent("Open patches in new window", openPatchesInWindow, { "No", "Yes" }));
@@ -51,8 +51,6 @@ public:
         showPalettesValue.referTo(settingsFile->getPropertyAsValue("show_palettes"));
         showPalettesValue.addListener(this);
         interfaceProperties.add(new PropertiesPanel::BoolComponent("Show palette bar", showPalettesValue, { "No", "Yes" }));
-        
-        
 
         showAllAudioDeviceValues.referTo(settingsFile->getPropertyAsValue("show_all_audio_device_rates"));
         showAllAudioDeviceValues.addListener(this);

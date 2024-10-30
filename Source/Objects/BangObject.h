@@ -4,7 +4,8 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class BangObject final : public ObjectBase, public Timer {
+class BangObject final : public ObjectBase
+    , public Timer {
     uint32_t lastBang = 0;
 
     Value bangInterrupt = SynchronousValue(100.0f);
@@ -28,7 +29,7 @@ public:
             constrainer->setFixedAspectRatio(1);
         };
 
-        iemHelper.iemColourChangedCallback = [this](){
+        iemHelper.iemColourChangedCallback = [this]() {
             bgCol = convertColour(getValue<Colour>(iemHelper.secondaryColour));
             fgCol = convertColour(getValue<Colour>(iemHelper.primaryColour));
         };
@@ -163,7 +164,7 @@ public:
         lastBang = currentTime;
         startTimer(holdTime); // Delay it slightly more, to compensate for audio->gui delay
     }
-    
+
     void timerCallback() override
     {
         if (bangState) {

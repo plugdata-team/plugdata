@@ -56,19 +56,18 @@ struct TextObjectHelper {
 
                 auto maxIolets = std::max({ 1, object->numInputs, object->numOutputs });
                 auto minimumWidth = std::max(TextObjectHelper::minWidth, (maxIolets * 18) / fontWidth);
-                
+
                 // Set new width
                 TextObjectHelper::setWidthInChars(object->getPointer(), std::max(minimumWidth, newBounds.getWidth() / fontWidth));
 
                 bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
-                
+
                 // If we're resizing the left edge, move the object left
                 if (isStretchingLeft) {
                     auto x = oldBounds.getRight() - (bounds.getWidth() - Object::doubleMargin);
                     auto y = oldBounds.getY(); // don't allow y resize
-                    
-                    if(auto ptr = object->gui->ptr.get<t_gobj>())
-                    {
+
+                    if (auto ptr = object->gui->ptr.get<t_gobj>()) {
                         pd::Interface::moveObject(static_cast<t_glist*>(patch), ptr.get(), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
                     }
 
@@ -185,14 +184,12 @@ public:
         auto finalOutlineColour = object->isSelected() ? selectedOutlineColour : outlineColour;
         auto finalBackgroundColour = convertColour(backgroundColour);
         auto outlineCol = object->isSelected() ? selectedOutlineColour : finalOutlineColour;
-        
+
         // render invalid text objects with red outline & semi-transparent background
         if (!isValid) {
             finalOutlineColour = convertColour(object->isSelected() ? Colours::red.brighter(1.5f) : Colours::red);
             finalBackgroundColour = nvgRGBA(outlineColour.r, outlineColour.g, outlineColour.b, 0.2f * 255);
-        }
-        else if((canBeClicked || getPatch()) && isMouseOver() && getValue<bool>(cnv->locked))
-        {
+        } else if ((canBeClicked || getPatch()) && isMouseOver() && getValue<bool>(cnv->locked)) {
             finalBackgroundColour = convertColour(backgroundColour.contrasting(backgroundColour.getBrightness() > 0.5f ? 0.03f : 0.05f));
         }
 
@@ -211,11 +208,8 @@ public:
         //   │┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼│
         //   └──────────────────┘
 
-        bool hasIoletArea = ioletAreaColour.r != backgroundColour.getRed()  ||
-                            ioletAreaColour.g != backgroundColour.getGreen()||
-                            ioletAreaColour.b != backgroundColour.getBlue() ||
-                            ioletAreaColour.a != backgroundColour.getAlpha();
-        
+        bool hasIoletArea = ioletAreaColour.r != backgroundColour.getRed() || ioletAreaColour.g != backgroundColour.getGreen() || ioletAreaColour.b != backgroundColour.getBlue() || ioletAreaColour.a != backgroundColour.getAlpha();
+
         if (isValid && hasIoletArea) {
             NVGScopedState scopedState(nvg);
             float const padding = 1.0f;
@@ -228,7 +222,7 @@ public:
             nvgRect(nvg, 0, getHeight() - 3.5f, getWidth(), 3.5f);
             nvgFill(nvg);
 
-            nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0,0,0,0), outlineCol, Corners::objectCornerRadius);
+            nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), outlineCol, Corners::objectCornerRadius);
         }
 
         if (editor && editor->isVisible()) {
@@ -277,10 +271,10 @@ public:
     virtual Rectangle<int> getTextSize()
     {
         auto objText = editor ? editor->getText() : objectText;
-        
+
         if (editor && cnv->suggestor) {
             cnv->suggestor->updateSuggestions(objText);
-            if(cnv->suggestor->getText().isNotEmpty()) {
+            if (cnv->suggestor->getText().isNotEmpty()) {
                 objText = cnv->suggestor->getText();
             }
         }
@@ -381,7 +375,7 @@ public:
             cnv->hideSuggestions();
 
             auto newText = outgoingEditor->getText();
-            
+
             newText = TextObjectHelper::fixNewlines(newText);
 
             bool changed;

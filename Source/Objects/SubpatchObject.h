@@ -4,7 +4,8 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class SubpatchObject final : public TextBase, public SettingsFileListener {
+class SubpatchObject final : public TextBase
+    , public SettingsFileListener {
 
     pd::Patch::Ptr subpatch;
     Value isGraphChild = SynchronousValue(var(false));
@@ -24,7 +25,7 @@ public:
                 _this->propertyChanged(_this->isGraphChild);
             }
         });
-        
+
         setRepaintsOnMouseActivity(true);
     }
 
@@ -32,17 +33,16 @@ public:
     {
         closeOpenedSubpatchers();
     }
-    
+
     void propertyChanged(String const& name, var const& value) override
     {
-        if(name == "hvcc_mode")
-        {
+        if (name == "hvcc_mode") {
             if (value) {
                 checkHvccCompatibility(getText(), subpatch.get());
             }
         }
     }
-    
+
     void render(NVGcontext* nvg) override
     {
         TextBase::render(nvg);
@@ -102,7 +102,6 @@ public:
                     _this->object->setType(_this->getText(), ptr);
                 });
             }
-
         }
     }
 
@@ -124,7 +123,7 @@ public:
 
     void getMenuOptions(PopupMenu& menu) override
     {
-        menu.addItem("Open", [_this = SafePointer(this)](){ if(_this) _this->openSubpatch(); });
+        menu.addItem("Open", [_this = SafePointer(this)]() { if(_this) _this->openSubpatch(); });
     }
 
     bool showParametersWhenSelected() override

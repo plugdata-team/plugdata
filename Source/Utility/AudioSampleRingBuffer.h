@@ -24,7 +24,7 @@ public:
     void reset(double sourceSampleRate, int sourceBufferSize, int numChannels)
     {
         ScopedLock lock(audioBufferMutex);
-        
+
         sampleRate = sourceSampleRate;
         mainBufferSize = sourceBufferSize;
         peakWindowSize = sampleRate / 60;
@@ -38,7 +38,7 @@ public:
     void write(AudioBuffer<float>& samples)
     {
         ScopedLock lock(audioBufferMutex);
-        
+
         for (int ch = 0; ch < peakBuffer.getNumChannels(); ch++) {
             for (int i = 0; i < samples.getNumSamples(); i++) {
                 buffer.setSample(ch, (writePosition + i) % buffer.getNumSamples(), samples.getSample(ch, i));
@@ -54,7 +54,7 @@ public:
     SmallArray<float> getPeak()
     {
         ScopedLock lock(audioBufferMutex);
-        
+
         if (sampleRate == 0)
             return { 0.0f, 0.0f };
         auto currentTime = Time::getMillisecondCounter();
@@ -100,7 +100,7 @@ public:
         for (int ch = 0; ch < peakBuffer.getNumChannels(); ch++) {
             peak.add(pow(peakBuffer.getMagnitude(ch, 0, peakWindowSize), 0.5f));
         }
-        
+
         return peak;
     }
 

@@ -30,13 +30,12 @@ public:
             for (int i = 0; i < recentlyOpenedTree.getNumChildren(); i++) {
                 auto path = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
                 recentlyOpened->addItem(path.getFileName(), [path, editor]() mutable {
-                    if(path.existsAsFile()) {
+                    if (path.existsAsFile()) {
                         editor->pd->autosave->checkForMoreRecentAutosave(path, editor, [editor, path]() {
                             editor->getTabComponent().openPatch(URL(path));
                             SettingsFile::getInstance()->addToRecentlyOpened(path);
                         });
-                    }
-                    else {
+                    } else {
                         editor->pd->logError("Patch not found");
                     }
                 });

@@ -203,28 +203,25 @@ public:
         float scale = 1.0f / range;
 
         switch (mode) {
-            case 1: {
-                for (int n = 0; n < bufsize; n++) {
-                    y_buffer[n] = 1.0f - (x_buffer[n] - min) * scale;
-                    x_buffer[n] = dx * n;
-                }
+        case 1: {
+            for (int n = 0; n < bufsize; n++) {
+                y_buffer[n] = 1.0f - (x_buffer[n] - min) * scale;
+                x_buffer[n] = dx * n;
             }
-            break;
-            case 2: {
-                for (int n = 0; n < bufsize; n++) {
-                    x_buffer[n] = (y_buffer[n] - min) * scale;
-                    y_buffer[n] = 1.0f - dx * n;
-                }
+        } break;
+        case 2: {
+            for (int n = 0; n < bufsize; n++) {
+                x_buffer[n] = (y_buffer[n] - min) * scale;
+                y_buffer[n] = 1.0f - dx * n;
             }
-            break;
-            case 3: {
-                for (int n = 0; n < bufsize; n++) {
-                    x_buffer[n] = (x_buffer[n] - min) * scale;
-                    y_buffer[n] = 1.0f - (y_buffer[n] - min) * scale;
-                }
+        } break;
+        case 3: {
+            for (int n = 0; n < bufsize; n++) {
+                x_buffer[n] = (x_buffer[n] - min) * scale;
+                y_buffer[n] = 1.0f - (y_buffer[n] - min) * scale;
             }
-            break;
-            default:
+        } break;
+        default:
             break;
         }
 

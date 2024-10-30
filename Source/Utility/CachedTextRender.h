@@ -52,8 +52,7 @@ public:
         image = NVGImage(nvg, width, height, [this, bounds, scale](Graphics& g) {
             g.addTransform(AffineTransform::scale(scale, scale));
             g.reduceClipRegion(bounds.withTrimmedRight(4)); // If it touches the edges of the image, it'll look bad
-            layout.draw(g, bounds.toFloat());
-        }, NVGImage::AlphaImage);
+            layout.draw(g, bounds.toFloat()); }, NVGImage::AlphaImage);
     }
 
     Rectangle<int> getTextBounds()

@@ -27,7 +27,8 @@ public:
     /** Destructor. */
     ~KeyMappingComponent() override
     {
-        if(mappings) mappings->removeChangeListener(this);
+        if (mappings)
+            mappings->removeChangeListener(this);
     }
 
     void updateMappings()
@@ -205,8 +206,8 @@ private:
         public:
             explicit KeyEntryWindow(KeyMappingComponent& kec)
                 : AlertWindow("New key-mapping",
-                    "Please press a key combination now...",
-                    MessageBoxIconType::NoIcon)
+                      "Please press a key combination now...",
+                      MessageBoxIconType::NoIcon)
                 , owner(kec)
             {
                 addButton("OK", 1);

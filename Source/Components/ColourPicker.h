@@ -16,7 +16,7 @@ class Eyedropper : public Timer
         Colour colour;
 
     public:
-        std::function<void()> onClick = []() {};
+        std::function<void()> onClick = []() { };
 
         EyedropperDisplayComponnent()
         {
@@ -102,7 +102,7 @@ public:
     void hideEyedropper()
     {
         callback(currentColour);
-        callback = [](Colour) {};
+        callback = [](Colour) { };
         colourDisplayer.hide();
         stopTimer();
         topLevel->removeMouseListener(this);
@@ -663,7 +663,7 @@ private:
             auto area = getLocalBounds().reduced(edge);
 
             marker.setBounds(Rectangle<int>(markerSize, markerSize)
-                                 .withCentre(area.getRelativePoint(0.5f, 1.0f - v)));
+                    .withCentre(area.getRelativePoint(0.5f, 1.0f - v)));
         }
 
         void mouseDown(MouseEvent const& e) override
@@ -736,7 +736,7 @@ private:
 
     bool onlyCallBackOnClose;
 
-    std::function<void(Colour)> callback = [](Colour) {};
+    std::function<void(Colour)> callback = [](Colour) { };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ColourPicker)
 };

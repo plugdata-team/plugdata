@@ -71,7 +71,7 @@ public:
             triggerAsyncUpdate();
         }
 
-        virtual void filesystemChanged() {};
+        virtual void filesystemChanged() { };
     };
 
     /** Registers a listener to be told when things happen to the text.

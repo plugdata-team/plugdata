@@ -52,9 +52,9 @@ struct ObjectDragState {
     Component::SafePointer<Object> componentBeingDragged;
     Component::SafePointer<Object> objectSnappingInbetween;
     Component::SafePointer<Connection> connectionToSnapInbetween;
-    
-    Point<int> duplicateOffset = {0, 0};
-    Point<int> lastDuplicateOffset = {0, 0};
+
+    Point<int> duplicateOffset = { 0, 0 };
+    Point<int> lastDuplicateOffset = { 0, 0 };
 };
 
 class Canvas : public Component
@@ -104,8 +104,8 @@ public:
     bool shouldShowConnectionDirection();
     bool shouldShowConnectionActivity();
 
-    void save(std::function<void()> const& nestedCallback = []() {});
-    void saveAs(std::function<void()> const& nestedCallback = []() {});
+    void save(std::function<void()> const& nestedCallback = []() { });
+    void saveAs(std::function<void()> const& nestedCallback = []() { });
 
     void synchroniseAllCanvases();
     void synchroniseSplitCanvas();
@@ -134,7 +134,7 @@ public:
     void cycleSelection();
     void connectSelection();
     void tidySelection();
-        
+
     void cancelConnectionCreation();
 
     void alignObjects(Align alignment);
@@ -327,7 +327,7 @@ private:
 
     // Properties that can be shown in the inspector by right-clicking on canvas
     ObjectParameters parameters;
-        
+
     std::unique_ptr<BorderResizer> canvasBorderResizer;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Canvas)

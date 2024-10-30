@@ -44,7 +44,6 @@
 #    define snprintf _snprintf
 #endif
 
-
 class PlugDataApp : public JUCEApplication {
 
     Image logo = ImageFileFormat::loadFrom(BinaryData::plugdata_logo_png, BinaryData::plugdata_logo_pngSize);
@@ -68,7 +67,6 @@ public:
         appProperties.setStorageParameters(options);
     }
 
-    
     String const getApplicationName() override
     {
         return "plugdata";
@@ -121,25 +119,25 @@ public:
 #endif
 
         auto getWindowScreenBounds = [this]() -> juce::Rectangle<int> {
-            const auto width = mainWindow->getWidth();
-            const auto height = mainWindow->getHeight();
+            auto const width = mainWindow->getWidth();
+            auto const height = mainWindow->getHeight();
 
-            const auto& displays = Desktop::getInstance().getDisplays();
+            auto const& displays = Desktop::getInstance().getDisplays();
 
             if (auto* props = pluginHolder->settings.get()) {
                 constexpr int defaultValue = -100;
 
-                const auto x = props->getIntValue("windowX", defaultValue);
-                const auto y = props->getIntValue("windowY", defaultValue);
+                auto const x = props->getIntValue("windowX", defaultValue);
+                auto const y = props->getIntValue("windowY", defaultValue);
 
                 if (x != defaultValue && y != defaultValue) {
-                    const auto screenLimits = displays.getDisplayForRect({ x, y, width, height })->userArea;
+                    auto const screenLimits = displays.getDisplayForRect({ x, y, width, height })->userArea;
 
                     return { jlimit(screenLimits.getX(), jmax(screenLimits.getX(), screenLimits.getRight() - width), x), jlimit(screenLimits.getY(), jmax(screenLimits.getY(), screenLimits.getBottom() - height), y), width, height };
                 }
             }
 
-            const auto displayArea = displays.getPrimaryDisplay()->userArea;
+            auto const displayArea = displays.getPrimaryDisplay()->userArea;
 
             return { displayArea.getCentreX() - width / 2, displayArea.getCentreY() - height / 2, width, height };
         };
@@ -164,7 +162,7 @@ public:
         if (arguments.isEmpty() && hasReloadStateProperty && static_cast<bool>(settingsTree.getProperty("reload_last_state"))) {
             // TODO: probably remove this option, because it's kind of risky, easy to get in a crash loop this way
             // For now we'll just disable it to see if anyone misses it
-            //pluginHolder->reloadPluginState();
+            // pluginHolder->reloadPluginState();
         }
 
         auto args = StringArray::fromTokens(arguments, true);

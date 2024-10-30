@@ -56,7 +56,7 @@ public:
         objectParameters.addParamString("Label", cLabel, &labelText, "");
         objectParameters.addParamCombo("Label Position", cLabel, &labelPosition, { "left", "right", "top", "bottom" });
     }
-    
+
     void update()
     {
         labelText = getLabelText();
@@ -122,7 +122,7 @@ public:
                 return;
 
             pd::Interface::moveObject(patchPtr, atom.cast<t_gobj>(), b.getX(), b.getY());
-            
+
             auto fontWidth = sys_fontwidth(getFontHeight());
             if (atom->a_text.te_width != 0) {
                 atom->a_text.te_width = (b.getWidth() - 3) / fontWidth;
@@ -172,26 +172,25 @@ public:
 
                 // Calculate the width in text characters for both
                 auto newCharWidth = (newBounds.getWidth() - 3) / fontWidth;
-                
+
                 // Set new width
                 if (auto atom = helper->ptr.get<t_fake_gatom>()) {
                     atom->a_text.te_width = newCharWidth;
                 }
-                
+
                 bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
-                
+
                 // If we're resizing the left edge, move the object left
                 if (isStretchingLeft) {
                     auto x = oldBounds.getRight() - (bounds.getWidth() - Object::doubleMargin);
                     auto y = oldBounds.getY(); // don't allow y resize
-                    
+
                     if (auto atom = helper->ptr.get<t_gobj>()) {
                         pd::Interface::moveObject(static_cast<t_glist*>(patch), atom.get(), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
                     }
                     bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
                 }
-                
-                
+
                 auto newHeight = newBounds.getHeight();
                 auto heightIdx = std::clamp<int>(std::lower_bound(atomSizes, atomSizes + 7, newHeight) - atomSizes, 2, 7) - 1;
 
@@ -283,8 +282,7 @@ public:
             ObjectLabel* label;
             if (labels.isEmpty()) {
                 label = labels.add(new ObjectLabel());
-            }
-            else {
+            } else {
                 label = labels[0];
             }
 

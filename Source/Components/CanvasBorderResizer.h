@@ -4,35 +4,38 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class BorderResizer : public Component, public NVGComponent
-{
+class BorderResizer : public Component
+    , public NVGComponent {
     ComponentDragger dragger;
     Canvas* cnv;
+
 public:
-    std::function<void()> onDrag = [](){};
-    
-    BorderResizer(Canvas* parentCanvas) : NVGComponent(this), cnv(parentCanvas)
+    std::function<void()> onDrag = []() { };
+
+    BorderResizer(Canvas* parentCanvas)
+        : NVGComponent(this)
+        , cnv(parentCanvas)
     {
         setSize(8, 8);
         setRepaintsOnMouseActivity(true);
     }
-    
+
     void mouseDown(MouseEvent const& e) override
     {
-        if(cnv->showBorder) {
+        if (cnv->showBorder) {
             dragger.startDraggingComponent(this, e);
         }
     }
-    
-    void mouseDrag(const MouseEvent& e) override
+
+    void mouseDrag(MouseEvent const& e) override
     {
-        if(cnv->showBorder) {
+        if (cnv->showBorder) {
             auto constrainedPoint = getLocalPoint(cnv, Rectangle<int>(cnv->canvasOrigin.x + 11, cnv->canvasOrigin.y + 11, cnv->canvasOrigin.x, cnv->canvasOrigin.y).getConstrainedPoint(e.getEventRelativeTo(cnv).getPosition()));
             dragger.dragComponent(this, e.withNewPosition(constrainedPoint), nullptr);
             onDrag();
         }
     }
-    
+
     void render(NVGcontext* nvg) override
     {
         NVGScopedState state(nvg);

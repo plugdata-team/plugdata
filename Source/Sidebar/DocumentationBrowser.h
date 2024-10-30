@@ -16,7 +16,7 @@
 #include "Object.h"
 
 class DocumentBrowserSettings : public Component {
-    
+
 public:
     struct DocumentBrowserSettingsButton : public TextButton {
         String const icon;
@@ -83,9 +83,9 @@ class DocumentationBrowserUpdateThread : public Thread
     , private FileSystemWatcher::Listener
     , private SettingsFileListener
     , public DeletedAtShutdown {
-        
+
     static inline DocumentationBrowserUpdateThread* instance = nullptr;
-        
+
 public:
     DocumentationBrowserUpdateThread()
         : Thread("Documentation Browser Thread")
@@ -99,7 +99,7 @@ public:
 
     ~DocumentationBrowserUpdateThread()
     {
-        
+
         instance = nullptr;
         stopThread(-1);
     }
@@ -115,10 +115,11 @@ public:
         ScopedLock treeLock(fileTreeLock);
         return fileTree;
     }
-        
+
     static DocumentationBrowserUpdateThread* getInstance()
     {
-        if(!instance) instance = new DocumentationBrowserUpdateThread();
+        if (!instance)
+            instance = new DocumentationBrowserUpdateThread();
         return instance;
     }
 
@@ -133,7 +134,7 @@ private:
         static File versionDataDir = ProjectInfo::appDataDir.getChildFile("Versions");
         static File toolchainDir = ProjectInfo::appDataDir.getChildFile("Toolchain");
         static File libraryDir = ProjectInfo::appDataDir.getChildFile("Library");
-        
+
         if (threadShouldExit() || directory == versionDataDir || directory == toolchainDir || directory == libraryDir) {
             return {};
         }
@@ -164,7 +165,6 @@ private:
             if (file.getFileName().startsWith("."))
                 continue;
 
-            
             ValueTree childNode(fileIdentifier);
             childNode.setProperty(nameIdentifier, file.getFileName(), nullptr);
             childNode.setProperty(pathIdentifier, file.getFullPathName(), nullptr);
@@ -203,33 +203,29 @@ private:
         }
     }
 
-        void run() override
-        {
-            try
-            {
-                int const maxRetries = 50;
-                int retries = 0;
+    void run() override
+    {
+        try {
+            int const maxRetries = 50;
+            int retries = 0;
 
-                while (retries < maxRetries) {
-                    if (threadShouldExit())
-                        break;
-                    if (fileTreeLock.tryEnter()) {
-                        fileTree = generateDirectoryValueTree(File(SettingsFile::getInstance()->getProperty<String>("browser_path")));
-                        fileTreeLock.exit();
-                        break;
-                    }
-                    retries++;
-                    Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 100);
+            while (retries < maxRetries) {
+                if (threadShouldExit())
+                    break;
+                if (fileTreeLock.tryEnter()) {
+                    fileTree = generateDirectoryValueTree(File(SettingsFile::getInstance()->getProperty<String>("browser_path")));
+                    fileTreeLock.exit();
+                    break;
                 }
-                
+                retries++;
+                Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 100);
+            }
 
-                sendChangeMessage();
-            }
-            catch(...)
-            {
-                std::cerr << "Failed to update documentation browser" << std::endl;
-            }
+            sendChangeMessage();
+        } catch (...) {
+            std::cerr << "Failed to update documentation browser" << std::endl;
         }
+    }
 
     void filesystemChanged() override
     {
@@ -255,7 +251,7 @@ public:
 #if JUCE_IOS // Needed to AUv3
         updater->update();
 #endif
-        
+
         searchInput.setBackgroundColour(PlugDataColour::sidebarActiveBackgroundColourId);
         searchInput.addKeyListener(this);
         searchInput.onTextChange = [this]() {
@@ -276,8 +272,7 @@ public:
                 SettingsFile::getInstance()->addToRecentlyOpened(file);
             } else if (file.isDirectory()) {
                 file.revealToUser();
-            }
-            else if(file.existsAsFile()) {
+            } else if (file.existsAsFile()) {
                 file.startAsProcess();
             }
         };

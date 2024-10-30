@@ -33,8 +33,8 @@ public:
     ~ConnectionMessageDisplay()
         override
         = default;
-        
-    bool hitTest (int x, int y) override
+
+    bool hitTest(int x, int y) override
     {
         return false;
     }
@@ -46,8 +46,9 @@ public:
         // if this object has already been set to null
         if (activeConnection == nullptr && connection == nullptr)
             return;
-        
-        if(editor->pluginMode || (connection && connection->inobj && getValue<bool>(connection->inobj->cnv->presentationMode))) return;
+
+        if (editor->pluginMode || (connection && connection->inobj && getValue<bool>(connection->inobj->cnv->presentationMode)))
+            return;
 
         auto clearSignalDisplayBuffer = [this]() {
             SignalBlock sample;
@@ -90,7 +91,7 @@ public:
         if (!activeConnection)
             return;
 
-        if(activeConnection) {
+        if (activeConnection) {
             float output[DEFDACBLKSIZE * 8];
             if (auto numChannels = activeConnection->getSignalData(output, 8)) {
                 sampleQueue.try_enqueue(SignalBlock(output, numChannels));
@@ -281,7 +282,7 @@ private:
                     continue;
                 }
 
-                while(approximatelyEqual(peakAmplitude, valleyAmplitude)) {
+                while (approximatelyEqual(peakAmplitude, valleyAmplitude)) {
                     peakAmplitude += peakAmplitude * 0.001f;
                     valleyAmplitude -= valleyAmplitude * 0.001f;
                 }
@@ -319,7 +320,7 @@ private:
 
                     auto y = jmap<float>(interpolatedSample, valleyAmplitude, peakAmplitude, channelBounds.getY(), channelBounds.getBottom());
                     auto newPoint = Point<float>(x, y);
-                    if(newPoint.isFinite()) {
+                    if (newPoint.isFinite()) {
                         auto segment = Line(lastPoint, newPoint);
                         oscopePath.addLineSegment(segment, 0.75f);
                         lastPoint = newPoint;

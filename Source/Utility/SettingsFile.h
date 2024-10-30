@@ -88,12 +88,13 @@ public:
 
     String getCorruptBackupSettingsLocation();
 
-    enum SettingsState { UserSettings, BackupSettings, DefaultSettings };
+    enum SettingsState { UserSettings,
+        BackupSettings,
+        DefaultSettings };
     SettingsState getSettingsState();
 
 private:
-
-    static bool verify(const XmlElement* settings);
+    static bool verify(XmlElement const* settings);
 
     void backupCorruptSettings();
     String backupSettingsLocation;

@@ -23,7 +23,7 @@ public:
     {
         object->setColour(PlugDataColour::outlineColourId, Colours::transparentBlack);
 
-        iemHelper.iemColourChangedCallback = [this](){
+        iemHelper.iemColourChangedCallback = [this]() {
             bgColour = Colour::fromString(iemHelper.secondaryColour.toString());
             bgCol = convertColour(bgColour);
             selectionAreaCol = convertColour(bgColour.contrasting(0.75f));
@@ -83,10 +83,10 @@ public:
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
         switch (symbol) {
-            case hash("size"):
-                updateHitArea();
-            default:
-                iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
+        case hash("size"):
+            updateHitArea();
+        default:
+            iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
         }
     }
 
@@ -118,23 +118,23 @@ public:
 
         ObjectBase::resized();
     }
-    
+
     // So we get mouseEnter/Exit notifications for the hitArea
     bool hitTest(int x, int y) override
     {
         if (hitArea.contains(x, y)) {
             return true;
         }
-        
+
         return false;
     }
-    
+
     bool canReceiveMouseEvent(int x, int y) override
     {
         if (hitArea.contains(x - Object::margin, y - Object::margin)) {
             return true;
         }
-        
+
         return false;
     }
 
@@ -176,7 +176,7 @@ public:
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), bgCol, bgCol, Corners::objectCornerRadius);
 
         if (!cnv->isGraph && !getValue<bool>(object->locked) && !getValue<bool>(object->commandLocked) && !hideHitArea) {
-            auto selectionRectColour = (object->isSelected() || (isMouseOver())) ? cnv->selectedOutlineCol: selectionAreaCol;
+            auto selectionRectColour = (object->isSelected() || (isMouseOver())) ? cnv->selectedOutlineCol : selectionAreaCol;
             nvgDrawRoundedRect(nvg, hitArea.getX(), hitArea.getY(), hitArea.getWidth(), hitArea.getHeight(), nvgRGBA(0, 0, 0, 0), selectionRectColour, Corners::objectCornerRadius);
         }
     }
@@ -197,7 +197,8 @@ public:
             }
 
             object->updateBounds();
-        } if (v.refersToSameSourceAs(hitAreaSize)) {
+        }
+        if (v.refersToSameSourceAs(hitAreaSize)) {
             auto size = getValue<int>(hitAreaSize);
             hitAreaSize = size = jmax(4, size);
             if (auto iemgui = ptr.get<t_iemgui>()) {

@@ -40,11 +40,11 @@ protected:
     std::unique_ptr<NanoVGGraphicsContext> nvgCtx;
 
 public:
-    std::function<void(double)> onValueChange = [](double) {};
-    std::function<void()> dragStart = []() {};
-    std::function<void()> dragEnd = []() {};
+    std::function<void(double)> onValueChange = [](double) { };
+    std::function<void()> dragStart = []() { };
+    std::function<void()> dragEnd = []() { };
 
-    std::function<void(bool)> onInteraction = [](bool) {};
+    std::function<void(bool)> onInteraction = [](bool) { };
 
     explicit DraggableNumber(bool integerDrag)
         : dragMode(integerDrag ? Integer : Regular)
@@ -54,12 +54,12 @@ public:
         setFont(Fonts::getTabularNumbersFont().withHeight(14.0f));
         lookAndFeelChanged();
     }
-        
+
     void colourChanged() override
     {
         lookAndFeelChanged();
     }
-        
+
     void lookAndFeelChanged() override
     {
         outlineColour = findColour(ComboBox::outlineColourId);
@@ -316,9 +316,8 @@ public:
     {
         NVGScopedState scopedState(nvg);
         nvgIntersectScissor(nvg, 0, 0, getWidth(), getHeight());
-        
-        if(isBeingEdited())
-        {
+
+        if (isBeingEdited()) {
             if (!nvgCtx || nvgCtx->getContext() != nvg)
                 nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
             nvgCtx->setPhysicalPixelScaleFactor(2.0f);
@@ -328,7 +327,7 @@ public:
             }
             return;
         }
-        
+
         if (hoveredDecimal >= 0) {
             // TODO: make this colour Id configurable
             auto highlightColour = outlineColour.withAlpha(isMouseButtonDown() ? 0.5f : 0.3f);
@@ -638,14 +637,13 @@ struct DraggableListNumber : public DraggableNumber {
             g.drawText(getText(), textArea, Justification::centredLeft, false);
         }
     }
-    
+
     void render(NVGcontext* nvg) override
     {
         NVGScopedState scopedState(nvg);
         nvgIntersectScissor(nvg, 0.5f, 0.5f, getWidth() - 1, getHeight() - 1);
-        
-        if(isBeingEdited())
-        {
+
+        if (isBeingEdited()) {
             if (!nvgCtx || nvgCtx->getContext() != nvg)
                 nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
             nvgCtx->setPhysicalPixelScaleFactor(2.0f);
@@ -655,20 +653,20 @@ struct DraggableListNumber : public DraggableNumber {
             }
             return;
         }
-        
+
         if (hoveredDecimal >= 0) {
             // TODO: make this colour Id configurable
             auto const highlightColour = outlineColour.withAlpha(isMouseButtonDown() ? 0.5f : 0.3f);
             nvgFillColor(nvg, NVGComponent::convertColour(highlightColour));
             nvgFillRoundedRect(nvg, hoveredDecimalPosition.getX(), hoveredDecimalPosition.getY() - 1, hoveredDecimalPosition.getWidth(), hoveredDecimalPosition.getHeight(), 2.5f);
         }
-        
+
         nvgFontFace(nvg, "Inter-Tabular");
         nvgFontSize(nvg, getFont().getHeight() * 0.862f);
         nvgTextLetterSpacing(nvg, 0.15f);
         nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
         nvgFillColor(nvg, NVGComponent::convertColour(textColour));
-        
+
         auto listText = getText();
         auto const textArea = getBorderSize().subtractedFrom(getBounds());
         nvgText(nvg, textArea.getX(), textArea.getCentreY() + 1.5f, listText.toRawUTF8(), nullptr);

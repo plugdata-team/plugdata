@@ -124,7 +124,7 @@ namespace MarkupDisplay {
 
 class FileSource {
 public:
-    virtual ~FileSource() {};
+    virtual ~FileSource() { };
     virtual Image getImageForFilename(String filename) = 0;
 };
 
@@ -183,7 +183,7 @@ public:
         return line;
     }
 
-    virtual void parseMarkup(StringArray const& lines, Font font) {};
+    virtual void parseMarkup(StringArray const& lines, Font font) { };
     virtual float getHeightRequired(float width) = 0;
     void setColours(StringPairArray* c)
     {

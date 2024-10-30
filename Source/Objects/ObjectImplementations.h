@@ -273,7 +273,7 @@ public:
         else if (keynum == KeyPress::numberPad9)
             keynum = 57, keysym = pd->generateSymbol("9");
 
-            // on macOS, alphanumeric characters are offset
+        // on macOS, alphanumeric characters are offset
 #if JUCE_MAC || JUCE_WINDOWS
         else if (keynum >= 65 && keynum <= 90) {
             keynum += 32;
@@ -282,7 +282,8 @@ public:
     }
 };
 
-class CanvasMouseObject final : public ImplementationBase, public pd::MessageListener
+class CanvasMouseObject final : public ImplementationBase
+    , public pd::MessageListener
     , public MouseListener {
 
     std::atomic<bool> zero = false;
@@ -301,7 +302,7 @@ public:
     ~CanvasMouseObject()
     {
         pd->unregisterMessageListener(this->ptr.getRawUnchecked<void>(), this);
-        
+
         if (!cnv)
             return;
 
@@ -457,8 +458,7 @@ public:
 
     void update() override
     {
-        if(auto canvas_vis = ptr.get<t_fake_canvas_vis>())
-        {
+        if (auto canvas_vis = ptr.get<t_fake_canvas_vis>()) {
             cnv = getMainCanvas(canvas_vis->x_canvas);
         }
 
@@ -516,7 +516,7 @@ class CanvasZoomObject final : public ImplementationBase
 
 public:
     using ImplementationBase::ImplementationBase;
-        
+
     void update() override
     {
         if (pd->isPerformingGlobalSync)
@@ -526,12 +526,12 @@ public:
             cnv->locked.removeListener(this);
         }
 
-        if(auto canvas_zoom = ptr.get<t_fake_zoom>())
-        {
+        if (auto canvas_zoom = ptr.get<t_fake_zoom>()) {
             cnv = getMainCanvas(canvas_zoom->x_canvas);
         }
-        
-        if (!cnv) return;
+
+        if (!cnv)
+            return;
 
         zoomScaleValue.referTo(cnv->zoomScale);
         zoomScaleValue.addListener(this);
@@ -566,8 +566,7 @@ public:
         lastPosition = mouseSource.getScreenPosition();
         lastMouseDownTime = mouseSource.getLastMouseDownTime();
         startTimer(timerInterval);
-        if(auto mouse = this->ptr.get<t_fake_mouse>())
-        {
+        if (auto mouse = this->ptr.get<t_fake_mouse>()) {
             canvas = mouse->x_glist;
         }
     }
@@ -619,7 +618,8 @@ public:
     t_glist* canvas;
 };
 
-class MouseStateObject final : public ImplementationBase, public pd::MessageListener
+class MouseStateObject final : public ImplementationBase
+    , public pd::MessageListener
     , public MouseListener {
 
     Point<int> lastPosition;

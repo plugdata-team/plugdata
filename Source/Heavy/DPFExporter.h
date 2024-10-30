@@ -172,12 +172,12 @@ public:
         var metaDPF(new DynamicObject());
         metaDPF.getDynamicObject()->setProperty("project", true);
         metaDPF.getDynamicObject()->setProperty("description", "Rename Me");
-        if (makerName.isNotEmpty()){
+        if (makerName.isNotEmpty()) {
             metaDPF.getDynamicObject()->setProperty("maker", makerName);
         } else {
             metaDPF.getDynamicObject()->setProperty("maker", "plugdata");
         }
-        if (projectLicense.isNotEmpty()){
+        if (projectLicense.isNotEmpty()) {
             metaDPF.getDynamicObject()->setProperty("license", projectLicense);
         } else {
             metaDPF.getDynamicObject()->setProperty("license", "ISC");
@@ -233,7 +233,7 @@ public:
 
         bool generationExitCode = getExitCode();
         // Check if we need to compile
-        if (!generationExitCode && (exportType == 1 || exportType == 2 )) {
+        if (!generationExitCode && (exportType == 1 || exportType == 2)) {
             auto workingDir = File::getCurrentWorkingDirectory();
 
             outputFile.setAsCurrentWorkingDirectory();

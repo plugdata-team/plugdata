@@ -70,9 +70,8 @@ public:
     static int const imageCacheSize;
 
 private:
-    
     juce::juce_wchar getCharForGlyph(int glyphIndex);
-    
+
     int getNvgImageId(juce::Image const& image);
     void reduceImageCache();
 

@@ -91,8 +91,8 @@ public:
         {
             int statusCode = 0;
             instream = URL(info.url).createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress)
-                                                           .withConnectionTimeoutMs(10000)
-                                                           .withStatusCode(&statusCode));
+                    .withConnectionTimeoutMs(10000)
+                    .withStatusCode(&statusCode));
 
             if (instream != nullptr && statusCode == 200) {
                 startThread();
@@ -650,7 +650,7 @@ public:
 
         // Downloads are already always visible, so filter them out here
         newResult.remove_if([this](PackageInfo const& package) {
-            for (const auto* download : packageManager->downloads) {
+            for (auto const* download : packageManager->downloads) {
                 if (download->packageInfo == package) {
                     return true;
                 }

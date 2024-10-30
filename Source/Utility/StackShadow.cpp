@@ -14,7 +14,8 @@ StackShadow::~StackShadow()
 void StackShadow::renderDropShadow(hash32 id, juce::Graphics& g, juce::Path const& path, juce::Colour color, int const radius, juce::Point<int> const offset, int spread)
 {
     auto& dropShadow = StackShadow::getInstance()->dropShadows[id];
-    if(!dropShadow) dropShadow.reset(new melatonin::DropShadow);
+    if (!dropShadow)
+        dropShadow.reset(new melatonin::DropShadow);
     dropShadow->setColor(color);
     dropShadow->setOffset(offset);
     dropShadow->setRadius(radius);

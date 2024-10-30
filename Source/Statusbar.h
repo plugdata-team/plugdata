@@ -22,7 +22,7 @@ class PluginProcessor;
 class VolumeSlider;
 class LatencyDisplayButton;
 
-class StatusbarSource : public Timer{
+class StatusbarSource : public Timer {
 
 public:
     struct Listener {
@@ -47,7 +47,7 @@ public:
     void prepareToPlay(int numChannels);
 
     void timerCallback() override;
-    
+
     void addListener(Listener* l);
     void removeListener(Listener* l);
 
@@ -60,10 +60,10 @@ private:
     std::atomic<int> lastMidiSentTime = 0;
     std::atomic<int> lastAudioProcessedTime = 0;
     std::atomic<float> cpuUsage;
-    
+
     moodycamel::ReaderWriterQueue<MidiMessage> lastMidiSent;
     moodycamel::ReaderWriterQueue<MidiMessage> lastMidiReceived;
-    
+
     int bufferSize;
 
     double sampleRate = 44100;
@@ -103,9 +103,8 @@ public:
     static constexpr int statusbarHeight = 30;
 
 private:
-        
     void handleAsyncUpdate() override;
-        
+
     std::unique_ptr<LevelMeter> levelMeter;
     std::unique_ptr<VolumeSlider> volumeSlider;
     std::unique_ptr<MIDIBlinker> midiBlinker;

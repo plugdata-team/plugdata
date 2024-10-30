@@ -44,16 +44,15 @@ public:
             mainWindow->setOpaque(false);
 #endif
         }
-        
+
         auto& pluginModeTheme = editor->pd->pluginModeTheme;
-        if(pluginModeTheme.isValid())
-        {
+        if (pluginModeTheme.isValid()) {
             pluginModeLnf = std::make_unique<PlugDataLook>();
             pluginModeLnf->setTheme(pluginModeTheme);
             editor->setLookAndFeel(pluginModeLnf.get());
             editor->getTopLevelComponent()->sendLookAndFeelChange();
         }
-        
+
         editor->nvgSurface.detachContext();
 
         desktopWindow = editor->getPeer();
@@ -129,8 +128,7 @@ public:
 
     ~PluginMode() override
     {
-        if(pluginModeLnf)
-        {
+        if (pluginModeLnf) {
             editor->setLookAndFeel(editor->pd->lnf);
             editor->getTopLevelComponent()->sendLookAndFeelChange();
         }
@@ -330,7 +328,7 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        
+
         if (scaleComboBox.contains(e.getEventRelativeTo(&scaleComboBox).getPosition()) || !e.mods.isLeftButtonDown())
             return;
 
@@ -443,7 +441,7 @@ private:
     float const height = float(cnv->patchHeight.getValue()) + 1.0f;
     float pluginModeScale = 1.0f;
     int pluginPreviousScale = 100;
-        
+
     std::unique_ptr<PlugDataLook> pluginModeLnf;
 
     static inline std::map<t_canvas*, int> pluginModeScaleMap;
@@ -452,5 +450,5 @@ private:
         float floatScale;
         int intScale;
     };
-        StackArray<Scale, 7> pluginScales {{ Scale { 0.5f, 50 }, Scale { 0.75f, 75 }, Scale { 1.0f, 100 }, Scale { 1.25f, 125 }, Scale { 1.5f, 150 }, Scale { 1.75f, 175 }, Scale { 2.0f, 200 } }};
+    StackArray<Scale, 7> pluginScales { { Scale { 0.5f, 50 }, Scale { 0.75f, 75 }, Scale { 1.0f, 100 }, Scale { 1.25f, 125 }, Scale { 1.5f, 150 }, Scale { 1.75f, 175 }, Scale { 2.0f, 200 } } };
 };

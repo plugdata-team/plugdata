@@ -37,7 +37,7 @@ public:
             textEditor->toFront(true);
             return;
         }
-        
+
         auto onClose = [this](String const& lastText, bool hasChanged) {
             if (!hasChanged) {
                 textEditor.reset(nullptr);
@@ -56,7 +56,7 @@ public:
                 },
                 15, false);
         };
-        
+
         auto onSave = [this](String const& lastText) {
             setText(lastText);
         };
@@ -150,7 +150,7 @@ public:
 
     void getMenuOptions(PopupMenu& menu) override
     {
-        menu.addItem("Open text editor", [_this = SafePointer(this)](){ if(_this) _this->openTextEditor(); });
+        menu.addItem("Open text editor", [_this = SafePointer(this)]() { if(_this) _this->openTextEditor(); });
     }
 };
 
@@ -192,7 +192,7 @@ public:
         } else {
             return;
         }
-        
+
         auto onClose = [this](String const& lastText, bool hasChanged) {
             if (!hasChanged) {
                 textEditor.reset(nullptr);
@@ -207,7 +207,7 @@ public:
 
                         // enable notification on second outlet //
                         if (auto textDefine = ptr.get<t_fake_text_define>()) {
-                            const char* target = textDefine->x_bindsym->s_name;
+                            char const* target = textDefine->x_bindsym->s_name;
                             pd->sendMessage(target, "notify", {});
                         }
                     }
@@ -217,11 +217,11 @@ public:
                 },
                 15, false);
         };
-        
+
         auto onSave = [this](String const& lastText) {
             setText(lastText);
             if (auto textDefine = ptr.get<t_fake_text_define>()) {
-                const char* target = textDefine->x_bindsym->s_name;
+                char const* target = textDefine->x_bindsym->s_name;
                 pd->sendMessage(target, "notify", {});
             }
         };
@@ -313,6 +313,6 @@ public:
 
     void getMenuOptions(PopupMenu& menu) override
     {
-        menu.addItem("Open text editor", [_this = SafePointer(this)](){ if(_this) _this->openTextEditor(); });
+        menu.addItem("Open text editor", [_this = SafePointer(this)]() { if(_this) _this->openTextEditor(); });
     }
 };

@@ -29,11 +29,11 @@ TabComponent::TabComponent(PluginEditor* editor)
     }
 
     addMouseListener(this, true);
-    
+
     // Dequeue messages to "pd" symbol to make sure the "pluginmode" message always arrives earlier than the tab update.
     // Without this, FL Studio (and possibly others) will fail to init the pluginmode theme!
     editor->pd->triggerAsyncUpdate();
-    
+
     triggerAsyncUpdate();
 }
 
@@ -51,8 +51,8 @@ Canvas* TabComponent::newPatch()
 Canvas* TabComponent::openPatch(const URL& path)
 {
     auto patchFile = path.getLocalFile();
-    
-    for(auto* editor : pd->getEditors()) {
+
+    for (auto* editor : pd->getEditors()) {
         for (auto* cnv : editor->getCanvases()) {
             if (cnv->patch.getCurrentFile() == patchFile) {
                 pd->logError("Patch is already open");
@@ -76,13 +76,15 @@ Canvas* TabComponent::openPatch(String const& patchContent)
 
 Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch, bool warnIfAlreadyOpen)
 {
-    if(!existingPatch) return nullptr;
-    
+    if (!existingPatch)
+        return nullptr;
+
     // Check if subpatch is already opened
-    for(auto* editor : pd->getEditors()) {
+    for (auto* editor : pd->getEditors()) {
         for (auto* cnv : editor->getCanvases()) {
             if (cnv->patch == *existingPatch) {
-                if(warnIfAlreadyOpen) pd->logError("Patch is already open");
+                if (warnIfAlreadyOpen)
+                    pd->logError("Patch is already open");
                 editor->getTopLevelComponent()->toFront(true);
                 editor->getTabComponent().showTab(cnv);
                 return cnv;
@@ -107,14 +109,14 @@ Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch, bool warnIfAlready
     triggerAsyncUpdate();
 
     sendTabUpdateToVisibleCanvases();
-    
+
     static bool alreadyOpeningInNewWindow = false;
-    if(canvases.size() > 1 && !alreadyOpeningInNewWindow && ProjectInfo::isStandalone && SettingsFile::getInstance()->getProperty<bool>("open_patches_in_window")) {
+    if (canvases.size() > 1 && !alreadyOpeningInNewWindow && ProjectInfo::isStandalone && SettingsFile::getInstance()->getProperty<bool>("open_patches_in_window")) {
         alreadyOpeningInNewWindow = true;
         cnv = createNewWindow(cnv);
         alreadyOpeningInNewWindow = false;
     }
-    
+
     return cnv;
 }
 
@@ -273,13 +275,15 @@ void TabComponent::previousTab()
 void TabComponent::createNewWindowFromTab(Component* draggedTab)
 {
     auto* tab = dynamic_cast<TabBarButtonComponent*>(draggedTab);
-    if(!tab) return;
+    if (!tab)
+        return;
     createNewWindow(tab->cnv);
 }
 
 Canvas* TabComponent::createNewWindow(Canvas* cnv)
 {
-    if (!ProjectInfo::isStandalone) return nullptr;
+    if (!ProjectInfo::isStandalone)
+        return nullptr;
 
     auto* newEditor = new PluginEditor(*pd);
     auto* newWindow = ProjectInfo::createNewWindow(newEditor);
@@ -301,14 +305,14 @@ Canvas* TabComponent::createNewWindow(Canvas* cnv)
     newWindow->setTopLeftPosition(Desktop::getInstance().getMousePosition() - Point<int>(500, 60));
     newWindow->toFront(true);
     newEditor->nvgSurface.detachContext();
-    
-    if(SettingsFile::getInstance()->getProperty<bool>("open_patches_in_window")) {
+
+    if (SettingsFile::getInstance()->getProperty<bool>("open_patches_in_window")) {
         auto patchBounds = newCanvas->patch.getBounds() * (SettingsFile::getInstance()->getProperty<float>("default_zoom") / 100.0f);
         auto screenBounds = Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea;
         auto windowBounds = screenBounds.withSizeKeepingCentre(patchBounds.getWidth() + newEditor->sidebar->getWidth() + 30, patchBounds.getHeight() + 94);
         newEditor->getTopLevelComponent()->setBounds(windowBounds);
     }
-    
+
     return newCanvas;
 }
 
@@ -324,30 +328,29 @@ void TabComponent::openInPluginMode(pd::Patch::Ptr patch)
 void TabComponent::clearCanvases()
 {
     SmallArray<SafePointer<Canvas>> safeCanvases;
-    for(int i = canvases.size() - 1; i >= 0; i--)
-    {
+    for (int i = canvases.size() - 1; i >= 0; i--) {
         safeCanvases.add(canvases[i]);
     }
-    
-    for(auto safeCnv : safeCanvases)
-    {
-        if(safeCnv) canvases.removeObject(safeCnv.getComponent());
+
+    for (auto safeCnv : safeCanvases) {
+        if (safeCnv)
+            canvases.removeObject(safeCnv.getComponent());
     }
 }
 
 void TabComponent::handleAsyncUpdate()
 {
-    if(canvases.isEmpty() && pd->getEditors().size() > 1)
-    {
+    if (canvases.isEmpty() && pd->getEditors().size() > 1) {
         auto* pdInstance = pd; // Copy pd because we might self-destruct
         pdInstance->openedEditors.removeObject(editor);
         auto* editor = pdInstance->openedEditors.getFirst();
-        if(auto* topLevel = editor->getTopLevelComponent()) topLevel->toFront(true);
+        if (auto* topLevel = editor->getTopLevelComponent())
+            topLevel->toFront(true);
         return;
     }
-    
+
     pd->setThis();
-    
+
     auto editorIndex = editor->editorIndex;
 
     // save the patch from the canvases that were the two splits
@@ -362,7 +365,7 @@ void TabComponent::handleAsyncUpdate()
     for (auto* cnv : getCanvases()) {
         cnv->saveViewportState();
     }
-    
+
     tabbars[0].clear();
     tabbars[1].clear();
 
@@ -408,20 +411,20 @@ void TabComponent::handleAsyncUpdate()
         for (auto& patch : pd->patches) {
             if (patch->windowIndex != editorIndex)
                 continue;
-            
+
             Canvas* cnv = nullptr;
             for (auto* canvas : canvases) {
                 if (canvas->patch == *patch) {
                     cnv = canvas;
                 }
             }
-            
+
             if (!cnv) {
                 cnv = canvases.add(new Canvas(editor, patch));
                 resized();
                 cnv->restoreViewportState();
             }
-            
+
             // Create tab buttons
             auto* newTabButton = new TabBarButtonComponent(cnv, this);
             tabbars[patch->splitViewIndex == 1].add(newTabButton);
@@ -465,7 +468,7 @@ void TabComponent::handleAsyncUpdate()
             }
         }
     }
-    
+
     editor->updateCommandStatus();
     sendTabUpdateToVisibleCanvases();
 }
@@ -538,7 +541,7 @@ void TabComponent::showTab(Canvas* cnv, int splitIndex)
     editor->sidebar->hideParameters();
     editor->sidebar->clearSearchOutliner();
     editor->updateCommandStatus();
-    
+
     addLastShownTab(cnv, splitIndex);
 }
 
@@ -555,7 +558,8 @@ SmallArray<Canvas*> TabComponent::getCanvases()
 {
     SmallArray<Canvas*> allCanvases;
     allCanvases.reserve(canvases.size());
-    for(auto& canvas : canvases) allCanvases.add(canvas);
+    for (auto& canvas : canvases)
+        allCanvases.add(canvas);
     return allCanvases;
 }
 
@@ -591,7 +595,7 @@ void TabComponent::renderArea(NVGcontext* nvg, Rectangle<int> area)
 }
 
 void TabComponent::mouseDown(MouseEvent const& e)
-{    
+{
     auto localPos = e.getEventRelativeTo(this).getPosition();
     if (localPos.x > splitSize - 3 && localPos.x < splitSize + 3) {
         draggingSplitResizer = true;
@@ -743,26 +747,22 @@ void TabComponent::closeTab(Canvas* cnv)
     }();
 
     cnv->setCachedComponentImage(nullptr); // Clear nanovg invalidation listener, just to be sure
-    
+
     if (splits[0] == cnv) {
-        if(auto* lastCnv = getLastShownTab(cnv, 0))
-        {
+        if (auto* lastCnv = getLastShownTab(cnv, 0)) {
             showTab(lastCnv, 0);
-        }
-        else if(tabbars[0].indexOf(tab) >= 1) {
+        } else if (tabbars[0].indexOf(tab) >= 1) {
             showTab(tabbars[0][tabbars[0].indexOf(tab) - 1]->cnv, 0);
         }
     }
     if (splits[1] == cnv) {
-       if(auto* lastCnv = getLastShownTab(cnv, 1))
-       {
-           showTab(lastCnv, 1);
-       }
-       else if(tabbars[1].indexOf(tab) >= 1) {
+        if (auto* lastCnv = getLastShownTab(cnv, 1)) {
+            showTab(lastCnv, 1);
+        } else if (tabbars[1].indexOf(tab) >= 1) {
             showTab(tabbars[1][tabbars[1].indexOf(tab) - 1]->cnv, 1);
-       }
+        }
     }
-    
+
     canvases.removeObject(cnv);
     pd->patches.removeFirstMatchingValue(patch);
     pd->updateObjectImplementations();
@@ -772,18 +772,20 @@ void TabComponent::closeTab(Canvas* cnv)
 
 void TabComponent::addLastShownTab(Canvas* tab, int split)
 {
-    if(lastShownTabs[split].contains(tab)) lastShownTabs[split].remove_one(tab);
+    if (lastShownTabs[split].contains(tab))
+        lastShownTabs[split].remove_one(tab);
     lastShownTabs[split].add(tab);
-    while(lastShownTabs[split].size() > 15) lastShownTabs[split].remove_at(0);
+    while (lastShownTabs[split].size() > 15)
+        lastShownTabs[split].remove_at(0);
 }
 
 Canvas* TabComponent::getLastShownTab(Canvas* current, int split)
 {
     Canvas* lastShownTab = nullptr;
-    for (auto it = lastShownTabs[split].rbegin(); it != lastShownTabs[split].rend(); ++it)
-    {
+    for (auto it = lastShownTabs[split].rbegin(); it != lastShownTabs[split].rend(); ++it) {
         lastShownTab = *it;
-        if (lastShownTab == current) continue;
+        if (lastShownTab == current)
+            continue;
 
         auto index = std::distance(it, lastShownTabs[split].rend()) - 1;
         if (lastShownTab) {
@@ -797,7 +799,7 @@ Canvas* TabComponent::getLastShownTab(Canvas* current, int split)
 void TabComponent::sendTabUpdateToVisibleCanvases()
 {
     for (auto* editorWindow : pd->getEditors()) {
-        for (auto* cnv: editorWindow->getTabComponent().getVisibleCanvases()) {
+        for (auto* cnv : editorWindow->getTabComponent().getVisibleCanvases()) {
             cnv->tabChanged();
         }
     }
@@ -872,8 +874,10 @@ Canvas* TabComponent::getCanvasAtScreenPosition(Point<int> screenPosition)
 TabComponent::VisibleCanvasArray TabComponent::getVisibleCanvases()
 {
     VisibleCanvasArray result;
-    if (auto* split = splits[0].get()) result.add(reinterpret_cast<Canvas*>(split));
-    if (auto* split = splits[1].get()) result.add(reinterpret_cast<Canvas*>(split));
+    if (auto* split = splits[0].get())
+        result.add(reinterpret_cast<Canvas*>(split));
+    if (auto* split = splits[1].get())
+        result.add(reinterpret_cast<Canvas*>(split));
     return result;
 }
 
@@ -928,7 +932,7 @@ void TabComponent::itemDragEnter(SourceDetails const& dragSourceDetails)
 
 void TabComponent::itemDragExit(SourceDetails const& dragSourceDetails)
 {
-    if(auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
+    if (auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
         tab->setVisible(false);
     }
     splitDropBounds = Rectangle<int>();
@@ -1066,8 +1070,9 @@ void TabComponent::showHiddenTabsMenu(int splitIndex)
 
         void mouseDown(MouseEvent const& e) override
         {
-            if(!e.mods.isLeftButtonDown()) return;
-            
+            if (!e.mods.isLeftButtonDown())
+                return;
+
             if (e.originalComponent == &closeTabButton)
                 return;
 
@@ -1122,6 +1127,6 @@ void TabComponent::showHiddenTabsMenu(int splitIndex)
     }
 
     m.showMenuAsync(PopupMenu::Options()
-                        .withDeletionCheck(*this)
-                        .withTargetComponent(&tabOverflowButtons[splitIndex]));
+            .withDeletionCheck(*this)
+            .withTargetComponent(&tabOverflowButtons[splitIndex]));
 }

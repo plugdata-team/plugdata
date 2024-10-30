@@ -48,7 +48,7 @@ public:
         noteEditor.getProperties().set("NoOutline", true);
         noteEditor.setColour(TextEditor::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
         noteEditor.setColour(ScrollBar::thumbColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::scrollbarThumbColourId));
-        
+
         noteEditor.setAlwaysOnTop(true);
         noteEditor.setMultiLine(true);
         noteEditor.setReturnKeyStartsNewLine(true);
@@ -69,7 +69,7 @@ public:
             SmallArray<t_atom> atoms;
 
             auto words = StringArray::fromTokens(noteEditor.getText(), " ", "\"");
-            for (const auto& word : words) {
+            for (auto const& word : words) {
                 atoms.emplace_back();
                 SETSYMBOL(&atoms.back(), pd->generateSymbol(word));
             }
@@ -122,8 +122,7 @@ public:
         if (getValue<bool>(fillBackground) || getValue<bool>(outline)) {
             auto fillColour = getValue<bool>(fillBackground) ? convertColour(Colour::fromString(secondaryColour.toString())) : nvgRGBA(0, 0, 0, 0);
             auto outlineColour = nvgRGBA(0, 0, 0, 0);
-            if(getValue<bool>(outline))
-            {
+            if (getValue<bool>(outline)) {
                 bool selected = object->isSelected() && !cnv->isGraph;
                 outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId));
             }
@@ -138,8 +137,8 @@ public:
             imageRenderer.render(nvg, getLocalBounds());
         }
     }
-    
-    void paint(Graphics& g) override {};
+
+    void paint(Graphics& g) override { };
 
     void update() override
     {

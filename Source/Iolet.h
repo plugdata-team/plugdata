@@ -23,7 +23,7 @@ public:
 
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
-        
+
     Iolet* getNextIolet();
 
     bool hitTest(int x, int y) override;

@@ -174,7 +174,7 @@ public:
 
         repaint();
     }
-    
+
     void mouseEnter(MouseEvent const& e) override
     {
         mouseHover = true;
@@ -189,8 +189,9 @@ public:
 
     float getValue()
     {
-        if(auto radio = ptr.get<t_radio>()) return radio->x_on;
-        
+        if (auto radio = ptr.get<t_radio>())
+            return radio->x_on;
+
         return 0.0f;
     }
 
@@ -289,11 +290,10 @@ public:
 
     float getMaximum()
     {
-        if(auto radio = ptr.get<t_radio>())
-        {
+        if (auto radio = ptr.get<t_radio>()) {
             return radio->x_number;
         }
-        
+
         return 0.0f;
     }
 
@@ -303,8 +303,7 @@ public:
             selected = maxValue - 1;
         }
 
-        if(auto radio = ptr.get<t_radio>())
-        {
+        if (auto radio = ptr.get<t_radio>()) {
             radio->x_number = maxValue;
         }
 

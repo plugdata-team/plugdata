@@ -23,22 +23,19 @@ public:
 
 class OfflineObjectRenderer {
 public:
-    
     static String patchToSVG(String const& patch);
     static ImageWithOffset patchToMaskedImage(String const& patch, float scale, bool makeInvalidImage = false);
-    
+
     static std::pair<SmallArray<bool>, SmallArray<bool>> countIolets(String const& patch);
     static bool checkIfPatchIsValid(String const& patch);
 
 private:
-    
     static HeapArray<Rectangle<int>> getObjectBoundsForPatch(String const& patch);
     static bool parseGraphSize(String const& objectText, Rectangle<int>& bounds);
 
     static ImageWithOffset patchToTempImage(String const& patch, float scale);
-    
-    enum PatchItemType
-    {
+
+    enum PatchItemType {
         Object,
         Comment,
         Message,

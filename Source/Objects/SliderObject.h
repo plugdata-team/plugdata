@@ -10,7 +10,7 @@ class ReversibleSlider : public Slider
     bool isInverted = false;
     bool isVertical = false;
     bool shiftIsDown = false;
-        
+
     bool isZeroRange = false;
     float zeroRangeValue = 0.0f;
 
@@ -96,11 +96,11 @@ public:
         } else {
             setMouseDragSensitivity(normalSensitivity);
         }
-        
+
         Slider::mouseDown(e);
-        
+
         auto snaps = getSliderSnapsToMousePosition();
-        if(snaps && shiftIsDown)  {
+        if (snaps && shiftIsDown) {
             setSliderSnapsToMousePosition(false); // hack to make jump-on-click work the same with high-accuracy mode as in Pd
             Slider::mouseDown(e);
             setSliderSnapsToMousePosition(true);
@@ -110,11 +110,13 @@ public:
     void mouseDrag(MouseEvent const& e) override
     {
         auto snaps = getSliderSnapsToMousePosition();
-        if(snaps && shiftIsDown) setSliderSnapsToMousePosition(false); // We disable this temporarily, otherwise it breaks high accuracy mode
+        if (snaps && shiftIsDown)
+            setSliderSnapsToMousePosition(false); // We disable this temporarily, otherwise it breaks high accuracy mode
         Slider::mouseDrag(e);
-        if(snaps && shiftIsDown) setSliderSnapsToMousePosition(true);
+        if (snaps && shiftIsDown)
+            setSliderSnapsToMousePosition(true);
     }
-        
+
     void mouseUp(MouseEvent const& e) override
     {
         setMouseDragSensitivity(std::max<int>(1, isVertical ? getHeight() : getWidth()));
@@ -187,12 +189,12 @@ public:
 
         slider.onDragStart = [this]() {
             startEdition();
-            const float val = slider.getCurrentValue();
+            float const val = slider.getCurrentValue();
             sendFloatValue(val);
         };
 
         slider.onValueChange = [this]() {
-            const float val = slider.getCurrentValue();
+            float const val = slider.getCurrentValue();
             sendFloatValue(val);
         };
 

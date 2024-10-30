@@ -63,7 +63,7 @@ SettingsFile* SettingsFile::initialise()
 
     isInitialised = true;
 
-//#define DEBUG_CORRUPT_SETTINGS_DIALOG
+// #define DEBUG_CORRUPT_SETTINGS_DIALOG
 #ifdef DEBUG_CORRUPT_SETTINGS_DIALOG
     backupSettingsLocation = ProjectInfo::appDataDir.getChildFile(".settings_damaged").getFullPathName();
 #endif
@@ -144,7 +144,7 @@ SettingsFile* SettingsFile::initialise()
     return this;
 }
 
-bool SettingsFile::verify(const XmlElement* xml)
+bool SettingsFile::verify(XmlElement const* xml)
 {
     // Basic settings file verification
     // Verify if the xml is valid, and tags match correct name / order
@@ -153,7 +153,7 @@ bool SettingsFile::verify(const XmlElement* xml)
     if (xml == nullptr || xml->getTagName() != "SettingsTree")
         return false;
 
-    const StringArray expectedOrder = {
+    StringArray const expectedOrder = {
         "Paths",
         "KeyMap",
         "ColourThemes",
@@ -169,13 +169,15 @@ bool SettingsFile::verify(const XmlElement* xml)
     int expectedIndex = 0;
     for (auto* child = xml->getFirstChildElement(); child != nullptr; child = child->getNextElement()) {
         if (expectedIndex < expectedOrder.size()) {
-            if(child->getTagName() == "HeavyState") continue;
+            if (child->getTagName() == "HeavyState")
+                continue;
             else if (child->getTagName() != expectedOrder[expectedIndex]) {
                 return false; // Order mismatch
             }
             expectedIndex++;
         } else {
-            if(child->getTagName() == "HeavyState") continue;
+            if (child->getTagName() == "HeavyState")
+                continue;
             return false; // Extra unexpected element found
         }
     }
@@ -252,7 +254,7 @@ void SettingsFile::initialisePathsTree()
     // Make sure all the default paths are in place
     HeapArray<File> currentPaths;
     currentPaths.reserve(10);
-    
+
     auto pathTree = getPathsTree();
 
     // on iOS, the containerisation of apps leads to problems with custom search paths
@@ -321,9 +323,9 @@ void SettingsFile::addToRecentlyOpened(File const& path)
 
         recentlyOpened.removeChild(minIdx, nullptr);
     }
-    
+
     // If we do this inside a plugin, it will add to the DAW's recently opened list!
-    if(ProjectInfo::isStandalone) {
+    if (ProjectInfo::isStandalone) {
         RecentlyOpenedFilesList::registerRecentFileNatively(path);
     }
 }

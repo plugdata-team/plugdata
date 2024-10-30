@@ -1061,7 +1061,7 @@ struct ScalarObject final : public ObjectBase {
                 cnv->drawables.move(cnv->drawables.index_of(dynamic_cast<NVGComponent*>(templates[i])), 0);
             }
         }
-        
+
         onConstrainerCreate = [this]() {
             int w = 0, h = 0;
             if (auto gobj = ptr.get<t_gobj>()) {
@@ -1071,7 +1071,7 @@ struct ScalarObject final : public ObjectBase {
                 int x, y;
                 pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
             }
-            if(w > 0 && h > 0) {
+            if (w > 0 && h > 0) {
                 constrainer->setSizeLimits(w + 1, h + 1, w + 1, h + 1);
             }
         };
@@ -1095,11 +1095,11 @@ struct ScalarObject final : public ObjectBase {
             dynamic_cast<DrawableTemplate*>(drawable)->triggerAsyncUpdate();
         }
     }
-    
+
     void render(NVGcontext* nvg) override
     {
     }
-    
+
     void moved() override
     {
         updateDrawables();
@@ -1130,7 +1130,7 @@ struct ScalarObject final : public ObjectBase {
 
         return {};
     }
-    
+
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
         if (symbol == hash("redraw")) {

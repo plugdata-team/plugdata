@@ -21,7 +21,7 @@ public:
     {
     }
 
-    void setLabelColour(const Colour& colour)
+    void setLabelColour(Colour const& colour)
     {
         labelColor = convertColour(colour);
         repaint();
@@ -45,7 +45,7 @@ public:
         if (!scaleImages[0].isValid()) {
             for (int i = 0; i < 11; i++) {
                 // generate scale images that are max size of canvas * UI scale
-                scaleImages[i] = NVGImage(nvg, maxScaledWidth, maxScaledHeight, [this, i](Graphics& g){
+                scaleImages[i] = NVGImage(nvg, maxScaledWidth, maxScaledHeight, [this, i](Graphics& g) {
                     g.addTransform(AffineTransform::scale(maxUIScale));
                     g.setColour(Colours::white);
                     // Draw + or -
@@ -53,17 +53,16 @@ public:
                     g.drawText(scaleText.getReference(i).substring(0, 1), getLocalBounds().withHeight(20), Justification::centredLeft, false);
                     // Draw dB value
                     g.setFont(Fonts::getDefaultFont().withHeight(9));
-                    g.drawText(scaleText.getReference(i).substring(1), getLocalBounds().withHeight(20).withLeft(5), Justification::centredLeft, false);
-                }, NVGImage::AlphaImage | NVGImage::MipMap);
+                    g.drawText(scaleText.getReference(i).substring(1), getLocalBounds().withHeight(20).withLeft(5), Justification::centredLeft, false); }, NVGImage::AlphaImage | NVGImage::MipMap);
             }
         }
 
-        const bool decimScaleText = getHeight() < 90;
+        bool const decimScaleText = getHeight() < 90;
 
-        for (int i = 0; i < 11; i++){
+        for (int i = 0; i < 11; i++) {
             if (decimScaleText && !(scaleDecim & (1 << i)))
                 continue;
-            const float scaleTextYPos = static_cast<float>(i) * (getHeight() - 20) / 10.0f;
+            float const scaleTextYPos = static_cast<float>(i) * (getHeight() - 20) / 10.0f;
             nvgFillPaint(nvg, nvgImageAlphaPattern(nvg, 0, scaleTextYPos, getWidth(), 20, 0, scaleImages[i].getImageId(), labelColor));
             nvgFillRect(nvg, 0, scaleTextYPos, getWidth(), 20);
         }
@@ -95,10 +94,11 @@ public:
         iemHelper.addIemParameters(objectParameters, false, false, -1);
 
         updateLabel();
-        if(auto vu = ptr.get<t_vu>()) showScale = vu->x_scale;
+        if (auto vu = ptr.get<t_vu>())
+            showScale = vu->x_scale;
         propertyChanged(showScale);
-        
-        iemHelper.iemColourChangedCallback = [this](){
+
+        iemHelper.iemColourChangedCallback = [this]() {
             bgCol = convertColour(Colour::fromString(iemHelper.secondaryColour.toString()));
         };
     }
@@ -133,8 +133,7 @@ public:
             vuScale = reinterpret_cast<VUScale*>(labels.add(new VUScale()));
             object->cnv->addChildComponent(label);
             object->cnv->addChildComponent(vuScale);
-        }
-        else {
+        } else {
             label = labels[0];
             vuScale = reinterpret_cast<VUScale*>(labels[1]);
         }
@@ -156,7 +155,7 @@ public:
             vuScale->setLabelColour(iemHelper.getLabelColour());
         }
     }
-    
+
     void propertyChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(sizeProperty)) {
@@ -205,11 +204,12 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        if(!ptr.isValid()) return;
+        if (!ptr.isValid())
+            return;
 
         float values[2] = { ptr.get<t_vu>()->x_fp, ptr.get<t_vu>()->x_fr };
 
-        auto b =  getLocalBounds();
+        auto b = getLocalBounds();
         auto bS = b.reduced(0.5f);
         // Object background
         nvgDrawRoundedRect(nvg, bS.getX(), bS.getY(), bS.getWidth(), bS.getHeight(), bgCol, bgCol, Corners::objectCornerRadius);
@@ -218,26 +218,20 @@ public:
         auto peak = Decibels::decibelsToGain(values[0] - 10.0f);
         auto barLength = jmin(std::exp(std::log(rms) / 3.0f) * (rms > 0.002f), 1.0f) * b.getHeight();
         auto peakPosition = jmin(std::exp(std::log(peak) / 3.0f) * (peak > 0.002f), 1.0f) * (b.getHeight() - 5.0f);
-        
-        
-        auto getColourForLevel = [](float level)
-        {
-            if(level < -12)
-            {
+
+        auto getColourForLevel = [](float level) {
+            if (level < -12) {
                 return nvgRGBA(66, 163, 198, 255);
-            }
-            else if(level > 0)
-            {
+            } else if (level > 0) {
                 return nvgRGBA(255, 0, 0, 255);
-            }
-            else {
+            } else {
                 return nvgRGBA(255, 127, 0, 255);
             }
         };
-        
+
         NVGcolor peakColour = getColourForLevel(values[0]);
         NVGcolor barColour = getColourForLevel(values[1]);
-        
+
         // VU Bar
         nvgFillColor(nvg, barColour);
         nvgBeginPath(nvg);
@@ -246,16 +240,15 @@ public:
 
         nvgBeginPath(nvg);
         int increment = getHeight() / 30;
-        for(int i = 0; i < 30; i++)
-        {
-            
+        for (int i = 0; i < 30; i++) {
+
             nvgMoveTo(nvg, 0, i * increment + 3);
             nvgLineTo(nvg, getWidth(), i * increment + 3);
         }
         nvgStrokeWidth(nvg, 1.0f);
         nvgStrokeColor(nvg, bgCol);
         nvgStroke(nvg);
-        
+
         // Peak
         nvgFillColor(nvg, peakColour);
         nvgFillRect(nvg, 0, getHeight() - peakPosition - 5.0f, getWidth(), 5.0f);

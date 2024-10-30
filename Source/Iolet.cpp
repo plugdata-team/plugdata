@@ -66,14 +66,16 @@ void Iolet::render(NVGcontext* nvg)
     bool isLocked = getValue<bool>(locked) || getValue<bool>(commandLocked);
     bool overObject = object->drawIoletExpanded;
     bool isHovering = isTargeted && !isLocked;
-    
+
     // If a connection is being created, don't hide iolets with a symbol defined
     if (cnv->connectionsBeingCreated.isEmpty() || cnv->connectionsBeingCreated[0]->getIolet()->isInlet == isInlet) {
         if ((isLocked && isSymbolIolet) || (isSymbolIolet && !isHovering && !overObject && !object->isSelected()))
             return;
     }
 
-    auto innerCol = isLocked ? cnv->ioletLockedCol : isSignal ? cnv->sigCol : isGemState ? cnv->gemCol : cnv->dataCol;
+    auto innerCol = isLocked ? cnv->ioletLockedCol : isSignal ? cnv->sigCol
+        : isGemState                                          ? cnv->gemCol
+                                                              : cnv->dataCol;
     auto iB = PlugDataLook::useSquareIolets ? getLocalBounds().toFloat().reduced(2.0f, 3.33f) : getLocalBounds().toFloat().reduced(2.0f);
     if (isHovering)
         iB.expand(1.0f, 1.0f);
@@ -116,7 +118,7 @@ void Iolet::mouseDrag(MouseEvent const& e)
 
     if (!cnv->connectionCancelled && cnv->connectionsBeingCreated.isEmpty() && e.getLengthOfMousePress() > 100) {
         MessageManager::callAsync([_this = SafePointer(this)]() {
-            if(_this) {
+            if (_this) {
                 _this->createConnection();
                 _this->object->cnv->connectingWithDrag = true;
             }
@@ -164,7 +166,7 @@ void Iolet::mouseUp(MouseEvent const& e)
         return;
 
     cnv->editor->tooltipWindow.hideTip();
-    
+
     if (!wasDragged && cnv->connectionsBeingCreated.isEmpty()) {
         createConnection();
 
@@ -172,7 +174,8 @@ void Iolet::mouseUp(MouseEvent const& e)
         // Releasing a connect-by-click action
         if (!wasDragged) {
             createConnection();
-            if(!e.mods.isShiftDown()) cnv->cancelConnectionCreation();
+            if (!e.mods.isShiftDown())
+                cnv->cancelConnectionCreation();
 
         } else if (cnv->connectingWithDrag && cnv->nearestIolet) {
             // Releasing a connect-by-drag action
@@ -182,13 +185,12 @@ void Iolet::mouseUp(MouseEvent const& e)
             // CreateConnection will automatically create connections for all connections that are being created!
             cnv->nearestIolet->createConnection();
 
-            if(!e.mods.isShiftDown()) cnv->cancelConnectionCreation();
+            if (!e.mods.isShiftDown())
+                cnv->cancelConnectionCreation();
             cnv->nearestIolet = nullptr;
             cnv->connectingWithDrag = false;
 
-        }
-        else if(cnv->connectingWithDrag)
-        {
+        } else if (cnv->connectingWithDrag) {
             cnv->cancelConnectionCreation();
         }
         if (cnv->connectionsBeingCreated.size() != 1) {
@@ -236,16 +238,14 @@ Iolet* Iolet::getNextIolet()
 {
     int oldIdx = object->iolets.indexOf(this);
     int ioletCount = object->iolets.size();
-    
-    for(int offset = 1; offset < ioletCount; offset++)
-    {
+
+    for (int offset = 1; offset < ioletCount; offset++) {
         int nextIdx = (oldIdx + offset) % ioletCount;
-        if(object->iolets[nextIdx]->isInlet == isInlet)
-        {
+        if (object->iolets[nextIdx]->isInlet == isInlet) {
             return object->iolets[nextIdx];
         }
     }
-    
+
     return this;
 }
 
@@ -299,11 +299,11 @@ void Iolet::createConnection()
     }
     // otherwise set this iolet as start of a connection
     else {
-        if(Desktop::getInstance().getMainMouseSource().getCurrentModifiers().isShiftDown()) {
+        if (Desktop::getInstance().getMainMouseSource().getCurrentModifiers().isShiftDown()) {
             // Auto patching - if shift is down at mouseDown
             // create connections from selected objects
             cnv->setSelected(object, true);
-            
+
             int position = object->iolets.indexOf(this);
             position = isInlet ? position : position - object->numInputs;
             for (auto* selectedBox : object->cnv->getSelectionOfType<Object>()) {

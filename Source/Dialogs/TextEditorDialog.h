@@ -22,123 +22,124 @@
 #define TEST_MULTI_CARET_EDITING false
 #define ENABLE_CARET_BLINK true
 
-struct LuaTokeniserFunctions
-{
-    static bool isIdentifierStart (const juce_wchar c) noexcept
+struct LuaTokeniserFunctions {
+    static bool isIdentifierStart(juce_wchar const c) noexcept
     {
-        return CharacterFunctions::isLetter (c)
-                || c == '_' || c == '@';
+        return CharacterFunctions::isLetter(c)
+            || c == '_' || c == '@';
     }
 
-    static bool isIdentifierBody (const juce_wchar c) noexcept
+    static bool isIdentifierBody(juce_wchar const c) noexcept
     {
-        return CharacterFunctions::isLetterOrDigit (c)
-                || c == '_' || c == '@';
+        return CharacterFunctions::isLetterOrDigit(c)
+            || c == '_' || c == '@';
     }
 
-    static bool isReservedKeyword (String::CharPointerType token, const int tokenLength) noexcept
+    static bool isReservedKeyword(String::CharPointerType token, int const tokenLength) noexcept
     {
-        static const char* const keywords2Char[] =
-                    { "do", "if", "or", "in", nullptr };
+        static char const* const keywords2Char[] = { "do", "if", "or", "in", nullptr };
 
-        static const char* const keywords3Char[] =
-                    { "and", "end", "for", "nil", "not", "try", nullptr };
+        static char const* const keywords3Char[] = { "and", "end", "for", "nil", "not", "try", nullptr };
 
-        static const char* const keywords4Char[] =
-                    { "else", "goto", "then", "true", "else", "self", nullptr };
+        static char const* const keywords4Char[] = { "else", "goto", "then", "true", "else", "self", nullptr };
 
-        static const char* const keywords5Char[] =
-                    { "break", "false", "local", "until", "while", "error", nullptr };
+        static char const* const keywords5Char[] = { "break", "false", "local", "until", "while", "error", nullptr };
 
-        static const char* const keywords6Char[] =
-                    { "return", "repeat", "elseif", "assert", nullptr };
-        
-        static const char* const keywords8Char[] =
-                    { "function", nullptr };
+        static char const* const keywords6Char[] = { "return", "repeat", "elseif", "assert", nullptr };
 
-        static const char* const keywordsOther[] =
-                    { "collectgarbage", "dofile", "getmetatable", "ipairs",
-                      "loadfile", "loadstring", "next", "pairs", "pcall", "print", "rawequal",
-                      "rawget", "rawset", "require", "select", "setmetatable", "tonumber",
-                      "tostring", "type", "xpcall", nullptr };
+        static char const* const keywords8Char[] = { "function", nullptr };
 
-        const char* const* k;
+        static char const* const keywordsOther[] = { "collectgarbage", "dofile", "getmetatable", "ipairs",
+            "loadfile", "loadstring", "next", "pairs", "pcall", "print", "rawequal",
+            "rawget", "rawset", "require", "select", "setmetatable", "tonumber",
+            "tostring", "type", "xpcall", nullptr };
 
-        switch (tokenLength)
-        {
-            case 2:     k = keywords2Char; break;
-            case 3:     k = keywords3Char; break;
-            case 4:     k = keywords4Char; break;
-            case 5:     k = keywords5Char; break;
-            case 6:     k = keywords6Char; break;
-            case 8:     k = keywords8Char; break;
+        char const* const* k;
 
-            default:
-                if (tokenLength < 2 || tokenLength > 16)
-                    return false;
+        switch (tokenLength) {
+        case 2:
+            k = keywords2Char;
+            break;
+        case 3:
+            k = keywords3Char;
+            break;
+        case 4:
+            k = keywords4Char;
+            break;
+        case 5:
+            k = keywords5Char;
+            break;
+        case 6:
+            k = keywords6Char;
+            break;
+        case 8:
+            k = keywords8Char;
+            break;
 
-                k = keywordsOther;
-                break;
+        default:
+            if (tokenLength < 2 || tokenLength > 16)
+                return false;
+
+            k = keywordsOther;
+            break;
         }
 
         for (int i = 0; k[i] != nullptr; ++i)
-            if (token.compare (CharPointer_ASCII (k[i])) == 0)
+            if (token.compare(CharPointer_ASCII(k[i])) == 0)
                 return true;
 
         return false;
     }
 
-    template <typename Iterator>
-    static int parseIdentifier (Iterator& source) noexcept
+    template<typename Iterator>
+    static int parseIdentifier(Iterator& source) noexcept
     {
         int tokenLength = 0;
         String::CharPointerType::CharType possibleIdentifier[100] = {};
-        String::CharPointerType possible (possibleIdentifier);
+        String::CharPointerType possible(possibleIdentifier);
 
-        while (isIdentifierBody (source.peekNextChar()))
-        {
+        while (isIdentifierBody(source.peekNextChar())) {
             auto c = source.nextChar();
 
             if (tokenLength < 20)
-                possible.write (c);
+                possible.write(c);
 
             ++tokenLength;
         }
 
-        if (tokenLength > 1 && tokenLength <= 16)
-        {
+        if (tokenLength > 1 && tokenLength <= 16) {
             possible.writeNull();
 
-            if (isReservedKeyword (String::CharPointerType (possibleIdentifier), tokenLength))
+            if (isReservedKeyword(String::CharPointerType(possibleIdentifier), tokenLength))
                 return LuaTokeniser::tokenType_keyword;
         }
 
         return LuaTokeniser::tokenType_identifier;
     }
 
-    template <typename Iterator>
-    static bool skipNumberSuffix (Iterator& source)
+    template<typename Iterator>
+    static bool skipNumberSuffix(Iterator& source)
     {
         auto c = source.peekNextChar();
 
         if (c == 'l' || c == 'L' || c == 'u' || c == 'U')
             source.skip();
 
-        if (CharacterFunctions::isLetterOrDigit (source.peekNextChar()))
+        if (CharacterFunctions::isLetterOrDigit(source.peekNextChar()))
             return false;
 
         return true;
     }
 
-    static bool isHexDigit (const juce_wchar c) noexcept
+    static bool isHexDigit(juce_wchar const c) noexcept
     {
         return (c >= '0' && c <= '9')
-                || (c >= 'a' && c <= 'f')
-                || (c >= 'A' && c <= 'F');
+            || (c >= 'a' && c <= 'f')
+            || (c >= 'A' && c <= 'F');
     }
 
-    template <typename Iterator>
-    static bool parseHexLiteral (Iterator& source) noexcept
+    template<typename Iterator>
+    static bool parseHexLiteral(Iterator& source) noexcept
     {
         if (source.peekNextChar() == '-')
             source.skip();
@@ -153,8 +154,7 @@ struct LuaTokeniserFunctions
 
         int numDigits = 0;
 
-        while (isHexDigit (source.peekNextChar()))
-        {
+        while (isHexDigit(source.peekNextChar())) {
             ++numDigits;
             source.skip();
         }
@@ -162,16 +162,16 @@ struct LuaTokeniserFunctions
         if (numDigits == 0)
             return false;
 
-        return skipNumberSuffix (source);
+        return skipNumberSuffix(source);
     }
 
-    static bool isOctalDigit (const juce_wchar c) noexcept
+    static bool isOctalDigit(juce_wchar const c) noexcept
     {
         return c >= '0' && c <= '7';
     }
 
-    template <typename Iterator>
-    static bool parseOctalLiteral (Iterator& source) noexcept
+    template<typename Iterator>
+    static bool parseOctalLiteral(Iterator& source) noexcept
     {
         if (source.peekNextChar() == '-')
             source.skip();
@@ -179,29 +179,28 @@ struct LuaTokeniserFunctions
         if (source.nextChar() != '0')
             return false;
 
-        if (! isOctalDigit (source.nextChar()))
+        if (!isOctalDigit(source.nextChar()))
             return false;
 
-        while (isOctalDigit (source.peekNextChar()))
+        while (isOctalDigit(source.peekNextChar()))
             source.skip();
 
-        return skipNumberSuffix (source);
+        return skipNumberSuffix(source);
     }
 
-    static bool isDecimalDigit (const juce_wchar c) noexcept
+    static bool isDecimalDigit(juce_wchar const c) noexcept
     {
         return c >= '0' && c <= '9';
     }
 
-    template <typename Iterator>
-    static bool parseDecimalLiteral (Iterator& source) noexcept
+    template<typename Iterator>
+    static bool parseDecimalLiteral(Iterator& source) noexcept
     {
         if (source.peekNextChar() == '-')
             source.skip();
 
         int numChars = 0;
-        while (isDecimalDigit (source.peekNextChar()))
-        {
+        while (isDecimalDigit(source.peekNextChar())) {
             ++numChars;
             source.skip();
         }
@@ -209,31 +208,28 @@ struct LuaTokeniserFunctions
         if (numChars == 0)
             return false;
 
-        return skipNumberSuffix (source);
+        return skipNumberSuffix(source);
     }
 
-    template <typename Iterator>
-    static bool parseFloatLiteral (Iterator& source) noexcept
+    template<typename Iterator>
+    static bool parseFloatLiteral(Iterator& source) noexcept
     {
         if (source.peekNextChar() == '-')
             source.skip();
 
         int numDigits = 0;
 
-        while (isDecimalDigit (source.peekNextChar()))
-        {
+        while (isDecimalDigit(source.peekNextChar())) {
             source.skip();
             ++numDigits;
         }
 
-        const bool hasPoint = (source.peekNextChar() == '.');
+        bool const hasPoint = (source.peekNextChar() == '.');
 
-        if (hasPoint)
-        {
+        if (hasPoint) {
             source.skip();
 
-            while (isDecimalDigit (source.peekNextChar()))
-            {
+            while (isDecimalDigit(source.peekNextChar())) {
                 source.skip();
                 ++numDigits;
             }
@@ -245,8 +241,7 @@ struct LuaTokeniserFunctions
         auto c = source.peekNextChar();
         bool hasExponent = (c == 'e' || c == 'E');
 
-        if (hasExponent)
-        {
+        if (hasExponent) {
             source.skip();
             c = source.peekNextChar();
 
@@ -255,8 +250,7 @@ struct LuaTokeniserFunctions
 
             int numExpDigits = 0;
 
-            while (isDecimalDigit (source.peekNextChar()))
-            {
+            while (isDecimalDigit(source.peekNextChar())) {
                 source.skip();
                 ++numExpDigits;
             }
@@ -269,39 +263,42 @@ struct LuaTokeniserFunctions
 
         if (c == 'f' || c == 'F')
             source.skip();
-        else if (! (hasExponent || hasPoint))
+        else if (!(hasExponent || hasPoint))
             return false;
 
         return true;
     }
 
-    template <typename Iterator>
-    static int parseNumber (Iterator& source)
+    template<typename Iterator>
+    static int parseNumber(Iterator& source)
     {
-        const Iterator original (source);
+        Iterator const original(source);
 
-        if (parseFloatLiteral (source))    return LuaTokeniser::tokenType_float;
+        if (parseFloatLiteral(source))
+            return LuaTokeniser::tokenType_float;
         source = original;
 
-        if (parseHexLiteral (source))      return LuaTokeniser::tokenType_integer;
+        if (parseHexLiteral(source))
+            return LuaTokeniser::tokenType_integer;
         source = original;
 
-        if (parseOctalLiteral (source))    return LuaTokeniser::tokenType_integer;
+        if (parseOctalLiteral(source))
+            return LuaTokeniser::tokenType_integer;
         source = original;
 
-        if (parseDecimalLiteral (source))  return LuaTokeniser::tokenType_integer;
+        if (parseDecimalLiteral(source))
+            return LuaTokeniser::tokenType_integer;
         source = original;
 
         return LuaTokeniser::tokenType_error;
     }
 
-    template <typename Iterator>
-    static void skipQuotedString (Iterator& source) noexcept
+    template<typename Iterator>
+    static void skipQuotedString(Iterator& source) noexcept
     {
         auto quote = source.nextChar();
 
-        for (;;)
-        {
+        for (;;) {
             auto c = source.nextChar();
 
             if (c == quote || c == 0)
@@ -312,16 +309,13 @@ struct LuaTokeniserFunctions
         }
     }
 
-    template <typename Iterator>
+    template<typename Iterator>
     static void skipComment(Iterator& source) noexcept
     {
         source.skip(); // Consume the '['
-        while (auto c = source.nextChar())
-        {
-            if (c == ']')
-            {
-                if (source.peekNextChar() == ']')
-                {
+        while (auto c = source.nextChar()) {
+            if (c == ']') {
+                if (source.peekNextChar() == ']') {
                     source.nextChar(); // Consume the closing ']'
                     break;
                 }
@@ -329,16 +323,15 @@ struct LuaTokeniserFunctions
         }
     }
 
-
-    template <typename Iterator>
-    static void skipIfNextCharMatches (Iterator& source, const juce_wchar c) noexcept
+    template<typename Iterator>
+    static void skipIfNextCharMatches(Iterator& source, juce_wchar const c) noexcept
     {
         if (source.peekNextChar() == c)
             source.skip();
     }
 
-    template <typename Iterator>
-    static void skipIfNextCharMatches (Iterator& source, const juce_wchar c1, const juce_wchar c2) noexcept
+    template<typename Iterator>
+    static void skipIfNextCharMatches(Iterator& source, juce_wchar const c1, juce_wchar const c2) noexcept
     {
         auto c = source.peekNextChar();
 
@@ -346,25 +339,30 @@ struct LuaTokeniserFunctions
             source.skip();
     }
 
-    template <typename Iterator>
-    static int readNextToken (Iterator& source)
+    template<typename Iterator>
+    static int readNextToken(Iterator& source)
     {
         source.skipWhitespace();
         auto firstChar = source.peekNextChar();
 
-        switch (firstChar)
-        {
+        switch (firstChar) {
         case 0:
             break;
 
-        case '0':   case '1':   case '2':   case '3':   case '4':
-        case '5':   case '6':   case '7':   case '8':   case '9':
-        case '.' :
-        {
-            auto result = parseNumber (source);
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+        case '.': {
+            auto result = parseNumber(source);
 
-            if (result == LuaTokeniser::tokenType_error)
-            {
+            if (result == LuaTokeniser::tokenType_error) {
                 source.skip();
 
                 if (firstChar == '.')
@@ -380,78 +378,80 @@ struct LuaTokeniserFunctions
             source.skip();
             return LuaTokeniser::tokenType_punctuation;
 
-        case '(':   case ')':
-        case '{':   case '}':
-        case '[':   case ']':
+        case '(':
+        case ')':
+        case '{':
+        case '}':
+        case '[':
+        case ']':
             source.skip();
             return LuaTokeniser::tokenType_bracket;
 
         case '"':
         case '\'':
-            skipQuotedString (source);
+            skipQuotedString(source);
             return LuaTokeniser::tokenType_string;
 
         case '+':
             source.skip();
-            skipIfNextCharMatches (source, '=');
+            skipIfNextCharMatches(source, '=');
             return LuaTokeniser::tokenType_operator;
 
-        case '-':
-        {
+        case '-': {
             source.skip();
             auto nextChar = source.peekNextChar();
-            
+
             if (nextChar == '-') {
                 source.skip();
                 auto nextChar = source.peekNextChar();
-                
+
                 if (nextChar == '=') {
                     source.skip();
-                }
-                else if (nextChar == '[')
-                {
+                } else if (nextChar == '[') {
                     source.skip();
-                    skipComment (source);
+                    skipComment(source);
                     return LuaTokeniser::tokenType_comment;
-                }
-                else {
+                } else {
                     source.skipToEndOfLine();
                     return LuaTokeniser::tokenType_comment;
                 }
-                
+
                 return LuaTokeniser::tokenType_operator;
-            }
-            else {
-                auto result = parseNumber (source);
-                
-                if (result == LuaTokeniser::tokenType_error)
-                {
-                    skipIfNextCharMatches (source, '=');
+            } else {
+                auto result = parseNumber(source);
+
+                if (result == LuaTokeniser::tokenType_error) {
+                    skipIfNextCharMatches(source, '=');
                     return LuaTokeniser::tokenType_operator;
                 }
                 return result;
             }
         }
 
-        case '*':   case '%':
-        case '=':   case '~':
+        case '*':
+        case '%':
+        case '=':
+        case '~':
             source.skip();
-            skipIfNextCharMatches (source, '=');
+            skipIfNextCharMatches(source, '=');
             return LuaTokeniser::tokenType_operator;
         case '?':
             source.skip();
             return LuaTokeniser::tokenType_operator;
 
-        case '<':   case '>':
-        case '|':   case '&':   case '^':
+        case '<':
+        case '>':
+        case '|':
+        case '&':
+        case '^':
             source.skip();
-            skipIfNextCharMatches (source, firstChar);
-            skipIfNextCharMatches (source, '=');
+            skipIfNextCharMatches(source, firstChar);
+            skipIfNextCharMatches(source, '=');
             return LuaTokeniser::tokenType_operator;
 
         default:
-            if (isIdentifierStart (firstChar))
-                return parseIdentifier (source);
+            if (isIdentifierStart(firstChar))
+                return parseIdentifier(source);
 
             source.skip();
             break;
@@ -460,17 +460,42 @@ struct LuaTokeniserFunctions
         return LuaTokeniser::tokenType_error;
     }
 
-    struct StringIterator
-    {
-        StringIterator (const String& s) noexcept            : t (s.getCharPointer()) {}
-        StringIterator (String::CharPointerType s) noexcept  : t (s) {}
+    struct StringIterator {
+        StringIterator(String const& s) noexcept
+            : t(s.getCharPointer())
+        {
+        }
+        StringIterator(String::CharPointerType s) noexcept
+            : t(s)
+        {
+        }
 
-        juce_wchar nextChar() noexcept      { if (isEOF()) return 0; ++numChars; return t.getAndAdvance(); }
-        juce_wchar peekNextChar()noexcept   { return *t; }
-        void skip() noexcept                { if (! isEOF()) { ++t; ++numChars; } }
-        void skipWhitespace() noexcept      { while (t.isWhitespace()) skip(); }
-        void skipToEndOfLine() noexcept     { while (*t != '\r' && *t != '\n' && *t != 0) skip(); }
-        bool isEOF() const noexcept         { return t.isEmpty(); }
+        juce_wchar nextChar() noexcept
+        {
+            if (isEOF())
+                return 0;
+            ++numChars;
+            return t.getAndAdvance();
+        }
+        juce_wchar peekNextChar() noexcept { return *t; }
+        void skip() noexcept
+        {
+            if (!isEOF()) {
+                ++t;
+                ++numChars;
+            }
+        }
+        void skipWhitespace() noexcept
+        {
+            while (t.isWhitespace())
+                skip();
+        }
+        void skipToEndOfLine() noexcept
+        {
+            while (*t != '\r' && *t != '\n' && *t != 0)
+                skip();
+        }
+        bool isEOF() const noexcept { return t.isEmpty(); }
 
         String::CharPointerType t;
         int numChars = 0;
@@ -487,97 +512,111 @@ struct LuaTokeniserFunctions
 
         @see addEscapeChars
     */
-    static void writeEscapeChars (OutputStream& out, const char* utf8, const int numBytesToRead,
-                                  const int maxCharsOnLine, const bool breakAtNewLines,
-                                  const bool replaceSingleQuotes, const bool allowStringBreaks)
+    static void writeEscapeChars(OutputStream& out, char const* utf8, int const numBytesToRead,
+        int const maxCharsOnLine, bool const breakAtNewLines,
+        bool const replaceSingleQuotes, bool const allowStringBreaks)
     {
         int charsOnLine = 0;
         bool lastWasHexEscapeCode = false;
         bool trigraphDetected = false;
 
-        for (int i = 0; i < numBytesToRead || numBytesToRead < 0; ++i)
-        {
-            auto c = (unsigned char) utf8[i];
+        for (int i = 0; i < numBytesToRead || numBytesToRead < 0; ++i) {
+            auto c = (unsigned char)utf8[i];
             bool startNewLine = false;
 
-            switch (c)
-            {
+            switch (c) {
 
-                case '\t':  out << "\\t";  trigraphDetected = false; lastWasHexEscapeCode = false; charsOnLine += 2; break;
-                case '\r':  out << "\\r";  trigraphDetected = false; lastWasHexEscapeCode = false; charsOnLine += 2; break;
-                case '\n':  out << "\\n";  trigraphDetected = false; lastWasHexEscapeCode = false; charsOnLine += 2; startNewLine = breakAtNewLines; break;
-                case '\\':  out << "\\\\"; trigraphDetected = false; lastWasHexEscapeCode = false; charsOnLine += 2; break;
-                case '\"':  out << "\\\""; trigraphDetected = false; lastWasHexEscapeCode = false; charsOnLine += 2; break;
+            case '\t':
+                out << "\\t";
+                trigraphDetected = false;
+                lastWasHexEscapeCode = false;
+                charsOnLine += 2;
+                break;
+            case '\r':
+                out << "\\r";
+                trigraphDetected = false;
+                lastWasHexEscapeCode = false;
+                charsOnLine += 2;
+                break;
+            case '\n':
+                out << "\\n";
+                trigraphDetected = false;
+                lastWasHexEscapeCode = false;
+                charsOnLine += 2;
+                startNewLine = breakAtNewLines;
+                break;
+            case '\\':
+                out << "\\\\";
+                trigraphDetected = false;
+                lastWasHexEscapeCode = false;
+                charsOnLine += 2;
+                break;
+            case '\"':
+                out << "\\\"";
+                trigraphDetected = false;
+                lastWasHexEscapeCode = false;
+                charsOnLine += 2;
+                break;
 
-                case '?':
-                    if (trigraphDetected)
-                    {
-                        out << "\\?";
-                        charsOnLine++;
-                        trigraphDetected = false;
-                    }
-                    else
-                    {
-                        out << "?";
-                        trigraphDetected = true;
-                    }
-
-                    lastWasHexEscapeCode = false;
+            case '?':
+                if (trigraphDetected) {
+                    out << "\\?";
                     charsOnLine++;
-                    break;
+                    trigraphDetected = false;
+                } else {
+                    out << "?";
+                    trigraphDetected = true;
+                }
 
-                case 0:
-                    if (numBytesToRead < 0)
-                        return;
+                lastWasHexEscapeCode = false;
+                charsOnLine++;
+                break;
 
-                    out << "\\0";
-                    lastWasHexEscapeCode = true;
+            case 0:
+                if (numBytesToRead < 0)
+                    return;
+
+                out << "\\0";
+                lastWasHexEscapeCode = true;
+                trigraphDetected = false;
+                charsOnLine += 2;
+                break;
+
+            case '\'':
+                if (replaceSingleQuotes) {
+                    out << "\\\'";
+                    lastWasHexEscapeCode = false;
                     trigraphDetected = false;
                     charsOnLine += 2;
                     break;
+                }
+                // deliberate fall-through...
+                JUCE_FALLTHROUGH
 
-                case '\'':
-                    if (replaceSingleQuotes)
-                    {
-                        out << "\\\'";
-                        lastWasHexEscapeCode = false;
-                        trigraphDetected = false;
-                        charsOnLine += 2;
-                        break;
-                    }
-                    // deliberate fall-through...
-                    JUCE_FALLTHROUGH
+            default:
+                if (c >= 32 && c < 127 && !(lastWasHexEscapeCode // (have to avoid following a hex escape sequence with a valid hex digit)
+                        && CharacterFunctions::getHexDigitValue(c) >= 0)) {
+                    out << (char)c;
+                    lastWasHexEscapeCode = false;
+                    trigraphDetected = false;
+                    ++charsOnLine;
+                } else if (allowStringBreaks && lastWasHexEscapeCode && c >= 32 && c < 127) {
+                    out << "\"\"" << (char)c;
+                    lastWasHexEscapeCode = false;
+                    trigraphDetected = false;
+                    charsOnLine += 3;
+                } else {
+                    out << (c < 16 ? "\\x0" : "\\x") << String::toHexString((int)c);
+                    lastWasHexEscapeCode = true;
+                    trigraphDetected = false;
+                    charsOnLine += 4;
+                }
 
-                default:
-                    if (c >= 32 && c < 127 && ! (lastWasHexEscapeCode  // (have to avoid following a hex escape sequence with a valid hex digit)
-                                                   && CharacterFunctions::getHexDigitValue (c) >= 0))
-                    {
-                        out << (char) c;
-                        lastWasHexEscapeCode = false;
-                        trigraphDetected = false;
-                        ++charsOnLine;
-                    }
-                    else if (allowStringBreaks && lastWasHexEscapeCode && c >= 32 && c < 127)
-                    {
-                        out << "\"\"" << (char) c;
-                        lastWasHexEscapeCode = false;
-                        trigraphDetected = false;
-                        charsOnLine += 3;
-                    }
-                    else
-                    {
-                        out << (c < 16 ? "\\x0" : "\\x") << String::toHexString ((int) c);
-                        lastWasHexEscapeCode = true;
-                        trigraphDetected = false;
-                        charsOnLine += 4;
-                    }
-
-                    break;
+                break;
             }
 
             if ((startNewLine || (maxCharsOnLine > 0 && charsOnLine >= maxCharsOnLine))
-                 && (numBytesToRead < 0 || i < numBytesToRead - 1))
-            {
+                && (numBytesToRead < 0 || i < numBytesToRead - 1)) {
                 charsOnLine = 0;
                 out << "\"" << newLine << "\"";
                 lastWasHexEscapeCode = false;
@@ -593,10 +632,10 @@ struct LuaTokeniserFunctions
 
         @see writeEscapeChars
     */
-    static String addEscapeChars (const String& s)
+    static String addEscapeChars(String const& s)
     {
         MemoryOutputStream mo;
-        writeEscapeChars (mo, s.toRawUTF8(), -1, -1, false, true, true);
+        writeEscapeChars(mo, s.toRawUTF8(), -1, -1, false, true, true);
         return mo.toString();
     }
 };
@@ -1072,7 +1111,7 @@ public:
 
     /** Return the current selection state. */
     SmallArray<Selection> const& getSelections() const;
-    
+
     /** Return the current selection state. */
     SmallArray<Selection> const& getSearchSelections() const;
 
@@ -1091,7 +1130,7 @@ public:
 
     /** Apply tokens from a set of zones to a range of rows. */
     void applyTokens(Range<int> rows, SmallArray<Selection> const& zones);
-    
+
     int searchNext()
     {
         currentSearchSelection++;
@@ -1151,8 +1190,8 @@ public:
     explicit HighlightComponent(TextDocument const& document);
     void setViewTransform(AffineTransform const& transformToUse, SmallArray<Selection> const& selections);
     void updateSelections(SmallArray<Selection> const& selections);
-    
-    void setHighlightColour(Colour c) { highlightColour  = c; }
+
+    void setHighlightColour(Colour c) { highlightColour = c; }
 
     void paint(Graphics& g) override;
 
@@ -1165,7 +1204,8 @@ private:
     Colour highlightColour;
 };
 
-class PlugDataTextEditor : public Component, public Timer {
+class PlugDataTextEditor : public Component
+    , public Timer {
 public:
     enum class RenderScheme {
         usingAttributedString,
@@ -1193,24 +1233,24 @@ public:
     void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& d) override;
     void mouseMagnify(MouseEvent const& e, float scaleFactor) override;
     void mouseMove(MouseEvent const& e) override;
-    
+
     void lookAndFeelChanged() override;
-    
+
     void timerCallback() override;
-    
+
     bool keyPressed(KeyPress const& key) override;
     MouseCursor getMouseCursor() override;
-    
+
     Rectangle<float> getScrollBarBounds() const;
-    
+
     CodeEditorComponent::ColourScheme getSyntaxColourScheme();
 
     bool hasChanged() const { return changed; }
     void setUnchanged() { changed = false; }
-    
+
     void performUndo() { undo.undo(); }
     void performRedo() { undo.redo(); }
-    
+
     bool canUndo() { return undo.canUndo(); }
     bool canRedo() { return undo.canRedo(); }
     void setUndoChangeListener(ChangeListener* listener)
@@ -1218,15 +1258,16 @@ public:
         undo.addChangeListener(listener);
         undo.sendSynchronousChangeMessage();
     }
-    
-    void setEnableSyntaxHighlighting(bool enable) {
+
+    void setEnableSyntaxHighlighting(bool enable)
+    {
         enableSyntaxHighlighting = enable;
         repaint();
     };
-    
+
     void setSearchText(String const& searchText);
     void searchNext();
-    
+
 private:
     bool insert(String const& content);
     void updateViewTransform();
@@ -1312,13 +1353,13 @@ SmallArray<Rectangle<float>> Caret::getCaretRectangles() const
     SmallArray<Rectangle<float>> rectangles;
 
     for (auto const& selection : document.getSelections()) {
-        if(selection.head == selection.tail) {
+        if (selection.head == selection.tail) {
             rectangles.add(document
-                           .getGlyphBounds(selection.head)
-                           .removeFromLeft(CURSOR_WIDTH)
-                           .translated(selection.head.y == 0 ? 0 : -0.5f * CURSOR_WIDTH, 0.f)
-                           .transformedBy(transform)
-                           .expanded(0.f, 1.f));
+                    .getGlyphBounds(selection.head)
+                    .removeFromLeft(CURSOR_WIDTH)
+                    .translated(selection.head.y == 0 ? 0 : -0.5f * CURSOR_WIDTH, 0.f)
+                    .transformedBy(transform)
+                    .expanded(0.f, 1.f));
         }
     }
     return rectangles;
@@ -1428,7 +1469,7 @@ void HighlightComponent::updateSelections(SmallArray<Selection> const& selection
     for (auto const& s : selections) {
         outlinePath.addPath(getOutlinePath(document.getSelectionRegion(s, clip)));
     }
-    
+
     repaint(outlinePath.getBounds().getSmallestIntegerContainer());
 }
 
@@ -2033,17 +2074,12 @@ void TextDocument::navigateSelections(Target target, Direction direction, Select
             return head.y == tail.y ? -1 : head.y < tail.y;
         return head.x < tail.x;
     };
-    
+
     for (auto& selection : selections) {
-        if(target == Target::character && ((isHeadBeforeTail(selection.head, selection.tail) == 1 && direction == Direction::forwardCol) ||
-                                           (isHeadBeforeTail(selection.head, selection.tail) == 0 && direction == Direction::backwardCol)))
-        {
+        if (target == Target::character && ((isHeadBeforeTail(selection.head, selection.tail) == 1 && direction == Direction::forwardCol) || (isHeadBeforeTail(selection.head, selection.tail) == 0 && direction == Direction::backwardCol))) {
             selection.head = selection.tail;
             continue;
-        }
-        else if(target == Target::character && ((isHeadBeforeTail(selection.head, selection.tail) == 0 && direction == Direction::forwardCol) ||
-                                                (isHeadBeforeTail(selection.head, selection.tail) == 1 && direction == Direction::backwardCol)))
-        {
+        } else if (target == Target::character && ((isHeadBeforeTail(selection.head, selection.tail) == 0 && direction == Direction::forwardCol) || (isHeadBeforeTail(selection.head, selection.tail) == 1 && direction == Direction::backwardCol))) {
             selection.tail = selection.head;
             continue;
         }
@@ -2066,16 +2102,14 @@ void TextDocument::search(String const& text)
 {
     selections.clear();
     searchSelections.clear();
-    
+
     for (int i = 0; i < lines.size(); i++) {
         auto idx = lines[i].indexOf(text);
-        if(idx >= 0)
-        {
+        if (idx >= 0) {
             searchSelections.add(Selection(Point<int>(i, idx), Point<int>(i, idx + text.length())));
         }
     }
 }
-
 
 juce_wchar TextDocument::getCharacter(Point<int> index) const
 {
@@ -2248,7 +2282,7 @@ PlugDataTextEditor::PlugDataTextEditor()
     addAndMakeVisible(searchHighlight);
     addAndMakeVisible(caret);
     addAndMakeVisible(gutter);
-    
+
     lookAndFeelChanged();
 }
 
@@ -2337,8 +2371,9 @@ void PlugDataTextEditor::translateToEnsureCaretIsVisible()
 void PlugDataTextEditor::translateToEnsureSearchIsVisible(int index)
 {
     auto selections = document.getSearchSelections();
-    if(index >= selections.size()) return;
-    
+    if (index >= selections.size())
+        return;
+
     auto i = selections[index].head;
     auto t = Point<float>(0.f, document.getVerticalPosition(i.x, TextDocument::Metric::top)).transformedBy(transform);
     auto b = Point<float>(0.f, document.getVerticalPosition(i.x, TextDocument::Metric::bottom)).transformedBy(transform);
@@ -2374,35 +2409,35 @@ void PlugDataTextEditor::paint(Graphics& g)
         renderSchemeString = "glyph arr.";
         break;
     }
-    
-   auto scrollBarBounds = getScrollBarBounds();
-   auto fadeWidth = jmap<float>(scrollbarFadePosition, 0.0f, 1.0f, 4.0f, 8.0f);
-    
-   // Draw a scrollbar if content height exceeds visible height
-   if (!scrollBarBounds.isEmpty())
-   {
-       auto scrollbarColour = findColour(PlugDataColour::scrollbarThumbColourId);
-       auto canvasBgColour = findColour(PlugDataColour::canvasBackgroundColourId);
-       g.setColour(scrollbarColour.interpolatedWith(canvasBgColour, 0.7f + jmap(scrollbarFadePosition, 0.0f, 1.0f, 0.1f, 0.0f)));  // Scrollbar background
-       g.fillRoundedRectangle(getWidth() - (fadeWidth + 2.0f), 2, fadeWidth, getHeight() - 4, fadeWidth / 2.0f);
-       
-       auto scrollBarThumbCol = scrollBarClicked ? scrollbarColour : scrollbarColour.interpolatedWith(canvasBgColour.contrasting(0.6f), 0.7f);
-       g.setColour(scrollBarThumbCol);  // Scrollbar thumb
-       g.fillRoundedRectangle(scrollBarBounds.withTrimmedLeft(8.0f - fadeWidth), fadeWidth / 2.0f);
-   }
+
+    auto scrollBarBounds = getScrollBarBounds();
+    auto fadeWidth = jmap<float>(scrollbarFadePosition, 0.0f, 1.0f, 4.0f, 8.0f);
+
+    // Draw a scrollbar if content height exceeds visible height
+    if (!scrollBarBounds.isEmpty()) {
+        auto scrollbarColour = findColour(PlugDataColour::scrollbarThumbColourId);
+        auto canvasBgColour = findColour(PlugDataColour::canvasBackgroundColourId);
+        g.setColour(scrollbarColour.interpolatedWith(canvasBgColour, 0.7f + jmap(scrollbarFadePosition, 0.0f, 1.0f, 0.1f, 0.0f))); // Scrollbar background
+        g.fillRoundedRectangle(getWidth() - (fadeWidth + 2.0f), 2, fadeWidth, getHeight() - 4, fadeWidth / 2.0f);
+
+        auto scrollBarThumbCol = scrollBarClicked ? scrollbarColour : scrollbarColour.interpolatedWith(canvasBgColour.contrasting(0.6f), 0.7f);
+        g.setColour(scrollBarThumbCol); // Scrollbar thumb
+        g.fillRoundedRectangle(scrollBarBounds.withTrimmedLeft(8.0f - fadeWidth), fadeWidth / 2.0f);
+    }
 }
 
 Rectangle<float> PlugDataTextEditor::getScrollBarBounds() const
 {
     auto contentHeight = document.getHeight();
     auto visibleHeight = getHeight();
-    if(contentHeight <= visibleHeight) return {};
-    
-    auto scrollPosition = -translation.y;
-    float scrollbarHeight = (float)visibleHeight / contentHeight * visibleHeight;  // Height of the scrollbar
-    float scrollbarPosition = (float)scrollPosition / contentHeight * visibleHeight;  // Y position of the scrollbar
+    if (contentHeight <= visibleHeight)
+        return {};
 
-    return {getWidth() - 10.f, scrollbarPosition + 2, 8.0f, scrollbarHeight - 4};
+    auto scrollPosition = -translation.y;
+    float scrollbarHeight = (float)visibleHeight / contentHeight * visibleHeight;    // Height of the scrollbar
+    float scrollbarPosition = (float)scrollPosition / contentHeight * visibleHeight; // Y position of the scrollbar
+
+    return { getWidth() - 10.f, scrollbarPosition + 2, 8.0f, scrollbarHeight - 4 };
 }
 
 void PlugDataTextEditor::mouseDown(MouseEvent const& e)
@@ -2417,36 +2452,36 @@ void PlugDataTextEditor::mouseDown(MouseEvent const& e)
     if (selections.contains(index)) {
         return;
     }
-    
-    if(e.x > getWidth() - 10 && document.getHeight() > getHeight())
-    {
+
+    if (e.x > getWidth() - 10 && document.getHeight() > getHeight()) {
         mouseDownViewPosition = translation.y + (e.y * (document.getHeight() / getHeight()));
         scrollBarClicked = true;
         repaint();
         return;
     }
-    
-    if (e.mods.isShiftDown() && selections.size())
-    {
+
+    if (e.mods.isShiftDown() && selections.size()) {
         auto& selection = selections[selections.size() - 1];
         bool wasOriented = selection.isOriented();
         auto orientedSelection = selection.oriented();
-        
+
         auto isBeforeSelection = [](Point<int> index, Point<int> selection) -> int {
-            if (index.x == selection.x) return index.y == selection.y ? -1 : index.y < selection.y;
+            if (index.x == selection.x)
+                return index.y == selection.y ? -1 : index.y < selection.y;
             return index.x < selection.x;
         };
-        
-        if(isBeforeSelection(index, orientedSelection.head)) orientedSelection.head = index;
-        else orientedSelection.tail = index;
-            
+
+        if (isBeforeSelection(index, orientedSelection.head))
+            orientedSelection.head = index;
+        else
+            orientedSelection.tail = index;
+
         selection = wasOriented ? orientedSelection : orientedSelection.swapped();
 
         document.setSelections(selections);
         updateSelections();
         return;
-    }
-    else if (!e.mods.isCommandDown() || !TEST_MULTI_CARET_EDITING) {
+    } else if (!e.mods.isCommandDown() || !TEST_MULTI_CARET_EDITING) {
         selections.clear();
     }
 
@@ -2458,8 +2493,7 @@ void PlugDataTextEditor::mouseDown(MouseEvent const& e)
 void PlugDataTextEditor::mouseDrag(MouseEvent const& e)
 {
     // Check if the drag is happening within the scrollbar area (right 10px of the editor)
-    if (e.getMouseDownX() > getWidth() - 10 && document.getHeight() > getHeight())
-    {
+    if (e.getMouseDownX() > getWidth() - 10 && document.getHeight() > getHeight()) {
         translation.y = jlimit(jmin(-0.f, -(viewScaleFactor * document.getBounds().getHeight()) + (getHeight() - 10)), 0.0f, (mouseDownViewPosition - (e.y * (document.getHeight() / getHeight()))));
         updateViewTransform();
         return;
@@ -2481,13 +2515,10 @@ void PlugDataTextEditor::mouseUp(MouseEvent const& e)
 
 void PlugDataTextEditor::mouseMove(MouseEvent const& e)
 {
-    if (e.x > getWidth() - 10 && document.getHeight() > getHeight() && !isOverScrollBar)
-    {
+    if (e.x > getWidth() - 10 && document.getHeight() > getHeight() && !isOverScrollBar) {
         isOverScrollBar = true;
         startTimerHz(60);
-    }
-    else if((e.x <= getWidth() - 10 || document.getHeight() < getHeight()) && isOverScrollBar)
-    {
+    } else if ((e.x <= getWidth() - 10 || document.getHeight() < getHeight()) && isOverScrollBar) {
         isOverScrollBar = false;
         startTimerHz(60);
     }
@@ -2521,18 +2552,18 @@ void PlugDataTextEditor::mouseWheelMove(MouseEvent const& e, MouseWheelDetails c
 
 void PlugDataTextEditor::timerCallback()
 {
-    if(isOverScrollBar)
-    {
+    if (isOverScrollBar) {
         scrollbarFadePosition += 0.1f;
-    }
-    else {
+    } else {
         scrollbarFadePosition -= 0.1f;
     }
-    
+
     scrollbarFadePosition = std::clamp(scrollbarFadePosition, 0.0f, 1.0f);
-    if(!isOverScrollBar && scrollbarFadePosition == 0.0f) stopTimer();
-    if(isOverScrollBar && scrollbarFadePosition == 1.0f) stopTimer();
-    
+    if (!isOverScrollBar && scrollbarFadePosition == 0.0f)
+        stopTimer();
+    if (isOverScrollBar && scrollbarFadePosition == 1.0f)
+        stopTimer();
+
     repaint();
 }
 
@@ -2580,7 +2611,7 @@ bool PlugDataTextEditor::keyPressed(KeyPress const& key)
         return true;
     };
     if (key.isKeyCode(KeyPress::escapeKey)) {
-        document.setSelections({document.getSelections().back()});
+        document.setSelections({ document.getSelections().back() });
         updateSelections();
         return true;
     }
@@ -2709,42 +2740,38 @@ MouseCursor PlugDataTextEditor::getMouseCursor()
 CodeEditorComponent::ColourScheme PlugDataTextEditor::getSyntaxColourScheme()
 {
     auto textColour = findColour(PlugDataColour::canvasTextColourId);
-    if(findColour(PlugDataColour::canvasBackgroundColourId).getPerceivedBrightness() > 0.5f)
-    {
-        static const CodeEditorComponent::ColourScheme::TokenType types[] =
-        {
-            { "Error",          Colour (0xffcc0000) },
-            { "Comment",        Colour (0xff3c3c9c) },
-            { "Keyword",        Colour (0xff0000cc) },
-            { "Operator",       Colour (0xff225500) },
-            { "Identifier",     Colour (0xff000000) },
-            { "Integer",        Colour (0xff880000) },
-            { "Float",          Colour (0xff885500) },
-            { "String",         Colour (0xff990099) },
-            { "Bracket",        Colour (0xff000055) },
-            { "Punctuation",    textColour }
+    if (findColour(PlugDataColour::canvasBackgroundColourId).getPerceivedBrightness() > 0.5f) {
+        static CodeEditorComponent::ColourScheme::TokenType const types[] = {
+            { "Error", Colour(0xffcc0000) },
+            { "Comment", Colour(0xff3c3c9c) },
+            { "Keyword", Colour(0xff0000cc) },
+            { "Operator", Colour(0xff225500) },
+            { "Identifier", Colour(0xff000000) },
+            { "Integer", Colour(0xff880000) },
+            { "Float", Colour(0xff885500) },
+            { "String", Colour(0xff990099) },
+            { "Bracket", Colour(0xff000055) },
+            { "Punctuation", textColour }
         };
 
         CodeEditorComponent::ColourScheme cs;
 
         for (auto& t : types)
-            cs.set (t.name, Colour (t.colour));
+            cs.set(t.name, Colour(t.colour));
 
         return cs;
-    }
-    else {
-        static const CodeEditorComponent::ColourScheme::TokenType types[] =
-        {
-            { "Error",          Colour (0xffff6666) },
-            { "Comment",        Colour (0xff8888ff) },
-            { "Keyword",        Colour (0xff66aaff) },
-            { "Operator",       Colour (0xff77cc77) },
-            { "Identifier",     Colour (0xffffffff) },
-            { "Integer",        Colour (0xffffaa66) },
-            { "Float",          Colour (0xffffcc88) },
-            { "String",         Colour (0xffcc88ff) },
-            { "Bracket",        Colour (0xff66aaff) },
-            { "Punctuation",    textColour }
+    } else {
+        static CodeEditorComponent::ColourScheme::TokenType const types[] = {
+            { "Error", Colour(0xffff6666) },
+            { "Comment", Colour(0xff8888ff) },
+            { "Keyword", Colour(0xff66aaff) },
+            { "Operator", Colour(0xff77cc77) },
+            { "Identifier", Colour(0xffffffff) },
+            { "Integer", Colour(0xffffaa66) },
+            { "Float", Colour(0xffffcc88) },
+            { "String", Colour(0xffcc88ff) },
+            { "Bracket", Colour(0xff66aaff) },
+            { "Punctuation", textColour }
         };
 
         CodeEditorComponent::ColourScheme cs;
@@ -2826,7 +2853,7 @@ void PlugDataTextEditor::renderTextUsingGlyphArrangement(Graphics& g)
         auto index = Point<int>(rows.getStart(), 0);
         document.navigate(index, TextDocument::Target::token, TextDocument::Direction::backwardRow);
 
-        auto it = TextDocument::Iterator(document, {0, 0});
+        auto it = TextDocument::Iterator(document, { 0, 0 });
         auto previous = it.getIndex();
         auto zones = SmallArray<Selection>();
 
@@ -2849,7 +2876,8 @@ void PlugDataTextEditor::renderTextUsingGlyphArrangement(Graphics& g)
     g.restoreState();
 }
 
-struct TextEditorDialog : public Component, public ChangeListener {
+struct TextEditorDialog : public Component
+    , public ChangeListener {
     ResizableBorderComponent resizer;
     std::unique_ptr<Button> closeButton;
     ComponentDragger windowDragger;
@@ -2862,7 +2890,7 @@ struct TextEditorDialog : public Component, public ChangeListener {
     MainToolbarButton searchButton = MainToolbarButton(Icons::Search);
 
     SearchEditor searchInput;
-    
+
     std::function<void(String, bool)> onClose;
     std::function<void(String)> onSave;
 
@@ -2893,42 +2921,42 @@ struct TextEditorDialog : public Component, public ChangeListener {
         setVisible(true);
 
         // Position in centre of screen
-        setBounds(Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea.withSizeKeepingCentre(700,500));
-        
+        setBounds(Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea.withSizeKeepingCentre(700, 500));
+
         addAndMakeVisible(saveButton);
         addAndMakeVisible(undoButton);
         addAndMakeVisible(redoButton);
         addAndMakeVisible(searchButton);
-        
+
         editor.setUndoChangeListener(this);
-        
-        undoButton.onClick = [this](){
+
+        undoButton.onClick = [this]() {
             editor.performUndo();
         };
-        redoButton.onClick = [this](){
+        redoButton.onClick = [this]() {
             editor.performRedo();
         };
-        
-        saveButton.onClick = [this](){
+
+        saveButton.onClick = [this]() {
             onSave(editor.getText());
             editor.setUnchanged();
         };
-        
-        searchButton.onClick = [this](){
+
+        searchButton.onClick = [this]() {
             searchInput.setVisible(searchButton.getToggleState());
             editor.setSearchText("");
-            if(searchButton.getToggleState()) {
+            if (searchButton.getToggleState()) {
                 searchInput.setText("");
                 searchInput.grabKeyboardFocus();
             }
         };
-        
+
         searchButton.setClickingTogglesState(true);
         addAndMakeVisible(editor);
         addAndMakeVisible(resizer);
         resizer.setAlwaysOnTop(true);
         // resizer.setAllowHostManagedResize(false);
-        
+
         addChildComponent(searchInput);
         searchInput.setTextToShowWhenEmpty("Type to search", findColour(TextEditor::textColourId).withAlpha(0.5f));
         searchInput.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
@@ -2939,7 +2967,7 @@ struct TextEditorDialog : public Component, public ChangeListener {
         searchInput.onTextChange = [this]() {
             editor.setSearchText(searchInput.getText());
         };
-        searchInput.onReturnKey = [this](){
+        searchInput.onReturnKey = [this]() {
             editor.searchNext();
         };
 
@@ -2947,7 +2975,7 @@ struct TextEditorDialog : public Component, public ChangeListener {
         editor.setEnableSyntaxHighlighting(enableSyntaxHighlighting);
     }
 
-    void changeListenerCallback (ChangeBroadcaster* source) override
+    void changeListenerCallback(ChangeBroadcaster* source) override
     {
         undoButton.setEnabled(editor.canUndo());
         redoButton.setEnabled(editor.canRedo());
@@ -2959,14 +2987,14 @@ struct TextEditorDialog : public Component, public ChangeListener {
         auto b = getLocalBounds().reduced(margin);
 
         resizer.setBounds(b);
-        
+
         auto toolbarBounds = b.removeFromTop(43);
         toolbarBounds.removeFromLeft(10);
         toolbarBounds.removeFromTop(2);
 
         auto closeButtonBounds = toolbarBounds.removeFromRight(30).reduced(0, 5).translated(-5, 1);
         closeButton->setBounds(closeButtonBounds);
-        
+
         toolbarBounds.removeFromRight(10);
         auto searchButtonBounds = toolbarBounds.removeFromRight(39);
         auto saveButtonBounds = toolbarBounds.removeFromLeft(39);
@@ -2974,14 +3002,14 @@ struct TextEditorDialog : public Component, public ChangeListener {
         auto undoButtonBounds = toolbarBounds.removeFromLeft(39);
         toolbarBounds.removeFromLeft(10);
         auto redoButtonBounds = toolbarBounds.removeFromLeft(39);
- 
+
         searchInput.setBounds(toolbarBounds.reduced(5, 5));
-        
+
         searchButton.setBounds(searchButtonBounds);
         saveButton.setBounds(saveButtonBounds);
         undoButton.setBounds(undoButtonBounds);
         redoButton.setBounds(redoButtonBounds);
-        
+
         editor.setBounds(b.withTrimmedBottom(20));
     }
 
@@ -3000,14 +3028,14 @@ struct TextEditorDialog : public Component, public ChangeListener {
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawRoundedRectangle(getLocalBounds().reduced(margin).toFloat(), ProjectInfo::canUseSemiTransparentWindows() ? Corners::windowCornerRadius : 0.0f, 1.0f);
     }
-    
+
     bool keyPressed(KeyPress const& key) override
     {
         if (key == KeyPress('f', ModifierKeys::commandModifier, 0)) {
             searchButton.setToggleState(true, sendNotification);
             return true;
         }
-        
+
         return false;
     }
 

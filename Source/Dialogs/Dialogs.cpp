@@ -72,9 +72,8 @@ Dialog::Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWi
         }
         window->repaint();
     }
-    
-    if(auto* pluginEditor = dynamic_cast<PluginEditor*>(editor))
-    {
+
+    if (auto* pluginEditor = dynamic_cast<PluginEditor*>(editor)) {
         pluginEditor->nvgSurface.setRenderThroughImage(true);
     }
 }
@@ -544,12 +543,10 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
     popupMenu.addCustomItem(Extra, std::make_unique<QuickActionsBar>(editor), nullptr, "Quick Actions");
     popupMenu.addSeparator();
-    
-    if(!multiple && object && object->gui)
-    {
+
+    if (!multiple && object && object->gui) {
         object->gui->getMenuOptions(popupMenu);
-    }
-    else {
+    } else {
         popupMenu.addItem(-1, "Open", false);
     }
 

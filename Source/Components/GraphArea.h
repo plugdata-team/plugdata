@@ -15,6 +15,7 @@ class GraphArea : public Component
     ComponentDragger dragger;
     Rectangle<float> topLeftCorner, topRightCorner, bottomLeftCorner, bottomRightCorner;
     bool shiftDown = false;
+
 public:
     explicit GraphArea(Canvas* parent)
         : NVGComponent(this)
@@ -37,8 +38,9 @@ public:
     {
         canvas->locked.removeListener(this);
     }
-        
-    void shiftKeyChanged(bool isHeld) override {
+
+    void shiftKeyChanged(bool isHeld) override
+    {
         resizer.setVisible(!isHeld);
         setMouseCursor(isHeld ? MouseCursor::UpDownLeftRightResizeCursor : MouseCursor::NormalCursor);
         shiftDown = isHeld;
@@ -55,21 +57,21 @@ public:
 
         nvgDrawRoundedRect(nvg, lineBounds.getX(), lineBounds.getY(), lineBounds.getWidth(), lineBounds.getHeight(), nvgRGBA(0, 0, 0, 0), canvas->graphAreaCol, Corners::objectCornerRadius);
 
-        auto &resizeHandleImage = canvas->resizeHandleImage;
+        auto& resizeHandleImage = canvas->resizeHandleImage;
         int angle = 360;
 
         auto getVert = [lineBounds](int index) -> Point<float> {
-            switch(index){
-                case 0:
-                    return lineBounds.getTopLeft();
-                case 1:
-                    return lineBounds.getBottomLeft();
-                case 2:
-                    return lineBounds.getBottomRight();
-                case 3:
-                    return lineBounds.getTopRight();
-                default:
-                    return { };
+            switch (index) {
+            case 0:
+                return lineBounds.getTopLeft();
+            case 1:
+                return lineBounds.getBottomLeft();
+            case 2:
+                return lineBounds.getBottomRight();
+            case 3:
+                return lineBounds.getTopRight();
+            default:
+                return {};
             }
         };
 
@@ -92,19 +94,17 @@ public:
     {
         return (topLeftCorner.contains(x, y) || topRightCorner.contains(x, y) || bottomLeftCorner.contains(x, y) || bottomRightCorner.contains(x, y)) && !getLocalBounds().reduced(4).contains(x, y);
     }
-        
+
     void mouseDown(MouseEvent const& e) override
     {
-        if(shiftDown)
-        {
+        if (shiftDown) {
             dragger.startDraggingComponent(this, e);
         }
     }
-        
+
     void mouseDrag(MouseEvent const& e) override
     {
-        if(shiftDown)
-        {
+        if (shiftDown) {
             dragger.dragComponent(this, e, nullptr);
         }
     }
@@ -144,7 +144,7 @@ public:
         applyBounds();
         canvas->synchroniseAllCanvases();
     }
-        
+
     void moved() override
     {
         applyBounds();

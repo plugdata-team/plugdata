@@ -24,7 +24,8 @@ using namespace gl;
 
 // Special viewport that shows scrollbars on top of content instead of next to it
 class CanvasViewport : public Viewport
-    , public NVGComponent, public Timer {
+    , public NVGComponent
+    , public Timer {
     class MousePanner : public MouseListener {
     public:
         explicit MousePanner(CanvasViewport* vp)
@@ -47,8 +48,9 @@ class CanvasViewport : public Viewport
         // thus giving us a chance to attach the mouselistener on the middle-mouse click event
         void mouseDown(MouseEvent const& e) override
         {
-            if(!e.mods.isLeftButtonDown() && !e.mods.isMiddleButtonDown()) return;
-            
+            if (!e.mods.isLeftButtonDown() && !e.mods.isMiddleButtonDown())
+                return;
+
             e.originalComponent->setMouseCursor(MouseCursor::DraggingHandCursor);
             downPosition = viewport->getViewPosition();
             downCanvasOrigin = viewport->cnv->canvasOrigin;
@@ -170,8 +172,9 @@ class CanvasViewport : public Viewport
 
         void mouseDown(MouseEvent const& e) override
         {
-            if(!e.mods.isLeftButtonDown()) return;
-            
+            if (!e.mods.isLeftButtonDown())
+                return;
+
             isMouseDragging = true;
             viewPosition = viewport->getViewPosition();
             repaint();
@@ -233,7 +236,7 @@ class CanvasViewport : public Viewport
                 thumbCornerRadius = growingBounds.getWidth();
                 fullBounds = growingBounds.withY(2).withHeight(getHeight() - 4);
             }
-            
+
             scrollbarBgCol.a = (1.0f - growAnimation) * 150; // 0-150 opacity, not full opacity when active
             nvgDrawRoundedRect(nvg, fullBounds.getX(), fullBounds.getY(), fullBounds.getWidth(), fullBounds.getHeight(), scrollbarBgCol, scrollbarBgCol, thumbCornerRadius);
 
@@ -407,7 +410,7 @@ public:
             return;
 
         lastScaleFactor = newScaleFactor;
-        
+
         scaleChanged = true;
 
         // Get floating point mouse position relative to screen
@@ -464,11 +467,11 @@ public:
 
     void visibleAreaChanged(Rectangle<int> const& r) override
     {
-        if(scaleChanged) {
+        if (scaleChanged) {
             cnv->isZooming = true;
             startTimer(150);
         }
-        
+
         onScroll();
         adjustScrollbarBounds();
         editor->nvgSurface.invalidateAll();
@@ -515,7 +518,7 @@ public:
         return false;
     }
 
-    std::function<void()> onScroll = []() {};
+    std::function<void()> onScroll = []() { };
 
 private:
     Time lastScrollTime;

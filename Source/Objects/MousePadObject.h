@@ -84,21 +84,19 @@ public:
     }
 
     ~MousePadObject() override = default;
-    
-    bool isInsideGraphBounds(const MouseEvent& e)
+
+    bool isInsideGraphBounds(MouseEvent const& e)
     {
         auto* graph = findParentComponentOfClass<GraphOnParent>();
-        while(graph)
-        {
+        while (graph) {
             auto pos = e.getEventRelativeTo(graph).getPosition();
-            if(!graph->getLocalBounds().contains(pos))
-            {
+            if (!graph->getLocalBounds().contains(pos)) {
                 return false;
             }
-            
+
             graph = graph->findParentComponentOfClass<GraphOnParent>();
         }
-        
+
         return true;
     }
 
@@ -106,11 +104,10 @@ public:
     {
         auto b = getLocalBounds().toFloat();
         Colour fillColour, outlineColour;
-        if(auto x = ptr.get<t_fake_pad>()) {
+        if (auto x = ptr.get<t_fake_pad>()) {
             fillColour = Colour(x->x_color[0], x->x_color[1], x->x_color[2]);
             outlineColour = cnv->editor->getLookAndFeel().findColour(object->isSelected() && !cnv->isGraph ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::outlineColourId);
         }
-            
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(fillColour), convertColour(outlineColour), Corners::objectCornerRadius);
     }

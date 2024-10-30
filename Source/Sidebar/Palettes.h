@@ -28,7 +28,7 @@ class AddItemButton : public Component {
     bool mouseIsOver = false;
 
 public:
-    std::function<void()> onClick = []() {};
+    std::function<void()> onClick = []() { };
 
     void paint(Graphics& g) override
     {
@@ -425,7 +425,7 @@ public:
         return palette;
     }
 
-    std::function<void()> rightClicked = []() {};
+    std::function<void()> rightClicked = []() { };
 
 private:
     ValueTree palette;
@@ -461,8 +461,7 @@ public:
                                 paletteTree.setProperty("Name", paletteName, nullptr);
                                 paletteTree.setProperty("Patch", patch, nullptr);
                                 paletteCategory.appendChild(paletteTree, nullptr);
-                            }
-                            else {
+                            } else {
                                 // TODO: temporary for version transition. Remove after v1 release
                                 auto p = exitingChildWithName.getProperty("Patch").toString();
                                 p = p.replace("palette/", "else/");
@@ -508,7 +507,6 @@ public:
 
             auto* parent = ProjectInfo::canUseSemiTransparentWindows() ? editor->calloutArea.get() : nullptr;
 
-            
             ArrowPopupMenu::showMenuAsync(menu, PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(&addButton).withParentComponent(parent), [this, menu](int result) {
                 if (result > 0) {
                     auto newUntitledPalette = ValueTree("Palette");
@@ -519,8 +517,7 @@ public:
                 MessageManager::callAsync([menu, this]() {
                     editor->calloutArea->removeFromDesktop();
                     delete menu;
-                });
-            }, ArrowPopupMenu::ArrowDirection::LeftRight);
+                }); }, ArrowPopupMenu::ArrowDirection::LeftRight);
 
             if (ProjectInfo::canUseSemiTransparentWindows()) {
                 editor->calloutArea->addToDesktop(ComponentPeer::windowIsTemporary);
@@ -946,7 +943,8 @@ private:
     private:
         void mouseDown(MouseEvent const& e) override
         {
-            if(!e.mods.isLeftButtonDown()) return;
+            if (!e.mods.isLeftButtonDown())
+                return;
             dragStartWidth = target->getWidth();
         }
 

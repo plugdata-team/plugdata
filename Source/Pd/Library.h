@@ -15,24 +15,25 @@
 namespace pd {
 
 class Instance;
-class Library : public FileSystemWatcher::Listener, public Thread {
+class Library : public FileSystemWatcher::Listener
+    , public Thread {
 
 public:
     explicit Library(pd::Instance* instance);
 
     ~Library() override;
-    
+
     void run() override;
-    
+
     void waitForInitialisationToFinish();
 
     void updateLibrary();
 
     bool isGemObject(String const& query) const;
-    
+
     StringArray autocomplete(String const& query, File const& patchDirectory) const;
     StringArray searchObjectDocumentation(String const& query);
-    
+
     static File findPatch(String const& patchToFind);
 
     static StackArray<StringArray, 2> parseIoletTooltips(ValueTree const& iolets, String const& name, int numIn, int numOut);
@@ -52,8 +53,7 @@ public:
     // Paths to search for helpfiles
     // First, only search vanilla, then search all documentation
     // Lastly, check the deken folder
-    static inline StackArray<File, 9> const helpPaths = {{
-        ProjectInfo::appDataDir.getChildFile("Documentation"),
+    static inline StackArray<File, 9> const helpPaths = { { ProjectInfo::appDataDir.getChildFile("Documentation"),
         ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("5.reference"),
         ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("9.else"),
         ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("10.cyclone"),
@@ -61,28 +61,25 @@ public:
         ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("13.pdlua"),
         ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("14.gem"),
         ProjectInfo::appDataDir.getChildFile("Extra"),
-        ProjectInfo::appDataDir.getChildFile("Externals")
-    }};
+        ProjectInfo::appDataDir.getChildFile("Externals") } };
 
-    static inline StackArray<File, 8> const defaultPaths = {{
-        ProjectInfo::appDataDir.getChildFile("Abstractions").getChildFile("else"),
+    static inline StackArray<File, 8> const defaultPaths = { { ProjectInfo::appDataDir.getChildFile("Abstractions").getChildFile("else"),
         ProjectInfo::appDataDir.getChildFile("Abstractions").getChildFile("cyclone"),
         ProjectInfo::appDataDir.getChildFile("Abstractions").getChildFile("heavylib"),
         ProjectInfo::appDataDir.getChildFile("Abstractions"),
         ProjectInfo::appDataDir.getChildFile("Externals"),
         ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("else"),
         ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Gem"),
-        ProjectInfo::appDataDir.getChildFile("Extra")
-    }};
+        ProjectInfo::appDataDir.getChildFile("Extra") } };
 
     static inline StringArray objectOrigins = { "vanilla", "ELSE", "cyclone", "Gem", "heavylib", "pdlua" };
 
 private:
     StringArray allObjects;
     StringArray gemObjects;
-    
+
     std::recursive_mutex libraryLock;
-    
+
     fuzzysearch::Database<ValueTree> searchDatabase;
 
     FileSystemWatcher watcher;

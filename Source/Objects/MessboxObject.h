@@ -16,7 +16,7 @@ class MessboxObject final : public ObjectBase
     Value fontSize = SynchronousValue();
     Value bold = SynchronousValue();
     Value sizeProperty = SynchronousValue();
-        
+
     bool needsRepaint = true;
 
 public:
@@ -115,13 +115,13 @@ public:
         setInterceptsMouseClicks(locked, locked);
         editor.setReadOnly(!locked);
     }
-        
+
     void render(NVGcontext* nvg) override
     {
         bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
         nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), convertColour(Colour::fromString(secondaryColour.toString())), convertColour(outlineColour), Corners::objectCornerRadius);
-        
+
         auto scale = getImageScale();
         if (needsRepaint || isEditorShown() || imageRenderer.needsUpdate(roundToInt(editor.getWidth() * scale), roundToInt(editor.getHeight() * scale))) {
             imageRenderer.renderJUCEComponent(nvg, editor, scale);
@@ -130,8 +130,8 @@ public:
             imageRenderer.render(nvg, getLocalBounds().withTrimmedRight(5));
         }
     }
-        
-    void paint(Graphics& g) override {};
+
+    void paint(Graphics& g) override { };
 
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
@@ -175,7 +175,7 @@ public:
         editor.setReadOnly(true);
         repaint();
     }
-        
+
     bool isEditorShown() override
     {
         return !editor.isReadOnly() && editor.hasKeyboardFocus(false);
@@ -335,7 +335,6 @@ public:
                 if (auto messbox = ptr.get<t_fake_messbox>())
                     messbox->x_font_weight = pd->generateSymbol("bold");
             }
-
         }
     }
 

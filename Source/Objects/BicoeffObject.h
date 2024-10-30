@@ -20,7 +20,7 @@ class BicoeffGraph : public Component
     Path magnitudePath;
 
 public:
-    std::function<void(float, float, float, float, float)> graphChangeCallback = [](float, float, float, float, float) {};
+    std::function<void(float, float, float, float, float)> graphChangeCallback = [](float, float, float, float, float) { };
 
     enum FilterType {
         Allpass,

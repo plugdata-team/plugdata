@@ -115,12 +115,12 @@ void ObjectBase::ObjectSizeListener::valueChanged(Value& v)
         auto x = static_cast<float>(v.getValue().getArray()->getReference(0));
         auto y = static_cast<float>(v.getValue().getArray()->getReference(1));
 
-        if(Time::getMillisecondCounter() - lastChange > 6000) {
+        if (Time::getMillisecondCounter() - lastChange > 6000) {
             pd::Interface::undoApply(patch, obj.get());
         }
-        
+
         lastChange = Time::getMillisecondCounter();
-    
+
         pd::Interface::moveObject(patch, obj.get(), x, y);
         object->updateBounds();
     }
@@ -140,14 +140,14 @@ void ObjectBase::PropertyListener::setNoCallback(bool skipCallback)
 
 void ObjectBase::PropertyListener::valueChanged(Value& v)
 {
-    if(noCallback) return;
-    
-    if(!v.refersToSameSourceAs(lastValue) || Time::getMillisecondCounter() - lastChange > 6000)
-    {
+    if (noCallback)
+        return;
+
+    if (!v.refersToSameSourceAs(lastValue) || Time::getMillisecondCounter() - lastChange > 6000) {
         onChange();
         lastValue.referTo(v);
     }
-    
+
     lastChange = Time::getMillisecondCounter();
     parent->propertyChanged(v);
 }
@@ -162,17 +162,18 @@ ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
     , objectSizeListener(parent)
 {
     // Perform async, so that we don't get a size change callback for initial creation
-    MessageManager::callAsync([_this = SafePointer(this)](){
-        if(!_this) return;
+    MessageManager::callAsync([_this = SafePointer(this)]() {
+        if (!_this)
+            return;
         _this->object->addComponentListener(&_this->objectSizeListener);
         _this->updateLabel();
-        
+
         auto objectBounds = _this->object->getObjectBounds();
         _this->positionParameter = Array<var> { var(objectBounds.getX()), var(objectBounds.getY()) };
         _this->objectParameters.addParamPosition(&_this->positionParameter);
         _this->positionParameter.addListener(&_this->objectSizeListener);
     });
-    
+
     setWantsKeyboardFocus(true);
 
     setLookAndFeel(new PlugDataLook());
@@ -259,15 +260,14 @@ String ObjectBase::getTypeWithOriginPrefix() const
             return type;
 
         auto origin = pd::Library::getObjectOrigin(obj.get());
-        
-        if(origin == "ELSE" && type == "msg")
-        {
+
+        if (origin == "ELSE" && type == "msg") {
             return "ELSE/message";
         }
 
         if (origin.isEmpty())
             return type;
-        
+
         return origin + "/" + type;
     }
 
@@ -395,7 +395,7 @@ void ObjectBase::openSubpatch()
     if (abstraction) {
         path = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
     }
-    
+
     cnv->editor->getTabComponent().setActiveSplit(cnv);
     subpatch->splitViewIndex = cnv->patch.splitViewIndex;
     cnv->editor->getTabComponent().openPatch(subpatch);
@@ -469,25 +469,24 @@ void ObjectBase::paint(Graphics& g)
 float ObjectBase::getImageScale()
 {
     Canvas* topLevel = cnv;
-    if(!hideInGraph()) { // No need to do this if we can't be visible in a graph anyway!
+    if (!hideInGraph()) { // No need to do this if we can't be visible in a graph anyway!
         while (auto* nextCnv = topLevel->findParentComponentOfClass<Canvas>()) {
             topLevel = nextCnv;
         }
     }
-    if(topLevel->editor->pluginMode)
-    {
-        auto scale = std::sqrt (std::abs (topLevel->getTransform().getDeterminant()));
+    if (topLevel->editor->pluginMode) {
+        auto scale = std::sqrt(std::abs(topLevel->getTransform().getDeterminant()));
         return topLevel->getRenderScale() * std::max(1.0f, scale);
     }
-    
+
     // Use rng to gradually update them all as we zoom
     // For perfomance, it's not desirable (or necessary) to update them all at once
     // So we do it randomly, forcing a repaint if the different is larger than 0.15
     auto randval = rand() % 4;
     auto bestScale = topLevel->getRenderScale() * getValue<float>(topLevel->zoomScale);
-    auto newScale = topLevel->isZooming && randval != 0 && std::abs(bestScale - lastImageScale) < 0.15f ? lastImageScale : bestScale ;
-    lastImageScale = newScale;  // TODO: getters shouldn't have side-effects!
-    
+    auto newScale = topLevel->isZooming && randval != 0 && std::abs(bestScale - lastImageScale) < 0.15f ? lastImageScale : bestScale;
+    lastImageScale = newScale; // TODO: getters shouldn't have side-effects!
+
     return newScale;
 }
 
@@ -699,20 +698,18 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
 void ObjectBase::getMenuOptions(PopupMenu& menu)
 {
     if (auto obj = ptr.get<t_pd>()) {
-        if(zgetfn(obj.get(), pd->generateSymbol("menu-open")) != nullptr)
-        {
-            menu.addItem("Open", [_this = SafePointer(this)](){
-                if(!_this) return;
+        if (zgetfn(obj.get(), pd->generateSymbol("menu-open")) != nullptr) {
+            menu.addItem("Open", [_this = SafePointer(this)]() {
+                if (!_this)
+                    return;
                 if (auto obj = _this->ptr.get<t_pd>()) {
                     _this->pd->sendDirectMessage(obj.get(), "menu-open", {});
                 }
             });
-        }
-        else {
+        } else {
             menu.addItem(-1, "Open", false);
         }
-    }
-    else {
+    } else {
         menu.addItem(-1, "Open", false);
     }
 }
@@ -755,7 +752,7 @@ bool ObjectBase::canReceiveMouseEvent(int x, int y)
 void ObjectBase::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms)
 {
     object->triggerOverlayActiveState();
-    
+
     auto symHash = hash(symbol->s_name);
     switch (symHash) {
     case hash("size"):
@@ -775,17 +772,17 @@ void ObjectBase::receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int n
     default:
         break;
     }
-    
+
     receiveObjectMessage(symHash, atoms, numAtoms);
 }
 
 void ObjectBase::setParameterExcludingListener(Value& parameter, var const& value)
 {
     propertyListener.setNoCallback(true);
-    
+
     auto oldValue = parameter.getValue();
     parameter.setValue(value);
-    
+
     propertyListener.setNoCallback(false);
 }
 
@@ -796,7 +793,7 @@ void ObjectBase::setParameterExcludingListener(Value& parameter, var const& valu
 
     auto oldValue = parameter.getValue();
     parameter.setValue(value);
-    
+
     parameter.addListener(otherListener);
     propertyListener.setNoCallback(false);
 }

@@ -18,8 +18,8 @@ void pdlua_gfx_mouse_drag(t_pdlua* o, int x, int y);
 void pdlua_gfx_repaint(t_pdlua* o, int firsttime);
 }
 
-class LuaObject final : public ObjectBase, private Value::Listener
-{
+class LuaObject final : public ObjectBase
+    , private Value::Listener {
     Colour currentColour;
 
     CriticalSection bufferSwapLock;
@@ -35,7 +35,7 @@ class LuaObject final : public ObjectBase, private Value::Listener
         SmallArray<t_atom> data;
         int size;
 
-        LuaGuiMessage() {};
+        LuaGuiMessage() { };
 
         LuaGuiMessage(t_symbol* sym, int argc, t_atom* argv)
             : symbol(sym)
@@ -140,23 +140,25 @@ public:
     void updateSizeProperty() override
     {
     }
-    
+
     void getMenuOptions(PopupMenu& menu) override
     {
-        menu.addItem("Open lua editor", [_this = SafePointer(this)](){
-            if(!_this) return;
+        menu.addItem("Open lua editor", [_this = SafePointer(this)]() {
+            if (!_this)
+                return;
             if (auto obj = _this->ptr.get<t_pd>()) {
                 _this->pd->sendDirectMessage(obj.get(), "menu-open", {});
             }
         });
-        menu.addItem("Reload lua object", [_this = SafePointer(this)](){
-            if(!_this) return;
+        menu.addItem("Reload lua object", [_this = SafePointer(this)]() {
+            if (!_this)
+                return;
             if (auto pdlua = _this->ptr.get<t_pd>()) {
                 // Reload the lua script
                 _this->pd->sendMessage("pdluax", "reload", {});
-                
+
                 // Recreate this object
-                if(auto patch = _this->cnv->patch.getPointer()) {
+                if (auto patch = _this->cnv->patch.getPointer()) {
                     pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
                 }
                 _this->cnv->synchronise();
@@ -216,8 +218,7 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        for(auto& [layer, fb] : framebuffers)
-        {
+        for (auto& [layer, fb] : framebuffers) {
             fb.render(nvg, Rectangle<int>(getWidth() + 1, getHeight()));
         }
     }
@@ -246,7 +247,7 @@ public:
                 return;
 
             framebuffers[layer].bind(nvg, imageWidth, imageHeight);
-            
+
             nvgViewport(0, 0, imageWidth, imageHeight);
             nvgClear(nvg);
             nvgBeginFrame(nvg, getWidth(), getHeight(), scale);
@@ -254,8 +255,9 @@ public:
             return;
         }
         case hash("lua_end_paint"): {
-            if (!framebuffers[layer].isValid()) return;
-                        
+            if (!framebuffers[layer].isValid())
+                return;
+
             auto scale = getValue<float>(zoomScale) * 2.0f; // Multiply by 2 for hi-dpi screens
             nvgGlobalScissor(nvg, 0, 0, getWidth() * scale, getHeight() * scale);
             nvgEndFrame(nvg);
@@ -277,7 +279,7 @@ public:
             return;
         }
         }
-        
+
         switch (hashsym) {
         case hash("lua_set_color"): {
             if (argc == 1) {
@@ -456,7 +458,7 @@ public:
         }
         case hash("lua_fill_all"): {
             auto bounds = getLocalBounds();
-            auto outlineColour = isSelected ? cnv->selectedOutlineCol :  cnv->objectOutlineCol;
+            auto outlineColour = isSelected ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
 
             nvgDrawRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), convertColour(currentColour), outlineColour, Corners::objectCornerRadius);
             break;
@@ -494,22 +496,22 @@ public:
     void updateFramebuffers() override
     {
         LuaGuiMessage guiMessage;
-        for(auto& [layer, layerQueue] : guiMessageQueue) {
-            if(layer == -1) // non-layer related messages
+        for (auto& [layer, layerQueue] : guiMessageQueue) {
+            if (layer == -1) // non-layer related messages
             {
                 while (layerQueue.try_dequeue(guiMessage)) {
                     handleGuiMessage(layer, guiMessage.symbol, guiMessage.size, guiMessage.data.data());
                 }
                 continue;
             }
-            
+
             while (layerQueue.try_dequeue(guiMessage)) {
                 guiCommandBuffer[layer].add(guiMessage);
             }
-            
+
             auto* startMesage = pd->generateSymbol("lua_start_paint");
             auto* endMessage = pd->generateSymbol("lua_end_paint");
-            
+
             int startIdx = -1, endIdx = -1;
             bool updateScene = false;
             for (int i = guiCommandBuffer[layer].size() - 1; i >= 0; i--) {
@@ -517,13 +519,13 @@ public:
                     startIdx = i;
                 if (guiCommandBuffer[layer][i].symbol == endMessage)
                     endIdx = i + 1;
-                
+
                 if (startIdx != -1 && endIdx != -1) {
                     updateScene = true;
                     break;
                 }
             }
-            
+
             if (updateScene) {
                 if (endIdx > startIdx) {
                     for (int i = startIdx; i < endIdx; i++) {
@@ -532,7 +534,7 @@ public:
                 }
                 guiCommandBuffer[layer].erase(guiCommandBuffer[layer].begin(), guiCommandBuffer[layer].begin() + endIdx);
             }
-            
+
             if (isSelected != object->isSelected() || !framebuffers[layer].isValid()) {
                 isSelected = object->isSelected();
                 sendRepaintMessage();
@@ -563,10 +565,11 @@ public:
 
         if (cnv->editor->openTextEditors.contains(ptr))
             return;
-        
+
         auto onClose = [_this = SafePointer(this), this, fileToOpen](String const& newText, bool hasChanged) {
-            if(!_this) return;
-            
+            if (!_this)
+                return;
+
             if (!hasChanged) {
                 cnv->editor->openTextEditors.remove_all(ptr);
                 textEditor.reset(nullptr);
@@ -575,13 +578,14 @@ public:
 
             Dialogs::showAskToSaveDialog(
                 &saveDialog, textEditor.get(), "", [_this = SafePointer(this), newText, fileToOpen](int result) mutable {
-                    if(!_this) return;
+                    if (!_this)
+                        return;
                     if (result == 2) {
                         fileToOpen.replaceWithText(newText);
                         if (auto pdlua = _this->ptr.get<t_pd>()) {
                             _this->pd->sendMessage("pdluax", "reload", {});
                             // Recreate this object
-                            if(auto patch = _this->cnv->patch.getPointer()) {
+                            if (auto patch = _this->cnv->patch.getPointer()) {
                                 pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
                             }
                         }
@@ -596,10 +600,11 @@ public:
                 },
                 15, false);
         };
-        
-        auto onSave = [_this = SafePointer(this), this, fileToOpen](String const& newText){
-            if(!_this) return;
-            
+
+        auto onSave = [_this = SafePointer(this), this, fileToOpen](String const& newText) {
+            if (!_this)
+                return;
+
             fileToOpen.replaceWithText(newText);
             if (auto pdlua = ptr.get<t_pd>()) {
                 pd->sendMessage("pdluax", "reload", {});
@@ -641,24 +646,26 @@ public:
             openTextEditor(File(atoms[0].toString()));
         }
     }
-    
+
     void getMenuOptions(PopupMenu& menu) override
     {
-        menu.addItem("Open lua editor", [_this = SafePointer(this)](){
-            if(!_this) return;
+        menu.addItem("Open lua editor", [_this = SafePointer(this)]() {
+            if (!_this)
+                return;
             if (auto obj = _this->ptr.get<t_pd>()) {
                 _this->pd->sendDirectMessage(obj.get(), "menu-open", {});
             }
         });
-        
-        menu.addItem("Reload lua object", [_this = SafePointer(this)](){
-            if(!_this) return;
+
+        menu.addItem("Reload lua object", [_this = SafePointer(this)]() {
+            if (!_this)
+                return;
             if (auto pdlua = _this->ptr.get<t_pd>()) {
                 // Reload the lua script
                 _this->pd->sendMessage("pdluax", "reload", {});
-                
+
                 // Recreate this object
-                if(auto patch = _this->cnv->patch.getPointer()) {
+                if (auto patch = _this->cnv->patch.getPointer()) {
                     pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
                 }
             }
@@ -676,7 +683,8 @@ public:
             return;
 
         auto onClose = [_this = SafePointer(this), this, fileToOpen](String const& newText, bool hasChanged) {
-            if(!_this) return;
+            if (!_this)
+                return;
             if (!hasChanged) {
                 cnv->editor->openTextEditors.remove_all(ptr);
                 textEditor.reset(nullptr);
@@ -690,7 +698,7 @@ public:
                         if (auto pdlua = ptr.get<t_pd>()) {
                             pd->sendMessage("pdluax", "reload", {});
                             // Recreate this object
-                            if(auto patch = cnv->patch.getPointer()) {
+                            if (auto patch = cnv->patch.getPointer()) {
                                 pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
                             }
                         }
@@ -705,9 +713,10 @@ public:
                 },
                 15, false);
         };
-        
-        auto onSave = [_this = SafePointer(this), this, fileToOpen](String const& newText){
-            if(!_this) return;
+
+        auto onSave = [_this = SafePointer(this), this, fileToOpen](String const& newText) {
+            if (!_this)
+                return;
             fileToOpen.replaceWithText(newText);
             if (auto pdlua = ptr.get<t_pd>()) {
                 pd->sendMessage("pdluax", "reload", {});

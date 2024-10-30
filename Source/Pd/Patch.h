@@ -102,7 +102,7 @@ public:
     {
         return ptr.get<t_canvas>();
     }
-    
+
     t_canvas* getUncheckedPointer() const
     {
         return ptr.getRawUnchecked<t_canvas>();

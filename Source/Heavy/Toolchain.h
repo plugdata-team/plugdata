@@ -354,7 +354,7 @@ public:
         String topText;
         String bottomText;
 
-        std::function<void(void)> onClick = []() {};
+        std::function<void(void)> onClick = []() { };
 
         ToolchainInstallerButton(String icon, String mainText, String subText)
             : iconText(std::move(icon))

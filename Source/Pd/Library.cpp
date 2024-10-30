@@ -38,7 +38,9 @@ struct _canvasenvironment {
 
 namespace pd {
 
-Library::Library(pd::Instance* instance) : Thread("Library Index Thread"), pd(instance)
+Library::Library(pd::Instance* instance)
+    : Thread("Library Index Thread")
+    , pd(instance)
 {
     watcher.addFolder(ProjectInfo::appDataDir);
     watcher.addListener(this);
@@ -64,7 +66,7 @@ void Library::updateLibrary()
 {
     auto settingsTree = ValueTree::fromXml(ProjectInfo::appDataDir.getChildFile(".settings").loadFileAsString());
     auto pathTree = settingsTree.getChildWithName("Paths");
-    
+
     pd->lockAudioThread();
     pd->setThis();
 
@@ -117,7 +119,6 @@ void Library::updateLibrary()
     pd->unlockAudioThread();
 }
 
-
 void Library::run()
 {
     MemoryInputStream instream(BinaryData::Documentation_bin, BinaryData::Documentation_binSize, false);
@@ -127,31 +128,30 @@ void Library::run()
     weights[0] = 6.0f; // More weight for name
     weights[1] = 3.0f; // More weight for description
     searchDatabase.setWeights(weights.vector());
-    
+
     for (auto objectEntry : documentationTree) {
         auto categoriesTree = objectEntry.getChildWithName("categories");
 
         HeapArray<std::string> fields;
         int numProperties = objectEntry.getNumProperties();
-        for(int i = 0; i < numProperties; i++) // Name and description
+        for (int i = 0; i < numProperties; i++) // Name and description
         {
             auto property = objectEntry.getProperty(objectEntry.getPropertyName(i)).toString();
             fields.add(property.toStdString());
         }
-        for(auto subtree : objectEntry) // Parent tree for arguments, inlets, outlets
+        for (auto subtree : objectEntry) // Parent tree for arguments, inlets, outlets
         {
-            for(auto child : subtree) // tree for individual arguments, inlets, outlets, etc.
+            for (auto child : subtree) // tree for individual arguments, inlets, outlets, etc.
             {
-                for(int i = 0; i < child.getNumProperties(); i++)
-                {
+                for (int i = 0; i < child.getNumProperties(); i++) {
                     auto property = child.getProperty(child.getPropertyName(i)).toString();
-                    if(!property.containsOnly("0123456789.,-")) {
+                    if (!property.containsOnly("0123456789.,-")) {
                         fields.add(property.toStdString());
                     }
                 }
             }
         }
-        
+
         String origin;
         for (auto category : categoriesTree) {
             auto cat = category.getProperty("name").toString();
@@ -159,20 +159,20 @@ void Library::run()
                 origin = cat;
             }
         }
-        
+
         auto name = objectEntry.getProperty("name").toString();
-        
-        if(origin == "Gem") {
+
+        if (origin == "Gem") {
 #if !ENABLE_GEM
             continue;
 #else
             gemObjects.add(name);
 #endif
         }
-        
+
         searchDatabase.addEntry(objectEntry, fields.vector());
         searchDatabase.setThreshold(0.4f);
-        
+
         if (origin.isEmpty()) {
             documentationIndex[hash(name)] = objectEntry;
         } else if (origin == "Gem") {
@@ -184,13 +184,13 @@ void Library::run()
             documentationIndex[hash(origin + "/" + name)] = objectEntry;
         }
     }
-    
+
     initWait.signal();
 }
 
 void Library::waitForInitialisationToFinish()
 {
-    if(!isInitialised) {
+    if (!isInitialised) {
         initWait.wait();
         isInitialised = true;
     }
@@ -225,17 +225,17 @@ StringArray Library::autocomplete(String const& query, File const& patchDirector
             result.addIfNotAlreadyThere(str);
         }
     }
-    
+
     result.sort(true);
-    
+
     // Finally, do a fuzzy search of all object documentation
     auto fuzzyResults = searchDatabase.search(query.toStdString());
-    for(auto& fuzzyMatch : fuzzyResults)
-    {
-        if (result.size() >= 20) break;
-        
+    for (auto& fuzzyMatch : fuzzyResults) {
+        if (result.size() >= 20)
+            break;
+
         auto name = fuzzyMatch.key.getProperty("name").toString();
-        if(name.isNotEmpty()) {
+        if (name.isNotEmpty()) {
             result.addIfNotAlreadyThere(name);
         }
     }
@@ -247,20 +247,19 @@ StringArray Library::searchObjectDocumentation(String const& query)
 {
     StringArray result;
     result.ensureStorageAllocated(20);
-    
+
     for (auto const& str : allObjects) {
         if (str.startsWith(query)) {
             result.addIfNotAlreadyThere(str);
         }
     }
-    
+
     auto fuzzyResults = searchDatabase.search(query.toStdString());
     result.ensureStorageAllocated(result.size() + fuzzyResults.size());
-    
-    for(auto& fuzzyMatch : fuzzyResults)
-    {
+
+    for (auto& fuzzyMatch : fuzzyResults) {
         auto name = fuzzyMatch.key.getProperty("name").toString();
-        if(name.isNotEmpty()) {
+        if (name.isNotEmpty()) {
             result.addIfNotAlreadyThere(name);
         }
     }
@@ -343,11 +342,12 @@ File Library::findPatch(String const& patchToFind)
         auto searchPath = File(path.getProperty("Path").toString());
         if (!searchPath.exists() || !searchPath.isDirectory())
             continue;
-        
+
         auto childFile = searchPath.getChildFile(patchToFind + ".pd");
-        if(childFile.existsAsFile()) return childFile;
+        if (childFile.existsAsFile())
+            return childFile;
     }
-    
+
     return {};
 }
 
@@ -427,7 +427,7 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile)
     String secondName = "help-" + helpName + ".pd";
 
     auto findHelpPatch = [&firstName, &secondName](File const& searchDir) -> File {
-        for (const auto& file : OSUtils::iterateDirectory(searchDir, false, true)) {
+        for (auto const& file : OSUtils::iterateDirectory(searchDir, false, true)) {
             auto pathName = file.getFullPathName().replace("\\", "/").trimCharactersAtEnd("/");
             // Hack to make it find else/cyclone/Gem helpfiles...
             pathName = pathName.replace("/9.else", "/else");

@@ -30,11 +30,11 @@ public:
     void update()
     {
         bool colourHasChanged = false;
-        if (const auto col = getForegroundColour().toString(); col != primaryColour) {
+        if (auto const col = getForegroundColour().toString(); col != primaryColour) {
             primaryColour = col;
             colourHasChanged = true;
         }
-        if (const auto col = getBackgroundColour().toString(); col != secondaryColour) {
+        if (auto const col = getBackgroundColour().toString(); col != secondaryColour) {
             secondaryColour = col;
             colourHasChanged = true;
         }
@@ -307,8 +307,7 @@ public:
             if (labels.isEmpty()) {
                 label = labels.add(new ObjectLabel());
                 object->cnv->addChildComponent(label);
-            }
-            else {
+            } else {
                 label = labels[0];
             }
 
@@ -333,7 +332,7 @@ public:
         auto const objectBounds = object->getBounds().reduced(Object::margin);
 
         if (auto iemgui = ptr.get<t_iemgui>()) {
-            if(iemgui->x_lab) {
+            if (iemgui->x_lab) {
                 t_symbol const* sym = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab);
                 if (sym) {
                     auto const labelText = getExpandedLabelText();
@@ -521,7 +520,7 @@ public:
         }
     }
 
-    std::function<void()> iemColourChangedCallback = [](){};
+    std::function<void()> iemColourChangedCallback = []() { };
 
     int iemgui_color_hex[30] = {
         16579836, 10526880, 4210752, 16572640, 16572608,

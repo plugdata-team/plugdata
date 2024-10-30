@@ -309,8 +309,7 @@ public:
         } else if (size == 3) {
             metaDaisy.getDynamicObject()->setProperty(
                 "linker_script",
-                Toolchain::dir.getChildFile("etc").getChildFile("linkers").getChildFile("sram_linker_sdram.lds").getFullPathName()
-            );
+                Toolchain::dir.getChildFile("etc").getChildFile("linkers").getChildFile("sram_linker_sdram.lds").getFullPathName());
             metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_SRAM");
         } else if (size == 4) {
             metaDaisy.getDynamicObject()->setProperty("linker_script", "../../libdaisy/core/STM32H750IB_qspi.lds");
@@ -318,8 +317,7 @@ public:
         } else if (size == 5) {
             metaDaisy.getDynamicObject()->setProperty(
                 "linker_script",
-                Toolchain::dir.getChildFile("etc").getChildFile("linkers").getChildFile("qspi_linker_sdram.lds").getFullPathName()
-            );
+                Toolchain::dir.getChildFile("etc").getChildFile("linkers").getChildFile("qspi_linker_sdram.lds").getFullPathName());
             metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_QSPI");
         } else if (size == 6) {
             metaDaisy.getDynamicObject()->setProperty("linker_script", customLinker.getFullPathName());

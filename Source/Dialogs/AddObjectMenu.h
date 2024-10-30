@@ -553,7 +553,7 @@ class AddObjectMenuButton : public Component {
 public:
     bool toggleState = false;
     bool clickingTogglesState = false;
-    std::function<void(void)> onClick = []() {};
+    std::function<void(void)> onClick = []() { };
 
     explicit AddObjectMenuButton(String const& iconStr, String const& textStr = String())
         : icon(iconStr)

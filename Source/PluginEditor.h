@@ -24,7 +24,8 @@
 #include "Utility/ObjectThemeManager.h"
 #include "NVGSurface.h"
 
-class CalloutArea : public Component, public Timer {
+class CalloutArea : public Component
+    , public Timer {
 public:
     explicit CalloutArea(Component* parent)
         : target(parent)
@@ -183,7 +184,6 @@ public:
     std::unique_ptr<PluginMode> pluginMode;
 
 private:
-
     std::unique_ptr<TouchSelectionHelper> touchSelectionHelper;
 
     // Used by standalone to handle dragging the window
@@ -211,6 +211,6 @@ private:
     std::unique_ptr<MouseRateReducedComponent<ResizableBorderComponent>> borderResizer;
 
     OSUtils::KeyboardLayout keyboardLayout;
-        
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginEditor)
 };

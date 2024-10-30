@@ -33,7 +33,6 @@ public:
     {
         closeOpenedSubpatchers();
     }
-    
 
     pd::Patch::Ptr getPatch() override
     {
@@ -53,7 +52,7 @@ public:
 
         return {};
     }
-    
+
     void mouseDown(MouseEvent const& e) override
     {
         if (!e.mods.isLeftButtonDown())
@@ -68,10 +67,9 @@ public:
         }
     }
 
-    
     void getMenuOptions(PopupMenu& menu) override
     {
-        menu.addItem("Open", [_this = SafePointer(this)](){ if(_this) _this->openSubpatch(); });
+        menu.addItem("Open", [_this = SafePointer(this)]() { if(_this) _this->openSubpatch(); });
     }
 
     void openClonePatch(int idx, bool shouldVis)

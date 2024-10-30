@@ -43,7 +43,7 @@ class LatencyDisplayButton : public Component
     bool fading = false;
 
 public:
-    std::function<void()> onClick = []() {};
+    std::function<void()> onClick = []() { };
     LatencyDisplayButton()
     {
         icon.setFont(Fonts::getIconFont());
@@ -134,7 +134,8 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if(!e.mods.isLeftButtonDown()) return;
+        if (!e.mods.isLeftButtonDown())
+            return;
         onClick();
     }
 
@@ -198,7 +199,8 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if(!e.mods.isLeftButtonDown()) return;
+        if (!e.mods.isLeftButtonDown())
+            return;
         repaint();
         Slider::mouseDown(e);
     }
@@ -317,34 +319,31 @@ public:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LevelMeter)
 };
 
-
 // Stores the last N messages. Safe to access from the message thread only.
-class MIDIListModel
-{
+class MIDIListModel {
 public:
-    void addMessage (MidiMessage const& message, bool isInput)
+    void addMessage(MidiMessage const& message, bool isInput)
     {
         int device;
-        messages.add({isInput, MidiDeviceManager::convertFromSysExFormat(message, device)});
+        messages.add({ isInput, MidiDeviceManager::convertFromSysExFormat(message, device) });
 
-        if(messages.size() > 1000)
-        {
+        if (messages.size() > 1000) {
             messages.erase(messages.begin(), messages.begin() + (messages.size() - 1000));
         }
 
-        NullCheckedInvocation::invoke (onChange);
+        NullCheckedInvocation::invoke(onChange);
     }
 
     void clear()
     {
         messages.clear();
 
-        NullCheckedInvocation::invoke (onChange);
+        NullCheckedInvocation::invoke(onChange);
     }
 
-    const std::pair<bool, MidiMessage>& operator[] (size_t ind) const     { return messages[messages.size() - ind - 1]; }
+    std::pair<bool, MidiMessage> const& operator[](size_t ind) const { return messages[messages.size() - ind - 1]; }
 
-    size_t size() const                                  { return messages.size(); }
+    size_t size() const { return messages.size(); }
 
     std::function<void()> onChange;
 
@@ -353,34 +352,33 @@ private:
     HeapArray<std::pair<bool, MidiMessage>> messages;
 };
 
-class MIDIHistory final : public Component,
-                        private TableListBoxModel
-{
-    enum
-    {
+class MIDIHistory final : public Component
+    , private TableListBoxModel {
+    enum {
         messageColumn = 1,
         channelColumn,
         dataColumn
     };
-    
+
 public:
-    MIDIHistory (MIDIListModel& model) : messages(model), bouncer(table.getViewport())
+    MIDIHistory(MIDIListModel& model)
+        : messages(model)
+        , bouncer(table.getViewport())
     {
-        addAndMakeVisible (table);
+        addAndMakeVisible(table);
         table.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
-        table.setModel (this);
-        table.setClickingTogglesRowSelection (false);
-        table.setHeader ([&]
-        {
+        table.setModel(this);
+        table.setClickingTogglesRowSelection(false);
+        table.setHeader([&] {
             auto header = std::make_unique<TableHeaderComponent>();
-            header->addColumn ("Type", messageColumn, 110, 30, -1, TableHeaderComponent::visible | TableHeaderComponent::appearsOnColumnMenu);
-            header->addColumn ("Ch.", channelColumn, 45, 30, -1, TableHeaderComponent::visible | TableHeaderComponent::appearsOnColumnMenu);
-            header->addColumn ("Message", dataColumn, 125, 30, -1, TableHeaderComponent::visible | TableHeaderComponent::appearsOnColumnMenu);
+            header->addColumn("Type", messageColumn, 110, 30, -1, TableHeaderComponent::visible | TableHeaderComponent::appearsOnColumnMenu);
+            header->addColumn("Ch.", channelColumn, 45, 30, -1, TableHeaderComponent::visible | TableHeaderComponent::appearsOnColumnMenu);
+            header->addColumn("Message", dataColumn, 125, 30, -1, TableHeaderComponent::visible | TableHeaderComponent::appearsOnColumnMenu);
             return header;
         }());
         table.getViewport()->setScrollBarsShown(true, false, false, false);
         table.getViewport()->setViewPositionProportionately(0.0f, 1.0f);
-        
+
         midiHistoryTitle.setText("MIDI history", dontSendNotification);
         midiHistoryTitle.setFont(Fonts::getBoldFont().withHeight(14.0f));
         midiHistoryTitle.setJustificationType(Justification::centred);
@@ -389,89 +387,106 @@ public:
         messages.onChange = [&] { table.updateContent(); };
         setSize(278, 178);
     }
-    
+
     void paint(Graphics& g) override
     {
         g.setColour(getLookAndFeel().findColour(PlugDataColour::levelMeterBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().withTrimmedTop(32).toFloat(), Corners::defaultCornerRadius);
-    
+
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawLine(0, 58, getWidth(), 58);
     }
 
     ~MIDIHistory() override { messages.onChange = nullptr; }
 
-    void resized() override {
+    void resized() override
+    {
         midiHistoryTitle.setBounds(0, 6, getWidth(), 20);
-        table.setBounds (getLocalBounds().withTrimmedTop(32));
+        table.setBounds(getLocalBounds().withTrimmedTop(32));
     }
-    
+
 private:
+    int getNumRows() override { return (int)messages.size(); }
 
-    int getNumRows() override          { return (int) messages.size(); }
+    void paintRowBackground(Graphics&, int, int, int, bool) override { }
+    void paintCell(Graphics&, int, int, int, int, bool) override { }
 
-    void paintRowBackground (Graphics&, int, int, int, bool) override {}
-    void paintCell (Graphics&, int, int, int, int, bool)     override {}
-
-    Component* refreshComponentForCell (int rowNumber,
-                                        int columnId,
-                                        bool,
-                                        Component* existingComponentToUpdate) override
+    Component* refreshComponentForCell(int rowNumber,
+        int columnId,
+        bool,
+        Component* existingComponentToUpdate) override
     {
         delete existingComponentToUpdate;
 
-        const auto index = (int) messages.size() - 1 - rowNumber;
-        const auto message = messages[(size_t) index];
+        auto const index = (int)messages.size() - 1 - rowNumber;
+        auto const message = messages[(size_t)index];
 
-        auto* label = new Label ({}, [&]
-                                {
-                                    auto direction = message.first ? "In: " : "Out: ";
-                                    switch (columnId)
-                                    {
-                                        case messageColumn: return direction + getEventString (message.second);
-                                        //case timeColumn:    return String (message.getTimeStamp());
-                                        case channelColumn: return String (message.second.getChannel());
-                                        case dataColumn:    return getDataString (message.second);
-                                        default:            break;
-                                    }
+        auto* label = new Label({}, [&] {
+            auto direction = message.first ? "In: " : "Out: ";
+            switch (columnId) {
+            case messageColumn:
+                return direction + getEventString(message.second);
+            // case timeColumn:    return String (message.getTimeStamp());
+            case channelColumn:
+                return String(message.second.getChannel());
+            case dataColumn:
+                return getDataString(message.second);
+            default:
+                break;
+            }
 
-                                    jassertfalse;
-                                    return String();
-                                }());
-    
+            jassertfalse;
+            return String();
+        }());
+
         label->setFont(Fonts::getDefaultFont().withHeight(14.0f));
         return label;
     }
 
-    static String getEventString (const MidiMessage& m)
+    static String getEventString(MidiMessage const& m)
     {
-        if (m.isNoteOn())           return "Note on";
-        if (m.isNoteOff())          return "Note off";
-        if (m.isProgramChange())    return "Pgm. change";
-        if (m.isPitchWheel())       return "Pitch wheel";
-        if (m.isAftertouch())       return "Aftertouch";
-        if (m.isChannelPressure())  return "Ch. pressure";
-        if (m.isAllNotesOff())      return "All notes off";
-        if (m.isAllSoundOff())      return "All sound off";
-        if (m.isMetaEvent())        return "Meta event";
+        if (m.isNoteOn())
+            return "Note on";
+        if (m.isNoteOff())
+            return "Note off";
+        if (m.isProgramChange())
+            return "Pgm. change";
+        if (m.isPitchWheel())
+            return "Pitch wheel";
+        if (m.isAftertouch())
+            return "Aftertouch";
+        if (m.isChannelPressure())
+            return "Ch. pressure";
+        if (m.isAllNotesOff())
+            return "All notes off";
+        if (m.isAllSoundOff())
+            return "All sound off";
+        if (m.isMetaEvent())
+            return "Meta event";
 
-        if (m.isController())
-        {
-            return "Ctl. " + String (m.getControllerNumber());
+        if (m.isController()) {
+            return "Ctl. " + String(m.getControllerNumber());
         }
 
-        return String::toHexString (m.getRawData(), m.getRawDataSize());
+        return String::toHexString(m.getRawData(), m.getRawDataSize());
     }
 
-    static String getDataString (const MidiMessage& m)
+    static String getDataString(MidiMessage const& m)
     {
-        if (m.isNoteOn())           return MidiMessage::getMidiNoteName (m.getNoteNumber(), true, true, 3) + " Velocity " + String (m.getVelocity());
-        if (m.isNoteOff())          return MidiMessage::getMidiNoteName (m.getNoteNumber(), true, true, 3) + " Velocity " + String (m.getVelocity());
-        if (m.isProgramChange())    return String (m.getProgramChangeNumber());
-        if (m.isPitchWheel())       return String (m.getPitchWheelValue());
-        if (m.isAftertouch())       return MidiMessage::getMidiNoteName (m.getNoteNumber(), true, true, 3) +  ": " + String (m.getAfterTouchValue());
-        if (m.isChannelPressure())  return String (m.getChannelPressureValue());
-        if (m.isController())       return String (m.getControllerValue());
+        if (m.isNoteOn())
+            return MidiMessage::getMidiNoteName(m.getNoteNumber(), true, true, 3) + " Velocity " + String(m.getVelocity());
+        if (m.isNoteOff())
+            return MidiMessage::getMidiNoteName(m.getNoteNumber(), true, true, 3) + " Velocity " + String(m.getVelocity());
+        if (m.isProgramChange())
+            return String(m.getProgramChangeNumber());
+        if (m.isPitchWheel())
+            return String(m.getPitchWheelValue());
+        if (m.isAftertouch())
+            return MidiMessage::getMidiNoteName(m.getNoteNumber(), true, true, 3) + ": " + String(m.getAfterTouchValue());
+        if (m.isChannelPressure())
+            return String(m.getChannelPressureValue());
+        if (m.isController())
+            return String(m.getControllerValue());
 
         return {};
     }
@@ -481,7 +496,6 @@ private:
     Label midiHistoryTitle;
     BouncingViewportAttachment bouncer;
 };
-
 
 class MIDIBlinker : public Component
     , public StatusbarSource::Listener
@@ -497,12 +511,11 @@ public:
     void paint(Graphics& g) override
     {
         auto isHovered = isMouseOver() || currentCalloutBox;
-        
+
         Fonts::drawIcon(g, Icons::MIDI, getLocalBounds().removeFromLeft(16).withTrimmedTop(1), findColour(PlugDataColour::toolbarTextColourId).brighter(isHovered ? 0.8f : 0.0f), 13);
 
         auto midiInRect = Rectangle<float>(27.5f, 9.5f, 15.0f, 3.0f);
         auto midiOutRect = Rectangle<float>(27.5f, 18.5f, 15.0f, 3.0f);
-
 
         g.setColour(blinkMidiIn ? findColour(PlugDataColour::levelMeterActiveColourId) : findColour(PlugDataColour::levelMeterBackgroundColourId).brighter(isHovered ? 0.2f : 0.0f));
         g.fillRoundedRectangle(midiInRect, 1.0f);
@@ -522,7 +535,7 @@ public:
         blinkMidiOut = midiSent;
         repaint();
     }
-    
+
     void midiMessageReceived(MidiMessage const& midiReceived) override
     {
         messages.addMessage(midiReceived, true);
@@ -532,10 +545,11 @@ public:
     {
         messages.addMessage(midiSent, false);
     }
-        
+
     void mouseDown(MouseEvent const& e) override
     {
-        if(!e.mods.isLeftButtonDown()) return;
+        if (!e.mods.isLeftButtonDown())
+            return;
         // check if the callout is active, otherwise mouse down / up will trigger callout box again
         if (isCallOutBoxActive) {
             isCallOutBoxActive = false;
@@ -732,7 +746,7 @@ public:
         };
     }
 
-    std::function<void()> onClose = []() {};
+    std::function<void()> onClose = []() { };
 
 private:
     void update()
@@ -794,7 +808,8 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if(!e.mods.isLeftButtonDown()) return;
+        if (!e.mods.isLeftButtonDown())
+            return;
         // check if the callout is active, otherwise mouse down / up will trigger callout box again
         if (isCallOutBoxActive) {
             isCallOutBoxActive = false;
@@ -868,8 +883,8 @@ private:
     {
         repaint();
     }
-    
-    void mouseWheelMove (const MouseEvent& e, const MouseWheelDetails& wheel) override
+
+    void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel) override
     {
         auto* editor = findParentComponentOfClass<PluginEditor>();
         if (auto* cnv = editor->getCurrentCanvas()) {
@@ -881,7 +896,8 @@ private:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (!isEnabled() || !e.mods.isLeftButtonDown()) return;
+        if (!isEnabled() || !e.mods.isLeftButtonDown())
+            return;
 
         auto* editor = findParentComponentOfClass<PluginEditor>();
         if (auto* cnv = editor->getCurrentCanvas()) {
@@ -1111,7 +1127,7 @@ void Statusbar::resized()
     secondSeparatorPosition = position(4) + 0.5f; // Second seperator
 
     pos -= 3;
-    
+
     snapEnableButton.setBounds(position(12), 0, getHeight(), getHeight());
     snapSettingsButton.setBounds(position(spacing - 4), 0, getHeight(), getHeight());
 
@@ -1210,17 +1226,19 @@ void StatusbarSource::setBufferSize(int bufferSize)
 
 void StatusbarSource::process(MidiBuffer const& midiInput, MidiBuffer const& midiOutput, int channels)
 {
-    for(auto event : midiInput) lastMidiSent.enqueue(event.getMessage());
-    for(auto event : midiOutput) lastMidiReceived.enqueue(event.getMessage());
-    
-    auto hasRealEvents = [](MidiBuffer const& buffer){
+    for (auto event : midiInput)
+        lastMidiSent.enqueue(event.getMessage());
+    for (auto event : midiOutput)
+        lastMidiReceived.enqueue(event.getMessage());
+
+    auto hasRealEvents = [](MidiBuffer const& buffer) {
         return std::any_of(buffer.begin(), buffer.end(),
-                           [](auto const& event) {
-            int dummy;
-            return !MidiDeviceManager::convertFromSysExFormat(event.getMessage(), dummy).isSysEx();
-        });
+            [](auto const& event) {
+                int dummy;
+                return !MidiDeviceManager::convertFromSysExFormat(event.getMessage(), dummy).isSysEx();
+            });
     };
-    
+
     auto nowInMs = Time::getMillisecondCounter();
     if (hasRealEvents(midiInput))
         lastMidiSentTime.store(nowInMs, std::memory_order_relaxed);
@@ -1240,7 +1258,7 @@ void StatusbarSource::timerCallback()
     auto hasReceivedMidi = currentTime - lastMidiReceivedTime.load(std::memory_order_relaxed) < 700;
     auto hasSentMidi = currentTime - lastMidiSentTime.load(std::memory_order_relaxed) < 700;
     auto hasProcessedAudio = currentTime - lastAudioProcessedTime.load(std::memory_order_relaxed) < 700;
-    
+
     if (hasReceivedMidi != midiReceivedState) {
         midiReceivedState = hasReceivedMidi;
         for (auto* listener : listeners)
@@ -1251,19 +1269,17 @@ void StatusbarSource::timerCallback()
         for (auto* listener : listeners)
             listener->midiSentChanged(hasSentMidi);
     }
-    
+
     MidiMessage message;
-    while(lastMidiSent.try_dequeue(message))
-    {
+    while (lastMidiSent.try_dequeue(message)) {
         for (auto* listener : listeners)
             listener->midiMessageSent(message);
     }
-    while(lastMidiReceived.try_dequeue(message))
-    {
+    while (lastMidiReceived.try_dequeue(message)) {
         for (auto* listener : listeners)
             listener->midiMessageReceived(message);
     }
-    
+
     if (hasProcessedAudio != audioProcessedState) {
         audioProcessedState = hasProcessedAudio;
         for (auto* listener : listeners)

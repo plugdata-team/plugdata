@@ -59,10 +59,10 @@ public:
     Rectangle<int> getTextSize()
     {
         auto objText = editor ? editor->getText() : objectText;
-        
+
         if (editor && cnv->suggestor) {
             cnv->suggestor->updateSuggestions(objText);
-            if(cnv->suggestor->getText().isNotEmpty()) {
+            if (cnv->suggestor->getText().isNotEmpty()) {
                 objText = cnv->suggestor->getText();
             }
         }
@@ -150,8 +150,8 @@ public:
 
         // Draw background
         nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
-                              bgCol, bgCol, bgCol,
-                              Corners::objectCornerRadius, ObjectFlagType::FlagMessage, PlugDataLook::getUseFlagOutline());
+            bgCol, bgCol, bgCol,
+            Corners::objectCornerRadius, ObjectFlagType::FlagMessage, PlugDataLook::getUseFlagOutline());
 
         auto flagCol = isDown && ::getValue<bool>(object->locked) ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol;
         auto outlineCol = object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
@@ -159,14 +159,14 @@ public:
         // Draw highlight around inner area when box is clicked
         // We do this by drawing an inner area that is bright, while changing the background colour darker
         if (isDown) {
-            auto dB = bounds.reduced(5 );
+            auto dB = bounds.reduced(5);
             nvgDrawRoundedRect(nvg, dB.getX(), dB.getY(), dB.getWidth(), dB.getHeight(), cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, 0);
         }
 
         // Draw outline & flag with shader
         nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
-                              nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
-                              Corners::objectCornerRadius, ObjectFlagType::FlagMessage, PlugDataLook::getUseFlagOutline());
+            nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
+            Corners::objectCornerRadius, ObjectFlagType::FlagMessage, PlugDataLook::getUseFlagOutline());
 
         if (editor) {
             imageRenderer.renderJUCEComponent(nvg, *editor, getImageScale());
@@ -373,7 +373,7 @@ public:
 
         return false;
     }
-    
+
     bool hideInGraph() override
     {
         return true;

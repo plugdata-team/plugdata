@@ -336,37 +336,37 @@ struct t_fake_note {
 
 // [else/numbox~]
 struct t_fake_numbox {
-    t_object  x_obj;
-    t_clock  *x_clock_update;
-    t_symbol *x_fg;
-    t_symbol *x_bg;
-    t_glist  *x_glist;
-    t_canvas *x_cv;
-    t_float   x_display;
-    t_float   x_in_val;
-    t_float   x_out_val;
-    t_float   x_set_val;
-    t_float   x_lower;
-    t_float   x_upper;
-    t_float   x_sr_khz;
-    t_float   x_inc;
-    t_float   x_ramp_step;
-    t_float   x_ramp_val;
-    int       x_ramp_ms;
-    int       x_rate;
-    int       x_numwidth;
-    int       x_fontsize;
-    t_symbol *x_font;
-    int       x_clicked;
-    int       x_width, x_height;
-    int       x_zoom;
-    int       x_outmode;
-    char      x_buf[MAX_NUMBOX_LEN]; // number buffer
-    char      x_tag_number[128];
-    char      x_tag_out[128];
-    char      x_tag_in[128];
-    char      x_tag_base[128];
-    char      x_tag_all[128];
+    t_object x_obj;
+    t_clock* x_clock_update;
+    t_symbol* x_fg;
+    t_symbol* x_bg;
+    t_glist* x_glist;
+    t_canvas* x_cv;
+    t_float x_display;
+    t_float x_in_val;
+    t_float x_out_val;
+    t_float x_set_val;
+    t_float x_lower;
+    t_float x_upper;
+    t_float x_sr_khz;
+    t_float x_inc;
+    t_float x_ramp_step;
+    t_float x_ramp_val;
+    int x_ramp_ms;
+    int x_rate;
+    int x_numwidth;
+    int x_fontsize;
+    t_symbol* x_font;
+    int x_clicked;
+    int x_width, x_height;
+    int x_zoom;
+    int x_outmode;
+    char x_buf[MAX_NUMBOX_LEN]; // number buffer
+    char x_tag_number[128];
+    char x_tag_out[128];
+    char x_tag_in[128];
+    char x_tag_base[128];
+    char x_tag_all[128];
 };
 
 // [else/canvas.mouse]

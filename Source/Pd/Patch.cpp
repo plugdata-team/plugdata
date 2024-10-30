@@ -176,7 +176,7 @@ void Patch::savePatch()
 
     MessageManager::callAsync([instance = juce::WeakReference(this->instance), file = this->currentFile, ptr = this->ptr]() {
         if (instance) {
-            if(auto patch = ptr.get<t_glist>()) {
+            if (auto patch = ptr.get<t_glist>()) {
                 instance->reloadAbstractions(file, patch.get());
             }
         }

@@ -375,27 +375,26 @@ void NanoVGGraphicsContext::setFont(juce::Font const& f)
     if (!loadedFonts.count(typefaceName)) {
         loadedFonts[typefaceName] = {};
     }
-    
+
     currentGlyphToCharMap = &loadedFonts[typefaceName];
-    
-    if(currentGlyphToCharMap->empty()) {
-        if (auto tf = f.getTypefacePtr())
-        {
-            const static auto allPrintableAsciiCharacters = []() -> juce::String {
+
+    if (currentGlyphToCharMap->empty()) {
+        if (auto tf = f.getTypefacePtr()) {
+            static auto const allPrintableAsciiCharacters = []() -> juce::String {
                 juce::String str;
                 for (juce::juce_wchar c = 32; c < 127; ++c) // Only map printable characters
-                    str += juce::String::charToString (c);
+                    str += juce::String::charToString(c);
                 str += juce::String::charToString(juce::juce_wchar(41952)); // for some reason we need this char?
                 return str;
             }();
-            
+
             juce::Array<int> glyphs;
             juce::Array<float> offsets;
-            tf->getGlyphPositions (allPrintableAsciiCharacters, glyphs, offsets);
-            
-            const auto* wstr = allPrintableAsciiCharacters.toWideCharPointer();
+            tf->getGlyphPositions(allPrintableAsciiCharacters, glyphs, offsets);
+
+            auto const* wstr = allPrintableAsciiCharacters.toWideCharPointer();
             for (int i = 0; i < allPrintableAsciiCharacters.length(); ++i) {
-                currentGlyphToCharMap->insert({glyphs[i], wstr[i]});
+                currentGlyphToCharMap->insert({ glyphs[i], wstr[i] });
             }
         }
     }
@@ -413,28 +412,25 @@ juce::Font const& NanoVGGraphicsContext::getFont()
 juce::juce_wchar NanoVGGraphicsContext::getCharForGlyph(int glyphIndex)
 {
     // Check cache first
-    if (currentGlyphToCharMap->find(glyphIndex) != currentGlyphToCharMap->end())
-    {
+    if (currentGlyphToCharMap->find(glyphIndex) != currentGlyphToCharMap->end()) {
         return currentGlyphToCharMap->at(glyphIndex);
     }
-    
+
     // Dynamic lookup
-    if (auto tf = getFont().getTypefacePtr())
-    {
+    if (auto tf = getFont().getTypefacePtr()) {
         for (juce::juce_wchar wc = 0; wc < 0x10FFFF; ++wc) // Iterate over possible Unicode values
         {
             juce::Array<int> glyphs;
             juce::Array<float> xOffsets;
             tf->getGlyphPositions(juce::String::charToString(wc), glyphs, xOffsets);
-            
-            if (glyphs[0] == glyphIndex)
-            {
-                currentGlyphToCharMap->insert({glyphIndex, wc});
+
+            if (glyphs[0] == glyphIndex) {
+                currentGlyphToCharMap->insert({ glyphIndex, wc });
                 return wc;
             }
         }
     }
-    
+
     return '?'; // Fallback character
 }
 
@@ -443,7 +439,7 @@ void NanoVGGraphicsContext::drawGlyph(int glyphNumber, juce::AffineTransform con
     char txt[8] = { '?', 0, 0, 0, 0, 0, 0, 0 };
 
     juce::juce_wchar wc = getCharForGlyph(glyphNumber);
-    
+
     juce::CharPointer_UTF8 utf8(txt);
     utf8.write(wc);
     utf8.writeNull();

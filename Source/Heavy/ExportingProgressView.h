@@ -155,22 +155,18 @@ public:
             Fonts::drawStyledText(g, "Exporting...", 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
 
             getLookAndFeel().drawSpinningWaitAnimation(g, findColour(PlugDataColour::panelTextColourId), getWidth() / 2 - 16, getHeight() / 2 + 135, 32, 32);
-        }
-        else if (state == Flashing) {
+        } else if (state == Flashing) {
             Fonts::drawStyledText(g, "Flashing...", 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
 
             getLookAndFeel().drawSpinningWaitAnimation(g, findColour(PlugDataColour::panelTextColourId), getWidth() / 2 - 16, getHeight() / 2 + 135, 32, 32);
-        }
-        else if (state == Success) {
+        } else if (state == Success) {
             Fonts::drawStyledText(g, "Export successful", 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
 
         } else if (state == Failure) {
             Fonts::drawStyledText(g, "Exporting failed", 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
-        }
-        else if (state == BootloaderFlashSuccess) {
+        } else if (state == BootloaderFlashSuccess) {
             Fonts::drawStyledText(g, "Bootloader flashed", 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
-        }
-        else if (state == BootloaderFlashFailure) {
+        } else if (state == BootloaderFlashFailure) {
             Fonts::drawStyledText(g, "Bootloader flash failed", 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
         }
     }

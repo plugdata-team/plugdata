@@ -170,8 +170,9 @@ void Sidebar::resized()
 
 void Sidebar::mouseDown(MouseEvent const& e)
 {
-    if(!e.mods.isLeftButtonDown()) return;
-    
+    if (!e.mods.isLeftButtonDown())
+        return;
+
     Rectangle<int> dragBar(0, 0, dragbarWidth, getHeight() - 30);
     if (dragBar.contains(e.getEventRelativeTo(this).getPosition()) && !sidebarHidden) {
         draggingSidebar = true;

@@ -106,7 +106,7 @@ public:
         if (editor == nullptr) {
             editor.reset(TextObjectHelper::createTextEditor(object, 15));
             editor->setColour(TextEditor::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::commentTextColourId));
-            
+
             editor->setBorder(border.addedTo(BorderSize<int>(1, 0, 0, 0)));
             editor->setBounds(getLocalBounds());
             editor->setText(objectText, false);
@@ -114,8 +114,7 @@ public:
             editor->addKeyListener(this);
             editor->selectAll();
             editor->setJustification(Justification::topLeft);
-            
-  
+
             addAndMakeVisible(editor.get());
             editor->grabKeyboardFocus();
 
@@ -149,7 +148,7 @@ public:
     Rectangle<int> getTextSize()
     {
         auto objText = editor ? editor->getText() : objectText;
-        
+
         int fontWidth = 7;
         int charWidth = 0;
         if (auto obj = ptr.get<void>()) {

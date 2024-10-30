@@ -4,7 +4,8 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class ListObject final : public ObjectBase, public KeyListener{
+class ListObject final : public ObjectBase
+    , public KeyListener {
 
     AtomHelper atomHelper;
     DraggableListNumber listLabel;
@@ -161,8 +162,8 @@ public:
 
         // Draw background
         nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
-                                cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol,
-                                Corners::objectCornerRadius, ObjectFlagType::FlagTopBottom, PlugDataLook::getUseFlagOutline());
+            cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol,
+            Corners::objectCornerRadius, ObjectFlagType::FlagTopBottom, PlugDataLook::getUseFlagOutline());
 
         listLabel.render(nvg);
 
@@ -173,8 +174,8 @@ public:
 
         // Fill the internal of the shape with transparent colour, draw outline & flag with shader
         nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
-                                nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
-                                Corners::objectCornerRadius, ObjectFlagType::FlagTopBottom, PlugDataLook::getUseFlagOutline());
+            nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
+            Corners::objectCornerRadius, ObjectFlagType::FlagTopBottom, PlugDataLook::getUseFlagOutline());
     }
 
     void lookAndFeelChanged() override
@@ -185,16 +186,15 @@ public:
 
         repaint();
     }
-    
+
     bool keyPressed(KeyPress const& key, Component*) override
     {
-        if(key.getKeyCode() == KeyPress::returnKey)
-        {
+        if (key.getKeyCode() == KeyPress::returnKey) {
             updateFromGui(true);
             cnv->grabKeyboardFocus();
             return true;
         }
-        
+
         return false;
     }
 
@@ -212,7 +212,7 @@ public:
     {
         repaint();
     }
-    
+
     void updateValue()
     {
         if (!listLabel.isBeingEdited()) {
@@ -227,10 +227,10 @@ public:
             char* text;
             int size;
             binbuf_gettext(gatom->a_text.te_binbuf, &text, &size);
-            
+
             auto result = String::fromUTF8(text, size);
             freebytes(text, size);
-            
+
             return result;
         }
 

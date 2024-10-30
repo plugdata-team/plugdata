@@ -19,7 +19,6 @@
 #include "Objects/IEMHelper.h"
 #include "Objects/CanvasObject.h"
 
-
 ImageWithOffset OfflineObjectRenderer::patchToMaskedImage(String const& patch, float scale, bool makeInvalidImage)
 {
     auto image = patchToTempImage(patch, scale);
@@ -51,31 +50,32 @@ ImageWithOffset OfflineObjectRenderer::patchToMaskedImage(String const& patch, f
 bool OfflineObjectRenderer::parseGraphSize(String const& objectText, Rectangle<int>& bounds)
 {
     auto patchName = objectText.upToFirstOccurrenceOf(" ", false, false).upToFirstOccurrenceOf(";", false, false).upToFirstOccurrenceOf("\\", false, false);
-    if (patchName.isEmpty()) return false;
-    
+    if (patchName.isEmpty())
+        return false;
+
     auto patchFile = pd::Library::findPatch(patchName);
-    if(!patchFile.existsAsFile()) return false;
-    
+    if (!patchFile.existsAsFile())
+        return false;
+
     auto patchAsString = patchFile.loadFileAsString();
     auto lines = StringArray::fromLines(patchAsString.trim());
-    if(lines.size()) {
-        auto graphCoordsLine = lines[lines.size()-1];
+    if (lines.size()) {
+        auto graphCoordsLine = lines[lines.size() - 1];
         auto tokens = StringArray::fromTokens(graphCoordsLine, true);
-        
-        if(tokens[0] == "#X" && tokens[1] == "coords" && tokens.size() >= 8 && tokens[6].containsOnly("-0123456789") && tokens[7].containsOnly("-0123456789"))
-        {
+
+        if (tokens[0] == "#X" && tokens[1] == "coords" && tokens.size() >= 8 && tokens[6].containsOnly("-0123456789") && tokens[7].containsOnly("-0123456789")) {
             bounds = bounds.withSize(tokens[6].getIntValue(), tokens[7].getIntValue());
             return true;
         }
     }
-    
+
     return false;
 }
 
 void OfflineObjectRenderer::parsePatch(String const& patch, std::function<void(PatchItemType, int, String const&)> callback)
 {
     int canvasDepth = patch.startsWith("#N canvas") ? -1 : 0;
-    
+
     auto isComment = [](StringArray& tokens) {
         return tokens[0] == "#X" && tokens[1] == "text" && tokens.size() >= 4 && tokens[1] != "f" && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789");
     };
@@ -89,7 +89,7 @@ void OfflineObjectRenderer::parsePatch(String const& patch, std::function<void(P
     auto isConnection = [](StringArray& tokens) {
         return tokens[0] == "#X" && tokens[1] == "connect" && tokens[2].containsOnly("0123456789") && tokens[3].containsOnly("0123456789") && tokens[4].containsOnly("0123456789") && tokens[5].containsOnly("0123456789");
     };
-    
+
     auto isStartingCanvas = [](StringArray& tokens) {
         return tokens[0] == "#N" && tokens[1] == "canvas" && tokens.size() >= 6 && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789") && tokens[4].containsOnly("-0123456789") && tokens[5].containsOnly("-0123456789");
     };
@@ -114,24 +114,21 @@ void OfflineObjectRenderer::parsePatch(String const& patch, std::function<void(P
         if (isStartingCanvas(tokens)) {
             if (tokens.size() > 6)
                 canvasName = tokens[6];
-            
+
             callback(CanvasStart, canvasDepth, "");
             canvasDepth++;
         }
-        
-        if(isComment(tokens)) {
+
+        if (isComment(tokens)) {
             callback(Comment, canvasDepth, line);
-        }
-        else if(isMessage(tokens)) {
+        } else if (isMessage(tokens)) {
             callback(Message, canvasDepth, line);
-        }
-        else if (isObject(tokens)) {
+        } else if (isObject(tokens)) {
             callback(Object, canvasDepth, line);
-        }
-        else if (isConnection(tokens)) {
+        } else if (isConnection(tokens)) {
             callback(Connection, canvasDepth, line);
         }
-        
+
         if (isGraphCoords(tokens)) {
             callback(GraphCoords, canvasDepth, "");
             nextGraphCoords = Rectangle<int>(tokens[6].getIntValue(), tokens[7].getIntValue());
@@ -154,10 +151,11 @@ void OfflineObjectRenderer::parsePatch(String const& patch, std::function<void(P
 HeapArray<Rectangle<int>> OfflineObjectRenderer::getObjectBoundsForPatch(String const& patch)
 {
     HeapArray<Rectangle<int>> objectBounds;
-    
-    parsePatch(patch, [&objectBounds](PatchItemType type, int depth, String const& text){
-        if((type != PatchItemType::Object &&  type != PatchItemType::Message && type != PatchItemType::Comment) || depth != 0) return;
-        
+
+    parsePatch(patch, [&objectBounds](PatchItemType type, int depth, String const& text) {
+        if ((type != PatchItemType::Object && type != PatchItemType::Message && type != PatchItemType::Comment) || depth != 0)
+            return;
+
         auto tokens = StringArray::fromTokens(text, true);
 
         if ((tokens[1] == "floatatom" || tokens[1] == "symbolatom" || tokens[1] == "listatom") && tokens.size() > 11) {
@@ -259,8 +257,7 @@ HeapArray<Rectangle<int>> OfflineObjectRenderer::getObjectBoundsForPatch(String 
             objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[5].getIntValue() * 12, tokens[6].getIntValue()));
             break;
         }
-        case hash("keyboard"):
-        {
+        case hash("keyboard"): {
             if (tokens.size() < 8)
                 break;
 
@@ -268,46 +265,41 @@ HeapArray<Rectangle<int>> OfflineObjectRenderer::getObjectBoundsForPatch(String 
             break;
         }
         case hash("pic"):
-        case hash("note"):
-        {
+        case hash("note"): {
             // TODO: implement these
             break;
         }
         default: {
             if (tokens.size() < 4)
                 break;
-            
+
             auto bounds = Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), 0, 23);
-            
+
             tokens.removeRange(0, 4);
             auto text = tokens.joinIntoString(" ");
             auto wasGraph = parseGraphSize(text, bounds);
-            
-            if(!wasGraph)
-            {
-                if(text.contains(", f"))
-                {
+
+            if (!wasGraph) {
+                if (text.contains(", f")) {
                     bounds = bounds.withWidth(text.fromFirstOccurrenceOf("f", false, false).getIntValue() * 8 + 11);
-                }
-                else {
+                } else {
                     bounds = bounds.withWidth(CachedStringWidth<15>::calculateStringWidth(text) + 11);
                 }
             }
-            
+
             objectBounds.add(bounds);
             break;
         }
         }
     });
-    
+
     return objectBounds;
 }
-
 
 String OfflineObjectRenderer::patchToSVG(String const& patch)
 {
     auto objectRects = getObjectBoundsForPatch(patch);
-    
+
     String svgContent;
     auto regionOfInterest = Rectangle<int>();
     for (auto& b : objectRects) {
@@ -332,14 +324,14 @@ ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, flo
     if (patchImageCache.contains(patchSHA256)) {
         return patchImageCache[patchSHA256];
     }
-    
+
     auto objectRects = getObjectBoundsForPatch(patch);
     Rectangle<int> totalSize;
-    
+
     for (auto& rect : objectRects) {
         totalSize = rect.getUnion(totalSize);
     }
-    
+
     // apply the top left offset to all rects
     for (auto& rect : objectRects) {
         rect.translate(-totalSize.getX(), -totalSize.getY());
@@ -376,54 +368,59 @@ std::pair<SmallArray<bool>, SmallArray<bool>> OfflineObjectRenderer::countIolets
     if (patchIoletCache.contains(patchSHA256)) {
         return patchIoletCache[patchSHA256];
     }
-    
+
     auto trimmedPatch = patch.trim();
     bool onlyOneObject = StringArray::fromLines(trimmedPatch).size() == 1;
 
     SmallArray<bool> inlets, outlets;
-    
-    if(onlyOneObject)
-    {
+
+    if (onlyOneObject) {
         auto tokens = StringArray::fromTokens(trimmedPatch, true);
-        if(tokens.size() >= 5) {
+        if (tokens.size() >= 5) {
             auto& objectText = tokens.getReference(4);
             auto patchFile = pd::Library::findPatch(objectText);
-            if(!patchFile.existsAsFile()) return {{0}, {0}};
-            
+            if (!patchFile.existsAsFile())
+                return { { 0 }, { 0 } };
+
             auto patchAsString = patchFile.loadFileAsString();
-            parsePatch(patchAsString, [&inlets, &outlets](PatchItemType type, int depth, const String& text){
-                if(type == Object && depth == 0)
-                {
+            parsePatch(patchAsString, [&inlets, &outlets](PatchItemType type, int depth, String const& text) {
+                if (type == Object && depth == 0) {
                     auto tokens = StringArray::fromTokens(text.trim(), true);
-                    if(tokens.size() >= 5) {
+                    if (tokens.size() >= 5) {
                         auto& name = tokens.getReference(4);
-                        if(name.startsWith("inlet~")) inlets.add(true);
-                        else if(name.startsWith("inlet")) inlets.add(false);
-                        else if(name.startsWith("outlet~")) outlets.add(true);
-                        else if(name.startsWith("outlet")) outlets.add(false);
+                        if (name.startsWith("inlet~"))
+                            inlets.add(true);
+                        else if (name.startsWith("inlet"))
+                            inlets.add(false);
+                        else if (name.startsWith("outlet~"))
+                            outlets.add(true);
+                        else if (name.startsWith("outlet"))
+                            outlets.add(false);
                     }
                 }
             });
         }
-    }
-    else {
+    } else {
         parsePatch(trimmedPatch, [&inlets, &outlets](PatchItemType type, int depth, String const& text) {
-            if(type == Object && depth == 1)
-            {
+            if (type == Object && depth == 1) {
                 auto tokens = StringArray::fromTokens(text.trim(), true);
-                if(tokens.size() >= 5) {
+                if (tokens.size() >= 5) {
                     auto& objectText = tokens.getReference(4);
-                    if(objectText.startsWith("inlet~")) inlets.add(true);
-                    else if(objectText.startsWith("inlet")) inlets.add(false);
-                    else if(objectText.startsWith("outlet~")) outlets.add(true);
-                    else if(objectText.startsWith("outlet")) outlets.add(false);
+                    if (objectText.startsWith("inlet~"))
+                        inlets.add(true);
+                    else if (objectText.startsWith("inlet"))
+                        inlets.add(false);
+                    else if (objectText.startsWith("outlet~"))
+                        outlets.add(true);
+                    else if (objectText.startsWith("outlet"))
+                        outlets.add(false);
                 }
             }
         });
     }
-    
-    auto result = std::pair<SmallArray<bool>, SmallArray<bool>>{inlets, outlets};
+
+    auto result = std::pair<SmallArray<bool>, SmallArray<bool>> { inlets, outlets };
     patchIoletCache.emplace(patchSHA256, result);
-    
+
     return result;
 }

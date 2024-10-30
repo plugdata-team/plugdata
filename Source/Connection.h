@@ -121,10 +121,10 @@ private:
     NVGcolor getConnectionColour();
 
     void setSelected(bool shouldBeSelected);
-        
+
     void pathChanged() override;
 
-    const float getPathWidth();
+    float const getPathWidth();
 
     SmallArray<SafePointer<Connection>> reconnecting;
     Rectangle<float> startReconnectHandle, endReconnectHandle;
@@ -166,12 +166,12 @@ private:
     float pathLength = 0.0f;
 
     PlugDataLook::ConnectionStyle connectionStyle = PlugDataLook::ConnectionStyleDefault;
-    bool selectedFlag:1 = false;
-    bool segmented:1 = false;
-    bool isHovering:1 = false;
-    bool isInStartReconnectHandle:1 = false;
-    bool isInEndReconnectHandle:1 = false;
-    
+    bool selectedFlag : 1 = false;
+    bool segmented : 1 = false;
+    bool isHovering : 1 = false;
+    bool isInStartReconnectHandle : 1 = false;
+    bool isInEndReconnectHandle : 1 = false;
+
     friend class ConnectionPathUpdater;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
@@ -205,14 +205,15 @@ public:
     ~ConnectionBeingCreated() override
     {
         cnv->removeMouseListener(this);
-        if(iolet) iolet->removeMouseListener(this);
+        if (iolet)
+            iolet->removeMouseListener(this);
     }
-        
+
     void pathChanged() override
     {
         strokePath.clear();
         strokePath = path;
-        setBoundsToEnclose (getDrawableBounds().expanded(3));
+        setBoundsToEnclose(getDrawableBounds().expanded(3));
         repaint();
     }
 
@@ -220,7 +221,7 @@ public:
     {
         if (rateReducer.tooFast())
             return;
-        
+
         updatePosition(e.getEventRelativeTo(cnv).position);
     }
 
@@ -228,14 +229,15 @@ public:
     {
         if (rateReducer.tooFast())
             return;
-        
+
         updatePosition(e.getEventRelativeTo(cnv).position);
     }
-        
+
     void updatePosition(Point<float> cursorPoint)
     {
-        if(!iolet) return;
-        
+        if (!iolet)
+            return;
+
         auto ioletPoint = cnv->getLocalPoint((Component*)iolet->object, iolet->getBounds().toFloat().getCentre());
         auto& startPoint = iolet->isInlet ? cursorPoint : ioletPoint;
         auto& endPoint = iolet->isInlet ? ioletPoint : cursorPoint;
@@ -253,19 +255,24 @@ public:
 
         NVGScopedState scopedState(nvg);
         setJUCEPath(nvg, getPath());
-        
+
         auto connectionStyle = PlugDataLook::getConnectionStyle();
         float cableThickness;
-        switch (connectionStyle){
-            case PlugDataLook::ConnectionStyleVanilla:  cableThickness = iolet->isSignal ? 4.5f : 2.5f;             break;
-            case PlugDataLook::ConnectionStyleThin:     cableThickness = 3.0f;                                      break;
-            default:                                    cableThickness = 4.5f;                                      break;
+        switch (connectionStyle) {
+        case PlugDataLook::ConnectionStyleVanilla:
+            cableThickness = iolet->isSignal ? 4.5f : 2.5f;
+            break;
+        case PlugDataLook::ConnectionStyleThin:
+            cableThickness = 3.0f;
+            break;
+        default:
+            cableThickness = 4.5f;
+            break;
         }
 
         nvgStrokeWidth(nvg, cableThickness);
-        
-        if(iolet && iolet->isSignal && connectionStyle != PlugDataLook::ConnectionStyleVanilla)
-        {
+
+        if (iolet && iolet->isSignal && connectionStyle != PlugDataLook::ConnectionStyleVanilla) {
             auto lineColour = cnv->findColour(PlugDataColour::signalColourId).brighter(0.6f);
             auto dashColor = convertColour(shadowColour);
             dashColor.a = 255;
@@ -274,28 +281,28 @@ public:
             dashColor.b *= 0.4f;
             nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(lineColour), convertColour(shadowColour), dashColor, 2.5f, false, false, 0.0f));
             nvgStroke(nvg);
-        }
-        else {
+        } else {
             auto lineColour = cnv->findColour(PlugDataColour::dataColourId).brighter(0.6f);
             nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(lineColour), convertColour(shadowColour), convertColour(Colours::transparentBlack), 0.0f, false, false, 0.0f));
             nvgStroke(nvg);
         }
     }
-        
+
     void toNextIolet()
     {
-        if(!iolet) return;
-        
+        if (!iolet)
+            return;
+
         iolet->removeMouseListener(this);
         iolet->isTargeted = false;
         iolet->repaint();
-        
+
         iolet = iolet->getNextIolet();
         iolet->addMouseListener(this, false);
         iolet->isTargeted = true;
         iolet->repaint();
-        
-        updatePosition(cnv->getMouseXYRelative().toFloat()  );
+
+        updatePosition(cnv->getMouseXYRelative().toFloat());
     }
 
     Iolet* getIolet()

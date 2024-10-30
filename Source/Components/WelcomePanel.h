@@ -16,10 +16,11 @@ class WelcomePanel : public Component
 
     class TopFillAllRect : public Component {
         Colour bgCol;
-    public:
-        TopFillAllRect(){};
 
-        void setBGColour(const Colour& col)
+    public:
+        TopFillAllRect() { };
+
+        void setBGColour(Colour const& col)
         {
             bgCol = col;
             repaint();
@@ -43,13 +44,13 @@ class WelcomePanel : public Component
 
         int lastWidth = -1;
         int lastHeight = -1;
-        
+
     public:
         bool isFavourited;
-        std::function<void()> onClick = []() {};
+        std::function<void()> onClick = []() { };
         std::function<void(bool)> onFavourite = nullptr;
 
-        WelcomePanelTile(WelcomePanel& welcomePanel, String name, String subtitle, String svgImage, Colour iconColour, float scale, bool favourited, const Image& thumbImage = Image())
+        WelcomePanelTile(WelcomePanel& welcomePanel, String name, String subtitle, String svgImage, Colour iconColour, float scale, bool favourited, Image const& thumbImage = Image())
             : parent(welcomePanel)
             , snapshotScale(scale)
             , tileName(name)
@@ -57,7 +58,7 @@ class WelcomePanel : public Component
             , thumbnailImageData(thumbImage)
             , isFavourited(favourited)
         {
-            if (!thumbImage.isValid()){
+            if (!thumbImage.isValid()) {
                 snapshot = Drawable::createFromImageData(svgImage.toRawUTF8(), svgImage.getNumBytesAsUTF8());
                 if (snapshot) {
                     snapshot->replaceColour(Colours::black, iconColour);
@@ -79,7 +80,7 @@ class WelcomePanel : public Component
                     lastWidth = bounds.getWidth();
                     lastHeight = bounds.getHeight();
 
-                    snapshotImage =  NVGImage(nvg, bounds.getWidth() * 2, (bounds.getHeight() - 32) * 2, [this, bounds](Graphics &g) {
+                    snapshotImage = NVGImage(nvg, bounds.getWidth() * 2, (bounds.getHeight() - 32) * 2, [this, bounds](Graphics& g) {
                         g.addTransform(AffineTransform::scale(2.0f));
                         if (thumbnailImageData.isValid()) {
                             auto imageWidth = thumbnailImageData.getWidth();
@@ -113,7 +114,7 @@ class WelcomePanel : public Component
                 }
             } else {
                 if (snapshot && !snapshotImage.isValid()) {
-                    snapshotImage =  NVGImage(nvg, bounds.getWidth() * 2, (bounds.getHeight() - 32) * 2, [this](Graphics &g) {
+                    snapshotImage = NVGImage(nvg, bounds.getWidth() * 2, (bounds.getHeight() - 32) * 2, [this](Graphics& g) {
                         g.addTransform(AffineTransform::scale(2.0f));
                         snapshot->drawAt(g, 0, 0, 1.0f);
                     });
@@ -139,10 +140,10 @@ class WelcomePanel : public Component
             nvgRestore(nvg);
 
             // Draw border around
-            nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), nvgRGBA(0,0,0,0), convertColour(findColour(PlugDataColour::toolbarOutlineColourId)), Corners::largeCornerRadius);
+            nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), nvgRGBA(0, 0, 0, 0), convertColour(findColour(PlugDataColour::toolbarOutlineColourId)), Corners::largeCornerRadius);
 
             auto hoverColour = findColour(PlugDataColour::toolbarHoverColourId).interpolatedWith(findColour(PlugDataColour::toolbarBackgroundColourId), 0.5f);
-            
+
             nvgBeginPath(nvg);
             nvgRoundedRectVarying(nvg, bounds.getX(), bounds.getHeight() - 32, bounds.getWidth(), 44, 0.0f, 0.0f, Corners::largeCornerRadius, Corners::largeCornerRadius);
             nvgFillColor(nvg, convertColour(isHovered ? hoverColour : findColour(PlugDataColour::toolbarBackgroundColourId)));
@@ -209,8 +210,9 @@ class WelcomePanel : public Component
 
         void mouseUp(MouseEvent const& e) override
         {
-            if(!e.mods.isLeftButtonDown()) return;
-            
+            if (!e.mods.isLeftButtonDown())
+                return;
+
             if (onFavourite && getHeartIconBounds().contains(e.x, e.y)) {
                 isFavourited = !isFavourited;
                 onFavourite(isFavourited);
@@ -251,23 +253,22 @@ public:
         setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this));
         triggerAsyncUpdate();
     }
-        
+
     void drawShadow(NVGcontext* nvg, int width, int height)
     {
         // We only need one shadow image, because all tiles have the same size
-        if(shadowImage.needsUpdate(width * 2.0f, height * 2.0f)) {
-            shadowImage = NVGImage(nvg, width * 2.0f, height * 2.0f, [width, height](Graphics& g){
+        if (shadowImage.needsUpdate(width * 2.0f, height * 2.0f)) {
+            shadowImage = NVGImage(nvg, width * 2.0f, height * 2.0f, [width, height](Graphics& g) {
                 g.addTransform(AffineTransform::scale(2.0f, 2.0f));
                 Path tilePath;
                 tilePath.addRoundedRectangle(12.5f, 12.5f, width - 25.0f, height - 25.0f, Corners::largeCornerRadius);
-                StackShadow::renderDropShadow(0, g, tilePath, Colours::white.withAlpha(0.08f), 6, { 0, 1 });
-            }, NVGImage::AlphaImage);
+                StackShadow::renderDropShadow(0, g, tilePath, Colours::white.withAlpha(0.08f), 6, { 0, 1 }); }, NVGImage::AlphaImage);
         }
-        
+
         nvgFillPaint(nvg, nvgImageAlphaPattern(nvg, 0, 0, width, height, 0, shadowImage.getImageId(), nvgRGB(0, 0, 0)));
         nvgFillRect(nvg, 0, 0, width, height);
     }
-    
+
     void resized() override
     {
         auto bounds = getLocalBounds().reduced(24).withTrimmedTop(36);
@@ -391,13 +392,12 @@ public:
 
                 auto* tile = tiles.add(new WelcomePanelTile(*this, patchFile.getFileName(), timeDescription, silhoutteSvg, snapshotColour, 1.0f, favourited, thumbImage));
                 tile->onClick = [this, patchFile]() mutable {
-                    if(patchFile.existsAsFile()) {
+                    if (patchFile.existsAsFile()) {
                         editor->pd->autosave->checkForMoreRecentAutosave(patchFile, editor, [this, patchFile]() {
                             editor->getTabComponent().openPatch(URL(patchFile));
                             SettingsFile::getInstance()->addToRecentlyOpened(patchFile);
                         });
-                    }
-                    else {
+                    } else {
                         editor->pd->logError("Patch not found");
                     }
                 };
@@ -454,7 +454,7 @@ public:
         nvgFontFace(nvg, "Inter-Bold");
         nvgText(nvg, 35, 38, "Welcome to plugdata", nullptr);
 
-        if(recentlyOpenedViewport.isVisible()) {
+        if (recentlyOpenedViewport.isVisible()) {
             nvgBeginPath(nvg);
             nvgFontSize(nvg, 24);
             nvgText(nvg, 35, 244, "Recently Opened", nullptr);

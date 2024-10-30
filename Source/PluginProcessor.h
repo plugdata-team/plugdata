@@ -31,8 +31,7 @@ class ConnectionMessageDisplay;
 class Object;
 class PluginProcessor final : public AudioProcessor
     , public pd::Instance
-    , public SettingsFileListener
-{
+    , public SettingsFileListener {
 public:
     PluginProcessor();
 
@@ -92,7 +91,7 @@ public:
     void addTextToTextEditor(unsigned long ptr, String text) override;
     void showTextEditorDialog(unsigned long ptr, Rectangle<int> bounds, String title) override;
     bool isTextEditorDialogShown(unsigned long ptr) override;
-    
+
     void updateConsole(int numMessages, bool newWarning) override;
 
     void reloadAbstractions(File changedPatch, t_glist* except) override;
@@ -148,7 +147,7 @@ public:
 
     std::atomic<float>* volume;
     ValueTree pluginModeTheme;
-        
+
     SettingsFile* settingsFile;
 
     std::unique_ptr<pd::Library> objectLibrary;
@@ -180,9 +179,8 @@ public:
     OwnedArray<PluginEditor> openedEditors;
     Component::SafePointer<ConnectionMessageDisplay> connectionListener;
     std::unique_ptr<Autosave> autosave;
-    
-private:
 
+private:
     int customLatencySamples = 0;
 
     SmoothedValue<float, ValueSmoothingTypes::Linear> smoothedGain;
@@ -229,7 +227,7 @@ private:
     class HostInfoUpdater : public AsyncUpdater {
     public:
         HostInfoUpdater(PluginProcessor* parentProcessor)
-            : processor(*parentProcessor) {};
+            : processor(*parentProcessor) { };
 
         void update()
         {
@@ -241,6 +239,7 @@ private:
             triggerAsyncUpdate();
 #endif
         }
+
     private:
         void handleAsyncUpdate() override
         {

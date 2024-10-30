@@ -110,7 +110,7 @@ public:
 
         auto b = getLocalBounds().toFloat();
         auto backgroundColour = convertColour(Colour::fromString(secondaryColour.toString()));
-        
+
         auto foregroundColour = convertColour(Colour::fromString(primaryColour.toString()));
         auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
         auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
@@ -142,7 +142,7 @@ public:
             nvgStrokeColor(nvg, hoverIdx == i && editing ? outlineColour : foregroundColour);
             nvgBeginPath(nvg);
             nvgCircle(nvg, point.getX(), point.getY(), 2.5f);
-            if(selectedIdx == i) {
+            if (selectedIdx == i) {
                 nvgFill(nvg);
             }
             nvgStrokeWidth(nvg, 1.5f);
@@ -168,20 +168,20 @@ public:
 
         repaint();
     }
-    
-    bool keyPressed(const KeyPress& key) override  {
-        
-        if(getValue<bool>(cnv->locked) && key.getKeyCode() == KeyPress::deleteKey && selectedIdx >= 0)
-        {
+
+    bool keyPressed(KeyPress const& key) override
+    {
+
+        if (getValue<bool>(cnv->locked) && key.getKeyCode() == KeyPress::deleteKey && selectedIdx >= 0) {
             removePoint(selectedIdx);
             selectedIdx = -1;
             return true;
         }
-        
+
         return false;
     }
 
-    static int compareElements(const Point<float>& a, const Point<float>& b)
+    static int compareElements(Point<float> const& a, Point<float> const& b)
     {
         return a.x < b.x;
     }
@@ -219,7 +219,7 @@ public:
     {
         if (e.mods.isRightButtonDown())
             return;
-        
+
         selectedIdx = -1;
 
         auto realPoints = getRealPoints();
@@ -242,13 +242,12 @@ public:
 
         triggerOutput();
     }
-    
+
     void removePoint(int idx)
     {
         if (idx == 0 || idx == points.size() - 1) {
             points[idx].y = 0.0f;
-        }
-        else {
+        } else {
             points.remove_at(idx);
         }
         selectedIdx = -1;

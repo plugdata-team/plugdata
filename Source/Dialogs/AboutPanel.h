@@ -142,7 +142,7 @@ class AboutPanel : public Component {
                 jassert(!bounds.isEmpty());
             }
         }
-        
+
         int getDesiredHeight()
         {
             return sponsors.size() * 36;
@@ -290,7 +290,7 @@ public:
         creditsViewport.setBounds(getLocalBounds());
         creditsComponent.setSize(getWidth(), creditsComponent.getDesiredHeight() + 450);
         licenseComponent.setBounds(getLocalBounds());
-        
+
         auto bounds = getLocalBounds().withTrimmedTop(190).reduced(16, 10);
 
         viewWebsite.setBounds(bounds.removeFromTop(44).reduced(4));

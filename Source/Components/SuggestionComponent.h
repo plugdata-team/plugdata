@@ -253,7 +253,7 @@ class SuggestionComponent : public Component
         SuggestionComponent* parent;
         bool drawIcon = true;
     };
-        
+
     StackDropShadower stackDropShadow;
 
 public:
@@ -325,8 +325,7 @@ public:
                 // If the button is already selected, perform autocomplete
                 if (i == currentidx && autoCompleteComponent) {
                     autoCompleteComponent->autocomplete();
-                }
-                else {
+                } else {
                     move(0, i);
                 }
 
@@ -337,10 +336,10 @@ public:
         }
 
         addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses);
-        if(canBeTransparent()) {
+        if (canBeTransparent()) {
             stackDropShadow.setOwner(this);
         }
-        
+
         updateBounds();
 
         setVisible(false);
@@ -407,7 +406,7 @@ public:
 
         if (numOptions == 0)
             return;
-        
+
         // Limit it to minimum of the number of buttons and the number of suggestions
         int numButtons = std::min(20, numOptions);
         currentidx = (currentidx + numButtons) % numButtons;
@@ -416,15 +415,13 @@ public:
 
         but->setToggleState(true, dontSendNotification);
         auto buttonText = but->getButtonText();
-        
+
         if (openedEditor && autoCompleteComponent && buttonText.startsWith(openedEditor->getText())) {
             autoCompleteComponent->setSuggestion(buttonText);
             autoCompleteComponent->enableAutocomplete(true);
             currentObject->updateBounds();
             resized();
-        }
-        else
-        {
+        } else {
             openedEditor->setText(buttonText, dontSendNotification);
             openedEditor->moveCaretToEnd(false);
             autoCompleteComponent->setSuggestion("");
@@ -475,15 +472,15 @@ public:
         if (!currentObject || lastText == currentText) {
             return;
         }
-        
-        if(currentidx >= 0 && buttons[currentidx]->getButtonText() == currentText)
-        {
-            if(autoCompleteComponent) autoCompleteComponent->setSuggestion("");
+
+        if (currentidx >= 0 && buttons[currentidx]->getButtonText() == currentText) {
+            if (autoCompleteComponent)
+                autoCompleteComponent->setSuggestion("");
             return;
         }
-        
+
         lastText = currentText;
-        
+
         auto& library = currentObject->cnv->pd->objectLibrary;
 
         class ObjectSorter {
@@ -503,7 +500,7 @@ public:
                 if (b == query && a != query) {
                     return 1;
                 }
-                
+
                 // Check if suggestion is equal to query with "~" appended
                 if (a == (query + "~") && b != query && b != (query + "~")) {
                     return -1;
@@ -521,17 +518,15 @@ public:
                 if (b.startsWith(query + ".") && a != query && a != (query + "~") && !a.startsWith(query + ".")) {
                     return 1;
                 }
-                
-                if(a.startsWith(query) && !b.startsWith(query))
-                {
+
+                if (a.startsWith(query) && !b.startsWith(query)) {
                     return -1;
                 }
-                
-                if(b.startsWith(query) && !a.startsWith(query))
-                {
+
+                if (b.startsWith(query) && !a.startsWith(query)) {
                     return 1;
                 }
-                
+
                 return 0;
             }
             String const query;
@@ -641,17 +636,16 @@ public:
         auto filterObjects = [_this = SafePointer(this), &library](StringArray& toFilter) {
             if (!_this || !_this->currentObject)
                 return;
-            
-            if(!SettingsFile::getInstance()->getLibrariesTree().getChildWithProperty("Name", "Gem").isValid())
-            {
+
+            if (!SettingsFile::getInstance()->getLibrariesTree().getChildWithProperty("Name", "Gem").isValid()) {
                 StringArray noGemObjects;
                 for (auto& object : toFilter) {
-                    if(object.startsWith("Gem/") || !library->isGemObject(object)) // Don't suggest Gem objects without "Gem/" prefix unless gem library is loaded
+                    if (object.startsWith("Gem/") || !library->isGemObject(object)) // Don't suggest Gem objects without "Gem/" prefix unless gem library is loaded
                     {
                         noGemObjects.add(object);
                     }
                 }
-                
+
                 toFilter = noGemObjects;
             }
 
@@ -690,14 +684,14 @@ public:
             currentidx = -1;
         } else {
             found = sortSuggestions(currentText, found);
-            if(currentText.isEmpty() || currentidx == -1 || !found[currentidx].startsWith(currentText)) {
+            if (currentText.isEmpty() || currentidx == -1 || !found[currentidx].startsWith(currentText)) {
                 currentidx = 0;
                 autoCompleteComponent->setSuggestion(found[0]);
             }
             buttons[currentidx]->setToggleState(true, dontSendNotification);
             autoCompleteComponent->enableAutocomplete(true);
         }
-        
+
         if (openedEditor) {
             numOptions = static_cast<int>(found.size());
 

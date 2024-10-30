@@ -421,12 +421,12 @@ public:
         mainComponent = new MainContentComponent(*this, editor);
 
         setContentOwned(mainComponent, true);
-        
+
 #if JUCE_MAC
         if (auto peer = getPeer())
             OSUtils::enableInsetTitlebarButtons(peer->getNativeHandle(), true);
 #endif
-        
+
         parentHierarchyChanged();
     }
 
@@ -438,18 +438,18 @@ public:
 #if JUCE_IOS
         nativeWindow = true;
 #endif
-        if(!mainComponent) return;
-        
+        if (!mainComponent)
+            return;
+
         auto* editor = mainComponent->getEditor();
         auto* pdEditor = dynamic_cast<PluginEditor*>(editor);
-        
+
         if (!nativeWindow) {
 #if JUCE_WINDOWS
             setOpaque(true);
 #else
             setOpaque(false);
 #endif
-            
 
             setResizable(false, false);
             // we also need to set the constrainer of THIS window so it's set for the peer
@@ -462,22 +462,21 @@ public:
             setResizeLimits(850, 650, 99000, 99000);
             pdEditor->setUseBorderResizer(false);
         }
-        
+
 #if JUCE_WINDOWS
         if (auto peer = getPeer())
             OSUtils::useWindowsNativeDecorations(peer->getNativeHandle(), !isFullScreen());
 #endif
-        
+
 #if JUCE_MAC
         if (auto peer = getPeer())
             OSUtils::enableInsetTitlebarButtons(peer->getNativeHandle(), !nativeWindow && !isFullScreen());
 #endif
-        
+
         editor->resized();
         resized();
         lookAndFeelChanged();
     }
-
 
     void propertyChanged(String const& name, var const& value) override
     {
@@ -507,8 +506,7 @@ public:
 #endif
 
 #if !JUCE_IOS
-        if (SettingsFile::getInstance()->getProperty<bool>("native_window"))
-        {
+        if (SettingsFile::getInstance()->getProperty<bool>("native_window")) {
             flags |= ComponentPeer::windowHasTitleBar;
             flags |= ComponentPeer::windowHasDropShadow;
         } else
@@ -571,7 +569,7 @@ public:
         return isFullScreen();
 #endif
     }
-        
+
     bool useNativeTitlebar()
     {
         return SettingsFile::getInstance()->getProperty<bool>("native_window");
@@ -614,8 +612,7 @@ public:
 #elif JUCE_WINDOWS
     void paintOverChildren(Graphics& g) override
     {
-        if (SystemStats::getOperatingSystemType() != SystemStats::Windows11)
-        {
+        if (SystemStats::getOperatingSystemType() != SystemStats::Windows11) {
             g.setColour(findColour(PlugDataColour::outlineColourId));
             g.drawRect(0, 0, getWidth(), getHeight());
         }
@@ -649,16 +646,15 @@ public:
 #elif JUCE_MAC
         auto fullscreen = isFullScreen();
         auto nativeWindow = SettingsFile::getInstance()->getProperty<bool>("native_window");
-        if(!nativeWindow && wasFullscreen && !fullscreen) {
-            Timer::callAfterDelay(800, [_this = SafePointer(this)](){
-                if(_this) {
+        if (!nativeWindow && wasFullscreen && !fullscreen) {
+            Timer::callAfterDelay(800, [_this = SafePointer(this)]() {
+                if (_this) {
                     _this->parentHierarchyChanged();
                 }
             });
         }
         wasFullscreen = fullscreen;
 #endif
-        
 
 #if !JUCE_IOS
         getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
@@ -691,7 +687,7 @@ private:
                 // Menubar, only for standalone on mac
                 // Doesn't add any new features, but was easy to implement because we already have a command manager
                 setApplicationCommandManagerToWatch(commandManager);
-                
+
                 editor->addComponentListener(this);
                 componentMovedOrResized(*editor, false, true);
 

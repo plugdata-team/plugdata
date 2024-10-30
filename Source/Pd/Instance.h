@@ -36,13 +36,13 @@ public:
         binbuf_text(binbuf, str.toRawUTF8(), str.getNumBytesAsUTF8());
         auto* argv = binbuf_getvec(binbuf);
         auto argc = binbuf_getnatom(binbuf);
-        
+
         auto atoms = fromAtoms(argc, argv);
         binbuf_free(binbuf);
-        
+
         return atoms;
     }
-    
+
     static SmallArray<pd::Atom, 8> fromAtoms(int ac, t_atom* av)
     {
         auto array = SmallArray<pd::Atom>();
@@ -214,7 +214,7 @@ public:
     virtual void addTextToTextEditor(unsigned long ptr, String text) = 0;
     virtual void showTextEditorDialog(unsigned long ptr, Rectangle<int> bounds, String title) = 0;
     virtual bool isTextEditorDialogShown(unsigned long ptr) = 0;
-    
+
     virtual void receiveSysMessage(String const& selector, SmallArray<pd::Atom> const& list) = 0;
 
     void registerMessageListener(void* object, MessageListener* messageListener);

@@ -522,13 +522,13 @@ void ZoomableDragAndDropContainer::startDragging(var const& sourceDescription,
         if (inputImage.getImage().isValid())
             return { inputImage, imageOffsetFromMouse != nullptr ? dragImage.getScaledBounds().getConstrainedPoint(-imageOffsetFromMouse->toDouble()) : dragImage.getScaledBounds().getCentre() };
 
-        const auto scaleFactor = 2.0;
+        auto const scaleFactor = 2.0;
         auto image = sourceComponent->createComponentSnapshot(sourceComponent->getLocalBounds(), true, (float)scaleFactor)
                          .convertedToFormat(Image::ARGB);
         image.multiplyAllAlphas(0.6f);
 
-        const auto relPos = sourceComponent->getLocalPoint(nullptr, lastMouseDown).toDouble();
-        const auto clipped = (image.getBounds().toDouble() / scaleFactor).getConstrainedPoint(relPos);
+        auto const relPos = sourceComponent->getLocalPoint(nullptr, lastMouseDown).toDouble();
+        auto const clipped = (image.getBounds().toDouble() / scaleFactor).getConstrainedPoint(relPos);
 
         Image fade(Image::SingleChannel, image.getWidth(), image.getHeight(), true);
         Graphics fadeContext(fade);

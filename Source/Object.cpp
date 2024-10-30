@@ -104,7 +104,7 @@ void Object::initialise()
 
     hvccMode.referTo(SettingsFile::getInstance()->getValueTree(), Identifier("hvcc_mode"), nullptr, false);
     patchDownwardsOnly.referTo(SettingsFile::getInstance()->getValueTree(), Identifier("patch_downwards_only"), nullptr);
-    
+
     presentationMode.addListener(this);
     locked.addListener(this);
     commandLocked.addListener(this);
@@ -143,9 +143,9 @@ bool Object::isSelected() const
     return selectedFlag;
 }
 
-void Object::propertyChanged(String const& name, var const& value) {
-    if(name == "hvcc_mode")
-    {
+void Object::propertyChanged(String const& name, var const& value)
+{
+    if (name == "hvcc_mode") {
         isHvccCompatible = checkIfHvccCompatible();
         if (gui && !isHvccCompatible) {
             cnv->pd->logWarning(String("Warning: object \"" + gui->getType() + "\" is not supported in Compiled Mode").toRawUTF8());
@@ -189,7 +189,7 @@ bool Object::hitTest(int x, int y)
 
     if (cnv->panningModifierDown())
         return false;
-    
+
     // If the hit-test get's to here, and any of these are still true
     // return! Otherwise it will test non-existent iolets and return true!
     bool blockIolets = presentationMode.getValue() || locked.getValue() || commandLocked.getValue();
@@ -198,7 +198,7 @@ bool Object::hitTest(int x, int y)
         if (!blockIolets && iolet->getBounds().contains(x, y))
             return true;
     }
-    
+
     if (selectedFlag) {
         for (auto& corner : getCorners()) {
             if (corner.contains(x, y))
@@ -210,12 +210,12 @@ bool Object::hitTest(int x, int y)
     if (gui && !gui->canReceiveMouseEvent(x, y)) {
         return false;
     }
-    
+
     // Mouse over object
     if (getLocalBounds().reduced(margin).contains(x, y)) {
         return true;
     }
-    
+
     return false;
 }
 
@@ -275,17 +275,16 @@ void Object::applyBounds()
     std::map<SafePointer<Object>, Rectangle<int>> newObjectSizes;
     for (auto* obj : cnv->getSelectionOfType<Object>())
         newObjectSizes[obj] = obj->getObjectBounds();
-    
+
     auto positionOffset = gui ? (getBounds().reduced(margin).getPosition() - cnv->canvasOrigin) - gui->getPdBounds().getPosition() : Point<int>(0, 0);
     auto* patch = &cnv->patch;
 
     auto* patchPtr = cnv->patch.getPointer().get();
     if (!patchPtr)
         return;
-    
+
     cnv->pd->lockAudioThread();
-    if(ds.wasResized || ds.wasDragDuplicated)
-    {
+    if (ds.wasResized || ds.wasDragDuplicated) {
         patch->startUndoSequence("Resize");
 
         for (auto& [object, bounds] : newObjectSizes) {
@@ -296,25 +295,20 @@ void Object::applyBounds()
         canvas_dirty(patchPtr, 1);
 
         patch->endUndoSequence("Resize");
-    }
-    else if(ds.didStartDragging)
-    {
+    } else if (ds.didStartDragging) {
         patch->startUndoSequence("Move");
         SmallArray<t_gobj*> objects;
-        for (auto* obj : cnv->getSelectionOfType<Object>())
-        {
-            if(auto* ptr = obj->getPointer())
-            {
+        for (auto* obj : cnv->getSelectionOfType<Object>()) {
+            if (auto* ptr = obj->getPointer()) {
                 objects.add(ptr);
             }
         }
-        
+
         cnv->patch.moveObjects(objects, positionOffset.x, positionOffset.y);
         patch->endUndoSequence("Move");
     }
     cnv->pd->unlockAudioThread();
 
-    
     MessageManager::callAsync([editor = SafePointer(this->editor)] {
         if (editor)
             editor->updateCommandStatus();
@@ -483,7 +477,8 @@ void Object::triggerOverlayActiveState()
     repaint();
 }
 
-void Object::lookAndFeelChanged() {
+void Object::lookAndFeelChanged()
+{
     if (gui)
         gui->updateLabel();
 }
@@ -521,11 +516,11 @@ void Object::updateIoletGeometry()
         auto marginOffset = Corners::objectCornerRadius == 0.0f;
         vanillaIoletBounds.removeFromLeft(margin - marginOffset);
         vanillaIoletBounds.removeFromRight(margin - marginOffset);
-        auto objectWidth = vanillaIoletBounds.getWidth() + 0.5f; //FIXME: the right most iolet looks not right otherwise
+        auto objectWidth = vanillaIoletBounds.getWidth() + 0.5f; // FIXME: the right most iolet looks not right otherwise
 
         int inletIndex = 0;
         int outletIndex = 0;
-        for (auto &iolet: iolets) {
+        for (auto& iolet : iolets) {
             bool const isInlet = iolet->isInlet;
             float const yPosition = (isInlet ? margin + 1 : getHeight() - margin) - (ioletSize / 2.0f);
 
@@ -544,7 +539,7 @@ void Object::updateIoletGeometry()
                 outletIndex++;
             }
         }
-    // DEFAULT iolet position style
+        // DEFAULT iolet position style
     } else {
         auto inletBounds = getLocalBounds();
         if (auto spaceToRemove = jlimit<int>(0, borderWidth, inletBounds.getWidth() - (ioletHitBox * numInputs) - borderWidth)) {
@@ -559,7 +554,7 @@ void Object::updateIoletGeometry()
         }
 
         int index = 0;
-        for (auto &iolet: iolets) {
+        for (auto& iolet : iolets) {
             bool const isInlet = iolet->isInlet;
             int const position = index < numInputs ? index : index - numInputs;
             int const total = isInlet ? numInputs : numOutputs;
@@ -569,7 +564,7 @@ void Object::updateIoletGeometry()
 
             if (total == 1 && position == 0) {
                 iolet->setBounds(getWidth() < (25 + ioletSize) ? getLocalBounds().getCentreX() - ioletSize / 2.0f : bounds.getX(),
-                                 yPosition, ioletSize, ioletSize);
+                    yPosition, ioletSize, ioletSize);
             } else if (total > 1) {
                 float const ratio = (bounds.getWidth() - ioletSize) / static_cast<float>(total - 1);
                 iolet->setBounds(bounds.getX() + ratio * position, yPosition, ioletSize, ioletSize);
@@ -782,13 +777,13 @@ void Object::mouseDown(MouseEvent const& e)
     if (e.mods.isShiftDown()) {
         // select multiple objects
         ds.wasSelectedOnMouseDown = selectedFlag;
-        ds.duplicateOffset = {0, 0};
-        ds.lastDuplicateOffset = {0, 0};
+        ds.duplicateOffset = { 0, 0 };
+        ds.lastDuplicateOffset = { 0, 0 };
         ds.wasDuplicated = false;
     } else if (!selectedFlag) {
         cnv->deselectAll();
-        ds.duplicateOffset = {0, 0};
-        ds.lastDuplicateOffset = {0, 0};
+        ds.duplicateOffset = { 0, 0 };
+        ds.lastDuplicateOffset = { 0, 0 };
         ds.wasDuplicated = false;
     }
 
@@ -808,12 +803,11 @@ void Object::mouseDown(MouseEvent const& e)
             continue;
 
         bool isDraggingOneEdge = false;
-        if (obj->gui->canEdgeOverrideAspectRatio() && overEdgeNotCorner)
-        {
+        if (obj->gui->canEdgeOverrideAspectRatio() && overEdgeNotCorner) {
             isDraggingOneEdge = true;
         }
 
-        if (auto *constrainer = obj->getConstrainer()) {
+        if (auto* constrainer = obj->getConstrainer()) {
             if (gui && gui->canEdgeOverrideAspectRatio()) {
                 if (isDraggingOneEdge)
                     constrainer->setFixedAspectRatio(0);
@@ -912,7 +906,7 @@ void Object::mouseUp(MouseEvent const& e)
 
             cnv->synchronise();
         }
-        
+
         for (auto* object : cnv->getSelectionOfType<Object>()) {
             object->repaint();
         }
@@ -927,7 +921,7 @@ void Object::mouseUp(MouseEvent const& e)
         ds.wasDragDuplicated = false;
     }
 
-    if (gui && selectedFlag && !selectionStateChanged && !e.mouseWasDraggedSinceMouseDown() && !e.mods.isRightButtonDown()  && !e.mods.isAnyModifierKeyDown()) {
+    if (gui && selectedFlag && !selectionStateChanged && !e.mouseWasDraggedSinceMouseDown() && !e.mods.isRightButtonDown() && !e.mods.isAnyModifierKeyDown()) {
         gui->showEditor();
     }
 
@@ -1232,7 +1226,7 @@ void Object::render(NVGcontext* nvg)
     }
 
     nvgTranslate(nvg, margin, margin);
-    
+
     if (gui) {
         gui->render(nvg);
     }
@@ -1245,14 +1239,14 @@ void Object::render(NVGcontext* nvg)
     // If autoconnect is about to happen, draw a fake inlet with a dotted outline
     if (isInitialEditorShown() && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs && getValue<bool>(editor->autoconnect)) {
         auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
-        SmallArray fakeInletBounds = PlugDataLook::getUseIoletSpacingEdge() ? SmallArray{-8.0f, -3.0f, 18.0f, 7.0f} : SmallArray{ 8.5f, -3.5f, 8.0f, 8.0f };
+        SmallArray fakeInletBounds = PlugDataLook::getUseIoletSpacingEdge() ? SmallArray { -8.0f, -3.0f, 18.0f, 7.0f } : SmallArray { 8.5f, -3.5f, 8.0f, 8.0f };
         nvgBeginPath(nvg);
-        if(PlugDataLook::getUseSquareIolets()) {
+        if (PlugDataLook::getUseSquareIolets()) {
             nvgRect(nvg, fakeInletBounds[0] + fakeInletBounds[2] * 0.5f, fakeInletBounds[1] + fakeInletBounds[3] * 0.5f, fakeInletBounds[2] * 0.5f, fakeInletBounds[3] * 0.5f);
         } else {
             nvgEllipse(nvg, fakeInletBounds[0] + fakeInletBounds[2] * 0.5f, fakeInletBounds[1] + fakeInletBounds[3] * 0.5f, fakeInletBounds[2] * 0.5f, fakeInletBounds[3] * 0.5f);
         }
-        
+
         nvgFillColor(nvg, outlet->isSignal ? cnv->sigColBrighter : cnv->dataColBrighter);
         nvgFill(nvg);
 
@@ -1260,7 +1254,7 @@ void Object::render(NVGcontext* nvg)
         nvgStrokeWidth(nvg, 1.0f);
         nvgStroke(nvg);
     }
-    
+
     nvgTranslate(nvg, -margin, -margin);
 
     if (!isHvccCompatible) {
@@ -1290,18 +1284,15 @@ void Object::render(NVGcontext* nvg)
     renderIolets(nvg);
 }
 
-
 void Object::renderIolets(NVGcontext* nvg)
 {
     if (cnv->isGraph)
         return;
-    
+
     if (getValue<bool>(locked) || !drawIoletExpanded) {
         auto clipBounds = getLocalBounds().reduced(Object::margin);
         nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
-    }
-    else if(patchDownwardsOnly)
-    {
+    } else if (patchDownwardsOnly) {
         auto clipBounds = getLocalBounds().reduced(Object::margin);
         nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight() + Object::doubleMargin);
     }
@@ -1309,17 +1300,16 @@ void Object::renderIolets(NVGcontext* nvg)
     auto lastPosition = Point<int>();
     for (auto* iolet : iolets) {
         nvgTranslate(nvg, iolet->getX() - lastPosition.x, iolet->getY() - lastPosition.y);
-        
-        if(iolet->isTargeted)
-        {
+
+        if (iolet->isTargeted) {
             nvgSave(nvg);
             nvgResetScissor(nvg);
         }
-        
+
         iolet->render(nvg);
         lastPosition = iolet->getPosition();
-        
-        if(iolet->isTargeted) {
+
+        if (iolet->isTargeted) {
             nvgRestore(nvg);
         }
     }
@@ -1378,8 +1368,7 @@ SmallArray<Connection*> Object::getConnections() const
 {
     SmallArray<Connection*> result;
     for (auto* iolet : iolets) {
-        for(auto* connection : iolet->getConnections())
-        {
+        for (auto* connection : iolet->getConnections()) {
             result.add(connection);
         }
     }
@@ -1491,7 +1480,7 @@ bool Object::keyPressed(KeyPress const& key, Component* component)
 void Object::textEditorTextChanged(TextEditor& ed)
 {
     cnv->suggestor->updateSuggestions(ed.getText());
-    
+
     String currentText;
     if (cnv->suggestor && !cnv->suggestor->getText().isEmpty() && !ed.getText().containsChar('\n')) {
         currentText = cnv->suggestor->getText();

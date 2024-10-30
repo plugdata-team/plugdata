@@ -51,7 +51,7 @@ public:
                     if (useAutosaved) {
                         MemoryOutputStream ostream;
                         Base64::convertFromBase64(ostream, lastAutoSavedPatch.getProperty("Patch").toString());
-                        auto autosavedPatch = String::fromUTF8((const char*)ostream.getData(), ostream.getDataSize());
+                        auto autosavedPatch = String::fromUTF8((char const*)ostream.getData(), ostream.getDataSize());
                         patchPath.replaceWithText(autosavedPatch);
                         // TODO: instead of replacing, it would be better to load it as a string, (but also with the correct patch path)
                     }
@@ -191,7 +191,7 @@ class AutosaveHistoryComponent : public Component {
             openPatch.onClick = [this, editor]() {
                 MemoryOutputStream ostream;
                 Base64::convertFromBase64(ostream, patch);
-                auto patch = editor->pd->loadPatch(String::fromUTF8(static_cast<const char*>(ostream.getData()), ostream.getDataSize()));
+                auto patch = editor->pd->loadPatch(String::fromUTF8(static_cast<char const*>(ostream.getData()), ostream.getDataSize()));
                 patch->setTitle(patchPath.fromLastOccurrenceOf("/", false, false));
                 patch->setCurrentFile(URL(patchPath));
                 editor->getTabComponent().triggerAsyncUpdate();

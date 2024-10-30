@@ -231,8 +231,7 @@ public:
     void setForegroundColour(String const& colour)
     {
         // Remove alpha channel and add #
-        if(auto numbox = ptr.get<t_fake_numbox>())
-        {
+        if (auto numbox = ptr.get<t_fake_numbox>()) {
             numbox->x_fg = pd->generateSymbol("#" + colour.substring(2));
         }
 
@@ -246,11 +245,10 @@ public:
 
     void setBackgroundColour(String const& colour)
     {
-        if(auto numbox = ptr.get<t_fake_numbox>())
-        {
+        if (auto numbox = ptr.get<t_fake_numbox>()) {
             numbox->x_bg = pd->generateSymbol("#" + colour.substring(2));
         }
-        
+
         repaint();
     }
 
@@ -268,7 +266,6 @@ public:
             nvgTranslate(nvg, input.getX(), input.getY());
             input.render(nvg);
         }
-
 
         auto icon = mode ? Icons::ThinDown : Icons::Sine;
         auto iconBounds = Rectangle<int>(7, 3, getHeight(), getHeight());

@@ -127,7 +127,7 @@ void Connection::lookAndFeelChanged()
 
     textColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting());
 
-    if (connectionStyle != PlugDataLook::getConnectionStyle()){
+    if (connectionStyle != PlugDataLook::getConnectionStyle()) {
         connectionStyle = PlugDataLook::getConnectionStyle();
         cachedPath.clear();
     }
@@ -158,7 +158,7 @@ void Connection::render(NVGcontext* nvg)
 
     bool isSignalCable = cableType == SignalCable && connectionStyle != PlugDataLook::ConnectionStyleVanilla;
     auto dashColor = shadowColour;
-    if (isSignalCable){
+    if (isSignalCable) {
         dashColor.a = 255;
         dashColor.r *= 0.4f;
         dashColor.g *= 0.4f;
@@ -191,7 +191,7 @@ void Connection::render(NVGcontext* nvg)
     auto showActivity = cableType == DataCable && cnv->shouldShowConnectionActivity();
     nvgStrokePaint(nvg, nvgDoubleStroke(nvg, connectionColour, shadowColour, dashColor, dashSize, useGradientLook, showActivity, offset));
     nvgStrokeWidth(nvg, cableThickness);
-    
+
     bool cacheHit = cachedPath.stroke();
     if (!cacheHit) {
         auto pathFromOrigin = getPath();
@@ -201,7 +201,7 @@ void Connection::render(NVGcontext* nvg)
         nvgStroke(nvg);
         cachedPath.save(nvg);
     }
-    
+
     nvgRestore(nvg);
 
     if (isSelected() && isHovering) {
@@ -238,14 +238,14 @@ void Connection::render(NVGcontext* nvg)
     auto renderArrow = [this, nvg, arrowLength, arrowWidth, connectionColour](Path& path, float connectionLength) {
         // get the center point of the connection path
 
-        const auto arrowCenter = connectionLength * 0.5f;
-        const auto arrowBase = path.getPointAlongPath(arrowCenter - (arrowLength * 0.5f));
-        const auto arrowTip = path.getPointAlongPath(arrowCenter + (arrowLength * 0.5f));
+        auto const arrowCenter = connectionLength * 0.5f;
+        auto const arrowBase = path.getPointAlongPath(arrowCenter - (arrowLength * 0.5f));
+        auto const arrowTip = path.getPointAlongPath(arrowCenter + (arrowLength * 0.5f));
 
-        const Line<float> arrowLine(arrowBase, arrowTip);
-        const auto point_a = cnv->getLocalPoint(this, arrowTip);
-        const auto point_b = cnv->getLocalPoint(this, arrowLine.getPointAlongLine(0.0f, -(arrowWidth * 0.5f)));
-        const auto point_c = cnv->getLocalPoint(this, arrowLine.getPointAlongLine(0.0f, (arrowWidth * 0.5f)));
+        Line<float> const arrowLine(arrowBase, arrowTip);
+        auto const point_a = cnv->getLocalPoint(this, arrowTip);
+        auto const point_b = cnv->getLocalPoint(this, arrowLine.getPointAlongLine(0.0f, -(arrowWidth * 0.5f)));
+        auto const point_c = cnv->getLocalPoint(this, arrowLine.getPointAlongLine(0.0f, (arrowWidth * 0.5f)));
 
         // draw the arrow
         nvgBeginPath(nvg);
@@ -443,7 +443,7 @@ bool Connection::intersects(Rectangle<float> toCheck, int accuracy) const
                 if (!next)
                     break;
             }
-         }
+        }
 
         auto point2 = Point<float>(i.x2, i.y2);
 
@@ -494,7 +494,7 @@ bool Connection::isSelected() const
 
 void Connection::mouseMove(MouseEvent const& e)
 {
-    auto setReconnectFlag = [this](bool start, bool end){
+    auto setReconnectFlag = [this](bool start, bool end) {
         if (isInStartReconnectHandle != start || isInEndReconnectHandle != end) {
             isInStartReconnectHandle = start;
             isInEndReconnectHandle = end;
@@ -504,8 +504,7 @@ void Connection::mouseMove(MouseEvent const& e)
 
     if (startReconnectHandle.contains(e.getPosition().toFloat().translated(getX(), getY()))) {
         setReconnectFlag(true, false);
-    }
-    else if (endReconnectHandle.contains(e.getPosition().toFloat().translated(getX(), getY()))) {
+    } else if (endReconnectHandle.contains(e.getPosition().toFloat().translated(getX(), getY()))) {
         setReconnectFlag(false, true);
     } else {
         setReconnectFlag(false, false);
@@ -618,12 +617,11 @@ void Connection::mouseExit(MouseEvent const& e)
 
 void Connection::mouseDown(MouseEvent const& e)
 {
-    if(e.mods.isShiftDown() && e.getNumberOfClicks() == 2 && cnv->getSelectionOfType<Connection>().size() == 2)
-    {
+    if (e.mods.isShiftDown() && e.getNumberOfClicks() == 2 && cnv->getSelectionOfType<Connection>().size() == 2) {
         if (auto oc = ptr.get<t_outconnect>()) {
             auto* patch = cnv->patch.getPointer().get();
             auto* other = cnv->getSelectionOfType<Connection>()[0]->getPointer();
-            if(patch && other) {
+            if (patch && other) {
                 pd::Interface::swapConnections(patch, oc.get(), other);
             }
         }
@@ -746,22 +744,23 @@ int Connection::getClosestLineIdx(Point<float> const& position, PathPlan const& 
 void Connection::pathChanged()
 {
     strokePath.clear();
-    strokeType.createStrokedPath (strokePath, path, AffineTransform(), 1.0f);
-    setBoundsToEnclose (getDrawableBounds());
+    strokeType.createStrokedPath(strokePath, path, AffineTransform(), 1.0f);
+    setBoundsToEnclose(getDrawableBounds());
     repaint();
 }
 
-float const Connection::getPathWidth() {
+float const Connection::getPathWidth()
+{
     switch (connectionStyle) {
-        case PlugDataLook::ConnectionStyleVanilla:
-            return (cableType == SignalCable) ? 4.5f : 2.5f;
-            break;
-        case PlugDataLook::ConnectionStyleThin:
-            return 3.0f;
-            break;
-        default:
-            return 4.5f;
-            break;
+    case PlugDataLook::ConnectionStyleVanilla:
+        return (cableType == SignalCable) ? 4.5f : 2.5f;
+        break;
+    case PlugDataLook::ConnectionStyleThin:
+        return 3.0f;
+        break;
+    default:
+        return 4.5f;
+        break;
     }
 }
 
@@ -934,13 +933,13 @@ Path Connection::getNonSegmentedPath(Point<float> start, Point<float> end)
                 connectionPath.lineTo(end);
                 goto returnPath;
             }
-            Point<float> const ctrlPoint1{start.x - shiftX, start.y + shiftY};
-            Point<float> const ctrlPoint2{end.x + shiftX, end.y - shiftY};
+            Point<float> const ctrlPoint1 { start.x - shiftX, start.y + shiftY };
+            Point<float> const ctrlPoint2 { end.x + shiftX, end.y - shiftY };
 
             connectionPath.cubicTo(ctrlPoint1, ctrlPoint2, end);
         } else {
-            Point<float> const ctrlPoint1{start.x - shiftX, start.y + shiftY};
-            Point<float> const ctrlPoint2{end.x + shiftX, end.y - shiftY};
+            Point<float> const ctrlPoint1 { start.x - shiftX, start.y + shiftY };
+            Point<float> const ctrlPoint2 { end.x + shiftX, end.y - shiftY };
 
             connectionPath.cubicTo(ctrlPoint1, ctrlPoint2, end);
         }
@@ -948,7 +947,7 @@ Path Connection::getNonSegmentedPath(Point<float> start, Point<float> end)
         connectionPath.lineTo(end);
     }
 
-    returnPath:
+returnPath:
     return connectionPath;
 }
 
@@ -1054,8 +1053,8 @@ void Connection::updatePath()
         // Otherwise the path generation will draw the path on-top of the curve (as path flattening happens from centre out)
         toDraw = connectionPath.createPathWithRoundedCorners(PlugDataLook::getUseStraightConnections() ? getPathWidth() : 8.0f);
     }
-    
-    if(getPath() == toDraw) {
+
+    if (getPath() == toDraw) {
         return;
     }
 
@@ -1334,28 +1333,28 @@ void ConnectionPathUpdater::timerCallback()
         t_object* inObj;
         int inIdx;
 
-        if(auto patch = connection->cnv->patch.getPointer()) {
-            
+        if (auto patch = connection->cnv->patch.getPointer()) {
+
             // Get connections from pd
             linetraverser_start(&t, patch.get());
-            
+
             while (auto* oc = linetraverser_next_nosize(&t)) {
-                
+
                 if (oc == connection->ptr.getRaw<t_outconnect>()) {
-                    
+
                     outObj = t.tr_ob;
                     outIdx = t.tr_outno;
                     inObj = t.tr_ob2;
                     inIdx = t.tr_inno;
-                    
+
                     found = true;
                     break;
                 }
             }
-            
+
             if (!found)
                 continue;
-            
+
             if (auto oc = connection->ptr.get<t_outconnect>()) {
                 t_symbol* oldPathState = outconnect_get_path_data(oc.get());
                 auto* newConnection = connection->cnv->patch.setConnctionPath(outObj, outIdx, inObj, inIdx, oldPathState, newPathState);

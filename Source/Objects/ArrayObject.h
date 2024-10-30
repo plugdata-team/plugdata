@@ -30,7 +30,7 @@ public:
     Value range = SynchronousValue();
     bool visible = true;
 
-    std::function<void()> reloadGraphs = []() {};
+    std::function<void()> reloadGraphs = []() { };
 
     GraphicalArray(PluginProcessor* instance, void* ptr, Object* parent)
         : NVGComponent(this)
@@ -81,7 +81,7 @@ public:
         }
         return result;
     }
-        
+
     static Path createArrayPath(HeapArray<float> points, DrawType style, StackArray<float, 2> scale, float width, float height)
     {
         bool invert = false;
@@ -89,110 +89,104 @@ public:
             invert = true;
             std::swap(scale[0], scale[1]);
         }
-        
+
         // More than a point per pixel will cause insane loads, and isn't actually helpful
         // Instead, linearly interpolate the vector to a max size of width in pixels
         if (points.size() > width) {
             points = rescale(points, width);
         }
-        
+
         // Need at least 4 points to draw a bezier curve
-        if(points.size() <= 4 && style == Curve) style = Polygon;
-        
+        if (points.size() <= 4 && style == Curve)
+            style = Polygon;
+
         // Add repeat of last point for Points style
-        if(style == Points) points.add(points.back());
-        
+        if (style == Points)
+            points.add(points.back());
+
         float const dh = height / (scale[1] - scale[0]);
         float const dw = width / static_cast<float>(points.size() - 1);
         float const invh = invert ? 0 : height;
         float const yscale = invert ? -1.0f : 1.0f;
-        
+
         // Convert y values to xy coordinates
         HeapArray<float> xyPoints;
         xyPoints.reserve(points.size() * 2);
-        for(int x = 0; x < points.size(); x++)
-        {
+        for (int x = 0; x < points.size(); x++) {
             xyPoints.add(x * dw);
             xyPoints.add(invh - (std::clamp(points[x], scale[0], scale[1]) - scale[0]) * dh * yscale);
         }
-        
+
         auto const* pointPtr = xyPoints.data();
         auto numPoints = xyPoints.size() / 2;
-        
+
         float control[6];
         control[4] = pointPtr[0];
         control[5] = pointPtr[1];
         pointPtr += 2;
-        
+
         Path result;
-        if(Point<float>(control[4], control[5]).isFinite()) {
+        if (Point<float>(control[4], control[5]).isFinite()) {
             result.startNewSubPath(control[4], control[5]);
         }
-        
-        for (int i = numPoints-2; i > 0; i--, pointPtr += 2) {
-            switch(style)
-            {
-                case Points:
-                {
-                    if(Point<float>(pointPtr[0], control[5]).isFinite() && Point<float>(pointPtr[0], pointPtr[1]).isFinite()) {
-                        result.lineTo(pointPtr[0], control[5]);
-                        result.startNewSubPath(pointPtr[0], pointPtr[1]);
-                    }
-                    
-                    if(i == 1 && Point<float>(pointPtr[2], pointPtr[3]).isFinite())
-                    {
-                        result.lineTo(pointPtr[2], pointPtr[3]);
-                    }
-                    
-                    control[4] = pointPtr[0];
-                    control[5] = pointPtr[1];
-                    break;
+
+        for (int i = numPoints - 2; i > 0; i--, pointPtr += 2) {
+            switch (style) {
+            case Points: {
+                if (Point<float>(pointPtr[0], control[5]).isFinite() && Point<float>(pointPtr[0], pointPtr[1]).isFinite()) {
+                    result.lineTo(pointPtr[0], control[5]);
+                    result.startNewSubPath(pointPtr[0], pointPtr[1]);
                 }
-                case Polygon:
-                {
-                    if(Point<float>(pointPtr[0], pointPtr[1]).isFinite()) {
-                        result.lineTo(pointPtr[0], pointPtr[1]);
-                    }
-                    
-                    if(i == 1 && Point<float>(pointPtr[2], pointPtr[3]).isFinite())
-                    {
-                        result.lineTo(pointPtr[2], pointPtr[3]);
-                    }
-                    break;
+
+                if (i == 1 && Point<float>(pointPtr[2], pointPtr[3]).isFinite()) {
+                    result.lineTo(pointPtr[2], pointPtr[3]);
                 }
-                case Curve:
-                {
-                    // Curve logic taken from tcl/tk source code:
-                    // https://github.com/tcltk/tk/blob/c9fe293db7a52a34954db92d2bdc5454d4de3897/generic/tkTrig.c#L1363
-                    control[0] = 0.333*control[4] + 0.667*pointPtr[0];
-                    control[1] = 0.333*control[5] + 0.667*pointPtr[1];
-                    
-                    // Set up the last two control points. This is done differently for
-                    // the last spline of an open curve than for other cases.
-                    if (i == 1) {
-                        control[4] = pointPtr[2];
-                        control[5] = pointPtr[3];
-                    }
-                    else {
-                        control[4] = 0.5*pointPtr[0] + 0.5*pointPtr[2];
-                        control[5] = 0.5*pointPtr[1] + 0.5*pointPtr[3];
-                    }
-                    
-                    control[2] = 0.333*control[4] + 0.667*pointPtr[0];
-                    control[3] = 0.333*control[5] + 0.667*pointPtr[1];
-                    
-                    auto start = Point<float>(control[0], control[1]);
-                    auto c1 = Point<float>(control[2], control[3]);
-                    auto end = Point<float>(control[4], control[5]);
-                    
-                    if(start.isFinite() && c1.isFinite() && end.isFinite()) {
-                        result.cubicTo(start, c1, end);
-                    }
-                    break;
+
+                control[4] = pointPtr[0];
+                control[5] = pointPtr[1];
+                break;
+            }
+            case Polygon: {
+                if (Point<float>(pointPtr[0], pointPtr[1]).isFinite()) {
+                    result.lineTo(pointPtr[0], pointPtr[1]);
                 }
+
+                if (i == 1 && Point<float>(pointPtr[2], pointPtr[3]).isFinite()) {
+                    result.lineTo(pointPtr[2], pointPtr[3]);
+                }
+                break;
+            }
+            case Curve: {
+                // Curve logic taken from tcl/tk source code:
+                // https://github.com/tcltk/tk/blob/c9fe293db7a52a34954db92d2bdc5454d4de3897/generic/tkTrig.c#L1363
+                control[0] = 0.333 * control[4] + 0.667 * pointPtr[0];
+                control[1] = 0.333 * control[5] + 0.667 * pointPtr[1];
+
+                // Set up the last two control points. This is done differently for
+                // the last spline of an open curve than for other cases.
+                if (i == 1) {
+                    control[4] = pointPtr[2];
+                    control[5] = pointPtr[3];
+                } else {
+                    control[4] = 0.5 * pointPtr[0] + 0.5 * pointPtr[2];
+                    control[5] = 0.5 * pointPtr[1] + 0.5 * pointPtr[3];
+                }
+
+                control[2] = 0.333 * control[4] + 0.667 * pointPtr[0];
+                control[3] = 0.333 * control[5] + 0.667 * pointPtr[1];
+
+                auto start = Point<float>(control[0], control[1]);
+                auto c1 = Point<float>(control[2], control[3]);
+                auto end = Point<float>(control[4], control[5]);
+
+                if (start.isFinite() && c1.isFinite() && end.isFinite()) {
+                    result.cubicTo(start, c1, end);
+                }
+                break;
+            }
             }
         }
-        
+
         return result;
     }
 
@@ -215,13 +209,13 @@ public:
         auto const w = static_cast<float>(getWidth());
         auto const arrB = Rectangle<float>(0, 0, w, h).reduced(1);
         nvgIntersectRoundedScissor(nvg, arrB.getX(), arrB.getY(), arrB.getWidth(), arrB.getHeight(), Corners::objectCornerRadius);
-        
+
         if (vec.not_empty()) {
             auto p = createArrayPath(vec, getDrawType(), getScale(), w, h);
             setJUCEPath(nvg, p);
-            
+
             auto contentColour = getContentColour();
-            
+
             nvgStrokeColor(nvg, nvgRGBA(contentColour.getRed(), contentColour.getGreen(), contentColour.getBlue(), contentColour.getAlpha()));
             nvgStrokeWidth(nvg, getLineWidth());
             nvgStroke(nvg);
@@ -235,7 +229,7 @@ public:
             if (numAtoms <= 0)
                 break;
             MessageManager::callAsync([_this = SafePointer(this), shouldBeEditable = static_cast<bool>(atoms[0].getFloat())]() {
-                if(_this) {
+                if (_this) {
                     _this->editable = shouldBeEditable;
                     _this->setInterceptsMouseClicks(shouldBeEditable, false);
                 }
@@ -423,7 +417,8 @@ public:
 
         if (!edited) {
             bool changed = read(vec);
-            if(changed) repaint();
+            if (changed)
+                repaint();
         }
     }
 
@@ -635,7 +630,7 @@ public:
                 output[i] = vec[i].w_float;
             }
         }
-        
+
         return changed;
     }
 
@@ -668,7 +663,7 @@ struct ArrayPropertiesPanel : public PropertiesPanelProperty
         bool mouseIsOver = false;
 
     public:
-        std::function<void()> onClick = []() {};
+        std::function<void()> onClick = []() { };
 
         void paint(Graphics& g) override
         {
@@ -719,7 +714,7 @@ struct ArrayPropertiesPanel : public PropertiesPanelProperty
     OwnedArray<SmallIconButton> deleteButtons;
     SmallArray<Value> nameValues;
 
-    std::function<void()> syncCanvas = []() {};
+    std::function<void()> syncCanvas = []() { };
 
     ArrayPropertiesPanel(std::function<void()> addArrayCallback, std::function<void()> syncCanvasFunc)
         : PropertiesPanelProperty("array")
@@ -951,7 +946,7 @@ public:
 
         closeButton->onClick = [this]() {
             MessageManager::callAsync([_this = SafePointer(this)]() {
-                if(_this) {
+                if (_this) {
                     _this->onClose();
                 }
             });
@@ -1182,8 +1177,7 @@ public:
             ObjectLabel* label;
             if (labels.isEmpty()) {
                 label = labels.add(new ObjectLabel());
-            }
-            else {
+            } else {
                 label = labels[0];
             }
 
@@ -1300,9 +1294,10 @@ public:
 
     void getMenuOptions(PopupMenu& menu) override
     {
-        menu.addItem("Open array editor", [this, _this = SafePointer(this)](){
-            if(!_this) return;
-            
+        menu.addItem("Open array editor", [this, _this = SafePointer(this)]() {
+            if (!_this)
+                return;
+
             if (dialog) {
                 dialog->toFront(true);
                 return;
@@ -1319,7 +1314,7 @@ public:
             }
         });
     }
-    
+
     void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
     {
         switch (symbol) {
@@ -1364,19 +1359,20 @@ public:
 
         openArrayEditor();
     }
-    
+
     void getMenuOptions(PopupMenu& menu) override
     {
-        bool canOpenMenu = [this](){
+        bool canOpenMenu = [this]() {
             if (auto c = ptr.get<t_canvas>()) {
                 return c->gl_list != nullptr;
             }
             return false;
         }();
-        
-        menu.addItem("Open array editor", canOpenMenu, false, [_this = SafePointer(this)](){
-            if(!_this) return;
-            
+
+        menu.addItem("Open array editor", canOpenMenu, false, [_this = SafePointer(this)]() {
+            if (!_this)
+                return;
+
             _this->openArrayEditor();
         });
     }

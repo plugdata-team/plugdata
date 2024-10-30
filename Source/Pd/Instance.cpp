@@ -4,7 +4,6 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "Utility/Config.h"
@@ -140,7 +139,7 @@ Instance::Instance()
 Instance::~Instance()
 {
     objectImplementations.reset(nullptr); // Make sure it gets deallocated before pd instance gets deleted
-    
+
     pd_free(static_cast<t_pd*>(messageReceiver));
     pd_free(static_cast<t_pd*>(midiReceiver));
     pd_free(static_cast<t_pd*>(printReceiver));
@@ -215,7 +214,7 @@ void Instance::initialisePd(String& pdlua_version)
 
     parameterCreateReceiver = pd::Setup::createReceiver(this, "param_create", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
-    
+
     parameterDestroyReceiver = pd::Setup::createReceiver(this, "param_destroy", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
@@ -233,24 +232,23 @@ void Instance::initialisePd(String& pdlua_version)
             auto* pd = static_cast<PluginProcessor*>(inst);
             t_canvas* glist = (t_canvas*)argv->a_w.w_gpointer;
             auto vis = atom_getfloat(argv + 1);
-            
-            if(vis) {
+
+            if (vis) {
                 pd::Patch::Ptr subpatch = new pd::Patch(pd::WeakReference(glist, pd), pd, false);
                 if (canvas_isabstraction(glist)) {
                     auto path = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
                     subpatch->setCurrentFile(URL(path));
                 }
-                
-                MessageManager::callAsync([pd, subpatch](){
+
+                MessageManager::callAsync([pd, subpatch]() {
                     for (auto* editor : pd->getEditors()) {
                         if (!editor->isActiveWindow())
                             continue;
                         editor->getTabComponent().openPatch(subpatch);
                     }
                 });
-            }
-            else {
-                MessageManager::callAsync([pd, glist](){
+            } else {
+                MessageManager::callAsync([pd, glist]() {
                     for (auto* editor : pd->getEditors()) {
                         for (auto* canvas : editor->getCanvases()) {
                             auto canvasPtr = canvas->patch.getPointer();
@@ -320,11 +318,11 @@ void Instance::initialisePd(String& pdlua_version)
             auto ptr = (unsigned long)argv->a_w.w_gpointer;
             bool open = (unsigned long)atom_getfloat(argv + 1);
             bool wasOpen = static_cast<Instance*>(instance)->isTextEditorDialogShown(ptr);
-            
+
             t_atom atoms[2];
             SETFLOAT(atoms, wasOpen);
             SETFLOAT(atoms + 1, open);
-            
+
             pd_typedmess((t_pd*)ptr, gensym("_is_opened"), 2, atoms);
         }
         }
@@ -376,7 +374,7 @@ void Instance::initialisePd(String& pdlua_version)
     // ag: need to do this here to suppress noise from chatty externals
     printReceiver = pd::Setup::createPrintHook(this, reinterpret_cast<t_plugdata_printhook>(internal::instance_multi_print));
     libpd_set_verbose(0);
-    
+
     set_plugdata_debugging_enabled(SettingsFile::getInstance()->getProperty<bool>("debug_connections"));
 }
 
@@ -849,14 +847,13 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
 #else
                 Component* dialogParent = nullptr;
 #endif
-                if(defaultFile.exists())
-                {
+                if (defaultFile.exists()) {
                     SettingsFile::getInstance()->setLastBrowserPathForId("savepanel", defaultFile);
                 }
 
                 Dialogs::showSaveDialog([this, obj, callback](URL result) {
                     auto pathName = result.getLocalFile().getFullPathName();
-                    const auto* path = pathName.toRawUTF8();
+                    auto const* path = pathName.toRawUTF8();
 
                     t_atom argv[1];
                     libpd_set_symbol(argv, path);

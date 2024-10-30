@@ -3,45 +3,47 @@
 // Small-size optimised container, borrowed from LLVM source code
 
 #ifndef HAS_CPP_ATTRIBUTE
-#if defined(__cplusplus) && defined(__has_cpp_attribute)
-# define HAS_CPP_ATTRIBUTE(x) __has_cpp_attribute(x)
-#else
-# define HAS_CPP_ATTRIBUTE(x) 0
-#endif
+#    if defined(__cplusplus) && defined(__has_cpp_attribute)
+#        define HAS_CPP_ATTRIBUTE(x) __has_cpp_attribute(x)
+#    else
+#        define HAS_CPP_ATTRIBUTE(x) 0
+#    endif
 #endif
 
 #if HAS_CPP_ATTRIBUTE(gsl::Owner)
-#define GSL_OWNER [[gsl::Owner]]
+#    define GSL_OWNER [[gsl::Owner]]
 #else
-#define GSL_OWNER
+#    define GSL_OWNER
 #endif
 
 #if __has_builtin(__builtin_expect) || defined(__GNUC__)
-#define EXPECT_LIKELY(EXPR) __builtin_expect((bool)(EXPR), true)
-#define EXPECT_UNLIKELY(EXPR) __builtin_expect((bool)(EXPR), false)
+#    define EXPECT_LIKELY(EXPR) __builtin_expect((bool)(EXPR), true)
+#    define EXPECT_UNLIKELY(EXPR) __builtin_expect((bool)(EXPR), false)
 #else
-#define EXPECT_LIKELY(EXPR) (EXPR)
-#define EXPECT_UNLIKELY(EXPR) (EXPR)
+#    define EXPECT_LIKELY(EXPR) (EXPR)
+#    define EXPECT_UNLIKELY(EXPR) (EXPR)
 #endif
 
 #if __has_attribute(returns_nonnull)
-#define ATTRIBUTE_RETURNS_NONNULL __attribute__((returns_nonnull))
+#    define ATTRIBUTE_RETURNS_NONNULL __attribute__((returns_nonnull))
 #elif defined(_MSC_VER)
-#define ATTRIBUTE_RETURNS_NONNULL _Ret_notnull_
+#    define ATTRIBUTE_RETURNS_NONNULL _Ret_notnull_
 #else
-#define LLVM_ATTRIBUTE_RETURNS_NONNULL
+#    define LLVM_ATTRIBUTE_RETURNS_NONNULL
 #endif
 
 #include <cassert>
 
-template <typename T> class ArrayRef;
+template<typename T>
+class ArrayRef;
 
-template <typename IteratorT> class iterator_range;
+template<typename IteratorT>
+class iterator_range;
 
-template <class Iterator>
+template<class Iterator>
 using EnableIfConvertibleToInputIterator = std::enable_if_t<std::is_convertible<
-typename std::iterator_traits<Iterator>::iterator_category,
-std::input_iterator_tag>::value>;
+    typename std::iterator_traits<Iterator>::iterator_category,
+    std::input_iterator_tag>::value>;
 
 /// This is all the stuff common to all SmallArrays.
 ///
@@ -51,30 +53,35 @@ std::input_iterator_tag>::value>;
 /// Using 64 bit size is desirable for cases like SmallArray<char>, where a
 /// 32 bit size would limit the vector to ~4GB. SmallArrays are used for
 /// buffering bitcode output - which can exceed 4GB.
-template <class Size_T> class SmallArrayBase {
-    protected:
-    void *BeginX;
+template<class Size_T>
+class SmallArrayBase {
+protected:
+    void* BeginX;
     Size_T Size = 0, Capacity;
 
     /// The maximum value of the Size_T used.
-    static constexpr size_t SizeTypeMax() {
+    static constexpr size_t SizeTypeMax()
+    {
         return std::numeric_limits<Size_T>::max();
     }
 
     SmallArrayBase() = delete;
-    SmallArrayBase(void *FirstEl, size_t TotalCapacity)
-    : BeginX(FirstEl), Capacity(static_cast<Size_T>(TotalCapacity)) {}
+    SmallArrayBase(void* FirstEl, size_t TotalCapacity)
+        : BeginX(FirstEl)
+        , Capacity(static_cast<Size_T>(TotalCapacity))
+    {
+    }
 
     /// This is a helper for \a grow() that's out of line to reduce code
     /// duplication.  This function will report a fatal error if it can't grow at
     /// least to \p MinSize.
-    void *mallocForGrow(void *FirstEl, size_t MinSize, size_t TSize,
-                        size_t &NewCapacity);
+    void* mallocForGrow(void* FirstEl, size_t MinSize, size_t TSize,
+        size_t& NewCapacity);
 
     /// This is an implementation of the grow() method which only works
     /// on POD-like data types and is out of line to reduce code duplication.
     /// This function will report a fatal error if it cannot increase capacity.
-    void grow_pod(void *FirstEl, size_t MinSize, size_t TSize);
+    void grow_pod(void* FirstEl, size_t MinSize, size_t TSize);
 
     /// If vector was first created with capacity 0, getFirstEl() points to the
     /// memory right after, an area unallocated. If a subsequent allocation,
@@ -86,10 +93,10 @@ template <class Size_T> class SmallArrayBase {
     /// space, and happens to allocate precisely at BeginX.
     /// This is unlikely to be called often, but resolves a memory leak when the
     /// situation does occur.
-    void *replaceAllocation(void *NewElts, size_t TSize, size_t NewCapacity,
-                            size_t VSize = 0);
+    void* replaceAllocation(void* NewElts, size_t TSize, size_t NewCapacity,
+        size_t VSize = 0);
 
-    public:
+public:
     size_t size() const { return Size; }
     size_t capacity() const { return Capacity; }
 
@@ -97,12 +104,13 @@ template <class Size_T> class SmallArrayBase {
 
     [[nodiscard]] bool not_empty() const { return Size; }
 
-    protected:
+protected:
     /// Set the array size to \p N, which the current array must have enough
     /// capacity for.
     ///
     /// This does not construct or destroy any elements in the vector.
-    void set_size(size_t N) {
+    void set_size(size_t N)
+    {
         assert(N <= capacity()); // implies no overflow in assignment
         Size = static_cast<Size_T>(N);
     }
@@ -111,47 +119,52 @@ template <class Size_T> class SmallArrayBase {
     ///
     /// This does not construct or destroy any elements in the vector.
     //  This does not clean up any existing allocation.
-    void set_allocation_range(void *Begin, size_t N) {
+    void set_allocation_range(void* Begin, size_t N)
+    {
         assert(N <= SizeTypeMax());
         BeginX = Begin;
         Capacity = static_cast<Size_T>(N);
     }
 };
 
-template <class T>
-using SmallArraySizeType =
-std::conditional_t<sizeof(T) < 4 && sizeof(void *) >= 8, uint64_t,
-uint32_t>;
+template<class T>
+using SmallArraySizeType = std::conditional_t<sizeof(T) < 4 && sizeof(void*) >= 8, uint64_t,
+    uint32_t>;
 
 /// Figure out the offset of the first element.
-template <class T, typename = void> struct SmallArrayAlignmentAndSize {
+template<class T, typename = void>
+struct SmallArrayAlignmentAndSize {
     alignas(SmallArrayBase<SmallArraySizeType<T>>) char Base[sizeof(
-                                                                      SmallArrayBase<SmallArraySizeType<T>>)];
+        SmallArrayBase<SmallArraySizeType<T>>)];
     alignas(T) char FirstEl[sizeof(T)];
 };
 
 /// This is the part of SmallArrayTemplateBase which does not depend on whether
 /// the type T is a POD. The extra dummy template argument is used by ArrayRef
 /// to avoid unnecessarily requiring T to be complete.
-template <typename T, typename = void>
+template<typename T, typename = void>
 class SmallArrayTemplateCommon
-: public SmallArrayBase<SmallArraySizeType<T>> {
+    : public SmallArrayBase<SmallArraySizeType<T>> {
     using Base = SmallArrayBase<SmallArraySizeType<T>>;
 
-    protected:
+protected:
     /// Find the address of the first element.  For this pointer math to be valid
     /// with small-size of 0 for T with lots of alignment, it's important that
     /// SmallArrayStorage is properly-aligned even for small-size of 0.
-    void *getFirstEl() const {
-        return const_cast<void *>(reinterpret_cast<const void *>(
-                                                                 reinterpret_cast<const char *>(this) +
-                                                                 offsetof(SmallArrayAlignmentAndSize<T>, FirstEl)));
+    void* getFirstEl() const
+    {
+        return const_cast<void*>(reinterpret_cast<void const*>(
+            reinterpret_cast<char const*>(this) + offsetof(SmallArrayAlignmentAndSize<T>, FirstEl)));
     }
     // Space after 'FirstEl' is clobbered, do not add any instance vars after it.
 
-    SmallArrayTemplateCommon(size_t Size) : Base(getFirstEl(), Size) {}
+    SmallArrayTemplateCommon(size_t Size)
+        : Base(getFirstEl(), Size)
+    {
+    }
 
-    void grow_pod(size_t MinSize, size_t TSize) {
+    void grow_pod(size_t MinSize, size_t TSize)
+    {
         Base::grow_pod(getFirstEl(), MinSize, TSize);
     }
 
@@ -160,35 +173,39 @@ class SmallArrayTemplateCommon
     bool isSmall() const { return this->BeginX == getFirstEl(); }
 
     /// Put this vector in a state of being small.
-    void resetToSmall() {
+    void resetToSmall()
+    {
         this->BeginX = getFirstEl();
         this->Size = this->Capacity = 0; // FIXME: Setting Capacity to 0 is suspect.
     }
 
     /// Return true if V is an internal reference to the given range.
-    bool isReferenceToRange(const void *V, const void *First, const void *Last) const {
+    bool isReferenceToRange(void const* V, void const* First, void const* Last) const
+    {
         // Use std::less to avoid UB.
         std::less<> LessThan;
         return !LessThan(V, First) && LessThan(V, Last);
     }
 
     /// Return true if V is an internal reference to this vector.
-    bool isReferenceToStorage(const void *V) const {
+    bool isReferenceToStorage(void const* V) const
+    {
         return isReferenceToRange(V, this->begin(), this->end());
     }
 
     /// Return true if First and Last form a valid (possibly empty) range in this
     /// vector's storage.
-    bool isRangeInStorage(const void *First, const void *Last) const {
+    bool isRangeInStorage(void const* First, void const* Last) const
+    {
         // Use std::less to avoid UB.
         std::less<> LessThan;
-        return !LessThan(First, this->begin()) && !LessThan(Last, First) &&
-        !LessThan(this->end(), Last);
+        return !LessThan(First, this->begin()) && !LessThan(Last, First) && !LessThan(this->end(), Last);
     }
 
     /// Return true unless Elt will be invalidated by resizing the vector to
     /// NewSize.
-    bool isSafeToReferenceAfterResize(const void *Elt, size_t NewSize) {
+    bool isSafeToReferenceAfterResize(void const* Elt, size_t NewSize)
+    {
         // Past the end.
         if (EXPECT_LIKELY(!isReferenceToStorage(Elt)))
             return true;
@@ -202,49 +219,55 @@ class SmallArrayTemplateCommon
     }
 
     /// Check whether Elt will be invalidated by resizing the vector to NewSize.
-    void assertSafeToReferenceAfterResize(const void *Elt, size_t NewSize) {
-        assert(isSafeToReferenceAfterResize(Elt, NewSize) &&
-               "Attempting to reference an element of the vector in an operation "
-               "that invalidates it");
+    void assertSafeToReferenceAfterResize(void const* Elt, size_t NewSize)
+    {
+        assert(isSafeToReferenceAfterResize(Elt, NewSize) && "Attempting to reference an element of the vector in an operation "
+                                                             "that invalidates it");
     }
 
     /// Check whether Elt will be invalidated by increasing the size of the
     /// vector by N.
-    void assertSafeToAdd(const void *Elt, size_t N = 1) {
+    void assertSafeToAdd(void const* Elt, size_t N = 1)
+    {
         this->assertSafeToReferenceAfterResize(Elt, this->size() + N);
     }
 
     /// Check whether any part of the range will be invalidated by clearing.
-    void assertSafeToReferenceAfterClear(const T *From, const T *To) {
+    void assertSafeToReferenceAfterClear(T const* From, T const* To)
+    {
         if (From == To)
             return;
         this->assertSafeToReferenceAfterResize(From, 0);
         this->assertSafeToReferenceAfterResize(To - 1, 0);
     }
-    template <
-    class ItTy,
-    std::enable_if_t<!std::is_same<std::remove_const_t<ItTy>, T *>::value,
-    bool> = false>
-    void assertSafeToReferenceAfterClear(ItTy, ItTy) {}
+    template<
+        class ItTy,
+        std::enable_if_t<!std::is_same<std::remove_const_t<ItTy>, T*>::value,
+            bool>
+        = false>
+    void assertSafeToReferenceAfterClear(ItTy, ItTy) { }
 
     /// Check whether any part of the range will be invalidated by growing.
-    void assertSafeToAddRange(const T *From, const T *To) {
+    void assertSafeToAddRange(T const* From, T const* To)
+    {
         if (From == To)
             return;
         this->assertSafeToAdd(From, To - From);
         this->assertSafeToAdd(To - 1, To - From);
     }
-    template <
-    class ItTy,
-    std::enable_if_t<!std::is_same<std::remove_const_t<ItTy>, T *>::value,
-    bool> = false>
-    void assertSafeToAddRange(ItTy, ItTy) {}
+    template<
+        class ItTy,
+        std::enable_if_t<!std::is_same<std::remove_const_t<ItTy>, T*>::value,
+            bool>
+        = false>
+    void assertSafeToAddRange(ItTy, ItTy) { }
 
     /// Reserve enough space to add one element, and return the updated element
     /// pointer in case it was a reference to the storage.
-    template <class U>
-    static const T *reserveForParamAndGetAddressImpl(U *This, const T &Elt,
-                                                     size_t N) {
+    template<class U>
+    static T const* reserveForParamAndGetAddressImpl(U* This, T const& Elt,
+        size_t N)
+    {
         size_t NewSize = This->size() + N;
         if (EXPECT_LIKELY(NewSize <= This->capacity()))
             return &Elt;
@@ -261,20 +284,20 @@ class SmallArrayTemplateCommon
         return ReferencesStorage ? This->begin() + Index : &Elt;
     }
 
-    public:
+public:
     using size_type = size_t;
     using difference_type = ptrdiff_t;
     using value_type = T;
-    using iterator = T *;
-    using const_iterator = const T *;
+    using iterator = T*;
+    using const_iterator = T const*;
 
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
     using reverse_iterator = std::reverse_iterator<iterator>;
 
-    using reference = T &;
-    using const_reference = const T &;
-    using pointer = T *;
-    using const_pointer = const T *;
+    using reference = T&;
+    using const_reference = T const&;
+    using pointer = T*;
+    using const_pointer = T const*;
 
     using Base::capacity;
     using Base::empty;
@@ -287,13 +310,14 @@ class SmallArrayTemplateCommon
     const_iterator end() const { return begin() + size(); }
 
     // reverse iterator creation methods.
-    reverse_iterator rbegin()            { return reverse_iterator(end()); }
-    const_reverse_iterator rbegin() const{ return const_reverse_iterator(end()); }
-    reverse_iterator rend()              { return reverse_iterator(begin()); }
-    const_reverse_iterator rend() const { return const_reverse_iterator(begin());}
+    reverse_iterator rbegin() { return reverse_iterator(end()); }
+    const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
+    reverse_iterator rend() { return reverse_iterator(begin()); }
+    const_reverse_iterator rend() const { return const_reverse_iterator(begin()); }
 
     size_type size_in_bytes() const { return size() * sizeof(T); }
-    size_type max_size() const {
+    size_type max_size() const
+    {
         return std::min(this->SizeTypeMax(), size_type(-1) / sizeof(T));
     }
 
@@ -304,29 +328,35 @@ class SmallArrayTemplateCommon
     /// Return a pointer to the vector's buffer, even if empty().
     const_pointer data() const { return const_pointer(begin()); }
 
-    reference operator[](size_type idx) {
+    reference operator[](size_type idx)
+    {
         assert(idx < size());
         return begin()[idx];
     }
-    const_reference operator[](size_type idx) const {
+    const_reference operator[](size_type idx) const
+    {
         assert(idx < size());
         return begin()[idx];
     }
 
-    reference front() {
+    reference front()
+    {
         assert(!empty());
         return begin()[0];
     }
-    const_reference front() const {
+    const_reference front() const
+    {
         assert(!empty());
         return begin()[0];
     }
 
-    reference back() {
+    reference back()
+    {
         assert(!empty());
         return end()[-1];
     }
-    const_reference back() const {
+    const_reference back() const
+    {
         assert(!empty());
         return end()[-1];
     }
@@ -340,19 +370,21 @@ class SmallArrayTemplateCommon
 /// copy these types with memcpy, there is no way for the type to observe this.
 /// This catches the important case of std::pair<POD, POD>, which is not
 /// trivially assignable.
-template <typename T, bool = (std::is_trivially_copy_constructible<T>::value) &&
-(std::is_trivially_move_constructible<T>::value) &&
-std::is_trivially_destructible<T>::value>
+template<typename T, bool = (std::is_trivially_copy_constructible<T>::value) && (std::is_trivially_move_constructible<T>::value) && std::is_trivially_destructible<T>::value>
 class SmallArrayTemplateBase : public SmallArrayTemplateCommon<T> {
     friend class SmallArrayTemplateCommon<T>;
 
-    protected:
+protected:
     static constexpr bool TakesParamByValue = false;
-    using ValueParamT = const T &;
+    using ValueParamT = T const&;
 
-    SmallArrayTemplateBase(size_t Size) : SmallArrayTemplateCommon<T>(Size) {}
+    SmallArrayTemplateBase(size_t Size)
+        : SmallArrayTemplateCommon<T>(Size)
+    {
+    }
 
-    static void destroy_range(T *S, T *E) {
+    static void destroy_range(T* S, T* E)
+    {
         while (S != E) {
             --E;
             E->~T();
@@ -362,14 +394,16 @@ class SmallArrayTemplateBase : public SmallArrayTemplateCommon<T> {
     /// Move the range [I, E) into the uninitialized memory starting with "Dest",
     /// constructing elements as needed.
     template<typename It1, typename It2>
-    static void uninitialized_move(It1 I, It1 E, It2 Dest) {
+    static void uninitialized_move(It1 I, It1 E, It2 Dest)
+    {
         std::uninitialized_move(I, E, Dest);
     }
 
     /// Copy the range [I, E) onto the uninitialized memory starting with "Dest",
     /// constructing elements as needed.
     template<typename It1, typename It2>
-    static void uninitialized_copy(It1 I, It1 E, It2 Dest) {
+    static void uninitialized_copy(It1 I, It1 E, It2 Dest)
+    {
         std::uninitialized_copy(I, E, Dest);
     }
 
@@ -380,92 +414,103 @@ class SmallArrayTemplateBase : public SmallArrayTemplateCommon<T> {
 
     /// Create a new allocation big enough for \p MinSize and pass back its size
     /// in \p NewCapacity. This is the first section of \a grow().
-    T *mallocForGrow(size_t MinSize, size_t &NewCapacity);
+    T* mallocForGrow(size_t MinSize, size_t& NewCapacity);
 
     /// Move existing elements over to the new allocation \p NewElts, the middle
     /// section of \a grow().
-    void moveElementsForGrow(T *NewElts);
+    void moveElementsForGrow(T* NewElts);
 
     /// Transfer ownership of the allocation, finishing up \a grow().
-    void takeAllocationForGrow(T *NewElts, size_t NewCapacity);
+    void takeAllocationForGrow(T* NewElts, size_t NewCapacity);
 
     /// Reserve enough space to add one element, and return the updated element
     /// pointer in case it was a reference to the storage.
-    const T *reserveForParamAndGetAddress(const T &Elt, size_t N = 1) {
+    T const* reserveForParamAndGetAddress(T const& Elt, size_t N = 1)
+    {
         return this->reserveForParamAndGetAddressImpl(this, Elt, N);
     }
 
     /// Reserve enough space to add one element, and return the updated element
     /// pointer in case it was a reference to the storage.
-    T *reserveForParamAndGetAddress(T &Elt, size_t N = 1) {
-        return const_cast<T *>(
-                               this->reserveForParamAndGetAddressImpl(this, Elt, N));
+    T* reserveForParamAndGetAddress(T& Elt, size_t N = 1)
+    {
+        return const_cast<T*>(
+            this->reserveForParamAndGetAddressImpl(this, Elt, N));
     }
 
-    static T &&forward_value_param(T &&V) { return std::move(V); }
-    static const T &forward_value_param(const T &V) { return V; }
+    static T&& forward_value_param(T&& V) { return std::move(V); }
+    static T const& forward_value_param(T const& V) { return V; }
 
-    void growAndAssign(size_t NumElts, const T &Elt) {
+    void growAndAssign(size_t NumElts, T const& Elt)
+    {
         // Grow manually in case Elt is an internal reference.
         size_t NewCapacity;
-        T *NewElts = mallocForGrow(NumElts, NewCapacity);
+        T* NewElts = mallocForGrow(NumElts, NewCapacity);
         std::uninitialized_fill_n(NewElts, NumElts, Elt);
         this->destroy_range(this->begin(), this->end());
         takeAllocationForGrow(NewElts, NewCapacity);
         this->set_size(NumElts);
     }
 
-    template <typename... ArgTypes> T &growAndEmplaceBack(ArgTypes &&... Args) {
+    template<typename... ArgTypes>
+    T& growAndEmplaceBack(ArgTypes&&... Args)
+    {
         // Grow manually in case one of Args is an internal reference.
         size_t NewCapacity;
-        T *NewElts = mallocForGrow(0, NewCapacity);
-        ::new ((void *)(NewElts + this->size())) T(std::forward<ArgTypes>(Args)...);
+        T* NewElts = mallocForGrow(0, NewCapacity);
+        ::new ((void*)(NewElts + this->size())) T(std::forward<ArgTypes>(Args)...);
         moveElementsForGrow(NewElts);
         takeAllocationForGrow(NewElts, NewCapacity);
         this->set_size(this->size() + 1);
         return this->back();
     }
 
-    protected:
-    void push_back(const T &Elt) {
-        const T *EltPtr = reserveForParamAndGetAddress(Elt);
-        ::new ((void *)this->end()) T(*EltPtr);
+protected:
+    void push_back(T const& Elt)
+    {
+        T const* EltPtr = reserveForParamAndGetAddress(Elt);
+        ::new ((void*)this->end()) T(*EltPtr);
         this->set_size(this->size() + 1);
     }
 
-    void push_back(T &&Elt) {
-        T *EltPtr = reserveForParamAndGetAddress(Elt);
-        ::new ((void *)this->end()) T(::std::move(*EltPtr));
+    void push_back(T&& Elt)
+    {
+        T* EltPtr = reserveForParamAndGetAddress(Elt);
+        ::new ((void*)this->end()) T(::std::move(*EltPtr));
         this->set_size(this->size() + 1);
     }
 
-    void pop_back() {
+    void pop_back()
+    {
         this->set_size(this->size() - 1);
         this->end()->~T();
     }
 };
 
 // Define this out-of-line to dissuade the C++ compiler from inlining it.
-template <typename T, bool TriviallyCopyable>
-void SmallArrayTemplateBase<T, TriviallyCopyable>::grow(size_t MinSize) {
+template<typename T, bool TriviallyCopyable>
+void SmallArrayTemplateBase<T, TriviallyCopyable>::grow(size_t MinSize)
+{
     size_t NewCapacity;
-    T *NewElts = mallocForGrow(MinSize, NewCapacity);
+    T* NewElts = mallocForGrow(MinSize, NewCapacity);
     moveElementsForGrow(NewElts);
     takeAllocationForGrow(NewElts, NewCapacity);
 }
 
-template <typename T, bool TriviallyCopyable>
-T *SmallArrayTemplateBase<T, TriviallyCopyable>::mallocForGrow(
-                                                                size_t MinSize, size_t &NewCapacity) {
-    return static_cast<T *>(
-                            SmallArrayBase<SmallArraySizeType<T>>::mallocForGrow(
-                                                                                   this->getFirstEl(), MinSize, sizeof(T), NewCapacity));
+template<typename T, bool TriviallyCopyable>
+T* SmallArrayTemplateBase<T, TriviallyCopyable>::mallocForGrow(
+    size_t MinSize, size_t& NewCapacity)
+{
+    return static_cast<T*>(
+        SmallArrayBase<SmallArraySizeType<T>>::mallocForGrow(
+            this->getFirstEl(), MinSize, sizeof(T), NewCapacity));
 }
 
 // Define this out-of-line to dissuade the C++ compiler from inlining it.
-template <typename T, bool TriviallyCopyable>
+template<typename T, bool TriviallyCopyable>
 void SmallArrayTemplateBase<T, TriviallyCopyable>::moveElementsForGrow(
-                                                                        T *NewElts) {
+    T* NewElts)
+{
     // Move the elements over.
     this->uninitialized_move(this->begin(), this->end(), NewElts);
 
@@ -474,9 +519,10 @@ void SmallArrayTemplateBase<T, TriviallyCopyable>::moveElementsForGrow(
 }
 
 // Define this out-of-line to dissuade the C++ compiler from inlining it.
-template <typename T, bool TriviallyCopyable>
+template<typename T, bool TriviallyCopyable>
 void SmallArrayTemplateBase<T, TriviallyCopyable>::takeAllocationForGrow(
-                                                                          T *NewElts, size_t NewCapacity) {
+    T* NewElts, size_t NewCapacity)
+{
     // If this wasn't grown from the inline copy, deallocate the old space.
     if (!this->isSmall())
         free(this->begin());
@@ -488,28 +534,32 @@ void SmallArrayTemplateBase<T, TriviallyCopyable>::takeAllocationForGrow(
 /// method implementations that are designed to work with trivially copyable
 /// T's. This allows using memcpy in place of copy/move construction and
 /// skipping destruction.
-template <typename T>
+template<typename T>
 class SmallArrayTemplateBase<T, true> : public SmallArrayTemplateCommon<T> {
     friend class SmallArrayTemplateCommon<T>;
 
-    protected:
+protected:
     /// True if it's cheap enough to take parameters by value. Doing so avoids
     /// overhead related to mitigations for reference invalidation.
-    static constexpr bool TakesParamByValue = sizeof(T) <= 2 * sizeof(void *);
+    static constexpr bool TakesParamByValue = sizeof(T) <= 2 * sizeof(void*);
 
     /// Either const T& or T, depending on whether it's cheap enough to take
     /// parameters by value.
-    using ValueParamT = std::conditional_t<TakesParamByValue, T, const T &>;
+    using ValueParamT = std::conditional_t<TakesParamByValue, T, T const&>;
 
-    SmallArrayTemplateBase(size_t Size) : SmallArrayTemplateCommon<T>(Size) {}
+    SmallArrayTemplateBase(size_t Size)
+        : SmallArrayTemplateCommon<T>(Size)
+    {
+    }
 
     // No need to do a destroy loop for POD's.
-    static void destroy_range(T *, T *) {}
+    static void destroy_range(T*, T*) { }
 
     /// Move the range [I, E) onto the uninitialized memory
     /// starting with "Dest", constructing elements into it as needed.
     template<typename It1, typename It2>
-    static void uninitialized_move(It1 I, It1 E, It2 Dest) {
+    static void uninitialized_move(It1 I, It1 E, It2 Dest)
+    {
         // Just do a copy.
         uninitialized_copy(I, E, Dest);
     }
@@ -517,24 +567,25 @@ class SmallArrayTemplateBase<T, true> : public SmallArrayTemplateCommon<T> {
     /// Copy the range [I, E) onto the uninitialized memory
     /// starting with "Dest", constructing elements into it as needed.
     template<typename It1, typename It2>
-    static void uninitialized_copy(It1 I, It1 E, It2 Dest) {
+    static void uninitialized_copy(It1 I, It1 E, It2 Dest)
+    {
         // Arbitrary iterator types; just use the basic implementation.
         std::uninitialized_copy(I, E, Dest);
     }
 
     /// Copy the range [I, E) onto the uninitialized memory
     /// starting with "Dest", constructing elements into it as needed.
-    template <typename T1, typename T2>
+    template<typename T1, typename T2>
     static void uninitialized_copy(
-                                   T1 *I, T1 *E, T2 *Dest,
-                                   std::enable_if_t<std::is_same<std::remove_const_t<T1>, T2>::value> * =
-                                   nullptr) {
+        T1* I, T1* E, T2* Dest,
+        std::enable_if_t<std::is_same<std::remove_const_t<T1>, T2>::value>* = nullptr)
+    {
         // Use memcpy for PODs iterated by pointers (which includes SmallArray
         // iterators): std::uninitialized_copy optimizes to memmove, but we can
         // use memcpy here. Note that I and E are iterators and thus might be
         // invalid for memcpy if they are equal.
         if (I != E)
-            memcpy(reinterpret_cast<void *>(Dest), I, (E - I) * sizeof(T));
+            memcpy(reinterpret_cast<void*>(Dest), I, (E - I) * sizeof(T));
     }
 
     /// Double the size of the allocated memory, guaranteeing space for at
@@ -543,21 +594,24 @@ class SmallArrayTemplateBase<T, true> : public SmallArrayTemplateCommon<T> {
 
     /// Reserve enough space to add one element, and return the updated element
     /// pointer in case it was a reference to the storage.
-    const T *reserveForParamAndGetAddress(const T &Elt, size_t N = 1) {
+    T const* reserveForParamAndGetAddress(T const& Elt, size_t N = 1)
+    {
         return this->reserveForParamAndGetAddressImpl(this, Elt, N);
     }
 
     /// Reserve enough space to add one element, and return the updated element
     /// pointer in case it was a reference to the storage.
-    T *reserveForParamAndGetAddress(T &Elt, size_t N = 1) {
-        return const_cast<T *>(
-                               this->reserveForParamAndGetAddressImpl(this, Elt, N));
+    T* reserveForParamAndGetAddress(T& Elt, size_t N = 1)
+    {
+        return const_cast<T*>(
+            this->reserveForParamAndGetAddressImpl(this, Elt, N));
     }
 
     /// Copy \p V or return a reference, depending on \a ValueParamT.
     static ValueParamT forward_value_param(ValueParamT V) { return V; }
 
-    void growAndAssign(size_t NumElts, T Elt) {
+    void growAndAssign(size_t NumElts, T Elt)
+    {
         // Elt has been copied in case it's an internal reference, side-stepping
         // reference invalidation problems without losing the realloc optimization.
         this->set_size(0);
@@ -566,7 +620,9 @@ class SmallArrayTemplateBase<T, true> : public SmallArrayTemplateCommon<T> {
         this->set_size(NumElts);
     }
 
-    template <typename... ArgTypes> T &growAndEmplaceBack(ArgTypes &&... Args) {
+    template<typename... ArgTypes>
+    T& growAndEmplaceBack(ArgTypes&&... Args)
+    {
         // Use push_back with a copy in case Args has an internal reference,
         // side-stepping reference invalidation problems without losing the realloc
         // optimization.
@@ -574,10 +630,11 @@ class SmallArrayTemplateBase<T, true> : public SmallArrayTemplateCommon<T> {
         return this->back();
     }
 
-    public:
-    void push_back(ValueParamT Elt) {
-        const T *EltPtr = reserveForParamAndGetAddress(Elt);
-        memcpy(reinterpret_cast<void *>(this->end()), EltPtr, sizeof(T));
+public:
+    void push_back(ValueParamT Elt)
+    {
+        T const* EltPtr = reserveForParamAndGetAddress(Elt);
+        memcpy(reinterpret_cast<void*>(this->end()), EltPtr, sizeof(T));
         this->set_size(this->size() + 1);
     }
 
@@ -586,25 +643,28 @@ class SmallArrayTemplateBase<T, true> : public SmallArrayTemplateCommon<T> {
 
 /// This class consists of common code factored out of the SmallArray class to
 /// reduce code duplication based on the SmallArray 'N' template parameter.
-template <typename T>
+template<typename T>
 class SmallArrayImpl : public SmallArrayTemplateBase<T> {
     using SuperClass = SmallArrayTemplateBase<T>;
 
-    public:
+public:
     using iterator = typename SuperClass::iterator;
     using const_iterator = typename SuperClass::const_iterator;
     using reference = typename SuperClass::reference;
     using size_type = typename SuperClass::size_type;
 
-    protected:
+protected:
     using SmallArrayTemplateBase<T>::TakesParamByValue;
     using ValueParamT = typename SuperClass::ValueParamT;
 
     // Default ctor - Initialize to empty.
     explicit SmallArrayImpl(unsigned N)
-    : SmallArrayTemplateBase<T>(N) {}
+        : SmallArrayTemplateBase<T>(N)
+    {
+    }
 
-    void assignRemote(SmallArrayImpl &&RHS) {
+    void assignRemote(SmallArrayImpl&& RHS)
+    {
         this->destroy_range(this->begin(), this->end());
         if (!this->isSmall())
             free(this->begin());
@@ -614,83 +674,91 @@ class SmallArrayImpl : public SmallArrayTemplateBase<T> {
         RHS.resetToSmall();
     }
 
-    ~SmallArrayImpl() {
+    ~SmallArrayImpl()
+    {
         // Subclass has already destructed this vector's elements.
         // If this wasn't grown from the inline copy, deallocate the old space.
         if (!this->isSmall())
             free(this->begin());
     }
 
-    public:
-    SmallArrayImpl(const SmallArrayImpl &) = delete;
+public:
+    SmallArrayImpl(SmallArrayImpl const&) = delete;
 
-    [[nodiscard]] bool contains(const T& to_find) const
+    [[nodiscard]] bool contains(T const& to_find) const
     {
         return std::find(this->begin(), this->end(), to_find) != this->end();
     }
 
-    [[nodiscard]] int index_of(const T& to_find) const
+    [[nodiscard]] int index_of(T const& to_find) const
     {
         auto it = std::find(this->begin(), this->end(), to_find);
         return (it == this->end()) ? -1 : (size_t)(it - this->begin());
     }
 
-    bool remove_one(const T& to_find) {
+    bool remove_one(T const& to_find)
+    {
         auto it = std::find(this->begin(), this->end(), to_find);
         if (it != this->end()) {
             this->erase(it);
             return true;
         }
-        return false;  // Element not found
+        return false; // Element not found
     }
 
-    bool remove_all(const T& to_find) {
+    bool remove_all(T const& to_find)
+    {
         auto initial_size = this->size();
         this->erase(std::remove(this->begin(), this->end(), to_find), this->end());
-        return this->size() < initial_size;  // True if at least one element was removed
+        return this->size() < initial_size; // True if at least one element was removed
     }
 
-    bool remove_at(size_t index) {
+    bool remove_at(size_t index)
+    {
         if (index < this->size()) {
             this->erase(this->begin() + index);
             return true;
         }
-        return false;  // Index out of bounds
+        return false; // Index out of bounds
     }
 
-    bool remove_range(size_t start, size_t end) {
+    bool remove_range(size_t start, size_t end)
+    {
         if (start >= end || start >= this->size() || end > this->size()) {
-            return false;  // Invalid range
+            return false; // Invalid range
         }
         this->erase(this->begin() + start, this->begin() + end);
         return true;
     }
 
-    bool add_unique(const T& to_add) {
+    bool add_unique(T const& to_add)
+    {
         if (std::find(this->begin(), this->end(), to_add) == this->end()) {
             this->push_back(to_add);
             return true;
         }
-        return false;  // Element already exists
+        return false; // Element already exists
     }
 
-    void add(const T& to_add)
+    void add(T const& to_add)
     {
         this->push_back(to_add);
     }
-    
+
     void pop()
     {
         this->pop_back();
     }
 
-    int add_sorted(const T& value) {
+    int add_sorted(T const& value)
+    {
         auto it = std::lower_bound(this->begin(), this->end(), value);
         this->insert(it, value);
         return std::distance(this->begin(), it);
     }
 
-    int add_sorted(int(*sort_fn)(const T&, const T&), const T& value) {
+    int add_sorted(int (*sort_fn)(T const&, T const&), T const& value)
+    {
         auto it = std::lower_bound(this->begin(), this->end(), value, sort_fn);
         this->insert(it, value);
         return std::distance(this->begin(), it);
@@ -701,20 +769,24 @@ class SmallArrayImpl : public SmallArrayTemplateBase<T> {
         std::sort(this->begin(), this->end());
     }
 
-    void sort(int(*sort_fn)(const T&, const T&)) {
+    void sort(int (*sort_fn)(T const&, T const&))
+    {
         std::sort(this->begin(), this->end(), sort_fn);
     }
 
-    void clear() {
+    void clear()
+    {
         this->destroy_range(this->begin(), this->end());
         this->Size = 0;
     }
 
-    private:
+private:
     // Make set_size() private to avoid misuse in subclasses.
     using SuperClass::set_size;
 
-    template <bool ForOverwrite> void resizeImpl(size_type N) {
+    template<bool ForOverwrite>
+    void resizeImpl(size_type N)
+    {
         if (N == this->size())
             return;
 
@@ -732,20 +804,22 @@ class SmallArrayImpl : public SmallArrayTemplateBase<T> {
         this->set_size(N);
     }
 
-    public:
+public:
     void resize(size_type N) { resizeImpl<false>(N); }
 
     /// Like resize, but \ref T is POD, the new values won't be initialized.
     void resize_for_overwrite(size_type N) { resizeImpl<true>(N); }
 
     /// Like resize, but requires that \p N is less than \a size().
-    void truncate(size_type N) {
+    void truncate(size_type N)
+    {
         assert(this->size() >= N && "Cannot increase size with truncate");
         this->destroy_range(this->begin() + N, this->end());
         this->set_size(N);
     }
 
-    void resize(size_type N, ValueParamT NV) {
+    void resize(size_type N, ValueParamT NV)
+    {
         if (N == this->size())
             return;
 
@@ -758,27 +832,31 @@ class SmallArrayImpl : public SmallArrayTemplateBase<T> {
         this->append(N - this->size(), NV);
     }
 
-    void reserve(size_type N) {
+    void reserve(size_type N)
+    {
         if (this->capacity() < N)
             this->grow(N);
     }
 
-    void pop_back_n(size_type NumItems) {
+    void pop_back_n(size_type NumItems)
+    {
         assert(this->size() >= NumItems);
         truncate(this->size() - NumItems);
     }
 
-    [[nodiscard]] T pop_back_val() {
+    [[nodiscard]] T pop_back_val()
+    {
         T Result = ::std::move(this->back());
         this->pop_back();
         return Result;
     }
 
-    void swap(SmallArrayImpl &RHS);
+    void swap(SmallArrayImpl& RHS);
 
     /// Add the specified range to the end of the SmallArray.
-    template <typename ItTy, typename = EnableIfConvertibleToInputIterator<ItTy>>
-    void append(ItTy in_start, ItTy in_end) {
+    template<typename ItTy, typename = EnableIfConvertibleToInputIterator<ItTy>>
+    void append(ItTy in_start, ItTy in_end)
+    {
         this->assertSafeToAddRange(in_start, in_end);
         size_type NumInputs = std::distance(in_start, in_end);
         this->reserve(this->size() + NumInputs);
@@ -787,19 +865,22 @@ class SmallArrayImpl : public SmallArrayTemplateBase<T> {
     }
 
     /// Append \p NumInputs copies of \p Elt to the end.
-    void append(size_type NumInputs, ValueParamT Elt) {
-        const T *EltPtr = this->reserveForParamAndGetAddress(Elt, NumInputs);
+    void append(size_type NumInputs, ValueParamT Elt)
+    {
+        T const* EltPtr = this->reserveForParamAndGetAddress(Elt, NumInputs);
         std::uninitialized_fill_n(this->end(), NumInputs, *EltPtr);
         this->set_size(this->size() + NumInputs);
     }
 
-    void append(std::initializer_list<T> IL) {
+    void append(std::initializer_list<T> IL)
+    {
         append(IL.begin(), IL.end());
     }
 
-    void append(const SmallArrayImpl &RHS) { append(RHS.begin(), RHS.end()); }
+    void append(SmallArrayImpl const& RHS) { append(RHS.begin(), RHS.end()); }
 
-    void assign(size_type NumElts, ValueParamT Elt) {
+    void assign(size_type NumElts, ValueParamT Elt)
+    {
         // Note that Elt could be an internal reference.
         if (NumElts > this->capacity()) {
             this->growAndAssign(NumElts, Elt);
@@ -818,21 +899,24 @@ class SmallArrayImpl : public SmallArrayTemplateBase<T> {
     // FIXME: Consider assigning over existing elements, rather than clearing &
     // re-initializing them - for all assign(...) variants.
 
-    template <typename ItTy, typename = EnableIfConvertibleToInputIterator<ItTy>>
-    void assign(ItTy in_start, ItTy in_end) {
+    template<typename ItTy, typename = EnableIfConvertibleToInputIterator<ItTy>>
+    void assign(ItTy in_start, ItTy in_end)
+    {
         this->assertSafeToReferenceAfterClear(in_start, in_end);
         clear();
         append(in_start, in_end);
     }
 
-    void assign(std::initializer_list<T> IL) {
+    void assign(std::initializer_list<T> IL)
+    {
         clear();
         append(IL);
     }
 
-    void assign(const SmallArrayImpl &RHS) { assign(RHS.begin(), RHS.end()); }
+    void assign(SmallArrayImpl const& RHS) { assign(RHS.begin(), RHS.end()); }
 
-    iterator erase(const_iterator CI) {
+    iterator erase(const_iterator CI)
+    {
         // Just cast away constness because this is a non-const member function.
         iterator I = const_cast<iterator>(CI);
 
@@ -840,13 +924,14 @@ class SmallArrayImpl : public SmallArrayTemplateBase<T> {
 
         iterator N = I;
         // Shift all elts down one.
-        std::move(I+1, this->end(), I);
+        std::move(I + 1, this->end(), I);
         // Drop the last elt.
         this->pop_back();
-        return(N);
+        return (N);
     }
 
-    iterator erase(const_iterator CS, const_iterator CE) {
+    iterator erase(const_iterator CS, const_iterator CE)
+    {
         // Just cast away constness because this is a non-const member function.
         iterator S = const_cast<iterator>(CS);
         iterator E = const_cast<iterator>(CE);
@@ -859,39 +944,40 @@ class SmallArrayImpl : public SmallArrayTemplateBase<T> {
         // Drop the last elts.
         this->destroy_range(I, this->end());
         this->set_size(I - this->begin());
-        return(N);
+        return (N);
     }
 
-    private:
-    template <class ArgType> iterator insert_one_impl(iterator I, ArgType &&Elt) {
+private:
+    template<class ArgType>
+    iterator insert_one_impl(iterator I, ArgType&& Elt)
+    {
         // Callers ensure that ArgType is derived from T.
         static_assert(
-                      std::is_same<std::remove_const_t<std::remove_reference_t<ArgType>>,
-                      T>::value,
-                      "ArgType must be derived from T!");
+            std::is_same<std::remove_const_t<std::remove_reference_t<ArgType>>,
+                T>::value,
+            "ArgType must be derived from T!");
 
-        if (I == this->end()) {  // Important special case for empty vector.
+        if (I == this->end()) { // Important special case for empty vector.
             this->push_back(::std::forward<ArgType>(Elt));
-            return this->end()-1;
+            return this->end() - 1;
         }
 
         assert(this->isReferenceToStorage(I) && "Insertion iterator is out of bounds.");
 
         // Grow if necessary.
         size_t Index = I - this->begin();
-        std::remove_reference_t<ArgType> *EltPtr =
-        this->reserveForParamAndGetAddress(Elt);
+        std::remove_reference_t<ArgType>* EltPtr = this->reserveForParamAndGetAddress(Elt);
         I = this->begin() + Index;
 
-        ::new ((void*) this->end()) T(::std::move(this->back()));
+        ::new ((void*)this->end()) T(::std::move(this->back()));
         // Push everything else over.
-        std::move_backward(I, this->end()-1, this->end());
+        std::move_backward(I, this->end() - 1, this->end());
         this->set_size(this->size() + 1);
 
         // If we just moved the element we're inserting, be sure to update
         // the reference (never happens if TakesParamByValue).
         static_assert(!TakesParamByValue || std::is_same<ArgType, T>::value,
-                      "ArgType must be 'T' when taking by value!");
+            "ArgType must be 'T' when taking by value!");
         if (!TakesParamByValue && this->isReferenceToRange(EltPtr, I, this->end()))
             ++EltPtr;
 
@@ -899,49 +985,52 @@ class SmallArrayImpl : public SmallArrayTemplateBase<T> {
         return I;
     }
 
-    public:
-
-    void insert(size_t index, const T& value) {
+public:
+    void insert(size_t index, T const& value)
+    {
         this->insert(this->begin() + index, value);
     }
 
-    iterator insert(iterator I, T &&Elt) {
+    iterator insert(iterator I, T&& Elt)
+    {
         return insert_one_impl(I, this->forward_value_param(std::move(Elt)));
     }
 
-    iterator insert(iterator I, const T &Elt) {
+    iterator insert(iterator I, T const& Elt)
+    {
         return insert_one_impl(I, this->forward_value_param(Elt));
     }
 
-    iterator insert(iterator I, size_type NumToInsert, ValueParamT Elt) {
+    iterator insert(iterator I, size_type NumToInsert, ValueParamT Elt)
+    {
         // Convert iterator to elt# to avoid invalidating iterator when we reserve()
         size_t InsertElt = I - this->begin();
 
-        if (I == this->end()) {  // Important special case for empty vector.
+        if (I == this->end()) { // Important special case for empty vector.
             append(NumToInsert, Elt);
-            return this->begin()+InsertElt;
+            return this->begin() + InsertElt;
         }
 
         assert(this->isReferenceToStorage(I) && "Insertion iterator is out of bounds.");
 
         // Ensure there is enough space, and get the (maybe updated) address of
         // Elt.
-        const T *EltPtr = this->reserveForParamAndGetAddress(Elt, NumToInsert);
+        T const* EltPtr = this->reserveForParamAndGetAddress(Elt, NumToInsert);
 
         // Uninvalidate the iterator.
-        I = this->begin()+InsertElt;
+        I = this->begin() + InsertElt;
 
         // If there are more elements between the insertion point and the end of the
         // range than there are being inserted, we can use a simple approach to
         // insertion.  Since we already reserved space, we know that this won't
         // reallocate the vector.
-        if (size_t(this->end()-I) >= NumToInsert) {
-            T *OldEnd = this->end();
+        if (size_t(this->end() - I) >= NumToInsert) {
+            T* OldEnd = this->end();
             append(std::move_iterator<iterator>(this->end() - NumToInsert),
-                   std::move_iterator<iterator>(this->end()));
+                std::move_iterator<iterator>(this->end()));
 
             // Copy the existing elements that get replaced.
-            std::move_backward(I, OldEnd-NumToInsert, OldEnd);
+            std::move_backward(I, OldEnd - NumToInsert, OldEnd);
 
             // If we just moved the element we're inserting, be sure to update
             // the reference (never happens if TakesParamByValue).
@@ -956,10 +1045,10 @@ class SmallArrayImpl : public SmallArrayTemplateBase<T> {
         // not inserting at the end.
 
         // Move over the elements that we're about to overwrite.
-        T *OldEnd = this->end();
+        T* OldEnd = this->end();
         this->set_size(this->size() + NumToInsert);
-        size_t NumOverwritten = OldEnd-I;
-        this->uninitialized_move(I, OldEnd, this->end()-NumOverwritten);
+        size_t NumOverwritten = OldEnd - I;
+        this->uninitialized_move(I, OldEnd, this->end() - NumOverwritten);
 
         // If we just moved the element we're inserting, be sure to update
         // the reference (never happens if TakesParamByValue).
@@ -974,14 +1063,15 @@ class SmallArrayImpl : public SmallArrayTemplateBase<T> {
         return I;
     }
 
-    template <typename ItTy, typename = EnableIfConvertibleToInputIterator<ItTy>>
-    iterator insert(iterator I, ItTy From, ItTy To) {
+    template<typename ItTy, typename = EnableIfConvertibleToInputIterator<ItTy>>
+    iterator insert(iterator I, ItTy From, ItTy To)
+    {
         // Convert iterator to elt# to avoid invalidating iterator when we reserve()
         size_t InsertElt = I - this->begin();
 
-        if (I == this->end()) {  // Important special case for empty vector.
+        if (I == this->end()) { // Important special case for empty vector.
             append(From, To);
-            return this->begin()+InsertElt;
+            return this->begin() + InsertElt;
         }
 
         assert(this->isReferenceToStorage(I) && "Insertion iterator is out of bounds.");
@@ -995,19 +1085,19 @@ class SmallArrayImpl : public SmallArrayTemplateBase<T> {
         reserve(this->size() + NumToInsert);
 
         // Uninvalidate the iterator.
-        I = this->begin()+InsertElt;
+        I = this->begin() + InsertElt;
 
         // If there are more elements between the insertion point and the end of the
         // range than there are being inserted, we can use a simple approach to
         // insertion.  Since we already reserved space, we know that this won't
         // reallocate the vector.
-        if (size_t(this->end()-I) >= NumToInsert) {
-            T *OldEnd = this->end();
+        if (size_t(this->end() - I) >= NumToInsert) {
+            T* OldEnd = this->end();
             append(std::move_iterator<iterator>(this->end() - NumToInsert),
-                   std::move_iterator<iterator>(this->end()));
+                std::move_iterator<iterator>(this->end()));
 
             // Copy the existing elements that get replaced.
-            std::move_backward(I, OldEnd-NumToInsert, OldEnd);
+            std::move_backward(I, OldEnd - NumToInsert, OldEnd);
 
             std::copy(From, To, I);
             return I;
@@ -1017,15 +1107,16 @@ class SmallArrayImpl : public SmallArrayTemplateBase<T> {
         // not inserting at the end.
 
         // Move over the elements that we're about to overwrite.
-        T *OldEnd = this->end();
+        T* OldEnd = this->end();
         this->set_size(this->size() + NumToInsert);
-        size_t NumOverwritten = OldEnd-I;
-        this->uninitialized_move(I, OldEnd, this->end()-NumOverwritten);
+        size_t NumOverwritten = OldEnd - I;
+        this->uninitialized_move(I, OldEnd, this->end() - NumOverwritten);
 
         // Replace the overwritten part.
-        for (T *J = I; NumOverwritten > 0; --NumOverwritten) {
+        for (T* J = I; NumOverwritten > 0; --NumOverwritten) {
             *J = *From;
-            ++J; ++From;
+            ++J;
+            ++From;
         }
 
         // Insert the non-overwritten middle part.
@@ -1033,43 +1124,52 @@ class SmallArrayImpl : public SmallArrayTemplateBase<T> {
         return I;
     }
 
-    void insert(iterator I, std::initializer_list<T> IL) {
+    void insert(iterator I, std::initializer_list<T> IL)
+    {
         insert(I, IL.begin(), IL.end());
     }
 
-    template <typename... ArgTypes> reference emplace_back(ArgTypes &&... Args) {
+    template<typename... ArgTypes>
+    reference emplace_back(ArgTypes&&... Args)
+    {
         if (EXPECT_UNLIKELY(this->size() >= this->capacity()))
             return this->growAndEmplaceBack(std::forward<ArgTypes>(Args)...);
 
-        ::new ((void *)this->end()) T(std::forward<ArgTypes>(Args)...);
+        ::new ((void*)this->end()) T(std::forward<ArgTypes>(Args)...);
         this->set_size(this->size() + 1);
         return this->back();
     }
 
-    SmallArrayImpl &operator=(const SmallArrayImpl &RHS);
+    SmallArrayImpl& operator=(SmallArrayImpl const& RHS);
 
-    SmallArrayImpl &operator=(SmallArrayImpl &&RHS);
+    SmallArrayImpl& operator=(SmallArrayImpl&& RHS);
 
-    bool operator==(const SmallArrayImpl &RHS) const {
-        if (this->size() != RHS.size()) return false;
+    bool operator==(SmallArrayImpl const& RHS) const
+    {
+        if (this->size() != RHS.size())
+            return false;
         return std::equal(this->begin(), this->end(), RHS.begin());
     }
-    bool operator!=(const SmallArrayImpl &RHS) const {
+    bool operator!=(SmallArrayImpl const& RHS) const
+    {
         return !(*this == RHS);
     }
 
-    bool operator<(const SmallArrayImpl &RHS) const {
+    bool operator<(SmallArrayImpl const& RHS) const
+    {
         return std::lexicographical_compare(this->begin(), this->end(),
-                                            RHS.begin(), RHS.end());
+            RHS.begin(), RHS.end());
     }
-    bool operator>(const SmallArrayImpl &RHS) const { return RHS < *this; }
-    bool operator<=(const SmallArrayImpl &RHS) const { return !(*this > RHS); }
-    bool operator>=(const SmallArrayImpl &RHS) const { return !(*this < RHS); }
+    bool operator>(SmallArrayImpl const& RHS) const { return RHS < *this; }
+    bool operator<=(SmallArrayImpl const& RHS) const { return !(*this > RHS); }
+    bool operator>=(SmallArrayImpl const& RHS) const { return !(*this < RHS); }
 };
 
-template <typename T>
-void SmallArrayImpl<T>::swap(SmallArrayImpl<T> &RHS) {
-    if (this == &RHS) return;
+template<typename T>
+void SmallArrayImpl<T>::swap(SmallArrayImpl<T>& RHS)
+{
+    if (this == &RHS)
+        return;
 
     // We can only avoid copying elements if neither vector is small.
     if (!this->isSmall() && !RHS.isSmall()) {
@@ -1083,31 +1183,34 @@ void SmallArrayImpl<T>::swap(SmallArrayImpl<T> &RHS) {
 
     // Swap the shared elements.
     size_t NumShared = this->size();
-    if (NumShared > RHS.size()) NumShared = RHS.size();
+    if (NumShared > RHS.size())
+        NumShared = RHS.size();
     for (size_type i = 0; i != NumShared; ++i)
         std::swap((*this)[i], RHS[i]);
 
     // Copy over the extra elts.
     if (this->size() > RHS.size()) {
         size_t EltDiff = this->size() - RHS.size();
-        this->uninitialized_copy(this->begin()+NumShared, this->end(), RHS.end());
+        this->uninitialized_copy(this->begin() + NumShared, this->end(), RHS.end());
         RHS.set_size(RHS.size() + EltDiff);
-        this->destroy_range(this->begin()+NumShared, this->end());
+        this->destroy_range(this->begin() + NumShared, this->end());
         this->set_size(NumShared);
     } else if (RHS.size() > this->size()) {
         size_t EltDiff = RHS.size() - this->size();
-        this->uninitialized_copy(RHS.begin()+NumShared, RHS.end(), this->end());
+        this->uninitialized_copy(RHS.begin() + NumShared, RHS.end(), this->end());
         this->set_size(this->size() + EltDiff);
-        this->destroy_range(RHS.begin()+NumShared, RHS.end());
+        this->destroy_range(RHS.begin() + NumShared, RHS.end());
         RHS.set_size(NumShared);
     }
 }
 
-template <typename T>
-SmallArrayImpl<T> &SmallArrayImpl<T>::
-operator=(const SmallArrayImpl<T> &RHS) {
+template<typename T>
+SmallArrayImpl<T>& SmallArrayImpl<T>::
+operator=(SmallArrayImpl<T> const& RHS)
+{
     // Avoid self-assignment.
-    if (this == &RHS) return *this;
+    if (this == &RHS)
+        return *this;
 
     // If we already have sufficient space, assign the common elements, then
     // destroy any excess.
@@ -1117,7 +1220,7 @@ operator=(const SmallArrayImpl<T> &RHS) {
         // Assign common elements.
         iterator NewEnd;
         if (RHSSize)
-            NewEnd = std::copy(RHS.begin(), RHS.begin()+RHSSize, this->begin());
+            NewEnd = std::copy(RHS.begin(), RHS.begin() + RHSSize, this->begin());
         else
             NewEnd = this->begin();
 
@@ -1139,22 +1242,24 @@ operator=(const SmallArrayImpl<T> &RHS) {
         this->grow(RHSSize);
     } else if (CurSize) {
         // Otherwise, use assignment for the already-constructed elements.
-        std::copy(RHS.begin(), RHS.begin()+CurSize, this->begin());
+        std::copy(RHS.begin(), RHS.begin() + CurSize, this->begin());
     }
 
     // Copy construct the new elements in place.
-    this->uninitialized_copy(RHS.begin()+CurSize, RHS.end(),
-                             this->begin()+CurSize);
+    this->uninitialized_copy(RHS.begin() + CurSize, RHS.end(),
+        this->begin() + CurSize);
 
     // Set end.
     this->set_size(RHSSize);
     return *this;
 }
 
-template <typename T>
-SmallArrayImpl<T> &SmallArrayImpl<T>::operator=(SmallArrayImpl<T> &&RHS) {
+template<typename T>
+SmallArrayImpl<T>& SmallArrayImpl<T>::operator=(SmallArrayImpl<T>&& RHS)
+{
     // Avoid self-assignment.
-    if (this == &RHS) return *this;
+    if (this == &RHS)
+        return *this;
 
     // If the RHS isn't small, clear this vector and then steal its buffer.
     if (!RHS.isSmall()) {
@@ -1193,12 +1298,12 @@ SmallArrayImpl<T> &SmallArrayImpl<T>::operator=(SmallArrayImpl<T> &&RHS) {
         this->grow(RHSSize);
     } else if (CurSize) {
         // Otherwise, use assignment for the already-constructed elements.
-        std::move(RHS.begin(), RHS.begin()+CurSize, this->begin());
+        std::move(RHS.begin(), RHS.begin() + CurSize, this->begin());
     }
 
     // Move-construct the new elements in place.
-    this->uninitialized_move(RHS.begin()+CurSize, RHS.end(),
-                             this->begin()+CurSize);
+    this->uninitialized_move(RHS.begin() + CurSize, RHS.end(),
+        this->begin() + CurSize);
 
     // Set end.
     this->set_size(RHSSize);
@@ -1209,7 +1314,7 @@ SmallArrayImpl<T> &SmallArrayImpl<T>::operator=(SmallArrayImpl<T> &&RHS) {
 
 /// Storage for the SmallArray elements.  This is specialized for the N=0 case
 /// to avoid allocating unnecessary storage.
-template <typename T, unsigned N>
+template<typename T, unsigned N>
 struct SmallArrayStorage {
     alignas(T) char InlineElts[N * sizeof(T)];
 };
@@ -1217,19 +1322,22 @@ struct SmallArrayStorage {
 /// We need the storage to be properly aligned even for small-size of 0 so that
 /// the pointer math in \a SmallArrayTemplateCommon::getFirstEl() is
 /// well-defined.
-template <typename T> struct alignas(T) SmallArrayStorage<T, 0> {};
+template<typename T>
+struct alignas(T) SmallArrayStorage<T, 0> { };
 
 /// Forward declaration of SmallArray so that
 /// calculateSmallArrayDefaultInlinedElements can reference
 /// `sizeof(SmallArray<T, 0>)`.
-template <typename T, unsigned N> class GSL_OWNER SmallArray;
+template<typename T, unsigned N>
+class GSL_OWNER SmallArray;
 
 /// Helper class for calculating the default number of inline elements for
 /// `SmallArray<T>`.
 ///
 /// This should be migrated to a constexpr function when our minimum
 /// compiler support is enough for multi-statement constexpr functions.
-template <typename T> struct CalculateSmallArrayDefaultInlinedElements {
+template<typename T>
+struct CalculateSmallArrayDefaultInlinedElements {
     // Parameter controlling the default number of inlined elements
     // for `SmallArray<T>`.
     //
@@ -1262,19 +1370,17 @@ template <typename T> struct CalculateSmallArrayDefaultInlinedElements {
     // happens on a 32-bit host and then fails due to sizeof(T) *increasing* on a
     // 64-bit host, is expected to be very rare.
     static_assert(
-                  sizeof(T) <= 256,
-                  "You are trying to use a default number of inlined elements for "
-                  "`SmallArray<T>` but `sizeof(T)` is really big! Please use an "
-                  "explicit number of inlined elements with `SmallArray<T, N>` to make "
-                  "sure you really want that much inline storage.");
+        sizeof(T) <= 256,
+        "You are trying to use a default number of inlined elements for "
+        "`SmallArray<T>` but `sizeof(T)` is really big! Please use an "
+        "explicit number of inlined elements with `SmallArray<T, N>` to make "
+        "sure you really want that much inline storage.");
 
     // Discount the size of the header itself when calculating the maximum inline
     // bytes.
-    static constexpr size_t PreferredInlineBytes =
-    kPreferredSmallArraySizeof - sizeof(SmallArray<T, 0>);
+    static constexpr size_t PreferredInlineBytes = kPreferredSmallArraySizeof - sizeof(SmallArray<T, 0>);
     static constexpr size_t NumElementsThatFit = PreferredInlineBytes / sizeof(T);
-    static constexpr size_t value =
-    NumElementsThatFit == 0 ? 1 : NumElementsThatFit;
+    static constexpr size_t value = NumElementsThatFit == 0 ? 1 : NumElementsThatFit;
 };
 
 /// This is a 'vector' (really, a variable-sized array), optimized
@@ -1293,70 +1399,91 @@ template <typename T> struct CalculateSmallArrayDefaultInlinedElements {
 /// \warning This does not attempt to be exception safe.
 ///
 /// \see https://llvm.org/docs/ProgrammersManual.html#llvm-adt-SmallArray-h
-template <typename T,
-unsigned N = CalculateSmallArrayDefaultInlinedElements<T>::value>
-class GSL_OWNER SmallArray : public SmallArrayImpl<T>,
-SmallArrayStorage<T, N> {
-    public:
-    SmallArray() : SmallArrayImpl<T>(N) {}
+template<typename T,
+    unsigned N = CalculateSmallArrayDefaultInlinedElements<T>::value>
+class GSL_OWNER SmallArray : public SmallArrayImpl<T>
+    , SmallArrayStorage<T, N> {
+public:
+    SmallArray()
+        : SmallArrayImpl<T>(N)
+    {
+    }
 
-    ~SmallArray() {
+    ~SmallArray()
+    {
         // Destroy the constructed elements in the vector.
         this->destroy_range(this->begin(), this->end());
     }
 
     explicit SmallArray(size_t Size)
-    : SmallArrayImpl<T>(N) {
+        : SmallArrayImpl<T>(N)
+    {
         this->resize(Size);
     }
 
-    SmallArray(size_t Size, const T &Value)
-    : SmallArrayImpl<T>(N) {
+    SmallArray(size_t Size, T const& Value)
+        : SmallArrayImpl<T>(N)
+    {
         this->assign(Size, Value);
     }
 
-    template <typename ItTy, typename = EnableIfConvertibleToInputIterator<ItTy>>
-    SmallArray(ItTy S, ItTy E) : SmallArrayImpl<T>(N) {
+    template<typename ItTy, typename = EnableIfConvertibleToInputIterator<ItTy>>
+    SmallArray(ItTy S, ItTy E)
+        : SmallArrayImpl<T>(N)
+    {
         this->append(S, E);
     }
 
-    template <typename RangeTy>
-    explicit SmallArray(const iterator_range<RangeTy> &R)
-    : SmallArrayImpl<T>(N) {
+    template<typename RangeTy>
+    explicit SmallArray(iterator_range<RangeTy> const& R)
+        : SmallArrayImpl<T>(N)
+    {
         this->append(R.begin(), R.end());
     }
 
-    SmallArray(std::initializer_list<T> IL) : SmallArrayImpl<T>(N) {
+    SmallArray(std::initializer_list<T> IL)
+        : SmallArrayImpl<T>(N)
+    {
         this->append(IL);
     }
 
-    template <typename U,
-    typename = std::enable_if_t<std::is_convertible<U, T>::value>>
-    explicit SmallArray(ArrayRef<U> A) : SmallArrayImpl<T>(N) {
+    template<typename U,
+        typename = std::enable_if_t<std::is_convertible<U, T>::value>>
+    explicit SmallArray(ArrayRef<U> A)
+        : SmallArrayImpl<T>(N)
+    {
         this->append(A.begin(), A.end());
     }
 
-    SmallArray(const SmallArray &RHS) : SmallArrayImpl<T>(N) {
+    SmallArray(SmallArray const& RHS)
+        : SmallArrayImpl<T>(N)
+    {
         if (!RHS.empty())
             SmallArrayImpl<T>::operator=(RHS);
     }
 
-    SmallArray &operator=(const SmallArray &RHS) {
+    SmallArray& operator=(SmallArray const& RHS)
+    {
         SmallArrayImpl<T>::operator=(RHS);
         return *this;
     }
 
-    SmallArray(SmallArray &&RHS) : SmallArrayImpl<T>(N) {
+    SmallArray(SmallArray&& RHS)
+        : SmallArrayImpl<T>(N)
+    {
         if (!RHS.empty())
             SmallArrayImpl<T>::operator=(::std::move(RHS));
     }
 
-    SmallArray(SmallArrayImpl<T> &&RHS) : SmallArrayImpl<T>(N) {
+    SmallArray(SmallArrayImpl<T>&& RHS)
+        : SmallArrayImpl<T>(N)
+    {
         if (!RHS.empty())
             SmallArrayImpl<T>::operator=(::std::move(RHS));
     }
 
-    SmallArray &operator=(SmallArray &&RHS) {
+    SmallArray& operator=(SmallArray&& RHS)
+    {
         if (N) {
             SmallArrayImpl<T>::operator=(::std::move(RHS));
             return *this;
@@ -1374,46 +1501,53 @@ SmallArrayStorage<T, N> {
         return *this;
     }
 
-    SmallArray &operator=(SmallArrayImpl<T> &&RHS) {
+    SmallArray& operator=(SmallArrayImpl<T>&& RHS)
+    {
         SmallArrayImpl<T>::operator=(::std::move(RHS));
         return *this;
     }
 
-    SmallArray &operator=(std::initializer_list<T> IL) {
+    SmallArray& operator=(std::initializer_list<T> IL)
+    {
         this->assign(IL);
         return *this;
     }
 };
 
-template <typename T, unsigned N>
-inline size_t capacity_in_bytes(const SmallArray<T, N> &X) {
+template<typename T, unsigned N>
+inline size_t capacity_in_bytes(SmallArray<T, N> const& X)
+{
     return X.capacity_in_bytes();
 }
 
-template <typename RangeType>
-using ValueTypeFromRangeType =
-std::remove_const_t<std::remove_reference_t<decltype(*std::begin(
-                                                                 std::declval<RangeType &>()))>>;
+template<typename RangeType>
+using ValueTypeFromRangeType = std::remove_const_t<std::remove_reference_t<decltype(*std::begin(
+    std::declval<RangeType&>()))>>;
 
 /// Given a range of type R, iterate the entire range and return a
 /// SmallArray with elements of the vector.  This is useful, for example,
 /// when you want to iterate a range and then sort the results.
-template <unsigned Size, typename R>
-SmallArray<ValueTypeFromRangeType<R>, Size> to_vector(R &&Range) {
-    return {std::begin(Range), std::end(Range)};
+template<unsigned Size, typename R>
+SmallArray<ValueTypeFromRangeType<R>, Size> to_vector(R&& Range)
+{
+    return { std::begin(Range), std::end(Range) };
 }
-template <typename R>
-SmallArray<ValueTypeFromRangeType<R>> to_vector(R &&Range) {
-    return {std::begin(Range), std::end(Range)};
-}
-
-template <typename Out, unsigned Size, typename R>
-SmallArray<Out, Size> to_vector_of(R &&Range) {
-    return {std::begin(Range), std::end(Range)};
+template<typename R>
+SmallArray<ValueTypeFromRangeType<R>> to_vector(R&& Range)
+{
+    return { std::begin(Range), std::end(Range) };
 }
 
-template <typename Out, typename R> SmallArray<Out> to_vector_of(R &&Range) {
-    return {std::begin(Range), std::end(Range)};
+template<typename Out, unsigned Size, typename R>
+SmallArray<Out, Size> to_vector_of(R&& Range)
+{
+    return { std::begin(Range), std::end(Range) };
+}
+
+template<typename Out, typename R>
+SmallArray<Out> to_vector_of(R&& Range)
+{
+    return { std::begin(Range), std::end(Range) };
 }
 
 // Explicit instantiations
@@ -1427,14 +1561,16 @@ namespace std {
 /// Implement std::swap in terms of SmallArray swap.
 template<typename T>
 inline void
-swap(SmallArrayImpl<T> &LHS, SmallArrayImpl<T> &RHS) {
+swap(SmallArrayImpl<T>& LHS, SmallArrayImpl<T>& RHS)
+{
     LHS.swap(RHS);
 }
 
 /// Implement std::swap in terms of SmallArray swap.
 template<typename T, unsigned N>
 inline void
-swap(SmallArray<T, N> &LHS, SmallArray<T, N> &RHS) {
+swap(SmallArray<T, N>& LHS, SmallArray<T, N>& RHS)
+{
     LHS.swap(RHS);
 }
 
@@ -1443,27 +1579,25 @@ swap(SmallArray<T, N> &LHS, SmallArray<T, N> &RHS) {
 /// Report that MinSize doesn't fit into this vector's size type. Throws
 /// std::length_error or calls report_fatal_error.
 [[noreturn]] static void report_size_overflow(size_t MinSize, size_t MaxSize);
-static void report_size_overflow(size_t MinSize, size_t MaxSize) {
-    std::string Reason = "SmallArray unable to grow. Requested capacity (" +
-    std::to_string(MinSize) +
-    ") is larger than maximum value for size type (" +
-    std::to_string(MaxSize) + ")";
+static void report_size_overflow(size_t MinSize, size_t MaxSize)
+{
+    std::string Reason = "SmallArray unable to grow. Requested capacity (" + std::to_string(MinSize) + ") is larger than maximum value for size type (" + std::to_string(MaxSize) + ")";
     throw std::length_error(Reason);
 }
 
 /// Report that this vector is already at maximum capacity. Throws
 /// std::length_error or calls report_fatal_error.
 [[noreturn]] static void report_at_maximum_capacity(size_t MaxSize);
-static void report_at_maximum_capacity(size_t MaxSize) {
-    std::string Reason =
-    "SmallArray capacity unable to grow. Already at maximum size " +
-    std::to_string(MaxSize);
+static void report_at_maximum_capacity(size_t MaxSize)
+{
+    std::string Reason = "SmallArray capacity unable to grow. Already at maximum size " + std::to_string(MaxSize);
     throw std::length_error(Reason);
 }
 
 // Note: Moving this function into the header may cause performance regression.
-template <class Size_T>
-static size_t getNewCapacity(size_t MinSize, size_t TSize, size_t OldCapacity) {
+template<class Size_T>
+static size_t getNewCapacity(size_t MinSize, size_t TSize, size_t OldCapacity)
+{
     constexpr size_t MaxSize = std::numeric_limits<Size_T>::max();
 
     // Ensure we can fit the new capacity.
@@ -1484,8 +1618,9 @@ static size_t getNewCapacity(size_t MinSize, size_t TSize, size_t OldCapacity) {
     return std::clamp(NewCapacity, MinSize, MaxSize);
 }
 
-ATTRIBUTE_RETURNS_NONNULL inline void *safe_malloc(size_t Sz) {
-    void *Result = std::malloc(Sz);
+ATTRIBUTE_RETURNS_NONNULL inline void* safe_malloc(size_t Sz)
+{
+    void* Result = std::malloc(Sz);
     if (Result == nullptr) {
         // It is implementation-defined whether allocation occurs if the space
         // requested is zero (ISO/IEC 9899:2018 7.22.3). Retry, requesting
@@ -1498,8 +1633,9 @@ ATTRIBUTE_RETURNS_NONNULL inline void *safe_malloc(size_t Sz) {
     return Result;
 }
 
-ATTRIBUTE_RETURNS_NONNULL inline void *safe_realloc(void *Ptr, size_t Sz) {
-    void *Result = std::realloc(Ptr, Sz);
+ATTRIBUTE_RETURNS_NONNULL inline void* safe_realloc(void* Ptr, size_t Sz)
+{
+    void* Result = std::realloc(Ptr, Sz);
     if (Result == nullptr) {
         // It is implementation-defined whether allocation occurs if the space
         // requested is zero (ISO/IEC 9899:2018 7.22.3). Retry, requesting
@@ -1522,9 +1658,10 @@ ATTRIBUTE_RETURNS_NONNULL inline void *safe_realloc(void *Ptr, size_t Sz) {
 /// space, and happens to allocate precisely at BeginX.
 /// This is unlikely to be called often, but resolves a memory leak when the
 /// situation does occur.
-static void *replaceAllocation(void *NewElts, size_t TSize, size_t NewCapacity,
-                               size_t VSize = 0) {
-    void *NewEltsReplace = safe_malloc(NewCapacity * TSize);
+static void* replaceAllocation(void* NewElts, size_t TSize, size_t NewCapacity,
+    size_t VSize = 0)
+{
+    void* NewEltsReplace = safe_malloc(NewCapacity * TSize);
     if (VSize)
         memcpy(NewEltsReplace, NewElts, VSize * TSize);
     free(NewElts);
@@ -1532,25 +1669,27 @@ static void *replaceAllocation(void *NewElts, size_t TSize, size_t NewCapacity,
 }
 
 // Note: Moving this function into the header may cause performance regression.
-template <class Size_T>
-void *SmallArrayBase<Size_T>::mallocForGrow(void *FirstEl, size_t MinSize,
-                                             size_t TSize,
-                                             size_t &NewCapacity) {
+template<class Size_T>
+void* SmallArrayBase<Size_T>::mallocForGrow(void* FirstEl, size_t MinSize,
+    size_t TSize,
+    size_t& NewCapacity)
+{
     NewCapacity = getNewCapacity<Size_T>(MinSize, TSize, this->capacity());
     // Even if capacity is not 0 now, if the vector was originally created with
     // capacity 0, it's possible for the malloc to return FirstEl.
-    void *NewElts = safe_malloc(NewCapacity * TSize);
+    void* NewElts = safe_malloc(NewCapacity * TSize);
     if (NewElts == FirstEl)
         NewElts = ::replaceAllocation(NewElts, TSize, NewCapacity);
     return NewElts;
 }
 
 // Note: Moving this function into the header may cause performance regression.
-template <class Size_T>
-void SmallArrayBase<Size_T>::grow_pod(void *FirstEl, size_t MinSize,
-                                       size_t TSize) {
+template<class Size_T>
+void SmallArrayBase<Size_T>::grow_pod(void* FirstEl, size_t MinSize,
+    size_t TSize)
+{
     size_t NewCapacity = getNewCapacity<Size_T>(MinSize, TSize, this->capacity());
-    void *NewElts;
+    void* NewElts;
     if (BeginX == FirstEl) {
         NewElts = safe_malloc(NewCapacity * TSize);
         if (NewElts == FirstEl)
@@ -1579,56 +1718,74 @@ template class SmallArrayBase<uint64_t>;
 
 // Assertions to ensure this #if stays in sync with SmallArraySizeType.
 static_assert(sizeof(SmallArraySizeType<char>) == sizeof(uint64_t),
-              "Expected SmallArrayBase<uint64_t> variant to be in use.");
+    "Expected SmallArrayBase<uint64_t> variant to be in use.");
 #else
 static_assert(sizeof(SmallArraySizeType<char>) == sizeof(uint32_t),
-              "Expected SmallArrayBase<uint32_t> variant to be in use.");
+    "Expected SmallArrayBase<uint32_t> variant to be in use.");
 #endif
 
-
-template <typename T>
+template<typename T>
 class HeapArray {
 public:
     HeapArray() = default;
 
-    HeapArray(size_t size, const T& default_value) : data_(size, default_value) {}
+    HeapArray(size_t size, T const& default_value)
+        : data_(size, default_value)
+    {
+    }
 
-    HeapArray(size_t size) : data_(size) {}
+    HeapArray(size_t size)
+        : data_(size)
+    {
+    }
 
-    HeapArray(std::initializer_list<T> init_list) : data_(init_list) {}
+    HeapArray(std::initializer_list<T> init_list)
+        : data_(init_list)
+    {
+    }
 
-    HeapArray(std::vector<T>::iterator start, std::vector<T>::iterator end) : data_(start, end) {}
+    HeapArray(std::vector<T>::iterator start, std::vector<T>::iterator end)
+        : data_(start, end)
+    {
+    }
 
-    HeapArray(const HeapArray& other) : data_(other.data_) {}
+    HeapArray(HeapArray const& other)
+        : data_(other.data_)
+    {
+    }
 
     // Adds an element if it doesn't already exist
-    bool add_unique(const T& to_find) {
+    bool add_unique(T const& to_find)
+    {
         if (std::find(data_.begin(), data_.end(), to_find) == data_.end()) {
             data_.push_back(to_find);
             return true;
         }
-        return false;  // Element already exists
+        return false; // Element already exists
     }
 
     // Remove the first occurrence of an element, if it exists
-    bool remove_one(const T& to_find) {
+    bool remove_one(T const& to_find)
+    {
         auto it = std::find(data_.begin(), data_.end(), to_find);
         if (it != data_.end()) {
             data_.erase(it);
             return true;
         }
-        return false;  // Element not found
+        return false; // Element not found
     }
 
     // Remove all occurrences of an element
-    bool remove_all(const T& to_find) {
+    bool remove_all(T const& to_find)
+    {
         auto initial_size = data_.size();
         data_.erase(std::remove(data_.begin(), data_.end(), to_find), data_.end());
-        return data_.size() < initial_size;  // True if at least one element was removed
+        return data_.size() < initial_size; // True if at least one element was removed
     }
 
     // Remove element at a specific index
-    bool remove_at(size_t index) {
+    bool remove_at(size_t index)
+    {
         if (index < data_.size()) {
             data_.erase(data_.begin() + index);
             return true;
@@ -1636,20 +1793,22 @@ public:
         return false;
     }
 
-    bool remove_range(size_t start, size_t end) {
+    bool remove_range(size_t start, size_t end)
+    {
         if (start >= end || start >= data_.size() || end > data_.size()) {
-            return false;  // Invalid range
+            return false; // Invalid range
         }
         data_.erase(data_.begin() + start, data_.begin() + end);
         return true;
     }
 
-    void add(const T& value) { data_.push_back(value); }
+    void add(T const& value) { data_.push_back(value); }
 
-    template <typename... Args>
+    template<typename... Args>
     void emplace_back(Args&&... args) { data_.emplace_back(std::forward<Args>(args)...); }
 
-    int add_sorted(const T& value) {
+    int add_sorted(T const& value)
+    {
         auto it = std::lower_bound(data_.begin(), data_.end(), value);
         data_.insert(it, value);
         return std::distance(data_.begin(), it);
@@ -1657,21 +1816,20 @@ public:
 
     size_t size() const { return data_.size(); }
     T& operator[](size_t index) { return data_[index]; }
-    const T& operator[](size_t index) const { return data_[index]; }
+    T const& operator[](size_t index) const { return data_[index]; }
     void clear() { data_.clear(); }
     T* data() { return data_.data(); }
 
-    bool contains(const T& to_find) const
+    bool contains(T const& to_find) const
     {
         return std::find(data_.begin(), data_.end(), to_find) != end();
     }
 
-    int index_of(const T& to_find) const
+    int index_of(T const& to_find) const
     {
         auto it = std::find(data_.begin(), data_.end(), to_find);
         return (it == data_.end()) ? -1 : (size_t)(it - data_.begin());
     }
-
 
     auto begin() { return data_.begin(); }
     auto end() { return data_.end(); }
@@ -1684,9 +1842,9 @@ public:
     auto rend() const { return data_.rend(); }
 
     T& front() { return data_.front(); };
-    const T& front() const { return data_.front(); };
+    T const& front() const { return data_.front(); };
     T& back() { return data_.back(); };
-    const T& back() const { return data_.back(); };
+    T const& back() const { return data_.back(); };
 
     bool empty() const { return data_.empty(); }
     bool not_empty() const { return !data_.empty(); }
@@ -1694,11 +1852,12 @@ public:
     auto& vector() { return data_; }
     void reserve(size_t capacity) { data_.reserve(capacity); }
     void resize(size_t capacity) { data_.resize(capacity); }
-    void resize(size_t capacity, const T value) { data_.resize(capacity, value); }
+    void resize(size_t capacity, T const value) { data_.resize(capacity, value); }
 
     void erase(size_t index) { data_.erase(data_.begin() + index); }
 
-    void move(size_t from_index, size_t to_index) {
+    void move(size_t from_index, size_t to_index)
+    {
         if (from_index < to_index) {
             std::rotate(data_.begin() + from_index, data_.begin() + from_index + 1, data_.begin() + to_index + 1);
         } else {
@@ -1708,18 +1867,17 @@ public:
 
     void sort() { std::sort(data_.begin(), data_.end()); }
 
-    void sort(int(*sort_fn)(const T &, const T &)) {
+    void sort(int (*sort_fn)(T const&, T const&))
+    {
         std::sort(data_.begin(), data_.end(), sort_fn);
     }
 
-    template <typename PredicateType>
-    int remove_if (PredicateType&& predicate)
+    template<typename PredicateType>
+    int remove_if(PredicateType&& predicate)
     {
         int num_removed = 0;
-        for (int i = data_.size(); --i >= 0;)
-        {
-            if (predicate (data_[i]))
-            {
+        for (int i = data_.size(); --i >= 0;) {
+            if (predicate(data_[i])) {
                 erase(i);
                 ++num_removed;
             }
@@ -1728,33 +1886,40 @@ public:
         return num_removed;
     }
 
-    std::vector<T>::iterator erase(std::vector<T>::iterator pos) {
+    std::vector<T>::iterator erase(std::vector<T>::iterator pos)
+    {
         return data_.erase(pos);
     }
 
-    std::vector<T>::iterator erase(std::vector<T>::iterator first, typename std::vector<T>::iterator last) {
+    std::vector<T>::iterator erase(std::vector<T>::iterator first, typename std::vector<T>::iterator last)
+    {
         return data_.erase(first, last);
     }
 
-    void insert(size_t index, const T& value) {
+    void insert(size_t index, T const& value)
+    {
         data_.insert(data_.begin() + index, value);
     }
 
-    void insert(size_t index, size_t count, const T& value) {
+    void insert(size_t index, size_t count, T const& value)
+    {
         data_.insert(data_.begin() + index, count, value);
     }
 
-    template <typename InputIt>
-    void insert(size_t index, InputIt first, InputIt last) {
+    template<typename InputIt>
+    void insert(size_t index, InputIt first, InputIt last)
+    {
         data_.insert(data_.begin() + index, first, last);
     }
 
-    std::vector<T>::iterator insert(std::vector<T>::iterator i, size_t num_to_insert, const T& elt) {
+    std::vector<T>::iterator insert(std::vector<T>::iterator i, size_t num_to_insert, T const& elt)
+    {
         return data_.insert(i, num_to_insert, elt);
     }
 
-    template <typename ItTy, typename = EnableIfConvertibleToInputIterator<ItTy>>
-    std::vector<T>::iterator insert(std::vector<T>::iterator i, ItTy from, ItTy to) {
+    template<typename ItTy, typename = EnableIfConvertibleToInputIterator<ItTy>>
+    std::vector<T>::iterator insert(std::vector<T>::iterator i, ItTy from, ItTy to)
+    {
         return data_.insert(i, from, to);
     }
 
@@ -1762,24 +1927,29 @@ private:
     std::vector<T> data_;
 };
 
-template <typename T, int N>
+template<typename T, int N>
 class StackArray {
 public:
     T data_[N];
 
     size_t size() const { return N; }
 
-    T& operator[](size_t index) {
-        if (index >= N) throw std::out_of_range("Index out of bounds");
+    T& operator[](size_t index)
+    {
+        if (index >= N)
+            throw std::out_of_range("Index out of bounds");
         return data_[index];
     }
 
-    const T& operator[](size_t index) const {
-        if (index >= N) throw std::out_of_range("Index out of bounds");
+    T const& operator[](size_t index) const
+    {
+        if (index >= N)
+            throw std::out_of_range("Index out of bounds");
         return data_[index];
     }
 
-    void clear() {
+    void clear()
+    {
         // Clear doesn't apply to raw arrays, but we can reset all values
         for (int i = 0; i < N; ++i) {
             data_[i] = T(); // Reset to default
@@ -1788,42 +1958,53 @@ public:
 
     T* data() { return data_; }
 
-    bool contains(const T& to_find) const {
+    bool contains(T const& to_find) const
+    {
         return std::find(data_, data_ + N, to_find) != (data_ + N);
     }
 
-    int index_of(const T& to_find) const {
+    int index_of(T const& to_find) const
+    {
         auto it = std::find(data_, data_ + N, to_find);
         return (it == (data_ + N)) ? -1 : (it - data_);
     }
 
     T* begin() { return data_; }
     T* end() { return data_ + N; }
-    const T* begin() const { return data_; }
-    const T* end() const { return data_ + N; }
+    T const* begin() const { return data_; }
+    T const* end() const { return data_ + N; }
 
-    T& front() {
-        if (N == 0) throw std::out_of_range("Array is empty");
+    T& front()
+    {
+        if (N == 0)
+            throw std::out_of_range("Array is empty");
         return data_[0];
     }
 
-    const T& front() const {
-        if (N == 0) throw std::out_of_range("Array is empty");
+    T const& front() const
+    {
+        if (N == 0)
+            throw std::out_of_range("Array is empty");
         return data_[0];
     }
 
-    T& back() {
-        if (N == 0) throw std::out_of_range("Array is empty");
+    T& back()
+    {
+        if (N == 0)
+            throw std::out_of_range("Array is empty");
         return data_[N - 1];
     }
 
-    const T& back() const {
-        if (N == 0) throw std::out_of_range("Array is empty");
+    T const& back() const
+    {
+        if (N == 0)
+            throw std::out_of_range("Array is empty");
         return data_[N - 1];
     }
 
     // Move elements in the array
-    void move(size_t from_index, size_t to_index) {
+    void move(size_t from_index, size_t to_index)
+    {
         if (from_index >= N || to_index >= N) {
             throw std::out_of_range("Index out of bounds");
         }
@@ -1836,11 +2017,13 @@ public:
     }
 
     // Sort methods
-    void sort() {
+    void sort()
+    {
         std::sort(data_, data_ + N);
     }
 
-    void sort(int(*sort_fn)(const T &, const T &)) {
+    void sort(int (*sort_fn)(T const&, T const&))
+    {
         std::sort(data_, data_ + N, sort_fn);
     }
 };

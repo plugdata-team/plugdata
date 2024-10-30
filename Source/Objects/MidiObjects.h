@@ -39,7 +39,7 @@ public:
             object->setType(getText().upToFirstOccurrenceOf(" ", false, false) + " " + String(channel));
         }
     }
-    
+
     PopupMenu getPopupMenu()
     {
         PopupMenu popupMenu;
@@ -117,8 +117,7 @@ public:
 
         return popupMenu;
     }
-    
-    
+
     void getMenuOptions(PopupMenu& menu) override
     {
         menu.addItem(-1, "Open", false);
@@ -141,7 +140,6 @@ public:
                     setChannel(itemID);
                 }
             }));
-            
         }
     }
 

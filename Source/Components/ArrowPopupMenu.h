@@ -14,7 +14,8 @@
 class ArrowPopupMenu : public Component
     , public ComponentListener {
 public:
-    enum ArrowDirection {TopBottom, LeftRight};
+    enum ArrowDirection { TopBottom,
+        LeftRight };
     explicit ArrowPopupMenu(Component* target, ArrowDirection direction)
         : targetComponent(target)
         , direction(direction)
@@ -46,8 +47,7 @@ public:
         // change offset if arrow should be top/bottom or left/right
         if (direction == ArrowDirection::TopBottom) {
             menuToAttachTo->setBounds(menuToAttachTo->getBounds().translated(-15, menuMargin - 3));
-        }
-        else {
+        } else {
             // adjust the popupMenu to be in the correct y position
             auto menuBounds = menuToAttachTo->getScreenBounds().reduced(menuMargin + 5);
             auto targetBounds = targetComponent->getScreenBounds();
@@ -75,8 +75,8 @@ public:
             if (targetArea.getY() <= menuBounds.getY()) {
                 // draw arrow at the bottom
                 arrowBounds = Rectangle<float>(targetArea.getCentreX() - (arrowWidth / 2.0f),
-                                               menuBounds.getY() - arrowHeight + verticalMargin, arrowWidth,
-                                               arrowHeight);
+                    menuBounds.getY() - arrowHeight + verticalMargin, arrowWidth,
+                    arrowHeight);
 
                 extensionBounds = arrowBounds;
                 extensionBounds = extensionBounds.removeFromBottom(1).withTrimmedBottom(-2).reduced(1, 0);
@@ -87,7 +87,7 @@ public:
             } else {
                 // draw arrow at bottom
                 arrowBounds = Rectangle<float>(targetArea.getCentreX() - (arrowWidth / 2.0f),
-                                               menuBounds.getBottom() - verticalMargin, arrowWidth, arrowHeight);
+                    menuBounds.getBottom() - verticalMargin, arrowWidth, arrowHeight);
 
                 extensionBounds = arrowBounds;
                 extensionBounds = extensionBounds.removeFromTop(1).withTrimmedTop(-2).reduced(1, 0);
@@ -120,13 +120,12 @@ public:
                     g.reduceClipRegion(getLocalBounds().withTrimmedBottom(8));
                 else
                     g.reduceClipRegion(getLocalBounds().withTrimmedTop(8));
-            }
-            else
+            } else
                 g.reduceClipRegion(getLocalBounds().withTrimmedRight(getWidth() - arrow.getBounds().getRight()));
 
-            auto shadowOffset = Point<int>(0, targetArea.getY() <= menuBounds.getY() ? 1 : -1 );
+            auto shadowOffset = Point<int>(0, targetArea.getY() <= menuBounds.getY() ? 1 : -1);
             if (direction == ArrowDirection::LeftRight)
-                shadowOffset = Point<int>(1,0);
+                shadowOffset = Point<int>(1, 0);
 
             StackShadow::renderDropShadow(hash("arrow_popup_menu"), g, arrow, Colour(0, 0, 0).withAlpha(0.3f), 8, shadowOffset);
 

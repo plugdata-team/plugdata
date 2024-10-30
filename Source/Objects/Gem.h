@@ -6,8 +6,8 @@
 
 #if ENABLE_GEM
 
-#include <juce_opengl/juce_opengl.h>
-#include <Gem/src/Base/GemJUCEContext.h>
+#    include <juce_opengl/juce_opengl.h>
+#    include <Gem/src/Base/GemJUCEContext.h>
 
 void triggerMotionEvent(int x, int y);
 void triggerButtonEvent(int which, int state, int x, int y);
@@ -76,19 +76,19 @@ public:
         startTimerHz(30);
 
         if (border) {
-#if JUCE_WINDOWS
+#    if JUCE_WINDOWS
             addToDesktop(ComponentPeer::windowHasTitleBar | ComponentPeer::windowHasDropShadow | ComponentPeer::windowIsResizable);
 
-#else
+#    else
             addToDesktop(ComponentPeer::windowHasTitleBar | ComponentPeer::windowHasDropShadow | ComponentPeer::windowIsResizable | ComponentPeer::windowHasMinimiseButton | ComponentPeer::windowHasMaximiseButton);
-#endif
+#    endif
         } else {
             addToDesktop(0);
         }
 
-#if JUCE_WINDOWS
+#    if JUCE_WINDOWS
         bounds = bounds.translated(10, 30);
-#endif
+#    endif
         setBounds(bounds);
 
         setVisible(true);
@@ -180,15 +180,14 @@ public:
     {
         libpd_set_instance(instance);
     }
-    
+
     void checkThread()
     {
-      auto currentThread = Thread::getCurrentThreadId();
-      if(activeThread != currentThread)
-      {
-        openGLContext.initialiseOnThread();
-        activeThread = currentThread;
-      }
+        auto currentThread = Thread::getCurrentThreadId();
+        if (activeThread != currentThread) {
+            openGLContext.initialiseOnThread();
+            activeThread = currentThread;
+        }
     }
 
     OpenGLContext openGLContext;

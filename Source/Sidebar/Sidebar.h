@@ -31,8 +31,9 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if(!e.mods.isLeftButtonDown()) return;
-        
+        if (!e.mods.isLeftButtonDown())
+            return;
+
         numNotifications = 0;
         hasWarning = false;
         TextButton::mouseDown(e);

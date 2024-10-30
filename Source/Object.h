@@ -137,8 +137,8 @@ public:
 
     // Controls the way object activity propagates upwards inside GOPs.
     enum ObjectActivityPolicy {
-        Self, //Trigger object's own activity only.
-        Parent, // Trigger activity of object itself, and direct parent GOP only.
+        Self,     // Trigger object's own activity only.
+        Parent,   // Trigger activity of object itself, and direct parent GOP only.
         Recursive // Trigger activity of object itself, and all parent GOPs recursively.
     };
 

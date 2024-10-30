@@ -393,7 +393,7 @@ private:
                 HeapArray<ComponentWithWeakReference> result;
                 std::set_difference(rangeA.begin(), rangeA.end(), rangeB.begin(), rangeB.end(), std::back_inserter(result.vector()));
 
-                for (const auto& item : result)
+                for (auto const& item : result)
                     if (auto* c = item.get())
                         callback(*c);
             };

@@ -8,8 +8,9 @@
 
 class Inspector : public Component {
     class PropertyRedirector : public Value::Listener {
-        public:
-        PropertyRedirector(Inspector* parent) : inspector(parent)
+    public:
+        PropertyRedirector(Inspector* parent)
+            : inspector(parent)
         {
         }
 
@@ -18,16 +19,17 @@ class Inspector : public Component {
             auto* property = properties.add(new Property(this, controllerValue, attachedValues));
             return &property->baseValue;
         }
-        
+
         void clearProperties()
         {
             properties.clear();
         }
-        
-private:
+
+    private:
         struct Property {
             Property(PropertyRedirector* parent, Value* controllerValue, SmallArray<Value*> attachedValues)
-                : redirector(parent), values(attachedValues)
+                : redirector(parent)
+                , values(attachedValues)
             {
                 values.add(controllerValue);
                 baseValue.setValue(controllerValue->getValue());
@@ -43,55 +45,50 @@ private:
             Value baseValue;
             SmallArray<Value*> values;
         };
-        
-        
+
         void valueChanged(Value& v) override
         {
             pd::Patch* currentPatch = nullptr;
-            if(auto* editor = inspector->findParentComponentOfClass<PluginEditor>()) {
-                if(auto* cnv = editor->getCurrentCanvas()) {
+            if (auto* editor = inspector->findParentComponentOfClass<PluginEditor>()) {
+                if (auto* cnv = editor->getCurrentCanvas()) {
                     currentPatch = &cnv->patch;
                 }
             }
-            
-            for(auto* property : properties)
-            {
-                if(property->baseValue.refersToSameSourceAs(v))
-                {
+
+            for (auto* property : properties) {
+                if (property->baseValue.refersToSameSourceAs(v)) {
                     bool isInsideUndoSequence = false;
-                    if(currentPatch && !lastChangedValue.refersToSameSourceAs(v))
-                    {
+                    if (currentPatch && !lastChangedValue.refersToSameSourceAs(v)) {
                         currentPatch->startUndoSequence("properties");
                         lastChangedValue.referTo(v);
                         isInsideUndoSequence = true;
                     }
-                    
+
                     for (auto* value : property->values) {
                         value->setValue(v.getValue());
                     }
-                    
-                    
-                    if(isInsideUndoSequence)
-                    {
+
+                    if (isInsideUndoSequence) {
                         currentPatch->endUndoSequence("properties");
                     }
                     break;
                 }
             }
         }
-        
+
         Value lastChangedValue;
         OwnedArray<Property> properties;
         Inspector* inspector;
     };
-    
+
     PropertiesPanel panel;
     TextButton resetButton;
     SmallArray<ObjectParameters> properties;
     PropertyRedirector redirector;
 
 public:
-    Inspector() : redirector(this)
+    Inspector()
+        : redirector(this)
     {
         panel.setTitleHeight(20);
         panel.setTitleAlignment(PropertiesPanel::AlignWithPropertyName);

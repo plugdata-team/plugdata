@@ -145,14 +145,13 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     void drawPropertyPanelSectionHeader(Graphics& g, String const& name, bool isOpen, int width, int height) override;
 
-    void drawTableHeaderBackground (Graphics&, TableHeaderComponent&) override;
+    void drawTableHeaderBackground(Graphics&, TableHeaderComponent&) override;
 
-    
-    void drawTableHeaderColumn (Graphics&, TableHeaderComponent&,
-                                        const String& columnName, int columnId,
-                                        int width, int height,
-                                bool isMouseOver, bool isMouseDown, int columnFlags) override;
-    
+    void drawTableHeaderColumn(Graphics&, TableHeaderComponent&,
+        String const& columnName, int columnId,
+        int width, int height,
+        bool isMouseOver, bool isMouseDown, int columnFlags) override;
+
     Rectangle<int> getTooltipBounds(String const& tipText, Point<int> screenPos, Rectangle<int> parentArea) override;
 
     int getTreeViewIndentSize(TreeView&) override;

@@ -107,17 +107,16 @@ public:
         setPdBounds(object->getObjectBounds());
         setParameterExcludingListener(sizeProperty, atomHelper.getWidthInChars());
     }
-    
+
     bool keyPressed(KeyPress const& key) override
     {
-        if(key.getKeyCode() == KeyPress::returnKey)
-        {
+        if (key.getKeyCode() == KeyPress::returnKey) {
             auto inputValue = input.getText().getFloatValue();
             sendFloatValue(inputValue);
             cnv->grabKeyboardFocus();
             return true;
         }
-        
+
         return false;
     }
 
@@ -197,8 +196,8 @@ public:
 
         // Draw background
         nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
-                              cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol,
-                              Corners::objectCornerRadius, ObjectFlagType::FlagTop, PlugDataLook::getUseFlagOutline());
+            cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol,
+            Corners::objectCornerRadius, ObjectFlagType::FlagTop, PlugDataLook::getUseFlagOutline());
 
         input.render(nvg);
 
@@ -209,8 +208,8 @@ public:
 
         // Fill the internal of the shape with transparent colour, draw outline & flag with shader
         nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
-                              nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
-                              Corners::objectCornerRadius, ObjectFlagType::FlagTop, PlugDataLook::getUseFlagOutline());
+            nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
+            Corners::objectCornerRadius, ObjectFlagType::FlagTop, PlugDataLook::getUseFlagOutline());
     }
 
     void updateLabel() override

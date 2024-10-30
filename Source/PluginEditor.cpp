@@ -15,7 +15,7 @@
 #include "PluginProcessor.h"
 
 #include "Pd/Patch.h"
- 
+
 #include "LookAndFeel.h"
 #include "Sidebar/Palettes.h"
 #include "Utility/Autosave.h"
@@ -44,8 +44,7 @@ using namespace juce::gl;
 
 #include <nanovg.h>
 
-class CorruptSettingsAlert : public Component
-{
+class CorruptSettingsAlert : public Component {
     Label errorMessage;
     Label errorSub;
 
@@ -65,14 +64,14 @@ public:
 
         String errorText;
 
-        switch(settingsFile->getSettingsState()){
-            case SettingsFile::SettingsState::DefaultSettings:
-                errorText = "plugdata will use default settings.";
+        switch (settingsFile->getSettingsState()) {
+        case SettingsFile::SettingsState::DefaultSettings:
+            errorText = "plugdata will use default settings.";
             break;
-            case SettingsFile::SettingsState::BackupSettings:
-                errorText = "plugdata will use last good settings.";
-                break;
-            default:
+        case SettingsFile::SettingsState::BackupSettings:
+            errorText = "plugdata will use last good settings.";
+            break;
+        default:
             break;
         }
 
@@ -101,11 +100,11 @@ public:
 #endif
 
         revealFileButton.setButtonText(revealTip);
-        revealFileButton.onClick = [corruptSettingsLoc, dismissFn](){
-             auto backupLoc = File(corruptSettingsLoc);
-             if (backupLoc.existsAsFile())
+        revealFileButton.onClick = [corruptSettingsLoc, dismissFn]() {
+            auto backupLoc = File(corruptSettingsLoc);
+            if (backupLoc.existsAsFile())
                 backupLoc.revealToUser();
-             dismissFn();
+            dismissFn();
         };
 
         addAndMakeVisible(errorMessage);
@@ -124,12 +123,12 @@ public:
 
         errorInfo.setBounds(Rectangle<int>(5, errorSub.getBottom() + 3, w, 40));
 
-        const int buttonHeight = 25;
-        const int dismissButtonWidth = 70;
-        const int revealButtonWidth = 130;
-        const int totalButtonWidth = dismissButtonWidth + revealButtonWidth + 10;
-        const int startX = (getWidth() - totalButtonWidth) / 2;
-        const int buttonY = getHeight() - 35;
+        int const buttonHeight = 25;
+        int const dismissButtonWidth = 70;
+        int const revealButtonWidth = 130;
+        int const totalButtonWidth = dismissButtonWidth + revealButtonWidth + 10;
+        int const startX = (getWidth() - totalButtonWidth) / 2;
+        int const buttonY = getHeight() - 35;
 
         dismissButton.setBounds(startX, buttonY, dismissButtonWidth, buttonHeight);
         revealFileButton.setBounds(startX + dismissButtonWidth + 10, buttonY, revealButtonWidth, buttonHeight);
@@ -156,7 +155,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , touchSelectionHelper(std::make_unique<TouchSelectionHelper>(this))
 {
     keyboardLayout = OSUtils::getKeyboardLayout();
-    
+
 #if JUCE_IOS
     // constrainer.setMinimumSize(100, 100);
     // pluginConstrainer.setMinimumSize(100, 100);
@@ -231,11 +230,11 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     for (auto* button : SmallArray<MainToolbarButton*> {
              &mainMenuButton,
-                 &undoButton,
-                 &redoButton,
-                 &addObjectMenuButton,
+             &undoButton,
+             &redoButton,
+             &addObjectMenuButton,
 #if !JUCE_IOS
-                 &pluginModeButton,
+             &pluginModeButton,
 #endif
          }) {
         addAndMakeVisible(button);
@@ -358,10 +357,10 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 #endif
 
 #if ENABLE_TESTING
-        // Call after window is ready
-        ::Timer::callAfterDelay(200, [this](){
-            runTests(this);
-        });
+    // Call after window is ready
+    ::Timer::callAfterDelay(200, [this]() {
+        runTests(this);
+    });
 #endif
 
     pd->messageDispatcher->setBlockMessages(false);
@@ -369,11 +368,11 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     lookAndFeelChanged();
 
-    ::Timer::callAfterDelay(100, [this, settingsFile](){
+    ::Timer::callAfterDelay(100, [this, settingsFile]() {
         if (settingsFile->getSettingsState() != SettingsFile::SettingsState::UserSettings) {
             auto* dialog = new Dialog(&openedDialog, this, 450, 150, false);
 
-            auto dismissDialog = [this](){
+            auto dismissDialog = [this]() {
                 openedDialog.reset(nullptr);
             };
 
@@ -392,8 +391,7 @@ PluginEditor::~PluginEditor()
         ProjectInfo::closeWindow(window); // Make sure plugdatawindow gets cleaned up
     }
 
-    if(!ProjectInfo::isStandalone)
-    {
+    if (!ProjectInfo::isStandalone) {
         // Block incoming gui messages from pd if there is no active editor
         pd->messageDispatcher->setBlockMessages(true);
     }
@@ -456,7 +454,7 @@ void PluginEditor::paintOverChildren(Graphics& g)
     // Never want to be drawing over a dialog window
     if (openedDialog)
         return;
-    
+
     if (isDraggingFile) {
         g.setColour(findColour(PlugDataColour::dataColourId));
         g.drawRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius, 2.0f);
@@ -473,9 +471,8 @@ void PluginEditor::paintOverChildren(Graphics& g)
         g.drawLine(palettes->isExpanded() ? palettes->getRight() : 29.5f, toolbarDepth, palettes->isExpanded() ? palettes->getRight() : 29.5f, toolbarDepth + 30);
         g.drawLine(sidebar->getX() + 0.5f, toolbarDepth, sidebar->getX() + 0.5f, toolbarHeight + 30);
     }
-    
-    if(pluginMode)
-    {
+
+    if (pluginMode) {
         g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
         g.fillRect(getLocalBounds().withTrimmedTop(40));
     }
@@ -576,7 +573,7 @@ void PluginEditor::resized()
 #else
     auto useLeftButtons = false;
 #endif
-    
+
     auto useNonNativeTitlebar = ProjectInfo::isStandalone && !SettingsFile::getInstance()->getProperty<bool>("native_window");
     auto offset = useLeftButtons && useNonNativeTitlebar ? 80 : 15;
 #if JUCE_MAC
@@ -598,10 +595,10 @@ void PluginEditor::resized()
 
 #if JUCE_IOS
     auto touchHelperBounds = getLocalBounds().removeFromBottom(48).withSizeKeepingCentre(192, 48).translated(0, -54);
-    if(touchSelectionHelper) touchSelectionHelper->setBounds(touchHelperBounds);
-    
-    if(OSUtils::isIPad())
-    {
+    if (touchSelectionHelper)
+        touchSelectionHelper->setBounds(touchHelperBounds);
+
+    if (OSUtils::isIPad()) {
         startX += 80.0f; // Otherwise it gets in the way of multitasking controls
     }
 #endif
@@ -887,11 +884,9 @@ void PluginEditor::handleAsyncUpdate()
         statusbar->setHasActiveCanvas(true);
         addObjectMenuButton.setEnabled(true);
 #if JUCE_IOS
-        if(!locked)
-        {
+        if (!locked) {
             touchSelectionHelper->show();
-        }
-        else {
+        } else {
             touchSelectionHelper->setVisible(false);
         }
 #endif
@@ -1302,7 +1297,7 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         default:
             break;
         }
-        
+
         auto name = objectNames.at(static_cast<ObjectIDs>(commandID));
 
         if (name.isEmpty())
@@ -1442,8 +1437,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
         cnv->encapsulateSelection();
         return true;
     }
-    case CommandIDs::Tidy:
-    {
+    case CommandIDs::Tidy: {
         cnv = getCurrentCanvas();
         cnv->tidySelection();
         return true;
@@ -1539,8 +1533,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
         cnv->jumpToOrigin();
         return true;
     }
-    case CommandIDs::PanDragKey:
-    {
+    case CommandIDs::PanDragKey: {
         return true;
     }
     case CommandIDs::Undo: {

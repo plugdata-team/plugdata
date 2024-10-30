@@ -13,8 +13,6 @@
 #include "Components/ObjectDragAndDrop.h"
 #include "Objects/ObjectBase.h"
 
-
-
 class AutomationItem : public ObjectDragAndDrop
     , public Value::Listener {
 
@@ -22,10 +20,10 @@ class AutomationItem : public ObjectDragAndDrop
         Label textLabel;
         Label textLabel2;
 
-        std::function<void()> onDismiss = [](){};
+        std::function<void()> onDismiss = []() { };
 
     public:
-        ParamNameErrorCallout(const String& text, std::function<void()> onDismiss)
+        ParamNameErrorCallout(String const& text, std::function<void()> onDismiss)
             : textLabel("error title", text)
             , textLabel2("info", "(Click outside to dismiss)")
             , onDismiss(onDismiss)
@@ -61,12 +59,12 @@ class AutomationItem : public ObjectDragAndDrop
         Label textLabel = Label("RenameLabel", "Update param in open patches?");
 
     public:
-        std::function<void()> onYes = [](){};
-        std::function<void()> onNo = [](){};
+        std::function<void()> onYes = []() { };
+        std::function<void()> onNo = []() { };
 
         RenameAllOccurancesCallout()
         {
-            setSize(190,60);
+            setSize(190, 60);
 
             addAndMakeVisible(&confirmButton);
             addAndMakeVisible(&dismissButton);
@@ -268,8 +266,8 @@ public:
             auto character = newName[0];
 
             bool startsWithCorrectChar = (character == '_' || character == '-'
-                                      || (character >= 'a' && character <= 'z')
-                                      || (character >= 'A' && character <= 'Z'));
+                || (character >= 'a' && character <= 'z')
+                || (character >= 'A' && character <= 'Z'));
 
             bool correctCharacters = newName.containsOnly("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_-");
 
@@ -280,9 +278,9 @@ public:
             if (startsWithCorrectChar && correctCharacters && uniqueName && notEmptyName) {
                 param->setName(newName);
 
-                auto findParamsWithLastName = [this, newName](){
+                auto findParamsWithLastName = [this, newName]() {
                     SmallArray<pd::WeakReference> paramObjectsToChange;
-                    
+
                     pd->lockAudioThread();
                     // Find [param] object, and update it's param name to new name
                     for (auto* cnv = pd_getcanvaslist(); cnv; cnv = cnv->gl_next) {
@@ -316,7 +314,7 @@ public:
                 };
 
                 auto const paramsWithLastName = findParamsWithLastName();
-                
+
                 if (paramsWithLastName.size() == 0)
                     return;
 
@@ -334,15 +332,13 @@ public:
                 rawDialogPointer->onYes = [this, paramsWithLastName, newName, callOutBoxSafePtr]() {
                     auto name = "param " + newName;
                     for (auto objReference : paramsWithLastName) {
-                        if(auto obj = objReference.get<t_canvas>()) {
+                        if (auto obj = objReference.get<t_canvas>()) {
                             pd::Interface::renameObject(obj->gl_owner, &obj->gl_obj.te_g, name.toRawUTF8(), name.getNumBytesAsUTF8());
                         }
                     }
-                    
-                    for(auto& editor : pd->getEditors())
-                    {
-                        for(auto canvas : editor->getCanvases())
-                        {
+
+                    for (auto& editor : pd->getEditors()) {
+                        for (auto canvas : editor->getCanvases()) {
                             canvas->synchronise();
                         }
                     }
@@ -363,7 +359,7 @@ public:
                 else if (!correctCharacters)
                     errorText = "Name can't contain spaces or symbols";
 
-                auto onDismiss = [this](){
+                auto onDismiss = [this]() {
                     nameLabel.setText(lastName, dontSendNotification);
                 };
 
@@ -440,8 +436,9 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if(!e.mods.isLeftButtonDown()) return;
-        
+        if (!e.mods.isLeftButtonDown())
+            return;
+
         if (&reorderButton == e.originalComponent)
             setIsReordering(true);
         else
@@ -563,7 +560,7 @@ public:
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(6.0f, 3.0f), Corners::defaultCornerRadius);
     }
 
-    std::function<void(AutomationItem*)> onDelete = [](AutomationItem*) {};
+    std::function<void(AutomationItem*)> onDelete = [](AutomationItem*) { };
     std::unique_ptr<HostProvidedContextMenu> hostContextMenu;
 
     SmallIconButton deleteButton = SmallIconButton(Icons::Clear);
@@ -698,7 +695,7 @@ class AutomationComponent : public Component {
         bool mouseIsOver = false;
 
     public:
-        std::function<void()> onClick = []() {};
+        std::function<void()> onClick = []() { };
 
         void paint(Graphics& g) override
         {
@@ -771,8 +768,9 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if(!e.mods.isLeftButtonDown()) return;
-        
+        if (!e.mods.isLeftButtonDown())
+            return;
+
         accumulatedOffsetY = { 0, 0 };
 
         if (auto* reorderButton = dynamic_cast<ReorderButton*>(e.originalComponent)) {
@@ -848,13 +846,13 @@ public:
     HeapArray<PlugDataParameter*> getParameters()
     {
         auto allParameters = pd->getParameters();
-        
+
         HeapArray<PlugDataParameter*> params;
         params.reserve(allParameters.size() - 1);
-    
+
         bool first = true;
         for (auto* param : allParameters) {
-            if(first) {
+            if (first) {
                 first = false;
                 continue;
             }

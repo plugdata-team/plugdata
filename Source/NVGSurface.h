@@ -67,7 +67,7 @@ public:
         {
         }
 
-        void paint(Graphics& g) override {};
+        void paint(Graphics& g) override { };
 
         bool invalidate(Rectangle<int> const& rect) override
         {
@@ -87,7 +87,7 @@ public:
             return passEvents;
         }
 
-        void releaseResources() override {};
+        void releaseResources() override { };
 
         NVGSurface& surface;
         Component* originComponent;
@@ -96,19 +96,18 @@ public:
 
     void invalidateArea(Rectangle<int> area);
     void invalidateAll();
-    
+
     void setRenderThroughImage(bool renderThroughImage);
-    
+
     NVGcontext* getRawContext() { return nvg; }
 
     static NVGSurface* getSurfaceForContext(NVGcontext*);
 
     void renderFrameToImage(Image& image, Rectangle<int> area);
-    
-private:
 
+private:
     float calculateRenderScale() const;
-    
+
     void resized() override;
 
     PluginEditor* editor;
@@ -121,7 +120,7 @@ private:
     int fbWidth = 0, fbHeight = 0;
 
     static inline std::map<NVGcontext*, NVGSurface*> surfaces;
-    
+
     juce::Image backupRenderImage;
     bool renderThroughImage = false;
     ImageComponent backupImageComponent;
@@ -129,7 +128,7 @@ private:
 
     float lastRenderScale = 0.0f;
     uint32 lastRenderTime;
-    
+
 #if NANOVG_GL_IMPLEMENTATION
     bool hresize = false;
     bool resizing = false;
@@ -186,7 +185,7 @@ public:
         }
     }
 
-    virtual void render(NVGcontext*) {};
+    virtual void render(NVGcontext*) { };
 
 private:
     Component& component;
@@ -214,7 +213,8 @@ public:
         auto imageFormat = imageFlags & NVGImageFlags::AlphaImage ? Image::SingleChannel : Image::ARGB;
 
         Image image = Image(imageFormat, width, height, false);
-        if(clearImage) image.clear({0, 0, width, height}, clearColour);
+        if (clearImage)
+            image.clear({ 0, 0, width, height }, clearColour);
         Graphics g(image); // Render resize handles with JUCE, since rounded rect exclusion is hard with nanovg
         renderCall(g);
         loadJUCEImage(nvg, image, repeatImage, withMipmaps);
@@ -235,7 +235,7 @@ public:
             imageWidth = other.imageWidth;
             imageHeight = other.imageHeight;
             onImageInvalidate = other.onImageInvalidate;
-            
+
             other.imageId = 0;
             allImages.insert(this);
         }
@@ -246,20 +246,19 @@ public:
         // Check for self-assignment
         if (this != &other) {
             // Delete current image
-            if(imageId && nvg)
-            {
+            if (imageId && nvg) {
                 if (auto* surface = NVGSurface::getSurfaceForContext(nvg)) {
                     surface->makeContextActive();
                 }
                 nvgDeleteImage(nvg, imageId);
             }
-            
+
             nvg = other.nvg;
             imageId = other.imageId;
             imageWidth = other.imageWidth;
             imageHeight = other.imageHeight;
             onImageInvalidate = other.onImageInvalidate;
-            
+
             other.imageId = 0; // Important, makes sure the old buffer can't delete this buffer
             allImages.insert(this);
         }
@@ -493,10 +492,10 @@ public:
             buffer->clear();
         }
     }
-    
+
     void clear()
     {
-        if(cacheId != -1) {
+        if (cacheId != -1) {
             nvgDeletePath(nvg, cacheId);
             cacheId = -1;
             nvg = nullptr;
@@ -507,23 +506,26 @@ public:
     {
         return cacheId != -1;
     }
-    
+
     void save(NVGcontext* ctx)
     {
-        if(nvg == ctx && cacheId != -1) nvgDeletePath(nvg, cacheId);
+        if (nvg == ctx && cacheId != -1)
+            nvgDeletePath(nvg, cacheId);
         nvg = ctx;
         cacheId = nvgSavePath(nvg, cacheId);
     }
-    
+
     bool stroke()
     {
-        if(!nvg || cacheId == -1) return false;
+        if (!nvg || cacheId == -1)
+            return false;
         return nvgStrokeCachedPath(nvg, cacheId);
     }
-    
+
     bool fill()
     {
-        if(!nvg || cacheId == -1) return false;
+        if (!nvg || cacheId == -1)
+            return false;
         return nvgFillCachedPath(nvg, cacheId);
     }
 
@@ -533,17 +535,17 @@ private:
     int cacheId = -1;
 };
 
-struct NVGScopedState
-{
-    NVGScopedState(NVGcontext* nvg) : nvg(nvg)
+struct NVGScopedState {
+    NVGScopedState(NVGcontext* nvg)
+        : nvg(nvg)
     {
         nvgSave(nvg);
     }
-    
+
     ~NVGScopedState()
     {
         nvgRestore(nvg);
     }
-    
+
     NVGcontext* nvg;
 };

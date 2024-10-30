@@ -73,23 +73,23 @@ public:
 
     void enqueueMessage(void* target, t_symbol* symbol, int argc, t_atom* argv)
     {
-        if(block) return;
-        
+        if (block)
+            return;
+
         messageStack.push({ target, symbol, argc, argv });
     }
-    
+
     // used when no plugineditor is active, so we can just ignore messages
     void setBlockMessages(bool blockMessages)
     {
         block = blockMessages;
-        
+
         // If we're blocking messages from now on, also clear out the queue
-        if(blockMessages)
-        {
+        if (blockMessages) {
             Message message;
-            while (messageStack.pop(message)) {}
+            while (messageStack.pop(message)) { }
             messageStack.swapBuffers();
-            while (messageStack.pop(message)) {}
+            while (messageStack.pop(message)) { }
         }
     }
 
@@ -108,7 +108,7 @@ public:
             return;
 
         auto& listeners = objectListenerIterator->second;
-        
+
         auto listenerIterator = listeners.find(messageListener);
         if (listenerIterator != listeners.end())
             listeners.erase(listenerIterator);

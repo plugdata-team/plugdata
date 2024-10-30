@@ -169,7 +169,7 @@ public:
             }
 
             void mouseDown(MouseEvent const& e) override
-            {                
+            {
                 if (!e.mods.isShiftDown() && !e.mods.isCommandDown()) {
                     console.selectedItems.clear();
                 }
@@ -185,17 +185,14 @@ public:
                     });
                     menu.showMenuAsync(PopupMenu::Options());
                 }
-                
-                if(e.mods.isShiftDown())
-                {
+
+                if (e.mods.isShiftDown()) {
                     int startIdx = console.messages.size();
                     int endIdx = idx;
-                    for(auto& item : console.selectedItems)
-                    {
+                    for (auto& item : console.selectedItems) {
                         startIdx = std::min(item->idx, startIdx);
                     }
-                    for(int i = std::min(startIdx, endIdx); i < std::max(startIdx, endIdx); i++)
-                    {
+                    for (int i = std::min(startIdx, endIdx); i < std::max(startIdx, endIdx); i++) {
                         console.selectedItems.add_unique(SafePointer(console.messages[i].get()));
                     }
                 }
@@ -325,8 +322,7 @@ public:
                 return true;
             }
             if (key == KeyPress('a', ModifierKeys::commandModifier, 0)) {
-                for(auto& message : messages)
-                {
+                for (auto& message : messages) {
                     selectedItems.add_unique(SafePointer(message.get()));
                     repaint();
                 }
@@ -405,8 +401,9 @@ public:
 
         void mouseDown(MouseEvent const& e) override
         {
-            if(!e.mods.isLeftButtonDown()) return;
-            
+            if (!e.mods.isLeftButtonDown())
+                return;
+
             selectedItems.clear();
             repaint();
         }

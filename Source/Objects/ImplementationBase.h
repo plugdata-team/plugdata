@@ -23,10 +23,10 @@ public:
     static ImplementationBase* createImplementation(String const& type, t_gobj* ptr, t_canvas* cnv, PluginProcessor* pd);
     static bool hasImplementation(char const* type);
 
-    virtual void update() {}
+    virtual void update() { }
 
     void openSubpatch(pd::Patch::Ptr subpatch);
-    
+
     Canvas* getMainCanvas(t_canvas* patchPtr, bool alsoSearchRoot = false) const;
 
     PluginProcessor* pd;
@@ -47,7 +47,7 @@ public:
 
 private:
     void getSubCanvases(t_canvas* patch, SmallArray<t_canvas*>& allCanvases);
-    
+
     PluginProcessor* pd;
 
     std::unordered_map<t_gobj*, std::unique_ptr<ImplementationBase>> objectImplementations;

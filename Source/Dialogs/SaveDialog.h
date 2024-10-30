@@ -128,7 +128,7 @@ public:
         cancel.setBounds(contentBounds.removeFromTop(26));
     }
 
-    static inline std::function<void(int)> cb = [](int) {};
+    static inline std::function<void(int)> cb = [](int) { };
 
 private:
     bool hasLogo;

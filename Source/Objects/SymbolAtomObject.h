@@ -60,7 +60,7 @@ public:
         atomHelper.addAtomParameters(objectParameters);
         lookAndFeelChanged();
     }
-           
+
     void focusGained(FocusChangeType cause) override
     {
         repaint();
@@ -75,7 +75,7 @@ public:
     {
         repaint();
     }
-    
+
     void update() override
     {
         sizeProperty = atomHelper.getWidthInChars();
@@ -153,7 +153,7 @@ public:
         selCol = cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId);
         selectedOutlineColour = convertColour(selCol);
         outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
-        
+
         repaint();
     }
 
@@ -164,8 +164,8 @@ public:
 
         // Draw background
         nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
-                              cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol,
-                              Corners::objectCornerRadius, ObjectFlagType::FlagTop, PlugDataLook::getUseFlagOutline());
+            cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol,
+            Corners::objectCornerRadius, ObjectFlagType::FlagTop, PlugDataLook::getUseFlagOutline());
 
         imageRenderer.renderJUCEComponent(nvg, input, getImageScale());
 
@@ -175,8 +175,8 @@ public:
 
         // Fill the internal of the shape with transparent colour, draw outline & flag with shader
         nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
-                              nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
-                              Corners::objectCornerRadius, ObjectFlagType::FlagTop, PlugDataLook::getUseFlagOutline());
+            nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
+            Corners::objectCornerRadius, ObjectFlagType::FlagTop, PlugDataLook::getUseFlagOutline());
     }
 
     bool inletIsSymbol() override
@@ -213,19 +213,17 @@ public:
     {
         if (key == KeyPress::rightKey) {
             if (auto* editor = input.getCurrentTextEditor()) {
-                if(editor->getHighlightedRegion().getLength()) {
+                if (editor->getHighlightedRegion().getLength()) {
                     editor->setCaretPosition(editor->getHighlightedRegion().getEnd());
                     return true;
                 }
             }
-        }
-        else if(key.getKeyCode() == KeyPress::returnKey)
-        {
+        } else if (key.getKeyCode() == KeyPress::returnKey) {
             setSymbol(input.getText(true).toStdString());
             cnv->grabKeyboardFocus();
             return true;
         }
-        
+
         return false;
     }
 

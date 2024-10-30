@@ -9,8 +9,7 @@
 #include <string>
 #include "Hash.h"
 
-namespace juce
-{
+namespace juce {
 class ComponentPeer;
 }
 
