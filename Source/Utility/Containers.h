@@ -1756,6 +1756,8 @@ static_assert(sizeof(SmallArraySizeType<char>) == sizeof(uint32_t),
 template<typename T>
 class HeapArray {
 public:
+    using Iterator = typename std::vector<T>::iterator;
+    
     HeapArray() = default;
 
     HeapArray(size_t size, T const& default_value)
@@ -1773,7 +1775,7 @@ public:
     {
     }
 
-    HeapArray(std::vector<T>::iterator start, std::vector<T>::iterator end)
+    HeapArray(Iterator start, Iterator end)
         : data_(start, end)
     {
     }
@@ -1935,12 +1937,12 @@ public:
         return num_removed;
     }
 
-    std::vector<T>::iterator erase(std::vector<T>::iterator pos)
+    Iterator erase(Iterator pos)
     {
         return data_.erase(pos);
     }
 
-    std::vector<T>::iterator erase(std::vector<T>::iterator first, typename std::vector<T>::iterator last)
+    Iterator erase(Iterator first, Iterator last)
     {
         return data_.erase(first, last);
     }
@@ -1961,13 +1963,13 @@ public:
         data_.insert(data_.begin() + index, first, last);
     }
 
-    std::vector<T>::iterator insert(std::vector<T>::iterator i, size_t num_to_insert, T const& elt)
+    Iterator insert(Iterator i, size_t num_to_insert, T const& elt)
     {
         return data_.insert(i, num_to_insert, elt);
     }
 
     template<typename ItTy, typename = EnableIfConvertibleToInputIterator<ItTy>>
-    std::vector<T>::iterator insert(std::vector<T>::iterator i, ItTy from, ItTy to)
+    Iterator insert(Iterator i, ItTy from, ItTy to)
     {
         return data_.insert(i, from, to);
     }
@@ -1979,6 +1981,9 @@ private:
 template<typename T, int N>
 class StackArray {
 public:
+    using Iterator = typename std::array<T, N>::iterator;
+    using ConstIterator = typename std::array<T, N>::const_iterator;
+    
     std::array<T, N> data_;
 
     size_t size() const { return N; }
@@ -2023,10 +2028,10 @@ public:
         return (it == data_.end()) ? -1 : static_cast<int>(it - data_.begin());
     }
 
-    T* begin() { return data_.begin(); }
-    T* end() { return data_.end(); }
-    T const* begin() const { return data_.begin(); }
-    T const* end() const { return data_.end(); }
+    Iterator begin() { return data_.begin(); }
+    Iterator end() { return data_.end(); }
+    ConstIterator begin() const { return data_.cbegin(); }
+    ConstIterator end() const { return data_.cend(); }
 
     T& front()
     {
