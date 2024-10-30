@@ -251,7 +251,7 @@ public:
     {
         StackArray<int, 256> notes;
         if (auto obj = ptr.get<t_fake_keyboard>()) {
-            memcpy(notes.data(), obj->x_tgl_notes, 256 * sizeof(int));
+            memcpy(notes.data(), obj->x_tgl_notes + 12, 244 * sizeof(int));
         }
 
         auto numOctaves = getValue<int>(octaves) * 12;
