@@ -12,7 +12,8 @@
 #include "Utility/Config.h"
 #include "Utility/Limiter.h"
 #include "Utility/SettingsFile.h"
-#include <Utility/AudioMidiFifo.h>
+#include "Utility/AudioMidiFifo.h"
+#include "Utility/MidiDeviceManager.h"
 
 #include "Pd/Instance.h"
 #include "Pd/Patch.h"
@@ -31,7 +32,8 @@ class ConnectionMessageDisplay;
 class Object;
 class PluginProcessor final : public AudioProcessor
     , public pd::Instance
-    , public SettingsFileListener {
+    , public SettingsFileListener
+    , public MidiInputCallback {
 public:
     PluginProcessor();
 
@@ -96,8 +98,12 @@ public:
 
     void reloadAbstractions(File changedPatch, t_glist* except) override;
 
-    void processConstant(dsp::AudioBlock<float>, MidiBuffer&);
-    void processVariable(dsp::AudioBlock<float>, MidiBuffer&);
+    void processConstant(dsp::AudioBlock<float>, MidiBuffer& midiBuffer);
+    void processVariable(dsp::AudioBlock<float>, MidiBuffer& midiBuffer);
+        
+    MidiDeviceManager& getMidiDeviceManager();
+    MidiMessageCollector& getMidiMessageCollector(int device);
+    void handleIncomingMidiMessage(MidiInput* input, MidiMessage const& message) override;
 
     bool canAddBus(bool isInput) const override
     {
@@ -109,6 +115,8 @@ public:
         int nbus = getBusCount(isInput);
         return nbus > 0;
     }
+        
+
 
     void updatePatchUndoRedoState();
 
@@ -117,7 +125,7 @@ public:
     void initialiseFilesystem();
     void updateSearchPaths();
 
-    void sendMidiBuffer();
+    void sendMidiBuffer(int device);
     void sendPlayhead();
     void sendParameters();
 
@@ -199,8 +207,11 @@ private:
     std::unique_ptr<AudioMidiFifo> outputFifo;
 
     MidiBuffer midiBufferIn;
-    MidiBuffer midiBufferOut;
+    std::map<int, MidiBuffer> midiBufferOut;
+    std::map<int, MidiMessageCollector> midiMessageCollector;
     MidiBuffer midiBufferInternalSynth;
+        
+    MidiDeviceManager midiDeviceManager;
 
     AudioProcessLoadMeasurer cpuLoadMeasurer;
 

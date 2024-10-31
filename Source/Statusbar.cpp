@@ -324,8 +324,7 @@ class MIDIListModel {
 public:
     void addMessage(MidiMessage const& message, bool isInput)
     {
-        int device;
-        messages.add({ isInput, MidiDeviceManager::convertFromSysExFormat(message, device) });
+        messages.add({ isInput, message });
 
         if (messages.size() > 1000) {
             messages.erase(messages.begin(), messages.begin() + (messages.size() - 1000));
@@ -1251,8 +1250,7 @@ void StatusbarSource::process(MidiBuffer const& midiInput, MidiBuffer const& mid
     auto hasRealEvents = [](MidiBuffer const& buffer) {
         return std::any_of(buffer.begin(), buffer.end(),
             [](auto const& event) {
-                int dummy;
-                return !MidiDeviceManager::convertFromSysExFormat(event.getMessage(), dummy).isSysEx();
+                return !event.getMessage().isSysEx();
             });
     };
 

@@ -13,7 +13,6 @@ using namespace juce;
 namespace juce {
 class AudioDeviceManager;
 }
-class MidiDeviceManager;
 class PlugDataWindow;
 class PluginEditor;
 class StandalonePluginHolder;
@@ -27,7 +26,6 @@ struct ProjectInfo {
     static inline char const* companyName = "plugdata";
     static inline char const* versionString = PLUGDATA_VERSION;
 
-    static MidiDeviceManager* getMidiDeviceManager();
     static AudioDeviceManager* getDeviceManager();
 
     static PlugDataWindow* createNewWindow(PluginEditor* editor);

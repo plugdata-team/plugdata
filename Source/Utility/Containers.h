@@ -739,7 +739,7 @@ class SmallArrayImpl : public SmallArrayTemplateBase<T> {
     template<typename U>
     void add_array(U const& array)
     {
-        this->reserve(this->size() + array.size());
+        this->reserve(this->capacity() + array.size());
         for (auto const& elt : array)
             this->add(elt);
     }
@@ -1827,7 +1827,7 @@ class HeapArray {
     template<typename U>
     void add_array(U const& array)
     {
-        reserve(size() + array.size());
+        reserve(data_.capacity() + array.size());
         for (auto const& elt : array)
             add(elt);
     }

@@ -174,7 +174,7 @@ struct ThemeSelectorProperty : public PropertiesPanelProperty {
     ComboBox comboBox;
 };
 
-class ThemePanel : public SettingsDialogPanel
+class ThemeSettingsPanel : public SettingsDialogPanel
     , public Value::Listener
     , public SettingsFileListener {
 
@@ -198,7 +198,7 @@ class ThemePanel : public SettingsDialogPanel
     PluginProcessor* pd;
 
 public:
-    explicit ThemePanel(PluginProcessor* processor)
+    explicit ThemeSettingsPanel(PluginProcessor* processor)
         : pd(processor)
     {
 

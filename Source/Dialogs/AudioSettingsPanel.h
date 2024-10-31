@@ -160,12 +160,12 @@ public:
     std::function<void(bool)> callback;
 };
 
-class StandaloneAudioSettings : public SettingsDialogPanel
+class StandaloneAudioSettingsPanel : public SettingsDialogPanel
     , private ChangeListener
     , public Value::Listener {
 
 public:
-    explicit StandaloneAudioSettings(AudioDeviceManager& audioDeviceManager)
+    explicit StandaloneAudioSettingsPanel(AudioDeviceManager& audioDeviceManager)
         : inputLevelMeter(audioDeviceManager.getInputLevelGetter())
         , outputLevelMeter(audioDeviceManager.getOutputLevelGetter())
         , deviceManager(audioDeviceManager)
@@ -184,7 +184,7 @@ public:
         showAllAudioDeviceValues.referTo(SettingsFile::getInstance()->getPropertyAsValue("show_all_audio_device_rates"));
     }
 
-    ~StandaloneAudioSettings() override
+    ~StandaloneAudioSettingsPanel() override
     {
         deviceManager.removeChangeListener(this);
     }
@@ -451,11 +451,11 @@ private:
     StringArray standardSampleRates = { "44100", "48000", "88200", "96000", "176400", "192000" };
 };
 
-class DAWAudioSettings : public SettingsDialogPanel
+class DAWAudioSettingsPanel : public SettingsDialogPanel
     , public Value::Listener {
 
 public:
-    explicit DAWAudioSettings(PluginProcessor* p)
+    explicit DAWAudioSettingsPanel(PluginProcessor* p)
         : processor(p)
     {
         auto settingsTree = SettingsFile::getInstance()->getValueTree();

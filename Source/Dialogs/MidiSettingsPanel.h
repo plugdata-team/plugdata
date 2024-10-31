@@ -8,32 +8,30 @@
 
 class MidiSettingsToggle : public PropertiesPanel::BoolComponent {
 public:
-    MidiSettingsToggle(bool isMidiInput, PluginProcessor* pluginProcessor, MidiDeviceInfo& midiDeviceInfo, AudioDeviceManager& audioDeviceManager)
+    MidiSettingsToggle(bool isMidiInput, PluginProcessor* pluginProcessor, MidiDeviceInfo& midiDeviceInfo)
         : PropertiesPanel::BoolComponent(midiDeviceInfo.name, { "Disabled", "Enabled" })
         , isInput(isMidiInput)
         , processor(pluginProcessor)
         , deviceInfo(midiDeviceInfo)
-        , deviceManager(audioDeviceManager)
     {
-        toggleStateValue = ProjectInfo::getMidiDeviceManager()->isMidiDeviceEnabled(isInput, deviceInfo.identifier);
+        toggleStateValue = processor->getMidiDeviceManager().isMidiDeviceEnabled(isInput, deviceInfo.identifier);
     }
 
     PropertiesPanelProperty* createCopy() override
     {
-        return new MidiSettingsToggle(isInput, processor, deviceInfo, deviceManager);
+        return new MidiSettingsToggle(isInput, processor, deviceInfo);
     }
 
 private:
     void valueChanged(Value& v) override
     {
         repaint();
-        ProjectInfo::getMidiDeviceManager()->setMidiDeviceEnabled(isInput, deviceInfo.identifier, getValue<bool>(toggleStateValue));
+        processor->getMidiDeviceManager().setMidiDeviceEnabled(isInput, deviceInfo.identifier, getValue<bool>(toggleStateValue));
     }
 
     bool isInput;
     PluginProcessor* processor;
     MidiDeviceInfo deviceInfo;
-    AudioDeviceManager& deviceManager;
 };
 
 class InternalSynthToggle : public PropertiesPanel::BoolComponent {
@@ -56,23 +54,25 @@ public:
     PluginProcessor* processor;
 };
 
-class StandaloneMIDISettings : public SettingsDialogPanel
+class MidiSettingsPanel : public SettingsDialogPanel
     , private ChangeListener {
 public:
-    StandaloneMIDISettings(PluginProcessor* audioProcessor, AudioDeviceManager& audioDeviceManager)
+    MidiSettingsPanel(PluginProcessor* audioProcessor)
         : processor(audioProcessor)
-        , deviceManager(audioDeviceManager)
     {
+        if (auto* audioDeviceManager = ProjectInfo::getDeviceManager()) {
+            deviceManager = audioDeviceManager; // TODO: find an alternative solution for plugins!
+            deviceManager->addChangeListener(this);
+        }
+        
         addAndMakeVisible(midiProperties);
-
-        deviceManager.addChangeListener(this);
-        ProjectInfo::getMidiDeviceManager()->updateMidiDevices();
+        processor->getMidiDeviceManager().updateMidiDevices();
         updateDevices();
     }
 
-    ~StandaloneMIDISettings() override
+    ~MidiSettingsPanel() override
     {
-        deviceManager.removeChangeListener(this);
+        if(deviceManager) deviceManager->removeChangeListener(this);
     }
 
     PropertiesPanel* getPropertiesPanel() override
@@ -90,29 +90,29 @@ private:
     {
         midiProperties.clear();
 
-        auto midiInputDevices = ProjectInfo::getMidiDeviceManager()->getInputDevicesUnfiltered();
+        auto midiInputDevices = processor->getMidiDeviceManager().getInputDevicesUnfiltered();
         auto midiInputProperties = PropertiesArray();
 
-        auto midiOutputDevices = ProjectInfo::getMidiDeviceManager()->getOutputDevicesUnfiltered();
+        auto midiOutputDevices = processor->getMidiDeviceManager().getOutputDevicesUnfiltered();
         auto midiOutputProperties = PropertiesArray();
 
         for (auto& deviceInfo : midiInputDevices) {
             // The internal plugdata ports should be viewed from our perspective instead of that of an external application
             if (deviceInfo.name == "to plugdata") {
-                midiInputProperties.add(new MidiSettingsToggle(false, processor, deviceInfo, deviceManager));
+                midiInputProperties.add(new MidiSettingsToggle(false, processor, deviceInfo));
                 continue;
             }
 
-            midiInputProperties.add(new MidiSettingsToggle(true, processor, deviceInfo, deviceManager));
+            midiInputProperties.add(new MidiSettingsToggle(true, processor, deviceInfo));
         }
 
         for (auto& deviceInfo : midiOutputDevices) {
             if (deviceInfo.name == "from plugdata") {
-                midiOutputProperties.add(new MidiSettingsToggle(true, processor, deviceInfo, deviceManager));
+                midiOutputProperties.add(new MidiSettingsToggle(true, processor, deviceInfo));
                 continue;
             }
 
-            midiOutputProperties.add(new MidiSettingsToggle(false, processor, deviceInfo, deviceManager));
+            midiOutputProperties.add(new MidiSettingsToggle(false, processor, deviceInfo));
         }
 
         midiOutputProperties.add(new InternalSynthToggle(processor));
@@ -127,6 +127,6 @@ private:
     }
 
     PluginProcessor* processor;
-    AudioDeviceManager& deviceManager;
+    AudioDeviceManager* deviceManager = nullptr;
     PropertiesPanel midiProperties;
 };

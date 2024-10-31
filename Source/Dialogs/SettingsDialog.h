@@ -16,11 +16,11 @@ struct SettingsDialogPanel : public Component {
 };
 
 #include "AudioSettingsPanel.h"
-#include "MIDISettingsPanel.h"
-#include "ThemePanel.h"
-#include "PathsAndLibrariesPanel.h"
+#include "MidiSettingsPanel.h"
+#include "ThemeSettingsPanel.h"
+#include "PathsSettingsPanel.h"
 #include "AdvancedSettingsPanel.h"
-#include "KeyMappingPanel.h"
+#include "KeyMappingSettingsPanel.h"
 
 class SettingsDialog : public Component {
 
@@ -84,15 +84,15 @@ public:
         panels.clear();
 
         if (auto* deviceManager = ProjectInfo::getDeviceManager()) {
-            panels.add(new StandaloneAudioSettings(*deviceManager));
-            panels.add(new StandaloneMIDISettings(processor, *deviceManager));
+            panels.add(new StandaloneAudioSettingsPanel(*deviceManager));
         } else {
-            panels.add(new DAWAudioSettings(processor));
+            panels.add(new DAWAudioSettingsPanel(processor));
         }
 
-        panels.add(new ThemePanel(processor));
-        panels.add(new PathsAndLibrariesPanel());
-        panels.add(new KeyMappingComponent(editor->commandManager.getKeyMappings()));
+        panels.add(new MidiSettingsPanel(processor));
+        panels.add(new ThemeSettingsPanel(processor));
+        panels.add(new PathsSettingsPanel());
+        panels.add(new KeyMappingSettingsPanel(editor->commandManager.getKeyMappings()));
         panels.add(new AdvancedSettingsPanel(editor));
 
         SmallArray<PropertiesPanel*> propertiesPanels;

@@ -21,6 +21,7 @@
 #include "Utility/AudioSampleRingBuffer.h"
 #include "Utility/MidiDeviceManager.h"
 #include "Utility/Autosave.h"
+#include "Standalone/InternalSynth.h"
 
 #include "Utility/Presets.h"
 #include "Canvas.h"
@@ -87,6 +88,7 @@ String PluginProcessor::pdlua_version = "pdlua 0.12.0 (lua 5.4)";
 PluginProcessor::PluginProcessor()
     : AudioProcessor(buildBusesProperties())
     , internalSynth(std::make_unique<InternalSynth>())
+    , midiDeviceManager(this)
     , hostInfoUpdater(this)
 {
     // Make sure to use dots for decimal numbers, pd requires that
@@ -136,7 +138,7 @@ PluginProcessor::PluginProcessor()
 
     // Set up midi buffers
     midiBufferIn.ensureSize(2048);
-    midiBufferOut.ensureSize(2048);
+    midiBufferOut[0].ensureSize(2048);
     midiBufferInternalSynth.ensureSize(2048);
 
     atoms_playhead.reserve(3);
@@ -491,6 +493,8 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     float oversampleFactor = 1 << oversampling;
     auto maxChannels = std::max(getTotalNumInputChannels(), getTotalNumOutputChannels());
 
+    for(auto& [device, collector] : midiMessageCollector) collector.reset(sampleRate);
+
     prepareDSP(getTotalNumInputChannels(), getTotalNumOutputChannels(), sampleRate * oversampleFactor, samplesPerBlock * oversampleFactor);
 
     oversampler = std::make_unique<dsp::Oversampling<float>>(std::max(1, maxChannels), oversampling, dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, false);
@@ -510,7 +514,7 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     audioVectorOut.resize(maxChannels * pdBlockSize, 0.0f);
 
     midiBufferIn.clear();
-    midiBufferOut.clear();
+    for(auto& [device, midiBuffer] : midiBufferOut) midiBuffer.clear();
 
     // If the block size is a multiple of 64 and we are not a plugin, we can optimise the process loop
     // Audio plugins can choose to send in a smaller block size when automation is happening
@@ -608,13 +612,20 @@ void PluginProcessor::processBlockBypassed(AudioBuffer<float>& buffer, MidiBuffe
         buffer.clear(ch, 0, buffer.getNumSamples());
 }
 
-void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
+void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiBuffer)
 {
     ScopedNoDenormals noDenormals;
     AudioProcessLoadMeasurer::ScopedTimer cpuTimer(cpuLoadMeasurer, buffer.getNumSamples());
 
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
+    
+    if(!ProjectInfo::isStandalone && !midiBuffer.isEmpty())
+    {
+        for(auto event : midiBuffer) {
+            midiMessageCollector[0].addMessageToQueue(event.getMessage());
+        }
+    }
 
     setThis();
     sendPlayhead();
@@ -627,15 +638,12 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     auto targetBlock = dsp::AudioBlock<float>(buffer);
     auto blockOut = oversampling > 0 ? oversampler->processSamplesUp(targetBlock) : targetBlock;
 
-    auto midiInputMessages = midiMessages;
-
-    midiBufferIn.clear();
-    midiBufferOut.clear();
+    auto midiInputMessages = MidiBuffer(); // TODO: fix this!
 
     if (variableBlockSize) {
-        processVariable(blockOut, midiMessages);
+        processVariable(blockOut, midiBuffer);
     } else {
-        processConstant(blockOut, midiMessages);
+        processConstant(blockOut, midiBuffer);
     }
 
     if (oversampling > 0) {
@@ -673,22 +681,23 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     smoothedGain.setTargetValue(mappedTargetGain);
     smoothedGain.applyGain(buffer, buffer.getNumSamples());
 
-    statusbarSource->process(midiInputMessages, midiMessages, totalNumOutputChannels);
+    //TODO: fix this!
+    //statusbarSource->process(midiInputMessages, midiMessages, totalNumOutputChannels);
     statusbarSource->setCPUUsage(cpuLoadMeasurer.getLoadAsPercentage());
     statusbarSource->peakBuffer.write(buffer);
 
     if (ProjectInfo::isStandalone) {
-        for (auto bufferIterator : midiMessages) {
-            auto* midiDeviceManager = ProjectInfo::getMidiDeviceManager();
-
-            int device;
-            auto message = MidiDeviceManager::convertFromSysExFormat(bufferIterator.getMessage(), device);
-
-            if (enableInternalSynth && (device > midiDeviceManager->getOutputDevices().size() || device == 0)) {
-                midiBufferInternalSynth.addEvent(message, 0);
+        for (auto [device, events] : midiBufferOut) {
+            if (enableInternalSynth && (device > midiDeviceManager.getOutputDevices().size() || device == 0)) {
+                midiBufferInternalSynth.addEvents(events, 0, buffer.getNumSamples(), 0);
             }
-            if (isPositiveAndBelow(device, midiDeviceManager->getOutputDevices().size() + 1)) {
-                midiDeviceManager->sendMidiOutputMessage(device, message);
+            if(!ProjectInfo::isStandalone && device == 0)
+            {
+                midiBuffer.clear();
+                midiBuffer.addEvents(midiBuffer, 0, buffer.getNumSamples(), 0);
+            }
+            else if (isPositiveAndBelow(device, midiDeviceManager.getOutputDevices().size() + 1)) {
+                midiDeviceManager.sendMidiOutputBuffer(device, events, AudioProcessor::getSampleRate());
             }
         }
 
@@ -737,10 +746,11 @@ void PluginProcessor::updatePatchUndoRedoState()
         }
     });
 }
-void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer, MidiBuffer& midiMessages)
+
+void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer, MidiBuffer& midiBuffer)
 {
-    int blockSize = Instance::getBlockSize();
-    int numBlocks = buffer.getNumSamples() / blockSize;
+    int pdBlockSize = Instance::getBlockSize();
+    int numBlocks = buffer.getNumSamples() / pdBlockSize;
     audioAdvancement = 0;
 
     if (producesMidi()) {
@@ -755,16 +765,23 @@ void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer, MidiBuffer&
         for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
             // Copy the channel data into the vector
             juce::FloatVectorOperations::copy(
-                audioVectorIn.data() + (ch * blockSize),
+                audioVectorIn.data() + (ch * pdBlockSize),
                 buffer.getChannelPointer(ch) + audioAdvancement,
-                blockSize);
+                                              pdBlockSize);
         }
 
         setThis();
-
-        midiBufferIn.clear();
-        midiBufferIn.addEvents(midiMessages, audioAdvancement, blockSize, 0);
-        sendMidiBuffer();
+        
+        if(!ProjectInfo::isStandalone)
+        {
+            sendMidiBuffer(0); // Send DAW MIDI buffer
+        }
+        for(auto& [device, collector] : midiMessageCollector)
+        {
+            midiBufferIn.clear();
+            collector.removeNextBlockOfMessages(midiBufferIn, pdBlockSize);
+            sendMidiBuffer(device);
+        }
 
         // Process audio
         performDSP(audioVectorIn.data(), audioVectorOut.data());
@@ -778,31 +795,38 @@ void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer, MidiBuffer&
             // Use FloatVectorOperations to copy the vector data into the audioBuffer
             juce::FloatVectorOperations::copy(
                 buffer.getChannelPointer(ch) + audioAdvancement,
-                audioVectorOut.data() + (ch * blockSize),
-                blockSize);
+                audioVectorOut.data() + (ch * pdBlockSize),
+                                              pdBlockSize);
         }
 
-        audioAdvancement += blockSize;
+        audioAdvancement += pdBlockSize;
     }
-
-    midiMessages.clear();
-    midiMessages.addEvents(midiBufferOut, 0, buffer.getNumSamples(), 0);
 }
 
-void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer& midiMessages)
+void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer& midiBuffer)
 {
     auto const pdBlockSize = Instance::getBlockSize();
     auto const numChannels = buffer.getNumChannels();
-
-    inputFifo->writeAudioAndMidi(buffer, midiMessages);
-    midiMessages.clear();
+    
+    inputFifo->writeAudioAndMidi(buffer, midiBuffer);
 
     audioAdvancement = 0; // Always has to be 0 if we use the AudioMidiFifo!
 
     while (inputFifo->getNumSamplesAvailable() >= pdBlockSize) {
-        midiBufferIn.clear();
+                
         inputFifo->readAudioAndMidi(audioBufferIn, midiBufferIn);
 
+        if(!ProjectInfo::isStandalone)
+        {
+            sendMidiBuffer(0); // Send DAW MIDI buffer
+        }
+        for(auto& [device, collector] : midiMessageCollector)
+        {
+            midiBufferIn.clear();
+            collector.removeNextBlockOfMessages(midiBufferIn, pdBlockSize);
+            sendMidiBuffer(device);
+        }
+        
         for (int channel = 0; channel < audioBufferIn.getNumChannels(); channel++) {
             // Copy the channel data into the vector
             juce::FloatVectorOperations::copy(
@@ -821,8 +845,6 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
 
         setThis();
 
-        sendMidiBuffer();
-
         // Process audio
         performDSP(audioVectorIn.data(), audioVectorOut.data());
 
@@ -839,10 +861,11 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
                 pdBlockSize);
         }
 
-        outputFifo->writeAudioAndMidi(audioBufferOut, midiBufferOut);
+        outputFifo->writeAudioAndMidi(audioBufferOut, midiBufferOut[0]);
     }
 
-    outputFifo->readAudioAndMidi(buffer, midiMessages);
+    midiBufferOut[0].clear();
+    outputFifo->readAudioAndMidi(buffer, midiBufferOut[0]);
 }
 
 void PluginProcessor::sendPlayhead()
@@ -938,16 +961,35 @@ void PluginProcessor::sendParameters()
     }
 }
 
-void PluginProcessor::sendMidiBuffer()
+MidiDeviceManager& PluginProcessor::getMidiDeviceManager()
+{
+    return midiDeviceManager;
+}
+
+MidiMessageCollector& PluginProcessor::getMidiMessageCollector(int device)
+{
+    auto hasCollector = midiMessageCollector.count(device);
+    auto& collector = midiMessageCollector[device];
+    if(!hasCollector) collector.reset(AudioProcessor::getSampleRate());
+    return collector;
+}
+
+void PluginProcessor::handleIncomingMidiMessage(MidiInput* input, MidiMessage const& message)
+{
+    auto device = midiDeviceManager.getMidiInputDeviceIndex(input->getIdentifier());
+    if (device >= 0) {
+        getMidiMessageCollector(device).addMessageToQueue(message);
+    }
+}
+
+
+void PluginProcessor::sendMidiBuffer(int device)
 {
     if (acceptsMidi()) {
-        for (auto const& event : midiBufferIn) {
-
-            int device;
-            auto message = MidiDeviceManager::convertFromSysExFormat(event.getMessage(), device);
-
+        for (auto event : midiBufferIn) {
+            auto message = event.getMessage();
             auto channel = message.getChannel() + (device << 4);
-
+            
             if (message.isNoteOn()) {
                 sendNoteOn(channel, message.getNoteNumber(), message.getVelocity());
             } else if (message.isNoteOff()) {
@@ -971,7 +1013,7 @@ void PluginProcessor::sendMidiBuffer()
                     sendSysRealTime(device, static_cast<int>(message.getRawData()[i]));
                 }
             }
-
+            
             for (int i = 0; i < message.getRawDataSize(); i++) {
                 sendMidiByte(device, static_cast<int>(message.getRawData()[i]));
             }
@@ -1370,9 +1412,9 @@ void PluginProcessor::receiveNoteOn(int const channel, int const pitch, int cons
     auto deviceChannel = channel - (device * 16);
 
     if (velocity == 0) {
-        midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage::noteOff(deviceChannel, pitch, uint8(0)), device), audioAdvancement);
+        midiBufferOut[device].addEvent(MidiMessage::noteOff(deviceChannel, pitch, uint8(0)), audioAdvancement);
     } else {
-        midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage::noteOn(deviceChannel, pitch, static_cast<uint8>(velocity)), device), audioAdvancement);
+        midiBufferOut[device].addEvent(MidiMessage::noteOn(deviceChannel, pitch, static_cast<uint8>(velocity)), audioAdvancement);
     }
 }
 
@@ -1381,7 +1423,7 @@ void PluginProcessor::receiveControlChange(int const channel, int const controll
     auto device = channel >> 4;
     auto deviceChannel = channel - (device * 16);
 
-    midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage::controllerEvent(deviceChannel, controller, value), device), audioAdvancement);
+    midiBufferOut[device].addEvent(MidiMessage::controllerEvent(deviceChannel, controller, value), audioAdvancement);
 }
 
 void PluginProcessor::receiveProgramChange(int const channel, int const value)
@@ -1389,7 +1431,7 @@ void PluginProcessor::receiveProgramChange(int const channel, int const value)
     auto device = channel >> 4;
     auto deviceChannel = channel - (device * 16);
 
-    midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage::programChange(deviceChannel, value), device), audioAdvancement);
+    midiBufferOut[device].addEvent(MidiMessage::programChange(deviceChannel, value), audioAdvancement);
 }
 
 void PluginProcessor::receivePitchBend(int const channel, int const value)
@@ -1397,7 +1439,7 @@ void PluginProcessor::receivePitchBend(int const channel, int const value)
     auto device = channel >> 4;
     auto deviceChannel = channel - (device * 16);
 
-    midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage::pitchWheel(deviceChannel, value + 8192), device), audioAdvancement);
+    midiBufferOut[device].addEvent(MidiMessage::pitchWheel(deviceChannel, value + 8192), audioAdvancement);
 }
 
 void PluginProcessor::receiveAftertouch(int const channel, int const value)
@@ -1405,7 +1447,7 @@ void PluginProcessor::receiveAftertouch(int const channel, int const value)
     auto device = channel >> 4;
     auto deviceChannel = channel - (device * 16);
 
-    midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage::channelPressureChange(deviceChannel, value), device), audioAdvancement);
+    midiBufferOut[device].addEvent(MidiMessage::channelPressureChange(deviceChannel, value), audioAdvancement);
 }
 
 void PluginProcessor::receivePolyAftertouch(int const channel, int const pitch, int const value)
@@ -1413,7 +1455,7 @@ void PluginProcessor::receivePolyAftertouch(int const channel, int const pitch, 
     auto device = channel >> 4;
     auto deviceChannel = channel - (device * 16);
 
-    midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage::aftertouchChange(deviceChannel, pitch, value), device), audioAdvancement);
+    midiBufferOut[device].addEvent(MidiMessage::aftertouchChange(deviceChannel, pitch, value), audioAdvancement);
 }
 
 void PluginProcessor::receiveMidiByte(int const port, int const byte)
@@ -1422,7 +1464,7 @@ void PluginProcessor::receiveMidiByte(int const port, int const byte)
 
     if (midiByteIsSysex) {
         if (byte == 0xf7) {
-            midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage::createSysExMessage(midiByteBuffer, static_cast<int>(midiByteIndex)), device), audioAdvancement);
+            midiBufferOut[device].addEvent(MidiMessage::createSysExMessage(midiByteBuffer, static_cast<int>(midiByteIndex)), audioAdvancement);
             midiByteIndex = 0;
             midiByteIsSysex = false;
         } else {
@@ -1436,13 +1478,13 @@ void PluginProcessor::receiveMidiByte(int const port, int const byte)
     } else {
         // Handle single-byte messages
         if (midiByteIndex == 0 && byte >= 0xf8 && byte <= 0xff) {
-            midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage(static_cast<uint8>(byte)), device), audioAdvancement);
+            midiBufferOut[device].addEvent(MidiMessage(static_cast<uint8>(byte)), audioAdvancement);
         }
         // Handle 3-byte messages
         else {
             midiByteBuffer[midiByteIndex++] = static_cast<uint8>(byte);
             if (midiByteIndex >= 3) {
-                midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage(midiByteBuffer, 3), device), audioAdvancement);
+                midiBufferOut[device].addEvent(MidiMessage(midiByteBuffer, 3), audioAdvancement);
                 midiByteIndex = 0;
             }
         }

@@ -6,7 +6,6 @@
 
 #pragma once
 #include <juce_audio_utils/juce_audio_utils.h>
-#include "Standalone/InternalSynth.h"
 #include "Utility/Containers.h"
 
 class MidiDeviceManager : public ChangeListener
@@ -15,74 +14,7 @@ class MidiDeviceManager : public ChangeListener
     using MidiDeviceArray = Array<MidiDeviceInfo>;
 
 public:
-    // Helper functions to encode/decode regular MIDI events into a sysex event
-    // The reason we do this, is that we want to append extra information to the MIDI event when it comes in from pd or the device, but JUCE won't allow this
-    // We still want to be able to use handy JUCE stuff for MIDI timing, so we treat every MIDI event as sysex
-    static SmallArray<uint16_t> encodeSysExData(SmallArray<uint8_t> const& data)
-    {
-        SmallArray<uint16_t> encodedData;
-        for (auto& value : data) {
-            if (value == 0xF0 || value == 0xF7) {
-                // If the value is 0xF0 or 0xF7, encode them in the higher 8 bits. 0xF0 and 0xF8 are already at the top end, so we only need to shift them by 1 position to put it outside of MIDI range. We can't shift by 8, the sysex bytes could still be recognised as sysex bytes!
-                encodedData.add(static_cast<uint16_t>(value) << 1);
-            } else {
-                // Otherwise, just cast the 8-bit value to a 16-bit value
-                encodedData.add(static_cast<uint16_t>(value));
-            }
-        }
-        return encodedData;
-    }
-
-    static SmallArray<uint8_t> decodeSysExData(SmallArray<uint16_t> const& encodedData)
-    {
-        SmallArray<uint8_t> decodeData;
-        for (auto& value : encodedData) {
-            auto upperByte = value >> 1;
-            if (upperByte == 0xF0 || upperByte == 0xF7) {
-                decodeData.add(upperByte);
-            } else {
-                // Extract the lower 8 bits to obtain the original 8-bit data
-                decodeData.add(static_cast<uint8_t>(value));
-            }
-        }
-        return decodeData;
-    }
-
-    static MidiMessage convertToSysExFormat(MidiMessage m, int device)
-    {
-        if (ProjectInfo::isStandalone) {
-            // We append the device index so we can use it as a selector later
-            auto const* data = static_cast<uint8 const*>(m.getRawData());
-            auto message = SmallArray<uint8>(data, data + m.getRawDataSize());
-            message.add(device);
-            auto encodedMessage = encodeSysExData(message);
-
-            // Temporarily convert all messages to sysex so we can add as much data as we want
-            return MidiMessage::createSysExMessage(static_cast<void*>(encodedMessage.data()), encodedMessage.size() * sizeof(uint16_t)).withTimeStamp(m.getTimeStamp());
-        }
-
-        return m;
-    }
-
-    static MidiMessage convertFromSysExFormat(MidiMessage m, int& device)
-    {
-        if (ProjectInfo::isStandalone) {
-            auto const* sysexData = reinterpret_cast<uint16_t const*>(m.getSysExData());
-            auto sysexDataSize = m.getSysExDataSize() / sizeof(uint16_t);
-            auto midiMessage = decodeSysExData(SmallArray<uint16_t>(sysexData, sysexData + sysexDataSize));
-            if (!sysexData)
-                return m;
-
-            device = midiMessage.back();
-            midiMessage.pop_back();
-
-            return MidiMessage(midiMessage.data(), midiMessage.size());
-        }
-
-        device = 0;
-        return m;
-    }
-
+   
     MidiDeviceManager(MidiInputCallback* inputCallback)
     {
 #if !JUCE_WINDOWS && !JUCE_IOS
@@ -349,15 +281,15 @@ public:
         }
     }
 
-    void sendMidiOutputMessage(int device, MidiMessage& message)
+    void sendMidiOutputBuffer(int device, MidiBuffer& buffer, float sampleRate)
     {
         // Device ID 0 means all devices
         if (device == 0) {
             for (auto* midiOutput : midiOutputs) {
-                midiOutput->sendMessageNow(message);
+                midiOutput->sendBlockOfMessages(buffer, Time::getMillisecondCounterHiRes(), sampleRate);
             }
             if (fromPlugdata && internalOutputEnabled)
-                fromPlugdata->sendMessageNow(message);
+                fromPlugdata->sendBlockOfMessages(buffer, Time::getMillisecondCounterHiRes(), sampleRate);
             return;
         }
 
@@ -365,13 +297,13 @@ public:
         // The order of midiOutputs is not necessarily the same as that of lastMidiOutputs, that's why we need to check
 
         if (fromPlugdata && idToFind == fromPlugdata->getIdentifier()) {
-            fromPlugdata->sendMessageNow(message);
+            fromPlugdata->sendBlockOfMessages(buffer, Time::getMillisecondCounterHiRes(), sampleRate);
             return;
         }
 
         for (auto* midiOutput : midiOutputs) {
             if (idToFind == midiOutput->getIdentifier()) {
-                midiOutput->sendMessageNow(message);
+                midiOutput->sendBlockOfMessages(buffer, Time::getMillisecondCounterHiRes(), sampleRate);
                 break;
             }
         }

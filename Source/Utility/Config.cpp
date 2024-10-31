@@ -24,18 +24,6 @@ bool ProjectInfo::isFx = true;
 bool ProjectInfo::isFx = false;
 #endif
 
-MidiDeviceManager* ProjectInfo::getMidiDeviceManager()
-{
-#if PLUGDATA_STANDALONE
-    if (auto* standalone = getStandalonePluginHolder())
-        return &standalone->player.midiDeviceManager;
-
-    return nullptr;
-#else
-    return nullptr;
-#endif
-}
-
 juce::AudioDeviceManager* ProjectInfo::getDeviceManager()
 {
 #if PLUGDATA_STANDALONE
