@@ -1548,17 +1548,17 @@ void PluginProcessor::receiveSysMessage(String const& selector, SmallArray<pd::A
     }
 }
 
-void PluginProcessor::addTextToTextEditor(unsigned long ptr, String text)
+void PluginProcessor::addTextToTextEditor(uint64_t ptr, String text)
 {
     Dialogs::appendTextToTextEditorDialog(textEditorDialogs[ptr].get(), text);
 }
 
-bool PluginProcessor::isTextEditorDialogShown(unsigned long ptr)
+bool PluginProcessor::isTextEditorDialogShown(uint64_t ptr)
 {
     return textEditorDialogs.count(ptr) && textEditorDialogs[ptr]->isVisible();
 }
 
-void PluginProcessor::showTextEditorDialog(unsigned long ptr, Rectangle<int> bounds, String title)
+void PluginProcessor::showTextEditorDialog(uint64_t ptr, Rectangle<int> bounds, String title)
 {
     static std::unique_ptr<Dialog> saveDialog = nullptr;
 

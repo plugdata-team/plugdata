@@ -7,12 +7,12 @@
 #define JUCE_GUI_BASICS_INCLUDE_XHEADERS 1
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "OSUtils.h"
+
 #if !defined(__APPLE__)
 #    undef JUCE_GUI_BASICS_INCLUDE_XHEADERS
 #    include <raw_keyboard_input/raw_keyboard_input.cpp>
 #endif
-
-#include "OSUtils.h"
 
 #if defined(__APPLE__)
 #    define HAS_STD_FILESYSTEM 0

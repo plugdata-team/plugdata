@@ -18,8 +18,8 @@ void StackShadow::renderDropShadow(hash32 id, juce::Graphics& g, juce::Path cons
         dropShadow.reset(new melatonin::DropShadow);
     dropShadow->setColor(color);
     dropShadow->setOffset(offset);
-    dropShadow->setRadius(radius, 0);
-    dropShadow->setSpread(spread, 0);
+    dropShadow->setRadius(radius);
+    dropShadow->setSpread(spread);
     dropShadow->render(g, path);
 }
 

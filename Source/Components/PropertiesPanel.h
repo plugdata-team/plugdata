@@ -95,8 +95,8 @@ private:
             if (parent.drawShadowAndOutline) {
                 dropShadow = std::make_unique<melatonin::DropShadow>();
                 dropShadow->setColor(Colour(0, 0, 0).withAlpha(0.4f));
-                dropShadow->setRadius(7, 0);
-                dropShadow->setSpread(0, 0);
+                dropShadow->setRadius(7);
+                dropShadow->setSpread(0);
             }
         }
 
