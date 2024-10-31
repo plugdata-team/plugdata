@@ -1456,7 +1456,7 @@ void Canvas::focusGained(FocusChangeType cause)
 
         // canvas.active listener
         char buf[MAXPDSTRING];
-        snprintf(buf, MAXPDSTRING - 1, ".x%lx.c", (uint64_t)glist);
+        snprintf(buf, MAXPDSTRING - 1, ".x%lx.c", (unsigned long)glist);
         pd->sendMessage("#active_gui", "_focus", { pd::Atom(pd->generateSymbol(buf)), hasFocus });
 
         // cyclone focus listeners
@@ -1475,7 +1475,7 @@ void Canvas::focusLost(FocusChangeType cause)
 
         // canvas.active listener
         char buf[MAXPDSTRING];
-        snprintf(buf, MAXPDSTRING - 1, ".x%lx.c", (uint64_t)glist);
+        snprintf(buf, MAXPDSTRING - 1, ".x%lx.c", (unsigned long)glist);
         pd->sendMessage("#active_gui", "_focus", { pd->generateSymbol(buf), static_cast<float>(focused) });
 
         if (!_this)
@@ -2241,7 +2241,7 @@ void Canvas::valueChanged(Value& v)
             auto y2 = static_cast<float>(cnv->gl_screeny2);
 
             char buf[MAXPDSTRING];
-            snprintf(buf, MAXPDSTRING - 1, ".x%lx", (uint64_t)cnv.get());
+            snprintf(buf, MAXPDSTRING - 1, ".x%lx", (unsigned long)cnv.get());
             pd->sendMessage(buf, "setbounds", { x1, y1, x2, y2 });
         }
 
@@ -2256,7 +2256,7 @@ void Canvas::valueChanged(Value& v)
             auto y2 = static_cast<float>(getValue<int>(patchHeight) + y1);
 
             char buf[MAXPDSTRING];
-            snprintf(buf, MAXPDSTRING - 1, ".x%lx", (uint64_t)cnv.get());
+            snprintf(buf, MAXPDSTRING - 1, ".x%lx", (unsigned long)cnv.get());
             pd->sendMessage(buf, "setbounds", { x1, y1, x2, y2 });
         }
         repaint();
@@ -2267,7 +2267,7 @@ void Canvas::valueChanged(Value& v)
 
         if (auto ptr = patch.getPointer()) {
             char buf[MAXPDSTRING];
-            snprintf(buf, MAXPDSTRING - 1, ".x%lx", (uint64_t)ptr.get());
+            snprintf(buf, MAXPDSTRING - 1, ".x%lx", (unsigned long)ptr.get());
             pd->sendMessage(buf, "editmode", { static_cast<float>(editMode) });
         }
 
