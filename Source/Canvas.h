@@ -41,6 +41,7 @@ class ConnectionPathUpdater;
 class ConnectionBeingCreated;
 class TabComponent;
 class BorderResizer;
+class CanvasCrosshair;
 
 struct ObjectDragState {
     bool wasDragDuplicated : 1 = false;
@@ -177,6 +178,9 @@ public:
     ObjectParameters& getInspectorParameters();
 
     void receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override;
+
+    void setCrosshairOnObject(Object* obj);
+    void removeCanvasCrosshair();
 
     template<typename T>
     SmallArray<T*> getSelectionOfType()
@@ -327,6 +331,8 @@ private:
     ObjectParameters parameters;
 
     std::unique_ptr<BorderResizer> canvasBorderResizer;
+
+    std::unique_ptr<CanvasCrosshair> canvasCrosshair;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Canvas)
 };

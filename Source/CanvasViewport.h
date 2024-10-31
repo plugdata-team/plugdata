@@ -25,7 +25,7 @@ using namespace gl;
 // Special viewport that shows scrollbars on top of content instead of next to it
 class CanvasViewport : public Viewport
     , public NVGComponent
-    , public Timer {
+    , public MultiTimer {
     class MousePanner : public MouseListener {
     public:
         explicit MousePanner(CanvasViewport* vp)
@@ -328,19 +328,53 @@ public:
         }
     }
 
-    void timerCallback() override
+    void timerCallback(int ID) override
     {
-        stopTimer();
-        cnv->isZooming = false;
+        switch(ID){
+            case Timers::ResizeTimer: {
+                stopTimer(Timers::ResizeTimer);
+                cnv->isZooming = false;
 
-        // Cached geometry can look thicker/thinner at different zoom scales, so we update all cached connections when zooming is done
-        if (scaleChanged) {
-            // Cached geometry can look thicker/thinner at different zoom scales, so we reset all cached connections when zooming is done
-            NVGCachedPath::resetAll();
+                // Cached geometry can look thicker/thinner at different zoom scales, so we update all cached connections when zooming is done
+                if (scaleChanged) {
+                    // Cached geometry can look thicker/thinner at different zoom scales, so we reset all cached connections when zooming is done
+                    NVGCachedPath::resetAll();
+                }
+
+                scaleChanged = false;
+                editor->nvgSurface.invalidateAll();
+            }
+            break;
+            case Timers::AnimationTimer: {
+                auto lerp = [](Point<int> start, Point<int> end, float t){
+                    return start.toFloat() + (end.toFloat() - start.toFloat()) * t;
+                };
+                auto movedPos = lerp(startPos, targetPos, lerpAnimation);
+                setViewPosition(movedPos.x, movedPos.y);
+
+                if (lerpAnimation >= 1.0f) {
+                    stopTimer(Timers::AnimationTimer);
+                    lerpAnimation = 0.0f;
+                }
+
+                lerpAnimation += 0.02f;
+            }
+            break;
         }
+    }
 
-        scaleChanged = false;
-        editor->nvgSurface.invalidateAll();
+    void setViewPositionAnimated(Point<int> pos)
+    {
+        if(getViewPosition() != pos) {
+            startPos = getViewPosition();
+            targetPos = pos;
+            lerpAnimation = 0.0f;
+            auto distance = startPos.getDistanceFrom(pos) * getValue<float>(cnv->zoomScale);
+            // speed up animation if we are traveling a shorter distance (hardcoded for now)
+            animationSpeed = distance < 10.0f ? 0.1f : 0.02f;
+
+            startTimer(Timers::AnimationTimer, 1000 / 90);
+        }
     }
 
     void lookAndFeelChanged() override
@@ -469,7 +503,7 @@ public:
     {
         if (scaleChanged) {
             cnv->isZooming = true;
-            startTimer(150);
+            startTimer(Timers::ResizeTimer, 150);
         }
 
         onScroll();
@@ -521,6 +555,12 @@ public:
     std::function<void()> onScroll = []() { };
 
 private:
+    enum Timers { ResizeTimer, AnimationTimer };
+    Point<int> startPos;
+    Point<int> targetPos;
+    float lerpAnimation;
+    float animationSpeed;
+
     Time lastScrollTime;
     Time lastZoomTime;
     float lastScaleFactor = -1.0f;
