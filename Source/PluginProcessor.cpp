@@ -1562,7 +1562,7 @@ void PluginProcessor::showTextEditorDialog(uint64_t ptr, Rectangle<int> bounds, 
 {
     static std::unique_ptr<Dialog> saveDialog = nullptr;
 
-    auto setText = [this, title](String text, unsigned long ptr) {
+    auto setText = [this, title](String text, uint64_t ptr) {
         lockAudioThread();
         pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("clear"), 0, nullptr);
         unlockAudioThread();

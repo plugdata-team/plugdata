@@ -291,7 +291,7 @@ void Instance::initialisePd(String& pdlua_version)
             break;
         }
         case hash("cyclone_editor"): {
-            auto ptr = (unsigned long)argv->a_w.w_gpointer;
+            auto ptr = (uint64_t)argv->a_w.w_gpointer;
             auto width = atom_getfloat(argv + 1);
             auto height = atom_getfloat(argv + 2);
             String owner, title;
@@ -308,15 +308,15 @@ void Instance::initialisePd(String& pdlua_version)
             break;
         }
         case hash("cyclone_editor_append"): {
-            auto ptr = (unsigned long)argv->a_w.w_gpointer;
+            auto ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
             auto text = String::fromUTF8(atom_getsymbol(argv + 1)->s_name);
 
             static_cast<Instance*>(instance)->addTextToTextEditor(ptr, text);
             break;
         }
         case hash("coll_check_open"): {
-            auto ptr = (unsigned long)argv->a_w.w_gpointer;
-            bool open = (unsigned long)atom_getfloat(argv + 1);
+            auto ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
+            bool open = static_cast<bool>(atom_getfloat(argv + 1));
             bool wasOpen = static_cast<Instance*>(instance)->isTextEditorDialogShown(ptr);
 
             StackArray<t_atom, 2> atoms;

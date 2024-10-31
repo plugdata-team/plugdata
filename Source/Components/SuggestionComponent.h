@@ -445,7 +445,7 @@ public:
         auto b = getLocalBounds();
 
         int yScroll = port->getViewPositionY();
-        port->setBounds(b);
+        port->setBounds(b.reduced(2, 0));
         buttonholder->setBounds(b.getX() + 6, b.getY(), b.getWidth(), std::min(numOptions, 20) * 25 + 8);
 
         for (int i = 0; i < buttons.size(); i++)

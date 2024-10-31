@@ -211,9 +211,9 @@ public:
     void sendMessage(char const* receiver, char const* msg, SmallArray<pd::Atom> const& list) const;
     void sendTypedMessage(void* object, char const* msg, SmallArray<Atom> const& list) const;
 
-    virtual void addTextToTextEditor(unsigned long ptr, String text) = 0;
-    virtual void showTextEditorDialog(unsigned long ptr, Rectangle<int> bounds, String title) = 0;
-    virtual bool isTextEditorDialogShown(unsigned long ptr) = 0;
+    virtual void addTextToTextEditor(uint64_t ptr, String text) = 0;
+    virtual void showTextEditorDialog(uint64_t ptr, Rectangle<int> bounds, String title) = 0;
+    virtual bool isTextEditorDialogShown(uint64_t ptr) = 0;
 
     virtual void receiveSysMessage(String const& selector, SmallArray<pd::Atom> const& list) = 0;
 

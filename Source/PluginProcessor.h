@@ -88,9 +88,9 @@ public:
     void receiveMidiByte(int port, int byte) override;
     void receiveSysMessage(String const& selector, SmallArray<pd::Atom> const& list) override;
 
-    void addTextToTextEditor(unsigned long ptr, String text) override;
-    void showTextEditorDialog(unsigned long ptr, Rectangle<int> bounds, String title) override;
-    bool isTextEditorDialogShown(unsigned long ptr) override;
+    void addTextToTextEditor(uint64_t ptr, String text) override;
+    void showTextEditorDialog(uint64_t ptr, Rectangle<int> bounds, String title) override;
+    bool isTextEditorDialogShown(uint64_t ptr) override;
 
     void updateConsole(int numMessages, bool newWarning) override;
 
