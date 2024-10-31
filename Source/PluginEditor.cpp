@@ -1777,12 +1777,35 @@ bool PluginEditor::highlightSearchTarget(void* target, bool openNewTabIfNeeded)
                     return false;
 
                 auto scale = getValue<float>(cnv->zoomScale);
-                auto pos = found->getBounds().getCentre() * scale;
+                //auto pos = found->getBounds().getCentre() * scale;
 
-                pos.x -= viewport->getViewWidth() * 0.5f;
-                pos.y -= viewport->getViewHeight() * 0.5f;
+                if (!viewport->getBoundsInParent().contains(found->getBounds())) {
+                    // Get the bounds of the found component relative to the viewport's content component
+                    auto extraMargin = 10 / scale;
+                    auto foundBounds = found->getBounds().expanded(extraMargin, extraMargin) * scale;
 
-                viewport->setViewPosition(pos);
+                    // Get the current view position of the viewport
+                    auto viewPos = viewport->getViewPosition();
+
+                    // Adjust the x-position to make the found component fully visible
+                    if (foundBounds.getX() < viewPos.x) {
+                        viewPos.x = foundBounds.getX();  // Align left if found is off the left edge
+                    } else if (foundBounds.getRight() > viewPos.x + viewport->getWidth()) {
+                        viewPos.x = foundBounds.getRight() - viewport->getWidth();  // Align right if off right edge
+                    }
+
+                    // Adjust the y-position to make the found component fully visible
+                    if (foundBounds.getY() < viewPos.y) {
+                        viewPos.y = foundBounds.getY();  // Align top if found is off the top edge
+                    } else if (foundBounds.getBottom() > viewPos.y + viewport->getHeight()) {
+                        viewPos.y = foundBounds.getBottom() - viewport->getHeight();  // Align bottom if off bottom edge
+                    }
+
+                    // Set the new view position so the found component is visible within the viewport, and place crosshair at object
+                    cnv->setCrosshairOnObject(found);
+                    static_cast<CanvasViewport*>(viewport)->setViewPositionAnimated(Point<int>(viewPos.x, viewPos.y));
+                }
+
                 tabComponent.showTab(cnv);
 
                 return true;
