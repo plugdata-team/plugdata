@@ -51,6 +51,9 @@ class CanvasViewport : public Viewport
             if (!e.mods.isLeftButtonDown() && !e.mods.isMiddleButtonDown())
                 return;
 
+            // Cancel the animation timer for the search panel
+            viewport->stopTimer(Timers::AnimationTimer);
+
             e.originalComponent->setMouseCursor(MouseCursor::DraggingHandCursor);
             downPosition = viewport->getViewPosition();
             downCanvasOrigin = viewport->cnv->canvasOrigin;
@@ -357,7 +360,7 @@ public:
                     lerpAnimation = 0.0f;
                 }
 
-                lerpAnimation += 0.02f;
+                lerpAnimation += animationSpeed;
             }
             break;
         }
@@ -413,6 +416,9 @@ public:
         // This is a workaround for a bug in JUCE that can cause mouse events to be duplicated when an object has a MouseListener on its parent
         if (e.eventTime == lastScrollTime)
             return;
+
+        // Cancel the animation timer for the search panel
+        stopTimer(Timers::AnimationTimer);
 
         if (e.mods.isCommandDown()) {
             mouseMagnify(e, 1.0f / (1.0f - wheel.deltaY));
