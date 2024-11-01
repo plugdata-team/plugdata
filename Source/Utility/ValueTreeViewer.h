@@ -7,6 +7,7 @@ struct ValueTreeOwnerView : public Component {
     std::function<void(ValueTree&)> onClick = [](ValueTree&) { };
     std::function<void(ValueTree&)> onSelect = [](ValueTree&) { };
     std::function<void(ValueTree&)> onDragStart = [](ValueTree&) { };
+    std::function<void(ValueTree&)> onRightClick = [](ValueTree&) { };
 };
 
 #include "Fonts.h"
@@ -183,6 +184,12 @@ public:
     bool isOpen() const
     {
         return isOpened || isOpenedBySearch;
+    }
+
+    void mouseDown(MouseEvent const& e) override
+    {
+        if (e.eventComponent == this && e.mods.isRightButtonDown())
+            getOwnerView()->onRightClick(valueTreeNode);
     }
 
     void mouseUp(MouseEvent const& e) override
@@ -428,6 +435,7 @@ public:
         contentComponent.onClick = [this](ValueTree& tree) { onClick(tree); };
         contentComponent.onSelect = [this](ValueTree& tree) { onSelect(tree); };
         contentComponent.onDragStart = [this](ValueTree& tree) { onDragStart(tree); };
+        contentComponent.onRightClick = [this](ValueTree& tree) { onRightClick(tree); };
 
         addAndMakeVisible(viewport);
     }
@@ -645,6 +653,7 @@ public:
     std::function<void(ValueTree&)> onClick = [](ValueTree&) { };
     std::function<void(ValueTree&)> onSelect = [](ValueTree&) { };
     std::function<void(ValueTree&)> onDragStart = [](ValueTree&) { };
+    std::function<void(ValueTree&)> onRightClick = [](ValueTree&) { };
 
 private:
     static void linkNodes(OwnedArray<ValueTreeNodeComponent>& nodes, ValueTreeNodeComponent*& previous)

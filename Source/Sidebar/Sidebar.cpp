@@ -219,7 +219,8 @@ void Sidebar::showPanel(int panelToShow)
     bool showAutomation = panelToShow == 2;
     bool showSearch = panelToShow == 3;
 
-    if (panelToShow == currentPanel && !sidebarHidden) {
+    // inspector is a special case, because it doesn't have a tab, we don't close when the inspector is visible
+    if (!inspector->isVisible() && panelToShow == currentPanel && !sidebarHidden) {
 
         consoleButton.setToggleState(false, dontSendNotification);
         browserButton.setToggleState(false, dontSendNotification);

@@ -135,7 +135,7 @@ public:
     void commandKeyChanged(bool isHeld) override;
     void setUseBorderResizer(bool shouldUse);
 
-    bool highlightSearchTarget(void* target, bool openNewTabIfNeeded);
+    Object* highlightSearchTarget(void* target, bool openNewTabIfNeeded);
 
     SmallArray<pd::WeakReference> openTextEditors;
 

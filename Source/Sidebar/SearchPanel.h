@@ -19,6 +19,38 @@ static int srl_is_valid(t_symbol const* s)
     return (s != nullptr && s != gensym(""));
 }
 
+class OpenInspector : public Component {
+    TextButton buttonOpenInspector;
+public:
+    OpenInspector()
+    {
+        auto backgroundColour = findColour(PlugDataColour::dialogBackgroundColourId);
+        buttonOpenInspector.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+        buttonOpenInspector.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
+        buttonOpenInspector.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+        buttonOpenInspector.setButtonText("Open inspector");
+        buttonOpenInspector.setTooltip("Open inspector for object");
+
+        addAndMakeVisible(buttonOpenInspector);
+
+        setSize(108, 33);
+    };
+
+    void setButtonOnClick(std::function<void()> onClick)
+    {
+        buttonOpenInspector.onClick = onClick;
+    }
+
+    void resized() override
+    {
+        buttonOpenInspector.setBounds(4, 4, 100, 25);
+    }
+
+private:
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OpenInspector);
+};
+
 class SearchPanelSettings : public Component {
 public:
     struct SearchPanelSettingsButton : public TextButton {
@@ -103,6 +135,35 @@ public:
         patchTree.onSelect = [this](ValueTree& tree) {
             auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("TopLevel")));
             editor->highlightSearchTarget(ptr, false);
+        };
+
+        patchTree.onRightClick = [this](ValueTree& tree) {
+            auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("Object")));
+
+            auto pos = Desktop::getInstance().getMousePosition();
+            auto bounds = Rectangle<int>(pos.x, pos.y, 10, 10);
+
+            auto openInspector = std::make_unique<OpenInspector>();
+            auto* rawOpenInspectorPtr = openInspector.get();
+            auto& callOutBox = CallOutBox::launchAsynchronously(std::move(openInspector), bounds, nullptr);
+
+            SafePointer<CallOutBox> callOutBoxSafePtr(&callOutBox);
+
+            auto onClick = [this, ptr, callOutBoxSafePtr](){
+                if (auto obj = editor->highlightSearchTarget(ptr, true)){
+                    // FIXME: We have to wait until EVERYTHING has setup on the new canvas
+                    // So we call it on message thread, which should place this event after the previous
+                    auto launchInspector = [this, obj](){
+                        SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
+                        editor->sidebar->showParameters(obj->getType(false), parameters);
+                    };
+                    MessageManager::callAsync(launchInspector);
+                }
+                if (callOutBoxSafePtr)
+                    callOutBoxSafePtr->dismiss();
+            };
+
+            rawOpenInspectorPtr->setButtonOnClick(onClick);
         };
 
         addAndMakeVisible(patchTree);
