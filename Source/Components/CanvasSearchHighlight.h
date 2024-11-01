@@ -6,8 +6,6 @@
 
 #pragma once
 
-//#include <utility>
-//#include "Constants.h"
 #include "Canvas.h"
 #include "Object.h"
 
