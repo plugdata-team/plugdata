@@ -1802,11 +1802,12 @@ bool PluginEditor::highlightSearchTarget(void* target, bool openNewTabIfNeeded)
                     }
 
                     // Set the new view position so the found component is visible within the viewport, and place crosshair at object
-                    cnv->setCrosshairOnObject(found);
+                    cnv->activateCanvasSearchHighlight(found);
                     static_cast<CanvasViewport*>(viewport)->setViewPositionAnimated(Point<int>(viewPos.x, viewPos.y));
                 }
 
-                tabComponent.showTab(cnv);
+                if (cnv != tabComponent.getCurrentCanvas())
+                    tabComponent.showTab(cnv);
 
                 return true;
             }
