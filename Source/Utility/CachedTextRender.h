@@ -54,9 +54,8 @@ public:
     bool prepareLayout(String const& text, Font const& font, Colour const& colour, int const width, int const cachedWidth, bool const highlightObjectSyntax)
     {
         auto textHash = hash(text);
-        bool needsUpdate = lastTextHash != textHash || colour != lastColour || cachedWidth != lastWidth;
+        bool needsUpdate = lastTextHash != textHash || colour != lastColour || cachedWidth != lastWidth || highlightObjectSyntax != isSyntaxHighlighted;
         if (needsUpdate) {
-
             AttributedString attributedText;
             if (highlightObjectSyntax) {
                 attributedText = getSyntaxHighlightedString(text, font, colour);
@@ -76,10 +75,9 @@ public:
 
             lastTextHash = textHash;
             lastColour = colour;
+            isSyntaxHighlighted = highlightObjectSyntax;
             updateImage = true;
         }
-
-        isSyntaxHighlighted = highlightObjectSyntax;
 
         return needsUpdate;
     }
