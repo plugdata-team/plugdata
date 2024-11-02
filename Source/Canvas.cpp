@@ -24,7 +24,7 @@
 #include "Components/GraphArea.h"
 #include "Components/CanvasBorderResizer.h"
 
-#include "Components/CanvasCrosshair.h"
+#include "Components/CanvasSearchHighlight.h"
 
 extern "C" {
 void canvas_setgraph(t_glist* x, int flag, int nogoprect);
@@ -562,8 +562,10 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
 
     suggestor->renderAutocompletion(nvg);
 
-    if (canvasCrosshair)
-        canvasCrosshair->render(nvg);
+    // Draw the search panel's selected object over all other objects
+    // Because objects can be underneath others
+    if (canvasSearchHighlight)
+        canvasSearchHighlight->render(nvg);
 
     if (dimensionsAreBeingEdited)
         drawBorder(false, true);
@@ -2544,13 +2546,13 @@ void Canvas::resized()
     objectLayer.setBounds(getLocalBounds());
 }
 
-void Canvas::setCrosshairOnObject(Object* obj)
+void Canvas::activateCanvasSearchHighlight(Object* obj)
 {
-    canvasCrosshair.reset(std::make_unique<CanvasCrosshair>(this, obj).release());
+    canvasSearchHighlight.reset(std::make_unique<CanvasSearchHighlight>(this, obj).release());
 }
 
-void Canvas::removeCanvasCrosshair()
+void Canvas::removeCanvasSearchHighlight()
 {
-    if (canvasCrosshair)
-        canvasCrosshair.reset(nullptr);
+    if (canvasSearchHighlight)
+        canvasSearchHighlight.reset(nullptr);
 }

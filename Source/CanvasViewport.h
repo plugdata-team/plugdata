@@ -51,6 +51,9 @@ class CanvasViewport : public Viewport
             if (!e.mods.isLeftButtonDown() && !e.mods.isMiddleButtonDown())
                 return;
 
+            // Cancel the animation timer for the search panel
+            viewport->stopTimer(Timers::AnimationTimer);
+
             e.originalComponent->setMouseCursor(MouseCursor::DraggingHandCursor);
             downPosition = viewport->getViewPosition();
             downCanvasOrigin = viewport->cnv->canvasOrigin;
@@ -351,223 +354,227 @@ public:
             auto movedPos = lerp(startPos, targetPos, lerpAnimation);
             setViewPosition(movedPos.x, movedPos.y);
 
-            if (lerpAnimation >= 1.0f) {
-                stopTimer(Timers::AnimationTimer);
-                lerpAnimation = 0.0f;
-            }
+            lerpAnimation += animationSpeed;
+        }
 
             lerpAnimation += 0.02f;
-        } break;
         }
+        break;
+    }
+}
+
+void
+setViewPositionAnimated(Point<int> pos)
+{
+    if (getViewPosition() != pos) {
+        startPos = getViewPosition();
+        targetPos = pos;
+        lerpAnimation = 0.0f;
+        auto distance = startPos.getDistanceFrom(pos) * getValue<float>(cnv->zoomScale);
+        // speed up animation if we are traveling a shorter distance (hardcoded for now)
+        animationSpeed = distance < 10.0f ? 0.1f : 0.02f;
+
+        startTimer(Timers::AnimationTimer, 1000 / 90);
+    }
+}
+
+void lookAndFeelChanged() override
+{
+    auto scrollbarColour = hbar.findColour(ScrollBar::ColourIds::thumbColourId);
+    auto scrollbarCol = convertColour(scrollbarColour);
+    auto canvasBgColour = findColour(PlugDataColour::canvasBackgroundColourId);
+    auto activeScrollbarCol = convertColour(scrollbarColour.interpolatedWith(canvasBgColour.contrasting(0.6f), 0.7f));
+    auto scrollbarBgCol = convertColour(scrollbarColour.interpolatedWith(canvasBgColour, 0.7f));
+
+    hbar.scrollbarCol = scrollbarCol;
+    vbar.scrollbarCol = scrollbarCol;
+    hbar.activeScrollbarCol = activeScrollbarCol;
+    vbar.activeScrollbarCol = activeScrollbarCol;
+    hbar.scrollbarBgCol = scrollbarBgCol;
+    vbar.scrollbarBgCol = scrollbarBgCol;
+
+    hbar.repaint();
+    vbar.repaint();
+}
+
+void enableMousePanning(bool enablePanning)
+{
+    panner.enablePanning(enablePanning);
+}
+
+bool hitTest(int x, int y) override
+{
+    // needed so that mouseWheel event is registered in presentation mode
+    return true;
+}
+
+void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel) override
+{
+    // Check event time to filter out duplicate events
+    // This is a workaround for a bug in JUCE that can cause mouse events to be duplicated when an object has a MouseListener on its parent
+    if (e.eventTime == lastScrollTime)
+        return;
+
+    // Cancel the animation timer for the search panel
+    stopTimer(Timers::AnimationTimer);
+
+    if (e.mods.isCommandDown()) {
+        mouseMagnify(e, 1.0f / (1.0f - wheel.deltaY));
     }
 
-    void setViewPositionAnimated(Point<int> pos)
-    {
-        if (getViewPosition() != pos) {
-            startPos = getViewPosition();
-            targetPos = pos;
-            lerpAnimation = 0.0f;
-            auto distance = startPos.getDistanceFrom(pos) * getValue<float>(cnv->zoomScale);
-            // speed up animation if we are traveling a shorter distance (hardcoded for now)
-            animationSpeed = distance < 10.0f ? 0.1f : 0.02f;
+    Viewport::mouseWheelMove(e, wheel);
+    lastScrollTime = e.eventTime;
+}
 
-            startTimer(Timers::AnimationTimer, 1000 / 90);
-        }
+void mouseMagnify(MouseEvent const& e, float scrollFactor) override
+{
+    // Check event time to filter out duplicate events
+    // This is a workaround for a bug in JUCE that can cause mouse events to be duplicated when an object has a MouseListener on its parent
+    if (e.eventTime == lastZoomTime || !cnv)
+        return;
+
+    // Apply and limit zoom
+    magnify(std::clamp(getValue<float>(cnv->zoomScale) * scrollFactor, 0.25f, 3.0f));
+    lastZoomTime = e.eventTime;
+}
+
+void magnify(float newScaleFactor)
+{
+    if (approximatelyEqual(newScaleFactor, 0.0f)) {
+        newScaleFactor = 1.0f;
     }
 
-    void lookAndFeelChanged() override
-    {
-        auto scrollbarColour = hbar.findColour(ScrollBar::ColourIds::thumbColourId);
-        auto scrollbarCol = convertColour(scrollbarColour);
-        auto canvasBgColour = findColour(PlugDataColour::canvasBackgroundColourId);
-        auto activeScrollbarCol = convertColour(scrollbarColour.interpolatedWith(canvasBgColour.contrasting(0.6f), 0.7f));
-        auto scrollbarBgCol = convertColour(scrollbarColour.interpolatedWith(canvasBgColour, 0.7f));
+    if (newScaleFactor == lastScaleFactor) // float comparison ok here as it's set by the same value
+        return;
 
-        hbar.scrollbarCol = scrollbarCol;
-        vbar.scrollbarCol = scrollbarCol;
-        hbar.activeScrollbarCol = activeScrollbarCol;
-        vbar.activeScrollbarCol = activeScrollbarCol;
-        hbar.scrollbarBgCol = scrollbarBgCol;
-        vbar.scrollbarBgCol = scrollbarBgCol;
+    lastScaleFactor = newScaleFactor;
 
-        hbar.repaint();
-        vbar.repaint();
+    scaleChanged = true;
+
+    // Get floating point mouse position relative to screen
+    auto mousePosition = Desktop::getInstance().getMainMouseSource().getScreenPosition();
+    // Get mouse position relative to canvas
+    auto oldPosition = cnv->getLocalPoint(nullptr, mousePosition);
+    // Apply transform and make sure viewport bounds get updated
+    cnv->setTransform(AffineTransform().scaled(newScaleFactor));
+    // After zooming, get mouse position relative to canvas again
+    auto newPosition = cnv->getLocalPoint(nullptr, mousePosition);
+    // Calculate offset to keep our mouse position the same as before this zoom action
+    auto offset = newPosition - oldPosition;
+    cnv->setTopLeftPosition(cnv->getPosition() + offset.roundToInt());
+
+    // This is needed to make sure the viewport the current canvas bounds to the lastVisibleArea variable
+    // Without this, future calls to getViewPosition() will give wrong results
+    resized();
+    cnv->zoomScale = newScaleFactor;
+}
+
+void adjustScrollbarBounds()
+{
+    if (getViewArea().isEmpty())
+        return;
+
+    auto thickness = getScrollBarThickness();
+    auto localArea = getLocalBounds().reduced(2);
+
+    vbar.setBounds(localArea.removeFromRight(thickness).withTrimmedBottom(thickness).translated(-1, 0));
+    hbar.setBounds(localArea.removeFromBottom(thickness).translated(0, -1));
+
+    float scale = 1.0f / std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
+    auto contentArea = getViewArea() * scale;
+
+    Rectangle<int> objectArea = contentArea.withPosition(cnv->canvasOrigin);
+    for (auto object : cnv->objects) {
+        objectArea = objectArea.getUnion(object->getBounds());
     }
 
-    void enableMousePanning(bool enablePanning)
-    {
-        panner.enablePanning(enablePanning);
+    auto totalArea = contentArea.getUnion(objectArea);
+
+    hbar.setRangeLimitsAndCurrentRange(totalArea.getX(), totalArea.getRight(), contentArea.getX(), contentArea.getRight());
+    vbar.setRangeLimitsAndCurrentRange(totalArea.getY(), totalArea.getBottom(), contentArea.getY(), contentArea.getBottom());
+}
+
+void componentMovedOrResized(Component& c, bool moved, bool resized) override
+{
+    if (editor->isInPluginMode())
+        return;
+
+    Viewport::componentMovedOrResized(c, moved, resized);
+    adjustScrollbarBounds();
+}
+
+void visibleAreaChanged(Rectangle<int> const& r) override
+{
+    if (scaleChanged) {
+        cnv->isZooming = true;
+        startTimer(Timers::ResizeTimer, 150);
     }
 
-    bool hitTest(int x, int y) override
-    {
-        // needed so that mouseWheel event is registered in presentation mode
-        return true;
-    }
+    onScroll();
+    adjustScrollbarBounds();
+    editor->nvgSurface.invalidateAll();
+}
 
-    void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel) override
-    {
-        // Check event time to filter out duplicate events
-        // This is a workaround for a bug in JUCE that can cause mouse events to be duplicated when an object has a MouseListener on its parent
-        if (e.eventTime == lastScrollTime)
-            return;
+void resized() override
+{
+    vbar.setVisible(isVerticalScrollBarShown());
+    hbar.setVisible(isHorizontalScrollBarShown());
 
-        if (e.mods.isCommandDown()) {
-            mouseMagnify(e, 1.0f / (1.0f - wheel.deltaY));
-        }
+    if (editor->isInPluginMode())
+        return;
 
-        Viewport::mouseWheelMove(e, wheel);
-        lastScrollTime = e.eventTime;
-    }
+    adjustScrollbarBounds();
 
-    void mouseMagnify(MouseEvent const& e, float scrollFactor) override
-    {
-        // Check event time to filter out duplicate events
-        // This is a workaround for a bug in JUCE that can cause mouse events to be duplicated when an object has a MouseListener on its parent
-        if (e.eventTime == lastZoomTime || !cnv)
-            return;
-
-        // Apply and limit zoom
-        magnify(std::clamp(getValue<float>(cnv->zoomScale) * scrollFactor, 0.25f, 3.0f));
-        lastZoomTime = e.eventTime;
-    }
-
-    void magnify(float newScaleFactor)
-    {
-        if (approximatelyEqual(newScaleFactor, 0.0f)) {
-            newScaleFactor = 1.0f;
-        }
-
-        if (newScaleFactor == lastScaleFactor) // float comparison ok here as it's set by the same value
-            return;
-
-        lastScaleFactor = newScaleFactor;
-
-        scaleChanged = true;
-
-        // Get floating point mouse position relative to screen
-        auto mousePosition = Desktop::getInstance().getMainMouseSource().getScreenPosition();
-        // Get mouse position relative to canvas
-        auto oldPosition = cnv->getLocalPoint(nullptr, mousePosition);
-        // Apply transform and make sure viewport bounds get updated
-        cnv->setTransform(AffineTransform().scaled(newScaleFactor));
-        // After zooming, get mouse position relative to canvas again
-        auto newPosition = cnv->getLocalPoint(nullptr, mousePosition);
-        // Calculate offset to keep our mouse position the same as before this zoom action
-        auto offset = newPosition - oldPosition;
-        cnv->setTopLeftPosition(cnv->getPosition() + offset.roundToInt());
-
-        // This is needed to make sure the viewport the current canvas bounds to the lastVisibleArea variable
-        // Without this, future calls to getViewPosition() will give wrong results
-        resized();
-        cnv->zoomScale = newScaleFactor;
-    }
-
-    void adjustScrollbarBounds()
-    {
-        if (getViewArea().isEmpty())
-            return;
-
-        auto thickness = getScrollBarThickness();
-        auto localArea = getLocalBounds().reduced(2);
-
-        vbar.setBounds(localArea.removeFromRight(thickness).withTrimmedBottom(thickness).translated(-1, 0));
-        hbar.setBounds(localArea.removeFromBottom(thickness).translated(0, -1));
-
-        float scale = 1.0f / std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
-        auto contentArea = getViewArea() * scale;
-
-        Rectangle<int> objectArea = contentArea.withPosition(cnv->canvasOrigin);
-        for (auto object : cnv->objects) {
-            objectArea = objectArea.getUnion(object->getBounds());
-        }
-
-        auto totalArea = contentArea.getUnion(objectArea);
-
-        hbar.setRangeLimitsAndCurrentRange(totalArea.getX(), totalArea.getRight(), contentArea.getX(), contentArea.getRight());
-        vbar.setRangeLimitsAndCurrentRange(totalArea.getY(), totalArea.getBottom(), contentArea.getY(), contentArea.getBottom());
-    }
-
-    void componentMovedOrResized(Component& c, bool moved, bool resized) override
-    {
-        if (editor->isInPluginMode())
-            return;
-
-        Viewport::componentMovedOrResized(c, moved, resized);
-        adjustScrollbarBounds();
-    }
-
-    void visibleAreaChanged(Rectangle<int> const& r) override
-    {
-        if (scaleChanged) {
-            cnv->isZooming = true;
-            startTimer(Timers::ResizeTimer, 150);
-        }
-
-        onScroll();
-        adjustScrollbarBounds();
-        editor->nvgSurface.invalidateAll();
-    }
-
-    void resized() override
-    {
-        vbar.setVisible(isVerticalScrollBarShown());
-        hbar.setVisible(isHorizontalScrollBarShown());
-
-        if (editor->isInPluginMode())
-            return;
-
-        adjustScrollbarBounds();
-
-        if (!SettingsFile::getInstance()->getProperty<bool>("centre_resized_canvas")) {
-            Viewport::resized();
-            return;
-        }
-
-        float scale = std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
-
-        // centre canvas when resizing viewport
-        auto getCentre = [this, scale](Rectangle<int> bounds) {
-            if (scale > 1.0f) {
-                auto point = cnv->getLocalPoint(this, bounds.withZeroOrigin().getCentre());
-                return point * scale;
-            }
-            return getViewArea().withZeroOrigin().getCentre();
-        };
-
-        auto currentCentre = getCentre(previousBounds);
-        previousBounds = getBounds();
+    if (!SettingsFile::getInstance()->getProperty<bool>("centre_resized_canvas")) {
         Viewport::resized();
-        auto newCentre = getCentre(getBounds());
-
-        auto offset = currentCentre - newCentre;
-        setViewPosition(getViewPosition() + offset);
+        return;
     }
 
-    // Never respond to arrow keys, they have a different meaning
-    bool keyPressed(KeyPress const& key) override
-    {
-        return false;
-    }
+    float scale = std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
 
-    std::function<void()> onScroll = []() { };
+    // centre canvas when resizing viewport
+    auto getCentre = [this, scale](Rectangle<int> bounds) {
+        if (scale > 1.0f) {
+            auto point = cnv->getLocalPoint(this, bounds.withZeroOrigin().getCentre());
+            return point * scale;
+        }
+        return getViewArea().withZeroOrigin().getCentre();
+    };
+
+    auto currentCentre = getCentre(previousBounds);
+    previousBounds = getBounds();
+    Viewport::resized();
+    auto newCentre = getCentre(getBounds());
+
+    auto offset = currentCentre - newCentre;
+    setViewPosition(getViewPosition() + offset);
+}
+
+// Never respond to arrow keys, they have a different meaning
+bool keyPressed(KeyPress const& key) override
+{
+    return false;
+}
+
+std::function<void()> onScroll = []() { };
 
 private:
-    enum Timers { ResizeTimer,
-        AnimationTimer };
-    Point<int> startPos;
-    Point<int> targetPos;
-    float lerpAnimation;
-    float animationSpeed;
+enum Timers { ResizeTimer,
+    AnimationTimer };
+Point<int> startPos;
+Point<int> targetPos;
+float lerpAnimation;
+float animationSpeed;
 
-    Time lastScrollTime;
-    Time lastZoomTime;
-    float lastScaleFactor = -1.0f;
-    PluginEditor* editor;
-    Canvas* cnv;
-    Rectangle<int> previousBounds;
-    MousePanner panner = MousePanner(this);
-    ViewportScrollBar vbar = ViewportScrollBar(true, this);
-    ViewportScrollBar hbar = ViewportScrollBar(false, this);
-    bool scaleChanged = false;
-};
+Time lastScrollTime;
+Time lastZoomTime;
+float lastScaleFactor = -1.0f;
+PluginEditor* editor;
+Canvas* cnv;
+Rectangle<int> previousBounds;
+MousePanner panner = MousePanner(this);
+ViewportScrollBar vbar = ViewportScrollBar(true, this);
+ViewportScrollBar hbar = ViewportScrollBar(false, this);
+bool scaleChanged = false;
+}
+;
