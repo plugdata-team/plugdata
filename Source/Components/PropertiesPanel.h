@@ -273,6 +273,15 @@ public:
             addAndMakeVisible(comboBox);
         }
 
+        ComboComponent(String const& propertyName, StringArray const& options)
+            : PropertiesPanelProperty(propertyName)
+            , items(options)
+        {
+            comboBox.addItemList(options, 1);
+            comboBox.getProperties().set("Style", "Inspector");
+            addAndMakeVisible(comboBox);
+        }
+
         void resized() override
         {
             comboBox.setBounds(getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)));

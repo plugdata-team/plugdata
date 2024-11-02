@@ -384,7 +384,7 @@ void SettingsFile::initialiseThemesTree()
             // If it's one of the default themes, validate it against the default theme tree
             if (defaultColourThemesTree.getChildWithProperty("theme", themeName).isValid()) {
                 auto defaultTree = defaultColourThemesTree.getChildWithProperty("theme", themeName);
-                
+
                 for (auto const& [colourId, colourInfo] : PlugDataColourNames) {
                     auto& [cId, colourName, colourCategory] = colourInfo;
                     // For when we add new colours in the future
@@ -392,7 +392,7 @@ void SettingsFile::initialiseThemesTree()
                         themeTree.setProperty(colourName, defaultTree.getProperty(colourName).toString(), nullptr);
                     }
                 }
-                
+
                 if (!themeTree.hasProperty("straight_connections")) {
                     themeTree.setProperty("straight_connections", defaultColourThemesTree.getProperty("straight_connections"), nullptr);
                 }

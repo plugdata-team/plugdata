@@ -377,7 +377,7 @@ public:
         auto bounds = getBoundingBox().getBoundingBox().toNearestInt();
         NVGScopedState scopedState(nvg);
         nvgTranslate(nvg, bounds.getX(), bounds.getY());
-        textRenderer.prepareLayout(getText(), getFont(), getColour(), getWidth(), getWidth());
+        textRenderer.prepareLayout(getText(), getFont(), getColour(), getWidth(), getWidth(), false);
         textRenderer.renderText(nvg, bounds.withZeroOrigin(), scale);
     }
 

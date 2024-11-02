@@ -228,7 +228,7 @@ public:
         for (auto& [port, events] : midiBufferOut) {
             if (port < 0)
                 continue;
-            
+
             for (auto* device : outputPorts[port]) {
                 device->sendBlockOfMessages(events, Time::getMillisecondCounterHiRes(), currentSampleRate);
             }
@@ -301,13 +301,13 @@ public:
             }
         }
     }
-        
+
     void getLastMidiOutputEvents(MidiBuffer& buffer, int numSamples)
     {
         for (auto& [port, events] : midiBufferOut) {
             if (port < 0)
                 continue;
-            
+
             buffer.addEvents(events, 0, numSamples, 0);
         }
     }

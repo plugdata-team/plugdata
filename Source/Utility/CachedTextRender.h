@@ -15,20 +15,58 @@ public:
 
         NVGScopedState scopedState(nvg);
         nvgIntersectScissor(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
-        nvgFillPaint(nvg, nvgImageAlphaPattern(nvg, 0, 0, bounds.getWidth() + 3, bounds.getHeight(), 0, image.getImageId(), NVGComponent::convertColour(lastColour)));
+        auto imagePattern = isSyntaxHighlighted ? nvgImagePattern(nvg, 0, 0, bounds.getWidth() + 3, bounds.getHeight(), 0, image.getImageId(), 1.0f) : nvgImageAlphaPattern(nvg, 0, 0, bounds.getWidth() + 3, bounds.getHeight(), 0, image.getImageId(), NVGComponent::convertColour(lastColour));
+
+        nvgFillPaint(nvg, imagePattern);
         nvgFillRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth() + 3, bounds.getHeight());
     }
 
+    AttributedString getSyntaxHighlightedString(String const& text, Font const& font, Colour const& colour)
+    {
+        auto attributedText = AttributedString();
+        auto tokens = StringArray::fromTokens(text, true);
+
+        auto nameColour = colour.interpolatedWith(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::dataColourId), 0.7f);
+        auto flagColour = colour.interpolatedWith(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::signalColourId), 0.7f);
+
+        bool firstToken = true;
+        bool hadFlag = false;
+        for (auto token : tokens) {
+            if (token != tokens.strings.getLast())
+                token += " ";
+            if (firstToken) {
+                attributedText.append(token, font, nameColour);
+                firstToken = false;
+            } else if (token.startsWith("-") && !token.containsOnly("e.-0123456789 ")) {
+                attributedText.append(token, font, flagColour);
+                hadFlag = true;
+            } else if (hadFlag) {
+                attributedText.append(token, font, nameColour);
+            } else {
+                attributedText.append(token, font, colour);
+            }
+        }
+
+        return attributedText;
+    }
+
     // If you want to use this for text measuring as well, you might want the measuring to be ready before
-    bool prepareLayout(String const& text, Font const& font, Colour const& colour, int const width, int const cachedWidth)
+    bool prepareLayout(String const& text, Font const& font, Colour const& colour, int const width, int const cachedWidth, bool const highlightObjectSyntax)
     {
         auto textHash = hash(text);
         bool needsUpdate = lastTextHash != textHash || colour != lastColour || cachedWidth != lastWidth;
         if (needsUpdate) {
-            auto attributedText = AttributedString(text);
-            attributedText.setColour(Colours::white);
-            attributedText.setJustification(Justification::centredLeft);
-            attributedText.setFont(font);
+
+            AttributedString attributedText;
+            if (highlightObjectSyntax) {
+                attributedText = getSyntaxHighlightedString(text, font, colour);
+                attributedText.setJustification(Justification::centredLeft);
+            } else {
+                attributedText = AttributedString(text);
+                attributedText.setColour(Colours::white);
+                attributedText.setJustification(Justification::centredLeft);
+                attributedText.setFont(font);
+            }
 
             layout = TextLayout();
             layout.createLayout(attributedText, width);
@@ -41,6 +79,8 @@ public:
             updateImage = true;
         }
 
+        isSyntaxHighlighted = highlightObjectSyntax;
+
         return needsUpdate;
     }
 
@@ -52,7 +92,7 @@ public:
         image = NVGImage(nvg, width, height, [this, bounds, scale](Graphics& g) {
             g.addTransform(AffineTransform::scale(scale, scale));
             g.reduceClipRegion(bounds.withTrimmedRight(4)); // If it touches the edges of the image, it'll look bad
-            layout.draw(g, bounds.toFloat()); }, NVGImage::AlphaImage);
+            layout.draw(g, bounds.toFloat()); }, isSyntaxHighlighted ? 0 : NVGImage::AlphaImage);
     }
 
     Rectangle<int> getTextBounds()
@@ -71,4 +111,5 @@ private:
 
     TextLayout layout;
     bool updateImage = false;
+    bool isSyntaxHighlighted = false;
 };

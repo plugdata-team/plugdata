@@ -522,7 +522,7 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     midiByteBuffer[0] = 0;
     midiByteBuffer[1] = 0;
     midiByteBuffer[2] = 0;
-    
+
     midiInputHistory.ensureSize(2048);
     midiOutputHistory.ensureSize(2048);
     midiBufferInternalSynth.ensureSize(2048);
@@ -695,11 +695,11 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     smoothedGain.applyGain(buffer, buffer.getNumSamples());
 
     midiDeviceManager.getLastMidiOutputEvents(midiOutputHistory, buffer.getNumSamples());
-    
+
     statusbarSource->process(midiInputHistory, midiOutputHistory, totalNumOutputChannels);
     statusbarSource->setCPUUsage(cpuLoadMeasurer.getLoadAsPercentage());
     statusbarSource->peakBuffer.write(buffer);
-    
+
     midiInputHistory.clear();
     midiOutputHistory.clear();
 

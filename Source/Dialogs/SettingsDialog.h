@@ -31,31 +31,12 @@ public:
     {
         setVisible(false);
 
-        if (ProjectInfo::isStandalone) {
-            toolbarButtons = {
-                new SettingsToolbarButton(Icons::Audio, "Audio"),
-                new SettingsToolbarButton(Icons::MIDI, "MIDI"),
-                new SettingsToolbarButton(Icons::Pencil, "Themes"),
-                new SettingsToolbarButton(Icons::Search, "Paths"),
-                new SettingsToolbarButton(Icons::Keyboard, "Shortcuts"),
-                new SettingsToolbarButton(Icons::Wrench, "Advanced")
-            };
-        } else {
-            toolbarButtons = {
-                new SettingsToolbarButton(Icons::Audio, "Audio"),
-                new SettingsToolbarButton(Icons::Pencil, "Themes"),
-                new SettingsToolbarButton(Icons::Search, "Paths"),
-                new SettingsToolbarButton(Icons::Keyboard, "Shortcuts"),
-                new SettingsToolbarButton(Icons::Wrench, "Advanced")
-            };
-        }
-
-        currentPanel = std::clamp(lastPanel.load(), 0, toolbarButtons.size() - 1);
+        currentPanel = std::clamp<int>(lastPanel.load(), 0, toolbarButtons.size() - 1);
 
         for (int i = 0; i < toolbarButtons.size(); i++) {
-            toolbarButtons[i]->setRadioGroupId(hash("settings_toolbar_button"));
+            toolbarButtons[i].setRadioGroupId(hash("settings_toolbar_button"));
             addAndMakeVisible(toolbarButtons[i]);
-            toolbarButtons[i]->onClick = [this, i]() mutable { showPanel(i); };
+            toolbarButtons[i].onClick = [this, i]() mutable { showPanel(i); };
         }
 
         searchButton.setClickingTogglesState(true);
@@ -107,7 +88,7 @@ public:
         addChildComponent(searcher.get());
 
         searchButton.toFront(false);
-        toolbarButtons[currentPanel]->setToggleState(true, dontSendNotification);
+        toolbarButtons[currentPanel].setToggleState(true, dontSendNotification);
         panels[currentPanel]->setVisible(true);
         resized();
     }
@@ -123,7 +104,7 @@ public:
         searcher->setBounds(getLocalBounds());
 
         for (auto& button : toolbarButtons) {
-            button->setBounds(toolbarPosition, 1, spacing, toolbarHeight - 2);
+            button.setBounds(toolbarPosition, 1, spacing, toolbarHeight - 2);
             toolbarPosition += spacing;
         }
 
@@ -171,5 +152,12 @@ public:
     OwnedArray<SettingsDialogPanel> panels;
     AudioDeviceManager* deviceManager = nullptr;
 
-    OwnedArray<SettingsToolbarButton> toolbarButtons;
+    StackArray<SettingsToolbarButton, 6> toolbarButtons = {
+        SettingsToolbarButton(Icons::Audio, "Audio"),
+        SettingsToolbarButton(Icons::MIDI, "MIDI"),
+        SettingsToolbarButton(Icons::Pencil, "Themes"),
+        SettingsToolbarButton(Icons::Search, "Paths"),
+        SettingsToolbarButton(Icons::Keyboard, "Shortcuts"),
+        SettingsToolbarButton(Icons::Wrench, "Advanced")
+    };
 };

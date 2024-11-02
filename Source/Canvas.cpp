@@ -2544,7 +2544,7 @@ void Canvas::resized()
     objectLayer.setBounds(getLocalBounds());
 }
 
-void Canvas::setCrosshairOnObject(Object *obj)
+void Canvas::setCrosshairOnObject(Object* obj)
 {
     canvasCrosshair.reset(std::make_unique<CanvasCrosshair>(this, obj).release());
 }

@@ -550,7 +550,7 @@ public:
     void sendNoteOn(int note, int velocity)
     {
         note = std::clamp(note + 12, 0, 255);
-        
+
         StackArray<t_atom, 2> at;
         SETFLOAT(&at[0], note);
         SETFLOAT(&at[1], velocity);

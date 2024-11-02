@@ -330,42 +330,40 @@ public:
 
     void timerCallback(int ID) override
     {
-        switch(ID){
-            case Timers::ResizeTimer: {
-                stopTimer(Timers::ResizeTimer);
-                cnv->isZooming = false;
+        switch (ID) {
+        case Timers::ResizeTimer: {
+            stopTimer(Timers::ResizeTimer);
+            cnv->isZooming = false;
 
-                // Cached geometry can look thicker/thinner at different zoom scales, so we update all cached connections when zooming is done
-                if (scaleChanged) {
-                    // Cached geometry can look thicker/thinner at different zoom scales, so we reset all cached connections when zooming is done
-                    NVGCachedPath::resetAll();
-                }
-
-                scaleChanged = false;
-                editor->nvgSurface.invalidateAll();
+            // Cached geometry can look thicker/thinner at different zoom scales, so we update all cached connections when zooming is done
+            if (scaleChanged) {
+                // Cached geometry can look thicker/thinner at different zoom scales, so we reset all cached connections when zooming is done
+                NVGCachedPath::resetAll();
             }
-            break;
-            case Timers::AnimationTimer: {
-                auto lerp = [](Point<int> start, Point<int> end, float t){
-                    return start.toFloat() + (end.toFloat() - start.toFloat()) * t;
-                };
-                auto movedPos = lerp(startPos, targetPos, lerpAnimation);
-                setViewPosition(movedPos.x, movedPos.y);
 
-                if (lerpAnimation >= 1.0f) {
-                    stopTimer(Timers::AnimationTimer);
-                    lerpAnimation = 0.0f;
-                }
+            scaleChanged = false;
+            editor->nvgSurface.invalidateAll();
+        } break;
+        case Timers::AnimationTimer: {
+            auto lerp = [](Point<int> start, Point<int> end, float t) {
+                return start.toFloat() + (end.toFloat() - start.toFloat()) * t;
+            };
+            auto movedPos = lerp(startPos, targetPos, lerpAnimation);
+            setViewPosition(movedPos.x, movedPos.y);
 
-                lerpAnimation += 0.02f;
+            if (lerpAnimation >= 1.0f) {
+                stopTimer(Timers::AnimationTimer);
+                lerpAnimation = 0.0f;
             }
-            break;
+
+            lerpAnimation += 0.02f;
+        } break;
         }
     }
 
     void setViewPositionAnimated(Point<int> pos)
     {
-        if(getViewPosition() != pos) {
+        if (getViewPosition() != pos) {
             startPos = getViewPosition();
             targetPos = pos;
             lerpAnimation = 0.0f;
@@ -555,7 +553,8 @@ public:
     std::function<void()> onScroll = []() { };
 
 private:
-    enum Timers { ResizeTimer, AnimationTimer };
+    enum Timers { ResizeTimer,
+        AnimationTimer };
     Point<int> startPos;
     Point<int> targetPos;
     float lerpAnimation;

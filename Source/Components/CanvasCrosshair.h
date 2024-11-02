@@ -6,27 +6,27 @@
 
 #pragma once
 
-//#include <utility>
-//#include "Constants.h"
 #include "Canvas.h"
 #include "Object.h"
 
-class CanvasCrosshair : public Component, NVGComponent, Timer
-{
-    Object* targetObj;
+class CanvasCrosshair : public Component
+    , NVGComponent
+    , Timer {
+    SafePointer<Object> targetObj;
     Canvas* parentCnv;
     float opacity = 4.0f;
+
 public:
     CanvasCrosshair(Canvas* cnv, Object* obj)
         : NVGComponent(this)
-        , parentCnv(cnv)
         , targetObj(obj)
+        , parentCnv(cnv)
     {
         cnv->addAndMakeVisible(this);
         startTimerHz(60);
     }
 
-    void timerCallback()
+    void timerCallback() override
     {
         // Fade in log space so it's smoother fade out
         auto log = std::pow(opacity, 1 / 2.2f);
@@ -34,44 +34,47 @@ public:
         opacity = std::pow(log, 2.2f);
 
         parentCnv->repaint();
-        if(opacity <= 0.0f) {
+        if (opacity <= 0.0f || !std::isfinite(opacity)) {
             stopTimer();
             parentCnv->removeCanvasCrosshair();
+            opacity = 0.0f;
         }
     }
 
     void render(NVGcontext* nvg) override
     {
-        auto oB = targetObj->getBounds();
+        if (targetObj) {
+            auto oB = targetObj->getBounds();
 
-        nvgBeginPath(nvg);
+            nvgBeginPath(nvg);
 
-        // left line
-        nvgMoveTo(nvg, 0, oB.getCentreY());
-        nvgLineTo(nvg, oB.getPosition().x + Object::margin, oB.getCentreY());
-        // right line
-        nvgMoveTo(nvg, oB.getRight() - Object::margin, oB.getCentreY());
-        nvgLineTo(nvg, Canvas::infiniteCanvasSize, oB.getCentreY());
-        // top line
-        nvgMoveTo(nvg, oB.getCentreX(), 0);
-        nvgLineTo(nvg, oB.getCentreX(), oB.getPosition().y + Object::margin);
-        // bottom line
-        nvgMoveTo(nvg, oB.getCentreX(), oB.getBottom() - Object::margin);
-        nvgLineTo(nvg,  oB.getCentreX(), Canvas::infiniteCanvasSize);
+            // left line
+            nvgMoveTo(nvg, 0, oB.getCentreY());
+            nvgLineTo(nvg, oB.getPosition().x + Object::margin, oB.getCentreY());
+            // right line
+            nvgMoveTo(nvg, oB.getRight() - Object::margin, oB.getCentreY());
+            nvgLineTo(nvg, Canvas::infiniteCanvasSize, oB.getCentreY());
+            // top line
+            nvgMoveTo(nvg, oB.getCentreX(), 0);
+            nvgLineTo(nvg, oB.getCentreX(), oB.getPosition().y + Object::margin);
+            // bottom line
+            nvgMoveTo(nvg, oB.getCentreX(), oB.getBottom() - Object::margin);
+            nvgLineTo(nvg, oB.getCentreX(), Canvas::infiniteCanvasSize);
 
-        auto iCol = parentCnv->selectedOutlineCol;
-        iCol.a = opacity > 1.0f ? 150 : 150 * opacity;
+            auto iCol = parentCnv->selectedOutlineCol;
+            iCol.a = opacity > 1.0f ? 150 : 150 * opacity;
 
-//#define DoubleLine
+            // #define DoubleLine
 #ifdef DoubleLine
-        auto oCol = nvgLerpRGBA(parentCnv->selectedOutlineCol, nvgRGBA(0, 0, 0, 0), 0.5f);
-        oCol.a = opacity > 1.0f ? 80 : 80 * opacity;
-        nvgStrokeWidth(nvg, 6.0f);
-        nvgStrokeColor(nvg, oCol);
-        nvgStroke(nvg);
+            auto oCol = nvgLerpRGBA(parentCnv->selectedOutlineCol, nvgRGBA(0, 0, 0, 0), 0.5f);
+            oCol.a = opacity > 1.0f ? 80 : 80 * opacity;
+            nvgStrokeWidth(nvg, 6.0f);
+            nvgStrokeColor(nvg, oCol);
+            nvgStroke(nvg);
 #endif
-        nvgStrokeWidth(nvg, 4.0f);
-        nvgStrokeColor(nvg, iCol);
-        nvgStroke(nvg);
+            nvgStrokeWidth(nvg, 4.0f);
+            nvgStrokeColor(nvg, iCol);
+            nvgStroke(nvg);
+        }
     }
 };

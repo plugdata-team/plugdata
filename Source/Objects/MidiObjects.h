@@ -44,7 +44,7 @@ public:
         auto currentPort = text.size() > 1 ? text[1].getIntValue() : 0;
         auto currentCC = text.size() > 2 ? text[2].getIntValue() : 0;
 
-        if(midiInput) {
+        if (midiInput) {
             popupMenu.addItem(1, "All input devices", true, currentPort == 0);
         }
 
@@ -94,7 +94,7 @@ public:
             popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(80).withMaximumNumColumns(1).withTargetComponent(this), ModalCallbackFunction::create([this](int itemID) {
                 if (itemID == 0)
                     return;
-                
+
                 itemID -= 1;
 
                 if (isCtl) {
