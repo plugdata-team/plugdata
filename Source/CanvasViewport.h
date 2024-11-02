@@ -354,10 +354,13 @@ public:
             auto movedPos = lerp(startPos, targetPos, lerpAnimation);
             setViewPosition(movedPos.x, movedPos.y);
 
-            lerpAnimation += animationSpeed;
-        }
+            if (lerpAnimation >= 1.0f) {
+                stopTimer(Timers::AnimationTimer);
+                lerpAnimation = 0.0f;
+            }
 
-        break;
+            lerpAnimation += animationSpeed;
+        } break;
         }
     }
 
