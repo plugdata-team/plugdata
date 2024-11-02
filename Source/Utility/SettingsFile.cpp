@@ -394,25 +394,25 @@ void SettingsFile::initialiseThemesTree()
                 }
 
                 if (!themeTree.hasProperty("straight_connections")) {
-                    themeTree.setProperty("straight_connections", defaultColourThemesTree.getProperty("straight_connections"), nullptr);
+                    themeTree.setProperty("straight_connections", defaultTree.getProperty("straight_connections"), nullptr);
                 }
                 if (!themeTree.hasProperty("connection_style")) {
-                    themeTree.setProperty("connection_style", defaultColourThemesTree.getProperty("connection_style"), nullptr);
+                    themeTree.setProperty("connection_style", defaultTree.getProperty("connection_style"), nullptr);
                 }
                 if (!themeTree.hasProperty("square_iolets")) {
-                    themeTree.setProperty("square_iolets", defaultColourThemesTree.getProperty("square_iolets"), nullptr);
+                    themeTree.setProperty("square_iolets", defaultTree.getProperty("square_iolets"), nullptr);
                 }
                 if (!themeTree.hasProperty("square_object_corners")) {
-                    themeTree.setProperty("square_object_corners", defaultColourThemesTree.getProperty("square_object_corners"), nullptr);
+                    themeTree.setProperty("square_object_corners", defaultTree.getProperty("square_object_corners"), nullptr);
                 }
                 if (!themeTree.hasProperty("object_flag_outlined")) {
-                    themeTree.setProperty("object_flag_outlined", defaultColourThemesTree.getProperty("object_flag_outlined"), nullptr);
+                    themeTree.setProperty("object_flag_outlined", defaultTree.getProperty("object_flag_outlined"), nullptr);
                 }
                 if (!themeTree.hasProperty("iolet_spacing_edge")) {
-                    themeTree.setProperty("iolet_spacing_edge", defaultColourThemesTree.getProperty("iolet_spacing_edge"), nullptr);
+                    themeTree.setProperty("iolet_spacing_edge", defaultTree.getProperty("iolet_spacing_edge"), nullptr);
                 }
                 if (!themeTree.hasProperty("highlight_syntax")) {
-                    themeTree.setProperty("highlight_syntax", defaultColourThemesTree.getProperty("highlight_syntax"), nullptr);
+                    themeTree.setProperty("highlight_syntax", defaultTree.getProperty("highlight_syntax"), nullptr);
                 }
             }
             // Otherwise, just ensure these properties exist

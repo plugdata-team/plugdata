@@ -19,8 +19,8 @@ class CanvasSearchHighlight : public Component
 public:
     CanvasSearchHighlight(Canvas* cnv, Object* obj)
         : NVGComponent(this)
-        , parentCnv(cnv)
         , targetObj(obj)
+        , parentCnv(cnv)
     {
         cnv->addAndMakeVisible(this);
         startTimerHz(60);
@@ -28,7 +28,7 @@ public:
         setBounds(targetObj->getBounds());
     }
 
-    void timerCallback()
+    void timerCallback() override
     {
         opacity -= 0.04f;
         repaint();

@@ -449,7 +449,7 @@ public:
 
         panel.addSection("Active Themes", { primaryThemeSelector, secondaryThemeSelector });
 
-        SmallArray<Value*> straightConnectionValues, connectionStyle, connectionLook, ioletSpacingEdge, squareIolets, squareObjectCorners, objectFlagOutlined, highlightSynax;
+        SmallArray<Value*> straightConnectionValues, connectionStyle, connectionLook, ioletSpacingEdge, squareIolets, squareObjectCorners, objectFlagOutlined, highlightSyntax;
 
         for (int i = 0; i < 2; i++) {
             auto const& themeName = PlugDataLook::selectedThemes[i];
@@ -486,7 +486,7 @@ public:
             squareIolets.add(&swatch["square_iolets"]);
             squareObjectCorners.add(&swatch["square_object_corners"]);
             objectFlagOutlined.add(&swatch["object_flag_outlined"]);
-            highlightSynax.add(&swatch["highlight_syntax"]);
+            highlightSyntax.add(&swatch["highlight_syntax"]);
         }
 
         auto* useObjectCorners = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Object corners", squareObjectCorners, { "Round", "Square" });
@@ -497,7 +497,7 @@ public:
         allPanels.add(useObjectFlagOutlined);
         addAndMakeVisible(*useObjectFlagOutlined);
 
-        auto* useSyntaxHighlighting = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Enable syntax highlighting", objectFlagOutlined, { "No", "Yes" });
+        auto* useSyntaxHighlighting = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Enable syntax highlighting", highlightSyntax, { "No", "Yes" });
         allPanels.add(useSyntaxHighlighting);
         addAndMakeVisible(*useSyntaxHighlighting);
 
@@ -521,7 +521,7 @@ public:
         allPanels.add(useConnectionStyle);
         addAndMakeVisible(*useConnectionStyle);
 
-        panel.addSection("Object & Connection Look", { useObjectCorners, useObjectFlagOutlined, useIoletCorners, useIoletSpacingEdge, useStraightConnections, useConnectionLook, useConnectionStyle });
+        panel.addSection("Object & Connection Look", { useObjectCorners, useObjectFlagOutlined, useSyntaxHighlighting, useIoletCorners, useIoletSpacingEdge, useStraightConnections, useConnectionLook, useConnectionStyle });
 
         // Create the panels by category
         for (auto const& [sectionName, sectionColours] : panels) {
