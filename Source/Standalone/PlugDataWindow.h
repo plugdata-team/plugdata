@@ -52,7 +52,6 @@ namespace pd {
 class Patch;
 }
 
-
 class StandalonePluginHolder : private AudioIODeviceCallback
     , public Component {
 public:
@@ -218,7 +217,6 @@ public:
     Array<PluginInOuts> channelConfiguration;
 
     std::unique_ptr<AudioDeviceManager::AudioDeviceSetup> options;
-    Array<MidiDeviceInfo> lastMidiDevices;
 
     std::unique_ptr<FileChooser> stateFileChooser;
 

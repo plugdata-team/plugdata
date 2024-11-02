@@ -523,7 +523,7 @@ public:
         Fonts::drawIcon(g, Icons::MIDI, getLocalBounds().removeFromLeft(16).withTrimmedTop(1), textColour.brighter(isHovered ? 0.8f : 0.0f), 13);
 
         auto offsetY = getHeight() / 4.0f;
-        const auto offsetX = 20.0f;
+        auto const offsetX = 20.0f;
 
         auto midiInPos = Point<float>(offsetX, offsetY);
         auto midiOutPos = Point<float>(offsetX, offsetY * 2.4f);

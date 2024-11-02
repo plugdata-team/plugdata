@@ -12,7 +12,7 @@
 #include "Utility/Config.h"
 #include "Utility/Limiter.h"
 #include "Utility/SettingsFile.h"
-#include "Utility/AudioMidiFifo.h"
+#include "Utility/AudioFifo.h"
 #include "Utility/MidiDeviceManager.h"
 
 #include "Pd/Instance.h"
@@ -32,8 +32,7 @@ class ConnectionMessageDisplay;
 class Object;
 class PluginProcessor final : public AudioProcessor
     , public pd::Instance
-    , public SettingsFileListener
-    , public MidiInputCallback {
+    , public SettingsFileListener {
 public:
     PluginProcessor();
 
@@ -100,10 +99,8 @@ public:
 
     void processConstant(dsp::AudioBlock<float>, MidiBuffer& midiBuffer);
     void processVariable(dsp::AudioBlock<float>, MidiBuffer& midiBuffer);
-        
+
     MidiDeviceManager& getMidiDeviceManager();
-    MidiMessageCollector& getMidiMessageCollector(int device);
-    void handleIncomingMidiMessage(MidiInput* input, MidiMessage const& message) override;
 
     bool canAddBus(bool isInput) const override
     {
@@ -115,8 +112,6 @@ public:
         int nbus = getBusCount(isInput);
         return nbus > 0;
     }
-        
-
 
     void updatePatchUndoRedoState();
 
@@ -125,7 +120,7 @@ public:
     void initialiseFilesystem();
     void updateSearchPaths();
 
-    void sendMidiBuffer(int device);
+    void sendMidiBuffer(int device, MidiBuffer& buffer);
     void sendPlayhead();
     void sendParameters();
 
@@ -182,7 +177,7 @@ public:
     std::atomic<int> oversampling = 0;
 
     std::unique_ptr<InternalSynth> internalSynth;
-    std::atomic<bool> enableInternalSynth = false;
+    std::atomic<int> internalSynthPort = -1;
 
     OwnedArray<PluginEditor> openedEditors;
     Component::SafePointer<ConnectionMessageDisplay> connectionListener;
@@ -203,14 +198,12 @@ private:
     HeapArray<float> audioVectorIn;
     HeapArray<float> audioVectorOut;
 
-    std::unique_ptr<AudioMidiFifo> inputFifo;
-    std::unique_ptr<AudioMidiFifo> outputFifo;
+    std::unique_ptr<AudioFifo> inputFifo;
+    std::unique_ptr<AudioFifo> outputFifo;
 
-    MidiBuffer midiBufferIn;
-    std::map<int, MidiBuffer> midiBufferOut;
-    std::map<int, MidiMessageCollector> midiMessageCollector;
+    MidiBuffer midiInputHistory, midiOutputHistory;
     MidiBuffer midiBufferInternalSynth;
-        
+
     MidiDeviceManager midiDeviceManager;
 
     AudioProcessLoadMeasurer cpuLoadMeasurer;

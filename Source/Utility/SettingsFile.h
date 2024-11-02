@@ -158,6 +158,7 @@ private:
         "RecentlyOpened",
         "Libraries",
         "EnabledMidiOutputPorts",
+        "EnabledMidiInputPorts",
         "LastBrowserPaths",
     };
 

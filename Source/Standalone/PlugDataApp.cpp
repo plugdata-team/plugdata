@@ -292,10 +292,6 @@ void StandalonePluginHolder::setupAudioDevices(bool enableAudioInput, String con
 #else
     deviceManager.addAudioCallback(this);
 #endif
-    
-    auto* p = static_cast<PluginProcessor*>(processor.get());
-    deviceManager.addMidiInputDeviceCallback({}, p);
-
     reloadAudioDeviceState(enableAudioInput, preferredDefaultDeviceName, preferredSetupOptions);
 }
 
@@ -303,15 +299,11 @@ void StandalonePluginHolder::shutDownAudioDevices()
 {
     saveAudioDeviceState();
 
-    auto* p = static_cast<PluginProcessor*>(processor.get());
-    deviceManager.removeMidiInputDeviceCallback({}, p);
-
 #if JUCE_IOS
     deviceManager.removeAudioCallback(&maxSizeEnforcer);
 #else
     deviceManager.removeAudioCallback(this);
 #endif
 }
-
 
 START_JUCE_APPLICATION(PlugDataApp)

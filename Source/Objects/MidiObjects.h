@@ -20,22 +20,18 @@ public:
 
     void setChannel(int channel)
     {
-        if (channel == 1) {
+        if (channel == 0) {
             object->setType(getText().upToFirstOccurrenceOf(" ", false, false));
         } else {
-            if (midiInput)
-                channel -= 16;
             object->setType(getText().upToFirstOccurrenceOf(" ", false, false) + " " + String(channel));
         }
     }
 
     void setChannelAndCC(int channel, int cc)
     {
-        if (channel == 1) {
+        if (channel == 0) {
             object->setType(getText().upToFirstOccurrenceOf(" ", false, false) + " " + String(cc));
         } else {
-            if (midiInput)
-                channel -= 16;
             object->setType(getText().upToFirstOccurrenceOf(" ", false, false) + " " + String(channel));
         }
     }
@@ -48,65 +44,38 @@ public:
         auto currentPort = text.size() > 1 ? text[1].getIntValue() : 0;
         auto currentCC = text.size() > 2 ? text[2].getIntValue() : 0;
 
-        if(ProjectInfo::isStandalone) {
-            popupMenu.addItem(1, "All devices by channel", true, currentPort == 0);
-        }
-        else {
-            popupMenu.addItem(1, "DAW MIDI " + (midiInput ? String("input") : String("output")), true, currentPort == 0);
+        if(midiInput) {
+            popupMenu.addItem(1, "All input devices", true, currentPort == 0);
         }
 
         auto& midiDeviceManager = pd->getMidiDeviceManager();
-        
         if (midiInput) {
-            int port = 1;
-            for (auto const& input : midiDeviceManager.getInputDevices()) {
+            for (int port = 0; port < 8; port++) {
                 PopupMenu subMenu;
                 for (int ch = 1; ch < 17; ch++) {
-                    int portNumber = ch + (port << 4);
-                    
+                    int portNumber = (ch + (port << 4)) + 1;
+
                     if (isCtl) {
                         subMenu.addSubMenu("Channel " + String(ch), getCCSubmenu(portNumber, portNumber == currentPort, currentCC), true);
-                        // Call function to append CC submenu!
                     } else {
                         subMenu.addItem(portNumber, "Channel " + String(ch), true, portNumber == currentPort);
                     }
                 }
-                
-                popupMenu.addSubMenu(input.name, subMenu, midiDeviceManager.isMidiDeviceEnabled(midiInput, input.identifier));
-                port++;
+                popupMenu.addSubMenu(midiDeviceManager.getPortDescription(true, port), subMenu, true);
             }
         } else {
-            int port = 1;
-            for (auto const& output : midiDeviceManager.getOutputDevices()) {
+            for (int port = 0; port < 8; port++) {
                 PopupMenu subMenu;
                 for (int ch = 1; ch < 17; ch++) {
-                    int portNumber = ch + (port << 4);
+                    int portNumber = (ch + (port << 4)) + 1;
                     if (isCtl) {
                         subMenu.addSubMenu("Channel " + String(ch), getCCSubmenu(portNumber, portNumber == currentPort, currentCC), true);
                     } else {
                         subMenu.addItem(portNumber, "Channel " + String(ch), true, portNumber == currentPort);
                     }
                 }
-                
-                popupMenu.addSubMenu(output.name, subMenu, midiDeviceManager.isMidiDeviceEnabled(midiInput, output.identifier));
-                port++;
+                popupMenu.addSubMenu(midiDeviceManager.getPortDescription(false, port), subMenu, true);
             }
-            
-            // Add MIDI output option for internal synth
-            // This will automatically get chosen if the midi output port number is out of range
-            PopupMenu subMenu;
-            for (int ch = 1; ch < 17; ch++) {
-                int portNumber = ch + (port << 4);
-                if (isCtl) {
-                    subMenu.addSubMenu("Channel " + String(ch), getCCSubmenu(portNumber, portNumber == currentPort, currentCC), true);
-                    // Call function to append CC submenu!
-                } else {
-                    subMenu.addItem(portNumber, "Channel " + String(ch), true, portNumber == currentPort);
-                }
-            }
-            
-            auto internalSynthEnabled = SettingsFile::getInstance()->getProperty<bool>("internal_synth");
-            popupMenu.addSubMenu("Internal GM Synth", subMenu, internalSynthEnabled);
         }
 
         return popupMenu;
@@ -125,6 +94,8 @@ public:
             popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(80).withMaximumNumColumns(1).withTargetComponent(this), ModalCallbackFunction::create([this](int itemID) {
                 if (itemID == 0)
                     return;
+                
+                itemID -= 1;
 
                 if (isCtl) {
                     auto channelDevice = itemID & 0x1FF;
