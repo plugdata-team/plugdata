@@ -1303,33 +1303,38 @@ void Canvas::mouseUp(MouseEvent const& e)
 
 void Canvas::updateSidebarSelection()
 {
-    auto lassoSelection = getSelectionOfType<Object>();
+    // Post to message queue so that parameters are updated AFTER objects resize is run
+    // Otherwise position XY is not populated
 
-    if (lassoSelection.size() > 0) {
-        SmallArray<ObjectParameters, 6> allParameters;
-        for (auto* object : lassoSelection) {
-            if (!object->gui)
-                continue;
-            auto parameters = object->gui ? object->gui->getParameters() : ObjectParameters();
-            auto showOnSelect = object->gui && object->gui->showParametersWhenSelected();
-            if (showOnSelect) {
-                allParameters.add(parameters);
-            }
-        }
+    MessageManager::callAsync([this]() {
+        auto lassoSelection = getSelectionOfType<Object>();
 
-        if (allParameters.not_empty() || editor->sidebar->isPinned()) {
-            String objectName = "(" + String(lassoSelection.size()) + " selected)";
-            if (lassoSelection.size() == 1 && lassoSelection.front()) {
-                objectName = lassoSelection.back()->getType(false);
+        if (lassoSelection.size() > 0) {
+            SmallArray<ObjectParameters, 6> allParameters;
+            for (auto* object : lassoSelection) {
+                if (!object->gui)
+                    continue;
+                auto parameters = object->gui ? object->gui->getParameters() : ObjectParameters();
+                auto showOnSelect = object->gui && object->gui->showParametersWhenSelected();
+                if (showOnSelect) {
+                    allParameters.add(parameters);
+                }
             }
 
-            editor->sidebar->showParameters(objectName, allParameters);
+            if (allParameters.not_empty() || editor->sidebar->isPinned()) {
+                String objectName = "(" + String(lassoSelection.size()) + " selected)";
+                if (lassoSelection.size() == 1 && lassoSelection.front()) {
+                    objectName = lassoSelection.back()->getType(false);
+                }
+                std::cout << "show params" << std::endl;
+                editor->sidebar->showParameters(objectName, allParameters);
+            } else {
+                editor->sidebar->hideParameters();
+            }
         } else {
             editor->sidebar->hideParameters();
         }
-    } else {
-        editor->sidebar->hideParameters();
-    }
+    });
 }
 
 bool Canvas::keyPressed(KeyPress const& key)
