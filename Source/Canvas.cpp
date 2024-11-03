@@ -1303,7 +1303,7 @@ void Canvas::mouseUp(MouseEvent const& e)
 
 void Canvas::updateSidebarSelection()
 {
-    // Post to message queue so that parameters are updated AFTER objects resize is run
+    // Post to message queue so that sidebar parameters are updated AFTER objects resize is run
     // Otherwise position XY is not populated
 
     MessageManager::callAsync([this]() {
@@ -1326,7 +1326,6 @@ void Canvas::updateSidebarSelection()
                 if (lassoSelection.size() == 1 && lassoSelection.front()) {
                     objectName = lassoSelection.back()->getType(false);
                 }
-                std::cout << "show params" << std::endl;
                 editor->sidebar->showParameters(objectName, allParameters);
             } else {
                 editor->sidebar->hideParameters();

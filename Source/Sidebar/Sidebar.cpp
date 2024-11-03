@@ -366,11 +366,6 @@ void Sidebar::hideParameters()
         inspector->setVisible(false);
     }
 
-    if (pinned) {
-        SmallArray<ObjectParameters, 6> params = {};
-        inspector->loadParameters(params);
-    }
-
     console->deselect();
     updateExtraSettingsButton();
 
