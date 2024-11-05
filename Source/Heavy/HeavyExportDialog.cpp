@@ -87,7 +87,7 @@ public:
         auto heavyState = settingsTree.getChildWithName("HeavyState");
         if (heavyState.isValid()) {
             this->setState(heavyState);
-            for (int i = 0; i < 4; i++) {
+            for (int i = 0; i < 5; i++) {
                 views[i]->blockDialog = true;
                 views[i]->setState(heavyState);
                 views[i]->blockDialog = false;
