@@ -29,13 +29,27 @@ class PropertiesPanelProperty;
 using CustomPanelCreateFn = std::function<PropertiesPanelProperty*(void)>;
 using InteractionFn = std::function<void(bool)>;
 
-using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Value*, StringArray, var, CustomPanelCreateFn, InteractionFn>;
+struct ObjectParameter
+{
+    String name;
+    ParameterType type;
+    ParameterCategory category;
+    Value* valuePtr;
+    StringArray options;
+    var defaultValue;
+    CustomPanelCreateFn createFn;
+    InteractionFn interactionFn;
+
+    ObjectParameter(String name, ParameterType type, ParameterCategory category, Value* valuePtr, StringArray options, var defaultValue, CustomPanelCreateFn createFn, InteractionFn interactionFn)
+            : name(name), type(type), category(category), valuePtr(valuePtr), options(options), defaultValue(defaultValue), createFn(createFn), interactionFn(interactionFn)
+    {}
+};
 
 class ObjectParameters {
 public:
     ObjectParameters() = default;
 
-    SmallArray<ObjectParameter, 16> getParameters()
+    SmallArray<ObjectParameter, 6> getParameters()
     {
         return objectParameters;
     }
@@ -48,14 +62,14 @@ public:
     void resetAll()
     {
         auto& lnf = LookAndFeel::getDefaultLookAndFeel();
-        for (auto [name, type, category, value, options, defaultVal, customComponent, onInteractionFn] : objectParameters) {
-            if (!defaultVal.isVoid()) {
-                if (type == tColour) {
-                    value->setValue(lnf.findColour(defaultVal).toString());
-                } else if (defaultVal.isArray() && defaultVal.getArray()->isEmpty()) {
+        for (auto param : objectParameters) {
+            if (!param.defaultValue.isVoid()) {
+                if (param.type == tColour) {
+                    param.valuePtr->setValue(lnf.findColour(param.defaultValue).toString());
+                } else if (param.defaultValue.isArray() && param.defaultValue.getArray()->isEmpty()) {
                     return;
                 } else {
-                    value->setValue(defaultVal);
+                    param.valuePtr->setValue(param.defaultValue);
                 }
             }
         }
@@ -144,10 +158,10 @@ public:
     }
 
 private:
-    SmallArray<ObjectParameter, 16> objectParameters;
+    SmallArray<ObjectParameter, 6> objectParameters;
 
     static ObjectParameter makeParam(String const& pString, ParameterType pType, ParameterCategory pCat, Value* pVal, StringArray const& pStringList, var const& pDefault, CustomPanelCreateFn customComponentFn = nullptr, InteractionFn onInteractionFn = nullptr)
     {
-        return std::make_tuple(pString, pType, pCat, pVal, pStringList, pDefault, customComponentFn, onInteractionFn);
+        return {pString, pType, pCat, pVal, pStringList, pDefault, customComponentFn, onInteractionFn};
     }
 };
