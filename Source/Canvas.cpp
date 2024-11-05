@@ -824,8 +824,8 @@ void Canvas::save(std::function<void()> const& nestedCallback)
     if (canvasToSave->patch.getCurrentFile().existsAsFile()) {
         canvasToSave->patch.savePatch();
         SettingsFile::getInstance()->addToRecentlyOpened(canvasToSave->patch.getCurrentFile());
-        nestedCallback();
         pd->titleChanged();
+        nestedCallback();
     } else {
         saveAs(nestedCallback);
     }
