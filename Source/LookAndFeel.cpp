@@ -1188,7 +1188,7 @@ const String PlugDataLook::defaultThemesXml = R"(
         caret_colour="ff42a2c8" text_object_background="ff232323" iolet_area_colour="ff232323"
         iolet_outline_colour="ff696969" comment_text_colour="ffe1e1e1"
         straight_connections="0" connection_style="1" connection_look="0"
-        square_iolets="0" square_object_corners="0" iolet_spacing_edge="0" object_flag_outlined="0" highlight_syntax="1"/>
+        square_iolets="0" square_object_corners="0" iolet_spacing_edge="0" object_flag_outlined="0" highlight_syntax="0"/>
     <Theme theme="light" toolbar_background="ffebebeb" toolbar_text="ff373737"
         toolbar_active="ff007aff" toolbar_hover="ffe0e0e0" tabbar_background="ffebebeb"
         tab_text="ff373737" selected_tab_background="ffe0e0e0" selected_tab_text="ff373737"
@@ -1208,7 +1208,7 @@ const String PlugDataLook::defaultThemesXml = R"(
         iolet_area_colour="fffafafa" iolet_outline_colour="ffc2c2c2"
         comment_text_colour="ff373737"
         straight_connections="0" connection_style="1" connection_look="0"
-        square_iolets="0" square_object_corners="0" iolet_spacing_edge="0" object_flag_outlined="0" highlight_syntax="1"/>
+        square_iolets="0" square_object_corners="0" iolet_spacing_edge="0" object_flag_outlined="0" highlight_syntax="0"/>
     <Theme theme="warm" toolbar_background="ffd2cdc4" toolbar_text="ff5a5a5a"
         toolbar_active="ff5da0c4" toolbar_hover="ffc0bbb2" tabbar_background="ffd2cdc4"
         tab_text="ff5a5a5a" selected_tab_background="ffc0bbb2" selected_tab_text="ff5a5a5a"
