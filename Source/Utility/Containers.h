@@ -32,6 +32,13 @@
 #    define LLVM_ATTRIBUTE_RETURNS_NONNULL
 #endif
 
+#if defined(__has_feature)
+#  if __has_feature(address_sanitizer)
+#include <sanitizer/asan_interface.h>
+#define ASAN_ENABLED 1
+#endif
+#endif
+
 #include <cassert>
 #include <algorithm>
 #include <limits>
@@ -2266,6 +2273,9 @@ private:
         num_preallocated--;
         T* ptr =  preallocated++;
         new (ptr) T(std::forward<Args>(args)...);
+#if ASAN_ENABLED
+        __asan_unpoison_memory_region(ptr, sizeof(T));
+#endif
         return ptr;
     }
 
@@ -2274,6 +2284,9 @@ private:
         if (ptr) {
             ptr->~T();
             reuse_list.add(ptr);
+#if ASAN_ENABLED
+            __asan_poison_memory_region(ptr, sizeof(T));
+#endif
         }
     }
     
@@ -2288,6 +2301,9 @@ private:
         for(int i = 0; i < num_preallocated; i++)
         {
             reuse_list.add(preallocated + i);
+#if ASAN_ENABLED
+            __asan_poison_memory_region(preallocated + i, sizeof(T));
+#endif
         }
         
         num_preallocated = amount;
