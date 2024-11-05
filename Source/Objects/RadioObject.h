@@ -48,10 +48,11 @@ public:
         }
 
         iemHelper.update();
-
-        onConstrainerCreate = [this]() {
-            updateAspectRatio();
-        };
+    }
+    
+    void onConstrainerCreate() override
+    {
+        updateAspectRatio();
     }
 
     bool inletIsSymbol() override

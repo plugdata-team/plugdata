@@ -81,7 +81,7 @@ private:
 
     // Initialisation parameters for GUI objects
     // Taken from pd save files, this will make sure that it directly initialises objects with the right parameters
-    static inline std::map<String, String> const guiDefaults = {
+    static inline UnorderedMap<String, String> const guiDefaults = {
         // UI OBJECTS:
         { "bng", "25 250 50 0 empty empty empty 17 7 0 10 @bgColour @fgColour @lblColour" },
         { "tgl", "25 0 empty empty empty 17 7 0 10 @bgColour @fgColour @lblColour 0 1" },

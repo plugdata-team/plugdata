@@ -86,7 +86,7 @@ private:
     WaitableEvent initWait;
     pd::Instance* pd;
 
-    std::unordered_map<hash32, ValueTree> documentationIndex;
+    UnorderedMap<hash32, ValueTree> documentationIndex;
     bool isInitialised = false;
 };
 

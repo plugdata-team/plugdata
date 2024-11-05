@@ -21,8 +21,6 @@ public:
     IEMHelper(pd::WeakReference iemgui, Object* parent, ObjectBase* base)
         : object(parent)
         , gui(base)
-        , cnv(parent->cnv)
-        , pd(parent->cnv->pd)
         , ptr(iemgui)
     {
     }
@@ -41,7 +39,7 @@ public:
         // we only need the callback that colourHasChanged will trigger for the object ATM.
         labelColour = getLabelColour().toString();
 
-        gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, cnv->editor->getLookAndFeel().findColour(Label::textWhenEditingColourId));
+        gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, object->cnv->editor->getLookAndFeel().findColour(Label::textWhenEditingColourId));
         gui->getLookAndFeel().setColour(Label::textColourId, Colour::fromString(primaryColour.toString()));
 
         gui->getLookAndFeel().setColour(TextButton::buttonOnColourId, Colour::fromString(primaryColour.toString()));
@@ -398,7 +396,7 @@ public:
     void setSendSymbol(String const& symbol) const
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
-            auto* sym = symbol.isEmpty() ? pd->generateSymbol("empty") : pd->generateSymbol(symbol);
+            auto* sym = symbol.isEmpty() ? gui->pd->generateSymbol("empty") : gui->pd->generateSymbol(symbol);
             iemgui_send(iemgui.get(), iemgui.get(), sym);
         }
     }
@@ -406,7 +404,7 @@ public:
     void setReceiveSymbol(String const& symbol) const
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
-            auto* sym = symbol.isEmpty() ? pd->generateSymbol("empty") : pd->generateSymbol(symbol);
+            auto* sym = symbol.isEmpty() ? gui->pd->generateSymbol("empty") : gui->pd->generateSymbol(symbol);
             iemgui_receive(iemgui.get(), iemgui.get(), sym);
         }
     }
@@ -508,7 +506,7 @@ public:
             newText = String("empty");
 
         if (auto iemgui = ptr.get<t_iemgui>()) {
-            iemgui_label(static_cast<void*>(iemgui->x_glist), iemgui.get(), pd->generateSymbol(newText));
+            iemgui_label(static_cast<void*>(iemgui->x_glist), iemgui.get(), gui->pd->generateSymbol(newText));
         }
     }
 
@@ -522,7 +520,7 @@ public:
 
     std::function<void()> iemColourChangedCallback = []() { };
 
-    int iemgui_color_hex[30] = {
+    static constexpr int iemgui_color_hex[30] = {
         16579836, 10526880, 4210752, 16572640, 16572608,
         16579784, 14220504, 14220540, 14476540, 16308476,
         14737632, 8158332, 2105376, 16525352, 16559172,
@@ -533,8 +531,6 @@ public:
 
     Object* object;
     ObjectBase* gui;
-    Canvas* cnv;
-    PluginProcessor* pd;
 
     pd::WeakReference ptr;
 

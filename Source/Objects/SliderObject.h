@@ -202,22 +202,23 @@ public:
             stopEdition();
         };
 
-        onConstrainerCreate = [this]() {
-            auto minLongSide = 8;
-            auto minShortSide = 8;
-            if (isVertical) {
-                constrainer->setMinimumSize(minShortSide, minLongSide);
-            } else {
-                constrainer->setMinimumSize(minLongSide, minShortSide);
-            }
-        };
-
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamFloat("Minimum", cGeneral, &min, 0.0f);
         objectParameters.addParamFloat("Maximum", cGeneral, &max, 127.0f);
         objectParameters.addParamBool("Logarithmic", cGeneral, &isLogarithmic, { "Off", "On" }, 0);
         objectParameters.addParamBool("Steady", cGeneral, &steadyOnClick, { "Jump on click", "Steady on click" }, 1);
         iemHelper.addIemParameters(objectParameters);
+    }
+    
+    void onConstrainerCreate() override
+    {
+        auto minLongSide = 8;
+        auto minShortSide = 8;
+        if (isVertical) {
+            constrainer->setMinimumSize(minShortSide, minLongSide);
+        } else {
+            constrainer->setMinimumSize(minLongSide, minShortSide);
+        }
     }
 
     void update() override

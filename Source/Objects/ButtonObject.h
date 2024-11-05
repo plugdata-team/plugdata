@@ -28,17 +28,18 @@ public:
     ButtonObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
     {
-        onConstrainerCreate = [this]() {
-            constrainer->setFixedAspectRatio(1);
-            constrainer->setMinimumHeight(9);
-            constrainer->setMinimumWidth(9);
-        };
-
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamColourFG(&primaryColour);
         objectParameters.addParamColourBG(&secondaryColour);
 
         updateColours();
+    }
+
+    void onConstrainerCreate() override
+    {
+        constrainer->setFixedAspectRatio(1);
+        constrainer->setMinimumHeight(9);
+        constrainer->setMinimumWidth(9);
     }
 
     void updateColours()

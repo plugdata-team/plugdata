@@ -84,7 +84,7 @@ public:
     void middleMouseChanged(bool isHeld) override;
     void altKeyChanged(bool isHeld) override;
 
-    void propertyChanged(String const& name, var const& value) override;
+    void settingsChanged(String const& name, var const& value) override;
 
     void focusGained(FocusChangeType cause) override;
     void focusLost(FocusChangeType cause) override;
@@ -207,9 +207,9 @@ public:
 
     // Needs to be allocated before object and connection so they can deselect themselves in the destructor
     SelectedItemSet<WeakReference<Component>> selectedComponents;
-    OwnedArray<Object> objects;
-    OwnedArray<Connection> connections;
-    OwnedArray<ConnectionBeingCreated> connectionsBeingCreated;
+    PooledPtrArray<Object> objects;
+    PooledPtrArray<Connection> connections;
+    PooledPtrArray<ConnectionBeingCreated> connectionsBeingCreated;
 
     Value locked = SynchronousValue();
     Value commandLocked;
@@ -333,6 +333,6 @@ private:
     std::unique_ptr<BorderResizer> canvasBorderResizer;
 
     std::unique_ptr<CanvasSearchHighlight> canvasSearchHighlight;
-
+        
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Canvas)
 };

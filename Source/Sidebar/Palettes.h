@@ -581,7 +581,7 @@ public:
     }
 
 private:
-    void propertyChanged(String const& name, var const& value) override
+    void settingsChanged(String const& name, var const& value) override
     {
         if (name == "show_palettes") {
             setVisible(static_cast<bool>(value));
@@ -876,7 +876,7 @@ private:
 
     bool shouldAnimate = false;
 
-    std::map<String, std::map<String, String>> defaultPalettes = {
+    UnorderedMap<String, UnorderedMap<String, String>> defaultPalettes = {
         { "Oscillators",
             {
                 { "vco", "#X obj 0 0 else/vco.m~" },
