@@ -209,7 +209,7 @@ void GemCallOnMessageThread(std::function<void()> callback)
         (void*)&callback);
 }
 
-std::map<t_pdinstance*, std::unique_ptr<GemJUCEWindow>> gemJUCEWindow;
+UnorderedMap<t_pdinstance*, std::unique_ptr<GemJUCEWindow>> gemJUCEWindow;
 
 bool gemWinSetCurrent()
 {

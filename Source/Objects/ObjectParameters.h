@@ -35,7 +35,7 @@ class ObjectParameters {
 public:
     ObjectParameters() = default;
 
-    SmallArray<ObjectParameter, 16> getParameters()
+    HeapArray<ObjectParameter> getParameters()
     {
         return objectParameters;
     }
@@ -144,7 +144,7 @@ public:
     }
 
 private:
-    SmallArray<ObjectParameter, 16> objectParameters;
+    HeapArray<ObjectParameter> objectParameters;
 
     static ObjectParameter makeParam(String const& pString, ParameterType pType, ParameterCategory pCat, Value* pVal, StringArray const& pStringList, var const& pDefault, CustomPanelCreateFn customComponentFn = nullptr, InteractionFn onInteractionFn = nullptr)
     {

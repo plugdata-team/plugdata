@@ -19,14 +19,15 @@ public:
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {
-        onConstrainerCreate = [this]() {
-            constrainer->setFixedAspectRatio(1);
-        };
-
         objectParameters.addParamFloat("Non-zero value", cGeneral, &nonZero, 1.0f);
         objectParameters.addParamSize(&sizeProperty, true);
 
         iemHelper.addIemParameters(objectParameters, true, true, 17, 7);
+    }
+    
+    void onConstrainerCreate() override
+    {
+        constrainer->setFixedAspectRatio(1);
     }
 
     bool inletIsSymbol() override

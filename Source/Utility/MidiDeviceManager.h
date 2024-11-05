@@ -45,7 +45,7 @@ public:
     {
         currentSampleRate = sampleRate;
         for (auto& [port, collector] : midiMessageCollector)
-            collector.reset(sampleRate);
+            collector->reset(sampleRate);
     }
 
     void updateMidiDevices()
@@ -138,7 +138,7 @@ public:
 
     // Helper to move internal MIDI ports inside the
     template<typename T>
-    T* moveMidiDevice(std::unordered_map<int, OwnedArray<T>>& ports, String const& identifier, int targetPort)
+    T* moveMidiDevice(UnorderedMap<int, OwnedArray<T>>& ports, String const& identifier, int targetPort)
     {
         for (auto& [port, devices] : ports) {
             auto deviceIter = std::find_if(devices.begin(), devices.end(), [identifier](auto* device) { return device && (device->getIdentifier() == identifier); });
@@ -189,11 +189,12 @@ public:
     {
         auto collectorIter = midiMessageCollector.find(port);
         if (collectorIter == midiMessageCollector.end()) {
-            midiMessageCollector[port].reset(currentSampleRate);
+            midiMessageCollector[port] = std::make_unique<MidiMessageCollector>();
             collectorIter = midiMessageCollector.find(port);
+            (*collectorIter).second->reset(currentSampleRate);
         }
         for (auto event : buffer) {
-            (*collectorIter).second.addMessageToQueue(event.getMessage());
+            (*collectorIter).second->addMessageToQueue(event.getMessage());
         }
     }
 
@@ -204,7 +205,7 @@ public:
             if (port < 0)
                 continue;
             midiBufferIn.clear();
-            collector.removeNextBlockOfMessages(midiBufferIn, blockSize);
+            collector->removeNextBlockOfMessages(midiBufferIn, blockSize);
             inputCallback(port, blockSize, midiBufferIn);
         }
     }
@@ -326,10 +327,11 @@ private:
         if (port >= 0) {
             auto collectorIter = midiMessageCollector.find(port);
             if (collectorIter == midiMessageCollector.end()) {
-                midiMessageCollector[port].reset(currentSampleRate);
+                midiMessageCollector[port] = std::make_unique<MidiMessageCollector>();
                 collectorIter = midiMessageCollector.find(port);
+                (*collectorIter).second->reset(currentSampleRate);
             }
-            collectorIter->second.addMessageToQueue(message);
+            collectorIter->second->addMessageToQueue(message);
         }
     }
 
@@ -346,10 +348,10 @@ private:
     float currentSampleRate = 44100.f;
 
     MidiBuffer midiBufferIn;
-    std::unordered_map<int, MidiBuffer> midiBufferOut;
-    std::unordered_map<int, MidiMessageCollector> midiMessageCollector;
-    std::unordered_map<int, OwnedArray<MidiInput>> inputPorts;
-    std::unordered_map<int, OwnedArray<MidiOutput>> outputPorts;
+    UnorderedMap<int, MidiBuffer> midiBufferOut;
+    UnorderedMap<int, std::unique_ptr<MidiMessageCollector>> midiMessageCollector;
+    UnorderedMap<int, OwnedArray<MidiInput>> inputPorts;
+    UnorderedMap<int, OwnedArray<MidiOutput>> outputPorts;
 
     MidiInput* toPlugdata = nullptr;
     MidiOutput* fromPlugdata = nullptr;

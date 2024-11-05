@@ -4,6 +4,8 @@
 
 #pragma once
 #include <juce_opengl/juce_opengl.h>
+#include "Utility/Containers.h"
+
 using namespace juce::gl;
 #include <nanovg.h>
 /**
@@ -82,10 +84,10 @@ private:
     juce::Font font;
 
     // Mapping glyph number to a character
-    using GlyphToCharMap = std::unordered_map<int, wchar_t>;
+    using GlyphToCharMap = UnorderedMap<int, wchar_t>;
 
     // Mapping font names to glyph-to-character tables
-    static inline std::unordered_map<juce::String, GlyphToCharMap> loadedFonts = std::unordered_map<juce::String, GlyphToCharMap>();
+    static inline UnorderedMap<juce::String, GlyphToCharMap> loadedFonts = UnorderedMap<juce::String, GlyphToCharMap>();
     GlyphToCharMap* currentGlyphToCharMap;
 
     // Tracking images mapped tomtextures.
@@ -94,5 +96,5 @@ private:
         int accessCounter { 0 }; ///< Usage counter.
     };
 
-    std::unordered_map<juce::uint64, NvgImage> images;
+    UnorderedMap<juce::uint64, NvgImage> images;
 };

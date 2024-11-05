@@ -219,7 +219,7 @@ private:
     Limiter limiter;
     std::unique_ptr<dsp::Oversampling<float>> oversampler;
 
-    std::map<uint64_t, std::unique_ptr<Component>> textEditorDialogs;
+    UnorderedMap<uint64_t, std::unique_ptr<Component>> textEditorDialogs;
 
     static inline String const else_version = "ELSE v1.0-rc12";
     static inline String const cyclone_version = "cyclone v0.9-0";

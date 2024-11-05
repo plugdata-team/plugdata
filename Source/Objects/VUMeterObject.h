@@ -11,6 +11,8 @@ class VUScale : public ObjectLabel {
     unsigned scaleDecim = 0b10001001001; // reverse bitwise for controlling which scale text shows when too small to display all
 
     NVGcolor labelColor;
+    StackArray<NVGImage, 11> scaleImages;
+    NVGcontext* lastContext = nullptr;
 
 public:
     VUScale()
@@ -26,23 +28,15 @@ public:
         labelColor = convertColour(colour);
         repaint();
     }
-
-    virtual void renderLabel(NVGcontext* nvg, float scale) override
+    
+    void updateScales(NVGcontext* nvg, float scale)
     {
-        if (!isVisible())
-            return;
-
-        // TODO: Hack to hold all images for each context, consider moving somewhere central
-        static std::unordered_map<NVGcontext*, StackArray<NVGImage, 11>> scales;
-
         // We calculate the largest size the text will ever be (canvas zoom * UI scale * desktop scale)
-        auto const maxUIScale = 3 * 2 * 2;
+        auto constexpr maxUIScale = 3 * 2 * 2;
+        auto constexpr maxScaledHeight = 20 * maxUIScale;
         auto const maxScaledWidth = getWidth() * maxUIScale;
-        auto const maxScaledHeight = 20 * maxUIScale;
-
-        auto& scaleImages = scales[nvg];
-
-        if (!scaleImages[0].isValid()) {
+        
+        if (!scaleImages[0].isValid() || lastContext != nvg) {
             for (int i = 0; i < 11; i++) {
                 // generate scale images that are max size of canvas * UI scale
                 scaleImages[i] = NVGImage(nvg, maxScaledWidth, maxScaledHeight, [this, i](Graphics& g) {
@@ -55,8 +49,17 @@ public:
                     g.setFont(Fonts::getDefaultFont().withHeight(9));
                     g.drawText(scaleText.getReference(i).substring(1), getLocalBounds().withHeight(20).withLeft(5), Justification::centredLeft, false); }, NVGImage::AlphaImage | NVGImage::MipMap);
             }
+            lastContext = nvg;
         }
+    }
 
+    virtual void renderLabel(NVGcontext* nvg, float scale) override
+    {
+        if (!isVisible())
+            return;
+
+        updateScales(nvg, scale);
+        
         bool const decimScaleText = getHeight() < 90;
 
         for (int i = 0; i < 11; i++) {
@@ -81,12 +84,6 @@ public:
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {
-        // we need to make this a specific size as it has two inlets
-        // which will become squashed together if too close
-        onConstrainerCreate = [this]() {
-            constrainer->setMinimumSize(20, 20 * 2);
-        };
-
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamReceiveSymbol(&iemHelper.receiveSymbol);
         objectParameters.addParamBool("Show scale", ParameterCategory::cAppearance, &showScale, { "No", "Yes" }, 1);
@@ -101,6 +98,13 @@ public:
         iemHelper.iemColourChangedCallback = [this]() {
             bgCol = convertColour(Colour::fromString(iemHelper.secondaryColour.toString()));
         };
+    }
+    
+    void onConstrainerCreate() override
+    {
+        // we need to make this a specific size as it has two inlets
+        // which will become squashed together if too close
+        constrainer->setMinimumSize(20, 20 * 2);
     }
 
     void updateSizeProperty() override

@@ -294,6 +294,7 @@ void NVGSurface::invalidateArea(Rectangle<int> area)
 
 void NVGSurface::render()
 {
+    invalidArea = getLocalBounds();
     // Flush message queue before rendering, to make sure all GUIs are up-to-date
     editor->pd->flushMessageQueue();
 

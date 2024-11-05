@@ -329,7 +329,7 @@ private:
         WeakReference<Component> component;
         bool const isWindows = (SystemStats::getOperatingSystemType() & SystemStats::Windows) != 0;
         bool hasReasonToHide = false;
-        std::map<void*, std::function<void()>> listeners;
+        UnorderedMap<void*, std::function<void()>> listeners;
     };
 
     class ParentVisibilityChangedListener : public ComponentListener {

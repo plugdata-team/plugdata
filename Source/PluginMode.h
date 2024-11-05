@@ -444,7 +444,7 @@ private:
 
     std::unique_ptr<PlugDataLook> pluginModeLnf;
 
-    static inline std::map<t_canvas*, int> pluginModeScaleMap;
+    static inline UnorderedMap<t_canvas*, int> pluginModeScaleMap;
 
     struct Scale {
         float floatScale;

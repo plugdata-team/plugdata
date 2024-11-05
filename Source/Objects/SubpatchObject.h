@@ -34,7 +34,7 @@ public:
         closeOpenedSubpatchers();
     }
 
-    void propertyChanged(String const& name, var const& value) override
+    void settingsChanged(String const& name, var const& value) override
     {
         if (name == "hvcc_mode") {
             if (value) {

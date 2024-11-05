@@ -318,7 +318,7 @@ String OfflineObjectRenderer::patchToSVG(String const& patch)
 
 ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, float scale)
 {
-    static std::unordered_map<String, ImageWithOffset> patchImageCache;
+    static UnorderedMap<String, ImageWithOffset> patchImageCache;
 
     auto const patchSHA256 = SHA256(patch.getCharPointer()).toHexString();
     if (patchImageCache.contains(patchSHA256)) {
@@ -362,7 +362,7 @@ bool OfflineObjectRenderer::checkIfPatchIsValid(String const& patch)
 
 std::pair<SmallArray<bool>, SmallArray<bool>> OfflineObjectRenderer::countIolets(String const& patch)
 {
-    static std::unordered_map<String, std::pair<SmallArray<bool>, SmallArray<bool>>> patchIoletCache;
+    static UnorderedMap<String, std::pair<SmallArray<bool>, SmallArray<bool>>> patchIoletCache;
 
     auto const patchSHA256 = SHA256(patch.getCharPointer()).toHexString();
     if (patchIoletCache.contains(patchSHA256)) {

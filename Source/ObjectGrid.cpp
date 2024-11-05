@@ -52,7 +52,7 @@ SmallArray<Object*> ObjectGrid::getSnappableObjects(Object* draggedObject)
     return snappable;
 }
 
-void ObjectGrid::propertyChanged(String const& name, var const& value)
+void ObjectGrid::settingsChanged(String const& name, var const& value)
 {
     if (name == "grid_type") {
         gridType = static_cast<int>(value);

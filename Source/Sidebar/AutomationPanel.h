@@ -162,17 +162,17 @@ public:
         auto& maximumComponent = rangeProperty.getMaximumComponent();
 
         minimumComponent.dragEnd = [this, &maximumComponent]() {
-            double minimum = static_cast<int>((*range.getValue().getArray())[0]);
-            double maximum = param->getNormalisableRange().end;
+            float minimum = static_cast<int>((*range.getValue().getArray())[0]);
+            float maximum = param->getNormalisableRange().end;
 
             valueLabel.setMinimum(minimum);
             valueLabel.setMaximum(maximum);
             valueLabel.setValue(std::clamp(valueLabel.getValue(), minimum, maximum));
 
-            maximumComponent.setMinimum(minimum + 0.000001);
+            maximumComponent.setMinimum(minimum + 0.000001f);
 
             // make sure min is always smaller than max
-            minimum = std::min(minimum, maximum - 0.000001);
+            minimum = std::min(minimum, maximum - 0.000001f);
 
             param->setRange(minimum, maximum);
             param->notifyDAW();
@@ -180,8 +180,8 @@ public:
         };
 
         maximumComponent.dragEnd = [this, &minimumComponent]() {
-            double minimum = param->getNormalisableRange().start;
-            double maximum = static_cast<int>((*range.getValue().getArray())[1]);
+            float minimum = param->getNormalisableRange().start;
+            float maximum = static_cast<int>((*range.getValue().getArray())[1]);
 
             valueLabel.setMinimum(minimum);
             valueLabel.setMaximum(maximum);
@@ -190,7 +190,7 @@ public:
             minimumComponent.setMaximum(maximum);
 
             // make sure max is always bigger than min
-            maximum = std::max(maximum, minimum + 0.000001);
+            maximum = std::max(maximum, minimum + 0.000001f);
 
             param->setRange(minimum, maximum);
             param->notifyDAW();

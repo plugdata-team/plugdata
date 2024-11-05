@@ -432,7 +432,7 @@ public:
         addAndMakeVisible(viewport);
     }
 
-    void propertyChanged(String const& name, var const& value) override
+    void settingsChanged(String const& name, var const& value) override
     {
         if (tooltipPrepend != "(Subpatch)") // FIXME: again this is a horrible way to find out what we are!
             return;

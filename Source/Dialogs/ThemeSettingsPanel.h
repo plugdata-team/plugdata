@@ -180,7 +180,7 @@ class ThemeSettingsPanel : public SettingsDialogPanel
 
     Value fontValue;
 
-    std::map<String, std::map<String, Value>> swatches;
+    UnorderedMap<String, UnorderedMap<String, Value>> swatches;
 
     PropertiesPanel::ActionComponent* newButton = nullptr;
     PropertiesPanel::ActionComponent* loadButton = nullptr;
@@ -233,7 +233,7 @@ public:
         panel.clear();
         allPanels.clear();
 
-        std::map<String, PropertiesArray> panels;
+        UnorderedMap<String, PropertiesArray> panels;
 
         // Loop over colours
         for (auto const& [colour, colourNames] : PlugDataColourNames) {

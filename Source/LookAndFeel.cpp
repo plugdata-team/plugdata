@@ -898,7 +898,7 @@ int PlugDataLook::getTreeViewIndentSize(TreeView&)
     return 36;
 }
 
-void PlugDataLook::setColours(std::map<PlugDataColour, Colour> colours)
+void PlugDataLook::setColours(UnorderedMap<PlugDataColour, Colour>& colours)
 {
     for (auto colourId = 0; colourId < PlugDataColour::numberOfColours; colourId++) {
         setColour(colourId, colours.at(static_cast<PlugDataColour>(colourId)));
@@ -1275,7 +1275,7 @@ Colour PlugDataLook::getThemeColour(ValueTree themeTree, PlugDataColour colourId
 
 void PlugDataLook::setTheme(ValueTree themeTree)
 {
-    std::map<PlugDataColour, Colour> colours;
+    UnorderedMap<PlugDataColour, Colour> colours;
 
     // Quick check if this tree is valid
     if (!themeTree.hasProperty("theme"))

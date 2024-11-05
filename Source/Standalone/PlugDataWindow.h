@@ -435,7 +435,7 @@ public:
         lookAndFeelChanged();
     }
 
-    void propertyChanged(String const& name, var const& value) override
+    void settingsChanged(String const& name, var const& value) override
     {
         if (name == "native_window") {
             auto* editor = mainComponent->getEditor();
