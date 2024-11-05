@@ -316,7 +316,7 @@ public:
     SmallArray<pd::Patch::Ptr, 16> patches;
 
 private:
-    std::unordered_map<void*, SmallArray<pd_weak_reference*>> pdWeakReferences;
+    UnorderedMap<void*, SmallArray<pd_weak_reference*>> pdWeakReferences;
 
     moodycamel::ConcurrentQueue<std::function<void(void)>> functionQueue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
     moodycamel::ConcurrentQueue<Message> guiMessageQueue = moodycamel::ConcurrentQueue<Message>(64);

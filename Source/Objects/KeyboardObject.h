@@ -37,12 +37,13 @@ public:
         objectParameters.addParamBool("Toggle Mode", cGeneral, &toggleMode, { "Off", "On" }, 0);
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
         objectParameters.addParamSendSymbol(&sendSymbol);
-
-        onConstrainerCreate = [this]() {
-            updateMinimumSize();
-        };
-
+        
         startTimer(50);
+    }
+        
+    void onConstrainerCreate() override
+    {
+        updateMinimumSize();
     }
 
     void update() override

@@ -50,5 +50,5 @@ private:
 
     PluginProcessor* pd;
 
-    std::unordered_map<t_gobj*, std::unique_ptr<ImplementationBase>> objectImplementations;
+    UnorderedMap<t_gobj*, std::unique_ptr<ImplementationBase>> objectImplementations;
 };

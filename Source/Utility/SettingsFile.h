@@ -13,7 +13,7 @@ public:
 
     ~SettingsFileListener();
 
-    virtual void propertyChanged(String const& name, var const& value) { }
+    virtual void settingsChanged(String const& name, var const& value) { }
 
     virtual void settingsFileReloaded() { }
 };

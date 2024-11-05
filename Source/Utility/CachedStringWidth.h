@@ -33,7 +33,7 @@ struct CachedStringWidth {
         return maximumLineWidth;
     }
 
-    static inline std::unordered_map<hash32, int> stringWidthCache = std::unordered_map<hash32, int>();
+    static inline UnorderedMap<hash32, int> stringWidthCache = UnorderedMap<hash32, int>();
 };
 
 struct CachedFontStringWidth : public DeletedAtShutdown {
@@ -74,7 +74,7 @@ struct CachedFontStringWidth : public DeletedAtShutdown {
         return maximumLineWidth;
     }
 
-    HeapArray<std::pair<Font, std::unordered_map<hash32, float>>> stringWidthCache = HeapArray<std::pair<Font, std::unordered_map<hash32, float>>>();
+    HeapArray<std::pair<Font, UnorderedMap<hash32, float>>> stringWidthCache = HeapArray<std::pair<Font, UnorderedMap<hash32, float>>>();
 
     static CachedFontStringWidth* get()
     {

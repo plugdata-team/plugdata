@@ -687,12 +687,10 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
                 return new LuaTextObject(ptr, parent);
             }
             default:
-                break;
+                return new TextObject(ptr, parent);
             }
         }
     }
-
-    return new TextObject(ptr, parent);
 }
 
 void ObjectBase::getMenuOptions(PopupMenu& menu)

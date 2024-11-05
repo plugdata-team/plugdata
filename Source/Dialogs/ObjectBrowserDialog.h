@@ -257,7 +257,7 @@ public:
     }
 
     PluginEditor* editor;
-    std::unordered_map<String, String> descriptions;
+    UnorderedMap<String, String> descriptions;
     StringArray objects;
     std::function<void(String const&)> changeCallback;
 };
@@ -781,7 +781,7 @@ private:
     StringArray searchResult;
     SearchEditor input;
 
-    std::unordered_map<String, String> objectDescriptions;
+    UnorderedMap<String, String> objectDescriptions;
 };
 
 class ObjectBrowserDialog : public Component {
@@ -952,5 +952,5 @@ private:
 
     ComponentAnimator animator;
 
-    std::unordered_map<String, StringArray> objectsByCategory;
+    UnorderedMap<String, StringArray> objectsByCategory;
 };

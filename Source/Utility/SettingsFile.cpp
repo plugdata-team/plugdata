@@ -445,7 +445,7 @@ void SettingsFile::initialiseThemesTree()
 
 void SettingsFile::initialiseOverlayTree()
 {
-    std::map<String, int> defaults = {
+    UnorderedMap<String, int> defaults = {
         { "edit", Origin | ActivationState },
         { "lock", Behind },
         { "run", None },
@@ -500,7 +500,7 @@ void SettingsFile::fileChanged(File const file, FileSystemWatcher::FileSystemEve
 void SettingsFile::valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, Identifier const& property)
 {
     for (auto* listener : listeners) {
-        listener->propertyChanged(property.toString(), treeWhosePropertyHasChanged.getProperty(property));
+        listener->settingsChanged(property.toString(), treeWhosePropertyHasChanged.getProperty(property));
     }
 
     if (!settingsChangedExternally)

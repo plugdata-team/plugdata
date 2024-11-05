@@ -32,9 +32,17 @@
 #    define LLVM_ATTRIBUTE_RETURNS_NONNULL
 #endif
 
+#if defined(__has_feature)
+#  if __has_feature(address_sanitizer)
+#include <sanitizer/asan_interface.h>
+#define ASAN_ENABLED 1
+#endif
+#endif
+
 #include <cassert>
 #include <algorithm>
 #include <limits>
+#include <memory_resource>
 
 template<typename T>
 class ArrayRef;
@@ -1827,7 +1835,7 @@ public:
     template<typename U>
     void add_array(U const& array)
     {
-        reserve(data_.capacity() + array.size());
+        reserve(data_.size() + array.size());
         for (auto const& elt : array)
             add(elt);
     }
@@ -2100,3 +2108,370 @@ public:
         std::sort(data_.begin(), data_.end(), sort_fn);
     }
 };
+
+// Array of owned object pointers. The pointers will all be allocated from few contiguous buffers. The size of the buffer can be set with BlocksPerChunk.
+// If StackType and StackSize are defined, objects will first be allocated on stack before we allocate a heap buffer. This can be used to speed up memory access, since you can allocate the actual objects inside of the parent struct.
+// To use a stack, the target object declaration needs to be known at construction time
+template<typename T, int BlocksPerChunk = 32, int StackSize = 0>
+class PooledPtrArray {
+public:
+    using Iterator = typename SmallArray<T*>::iterator;
+
+    explicit PooledPtrArray() = default;
+
+    ~PooledPtrArray() {
+        clear(); // Ensure all owned objects are destroyed
+        
+        for(auto* ptr : free_list)
+        {
+            free(ptr);
+        }
+    }
+
+    // Remove methods
+    bool remove_one(T const* to_find)
+    {
+        auto it = std::find_if(data_.begin(), data_.end(), [to_find](T* ptr) { return ptr == to_find; });
+        if (it != data_.end()) {
+            deallocate_and_destroy(*it);
+            return true;
+        }
+        return false;
+    }
+
+    bool remove_at(size_t index)
+    {
+        if (index < data_.size()) {
+            deallocate_and_destroy(data_[index]);
+            data_.erase(data_.begin() + index);
+            return true;
+        }
+        return false;
+    }
+    
+    template<typename U>
+    [[nodiscard]] int index_of(U const& to_find) const
+    {
+        auto it = std::find(this->begin(), this->end(), to_find);
+        return (it == this->end()) ? -1 : static_cast<int>(it - this->begin());
+    }
+
+    template<typename... Args>
+    T* add(Args&&... args) {
+        data_.push_back(allocate_and_construct(std::forward<Args>(args)...));
+        return data_.back();
+    }
+
+    // Other necessary methods, simplified
+    bool empty() const { return data_.empty(); }
+    bool not_empty() const { return !data_.empty(); }
+    size_t size() const { return data_.size(); }
+    
+    auto begin() { return data_.begin(); }
+    auto end() { return data_.end(); }
+    auto begin() const { return data_.begin(); }
+    auto end() const { return data_.end(); }
+
+    auto rbegin() { return data_.rbegin(); }
+    auto rend() { return data_.rend(); }
+    auto rbegin() const { return data_.rbegin(); }
+    auto rend() const { return data_.rend(); }
+    
+    // Access methods
+    T* front() { return data_.front(); }
+    T const* front() const { return data_.front(); }
+    T* back() { return data_.back(); }
+    T const* back() const { return data_.back(); }
+
+    T* operator[](size_t index) { return data_[index]; }
+    T const* operator[](size_t index) const {
+        return data_[index];
+    }
+    T* data() { return data_.data(); }
+    
+    // Clear all elements and deallocate them
+    void clear() {
+        for (auto ptr : data_) {
+            deallocate_and_destroy(ptr);
+        }
+        data_.clear();
+    }
+    
+    void reserve(size_t capacity) {
+        data_.reserve(capacity);
+        preallocate(std::max<int>(static_cast<int>(capacity) - size(), 0));
+    }
+    
+    void erase(size_t index) { data_.erase(data_.begin() + index); }
+
+    void move(size_t from_index, size_t to_index)
+    {
+        if (from_index < to_index) {
+            std::rotate(data_.begin() + from_index, data_.begin() + from_index + 1, data_.begin() + to_index + 1);
+        } else {
+            std::rotate(data_.begin() + to_index, data_.begin() + from_index, data_.begin() + from_index + 1);
+        }
+    }
+
+    void sort() { std::sort(data_.begin(), data_.end()); }
+
+    void sort(int (*sort_fn)(T const&, T const&))
+    {
+        std::sort(data_.begin(), data_.end(), sort_fn);
+    }
+
+    void sort(int (*sort_fn)(T const, T const))
+    {
+        std::sort(data_.begin(), data_.end(), sort_fn);
+    }
+
+    void sort(std::function<int(T const&, T const&)> sort_fn)
+    {
+        std::sort(data_.begin(), data_.end(), sort_fn);
+    }
+    
+    template<typename PredicateType>
+    int remove_if(PredicateType&& predicate)
+    {
+        int num_removed = 0;
+        for (int i = data_.size(); --i >= 0;) {
+            if (predicate(data_[i])) {
+                erase(i);
+                ++num_removed;
+            }
+        }
+
+        return num_removed;
+    }
+
+    template<typename... Args>
+    void insert(int index, Args&&... args) {
+        data_.insert(index, allocate_and_construct(std::forward<Args>(args)...));
+    }
+
+private:
+    // Helper method to allocate and construct objects using the memory resource
+    template<typename... Args>
+    T* allocate_and_construct(Args&&... args) {
+        if constexpr(StackSize > 0) {
+            if (stackUsed < StackSize) {
+                T* ptr = reinterpret_cast<T*>(stackBuffer) + stackUsed;
+                stackUsed++;
+                new (ptr) T(std::forward<Args>(args)...); // Placement new
+                return ptr;
+            }
+        }
+        if (reuse_list.not_empty()) {
+            // Reuse an object from the free list
+            T* ptr = reuse_list.back();
+            reuse_list.pop();
+            new (ptr) T(std::forward<Args>(args)...); // Placement new
+            return ptr;
+        }
+
+        if(num_preallocated == 0) preallocate(BlocksPerChunk);
+        num_preallocated--;
+        T* ptr =  preallocated++;
+        new (ptr) T(std::forward<Args>(args)...);
+#if ASAN_ENABLED
+        __asan_unpoison_memory_region(ptr, sizeof(T));
+#endif
+        return ptr;
+    }
+
+    // Helper method to destroy and deallocate objects
+    void deallocate_and_destroy(T* ptr) {
+        if (ptr) {
+            ptr->~T();
+            reuse_list.add(ptr);
+#if ASAN_ENABLED
+            __asan_poison_memory_region(ptr, sizeof(T));
+#endif
+        }
+    }
+    
+    void preallocate(int amount)
+    {
+        // Skip preallocation if we have enough preallocated already, or if we have enough freed objects to use
+        if(amount <= num_preallocated || amount <= reuse_list.size()) return;
+        
+        // If we already have preallocated elements, move them into the free list so they can be resused
+        // We do this so that we guarantee all objects are in a large contiguous block when you call reserve
+        reuse_list.reserve(reuse_list.size() + num_preallocated);
+        for(int i = 0; i < num_preallocated; i++)
+        {
+            reuse_list.add(preallocated + i);
+#if ASAN_ENABLED
+            __asan_poison_memory_region(preallocated + i, sizeof(T));
+#endif
+        }
+        
+        num_preallocated = amount;
+        preallocated = allocator_.allocate(amount);
+        free_list.add(preallocated);
+    }
+    
+    bool check_contiguity() const {
+        if (data_.empty()) {
+            return true;
+        }
+
+        T* previous_ptr = data_.front();
+        for (size_t i = 1; i < data_.size(); ++i) {
+            T* current_ptr = data_[i];
+            auto gap = (reinterpret_cast<uintptr_t>(current_ptr) - (reinterpret_cast<uintptr_t>(previous_ptr) + sizeof(T))) / sizeof(T);
+            std::cout << gap << std::endl;
+            
+            // Check if the current pointer is exactly one T away from the previous pointer
+            if (gap != 0) {
+                std::cout << "Pointers are not contiguous at index " << i << ": "
+                          << "Current pointer: " << current_ptr << ", Previous pointer: " << previous_ptr << std::endl;
+                return false; // Found a gap
+            }
+            previous_ptr = current_ptr;
+        }
+
+        return true; // All pointers are contiguous
+    }
+
+    SmallArray<T*> data_;
+    std::allocator<T> allocator_;
+    size_t num_preallocated = 0;
+    T* preallocated;
+    
+    // Only initialise stack buffer if
+    template <typename U, bool IsComplete = true>
+    struct StorageSelector {
+        using type = typename std::aligned_storage<sizeof(U), alignof(U)>::type;
+    };
+
+    template <typename U>
+    struct StorageSelector<U, false> {
+        using type = std::array<char, 1>;
+    };
+    
+    using StackBuffer = typename StorageSelector<T, (StackSize > 0)>::type;
+
+    StackBuffer stackBuffer[StackSize];
+    size_t stackUsed = 0;
+    
+    SmallArray<T*> reuse_list;
+    SmallArray<T*> free_list;
+};
+
+template <typename T, std::size_t StackSize = 2048>
+class SmallObjectPointer {
+public:
+    SmallObjectPointer() : is_heap_allocated(false) {}
+
+    // Move constructor
+    SmallObjectPointer(SmallObjectPointer&& other) noexcept {
+        if (other.is_heap_allocated) {
+            // Move the heap-allocated object
+            ptr = other.ptr;
+            is_heap_allocated = true;
+            other.ptr = nullptr;
+        } else {
+            // Move the stack-allocated object
+            std::memcpy(stack_buffer, other.stack_buffer, sizeof(T));
+            ptr = other.ptr;
+            is_heap_allocated = false;
+            other.destroy();
+        }
+    }
+
+    // Move assignment
+    SmallObjectPointer& operator=(SmallObjectPointer&& other) noexcept {
+        if (this != &other) {
+            destroy(); // Clean up current resource
+            if (other.is_heap_allocated) {
+                // Move the heap-allocated object
+                ptr = other.ptr;
+                is_heap_allocated = true;
+                other.ptr = nullptr;
+            } else {
+                // Move the stack-allocated object
+                std::memcpy(stack_buffer, other.stack_buffer, sizeof(T));
+                ptr = other.ptr;
+                is_heap_allocated = false;
+                other.destroy();
+            }
+        }
+        return *this;
+    }
+
+    // Emplace an object
+    template <typename U, typename... Args>
+    void emplace(Args&&... args) {
+        if constexpr (sizeof(U) <= StackSize) {
+            // Construct the object in the stack buffer
+            ptr = new(stack_buffer) U(std::forward<Args>(args)...);
+            is_heap_allocated = false;
+        } else {
+            // Allocate memory on the heap
+            ptr = new U(std::forward<Args>(args)...);
+            is_heap_allocated = true;
+        }
+    }
+
+    // Destructor
+    ~SmallObjectPointer() {
+        destroy();
+    }
+
+    T* get()
+    {
+        return ptr;
+    }
+
+    // Access the object
+    T& operator*() {
+        return is_heap_allocated ? *ptr : *reinterpret_cast<T*>(stack_buffer);
+    }
+    
+    T const& operator*() const {
+        return is_heap_allocated ? *ptr : *reinterpret_cast<const T* const>(stack_buffer);
+    }
+
+    T* operator->() {
+        return &operator*();
+    }
+    
+    T* operator->() const {
+        // TODO: remove this const cast, fix const correctness in usage
+        return const_cast<T*>(&operator*());
+    }
+    
+    operator bool() const {
+        return ptr != nullptr;
+    }
+    
+    bool operator==(const T* raw_ptr) const {
+       return ptr == raw_ptr;
+   }
+   
+   bool operator!=(const T* raw_ptr) const {
+       return ptr != raw_ptr;
+   }
+private:
+    void destroy() {
+        if (is_heap_allocated) {
+            delete ptr;
+        } else {
+            reinterpret_cast<T*>(stack_buffer)->~T(); // Call the destructor
+        }
+    }
+
+    T* ptr = nullptr;                   // Pointer for heap allocation
+    char stack_buffer[StackSize]; // Buffer for stack allocation
+    bool is_heap_allocated; // Flag to check allocation type
+};
+
+
+#include "UnorderedMap.h"
+
+template <typename Key, typename T>
+using UnorderedMap = ankerl::unordered_dense::map<Key, T>;
+
+template <typename Key>
+using UnorderedSet = ankerl::unordered_dense::set<Key>;

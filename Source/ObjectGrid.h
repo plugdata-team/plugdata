@@ -36,7 +36,7 @@ private:
 
     void timerCallback() override;
 
-    void propertyChanged(String const& name, var const& value) override;
+    void settingsChanged(String const& name, var const& value) override;
 
     static SmallArray<Object*> getSnappableObjects(Object* draggedObject);
 

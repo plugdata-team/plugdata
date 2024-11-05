@@ -105,7 +105,7 @@ public:
 
     bool isShowingBrowser();
 
-    void propertyChanged(String const& name, var const& value) override;
+    void settingsChanged(String const& name, var const& value) override;
 
     void showPanel(int panelToShow);
 
