@@ -2202,7 +2202,10 @@ public:
         preallocate(std::max<int>(static_cast<int>(capacity) - size(), 0));
     }
     
-    void erase(size_t index) { data_.erase(data_.begin() + index); }
+    void erase(size_t index) {
+        deallocate_and_destroy(data_[index]);
+        data_.erase(data_.begin() + index);
+    }
 
     void move(size_t from_index, size_t to_index)
     {
@@ -2265,6 +2268,9 @@ private:
             // Reuse an object from the free list
             T* ptr = reuse_list.back();
             reuse_list.pop();
+#if ASAN_ENABLED
+        __asan_unpoison_memory_region(ptr, sizeof(T));
+#endif
             new (ptr) T(std::forward<Args>(args)...); // Placement new
             return ptr;
         }
@@ -2272,10 +2278,10 @@ private:
         if(num_preallocated == 0) preallocate(BlocksPerChunk);
         num_preallocated--;
         T* ptr =  preallocated++;
-        new (ptr) T(std::forward<Args>(args)...);
 #if ASAN_ENABLED
         __asan_unpoison_memory_region(ptr, sizeof(T));
 #endif
+        new (ptr) T(std::forward<Args>(args)...);
         return ptr;
     }
 
