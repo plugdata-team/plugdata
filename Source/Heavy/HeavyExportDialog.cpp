@@ -22,6 +22,7 @@
 #include "DPFExporter.h"
 #include "DaisyExporter.h"
 #include "PdExporter.h"
+#include "WASMExporter.h"
 
 class ExporterSettingsPanel : public Component
     , private ListBoxModel {
@@ -39,7 +40,8 @@ public:
         "C++ Code",
         "Electro-Smith Daisy",
         "DPF Audio Plugin",
-        "Pd External"
+        "Pd External",
+        "JS / WebAssembly"
     };
 
     ExporterSettingsPanel(PluginEditor* editor, ExportingProgressView* exportingView)
@@ -48,6 +50,7 @@ public:
         addChildComponent(views.add(new DaisyExporter(editor, exportingView)));
         addChildComponent(views.add(new DPFExporter(editor, exportingView)));
         addChildComponent(views.add(new PdExporter(editor, exportingView)));
+        addChildComponent(views.add(new WASMExporter(editor, exportingView)));
 
         addAndMakeVisible(listBox);
 
@@ -100,6 +103,7 @@ public:
         state.appendChild(views[1]->getState(), nullptr);
         state.appendChild(views[2]->getState(), nullptr);
         state.appendChild(views[3]->getState(), nullptr);
+        state.appendChild(views[4]->getState(), nullptr);
 
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
 
