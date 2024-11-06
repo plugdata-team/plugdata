@@ -178,7 +178,9 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     parameters.addParamInt("Width", cDimensions, &patchWidth, 527, onInteractionFn);
     parameters.addParamInt("Height", cDimensions, &patchHeight, 327, onInteractionFn);
 
-    patch.setVisible(true);
+    if(!isGraph) {
+        patch.setVisible(true);
+    }
 
     lookAndFeelChanged();
 }
@@ -193,6 +195,7 @@ Canvas::~Canvas()
     zoomScale.removeListener(this);
     editor->removeModifierKeyListener(this);
     pd->unregisterMessageListener(patch.getUncheckedPointer(), this);
+    patch.setVisible(false);
 }
 
 void Canvas::lookAndFeelChanged()

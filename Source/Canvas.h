@@ -209,6 +209,8 @@ public:
     Value commandLocked;
     Value presentationMode;
 
+    SmallArray<juce::WeakReference<NVGComponent>> drawables;
+
     // Needs to be allocated before object and connection so they can deselect themselves in the destructor
     SelectedItemSet<WeakReference<Component>> selectedComponents;
     PooledPtrArray<Object> objects;
@@ -266,8 +268,6 @@ public:
 
     NVGImage resizeHandleImage;
     NVGImage presentationShadowImage;
-
-    SmallArray<juce::WeakReference<NVGComponent>> drawables;
 
     NVGcolor canvasBackgroundCol;
     Colour canvasBackgroundColJuce;
