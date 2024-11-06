@@ -341,14 +341,14 @@ Rectangle<int> ObjectBase::getSelectableBounds()
 // Makes sure that any tabs refering to the now deleted patch will be closed
 void ObjectBase::closeOpenedSubpatchers()
 {
-    auto* editor = object->editor;
-
-    for (auto* canvas : editor->getCanvases()) {
-        auto* patch = getPatch().get();
-        if (patch && canvas && canvas->patch == *patch) {
-
-            canvas->editor->getTabComponent().closeTab(canvas);
-            break;
+    for(auto* editor : pd->getEditors()) {
+        for (auto* canvas : editor->getCanvases()) {
+            auto* patch = getPatch().get();
+            if (patch && canvas && canvas->patch == *patch) {
+                
+                canvas->editor->getTabComponent().closeTab(canvas);
+                break;
+            }
         }
     }
 }
@@ -687,10 +687,11 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
                 return new LuaTextObject(ptr, parent);
             }
             default:
-                return new TextObject(ptr, parent);
+                break;
             }
         }
     }
+    return new TextObject(ptr, parent);
 }
 
 void ObjectBase::getMenuOptions(PopupMenu& menu)

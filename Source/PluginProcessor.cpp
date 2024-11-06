@@ -1496,19 +1496,23 @@ void PluginProcessor::receiveSysMessage(String const& selector, SmallArray<pd::A
             if (patches.not_empty()) {
                 float pluginModeFloatArgument = 1.0;
                 if (list.size()) {
-                    pluginModeFloatArgument = list[0].getFloat();
-
-                    auto pluginModeThemeOrPath = list[0].toString();
-                    if (pluginModeThemeOrPath.endsWith(".plugdatatheme")) {
-                        auto themeFile = patches[0]->getPatchFile().getParentDirectory().getChildFile(pluginModeThemeOrPath);
-                        if (themeFile.existsAsFile()) {
-                            pluginModeTheme = ValueTree::fromXml(themeFile.loadFileAsString());
-                        }
-                    } else {
-                        auto themesTree = SettingsFile::getInstance()->getValueTree().getChildWithName("ColourThemes");
-                        auto theme = themesTree.getChildWithProperty("theme", pluginModeThemeOrPath);
-                        if (theme.isValid()) {
-                            pluginModeTheme = theme;
+                    if(list[0].isFloat())
+                    {
+                        pluginModeFloatArgument = list[0].getFloat();
+                    }
+                    else {
+                        auto pluginModeThemeOrPath = list[0].toString();
+                        if (pluginModeThemeOrPath.endsWith(".plugdatatheme")) {
+                            auto themeFile = patches[0]->getPatchFile().getParentDirectory().getChildFile(pluginModeThemeOrPath);
+                            if (themeFile.existsAsFile()) {
+                                pluginModeTheme = ValueTree::fromXml(themeFile.loadFileAsString());
+                            }
+                        } else {
+                            auto themesTree = SettingsFile::getInstance()->getValueTree().getChildWithName("ColourThemes");
+                            auto theme = themesTree.getChildWithProperty("theme", pluginModeThemeOrPath);
+                            if (theme.isValid()) {
+                                pluginModeTheme = theme;
+                            }
                         }
                     }
                 }

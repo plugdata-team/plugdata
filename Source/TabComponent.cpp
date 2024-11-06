@@ -542,7 +542,7 @@ void TabComponent::showTab(Canvas* cnv, int splitIndex)
 
     editor->nvgSurface.invalidateAll();
 
-    sendTabUpdateToVisibleCanvases();
+    //sendTabUpdateToVisibleCanvases();
 
     editor->sidebar->hideParameters();
     editor->sidebar->clearSearchOutliner();

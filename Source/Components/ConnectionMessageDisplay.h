@@ -47,8 +47,10 @@ public:
         if (activeConnection == nullptr && connection == nullptr)
             return;
 
-        if (editor->pluginMode || (connection && connection->inobj && getValue<bool>(connection->inobj->cnv->presentationMode)))
+        if (editor->pluginMode || (connection && connection->inobj && getValue<bool>(connection->inobj->cnv->presentationMode))) {
+            hideDisplay();
             return;
+        }
 
         auto clearSignalDisplayBuffer = [this]() {
             SignalBlock sample;
