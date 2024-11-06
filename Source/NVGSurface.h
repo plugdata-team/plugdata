@@ -366,7 +366,7 @@ public:
 
     std::function<void()> onImageInvalidate = nullptr;
 
-    static inline std::set<NVGImage*> allImages = std::set<NVGImage*>();
+    static inline UnorderedSet<NVGImage*> allImages = UnorderedSet<NVGImage*>();
 };
 
 class NVGFramebuffer {
@@ -458,7 +458,7 @@ public:
     }
 
 private:
-    static inline std::set<NVGFramebuffer*> allFramebuffers;
+    static inline UnorderedSet<NVGFramebuffer*> allFramebuffers;
 
     NVGcontext* nvg;
     NVGframebuffer* fb = nullptr;
@@ -535,7 +535,7 @@ public:
     }
 
 private:
-    static inline std::set<NVGCachedPath*> allCachedPaths;
+    static inline UnorderedSet<NVGCachedPath*> allCachedPaths;
     NVGcontext* nvg = nullptr;
     int cacheId = -1;
 };

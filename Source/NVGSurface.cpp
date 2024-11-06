@@ -137,7 +137,7 @@ void NVGSurface::initialise()
     glContext->initialiseOnThread();
     glContext->makeActive();
     lastRenderScale = calculateRenderScale();
-    nvg = nvgCreateContext(NVG_ANTIALIAS);
+    nvg = nvgCreateContext(0);
 #endif
     if (!nvg) {
         std::cerr << "could not initialise nvg" << std::endl;

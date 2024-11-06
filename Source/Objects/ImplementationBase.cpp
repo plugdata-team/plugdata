@@ -150,7 +150,7 @@ void ObjectImplementationManager::handleAsyncUpdate()
     }
     pd->unlockAudioThread();
 
-    std::unordered_set<t_gobj*> allPointers;
+    UnorderedSet<t_gobj*> allPointers;
     allPointers.reserve(allImplementations.size());
     for (auto const& obj : allImplementations) {
         allPointers.insert(obj.second);

@@ -322,7 +322,7 @@ private:
     moodycamel::ConcurrentQueue<Message> guiMessageQueue = moodycamel::ConcurrentQueue<Message>(64);
 
     std::unique_ptr<FileChooser> openChooser;
-    static inline std::set<hash32> luaClasses = std::set<hash32>(); // Keep track of class names that correspond to pdlua objects
+    static inline UnorderedSet<hash32> luaClasses = UnorderedSet<hash32>(); // Keep track of class names that correspond to pdlua objects
 
 protected:
     struct internal;

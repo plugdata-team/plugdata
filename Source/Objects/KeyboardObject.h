@@ -20,8 +20,8 @@ class KeyboardObject final : public ObjectBase
     int lastKey = -1;
     int clickedKey = -1;
 
-    std::set<int> heldKeys;
-    std::set<int> toggledKeys;
+    UnorderedSet<int> heldKeys;
+    UnorderedSet<int> toggledKeys;
 
     static constexpr uint8 whiteNotes[] = { 0, 2, 4, 5, 7, 9, 11 };
     static constexpr uint8 blackNotes[] = { 1, 3, 6, 8, 10 };
