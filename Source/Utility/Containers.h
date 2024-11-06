@@ -42,7 +42,6 @@
 #include <cassert>
 #include <algorithm>
 #include <limits>
-#include <memory_resource>
 
 template<typename T>
 class ArrayRef;
