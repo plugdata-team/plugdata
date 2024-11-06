@@ -2258,7 +2258,7 @@ private:
     T* allocate_and_construct(Args&&... args) {
         if constexpr(StackSize > 0) {
             if (stackUsed < StackSize) {
-                T* ptr = reinterpret_cast<T*>(stackBuffer) + stackUsed;
+                T* ptr = reinterpret_cast<T*>(&stackBuffer[stackUsed]);
                 stackUsed++;
                 new (ptr) T(std::forward<Args>(args)...); // Placement new
                 return ptr;
@@ -2340,15 +2340,9 @@ private:
         return true; // All pointers are contiguous
     }
 
-    SmallArray<T*> data_;
-    std::allocator<T> allocator_;
-    size_t num_preallocated = 0;
-    T* preallocated;
-    
-    // Only initialise stack buffer if
-    template <typename U, bool IsComplete = true>
+    template <typename U, bool HasStack = true>
     struct StorageSelector {
-        using type = typename std::aligned_storage<sizeof(U), alignof(U)>::type;
+        using type = std::array<std::aligned_storage<sizeof(U), alignof(U)>, StackSize>;
     };
 
     template <typename U>
@@ -2358,9 +2352,13 @@ private:
     
     using StackBuffer = typename StorageSelector<T, (StackSize > 0)>::type;
 
-    StackBuffer stackBuffer[StackSize];
+    SmallArray<T*> data_;
+    StackBuffer stackBuffer;
     size_t stackUsed = 0;
-    
+    T* preallocated;
+    size_t num_preallocated = 0;
+
+    std::allocator<T> allocator_;
     SmallArray<T*> reuse_list;
     SmallArray<T*> free_list;
 };
