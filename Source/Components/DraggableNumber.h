@@ -530,8 +530,6 @@ public:
                 text = text.trimCharactersAtEnd("0");
             }
             else {
-                std::cout << "old dec" << std::floor(std::log10(std::max(1, text.getTrailingIntValue())) + 1) << std::endl;
-                std::cout << "new dec" << precision << std::endl;
                 text = text.dropLastCharacters(std::floor(std::log10(std::max(1, text.getTrailingIntValue())) + 1) - precision);
             }
         }
