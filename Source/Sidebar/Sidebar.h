@@ -22,6 +22,76 @@ namespace pd {
 class Instance;
 }
 
+class InspectorButton : public TextButton {
+public:
+    explicit InspectorButton(String const& icon)
+            : TextButton(icon)
+    {
+    }
+
+    void mouseDown(MouseEvent const& e) override
+    {
+        if (!e.mods.isLeftButtonDown())
+            return;
+
+        incrementState();
+
+        TextButton::onClick();
+    }
+
+    void incrementState()
+    {
+        state++;
+        state = state % 3;
+
+        std::cout << "===== state is: " << state << std::endl;
+
+        repaint();
+    }
+
+    bool isInspectorActive()
+    {
+        return state >= 1;
+    }
+
+    bool isInspectorPinned()
+    {
+        return state == InspectorState::InspectorPin;
+    }
+
+    void paint(Graphics& g) override
+    {
+        bool active = isMouseOver() || isMouseButtonDown() || state == InspectorPin;
+        bool stateAuto = state == InspectorAuto;
+
+        auto cornerSize = Corners::defaultCornerRadius;
+
+        auto backgroundColour = active ? findColour(PlugDataColour::toolbarHoverColourId) : Colours::transparentBlack;
+        auto bounds = getLocalBounds().toFloat().reduced(3.0f, 4.0f);
+
+        g.setColour(backgroundColour);
+        g.fillRoundedRectangle(bounds, cornerSize);
+
+        auto font = Fonts::getIconFont().withHeight(13);
+        g.setFont(font);
+        g.setColour(stateAuto ? findColour(PlugDataColour::objectSelectedOutlineColourId) : findColour(PlugDataColour::toolbarTextColourId));
+
+        int const yIndent = jmin<int>(4, proportionOfHeight(0.3f));
+
+        int const fontHeight = roundToInt(font.getHeight() * 0.6f);
+        int const leftIndent = jmin<int>(fontHeight, 2 + cornerSize / (isConnectedOnLeft() ? 4 : 2));
+        int const rightIndent = jmin<int>(fontHeight, 2 + cornerSize / (isConnectedOnRight() ? 4 : 2));
+        int const textWidth = getWidth() - leftIndent - rightIndent;
+
+        if (textWidth > 0)
+            g.drawFittedText(getButtonText(), leftIndent, yIndent, textWidth, getHeight() - yIndent * 2, Justification::centred, 2);
+    }
+
+private:
+    enum InspectorState { InspectorOff, InspectorAuto, InspectorPin};
+    int state = InspectorAuto;
+};
+
 class SidebarSelectorButton : public TextButton {
 public:
     explicit SidebarSelectorButton(String const& icon)
@@ -107,13 +177,12 @@ public:
 
     void propertyChanged(String const& name, var const& value) override;
 
-    void showPanel(int panelToShow);
+    enum SidePanel { ClosedPan, ConsolePan, DocPan, ParamPan, SearchPan, InspectorPan};
+
+    void showPanel(SidePanel panelToShow);
 
     void showSidebar(bool show);
 
-    void pinSidebar(bool pin);
-
-    bool isPinned() const;
     bool isHidden() const;
 
     void clearConsole();
@@ -138,23 +207,35 @@ private:
     SidebarSelectorButton automationButton = SidebarSelectorButton(Icons::Parameters);
     SidebarSelectorButton searchButton = SidebarSelectorButton(Icons::Search);
 
+    Rectangle<int> dividerBounds;
+
+    InspectorButton inspectorButton = InspectorButton(Icons::Settings);
+
     std::unique_ptr<Component> extraSettingsButton;
     SmallIconButton panelPinButton = SmallIconButton(Icons::Pin);
 
     std::unique_ptr<Console> console;
-    std::unique_ptr<Inspector> inspector;
     std::unique_ptr<DocumentationBrowser> browser;
     std::unique_ptr<AutomationPanel> automationPanel;
     std::unique_ptr<SearchPanel> searchPanel;
 
+    std::unique_ptr<Inspector> inspector;
+    std::unique_ptr<Component> resetInspectorButton;
+
     StringArray panelNames = { "Console", "Documentation Browser", "Automation Parameters", "Search" };
     int currentPanel = 0;
+
+
+    enum InspectorMode { InspectorOff, InspectorAuto, InspectorOpen };
+    int inspectorMode = InspectorMode::InspectorOff;
 
     int dragStartWidth = 0;
     bool draggingSidebar = false;
     bool sidebarHidden = false;
 
-    bool pinned = false;
+    float dividerFactor = 0.5f;
+    bool isDraggingDivider = false;
+    int dragOffset = 0;
 
     int lastWidth = 250;
 };

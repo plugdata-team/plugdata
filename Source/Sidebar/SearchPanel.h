@@ -129,12 +129,24 @@ public:
 
         patchTree.onClick = [this](ValueTree& tree) {
             auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("Object")));
-            editor->highlightSearchTarget(ptr, true);
+            if (auto obj = editor->highlightSearchTarget(ptr, true)){
+                auto launchInspector = [this, obj](){
+                    SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
+                    editor->sidebar->showParameters(obj->getType(false), parameters);
+                };
+                MessageManager::callAsync(launchInspector);
+            }
         };
 
         patchTree.onSelect = [this](ValueTree& tree) {
             auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("TopLevel")));
-            editor->highlightSearchTarget(ptr, false);
+            if (auto obj = editor->highlightSearchTarget(ptr, false)){
+                auto launchInspector = [this, obj](){
+                    SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
+                    editor->sidebar->showParameters(obj->getType(false), parameters);
+                };
+                MessageManager::callAsync(launchInspector);
+            }
         };
 
         patchTree.onRightClick = [this](ValueTree& tree) {

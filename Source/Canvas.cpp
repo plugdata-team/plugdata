@@ -1321,17 +1321,11 @@ void Canvas::updateSidebarSelection()
                 }
             }
 
-            if (allParameters.not_empty() || editor->sidebar->isPinned()) {
-                String objectName = "(" + String(lassoSelection.size()) + " selected)";
-                if (lassoSelection.size() == 1 && lassoSelection.front()) {
-                    objectName = lassoSelection.back()->getType(false);
-                }
-                editor->sidebar->showParameters(objectName, allParameters);
-            } else {
-                editor->sidebar->hideParameters();
+            String objectName = "(" + String(lassoSelection.size()) + " selected)";
+            if (lassoSelection.size() == 1 && lassoSelection.front()) {
+                objectName = lassoSelection.back()->getType(false);
             }
-        } else {
-            editor->sidebar->hideParameters();
+            editor->sidebar->showParameters(objectName, allParameters);
         }
     });
 }
