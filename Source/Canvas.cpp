@@ -49,11 +49,10 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
 
     if (auto patchPtr = patch.getPointer()) {
         isGraphChild = glist_isgraph(patchPtr.get());
+        hideNameAndArgs = static_cast<bool>(patchPtr->gl_hidetext);
+        xRange = VarArray { var(patchPtr->gl_x1), var(patchPtr->gl_x2) };
+        yRange = VarArray { var(patchPtr->gl_y2), var(patchPtr->gl_y1) };
     }
-
-    hideNameAndArgs = static_cast<bool>(patch.getPointer()->gl_hidetext);
-    xRange = VarArray { var(patch.getPointer()->gl_x1), var(patch.getPointer()->gl_x2) };
-    yRange = VarArray { var(patch.getPointer()->gl_y2), var(patch.getPointer()->gl_y1) };
 
     pd->registerMessageListener(patch.getUncheckedPointer(), this);
 
@@ -153,9 +152,9 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     // Start in unlocked mode if the patch is empty
     if (objects.empty()) {
         locked = false;
-        patch.getPointer()->gl_edit = false;
+        if(auto patchPtr = patch.getPointer()) patchPtr->gl_edit = false;
     } else {
-        locked = !patch.getPointer()->gl_edit;
+        if(auto patchPtr = patch.getPointer()) locked = !patchPtr->gl_edit;
     }
 
     locked.addListener(this);
@@ -2254,8 +2253,9 @@ void Canvas::valueChanged(Value& v)
             snprintf(buf, MAXPDSTRING - 1, ".x%lx", (unsigned long)cnv.get());
             pd->sendMessage(buf, "setbounds", { x1, y1, x2, y2 });
         }
-
-        patch.getPointer()->gl_screenx2 = getValue<int>(patchWidth) + patch.getPointer()->gl_screenx1;
+        if(auto patchPtr = patch.getPointer()) {
+            patchPtr->gl_screenx2 = getValue<int>(patchWidth) + patchPtr->gl_screenx1;
+        }
         repaint();
     } else if (v.refersToSameSourceAs(patchHeight)) {
         patchHeight = jmax(11, getValue<int>(patchHeight));

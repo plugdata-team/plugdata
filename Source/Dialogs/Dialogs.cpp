@@ -665,7 +665,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             if (originalComponent == cnv) {
                 SmallArray<ObjectParameters, 6> parameters = { cnv->getInspectorParameters() };
                 editor->sidebar->showParameters("canvas", parameters);
-            } else if (object && object->gui) {
+            } else if (object && object->gui && object->getPointer()) {
 
                 cnv->pd->lockAudioThread();
                 // this makes sure that objects can handle the "properties" message as well if they like, for example for [else/properties]
