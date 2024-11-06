@@ -928,8 +928,8 @@ private:
     Statusbar* statusbar;
 };
 
-Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* editor)
-    : pd(processor), editor(editor)
+Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
+    : pd(processor), editor(e)
 {
     levelMeter = std::make_unique<LevelMeter>();
     cpuMeter = std::make_unique<CPUMeter>();
@@ -961,7 +961,6 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* editor)
 
     centreButton.setTooltip("Move view to origin");
     centreButton.onClick = [this]() {
-        auto* editor = findParentComponentOfClass<PluginEditor>();
         if (auto* cnv = editor->getCurrentCanvas()) {
             cnv->jumpToOrigin();
         }
@@ -997,7 +996,6 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* editor)
         for (auto zoomOption : zoomOptions) {
             auto scale = zoomOption.upToFirstOccurrenceOf("%", false, false).getIntValue() / 100.0f;
             zoomMenu.addItem(zoomOption, [this, scale]() {
-                auto* editor = findParentComponentOfClass<PluginEditor>();
                 if (auto* cnv = editor->getCurrentCanvas()) {
                     cnv->zoomScale.setValue(scale);
                     cnv->setTransform(AffineTransform().scaled(scale));
@@ -1009,7 +1007,6 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* editor)
 
         zoomMenu.addSeparator();
         zoomMenu.addItem("Zoom to fit content", [this]() {
-            auto* editor = findParentComponentOfClass<PluginEditor>();
             if (auto* cnv = editor->getCurrentCanvas()) {
                 cnv->zoomToFitAll();
             }
@@ -1022,7 +1019,6 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* editor)
 
     audioSettingsButton.setButtonText(Icons::ThinDown);
     audioSettingsButton.onClick = [this]() {
-        auto* editor = findParentComponentOfClass<PluginEditor>();
         AudioOutputSettings::show(editor, audioSettingsButton.getScreenBounds());
     };
 
@@ -1031,7 +1027,6 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* editor)
     addAndMakeVisible(snapEnableButton);
 
     snapSettingsButton.onClick = [this]() {
-        auto* editor = findParentComponentOfClass<PluginEditor>();
         SnapSettings::show(editor, snapSettingsButton.getScreenBounds());
     };
     addAndMakeVisible(snapSettingsButton);
@@ -1046,7 +1041,6 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* editor)
     addAndMakeVisible(overlayButton);
 
     overlaySettingsButton.onClick = [this]() {
-        auto* editor = findParentComponentOfClass<PluginEditor>();
         OverlayDisplaySettings::show(editor, overlaySettingsButton.getScreenBounds());
     };
     addAndMakeVisible(overlaySettingsButton);
@@ -1090,7 +1084,6 @@ Statusbar::~Statusbar()
 
 void Statusbar::handleAsyncUpdate()
 {
-    auto* editor = findParentComponentOfClass<PluginEditor>();
     if (auto* cnv = editor->getCurrentCanvas()) {
         currentZoomLevel = getValue<float>(cnv->zoomScale) * 100;
     } else {
@@ -1108,7 +1101,6 @@ void Statusbar::paint(Graphics& g)
 {
     g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
 
-    auto* editor = findParentComponentOfClass<PluginEditor>();
     auto start = !editor->palettes->isExpanded() ? 29.0f : 0.0f;
     auto end = editor->sidebar->isHidden() ? 29.0f : 0.0f;
     g.drawLine(start, 0.5f, static_cast<float>(getWidth()) - end, 0.5f);

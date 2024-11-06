@@ -180,7 +180,7 @@ class ThemeSettingsPanel : public SettingsDialogPanel
 
     Value fontValue;
 
-    UnorderedMap<String, UnorderedMap<String, Value>> swatches;
+    UnorderedMap<String, std::unordered_map<String, Value>> swatches;
 
     PropertiesPanel::ActionComponent* newButton = nullptr;
     PropertiesPanel::ActionComponent* loadButton = nullptr;
@@ -245,13 +245,14 @@ public:
             // Loop over themes
             for (int i = 0; i < 2; i++) {
                 auto const& themeName = PlugDataLook::selectedThemes[i];
-                swatchesToAdd.add(&(swatches[themeName][colourId]));
-                auto* swatch = swatchesToAdd.back();
+                auto& themeSwatches = swatches[themeName];
+                auto& swatch = themeSwatches[colourId];
+                swatchesToAdd.add(&swatch);
 
                 auto value = SettingsFile::getInstance()->getColourThemesTree().getChildWithProperty("theme", themeName).getPropertyAsValue(colourId, nullptr);
 
-                swatch->referTo(value);
-                swatch->addListener(this);
+                swatch.referTo(value);
+                swatch.addListener(this);
             }
 
             // Add a multi colour component to the properties panel

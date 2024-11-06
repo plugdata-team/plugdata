@@ -109,7 +109,7 @@ public:
             return;
 
         value = getValue();
-        input.setText(input.formatNumber(value), dontSendNotification);
+        input.setValue(value, dontSendNotification);
 
         min = getMinimum();
         max = getMaximum();
@@ -247,7 +247,7 @@ public:
         case hash("set"): {
             if (numAtoms > 0 && atoms[0].isFloat()) {
                 value = std::clamp(atoms[0].getFloat(), ::getValue<float>(min), ::getValue<float>(max));
-                input.setText(input.formatNumber(value), dontSendNotification);
+                input.setValue(value, dontSendNotification);
             }
             break;
         }

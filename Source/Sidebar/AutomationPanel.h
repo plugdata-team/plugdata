@@ -162,8 +162,8 @@ public:
         auto& maximumComponent = rangeProperty.getMaximumComponent();
 
         minimumComponent.dragEnd = [this, &maximumComponent]() {
-            float minimum = static_cast<int>((*range.getValue().getArray())[0]);
-            float maximum = param->getNormalisableRange().end;
+            double minimum = static_cast<int>((*range.getValue().getArray())[0]);
+            double maximum = param->getNormalisableRange().end;
 
             valueLabel.setMinimum(minimum);
             valueLabel.setMaximum(maximum);
@@ -180,8 +180,8 @@ public:
         };
 
         maximumComponent.dragEnd = [this, &minimumComponent]() {
-            float minimum = param->getNormalisableRange().start;
-            float maximum = static_cast<int>((*range.getValue().getArray())[1]);
+            double minimum = param->getNormalisableRange().start;
+            double maximum = static_cast<int>((*range.getValue().getArray())[1]);
 
             valueLabel.setMinimum(minimum);
             valueLabel.setMaximum(maximum);
