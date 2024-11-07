@@ -84,7 +84,7 @@ public:
     void middleMouseChanged(bool isHeld) override;
     void altKeyChanged(bool isHeld) override;
 
-    void propertyChanged(String const& name, var const& value) override;
+    void settingsChanged(String const& name, var const& value) override;
 
     void focusGained(FocusChangeType cause) override;
     void focusLost(FocusChangeType cause) override;
@@ -196,24 +196,26 @@ public:
 
     std::unique_ptr<Viewport> viewport = nullptr;
 
-    bool connectingWithDrag = false;
-    bool connectionCancelled = false;
+    bool connectingWithDrag:1 = false;
+    bool connectionCancelled:1 = false;
     SafePointer<Iolet> nearestIolet;
 
     std::unique_ptr<SuggestionComponent> suggestor;
 
     pd::Patch::Ptr refCountedPatch;
     pd::Patch& patch;
-
-    // Needs to be allocated before object and connection so they can deselect themselves in the destructor
-    SelectedItemSet<WeakReference<Component>> selectedComponents;
-    OwnedArray<Object> objects;
-    OwnedArray<Connection> connections;
-    OwnedArray<ConnectionBeingCreated> connectionsBeingCreated;
-
+        
     Value locked = SynchronousValue();
     Value commandLocked;
     Value presentationMode;
+
+    SmallArray<juce::WeakReference<NVGComponent>> drawables;
+
+    // Needs to be allocated before object and connection so they can deselect themselves in the destructor
+    SelectedItemSet<WeakReference<Component>> selectedComponents;
+    PooledPtrArray<Object> objects;
+    PooledPtrArray<Connection> connections;
+    PooledPtrArray<ConnectionBeingCreated> connectionsBeingCreated;
 
     bool showOrigin : 1 = false;
     bool showBorder : 1 = false;
@@ -266,8 +268,6 @@ public:
 
     NVGImage resizeHandleImage;
     NVGImage presentationShadowImage;
-
-    SmallArray<juce::WeakReference<NVGComponent>> drawables;
 
     NVGcolor canvasBackgroundCol;
     Colour canvasBackgroundColJuce;
@@ -333,6 +333,6 @@ private:
     std::unique_ptr<BorderResizer> canvasBorderResizer;
 
     std::unique_ptr<CanvasSearchHighlight> canvasSearchHighlight;
-
+        
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Canvas)
 };

@@ -81,9 +81,10 @@ class Statusbar : public Component
     , public StatusbarSource::Listener
     , public ModifierKeyListener {
     PluginProcessor* pd;
+    PluginEditor* editor;
 
 public:
-    explicit Statusbar(PluginProcessor* processor);
+    explicit Statusbar(PluginProcessor* processor, PluginEditor* editor);
     ~Statusbar() override;
 
     void paint(Graphics& g) override;

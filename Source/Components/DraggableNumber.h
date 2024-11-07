@@ -17,24 +17,24 @@ public:
     };
 
 protected:
-    int decimalDrag = 0;
+    int16 decimalDrag = 0;
+    int16 hoveredDecimal = -1;
     double dragValue = 0.0;
-    int hoveredDecimal = -1;
     Rectangle<float> hoveredDecimalPosition;
 
     double lastValue = 0.0;
-
-    bool isMinLimited = false, isMaxLimited = false;
-    DragMode dragMode = Regular;
-    double logarithmicHeight = 256.0f;
-    int lastLogarithmicDragPosition = 0;
+    double logarithmicHeight = 256.0;
+    int16 lastLogarithmicDragPosition = 0;
     double min = 0.0, max = 0.0;
 
-    bool resetOnCommandClick = false;
-    bool wasReset = false;
+    DragMode dragMode:2 = Regular;
+    bool isMinLimited:1 = false;
+    bool isMaxLimited:1 = false;
+    bool resetOnCommandClick:1 = false;
+    bool wasReset:1 = false;
+    bool showEllipses:1 = true;
     double valueToResetTo = 0.0;
     double valueToRevertTo = 0.0;
-    bool showEllipses = true;
     Colour outlineColour, textColour;
 
     std::unique_ptr<NanoVGGraphicsContext> nvgCtx;
@@ -168,11 +168,11 @@ public:
 
         newValue = limitValue(newValue);
 
-        if (!approximatelyEqual(lastValue, newValue)) {
-            lastValue = newValue;
-
-            setText(String(newValue, 8), notification);
+        setText(formatNumber(newValue, decimalDrag), notification);
+        
+        if (!approximatelyEqual(lastValue, newValue) && notification != dontSendNotification) {
             onValueChange(newValue);
+            lastValue = newValue;
         }
     }
 
@@ -273,8 +273,9 @@ public:
         }
 
         GlyphArrangement glyphs;
-        auto formattedNumber = formatNumber(getText().getDoubleValue());
-        auto fullNumber = formattedNumber + String("000000");
+        auto fullNumber = getText() + String("000000");
+        fullNumber = fullNumber.substring(0, fullNumber.indexOf(".") + 7);
+        
         glyphs.addFittedText(getFont(), fullNumber, textArea.getX(), 0., 99999, getHeight(), 1, 1.0f);
         int draggedDecimal = -1;
 
@@ -336,8 +337,8 @@ public:
         }
 
         auto font = getFont();
-        auto textArea = getBorderSize().subtractedFrom(getLocalBounds()).toFloat();
-        auto numberText = formatNumber(getText().getDoubleValue(), decimalDrag);
+        auto textArea = getBorderSize().subtractedFrom(getLocalBounds()).toDouble();
+        auto numberText = getText();
         auto extraNumberText = String();
         auto numDecimals = numberText.fromFirstOccurrenceOf(".", false, false).length();
         auto numberTextLength = CachedFontStringWidth::get()->calculateSingleLineWidth(font, numberText);
@@ -381,7 +382,7 @@ public:
         auto font = getFont();
         if (!isBeingEdited()) {
             auto textArea = getBorderSize().subtractedFrom(getLocalBounds()).toFloat();
-            auto numberText = formatNumber(getText().getDoubleValue(), decimalDrag);
+            auto numberText = getText();
             auto extraNumberText = String();
             auto numDecimals = numberText.fromFirstOccurrenceOf(".", false, false).length();
             auto numberTextLength = CachedFontStringWidth::get()->calculateSingleLineWidth(font, numberText);
@@ -445,34 +446,34 @@ public:
             double logMin = min;
             double logMax = max;
 
-            if ((logMin == 0.0) && (logMax == 0.0))
-                logMax = 1.0;
-            if (logMax > 0.0) {
-                if (logMin <= 0.0)
-                    logMin = 0.01 * logMax;
+            if ((logMin == 0.0f) && (logMax == 0.0f))
+                logMax = 1.0f;
+            if (logMax > 0.0f) {
+                if (logMin <= 0.0f)
+                    logMin = 0.01f * logMax;
             } else {
-                if (logMin > 0.0)
-                    logMax = 0.01 * logMin;
+                if (logMin > 0.0f)
+                    logMax = 0.01f * logMin;
             }
 
             double dy = lastLogarithmicDragPosition - e.y;
-            double k = exp(log(logMax / logMin) / std::max(logarithmicHeight, 10.0));
-            double factor = pow(k, dy);
+            double k = std::exp(log(logMax / logMin) / std::max(logarithmicHeight, 10.0));
+            double factor = std::pow(k, dy);
             setValue(std::clamp(getValue(), logMin, logMax) * factor);
 
             lastLogarithmicDragPosition = e.y;
         } else {
             int const decimal = decimalDrag + e.mods.isShiftDown();
-            double const increment = (decimal == 0) ? 1. : (1. / std::pow(10., decimal));
-            double const deltaY = (e.y - e.mouseDownPosition.y) * 0.7;
+            double const increment = (decimal == 0) ? 1. : (1. / std::pow(10.f, decimal));
+            double const deltaY = (e.y - e.mouseDownPosition.y) * 0.7f;
 
             // truncate value and set
             double newValue = dragValue + (increment * -deltaY);
 
             if (decimal > 0) {
                 int const sign = (newValue > 0) ? 1 : -1;
-                unsigned long long ui_temp = (newValue * std::pow(10, decimal)) * sign;
-                newValue = (((long double)ui_temp) / std::pow(10, decimal) * sign);
+                unsigned long long ui_temp = (newValue * std::pow(10.f, decimal)) * sign;
+                newValue = (((long double)ui_temp) / std::pow(10.f, decimal) * sign);
             } else {
                 newValue = static_cast<int64_t>(newValue);
             }
@@ -525,7 +526,12 @@ public:
         if (dragMode != Integer) {
             if (!text.containsChar('.'))
                 text << '.';
-            text = text.trimCharactersAtEnd("0");
+            if(precision <= 0)  {
+                text = text.trimCharactersAtEnd("0");
+            }
+            else {
+                text = text.dropLastCharacters(std::floor(std::log10(std::max(1, text.getTrailingIntValue())) + 1) - precision);
+            }
         }
 
         return text;

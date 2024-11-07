@@ -409,30 +409,33 @@ void TabComponent::handleAsyncUpdate()
     }
 
     // Load all patches from pd patch array
+    auto patches = SmallArray<pd::Patch::Ptr>();
     {
         ScopedLock lock(pd->patchesLock);
-        for (auto& patch : pd->patches) {
-            if (patch->windowIndex != editorIndex)
-                continue;
+        patches.add_array(pd->patches);
+    }
 
-            Canvas* cnv = nullptr;
-            for (auto* canvas : canvases) {
-                if (canvas->patch == *patch) {
-                    cnv = canvas;
-                }
+    for (auto& patch : patches) {
+        if (patch->windowIndex != editorIndex)
+            continue;
+
+        Canvas* cnv = nullptr;
+        for (auto* canvas : canvases) {
+            if (canvas->patch == *patch) {
+                cnv = canvas;
             }
-
-            if (!cnv) {
-                cnv = canvases.add(new Canvas(editor, patch));
-                resized();
-                cnv->restoreViewportState();
-            }
-
-            // Create tab buttons
-            auto* newTabButton = new TabBarButtonComponent(cnv, this);
-            tabbars[patch->splitViewIndex == 1].add(newTabButton);
-            addAndMakeVisible(newTabButton);
         }
+
+        if (!cnv) {
+            cnv = canvases.add(new Canvas(editor, patch));
+            resized();
+            cnv->restoreViewportState();
+        }
+
+        // Create tab buttons
+        auto* newTabButton = new TabBarButtonComponent(cnv, this);
+        tabbars[patch->splitViewIndex == 1].add(newTabButton);
+        addAndMakeVisible(newTabButton);
     }
 
     closeEmptySplits();
@@ -539,7 +542,7 @@ void TabComponent::showTab(Canvas* cnv, int splitIndex)
 
     editor->nvgSurface.invalidateAll();
 
-    sendTabUpdateToVisibleCanvases();
+    //sendTabUpdateToVisibleCanvases();
 
     editor->sidebar->hideParameters();
     editor->sidebar->clearSearchOutliner();

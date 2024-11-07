@@ -141,7 +141,7 @@ void Sidebar::paintOverChildren(Graphics& g)
     }
 }
 
-void Sidebar::propertyChanged(String const& name, var const& value)
+void Sidebar::settingsChanged(String const& name, var const& value)
 {
     if (name == "centre_sidepanel_buttons") {
         resized();

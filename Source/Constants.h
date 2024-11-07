@@ -368,7 +368,7 @@ enum ObjectIDs {
     OtherObject
 };
 
-std::map<ObjectIDs, String> const objectNames {
+UnorderedMap<ObjectIDs, String> const objectNames {
     { NewObject, "" },
     { NewComment, "comment" },
     { NewBang, "bng" },

@@ -28,7 +28,7 @@ class LuaObject final : public ObjectBase
     std::unique_ptr<Component> textEditor;
     std::unique_ptr<Dialog> saveDialog;
 
-    std::map<int, NVGFramebuffer> framebuffers;
+    UnorderedMap<int, NVGFramebuffer> framebuffers;
 
     struct LuaGuiMessage {
         t_symbol* symbol;
@@ -64,10 +64,10 @@ class LuaObject final : public ObjectBase
         }
     };
 
-    std::map<int, HeapArray<LuaGuiMessage>> guiCommandBuffer;
-    std::map<int, moodycamel::ReaderWriterQueue<LuaGuiMessage>> guiMessageQueue;
+    UnorderedSegmentedMap<int, HeapArray<LuaGuiMessage>> guiCommandBuffer;
+    UnorderedSegmentedMap<int, moodycamel::ReaderWriterQueue<LuaGuiMessage>> guiMessageQueue;
 
-    static inline std::map<t_pdlua*, SmallArray<LuaObject*>> allDrawTargets = std::map<t_pdlua*, SmallArray<LuaObject*>>();
+    static inline UnorderedMap<t_pdlua*, SmallArray<LuaObject*>> allDrawTargets = UnorderedMap<t_pdlua*, SmallArray<LuaObject*>>();
 
 public:
     LuaObject(pd::WeakReference obj, Object* parent)

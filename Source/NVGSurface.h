@@ -119,7 +119,7 @@ private:
     NVGframebuffer* invalidFBO = nullptr;
     int fbWidth = 0, fbHeight = 0;
 
-    static inline std::map<NVGcontext*, NVGSurface*> surfaces;
+    static inline UnorderedMap<NVGcontext*, NVGSurface*> surfaces;
 
     juce::Image backupRenderImage;
     bool renderThroughImage = false;
@@ -149,6 +149,11 @@ public:
     static NVGcolor convertColour(Colour c)
     {
         return nvgRGBA(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
+    }
+    
+    static Colour convertColour(NVGcolor c)
+    {
+        return Colour(c.r, c.b, c.g, c.a);
     }
 
     NVGcolor findNVGColour(int colourId)
@@ -361,7 +366,7 @@ public:
 
     std::function<void()> onImageInvalidate = nullptr;
 
-    static inline std::set<NVGImage*> allImages = std::set<NVGImage*>();
+    static inline UnorderedSet<NVGImage*> allImages = UnorderedSet<NVGImage*>();
 };
 
 class NVGFramebuffer {
@@ -453,7 +458,7 @@ public:
     }
 
 private:
-    static inline std::set<NVGFramebuffer*> allFramebuffers;
+    static inline UnorderedSet<NVGFramebuffer*> allFramebuffers;
 
     NVGcontext* nvg;
     NVGframebuffer* fb = nullptr;
@@ -530,7 +535,7 @@ public:
     }
 
 private:
-    static inline std::set<NVGCachedPath*> allCachedPaths;
+    static inline UnorderedSet<NVGCachedPath*> allCachedPaths;
     NVGcontext* nvg = nullptr;
     int cacheId = -1;
 };

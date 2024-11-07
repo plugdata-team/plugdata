@@ -40,8 +40,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     , graphArea(nullptr)
     , pathUpdater(new ConnectionPathUpdater(this))
     , globalMouseListener(this)
-{
-
+{    
     addAndMakeVisible(objectLayer);
     addAndMakeVisible(connectionLayer);
 
@@ -50,11 +49,10 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
 
     if (auto patchPtr = patch.getPointer()) {
         isGraphChild = glist_isgraph(patchPtr.get());
+        hideNameAndArgs = static_cast<bool>(patchPtr->gl_hidetext);
+        xRange = VarArray { var(patchPtr->gl_x1), var(patchPtr->gl_x2) };
+        yRange = VarArray { var(patchPtr->gl_y2), var(patchPtr->gl_y1) };
     }
-
-    hideNameAndArgs = static_cast<bool>(patch.getPointer()->gl_hidetext);
-    xRange = VarArray { var(patch.getPointer()->gl_x1), var(patch.getPointer()->gl_x2) };
-    yRange = VarArray { var(patch.getPointer()->gl_y2), var(patch.getPointer()->gl_y1) };
 
     pd->registerMessageListener(patch.getUncheckedPointer(), this);
 
@@ -122,7 +120,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     commandLocked.addListener(this);
 
     // init border for testing
-    propertyChanged("border", SettingsFile::getInstance()->getPropertyAsValue("border"));
+    settingsChanged("border", SettingsFile::getInstance()->getPropertyAsValue("border"));
 
     // Add draggable border for setting graph position
     if (getValue<bool>(isGraphChild) && !isGraph) {
@@ -152,11 +150,11 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     performSynchronise();
 
     // Start in unlocked mode if the patch is empty
-    if (objects.isEmpty()) {
+    if (objects.empty()) {
         locked = false;
-        patch.getPointer()->gl_edit = false;
+        if(auto patchPtr = patch.getPointer()) patchPtr->gl_edit = false;
     } else {
-        locked = !patch.getPointer()->gl_edit;
+        if(auto patchPtr = patch.getPointer()) locked = !patchPtr->gl_edit;
     }
 
     locked.addListener(this);
@@ -179,7 +177,9 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     parameters.addParamInt("Width", cDimensions, &patchWidth, 527, onInteractionFn);
     parameters.addParamInt("Height", cDimensions, &patchHeight, 327, onInteractionFn);
 
-    patch.setVisible(true);
+    if(!isGraph) {
+        patch.setVisible(true);
+    }
 
     lookAndFeelChanged();
 }
@@ -194,6 +194,7 @@ Canvas::~Canvas()
     zoomScale.removeListener(this);
     editor->removeModifierKeyListener(this);
     pd->unregisterMessageListener(patch.getUncheckedPointer(), this);
+    patch.setVisible(false);
 }
 
 void Canvas::lookAndFeelChanged()
@@ -646,7 +647,7 @@ void Canvas::renderAllConnections(NVGcontext* nvg, Rectangle<int> area)
     }
 }
 
-void Canvas::propertyChanged(String const& name, var const& value)
+void Canvas::settingsChanged(String const& name, var const& value)
 {
     switch (hash(name)) {
     case hash("grid_size"):
@@ -755,7 +756,7 @@ void Canvas::saveViewportState()
 
 void Canvas::zoomToFitAll()
 {
-    if (objects.isEmpty() || !viewport)
+    if (objects.empty() || !viewport)
         return;
 
     auto scale = getValue<float>(zoomScale);
@@ -825,8 +826,8 @@ void Canvas::save(std::function<void()> const& nestedCallback)
     if (canvasToSave->patch.getCurrentFile().existsAsFile()) {
         canvasToSave->patch.savePatch();
         SettingsFile::getInstance()->addToRecentlyOpened(canvasToSave->patch.getCurrentFile());
-        nestedCallback();
         pd->titleChanged();
+        nestedCallback();
     } else {
         saveAs(nestedCallback);
     }
@@ -895,7 +896,7 @@ void Canvas::performSynchronise()
     // Remove deleted connections
     for (int n = connections.size() - 1; n >= 0; n--) {
         if (!connections[n]->getPointer()) {
-            connections.remove(n);
+            connections.remove_at(n);
         }
     }
 
@@ -906,26 +907,27 @@ void Canvas::performSynchronise()
         // If the object is showing it's initial editor, meaning no object was assigned yet, allow it to exist without pointing to an object
         if ((!object->getPointer() || patch.objectWasDeleted(object->getPointer())) && !object->isInitialEditorShown()) {
             setSelected(object, false, false);
-            objects.remove(n);
+            objects.remove_at(n);
         }
     }
 
     // Check for connections that need to be remade because of invalid iolets
     for (int n = connections.size() - 1; n >= 0; n--) {
         if (!connections[n]->inlet || !connections[n]->outlet) {
-            connections.remove(n);
+            connections.remove_at(n);
         }
     }
 
     auto pdObjects = patch.getObjects();
-
+    objects.reserve(pdObjects.size());
+    
     for (auto object : pdObjects) {
         auto* it = std::find_if(objects.begin(), objects.end(), [&object](Object const* b) { return b->getPointer() && b->getPointer() == object.getRawUnchecked<void>(); });
         if (!object.isValid())
             continue;
 
         if (it == objects.end()) {
-            auto* newObject = objects.add(new Object(object, this));
+            auto* newObject = objects.add(object, this);
             newObject->toFront(false);
 
             if (newObject->gui && newObject->gui->getLabel())
@@ -952,7 +954,8 @@ void Canvas::performSynchronise()
         });
 
     auto pdConnections = patch.getConnections();
-
+    connections.reserve(pdConnections.size());
+    
     for (auto& connection : pdConnections) {
         auto& [ptr, inno, inobj, outno, outobj] = connection;
 
@@ -992,16 +995,16 @@ void Canvas::performSynchronise()
             });
 
         if (it == connections.end()) {
-            connections.add(new Connection(this, inlet, outlet, ptr));
+            connections.add(this, inlet, outlet, ptr);
         } else {
             auto& c = *(*it);
 
             // This is necessary to make resorting a subpatchers iolets work
             // And it can't hurt to check if the connection is valid anyway
             if (c.inlet != inlet || c.outlet != outlet) {
-                int idx = connections.indexOf(*it);
-                connections.removeObject(*it);
-                connections.insert(idx, new Connection(this, inlet, outlet, ptr));
+                int idx = connections.index_of(*it);
+                connections.remove_one(*it);
+                connections.insert(idx, this, inlet, outlet, ptr);
             } else {
                 c.popPathState();
             }
@@ -1041,7 +1044,7 @@ void Canvas::shiftKeyChanged(bool isHeld)
         Iolet* connectingOutlet = connectionsBeingCreated[0]->getIolet();
         Iolet* targetInlet = nullptr;
         for (auto& object : objects) {
-            for (auto* iolet : object->iolets) {
+            for (auto& iolet : object->iolets) {
                 if (iolet->isTargeted && iolet != connectingOutlet) {
                     targetInlet = iolet;
                     break;
@@ -1177,7 +1180,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
 
     if (connectingWithDrag) {
         for (auto* obj : objects) {
-            for (auto* iolet : obj->iolets) {
+            for (auto& iolet : obj->iolets) {
                 iolet->mouseDrag(e.getEventRelativeTo(iolet));
             }
         }
@@ -1264,10 +1267,9 @@ void Canvas::mouseUp(MouseEvent const& e)
 
     // Double-click canvas to create new object
     if (e.mods.isLeftButtonDown() && (e.getNumberOfClicks() == 2) && (e.originalComponent == this) && !isGraph && !getValue<bool>(locked)) {
-        auto newObject = new Object(this, "", e.getPosition());
-        objects.add(newObject);
+        auto* newObject = objects.add(this, "", e.getPosition());
         deselectAll();
-        setSelected(objects[objects.size() - 1], true); // Select newly created object
+        setSelected(newObject, true); // Select newly created object
     }
 
     // Make sure the drag-over toggle action is ended
@@ -1291,7 +1293,7 @@ void Canvas::mouseUp(MouseEvent const& e)
     // TODO: this is a hack, find a better solution
     if (connectingWithDrag) {
         for (auto* obj : objects) {
-            for (auto* iolet : obj->iolets) {
+            for (auto& iolet : obj->iolets) {
                 auto relativeEvent = e.getEventRelativeTo(this);
                 if (iolet->getCanvasBounds().expanded(20).contains(relativeEvent.getPosition())) {
                     iolet->mouseUp(relativeEvent);
@@ -1382,7 +1384,7 @@ bool Canvas::keyPressed(KeyPress const& key)
     };
 
     // Cancel connections being created by ESC key
-    if (keycode == KeyPress::escapeKey && !connectionsBeingCreated.isEmpty()) {
+    if (keycode == KeyPress::escapeKey && !connectionsBeingCreated.empty()) {
         cancelConnectionCreation();
         return true;
     }
@@ -1786,7 +1788,7 @@ void Canvas::cycleSelection()
 
     if (selectedObjects.size() == 1) {
         // Find the index of the currently selected object
-        auto currentIdx = objects.indexOf(selectedObjects[0]);
+        auto currentIdx = objects.index_of(selectedObjects[0]);
         setSelected(selectedObjects[0], false);
 
         // Calculate the next index (wrap around if at the end)
@@ -1801,7 +1803,7 @@ void Canvas::cycleSelection()
 
     if (selectedConnections.size() == 1) {
         // Find the index of the currently selected connection
-        auto currentIdx = connections.indexOf(selectedConnections[0]);
+        auto currentIdx = connections.index_of(selectedConnections[0]);
         setSelected(selectedConnections[0], false);
 
         // Calculate the next index (wrap around if at the end)
@@ -1865,15 +1867,15 @@ void Canvas::encapsulateSelection()
 
     // Sort by index in pd patch
     selectedObjects.sort([this](auto const* a, auto const* b) -> bool {
-        return objects.indexOf(a) < objects.indexOf(b);
+        return objects.index_of(a) < objects.index_of(b);
     });
 
     // If two connections have the same target inlet/outlet, we only need 1 [inlet/outlet] object
     auto usedIolets = SmallArray<Iolet*>();
-    auto targetIolets = std::map<Iolet*, SmallArray<Iolet*>>();
+    auto targetIolets = UnorderedMap<Iolet*, SmallArray<Iolet*>>();
 
     auto newInternalConnections = String();
-    auto newExternalConnections = std::map<int, SmallArray<Iolet*>>();
+    auto newExternalConnections = UnorderedMap<int, SmallArray<Iolet*>>();
 
     // First, find all the incoming and outgoing connections
     for (auto* connection : connections) {
@@ -2249,8 +2251,9 @@ void Canvas::valueChanged(Value& v)
             snprintf(buf, MAXPDSTRING - 1, ".x%lx", (unsigned long)cnv.get());
             pd->sendMessage(buf, "setbounds", { x1, y1, x2, y2 });
         }
-
-        patch.getPointer()->gl_screenx2 = getValue<int>(patchWidth) + patch.getPointer()->gl_screenx1;
+        if(auto patchPtr = patch.getPointer()) {
+            patchPtr->gl_screenx2 = getValue<int>(patchWidth) + patchPtr->gl_screenx1;
+        }
         repaint();
     } else if (v.refersToSameSourceAs(patchHeight)) {
         patchHeight = jmax(11, getValue<int>(patchHeight));
@@ -2544,7 +2547,7 @@ void Canvas::resized()
     objectLayer.setBounds(getLocalBounds());
 }
 
-void Canvas::activateCanvasSearchHighlight(Object *obj)
+void Canvas::activateCanvasSearchHighlight(Object* obj)
 {
     canvasSearchHighlight.reset(std::make_unique<CanvasSearchHighlight>(this, obj).release());
 }

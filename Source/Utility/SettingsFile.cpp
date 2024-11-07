@@ -161,6 +161,7 @@ bool SettingsFile::verify(XmlElement const* xml)
         "RecentlyOpened",
         "Libraries",
         "EnabledMidiOutputPorts",
+        "EnabledMidiInputPorts",
         "LastBrowserPaths",
         "Overlays",
     };
@@ -379,44 +380,63 @@ void SettingsFile::initialiseThemesTree()
 
         // Ensure each theme is valid
         for (auto themeTree : colourThemesTree) {
-
             auto themeName = themeTree.getProperty("theme");
-
-            if (!defaultColourThemesTree.getChildWithProperty("theme", themeName).isValid()) {
-                continue;
-            }
-
-            if (!themeTree.hasProperty("straight_connections")) {
-                themeTree.setProperty("straight_connections", false, nullptr);
-            }
-            if (!themeTree.hasProperty("connection_style")) {
-                themeTree.setProperty("connection_style", String(1), nullptr);
-            }
-            if (!themeTree.hasProperty("square_iolets")) {
-                themeTree.setProperty("square_iolets", false, nullptr);
-            }
-            if (!themeTree.hasProperty("square_object_corners")) {
-                themeTree.setProperty("square_object_corners", false, nullptr);
-            }
-            if (!themeTree.hasProperty("object_flag_outlined")) {
-                themeTree.setProperty("object_flag_outlined", false, nullptr);
-            }
-            if (!themeTree.hasProperty("iolet_spacing_edge")) {
-                themeTree.setProperty("iolet_spacing_edge", false, nullptr);
-            }
-
-            if (!defaultColourThemesTree.getChildWithProperty("theme", themeName).isValid()) {
-                continue;
-            }
-
-            for (auto const& [colourId, colourInfo] : PlugDataColourNames) {
-                auto& [cId, colourName, colourCategory] = colourInfo;
-
+            // If it's one of the default themes, validate it against the default theme tree
+            if (defaultColourThemesTree.getChildWithProperty("theme", themeName).isValid()) {
                 auto defaultTree = defaultColourThemesTree.getChildWithProperty("theme", themeName);
 
-                // For when we add new colours in the future
-                if (!themeTree.hasProperty(colourName) || themeTree.getProperty(colourName).toString().isEmpty() || themeTree.getProperty(colourName).toString() == "00000000") {
-                    themeTree.setProperty(colourName, defaultTree.getProperty(colourName).toString(), nullptr);
+                for (auto const& [colourId, colourInfo] : PlugDataColourNames) {
+                    auto& [cId, colourName, colourCategory] = colourInfo;
+                    // For when we add new colours in the future
+                    if (!themeTree.hasProperty(colourName) || themeTree.getProperty(colourName).toString().isEmpty() || themeTree.getProperty(colourName).toString() == "00000000") {
+                        themeTree.setProperty(colourName, defaultTree.getProperty(colourName).toString(), nullptr);
+                    }
+                }
+
+                if (!themeTree.hasProperty("straight_connections")) {
+                    themeTree.setProperty("straight_connections", defaultTree.getProperty("straight_connections"), nullptr);
+                }
+                if (!themeTree.hasProperty("connection_style")) {
+                    themeTree.setProperty("connection_style", defaultTree.getProperty("connection_style"), nullptr);
+                }
+                if (!themeTree.hasProperty("square_iolets")) {
+                    themeTree.setProperty("square_iolets", defaultTree.getProperty("square_iolets"), nullptr);
+                }
+                if (!themeTree.hasProperty("square_object_corners")) {
+                    themeTree.setProperty("square_object_corners", defaultTree.getProperty("square_object_corners"), nullptr);
+                }
+                if (!themeTree.hasProperty("object_flag_outlined")) {
+                    themeTree.setProperty("object_flag_outlined", defaultTree.getProperty("object_flag_outlined"), nullptr);
+                }
+                if (!themeTree.hasProperty("iolet_spacing_edge")) {
+                    themeTree.setProperty("iolet_spacing_edge", defaultTree.getProperty("iolet_spacing_edge"), nullptr);
+                }
+                if (!themeTree.hasProperty("highlight_syntax")) {
+                    themeTree.setProperty("highlight_syntax", defaultTree.getProperty("highlight_syntax"), nullptr);
+                }
+            }
+            // Otherwise, just ensure these properties exist
+            else {
+                if (!themeTree.hasProperty("straight_connections")) {
+                    themeTree.setProperty("straight_connections", false, nullptr);
+                }
+                if (!themeTree.hasProperty("connection_style")) {
+                    themeTree.setProperty("connection_style", String(1), nullptr);
+                }
+                if (!themeTree.hasProperty("square_iolets")) {
+                    themeTree.setProperty("square_iolets", false, nullptr);
+                }
+                if (!themeTree.hasProperty("square_object_corners")) {
+                    themeTree.setProperty("square_object_corners", false, nullptr);
+                }
+                if (!themeTree.hasProperty("object_flag_outlined")) {
+                    themeTree.setProperty("object_flag_outlined", false, nullptr);
+                }
+                if (!themeTree.hasProperty("iolet_spacing_edge")) {
+                    themeTree.setProperty("iolet_spacing_edge", false, nullptr);
+                }
+                if (!themeTree.hasProperty("highlight_syntax")) {
+                    themeTree.setProperty("highlight_syntax", true, nullptr);
                 }
             }
         }
@@ -425,7 +445,7 @@ void SettingsFile::initialiseThemesTree()
 
 void SettingsFile::initialiseOverlayTree()
 {
-    std::map<String, int> defaults = {
+    UnorderedMap<String, int> defaults = {
         { "edit", Origin | ActivationState },
         { "lock", Behind },
         { "run", None },
@@ -480,7 +500,7 @@ void SettingsFile::fileChanged(File const file, FileSystemWatcher::FileSystemEve
 void SettingsFile::valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, Identifier const& property)
 {
     for (auto* listener : listeners) {
-        listener->propertyChanged(property.toString(), treeWhosePropertyHasChanged.getProperty(property));
+        listener->settingsChanged(property.toString(), treeWhosePropertyHasChanged.getProperty(property));
     }
 
     if (!settingsChangedExternally)

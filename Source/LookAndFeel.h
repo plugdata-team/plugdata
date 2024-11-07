@@ -10,7 +10,7 @@
 #include "Utility/Fonts.h"
 #include "Constants.h"
 
-inline std::map<PlugDataColour, std::tuple<String, String, String>> const PlugDataColourNames = {
+inline UnorderedMap<PlugDataColour, std::tuple<String, String, String>> const PlugDataColourNames = {
 
     { toolbarBackgroundColourId, { "Toolbar background", "toolbar_background", "Toolbar" } },
     { toolbarTextColourId, { "Toolbar text", "toolbar_text", "Toolbar" } },
@@ -156,7 +156,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     int getTreeViewIndentSize(TreeView&) override;
 
-    void setColours(std::map<PlugDataColour, Colour> colours);
+    void setColours(UnorderedMap<PlugDataColour, Colour>& colours);
 
     static void setDefaultFont(String const& fontName);
 
@@ -174,6 +174,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     static bool getUseFlagOutline();
 
+    static bool getUseSyntaxHighlighting();
+
     enum ConnectionStyle {
         ConnectionStyleDefault = 1,
         ConnectionStyleVanilla,
@@ -186,6 +188,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     static inline bool useIoletSpacingEdge;
     static inline bool useGradientConnectionLook;
     static inline bool useFlagOutline;
+    static inline bool useSyntaxHighlighting;
 
     static bool getUseIoletSpacingEdge();
     static bool getUseSquareIolets();

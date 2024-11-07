@@ -33,7 +33,6 @@
 #include "Utility/OSUtils.h"
 #include "Utility/SettingsFile.h"
 #include "Utility/RateReducer.h"
-#include "Utility/MidiDeviceManager.h"
 #include "../PluginEditor.h"
 #include "../CanvasViewport.h"
 #include "Dialogs/Dialogs.h"
@@ -52,24 +51,6 @@ static bool drawWindowShadow = true;
 namespace pd {
 class Patch;
 }
-
-class PlugDataProcessorPlayer : public AudioProcessorPlayer {
-public:
-    PlugDataProcessorPlayer()
-        : midiDeviceManager(this)
-    {
-    }
-
-    void handleIncomingMidiMessage(MidiInput* input, MidiMessage const& message) override
-    {
-        auto deviceIndex = midiDeviceManager.getMidiInputDeviceIndex(input->getIdentifier());
-        if (deviceIndex >= 0) {
-            getMidiMessageCollector().addMessageToQueue(MidiDeviceManager::convertToSysExFormat(message, deviceIndex));
-        }
-    }
-
-    MidiDeviceManager midiDeviceManager;
-};
 
 class StandalonePluginHolder : private AudioIODeviceCallback
     , public Component {
@@ -232,11 +213,10 @@ public:
     OptionalScopedPointer<PropertySet> settings;
     std::unique_ptr<AudioProcessor> processor;
     AudioDeviceManager deviceManager;
-    PlugDataProcessorPlayer player;
+    AudioProcessorPlayer player;
     Array<PluginInOuts> channelConfiguration;
 
     std::unique_ptr<AudioDeviceManager::AudioDeviceSetup> options;
-    Array<MidiDeviceInfo> lastMidiDevices;
 
     std::unique_ptr<FileChooser> stateFileChooser;
 
@@ -351,32 +331,9 @@ private:
         player.audioDeviceStopped();
     }
 
-    void setupAudioDevices(bool enableAudioInput, String const& preferredDefaultDeviceName, AudioDeviceManager::AudioDeviceSetup const* preferredSetupOptions)
-    {
-#if JUCE_IOS
-        deviceManager.addAudioCallback(&maxSizeEnforcer);
-#else
-        deviceManager.addAudioCallback(this);
-#endif
-        deviceManager.addMidiInputDeviceCallback({}, &player);
+    void setupAudioDevices(bool enableAudioInput, String const& preferredDefaultDeviceName, AudioDeviceManager::AudioDeviceSetup const* preferredSetupOptions);
 
-        reloadAudioDeviceState(enableAudioInput, preferredDefaultDeviceName, preferredSetupOptions);
-    }
-
-    void shutDownAudioDevices()
-    {
-        saveAudioDeviceState();
-
-        deviceManager.removeMidiInputDeviceCallback({}, &player);
-
-#if JUCE_IOS
-        deviceManager.removeAudioCallback(&maxSizeEnforcer);
-#else
-        deviceManager.removeAudioCallback(this);
-#endif
-    }
-
-    OwnedArray<MidiInput> customMidiInputs;
+    void shutDownAudioDevices();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StandalonePluginHolder)
 };
@@ -478,7 +435,7 @@ public:
         lookAndFeelChanged();
     }
 
-    void propertyChanged(String const& name, var const& value) override
+    void settingsChanged(String const& name, var const& value) override
     {
         if (name == "native_window") {
             auto* editor = mainComponent->getEditor();

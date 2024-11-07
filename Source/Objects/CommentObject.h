@@ -187,7 +187,7 @@ public:
 
         auto colour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::commentTextColourId);
         int textWidth = getTextSize().getWidth() - 8;
-        if (textRenderer.prepareLayout(objText, Fonts::getDefaultFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty))) {
+        if (textRenderer.prepareLayout(objText, Fonts::getDefaultFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty), false)) {
             repaint();
         }
     }

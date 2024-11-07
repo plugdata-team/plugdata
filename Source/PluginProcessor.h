@@ -12,7 +12,8 @@
 #include "Utility/Config.h"
 #include "Utility/Limiter.h"
 #include "Utility/SettingsFile.h"
-#include <Utility/AudioMidiFifo.h>
+#include "Utility/AudioFifo.h"
+#include "Utility/MidiDeviceManager.h"
 
 #include "Pd/Instance.h"
 #include "Pd/Patch.h"
@@ -96,8 +97,10 @@ public:
 
     void reloadAbstractions(File changedPatch, t_glist* except) override;
 
-    void processConstant(dsp::AudioBlock<float>, MidiBuffer&);
-    void processVariable(dsp::AudioBlock<float>, MidiBuffer&);
+    void processConstant(dsp::AudioBlock<float>, MidiBuffer& midiBuffer);
+    void processVariable(dsp::AudioBlock<float>, MidiBuffer& midiBuffer);
+
+    MidiDeviceManager& getMidiDeviceManager();
 
     bool canAddBus(bool isInput) const override
     {
@@ -117,7 +120,7 @@ public:
     void initialiseFilesystem();
     void updateSearchPaths();
 
-    void sendMidiBuffer();
+    void sendMidiBuffer(int device, MidiBuffer& buffer);
     void sendPlayhead();
     void sendParameters();
 
@@ -174,7 +177,7 @@ public:
     std::atomic<int> oversampling = 0;
 
     std::unique_ptr<InternalSynth> internalSynth;
-    std::atomic<bool> enableInternalSynth = false;
+    std::atomic<int> internalSynthPort = -1;
 
     OwnedArray<PluginEditor> openedEditors;
     Component::SafePointer<ConnectionMessageDisplay> connectionListener;
@@ -195,12 +198,13 @@ private:
     HeapArray<float> audioVectorIn;
     HeapArray<float> audioVectorOut;
 
-    std::unique_ptr<AudioMidiFifo> inputFifo;
-    std::unique_ptr<AudioMidiFifo> outputFifo;
+    std::unique_ptr<AudioFifo> inputFifo;
+    std::unique_ptr<AudioFifo> outputFifo;
 
-    MidiBuffer midiBufferIn;
-    MidiBuffer midiBufferOut;
+    MidiBuffer midiInputHistory, midiOutputHistory;
     MidiBuffer midiBufferInternalSynth;
+
+    MidiDeviceManager midiDeviceManager;
 
     AudioProcessLoadMeasurer cpuLoadMeasurer;
 
@@ -215,7 +219,7 @@ private:
     Limiter limiter;
     std::unique_ptr<dsp::Oversampling<float>> oversampler;
 
-    std::map<uint64_t, std::unique_ptr<Component>> textEditorDialogs;
+    UnorderedMap<uint64_t, std::unique_ptr<Component>> textEditorDialogs;
 
     static inline String const else_version = "ELSE v1.0-rc12";
     static inline String const cyclone_version = "cyclone v0.9-0";

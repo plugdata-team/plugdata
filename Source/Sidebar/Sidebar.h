@@ -175,7 +175,7 @@ public:
 
     bool isShowingBrowser();
 
-    void propertyChanged(String const& name, var const& value) override;
+    void settingsChanged(String const& name, var const& value) override;
 
     enum SidePanel { ClosedPan, ConsolePan, DocPan, ParamPan, SearchPan, InspectorPan};
 

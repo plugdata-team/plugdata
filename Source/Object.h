@@ -12,6 +12,7 @@
 #include "Utility/RateReducer.h"
 #include "NVGSurface.h"
 #include "Pd/WeakReference.h"
+#include "Iolet.h"
 
 #include <nanovg.h>
 #if NANOVG_GL_IMPLEMENTATION
@@ -45,7 +46,7 @@ public:
 
     ~Object() override;
 
-    void propertyChanged(String const& name, var const& value) override;
+    void settingsChanged(String const& name, var const& value) override;
     void valueChanged(Value& v) override;
 
     void changeListenerCallback(ChangeBroadcaster* source) override;
@@ -120,7 +121,7 @@ public:
 
     std::unique_ptr<ObjectBase> gui;
 
-    OwnedArray<Iolet> iolets;
+    PooledPtrArray<Iolet, 8, 6> iolets;
     ResizableBorderComponent::Zone resizeZone;
     bool drawIoletExpanded = false;
 

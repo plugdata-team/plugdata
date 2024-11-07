@@ -4,10 +4,10 @@
 
 // Keymapping object based on JUCE's KeyMappingEditorComponent
 
-class KeyMappingComponent : public SettingsDialogPanel
+class KeyMappingSettingsPanel : public SettingsDialogPanel
     , public ChangeListener {
 public:
-    explicit KeyMappingComponent(KeyPressMappingSet* mappingSet)
+    explicit KeyMappingSettingsPanel(KeyPressMappingSet* mappingSet)
         : mappings(mappingSet)
     {
         mappings->addChangeListener(this);
@@ -25,7 +25,7 @@ public:
     }
 
     /** Destructor. */
-    ~KeyMappingComponent() override
+    ~KeyMappingSettingsPanel() override
     {
         if (mappings)
             mappings->removeChangeListener(this);
@@ -77,7 +77,7 @@ public:
         updateMappings();
     }
 
-    static void resetKeyMappingsToPdCallback(int result, KeyMappingComponent* owner)
+    static void resetKeyMappingsToPdCallback(int result, KeyMappingSettingsPanel* owner)
     {
         if (result == 0 && owner == nullptr)
             return;
@@ -86,7 +86,7 @@ public:
         owner->getMappings().sendChangeMessage();
     }
 
-    static void resetKeyMappingsToMaxCallback(int result, KeyMappingComponent* owner)
+    static void resetKeyMappingsToMaxCallback(int result, KeyMappingSettingsPanel* owner)
     {
         if (result == 0 && owner == nullptr)
             return;
@@ -141,11 +141,11 @@ private:
 
     std::unique_ptr<Dialog> confirmationDialog;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(KeyMappingComponent)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(KeyMappingSettingsPanel)
 
     class ChangeKeyButton : public Button {
     public:
-        ChangeKeyButton(KeyMappingComponent& kec, CommandID command,
+        ChangeKeyButton(KeyMappingSettingsPanel& kec, CommandID command,
             String const& keyName, int keyIndex)
             : Button(keyName)
             , owner(kec)
@@ -204,7 +204,7 @@ private:
 
         class KeyEntryWindow : public AlertWindow {
         public:
-            explicit KeyEntryWindow(KeyMappingComponent& kec)
+            explicit KeyEntryWindow(KeyMappingSettingsPanel& kec)
                 : AlertWindow("New key-mapping",
                       "Please press a key combination now...",
                       MessageBoxIconType::NoIcon)
@@ -254,7 +254,7 @@ private:
             KeyPress lastPress;
 
         private:
-            KeyMappingComponent& owner;
+            KeyMappingSettingsPanel& owner;
 
             JUCE_DECLARE_NON_COPYABLE(KeyEntryWindow)
         };
@@ -311,7 +311,7 @@ private:
         }
 
     private:
-        KeyMappingComponent& owner;
+        KeyMappingSettingsPanel& owner;
         CommandID const commandID;
         int const keyNum;
         std::unique_ptr<KeyEntryWindow> currentKeyEntryWindow;
@@ -321,7 +321,7 @@ private:
 
     class KeyMappingProperty : public PropertiesPanelProperty {
     public:
-        KeyMappingProperty(KeyMappingComponent& kec, String const& name, CommandID command)
+        KeyMappingProperty(KeyMappingSettingsPanel& kec, String const& name, CommandID command)
             : PropertiesPanelProperty(name)
             , owner(kec)
             , commandID(command)
@@ -364,7 +364,7 @@ private:
             return createIgnoredAccessibilityHandler(*this);
         }
 
-        KeyMappingComponent& owner;
+        KeyMappingSettingsPanel& owner;
         OwnedArray<ChangeKeyButton> keyChangeButtons;
         CommandID const commandID;
 

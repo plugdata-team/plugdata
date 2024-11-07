@@ -9,27 +9,22 @@
 #include "IEMHelper.h"
 
 class NumberObject final : public ObjectBase {
-
-    Value widthProperty = SynchronousValue();
-    Value heightProperty = SynchronousValue();
-
     DraggableNumber input;
     IEMHelper iemHelper;
 
-    float preFocusValue;
-
+    Value widthProperty = SynchronousValue();
+    Value heightProperty = SynchronousValue();
     Value min = SynchronousValue(-std::numeric_limits<float>::infinity());
     Value max = SynchronousValue(std::numeric_limits<float>::infinity());
     Value logHeight = SynchronousValue();
     Value logMode = SynchronousValue();
 
+    float preFocusValue;
     float value = 0.0f;
 
     NVGcolor backgroundCol;
     NVGcolor foregroundCol;
     NVGcolor flagCol;
-    Colour backgroundColJuce;
-    Colour foregroundColJuce;
 
 public:
     NumberObject(pd::WeakReference ptr, Object* object)
@@ -41,15 +36,13 @@ public:
         iemHelper.iemColourChangedCallback = [this]() {
             // We use this callback to be informed when the IEM colour has changed.
             // As getBackgroundColour() will lock audio thread!
-            backgroundColJuce = iemHelper.getBackgroundColour();
             backgroundCol = convertColour(iemHelper.getBackgroundColour());
 
-            foregroundColJuce = iemHelper.getForegroundColour();
             foregroundCol = convertColour(iemHelper.getForegroundColour());
             flagCol = convertColour(iemHelper.getForegroundColour());
 
-            input.setColour(Label::textColourId, foregroundColJuce);
-            input.setColour(Label::textWhenEditingColourId, backgroundColJuce.contrasting());
+            input.setColour(Label::textColourId, iemHelper.getForegroundColour());
+            input.setColour(Label::textWhenEditingColourId, iemHelper.getBackgroundColour().contrasting());
         };
 
         input.onEditorShow = [this]() {
@@ -63,9 +56,9 @@ public:
 
         input.onInteraction = [this](bool isFocused) {
             if (isFocused)
-                input.setColour(Label::textColourId, backgroundColJuce.contrasting());
+                input.setColour(Label::textColourId, convertColour(backgroundCol).contrasting());
             else
-                input.setColour(Label::textColourId, foregroundColJuce);
+                input.setColour(Label::textColourId, convertColour(foregroundCol));
         };
 
         input.onEditorHide = [this]() {
@@ -116,7 +109,7 @@ public:
             return;
 
         value = getValue();
-        input.setText(input.formatNumber(value), dontSendNotification);
+        input.setValue(value, dontSendNotification);
 
         min = getMinimum();
         max = getMaximum();
@@ -254,7 +247,7 @@ public:
         case hash("set"): {
             if (numAtoms > 0 && atoms[0].isFloat()) {
                 value = std::clamp(atoms[0].getFloat(), ::getValue<float>(min), ::getValue<float>(max));
-                input.setText(input.formatNumber(value), dontSendNotification);
+                input.setValue(value, dontSendNotification);
             }
             break;
         }

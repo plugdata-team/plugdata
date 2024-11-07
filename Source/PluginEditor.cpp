@@ -139,7 +139,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     : AudioProcessorEditor(&p)
     , pd(&p)
     , sidebar(std::make_unique<Sidebar>(&p, this))
-    , statusbar(std::make_unique<Statusbar>(&p))
+    , statusbar(std::make_unique<Statusbar>(&p, this))
     , openedDialog(nullptr)
     , nvgSurface(this)
     , pluginConstrainer(*getConstrainer())
@@ -327,10 +327,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     connectionMessageDisplay->setAlwaysOnTop(true);
 
     // This cannot be done in MidiDeviceManager's constructor because SettingsFile is not yet initialised at that time
-    if (ProjectInfo::isStandalone) {
-        auto* midiDeviceManager = ProjectInfo::getMidiDeviceManager();
-        midiDeviceManager->loadMidiOutputSettings();
-    }
+    pd->getMidiDeviceManager().loadMidiSettings();
 
     // This is necessary on Linux to make PluginEditor grab keyboard focus on startup
     // It also appears to be necessary for some DAWs, like Logic
@@ -793,7 +790,7 @@ void PluginEditor::filesDropped(StringArray const& files, int x, int y)
                 auto position = cnv->getLocalPoint(this, Point<int>(x, y));
                 auto filePath = file.getFullPathName().replaceCharacter('\\', '/').replace(" ", "\\ ");
 
-                auto* object = cnv->objects.add(new Object(cnv, "msg " + filePath, position));
+                auto* object = cnv->objects.add(cnv, "msg " + filePath, position);
                 object->hideEditor();
             }
         }
@@ -1250,7 +1247,7 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         static auto const cmdMod = ModifierKeys::commandModifier;
         static auto const shiftMod = ModifierKeys::shiftModifier;
 
-        std::map<ObjectIDs, std::pair<int, int>> defaultShortcuts;
+        UnorderedMap<ObjectIDs, std::pair<int, int>> defaultShortcuts;
 
         switch (keyboardLayout) {
         case OSUtils::KeyboardLayout::QWERTY:
@@ -1616,32 +1613,29 @@ bool PluginEditor::perform(InvocationInfo const& info)
                 obj->hideEditor(); // If it's still open, it might overwrite lastSelectedObject
                 cnv->lastSelectedObject = obj;
                 if (obj) {
-                    auto newObj = new Object(cnv, objectNames.at(ID),
-                        Point<int>(
-                            // place beneath object + Object::margin
-                            obj->getX() + Object::margin,
-                            obj->getY() + obj->getHeight()));
-                    cnv->objects.add(newObj);
+                    auto pos = Point<int>(
+                                          // place beneath object + Object::margin
+                                          obj->getX() + Object::margin,
+                                          obj->getY() + obj->getHeight());
+                    cnv->objects.add(cnv, objectNames.at(ID), pos);
                 }
             } else if ((cnv->getSelectionOfType<Object>().size() == 0) && (cnv->getSelectionOfType<Connection>().size() == 1)) { // Autopatching: insert object in connection. Should document this better!
                 // if 1 connection is selected, create new object in the middle of connection
                 cnv->patch.startUndoSequence("ObjectInConnection");
                 cnv->lastSelectedConnection = cnv->getSelectionOfType<Connection>().front();
                 auto outobj = cnv->getSelectionOfType<Connection>().front()->outobj;
-                auto newObj = new Object(cnv, objectNames.at(ID),
-                    Point<int>(
-                        // place beneath outlet object + Object::margin
-                        cnv->lastSelectedConnection->getX() + (cnv->lastSelectedConnection->getWidth() / 2) - 12,
-                        cnv->lastSelectedConnection->getY() + (cnv->lastSelectedConnection->getHeight() / 2) - 12));
-                cnv->objects.add(newObj);
+                auto pos = Point<int>(
+                                      // place beneath outlet object + Object::margin
+                                      cnv->lastSelectedConnection->getX() + (cnv->lastSelectedConnection->getWidth() / 2) - 12,
+                                      cnv->lastSelectedConnection->getY() + (cnv->lastSelectedConnection->getHeight() / 2) - 12);
+                cnv->objects.add(cnv, objectNames.at(ID), pos);
                 cnv->patch.endUndoSequence("ObjectInConnection");
             } else {
                 // if 0 or several objects are selected, create new object at mouse position
-                auto newObj = new Object(cnv, objectNames.at(ID), lastPosition);
-                cnv->objects.add(newObj);
+                cnv->objects.add(cnv, objectNames.at(ID), lastPosition);
             }
             cnv->deselectAll();
-            if (auto obj = cnv->objects.getLast())
+            if (auto* obj = cnv->objects.back())
                 cnv->setSelected(obj, true); // Select newly created object
             return true;
         }

@@ -402,7 +402,7 @@ bool Connection::hitTest(int x, int y)
     if (cnv->panningModifierDown())
         return false;
 
-    if (cnv->commandLocked == var(true) || locked == var(true) || !cnv->connectionsBeingCreated.isEmpty())
+    if (cnv->commandLocked == var(true) || locked == var(true) || !cnv->connectionsBeingCreated.empty())
         return false;
 
     Point<float> position = Point<float>(static_cast<float>(x), static_cast<float>(y)) + getPosition().toFloat();
@@ -715,7 +715,7 @@ void Connection::mouseUp(MouseEvent const& e)
         MessageManager::callAsync([canvas = SafePointer(cnv), r = reconnecting]() mutable {
             for (auto& c : r) {
                 if (c && canvas) {
-                    canvas->connections.removeObject(c.getComponent());
+                    canvas->connections.remove_one(c.getComponent());
                 }
             }
         });
@@ -769,12 +769,12 @@ void Connection::reconnect(Iolet* target)
     if (!reconnecting.empty() || !target)
         return;
 
-    auto& otherEdge = target == inlet ? outlet : inlet;
+    auto& otherIolet = target == inlet ? outlet : inlet;
 
     SmallArray<Connection*> connections = { this };
 
     if (Desktop::getInstance().getMainMouseSource().getCurrentModifiers().isShiftDown()) {
-        for (auto* c : otherEdge->object->getConnections()) {
+        for (auto* c : otherIolet->object->getConnections()) {
             if (c == this || !c->isSelected())
                 continue;
 
@@ -793,7 +793,7 @@ void Connection::reconnect(Iolet* target)
         }
 
         // Create new connection
-        cnv->connectionsBeingCreated.add(new ConnectionBeingCreated(target->isInlet ? c->inlet : c->outlet, cnv));
+        cnv->connectionsBeingCreated.add(target->isInlet ? c->inlet : c->outlet, cnv);
 
         c->setVisible(false);
 

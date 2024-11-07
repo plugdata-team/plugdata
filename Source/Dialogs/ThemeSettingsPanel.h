@@ -174,13 +174,13 @@ struct ThemeSelectorProperty : public PropertiesPanelProperty {
     ComboBox comboBox;
 };
 
-class ThemePanel : public SettingsDialogPanel
+class ThemeSettingsPanel : public SettingsDialogPanel
     , public Value::Listener
     , public SettingsFileListener {
 
     Value fontValue;
 
-    std::map<String, std::map<String, Value>> swatches;
+    UnorderedMap<String, UnorderedSegmentedMap<String, Value>> swatches;
 
     PropertiesPanel::ActionComponent* newButton = nullptr;
     PropertiesPanel::ActionComponent* loadButton = nullptr;
@@ -198,7 +198,7 @@ class ThemePanel : public SettingsDialogPanel
     PluginProcessor* pd;
 
 public:
-    explicit ThemePanel(PluginProcessor* processor)
+    explicit ThemeSettingsPanel(PluginProcessor* processor)
         : pd(processor)
     {
 
@@ -233,7 +233,7 @@ public:
         panel.clear();
         allPanels.clear();
 
-        std::map<String, PropertiesArray> panels;
+        UnorderedMap<String, PropertiesArray> panels;
 
         // Loop over colours
         for (auto const& [colour, colourNames] : PlugDataColourNames) {
@@ -245,13 +245,14 @@ public:
             // Loop over themes
             for (int i = 0; i < 2; i++) {
                 auto const& themeName = PlugDataLook::selectedThemes[i];
-                swatchesToAdd.add(&(swatches[themeName][colourId]));
-                auto* swatch = swatchesToAdd.back();
+                auto& themeSwatches = swatches[themeName];
+                auto& swatch = themeSwatches[colourId];
+                swatchesToAdd.add(&swatch);
 
                 auto value = SettingsFile::getInstance()->getColourThemesTree().getChildWithProperty("theme", themeName).getPropertyAsValue(colourId, nullptr);
 
-                swatch->referTo(value);
-                swatch->addListener(this);
+                swatch.referTo(value);
+                swatch.addListener(this);
             }
 
             // Add a multi colour component to the properties panel
@@ -449,7 +450,7 @@ public:
 
         panel.addSection("Active Themes", { primaryThemeSelector, secondaryThemeSelector });
 
-        SmallArray<Value*> straightConnectionValues, connectionStyle, connectionLook, ioletSpacingEdge, squareIolets, squareObjectCorners, objectFlagOutlined;
+        SmallArray<Value*> straightConnectionValues, connectionStyle, connectionLook, ioletSpacingEdge, squareIolets, squareObjectCorners, objectFlagOutlined, highlightSyntax;
 
         for (int i = 0; i < 2; i++) {
             auto const& themeName = PlugDataLook::selectedThemes[i];
@@ -466,6 +467,7 @@ public:
             swatch["square_iolets"].referTo(themeTree.getPropertyAsValue("square_iolets", nullptr));
             swatch["square_object_corners"].referTo(themeTree.getPropertyAsValue("square_object_corners", nullptr));
             swatch["object_flag_outlined"].referTo(themeTree.getPropertyAsValue("object_flag_outlined", nullptr));
+            swatch["highlight_syntax"].referTo(themeTree.getPropertyAsValue("highlight_syntax", nullptr));
 
             swatch["straight_connections"].addListener(this);
             swatch["connection_style"].addListener(this);
@@ -475,6 +477,7 @@ public:
             swatch["square_iolets"].addListener(this);
             swatch["square_object_corners"].addListener(this);
             swatch["object_flag_outlined"].addListener(this);
+            swatch["highlight_syntax"].addListener(this);
 
             straightConnectionValues.add(&swatch["straight_connections"]);
             connectionStyle.add(&swatch["connection_style"]);
@@ -484,6 +487,7 @@ public:
             squareIolets.add(&swatch["square_iolets"]);
             squareObjectCorners.add(&swatch["square_object_corners"]);
             objectFlagOutlined.add(&swatch["object_flag_outlined"]);
+            highlightSyntax.add(&swatch["highlight_syntax"]);
         }
 
         auto* useObjectCorners = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Object corners", squareObjectCorners, { "Round", "Square" });
@@ -493,6 +497,10 @@ public:
         auto* useObjectFlagOutlined = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Object flag style", objectFlagOutlined, { "Filled", "Outlined" });
         allPanels.add(useObjectFlagOutlined);
         addAndMakeVisible(*useObjectFlagOutlined);
+
+        auto* useSyntaxHighlighting = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Enable syntax highlighting", highlightSyntax, { "No", "Yes" });
+        allPanels.add(useSyntaxHighlighting);
+        addAndMakeVisible(*useSyntaxHighlighting);
 
         auto* useIoletCorners = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Iolet corners", squareIolets, { "Round", "Square" });
         allPanels.add(useIoletCorners);
@@ -514,7 +522,7 @@ public:
         allPanels.add(useConnectionStyle);
         addAndMakeVisible(*useConnectionStyle);
 
-        panel.addSection("Object & Connection Look", { useObjectCorners, useObjectFlagOutlined, useIoletCorners, useIoletSpacingEdge, useStraightConnections, useConnectionLook, useConnectionStyle });
+        panel.addSection("Object & Connection Look", { useObjectCorners, useObjectFlagOutlined, useSyntaxHighlighting, useIoletCorners, useIoletSpacingEdge, useStraightConnections, useConnectionLook, useConnectionStyle });
 
         // Create the panels by category
         for (auto const& [sectionName, sectionColours] : panels) {
@@ -553,7 +561,8 @@ public:
                 || v.refersToSameSourceAs(swatches[theme]["square_object_corners"])
                 || v.refersToSameSourceAs(swatches[theme]["connection_look"])
                 || v.refersToSameSourceAs(swatches[theme]["connection_style"])
-                || v.refersToSameSourceAs(swatches[theme]["object_flag_outlined"])) {
+                || v.refersToSameSourceAs(swatches[theme]["object_flag_outlined"])
+                || v.refersToSameSourceAs(swatches[theme]["highlight_syntax"])) {
                 if (v.refersToSameSourceAs(swatches[theme]["iolet_spacing_edge"]))
                     ioletGeometryNeedsUpdate = true;
 
@@ -579,6 +588,8 @@ public:
                     theme.setProperty("square_object_corners", v.toString().getIntValue(), nullptr);
                 } else if (v.refersToSameSourceAs(swatches[themeName]["object_flag_outlined"])) {
                     theme.setProperty("object_flag_outlined", v.toString().getIntValue(), nullptr);
+                } else if (v.refersToSameSourceAs(swatches[themeName]["highlight_syntax"])) {
+                    theme.setProperty("highlight_syntax", v.toString().getIntValue(), nullptr);
                 }
             }
 

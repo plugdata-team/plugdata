@@ -13,7 +13,6 @@ using namespace juce;
 namespace juce {
 class AudioDeviceManager;
 }
-class MidiDeviceManager;
 class PlugDataWindow;
 class PluginEditor;
 class StandalonePluginHolder;
@@ -27,7 +26,6 @@ struct ProjectInfo {
     static inline char const* companyName = "plugdata";
     static inline char const* versionString = PLUGDATA_VERSION;
 
-    static MidiDeviceManager* getMidiDeviceManager();
     static AudioDeviceManager* getDeviceManager();
 
     static PlugDataWindow* createNewWindow(PluginEditor* editor);
@@ -149,4 +147,15 @@ static inline String getRelativeTimeDescription(String const& timestampString)
         return String(days) + " days ago";
     else
         return "today";
+}
+
+// Allow hashing weak references
+namespace std {
+template<typename T>
+struct hash<juce::WeakReference<T>> {
+    std::size_t operator()(const juce::WeakReference<T>& key) const {
+        auto ptr = reinterpret_cast<std::size_t>(key.get());
+        return ptr ^ (ptr >> 16);  // Simple XOR-shift for better distribution
+    }
+};
 }

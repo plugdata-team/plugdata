@@ -285,4 +285,25 @@ StandalonePluginHolder* StandalonePluginHolder::getInstance()
     return nullptr;
 }
 
+void StandalonePluginHolder::setupAudioDevices(bool enableAudioInput, String const& preferredDefaultDeviceName, AudioDeviceManager::AudioDeviceSetup const* preferredSetupOptions)
+{
+#if JUCE_IOS
+    deviceManager.addAudioCallback(&maxSizeEnforcer);
+#else
+    deviceManager.addAudioCallback(this);
+#endif
+    reloadAudioDeviceState(enableAudioInput, preferredDefaultDeviceName, preferredSetupOptions);
+}
+
+void StandalonePluginHolder::shutDownAudioDevices()
+{
+    saveAudioDeviceState();
+
+#if JUCE_IOS
+    deviceManager.removeAudioCallback(&maxSizeEnforcer);
+#else
+    deviceManager.removeAudioCallback(this);
+#endif
+}
+
 START_JUCE_APPLICATION(PlugDataApp)

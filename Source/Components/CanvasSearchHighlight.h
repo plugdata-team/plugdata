@@ -9,16 +9,18 @@
 #include "Canvas.h"
 #include "Object.h"
 
-class CanvasSearchHighlight : public Component, NVGComponent, Timer
-{
+class CanvasSearchHighlight : public Component
+    , NVGComponent
+    , Timer {
     SafePointer<Object> targetObj;
     Canvas* parentCnv;
     float opacity = 2.0f;
+
 public:
     CanvasSearchHighlight(Canvas* cnv, Object* obj)
         : NVGComponent(this)
-        , parentCnv(cnv)
         , targetObj(obj)
+        , parentCnv(cnv)
     {
         cnv->addAndMakeVisible(this);
         startTimerHz(60);
@@ -26,12 +28,12 @@ public:
         setBounds(targetObj->getBounds());
     }
 
-    void timerCallback()
+    void timerCallback() override
     {
         opacity -= 0.04f;
         repaint();
 
-        if(opacity <= 0.0f) {
+        if (opacity <= 0.0f) {
             stopTimer();
             parentCnv->removeCanvasSearchHighlight();
         }

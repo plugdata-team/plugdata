@@ -34,7 +34,6 @@ Object::Object(Canvas* parent, String const& name, Point<int> position)
     : NVGComponent(this)
     , cnv(parent)
     , editor(parent->editor)
-    , gui(nullptr)
     , ds(parent->dragState)
 {
     setTopLeftPosition(position - Point<int>(margin, margin));
@@ -58,7 +57,6 @@ Object::Object(pd::WeakReference object, Canvas* parent)
     : NVGComponent(this)
     , cnv(parent)
     , editor(parent->editor)
-    , gui(nullptr)
     , ds(parent->dragState)
 {
     initialise();
@@ -143,7 +141,7 @@ bool Object::isSelected() const
     return selectedFlag;
 }
 
-void Object::propertyChanged(String const& name, var const& value)
+void Object::settingsChanged(String const& name, var const& value)
 {
     if (name == "hvcc_mode") {
         isHvccCompatible = checkIfHvccCompatible();
@@ -272,7 +270,7 @@ void Object::mouseMove(MouseEvent const& e)
 
 void Object::applyBounds()
 {
-    std::map<SafePointer<Object>, Rectangle<int>> newObjectSizes;
+    UnorderedMap<Object*, Rectangle<int>> newObjectSizes;
     for (auto* obj : cnv->getSelectionOfType<Object>())
         newObjectSizes[obj] = obj->getObjectBounds();
 
@@ -352,7 +350,7 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
             // Clear connections to this object
             // They will be remade by the synchronise call later
             for (auto* connection : getConnections())
-                cnv->connections.removeObject(connection);
+                cnv->connections.remove_one(connection);
 
             if (auto* checkedObject = pd::Interface::checkObject(getPointer())) {
                 auto renamedObject = patch->renameObject(checkedObject, newType);
@@ -399,12 +397,12 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
 
     // Auto patching
     if (getValue<bool>(editor->autoconnect) && numInputs && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs) {
-        auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
-        auto inlet = iolets[0];
+        auto* outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
+        auto* inlet = iolets[0];
         if (outlet->isSignal == inlet->isSignal) {
             // Call async to make sure the object is created before the connection
             MessageManager::callAsync([this, outlet, inlet]() {
-                cnv->connections.add(new Connection(cnv, outlet, inlet, nullptr));
+                cnv->connections.add(cnv, outlet, inlet, nullptr);
             });
         }
     }
@@ -413,8 +411,8 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
         // if 1 connection is selected, connect the new object in middle of connection
         auto outobj = cnv->lastSelectedConnection->outobj;
         auto inobj = cnv->lastSelectedConnection->inobj;
-        auto outlet = outobj->iolets[outobj->numInputs + cnv->lastSelectedConnection->outIdx];
-        auto inlet = inobj->iolets[cnv->lastSelectedConnection->inIdx];
+        auto* outlet = outobj->iolets[outobj->numInputs + cnv->lastSelectedConnection->outIdx];
+        auto* inlet = inobj->iolets[cnv->lastSelectedConnection->inIdx];
 
         auto* checkedOut = pd::Interface::checkObject(outobj->getPointer());
         auto* checkedIn = pd::Interface::checkObject(inobj->getPointer());
@@ -422,12 +420,12 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
         if (checkedOut && checkedIn && (outlet->isSignal == iolets[0]->isSignal) && (inlet->isSignal == iolets[this->numInputs]->isSignal)) {
             // Call async to make sure the object is created before the connection
             MessageManager::callAsync([this, outlet, inlet]() {
-                cnv->connections.add(new Connection(cnv, outlet, iolets[0], nullptr));
-                cnv->connections.add(new Connection(cnv, iolets[this->numInputs], inlet, nullptr));
+                cnv->connections.add(cnv, outlet, iolets[0], nullptr);
+                cnv->connections.add(cnv, iolets[this->numInputs], inlet, nullptr);
             });
             // remove the previous connection
             cnv->patch.removeConnection(checkedOut, cnv->lastSelectedConnection->outIdx, checkedIn, cnv->lastSelectedConnection->inIdx, cnv->lastSelectedConnection->getPathState());
-            cnv->connections.removeObject(cnv->lastSelectedConnection);
+            cnv->connections.remove_one(cnv->lastSelectedConnection);
         }
     }
     cnv->lastSelectedObject = nullptr;
@@ -714,13 +712,13 @@ void Object::updateIolets()
     }
 
     while (numInputs < oldNumInputs)
-        iolets.remove(--oldNumInputs);
+        iolets.remove_at(oldNumInputs--);
     while (numInputs > oldNumInputs)
-        iolets.insert(oldNumInputs++, new Iolet(this, true));
+        iolets.insert(oldNumInputs++, this, true);
     while (numOutputs < oldNumOutputs)
-        iolets.remove(numInputs + (--oldNumOutputs));
+        iolets.remove_at(numInputs + (oldNumOutputs--));
     while (numOutputs > oldNumOutputs)
-        iolets.insert(numInputs + (++oldNumOutputs), new Iolet(this, false));
+        iolets.insert(numInputs + (oldNumOutputs++), this, false);
 
     int numIn = 0;
     int numOut = 0;
@@ -1013,7 +1011,7 @@ void Object::mouseDrag(MouseEvent const& e)
 
             // Sort selection indexes to match pd indexes
             selection.sort([this](auto const* a, auto const* b) -> bool {
-                return cnv->objects.indexOf(a) < cnv->objects.indexOf(b);
+                return cnv->objects.index_of(a) < cnv->objects.index_of(b);
             });
 
             int draggedIdx = selection.index_of(ds.componentBeingDragged.getComponent());
@@ -1036,7 +1034,7 @@ void Object::mouseDrag(MouseEvent const& e)
 
             // Sort selection indexes to match pd indexes
             selection.sort([this](auto* a, auto* b) -> bool {
-                return cnv->objects.indexOf(a) < cnv->objects.indexOf(b);
+                return cnv->objects.index_of(a) < cnv->objects.index_of(b);
             });
 
             int i = 0;
@@ -1083,7 +1081,7 @@ void Object::mouseDrag(MouseEvent const& e)
             // Two cases that are allowed: either 1 input and multiple outputs,
             // or 1 output and multiple inputs
             if (inputs.size() == 1 && outputs.size()) {
-                auto* outlet = inputs[0]->outlet.get();
+                auto outlet = inputs[0]->outlet;
 
                 for (auto* c : outputs) {
                     auto* checkedOut = pd::Interface::checkObject(c->outobj->getPointer());
@@ -1092,8 +1090,8 @@ void Object::mouseDrag(MouseEvent const& e)
                     if (checkedOut && checkedIn) {
                         cnv->patch.removeConnection(checkedOut, c->outIdx, checkedIn, c->inIdx, c->getPathState());
 
-                        cnv->connections.add(new Connection(cnv, outlet, c->inlet, nullptr));
-                        cnv->connections.removeObject(c);
+                        cnv->connections.add(cnv, outlet, c->inlet, nullptr);
+                        cnv->connections.remove_one(c);
                     }
                 }
 
@@ -1104,7 +1102,7 @@ void Object::mouseDrag(MouseEvent const& e)
                 if (checkedOut && checkedIn) {
                     cnv->patch.removeConnection(checkedOut, c->outIdx, checkedIn, c->inIdx, c->getPathState());
                 }
-                cnv->connections.removeObject(c);
+                cnv->connections.remove_one(c);
 
                 object->iolets[0]->isTargeted = false;
                 object->iolets[object->numInputs]->isTargeted = false;
@@ -1113,7 +1111,7 @@ void Object::mouseDrag(MouseEvent const& e)
 
                 ds.objectSnappingInbetween = nullptr;
             } else if (inputs.size() && outputs.size() == 1) {
-                auto* inlet = outputs[0]->inlet.get();
+                auto inlet = outputs[0]->inlet;
 
                 for (auto* c : inputs) {
                     auto* checkedOut = pd::Interface::checkObject(c->outobj->getPointer());
@@ -1122,8 +1120,8 @@ void Object::mouseDrag(MouseEvent const& e)
                         cnv->patch.removeConnection(checkedOut, c->outIdx, checkedIn, c->inIdx, c->getPathState());
                     }
 
-                    cnv->connections.add(new Connection(cnv, c->outlet, inlet, nullptr));
-                    cnv->connections.removeObject(c);
+                    cnv->connections.add(cnv, c->outlet, inlet, nullptr);
+                    cnv->connections.remove_one(c);
                 }
 
                 auto* c = outputs[0];
@@ -1133,7 +1131,7 @@ void Object::mouseDrag(MouseEvent const& e)
                 if (checkedOut && checkedIn) {
                     cnv->patch.removeConnection(checkedOut, c->outIdx, checkedIn, c->inIdx, c->getPathState());
                 }
-                cnv->connections.removeObject(c);
+                cnv->connections.remove_one(c);
 
                 object->iolets[0]->isTargeted = false;
                 object->iolets[object->numInputs]->isTargeted = false;
@@ -1147,7 +1145,7 @@ void Object::mouseDrag(MouseEvent const& e)
         }
 
         // Behaviour for shift-dragging objects over
-        if (ds.objectSnappingInbetween && !ds.objectSnappingInbetween->iolets.isEmpty()) {
+        if (ds.objectSnappingInbetween && !ds.objectSnappingInbetween->iolets.empty()) {
             if (ds.connectionToSnapInbetween->intersectsRectangle(ds.objectSnappingInbetween->iolets[0]->getCanvasBounds())) {
                 return;
             }
@@ -1160,7 +1158,7 @@ void Object::mouseDrag(MouseEvent const& e)
 
         if (e.mods.isShiftDown() && selection.size() == 1) {
             auto* object = selection.front();
-            if (object->numInputs && object->numOutputs && !object->iolets.isEmpty()) {
+            if (object->numInputs && object->numOutputs && !object->iolets.empty()) {
                 bool intersected = false;
                 for (auto* connection : cnv->connections) {
 
@@ -1234,7 +1232,7 @@ void Object::render(NVGcontext* nvg)
 
     // If autoconnect is about to happen, draw a fake inlet with a dotted outline
     if (isInitialEditorShown() && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs && getValue<bool>(editor->autoconnect)) {
-        auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
+        auto* outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
         SmallArray fakeInletBounds = PlugDataLook::getUseIoletSpacingEdge() ? SmallArray { -8.0f, -3.0f, 18.0f, 7.0f } : SmallArray { 8.5f, -3.5f, 8.0f, 8.0f };
         nvgBeginPath(nvg);
         if (PlugDataLook::getUseSquareIolets()) {
@@ -1263,7 +1261,7 @@ void Object::render(NVGcontext* nvg)
     } else if (cnv->shouldShowIndex()) {
         int halfHeight = 5;
 
-        auto text = std::to_string(cnv->objects.indexOf(this));
+        auto text = std::to_string(cnv->objects.index_of(this));
         int textWidth = 6 + text.length() * 4;
         auto indexBounds = b.withSizeKeepingCentre(b.getWidth() + doubleMargin, halfHeight * 2).removeFromRight(textWidth);
 
@@ -1409,7 +1407,7 @@ void Object::openNewObjectEditor()
                     return;
                 auto* cnv = _this->cnv; // Copy pointer because _this will get deleted
                 cnv->hideSuggestions();
-                cnv->objects.removeObject(_this.getComponent());
+                cnv->objects.remove_one(_this.getComponent());
                 cnv->lastSelectedObject = nullptr;
 
                 cnv->lastSelectedConnection = nullptr;
@@ -1473,7 +1471,7 @@ bool Object::keyPressed(KeyPress const& key, Component* component)
 // For resize-while-typing behaviour
 void Object::textEditorTextChanged(TextEditor& ed)
 {
-    cnv->suggestor->updateSuggestions(ed.getText());
+    if(cnv->suggestor) cnv->suggestor->updateSuggestions(ed.getText());
 
     String currentText;
     if (cnv->suggestor && !cnv->suggestor->getText().isEmpty() && !ed.getText().containsChar('\n')) {

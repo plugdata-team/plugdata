@@ -751,7 +751,7 @@ class MouseFilterObject final : public ImplementationBase
         bool state = false;
     };
 
-    static inline std::map<pd::Instance*, MouseFilterProxy> proxy;
+    static inline UnorderedMap<pd::Instance*, MouseFilterProxy> proxy;
 
 public:
     MouseFilterObject(t_gobj* object, t_canvas* parent, PluginProcessor* pd)

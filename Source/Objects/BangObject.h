@@ -25,10 +25,6 @@ public:
         : ObjectBase(obj, parent)
         , iemHelper(obj, parent, this)
     {
-        onConstrainerCreate = [this]() {
-            constrainer->setFixedAspectRatio(1);
-        };
-
         iemHelper.iemColourChangedCallback = [this]() {
             bgCol = convertColour(getValue<Colour>(iemHelper.secondaryColour));
             fgCol = convertColour(getValue<Colour>(iemHelper.primaryColour));
@@ -39,6 +35,11 @@ public:
         objectParameters.addParamInt("Max. flash time", cGeneral, &bangHold, 250);
 
         iemHelper.addIemParameters(objectParameters, true, true, 17, 7);
+    }
+        
+    void onConstrainerCreate() override
+    {
+        constrainer->setFixedAspectRatio(1);
     }
 
     void update() override

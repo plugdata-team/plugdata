@@ -20,8 +20,8 @@ class KeyboardObject final : public ObjectBase
     int lastKey = -1;
     int clickedKey = -1;
 
-    std::set<int> heldKeys;
-    std::set<int> toggledKeys;
+    UnorderedSet<int> heldKeys;
+    UnorderedSet<int> toggledKeys;
 
     static constexpr uint8 whiteNotes[] = { 0, 2, 4, 5, 7, 9, 11 };
     static constexpr uint8 blackNotes[] = { 1, 3, 6, 8, 10 };
@@ -37,12 +37,13 @@ public:
         objectParameters.addParamBool("Toggle Mode", cGeneral, &toggleMode, { "Off", "On" }, 0);
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
         objectParameters.addParamSendSymbol(&sendSymbol);
-
-        onConstrainerCreate = [this]() {
-            updateMinimumSize();
-        };
-
+        
         startTimer(50);
+    }
+        
+    void onConstrainerCreate() override
+    {
+        updateMinimumSize();
     }
 
     void update() override
@@ -550,7 +551,7 @@ public:
     void sendNoteOn(int note, int velocity)
     {
         note = std::clamp(note + 12, 0, 255);
-        
+
         StackArray<t_atom, 2> at;
         SETFLOAT(&at[0], note);
         SETFLOAT(&at[1], velocity);

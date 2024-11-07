@@ -246,11 +246,6 @@ public:
             stopEdition();
         };
 
-        onConstrainerCreate = [this]() {
-            constrainer->setFixedAspectRatio(1.0f);
-            constrainer->setMinimumSize(this->object->minimumSize, this->object->minimumSize);
-        };
-
         locked = ::getValue<bool>(object->locked);
 
         objectParameters.addParamSize(&sizeProperty, true);
@@ -274,6 +269,12 @@ public:
         objectParameters.addParamColour("Arc color", cAppearance, &arcColour, PlugDataColour::guiObjectInternalOutlineColour);
         objectParameters.addParamBool("Fill background", cAppearance, &outline, { "No", "Yes" }, 1);
         objectParameters.addParamBool("Show arc", cAppearance, &showArc, { "No", "Yes" }, 1);
+    }
+    
+    void onConstrainerCreate() override
+    {
+        constrainer->setFixedAspectRatio(1.0f);
+        constrainer->setMinimumSize(this->object->minimumSize, this->object->minimumSize);
     }
 
     bool canReceiveMouseEvent(int x, int y) override

@@ -377,7 +377,7 @@ public:
         auto bounds = getBoundingBox().getBoundingBox().toNearestInt();
         NVGScopedState scopedState(nvg);
         nvgTranslate(nvg, bounds.getX(), bounds.getY());
-        textRenderer.prepareLayout(getText(), getFont(), getColour(), getWidth(), getWidth());
+        textRenderer.prepareLayout(getText(), getFont(), getColour(), getWidth(), getWidth(), false);
         textRenderer.renderText(nvg, bounds.withZeroOrigin(), scale);
     }
 
@@ -1062,22 +1062,24 @@ struct ScalarObject final : public ObjectBase {
             }
         }
 
-        onConstrainerCreate = [this]() {
-            int w = 0, h = 0;
-            if (auto gobj = ptr.get<t_gobj>()) {
-                auto* patch = cnv->patch.getPointer().get();
-                if (!patch)
-                    return;
-                int x, y;
-                pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
-            }
-            if (w > 0 && h > 0) {
-                constrainer->setSizeLimits(w + 1, h + 1, w + 1, h + 1);
-            }
-        };
-
         updateDrawables();
     }
+
+    void onConstrainerCreate() override
+    {
+        int w = 0, h = 0;
+        if (auto gobj = ptr.get<t_gobj>()) {
+            auto* patch = cnv->patch.getPointer().get();
+            if (!patch)
+                return;
+            int x, y;
+            pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
+        }
+        if (w > 0 && h > 0) {
+            constrainer->setSizeLimits(w + 1, h + 1, w + 1, h + 1);
+        }
+    }
+
 
     ~ScalarObject() override
     {
