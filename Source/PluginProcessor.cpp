@@ -791,12 +791,12 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
     auto const pdBlockSize = Instance::getBlockSize();
     auto const numChannels = buffer.getNumChannels();
 
-    inputFifo->writeAudioAndMidi(buffer);
+    inputFifo->writeAudio(buffer);
 
     audioAdvancement = 0; // Always has to be 0 if we use the AudioFifo!
 
     while (inputFifo->getNumSamplesAvailable() >= pdBlockSize) {
-        inputFifo->readAudioAndMidi(audioBufferIn);
+        inputFifo->readAudio(audioBufferIn);
 
         midiDeviceManager.dequeueMidiInput(pdBlockSize, [this](int port, int blockSize, MidiBuffer& buffer) {
             midiInputHistory.addEvents(buffer, 0, blockSize, 0);
@@ -836,10 +836,10 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
                 pdBlockSize);
         }
 
-        outputFifo->writeAudioAndMidi(audioBufferOut);
+        outputFifo->writeAudio(audioBufferOut);
     }
 
-    outputFifo->readAudioAndMidi(buffer);
+    outputFifo->readAudio(buffer);
 }
 
 void PluginProcessor::sendPlayhead()

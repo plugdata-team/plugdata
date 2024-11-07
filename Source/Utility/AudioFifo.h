@@ -32,7 +32,7 @@ public:
     int getNumSamplesAvailable() { return fifo.getNumReady(); }
     int getNumSamplesFree() { return fifo.getFreeSpace(); }
 
-    void writeAudioAndMidi(dsp::AudioBlock<float> const& audioSrc)
+    void writeAudio(dsp::AudioBlock<float> const& audioSrc)
     {
         jassert(getNumSamplesFree() >= audioSrc.getNumSamples());
         jassert(audioSrc.getNumChannels() == audioBuffer.getNumChannels());
@@ -48,7 +48,7 @@ public:
         fifo.finishedWrite(size1 + size2);
     }
 
-    void readAudioAndMidi(dsp::AudioBlock<float>& audioDst)
+    void readAudio(dsp::AudioBlock<float>& audioDst)
     {
         jassert(getNumSamplesAvailable() >= audioDst.getNumSamples());
         jassert(audioDst.getNumChannels() == audioBuffer.getNumChannels());
@@ -79,7 +79,7 @@ public:
         fifo.finishedWrite(size1 + size2);
     }
 
-    void writeAudioAndMidi(juce::AudioBuffer<float> const& audioSrc)
+    void writeAudio(juce::AudioBuffer<float> const& audioSrc)
     {
         jassert(getNumSamplesFree() >= audioSrc.getNumSamples());
         jassert(audioSrc.getNumChannels() == audioBuffer.getNumChannels());
@@ -98,7 +98,7 @@ public:
         fifo.finishedWrite(size1 + size2);
     }
 
-    void readAudioAndMidi(juce::AudioBuffer<float>& audioDst)
+    void readAudio(juce::AudioBuffer<float>& audioDst)
     {
         jassert(getNumSamplesAvailable() >= audioDst.getNumSamples());
         jassert(audioDst.getNumChannels() == audioBuffer.getNumChannels());

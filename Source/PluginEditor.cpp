@@ -376,6 +376,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
             auto* corruptAlert = new CorruptSettingsAlert(settingsFile, dismissDialog);
             dialog->setViewedComponent(corruptAlert);
             openedDialog.reset(dialog);
+            
+            settingsFile->resetSettingsState();
         }
     });
 }
