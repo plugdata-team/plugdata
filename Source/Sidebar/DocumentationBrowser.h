@@ -113,7 +113,7 @@ public:
     ValueTree getCurrentTree()
     {
         ScopedLock treeLock(fileTreeLock);
-        return fileTree;
+        return fileTree.createCopy();
     }
 
     static DocumentationBrowserUpdateThread* getInstance()
@@ -212,9 +212,10 @@ private:
             while (retries < maxRetries) {
                 if (threadShouldExit())
                     break;
-                if (fileTreeLock.tryEnter()) {
+                
+                const ScopedTryLock stl (fileTreeLock);
+                if (stl.isLocked()) {
                     fileTree = generateDirectoryValueTree(File(SettingsFile::getInstance()->getProperty<String>("browser_path")));
-                    fileTreeLock.exit();
                     break;
                 }
                 retries++;
@@ -223,6 +224,7 @@ private:
 
             sendChangeMessage();
         } catch (...) {
+            
             std::cerr << "Failed to update documentation browser" << std::endl;
         }
     }

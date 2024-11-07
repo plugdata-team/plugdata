@@ -132,13 +132,13 @@ public:
                     return port;
             }
         }
-
+\
         return -1;
     }
 
     // Helper to move internal MIDI ports inside the
     template<typename T>
-    T* moveMidiDevice(UnorderedMap<int, OwnedArray<T>>& ports, String const& identifier, int targetPort)
+    T* moveMidiDevice(UnorderedSegmentedMap<int, OwnedArray<T>>& ports, String const& identifier, int targetPort)
     {
         for (auto& [port, devices] : ports) {
             auto deviceIter = std::find_if(devices.begin(), devices.end(), [identifier](auto* device) { return device && (device->getIdentifier() == identifier); });
@@ -348,10 +348,10 @@ private:
     float currentSampleRate = 44100.f;
 
     MidiBuffer midiBufferIn;
-    UnorderedMap<int, MidiBuffer> midiBufferOut;
-    UnorderedMap<int, std::unique_ptr<MidiMessageCollector>> midiMessageCollector;
-    UnorderedMap<int, OwnedArray<MidiInput>> inputPorts;
-    UnorderedMap<int, OwnedArray<MidiOutput>> outputPorts;
+    UnorderedSegmentedMap<int, MidiBuffer> midiBufferOut;
+    UnorderedSegmentedMap<int, std::unique_ptr<MidiMessageCollector>> midiMessageCollector;
+    UnorderedSegmentedMap<int, OwnedArray<MidiInput>> inputPorts;
+    UnorderedSegmentedMap<int, OwnedArray<MidiOutput>> outputPorts;
 
     MidiInput* toPlugdata = nullptr;
     MidiOutput* fromPlugdata = nullptr;

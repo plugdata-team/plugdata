@@ -712,7 +712,7 @@ void Object::updateIolets()
     }
 
     while (numInputs < oldNumInputs)
-        iolets.remove_at(oldNumInputs++);
+        iolets.remove_at(oldNumInputs--);
     while (numInputs > oldNumInputs)
         iolets.insert(oldNumInputs++, this, true);
     while (numOutputs < oldNumOutputs)

@@ -64,8 +64,8 @@ class LuaObject final : public ObjectBase
         }
     };
 
-    UnorderedMap<int, HeapArray<LuaGuiMessage>> guiCommandBuffer;
-    UnorderedMap<int, moodycamel::ReaderWriterQueue<LuaGuiMessage>> guiMessageQueue;
+    UnorderedSegmentedMap<int, HeapArray<LuaGuiMessage>> guiCommandBuffer;
+    UnorderedSegmentedMap<int, moodycamel::ReaderWriterQueue<LuaGuiMessage>> guiMessageQueue;
 
     static inline UnorderedMap<t_pdlua*, SmallArray<LuaObject*>> allDrawTargets = UnorderedMap<t_pdlua*, SmallArray<LuaObject*>>();
 

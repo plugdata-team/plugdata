@@ -42,7 +42,6 @@
 #include <cassert>
 #include <algorithm>
 #include <limits>
-#include <memory_resource>
 
 template<typename T>
 class ArrayRef;
@@ -2134,6 +2133,7 @@ public:
         auto it = std::find_if(data_.begin(), data_.end(), [to_find](T* ptr) { return ptr == to_find; });
         if (it != data_.end()) {
             deallocate_and_destroy(*it);
+            data_.erase(it);
             return true;
         }
         return false;
@@ -2202,7 +2202,10 @@ public:
         preallocate(std::max<int>(static_cast<int>(capacity) - size(), 0));
     }
     
-    void erase(size_t index) { data_.erase(data_.begin() + index); }
+    void erase(size_t index) {
+        deallocate_and_destroy(data_[index]);
+        data_.erase(data_.begin() + index);
+    }
 
     void move(size_t from_index, size_t to_index)
     {
@@ -2255,7 +2258,7 @@ private:
     T* allocate_and_construct(Args&&... args) {
         if constexpr(StackSize > 0) {
             if (stackUsed < StackSize) {
-                T* ptr = reinterpret_cast<T*>(stackBuffer) + stackUsed;
+                T* ptr = reinterpret_cast<T*>(stackBuffer.data()) + stackUsed;
                 stackUsed++;
                 new (ptr) T(std::forward<Args>(args)...); // Placement new
                 return ptr;
@@ -2265,6 +2268,9 @@ private:
             // Reuse an object from the free list
             T* ptr = reuse_list.back();
             reuse_list.pop();
+#if ASAN_ENABLED
+        __asan_unpoison_memory_region(ptr, sizeof(T));
+#endif
             new (ptr) T(std::forward<Args>(args)...); // Placement new
             return ptr;
         }
@@ -2272,10 +2278,10 @@ private:
         if(num_preallocated == 0) preallocate(BlocksPerChunk);
         num_preallocated--;
         T* ptr =  preallocated++;
-        new (ptr) T(std::forward<Args>(args)...);
 #if ASAN_ENABLED
         __asan_unpoison_memory_region(ptr, sizeof(T));
 #endif
+        new (ptr) T(std::forward<Args>(args)...);
         return ptr;
     }
 
@@ -2352,119 +2358,11 @@ private:
     
     using StackBuffer = typename StorageSelector<T, (StackSize > 0)>::type;
 
-    StackBuffer stackBuffer[StackSize];
+    std::array<StackBuffer, StackSize> stackBuffer;
     size_t stackUsed = 0;
     
     SmallArray<T*> reuse_list;
     SmallArray<T*> free_list;
-};
-
-template <typename T, std::size_t StackSize = 2048>
-class SmallObjectPointer {
-public:
-    SmallObjectPointer() : is_heap_allocated(false) {}
-
-    // Move constructor
-    SmallObjectPointer(SmallObjectPointer&& other) noexcept {
-        if (other.is_heap_allocated) {
-            // Move the heap-allocated object
-            ptr = other.ptr;
-            is_heap_allocated = true;
-            other.ptr = nullptr;
-        } else {
-            // Move the stack-allocated object
-            std::memcpy(stack_buffer, other.stack_buffer, sizeof(T));
-            ptr = other.ptr;
-            is_heap_allocated = false;
-            other.destroy();
-        }
-    }
-
-    // Move assignment
-    SmallObjectPointer& operator=(SmallObjectPointer&& other) noexcept {
-        if (this != &other) {
-            destroy(); // Clean up current resource
-            if (other.is_heap_allocated) {
-                // Move the heap-allocated object
-                ptr = other.ptr;
-                is_heap_allocated = true;
-                other.ptr = nullptr;
-            } else {
-                // Move the stack-allocated object
-                std::memcpy(stack_buffer, other.stack_buffer, sizeof(T));
-                ptr = other.ptr;
-                is_heap_allocated = false;
-                other.destroy();
-            }
-        }
-        return *this;
-    }
-
-    // Emplace an object
-    template <typename U, typename... Args>
-    void emplace(Args&&... args) {
-        if constexpr (sizeof(U) <= StackSize) {
-            // Construct the object in the stack buffer
-            ptr = new(stack_buffer) U(std::forward<Args>(args)...);
-            is_heap_allocated = false;
-        } else {
-            // Allocate memory on the heap
-            ptr = new U(std::forward<Args>(args)...);
-            is_heap_allocated = true;
-        }
-    }
-
-    // Destructor
-    ~SmallObjectPointer() {
-        destroy();
-    }
-
-    T* get()
-    {
-        return ptr;
-    }
-
-    // Access the object
-    T& operator*() {
-        return is_heap_allocated ? *ptr : *reinterpret_cast<T*>(stack_buffer);
-    }
-    
-    T const& operator*() const {
-        return is_heap_allocated ? *ptr : *reinterpret_cast<const T* const>(stack_buffer);
-    }
-
-    T* operator->() {
-        return &operator*();
-    }
-    
-    T* operator->() const {
-        // TODO: remove this const cast, fix const correctness in usage
-        return const_cast<T*>(&operator*());
-    }
-    
-    operator bool() const {
-        return ptr != nullptr;
-    }
-    
-    bool operator==(const T* raw_ptr) const {
-       return ptr == raw_ptr;
-   }
-   
-   bool operator!=(const T* raw_ptr) const {
-       return ptr != raw_ptr;
-   }
-private:
-    void destroy() {
-        if (is_heap_allocated) {
-            delete ptr;
-        } else {
-            reinterpret_cast<T*>(stack_buffer)->~T(); // Call the destructor
-        }
-    }
-
-    T* ptr = nullptr;                   // Pointer for heap allocation
-    char stack_buffer[StackSize]; // Buffer for stack allocation
-    bool is_heap_allocated; // Flag to check allocation type
 };
 
 
@@ -2472,6 +2370,9 @@ private:
 
 template <typename Key, typename T>
 using UnorderedMap = ankerl::unordered_dense::map<Key, T>;
+
+template <typename Key, typename T>
+using UnorderedSegmentedMap = ankerl::unordered_dense::segmented_map<Key, T>;
 
 template <typename Key>
 using UnorderedSet = ankerl::unordered_dense::set<Key>;

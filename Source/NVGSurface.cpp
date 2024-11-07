@@ -137,7 +137,7 @@ void NVGSurface::initialise()
     glContext->initialiseOnThread();
     glContext->makeActive();
     lastRenderScale = calculateRenderScale();
-    nvg = nvgCreateContext(NVG_ANTIALIAS);
+    nvg = nvgCreateContext(0);
 #endif
     if (!nvg) {
         std::cerr << "could not initialise nvg" << std::endl;
@@ -294,7 +294,6 @@ void NVGSurface::invalidateArea(Rectangle<int> area)
 
 void NVGSurface::render()
 {
-    invalidArea = getLocalBounds();
     // Flush message queue before rendering, to make sure all GUIs are up-to-date
     editor->pd->flushMessageQueue();
 

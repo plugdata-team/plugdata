@@ -170,11 +170,6 @@ void Iolet::mouseUp(MouseEvent const& e)
         return;
 
     bool wasDragged = e.mouseWasDraggedSinceMouseDown();
-    auto* cnv = findParentComponentOfClass<Canvas>();
-
-    if (!cnv)
-        return;
-
     cnv->editor->tooltipWindow.hideTip();
 
     if (!wasDragged && cnv->connectionsBeingCreated.empty()) {

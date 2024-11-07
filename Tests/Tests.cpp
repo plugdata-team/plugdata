@@ -187,7 +187,7 @@ void runTests(PluginEditor* editor)
 
     auto& tabbar = editor->getTabComponent();
 
-    //allHelpfiles.erase(allHelpfiles.end() - 1336, allHelpfiles.end());
+    allHelpfiles.erase(allHelpfiles.end() - 1342, allHelpfiles.end());
 
     //exportHelpFileImages(tabbar, File("/Users/timschoen/Projecten/plugdata/Tests/Help"));
     //openHelpfilesRecursively(tabbar, allHelpfiles);

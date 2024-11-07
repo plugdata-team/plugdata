@@ -46,7 +46,7 @@ public:
     void handleAsyncUpdate() override;
 
 private:
-    void getSubCanvases(t_canvas* patch, SmallArray<t_canvas*>& allCanvases);
+    void getSubCanvases(t_canvas* top, t_canvas* patch, SmallArray<std::pair<t_canvas*, t_canvas*>>& allCanvases);
 
     PluginProcessor* pd;
 

@@ -109,9 +109,7 @@ public:
 
         auto& listeners = objectListenerIterator->second;
 
-        auto listenerIterator = listeners.find(messageListener);
-        if (listenerIterator != listeners.end())
-            listeners.erase(listenerIterator);
+        listeners.erase(messageListener);
 
         if (listeners.empty())
             messageListeners.erase(object);
@@ -125,22 +123,23 @@ public:
         messageStack.swapBuffers();
         Message message;
         while (messageStack.pop(message)) {
+            auto target = messageListeners.find(message.target);
+            if (EXPECT_LIKELY(target == messageListeners.end()))
+                continue;
+            
             auto hash = reinterpret_cast<intptr_t>(message.target) ^ reinterpret_cast<intptr_t>(message.symbol);
-            if (usedHashes.find(hash) != usedHashes.end()) {
+            if (EXPECT_UNLIKELY(usedHashes.contains(hash))) {
                 continue;
             }
             usedHashes.insert(hash);
 
-            if (messageListeners.find(message.target) == messageListeners.end())
-                continue;
-
-            for (auto it = messageListeners.at(message.target).begin(); it != messageListeners.at(message.target).end(); ++it) {
+            StackArray<pd::Atom, 8> atoms;
+            for (auto it = target->second.begin(); it != target->second.end(); ++it) {
                 if (it->wasObjectDeleted())
                     continue;
 
                 auto listener = it->get();
 
-                StackArray<pd::Atom, 8> atoms;
                 for (int at = 0; at < message.size; at++) {
                     atoms[at] = pd::Atom(&message.data[at]);
                 }
@@ -152,25 +151,26 @@ public:
                     nullListeners.add({ message.target, it });
             }
         }
-
-        for (int i = nullListeners.size() - 1; i >= 0; i--) {
-            auto& [target, iterator] = nullListeners[i];
-            messageListeners[target].erase(iterator);
-        }
+ 
+        nullListeners.erase(
+            std::remove_if(nullListeners.begin(), nullListeners.end(),
+                           [&](const auto& entry) {
+                               auto& [target, iterator] = entry;
+                               return messageListeners[target].erase(iterator) != messageListeners[target].end();
+                           }),
+            nullListeners.end()
+        );
     }
 
 private:
     static constexpr int stackSize = 65536;
     using MessageStack = ThreadSafeStack<Message, stackSize>;
 
-    SmallArray<std::pair<void*, std::set<juce::WeakReference<pd::MessageListener>>::iterator>, 16> nullListeners;
-    std::unordered_set<intptr_t> usedHashes;
+    SmallArray<std::pair<void*, UnorderedSet<juce::WeakReference<pd::MessageListener>>::iterator>, 16> nullListeners;
+    UnorderedSet<intptr_t> usedHashes;
     MessageStack messageStack;
 
-    // Queue to use in case our fast stack queue is full
-    moodycamel::ConcurrentQueue<Message> backupQueue;
-
-    UnorderedMap<void*, std::set<juce::WeakReference<MessageListener>>> messageListeners;
+    UnorderedMap<void*, UnorderedSet<juce::WeakReference<MessageListener>>> messageListeners;
     CriticalSection messageListenerLock;
 
     // Block messages unless an editor has been constructed
