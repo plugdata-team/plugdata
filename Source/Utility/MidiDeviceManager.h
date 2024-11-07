@@ -348,10 +348,10 @@ private:
     float currentSampleRate = 44100.f;
 
     MidiBuffer midiBufferIn;
-    UnorderedMap<int, MidiBuffer> midiBufferOut;
-    UnorderedMap<int, std::unique_ptr<MidiMessageCollector>> midiMessageCollector;
-    UnorderedMap<int, OwnedArray<MidiInput>> inputPorts;
-    UnorderedMap<int, OwnedArray<MidiOutput>> outputPorts;
+    UnorderedSegmentedMap<int, MidiBuffer> midiBufferOut;
+    UnorderedSegmentedMap<int, std::unique_ptr<MidiMessageCollector>> midiMessageCollector;
+    UnorderedSegmentedMap<int, OwnedArray<MidiInput>> inputPorts;
+    UnorderedSegmentedMap<int, OwnedArray<MidiOutput>> outputPorts;
 
     MidiInput* toPlugdata = nullptr;
     MidiOutput* fromPlugdata = nullptr;

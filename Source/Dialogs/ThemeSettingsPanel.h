@@ -180,7 +180,7 @@ class ThemeSettingsPanel : public SettingsDialogPanel
 
     Value fontValue;
 
-    UnorderedMap<String, std::unordered_map<String, Value>> swatches;
+    UnorderedMap<String, UnorderedSegmentedMap<String, Value>> swatches;
 
     PropertiesPanel::ActionComponent* newButton = nullptr;
     PropertiesPanel::ActionComponent* loadButton = nullptr;

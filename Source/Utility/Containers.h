@@ -2370,5 +2370,8 @@ private:
 template <typename Key, typename T>
 using UnorderedMap = ankerl::unordered_dense::map<Key, T>;
 
+template <typename Key, typename T>
+using UnorderedSegmentedMap = ankerl::unordered_dense::segmented_map<Key, T>;
+
 template <typename Key>
 using UnorderedSet = ankerl::unordered_dense::set<Key>;
