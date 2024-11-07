@@ -27,6 +27,7 @@ public:
     explicit InspectorButton(String const& icon)
             : TextButton(icon)
     {
+        updateTooltip();
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -39,12 +40,29 @@ public:
         TextButton::onClick();
     }
 
+    void updateTooltip()
+    {
+        switch(state){
+            case InspectorOff:
+                setTooltip("Hidden, click to auto show inspector");
+                break;
+            case InspectorAuto:
+                setTooltip("Auto, click to pin inspector");
+                break;
+            case InspectorPin:
+                setTooltip("Pinned, click to hide inspector");
+                break;
+            default:
+                break;
+        }
+    }
+
     void incrementState()
     {
         state++;
         state = state % 3;
 
-        std::cout << "===== state is: " << state << std::endl;
+        updateTooltip();
 
         repaint();
     }
@@ -170,7 +188,7 @@ public:
     void mouseMove(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
 
-    void showParameters(String const& name, SmallArray<ObjectParameters, 6>& params);
+    void showParameters(String const& name, SmallArray<ObjectParameters, 6>& params, bool showOnSelect = false);
     void hideParameters();
 
     bool isShowingBrowser();
@@ -214,8 +232,8 @@ private:
     std::unique_ptr<Component> extraSettingsButton;
     SmallIconButton panelPinButton = SmallIconButton(Icons::Pin);
 
-    std::unique_ptr<Console> console;
-    std::unique_ptr<DocumentationBrowser> browser;
+    std::unique_ptr<Console> consolePanel;
+    std::unique_ptr<DocumentationBrowser> browserPanel;
     std::unique_ptr<AutomationPanel> automationPanel;
     std::unique_ptr<SearchPanel> searchPanel;
 
@@ -225,6 +243,12 @@ private:
     StringArray panelNames = { "Console", "Documentation Browser", "Automation Parameters", "Search" };
     int currentPanel = 0;
 
+    struct PanelAndButton {
+        Component* panel;
+        SidebarSelectorButton& button;
+    };
+
+    Array<PanelAndButton> panelAndButton;
 
     enum InspectorMode { InspectorOff, InspectorAuto, InspectorOpen };
     int inspectorMode = InspectorMode::InspectorOff;

@@ -1147,9 +1147,9 @@ void Canvas::mouseDown(MouseEvent const& e)
         }
 
         // Update selected object in sidebar when we click a object
-        if (source && source->findParentComponentOfClass<Object>()) {
+        //if (source && source->findParentComponentOfClass<Object>()) {
             updateSidebarSelection();
-        }
+        //}
 
         editor->updateCommandStatus();
     }
@@ -1303,32 +1303,32 @@ void Canvas::mouseUp(MouseEvent const& e)
     }
 }
 
-void Canvas::updateSidebarSelection()
-{
+void Canvas::updateSidebarSelection() {
     // Post to message queue so that sidebar parameters are updated AFTER objects resize is run
     // Otherwise position XY is not populated
 
     MessageManager::callAsync([this]() {
         auto lassoSelection = getSelectionOfType<Object>();
+        SmallArray<ObjectParameters, 6> allParameters;
+
+        bool showOnSelect = false;
 
         if (lassoSelection.size() > 0) {
-            SmallArray<ObjectParameters, 6> allParameters;
-            for (auto* object : lassoSelection) {
+            for (auto *object: lassoSelection) {
                 if (!object->gui)
                     continue;
                 auto parameters = object->gui ? object->gui->getParameters() : ObjectParameters();
-                auto showOnSelect = object->gui && object->gui->showParametersWhenSelected();
-                if (showOnSelect) {
-                    allParameters.add(parameters);
-                }
+                showOnSelect = object->gui && object->gui->showParametersWhenSelected();
+                allParameters.add(parameters);
             }
 
             String objectName = "(" + String(lassoSelection.size()) + " selected)";
             if (lassoSelection.size() == 1 && lassoSelection.front()) {
                 objectName = lassoSelection.back()->getType(false);
             }
-            editor->sidebar->showParameters(objectName, allParameters);
-        }
+            editor->sidebar->showParameters(objectName, allParameters, showOnSelect);
+        } else
+            editor->sidebar->showParameters("empty", allParameters, showOnSelect);
     });
 }
 
