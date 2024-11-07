@@ -138,7 +138,7 @@ public:
 
     // Helper to move internal MIDI ports inside the
     template<typename T>
-    T* moveMidiDevice(UnorderedMap<int, OwnedArray<T>>& ports, String const& identifier, int targetPort)
+    T* moveMidiDevice(UnorderedSegmentedMap<int, OwnedArray<T>>& ports, String const& identifier, int targetPort)
     {
         for (auto& [port, devices] : ports) {
             auto deviceIter = std::find_if(devices.begin(), devices.end(), [identifier](auto* device) { return device && (device->getIdentifier() == identifier); });
