@@ -2133,6 +2133,7 @@ public:
         auto it = std::find_if(data_.begin(), data_.end(), [to_find](T* ptr) { return ptr == to_find; });
         if (it != data_.end()) {
             deallocate_and_destroy(*it);
+            data_.erase(it);
             return true;
         }
         return false;
