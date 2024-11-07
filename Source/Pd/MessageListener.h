@@ -109,9 +109,7 @@ public:
 
         auto& listeners = objectListenerIterator->second;
 
-        auto listenerIterator = listeners.find(messageListener);
-        if (listenerIterator != listeners.end())
-            listeners.erase(listenerIterator);
+        listeners.erase(messageListener);
 
         if (listeners.empty())
             messageListeners.erase(object);
@@ -129,8 +127,8 @@ public:
             if (EXPECT_LIKELY(target == messageListeners.end()))
                 continue;
             
-            auto hash = reinterpret_cast<intptr_t>(message.target) ^ reinterpret_cast<intptr_t>(message.symbol) >> 3;
-            if (EXPECT_UNLIKELY(usedHashes.find(hash) != usedHashes.end())) {
+            auto hash = reinterpret_cast<intptr_t>(message.target) ^ reinterpret_cast<intptr_t>(message.symbol);
+            if (EXPECT_UNLIKELY(usedHashes.contains(hash))) {
                 continue;
             }
             usedHashes.insert(hash);
