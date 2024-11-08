@@ -589,7 +589,7 @@ public:
                 contentComponent.selectedNode = contentComponent.selectedNode->previous;
 
                 // Keep iterating until we find a node that is visible
-                while (contentComponent.selectedNode != nullptr && contentComponent.selectedNode->parent != nullptr && !contentComponent.selectedNode->parent->isOpen() && contentComponent.selectedNode->isShowing()) {
+                while (contentComponent.selectedNode != nullptr && contentComponent.selectedNode->parent != nullptr && !(contentComponent.selectedNode->parent->isOpen() && contentComponent.selectedNode->isShowing())) {
                     contentComponent.selectedNode = contentComponent.selectedNode->previous;
                 }
                 if (contentComponent.selectedNode)
