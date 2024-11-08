@@ -44,7 +44,7 @@ struct Fonts {
         boldTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterBold_ttf, BinaryData::InterBold_ttfSize);
         semiBoldTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterSemiBold_ttf, BinaryData::InterSemiBold_ttfSize);
         iconTypeface = Typeface::createSystemTypefaceFor(BinaryData::IconFont_ttf, BinaryData::IconFont_ttfSize);
-        monoTypeface = Typeface::createSystemTypefaceFor(BinaryData::RobotoMonoRegular_ttf, BinaryData::RobotoMonoRegular_ttfSize);
+        monoTypeface = Typeface::createSystemTypefaceFor(BinaryData::RobotoMono_Regular_ttf, BinaryData::RobotoMono_Regular_ttfSize);
         variableTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterVariable_ttf, BinaryData::InterVariable_ttfSize);
         tabularTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterTabular_ttf, BinaryData::InterTabular_ttfSize);
 
