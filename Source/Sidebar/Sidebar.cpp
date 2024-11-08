@@ -263,7 +263,9 @@ void Sidebar::showPanel(SidePanel panelToShow)
 {
     if (panelToShow == SidePanel::InspectorPan) {
         if (!sidebarHidden) {
-            inspector->setVisible(inspectorButton.isInspectorPinned());
+            auto show = inspectorButton.isInspectorPinned();
+            inspector->setVisible(show);
+            inspector->setInterceptsMouseClicks(show, show);
         }
         return;
     }
