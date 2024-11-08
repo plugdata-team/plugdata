@@ -109,8 +109,7 @@ void Sidebar::paint(Graphics& g)
     if (!sidebarHidden) {
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
         g.fillRect(0, 30, getWidth(), getHeight());
-        // currentPanel 0 = panel closed
-        Fonts::drawStyledText(g, panelNames[currentPanel - 1], Rectangle<int>(0, 0, getWidth() - 30, 30), findColour(PlugDataColour::toolbarTextColourId), Bold, 15, Justification::centred);
+        Fonts::drawStyledText(g, panelNames[currentPanel], Rectangle<int>(0, 0, getWidth() - 30, 30), findColour(PlugDataColour::toolbarTextColourId), Bold, 15, Justification::centred);
 
         if (inspector->isVisible()) {
             auto inpectorPos = Point<int>(0, dividerFactor * (getHeight()));
@@ -262,25 +261,33 @@ void Sidebar::mouseExit(MouseEvent const& e)
 
 void Sidebar::showPanel(SidePanel panelToShow)
 {
-    if (panelToShow == currentPanel && !sidebarHidden && panelToShow != SidePanel::ClosedPan) {
+    if (panelToShow == SidePanel::InspectorPan) {
+        if (!sidebarHidden) {
+            inspector->setVisible(inspectorButton.isInspectorPinned());
+        }
+        return;
+    }
+
+    if (panelToShow == currentPanel && !sidebarHidden) {
         for (auto panel : panelAndButton) {
             panel.button.setToggleState(false, dontSendNotification);
         }
 
         showSidebar(false);
-        currentPanel = SidePanel::ClosedPan;
         return;
     }
 
     showSidebar(true);
 
-    auto setPanelVis = [this](Component* panel, bool isVisible) {
+    // Set one of the panels to active, and the rest to inactive
+    auto setPanelVis = [this](Component* panel, SidePanel panelEnum) {
         for (auto pb : panelAndButton) {
             if (pb.panel == panel) {
-                pb.panel->setVisible(isVisible);
-                pb.panel->setInterceptsMouseClicks(isVisible, isVisible);
+                pb.panel->setVisible(true);
+                pb.panel->setInterceptsMouseClicks(true, true);
                 pb.panel->resized();
-                pb.button.setToggleState(isVisible, dontSendNotification);
+                pb.button.setToggleState(true, dontSendNotification);
+                currentPanel = panelEnum;
             }
             else {
                 pb.panel->setVisible(false);
@@ -290,40 +297,23 @@ void Sidebar::showPanel(SidePanel panelToShow)
         }
     };
 
-    bool show = false;
-
     switch(panelToShow){
         case SidePanel::ConsolePan:
-            show = currentPanel != SidePanel::ConsolePan;
-            setPanelVis(consolePanel.get(), show);
+            setPanelVis(consolePanel.get(), SidePanel::ConsolePan);
             break;
         case SidePanel::DocPan:
-            show = currentPanel != SidePanel::DocPan;
-            setPanelVis(browserPanel.get(), show);
+            setPanelVis(browserPanel.get(), SidePanel::DocPan);
             break;
         case SidePanel::ParamPan:
-            show = currentPanel != SidePanel::ParamPan;
-            setPanelVis(automationPanel.get(), show);
+            setPanelVis(automationPanel.get(), SidePanel::ParamPan);
             break;
         case SidePanel::SearchPan:
-            show = currentPanel != SidePanel::SearchPan;
-            setPanelVis(searchPanel.get(), show);
-            if (!show)
-                searchPanel->grabFocus();
-            break;
-        case SidePanel::InspectorPan:
-            if (!sidebarHidden) {
-                inspector->setVisible(inspectorButton.isInspectorPinned());
-            }
+            setPanelVis(searchPanel.get(), SidePanel::SearchPan);
+            searchPanel->grabFocus();
             break;
         default:
             break;
     }
-
-    if (!show)
-        currentPanel = SidePanel::ClosedPan;
-    else if (panelToShow != SidePanel::InspectorPan)
-        currentPanel = panelToShow;
 
     updateExtraSettingsButton();
 

@@ -36,8 +36,6 @@ public:
             return;
 
         incrementState();
-
-        TextButton::onClick();
     }
 
     void updateTooltip()
@@ -195,7 +193,7 @@ public:
 
     void settingsChanged(String const& name, var const& value) override;
 
-    enum SidePanel { ClosedPan, ConsolePan, DocPan, ParamPan, SearchPan, InspectorPan};
+    enum SidePanel { ConsolePan, DocPan, ParamPan, SearchPan, InspectorPan };
 
     void showPanel(SidePanel panelToShow);
 
@@ -248,6 +246,7 @@ private:
         SidebarSelectorButton& button;
     };
 
+    // FIXME: Use Tim's new TUCE HeapArray here, but it's not compiling in this use case yet.
     Array<PanelAndButton> panelAndButton;
 
     enum InspectorMode { InspectorOff, InspectorAuto, InspectorOpen };
