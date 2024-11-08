@@ -65,7 +65,8 @@ class Canvas : public Component
     , public ModifierKeyListener
     , public pd::MessageListener
     , public AsyncUpdater
-    , public NVGComponent {
+    , public NVGComponent
+    , public ChangeListener {
 public:
     Canvas(PluginEditor* parent, pd::Patch::Ptr patch, Component* parentGraph = nullptr);
 
@@ -313,7 +314,11 @@ public:
     NVGcolor gemColBrigher;
     NVGcolor baseColBrigher;
 
+    void updateObjectSelection();
+
 private:
+    void changeListenerCallback(ChangeBroadcaster* source) override;
+
     void lookAndFeelChanged() override;
 
     void parentHierarchyChanged() override;

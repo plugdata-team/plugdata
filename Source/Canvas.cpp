@@ -40,7 +40,9 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     , graphArea(nullptr)
     , pathUpdater(new ConnectionPathUpdater(this))
     , globalMouseListener(this)
-{    
+{
+    selectedComponents.addChangeListener(this);
+
     addAndMakeVisible(objectLayer);
     addAndMakeVisible(connectionLayer);
 
@@ -1428,6 +1430,39 @@ void Canvas::deselectAll()
     editor->sidebar->hideParameters();
 }
 
+// Makes component selected
+void Canvas::setSelected(Component* component, bool shouldNowBeSelected, bool updateCommandStatus)
+{
+    if (!shouldNowBeSelected) {
+        selectedComponents.deselect(component);
+    } else {
+        selectedComponents.addToSelection(component);
+    }
+
+    if (updateCommandStatus) {
+        editor->updateCommandStatus();
+    }
+}
+
+void Canvas::changeListenerCallback(ChangeBroadcaster* source)
+{
+    if (source == &selectedComponents) {
+        updateObjectSelection();
+    }
+}
+
+void Canvas::updateObjectSelection()
+{
+    pd->lockAudioThread();
+    for (auto obj: objects) {
+        patch.selectObject(obj->getPointer(), selectedComponents.isSelected(obj));
+    }
+    pd->unlockAudioThread();
+
+    editor->sidebar->updateSearchResults();
+}
+
+
 void Canvas::hideAllActiveEditors()
 {
     for (auto* object : objects) {
@@ -2366,20 +2401,6 @@ void Canvas::showSuggestions(Object* object, TextEditor* textEditor)
 void Canvas::hideSuggestions()
 {
     suggestor->removeCalloutBox();
-}
-
-// Makes component selected
-void Canvas::setSelected(Component* component, bool shouldNowBeSelected, bool updateCommandStatus)
-{
-    if (!shouldNowBeSelected) {
-        selectedComponents.deselect(component);
-    } else {
-        selectedComponents.addToSelection(component);
-    }
-
-    if (updateCommandStatus) {
-        editor->updateCommandStatus();
-    }
 }
 
 SelectedItemSet<WeakReference<Component>>& Canvas::getLassoSelection()

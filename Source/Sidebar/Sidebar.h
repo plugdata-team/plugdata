@@ -211,6 +211,8 @@ public:
 
     static constexpr int dragbarWidth = 6;
 
+    void updateSearchResults();
+
 private:
     void updateExtraSettingsButton();
 

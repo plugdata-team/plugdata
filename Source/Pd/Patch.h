@@ -46,6 +46,8 @@ public:
     void finishRemove();
     void removeObjects(SmallArray<t_gobj*> const& objects);
 
+    void selectObject(t_gobj *obj, bool shouldBeSelected);
+
     void deselectAll();
 
     bool isSubpatch();

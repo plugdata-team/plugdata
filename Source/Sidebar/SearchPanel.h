@@ -132,7 +132,7 @@ public:
             if (auto obj = editor->highlightSearchTarget(ptr, true)){
                 auto launchInspector = [this, obj](){
                     SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
-                    editor->sidebar->showParameters(obj->getType(false), parameters);
+                    editor->sidebar->showParameters(obj->getType(false), parameters, obj->gui->showParametersWhenSelected());
                 };
                 MessageManager::callAsync(launchInspector);
             }
@@ -143,7 +143,7 @@ public:
             if (auto obj = editor->highlightSearchTarget(ptr, false)){
                 auto launchInspector = [this, obj](){
                     SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
-                    editor->sidebar->showParameters(obj->getType(false), parameters);
+                    editor->sidebar->showParameters(obj->getType(false), parameters, obj->gui->showParametersWhenSelected());
                 };
                 MessageManager::callAsync(launchInspector);
             }
@@ -289,6 +289,19 @@ public:
 
     ValueTree generatePatchTree(pd::Patch::Ptr patch, void* topLevel = nullptr)
     {
+        auto is_selected = [](t_gobj *obj, t_canvas *canvas) -> bool {
+            t_selection *sel;
+            if (!canvas->gl_editor) {
+                return false; // No editor available
+            }
+            for (sel = canvas->gl_editor->e_selection; sel; sel = sel->sel_next) {
+                if (sel->sel_what == obj) {
+                    return true; // Object is selected
+                }
+            }
+            return false; // Object is not selected
+        };
+
         ValueTree patchTree("Patch");
         for (auto objectPtr : patch->getObjects()) {
             if (auto object = objectPtr.get<t_pd>()) {
@@ -354,6 +367,7 @@ public:
                     element.setProperty("Icon", canvas_isabstraction(subpatch->getPointer().get()) ? Icons::File : Icons::Object, nullptr);
                     element.setProperty("Object", reinterpret_cast<int64>(object.cast<void>()), nullptr);
                     element.setProperty("TopLevel", reinterpret_cast<int64>(top), nullptr);
+                    element.setProperty("Selected", is_selected(object.cast<t_gobj>(), patch->getPointer().get()), nullptr);
                 } else {
                     String finalFormatedName;
                     String sendSymbol;
@@ -533,6 +547,7 @@ public:
                     element.setProperty("Icon", Icons::Object, nullptr);
                     element.setProperty("Object", reinterpret_cast<int64>(object.cast<void>()), nullptr);
                     element.setProperty("TopLevel", reinterpret_cast<int64>(top), nullptr);
+                    element.setProperty("Selected", is_selected(object.cast<t_gobj>(), patch->getPointer().get()), nullptr);
                 }
 
                 patchTree.appendChild(element, nullptr);

@@ -224,7 +224,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        if (getOwnerView()->selectedNode.getComponent() == this) {
+        if (valueTreeNode.getProperty("Selected") /*getOwnerView()->selectedNode.getComponent() == this*/) {
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
             g.fillRoundedRectangle(getLocalBounds().withHeight(25).reduced(2).toFloat(), Corners::defaultCornerRadius);
         }

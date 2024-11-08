@@ -17,6 +17,7 @@
 #include "Iolet.h"
 #include "Constants.h"
 #include "PluginEditor.h"
+#include "Sidebar/Sidebar.h"
 #include "PluginProcessor.h"
 #include "ObjectGrid.h"
 #include "Objects/ObjectBase.h"
@@ -874,6 +875,12 @@ void Object::mouseUp(MouseEvent const& e)
             cnv->objectGrid.clearIndicators(false);
             applyBounds();
             ds.didStartDragging = false;
+
+            // Hack to make sure that objects stay selected inside pd after drag action
+            cnv->selectedComponents.deselectAll();
+            for (auto& obj : cnv->objects) {
+                cnv->setSelected(obj, obj->selectedFlag);
+            }
         }
 
         cnv->updateSidebarSelection();

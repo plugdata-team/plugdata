@@ -455,6 +455,43 @@ void Patch::duplicate(SmallArray<t_gobj*> const& objects, t_outconnect* connecti
     }
 }
 
+void Patch::selectObject(t_gobj *obj, bool shouldBeSelected) {
+    if (auto canvas = ptr.get<t_canvas>()) {
+        if (!canvas || !canvas->gl_editor) return;
+
+        t_editor *editor = canvas->gl_editor;
+
+        if (shouldBeSelected) {
+            // Check if already selected
+            t_selection *sel;
+            for (sel = editor->e_selection; sel; sel = sel->sel_next) {
+                if (sel->sel_what == obj) {
+                    return; // Already selected
+                }
+            }
+
+            // Add to selection
+            t_selection *new_sel = (t_selection *) getbytes(sizeof(t_selection));
+            new_sel->sel_what = obj;
+            new_sel->sel_next = editor->e_selection;
+            editor->e_selection = new_sel;
+
+        } else {
+            // Remove from selection
+            t_selection **sel_ptr = &editor->e_selection;
+            while (*sel_ptr) {
+                if ((*sel_ptr)->sel_what == obj) {
+                    t_selection *to_remove = *sel_ptr;
+                    *sel_ptr = (*sel_ptr)->sel_next;
+                    freebytes(to_remove, sizeof(t_selection));
+                    break;
+                }
+                sel_ptr = &(*sel_ptr)->sel_next;
+            }
+        }
+    }
+}
+
 void Patch::deselectAll()
 {
     if (auto patch = ptr.get<t_glist>()) {
