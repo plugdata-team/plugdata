@@ -264,10 +264,12 @@ public:
         auto* cnv = editor->getCurrentCanvas();
         if (cnv) {
             cnv->pd->lockAudioThread(); // It locks inside of this anyway, so we might as well lock around it to prevent constantly locking/unlocking
+            patchTree.clearSelectedComponent();
             auto tree = generatePatchTree(cnv->refCountedPatch);
             patchTree.setValueTree(tree);
             patchTree.filterNodes();
             cnv->pd->unlockAudioThread();
+            patchTree.repaint();
         }
     }
 
@@ -289,6 +291,11 @@ public:
 
     ValueTree generatePatchTree(pd::Patch::Ptr patch, void* topLevel = nullptr)
     {
+        currentCanvas = editor->getCurrentCanvas();
+
+        static int c = 0;
+        std::cout << c++ << " regenerate patch tree" << std::endl;
+
         ValueTree patchTree("Patch");
         for (auto objectPtr : patch->getObjects()) {
             if (auto object = objectPtr.get<t_pd>()) {
@@ -353,6 +360,14 @@ public:
                     element.setProperty("RightText", positionText, nullptr);
                     element.setProperty("Icon", canvas_isabstraction(subpatch->getPointer().get()) ? Icons::File : Icons::Object, nullptr);
                     element.setProperty("Object", reinterpret_cast<int64>(object.cast<void>()), nullptr);
+                    if (currentCanvas) {
+                        for (auto comp: currentCanvas->getLassoSelection()) {
+                            if (auto obj = dynamic_cast<Object *>(comp.get())) {
+                                if (obj->getPointer() == object.cast<t_gobj>())
+                                    element.setProperty("Selected", true, nullptr);
+                            }
+                        }
+                    }
                     element.setProperty("TopLevel", reinterpret_cast<int64>(top), nullptr);
                 } else {
                     String finalFormatedName;
@@ -532,6 +547,14 @@ public:
                     element.setProperty("RightText", positionText, nullptr);
                     element.setProperty("Icon", Icons::Object, nullptr);
                     element.setProperty("Object", reinterpret_cast<int64>(object.cast<void>()), nullptr);
+                    if (currentCanvas) {
+                        for (auto comp: currentCanvas->getLassoSelection()) {
+                            if (auto obj = dynamic_cast<Object *>(comp.get())) {
+                                if (obj->getPointer() == object.cast<t_gobj>())
+                                    element.setProperty("Selected", true, nullptr);
+                            }
+                        }
+                    }
                     element.setProperty("TopLevel", reinterpret_cast<int64>(top), nullptr);
                 }
 

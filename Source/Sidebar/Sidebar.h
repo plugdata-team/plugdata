@@ -199,6 +199,8 @@ public:
 
     void showSidebar(bool show);
 
+    void updateSearch();
+
     bool isHidden() const;
 
     void clearConsole();

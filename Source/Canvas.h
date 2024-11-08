@@ -65,7 +65,8 @@ class Canvas : public Component
     , public ModifierKeyListener
     , public pd::MessageListener
     , public AsyncUpdater
-    , public NVGComponent {
+    , public NVGComponent
+    , public ChangeListener {
 public:
     Canvas(PluginEditor* parent, pd::Patch::Ptr patch, Component* parentGraph = nullptr);
 
@@ -154,8 +155,8 @@ public:
     bool autoscroll(MouseEvent const& e);
 
     // Multi-dragger functions
-    void deselectAll();
-    void setSelected(Component* component, bool shouldNowBeSelected, bool updateCommandStatus = true);
+    void deselectAll(bool broadcastChange = true);
+    void setSelected(Component* component, bool shouldNowBeSelected, bool updateCommandStatus = true, bool broadcastChange = true);
 
     SelectedItemSet<WeakReference<Component>>& getLassoSelection() override;
 
@@ -314,6 +315,10 @@ public:
     NVGcolor baseColBrigher;
 
 private:
+    void changeListenerCallback(ChangeBroadcaster* c) override;
+
+    bool shouldBroadcastChange = true;
+
     void lookAndFeelChanged() override;
 
     void parentHierarchyChanged() override;

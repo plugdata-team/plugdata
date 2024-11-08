@@ -56,7 +56,7 @@ class ValueTreeNodeComponent : public Component {
         {
             // single click to collapse directory / node
             if (e.getNumberOfClicks() == 1) {
-                node->closeNode();
+                node->toggleNodeOpenClosed();
                 auto nodePos = node->getPositionInViewport();
                 auto* viewport = node->findParentComponentOfClass<Viewport>();
                 auto mousePosInViewport = e.getEventRelativeTo(viewport).getPosition().getY();
@@ -198,7 +198,7 @@ public:
 
         if (e.eventComponent == this && e.mods.isLeftButtonDown()) {
             if (nodes.size() && e.x < 22) {
-                closeNode();
+                toggleNodeOpenClosed();
             } else {
                 getOwnerView()->selectedNode = this;
                 getOwnerView()->repaint();
@@ -212,7 +212,7 @@ public:
         }
     }
 
-    void closeNode()
+    void toggleNodeOpenClosed()
     {
         isOpened = !isOpened;
         for (auto* child : nodes)
@@ -224,8 +224,18 @@ public:
 
     void paint(Graphics& g) override
     {
-        if (getOwnerView()->selectedNode.getComponent() == this) {
-            g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
+        auto selectedComp = getOwnerView()->selectedNode.getComponent();
+
+        bool isSelected = false;
+
+        if (selectedComp){
+            if (selectedComp == this)
+                isSelected = true;
+        } else if (valueTreeNode.getProperty("Selected"))
+            isSelected = true;
+
+        if (isSelected) {
+            g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId).brighter(0.2f));
             g.fillRoundedRectangle(getLocalBounds().withHeight(25).reduced(2).toFloat(), Corners::defaultCornerRadius);
         }
 
@@ -450,6 +460,11 @@ public:
         }
     }
 
+    void clearSelectedComponent()
+    {
+        contentComponent.selectedNode = nullptr;
+    }
+
     void setValueTree(ValueTree const& tree)
     {
         valueTree = tree;
@@ -587,7 +602,7 @@ public:
 
             return true;
         }
-        if (key.getKeyCode() == KeyPress::downKey) {
+        else if (key.getKeyCode() == KeyPress::downKey) {
             if (contentComponent.selectedNode && contentComponent.selectedNode->next) {
                 contentComponent.selectedNode = contentComponent.selectedNode->next;
 
@@ -601,6 +616,21 @@ public:
                 resized();
                 scrollToShowSelection();
             }
+            return true;
+        }
+        else if (key.getKeyCode() == KeyPress::rightKey) {
+            if (contentComponent.selectedNode && contentComponent.selectedNode->nodes.size())
+                contentComponent.selectedNode->toggleNodeOpenClosed();
+            return true;
+        }
+        else if (key.getKeyCode() == KeyPress::leftKey) {
+            if (contentComponent.selectedNode && contentComponent.selectedNode->nodes.size() && contentComponent.selectedNode->isOpen())
+                contentComponent.selectedNode->toggleNodeOpenClosed();
+            return true;
+        }
+        else if (key.getKeyCode() == KeyPress::returnKey) {
+            if (contentComponent.selectedNode && contentComponent.selectedNode->parent != nullptr)
+                onClick(contentComponent.selectedNode->valueTreeNode);
             return true;
         }
 

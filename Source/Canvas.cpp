@@ -40,7 +40,9 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     , graphArea(nullptr)
     , pathUpdater(new ConnectionPathUpdater(this))
     , globalMouseListener(this)
-{    
+{
+    selectedComponents.addChangeListener(this);
+
     addAndMakeVisible(objectLayer);
     addAndMakeVisible(connectionLayer);
 
@@ -195,6 +197,15 @@ Canvas::~Canvas()
     editor->removeModifierKeyListener(this);
     pd->unregisterMessageListener(patch.getUncheckedPointer(), this);
     patch.setVisible(false);
+    selectedComponents.removeChangeListener(this);
+}
+
+void Canvas::changeListenerCallback(ChangeBroadcaster* c)
+{
+    if (shouldBroadcastChange && c == &selectedComponents) {
+        std::cout << "===== change listener running =====" << std::endl;
+        editor->sidebar->updateSearch();
+    }
 }
 
 void Canvas::lookAndFeelChanged()
@@ -1421,9 +1432,17 @@ bool Canvas::keyPressed(KeyPress const& key)
     return false;
 }
 
-void Canvas::deselectAll()
+void Canvas::deselectAll(bool broadcastChange)
 {
+    if (!broadcastChange){
+        shouldBroadcastChange = false;
+
+    }
     selectedComponents.deselectAll();
+
+    MessageManager::callAsync([this](){
+        shouldBroadcastChange = true;
+    });
 
     editor->sidebar->hideParameters();
 }
@@ -2369,17 +2388,22 @@ void Canvas::hideSuggestions()
 }
 
 // Makes component selected
-void Canvas::setSelected(Component* component, bool shouldNowBeSelected, bool updateCommandStatus)
+void Canvas::setSelected(Component* component, bool shouldNowBeSelected, bool updateCommandStatus, bool broadcastChange)
 {
+    if (!broadcastChange)
+        shouldBroadcastChange = false;
+
     if (!shouldNowBeSelected) {
         selectedComponents.deselect(component);
     } else {
         selectedComponents.addToSelection(component);
     }
-
-    if (updateCommandStatus) {
+    if (updateCommandStatus)
         editor->updateCommandStatus();
-    }
+
+    MessageManager::callAsync([this]() {
+        shouldBroadcastChange = true;
+    });
 }
 
 SelectedItemSet<WeakReference<Component>>& Canvas::getLassoSelection()

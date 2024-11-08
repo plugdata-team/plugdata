@@ -370,9 +370,6 @@ bool Sidebar::isHidden() const
 
 void Sidebar::showParameters(String const& name, SmallArray<ObjectParameters, 6>& params, bool showOnSelect)
 {
-    static int c = 0;
-    std::cout << c++ << " show name: " << name << std::endl;
-
     lastParameters = params;
     inspector->loadParameters(params);
     inspector->setTitle(name);
@@ -383,6 +380,11 @@ void Sidebar::showParameters(String const& name, SmallArray<ObjectParameters, 6>
 
     updateExtraSettingsButton();
     repaint();
+}
+
+void Sidebar::updateSearch()
+{
+    searchPanel->updateResults();
 }
 
 void Sidebar::updateExtraSettingsButton()
