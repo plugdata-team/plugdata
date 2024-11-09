@@ -55,9 +55,6 @@ endif()
 set(HARDENED_RUNTIME_ENABLED YES)
 set(HARDENED_RUNTIME_OPTIONS com.apple.security.device.audio-input com.apple.security.device.camera)
 
-set(JUCE_ENABLE_MODULE_SOURCE_GROUPS ON CACHE BOOL "" FORCE)
-set_property(GLOBAL PROPERTY USE_FOLDERS YES)
-
 project(plugdata VERSION 0.9.0 LANGUAGES C CXX)
 
 if(QUICK_BUILD)

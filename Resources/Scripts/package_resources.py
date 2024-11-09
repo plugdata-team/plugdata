@@ -5,7 +5,6 @@ import glob
 import sys
 import platform
 import zipfile
-import binascii
 
 #Parse arguments
 value_mappings = {
@@ -179,11 +178,12 @@ def generate_binary_data(output_dir, file_list):
             cpp_file.write(f"//================== {data['filename']} ==================\n")
             cpp_file.write(f"static const unsigned char {data['temp_name']}[] =\n{{\n")
 
-            # Write binary data in readable hex format
-            binary_chunks = [data['binary'][i:i+12] for i in range(0, len(data['binary']), 12)]
-            for chunk in binary_chunks:
-                hex_values = ', '.join(f"0x{binascii.hexlify(byte.to_bytes(1, 'big')).decode('utf-8').upper()}" for byte in chunk)
-                cpp_file.write(f"    {hex_values},\n")
+            chunk_size = 64
+            for i in range(0, len(data['binary']), chunk_size):
+                chunk = data['binary'][i:i + chunk_size]
+                # Format and write each chunk without a trailing comma
+                hex_values = ', '.join(str(byte) for byte in chunk) + ', '
+                cpp_file.write(f"    {hex_values}\n")
 
             cpp_file.write("};\n\n")
             cpp_file.write(f"const char* {data['var_name']} = (const char*) {data['temp_name']};\n")
