@@ -319,6 +319,8 @@ private:
 
     bool shouldBroadcastChange = true;
 
+    SelectedItemSet<WeakReference<Component>> previousSelectedComponents;
+
     void lookAndFeelChanged() override;
 
     void parentHierarchyChanged() override;
