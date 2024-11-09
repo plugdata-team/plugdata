@@ -327,9 +327,7 @@ void Sidebar::showPanel(SidePanel panelToShow)
             if (!sidebarHidden) {
                 auto isVisible = inspectorButton.isInspectorPinned() || (inspectorButton.isInspectorAuto() && lastParameters.not_empty());
                 if (!areParamObjectsAllValid()) {
-                    auto clear = SmallArray<ObjectParameters, 6>();
-                    inspector->loadParameters(clear);
-                    inspector->setTitle("empty");
+                    inspector->setInspectorEmpty();
                 }
                 inspector->setVisible(isVisible);
             }
@@ -435,9 +433,7 @@ void Sidebar::updateSearch()
 {
     searchPanel->updateResults();
     if (!areParamObjectsAllValid()) {
-        auto clear = SmallArray<ObjectParameters, 6>();
-        inspector->loadParameters(clear);
-        inspector->setTitle("empty");
+        inspector->setInspectorEmpty();
     }
 }
 
