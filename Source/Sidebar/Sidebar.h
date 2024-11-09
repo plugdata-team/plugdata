@@ -22,10 +22,12 @@ namespace pd {
 class Instance;
 }
 
-class InspectorButton : public TextButton {
+class InspectorButton : public Component, public SettableTooltipClient {
+
 public:
-    explicit InspectorButton(String const& icon)
-            : TextButton(icon)
+    std::function<void()> onClick = [](){};
+
+    explicit InspectorButton(String const& icon) : icon(icon)
     {
         updateTooltip();
     }
@@ -36,6 +38,28 @@ public:
             return;
 
         incrementState();
+
+        onClick();
+    }
+
+    bool hitTest(int x, int y) override
+    {
+        if (getLocalBounds().reduced(3,4).contains(Point<int>(x,y)))
+            return true;
+
+        return false;
+    }
+
+    void mouseEnter(const MouseEvent& e) override
+    {
+        isHovering = true;
+        repaint();
+    }
+
+    void mouseExit(const MouseEvent& e) override
+    {
+        isHovering = false;
+        repaint();
     }
 
     void updateTooltip()
@@ -70,6 +94,11 @@ public:
         return state >= 1;
     }
 
+    bool isInspectorAuto()
+    {
+        return state == InspectorState::InspectorAuto;
+    }
+
     bool isInspectorPinned()
     {
         return state == InspectorState::InspectorPin;
@@ -77,7 +106,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        bool active = isMouseOver() || isMouseButtonDown() || state == InspectorPin;
+        bool active = isHovering || state == InspectorPin;
         bool stateAuto = state == InspectorAuto;
 
         auto cornerSize = Corners::defaultCornerRadius;
@@ -93,19 +122,17 @@ public:
         g.setColour(stateAuto ? findColour(PlugDataColour::objectSelectedOutlineColourId) : findColour(PlugDataColour::toolbarTextColourId));
 
         int const yIndent = jmin<int>(4, proportionOfHeight(0.3f));
-
-        int const fontHeight = roundToInt(font.getHeight() * 0.6f);
-        int const leftIndent = jmin<int>(fontHeight, 2 + cornerSize / (isConnectedOnLeft() ? 4 : 2));
-        int const rightIndent = jmin<int>(fontHeight, 2 + cornerSize / (isConnectedOnRight() ? 4 : 2));
-        int const textWidth = getWidth() - leftIndent - rightIndent;
+        int const textWidth = getWidth() - 4;
 
         if (textWidth > 0)
-            g.drawFittedText(getButtonText(), leftIndent, yIndent, textWidth, getHeight() - yIndent * 2, Justification::centred, 2);
+            g.drawFittedText(icon, 2, yIndent, textWidth, getHeight() - yIndent * 2, Justification::centred, 2);
     }
 
 private:
     enum InspectorState { InspectorOff, InspectorAuto, InspectorPin};
     int state = InspectorAuto;
+    String icon;
+    bool isHovering = false;
 };
 
 class SidebarSelectorButton : public TextButton {
@@ -186,7 +213,7 @@ public:
     void mouseMove(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
 
-    void showParameters(String const& name, SmallArray<ObjectParameters, 6>& params, bool showOnSelect = false);
+    void showParameters(Array<Component*> comps, SmallArray<ObjectParameters, 6>& params, bool showOnSelect = false);
     void hideParameters();
 
     bool isShowingBrowser();
@@ -214,11 +241,17 @@ public:
     static constexpr int dragbarWidth = 6;
 
 private:
+    void updateGeometry();
+
     void updateExtraSettingsButton();
 
     PluginProcessor* pd;
     PluginEditor* editor;
     SmallArray<ObjectParameters, 6> lastParameters;
+    Array<SafePointer<Component>> lastObjects;
+
+    // Make sure that objects that are displayed still exist when displayed!
+    bool areParamObjectsAllValid();
 
     SidebarSelectorButton consoleButton = SidebarSelectorButton(Icons::Console);
     SidebarSelectorButton browserButton = SidebarSelectorButton(Icons::Documentation);

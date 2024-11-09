@@ -109,13 +109,19 @@ void Sidebar::paint(Graphics& g)
     if (!sidebarHidden) {
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
         g.fillRect(0, 30, getWidth(), getHeight());
-        Fonts::drawStyledText(g, panelNames[currentPanel], Rectangle<int>(0, 0, getWidth() - 30, 30), findColour(PlugDataColour::toolbarTextColourId), Bold, 15, Justification::centred);
+        auto panelName = panelNames[currentPanel];
+        if (inspectorButton.isInspectorAuto() && inspector->isVisible())
+            panelName = "Inspector: " + inspector->getTitle();
+        Fonts::drawStyledText(g, panelName, Rectangle<int>(0, 0, getWidth() - 30, 30), findColour(PlugDataColour::toolbarTextColourId), Bold, 15, Justification::centred);
 
-        if (inspector->isVisible()) {
+        if (inspector->isVisible() && inspectorButton.isInspectorPinned()) {
             auto inpectorPos = Point<int>(0, dividerFactor * (getHeight()));
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
             g.fillRect(inpectorPos.x, inpectorPos.y, getWidth() - 30, 30);
-            Fonts::drawStyledText(g, "Inspector: " + inspector->getTitle(), Rectangle<int>(inpectorPos.x, inpectorPos.y + 5, getWidth() - 30, 20), findColour(PlugDataColour::toolbarTextColourId), Bold, 15, Justification::centred);
+            auto inspectorTitle = inspector->getTitle();
+            if (lastParameters.empty())
+                inspectorTitle = "empty";
+            Fonts::drawStyledText(g, "Inspector: " + inspectorTitle, Rectangle<int>(inpectorPos.x, inpectorPos.y + 5, getWidth() - 30, 20), findColour(PlugDataColour::toolbarTextColourId), Bold, 15, Justification::centred);
         }
     }
 }
@@ -144,6 +150,10 @@ void Sidebar::settingsChanged(String const& name, var const& value)
 
 void Sidebar::resized()
 {
+    updateGeometry();
+}
+
+void Sidebar::updateGeometry() {
     auto bounds = getLocalBounds();
 
     if (bounds.getWidth() == 0)
@@ -167,24 +177,31 @@ void Sidebar::resized()
 
     inspectorButton.setBounds(buttonBarBounds.removeFromTop(30));
 
-    auto panelTitleBarBounds = bounds.removeFromTop(30).withTrimmedRight(-30);
+    auto panelTitleBarBounds = bounds.removeFromTop(30).withTrimmedRight(-30).removeFromLeft(30);
 
     if (extraSettingsButton){
-        extraSettingsButton->setBounds(panelTitleBarBounds.removeFromLeft(30));
+        extraSettingsButton->setBounds(panelTitleBarBounds);
     }
 
     auto dividerPos = getHeight() * (1.0f - dividerFactor);
 
     if (inspector->isVisible()) {
-        auto bottomB = bounds.removeFromBottom(dividerPos);
-        auto resetB = bottomB.removeFromTop(30);
-        inspector->setBounds(bottomB);
-        auto resetBounds = resetB.removeFromLeft(30);
-        if (resetInspectorButton) {
-            resetInspectorButton->setBounds(resetBounds);
-            resetInspectorButton->setVisible(true);
+        if (inspectorButton.isInspectorAuto()) {
+            inspector->setBounds(bounds);
+            if (resetInspectorButton) {
+                resetInspectorButton->setBounds(panelTitleBarBounds);
+                resetInspectorButton->setVisible(true);
+            }
+        } else {
+            auto bottomB = bounds.removeFromBottom(dividerPos);
+            auto resetB = bottomB.removeFromTop(30);
+            inspector->setBounds(bottomB);
+            auto resetBounds = resetB.removeFromLeft(30);
+            if (resetInspectorButton) {
+                resetInspectorButton->setBounds(resetBounds);
+                resetInspectorButton->setVisible(true);
+            }
         }
-
     } else {
         if (resetInspectorButton)
             resetInspectorButton->setVisible(false);
@@ -239,14 +256,14 @@ void Sidebar::mouseMove(MouseEvent const& e)
 {
     bool resizeCursor = e.getEventRelativeTo(this).getPosition().getX() < dragbarWidth && e.getEventRelativeTo(this).getPosition().getY() < getHeight() - 30;
 
-    auto yPos = e.getEventRelativeTo(this).getPosition().getY();
-    bool resizeVertical = yPos > dividerFactor * (getHeight()) + 3 && yPos < dividerFactor * getHeight() + 30 - 6;
+    auto pos = e.getEventRelativeTo(this).getPosition();
+    bool resizeVertical = pos.x > 5 && pos.y > dividerFactor * (getHeight()) + 3 && pos.y < dividerFactor * getHeight() + 30 - 6;
 
     isDraggingDivider = false;
 
     if (resizeCursor)
         e.originalComponent->setMouseCursor(MouseCursor::LeftRightResizeCursor);
-    else if (resizeVertical) {
+    else if (inspectorButton.isInspectorPinned() && resizeVertical) {
         isDraggingDivider = true;
         e.originalComponent->setMouseCursor(MouseCursor::UpDownResizeCursor);
     }
@@ -261,13 +278,6 @@ void Sidebar::mouseExit(MouseEvent const& e)
 
 void Sidebar::showPanel(SidePanel panelToShow)
 {
-    if (panelToShow == SidePanel::InspectorPan) {
-        if (!sidebarHidden) {
-            inspector->setVisible(inspectorButton.isInspectorPinned());
-        }
-        return;
-    }
-
     if (panelToShow == currentPanel && !sidebarHidden) {
         for (auto panel : panelAndButton) {
             panel.button.setToggleState(false, dontSendNotification);
@@ -294,6 +304,8 @@ void Sidebar::showPanel(SidePanel panelToShow)
                 pb.panel->setInterceptsMouseClicks(false, false);
                 pb.button.setToggleState(false, dontSendNotification);
             }
+            if (inspector->isVisible() && !inspectorButton.isInspectorActive())
+                inspector->setVisible(false);
         }
     };
 
@@ -311,13 +323,35 @@ void Sidebar::showPanel(SidePanel panelToShow)
             setPanelVis(searchPanel.get(), SidePanel::SearchPan);
             searchPanel->grabFocus();
             break;
+        case SidePanel::InspectorPan:
+            if (!sidebarHidden) {
+                auto isVisible = inspectorButton.isInspectorPinned() || (inspectorButton.isInspectorAuto() && lastParameters.not_empty());
+                if (!areParamObjectsAllValid()) {
+                    auto clear = SmallArray<ObjectParameters, 6>();
+                    inspector->loadParameters(clear);
+                    inspector->setTitle("empty");
+                }
+                inspector->setVisible(isVisible);
+            }
+            break;
         default:
             break;
     }
 
     updateExtraSettingsButton();
 
+    updateGeometry();
+
     repaint();
+}
+
+bool Sidebar::areParamObjectsAllValid()
+{
+    for (const auto& obj : lastObjects) {
+        if (!obj)
+            return false;
+    }
+    return true;
 }
 
 bool Sidebar::isShowingBrowser()
@@ -368,17 +402,32 @@ bool Sidebar::isHidden() const
     return sidebarHidden;
 }
 
-void Sidebar::showParameters(String const& name, SmallArray<ObjectParameters, 6>& params, bool showOnSelect)
+void Sidebar::showParameters(Array<Component*> objects, SmallArray<ObjectParameters, 6>& params, bool showOnSelect)
 {
+    for (auto obj : objects)
+        lastObjects.add(obj);
+
     lastParameters = params;
-    inspector->loadParameters(params);
+    auto activeParams = inspector->loadParameters(params);
+    std::cout << "===============================nothing selected:  " << activeParams << std::endl;
+
+    auto name = String("empty");
+
+    if (objects.size() == 1)
+        name = dynamic_cast<Canvas*>(objects.getFirst()) ? "canvas" : dynamic_cast<Object*>(objects.getFirst())->getType(false);
+    else if (objects.size() > 1){
+        name = "(" + String(objects.size()) + " selected)";
+    }
     inspector->setTitle(name);
 
-    bool isVis = inspectorButton.isInspectorPinned() || (inspectorButton.isInspectorActive() && params.not_empty() && showOnSelect);
+    bool isVis = (inspectorButton.isInspectorAuto() && params.not_empty() && showOnSelect && activeParams) || inspectorButton.isInspectorPinned();
 
     inspector->setVisible(isVis);
 
+    updateGeometry();
+
     updateExtraSettingsButton();
+
     repaint();
 }
 
@@ -391,6 +440,7 @@ void Sidebar::updateExtraSettingsButton()
 {
     if (inspector->isVisible()) {
         resetInspectorButton = inspector->getExtraSettingsComponent();
+        extraSettingsButton.reset(nullptr);
     } else
         resetInspectorButton.reset(nullptr);
 
@@ -405,8 +455,9 @@ void Sidebar::updateExtraSettingsButton()
         return;
     }
 
-    addChildComponent(extraSettingsButton.get());
-    extraSettingsButton->setVisible(!isHidden());
+    if (!isHidden() && !inspector->isVisible())
+        addAndMakeVisible(extraSettingsButton.get());
+
     if (resetInspectorButton) {
         resetInspectorButton->setVisible(!isHidden());
         addChildComponent(resetInspectorButton.get());
@@ -416,7 +467,7 @@ void Sidebar::updateExtraSettingsButton()
 
 void Sidebar::hideParameters()
 {
-    if (inspectorButton.isInspectorPinned()) {
+    if (inspectorButton.isInspectorAuto()) {
         inspector->setVisible(false);
     }
 

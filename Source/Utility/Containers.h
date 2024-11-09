@@ -2121,10 +2121,12 @@ public:
     ~PooledPtrArray() {
         clear(); // Ensure all owned objects are destroyed
         
-        for(auto* ptr : free_list)
-        {
-            free(ptr);
-        }
+        //for(auto* ptr : free_list)
+        //{
+        //    free(ptr);
+        //}
+        // FIXME: Hack to stop constant crashing
+        free_list.clear();
     }
 
     // Remove methods

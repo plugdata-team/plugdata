@@ -1337,6 +1337,8 @@ void Canvas::updateSidebarSelection() {
 
         bool showOnSelect = false;
 
+        auto toShow = Array<Component*>();
+
         if (lassoSelection.size() > 0) {
             for (auto *object: lassoSelection) {
                 if (!object->gui)
@@ -1344,15 +1346,12 @@ void Canvas::updateSidebarSelection() {
                 auto parameters = object->gui ? object->gui->getParameters() : ObjectParameters();
                 showOnSelect = object->gui && object->gui->showParametersWhenSelected();
                 allParameters.add(parameters);
+                toShow.add(object);
             }
 
-            String objectName = "(" + String(lassoSelection.size()) + " selected)";
-            if (lassoSelection.size() == 1 && lassoSelection.front()) {
-                objectName = lassoSelection.back()->getType(false);
-            }
-            editor->sidebar->showParameters(objectName, allParameters, showOnSelect);
+            editor->sidebar->showParameters(toShow, allParameters, showOnSelect);
         } else
-            editor->sidebar->showParameters("empty", allParameters, showOnSelect);
+            editor->sidebar->showParameters(toShow, allParameters, showOnSelect);
     });
 }
 

@@ -132,7 +132,9 @@ public:
             if (auto obj = editor->highlightSearchTarget(ptr, true)){
                 auto launchInspector = [this, obj](){
                     SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
-                    editor->sidebar->showParameters(obj->getType(false), parameters);
+                    auto toShow = Array<Component*>();
+                    toShow.add(obj);
+                    editor->sidebar->showParameters(toShow, parameters);
                 };
                 MessageManager::callAsync(launchInspector);
             }
@@ -143,7 +145,9 @@ public:
             if (auto obj = editor->highlightSearchTarget(ptr, false)){
                 auto launchInspector = [this, obj](){
                     SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
-                    editor->sidebar->showParameters(obj->getType(false), parameters);
+                    auto toShow = Array<Component*>();
+                    toShow.add(obj);
+                    editor->sidebar->showParameters(toShow, parameters);
                 };
                 MessageManager::callAsync(launchInspector);
             }
@@ -167,7 +171,9 @@ public:
                     // So we call it on message thread, which should place this event after the previous
                     auto launchInspector = [this, obj](){
                         SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
-                        editor->sidebar->showParameters(obj->getType(false), parameters);
+                        auto toShow = Array<Component*>();
+                        toShow.add(obj);
+                        editor->sidebar->showParameters(toShow, parameters);
                     };
                     MessageManager::callAsync(launchInspector);
                 }
