@@ -404,12 +404,12 @@ bool Sidebar::isHidden() const
 
 void Sidebar::showParameters(Array<Component*> objects, SmallArray<ObjectParameters, 6>& params, bool showOnSelect)
 {
+    lastObjects.clear();
     for (auto obj : objects)
         lastObjects.add(obj);
 
     lastParameters = params;
     auto activeParams = inspector->loadParameters(params);
-    std::cout << "===============================nothing selected:  " << activeParams << std::endl;
 
     auto name = String("empty");
 
@@ -434,6 +434,11 @@ void Sidebar::showParameters(Array<Component*> objects, SmallArray<ObjectParamet
 void Sidebar::updateSearch()
 {
     searchPanel->updateResults();
+    if (!areParamObjectsAllValid()) {
+        auto clear = SmallArray<ObjectParameters, 6>();
+        inspector->loadParameters(clear);
+        inspector->setTitle("empty");
+    }
 }
 
 void Sidebar::updateExtraSettingsButton()
