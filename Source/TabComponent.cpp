@@ -522,6 +522,11 @@ void TabComponent::showTab(Canvas* cnv, int splitIndex)
         return;
     }
 
+    if (cnv && cnv != getCurrentCanvas()) {
+        cnv->deselectAll();
+        editor->sidebar->updateSearch(true);
+    }
+
     if (splits[splitIndex] && splits[splitIndex] != splits[!splitIndex]) {
         splits[splitIndex]->saveViewportState();
         removeChildComponent(splits[splitIndex]->viewport.get());
@@ -1090,6 +1095,7 @@ void TabComponent::showHiddenTabsMenu(int splitIndex)
 
             if (e.originalComponent == &closeTabButton)
                 return;
+
 
             tabbar.showTab(cnv, cnv->patch.splitViewIndex);
             triggerMenuItem();
