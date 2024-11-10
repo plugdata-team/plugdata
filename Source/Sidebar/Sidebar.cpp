@@ -419,9 +419,10 @@ void Sidebar::showParameters(Array<Component*> objects, SmallArray<ObjectParamet
 
     auto name = String("empty");
 
-    if (objects.size() == 1)
-        name = dynamic_cast<Canvas*>(objects.getFirst()) ? "canvas" : dynamic_cast<Object*>(objects.getFirst())->getType(false);
-    else if (objects.size() > 1){
+    if (objects.size() == 1) {
+        auto obj = dynamic_cast<Object*>(objects.getFirst());
+        name = dynamic_cast<Canvas*>(objects.getFirst()) ? "canvas" : obj ? obj->getType(false) : "";
+    } else if (objects.size() > 1){
         name = "(" + String(objects.size()) + " selected)";
     }
     inspector->setTitle(name);

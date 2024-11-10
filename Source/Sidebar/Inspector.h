@@ -229,6 +229,8 @@ public:
         if (panel.isEmpty())
             return false;
 
+
+
         return true;
     }
 
