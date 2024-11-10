@@ -32,6 +32,14 @@ public:
         updateTooltip();
     }
 
+    void showIndicator(bool toShow)
+    {
+        if (showingIndicator != toShow) {
+            showingIndicator = toShow;
+            repaint();
+        }
+    }
+
     void mouseDown(MouseEvent const& e) override
     {
         if (!e.mods.isLeftButtonDown())
@@ -84,6 +92,8 @@ public:
         state++;
         state = state % 3;
 
+        showingIndicator = false;
+
         updateTooltip();
         repaint();
     }
@@ -112,6 +122,8 @@ public:
 
     void paint(Graphics& g) override
     {
+        auto selCol = findColour(PlugDataColour::objectSelectedOutlineColourId);
+
         bool active = isHovering || state == InspectorPin;
         bool stateAuto = state == InspectorAuto;
 
@@ -125,7 +137,7 @@ public:
 
         auto font = Fonts::getIconFont().withHeight(13);
         g.setFont(font);
-        g.setColour(stateAuto ? findColour(PlugDataColour::objectSelectedOutlineColourId) : findColour(PlugDataColour::toolbarTextColourId));
+        g.setColour(stateAuto ? selCol : findColour(PlugDataColour::toolbarTextColourId));
 
         int const yIndent = jmin<int>(4, proportionOfHeight(0.3f));
         int const textWidth = getWidth() - 4;
@@ -144,12 +156,18 @@ public:
             g.setColour(findColour(PlugDataColour::toolbarTextColourId));
             PathStrokeType strokeType(1.0f, PathStrokeType::curved, PathStrokeType::rounded);
             g.strokePath(strikeThrough, strokeType);
+
+            if (showingIndicator){
+                g.setColour(selCol);
+                g.fillEllipse(Rectangle<float>(0,0,5,5).withCentre(getLocalBounds().reduced(8).toFloat().getBottomRight()));
+            }
         }
     }
 
 private:
     enum InspectorState { InspectorOff, InspectorAuto, InspectorPin};
     int state = InspectorAuto;
+    bool showingIndicator = false;
     String icon;
     bool isHovering = false;
 };

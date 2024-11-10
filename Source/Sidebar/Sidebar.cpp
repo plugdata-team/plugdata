@@ -430,6 +430,8 @@ void Sidebar::showParameters(Array<Component*> objects, SmallArray<ObjectParamet
 
     inspector->setVisible(isVis);
 
+    inspectorButton.showIndicator(!isVis && showOnSelect && params.not_empty() && activeParams);
+
     updateGeometry();
 
     updateExtraSettingsButton();
