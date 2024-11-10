@@ -867,8 +867,12 @@ void TabComponent::closeAllTabs(bool quitAfterComplete, Canvas* patchToExclude, 
 void TabComponent::setActiveSplit(Canvas* cnv)
 {
     if (cnv != splits[activeSplitIndex]) {
+        splits[activeSplitIndex]->deselectAll();
+
         activeSplitIndex = cnv == splits[1] ? 1 : 0;
         editor->nvgSurface.invalidateAll();
+
+        editor->sidebar->updateSearch();
     }
 }
 
