@@ -126,6 +126,19 @@ public:
 
         if (textWidth > 0)
             g.drawFittedText(icon, 2, yIndent, textWidth, getHeight() - yIndent * 2, Justification::centred, 2);
+
+        if (state == InspectorOff){
+            auto panelBGCol = findColour(PlugDataColour::panelBackgroundColourId);
+            auto b = getLocalBounds().reduced(10);
+            auto strikeThroughLine = Line<int>(b.getBottomLeft(), b.getTopRight());
+            Path strikeThrough;
+            strikeThrough.addLineSegment(strikeThroughLine.toFloat(), 0);
+            g.setColour(panelBGCol);
+            g.drawLine(strikeThroughLine.toFloat(), 4);
+            g.setColour(findColour(PlugDataColour::toolbarTextColourId));
+            PathStrokeType strokeType(1.0f, PathStrokeType::curved, PathStrokeType::rounded);
+            g.strokePath(strikeThrough, strokeType);
+        }
     }
 
 private:
