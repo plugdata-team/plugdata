@@ -191,7 +191,6 @@ void Sidebar::updateGeometry() {
     if (inspector->isVisible()) {
         if (inspectorButton.isInspectorAuto()) {
             inspector->setBounds(bounds);
-            std::cout << "tbb: " << panelTitleBarBounds.toString() << std::endl;
             if (extraSettingsButton)
                 extraSettingsButton->setVisible(false);
             if (resetInspectorButton) {
