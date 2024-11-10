@@ -290,7 +290,8 @@ void Sidebar::showPanel(SidePanel panelToShow)
         return;
     }
 
-    showSidebar(true);
+    if (panelToShow != SidePanel::InspectorPan)
+        showSidebar(true);
 
     // Set one of the panels to active, and the rest to inactive
     auto setPanelVis = [this](Component* panel, SidePanel panelEnum) {
