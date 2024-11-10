@@ -428,6 +428,12 @@ void Sidebar::showParameters(Array<Component*> objects, SmallArray<ObjectParamet
 
     bool isVis = (inspectorButton.isInspectorAuto() && params.not_empty() && showOnSelect && activeParams) || inspectorButton.isInspectorPinned();
 
+    // Reset console notifications if the inspector is not visible and console is
+    if (!isVis && currentPanel == SidePanel::ConsolePan) {
+        consoleButton.numNotifications = 0;
+        consoleButton.repaint();
+    }
+
     inspector->setVisible(isVis);
 
     inspectorButton.showIndicator(!isVis && showOnSelect && params.not_empty() && activeParams);
@@ -495,12 +501,13 @@ void Sidebar::clearConsole()
 
 void Sidebar::updateConsole(int numMessages, bool newWarning)
 {
-    if (currentPanel != 0 || sidebarHidden) {
+    if (currentPanel != 0 || sidebarHidden || (inspector->isVisible() && inspectorButton.isInspectorAuto())) {
         consoleButton.numNotifications += numMessages;
         consoleButton.hasWarning = consoleButton.hasWarning || newWarning;
         consoleButton.repaint();
     } else {
         consoleButton.numNotifications = 0;
+        consoleButton.repaint();
     }
 
     consolePanel->update();
