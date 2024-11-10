@@ -1771,12 +1771,14 @@ Object* PluginEditor::highlightSearchTarget(void* target, bool openNewTabIfNeede
         }
     }
 
-    if (cnv && cnv != getCurrentCanvas())
-    {
-        tabComponent.showTab(cnv);
+    if (cnv) {
+        if (cnv != getCurrentCanvas()) {
+            // Switch to the existing canvas if it's not already the current one
+            tabComponent.showTab(cnv);
+        }
+        // Do nothing, the current canvas is already active
     }
-    else if (openNewTabIfNeeded)
-    {
+    else if (openNewTabIfNeeded) {
         cnv = tabComponent.openPatch(new pd::Patch(pd::WeakReference(targetCanvas, pd), pd, false));
 
         for (auto* object : cnv->objects) {
