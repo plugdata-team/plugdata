@@ -337,6 +337,8 @@ void Sidebar::showPanel(SidePanel panelToShow)
                 if (!areParamObjectsAllValid()) {
                     inspector->setInspectorEmpty();
                 }
+                if (isVisible)
+                    inspector->loadParameters(lastParameters);
                 inspector->setVisible(isVisible);
             }
             break;
@@ -389,6 +391,8 @@ void Sidebar::showSidebar(bool show)
         setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
         if (extraSettingsButton)
             extraSettingsButton->setVisible(false);
+        if (resetInspectorButton)
+            resetInspectorButton->setVisible(false);
     } else {
         int newWidth = lastWidth;
         setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
@@ -413,6 +417,7 @@ void Sidebar::forceShowParameters(Array<Component*> objects, SmallArray<ObjectPa
     if (!inspectorButton.isInspectorActive()) {
         inspectorButton.setAuto();
     }
+
     showParameters(objects, params, true);
 }
 
@@ -464,7 +469,7 @@ void Sidebar::updateSearch(bool resetInspector)
 
 void Sidebar::updateExtraSettingsButton()
 {
-    if (inspector->isVisible()) {
+    if (!isHidden() && inspectorButton.isInspectorActive()) {
         resetInspectorButton = inspector->getExtraSettingsComponent();
         extraSettingsButton.reset(nullptr);
     } else
@@ -473,6 +478,13 @@ void Sidebar::updateExtraSettingsButton()
     if (resetInspectorButton) {
         addChildComponent(resetInspectorButton.get());
         resetInspectorButton->setVisible(!isHidden());
+    }
+
+    if (isHidden()) {
+        if (resetInspectorButton)
+            resetInspectorButton->setVisible(false);
+        extraSettingsButton.reset(nullptr);
+        return;
     }
 
     if (consolePanel->isVisible()) {
