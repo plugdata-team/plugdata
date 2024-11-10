@@ -872,7 +872,7 @@ void TabComponent::setActiveSplit(Canvas* cnv)
         activeSplitIndex = cnv == splits[1] ? 1 : 0;
         editor->nvgSurface.invalidateAll();
 
-        editor->sidebar->updateSearch();
+        editor->sidebar->updateSearch(true);
     }
 }
 

@@ -439,10 +439,10 @@ void Sidebar::showParameters(Array<Component*> objects, SmallArray<ObjectParamet
     repaint();
 }
 
-void Sidebar::updateSearch()
+void Sidebar::updateSearch(bool resetInspector)
 {
     searchPanel->updateResults();
-    if (!areParamObjectsAllValid()) {
+    if (!areParamObjectsAllValid() || resetInspector) {
         inspector->setInspectorEmpty();
     }
 }

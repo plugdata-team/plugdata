@@ -264,7 +264,7 @@ public:
 
     void showSidebar(bool show);
 
-    void updateSearch();
+    void updateSearch(bool resetInspector = false);
 
     bool isHidden() const;
 
