@@ -185,6 +185,9 @@ void Sidebar::updateGeometry() {
 
     auto dividerPos = getHeight() * (1.0f - dividerFactor);
 
+    // We need to give the inspector bounds to start with - even if it's not visible
+    inspector->setBounds(bounds);
+
     if (inspector->isVisible()) {
         if (inspectorButton.isInspectorAuto()) {
             inspector->setBounds(bounds);
