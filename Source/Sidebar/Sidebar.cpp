@@ -400,6 +400,14 @@ bool Sidebar::isHidden() const
     return sidebarHidden;
 }
 
+void Sidebar::forceShowParameters(Array<Component*> objects, SmallArray<ObjectParameters, 6>& params)
+{
+    if (!inspectorButton.isInspectorActive()) {
+        inspectorButton.setAuto();
+    }
+    showParameters(objects, params, true);
+}
+
 void Sidebar::showParameters(Array<Component*> objects, SmallArray<ObjectParameters, 6>& params, bool showOnSelect)
 {
     lastObjects.clear();

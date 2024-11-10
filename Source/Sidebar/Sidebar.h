@@ -85,7 +85,13 @@ public:
         state = state % 3;
 
         updateTooltip();
+        repaint();
+    }
 
+    void setAuto()
+    {
+        state = InspectorState::InspectorAuto;
+        updateTooltip();
         repaint();
     }
 
@@ -226,6 +232,7 @@ public:
     void mouseMove(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
 
+    void forceShowParameters(Array<Component*> comps, SmallArray<ObjectParameters, 6>& params);
     void showParameters(Array<Component*> comps, SmallArray<ObjectParameters, 6>& params, bool showOnSelect = false);
     void hideParameters();
 
