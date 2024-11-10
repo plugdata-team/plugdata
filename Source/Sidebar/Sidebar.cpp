@@ -300,6 +300,7 @@ void Sidebar::showPanel(SidePanel panelToShow)
     // Set one of the panels to active, and the rest to inactive
     auto setPanelVis = [this](Component* panel, SidePanel panelEnum) {
         for (auto pb : panelAndButton) {
+            inspectorButton.showIndicator(!inspectorButton.isInspectorActive());
             if (pb.panel == panel) {
                 pb.panel->setVisible(true);
                 pb.panel->setInterceptsMouseClicks(true, true);
@@ -312,8 +313,10 @@ void Sidebar::showPanel(SidePanel panelToShow)
                 pb.panel->setInterceptsMouseClicks(false, false);
                 pb.button.setToggleState(false, dontSendNotification);
             }
-            if (inspector->isVisible() && !inspectorButton.isInspectorActive())
+            if (inspector->isVisible() && !inspectorButton.isInspectorActive()) {
                 inspector->setVisible(false);
+                inspectorButton.showIndicator(false);
+            }
         }
     };
 
@@ -337,8 +340,10 @@ void Sidebar::showPanel(SidePanel panelToShow)
                 if (!areParamObjectsAllValid()) {
                     inspector->setInspectorEmpty();
                 }
-                if (isVisible)
+                if (isVisible) {
                     inspector->loadParameters(lastParameters);
+                    inspectorButton.showIndicator(false);
+                }
                 inspector->setVisible(isVisible);
             }
             break;
@@ -440,6 +445,8 @@ void Sidebar::showParameters(Array<Component*> objects, SmallArray<ObjectParamet
     }
     inspector->setTitle(name);
 
+    auto haveParams = showOnSelect && params.not_empty() && activeParams;
+
     bool isVis = (inspectorButton.isInspectorAuto() && params.not_empty() && showOnSelect && activeParams) || inspectorButton.isInspectorPinned();
 
     // Reset console notifications if the inspector is not visible and console is
@@ -450,7 +457,7 @@ void Sidebar::showParameters(Array<Component*> objects, SmallArray<ObjectParamet
 
     inspector->setVisible(isVis);
 
-    inspectorButton.showIndicator(!isVis && showOnSelect && params.not_empty() && activeParams);
+    inspectorButton.showIndicator((!isVis && haveParams) || (isHidden() && haveParams));
 
     updateExtraSettingsButton();
 

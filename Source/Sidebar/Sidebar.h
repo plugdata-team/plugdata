@@ -92,8 +92,6 @@ public:
         state++;
         state = state % 3;
 
-        showingIndicator = false;
-
         updateTooltip();
         repaint();
     }
@@ -156,11 +154,10 @@ public:
             g.setColour(findColour(PlugDataColour::toolbarTextColourId));
             PathStrokeType strokeType(1.0f, PathStrokeType::curved, PathStrokeType::rounded);
             g.strokePath(strikeThrough, strokeType);
-
-            if (showingIndicator){
-                g.setColour(selCol);
-                g.fillEllipse(Rectangle<float>(0,0,5,5).withCentre(getLocalBounds().reduced(8).toFloat().getBottomRight()));
-            }
+        }
+        if (showingIndicator){
+            g.setColour(selCol);
+            g.fillEllipse(Rectangle<float>(0,0,5,5).withCentre(getLocalBounds().reduced(8).toFloat().getBottomRight()));
         }
     }
 
