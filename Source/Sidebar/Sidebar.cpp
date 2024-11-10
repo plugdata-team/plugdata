@@ -470,6 +470,11 @@ void Sidebar::updateExtraSettingsButton()
     } else
         resetInspectorButton.reset(nullptr);
 
+    if (resetInspectorButton) {
+        addChildComponent(resetInspectorButton.get());
+        resetInspectorButton->setVisible(!isHidden());
+    }
+
     if (consolePanel->isVisible()) {
         extraSettingsButton = consolePanel->getExtraSettingsComponent();
     } else if (browserPanel->isVisible()) {
@@ -484,10 +489,6 @@ void Sidebar::updateExtraSettingsButton()
     if (extraSettingsButton) {
         addChildComponent(extraSettingsButton.get());
         extraSettingsButton->setVisible(!isHidden() && !(inspectorButton.isInspectorAuto() && inspector->isVisible()));
-    }
-    if (resetInspectorButton) {
-        addChildComponent(resetInspectorButton.get());
-        resetInspectorButton->setVisible(!isHidden());
     }
 }
 
