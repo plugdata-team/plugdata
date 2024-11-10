@@ -191,6 +191,9 @@ void Sidebar::updateGeometry() {
     if (inspector->isVisible()) {
         if (inspectorButton.isInspectorAuto()) {
             inspector->setBounds(bounds);
+            std::cout << "tbb: " << panelTitleBarBounds.toString() << std::endl;
+            if (extraSettingsButton)
+                extraSettingsButton->setVisible(false);
             if (resetInspectorButton) {
                 resetInspectorButton->setBounds(panelTitleBarBounds);
                 resetInspectorButton->setVisible(true);
@@ -200,6 +203,8 @@ void Sidebar::updateGeometry() {
             auto resetB = bottomB.removeFromTop(30);
             inspector->setBounds(bottomB);
             auto resetBounds = resetB.removeFromLeft(30);
+            if (extraSettingsButton)
+                extraSettingsButton->setVisible(true);
             if (resetInspectorButton) {
                 resetInspectorButton->setBounds(resetBounds);
                 resetInspectorButton->setVisible(true);
@@ -443,9 +448,9 @@ void Sidebar::showParameters(Array<Component*> objects, SmallArray<ObjectParamet
 
     inspectorButton.showIndicator(!isVis && showOnSelect && params.not_empty() && activeParams);
 
-    updateGeometry();
-
     updateExtraSettingsButton();
+
+    updateGeometry();
 
     repaint();
 }
@@ -477,14 +482,14 @@ void Sidebar::updateExtraSettingsButton()
         return;
     }
 
-    if (!isHidden() && !inspector->isVisible())
-        addAndMakeVisible(extraSettingsButton.get());
-
-    if (resetInspectorButton) {
-        resetInspectorButton->setVisible(!isHidden());
-        addChildComponent(resetInspectorButton.get());
+    if (extraSettingsButton) {
+        addChildComponent(extraSettingsButton.get());
+        extraSettingsButton->setVisible(!isHidden() && !(inspectorButton.isInspectorAuto() && inspector->isVisible()));
     }
-    resized();
+    if (resetInspectorButton) {
+        addChildComponent(resetInspectorButton.get());
+        resetInspectorButton->setVisible(!isHidden());
+    }
 }
 
 void Sidebar::hideParameters()
@@ -495,6 +500,8 @@ void Sidebar::hideParameters()
 
     consolePanel->deselect();
     updateExtraSettingsButton();
+
+    updateGeometry();
 
     repaint();
 }
