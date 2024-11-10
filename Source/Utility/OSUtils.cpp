@@ -14,29 +14,14 @@
 #    include <raw_keyboard_input/raw_keyboard_input.cpp>
 #endif
 
-#if defined(__APPLE__)
-#    define HAS_STD_FILESYSTEM 0
-#elif defined(__unix__)
-#    if defined(__cpp_lib_filesystem) || defined(__cpp_lib_experimental_filesystem)
-#        define HAS_STD_FILESYSTEM 1
-#    else
-#        define HAS_STD_FILESYSTEM 0
-#    endif
-#elif defined(_WIN32) || defined(_WIN64)
-#    define HAS_STD_FILESYSTEM 1
-#endif
-
-#if HAS_STD_FILESYSTEM
-#    if defined(__cpp_lib_filesystem)
-#        include <filesystem>
+#if defined(__cpp_lib_filesystem)
+#include <filesystem>
 namespace fs = std::filesystem;
-#    elif defined(__cpp_lib_experimental_filesystem)
-#        include <experimental/filesystem>
+#elif defined(__cpp_lib_experimental_filesystem)
+#include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
-#    endif
 #else
-
-#    include <ghc_filesystem/include/ghc/filesystem.hpp>
+#include <ghc_filesystem/include/ghc/filesystem.hpp>
 namespace fs = ghc::filesystem;
 #endif
 

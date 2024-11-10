@@ -376,6 +376,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
             auto* corruptAlert = new CorruptSettingsAlert(settingsFile, dismissDialog);
             dialog->setViewedComponent(corruptAlert);
             openedDialog.reset(dialog);
+            
+            settingsFile->resetSettingsState();
         }
     });
 }
@@ -1786,8 +1788,8 @@ Object* PluginEditor::highlightSearchTarget(void* target, bool openNewTabIfNeede
     }
 
     if (cnv && found) {
-        cnv->deselectAll(false);
-        cnv->setSelected(found, true, true, false);
+        cnv->deselectAll();
+        cnv->setSelected(found, true, true);
 
         auto *viewport = cnv->viewport.get();
 

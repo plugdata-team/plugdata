@@ -66,13 +66,13 @@ public:
     {
         switch(state){
             case InspectorOff:
-                setTooltip("Hidden, click to auto show inspector");
+                setTooltip("Inspector hidden, click to auto show");
                 break;
             case InspectorAuto:
-                setTooltip("Auto, click to pin inspector");
+                setTooltip("Inspector auto, click to pin");
                 break;
             case InspectorPin:
-                setTooltip("Pinned, click to hide inspector");
+                setTooltip("Inspector pinned, click to hide");
                 break;
             default:
                 break;

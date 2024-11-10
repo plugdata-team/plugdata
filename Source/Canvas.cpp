@@ -202,7 +202,7 @@ Canvas::~Canvas()
 
 void Canvas::changeListenerCallback(ChangeBroadcaster* c)
 {
-    if (shouldBroadcastChange && c == &selectedComponents) {
+    if (c == &selectedComponents) {
         auto isSelectedDifferent = [](const SelectedItemSet<WeakReference<Component>>& set1, const SelectedItemSet<WeakReference<Component>>& set2) -> bool {
             if(set1.getNumSelected() != set2.getNumSelected())
                 return true;
@@ -214,7 +214,6 @@ void Canvas::changeListenerCallback(ChangeBroadcaster* c)
         };
 
         if (isSelectedDifferent(selectedComponents, previousSelectedComponents)){
-            std::cout << "===== change listener running =====" << std::endl;
             previousSelectedComponents = selectedComponents;
             editor->sidebar->updateSearch();
         }
@@ -1444,18 +1443,9 @@ bool Canvas::keyPressed(KeyPress const& key)
     return false;
 }
 
-void Canvas::deselectAll(bool broadcastChange)
+void Canvas::deselectAll()
 {
-    if (!broadcastChange){
-        shouldBroadcastChange = false;
-
-    }
     selectedComponents.deselectAll();
-
-    MessageManager::callAsync([this](){
-        shouldBroadcastChange = true;
-    });
-
     editor->sidebar->hideParameters();
 }
 
@@ -2400,11 +2390,8 @@ void Canvas::hideSuggestions()
 }
 
 // Makes component selected
-void Canvas::setSelected(Component* component, bool shouldNowBeSelected, bool updateCommandStatus, bool broadcastChange)
+void Canvas::setSelected(Component* component, bool shouldNowBeSelected, bool updateCommandStatus)
 {
-    if (!broadcastChange)
-        shouldBroadcastChange = false;
-
     if (!shouldNowBeSelected) {
         selectedComponents.deselect(component);
     } else {
@@ -2412,10 +2399,6 @@ void Canvas::setSelected(Component* component, bool shouldNowBeSelected, bool up
     }
     if (updateCommandStatus)
         editor->updateCommandStatus();
-
-    MessageManager::callAsync([this]() {
-        shouldBroadcastChange = true;
-    });
 }
 
 SelectedItemSet<WeakReference<Component>>& Canvas::getLassoSelection()

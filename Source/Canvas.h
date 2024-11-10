@@ -155,8 +155,8 @@ public:
     bool autoscroll(MouseEvent const& e);
 
     // Multi-dragger functions
-    void deselectAll(bool broadcastChange = true);
-    void setSelected(Component* component, bool shouldNowBeSelected, bool updateCommandStatus = true, bool broadcastChange = true);
+    void deselectAll();
+    void setSelected(Component* component, bool shouldNowBeSelected, bool updateCommandStatus = true);
 
     SelectedItemSet<WeakReference<Component>>& getLassoSelection() override;
 
@@ -316,8 +316,6 @@ public:
 
 private:
     void changeListenerCallback(ChangeBroadcaster* c) override;
-
-    bool shouldBroadcastChange = true;
 
     SelectedItemSet<WeakReference<Component>> previousSelectedComponents;
 

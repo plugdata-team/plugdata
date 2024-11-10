@@ -192,6 +192,12 @@ SettingsFile::SettingsState SettingsFile::getSettingsState()
     return settingsState;
 }
 
+void SettingsFile::resetSettingsState()
+{
+    settingsState = UserSettings;
+}
+
+
 void SettingsFile::startChangeListener()
 {
     settingsFileWatcher.addFolder(settingsFile.getParentDirectory());

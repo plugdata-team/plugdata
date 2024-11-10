@@ -268,11 +268,31 @@ public:
     void updateResults()
     {
         auto* cnv = editor->getCurrentCanvas();
-        if (cnv) {
+        if (cnv && isVisible()) {
             cnv->pd->lockAudioThread(); // It locks inside of this anyway, so we might as well lock around it to prevent constantly locking/unlocking
-            patchTree.clearSelectedComponent();
-            auto tree = generatePatchTree(cnv->refCountedPatch);
-            patchTree.setValueTree(tree);
+
+            // Get the currently selected object
+            auto selectedObj = patchTree.getSelectedNodeObject();
+
+            patchTree.setValueTree(generatePatchTree(cnv->refCountedPatch));
+
+            // If the object is still selected, reselect it
+            auto numSelectedObject = 0;
+            auto foundInCanvas = false;
+            for (auto item : cnv->getLassoSelection())
+            {
+                if (auto* obj = dynamic_cast<Object*>(item.get())) {
+                    numSelectedObject++;
+                    if (selectedObj == obj->getPointer()){
+                        foundInCanvas = true;
+                    }
+                }
+            }
+            if (foundInCanvas && numSelectedObject == 1)
+                patchTree.setSelectedNode(selectedObj);
+            else
+                patchTree.setSelectedNode(nullptr);
+
             patchTree.filterNodes();
             cnv->pd->unlockAudioThread();
             patchTree.repaint();
@@ -298,9 +318,6 @@ public:
     ValueTree generatePatchTree(pd::Patch::Ptr patch, void* topLevel = nullptr)
     {
         currentCanvas = editor->getCurrentCanvas();
-
-        static int c = 0;
-        std::cout << c++ << " regenerate patch tree" << std::endl;
 
         ValueTree patchTree("Patch");
         for (auto objectPtr : patch->getObjects()) {

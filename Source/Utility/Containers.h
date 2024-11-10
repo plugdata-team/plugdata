@@ -2121,12 +2121,10 @@ public:
     ~PooledPtrArray() {
         clear(); // Ensure all owned objects are destroyed
         
-        //for(auto* ptr : free_list)
-        //{
-        //    free(ptr);
-        //}
-        // FIXME: Hack to stop constant crashing
-        free_list.clear();
+        for(auto [ptr, size] : free_list)
+        {
+            allocator_.deallocate(ptr, size);
+        }
     }
 
     // Remove methods
@@ -2316,7 +2314,7 @@ private:
         
         num_preallocated = amount;
         preallocated = allocator_.allocate(amount);
-        free_list.add(preallocated);
+        free_list.emplace_back(preallocated, amount);
     }
     
     bool check_contiguity() const {
@@ -2364,7 +2362,7 @@ private:
     size_t stackUsed = 0;
     
     SmallArray<T*> reuse_list;
-    SmallArray<T*> free_list;
+    SmallArray<std::pair<T*, int>> free_list;
 };
 
 

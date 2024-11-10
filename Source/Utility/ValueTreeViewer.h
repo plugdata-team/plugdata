@@ -165,7 +165,10 @@ public:
 
     bool isSelected()
     {
-        return getOwnerView()->selectedNode.getComponent() == this;
+        if (auto node = getOwnerView()->selectedNode)
+            return node.getComponent() == this;
+
+        return false;
     }
 
     ValueTreeOwnerView* getOwnerView()
@@ -224,18 +227,9 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto selectedComp = getOwnerView()->selectedNode.getComponent();
-
-        bool isSelected = false;
-
-        if (selectedComp){
-            if (selectedComp == this)
-                isSelected = true;
-        } else if (valueTreeNode.getProperty("Selected"))
-            isSelected = true;
-
-        if (isSelected) {
-            g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId).brighter(0.2f));
+        if (isSelected() || valueTreeNode.getProperty("Selected") ) {
+            auto const highlightCol = findColour(PlugDataColour::sidebarActiveBackgroundColourId);
+            g.setColour(isSelected() ? highlightCol.brighter(0.2f) : highlightCol);
             g.fillRoundedRectangle(getLocalBounds().withHeight(25).reduced(2).toFloat(), Corners::defaultCornerRadius);
         }
 
@@ -460,9 +454,26 @@ public:
         }
     }
 
-    void clearSelectedComponent()
+    void setSelectedNode(void* obj)
     {
+        // Locate the object in the value tree, and set it as the selected node
+        if (obj) {
+            for (auto& node: nodes) {
+                if (reinterpret_cast<void *>(static_cast<int64>(node->valueTreeNode.getProperty("Object"))) == obj) {
+                    contentComponent.selectedNode = node;
+                    return;
+                }
+            }
+        }
         contentComponent.selectedNode = nullptr;
+    }
+
+    void* getSelectedNodeObject()
+    {
+        if (contentComponent.selectedNode)
+            return reinterpret_cast<void*>(static_cast<int64>(contentComponent.selectedNode->valueTreeNode.getProperty("Object")));
+
+        return nullptr;
     }
 
     void setValueTree(ValueTree const& tree)

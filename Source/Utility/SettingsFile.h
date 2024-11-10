@@ -92,6 +92,7 @@ public:
         BackupSettings,
         DefaultSettings };
     SettingsState getSettingsState();
+    void resetSettingsState();
 
 private:
     static bool verify(XmlElement const* settings);
