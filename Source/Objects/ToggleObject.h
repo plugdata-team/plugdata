@@ -165,8 +165,10 @@ public:
         case hash("float"):
         case hash("list"):
         case hash("set"): {
-            value = atoms[0].getFloat();
-            setToggleStateFromFloat(value);
+            if (atoms.size() >= 1) {
+                value = atoms[0].getFloat();
+                setToggleStateFromFloat(value);
+            }
             break;
         }
         case hash("nonzero"): {

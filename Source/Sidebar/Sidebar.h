@@ -266,6 +266,7 @@ public:
     bool isShowingSearch();
         
     void updateCommandInputVisibility();
+    void updateCommandInputTarget();
 
     void settingsChanged(String const& name, var const& value) override;
 
@@ -330,9 +331,6 @@ private:
     };
 
     SmallArray<PanelAndButton> panelAndButton;
-
-    enum InspectorMode { InspectorOff, InspectorAuto, InspectorOpen };
-    int inspectorMode = InspectorMode::InspectorOff;
 
     int dragStartWidth = 0;
     bool draggingSidebar = false;

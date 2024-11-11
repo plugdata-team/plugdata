@@ -363,6 +363,7 @@ void Sidebar::clearInspector()
     lastParameters.clear();
     inspector->loadParameters(lastParameters);
     inspector->setTitle("empty");
+    commandInput->setConsoleTargetName("empty");
     inspectorButton.showIndicator(false);
 }
 
@@ -534,6 +535,21 @@ void Sidebar::updateCommandInputVisibility()
     commandInput->setVisible((inspector->isVisible() && inspectorButton.isInspectorAuto()) || consolePanel->isVisible());
 }
 
+void Sidebar::updateCommandInputTarget()
+{
+    auto name = String("empty");
+    if(auto* cnv = editor->getCurrentCanvas()) {
+        auto objects = cnv->getSelectionOfType<Object>();
+        if (objects.size() == 1) {
+            name = objects[0]->getType();
+        } else if (objects.size() > 1){
+            name = "(" + String(objects.size()) + " selected)";
+        }
+    }
+    
+    commandInput->setConsoleTargetName(name);
+}
+
 void Sidebar::hideParameters()
 {
     if (inspectorButton.isInspectorAuto()) {
@@ -544,6 +560,7 @@ void Sidebar::hideParameters()
     updateExtraSettingsButton();
 
     updateCommandInputVisibility();
+    commandInput->setConsoleTargetName("empty");
     
     resized();
     repaint();

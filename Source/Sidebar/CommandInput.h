@@ -149,8 +149,10 @@ public:
         commandInput.addMouseListener(this, false);
         commandInput.onReturnKey = [this, pd](){
             sendConsoleMessage(pd, commandInput.getText());
-            commandHistory.add(commandInput.getText());
-            currentHistoryIndex = 0;
+            if(!commandInput.isEmpty()) {
+                commandHistory.push_front(commandInput.getText());
+                currentHistoryIndex = -1;
+            }
             commandInput.clear();
         };
         
@@ -360,18 +362,18 @@ public:
         repaint();
     }
     
-    void setHistoryCommand(int index)
+    void setHistoryCommand()
     {
-        if(index < 0)
+        if(currentHistoryIndex < 0)
         {
-            commandInput.setText("0");
-            index = -1;
+            commandInput.setText("");
+            currentHistoryIndex = -1;
         }
-        else if(index < commandHistory.size()){
-            commandInput.setText(commandHistory[index]);
+        else if(currentHistoryIndex < commandHistory.size()){
+            commandInput.setText(commandHistory[currentHistoryIndex]);
         }
         else {
-            index = commandHistory.size();
+            currentHistoryIndex = commandHistory.size() - 1;
         }
     }
         
@@ -379,12 +381,14 @@ public:
     {
         if(key.getKeyCode() == KeyPress::upKey)
         {
-            setHistoryCommand(currentHistoryIndex++);
+            currentHistoryIndex++;
+            setHistoryCommand();
             return true;
         }
         else if(key.getKeyCode() == KeyPress::downKey)
         {
-            setHistoryCommand(currentHistoryIndex--);
+            currentHistoryIndex--;
+            setHistoryCommand();
             return true;
         }
         return false;
@@ -397,5 +401,5 @@ private:
     TextEditor commandInput;
     
     int currentHistoryIndex = -1;
-    StringArray commandHistory;
+    std::deque<String> commandHistory;
 };

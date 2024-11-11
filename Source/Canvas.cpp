@@ -217,7 +217,7 @@ void Canvas::changeListenerCallback(ChangeBroadcaster* c)
             previousSelectedComponents = selectedComponents;
             editor->sidebar->updateSearch();
         }
-    }    
+    }
 }
 
 void Canvas::lookAndFeelChanged()
@@ -1330,7 +1330,9 @@ void Canvas::updateSidebarSelection() {
     // Post to message queue so that sidebar parameters are updated AFTER objects resize is run
     // Otherwise position XY is not populated
 
-    MessageManager::callAsync([this]() {
+    MessageManager::callAsync([_this = SafePointer(this), this]() {
+        if(!_this) return;
+        
         auto lassoSelection = getSelectionOfType<Object>();
         SmallArray<ObjectParameters, 6> allParameters;
         auto toShow = SmallArray<Component*>();
@@ -2393,8 +2395,10 @@ void Canvas::setSelected(Component* component, bool shouldNowBeSelected, bool up
     } else {
         selectedComponents.addToSelection(component);
     }
-    if (updateCommandStatus)
+    if (updateCommandStatus) {
         editor->updateCommandStatus();
+    }
+    
 }
 
 SelectedItemSet<WeakReference<Component>>& Canvas::getLassoSelection()
