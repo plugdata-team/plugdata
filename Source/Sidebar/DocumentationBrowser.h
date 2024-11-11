@@ -397,6 +397,8 @@ public:
         searchInput.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         searchInput.setColour(TextEditor::textColourId, findColour(PlugDataColour::sidebarTextColourId));
         searchInput.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
+
+        searchInput.applyColourToAllText(findColour(PlugDataColour::panelTextColourId));
     }
 
     void resized() override

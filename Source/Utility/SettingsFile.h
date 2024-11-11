@@ -148,6 +148,8 @@ private:
         { "patch_downwards_only", var(false) }, // Option to replicate PD-Vanilla patching downwards only
         // DEFAULT SETTINGS FOR TOGGLES
         { "search_order", var(true) },
+        { "search_xy_show", var(true) },
+        { "search_index_show", var(false) },
         { "open_patches_in_window", var(false) },
     };
 

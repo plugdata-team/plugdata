@@ -57,17 +57,17 @@ public:
         String const icon;
         String const description;
 
-        SearchPanelSettingsButton(String iconString, String descriptionString)
+        SearchPanelSettingsButton(String iconString, String descriptionString, const String& settingsProperty)
             : icon(std::move(iconString))
             , description(std::move(descriptionString))
         {
             setClickingTogglesState(true);
 
-            auto sortLayerOrder = SettingsFile::getInstance()->getProperty<bool>("search_order");
+            auto sortLayerOrder = SettingsFile::getInstance()->getProperty<bool>(settingsProperty);
             setToggleState(sortLayerOrder, dontSendNotification);
 
-            onClick = [this]() {
-                SettingsFile::getInstance()->setProperty("search_order", var(getToggleState()));
+            onClick = [this, settingsProperty]() {
+                SettingsFile::getInstance()->setProperty(settingsProperty, var(getToggleState()));
             };
         }
 
@@ -91,21 +91,27 @@ public:
     SearchPanelSettings()
     {
         addAndMakeVisible(sortLayerOrder);
+        addAndMakeVisible(showXYPos);
+        addAndMakeVisible(showIndex);
 
-        setSize(150, 28);
+        setSize(150, 28 * 3);
     };
 
     void resized() override
     {
         auto buttonBounds = getLocalBounds();
 
-        int buttonHeight = buttonBounds.getHeight();
+        int buttonHeight = 28;
 
         sortLayerOrder.setBounds(buttonBounds.removeFromTop(buttonHeight));
+        showXYPos.setBounds(buttonBounds.removeFromTop(buttonHeight));
+        showIndex.setBounds(buttonBounds.removeFromTop(buttonHeight));
     }
 
 private:
-    SearchPanelSettingsButton sortLayerOrder = SearchPanelSettingsButton(Icons::AutoScroll, "Display layer order");
+    SearchPanelSettingsButton sortLayerOrder = SearchPanelSettingsButton(Icons::AutoScroll, "Display layer order", "search_order");
+    SearchPanelSettingsButton showXYPos = SearchPanelSettingsButton(Icons::AlignRight, "Show xy position", "search_xy_show");
+    SearchPanelSettingsButton showIndex = SearchPanelSettingsButton(Icons::Object, "Show object index", "search_index_show");
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SearchPanelSettings);
 };
@@ -228,6 +234,8 @@ public:
         input.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         input.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
         input.setColour(TextEditor::textColourId, findColour(PlugDataColour::sidebarTextColourId));
+
+        input.applyColourToAllText(findColour(PlugDataColour::panelTextColourId));
     }
 
     void paint(Graphics& g) override
@@ -321,6 +329,9 @@ public:
         currentCanvas = editor->getCurrentCanvas();
 
         ValueTree patchTree("Patch");
+
+        int index = 0;
+
         for (auto objectPtr : patch->getObjects()) {
             if (auto object = objectPtr.get<t_pd>()) {
                 auto* top = topLevel ? topLevel : object.get();
@@ -388,12 +399,16 @@ public:
                     if (currentCanvas) {
                         for (auto comp: currentCanvas->getLassoSelection()) {
                             if (auto obj = dynamic_cast<Object *>(comp.get())) {
-                                if (obj->getPointer() == object.cast<t_gobj>())
+                                if (obj->getPointer() == object.cast<t_gobj>()) {
                                     element.setProperty("Selected", true, nullptr);
+                                }
                             }
                         }
                     }
                     element.setProperty("TopLevel", reinterpret_cast<int64>(top), nullptr);
+                    element.setProperty("Index", index, nullptr);
+
+                    index++;
                 } else {
                     String objectName = type;
                     String finalFormatedName;
@@ -606,6 +621,9 @@ public:
                         }
                     }
                     element.setProperty("TopLevel", reinterpret_cast<int64>(top), nullptr);
+                    element.setProperty("Index", index, nullptr);
+
+                    index++;
                 }
 
                 patchTree.appendChild(element, nullptr);
