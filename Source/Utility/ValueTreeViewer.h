@@ -722,10 +722,11 @@ private:
         StringArray searchTokens;
         searchTokens.addTokens(filterString, " ", "\"");
         for (auto& token : searchTokens) {
-            // Modify token to deal with quotation mark restriction
             auto isStrict = false;
+            // Modify token to deal with quotation mark restriction
             if (token[0] == '"' && token.getLastCharacter() == '"') {
                 token = token.substring(1).dropLastCharacters(1);
+                // Should only be used for object search only ATM
                 isStrict = true;
             }
 
@@ -741,7 +742,7 @@ private:
             }
 
             // NOTE! lambda capture needs to happen here, after we have modified token & isStrict to implement search restrictions
-            auto findProperty = [node, token, isStrict](String propertyName, bool containsToken = false) -> bool {
+            auto findProperty = [node, token](String propertyName, bool containsToken = false, bool isStrict = false) -> bool {
                 if (node->valueTreeNode.hasProperty(propertyName)) {
                     if (containsToken) {
                         auto name = node->valueTreeNode.getProperty(propertyName).toString();
@@ -755,7 +756,7 @@ private:
 
             if (token.isEmpty() ||
                 // search the object name only if user prepends search string with "object:<to-search-for>", otherwise search full name + args
-                (searchObjectNameOnly ? findProperty("ObjectName", true) : findProperty("Name", true)) ||
+                (searchObjectNameOnly ? findProperty("ObjectName", true, isStrict) : findProperty("Name", true)) ||
                 // search over the send/receive tags
                 findProperty("SendSymbol", true) || findProperty("ReceiveSymbol", true) ||
                 // return all nodes that have send with the keyword: "send"
