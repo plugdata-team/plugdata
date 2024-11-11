@@ -199,7 +199,7 @@ public:
     {
         isDragging = false;
 
-        if (e.eventComponent == this && e.mods.isLeftButtonDown()) {
+        if (e.eventComponent == this && e.mods.isLeftButtonDown() && getScreenBounds().contains(e.getScreenPosition())) {
             if (nodes.size() && e.x < 22) {
                 toggleNodeOpenClosed();
             } else {
