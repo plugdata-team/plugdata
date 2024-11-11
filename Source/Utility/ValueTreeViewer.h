@@ -722,29 +722,57 @@ private:
         StringArray searchTokens;
         searchTokens.addTokens(filterString, " ", "\"");
         for (auto& token : searchTokens) {
-            // Remove quotes if token is quoted
-            if (token[0] == '"' && token.getLastCharacter() == '"')
+            // Modify token to deal with quotation mark restriction
+            auto isStrict = false;
+            if (token[0] == '"' && token.getLastCharacter() == '"') {
                 token = token.substring(1).dropLastCharacters(1);
-            // Lambda to make finding property of node shorter and easier to understand
-            auto hasProperty = [node, token](String propertyName, bool containsToken = false) -> bool {
-                if (containsToken)
-                    return node->valueTreeNode.getProperty(propertyName).toString().containsIgnoreCase(token);
+                isStrict = true;
+            }
 
-                return node->valueTreeNode.hasProperty(propertyName);
+            auto searchObjectNameOnly = false;
+
+            // Modify token to deal limit search to object names only (not flags / text)
+            if (token.length() > 7) {
+                auto objectSearch = token.substring(0, 7);
+                if (objectSearch.containsWholeWordIgnoreCase("object:")) {
+                    searchObjectNameOnly = true;
+                    token = token.substring(7);
+                }
+            }
+
+            // NOTE! lambda capture needs to happen here, after we have modified token & isStrict to implement search restrictions
+            auto findProperty = [node, token, isStrict](String propertyName, bool containsToken = false) -> bool {
+                if (node->valueTreeNode.hasProperty(propertyName)) {
+                    if (containsToken) {
+                        auto name = node->valueTreeNode.getProperty(propertyName).toString();
+                        std::cout << "token: " << token << " name: " << name << std::endl;
+                        return (isStrict ? (token.length() == name.length()) : true) && name.containsIgnoreCase(token);
+                    }
+                    return true;
+                }
+                return false;
             };
 
-
-            if (token.isEmpty() || hasProperty("Name", true) ||
+            if (token.isEmpty() ||
+                // search the object name only if user prepends search string with "object:<to-search-for>", otherwise search full name + args
+                (searchObjectNameOnly ? findProperty("ObjectName", true) : findProperty("Name", true)) ||
                 // search over the send/receive tags
-                hasProperty("SendSymbol", true) || hasProperty("ReceiveSymbol", true) ||
+                findProperty("SendSymbol", true) || findProperty("ReceiveSymbol", true) ||
                 // return all nodes that have send with the keyword: "send"
-                ((token == "send") && (hasProperty("SendSymbol") || hasProperty("SendObject"))) ||
+                ((token == "send") && (findProperty("SendSymbol") || findProperty("SendObject"))) ||
                 // return all nodes that have receive with the keyword: "send"
-                ((token == "receive") && (hasProperty("ReceiveSymbol") || hasProperty("ReceiveObject"))) ||
+                ((token == "receive") && (findProperty("ReceiveSymbol") || findProperty("ReceiveObject"))) ||
                 // return all nodes that have send or recieve when keyword is "symbols"
-                ((token == "symbols") && (hasProperty("SendSymbol") || hasProperty("SendObject") || hasProperty("ReceiveSymbol") || hasProperty("ReceiveObject"))) ||
-                // return all nodes that are trigger and it's alias "t"
-                ((token == "trigger") && (hasProperty("TriggerObject")))
+                ((token == "symbols") && (findProperty("SendSymbol") || findProperty("SendObject") || findProperty("ReceiveSymbol") || findProperty("ReceiveObject"))) ||
+                // Deal with alias objects here:
+                // t == trigger
+                // v == value
+                // i == int
+                // f == float
+                ((token == "trigger") && (findProperty("TriggerObject"))) ||
+                ((token == "value") && (findProperty("ValueObject"))) ||
+                ((token == "int") && (findProperty("IntObject"))) ||
+                ((token == "float") && (findProperty("FloatObject")))
             ){
                 found++;
             }

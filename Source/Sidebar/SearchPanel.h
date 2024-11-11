@@ -379,6 +379,7 @@ public:
                             element.setProperty("PDSymbol", nameWithoutArgs + "-" + arg, nullptr);
                     }
 #endif
+                    element.setProperty("ObjectName", name, nullptr);
                     element.setProperty("Name", name, nullptr);
                     element.setProperty("RightText", positionText, nullptr);
                     element.setProperty("Icon", canvas_isabstraction(subpatch->getPointer().get()) ? Icons::File : Icons::Object, nullptr);
@@ -393,6 +394,7 @@ public:
                     }
                     element.setProperty("TopLevel", reinterpret_cast<int64>(top), nullptr);
                 } else {
+                    String objectName = type;
                     String finalFormatedName;
                     String sendSymbol;
                     String receiveSymbol;
@@ -487,6 +489,7 @@ public:
                         receiveSymbol = String(gatomObject->a_symfrom->s_name);
                         sendSymbol = String(gatomObject->a_symto->s_name);
                         finalFormatedName = gatomName;
+                        objectName = gatomName;
                         break;
                     }
                     case hash("message"): {
@@ -502,17 +505,20 @@ public:
                         case T_TEXT: {
                             // if object & classname is text, then it's a comment
                             finalFormatedName = String("comment: ") + name;
+                            objectName = "comment";
                             break;
                         }
                         case T_OBJECT: {
                             // if object is T_OBJECT but classname is 'text' object is in error state
                             element.setProperty("IconColour", Colours::red.toString(), nullptr);
 
-                            if (name.isEmpty())
+                            if (name.isEmpty()) {
                                 finalFormatedName = String("empty");
-                            else
+                                objectName = "empty";
+                            } else {
                                 finalFormatedName = String("unknown: ") + name;
-
+                                objectName = "unknown";
+                            }
                             break;
                         }
                         default:
@@ -556,6 +562,21 @@ public:
                             element.setProperty("TriggerObject", 1, nullptr);
                             finalFormatedName = name;
                             break;
+                        case hash("v"):
+                        case hash("value"):
+                            element.setProperty("ValueObject", 1, nullptr);
+                            finalFormatedName = name;
+                            break;
+                        case hash("i"):
+                        case hash("int"):
+                            element.setProperty("IntObject", 1, nullptr);
+                            finalFormatedName = name;
+                            break;
+                        case hash("f"):
+                        case hash("float"):
+                            element.setProperty("FloatObject", 1, nullptr);
+                            finalFormatedName = name;
+                            break;
                         default:
                             finalFormatedName = name;
                             break;
@@ -563,7 +584,7 @@ public:
                         break;
                     }
                     }
-
+                    element.setProperty("ObjectName", objectName, nullptr);
                     element.setProperty("Name", finalFormatedName, nullptr);
                     // Add send/receive tags if they exist
                     if (sendSymbol.isNotEmpty() && (sendSymbol != "empty") && (sendSymbol != "nosndno")) {
