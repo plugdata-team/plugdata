@@ -1332,7 +1332,6 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::ShowBrowser: {
-        std::cout << "command id showbrowser" << std::endl;
         sidebar->showPanel(sidebar->isShowingBrowser() ? Sidebar::SidePanel::ConsolePan : Sidebar::SidePanel::DocPan);
         return true;
     }
@@ -1347,7 +1346,6 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::Search: {
-        std::cout << "command id search" << std::endl;
         sidebar->showPanel(Sidebar::SidePanel::SearchPan);
         return true;
     }

@@ -746,7 +746,7 @@ private:
                 if (node->valueTreeNode.hasProperty(propertyName)) {
                     if (containsToken) {
                         auto name = node->valueTreeNode.getProperty(propertyName).toString();
-                        std::cout << "token: " << token << " name: " << name << std::endl;
+                        //std::cout << "token: " << token << " name: " << name << std::endl;
                         return (isStrict ? (token.length() == name.length()) : true) && name.containsIgnoreCase(token);
                     }
                     return true;
