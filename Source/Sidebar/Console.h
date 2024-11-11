@@ -101,10 +101,7 @@ public:
 
         addAndMakeVisible(consoleInput);
         addAndMakeVisible(viewport);
-        
-        consoleInput.setColour(TextEditor::backgroundColourId,findColour(PlugDataColour::sidebarBackgroundColourId));
-        consoleInput.setColour(TextEditor::outlineColourId,findColour(PlugDataColour::sidebarBackgroundColourId));
-        consoleInput.setColour(TextEditor::focusedOutlineColourId,findColour(PlugDataColour::sidebarBackgroundColourId));
+
         consoleInput.setBorder({2, 1, 0, 0});
         
         consoleInput.onReturnKey = [this, pd](){
@@ -121,7 +118,18 @@ public:
         settingsValues[3] = true;
         settingsValues[4] = true;
 
+        lookAndFeelChanged();
+
         resized();
+    }
+
+    void lookAndFeelChanged() override
+    {
+        consoleInput.setColour(TextEditor::backgroundColourId, findColour(PlugDataColour::sidebarBackgroundColourId));
+        consoleInput.setColour(TextEditor::outlineColourId, findColour(PlugDataColour::sidebarBackgroundColourId));
+        consoleInput.setColour(TextEditor::focusedOutlineColourId, findColour(PlugDataColour::sidebarBackgroundColourId));
+
+        consoleInput.applyColourToAllText(findColour(PlugDataColour::panelTextColourId));
     }
     
     UnorderedMap<String, Object*> getUniqueObjectNames(Canvas* cnv)
