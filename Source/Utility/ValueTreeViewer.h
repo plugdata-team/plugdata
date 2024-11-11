@@ -284,7 +284,7 @@ public:
             //   / │           │
             //  e──d───────────╯
             if (valueTreeNode.hasProperty("ReceiveSymbol")) {
-                auto receiveSymbolText = ((valueTreeNode.hasProperty("SendObject") || valueTreeNode.hasProperty("SendObject")) ? "" : "r: ") + valueTreeNode.getProperty("ReceiveSymbol").toString();
+                auto receiveSymbolText = ((valueTreeNode.hasProperty("ReceiveObject")) ? "" : "r: ") + valueTreeNode.getProperty("ReceiveSymbol").toString();
                 auto length = Font(15).getStringWidth(receiveSymbolText);
                 auto recColour = findColour(PlugDataColour::objectSelectedOutlineColourId);
                 g.setColour(recColour.withAlpha(0.2f));
@@ -315,7 +315,7 @@ public:
             //  │          │ /
             //  ╰────────── c
             if (valueTreeNode.hasProperty("SendSymbol")) {
-                auto sendSymbolText = ((valueTreeNode.hasProperty("SendObject") || valueTreeNode.hasProperty("SendObject")) ? "" : "s: ") + valueTreeNode.getProperty("SendSymbol").toString();
+                auto sendSymbolText = ((valueTreeNode.hasProperty("SendObject")) ? "" : "s: ") + valueTreeNode.getProperty("SendSymbol").toString();
                 auto length = Font(15).getStringWidth(sendSymbolText);
                 auto sendColour = findColour(PlugDataColour::objectSelectedOutlineColourId).withRotatedHue(0.5f);
                 g.setColour(sendColour.withAlpha(0.2f));
