@@ -234,6 +234,8 @@ public:
         input.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         input.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
         input.setColour(TextEditor::textColourId, findColour(PlugDataColour::sidebarTextColourId));
+
+        input.applyColourToAllText(findColour(PlugDataColour::panelTextColourId));
     }
 
     void paint(Graphics& g) override
