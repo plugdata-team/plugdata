@@ -153,6 +153,15 @@ bool SettingsFile::verify(XmlElement const* xml)
     if (xml == nullptr || xml->getTagName() != "SettingsTree")
         return false;
 
+    // Update this every few versions, add properties that you don't want the verifier to check
+    // This is useful so users don't get a "corrupted settings" message when upgrading
+    StringArray const dontVerify = {
+        "HeavyState",
+        "EnabledMidiOutputPorts",
+        "EnabledMidiInputPorts",
+        "LastBrowserPaths"
+    };
+    
     StringArray const expectedOrder = {
         "Paths",
         "KeyMap",
@@ -160,31 +169,36 @@ bool SettingsFile::verify(XmlElement const* xml)
         "SelectedThemes",
         "RecentlyOpened",
         "Libraries",
+        "Overlays",
         "EnabledMidiOutputPorts",
         "EnabledMidiInputPorts",
         "LastBrowserPaths",
-        "Overlays",
     };
 
     // Check if all expected elements are present and in the correct order
     int expectedIndex = 0;
+    int numSkipped = 0;
     for (auto* child = xml->getFirstChildElement(); child != nullptr; child = child->getNextElement()) {
         if (expectedIndex < expectedOrder.size()) {
-            if (child->getTagName() == "HeavyState")
+            if (dontVerify.contains(child->getTagName())) {
+                numSkipped++;
                 continue;
+            }
             else if (child->getTagName() != expectedOrder[expectedIndex]) {
                 return false; // Order mismatch
             }
             expectedIndex++;
         } else {
-            if (child->getTagName() == "HeavyState")
+            if (dontVerify.contains(child->getTagName())) {
+                numSkipped++;
                 continue;
+            }
             return false; // Extra unexpected element found
         }
     }
 
     // Check if all expected elements were found
-    return expectedIndex == expectedOrder.size();
+    return (expectedIndex + numSkipped) == expectedOrder.size();
 }
 
 SettingsFile::SettingsState SettingsFile::getSettingsState()
