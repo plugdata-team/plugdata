@@ -253,7 +253,8 @@ public:
             Fonts::drawIcon(g, valueTreeNode.getProperty("Icon"), itemBounds.removeFromLeft(22).reduced(2), iconColour, 12, false);
         }
 
-        auto nameText = valueTreeNode.getProperty("Name");
+        // Don't allow multi-line for viewer items, so remove all newlines in the string
+        auto nameText = valueTreeNode.getProperty("Name").toString().replaceCharacters("\n", " ");
         auto nameLength = Font(15).getStringWidth(nameText);
         Fonts::drawFittedText(g, nameText, itemBounds.removeFromLeft(nameLength), colour);
 
