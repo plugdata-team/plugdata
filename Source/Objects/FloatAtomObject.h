@@ -275,14 +275,14 @@ public:
         return 0.0f;
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
 
         case hash("set"):
         case hash("float"):
         case hash("list"): {
-            if (numAtoms < 1 || !atoms[0].isFloat())
+            if (atoms.size() < 1 || !atoms[0].isFloat())
                 break;
 
             auto min = atomHelper.getMinimum();
@@ -297,13 +297,13 @@ public:
             break;
         }
         case hash("send"): {
-            if (numAtoms <= 0)
+            if (atoms.size() <= 0)
                 setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].toString());
             object->updateIolets();
             break;
         }
         case hash("receive"): {
-            if (numAtoms <= 0)
+            if (atoms.size() <= 0)
                 setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].toString());
             object->updateIolets();
             break;

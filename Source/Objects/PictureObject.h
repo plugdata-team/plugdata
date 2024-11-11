@@ -110,7 +110,7 @@ public:
         repaint();
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("latch"): {
@@ -128,7 +128,7 @@ public:
             break;
         }
         case hash("open"): {
-            if (numAtoms >= 1)
+            if (atoms.size() >= 1)
                 openFile(atoms[0].toString());
             break;
         }

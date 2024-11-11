@@ -13,7 +13,7 @@ namespace pd {
 
 class MessageListener {
 public:
-    virtual void receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) = 0;
+    virtual void receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms) = 0;
 
     void* object;
     JUCE_DECLARE_WEAK_REFERENCEABLE(MessageListener)
@@ -28,8 +28,8 @@ class MessageDispatcher {
     // Holds target object, and symbol+size compressed into a single value
     // Atoms are stored in a separate buffer, and read out based on reported size
     struct Message {
-        void* target;
-        PointerIntPair<t_symbol*, 3, uint8_t> symbol_and_size;
+        PointerIntPair<void*, 2, uint8_t> targetAndSize;
+        PointerIntPair<t_symbol*, 2, uint8_t> symbolAndSize;
     };
 
 public:
@@ -52,10 +52,11 @@ public:
         auto* pd = reinterpret_cast<pd::Instance*>(instance);
         auto* dispatcher = pd->messageDispatcher.get();
         if (ProjectInfo::isStandalone || EXPECT_LIKELY(!dispatcher->block)) {
-            auto size = std::min(argc, 7);
+            auto size = std::min(argc, 15);
             for(int i = 0; i < size; i++)
                 dispatcher->backAtomBuffer->push(argv[i]);
-            dispatcher->backMessageBuffer->emplace(target, PointerIntPair<t_symbol*, 3, uint8_t>(symbol, size));
+     
+            dispatcher->backMessageBuffer->emplace(PointerIntPair<void*, 2, uint8_t>(target, (size >> 2) & 0b11), PointerIntPair<t_symbol*, 2, uint8_t>(symbol, size & 0b11));
         }
     }
 
@@ -123,27 +124,31 @@ public:
         
         Message message;
         while (popMessage(message)) {
-            auto target = messageListeners.find(message.target);
+            auto targetPtr = message.targetAndSize.getPointer();
+            auto target = messageListeners.find(targetPtr);
+            auto [symbol, size] = message.symbolAndSize;
+            size = (message.targetAndSize.getInt() << 2) | size;
+            
             if (EXPECT_LIKELY(target == messageListeners.end())) {
-                for (int at = 0; at < message.symbol_and_size.getInt(); at++) {
+                for (int at = 0; at < size; at++) {
                     frontAtomBuffer->pop();
                 }
                 continue;
             }
             
-            auto hash = reinterpret_cast<intptr_t>(message.target) ^ reinterpret_cast<intptr_t>(message.symbol_and_size.getOpaqueValue());
+            auto hash = reinterpret_cast<intptr_t>(message.targetAndSize.getOpaqueValue()) ^ reinterpret_cast<intptr_t>(message.symbolAndSize.getOpaqueValue());
             if (EXPECT_UNLIKELY(usedHashes.contains(hash))) {
-                for (int at = 0; at < message.symbol_and_size.getInt(); at++) {
+                for (int at = 0; at < size; at++) {
                     frontAtomBuffer->pop();
                 }
                 continue;
             }
             usedHashes.insert(hash);
-
-            auto [symbol, size] = message.symbol_and_size;
             
-            StackArray<pd::Atom, 7> atoms;
+            SmallArray<pd::Atom> atoms;
+            atoms.resize(size);
             t_atom atom;
+            
             for (int at = size-1; at >= 0; at--) {
                 atom = frontAtomBuffer->top();
                 frontAtomBuffer->pop();
@@ -158,9 +163,9 @@ public:
                 auto listener = it->get();
                                 
                 if (listener)
-                    listener->receiveMessage(symbol, atoms, size);
+                    listener->receiveMessage(symbol, atoms);
                 else
-                    nullListeners.add({ message.target, it });
+                    nullListeners.add({ targetPtr, it });
             }
         }
  

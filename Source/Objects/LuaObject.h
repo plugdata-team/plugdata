@@ -549,9 +549,9 @@ public:
         }
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 7> const& atoms, int argc) override
+    void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
     {
-        if (symbol == hash("open_textfile") && argc >= 1) {
+        if (symbol == hash("open_textfile") && atoms.size() >= 1) {
             openTextEditor(File(atoms[0].toString()));
         }
     }
@@ -640,9 +640,9 @@ public:
         }
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
     {
-        if (symbol == hash("open_textfile") && numAtoms >= 1) {
+        if (symbol == hash("open_textfile") && atoms.size() >= 1) {
             openTextEditor(File(atoms[0].toString()));
         }
     }

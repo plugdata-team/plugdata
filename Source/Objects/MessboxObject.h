@@ -133,7 +133,7 @@ public:
 
     void paint(Graphics& g) override { };
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("set"): {
@@ -145,7 +145,7 @@ public:
             break;
         }
         case hash("bold"): {
-            if (numAtoms >= 1 && atoms[0].isFloat())
+            if (atoms.size() >= 1 && atoms[0].isFloat())
                 bold = atoms[0].getFloat();
             break;
         }

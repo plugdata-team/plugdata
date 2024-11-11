@@ -114,7 +114,7 @@ public:
         }
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("float"):
@@ -125,7 +125,7 @@ public:
             break;
         }
         case hash("orientation"): {
-            if (numAtoms >= 1) {
+            if (atoms.size() >= 1) {
                 isVertical = static_cast<bool>(atoms[0].getFloat());
                 object->updateBounds();
                 updateAspectRatio();
@@ -133,12 +133,12 @@ public:
             break;
         }
         case hash("number"): {
-            if (numAtoms >= 1)
+            if (atoms.size() >= 1)
                 max = getMaximum();
             break;
         }
         default: {
-            iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
+            iemHelper.receiveObjectMessage(symbol, atoms);
             break;
         }
         }

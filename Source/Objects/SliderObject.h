@@ -304,7 +304,7 @@ public:
         }
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("float"):
@@ -325,7 +325,7 @@ public:
             break;
         }
         case hash("range"): {
-            if (numAtoms >= 2) {
+            if (atoms.size() >= 2) {
                 slider.setRangeFlipped(atoms[0].getFloat() > atoms[1].getFloat());
                 setParameterExcludingListener(min, atoms[0].getFloat());
                 setParameterExcludingListener(max, atoms[1].getFloat());
@@ -334,7 +334,7 @@ public:
             break;
         }
         case hash("steady"): {
-            if (numAtoms >= 1) {
+            if (atoms.size() >= 1) {
                 bool steady = atoms[0].getFloat();
                 setParameterExcludingListener(steadyOnClick, steady);
                 slider.setSliderSnapsToMousePosition(!steady);
@@ -342,7 +342,7 @@ public:
             break;
         }
         case hash("orientation"): {
-            if (numAtoms >= 1) {
+            if (atoms.size() >= 1) {
                 isVertical = static_cast<bool>(atoms[0].getFloat());
                 slider.setOrientation(isVertical);
                 updateAspectRatio();
@@ -351,14 +351,14 @@ public:
             break;
         }
         case hash("color"): {
-            iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
+            iemHelper.receiveObjectMessage(symbol, atoms);
             getLookAndFeel().setColour(Slider::backgroundColourId, Colour::fromString(iemHelper.secondaryColour.toString()));
             getLookAndFeel().setColour(Slider::trackColourId, Colour::fromString(iemHelper.primaryColour.toString()));
             object->repaint();
             break;
         }
         default: {
-            iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
+            iemHelper.receiveObjectMessage(symbol, atoms);
             break;
         }
         }

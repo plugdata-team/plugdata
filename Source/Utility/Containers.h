@@ -14,11 +14,11 @@
  
  - PooledPtrArray<T, StackSize>: replacement for juce::OwnedArray (or std::vector<std::unique_ptr>>) that alloates objects in a single block. Calling reserve() will also reserve space for the object, not just for the pointers. This should help against memory fragmentation, and will reduce the number of needed memory allocations. You can specify a StackSize if the implementation of T is known at compile time
  
- - UnorderedMap<T>: Fast replacement for std::unordered_map
+ - UnorderedMap<T>: Fast replacement for std::unordered_map. The implementation is from ankerl::unordered_dense
  
- - UnorderedSegmentedMap<T>: Fast replacement for std::unordered_map that tries to prevent moving elements. Slower for iteration or lookups than UnorderedMap, but sometimes you can use this to prevent elements from being copied
+ - UnorderedSegmentedMap<T>: Fast replacement for std::unordered_map that tries to prevent moving elements. Slower for iteration or lookups than UnorderedMap, but sometimes you can use this to prevent elements from being copied. The implementation is from ankerl::unordered_dense
  
- - UnorderedSet<T>: Fast replacement for std::unordered_set
+ - UnorderedSet<T>: Fast replacement for std::unordered_set. The implementation is from ankerl::unordered_dense
 
  - PointerIntPair<PointerType, IntBits, IntType>: Data structure to store a (maximum 3-bit) integer in the lower bytes of a pointer. Use when high data throughput is needed.
      Based on LLVM's PointerIntPair
@@ -64,9 +64,6 @@
 #include <cassert>
 #include <algorithm>
 #include <limits>
-
-template<typename T>
-class ArrayRef;
 
 template<typename IteratorT>
 class iterator_range;
@@ -1494,14 +1491,6 @@ public:
         this->append(IL);
     }
 
-    template<typename U,
-        typename = std::enable_if_t<std::is_convertible<U, T>::value>>
-    explicit SmallArray(ArrayRef<U> A)
-        : SmallArrayImpl<T>(N)
-    {
-        this->append(A.begin(), A.end());
-    }
-
     SmallArray(SmallArray const& RHS)
         : SmallArrayImpl<T>(N)
     {
@@ -2405,7 +2394,6 @@ using UnorderedSet = ankerl::unordered_dense::set<Key>;
 /// wrappers for pointers as a uniform entity.
 template <typename T> struct PointerLikeTypeTraits;
 
-namespace ptrint_detail {
 /// A tiny meta function to compute the log2 of a compile time constant.
 template <size_t N>
 struct ConstantLog2
@@ -2431,7 +2419,6 @@ template <typename T> struct IsPointerLike {
 template <typename T> struct IsPointerLike<T *> {
   static const bool value = true;
 };
-} // namespace detail
 
 // Provide PointerLikeTypeTraits for non-cvr pointers.
 template <typename T> struct PointerLikeTypeTraits<T *> {
@@ -2439,7 +2426,7 @@ template <typename T> struct PointerLikeTypeTraits<T *> {
   static inline T *getFromVoidPointer(void *P) { return static_cast<T *>(P); }
 
   static constexpr int NumLowBitsAvailable =
-    ptrint_detail::ConstantLog2<alignof(T)>::value;
+    ConstantLog2<alignof(T)>::value;
 };
 
 template <> struct PointerLikeTypeTraits<void *> {
@@ -2505,7 +2492,7 @@ template <> struct PointerLikeTypeTraits<uintptr_t> {
 template <int Alignment, typename FunctionPointerT>
 struct FunctionPointerLikeTypeTraits {
   static constexpr int NumLowBitsAvailable =
-    ptrint_detail::ConstantLog2<Alignment>::value;
+    ConstantLog2<Alignment>::value;
   static inline void *getAsVoidPointer(FunctionPointerT P) {
     assert((reinterpret_cast<uintptr_t>(P) &
             ~((uintptr_t)-1 << NumLowBitsAvailable)) == 0 &&
@@ -2529,7 +2516,6 @@ struct PointerLikeTypeTraits<ReturnT (*)(ParamTs...)>
     : FunctionPointerLikeTypeTraits<4, ReturnT (*)(ParamTs...)> {};
 
 
-namespace ptrint_detail {
 template <typename Ptr> struct PunnedPointer {
   static_assert(sizeof(Ptr) == sizeof(intptr_t), "");
 
@@ -2560,9 +2546,7 @@ template <typename Ptr> struct PunnedPointer {
 private:
   alignas(Ptr) unsigned char Data[sizeof(Ptr)];
 };
-} // namespace detail
 
-template <typename T, typename Enable> struct DenseMapInfo;
 template <typename PointerT, unsigned IntBits, typename PtrTraits>
 struct PointerIntPairInfo;
 
@@ -2585,7 +2569,7 @@ template <typename PointerTy, unsigned IntBits, typename IntType = unsigned,
 class PointerIntPair {
   // Used by MSVC visualizer and generally helpful for debugging/visualizing.
   using InfoTy = Info;
-    ptrint_detail::PunnedPointer<PointerTy> Value;
+    PunnedPointer<PointerTy> Value;
 
 public:
   constexpr PointerIntPair() = default;
@@ -2719,32 +2703,7 @@ struct PointerIntPairInfo {
   }
 };
 
-// Provide specialization of DenseMapInfo for PointerIntPair.
-template <typename PointerTy, unsigned IntBits, typename IntType>
-struct DenseMapInfo<PointerIntPair<PointerTy, IntBits, IntType>, void> {
-  using Ty = PointerIntPair<PointerTy, IntBits, IntType>;
 
-  static Ty getEmptyKey() {
-    uintptr_t Val = static_cast<uintptr_t>(-1);
-    Val <<= PointerLikeTypeTraits<Ty>::NumLowBitsAvailable;
-    return Ty::getFromOpaqueValue(reinterpret_cast<void *>(Val));
-  }
-
-  static Ty getTombstoneKey() {
-    uintptr_t Val = static_cast<uintptr_t>(-2);
-    Val <<= PointerLikeTypeTraits<PointerTy>::NumLowBitsAvailable;
-    return Ty::getFromOpaqueValue(reinterpret_cast<void *>(Val));
-  }
-
-  static unsigned getHashValue(Ty V) {
-    uintptr_t IV = reinterpret_cast<uintptr_t>(V.getOpaqueValue());
-    return unsigned(IV) ^ unsigned(IV >> 9);
-  }
-
-  static bool isEqual(const Ty &LHS, const Ty &RHS) { return LHS == RHS; }
-};
-
-// Teach SmallPtrSet that PointerIntPair is "basically a pointer".
 template <typename PointerTy, unsigned IntBits, typename IntType,
           typename PtrTraits>
 struct PointerLikeTypeTraits<

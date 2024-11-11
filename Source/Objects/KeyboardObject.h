@@ -280,9 +280,9 @@ public:
         repaint();
     }
 
-    void receiveNotesOn(StackArray<pd::Atom, 7> const& atoms, int numAtoms, bool isOn)
+    void receiveNotesOn(SmallArray<pd::Atom> const& atoms, bool isOn)
     {
-        for (int at = 0; at < numAtoms; at++) {
+        for (int at = 0; at < atoms.size(); at++) {
             if (isOn)
                 heldKeys.insert(atoms[at].getFloat() - 12);
             else
@@ -291,7 +291,7 @@ public:
         repaint();
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
     {
         auto elseKeyboard = ptr.get<t_fake_keyboard>();
 
@@ -302,7 +302,7 @@ public:
             break;
         }
         case hash("list"): {
-            if (numAtoms == 2) {
+            if (atoms.size() == 2) {
                 receiveNoteOn(atoms[0].getFloat(), atoms[1].getFloat() > 0);
             }
             break;
@@ -312,51 +312,51 @@ public:
             break;
         }
         case hash("on"): {
-            receiveNotesOn(atoms, numAtoms, true);
+            receiveNotesOn(atoms, true);
             break;
         }
         case hash("off"): {
-            receiveNotesOn(atoms, numAtoms, false);
+            receiveNotesOn(atoms, false);
             break;
         }
         case hash("lowc"): {
-            if (numAtoms >= 1)
+            if (atoms.size() >= 1)
                 setParameterExcludingListener(lowC, static_cast<int>(atoms[0].getFloat()));
             repaint();
             break;
         }
         case hash("width"): {
-            if (numAtoms >= 1)
+            if (atoms.size() >= 1)
                 setParameterExcludingListener(keyWidth, static_cast<int>(atoms[0].getFloat()));
             object->updateBounds();
             break;
         }
         case hash("oct"): {
-            if (numAtoms >= 1)
+            if (atoms.size() >= 1)
                 setParameterExcludingListener(lowC, std::clamp<int>(getValue<int>(lowC) + static_cast<int>(atoms[0].getFloat()), -1, 9));
             object->updateBounds();
             break;
         }
         case hash("8ves"): {
-            if (numAtoms >= 1)
+            if (atoms.size() >= 1)
                 setParameterExcludingListener(octaves, static_cast<int>(atoms[0].getFloat()));
             object->updateBounds();
             break;
         }
         case hash("send"): {
-            if (numAtoms >= 1)
+            if (atoms.size() >= 1)
                 setParameterExcludingListener(sendSymbol, atoms[0].toString());
             object->updateIolets();
             break;
         }
         case hash("receive"): {
-            if (numAtoms >= 1)
+            if (atoms.size() >= 1)
                 setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             object->updateIolets();
             break;
         }
         case hash("toggle"): {
-            if (numAtoms >= 1)
+            if (atoms.size() >= 1)
                 setParameterExcludingListener(toggleMode, atoms[0].getFloat());
         }
         case hash("flush"): {

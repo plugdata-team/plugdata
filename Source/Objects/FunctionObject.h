@@ -446,17 +446,17 @@ public:
         return sSymbol.isNotEmpty() && (sSymbol != "empty");
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("send"): {
-            if (numAtoms > 0)
+            if (atoms.size() > 0)
                 setParameterExcludingListener(sendSymbol, atoms[0].toString());
             object->updateIolets();
             break;
         }
         case hash("receive"): {
-            if (numAtoms > 0)
+            if (atoms.size() > 0)
                 setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             object->updateIolets();
             break;

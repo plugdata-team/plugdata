@@ -222,11 +222,11 @@ public:
         }
     }
 
-    void receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override
+    void receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (hash(symbol->s_name)) {
         case hash("edit"): {
-            if (numAtoms <= 0)
+            if (atoms.size() <= 0)
                 break;
             MessageManager::callAsync([_this = SafePointer(this), shouldBeEditable = static_cast<bool>(atoms[0].getFloat())]() {
                 if (_this) {
@@ -237,7 +237,7 @@ public:
             break;
         }
         case hash("rename"): {
-            if (numAtoms <= 0)
+            if (atoms.size() <= 0)
                 break;
             MessageManager::callAsync([_this = SafePointer(this), newName = atoms[0].toString()]() {
                 if (_this) {
@@ -1316,7 +1316,7 @@ public:
         });
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("redraw"): {
@@ -1409,7 +1409,7 @@ public:
         }
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
     {
     }
 };

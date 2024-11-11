@@ -427,7 +427,7 @@ public:
         mouseMove(e);
     }
 
-    void receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override
+    void receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms) override
     {
         if (!cnv || pd->isPerformingGlobalSync)
             return;
@@ -650,7 +650,7 @@ public:
         pd->unregisterMessageListener(this);
     }
 
-    void receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override
+    void receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms) override
     {
         if (pd->isPerformingGlobalSync)
             return;

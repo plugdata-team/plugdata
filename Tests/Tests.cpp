@@ -52,21 +52,26 @@ void openHelpfilesRecursively(TabComponent& tabbar, std::vector<File>& helpFiles
     auto* peer = editor->getTopLevelComponent()->getPeer();
     // Click everything
     cnv->locked.setValue(true);
-    /*
+    
     for(auto* object : cnv->objects)
     {
-        MessageManager::callAsync([_obj = Component::SafePointer(object), peer](){
+        MessageManager::callAsync([_obj = Component::SafePointer(object), peer, cnv](){
             if(_obj) {
-                auto pos = peer->getComponent().getLocalPoint(_obj.getComponent(), _obj->getLocalBounds().getCentre().toFloat());
-                peer->handleMouseEvent(MouseInputSource::InputSourceType::mouse, pos, ModifierKeys::leftButtonModifier, 0.0f, 0.0f, Time::getMillisecondCounter());
-                peer->handleMouseEvent(MouseInputSource::InputSourceType::mouse, pos, ModifierKeys::noModifiers, 0.0f, 0.0f, Time::getMillisecondCounter());
+                auto& peerComponent = peer->getComponent();
+                auto pos = peerComponent.getLocalPoint(_obj.getComponent(), _obj->getLocalBounds().getCentre().toFloat());
+                auto viewportBounds = peerComponent.getLocalArea(cnv->viewport.get(), cnv->viewport->getLocalBounds().toFloat());
+                
+                if(viewportBounds.contains(pos)) {
+                    peer->handleMouseEvent(MouseInputSource::InputSourceType::mouse, pos, ModifierKeys::leftButtonModifier, 0.0f, 0.0f, Time::getMillisecondCounter());
+                    peer->handleMouseEvent(MouseInputSource::InputSourceType::mouse, pos, ModifierKeys::noModifiers, 0.0f, 0.0f, Time::getMillisecondCounter());
+                }
             }
             else {
                 std::cerr << "This shouldn't happen" << std::endl;
             }
         });
 
-    } */
+    }
 
     // Go into all the subpatches that were opened by clicking, and click everything again
     /*
@@ -85,7 +90,7 @@ void openHelpfilesRecursively(TabComponent& tabbar, std::vector<File>& helpFiles
         }
     } */
 
-    Timer::callAfterDelay(100, [pd, editor, helpFile, &helpFiles, tabbar = Component::SafePointer(&tabbar)]() mutable {
+    Timer::callAfterDelay(400, [pd, editor, helpFile, &helpFiles, tabbar = Component::SafePointer(&tabbar)]() mutable {
         /*
         StringArray errors;
         auto messages = pd->getConsoleMessages();
@@ -107,6 +112,8 @@ void openHelpfilesRecursively(TabComponent& tabbar, std::vector<File>& helpFiles
         } */
         //editor->sidebar->clearConsole();
 
+        editor->pd->volume->store(0.0f);
+        
         if(tabbar) {
             while(auto* cnv = tabbar->getCurrentCanvas()) { // TODO: why is this faster than closeAllTabs?()
                 tabbar->closeTab(cnv);
@@ -186,8 +193,10 @@ void runTests(PluginEditor* editor)
     }
 
     auto& tabbar = editor->getTabComponent();
+    
+    //editor->getTopLevelComponent()->getPeer()->setBounds(Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea, false);
 
-    allHelpfiles.erase(allHelpfiles.end() - 1342, allHelpfiles.end());
+    //allHelpfiles.erase(allHelpfiles.end() - 1334, allHelpfiles.end());
 
     //exportHelpFileImages(tabbar, File("/Users/timschoen/Projecten/plugdata/Tests/Help"));
     //openHelpfilesRecursively(tabbar, allHelpfiles);

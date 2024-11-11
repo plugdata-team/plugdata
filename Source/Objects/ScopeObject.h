@@ -305,26 +305,26 @@ public:
         return rSymbol.isNotEmpty() && (rSymbol != "empty");
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("receive"): {
-            if (numAtoms >= 1)
+            if (atoms.size() >= 1)
                 setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             break;
         }
         case hash("fgcolor"): {
-            if (numAtoms == 3)
+            if (atoms.size() == 3)
                 setParameterExcludingListener(primaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
             break;
         }
         case hash("bgcolor"): {
-            if (numAtoms == 3)
+            if (atoms.size() == 3)
                 setParameterExcludingListener(secondaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
             break;
         }
         case hash("gridcolor"): {
-            if (numAtoms == 3)
+            if (atoms.size() == 3)
                 setParameterExcludingListener(gridColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
             break;
         }

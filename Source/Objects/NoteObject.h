@@ -441,7 +441,7 @@ public:
         repaint();
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("font"): {
@@ -516,12 +516,12 @@ public:
             }
         }
         case hash("receive"): {
-            if (numAtoms >= 1)
+            if (atoms.size() >= 1)
                 setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             break;
         }
         case hash("bg"): {
-            if (numAtoms > 0 && atoms[0].isFloat())
+            if (atoms.size() > 0 && atoms[0].isFloat())
                 fillBackground = atoms[0].getFloat();
             break;
         }

@@ -2478,7 +2478,7 @@ bool Canvas::panningModifierDown()
     return isPanDragKeysActive || ModifierKeys::getCurrentModifiers().isMiddleButtonDown();
 }
 
-void Canvas::receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms)
+void Canvas::receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms)
 {
     switch (hash(symbol->s_name)) {
     case hash("sync"):
@@ -2510,7 +2510,7 @@ void Canvas::receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 7> const& ato
         break;
     }
     case hash("editmode"): {
-        if (numAtoms >= 1) {
+        if (atoms.size() >= 1) {
             int flag = atoms[0].getFloat();
             if (flag % 2 == 0) {
                 locked = true;
@@ -2522,7 +2522,7 @@ void Canvas::receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 7> const& ato
         break;
     }
     case hash("setbounds"): {
-        if (numAtoms >= 4) {
+        if (atoms.size() >= 4) {
             auto width = atoms[2].getFloat() - atoms[0].getFloat();
             auto height = atoms[3].getFloat() - atoms[1].getFloat();
             setValueExcludingListener(patchWidth, width, this);

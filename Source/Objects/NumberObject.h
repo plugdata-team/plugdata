@@ -239,20 +239,20 @@ public:
         repaint();
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("float"):
         case hash("list"):
         case hash("set"): {
-            if (numAtoms > 0 && atoms[0].isFloat()) {
+            if (atoms.size() > 0 && atoms[0].isFloat()) {
                 value = std::clamp(atoms[0].getFloat(), ::getValue<float>(min), ::getValue<float>(max));
                 input.setValue(value, dontSendNotification);
             }
             break;
         }
         case hash("range"): {
-            if (numAtoms >= 2 && atoms[0].isFloat() && atoms[1].isFloat()) {
+            if (atoms.size() >= 2 && atoms[0].isFloat() && atoms[1].isFloat()) {
                 min = getMinimum();
                 max = getMaximum();
             }
@@ -274,7 +274,7 @@ public:
             input.setLogarithmicHeight(height);
         }
         default: {
-            iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
+            iemHelper.receiveObjectMessage(symbol, atoms);
             break;
         }
         }

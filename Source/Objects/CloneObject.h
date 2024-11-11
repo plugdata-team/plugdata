@@ -117,11 +117,11 @@ public:
         newCanvas->patch.setCurrentFile(URL(path));
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("vis"): {
-            if (numAtoms >= 2) {
+            if (atoms.size() >= 2) {
                 openClonePatch(atoms[0].getFloat(), atoms[1].getFloat());
             }
             break;

@@ -182,7 +182,7 @@ def generate_binary_data(output_dir, file_list):
             for i in range(0, len(data['binary']), chunk_size):
                 chunk = data['binary'][i:i + chunk_size]
                 # Format and write each chunk without a trailing comma
-                hex_values = ', '.join(str(byte) for byte in chunk) + ', '
+                hex_values = ','.join(str(byte) for byte in chunk) + ','
                 cpp_file.write(f"    {hex_values}\n")
 
             cpp_file.write("};\n\n")

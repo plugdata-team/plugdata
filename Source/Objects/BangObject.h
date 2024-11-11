@@ -206,7 +206,7 @@ public:
         }
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("float"):
@@ -215,9 +215,9 @@ public:
             trigger();
             break;
         case hash("flashtime"): {
-            if (numAtoms > 0)
+            if (atoms.size() > 0)
                 setParameterExcludingListener(bangInterrupt, atoms[0].getFloat());
-            if (numAtoms > 1)
+            if (atoms.size() > 1)
                 setParameterExcludingListener(bangHold, atoms[1].getFloat());
             break;
         }
@@ -226,7 +226,7 @@ public:
         case hash("loadbang"):
             break;
         default: {
-            bool wasIemMessage = iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
+            bool wasIemMessage = iemHelper.receiveObjectMessage(symbol, atoms);
             if (!wasIemMessage) {
                 trigger();
             }

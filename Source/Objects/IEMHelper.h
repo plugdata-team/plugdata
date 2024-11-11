@@ -113,7 +113,7 @@ public:
             objectParams.addParam(param);
     }
 
-    bool receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms)
+    bool receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms)
     {
         auto setColour = [this](Value& targetValue, pd::Atom const& atom) {
             if (atom.isSymbol()) {
@@ -138,23 +138,23 @@ public:
         };
         switch (symbol) {
         case hash("send"): {
-            if (numAtoms >= 1)
+            if (atoms.size() >= 1)
                 gui->setParameterExcludingListener(sendSymbol, atoms[0].toString());
             object->updateIolets();
             return true;
         }
         case hash("receive"): {
-            if (numAtoms >= 1)
+            if (atoms.size() >= 1)
                 gui->setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             object->updateIolets();
             return true;
         }
         case hash("color"): {
-            if (numAtoms > 0)
+            if (atoms.size() > 0)
                 setColour(secondaryColour, atoms[0]);
-            if (numAtoms > 1)
+            if (atoms.size() > 1)
                 setColour(primaryColour, atoms[1]);
-            if (numAtoms > 2)
+            if (atoms.size() > 2)
                 setColour(labelColour, atoms[2]);
 
             if (auto* label = gui->getLabel()) {
@@ -168,14 +168,14 @@ public:
             return true;
         }
         case hash("label"): {
-            if (numAtoms >= 1) {
+            if (atoms.size() >= 1) {
                 gui->setParameterExcludingListener(labelText, atoms[0].toString());
                 gui->updateLabel();
             }
             return true;
         }
         case hash("label_pos"): {
-            if (numAtoms >= 2) {
+            if (atoms.size() >= 2) {
                 gui->setParameterExcludingListener(labelX, static_cast<int>(atoms[0].getFloat()));
                 gui->setParameterExcludingListener(labelY, static_cast<int>(atoms[1].getFloat()));
                 gui->updateLabel();
@@ -183,20 +183,20 @@ public:
             return true;
         }
         case hash("label_font"): {
-            if (numAtoms >= 2) {
+            if (atoms.size() >= 2) {
                 gui->setParameterExcludingListener(labelHeight, static_cast<int>(atoms[1].getFloat()));
                 gui->updateLabel();
             }
             return true;
         }
         case hash("vis_size"): {
-            if (numAtoms >= 2) {
+            if (atoms.size() >= 2) {
                 object->updateBounds();
             }
             return true;
         }
         case hash("init"): {
-            if (numAtoms >= 1)
+            if (atoms.size() >= 1)
                 gui->setParameterExcludingListener(initialise, static_cast<bool>(atoms[0].getFloat()));
             return true;
         }

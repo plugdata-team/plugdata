@@ -748,7 +748,7 @@ bool ObjectBase::canReceiveMouseEvent(int x, int y)
     return true;
 }
 
-void ObjectBase::receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms)
+void ObjectBase::receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms)
 {
     object->triggerOverlayActiveState();
 
@@ -772,7 +772,7 @@ void ObjectBase::receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 7> const&
         break;
     }
 
-    receiveObjectMessage(symHash, atoms, numAtoms);
+    receiveObjectMessage(symHash, atoms);
 }
 
 void ObjectBase::setParameterExcludingListener(Value& parameter, var const& value)

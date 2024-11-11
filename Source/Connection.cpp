@@ -369,20 +369,6 @@ void Connection::popPathState()
     updatePath();
 }
 
-t_pd* Connection::getTargetObject(t_outconnect* oc)
-{
-    struct _outconnect
-    {
-        struct _outconnect *oc_next;
-        t_pd *oc_to;
-        t_symbol* oc_path_data;
-        t_signal* oc_signal;
-        void* oc_signal_reference;
-    };
-    
-    return reinterpret_cast<_outconnect*>(oc)->oc_to;
-}
-
 void Connection::setPointer(t_outconnect* newPtr)
 {
     auto originalPointer = ptr.getRawUnchecked<t_outconnect>();
@@ -390,7 +376,7 @@ void Connection::setPointer(t_outconnect* newPtr)
         ptr = pd::WeakReference(newPtr, cnv->pd);
 
         cnv->pd->unregisterMessageListener(this);
-        cnv->pd->registerMessageListener(getTargetObject(newPtr), this);
+        cnv->pd->registerMessageListener(newPtr, this);
     }
 }
 
@@ -571,36 +557,37 @@ void Connection::animate()
 
 StringArray Connection::getMessageFormated()
 {
-    auto args = lastValue;
+    auto const& args = lastValue;
+    auto numArgs = args.size();
     auto name = lastSelector ? String::fromUTF8(lastSelector->s_name) : "";
 
     StringArray formatedMessage;
 
-    if (name == "float" && lastNumArgs > 0) {
+    if (name == "float" && numArgs > 0) {
         formatedMessage.add("float:");
         formatedMessage.add(args[0].toString());
-    } else if (name == "symbol" && lastNumArgs > 0) {
+    } else if (name == "symbol" && numArgs > 0) {
         formatedMessage.add("symbol:");
         formatedMessage.add(args[0].toString());
     } else if (name == "list") {
-        if (lastNumArgs >= 7) {
-            formatedMessage.add("list (6+):");
+        if (numArgs >= 15) {
+            formatedMessage.add("list (14+):");
         } else {
-            formatedMessage.add("list (" + String(lastNumArgs) + "):");
+            formatedMessage.add("list (" + String(numArgs) + "):");
         }
-        for (int arg = 0; arg < lastNumArgs; arg++) {
+        for (int arg = 0; arg < numArgs; arg++) {
             if (args[arg].isFloat()) {
                 formatedMessage.add(String(args[arg].getFloat()));
             } else if (args[arg].isSymbol()) {
                 formatedMessage.add(args[arg].toString());
             }
         }
-        if (lastNumArgs >= 7) {
+        if (numArgs >= 15) {
             formatedMessage.add("...");
         }
     } else {
         formatedMessage.add(name);
-        for (int arg = 0; arg < lastNumArgs; arg++) {
+        for (int arg = 0; arg < numArgs; arg++) {
             if (args[arg].isFloat()) {
                 formatedMessage.add(String(args[arg].getFloat()));
             } else if (args[arg].isSymbol()) {
@@ -1380,7 +1367,7 @@ void ConnectionPathUpdater::timerCallback()
     canvas->patch.endUndoSequence("SetConnectionPaths");
 }
 
-void Connection::receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms)
+void Connection::receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms)
 {
     if (cnv->shouldShowConnectionActivity()) {
         startTimer(StopAnimation, 1000 / 8.0f);
@@ -1392,6 +1379,5 @@ void Connection::receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 7> const&
 
     outobj->triggerOverlayActiveState();
     lastValue = atoms;
-    lastNumArgs = numAtoms;
     lastSelector = symbol;
 }

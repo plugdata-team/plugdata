@@ -188,7 +188,7 @@ public:
         return static_cast<bool>(topLevel->locked.getValue() || topLevel->commandLocked.getValue()) || topLevel->isGraph;
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("color"): {

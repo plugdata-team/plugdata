@@ -440,7 +440,7 @@ public:
         }
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("float"):
@@ -450,7 +450,7 @@ public:
             break;
         }
         case hash("range"): {
-            if (numAtoms >= 2) {
+            if (atoms.size() >= 2) {
                 auto newMin = atoms[0].getFloat();
                 auto newMax = atoms[1].getFloat();
                 // we have to use our min/max as by the time we get the "range" message, it has already changed knb->x_min & knb->x_max!
@@ -465,7 +465,7 @@ public:
             break;
         }
         case hash("angle"): {
-            if (numAtoms) {
+            if (atoms.size()) {
                 auto range = std::clamp<int>(atoms[0].getFloat(), 0, 360);
                 setParameterExcludingListener(angularRange, range);
                 updateRotaryParameters();
@@ -473,7 +473,7 @@ public:
             break;
         }
         case hash("offset"): {
-            if (numAtoms) {
+            if (atoms.size()) {
                 auto offset = std::clamp<int>(atoms[0].getFloat(), -180, 180);
                 setParameterExcludingListener(angularOffset, offset);
                 updateRotaryParameters();
@@ -507,13 +507,13 @@ public:
             break;
         }
         case hash("send"): {
-            if (numAtoms >= 1)
+            if (atoms.size() >= 1)
                 setParameterExcludingListener(sendSymbol, atoms[0].toString());
             object->updateIolets();
             break;
         }
         case hash("receive"): {
-            if (numAtoms >= 1)
+            if (atoms.size() >= 1)
                 setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             object->updateIolets();
             break;
@@ -538,7 +538,7 @@ public:
             break;
         }
         case hash("outline"): {
-            if (numAtoms > 0 && atoms[0].isFloat())
+            if (atoms.size() > 0 && atoms[0].isFloat())
                 outline = atoms[0].getFloat();
             break;
         }

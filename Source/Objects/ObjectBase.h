@@ -182,7 +182,7 @@ public:
     virtual void onConstrainerCreate() {};
 
     // Called whenever the object receives a pd message
-    virtual void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) { };
+    virtual void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) { };
 
     // Close any tabs with opened subpatchers
     void closeOpenedSubpatchers();
@@ -191,7 +191,7 @@ public:
     // Attempt to send "click" message to object. Returns false if the object has no such method
     bool click(Point<int> position, bool shift, bool alt);
 
-    void receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override;
+    void receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms) override;
 
     static ObjectBase* createGui(pd::WeakReference ptr, Object* parent);
 
