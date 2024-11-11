@@ -147,13 +147,6 @@ public:
         loadParameters(properties);
     }
 
-    void setInspectorEmpty()
-    {
-        auto clear = SmallArray<ObjectParameters, 6>();
-        loadParameters(clear);
-        setTitle("empty");
-    }
-
     bool loadParameters(SmallArray<ObjectParameters, 6>& objectParameters)
     {
         properties = objectParameters;

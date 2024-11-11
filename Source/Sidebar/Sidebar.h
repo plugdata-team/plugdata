@@ -251,6 +251,8 @@ public:
     void showParameters(SmallArray<Component*>& objects, SmallArray<ObjectParameters, 6>& params, bool showOnSelect = false);
     void hideParameters();
 
+    void clearInspector();
+
     bool isShowingBrowser();
 
     void settingsChanged(String const& name, var const& value) override;

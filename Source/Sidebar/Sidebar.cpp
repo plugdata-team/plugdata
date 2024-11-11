@@ -338,7 +338,7 @@ void Sidebar::showPanel(SidePanel panelToShow)
             if (!sidebarHidden) {
                 auto isVisible = inspectorButton.isInspectorPinned() || (inspectorButton.isInspectorAuto() && lastParameters.not_empty());
                 if (!areParamObjectsAllValid()) {
-                    inspector->setInspectorEmpty();
+                    clearInspector();
                 }
                 if (isVisible) {
                     inspector->loadParameters(lastParameters);
@@ -356,6 +356,14 @@ void Sidebar::showPanel(SidePanel panelToShow)
     updateGeometry();
 
     repaint();
+}
+
+void Sidebar::clearInspector()
+{
+    lastParameters.clear();
+    inspector->loadParameters(lastParameters);
+    inspector->setTitle("empty");
+    inspectorButton.showIndicator(false);
 }
 
 bool Sidebar::areParamObjectsAllValid()
@@ -470,7 +478,7 @@ void Sidebar::updateSearch(bool resetInspector)
 {
     searchPanel->updateResults();
     if (!areParamObjectsAllValid() || resetInspector) {
-        inspector->setInspectorEmpty();
+        clearInspector();
     }
 }
 
