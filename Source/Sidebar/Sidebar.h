@@ -325,8 +325,7 @@ private:
         SidebarSelectorButton& button;
     };
 
-    // FIXME: Use Tim's new TUCE HeapArray here, but it's not compiling in this use case yet.
-    Array<PanelAndButton> panelAndButton;
+    SmallArray<PanelAndButton> panelAndButton;
 
     enum InspectorMode { InspectorOff, InspectorAuto, InspectorOpen };
     int inspectorMode = InspectorMode::InspectorOff;
